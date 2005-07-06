@@ -1,0 +1,21 @@
+Source: ipython
+Section: devel
+Priority: optional
+Maintainer: Jack Moffitt <jack@xiph.org>
+Build-Depends-Indep: debhelper (>> 4.1.65), dpatch, python-dev
+Standards-Version: 3.6.1
+
+Package: ipython
+Architecture: all
+Depends: ${python:Depends}
+Recommends: python-numeric, python-numeric-ext
+Description: An enhanced interactive Python shell
+ IPython is an enhanced interactive Python shell.  It can be used as a
+ replacement for the standard Python shell, or it can be used as a
+ complete working environment for scientific computing (like Matlab or
+ Mathematica) when paired with the standard Python scientific and
+ numerical tools.  It supports dynamic object introspections, numbered
+ input/output prompts, a macro system, session logging, session
+ restoring, complete system shell access, verbose and colored
+ traceback reports, auto-parentheses, auto-quoting, and is
+ embeddedable in other Python programs.

@@ -1,0 +1,2490 @@
+# -*- coding: utf-8 -*-
+"""Magic functions for InteractiveShell.
+
+$Id: Magic.py 583 2005-05-13 21:20:33Z fperez $"""
+
+#*****************************************************************************
+#       Copyright (C) 2001 Janko Hauser <jhauser@zscout.de> and
+#       Copyright (C) 2001-2004 Fernando Perez <fperez@colorado.edu>
+#
+#  Distributed under the terms of the BSD License.  The full license is in
+#  the file COPYING, distributed as part of this software.
+#*****************************************************************************
+
+#****************************************************************************
+# Modules and globals
+
+from IPython import Release
+__author__  = '%s <%s>\n%s <%s>' % \
+              ( Release.authors['Janko'] + Release.authors['Fernando'] )
+__license__ = Release.license
+
+# Python standard modules
+import __builtin__
+import os,sys,inspect,pydoc,re,tempfile,shlex,pdb,bdb,time
+try:
+    import profile,pstats
+except ImportError:
+    profile = pstats = None
+from getopt import getopt
+from pprint import pprint, pformat
+from cStringIO import StringIO
+
+# Homebrewed
+from IPython.Struct import Struct
+from IPython.Itpl import Itpl, itpl, printpl,itplns
+from IPython.FakeModule import FakeModule
+from IPython import OInspect
+from IPython.genutils import *
+
+# Globals to be set later by Magic constructor
+MAGIC_PREFIX = ''
+MAGIC_ESCAPE = ''
+
+#***************************************************************************
+# Utility functions
+def magic2python(cmd):
+    """Convert a command string of magic syntax to valid Python code."""
+
+    if cmd.startswith('#'+MAGIC_ESCAPE) or \
+           cmd.startswith(MAGIC_ESCAPE):
+        if cmd[0]=='#':
+            cmd = cmd[1:]
+        # we need to return the proper line end later
+        if cmd[-1] == '\n':
+            endl = '\n'
+        else:
+            endl = ''
+        try:
+            func,args = cmd[1:].split(' ',1)
+        except:
+            func,args = cmd[1:].rstrip(),''
+        args = args.replace('"','\\"').replace("'","\\'").rstrip()
+        return '%s%s ("%s")%s' % (MAGIC_PREFIX,func,args,endl)
+    else:
+        return cmd
+
+def on_off(tag):
+    """Return an ON/OFF string for a 1/0 input. Simple utility function."""
+    return ['OFF','ON'][tag]
+
+def get_py_filename(name):
+    """Return a valid python filename in the current directory.
+
+    If the given name is not a file, it adds '.py' and searches again.
+    Raises IOError with an informative message if the file isn't found."""
+
+    name = os.path.expanduser(name)
+    if not os.path.isfile(name) and not name.endswith('.py'):
+        name += '.py'
+    if os.path.isfile(name):
+        return name
+    else:
+        raise IOError,'File `%s` not found.' % name
+
+# Try to use shlex.split for converting an input string into a sys.argv-type
+# list.  This appeared in Python 2.3, so here's a quick backport for 2.2.
+try:
+    shlex_split = shlex.split
+except AttributeError:
+    _quotesre = re.compile(r'[\'"](.*)[\'"]')
+    _wordchars = ('abcdfeghijklmnopqrstuvwxyz'
+                  'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-.~*?'
+                  'ßàáâãäåæçèéêëìíîïðñòóôõöøùúûüýþÿ'
+                  'ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞ%s'
+                  % os.sep)
+    
+    def shlex_split(s):
+        """Simplified backport to Python 2.2 of shlex.split().
+
+        This is a quick and dirty hack, since the shlex module under 2.2 lacks
+        several of the features needed to really match the functionality of
+        shlex.split() in 2.3."""
+
+        lex = shlex.shlex(StringIO(s))
+        # Try to get options, extensions and path separators as characters
+        lex.wordchars = _wordchars
+        lex.commenters = ''
+        # Make a list out of the lexer by hand, since in 2.2 it's not an
+        # iterator.
+        lout = []
+        while 1:
+            token = lex.get_token()
+            if token == '':
+                break
+            # Try to handle quoted tokens correctly
+            quotes = _quotesre.match(token)
+            if quotes:
+                token = quotes.group(1)
+            lout.append(token)
+        return lout
+
+#****************************************************************************
+# Utility classes
+class Macro:
+    """Simple class to store the value of macros as strings.
+
+    This allows us to later exec them by checking when something is an
+    instance of this class."""
+    
+    def __init__(self,cmds):
+        """Build a macro from a list of commands."""
+
+        # Since the list may include multi-line entries, first make sure that
+        # they've been all broken up before passing it to magic2python
+        cmdlist = map(magic2python,''.join(cmds).split('\n'))
+        self.value = '\n'.join(cmdlist)
+
+    def __str__(self):
+        return self.value
+
+#***************************************************************************
+# Main class implementing Magic functionality
+class Magic:
+    """Magic functions for InteractiveShell.
+
+    Shell functions which can be reached as %function_name. All magic
+    functions should accept a string, which they can parse for their own
+    needs. This can make some functions easier to type, eg `%cd ../`
+    vs. `%cd("../")`
+
+    ALL definitions MUST begin with the prefix magic_. The user won't need it
+    at the command line, but it is is needed in the definition. """
+
+    # class globals
+    auto_status = ['Automagic is OFF, % prefix IS needed for magic functions.',
+                   'Automagic is ON, % prefix NOT needed for magic functions.']
+
+    #......................................................................
+    # some utility functions
+
+    def __init__(self,shell):
+        # XXX This is hackish, clean up later to avoid these messy globals
+        global MAGIC_PREFIX, MAGIC_ESCAPE
+        
+        self.options_table = {}
+        MAGIC_PREFIX = shell.name+'.magic_'
+        MAGIC_ESCAPE = shell.ESC_MAGIC
+        if profile is None:
+            self.magic_prun = self.profile_missing_notice
+
+    def profile_missing_notice(self, *args, **kwargs):
+        error("""\
+The profile module could not be found.  If you are a Debian user,
+it has been removed from the standard Debian package because of its non-free
+license. To use profiling, please install"python2.3-profiler" from non-free.""")
+    
+    def default_option(self,fn,optstr):
+        """Make an entry in the options_table for fn, with value optstr"""
+        
+        if fn not in self.lsmagic():
+            error("%s is not a magic function" % fn)
+        self.options_table[fn] = optstr
+
+    def lsmagic(self):
+        """Return a list of currently available magic functions.
+
+        Gives a list of the bare names after mangling (['ls','cd', ...], not
+        ['magic_ls','magic_cd',...]"""
+
+        # FIXME. This needs a cleanup, in the way the magics list is built.
+        
+        # magics in class definition
+        class_magic = lambda fn: fn.startswith('magic_') and \
+                      callable(Magic.__dict__[fn])
+        # in instance namespace (run-time user additions)
+        inst_magic =  lambda fn: fn.startswith('magic_') and \
+                     callable(self.__dict__[fn])
+        # and bound magics by user (so they can access self):
+        inst_bound_magic =  lambda fn: fn.startswith('magic_') and \
+                           callable(self.__class__.__dict__[fn])
+        magics = filter(class_magic,Magic.__dict__.keys()) + \
+                 filter(inst_magic,self.__dict__.keys()) + \
+                 filter(inst_bound_magic,self.__class__.__dict__.keys())
+        out = []
+        for fn in magics:
+            out.append(fn.replace('magic_','',1))
+        out.sort()
+        return out
+    
+    def set_shell(self,shell):
+        self.shell = shell
+        self.alias_table = shell.alias_table
+
+    def extract_input_slices(self,slices):
+        """Return as a string a set of input history slices.
+
+        The set of slices is given as a list of strings (like ['1','4:8','9'],
+        since this function is for use by magic functions which get their
+        arguments as strings."""
+
+        cmds = []
+        for chunk in slices:
+            if ':' in chunk:
+                ini,fin = map(int,chunk.split(':'))
+            else:
+                ini = int(chunk)
+                fin = ini+1
+            cmds.append(self.shell.input_hist[ini:fin])
+        return cmds
+        
+    def _ofind(self,oname):
+        """Find an object in the available namespaces.
+
+        self._ofind(oname) -> dict with keys: found,obj,ospace,ismagic
+
+        Has special code to detect magic functions.
+        """
+        
+        oname = oname.strip()
+
+        # Namespaces to search in:
+        user_ns        = self.shell.user_ns
+        internal_ns    = self.shell.internal_ns
+        builtin_ns     = __builtin__.__dict__
+        alias_ns       = self.shell.alias_table
+
+        # Put them in a list. The order is important so that we find things in
+        # the same order that Python finds them.
+        namespaces = [ ('Interactive',user_ns),
+                       ('IPython internal',internal_ns),
+                       ('Python builtin',builtin_ns),
+                       ('Alias',alias_ns),
+                       ]
+
+        # initialize results to 'null'
+        found = 0; obj = None;  ospace = None;  ds = None;
+        ismagic = 0; isalias = 0
+
+        # Look for the given name by splitting it in parts.  If the head is
+        # found, then we look for all the remaining parts as members, and only
+        # declare success if we can find them all.
+        oname_parts = oname.split('.')
+        oname_head, oname_rest = oname_parts[0],oname_parts[1:]
+        for nsname,ns in namespaces:
+            try:
+                obj = ns[oname_head]
+            except KeyError:
+                continue
+            else:
+                for part in oname_rest:
+                    try:
+                        obj = getattr(obj,part)
+                    except:
+                        # Blanket except b/c some badly implemented objects
+                        # allow __getattr__ to raise exceptions other than
+                        # AttributeError, which then crashes IPython.
+                        break
+                else:
+                    # If we finish the for loop (no break), we got all members
+                    found = 1
+                    ospace = nsname
+                    if ns == alias_ns:
+                        isalias = 1
+                    break  # namespace loop
+
+        # Try to see if it's magic
+        if not found:
+            if oname.startswith(self.shell.ESC_MAGIC):
+                oname = oname[1:]
+            obj = getattr(self,'magic_'+oname,None)
+            if obj is not None:
+                found = 1
+                ospace = 'IPython internal'
+                ismagic = 1
+
+        # Last try: special-case some literals like '', [], {}, etc:
+        if not found and oname_head in ["''",'""','[]','{}','()']:
+            obj = eval(oname_head)
+            found = 1
+            ospace = 'Interactive'
+            
+        return {'found':found, 'obj':obj, 'namespace':ospace,
+                'ismagic':ismagic, 'isalias':isalias}
+        
+    def arg_err(self,func):
+        """Print docstring if incorrect arguments were passed"""
+        print 'Error in arguments:'
+        print OInspect.getdoc(func)
+
+
+    def format_latex(self,str):
+        """Format a string for latex inclusion."""
+
+        # Characters that need to be escaped for latex:
+        escape_re = re.compile(r'(%|_|\$)',re.MULTILINE)
+        # Magic command names as headers:
+        cmd_name_re = re.compile(r'^(%s.*?):' % self.shell.ESC_MAGIC,
+                                 re.MULTILINE)
+        # Magic commands 
+        cmd_re = re.compile(r'(?P<cmd>%s.+?\b)(?!\}\}:)' % self.shell.ESC_MAGIC,
+                            re.MULTILINE)
+        # Paragraph continue
+        par_re = re.compile(r'\\$',re.MULTILINE)
+
+        str = cmd_name_re.sub(r'\n\\texttt{\\textsl{\\large \1}}:',str)
+        str = cmd_re.sub(r'\\texttt{\g<cmd>}',str)
+        str = par_re.sub(r'\\\\',str)
+        str = escape_re.sub(r'\\\1',str)
+        return str
+
+    def format_screen(self,str):
+        """Format a string for screen printing.
+
+        This removes some latex-type format codes."""
+        # Paragraph continue
+        par_re = re.compile(r'\\$',re.MULTILINE)
+        str = par_re.sub('',str)
+        return str
+
+    def parse_options(self,arg_str,opt_str,*long_opts,**kw):
+        """Parse options passed to an argument string.
+
+        The interface is similar to that of getopt(), but it returns back a
+        Struct with the options as keys and the stripped argument string still
+        as a string.
+
+        arg_str is quoted as a true sys.argv vector by calling on the fly a
+        python process in a subshell.  This allows us to easily expand
+        variables, glob files, quote arguments, etc, with all the power and
+        correctness of the underlying system shell.
+
+        Options:
+          -mode: default 'string'. If given as 'list', the argument string is
+          returned as a list (split on whitespace) instead of a string.
+
+          -list_all: put all option values in lists. Normally only options
+          appearing more than once are put in a list."""
+
+        # inject default options at the beginning of the input line
+        caller = sys._getframe(1).f_code.co_name.replace('magic_','')
+        arg_str = '%s %s' % (self.options_table.get(caller,''),arg_str)
+        
+        mode = kw.get('mode','string')
+        if mode not in ['string','list']:
+            raise ValueError,'incorrect mode given: %s' % mode
+        # Get options
+        list_all = kw.get('list_all',0)
+
+        # Check if we have more than one argument to warrant extra processing:
+        odict = {}  # Dictionary with options
+        args = arg_str.split()
+        if len(args) >= 1:
+            # If the list of inputs only has 0 or 1 thing in it, there's no
+            # need to look for options
+            argv = shlex_split(arg_str)
+            # Do regular option processing
+            opts,args = getopt(argv,opt_str,*long_opts)
+            for o,a in opts:
+                if o.startswith('--'):
+                    o = o[2:]
+                else:
+                    o = o[1:]
+                try:
+                    odict[o].append(a)
+                except AttributeError:
+                    odict[o] = [odict[o],a]
+                except KeyError:
+                    if list_all:
+                        odict[o] = [a]
+                    else:
+                        odict[o] = a
+
+        # Prepare opts,args for return
+        opts = Struct(odict)
+        if mode == 'string':
+            args = ' '.join(args)
+
+        return opts,args
+    
+    #......................................................................
+    # And now the actual magic functions
+
+    # Functions for IPython shell work (vars,funcs, config, etc)
+    def magic_lsmagic(self, parameter_s = ''):
+        """List currently available magic functions."""
+        mesc = self.shell.ESC_MAGIC
+        print 'Available magic functions:\n'+mesc+\
+              ('  '+mesc).join(self.lsmagic())
+        print '\n' + Magic.auto_status[self.shell.rc.automagic]
+        return None
+        
+    def magic_magic(self, parameter_s = ''):
+        """Print information about the magic function system."""
+
+        mode = ''
+        try:
+            if parameter_s.split()[0] == '-latex':
+                mode = 'latex'
+        except:
+            pass
+
+        magic_docs = []
+        for fname in self.lsmagic():
+            mname = 'magic_' + fname
+            for space in (Magic,self,self.__class__):
+                try:
+                    fn = space.__dict__[mname]
+                except KeyError:
+                    pass
+                else:
+                    break
+            magic_docs.append('%s%s:\n\t%s\n' %(self.shell.ESC_MAGIC,
+                                                fname,fn.__doc__))
+        magic_docs = ''.join(magic_docs)
+
+        if mode == 'latex':
+            print self.format_latex(magic_docs)
+            return
+        else:
+            magic_docs = self.format_screen(magic_docs)
+        
+        outmsg = """
+IPython's 'magic' functions
+===========================
+
+The magic function system provides a series of functions which allow you to
+control the behavior of IPython itself, plus a lot of system-type
+features. All these functions are prefixed with a % character, but parameters
+are given without parentheses or quotes.
+
+NOTE: If you have 'automagic' enabled (via the command line option or with the
+%automagic function), you don't need to type in the % explicitly.  By default,
+IPython ships with automagic on, so you should only rarely need the % escape.
+
+Example: typing '%cd mydir' (without the quotes) changes you working directory
+to 'mydir', if it exists.
+
+You can define your own magic functions to extend the system. See the supplied
+ipythonrc and example-magic.py files for details (in your ipython
+configuration directory, typically $HOME/.ipython/).
+
+You can also define your own aliased names for magic functions. In your
+ipythonrc file, placing a line like:
+
+  execute __IPYTHON__.magic_pf = __IPYTHON__.magic_profile
+
+will define %pf as a new name for %profile.
+
+You can also call magics in code using the ipmagic() function, which IPython
+automatically adds to the builtin namespace.  Type 'ipmagic?' for details.
+
+For a list of the available magic functions, use %lsmagic. For a description
+of any of them, type %magic_name?, e.g. '%cd?'.
+
+Currently the magic system has the following functions:\n"""
+
+        mesc = self.shell.ESC_MAGIC
+        outmsg = ("%s\n%s\n\nSummary of magic functions (from %slsmagic):"
+                  "\n\n%s%s\n\n%s" % (outmsg,
+                                     magic_docs,mesc,mesc,
+                                     ('  '+mesc).join(self.lsmagic()),
+                                     Magic.auto_status[self.shell.rc.automagic] ) )
+
+        page(outmsg,screen_lines=self.shell.rc.screen_length)
+  
+    def magic_automagic(self, parameter_s = ''):
+        """Make magic functions callable without having to type the initial %.
+        
+        Toggles on/off (when off, you must call it as %automagic, of
+        course). Note that magic functions have lowest priority, so if there's
+        a variable whose name collides with that of a magic fn, automagic
+        won't work for that function (you get the variable instead). However,
+        if you delete the variable (del var), the previously shadowed magic
+        function becomes visible to automagic again."""
+
+        rc = self.shell.rc
+        rc.automagic = not rc.automagic
+        print '\n' + Magic.auto_status[rc.automagic]
+
+    def magic_autocall(self, parameter_s = ''):
+        """Make functions callable without having to type parentheses.
+
+        This toggles the autocall command line option on and off."""
+        
+        rc = self.shell.rc
+        rc.autocall = not rc.autocall
+        print "Automatic calling is:",['OFF','ON'][rc.autocall]
+
+    def magic_autoindent(self, parameter_s = ''):
+        """Toggle autoindent on/off (if available)."""
+
+        self.shell.set_autoindent()
+        print "Automatic indentation is:",['OFF','ON'][self.shell.autoindent]
+
+    def magic_system_verbose(self, parameter_s = ''):
+        """Toggle verbose printing of system calls on/off."""
+
+        self.shell.rc_set_toggle('system_verbose')
+        print "System verbose printing is:",\
+              ['OFF','ON'][self.shell.rc.system_verbose]
+
+    def magic_history(self, parameter_s = ''):
+        """Print input history (_i<n> variables), with most recent last.
+        
+        %history [-n]       -> print at most 40 inputs (some may be multi-line)\\
+        %history [-n] n     -> print at most n inputs\\
+        %history [-n] n1 n2 -> print inputs between n1 and n2 (n2 not included)\\
+
+        Each input's number <n> is shown, and is accessible as the
+        automatically generated variable _i<n>.  Multi-line statements are
+        printed starting at a new line for easy copy/paste.
+
+        If option -n is used, input numbers are not printed. This is useful if
+        you want to get a printout of many lines which can be directly pasted
+        into a text editor.
+
+        This feature is only available if numbered prompts are in use."""
+
+        if not self.do_full_cache:
+            print 'This feature is only available if numbered prompts are in use.'
+            return
+        opts,args = self.parse_options(parameter_s,'n',mode='list')
+        
+        default_length = 40
+        if len(args) == 0:
+            final = self.outputcache.prompt_count
+            init = max(1,final-default_length)
+        elif len(args) == 1:
+            final = self.outputcache.prompt_count
+            init = max(1,final-int(args[0]))
+        elif len(args) == 2:
+            init,final = map(int,args)
+        else:
+            warn('%hist takes 0, 1 or 2 arguments separated by spaces.')
+            print self.magic_hist.__doc__
+            return
+        width = len(str(final))
+        line_sep = ['','\n']
+        input_hist = self.shell.input_hist
+        print_nums = not opts.has_key('n')
+        for in_num in range(init,final):
+            inline = input_hist[in_num]
+            multiline = inline.count('\n') > 1
+            if print_nums:
+                print str(in_num).ljust(width)+':'+ line_sep[multiline],
+            if inline.startswith('#'+self.shell.ESC_MAGIC) or \
+                   inline.startswith('#!'):
+                print inline[1:],
+            else:
+                print inline,
+
+    def magic_hist(self, parameter_s=''):
+        """Alternate name for %history."""
+        return self.magic_history(parameter_s)
+
+    def magic_p(self, parameter_s=''):
+        """Just a short alias for Python's 'print'."""
+        exec 'print ' + parameter_s in self.shell.user_ns
+
+    def magic_r(self, parameter_s=''):
+        """Repeat previous input.
+
+        If given an argument, repeats the previous command which starts with
+        the same string, otherwise it just repeats the previous input.
+
+        Shell escaped commands (with ! as first character) are not recognized
+        by this system, only pure python code and magic commands.
+        """
+
+        start = parameter_s.strip()
+        esc_magic = self.shell.ESC_MAGIC
+        # Identify magic commands even if automagic is on (which means
+        # the in-memory version is different from that typed by the user).
+        if self.shell.rc.automagic:
+            start_magic = esc_magic+start
+        else:
+            start_magic = start
+        # Look through the input history in reverse
+        for n in range(len(self.shell.input_hist)-2,0,-1):
+            input = self.shell.input_hist[n]
+            # skip plain 'r' lines so we don't recurse to infinity
+            if input != 'ipmagic("r")\n' and \
+                   (input.startswith(start) or input.startswith(start_magic)):
+                #print 'match',`input`  # dbg
+                if input.startswith(esc_magic):
+                    input = magic2python(input)
+                    #print 'modified',`input`  # dbg
+                print 'Executing:',input,
+                exec input in self.shell.user_ns
+                return
+        print 'No previous input matching `%s` found.' % start
+
+    def magic_page(self, parameter_s=''):
+        """Pretty print the object and display it through a pager.
+        
+        If no parameter is given, use _ (last output)."""
+        # After a function contributed by Olivier Aubert, slightly modified.
+
+        oname = parameter_s and parameter_s or '_' 
+        info = self._ofind(oname)
+        if info['found']:
+            page(pformat(info['obj']))
+        else:
+            print 'Object `%s` not found' % oname
+
+    def magic_profile(self, parameter_s=''):
+        """Print your currently active IPyhton profile."""
+        if self.shell.rc.profile:
+            printpl('Current IPython profile: $self.shell.rc.profile.')
+        else:
+            print 'No profile active.'
+        
+    def _inspect(self,meth,oname,**kw):
+        """Generic interface to the inspector system.
+
+        This function is meant to be called by pdef, pdoc & friends."""
+        
+        oname = oname.strip()
+        info = Struct(self._ofind(oname))
+        if info.found:
+            pmethod = getattr(self.shell.inspector,meth)
+            formatter = info.ismagic and self.format_screen or None
+            if meth == 'pdoc':
+                pmethod(info.obj,oname,formatter)
+            elif meth == 'pinfo':
+                pmethod(info.obj,oname,formatter,info,**kw)
+            else:
+                pmethod(info.obj,oname)
+        else:
+            print 'Object `%s` not found.' % oname
+            return 'not found'  # so callers can take other action
+        
+    def magic_pdef(self, parameter_s=''):
+        """Print the definition header for any callable object.
+
+        If the object is a class, print the constructor information."""
+        self._inspect('pdef',parameter_s)
+        
+    def magic_pdoc(self, parameter_s=''):
+        """Print the docstring for an object.
+
+        If the given object is a class, it will print both the class and the
+        constructor docstrings."""
+        self._inspect('pdoc',parameter_s)
+
+    def magic_psource(self, parameter_s=''):
+        """Print (or run through pager) the source code for an object."""
+        self._inspect('psource',parameter_s)
+
+    def magic_pfile(self, parameter_s=''):
+        """Print (or run through pager) the file where an object is defined.
+
+        The file opens at the line where the object definition begins. IPython
+        will honor the environment variable PAGER if set, and otherwise will
+        do its best to print the file in a convenient form.
+
+        If the given argument is not an object currently defined, IPython will
+        try to interpret it as a filename (automatically adding a .py extension
+        if needed). You can thus use %pfile as a syntax highlighting code
+        viewer."""
+
+        # first interpret argument as an object name
+        out = self._inspect('pfile',parameter_s)
+        # if not, try the input as a filename
+        if out == 'not found':
+            try:
+                filename = get_py_filename(parameter_s)
+            except IOError,msg:
+                print msg
+                return
+            page(self.shell.inspector.format(file(filename).read()))
+            
+    def magic_pinfo(self, parameter_s=''):
+        """Provide detailed information about an object.
+
+        '%pinfo object' is just a synonym for object? or ?object."""
+
+        #print 'pinfo par: <%s>' % parameter_s  # dbg
+
+        # detail_level: 0 -> obj? , 1 -> obj??
+        detail_level = 0
+        # We need to detect if we got called as 'pinfo pinfo foo', which can
+        # happen if the user types 'pinfo foo?' at the cmd line.
+        pinfo,qmark1,oname,qmark2 = \
+               re.match('(pinfo )?(\?*)(.*?)(\??$)',parameter_s).groups()
+        if pinfo or qmark1 or qmark2:
+            detail_level = 1
+        self._inspect('pinfo',oname,detail_level=detail_level)
+
+    def magic_who_ls(self, parameter_s=''):
+        """Return a sorted list of all interactive variables.
+
+        If arguments are given, only variables of types matching these
+        arguments are returned."""
+
+        user_ns = self.shell.user_ns
+        out = []
+        typelist = parameter_s.split()
+        for i in self.shell.user_ns.keys():
+            if not (i.startswith('_') or i.startswith('_i')) \
+                   and not (self.internal_ns.has_key(i) or
+                            self.user_config_ns.has_key(i)):
+                if typelist:
+                    if type(user_ns[i]).__name__ in typelist:
+                        out.append(i)
+                else:
+                    out.append(i)
+        out.sort()
+        return out
+        
+    def magic_who(self, parameter_s=''):
+        """Print all interactive variables, with some minimal formatting.
+
+        If any arguments are given, only variables whose type matches one of
+        these are printed.  For example:
+
+          %who function str
+
+        will only list functions and strings, excluding all other types of
+        variables.  To find the proper type names, simply use type(var) at a
+        command line to see how python prints type names.  For example:
+
+          In [1]: type('hello')\\
+          Out[1]: <type 'str'>
+
+        indicates that the type name for strings is 'str'.
+
+        %who always excludes executed names loaded through your configuration
+        file and things which are internal to IPython.
+
+        This is deliberate, as typically you may load many modules and the
+        purpose of %who is to show you only what you've manually defined."""
+
+        varlist = self.magic_who_ls(parameter_s)
+        if not varlist:
+            print 'Interactive namespace is empty.'
+            return
+
+        # if we have variables, move on...
+
+        # stupid flushing problem: when prompts have no separators, stdout is
+        # getting lost. I'm starting to think this is a python bug. I'm having
+        # to force a flush with a print because even a sys.stdout.flush
+        # doesn't seem to do anything!
+
+        count = 0
+        for i in varlist:
+            print i+'\t',
+            count += 1
+            if count > 8:
+                count = 0
+                print
+            sys.stdout.flush()  # FIXME. Why the hell isn't this flushing???
+            
+        print # well, this does force a flush at the expense of an extra \n
+
+    def magic_whos(self, parameter_s=''):
+        """Like %who, but gives some extra information about each variable.
+
+        The same type filtering of %who can be applied here.
+
+        For all variables, the type is printed. Additionally it prints:
+        
+          - For {},[],(): their length.
+
+          - For Numeric arrays, a summary with shape, number of elements,
+          typecode and size in memory.
+
+          - Everything else: a string representation, snipping their middle if
+          too long."""
+        
+        varnames = self.magic_who_ls(parameter_s)
+        if not varnames:
+            print 'Interactive namespace is empty.'
+            return
+
+        # if we have variables, move on...
+
+        # for these types, show len() instead of data:
+        seq_types = [types.DictType,types.ListType,types.TupleType]
+
+        # for Numeric arrays, display summary info
+        try:
+            import Numeric
+        except ImportError:
+            array_type = None
+        else:
+            array_type = Numeric.ArrayType.__name__
+        
+        # Find all variable names and types so we can figure out column sizes
+        get_vars = lambda i: self.locals[i]
+        type_name = lambda v: type(v).__name__
+        varlist = map(get_vars,varnames)
+        typelist = map(type_name,varlist)
+        # column labels and # of spaces as separator
+        varlabel = 'Variable'
+        typelabel = 'Type'
+        datalabel = 'Data/Info'
+        colsep = 3
+        # variable format strings
+        vformat    = "$vname.ljust(varwidth)$vtype.ljust(typewidth)"
+        vfmt_short = '$vstr[:25]<...>$vstr[-25:]'
+        aformat    = "%s: %s elems, type `%s`, %s bytes"
+        # find the size of the columns to format the output nicely
+        varwidth = max(max(map(len,varnames)), len(varlabel)) + colsep
+        typewidth = max(max(map(len,typelist)), len(typelabel)) + colsep
+        # table header
+        print varlabel.ljust(varwidth) + typelabel.ljust(typewidth) + \
+              ' '+datalabel+'\n' + '-'*(varwidth+typewidth+len(datalabel)+1)
+        # and the table itself
+        kb = 1024
+        Mb = 1048576  # kb**2
+        for vname,var,vtype in zip(varnames,varlist,typelist):
+            print itpl(vformat),
+            if vtype in seq_types:
+                print len(var)
+            elif vtype==array_type:
+                vshape = str(var.shape).replace(',','').replace(' ','x')[1:-1]
+                vsize  = Numeric.size(var)
+                vbytes = vsize*var.itemsize()
+                if vbytes < 100000:
+                    print aformat % (vshape,vsize,var.typecode(),vbytes)
+                else:
+                    print aformat % (vshape,vsize,var.typecode(),vbytes),
+                    if vbytes < Mb:
+                        print '(%s kb)' % (vbytes/kb,)
+                    else:
+                        print '(%s Mb)' % (vbytes/Mb,)
+            else:
+                vstr = str(var)
+                if len(vstr) < 50:
+                    print vstr
+                else:
+                    printpl(vfmt_short)
+                
+    def magic_reset(self, parameter_s=''):
+        """Resets the namespace by removing all names defined by the user.
+
+        Input/Output history are left around in case you need them."""
+
+        ans = raw_input(
+          "Once deleted, variables cannot be recovered. Proceed (y/n)? ")
+        if not ans.lower() == 'y':
+            print 'Nothing done.'
+            return
+        for i in self.magic_who_ls():
+            del(self.locals[i])
+
+    def magic_config(self,parameter_s=''):
+        """Show IPython's internal configuration."""
+        
+        page('Current configuration structure:\n'+
+             pformat(self.shell.rc.dict()))
+
+    def magic_logstart(self,parameter_s=''):
+        """Start logging anywhere in a session.
+
+        %logstart [log_name [log_mode]]
+
+        If no name is given, it defaults to a file named 'ipython.log' in your
+        current directory, in 'rotate' mode (see below).
+
+        '%logstart name' saves to file 'name' in 'backup' mode.  It saves your
+        history up to that point and then continues logging.
+
+        %logstart takes a second optional parameter: logging mode. This can be one
+        of (note that the modes are given unquoted):\\
+          over: overwrite existing log.\\
+          backup: rename (if exists) to name~ and start name.\\
+          append: well, that says it.\\
+          rotate: create rotating logs name.1~, name.2~, etc.
+        """
+
+        #FIXME. This function should all be moved to the Logger class.
+        
+        valid_modes = qw('over backup append rotate')
+        if self.LOG:
+            print 'Logging is already in place. Logfile:',self.LOG
+            return
+
+        par = parameter_s.strip()
+        if not par:
+            logname = self.LOGDEF
+            logmode = 'rotate'  # use rotate for the auto-generated logs
+        else:
+            try:
+                logname,logmode = par.split()
+            except:
+                try:
+                    logname = par
+                    logmode = 'backup'
+                except:
+                    warn('Usage: %log [log_name [log_mode]]')
+                    return
+        if not logmode in valid_modes:
+            warn('Logging NOT activated.\n'
+                 'Usage: %log [log_name [log_mode]]\n'
+                 'Valid modes: '+str(valid_modes))
+            return
+
+        # If we made it this far, I think we're ok:
+        print 'Activating auto-logging.'
+        print 'Current session state plus future input saved to:',logname
+        print 'Logging mode: ',logmode
+        # put logname into rc struct as if it had been called on the command line,
+        # so it ends up saved in the log header
+        # Save it in case we need to restore it...
+        old_logfile = self.shell.rc.opts.get('logfile','')  
+        logname = os.path.expanduser(logname)
+        self.shell.rc.opts.logfile = logname
+        self.LOGMODE = logmode  # FIXME: this should be set through a function.
+        try:
+            header = str(self.LOGHEAD)
+            self.create_log(header,logname)
+            self.logstart(header,logname)
+        except:
+            self.LOG = ''  # we are NOT logging, something went wrong
+            self.shell.rc.opts.logfile = old_logfile
+            warn("Couldn't start log: "+str(sys.exc_info()[1]))
+        else:  # log input history up to this point
+            self.logfile.write(self.shell.user_ns['_ih'][1:])
+            self.logfile.flush()
+        
+    def magic_logoff(self,parameter_s=''):
+        """Temporarily stop logging.
+
+        You must have previously started logging."""
+        self.switch_log(0)
+        
+    def magic_logon(self,parameter_s=''):
+        """Restart logging.
+
+        This function is for restarting logging which you've temporarily
+        stopped with %logoff. For starting logging for the first time, you
+        must use the %logstart function, which allows you to specify an
+        optional log filename."""
+        
+        self.switch_log(1)
+    
+    def magic_logstate(self,parameter_s=''):
+        """Print the status of the logging system."""
+
+        self.logstate()
+        
+    def magic_pdb(self, parameter_s=''):
+        """Control the calling of the pdb interactive debugger.
+
+        Call as '%pdb on', '%pdb 1', '%pdb off' or '%pdb 0'. If called without
+        argument it works as a toggle.
+
+        When an exception is triggered, IPython can optionally call the
+        interactive pdb debugger after the traceback printout. %pdb toggles
+        this feature on and off."""
+
+        par = parameter_s.strip().lower()
+
+        if par:
+            try:
+                pdb = {'off':0,'0':0,'on':1,'1':1}[par]
+            except KeyError:
+                print 'Incorrect argument. Use on/1, off/0 or nothing for a toggle.'
+                return
+            else:
+               self.shell.InteractiveTB.call_pdb = pdb 
+        else:
+            self.shell.InteractiveTB.call_pdb = 1 - self.shell.InteractiveTB.call_pdb
+        print 'Automatic pdb calling has been turned',\
+              on_off(self.shell.InteractiveTB.call_pdb)
+
+
+    def magic_prun(self, parameter_s ='',user_mode=1,
+                   opts=None,arg_lst=None,prog_ns=None):
+
+        """Run a statement through the python code profiler.
+
+        Usage:\\
+          %prun [options] statement
+
+        The given statement (which doesn't require quote marks) is run via the
+        python profiler in a manner similar to the profile.run() function.
+        Namespaces are internally managed to work correctly; profile.run
+        cannot be used in IPython because it makes certain assumptions about
+        namespaces which do not hold under IPython.
+
+        Options:
+
+        -l <limit>: you can place restrictions on what or how much of the
+        profile gets printed. The limit value can be:
+
+          * A string: only information for function names containing this string
+          is printed.
+
+          * An integer: only these many lines are printed.
+
+          * A float (between 0 and 1): this fraction of the report is printed
+          (for example, use a limit of 0.4 to see the topmost 40% only).
+
+        You can combine several limits with repeated use of the option. For
+        example, '-l __init__ -l 5' will print only the topmost 5 lines of
+        information about class constructors.
+
+        -r: return the pstats.Stats object generated by the profiling. This
+        object has all the information about the profile in it, and you can
+        later use it for further analysis or in other functions.
+
+        Since magic functions have a particular form of calling which prevents
+        you from writing something like:\\
+          In [1]: p = %prun -r print 4  # invalid!\\
+        you must instead use IPython's automatic variables to assign this:\\
+          In [1]: %prun -r print 4  \\
+          Out[1]: <pstats.Stats instance at 0x8222cec>\\
+          In [2]: stats = _
+
+        If you really need to assign this value via an explicit function call,
+        you can always tap directly into the true name of the magic function
+        by using the ipmagic function (which IPython automatically adds to the
+        builtins):\\
+          In [3]: stats = ipmagic('prun','-r print 4')
+
+        You can type ipmagic? for more details on ipmagic.
+
+       -s <key>: sort profile by given key. You can provide more than one key
+        by using the option several times: '-s key1 -s key2 -s key3...'. The
+        default sorting key is 'time'.
+
+        The following is copied verbatim from the profile documentation
+        referenced below:
+
+        When more than one key is provided, additional keys are used as
+        secondary criteria when the there is equality in all keys selected
+        before them.
+        
+        Abbreviations can be used for any key names, as long as the
+        abbreviation is unambiguous.  The following are the keys currently
+        defined:
+
+                Valid Arg       Meaning\\
+                  "calls"      call count\\
+                  "cumulative" cumulative time\\
+                  "file"       file name\\
+                  "module"     file name\\
+                  "pcalls"     primitive call count\\
+                  "line"       line number\\
+                  "name"       function name\\
+                  "nfl"        name/file/line\\
+                  "stdname"    standard name\\
+                  "time"       internal time
+
+        Note that all sorts on statistics are in descending order (placing
+        most time consuming items first), where as name, file, and line number
+        searches are in ascending order (i.e., alphabetical). The subtle
+        distinction between "nfl" and "stdname" is that the standard name is a
+        sort of the name as printed, which means that the embedded line
+        numbers get compared in an odd way.  For example, lines 3, 20, and 40
+        would (if the file names were the same) appear in the string order
+        "20" "3" and "40".  In contrast, "nfl" does a numeric compare of the
+        line numbers.  In fact, sort_stats("nfl") is the same as
+        sort_stats("name", "file", "line").
+
+        -T <filename>: save profile results as shown on screen to a text
+        file. The profile is still shown on screen.
+
+        -D <filename>: save (via dump_stats) profile statistics to given
+        filename. This data is in a format understod by the pstats module, and
+        is generated by a call to the dump_stats() method of profile
+        objects. The profile is still shown on screen.
+
+        If you want to run complete programs under the profiler's control, use
+        '%run -p [prof_opts] filename.py [args to program]' where prof_opts
+        contains profiler specific options as described here.
+        
+        You can read the complete documentation for the profile module with:\\
+          In [1]: import profile; profile.help() """
+
+        opts_def = Struct(D=[''],l=[],s=['time'],T=[''])
+        # protect user quote marks
+        parameter_s = parameter_s.replace('"',r'\"').replace("'",r"\'")
+        
+        if user_mode:  # regular user call
+            opts,arg_str = self.parse_options(parameter_s,'D:l:rs:T:',
+                                              list_all=1)
+            namespace = self.shell.user_ns
+        else:  # called to run a program by %run -p
+            try:
+                filename = get_py_filename(arg_lst[0])
+            except IOError,msg:
+                error(msg)
+                return
+
+            arg_str = 'execfile(filename,prog_ns)'
+            namespace = locals()
+
+        opts.merge(opts_def)
+        
+        prof = profile.Profile()
+        try:
+            prof = prof.runctx(arg_str,namespace,namespace)
+            sys_exit = ''
+        except SystemExit:
+            sys_exit = """*** SystemExit exception caught in code being profiled."""
+
+        stats = pstats.Stats(prof).strip_dirs().sort_stats(*opts.s)
+
+        lims = opts.l
+        if lims:
+            lims = []  # rebuild lims with ints/floats/strings
+            for lim in opts.l:
+                try:
+                    lims.append(int(lim))
+                except ValueError:
+                    try:
+                        lims.append(float(lim))
+                    except ValueError:
+                        lims.append(lim)
+                    
+        # trap output
+        sys_stdout = sys.stdout
+        stdout_trap = StringIO()
+        try:
+            sys.stdout = stdout_trap
+            stats.print_stats(*lims)
+        finally:
+            sys.stdout = sys_stdout
+        output = stdout_trap.getvalue()
+        output = output.rstrip()
+
+        page(output,screen_lines=self.shell.rc.screen_length)
+        print sys_exit,
+
+        dump_file = opts.D[0]
+        text_file = opts.T[0]
+        if dump_file:
+            prof.dump_stats(dump_file)
+            print '\n*** Profile stats marshalled to file',\
+                  `dump_file`+'.',sys_exit
+        if text_file:
+            file(text_file,'w').write(output)
+            print '\n*** Profile printout saved to text file',\
+                  `text_file`+'.',sys_exit
+
+        if opts.has_key('r'):
+            return stats
+        else:
+            return None
+
+    def magic_run(self, parameter_s ='',runner=None):
+        """Run the named file inside IPython as a program.
+
+        Usage:\\
+          %run [-n -i -t [-N<N>] -d [-b<N>] -p [profile options]] file [args]
+
+        Parameters after the filename are passed as command-line arguments to
+        the program (put in sys.argv). Then, control returns to IPython's
+        prompt.
+
+        This is similar to running at a system prompt:\\
+          $ python file args\\
+        but with the advantage of giving you IPython's tracebacks, and of
+        loading all variables into your interactive namespace for further use
+        (unless -p is used, see below).
+
+        The file is executed in a namespace initially consisting only of
+        __name__=='__main__' and sys.argv constructed as indicated. It thus
+        sees its environment as if it were being run as a stand-alone
+        program. But after execution, the IPython interactive namespace gets
+        updated with all variables defined in the program (except for __name__
+        and sys.argv). This allows for very convenient loading of code for
+        interactive work, while giving each program a 'clean sheet' to run in.
+
+        Options:
+        
+        -n: __name__ is NOT set to '__main__', but to the running file's name
+        without extension (as python does under import).  This allows running
+        scripts and reloading the definitions in them without calling code
+        protected by an ' if __name__ == "__main__" ' clause.
+
+        -i: run the file in IPython's namespace instead of an empty one. This
+        is useful if you are experimenting with code written in a text editor
+        which depends on variables defined interactively.
+
+        -e: ignore sys.exit() calls or SystemExit exceptions in the script
+        being run.  This is particularly useful if IPython is being used to
+        run unittests, which always exit with a sys.exit() call.  In such
+        cases you are interested in the output of the test results, not in
+        seeing a traceback of the unittest module.
+
+        -t: print timing information at the end of the run.  IPython will give
+        you an estimated CPU time consumption for your script, which under
+        Unix uses the resource module to avoid the wraparound problems of
+        time.clock().  Under Unix, an estimate of time spent on system tasks
+        is also given (for Windows platforms this is reported as 0.0).
+
+        If -t is given, an additional -N<N> option can be given, where <N>
+        must be an integer indicating how many times you want the script to
+        run.  The final timing report will include total and per run results.
+
+        For example (testing the script uniq_stable.py):
+
+            In [1]: run -t uniq_stable
+
+            IPython CPU timings (estimated):\\
+              User  :    0.19597 s.\\
+              System:        0.0 s.\\
+
+            In [2]: run -t -N5 uniq_stable
+
+            IPython CPU timings (estimated):\\
+            Total runs performed: 5\\
+              Times :      Total       Per run\\
+              User  :   0.910862 s,  0.1821724 s.\\
+              System:        0.0 s,        0.0 s.
+
+        -d: run your program under the control of pdb, the Python debugger.
+        This allows you to execute your program step by step, watch variables,
+        etc.  Internally, what IPython does is similar to calling:
+        
+          pdb.run('execfile("YOURFILENAME")')
+
+        with a breakpoint set on line 1 of your file.  You can change the line
+        number for this automatic breakpoint to be <N> by using the -bN option
+        (where N must be an integer).  For example:
+
+          %run -d -b40 myscript
+
+        will set the first breakpoint at line 40 in myscript.py.  Note that
+        the first breakpoint must be set on a line which actually does
+        something (not a comment or docstring) for it to stop execution.
+
+        When the pdb debugger starts, you will see a (Pdb) prompt.  You must
+        first enter 'c' (without qoutes) to start execution up to the first
+        breakpoint.
+
+        Entering 'help' gives information about the use of the debugger.  You
+        can easily see pdb's full documentation with "import pdb;pdb.help()"
+        at a prompt.
+
+        -p: run program under the control of the Python profiler module (which
+        prints a detailed report of execution times, function calls, etc).
+
+        You can pass other options after -p which affect the behavior of the
+        profiler itself. See the docs for %prun for details.
+
+        In this mode, the program's variables do NOT propagate back to the
+        IPython interactive namespace (because they remain in the namespace
+        where the profiler executes them).
+
+        Internally this triggers a call to %prun, see its documentation for
+        details on the options available specifically for profiling."""
+
+        # get arguments and set sys.argv for program to be run.
+        opts,arg_lst = self.parse_options(parameter_s,'nidtN:b:pD:l:rs:T:e',
+                                          mode='list',list_all=1)
+
+        try:
+            filename = get_py_filename(arg_lst[0])
+        except IndexError:
+            warn('you must provide at least a filename.')
+            print '\n%run:\n',OInspect.getdoc(self.magic_run)
+            return
+        except IOError,msg:
+            error(msg)
+            return
+
+        # Control the response to exit() calls made by the script being run
+        exit_ignore = opts.has_key('e')
+        
+        # Make sure that the running script gets a proper sys.argv as if it
+        # were run from a system shell.
+        save_argv = sys.argv # save it for later restoring
+        sys.argv = [filename]+ arg_lst[1:]  # put in the proper filename
+
+        if opts.has_key('i'):
+            prog_ns = self.shell.user_ns
+            __name__save = self.shell.user_ns['__name__']
+            prog_ns['__name__'] = '__main__'
+        else:
+            if opts.has_key('n'):
+                name = os.path.splitext(os.path.basename(filename))[0]
+            else:
+                name = '__main__'
+            prog_ns = {'__name__':name}
+
+        # pickle fix.  See iplib for an explanation
+        sys.modules[prog_ns['__name__']] = FakeModule(prog_ns)
+        
+        stats = None
+        try:
+            if opts.has_key('p'):
+                stats = self.magic_prun('',0,opts,arg_lst,prog_ns)
+            else:
+                if opts.has_key('d'):
+                    deb = pdb.Pdb()
+                    # reset Breakpoint state, which is moronically kept
+                    # in a class
+                    bdb.Breakpoint.next = 1
+                    bdb.Breakpoint.bplist = {}
+                    bdb.Breakpoint.bpbynumber = [None]
+                    # Set an initial breakpoint to stop execution
+                    maxtries = 10
+                    bp = int(opts.get('b',[1])[0])
+                    checkline = deb.checkline(filename,bp)
+                    if not checkline:
+                        for bp in range(bp+1,bp+maxtries+1):
+                            if deb.checkline(filename,bp):
+                                break
+                        else:
+                            msg = ("\nI failed to find a valid line to set "
+                                   "a breakpoint\n"
+                                   "after trying up to line: %s.\n"
+                                   "Please set a valid breakpoint manually "
+                                   "with the -b option." % bp)
+                            error(msg)
+                            return
+                    # if we find a good linenumber, set the breakpoint
+                    deb.do_break('%s:%s' % (filename,bp))
+                    # Start file run
+                    print "NOTE: Enter 'c' at the",
+                    print "(Pdb) prompt to start your script."
+                    deb.run('execfile("%s")' % filename,prog_ns)
+                else:
+                    if runner is None:
+                        runner = self.shell.safe_execfile
+                    if opts.has_key('t'):
+                        try:
+                            nruns = int(opts['N'][0])
+                            if nruns < 1:
+                                error('Number of runs must be >=1')
+                                return
+                        except (KeyError):
+                            nruns = 1
+                        if nruns == 1:
+                            t0 = clock2()
+                            runner(filename,prog_ns,prog_ns,exit_ignore=exit_ignore)
+                            t1 = clock2()
+                            t_usr = t1[0]-t0[0]
+                            t_sys = t1[1]-t1[1]
+                            print "\nIPython CPU timings (estimated):"
+                            print "  User  : %10s s." % t_usr
+                            print "  System: %10s s." % t_sys
+                        else:
+                            runs = range(nruns)
+                            t0 = clock2()
+                            for nr in runs:
+                                runner(filename,prog_ns,prog_ns,exit_ignore=exit_ignore)
+                            t1 = clock2()
+                            t_usr = t1[0]-t0[0]
+                            t_sys = t1[1]-t1[1]
+                            print "\nIPython CPU timings (estimated):"
+                            print "Total runs performed:",nruns
+                            print "  Times : %10s    %10s" % ('Total','Per run')
+                            print "  User  : %10s s, %10s s." % (t_usr,t_usr/nruns)
+                            print "  System: %10s s, %10s s." % (t_sys,t_sys/nruns)
+                            
+                    else:
+                        runner(filename,prog_ns,prog_ns,exit_ignore=exit_ignore)
+                if opts.has_key('i'):
+                    self.shell.user_ns['__name__'] = __name__save
+                else:
+                    # update IPython interactive namespace
+                    del prog_ns['__name__']
+                    self.shell.user_ns.update(prog_ns)
+        finally:
+            sys.argv = save_argv
+        return stats
+
+    def magic_runlog(self, parameter_s =''):
+        """Run files as logs.
+
+        Usage:\\
+          %runlog file1 file2 ...
+
+        Run the named files (treating them as log files) in sequence inside
+        the interpreter, and return to the prompt.  This is much slower than
+        %run because each line is executed in a try/except block, but it
+        allows running files with syntax errors in them.
+
+        Normally IPython will guess when a file is one of its own logfiles, so
+        you can typically use %run even for logs. This shorthand allows you to
+        force any file to be treated as a log file."""
+
+        for f in parameter_s.split():
+            self.shell.safe_execfile(f,self.shell.user_ns,
+                                     self.shell.user_ns,islog=1)
+
+    def magic_time(self,parameter_s = ''):
+        """Time execution of a Python statement or expression.
+
+        The CPU and wall clock times are printed, and the value of the
+        expression (if any) is returned.  Note that under Win32, system time
+        is always reported as 0, since it can not be measured.
+
+        This function provides very basic timing functionality.  In Python
+        2.3, the timeit module offers more control and sophistication, but for
+        now IPython supports Python 2.2, so we can not rely on timeit being
+        present.
+        
+        Some examples:
+
+          In [1]: time 2**128
+          CPU times: user 0.00 s, sys: 0.00 s, total: 0.00 s
+          Wall time: 0.00
+          Out[1]: 340282366920938463463374607431768211456L
+
+          In [2]: n = 1000000
+
+          In [3]: time sum(range(n))
+          CPU times: user 1.20 s, sys: 0.05 s, total: 1.25 s
+          Wall time: 1.37
+          Out[3]: 499999500000L
+
+          In [4]: time print 'hello world'
+          hello world
+          CPU times: user 0.00 s, sys: 0.00 s, total: 0.00 s
+          Wall time: 0.00
+          """
+        
+        # fail immediately if the given expression can't be compiled
+        try:
+            mode = 'eval'
+            code = compile(parameter_s,'<timed eval>',mode)
+        except SyntaxError:
+            mode = 'exec'
+            code = compile(parameter_s,'<timed exec>',mode)
+        # skew measurement as little as possible
+        glob = self.shell.user_ns
+        clk = clock2
+        wtime = time.time
+        # time execution
+        wall_st = wtime()
+        if mode=='eval':
+            st = clk()
+            out = eval(code,glob)
+            end = clk()
+        else:
+            st = clk()
+            exec code in glob
+            end = clk()
+            out = None
+        wall_end = wtime()
+        # Compute actual times and report
+        wall_time = wall_end-wall_st
+        cpu_user = end[0]-st[0]
+        cpu_sys = end[1]-st[1]
+        cpu_tot = cpu_user+cpu_sys
+        print "CPU times: user %.2f s, sys: %.2f s, total: %.2f s" % \
+              (cpu_user,cpu_sys,cpu_tot)
+        print "Wall time: %.2f" % wall_time
+        return out
+
+    def magic_macro(self,parameter_s = ''):
+        """Define a set of input lines as a macro for future re-execution.
+
+        Usage:\\
+          %macro name n1:n2 n3:n4 ... n5 .. n6 ...
+
+        This will define a global variable called `name` which is a string
+        made of joining the slices and lines you specify (n1,n2,... numbers
+        above) from your input history into a single string. This variable
+        acts like an automatic function which re-executes those lines as if
+        you had typed them. You just type 'name' at the prompt and the code
+        executes.
+
+        Note that the slices use the standard Python slicing notation (5:8
+        means include lines numbered 5,6,7).
+
+        For example, if your history contains (%hist prints it):
+        
+          44: x=1\\
+          45: y=3\\
+          46: z=x+y\\
+          47: print x\\
+          48: a=5\\
+          49: print 'x',x,'y',y\\
+
+        you can create a macro with lines 44 through 47 (included) and line 49
+        called my_macro with:
+
+          In [51]: %macro my_macro 44:48 49
+
+        Now, typing `my_macro` (without quotes) will re-execute all this code
+        in one pass.
+
+        You don't need to give the line-numbers in order, and any given line
+        number can appear multiple times. You can assemble macros with any
+        lines from your input history in any order.
+
+        The macro is a simple object which holds its value in an attribute,
+        but IPython's display system checks for macros and executes them as
+        code instead of printing them when you type their name.
+
+        You can view a macro's contents by explicitly printing it with:
+        
+          'print macro_name'.
+
+        For one-off cases which DON'T contain magic function calls in them you
+        can obtain similar results by explicitly executing slices from your
+        input history with:
+
+          In [60]: exec In[44:48]+In[49]"""
+
+        args = parameter_s.split()
+        name,ranges = args[0], args[1:]
+        #print 'rng',ranges  # dbg
+        cmds = self.extract_input_slices(ranges)
+        macro = Macro(cmds)
+        self.shell.user_ns.update({name:macro})
+        print 'Macro `%s` created. To execute, type its name (without quotes).' % name
+        print 'Macro contents:'
+        print str(macro).rstrip(),
+
+    def magic_save(self,parameter_s = ''):
+        """Save a set of lines to a given filename.
+
+        Usage:\\
+          %save filename n1:n2 n3:n4 ... n5 .. n6 ...
+
+        This function uses the same syntax as %macro for line extraction, but
+        instead of creating a macro it saves the resulting string to the
+        filename you specify.
+
+        It adds a '.py' extension to the file if you don't do so yourself, and
+        it asks for confirmation before overwriting existing files."""
+
+        args = parameter_s.split()
+        fname,ranges = args[0], args[1:]
+        if not fname.endswith('.py'):
+            fname += '.py'
+        if os.path.isfile(fname):
+            ans = raw_input('File `%s` exists. Overwrite (y/[N])? ' % fname)
+            if ans.lower() not in ['y','yes']:
+                print 'Operation cancelled.'
+                return
+        cmds = ''.join(self.extract_input_slices(ranges))
+        f = file(fname,'w')
+        f.write(cmds)
+        f.close()
+        print 'The following commands were written to file `%s`:' % fname
+        print cmds
+
+    def magic_ed(self,parameter_s = ''):
+        """Alias to %edit."""
+        return self.magic_edit(parameter_s)
+
+    def magic_edit(self,parameter_s = '',last_call=['','']):
+        """Bring up an editor and execute the resulting code.
+
+        Usage:
+          %edit [options] [args]
+
+        %edit runs IPython's editor hook.  The default version of this hook is
+        set to call the __IPYTHON__.rc.editor command.  This is read from your
+        environment variable $EDITOR.  If this isn't found, it will default to
+        vi under Linux/Unix and to notepad under Windows.  See the end of this
+        docstring for how to change the editor hook.
+
+        You can also set the value of this editor via the command line option
+        '-editor' or in your ipythonrc file. This is useful if you wish to use
+        specifically for IPython an editor different from your typical default
+        (and for Windows users who typically don't set environment variables).
+
+        This command allows you to conveniently edit multi-line code right in
+        your IPython session.
+        
+        If called without arguments, %edit opens up an empty editor with a
+        temporary file and will execute the contents of this file when you
+        close it (don't forget to save it!).
+
+        Options:
+
+        -p: this will call the editor with the same data as the previous time
+        it was used, regardless of how long ago (in your current session) it
+        was.
+
+        -x: do not execute the edited code immediately upon exit. This is
+        mainly useful if you are editing programs which need to be called with
+        command line arguments, which you can then do using %run.
+
+        Arguments:
+
+        If arguments are given, the following possibilites exist:
+
+        - The arguments are numbers or pairs of colon-separated numbers (like
+        1 4:8 9). These are interpreted as lines of previous input to be
+        loaded into the editor. The syntax is the same of the %macro command.
+
+        - If the argument doesn't start with a number, it is evaluated as a
+        variable and its contents loaded into the editor. You can thus edit
+        any string which contains python code (including the result of
+        previous edits).
+
+        - If the argument is the name of an object (other than a string),
+        IPython will try to locate the file where it was defined and open the
+        editor at the point where it is defined. You can use `%edit function`
+        to load an editor exactly at the point where 'function' is defined,
+        edit it and have the file be executed automatically.
+
+        Note: opening at an exact line is only supported under Unix, and some
+        editors (like kedit and gedit up to Gnome 2.8) do not understand the
+        '+NUMBER' parameter necessary for this feature. Good editors like
+        (X)Emacs, vi, jed, pico and joe all do.
+
+        - If the argument is not found as a variable, IPython will look for a
+        file with that name (adding .py if necessary) and load it into the
+        editor. It will execute its contents with execfile() when you exit,
+        loading any code in the file into your interactive namespace.
+
+        After executing your code, %edit will return as output the code you
+        typed in the editor (except when it was an existing file). This way
+        you can reload the code in further invocations of %edit as a variable,
+        via _<NUMBER> or Out[<NUMBER>], where <NUMBER> is the prompt number of
+        the output.
+
+        Note that %edit is also available through the alias %ed.
+
+        This is an example of creating a simple function inside the editor and
+        then modifying it. First, start up the editor:
+
+        In [1]: ed\\
+        Editing... done. Executing edited code...\\
+        Out[1]: 'def foo():\\n    print "foo() was defined in an editing session"\\n'
+
+        We can then call the function foo():
+        
+        In [2]: foo()\\
+        foo() was defined in an editing session
+
+        Now we edit foo.  IPython automatically loads the editor with the
+        (temporary) file where foo() was previously defined:
+        
+        In [3]: ed foo\\
+        Editing... done. Executing edited code...
+
+        And if we call foo() again we get the modified version:
+        
+        In [4]: foo()\\
+        foo() has now been changed!
+
+        Here is an example of how to edit a code snippet successive
+        times. First we call the editor:
+
+        In [8]: ed\\
+        Editing... done. Executing edited code...\\
+        hello\\
+        Out[8]: "print 'hello'\\n"
+
+        Now we call it again with the previous output (stored in _):
+
+        In [9]: ed _\\
+        Editing... done. Executing edited code...\\
+        hello world\\
+        Out[9]: "print 'hello world'\\n"
+
+        Now we call it with the output #8 (stored in _8, also as Out[8]):
+
+        In [10]: ed _8\\
+        Editing... done. Executing edited code...\\
+        hello again\\
+        Out[10]: "print 'hello again'\\n"
+
+
+        Changing the default editor hook:
+
+        If you wish to write your own editor hook, you can put it in a
+        configuration file which you load at startup time.  The default hook
+        is defined in the IPython.hooks module, and you can use that as a
+        starting example for further modifications.  That file also has
+        general instructions on how to set a new hook for use once you've
+        defined it."""
+        
+        # FIXME: This function has become a convoluted mess.  It needs a
+        # ground-up rewrite with clean, simple logic.
+
+        def make_filename(arg):
+            "Make a filename from the given args"
+            try:
+                filename = get_py_filename(arg)
+            except IOError:
+                if args.endswith('.py'):
+                    filename = arg
+                else:
+                    filename = None
+            return filename
+
+        # custom exceptions
+        class DataIsObject(Exception): pass
+
+        opts,args = self.parse_options(parameter_s,'px')
+
+        # Default line number value
+        lineno = None
+        if opts.has_key('p'):
+            args = '_%s' % last_call[0]
+            if not self.shell.user_ns.has_key(args):
+                args = last_call[1]
+            
+        # use last_call to remember the state of the previous call, but don't
+        # let it be clobbered by successive '-p' calls.
+        try:
+            last_call[0] = self.shell.outputcache.prompt_count
+            if not opts.has_key('p'):
+                last_call[1] = parameter_s
+        except:
+            pass
+
+        # by default this is done with temp files, except when the given
+        # arg is a filename
+        use_temp = 1
+
+        if re.match(r'\d',args):
+            # Mode where user specifies ranges of lines, like in %macro.
+            # This means that you can't edit files whose names begin with
+            # numbers this way. Tough.
+            ranges = args.split()
+            data = ''.join(self.extract_input_slices(ranges))
+        elif args.endswith('.py'):
+            filename = make_filename(args)
+            data = ''
+            use_temp = 0
+        elif args:
+            try:
+                # Load the parameter given as a variable. If not a string,
+                # process it as an object instead (below)
+
+                #print '*** args',args,'type',type(args)  # dbg
+                data = eval(args,self.shell.user_ns)
+                if not type(data) in StringTypes:
+                    raise DataIsObject
+            except (NameError,SyntaxError):
+                # given argument is not a variable, try as a filename
+                filename = make_filename(args)
+                if filename is None:
+                    warn("Argument given (%s) can't be found as a variable "
+                         "or as a filename." % args)
+                    return
+                data = ''
+                use_temp = 0
+            except DataIsObject:
+                # For objects, try to edit the file where they are defined
+                try:
+                    filename = inspect.getabsfile(data)
+                    datafile = 1
+                except TypeError:
+                    filename = make_filename(args)
+                    datafile = 1
+                    warn('Could not find file where `%s` is defined.\n'
+                         'Opening a file named `%s`' % (args,filename))
+                # Now, make sure we can actually read the source (if it was in
+                # a temp file it's gone by now).
+                if datafile:
+                    try:
+                        lineno = inspect.getsourcelines(data)[1]
+                    except IOError:
+                        filename = make_filename(args)
+                        if filename is None:
+                            warn('The file `%s` where `%s` was defined cannot '
+                                 'be read.' % (filename,data))
+                            return
+                use_temp = 0
+        else:
+            data = ''
+
+        if use_temp:
+            filename = tempfile.mktemp('.py')
+            self.shell.tempfiles.append(filename)
+        
+        if data and use_temp:
+            tmp_file = open(filename,'w')
+            tmp_file.write(data)
+            tmp_file.close()
+
+        # do actual editing here
+        print 'Editing...',
+        sys.stdout.flush()
+        self.shell.hooks.editor(filename,lineno)
+        if opts.has_key('x'):  # -x prevents actual execution
+            print
+        else:
+            print 'done. Executing edited code...'
+            try:
+                execfile(filename,self.shell.user_ns)
+            except IOError,msg:
+                if msg.filename == filename:
+                    warn('File not found. Did you forget to save?')
+                    return
+                else:
+                    self.shell.showtraceback()
+            except:
+                self.shell.showtraceback()
+        if use_temp:
+            contents = open(filename).read()
+            return contents
+
+    def magic_xmode(self,parameter_s = ''):
+        """Switch modes for the exception handlers.
+
+        Valid modes: Plain, Context and Verbose.
+
+        If called without arguments, acts as a toggle."""
+
+        new_mode = parameter_s.strip().capitalize()
+        try:
+            self.InteractiveTB.set_mode(mode = new_mode)
+            print 'Exception reporting mode:',self.InteractiveTB.mode
+        except:
+            warn('Error changing exception modes.\n' + str(sys.exc_info()[1]))
+            
+    def magic_colors(self,parameter_s = ''):
+        """Switch color scheme for prompts, info system and exception handlers.
+
+        Currently implemented schemes: NoColor, Linux, LightBG.
+
+        Color scheme names are not case-sensitive."""
+        
+        new_scheme = parameter_s.strip()
+        if not new_scheme:
+            print 'You must specify a color scheme.'
+            return
+        # Under Windows, check for Gary Bishop's readline, which is necessary
+        # for ANSI coloring
+        if os.name in ['nt','dos']:
+            try:
+                import readline
+            except ImportError:
+                has_readline = 0
+            else:
+                try:
+                    readline.GetOutputFile()
+                except AttributeError:
+                    has_readline = 0
+                else:
+                    has_readline = 1
+            if not has_readline:
+                msg = """\
+Proper color support under MS Windows requires Gary Bishop's readline library.
+You can find it at:
+http://sourceforge.net/projects/uncpythontools
+Gary's readline needs the ctypes module, from:
+http://starship.python.net/crew/theller/ctypes
+
+Defaulting color scheme to 'NoColor'"""
+                new_scheme = 'NoColor'
+                warn(msg)
+        
+        # Set prompt colors
+        try:
+            self.shell.outputcache.set_colors(new_scheme)
+        except:
+            warn('Error changing prompt color schemes.\n'
+                 + str(sys.exc_info()[1]))
+        else:
+            self.shell.rc.colors = \
+                       self.shell.outputcache.color_table.active_scheme_name
+        # Set exception colors
+        try:
+            self.shell.InteractiveTB.set_colors(scheme = new_scheme)
+            self.shell.SyntaxTB.set_colors(scheme = new_scheme)
+        except:
+            warn('Error changing exception color schemes.\n'
+                 + str(sys.exc_info()[1]))
+        # Set info (for 'object?') colors
+        if self.shell.rc.color_info:
+            try:
+                self.shell.inspector.set_active_scheme(new_scheme)
+            except:
+                warn('Error changing object inspector color schemes.\n'
+                     + str(sys.exc_info()[1]))
+        else:
+            self.shell.inspector.set_active_scheme('NoColor')
+                
+    def magic_color_info(self,parameter_s = ''):
+        """Toggle color_info.
+
+        The color_info configuration parameter controls whether colors are
+        used for displaying object details (by things like %psource, %pfile or
+        the '?' system). This function toggles this value with each call.
+
+        Note that unless you have a fairly recent pager (less works better
+        than more) in your system, using colored object information displays
+        will not work properly. Test it and see."""
+        
+        self.shell.rc.color_info = 1 - self.shell.rc.color_info
+        self.magic_colors(self.shell.rc.colors)
+        print 'Object introspection functions have now coloring:',
+        print ['OFF','ON'][self.shell.rc.color_info]
+
+    def magic_Pprint(self, parameter_s=''):
+        """Toggle pretty printing on/off."""
+        
+        self.shell.outputcache.Pprint = 1 - self.shell.outputcache.Pprint
+        print 'Pretty printing has been turned', \
+              ['OFF','ON'][self.shell.outputcache.Pprint]
+        
+    def magic_Exit(self, parameter_s=''):
+        """Exit IPython without confirmation."""
+
+        self.shell.exit_now = True
+
+    def magic_Quit(self, parameter_s=''):
+        """Exit IPython without confirmation (like %Exit)."""
+
+        self.shell.exit_now = True
+        
+    #......................................................................
+    # Functions to implement unix shell-type things
+    
+    def magic_alias(self, parameter_s = ''):
+        """Define an alias for a system command.
+
+        '%alias alias_name cmd' defines 'alias_name' as an alias for 'cmd'
+
+        Then, typing 'alias_name params' will execute the system command 'cmd
+        params' (from your underlying operating system).
+
+        Aliases have lower precedence than magic functions and Python normal
+        variables, so if 'foo' is both a Python variable and an alias, the
+        alias can not be executed until 'del foo' removes the Python variable.
+
+        You can use the %l specifier in an alias definition to represent the
+        whole line when the alias is called.  For example:
+
+          In [2]: alias all echo "Input in brackets: <%l>"\\
+          In [3]: all hello world\\
+          Input in brackets: <hello world>
+
+        You can also define aliases with parameters using %s specifiers (one
+        per parameter):
+        
+          In [1]: alias parts echo first %s second %s\\
+          In [2]: %parts A B\\
+          first A second B\\
+          In [3]: %parts A\\
+          Incorrect number of arguments: 2 expected.\\
+          parts is an alias to: 'echo first %s second %s'
+
+        Note that %l and %s are mutually exclusive.  You can only use one or
+        the other in your aliases.
+
+        Aliases expand Python variables just like system calls using ! or !! 
+        do: all expressions prefixed with '$' get expanded.  For details of
+        the semantic rules, see PEP-215:
+        http://www.python.org/peps/pep-0215.html.  This is the library used by
+        IPython for variable expansion.  If you want to access a true shell
+        variable, an extra $ is necessary to prevent its expansion by IPython:
+
+        In [6]: alias show echo\\
+        In [7]: PATH='A Python string'\\
+        In [8]: show $PATH\\
+        A Python string\\
+        In [9]: show $$PATH\\
+        /usr/local/lf9560/bin:/usr/local/intel/compiler70/ia32/bin:...
+
+        You can use the alias facility to acess all of $PATH.  See the %rehash
+        and %rehashx functions, which automatically create aliases for the
+        contents of your $PATH.
+
+        If called with no parameters, %alias prints the current alias table."""
+
+        par = parameter_s.strip()
+        if not par:
+            if self.shell.rc.automagic:
+                prechar = ''
+            else:
+                prechar = self.shell.ESC_MAGIC
+            print 'Alias\t\tSystem Command\n'+'-'*30
+            atab = self.shell.alias_table
+            aliases = atab.keys()
+            aliases.sort()
+            for alias in aliases:
+                print prechar+alias+'\t\t'+atab[alias][1]
+            print '-'*30+'\nTotal number of aliases:',len(aliases)
+            return
+        try:
+            alias,cmd = par.split(None,1)
+        except:
+            print OInspect.getdoc(self.magic_alias)
+        else:
+            nargs = cmd.count('%s')
+            if nargs>0 and cmd.find('%l')>=0:
+                error('The %s and %l specifiers are mutually exclusive '
+                      'in alias definitions.')
+            else:  # all looks OK
+                self.shell.alias_table[alias] = (nargs,cmd)
+                self.shell.alias_table_validate(verbose=1)
+    # end magic_alias
+
+    def magic_unalias(self, parameter_s = ''):
+        """Remove an alias"""
+
+        aname = parameter_s.strip()
+        if aname in self.shell.alias_table:
+            del self.shell.alias_table[aname]
+            
+    def magic_rehash(self, parameter_s = ''):
+        """Update the alias table with all entries in $PATH.
+
+        This version does no checks on execute permissions or whether the
+        contents of $PATH are truly files (instead of directories or something
+        else).  For such a safer (but slower) version, use %rehashx."""
+
+        # This function (and rehashx) manipulate the alias_table directly
+        # rather than calling magic_alias, for speed reasons.  A rehash on a
+        # typical Linux box involves several thousand entries, so efficiency
+        # here is a top concern.
+        
+        path = filter(os.path.isdir,os.environ['PATH'].split(os.pathsep))
+        alias_table = self.shell.alias_table
+        for pdir in path:
+            for ff in os.listdir(pdir):
+                # each entry in the alias table must be (N,name), where
+                # N is the number of positional arguments of the alias.
+                alias_table[ff] = (0,ff)
+        # Make sure the alias table doesn't contain keywords or builtins
+        self.shell.alias_table_validate()
+        # Call again init_auto_alias() so we get 'rm -i' and other modified
+        # aliases since %rehash will probably clobber them
+        self.shell.init_auto_alias()
+
+    def magic_rehashx(self, parameter_s = ''):
+        """Update the alias table with all executable files in $PATH.
+
+        This version explicitly checks that every entry in $PATH is a file
+        with execute access (os.X_OK), so it is much slower than %rehash.
+
+        Under Windows, it checks executability as a match agains a
+        '|'-separated string of extensions, stored in the IPython config
+        variable win_exec_ext.  This defaults to 'exe|com|bat'. """
+        
+        path = filter(os.path.isdir,os.environ['PATH'].split(os.pathsep))
+        alias_table = self.shell.alias_table
+
+        if os.name == 'posix':
+            isexec = lambda fname:os.path.isfile(fname) and \
+                     os.access(fname,os.X_OK)
+        else:
+
+            try:
+                winext = os.environ['pathext'].replace(';','|').replace('.','')
+            except KeyError:
+                winext = 'exe|com|bat'
+    
+            execre = re.compile(r'(.*)\.(%s)$' % winext,re.IGNORECASE)
+            isexec = lambda fname:os.path.isfile(fname) and execre.match(fname)
+        savedir = os.getcwd()
+        try:
+            # write the whole loop for posix/Windows so we don't have an if in
+            # the innermost part
+            if os.name == 'posix':
+                for pdir in path:
+                    os.chdir(pdir)
+                    for ff in os.listdir(pdir):
+                        if isexec(ff):
+                            # each entry in the alias table must be (N,name),
+                            # where N is the number of positional arguments of the
+                            # alias.
+                            alias_table[ff] = (0,ff)
+            else:
+                for pdir in path:
+                    os.chdir(pdir)
+                    for ff in os.listdir(pdir):
+                        if isexec(ff):
+                            alias_table[execre.sub(r'\1',ff)] = (0,ff)
+            # Make sure the alias table doesn't contain keywords or builtins
+            self.shell.alias_table_validate()
+            # Call again init_auto_alias() so we get 'rm -i' and other
+            # modified aliases since %rehashx will probably clobber them
+            self.shell.init_auto_alias()
+        finally:
+            os.chdir(savedir)
+        
+    def magic_pwd(self, parameter_s = ''):
+        """Return the current working directory path."""
+        return os.getcwd()
+
+    def magic_cd(self, parameter_s=''):
+        """Change the current working directory.
+
+        This command automatically maintains an internal list of directories
+        you visit during your IPython session, in the variable _dh. The
+        command %dhist shows this history nicely formatted.
+
+        Usage:
+
+          cd 'dir': changes to directory 'dir'.
+
+          cd -: changes to the last visited directory.
+
+          cd -<n>: changes to the n-th directory in the directory history.
+
+          cd -b <bookmark_name>: jump to a bookmark set by %bookmark
+             (note: cd <bookmark_name> is enough if there is no
+              directory <bookmark_name>, but a bookmark with the name exists.)
+
+        Options:
+
+        -q: quiet.  Do not print the working directory after the cd command is
+        executed.  By default IPython's cd command does print this directory,
+        since the default prompts do not display path information.
+        
+        Note that !cd doesn't work for this purpose because the shell where
+        !command runs is immediately discarded after executing 'command'."""
+
+        parameter_s = parameter_s.strip()
+        bkms = self.shell.persist.get("bookmarks",{})
+
+        numcd = re.match(r'(-)(\d+)$',parameter_s)
+        # jump in directory history by number
+        if numcd:
+            nn = int(numcd.group(2))
+            try:
+                ps = self.shell.user_ns['_dh'][nn]
+            except IndexError:
+                print 'The requested directory does not exist in history.'
+                return
+            else:
+                opts = {}
+        else:
+            opts,ps = self.parse_options(parameter_s,'qb',mode='string')
+        # jump to previous
+        if ps == '-':
+            try:
+                ps = self.shell.user_ns['_dh'][-2]
+            except IndexError:
+                print 'No previous directory to change to.'
+                return
+        # jump to bookmark
+        elif opts.has_key('b') or (bkms.has_key(ps) and not os.path.isdir(ps)):
+            if bkms.has_key(ps):
+                target = bkms[ps]
+                print '(bookmark:%s) -> %s' % (ps,target)
+                ps = target
+            else:
+                if bkms:
+                    error("Bookmark '%s' not found.  "
+                          "Use '%bookmark -l' to see your bookmarks." % ps)
+                else:
+                    print "Bookmarks not set - use %bookmark <bookmarkname>"
+                return
+            
+        # at this point ps should point to the target dir
+        if ps:
+            try:
+                os.chdir(os.path.expanduser(ps))
+            except OSError:
+                print sys.exc_info()[1]
+            else:
+                self.shell.user_ns['_dh'].append(os.getcwd())
+        else:
+            os.chdir(self.home_dir)
+            self.shell.user_ns['_dh'].append(os.getcwd())
+        if not 'q' in opts:
+            print self.shell.user_ns['_dh'][-1]
+
+    def magic_dhist(self, parameter_s=''):
+        """Print your history of visited directories.
+
+        %dhist       -> print full history\\
+        %dhist n     -> print last n entries only\\
+        %dhist n1 n2 -> print entries between n1 and n2 (n1 not included)\\
+
+        This history is automatically maintained by the %cd command, and
+        always available as the global list variable _dh. You can use %cd -<n>
+        to go to directory number <n>."""
+
+        dh = self.shell.user_ns['_dh']
+        if parameter_s:
+            try:
+                args = map(int,parameter_s.split())
+            except:
+                self.arg_err(Magic.magic_dhist)
+                return
+            if len(args) == 1:
+                ini,fin = max(len(dh)-(args[0]),0),len(dh)
+            elif len(args) == 2:
+                ini,fin = args
+            else:
+                self.arg_err(Magic.magic_dhist)
+                return
+        else:
+            ini,fin = 0,len(dh)
+        nlprint(dh,
+                header = 'Directory history (kept in _dh)',
+                start=ini,stop=fin)
+
+    def magic_env(self, parameter_s=''):
+        """List environment variables."""
+        
+        # environ is an instance of UserDict
+        return os.environ.data
+
+    def magic_pushd(self, parameter_s=''):
+        """Place the current dir on stack and change directory.
+        
+        Usage:\\
+          %pushd ['dirname']
+
+        %pushd with no arguments does a %pushd to your home directory.
+        """
+        if parameter_s == '': parameter_s = '~'
+        if len(self.dir_stack)>0 and os.path.expanduser(parameter_s) != \
+           os.path.expanduser(self.dir_stack[0]):
+            try:
+                self.magic_cd(parameter_s)
+                self.dir_stack.insert(0,os.getcwd().replace(self.home_dir,'~'))
+                self.magic_dirs()
+            except:
+                print 'Invalid directory'
+        else:
+            print 'You are already there!'
+
+    def magic_popd(self, parameter_s=''):
+        """Change to directory popped off the top of the stack.
+        """
+        if len (self.dir_stack) > 1:
+            self.dir_stack.pop(0)
+            self.magic_cd(self.dir_stack[0])
+            print self.dir_stack[0]
+        else:
+            print "You can't remove the starting directory from the stack:",\
+                  self.dir_stack
+
+    def magic_dirs(self, parameter_s=''):
+        """Return the current directory stack."""
+
+        return self.dir_stack[:]
+
+    def magic_sc(self, parameter_s=''):
+        """Shell capture - execute a shell command and capture its output.
+
+        %sc [options] varname=command
+
+        IPython will run the given command using commands.getoutput(), and
+        will then update the user's interactive namespace with a variable
+        called varname, containing the value of the call.  Your command can
+        contain shell wildcards, pipes, etc.
+
+        The '=' sign in the syntax is mandatory, and the variable name you
+        supply must follow Python's standard conventions for valid names.
+
+        Options:
+
+          -l: list output.  Split the output on newlines into a list before
+          assigning it to the given variable.  By default the output is stored
+          as a single string.
+
+          -v: verbose.  Print the contents of the variable.
+
+        In most cases you should not need to split as a list, because the
+        returned value is a special type of string which can automatically
+        provide its contents either as a list (split on newlines) or as a
+        space-separated string.  These are convenient, respectively, either
+        for sequential processing or to be passed to a shell command.
+
+        For example:
+
+            # Capture into variable a
+            In [9]: sc a=ls *py
+
+            # a is a string with embedded newlines
+            In [10]: a
+            Out[10]: 'setup.py\nwin32_manual_post_install.py'
+
+            # which can be seen as a list:
+            In [11]: a.l
+            Out[11]: ['setup.py', 'win32_manual_post_install.py']
+
+            # or as a whitespace-separated string:
+            In [12]: a.s
+            Out[12]: 'setup.py win32_manual_post_install.py'
+
+            # a.s is useful to pass as a single command line:
+            In [13]: !wc -l $a.s
+              146 setup.py
+              130 win32_manual_post_install.py
+              276 total
+
+            # while the list form is useful to loop over:
+            In [14]: for f in a.l:
+               ....:      !wc -l $f
+               ....:
+            146 setup.py
+            130 win32_manual_post_install.py
+
+        Similiarly, the lists returned by the -l option are also special, in
+        the sense that you can equally invoke the .s attribute on them to
+        automatically get a whitespace-separated string from their contents:
+
+            In [1]: sc -l b=ls *py
+
+            In [2]: b
+            Out[2]: ['setup.py', 'win32_manual_post_install.py']
+
+            In [3]: b.s
+            Out[3]: 'setup.py win32_manual_post_install.py'
+
+        In summary, both the lists and strings used for ouptut capture have
+        the following special attributes:
+
+            .l (or .list) : value as list.
+            .n (or .nlstr): value as newline-separated string.
+            .s (or .spstr): value as space-separated string.
+        """
+
+        opts,args = self.parse_options(parameter_s,'lv')
+        # Try to get a variable name and command to run
+        try:
+            # the variable name must be obtained from the parse_options
+            # output, which uses shlex.split to strip options out.
+            var,_ = args.split('=',1)
+            var = var.strip()
+            # But the the command has to be extracted from the original input
+            # parameter_s, not on what parse_options returns, to avoid the
+            # quote stripping which shlex.split performs on it.
+            _,cmd = parameter_s.split('=',1)
+        except ValueError:
+            var,cmd = '',''
+        if not var:
+            error('you must specify a variable to assign the command to.')
+            return
+        # If all looks ok, proceed
+        out,err = self.shell.getoutputerror(cmd)
+        if err:
+            print >> Term.cerr,err
+        if opts.has_key('l'):
+            out = SList(out.split('\n'))
+        else:
+            out = LSString(out)
+        if opts.has_key('v'):
+            print '%s ==\n%s' % (var,pformat(out))
+        self.shell.user_ns.update({var:out})
+
+    def magic_sx(self, parameter_s=''):
+        """Shell execute - run a shell command and capture its output.
+
+        %sx command
+
+        IPython will run the given command using commands.getoutput(), and
+        return the result formatted as a list (split on '\\n').  Since the
+        output is _returned_, it will be stored in ipython's regular output
+        cache Out[N] and in the '_N' automatic variables.
+
+        Notes:
+
+        1) If an input line begins with '!!', then %sx is automatically
+        invoked.  That is, while:
+          !ls
+        causes ipython to simply issue system('ls'), typing
+          !!ls
+        is a shorthand equivalent to:
+          %sx ls
+        
+        2) %sx differs from %sc in that %sx automatically splits into a list,
+        like '%sc -l'.  The reason for this is to make it as easy as possible
+        to process line-oriented shell output via further python commands.
+        %sc is meant to provide much finer control, but requires more
+        typing.
+
+        3) Just like %sc -l, this is a list with special attributes:
+
+          .l (or .list) : value as list.
+          .n (or .nlstr): value as newline-separated string.
+          .s (or .spstr): value as whitespace-separated string.
+
+        This is very useful when trying to use such lists as arguments to
+        system commands."""
+
+        if parameter_s:
+            out,err = self.shell.getoutputerror(parameter_s)
+            if err:
+                print >> Term.cerr,err
+            return SList(out.split('\n'))
+
+    def magic_bg(self, parameter_s=''):
+        """Run a job in the background, in a separate thread.
+
+        For example,
+
+          %bg myfunc(x,y,z=1)
+
+        will execute 'myfunc(x,y,z=1)' in a background thread.  As soon as the
+        execution starts, a message will be printed indicating the job
+        number.  If your job number is 5, you can use
+
+          myvar = jobs.result(5)  or  myvar = jobs[5].result
+
+        to assign this result to variable 'myvar'.
+
+        IPython has a job manager, accessible via the 'jobs' object.  You can
+        type jobs? to get more information about it, and use jobs.<TAB> to see
+        its attributes.  All attributes not starting with an underscore are
+        meant for public use.
+
+        In particular, look at the jobs.new() method, which is used to create
+        new jobs.  This magic %bg function is just a convenience wrapper
+        around jobs.new(), for expression-based jobs.  If you want to create a
+        new job with an explicit function object and arguments, you must call
+        jobs.new() directly.
+
+        The jobs.new docstring also describes in detail several important
+        caveats associated with a thread-based model for background job
+        execution.  Type jobs.new? for details.
+
+        You can check the status of all jobs with jobs.status().
+
+        The jobs variable is set by IPython into the Python builtin namespace.
+        If you ever declare a variable named 'jobs', you will shadow this
+        name.  You can either delete your global jobs variable to regain
+        access to the job manager, or make a new name and assign it manually
+        to the manager (stored in IPython's namespace).  For example, to
+        assign the job manager to the Jobs name, use:
+
+          Jobs = __builtins__.jobs"""
+        
+        self.shell.jobs.new(parameter_s,self.shell.user_ns)
+        
+    def magic_bookmark(self, parameter_s=''):
+        """Manage IPython's bookmark system.
+
+        %bookmark <name>       - set bookmark to current dir
+        %bookmark <name> <dir> - set bookmark to <dir>
+        %bookmark -l           - list all bookmarks
+        %bookmark -d <name>    - remove bookmark
+        %bookmark -r           - remove all bookmarks
+
+        You can later on access a bookmarked folder with:
+          %cd -b <name>
+        or simply '%cd <name>' if there is no directory called <name> AND
+        there is such a bookmark defined.
+
+        Your bookmarks persist through IPython sessions, but they are
+        associated with each profile."""
+
+        opts,args = self.parse_options(parameter_s,'drl',mode='list')
+        if len(args) > 2:
+            error('You can only give at most two arguments')
+            return
+
+        bkms = self.shell.persist.get('bookmarks',{})
+            
+        if opts.has_key('d'):
+            try:
+                todel = args[0]
+            except IndexError:
+                error('You must provide a bookmark to delete')
+            else:
+                try:
+                    del bkms[todel]
+                except:
+                    error("Can't delete bookmark '%s'" % todel)
+        elif opts.has_key('r'):
+            bkms = {}
+        elif opts.has_key('l'):
+            bks = bkms.keys()
+            bks.sort()
+            if bks:
+                size = max(map(len,bks))
+            else:
+                size = 0
+            fmt = '%-'+str(size)+'s -> %s'
+            print 'Current bookmarks:'
+            for bk in bks:
+                print fmt % (bk,bkms[bk])
+        else:
+            if not args:
+                error("You must specify the bookmark name")
+            elif len(args)==1:
+                bkms[args[0]] = os.getcwd()
+            elif len(args)==2:
+                bkms[args[0]] = args[1]
+        self.persist['bookmarks'] = bkms
+# end Magic

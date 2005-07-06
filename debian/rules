@@ -1,0 +1,98 @@
+#!/usr/bin/make -f
+# Sample debian/rules that uses debhelper.
+# GNU copyright 1997 to 1999 by Joey Hess.
+
+# Uncomment this to turn on verbose mode.
+#export DH_VERBOSE=1
+
+
+
+
+CFLAGS = -Wall -g
+
+ifneq (,$(findstring noopt,$(DEB_BUILD_OPTIONS)))
+	CFLAGS += -O0
+else
+	CFLAGS += -O2
+endif
+ifeq (,$(findstring nostrip,$(DEB_BUILD_OPTIONS)))
+	INSTALL_PROGRAM += -s
+endif
+
+configure: configure-stamp
+configure-stamp:
+	dh_testdir
+
+	python setup.py config
+
+	touch configure-stamp
+
+
+build: build-stamp
+
+build-stamp: configure-stamp 
+	dh_testdir
+
+	python setup.py build
+
+	touch build-stamp
+
+clean:
+	dh_testdir
+	dh_testroot
+	rm -f build-stamp configure-stamp
+
+	-python setup.py clean --all
+	rm -f setupext/*.pyc
+
+	dh_clean
+
+install: build
+	dh_testdir
+	dh_testroot
+	dh_clean -k
+	dh_installdirs
+
+	python setup.py install --prefix $(CURDIR)/debian/ipython/usr
+
+	# remove extra license docs that get installed
+	rm -f $(CURDIR)/debian/ipython/usr/share/doc/ipython/COPYING
+	#rm -f $(CURDIR)/debian/ipython/usr/share/doc/ipython/GNU-LGPL
+
+	# change permission on scripts
+	chmod 755 $(CURDIR)/debian/ipython/usr/share/doc/ipython/examples/example-embed.py	
+	chmod 755 $(CURDIR)/debian/ipython/usr/share/doc/ipython/examples/example-gnuplot.py
+
+binary-indep: build install
+	dh_testdir
+	dh_testroot
+	dh_installchangelogs doc/ChangeLog
+	dh_installdocs
+#	dh_installexamples
+	dh_install
+#	dh_installmenu
+#	dh_installdebconf	
+#	dh_installlogrotate
+#	dh_installemacsen
+#	dh_installpam
+#	dh_installmime
+#	dh_installinit
+#	dh_installcron
+#	dh_installinfo
+	dh_installman doc/ipython.1.gz doc/pycolor.1.gz
+	dh_compress
+	dh_fixperms
+	dh_python
+#	dh_makeshlibs
+	dh_installdeb
+#	dh_shlibdeps
+	dh_gencontrol
+	dh_md5sums
+	dh_builddeb
+
+# Build architecture-dependent files here.
+binary-arch: build install
+# We have nothing to do by default.
+
+binary: binary-indep binary-arch
+.PHONY: build clean binary-indep binary-arch binary install configure
