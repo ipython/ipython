@@ -1,5 +1,5 @@
 # -*- Mode: Shell-Script -*-  Not really, but shows comments correctly
-# $Id: ipythonrc 596 2005-06-01 17:01:13Z fperez $
+# $Id: ipythonrc 633 2005-07-17 01:03:15Z tzanko $
 
 #***************************************************************************
 #
@@ -355,6 +355,10 @@ readline_parse_and_bind "\C-n": history-search-forward
 # typed so far), comment out or delete the next two lines.
 readline_parse_and_bind "\e[A": history-search-backward
 readline_parse_and_bind "\e[B": history-search-forward
+
+# These are typically on by default under *nix, but not win32.
+readline_parse_and_bind "\C-k": kill-line
+readline_parse_and_bind "\C-u": unix-line-discard
 
 # (ii) readline_remove_delims: a string of characters to be removed from the
 # default word-delimiters list used by readline, so that completions may be

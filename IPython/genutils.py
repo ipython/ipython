@@ -5,7 +5,7 @@ General purpose utilities.
 This is a grab-bag of stuff I find useful in most programs I write. Some of
 these things are also convenient when working at the command line.
 
-$Id: genutils.py 543 2005-03-18 09:23:48Z fperez $"""
+$Id: genutils.py 633 2005-07-17 01:03:15Z tzanko $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2004 Fernando Perez. <fperez@colorado.edu>
@@ -711,7 +711,7 @@ def get_home_dir():
     We first try $HOME.  Absent that, on NT it's $HOMEDRIVE\$HOMEPATH.
 
     Currently only Posix and NT are implemented, a HomeDirError exception is
-    raised for all other OSes. """ #'
+    raised for all other OSes. """
 
     try:
         return os.environ['HOME']
