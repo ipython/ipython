@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Release data for the IPython project.
 
-$Id: Release.py 605 2005-06-09 14:09:03Z fperez $"""
+$Id: Release.py 634 2005-07-17 01:56:45Z tzanko $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2005 Fernando Perez <fperez@colorado.edu>
@@ -19,7 +19,7 @@ name = 'ipython'
 
 # For versions with substrings (like 0.6.7_rc1), use _ but NOT -, since
 # bdist_rpm chokes on dashes in the version string.
-version = '0.6.16_cvs'
+version = '0.6.16_svn'
 
 description = "An enhanced interactive Python shell."
 

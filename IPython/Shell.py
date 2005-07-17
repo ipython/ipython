@@ -4,7 +4,7 @@
 All the matplotlib support code was co-developed with John Hunter,
 matplotlib's author.
 
-$Id: Shell.py 605 2005-06-09 14:09:03Z fperez $"""
+$Id: Shell.py 634 2005-07-17 01:56:45Z tzanko $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2004 Fernando Perez <fperez@colorado.edu>
@@ -400,15 +400,6 @@ class MatplotlibShellBase:
                 self.mpl_use._called = True
         
         self.matplotlib = matplotlib
-
-        # Take control of matplotlib's error handling, which can normally
-        # lock up the python interpreter when raw_input() is called
-        import matplotlib.backends as backend
-        backend.error_msg = error
-        
-        # we'll handle the mainloop, tell show not to
-        import matplotlib.backends
-        matplotlib.backends.show._needmain = False
         self.mpl_backend = matplotlib.rcParams['backend']
 
         # we also need to block switching of interactive backends by use()
@@ -417,9 +408,6 @@ class MatplotlibShellBase:
         # overwrite the original matplotlib.use with our wrapper
         matplotlib.use = use
 
-        # We need to detect at runtime whether show() is called by the user.
-        # For this, we wrap it into a decorator which adds a 'called' flag.
-        backend.draw_if_interactive = flag_calls(backend.draw_if_interactive)
 
         # This must be imported last in the matplotlib series, after
         # backend/interactivity choices have been made
@@ -431,6 +419,11 @@ class MatplotlibShellBase:
             import matplotlib.matlab as matlab            
             self.pylab = matlab
             self.pylab_name = 'matlab'
+
+        self.pylab.show._needmain = False
+        # We need to detect at runtime whether show() is called by the user.
+        # For this, we wrap it into a decorator which adds a 'called' flag.
+        self.pylab.draw_if_interactive = flag_calls(self.pylab.draw_if_interactive)
 
         # Build a user namespace initialized with matplotlib/matlab features.
         user_ns = {'__name__':'__main__',
