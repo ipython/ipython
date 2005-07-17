@@ -84,6 +84,13 @@ import __main__
 
 __all__ = ["Completer"]
 
+# declares Python 2.2 compatibility symbols:
+try:
+    basestring
+except NameError:
+    import types
+    basestring = (types.StringType, types.UnicodeType)
+
 class Completer:
     def __init__(self, namespace = None):
         """Create a new completer for the command line.
@@ -171,21 +178,15 @@ class Completer:
             return []
         expr, attr = m.group(1, 3)
         object = eval(expr, self.namespace)
-        words = dir(object)
+        words = [w for w in dir(object) if isinstance(w, basestring)]
         if hasattr(object,'__class__'):
             words.append('__class__')
             words.extend(get_class_members(object.__class__))
         n = len(attr)
         matches = []
         for word in words:
-            try:
-                if word[:n] == attr and word != "__builtins__":
-                    matches.append("%s.%s" % (expr, word))
-            except:
-                # some badly behaved objects pollute dir() with non-strings,
-                # which cause the completion to fail.  This way we skip the
-                # bad entries and can still continue processing the others.
-                pass
+            if word[:n] == attr and word != "__builtins__":
+                matches.append("%s.%s" % (expr, word))
         return matches
 
 def get_class_members(klass):
