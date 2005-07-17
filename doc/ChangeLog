@@ -1,3 +1,18 @@
+2005-07-16  Fernando Perez  <fperez@colorado.edu>
+
+	* IPython/ultraTB.py (ExceptionColors): Make a global variable
+	out of the color scheme table used for coloring  exception
+	tracebacks.  This allows user code to add new schemes at runtime.
+	This is a minimally modified version of the patch at
+	http://www.scipy.net/roundup/ipython/issue35, many thanks to pabw
+	for the contribution.
+
+	* IPython/FlexCompleter.py (Completer.attr_matches): Add a
+	slightly modified version of the patch in
+	http://www.scipy.net/roundup/ipython/issue34, which also allows me
+	to remove the previous try/except solution (which was costlier).
+	Thanks to glehmann for the fix.
+
 2005-06-08  Fernando Perez  <fperez@colorado.edu>
 
 	* IPython/iplib.py (write/write_err): Add methods to abstract all

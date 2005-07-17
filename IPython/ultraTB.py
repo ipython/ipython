@@ -60,7 +60,7 @@ You can implement other color schemes easily, the syntax is fairly
 self-explanatory. Please send back new schemes you develop to the author for
 possible inclusion in future releases.
 
-$Id: ultraTB.py 589 2005-05-30 06:26:28Z fperez $"""
+$Id: ultraTB.py 636 2005-07-17 03:11:11Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001 Nathaniel Gray <n8gray@caltech.edu>
@@ -98,7 +98,97 @@ def inspect_error():
     
     error('Internal Python error in the inspect module.\n'
           'Below is the traceback from this internal error.\n')
+
+# Make a global variable out of the color scheme table used for coloring
+# exception tracebacks.  This allows user code to add new schemes at runtime.
+ExceptionColors = ColorSchemeTable()
+
+# Populate it with color schemes
+C = TermColors # shorthand and local lookup
+ExceptionColors.add_scheme(ColorScheme(
+    'NoColor',
+    # The color to be used for the top line
+    topline = C.NoColor,
+
+    # The colors to be used in the traceback
+    filename = C.NoColor,
+    lineno = C.NoColor,
+    name = C.NoColor,
+    vName = C.NoColor,
+    val = C.NoColor,
+    em = C.NoColor,
     
+    # Emphasized colors for the last frame of the traceback
+    normalEm = C.NoColor,
+    filenameEm = C.NoColor,
+    linenoEm = C.NoColor,
+    nameEm = C.NoColor,
+    valEm = C.NoColor,
+    
+    # Colors for printing the exception
+    excName = C.NoColor,
+    line = C.NoColor,
+    caret = C.NoColor,
+    Normal = C.NoColor
+    ))
+
+# make some schemes as instances so we can copy them for modification easily
+ExceptionColors.add_scheme(ColorScheme(
+    'Linux',
+    # The color to be used for the top line
+    topline = C.LightRed,
+
+    # The colors to be used in the traceback
+    filename = C.Green,
+    lineno = C.Green,
+    name = C.Purple,
+    vName = C.Cyan,
+    val = C.Green,
+    em = C.LightCyan,
+
+    # Emphasized colors for the last frame of the traceback
+    normalEm = C.LightCyan,
+    filenameEm = C.LightGreen,
+    linenoEm = C.LightGreen,
+    nameEm = C.LightPurple,
+    valEm = C.LightBlue,
+
+    # Colors for printing the exception
+    excName = C.LightRed,
+    line = C.Yellow,
+    caret = C.White,
+    Normal = C.Normal
+    ))
+
+# For light backgrounds, swap dark/light colors
+ExceptionColors.add_scheme(ColorScheme(
+    'LightBG',
+    # The color to be used for the top line
+    topline = C.Red,
+    
+    # The colors to be used in the traceback
+    filename = C.LightGreen,
+    lineno = C.LightGreen,
+    name = C.LightPurple,
+    vName = C.Cyan,
+    val = C.LightGreen,
+    em = C.Cyan,
+
+    # Emphasized colors for the last frame of the traceback
+    normalEm = C.Cyan,
+    filenameEm = C.Green,
+    linenoEm = C.Green,
+    nameEm = C.Purple,
+    valEm = C.Blue,
+
+    # Colors for printing the exception
+    excName = C.Red,
+    #line = C.Brown,  # brown often is displayed as yellow
+    line = C.Red,
+    caret = C.Normal,
+    Normal = C.Normal
+    ))
+
 class TBTools:
     """Basic tools used by all traceback printer classes."""
 
@@ -112,93 +202,7 @@ class TBTools:
             self.pdb = None
 
         # Create color table
-        self.ColorSchemeTable = ColorSchemeTable()
-        
-        # Populate it with color schemes
-        C = TermColors # shorthand and local lookup
-        self.ColorSchemeTable.add_scheme(ColorScheme(
-            'NoColor',
-            # The color to be used for the top line
-            topline = C.NoColor,
-
-            # The colors to be used in the traceback
-            filename = C.NoColor,
-            lineno = C.NoColor,
-            name = C.NoColor,
-            vName = C.NoColor,
-            val = C.NoColor,
-            em = C.NoColor,
-
-            # Emphasized colors for the last frame of the traceback
-            normalEm = C.NoColor,
-            filenameEm = C.NoColor,
-            linenoEm = C.NoColor,
-            nameEm = C.NoColor,
-            valEm = C.NoColor,
-
-            # Colors for printing the exception
-            excName = C.NoColor,
-            line = C.NoColor,
-            caret = C.NoColor,
-            Normal = C.NoColor
-            ))
-
-        # make some schemes as instances so we can copy them for modification easily:
-        self.ColorSchemeTable.add_scheme(ColorScheme(
-            'Linux',
-            # The color to be used for the top line
-            topline = C.LightRed,
-
-            # The colors to be used in the traceback
-            filename = C.Green,
-            lineno = C.Green,
-            name = C.Purple,
-            vName = C.Cyan,
-            val = C.Green,
-            em = C.LightCyan,
-
-            # Emphasized colors for the last frame of the traceback
-            normalEm = C.LightCyan,
-            filenameEm = C.LightGreen,
-            linenoEm = C.LightGreen,
-            nameEm = C.LightPurple,
-            valEm = C.LightBlue,
-
-            # Colors for printing the exception
-            excName = C.LightRed,
-            line = C.Yellow,
-            caret = C.White,
-            Normal = C.Normal
-            ))
-
-        # For light backgrounds, swap dark/light colors
-        self.ColorSchemeTable.add_scheme(ColorScheme(
-            'LightBG',
-            # The color to be used for the top line
-            topline = C.Red,
-
-            # The colors to be used in the traceback
-            filename = C.LightGreen,
-            lineno = C.LightGreen,
-            name = C.LightPurple,
-            vName = C.Cyan,
-            val = C.LightGreen,
-            em = C.Cyan,
-
-            # Emphasized colors for the last frame of the traceback
-            normalEm = C.Cyan,
-            filenameEm = C.Green,
-            linenoEm = C.Green,
-            nameEm = C.Purple,
-            valEm = C.Blue,
-
-            # Colors for printing the exception
-            excName = C.Red,
-            #line = C.Brown,  # brown often is displayed as yellow
-            line = C.Red,
-            caret = C.Normal,
-            Normal = C.Normal
-            ))
+        self.ColorSchemeTable = ExceptionColors 
 
         self.set_colors(color_scheme)
         self.old_scheme = color_scheme  # save initial value for toggles
