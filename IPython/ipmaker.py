@@ -6,7 +6,7 @@ Requires Python 2.1 or better.
 
 This file contains the main make_IPython() starter function.
 
-$Id: ipmaker.py 582 2005-05-13 21:20:00Z fperez $"""
+$Id: ipmaker.py 638 2005-07-18 03:01:41Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2004 Fernando Perez. <fperez@colorado.edu>
@@ -85,19 +85,8 @@ def make_IPython(argv=None,user_ns=None,debug=1,rc_override=None,
     IP = shell_class('__IP',user_ns=user_ns,**kw)
 
     # Put 'help' in the user namespace
-    try:
-        from site import _Helper
-    except ImportError:
-        # Use the _Helper class from Python 2.2 for older Python versions
-        class _Helper:
-            def __repr__(self):
-                return "Type help() for interactive help, " \
-                       "or help(object) for help about object."
-            def __call__(self, *args, **kwds):
-                import pydoc
-                return pydoc.help(*args, **kwds)
-    else:
-        IP.user_ns['help'] = _Helper()
+    from site import _Helper
+    IP.user_ns['help'] = _Helper()
 
     if DEVDEBUG:
         # For developer debugging only (global flag)

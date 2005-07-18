@@ -44,7 +44,7 @@ each time the instance is evaluated with str(instance).  For example:
     foo = "bar"
     print str(s)
 
-$Id: Itpl.py 542 2005-03-18 09:16:04Z fperez $
+$Id: Itpl.py 638 2005-07-18 03:01:41Z fperez $
 """                   # ' -> close an open quote for stupid emacs
 
 #*****************************************************************************
@@ -103,8 +103,9 @@ class Itpl:
     evaluation and substitution happens in the namespace of the
     caller when str(instance) is called."""
 
-    def __init__(self, format):
-        """The single argument to this constructor is a format string.
+    def __init__(self, format,codec='utf_8',encoding_errors='backslashreplace'):
+        """The single mandatory argument to this constructor is a format
+        string.
 
         The format string is parsed according to the following rules:
 
@@ -119,12 +120,25 @@ class Itpl:
             a Python expression.
 
         3.  Outside of the expressions described in the above two rules,
-            two dollar signs in a row give you one literal dollar sign."""
+            two dollar signs in a row give you one literal dollar sign.
 
-        if type(format) != StringType:
+        Optional arguments:
+
+        - codec('utf_8'): a string containing the name of a valid Python
+        codec.
+
+        - encoding_errors('backslashreplace'): a string with a valid error handling
+        policy.  See the codecs module documentation for details.
+
+        These are used to encode the format string if a call to str() fails on
+        the expanded result."""
+
+        if not isinstance(format,basestring):
             raise TypeError, "needs string initializer"
         self.format = format
-
+        self.codec = codec
+        self.encoding_errors = encoding_errors
+        
         namechars = "abcdefghijklmnopqrstuvwxyz" \
             "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_";
         chunks = []
@@ -174,6 +188,23 @@ class Itpl:
     def __repr__(self):
         return "<Itpl %s >" % repr(self.format)
 
+    def _str(self,glob,loc):
+        """Evaluate to a string in the given globals/locals.
+
+        The final output is built by calling str(), but if this fails, the
+        result is encoded with the instance's codec and error handling policy,
+        via a call to out.encode(self.codec,self.encoding_errors)"""
+        result = []
+        app = result.append
+        for live, chunk in self.chunks:
+            if live: app(str(eval(chunk,glob,loc)))
+            else: app(chunk)
+        out = ''.join(result)
+        try:
+            return str(out)
+        except UnicodeError:
+            return out.encode(self.codec,self.encoding_errors)
+
     def __str__(self):
         """Evaluate and substitute the appropriate parts of the string."""
 
@@ -183,13 +214,8 @@ class Itpl:
         while frame.f_globals["__name__"] == __name__: frame = frame.f_back
         loc, glob = frame.f_locals, frame.f_globals
 
-        result = []
-        for live, chunk in self.chunks:
-            if live: result.append(str(eval(chunk,glob,loc)))
-            else: result.append(chunk)
-
-        return ''.join(result)
-
+        return self._str(glob,loc)
+    
 class ItplNS(Itpl):
     """Class representing a string with interpolation abilities.
 
@@ -199,7 +225,8 @@ class ItplNS(Itpl):
     caller to supply a different namespace for the interpolation to occur than
     its own."""
     
-    def __init__(self, format,globals,locals=None):
+    def __init__(self, format,globals,locals=None,
+                 codec='utf_8',encoding_errors='backslashreplace'):
         """ItplNS(format,globals[,locals]) -> interpolating string instance.
 
         This constructor, besides a format string, takes a globals dictionary
@@ -211,17 +238,14 @@ class ItplNS(Itpl):
             locals = globals
         self.globals = globals
         self.locals = locals
-        Itpl.__init__(self,format)
+        Itpl.__init__(self,format,codec,encoding_errors)
         
     def __str__(self):
         """Evaluate and substitute the appropriate parts of the string."""
-        glob = self.globals
-        loc = self.locals
-        result = []
-        for live, chunk in self.chunks:
-            if live: result.append(str(eval(chunk,glob,loc)))
-            else: result.append(chunk)
-        return ''.join(result)
+        return self._str(self.globals,self.locals)
+
+    def __repr__(self):
+        return "<ItplNS %s >" % repr(self.format)
 
 # utilities for fast printing
 def itpl(text): return str(Itpl(text))

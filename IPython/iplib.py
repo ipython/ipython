@@ -6,7 +6,7 @@ Requires Python 2.1 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 602 2005-06-09 03:02:30Z fperez $
+$Id: iplib.py 638 2005-07-18 03:01:41Z fperez $
 """
 
 #*****************************************************************************
@@ -69,15 +69,6 @@ from IPython.genutils import *
 # overwrites it (like wx.py.PyShell does)
 raw_input_original = raw_input
 
-# declares Python 2.2 compatibility symbols:
-try:
-    enumerate
-except NameError:
-    def enumerate(obj):
-        i = -1
-        for item in obj:
-            i += 1
-            yield i, item
 #****************************************************************************
 # Some utility function definitions
 
@@ -1337,7 +1328,7 @@ want to merge them back into the new files.""" % locals()
         self.interact(header)
 
         # Remove locals from namespace
-        for k in local_ns.keys():
+        for k in local_ns:
             del self.user_ns[k]
 
     def interact(self, banner=None):
@@ -1363,10 +1354,9 @@ want to merge them back into the new files.""" % locals()
 
         # Mark activity in the builtins
         __builtin__.__dict__['__IPYTHON__active'] += 1
-        while 1:
-            # This is set by a call to %Exit or %Quit
-            if self.exit_now:
-                break
+
+        # exit_now is set by a call to %Exit or %Quit
+        while not self.exit_now:
             try:
                 if more:
                     prompt = self.outputcache.prompt2
@@ -1421,82 +1411,7 @@ want to merge them back into the new files.""" % locals()
                      "Because of how pdb handles the stack, it is impossible\n"
                      "for IPython to properly format this particular exception.\n"
                      "IPython will resume normal operation.")
-            except:
-                # We should never get here except in fairly bizarre situations
-                # (or b/c of an IPython bug). One reasonable exception is if
-                # the user sets stdin/out/err to a broken object (or closes
-                # any of them!)
-
-                fixed_in_out_err = 0
-
-                # Call the Term I/O class and have it reopen any stream which
-                # the user might have closed.
-                Term.reopen_all()
-
-                # Do the same manually for sys.stderr/out/in
-                
-                # err first, so we can print at least warnings
-                if sys.__stderr__.closed:
-                    sys.__stderr__ = os.fdopen(os.dup(2),'w',0)
-                    fixed_err_err = 1
-                    print >> sys.__stderr__,"""
-WARNING:
-sys.__stderr__ was closed!
-I've tried to reopen it, but bear in mind that things may not work normally
-from now.  In particular, readline support may have broken.
-"""
-                # Next, check stdin/out    
-                if sys.__stdin__.closed:
-                    sys.__stdin__ = os.fdopen(os.dup(0),'r',0)
-                    fixed_in_out_err = 1
-                    print >> sys.__stderr__,"""
-WARNING:
-sys.__stdin__ was closed!
-I've tried to reopen it, but bear in mind that things may not work normally
-from now.  In particular, readline support may have broken.
-"""
-                if sys.__stdout__.closed:
-                    sys.__stdout__ = os.fdopen(os.dup(1),'w',0)
-                    fixed_in_out_err = 1
-                    print >> sys.__stderr__,"""
-WARNING:
-sys.__stdout__ was closed!
-I've tried to reopen it, but bear in mind that things may not work normally
-from now.  In particular, readline support may have broken.
-"""
-
-                # Now, check mismatch of objects
-                if sys.stdin is not sys.__stdin__:
-                    sys.stdin = sys.__stdin__
-                    fixed_in_out_err = 1
-                    print >> sys.__stderr__,"""
-WARNING:
-sys.stdin has been reset to sys.__stdin__.
-There seemed to be a problem with your sys.stdin.
-"""
-                if sys.stdout is not sys.__stdout__:
-                    sys.stdout = sys.__stdout__
-                    fixed_in_out_err = 1
-                    print >> sys.__stderr__,"""
-WARNING:
-sys.stdout has been reset to sys.__stdout__.
-There seemed to be a problem with your sys.stdout.
-"""
-
-                if sys.stderr is not sys.__stderr__:
-                    sys.stderr = sys.__stderr__
-                    fixed_in_out_err = 1
-                    print >> sys.__stderr__,"""
-WARNING:
-sys.stderr has been reset to sys.__stderr__.
-There seemed to be a problem with your sys.stderr.
-"""
-                # If the problem wasn't a broken out/err, it's an IPython bug
-                # I wish we could ask the user whether to crash or not, but
-                # calling any function at this point messes up the stack.
-                if not fixed_in_out_err:
-                    raise
-                
+            
         # We are off again...
         __builtin__.__dict__['__IPYTHON__active'] -= 1
 

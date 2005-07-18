@@ -5,7 +5,7 @@ We define a special input line filter to allow typing lines which begin with
 '~', '/' or '.'. If one of those strings is encountered, it is automatically
 executed.
 
-$Id: InterpreterExec.py 573 2005-04-08 08:38:09Z fperez $"""
+$Id: InterpreterExec.py 638 2005-07-18 03:01:41Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2004 W.J. van der Laan <gnufnork@hetdigitalegat.nl>
@@ -264,7 +264,9 @@ __IPYTHON__.magic_unalias('sx')
 # 'gnome-terminal' are interpreted as a single alias instead of variable
 # 'gnome' minus variable 'terminal'.
 import re
-__IPYTHON__.line_split = re.compile(r'^(\s*)([\?\w\.\-\+]+\w*\s*)(\(?.*$)')
+__IPYTHON__.line_split = re.compile(r'^([\s*,;/])'
+                                    r'([\?\w\.\-\+]+\w*\s*)'
+                                    r'(\(?.*$)')
 
 # Namespace cleanup
 del re

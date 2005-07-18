@@ -2,7 +2,7 @@
 """
 Classes for handling input/output prompts.
 
-$Id: Prompts.py 564 2005-03-26 22:43:58Z fperez $"""
+$Id: Prompts.py 638 2005-07-18 03:01:41Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2004 Fernando Perez <fperez@colorado.edu>
@@ -194,11 +194,19 @@ def str_safe(arg):
 
     If str(arg) fails, <ERROR: ... > is returned, where ... is the exception
     error message."""
-    
+
     try:
-        return str(arg)
+        out = str(arg)
+    except UnicodeError:
+        try:
+            out = arg.encode('utf_8','replace')
+        except Exception,msg:
+            # let's keep this little duplication here, so that the most common
+            # case doesn't suffer from a double try wrapping.
+            out = '<ERROR: %s>' % msg
     except Exception,msg:
-        return '<ERROR: %s>' % msg
+        out = '<ERROR: %s>' % msg
+    return out
 
 class BasePrompt:
     """Interactive prompt similar to Mathematica's."""
@@ -413,12 +421,12 @@ class CachedOutput:
         self.ps2_str = self._set_prompt_str(ps2,'   .\\D.: ','... ')
         self.ps_out_str = self._set_prompt_str(ps_out,'Out[\\#]: ','')
 
+        self.color_table = PromptColors
         self.prompt1 = Prompt1(self,sep=input_sep,prompt=self.ps1_str,
                                pad_left=pad_left)
         self.prompt2 = Prompt2(self,prompt=self.ps2_str,pad_left=pad_left)
         self.prompt_out = PromptOut(self,sep='',prompt=self.ps_out_str,
                                     pad_left=pad_left)
-        self.color_table = PromptColors
         self.set_colors(colors)
 
         # other more normal stuff
@@ -480,15 +488,16 @@ class CachedOutput:
             except KeyError:
                 pass
         if arg is not None:
+            cout_write = Term.cout.write # fast lookup
             # first handle the cache and counters
             self.update(arg)
             # do not print output if input ends in ';'
             if self.input_hist[self.prompt_count].endswith(';\n'):
                 return
             # don't use print, puts an extra space
-            Term.cout.write(self.output_sep)
+            cout_write(self.output_sep)
             if self.do_full_cache:
-                Term.cout.write(str(self.prompt_out))
+                cout_write(str(self.prompt_out))
 
             if isinstance(arg,Macro):
                 print 'Executing Macro...'
@@ -499,7 +508,7 @@ class CachedOutput:
 
             # and now call a possibly user-defined print mechanism
             self.display(arg)
-            Term.cout.write(self.output_sep2)
+            cout_write(self.output_sep2)
             Term.cout.flush()
 
     def _display(self,arg):
@@ -509,18 +518,7 @@ class CachedOutput:
         of certain types of output."""
 
         if self.Pprint:
-            # The following is an UGLY kludge, b/c python fails to properly
-            # identify instances of classes imported in the user namespace
-            # (they have different memory locations, I guess). Structs are
-            # essentially dicts but pprint doesn't know what to do with them.
-            try:
-                if arg.__class__.__module__ == 'Struct' and \
-                   arg.__class__.__name__ == 'Struct':
-                    out = 'Struct:\n%s' % pformat(arg.dict())
-                else:
-                    out = pformat(arg)
-            except:
-                out = pformat(arg)
+            out = pformat(arg)
             if '\n' in out:
                 # So that multi-line strings line up with the left column of
                 # the screen, instead of having the output prompt mess up

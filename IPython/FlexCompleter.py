@@ -84,13 +84,6 @@ import __main__
 
 __all__ = ["Completer"]
 
-# declares Python 2.2 compatibility symbols:
-try:
-    basestring
-except NameError:
-    import types
-    basestring = (types.StringType, types.UnicodeType)
-
 class Completer:
     def __init__(self, namespace = None):
         """Create a new completer for the command line.

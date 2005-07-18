@@ -1,3 +1,39 @@
+2005-07-17  Fernando Perez  <fperez@colorado.edu>
+
+	* IPython/Prompts.py (str_safe): Make unicode-safe.  Also remove
+	some old hacks and clean up a bit other routines; code should be
+	simpler and a bit faster.
+
+	* IPython/iplib.py (interact): removed some last-resort attempts
+	to survive broken stdout/stderr.  That code was only making it
+	harder to abstract out the i/o (necessary for gui integration),
+	and the crashes it could prevent were extremely rare in practice
+	(besides being fully user-induced in a pretty violent manner).
+
+	* IPython/genutils.py (IOStream.__init__): Simplify the i/o stuff.
+	Nothing major yet, but the code is simpler to read; this should
+	make it easier to do more serious modifications in the future.
+
+	* IPython/Extensions/InterpreterExec.py: Fix auto-quoting in pysh,
+	which broke in .15 (thanks to a report by Ville).
+
+	* IPython/Itpl.py (Itpl.__init__): add unicode support (it may not
+	be quite correct, I know next to nothing about unicode).  This
+	will allow unicode strings to be used in prompts, amongst other
+	cases.  It also will prevent ipython from crashing when unicode
+	shows up unexpectedly in many places.  If ascii encoding fails, we
+	assume utf_8.  Currently the encoding is not a user-visible
+	setting, though it could be made so if there is demand for it.
+
+	* IPython/ipmaker.py (make_IPython): remove old 2.1-specific hack.
+
+	* IPython/Struct.py (Struct.merge): switch keys() to iterator.
+
+	* IPython/background_jobs.py: moved 2.2 compatibility to genutils.
+
+	* IPython/genutils.py: Add 2.2 compatibility here, so all other
+	code can work transparently for 2.2/2.3.
+
 2005-07-16  Fernando Perez  <fperez@colorado.edu>
 
 	* IPython/ultraTB.py (ExceptionColors): Make a global variable
@@ -11,7 +47,7 @@
 	slightly modified version of the patch in
 	http://www.scipy.net/roundup/ipython/issue34, which also allows me
 	to remove the previous try/except solution (which was costlier).
-	Thanks to glehmann for the fix.
+	Thanks to Gaetan Lehmann <gaetan.lehmann AT jouy.inra.fr> for the fix.
 
 2005-06-08  Fernando Perez  <fperez@colorado.edu>
 

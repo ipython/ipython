@@ -18,7 +18,7 @@ http://folk.uio.no/hpl/scripting
 (although ultimately no code from this text was used, as IPython's system is a
 separate implementation).
 
-$Id: background_jobs.py 515 2005-02-15 07:41:41Z fperez $
+$Id: background_jobs.py 638 2005-07-18 03:01:41Z fperez $
 """
 
 #*****************************************************************************
@@ -37,15 +37,6 @@ import threading,sys
 
 from IPython.ultraTB import AutoFormattedTB
 from IPython.genutils import warn,error
-
-# declares Python 2.2 compatibility symbols:
-try:
-    basestring
-except NameError:
-    import types
-    basestring = (types.StringType, types.UnicodeType)
-    True = 1==1
-    False = 1==0
 
 class BackgroundJobManager:
     """Class to manage a pool of backgrounded threaded jobs.

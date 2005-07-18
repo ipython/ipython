@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Mimic C structs with lots of extra functionality.
 
-$Id: Struct.py 410 2004-11-04 07:58:17Z fperez $"""
+$Id: Struct.py 638 2005-07-18 03:01:41Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2004 Fernando Perez <fperez@colorado.edu>
@@ -315,9 +315,8 @@ class Struct:
                     del inv_conflict_solve_user[name]
             conflict_solve.update(Struct.__dict_invert(self,inv_conflict_solve_user))
         #print 'merge. conflict_solve: '; pprint(conflict_solve) # dbg
-        # after Python 2.2, use iterators: for key in data_dict will then work
         #print '*'*50,'in merger. conflict_solver:';  pprint(conflict_solve)
-        for key in data_dict.keys():
+        for key in data_dict:
             if key not in self:
                 self[key] = data_dict[key]
             else:

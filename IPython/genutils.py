@@ -5,7 +5,7 @@ General purpose utilities.
 This is a grab-bag of stuff I find useful in most programs I write. Some of
 these things are also convenient when working at the command line.
 
-$Id: genutils.py 633 2005-07-17 01:03:15Z tzanko $"""
+$Id: genutils.py 638 2005-07-18 03:01:41Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2004 Fernando Perez. <fperez@colorado.edu>
@@ -23,8 +23,32 @@ __license__ = Release.license
 import __main__
 import types,commands,time,sys,os,re,shutil
 import tempfile
+import codecs
 from IPython.Itpl import Itpl,itpl,printpl
 from IPython import DPyGetOpt
+
+# Build objects which appeared in Python 2.3 for 2.2, to make ipython
+# 2.2-friendly
+try:
+    basestring
+except NameError:
+    import types
+    basestring = (types.StringType, types.UnicodeType)
+    True = 1==1
+    False = 1==0
+
+    def enumerate(obj):
+        i = -1
+        for item in obj:
+            i += 1
+            yield i, item
+
+    # add these to the builtin namespace, so that all modules find them
+    import __builtin__
+    __builtin__.basestring = basestring
+    __builtin__.True = True
+    __builtin__.False = False
+    __builtin__.enumerate = enumerate
 
 #****************************************************************************
 # Exceptions
@@ -33,26 +57,29 @@ class Error(Exception):
     pass
 
 #----------------------------------------------------------------------------
-class Stream:
-    """Simple class to hold the various I/O streams in Term"""
-
-    def __init__(self,stream,name):
+class IOStream:
+    def __init__(self,stream,fallback):
+        if not hasattr(stream,'write') or not hasattr(stream,'flush'):
+            stream = fallback
         self.stream = stream
-        self.name = name
-        try:
-            self.fileno = stream.fileno()
-        except AttributeError:
-            msg = ("Stream <%s> looks suspicious: it lacks a 'fileno' attribute."
-                   % name)
-            print >> sys.stderr, 'WARNING:',msg
-        try:
-            self.mode = stream.mode
-        except AttributeError:
-            msg = ("Stream <%s> looks suspicious: it lacks a 'mode' attribute."
-                   % name)
-            print >> sys.stderr, 'WARNING:',msg
+        self._swrite = stream.write
+        self.flush = stream.flush
 
-class Term:
+    def write(self,data):
+        try:
+            self._swrite(data)
+        except:
+            try:
+                # print handles some unicode issues which may trip a plain
+                # write() call.  Attempt to emulate write() by using a
+                # trailing comma
+                print >> self.stream, data,
+            except:
+                # if we get here, something is seriously broken.
+                print >> sys.stderr, \
+                      'ERROR - failed to write data to stream:', stream
+        
+class IOTerm:
     """ Term holds the file or file-like objects for handling I/O operations.
 
     These are normally just sys.stdin, sys.stdout and sys.stderr but for
@@ -62,51 +89,13 @@ class Term:
     # In the future, having IPython channel all its I/O operations through
     # this class will make it easier to embed it into other environments which
     # are not a normal terminal (such as a GUI-based shell)
-    in_s  = Stream(sys.stdin,'cin')
-    out_s = Stream(sys.stdout,'cout')
-    err_s = Stream(sys.stderr,'cerr')
-
-    # Store the three streams in (err,out,in) order so that if we need to reopen
-    # them, the error channel is reopened first to provide info.
-    streams = [err_s,out_s,in_s]
-
-    # The class globals should be the actual 'bare' streams for normal I/O to work
-    cin  = streams[2].stream
-    cout = streams[1].stream
-    cerr = streams[0].stream
-    
-    def reopen_all(cls):
-        """Reopen all streams if necessary.
-
-        This should only be called if it is suspected that someting closed
-        accidentally one of the I/O streams."""
-
-        any_closed = 0
-
-        for sn in range(len(cls.streams)):
-            st = cls.streams[sn]
-            if st.stream.closed:
-                any_closed = 1
-                new_stream = os.fdopen(os.dup(st.fileno), st.mode,0)
-                cls.streams[sn] = Stream(new_stream,st.name)
-                print >> cls.streams[0].stream, \
-                      '\nWARNING:\nStream Term.%s had to be reopened!' % st.name
-
-        # Rebuild the class globals
-        cls.cin = cls.streams[2].stream
-        cls.cout = cls.streams[1].stream
-        cls.cerr = cls.streams[0].stream
-
-    reopen_all = classmethod(reopen_all)
-
-    def set_stdout(cls,stream):
-        """Set the stream """
-        cls.cout = stream
-    set_stdout = classmethod(set_stdout)
-
-    def set_stderr(cls,stream):
-        cls.cerr = stream
-    set_stderr = classmethod(set_stderr)
+    def __init__(self,cin=None,cout=None,cerr=None):
+        self.cin  = IOStream(cin,sys.stdin)
+        self.cout = IOStream(cout,sys.stdout)
+        self.cerr = IOStream(cerr,sys.stderr)
+        
+# Global variable to be used for all I/O
+Term = IOTerm()
 
 # Windows-specific code to load Gary Bishop's readline and configure it
 # automatically for the users
@@ -123,8 +112,8 @@ if os.name == 'nt':
         except AttributeError:
             pass
         else:
-            Term.set_stdout(_out)
-            Term.set_stderr(_out)
+            # Remake Term to use the readline i/o facilities
+            Term = IOTerm(cout=_out,cerr=_out)
             del _out
 
 #****************************************************************************
