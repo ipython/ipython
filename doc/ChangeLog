@@ -1,3 +1,8 @@
+2005-07-18  Fernando Perez  <fperez@colorado.edu>
+
+	* IPython/genutils.py (get_home_dir): fix to help users with
+	invalid $HOME under win32.
+
 2005-07-17  Fernando Perez  <fperez@colorado.edu>
 
 	* IPython/Prompts.py (str_safe): Make unicode-safe.  Also remove

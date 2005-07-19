@@ -5,7 +5,7 @@ General purpose utilities.
 This is a grab-bag of stuff I find useful in most programs I write. Some of
 these things are also convenient when working at the command line.
 
-$Id: genutils.py 638 2005-07-18 03:01:41Z fperez $"""
+$Id: genutils.py 645 2005-07-19 01:59:26Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2004 Fernando Perez. <fperez@colorado.edu>
@@ -702,15 +702,27 @@ def get_home_dir():
     Currently only Posix and NT are implemented, a HomeDirError exception is
     raised for all other OSes. """
 
+    isdir = os.path.isdir
+    env = os.environ
     try:
-        return os.environ['HOME']
+        homedir = env['HOME']
+        if not isdir(homedir):
+            # in case a user stuck some string which does NOT resolve to a
+            # valid path, it's as good as if we hadn't foud it
+            raise KeyError
+        return homedir
     except KeyError:
         if os.name == 'posix':
             raise HomeDirError,'undefined $HOME, IPython can not proceed.'
         elif os.name == 'nt':
             # For some strange reason, win9x returns 'nt' for os.name.
             try:
-                return os.path.join(os.environ['HOMEDRIVE'],os.environ['HOMEPATH'])
+                homedir = os.path.join(env['HOMEDRIVE'],env['HOMEPATH'])
+                if not isdir(homedir):
+                    homedir = os.path.join(env['USERPROFILE'])
+                    if not isdir(homedir):
+                        raise HomeDirError
+                return homedir
             except:
                 try:
                     # Use the registry to get the 'My Documents' folder.
