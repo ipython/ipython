@@ -43,7 +43,7 @@ svnargs = ' '.join(svnargs)
 # perform commit
 os.system('svn commit %s' % svnargs)
 svntime = time.asctime()
-svnstatus = commands.getoutput('svn log -r COMMITTED')
+svnstatus = commands.getoutput('svn log -r HEAD')
 
 # Confirm with user (trying to get the status from the svn commit blocks
 # silently, I don't care to debug it)
