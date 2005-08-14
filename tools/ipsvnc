@@ -41,13 +41,17 @@ svnargs = ' '.join(svnargs)
 #print 'SVN args: <%s>' % svnargs; sys.exit()  # dbg
 
 # perform commit
+print 'Performing SVN commit, this may take some time...'
 os.system('svn commit %s' % svnargs)
 svntime = time.asctime()
+print 'Getting SVN log and version info...'
 svnstatus = commands.getoutput('svn log -r HEAD')
+svnversion = commands.getoutput('svnversion .')
 
 # Confirm with user (trying to get the status from the svn commit blocks
 # silently, I don't care to debug it)
-ans = raw_input('If commit was succesful, proceed with email notification? [Y/n]')
+ans = raw_input('If commit was succesful, proceed '
+                'with email notification? [Y/n] ')
 if ans.lower().startswith('n'):
     print "Exiting now..."
     sys.exit(1)
@@ -61,8 +65,13 @@ Commit performed at: %s
 
 SVN arguments used: %s
 
+SVN Version: %s
+
+This version probably points to this changeset:
+http://projects.scipy.org/ipython/ipython/changeset/%s
+
 Current SVN status after last commit:
-%s""" % (svntime,svnargs,svnstatus)
+%s""" % (svntime,svnargs,svnversion,svnversion,svnstatus)
 
 for maint in maintainers:
     print "Emailing",maint
