@@ -60,7 +60,7 @@ You can implement other color schemes easily, the syntax is fairly
 self-explanatory. Please send back new schemes you develop to the author for
 possible inclusion in future releases.
 
-$Id: ultraTB.py 636 2005-07-17 03:11:11Z fperez $"""
+$Id: ultraTB.py 703 2005-08-16 17:34:44Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001 Nathaniel Gray <n8gray@caltech.edu>
@@ -639,7 +639,8 @@ class VerboseTB(TBTools):
         exception = ['%s%s%s: %s' % (Colors.excName, etype_str,
                                      ColorsNormal, evalue_str)]
         if type(evalue) is types.InstanceType:
-            for name in dir(evalue):
+            names = [w for w in dir(evalue) if isinstance(w, basestring)]
+            for name in names:
                 value = text_repr(getattr(evalue, name))
                 exception.append('\n%s%s = %s' % (indent, name, value))
         # return all our info assembled as a single string

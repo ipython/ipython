@@ -1,3 +1,26 @@
+2005-08-16  Fernando Perez  <fperez@colorado.edu>
+
+	* IPython/ultraTB.py (VerboseTB.text): don't crash if object
+	contains non-string attribute.  Closes
+	http://www.scipy.net/roundup/ipython/issue38.
+
+2005-08-14  Fernando Perez  <fperez@colorado.edu>
+
+	* tools/ipsvnc: Minor improvements, to add changeset info.
+
+2005-08-12  Fernando Perez  <fperez@colorado.edu>
+
+	* IPython/iplib.py (runsource): remove self.code_to_run_src
+	attribute.  I realized this is nothing more than
+	'\n'.join(self.buffer), and having the same data in two different
+	places is just asking for synchronization bugs.  This may impact
+	people who have custom exception handlers, so I need to warn
+	ipython-dev about it (F. Mantegazza may use them).
+
+2005-07-29  Fernando Perez  <Fernando.Perez@colorado.edu>
+
+	* IPython/genutils.py: fix 2.2 compatibility (generators)
+
 2005-07-18  Fernando Perez  <fperez@colorado.edu>
 
 	* IPython/genutils.py (get_home_dir): fix to help users with

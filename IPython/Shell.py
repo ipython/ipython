@@ -4,7 +4,7 @@
 All the matplotlib support code was co-developed with John Hunter,
 matplotlib's author.
 
-$Id: Shell.py 634 2005-07-17 01:56:45Z tzanko $"""
+$Id: Shell.py 703 2005-08-16 17:34:44Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2004 Fernando Perez <fperez@colorado.edu>
@@ -312,7 +312,6 @@ class MTInteractiveShell(InteractiveShell):
         # Case 3
         # Store code in self, so the execution thread can handle it
         self.thread_ready.acquire()
-        self.code_to_run_src = source
         self.code_to_run = code
         self.thread_ready.wait()  # Wait until processed in timeout interval
         self.thread_ready.release()

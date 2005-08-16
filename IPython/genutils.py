@@ -5,7 +5,7 @@ General purpose utilities.
 This is a grab-bag of stuff I find useful in most programs I write. Some of
 these things are also convenient when working at the command line.
 
-$Id: genutils.py 645 2005-07-19 01:59:26Z fperez $"""
+$Id: genutils.py 703 2005-08-16 17:34:44Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2004 Fernando Perez. <fperez@colorado.edu>
@@ -13,6 +13,8 @@ $Id: genutils.py 645 2005-07-19 01:59:26Z fperez $"""
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
 #*****************************************************************************
+
+from __future__ import generators # 2.2 compatibility
 
 from IPython import Release
 __author__  = '%s <%s>' % Release.authors['Fernando']
@@ -23,7 +25,6 @@ __license__ = Release.license
 import __main__
 import types,commands,time,sys,os,re,shutil
 import tempfile
-import codecs
 from IPython.Itpl import Itpl,itpl,printpl
 from IPython import DPyGetOpt
 

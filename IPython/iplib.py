@@ -6,7 +6,7 @@ Requires Python 2.1 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 638 2005-07-18 03:01:41Z fperez $
+$Id: iplib.py 703 2005-08-16 17:34:44Z fperez $
 """
 
 #*****************************************************************************
@@ -623,7 +623,6 @@ class InteractiveShell(code.InteractiveConsole, Logger, Magic):
         # other situations.  No need to use a Queue here, since it's a single
         # item which gets cleared once run.
         self.code_to_run = None
-        self.code_to_run_src = ''  # corresponding source
         
         # Job manager (for jobs run as background threads)
         self.jobs = BackgroundJobManager()
@@ -867,7 +866,7 @@ class InteractiveShell(code.InteractiveConsole, Logger, Magic):
             print 'Exception type :',etype
             print 'Exception value:',value
             print 'Traceback      :',tb
-            print 'Source code    :',self.code_to_run_src
+            print 'Source code    :','\n'.join(self.buffer)
 
         if handler is None: handler = dummy_handler
 
@@ -1529,6 +1528,7 @@ want to merge them back into the new files.""" % locals()
 
         The return value can be used to decide whether to use sys.ps1 or
         sys.ps2 to prompt the next line."""
+
         try:
             code = self.compile(source, filename, symbol)
         except (OverflowError, SyntaxError, ValueError):
@@ -1541,9 +1541,10 @@ want to merge them back into the new files.""" % locals()
             return True
 
         # Case 3
-        # We store the code source and object so that threaded shells and
+        # We store the code object so that threaded shells and
         # custom exception handlers can access all this info if needed.
-        self.code_to_run_src = source
+        # The source corresponding to this can be obtained from the
+        # buffer attribute as '\n'.join(self.buffer).
         self.code_to_run = code
         # now actually execute the code object
         if self.runcode(code) == 0:
@@ -1589,7 +1590,6 @@ want to merge them back into the new files.""" % locals()
                 print
         # Flush out code object which has been run (and source)
         self.code_to_run = None
-        self.code_to_run_src = ''
         return outflag
 
     def raw_input(self, prompt=""):
@@ -1767,6 +1767,7 @@ want to merge them back into the new files.""" % locals()
                             pre=None,iFun=None,theRest=None):
         """Execute the line in a shell, empty return value"""
 
+        #print 'line in :', `line` # dbg
         # Example of a special handler. Others follow a similar pattern.
         if continue_prompt:  # multi-line statements
             if iFun.startswith('!!'):
@@ -1775,6 +1776,7 @@ want to merge them back into the new files.""" % locals()
             else:
                 cmd = ("%s %s" % (iFun[1:],theRest)).replace('"','\\"')
                 line_out = '%s%s.system("%s")' % (pre,self.name,cmd)
+                #line_out = ('%s%s.system(' % (pre,self.name)) + repr(cmd) + ')'
         else: # single-line input
             if line.startswith('!!'):
                 # rewrite iFun/theRest to properly hold the call to %sx and
@@ -1787,9 +1789,12 @@ want to merge them back into the new files.""" % locals()
             else:
                 cmd = esc_quotes(line[1:])
                 line_out = '%s.system("%s")' % (self.name,cmd)
+                #line_out = ('%s.system(' % self.name) + repr(cmd)+ ')'
         # update cache/log and return
         self.log(line_out,continue_prompt)
         self.update_cache(line_out)   # readline cache gets normal line
+        #print 'line out r:', `line_out` # dbg
+        #print 'line out s:', line_out # dbg
         return line_out
 
     def handle_magic(self, line, continue_prompt=None,
