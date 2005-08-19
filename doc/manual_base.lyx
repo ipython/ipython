@@ -797,10 +797,11 @@ not
  
 \layout Standard
 
-Install this package, then you need to either: 
+If you are using OSX 10.4 (Tiger), after installing this package you need
+ to either: 
 \layout Enumerate
 
-Move 
+move 
 \family typewriter 
 readline.so
 \family default 
@@ -812,11 +813,11 @@ readline.so
 \family typewriter 
 /Library/Python/2.3/site-packages
 \family default 
-.
+, or
 \layout Enumerate
 
-Install 
-\begin_inset LatexCommand \htmlurl{http://ipython.scipy.org/tmp/scipy_cvs_2005-07-29.tgz}
+install 
+\begin_inset LatexCommand \htmlurl{http://pythonmac.org/packages/TigerPython23Compat.pkg.zip}
 
 \end_inset 
 
