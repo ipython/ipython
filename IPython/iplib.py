@@ -6,7 +6,7 @@ Requires Python 2.1 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 703 2005-08-16 17:34:44Z fperez $
+$Id: iplib.py 723 2005-08-19 17:37:46Z fperez $
 """
 
 #*****************************************************************************
@@ -687,6 +687,9 @@ class InteractiveShell(code.InteractiveConsole, Logger, Magic):
         self.pager = 'less'
         # temporary files used for various purposes.  Deleted at exit.
         self.tempfiles = []
+
+        # Keep track of readline usage (later set by init_readline)
+        self.has_readline = 0
 
         # for pushd/popd management
         try:

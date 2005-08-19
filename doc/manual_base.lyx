@@ -649,6 +649,25 @@ IPython/
 \layout Subsubsection
 
 Mac OSX information
+\layout Standard
+
+Under OSX, there is a choice you need to make.
+ Apple ships its own build of Python, which lives in the core OSX filesystem
+ hierarchy.
+ You can also manually install a separate Python, either purely by hand
+ (typically in 
+\family typewriter 
+/usr/local
+\family default 
+) or by using Fink, which puts everything under 
+\family typewriter 
+/sw
+\family default 
+.
+ Which route to follow is a matter of personal preference, as I've seen
+ users who favor each of the approaches.
+ Here I will simply list the known installation issues under OSX, along
+ with their solutions.
 \layout Subsubsection*
 
 GUI problems
@@ -778,11 +797,33 @@ not
  
 \layout Standard
 
-At this point I don't know of such a released version for OSX 10.4 (Tiger),
- or if the problem even occurs with Tiger at all (feedback welcome).
+Install this package, then you need to either: 
+\layout Enumerate
+
+Move 
+\family typewriter 
+readline.so
+\family default 
+ from 
+\family typewriter 
+/Library/Python/2.3
+\family default 
+ to 
+\family typewriter 
+/Library/Python/2.3/site-packages
+\family default 
+.
+\layout Enumerate
+
+Install 
+\begin_inset LatexCommand \htmlurl{http://ipython.scipy.org/tmp/scipy_cvs_2005-07-29.tgz}
+
+\end_inset 
+
+
 \layout Standard
 
-Users installing against fink's Python or a properly hand-built one should
+Users installing against Fink's Python or a properly hand-built one should
  not have this problem.
 \layout Subsection
 

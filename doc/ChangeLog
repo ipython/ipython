@@ -1,3 +1,11 @@
+2005-08-19  Fernando Perez  <Fernando.Perez@colorado.edu>
+
+	* IPython/iplib.py (InteractiveShell.__init__): Add has_readline
+	attribute to self, which was missing.  Before, it was set by a
+	routine which in certain cases wasn't being called, so the
+	instance could end up missing the attribute.  This caused a crash.
+	Closes http://www.scipy.net/roundup/ipython/issue40.
+
 2005-08-16  Fernando Perez  <fperez@colorado.edu>
 
 	* IPython/ultraTB.py (VerboseTB.text): don't crash if object
