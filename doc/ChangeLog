@@ -1,5 +1,7 @@
 2005-08-19  Fernando Perez  <Fernando.Perez@colorado.edu>
 
+	* tools/ipsvnc (svnversion): fix svnversion capture.
+
 	* IPython/iplib.py (InteractiveShell.__init__): Add has_readline
 	attribute to self, which was missing.  Before, it was set by a
 	routine which in certain cases wasn't being called, so the

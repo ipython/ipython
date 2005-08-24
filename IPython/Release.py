@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Release data for the IPython project.
 
-$Id: Release.py 634 2005-07-17 01:56:45Z tzanko $"""
+$Id: Release.py 750 2005-08-24 17:36:16Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2005 Fernando Perez <fperez@colorado.edu>
@@ -17,9 +17,12 @@ $Id: Release.py 634 2005-07-17 01:56:45Z tzanko $"""
 # the tarballs and RPMs made by distutils, so it's best to lowercase it.
 name = 'ipython'
 
-# For versions with substrings (like 0.6.7_rc1), use _ but NOT -, since
-# bdist_rpm chokes on dashes in the version string.
-version = '0.6.16_svn'
+# For versions with substrings (like 0.6.16.svn), use an extra . to separate
+# the new substring.  We have to avoid using either dashes or underscores,
+# because bdist_rpm does not accept dashes (an RPM) convention, and
+# bdist_deb does not accept underscores (a Debian convention).
+
+version = '0.6.16.svn'
 
 description = "An enhanced interactive Python shell."
 

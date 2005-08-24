@@ -46,7 +46,7 @@ os.system('svn commit %s' % svnargs)
 svntime = time.asctime()
 print 'Getting SVN log and version info...'
 svnstatus = commands.getoutput('svn log -r HEAD')
-svnversion = commands.getoutput('svnversion .')
+svnversion = commands.getoutput('svnversion .').split(':')[-1]
 
 # Confirm with user (trying to get the status from the svn commit blocks
 # silently, I don't care to debug it)
