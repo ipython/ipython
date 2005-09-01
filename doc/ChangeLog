@@ -1,3 +1,9 @@
+2005-08-31  Fernando Perez  <Fernando.Perez@colorado.edu>
+
+	* IPython/iplib.py (InteractiveShell.complete): Added new
+	top-level completion method to expose the completion mechanism
+	beyond readline-based environments.
+
 2005-08-19  Fernando Perez  <Fernando.Perez@colorado.edu>
 
 	* tools/ipsvnc (svnversion): fix svnversion capture.
