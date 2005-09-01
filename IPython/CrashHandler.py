@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """sys.excepthook for IPython itself, leaves a detailed report on disk.
 
-$Id: CrashHandler.py 410 2004-11-04 07:58:17Z fperez $"""
+$Id: CrashHandler.py 775 2005-09-01 20:24:59Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2004 Fernando Perez. <fperez@colorado.edu>
@@ -11,9 +11,9 @@ $Id: CrashHandler.py 410 2004-11-04 07:58:17Z fperez $"""
 #*****************************************************************************
 
 from IPython import Release
-__author__  = '%s <%s>' % Release.authors['Fernando']
-__license__ = Release.license
-__version__ = Release.version
+__author__   = '%s <%s>' % Release.authors['Fernando']
+__license__  = Release.license
+__version__  = Release.version
 
 #****************************************************************************
 # Required modules
@@ -92,7 +92,8 @@ http://www.scipy.net/roundup/ipython  (IPython's online bug tracker).
 
         sec_sep = '\n\n'+'*'*75+'\n\n'
         report.write('*'*75+'\n\n'+'IPython post-mortem report\n\n')
-        report.write('IPython version: %s \n\n' % __version__)
+        report.write('IPython version: %s \n\n' % Release.version)
+        report.write('SVN revision   : %s \n\n' % Release.revision)
         report.write('Platform info  : os.name -> %s, sys.platform -> %s' %
                      (os.name,sys.platform) )
         report.write(sec_sep+'Current user configuration structure:\n\n')

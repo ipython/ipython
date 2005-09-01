@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Release data for the IPython project.
 
-$Id: Release.py 750 2005-08-24 17:36:16Z fperez $"""
+$Id: Release.py 775 2005-09-01 20:24:59Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2005 Fernando Perez <fperez@colorado.edu>
@@ -23,6 +23,8 @@ name = 'ipython'
 # bdist_deb does not accept underscores (a Debian convention).
 
 version = '0.6.16.svn'
+
+revision = '$Revision: 775 $'
 
 description = "An enhanced interactive Python shell."
 

@@ -27,7 +27,7 @@ IPython tries to:
 
 IPython requires Python 2.2 or newer.
 
-$Id: __init__.py 530 2005-03-02 07:11:15Z fperez $"""
+$Id: __init__.py 775 2005-09-01 20:24:59Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2004 Fernando Perez. <fperez@colorado.edu>
@@ -53,11 +53,12 @@ for name in __all__:
 
 # Release data
 from IPython import Release # do it explicitly so pydoc can see it - pydoc bug
-__author__  = '%s <%s>\n%s <%s>\n%s <%s>' % \
-              ( Release.authors['Fernando'] + Release.authors['Janko'] + \
-                Release.authors['Nathan'] )
-__license__ = Release.license
-__version__ = Release.version
+__author__   = '%s <%s>\n%s <%s>\n%s <%s>' % \
+               ( Release.authors['Fernando'] + Release.authors['Janko'] + \
+                 Release.authors['Nathan'] )
+__license__  = Release.license
+__version__  = Release.version
+__revision__ = Release.revision
 
 # Namespace cleanup
 del name,glob,loc
