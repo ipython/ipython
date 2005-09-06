@@ -1,3 +1,16 @@
+2005-09-05  Fernando Perez  <Fernando.Perez@colorado.edu>
+
+	* IPython/Shell.py (hijack_gtk): remove pygtk.require("2.0")
+	calls.  These were a leftover from the GTK 1.x days, and can cause
+	problems in certain cases (after a report by John Hunter).
+
+	* IPython/iplib.py (InteractiveShell.__init__): Trap exception if
+	os.getcwd() fails at init time.  Thanks to patch from David Remahl
+	<chmod007 AT mac.com>.
+	(InteractiveShell.__init__): prevent certain special magics from
+	being shadowed by aliases.  Closes
+	http://www.scipy.net/roundup/ipython/issue41.
+
 2005-08-31  Fernando Perez  <Fernando.Perez@colorado.edu>
 
 	* IPython/iplib.py (InteractiveShell.complete): Added new

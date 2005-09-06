@@ -4,7 +4,7 @@
 All the matplotlib support code was co-developed with John Hunter,
 matplotlib's author.
 
-$Id: Shell.py 703 2005-08-16 17:34:44Z fperez $"""
+$Id: Shell.py 802 2005-09-06 03:49:12Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2004 Fernando Perez <fperez@colorado.edu>
@@ -561,9 +561,6 @@ def hijack_gtk():
     """Modifies pyGTK's mainloop with a dummy so user code does not
     block IPython.  This function returns the original `gtk.mainloop`
     function that has been hijacked.
-
-    NOTE: Make sure you import this *AFTER* you call
-    pygtk.require(...).
     """    
     def dummy_mainloop(*args, **kw):
         pass
@@ -592,8 +589,6 @@ class IPShellGTK(threading.Thread):
     def __init__(self,argv=None,user_ns=None,debug=1,
                  shell_class=MTInteractiveShell):
 
-        import pygtk
-        pygtk.require("2.0")
         import gtk
         
         self.gtk = gtk

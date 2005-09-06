@@ -6,7 +6,7 @@ Requires Python 2.1 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 774 2005-09-01 00:27:53Z fperez $
+$Id: iplib.py 802 2005-09-06 03:49:12Z fperez $
 """
 
 #*****************************************************************************
@@ -590,7 +590,10 @@ class InteractiveShell(code.InteractiveConsole, Logger, Magic):
         self.input_hist = InputList(['\n'])
 
         # list of visited directories
-        self.dir_hist = [os.getcwd()]
+        try:
+            self.dir_hist = [os.getcwd()]
+        except IOError, e:
+            self.dir_hist = []
 
         # dict of output history
         self.output_hist = {}
@@ -600,11 +603,14 @@ class InteractiveShell(code.InteractiveConsole, Logger, Magic):
         # number of positional arguments of the alias.
         self.alias_table = {}
 
-        # dict of things NOT to alias (keywords and builtins)
-        self.no_alias = {}
-        for key in keyword.kwlist:
-            self.no_alias[key] = 1
-        self.no_alias.update(__builtin__.__dict__)
+        # dict of things NOT to alias (keywords, builtins and some special magics)
+        no_alias = {}
+        no_alias_magics = ['cd','popd','pushd','dhist','alias','unalias']
+        for key in keyword.kwlist + no_alias_magics:
+            no_alias[key] = 1
+        no_alias.update(__builtin__.__dict__)
+        self.no_alias = no_alias
+        
         
         # make global variables for user access to these
         self.user_ns['_ih'] = self.input_hist
@@ -953,7 +959,7 @@ class InteractiveShell(code.InteractiveConsole, Logger, Magic):
         In particular, make sure no Python keywords/builtins are in it."""
 
         no_alias = self.no_alias
-        for k in self.alias_table.keys():
+        for k in self.alias_table:
             if k in no_alias:
                 del self.alias_table[k]
                 if verbose:
