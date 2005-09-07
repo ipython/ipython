@@ -1,3 +1,9 @@
+2005-09-06  Fernando Perez  <Fernando.Perez@colorado.edu>
+
+	* IPython/iplib.py (handle_auto): Fix inconsistency arising from
+	spurious newlines added by this routine.  After a report by
+	F. Mantegazza.
+
 2005-09-05  Fernando Perez  <Fernando.Perez@colorado.edu>
 
 	* IPython/Shell.py (hijack_gtk): remove pygtk.require("2.0")

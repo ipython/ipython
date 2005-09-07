@@ -6,7 +6,7 @@ Requires Python 2.1 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 802 2005-09-06 03:49:12Z fperez $
+$Id: iplib.py 807 2005-09-07 01:55:33Z fperez $
 """
 
 #*****************************************************************************
@@ -1864,10 +1864,10 @@ want to merge them back into the new files.""" % locals()
 
         if pre == self.ESC_QUOTE:
             # Auto-quote splitting on whitespace
-            newcmd = '%s("%s")\n' % (iFun,'", "'.join(theRest.split()) )
+            newcmd = '%s("%s")' % (iFun,'", "'.join(theRest.split()) )
         elif pre == self.ESC_QUOTE2:
             # Auto-quote whole string
-            newcmd = '%s("%s")\n' % (iFun,theRest)
+            newcmd = '%s("%s")' % (iFun,theRest)
         else:
             # Auto-paren
             if theRest[0:1] in ('=','['):
@@ -1875,16 +1875,16 @@ want to merge them back into the new files.""" % locals()
                 # rebindings of an existing callable's name, or item access
                 # for an object which is BOTH callable and implements
                 # __getitem__.
-                return '%s %s\n' % (iFun,theRest)
+                return '%s %s' % (iFun,theRest)
             if theRest.endswith(';'):
-                newcmd = '%s(%s);\n' % (iFun.rstrip(),theRest[:-1])
+                newcmd = '%s(%s);' % (iFun.rstrip(),theRest[:-1])
             else:
-                newcmd = '%s(%s)\n' % (iFun.rstrip(),theRest)
+                newcmd = '%s(%s)' % (iFun.rstrip(),theRest)
 
-        print >>Term.cout, self.outputcache.prompt1.auto_rewrite() + newcmd,
+        print >>Term.cout, self.outputcache.prompt1.auto_rewrite() + newcmd
         # log what is now valid Python, not the actual user input (without the
         # final newline)
-        self.log(newcmd.strip(),continue_prompt)
+        self.log(newcmd,continue_prompt)
         return newcmd
 
     def handle_help(self, line, continue_prompt=None,
