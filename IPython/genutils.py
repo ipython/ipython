@@ -5,7 +5,7 @@ General purpose utilities.
 This is a grab-bag of stuff I find useful in most programs I write. Some of
 these things are also convenient when working at the command line.
 
-$Id: genutils.py 703 2005-08-16 17:34:44Z fperez $"""
+$Id: genutils.py 874 2005-09-20 20:13:04Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2004 Fernando Perez. <fperez@colorado.edu>
@@ -732,7 +732,16 @@ def get_home_dir():
                                        "Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders")
                     homedir = wreg.QueryValueEx(key,'Personal')[0]
                     key.Close()
+                    if not isdir(homedir):
+                        e = ('Invalid "Personal" folder registry key '
+                             'typically "My Documents".\n'
+                             'Value: %s\n'
+                             'This is not a valid directory on your system.' %
+                             homedir)
+                        raise HomeDirError(e)
                     return homedir
+                except HomeDirError:
+                    raise
                 except:
                     return 'C:\\'
         elif os.name == 'dos':

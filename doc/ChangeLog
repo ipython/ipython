@@ -1,3 +1,16 @@
+2005-09-20  Fernando Perez  <Fernando.Perez@colorado.edu>
+
+	* IPython/Shell.py (sigint_handler): Drastic simplification which
+	also seems to make Ctrl-C work correctly across threads!  This is
+	so simple, that I can't beleive I'd missed it before.  Needs more
+	testing, though.
+
+	* IPython/genutils.py (get_home_dir): add protection against
+	non-dirs in win32 registry.
+
+	* IPython/iplib.py (InteractiveShell.alias_table_validate): fix
+	bug where dict was mutated while iterating (pysh crash).
+
 2005-09-06  Fernando Perez  <Fernando.Perez@colorado.edu>
 
 	* IPython/iplib.py (handle_auto): Fix inconsistency arising from

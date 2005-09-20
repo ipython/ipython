@@ -6,7 +6,7 @@ Requires Python 2.1 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 807 2005-09-07 01:55:33Z fperez $
+$Id: iplib.py 874 2005-09-20 20:13:04Z fperez $
 """
 
 #*****************************************************************************
@@ -959,7 +959,7 @@ class InteractiveShell(code.InteractiveConsole, Logger, Magic):
         In particular, make sure no Python keywords/builtins are in it."""
 
         no_alias = self.no_alias
-        for k in self.alias_table:
+        for k in self.alias_table.keys():
             if k in no_alias:
                 del self.alias_table[k]
                 if verbose:
