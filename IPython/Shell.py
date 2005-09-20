@@ -4,7 +4,7 @@
 All the matplotlib support code was co-developed with John Hunter,
 matplotlib's author.
 
-$Id: Shell.py 874 2005-09-20 20:13:04Z fperez $"""
+$Id: Shell.py 882 2005-09-20 23:17:41Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2004 Fernando Perez <fperez@colorado.edu>
@@ -33,6 +33,9 @@ from IPython.genutils import Term,warn,error,flag_calls
 from IPython.Struct import Struct
 from IPython.Magic import Magic
 from IPython import ultraTB
+
+# global flag to pass around information about Ctrl-C without exceptions
+KBINT = False
 
 # global flag to turn on/off Tk support.
 USE_TK = False
@@ -241,8 +244,18 @@ class IPShellEmbed:
 #-----------------------------------------------------------------------------
 def sigint_handler (signum,stack_frame):
     """Sigint handler for threaded apps.
-    """
-    raise KeyboardInterrupt
+
+    This is a horrible hack to pass information about SIGINT _without_ using
+    exceptions, since I haven't been able to properly manage cross-thread
+    exceptions in GTK/WX.  In fact, I don't think it can be done (or at least
+    that's my understanding from a c.l.py thread where this was discussed)."""
+
+    global KBINT
+    
+    print '\nKeyboardInterrupt - Press <Enter> to continue.',
+    Term.cout.flush()
+    # Set global flag so that runsource can know that Ctrl-C was hit
+    KBINT = True
 
 class MTInteractiveShell(InteractiveShell):
     """Simple multi-threaded shell."""
@@ -277,6 +290,13 @@ class MTInteractiveShell(InteractiveShell):
 
         Modified version of code.py's runsource(), to handle threading issues.
         See the original for full docstring details."""
+
+        global KBINT
+        
+        # If Ctrl-C was typed, we reset the flag and return right away
+        if KBINT:
+            KBINT = False
+            return False
         
         try:
             code = self.compile(source, filename, symbol)
