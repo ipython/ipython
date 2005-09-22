@@ -10,19 +10,40 @@ Sorry, but this uses Python 2.3 features, so it won't work in 2.2 environments.
 #
 #*****************************************************************************
 
+import sys
 import exceptions
 import re
 
 from IPython.PyColorize import Parser
-from IPython.genutils import marquee
+from IPython.genutils import marquee, shlex_split
 
 class DemoError(exceptions.Exception): pass
 
 class Demo:
-    def __init__(self,fname,mark_pause='# pause',mark_silent='# silent',
-                 auto=False):
-        """The marks are turned into regexps which match them as standalone in
-        a line, with all leading/trailing whitespace ignored."""
+    def __init__(self,fname,arg_str='',mark_pause='# pause',
+                 mark_silent='# silent',auto=False):
+        """Make a new demo object.  To run the demo, simply call the object.
+
+        Inputs:
+        
+          - fname = filename.
+
+        Optional inputs:
+
+          - arg_str(''): a string of arguments, internally converted to a list
+          just like sys.argv, so the demo script can see a similar
+          environment.
+
+          - mark_pause ('# pause'), mark_silent('# silent'): marks for pausing
+          (block boundaries) and to tag blocks as silent.  The marks are
+          turned into regexps which match them as standalone in a line, with
+          all leading/trailing whitespace ignored.
+
+          - auto(False): flag to run each block automatically without
+          confirmation.  Note that silent blocks are always automatically
+          executed.  This flag is an attribute of the object, and can be
+          changed at runtime simply by reassigning it.
+          """
 
         self.fname = fname
         self.mark_pause = mark_pause
@@ -30,6 +51,7 @@ class Demo:
         self.mark_silent = mark_silent
         self.re_silent = re.compile(r'^\s*%s\s*$' % mark_silent,re.MULTILINE)
         self.auto = auto
+        self.sys_argv = shlex_split(arg_str)
 
         # get a few things from ipython.  While it's a bit ugly design-wise,
         # it ensures that things like color scheme and the like are always in
@@ -134,8 +156,12 @@ class Demo:
                     if ans:
                         print marquee('Block NOT executed')
                         return
-            
-            exec next_block in self.user_ns
+            try:
+                save_argv = sys.argv
+                sys.argv = self.sys_argv
+                exec next_block in self.user_ns
+            finally:
+                sys.argv = save_argv
             
         except:
             self.ip_showtraceback(filename=self.fname)

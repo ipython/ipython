@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Magic functions for InteractiveShell.
 
-$Id: Magic.py 583 2005-05-13 21:20:33Z fperez $"""
+$Id: Magic.py 897 2005-09-22 09:32:46Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001 Janko Hauser <jhauser@zscout.de> and
@@ -21,7 +21,7 @@ __license__ = Release.license
 
 # Python standard modules
 import __builtin__
-import os,sys,inspect,pydoc,re,tempfile,shlex,pdb,bdb,time
+import os,sys,inspect,pydoc,re,tempfile,pdb,bdb,time
 try:
     import profile,pstats
 except ImportError:
@@ -82,42 +82,6 @@ def get_py_filename(name):
     else:
         raise IOError,'File `%s` not found.' % name
 
-# Try to use shlex.split for converting an input string into a sys.argv-type
-# list.  This appeared in Python 2.3, so here's a quick backport for 2.2.
-try:
-    shlex_split = shlex.split
-except AttributeError:
-    _quotesre = re.compile(r'[\'"](.*)[\'"]')
-    _wordchars = ('abcdfeghijklmnopqrstuvwxyz'
-                  'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-.~*?'
-                  'ßàáâãäåæçèéêëìíîïðñòóôõöøùúûüýþÿ'
-                  'ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞ%s'
-                  % os.sep)
-    
-    def shlex_split(s):
-        """Simplified backport to Python 2.2 of shlex.split().
-
-        This is a quick and dirty hack, since the shlex module under 2.2 lacks
-        several of the features needed to really match the functionality of
-        shlex.split() in 2.3."""
-
-        lex = shlex.shlex(StringIO(s))
-        # Try to get options, extensions and path separators as characters
-        lex.wordchars = _wordchars
-        lex.commenters = ''
-        # Make a list out of the lexer by hand, since in 2.2 it's not an
-        # iterator.
-        lout = []
-        while 1:
-            token = lex.get_token()
-            if token == '':
-                break
-            # Try to handle quoted tokens correctly
-            quotes = _quotesre.match(token)
-            if quotes:
-                token = quotes.group(1)
-            lout.append(token)
-        return lout
 
 #****************************************************************************
 # Utility classes

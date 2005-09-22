@@ -5,7 +5,7 @@ General purpose utilities.
 This is a grab-bag of stuff I find useful in most programs I write. Some of
 these things are also convenient when working at the command line.
 
-$Id: genutils.py 894 2005-09-22 07:16:18Z fperez $"""
+$Id: genutils.py 897 2005-09-22 09:32:46Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2004 Fernando Perez. <fperez@colorado.edu>
@@ -24,6 +24,7 @@ __license__ = Release.license
 # required modules
 import __main__
 import types,commands,time,sys,os,re,shutil
+import shlex
 import tempfile
 from IPython.Itpl import Itpl,itpl,printpl
 from IPython import DPyGetOpt
@@ -50,6 +51,43 @@ except NameError:
     __builtin__.True = True
     __builtin__.False = False
     __builtin__.enumerate = enumerate
+
+# Try to use shlex.split for converting an input string into a sys.argv-type
+# list.  This appeared in Python 2.3, so here's a quick backport for 2.2.
+try:
+    shlex_split = shlex.split
+except AttributeError:
+    _quotesre = re.compile(r'[\'"](.*)[\'"]')
+    _wordchars = ('abcdfeghijklmnopqrstuvwxyz'
+                  'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-.~*?'
+                  'ßàáâãäåæçèéêëìíîïðñòóôõöøùúûüýþÿ'
+                  'ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞ%s'
+                  % os.sep)
+    
+    def shlex_split(s):
+        """Simplified backport to Python 2.2 of shlex.split().
+
+        This is a quick and dirty hack, since the shlex module under 2.2 lacks
+        several of the features needed to really match the functionality of
+        shlex.split() in 2.3."""
+
+        lex = shlex.shlex(StringIO(s))
+        # Try to get options, extensions and path separators as characters
+        lex.wordchars = _wordchars
+        lex.commenters = ''
+        # Make a list out of the lexer by hand, since in 2.2 it's not an
+        # iterator.
+        lout = []
+        while 1:
+            token = lex.get_token()
+            if token == '':
+                break
+            # Try to handle quoted tokens correctly
+            quotes = _quotesre.match(token)
+            if quotes:
+                token = quotes.group(1)
+            lout.append(token)
+        return lout
 
 #****************************************************************************
 # Exceptions

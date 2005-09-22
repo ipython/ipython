@@ -1,7 +1,11 @@
 2005-09-22  Fernando Perez  <Fernando.Perez@colorado.edu>
 
+	* IPython/genutils.py (shlex_split): moved from Magic to here,
+	where all 2.2 compatibility stuff lives.  I needed it for demo.py.
+
 	* IPython/demo.py (Demo.__init__): added support for silent
 	blocks, improved marks as regexps, docstrings written.
+	(Demo.__init__): better docstring, added support for sys.argv.
 
 	* IPython/genutils.py (marquee): little utility used by the demo
 	code, handy in general.
