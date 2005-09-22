@@ -1,5 +1,8 @@
 2005-09-22  Fernando Perez  <Fernando.Perez@colorado.edu>
 
+	* IPython/demo.py (Demo.again): fix bug where again() blocks after
+	finishing.
+
 	* IPython/genutils.py (shlex_split): moved from Magic to here,
 	where all 2.2 compatibility stuff lives.  I needed it for demo.py.
 

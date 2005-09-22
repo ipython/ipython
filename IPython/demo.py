@@ -87,6 +87,7 @@ class Demo:
     def again(self):
         """Repeat the last block"""
         self.block_index -= 1
+        self.finished = False
         self()
 
     def _validate_index(self,index):
@@ -108,8 +109,8 @@ class Demo:
             index = self.block_index
         else:
             self._validate_index(index)
-        print marquee('<%s> block # %s (%s/%s)' %
-                      (self.fname,index,index+1,self.nblocks))
+        print marquee('<%s> block # %s (%s remaining)' %
+                      (self.fname,index,self.nblocks-index-1))
         print self.src_blocks_colored[index],
 
     def show(self):
@@ -120,11 +121,11 @@ class Demo:
         silent = self.silent
         for index,block in enumerate(self.src_blocks_colored):
             if silent[index]:
-                print marquee('<%s> SILENT block # %s (%s/%s)' %
-                              (fname,index,index+1,nblocks))
+                print marquee('<%s> SILENT block # %s (%s remaining)' %
+                              (fname,index,nblocks-index-1))
             else:
-                print marquee('<%s> block # %s (%s/%s)' %
-                              (fname,index,index+1,nblocks))
+                print marquee('<%s> block # %s (%s remaining)' %
+                              (fname,index,nblocks-index-1))
             print block,
             
     def __call__(self,index=None):
@@ -146,11 +147,13 @@ class Demo:
             next_block = self.src_blocks[index]
             self.block_index += 1
             if self.silent[index]:
-                print marquee('Executing silent block # %s (%s/%s)' %
-                              (index,index+1,self.nblocks))
+                print marquee('Executing silent block # %s (%s remaining)' %
+                              (index,self.nblocks-index-1))
             else:
                 self.show_block(index)
-                if not self.auto:
+                if self.auto:
+                    print marquee('output')
+                else:
                     print marquee('Press <q> to quit, <Enter> to execute...'),
                     ans = raw_input().strip()
                     if ans:
