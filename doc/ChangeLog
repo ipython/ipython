@@ -1,9 +1,20 @@
+2005-09-22  Fernando Perez  <Fernando.Perez@colorado.edu>
+
+	* IPython/genutils.py (marquee): little utility used by the demo
+	code, handy in general.
+
+	* IPython/demo.py (Demo.__init__): new class for interactive
+	demos.  Not documented yet, I just wrote it in a hurry for
+	scipy'05.  Will docstring later.
+
 2005-09-20  Fernando Perez  <Fernando.Perez@colorado.edu>
 
 	* IPython/Shell.py (sigint_handler): Drastic simplification which
 	also seems to make Ctrl-C work correctly across threads!  This is
 	so simple, that I can't beleive I'd missed it before.  Needs more
 	testing, though.
+	(KBINT): Never mind, revert changes.  I'm sure I'd tried something
+	like this before...
 
 	* IPython/genutils.py (get_home_dir): add protection against
 	non-dirs in win32 registry.

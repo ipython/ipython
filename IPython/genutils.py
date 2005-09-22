@@ -5,7 +5,7 @@ General purpose utilities.
 This is a grab-bag of stuff I find useful in most programs I write. Some of
 these things are also convenient when working at the command line.
 
-$Id: genutils.py 874 2005-09-20 20:13:04Z fperez $"""
+$Id: genutils.py 894 2005-09-22 07:16:18Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2004 Fernando Perez. <fperez@colorado.edu>
@@ -897,6 +897,16 @@ def ask_yes_no(prompt,default=None):
                     raise
             
     return answers[ans]
+
+#----------------------------------------------------------------------------
+def marquee(txt='',width=80,mark='*'):
+    """Return the input string centered in a 'marquee'."""
+    if not txt:
+        return (mark*width)[:width]
+    nmark = (width-len(txt)-2)/len(mark)/2
+    if nmark < 0: nmark =0
+    marks = mark*nmark
+    return '%s %s %s' % (marks,txt,marks)
 
 #----------------------------------------------------------------------------
 class EvalDict:
