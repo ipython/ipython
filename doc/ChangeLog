@@ -1,5 +1,8 @@
 2005-09-22  Fernando Perez  <Fernando.Perez@colorado.edu>
 
+	* IPython/demo.py (Demo.__init__): added support for silent
+	blocks, improved marks as regexps, docstrings written.
+
 	* IPython/genutils.py (marquee): little utility used by the demo
 	code, handy in general.
 

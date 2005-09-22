@@ -1,4 +1,6 @@
 """Module for interactive demos using IPython.
+
+Sorry, but this uses Python 2.3 features, so it won't work in 2.2 environments.
 """
 #*****************************************************************************
 #       Copyright (C) 2005 Fernando Perez. <Fernando.Perez@colorado.edu>
@@ -9,6 +11,7 @@
 #*****************************************************************************
 
 import exceptions
+import re
 
 from IPython.PyColorize import Parser
 from IPython.genutils import marquee
@@ -16,10 +19,16 @@ from IPython.genutils import marquee
 class DemoError(exceptions.Exception): pass
 
 class Demo:
-    def __init__(self,fname,pause_mark='# pause',auto=False):
+    def __init__(self,fname,mark_pause='# pause',mark_silent='# silent',
+                 auto=False):
+        """The marks are turned into regexps which match them as standalone in
+        a line, with all leading/trailing whitespace ignored."""
 
         self.fname = fname
-        self.pause_mark = pause_mark
+        self.mark_pause = mark_pause
+        self.re_pause = re.compile(r'^\s*%s\s*$' % mark_pause,re.MULTILINE)
+        self.mark_silent = mark_silent
+        self.re_silent = re.compile(r'^\s*%s\s*$' % mark_silent,re.MULTILINE)
         self.auto = auto
 
         # get a few things from ipython.  While it's a bit ugly design-wise,
@@ -34,7 +43,8 @@ class Demo:
         fobj = file(fname,'r')
         self.src = fobj.read()
         fobj.close()
-        self.src_blocks = [b.strip() for b in self.src.split(pause_mark) if b]
+        self.src_blocks = [b.strip() for b in self.re_pause.split(self.src) if b]
+        self.silent = [bool(self.re_silent.findall(b)) for b in self.src_blocks]
         self.nblocks = len(self.src_blocks)
 
         # try to colorize blocks
@@ -47,33 +57,54 @@ class Demo:
         self.reset()
 
     def reset(self):
+        """Reset the namespace and seek pointer to restart the demo"""
         self.user_ns  = {}
         self.finished = False
         self.block_index = 0
 
     def again(self):
+        """Repeat the last block"""
         self.block_index -= 1
         self()
-
 
     def _validate_index(self,index):
         if index<0 or index>=self.nblocks:
             raise ValueError('invalid block index %s' % index)
 
     def seek(self,index):
+        """Move the current seek pointer to the given block"""
         self._validate_index(index)
         self.block_index = index-1
         self.finished = False
 
-    def show(self,index=None):
+    def show_block(self,index=None):
+        """Show a single block on screen"""
         if index is None:
+            if self.finished:
+                print 'Demo finished.  Use reset() if you want to rerun it.'
+                return
             index = self.block_index
         else:
             self._validate_index(index)
         print marquee('<%s> block # %s (%s/%s)' %
                       (self.fname,index,index+1,self.nblocks))
         print self.src_blocks_colored[index],
-        
+
+    def show(self):
+        """Show entire demo on screen, block by block"""
+
+        fname = self.fname
+        nblocks = self.nblocks
+        silent = self.silent
+        for index,block in enumerate(self.src_blocks_colored):
+            if silent[index]:
+                print marquee('<%s> SILENT block # %s (%s/%s)' %
+                              (fname,index,index+1,nblocks))
+            else:
+                print marquee('<%s> block # %s (%s/%s)' %
+                              (fname,index,index+1,nblocks))
+            print block,
+            
     def __call__(self,index=None):
         """run a block of the demo.
 
@@ -92,13 +123,17 @@ class Demo:
         try:
             next_block = self.src_blocks[index]
             self.block_index += 1
-            self.show(index)
-            if not self.auto:
-                print marquee('Press <q> to quit, <Enter> to execute...'),
-                ans = raw_input().strip()
-                if ans:
-                    print marquee('Block NOT executed')
-                    return
+            if self.silent[index]:
+                print marquee('Executing silent block # %s (%s/%s)' %
+                              (index,index+1,self.nblocks))
+            else:
+                self.show_block(index)
+                if not self.auto:
+                    print marquee('Press <q> to quit, <Enter> to execute...'),
+                    ans = raw_input().strip()
+                    if ans:
+                        print marquee('Block NOT executed')
+                        return
             
             exec next_block in self.user_ns
             
@@ -112,4 +147,3 @@ class Demo:
             print marquee(' END OF DEMO ')
             print marquee('Use reset() if you want to rerun it.')
             self.finished = True
-
