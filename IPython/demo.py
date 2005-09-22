@@ -51,7 +51,7 @@ class Demo:
         self.mark_silent = mark_silent
         self.re_silent = re.compile(r'^\s*%s\s*$' % mark_silent,re.MULTILINE)
         self.auto = auto
-        self.sys_argv = shlex_split(arg_str)
+        self.sys_argv = [fname]+shlex_split(arg_str)
 
         # get a few things from ipython.  While it's a bit ugly design-wise,
         # it ensures that things like color scheme and the like are always in
