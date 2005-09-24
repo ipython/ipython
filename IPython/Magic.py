@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Magic functions for InteractiveShell.
 
-$Id: Magic.py 906 2005-09-24 00:26:14Z fperez $"""
+$Id: Magic.py 907 2005-09-24 00:59:56Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001 Janko Hauser <jhauser@zscout.de> and
@@ -2463,6 +2463,7 @@ Defaulting color scheme to 'NoColor'"""
             filename = get_py_filename(parameter_s)
         except IndexError:
             warn('you must provide at least a filename.')
+            return
         fobj=open(filename,'r')
         source = fobj.read()
         fobj.close()
