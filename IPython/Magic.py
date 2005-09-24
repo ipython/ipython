@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Magic functions for InteractiveShell.
 
-$Id: Magic.py 897 2005-09-22 09:32:46Z fperez $"""
+$Id: Magic.py 906 2005-09-24 00:26:14Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001 Janko Hauser <jhauser@zscout.de> and
@@ -35,6 +35,7 @@ from IPython.Struct import Struct
 from IPython.Itpl import Itpl, itpl, printpl,itplns
 from IPython.FakeModule import FakeModule
 from IPython import OInspect
+from IPython.PyColorize import Parser
 from IPython.genutils import *
 
 # Globals to be set later by Magic constructor
@@ -2451,4 +2452,22 @@ Defaulting color scheme to 'NoColor'"""
             elif len(args)==2:
                 bkms[args[0]] = args[1]
         self.persist['bookmarks'] = bkms
+
+    def magic_pycat(self, parameter_s=''):
+        """Show a syntax-highlighted file through a pager.
+
+        This magic is similar to the cat utility, but it will assume the file
+        to be Python source and will show it with syntax highlighting. """
+        
+        try:
+            filename = get_py_filename(parameter_s)
+        except IndexError:
+            warn('you must provide at least a filename.')
+        fobj=open(filename,'r')
+        source = fobj.read()
+        fobj.close()
+        colorize = Parser().format
+        colorized_src = colorize(source,'str',self.shell.rc['colors'])
+        page(colorized_src,screen_lines=self.shell.rc.screen_length)
+
 # end Magic

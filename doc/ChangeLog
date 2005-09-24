@@ -1,3 +1,8 @@
+2005-09-23  Fernando Perez  <Fernando.Perez@colorado.edu>
+
+	* IPython/Magic.py (magic_pycat): new %pycat magic for showing
+	syntax-highlighted python sources, requested by John.
+
 2005-09-22  Fernando Perez  <Fernando.Perez@colorado.edu>
 
 	* IPython/demo.py (Demo.again): fix bug where again() blocks after
