@@ -6,7 +6,7 @@ Requires Python 2.1 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 894 2005-09-22 07:16:18Z fperez $
+$Id: iplib.py 908 2005-09-26 16:05:48Z fperez $
 """
 
 #*****************************************************************************
@@ -61,6 +61,7 @@ from IPython.Struct import Struct
 from IPython.Itpl import Itpl,itpl,printpl,ItplNS,itplns
 from IPython.FakeModule import FakeModule
 from IPython.background_jobs import BackgroundJobManager
+from IPython.PyColorize import Parser
 from IPython.genutils import *
 
 # Global pointer to the running 
@@ -660,6 +661,10 @@ class InteractiveShell(code.InteractiveConsole, Logger, Magic):
         # an ugly hack to get a pointer to the shell, so I can start writing
         # magic code via this pointer instead of the current mixin salad.
         Magic.set_shell(self,self)
+
+        # Python source parser/formatter for syntax highlighting
+        pyformat = Parser().format
+        self.pycolorize = lambda src: pyformat(src,'str',self.rc['colors'])
 
         # hooks holds pointers used for user-side customizations
         self.hooks = Struct()

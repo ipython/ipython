@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Magic functions for InteractiveShell.
 
-$Id: Magic.py 907 2005-09-24 00:59:56Z fperez $"""
+$Id: Magic.py 908 2005-09-26 16:05:48Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001 Janko Hauser <jhauser@zscout.de> and
@@ -68,20 +68,6 @@ def magic2python(cmd):
 def on_off(tag):
     """Return an ON/OFF string for a 1/0 input. Simple utility function."""
     return ['OFF','ON'][tag]
-
-def get_py_filename(name):
-    """Return a valid python filename in the current directory.
-
-    If the given name is not a file, it adds '.py' and searches again.
-    Raises IOError with an informative message if the file isn't found."""
-
-    name = os.path.expanduser(name)
-    if not os.path.isfile(name) and not name.endswith('.py'):
-        name += '.py'
-    if os.path.isfile(name):
-        return name
-    else:
-        raise IOError,'File `%s` not found.' % name
 
 
 #****************************************************************************
@@ -2459,16 +2445,8 @@ Defaulting color scheme to 'NoColor'"""
         This magic is similar to the cat utility, but it will assume the file
         to be Python source and will show it with syntax highlighting. """
         
-        try:
-            filename = get_py_filename(parameter_s)
-        except IndexError:
-            warn('you must provide at least a filename.')
-            return
-        fobj=open(filename,'r')
-        source = fobj.read()
-        fobj.close()
-        colorize = Parser().format
-        colorized_src = colorize(source,'str',self.shell.rc['colors'])
-        page(colorized_src,screen_lines=self.shell.rc.screen_length)
+        filename = get_py_filename(parameter_s)
+        page(self.shell.colorize(file_read(filename)),
+             screen_lines=self.shell.rc.screen_length)
 
 # end Magic

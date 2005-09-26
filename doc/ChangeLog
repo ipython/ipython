@@ -1,3 +1,10 @@
+2005-09-24  Fernando Perez  <Fernando.Perez@colorado.edu>
+
+	* IPython/demo.py: finish demo module, fully documented now.
+
+	* IPython/genutils.py (file_read): simple little utility to read a
+	file and ensure it's closed afterwards.
+
 2005-09-23  Fernando Perez  <Fernando.Perez@colorado.edu>
 
 	* IPython/demo.py (Demo.__init__): added support for individually

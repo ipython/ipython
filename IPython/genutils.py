@@ -5,7 +5,7 @@ General purpose utilities.
 This is a grab-bag of stuff I find useful in most programs I write. Some of
 these things are also convenient when working at the command line.
 
-$Id: genutils.py 897 2005-09-22 09:32:46Z fperez $"""
+$Id: genutils.py 908 2005-09-26 16:05:48Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2004 Fernando Perez. <fperez@colorado.edu>
@@ -439,6 +439,21 @@ def mutex_opts(dict,ex_op):
                   'Options '+op1+' and '+op2+' are mutually exclusive.'
 
 #-----------------------------------------------------------------------------
+def get_py_filename(name):
+    """Return a valid python filename in the current directory.
+
+    If the given name is not a file, it adds '.py' and searches again.
+    Raises IOError with an informative message if the file isn't found."""
+
+    name = os.path.expanduser(name)
+    if not os.path.isfile(name) and not name.endswith('.py'):
+        name += '.py'
+    if os.path.isfile(name):
+        return name
+    else:
+        raise IOError,'File `%s` not found.' % name
+
+#-----------------------------------------------------------------------------
 def filefind(fname,alt_dirs = None):
     """Return the given filename either in the current directory, if it
     exists, or in a specified list of directories.
@@ -465,6 +480,14 @@ def filefind(fname,alt_dirs = None):
             return testname
     raise IOError,'File' + `fname` + \
           ' not found in current or supplied directories:' + `alt_dirs`
+
+#----------------------------------------------------------------------------
+def file_read(filename):
+    """Read a file and close it.  Returns the file source."""
+    fobj=open(filename,'r');
+    source = fobj.read();
+    fobj.close()
+    return source
 
 #----------------------------------------------------------------------------
 def target_outdated(target,deps):
@@ -937,7 +960,7 @@ def ask_yes_no(prompt,default=None):
     return answers[ans]
 
 #----------------------------------------------------------------------------
-def marquee(txt='',width=80,mark='*'):
+def marquee(txt='',width=78,mark='*'):
     """Return the input string centered in a 'marquee'."""
     if not txt:
         return (mark*width)[:width]

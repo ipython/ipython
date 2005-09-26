@@ -2,15 +2,45 @@
 \lyxformat 221
 \textclass article
 \begin_preamble
-\usepackage{ae,aecompl}
-\usepackage{hyperref}
+%\usepackage{ae,aecompl}
+\usepackage{color}
+
+% A few colors to replace the defaults for certain link types
+\definecolor{orange}{cmyk}{0,0.4,0.8,0.2}
+\definecolor{darkorange}{rgb}{.71,0.21,0.01}
+\definecolor{darkred}{rgb}{.52,0.08,0.01}
+\definecolor{darkgreen}{rgb}{.12,.54,.11}
+
+% Use and configure listings package for nicely formatted code
+\usepackage{listings}
+\lstset{
+  language=Python,
+  basicstyle=\small\ttfamily,
+  commentstyle=\ttfamily\color{blue},
+  stringstyle=\ttfamily\color{darkorange},
+  showstringspaces=false,
+  breaklines=true,
+  postbreak = \space\dots
+}
+
+\usepackage[%pdftex,  % needed for pdflatex
+  breaklinks=true,  % so long urls are correctly broken across lines
+  colorlinks=true,
+  urlcolor=blue,
+  linkcolor=darkred,
+  citecolor=darkgreen,
+  ]{hyperref}
+
 \usepackage{html}
+
+% This helps prevent overly long lines that stretch beyond the margins
+\sloppy
 \end_preamble
 \language english
 \inputencoding latin1
-\fontscheme default
+\fontscheme palatino
 \graphics default
-\paperfontsize default
+\paperfontsize 10
 \spacing single 
 \papersize Default
 \paperpackage a4
@@ -19,9 +49,9 @@
 \use_natbib 0
 \use_numerical_citations 0
 \paperorientation portrait
-\leftmargin 1.25in
+\leftmargin 1.1in
 \topmargin 1in
-\rightmargin 1.25in
+\rightmargin 1.1in
 \bottommargin 1in
 \secnumdepth 3
 \tocdepth 3
@@ -433,8 +463,8 @@ IPython is generously hosted at
 \end_inset 
 
  by the SciPy project.
- This site offers downloads, CVS access, mailing lists and a bug tracking
- system.
+ This site offers downloads, subversion access, mailing lists and a bug
+ tracking system.
  I am very grateful to Enthought (
 \begin_inset LatexCommand \htmlurl{http://www.enthought.com}
 
@@ -2271,6 +2301,19 @@ Use
  While IPython doesn't support true multiline editing, this command allows
  you to call an editor on the spot, and IPython will execute the code you
  type in there as if it were typed interactively.
+\layout Itemize
+
+Use the IPython.demo.Demo class to load any Python script as an interactive
+ demo.
+ With a minimal amount of simple markup, you can control the execution of
+ the script, stopping as needed.
+ See sec.\SpecialChar ~
+
+\begin_inset LatexCommand \ref{sec:interactive-demos}
+
+\end_inset 
+
+ for more.
 \layout Standard
 
 If you have your own favorite tip on using IPython efficiently for a certain
@@ -3577,9 +3620,13 @@ example-magic.py
 \layout Standard
 
 
-\begin_inset Include \verbatiminput{examples/example-magic.py}
-preview false
+\begin_inset ERT
+status Open
 
+\layout Standard
+
+\backslash 
+lstinputlisting{examples/example-magic.py}
 \end_inset 
 
 
@@ -5323,9 +5370,13 @@ directory contains lots of comments on all of these options.
 \layout Standard
 
 
-\begin_inset Include \verbatiminput{../IPython/UserConfig/ipythonrc}
-preview false
+\begin_inset ERT
+status Open
 
+\layout Standard
+
+\backslash 
+lstinputlisting{../IPython/UserConfig/ipythonrc}
 \end_inset 
 
 
@@ -6021,9 +6072,13 @@ example-embed.py
 \layout Standard
 
 
-\begin_inset Include \verbatiminput{examples/example-embed.py}
-preview false
+\begin_inset ERT
+status Open
 
+\layout Standard
+
+\backslash 
+lstinputlisting{examples/example-embed.py}
 \end_inset 
 
 
@@ -6034,9 +6089,13 @@ Once you understand how the system functions, you can use the following
 \layout Standard
 
 
-\begin_inset Include \verbatiminput{examples/example-embed-short.py}
-preview false
+\begin_inset ERT
+status Open
 
+\layout Standard
+
+\backslash 
+lstinputlisting{examples/example-embed-short.py}
 \end_inset 
 
 
@@ -7648,6 +7707,30 @@ This is obviously a brute force way of avoiding race conditions with the
 \layout Section
 
 
+\begin_inset LatexCommand \label{sec:interactive-demos}
+
+\end_inset 
+
+Interactive demos with IPython
+\layout Standard
+
+IPython ships with 
+\layout Standard
+
+
+\begin_inset ERT
+status Open
+
+\layout Standard
+
+\backslash 
+lstinputlisting{examples/example-demo.py}
+\end_inset 
+
+
+\layout Section
+
+
 \begin_inset LatexCommand \label{sec:matplotlib-support}
 
 \end_inset 
@@ -7960,9 +8043,13 @@ example-gnuplot.py
 \layout Standard
 
 
-\begin_inset Include \verbatiminput{examples/example-gnuplot.py}
-preview false
+\begin_inset ERT
+status Open
 
+\layout Standard
+
+\backslash 
+lstinputlisting{examples/example-gnuplot.py}
 \end_inset 
 
 
@@ -8311,7 +8398,39 @@ IPython is mainly developed by Fernando Pérez
 \family default 
 .
  For all IPython-related requests, please contact Fernando.
- User or development help should be requested via the IPython mailing lists:
+ 
+\layout Standard
+
+As of late 2005, the following developers have joined the core team:
+\layout List
+\labelwidthstring 00.00.0000
+
+Robert\SpecialChar ~
+Kern 
+\family typewriter 
+<rkern-AT-enthought.com>
+\family default 
+: co-mentored the 2005 Google Summer of Code project to develop python interacti
+ve notebooks (XML documents) and graphical interface.
+ This project was awarded to the students Tzanko Matev 
+\family typewriter 
+<tsanko-AT-gmail.com>
+\family default 
+ and Toni Alatalo 
+\family typewriter 
+<antont-AT-an.org>
+\layout List
+\labelwidthstring 00.00.0000
+
+Brian\SpecialChar ~
+Granger 
+\family typewriter 
+<bgranger-AT-scu.edu>
+\family default 
+: extending IPython to allow support for interactive parallel computing.
+\layout Standard
+
+User or development help should be requested via the IPython mailing lists:
 \layout Description
 
 User\SpecialChar ~
@@ -8797,16 +8916,6 @@ Tretkowski
 <tretkowski-AT-inittab.de>
 \family default 
  help with Debian packaging and distribution.
-\layout List
-\labelwidthstring 00.00.0000
-
-Robert\SpecialChar ~
-Kern 
-\family typewriter 
-<rkern-AT-ucsd.edu>
-\family default 
- help with OSX issues, much help in general with various Python topics,
- especially related to scientific computing.
 \layout List
 \labelwidthstring 00.00.0000
 
