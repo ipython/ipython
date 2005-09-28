@@ -1,3 +1,8 @@
+2005-09-27  Fernando Perez  <Fernando.Perez@colorado.edu>
+
+	* IPython/Extensions/numeric_formats.py: fix missing import,
+	reported by Stephen Walton.
+
 2005-09-24  Fernando Perez  <Fernando.Perez@colorado.edu>
 
 	* IPython/demo.py: finish demo module, fully documented now.

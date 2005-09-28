@@ -3,6 +3,8 @@
 Extension for printing Numeric Arrays in flexible ways.
 """
 
+from Numeric import ArrayType
+
 def num_display(self,arg):
     """Display method for printing which treats Numeric arrays specially.
     """
