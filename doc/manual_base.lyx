@@ -35,6 +35,15 @@
 
 % This helps prevent overly long lines that stretch beyond the margins
 \sloppy
+
+% Define a \codelist command which either uses listings for latex, or
+% plain verbatim for html (since latex2html doesn't understand the 
+% listings package).
+\usepackage{verbatim}
+\newcommand{\codelist}[1] {
+\latex{\lstinputlisting{#1}}
+\html{\verbatiminput{#1}}
+}
 \end_preamble
 \language english
 \inputencoding latin1
@@ -523,21 +532,6 @@ See the notes in sec.
 Detailed Unix instructions (Linux, Mac OS X, etc.)
 \layout Standard
 
-
-\begin_inset ERT
-status Open
-
-\layout Standard
-
-\backslash 
-html{ 
-\backslash 
-textbf{A warning to readers of the HTML version of this manual}: all options below are preceded with with TWO dashes and no intervening space between the dashes (e.g. Dash-Dash-home). The default HTML conversion tools mangle these into a single dash.}
-\end_inset 
-
-
-\layout Standard
-
 For RPM based systems, simply install the supplied package in the usual
  manner.
  If you download the tar archive, the process is:
@@ -604,39 +598,41 @@ $ python setup.py install
 Note that this assumes you have root access to your machine.
  If you don't have root access or don't want IPython to go in the default
  python directories, you'll need to use the 
-\family typewriter 
---home
-\family default 
+\begin_inset ERT
+status Collapsed
+
+\layout Standard
+
+\backslash 
+verb|--home|
+\end_inset 
+
  option (or 
-\family typewriter 
---prefix
-\family default 
+\begin_inset ERT
+status Collapsed
+
+\layout Standard
+
+\backslash 
+verb|--prefix|
+\end_inset 
+
 ).
  For example:
 \newline 
 
-\family typewriter 
-$ python setup.py install --home $HOME/local
-\family default 
-
-\newline 
-will install
-\begin_inset Foot
-collapsed true
+\begin_inset ERT
+status Collapsed
 
 \layout Standard
 
-If you are reading these instructions in HTML format, please note that the
- option is --home, with 
-\emph on 
-two
-\emph default 
- dashes.
- The automatic HTML conversion program seems to eat up one of the dashes,
- unfortunately (it's ok in the PDF version).
+\backslash 
+verb|$ python setup.py install --home $HOME/local|
 \end_inset 
 
- IPython into 
+
+\newline 
+will install IPython into 
 \family typewriter 
 $HOME/local 
 \family default 
@@ -645,17 +641,29 @@ and its subdirectories (creating them if necessary).
 You can type
 \newline 
 
-\family typewriter 
-$ python setup.py --help
-\family default 
+\begin_inset ERT
+status Collapsed
 
+\layout Standard
+
+\backslash 
+verb|$ python setup.py --help|
+\end_inset 
+
+ 
 \newline 
 for more details.
 \newline 
 Note that if you change the default location for 
-\family typewriter 
---home
-\family default 
+\begin_inset ERT
+status Collapsed
+
+\layout Standard
+
+\backslash 
+verb|--home|
+\end_inset 
+
  at installation, IPython may end up installed at a location which is not
  part of your 
 \family typewriter 
@@ -668,9 +676,15 @@ $PYTHONPATH
 IPython/
 \family default 
  directory ended (typically the value you give to 
-\family typewriter 
---home
-\family default 
+\begin_inset ERT
+status Collapsed
+
+\layout Standard
+
+\backslash 
+verb|--home|
+\end_inset 
+
  plus 
 \family typewriter 
 /lib/python
@@ -698,6 +712,15 @@ Under OSX, there is a choice you need to make.
  users who favor each of the approaches.
  Here I will simply list the known installation issues under OSX, along
  with their solutions.
+\layout Standard
+
+This page: 
+\begin_inset LatexCommand \htmlurl{http://geosci.uchicago.edu/~tobis/pylab.html}
+
+\end_inset 
+
+ contains information on this topic, with additional details on how to make
+ IPython and matplotlib play nicely under OSX.
 \layout Subsubsection*
 
 GUI problems
@@ -716,7 +739,7 @@ The following instructions apply to an install of IPython under OSX from
 
 IPython offers various forms of support for interacting with graphical applicati
 ons from the command line, from simple Tk apps (which are in principle always
- supported by Python) to interactive control of WX, QT and GTK apps.
+ supported by Python) to interactive control of WX, Qt and GTK apps.
  Under OSX, however, this requires that ipython is installed by calling
  the special 
 \family typewriter 
@@ -726,38 +749,38 @@ pythonw
  Apple's graphical environment.
 \layout Standard
 
-So when installing under OSX, it is best to use the following command
+So when installing under OSX, it is best to use the following command:
+\family typewriter 
+
+\newline 
+
+\family default 
+
 \begin_inset ERT
 status Collapsed
 
 \layout Standard
 
 \backslash 
-html{ 
-\backslash 
-emph{[Again, in the HTML manual, the option is called -~-install=scripts, with TWO dashes and no intervening space between the dashes]}}
+verb|  $ sudo pythonw setup.py install --install-scripts=/usr/local/bin|
 \end_inset 
 
-:
-\family typewriter 
 
 \newline 
-\SpecialChar ~
-\SpecialChar ~
-$ sudo pythonw setup.py install --install-scripts=/usr/local/bin
-\family default 
-
-\newline 
-or
-\family typewriter 
-
-\newline 
-\SpecialChar ~
-\SpecialChar ~
-$ sudo pythonw setup.py install --install-scripts=/usr/bin
+ or
 \newline 
 
-\family default 
+\begin_inset ERT
+status Open
+
+\layout Standard
+
+\backslash 
+verb|  $ sudo pythonw setup.py install --install-scripts=/usr/bin|
+\end_inset 
+
+
+\newline 
 depending on where you like to keep hand-installed executables.
 \layout Standard
 
@@ -786,9 +809,15 @@ setup.py
 \layout Standard
 
 It is also a good idea to use the special flag 
-\family typewriter 
---install-scripts
-\family default 
+\begin_inset ERT
+status Collapsed
+
+\layout Standard
+
+\backslash 
+verb|--install-scripts|
+\end_inset 
+
  as indicated above, to ensure that the ipython scripts end up in a location
  which is part of your 
 \family typewriter 
@@ -1147,7 +1176,7 @@ Documents and Settings
 \backslash 
 YourUserName
 \backslash 
-.ipython
+_ipython
 \family default 
 , and Win 9x users under 
 \family typewriter 
@@ -1157,7 +1186,7 @@ Program Files
 \backslash 
 IPython
 \backslash 
-.ipython.
+_ipython.
 \layout Section
 
 
@@ -2393,6 +2422,7 @@ The following special options are ONLY valid at the beginning of the command
 \family typewriter 
 \series bold 
 -gthread,\SpecialChar ~
+-qthread,\SpecialChar ~
 -wthread,\SpecialChar ~
 -pylab:
 \family default 
@@ -2403,29 +2433,18 @@ one
 \emph default 
  of these can be given, and it can only be given as the first option passed
  to IPython (it will have no effect in any other position).
- They provide threading support for the GTK and WXPython toolkits, and for
- the matplotlib library.
+ They provide threading support for the GTK Qt and WXPython toolkits, and
+ for the matplotlib library.
 \layout List
 \labelwidthstring 00.00.0000
 
 \SpecialChar ~
- If 
-\family typewriter 
--gthread
-\family default 
- is given, IPython starts running a separate thread for GTK operation, so
- that pyGTK-based programs can open and control GUIs without blocking IPython.
- 
-\layout List
-\labelwidthstring 00.00.0000
-
-\SpecialChar ~
- Similarly, 
-\family typewriter 
--wthread
-\family default 
- instantiates IPython with threading support for the WXPython toolkit.
- You can control WX application windows from within IPython.
+ With any of the first three options, IPython starts running a separate
+ thread for the graphical toolkit's operation, so that you can open and
+ control graphical elements from within an IPython command line, without
+ blocking.
+ All three provide essentially the same functionality, respectively for
+ GTK, QT and WXWidgets (via their Python interfaces).
 \layout List
 \labelwidthstring 00.00.0000
 
@@ -2434,14 +2453,18 @@ one
 \family typewriter 
 -pylab
 \family default 
- is given, IPython loads special support for the mat- plotlib library (
+ is given, IPython loads special support for the mat plotlib library (
 \begin_inset LatexCommand \htmlurl{http://matplotlib.sourceforge.net}
 
 \end_inset 
 
 ), allowing interactive usage of any of its backends as defined in the user's
- .matplotlibrc file.
- It automatically activates GTK or WX threading for IPyhton if the choice
+ 
+\family typewriter 
+~/.matplotlib/matplotlibrc
+\family default 
+ file.
+ It automatically activates GTK, Qt or WX threading for IPyhton if the choice
  of matplotlib backend requires it.
  It also modifies the 
 \family typewriter 
@@ -2465,17 +2488,17 @@ show()
 \series default 
  The 
 \family typewriter 
--g/wthread
+-g/q/wthread
 \family default 
  options, and 
 \family typewriter 
 -pylab
 \family default 
- (if matplotlib is configured to use WX or GTK), will normally block Tk
- graphical interfaces.
- This means that when either GTK or WX threading is active, any attempt
- to open a Tk GUI will result in a dead window, and pos- sibly cause the
- Python interpreter to crash.
+ (if matplotlib is configured to use GTK, Qt or WX), will normally block
+ Tk graphical interfaces.
+ This means that when either GTK, Qt or WX threading is active, any attempt
+ to open a Tk GUI will result in a dead window, and possibly cause the Python
+ interpreter to crash.
  An extra option, 
 \family typewriter 
 -tk
@@ -2510,12 +2533,12 @@ second
 \family typewriter 
 -tk
 \family default 
- is given, IPython will try to coordinate Tk threading with WX or GTK.
+ is given, IPython will try to coordinate Tk threading with GTK, Qt or WX.
  This is however potentially unreliable, and you will have to test on your
  platform and Python configuration to determine whether it works for you.
  Debian users have reported success, apparently due to the fact that Debian
  builds all of Tcl, Tk, Tkinter and Python with pthreads support.
- Under other Linux environments (such as Fedora Core 2), this option has
+ Under other Linux environments (such as Fedora Core 2/3), this option has
  caused random crashes and lockups of the Python interpreter.
  Under other operating systems (Mac OSX and Windows), you'll need to try
  it to find out, since currently no user reports are available.
@@ -3626,7 +3649,7 @@ status Open
 \layout Standard
 
 \backslash 
-lstinputlisting{examples/example-magic.py}
+codelist{examples/example-magic.py}
 \end_inset 
 
 
@@ -5376,7 +5399,7 @@ status Open
 \layout Standard
 
 \backslash 
-lstinputlisting{../IPython/UserConfig/ipythonrc}
+codelist{../IPython/UserConfig/ipythonrc}
 \end_inset 
 
 
@@ -6078,7 +6101,7 @@ status Open
 \layout Standard
 
 \backslash 
-lstinputlisting{examples/example-embed.py}
+codelist{examples/example-embed.py}
 \end_inset 
 
 
@@ -6095,7 +6118,7 @@ status Open
 \layout Standard
 
 \backslash 
-lstinputlisting{examples/example-embed-short.py}
+codelist{examples/example-embed-short.py}
 \end_inset 
 
 
@@ -7532,6 +7555,10 @@ IPython, via the
 \family typewriter 
 -gthread
 \family default 
+ , 
+\family typewriter 
+-qthread
+\family default 
  and 
 \family typewriter 
 -wthread
@@ -7542,11 +7569,11 @@ IPython, via the
 
 \end_inset 
 
-), can run in multithreaded mode to support pyGTK and WXPython applications
+), can run in multithreaded mode to support pyGTK, Qt and WXPython applications
  respectively.
- Both of these GUI toolkits need to control the python main loop of execution,
- so under a normal Python interpreter, starting a pyGTK (or WXPython) applicatio
-n will immediately freeze the shell.
+ These GUI toolkits need to control the python main loop of execution, so
+ under a normal Python interpreter, starting a pyGTK, Qt or WXPython application
+ will immediately freeze the shell.
  
 \layout Standard
 
@@ -7557,6 +7584,15 @@ IPython, with one of these options (you can only use one at a time), separates
 %run
 \family default 
 , for example) your GUI code without blocking.
+\layout Standard
+
+A nice mini-tutorial on using IPython along with the Qt Designer application
+ is available at the SciPy wiki: 
+\begin_inset LatexCommand \htmlurl{http://www.scipy.org/wikis/topical_software/QtWithIPythonAndDesigner}
+
+\end_inset 
+
+.
 \layout Subsection
 
 Tk issues
@@ -7573,18 +7609,18 @@ As indicated in Sec.\SpecialChar ~
 -tk
 \family default 
  option is provided to try and allow Tk graphical applications to coexist
- interactively with WX or GTK ones.
+ interactively with WX, Qt or GTK ones.
  Whether this works at all, however, is very platform and configuration
  dependent.
  Please experiment with simple test cases before committing to using this
- combination of Tk and WX/GTK threading in a production environment.
+ combination of Tk and GTK/Qt/WX threading in a production environment.
 \layout Subsection
 
 Signals and Threads
 \layout Standard
 
-When any of the thread systems (WX or GTK) are active, either directly or
- via 
+When any of the thread systems (GTK, Qt or WX) are active, either directly
+ or via 
 \family typewriter 
 -pylab
 \family default 
@@ -7714,7 +7750,7 @@ This is obviously a brute force way of avoiding race conditions with the
 Interactive demos with IPython
 \layout Standard
 
-IPython ships with 
+IPython ships with XXX 
 \layout Standard
 
 
@@ -7724,7 +7760,7 @@ status Open
 \layout Standard
 
 \backslash 
-lstinputlisting{examples/example-demo.py}
+codelist{examples/example-demo.py}
 \end_inset 
 
 
@@ -8049,7 +8085,7 @@ status Open
 \layout Standard
 
 \backslash 
-lstinputlisting{examples/example-gnuplot.py}
+codelist{examples/example-gnuplot.py}
 \end_inset 
 
 
@@ -8188,7 +8224,7 @@ The current IPython system grew out of the following three projects:
 \layout List
 \labelwidthstring 00.00.0000
 
-ipython by Fernando Pérez.
+ipython by Fernando PÃ©rez.
  I was working on adding Mathematica-type prompts and a flexible configuration
  system (something better than 
 \family typewriter 
@@ -8383,7 +8419,7 @@ Versions of IPython up to and including 0.6.3 were released under the GNU
 Credits
 \layout Standard
 
-IPython is mainly developed by Fernando Pérez 
+IPython is mainly developed by Fernando PÃ©rez 
 \family typewriter 
 <fperez@colorado.edu>
 \family default 
@@ -8481,7 +8517,7 @@ Ka-Ping Yee
  with a much nicer syntax than formatting through the '%' operator.
 \layout Standard
 
-Arnd Bäcker 
+Arnd BÃ¤cker 
 \family typewriter 
 <baecker-AT-physik.tu-dresden.de>
 \family default 
@@ -8765,7 +8801,7 @@ Drexler
 \labelwidthstring 00.00.0000
 
 Gustavo\SpecialChar ~
-Córdova\SpecialChar ~
+CÃ³rdova\SpecialChar ~
 Avila 
 \family typewriter 
 <gcordova-AT-sismex.com>

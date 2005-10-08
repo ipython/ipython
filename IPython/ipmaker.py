@@ -6,7 +6,7 @@ Requires Python 2.1 or better.
 
 This file contains the main make_IPython() starter function.
 
-$Id: ipmaker.py 802 2005-09-06 03:49:12Z fperez $"""
+$Id: ipmaker.py 911 2005-10-08 07:59:40Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2004 Fernando Perez. <fperez@colorado.edu>
@@ -112,7 +112,9 @@ object? -> Details about 'object'. ?object also works, ?? prints more.
 
     IP.usage = interactive_usage
 
-    # Platform-dependent suffix and directory names
+    # Platform-dependent suffix and directory names.  We use _ipython instead
+    # of .ipython under win32 b/c there's software that breaks with .named
+    # directories on that platform.
     if os.name == 'posix':
         rc_suffix = ''
         ipdir_def = '.ipython'
