@@ -1,5 +1,15 @@
 2005-09-27  Fernando Perez  <Fernando.Perez@colorado.edu>
 
+	* Manual: fixed long-standing annoyance of double-dashes (as in
+	--prefix=~, for example) being stripped in the HTML version.  This
+	is a latex2html bug, but a workaround was provided.  Many thanks
+	to George K. Thiruvathukal <gthiruv AT luc.edu> for the detailed
+	help, and Michael Tobis <mtobis AT gmail.com> for getting the ball
+	rolling.  This seemingly small issue had tripped a number of users
+	when first installing, so I'm glad to see it gone.
+	
+2005-09-27  Fernando Perez  <Fernando.Perez@colorado.edu>
+
 	* IPython/Extensions/numeric_formats.py: fix missing import,
 	reported by Stephen Walton.
 
