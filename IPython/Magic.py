@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Magic functions for InteractiveShell.
 
-$Id: Magic.py 908 2005-09-26 16:05:48Z fperez $"""
+$Id: Magic.py 919 2005-10-15 07:57:05Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001 Janko Hauser <jhauser@zscout.de> and
@@ -34,8 +34,9 @@ from cStringIO import StringIO
 from IPython.Struct import Struct
 from IPython.Itpl import Itpl, itpl, printpl,itplns
 from IPython.FakeModule import FakeModule
-from IPython import OInspect
 from IPython.PyColorize import Parser
+from IPython import OInspect
+from IPython import wildcard
 from IPython.genutils import *
 
 # Globals to be set later by Magic constructor
@@ -656,7 +657,63 @@ Currently the magic system has the following functions:\n"""
                re.match('(pinfo )?(\?*)(.*?)(\??$)',parameter_s).groups()
         if pinfo or qmark1 or qmark2:
             detail_level = 1
-        self._inspect('pinfo',oname,detail_level=detail_level)
+        if "*" in oname:
+            self.magic_psearch(oname)
+        else:
+            self._inspect('pinfo',oname,detail_level=detail_level)
+
+    def magic_psearch(self, parameter_s=''):
+        """Search for object in namespaces by wildcard.
+
+        %psearch PATTERN [OBJECT TYPE] [-NAMESPACE]* [+NAMESPACE]* [-a] [-c]
+
+        Note: ? can be used as a synonym for %psearch, at the beginning or at
+        the end: both a*? and ?a* are equivalent to '%psearch a*'.
+       
+        PATTERN
+
+        where PATTERN is a string containing * as a wildcard similar to its
+        use in a shell.  The pattern is matched in all namespaces on the
+        search path. By default objects starting with a single _ are not
+        matched, many IPython generated objects have a single underscore. The
+        default is case insensitive matching. Matching is also done on the
+        attributes of objects and not only on the objects in a module.
+
+        [OBJECT TYPE]
+        Is the name of a python type from the types module. The name is given
+        in lowercase without the ending type, ex. StringType is written
+        string. By adding a type here only objects matching the given type are
+        matched. Using all here makes the pattern match all types (this is the
+        default).
+
+        [-NAMESPACE]* [+NAMESPACE]* 
+        The possible namespaces are builtin, user, internal, alias. Where
+        builtin and user are default. Builtin contains the python module
+        builtin, user contains all imported namespaces, alias only contain the
+        shell aliases and no python objects, internal contains objects used by
+        IPython. The namespaces on the search path are removed by -namespace
+        and added by +namespace.
+
+        [-a] makes the pattern match even objects with a single underscore.
+        [-c] makes the pattern case sensitive.
+    
+        Examples:
+       
+        %psearch a*            list objects beginning with an a
+        %psearch a* function   list all functions beginning with an a
+        %psearch re.e*         list objects beginning with an e in module re
+        %psearch r*.e*         list objects that starts with e in modules starting in r
+        %psearch r*.* string   list all strings in modules beginning with r 
+
+        Case sensitve search:
+       
+        %psearch a* -c         list all object beginning with lower case a
+
+        Show objects beginning with a single _:
+       
+        %psearch _* -a         list objects beginning with underscore"""
+        
+        self.shell.inspector.psearch(parameter_s,shell=self.shell)
 
     def magic_who_ls(self, parameter_s=''):
         """Return a sorted list of all interactive variables.

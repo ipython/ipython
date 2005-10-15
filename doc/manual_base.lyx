@@ -9053,4 +9053,13 @@ Sakkis <
 gsakkis-AT-eden.rutgers.edu>
 \family default 
  New matcher for tab-completing named arguments of user-defined functions.
+\layout List
+\labelwidthstring 00.00.0000
+
+Jörgen\SpecialChar ~
+Stenarson 
+\family typewriter 
+<jorgen.stenarson-AT-bostream.nu>
+\family default 
+ Wildcard support implementation for searching namespaces.
 \the_end

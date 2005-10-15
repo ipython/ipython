@@ -6,7 +6,7 @@ Uses syntax highlighting for presenting the various information elements.
 Similar in spirit to the inspect module, but all calls take a name argument to
 reference the name under which an object is being read.
 
-$Id: OInspect.py 575 2005-04-08 14:16:44Z fperez $
+$Id: OInspect.py 919 2005-10-15 07:57:05Z fperez $
 """
 
 #*****************************************************************************
@@ -26,9 +26,10 @@ __all__ = ['Inspector','InspectColors']
 import inspect,linecache,types,StringIO,string
 
 # IPython's own
-from IPython.Itpl import itpl
-from IPython.genutils import page,indent,Term
 from IPython import PyColorize
+from IPython.Itpl import itpl
+from IPython.wildcard import choose_namespaces,list_namespace
+from IPython.genutils import page,indent,Term
 from IPython.ColorANSI import *
 
 #****************************************************************************
@@ -396,3 +397,46 @@ class Inspector:
         if output:
             page(output)
         # end pinfo
+
+    def psearch(self,oname='',formatter = None,shell=None):
+       """Search namespaces with wildcards for objects.
+
+        Optional arguments:
+        
+        - oname: rest of the commandline containging pattern and options
+
+        - formatter:  Not used
+
+        - shell:      The shell object from the Magic class. Needed to 
+       access the namespaces
+
+    """
+       option_list=["-c","-a"]
+       import pdb
+#      pdb.set_trace()
+       cmds=oname.split()
+       filter=""
+       type_pattern="all"
+       ns_cmds=[]
+       options=[x for x in cmds if x in option_list]
+       ignorecase="-c" not in options
+       showhidden="-a" in options
+       ns_cmds=[x for x in cmds if x[0] in "-+" and x not in option_list]
+       cmds=[x for x in cmds if x[0] not in "-+"]
+       if len(cmds)>2:  #assume we want to choose name spaces. 
+                        #Rather poor design forces the use of a typepattern in order to choose name spaces
+           cmds=cmds[:2]
+       if len(cmds)==2:
+           filter,type_pattern=cmds
+       elif len(cmds)==1:
+           filter=cmds[0].strip()
+
+       do_list=choose_namespaces(shell,ns_cmds)
+
+       search_result=[]
+       for ns in do_list:
+           tmp_res=list(list_namespace(ns,type_pattern,filter,ignorecase=ignorecase,showhidden=showhidden))
+           search_result.extend(tmp_res)
+       search_result.sort()
+
+       page("\n".join(search_result))

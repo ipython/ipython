@@ -1,10 +1,19 @@
+2005-10-15  Fernando Perez  <Fernando.Perez@colorado.edu>
+
+	* IPython/Magic.py (magic_psearch): new support for wildcard
+	patterns.  Now, typing ?a*b will list all names which begin with a
+	and end in b, for example.  The %psearch magic has full
+	docstrings.  Many thanks to Jörgen Stenarson
+	<jorgen.stenarson-AT-bostream.nu>, author of the patches
+	implementing this functionality.
+
 2005-09-27  Fernando Perez  <Fernando.Perez@colorado.edu>
 
 	* Manual: fixed long-standing annoyance of double-dashes (as in
 	--prefix=~, for example) being stripped in the HTML version.  This
 	is a latex2html bug, but a workaround was provided.  Many thanks
-	to George K. Thiruvathukal <gthiruv AT luc.edu> for the detailed
-	help, and Michael Tobis <mtobis AT gmail.com> for getting the ball
+	to George K. Thiruvathukal <gthiruv-AT-luc.edu> for the detailed
+	help, and Michael Tobis <mtobis-AT-gmail.com> for getting the ball
 	rolling.  This seemingly small issue had tripped a number of users
 	when first installing, so I'm glad to see it gone.
 	
@@ -76,7 +85,7 @@
 
 	* IPython/iplib.py (InteractiveShell.__init__): Trap exception if
 	os.getcwd() fails at init time.  Thanks to patch from David Remahl
-	<chmod007 AT mac.com>.
+	<chmod007-AT-mac.com>.
 	(InteractiveShell.__init__): prevent certain special magics from
 	being shadowed by aliases.  Closes
 	http://www.scipy.net/roundup/ipython/issue41.
@@ -174,7 +183,7 @@
 	slightly modified version of the patch in
 	http://www.scipy.net/roundup/ipython/issue34, which also allows me
 	to remove the previous try/except solution (which was costlier).
-	Thanks to Gaetan Lehmann <gaetan.lehmann AT jouy.inra.fr> for the fix.
+	Thanks to Gaetan Lehmann <gaetan.lehmann-AT-jouy.inra.fr> for the fix.
 
 2005-06-08  Fernando Perez  <fperez@colorado.edu>
 
