@@ -7750,7 +7750,21 @@ This is obviously a brute force way of avoiding race conditions with the
 Interactive demos with IPython
 \layout Standard
 
-IPython ships with XXX 
+IPython ships with a basic system for running scripts interactively in sections,
+ useful when presenting code to audiences.
+ A few tags embedded in comments (so that the script remains valid Python
+ code) divide a file into separate blocks, and the demo can be run one block
+ at a time, with IPython printing (with syntax highlighting) the block before
+ executing it, and returning to the interactive prompt after each block.
+ The interactive namespace is updated after each block is run with the contents
+ of the demo's namespace.
+\layout Standard
+
+This allows you to show a piece of code, run it and then execute interactively
+ commands based on the variables just created.
+ Once you want to continue, you simply execute the next block of the demo.
+ The following listing shows the markup necessary for dividing a script
+ into sections for execution as a demo.
 \layout Standard
 
 
@@ -7764,6 +7778,84 @@ codelist{examples/example-demo.py}
 \end_inset 
 
 
+\layout Standard
+
+In order to run a file as a demo, you must first make a 
+\family typewriter 
+Demo
+\family default 
+ object out of it.
+ If the file is named 
+\family typewriter 
+myscript.py
+\family default 
+, the following code will make a demo:
+\layout LyX-Code
+
+from IPython.demo import Demo
+\layout LyX-Code
+
+mydemo = Demo('myscript.py')
+\layout Standard
+
+This creates the 
+\family typewriter 
+mydemo
+\family default 
+ object, whose blocks you run one at a time by simply calling the object
+ with no arguments.
+ If you have autocall active in IPython (the default), all you need to do
+ is type
+\layout LyX-Code
+
+mydemo
+\layout Standard
+
+and IPython will call it, executing each block.
+ Demo objects can be restarted, you can move forward or back skipping blocks,
+ re-execute the last block, etc.
+ Simply use the Tab key on a demo object to see its methods, and call 
+\family typewriter 
+`?'
+\family default 
+ on them to see their docstrings for more usage details.
+ In addition, the 
+\family typewriter 
+demo
+\family default 
+ module itself contains a comprehensive docstring, which you can access
+ via
+\layout LyX-Code
+
+from IPython import demo
+\layout LyX-Code
+
+demo?
+\layout Standard
+
+
+\series bold 
+Limitations:
+\series default 
+ It is important to note that these demos are limited to fairly simple uses.
+ In particular, you can 
+\emph on 
+not
+\emph default 
+ put division marks in indented code (loops, if statements, function definitions
+, etc.) Supporting something like this would basically require tracking the
+ internal execution state of the Python interpreter, so only top-level divisions
+ are allowed.
+ If you want to be able to open an IPython instance at an arbitrary point
+ in a program, you can use IPython's embedding facilities, described in
+ detail in Sec\SpecialChar \@.
+\SpecialChar ~
+
+\begin_inset LatexCommand \ref{sec:embed}
+
+\end_inset 
+
+.
 \layout Section
 
 
