@@ -885,6 +885,36 @@ install
 
 Users installing against Fink's Python or a properly hand-built one should
  not have this problem.
+\layout Subsubsection*
+
+DarwinPorts
+\layout Standard
+
+I report here a message from an OSX user, who suggests an alternative means
+ of using IPython under this operating system with good results.
+ Please let me know of any updates that may be useful for this section.
+ His message is reproduced verbatim below:
+\layout Quote
+
+From: Markus Banfi 
+\family typewriter 
+<markus.banfi-AT-mospheira.net>
+\layout Quote
+
+As a MacOS X (10.4.2) user I prefer to install software using DawinPorts instead
+ of Fink.
+ I had no problems installing ipython with DarwinPorts.
+ It's just:
+\layout Quote
+
+
+\family typewriter 
+sudo port install py-ipython
+\layout Quote
+
+It automatically resolved all dependencies (python24, readline, py-readline).
+ So far I did not encounter any problems with the DarwinPorts port of ipython.
+ 
 \layout Subsection
 
 
