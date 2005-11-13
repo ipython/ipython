@@ -69,19 +69,18 @@ class NameSpace(object):
     on name and types"""
     def __init__(self,obj,namepattern="*",typepattern="all",ignorecase=True,
                  showhidden=True):
-       self.showhidden=showhidden #Hide names beginning with single _
-       self.object=obj
-       self.namepattern=namepattern
-       self.typepattern=typepattern
-       self.ignorecase=ignorecase
-       if type(obj)==type(dict()):
-           self._ns=obj
+       self.showhidden = showhidden #Hide names beginning with single _
+       self.object = obj
+       self.namepattern = namepattern
+       self.typepattern = typepattern
+       self.ignorecase = ignorecase
+       
+       # We should only match EXACT dicts here, so DON'T use isinstance()
+       if type(obj) == types.DictType:
+           self._ns = obj
        else:
-           try:
-               self._ns=self.object.__dict__
-           except exceptions.AttributeError:
-               self._ns=dict([(key,getattr(self.object,key)) 
-                              for key in dir(self.object)])
+           self._ns = dict([(key,getattr(obj,key)) for key in dir(obj)
+                            if isinstance(key, basestring)])
                
     def get_ns(self):
         """Return name space dictionary with objects matching type and name patterns."""

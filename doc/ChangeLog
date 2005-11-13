@@ -1,3 +1,9 @@
+2005-11-13    <Fernando.Perez@colorado.edu>
+
+	* IPython/wildcard.py (NameSpace.__init__): fix resolution of
+	attributes in wildcard searches for subclasses.  Modified version
+	of a patch by Jorgen.
+
 2005-11-12    <Fernando.Perez@colorado.edu>
 
 	* IPython/iplib.py (embed_mainloop): Fix handling of globals for
