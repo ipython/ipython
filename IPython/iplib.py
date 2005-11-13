@@ -6,7 +6,7 @@ Requires Python 2.1 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 908 2005-09-26 16:05:48Z fperez $
+$Id: iplib.py 921 2005-11-13 06:51:34Z fperez $
 """
 
 #*****************************************************************************
@@ -49,6 +49,7 @@ import UserList # don't subclass list so this works with Python2.1
 from pprint import pprint, pformat
 import cPickle as pickle
 import traceback
+from codeop import CommandCompiler
 
 # IPython's own modules
 import IPython
@@ -506,7 +507,7 @@ class InteractiveShell(code.InteractiveConsole, Logger, Magic):
     """An enhanced console for Python."""
 
     def __init__(self,name,usage=None,rc=Struct(opts=None,args=None),
-                 user_ns = None,banner2='',
+                 user_ns = None,user_global_ns=None,banner2='',
                  custom_exceptions=((),None)):
 
         # Put a reference to self in builtins so that any form of embedded or
@@ -531,7 +532,21 @@ class InteractiveShell(code.InteractiveConsole, Logger, Magic):
         __builtin__.exit += _exit
         __builtin__.quit += _exit
 
-        # Create the namespace where the user will operate:
+        # compiler command
+        self.compile = CommandCompiler()
+
+        # User input buffer
+        self.buffer = []
+
+        # Default name given in compilation of code
+        self.filename = '<ipython console>'
+
+        # Create the namespace where the user will operate.  user_ns is
+        # normally the only one used, and it is passed to the exec calls as
+        # the locals argument.  But we do carry a user_global_ns namespace
+        # given as the exec 'globals' argument,  This is useful in embedding
+        # situations where the ipython shell opens in a context where the
+        # distinction between locals and globals is meaningful.
 
         # FIXME. For some strange reason, __builtins__ is showing up at user
         # level as a dict instead of a module. This is a manual fix, but I
@@ -562,11 +577,16 @@ class InteractiveShell(code.InteractiveConsole, Logger, Magic):
         if user_ns is None:
             # Set __name__ to __main__ to better match the behavior of the
             # normal interpreter.
-            self.user_ns = {'__name__'     :'__main__',
-                            '__builtins__' : __builtin__,
-                            }
-        else:
-            self.user_ns = user_ns
+            user_ns = {'__name__'     :'__main__',
+                       '__builtins__' : __builtin__,
+                       }
+            
+        if user_global_ns is None:
+            user_global_ns = {}
+
+        # assign namespaces
+        self.user_ns = user_ns
+        self.user_global_ns = user_global_ns
 
         # The user namespace MUST have a pointer to the shell itself.
         self.user_ns[name] = self
@@ -611,8 +631,7 @@ class InteractiveShell(code.InteractiveConsole, Logger, Magic):
             no_alias[key] = 1
         no_alias.update(__builtin__.__dict__)
         self.no_alias = no_alias
-        
-        
+                
         # make global variables for user access to these
         self.user_ns['_ih'] = self.input_hist
         self.user_ns['_oh'] = self.output_hist
@@ -654,7 +673,6 @@ class InteractiveShell(code.InteractiveConsole, Logger, Magic):
                              }
 
         # class initializations
-        code.InteractiveConsole.__init__(self,locals = self.user_ns)
         Logger.__init__(self,log_ns = self.user_ns)
         Magic.__init__(self,self)
 
@@ -1303,18 +1321,12 @@ want to merge them back into the new files.""" % locals()
         if len(self.inputcache) >= self.CACHELENGTH:
             self.inputcache.pop()    # This not :-)
 
-    def name_space_init(self):
-        """Create local namespace."""
-        # We want this to be a method to facilitate embedded initialization.
-        code.InteractiveConsole.__init__(self,self.user_ns)
-
     def mainloop(self,banner=None):
         """Creates the local namespace and starts the mainloop.
 
         If an optional banner argument is given, it will override the
         internally created default banner."""
         
-        self.name_space_init()
         if self.rc.c:  # Emulate Python's -c option
             self.exec_init_cmd()
         if banner is None:
@@ -1355,12 +1367,6 @@ want to merge them back into the new files.""" % locals()
         globals get overwritten). In the future this will be cleaned up, as
         there is no fundamental reason why it can't work perfectly."""
 
-        # Patch for global embedding to make sure that things don't overwrite
-        # user globals accidentally. Thanks to Richard <rxe@renre-europe.com>
-        # FIXME. Test this a bit more carefully (the if.. is new)
-        if local_ns is None and global_ns is None:
-            self.user_ns.update(__main__.__dict__)
-
         # Get locals and globals from caller
         if local_ns is None or global_ns is None:
             call_frame = sys._getframe(stack_depth).f_back
@@ -1371,12 +1377,16 @@ want to merge them back into the new files.""" % locals()
                 global_ns = call_frame.f_globals
 
         # Update namespaces and fire up interpreter
-        self.user_ns.update(local_ns)
-        self.interact(header)
+        self.user_ns = local_ns
+        self.user_global_ns = global_ns
 
-        # Remove locals from namespace
-        for k in local_ns:
-            del self.user_ns[k]
+        # Patch for global embedding to make sure that things don't overwrite
+        # user globals accidentally. Thanks to Richard <rxe@renre-europe.com>
+        # FIXME. Test this a bit more carefully (the if.. is new)
+        if local_ns is None and global_ns is None:
+            self.user_global_ns.update(__main__.__dict__)
+
+        self.interact(header)
 
     def interact(self, banner=None):
         """Closely emulate the interactive Python console.
@@ -1619,7 +1629,7 @@ want to merge them back into the new files.""" % locals()
         outflag = 1  # happens in more places, so it's easier as default
         try:
             try:
-                exec code_obj in self.locals
+                exec code_obj in self.user_global_ns, self.user_ns
             finally:
                 # Reset our crash handler in place
                 sys.excepthook = old_excepthook

@@ -1,3 +1,16 @@
+2005-11-12    <Fernando.Perez@colorado.edu>
+
+	* IPython/iplib.py (embed_mainloop): Fix handling of globals for
+	embedded instances.  I added a user_global_ns attribute to the
+	InteractiveShell class to handle this.
+
+2005-10-31  Fernando Perez  <Fernando.Perez@colorado.edu>
+
+	* IPython/Shell.py (IPShellGTK.mainloop): Change timeout_add to
+	idle_add, which fixes horrible keyboard lag problems under gtk 2.6
+	(reported under win32, but may happen also in other platforms).
+	Bug report and fix courtesy of Sean Moore <smm-AT-logic.bm>
+
 2005-10-15  Fernando Perez  <Fernando.Perez@colorado.edu>
 
 	* IPython/Magic.py (magic_psearch): new support for wildcard

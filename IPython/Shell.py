@@ -4,7 +4,7 @@
 All the matplotlib support code was co-developed with John Hunter,
 matplotlib's author.
 
-$Id: Shell.py 882 2005-09-20 23:17:41Z fperez $"""
+$Id: Shell.py 921 2005-11-13 06:51:34Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2004 Fernando Perez <fperez@colorado.edu>
@@ -132,7 +132,6 @@ class IPShellEmbed:
         #self.IP = make_IPython(argv,user_ns=__main__.__dict__)
         self.IP = make_IPython(argv,rc_override=rc_override,embedded=True)
 
-        self.IP.name_space_init()
         # mark this as an embedded instance so we know if we get a crash
         # post-mortem
         self.IP.rc.embedded = 1
@@ -613,9 +612,9 @@ class IPShellGTK(threading.Thread):
 
         if self.gtk.pygtk_version >= (2,4,0):
             import gobject
-            gobject.timeout_add(self.TIMEOUT, self.on_timer)
+            gobject.idle_add(self.on_timer)
         else:
-            self.gtk.timeout_add(self.TIMEOUT, self.on_timer)
+            self.gtk.idle_add(self.on_timer)
 
         if sys.platform != 'win32':
             try:
