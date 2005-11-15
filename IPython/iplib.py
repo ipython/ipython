@@ -6,7 +6,7 @@ Requires Python 2.1 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 923 2005-11-15 08:51:15Z fperez $
+$Id: iplib.py 924 2005-11-15 20:24:31Z fperez $
 """
 
 #*****************************************************************************
@@ -976,20 +976,26 @@ class InteractiveShell(code.InteractiveConsole, Logger, Magic):
         This is called after the configuration files have been processed to
         'finalize' the initialization."""
 
+        rc = self.rc
+        
         # Load readline proper
-        if self.rc.readline:
+        if rc.readline:
             self.init_readline()
 
         # Set user colors (don't do it in the constructor above so that it doesn't
         # crash if colors option is invalid)
-        self.magic_colors(self.rc.colors)
+        self.magic_colors(rc.colors)
+
+        # Load user aliases
+        for alias in rc.alias:
+            self.magic_alias(alias)
 
         # dynamic data that survives through sessions
         # XXX make the filename a config option?
         persist_base = 'persist'
-        if self.rc.profile:
-            persist_base += '_%s' % self.rc.profile
-        self.persist_fname =  os.path.join(self.rc.ipythondir,persist_base)
+        if rc.profile:
+            persist_base += '_%s' % rc.profile
+        self.persist_fname =  os.path.join(rc.ipythondir,persist_base)
 
         try:
             self.persist = pickle.load(file(self.persist_fname))

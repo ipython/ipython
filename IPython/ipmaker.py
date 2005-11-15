@@ -6,7 +6,7 @@ Requires Python 2.1 or better.
 
 This file contains the main make_IPython() starter function.
 
-$Id: ipmaker.py 923 2005-11-15 08:51:15Z fperez $"""
+$Id: ipmaker.py 924 2005-11-15 20:24:31Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2004 Fernando Perez. <fperez@colorado.edu>
@@ -591,10 +591,6 @@ object? -> Details about 'object'. ?object also works, ?? prints more.
             warn(itpl('File $file not found. Skipping it.'))
         else:
             IP.safe_execfile(os.path.expanduser(file),IP.user_ns)
-
-    # Load user aliases
-    for alias in IP_rc.alias:
-        IP.magic_alias(alias)
 
     # release stdout and stderr and save config log into a global summary
     msg.config.release_all()

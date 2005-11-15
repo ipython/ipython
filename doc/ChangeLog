@@ -1,3 +1,9 @@
+2005-11-15  Fernando Perez  <Fernando.Perez@colorado.edu>
+
+	* IPython/iplib.py (InteractiveShell.post_config_initialization):
+	Fix bug where a naked 'alias' call in the ipythonrc file would
+	cause a crash.  Bug reported by Jorgen Stenarson.
+
 2005-11-15    <Fernando.Perez@colorado.edu>
 
 	* IPython/ipmaker.py (make_IPython): cleanups which should improve
