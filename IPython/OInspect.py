@@ -6,7 +6,7 @@ Uses syntax highlighting for presenting the various information elements.
 Similar in spirit to the inspect module, but all calls take a name argument to
 reference the name under which an object is being read.
 
-$Id: OInspect.py 922 2005-11-13 10:21:08Z fperez $
+$Id: OInspect.py 923 2005-11-15 08:51:15Z fperez $
 """
 
 #*****************************************************************************
@@ -23,13 +23,14 @@ __license__ = Release.license
 __all__ = ['Inspector','InspectColors']
 
 # stdlib modules
+import __builtin__
 import inspect,linecache,types,StringIO,string
 
 # IPython's own
 from IPython import PyColorize
 from IPython.Itpl import itpl
-from IPython.wildcard import choose_namespaces,list_namespace
-from IPython.genutils import page,indent,Term
+from IPython.wildcard import list_namespace
+from IPython.genutils import page,indent,Term,mkdict
 from IPython.ColorANSI import *
 
 #****************************************************************************
@@ -398,44 +399,56 @@ class Inspector:
             page(output)
         # end pinfo
 
-    def psearch(self,oname='',formatter=None,shell=None):
+    def psearch(self,pattern,ns_table,ns_search=[],
+                ignore_case=False,show_all=False):
         """Search namespaces with wildcards for objects.
+
+        Arguments:
+
+        - pattern: string containing shell-like wildcards to use in namespace
+        searches and optionally a type specification to narrow the search to
+        objects of that type.
+
+        - ns_table: dict of name->namespaces for search.
 
         Optional arguments:
         
-          - oname: rest of the commandline containging pattern and options.
+          - ns_search: list of namespace names to include in search.
 
-          - formatter:  Not used.
+          - ignore_case(False): make the search case-insensitive.
 
-          - shell: The shell object from the Magic class.  Needed to access
-          the namespaces.
+          - show_all(False): show all names, including those starting with
+          underscores.
         """
-        option_list = ['-c','-a']
-        cmds = oname.split()
-        filter = ''
+        # defaults
         type_pattern = 'all'
-        options = [x for x in cmds if x in option_list]
-        ignorecase = '-c' not in options
-        showhidden = '-a' in options
-        ns_cmds = [x for x in cmds if x[0] in '-+' and x not in option_list]
-        cmds = [x for x in cmds if x[0] not in '-+']
+        filter = ''
+
+        cmds = pattern.split()
         len_cmds  =  len(cmds)
         if len_cmds == 1:
-            filter = cmds[0].strip()
+            # Only filter pattern given
+            filter = cmds[0]
         elif len_cmds == 2:
+            # Both filter and type specified
             filter,type_pattern = cmds
-        elif len_cmds>2:
-            # assume we want to choose name spaces. Rather poor design forces
-            #the use of a typepattern in order to choose name spaces
-            cmds = cmds[:2]
+        else:
+            raise ValueError('invalid argument string for psearch: <%s>' %
+                             pattern)
 
-        do_list = choose_namespaces(shell,ns_cmds)
+        # filter search namespaces
+        for name in ns_search:
+            if name not in ns_table:
+                raise ValueError('invalid namespace <%s>. Valid names: %s' %
+                                 (name,ns_table.keys()))
 
+        #print 'type_pattern:',type_pattern # dbg
         search_result = []
-        for ns in do_list:
+        for ns_name in ns_search:
+            ns = ns_table[ns_name]
             tmp_res = list(list_namespace(ns,type_pattern,filter,
-                                          ignorecase=ignorecase,
-                                          showhidden=showhidden))
+                                          ignore_case=ignore_case,
+                                          show_all=show_all))
             search_result.extend(tmp_res)
         search_result.sort()
 

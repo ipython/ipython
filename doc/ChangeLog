@@ -1,3 +1,18 @@
+2005-11-15    <Fernando.Perez@colorado.edu>
+
+	* IPython/ipmaker.py (make_IPython): cleanups which should improve
+	startup time.
+
+	* IPython/iplib.py (runcode): my globals 'fix' for embedded
+	instances had introduced a bug with globals in normal code.  Now
+	it's working in all cases.
+
+	* IPython/Magic.py (magic_psearch): Finish wildcard cleanup and
+	API changes.  A new ipytonrc option, 'wildcards_case_sensitive'
+	has been introduced to set the default case sensitivity of the
+	searches.  Users can still select either mode at runtime on a
+	per-search basis.
+
 2005-11-13    <Fernando.Perez@colorado.edu>
 
 	* IPython/wildcard.py (NameSpace.__init__): fix resolution of

@@ -6,7 +6,7 @@ Requires Python 2.1 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 921 2005-11-13 06:51:34Z fperez $
+$Id: iplib.py 923 2005-11-15 08:51:15Z fperez $
 """
 
 #*****************************************************************************
@@ -508,7 +508,7 @@ class InteractiveShell(code.InteractiveConsole, Logger, Magic):
 
     def __init__(self,name,usage=None,rc=Struct(opts=None,args=None),
                  user_ns = None,user_global_ns=None,banner2='',
-                 custom_exceptions=((),None)):
+                 custom_exceptions=((),None),embedded=False):
 
         # Put a reference to self in builtins so that any form of embedded or
         # imported code can test for being inside IPython.
@@ -531,6 +531,10 @@ class InteractiveShell(code.InteractiveConsole, Logger, Magic):
         _exit = ' Use %Exit or %Quit to exit without confirmation.'
         __builtin__.exit += _exit
         __builtin__.quit += _exit
+
+        # We need to know whether the instance is meant for embedding, since
+        # global/local namespaces need to be handled differently in that case
+        self.embedded = embedded
 
         # compiler command
         self.compile = CommandCompiler()
@@ -584,9 +588,29 @@ class InteractiveShell(code.InteractiveConsole, Logger, Magic):
         if user_global_ns is None:
             user_global_ns = {}
 
-        # assign namespaces
+        # Assign namespaces
+        # This is the namespace where all normal user variables live
         self.user_ns = user_ns
+        # Embedded instances require a separate namespace for globals.
+        # Normally this one is unused by non-embedded instances.
         self.user_global_ns = user_global_ns
+        # A namespace to keep track of internal data structures to prevent
+        # them from cluttering user-visible stuff.  Will be updated later
+        self.internal_ns = {}
+
+        # Namespace of system aliases.  Each entry in the alias
+        # table must be a 2-tuple of the form (N,name), where N is the number
+        # of positional arguments of the alias.
+        self.alias_table = {}
+
+        # A table holding all the namespaces IPython deals with, so that
+        # introspection facilities can search easily.
+        self.ns_table = {'user':user_ns,
+                         'user_global':user_global_ns,
+                         'alias':self.alias_table,
+                         'internal':self.internal_ns,
+                         'builtin':__builtin__.__dict__
+                         }
 
         # The user namespace MUST have a pointer to the shell itself.
         self.user_ns[name] = self
@@ -618,11 +642,6 @@ class InteractiveShell(code.InteractiveConsole, Logger, Magic):
 
         # dict of output history
         self.output_hist = {}
-
-        # dict of names to be treated as system aliases.  Each entry in the
-        # alias table must be a 2-tuple of the form (N,name), where N is the
-        # number of positional arguments of the alias.
-        self.alias_table = {}
 
         # dict of things NOT to alias (keywords, builtins and some special magics)
         no_alias = {}
@@ -956,7 +975,15 @@ class InteractiveShell(code.InteractiveConsole, Logger, Magic):
 
         This is called after the configuration files have been processed to
         'finalize' the initialization."""
-        
+
+        # Load readline proper
+        if self.rc.readline:
+            self.init_readline()
+
+        # Set user colors (don't do it in the constructor above so that it doesn't
+        # crash if colors option is invalid)
+        self.magic_colors(self.rc.colors)
+
         # dynamic data that survives through sessions
         # XXX make the filename a config option?
         persist_base = 'persist'
@@ -1629,7 +1656,16 @@ want to merge them back into the new files.""" % locals()
         outflag = 1  # happens in more places, so it's easier as default
         try:
             try:
-                exec code_obj in self.user_global_ns, self.user_ns
+                # Embedded instances require separate global/local namespaces
+                # so they can see both the surrounding (local) namespace and
+                # the module-level globals when called inside another function.
+                if self.embedded:
+                    exec code_obj in self.user_global_ns, self.user_ns
+                # Normal (non-embedded) instances should only have a single
+                # namespace for user code execution, otherwise functions won't
+                # see interactive top-level globals.
+                else:
+                    exec code_obj in self.user_ns
             finally:
                 # Reset our crash handler in place
                 sys.excepthook = old_excepthook

@@ -1,5 +1,5 @@
 # -*- Mode: Shell-Script -*-  Not really, but shows comments correctly
-# $Id: ipythonrc 633 2005-07-17 01:03:15Z tzanko $
+# $Id: ipythonrc 923 2005-11-15 08:51:15Z fperez $
 
 #***************************************************************************
 #
@@ -261,6 +261,14 @@ separate_out2 0
 # 'nosep 1' is a shorthand for '-SeparateIn 0 -SeparateOut 0 -SeparateOut2 0'.
 # Simply removes all input/output separators, overriding the choices above.
 nosep 0
+
+# Wildcard searches - IPython has a system for searching names using
+# shell-like wildcards; type %psearch? for details.  This variables sets
+# whether by default such searches should be case sensitive or not.  You can
+# always override the default at the system command line or the IPython
+# prompt.
+
+wildcards_case_sensitive 1
 
 # xmode - Exception reporting mode. 
 

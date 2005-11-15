@@ -6,7 +6,7 @@ Requires Python 2.1 or better.
 
 This file contains the main make_IPython() starter function.
 
-$Id: ipmaker.py 911 2005-10-08 07:59:40Z fperez $"""
+$Id: ipmaker.py 923 2005-11-15 08:51:15Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2004 Fernando Perez. <fperez@colorado.edu>
@@ -82,7 +82,7 @@ def make_IPython(argv=None,user_ns=None,debug=1,rc_override=None,
     # __IP.name. We set its name via the first parameter passed to
     # InteractiveShell:
 
-    IP = shell_class('__IP',user_ns=user_ns,**kw)
+    IP = shell_class('__IP',user_ns=user_ns,embedded=embedded,**kw)
 
     # Put 'help' in the user namespace
     from site import _Helper
@@ -155,7 +155,7 @@ object? -> Details about 'object'. ?object also works, ?? prints more.
                     'readline! readline_merge_completions! '
                     'readline_omit__names! '
                     'rcfile=s separate_in|si=s separate_out|so=s '
-                    'separate_out2|so2=s xmode=s '
+                    'separate_out2|so2=s xmode=s wildcards_case_sensitive! '
                     'magic_docstrings system_verbose! '
                     'multi_line_specials!')
 
@@ -218,6 +218,7 @@ object? -> Details about 'object'. ?object also works, ?? prints more.
                       upgrade = 0,
                       Version = 0,
                       xmode = 'Verbose',
+                      wildcards_case_sensitive = 1,
                       magic_docstrings = 0,  # undocumented, for doc generation
                       )
     
@@ -281,7 +282,7 @@ object? -> Details about 'object'. ?object also works, ?? prints more.
     except:
         print cmd_line_usage
         warn('\nError in Arguments: ' + `sys.exc_value`)
-        sys.exit()
+        sys.exit(1)
 
     # convert the options dict to a struct for much lighter syntax later
     opts = Struct(getopt.optionValues)
@@ -445,73 +446,72 @@ object? -> Details about 'object'. ?object also works, ?? prints more.
     # Execute user config
 
     # first, create a valid config structure with the right precedence order:
-    # defaults < rcfile < command line
-    IP.rc = rc_def.copy()
-    IP.rc.update(opts_def)
+    # defaults < rcfile < command line.  We make it as a local (IP_rc) to
+    # avoid a zillion attribute accesses.  Right before returning, this will
+    # be set as IP.rc.
+    IP_rc = rc_def.copy()
+    IP_rc.update(opts_def)
     if rcfiledata:
         # now we can update 
-        IP.rc.update(rcfiledata)
-    IP.rc.update(opts)
-    IP.rc.update(rc_override)
+        IP_rc.update(rcfiledata)
+    IP_rc.update(opts)
+    IP_rc.update(rc_override)
 
     # Store the original cmd line for reference:
-    IP.rc.opts = opts
-    IP.rc.args = args
+    IP_rc.opts = opts
+    IP_rc.args = args
 
     # create a *runtime* Struct like rc for holding parameters which may be
     # created and/or modified by runtime user extensions.
     IP.runtime_rc = Struct()
 
-    # from this point on, all config should be handled through IP.rc,
+    # from this point on, all config should be handled through IP_rc,
     # opts* shouldn't be used anymore.
 
     # add personal .ipython dir to sys.path so that users can put things in
     # there for customization
-    sys.path.append(IP.rc.ipythondir)
+    sys.path.append(IP_rc.ipythondir)
     sys.path.insert(0, '') # add . to sys.path. Fix from Prabhu Ramachandran
     
-    # update IP.rc with some special things that need manual
+    # update IP_rc with some special things that need manual
     # tweaks. Basically options which affect other options. I guess this
     # should just be written so that options are fully orthogonal and we
     # wouldn't worry about this stuff!
 
-    if IP.rc.classic:
-        IP.rc.quick = 1
-        IP.rc.cache_size = 0
-        IP.rc.pprint = 0
-        IP.rc.prompt_in1 = '>>> '
-        IP.rc.prompt_in2 = '... '
-        IP.rc.prompt_out = ''
-        IP.rc.separate_in = IP.rc.separate_out = IP.rc.separate_out2 = '0'
-        IP.rc.colors = 'NoColor'
-        IP.rc.xmode = 'Plain'
+    if IP_rc.classic:
+        IP_rc.quick = 1
+        IP_rc.cache_size = 0
+        IP_rc.pprint = 0
+        IP_rc.prompt_in1 = '>>> '
+        IP_rc.prompt_in2 = '... '
+        IP_rc.prompt_out = ''
+        IP_rc.separate_in = IP_rc.separate_out = IP_rc.separate_out2 = '0'
+        IP_rc.colors = 'NoColor'
+        IP_rc.xmode = 'Plain'
 
     # configure readline
     # Define the history file for saving commands in between sessions
-    if IP.rc.profile:
-        histfname = 'history-%s' % IP.rc.profile
+    if IP_rc.profile:
+        histfname = 'history-%s' % IP_rc.profile
     else:
         histfname = 'history'
     IP.histfile = os.path.join(opts_all.ipythondir,histfname)
-    # Load readline proper
-    if IP.rc.readline:
-        IP.init_readline()
 
     # update exception handlers with rc file status
     otrap.trap_out()  # I don't want these messages ever.
-    IP.magic_xmode(IP.rc.xmode)
+    IP.magic_xmode(IP_rc.xmode)
     otrap.release_out()
 
     # activate logging if requested and not reloading a log
-    if IP.rc.logplay:
-        IP.magic_logstart(IP.rc.logplay + ' append')
-    elif  IP.rc.logfile:
-        IP.magic_logstart(IP.rc.logfile)
-    elif IP.rc.log:
+    if IP_rc.logplay:
+        IP.magic_logstart(IP_rc.logplay + ' append')
+    elif  IP_rc.logfile:
+        IP.magic_logstart(IP_rc.logfile)
+    elif IP_rc.log:
         IP.magic_logstart()
 
     # find user editor so that it we don't have to look it up constantly
-    if IP.rc.editor.strip()=='0':
+    if IP_rc.editor.strip()=='0':
         try:
             ed = os.environ['EDITOR']
         except KeyError:
@@ -519,12 +519,16 @@ object? -> Details about 'object'. ?object also works, ?? prints more.
                 ed = 'vi'  # the only one guaranteed to be there!
             else:
                 ed = 'notepad' # same in Windows!
-        IP.rc.editor = ed
+        IP_rc.editor = ed
+
+    # Keep track of whether this is an embedded instance or not (useful for
+    # post-mortems).
+    IP_rc.embedded = IP.embedded
 
     # Recursive reload
     try:
         from IPython import deep_reload
-        if IP.rc.deep_reload:
+        if IP_rc.deep_reload:
             __builtin__.reload = deep_reload.reload
         else:
             __builtin__.dreload = deep_reload.reload
@@ -538,25 +542,25 @@ object? -> Details about 'object'. ?object also works, ?? prints more.
     # defining things on the command line, and %who works as expected.
 
     # DON'T do anything that affects the namespace beyond this point!
-    IP.internal_ns = __main__.__dict__.copy()
+    IP.internal_ns.update(__main__.__dict__)
 
     #IP.internal_ns.update(locals()) # so our stuff doesn't show up in %who
 
     # Now run through the different sections of the users's config
-    if IP.rc.debug:
+    if IP_rc.debug:
         print 'Trying to execute the following configuration structure:'
         print '(Things listed first are deeper in the inclusion tree and get'
         print 'loaded first).\n'
-        pprint(IP.rc.__dict__)
+        pprint(IP_rc.__dict__)
         
-    for mod in IP.rc.import_mod:
+    for mod in IP_rc.import_mod:
         try:
             exec 'import '+mod in IP.user_ns
         except :
             IP.InteractiveTB()
             import_fail_info(mod)
 
-    for mod_fn in IP.rc.import_some:
+    for mod_fn in IP_rc.import_some:
         if mod_fn == []: break
         mod,fn = mod_fn[0],','.join(mod_fn[1:])
         try:
@@ -565,14 +569,14 @@ object? -> Details about 'object'. ?object also works, ?? prints more.
             IP.InteractiveTB()
             import_fail_info(mod,fn)
 
-    for mod in IP.rc.import_all:
+    for mod in IP_rc.import_all:
         try:
             exec 'from '+mod+' import *' in IP.user_ns
         except :
             IP.InteractiveTB()
             import_fail_info(mod)
 
-    for code in IP.rc.execute:
+    for code in IP_rc.execute:
         try:
             exec code in IP.user_ns
         except:
@@ -580,7 +584,7 @@ object? -> Details about 'object'. ?object also works, ?? prints more.
             warn('Failure executing code: ' + `code`)
 
     # Execute the files the user wants in ipythonrc
-    for file in IP.rc.execfile:
+    for file in IP_rc.execfile:
         try:
             file = filefind(file,sys.path+[IPython_dir])
         except IOError:
@@ -589,12 +593,12 @@ object? -> Details about 'object'. ?object also works, ?? prints more.
             IP.safe_execfile(os.path.expanduser(file),IP.user_ns)
 
     # Load user aliases
-    for alias in IP.rc.alias:
+    for alias in IP_rc.alias:
         IP.magic_alias(alias)
 
     # release stdout and stderr and save config log into a global summary
     msg.config.release_all()
-    if IP.rc.messages:
+    if IP_rc.messages:
         msg.summary += msg.config.summary_all()
 
     #------------------------------------------------------------------------
@@ -612,7 +616,7 @@ object? -> Details about 'object'. ?object also works, ?? prints more.
     if load_logplay:
         print 'Replaying log...'
         try:
-            if IP.rc.debug:
+            if IP_rc.debug:
                 logplay_quiet = 0
             else:
                  logplay_quiet = 1
@@ -621,7 +625,7 @@ object? -> Details about 'object'. ?object also works, ?? prints more.
             IP.safe_execfile(load_logplay,IP.user_ns,
                              islog = 1, quiet = logplay_quiet)
             msg.logplay.release_all()
-            if IP.rc.messages:
+            if IP_rc.messages:
                 msg.summary += msg.logplay.summary_all()
         except:
             warn('Problems replaying logfile %s.' % load_logplay)
@@ -639,7 +643,7 @@ object? -> Details about 'object'. ?object also works, ?? prints more.
     # ipython prompt.  This would also give them the benefit of ipython's
     # nice tracebacks.
     
-    if not embedded and IP.rc.args:
+    if not embedded and IP_rc.args:
         name_save = IP.user_ns['__name__']
         IP.user_ns['__name__'] = '__main__'
         try:
@@ -655,40 +659,36 @@ object? -> Details about 'object'. ?object also works, ?? prints more.
         IP.user_ns['__name__'] = name_save
         
     msg.user_exec.release_all()
-    if IP.rc.messages:
+    if IP_rc.messages:
         msg.summary += msg.user_exec.summary_all()
 
     # since we can't specify a null string on the cmd line, 0 is the equivalent:
-    if IP.rc.nosep:
-        IP.rc.separate_in = IP.rc.separate_out = IP.rc.separate_out2 = '0'
-    if IP.rc.separate_in == '0': IP.rc.separate_in = ''
-    if IP.rc.separate_out == '0': IP.rc.separate_out = ''
-    if IP.rc.separate_out2 == '0': IP.rc.separate_out2 = ''
-    IP.rc.separate_in = IP.rc.separate_in.replace('\\n','\n')
-    IP.rc.separate_out = IP.rc.separate_out.replace('\\n','\n')
-    IP.rc.separate_out2 = IP.rc.separate_out2.replace('\\n','\n')
+    if IP_rc.nosep:
+        IP_rc.separate_in = IP_rc.separate_out = IP_rc.separate_out2 = '0'
+    if IP_rc.separate_in == '0': IP_rc.separate_in = ''
+    if IP_rc.separate_out == '0': IP_rc.separate_out = ''
+    if IP_rc.separate_out2 == '0': IP_rc.separate_out2 = ''
+    IP_rc.separate_in = IP_rc.separate_in.replace('\\n','\n')
+    IP_rc.separate_out = IP_rc.separate_out.replace('\\n','\n')
+    IP_rc.separate_out2 = IP_rc.separate_out2.replace('\\n','\n')
 
     # Determine how many lines at the bottom of the screen are needed for
     # showing prompts, so we can know wheter long strings are to be printed or
     # paged:
-    num_lines_bot = IP.rc.separate_in.count('\n')+1
-    IP.rc.screen_length = IP.rc.screen_length - num_lines_bot
+    num_lines_bot = IP_rc.separate_in.count('\n')+1
+    IP_rc.screen_length = IP_rc.screen_length - num_lines_bot
     # Initialize cache, set in/out prompts and printing system
-    IP.outputcache = CachedOutput(IP.rc.cache_size,
-                                  IP.rc.pprint,
-                                  input_sep = IP.rc.separate_in,
-                                  output_sep = IP.rc.separate_out,
-                                  output_sep2 = IP.rc.separate_out2,
-                                  ps1 = IP.rc.prompt_in1,
-                                  ps2 = IP.rc.prompt_in2,
-                                  ps_out = IP.rc.prompt_out,
+    IP.outputcache = CachedOutput(IP_rc.cache_size,
+                                  IP_rc.pprint,
+                                  input_sep = IP_rc.separate_in,
+                                  output_sep = IP_rc.separate_out,
+                                  output_sep2 = IP_rc.separate_out2,
+                                  ps1 = IP_rc.prompt_in1,
+                                  ps2 = IP_rc.prompt_in2,
+                                  ps_out = IP_rc.prompt_out,
                                   user_ns = IP.user_ns,
                                   input_hist = IP.input_hist,
-                                  pad_left = IP.rc.prompts_pad_left)
-
-    # Set user colors (don't do it in the constructor above so that it doesn't
-    # crash if colors option is invalid)
-    IP.magic_colors(IP.rc.colors)
+                                  pad_left = IP_rc.prompts_pad_left)
     
     # user may have over-ridden the default print hook:
     try:
@@ -697,7 +697,7 @@ object? -> Details about 'object'. ?object also works, ?? prints more.
         pass
 
     # Set calling of pdb on exceptions
-    IP.InteractiveTB.call_pdb = IP.rc.pdb
+    IP.InteractiveTB.call_pdb = IP_rc.pdb
     
     # I don't like assigning globally to sys, because it means when embedding
     # instances, each embedded instance overrides the previous choice. But
@@ -709,18 +709,25 @@ object? -> Details about 'object'. ?object also works, ?? prints more.
     IP.do_full_cache = IP.outputcache.do_full_cache
     
     # configure startup banner
-    if IP.rc.c:  # regular python doesn't print the banner with -c
-        IP.rc.banner = 0
-    if IP.rc.banner:
-        IP.BANNER = '\n'.join(IP.BANNER_PARTS)
+    if IP_rc.c:  # regular python doesn't print the banner with -c
+        IP_rc.banner = 0
+    if IP_rc.banner:
+        BANN_P = IP.BANNER_PARTS
     else:
-        IP.BANNER = ''
+        BANN_P = []
 
-    if IP.rc.profile: IP.BANNER += '\nIPython profile: '+IP.rc.profile+'\n'
+    if IP_rc.profile: BANN_P.append('IPython profile: %s\n' % IP_rc.profile)
 
     # add message log (possibly empty)
-    IP.BANNER += msg.summary
+    if msg.summary: BANN_P.append(msg.summary)
+    # Final banner is a string
+    IP.BANNER = '\n'.join(BANN_P)
 
+    # Assign the IP_rc object as an attribute of IP
+    IP.rc = IP_rc
+
+    # Finalize the IPython instance.  This assumes the rc structure is fully
+    # in place.
     IP.post_config_initialization()
 
     return IP

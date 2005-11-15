@@ -4,7 +4,7 @@
 All the matplotlib support code was co-developed with John Hunter,
 matplotlib's author.
 
-$Id: Shell.py 921 2005-11-13 06:51:34Z fperez $"""
+$Id: Shell.py 923 2005-11-15 08:51:15Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2004 Fernando Perez <fperez@colorado.edu>
@@ -132,9 +132,6 @@ class IPShellEmbed:
         #self.IP = make_IPython(argv,user_ns=__main__.__dict__)
         self.IP = make_IPython(argv,rc_override=rc_override,embedded=True)
 
-        # mark this as an embedded instance so we know if we get a crash
-        # post-mortem
-        self.IP.rc.embedded = 1
         # copy our own displayhook also
         self.sys_displayhook_embed = sys.displayhook
         # and leave the system's display hook clean

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Magic functions for InteractiveShell.
 
-$Id: Magic.py 922 2005-11-13 10:21:08Z fperez $"""
+$Id: Magic.py 923 2005-11-15 08:51:15Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001 Janko Hauser <jhauser@zscout.de> and
@@ -296,10 +296,9 @@ license. To use profiling, please install"python2.3-profiler" from non-free.""")
         Struct with the options as keys and the stripped argument string still
         as a string.
 
-        arg_str is quoted as a true sys.argv vector by calling on the fly a
-        python process in a subshell.  This allows us to easily expand
-        variables, glob files, quote arguments, etc, with all the power and
-        correctness of the underlying system shell.
+        arg_str is quoted as a true sys.argv vector by using shlex.split.
+        This allows us to easily expand variables, glob files, quote
+        arguments, etc.
 
         Options:
           -mode: default 'string'. If given as 'list', the argument string is
@@ -665,55 +664,109 @@ Currently the magic system has the following functions:\n"""
     def magic_psearch(self, parameter_s=''):
         """Search for object in namespaces by wildcard.
 
-        %psearch PATTERN [OBJECT TYPE] [-NAMESPACE]* [+NAMESPACE]* [-a] [-c]
+        %psearch [options] PATTERN [OBJECT TYPE]
 
         Note: ? can be used as a synonym for %psearch, at the beginning or at
-        the end: both a*? and ?a* are equivalent to '%psearch a*'.
-       
-        PATTERN
+        the end: both a*? and ?a* are equivalent to '%psearch a*'.  Still, the
+        rest of the command line must be unchanged (options come first), so
+        for example the following forms are equivalent
 
-        where PATTERN is a string containing * as a wildcard similar to its
-        use in a shell.  The pattern is matched in all namespaces on the
-        search path. By default objects starting with a single _ are not
-        matched, many IPython generated objects have a single underscore. The
-        default is case insensitive matching. Matching is also done on the
-        attributes of objects and not only on the objects in a module.
+        %psearch -i a* function
+        -i a* function?
+        ?-i a* function
 
-        [OBJECT TYPE]
-        Is the name of a python type from the types module. The name is given
-        in lowercase without the ending type, ex. StringType is written
-        string. By adding a type here only objects matching the given type are
-        matched. Using all here makes the pattern match all types (this is the
-        default).
+        Arguments:
+        
+          PATTERN
 
-        [-NAMESPACE]* [+NAMESPACE]* 
-        The possible namespaces are builtin, user, internal, alias. Where
-        builtin and user are default. Builtin contains the python module
-        builtin, user contains all imported namespaces, alias only contain the
-        shell aliases and no python objects, internal contains objects used by
-        IPython. The namespaces on the search path are removed by -namespace
-        and added by +namespace.
+          where PATTERN is a string containing * as a wildcard similar to its
+          use in a shell.  The pattern is matched in all namespaces on the
+          search path. By default objects starting with a single _ are not
+          matched, many IPython generated objects have a single
+          underscore. The default is case insensitive matching. Matching is
+          also done on the attributes of objects and not only on the objects
+          in a module.
 
-        [-a] makes the pattern match even objects with a single underscore.
-        [-c] makes the pattern case sensitive.
+          [OBJECT TYPE]
+
+          Is the name of a python type from the types module. The name is
+          given in lowercase without the ending type, ex. StringType is
+          written string. By adding a type here only objects matching the
+          given type are matched. Using all here makes the pattern match all
+          types (this is the default).
+
+        Options:
+
+          -a: makes the pattern match even objects whose names start with a
+          single underscore.  These names are normally ommitted from the
+          search.
+
+          -i/-c: make the pattern case insensitive/sensitive.  If neither of
+          these options is given, the default is read from your ipythonrc
+          file.  The option name which sets this value is
+          'wildcards_case_sensitive'.  If this option is not specified in your
+          ipythonrc file, IPython's internal default is to do a case sensitive
+          search.
+
+          -e/-s NAMESPACE: exclude/search a given namespace.  The pattern you
+          specifiy can be searched in any of the following namespaces:
+          'builtin', 'user', 'user_global','internal', 'alias', where
+          'builtin' and 'user' are the search defaults.  Note that you should
+          not use quotes when specifying namespaces.
+
+          'Builtin' contains the python module builtin, 'user' contains all
+          user data, 'alias' only contain the shell aliases and no python
+          objects, 'internal' contains objects used by IPython.  The
+          'user_global' namespace is only used by embedded IPython instances,
+          and it contains module-level globals.  You can add namespaces to the
+          search with -s or exclude them with -e (these options can be given
+          more than once).
     
         Examples:
        
-        %psearch a*            list objects beginning with an a
-        %psearch a* function   list all functions beginning with an a
-        %psearch re.e*         list objects beginning with an e in module re
-        %psearch r*.e*         list objects that starts with e in modules starting in r
-        %psearch r*.* string   list all strings in modules beginning with r 
+        %psearch a*            -> objects beginning with an a
+        %psearch -e builtin a* -> objects NOT in the builtin space starting in a
+        %psearch a* function   -> all functions beginning with an a
+        %psearch re.e*         -> objects beginning with an e in module re
+        %psearch r*.e*         -> objects that start with e in modules starting in r
+        %psearch r*.* string   -> all strings in modules beginning with r
 
         Case sensitve search:
        
-        %psearch a* -c         list all object beginning with lower case a
+        %psearch -c a*         list all object beginning with lower case a
 
         Show objects beginning with a single _:
        
-        %psearch _* -a         list objects beginning with underscore"""
+        %psearch -a _*         list objects beginning with a single underscore"""
+
+        # default namespaces to be searched
+        def_search = ['user','builtin']
+
+        # Process options/args
+        opts,args = self.parse_options(parameter_s,'cias:e:',list_all=True)
+        opt = opts.get
+        shell = self.shell
+        psearch = shell.inspector.psearch
         
-        self.shell.inspector.psearch(parameter_s,shell=self.shell)
+        # select case options
+        if opts.has_key('i'):
+            ignore_case = True
+        elif opts.has_key('c'):
+            ignore_case = False
+        else:
+            ignore_case = not shell.rc.wildcards_case_sensitive
+
+        # Build list of namespaces to search from user options
+        def_search.extend(opt('s',[]))
+        ns_exclude = ns_exclude=opt('e',[])
+        ns_search = [nm for nm in def_search if nm not in ns_exclude]
+        
+        # Call the actual search
+        try:
+            psearch(args,shell.ns_table,ns_search,
+                    show_all=opt('a'),ignore_case=ignore_case)
+        except:
+            shell.showtraceback()
 
     def magic_who_ls(self, parameter_s=''):
         """Return a sorted list of all interactive variables.
