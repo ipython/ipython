@@ -96,6 +96,9 @@ def file_doesnt_endwith(test,endings):
 
 # I can't find how to make distutils create a nested dir. structure, so
 # in the meantime do it manually. Butt ugly.
+# Note that http://www.redbrick.dcu.ie/~noel/distutils.html, ex. 2/3, contain
+# information on how to do this more cleanly once python 2.4 can be assumed.
+# Thanks to Noel for the tip.
 docdirbase  = 'share/doc/ipython-%s' % version
 manpagebase = 'share/man/man1'
 

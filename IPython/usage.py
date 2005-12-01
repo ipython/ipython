@@ -6,7 +6,7 @@
 #  the file COPYING, distributed as part of this software.
 #*****************************************************************************
 
-# $Id: usage.py 578 2005-05-13 21:16:51Z fperez $
+# $Id: usage.py 926 2005-12-01 18:14:21Z fperez $
 
 from IPython import Release
 __author__  = '%s <%s>' % Release.authors['Fernando']
@@ -128,8 +128,8 @@ REGULAR OPTIONS
        See the provided examples for assistance.  Options given on the comman-
        dline override the values set in the ipythonrc file.
 
-       All options with a no| prepended can be specified in ’no’ form  (-noop-
-       tion instead of -option) to turn the feature off.
+       All options with a [no] prepended can be specified in negated form
+       (using -nooption instead of -option) to turn the feature off.
 
        -h, --help
               Show summary of options.
@@ -144,25 +144,25 @@ REGULAR OPTIONS
               to correctly execute  (without  blocking)  any  matplotlib-based
               script which calls show() at the end.
 
-       -no|autocall
+       -[no]autocall
               Make  IPython automatically call any callable object even if you
               didn’t type explicit parentheses. For example, ’str 43’  becomes
               ’str(43)’ automatically.
 
-       -no|autoindent
+       -[no]autoindent
               Turn automatic indentation on/off.
 
-       -no|automagic
+       -[no]automagic
               Make magic commands automatic (without needing their first char-
               acter to be @).  Type @magic at  the  IPython  prompt  for  more
               information.
 
-       -no|autoparens
+       -[no]autoparens
               Make  IPython automatically call any callable object even if you
               didn’t type explicit parentheses.  For example, ’str 43’ becomes
               ’str(43)’ automatically.
 
-       -no|banner
+       -[no]banner
               Print the intial information banner (default on).
 
        -c <command>
@@ -186,7 +186,7 @@ REGULAR OPTIONS
               Color  scheme  for  prompts  and exception reporting.  Currently
               implemented: NoColor, Linux, and LightBG.
 
-       -no|color_info
+       -[no]color_info
               IPython can display information about objects via a set of func-
               tions, and optionally can use colors for this, syntax highlight-
               ing source code and various other  elements.   However,  because
@@ -201,18 +201,18 @@ REGULAR OPTIONS
               The  magic function @color_info allows you to toggle this inter-
               actively for testing.
 
-       -no|confirm_exit
+       -[no]confirm_exit
               Set to confirm when you try to exit IPython with  an  EOF  (Con-
               trol-D in Unix, Control-Z/Enter in Windows). Note that using the
               magic functions @Exit or @Quit you  can  force  a  direct  exit,
               bypassing any confirmation.
 
-       -no|debug
+       -[no]debug
               Show  information  about the loading process. Very useful to pin
               down problems with your configuration files or  to  get  details
               about session restores.
 
-       -no|deep_reload
+       -[no]deep_reload
               IPython  can use the deep_reload module which reloads changes in
               modules recursively (it replaces the reload() function,  so  you
               don’t need to change anything to use it). deep_reload() forces a
@@ -265,18 +265,18 @@ REGULAR OPTIONS
               retrieving  a failed because of inherent limitations of Python’s
               Pickle module, so this may have to wait.
 
-       -no|messages
+       -[no]messages
               Print messages which IPython collects about its startup  process
               (default on).
 
-       -no|pdb
+       -[no]pdb
               Automatically  call the pdb debugger after every uncaught excep-
               tion. If you are used to debugging  using  pdb,  this  puts  you
               automatically  inside of it after any call (either in IPython or
               in code called by it) which triggers  an  exception  which  goes
               uncaught.
 
-       -no|pprint
+       -[no]pprint
               IPython  can  optionally  use the pprint (pretty printer) module
               for displaying results. pprint tends to give a nicer display  of
               nested  data structures. If you like it, you can turn it on per-
@@ -332,7 +332,7 @@ REGULAR OPTIONS
               IPython  starts  with  a  bare  bones  configuration (no modules
               loaded at all).
 
-       -no|readline
+       -[no]readline
               Use the readline library, which is needed to support  name  com-
               pletion  and  command history, among other things. It is enabled
               by default, but may cause  problems  for  users  of  X/Emacs  in

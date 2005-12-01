@@ -109,29 +109,29 @@ See the provided examples for assistance.  Options given on the
 commandline override the values set in the ipythonrc file.
 .br
 .sp 1
-All options with a no| prepended can be specified in 'no' form
+All options with a [no] prepended can be specified in negated form
 (\-nooption instead of \-option) to turn the feature off.
 .TP
 .B \-h, \-\-help
 Show summary of options.
 .TP
-.B \-no|autocall
+.B \-[no]autocall
 Make IPython automatically call any callable object even if you didn't type
 explicit parentheses. For example, 'str 43' becomes 'str(43)' automatically.
 .TP
-.B \-no|autoindent
+.B \-[no]autoindent
 Turn automatic indentation on/off.
 .TP
-.B \-no|automagic
+.B \-[no]automagic
 Make magic commands automatic (without needing their first character
 to be @).  Type @magic at the IPython prompt for more information.
 .TP
-.B \-no|autoparens
+.B \-[no]autoparens
 Make IPython automatically call any callable object even if you didn't
 type explicit parentheses.  For example, 'str 43' becomes 'str(43)'
 automatically.
 .TP
-.B \-no|banner
+.B \-[no]banner
 Print the intial information banner (default on).
 .TP
 .B \-c <command>
@@ -154,7 +154,7 @@ Gives IPython a similar feel to the classic Python prompt.
 Color scheme for prompts and exception reporting.  Currently
 implemented: NoColor, Linux, and LightBG.
 .TP
-.B \-no|color_info
+.B \-[no]color_info
 IPython can display information about objects via a set of functions,
 and optionally can use colors for this, syntax highlighting source
 code and various other elements.  However, because this information is
@@ -169,18 +169,18 @@ Test it and turn it on permanently if it works with your system.  The
 magic function @color_info allows you to toggle this interactively for
 testing.
 .TP
-.B \-no|confirm_exit
+.B \-[no]confirm_exit
 Set to confirm when you try to exit IPython with an EOF (Control-D in
 Unix, Control-Z/Enter in Windows). Note that using the magic functions
 @Exit or @Quit you can force a direct exit, bypassing any
 confirmation.
 .TP
-.B \-no|debug
+.B \-[no]debug
 Show information about the loading process. Very useful to pin down
 problems with your configuration files or to get details about session
 restores.
 .TP
-.B \-no|deep_reload
+.B \-[no]deep_reload
 IPython can use the deep_reload module which reloads changes in
 modules recursively (it replaces the reload() function, so you don't
 need to change anything to use it). deep_reload() forces a full reload
@@ -237,17 +237,17 @@ to implement full session saving by writing and retrieving a
 failed because of inherent limitations of Python's Pickle module, so
 this may have to wait.
 .TP
-.B \-no|messages
+.B \-[no]messages
 Print messages which IPython collects about its startup process
 (default on).
 .TP
-.B \-no|pdb
+.B \-[no]pdb
 Automatically call the pdb debugger after every uncaught exception. If
 you are used to debugging using pdb, this puts you automatically
 inside of it after any call (either in IPython or in code called by
 it) which triggers an exception which goes uncaught.
 .TP
-.B \-no|pprint
+.B \-[no]pprint
 IPython can optionally use the pprint (pretty printer) module for
 displaying results. pprint tends to give a nicer display of nested
 data structures. If you like it, you can turn it on permanently in
@@ -306,7 +306,7 @@ loads ipythonrc (from current directory) or IPYTHONDIR/ipythonrc.  If
 the loading of your config file fails, IPython starts with a bare
 bones configuration (no modules loaded at all).
 .TP
-.B \-no|readline
+.B \-[no]readline
 Use the readline library, which is needed to support name completion
 and command history, among other things. It is enabled by default, but
 may cause problems for users of X/Emacs in Python comint or shell

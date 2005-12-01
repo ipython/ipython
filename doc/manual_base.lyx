@@ -2614,9 +2614,9 @@ Most options can also be set from your ipythonrc configuration file.
 
 All options with a 
 \family typewriter 
-no|
+[no]
 \family default 
- prepended can be specified in 'no' form (
+ prepended can be specified in negated form (
 \family typewriter 
 -nooption
 \family default 
@@ -2689,7 +2689,7 @@ show()
 
 \family typewriter 
 \series bold 
--no|automagic
+-[no]automagic
 \series default 
 :
 \family default 
@@ -2710,7 +2710,7 @@ show()
 
 \family typewriter 
 \series bold 
--no|banner
+-[no]banner
 \series default 
 :
 \family default 
@@ -2782,7 +2782,7 @@ show()
 
 \family typewriter 
 \series bold 
--no|color_info:
+-[no]color_info:
 \family default 
 \series default 
  IPython can display information about objects via a set of functions, and
@@ -2810,7 +2810,7 @@ show()
 
 \family typewriter 
 \series bold 
--no|debug
+-[no]debug
 \family default 
 \series default 
 : Show information about the loading process.
@@ -2822,7 +2822,7 @@ show()
 
 \family typewriter 
 \series bold 
--no|deep_reload
+-[no]deep_reload
 \series default 
 :
 \family default 
@@ -3006,7 +3006,7 @@ _dh
 
 \family typewriter 
 \series bold 
--no|messages
+-[no]messages
 \series default 
 :
 \family default 
@@ -3018,7 +3018,7 @@ _dh
 
 \family typewriter 
 \series bold 
--no|pdb
+-[no]pdb
 \family default 
 \series default 
 : Automatically call the pdb debugger after every uncaught exception.
@@ -3031,7 +3031,7 @@ _dh
 
 \family typewriter 
 \series bold 
--no|pprint
+-[no]pprint
 \series default 
 :
 \family default 
@@ -3251,7 +3251,7 @@ Out[
 
 \family typewriter 
 \series bold 
--no|readline
+-[no]readline
 \family default 
 \series default 
 : use the readline library, which is needed to support name completion and
