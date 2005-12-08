@@ -4,7 +4,7 @@
 All the matplotlib support code was co-developed with John Hunter,
 matplotlib's author.
 
-$Id: Shell.py 923 2005-11-15 08:51:15Z fperez $"""
+$Id: Shell.py 927 2005-12-08 23:19:59Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2004 Fernando Perez <fperez@colorado.edu>
@@ -599,14 +599,22 @@ class IPShellGTK(threading.Thread):
         self.IP = make_IPython(argv,user_ns=user_ns,debug=debug,
                                shell_class=shell_class,
                                on_kill=[mainquit])
+
+        # HACK: slot for banner in self; it will be passed to the mainloop
+        # method only and .run() needs it.  The actual value will be set by
+        # .mainloop().
+        self._banner = None 
+
         threading.Thread.__init__(self)
 
     def run(self):
-        self.IP.mainloop()
+        self.IP.mainloop(self._banner)
         self.IP.kill()
 
-    def mainloop(self):
+    def mainloop(self,sys_exit=0,banner=None):
 
+        self._banner = banner
+        
         if self.gtk.pygtk_version >= (2,4,0):
             import gobject
             gobject.idle_add(self.on_timer)
@@ -664,6 +672,11 @@ class IPShellWX(threading.Thread):
         self.IP = make_IPython(argv,user_ns=user_ns,debug=debug,
                                shell_class=shell_class,
                                on_kill=[self.wxexit])
+        # HACK: slot for banner in self; it will be passed to the mainloop
+        # method only and .run() needs it.  The actual value will be set by
+        # .mainloop().
+        self._banner = None 
+
         self.app = None
 
     def wxexit(self, *args):
@@ -672,10 +685,12 @@ class IPShellWX(threading.Thread):
             self.app.ExitMainLoop()
 
     def run(self):
-        self.IP.mainloop()
+        self.IP.mainloop(self._banner)
         self.IP.kill()
 
-    def mainloop(self):
+    def mainloop(self,sys_exit=0,banner=None):
+
+        self._banner = banner
         
         self.start()
 
@@ -750,18 +765,26 @@ class IPShellQt(threading.Thread):
         self.IP = make_IPython(argv,user_ns=user_ns,debug=debug,
                                shell_class=shell_class,
                                on_kill=[qt.qApp.exit])
+
+        # HACK: slot for banner in self; it will be passed to the mainloop
+        # method only and .run() needs it.  The actual value will be set by
+        # .mainloop().
+        self._banner = None 
         
         threading.Thread.__init__(self)
 
     def run(self):
-        #sys.excepthook = self.IP.excepthook # dbg
-        self.IP.mainloop()
+        self.IP.mainloop(self._banner)
         self.IP.kill()
 
-    def mainloop(self):
-        import qt, sys
+    def mainloop(self,sys_exit=0,banner=None):
+
+        import qt
+
+        self._banner = banner
+
         if qt.QApplication.startingUp():
-          a = qt.QApplication.QApplication( sys.argv )
+          a = qt.QApplication.QApplication(sys.argv)
         self.timer = qt.QTimer()
         qt.QObject.connect( self.timer, qt.SIGNAL( 'timeout()' ), self.on_timer )
 

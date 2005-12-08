@@ -1,3 +1,10 @@
+2005-12-08  Fernando Perez  <Fernando.Perez@colorado.edu>
+
+	* IPython/Shell.py (IPShellGTK.mainloop): fix mainloop() calling
+	sequence to consistently accept the banner argument.  The
+	inconsistency was tripping SAGE, thanks to Gary Zablackis
+	<gzabl-AT-yahoo.com> for the report.
+
 2005-11-15  Fernando Perez  <Fernando.Perez@colorado.edu>
 
 	* IPython/iplib.py (InteractiveShell.post_config_initialization):

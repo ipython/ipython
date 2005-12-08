@@ -347,8 +347,12 @@ Embeddable.
 \layout Itemize
 
 Easy debugger access.
- You can set IPython to call up the Python debugger (pdb) every time there
- is an uncaught exception.
+ You can set IPython to call up an enhanced version of the Python debugger
+ (
+\family typewriter 
+pdb
+\family default 
+) every time there is an uncaught exception.
  This drops you inside the code which triggered the exception with all the
  data live and it is possible to navigate the stack to rapidly isolate the
  source of a bug.
@@ -365,6 +369,12 @@ Easy debugger access.
 pdb
 \family default 
 's control, automatically setting initial breakpoints for you.
+ This version of 
+\family typewriter 
+pdb
+\family default 
+ has IPython-specific improvements, including tab-completion and traceback
+ coloring support.
 \layout Itemize
 
 Profiler support.
@@ -2058,9 +2068,17 @@ Thanks to Christian Hart and Matthew Arnison for the suggestions leading
 \family typewriter 
 %pdb
 \family default 
- command allows you to toggle on and off the automatic invocation of the
- pdb debugger at any uncaught exception.
- The advantage of this is that pdb starts 
+ command allows you to toggle on and off the automatic invocation of an
+ IPython-enhanced 
+\family typewriter 
+pdb
+\family default 
+ debugger (with coloring, tab completion and more) at any uncaught exception.
+ The advantage of this is that 
+\family typewriter 
+pdb
+\family default 
+ starts 
 \emph on 
 inside
 \emph default 
@@ -9092,4 +9110,15 @@ Stenarson
 <jorgen.stenarson-AT-bostream.nu>
 \family default 
  Wildcard support implementation for searching namespaces.
+\layout List
+\labelwidthstring 00.00.0000
+
+Vivian\SpecialChar ~
+De\SpecialChar ~
+Smedt 
+\family typewriter 
+<vivian-AT-vdesmedt.com>
+\family default 
+ Debugger enhancements, so that when pdb is activated from within IPython,
+ coloring, tab completion and other features continue to work seamlessly.
 \the_end
