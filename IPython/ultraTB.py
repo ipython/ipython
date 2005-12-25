@@ -60,7 +60,7 @@ You can implement other color schemes easily, the syntax is fairly
 self-explanatory. Please send back new schemes you develop to the author for
 possible inclusion in future releases.
 
-$Id: ultraTB.py 703 2005-08-16 17:34:44Z fperez $"""
+$Id: ultraTB.py 951 2005-12-25 00:57:24Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001 Nathaniel Gray <n8gray@caltech.edu>
@@ -85,8 +85,8 @@ from UserDict import UserDict
 from IPython import Debugger
 
 from IPython.Struct import Struct
-from IPython.ColorANSI import *
 from IPython.genutils import Term,uniq_stable,error,info
+from IPython.excolors import ExceptionColors
 
 #---------------------------------------------------------------------------
 # Code begins
@@ -99,131 +99,42 @@ def inspect_error():
     error('Internal Python error in the inspect module.\n'
           'Below is the traceback from this internal error.\n')
 
-# Make a global variable out of the color scheme table used for coloring
-# exception tracebacks.  This allows user code to add new schemes at runtime.
-ExceptionColors = ColorSchemeTable()
-
-# Populate it with color schemes
-C = TermColors # shorthand and local lookup
-ExceptionColors.add_scheme(ColorScheme(
-    'NoColor',
-    # The color to be used for the top line
-    topline = C.NoColor,
-
-    # The colors to be used in the traceback
-    filename = C.NoColor,
-    lineno = C.NoColor,
-    name = C.NoColor,
-    vName = C.NoColor,
-    val = C.NoColor,
-    em = C.NoColor,
-    
-    # Emphasized colors for the last frame of the traceback
-    normalEm = C.NoColor,
-    filenameEm = C.NoColor,
-    linenoEm = C.NoColor,
-    nameEm = C.NoColor,
-    valEm = C.NoColor,
-    
-    # Colors for printing the exception
-    excName = C.NoColor,
-    line = C.NoColor,
-    caret = C.NoColor,
-    Normal = C.NoColor
-    ))
-
-# make some schemes as instances so we can copy them for modification easily
-ExceptionColors.add_scheme(ColorScheme(
-    'Linux',
-    # The color to be used for the top line
-    topline = C.LightRed,
-
-    # The colors to be used in the traceback
-    filename = C.Green,
-    lineno = C.Green,
-    name = C.Purple,
-    vName = C.Cyan,
-    val = C.Green,
-    em = C.LightCyan,
-
-    # Emphasized colors for the last frame of the traceback
-    normalEm = C.LightCyan,
-    filenameEm = C.LightGreen,
-    linenoEm = C.LightGreen,
-    nameEm = C.LightPurple,
-    valEm = C.LightBlue,
-
-    # Colors for printing the exception
-    excName = C.LightRed,
-    line = C.Yellow,
-    caret = C.White,
-    Normal = C.Normal
-    ))
-
-# For light backgrounds, swap dark/light colors
-ExceptionColors.add_scheme(ColorScheme(
-    'LightBG',
-    # The color to be used for the top line
-    topline = C.Red,
-    
-    # The colors to be used in the traceback
-    filename = C.LightGreen,
-    lineno = C.LightGreen,
-    name = C.LightPurple,
-    vName = C.Cyan,
-    val = C.LightGreen,
-    em = C.Cyan,
-
-    # Emphasized colors for the last frame of the traceback
-    normalEm = C.Cyan,
-    filenameEm = C.Green,
-    linenoEm = C.Green,
-    nameEm = C.Purple,
-    valEm = C.Blue,
-
-    # Colors for printing the exception
-    excName = C.Red,
-    #line = C.Brown,  # brown often is displayed as yellow
-    line = C.Red,
-    caret = C.Normal,
-    Normal = C.Normal
-    ))
-
 class TBTools:
     """Basic tools used by all traceback printer classes."""
 
-    def __init__(self,color_scheme = 'NoColor',call_pdb=0):
+    def __init__(self,color_scheme = 'NoColor',call_pdb=False):
         # Whether to call the interactive pdb debugger after printing
         # tracebacks or not
         self.call_pdb = call_pdb
-        if call_pdb:
-            self.pdb = Debugger.Pdb()
-        else:
-            self.pdb = None
 
         # Create color table
-        self.ColorSchemeTable = ExceptionColors 
+        self.color_scheme_table = ExceptionColors 
 
         self.set_colors(color_scheme)
         self.old_scheme = color_scheme  # save initial value for toggles
 
+        if call_pdb:
+            self.pdb = Debugger.Pdb(self.color_scheme_table.active_scheme_name)
+        else:
+            self.pdb = None
+
     def set_colors(self,*args,**kw):
         """Shorthand access to the color table scheme selector method."""
         
-        self.ColorSchemeTable.set_active_scheme(*args,**kw)
+        self.color_scheme_table.set_active_scheme(*args,**kw)
         # for convenience, set Colors to the active scheme
-        self.Colors = self.ColorSchemeTable.active_colors
+        self.Colors = self.color_scheme_table.active_colors
 
     def color_toggle(self):
         """Toggle between the currently active color scheme and NoColor."""
         
-        if self.ColorSchemeTable.active_scheme_name == 'NoColor':
-            self.ColorSchemeTable.set_active_scheme(self.old_scheme)
-            self.Colors = self.ColorSchemeTable.active_colors
+        if self.color_scheme_table.active_scheme_name == 'NoColor':
+            self.color_scheme_table.set_active_scheme(self.old_scheme)
+            self.Colors = self.color_scheme_table.active_colors
         else:
-            self.old_scheme = self.ColorSchemeTable.active_scheme_name
-            self.ColorSchemeTable.set_active_scheme('NoColor')
-            self.Colors = self.ColorSchemeTable.active_colors
+            self.old_scheme = self.color_scheme_table.active_scheme_name
+            self.color_scheme_table.set_active_scheme('NoColor')
+            self.Colors = self.color_scheme_table.active_colors
 
 #---------------------------------------------------------------------------
 class ListTB(TBTools):
@@ -660,14 +571,21 @@ class VerboseTB(TBTools):
 
         if self.call_pdb:
             if self.pdb is None:
-                self.pdb = Debugger.Pdb()
-            # the system displayhook may have changed, restore the original for pdb
+                self.pdb = Debugger.Pdb(
+                    self.color_scheme_table.active_scheme_name)
+            # the system displayhook may have changed, restore the original
+            # for pdb
             dhook = sys.displayhook
             sys.displayhook = sys.__displayhook__
             self.pdb.reset()
+            # Find the right frame so we don't pop up inside ipython itself
+            etb = self.tb
             while self.tb.tb_next is not None:
                 self.tb = self.tb.tb_next
             try:
+                if etb and etb.tb_next:
+                    etb = etb.tb_next
+                self.pdb.botframe = etb.tb_frame
                 self.pdb.interaction(self.tb.tb_frame, self.tb)
             except:
                 print '*** ERROR ***'
@@ -801,7 +719,7 @@ class AutoFormattedTB(FormattedTB):
             print >> out, self.text(etype, evalue, etb)
             self.tb_offset = tb_offset
         else:
-            print >> out, self.text()
+            print >> out, self.text(etype, evalue, etb)
         self.debugger()
 
     def text(self,etype=None,value=None,tb=None,context=5,mode=None):

@@ -15,39 +15,250 @@ details on the PSF (Python Software Foundation) standard license, see:
 
 http://www.python.org/2.2.3/license.html
 
-$Id: Debugger.py 590 2005-05-30 06:26:51Z fperez $"""
+$Id: Debugger.py 951 2005-12-25 00:57:24Z fperez $"""
 
 from IPython import Release
 __author__  = '%s <%s>' % Release.authors['Fernando']
 __license__ = 'Python'
 
-import pdb,bdb,cmd,os,sys
+import pdb,bdb,cmd,os,sys,linecache
+from IPython import PyColorize, ColorANSI
+from IPython.genutils import Term
+from IPython.excolors import ExceptionColors
+
+def _file_lines(fname):
+    """Return the contents of a named file as a list of lines.
+
+    This function never raises an IOError exception: if the file can't be
+    read, it simply returns an empty list."""
+
+    try:
+        outfile = open(fname)
+    except IOError:
+        return []
+    else:
+        out = outfile.readlines()
+        outfile.close()
+        return out
+
 
 class Pdb(pdb.Pdb):
     """Modified Pdb class, does not load readline."""
-    def __init__(self):
+    def __init__(self,color_scheme='NoColor'):
         bdb.Bdb.__init__(self)
         cmd.Cmd.__init__(self,completekey=None) # don't load readline
-        self.prompt = '(Pdb) '
+        self.prompt = 'ipdb> ' # The default prompt is '(Pdb)'
         self.aliases = {}
 
         # Read $HOME/.pdbrc and ./.pdbrc
-        self.rcLines = []
-        if os.environ.has_key('HOME'):
-            envHome = os.environ['HOME']
-            try:
-                rcFile = open(os.path.join(envHome, ".pdbrc"))
-            except IOError:
-                pass
-            else:
-                for line in rcFile.readlines():
-                    self.rcLines.append(line)
-                rcFile.close()
         try:
-            rcFile = open(".pdbrc")
-        except IOError:
+            self.rcLines = _file_lines(os.path.join(os.environ['HOME'],
+                                                    ".pdbrc"))
+        except KeyError:
+            self.rcLines = []
+        self.rcLines.extend(_file_lines(".pdbrc"))
+
+        # Create color table: we copy the default one from the traceback
+        # module and add a few attributes needed for debugging
+        self.color_scheme_table = ExceptionColors.copy()
+        
+        # shorthands 
+        C = ColorANSI.TermColors
+        cst = self.color_scheme_table
+
+        cst['NoColor'].colors.breakpoint_enabled = C.NoColor
+        cst['NoColor'].colors.breakpoint_disabled = C.NoColor
+
+        cst['Linux'].colors.breakpoint_enabled = C.LightRed
+        cst['Linux'].colors.breakpoint_disabled = C.Red
+
+        cst['LightBG'].colors.breakpoint_enabled = C.LightRed
+        cst['LightBG'].colors.breakpoint_disabled = C.Red
+
+        self.set_colors(color_scheme)
+        
+    def set_colors(self, scheme):
+        """Shorthand access to the color table scheme selector method."""
+        self.color_scheme_table.set_active_scheme(scheme)
+
+
+    def interaction(self, frame, traceback):
+        __IPYTHON__.set_completer_frame(frame)
+        pdb.Pdb.interaction(self, frame, traceback)
+
+
+    def do_up(self, arg):
+        pdb.Pdb.do_up(self, arg)
+        __IPYTHON__.set_completer_frame(self.curframe)
+    do_u = do_up
+
+
+    def do_down(self, arg):
+        pdb.Pdb.do_down(self, arg)
+        __IPYTHON__.set_completer_frame(self.curframe)
+    do_d = do_down
+
+
+    def postloop(self):
+        __IPYTHON__.set_completer_frame(None)
+
+
+    def print_stack_trace(self):
+        try:
+            for frame_lineno in self.stack:
+                self.print_stack_entry(frame_lineno, context = 5)
+        except KeyboardInterrupt:
             pass
+
+
+    def print_stack_entry(self,frame_lineno,prompt_prefix='\n-> ',
+                          context = 3):
+        frame, lineno = frame_lineno
+        print >>Term.cout, self.format_stack_entry(frame_lineno, '', context)
+
+
+    def format_stack_entry(self, frame_lineno, lprefix=': ', context = 3):
+        import linecache, repr
+        
+        ret = ""
+        
+        Colors = self.color_scheme_table.active_colors
+        ColorsNormal = Colors.Normal
+        tpl_link = '%s%%s%s' % (Colors.filenameEm, ColorsNormal)
+        tpl_call = 'in %s%%s%s%%s%s' % (Colors.vName, Colors.valEm, ColorsNormal)
+        tpl_line = '%%s%s%%s %s%%s' % (Colors.lineno, ColorsNormal)
+        tpl_line_em = '%%s%s%%s %s%%s%s' % (Colors.linenoEm, Colors.line,
+                                            ColorsNormal)
+        
+        frame, lineno = frame_lineno
+        
+        return_value = ''
+        if '__return__' in frame.f_locals:
+            rv = frame.f_locals['__return__']
+            #return_value += '->'
+            return_value += repr.repr(rv) + '\n'
+        ret += return_value
+
+        #s = filename + '(' + `lineno` + ')'
+        filename = self.canonic(frame.f_code.co_filename)
+        link = tpl_link % filename
+        
+        if frame.f_code.co_name:
+            func = frame.f_code.co_name
         else:
-            for line in rcFile.readlines():
-                self.rcLines.append(line)
-            rcFile.close()
+            func = "<lambda>"
+            
+        call = ''
+        if func != '?':         
+            if '__args__' in frame.f_locals:
+                args = repr.repr(frame.f_locals['__args__'])
+            else:
+                args = '()'
+            call = tpl_call % (func, args)
+        
+        level = '%s %s\n' % (link, call)
+        ret += level
+            
+        start = lineno - 1 - context//2
+        lines = linecache.getlines(filename)
+        start = max(start, 0)
+        start = min(start, len(lines) - context)
+        lines = lines[start : start + context]
+            
+        for i in range(len(lines)):
+            line = lines[i]
+            if start + 1 + i == lineno:
+                ret += self.__format_line(tpl_line_em, filename, start + 1 + i, line, arrow = True)
+            else:
+                ret += self.__format_line(tpl_line, filename, start + 1 + i, line, arrow = False)
+            
+        return ret
+
+
+    def __format_line(self, tpl_line, filename, lineno, line, arrow = False):
+        bp_mark = ""
+        bp_mark_color = ""
+
+        bp = None
+        if lineno in self.get_file_breaks(filename):
+            bps = self.get_breaks(filename, lineno)
+            bp = bps[-1]
+        
+        if bp:
+            Colors = self.color_scheme_table.active_colors
+            bp_mark = str(bp.number)
+            bp_mark_color = Colors.breakpoint_enabled
+            if not bp.enabled:
+                bp_mark_color = Colors.breakpoint_disabled
+
+        numbers_width = 7
+        if arrow:
+            # This is the line with the error
+            pad = numbers_width - len(str(lineno)) - len(bp_mark)
+            if pad >= 3:
+                marker = '-'*(pad-3) + '-> '
+            elif pad == 2:
+                 marker = '> '
+            elif pad == 1:
+                 marker = '>'
+            else:
+                 marker = ''
+            num = '%s%s' % (marker, str(lineno))
+            line = tpl_line % (bp_mark_color + bp_mark, num, line)
+        else:
+            num = '%*s' % (numbers_width - len(bp_mark), str(lineno))
+            line = tpl_line % (bp_mark_color + bp_mark, num, line)
+            
+        return line
+        
+
+    def do_list(self, arg):
+        self.lastcmd = 'list'
+        last = None
+        if arg:
+            try:
+                x = eval(arg, {}, {})
+                if type(x) == type(()):
+                    first, last = x
+                    first = int(first)
+                    last = int(last)
+                    if last < first:
+                        # Assume it's a count
+                        last = first + last
+                else:
+                    first = max(1, int(x) - 5)
+            except:
+                print '*** Error in argument:', `arg`
+                return
+        elif self.lineno is None:
+            first = max(1, self.curframe.f_lineno - 5)
+        else:
+            first = self.lineno + 1
+        if last is None:
+            last = first + 10
+        filename = self.curframe.f_code.co_filename
+        try:
+            Colors = self.color_scheme_table.active_colors
+            ColorsNormal = Colors.Normal
+            tpl_line = '%%s%s%%s %s%%s' % (Colors.lineno, ColorsNormal)
+            tpl_line_em = '%%s%s%%s %s%%s%s' % (Colors.linenoEm, Colors.line, ColorsNormal)
+            src = []
+            for lineno in range(first, last+1):
+                line = linecache.getline(filename, lineno)
+                if not line:
+                    break
+
+                if lineno == self.curframe.f_lineno:
+                    line = self.__format_line(tpl_line_em, filename, lineno, line, arrow = True)
+                else:
+                    line = self.__format_line(tpl_line, filename, lineno, line, arrow = False)
+
+                src.append(line)
+                self.lineno = lineno
+
+            print >>Term.cout, ''.join(src)
+
+        except KeyboardInterrupt:
+            pass
+
+    do_l = do_list

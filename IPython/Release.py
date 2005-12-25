@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Release data for the IPython project.
 
-$Id: Release.py 775 2005-09-01 20:24:59Z fperez $"""
+$Id: Release.py 951 2005-12-25 00:57:24Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2005 Fernando Perez <fperez@colorado.edu>
@@ -24,7 +24,7 @@ name = 'ipython'
 
 version = '0.6.16.svn'
 
-revision = '$Revision: 775 $'
+revision = '$Revision: 951 $'
 
 description = "An enhanced interactive Python shell."
 
@@ -68,6 +68,8 @@ authors = {'Fernando' : ('Fernando Perez','fperez@colorado.edu'),
            }
 
 url = 'http://ipython.scipy.org'
+
+download_url = 'http://ipython.scipy.org/dist'
 
 platforms = ['Linux','Mac OSX','Windows XP/2000/NT','Windows 95/98/ME']
 

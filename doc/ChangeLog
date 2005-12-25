@@ -1,3 +1,19 @@
+2005-12-24  Fernando Perez  <Fernando.Perez@colorado.edu>
+
+	* setup.py: added download_url to setup().  This registers the
+	download address at PyPI, which is not only useful to humans
+	browsing the site, but is also picked up by setuptools (the Eggs
+	machinery).  Thanks to Ville and R. Kern for the info/discussion
+	on this.
+
+2005-12-23  Fernando Perez  <Fernando.Perez@colorado.edu>
+
+	* IPython/Debugger.py (Pdb.__init__): Major pdb mode enhancements.
+	This brings a lot of nice functionality to the pdb mode, which now
+	has tab-completion, syntax highlighting, and better stack handling
+	than before.  Many thanks to Vivian De Smedt
+	<vivian-AT-vdesmedt.com> for the original patches.
+
 2005-12-08  Fernando Perez  <Fernando.Perez@colorado.edu>
 
 	* IPython/Shell.py (IPShellGTK.mainloop): fix mainloop() calling
@@ -11,7 +27,7 @@
 	Fix bug where a naked 'alias' call in the ipythonrc file would
 	cause a crash.  Bug reported by Jorgen Stenarson.
 
-2005-11-15    <Fernando.Perez@colorado.edu>
+2005-11-15  Fernando Perez  <Fernando.Perez@colorado.edu>
 
 	* IPython/ipmaker.py (make_IPython): cleanups which should improve
 	startup time.
@@ -26,13 +42,13 @@
 	searches.  Users can still select either mode at runtime on a
 	per-search basis.
 
-2005-11-13    <Fernando.Perez@colorado.edu>
+2005-11-13 Fernando Perez   <Fernando.Perez@colorado.edu>
 
 	* IPython/wildcard.py (NameSpace.__init__): fix resolution of
 	attributes in wildcard searches for subclasses.  Modified version
 	of a patch by Jorgen.
 
-2005-11-12    <Fernando.Perez@colorado.edu>
+2005-11-12 Fernando Perez   <Fernando.Perez@colorado.edu>
 
 	* IPython/iplib.py (embed_mainloop): Fix handling of globals for
 	embedded instances.  I added a user_global_ns attribute to the

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """sys.excepthook for IPython itself, leaves a detailed report on disk.
 
-$Id: CrashHandler.py 775 2005-09-01 20:24:59Z fperez $"""
+$Id: CrashHandler.py 951 2005-12-25 00:57:24Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2004 Fernando Perez. <fperez@colorado.edu>
@@ -23,10 +23,10 @@ import os,sys
 from pprint import pprint,pformat
 
 # Homebrewed
-from IPython.genutils import *
 from IPython.Itpl import Itpl,itpl,printpl
+from IPython.ColorANSI import ColorScheme,ColorSchemeTable  # too long names
 from IPython import ultraTB
-from IPython.ultraTB import ColorScheme,ColorSchemeTable  # too long names
+from IPython.genutils import *
 
 #****************************************************************************
 class CrashHandler:

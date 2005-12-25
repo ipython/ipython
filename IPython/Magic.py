@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Magic functions for InteractiveShell.
 
-$Id: Magic.py 923 2005-11-15 08:51:15Z fperez $"""
+$Id: Magic.py 951 2005-12-25 00:57:24Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001 Janko Hauser <jhauser@zscout.de> and
@@ -22,13 +22,16 @@ __license__ = Release.license
 # Python standard modules
 import __builtin__
 import os,sys,inspect,pydoc,re,tempfile,pdb,bdb,time
+import Debugger
+from getopt import getopt
+from pprint import pprint, pformat
+from cStringIO import StringIO
+
+# profile isn't bundled by default in Debian for license reasons
 try:
     import profile,pstats
 except ImportError:
     profile = pstats = None
-from getopt import getopt
-from pprint import pprint, pformat
-from cStringIO import StringIO
 
 # Homebrewed
 from IPython.Struct import Struct
@@ -1371,7 +1374,7 @@ Currently the magic system has the following functions:\n"""
                 stats = self.magic_prun('',0,opts,arg_lst,prog_ns)
             else:
                 if opts.has_key('d'):
-                    deb = pdb.Pdb()
+                    deb = Debugger.Pdb(self.shell.rc.colors)
                     # reset Breakpoint state, which is moronically kept
                     # in a class
                     bdb.Breakpoint.next = 1
@@ -1397,8 +1400,15 @@ Currently the magic system has the following functions:\n"""
                     deb.do_break('%s:%s' % (filename,bp))
                     # Start file run
                     print "NOTE: Enter 'c' at the",
-                    print "(Pdb) prompt to start your script."
-                    deb.run('execfile("%s")' % filename,prog_ns)
+                    print "ipdb> prompt to start your script."
+                    try:
+                        deb.run('execfile("%s")' % filename,prog_ns)
+                    except:
+                        etype, value, tb = sys.exc_info()
+                        # Skip three frames in the traceback: the %run one,
+                        # one inside bdb.py, and the command-line typed by the
+                        # user (run by exec in pdb itself).
+                        self.shell.InteractiveTB(etype,value,tb,tb_offset=3)
                 else:
                     if runner is None:
                         runner = self.shell.safe_execfile

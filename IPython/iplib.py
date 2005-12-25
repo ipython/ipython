@@ -6,7 +6,7 @@ Requires Python 2.1 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 924 2005-11-15 20:24:31Z fperez $
+$Id: iplib.py 951 2005-12-25 00:57:24Z fperez $
 """
 
 #*****************************************************************************
@@ -54,7 +54,7 @@ from codeop import CommandCompiler
 # IPython's own modules
 import IPython
 from IPython import OInspect,PyColorize,ultraTB
-from IPython.ultraTB import ColorScheme,ColorSchemeTable  # too long names
+from IPython.ColorANSI import ColorScheme,ColorSchemeTable  # too long names
 from IPython.Logger import Logger
 from IPython.Magic import Magic,magic2python,shlex_split
 from IPython.usage import cmd_line_usage,interactive_usage
@@ -969,6 +969,14 @@ class InteractiveShell(code.InteractiveConsole, Logger, Magic):
         outcomps = comps.keys()
         outcomps.sort()
         return outcomps
+        
+    def set_completer_frame(self, frame):
+        if frame:
+            ns = frame.f_globals.copy()
+            ns.update(frame.f_locals)
+            self.Completer.namespace = ns
+        else:
+            self.Completer.namespace = self.user_ns
 
     def post_config_initialization(self):
         """Post configuration init method
@@ -1441,7 +1449,7 @@ want to merge them back into the new files.""" % locals()
             self.write(banner)
 
         more = 0
-
+        
         # Mark activity in the builtins
         __builtin__.__dict__['__IPYTHON__active'] += 1
 

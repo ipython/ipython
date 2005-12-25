@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Tools for coloring text in ANSI terminals.
 
-$Id: ColorANSI.py 410 2004-11-04 07:58:17Z fperez $"""
+$Id: ColorANSI.py 951 2005-12-25 00:57:24Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2002-2004 Fernando Perez. <fperez@colorado.edu>
@@ -17,7 +17,6 @@ __license__ = Release.license
 __all__ = ['TermColors','InputTermColors','ColorScheme','ColorSchemeTable']
 
 import os
-from UserDict import UserDict
 
 from IPython.Struct import Struct
 
@@ -94,8 +93,14 @@ class ColorScheme:
             self.colors = Struct(**colormap)
         else:
             self.colors = Struct(colordict)
+
+    def copy(self,name=None):
+        """Return a full copy of the object, optionally renaming it."""
+        if name is None:
+            name = self.name
+        return ColorScheme(name,self.colors.__dict__)
         
-class ColorSchemeTable(UserDict):
+class ColorSchemeTable(dict):
     """General class to handle tables of color schemes.
 
     It's basically a dict of color schemes with a couple of shorthand
@@ -112,16 +117,20 @@ class ColorSchemeTable(UserDict):
         the default active scheme.
         """
         
-        UserDict.__init__(self)
-        if scheme_list is None:
-            self.active_scheme_name = ''
-            self.active_colors = None
-        else:
+        # create object attributes to be set later
+        self.active_scheme_name = ''
+        self.active_colors = None
+        
+        if scheme_list:
             if default_scheme == '':
                 raise ValueError,'you must specify the default color scheme'
             for scheme in scheme_list:
                 self.add_scheme(scheme)
             self.set_active_scheme(default_scheme)
+
+    def copy(self):
+        """Return full copy of object"""
+        return ColorSchemeTable(self.values(),self.active_scheme_name)
 
     def add_scheme(self,new_scheme):
         """Add a new color scheme to the table."""
@@ -135,20 +144,20 @@ class ColorSchemeTable(UserDict):
         Names are by default compared in a case-insensitive way, but this can
         be changed by setting the parameter case_sensitive to true."""
 
-        scheme_list = self.keys()
+        scheme_names = self.keys()
         if case_sensitive:
-            valid_schemes = scheme_list
+            valid_schemes = scheme_names
             scheme_test = scheme
         else:
-            valid_schemes = [s.lower() for s in scheme_list]
+            valid_schemes = [s.lower() for s in scheme_names]
             scheme_test = scheme.lower()
         try:
             scheme_idx = valid_schemes.index(scheme_test)
         except ValueError:
             raise ValueError,'Unrecognized color scheme: ' + scheme + \
-                  '\nValid schemes: '+str(scheme_list).replace("'', ",'')
+                  '\nValid schemes: '+str(scheme_names).replace("'', ",'')
         else:
-            active = scheme_list[scheme_idx]
+            active = scheme_names[scheme_idx]
             self.active_scheme_name = active
             self.active_colors = self[active].colors
             # Now allow using '' as an index for the current active scheme
