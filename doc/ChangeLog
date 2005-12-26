@@ -1,3 +1,26 @@
+2005-12-26  Fernando Perez  <Fernando.Perez@colorado.edu>
+
+	* IPython/FlexCompleter.py (Completer.__init__): Added support for
+	distinct local and global namespaces in the completer API.  This
+	change allows us top properly handle completion with distinct
+	scopes, including in embedded instances (this had never really
+	worked correctly).
+
+	Note: this introduces a change in the constructor for
+	MagicCompleter, as a new global_namespace parameter is now the
+	second argument (the others were bumped one position).
+
+2005-12-25  Fernando Perez  <Fernando.Perez@colorado.edu>
+
+	* IPython/iplib.py (embed_mainloop): fix tab-completion in
+	embedded instances (which can be done now thanks to Vivian's
+	frame-handling fixes for pdb).
+	(InteractiveShell.__init__): Fix namespace handling problem in
+	embedded instances.  We were overwriting __main__ unconditionally,
+	and this should only be done for 'full' (non-embedded) IPython;
+	embedded instances must respect the caller's __main__.  Thanks to
+	a bug report by Yaroslav Bulatov <yaroslavvb-AT-gmail.com>
+
 2005-12-24  Fernando Perez  <Fernando.Perez@colorado.edu>
 
 	* setup.py: added download_url to setup().  This registers the

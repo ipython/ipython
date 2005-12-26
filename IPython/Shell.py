@@ -4,7 +4,7 @@
 All the matplotlib support code was co-developed with John Hunter,
 matplotlib's author.
 
-$Id: Shell.py 927 2005-12-08 23:19:59Z fperez $"""
+$Id: Shell.py 952 2005-12-26 17:51:33Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2004 Fernando Perez <fperez@colorado.edu>
@@ -212,8 +212,8 @@ class IPShellEmbed:
 
         If you need to manually"""
 
-        if dummy not in [0,1]:
-            raise ValueError,'dummy parameter must be 0 or 1'
+        if dummy not in [0,1,False,True]:
+            raise ValueError,'dummy parameter must be boolean'
         self.__dummy_mode = dummy
 
     def get_dummy_mode(self):
@@ -874,12 +874,13 @@ def start():
 
     global USE_TK
     # Crude sys.argv hack to extract the threading options.
-    if len(sys.argv) > 1:
-        if len(sys.argv) > 2:
-            arg2 = sys.argv[2]
+    argv = sys.argv
+    if len(argv) > 1:
+        if len(argv) > 2:
+            arg2 = argv[2]
             if arg2.endswith('-tk'):
                 USE_TK = True
-        arg1 = sys.argv[1]
+        arg1 = argv[1]
         if arg1.endswith('-gthread'):
             shell = IPShellGTK
         elif arg1.endswith( '-qthread' ):

@@ -78,21 +78,27 @@ used, and this module (and the readline module) are silently inactive.
 #
 #*****************************************************************************
 
-import readline
 import __builtin__
 import __main__
+import readline
+import keyword
+import types
 
 __all__ = ["Completer"]
 
 class Completer:
-    def __init__(self, namespace = None):
+    def __init__(self,namespace=None,global_namespace=None):
         """Create a new completer for the command line.
 
-        Completer([namespace]) -> completer instance.
+        Completer([namespace,global_namespace]) -> completer instance.
 
         If unspecified, the default namespace where completions are performed
         is __main__ (technically, __main__.__dict__). Namespaces should be
         given as dictionaries.
+
+        An optional second namespace can be given.  This allows the completer
+        to handle cases where both the local and global scopes need to be
+        distinguished.
 
         Completer instances should be used as the completion mechanism of
         readline via the set_completer() call:
@@ -100,8 +106,11 @@ class Completer:
         readline.set_completer(Completer(my_namespace).complete)
         """
         
-        if namespace and type(namespace) != type({}):
+        if namespace and type(namespace) != types.DictType:
             raise TypeError,'namespace must be a dictionary'
+
+        if global_namespace and type(global_namespace) != types.DictType:
+            raise TypeError,'global_namespace must be a dictionary'
 
         # Don't bind to namespace quite yet, but flag whether the user wants a
         # specific namespace or to use __main__.__dict__. This will allow us
@@ -111,6 +120,12 @@ class Completer:
         else:
             self.use_main_ns = 0
             self.namespace = namespace
+
+        # The global namespace, if given, can be bound directly
+        if global_namespace is None:
+            self.global_namespace = {}
+        else:
+            self.global_namespace = global_namespace
 
     def complete(self, text, state):
         """Return the next possible completion for 'text'.
@@ -136,27 +151,29 @@ class Completer:
         """Compute matches when text is a simple name.
 
         Return a list of all keywords, built-in functions and names currently
-        defined in self.namespace that match.
+        defined in self.namespace or self.global_namespace that match.
 
         """
-        import keyword
         matches = []
+        match_append = matches.append
         n = len(text)
-        for list in [keyword.kwlist,
-                     __builtin__.__dict__.keys(),
-                     self.namespace.keys()]:
-            for word in list:
+        for lst in [keyword.kwlist,
+                    __builtin__.__dict__.keys(),
+                    self.namespace.keys(),
+                    self.global_namespace.keys()]:
+            for word in lst:
                 if word[:n] == text and word != "__builtins__":
-                    matches.append(word)
+                    match_append(word)
         return matches
 
     def attr_matches(self, text):
         """Compute matches when text contains a dot.
 
         Assuming the text is of the form NAME.NAME....[NAME], and is
-        evaluatable in self.namespace, it will be evaluated and its attributes
-        (as revealed by dir()) are used as possible completions.  (For class
-        instances, class members are are also considered.)
+        evaluatable in self.namespace or self.global_namespace, it will be
+        evaluated and its attributes (as revealed by dir()) are used as
+        possible completions.  (For class instances, class members are are
+        also considered.)
 
         WARNING: this can still invoke arbitrary C code, if an object
         with a __getattr__ hook is evaluated.
@@ -170,7 +187,12 @@ class Completer:
         if not m:
             return []
         expr, attr = m.group(1, 3)
-        object = eval(expr, self.namespace)
+        print 'expr:',expr # dbg
+        try:
+            object = eval(expr, self.namespace)
+        except:
+            object = eval(expr, self.global_namespace)
+        print 'obj:',object # dbg
         words = [w for w in dir(object) if isinstance(w, basestring)]
         if hasattr(object,'__class__'):
             words.append('__class__')

@@ -6,7 +6,7 @@ Requires Python 2.1 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 951 2005-12-25 00:57:24Z fperez $
+$Id: iplib.py 952 2005-12-26 17:51:33Z fperez $
 """
 
 #*****************************************************************************
@@ -171,7 +171,8 @@ try:
     class MagicCompleter(FlexCompleter.Completer):
         """Extension of the completer class to work on %-prefixed lines."""
 
-        def __init__(self,shell,namespace=None,omit__names=0,alias_table=None):
+        def __init__(self,shell,namespace=None,global_namespace=None,
+                     omit__names=0,alias_table=None):
             """MagicCompleter() -> completer
 
             Return a completer object suitable for use by the readline library
@@ -184,6 +185,10 @@ try:
             only be accessed via the ipython instance.
 
             - namespace: an optional dict where completions are performed.
+
+            - global_namespace: secondary optional dict for completions, to
+            handle cases (such as IPython embedded inside functions) where
+            both Python scopes are visible.
             
             - The optional omit__names parameter sets the completer to omit the
             'magic' names (__magicname__) for python objects unless the text
@@ -225,13 +230,14 @@ try:
             """Return all possible completions for the benefit of emacs."""
             
             completions = []
+            comp_append = completions.append
             try:
                 for i in xrange(sys.maxint):
                     res = self.complete(text, i)
 
                     if not res: break
 
-                    completions.append(res)
+                    comp_append(res)
             #XXX workaround for ``notDefined.<tab>``
             except NameError:
                 pass
@@ -622,13 +628,22 @@ class InteractiveShell(code.InteractiveConsole, Logger, Magic):
         # instance has its own private namespace, so we can't go shoving
         # everything into __main__.
 
-        try:
-            main_name = self.user_ns['__name__']
-        except KeyError:
-            raise KeyError,'user_ns dictionary MUST have a "__name__" key'
-        else:
-            #print "pickle hack in place"  # dbg
-            sys.modules[main_name] = FakeModule(self.user_ns)
+        # note, however, that we should only do this for non-embedded
+        # ipythons, which really mimic the __main__.__dict__ with their own
+        # namespace.  Embedded instances, on the other hand, should not do
+        # this because they need to manage the user local/global namespaces
+        # only, but they live within a 'normal' __main__ (meaning, they
+        # shouldn't overtake the execution environment of the script they're
+        # embedded in).
+
+        if not embedded:
+            try:
+                main_name = self.user_ns['__name__']
+            except KeyError:
+                raise KeyError,'user_ns dictionary MUST have a "__name__" key'
+            else:
+                #print "pickle hack in place"  # dbg
+                sys.modules[main_name] = FakeModule(self.user_ns)
 
         # List of input with multi-line handling.
         # Fill its zero entry, user counter starts at 1
@@ -972,11 +987,11 @@ class InteractiveShell(code.InteractiveConsole, Logger, Magic):
         
     def set_completer_frame(self, frame):
         if frame:
-            ns = frame.f_globals.copy()
-            ns.update(frame.f_locals)
-            self.Completer.namespace = ns
+            self.Completer.namespace = frame.f_locals
+            self.Completer.global_namespace = frame.f_globals
         else:
             self.Completer.namespace = self.user_ns
+            self.Completer.global_namespace = self.user_global_ns
 
     def post_config_initialization(self):
         """Post configuration init method
@@ -1234,6 +1249,7 @@ want to merge them back into the new files.""" % locals()
             import readline
             self.Completer = MagicCompleter(self,
                                             self.user_ns,
+                                            self.user_global_ns,
                                             self.rc.readline_omit__names,
                                             self.alias_table)
         except ImportError,NameError:
@@ -1427,6 +1443,10 @@ want to merge them back into the new files.""" % locals()
         if local_ns is None and global_ns is None:
             self.user_global_ns.update(__main__.__dict__)
 
+        # make sure the tab-completer has the correct frame information, so it
+        # actually completes using the frame's locals/globals
+        self.set_completer_frame(call_frame)
+        
         self.interact(header)
 
     def interact(self, banner=None):
@@ -1914,7 +1934,7 @@ want to merge them back into the new files.""" % locals()
         cmd = '%sipmagic("%s")' % (pre,esc_quotes('%s %s' % (iFun,theRest)))
         self.log(cmd,continue_prompt)
         self.update_cache(line)
-        #print 'in handle_magic, cmd=<%s>' % cmd  # dbg
+        print 'in handle_magic, cmd=<%s>' % cmd  # dbg
         return cmd
 
     def handle_auto(self, line, continue_prompt=None,
