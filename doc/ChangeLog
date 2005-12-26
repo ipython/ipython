@@ -1,5 +1,8 @@
 2005-12-26  Fernando Perez  <Fernando.Perez@colorado.edu>
 
+	* IPython/ultraTB.py (VerboseTB.text): harden reporting against
+	failures for objects which break when dir() is called on them.
+
 	* IPython/FlexCompleter.py (Completer.__init__): Added support for
 	distinct local and global namespaces in the completer API.  This
 	change allows us top properly handle completion with distinct
