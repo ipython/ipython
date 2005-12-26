@@ -6,7 +6,7 @@ Requires Python 2.1 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 952 2005-12-26 17:51:33Z fperez $
+$Id: iplib.py 953 2005-12-26 18:09:16Z fperez $
 """
 
 #*****************************************************************************
@@ -1934,7 +1934,7 @@ want to merge them back into the new files.""" % locals()
         cmd = '%sipmagic("%s")' % (pre,esc_quotes('%s %s' % (iFun,theRest)))
         self.log(cmd,continue_prompt)
         self.update_cache(line)
-        print 'in handle_magic, cmd=<%s>' % cmd  # dbg
+        #print 'in handle_magic, cmd=<%s>' % cmd  # dbg
         return cmd
 
     def handle_auto(self, line, continue_prompt=None,

@@ -187,12 +187,10 @@ class Completer:
         if not m:
             return []
         expr, attr = m.group(1, 3)
-        print 'expr:',expr # dbg
         try:
             object = eval(expr, self.namespace)
         except:
             object = eval(expr, self.global_namespace)
-        print 'obj:',object # dbg
         words = [w for w in dir(object) if isinstance(w, basestring)]
         if hasattr(object,'__class__'):
             words.append('__class__')
