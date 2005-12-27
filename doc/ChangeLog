@@ -1,3 +1,15 @@
+2005-12-27  Fernando Perez  <Fernando.Perez@colorado.edu>
+
+	* IPython/iplib.py (raw_input): improve indentation management.
+	It is now possible to paste indented code with autoindent on, and
+	the code is interpreted correctly (though it still looks bad on
+	screen, due to the line-oriented nature of ipython).
+	(MagicCompleter.complete): change behavior so that a TAB key on an
+	otherwise empty line actually inserts a tab, instead of completing
+	on the entire global namespace.  This makes it easier to use the
+	TAB key for indentation.  After a request by Hans Meine
+	<hans_meine-AT-gmx.net>
+
 2005-12-26  Fernando Perez  <Fernando.Perez@colorado.edu>
 
 	* IPython/ultraTB.py (VerboseTB.text): harden reporting against

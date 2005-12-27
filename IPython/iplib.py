@@ -6,7 +6,7 @@ Requires Python 2.1 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 953 2005-12-26 18:09:16Z fperez $
+$Id: iplib.py 955 2005-12-27 07:50:29Z fperez $
 """
 
 #*****************************************************************************
@@ -447,8 +447,18 @@ try:
 
             This is called successively with state == 0, 1, 2, ... until it
             returns None.  The completion should begin with 'text'.  """
-            
+
             #print '\n*** COMPLETE: <%s> (%s)' % (text,state)  # dbg
+
+            # if there is only a tab on a line with only whitespace, instead
+            # of the mostly useless 'do you want to see all million
+            # completions' message, just do the right thing and give the user
+            # his tab!  Incidentally, this enables pasting of tabbed text from
+            # an editor (as long as autoindent is off).
+            if not self.get_line_buffer().strip():
+                self.readline.insert_text('\t')
+                return None
+            
             magic_escape = self.magic_escape
             magic_prefix = self.magic_prefix
             
@@ -477,7 +487,7 @@ try:
                     return None
             except:
                 # If completion fails, don't annoy the user.
-                pass
+                return None
 
 except ImportError:
     pass  # no readline support
@@ -1473,6 +1483,10 @@ want to merge them back into the new files.""" % locals()
         # Mark activity in the builtins
         __builtin__.__dict__['__IPYTHON__active'] += 1
 
+        # compiled regexps for autoindent management
+        ini_spaces_re = re.compile(r'^(\s+)')
+        dedent_re = re.compile(r'^\s+raise|^\s+return')
+
         # exit_now is set by a call to %Exit or %Quit
         while not self.exit_now:
             try:
@@ -1483,7 +1497,7 @@ want to merge them back into the new files.""" % locals()
                 else:
                     prompt = self.outputcache.prompt1
                 try:
-                    line = self.raw_input(prompt)
+                    line = self.raw_input(prompt,more)
                     if self.autoindent:
                         self.readline_startup_hook(None)
                 except EOFError:
@@ -1500,7 +1514,7 @@ want to merge them back into the new files.""" % locals()
                     # Auto-indent management
                     if self.autoindent:
                         if line:
-                            ini_spaces = re.match('^(\s+)',line)
+                            ini_spaces = ini_spaces_re.match(line)
                             if ini_spaces:
                                 nspaces = ini_spaces.end()
                             else:
@@ -1509,7 +1523,7 @@ want to merge them back into the new files.""" % locals()
 
                             if line[-1] == ':':
                                 self.readline_indent += 4
-                            elif re.match(r'^\s+raise|^\s+return',line):
+                            elif dedent_re.match(line):
                                 self.readline_indent -= 4
                         else:
                             self.readline_indent = 0
@@ -1720,18 +1734,29 @@ want to merge them back into the new files.""" % locals()
         self.code_to_run = None
         return outflag
 
-    def raw_input(self, prompt=""):
+    def raw_input(self,prompt='',continue_prompt=False):
         """Write a prompt and read a line.
 
         The returned line does not include the trailing newline.
         When the user enters the EOF key sequence, EOFError is raised.
 
-        The base implementation uses the built-in function
-        raw_input(); a subclass may replace this with a different
-        implementation.
+        Optional inputs:
+
+          - prompt(''): a string to be printed to prompt the user.
+
+          - continue_prompt(False): whether this line is the first one or a
+          continuation in a sequence of inputs.
         """
-        return self.prefilter(raw_input_original(prompt),
-                              prompt==self.outputcache.prompt2)
+
+        line = raw_input_original(prompt)
+        # Try to be reasonably smart about not re-indenting pasted input more
+        # than necessary.  We do this by trimming out the auto-indent initial
+        # spaces, if the user's actual input started itself with whitespace.
+        if self.autoindent:
+            line2 = line[self.readline_indent:]
+            if line2[0:1] in (' ','\t'):
+                line = line2
+        return self.prefilter(line,continue_prompt)
         
     def split_user_input(self,line):
         """Split user input into pre-char, function part and rest."""
@@ -1778,7 +1803,7 @@ want to merge them back into the new files.""" % locals()
         self._last_input_line = line
 
         #print '***line: <%s>' % line # dbg
-
+        
         # the input history needs to track even empty lines
         if not line.strip():
             if not continue_prompt:
