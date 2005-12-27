@@ -15,13 +15,19 @@ details on the PSF (Python Software Foundation) standard license, see:
 
 http://www.python.org/2.2.3/license.html
 
-$Id: Debugger.py 951 2005-12-25 00:57:24Z fperez $"""
+$Id: Debugger.py 958 2005-12-27 23:17:51Z fperez $"""
 
 from IPython import Release
 __author__  = '%s <%s>' % Release.authors['Fernando']
 __license__ = 'Python'
 
-import pdb,bdb,cmd,os,sys,linecache
+import bdb
+import cmd
+import linecache
+import os
+import pdb
+import sys
+
 from IPython import PyColorize, ColorANSI
 from IPython.genutils import Term
 from IPython.excolors import ExceptionColors

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Configuration loader
 
-$Id: ConfigLoader.py 525 2005-02-19 10:53:12Z fperez $"""
+$Id: ConfigLoader.py 958 2005-12-27 23:17:51Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2004 Fernando Perez. <fperez@colorado.edu>
@@ -14,9 +14,9 @@ from IPython import Release
 __author__  = '%s <%s>' % Release.authors['Fernando']
 __license__ = Release.license
 
+import exceptions
 import os
 from pprint import pprint
-import exceptions
 
 from IPython import ultraTB
 from IPython.Struct import Struct

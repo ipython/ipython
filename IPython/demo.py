@@ -107,9 +107,9 @@ environments.
 #
 #*****************************************************************************
 
-import sys
 import exceptions
 import re
+import sys
 
 from IPython.PyColorize import Parser
 from IPython.genutils import marquee, shlex_split, file_read

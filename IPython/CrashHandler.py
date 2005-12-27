@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """sys.excepthook for IPython itself, leaves a detailed report on disk.
 
-$Id: CrashHandler.py 951 2005-12-25 00:57:24Z fperez $"""
+$Id: CrashHandler.py 958 2005-12-27 23:17:51Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2004 Fernando Perez. <fperez@colorado.edu>
@@ -19,7 +19,8 @@ __version__  = Release.version
 # Required modules
 
 # From the standard library
-import os,sys
+import os
+import sys
 from pprint import pprint,pformat
 
 # Homebrewed

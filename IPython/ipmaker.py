@@ -6,7 +6,7 @@ Requires Python 2.1 or better.
 
 This file contains the main make_IPython() starter function.
 
-$Id: ipmaker.py 925 2005-11-15 20:39:39Z fperez $"""
+$Id: ipmaker.py 958 2005-12-27 23:17:51Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2004 Fernando Perez. <fperez@colorado.edu>
@@ -36,8 +36,12 @@ All Rights Reserved."""
 # Required modules
 
 # From the standard library
-import __main__, __builtin__
-import os,sys,types,re
+import __main__
+import __builtin__
+import os
+import re
+import sys
+import types
 from pprint import pprint,pformat
 
 # Our own

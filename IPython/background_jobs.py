@@ -18,7 +18,7 @@ http://folk.uio.no/hpl/scripting
 (although ultimately no code from this text was used, as IPython's system is a
 separate implementation).
 
-$Id: background_jobs.py 638 2005-07-18 03:01:41Z fperez $
+$Id: background_jobs.py 958 2005-12-27 23:17:51Z fperez $
 """
 
 #*****************************************************************************
@@ -33,7 +33,8 @@ __author__  = '%s <%s>' % Release.authors['Fernando']
 __license__ = Release.license
 
 # Code begins
-import threading,sys
+import sys
+import threading
 
 from IPython.ultraTB import AutoFormattedTB
 from IPython.genutils import warn,error

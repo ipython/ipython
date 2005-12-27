@@ -44,7 +44,7 @@ each time the instance is evaluated with str(instance).  For example:
     foo = "bar"
     print str(s)
 
-$Id: Itpl.py 638 2005-07-18 03:01:41Z fperez $
+$Id: Itpl.py 958 2005-12-27 23:17:51Z fperez $
 """                   # ' -> close an open quote for stupid emacs
 
 #*****************************************************************************
@@ -77,9 +77,10 @@ $Id: Itpl.py 638 2005-07-18 03:01:41Z fperez $
 __author__  = 'Ka-Ping Yee <ping@lfw.org>'
 __license__ = 'MIT'
 
-import sys, string
-from types import StringType
+import string
+import sys
 from tokenize import tokenprog
+from types import StringType
 
 class ItplError(ValueError):
     def __init__(self, text, pos):

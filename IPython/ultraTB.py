@@ -60,7 +60,7 @@ You can implement other color schemes easily, the syntax is fairly
 self-explanatory. Please send back new schemes you develop to the author for
 possible inclusion in future releases.
 
-$Id: ultraTB.py 954 2005-12-26 19:40:50Z fperez $"""
+$Id: ultraTB.py 958 2005-12-27 23:17:51Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001 Nathaniel Gray <n8gray@caltech.edu>
@@ -76,17 +76,24 @@ __author__  = '%s <%s>\n%s <%s>' % (Release.authors['Nathan']+
 __license__ = Release.license
 
 # Required modules
-import sys, os, traceback, types, string, time
-import keyword, tokenize, linecache, inspect, pydoc
-from UserDict import UserDict
+import inspect
+import keyword
+import linecache
+import os
+import pydoc
+import string
+import sys
+import time
+import tokenize
+import traceback
+import types
 
 # IPython's own modules
 # Modified pdb which doesn't damage IPython's readline handling
 from IPython import Debugger
-
 from IPython.Struct import Struct
-from IPython.genutils import Term,uniq_stable,error,info
 from IPython.excolors import ExceptionColors
+from IPython.genutils import Term,uniq_stable,error,info
 
 #---------------------------------------------------------------------------
 # Code begins

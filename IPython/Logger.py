@@ -2,7 +2,7 @@
 """
 Logger class for IPython's logging facilities.
 
-$Id: Logger.py 430 2004-11-30 08:52:05Z fperez $
+$Id: Logger.py 958 2005-12-27 23:17:51Z fperez $
 """
 
 #*****************************************************************************
@@ -22,7 +22,9 @@ __author__  = '%s <%s>\n%s <%s>' % \
 __license__ = Release.license
 
 # Python standard modules
-import os,sys,glob
+import glob
+import os
+import sys
 
 # Homebrewed
 from IPython.genutils import *

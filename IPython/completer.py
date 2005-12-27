@@ -77,10 +77,10 @@ from IPython.genutils import shlex_split
 
 __all__ = ['Completer','IPCompleter']
 
-def get_class_members(klass):
-    ret = dir(klass)
-    if hasattr(klass,'__bases__'):
-        for base in klass.__bases__:
+def get_class_members(cls):
+    ret = dir(cls)
+    if hasattr(cls,'__bases__'):
+        for base in cls.__bases__:
             ret.extend(get_class_members(base))
     return ret
 

@@ -6,7 +6,7 @@ Requires Python 2.1 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 957 2005-12-27 22:33:22Z fperez $
+$Id: iplib.py 958 2005-12-27 23:17:51Z fperez $
 """
 
 #*****************************************************************************
@@ -64,17 +64,14 @@ from pprint import pprint, pformat
 import IPython
 from IPython import OInspect,PyColorize,ultraTB
 from IPython.ColorANSI import ColorScheme,ColorSchemeTable  # too long names
+from IPython.FakeModule import FakeModule
+from IPython.Itpl import Itpl,itpl,printpl,ItplNS,itplns
 from IPython.Logger import Logger
 from IPython.Magic import Magic,magic2python
-from IPython.usage import cmd_line_usage,interactive_usage
 from IPython.Struct import Struct
-from IPython.Itpl import Itpl,itpl,printpl,ItplNS,itplns
-from IPython.FakeModule import FakeModule
 from IPython.background_jobs import BackgroundJobManager
-from IPython.PyColorize import Parser
+from IPython.usage import cmd_line_usage,interactive_usage
 from IPython.genutils import *
-
-# Global pointer to the running 
 
 # store the builtin raw_input globally, and use this always, in case user code
 # overwrites it (like wx.py.PyShell does)
@@ -396,12 +393,12 @@ class InteractiveShell(Logger, Magic):
         __builtin__.jobs = self.jobs
 
         # escapes for automatic behavior on the command line
-        self.ESC_SHELL = '!'
-        self.ESC_HELP  = '?'
-        self.ESC_MAGIC = '%'
-        self.ESC_QUOTE = ','
+        self.ESC_SHELL  = '!'
+        self.ESC_HELP   = '?'
+        self.ESC_MAGIC  = '%'
+        self.ESC_QUOTE  = ','
         self.ESC_QUOTE2 = ';'
-        self.ESC_PAREN = '/'
+        self.ESC_PAREN  = '/'
 
         # And their associated handlers
         self.esc_handlers = {self.ESC_PAREN:self.handle_auto,
@@ -421,7 +418,7 @@ class InteractiveShell(Logger, Magic):
         Magic.set_shell(self,self)
 
         # Python source parser/formatter for syntax highlighting
-        pyformat = Parser().format
+        pyformat = PyColorize.Parser().format
         self.pycolorize = lambda src: pyformat(src,'str',self.rc['colors'])
 
         # hooks holds pointers used for user-side customizations
@@ -553,9 +550,9 @@ class InteractiveShell(Logger, Magic):
         self.set_custom_exc(*custom_exceptions)
 
         # Object inspector
-        ins_colors = OInspect.InspectColors
-        code_colors = PyColorize.ANSICodeColors
-        self.inspector = OInspect.Inspector(ins_colors,code_colors,'NoColor')
+        self.inspector = OInspect.Inspector(OInspect.InspectColors,
+                                            PyColorize.ANSICodeColors,
+                                            'NoColor')
         self.autoindent = False
 
         # Make some aliases automatically
@@ -1440,8 +1437,7 @@ want to merge them back into the new files.""" % locals()
 
         """
         self.buffer.append(line)
-        source = "\n".join(self.buffer)
-        more = self.runsource(source, self.filename)
+        more = self.runsource('\n'.join(self.buffer), self.filename)
         if not more:
             self.resetbuffer()
         return more

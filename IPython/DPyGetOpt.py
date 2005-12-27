@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """DPyGetOpt -- Demiurge Python GetOptions Module
 
- $Id: DPyGetOpt.py 389 2004-10-09 07:59:30Z fperez $
+ $Id: DPyGetOpt.py 958 2005-12-27 23:17:51Z fperez $
 
 This module is modeled after perl's Getopt::Long module-- which
 is, in turn, modeled after GNU's extended getopt() function.
@@ -33,7 +33,7 @@ and -baz options that appear on within the parsed argument list
 must have a real number argument and that the accumulated list
 of values will be available under the name 'foo'
 
-$Id: DPyGetOpt.py 389 2004-10-09 07:59:30Z fperez $"""
+$Id: DPyGetOpt.py 958 2005-12-27 23:17:51Z fperez $"""
 
 #*****************************************************************************
 #
@@ -69,8 +69,8 @@ __version__ = '1.2'
 # Modified to use re instead of regex and regsub modules.
 # 2001/5/7, Jonathan Hogg <jonathan@onegoodidea.com>
 
-import string
 import re
+import string
 import sys
 import types
 

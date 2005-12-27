@@ -28,15 +28,20 @@
     scan Python source code and re-emit it with no changes to its original
     formatting (which is the hard part).
 
-    $Id: PyColorize.py 485 2005-01-27 19:15:39Z fperez $"""
+    $Id: PyColorize.py 958 2005-12-27 23:17:51Z fperez $"""
 
 __all__ = ['ANSICodeColors','Parser']
 
 _scheme_default = 'Linux'
 
 # Imports
-import string, sys, os, cStringIO
-import keyword, token, tokenize
+import cStringIO
+import keyword
+import os
+import string
+import sys
+import token
+import tokenize
 
 from IPython.ColorANSI import *
 

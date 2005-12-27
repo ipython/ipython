@@ -6,7 +6,7 @@ Uses syntax highlighting for presenting the various information elements.
 Similar in spirit to the inspect module, but all calls take a name argument to
 reference the name under which an object is being read.
 
-$Id: OInspect.py 923 2005-11-15 08:51:15Z fperez $
+$Id: OInspect.py 958 2005-12-27 23:17:51Z fperez $
 """
 
 #*****************************************************************************
@@ -24,13 +24,17 @@ __all__ = ['Inspector','InspectColors']
 
 # stdlib modules
 import __builtin__
-import inspect,linecache,types,StringIO,string
+import inspect
+import linecache
+import string
+import StringIO
+import types
 
 # IPython's own
 from IPython import PyColorize
+from IPython.genutils import page,indent,Term,mkdict
 from IPython.Itpl import itpl
 from IPython.wildcard import list_namespace
-from IPython.genutils import page,indent,Term,mkdict
 from IPython.ColorANSI import *
 
 #****************************************************************************

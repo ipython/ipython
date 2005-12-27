@@ -2,7 +2,7 @@
 """
 Classes for handling input/output prompts.
 
-$Id: Prompts.py 951 2005-12-25 00:57:24Z fperez $"""
+$Id: Prompts.py 958 2005-12-27 23:17:51Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2004 Fernando Perez <fperez@colorado.edu>
@@ -19,7 +19,9 @@ __version__ = Release.version
 #****************************************************************************
 # Required modules
 import __builtin__
-import os,sys,socket
+import os
+import socket
+import sys
 import time
 from pprint import pprint,pformat
 

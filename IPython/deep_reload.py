@@ -12,7 +12,7 @@ Alternatively, you can add a dreload builtin alongside normal reload with:
     
 This code is almost entirely based on knee.py from the standard library.
 
-$Id: deep_reload.py 410 2004-11-04 07:58:17Z fperez $"""
+$Id: deep_reload.py 958 2005-12-27 23:17:51Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001 Nathaniel Gray <n8gray@caltech.edu>
@@ -27,7 +27,9 @@ __license__ = Release.license
 __version__ = "0.5"
 __date__    = "21 August 2001"
 
-import sys, imp, __builtin__
+import __builtin__
+import imp
+import sys
 
 # Replacement for __import__()
 def deep_import_hook(name, globals=None, locals=None, fromlist=None):

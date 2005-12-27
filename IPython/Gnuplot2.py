@@ -13,14 +13,19 @@ Gnuplot, so it should be safe to do:
 
 import IPython.Gnuplot2 as Gnuplot
 
-$Id: Gnuplot2.py 392 2004-10-09 22:01:51Z fperez $"""
+$Id: Gnuplot2.py 958 2005-12-27 23:17:51Z fperez $"""
 
-import string,os,time,types
 import cStringIO
+import os
+import string
 import sys
 import tempfile
-import Numeric
+import time
+import types
+
 import Gnuplot as Gnuplot_ori
+import Numeric
+
 from IPython.genutils import popkey,xsys
 
 # needed by hardcopy():

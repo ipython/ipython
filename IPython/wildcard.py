@@ -16,11 +16,11 @@ __author__  = "Jörgen Stenarson <jorgen.stenarson@bostream.nu>"
 __license__ = Release.license
 
 import __builtin__
-import types
-import re
-import pprint
 import exceptions
 import pdb
+import pprint
+import re
+import types
 
 def create_typestr2type_dicts(dont_include_in_type2type2str=["lambda"]):
     """Return dictionaries mapping lower case typename to type objects, from

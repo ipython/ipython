@@ -5,7 +5,7 @@ A set of convenient utilities for numerical work.
 Most of this module requires Numerical Python or is meant to be used with it.
 See http://www.pfdubois.com/numpy for details.
 
-$Id: numutils.py 486 2005-01-27 19:34:21Z fperez $"""
+$Id: numutils.py 958 2005-12-27 23:17:51Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2005 Fernando Perez <fperez@colorado.edu>
@@ -29,8 +29,10 @@ __all__ = ['sum_flat','mean_flat','rms_flat','base_repr','binary_repr',
 #****************************************************************************
 # required modules
 import __main__
-import sys,operator
 import math
+import operator
+import sys
+
 import Numeric
 from Numeric import *
 

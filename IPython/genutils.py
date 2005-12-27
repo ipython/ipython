@@ -5,7 +5,7 @@ General purpose utilities.
 This is a grab-bag of stuff I find useful in most programs I write. Some of
 these things are also convenient when working at the command line.
 
-$Id: genutils.py 908 2005-09-26 16:05:48Z fperez $"""
+$Id: genutils.py 958 2005-12-27 23:17:51Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2004 Fernando Perez. <fperez@colorado.edu>
@@ -21,11 +21,19 @@ __author__  = '%s <%s>' % Release.authors['Fernando']
 __license__ = Release.license
 
 #****************************************************************************
-# required modules
+# required modules from the Python standard library
 import __main__
-import types,commands,time,sys,os,re,shutil
+import commands
+import os
+import re
 import shlex
+import shutil
+import sys
 import tempfile
+import time
+import types
+
+# Other IPython utilities
 from IPython.Itpl import Itpl,itpl,printpl
 from IPython import DPyGetOpt
 

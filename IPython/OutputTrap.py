@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Class to trap stdout and stderr and log them separately.
 
-$Id: OutputTrap.py 542 2005-03-18 09:16:04Z fperez $"""
+$Id: OutputTrap.py 958 2005-12-27 23:17:51Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2004 Fernando Perez <fperez@colorado.edu>
@@ -14,7 +14,8 @@ from IPython import Release
 __author__  = '%s <%s>' % Release.authors['Fernando']
 __license__ = Release.license
 
-import exceptions,sys
+import exceptions
+import sys
 from cStringIO import StringIO
 
 class OutputTrapError(exceptions.Exception):

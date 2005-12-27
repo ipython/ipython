@@ -4,7 +4,7 @@
 All the matplotlib support code was co-developed with John Hunter,
 matplotlib's author.
 
-$Id: Shell.py 952 2005-12-26 17:51:33Z fperez $"""
+$Id: Shell.py 958 2005-12-27 23:17:51Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2004 Fernando Perez <fperez@colorado.edu>
@@ -20,19 +20,18 @@ __license__ = Release.license
 # Code begins
 import __main__
 import __builtin__
-import sys
 import os
-import code
-import threading
+import sys
 import signal
+import threading
 
 import IPython
+from IPython import ultraTB
+from IPython.genutils import Term,warn,error,flag_calls
 from IPython.iplib import InteractiveShell
 from IPython.ipmaker import make_IPython
-from IPython.genutils import Term,warn,error,flag_calls
-from IPython.Struct import Struct
 from IPython.Magic import Magic
-from IPython import ultraTB
+from IPython.Struct import Struct
 
 # global flag to pass around information about Ctrl-C without exceptions
 KBINT = False

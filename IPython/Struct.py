@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Mimic C structs with lots of extra functionality.
 
-$Id: Struct.py 638 2005-07-18 03:01:41Z fperez $"""
+$Id: Struct.py 958 2005-12-27 23:17:51Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2004 Fernando Perez <fperez@colorado.edu>
@@ -17,6 +17,7 @@ __license__ = Release.license
 __all__ = ['Struct']
 
 import types
+
 from IPython.genutils import list2dict2
 
 class Struct:
