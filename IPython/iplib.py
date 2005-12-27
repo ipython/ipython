@@ -6,21 +6,23 @@ Requires Python 2.1 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 955 2005-12-27 07:50:29Z fperez $
+$Id: iplib.py 957 2005-12-27 22:33:22Z fperez $
 """
 
 #*****************************************************************************
 #       Copyright (C) 2001 Janko Hauser <jhauser@zscout.de> and
-#       Copyright (C) 2001-2004 Fernando Perez. <fperez@colorado.edu>
+#       Copyright (C) 2001-2005 Fernando Perez. <fperez@colorado.edu>
 #
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
 #
 # Note: this code originally subclassed code.InteractiveConsole from the
-# Python standard library.  Over time, much of that class has been copied
+# Python standard library.  Over time, all of that class has been copied
 # verbatim here for modifications which could not be accomplished by
-# subclassing.  The Python License (sec. 2) allows for this, but it's always
-# nice to acknowledge credit where credit is due.
+# subclassing.  At this point, there are no dependencies at all on the code
+# module anymore (it is not even imported).  The Python License (sec. 2)
+# allows for this, but it's always nice to acknowledge credit where credit is
+# due.
 #*****************************************************************************
 
 #****************************************************************************
@@ -37,26 +39,33 @@ __version__ = Release.version
 # Python standard modules
 import __main__
 import __builtin__
+import bdb
+import codeop
+import cPickle as pickle
 import exceptions
+import glob
+import inspect
 import keyword
 import new
-import os, sys, shutil
-import code, glob, types, re
-import string, StringIO
-import inspect, pydoc
-import bdb, pdb
-import UserList # don't subclass list so this works with Python2.1
-from pprint import pprint, pformat
-import cPickle as pickle
+import os
+import pdb
+import pydoc
+import re
+import shutil
+import string
+import StringIO
+import sys
 import traceback
-from codeop import CommandCompiler
+import types
+
+from pprint import pprint, pformat
 
 # IPython's own modules
 import IPython
 from IPython import OInspect,PyColorize,ultraTB
 from IPython.ColorANSI import ColorScheme,ColorSchemeTable  # too long names
 from IPython.Logger import Logger
-from IPython.Magic import Magic,magic2python,shlex_split
+from IPython.Magic import Magic,magic2python
 from IPython.usage import cmd_line_usage,interactive_usage
 from IPython.Struct import Struct
 from IPython.Itpl import Itpl,itpl,printpl,ItplNS,itplns
@@ -73,8 +82,6 @@ raw_input_original = raw_input
 
 #****************************************************************************
 # Some utility function definitions
-
-class Bunch: pass
 
 def esc_quotes(strng):
     """Return the input string with single and double quotes escaped out"""
@@ -163,340 +170,32 @@ def ipalias(arg_s):
     else:
         error("Alias `%s` not found." % alias_name)
 
-#-----------------------------------------------------------------------------
+def softspace(file, newvalue):
+    """Copied from code.py, to remove the dependency"""
+    oldvalue = 0
+    try:
+        oldvalue = file.softspace
+    except AttributeError:
+        pass
+    try:
+        file.softspace = newvalue
+    except (AttributeError, TypeError):
+        # "attribute-less object" or "read-only attributes"
+        pass
+    return oldvalue
+
+
+#****************************************************************************
+# Local use exceptions
+class SpaceInInput(exceptions.Exception): pass
+
+class IPythonExit(exceptions.Exception): pass
+
+#****************************************************************************
 # Local use classes
-try:
-    from IPython import FlexCompleter
+class Bunch: pass
 
-    class MagicCompleter(FlexCompleter.Completer):
-        """Extension of the completer class to work on %-prefixed lines."""
-
-        def __init__(self,shell,namespace=None,global_namespace=None,
-                     omit__names=0,alias_table=None):
-            """MagicCompleter() -> completer
-
-            Return a completer object suitable for use by the readline library
-            via readline.set_completer().
-
-            Inputs:
-
-            - shell: a pointer to the ipython shell itself.  This is needed
-            because this completer knows about magic functions, and those can
-            only be accessed via the ipython instance.
-
-            - namespace: an optional dict where completions are performed.
-
-            - global_namespace: secondary optional dict for completions, to
-            handle cases (such as IPython embedded inside functions) where
-            both Python scopes are visible.
-            
-            - The optional omit__names parameter sets the completer to omit the
-            'magic' names (__magicname__) for python objects unless the text
-            to be completed explicitly starts with one or more underscores.
-
-            - If alias_table is supplied, it should be a dictionary of aliases
-            to complete. """
-
-            FlexCompleter.Completer.__init__(self,namespace)
-            self.magic_prefix = shell.name+'.magic_'
-            self.magic_escape = shell.ESC_MAGIC
-            self.readline = FlexCompleter.readline
-            delims = self.readline.get_completer_delims()
-            delims = delims.replace(self.magic_escape,'')
-            self.readline.set_completer_delims(delims)
-            self.get_line_buffer = self.readline.get_line_buffer
-            self.omit__names = omit__names
-            self.merge_completions = shell.rc.readline_merge_completions
-            
-            if alias_table is None:
-                alias_table = {}
-            self.alias_table = alias_table
-            # Regexp to split filenames with spaces in them
-            self.space_name_re = re.compile(r'([^\\] )')
-            # Hold a local ref. to glob.glob for speed
-            self.glob = glob.glob
-            # Special handling of backslashes needed in win32 platforms
-            if sys.platform == "win32":
-                self.clean_glob = self._clean_glob_win32
-            else:
-                self.clean_glob = self._clean_glob
-            self.matchers = [self.python_matches,
-                             self.file_matches,
-                             self.alias_matches,
-                             self.python_func_kw_matches]
-
-        # Code contributed by Alex Schmolck, for ipython/emacs integration
-        def all_completions(self, text):
-            """Return all possible completions for the benefit of emacs."""
-            
-            completions = []
-            comp_append = completions.append
-            try:
-                for i in xrange(sys.maxint):
-                    res = self.complete(text, i)
-
-                    if not res: break
-
-                    comp_append(res)
-            #XXX workaround for ``notDefined.<tab>``
-            except NameError:
-                pass
-            return completions
-        # /end Alex Schmolck code.
-
-        def _clean_glob(self,text):
-            return self.glob("%s*" % text)
-            
-        def _clean_glob_win32(self,text):
-            return [f.replace("\\","/")
-                    for f in self.glob("%s*" % text)]            
-
-        def file_matches(self, text):
-            """Match filneames, expanding ~USER type strings.
-
-            Most of the seemingly convoluted logic in this completer is an
-            attempt to handle filenames with spaces in them.  And yet it's not
-            quite perfect, because Python's readline doesn't expose all of the
-            GNU readline details needed for this to be done correctly.
-
-            For a filename with a space in it, the printed completions will be
-            only the parts after what's already been typed (instead of the
-            full completions, as is normally done).  I don't think with the
-            current (as of Python 2.3) Python readline it's possible to do
-            better."""
-            
-            #print 'Completer->file_matches: <%s>' % text # dbg
-
-            # chars that require escaping with backslash - i.e. chars
-            # that readline treats incorrectly as delimiters, but we
-            # don't want to treat as delimiters in filename matching
-            # when escaped with backslash
-            
-            protectables = ' ()[]{}'
-
-            def protect_filename(s):
-                return "".join([(ch in protectables and '\\' + ch or ch)
-                                for ch in s])
-
-            lbuf = self.get_line_buffer()[:self.readline.get_endidx()]
-            open_quotes = 0  # track strings with open quotes
-            try:
-                lsplit = shlex_split(lbuf)[-1]
-            except ValueError:
-                # typically an unmatched ", or backslash without escaped char.
-                if lbuf.count('"')==1:
-                    open_quotes = 1
-                    lsplit = lbuf.split('"')[-1]
-                elif lbuf.count("'")==1:
-                    open_quotes = 1
-                    lsplit = lbuf.split("'")[-1]
-                else:
-                    return None
-            except IndexError:
-                # tab pressed on empty line
-                lsplit = ""
-
-            if lsplit != protect_filename(lsplit):
-                # if protectables are found, do matching on the whole escaped
-                # name
-                has_protectables = 1
-                text0,text = text,lsplit
-            else:
-                has_protectables = 0
-                text = os.path.expanduser(text)
-            
-            if text == "":
-                return [protect_filename(f) for f in self.glob("*")]
-
-            m0 = self.clean_glob(text.replace('\\',''))
-            if has_protectables:
-                # If we had protectables, we need to revert our changes to the
-                # beginning of filename so that we don't double-write the part
-                # of the filename we have so far
-                len_lsplit = len(lsplit)
-                matches = [text0 + protect_filename(f[len_lsplit:]) for f in m0]
-            else:
-                if open_quotes:
-                    # if we have a string with an open quote, we don't need to
-                    # protect the names at all (and we _shouldn't_, as it
-                    # would cause bugs when the filesystem call is made).
-                    matches = m0
-                else:
-                    matches = [protect_filename(f) for f in m0]
-            if len(matches) == 1 and os.path.isdir(matches[0]):
-                # Takes care of links to directories also.  Use '/'
-                # explicitly, even under Windows, so that name completions
-                # don't end up escaped.
-                matches[0] += '/'
-            return matches
-
-        def alias_matches(self, text):
-            """Match internal system aliases"""
-            #print 'Completer->alias_matches:',text # dbg
-            text = os.path.expanduser(text)
-            aliases =  self.alias_table.keys()
-            if text == "":
-                return aliases
-            else:
-                return [alias for alias in aliases if alias.startswith(text)]
-            
-        def python_matches(self,text):
-            """Match attributes or global python names"""
-            #print 'Completer->python_matches' # dbg
-            if "." in text:
-                try:
-                    matches = self.attr_matches(text)
-                    if text.endswith('.') and self.omit__names:
-                        if self.omit__names == 1:
-                            # true if txt is _not_ a __ name, false otherwise:
-                            no__name = (lambda txt:
-                                        re.match(r'.*\.__.*?__',txt) is None)
-                        else:
-                            # true if txt is _not_ a _ name, false otherwise:
-                            no__name = (lambda txt:
-                                        re.match(r'.*\._.*?',txt) is None)
-                        matches = filter(no__name, matches)
-                except NameError:
-                    # catches <undefined attributes>.<tab>
-                    matches = []
-            else:
-                matches = self.global_matches(text)
-                # this is so completion finds magics when automagic is on:
-                if matches == [] and not text.startswith(os.sep):
-                    matches = self.attr_matches(self.magic_prefix+text)
-            return matches
-
-        def _default_arguments(self, obj):
-            """Return the list of default arguments of obj if it is callable,
-            or empty list otherwise."""
-            
-            if not (inspect.isfunction(obj) or inspect.ismethod(obj)):
-                # for classes, check for __init__,__new__
-                if inspect.isclass(obj):
-                    obj = (getattr(obj,'__init__',None) or
-                           getattr(obj,'__new__',None))
-                # for all others, check if they are __call__able
-                elif hasattr(obj, '__call__'):
-                    obj = obj.__call__
-                # XXX: is there a way to handle the builtins ?
-            try:
-                args,_,_1,defaults = inspect.getargspec(obj)
-                if defaults:
-                    return args[-len(defaults):]
-            except TypeError: pass
-            return []
-
-        def python_func_kw_matches(self,text):
-            """Match named parameters (kwargs) of the last open function"""
-
-            if "." in text: # a parameter cannot be dotted
-                return []
-            try: regexp = self.__funcParamsRegex
-            except AttributeError:
-                regexp = self.__funcParamsRegex = re.compile(r'''
-                    '.*?' |    # single quoted strings or
-                    ".*?" |    # double quoted strings or
-                    \w+   |    # identifier
-                    \S         # other characters
-                    ''', re.VERBOSE | re.DOTALL)
-            # 1. find the nearest identifier that comes before an unclosed
-            # parenthesis e.g. for "foo (1+bar(x), pa", the candidate is "foo"
-            tokens = regexp.findall(self.get_line_buffer())
-            tokens.reverse()
-            iterTokens = iter(tokens); openPar = 0
-            for token in iterTokens:
-                if token == ')':
-                    openPar -= 1
-                elif token == '(':
-                    openPar += 1
-                    if openPar > 0:
-                        # found the last unclosed parenthesis
-                        break
-            else:
-                return []
-            # 2. Concatenate any dotted names (e.g. "foo.bar" for "foo.bar(x, pa" )
-            ids = []
-            isId = re.compile(r'\w+$').match
-            while True:
-                try:
-                    ids.append(iterTokens.next())
-                    if not isId(ids[-1]):
-                        ids.pop(); break
-                    if not iterTokens.next() == '.':
-                        break
-                except StopIteration:
-                    break
-            # lookup the candidate callable matches either using global_matches
-            # or attr_matches for dotted names
-            if len(ids) == 1:
-                callableMatches = self.global_matches(ids[0])
-            else:
-                callableMatches = self.attr_matches('.'.join(ids[::-1]))
-            argMatches = []
-            for callableMatch in callableMatches:
-                try: namedArgs = self._default_arguments(eval(callableMatch,
-                                                             self.namespace))
-                except: continue
-                for namedArg in namedArgs:
-                    if namedArg.startswith(text):
-                        argMatches.append("%s=" %namedArg)
-            return argMatches
-
-        def complete(self, text, state):
-            """Return the next possible completion for 'text'.
-
-            This is called successively with state == 0, 1, 2, ... until it
-            returns None.  The completion should begin with 'text'.  """
-
-            #print '\n*** COMPLETE: <%s> (%s)' % (text,state)  # dbg
-
-            # if there is only a tab on a line with only whitespace, instead
-            # of the mostly useless 'do you want to see all million
-            # completions' message, just do the right thing and give the user
-            # his tab!  Incidentally, this enables pasting of tabbed text from
-            # an editor (as long as autoindent is off).
-            if not self.get_line_buffer().strip():
-                self.readline.insert_text('\t')
-                return None
-            
-            magic_escape = self.magic_escape
-            magic_prefix = self.magic_prefix
-            
-            try:
-                if text.startswith(magic_escape):
-                    text = text.replace(magic_escape,magic_prefix)
-                elif text.startswith('~'):
-                    text = os.path.expanduser(text)
-                if state == 0:
-                    # Extend the list of completions with the results of each
-                    # matcher, so we return results to the user from all
-                    # namespaces.
-                    if self.merge_completions:
-                        self.matches = []
-                        for matcher in self.matchers:
-                            self.matches.extend(matcher(text))
-                    else:
-                        for matcher in self.matchers:
-                            self.matches = matcher(text)
-                            if self.matches:
-                                break
-                        
-                try:
-                    return self.matches[state].replace(magic_prefix,magic_escape)
-                except IndexError:
-                    return None
-            except:
-                # If completion fails, don't annoy the user.
-                return None
-
-except ImportError:
-    pass  # no readline support
-
-except KeyError:
-    pass  # Windows doesn't set TERM, it doesn't matter
-
-
-class InputList(UserList.UserList):
+class InputList(list):
     """Class to store user input.
 
     It's basically a list, but slices return a string instead of a list, thus
@@ -509,17 +208,11 @@ class InputList(UserList.UserList):
     exec In[5:9] + In[14] + In[21:25]"""
 
     def __getslice__(self,i,j):
-        return ''.join(UserList.UserList.__getslice__(self,i,j))
-
-#****************************************************************************
-# Local use exceptions
-class SpaceInInput(exceptions.Exception):
-    pass
+        return ''.join(list.__getslice__(self,i,j))
 
 #****************************************************************************
 # Main IPython class
-
-class InteractiveShell(code.InteractiveConsole, Logger, Magic):
+class InteractiveShell(Logger, Magic):
     """An enhanced console for Python."""
 
     def __init__(self,name,usage=None,rc=Struct(opts=None,args=None),
@@ -543,17 +236,20 @@ class InteractiveShell(code.InteractiveConsole, Logger, Magic):
         # which also gives us a way to determine the nesting level.
         __builtin__.__dict__.setdefault('__IPYTHON__active',0)
 
-        # Inform the user of ipython's fast exit magics.
-        _exit = ' Use %Exit or %Quit to exit without confirmation.'
-        __builtin__.exit += _exit
-        __builtin__.quit += _exit
+        # Do the intuitively correct thing for quit/exit: we remove the
+        # builtins if they exist, and our own prefilter routine will handle
+        # these special cases
+        try:
+            del __builtin__.exit, __builtin__.quit
+        except AttributeError:
+            pass
 
         # We need to know whether the instance is meant for embedding, since
         # global/local namespaces need to be handled differently in that case
         self.embedded = embedded
 
         # compiler command
-        self.compile = CommandCompiler()
+        self.compile = codeop.CommandCompiler()
 
         # User input buffer
         self.buffer = []
@@ -589,10 +285,10 @@ class InteractiveShell(code.InteractiveConsole, Logger, Magic):
 
         # Well, it's documented that '__builtins__' can be either a dictionary
         # or a module, and it's been that way for a long time. Whether it's
-        # intentional (or sensible), I don't know. In any case, the idea is that
-        # if you need to access the built-in namespace directly, you should start
-        # with "import __builtin__" (note, no 's') which will definitely give you
-        # a module. Yeah, it's somewhat confusing:-(.
+        # intentional (or sensible), I don't know. In any case, the idea is
+        # that if you need to access the built-in namespace directly, you
+        # should start with "import __builtin__" (note, no 's') which will
+        # definitely give you a module. Yeah, it's somewhat confusing:-(.
         
         if user_ns is None:
             # Set __name__ to __main__ to better match the behavior of the
@@ -668,7 +364,7 @@ class InteractiveShell(code.InteractiveConsole, Logger, Magic):
         # dict of output history
         self.output_hist = {}
 
-        # dict of things NOT to alias (keywords, builtins and some special magics)
+        # dict of things NOT to alias (keywords, builtins and some magics)
         no_alias = {}
         no_alias_magics = ['cd','popd','pushd','dhist','alias','unalias']
         for key in keyword.kwlist + no_alias_magics:
@@ -762,7 +458,7 @@ class InteractiveShell(code.InteractiveConsole, Logger, Magic):
         self.tempfiles = []
 
         # Keep track of readline usage (later set by init_readline)
-        self.has_readline = 0
+        self.has_readline = False
 
         # for pushd/popd management
         try:
@@ -816,6 +512,7 @@ class InteractiveShell(code.InteractiveConsole, Logger, Magic):
         self.re_fun_name = re.compile(r'[a-zA-Z_]([a-zA-Z0-9_.]*) *$')
         # RegExp to exclude strings with this start from autocalling
         self.re_exclude_auto = re.compile('^[!=()<>,\*/\+-]|^is ')
+
         # try to catch also methods for stuff in lists/tuples/dicts: off
         # (experimental). For this to work, the line_split regexp would need
         # to be modified so it wouldn't break things at '['. That line is
@@ -826,7 +523,7 @@ class InteractiveShell(code.InteractiveConsole, Logger, Magic):
         self.starting_dir = os.getcwd()
 
         # Attributes for Logger mixin class, make defaults here
-        self._dolog = 0
+        self._dolog = False
         self.LOG = ''
         self.LOGDEF = '.InteractiveShell.log'
         self.LOGMODE = 'over'
@@ -859,7 +556,7 @@ class InteractiveShell(code.InteractiveConsole, Logger, Magic):
         ins_colors = OInspect.InspectColors
         code_colors = PyColorize.ANSICodeColors
         self.inspector = OInspect.Inspector(ins_colors,code_colors,'NoColor')
-        self.autoindent = 0
+        self.autoindent = False
 
         # Make some aliases automatically
         # Prepare list of shell aliases to auto-define
@@ -1015,8 +712,8 @@ class InteractiveShell(code.InteractiveConsole, Logger, Magic):
         if rc.readline:
             self.init_readline()
 
-        # Set user colors (don't do it in the constructor above so that it doesn't
-        # crash if colors option is invalid)
+        # Set user colors (don't do it in the constructor above so that it
+        # doesn't crash if colors option is invalid)
         self.magic_colors(rc.colors)
 
         # Load user aliases
@@ -1257,28 +954,23 @@ want to merge them back into the new files.""" % locals()
         """Command history completion/saving/reloading."""
         try:
             import readline
-            self.Completer = MagicCompleter(self,
-                                            self.user_ns,
-                                            self.user_global_ns,
-                                            self.rc.readline_omit__names,
-                                            self.alias_table)
-        except ImportError,NameError:
-            # If FlexCompleter failed to import, MagicCompleter won't be 
-            # defined.  This can happen because of a problem with readline
+        except ImportError:
             self.has_readline = 0
+            self.readline = None
             # no point in bugging windows users with this every time:
             if os.name == 'posix':
                 warn('Readline services not available on this platform.')
         else:
             import atexit
+            from IPython.completer import IPCompleter
+            self.Completer = IPCompleter(self,
+                                            self.user_ns,
+                                            self.user_global_ns,
+                                            self.rc.readline_omit__names,
+                                            self.alias_table)
 
             # Platform-specific configuration
             if os.name == 'nt':
-                # readline under Windows modifies the default exit behavior
-                # from being Ctrl-Z/Return to the Unix Ctrl-D one.
-                __builtin__.exit = __builtin__.quit = \
-                     ('Use Ctrl-D (i.e. EOF) to exit. '
-                      'Use %Exit or %Quit to exit without confirmation.')
                 self.readline_startup_hook = readline.set_pre_input_hook
             else:
                 self.readline_startup_hook = readline.set_startup_hook
@@ -1386,7 +1078,7 @@ want to merge them back into the new files.""" % locals()
         """puts line into cache"""
         self.inputcache.insert(0, line) # This copies the cache every time ... :-(
         if len(self.inputcache) >= self.CACHELENGTH:
-            self.inputcache.pop()    # This not :-)
+            self.inputcache.pop()    # This doesn't :-)
 
     def mainloop(self,banner=None):
         """Creates the local namespace and starts the mainloop.
@@ -1504,11 +1196,9 @@ want to merge them back into the new files.""" % locals()
                     if self.autoindent:
                         self.readline_startup_hook(None)
                     self.write("\n")
-                    if self.rc.confirm_exit:
-                        if ask_yes_no('Do you really want to exit ([y]/n)?','y'):
-                            break
-                    else:
-                        break
+                    self.exit()
+                except IPythonExit:
+                    self.exit()
                 else:
                     more = self.push(line)
                     # Auto-indent management
@@ -1720,7 +1410,8 @@ want to merge them back into the new files.""" % locals()
         except SystemExit:
             self.resetbuffer()
             self.showtraceback()
-            warn( __builtin__.exit,level=1)
+            warn("Type exit or quit to exit IPython "
+                 "(%Exit or %Quit do so unconditionally).",level=1)
         except self.custom_exceptions:
             etype,value,tb = sys.exc_info()
             self.CustomTB(etype,value,tb)
@@ -1728,11 +1419,36 @@ want to merge them back into the new files.""" % locals()
             self.showtraceback()
         else:
             outflag = 0
-            if code.softspace(sys.stdout, 0):
+            if softspace(sys.stdout, 0):
                 print
         # Flush out code object which has been run (and source)
         self.code_to_run = None
         return outflag
+        
+    def push(self, line):
+        """Push a line to the interpreter.
+
+        The line should not have a trailing newline; it may have
+        internal newlines.  The line is appended to a buffer and the
+        interpreter's runsource() method is called with the
+        concatenated contents of the buffer as source.  If this
+        indicates that the command was executed or invalid, the buffer
+        is reset; otherwise, the command is incomplete, and the buffer
+        is left as it was after the line was appended.  The return
+        value is 1 if more input is required, 0 if the line was dealt
+        with in some way (this is the same as runsource()).
+
+        """
+        self.buffer.append(line)
+        source = "\n".join(self.buffer)
+        more = self.runsource(source, self.filename)
+        if not more:
+            self.resetbuffer()
+        return more
+
+    def resetbuffer(self):
+        """Reset the input buffer."""
+        self.buffer[:] = []
 
     def raw_input(self,prompt='',continue_prompt=False):
         """Write a prompt and read a line.
@@ -1871,6 +1587,8 @@ want to merge them back into the new files.""" % locals()
             oinfo = self._ofind(iFun) # FIXME - _ofind is part of Magic
         
         if not oinfo['found']:
+            if iFun in ('quit','exit'):
+                raise IPythonExit
             return self.handle_normal(line,continue_prompt)
         else:
             #print 'iFun <%s> rest <%s>' % (iFun,theRest) # dbg
@@ -2008,7 +1726,7 @@ want to merge them back into the new files.""" % locals()
         # We need to make sure that we don't process lines which would be
         # otherwise valid python, such as "x=1 # what?"
         try:
-            code.compile_command(line)
+            codeop.compile_command(line)
         except SyntaxError:
             # We should only handle as help stuff which is NOT valid syntax
             if line[0]==self.ESC_HELP:
@@ -2047,6 +1765,18 @@ want to merge them back into the new files.""" % locals()
     def write_err(self,data):
         """Write a string to the default error output"""
         Term.cerr.write(data)
+
+    def exit(self):
+        """Handle interactive exit.
+
+        This method sets the exit_now attribute."""
+
+        if self.rc.confirm_exit:
+            if ask_yes_no('Do you really want to exit ([y]/n)?','y'):
+                self.exit_now = True
+        else:
+            self.exit_now = True
+        return self.exit_now
 
     def safe_execfile(self,fname,*where,**kw):
         fname = os.path.expanduser(fname)
@@ -2134,9 +1864,9 @@ want to merge them back into the new files.""" % locals()
                 sys.stdout = stdout_save
             print 'Finished replaying log file <%s>' % fname
             if badblocks:
-                print >> sys.stderr, \
-                      '\nThe following lines/blocks in file <%s> reported errors:' \
-                      % fname
+                print >> sys.stderr, ('\nThe following lines/blocks in file '
+                                      '<%s> reported errors:' % fname)
+                    
                 for badline in badblocks:
                     print >> sys.stderr, badline
         else:  # regular file execution

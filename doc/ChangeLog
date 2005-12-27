@@ -1,5 +1,9 @@
 2005-12-27  Fernando Perez  <Fernando.Perez@colorado.edu>
 
+	* IPython/completer.py (MagicCompleter.__init__): new 'completer'
+	module to better organize all readline-related functionality.
+	I've deleted FlexCompleter and put all completion clases here.
+
 	* IPython/iplib.py (raw_input): improve indentation management.
 	It is now possible to paste indented code with autoindent on, and
 	the code is interpreted correctly (though it still looks bad on
@@ -9,6 +13,17 @@
 	on the entire global namespace.  This makes it easier to use the
 	TAB key for indentation.  After a request by Hans Meine
 	<hans_meine-AT-gmx.net>
+	(_prefilter): add support so that typing plain 'exit' or 'quit'
+	does a sensible thing.  Originally I tried to deviate as little as
+	possible from the default python behavior, but even that one may
+	change in this direction (thread on python-dev to that effect).
+	Regardless, ipython should do the right thing even if CPython's
+	'>>>' prompt doesn't.
+	(InteractiveShell): removed subclassing code.InteractiveConsole
+	class.  By now we'd overridden just about all of its methods: I've
+	copied the remaining two over, and now ipython is a standalone
+	class.  This will provide a clearer picture for the chainsaw
+	branch refactoring.
 
 2005-12-26  Fernando Perez  <Fernando.Perez@colorado.edu>
 
