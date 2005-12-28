@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Magic functions for InteractiveShell.
 
-$Id: Magic.py 962 2005-12-28 18:04:59Z fperez $"""
+$Id: Magic.py 965 2005-12-28 23:23:09Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001 Janko Hauser <jhauser@zscout.de> and
@@ -1049,14 +1049,21 @@ Currently the magic system has the following functions:\n"""
             try:
                 pdb = {'off':0,'0':0,'on':1,'1':1}[par]
             except KeyError:
-                print 'Incorrect argument. Use on/1, off/0 or nothing for a toggle.'
+                print 'Incorrect argument. Use on/1, off/0, or nothing for a toggle.'
                 return
             else:
                self.shell.InteractiveTB.call_pdb = pdb 
         else:
-            self.shell.InteractiveTB.call_pdb = 1 - self.shell.InteractiveTB.call_pdb
-        print 'Automatic pdb calling has been turned',\
-              on_off(self.shell.InteractiveTB.call_pdb)
+            new_pdb = not self.shell.InteractiveTB.call_pdb
+            self.shell.InteractiveTB.call_pdb = new_pdb
+            if self.shell.isthreaded:
+                try:
+                    self.sys_excepthook.call_pdb = new_pdb
+                except:
+                    warn('Failed to activate pdb for threaded exception handler')
+                
+        print 'Automatic pdb calling has been turned',on_off(new_pdb)
+
 
 
     def magic_prun(self, parameter_s ='',user_mode=1,
@@ -1895,12 +1902,23 @@ Currently the magic system has the following functions:\n"""
 
         If called without arguments, acts as a toggle."""
 
+        def xmode_switch_err(name):
+            warn('Error changing %s exception modes.\n%s' %
+                 (name,sys.exc_info()[1]))
+
         new_mode = parameter_s.strip().capitalize()
         try:
-            self.InteractiveTB.set_mode(mode = new_mode)
+            self.InteractiveTB.set_mode(mode=new_mode)
             print 'Exception reporting mode:',self.InteractiveTB.mode
         except:
-            warn('Error changing exception modes.\n' + str(sys.exc_info()[1]))
+            xmode_switch_err('user')
+
+        # threaded shells use a special handler in sys.excepthook
+        if self.isthreaded:
+            try:
+                self.shell.sys_excepthook.set_mode(mode=new_mode)
+            except:
+                xmode_switch_err('threaded')
             
     def magic_colors(self,parameter_s = ''):
         """Switch color scheme for prompts, info system and exception handlers.
@@ -1908,6 +1926,11 @@ Currently the magic system has the following functions:\n"""
         Currently implemented schemes: NoColor, Linux, LightBG.
 
         Color scheme names are not case-sensitive."""
+
+        def color_switch_err(name):
+            warn('Error changing %s color schemes.\n%s' %
+                 (name,sys.exc_info()[1]))
+            
         
         new_scheme = parameter_s.strip()
         if not new_scheme:
@@ -1943,8 +1966,7 @@ Defaulting color scheme to 'NoColor'"""
         try:
             self.shell.outputcache.set_colors(new_scheme)
         except:
-            warn('Error changing prompt color schemes.\n'
-                 + str(sys.exc_info()[1]))
+            color_switch_err('prompt')
         else:
             self.shell.rc.colors = \
                        self.shell.outputcache.color_table.active_scheme_name
@@ -1953,15 +1975,21 @@ Defaulting color scheme to 'NoColor'"""
             self.shell.InteractiveTB.set_colors(scheme = new_scheme)
             self.shell.SyntaxTB.set_colors(scheme = new_scheme)
         except:
-            warn('Error changing exception color schemes.\n'
-                 + str(sys.exc_info()[1]))
+            color_switch_err('exception')
+
+        # threaded shells use a verbose traceback in sys.excepthook
+        if self.isthreaded:
+            try:
+                self.shell.sys_excepthook.set_colors(scheme=new_scheme)
+            except:
+                color_switch_err('system exception handler')
+        
         # Set info (for 'object?') colors
         if self.shell.rc.color_info:
             try:
                 self.shell.inspector.set_active_scheme(new_scheme)
             except:
-                warn('Error changing object inspector color schemes.\n'
-                     + str(sys.exc_info()[1]))
+                color_switch_err('object inspector')
         else:
             self.shell.inspector.set_active_scheme('NoColor')
                 

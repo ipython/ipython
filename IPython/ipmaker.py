@@ -6,7 +6,7 @@ Requires Python 2.1 or better.
 
 This file contains the main make_IPython() starter function.
 
-$Id: ipmaker.py 964 2005-12-28 21:03:01Z fperez $"""
+$Id: ipmaker.py 965 2005-12-28 23:23:09Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2004 Fernando Perez. <fperez@colorado.edu>
@@ -94,15 +94,11 @@ def make_IPython(argv=None,user_ns=None,user_global_ns=None,debug=1,
     from site import _Helper
     IP.user_ns['help'] = _Helper()
 
+
     if DEVDEBUG:
         # For developer debugging only (global flag)
         from IPython import ultraTB
         sys.excepthook = ultraTB.VerboseTB(call_pdb=1)
-    else:
-        # IPython itself shouldn't crash. This will produce a detailed
-        # post-mortem if it does
-        from IPython import CrashHandler
-        sys.excepthook = CrashHandler.CrashHandler(IP)
 
     IP.BANNER_PARTS = ['Python %s\n'
                          'Type "copyright", "credits" or "license" '

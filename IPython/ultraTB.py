@@ -60,7 +60,7 @@ You can implement other color schemes easily, the syntax is fairly
 self-explanatory. Please send back new schemes you develop to the author for
 possible inclusion in future releases.
 
-$Id: ultraTB.py 958 2005-12-27 23:17:51Z fperez $"""
+$Id: ultraTB.py 965 2005-12-28 23:23:09Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001 Nathaniel Gray <n8gray@caltech.edu>
@@ -621,10 +621,10 @@ class VerboseTB(TBTools):
     # out the right info on its own.
     def __call__(self, etype=None, evalue=None, etb=None):
         """This hook can replace sys.excepthook (for Python 2.1 or higher)."""
-        if etb is not None:
-            self.handler((etype, evalue, etb))
-        else:
+        if etb is None:
             self.handler()
+        else:
+            self.handler((etype, evalue, etb))
         self.debugger()
 
 #----------------------------------------------------------------------------

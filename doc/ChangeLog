@@ -5,7 +5,19 @@
 	questions part 2 - \/ characters revisited' on the iypthon user
 	list:
 	http://scipy.net/pipermail/ipython-user/2005-June/000907.html
+
 	(InteractiveShell.__init__): fix tab-completion bug in threaded shells.
+
+	(InteractiveShell.__init__): change threaded shells to not use the
+	ipython crash handler.  This was causing more problems than not,
+	as exceptions in the main thread (GUI code, typically) would
+	always show up as a 'crash', when they really weren't.
+
+	The colors and exception mode commands (%colors/%xmode) have been
+	synchronized to also take this into account, so users can get
+	verbose exceptions for their threaded code as well.  I also added
+	support for activating pdb inside this exception handler as well,
+	so now GUI authors can use IPython's enhanced pdb at runtime.
 
 	* IPython/ipmaker.py (make_IPython): make the autoedit_syntax flag
 	true by default, and add it to the shipped ipythonrc file.  Since

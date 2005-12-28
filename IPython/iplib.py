@@ -6,7 +6,7 @@ Requires Python 2.1 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 964 2005-12-28 21:03:01Z fperez $
+$Id: iplib.py 965 2005-12-28 23:23:09Z fperez $
 """
 
 #*****************************************************************************
@@ -232,6 +232,10 @@ class SyntaxTB(ultraTB.ListTB):
 class InteractiveShell(Logger, Magic):
     """An enhanced console for Python."""
 
+    # class attribute to indicate whether the class supports threads or not.
+    # Subclasses with thread support should override this as needed.
+    isthreaded = False
+
     def __init__(self,name,usage=None,rc=Struct(opts=None,args=None),
                  user_ns = None,user_global_ns=None,banner2='',
                  custom_exceptions=((),None),embedded=False):
@@ -267,6 +271,9 @@ class InteractiveShell(Logger, Magic):
             del __builtin__.exit, __builtin__.quit
         except AttributeError:
             pass
+
+        # Store the actual shell's name
+        self.name = name
 
         # We need to know whether the instance is meant for embedding, since
         # global/local namespaces need to be handled differently in that case
@@ -404,9 +411,6 @@ class InteractiveShell(Logger, Magic):
         # user aliases to input and output histories
         self.user_ns['In']  = self.input_hist
         self.user_ns['Out'] = self.output_hist
-
-        # Store the actual shell's name
-        self.name = name
 
         # Object variable to store code object waiting execution.  This is
         # used mainly by the multithreaded shells, but it can come in handy in
@@ -565,14 +569,35 @@ class InteractiveShell(Logger, Magic):
         self.banner2 = banner2
 
         # TraceBack handlers:
-        # Need two, one for syntax errors and one for other exceptions.
+
+        # Syntax error handler.
         self.SyntaxTB = SyntaxTB(color_scheme='NoColor')
+        
         # The interactive one is initialized with an offset, meaning we always
         # want to remove the topmost item in the traceback, which is our own
         # internal code. Valid modes: ['Plain','Context','Verbose']
         self.InteractiveTB = ultraTB.AutoFormattedTB(mode = 'Plain',
                                                      color_scheme='NoColor',
                                                      tb_offset = 1)
+
+        # IPython itself shouldn't crash. This will produce a detailed
+        # post-mortem if it does.  But we only install the crash handler for
+        # non-threaded shells, the threaded ones use a normal verbose reporter
+        # and lose the crash handler.  This is because exceptions in the main
+        # thread (such as in GUI code) propagate directly to sys.excepthook,
+        # and there's no point in printing crash dumps for every user exception.
+        if self.isthreaded:
+            sys.excepthook = ultraTB.FormattedTB()
+        else:
+            from IPython import CrashHandler
+            sys.excepthook = CrashHandler.CrashHandler(self)
+
+        # The instance will store a pointer to this, so that runtime code
+        # (such as magics) can access it.  This is because during the
+        # read-eval loop, it gets temporarily overwritten (to deal with GUI
+        # frameworks).
+        self.sys_excepthook = sys.excepthook
+
         # and add any custom exception handlers the user may have specified
         self.set_custom_exc(*custom_exceptions)
 
@@ -618,6 +643,38 @@ class InteractiveShell(Logger, Magic):
         self.init_auto_alias()
     # end __init__
 
+    def post_config_initialization(self):
+        """Post configuration init method
+
+        This is called after the configuration files have been processed to
+        'finalize' the initialization."""
+
+        rc = self.rc
+        
+        # Load readline proper
+        if rc.readline:
+            self.init_readline()
+
+        # Set user colors (don't do it in the constructor above so that it
+        # doesn't crash if colors option is invalid)
+        self.magic_colors(rc.colors)
+
+        # Load user aliases
+        for alias in rc.alias:
+            self.magic_alias(alias)
+
+        # dynamic data that survives through sessions
+        # XXX make the filename a config option?
+        persist_base = 'persist'
+        if rc.profile:
+            persist_base += '_%s' % rc.profile
+        self.persist_fname =  os.path.join(rc.ipythondir,persist_base)
+
+        try:
+            self.persist = pickle.load(file(self.persist_fname))
+        except:
+            self.persist = {}
+            
     def set_hook(self,name,hook):
         """set_hook(name,hook) -> sets an internal IPython hook.
 
@@ -727,38 +784,6 @@ class InteractiveShell(Logger, Magic):
             self.Completer.namespace = self.user_ns
             self.Completer.global_namespace = self.user_global_ns
 
-    def post_config_initialization(self):
-        """Post configuration init method
-
-        This is called after the configuration files have been processed to
-        'finalize' the initialization."""
-
-        rc = self.rc
-        
-        # Load readline proper
-        if rc.readline:
-            self.init_readline()
-
-        # Set user colors (don't do it in the constructor above so that it
-        # doesn't crash if colors option is invalid)
-        self.magic_colors(rc.colors)
-
-        # Load user aliases
-        for alias in rc.alias:
-            self.magic_alias(alias)
-
-        # dynamic data that survives through sessions
-        # XXX make the filename a config option?
-        persist_base = 'persist'
-        if rc.profile:
-            persist_base += '_%s' % rc.profile
-        self.persist_fname =  os.path.join(rc.ipythondir,persist_base)
-
-        try:
-            self.persist = pickle.load(file(self.persist_fname))
-        except:
-            self.persist = {}
-            
     def init_auto_alias(self):
         """Define some aliases automatically.
 
@@ -1462,6 +1487,10 @@ want to merge them back into the new files.""" % locals()
         # Set our own excepthook in case the user code tries to call it
         # directly, so that the IPython crash handler doesn't get triggered
         old_excepthook,sys.excepthook = sys.excepthook, self.excepthook
+
+        # we save the original sys.excepthook in the instance, in case config
+        # code (such as magics) needs access to it.
+        self.sys_excepthook = old_excepthook
         outflag = 1  # happens in more places, so it's easier as default
         try:
             try:
@@ -1954,7 +1983,7 @@ want to merge them back into the new files.""" % locals()
             try:
                 execfile(fname,*where)
             except SyntaxError:
-                etype, evalue = sys.exc_info()[0:2]
+                etype,evalue = sys.exc_info()[:2]
                 self.SyntaxTB(etype,evalue,[])
                 warn('Failure executing file: <%s>' % fname)
             except SystemExit,status:

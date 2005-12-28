@@ -4,7 +4,7 @@
 All the matplotlib support code was co-developed with John Hunter,
 matplotlib's author.
 
-$Id: Shell.py 964 2005-12-28 21:03:01Z fperez $"""
+$Id: Shell.py 965 2005-12-28 23:23:09Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2004 Fernando Perez <fperez@colorado.edu>
@@ -259,6 +259,10 @@ class MTInteractiveShell(InteractiveShell):
     # http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/65109, by Brian
     # McErlean and John Finlay.  Modified with corrections by Antoon Pardon,
     # from the pygtk mailing list, to avoid lockups with system calls.
+
+    # class attribute to indicate whether the class supports threads or not.
+    # Subclasses with thread support should override this as needed.
+    isthreaded = True
 
     def __init__(self,name,usage=None,rc=Struct(opts=None,args=None),
                  user_ns=None,user_global_ns=None,banner2='',**kw):
