@@ -5,7 +5,7 @@ General purpose utilities.
 This is a grab-bag of stuff I find useful in most programs I write. Some of
 these things are also convenient when working at the command line.
 
-$Id: genutils.py 958 2005-12-27 23:17:51Z fperez $"""
+$Id: genutils.py 960 2005-12-28 06:51:01Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2004 Fernando Perez. <fperez@colorado.edu>
@@ -948,7 +948,7 @@ def ask_yes_no(prompt,default=None):
 
     Valid answers are: y/yes/n/no (match is not case sensitive)."""
 
-    answers = {'y':1,'n':0,'yes':1,'no':0}
+    answers = {'y':True,'n':False,'yes':True,'no':False}
     ans = None
     eofs, max_eofs = 0, 20
     while ans not in answers.keys():

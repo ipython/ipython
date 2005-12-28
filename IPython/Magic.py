@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Magic functions for InteractiveShell.
 
-$Id: Magic.py 958 2005-12-27 23:17:51Z fperez $"""
+$Id: Magic.py 960 2005-12-28 06:51:01Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001 Janko Hauser <jhauser@zscout.de> and
@@ -1875,7 +1875,7 @@ Currently the magic system has the following functions:\n"""
         else:
             print 'done. Executing edited code...'
             try:
-                execfile(filename,self.shell.user_ns)
+                self.shell.safe_execfile(filename,self.shell.user_ns)
             except IOError,msg:
                 if msg.filename == filename:
                     warn('File not found. Did you forget to save?')

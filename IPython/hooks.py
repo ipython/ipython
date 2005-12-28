@@ -32,7 +32,7 @@ ip_set_hook('editor',myiphooks.calljed)
 The ip_set_hook function is put by IPython into the builtin namespace, so it
 is always available from all running code.
 
-$Id: hooks.py 535 2005-03-02 08:42:25Z fperez $"""
+$Id: hooks.py 960 2005-12-28 06:51:01Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2005 Fernando Perez. <fperez@colorado.edu>
@@ -48,9 +48,9 @@ __version__ = Release.version
 
 import os
 
-# List here all the default hooks.  For now it's just the editor, but over
-# time we'll move here all the public API for user-accessible things.
-__all__ = ['editor']
+# List here all the default hooks.  For now it's just the editor functions
+# but over time we'll move here all the public API for user-accessible things.
+__all__ = ['editor', 'fix_error_editor']
 
 def editor(self,filename, linenum):
     """Open the default editor at the given filename and linenumber.
@@ -70,3 +70,26 @@ def editor(self,filename, linenum):
         linemark = '+%d' % linenum
     # Call the actual editor
     os.system('%s %s %s' % (editor,linemark,filename))
+
+import tempfile
+def fix_error_editor(self,filename,linenum,column,msg):
+    """Open the editor at the given filename, linenumber, column and 
+    show an error message. This is used for correcting syntax errors.
+    The current implementation only has special support for the VIM editor,
+    and falls back on the 'editor' hook if VIM is not used.
+
+    Call ip_set_hook('fix_error_editor',youfunc) to use your own function,
+    """
+    def vim_quickfix_file():
+        t = tempfile.NamedTemporaryFile()
+        t.write('%s:%d:%d:%s\n' % (filename,linenum,column,msg))
+        t.flush()
+        return t
+    if os.path.basename(self.rc.editor) != 'vim':
+        self.hooks.editor(filename,linenum)
+        return
+    t = vim_quickfix_file()
+    try:
+        os.system('vim --cmd "set errorformat=%f:%l:%c:%m" -q ' + t.name)
+    finally:
+        t.close()

@@ -6,7 +6,7 @@ Requires Python 2.1 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 959 2005-12-28 02:04:41Z fperez $
+$Id: iplib.py 960 2005-12-28 06:51:01Z fperez $
 """
 
 #*****************************************************************************
@@ -211,6 +211,23 @@ class InputList(list):
 
     def __getslice__(self,i,j):
         return ''.join(list.__getslice__(self,i,j))
+
+class SyntaxTB(ultraTB.ListTB):
+    """Extension which holds some state: the last exception value"""
+
+    def __init__(self,color_scheme = 'NoColor'):
+        ultraTB.ListTB.__init__(self,color_scheme)
+        self.last_syntax_error = None
+
+    def __call__(self, etype, value, elist):
+        self.last_syntax_error = value
+        ultraTB.ListTB.__call__(self,etype,value,elist)
+
+    def clear_err_state(self):
+        """Return the current error state and clear it"""
+        e = self.last_syntax_error
+        self.last_syntax_error = None
+        return e
 
 #****************************************************************************
 # Main IPython class
@@ -544,10 +561,10 @@ class InteractiveShell(Logger, Magic):
 
         # TraceBack handlers:
         # Need two, one for syntax errors and one for other exceptions.
-        self.SyntaxTB = ultraTB.ListTB(color_scheme='NoColor')
-        # This one is initialized with an offset, meaning we always want to
-        # remove the topmost item in the traceback, which is our own internal
-        # code. Valid modes: ['Plain','Context','Verbose']
+        self.SyntaxTB = SyntaxTB(color_scheme='NoColor')
+        # The interactive one is initialized with an offset, meaning we always
+        # want to remove the topmost item in the traceback, which is our own
+        # internal code. Valid modes: ['Plain','Context','Verbose']
         self.InteractiveTB = ultraTB.AutoFormattedTB(mode = 'Plain',
                                                      color_scheme='NoColor',
                                                      tb_offset = 1)
@@ -1022,6 +1039,44 @@ want to merge them back into the new files.""" % locals()
         # Configure auto-indent for all platforms
         self.set_autoindent(self.rc.autoindent)
 
+    def _should_recompile(self,e):
+        """Utility routine for edit_syntax_error"""
+        
+        if e.filename in ('<ipython console>','<input>','<string>',
+                          '<console>'):
+            return False
+        try:
+            if not ask_yes_no('Return to editor to correct syntax error? '
+                              '[Y/n] ','y'):
+                return False
+        except EOFError:
+            return False
+        self.hooks.fix_error_editor(e.filename,e.lineno,e.offset,e.msg)
+        return True
+        
+    def edit_syntax_error(self):
+        """The bottom half of the syntax error handler called in the main loop.
+
+        Loop until syntax error is fixed or user cancels.
+        """
+
+        while self.SyntaxTB.last_syntax_error:
+            # copy and clear last_syntax_error
+            err = self.SyntaxTB.clear_err_state()
+            if not self._should_recompile(err):
+                return
+            try:
+                # may set last_syntax_error again if a SyntaxError is raised
+                self.safe_execfile(err.filename,self.shell.user_ns)
+            except:
+                self.showtraceback()
+            else:
+                f = file(err.filename)
+                try:
+                    sys.displayhook(f.read())
+                finally:
+                    f.close()
+
     def showsyntaxerror(self, filename=None):
         """Display the syntax error that just occurred.
 
@@ -1221,9 +1276,14 @@ want to merge them back into the new files.""" % locals()
                                 self.indent_current_nsp -= 4
                         else:
                             self.indent_current_nsp = 0
+
                         # indent_current is the actual string to be inserted
                         # by the readline hooks for indentation
                         self.indent_current = ' '* self.indent_current_nsp
+
+                    if (self.SyntaxTB.last_syntax_error and
+                        self.rc.autoedit_syntax):
+                        self.edit_syntax_error()
 
             except KeyboardInterrupt:
                 self.write("\nKeyboardInterrupt\n")

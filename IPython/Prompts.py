@@ -2,7 +2,7 @@
 """
 Classes for handling input/output prompts.
 
-$Id: Prompts.py 958 2005-12-27 23:17:51Z fperez $"""
+$Id: Prompts.py 960 2005-12-28 06:51:01Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2004 Fernando Perez <fperez@colorado.edu>
@@ -494,7 +494,9 @@ class CachedOutput:
         if arg is not None:
             cout_write = Term.cout.write # fast lookup
             # first handle the cache and counters
-            self.update(arg)
+            # but avoid recursive reference when displaying _oh/Out
+            if arg is not self.user_ns['_oh']:
+                self.update(arg)
             # do not print output if input ends in ';'
             if self.input_hist[self.prompt_count].endswith(';\n'):
                 return

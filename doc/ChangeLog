@@ -4,6 +4,11 @@
 	input with emtpy lines.  This fixes
 	http://www.scipy.net/roundup/ipython/issue43 and a similar
 	discussion on the user list.
+	(edit_syntax_error): added support for automatically reopening the
+	editor if the file had a syntax error in it.  Thanks to scottt who
+	provided the patch at:
+	http://www.scipy.net/roundup/ipython/issue36 (slightly modified
+	version committed).
 
 	WARNING: a behavior change is necessarily introduced to support
 	blank lines: now a single blank line with whitespace does NOT

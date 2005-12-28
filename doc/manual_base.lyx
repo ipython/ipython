@@ -2707,6 +2707,28 @@ show()
 
 \family typewriter 
 \series bold 
+-[no]autocall:
+\family default 
+\series default 
+ Make IPython automatically call any callable object even if you didn't
+ type explicit parentheses.
+ For example, `str 43' becomes `str(43)' automatically.
+\layout List
+\labelwidthstring 00.00.0000
+
+
+\family typewriter 
+\series bold 
+-[no]autoindent:
+\family default 
+\series default 
+ Turn automatic indentation on/off.
+\layout List
+\labelwidthstring 00.00.0000
+
+
+\family typewriter 
+\series bold 
 -[no]automagic
 \series default 
 :
@@ -2722,6 +2744,18 @@ show()
 %magic
 \family default 
  at the IPython prompt for more information.
+\layout List
+\labelwidthstring 00.00.0000
+
+
+\family typewriter 
+\series bold 
+-[no]autoedit_syntax:
+\family default 
+\series default 
+ When a syntax error occurs after editing a file, automatically open the
+ file to the trouble causing line for convenient fixing.
+ 
 \layout List
 \labelwidthstring 00.00.0000
 
@@ -9121,4 +9155,14 @@ Smedt
 \family default 
  Debugger enhancements, so that when pdb is activated from within IPython,
  coloring, tab completion and other features continue to work seamlessly.
+\layout List
+\labelwidthstring 00.00.0000
+
+Scott (email unknown) Support for automatic editor invocation on syntax
+ errors (see 
+\begin_inset LatexCommand \htmlurl{http://www.scipy.net/roundup/ipython/issue36}
+
+\end_inset 
+
+).
 \the_end
