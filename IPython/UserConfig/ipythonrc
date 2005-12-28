@@ -1,5 +1,5 @@
 # -*- Mode: Shell-Script -*-  Not really, but shows comments correctly
-# $Id: ipythonrc 923 2005-11-15 08:51:15Z fperez $
+# $Id: ipythonrc 963 2005-12-28 19:21:29Z fperez $
 
 #***************************************************************************
 #
@@ -59,6 +59,13 @@ include
 #Out[8]: '43'
 
 autocall 1
+
+# Auto-edit syntax errors.  When you use the %edit magic in ipython to edit
+# source code (see the 'editor' variable below), it is possible that you save
+# a file with syntax errors in it.  If this variable is true, IPython will ask
+# you whether to re-open the editor immediately to correct such an error.
+
+autoedit_syntax 1
 
 # Auto-indent. IPython can recognize lines ending in ':' and indent the next
 # line, while also un-indenting automatically after 'raise' or 'return'.  

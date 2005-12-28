@@ -6,7 +6,7 @@ Requires Python 2.1 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 962 2005-12-28 18:04:59Z fperez $
+$Id: iplib.py 963 2005-12-28 19:21:29Z fperez $
 """
 
 #*****************************************************************************
@@ -1716,8 +1716,9 @@ want to merge them back into the new files.""" % locals()
                 print 'SyntaxError: !! is not allowed in multiline statements'
                 return pre
             else:
-                cmd = ("%s %s" % (iFun[1:],theRest)).replace('"','\\"')
-                line_out = '%s%s.system("%s")' % (pre,self.name,cmd)
+                cmd = ("%s %s" % (iFun[1:],theRest)) #.replace('"','\\"')
+                #line_out = '%s%s.system("%s")' % (pre,self.name,cmd)
+                line_out = '%s%s.system(r"""%s"""[:-1])' % (pre,self.name,cmd + "_")
                 #line_out = ('%s%s.system(' % (pre,self.name)) + repr(cmd) + ')'
         else: # single-line input
             if line.startswith('!!'):
@@ -1729,8 +1730,10 @@ want to merge them back into the new files.""" % locals()
                 return self.handle_magic('%ssx %s' % (self.ESC_MAGIC,line[2:]),
                                          continue_prompt,pre,iFun,theRest)
             else:
-                cmd = esc_quotes(line[1:])
-                line_out = '%s.system("%s")' % (self.name,cmd)
+                #cmd = esc_quotes(line[1:])
+                cmd=line[1:]
+                #line_out = '%s.system("%s")' % (self.name,cmd)
+                line_out = '%s.system(r"""%s"""[:-1])' % (self.name,cmd +"_")
                 #line_out = ('%s.system(' % self.name) + repr(cmd)+ ')'
         # update cache/log and return
         self.log(line_out,continue_prompt)

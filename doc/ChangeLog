@@ -1,5 +1,16 @@
 2005-12-28  Fernando Perez  <Fernando.Perez@colorado.edu>
 
+	* IPython/iplib.py (handle_shell_escape): add Ville's patch to
+	better hadnle backslashes in paths.  See the thread 'More Windows
+	questions part 2 - \/ characters revisited' on the iypthon user
+	list:
+	http://scipy.net/pipermail/ipython-user/2005-June/000907.html
+
+	* IPython/ipmaker.py (make_IPython): make the autoedit_syntax flag
+	true by default, and add it to the shipped ipythonrc file.  Since
+	this asks the user before proceeding, I think it's OK to make it
+	true by default.
+
 	* IPython/Magic.py (magic_exit): make new exit/quit magics instead
 	of the previous special-casing of input in the eval loop.  I think
 	this is cleaner, as they really are commands and shouldn't have
