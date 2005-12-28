@@ -1,5 +1,21 @@
 2005-12-27  Fernando Perez  <Fernando.Perez@colorado.edu>
 
+	* IPython/iplib.py (handle_normal): add suport for multi-line
+	input with emtpy lines.  This fixes
+	http://www.scipy.net/roundup/ipython/issue43 and a similar
+	discussion on the user list.
+
+	WARNING: a behavior change is necessarily introduced to support
+	blank lines: now a single blank line with whitespace does NOT
+	break the input loop, which means that when autoindent is on, by
+	default hitting return on the next (indented) line does NOT exit.
+
+	Instead, to exit a multiline input you can either have:
+
+	  - TWO whitespace lines (just hit return again), or
+	  - a single whitespace line of a different length than provided
+	by the autoindent (add or remove a space).
+
 	* IPython/completer.py (MagicCompleter.__init__): new 'completer'
 	module to better organize all readline-related functionality.
 	I've deleted FlexCompleter and put all completion clases here.

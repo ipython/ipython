@@ -6,7 +6,7 @@ Requires Python 2.1 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 958 2005-12-27 23:17:51Z fperez $
+$Id: iplib.py 959 2005-12-28 02:04:41Z fperez $
 """
 
 #*****************************************************************************
@@ -39,9 +39,10 @@ __version__ = Release.version
 # Python standard modules
 import __main__
 import __builtin__
+import StringIO
 import bdb
-import codeop
 import cPickle as pickle
+import codeop
 import exceptions
 import glob
 import inspect
@@ -53,7 +54,6 @@ import pydoc
 import re
 import shutil
 import string
-import StringIO
 import sys
 import traceback
 import types
@@ -79,6 +79,11 @@ raw_input_original = raw_input
 
 #****************************************************************************
 # Some utility function definitions
+
+# This can be replaced with an isspace() call once we drop 2.2 compatibility
+_isspace_match = re.compile(r'^\s+$').match
+def isspace(s):
+    return bool(_isspace_match(s))
 
 def esc_quotes(strng):
     """Return the input string with single and double quotes escaped out"""
@@ -245,7 +250,7 @@ class InteractiveShell(Logger, Magic):
         # global/local namespaces need to be handled differently in that case
         self.embedded = embedded
 
-        # compiler command
+        # command compiler
         self.compile = codeop.CommandCompiler()
 
         # User input buffer
@@ -553,7 +558,10 @@ class InteractiveShell(Logger, Magic):
         self.inspector = OInspect.Inspector(OInspect.InspectColors,
                                             PyColorize.ANSICodeColors,
                                             'NoColor')
+        # indentation management
         self.autoindent = False
+        self.indent_current_nsp = 0
+        self.indent_current = '' # actual indent string
 
         # Make some aliases automatically
         # Prepare list of shell aliases to auto-define
@@ -944,8 +952,8 @@ want to merge them back into the new files.""" % locals()
         """readline hook to be used at the start of each line.
 
         Currently it handles auto-indent only."""
-        
-        self.readline.insert_text(' '* self.readline_indent)
+
+        self.readline.insert_text(self.indent_current)
 
     def init_readline(self):
         """Command history completion/saving/reloading."""
@@ -987,7 +995,6 @@ want to merge them back into the new files.""" % locals()
             
             self.has_readline = 1
             self.readline = readline
-            self.readline_indent = 0  # for auto-indenting via readline
             # save this in sys so embedded copies can restore it properly
             sys.ipcompleter = self.Completer.complete
             readline.set_completer(self.Completer.complete)
@@ -1174,7 +1181,7 @@ want to merge them back into the new files.""" % locals()
 
         # compiled regexps for autoindent management
         ini_spaces_re = re.compile(r'^(\s+)')
-        dedent_re = re.compile(r'^\s+raise|^\s+return')
+        dedent_re = re.compile(r'^\s+raise|^\s+return|^\s+pass')
 
         # exit_now is set by a call to %Exit or %Quit
         while not self.exit_now:
@@ -1206,14 +1213,17 @@ want to merge them back into the new files.""" % locals()
                                 nspaces = ini_spaces.end()
                             else:
                                 nspaces = 0
-                            self.readline_indent = nspaces
+                            self.indent_current_nsp = nspaces
 
                             if line[-1] == ':':
-                                self.readline_indent += 4
+                                self.indent_current_nsp += 4
                             elif dedent_re.match(line):
-                                self.readline_indent -= 4
+                                self.indent_current_nsp -= 4
                         else:
-                            self.readline_indent = 0
+                            self.indent_current_nsp = 0
+                        # indent_current is the actual string to be inserted
+                        # by the readline hooks for indentation
+                        self.indent_current = ' '* self.indent_current_nsp
 
             except KeyboardInterrupt:
                 self.write("\nKeyboardInterrupt\n")
@@ -1223,7 +1233,8 @@ want to merge them back into the new files.""" % locals()
                 self.outputcache.prompt_count -= 1
 
                 if self.autoindent:
-                    self.readline_indent = 0
+                    self.indent_current_nsp = 0
+                    self.indent_current = ' '* self.indent_current_nsp
 
             except bdb.BdbQuit:
                 warn("The Python debugger has exited with a BdbQuit exception.\n"
@@ -1320,7 +1331,7 @@ want to merge them back into the new files.""" % locals()
         if more:
             self.push('\n')
 
-    def runsource(self, source, filename="<input>", symbol="single"):
+    def runsource(self, source, filename='<input>', symbol='single'):
         """Compile and run some source in the interpreter.
 
         Arguments are as for compile_command().
@@ -1350,7 +1361,7 @@ want to merge them back into the new files.""" % locals()
         sys.ps2 to prompt the next line."""
 
         try:
-            code = self.compile(source, filename, symbol)
+            code = self.compile(source,filename,symbol)
         except (OverflowError, SyntaxError, ValueError):
             # Case 1
             self.showsyntaxerror(filename)
@@ -1465,7 +1476,7 @@ want to merge them back into the new files.""" % locals()
         # than necessary.  We do this by trimming out the auto-indent initial
         # spaces, if the user's actual input started itself with whitespace.
         if self.autoindent:
-            line2 = line[self.readline_indent:]
+            line2 = line[self.indent_current_nsp:]
             if line2[0:1] in (' ','\t'):
                 line = line2
         return self.prefilter(line,continue_prompt)
@@ -1520,7 +1531,8 @@ want to merge them back into the new files.""" % locals()
         if not line.strip():
             if not continue_prompt:
                 self.outputcache.prompt_count -= 1
-            return self.handle_normal('',continue_prompt)
+            return self.handle_normal(line,continue_prompt)
+            #return self.handle_normal('',continue_prompt)
 
         # print '***cont',continue_prompt  # dbg
         # special handlers are only allowed for single line statements
@@ -1615,6 +1627,15 @@ want to merge them back into the new files.""" % locals()
     def handle_normal(self,line,continue_prompt=None,
                       pre=None,iFun=None,theRest=None):
         """Handle normal input lines. Use as a template for handlers."""
+
+        # With autoindent on, we need some way to exit the input loop, and I
+        # don't want to force the user to have to backspace all the way to
+        # clear the line.  The rule will be in this case, that either two
+        # lines of pure whitespace in a row, or a line of pure whitespace but
+        # of a size different to the indent level, will exit the input loop.
+        if (continue_prompt and self.autoindent and isspace(line) and
+            (line != self.indent_current or isspace(self.buffer[-1]))):
+            line = ''
 
         self.log(line,continue_prompt)
         self.update_cache(line)
