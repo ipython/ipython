@@ -4,7 +4,7 @@
 All the matplotlib support code was co-developed with John Hunter,
 matplotlib's author.
 
-$Id: Shell.py 958 2005-12-27 23:17:51Z fperez $"""
+$Id: Shell.py 964 2005-12-28 21:03:01Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2004 Fernando Perez <fperez@colorado.edu>
@@ -47,10 +47,10 @@ USE_TK = False
 class IPShell:
     """Create an IPython instance."""
     
-    def __init__(self,argv=None,user_ns=None,debug=1,
-                 shell_class=InteractiveShell):
-        self.IP = make_IPython(argv,user_ns=user_ns,debug=debug,
-                               shell_class=shell_class)
+    def __init__(self,argv=None,user_ns=None,user_global_ns=None,
+                 debug=1,shell_class=InteractiveShell):
+        self.IP = make_IPython(argv,user_ns=user_ns,user_global_ns=user_global_ns,
+                               debug=debug,shell_class=shell_class)
 
     def mainloop(self,sys_exit=0,banner=None):
         self.IP.mainloop(banner)
@@ -261,10 +261,11 @@ class MTInteractiveShell(InteractiveShell):
     # from the pygtk mailing list, to avoid lockups with system calls.
 
     def __init__(self,name,usage=None,rc=Struct(opts=None,args=None),
-                 user_ns = None, banner2='',**kw):
+                 user_ns=None,user_global_ns=None,banner2='',**kw):
         """Similar to the normal InteractiveShell, but with threading control"""
         
-        IPython.iplib.InteractiveShell.__init__(self,name,usage,rc,user_ns,banner2)
+        InteractiveShell.__init__(self,name,usage,rc,user_ns,
+                                  user_global_ns,banner2)
 
         # Locking control variable
         self.thread_ready = threading.Condition()
@@ -475,17 +476,19 @@ class MatplotlibShell(MatplotlibShellBase,InteractiveShell):
     """Single-threaded shell with matplotlib support."""
 
     def __init__(self,name,usage=None,rc=Struct(opts=None,args=None),
-                 user_ns = None, **kw):
+                 user_ns=None,user_global_ns=None,**kw):
         user_ns,b2 = self._matplotlib_config(name)
-        InteractiveShell.__init__(self,name,usage,rc,user_ns,banner2=b2,**kw)
+        InteractiveShell.__init__(self,name,usage,rc,user_ns,user_global_ns,
+                                  banner2=b2,**kw)
 
 class MatplotlibMTShell(MatplotlibShellBase,MTInteractiveShell):
     """Multi-threaded shell with matplotlib support."""
 
     def __init__(self,name,usage=None,rc=Struct(opts=None,args=None),
-                 user_ns = None, **kw):
+                 user_ns=None,user_global_ns=None, **kw):
         user_ns,b2 = self._matplotlib_config(name)
-        MTInteractiveShell.__init__(self,name,usage,rc,user_ns,banner2=b2,**kw)
+        MTInteractiveShell.__init__(self,name,usage,rc,user_ns,user_global_ns,
+                                    banner2=b2,**kw)
 
 #-----------------------------------------------------------------------------
 # Utility functions for the different GUI enabled IPShell* classes.
@@ -581,8 +584,8 @@ class IPShellGTK(threading.Thread):
     
     TIMEOUT = 100 # Millisecond interval between timeouts.
 
-    def __init__(self,argv=None,user_ns=None,debug=1,
-                 shell_class=MTInteractiveShell):
+    def __init__(self,argv=None,user_ns=None,user_global_ns=None,
+                 debug=1,shell_class=MTInteractiveShell):
 
         import gtk
         
@@ -595,7 +598,9 @@ class IPShellGTK(threading.Thread):
         if gtk.pygtk_version >= (2,4,0): mainquit = self.gtk.main_quit
         else:                            mainquit = self.gtk.mainquit
 
-        self.IP = make_IPython(argv,user_ns=user_ns,debug=debug,
+        self.IP = make_IPython(argv,user_ns=user_ns,
+                               user_global_ns=user_global_ns,
+                               debug=debug,
                                shell_class=shell_class,
                                on_kill=[mainquit])
 
@@ -656,8 +661,8 @@ class IPShellWX(threading.Thread):
     
     TIMEOUT = 100 # Millisecond interval between timeouts.
 
-    def __init__(self,argv=None,user_ns=None,debug=1,
-                 shell_class=MTInteractiveShell):
+    def __init__(self,argv=None,user_ns=None,user_global_ns=None,
+                 debug=1,shell_class=MTInteractiveShell):
 
         import wxPython.wx as wx
 
@@ -668,7 +673,9 @@ class IPShellWX(threading.Thread):
         # Allows us to use both Tk and GTK.
         self.tk = get_tk()
         
-        self.IP = make_IPython(argv,user_ns=user_ns,debug=debug,
+        self.IP = make_IPython(argv,user_ns=user_ns,
+                               user_global_ns=user_global_ns,
+                               debug=debug,
                                shell_class=shell_class,
                                on_kill=[self.wxexit])
         # HACK: slot for banner in self; it will be passed to the mainloop
@@ -738,8 +745,8 @@ class IPShellQt(threading.Thread):
     
     TIMEOUT = 100 # Millisecond interval between timeouts.
 
-    def __init__(self,argv=None,user_ns=None,debug=0,
-                 shell_class=MTInteractiveShell):
+    def __init__(self,argv=None,user_ns=None,user_global_ns=None,
+                 debug=0,shell_class=MTInteractiveShell):
         
         import qt
 
@@ -761,7 +768,9 @@ class IPShellQt(threading.Thread):
         # Allows us to use both Tk and QT.
         self.tk = get_tk()
 
-        self.IP = make_IPython(argv,user_ns=user_ns,debug=debug,
+        self.IP = make_IPython(argv,user_ns=user_ns,
+                               user_global_ns=user_global_ns,
+                               debug=debug,
                                shell_class=shell_class,
                                on_kill=[qt.qApp.exit])
 
@@ -809,32 +818,36 @@ class IPShellMatplotlib(IPShell):
 
     Having this on a separate class simplifies the external driver code."""
     
-    def __init__(self,argv=None,user_ns=None,debug=1):
-        IPShell.__init__(self,argv,user_ns,debug,shell_class=MatplotlibShell)
+    def __init__(self,argv=None,user_ns=None,user_global_ns=None,debug=1):
+        IPShell.__init__(self,argv,user_ns,user_global_ns,debug,
+                         shell_class=MatplotlibShell)
 
 class IPShellMatplotlibGTK(IPShellGTK):
     """Subclass IPShellGTK with MatplotlibMTShell as the internal shell.
 
     Multi-threaded class, meant for the GTK* backends."""
     
-    def __init__(self,argv=None,user_ns=None,debug=1):
-        IPShellGTK.__init__(self,argv,user_ns,debug,shell_class=MatplotlibMTShell)
+    def __init__(self,argv=None,user_ns=None,user_global_ns=None,debug=1):
+        IPShellGTK.__init__(self,argv,user_ns,user_global_ns,debug,
+                            shell_class=MatplotlibMTShell)
 
 class IPShellMatplotlibWX(IPShellWX):
     """Subclass IPShellWX with MatplotlibMTShell as the internal shell.
 
     Multi-threaded class, meant for the WX* backends."""
     
-    def __init__(self,argv=None,user_ns=None,debug=1):
-        IPShellWX.__init__(self,argv,user_ns,debug,shell_class=MatplotlibMTShell)
+    def __init__(self,argv=None,user_ns=None,user_global_ns=None,debug=1):
+        IPShellWX.__init__(self,argv,user_ns,user_global_ns,debug,
+                           shell_class=MatplotlibMTShell)
 
 class IPShellMatplotlibQt(IPShellQt):
     """Subclass IPShellQt with MatplotlibMTShell as the internal shell.
 
     Multi-threaded class, meant for the Qt* backends."""
     
-    def __init__(self,argv=None,user_ns=None,debug=1):
-        IPShellQt.__init__(self,argv,user_ns,debug,shell_class=MatplotlibMTShell)
+    def __init__(self,argv=None,user_ns=None,user_global_ns=None,debug=1):
+        IPShellQt.__init__(self,argv,user_ns,user_global_ns,debug,
+                           shell_class=MatplotlibMTShell)
 
 #-----------------------------------------------------------------------------
 # Factory functions to actually start the proper thread-aware shell

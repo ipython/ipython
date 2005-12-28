@@ -103,12 +103,13 @@ class Completer:
 
         readline.set_completer(Completer(my_namespace).complete)
         """
-        
-        if namespace and type(namespace) != types.DictType:
-            raise TypeError,'namespace must be a dictionary'
 
-        if global_namespace and type(global_namespace) != types.DictType:
-            raise TypeError,'global_namespace must be a dictionary'
+        # some minimal strict typechecks.  For some core data structures, I
+        # want actual basic python types, not just anything that looks like
+        # one.  This is especially true for namespaces.
+        for ns in (namespace,global_namespace):
+            if ns is not None and type(ns) != types.DictType:
+                raise TypeError,'namespace must be a dictionary'
 
         # Don't bind to namespace quite yet, but flag whether the user wants a
         # specific namespace or to use __main__.__dict__. This will allow us
@@ -518,6 +519,8 @@ class IPCompleter(Completer):
             except IndexError:
                 return None
         except:
-            #import traceback; traceback.print_exc() # dbg
+            #from IPython.ultraTB import AutoFormattedTB; # dbg
+            #tb=AutoFormattedTB('Verbose');tb() #dbg
+
             # If completion fails, don't annoy the user.
             return None

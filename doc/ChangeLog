@@ -5,6 +5,7 @@
 	questions part 2 - \/ characters revisited' on the iypthon user
 	list:
 	http://scipy.net/pipermail/ipython-user/2005-June/000907.html
+	(InteractiveShell.__init__): fix tab-completion bug in threaded shells.
 
 	* IPython/ipmaker.py (make_IPython): make the autoedit_syntax flag
 	true by default, and add it to the shipped ipythonrc file.  Since

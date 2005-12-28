@@ -6,7 +6,7 @@ Requires Python 2.1 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 963 2005-12-28 19:21:29Z fperez $
+$Id: iplib.py 964 2005-12-28 21:03:01Z fperez $
 """
 
 #*****************************************************************************
@@ -235,6 +235,13 @@ class InteractiveShell(Logger, Magic):
     def __init__(self,name,usage=None,rc=Struct(opts=None,args=None),
                  user_ns = None,user_global_ns=None,banner2='',
                  custom_exceptions=((),None),embedded=False):
+
+        # some minimal strict typechecks.  For some core data structures, I
+        # want actual basic python types, not just anything that looks like
+        # one.  This is especially true for namespaces.
+        for ns in (user_ns,user_global_ns):
+            if ns is not None and type(ns) != types.DictType:
+                raise TypeError,'namespace must be a dictionary'
 
         # Put a reference to self in builtins so that any form of embedded or
         # imported code can test for being inside IPython.
