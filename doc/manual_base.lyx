@@ -935,15 +935,22 @@ It automatically resolved all dependencies (python24, readline, py-readline).
 Windows instructions
 \layout Standard
 
-While you can use IPython under Windows with only a stock Python installation,
- there is one extension, 
-\family typewriter 
-readline
-\family default 
-, which will make the whole experience a lot more pleasant.
- It is almost a requirement, since IPython will complain in its absence
- (though it will function).
- 
+Some of IPython's very useful features are:
+\layout Itemize
+
+Integrated readline support (Tab-based file, object and attribute completion,
+ input history across sessions, editable command line, etc.)
+\layout Itemize
+
+Coloring of prompts, code and tracebacks.
+\layout Standard
+
+These, by default, are only available under Unix-like operating systems.
+ However, thanks to Gary Bishop's work, Windows XP/2k users can also benefit
+ from them.
+ His readline library implements both GNU readline functionality and color
+ support, so that IPython under Windows XP/2k can be as friendly and powerful
+ as under Unix-like environments.
 \layout Standard
 
 The
@@ -1010,74 +1017,6 @@ Warning about a broken readline-like library:
  and causes unpredictable crashes later.
  If you wish to use IPython under Windows, you must NOT use this library,
  which for all purposes is (at least as of version 1.6) terminally broken.
-\layout Subsubsection
-
-Gary Bishop's readline and color support for Windows
-\layout Standard
-
-Some of IPython's very useful features are:
-\layout Itemize
-
-Integrated readline support (Tab-based file, object and attribute completion,
- input history across sessions, editable command line, etc.)
-\layout Itemize
-
-Coloring of prompts, code and tracebacks.
-\layout Standard
-
-These, by default, are only available under Unix-like operating systems.
- However, thanks to Gary Bishop's work, Windows XP/2k users can also benefit
- from them.
- His readline library implements both GNU readline functionality and color
- support, so that IPython under Windows XP/2k can be as friendly and powerful
- as under Unix-like environments.
-\layout Standard
-
-You can find Gary's tools at 
-\begin_inset LatexCommand \htmlurl{http://sourceforge.net/projects/uncpythontools}
-
-\end_inset 
-
-; Gary's 
-\family typewriter 
-readline
-\family default 
- requires in turn the 
-\family typewriter 
-ctypes
-\family default 
- library by Thomas Heller, available at 
-\begin_inset LatexCommand \htmlurl{http://starship.python.net/crew/theller/ctypes}
-
-\end_inset 
-
-, and Mark Hammond's 
-\family typewriter 
-PyWin32
-\family default 
- from 
-\begin_inset LatexCommand \htmlurl{http://starship.python.net/crew/mhammond}
-
-\end_inset 
-
- (
-\family typewriter 
-PyWin32
-\family default 
- is great for anything Windows-related anyway, so you might as well get
- it).
-\layout Standard
-
-Under MS\SpecialChar ~
-Windows, IPython will complain if it can not find this 
-\family typewriter 
-readline
-\family default 
- library at startup and any time the 
-\family typewriter 
-%colors
-\family default 
- command is issued, so you can consider it to be a quasi-requirement.
 \layout Subsubsection
 
 Installation procedure
@@ -2393,6 +2332,46 @@ Use the IPython.demo.Demo class to load any Python script as an interactive
  for more.
 \layout Standard
 
+
+\series bold 
+Effective logging:
+\series default 
+ a very useful suggestion sent in by Robert Kern follows
+\layout Standard
+
+I recently happened on a nifty way to keep tidy per-project log files.
+ I made a profile for my project (which is called "parkfield").
+\layout LyX-Code
+
+include ipythonrc
+\layout LyX-Code
+
+logfile '' # cancel earlier logfile invocation
+\layout LyX-Code
+
+execute import time
+\layout LyX-Code
+
+execute __cmd = '/Users/kern/research/logfiles/parkfield-%s.log rotate'
+\layout LyX-Code
+
+execute __IP.magic_logstart(__cmd % time.strftime('%Y-%m-%d'))
+\layout Standard
+
+I also added a shell alias for convenience:
+\layout LyX-Code
+
+alias parkfield="ipython -pylab -profile parkfield"
+\layout Standard
+
+Now I have a nice little directory with everything I ever type in, organized
+ by project and date.
+\layout Standard
+
+
+\series bold 
+Contribute your own: 
+\series default 
 If you have your own favorite tip on using IPython efficiently for a certain
  task (especially things which can't be done in the normal Python interpreter),
  don't hesitate to send it!
@@ -9158,8 +9137,12 @@ Smedt
 \layout List
 \labelwidthstring 00.00.0000
 
-Scott (email unknown) Support for automatic editor invocation on syntax
- errors (see 
+Scott\SpecialChar ~
+Tsai 
+\family typewriter 
+<scottt958-AT-yahoo.com.tw>
+\family default 
+ Support for automatic editor invocation on syntax errors (see 
 \begin_inset LatexCommand \htmlurl{http://www.scipy.net/roundup/ipython/issue36}
 
 \end_inset 

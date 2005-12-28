@@ -1,3 +1,10 @@
+2005-12-28  Fernando Perez  <Fernando.Perez@colorado.edu>
+
+	* IPython/Magic.py (magic_exit): make new exit/quit magics instead
+	of the previous special-casing of input in the eval loop.  I think
+	this is cleaner, as they really are commands and shouldn't have
+	a special role in the middle of the core code.
+
 2005-12-27  Fernando Perez  <Fernando.Perez@colorado.edu>
 
 	* IPython/iplib.py (edit_syntax_error): added support for

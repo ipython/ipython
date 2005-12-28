@@ -6,7 +6,7 @@ Requires Python 2.1 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 960 2005-12-28 06:51:01Z fperez $
+$Id: iplib.py 962 2005-12-28 18:04:59Z fperez $
 """
 
 #*****************************************************************************
@@ -190,8 +190,6 @@ def softspace(file, newvalue):
 #****************************************************************************
 # Local use exceptions
 class SpaceInInput(exceptions.Exception): pass
-
-class IPythonExit(exceptions.Exception): pass
 
 #****************************************************************************
 # Local use classes
@@ -1256,8 +1254,6 @@ want to merge them back into the new files.""" % locals()
                         self.readline_startup_hook(None)
                     self.write("\n")
                     self.exit()
-                except IPythonExit:
-                    self.exit()
                 else:
                     more = self.push(line)
                     # Auto-indent management
@@ -1655,8 +1651,6 @@ want to merge them back into the new files.""" % locals()
             oinfo = self._ofind(iFun) # FIXME - _ofind is part of Magic
         
         if not oinfo['found']:
-            if iFun in ('quit','exit'):
-                raise IPythonExit
             return self.handle_normal(line,continue_prompt)
         else:
             #print 'iFun <%s> rest <%s>' % (iFun,theRest) # dbg

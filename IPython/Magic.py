@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Magic functions for InteractiveShell.
 
-$Id: Magic.py 960 2005-12-28 06:51:01Z fperez $"""
+$Id: Magic.py 962 2005-12-28 18:04:59Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001 Janko Hauser <jhauser@zscout.de> and
@@ -1987,6 +1987,19 @@ Defaulting color scheme to 'NoColor'"""
         self.shell.outputcache.Pprint = 1 - self.shell.outputcache.Pprint
         print 'Pretty printing has been turned', \
               ['OFF','ON'][self.shell.outputcache.Pprint]
+        
+    def magic_exit(self, parameter_s=''):
+        """Exit IPython, confirming if configured to do so.
+
+        You can configure whether IPython asks for confirmation upon exit by
+        setting the confirm_exit flag in the ipythonrc file."""
+
+        self.shell.exit()
+
+    def magic_quit(self, parameter_s=''):
+        """Exit IPython, confirming if configured to do so (like %exit)"""
+
+        self.shell.exit()
         
     def magic_Exit(self, parameter_s=''):
         """Exit IPython without confirmation."""
