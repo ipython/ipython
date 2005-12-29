@@ -9149,4 +9149,13 @@ Tsai
 \end_inset 
 
 ).
+\layout List
+\labelwidthstring 00.00.0000
+
+Alexander\SpecialChar ~
+Belchenko 
+\family typewriter 
+<bialix-AT-ukr.net>
+\family default 
+ Improvements for win32 paging system.
 \the_end

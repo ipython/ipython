@@ -5,7 +5,7 @@ General purpose utilities.
 This is a grab-bag of stuff I find useful in most programs I write. Some of
 these things are also convenient when working at the command line.
 
-$Id: genutils.py 967 2005-12-29 09:02:13Z fperez $"""
+$Id: genutils.py 971 2005-12-29 18:30:45Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2004 Fernando Perez. <fperez@colorado.edu>
@@ -36,6 +36,9 @@ import types
 # Other IPython utilities
 from IPython.Itpl import Itpl,itpl,printpl
 from IPython import DPyGetOpt
+
+if os.name == "nt":
+    from IPython.winconsole import get_console_size
 
 # Build objects which appeared in Python 2.3 for 2.2, to make ipython
 # 2.2-friendly
@@ -1179,6 +1182,31 @@ def get_pager_start(pager,start):
     return start_string
 
 #----------------------------------------------------------------------------
+if os.name == "nt":
+    import msvcrt
+    def page_more():
+        """ Smart pausing between pages
+
+        @return:    True if need print more lines, False if quit
+        """
+        Term.cout.write('---Return to continue, q to quit--- ')
+        ans = msvcrt.getch()
+        if ans in ("q", "Q"):
+            result = False
+        else:
+            result = True
+        Term.cout.write("\b"*37 + " "*37 + "\b"*37)
+        return result
+else:
+    def page_more():
+        ans = raw_input('---Return to continue, q to quit--- ')
+        if ans.lower().startswith('q'):
+            return False
+        else:
+            return True
+
+esc_re = re.compile(r"(\x1b[^m]+m)")
+
 def page_dumb(strng,start=0,screen_lines=25):
     """Very dumb 'pager' in Python, for when nothing else works.
 
@@ -1190,12 +1218,16 @@ def page_dumb(strng,start=0,screen_lines=25):
     if len(screens) == 1:
         print >>Term.cout, os.linesep.join(screens[0])
     else:
+        last_escape = ""
         for scr in screens[0:-1]:
-            print >>Term.cout, os.linesep.join(scr)
-            ans = raw_input('---Return to continue, q to quit--- ')
-            if ans.lower().startswith('q'):
+            hunk = os.linesep.join(scr)
+            print >>Term.cout, last_escape + hunk
+            if not page_more():
                 return
-        print >>Term.cout, os.linesep.join(screens[-1])
+            esc_list = esc_re.findall(hunk)
+            if len(esc_list) > 0:
+                last_escape = esc_list[-1]
+        print >>Term.cout, last_escape + os.linesep.join(screens[-1])
 
 #----------------------------------------------------------------------------
 def page(strng,start=0,screen_lines=0,pager_cmd = None):
@@ -1235,7 +1267,10 @@ def page(strng,start=0,screen_lines=0,pager_cmd = None):
     # terminals. If someone later feels like refining it, it's not hard.
     numlines = max(num_newlines,int(len_str/80)+1)
 
-    screen_lines_def = 25 # default value if we can't auto-determine
+    if os.name == "nt":
+        screen_lines_def = get_console_size(defaulty=25)[1]
+    else:
+        screen_lines_def = 25 # default value if we can't auto-determine
 
     # auto-determine screen size
     if screen_lines <= 0:

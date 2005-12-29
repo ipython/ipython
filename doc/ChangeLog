@@ -1,5 +1,9 @@
 2005-12-29  Fernando Perez  <Fernando.Perez@colorado.edu>
 
+	* IPython/winconsole.py (get_console_size): add new winconsole
+	module and fixes to page_dumb() to improve its behavior under
+	win32.  Contributed by Alexander Belchenko <bialix-AT-ukr.net>.
+
 	* IPython/Magic.py (Macro): simplified Macro class to just
 	subclass list.  We've had only 2.2 compatibility for a very long
 	time, yet I was still avoiding subclassing the builtin types.  No
@@ -7,7 +11,7 @@
 	2.3-specific features quite yet).
 	(magic_store): added Ville's patch for lightweight variable
 	persistence, after a request on the user list by Matt Wilkie
-	<maphew at gmail.com>.  The new %store magic's docstring has full
+	<maphew-AT-gmail.com>.  The new %store magic's docstring has full
 	details.
 
 	* IPython/iplib.py (InteractiveShell.post_config_initialization):
