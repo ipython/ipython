@@ -6,7 +6,7 @@ Requires Python 2.1 or better.
 
 This file contains the main make_IPython() starter function.
 
-$Id: ipmaker.py 965 2005-12-28 23:23:09Z fperez $"""
+$Id: ipmaker.py 966 2005-12-29 08:34:07Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2004 Fernando Perez. <fperez@colorado.edu>
@@ -51,7 +51,6 @@ from IPython.OutputTrap import OutputTrap
 from IPython.ConfigLoader import ConfigLoader
 from IPython.iplib import InteractiveShell,qw_lol,import_fail_info
 from IPython.usage import cmd_line_usage,interactive_usage
-from IPython.Prompts import CachedOutput
 from IPython.genutils import *
 
 #-----------------------------------------------------------------------------
@@ -321,9 +320,6 @@ object? -> Details about 'object'. ?object also works, ?? prints more.
     # check mutually exclusive options in the *original* command line
     mutex_opts(opts,[qw('log logfile'),qw('rcfile profile'),
                      qw('classic profile'),qw('classic rcfile')])
-
-    # default logfilename used when -log is called.
-    IP.LOGDEF = 'ipython.log'
 
     #---------------------------------------------------------------------------
     # Log replay
@@ -681,37 +677,7 @@ object? -> Details about 'object'. ?object also works, ?? prints more.
     # paged:
     num_lines_bot = IP_rc.separate_in.count('\n')+1
     IP_rc.screen_length = IP_rc.screen_length - num_lines_bot
-    # Initialize cache, set in/out prompts and printing system
-    IP.outputcache = CachedOutput(IP_rc.cache_size,
-                                  IP_rc.pprint,
-                                  input_sep = IP_rc.separate_in,
-                                  output_sep = IP_rc.separate_out,
-                                  output_sep2 = IP_rc.separate_out2,
-                                  ps1 = IP_rc.prompt_in1,
-                                  ps2 = IP_rc.prompt_in2,
-                                  ps_out = IP_rc.prompt_out,
-                                  user_ns = IP.user_ns,
-                                  input_hist = IP.input_hist,
-                                  pad_left = IP_rc.prompts_pad_left)
-    
-    # user may have over-ridden the default print hook:
-    try:
-        IP.outputcache.__class__.display = IP.hooks.display
-    except AttributeError:
-        pass
 
-    # Set calling of pdb on exceptions
-    IP.InteractiveTB.call_pdb = IP_rc.pdb
-    
-    # I don't like assigning globally to sys, because it means when embedding
-    # instances, each embedded instance overrides the previous choice. But
-    # sys.displayhook seems to be called internally by exec, so I don't see a
-    # way around it.
-    sys.displayhook = IP.outputcache
-
-    # we need to know globally if we're caching i/o or not
-    IP.do_full_cache = IP.outputcache.do_full_cache
-    
     # configure startup banner
     if IP_rc.c:  # regular python doesn't print the banner with -c
         IP_rc.banner = 0

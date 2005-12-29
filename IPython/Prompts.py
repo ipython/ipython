@@ -2,7 +2,7 @@
 """
 Classes for handling input/output prompts.
 
-$Id: Prompts.py 960 2005-12-28 06:51:01Z fperez $"""
+$Id: Prompts.py 966 2005-12-29 08:34:07Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2004 Fernando Perez <fperez@colorado.edu>
@@ -392,10 +392,10 @@ class CachedOutput:
     Initialize with initial and final values for cache counter (this defines
     the maximum size of the cache."""
 
-    def __init__(self,cache_size,Pprint,colors='NoColor',input_sep='\n',
-                 output_sep='\n',output_sep2='',user_ns={},
-                 ps1 = None, ps2 = None,ps_out = None,
-                 input_hist = None,pad_left=True):
+    def __init__(self,shell,cache_size,Pprint,
+                 colors='NoColor',input_sep='\n',
+                 output_sep='\n',output_sep2='',
+                 ps1 = None, ps2 = None,ps_out = None,pad_left=True):
 
         cache_size_min = 20
         if cache_size <= 0:
@@ -413,9 +413,12 @@ class CachedOutput:
         self.input_sep = input_sep
 
         # we need a reference to the user-level namespace
-        self.user_ns = user_ns
+        self.shell = shell
+        self.user_ns = shell.user_ns
         # and to the user's input
-        self.input_hist = input_hist
+        self.input_hist = shell.input_hist
+        # and to the user's logger, for logging output
+        self.logger = shell.logger
 
         # Set input prompt strings and colors
         if cache_size == 0:
@@ -509,11 +512,13 @@ class CachedOutput:
                 print 'Executing Macro...'
                 # in case the macro takes a long time to execute
                 Term.cout.flush()
-                exec arg.value in self.user_ns
+                self.shell.runlines(arg.value)
                 return None
 
             # and now call a possibly user-defined print mechanism
             self.display(arg)
+            if self.logger.log_output:
+                self.logger.log_write(repr(arg),'output')
             cout_write(self.output_sep2)
             Term.cout.flush()
 

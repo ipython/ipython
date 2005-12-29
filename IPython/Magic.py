@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Magic functions for InteractiveShell.
 
-$Id: Magic.py 965 2005-12-28 23:23:09Z fperez $"""
+$Id: Magic.py 966 2005-12-29 08:34:07Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001 Janko Hauser <jhauser@zscout.de> and
@@ -48,33 +48,8 @@ from IPython.PyColorize import Parser
 from IPython.Struct import Struct
 from IPython.genutils import *
 
-# Globals to be set later by Magic constructor
-MAGIC_PREFIX = ''
-MAGIC_ESCAPE = ''
-
 #***************************************************************************
 # Utility functions
-def magic2python(cmd):
-    """Convert a command string of magic syntax to valid Python code."""
-
-    if cmd.startswith('#'+MAGIC_ESCAPE) or \
-           cmd.startswith(MAGIC_ESCAPE):
-        if cmd[0]=='#':
-            cmd = cmd[1:]
-        # we need to return the proper line end later
-        if cmd[-1] == '\n':
-            endl = '\n'
-        else:
-            endl = ''
-        try:
-            func,args = cmd[1:].split(' ',1)
-        except:
-            func,args = cmd[1:].rstrip(),''
-        args = args.replace('"','\\"').replace("'","\\'").rstrip()
-        return '%s%s ("%s")%s' % (MAGIC_PREFIX,func,args,endl)
-    else:
-        return cmd
-
 def on_off(tag):
     """Return an ON/OFF string for a 1/0 input. Simple utility function."""
     return ['OFF','ON'][tag]
@@ -82,22 +57,15 @@ def on_off(tag):
 
 #****************************************************************************
 # Utility classes
-class Macro:
+class Macro(list):
     """Simple class to store the value of macros as strings.
 
     This allows us to later exec them by checking when something is an
     instance of this class."""
-    
-    def __init__(self,cmds):
-        """Build a macro from a list of commands."""
 
-        # Since the list may include multi-line entries, first make sure that
-        # they've been all broken up before passing it to magic2python
-        cmdlist = map(magic2python,''.join(cmds).split('\n'))
-        self.value = '\n'.join(cmdlist)
-
-    def __str__(self):
-        return self.value
+    def __init__(self,data):
+        list.__init__(self,data)
+        self.value = ''.join(data)
 
 #***************************************************************************
 # Main class implementing Magic functionality
@@ -120,21 +88,18 @@ class Magic:
     # some utility functions
 
     def __init__(self,shell):
-        # XXX This is hackish, clean up later to avoid these messy globals
-        global MAGIC_PREFIX, MAGIC_ESCAPE
         
         self.options_table = {}
-        MAGIC_PREFIX = shell.name+'.magic_'
-        MAGIC_ESCAPE = shell.ESC_MAGIC
         if profile is None:
             self.magic_prun = self.profile_missing_notice
+        self.shell = shell
 
     def profile_missing_notice(self, *args, **kwargs):
         error("""\
 The profile module could not be found.  If you are a Debian user,
 it has been removed from the standard Debian package because of its non-free
 license. To use profiling, please install"python2.3-profiler" from non-free.""")
-    
+
     def default_option(self,fn,optstr):
         """Make an entry in the options_table for fn, with value optstr"""
         
@@ -168,10 +133,6 @@ license. To use profiling, please install"python2.3-profiler" from non-free.""")
         out.sort()
         return out
     
-    def set_shell(self,shell):
-        self.shell = shell
-        self.alias_table = shell.alias_table
-
     def extract_input_slices(self,slices):
         """Return as a string a set of input history slices.
 
@@ -496,17 +457,17 @@ Currently the magic system has the following functions:\n"""
 
         This feature is only available if numbered prompts are in use."""
 
-        if not self.do_full_cache:
+        if not self.shell.outputcache.do_full_cache:
             print 'This feature is only available if numbered prompts are in use.'
             return
         opts,args = self.parse_options(parameter_s,'n',mode='list')
         
         default_length = 40
         if len(args) == 0:
-            final = self.outputcache.prompt_count
+            final = self.shell.outputcache.prompt_count
             init = max(1,final-default_length)
         elif len(args) == 1:
-            final = self.outputcache.prompt_count
+            final = self.shell.outputcache.prompt_count
             init = max(1,final-int(args[0]))
         elif len(args) == 2:
             init,final = map(int,args)
@@ -562,11 +523,8 @@ Currently the magic system has the following functions:\n"""
             if input != 'ipmagic("r")\n' and \
                    (input.startswith(start) or input.startswith(start_magic)):
                 #print 'match',`input`  # dbg
-                if input.startswith(esc_magic):
-                    input = magic2python(input)
-                    #print 'modified',`input`  # dbg
                 print 'Executing:',input,
-                exec input in self.shell.user_ns
+                self.shell.runlines(input)
                 return
         print 'No previous input matching `%s` found.' % start
 
@@ -788,8 +746,8 @@ Currently the magic system has the following functions:\n"""
         typelist = parameter_s.split()
         for i in self.shell.user_ns.keys():
             if not (i.startswith('_') or i.startswith('_i')) \
-                   and not (self.internal_ns.has_key(i) or
-                            self.user_config_ns.has_key(i)):
+                   and not (self.shell.internal_ns.has_key(i) or
+                            self.shell.user_config_ns.has_key(i)):
                 if typelist:
                     if type(user_ns[i]).__name__ in typelist:
                         out.append(i)
@@ -946,9 +904,9 @@ Currently the magic system has the following functions:\n"""
     def magic_logstart(self,parameter_s=''):
         """Start logging anywhere in a session.
 
-        %logstart [log_name [log_mode]]
+        %logstart [-o|-t] [log_name [log_mode]]
 
-        If no name is given, it defaults to a file named 'ipython.log' in your
+        If no name is given, it defaults to a file named 'ipython_log.py' in your
         current directory, in 'rotate' mode (see below).
 
         '%logstart name' saves to file 'name' in 'backup' mode.  It saves your
@@ -956,67 +914,86 @@ Currently the magic system has the following functions:\n"""
 
         %logstart takes a second optional parameter: logging mode. This can be one
         of (note that the modes are given unquoted):\\
-          over: overwrite existing log.\\
-          backup: rename (if exists) to name~ and start name.\\
           append: well, that says it.\\
+          backup: rename (if exists) to name~ and start name.\\
+          global: single logfile in your home dir, appended to.\\
+          over  : overwrite existing log.\\
           rotate: create rotating logs name.1~, name.2~, etc.
-        """
 
-        #FIXME. This function should all be moved to the Logger class.
+        Options:
+
+          -o: log also IPython's output.  In this mode, all commands which
+          generate an Out[NN] prompt are recorded to the logfile, right after
+          their corresponding input line.  The output lines are always
+          prepended with a #[Out]# marker, so that the log remains valid
+          Python code.
+
+          -t: put timestamps before each input line logged (these are put in
+          comments)."""
         
-        valid_modes = qw('over backup append rotate')
-        if self.LOG:
-            print 'Logging is already in place. Logfile:',self.LOG
-            return
+        opts,par = self.parse_options(parameter_s,'ot')
+        log_output = 'o' in opts
+        timestamp = 't' in opts
 
-        par = parameter_s.strip()
-        if not par:
-            logname = self.LOGDEF
-            logmode = 'rotate'  # use rotate for the auto-generated logs
-        else:
+        rc = self.shell.rc
+        logger = self.shell.logger
+
+        # if no args are given, the defaults set in the logger constructor by
+        # ipytohn remain valid
+        if par:
             try:
-                logname,logmode = par.split()
+                logfname,logmode = par.split()
             except:
-                try:
-                    logname = par
-                    logmode = 'backup'
-                except:
-                    warn('Usage: %log [log_name [log_mode]]')
-                    return
-        if not logmode in valid_modes:
-            warn('Logging NOT activated.\n'
-                 'Usage: %log [log_name [log_mode]]\n'
-                 'Valid modes: '+str(valid_modes))
-            return
-
-        # If we made it this far, I think we're ok:
-        print 'Activating auto-logging.'
-        print 'Current session state plus future input saved to:',logname
-        print 'Logging mode: ',logmode
-        # put logname into rc struct as if it had been called on the command line,
-        # so it ends up saved in the log header
-        # Save it in case we need to restore it...
-        old_logfile = self.shell.rc.opts.get('logfile','')  
-        logname = os.path.expanduser(logname)
-        self.shell.rc.opts.logfile = logname
-        self.LOGMODE = logmode  # FIXME: this should be set through a function.
+                logfname = par
+                logmode = 'backup'
+        else:
+            logfname = logger.logfname
+            logmode = logger.logmode
+        # put logfname into rc struct as if it had been called on the command
+        # line, so it ends up saved in the log header Save it in case we need
+        # to restore it...
+        old_logfile = rc.opts.get('logfile','')  
+        if logfname:
+            logfname = os.path.expanduser(logfname)
+        rc.opts.logfile = logfname
+        loghead = self.shell.loghead_tpl % (rc.opts,rc.args)
         try:
-            header = str(self.LOGHEAD)
-            self.create_log(header,logname)
-            self.logstart(header,logname)
+            started  = logger.logstart(logfname,loghead,logmode,
+                                       log_output,timestamp)
         except:
-            self.LOG = ''  # we are NOT logging, something went wrong
-            self.shell.rc.opts.logfile = old_logfile
-            warn("Couldn't start log: "+str(sys.exc_info()[1]))
-        else:  # log input history up to this point
-            self.logfile.write(self.shell.user_ns['_ih'][1:])
-            self.logfile.flush()
-        
+            rc.opts.logfile = old_logfile
+            warn("Couldn't start log: %s" % sys.exc_info()[1])
+        else:
+            # log input history up to this point, optionally interleaving
+            # output if requested
+
+            if timestamp:
+                # disable timestamping for the previous history, since we've
+                # lost those already (no time machine here).
+                logger.timestamp = False
+            if log_output:
+                log_write = logger.log_write
+                input_hist = self.shell.input_hist
+                output_hist = self.shell.output_hist
+                for n in range(1,len(input_hist)-1):
+                    log_write(input_hist[n].rstrip())
+                    if n in output_hist:
+                        log_write(repr(output_hist[n]),'output')
+            else:
+                logger.log_write(self.shell.input_hist[1:])
+            if timestamp:
+                # re-enable timestamping
+                logger.timestamp = True
+                
+            print ('Activating auto-logging. '
+                   'Current session state plus future input saved.')
+            logger.logstate()
+
     def magic_logoff(self,parameter_s=''):
         """Temporarily stop logging.
 
         You must have previously started logging."""
-        self.switch_log(0)
+        self.shell.logger.switch_log(0)
         
     def magic_logon(self,parameter_s=''):
         """Restart logging.
@@ -1026,12 +1003,12 @@ Currently the magic system has the following functions:\n"""
         must use the %logstart function, which allows you to specify an
         optional log filename."""
         
-        self.switch_log(1)
+        self.shell.logger.switch_log(1)
     
     def magic_logstate(self,parameter_s=''):
         """Print the status of the logging system."""
 
-        self.logstate()
+        self.shell.logger.logstate()
         
     def magic_pdb(self, parameter_s=''):
         """Control the calling of the pdb interactive debugger.
@@ -1047,24 +1024,18 @@ Currently the magic system has the following functions:\n"""
 
         if par:
             try:
-                pdb = {'off':0,'0':0,'on':1,'1':1}[par]
+                new_pdb = {'off':0,'0':0,'on':1,'1':1}[par]
             except KeyError:
-                print 'Incorrect argument. Use on/1, off/0, or nothing for a toggle.'
+                print ('Incorrect argument. Use on/1, off/0, '
+                       'or nothing for a toggle.')
                 return
-            else:
-               self.shell.InteractiveTB.call_pdb = pdb 
         else:
+            # toggle
             new_pdb = not self.shell.InteractiveTB.call_pdb
-            self.shell.InteractiveTB.call_pdb = new_pdb
-            if self.shell.isthreaded:
-                try:
-                    self.sys_excepthook.call_pdb = new_pdb
-                except:
-                    warn('Failed to activate pdb for threaded exception handler')
-                
+
+        # set on the shell
+        self.shell.call_pdb = new_pdb
         print 'Automatic pdb calling has been turned',on_off(new_pdb)
-
-
 
     def magic_prun(self, parameter_s ='',user_mode=1,
                    opts=None,arg_lst=None,prog_ns=None):
@@ -1606,12 +1577,12 @@ Currently the magic system has the following functions:\n"""
         args = parameter_s.split()
         name,ranges = args[0], args[1:]
         #print 'rng',ranges  # dbg
-        cmds = self.extract_input_slices(ranges)
-        macro = Macro(cmds)
+        lines = self.extract_input_slices(ranges)
+        macro = Macro(lines)
         self.shell.user_ns.update({name:macro})
         print 'Macro `%s` created. To execute, type its name (without quotes).' % name
         print 'Macro contents:'
-        print str(macro).rstrip(),
+        print macro
 
     def magic_save(self,parameter_s = ''):
         """Save a set of lines to a given filename.
@@ -1906,17 +1877,18 @@ Currently the magic system has the following functions:\n"""
             warn('Error changing %s exception modes.\n%s' %
                  (name,sys.exc_info()[1]))
 
+        shell = self.shell
         new_mode = parameter_s.strip().capitalize()
         try:
-            self.InteractiveTB.set_mode(mode=new_mode)
-            print 'Exception reporting mode:',self.InteractiveTB.mode
+            shell.InteractiveTB.set_mode(mode=new_mode)
+            print 'Exception reporting mode:',shell.InteractiveTB.mode
         except:
             xmode_switch_err('user')
 
         # threaded shells use a special handler in sys.excepthook
-        if self.isthreaded:
+        if shell.isthreaded:
             try:
-                self.shell.sys_excepthook.set_mode(mode=new_mode)
+                shell.sys_excepthook.set_mode(mode=new_mode)
             except:
                 xmode_switch_err('threaded')
             
@@ -1961,37 +1933,39 @@ http://starship.python.net/crew/theller/ctypes
 Defaulting color scheme to 'NoColor'"""
                 new_scheme = 'NoColor'
                 warn(msg)
+        # local shortcut
+        shell = self.shell
         
         # Set prompt colors
         try:
-            self.shell.outputcache.set_colors(new_scheme)
+            shell.outputcache.set_colors(new_scheme)
         except:
             color_switch_err('prompt')
         else:
-            self.shell.rc.colors = \
-                       self.shell.outputcache.color_table.active_scheme_name
+            shell.rc.colors = \
+                       shell.outputcache.color_table.active_scheme_name
         # Set exception colors
         try:
-            self.shell.InteractiveTB.set_colors(scheme = new_scheme)
-            self.shell.SyntaxTB.set_colors(scheme = new_scheme)
+            shell.InteractiveTB.set_colors(scheme = new_scheme)
+            shell.SyntaxTB.set_colors(scheme = new_scheme)
         except:
             color_switch_err('exception')
 
         # threaded shells use a verbose traceback in sys.excepthook
-        if self.isthreaded:
+        if shell.isthreaded:
             try:
-                self.shell.sys_excepthook.set_colors(scheme=new_scheme)
+                shell.sys_excepthook.set_colors(scheme=new_scheme)
             except:
                 color_switch_err('system exception handler')
         
         # Set info (for 'object?') colors
-        if self.shell.rc.color_info:
+        if shell.rc.color_info:
             try:
-                self.shell.inspector.set_active_scheme(new_scheme)
+                shell.inspector.set_active_scheme(new_scheme)
             except:
                 color_switch_err('object inspector')
         else:
-            self.shell.inspector.set_active_scheme('NoColor')
+            shell.inspector.set_active_scheme('NoColor')
                 
     def magic_color_info(self,parameter_s = ''):
         """Toggle color_info.
@@ -2284,7 +2258,7 @@ Defaulting color scheme to 'NoColor'"""
             else:
                 self.shell.user_ns['_dh'].append(os.getcwd())
         else:
-            os.chdir(self.home_dir)
+            os.chdir(self.shell.home_dir)
             self.shell.user_ns['_dh'].append(os.getcwd())
         if not 'q' in opts:
             print self.shell.user_ns['_dh'][-1]
@@ -2323,7 +2297,6 @@ Defaulting color scheme to 'NoColor'"""
     def magic_env(self, parameter_s=''):
         """List environment variables."""
         
-        # environ is an instance of UserDict
         return os.environ.data
 
     def magic_pushd(self, parameter_s=''):
@@ -2335,11 +2308,12 @@ Defaulting color scheme to 'NoColor'"""
         %pushd with no arguments does a %pushd to your home directory.
         """
         if parameter_s == '': parameter_s = '~'
-        if len(self.dir_stack)>0 and os.path.expanduser(parameter_s) != \
-           os.path.expanduser(self.dir_stack[0]):
+        dir_s = self.shell.dir_stack
+        if len(dir_s)>0 and os.path.expanduser(parameter_s) != \
+           os.path.expanduser(self.shell.dir_stack[0]):
             try:
                 self.magic_cd(parameter_s)
-                self.dir_stack.insert(0,os.getcwd().replace(self.home_dir,'~'))
+                dir_s.insert(0,os.getcwd().replace(self.home_dir,'~'))
                 self.magic_dirs()
             except:
                 print 'Invalid directory'
@@ -2349,18 +2323,18 @@ Defaulting color scheme to 'NoColor'"""
     def magic_popd(self, parameter_s=''):
         """Change to directory popped off the top of the stack.
         """
-        if len (self.dir_stack) > 1:
-            self.dir_stack.pop(0)
-            self.magic_cd(self.dir_stack[0])
-            print self.dir_stack[0]
+        if len (self.shell.dir_stack) > 1:
+            self.shell.dir_stack.pop(0)
+            self.magic_cd(self.shell.dir_stack[0])
+            print self.shell.dir_stack[0]
         else:
             print "You can't remove the starting directory from the stack:",\
-                  self.dir_stack
+                  self.shell.dir_stack
 
     def magic_dirs(self, parameter_s=''):
         """Return the current directory stack."""
 
-        return self.dir_stack[:]
+        return self.shell.dir_stack[:]
 
     def magic_sc(self, parameter_s=''):
         """Shell capture - execute a shell command and capture its output.
@@ -2605,7 +2579,7 @@ Defaulting color scheme to 'NoColor'"""
                 bkms[args[0]] = os.getcwd()
             elif len(args)==2:
                 bkms[args[0]] = args[1]
-        self.persist['bookmarks'] = bkms
+        self.shell.persist['bookmarks'] = bkms
 
     def magic_pycat(self, parameter_s=''):
         """Show a syntax-highlighted file through a pager.

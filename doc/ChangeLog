@@ -1,3 +1,31 @@
+2005-12-29  Fernando Perez  <Fernando.Perez@colorado.edu>
+
+	* IPython/Magic.py (Macro): simplified Macro class to just
+	subclass list.  We've had only 2.2 compatibility for a very long
+	time, yet I was still avoiding subclassing the builtin types.  No
+	more (I'm also starting to use properties, though I won't shift to
+	2.3-specific features quite yet).
+
+	* IPython/iplib.py (InteractiveShell.post_config_initialization):
+	changed the default logfile name from 'ipython.log' to
+	'ipython_log.py'.  These logs are real python files, and now that
+	we have much better multiline support, people are more likely to
+	want to use them as such.  Might as well name them correctly.
+
+	* IPython/Magic.py: substantial cleanup.  While we can't stop
+	using magics as mixins, due to the existing customizations 'out
+	there' which rely on the mixin naming conventions, at least I
+	cleaned out all cross-class name usage.  So once we are OK with
+	breaking compatibility, the two systems can be separated.
+
+	* IPython/Logger.py: major cleanup.  This one is NOT a mixin
+	anymore, and the class is a fair bit less hideous as well.  New
+	features were also introduced: timestamping of input, and logging
+	of output results.  These are user-visible with the -t and -o
+	options to %logstart.  Closes
+	http://www.scipy.net/roundup/ipython/issue11 and a request by
+	William Stein (SAGE developer - http://modular.ucsd.edu/sage).
+
 2005-12-28  Fernando Perez  <Fernando.Perez@colorado.edu>
 
 	* IPython/iplib.py (handle_shell_escape): add Ville's patch to

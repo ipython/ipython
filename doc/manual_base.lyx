@@ -2957,11 +2957,12 @@ IPYTHONDIR
 \family default 
 \series default 
 : generate a log file of all input.
- Defaults to 
+ The file is named 
 \family typewriter 
-$IPYTHONDIR/log
+ipython_log.py
 \family default 
-.
+ in your current directory (which prevents logs from multiple IPython sessions
+ from trampling each other).
  You can use this to later restore a session by loading your logfile as
  a file to be executed with option 
 \family typewriter 

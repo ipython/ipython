@@ -6,7 +6,7 @@ Requires Python 2.1 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 965 2005-12-28 23:23:09Z fperez $
+$Id: iplib.py 966 2005-12-29 08:34:07Z fperez $
 """
 
 #*****************************************************************************
@@ -67,7 +67,8 @@ from IPython.ColorANSI import ColorScheme,ColorSchemeTable  # too long names
 from IPython.FakeModule import FakeModule
 from IPython.Itpl import Itpl,itpl,printpl,ItplNS,itplns
 from IPython.Logger import Logger
-from IPython.Magic import Magic,magic2python
+from IPython.Magic import Magic
+from IPython.Prompts import CachedOutput
 from IPython.Struct import Struct
 from IPython.background_jobs import BackgroundJobManager
 from IPython.usage import cmd_line_usage,interactive_usage
@@ -229,7 +230,27 @@ class SyntaxTB(ultraTB.ListTB):
 
 #****************************************************************************
 # Main IPython class
-class InteractiveShell(Logger, Magic):
+
+# FIXME: the Magic class is a mixin for now, and will unfortunately remain so
+# until a full rewrite is made.  I've cleaned all cross-class uses of
+# attributes and methods, but too much user code out there relies on the
+# equlity %foo == __IP.magic_foo, so I can't actually remove the mixin usage.
+#
+# But at least now, all the pieces have been separated and we could, in
+# principle, stop using the mixin.  This will ease the transition to the
+# chainsaw branch.
+
+# For reference, the following is the list of 'self.foo' uses in the Magic
+# class as of 2005-12-28.  These are names we CAN'T use in the main ipython
+# class, to prevent clashes.
+
+# ['self.__class__', 'self.__dict__', 'self._inspect', 'self._ofind',
+#  'self.arg_err', 'self.extract_input', 'self.format_', 'self.lsmagic',
+#  'self.magic_', 'self.options_table', 'self.parse', 'self.shell',
+#  'self.value']
+
+
+class InteractiveShell(Magic):
     """An enhanced console for Python."""
 
     # class attribute to indicate whether the class supports threads or not.
@@ -305,7 +326,6 @@ class InteractiveShell(Logger, Magic):
         # Von: Alex Martelli <aleaxit@yahoo.com>
         # Datum: Freitag 01 Oktober 2004 04:45:34 nachmittags/abends
         # Gruppen: comp.lang.python
-        # Referenzen: 1
 
         # Michael Hohn <hohn@hooknose.lbl.gov> wrote:
         # > >>> print type(builtin_check.get_global_binding('__builtins__'))
@@ -432,21 +452,16 @@ class InteractiveShell(Logger, Magic):
         self.ESC_PAREN  = '/'
 
         # And their associated handlers
-        self.esc_handlers = {self.ESC_PAREN:self.handle_auto,
-                             self.ESC_QUOTE:self.handle_auto,
-                             self.ESC_QUOTE2:self.handle_auto,
-                             self.ESC_MAGIC:self.handle_magic,
-                             self.ESC_HELP:self.handle_help,
-                             self.ESC_SHELL:self.handle_shell_escape,
+        self.esc_handlers = {self.ESC_PAREN  : self.handle_auto,
+                             self.ESC_QUOTE  : self.handle_auto,
+                             self.ESC_QUOTE2 : self.handle_auto,
+                             self.ESC_MAGIC  : self.handle_magic,
+                             self.ESC_HELP   : self.handle_help,
+                             self.ESC_SHELL  : self.handle_shell_escape,
                              }
 
         # class initializations
-        Logger.__init__(self,log_ns = self.user_ns)
         Magic.__init__(self,self)
-
-        # an ugly hack to get a pointer to the shell, so I can start writing
-        # magic code via this pointer instead of the current mixin salad.
-        Magic.set_shell(self,self)
 
         # Python source parser/formatter for syntax highlighting
         pyformat = PyColorize.Parser().format
@@ -488,6 +503,16 @@ class InteractiveShell(Logger, Magic):
         # Keep track of readline usage (later set by init_readline)
         self.has_readline = False
 
+        # template for logfile headers.  It gets resolved at runtime by the
+        # logstart method.
+        self.loghead_tpl = \
+"""#log# Automatic Logger file. *** THIS MUST BE THE FIRST LINE ***
+#log# DO NOT CHANGE THIS LINE OR THE TWO BELOW
+#log# opts = %s
+#log# args = %s
+#log# It is safe to make manual edits below here.
+#log#-----------------------------------------------------------------------
+"""
         # for pushd/popd management
         try:
             self.home_dir = get_home_dir()
@@ -550,19 +575,6 @@ class InteractiveShell(Logger, Magic):
         # keep track of where we started running (mainly for crash post-mortem)
         self.starting_dir = os.getcwd()
 
-        # Attributes for Logger mixin class, make defaults here
-        self._dolog = False
-        self.LOG = ''
-        self.LOGDEF = '.InteractiveShell.log'
-        self.LOGMODE = 'over'
-        self.LOGHEAD = Itpl(
-"""#log# Automatic Logger file. *** THIS MUST BE THE FIRST LINE ***
-#log# DO NOT CHANGE THIS LINE OR THE TWO BELOW
-#log# opts = $self.rc.opts
-#log# args = $self.rc.args
-#log# It is safe to make manual edits below here.
-#log#-----------------------------------------------------------------------
-""")
         # Various switches which can be set
         self.CACHELENGTH = 5000  # this is cheap, it's just text
         self.BANNER = "Python %(version)s on %(platform)s\n" % sys.__dict__
@@ -655,9 +667,41 @@ class InteractiveShell(Logger, Magic):
         if rc.readline:
             self.init_readline()
 
+        # log system
+        self.logger = Logger(self,logfname='ipython_log.py',logmode='rotate')
+        # local shortcut, this is used a LOT
+        self.log = self.logger.log
+
+        # Initialize cache, set in/out prompts and printing system
+        self.outputcache = CachedOutput(self,
+                                        rc.cache_size,
+                                        rc.pprint,
+                                        input_sep = rc.separate_in,
+                                        output_sep = rc.separate_out,
+                                        output_sep2 = rc.separate_out2,
+                                        ps1 = rc.prompt_in1,
+                                        ps2 = rc.prompt_in2,
+                                        ps_out = rc.prompt_out,
+                                        pad_left = rc.prompts_pad_left)
+
+        # user may have over-ridden the default print hook:
+        try:
+            self.outputcache.__class__.display = self.hooks.display
+        except AttributeError:
+            pass
+
+        # I don't like assigning globally to sys, because it means when embedding
+        # instances, each embedded instance overrides the previous choice. But
+        # sys.displayhook seems to be called internally by exec, so I don't see a
+        # way around it.
+        sys.displayhook = self.outputcache
+
         # Set user colors (don't do it in the constructor above so that it
         # doesn't crash if colors option is invalid)
         self.magic_colors(rc.colors)
+
+        # Set calling of pdb on exceptions
+        self.call_pdb = rc.pdb
 
         # Load user aliases
         for alias in rc.alias:
@@ -742,6 +786,28 @@ class InteractiveShell(Logger, Magic):
                                      self.Completer.__class__)
         self.Completer.matchers.insert(pos,newcomp)
 
+    def _get_call_pdb(self):
+        return self._call_pdb
+
+    def _set_call_pdb(self,val):
+
+        if val not in (0,1,False,True):
+            raise ValueError,'new call_pdb value must be boolean'
+
+        # store value in instance
+        self._call_pdb = val
+
+        # notify the actual exception handlers
+        self.InteractiveTB.call_pdb = val
+        if self.isthreaded:
+            try:
+                self.sys_excepthook.call_pdb = val
+            except:
+                warn('Failed to activate pdb for threaded exception handler')
+
+    call_pdb = property(_get_call_pdb,_set_call_pdb,None,
+                        'Control auto-activation of pdb at exceptions')
+ 
     def complete(self,text):
         """Return a sorted list of all possible completions on text.
 
@@ -1907,10 +1973,10 @@ want to merge them back into the new files.""" % locals()
         kw.setdefault('quiet',1)
         kw.setdefault('exit_ignore',0)
         first = xfile.readline()
-        _LOGHEAD = str(self.LOGHEAD).split('\n',1)[0].strip()
+        loghead = str(self.loghead_tpl).split('\n',1)[0].strip()
         xfile.close()
         # line by line execution
-        if first.startswith(_LOGHEAD) or kw['islog']:
+        if first.startswith(loghead) or kw['islog']:
             print 'Loading log file <%s> one line at a time...' % fname
             if kw['quiet']:
                 stdout_save = sys.stdout
@@ -1942,9 +2008,6 @@ want to merge them back into the new files.""" % locals()
                 # don't re-insert logger status info into cache
                 if line.startswith('#log#'):
                     continue
-                elif line.startswith('#%s'% self.ESC_MAGIC):
-                    self.update_cache(line[1:])
-                    line = magic2python(line)
                 elif line.startswith('#!'):
                     self.update_cache(line[1:])
                 else:

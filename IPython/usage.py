@@ -6,7 +6,7 @@
 #  the file COPYING, distributed as part of this software.
 #*****************************************************************************
 
-# $Id: usage.py 960 2005-12-28 06:51:01Z fperez $
+# $Id: usage.py 966 2005-12-29 08:34:07Z fperez $
 
 from IPython import Release
 __author__  = '%s <%s>' % Release.authors['Fernando']
@@ -236,14 +236,14 @@ REGULAR OPTIONS
               This can also be  specified  through  the  environment  variable
               IPYTHONDIR.
 
-       -log|l Generate  a log file of all input. The file is named ipython.log
-              in your current directory (which  prevents  logs  from  multiple
-              IPython sessions from trampling each other). You can use this to
-              later restore a session by loading your logfile as a file to  be
-              executed with option -logplay (see below).
+       -log|l Generate  a log file of all input. The file is named
+              ipython_log.py in your current directory (which prevents logs
+              from multiple IPython sessions from trampling each other). You
+              can use this to later restore a session by loading your logfile
+              as a file to be executed with option -logplay (see below).
 
        -logfile|lf
-              Specifu the name of your logfile.
+              Specify the name of your logfile.
 
        -logplay|lp
               Replay  a previous log. For restoring a session as close as pos-
