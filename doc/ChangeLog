@@ -1,5 +1,9 @@
 2005-12-29  Fernando Perez  <Fernando.Perez@colorado.edu>
 
+	* IPython/Magic.py (Magic.format_latex): patch by Stefan van der
+	Walt <stefan-AT-sun.ac.za> to fix latex formatting of docstrings,
+	which was producing problems in the resulting manual.
+
 	* IPython/genutils.py (shell): commit Jorgen Stenarson's patch
 	(minor mods) to support network shares under win32.
 

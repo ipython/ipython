@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Magic functions for InteractiveShell.
 
-$Id: Magic.py 970 2005-12-29 18:22:53Z fperez $"""
+$Id: Magic.py 973 2005-12-29 18:51:56Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001 Janko Hauser <jhauser@zscout.de> and
@@ -231,11 +231,11 @@ license. To use profiling, please install"python2.3-profiler" from non-free.""")
         print OInspect.getdoc(func)
 
 
-    def format_latex(self,str):
+    def format_latex(self,strng):
         """Format a string for latex inclusion."""
 
         # Characters that need to be escaped for latex:
-        escape_re = re.compile(r'(%|_|\$)',re.MULTILINE)
+        escape_re = re.compile(r'(%|_|\$|#)',re.MULTILINE)
         # Magic command names as headers:
         cmd_name_re = re.compile(r'^(%s.*?):' % self.shell.ESC_MAGIC,
                                  re.MULTILINE)
@@ -245,20 +245,25 @@ license. To use profiling, please install"python2.3-profiler" from non-free.""")
         # Paragraph continue
         par_re = re.compile(r'\\$',re.MULTILINE)
 
-        str = cmd_name_re.sub(r'\n\\texttt{\\textsl{\\large \1}}:',str)
-        str = cmd_re.sub(r'\\texttt{\g<cmd>}',str)
-        str = par_re.sub(r'\\\\',str)
-        str = escape_re.sub(r'\\\1',str)
-        return str
+        # The "\n" symbol
+        newline_re = re.compile(r'\\n')
 
-    def format_screen(self,str):
+        # Now build the string for output:
+        strng = cmd_name_re.sub(r'\n\\texttt{\\textsl{\\large \1}}:',strng)
+        strng = cmd_re.sub(r'\\texttt{\g<cmd>}',strng)
+        strng = par_re.sub(r'\\\\',strng)
+        strng = escape_re.sub(r'\\\1',strng)
+        strng = newline_re.sub(r'\\textbackslash{}n',strng)
+        return strng
+
+    def format_screen(self,strng):
         """Format a string for screen printing.
 
         This removes some latex-type format codes."""
         # Paragraph continue
         par_re = re.compile(r'\\$',re.MULTILINE)
-        str = par_re.sub('',str)
-        return str
+        strng = par_re.sub('',strng)
+        return strng
 
     def parse_options(self,arg_str,opt_str,*long_opts,**kw):
         """Parse options passed to an argument string.
