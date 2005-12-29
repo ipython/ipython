@@ -5,7 +5,7 @@ General purpose utilities.
 This is a grab-bag of stuff I find useful in most programs I write. Some of
 these things are also convenient when working at the command line.
 
-$Id: genutils.py 960 2005-12-28 06:51:01Z fperez $"""
+$Id: genutils.py 967 2005-12-29 09:02:13Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2004 Fernando Perez. <fperez@colorado.edu>
@@ -860,6 +860,7 @@ class LSString(str):
 
     n = nlstr = property(get_nlstr)
 
+#----------------------------------------------------------------------------
 class SList(list):
     """List derivative with a special access attributes.
 
@@ -895,6 +896,19 @@ class SList(list):
 
     n = nlstr = property(get_nlstr)
 
+#----------------------------------------------------------------------------
+# This can be replaced with an isspace() call once we drop 2.2 compatibility
+_isspace_match = re.compile(r'^\s+$').match
+def isspace(s):
+    return bool(_isspace_match(s))
+
+#----------------------------------------------------------------------------
+def esc_quotes(strng):
+    """Return the input string with single and double quotes escaped out"""
+
+    return strng.replace('"','\\"').replace("'","\\'")
+
+#----------------------------------------------------------------------------
 def raw_input_multi(header='', ps1='==> ', ps2='..> ',terminate_str = '.'):
     """Take multiple lines of input.
 
@@ -1025,6 +1039,19 @@ def qw(words,flat=0,sep=None,maxsplit=-1):
 def qwflat(words,sep=None,maxsplit=-1):
     """Calls qw(words) in flat mode. It's just a convenient shorthand."""
     return qw(words,1,sep,maxsplit)
+
+#----------------------------------------------------------------------------
+def qw_lol(indata):
+    """qw_lol('a b') -> [['a','b']],
+    otherwise it's just a call to qw().
+
+    We need this to make sure the modules_some keys *always* end up as a
+    list of lists."""
+
+    if type(indata) in StringTypes:
+        return [qw(indata)]
+    else:
+        return qw(indata)
 
 #-----------------------------------------------------------------------------
 def list_strings(arg):
@@ -1583,6 +1610,15 @@ def map_method(method,object_list,*argseq,**kw):
                 out_list.append(handler(**kw))
         idx += 1
     return out_list
+
+#----------------------------------------------------------------------------
+def import_fail_info(mod_name,fns=None):
+    """Inform load failure for a module."""
+
+    if fns == None:
+        warn("Loading of %s failed.\n" % (mod_name,))
+    else:
+        warn("Loading of %s from %s failed.\n" % (fns,mod_name))
 
 #----------------------------------------------------------------------------
 # Proposed popitem() extension, written as a method

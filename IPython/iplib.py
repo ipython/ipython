@@ -6,7 +6,7 @@ Requires Python 2.1 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 966 2005-12-29 08:34:07Z fperez $
+$Id: iplib.py 967 2005-12-29 09:02:13Z fperez $
 """
 
 #*****************************************************************************
@@ -81,35 +81,24 @@ raw_input_original = raw_input
 #****************************************************************************
 # Some utility function definitions
 
-# This can be replaced with an isspace() call once we drop 2.2 compatibility
-_isspace_match = re.compile(r'^\s+$').match
-def isspace(s):
-    return bool(_isspace_match(s))
+def softspace(file, newvalue):
+    """Copied from code.py, to remove the dependency"""
+    oldvalue = 0
+    try:
+        oldvalue = file.softspace
+    except AttributeError:
+        pass
+    try:
+        file.softspace = newvalue
+    except (AttributeError, TypeError):
+        # "attribute-less object" or "read-only attributes"
+        pass
+    return oldvalue
 
-def esc_quotes(strng):
-    """Return the input string with single and double quotes escaped out"""
-
-    return strng.replace('"','\\"').replace("'","\\'")
-
-def import_fail_info(mod_name,fns=None):
-    """Inform load failure for a module."""
-
-    if fns == None:
-        warn("Loading of %s failed.\n" % (mod_name,))
-    else:
-        warn("Loading of %s from %s failed.\n" % (fns,mod_name))
-
-def qw_lol(indata):
-    """qw_lol('a b') -> [['a','b']],
-    otherwise it's just a call to qw().
-
-    We need this to make sure the modules_some keys *always* end up as a
-    list of lists."""
-
-    if type(indata) in StringTypes:
-        return [qw(indata)]
-    else:
-        return qw(indata)
+#****************************************************************************
+# These special functions get installed in the builtin namespace, to provide
+# programmatic (pure python) access to magics and aliases.  This is important
+# for logging, user scripting, and more.
 
 def ipmagic(arg_s):
     """Call a magic function by name.
@@ -173,21 +162,6 @@ def ipalias(arg_s):
     else:
         error("Alias `%s` not found." % alias_name)
 
-def softspace(file, newvalue):
-    """Copied from code.py, to remove the dependency"""
-    oldvalue = 0
-    try:
-        oldvalue = file.softspace
-    except AttributeError:
-        pass
-    try:
-        file.softspace = newvalue
-    except (AttributeError, TypeError):
-        # "attribute-less object" or "read-only attributes"
-        pass
-    return oldvalue
-
-
 #****************************************************************************
 # Local use exceptions
 class SpaceInInput(exceptions.Exception): pass
@@ -248,7 +222,6 @@ class SyntaxTB(ultraTB.ListTB):
 #  'self.arg_err', 'self.extract_input', 'self.format_', 'self.lsmagic',
 #  'self.magic_', 'self.options_table', 'self.parse', 'self.shell',
 #  'self.value']
-
 
 class InteractiveShell(Magic):
     """An enhanced console for Python."""
@@ -1802,10 +1775,12 @@ want to merge them back into the new files.""" % locals()
         """Handle alias input lines. """
 
         theRest = esc_quotes(theRest)
-        line_out = "%s%s.call_alias('%s','%s')" % (pre,self.name,iFun,theRest)
-        self.log(line_out,continue_prompt)
-        self.update_cache(line_out)
-        return line_out
+        # log the ipalias form, which doesn't depend on the instance name
+        line_log = 'ipalias("%s %s")' % (iFun,theRest)
+        self.log(line_log,continue_prompt)
+        self.update_cache(line_log)
+        # this is what actually gets executed
+        return "%s%s.call_alias('%s','%s')" % (pre,self.name,iFun,theRest)
 
     def handle_shell_escape(self, line, continue_prompt=None,
                             pre=None,iFun=None,theRest=None):
