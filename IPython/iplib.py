@@ -6,7 +6,7 @@ Requires Python 2.1 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 968 2005-12-29 17:15:38Z fperez $
+$Id: iplib.py 975 2005-12-29 23:50:22Z fperez $
 """
 
 #*****************************************************************************
@@ -77,6 +77,10 @@ from IPython.genutils import *
 # store the builtin raw_input globally, and use this always, in case user code
 # overwrites it (like wx.py.PyShell does)
 raw_input_original = raw_input
+
+# compiled regexps for autoindent management
+ini_spaces_re = re.compile(r'^(\s+)')
+dedent_re = re.compile(r'^\s+raise|^\s+return|^\s+pass')
 
 #****************************************************************************
 # Some utility function definitions
@@ -1171,10 +1175,8 @@ want to merge them back into the new files.""" % locals()
         of what was there before (because Python's parser always uses
         "<string>" when reading from a string).
         """
-        type, value, sys.last_traceback = sys.exc_info()
-        sys.last_type = type
-        sys.last_value = value
-        if filename and type is SyntaxError:
+        etype, value, last_traceback = sys.exc_info()
+        if filename and etype is SyntaxError:
             # Work hard to stuff the correct filename in the exception
             try:
                 msg, (dummy_filename, lineno, offset, line) = value
@@ -1189,7 +1191,7 @@ want to merge them back into the new files.""" % locals()
                 except:
                     # If that failed, assume SyntaxError is a string
                     value = msg, (filename, lineno, offset, line)
-        self.SyntaxTB(type,value,[])
+        self.SyntaxTB(etype,value,[])
 
     def debugger(self):
         """Call the pdb debugger."""
@@ -1210,9 +1212,6 @@ want to merge them back into the new files.""" % locals()
         if type is SyntaxError:
             self.showsyntaxerror(filename)
         else:
-            sys.last_type = type
-            sys.last_value = value
-            sys.last_traceback = tb
             self.InteractiveTB()
             if self.InteractiveTB.call_pdb and self.has_readline:
                 # pdb mucks up readline, fix it back
@@ -1220,7 +1219,10 @@ want to merge them back into the new files.""" % locals()
 
     def update_cache(self, line):
         """puts line into cache"""
-        self.inputcache.insert(0, line) # This copies the cache every time ... :-(
+        return  # dbg
+    
+        # This copies the cache every time ... :-(
+        self.inputcache.insert(0, line)
         if len(self.inputcache) >= self.CACHELENGTH:
             self.inputcache.pop()    # This doesn't :-)
 
@@ -1319,10 +1321,6 @@ want to merge them back into the new files.""" % locals()
         # Mark activity in the builtins
         __builtin__.__dict__['__IPYTHON__active'] += 1
 
-        # compiled regexps for autoindent management
-        ini_spaces_re = re.compile(r'^(\s+)')
-        dedent_re = re.compile(r'^\s+raise|^\s+return|^\s+pass')
-
         # exit_now is set by a call to %Exit or %Quit
         while not self.exit_now:
             try:
@@ -1343,26 +1341,6 @@ want to merge them back into the new files.""" % locals()
                     self.exit()
                 else:
                     more = self.push(line)
-                    # Auto-indent management
-                    if self.autoindent:
-                        if line:
-                            ini_spaces = ini_spaces_re.match(line)
-                            if ini_spaces:
-                                nspaces = ini_spaces.end()
-                            else:
-                                nspaces = 0
-                            self.indent_current_nsp = nspaces
-
-                            if line[-1] == ':':
-                                self.indent_current_nsp += 4
-                            elif dedent_re.match(line):
-                                self.indent_current_nsp -= 4
-                        else:
-                            self.indent_current_nsp = 0
-
-                        # indent_current is the actual string to be inserted
-                        # by the readline hooks for indentation
-                        self.indent_current = ' '* self.indent_current_nsp
 
                     if (self.SyntaxTB.last_syntax_error and
                         self.rc.autoedit_syntax):
@@ -1445,6 +1423,28 @@ want to merge them back into the new files.""" % locals()
         except:
             self.showtraceback()
 
+    def autoindent_update(self,line):
+        """Keep track of the indent level."""
+        if self.autoindent:
+            if line:
+                ini_spaces = ini_spaces_re.match(line)
+                if ini_spaces:
+                    nspaces = ini_spaces.end()
+                else:
+                    nspaces = 0
+                self.indent_current_nsp = nspaces
+
+                if line[-1] == ':':
+                    self.indent_current_nsp += 4
+                elif dedent_re.match(line):
+                    self.indent_current_nsp -= 4
+            else:
+                self.indent_current_nsp = 0
+
+            # indent_current is the actual string to be inserted
+            # by the readline hooks for indentation
+            self.indent_current = ' '* self.indent_current_nsp
+
     def runlines(self,lines):
         """Run a string of one or more lines of source.
 
@@ -1462,8 +1462,11 @@ want to merge them back into the new files.""" % locals()
             # skip blank lines so we don't mess up the prompt counter, but do
             # NOT skip even a blank line if we are in a code block (more is
             # true)
+            #print 'rl line:<%s>' % line # dbg
             if line or more:
-                more = self.push((self.prefilter(line,more)))
+                #print 'doit' # dbg
+                newline = self.prefilter(line,more)
+                more = self.push(newline)
                 # IPython's runsource returns None if there was an error
                 # compiling the code.  This allows us to stop processing right
                 # away, so the user gets the error message at the right place.
@@ -1716,6 +1719,8 @@ want to merge them back into the new files.""" % locals()
         # Let's try to find if the input line is a magic fn
         oinfo = None
         if hasattr(self,'magic_'+iFun):
+            # WARNING: _ofind uses getattr(), so it can consume generators and
+            # cause other side effects.
             oinfo = self._ofind(iFun) # FIXME - _ofind is part of Magic
             if oinfo['ismagic']:
                 # Be careful not to call magics when a variable assignment is

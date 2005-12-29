@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Magic functions for InteractiveShell.
 
-$Id: Magic.py 974 2005-12-29 19:48:33Z fperez $"""
+$Id: Magic.py 975 2005-12-29 23:50:22Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001 Janko Hauser <jhauser@zscout.de> and
@@ -47,6 +47,7 @@ from IPython.FakeModule import FakeModule
 from IPython.Itpl import Itpl, itpl, printpl,itplns
 from IPython.PyColorize import Parser
 from IPython.Struct import Struct
+from IPython.macro import Macro
 from IPython.genutils import *
 
 #***************************************************************************
@@ -55,18 +56,6 @@ def on_off(tag):
     """Return an ON/OFF string for a 1/0 input. Simple utility function."""
     return ['OFF','ON'][tag]
 
-
-#****************************************************************************
-# Utility classes
-class Macro(list):
-    """Simple class to store the value of macros as strings.
-
-    This allows us to later exec them by checking when something is an
-    instance of this class."""
-
-    def __init__(self,data):
-        list.__init__(self,data)
-        self.value = ''.join(data)
 
 #***************************************************************************
 # Main class implementing Magic functionality
@@ -224,12 +213,11 @@ license. To use profiling, please install"python2.3-profiler" from non-free.""")
             
         return {'found':found, 'obj':obj, 'namespace':ospace,
                 'ismagic':ismagic, 'isalias':isalias}
-        
+    
     def arg_err(self,func):
         """Print docstring if incorrect arguments were passed"""
         print 'Error in arguments:'
         print OInspect.getdoc(func)
-
 
     def format_latex(self,strng):
         """Format a string for latex inclusion."""
@@ -845,7 +833,15 @@ Currently the magic system has the following functions:\n"""
         get_vars = lambda i: self.shell.user_ns[i]
         type_name = lambda v: type(v).__name__
         varlist = map(get_vars,varnames)
-        typelist = map(type_name,varlist)
+
+        typelist = []
+        for vv in varlist:
+            tt = type_name(vv)
+            if tt=='instance':
+                typelist.append(str(vv.__class__))
+            else:
+                typelist.append(tt)
+
         # column labels and # of spaces as separator
         varlabel = 'Variable'
         typelabel = 'Type'
@@ -881,7 +877,7 @@ Currently the magic system has the following functions:\n"""
                     else:
                         print '(%s Mb)' % (vbytes/Mb,)
             else:
-                vstr = str(var)
+                vstr = str(var).replace('\n','\\n')
                 if len(vstr) < 50:
                     print vstr
                 else:
@@ -1593,7 +1589,7 @@ Currently the magic system has the following functions:\n"""
         self.shell.user_ns.update({name:macro})
         print 'Macro `%s` created. To execute, type its name (without quotes).' % name
         print 'Macro contents:'
-        print macro
+        print macro,
 
     def magic_save(self,parameter_s = ''):
         """Save a set of lines to a given filename.

@@ -1,8 +1,26 @@
 2005-12-29  Fernando Perez  <Fernando.Perez@colorado.edu>
 
+	* IPython/iplib.py (showtraceback): remove use of the
+	sys.last_{type/value/traceback} structures, which are non
+	thread-safe.
+
+	* IPython/macro.py (Macro.__init__): moved macros to a standalone
+	file.  Now that they'll be more likely to be used with the
+	persistance system (%store), I want to make sure their module path
+	doesn't change in the future, so that we don't break things for
+	users' persisted data.
+
+	* IPython/iplib.py (autoindent_update): move indentation
+	management into the _text_ processing loop, not the keyboard
+	interactive one.  This is necessary to correctly process non-typed
+	multiline input (such as macros).
+
 	* IPython/Magic.py (Magic.format_latex): patch by Stefan van der
 	Walt <stefan-AT-sun.ac.za> to fix latex formatting of docstrings,
 	which was producing problems in the resulting manual.
+	(magic_whos): improve reporting of instances (show their class,
+	instead of simply printing 'instance' which isn't terribly
+	informative).
 
 	* IPython/genutils.py (shell): commit Jorgen Stenarson's patch
 	(minor mods) to support network shares under win32.

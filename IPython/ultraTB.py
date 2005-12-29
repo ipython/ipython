@@ -60,7 +60,7 @@ You can implement other color schemes easily, the syntax is fairly
 self-explanatory. Please send back new schemes you develop to the author for
 possible inclusion in future releases.
 
-$Id: ultraTB.py 965 2005-12-28 23:23:09Z fperez $"""
+$Id: ultraTB.py 975 2005-12-29 23:50:22Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001 Nathaniel Gray <n8gray@caltech.edu>
@@ -225,12 +225,12 @@ class ListTB(TBTools):
         """Format the exception part of a traceback.
 
         The arguments are the exception type and value such as given by
-        sys.last_type and sys.last_value. The return value is a list of
-        strings, each ending in a newline.  Normally, the list contains a
-        single string; however, for SyntaxError exceptions, it contains
-        several lines that (when printed) display detailed information
-        about where the syntax error occurred.  The message indicating
-        which exception occurred is the always last string in the list.
+        sys.exc_info()[:2]. The return value is a list of strings, each ending
+        in a newline.  Normally, the list contains a single string; however,
+        for SyntaxError exceptions, it contains several lines that (when
+        printed) display detailed information about where the syntax error
+        occurred.  The message indicating which exception occurred is the
+        always last string in the list.
         
         Also lifted nearly verbatim from traceback.py
         """

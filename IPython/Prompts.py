@@ -2,7 +2,7 @@
 """
 Classes for handling input/output prompts.
 
-$Id: Prompts.py 966 2005-12-29 08:34:07Z fperez $"""
+$Id: Prompts.py 975 2005-12-29 23:50:22Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2004 Fernando Perez <fperez@colorado.edu>
@@ -26,11 +26,11 @@ import time
 from pprint import pprint,pformat
 
 # IPython's own
-from IPython.genutils import *
-from IPython.Struct import Struct
-from IPython.Magic import Macro
-from IPython.Itpl import ItplNS
 from IPython import ColorANSI
+from IPython.Itpl import ItplNS
+from IPython.Struct import Struct
+from IPython.macro import Macro
+from IPython.genutils import *
 
 #****************************************************************************
 #Color schemes for Prompts.
