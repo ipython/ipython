@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Magic functions for InteractiveShell.
 
-$Id: Magic.py 973 2005-12-29 18:51:56Z fperez $"""
+$Id: Magic.py 974 2005-12-29 19:48:33Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001 Janko Hauser <jhauser@zscout.de> and
@@ -931,8 +931,13 @@ Currently the magic system has the following functions:\n"""
           -o: log also IPython's output.  In this mode, all commands which
           generate an Out[NN] prompt are recorded to the logfile, right after
           their corresponding input line.  The output lines are always
-          prepended with a #[Out]# marker, so that the log remains valid
+          prepended with a '#[Out]# ' marker, so that the log remains valid
           Python code.
+
+          Since this marker is always the same, filtering only the output from
+          a log is very easy, using for example a simple awk call:
+
+            awk -F'#\\[Out\\]# ' '{if($2) {print $2}}' ipython_log.py
 
           -t: put timestamps before each input line logged (these are put in
           comments)."""

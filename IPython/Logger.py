@@ -2,7 +2,7 @@
 """
 Logger class for IPython's logging facilities.
 
-$Id: Logger.py 966 2005-12-29 08:34:07Z fperez $
+$Id: Logger.py 974 2005-12-29 19:48:33Z fperez $
 """
 
 #*****************************************************************************
@@ -160,11 +160,11 @@ which already exists. But you must first start the logging process with
             print 'Logging has not been activated.'
         else:
             state = self.log_active and 'active' or 'temporarily suspended'
-            print 'Filename      :',self.logfname
-            print 'Mode          :',self.logmode
-            print 'Output logging:',self.log_output
-            print 'Timestamping  :',self.timestamp
-            print 'State         :',state
+            print 'Filename       :',self.logfname
+            print 'Mode           :',self.logmode
+            print 'Output logging :',self.log_output
+            print 'Timestamping   :',self.timestamp
+            print 'State          :',state
 
     def log(self, line,continuation=None):
         """Write the line to a log and create input cache variables _i*."""
