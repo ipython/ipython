@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Magic functions for InteractiveShell.
 
-$Id: Magic.py 966 2005-12-29 08:34:07Z fperez $"""
+$Id: Magic.py 968 2005-12-29 17:15:38Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001 Janko Hauser <jhauser@zscout.de> and
@@ -30,6 +30,7 @@ import sys
 import re
 import tempfile
 import time
+import cPickle as pickle
 from cStringIO import StringIO
 from getopt import getopt
 from pprint import pprint, pformat
@@ -2525,6 +2526,80 @@ Defaulting color scheme to 'NoColor'"""
         
         self.shell.jobs.new(parameter_s,self.shell.user_ns)
         
+    def magic_store(self, parameter_s=''):
+        """Lightweight persistence for ipython variables
+
+        Example:
+        
+        ville@badger[~]|1> A = ['hello',10,'world']
+        ville@badger[~]|2> %store A
+        ville@badger[~]|3> Exit
+        
+        (IPython session is closed and started again...)
+        
+        ville@badger:~$ ipython -p pysh
+        ville@badger[~]|1> print A
+        
+        ['hello', 10, 'world']
+        
+        Usage:
+        
+        %store       - Show list of all variables and their current values\\
+        %store <var> - Store the *current* value of the variable to disk\\
+        %store -d    - Remove the variable and its value from storage\\
+        %store -r    - Remove all variables from storage
+        
+        It should be noted that if you change the value of a variable, you
+        need to %store it again if you want to persist the new value.
+        
+        Note also that the variables will need to be pickleable; most basic
+        python types can be safely %stored.
+        """
+
+        opts,args = self.parse_options(parameter_s,'dr',mode='list')
+        # delete
+        if opts.has_key('d'):
+            try:
+                todel = args[0]
+            except IndexError:
+                error('You must provide the variable to forget')
+            else:
+                try:
+                    del self.shell.persist['S:' + todel]
+                except:
+                    error("Can't delete variable '%s'" % todel)
+        # reset
+        elif opts.has_key('r'):
+            for k in self.shell.persist.keys():
+                if k.startswith('S:'):
+                    del self.shell.persist[k]
+                                
+        # run without arguments -> list variables & values
+        elif not args:
+            vars = [v[2:] for v in self.shell.persist.keys() if v.startswith('S:')]
+            vars.sort()            
+            if vars:
+                size = max(map(len,vars))
+            else:
+                size = 0
+                
+            fmt = '%-'+str(size)+'s -> %s'
+            print 'Stored variables and their in-memory values:'
+            for var in vars:
+                # print 30 first characters from every var
+                print fmt % (var,repr(self.shell.user_ns.get(var, '<unavailable>'))[:50])
+        
+        # default action - store the variable
+        else:
+            pickled = pickle.dumps(self.shell.user_ns[args[0] ])
+            self.shell.persist[ 'S:' + args[0] ] = pickled
+            print "Stored '%s' (%d bytes)" % (args[0], len(pickled))
+
+            
+            
+        
+        
+      
     def magic_bookmark(self, parameter_s=''):
         """Manage IPython's bookmark system.
 

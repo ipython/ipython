@@ -5,6 +5,10 @@
 	time, yet I was still avoiding subclassing the builtin types.  No
 	more (I'm also starting to use properties, though I won't shift to
 	2.3-specific features quite yet).
+	(magic_store): added Ville's patch for lightweight variable
+	persistence, after a request on the user list by Matt Wilkie
+	<maphew at gmail.com>.  The new %store magic's docstring has full
+	details.
 
 	* IPython/iplib.py (InteractiveShell.post_config_initialization):
 	changed the default logfile name from 'ipython.log' to

@@ -6,7 +6,7 @@ Requires Python 2.1 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 967 2005-12-29 09:02:13Z fperez $
+$Id: iplib.py 968 2005-12-29 17:15:38Z fperez $
 """
 
 #*****************************************************************************
@@ -691,6 +691,22 @@ class InteractiveShell(Magic):
             self.persist = pickle.load(file(self.persist_fname))
         except:
             self.persist = {}
+        
+        
+        for (key, value) in [(k[2:],v) for (k,v) in self.persist.items() if k.startswith('S:')]:
+            try:
+                obj = pickle.loads(value)
+            except:
+                
+                print "Unable to restore variable '%s', ignoring (use %%store -d to forget!)" % key
+                print "The error was:",sys.exc_info()[0]
+                continue
+                
+            
+            self.user_ns[key] = obj
+            
+          
+        
             
     def set_hook(self,name,hook):
         """set_hook(name,hook) -> sets an internal IPython hook.
