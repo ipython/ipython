@@ -1,5 +1,8 @@
 2005-12-29  Fernando Perez  <Fernando.Perez@colorado.edu>
 
+	* IPython/genutils.py (shell): commit Jorgen Stenarson's patch
+	(minor mods) to support network shares under win32.
+
 	* IPython/winconsole.py (get_console_size): add new winconsole
 	module and fixes to page_dumb() to improve its behavior under
 	win32.  Contributed by Alexander Belchenko <bialix-AT-ukr.net>.
