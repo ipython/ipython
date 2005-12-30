@@ -5,7 +5,7 @@ General purpose utilities.
 This is a grab-bag of stuff I find useful in most programs I write. Some of
 these things are also convenient when working at the command line.
 
-$Id: genutils.py 972 2005-12-29 18:45:19Z fperez $"""
+$Id: genutils.py 980 2005-12-30 15:42:04Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2004 Fernando Perez. <fperez@colorado.edu>
@@ -352,7 +352,7 @@ if os.name in ('nt','dos'):
             finally:
                 os.chdir(path)
         else:
-            shell_ori('"pushd %s&&"'%path+cmd,verbose,debug,header)
+            shell_ori(cmd,verbose,debug,header)
 
     shell.__doc__ = shell_ori.__doc__
 

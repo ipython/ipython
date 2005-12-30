@@ -1,3 +1,8 @@
+2005-12-30  Fernando Perez  <Fernando.Perez@colorado.edu>
+
+	* IPython/genutils.py (shell): fix small but critical bug for
+	win32 system access.
+
 2005-12-29  Fernando Perez  <Fernando.Perez@colorado.edu>
 
 	* IPython/iplib.py (showtraceback): remove use of the
