@@ -6,7 +6,7 @@ Requires Python 2.1 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 978 2005-12-30 02:37:15Z fperez $
+$Id: iplib.py 982 2005-12-30 23:57:07Z fperez $
 """
 
 #*****************************************************************************
@@ -1598,6 +1598,8 @@ want to merge them back into the new files.""" % locals()
         # interactive loop, since that one is only seen by keyboard input.  We
         # need this done correctly even for code run via runlines (which uses
         # push).
+
+        print 'push line: <%s>' % line  # dbg
         self.autoindent_update(line)
 
         self.buffer.append(line)
@@ -1812,7 +1814,9 @@ want to merge them back into the new files.""" % locals()
                      pre=None,iFun=None,theRest=None):
         """Handle alias input lines. """
 
-        line_out = 'ipalias("%s %s")' % (iFun,esc_quotes(theRest))
+        # pre is needed, because it carries the leading whitespace.  Otherwise
+        # aliases won't work in indented sections.
+        line_out = '%sipalias("%s %s")' % (pre,iFun,esc_quotes(theRest))
         self.log(line_out,continue_prompt)
         return line_out
 
@@ -1828,7 +1832,7 @@ want to merge them back into the new files.""" % locals()
                 return pre
             else:
                 cmd = ("%s %s" % (iFun[1:],theRest))
-                line_out = 'ipsystem(r"""%s"""[:-1])' % (cmd + "_")
+                line_out = '%sipsystem(r"""%s"""[:-1])' % (pre,cmd + "_")
         else: # single-line input
             if line.startswith('!!'):
                 # rewrite iFun/theRest to properly hold the call to %sx and
@@ -1840,7 +1844,7 @@ want to merge them back into the new files.""" % locals()
                                          continue_prompt,pre,iFun,theRest)
             else:
                 cmd=line[1:]
-                line_out = 'ipsystem(r"""%s"""[:-1])' % (cmd +"_")
+                line_out = '%sipsystem(r"""%s"""[:-1])' % (pre,cmd +"_")
         # update cache/log and return
         self.log(line_out,continue_prompt)
         return line_out

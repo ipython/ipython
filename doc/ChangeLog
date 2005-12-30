@@ -1,5 +1,9 @@
 2005-12-30  Fernando Perez  <Fernando.Perez@colorado.edu>
 
+	* IPython/iplib.py (handle_shell_escape): fix bug where both
+	aliases and system accesses where broken for indented code (such
+	as loops).
+
 	* IPython/genutils.py (shell): fix small but critical bug for
 	win32 system access.
 

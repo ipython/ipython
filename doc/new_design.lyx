@@ -106,6 +106,19 @@ Things that should be done for the current series, before starting major
 Fix any bugs reported at the online bug tracker.
 \layout Itemize
 
+History bug: I often see that, under certain circumstances, the input history
+ is incorrect.
+ The problem is that so far, I've failed to find a simple way to reproduce
+ it consistently, so I can't easily track it down.
+ It seems to me that it happens when output is generated multiple times
+ for the same input (for i in range(10): i will do it).
+ But even this isn't reliable...
+ Ultimately the right solution for this is to cleanly separate the dataflow
+ for input/output history management; right now that happens all over the
+ place, which makes the code impossible to debug, and almost guaranteed
+ to be buggy in the first place.
+\layout Itemize
+
 
 \series bold 
 Redesign the output traps.
