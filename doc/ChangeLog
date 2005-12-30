@@ -9,6 +9,13 @@
 	'y' has side effects, doesn't trigger the side effect TWICE.  It
 	is important to note that, with autocall on, these side effects
 	can still happen.
+	(ipsystem): new builtin, to complete the ip{magic/alias/system}
+	trio.  IPython offers these three kinds of special calls which are
+	not python code, and it's a good thing to have their call method
+	be accessible as pure python functions (not just special syntax at
+	the command line).  It gives us a better internal implementation
+	structure, as well as exposing these for user scripting more
+	cleanly.
 
 	* IPython/macro.py (Macro.__init__): moved macros to a standalone
 	file.  Now that they'll be more likely to be used with the

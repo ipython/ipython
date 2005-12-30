@@ -6,7 +6,7 @@ Requires Python 2.1 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 977 2005-12-30 01:23:52Z fperez $
+$Id: iplib.py 978 2005-12-30 02:37:15Z fperez $
 """
 
 #*****************************************************************************
@@ -101,8 +101,13 @@ def softspace(file, newvalue):
 
 #****************************************************************************
 # These special functions get installed in the builtin namespace, to provide
-# programmatic (pure python) access to magics and aliases.  This is important
-# for logging, user scripting, and more.
+# programmatic (pure python) access to magics, aliases and system calls.  This
+# is important for logging, user scripting, and more.
+
+# We are basically exposing, via normal python functions, the three mechanisms
+# in which ipython offers special call modes (magics for internal control,
+# aliases for direct system access via pre-selected names, and !cmd for
+# calling arbitrary system commands).
 
 def ipmagic(arg_s):
     """Call a magic function by name.
@@ -165,6 +170,11 @@ def ipalias(arg_s):
         __IPYTHON__.call_alias(alias_name,alias_args)
     else:
         error("Alias `%s` not found." % alias_name)
+
+def ipsystem(arg_s):
+    """Make a system call, using IPython."""
+    __IPYTHON__.system(arg_s)
+
 
 #****************************************************************************
 # Local use exceptions
@@ -249,9 +259,10 @@ class InteractiveShell(Magic):
         # imported code can test for being inside IPython.
         __builtin__.__IPYTHON__ = self
 
-        # And load into builtins ipmagic/ipalias as well
-        __builtin__.ipmagic = ipmagic
-        __builtin__.ipalias = ipalias
+        # And load into builtins ipmagic/ipalias/ipsystem as well
+        __builtin__.ipmagic  = ipmagic
+        __builtin__.ipalias  = ipalias
+        __builtin__.ipsystem = ipsystem
 
         # Add to __builtin__ other parts of IPython's public API
         __builtin__.ip_set_hook = self.set_hook
@@ -471,8 +482,6 @@ class InteractiveShell(Magic):
 
         # Storage
         self.rc = rc   # This will hold all configuration information
-        self.inputcache = []
-        self._boundcache = []
         self.pager = 'less'
         # temporary files used for various purposes.  Deleted at exit.
         self.tempfiles = []
@@ -1217,15 +1226,6 @@ want to merge them back into the new files.""" % locals()
                 # pdb mucks up readline, fix it back
                 self.readline.set_completer(self.Completer.complete)
 
-    def update_cache(self, line):
-        """puts line into cache"""
-        return  # dbg
-    
-        # This copies the cache every time ... :-(
-        self.inputcache.insert(0, line)
-        if len(self.inputcache) >= self.CACHELENGTH:
-            self.inputcache.pop()    # This doesn't :-)
-
     def mainloop(self,banner=None):
         """Creates the local namespace and starts the mainloop.
 
@@ -1462,11 +1462,8 @@ want to merge them back into the new files.""" % locals()
             # skip blank lines so we don't mess up the prompt counter, but do
             # NOT skip even a blank line if we are in a code block (more is
             # true)
-            #print 'rl line:<%s>' % line # dbg
             if line or more:
-                #print 'doit' # dbg
-                newline = self.prefilter(line,more)
-                more = self.push(newline)
+                more = self.push(self.prefilter(line,more))
                 # IPython's runsource returns None if there was an error
                 # compiling the code.  This allows us to stop processing right
                 # away, so the user gets the error message at the right place.
@@ -1595,8 +1592,14 @@ want to merge them back into the new files.""" % locals()
         is left as it was after the line was appended.  The return
         value is 1 if more input is required, 0 if the line was dealt
         with in some way (this is the same as runsource()).
-
         """
+
+        # autoindent management should be done here, and not in the
+        # interactive loop, since that one is only seen by keyboard input.  We
+        # need this done correctly even for code run via runlines (which uses
+        # push).
+        self.autoindent_update(line)
+
         self.buffer.append(line)
         more = self.runsource('\n'.join(self.buffer), self.filename)
         if not more:
@@ -1676,7 +1679,6 @@ want to merge them back into the new files.""" % locals()
         self._last_input_line = line
 
         #print '***line: <%s>' % line # dbg
-        self.autoindent_update(line)
         
         # the input history needs to track even empty lines
         if not line.strip():
@@ -1798,25 +1800,21 @@ want to merge them back into the new files.""" % locals()
         # clear the line.  The rule will be in this case, that either two
         # lines of pure whitespace in a row, or a line of pure whitespace but
         # of a size different to the indent level, will exit the input loop.
+        
         if (continue_prompt and self.autoindent and isspace(line) and
             (line != self.indent_current or isspace(self.buffer[-1]))):
             line = ''
 
         self.log(line,continue_prompt)
-        self.update_cache(line)
         return line
 
     def handle_alias(self,line,continue_prompt=None,
                      pre=None,iFun=None,theRest=None):
         """Handle alias input lines. """
 
-        theRest = esc_quotes(theRest)
-        # log the ipalias form, which doesn't depend on the instance name
-        line_log = 'ipalias("%s %s")' % (iFun,theRest)
-        self.log(line_log,continue_prompt)
-        self.update_cache(line_log)
-        # this is what actually gets executed
-        return "%s%s.call_alias('%s','%s')" % (pre,self.name,iFun,theRest)
+        line_out = 'ipalias("%s %s")' % (iFun,esc_quotes(theRest))
+        self.log(line_out,continue_prompt)
+        return line_out
 
     def handle_shell_escape(self, line, continue_prompt=None,
                             pre=None,iFun=None,theRest=None):
@@ -1829,10 +1827,8 @@ want to merge them back into the new files.""" % locals()
                 print 'SyntaxError: !! is not allowed in multiline statements'
                 return pre
             else:
-                cmd = ("%s %s" % (iFun[1:],theRest)) #.replace('"','\\"')
-                #line_out = '%s%s.system("%s")' % (pre,self.name,cmd)
-                line_out = '%s%s.system(r"""%s"""[:-1])' % (pre,self.name,cmd + "_")
-                #line_out = ('%s%s.system(' % (pre,self.name)) + repr(cmd) + ')'
+                cmd = ("%s %s" % (iFun[1:],theRest))
+                line_out = 'ipsystem(r"""%s"""[:-1])' % (cmd + "_")
         else: # single-line input
             if line.startswith('!!'):
                 # rewrite iFun/theRest to properly hold the call to %sx and
@@ -1843,16 +1839,10 @@ want to merge them back into the new files.""" % locals()
                 return self.handle_magic('%ssx %s' % (self.ESC_MAGIC,line[2:]),
                                          continue_prompt,pre,iFun,theRest)
             else:
-                #cmd = esc_quotes(line[1:])
                 cmd=line[1:]
-                #line_out = '%s.system("%s")' % (self.name,cmd)
-                line_out = '%s.system(r"""%s"""[:-1])' % (self.name,cmd +"_")
-                #line_out = ('%s.system(' % self.name) + repr(cmd)+ ')'
+                line_out = 'ipsystem(r"""%s"""[:-1])' % (cmd +"_")
         # update cache/log and return
         self.log(line_out,continue_prompt)
-        self.update_cache(line_out)   # readline cache gets normal line
-        #print 'line out r:', `line_out` # dbg
-        #print 'line out s:', line_out # dbg
         return line_out
 
     def handle_magic(self, line, continue_prompt=None,
@@ -1863,7 +1853,6 @@ want to merge them back into the new files.""" % locals()
 
         cmd = '%sipmagic("%s")' % (pre,esc_quotes('%s %s' % (iFun,theRest)))
         self.log(cmd,continue_prompt)
-        self.update_cache(line)
         #print 'in handle_magic, cmd=<%s>' % cmd  # dbg
         return cmd
 
@@ -1921,7 +1910,6 @@ want to merge them back into the new files.""" % locals()
             elif line[-1]==self.ESC_HELP:
                 line = line[:-1]
             self.log('#?'+line)
-            self.update_cache(line)
             if line:
                 self.magic_pinfo(line)
             else:
@@ -2019,8 +2007,6 @@ want to merge them back into the new files.""" % locals()
                 # don't re-insert logger status info into cache
                 if line.startswith('#log#'):
                     continue
-                elif line.startswith('#!'):
-                    self.update_cache(line[1:])
                 else:
                     # build a block of code (maybe a single line) for execution
                     block = line
@@ -2038,7 +2024,6 @@ want to merge them back into the new files.""" % locals()
                     # now execute the block of one or more lines
                     try:
                         exec block in globs,locs
-                        self.update_cache(block.rstrip())
                     except SystemExit:
                         pass
                     except:
