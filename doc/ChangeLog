@@ -3,6 +3,12 @@
 	* IPython/iplib.py (showtraceback): remove use of the
 	sys.last_{type/value/traceback} structures, which are non
 	thread-safe.
+	(_prefilter): change control flow to ensure that we NEVER
+	introspect objects when autocall is off.  This will guarantee that
+	having an input line of the form 'x.y', where access to attribute
+	'y' has side effects, doesn't trigger the side effect TWICE.  It
+	is important to note that, with autocall on, these side effects
+	can still happen.
 
 	* IPython/macro.py (Macro.__init__): moved macros to a standalone
 	file.  Now that they'll be more likely to be used with the

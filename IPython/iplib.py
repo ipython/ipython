@@ -6,7 +6,7 @@ Requires Python 2.1 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 975 2005-12-29 23:50:22Z fperez $
+$Id: iplib.py 976 2005-12-30 01:02:09Z fperez $
 """
 
 #*****************************************************************************
@@ -1744,7 +1744,21 @@ want to merge them back into the new files.""" % locals()
             return self.handle_normal(line,continue_prompt)
 
         if oinfo is None:
-            oinfo = self._ofind(iFun) # FIXME - _ofind is part of Magic
+            # let's try to ensure that _oinfo is ONLY called when autocall is
+            # on.  Since it has inevitable potential side effects, at least
+            # having autocall off should be a guarantee to the user that no
+            # weird things will happen.
+
+            if self.rc.autocall:
+                oinfo = self._ofind(iFun) # FIXME - _ofind is part of Magic
+            else:
+                # in this case, all that's left is either an alias or
+                # processing the line normally.
+                if iFun in self.alias_table:
+                    return self.handle_alias(line,continue_prompt,
+                                             pre,iFun,theRest)
+                else:
+                    return self.handle_normal(line,continue_prompt)
         
         if not oinfo['found']:
             return self.handle_normal(line,continue_prompt)
