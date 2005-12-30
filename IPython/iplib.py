@@ -6,7 +6,7 @@ Requires Python 2.1 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 976 2005-12-30 01:02:09Z fperez $
+$Id: iplib.py 977 2005-12-30 01:23:52Z fperez $
 """
 
 #*****************************************************************************
@@ -1676,6 +1676,7 @@ want to merge them back into the new files.""" % locals()
         self._last_input_line = line
 
         #print '***line: <%s>' % line # dbg
+        self.autoindent_update(line)
         
         # the input history needs to track even empty lines
         if not line.strip():
