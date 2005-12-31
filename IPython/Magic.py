@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Magic functions for InteractiveShell.
 
-$Id: Magic.py 984 2005-12-31 08:40:31Z fperez $"""
+$Id: Magic.py 986 2005-12-31 23:07:31Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001 Janko Hauser <jhauser@zscout.de> and
@@ -128,12 +128,21 @@ license. To use profiling, please install"python2.3-profiler" from non-free.""")
 
         The set of slices is given as a list of strings (like ['1','4:8','9'],
         since this function is for use by magic functions which get their
-        arguments as strings."""
+        arguments as strings.
+
+        Note that slices can be called with two notations:
+
+        N:M -> standard python form, means including items N...(M-1).
+
+        N-M -> include items N..M (closed endpoint)."""
 
         cmds = []
         for chunk in slices:
             if ':' in chunk:
                 ini,fin = map(int,chunk.split(':'))
+            elif '-' in chunk:
+                ini,fin = map(int,chunk.split('-'))
+                fin += 1
             else:
                 ini = int(chunk)
                 fin = ini+1
@@ -1539,7 +1548,7 @@ Currently the magic system has the following functions:\n"""
         """Define a set of input lines as a macro for future re-execution.
 
         Usage:\\
-          %macro name n1:n2 n3:n4 ... n5 .. n6 ...
+          %macro name n1-n2 n3-n4 ... n5 .. n6 ...
 
         This will define a global variable called `name` which is a string
         made of joining the slices and lines you specify (n1,n2,... numbers
@@ -1548,8 +1557,12 @@ Currently the magic system has the following functions:\n"""
         you had typed them. You just type 'name' at the prompt and the code
         executes.
 
-        Note that the slices use the standard Python slicing notation (5:8
-        means include lines numbered 5,6,7).
+        The notation for indicating number ranges is: n1-n2 means 'use line
+        numbers n1,...n2' (the endpoint is included).  That is, '5-7' means
+        using the lines numbered 5,6 and 7.
+
+        Note: as a 'hidden' feature, you can also use traditional python slice
+        notation, where N:M means numbers N through M-1.
 
         For example, if your history contains (%hist prints it):
         
@@ -1563,7 +1576,7 @@ Currently the magic system has the following functions:\n"""
         you can create a macro with lines 44 through 47 (included) and line 49
         called my_macro with:
 
-          In [51]: %macro my_macro 44:48 49
+          In [51]: %macro my_macro 44-47 49
 
         Now, typing `my_macro` (without quotes) will re-execute all this code
         in one pass.
@@ -1600,7 +1613,7 @@ Currently the magic system has the following functions:\n"""
         """Save a set of lines to a given filename.
 
         Usage:\\
-          %save filename n1:n2 n3:n4 ... n5 .. n6 ...
+          %save filename n1-n2 n3-n4 ... n5 .. n6 ...
 
         This function uses the same syntax as %macro for line extraction, but
         instead of creating a macro it saves the resulting string to the

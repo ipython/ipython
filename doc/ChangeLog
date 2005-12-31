@@ -1,9 +1,17 @@
 2005-12-31  Fernando Perez  <Fernando.Perez@colorado.edu>
 
+	* IPython/completer.py (IPCompleter.complete): small patch to help
+	tab-completion under Emacs, after a suggestion by John Barnard
+	<barnarj-AT-ccf.org>.
+
+	* IPython/Magic.py (Magic.extract_input_slices): added support for
+	the slice notation in magics to use N-M to represent numbers N...M
+	(closed endpoints).  This is used by %macro and %save.
+
 	* IPython/completer.py (Completer.attr_matches): for modules which
 	define __all__, complete only on those.  After a patch by Jeffrey
-	Collins <jcollins-AT-boulder.net>.  Also, clean up and speed up
-	this routine.
+	Collins <jcollins_boulder-AT-earthlink.net>.  Also, clean up and
+	speed up this routine.
 
 	* IPython/Logger.py (Logger.log): fix a history handling bug.  I
 	don't know if this is the end of it, but the behavior now is

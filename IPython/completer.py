@@ -256,6 +256,12 @@ class IPCompleter(Completer):
         self.space_name_re = re.compile(r'([^\\] )')
         # Hold a local ref. to glob.glob for speed
         self.glob = glob.glob
+
+        # Determine if we are running on 'dumb' terminals, like (X)Emacs
+        # buffers, to avoid completion problems.
+        term = os.environ.get('TERM','xterm')
+        self.dumb_terminal = term in ['dumb','emacs']
+        
         # Special handling of backslashes needed in win32 platforms
         if sys.platform == "win32":
             self.clean_glob = self._clean_glob_win32
@@ -496,7 +502,10 @@ class IPCompleter(Completer):
         # completions' message, just do the right thing and give the user
         # his tab!  Incidentally, this enables pasting of tabbed text from
         # an editor (as long as autoindent is off).
-        if not self.get_line_buffer().strip():
+
+        # don't apply this on 'dumb' terminals, such as emacs buffers, so we
+        # don't interfere with their own tab-completion mechanism.
+        if not (self.dumb_terminal or self.get_line_buffer().strip()):
             self.readline.insert_text('\t')
             return None
 
