@@ -1,5 +1,10 @@
 2005-12-31  Fernando Perez  <Fernando.Perez@colorado.edu>
 
+	* IPython/completer.py (Completer.attr_matches): for modules which
+	define __all__, complete only on those.  After a patch by Jeffrey
+	Collins <jcollins-AT-boulder.net>.  Also, clean up and speed up
+	this routine.
+
 	* IPython/Logger.py (Logger.log): fix a history handling bug.  I
 	don't know if this is the end of it, but the behavior now is
 	certainly much more correct.  Note that coupled with macros,

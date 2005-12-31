@@ -185,21 +185,29 @@ class Completer:
 
         if not m:
             return []
+        
         expr, attr = m.group(1, 3)
         try:
             object = eval(expr, self.namespace)
         except:
             object = eval(expr, self.global_namespace)
-        words = [w for w in dir(object) if isinstance(w, basestring)]
-        if hasattr(object,'__class__'):
-            words.append('__class__')
-            words.extend(get_class_members(object.__class__))
+
+        # for modules which define __all__, complete only on those.
+        if type(object) == types.ModuleType and hasattr(object, '__all__'):
+            words = getattr(object, '__all__')
+        else:
+            words = dir(object)
+            if hasattr(object,'__class__'):
+                words.append('__class__')
+                words.extend(get_class_members(object.__class__))
+
+        # filter out non-string attributes which may be stuffed by dir() calls
+        # and poor coding in third-party modules
+        words = [w for w in words
+                 if isinstance(w, basestring) and w != "__builtins__"]
+        # Build match list to return
         n = len(attr)
-        matches = []
-        for word in words:
-            if word[:n] == attr and word != "__builtins__":
-                matches.append("%s.%s" % (expr, word))
-        return matches
+        return ["%s.%s" % (expr, w) for w in words if w[:n] == attr ]
 
 class IPCompleter(Completer):
     """Extension of the completer class with IPython-specific features"""
