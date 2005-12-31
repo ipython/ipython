@@ -6,7 +6,7 @@ Requires Python 2.1 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 983 2005-12-31 00:04:25Z fperez $
+$Id: iplib.py 984 2005-12-31 08:40:31Z fperez $
 """
 
 #*****************************************************************************
@@ -237,7 +237,7 @@ class SyntaxTB(ultraTB.ListTB):
 #  'self.magic_', 'self.options_table', 'self.parse', 'self.shell',
 #  'self.value']
 
-class InteractiveShell(Magic):
+class InteractiveShell(object,Magic):
     """An enhanced console for Python."""
 
     # class attribute to indicate whether the class supports threads or not.
@@ -388,6 +388,7 @@ class InteractiveShell(Magic):
                 raise KeyError,'user_ns dictionary MUST have a "__name__" key'
             else:
                 #print "pickle hack in place"  # dbg
+                #print 'main_name:',main_name # dbg
                 sys.modules[main_name] = FakeModule(self.user_ns)
 
         # List of input with multi-line handling.
@@ -717,10 +718,7 @@ class InteractiveShell(Magic):
                 
             
             self.user_ns[key] = obj
-            
-          
-        
-            
+    
     def set_hook(self,name,hook):
         """set_hook(name,hook) -> sets an internal IPython hook.
 

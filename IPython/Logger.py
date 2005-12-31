@@ -2,7 +2,7 @@
 """
 Logger class for IPython's logging facilities.
 
-$Id: Logger.py 974 2005-12-29 19:48:33Z fperez $
+$Id: Logger.py 984 2005-12-31 08:40:31Z fperez $
 """
 
 #*****************************************************************************
@@ -181,6 +181,7 @@ which already exists. But you must first start the logging process with
             self._i00 = line+'\n'
             #print 'Logging input:<%s>' % line  # dbg
             input_hist.append(self._i00)
+        #print '---[%s]' % (len(input_hist)-1,) # dbg
 
         # hackish access to top-level namespace to create _i1,_i2... dynamically
         to_main = {'_i':self._i,'_ii':self._ii,'_iii':self._iii}
@@ -191,6 +192,12 @@ which already exists. But you must first start the logging process with
             # get resumed.
             while in_num >= len(input_hist):
                 input_hist.append('\n')
+            # but if the opposite is true (a macro can produce multiple inputs
+            # with no output display called), then bring the output counter in
+            # sync:
+            last_num = len(input_hist)-1
+            if in_num != last_num:
+                in_num = self.shell.outputcache.prompt_count = last_num
             new_i = '_i%s' % in_num
             if continuation:
                 self._i00 = '%s%s\n' % (self.shell.user_ns[new_i],line)

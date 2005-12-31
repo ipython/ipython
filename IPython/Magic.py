@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Magic functions for InteractiveShell.
 
-$Id: Magic.py 975 2005-12-29 23:50:22Z fperez $"""
+$Id: Magic.py 984 2005-12-31 08:40:31Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001 Janko Hauser <jhauser@zscout.de> and
@@ -451,17 +451,19 @@ Currently the magic system has the following functions:\n"""
 
         This feature is only available if numbered prompts are in use."""
 
-        if not self.shell.outputcache.do_full_cache:
+        shell = self.shell
+        if not shell.outputcache.do_full_cache:
             print 'This feature is only available if numbered prompts are in use.'
             return
         opts,args = self.parse_options(parameter_s,'n',mode='list')
         
+        input_hist = shell.input_hist
         default_length = 40
         if len(args) == 0:
-            final = self.shell.outputcache.prompt_count
+            final = len(input_hist)
             init = max(1,final-default_length)
         elif len(args) == 1:
-            final = self.shell.outputcache.prompt_count
+            final = len(input_hist)
             init = max(1,final-int(args[0]))
         elif len(args) == 2:
             init,final = map(int,args)
@@ -471,18 +473,13 @@ Currently the magic system has the following functions:\n"""
             return
         width = len(str(final))
         line_sep = ['','\n']
-        input_hist = self.shell.input_hist
         print_nums = not opts.has_key('n')
         for in_num in range(init,final):
             inline = input_hist[in_num]
-            multiline = inline.count('\n') > 1
+            multiline = int(inline.count('\n') > 1)
             if print_nums:
-                print str(in_num).ljust(width)+':'+ line_sep[multiline],
-            if inline.startswith('#'+self.shell.ESC_MAGIC) or \
-                   inline.startswith('#!'):
-                print inline[1:],
-            else:
-                print inline,
+                print '%s:%s' % (str(in_num).ljust(width),line_sep[multiline]),
+            print inline,
 
     def magic_hist(self, parameter_s=''):
         """Alternate name for %history."""
@@ -1356,7 +1353,13 @@ Currently the magic system has the following functions:\n"""
                 name = '__main__'
             prog_ns = {'__name__':name}
 
-        # pickle fix.  See iplib for an explanation
+        # pickle fix.  See iplib for an explanation.  But we need to make sure
+        # that, if we overwrite __main__, we replace it at the end
+        if prog_ns['__name__'] == '__main__':
+            restore_main = sys.modules['__main__']
+        else:
+            restore_main = False
+            
         sys.modules[prog_ns['__name__']] = FakeModule(prog_ns)
         
         stats = None
@@ -1444,6 +1447,8 @@ Currently the magic system has the following functions:\n"""
                     self.shell.user_ns.update(prog_ns)
         finally:
             sys.argv = save_argv
+            if restore_main:
+                sys.modules['__main__'] = restore_main
         return stats
 
     def magic_runlog(self, parameter_s =''):

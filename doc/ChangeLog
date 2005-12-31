@@ -1,4 +1,30 @@
+2005-12-31  Fernando Perez  <Fernando.Perez@colorado.edu>
+
+	* IPython/Logger.py (Logger.log): fix a history handling bug.  I
+	don't know if this is the end of it, but the behavior now is
+	certainly much more correct.  Note that coupled with macros,
+	slightly surprising (at first) behavior may occur: a macro will in
+	general expand to multiple lines of input, so upon exiting, the
+	in/out counters will both be bumped by the corresponding amount
+	(as if the macro's contents had been typed interactively).  Typing
+	%hist will reveal the intermediate (silently processed) lines.
+
+	* IPython/Magic.py (magic_run): fix a subtle bug which could cause
+	pickle to fail (%run was overwriting __main__ and not restoring
+	it, but pickle relies on __main__ to operate).
+
+	* IPython/iplib.py (InteractiveShell): fix pdb calling: I'm now
+	using properties, but forgot to make the main InteractiveShell
+	class a new-style class.  Properties fail silently, and
+	misteriously, with old-style class (getters work, but
+	setters don't do anything).
+
 2005-12-30  Fernando Perez  <Fernando.Perez@colorado.edu>
+
+	* IPython/Magic.py (magic_history): fix history reporting bug (I
+	know some nasties are still there, I just can't seem to find a
+	reproducible test case to track them down; the input history is
+	falling out of sync...)
 
 	* IPython/iplib.py (handle_shell_escape): fix bug where both
 	aliases and system accesses where broken for indented code (such
