@@ -1,5 +1,10 @@
 2005-12-31  Fernando Perez  <Fernando.Perez@colorado.edu>
 
+	* IPython/iplib.py (InteractiveShell.__init__): add .meta
+	namespace for users and extension writers to hold data in.  This
+	follows the discussion in
+	http://projects.scipy.org/ipython/ipython/wiki/RefactoringIPython.
+
 	* IPython/completer.py (IPCompleter.complete): small patch to help
 	tab-completion under Emacs, after a suggestion by John Barnard
 	<barnarj-AT-ccf.org>.

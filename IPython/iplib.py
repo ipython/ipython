@@ -6,7 +6,7 @@ Requires Python 2.1 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 984 2005-12-31 08:40:31Z fperez $
+$Id: iplib.py 987 2005-12-31 23:50:31Z fperez $
 """
 
 #*****************************************************************************
@@ -296,6 +296,13 @@ class InteractiveShell(object,Magic):
 
         # Default name given in compilation of code
         self.filename = '<ipython console>'
+
+        # Make an empty namespace, which extension writers can rely on both
+        # existing and NEVER being used by ipython itself.  This gives them a
+        # convenient location for storing additional information and state
+        # their extensions may require, without fear of collisions with other
+        # ipython names that may develop later.
+        self.meta = Bunch()
 
         # Create the namespace where the user will operate.  user_ns is
         # normally the only one used, and it is passed to the exec calls as
