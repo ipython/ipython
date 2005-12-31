@@ -6,7 +6,7 @@ Requires Python 2.1 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 982 2005-12-30 23:57:07Z fperez $
+$Id: iplib.py 983 2005-12-31 00:04:25Z fperez $
 """
 
 #*****************************************************************************
@@ -1599,7 +1599,7 @@ want to merge them back into the new files.""" % locals()
         # need this done correctly even for code run via runlines (which uses
         # push).
 
-        print 'push line: <%s>' % line  # dbg
+        #print 'push line: <%s>' % line  # dbg
         self.autoindent_update(line)
 
         self.buffer.append(line)
