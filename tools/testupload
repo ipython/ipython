@@ -1,0 +1,6 @@
+#!/bin/sh
+
+# clean public testing/ dir and upload
+ssh "rm -f ipython@ipython.scipy.org:www/dist/testing/*"
+cd ~/ipython/ipython/dist
+scp * ipython@ipython.scipy.org:www/dist/testing/
