@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Magic functions for InteractiveShell.
 
-$Id: Magic.py 986 2005-12-31 23:07:31Z fperez $"""
+$Id: Magic.py 988 2006-01-02 21:21:47Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001 Janko Hauser <jhauser@zscout.de> and
@@ -742,12 +742,14 @@ Currently the magic system has the following functions:\n"""
         arguments are returned."""
 
         user_ns = self.shell.user_ns
+        internal_ns = self.shell.internal_ns
+        user_config_ns = self.shell.user_config_ns
         out = []
         typelist = parameter_s.split()
-        for i in self.shell.user_ns.keys():
+
+        for i in user_ns:
             if not (i.startswith('_') or i.startswith('_i')) \
-                   and not (self.shell.internal_ns.has_key(i) or
-                            self.shell.user_config_ns.has_key(i)):
+                   and not (i in internal_ns or i in user_config_ns):
                 if typelist:
                     if type(user_ns[i]).__name__ in typelist:
                         out.append(i)
@@ -1638,11 +1640,22 @@ Currently the magic system has the following functions:\n"""
         print 'The following commands were written to file `%s`:' % fname
         print cmds
 
-    def magic_ed(self,parameter_s = ''):
+    def _edit_macro(self,mname,macro):
+        """open an editor with the macro data in a file"""
+        filename = self.shell.mktempfile(macro.value)
+        self.shell.hooks.editor(filename)
+
+        # and make a new macro object, to replace the old one
+        mfile = open(filename)
+        mvalue = mfile.read()
+        mfile.close()
+        self.shell.user_ns[mname] = Macro(mvalue)
+
+    def magic_ed(self,parameter_s=''):
         """Alias to %edit."""
         return self.magic_edit(parameter_s)
 
-    def magic_edit(self,parameter_s = '',last_call=['','']):
+    def magic_edit(self,parameter_s='',last_call=['','']):
         """Bring up an editor and execute the resulting code.
 
         Usage:
@@ -1694,6 +1707,10 @@ Currently the magic system has the following functions:\n"""
         editor at the point where it is defined. You can use `%edit function`
         to load an editor exactly at the point where 'function' is defined,
         edit it and have the file be executed automatically.
+
+        If the object is a macro (see %macro for details), this opens up your
+        specified editor with a temporary file containing the macro's data.
+        Upon exit, the macro is reloaded with the contents of the file.
 
         Note: opening at an exact line is only supported under Unix, and some
         editors (like kedit and gedit up to Gnome 2.8) do not understand the
@@ -1826,6 +1843,7 @@ Currently the magic system has the following functions:\n"""
                 data = eval(args,self.shell.user_ns)
                 if not type(data) in StringTypes:
                     raise DataIsObject
+
             except (NameError,SyntaxError):
                 # given argument is not a variable, try as a filename
                 filename = make_filename(args)
@@ -1833,9 +1851,16 @@ Currently the magic system has the following functions:\n"""
                     warn("Argument given (%s) can't be found as a variable "
                          "or as a filename." % args)
                     return
+
                 data = ''
                 use_temp = 0
             except DataIsObject:
+
+                # macros have a special edit function
+                if isinstance(data,Macro):
+                    self._edit_macro(args,data)
+                    return
+                
                 # For objects, try to edit the file where they are defined
                 try:
                     filename = inspect.getabsfile(data)
@@ -1861,13 +1886,7 @@ Currently the magic system has the following functions:\n"""
             data = ''
 
         if use_temp:
-            filename = tempfile.mktemp('.py')
-            self.shell.tempfiles.append(filename)
-        
-        if data and use_temp:
-            tmp_file = open(filename,'w')
-            tmp_file.write(data)
-            tmp_file.close()
+            filename = self.shell.mktempfile(data)
 
         # do actual editing here
         print 'Editing...',
@@ -1887,9 +1906,6 @@ Currently the magic system has the following functions:\n"""
                     self.shell.showtraceback()
             except:
                 self.shell.showtraceback()
-        if use_temp:
-            contents = open(filename).read()
-            return contents
 
     def magic_xmode(self,parameter_s = ''):
         """Switch modes for the exception handlers.
@@ -2568,10 +2584,10 @@ Defaulting color scheme to 'NoColor'"""
         
         Usage:
         
-        %store       - Show list of all variables and their current values\\
-        %store <var> - Store the *current* value of the variable to disk\\
-        %store -d    - Remove the variable and its value from storage\\
-        %store -r    - Remove all variables from storage
+        %store          - Show list of all variables and their current values\\
+        %store <var>    - Store the *current* value of the variable to disk\\
+        %store -d <var> - Remove the variable and its value from storage\\
+        %store -r       - Remove all variables from storage
         
         It should be noted that if you change the value of a variable, you
         need to %store it again if you want to persist the new value.

@@ -60,7 +60,7 @@ You can implement other color schemes easily, the syntax is fairly
 self-explanatory. Please send back new schemes you develop to the author for
 possible inclusion in future releases.
 
-$Id: ultraTB.py 975 2005-12-29 23:50:22Z fperez $"""
+$Id: ultraTB.py 988 2006-01-02 21:21:47Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001 Nathaniel Gray <n8gray@caltech.edu>
@@ -95,9 +95,14 @@ from IPython.Struct import Struct
 from IPython.excolors import ExceptionColors
 from IPython.genutils import Term,uniq_stable,error,info
 
+# Globals
+# amount of space to put line numbers before verbose tracebacks
+INDENT_SIZE = 8
+
 #---------------------------------------------------------------------------
 # Code begins
 
+# Utility functions
 def inspect_error():
     """Print a message about internal inspect errors.
 
@@ -106,6 +111,76 @@ def inspect_error():
     error('Internal Python error in the inspect module.\n'
           'Below is the traceback from this internal error.\n')
 
+def _fixed_getinnerframes(etb, context=1,tb_offset=0):
+    import linecache
+    LNUM_POS, LINES_POS, INDEX_POS =  2, 4, 5
+
+    records  = inspect.getinnerframes(etb, context)
+
+    # If the error is at the console, don't build any context, since it would
+    # otherwise produce 5 blank lines printed out (there is no file at the
+    # console)
+    rec_check = records[tb_offset:]
+    rname = rec_check[0][1]
+    if rname == '<ipython console>' or rname.endswith('<string>'):
+        return rec_check
+
+    aux = traceback.extract_tb(etb)
+    assert len(records) == len(aux)
+    for i, (file, lnum, _, _) in zip(range(len(records)), aux):
+        maybeStart = lnum-1 - context//2
+        start =  max(maybeStart, 0)
+        end   = start + context
+        lines = linecache.getlines(file)[start:end]
+        # pad with empty lines if necessary
+        if maybeStart < 0:
+            lines = (['\n'] * -maybeStart) + lines
+        if len(lines) < context:
+            lines += ['\n'] * (context - len(lines))
+        assert len(lines) == context
+        buf = list(records[i])
+        buf[LNUM_POS] = lnum
+        buf[INDEX_POS] = lnum - 1 - start
+        buf[LINES_POS] = lines
+        records[i] = tuple(buf)
+    return records[tb_offset:]
+
+# Helper function -- largely belongs to VerboseTB, but we need the same
+# functionality to produce a pseudo verbose TB for SyntaxErrors, so that they
+# can be recognized properly by ipython.el's py-traceback-line-re
+# (SyntaxErrors have to be treated specially because they have no traceback)
+def _formatTracebackLines(lnum, index, lines, Colors, lvals=None):
+    numbers_width = INDENT_SIZE - 1
+    res = []
+    i = lnum - index
+    for line in lines:
+        if i == lnum:
+            # This is the line with the error
+            pad = numbers_width - len(str(i))
+            if pad >= 3:
+                marker = '-'*(pad-3) + '-> '
+            elif pad == 2:
+                marker = '> '
+            elif pad == 1:
+                marker = '>'
+            else:
+                marker = ''
+            num = marker + str(i)
+            line = '%s%s%s %s%s' %(Colors.linenoEm, num, 
+                                   Colors.line, line, Colors.Normal)
+        else:
+            num = '%*s' % (numbers_width,i)
+            line = '%s%s%s %s' %(Colors.lineno, num, 
+                                 Colors.Normal, line)
+
+        res.append(line)
+        if lvals and i == lnum:
+            res.append(lvals + '\n')
+        i = i + 1
+    return res
+
+#---------------------------------------------------------------------------
+# Module classes
 class TBTools:
     """Basic tools used by all traceback printer classes."""
 
@@ -316,9 +391,7 @@ class VerboseTB(TBTools):
         # some locals
         Colors        = self.Colors   # just a shorthand + quicker name lookup
         ColorsNormal  = Colors.Normal  # used a lot
-        indent_size   = 8  # we need some space to put line numbers before
-        indent        = ' '*indent_size
-        numbers_width = indent_size - 1 # leave space between numbers & code
+        indent        = ' '*INDENT_SIZE
         text_repr     = pydoc.text.repr
         exc           = '%s%s%s' % (Colors.excName, str(etype), ColorsNormal)
         em_normal     = '%s\n%s%s' % (Colors.valEm, indent,ColorsNormal)
@@ -353,7 +426,13 @@ class VerboseTB(TBTools):
         linecache.checkcache()
         # Drop topmost frames if requested
         try:
-            records = inspect.getinnerframes(etb, context)[self.tb_offset:]
+            # Try the default getinnerframes and Alex's: Alex's fixes some
+            # problems, but it generates empty tracebacks for console errors
+            # (5 blanks lines) where none should be returned.
+            #records = inspect.getinnerframes(etb, context)[self.tb_offset:]
+            #print 'python records:', records # dbg
+            records = _fixed_getinnerframes(etb, context,self.tb_offset)
+            #print 'alex   records:', records # dbg
         except:
 
             # FIXME: I've been getting many crash reports from python 2.3
@@ -519,32 +598,12 @@ class VerboseTB(TBTools):
                 lvals = ''
 
             level = '%s %s\n' % (link,call)
-            excerpt = []
-            if index is not None:
-                i = lnum - index
-                for line in lines:
-                    if i == lnum:
-                        # This is the line with the error
-                        pad = numbers_width - len(str(i))
-                        if pad >= 3:
-                            marker = '-'*(pad-3) + '-> '
-                        elif pad == 2:
-                            marker = '> '
-                        elif pad == 1:
-                            marker = '>'
-                        else:
-                            marker = ''
-                        num = '%s%s' % (marker,i)
-                        line = tpl_line_em % (num,line)
-                    else:
-                        num = '%*s' % (numbers_width,i)
-                        line = tpl_line % (num,line)
 
-                    excerpt.append(line)
-                    if self.include_vars and i == lnum:
-                        excerpt.append('%s\n' % lvals)
-                    i += 1
-            frames.append('%s%s' % (level,''.join(excerpt)) )
+            if index is None:
+                frames.append(level)
+            else:
+                frames.append('%s%s' % (level,''.join(
+                    _formatTracebackLines(lnum,index,lines,self.Colors,lvals))))
 
         # Get (safely) a string form of the exception info
         try:

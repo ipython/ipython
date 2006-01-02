@@ -1,3 +1,26 @@
+2006-01-02  Fernando Perez  <Fernando.Perez@colorado.edu>
+
+	* IPython/ultraTB.py (_fixed_getinnerframes): added Alex
+	Schmolck's patch to fix inspect.getinnerframes().
+
+	* IPython/iplib.py (InteractiveShell.__init__): significant fixes
+	for embedded instances, regarding handling of namespaces and items
+	added to the __builtin__ one.  Multiple embedded instances and
+	recursive embeddings should work better now (though I'm not sure
+	I've got all the corner cases fixed, that code is a bit of a brain
+	twister).
+
+	* IPython/Magic.py (magic_edit): added support to edit in-memory
+	macros (automatically creates the necessary temp files).  %edit
+	also doesn't return the file contents anymore, it's just noise.
+
+	* IPython/completer.py (Completer.attr_matches): revert change to
+	complete only on attributes listed in __all__.  I realized it
+	cripples the tab-completion system as a tool for exploring the
+	internals of unknown libraries (it renders any non-__all__
+	attribute off-limits).  I got bit by this when trying to see
+	something inside the dis module.
+
 2005-12-31  Fernando Perez  <Fernando.Perez@colorado.edu>
 
 	* IPython/iplib.py (InteractiveShell.__init__): add .meta

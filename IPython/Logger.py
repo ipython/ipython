@@ -2,7 +2,7 @@
 """
 Logger class for IPython's logging facilities.
 
-$Id: Logger.py 984 2005-12-31 08:40:31Z fperez $
+$Id: Logger.py 988 2006-01-02 21:21:47Z fperez $
 """
 
 #*****************************************************************************
@@ -172,7 +172,12 @@ which already exists. But you must first start the logging process with
         # update the auto _i tables
         #print '***logging line',line # dbg
         #print '***cache_count', self.shell.outputcache.prompt_count # dbg
-        input_hist = self.shell.user_ns['_ih']
+        try:
+            input_hist = self.shell.user_ns['_ih']
+        except:
+            print 'userns:',self.shell.user_ns.keys()
+            return
+        
         if not continuation and line:
             self._iii = self._ii
             self._ii = self._i

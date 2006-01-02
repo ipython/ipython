@@ -6,7 +6,7 @@ Requires Python 2.1 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 987 2005-12-31 23:50:31Z fperez $
+$Id: iplib.py 988 2006-01-02 21:21:47Z fperez $
 """
 
 #*****************************************************************************
@@ -55,6 +55,7 @@ import re
 import shutil
 import string
 import sys
+import tempfile
 import traceback
 import types
 
@@ -100,80 +101,6 @@ def softspace(file, newvalue):
     return oldvalue
 
 #****************************************************************************
-# These special functions get installed in the builtin namespace, to provide
-# programmatic (pure python) access to magics, aliases and system calls.  This
-# is important for logging, user scripting, and more.
-
-# We are basically exposing, via normal python functions, the three mechanisms
-# in which ipython offers special call modes (magics for internal control,
-# aliases for direct system access via pre-selected names, and !cmd for
-# calling arbitrary system commands).
-
-def ipmagic(arg_s):
-    """Call a magic function by name.
-
-    Input: a string containing the name of the magic function to call and any
-    additional arguments to be passed to the magic.
-
-    ipmagic('name -opt foo bar') is equivalent to typing at the ipython
-    prompt:
-
-    In[1]: %name -opt foo bar
-
-    To call a magic without arguments, simply use ipmagic('name').
-
-    This provides a proper Python function to call IPython's magics in any
-    valid Python code you can type at the interpreter, including loops and
-    compound statements.  It is added by IPython to the Python builtin
-    namespace upon initialization."""
-
-    args = arg_s.split(' ',1)
-    magic_name = args[0]
-    if magic_name.startswith(__IPYTHON__.ESC_MAGIC):
-        magic_name = magic_name[1:]
-    try:
-        magic_args = args[1]
-    except IndexError:
-        magic_args = ''
-    fn = getattr(__IPYTHON__,'magic_'+magic_name,None)
-    if fn is None:
-        error("Magic function `%s` not found." % magic_name)
-    else:
-        magic_args = __IPYTHON__.var_expand(magic_args)
-        return fn(magic_args)
-
-def ipalias(arg_s):
-    """Call an alias by name.
-
-    Input: a string containing the name of the alias to call and any
-    additional arguments to be passed to the magic.
-
-    ipalias('name -opt foo bar') is equivalent to typing at the ipython
-    prompt:
-
-    In[1]: name -opt foo bar
-
-    To call an alias without arguments, simply use ipalias('name').
-
-    This provides a proper Python function to call IPython's aliases in any
-    valid Python code you can type at the interpreter, including loops and
-    compound statements.  It is added by IPython to the Python builtin
-    namespace upon initialization."""
-
-    args = arg_s.split(' ',1)
-    alias_name = args[0]
-    try:
-        alias_args = args[1]
-    except IndexError:
-        alias_args = ''
-    if alias_name in __IPYTHON__.alias_table:
-        __IPYTHON__.call_alias(alias_name,alias_args)
-    else:
-        error("Alias `%s` not found." % alias_name)
-
-def ipsystem(arg_s):
-    """Make a system call, using IPython."""
-    __IPYTHON__.system(arg_s)
 
 
 #****************************************************************************
@@ -183,6 +110,8 @@ class SpaceInInput(exceptions.Exception): pass
 #****************************************************************************
 # Local use classes
 class Bunch: pass
+
+class Undefined: pass
 
 class InputList(list):
     """Class to store user input.
@@ -255,27 +184,17 @@ class InteractiveShell(object,Magic):
             if ns is not None and type(ns) != types.DictType:
                 raise TypeError,'namespace must be a dictionary'
 
-        # Put a reference to self in builtins so that any form of embedded or
-        # imported code can test for being inside IPython.
-        __builtin__.__IPYTHON__ = self
+        # Job manager (for jobs run as background threads)
+        self.jobs = BackgroundJobManager()
 
-        # And load into builtins ipmagic/ipalias/ipsystem as well
-        __builtin__.ipmagic  = ipmagic
-        __builtin__.ipalias  = ipalias
-        __builtin__.ipsystem = ipsystem
-
-        # Add to __builtin__ other parts of IPython's public API
-        __builtin__.ip_set_hook = self.set_hook
-
-        # Keep in the builtins a flag for when IPython is active.  We set it
-        # with setdefault so that multiple nested IPythons don't clobber one
-        # another.  Each will increase its value by one upon being activated,
-        # which also gives us a way to determine the nesting level.
-        __builtin__.__dict__.setdefault('__IPYTHON__active',0)
+        # track which builtins we add, so we can clean up later
+        self.builtins_added = {}
+        # This method will add the necessary builtins for operation, but
+        # tracking what it did via the builtins_added dict.
+        self.add_builtins()
 
         # Do the intuitively correct thing for quit/exit: we remove the
-        # builtins if they exist, and our own prefilter routine will handle
-        # these special cases
+        # builtins if they exist, and our own magics will deal with this
         try:
             del __builtin__.exit, __builtin__.quit
         except AttributeError:
@@ -434,11 +353,6 @@ class InteractiveShell(object,Magic):
         # item which gets cleared once run.
         self.code_to_run = None
         
-        # Job manager (for jobs run as background threads)
-        self.jobs = BackgroundJobManager()
-        # Put the job manager into builtins so it's always there.
-        __builtin__.jobs = self.jobs
-
         # escapes for automatic behavior on the command line
         self.ESC_SHELL  = '!'
         self.ESC_HELP   = '?'
@@ -725,6 +639,45 @@ class InteractiveShell(object,Magic):
                 
             
             self.user_ns[key] = obj
+
+    def add_builtins(self):
+        """Store ipython references into the builtin namespace.
+
+        Some parts of ipython operate via builtins injected here, which hold a
+        reference to IPython itself."""
+
+        builtins_new  = dict(__IPYTHON__ = self,
+                             ip_set_hook = self.set_hook,
+                             jobs = self.jobs,
+                             ipmagic = self.ipmagic,
+                             ipalias = self.ipalias,
+                             ipsystem = self.ipsystem,
+                             )
+        for biname,bival in builtins_new.items():
+            try:
+                # store the orignal value so we can restore it
+                self.builtins_added[biname] =  __builtin__.__dict__[biname]
+            except KeyError:
+                # or mark that it wasn't defined, and we'll just delete it at
+                # cleanup
+                self.builtins_added[biname] = Undefined
+            __builtin__.__dict__[biname] = bival
+            
+        # Keep in the builtins a flag for when IPython is active.  We set it
+        # with setdefault so that multiple nested IPythons don't clobber one
+        # another.  Each will increase its value by one upon being activated,
+        # which also gives us a way to determine the nesting level.
+        __builtin__.__dict__.setdefault('__IPYTHON__active',0)
+
+    def clean_builtins(self):
+        """Remove any builtins which might have been added by add_builtins, or
+        restore overwritten ones to their previous values."""
+        for biname,bival in self.builtins_added.items():
+            if bival is Undefined:
+                del __builtin__.__dict__[biname]
+            else:
+                __builtin__.__dict__[biname] = bival
+        self.builtins_added.clear()
     
     def set_hook(self,name,hook):
         """set_hook(name,hook) -> sets an internal IPython hook.
@@ -815,6 +768,82 @@ class InteractiveShell(object,Magic):
     call_pdb = property(_get_call_pdb,_set_call_pdb,None,
                         'Control auto-activation of pdb at exceptions')
  
+
+    # These special functions get installed in the builtin namespace, to
+    # provide programmatic (pure python) access to magics, aliases and system
+    # calls.  This is important for logging, user scripting, and more.
+
+    # We are basically exposing, via normal python functions, the three
+    # mechanisms in which ipython offers special call modes (magics for
+    # internal control, aliases for direct system access via pre-selected
+    # names, and !cmd for calling arbitrary system commands).
+
+    def ipmagic(self,arg_s):
+        """Call a magic function by name.
+
+        Input: a string containing the name of the magic function to call and any
+        additional arguments to be passed to the magic.
+
+        ipmagic('name -opt foo bar') is equivalent to typing at the ipython
+        prompt:
+
+        In[1]: %name -opt foo bar
+
+        To call a magic without arguments, simply use ipmagic('name').
+
+        This provides a proper Python function to call IPython's magics in any
+        valid Python code you can type at the interpreter, including loops and
+        compound statements.  It is added by IPython to the Python builtin
+        namespace upon initialization."""
+
+        args = arg_s.split(' ',1)
+        magic_name = args[0]
+        if magic_name.startswith(self.ESC_MAGIC):
+            magic_name = magic_name[1:]
+        try:
+            magic_args = args[1]
+        except IndexError:
+            magic_args = ''
+        fn = getattr(self,'magic_'+magic_name,None)
+        if fn is None:
+            error("Magic function `%s` not found." % magic_name)
+        else:
+            magic_args = self.var_expand(magic_args)
+            return fn(magic_args)
+
+    def ipalias(self,arg_s):
+        """Call an alias by name.
+
+        Input: a string containing the name of the alias to call and any
+        additional arguments to be passed to the magic.
+
+        ipalias('name -opt foo bar') is equivalent to typing at the ipython
+        prompt:
+
+        In[1]: name -opt foo bar
+
+        To call an alias without arguments, simply use ipalias('name').
+
+        This provides a proper Python function to call IPython's aliases in any
+        valid Python code you can type at the interpreter, including loops and
+        compound statements.  It is added by IPython to the Python builtin
+        namespace upon initialization."""
+
+        args = arg_s.split(' ',1)
+        alias_name = args[0]
+        try:
+            alias_args = args[1]
+        except IndexError:
+            alias_args = ''
+        if alias_name in self.alias_table:
+            self.call_alias(alias_name,alias_args)
+        else:
+            error("Alias `%s` not found." % alias_name)
+
+    def ipsystem(self,arg_s):
+        """Make a system call, using IPython."""
+        self.system(arg_s)
+
     def complete(self,text):
         """Return a sorted list of all possible completions on text.
 
@@ -1287,8 +1316,17 @@ want to merge them back into the new files.""" % locals()
                 global_ns = call_frame.f_globals
 
         # Update namespaces and fire up interpreter
-        self.user_ns = local_ns
+
+        # The global one is easy, we can just throw it in
         self.user_global_ns = global_ns
+
+        # but the user/local one is tricky: ipython needs it to store internal
+        # data, but we also need the locals.  We'll copy locals in the user
+        # one, but will track what got copied so we can delete them at exit.
+        # This is so that a later embedded call doesn't see locals from a
+        # previous call (which most likely existed in a separate scope).
+        local_varnames = local_ns.keys()
+        self.user_ns.update(local_ns)
 
         # Patch for global embedding to make sure that things don't overwrite
         # user globals accidentally. Thanks to Richard <rxe@renre-europe.com>
@@ -1299,8 +1337,21 @@ want to merge them back into the new files.""" % locals()
         # make sure the tab-completer has the correct frame information, so it
         # actually completes using the frame's locals/globals
         self.set_completer_frame(call_frame)
+
+        # before activating the interactive mode, we need to make sure that
+        # all names in the builtin namespace needed by ipython point to
+        # ourselves, and not to other instances.
+        self.add_builtins()
         
         self.interact(header)
+        
+        # now, purge out the user namespace from anything we might have added
+        # from the caller's local namespace
+        delvar = self.user_ns.pop
+        for var in local_varnames:
+            delvar(var,None)
+        # and clean builtins we may have overridden
+        self.clean_builtins()
 
     def interact(self, banner=None):
         """Closely emulate the interactive Python console.
@@ -1327,7 +1378,9 @@ want to merge them back into the new files.""" % locals()
         __builtin__.__dict__['__IPYTHON__active'] += 1
 
         # exit_now is set by a call to %Exit or %Quit
+        self.exit_now = False
         while not self.exit_now:
+
             try:
                 if more:
                     prompt = self.outputcache.prompt2
@@ -1941,6 +1994,26 @@ want to merge them back into the new files.""" % locals()
         # The input cache shouldn't be updated
 
         return line
+
+    def mktempfile(self,data=None):
+        """Make a new tempfile and return its filename.
+
+        This makes a call to tempfile.mktemp, but it registers the created
+        filename internally so ipython cleans it up at exit time.
+
+        Optional inputs:
+
+          - data(None): if data is given, it gets written out to the temp file
+          immediately, and the file is closed again."""
+
+        filename = tempfile.mktemp('.py')
+        self.tempfiles.append(filename)
+        
+        if data:
+            tmp_file = open(filename,'w')
+            tmp_file.write(data)
+            tmp_file.close()
+        return filename
 
     def write(self,data):
         """Write a string to the default output"""

@@ -32,7 +32,7 @@ ip_set_hook('editor',myiphooks.calljed)
 The ip_set_hook function is put by IPython into the builtin namespace, so it
 is always available from all running code.
 
-$Id: hooks.py 960 2005-12-28 06:51:01Z fperez $"""
+$Id: hooks.py 988 2006-01-02 21:21:47Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2005 Fernando Perez. <fperez@colorado.edu>
@@ -52,7 +52,7 @@ import os
 # but over time we'll move here all the public API for user-accessible things.
 __all__ = ['editor', 'fix_error_editor']
 
-def editor(self,filename, linenum):
+def editor(self,filename, linenum=None):
     """Open the default editor at the given filename and linenumber.
 
     This is IPython's default editor hook, you can use it as an example to

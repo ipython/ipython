@@ -27,7 +27,8 @@ else:
     print "The prompts for the nested copy have been modified"
     nested = 1
     # what the embedded instance will see as sys.argv:
-    args = ['-pi1','In <\\#>:','-pi2','   .\\D.:','-po','Out<\\#>:','-nosep']
+    args = ['-pi1','In <\\#>: ','-pi2','   .\\D.: ',
+            '-po','Out<\\#>: ','-nosep']
 
 # First import the embeddable shell class
 from IPython.Shell import IPShellEmbed
@@ -44,7 +45,8 @@ ipshell = IPShellEmbed(args,
 if nested:
     args[1] = 'In2<\\#>'
 else:
-    args = ['-pi1','In2<\\#>:','-pi2','   .\\D.:','-po','Out<\\#>:','-nosep']
+    args = ['-pi1','In2<\\#>: ','-pi2','   .\\D.: ',
+            '-po','Out<\\#>: ','-nosep']
 ipshell2 = IPShellEmbed(args,banner = 'Second IPython instance.')
 
 print '\nHello. This is printed from the main controller program.\n'

@@ -192,14 +192,10 @@ class Completer:
         except:
             object = eval(expr, self.global_namespace)
 
-        # for modules which define __all__, complete only on those.
-        if type(object) == types.ModuleType and hasattr(object, '__all__'):
-            words = getattr(object, '__all__')
-        else:
-            words = dir(object)
-            if hasattr(object,'__class__'):
-                words.append('__class__')
-                words.extend(get_class_members(object.__class__))
+        words = dir(object)
+        if hasattr(object,'__class__'):
+            words.append('__class__')
+            words.extend(get_class_members(object.__class__))
 
         # filter out non-string attributes which may be stuffed by dir() calls
         # and poor coding in third-party modules
