@@ -6,7 +6,7 @@ Requires Python 2.1 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 990 2006-01-04 06:59:02Z fperez $
+$Id: iplib.py 993 2006-01-04 19:51:01Z fperez $
 """
 
 #*****************************************************************************
@@ -472,7 +472,7 @@ class InteractiveShell(object,Magic):
         # RegExp to identify potential function names
         self.re_fun_name = re.compile(r'[a-zA-Z_]([a-zA-Z0-9_.]*) *$')
         # RegExp to exclude strings with this start from autocalling
-        self.re_exclude_auto = re.compile('^[!=()\[\]<>,\*/\+-]|^is ')
+        self.re_exclude_auto = re.compile('^[!=()<>,\*/\+-]|^is ')
 
         # try to catch also methods for stuff in lists/tuples/dicts: off
         # (experimental). For this to work, the line_split regexp would need
@@ -1942,9 +1942,9 @@ want to merge them back into the new files.""" % locals()
             # We only apply it to argument-less calls if the autocall
             # parameter is set to 2.  We only need to check that autocall is <
             # 2, since this function isn't called unless it's at least 1.
-            if not theRest and self.rc.autocall < 2:
-                    newcmd = '%s %s' % (iFun,theRest)
-                    auto_rewrite = False
+            if not theRest and (self.rc.autocall < 2):
+                newcmd = '%s %s' % (iFun,theRest)
+                auto_rewrite = False
             else:
                 if theRest.startswith('['):
                     if hasattr(obj,'__getitem__'):

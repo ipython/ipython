@@ -1,5 +1,13 @@
 2006-01-04  Fernando Perez  <Fernando.Perez@colorado.edu>
 
+	* IPython/Shell.py (IPShellGTK.mainloop): fix bug in the GTK
+	backend for matplotlib (100% cpu utiliziation).  Thanks to Charlie
+	Moad for help with tracking it down.
+
+	* IPython/iplib.py (handle_auto): fix autocall handling for
+	objects which support BOTH __getitem__ and __call__ (so that f [x]
+	is left alone, instead of becoming f([x]) automatically).
+
 	* IPython/Magic.py (magic_cd): fix crash when cd -b was used.
 	Ville's patch.
 

@@ -4,7 +4,7 @@
 All the matplotlib support code was co-developed with John Hunter,
 matplotlib's author.
 
-$Id: Shell.py 965 2005-12-28 23:23:09Z fperez $"""
+$Id: Shell.py 993 2006-01-04 19:51:01Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2004 Fernando Perez <fperez@colorado.edu>
@@ -625,9 +625,9 @@ class IPShellGTK(threading.Thread):
         
         if self.gtk.pygtk_version >= (2,4,0):
             import gobject
-            gobject.idle_add(self.on_timer)
+            gobject.timeout_add(self.TIMEOUT, self.on_timer)
         else:
-            self.gtk.idle_add(self.on_timer)
+            self.gtk.timeout_add(self.TIMEOUT, self.on_timer)
 
         if sys.platform != 'win32':
             try:
