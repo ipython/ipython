@@ -73,6 +73,13 @@ import readline
 import sys
 import types
 
+# Python 2.4 offers sets as a builtin
+try:
+    set([1,2])
+except NameError:
+    from sets import Set as set
+
+
 from IPython.genutils import shlex_split
 
 __all__ = ['Completer','IPCompleter']
@@ -192,10 +199,20 @@ class Completer:
         except:
             object = eval(expr, self.global_namespace)
 
+        # Start building the attribute list via dir(), and then complete it
+        # with a few extra special-purpose calls.
         words = dir(object)
+
         if hasattr(object,'__class__'):
             words.append('__class__')
             words.extend(get_class_members(object.__class__))
+
+        # this is the 'dir' function for objects with Enthought's traits
+        if hasattr(object, 'trait_names'):
+            words.extend(object.trait_names())
+            # eliminate possible duplicates, as some traits may also appear as
+            # normal attributes in the dir() call.
+            words = set(words)
 
         # filter out non-string attributes which may be stuffed by dir() calls
         # and poor coding in third-party modules

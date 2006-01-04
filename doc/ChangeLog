@@ -1,3 +1,17 @@
+2006-01-03  Fernando Perez  <Fernando.Perez@colorado.edu>
+
+	* IPython/iplib.py (handle_auto): changed autocall semantics to
+	include 'smart' mode, where the autocall transformation is NOT
+	applied if there are no arguments on the line.  This allows you to
+	just type 'foo' if foo is a callable to see its internal form,
+	instead of having it called with no arguments (typically a
+	mistake).  The old 'full' autocall still exists: for that, you
+	need to set the 'autocall' parameter to 2 in your ipythonrc file.
+
+	* IPython/completer.py (Completer.attr_matches): add
+	tab-completion support for Enthoughts' traits.  After a report by
+	Arnd and a patch by Prabhu.
+
 2006-01-02  Fernando Perez  <Fernando.Perez@colorado.edu>
 
 	* IPython/ultraTB.py (_fixed_getinnerframes): added Alex

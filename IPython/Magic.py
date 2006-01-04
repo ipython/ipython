@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Magic functions for InteractiveShell.
 
-$Id: Magic.py 988 2006-01-02 21:21:47Z fperez $"""
+$Id: Magic.py 990 2006-01-04 06:59:02Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001 Janko Hauser <jhauser@zscout.de> and
@@ -424,11 +424,12 @@ Currently the magic system has the following functions:\n"""
     def magic_autocall(self, parameter_s = ''):
         """Make functions callable without having to type parentheses.
 
-        This toggles the autocall command line option on and off."""
+        This cycles the autocall command line through its three valid values
+        (0->Off, 1->Smart, 2->Full)"""
         
         rc = self.shell.rc
         rc.autocall = not rc.autocall
-        print "Automatic calling is:",['OFF','ON'][rc.autocall]
+        print "Automatic calling is:",['OFF','Smart','Full'][rc.autocall]
 
     def magic_autoindent(self, parameter_s = ''):
         """Toggle autoindent on/off (if available)."""

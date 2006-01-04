@@ -5,7 +5,7 @@ General purpose utilities.
 This is a grab-bag of stuff I find useful in most programs I write. Some of
 these things are also convenient when working at the command line.
 
-$Id: genutils.py 980 2005-12-30 15:42:04Z fperez $"""
+$Id: genutils.py 990 2006-01-04 06:59:02Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2004 Fernando Perez. <fperez@colorado.edu>
@@ -206,6 +206,18 @@ def fatal(msg,exit_val=1):
     """Equivalent to warn(msg,exit_val=exit_val,level=4)."""
 
     warn(msg,exit_val=exit_val,level=4)
+
+
+# useful for debugging
+def debugp(expr):
+    """Print the value of an expression from the caller's frame.
+    
+    Takes an expression, evaluates it in the caller's frame and prints both
+    the given expression and the resulting value.  The input must be of a form
+    suitable for eval()."""
+    
+    cf = sys._getframe(1)
+    print '[DBG] %s -> %r' % (expr,eval(expr,cf.f_globals,cf.f_locals))
 
 #----------------------------------------------------------------------------
 StringTypes = types.StringTypes

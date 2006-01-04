@@ -6,7 +6,7 @@
 #  the file COPYING, distributed as part of this software.
 #*****************************************************************************
 
-# $Id: usage.py 966 2005-12-29 08:34:07Z fperez $
+# $Id: usage.py 990 2006-01-04 06:59:02Z fperez $
 
 from IPython import Release
 __author__  = '%s <%s>' % Release.authors['Fernando']
@@ -144,10 +144,14 @@ REGULAR OPTIONS
               to correctly execute  (without  blocking)  any  matplotlib-based
               script which calls show() at the end.
 
-       -[no]autocall
-              Make  IPython automatically call any callable object even if you
-              didn’t type explicit parentheses. For example, ’str 43’  becomes
-              ’str(43)’ automatically.
+       -autocall <val>
+              Make IPython automatically call any callable object even if you
+              didn't type explicit parentheses. For example, 'str 43' becomes
+              'str(43)' automatically.  The value can be '0' to disable the
+              feature, '1' for 'smart' autocall, where it is not applied if
+              there are no more arguments on the line, and '2' for 'full'
+              autocall, where all callable objects are automatically called
+              (even if no arguments are present).  The default is '1'.
 
        -[no]autoindent
               Turn automatic indentation on/off.

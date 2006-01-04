@@ -1,5 +1,5 @@
 # -*- Mode: Shell-Script -*-  Not really, but shows comments correctly
-# $Id: ipythonrc 963 2005-12-28 19:21:29Z fperez $
+# $Id: ipythonrc 990 2006-01-04 06:59:02Z fperez $
 
 #***************************************************************************
 #
@@ -37,8 +37,9 @@ include
 # is encountered more than once, the last value remains, all earlier ones get
 # discarded.
 
-# Automatic calling of callable objects.  If set to true, callable objects are
-# automatically called when invoked at the command line, even if you don't
+
+# Automatic calling of callable objects.  If set to 1 or 2, callable objects
+# are automatically called when invoked at the command line, even if you don't
 # type parentheses.  IPython adds the parentheses for you.  For example:
 
 #In [1]: str 45
@@ -48,7 +49,28 @@ include
 # IPython reprints your line with '---->' indicating that it added
 # parentheses.  While this option is very convenient for interactive use, it
 # may occasionally cause problems with objects which have side-effects if
-# called unexpectedly.  Set it to 0 if you want to disable it.
+# called unexpectedly.
+
+# The valid values for autocall are:
+
+# autocall 0 -> disabled (you can toggle it at runtime with the %autocall magic)
+
+# autocall 1 -> active, but do not apply if there are no arguments on the line.
+
+# In this mode, you get:
+
+#In [1]: callable
+#Out[1]: <built-in function callable>
+
+#In [2]: callable 'hello'
+#------> callable('hello')
+#Out[2]: False
+
+# 2 -> Active always.  Even if no arguments are present, the callable object
+# is called:
+
+#In [4]: callable
+#------> callable()
 
 # Note that even with autocall off, you can still use '/' at the start of a
 # line to treat the first argument on the command line as a function and add

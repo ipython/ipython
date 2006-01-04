@@ -6,7 +6,7 @@ Requires Python 2.1 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 988 2006-01-02 21:21:47Z fperez $
+$Id: iplib.py 990 2006-01-04 06:59:02Z fperez $
 """
 
 #*****************************************************************************
@@ -472,7 +472,7 @@ class InteractiveShell(object,Magic):
         # RegExp to identify potential function names
         self.re_fun_name = re.compile(r'[a-zA-Z_]([a-zA-Z0-9_.]*) *$')
         # RegExp to exclude strings with this start from autocalling
-        self.re_exclude_auto = re.compile('^[!=()<>,\*/\+-]|^is ')
+        self.re_exclude_auto = re.compile('^[!=()\[\]<>,\*/\+-]|^is ')
 
         # try to catch also methods for stuff in lists/tuples/dicts: off
         # (experimental). For this to work, the line_split regexp would need
@@ -1836,7 +1836,8 @@ want to merge them back into the new files.""" % locals()
                    self.re_fun_name.match(iFun) and \
                    callable(oinfo['obj']) :
                 #print 'going auto'  # dbg
-                return self.handle_auto(line,continue_prompt,pre,iFun,theRest)
+                return self.handle_auto(line,continue_prompt,
+                                        pre,iFun,theRest,oinfo['obj'])
             else:
                 #print 'was callable?', callable(oinfo['obj'])  # dbg
                 return self.handle_normal(line,continue_prompt)
@@ -1919,15 +1920,17 @@ want to merge them back into the new files.""" % locals()
         return cmd
 
     def handle_auto(self, line, continue_prompt=None,
-                    pre=None,iFun=None,theRest=None):
+                    pre=None,iFun=None,theRest=None,obj=None):
         """Hande lines which can be auto-executed, quoting if requested."""
 
         #print 'pre <%s> iFun <%s> rest <%s>' % (pre,iFun,theRest)  # dbg
         
         # This should only be active for single-line input!
         if continue_prompt:
+            self.log(line,continue_prompt)
             return line
 
+        auto_rewrite = True
         if pre == self.ESC_QUOTE:
             # Auto-quote splitting on whitespace
             newcmd = '%s("%s")' % (iFun,'", "'.join(theRest.split()) )
@@ -1935,19 +1938,31 @@ want to merge them back into the new files.""" % locals()
             # Auto-quote whole string
             newcmd = '%s("%s")' % (iFun,theRest)
         else:
-            # Auto-paren
-            if theRest[0:1] in ('=','['):
-                # Don't autocall in these cases.  They can be either
-                # rebindings of an existing callable's name, or item access
-                # for an object which is BOTH callable and implements
-                # __getitem__.
-                return '%s %s' % (iFun,theRest)
-            if theRest.endswith(';'):
-                newcmd = '%s(%s);' % (iFun.rstrip(),theRest[:-1])
+            # Auto-paren.
+            # We only apply it to argument-less calls if the autocall
+            # parameter is set to 2.  We only need to check that autocall is <
+            # 2, since this function isn't called unless it's at least 1.
+            if not theRest and self.rc.autocall < 2:
+                    newcmd = '%s %s' % (iFun,theRest)
+                    auto_rewrite = False
             else:
-                newcmd = '%s(%s)' % (iFun.rstrip(),theRest)
+                if theRest.startswith('['):
+                    if hasattr(obj,'__getitem__'):
+                        # Don't autocall in this case: item access for an object
+                        # which is BOTH callable and implements __getitem__.
+                        newcmd = '%s %s' % (iFun,theRest)
+                        auto_rewrite = False
+                    else:
+                        # if the object doesn't support [] access, go ahead and
+                        # autocall
+                        newcmd = '%s(%s)' % (iFun.rstrip(),theRest)
+                elif theRest.endswith(';'):
+                    newcmd = '%s(%s);' % (iFun.rstrip(),theRest[:-1])
+                else:
+                    newcmd = '%s(%s)' % (iFun.rstrip(),theRest)
 
-        print >>Term.cout, self.outputcache.prompt1.auto_rewrite() + newcmd
+        if auto_rewrite:
+            print >>Term.cout, self.outputcache.prompt1.auto_rewrite() + newcmd
         # log what is now valid Python, not the actual user input (without the
         # final newline)
         self.log(newcmd,continue_prompt)

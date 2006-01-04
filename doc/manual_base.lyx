@@ -2686,12 +2686,24 @@ show()
 
 \family typewriter 
 \series bold 
--[no]autocall:
+-autocall <val>:
 \family default 
 \series default 
  Make IPython automatically call any callable object even if you didn't
  type explicit parentheses.
  For example, `str 43' becomes `str(43)' automatically.
+ The value can be `0' to disable the feature, `1' for 
+\emph on 
+smart
+\emph default 
+ autocall, where it is not applied if there are no more arguments on the
+ line, and `2' for 
+\emph on 
+full
+\emph default 
+ autocall, where all callable objects are automatically called (even if
+ no arguments are present).
+ The default is `1'.
 \layout List
 \labelwidthstring 00.00.0000
 
