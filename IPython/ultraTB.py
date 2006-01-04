@@ -60,7 +60,7 @@ You can implement other color schemes easily, the syntax is fairly
 self-explanatory. Please send back new schemes you develop to the author for
 possible inclusion in future releases.
 
-$Id: ultraTB.py 988 2006-01-02 21:21:47Z fperez $"""
+$Id: ultraTB.py 992 2006-01-04 18:35:40Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001 Nathaniel Gray <n8gray@caltech.edu>
@@ -121,9 +121,12 @@ def _fixed_getinnerframes(etb, context=1,tb_offset=0):
     # otherwise produce 5 blank lines printed out (there is no file at the
     # console)
     rec_check = records[tb_offset:]
-    rname = rec_check[0][1]
-    if rname == '<ipython console>' or rname.endswith('<string>'):
-        return rec_check
+    try:
+        rname = rec_check[0][1]
+        if rname == '<ipython console>' or rname.endswith('<string>'):
+            return rec_check
+    except IndexError:
+        pass
 
     aux = traceback.extract_tb(etb)
     assert len(records) == len(aux)
