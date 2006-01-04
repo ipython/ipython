@@ -1,3 +1,8 @@
+2006-01-04  Fernando Perez  <Fernando.Perez@colorado.edu>
+
+	* IPython/Magic.py (magic_cd): fix crash when cd -b was used.
+	Ville's patch.
+
 2006-01-03  Fernando Perez  <Fernando.Perez@colorado.edu>
 
 	* IPython/iplib.py (handle_auto): changed autocall semantics to

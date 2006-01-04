@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Magic functions for InteractiveShell.
 
-$Id: Magic.py 990 2006-01-04 06:59:02Z fperez $"""
+$Id: Magic.py 991 2006-01-04 18:15:34Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001 Janko Hauser <jhauser@zscout.de> and
@@ -2286,7 +2286,7 @@ Defaulting color scheme to 'NoColor'"""
             else:
                 if bkms:
                     error("Bookmark '%s' not found.  "
-                          "Use '%bookmark -l' to see your bookmarks." % ps)
+                          "Use '%%bookmark -l' to see your bookmarks." % ps)
                 else:
                     print "Bookmarks not set - use %bookmark <bookmarkname>"
                 return
