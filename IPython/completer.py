@@ -209,10 +209,14 @@ class Completer:
 
         # this is the 'dir' function for objects with Enthought's traits
         if hasattr(object, 'trait_names'):
-            words.extend(object.trait_names())
-            # eliminate possible duplicates, as some traits may also appear as
-            # normal attributes in the dir() call.
-            words = set(words)
+            try:
+                words.extend(object.trait_names())
+                # eliminate possible duplicates, as some traits may also
+                # appear as normal attributes in the dir() call.
+                words = set(words)
+            except TypeError:
+                # This will happen if `object` is a class and not an instance.
+                pass
 
         # filter out non-string attributes which may be stuffed by dir() calls
         # and poor coding in third-party modules
