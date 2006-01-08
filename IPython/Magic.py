@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 """Magic functions for InteractiveShell.
 
-$Id: Magic.py 991 2006-01-04 18:15:34Z fperez $"""
+$Id: Magic.py 994 2006-01-08 08:29:44Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001 Janko Hauser <jhauser@zscout.de> and
-#       Copyright (C) 2001-2004 Fernando Perez <fperez@colorado.edu>
+#       Copyright (C) 2001-2006 Fernando Perez <fperez@colorado.edu>
 #
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
@@ -56,6 +56,7 @@ def on_off(tag):
     """Return an ON/OFF string for a 1/0 input. Simple utility function."""
     return ['OFF','ON'][tag]
 
+class Bunch: pass
 
 #***************************************************************************
 # Main class implementing Magic functionality
@@ -83,6 +84,9 @@ class Magic:
         if profile is None:
             self.magic_prun = self.profile_missing_notice
         self.shell = shell
+
+        # namespace for holding state we may need
+        self._magic_state = Bunch()
 
     def profile_missing_notice(self, *args, **kwargs):
         error("""\
@@ -424,11 +428,36 @@ Currently the magic system has the following functions:\n"""
     def magic_autocall(self, parameter_s = ''):
         """Make functions callable without having to type parentheses.
 
-        This cycles the autocall command line through its three valid values
-        (0->Off, 1->Smart, 2->Full)"""
+        Usage:
+
+           %autocall [mode]
+
+        The mode can be one of: 0->Off, 1->Smart, 2->Full.  If not given, the
+        value is toggled on and off (remembering the previous state)."""
         
         rc = self.shell.rc
-        rc.autocall = not rc.autocall
+
+        if parameter_s:
+            arg = int(parameter_s)
+        else:
+            arg = 'toggle'
+
+        if not arg in (0,1,2,'toggle'):
+            error('Valid modes: (0->Off, 1->Smart, 2->Full')
+            return
+
+        if arg in (0,1,2):
+            rc.autocall = arg
+        else: # toggle
+            if rc.autocall:
+                self._magic_state.autocall_save = rc.autocall
+                rc.autocall = 0
+            else:
+                try:
+                    rc.autocall = self._magic_state.autocall_save
+                except AttributeError:
+                    rc.autocall = self._magic_state.autocall_save = 1
+                
         print "Automatic calling is:",['OFF','Smart','Full'][rc.autocall]
 
     def magic_autoindent(self, parameter_s = ''):

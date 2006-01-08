@@ -2,12 +2,12 @@
 """
 Logger class for IPython's logging facilities.
 
-$Id: Logger.py 988 2006-01-02 21:21:47Z fperez $
+$Id: Logger.py 994 2006-01-08 08:29:44Z fperez $
 """
 
 #*****************************************************************************
 #       Copyright (C) 2001 Janko Hauser <jhauser@zscout.de> and
-#       Copyright (C) 2001-2005 Fernando Perez <fperez@colorado.edu>
+#       Copyright (C) 2001-2006 Fernando Perez <fperez@colorado.edu>
 #
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.

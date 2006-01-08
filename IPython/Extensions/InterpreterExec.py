@@ -5,11 +5,11 @@ We define a special input line filter to allow typing lines which begin with
 '~', '/' or '.'. If one of those strings is encountered, it is automatically
 executed.
 
-$Id: InterpreterExec.py 638 2005-07-18 03:01:41Z fperez $"""
+$Id: InterpreterExec.py 994 2006-01-08 08:29:44Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2004 W.J. van der Laan <gnufnork@hetdigitalegat.nl>
-#       Copyright (C) 2004 Fernando Perez <fperez@colorado.edu>
+#       Copyright (C) 2004-2006 Fernando Perez <fperez@colorado.edu>
 #
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.

@@ -60,7 +60,7 @@ You can implement other color schemes easily, the syntax is fairly
 self-explanatory. Please send back new schemes you develop to the author for
 possible inclusion in future releases.
 
-$Id: ultraTB.py 992 2006-01-04 18:35:40Z fperez $"""
+$Id: ultraTB.py 994 2006-01-08 08:29:44Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001 Nathaniel Gray <n8gray@caltech.edu>
@@ -140,7 +140,6 @@ def _fixed_getinnerframes(etb, context=1,tb_offset=0):
             lines = (['\n'] * -maybeStart) + lines
         if len(lines) < context:
             lines += ['\n'] * (context - len(lines))
-        assert len(lines) == context
         buf = list(records[i])
         buf[LNUM_POS] = lnum
         buf[INDEX_POS] = lnum - 1 - start

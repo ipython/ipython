@@ -100,7 +100,7 @@ WARNING: this module uses Python 2.3 features, so it won't work in 2.2
 environments.
 """
 #*****************************************************************************
-#       Copyright (C) 2005 Fernando Perez. <Fernando.Perez@colorado.edu>
+#     Copyright (C) 2005-2006 Fernando Perez. <Fernando.Perez@colorado.edu>
 #
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.

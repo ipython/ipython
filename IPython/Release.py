@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 """Release data for the IPython project.
 
-$Id: Release.py 992 2006-01-04 18:35:40Z fperez $"""
+$Id: Release.py 994 2006-01-08 08:29:44Z fperez $"""
 
 #*****************************************************************************
-#       Copyright (C) 2001-2005 Fernando Perez <fperez@colorado.edu>
+#       Copyright (C) 2001-2006 Fernando Perez <fperez@colorado.edu>
 #
 #       Copyright (c) 2001 Janko Hauser <jhauser@zscout.de> and Nathaniel Gray
 #       <n8gray@caltech.edu>
@@ -24,7 +24,7 @@ name = 'ipython'
 
 version = '0.7.0.rc8'
 
-revision = '$Revision: 992 $'
+revision = '$Revision: 994 $'
 
 description = "An enhanced interactive Python shell."
 

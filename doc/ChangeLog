@@ -1,3 +1,17 @@
+2006-01-08  Fernando Perez  <Fernando.Perez@colorado.edu>
+
+	* IPython/Magic.py (magic_autocall): Fix %autocall magic.  Now
+	it can be used as a (stateful) toggle, or with a direct parameter.
+
+	* IPython/ultraTB.py (_fixed_getinnerframes): remove debug assert which
+	could be triggered in certain cases and cause the traceback
+	printer not to work.
+
+2006-01-07  Fernando Perez  <Fernando.Perez@colorado.edu>
+
+	* IPython/iplib.py (_should_recompile): Small fix, closes
+	http://www.scipy.net/roundup/ipython/issue48.  Patch by Scott.
+
 2006-01-04  Fernando Perez  <Fernando.Perez@colorado.edu>
 
 	* IPython/Shell.py (IPShellGTK.mainloop): fix bug in the GTK

@@ -1,9 +1,12 @@
+"""Set of functions to work with console on Windows.
 """
-Set of functions to work with console on Windows.
 
-Author: Alexander Belchenko (e-mail: bialix AT ukr.net)
-License: Public domain
-"""
+#*****************************************************************************
+#       Copyright (C) 2005 Alexander Belchenko <bialix@ukr.net>
+#
+#                This file is placed in the public domain.
+#
+#*****************************************************************************
 
 __author__  = 'Alexander Belchenko (e-mail: bialix AT ukr.net)'
 __license__ = 'Public domain'

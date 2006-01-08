@@ -6,12 +6,12 @@ Requires Python 2.1 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 993 2006-01-04 19:51:01Z fperez $
+$Id: iplib.py 994 2006-01-08 08:29:44Z fperez $
 """
 
 #*****************************************************************************
 #       Copyright (C) 2001 Janko Hauser <jhauser@zscout.de> and
-#       Copyright (C) 2001-2005 Fernando Perez. <fperez@colorado.edu>
+#       Copyright (C) 2001-2006 Fernando Perez. <fperez@colorado.edu>
 #
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
@@ -75,6 +75,8 @@ from IPython.background_jobs import BackgroundJobManager
 from IPython.usage import cmd_line_usage,interactive_usage
 from IPython.genutils import *
 
+# Globals
+
 # store the builtin raw_input globally, and use this always, in case user code
 # overwrites it (like wx.py.PyShell does)
 raw_input_original = raw_input
@@ -82,6 +84,7 @@ raw_input_original = raw_input
 # compiled regexps for autoindent management
 ini_spaces_re = re.compile(r'^(\s+)')
 dedent_re = re.compile(r'^\s+raise|^\s+return|^\s+pass')
+
 
 #****************************************************************************
 # Some utility function definitions
@@ -100,12 +103,11 @@ def softspace(file, newvalue):
         pass
     return oldvalue
 
-#****************************************************************************
-
 
 #****************************************************************************
 # Local use exceptions
 class SpaceInInput(exceptions.Exception): pass
+
 
 #****************************************************************************
 # Local use classes
@@ -1183,7 +1185,15 @@ want to merge them back into the new files.""" % locals()
                 return False
         except EOFError:
             return False
-        self.hooks.fix_error_editor(e.filename,e.lineno,e.offset,e.msg)
+
+        def int0(x):
+            try:
+                return int(x)
+            except TypeError:
+                return 0
+        # always pass integer line and offset values to editor hook
+        self.hooks.fix_error_editor(e.filename,
+            int0(e.lineno),int0(e.offset),e.msg)
         return True
         
     def edit_syntax_error(self):

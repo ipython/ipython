@@ -5,10 +5,10 @@ General purpose utilities.
 This is a grab-bag of stuff I find useful in most programs I write. Some of
 these things are also convenient when working at the command line.
 
-$Id: genutils.py 990 2006-01-04 06:59:02Z fperez $"""
+$Id: genutils.py 994 2006-01-08 08:29:44Z fperez $"""
 
 #*****************************************************************************
-#       Copyright (C) 2001-2004 Fernando Perez. <fperez@colorado.edu>
+#       Copyright (C) 2001-2006 Fernando Perez. <fperez@colorado.edu>
 #
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.

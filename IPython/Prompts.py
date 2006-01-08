@@ -2,10 +2,10 @@
 """
 Classes for handling input/output prompts.
 
-$Id: Prompts.py 975 2005-12-29 23:50:22Z fperez $"""
+$Id: Prompts.py 994 2006-01-08 08:29:44Z fperez $"""
 
 #*****************************************************************************
-#       Copyright (C) 2001-2004 Fernando Perez <fperez@colorado.edu>
+#       Copyright (C) 2001-2006 Fernando Perez <fperez@colorado.edu>
 #
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.

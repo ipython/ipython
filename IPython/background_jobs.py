@@ -18,11 +18,11 @@ http://folk.uio.no/hpl/scripting
 (although ultimately no code from this text was used, as IPython's system is a
 separate implementation).
 
-$Id: background_jobs.py 958 2005-12-27 23:17:51Z fperez $
+$Id: background_jobs.py 994 2006-01-08 08:29:44Z fperez $
 """
 
 #*****************************************************************************
-#       Copyright (C) 2005 Fernando Perez <fperez@colorado.edu>
+#       Copyright (C) 2005-2006 Fernando Perez <fperez@colorado.edu>
 #
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
