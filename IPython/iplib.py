@@ -6,7 +6,7 @@ Requires Python 2.1 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 994 2006-01-08 08:29:44Z fperez $
+$Id: iplib.py 995 2006-01-08 16:23:20Z fperez $
 """
 
 #*****************************************************************************
@@ -844,6 +844,7 @@ class InteractiveShell(object,Magic):
 
     def ipsystem(self,arg_s):
         """Make a system call, using IPython."""
+
         self.system(arg_s)
 
     def complete(self,text):
@@ -880,7 +881,7 @@ class InteractiveShell(object,Magic):
         outcomps.sort()
         return outcomps
         
-    def set_completer_frame(self, frame):
+    def set_completer_frame(self, frame=None):
         if frame:
             self.Completer.namespace = frame.f_locals
             self.Completer.global_namespace = frame.f_globals
@@ -892,6 +893,7 @@ class InteractiveShell(object,Magic):
         """Define some aliases automatically.
 
         These are ALL parameter-less aliases"""
+
         for alias,cmd in self.auto_alias:
             self.alias_table[alias] = (0,cmd)
 
@@ -1346,7 +1348,7 @@ want to merge them back into the new files.""" % locals()
 
         # make sure the tab-completer has the correct frame information, so it
         # actually completes using the frame's locals/globals
-        self.set_completer_frame(call_frame)
+        self.set_completer_frame()
 
         # before activating the interactive mode, we need to make sure that
         # all names in the builtin namespace needed by ipython point to

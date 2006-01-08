@@ -80,7 +80,7 @@ except NameError:
     from sets import Set as set
 
 
-from IPython.genutils import shlex_split
+from IPython.genutils import shlex_split,debugp
 
 __all__ = ['Completer','IPCompleter']
 
@@ -392,6 +392,7 @@ class IPCompleter(Completer):
 
     def alias_matches(self, text):
         """Match internal system aliases"""
+
         #print 'Completer->alias_matches:',text # dbg
         text = os.path.expanduser(text)
         aliases =  self.alias_table.keys()
@@ -402,7 +403,8 @@ class IPCompleter(Completer):
 
     def python_matches(self,text):
         """Match attributes or global python names"""
-        #print 'Completer->python_matches' # dbg
+
+        #print 'Completer->python_matches, txt=<%s>' % text # dbg
         if "." in text:
             try:
                 matches = self.attr_matches(text)

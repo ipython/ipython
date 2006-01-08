@@ -1,5 +1,9 @@
 2006-01-08  Fernando Perez  <Fernando.Perez@colorado.edu>
 
+	* IPython/iplib.py (embed_mainloop): fix tab-completion in
+	embedded instances, for variables defined at the interactive
+	prompt of the embedded ipython.  Reported by Arnd.
+
 	* IPython/Magic.py (magic_autocall): Fix %autocall magic.  Now
 	it can be used as a (stateful) toggle, or with a direct parameter.
 
