@@ -6,7 +6,7 @@
 #  the file COPYING, distributed as part of this software.
 #*****************************************************************************
 
-# $Id: usage.py 990 2006-01-04 06:59:02Z fperez $
+# $Id: usage.py 998 2006-01-09 06:57:40Z fperez $
 
 from IPython import Release
 __author__  = '%s <%s>' % Release.authors['Fernando']
@@ -66,6 +66,11 @@ SPECIAL THREADING OPTIONS
               IPython command line, without blocking.  All three provide
               essentially the same functionality, respectively for GTK, QT and
               WXWidgets (via their Python interfaces).
+
+              Note that with -wthread, you can additionally use the -wxversion
+              option to request a specific version of wx to be used.  This
+              requires that you have the 'wxversion' Python module installed,
+              which is part of recent wxPython distributions.
 
               If -pylab is given, IPython loads special support for the mat-
               plotlib library (http://matplotlib.sourceforge.net), allowing
@@ -379,6 +384,11 @@ REGULAR OPTIONS
 
        -Version
               Print version information and exit.
+
+       -wxversion <string>
+              Select a specific version of wxPython (used in conjunction with
+              -wthread). Requires the wxversion module, part of recent
+              wxPython distributions.
 
        -xmode <modename>
               Mode  for  exception reporting.  The valid modes are Plain, Con-

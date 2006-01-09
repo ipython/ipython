@@ -27,7 +27,7 @@ IPython tries to:
 
 IPython requires Python 2.2 or newer.
 
-$Id: __init__.py 775 2005-09-01 20:24:59Z fperez $"""
+$Id: __init__.py 998 2006-01-09 06:57:40Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2004 Fernando Perez. <fperez@colorado.edu>
@@ -38,8 +38,8 @@ $Id: __init__.py 775 2005-09-01 20:24:59Z fperez $"""
 
 # Enforce proper version requirements
 import sys
-if sys.version[0:3] < '2.2':
-    raise ImportError, 'Python Version 2.2 or above is required.'
+if sys.version[0:3] < '2.3':
+    raise ImportError, 'Python Version 2.3 or above is required.'
         
 # Define what gets imported with a 'from IPython import *'
 __all__ = ['deep_reload','genutils','ultraTB','DPyGetOpt','Itpl','hooks',

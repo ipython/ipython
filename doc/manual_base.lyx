@@ -164,6 +164,12 @@ Offer a flexible framework which can be used as the base environment for
  other systems with Python as the underlying language.
  Specifically scientific environments like Mathematica, IDL and Matlab inspired
  its design, but similar ideas can be useful in many fields.
+\layout Enumerate
+
+Allow interactive testing of threaded graphical toolkits.
+ IPython has support for interactive, non-blocking control of GTK, Qt and
+ WX applications via special threading flags.
+ The normal Python shell can only do this for Tkinter applications.
 \layout Subsection
 
 Main features
@@ -176,7 +182,26 @@ Dynamic object introspection.
 \family typewriter 
 ?
 \family default 
-').
+', and using `
+\family typewriter 
+??
+\family default 
+' provides additional detail).
+\layout Itemize
+
+Searching through modules and namespaces with `
+\family typewriter 
+*
+\family default 
+' wildcards, both when using the `
+\family typewriter 
+?
+\family default 
+' system and via the 
+\family typewriter 
+%psearch
+\family default 
+ command.
 \layout Itemize
 
 Completion in the local namespace, by typing TAB at the prompt.
@@ -205,10 +230,6 @@ Alias facility for defining your own system aliases.
 Complete system shell access.
  Lines starting with ! are passed directly to the system shell, and using
  !! captures shell output into python variables for further use.
-\layout Itemize
-
-All calls to the system (via aliases or via !) have their standard output/error
- automatically stored as strings, and also available as lists.
 \layout Itemize
 
 Background execution of Python commands in a separate thread.
@@ -255,15 +276,35 @@ Filesystem navigation, via a magic
 ) for fast access to frequently visited directories.
 \layout Itemize
 
+A lightweight persistence framework via the 
+\family typewriter 
+%store
+\family default 
+ command, which allows you to save arbitrary Python variables.
+ These get restored automatically when your session restarts.
+\layout Itemize
+
 Automatic indentation (optional) of code as you type (through the readline
  library).
 \layout Itemize
 
 Macro system for quickly re-executing multiple lines of previous input with
  a single name.
+ Macros can be stored persistently via 
+\family typewriter 
+%store
+\family default 
+ and edited via 
+\family typewriter 
+%edit
+\family default 
+.
+ 
 \layout Itemize
 
 Session logging (you can then later use these logs as code in your programs).
+ Logs can optionally timestamp all input, and also store session output
+ (marked as comments, so the log remains valid Python source code).
 \layout Itemize
 
 Session restoring: logs can be replayed to restore a previous session to
@@ -405,12 +446,10 @@ Portability and Python requirements
 \series bold 
 Python requirements: 
 \series default 
-IPython works with Python version 2.2 or newer.
- It has been tested with Python 2.4 and no problems have been reported.
- Support for Python 2.1 hasn't been recently tested, since I don't have access
- to it on any of my systems.
- But I suspect there may be some problems with Python 2.1, because some of
- the newer code may use 2.2 features.
+IPython requires with Python version 2.3 or newer.
+ If you are still using Python 2.2 and can not upgrade, the last version
+ of IPython which worked with Python 2.2 was 0.6.15, so you will have to use
+ that.
 \layout Standard
 
 IPython is developed under 
@@ -465,12 +504,22 @@ Windows 9x support is present, and has been reported to work fine (at least
  on WinME).
 \layout Standard
 
-Please note, however, that I have very little access to and experience with
- Windows development.
- For this reason, Windows-specific bugs tend to linger far longer than I
- would like, and often I just can't find a satisfactory solution.
- If any Windows user wants to join in with development help, all hands are
- always welcome.
+Note, that I have very little access to and experience with Windows development.
+ However, an excellent group of Win32 users (led by Ville Vainio), consistenly
+ contribute bugfixes and platform-specific enhancements, so they more than
+ make up for my deficiencies on that front.
+ In fact, Win32 users report using IPython as a system shell (see Sec.\SpecialChar ~
+
+\begin_inset LatexCommand \ref{sec:IPython-as-shell}
+
+\end_inset 
+
+ for details), as it offers a level of control and features which the default
+ 
+\family typewriter 
+cmd.exe
+\family default 
+ doesn't provide.
 \layout Subsection
 
 Location
@@ -481,7 +530,7 @@ IPython is generously hosted at
 
 \end_inset 
 
- by the SciPy project.
+ by the Enthought, Inc and the SciPy project.
  This site offers downloads, subversion access, mailing lists and a bug
  tracking system.
  I am very grateful to Enthought (
@@ -2476,6 +2525,21 @@ one
 \labelwidthstring 00.00.0000
 
 \SpecialChar ~
+ Note that with 
+\family typewriter 
+-wthread
+\family default 
+, you can additionally use the -wxversion option to request a specific version
+ of wx to be used.
+ This requires that you have the 
+\family typewriter 
+wxversion
+\family default 
+ Python module installed, which is part of recent wxPython distributions.
+\layout List
+\labelwidthstring 00.00.0000
+
+\SpecialChar ~
  If 
 \family typewriter 
 -pylab
@@ -3452,7 +3516,24 @@ IPYTHONDIR
 
 \family typewriter 
 \series bold 
--xmode <modename>
+-wxversion\SpecialChar ~
+<string>:
+\family default 
+\series default 
+ Select a specific version of wxPython (used in conjunction with 
+\family typewriter 
+-wthread
+\family default 
+).
+ Requires the wxversion module, part of recent wxPython distributions
+\layout List
+\labelwidthstring 00.00.0000
+
+
+\family typewriter 
+\series bold 
+-xmode\SpecialChar ~
+<modename>
 \series default 
 :
 \family default 
@@ -6777,6 +6858,11 @@ from IPython.Extensions.PhysicalQInteractive import *
 \newline 
 import IPython.Extensions.PhysicalQInput
 \layout Section
+
+
+\begin_inset LatexCommand \label{sec:IPython-as-shell}
+
+\end_inset 
 
 IPython as a system shell
 \layout Standard

@@ -1,5 +1,10 @@
 2006-01-08  Fernando Perez  <Fernando.Perez@colorado.edu>
 
+	* IPython/Shell.py (IPShellWX.__init__): add support for WXPython
+	version selection (new -wxversion command line and ipythonrc
+	parameter).  Patch contributed by Arnd Baecker
+	<arnd.baecker-AT-web.de>.
+
 	* IPython/iplib.py (embed_mainloop): fix tab-completion in
 	embedded instances, for variables defined at the interactive
 	prompt of the embedded ipython.  Reported by Arnd.

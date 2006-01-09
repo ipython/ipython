@@ -1,5 +1,5 @@
 # -*- Mode: Shell-Script -*-  Not really, but shows comments correctly
-# $Id: ipythonrc 990 2006-01-04 06:59:02Z fperez $
+# $Id: ipythonrc 998 2006-01-09 06:57:40Z fperez $
 
 #***************************************************************************
 #
@@ -329,6 +329,16 @@ xmode Context
 #   ....:     ls -l $i
 
 multi_line_specials 1
+
+# wxversion: request a specific wxPython version (used for -wthread)
+
+# Set this to the value of wxPython you want to use, but note that this
+# feature requires you to have the wxversion Python module to work.  If you
+# don't have the wxversion module (try 'import wxversion' at the prompt to
+# check) or simply want to leave the system to pick up the default, leave this
+# variable at 0.
+
+wxversion 0
 
 #---------------------------------------------------------------------------
 # Section: Readline configuration (readline is not available for MS-Windows)

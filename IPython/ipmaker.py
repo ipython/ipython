@@ -6,7 +6,7 @@ Requires Python 2.1 or better.
 
 This file contains the main make_IPython() starter function.
 
-$Id: ipmaker.py 994 2006-01-08 08:29:44Z fperez $"""
+$Id: ipmaker.py 998 2006-01-09 06:57:40Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2006 Fernando Perez. <fperez@colorado.edu>
@@ -159,6 +159,7 @@ object? -> Details about 'object'. ?object also works, ?? prints more.
                     'separate_out2|so2=s xmode=s wildcards_case_sensitive! '
                     'magic_docstrings system_verbose! '
                     'multi_line_specials! '
+                    'wxversion=s '
                     'autoedit_syntax!')
 
     # Options that can *only* appear at the cmd line (not in rcfiles).
@@ -222,6 +223,7 @@ object? -> Details about 'object'. ?object also works, ?? prints more.
                       Version = 0,
                       xmode = 'Verbose',
                       wildcards_case_sensitive = 1,
+                      wxversion = '0',
                       magic_docstrings = 0,  # undocumented, for doc generation
                       )
     
