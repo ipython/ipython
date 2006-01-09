@@ -50,6 +50,10 @@ python2.3 ./setup.py bdist_rpm --release=py23 --python=/usr/bin/python2.3
 # lib/python2.4/...)
 python2.4 ./setup.py bdist_rpm --release=py24 --python=/usr/bin/python2.4
 
+# Build eggs
+python2.3 ./setup_bdist_egg.py
+python2.4 ./setup_bdist_egg.py
+
 # Call the windows build separately, so that the extra Windows scripts don't
 # get pulled into Unix builds (setup.py has code which checks for
 # bdist_wininst)

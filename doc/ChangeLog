@@ -1,3 +1,8 @@
+2006-01-09  Fernando Perez  <Fernando.Perez@colorado.edu>
+
+	* setup_bdist_egg.py: little script to build an egg.  Added
+	support in the release tools as well.
+
 2006-01-08  Fernando Perez  <Fernando.Perez@colorado.edu>
 
 	* IPython/Shell.py (IPShellWX.__init__): add support for WXPython

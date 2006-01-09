@@ -830,7 +830,7 @@ verb|  $ sudo pythonw setup.py install --install-scripts=/usr/local/bin|
 \newline 
 
 \begin_inset ERT
-status Open
+status Collapsed
 
 \layout Standard
 
@@ -2241,6 +2241,54 @@ Define your own macros with
 .
  This can be useful for automating sequences of expressions when working
  interactively.
+ You can edit a macro (they are just Python variables holding your input
+ as a string) by simply typing `
+\family typewriter 
+%edit macroname
+\family default 
+', and macros can be stored persistently across session with `
+\family typewriter 
+%store macroname
+\family default 
+' (the storage system is per-profile).
+ The combination of quick macros, persistent storage and editing, allows
+ you to easily refine quick-and-dirty interactive input into permanent utilities
+, always available both in IPython and as files for general reuse.
+\layout Itemize
+
+While 
+\family typewriter 
+%macro
+\family default 
+ saves input lines into memory for interactive re-execution, sometimes you'd
+ like to save your input directly to a file.
+ The 
+\family typewriter 
+%save
+\family default 
+ magic does this: its input sytnax is the same as 
+\family typewriter 
+%macro
+\family default 
+, but it saves your input directly to a Python file.
+ Note that the 
+\family typewriter 
+%logstart
+\family default 
+ command also saves input, but it logs 
+\emph on 
+all
+\emph default 
+ input to disk (though you can temporarily suspend it and reactivate it
+ with 
+\family typewriter 
+%logoff/%logon
+\family default 
+); 
+\family typewriter 
+%save
+\family default 
+ allows you to select which lines of input you need to save.
 \layout Itemize
 
 Define your own system aliases.
