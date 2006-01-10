@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Magic functions for InteractiveShell.
 
-$Id: Magic.py 994 2006-01-08 08:29:44Z fperez $"""
+$Id: Magic.py 1000 2006-01-10 08:06:04Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001 Janko Hauser <jhauser@zscout.de> and
@@ -250,7 +250,9 @@ license. To use profiling, please install"python2.3-profiler" from non-free.""")
         newline_re = re.compile(r'\\n')
 
         # Now build the string for output:
-        strng = cmd_name_re.sub(r'\n\\texttt{\\textsl{\\large \1}}:',strng)
+        #strng = cmd_name_re.sub(r'\n\\texttt{\\textsl{\\large \1}}:',strng)
+        strng = cmd_name_re.sub(r'\n\\bigskip\n\\texttt{\\textbf{ \1}}:',
+                                strng)
         strng = cmd_re.sub(r'\\texttt{\g<cmd>}',strng)
         strng = par_re.sub(r'\\\\',strng)
         strng = escape_re.sub(r'\\\1',strng)
@@ -1709,6 +1711,7 @@ Currently the magic system has the following functions:\n"""
         temporary file and will execute the contents of this file when you
         close it (don't forget to save it!).
 
+
         Options:
 
         -p: this will call the editor with the same data as the previous time
@@ -1718,6 +1721,7 @@ Currently the magic system has the following functions:\n"""
         -x: do not execute the edited code immediately upon exit. This is
         mainly useful if you are editing programs which need to be called with
         command line arguments, which you can then do using %run.
+
 
         Arguments:
 
@@ -1917,6 +1921,7 @@ Currently the magic system has the following functions:\n"""
 
         if use_temp:
             filename = self.shell.mktempfile(data)
+            print 'IPython will make a temporary file named:',filename
 
         # do actual editing here
         print 'Editing...',

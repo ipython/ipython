@@ -1,3 +1,13 @@
+2006-01-10  Fernando Perez  <Fernando.Perez@colorado.edu>
+
+	* IPython/Release.py (revision): tag version number to 0.7.0,
+	ready for release.
+
+	* IPython/Magic.py (magic_edit): Add print statement to %edit so
+	it informs the user of the name of the temp. file used.  This can
+	help if you decide later to reuse that same file, so you know
+	where to copy the info from.
+
 2006-01-09  Fernando Perez  <Fernando.Perez@colorado.edu>
 
 	* setup_bdist_egg.py: little script to build an egg.  Added

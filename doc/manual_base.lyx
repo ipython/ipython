@@ -49,7 +49,7 @@
 \inputencoding latin1
 \fontscheme palatino
 \graphics default
-\paperfontsize 10
+\paperfontsize 11
 \spacing single 
 \papersize Default
 \paperpackage a4
@@ -58,9 +58,9 @@
 \use_natbib 0
 \use_numerical_citations 0
 \paperorientation portrait
-\leftmargin 1.1in
+\leftmargin 1in
 \topmargin 1in
-\rightmargin 1.1in
+\rightmargin 1in
 \bottommargin 1in
 \secnumdepth 3
 \tocdepth 3
@@ -2234,63 +2234,6 @@ Use your input history.
  code for your programs.
 \layout Itemize
 
-Define your own macros with 
-\family typewriter 
-%macro
-\family default 
-.
- This can be useful for automating sequences of expressions when working
- interactively.
- You can edit a macro (they are just Python variables holding your input
- as a string) by simply typing `
-\family typewriter 
-%edit macroname
-\family default 
-', and macros can be stored persistently across session with `
-\family typewriter 
-%store macroname
-\family default 
-' (the storage system is per-profile).
- The combination of quick macros, persistent storage and editing, allows
- you to easily refine quick-and-dirty interactive input into permanent utilities
-, always available both in IPython and as files for general reuse.
-\layout Itemize
-
-While 
-\family typewriter 
-%macro
-\family default 
- saves input lines into memory for interactive re-execution, sometimes you'd
- like to save your input directly to a file.
- The 
-\family typewriter 
-%save
-\family default 
- magic does this: its input sytnax is the same as 
-\family typewriter 
-%macro
-\family default 
-, but it saves your input directly to a Python file.
- Note that the 
-\family typewriter 
-%logstart
-\family default 
- command also saves input, but it logs 
-\emph on 
-all
-\emph default 
- input to disk (though you can temporarily suspend it and reactivate it
- with 
-\family typewriter 
-%logoff/%logon
-\family default 
-); 
-\family typewriter 
-%save
-\family default 
- allows you to select which lines of input you need to save.
-\layout Itemize
-
 Define your own system aliases.
  Even though IPython gives you access to your system shell via the 
 \family typewriter 
@@ -2406,16 +2349,6 @@ Use the Python profiler.
  calls).
 \layout Itemize
 
-Use 
-\family typewriter 
-%edit
-\family default 
- to have almost multiline editing.
- While IPython doesn't support true multiline editing, this command allows
- you to call an editor on the spot, and IPython will execute the code you
- type in there as if it were typed interactively.
-\layout Itemize
-
 Use the IPython.demo.Demo class to load any Python script as an interactive
  demo.
  With a minimal amount of simple markup, you can control the execution of
@@ -2427,13 +2360,129 @@ Use the IPython.demo.Demo class to load any Python script as an interactive
 \end_inset 
 
  for more.
+\layout Subsection
+
+Source code handling tips
 \layout Standard
 
+IPython is a line-oriented program, without full control of the terminal.
+ Therefore, it doesn't support true multiline editing.
+ However, it has a number of useful tools to help you in dealing effectively
+ with more complex editing.
+\layout Standard
 
-\series bold 
-Effective logging:
-\series default 
- a very useful suggestion sent in by Robert Kern follows
+The 
+\family typewriter 
+%edit
+\family default 
+ command gives a reasonable approximation of multiline editing, by invoking
+ your favorite editor on the spot.
+ IPython will execute the code you type in there as if it were typed interactive
+ly.
+ Type 
+\family typewriter 
+%edit?
+\family default 
+ for the full details on the edit command.
+\layout Standard
+
+If you have typed various commands during a session, which you'd like to
+ reuse, IPython provides you with a number of tools.
+ Start by using 
+\family typewriter 
+%hist
+\family default 
+ to see your input history, so you can see the line numbers of all input.
+ Let us say that you'd like to reuse lines 10 through 20, plus lines 24
+ and 28.
+ All the commands below can operate on these with the syntax
+\layout LyX-Code
+
+%command 10-20 24 28
+\layout Standard
+
+where the command given can be:
+\layout Itemize
+
+
+\family typewriter 
+%macro <macroname>
+\family default 
+: this stores the lines into a variable which, when called at the prompt,
+ re-executes the input.
+ Macros can be edited later using 
+\family typewriter 
+`%edit macroname
+\family default 
+', and they can be stored persistently across sessions with `
+\family typewriter 
+%store macroname
+\family default 
+' (the storage system is per-profile).
+ The combination of quick macros, persistent storage and editing, allows
+ you to easily refine quick-and-dirty interactive input into permanent utilities
+, always available both in IPython and as files for general reuse.
+\layout Itemize
+
+
+\family typewriter 
+%edit
+\family default 
+: this will open a text editor with those lines pre-loaded for further modificat
+ion.
+ It will then execute the resulting file's contents as if you had typed
+ it at the prompt.
+\layout Itemize
+
+
+\family typewriter 
+%save <filename>
+\family default 
+: this saves the lines directly to a named file on disk.
+\layout Standard
+
+While 
+\family typewriter 
+%macro
+\family default 
+ saves input lines into memory for interactive re-execution, sometimes you'd
+ like to save your input directly to a file.
+ The 
+\family typewriter 
+%save
+\family default 
+ magic does this: its input sytnax is the same as 
+\family typewriter 
+%macro
+\family default 
+, but it saves your input directly to a Python file.
+ Note that the 
+\family typewriter 
+%logstart
+\family default 
+ command also saves input, but it logs 
+\emph on 
+all
+\emph default 
+ input to disk (though you can temporarily suspend it and reactivate it
+ with 
+\family typewriter 
+%logoff/%logon
+\family default 
+); 
+\family typewriter 
+%save
+\family default 
+ allows you to select which lines of input you need to save.
+\layout Standard
+
+And 
+\layout Subsection
+
+Effective logging
+\layout Standard
+
+A very useful suggestion sent in by Robert Kern follows:
 \layout Standard
 
 I recently happened on a nifty way to keep tidy per-project log files.
@@ -8524,7 +8573,17 @@ The current IPython system grew out of the following three projects:
 \layout List
 \labelwidthstring 00.00.0000
 
-ipython by Fernando Pérez.
+ipython by Fernando P
+\begin_inset ERT
+status Collapsed
+
+\layout Standard
+
+\backslash 
+'{e}
+\end_inset 
+
+rez.
  I was working on adding Mathematica-type prompts and a flexible configuration
  system (something better than 
 \family typewriter 
@@ -8576,10 +8635,10 @@ The above listed features work, and quite well for the most part.
  and well localized in the cleaner parts of the code).
 \layout Standard
 
-IPython consists of some 12000 lines of pure python code, of which roughly
- 50% are fairly clean.
- The other 50% are fragile, messy code which needs a massive restructuring
- before any further major work is done.
+IPython consists of some 18000 lines of pure python code, of which roughly
+ two thirds is reasonably clean.
+ The rest is, messy code which needs a massive restructuring before any
+ further major work is done.
  Even the messy code is fairly well documented though, and most of the problems
  in the (non-existent) class design are well pointed to by a PyChecker run.
  So the rewriting work isn't that bad, it will just be time-consuming.
@@ -8719,7 +8778,17 @@ Versions of IPython up to and including 0.6.3 were released under the GNU
 Credits
 \layout Standard
 
-IPython is mainly developed by Fernando Pérez 
+IPython is mainly developed by Fernando P
+\begin_inset ERT
+status Collapsed
+
+\layout Standard
+
+\backslash 
+'{e}
+\end_inset 
+
+rez 
 \family typewriter 
 <fperez@colorado.edu>
 \family default 
@@ -8817,7 +8886,7 @@ Ka-Ping Yee
  with a much nicer syntax than formatting through the '%' operator.
 \layout Standard
 
-Arnd Bäcker 
+Arnd Baecker 
 \family typewriter 
 <baecker-AT-physik.tu-dresden.de>
 \family default 
@@ -9101,7 +9170,7 @@ Drexler
 \labelwidthstring 00.00.0000
 
 Gustavo\SpecialChar ~
-Córdova\SpecialChar ~
+Cordova\SpecialChar ~
 Avila 
 \family typewriter 
 <gcordova-AT-sismex.com>

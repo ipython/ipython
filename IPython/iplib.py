@@ -6,7 +6,7 @@ Requires Python 2.1 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 995 2006-01-08 16:23:20Z fperez $
+$Id: iplib.py 1000 2006-01-10 08:06:04Z fperez $
 """
 
 #*****************************************************************************
@@ -2033,7 +2033,7 @@ want to merge them back into the new files.""" % locals()
           - data(None): if data is given, it gets written out to the temp file
           immediately, and the file is closed again."""
 
-        filename = tempfile.mktemp('.py')
+        filename = tempfile.mktemp('.py','ipython_edit_')
         self.tempfiles.append(filename)
         
         if data:
