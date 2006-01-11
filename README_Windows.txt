@@ -24,7 +24,7 @@ IPython runs under (as far as the Windows family is concerned):
 
 - CygWin environments should work, they are basically Posix.
 
-It needs Python 2.2 or newer.
+It needs Python 2.3 or newer.
 
 
 Installation
