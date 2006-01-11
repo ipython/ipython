@@ -4,7 +4,7 @@
 All the matplotlib support code was co-developed with John Hunter,
 matplotlib's author.
 
-$Id: Shell.py 998 2006-01-09 06:57:40Z fperez $"""
+$Id: Shell.py 1002 2006-01-11 22:18:29Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2006 Fernando Perez <fperez@colorado.edu>
@@ -23,6 +23,7 @@ import __builtin__
 import os
 import sys
 import signal
+import time
 import threading
 
 import IPython
@@ -625,9 +626,9 @@ class IPShellGTK(threading.Thread):
         
         if self.gtk.pygtk_version >= (2,4,0):
             import gobject
-            gobject.timeout_add(self.TIMEOUT, self.on_timer)
+            gobject.idle_add(self.on_timer)
         else:
-            self.gtk.timeout_add(self.TIMEOUT, self.on_timer)
+            self.gtk.idle_add(self.on_timer)
 
         if sys.platform != 'win32':
             try:
@@ -652,9 +653,14 @@ class IPShellGTK(threading.Thread):
         self.join()
 
     def on_timer(self):
-        update_tk(self.tk)
-        return self.IP.runcode()
+        """Called when GTK is idle.
+
+        Must return True always, otherwise GTK stops calling it"""
         
+        update_tk(self.tk)
+        self.IP.runcode()
+        time.sleep(0.01)
+        return True
 
 class IPShellWX(threading.Thread):
     """Run a wx mainloop() in a separate thread.

@@ -2474,9 +2474,6 @@ all
 %save
 \family default 
  allows you to select which lines of input you need to save.
-\layout Standard
-
-And 
 \layout Subsection
 
 Effective logging

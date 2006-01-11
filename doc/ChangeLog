@@ -1,3 +1,11 @@
+2006-01-11  Fernando Perez  <Fernando.Perez@colorado.edu>
+
+	* IPython/Shell.py (IPShellGTK.on_timer): Finally fix the the
+	problem of excessive CPU usage under *nix and keyboard lag under
+	win32.
+
+2006-01-10  *** Released version 0.7.0
+
 2006-01-10  Fernando Perez  <Fernando.Perez@colorado.edu>
 
 	* IPython/Release.py (revision): tag version number to 0.7.0,

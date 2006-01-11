@@ -73,11 +73,11 @@ cd $ipdir
 # Upload all files
 cd $ipdir/dist
 echo "Uploading distribution files..."
-scp * fperez@scipy.org:www/dist/
+scp * ipython@ipython.scipy.org:www/dist/
 
 echo "Uploading backup files..."
 cd ~/ipython/backup
-scp `ls -1tr | tail -1` fperez@scipy.org:www/backup/
+scp `ls -1tr | tail -1` ipython@ipython.scipy.org:www/backup/
 
 echo "Updating webpage..."
 cd $ipdir/doc

@@ -6,7 +6,7 @@ Requires Python 2.1 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 1000 2006-01-10 08:06:04Z fperez $
+$Id: iplib.py 1002 2006-01-11 22:18:29Z fperez $
 """
 
 #*****************************************************************************
@@ -1177,9 +1177,9 @@ want to merge them back into the new files.""" % locals()
 
     def _should_recompile(self,e):
         """Utility routine for edit_syntax_error"""
-        
+
         if e.filename in ('<ipython console>','<input>','<string>',
-                          '<console>'):
+                          '<console>',None):
             return False
         try:
             if not ask_yes_no('Return to editor to correct syntax error? '
