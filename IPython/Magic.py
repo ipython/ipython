@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Magic functions for InteractiveShell.
 
-$Id: Magic.py 1000 2006-01-10 08:06:04Z fperez $"""
+$Id: Magic.py 1003 2006-01-11 22:18:56Z vivainio $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001 Janko Hauser <jhauser@zscout.de> and
@@ -2735,7 +2735,7 @@ Defaulting color scheme to 'NoColor'"""
         to be Python source and will show it with syntax highlighting. """
         
         filename = get_py_filename(parameter_s)
-        page(self.shell.colorize(file_read(filename)),
+        page(self.shell.pycolorize(file_read(filename)),
              screen_lines=self.shell.rc.screen_length)
 
 # end Magic
