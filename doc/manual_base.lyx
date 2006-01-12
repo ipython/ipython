@@ -8830,6 +8830,16 @@ Granger
 <bgranger-AT-scu.edu>
 \family default 
 : extending IPython to allow support for interactive parallel computing.
+\layout List
+\labelwidthstring 00.00.0000
+
+Ville\SpecialChar ~
+Vainio 
+\family typewriter 
+<vivainio-AT-gmail.com>
+\family default 
+: Ville is the new maintainer for the main trunk of IPython as of version
+ 0.7.1.
 \layout Standard
 
 User or development help should be requested via the IPython mailing lists:
@@ -9258,16 +9268,6 @@ Laan
 <gnufnork-AT-hetdigitalegat.nl>
 \family default 
  Bash-like prompt specials.
-\layout List
-\labelwidthstring 00.00.0000
-
-Ville\SpecialChar ~
-Vainio 
-\family typewriter 
-<vivainio-AT-kolumbus.fi>
-\family default 
- Bugfixes and suggestions.
- Excellent patches for many new features.
 \layout List
 \labelwidthstring 00.00.0000
 
