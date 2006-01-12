@@ -14,6 +14,10 @@
 	doc/update_manual.py, added yesterday. Both files contributed by
 	Jörgen Stenarson <jorgen.stenarson@bostream.nu>. This slates
 	doc/*.sh for deprecation at a later date.
+	
+	* Added ipython.py to root directory for zero-installation 
+	(tar xzvf ipython.tgz; cd ipython; python ipython.py) and
+	development convenience.
 
 2006-01-12  Fernando Perez  <Fernando.Perez@colorado.edu>
 
