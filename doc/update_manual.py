@@ -1,12 +1,12 @@
+#!/usr/bin/env ipython
 """ Must be launched via ipython not normal python 
 
-in ipython prompt do
-
-> %run update_manual.py
+Run by:
+    
+    ipython update_manual.py
 """
 
 import sys,IPython,re
-
 
 fil=open("magic.tex","w")
 oldout=sys.stdout
@@ -23,4 +23,6 @@ manualtext=re.sub("__version__",IPython.__version__,txt)
 fil=open("manual.lyx","w")
 fil.write(manualtext)
 fil.close()
-print "Manual (magic.tex, manual.lyx) succesfully updated!"
+print "Manual (magic.tex, manual.lyx) succesfully updated, exiting..."
+import os
+os.abort()

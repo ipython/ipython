@@ -9,6 +9,11 @@
 	path delimiters, though. Also deleted all pretense of supporting 
 	multiline command strings in !system or %magic commands. Thanks to
 	Jerry McRae for suggestions.
+	
+	* doc/build_doc_instructions.txt added. Documentation on how to use
+	doc/update_manual.py, added yesterday. Both files contributed by
+	Jörgen Stenarson <jorgen.stenarson@bostream.nu>. This slates
+	doc/*.sh for deprecation at a later date.
 
 2006-01-12  Fernando Perez  <Fernando.Perez@colorado.edu>
 
