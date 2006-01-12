@@ -6,7 +6,7 @@ Requires Python 2.1 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 1005 2006-01-12 08:39:26Z fperez $
+$Id: iplib.py 1007 2006-01-12 17:15:41Z vivainio $
 """
 
 #*****************************************************************************
@@ -1180,6 +1180,7 @@ want to merge them back into the new files.""" % locals()
 
         if e.filename in ('<ipython console>','<input>','<string>',
                           '<console>',None):
+                              
             return False
         try:
             if not ask_yes_no('Return to editor to correct syntax error? '
@@ -1887,7 +1888,7 @@ want to merge them back into the new files.""" % locals()
 
         # pre is needed, because it carries the leading whitespace.  Otherwise
         # aliases won't work in indented sections.
-        line_out = '%sipalias("%s %s")' % (pre,iFun,esc_quotes(theRest))
+        line_out = '%sipalias(%s)' % (pre,make_quoted_expr(iFun + " " + theRest))
         self.log(line_out,continue_prompt)
         return line_out
 
@@ -1897,36 +1898,27 @@ want to merge them back into the new files.""" % locals()
 
         #print 'line in :', `line` # dbg
         # Example of a special handler. Others follow a similar pattern.
-        if continue_prompt:  # multi-line statements
-            if iFun.startswith('!!'):
-                print 'SyntaxError: !! is not allowed in multiline statements'
-                return pre
-            else:
-                cmd = ("%s %s" % (iFun[1:],theRest))
-                line_out = '%sipsystem(r"""%s"""[:-1])' % (pre,cmd + "_")
-        else: # single-line input
-            if line.startswith('!!'):
-                # rewrite iFun/theRest to properly hold the call to %sx and
-                # the actual command to be executed, so handle_magic can work
-                # correctly
-                theRest = '%s %s' % (iFun[2:],theRest)
-                iFun = 'sx'
-                return self.handle_magic('%ssx %s' % (self.ESC_MAGIC,line[2:]),
-                                         continue_prompt,pre,iFun,theRest)
-            else:
-                cmd=line[1:]
-                line_out = '%sipsystem(r"""%s"""[:-1])' % (pre,cmd +"_")
+        if line.startswith('!!'):
+            # rewrite iFun/theRest to properly hold the call to %sx and
+            # the actual command to be executed, so handle_magic can work
+            # correctly
+            theRest = '%s %s' % (iFun[2:],theRest)
+            iFun = 'sx'
+            return self.handle_magic('%ssx %s' % (self.ESC_MAGIC,line[2:]),
+                                     continue_prompt,pre,iFun,theRest)
+        else:
+            cmd=line[1:]
+            line_out = '%sipsystem(%s)' % (pre,make_quoted_expr(cmd))
         # update cache/log and return
         self.log(line_out,continue_prompt)
         return line_out
 
     def handle_magic(self, line, continue_prompt=None,
                      pre=None,iFun=None,theRest=None):
-        """Execute magic functions.
+        """Execute magic functions."""
 
-        Also log them with a prepended # so the log is clean Python."""
 
-        cmd = '%sipmagic("%s")' % (pre,esc_quotes('%s %s' % (iFun,theRest)))
+        cmd = '%sipmagic(%s)' % (pre,make_quoted_expr(iFun + " " + theRest))
         self.log(cmd,continue_prompt)
         #print 'in handle_magic, cmd=<%s>' % cmd  # dbg
         return cmd
