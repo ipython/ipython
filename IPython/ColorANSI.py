@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Tools for coloring text in ANSI terminals.
 
-$Id: ColorANSI.py 994 2006-01-08 08:29:44Z fperez $"""
+$Id: ColorANSI.py 1005 2006-01-12 08:39:26Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2002-2006 Fernando Perez. <fperez@colorado.edu>
@@ -18,7 +18,7 @@ __all__ = ['TermColors','InputTermColors','ColorScheme','ColorSchemeTable']
 
 import os
 
-from IPython.Struct import Struct
+from IPython.ipstruct import Struct
 
 def make_color_table(in_class):
     """Build a set of color attributes in a class.

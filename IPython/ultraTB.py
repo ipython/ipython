@@ -60,7 +60,7 @@ You can implement other color schemes easily, the syntax is fairly
 self-explanatory. Please send back new schemes you develop to the author for
 possible inclusion in future releases.
 
-$Id: ultraTB.py 994 2006-01-08 08:29:44Z fperez $"""
+$Id: ultraTB.py 1005 2006-01-12 08:39:26Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001 Nathaniel Gray <n8gray@caltech.edu>
@@ -91,7 +91,7 @@ import types
 # IPython's own modules
 # Modified pdb which doesn't damage IPython's readline handling
 from IPython import Debugger
-from IPython.Struct import Struct
+from IPython.ipstruct import Struct
 from IPython.excolors import ExceptionColors
 from IPython.genutils import Term,uniq_stable,error,info
 

@@ -4,7 +4,7 @@
 All the matplotlib support code was co-developed with John Hunter,
 matplotlib's author.
 
-$Id: Shell.py 1002 2006-01-11 22:18:29Z fperez $"""
+$Id: Shell.py 1005 2006-01-12 08:39:26Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2006 Fernando Perez <fperez@colorado.edu>
@@ -32,7 +32,7 @@ from IPython.genutils import Term,warn,error,flag_calls
 from IPython.iplib import InteractiveShell
 from IPython.ipmaker import make_IPython
 from IPython.Magic import Magic
-from IPython.Struct import Struct
+from IPython.ipstruct import Struct
 
 # global flag to pass around information about Ctrl-C without exceptions
 KBINT = False

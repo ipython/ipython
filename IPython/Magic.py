@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Magic functions for InteractiveShell.
 
-$Id: Magic.py 1003 2006-01-11 22:18:56Z vivainio $"""
+$Id: Magic.py 1005 2006-01-12 08:39:26Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001 Janko Hauser <jhauser@zscout.de> and
@@ -46,7 +46,7 @@ from IPython import Debugger, OInspect, wildcard
 from IPython.FakeModule import FakeModule
 from IPython.Itpl import Itpl, itpl, printpl,itplns
 from IPython.PyColorize import Parser
-from IPython.Struct import Struct
+from IPython.ipstruct import Struct
 from IPython.macro import Macro
 from IPython.genutils import *
 

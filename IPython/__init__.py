@@ -27,7 +27,7 @@ IPython tries to:
 
 IPython requires Python 2.2 or newer.
 
-$Id: __init__.py 998 2006-01-09 06:57:40Z fperez $"""
+$Id: __init__.py 1005 2006-01-12 08:39:26Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2004 Fernando Perez. <fperez@colorado.edu>
@@ -42,8 +42,8 @@ if sys.version[0:3] < '2.3':
     raise ImportError, 'Python Version 2.3 or above is required.'
         
 # Define what gets imported with a 'from IPython import *'
-__all__ = ['deep_reload','genutils','ultraTB','DPyGetOpt','Itpl','hooks',
-           'ConfigLoader','OutputTrap','Release','Struct','Shell']
+__all__ = ['deep_reload','genutils','ipstruct','ultraTB','DPyGetOpt',
+           'Itpl','hooks','ConfigLoader','OutputTrap','Release','Shell']
 
 # Load __all__ in IPython namespace so that a simple 'import IPython' gives
 # access to them via IPython.<name>

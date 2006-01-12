@@ -1,3 +1,14 @@
+2006-01-12  Fernando Perez  <Fernando.Perez@colorado.edu>
+
+	* IPython/ipstruct.py (Struct): Rename IPython.Struct to
+	IPython.ipstruct, to avoid local shadowing of the stdlib 'struct'
+	module in case-insensitive installation.  Was causing crashes
+	under win32.  Closes http://www.scipy.net/roundup/ipython/issue49.
+
+	* IPython/Magic.py (magic_pycat): Fix pycat, patch by Marien Zwart
+	<marienz-AT-gentoo.org>, closes
+	http://www.scipy.net/roundup/ipython/issue51.
+
 2006-01-11  Fernando Perez  <Fernando.Perez@colorado.edu>
 
 	* IPython/Shell.py (IPShellGTK.on_timer): Finally fix the the

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Mimic C structs with lots of extra functionality.
 
-$Id: Struct.py 958 2005-12-27 23:17:51Z fperez $"""
+$Id: ipstruct.py 1005 2006-01-12 08:39:26Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2004 Fernando Perez <fperez@colorado.edu>

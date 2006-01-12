@@ -6,7 +6,7 @@ Requires Python 2.1 or better.
 
 This file contains the main make_IPython() starter function.
 
-$Id: ipmaker.py 998 2006-01-09 06:57:40Z fperez $"""
+$Id: ipmaker.py 1005 2006-01-12 08:39:26Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2006 Fernando Perez. <fperez@colorado.edu>
@@ -46,7 +46,7 @@ from pprint import pprint,pformat
 
 # Our own
 from IPython import DPyGetOpt
-from IPython.Struct import Struct
+from IPython.ipstruct import Struct
 from IPython.OutputTrap import OutputTrap
 from IPython.ConfigLoader import ConfigLoader
 from IPython.iplib import InteractiveShell

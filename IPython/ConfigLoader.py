@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Configuration loader
 
-$Id: ConfigLoader.py 994 2006-01-08 08:29:44Z fperez $"""
+$Id: ConfigLoader.py 1005 2006-01-12 08:39:26Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2006 Fernando Perez. <fperez@colorado.edu>
@@ -19,7 +19,7 @@ import os
 from pprint import pprint
 
 from IPython import ultraTB
-from IPython.Struct import Struct
+from IPython.ipstruct import Struct
 from IPython.genutils import *
 
 class ConfigLoaderError(exceptions.Exception):
