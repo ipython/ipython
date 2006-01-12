@@ -7,7 +7,8 @@
 	ipython command line. Should improve backslash experience,
 	particularly in Windows. %cd magic still doesn't support backslash
 	path delimiters, though. Also deleted all pretense of supporting 
-	multiline command strings in !system or %magic commands.
+	multiline command strings in !system or %magic commands. Thanks to
+	Jerry McRae for suggestions.
 
 2006-01-12  Fernando Perez  <Fernando.Perez@colorado.edu>
 
