@@ -1,23 +1,30 @@
 2006-01-12  Ville Vainio  <vivainio@gmail.com>
 
-	* IPython/iplib.py.py (make_quoted_expr,handle_shell_escape): 
+	* IPython/iplib.py (make_quoted_expr,handle_shell_escape): 
 	Prettified and hardened string/backslash quoting with ipsystem(),
 	ipalias() and ipmagic(). Now even \ characters are passed to
 	%magics, !shell escapes and aliases exactly as they are in the
 	ipython command line. Should improve backslash experience,
-	particularly in Windows. %cd magic still doesn't support backslash
-	path delimiters, though. Also deleted all pretense of supporting 
-	multiline command strings in !system or %magic commands. Thanks to
-	Jerry McRae for suggestions.
+	particularly in Windows (path delimiter for some commands that 
+	won't understand '/'), but Unix benefits as well (regexps). %cd
+	magic still doesn't support backslash path delimiters, though. Also
+	deleted all pretense of supporting multiline command strings in
+	!system or %magic commands. Thanks to Jerry McRae for suggestions.
 	
 	* doc/build_doc_instructions.txt added. Documentation on how to use
 	doc/update_manual.py, added yesterday. Both files contributed by
 	Jörgen Stenarson <jorgen.stenarson@bostream.nu>. This slates
 	doc/*.sh for deprecation at a later date.
 	
-	* Added ipython.py to root directory for zero-installation 
-	(tar xzvf ipython.tgz; cd ipython; python ipython.py) and
-	development convenience.
+	* /ipython.py Added ipython.py to root directory for
+	zero-installation (tar xzvf ipython.tgz; cd ipython; python
+	ipython.py) and development convenience (no need to kee doing
+	"setup.py install" between changes).
+	
+	* Made ! and !! shell escapes work (again) in multiline expressions:
+	  if 1:
+	      !ls
+	      !!ls
 
 2006-01-12  Fernando Perez  <Fernando.Perez@colorado.edu>
 

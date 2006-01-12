@@ -6,7 +6,7 @@ Requires Python 2.1 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 1007 2006-01-12 17:15:41Z vivainio $
+$Id: iplib.py 1012 2006-01-12 21:29:37Z vivainio $
 """
 
 #*****************************************************************************
@@ -1898,7 +1898,7 @@ want to merge them back into the new files.""" % locals()
 
         #print 'line in :', `line` # dbg
         # Example of a special handler. Others follow a similar pattern.
-        if line.startswith('!!'):
+        if line.lstrip().startswith('!!'):
             # rewrite iFun/theRest to properly hold the call to %sx and
             # the actual command to be executed, so handle_magic can work
             # correctly
@@ -1907,7 +1907,7 @@ want to merge them back into the new files.""" % locals()
             return self.handle_magic('%ssx %s' % (self.ESC_MAGIC,line[2:]),
                                      continue_prompt,pre,iFun,theRest)
         else:
-            cmd=line[1:]
+            cmd=line.lstrip()[1:]
             line_out = '%sipsystem(%s)' % (pre,make_quoted_expr(cmd))
         # update cache/log and return
         self.log(line_out,continue_prompt)
