@@ -4,8 +4,14 @@
         so far only set_term_title is implemented (change terminal
         label in windowing systems). %cd now changes the title to
         current dir.
-        
-        * Added myself to "authors" list, had to create new files.
+
+        * IPython/Release.py: Added myself to "authors" list, 
+	had to create new files.
+	
+	* IPython/iplib.py (handle_shell_escape): fixed logical flaw in
+	shell escape; not a known bug but had potential to be one in the
+	future.
+	
 
 2006-01-13  Fernando Perez  <Fernando.Perez@colorado.edu>
 
