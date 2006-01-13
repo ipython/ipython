@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Release data for the IPython project.
 
-$Id: Release.py 1002 2006-01-11 22:18:29Z fperez $"""
+$Id: Release.py 1014 2006-01-13 19:16:41Z vivainio $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2006 Fernando Perez <fperez@colorado.edu>
@@ -24,7 +24,7 @@ name = 'ipython'
 
 version = '0.7.1.svn'
 
-revision = '$Revision: 1002 $'
+revision = '$Revision: 1014 $'
 
 description = "An enhanced interactive Python shell."
 
@@ -64,7 +64,8 @@ license = 'BSD'
 
 authors = {'Fernando' : ('Fernando Perez','fperez@colorado.edu'),
            'Janko'    : ('Janko Hauser','jhauser@zscout.de'),
-           'Nathan'   : ('Nathaniel Gray','n8gray@caltech.edu')
+           'Nathan'   : ('Nathaniel Gray','n8gray@caltech.edu'),
+           'Ville'    : ('Ville Vainio','vivainio@gmail.com')           
            }
 
 url = 'http://ipython.scipy.org'

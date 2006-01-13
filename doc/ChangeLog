@@ -1,3 +1,12 @@
+2006-01-13  Ville Vainio  <vivainio@gmail.com>
+
+	* IPython/platutils*.py: platform specific utility functions,
+        so far only set_term_title is implemented (change terminal
+        label in windowing systems). %cd now changes the title to
+        current dir.
+        
+        * Added myself to "authors" list, had to create new files.
+
 2006-01-13  Fernando Perez  <Fernando.Perez@colorado.edu>
 
 	* IPython/iplib.py (raw_input): temporarily deactivate all
