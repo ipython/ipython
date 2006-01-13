@@ -6,7 +6,7 @@ Requires Python 2.1 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 1012 2006-01-12 21:29:37Z vivainio $
+$Id: iplib.py 1013 2006-01-13 08:33:32Z fperez $
 """
 
 #*****************************************************************************
@@ -82,15 +82,26 @@ from IPython.genutils import *
 raw_input_original = raw_input
 
 # compiled regexps for autoindent management
-ini_spaces_re = re.compile(r'^(\s+)')
 dedent_re = re.compile(r'^\s+raise|^\s+return|^\s+pass')
 
 
 #****************************************************************************
 # Some utility function definitions
 
+ini_spaces_re = re.compile(r'^(\s+)')
+
+def num_ini_spaces(strng):
+    """Return the number of initial spaces in a string"""
+
+    ini_spaces = ini_spaces_re.match(strng)
+    if ini_spaces:
+        return ini_spaces.end()
+    else:
+        return 0
+
 def softspace(file, newvalue):
     """Copied from code.py, to remove the dependency"""
+
     oldvalue = 0
     try:
         oldvalue = file.softspace
@@ -473,8 +484,18 @@ class InteractiveShell(object,Magic):
 
         # RegExp to identify potential function names
         self.re_fun_name = re.compile(r'[a-zA-Z_]([a-zA-Z0-9_.]*) *$')
-        # RegExp to exclude strings with this start from autocalling
-        self.re_exclude_auto = re.compile('^[!=()<>,\*/\+-]|^is ')
+
+        # RegExp to exclude strings with this start from autocalling.  In
+        # particular, all binary operators should be excluded, so that if foo
+        # is callable, foo OP bar doesn't become foo(OP bar), which is
+        # invalid.  The characters '!=()' don't need to be checked for, as the
+        # _prefilter routine explicitely does so, to catch direct calls and
+        # rebindings of existing names.
+
+        # Warning: the '-' HAS TO BE AT THE END of the first group, otherwise
+        # it affects the rest of the group in square brackets.
+        self.re_exclude_auto = re.compile(r'^[<>,&^\|\*/\+-]'
+                                          '|^is |^not |^in |^and |^or ')
 
         # try to catch also methods for stuff in lists/tuples/dicts: off
         # (experimental). For this to work, the line_split regexp would need
@@ -1077,6 +1098,7 @@ want to merge them back into the new files.""" % locals()
 
         Saving of persistent data should be performed here. """
 
+        #print '*** IPython exit cleanup ***' # dbg
         # input history
         self.savehist()
 
@@ -1496,14 +1518,10 @@ want to merge them back into the new files.""" % locals()
 
     def autoindent_update(self,line):
         """Keep track of the indent level."""
+
         if self.autoindent:
             if line:
-                ini_spaces = ini_spaces_re.match(line)
-                if ini_spaces:
-                    nspaces = ini_spaces.end()
-                else:
-                    nspaces = 0
-                self.indent_current_nsp = nspaces
+                self.indent_current_nsp = num_ini_spaces(line)
 
                 if line[-1] == ':':
                     self.indent_current_nsp += 4
@@ -1701,10 +1719,26 @@ want to merge them back into the new files.""" % locals()
         # Try to be reasonably smart about not re-indenting pasted input more
         # than necessary.  We do this by trimming out the auto-indent initial
         # spaces, if the user's actual input started itself with whitespace.
-        if self.autoindent:
-            line2 = line[self.indent_current_nsp:]
-            if line2[0:1] in (' ','\t'):
-                line = line2
+        #debugp('self.buffer[-1]')
+##        if self.autoindent:
+##            try:
+##                prev_line = self.buffer[-1]
+##            except IndexError:
+##                prev_line = ''
+##            prev_indent = num_ini_spaces(prev_line)
+##            debugp('prev_indent')
+##            # Split the user's input 
+##            line1 = line[:self.indent_current_nsp]
+##            line2 = line[self.indent_current_nsp:]
+##            if line1.isspace() and line2 and \
+##               num_ini_spaces(line2)==prev_indent:
+##                line = line2
+            #debugp('line')
+            #debugp('line1')
+            #debugp('line2')
+##            if line1.isspace() and line2 and line2[0:1] in (' ','\t'):
+##                line = line2
+##            debugp('line')
         return self.prefilter(line,continue_prompt)
         
     def split_user_input(self,line):
@@ -1875,8 +1909,8 @@ want to merge them back into the new files.""" % locals()
         # lines of pure whitespace in a row, or a line of pure whitespace but
         # of a size different to the indent level, will exit the input loop.
         
-        if (continue_prompt and self.autoindent and isspace(line) and
-            (line != self.indent_current or isspace(self.buffer[-1]))):
+        if (continue_prompt and self.autoindent and line.isspace() and
+            (line != self.indent_current or (self.buffer[-1]).isspace() )):
             line = ''
 
         self.log(line,continue_prompt)

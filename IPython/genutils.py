@@ -5,7 +5,7 @@ General purpose utilities.
 This is a grab-bag of stuff I find useful in most programs I write. Some of
 these things are also convenient when working at the command line.
 
-$Id: genutils.py 1007 2006-01-12 17:15:41Z vivainio $"""
+$Id: genutils.py 1013 2006-01-13 08:33:32Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2006 Fernando Perez. <fperez@colorado.edu>
@@ -935,12 +935,6 @@ class SList(list):
             return self.__nlstr
 
     n = nlstr = property(get_nlstr)
-
-#----------------------------------------------------------------------------
-# This can be replaced with an isspace() call once we drop 2.2 compatibility
-_isspace_match = re.compile(r'^\s+$').match
-def isspace(s):
-    return bool(_isspace_match(s))
 
 #----------------------------------------------------------------------------
 def esc_quotes(strng):

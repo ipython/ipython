@@ -1,3 +1,23 @@
+2006-01-13  Fernando Perez  <Fernando.Perez@colorado.edu>
+
+	* IPython/iplib.py (raw_input): temporarily deactivate all
+	attempts at allowing pasting of code with autoindent on.  It
+	introduced bugs (reported by Prabhu) and I can't seem to find a
+	robust combination which works in all cases.  Will have to revisit
+	later.
+
+	* IPython/genutils.py: remove isspace() function.  We've dropped
+	2.2 compatibility, so it's OK to use the string method.
+
+2006-01-12  Fernando Perez  <Fernando.Perez@colorado.edu>
+
+	* IPython/iplib.py (InteractiveShell.__init__): fix regexp
+	matching what NOT to autocall on, to include all python binary
+	operators (including things like 'and', 'or', 'is' and 'in').
+	Prompted by a bug report on 'foo & bar', but I realized we had
+	many more potential bug cases with other operators.  The regexp is
+	self.re_exclude_auto, it's fairly commented.
+
 2006-01-12  Ville Vainio  <vivainio@gmail.com>
 
 	* IPython/iplib.py (make_quoted_expr,handle_shell_escape): 
@@ -11,9 +31,9 @@
 	deleted all pretense of supporting multiline command strings in
 	!system or %magic commands. Thanks to Jerry McRae for suggestions.
 	
-	* doc/build_doc_instructions.txt added. Documentation on how to use
-	doc/update_manual.py, added yesterday. Both files contributed by
-	Jörgen Stenarson <jorgen.stenarson@bostream.nu>. This slates
+	* doc/build_doc_instructions.txt added. Documentation on how to
+	use doc/update_manual.py, added yesterday. Both files contributed
+	by Jörgen Stenarson <jorgen.stenarson-AT-bostream.nu>. This slates
 	doc/*.sh for deprecation at a later date.
 	
 	* /ipython.py Added ipython.py to root directory for
