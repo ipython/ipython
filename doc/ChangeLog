@@ -3,6 +3,11 @@
 	* IPython/ipapi.py (ashook, asmagic, options): Added convenience 
 	ipapi decorators for python 2.4 users, options() provides access to rc 
 	data.
+	
+	* IPython/Magic.py (magic_cd): %cd now accepts backslashes
+	as path separators (even on Linux ;-). Space character after 
+	backslash (as yielded by tab completer) is still space;
+	"%cd long\ name" works as expected.
 
 
 2006-01-13  Ville Vainio  <vivainio@gmail.com>

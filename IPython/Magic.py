@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Magic functions for InteractiveShell.
 
-$Id: Magic.py 1014 2006-01-13 19:16:41Z vivainio $"""
+$Id: Magic.py 1018 2006-01-14 11:02:50Z vivainio $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001 Janko Hauser <jhauser@zscout.de> and
@@ -2303,6 +2303,9 @@ Defaulting color scheme to 'NoColor'"""
             else:
                 opts = {}
         else:
+            #turn all non-space-escaping backslashes to slashes, 
+            # for c:\windows\directory\names\
+            parameter_s = re.sub(r'\\(?! )','/', parameter_s)            
             opts,ps = self.parse_options(parameter_s,'qb',mode='string')
         # jump to previous
         if ps == '-':
