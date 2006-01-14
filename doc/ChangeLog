@@ -13,8 +13,8 @@
 	as "chain of command", with priority. API stays the same, 
 	TryNext exception raised by a hook function signals that 
 	current hook failed and next hook should try handling it, as 
-	suggested by Walter Dörwald <walter@livinglogic.de>.
-
+	suggested by Walter Dörwald <walter@livinglogic.de>. Walter also
+	requested configurable display hook, which is now implemented.
 
 2006-01-13  Ville Vainio  <vivainio@gmail.com>
 
