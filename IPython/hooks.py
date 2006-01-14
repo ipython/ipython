@@ -32,7 +32,7 @@ ip_set_hook('editor',myiphooks.calljed)
 The ip_set_hook function is put by IPython into the builtin namespace, so it
 is always available from all running code.
 
-$Id: hooks.py 988 2006-01-02 21:21:47Z fperez $"""
+$Id: hooks.py 1019 2006-01-14 13:02:12Z vivainio $"""
 
 #*****************************************************************************
 #       Copyright (C) 2005 Fernando Perez. <fperez@colorado.edu>
@@ -46,7 +46,7 @@ __author__  = '%s <%s>' % Release.authors['Fernando']
 __license__ = Release.license
 __version__ = Release.version
 
-import os
+import os,bisect
 
 # List here all the default hooks.  For now it's just the editor functions
 # but over time we'll move here all the public API for user-accessible things.
@@ -93,3 +93,44 @@ def fix_error_editor(self,filename,linenum,column,msg):
         os.system('vim --cmd "set errorformat=%f:%l:%c:%m" -q ' + t.name)
     finally:
         t.close()
+
+class TryNext(Exception):
+    pass
+
+class CommandChainDispatcher:
+    """ Dispatch calls to a chain of commands until some func can handle it
+    
+    Usage: instantiate, execute "add" to add commands (with optional
+    priority), execute normally via f() calling mechanism.
+    
+    """
+    def __init__(self,commands=None):
+        if commands is None:
+            self.chain = []
+        else:
+            self.chain = commands
+            
+            
+    def __call__(self,*args, **kw):
+        """ Command chain is called just like normal func. 
+        
+        This will call all funcs in chain with the same args as were given to this
+        function, and return the result of first func that didn't raise
+        TryNext """
+        
+        for prio,cmd in self.chain:
+            #print "prio",prio,"cmd",cmd #dbg
+            try:
+                ret = cmd(*args, **kw)
+                return ret
+            except TryNext:
+                pass
+                
+    def __str__(self):
+        return str(self.chain)
+    
+    def add(self, func, priority=0):
+        """ Add a func to the cmd chain with given priority """
+        bisect.insort(self.chain,(priority,func))
+
+        

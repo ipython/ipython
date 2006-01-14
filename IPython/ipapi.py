@@ -90,8 +90,9 @@ def expose_magic(magicname, func):
     '''
     
     from IPython import Magic
-    
-    setattr(Magic.Magic, "magic_" + magicname, func)
+    import new
+    im = new.instancemethod(func,__IP, __IP.__class__)
+    setattr(__IP, "magic_" + magicname, im)
 
 class asmagic:
     """ Decorator for exposing magics in a friendly 2.4 decorator form 
@@ -121,11 +122,12 @@ class ashook:
     
     """
     
-    def __init__(self,name):
+    def __init__(self,name,priority=50):
         self.name = name
+        self.prio = priority
         
     def __call__(self,f):
-        set_hook(self.name, f)
+        set_hook(self.name, f, self.prio)
         return f
 
 

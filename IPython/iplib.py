@@ -6,7 +6,7 @@ Requires Python 2.3 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 1017 2006-01-14 09:46:45Z vivainio $
+$Id: iplib.py 1019 2006-01-14 13:02:12Z vivainio $
 """
 
 #*****************************************************************************
@@ -401,7 +401,8 @@ class InteractiveShell(object,Magic):
         # Set all default hooks, defined in the IPython.hooks module.
         hooks = IPython.hooks
         for hook_name in hooks.__all__:
-            self.set_hook(hook_name,getattr(hooks,hook_name))
+            # default hooks have priority 100, i.e. low; user hooks should have 0-100 priority
+            self.set_hook(hook_name,getattr(hooks,hook_name), 100)
 
         # Flag to mark unconditional exit
         self.exit_now = False
@@ -707,17 +708,31 @@ class InteractiveShell(object,Magic):
                 __builtin__.__dict__[biname] = bival
         self.builtins_added.clear()
     
-    def set_hook(self,name,hook):
+    def set_hook(self,name,hook, priority = 50):
         """set_hook(name,hook) -> sets an internal IPython hook.
 
         IPython exposes some of its internal API as user-modifiable hooks.  By
-        resetting one of these hooks, you can modify IPython's behavior to
-        call at runtime your own routines."""
+        adding your function to one of these hooks, you can modify IPython's 
+        behavior to call at runtime your own routines."""
 
         # At some point in the future, this should validate the hook before it
         # accepts it.  Probably at least check that the hook takes the number
         # of args it's supposed to.
-        setattr(self.hooks,name,new.instancemethod(hook,self,self.__class__))
+        dp = getattr(self.hooks, name, None)
+        if not dp:
+            dp = IPython.hooks.CommandChainDispatcher()
+        
+        f = new.instancemethod(hook,self,self.__class__)
+        try:
+            dp.add(f,priority)
+        except AttributeError:
+            # it was not commandchain, plain old func - replace
+            dp = f
+
+        setattr(self.hooks,name, dp)
+        
+        
+        #setattr(self.hooks,name,new.instancemethod(hook,self,self.__class__))
 
     def set_custom_exc(self,exc_tuple,handler):
         """set_custom_exc(exc_tuple,handler)

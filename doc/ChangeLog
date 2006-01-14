@@ -9,6 +9,12 @@
 	backslash (as yielded by tab completer) is still space;
 	"%cd long\ name" works as expected.
 
+	* IPython/ipapi.py,hooks.py,iplib.py: Hooks now implemented
+	as "chain of command", with priority. API stays the same, 
+	TryNext exception raised by a hook function signals that 
+	current hook failed and next hook should try handling it, as 
+	suggested by Walter Dörwald <walter@livinglogic.de>.
+
 
 2006-01-13  Ville Vainio  <vivainio@gmail.com>
 
