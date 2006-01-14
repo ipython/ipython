@@ -2,11 +2,11 @@
 """
 IPython -- An enhanced Interactive Python
 
-Requires Python 2.1 or newer.
+Requires Python 2.3 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 1015 2006-01-13 22:47:06Z vivainio $
+$Id: iplib.py 1016 2006-01-14 00:54:23Z vivainio $
 """
 
 #*****************************************************************************
@@ -74,6 +74,7 @@ from IPython.ipstruct import Struct
 from IPython.background_jobs import BackgroundJobManager
 from IPython.usage import cmd_line_usage,interactive_usage
 from IPython.genutils import *
+import IPython.ipapi
 
 # Globals
 
@@ -190,6 +191,10 @@ class InteractiveShell(object,Magic):
                  user_ns = None,user_global_ns=None,banner2='',
                  custom_exceptions=((),None),embedded=False):
 
+        # first thing: introduce ourselves to IPython.ipapi which is uncallable
+        # before it knows an InteractiveShell object. Uninitialized state is ok
+        IPython.ipapi._init_with_shell(self)
+        
         # some minimal strict typechecks.  For some core data structures, I
         # want actual basic python types, not just anything that looks like
         # one.  This is especially true for namespaces.
@@ -821,8 +826,8 @@ class InteractiveShell(object,Magic):
 
         args = arg_s.split(' ',1)
         magic_name = args[0]
-        if magic_name.startswith(self.ESC_MAGIC):
-            magic_name = magic_name[1:]
+        magic_name = magic_name.lstrip(self.ESC_MAGIC)
+
         try:
             magic_args = args[1]
         except IndexError:

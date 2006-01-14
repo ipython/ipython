@@ -6,7 +6,7 @@ Uses syntax highlighting for presenting the various information elements.
 Similar in spirit to the inspect module, but all calls take a name argument to
 reference the name under which an object is being read.
 
-$Id: OInspect.py 958 2005-12-27 23:17:51Z fperez $
+$Id: OInspect.py 1016 2006-01-14 00:54:23Z vivainio $
 """
 
 #*****************************************************************************
@@ -268,6 +268,8 @@ class Inspector:
             ds = "Alias to the system command:\n  %s" % obj[1]
         else:
             ds = getdoc(obj)
+            if ds is None:
+                ds = '<no docstring>'
         if formatter is not None:
             ds = formatter(ds)
 
