@@ -6,7 +6,7 @@ Requires Python 2.1 or better.
 
 This file contains the main make_IPython() starter function.
 
-$Id: ipmaker.py 1005 2006-01-12 08:39:26Z fperez $"""
+$Id: ipmaker.py 1017 2006-01-14 09:46:45Z vivainio $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2006 Fernando Perez. <fperez@colorado.edu>
@@ -415,6 +415,7 @@ object? -> Details about 'object'. ?object also works, ?? prints more.
            warn('Profile configuration file %s not found. Ignoring request.'
                 % (opts_all.profile) )
 
+
     # load the config file
     rcfiledata = None
     if opts_all.quick:
@@ -553,7 +554,7 @@ object? -> Details about 'object'. ?object also works, ?? prints more.
     #IP.internal_ns.update(locals()) # so our stuff doesn't show up in %who
 
     # Now run through the different sections of the users's config
-    if IP_rc.debug:
+    if IP_rc.debug:    
         print 'Trying to execute the following configuration structure:'
         print '(Things listed first are deeper in the inclusion tree and get'
         print 'loaded first).\n'

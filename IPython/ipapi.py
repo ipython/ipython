@@ -1,14 +1,28 @@
 ''' IPython customization API
 
-Your one-stop module for configuring ipython
+Your one-stop module for configuring & extending ipython
 
-This is experimental, use at your own risk.
+The API will probably break when ipython 1.0 is released, but so 
+will the other configuration method (rc files).
 
 All names prefixed by underscores are for internal use, not part 
 of the public api.
 
-No formal doc yet, here's an example that you can just put 
-to a module and import from ipython.
+Below is an example that you can just put to a module and import from ipython. 
+
+A good practice is to install the config script below as e.g. 
+
+~/.ipython/my_private_conf.py
+
+And do 
+
+import_mod my_private_conf 
+
+in ~/.ipython/ipythonrc
+
+That way the module is imported at startup and you can have all your
+personal configuration (as opposed to boilerplate ipythonrc-PROFILENAME 
+stuff) in there. 
 
 -----------------------------------------------
 import IPython.ipapi as ip
@@ -38,12 +52,13 @@ def jed_editor(self,filename, linenum=None):
     print "exiting jed"
 
 ip.set_hook('editor',jed_editor)
+
+o = ip.options()
+o.autocall = 2  # FULL autocall mode
+
 print "done!"
     
 '''
- 
-  
- 
  
 def _init_with_shell(ip):
     global magic
@@ -52,8 +67,13 @@ def _init_with_shell(ip):
     system = ip.ipsystem
     global set_hook
     set_hook = ip.set_hook
+    
     global __IP
     __IP = ip
+
+def options():
+    """ All configurable variables """
+    return __IP.rc
 
 def user_ns():
     return __IP.user_ns
@@ -72,7 +92,43 @@ def expose_magic(magicname, func):
     from IPython import Magic
     
     setattr(Magic.Magic, "magic_" + magicname, func)
+
+class asmagic:
+    """ Decorator for exposing magics in a friendly 2.4 decorator form 
     
+    @ip.asmagic("foo")
+    def f(self,arg):
+        pring "arg given:",arg
+    
+    After this, %foo is a magic function.
+    """
+    
+    def __init__(self,magicname):
+        self.name = magicname
+        
+    def __call__(self,f):
+        expose_magic(self.name, f)
+        return f
+
+class ashook:
+    """ Decorator for exposing magics in a friendly 2.4 decorator form 
+    
+    @ip.ashook("editor")
+    def jed_editor(self,filename, linenum=None):
+        import os
+        if linenum is None: linenum = 0
+        os.system('jed +%d %s' % (linenum, filename))
+    
+    """
+    
+    def __init__(self,name):
+        self.name = name
+        
+    def __call__(self,f):
+        set_hook(self.name, f)
+        return f
+
+
 def ex(cmd):
     """ Execute a normal python statement """
     exec cmd in user_ns()

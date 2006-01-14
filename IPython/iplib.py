@@ -6,7 +6,7 @@ Requires Python 2.3 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 1016 2006-01-14 00:54:23Z vivainio $
+$Id: iplib.py 1017 2006-01-14 09:46:45Z vivainio $
 """
 
 #*****************************************************************************
@@ -192,7 +192,7 @@ class InteractiveShell(object,Magic):
                  custom_exceptions=((),None),embedded=False):
 
         # first thing: introduce ourselves to IPython.ipapi which is uncallable
-        # before it knows an InteractiveShell object. Uninitialized state is ok
+        # before it knows an InteractiveShell object. 
         IPython.ipapi._init_with_shell(self)
         
         # some minimal strict typechecks.  For some core data structures, I
