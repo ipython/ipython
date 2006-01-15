@@ -21,6 +21,20 @@ __author__  = '%s <%s>' % Release.authors['Ville']
 __license__ = Release.license
 
 import sys
+import os
 
-def set_term_title(title):
+
+def _dummy_op(*a, **b):
+    """ A no-op function """
+
+def _set_term_title_xterm(title):
+    """ Change virtual terminal title in xterm-workalikes """
     sys.stdout.write('\033]%d;%s\007' % (0,title))
+
+
+if os.environ.get('TERM','') == 'xterm':
+    set_term_title = _set_term_title_xterm
+else:
+    set_term_title = _dummy_op
+
+    
