@@ -15,6 +15,17 @@ Author:  Jason Orendorff <jason@jorendorff.com> (and others - see the url!)
 Date:    7 Mar 2004
 """
 
+# Original license statement:
+#License: You may use path.py for whatever you wish, at your own risk. (For
+#example, you may modify, relicense, and redistribute it.) It is provided
+#without any guarantee or warranty of any kind, not even for merchantability or
+#fitness for any purpose.
+
+# IPython license note: 
+# For the sake of convenience, IPython includes this module 
+# in its directory structure in unmodified form, apart from 
+# these license statements. The same license still applies.
+
 
 # TODO
 #   - Bug in write_text().  It doesn't support Universal newline mode.

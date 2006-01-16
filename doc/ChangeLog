@@ -2,6 +2,9 @@
 
 	* Reverted back to old %edit functionality that returns
 	file contents on exit.
+	
+	* Added Jason Orendorff's "path" module to IPython tree, 
+	http://www.jorendorff.com/articles/python/path/
 
 2006-01-14  Ville Vainio  <vivainio@gmail.com>
 
