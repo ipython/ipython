@@ -4,7 +4,11 @@
 	that returns file contents on exit.
 	
 	* IPython/path.py: Added Jason Orendorff's "path" module to 
-	IPython tree, http://www.jorendorff.com/articles/python/path/
+	IPython tree, http://www.jorendorff.com/articles/python/path/.
+	You can get path objects conveniently through %sc, and !!, e.g.:
+	 sc files=ls
+	 for p in files.paths: # or files.p
+	     print p,p.mtime
 	
 	* Ipython/iplib.py:"," and ";" autoquoting-upon-autocall 
 	now work again without considering the exclusion regexp - 

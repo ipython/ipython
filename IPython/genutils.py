@@ -5,7 +5,7 @@ General purpose utilities.
 This is a grab-bag of stuff I find useful in most programs I write. Some of
 these things are also convenient when working at the command line.
 
-$Id: genutils.py 1013 2006-01-13 08:33:32Z fperez $"""
+$Id: genutils.py 1028 2006-01-16 21:42:33Z vivainio $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2006 Fernando Perez. <fperez@colorado.edu>
@@ -36,7 +36,7 @@ import types
 # Other IPython utilities
 from IPython.Itpl import Itpl,itpl,printpl
 from IPython import DPyGetOpt
-
+from IPython.path import path
 if os.name == "nt":
     from IPython.winconsole import get_console_size
 
@@ -900,6 +900,16 @@ class LSString(str):
 
     n = nlstr = property(get_nlstr)
 
+    def get_paths(self):
+        try:
+            return self.__paths
+        except AttributeError:
+            self.__paths = [path(p) for p in self.split('\n') if os.path.exists(p)]
+            return self.__paths
+    
+    p = paths = property(get_paths)
+
+
 #----------------------------------------------------------------------------
 class SList(list):
     """List derivative with a special access attributes.
@@ -935,6 +945,15 @@ class SList(list):
             return self.__nlstr
 
     n = nlstr = property(get_nlstr)
+    
+    def get_paths(self):
+        try:
+            return self.__paths
+        except AttributeError:
+            self.__paths = [path(p) for p in self if os.path.exists(p)]
+            return self.__paths
+    
+    p = paths = property(get_paths)
 
 #----------------------------------------------------------------------------
 def esc_quotes(strng):
