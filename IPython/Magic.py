@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Magic functions for InteractiveShell.
 
-$Id: Magic.py 1018 2006-01-14 11:02:50Z vivainio $"""
+$Id: Magic.py 1023 2006-01-16 19:11:21Z vivainio $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001 Janko Hauser <jhauser@zscout.de> and
@@ -1941,6 +1941,8 @@ Currently the magic system has the following functions:\n"""
                     self.shell.showtraceback()
             except:
                 self.shell.showtraceback()
+        if use_temp:
+            return open(filename).read()
 
     def magic_xmode(self,parameter_s = ''):
         """Switch modes for the exception handlers.
