@@ -21,11 +21,11 @@ from IPython import Release
 __author__  = '%s <%s>' % Release.authors['Ville']
 __license__ = Release.license
 
-import os
+import os,sys
 
 if os.name == 'posix':
     from platutils_posix import *
-elif os.name == 'win32':
+elif sys.platform == 'win32':
     from platutils_win32 import *
 else:
     from platutils_dummy import *
