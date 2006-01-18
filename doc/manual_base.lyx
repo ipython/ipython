@@ -2474,6 +2474,121 @@ all
 %save
 \family default 
  allows you to select which lines of input you need to save.
+\layout Subsubsection*
+
+Lightweight 'version control'
+\layout Standard
+
+When you call 
+\family typewriter 
+%edit
+\family default 
+ with no arguments, IPython opens an empty editor with a temporary file,
+ and it returns the contents of your editing session as a string variable.
+ Thanks to IPython's output caching mechanism, this is automatically stored:
+\layout LyX-Code
+
+In [1]: %edit
+\layout LyX-Code
+
+IPython will make a temporary file named: /tmp/ipython_edit_yR-HCN.py
+\layout LyX-Code
+
+Editing...
+ done.
+ Executing edited code...
+\layout LyX-Code
+
+hello - this is a temporary file
+\layout LyX-Code
+
+Out[1]: "print 'hello - this is a temporary file'
+\backslash 
+n"
+\layout Standard
+
+Now, if you call 
+\family typewriter 
+`%edit -p'
+\family default 
+, IPython tries to open an editor with the same data as the last time you
+ used 
+\family typewriter 
+%edit
+\family default 
+.
+ So if you haven't used 
+\family typewriter 
+%edit
+\family default 
+ in the meantime, this same contents will reopen; however, it will be done
+ in a 
+\emph on 
+new file
+\emph default 
+.
+ This means that if you make changes and you later want to find an old version,
+ you can always retrieve it by using its output number, via 
+\family typewriter 
+`%edit _NN'
+\family default 
+, where 
+\family typewriter 
+NN
+\family default 
+ is the number of the output prompt.
+\layout Standard
+
+Continuing with the example above, this should illustrate this idea:
+\layout LyX-Code
+
+In [2]: edit -p
+\layout LyX-Code
+
+IPython will make a temporary file named: /tmp/ipython_edit_nA09Qk.py
+\layout LyX-Code
+
+Editing...
+ done.
+ Executing edited code...
+\layout LyX-Code
+
+hello - now I made some changes
+\layout LyX-Code
+
+Out[2]: "print 'hello - now I made some changes'
+\backslash 
+n"
+\layout LyX-Code
+
+In [3]: edit _1
+\layout LyX-Code
+
+IPython will make a temporary file named: /tmp/ipython_edit_gy6-zD.py
+\layout LyX-Code
+
+Editing...
+ done.
+ Executing edited code...
+\layout LyX-Code
+
+hello - this is a temporary file
+\layout LyX-Code
+
+IPython version control at work :)
+\layout LyX-Code
+
+Out[3]: "print 'hello - this is a temporary file'
+\backslash 
+nprint 'IPython version control at work :)'
+\backslash 
+n"
+\layout Standard
+
+This section was written after a contribution by Alexander Belchenko on
+ the IPython user list.
+\layout LyX-Code
+
 \layout Subsection
 
 Effective logging

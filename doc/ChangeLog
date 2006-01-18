@@ -1,3 +1,8 @@
+2006-01-18  Fernando Perez  <Fernando.Perez@colorado.edu>
+
+	* IPython/Magic.py (magic_edit): fix check for when users don't
+	save their output files, the try/except was in the wrong section.
+
 2006-01-17  Fernando Perez  <Fernando.Perez@colorado.edu>
 
 	* IPython/Magic.py (magic_run): fix __file__ global missing from
