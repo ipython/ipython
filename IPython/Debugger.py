@@ -15,7 +15,7 @@ details on the PSF (Python Software Foundation) standard license, see:
 
 http://www.python.org/2.2.3/license.html
 
-$Id: Debugger.py 994 2006-01-08 08:29:44Z fperez $"""
+$Id: Debugger.py 1029 2006-01-18 07:33:38Z fperez $"""
 
 #*****************************************************************************
 #
@@ -66,11 +66,21 @@ def _file_lines(fname):
 
 class Pdb(pdb.Pdb):
     """Modified Pdb class, does not load readline."""
+
+    # Ugly hack: we can't call the parent constructor, because it binds
+    # readline and breaks tab-completion.  This means we have to COPY the
+    # constructor here, and that requires tracking various python versions.
+    
     def __init__(self,color_scheme='NoColor'):
         bdb.Bdb.__init__(self)
         cmd.Cmd.__init__(self,completekey=None) # don't load readline
         self.prompt = 'ipdb> ' # The default prompt is '(Pdb)'
         self.aliases = {}
+
+        # These two lines are part of the py2.4 constructor, let's put them
+        # unconditionally here as they won't cause any problems in 2.3.
+        self.mainpyfile = ''
+        self._wait_for_mainpyfile = 0
 
         # Read $HOME/.pdbrc and ./.pdbrc
         try:

@@ -1,3 +1,15 @@
+2006-01-17  Fernando Perez  <Fernando.Perez@colorado.edu>
+
+	* IPython/Magic.py (magic_run): fix __file__ global missing from
+	script's namespace when executed via %run.  After a report by
+	Vivian.
+
+	* IPython/Debugger.py (Pdb.__init__): Fix breakage with '%run -d'
+	when using python 2.4.  The parent constructor changed in 2.4, and
+	we need to track it directly (we can't call it, as it messes up
+	readline and tab-completion inside our pdb would stop working).
+	After a bug report by R. Bernstein <rocky-AT-panix.com>.
+
 2006-01-16  Ville Vainio  <vivainio@gmail.com>
 
 	* Ipython/magic.py:Reverted back to old %edit functionality 
