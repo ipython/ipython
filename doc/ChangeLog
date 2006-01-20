@@ -7,6 +7,11 @@
 	
 	* %store now complains when trying to store interactively declared
 	classes / instances of those classes.
+	
+	* Extensions/ipy_system_conf.py, UserConfig/ipy_user_conf.py,
+	ipmaker.py: Config rehaul. Now ipy_..._conf.py are always imported 
+	if they exist, and ipy_user_conf.py with some defaults is created for
+	the user.
 
 2006-01-20  Fernando Perez  <Fernando.Perez@colorado.edu>
 

@@ -6,7 +6,7 @@ Requires Python 2.3 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 1032 2006-01-20 09:03:57Z fperez $
+$Id: iplib.py 1038 2006-01-20 23:43:35Z vivainio $
 """
 
 #*****************************************************************************
@@ -1099,7 +1099,14 @@ Successful installation!
 Please read the sections 'Initial Configuration' and 'Quick Tips' in the
 IPython manual (there are both HTML and PDF versions supplied with the
 distribution) to make sure that your system environment is properly configured
-to take advantage of IPython's features."""
+to take advantage of IPython's features.
+
+Important note: the configuration system has changed! The old system is
+still in place, but its setting may be partly overridden by the settings in 
+"~/.ipython/ipy_user_conf.py" config file. Please take a look at the file 
+if some of the new settings bother you. 
+
+"""
         else:
             print """
 Successful upgrade!
