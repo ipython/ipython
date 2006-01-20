@@ -3,7 +3,7 @@
 
 Usage:
 
-%rehash_dir c:/bin c:/tools
+%rehashdir c:/bin c:/tools
   - Add all executables under c:/bin and c:/tools to alias table, in 
   order to make them directly executable from any directory.
   
@@ -15,12 +15,10 @@ extensions are allowed to do that).
 
 To install, add
 
-"import_mod rehash_dir"
+"import_mod ext_rehashdir"
 
 To your ipythonrc or just execute "import rehash_dir" in ipython
 prompt.
-
-
 
 
 $Id: InterpreterExec.py 994 2006-01-08 08:29:44Z fperez $
@@ -29,7 +27,7 @@ $Id: InterpreterExec.py 994 2006-01-08 08:29:44Z fperez $
 import IPython.ipapi as ip
 
 
-import os,re
+import os,re,fnmatch
 
 @ip.asmagic("rehashdir")
 def rehashdir_f(self,arg):
@@ -37,15 +35,26 @@ def rehashdir_f(self,arg):
      
     Usage:
 
-    %rehash_dir c:/bin c:/tools
+    %rehashdir c:/bin c:/tools
       - Add all executables under c:/bin and c:/tools to alias table, in 
       order to make them directly executable from any directory.
+        
+      Without arguments, add all executables in current directory.
+      
     """
 
     # most of the code copied from Magic.magic_rehashx
+
+    def isjunk(fname):
+        junk = ['*~']
+        for j in junk:
+            if fnmatch.fnmatch(fname, j):
+                return True
+        return False
+    
     if not arg:
         arg = '.'
-    path = arg.split()
+    path = map(os.path.abspath,arg.split())
     alias_table = self.shell.alias_table
         
     if os.name == 'posix':
@@ -56,7 +65,7 @@ def rehashdir_f(self,arg):
         try:
             winext = os.environ['pathext'].replace(';','|').replace('.','')
         except KeyError:
-            winext = 'exe|com|bat'
+            winext = 'exe|com|bat|py'
 
         execre = re.compile(r'(.*)\.(%s)$' % winext,re.IGNORECASE)
         isexec = lambda fname:os.path.isfile(fname) and execre.match(fname)
@@ -68,19 +77,21 @@ def rehashdir_f(self,arg):
             for pdir in path:
                 os.chdir(pdir)
                 for ff in os.listdir(pdir):
-                    if isexec(ff):
+                    if isexec(ff) and not isjunk(ff):
                         # each entry in the alias table must be (N,name),
                         # where N is the number of positional arguments of the
                         # alias.
-                        print "Aliasing",ff
-                        alias_table[ff] = (0,os.path.abspath(ff))
+                        src,tgt = os.path.splitext(ff)[0], os.path.abspath(ff)                
+                        print "Aliasing:",src,"->",tgt
+                        alias_table[src] = (0,tgt)
         else:
             for pdir in path:
                 os.chdir(pdir)
                 for ff in os.listdir(pdir):
-                    if isexec(ff):
-                        print "Aliasing",ff
-                        alias_table[execre.sub(r'\1',ff)] = (0,os.path.abspath(ff))
+                    if isexec(ff) and not isjunk(ff):
+                        src, tgt = execre.sub(r'\1',ff), os.path.abspath(ff)
+                        print "Aliasing:",src,"->",tgt
+                        alias_table[src] = (0,tgt)
         # Make sure the alias table doesn't contain keywords or builtins
         self.shell.alias_table_validate()
         # Call again init_auto_alias() so we get 'rm -i' and other
