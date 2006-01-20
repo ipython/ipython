@@ -16,6 +16,7 @@ empty.
 
 import IPython.ipapi as ip
 
+import os
 
 o = ip.options()
 # autocall 1 ('smart') is default anyway, this is just an 
@@ -37,7 +38,12 @@ if o.profile == 'pysh':
 
 ip.magic('alias d ls -F --color=auto')
 
-# Make available all system commands. You can comment this line out to speed up 
-# startup on slow machines, and to conserve a bit of memory
+# Make available all system commands through "rehashing" immediately. 
+# You can comment these lines out to speed up startup on very slow 
+# machines, and to conserve a bit of memory.
 
-ip.magic('rehashx')
+if os.name=='posix':
+    ip.magic('rehash')
+else:
+    #slightly slower, but better results esp. with Windows
+    ip.magic('rehashx')
