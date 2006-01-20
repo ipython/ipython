@@ -6,7 +6,7 @@ Requires Python 2.1 or better.
 
 This file contains the main make_IPython() starter function.
 
-$Id: ipmaker.py 1033 2006-01-20 10:41:20Z vivainio $"""
+$Id: ipmaker.py 1037 2006-01-20 23:27:53Z vivainio $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2006 Fernando Perez. <fperez@colorado.edu>
@@ -601,6 +601,14 @@ object? -> Details about 'object'. ?object also works, ?? prints more.
             warn(itpl('File $file not found. Skipping it.'))
         else:
             IP.safe_execfile(os.path.expanduser(file),IP.user_ns)
+
+    # finally, try importing ipy_*_conf for final configuration
+    try:
+        import ipy_system_conf
+        import ipy_user_conf
+
+    except ImportError:
+        IP.InteractiveTB()
 
     # release stdout and stderr and save config log into a global summary
     msg.config.release_all()

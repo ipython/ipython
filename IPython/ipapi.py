@@ -132,5 +132,12 @@ class ashook:
 
 
 def ex(cmd):
-    """ Execute a normal python statement """
+    """ Execute a normal python statement in user namespace """
     exec cmd in user_ns()
+
+def ev(expr):
+    """ Evaluate python expression expr in user namespace 
+    
+    Returns the result """
+    return eval(expr,user_ns())
+    
