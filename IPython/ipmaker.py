@@ -6,7 +6,7 @@ Requires Python 2.1 or better.
 
 This file contains the main make_IPython() starter function.
 
-$Id: ipmaker.py 1017 2006-01-14 09:46:45Z vivainio $"""
+$Id: ipmaker.py 1033 2006-01-20 10:41:20Z vivainio $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2006 Fernando Perez. <fperez@colorado.edu>
@@ -478,6 +478,7 @@ object? -> Details about 'object'. ?object also works, ?? prints more.
     # add personal .ipython dir to sys.path so that users can put things in
     # there for customization
     sys.path.append(IP_rc.ipythondir)
+        
     sys.path.insert(0, '') # add . to sys.path. Fix from Prabhu Ramachandran
     
     # update IP_rc with some special things that need manual
@@ -560,6 +561,8 @@ object? -> Details about 'object'. ?object also works, ?? prints more.
         print 'loaded first).\n'
         pprint(IP_rc.__dict__)
         
+    # Make it easy to import extensions
+    sys.path.append(os.path.join(IPython_dir,"Extensions"))
     for mod in IP_rc.import_mod:
         try:
             exec 'import '+mod in IP.user_ns
