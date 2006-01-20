@@ -3,6 +3,9 @@
 	* Ipython/Extensions/rehash_dir.py: Created a usable example
 	of how to extend ipython with new magics. Also added Extensions
 	dir to pythonpath to make executing extensions easy.
+	
+	* %store now complains when trying to store interactively declared
+	classes / instances of those classes.
 
 2006-01-20  Fernando Perez  <Fernando.Perez@colorado.edu>
 

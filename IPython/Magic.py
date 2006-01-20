@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Magic functions for InteractiveShell.
 
-$Id: Magic.py 1030 2006-01-18 19:24:48Z fperez $"""
+$Id: Magic.py 1034 2006-01-20 12:59:31Z vivainio $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001 Janko Hauser <jhauser@zscout.de> and
@@ -31,6 +31,7 @@ import re
 import tempfile
 import time
 import cPickle as pickle
+import textwrap
 from cStringIO import StringIO
 from getopt import getopt
 from pprint import pprint, pformat
@@ -2679,7 +2680,16 @@ Defaulting color scheme to 'NoColor'"""
         
         # default action - store the variable
         else:
-            pickled = pickle.dumps(self.shell.user_ns[args[0] ])
+            obj = self.shell.user_ns[args[0] ]
+            if isinstance(inspect.getmodule(obj), FakeModule):
+                print textwrap.dedent("""\
+                Warning:%s is %s 
+                Proper storage of interactively declared classes (or instances
+                of those classes) is not possible! Only instances
+                of classes in real modules on file system can be %%store'd.
+                """ % (args[0], obj) ) 
+                return
+            pickled = pickle.dumps(obj)
             self.shell.persist[ 'S:' + args[0] ] = pickled
             print "Stored '%s' (%d bytes)" % (args[0], len(pickled))
     
