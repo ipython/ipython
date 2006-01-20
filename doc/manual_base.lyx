@@ -2604,7 +2604,10 @@ I recently happened on a nifty way to keep tidy per-project log files.
 include ipythonrc
 \layout LyX-Code
 
-logfile '' # cancel earlier logfile invocation
+# cancel earlier logfile invocation:
+\layout LyX-Code
+
+logfile ''
 \layout LyX-Code
 
 execute import time

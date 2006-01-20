@@ -6,7 +6,7 @@ Requires Python 2.3 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 1031 2006-01-18 20:20:39Z vivainio $
+$Id: iplib.py 1032 2006-01-20 09:03:57Z fperez $
 """
 
 #*****************************************************************************
@@ -560,7 +560,6 @@ class InteractiveShell(object,Magic):
         # indentation management
         self.autoindent = False
         self.indent_current_nsp = 0
-        self.indent_current = '' # actual indent string
 
         # Make some aliases automatically
         # Prepare list of shell aliases to auto-define
@@ -1149,7 +1148,8 @@ want to merge them back into the new files.""" % locals()
 
         Currently it handles auto-indent only."""
 
-        self.readline.insert_text(self.indent_current)
+        #debugp('self.indent_current_nsp','pre_readline:')
+        self.readline.insert_text(self.indent_current_str())
 
     def init_readline(self):
         """Command history completion/saving/reloading."""
@@ -1469,7 +1469,6 @@ want to merge them back into the new files.""" % locals()
 
                 if self.autoindent:
                     self.indent_current_nsp = 0
-                    self.indent_current = ' '* self.indent_current_nsp
 
             except bdb.BdbQuit:
                 warn("The Python debugger has exited with a BdbQuit exception.\n"
@@ -1537,12 +1536,20 @@ want to merge them back into the new files.""" % locals()
         except:
             self.showtraceback()
 
+    def indent_current_str(self):
+        """return the current level of indentation as a string"""
+        return self.indent_current_nsp * ' '
+
     def autoindent_update(self,line):
         """Keep track of the indent level."""
 
+        debugp('line','autoindent_update:')
+        debugp('self.indent_current_nsp')
         if self.autoindent:
             if line:
-                self.indent_current_nsp = num_ini_spaces(line)
+                inisp = num_ini_spaces(line)
+                if inisp < self.indent_current_nsp:
+                    self.indent_current_nsp = inisp
 
                 if line[-1] == ':':
                     self.indent_current_nsp += 4
@@ -1550,10 +1557,6 @@ want to merge them back into the new files.""" % locals()
                     self.indent_current_nsp -= 4
             else:
                 self.indent_current_nsp = 0
-
-            # indent_current is the actual string to be inserted
-            # by the readline hooks for indentation
-            self.indent_current = ' '* self.indent_current_nsp
 
     def runlines(self,lines):
         """Run a string of one or more lines of source.
@@ -1721,7 +1724,7 @@ want to merge them back into the new files.""" % locals()
     def resetbuffer(self):
         """Reset the input buffer."""
         self.buffer[:] = []
-
+        
     def raw_input(self,prompt='',continue_prompt=False):
         """Write a prompt and read a line.
 
@@ -1741,25 +1744,16 @@ want to merge them back into the new files.""" % locals()
         # than necessary.  We do this by trimming out the auto-indent initial
         # spaces, if the user's actual input started itself with whitespace.
         #debugp('self.buffer[-1]')
-##        if self.autoindent:
-##            try:
-##                prev_line = self.buffer[-1]
-##            except IndexError:
-##                prev_line = ''
-##            prev_indent = num_ini_spaces(prev_line)
-##            debugp('prev_indent')
-##            # Split the user's input 
-##            line1 = line[:self.indent_current_nsp]
-##            line2 = line[self.indent_current_nsp:]
-##            if line1.isspace() and line2 and \
-##               num_ini_spaces(line2)==prev_indent:
-##                line = line2
-            #debugp('line')
-            #debugp('line1')
-            #debugp('line2')
-##            if line1.isspace() and line2 and line2[0:1] in (' ','\t'):
-##                line = line2
-##            debugp('line')
+
+        debugp('line')
+        debugp('self.indent_current_nsp')
+        if self.autoindent:
+            if num_ini_spaces(line) > self.indent_current_nsp:
+                line = line[self.indent_current_nsp:]
+                self.indent_current_nsp = 0
+                debugp('self.indent_current_nsp')
+            
+        debugp('line')
         return self.prefilter(line,continue_prompt)
         
     def split_user_input(self,line):
@@ -1937,7 +1931,8 @@ want to merge them back into the new files.""" % locals()
         # of a size different to the indent level, will exit the input loop.
         
         if (continue_prompt and self.autoindent and line.isspace() and
-            (line != self.indent_current or (self.buffer[-1]).isspace() )):
+            (line != self.indent_current_str() or
+             (self.buffer[-1]).isspace() )):
             line = ''
 
         self.log(line,continue_prompt)

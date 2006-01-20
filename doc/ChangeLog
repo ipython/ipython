@@ -1,3 +1,15 @@
+2006-01-20  Fernando Perez  <Fernando.Perez@colorado.edu>
+
+	* IPython/iplib.py (raw_input): I _think_ I got the pasting of
+	multiline code with autoindent on working.  But I am really not
+	sure, so this needs more testing.  Will commit a debug-enabled
+	version for now, while I test it some more, so that Ville and
+	others may also catch any problems.  Also made
+	self.indent_current_str() a method, to ensure that there's no
+	chance of the indent space count and the corresponding string
+	falling out of sync.  All code needing the string should just call
+	the method.
+
 2006-01-18  Fernando Perez  <Fernando.Perez@colorado.edu>
 
 	* IPython/Magic.py (magic_edit): fix check for when users don't
