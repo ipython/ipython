@@ -30,7 +30,7 @@ It needs Python 2.3 or newer.
 Installation
 ------------
 
-Double-click the supplied .exe installer file.  If all goes well, that's all
+Double-click the supplied .exe installer file. If all goes well, that's all
 you need to do. You should now have an IPython entry in your Start Menu.
 
 In case the automatic installer does not work for some reason, you can
