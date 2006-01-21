@@ -40,10 +40,11 @@ ip.magic('alias d ls -F --color=auto')
 
 # Make available all system commands through "rehashing" immediately. 
 # You can comment these lines out to speed up startup on very slow 
-# machines, and to conserve a bit of memory.
+# machines, and to conserve a bit of memory. Note that pysh profile does this
+# automatically
 
-if os.name=='posix':
-    ip.magic('rehash')
-else:
-    #slightly slower, but better results esp. with Windows
-    ip.magic('rehashx')
+#if os.name=='posix':
+#    ip.magic('rehash')
+#else:
+#    #slightly slower, but better results esp. with Windows
+#    ip.magic('rehashx')

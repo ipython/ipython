@@ -6,7 +6,7 @@ Requires Python 2.1 or better.
 
 This file contains the main make_IPython() starter function.
 
-$Id: ipmaker.py 1037 2006-01-20 23:27:53Z vivainio $"""
+$Id: ipmaker.py 1041 2006-01-21 09:29:14Z vivainio $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2006 Fernando Perez. <fperez@colorado.edu>
@@ -608,7 +608,8 @@ object? -> Details about 'object'. ?object also works, ?? prints more.
         import ipy_user_conf
 
     except ImportError:
-        IP.InteractiveTB()
+        pass
+        #IP.InteractiveTB() XXX uncomment in a later release
 
     # release stdout and stderr and save config log into a global summary
     msg.config.release_all()
