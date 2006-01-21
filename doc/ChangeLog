@@ -12,6 +12,10 @@
 	ipmaker.py: Config rehaul. Now ipy_..._conf.py are always imported 
 	if they exist, and ipy_user_conf.py with some defaults is created for
 	the user.
+	
+	* Startup rehashing done by the config file, not InterpreterExec.
+	This means system commands are available even without selecting the
+	pysh profile. It's the sensible default after all.
 
 2006-01-20  Fernando Perez  <Fernando.Perez@colorado.edu>
 
