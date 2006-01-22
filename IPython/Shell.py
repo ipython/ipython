@@ -4,7 +4,7 @@
 All the matplotlib support code was co-developed with John Hunter,
 matplotlib's author.
 
-$Id: Shell.py 1005 2006-01-12 08:39:26Z fperez $"""
+$Id: Shell.py 1058 2006-01-22 14:30:01Z vivainio $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2006 Fernando Perez <fperez@colorado.edu>
@@ -18,13 +18,14 @@ __author__  = '%s <%s>' % Release.authors['Fernando']
 __license__ = Release.license
 
 # Code begins
-import __main__
 import __builtin__
+import __main__
+import Queue
 import os
-import sys
 import signal
-import time
+import sys
 import threading
+import time
 
 import IPython
 from IPython import ultraTB
@@ -272,9 +273,15 @@ class MTInteractiveShell(InteractiveShell):
         InteractiveShell.__init__(self,name,usage,rc,user_ns,
                                   user_global_ns,banner2)
 
-        # Locking control variable
-        self.thread_ready = threading.Condition()
+        # Locking control variable.  We need to use a norma lock, not an RLock
+        # here.  I'm not exactly sure why, it seems to me like it should be
+        # the opposite, but we deadlock with an RLock.  Puzzled...
+        self.thread_ready = threading.Condition(threading.Lock())
 
+        # A queue to hold the code to be executed.  A scalar variable is NOT
+        # enough, because uses like macros cause reentrancy.
+        self.code_queue = Queue.Queue()
+        
         # Stuff to do at closing time
         self._kill = False
         on_kill = kw.get('on_kill')
@@ -311,11 +318,16 @@ class MTInteractiveShell(InteractiveShell):
             return True
 
         # Case 3
-        # Store code in self, so the execution thread can handle it
-        self.thread_ready.acquire()
-        self.code_to_run = code
-        self.thread_ready.wait()  # Wait until processed in timeout interval
-        self.thread_ready.release()
+        # Store code in queue, so the execution thread can handle it.
+
+        # Note that with macros and other applications, we MAY re-enter this
+        # section, so we have to acquire the lock with non-blocking semantics,
+        # else we deadlock.
+        got_lock = self.thread_ready.acquire(False)
+        self.code_queue.put(code)
+        if got_lock:
+            self.thread_ready.wait()  # Wait until processed in timeout interval
+            self.thread_ready.release()
 
         return False
 
@@ -325,7 +337,7 @@ class MTInteractiveShell(InteractiveShell):
         Multithreaded wrapper around IPython's runcode()."""
 
         # lock thread-protected stuff
-        self.thread_ready.acquire()
+        self.thread_ready.acquire(False)
 
         # Install sigint handler
         try:
@@ -342,10 +354,15 @@ class MTInteractiveShell(InteractiveShell):
                 tokill()
             print >>Term.cout, 'Done.'
 
-        # Run pending code by calling parent class
-        if self.code_to_run is not None:
+        # Flush queue of pending code by calling the run methood of the parent
+        # class with all items which may be in the queue.
+        while 1:
+            try:
+                code_to_run = self.code_queue.get_nowait()
+            except Queue.Empty:
+                break
             self.thread_ready.notify()
-            InteractiveShell.runcode(self,self.code_to_run)
+            InteractiveShell.runcode(self,code_to_run)
             
         # We're done with thread-protected variables
         self.thread_ready.release()
@@ -354,7 +371,7 @@ class MTInteractiveShell(InteractiveShell):
 
     def kill (self):
         """Kill the thread, returning when it has been shut down."""
-        self.thread_ready.acquire()
+        self.thread_ready.acquire(False)
         self._kill = True
         self.thread_ready.release()
 
@@ -366,7 +383,7 @@ class MatplotlibShellBase:
     inheritance hierarchy, so that it overrides the relevant methods."""
     
     def _matplotlib_config(self,name):
-        """Return various items needed to setup the user's shell with matplotlib"""
+        """Return items needed to setup the user's shell with matplotlib"""
 
         # Initialize matplotlib to interactive mode always
         import matplotlib
@@ -407,7 +424,6 @@ class MatplotlibShellBase:
         self.mpl_use._called = False
         # overwrite the original matplotlib.use with our wrapper
         matplotlib.use = use
-
 
         # This must be imported last in the matplotlib series, after
         # backend/interactivity choices have been made

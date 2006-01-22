@@ -6,7 +6,7 @@ Requires Python 2.3 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 1038 2006-01-20 23:43:35Z vivainio $
+$Id: iplib.py 1058 2006-01-22 14:30:01Z vivainio $
 """
 
 #*****************************************************************************
@@ -274,7 +274,7 @@ class InteractiveShell(object,Magic):
         # intentional (or sensible), I don't know. In any case, the idea is
         # that if you need to access the built-in namespace directly, you
         # should start with "import __builtin__" (note, no 's') which will
-        # definitely give you a module. Yeah, it's somewhat confusing:-(.
+        # definitely give you a module. Yeah, it's somewhat confusing:-(.
         
         if user_ns is None:
             # Set __name__ to __main__ to better match the behavior of the
@@ -1460,6 +1460,10 @@ want to merge them back into the new files.""" % locals()
                         self.readline_startup_hook(None)
                     self.write("\n")
                     self.exit()
+                except:
+                    # exceptions here are VERY RARE, but they can be triggered
+                    # asynchronously by signal handlers, for example.
+                    self.showtraceback()
                 else:
                     more = self.push(line)
 
@@ -1550,7 +1554,8 @@ want to merge them back into the new files.""" % locals()
     def autoindent_update(self,line):
         """Keep track of the indent level."""
 
-        debugp('line','autoindent_update:')
+        #import traceback; traceback.print_stack() # dbg
+        debugp('line')
         debugp('self.indent_current_nsp')
         if self.autoindent:
             if line:
@@ -1761,7 +1766,9 @@ want to merge them back into the new files.""" % locals()
                 debugp('self.indent_current_nsp')
             
         debugp('line')
-        return self.prefilter(line,continue_prompt)
+        lineout = self.prefilter(line,continue_prompt)
+        debugp('lineout')
+        return lineout
         
     def split_user_input(self,line):
         """Split user input into pre-char, function part and rest."""
@@ -1938,8 +1945,9 @@ want to merge them back into the new files.""" % locals()
         # of a size different to the indent level, will exit the input loop.
         
         if (continue_prompt and self.autoindent and line.isspace() and
-            (line != self.indent_current_str() or
+            (0 < abs(len(line) - self.indent_current_nsp) <= 2 or
              (self.buffer[-1]).isspace() )):
+            #print 'reset line' # dbg
             line = ''
 
         self.log(line,continue_prompt)

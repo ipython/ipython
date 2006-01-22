@@ -5,7 +5,7 @@ General purpose utilities.
 This is a grab-bag of stuff I find useful in most programs I write. Some of
 these things are also convenient when working at the command line.
 
-$Id: genutils.py 1032 2006-01-20 09:03:57Z fperez $"""
+$Id: genutils.py 1058 2006-01-22 14:30:01Z vivainio $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2006 Fernando Perez. <fperez@colorado.edu>
@@ -213,14 +213,18 @@ def debugp(expr,pre_msg=''):
     """Print the value of an expression from the caller's frame.
     
     Takes an expression, evaluates it in the caller's frame and prints both
-    the given expression and the resulting value.  The input must be of a form
-    suitable for eval()."""
+    the given expression and the resulting value (as well as a debug mark
+    indicating the name of the calling function.  The input must be of a form
+    suitable for eval().
+
+    An optional message can be passed, which will be prepended to the printed
+    expr->value pair."""
     
     cf = sys._getframe(1)
-    print '[DBG] %s %s -> %r' % (pre_msg,expr,
-                                 eval(expr,cf.f_globals,cf.f_locals))
+    print '[DBG:%s] %s%s -> %r' % (cf.f_code.co_name,pre_msg,expr,
+                                   eval(expr,cf.f_globals,cf.f_locals))
 
-# deactivate it from here:
+# deactivate it by uncommenting the following line, which makes it a no-op
 def debugp(expr,pre_msg=''): pass
 
 #----------------------------------------------------------------------------

@@ -1,3 +1,38 @@
+2006-01-22  Ville Vainio  <vivainio@gmail.com>  
+
+	* Merge from branches/0.7.1 into trunk, revs 1052-1057
+
+2006-01-22  Fernando Perez  <Fernando.Perez@colorado.edu>
+
+	* IPython/OInspect.py (Inspector.pinfo): fix bug where foo?? or
+	%pfile foo would print the file for foo even if it was a binary.
+	Now, extensions '.so' and '.dll' are skipped.
+
+	* IPython/Shell.py (MTInteractiveShell.__init__): Fix threading
+	bug, where macros would fail in all threaded modes.  I'm not 100%
+	sure, so I'm going to put out an rc instead of making a release
+	today, and wait for feedback for at least a few days.
+
+	* IPython/iplib.py (handle_normal): fix (finally? somehow I doubt
+	it...) the handling of pasting external code with autoindent on.
+	To get out of a multiline input, the rule will appear for most
+	users unchanged: two blank lines or change the indent level
+	proposed by IPython.  But there is a twist now: you can
+	add/subtract only *one or two spaces*.  If you add/subtract three
+	or more (unless you completely delete the line), IPython will
+	accept that line, and you'll need to enter a second one of pure
+	whitespace.  I know it sounds complicated, but I can't find a
+	different solution that covers all the cases, with the right
+	heuristics.  Hopefully in actual use, nobody will really notice
+	all these strange rules and things will 'just work'.
+
+2006-01-21  Fernando Perez  <Fernando.Perez@colorado.edu>
+
+	* IPython/iplib.py (interact): catch exceptions which can be
+	triggered asynchronously by signal handlers.  Thanks to an
+	automatic crash report, submitted by Colin Kingsley
+	<tercel-AT-gentoo.org>.
+	
 2006-01-20  Ville Vainio  <vivainio@gmail.com>
 
 	* Ipython/Extensions/ext_rehashdir.py: Created a usable example
