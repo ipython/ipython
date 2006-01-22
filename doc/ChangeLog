@@ -1,6 +1,15 @@
 2006-01-22  Ville Vainio  <vivainio@gmail.com>  
 
 	* Merge from branches/0.7.1 into trunk, revs 1052-1057
+	
+	* Versionstring = 0.7.2.svn
+	
+	* eggsetup.py: A separate script for constructing eggs, creates
+	proper launch scripts even on Windows (an .exe file in 
+	\python24\scripts).
+	
+	* ipapi.py: launch_new_instance, launch entry point needed for the 
+	egg.
 
 2006-01-22  Fernando Perez  <Fernando.Perez@colorado.edu>
 

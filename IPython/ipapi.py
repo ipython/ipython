@@ -140,4 +140,18 @@ def ev(expr):
     
     Returns the result """
     return eval(expr,user_ns())
+
+def launch_new_instance():
+    """ Creata and start a new ipython instance.
+    
+    This can be called even without having an already initialized 
+    ipython session running.
+    
+    """
+    import IPython
+
+    IPython.Shell.start().mainloop()
+    
+    
+    
     
