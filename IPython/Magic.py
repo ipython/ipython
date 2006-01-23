@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Magic functions for InteractiveShell.
 
-$Id: Magic.py 1070 2006-01-23 21:12:36Z vivainio $"""
+$Id: Magic.py 1071 2006-01-23 21:30:41Z vivainio $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001 Janko Hauser <jhauser@zscout.de> and
@@ -2765,11 +2765,12 @@ Defaulting color scheme to 'NoColor'"""
         clipboard.
         
         You must terminate the block with '--' (two minus-signs) alone on the
-        line.
+        line. You can also provide your own sentinel with '%paste -s %%' ('%%' 
+        is the new sentinel for this operation)
         
         The block is dedented prior to execution to enable execution of 
         method definitions. The executed block is also assigned to variable 
-        named 'pasted_block' for later editing with %edit.
+        named 'pasted_block' for later editing with '%edit pasted_block'.
         
         You can also pass a variable name as an argument, e.g. '%paste foo'.
         This assigns the pasted block to variable 'foo' as string, without 
@@ -2781,13 +2782,16 @@ Defaulting color scheme to 'NoColor'"""
         
         IPython statements (magics, shell escapes) are not supported (yet).
         """
-        par = parameter_s.strip()
+        opts,args = self.parse_options(parameter_s,'s:',mode='string')
+        par = args.strip()
+        sentinel = opts.get('s','--')
+        
         from IPython import iplib
         lines = []
-        print "Pasting code; enter '--' alone on the line to stop."
+        print "Pasting code; enter '%s' alone on the line to stop." % sentinel
         while 1:
             l = iplib.raw_input_original(':')
-            if l =='--':
+            if l ==sentinel:
                 break
             lines.append(l)
         block = "\n".join(lines)
