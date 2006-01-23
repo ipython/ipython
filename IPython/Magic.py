@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Magic functions for InteractiveShell.
 
-$Id: Magic.py 1069 2006-01-23 21:07:28Z vivainio $"""
+$Id: Magic.py 1070 2006-01-23 21:12:36Z vivainio $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001 Janko Hauser <jhauser@zscout.de> and
@@ -2784,6 +2784,7 @@ Defaulting color scheme to 'NoColor'"""
         par = parameter_s.strip()
         from IPython import iplib
         lines = []
+        print "Pasting code; enter '--' alone on the line to stop."
         while 1:
             l = iplib.raw_input_original(':')
             if l =='--':
