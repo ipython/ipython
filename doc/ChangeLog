@@ -1,3 +1,7 @@
+2006-01-23  Ville Vainio  <vivainio@gmail.com>  
+
+	* Added %paste magic for pasting python code
+
 2006-01-22  Ville Vainio  <vivainio@gmail.com>  
 
 	* Merge from branches/0.7.1 into trunk, revs 1052-1057

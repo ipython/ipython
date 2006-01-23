@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Magic functions for InteractiveShell.
 
-$Id: Magic.py 1034 2006-01-20 12:59:31Z vivainio $"""
+$Id: Magic.py 1068 2006-01-23 20:31:43Z vivainio $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001 Janko Hauser <jhauser@zscout.de> and
@@ -51,6 +51,7 @@ from IPython.ipstruct import Struct
 from IPython.macro import Macro
 from IPython.genutils import *
 from IPython import platutils
+
 #***************************************************************************
 # Utility functions
 def on_off(tag):
@@ -2758,5 +2759,46 @@ Defaulting color scheme to 'NoColor'"""
         filename = get_py_filename(parameter_s)
         page(self.shell.pycolorize(file_read(filename)),
              screen_lines=self.shell.rc.screen_length)
+
+    def magic_paste(self, parameter_s=''):
+        """Allows you to paste & execute a pre-formatted code block from 
+        clipboard.
+        
+        You must terminate the block with '--' (two minus-signs) alone on the
+        line.
+        
+        The block is dedented prior to execution to enable execution of 
+        method definitions. The executed block is also assigned to variable 
+        named 'pasted_block' for later editing with %edit.
+        
+        You can also pass a variable name as an argument, e.g. '%paste foo'.
+        This assigns the pasted block to variable 'foo' as string, without 
+        dedenting or executing it.
+        
+        Do not be alarmed by garbled output on Windows (it's a readline bug). 
+        Just press enter and type -- (and press enter again) and the block 
+        will be what was just pasted.
+        
+        IPython statements (magics, shell escapes) are not supported (yet).
+        """
+        par = parameter_s.strip()
+        from IPython import iplib
+        lines = []
+        while 1:
+            l = iplib.raw_input_original(':')
+            if l =='--':
+                break
+            lines.append(l)
+        block = "\n".join(lines)
+        #print "block:\n",block
+        if not par:
+            b = textwrap.dedent(block)
+            self.runsource(b)
+            self.user_ns['pasted_block'] = b
+        else:
+            self.user_ns[par] = block
+            print "Block assigned to '%s'" % par
+        
+
 
 # end Magic
