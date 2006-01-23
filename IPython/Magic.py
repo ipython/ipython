@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Magic functions for InteractiveShell.
 
-$Id: Magic.py 1068 2006-01-23 20:31:43Z vivainio $"""
+$Id: Magic.py 1069 2006-01-23 21:07:28Z vivainio $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001 Janko Hauser <jhauser@zscout.de> and
@@ -2793,7 +2793,7 @@ Defaulting color scheme to 'NoColor'"""
         #print "block:\n",block
         if not par:
             b = textwrap.dedent(block)
-            self.runsource(b)
+            exec b in self.user_ns            
             self.user_ns['pasted_block'] = b
         else:
             self.user_ns[par] = block
