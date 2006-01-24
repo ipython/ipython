@@ -14,8 +14,8 @@ empty.
 
 # Most of your config files and extensions will probably start with this import
 
-import IPython.ipapi as ip
-
+from IPython import ipapi
+ip = ipapi.get()
 import os
 
 o = ip.options()

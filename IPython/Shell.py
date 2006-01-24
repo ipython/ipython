@@ -4,7 +4,7 @@
 All the matplotlib support code was co-developed with John Hunter,
 matplotlib's author.
 
-$Id: Shell.py 1058 2006-01-22 14:30:01Z vivainio $"""
+$Id: Shell.py 1079 2006-01-24 21:52:31Z vivainio $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2006 Fernando Perez <fperez@colorado.edu>
@@ -919,7 +919,7 @@ def _matplotlib_shell_class():
     return sh_class
 
 # This is the one which should be called by external code.
-def start():
+def start(user_ns = None):
     """Return a running shell instance, dealing with threading options.
 
     This is a factory function which will instantiate the proper IPython shell
@@ -947,7 +947,7 @@ def start():
             shell = IPShell
     else:
         shell = IPShell
-    return shell()
+    return shell(user_ns = user_ns)
 
 # Some aliases for backwards compatibility
 IPythonShell = IPShell

@@ -24,12 +24,12 @@ prompt.
 $Id: InterpreterExec.py 994 2006-01-08 08:29:44Z fperez $
 """
 
-import IPython.ipapi as ip
+import IPython.ipapi
+ip = IPython.ipapi.get()
 
 
 import os,re,fnmatch
 
-@ip.asmagic("rehashdir")
 def rehashdir_f(self,arg):
     """ Add executables in all specified dirs to alias table
      
@@ -99,3 +99,4 @@ def rehashdir_f(self,arg):
         self.shell.init_auto_alias()
     finally:
         os.chdir(savedir)
+ip.expose_magic("rehashdir",rehashdir_f)

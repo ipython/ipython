@@ -3,11 +3,12 @@
 	* iplib.py, hooks.py: 'result_display' hook can return a non-None
 	value to manipulate resulting history entry.
 	
-	* ipapi.py: Moved TryNext here from hooks.py, added 
-	is_ipython_session() to determine whether we are running 
-	inside an ipython session.
+	* ipapi.py: Moved TryNext here from hooks.py. Moved functions
+	to instance methods of IPApi class, to make extending an embedded  
+	IPython feasible. See ext_rehashdir.py for example usage.
 	
 	* Merged 1071-1076 from banches/0.7.1
+
 
 2006-01-23  Fernando Perez  <Fernando.Perez@colorado.edu>
 

@@ -6,7 +6,7 @@ Requires Python 2.3 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 1077 2006-01-24 18:15:27Z vivainio $
+$Id: iplib.py 1079 2006-01-24 21:52:31Z vivainio $
 """
 
 #*****************************************************************************
@@ -194,9 +194,10 @@ class InteractiveShell(object,Magic):
         # log system
         self.logger = Logger(self,logfname='ipython_log.py',logmode='rotate')
 
-        # introduce ourselves to IPython.ipapi which is uncallable
-        # before it knows an InteractiveShell object. 
-        IPython.ipapi._init_with_shell(self)
+        # Produce a public API instance
+
+        self.api = IPython.ipapi.IPApi(self)
+        
         
         # some minimal strict typechecks.  For some core data structures, I
         # want actual basic python types, not just anything that looks like

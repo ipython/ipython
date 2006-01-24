@@ -69,106 +69,100 @@ class TryNext(Exception):
     """
  
    
- 
-__IP = None
- 
-def _init_with_shell(ip):
-    global magic
-    magic = ip.ipmagic
-    global system
-    system = ip.ipsystem
-    global set_hook
-    set_hook = ip.set_hook
-    
-    global __IP
-    __IP = ip
+# contains the most recently instantiated IPApi
+_recent = None
 
-def options():
-    """ All configurable variables """
-    return __IP.rc
+def get():
+    """ Get an IPApi object, or None if not running under ipython
 
-def user_ns():
-    return __IP.user_ns
+    Running this should be the first thing you do when writing
+    extensions that can be imported as normal modules. You can then 
+    direct all the configuration operations against the returned 
+    object.
 
-def expose_magic(magicname, func):
-    ''' Expose own function as magic function for ipython 
-
-    def foo_impl(self,parameter_s=''):
-        """My very own magic!. (Use docstrings, IPython reads them)."""
-        print 'Magic function. Passed parameter is between < >: <'+parameter_s+'>'
-        print 'The self object is:',self
-
-    ipapi.expose_magic("foo",foo_impl)
-    '''
-    
-    from IPython import Magic
-    import new
-    im = new.instancemethod(func,__IP, __IP.__class__)
-    setattr(__IP, "magic_" + magicname, im)
-
-class asmagic:
-    """ Decorator for exposing magics in a friendly 2.4 decorator form 
-    
-    @ip.asmagic("foo")
-    def f(self,arg):
-        pring "arg given:",arg
-    
-    After this, %foo is a magic function.
     """
-    
-    def __init__(self,magicname):
-        self.name = magicname
-        
-    def __call__(self,f):
-        expose_magic(self.name, f)
-        return f
 
-class ashook:
-    """ Decorator for exposing magics in a friendly 2.4 decorator form 
+    return _recent
+
+ 
+ 
+class IPApi:
+    """ The actual API class for configuring IPython 
     
-    @ip.ashook("editor")
-    def jed_editor(self,filename, linenum=None):
-        import os
-        if linenum is None: linenum = 0
-        os.system('jed +%d %s' % (linenum, filename))
+    You should do all of the IPython configuration by getting 
+    an IPApi object with IPython.ipapi.get() and using the provided
+    methods.
     
     """
-    
-    def __init__(self,name,priority=50):
-        self.name = name
-        self.prio = priority
+    def __init__(self,ip):
         
-    def __call__(self,f):
-        set_hook(self.name, f, self.prio)
-        return f
+        self.magic = ip.ipmagic
+        
+        self.system = ip.ipsystem
+        
+        self.set_hook = ip.set_hook
+        
+        self.IP = ip
+        global _recent
+        _recent = self
 
-
-def ex(cmd):
-    """ Execute a normal python statement in user namespace """
-    exec cmd in user_ns()
-
-def ev(expr):
-    """ Evaluate python expression expr in user namespace 
+        
     
-    Returns the result """
-    return eval(expr,user_ns())
+    def options(self):
+        """ All configurable variables """
+        return self.IP.rc
+    
+    def user_ns(self):
+        return self.IP.user_ns
+    
+    def expose_magic(self,magicname, func):
+        ''' Expose own function as magic function for ipython 
+    
+        def foo_impl(self,parameter_s=''):
+            """My very own magic!. (Use docstrings, IPython reads them)."""
+            print 'Magic function. Passed parameter is between < >: <'+parameter_s+'>'
+            print 'The self object is:',self
+    
+        ipapi.expose_magic("foo",foo_impl)
+        '''
+                
+        import new
+        im = new.instancemethod(func,self.IP, self.IP.__class__)
+        setattr(self.IP, "magic_" + magicname, im)
+    
+    
+    def ex(self,cmd):
+        """ Execute a normal python statement in user namespace """
+        exec cmd in self.user_ns()
+    
+    def ev(self,expr):
+        """ Evaluate python expression expr in user namespace 
+        
+        Returns the result of evaluation"""
+        return eval(expr,self.user_ns())
 
-def launch_new_instance():
+def launch_new_instance(user_ns = None):
     """ Create and start a new ipython instance.
     
     This can be called even without having an already initialized 
     ipython session running.
     
+    This is also used as the egg entry point for the 'ipython' script.
+    
     """
+    ses = create_session(user_ns)
+    ses.mainloop()
+
+
+def create_session(user_ns = None):    
+    """ Creates, but does not launch an IPython session.
+    
+    Later on you can call obj.mainloop() on the returned object.
+    
+    This should *not* be run when a session exists already.
+    
+    """
+    if user_ns is not None: 
+        user_ns["__name__"] = user_ns.get("__name__",'ipy_session')
     import IPython
-
-    IPython.Shell.start().mainloop()
-
-def is_ipython_session():
-    """ Return a true value if running inside IPython.
-    
-    """
-    
-    # Yes, this is the shell object or None - however, it's an implementation
-    # detail and should not be relied on, only truth value matters.
-    return __IP
+    return IPython.Shell.start(user_ns = user_ns)
