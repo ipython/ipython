@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Magic functions for InteractiveShell.
 
-$Id: Magic.py 1076 2006-01-24 17:27:05Z vivainio $"""
+$Id: Magic.py 1077 2006-01-24 18:15:27Z vivainio $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001 Janko Hauser <jhauser@zscout.de> and
@@ -480,27 +480,42 @@ Currently the magic system has the following functions:\n"""
     def magic_history(self, parameter_s = ''):
         """Print input history (_i<n> variables), with most recent last.
         
-        %history [-n]       -> print at most 40 inputs (some may be multi-line)\\
-        %history [-n] n     -> print at most n inputs\\
-        %history [-n] n1 n2 -> print inputs between n1 and n2 (n2 not included)\\
-
+        %history        -> print at most 40 inputs (some may be multi-line)\\
+        %history n     -> print at most n inputs\\
+        %history n1 n2 -> print inputs between n1 and n2 (n2 not included)\\
+        
         Each input's number <n> is shown, and is accessible as the
         automatically generated variable _i<n>.  Multi-line statements are
         printed starting at a new line for easy copy/paste.
+        
 
-        If option -n is used, input numbers are not printed. This is useful if
-        you want to get a printout of many lines which can be directly pasted
-        into a text editor.
+        Options:
 
-        This feature is only available if numbered prompts are in use."""
+          -n: do NOT print line numbers.  This is useful if you want to get a
+          printout of many lines which can be directly pasted into a text
+          editor.
+
+          This feature is only available if numbered prompts are in use.
+
+          -r: print the 'raw' history.  IPython filters your input and
+          converts it all into valid Python source before executing it (things
+          like magics or aliases are turned into function calls, for
+          example).  With this option, you'll see the unfiltered history
+          instead of the filtered version: '%cd /' will be seen as '%cd /'
+          instead of 'ipmagic("%cd /")'.
+        """
 
         shell = self.shell
         if not shell.outputcache.do_full_cache:
             print 'This feature is only available if numbered prompts are in use.'
             return
-        opts,args = self.parse_options(parameter_s,'n',mode='list')
+        opts,args = self.parse_options(parameter_s,'nr',mode='list')
+
+        if opts.has_key('r'):
+            input_hist = shell.input_hist_raw
+        else:
+            input_hist = shell.input_hist
         
-        input_hist = shell.input_hist
         default_length = 40
         if len(args) == 0:
             final = len(input_hist)

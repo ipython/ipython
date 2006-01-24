@@ -80,7 +80,7 @@ except NameError:
     from sets import Set as set
 
 
-from IPython.genutils import shlex_split,debugp
+from IPython.genutils import shlex_split,debugx
 
 __all__ = ['Completer','IPCompleter']
 

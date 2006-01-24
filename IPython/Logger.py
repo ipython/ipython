@@ -2,7 +2,7 @@
 """
 Logger class for IPython's logging facilities.
 
-$Id: Logger.py 994 2006-01-08 08:29:44Z fperez $
+$Id: Logger.py 1077 2006-01-24 18:15:27Z vivainio $
 """
 
 #*****************************************************************************
@@ -214,6 +214,7 @@ which already exists. But you must first start the logging process with
     def log_write(self,data,kind='input'):
         """Write data to the log file, if active"""
 
+        #print 'data: %r' % data # dbg
         if self.log_active and data:
             write = self.logfile.write
             if kind=='input':

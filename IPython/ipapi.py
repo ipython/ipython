@@ -154,7 +154,7 @@ def ev(expr):
     return eval(expr,user_ns())
 
 def launch_new_instance():
-    """ Creata and start a new ipython instance.
+    """ Create and start a new ipython instance.
     
     This can be called even without having an already initialized 
     ipython session running.

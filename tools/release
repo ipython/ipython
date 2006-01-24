@@ -51,8 +51,8 @@ python2.3 ./setup.py bdist_rpm --release=py23 --python=/usr/bin/python2.3
 python2.4 ./setup.py bdist_rpm --release=py24 --python=/usr/bin/python2.4
 
 # Build eggs
-python2.3 ./setup_bdist_egg.py
-python2.4 ./setup_bdist_egg.py
+python2.3 ./eggsetup.py bdist_egg
+python2.4 ./eggsetup.py bdist_egg
 
 # Call the windows build separately, so that the extra Windows scripts don't
 # get pulled into Unix builds (setup.py has code which checks for
@@ -63,7 +63,6 @@ python2.4 ./setup_bdist_egg.py
 # the only one that fixes a crash in the post-install phase.
 $HOME/tmp/local/bin/python2.3 setup.py bdist_wininst \
   --install-script=ipython_win_post_install.py
-
 
 # Register with the Python Package Index (PyPI)
 echo "Registering with PyPI..."

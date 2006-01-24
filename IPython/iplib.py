@@ -6,7 +6,7 @@ Requires Python 2.3 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 1058 2006-01-22 14:30:01Z vivainio $
+$Id: iplib.py 1077 2006-01-24 18:15:27Z vivainio $
 """
 
 #*****************************************************************************
@@ -341,6 +341,10 @@ class InteractiveShell(object,Magic):
         # List of input with multi-line handling.
         # Fill its zero entry, user counter starts at 1
         self.input_hist = InputList(['\n'])
+        # This one will hold the 'raw' input history, without any
+        # pre-processing.  This will allow users to retrieve the input just as
+        # it was exactly typed in by the user, with %hist -r.
+        self.input_hist_raw = InputList(['\n'])
 
         # list of visited directories
         try:
@@ -1155,7 +1159,7 @@ want to merge them back into the new files.""" % locals()
 
         Currently it handles auto-indent only."""
 
-        #debugp('self.indent_current_nsp','pre_readline:')
+        #debugx('self.indent_current_nsp','pre_readline:')
         self.readline.insert_text(self.indent_current_str())
 
     def init_readline(self):
@@ -1554,9 +1558,8 @@ want to merge them back into the new files.""" % locals()
     def autoindent_update(self,line):
         """Keep track of the indent level."""
 
-        #import traceback; traceback.print_stack() # dbg
-        debugp('line')
-        debugp('self.indent_current_nsp')
+        #debugx('line')
+        #debugx('self.indent_current_nsp')
         if self.autoindent:
             if line:
                 inisp = num_ini_spaces(line)
@@ -1755,19 +1758,22 @@ want to merge them back into the new files.""" % locals()
         # Try to be reasonably smart about not re-indenting pasted input more
         # than necessary.  We do this by trimming out the auto-indent initial
         # spaces, if the user's actual input started itself with whitespace.
-        #debugp('self.buffer[-1]')
+        #debugx('self.buffer[-1]')
 
-        debugp('line')
-        debugp('self.indent_current_nsp')
         if self.autoindent:
             if num_ini_spaces(line) > self.indent_current_nsp:
                 line = line[self.indent_current_nsp:]
                 self.indent_current_nsp = 0
-                debugp('self.indent_current_nsp')
             
-        debugp('line')
+        # store the unfiltered input before the user has any chance to modify
+        # it.
+        if line.strip():
+            if continue_prompt:
+                self.input_hist_raw[-1] += '%s\n' % line
+            else:
+                self.input_hist_raw.append('%s\n' % line)
+
         lineout = self.prefilter(line,continue_prompt)
-        debugp('lineout')
         return lineout
         
     def split_user_input(self,line):
@@ -1947,7 +1953,6 @@ want to merge them back into the new files.""" % locals()
         if (continue_prompt and self.autoindent and line.isspace() and
             (0 < abs(len(line) - self.indent_current_nsp) <= 2 or
              (self.buffer[-1]).isspace() )):
-            #print 'reset line' # dbg
             line = ''
 
         self.log(line,continue_prompt)

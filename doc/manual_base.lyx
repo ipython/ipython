@@ -69,7 +69,7 @@
 \quotes_language english
 \quotes_times 2
 \papercolumns 1
-\papersides 1
+\papersides 2
 \paperpagestyle fancy
 
 \layout Title
@@ -87,6 +87,20 @@ User Manual, v.
 \layout Author
 
 Fernando Pérez
+\begin_inset Foot
+collapsed true
+
+\layout Standard
+
+
+\size scriptsize 
+Department of Applied Mathematics, University of Colorado at Boulder.
+ 
+\family typewriter 
+<Fernando.Perez@colorado.edu>
+\end_inset 
+
+
 \layout Standard
 
 
@@ -8905,7 +8919,7 @@ status Collapsed
 
 rez 
 \family typewriter 
-<fperez@colorado.edu>
+<Fernando.Perez@colorado.edu>
 \family default 
 , but the project was born from mixing in Fernando's code with the IPP project
  by Janko Hauser 
@@ -8921,7 +8935,7 @@ rez
  
 \layout Standard
 
-As of late 2005, the following developers have joined the core team:
+As of early 2006, the following developers have joined the core team:
 \layout List
 \labelwidthstring 00.00.0000
 
@@ -8956,7 +8970,7 @@ Vainio
 \family typewriter 
 <vivainio-AT-gmail.com>
 \family default 
-: Ville is the new maintainer for the main trunk of IPython as of version
+: Ville is the new maintainer for the main trunk of IPython after version
  0.7.1.
 \layout Standard
 
