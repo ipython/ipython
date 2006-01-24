@@ -32,7 +32,7 @@ ip_set_hook('editor',myiphooks.calljed)
 The ip_set_hook function is put by IPython into the builtin namespace, so it
 is always available from all running code.
 
-$Id: hooks.py 1020 2006-01-14 13:22:58Z vivainio $"""
+$Id: hooks.py 1076 2006-01-24 17:27:05Z vivainio $"""
 
 #*****************************************************************************
 #       Copyright (C) 2005 Fernando Perez. <fperez@colorado.edu>
@@ -42,6 +42,7 @@ $Id: hooks.py 1020 2006-01-14 13:22:58Z vivainio $"""
 #*****************************************************************************
 
 from IPython import Release
+from IPython import ipapi
 __author__  = '%s <%s>' % Release.authors['Fernando']
 __license__ = Release.license
 __version__ = Release.version
@@ -96,8 +97,6 @@ def fix_error_editor(self,filename,linenum,column,msg):
     finally:
         t.close()
 
-class TryNext(Exception):
-    pass
 
 class CommandChainDispatcher:
     """ Dispatch calls to a chain of commands until some func can handle it
@@ -125,7 +124,7 @@ class CommandChainDispatcher:
             try:
                 ret = cmd(*args, **kw)
                 return ret
-            except TryNext:
+            except ipapi.TryNext:
                 pass
                 
     def __str__(self):
@@ -146,4 +145,6 @@ def result_display(self,arg):
         print >>Term.cout, out
     else:
         print >>Term.cout, arg
+    # the default display hook doesn't manipulate the value to put in history    
+    return None 
         

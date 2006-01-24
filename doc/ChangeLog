@@ -1,6 +1,15 @@
+2006-01-24  Ville Vainio  <vivainio@gmail.com>  
+
+	* iplib.py, hooks.py: 'result_display' hook can return a non-None
+	value to manipulate resulting history entry.
+	
+	* ipapi.py: Moved TryNext here from hooks.py, added 
+	is_ipython_session() to determine whether we are running 
+	inside an ipython session.
+
 2006-01-23  Ville Vainio  <vivainio@gmail.com>  
 
-	* Added %paste magic for pasting python code
+	* Added %cpaste magic for pasting python code
 
 2006-01-22  Ville Vainio  <vivainio@gmail.com>  
 

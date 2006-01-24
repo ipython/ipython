@@ -2,7 +2,7 @@
 """
 Classes for handling input/output prompts.
 
-$Id: Prompts.py 1020 2006-01-14 13:22:58Z vivainio $"""
+$Id: Prompts.py 1076 2006-01-24 17:27:05Z vivainio $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2006 Fernando Perez <fperez@colorado.edu>
@@ -497,9 +497,7 @@ class CachedOutput:
         if arg is not None:
             cout_write = Term.cout.write # fast lookup
             # first handle the cache and counters
-            # but avoid recursive reference when displaying _oh/Out
-            if arg is not self.user_ns['_oh']:
-                self.update(arg)
+
             # do not print output if input ends in ';'
             if self.input_hist[self.prompt_count].endswith(';\n'):
                 return
@@ -516,7 +514,18 @@ class CachedOutput:
                 return None
 
             # and now call a possibly user-defined print mechanism
-            self.display(arg)
+            manipulated_val = self.display(arg)
+            
+            # user display hooks can change the variable to be stored in
+            # output history
+            
+            if manipulated_val is not None:
+                arg = manipulated_val
+                
+            # avoid recursive reference when displaying _oh/Out
+            if arg is not self.user_ns['_oh']:
+                self.update(arg)
+
             if self.logger.log_output:
                 self.logger.log_write(repr(arg),'output')
             cout_write(self.output_sep2)
@@ -529,7 +538,7 @@ class CachedOutput:
         display, e.g. when your own objects need special formatting.
         """
 
-        self.shell.hooks.result_display(arg)
+        return self.shell.hooks.result_display(arg)
 
     # Assign the default display method:
     display = _display

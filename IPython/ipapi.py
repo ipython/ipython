@@ -60,6 +60,18 @@ print "done!"
     
 '''
  
+ 
+class TryNext(Exception):
+    """ Try next hook exception.
+     
+     Raise this in your hook function to indicate that the next
+     hook handler should be used to handle the operation.
+    """
+ 
+   
+ 
+__IP = None
+ 
 def _init_with_shell(ip):
     global magic
     magic = ip.ipmagic
@@ -151,7 +163,12 @@ def launch_new_instance():
     import IPython
 
     IPython.Shell.start().mainloop()
+
+def is_ipython_session():
+    """ Return a true value if running inside IPython.
     
+    """
     
-    
-    
+    # Yes, this is the shell object or None - however, it's an implementation
+    # detail and should not be relied on, only truth value matters.
+    return __IP

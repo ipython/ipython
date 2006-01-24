@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Magic functions for InteractiveShell.
 
-$Id: Magic.py 1071 2006-01-23 21:30:41Z vivainio $"""
+$Id: Magic.py 1076 2006-01-24 17:27:05Z vivainio $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001 Janko Hauser <jhauser@zscout.de> and
@@ -2760,7 +2760,7 @@ Defaulting color scheme to 'NoColor'"""
         page(self.shell.pycolorize(file_read(filename)),
              screen_lines=self.shell.rc.screen_length)
 
-    def magic_paste(self, parameter_s=''):
+    def magic_cpaste(self, parameter_s=''):
         """Allows you to paste & execute a pre-formatted code block from 
         clipboard.
         
@@ -2772,7 +2772,7 @@ Defaulting color scheme to 'NoColor'"""
         method definitions. The executed block is also assigned to variable 
         named 'pasted_block' for later editing with '%edit pasted_block'.
         
-        You can also pass a variable name as an argument, e.g. '%paste foo'.
+        You can also pass a variable name as an argument, e.g. '%cpaste foo'.
         This assigns the pasted block to variable 'foo' as string, without 
         dedenting or executing it.
         
