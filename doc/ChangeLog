@@ -1,3 +1,8 @@
+2006-01-25  Fernando Perez  <Fernando.Perez@colorado.edu>
+
+	* IPython/demo.py (Demo.show): Flush stdout after each block, so
+	computationally intensive blocks don't appear to stall the demo.
+
 2006-01-24  Ville Vainio  <vivainio@gmail.com>  
 
 	* iplib.py, hooks.py: 'result_display' hook can return a non-None

@@ -242,6 +242,7 @@ class Demo:
         print marquee('<%s> block # %s (%s remaining)' %
                       (self.fname,index,self.nblocks-index-1))
         print self.src_blocks_colored[index],
+        sys.stdout.flush()
 
     def show_all(self):
         """Show entire demo on screen, block by block"""
@@ -257,6 +258,7 @@ class Demo:
                 print marquee('<%s> block # %s (%s remaining)' %
                               (fname,index,nblocks-index-1))
             print block,
+        sys.stdout.flush()
             
     def __call__(self,index=None):
         """run a block of the demo.
