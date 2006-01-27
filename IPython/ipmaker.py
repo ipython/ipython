@@ -6,7 +6,7 @@ Requires Python 2.1 or better.
 
 This file contains the main make_IPython() starter function.
 
-$Id: ipmaker.py 1088 2006-01-27 17:16:45Z vivainio $"""
+$Id: ipmaker.py 1092 2006-01-27 23:56:32Z vivainio $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2006 Fernando Perez. <fperez@colorado.edu>
@@ -405,6 +405,7 @@ object? -> Details about 'object'. ?object also works, ?? prints more.
 
     # 'profiles' are a shorthand notation for config filenames
     if opts_all.profile:
+            
         try:
             opts_all.rcfile = filefind('ipythonrc-' + opts_all.profile
                                        + rc_suffix,
@@ -605,11 +606,19 @@ object? -> Details about 'object'. ?object also works, ?? prints more.
     # finally, try importing ipy_*_conf for final configuration
     try:
         import ipy_system_conf
-        import ipy_user_conf
-
     except ImportError:
+        warn("Could not import 'ipy_system_conf'")        
         pass
-        #IP.InteractiveTB() XXX uncomment in a later release
+    if opts_all.profile:
+        profmodname = 'ipy_profile_' + opts_all.profile
+        try:
+            __import__(profmodname)
+        except ImportError:
+            warn("Could not import '%s'" % profmodname)
+    try:    
+        import ipy_user_conf
+    except ImportError:
+        warn('Could not import ipy_user_conf')
 
     # release stdout and stderr and save config log into a global summary
     msg.config.release_all()

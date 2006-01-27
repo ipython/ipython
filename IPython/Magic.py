@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Magic functions for InteractiveShell.
 
-$Id: Magic.py 1090 2006-01-27 21:24:05Z vivainio $"""
+$Id: Magic.py 1092 2006-01-27 23:56:32Z vivainio $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001 Janko Hauser <jhauser@zscout.de> and
@@ -2860,7 +2860,10 @@ Defaulting color scheme to 'NoColor'"""
         else:
             self.user_ns[par] = block
             print "Block assigned to '%s'" % par
-        
+    def magic_quickref(self,arg):
+        import IPython.usage
+        page(IPython.usage.quick_reference)
+        del IPython.usage
 
 
 # end Magic

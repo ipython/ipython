@@ -21,6 +21,10 @@
 	* Magic.py: %store now allows doing %store foo > ~/myfoo.txt and
 	%store foo >> ~/myfoo.txt to store variables to files (in clean 
 	textual form, not a restorable pickle).
+	
+	* ipmaker.py: now import ipy_profile_PROFILENAME automatically
+	
+	* usage.py, Magic.py: added %quickref
 
 2006-01-25  Fernando Perez  <Fernando.Perez@colorado.edu>
 
