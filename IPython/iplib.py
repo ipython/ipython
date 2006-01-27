@@ -6,7 +6,7 @@ Requires Python 2.3 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 1079 2006-01-24 21:52:31Z vivainio $
+$Id: iplib.py 1087 2006-01-27 17:02:42Z vivainio $
 """
 
 #*****************************************************************************
@@ -197,7 +197,6 @@ class InteractiveShell(object,Magic):
         # Produce a public API instance
 
         self.api = IPython.ipapi.IPApi(self)
-        
         
         # some minimal strict typechecks.  For some core data structures, I
         # want actual basic python types, not just anything that looks like
@@ -411,6 +410,7 @@ class InteractiveShell(object,Magic):
         for hook_name in hooks.__all__:
             # default hooks have priority 100, i.e. low; user hooks should have 0-100 priority
             self.set_hook(hook_name,getattr(hooks,hook_name), 100)
+            print "bound hook",hook_name
 
         # Flag to mark unconditional exit
         self.exit_now = False
@@ -1824,7 +1824,9 @@ want to merge them back into the new files.""" % locals()
         #print '***line: <%s>' % line # dbg
         
         # the input history needs to track even empty lines
-        if not line.strip():
+        stripped = line.strip()
+        
+        if not stripped:
             if not continue_prompt:
                 self.outputcache.prompt_count -= 1
             return self.handle_normal(line,continue_prompt)
@@ -1835,8 +1837,20 @@ want to merge them back into the new files.""" % locals()
         if continue_prompt and not self.rc.multi_line_specials:
             return self.handle_normal(line,continue_prompt)
 
+
         # For the rest, we need the structure of the input
         pre,iFun,theRest = self.split_user_input(line)
+
+        # See whether any pre-existing handler can take care of it
+        
+        rewritten = self.hooks.input_prefilter(stripped)
+        if rewritten != stripped: # ok, some prefilter did something
+            rewritten = pre + rewritten  # add indentation
+            return self.handle_normal(rewritten)
+            
+        
+        
+
         #print 'pre <%s> iFun <%s> rest <%s>' % (pre,iFun,theRest)  # dbg
 
         # First check for explicit escapes in the last/first character
