@@ -6,7 +6,7 @@ Requires Python 2.3 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 1087 2006-01-27 17:02:42Z vivainio $
+$Id: iplib.py 1088 2006-01-27 17:16:45Z vivainio $
 """
 
 #*****************************************************************************
@@ -410,7 +410,7 @@ class InteractiveShell(object,Magic):
         for hook_name in hooks.__all__:
             # default hooks have priority 100, i.e. low; user hooks should have 0-100 priority
             self.set_hook(hook_name,getattr(hooks,hook_name), 100)
-            print "bound hook",hook_name
+            #print "bound hook",hook_name
 
         # Flag to mark unconditional exit
         self.exit_now = False

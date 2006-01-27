@@ -6,7 +6,7 @@ Requires Python 2.1 or better.
 
 This file contains the main make_IPython() starter function.
 
-$Id: ipmaker.py 1086 2006-01-27 16:02:38Z vivainio $"""
+$Id: ipmaker.py 1088 2006-01-27 17:16:45Z vivainio $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2006 Fernando Perez. <fperez@colorado.edu>
@@ -666,7 +666,8 @@ object? -> Details about 'object'. ?object also works, ?? prints more.
         old_excepthook,sys.excepthook = sys.excepthook, IP.excepthook
 
         save_argv = sys.argv[:] # save it for later restoring
-        sys.argv.pop(0) # the first arg is 'ipython' 
+        
+        sys.argv = args
 
         try:
             IP.safe_execfile(args[0], IP.user_ns)
