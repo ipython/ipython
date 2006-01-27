@@ -6,7 +6,7 @@ Requires Python 2.1 or better.
 
 This file contains the main make_IPython() starter function.
 
-$Id: ipmaker.py 1041 2006-01-21 09:29:14Z vivainio $"""
+$Id: ipmaker.py 1086 2006-01-27 16:02:38Z vivainio $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2006 Fernando Perez. <fperez@colorado.edu>
@@ -657,21 +657,24 @@ object? -> Details about 'object'. ?object also works, ?? prints more.
     # ipython is fully initialized, just as if they were run via %run at the
     # ipython prompt.  This would also give them the benefit of ipython's
     # nice tracebacks.
-    
+
     if not embedded and IP_rc.args:
         name_save = IP.user_ns['__name__']
         IP.user_ns['__name__'] = '__main__'
+        # Set our own excepthook in case the user code tries to call it
+        # directly. This prevents triggering the IPython crash handler.
+        old_excepthook,sys.excepthook = sys.excepthook, IP.excepthook
+
+        save_argv = sys.argv[:] # save it for later restoring
+        sys.argv.pop(0) # the first arg is 'ipython' 
+
         try:
-            # Set our own excepthook in case the user code tries to call it
-            # directly. This prevents triggering the IPython crash handler.
-            old_excepthook,sys.excepthook = sys.excepthook, IP.excepthook
-            for run in args:
-                IP.safe_execfile(run,IP.user_ns)
+            IP.safe_execfile(args[0], IP.user_ns)
         finally:
             # Reset our crash handler in place
             sys.excepthook = old_excepthook
-            
-        IP.user_ns['__name__'] = name_save
+            sys.argv = save_argv
+            IP.user_ns['__name__'] = name_save
         
     msg.user_exec.release_all()
     if IP_rc.messages:

@@ -1,3 +1,10 @@
+2006-01-27  Ville Vainio  <vivainio@gmail.com>  
+
+	* ipmaker.py: Give "realistic" sys.argv for scripts (without 
+	'ipython' at argv[0]) executed through command line. 
+	NOTE: this DEPRECATES calling ipython with multiple scripts 
+	("ipython a.py b.py c.py")
+
 2006-01-25  Fernando Perez  <Fernando.Perez@colorado.edu>
 
 	* IPython/demo.py (Demo.show): Flush stdout after each block, so
