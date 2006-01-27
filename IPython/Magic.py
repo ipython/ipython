@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Magic functions for InteractiveShell.
 
-$Id: Magic.py 1077 2006-01-24 18:15:27Z vivainio $"""
+$Id: Magic.py 1089 2006-01-27 19:04:59Z vivainio $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001 Janko Hauser <jhauser@zscout.de> and
@@ -2171,14 +2171,15 @@ Defaulting color scheme to 'NoColor'"""
                 prechar = ''
             else:
                 prechar = self.shell.ESC_MAGIC
-            print 'Alias\t\tSystem Command\n'+'-'*30
+            #print 'Alias\t\tSystem Command\n'+'-'*30
             atab = self.shell.alias_table
             aliases = atab.keys()
             aliases.sort()
+            res = []
             for alias in aliases:
-                print prechar+alias+'\t\t'+atab[alias][1]
-            print '-'*30+'\nTotal number of aliases:',len(aliases)
-            return
+                res.append((alias, atab[alias][1]))                
+            print "Total number of aliases:",len(aliases)
+            return res
         try:
             alias,cmd = par.split(None,1)
         except:
@@ -2443,6 +2444,18 @@ Defaulting color scheme to 'NoColor'"""
     def magic_sc(self, parameter_s=''):
         """Shell capture - execute a shell command and capture its output.
 
+        DEPRECATED. Suboptimal, retained for backwards compatibility.
+        
+        You should use the form 'var = !command' instead. Example:
+         
+         "%sc -l myfiles = ls ~" should now be written as
+            
+         "myfiles = !ls ~"
+         
+        myfiles.s, myfiles.l and myfiles.n still apply as documented
+        below.
+
+        --
         %sc [options] varname=command
 
         IPython will run the given command using commands.getoutput(), and
@@ -2452,6 +2465,8 @@ Defaulting color scheme to 'NoColor'"""
 
         The '=' sign in the syntax is mandatory, and the variable name you
         supply must follow Python's standard conventions for valid names.
+        
+        (A special format without variable name exists for internal use)
 
         Options:
 
@@ -2530,9 +2545,6 @@ Defaulting color scheme to 'NoColor'"""
             _,cmd = parameter_s.split('=',1)
         except ValueError:
             var,cmd = '',''
-        if not var:
-            error('you must specify a variable to assign the command to.')
-            return
         # If all looks ok, proceed
         out,err = self.shell.getoutputerror(cmd)
         if err:
@@ -2543,7 +2555,10 @@ Defaulting color scheme to 'NoColor'"""
             out = LSString(out)
         if opts.has_key('v'):
             print '%s ==\n%s' % (var,pformat(out))
-        self.shell.user_ns.update({var:out})
+        if var:
+            self.shell.user_ns.update({var:out})
+        else:
+            return out
 
     def magic_sx(self, parameter_s=''):
         """Shell execute - run a shell command and capture its output.

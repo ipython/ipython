@@ -14,6 +14,5 @@ import IPython.ipapi as ip
 
 import sys
 
-if sys.version_info >= (2,4):
-    # rehashdir extension requires python 2.4
-    import ext_rehashdir
+import ext_rehashdir # %rehashdir magic
+import ext_rescapture # var = !ls and var = %magic

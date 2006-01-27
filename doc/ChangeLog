@@ -4,6 +4,16 @@
 	'ipython' at argv[0]) executed through command line. 
 	NOTE: this DEPRECATES calling ipython with multiple scripts 
 	("ipython a.py b.py c.py")
+	
+	* iplib.py, hooks.py: Added configurable input prefilter,
+	named 'input_prefilter'. See ext_rescapture.py for example
+	usage.
+	
+	* ext_rescapture.py, Magic.py: Better system command output capture
+	through 'var = !ls' (deprecates user-visible %sc). Same notation
+	applies for magics, 'var = %alias' assigns alias list to var.
+	
+	* ipapi.py: added meta() for accessing extension-usable data store.
 
 2006-01-25  Fernando Perez  <Fernando.Perez@colorado.edu>
 

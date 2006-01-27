@@ -140,6 +140,15 @@ class IPApi:
         
         Returns the result of evaluation"""
         return eval(expr,self.user_ns())
+    
+    def meta(self):
+        """ Get a session-specific data store
+        
+        Object returned by this method can be used to store
+        data that should persist through the ipython session.
+        """
+        return self.IP.meta
+        
 
 def launch_new_instance(user_ns = None):
     """ Create and start a new ipython instance.
