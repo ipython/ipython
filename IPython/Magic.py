@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Magic functions for InteractiveShell.
 
-$Id: Magic.py 1089 2006-01-27 19:04:59Z vivainio $"""
+$Id: Magic.py 1090 2006-01-27 21:24:05Z vivainio $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001 Janko Hauser <jhauser@zscout.de> and
@@ -2665,7 +2665,9 @@ Defaulting color scheme to 'NoColor'"""
         %store          - Show list of all variables and their current values\\
         %store <var>    - Store the *current* value of the variable to disk\\
         %store -d <var> - Remove the variable and its value from storage\\
-        %store -r       - Remove all variables from storage
+        %store -r       - Remove all variables from storage\\
+        %store foo >a.txt  - Store value of foo to new file a.txt\\
+        %store foo >>a.txt - Append value of foo to file a.txt\\   
         
         It should be noted that if you change the value of a variable, you
         need to %store it again if you want to persist the new value.
@@ -2674,7 +2676,9 @@ Defaulting color scheme to 'NoColor'"""
         python types can be safely %stored.
         """
         
-        opts,args = self.parse_options(parameter_s,'dr',mode='list')
+        opts,argsl = self.parse_options(parameter_s,'dr',mode='string')
+        args = argsl.split(None,1)
+        ip = self.getapi()
         # delete
         if opts.has_key('d'):
             try:
@@ -2711,6 +2715,29 @@ Defaulting color scheme to 'NoColor'"""
         
         # default action - store the variable
         else:
+            # %store foo >file.txt or >>file.txt
+            if len(args) > 1 and args[1].startswith('>'):
+                fnam = os.path.expanduser(args[1].lstrip('>').lstrip())
+                if args[1].startswith('>>'):
+                    fil = open(fnam,'a')
+                else:
+                    fil = open(fnam,'w')
+                obj = ip.ev(args[0])
+                print "Writing '%s' (%s) to file '%s'." % (args[0],
+                  obj.__class__.__name__, fnam)
+
+                
+                if not isinstance (obj,basestring):
+                    pprint(obj,fil)
+                else:
+                    fil.write(obj)
+                    if not obj.endswith('\n'):
+                        fil.write('\n')
+                
+                fil.close()
+                return
+            
+            # %store foo
             obj = self.shell.user_ns[args[0] ]
             if isinstance(inspect.getmodule(obj), FakeModule):
                 print textwrap.dedent("""\
@@ -2722,7 +2749,7 @@ Defaulting color scheme to 'NoColor'"""
                 return
             pickled = pickle.dumps(obj)
             self.shell.persist[ 'S:' + args[0] ] = pickled
-            print "Stored '%s' (%d bytes)" % (args[0], len(pickled))
+            print "Stored '%s' (%s, %d bytes)" % (args[0], obj.__class__.__name__,len(pickled))
     
     def magic_bookmark(self, parameter_s=''):
         """Manage IPython's bookmark system.
@@ -2824,7 +2851,7 @@ Defaulting color scheme to 'NoColor'"""
             if l ==sentinel:
                 break
             lines.append(l)
-        block = "\n".join(lines)
+        block = "\n".join(lines) + '\n'
         #print "block:\n",block
         if not par:
             b = textwrap.dedent(block)

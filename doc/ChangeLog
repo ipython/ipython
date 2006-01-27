@@ -14,6 +14,13 @@
 	applies for magics, 'var = %alias' assigns alias list to var.
 	
 	* ipapi.py: added meta() for accessing extension-usable data store.
+	
+	* iplib.py: added InteractiveShell.getapi(). New magics should be
+	written doing self.getapi() instead of using the shell directly.
+	
+	* Magic.py: %store now allows doing %store foo > ~/myfoo.txt and
+	%store foo >> ~/myfoo.txt to store variables to files (in clean 
+	textual form, not a restorable pickle).
 
 2006-01-25  Fernando Perez  <Fernando.Perez@colorado.edu>
 

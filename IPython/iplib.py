@@ -6,7 +6,7 @@ Requires Python 2.3 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 1089 2006-01-27 19:04:59Z vivainio $
+$Id: iplib.py 1090 2006-01-27 21:24:05Z vivainio $
 """
 
 #*****************************************************************************
@@ -2097,6 +2097,18 @@ want to merge them back into the new files.""" % locals()
             # If the code compiles ok, we should handle it normally
             return self.handle_normal(line,continue_prompt)
 
+    def getapi(self):
+        """ Get an IPApi object for this shell instance
+        
+        Getting an IPApi object is always preferable to accessing the shell
+        directly, but this holds true especially for extensions.
+        
+        It should always be possible to implement an extension with IPApi
+        alone. If not, contact maintainer to request an addition.
+        
+        """
+        return self.api
+    
     def handle_emacs(self,line,continue_prompt=None,
                     pre=None,iFun=None,theRest=None):
         """Handle input lines marked by python-mode."""
