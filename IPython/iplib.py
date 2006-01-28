@@ -6,7 +6,7 @@ Requires Python 2.3 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 1091 2006-01-27 22:19:22Z vivainio $
+$Id: iplib.py 1093 2006-01-28 00:18:49Z vivainio $
 """
 
 #*****************************************************************************
@@ -1935,7 +1935,8 @@ want to merge them back into the new files.""" % locals()
                  and
                    (
                    #only consider exclusion re if not "," or ";" autoquoting
-                   (pre == self.ESC_QUOTE or pre == self.ESC_QUOTE2) or 
+                   (pre == self.ESC_QUOTE or pre == self.ESC_QUOTE2
+                     or pre == self.ESC_PAREN) or 
                    (not self.re_exclude_auto.match(theRest)))
                  and 
                    self.re_fun_name.match(iFun) and 
@@ -2029,12 +2030,15 @@ want to merge them back into the new files.""" % locals()
             return line
 
         auto_rewrite = True
+        
         if pre == self.ESC_QUOTE:
             # Auto-quote splitting on whitespace
             newcmd = '%s("%s")' % (iFun,'", "'.join(theRest.split()) )
         elif pre == self.ESC_QUOTE2:
             # Auto-quote whole string
             newcmd = '%s("%s")' % (iFun,theRest)
+        elif pre == self.ESC_PAREN:
+            newcmd = '%s(%s)' % (iFun,",".join(theRest.split()))
         else:
             # Auto-paren.
             # We only apply it to argument-less calls if the autocall
@@ -2053,11 +2057,11 @@ want to merge them back into the new files.""" % locals()
                     else:
                         # if the object doesn't support [] access, go ahead and
                         # autocall
-                        newcmd = '%s(%s)' % (iFun.rstrip(),theRest)
+                        newcmd = '%s(%s)' % (iFun.rstrip(),",".join(theRest.split()))
                 elif theRest.endswith(';'):
                     newcmd = '%s(%s);' % (iFun.rstrip(),theRest[:-1])
                 else:
-                    newcmd = '%s(%s)' % (iFun.rstrip(),theRest)
+                    newcmd = '%s(%s)' % (iFun.rstrip(),",".join(theRest.split()))
 
         if auto_rewrite:
             print >>Term.cout, self.outputcache.prompt1.auto_rewrite() + newcmd

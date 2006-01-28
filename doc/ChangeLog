@@ -25,6 +25,8 @@
 	* ipmaker.py: now import ipy_profile_PROFILENAME automatically
 	
 	* usage.py, Magic.py: added %quickref
+	
+	* iplib.py: ESC_PAREN fixes: /f 1 2 -> f(1,2), not f(1 2).
 
 2006-01-25  Fernando Perez  <Fernando.Perez@colorado.edu>
 
