@@ -19,20 +19,20 @@ For example, suppose that you have a module called 'myiphooks' in your
 PYTHONPATH, which contains the following definition:
 
 import os
+import IPython.ipapi
+ip = IPython.ipapi.get()
+
 def calljed(self,filename, linenum):
     "My editor hook calls the jed editor directly."
     print "Calling my own editor, jed ..."
     os.system('jed +%d %s' % (linenum,filename))
 
-You can then execute the following line of code to make it the new IPython
-editor hook, after having imported 'myiphooks':
+ip.set_hook('editor', calljed)
 
-ip_set_hook('editor',myiphooks.calljed)
+You can then enable the functionality by doing 'import myiphooks'
+somewhere in your configuration files or ipython command line.
 
-The ip_set_hook function is put by IPython into the builtin namespace, so it
-is always available from all running code.
-
-$Id: hooks.py 1087 2006-01-27 17:02:42Z vivainio $"""
+$Id: hooks.py 1095 2006-01-28 19:43:56Z vivainio $"""
 
 #*****************************************************************************
 #       Copyright (C) 2005 Fernando Perez. <fperez@colorado.edu>
@@ -61,7 +61,7 @@ def editor(self,filename, linenum=None):
 
     This is IPython's default editor hook, you can use it as an example to
     write your own modified one.  To set your own editor function as the
-    new editor hook, call ip_set_hook('editor',yourfunc)."""
+    new editor hook, call ip.set_hook('editor',yourfunc)."""
 
     # IPython configures a default editor at startup by reading $EDITOR from
     # the environment, and falling back on vi (unix) or notepad (win32).
@@ -82,7 +82,7 @@ def fix_error_editor(self,filename,linenum,column,msg):
     The current implementation only has special support for the VIM editor,
     and falls back on the 'editor' hook if VIM is not used.
 
-    Call ip_set_hook('fix_error_editor',youfunc) to use your own function,
+    Call ip.set_hook('fix_error_editor',youfunc) to use your own function,
     """
     def vim_quickfix_file():
         t = tempfile.NamedTemporaryFile()
