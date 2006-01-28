@@ -6,7 +6,7 @@ Requires Python 2.3 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 1096 2006-01-28 20:08:02Z vivainio $
+$Id: iplib.py 1097 2006-01-28 20:22:13Z vivainio $
 """
 
 #*****************************************************************************
@@ -2007,7 +2007,7 @@ want to merge them back into the new files.""" % locals()
                                      continue_prompt,pre,iFun,theRest)
         else:
             cmd=line.lstrip().lstrip('!')
-            line_out = '%sipsystem(%s)' % (pre,make_quoted_expr(cmd))
+            line_out = '%s_ip.system(%s)' % (pre,make_quoted_expr(cmd))
         # update cache/log and return
         self.log(line_out,continue_prompt)
         return line_out
