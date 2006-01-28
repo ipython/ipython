@@ -11,7 +11,7 @@ import sys,IPython,re
 fil=open("magic.tex","w")
 oldout=sys.stdout
 sys.stdout=fil
-ipmagic("magic -latex")
+_ip.magic("magic -latex")
 sys.stdout=oldout
 fil.close()
 

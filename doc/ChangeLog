@@ -1,5 +1,15 @@
 2006-01-27  Ville Vainio  <vivainio@gmail.com>  
 
+	* iplib.py: Expose ipapi as _ip in builtin namespace.
+	Makes ipmagic (-> _ip.magic), ipsystem (-> _ip.system)
+	and ip_set_hook (-> _ip.set_hook) redundant. % and ! 
+	syntax now produce _ip.* variant of the commands.
+	
+	* "_ip.options().autoedit_syntax = 2" automatically throws
+	user to editor for syntax error correction without prompting.
+
+2006-01-27  Ville Vainio  <vivainio@gmail.com>  
+
 	* ipmaker.py: Give "realistic" sys.argv for scripts (without 
 	'ipython' at argv[0]) executed through command line. 
 	NOTE: this DEPRECATES calling ipython with multiple scripts 

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Magic functions for InteractiveShell.
 
-$Id: Magic.py 1094 2006-01-28 00:47:41Z vivainio $"""
+$Id: Magic.py 1096 2006-01-28 20:08:02Z vivainio $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001 Janko Hauser <jhauser@zscout.de> and
@@ -506,7 +506,7 @@ Currently the magic system has the following functions:\n"""
           like magics or aliases are turned into function calls, for
           example).  With this option, you'll see the unfiltered history
           instead of the filtered version: '%cd /' will be seen as '%cd /'
-          instead of 'ipmagic("%cd /")'.
+          instead of '_ip.magic("%cd /")'.
         """
 
         shell = self.shell
@@ -573,7 +573,7 @@ Currently the magic system has the following functions:\n"""
         for n in range(len(self.shell.input_hist)-2,0,-1):
             input = self.shell.input_hist[n]
             # skip plain 'r' lines so we don't recurse to infinity
-            if input != 'ipmagic("r")\n' and \
+            if input != '_ip.magic("r")\n' and \
                    (input.startswith(start) or input.startswith(start_magic)):
                 #print 'match',`input`  # dbg
                 print 'Executing:',input,
@@ -1150,11 +1150,10 @@ Currently the magic system has the following functions:\n"""
 
         If you really need to assign this value via an explicit function call,
         you can always tap directly into the true name of the magic function
-        by using the ipmagic function (which IPython automatically adds to the
-        builtins):\\
-          In [3]: stats = ipmagic('prun','-r print 4')
+        by using the _ip.magic function:\\
+          In [3]: stats = _ip.magic('prun','-r print 4')
 
-        You can type ipmagic? for more details on ipmagic.
+        You can type _ip.magic? for more details.
 
        -s <key>: sort profile by given key. You can provide more than one key
         by using the option several times: '-s key1 -s key2 -s key3...'. The

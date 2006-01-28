@@ -6,7 +6,7 @@ Requires Python 2.3 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 1093 2006-01-28 00:18:49Z vivainio $
+$Id: iplib.py 1096 2006-01-28 20:08:02Z vivainio $
 """
 
 #*****************************************************************************
@@ -680,12 +680,15 @@ class InteractiveShell(object,Magic):
         Some parts of ipython operate via builtins injected here, which hold a
         reference to IPython itself."""
 
+        # TODO: deprecate all except _ip; 'jobs' should be installed 
+        # by an extension and the rest are under _ip
         builtins_new  = dict(__IPYTHON__ = self,
-                             ip_set_hook = self.set_hook,
+                             ip_set_hook = self.set_hook, 
                              jobs = self.jobs,
-                             ipmagic = self.ipmagic,
-                             ipalias = self.ipalias,
+                             ipmagic = self.ipmagic,  
+                             ipalias = self.ipalias,  
                              ipsystem = self.ipsystem,
+                             _ip = self.api
                              )
         for biname,bival in builtins_new.items():
             try:
@@ -1240,8 +1243,9 @@ want to merge them back into the new files.""" % locals()
                               
             return False
         try:
-            if not ask_yes_no('Return to editor to correct syntax error? '
-                              '[Y/n] ','y'):
+            if (self.rc.autoedit_syntax != 2 and 
+                not ask_yes_no('Return to editor to correct syntax error? '
+                              '[Y/n] ','y')):
                 return False
         except EOFError:
             return False
@@ -2013,7 +2017,7 @@ want to merge them back into the new files.""" % locals()
         """Execute magic functions."""
 
 
-        cmd = '%sipmagic(%s)' % (pre,make_quoted_expr(iFun + " " + theRest))
+        cmd = '%s_ip.magic(%s)' % (pre,make_quoted_expr(iFun + " " + theRest))
         self.log(cmd,continue_prompt)
         #print 'in handle_magic, cmd=<%s>' % cmd  # dbg
         return cmd
