@@ -25,19 +25,21 @@ if sys.platform == 'win32':
         print "svn co http://ipython.scipy.org/svn/ipython/pyreadline/trunk pyreadline"
         print "Trying 'old' windows readline."
 
-        from readline import *
-        have_readline = True
+        try:
+            from readline import *
+            have_readline = True
+        except ImportError:
+            pass
+
+    if have_readline:
+        try:
+            _outputfile=GetOutputFile()
+        except NameError:
+            have_readline = False
+    
 else:
     try:
         from readline import *
         have_readline = True
     except ImportError:
         pass
-    
-    
-if have_readline:
-    try:
-        _outputfile=GetOutputFile()
-    except AttributeError:
-        have_readline = False
-

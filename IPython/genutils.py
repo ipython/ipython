@@ -5,7 +5,7 @@ General purpose utilities.
 This is a grab-bag of stuff I find useful in most programs I write. Some of
 these things are also convenient when working at the command line.
 
-$Id: genutils.py 1099 2006-01-29 21:05:57Z vivainio $"""
+$Id: genutils.py 1100 2006-01-29 21:27:16Z vivainio $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2006 Fernando Perez. <fperez@colorado.edu>
@@ -149,7 +149,7 @@ Term = IOTerm()
 
 import IPython.rlineimpl as readline
 # Remake Term to use the readline i/o facilities
-if readline.have_readline:
+if sys.platform == 'win32' and readline.have_readline:
     
     Term = IOTerm(cout=readline._outputfile,cerr=readline._outputfile)
     
