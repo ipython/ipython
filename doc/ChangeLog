@@ -1,3 +1,7 @@
+2006-01-29  Ville Vainio  <vivainio@gmail.com>  
+
+	* iplib.py: Try to import pyreadline on Windows.
+
 2006-01-27  Ville Vainio  <vivainio@gmail.com>  
 
 	* iplib.py: Expose ipapi as _ip in builtin namespace.
