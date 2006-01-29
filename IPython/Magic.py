@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Magic functions for InteractiveShell.
 
-$Id: Magic.py 1096 2006-01-28 20:08:02Z vivainio $"""
+$Id: Magic.py 1099 2006-01-29 21:05:57Z vivainio $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001 Janko Hauser <jhauser@zscout.de> and
@@ -2008,22 +2008,9 @@ Currently the magic system has the following functions:\n"""
         if not new_scheme:
             print 'You must specify a color scheme.'
             return
-        # Under Windows, check for Gary Bishop's readline, which is necessary
-        # for ANSI coloring
-        if os.name in ['nt','dos']:
-            try:
-                import readline
-            except ImportError:
-                has_readline = 0
-            else:
-                try:
-                    readline.GetOutputFile()
-                except AttributeError:
-                    has_readline = 0
-                else:
-                    has_readline = 1
-            if not has_readline:
-                msg = """\
+        import IPython.rlineimpl as readline
+        if not readline.have_readline:
+            msg = """\
 Proper color support under MS Windows requires Gary Bishop's readline library.
 You can find it at:
 http://sourceforge.net/projects/uncpythontools
@@ -2031,8 +2018,8 @@ Gary's readline needs the ctypes module, from:
 http://starship.python.net/crew/theller/ctypes
 
 Defaulting color scheme to 'NoColor'"""
-                new_scheme = 'NoColor'
-                warn(msg)
+            new_scheme = 'NoColor'
+            warn(msg)
         # local shortcut
         shell = self.shell
         

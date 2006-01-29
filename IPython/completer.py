@@ -69,8 +69,9 @@ import glob
 import keyword
 import os
 import re
-import readline
 import sys
+import IPython.rlineimpl as readline    
+
 import types
 
 # Python 2.4 offers sets as a builtin

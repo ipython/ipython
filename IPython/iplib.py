@@ -6,7 +6,7 @@ Requires Python 2.3 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 1098 2006-01-29 16:14:21Z vivainio $
+$Id: iplib.py 1099 2006-01-29 21:05:57Z vivainio $
 """
 
 #*****************************************************************************
@@ -1170,29 +1170,15 @@ want to merge them back into the new files.""" % locals()
 
     def init_readline(self):
         """Command history completion/saving/reloading."""
-        
-        using_pyreadline = False
-        if sys.platform == 'win32':
-            try:
-                import pyreadline as readline
-                using_pyrl = True
-                print "Using the new pyreadline (thanks for participating in the testing!)"
-            except ImportError:
-                print "The IPython team recommends the new pyreadline for Windows use, it wasn't found."
-                print "Try installing it with 'easy_install pyreadline (ctypes is required) or"
-                print "svn co http://ipython.scipy.org/svn/ipython/pyreadline/trunk pyreadline"
-                print "Trying 'old' windows readline."
-                
-        
-        try:
-            if not using_pyreadline:
-                import readline
-        except ImportError:
+
+        import IPython.rlineimpl as readline
+        if not readline.have_readline:
             self.has_readline = 0
             self.readline = None
             # no point in bugging windows users with this every time:
             warn('Readline services not available on this platform.')
         else:
+            sys.modules['readline'] = readline
             import atexit
             from IPython.completer import IPCompleter
             self.Completer = IPCompleter(self,

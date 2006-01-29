@@ -5,7 +5,7 @@ General purpose utilities.
 This is a grab-bag of stuff I find useful in most programs I write. Some of
 these things are also convenient when working at the command line.
 
-$Id: genutils.py 1077 2006-01-24 18:15:27Z vivainio $"""
+$Id: genutils.py 1099 2006-01-29 21:05:57Z vivainio $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2006 Fernando Perez. <fperez@colorado.edu>
@@ -71,8 +71,8 @@ except AttributeError:
     _quotesre = re.compile(r'[\'"](.*)[\'"]')
     _wordchars = ('abcdfeghijklmnopqrstuvwxyz'
                   'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-.~*?'
-                  'ßàáâãäåæçèéêëìíîïðñòóôõöøùúûüýþÿ'
-                  'ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞ%s'
+                  'ÃŸÃ Ã¡Ã¢Ã£Ã¤Ã¥Ã¦Ã§Ã¨Ã©ÃªÃ«Ã¬Ã­Ã®Ã¯Ã°Ã±Ã²Ã³Ã´ÃµÃ¶Ã¸Ã¹ÃºÃ»Ã¼Ã½Ã¾Ã¿'
+                  'Ã€Ã�Ã‚ÃƒÃ„Ã…Ã†Ã‡ÃˆÃ‰ÃŠÃ‹ÃŒÃ�ÃŽÃ�Ã�Ã‘Ã’Ã“Ã”Ã•Ã–Ã˜Ã™ÃšÃ›ÃœÃ�Ãž%s'
                   % os.sep)
     
     def shlex_split(s):
@@ -147,24 +147,12 @@ class IOTerm:
 # Global variable to be used for all I/O
 Term = IOTerm()
 
-# Windows-specific code to load Gary Bishop's readline and configure it
-# automatically for the users
-# Note: os.name on cygwin returns posix, so this should only pick up 'native'
-# windows.  Cygwin returns 'cygwin' for sys.platform.
-if os.name == 'nt':
-    try:
-        import readline
-    except ImportError:
-        pass
-    else:
-        try:
-            _out = readline.GetOutputFile()
-        except AttributeError:
-            pass
-        else:
-            # Remake Term to use the readline i/o facilities
-            Term = IOTerm(cout=_out,cerr=_out)
-            del _out
+import IPython.rlineimpl as readline
+# Remake Term to use the readline i/o facilities
+if readline.have_readline:
+    
+    Term = IOTerm(cout=readline._outputfile,cerr=readline._outputfile)
+    
 
 #****************************************************************************
 # Generic warning/error printer, used by everything else
