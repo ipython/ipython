@@ -1,3 +1,16 @@
+2006-01-30  Ville Vainio  <vivainio@gmail.com>  
+
+	* pickleshare,pspersistence,ipapi,Magic: persistence overhaul.
+	Now %store and bookmarks work through PickleShare, meaning that 
+	concurrent access is possible and all ipython sessions see the 
+	same database situation all the time, instead of snapshot of
+	the situation when the session was started. Hence, %bookmark
+	results are immediately accessible from othes sessions. The database
+	is also available for use by user extensions. See:
+	http://www.python.org/pypi/pickleshare
+	
+	* hooks.py: Two new hooks, 'shutdown_hook' and 'late_startup_hook'.
+
 2006-01-29  Fernando Perez  <Fernando.Perez@colorado.edu>
 
 	* IPython/iplib.py (interact): Fix that we were not catching

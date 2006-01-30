@@ -16,3 +16,4 @@ import sys
 
 import ext_rehashdir # %rehashdir magic
 import ext_rescapture # var = !ls and var = %magic
+import pspersistence # %store magic

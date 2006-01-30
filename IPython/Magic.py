@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Magic functions for InteractiveShell.
 
-$Id: Magic.py 1099 2006-01-29 21:05:57Z vivainio $"""
+$Id: Magic.py 1107 2006-01-30 19:02:20Z vivainio $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001 Janko Hauser <jhauser@zscout.de> and
@@ -2301,7 +2301,7 @@ Defaulting color scheme to 'NoColor'"""
         !command runs is immediately discarded after executing 'command'."""
 
         parameter_s = parameter_s.strip()
-        bkms = self.shell.persist.get("bookmarks",{})
+        #bkms = self.shell.persist.get("bookmarks",{})
 
         numcd = re.match(r'(-)(\d+)$',parameter_s)
         # jump in directory history by number
@@ -2326,19 +2326,20 @@ Defaulting color scheme to 'NoColor'"""
             except IndexError:
                 print 'No previous directory to change to.'
                 return
-        # jump to bookmark
-        elif opts.has_key('b') or (bkms.has_key(ps) and not os.path.isdir(ps)):
-            if bkms.has_key(ps):
-                target = bkms[ps]
-                print '(bookmark:%s) -> %s' % (ps,target)
-                ps = target
-            else:
-                if bkms:
-                    error("Bookmark '%s' not found.  "
-                          "Use '%%bookmark -l' to see your bookmarks." % ps)
+        # jump to bookmark if needed
+        else:
+            if not os.path.isdir(ps) or opts.has_key('b'):
+                bkms = self.db.get('bookmarks', {})
+            
+                if bkms.has_key(ps):
+                    target = bkms[ps]
+                    print '(bookmark:%s) -> %s' % (ps,target)
+                    ps = target
                 else:
-                    print "Bookmarks not set - use %bookmark <bookmarkname>"
-                return
+                    if opts.has_key('b'):
+                        error("Bookmark '%s' not found.  "
+                              "Use '%%bookmark -l' to see your bookmarks." % ps)
+                        return
             
         # at this point ps should point to the target dir
         if ps:
@@ -2634,112 +2635,6 @@ Defaulting color scheme to 'NoColor'"""
         
         self.shell.jobs.new(parameter_s,self.shell.user_ns)
         
-    def magic_store(self, parameter_s=''):
-        """Lightweight persistence for python variables.
-
-        Example:
-        
-        ville@badger[~]|1> A = ['hello',10,'world']\\
-        ville@badger[~]|2> %store A\\
-        ville@badger[~]|3> Exit
-        
-        (IPython session is closed and started again...)
-        
-        ville@badger:~$ ipython -p pysh\\
-        ville@badger[~]|1> print A
-        
-        ['hello', 10, 'world']
-        
-        Usage:
-        
-        %store          - Show list of all variables and their current values\\
-        %store <var>    - Store the *current* value of the variable to disk\\
-        %store -d <var> - Remove the variable and its value from storage\\
-        %store -r       - Remove all variables from storage\\
-        %store foo >a.txt  - Store value of foo to new file a.txt\\
-        %store foo >>a.txt - Append value of foo to file a.txt\\   
-        
-        It should be noted that if you change the value of a variable, you
-        need to %store it again if you want to persist the new value.
-        
-        Note also that the variables will need to be pickleable; most basic
-        python types can be safely %stored.
-        """
-        
-        opts,argsl = self.parse_options(parameter_s,'dr',mode='string')
-        args = argsl.split(None,1)
-        ip = self.getapi()
-        # delete
-        if opts.has_key('d'):
-            try:
-                todel = args[0]
-            except IndexError:
-                error('You must provide the variable to forget')
-            else:
-                try:
-                    del self.shell.persist['S:' + todel]
-                except:
-                    error("Can't delete variable '%s'" % todel)
-        # reset
-        elif opts.has_key('r'):
-            for k in self.shell.persist.keys():
-                if k.startswith('S:'):
-                    del self.shell.persist[k]
-        
-        # run without arguments -> list variables & values
-        elif not args:
-            vars = [v[2:] for v in self.shell.persist.keys()
-                    if v.startswith('S:')]
-            vars.sort()            
-            if vars:
-                size = max(map(len,vars))
-            else:
-                size = 0
-                
-            print 'Stored variables and their in-memory values:'
-            fmt = '%-'+str(size)+'s -> %s'
-            get = self.shell.user_ns.get
-            for var in vars:
-                # print 30 first characters from every var
-                print fmt % (var,repr(get(var,'<unavailable>'))[:50])
-        
-        # default action - store the variable
-        else:
-            # %store foo >file.txt or >>file.txt
-            if len(args) > 1 and args[1].startswith('>'):
-                fnam = os.path.expanduser(args[1].lstrip('>').lstrip())
-                if args[1].startswith('>>'):
-                    fil = open(fnam,'a')
-                else:
-                    fil = open(fnam,'w')
-                obj = ip.ev(args[0])
-                print "Writing '%s' (%s) to file '%s'." % (args[0],
-                  obj.__class__.__name__, fnam)
-
-                
-                if not isinstance (obj,basestring):
-                    pprint(obj,fil)
-                else:
-                    fil.write(obj)
-                    if not obj.endswith('\n'):
-                        fil.write('\n')
-                
-                fil.close()
-                return
-            
-            # %store foo
-            obj = self.shell.user_ns[args[0] ]
-            if isinstance(inspect.getmodule(obj), FakeModule):
-                print textwrap.dedent("""\
-                Warning:%s is %s 
-                Proper storage of interactively declared classes (or instances
-                of those classes) is not possible! Only instances
-                of classes in real modules on file system can be %%store'd.
-                """ % (args[0], obj) ) 
-                return
-            pickled = pickle.dumps(obj)
-            self.shell.persist[ 'S:' + args[0] ] = pickled
-            print "Stored '%s' (%s, %d bytes)" % (args[0], obj.__class__.__name__,len(pickled))
     
     def magic_bookmark(self, parameter_s=''):
         """Manage IPython's bookmark system.
@@ -2763,7 +2658,7 @@ Defaulting color scheme to 'NoColor'"""
             error('You can only give at most two arguments')
             return
 
-        bkms = self.shell.persist.get('bookmarks',{})
+        bkms = self.db.get('bookmarks',{})
             
         if opts.has_key('d'):
             try:
@@ -2795,7 +2690,7 @@ Defaulting color scheme to 'NoColor'"""
                 bkms[args[0]] = os.getcwd()
             elif len(args)==2:
                 bkms[args[0]] = args[1]
-        self.shell.persist['bookmarks'] = bkms
+        self.db['bookmarks'] = bkms
 
     def magic_pycat(self, parameter_s=''):
         """Show a syntax-highlighted file through a pager.

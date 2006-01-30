@@ -32,7 +32,7 @@ ip.set_hook('editor', calljed)
 You can then enable the functionality by doing 'import myiphooks'
 somewhere in your configuration files or ipython command line.
 
-$Id: hooks.py 1095 2006-01-28 19:43:56Z vivainio $"""
+$Id: hooks.py 1107 2006-01-30 19:02:20Z vivainio $"""
 
 #*****************************************************************************
 #       Copyright (C) 2005 Fernando Perez. <fperez@colorado.edu>
@@ -54,7 +54,7 @@ from pprint import pformat
 # List here all the default hooks.  For now it's just the editor functions
 # but over time we'll move here all the public API for user-accessible things.
 __all__ = ['editor', 'fix_error_editor', 'result_display',
-           'input_prefilter']
+           'input_prefilter', 'shutdown_hook', 'late_startup_hook']
 
 def editor(self,filename, linenum=None):
     """Open the default editor at the given filename and linenumber.
@@ -167,3 +167,18 @@ def input_prefilter(self,line):
     """
     #print "attempt to rewrite",line #dbg
     return line
+
+def shutdown_hook(self):
+    """ default shutdown hook
+    
+    Typically, shotdown hooks should raise TryNext so all shutdown ops are done
+    """
+    
+    #print "default shutdown hook ok" # dbg
+    return
+
+def late_startup_hook(self):
+    """ Executed after ipython has been constructed and configured 
+    
+    """
+    #print "default startup hook ok" # dbg

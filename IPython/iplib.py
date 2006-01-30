@@ -6,7 +6,7 @@ Requires Python 2.3 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 1102 2006-01-30 06:08:16Z fperez $
+$Id: iplib.py 1107 2006-01-30 19:02:20Z vivainio $
 """
 
 #*****************************************************************************
@@ -58,6 +58,7 @@ import sys
 import tempfile
 import traceback
 import types
+import pickleshare
 
 from pprint import pprint, pformat
 
@@ -191,6 +192,7 @@ class InteractiveShell(object,Magic):
                  user_ns = None,user_global_ns=None,banner2='',
                  custom_exceptions=((),None),embedded=False):
 
+        
         # log system
         self.logger = Logger(self,logfname='ipython_log.py',logmode='rotate')
 
@@ -607,6 +609,7 @@ class InteractiveShell(object,Magic):
 
         rc = self.rc
         
+        self.db = pickleshare.PickleShareDB(rc.ipythondir + "/db")
         # Load readline proper
         if rc.readline:
             self.init_readline()
@@ -648,31 +651,8 @@ class InteractiveShell(object,Magic):
         # Load user aliases
         for alias in rc.alias:
             self.magic_alias(alias)
-
-        # dynamic data that survives through sessions
-        # XXX make the filename a config option?
-        persist_base = 'persist'
-        if rc.profile:
-            persist_base += '_%s' % rc.profile
-        self.persist_fname =  os.path.join(rc.ipythondir,persist_base)
-
-        try:
-            self.persist = pickle.load(file(self.persist_fname))
-        except:
-            self.persist = {}
+        self.hooks.late_startup_hook()
         
-        
-        for (key, value) in [(k[2:],v) for (k,v) in self.persist.items() if k.startswith('S:')]:
-            try:
-                obj = pickle.loads(value)
-            except:
-                
-                print "Unable to restore variable '%s', ignoring (use %%store -d to forget!)" % key
-                print "The error was:",sys.exc_info()[0]
-                continue
-                
-            
-            self.user_ns[key] = obj
 
     def add_builtins(self):
         """Store ipython references into the builtin namespace.
@@ -1147,10 +1127,7 @@ want to merge them back into the new files.""" % locals()
                 pass
 
         # save the "persistent data" catch-all dictionary
-        try:
-            pickle.dump(self.persist, open(self.persist_fname,"w"))
-        except:
-            print "*** ERROR *** persistent data saving failed."
+        self.hooks.shutdown_hook()
         
     def savehist(self):
         """Save input history to a file (via readline library)."""

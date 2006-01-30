@@ -148,6 +148,13 @@ class IPApi:
         data that should persist through the ipython session.
         """
         return self.IP.meta
+    
+    def getdb(self):
+        """ Return a handle to persistent dict-like database
+        
+        Return a PickleShareDB object.
+        """
+        return self.IP.db
         
 
 def launch_new_instance(user_ns = None):
