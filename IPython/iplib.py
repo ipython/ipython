@@ -6,7 +6,7 @@ Requires Python 2.3 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 1099 2006-01-29 21:05:57Z vivainio $
+$Id: iplib.py 1102 2006-01-30 06:08:16Z fperez $
 """
 
 #*****************************************************************************
@@ -1454,49 +1454,44 @@ want to merge them back into the new files.""" % locals()
         # exit_now is set by a call to %Exit or %Quit
         self.exit_now = False
         while not self.exit_now:
-
+            if more:
+                prompt = self.outputcache.prompt2
+                if self.autoindent:
+                    self.readline_startup_hook(self.pre_readline)
+            else:
+                prompt = self.outputcache.prompt1
             try:
-                if more:
-                    prompt = self.outputcache.prompt2
-                    if self.autoindent:
-                        self.readline_startup_hook(self.pre_readline)
-                else:
-                    prompt = self.outputcache.prompt1
-                try:
-                    line = self.raw_input(prompt,more)
-                    if self.autoindent:
-                        self.readline_startup_hook(None)
-                except EOFError:
-                    if self.autoindent:
-                        self.readline_startup_hook(None)
-                    self.write("\n")
-                    self.exit()
-                except:
-                    # exceptions here are VERY RARE, but they can be triggered
-                    # asynchronously by signal handlers, for example.
-                    self.showtraceback()
-                else:
-                    more = self.push(line)
-
-                    if (self.SyntaxTB.last_syntax_error and
-                        self.rc.autoedit_syntax):
-                        self.edit_syntax_error()
-
+                line = self.raw_input(prompt,more)
+                if self.autoindent:
+                    self.readline_startup_hook(None)
             except KeyboardInterrupt:
-                self.write("\nKeyboardInterrupt\n")
+                self.write('\nKeyboardInterrupt\n')
                 self.resetbuffer()
-                more = 0
                 # keep cache in sync with the prompt counter:
                 self.outputcache.prompt_count -= 1
 
                 if self.autoindent:
                     self.indent_current_nsp = 0
-
+                more = 0
+            except EOFError:
+                if self.autoindent:
+                    self.readline_startup_hook(None)
+                self.write('\n')
+                self.exit()
             except bdb.BdbQuit:
-                warn("The Python debugger has exited with a BdbQuit exception.\n"
-                     "Because of how pdb handles the stack, it is impossible\n"
-                     "for IPython to properly format this particular exception.\n"
-                     "IPython will resume normal operation.")
+                warn('The Python debugger has exited with a BdbQuit exception.\n'
+                     'Because of how pdb handles the stack, it is impossible\n'
+                     'for IPython to properly format this particular exception.\n'
+                     'IPython will resume normal operation.')
+            except:
+                # exceptions here are VERY RARE, but they can be triggered
+                # asynchronously by signal handlers, for example.
+                self.showtraceback()
+            else:
+                more = self.push(line)
+                if (self.SyntaxTB.last_syntax_error and
+                    self.rc.autoedit_syntax):
+                    self.edit_syntax_error()
             
         # We are off again...
         __builtin__.__dict__['__IPYTHON__active'] -= 1
@@ -1762,6 +1757,7 @@ want to merge them back into the new files.""" % locals()
         """
 
         line = raw_input_original(prompt)
+
         # Try to be reasonably smart about not re-indenting pasted input more
         # than necessary.  We do this by trimming out the auto-indent initial
         # spaces, if the user's actual input started itself with whitespace.

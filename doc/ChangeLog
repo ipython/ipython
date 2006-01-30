@@ -1,3 +1,9 @@
+2006-01-29  Fernando Perez  <Fernando.Perez@colorado.edu>
+
+	* IPython/iplib.py (interact): Fix that we were not catching
+	KeyboardInterrupt exceptions properly.  I'm not quite sure why the
+	logic here had to change, but it's fixed now.
+
 2006-01-29  Ville Vainio  <vivainio@gmail.com>  
 
 	* iplib.py: Try to import pyreadline on Windows.
