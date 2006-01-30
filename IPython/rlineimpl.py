@@ -18,8 +18,9 @@ if sys.platform == 'win32':
         from pyreadline import *
         print "Using the new pyreadline (thanks for participating in the testing!)"
         have_readline = True
+        import pyreadline as _rl
     except ImportError:
-        print "The IPython team recommends the new pyreadline for Windows use, it wasn't found."
+        print "IPython team recommends the new pyreadline for Windows use, it wasn't found."
         print "It's superior especially with non-US keyboard layouts."
         print "Try installing it with 'easy_install pyreadline (ctypes is required) or"
         print "svn co http://ipython.scipy.org/svn/ipython/pyreadline/trunk pyreadline"
@@ -27,14 +28,16 @@ if sys.platform == 'win32':
 
         try:
             from readline import *
+            import readline as _rl
             have_readline = True
         except ImportError:
             pass
 
     if have_readline:
         try:
-            _outputfile=GetOutputFile()
+            _outputfile=_rl.GetOutputFile()
         except NameError:
+            print "Failed GetOutputFile"
             have_readline = False
     
 else:
