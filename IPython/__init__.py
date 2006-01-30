@@ -27,7 +27,7 @@ IPython tries to:
 
 IPython requires Python 2.2 or newer.
 
-$Id: __init__.py 1099 2006-01-29 21:05:57Z vivainio $"""
+$Id: __init__.py 1110 2006-01-30 20:43:30Z vivainio $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2004 Fernando Perez. <fperez@colorado.edu>
@@ -38,14 +38,21 @@ $Id: __init__.py 1099 2006-01-29 21:05:57Z vivainio $"""
 
 # Enforce proper version requirements
 import sys
+
 if sys.version[0:3] < '2.3':
     raise ImportError, 'Python Version 2.3 or above is required.'
+
+# Make it easy to import extensions - they are always directly on pythonpath.
+# Therefore, non-IPython modules can be added to Extensions directory
+
+import os
+sys.path.append(os.path.dirname(__file__) + "/Extensions")
         
 # Define what gets imported with a 'from IPython import *'
 __all__ = ['deep_reload','genutils','ipstruct','ultraTB','DPyGetOpt',
            'Itpl','hooks','ConfigLoader','OutputTrap','Release','Shell',
            'platutils','platutils_win32','platutils_posix','platutils_dummy',
-           'ipapi','path','rlineimpl']
+           'ipapi','rlineimpl']
 
 # Load __all__ in IPython namespace so that a simple 'import IPython' gives
 # access to them via IPython.<name>

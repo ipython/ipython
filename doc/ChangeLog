@@ -12,6 +12,10 @@
 	* hooks.py: Two new hooks, 'shutdown_hook' and 'late_startup_hook'.
 	
 	* aliases can now be %store'd
+	
+	* path.py move to Extensions so that pickleshare does not need
+	IPython-specific import. Extensions added to pythonpath right
+	at __init__.
 
 2006-01-29  Fernando Perez  <Fernando.Perez@colorado.edu>
 
