@@ -1,3 +1,12 @@
+# -*- coding: utf-8 -*-
+"""
+%store magic for lightweight persistence.
+
+Stores variables, aliases etc. in PickleShare database.
+
+$Id: iplib.py 1107 2006-01-30 19:02:20Z vivainio $
+"""
+
 import IPython.ipapi
 ip = IPython.ipapi.get()
 
@@ -5,6 +14,14 @@ import pickleshare
 
 import inspect,pickle,os,textwrap
 from IPython.FakeModule import FakeModule
+
+def restore_aliases(self):
+    ip = self.getapi()
+    staliases = ip.getdb().get('stored_aliases', {})
+    for k,v in staliases.items():
+        #print "restore alias",k,v # dbg
+        self.alias_table[k] = v
+
 
 def refresh_variables(ip):
     db = ip.getdb()
@@ -23,14 +40,10 @@ def refresh_variables(ip):
     
 
 def restore_data(self):
-    #o = ip.options()
-    #self.db = pickleshare.PickleShareDB(o.ipythondir + "/db")
-    #print "restoring ps data" # dbg
-
     ip = self.getapi()
     refresh_variables(ip)
+    restore_aliases(self)
     raise IPython.ipapi.TryNext
-    
     
 ip.set_hook('late_startup_hook', restore_data)
 
@@ -70,6 +83,7 @@ def magic_store(self, parameter_s=''):
     opts,argsl = self.parse_options(parameter_s,'drz',mode='string')
     args = argsl.split(None,1)
     ip = self.getapi()
+    db = ip.getdb()
     # delete
     if opts.has_key('d'):
         try:
@@ -78,13 +92,13 @@ def magic_store(self, parameter_s=''):
             error('You must provide the variable to forget')
         else:
             try:
-                del self.db['autorestore/' + todel]
+                del db['autorestore/' + todel]
             except:
                 error("Can't delete variable '%s'" % todel)
     # reset
     elif opts.has_key('z'):
-        for k in self.db.keys('autorestore/*'):
-            del self.db[k]
+        for k in db.keys('autorestore/*'):
+            del db[k]
 
     elif opts.has_key('r'):
         refresh_variables(ip)
@@ -101,7 +115,7 @@ def magic_store(self, parameter_s=''):
             
         print 'Stored variables and their in-db values:'
         fmt = '%-'+str(size)+'s -> %s'
-        get = self.db.get
+        get = db.get
         for var in vars:
             justkey = os.path.basename(var)
             # print 30 first characters from every var
@@ -132,18 +146,27 @@ def magic_store(self, parameter_s=''):
             return
         
         # %store foo
-        obj = ip.ev(args[0])
-        if isinstance(inspect.getmodule(obj), FakeModule):
-            print textwrap.dedent("""\
-            Warning:%s is %s 
-            Proper storage of interactively declared classes (or instances
-            of those classes) is not possible! Only instances
-            of classes in real modules on file system can be %%store'd.
-            """ % (args[0], obj) ) 
-            return
-        #pickled = pickle.dumps(obj)
-        self.db[ 'autorestore/' + args[0] ] = obj
-        print "Stored '%s' (%s)" % (args[0], obj.__class__.__name__)
+        try:
+            obj = ip.ev(args[0])
+        except NameError:
+            # it might be an alias
+            if args[0] in self.alias_table:
+                staliases = db.get('stored_aliases',{})
+                staliases[ args[0] ] = self.alias_table[ args[0] ]
+                db['stored_aliases'] = staliases                
+                print "Alias stored:", args[0], self.alias_table[ args[0] ]
+                return
+        else:
+            if isinstance(inspect.getmodule(obj), FakeModule):
+                print textwrap.dedent("""\
+                Warning:%s is %s 
+                Proper storage of interactively declared classes (or instances
+                of those classes) is not possible! Only instances
+                of classes in real modules on file system can be %%store'd.
+                """ % (args[0], obj) ) 
+                return
+            #pickled = pickle.dumps(obj)
+            self.db[ 'autorestore/' + args[0] ] = obj
+            print "Stored '%s' (%s)" % (args[0], obj.__class__.__name__)
 
 ip.expose_magic('store',magic_store)
-    
