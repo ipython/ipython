@@ -6,7 +6,7 @@ Requires Python 2.3 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 1107 2006-01-30 19:02:20Z vivainio $
+$Id: iplib.py 1111 2006-01-30 21:16:07Z vivainio $
 """
 
 #*****************************************************************************
@@ -661,7 +661,7 @@ class InteractiveShell(object,Magic):
         reference to IPython itself."""
 
         # TODO: deprecate all except _ip; 'jobs' should be installed 
-        # by an extension and the rest are under _ip
+        # by an extension and the rest are under _ip, ipalias is redundant
         builtins_new  = dict(__IPYTHON__ = self,
                              ip_set_hook = self.set_hook, 
                              jobs = self.jobs,
@@ -1500,14 +1500,10 @@ want to merge them back into the new files.""" % locals()
       if self.InteractiveTB.call_pdb and self.has_readline:
           self.readline.set_completer(self.Completer.complete)
 
-    def call_alias(self,alias,rest=''):
-        """Call an alias given its name and the rest of the line.
-
-        This function MUST be given a proper alias, because it doesn't make
-        any checks when looking up into the alias table.  The caller is
-        responsible for invoking it only with a valid alias."""
-
-        #print 'ALIAS: <%s>+<%s>' % (alias,rest) # dbg
+    def transform_alias(self, alias,rest=''):
+        """ Transform alias to system command string 
+        
+        """
         nargs,cmd = self.alias_table[alias]
         # Expand the %l special to be the user's input line
         if cmd.find('%l') >= 0:
@@ -1522,9 +1518,20 @@ want to merge them back into the new files.""" % locals()
             if len(args)< nargs:
                 error('Alias <%s> requires %s arguments, %s given.' %
                       (alias,nargs,len(args)))
-                return
+                return None
             cmd = '%s %s' % (cmd % tuple(args[:nargs]),' '.join(args[nargs:]))
         # Now call the macro, evaluating in the user's namespace
+
+        return cmd
+        
+    def call_alias(self,alias,rest=''):
+        """Call an alias given its name and the rest of the line.
+
+        This is only used to provide backwards compatibility for users of
+        ipalias(), use of which is not recommended for anymore."""
+
+        # Now call the macro, evaluating in the user's namespace
+        cmd = self.transform_alias(alias, rest)
         try:
             self.system(cmd)
         except:
@@ -1959,7 +1966,8 @@ want to merge them back into the new files.""" % locals()
 
         # pre is needed, because it carries the leading whitespace.  Otherwise
         # aliases won't work in indented sections.
-        line_out = '%sipalias(%s)' % (pre,make_quoted_expr(iFun + " " + theRest))
+        transformed = self.transform_alias(iFun, theRest)        
+        line_out = '%s_ip.system(%s)' % (pre, make_quoted_expr( transformed ))        
         self.log(line_out,continue_prompt)
         return line_out
 
