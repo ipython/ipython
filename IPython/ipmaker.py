@@ -6,7 +6,7 @@ Requires Python 2.1 or better.
 
 This file contains the main make_IPython() starter function.
 
-$Id: ipmaker.py 1111 2006-01-30 21:16:07Z vivainio $"""
+$Id: ipmaker.py 1115 2006-01-31 08:49:20Z vivainio $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2006 Fernando Perez. <fperez@colorado.edu>
@@ -126,6 +126,12 @@ object? -> Details about 'object'. ?object also works, ?? prints more.
     # default directory for configuration
     ipythondir = os.path.abspath(os.environ.get('IPYTHONDIR',
                                  os.path.join(IP.home_dir,ipdir_def)))
+
+    # add personal .ipython dir to sys.path so that users can put things in
+    # there for customization
+    sys.path.append(ipythondir)
+        
+    sys.path.insert(0, '') # add . to sys.path. Fix from Prabhu Ramachandran
 
     # we need the directory where IPython itself is installed
     import IPython
@@ -476,11 +482,6 @@ object? -> Details about 'object'. ?object also works, ?? prints more.
     # from this point on, all config should be handled through IP_rc,
     # opts* shouldn't be used anymore.
 
-    # add personal .ipython dir to sys.path so that users can put things in
-    # there for customization
-    sys.path.append(IP_rc.ipythondir)
-        
-    sys.path.insert(0, '') # add . to sys.path. Fix from Prabhu Ramachandran
     
     # update IP_rc with some special things that need manual
     # tweaks. Basically options which affect other options. I guess this
