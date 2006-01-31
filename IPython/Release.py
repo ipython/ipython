@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Release data for the IPython project.
 
-$Id: Release.py 1109 2006-01-30 20:11:07Z vivainio $"""
+$Id: Release.py 1114 2006-01-31 03:45:23Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2006 Fernando Perez <fperez@colorado.edu>
@@ -25,7 +25,7 @@ name = 'ipython'
 
 version = '0.7.2.svn'
 
-revision = '$Revision: 1109 $'
+revision = '$Revision: 1114 $'
 
 description = "An enhanced interactive Python shell."
 
@@ -60,10 +60,11 @@ Main features:
  * Easily embeddable in other Python programs.
 
  * Integrated access to the pdb debugger and the Python profiler. 
- 
- The latest development version is always available at
- <a href="http://ipython.scipy.org/svn/ipython/ipython/trunk#egg=ipython-dev">
- the IPython subversion repository</a>.
+
+ The latest development version is always available at the IPython subversion
+ repository_.
+
+.. _repository: http://ipython.scipy.org/svn/ipython/ipython/trunk#egg=ipython-dev
  """
 
 license = 'BSD'
