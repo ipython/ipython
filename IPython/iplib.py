@@ -6,7 +6,7 @@ Requires Python 2.3 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 1111 2006-01-30 21:16:07Z vivainio $
+$Id: iplib.py 1117 2006-01-31 21:02:45Z vivainio $
 """
 
 #*****************************************************************************
@@ -1220,7 +1220,7 @@ want to merge them back into the new files.""" % locals()
                               
             return False
         try:
-            if (self.rc.autoedit_syntax != 2 and 
+            if (self.rc.autoedit_syntax and 
                 not ask_yes_no('Return to editor to correct syntax error? '
                               '[Y/n] ','y')):
                 return False
