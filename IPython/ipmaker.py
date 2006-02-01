@@ -6,7 +6,7 @@ Requires Python 2.1 or better.
 
 This file contains the main make_IPython() starter function.
 
-$Id: ipmaker.py 1115 2006-01-31 08:49:20Z vivainio $"""
+$Id: ipmaker.py 1120 2006-02-01 20:08:48Z vivainio $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2006 Fernando Perez. <fperez@colorado.edu>
@@ -419,9 +419,8 @@ object? -> Details about 'object'. ?object also works, ?? prints more.
         except IOError:
            if opts_all.debug:  IP.InteractiveTB()
            opts.profile = ''  # remove profile from options if invalid
-           warn('Profile configuration file %s not found. Ignoring request.'
-                % (opts_all.profile) )
-
+           # We won't warn anymore, primary method is ipy_profile_PROFNAME
+           # which does trigger a warning.
 
     # load the config file
     rcfiledata = None
@@ -606,18 +605,26 @@ object? -> Details about 'object'. ?object also works, ?? prints more.
     try:
         import ipy_system_conf
     except ImportError:
+        if opts_all.debug:  IP.InteractiveTB()
         warn("Could not import 'ipy_system_conf'")        
-        pass
+
     if opts_all.profile:
         profmodname = 'ipy_profile_' + opts_all.profile
         try:
             __import__(profmodname)
         except ImportError:
-            warn("Could not import '%s'" % profmodname)
+            # only warn if ipythonrc-PROFNAME didn't exist
+            if opts.profile =='':
+                warn("Could not start with profile '%s'!\n ('%s/%s.py' does not exist?)" % (
+                      opts_all.profile, ipythondir, profmodname)
+
+                      )
     try:    
         import ipy_user_conf
     except ImportError:
-        warn('Could not import ipy_user_conf')
+        if opts_all.debug:  IP.InteractiveTB()
+        warn("Could not import user config!\n ('%s/ipy_user_conf.py' does not exist?)" % 
+            ipythondir)
 
     # release stdout and stderr and save config log into a global summary
     msg.config.release_all()

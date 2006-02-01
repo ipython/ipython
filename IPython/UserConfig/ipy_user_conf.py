@@ -26,7 +26,10 @@ o.autocall = 1
 if o.profile == 'pysh':
     # Jason Orendorff's path class is handy to have in user namespace
     # if you are doing shell-like stuff
-    ip.ex("from IPython.path import path" )
+    try:
+        ip.ex("from path import path" )
+    except ImportError:
+        pass
     
 # Uncomment these lines to get pysh-like prompt for all profiles. 
 
