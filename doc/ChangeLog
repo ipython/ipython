@@ -1,3 +1,7 @@
+2006-02-01  Ville Vainio  <vivainio@gmail.com>  
+
+	* easy_install ipython==dev works correctly now.
+
 2006-01-30  Ville Vainio  <vivainio@gmail.com>  
 
 	* pickleshare,pspersistence,ipapi,Magic: persistence overhaul.
