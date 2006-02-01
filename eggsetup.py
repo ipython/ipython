@@ -1,55 +1,19 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
-"""Setup script for IPython.
+"""Wrapper to build IPython as an egg (setuptools format)."""
 
-Under Posix environments it works like a typical setup.py script. 
-Under Windows, the command sdist is not supported, since IPython 
-requires utilities, which are not available under Windows."""
+import os
+import sys
 
-#*****************************************************************************
-#       Copyright (C) 2001-2005 Fernando Perez <fperez@colorado.edu>
-#
-#  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING, distributed as part of this software.
-#*****************************************************************************
+# Add my local path to sys.path
+home = os.environ['HOME']
+sys.path.insert(0,'%s/usr/local/lib/python%s/site-packages' %
+                (home,sys.version[:3]))
 
-import sys, os
-from glob import glob
-from setupext import install_data_ext
+# now, import setuptools and call the actual setup
+import setuptools
+print sys.argv
+#sys.argv=['','bdist_egg']
+execfile('setup.py')
 
-isfile = os.path.isfile
-
-if os.path.exists('MANIFEST'): os.remove('MANIFEST')
-
-from setuptools import setup
-
-
-execfile(os.path.join('IPython','Release.py'))
-
-cfgfiles    = filter(isfile, glob('IPython/UserConfig/*'))
-
-
-# Call the setup() routine which does most of the work
-setup(name             = name,
-      version          = version,
-      description      = description,
-      long_description = long_description,
-      author           = authors['Fernando'][0],
-      author_email     = authors['Fernando'][1],
-      url              = url,
-      download_url     = download_url,
-      license          = license,
-      platforms        = platforms,
-      keywords         = keywords,
-      packages         = ['IPython', 'IPython.Extensions'],
-      cmdclass         = {'install_data': install_data_ext},
-      data_files       = [
-                          ('lib', 'IPython/UserConfig', cfgfiles)],
-        # egg options
-        entry_points = {
-            'console_scripts': [
-                'ipython = IPython.ipapi:launch_new_instance',
-                'pycolor = IPython.PyColorize:main'
-            ],
-        }                          
-      )
+# clean up the junk left around by setuptools
+os.system('rm -rf ipython.egg-info build')

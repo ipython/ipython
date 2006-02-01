@@ -125,6 +125,30 @@ if 'bdist_wininst' in sys.argv:
         sys.exit(1)
     scriptfiles.append('scripts/ipython_win_post_install.py')
 
+datafiles = [('data', docdirbase, docfiles),
+                          ('data', os.path.join(docdirbase, 'examples'),
+                           examfiles),
+                          ('data', os.path.join(docdirbase, 'manual'),
+                           manfiles),
+                          ('data', manpagebase, manpages),
+                          ('lib', 'IPython/UserConfig', cfgfiles)]
+
+if 'setuptools' in sys.modules:
+    # setuptools config for egg building
+    egg_extra_kwds = {
+        'entry_points': {
+            'console_scripts': [
+            'ipython = IPython.ipapi:launch_new_instance',
+            'pycolor = IPython.PyColorize:main'
+            ]}
+        }
+    scriptfiles = []
+    # eggs will lack docs, examples
+    datafiles = [('lib', 'IPython/UserConfig', cfgfiles)]
+else:
+    egg_extra_kwds = {}
+
+
 # Call the setup() routine which does most of the work
 setup(name             = name,
       version          = version,
@@ -139,12 +163,9 @@ setup(name             = name,
       keywords         = keywords,
       packages         = ['IPython', 'IPython.Extensions'],
       scripts          = scriptfiles,
+      
       cmdclass         = {'install_data': install_data_ext},
-      data_files       = [('data', docdirbase, docfiles),
-                          ('data', os.path.join(docdirbase, 'examples'),
-                           examfiles),
-                          ('data', os.path.join(docdirbase, 'manual'),
-                           manfiles),
-                          ('data', manpagebase, manpages),
-                          ('lib', 'IPython/UserConfig', cfgfiles)]
+      data_files       = datafiles,
+      # extra params needed for eggs
+      **egg_extra_kwds                        
       )
