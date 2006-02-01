@@ -6,7 +6,7 @@ Requires Python 2.3 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 1117 2006-01-31 21:02:45Z vivainio $
+$Id: iplib.py 1121 2006-02-01 21:12:20Z vivainio $
 """
 
 #*****************************************************************************
@@ -1320,10 +1320,14 @@ want to merge them back into the new files.""" % locals()
         if self.rc.c:  # Emulate Python's -c option
             self.exec_init_cmd()
         if banner is None:
-            if self.rc.banner:
-                banner = self.BANNER+self.banner2
-            else:
+            if not self.rc.banner:
                 banner = ''
+            # banner is string? Use it directly!
+            elif isinstance(self.rc.banner,basestring):
+                banner = self.rc.banner
+            else:                
+                banner = self.BANNER+self.banner2
+
         self.interact(banner)
 
     def exec_init_cmd(self):

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Magic functions for InteractiveShell.
 
-$Id: Magic.py 1107 2006-01-30 19:02:20Z vivainio $"""
+$Id: Magic.py 1121 2006-02-01 21:12:20Z vivainio $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001 Janko Hauser <jhauser@zscout.de> and
@@ -2698,8 +2698,19 @@ Defaulting color scheme to 'NoColor'"""
         This magic is similar to the cat utility, but it will assume the file
         to be Python source and will show it with syntax highlighting. """
         
-        filename = get_py_filename(parameter_s)
-        page(self.shell.pycolorize(file_read(filename)),
+        try:
+            filename = get_py_filename(parameter_s)
+            cont = file_read(filename)
+        except IOError:
+            try:
+                cont = eval(parameter_s,self.user_ns)
+            except NameError:
+                cont = None
+        if cont is None:
+            print "Error: no such file or variable"
+            return
+            
+        page(self.shell.pycolorize(cont),
              screen_lines=self.shell.rc.screen_length)
 
     def magic_cpaste(self, parameter_s=''):

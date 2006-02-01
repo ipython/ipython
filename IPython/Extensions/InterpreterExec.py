@@ -5,7 +5,7 @@ We define a special input line filter to allow typing lines which begin with
 '~', '/' or '.'. If one of those strings is encountered, it is automatically
 executed.
 
-$Id: InterpreterExec.py 1041 2006-01-21 09:29:14Z vivainio $"""
+$Id: InterpreterExec.py 1121 2006-02-01 21:12:20Z vivainio $"""
 
 #*****************************************************************************
 #       Copyright (C) 2004 W.J. van der Laan <gnufnork@hetdigitalegat.nl>
@@ -20,6 +20,7 @@ __author__ = 'W.J. van der Laan <gnufnork@hetdigitalegat.nl>, '\
              '%s <%s>' %  Release.authors['Fernando']
 __license__ = Release.license
 
+# TODO: deprecated
 def prefilter_shell(self,line,continuation):
     """Alternate prefilter, modified for shell-like functionality.
 
@@ -234,10 +235,6 @@ def pysh():
 # doesn't really expose a clean API for it.  Be careful if you start making
 # many modifications here.
 
-print """\
-Welcome to pysh, a set of extensions to IPython for shell usage.
-help(pysh) -> help on the installed shell extensions and syntax.
-"""
 
 #  Set the 'cd' command to quiet mode, a more shell-like behavior
 __IPYTHON__.default_option('cd','-q')

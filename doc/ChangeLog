@@ -1,6 +1,15 @@
 2006-02-01  Ville Vainio  <vivainio@gmail.com>  
 
-	* easy_install ipython==dev works correctly now.
+	* setup.py, eggsetup.py: easy_install ipython==dev works 
+	correctly now (on Linux)
+	
+	* ipy_user_conf,ipmaker: user config changes, removed spurious 
+	warnings
+	
+	* iplib: if rc.banner is string, use it as is.
+	
+	* Magic: %pycat accepts a string argument and pages it's contents.
+
 
 2006-01-30  Ville Vainio  <vivainio@gmail.com>  
 
