@@ -1,3 +1,20 @@
+2006-02-05  Fernando Perez  <Fernando.Perez@colorado.edu>
+
+	* IPython/demo.py (IPythonDemo): Add new classes to the demo
+	facilities, for demos processed by the IPython input filter
+	(IPythonDemo), and for running a script one-line-at-a-time as a
+	demo, both for pure Python (LineDemo) and for IPython-processed
+	input (IPythonLineDemo).  After a request by Dave Kohel, from the
+	SAGE team.
+	(Demo.edit): added and edit() method to the demo objects, to edit
+	the in-memory copy of the last executed block.
+
+	* IPython/Magic.py (magic_edit): add '-r' option for 'raw'
+	processing to %edit, %macro and %save.  These commands can now be
+	invoked on the unprocessed input as it was typed by the user
+	(without any prefilters applied).  After requests by the SAGE team
+	at SAGE days 2006: http://modular.ucsd.edu/sage/days1/schedule.html.
+
 2006-02-01  Ville Vainio  <vivainio@gmail.com>  
 
 	* setup.py, eggsetup.py: easy_install ipython==dev works 

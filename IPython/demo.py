@@ -1,9 +1,24 @@
 """Module for interactive demos using IPython.
 
-This module implements a single class, Demo, for running Python scripts
-interactively in IPython for demonstrations.  With very simple markup (a few
-tags in comments), you can control points where the script stops executing and
-returns control to IPython.
+This module implements a few classes for running Python scripts interactively
+in IPython for demonstrations.  With very simple markup (a few tags in
+comments), you can control points where the script stops executing and returns
+control to IPython.
+
+The classes are (see their docstrings for further details):
+
+ - Demo: pure python demos
+
+ - IPythonDemo: demos with input to be processed by IPython as if it had been
+ typed interactively (so magics work, as well as any other special syntax you
+ may have added via input prefilters).
+
+ - LineDemo: single-line version of the Demo class.  These demos are executed
+ one line at a time, and require no markup.
+
+ - IPythonLineDemo: IPython version of the LineDemo class (the demo is
+ executed a line at a time, but processed via IPython).
+
 
 The file is run in its own empty namespace (though you can pass it a string of
 arguments as if in a command line environment, and it will see those as
@@ -54,12 +69,12 @@ copy this into a file named ex_demo.py, and try running it via:
 
 from IPython.demo import Demo
 d = Demo('ex_demo.py')
-d()  <--- Call the d object (omit the parens if you have autocall on).
+d()  <--- Call the d object (omit the parens if you have autocall set to 2).
 
 Each time you call the demo object, it runs the next block.  The demo object
-has a few useful methods for navigation, like again(), jump(), seek() and
-back().  It can be reset for a new run via reset() or reloaded from disk (in
-case you've edited the source) via reload().  See their docstrings below.
+has a few useful methods for navigation, like again(), edit(), jump(), seek()
+and back().  It can be reset for a new run via reset() or reloaded from disk
+(in case you've edited the source) via reload().  See their docstrings below.
 
 #################### EXAMPLE DEMO <ex_demo.py> ###############################
 '''A simple interactive demo to illustrate the use of IPython's Demo class.'''
@@ -95,9 +110,6 @@ print 'z is now:', z
 
 print 'bye!'
 ################### END EXAMPLE DEMO <ex_demo.py> ############################
-
-WARNING: this module uses Python 2.3 features, so it won't work in 2.2
-environments.
 """
 #*****************************************************************************
 #     Copyright (C) 2005-2006 Fernando Perez. <Fernando.Perez@colorado.edu>
@@ -108,13 +120,14 @@ environments.
 #*****************************************************************************
 
 import exceptions
+import os
 import re
 import sys
 
 from IPython.PyColorize import Parser
-from IPython.genutils import marquee, shlex_split, file_read
+from IPython.genutils import marquee, shlex_split, file_read, file_readlines
 
-__all__ = ['Demo','DemoError']
+__all__ = ['Demo','IPythonDemo','LineDemo','IPythonLineDemo','DemoError']
 
 class DemoError(exceptions.Exception): pass
 
@@ -150,7 +163,7 @@ class Demo:
           can be changed at runtime simply by reassigning it to a boolean
           value.
           """
-
+        
         self.fname    = fname
         self.sys_argv = [fname] + shlex_split(arg_str)
         self.auto_all = auto_all
@@ -159,9 +172,11 @@ class Demo:
         # it ensures that things like color scheme and the like are always in
         # sync with the ipython mode being used.  This class is only meant to
         # be used inside ipython anyways,  so it's OK.
-        self.ip_showtb   = __IPYTHON__.showtraceback
         self.ip_ns       = __IPYTHON__.user_ns
         self.ip_colorize = __IPYTHON__.pycolorize
+        self.ip_showtb   = __IPYTHON__.showtraceback
+        self.ip_runlines = __IPYTHON__.runlines
+        self.shell       = __IPYTHON__
 
         # load user data and initialize data structures
         self.reload()
@@ -211,6 +226,20 @@ class Demo:
         if index<0 or index>=self.nblocks:
             raise ValueError('invalid block index %s' % index)
 
+    def _get_index(self,index):
+        """Get the current block index, validating and checking status.
+
+        Returns None if the demo is finished"""
+        
+        if index is None:
+            if self.finished:
+                print 'Demo finished.  Use reset() if you want to rerun it.'
+                return None
+            index = self.block_index
+        else:
+            self._validate_index(index)
+        return index
+
     def seek(self,index):
         """Move the current seek pointer to the given block"""
         self._validate_index(index)
@@ -230,15 +259,42 @@ class Demo:
         self.back(1)
         self()
 
+    def edit(self,index=None):
+        """Edit a block.
+
+        If no number is given, use the last block executed.
+
+        This edits the in-memory copy of the demo, it does NOT modify the
+        original source file.  If you want to do that, simply open the file in
+        an editor and use reload() when you make changes to the file.  This
+        method is meant to let you change a block during a demonstration for
+        explanatory purposes, without damaging your original script."""
+
+        index = self._get_index(index)
+        if index is None:
+            return
+        # decrease the index by one (unless we're at the very beginning), so
+        # that the default demo.edit() call opens up the sblock we've last run
+        if index>0:
+            index -= 1
+            
+        filename = self.shell.mktempfile(self.src_blocks[index])
+        self.shell.hooks.editor(filename,1)
+        new_block = file_read(filename)
+        # update the source and colored block
+        self.src_blocks[index] = new_block
+        self.src_blocks_colored[index] = self.ip_colorize(new_block)
+        self.block_index = index
+        # call to run with the newly edited index
+        self()
+        
     def show(self,index=None):
         """Show a single block on screen"""
+
+        index = self._get_index(index)
         if index is None:
-            if self.finished:
-                print 'Demo finished.  Use reset() if you want to rerun it.'
-                return
-            index = self.block_index
-        else:
-            self._validate_index(index)
+            return
+
         print marquee('<%s> block # %s (%s remaining)' %
                       (self.fname,index,self.nblocks-index-1))
         print self.src_blocks_colored[index],
@@ -259,7 +315,12 @@ class Demo:
                               (fname,index,nblocks-index-1))
             print block,
         sys.stdout.flush()
-            
+
+    def runlines(self,source):
+        """Execute a string with one or more lines of code"""
+
+        exec source in self.user_ns
+        
     def __call__(self,index=None):
         """run a block of the demo.
 
@@ -269,12 +330,9 @@ class Demo:
         prints 'Block n/N, and N is the total, so it would be very odd to use
         zero-indexing here."""
 
-        if index is None and self.finished:
-            print 'Demo finished.  Use reset() if you want to rerun it.'
-            return
+        index = self._get_index(index)
         if index is None:
-            index = self.block_index
-        self._validate_index(index)
+            return
         try:
             next_block = self.src_blocks[index]
             self.block_index += 1
@@ -294,7 +352,7 @@ class Demo:
             try:
                 save_argv = sys.argv
                 sys.argv = self.sys_argv
-                exec next_block in self.user_ns
+                self.runlines(next_block)
             finally:
                 sys.argv = save_argv
             
@@ -309,3 +367,52 @@ class Demo:
             print marquee('Use reset() if you want to rerun it.')
             self.finished = True
 
+class IPythonDemo(Demo):
+    """Class for interactive demos with IPython's input processing applied.
+
+    This subclasses Demo, but instead of executing each block by the Python
+    interpreter (via exec), it actually calls IPython on it, so that any input
+    filters which may be in place are applied to the input block.
+
+    If you have an interactive environment which exposes special input
+    processing, you can use this class instead to write demo scripts which
+    operate exactly as if you had typed them interactively.  The default Demo
+    class requires the input to be valid, pure Python code.
+    """
+
+    def runlines(self,source):
+        """Execute a string with one or more lines of code"""
+
+        self.runlines(source)
+        
+class LineDemo(Demo):
+    """Demo where each line is executed as a separate block.
+
+    The input script should be valid Python code.
+
+    This class doesn't require any markup at all, and it's meant for simple
+    scripts (with no nesting or any kind of indentation) which consist of
+    multiple lines of input to be executed, one at a time, as if they had been
+    typed in the interactive prompt."""
+    
+    def reload(self):
+        """Reload source from disk and initialize state."""
+        # read data and parse into blocks
+        src_b           = [l for l in file_readlines(self.fname) if l.strip()]
+        nblocks         = len(src_b)
+        self.src        = os.linesep.join(file_readlines(self.fname))
+        self._silent    = [False]*nblocks
+        self._auto      = [True]*nblocks
+        self.auto_all   = True
+        self.nblocks    = nblocks
+        self.src_blocks = src_b
+
+        # also build syntax-highlighted source
+        self.src_blocks_colored = map(self.ip_colorize,self.src_blocks)
+
+        # ensure clean namespace and seek offset
+        self.reset()
+
+class IPythonLineDemo(IPythonDemo,LineDemo):
+    """Variant of the LineDemo class whose input is processed by IPython."""
+    pass

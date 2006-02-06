@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Magic functions for InteractiveShell.
 
-$Id: Magic.py 1121 2006-02-01 21:12:20Z vivainio $"""
+$Id: Magic.py 1126 2006-02-06 02:31:40Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001 Janko Hauser <jhauser@zscout.de> and
@@ -98,7 +98,7 @@ license. To use profiling, please install"python2.3-profiler" from non-free.""")
 
     def default_option(self,fn,optstr):
         """Make an entry in the options_table for fn, with value optstr"""
-        
+
         if fn not in self.lsmagic():
             error("%s is not a magic function" % fn)
         self.options_table[fn] = optstr
@@ -129,18 +129,30 @@ license. To use profiling, please install"python2.3-profiler" from non-free.""")
         out.sort()
         return out
     
-    def extract_input_slices(self,slices):
+    def extract_input_slices(self,slices,raw=False):
         """Return as a string a set of input history slices.
 
-        The set of slices is given as a list of strings (like ['1','4:8','9'],
-        since this function is for use by magic functions which get their
-        arguments as strings.
+        Inputs:
+
+          - slices: the set of slices is given as a list of strings (like
+          ['1','4:8','9'], since this function is for use by magic functions
+          which get their arguments as strings.
+
+        Optional inputs:
+
+          - raw(False): by default, the processed input is used.  If this is
+          true, the raw input history is used instead.
 
         Note that slices can be called with two notations:
 
         N:M -> standard python form, means including items N...(M-1).
 
         N-M -> include items N..M (closed endpoint)."""
+
+        if raw:
+            hist = self.shell.input_hist_raw
+        else:
+            hist = self.shell.input_hist
 
         cmds = []
         for chunk in slices:
@@ -152,7 +164,7 @@ license. To use profiling, please install"python2.3-profiler" from non-free.""")
             else:
                 ini = int(chunk)
                 fin = ini+1
-            cmds.append(self.shell.input_hist[ini:fin])
+            cmds.append(hist[ini:fin])
         return cmds
         
     def _ofind(self,oname):
@@ -1606,7 +1618,14 @@ Currently the magic system has the following functions:\n"""
         """Define a set of input lines as a macro for future re-execution.
 
         Usage:\\
-          %macro name n1-n2 n3-n4 ... n5 .. n6 ...
+          %macro [options] name n1-n2 n3-n4 ... n5 .. n6 ...
+
+        Options:
+        
+          -r: use 'raw' input.  By default, the 'processed' history is used,
+          so that magics are loaded in their transformed version to valid
+          Python.  If this option is given, the raw input as typed as the
+          command line is used instead.
 
         This will define a global variable called `name` which is a string
         made of joining the slices and lines you specify (n1,n2,... numbers
@@ -1657,10 +1676,10 @@ Currently the magic system has the following functions:\n"""
 
           In [60]: exec In[44:48]+In[49]"""
 
-        args = parameter_s.split()
+        opts,args = self.parse_options(parameter_s,'r')
         name,ranges = args[0], args[1:]
         #print 'rng',ranges  # dbg
-        lines = self.extract_input_slices(ranges)
+        lines = self.extract_input_slices(ranges,opts.has_key('r'))
         macro = Macro(lines)
         self.shell.user_ns.update({name:macro})
         print 'Macro `%s` created. To execute, type its name (without quotes).' % name
@@ -1671,7 +1690,14 @@ Currently the magic system has the following functions:\n"""
         """Save a set of lines to a given filename.
 
         Usage:\\
-          %save filename n1-n2 n3-n4 ... n5 .. n6 ...
+          %save [options] filename n1-n2 n3-n4 ... n5 .. n6 ...
+
+        Options:
+        
+          -r: use 'raw' input.  By default, the 'processed' history is used,
+          so that magics are loaded in their transformed version to valid
+          Python.  If this option is given, the raw input as typed as the
+          command line is used instead.
 
         This function uses the same syntax as %macro for line extraction, but
         instead of creating a macro it saves the resulting string to the
@@ -1680,7 +1706,7 @@ Currently the magic system has the following functions:\n"""
         It adds a '.py' extension to the file if you don't do so yourself, and
         it asks for confirmation before overwriting existing files."""
 
-        args = parameter_s.split()
+        opts,args = self.parse_options(parameter_s,'r')
         fname,ranges = args[0], args[1:]
         if not fname.endswith('.py'):
             fname += '.py'
@@ -1689,7 +1715,7 @@ Currently the magic system has the following functions:\n"""
             if ans.lower() not in ['y','yes']:
                 print 'Operation cancelled.'
                 return
-        cmds = ''.join(self.extract_input_slices(ranges))
+        cmds = ''.join(self.extract_input_slices(ranges,opts.has_key('r')))
         f = file(fname,'w')
         f.write(cmds)
         f.close()
@@ -1742,6 +1768,13 @@ Currently the magic system has the following functions:\n"""
         it was used, regardless of how long ago (in your current session) it
         was.
 
+        -r: use 'raw' input.  This option only applies to input taken from the
+        user's history.  By default, the 'processed' history is used, so that
+        magics are loaded in their transformed version to valid Python.  If
+        this option is given, the raw input as typed as the command line is
+        used instead.  When you exit the editor, it will be executed by
+        IPython's own processor.
+        
         -x: do not execute the edited code immediately upon exit. This is
         mainly useful if you are editing programs which need to be called with
         command line arguments, which you can then do using %run.
@@ -1860,11 +1893,14 @@ Currently the magic system has the following functions:\n"""
         # custom exceptions
         class DataIsObject(Exception): pass
 
-        opts,args = self.parse_options(parameter_s,'px')
+        opts,args = self.parse_options(parameter_s,'prx')
+        # Set a few locals from the options for convenience:
+        opts_p = opts.has_key('p')
+        opts_r = opts.has_key('r')
 
         # Default line number value
         lineno = None
-        if opts.has_key('p'):
+        if opts_p:
             args = '_%s' % last_call[0]
             if not self.shell.user_ns.has_key(args):
                 args = last_call[1]
@@ -1873,7 +1909,7 @@ Currently the magic system has the following functions:\n"""
         # let it be clobbered by successive '-p' calls.
         try:
             last_call[0] = self.shell.outputcache.prompt_count
-            if not opts.has_key('p'):
+            if not opts_p:
                 last_call[1] = parameter_s
         except:
             pass
@@ -1887,7 +1923,7 @@ Currently the magic system has the following functions:\n"""
             # This means that you can't edit files whose names begin with
             # numbers this way. Tough.
             ranges = args.split()
-            data = ''.join(self.extract_input_slices(ranges))
+            data = ''.join(self.extract_input_slices(ranges,opts_r))
         elif args.endswith('.py'):
             filename = make_filename(args)
             data = ''
@@ -1955,7 +1991,10 @@ Currently the magic system has the following functions:\n"""
             print
         else:
             print 'done. Executing edited code...'
-            self.shell.safe_execfile(filename,self.shell.user_ns)
+            if opts_r:
+                self.shell.runlines(file_read(filename))
+            else:
+                self.shell.safe_execfile(filename,self.shell.user_ns)
         if use_temp:
             try:
                 return open(filename).read()

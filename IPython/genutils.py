@@ -5,7 +5,7 @@ General purpose utilities.
 This is a grab-bag of stuff I find useful in most programs I write. Some of
 these things are also convenient when working at the command line.
 
-$Id: genutils.py 1110 2006-01-30 20:43:30Z vivainio $"""
+$Id: genutils.py 1126 2006-02-06 02:31:40Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2006 Fernando Perez. <fperez@colorado.edu>
@@ -529,10 +529,17 @@ def filefind(fname,alt_dirs = None):
 #----------------------------------------------------------------------------
 def file_read(filename):
     """Read a file and close it.  Returns the file source."""
-    fobj=open(filename,'r');
+    fobj = open(filename,'r');
     source = fobj.read();
     fobj.close()
     return source
+
+def file_readlines(filename):
+    """Read a file and close it.  Returns the file source using readlines()."""
+    fobj = open(filename,'r');
+    lines = fobj.readlines();
+    fobj.close()
+    return lines
 
 #----------------------------------------------------------------------------
 def target_outdated(target,deps):
