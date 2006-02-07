@@ -6,7 +6,7 @@ Requires Python 2.3 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 1121 2006-02-01 21:12:20Z vivainio $
+$Id: iplib.py 1131 2006-02-07 11:51:54Z vivainio $
 """
 
 #*****************************************************************************
@@ -2046,11 +2046,11 @@ want to merge them back into the new files.""" % locals()
                     else:
                         # if the object doesn't support [] access, go ahead and
                         # autocall
-                        newcmd = '%s(%s)' % (iFun.rstrip(),",".join(theRest.split()))
+                        newcmd = '%s(%s)' % (iFun.rstrip(),theRest)
                 elif theRest.endswith(';'):
                     newcmd = '%s(%s);' % (iFun.rstrip(),theRest[:-1])
                 else:
-                    newcmd = '%s(%s)' % (iFun.rstrip(),",".join(theRest.split()))
+                    newcmd = '%s(%s)' % (iFun.rstrip(), theRest)
 
         if auto_rewrite:
             print >>Term.cout, self.outputcache.prompt1.auto_rewrite() + newcmd
