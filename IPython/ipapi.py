@@ -102,6 +102,8 @@ class IPApi:
         
         self.set_hook = ip.set_hook
         
+        self.set_custom_exc = ip.set_custom_exc
+        
         self.IP = ip
         global _recent
         _recent = self
@@ -155,7 +157,18 @@ class IPApi:
         Return a PickleShareDB object.
         """
         return self.IP.db
+    def runlines(self,lines):
+        """ Run the specified lines in interpreter, honoring ipython directives.
         
+        This allows %magic and !shell escape notations.
+        
+        Takes either all lines in one string or list of lines.
+        """
+        if isinstance(lines,basestring):
+            self.IP.runlines(lines)
+        else:
+            self.IP.runlines('\n'.join(lines))
+
 
 def launch_new_instance(user_ns = None):
     """ Create and start a new ipython instance.

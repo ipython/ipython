@@ -1,0 +1,6 @@
+import os
+cd /
+assert os.getcwd() == '/'
+%cd /tmp
+
+assert os.getcwd() == '/tmp'

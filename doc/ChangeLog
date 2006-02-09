@@ -1,3 +1,10 @@
+2006-02-09  Ville Vainio  <vivainio@gmail.com>  
+
+	* test/*: Added a unit testing framework (finally). 
+	'%run runtests.py' to run test_*.
+	
+	* ipapi.py: Exposed runlines and set_custom_exc
+
 2006-02-07  Ville Vainio  <vivainio@gmail.com>  
 
 	* iplib.py: don't split "f 1 2" to "f(1,2)" in autocall,
