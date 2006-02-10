@@ -1,3 +1,7 @@
+2006-02-10  Ville Vainio  <vivainio@gmail.com>  
+
+	* genutils.py: getoutput now works in win32 too
+	
 2006-02-09  Ville Vainio  <vivainio@gmail.com>  
 
 	* test/*: Added a unit testing framework (finally). 

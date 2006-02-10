@@ -5,7 +5,7 @@ General purpose utilities.
 This is a grab-bag of stuff I find useful in most programs I write. Some of
 these things are also convenient when working at the command line.
 
-$Id: genutils.py 1126 2006-02-06 02:31:40Z fperez $"""
+$Id: genutils.py 1139 2006-02-10 15:55:09Z vivainio $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2006 Fernando Perez. <fperez@colorado.edu>
@@ -375,11 +375,19 @@ def getoutput(cmd,verbose=0,debug=0,header='',split=0):
     - split(0): if true, the output is returned as a list split on newlines.
 
     Note: a stateful version of this function is available through the
-    SystemExec class."""
+    SystemExec class.
+    
+    This is pretty much deprecated and rarely used, 
+    genutils.getoutputerror may be what you need.
+    
+    """
 
     if verbose or debug: print header+cmd
     if not debug:
-        output = commands.getoutput(cmd)
+        output = os.popen(cmd).read()
+        # stipping last \n is here for backwards compat.
+        if output.endswith('\n'):
+            output = output[:-1]
         if split:
             return output.split('\n')
         else:
