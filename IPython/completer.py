@@ -433,7 +433,9 @@ class IPCompleter(Completer):
         else:
             matches = self.global_matches(text)
             # this is so completion finds magics when automagic is on:
-            if matches == [] and not text.startswith(os.sep):
+            if (matches == [] and 
+                 not text.startswith(os.sep) and
+                 not ' ' in self.lbuf):
                 matches = self.attr_matches(self.magic_prefix+text)
         return matches
 
