@@ -342,8 +342,8 @@ class IPCompleter(Completer):
         def protect_filename(s):
             return "".join([(ch in protectables and '\\' + ch or ch)
                             for ch in s])
-
-        lbuf = self.get_line_buffer()[:self.readline.get_endidx()]
+        
+        lbuf = self.lbuf
         open_quotes = 0  # track strings with open quotes
         try:
             lsplit = shlex_split(lbuf)[-1]
@@ -396,9 +396,13 @@ class IPCompleter(Completer):
         return matches
 
     def alias_matches(self, text):
-        """Match internal system aliases"""
-
-        #print 'Completer->alias_matches:',text # dbg
+        """Match internal system aliases"""        
+        #print 'Completer->alias_matches:',text,'lb',self.lbuf # dbg
+        
+        # if we are not in the first 'item', alias matching 
+        # doesn't make sense
+        if ' ' in self.lbuf:
+            return []
         text = os.path.expanduser(text)
         aliases =  self.alias_table.keys()
         if text == "":
@@ -525,6 +529,7 @@ class IPCompleter(Completer):
 
         # don't apply this on 'dumb' terminals, such as emacs buffers, so we
         # don't interfere with their own tab-completion mechanism.
+        self.lbuf = self.get_line_buffer()[:self.readline.get_endidx()]
         if not (self.dumb_terminal or self.get_line_buffer().strip()):
             self.readline.insert_text('\t')
             return None
