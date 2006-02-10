@@ -2,6 +2,10 @@
 
 	* genutils.py: getoutput now works in win32 too
 	
+	* completer.py: alias and magic completion only invoked
+	at the first "item" in the line, to avoid "cd %store" 
+	nonsense.
+	
 2006-02-09  Ville Vainio  <vivainio@gmail.com>  
 
 	* test/*: Added a unit testing framework (finally). 
