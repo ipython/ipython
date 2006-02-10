@@ -6,7 +6,7 @@ Requires Python 2.1 or better.
 
 This file contains the main make_IPython() starter function.
 
-$Id: ipmaker.py 1120 2006-02-01 20:08:48Z vivainio $"""
+$Id: ipmaker.py 1140 2006-02-10 17:07:11Z vivainio $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2006 Fernando Perez. <fperez@colorado.edu>
@@ -498,6 +498,7 @@ object? -> Details about 'object'. ?object also works, ?? prints more.
         IP_rc.colors = 'NoColor'
         IP_rc.xmode = 'Plain'
 
+    IP.pre_config_initialization()
     # configure readline
     # Define the history file for saving commands in between sessions
     if IP_rc.profile:

@@ -6,7 +6,7 @@ Requires Python 2.3 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 1131 2006-02-07 11:51:54Z vivainio $
+$Id: iplib.py 1140 2006-02-10 17:07:11Z vivainio $
 """
 
 #*****************************************************************************
@@ -601,6 +601,19 @@ class InteractiveShell(object,Magic):
         self.init_auto_alias()
     # end __init__
 
+    def pre_config_initialization(self):
+        """Pre-configuration init method
+
+        This is called before the configuration files are processed to
+        prepare the services the config files might need.
+        
+        self.rc already has reasonable default values at this point.
+        """
+        rc = self.rc
+        
+        self.db = pickleshare.PickleShareDB(rc.ipythondir + "/db")
+
+    
     def post_config_initialization(self):
         """Post configuration init method
 
@@ -609,7 +622,6 @@ class InteractiveShell(object,Magic):
 
         rc = self.rc
         
-        self.db = pickleshare.PickleShareDB(rc.ipythondir + "/db")
         # Load readline proper
         if rc.readline:
             self.init_readline()

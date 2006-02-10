@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Magic functions for InteractiveShell.
 
-$Id: Magic.py 1126 2006-02-06 02:31:40Z fperez $"""
+$Id: Magic.py 1140 2006-02-10 17:07:11Z vivainio $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001 Janko Hauser <jhauser@zscout.de> and
@@ -2220,7 +2220,7 @@ Defaulting color scheme to 'NoColor'"""
                       'in alias definitions.')
             else:  # all looks OK
                 self.shell.alias_table[alias] = (nargs,cmd)
-                self.shell.alias_table_validate(verbose=1)
+                self.shell.alias_table_validate(verbose=0)
     # end magic_alias
 
     def magic_unalias(self, parameter_s = ''):
@@ -2267,7 +2267,7 @@ Defaulting color scheme to 'NoColor'"""
         
         path = filter(os.path.isdir,os.environ['PATH'].split(os.pathsep))
         alias_table = self.shell.alias_table
-
+        syscmdlist = []
         if os.name == 'posix':
             isexec = lambda fname:os.path.isfile(fname) and \
                      os.access(fname,os.X_OK)
@@ -2293,17 +2293,21 @@ Defaulting color scheme to 'NoColor'"""
                             # where N is the number of positional arguments of the
                             # alias.
                             alias_table[ff] = (0,ff)
+                            syscmdlist.append(ff)
             else:
                 for pdir in path:
                     os.chdir(pdir)
                     for ff in os.listdir(pdir):
                         if isexec(ff):
                             alias_table[execre.sub(r'\1',ff)] = (0,ff)
+                            syscmdlist.append(ff)
             # Make sure the alias table doesn't contain keywords or builtins
             self.shell.alias_table_validate()
             # Call again init_auto_alias() so we get 'rm -i' and other
             # modified aliases since %rehashx will probably clobber them
             self.shell.init_auto_alias()
+            db = self.getapi().getdb()
+            db['syscmdlist'] = syscmdlist
         finally:
             os.chdir(savedir)
         
