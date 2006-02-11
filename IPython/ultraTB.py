@@ -60,7 +60,7 @@ You can implement other color schemes easily, the syntax is fairly
 self-explanatory. Please send back new schemes you develop to the author for
 possible inclusion in future releases.
 
-$Id: ultraTB.py 1005 2006-01-12 08:39:26Z fperez $"""
+$Id: ultraTB.py 1154 2006-02-11 23:20:05Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001 Nathaniel Gray <n8gray@caltech.edu>
@@ -394,12 +394,38 @@ class VerboseTB(TBTools):
         Colors        = self.Colors   # just a shorthand + quicker name lookup
         ColorsNormal  = Colors.Normal  # used a lot
         indent        = ' '*INDENT_SIZE
-        text_repr     = pydoc.text.repr
         exc           = '%s%s%s' % (Colors.excName, str(etype), ColorsNormal)
         em_normal     = '%s\n%s%s' % (Colors.valEm, indent,ColorsNormal)
         undefined     = '%sundefined%s' % (Colors.em, ColorsNormal)
 
         # some internal-use functions
+        def text_repr(value):
+            """Hopefully pretty robust repr equivalent."""
+            # this is pretty horrible but should always return *something*
+            try:
+                return pydoc.text.repr(value)
+            except KeyboardInterrupt:
+                raise
+            except:
+                try:
+                    return repr(value)
+                except KeyboardInterrupt:
+                    raise
+                except:
+                    try:
+                        # all still in an except block so we catch
+                        # getattr raising
+                        name = getattr(value, '__name__', None)
+                        if name:
+                            # ick, recursion
+                            return text_repr(name)
+                        klass = getattr(value, '__class__', None)
+                        if klass:
+                            return '%s instance' % text_repr(klass)
+                    except KeyboardInterrupt:
+                        raise
+                    except:
+                        return 'UNRECOVERABLE REPR FAILURE'
         def eqrepr(value, repr=text_repr): return '=%s' % repr(value)
         def nullrepr(value, repr=text_repr): return ''
 
