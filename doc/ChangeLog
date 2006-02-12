@@ -1,5 +1,8 @@
 2006-02-11  Fernando Perez  <Fernando.Perez@colorado.edu>
 
+	* IPython/UserConfig/ipythonrc: Replace @ signs with % when
+	describing magics (we haven't used @ for a loong time).
+
 	* IPython/ultraTB.py (VerboseTB.text.text_repr): Added patch
 	contributed by marienz to close
 	http://www.scipy.net/roundup/ipython/issue53.

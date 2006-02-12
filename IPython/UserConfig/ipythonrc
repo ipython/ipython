@@ -1,5 +1,5 @@
 # -*- Mode: Shell-Script -*-  Not really, but shows comments correctly
-# $Id: ipythonrc 998 2006-01-09 06:57:40Z fperez $
+# $Id: ipythonrc 1155 2006-02-12 01:21:00Z fperez $
 
 #***************************************************************************
 #
@@ -105,14 +105,14 @@ autoedit_syntax 1
 # The feature is potentially a bit dangerous, because it can cause problems
 # with pasting of indented code (the pasted code gets re-indented on each
 # line).  But it's a huge time-saver when working interactively.  The magic
-# function @autoindent allows you to toggle it on/off at runtime.
+# function %autoindent allows you to toggle it on/off at runtime.
 
 autoindent 1
 
 # Auto-magic. This gives you access to all the magic functions without having
-# to prepend them with an @ sign. If you define a variable with the same name
+# to prepend them with an % sign. If you define a variable with the same name
 # as a magic function (say who=1), you will need to access the magic function
-# with @ (@who in this example). However, if later you delete your variable
+# with % (%who in this example). However, if later you delete your variable
 # (del who), you'll recover the automagic calling form.
 
 # Considering that many magic functions provide a lot of shell-like
@@ -178,13 +178,13 @@ colors Linux
 
 # If your pager has problems, try to setting it to properly handle escapes
 # (see the less manpage for detail), or disable this option.  The magic
-# function @color_info allows you to toggle this interactively for testing.
+# function %color_info allows you to toggle this interactively for testing.
 
 color_info 1
 
 # confirm_exit: set to 1 if you want IPython to confirm when you try to exit
 # with an EOF (Control-d in Unix, Control-Z/Enter in Windows). Note that using
-# the magic functions @Exit or @Quit you can force a direct exit, bypassing
+# the magic functions %Exit or %Quit you can force a direct exit, bypassing
 # any confirmation.
 
 confirm_exit 1
@@ -194,7 +194,7 @@ confirm_exit 1
 
 deep_reload 0
 
-# Which editor to use with the @edit command. If you leave this at 0, IPython
+# Which editor to use with the %edit command. If you leave this at 0, IPython
 # will honor your EDITOR environment variable. Since this editor is invoked on
 # the fly by ipython and is meant for editing small code snippets, you may
 # want to use a small, lightweight editor here.
@@ -525,7 +525,7 @@ execute
 
 # execute __IPYTHON__.magic_pf = __IPYTHON__.magic_profile
 
-# defines @pf as a new name for @profile.
+# defines %pf as a new name for %profile.
 
 #---------------------------------------------------------------------------
 # Section: Pyhton files to load and execute.
@@ -566,12 +566,12 @@ execfile
 # Section: aliases for system shell commands
 
 # Here you can define your own names for system commands. The syntax is
-# similar to that of the builtin @alias function:
+# similar to that of the builtin %alias function:
 
 # alias alias_name command_string
 
 # The resulting aliases are auto-generated magic functions (hence usable as
-# @alias_name)
+# %alias_name)
 
 # For example:
 
@@ -587,7 +587,7 @@ execfile
 # alias parts echo first %s second %s
 
 # will give you in IPython:
-# >>> @parts A B
+# >>> %parts A B
 # first A second B
 
 # Use one 'alias' statement per alias you wish to define.
