@@ -1,5 +1,10 @@
 2006-02-11  Fernando Perez  <Fernando.Perez@colorado.edu>
 
+	* IPython/hooks.py (editor): quote the call to the editor command,
+	to allow commands with spaces in them.  Problem noted by watching
+	Ian Oswald's video about textpad under win32 at
+	http://showmedo.com/videoListPage?listKey=PythonIPythonSeries
+
 	* IPython/UserConfig/ipythonrc: Replace @ signs with % when
 	describing magics (we haven't used @ for a loong time).
 
