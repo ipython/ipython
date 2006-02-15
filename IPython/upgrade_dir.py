@@ -24,7 +24,8 @@ def upgrade_dir(srcdir, tgtdir):
         print s
 
     def ignorable(p):
-        if p.lower().startswith('.svn'):
+        
+        if p.lower().startswith('.svn') or p.startswith('ipythonrc'):
             return True
         return False
             
