@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Magic functions for InteractiveShell.
 
-$Id: Magic.py 1140 2006-02-10 17:07:11Z vivainio $"""
+$Id: Magic.py 1163 2006-02-15 14:10:49Z vivainio $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001 Janko Hauser <jhauser@zscout.de> and
@@ -2112,9 +2112,9 @@ Defaulting color scheme to 'NoColor'"""
     def magic_Pprint(self, parameter_s=''):
         """Toggle pretty printing on/off."""
         
-        self.shell.outputcache.Pprint = 1 - self.shell.outputcache.Pprint
+        self.shell.rc.pprint = 1 - self.shell.rc.pprint
         print 'Pretty printing has been turned', \
-              ['OFF','ON'][self.shell.outputcache.Pprint]
+              ['OFF','ON'][self.shell.rc.pprint]
         
     def magic_exit(self, parameter_s=''):
         """Exit IPython, confirming if configured to do so.

@@ -1,3 +1,7 @@
+2006-02-15  Ville Vainio  <vivainio@gmail.com>  
+
+	* Magic.py: %Pprint work again
+
 2006-02-11  Fernando Perez  <Fernando.Perez@colorado.edu>
 
 	* IPython/hooks.py (editor): quote the call to the editor command,
