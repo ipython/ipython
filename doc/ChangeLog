@@ -1,6 +1,6 @@
 2006-02-15  Ville Vainio  <vivainio@gmail.com>  
 
-	* Magic.py: %Pprint work again
+	* Magic.py: %Pprint works again
 
 2006-02-11  Fernando Perez  <Fernando.Perez@colorado.edu>
 
