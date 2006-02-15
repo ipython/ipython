@@ -1,6 +1,11 @@
 2006-02-15  Ville Vainio  <vivainio@gmail.com>  
 
 	* Magic.py: %Pprint works again
+	
+	* Extensions/ipy_sane_defaults.py: Provide everything provided 
+	in default ipythonrc, to make it possible to have a completely empty
+	ipythonrc (and thus completely rc-file free configuration)
+	
 
 2006-02-11  Fernando Perez  <Fernando.Perez@colorado.edu>
 

@@ -13,6 +13,11 @@ compatibility)
 from IPython import ipapi
 import os,textwrap
 
+# The import below effectively obsoletes your old-style ipythonrc[.ini],
+# so consider yourself warned!
+
+import ipy_sane_defaults
+
 def main():
     ip = ipapi.get()
     o = ip.options()
@@ -26,6 +31,9 @@ def main():
         ip.ex("from path import path" )
     except ImportError:
         pass
+    
+    ip.ex('import os')
+    ip.ex("def up(): os.chdir('..')")
         
     # Get pysh-like prompt for all profiles. 
     
