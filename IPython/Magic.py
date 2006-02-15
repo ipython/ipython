@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Magic functions for InteractiveShell.
 
-$Id: Magic.py 1163 2006-02-15 14:10:49Z vivainio $"""
+$Id: Magic.py 1166 2006-02-15 19:20:58Z vivainio $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001 Janko Hauser <jhauser@zscout.de> and
@@ -2802,7 +2802,7 @@ Defaulting color scheme to 'NoColor'"""
     def magic_quickref(self,arg):
         import IPython.usage
         page(IPython.usage.quick_reference)
-        del IPython.usage
+        
 
 
 # end Magic
