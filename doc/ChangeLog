@@ -1,3 +1,7 @@
+2006-02-21  Ville Vainio  <vivainio@gmail.com>  
+
+	* Magic.py: %save works again.
+
 2006-02-15  Ville Vainio  <vivainio@gmail.com>  
 
 	* Magic.py: %Pprint works again
