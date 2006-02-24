@@ -11,7 +11,13 @@ import md5,pickle
 def showdiff(old,new):
     import difflib
     d = difflib.Differ()
-    print "".join(d.compare(old.lines(),new.lines()))
+    lines = d.compare(old.lines(),new.lines())
+    realdiff = False
+    for l in lines:
+        print l,
+        if not realdiff and not l[0].isspace():
+            realdiff = True 
+    return realdiff
 
 def upgrade_dir(srcdir, tgtdir):
     """ Copy over all files in srcdir to tgtdir w/ native line endings 
@@ -24,12 +30,12 @@ def upgrade_dir(srcdir, tgtdir):
         print s
 
     def ignorable(p):
-        
         if p.lower().startswith('.svn') or p.startswith('ipythonrc'):
             return True
         return False
             
         
+    modded = []
     files = [path(srcdir).relpathto(p) for p in path(srcdir).walkfiles()]
     #print files
     rep = tgtdir / '.upgrade_report'
@@ -47,21 +53,34 @@ def upgrade_dir(srcdir, tgtdir):
             pr("Creating %s" % str(tgt))
             
             tgt.write_text(src.text())
-            rpt[str(tgt)] = md5.new(tgt.bytes()).hexdigest()
+            rpt[str(tgt)] = md5.new(tgt.text()).hexdigest()
         else:
-            cont = tgt.bytes()
+            cont = tgt.text()
             sum = rpt.get(str(tgt), None)
             #print sum
             if sum and md5.new(cont).hexdigest() == sum:
                 pr("Unedited, installing new %s" % tgt)
-                rpt[str(tgt)] = md5.new(tgt.bytes()).hexdigest()
+                rpt[str(tgt)] = md5.new(tgt.text()).hexdigest()
             else:
-                pr('Modified, skipping %s, diffs below' % tgt)
+                pr(' == Modified, skipping %s, diffs below == ' % tgt)
                 #rpt[str(tgt)] = md5.new(tgt.bytes()).hexdigest()
-                showdiff(tgt,src)
-            pass
+                real = showdiff(tgt,src)
+                if not real:
+                    print "(Ok, it wasn't that different at all, upgrading checksum)"
+                    rpt[str(tgt)] = md5.new(tgt.text()).hexdigest()
+                else:
+                    modded.append(tgt)
+
         #print rpt
     pickle.dump(rpt, rep.open('w'))
+    if modded:
+        print "\n\nDelete the following files manually if you need a full upgrade:"
+        for m in modded:
+            print m
+            
             
 import sys
-upgrade_dir(path(sys.argv[1]), path(sys.argv[2]))
+if __name__ == "__main__":
+    upgrade_dir(path(sys.argv[1]), path(sys.argv[2]))
+
+    
