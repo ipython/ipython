@@ -1,3 +1,8 @@
+2006-02-24  Ville Vainio  <vivainio@gmail.com>  
+
+	* Magic.py, upgrade_dir.py: %upgrade magic added. Does things more
+	"cleanly" and safely than the older upgrade mechanism.
+
 2006-02-21  Ville Vainio  <vivainio@gmail.com>  
 
 	* Magic.py: %save works again.
