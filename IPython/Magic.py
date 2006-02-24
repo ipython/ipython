@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Magic functions for InteractiveShell.
 
-$Id: Magic.py 1175 2006-02-24 16:34:07Z vivainio $"""
+$Id: Magic.py 1178 2006-02-24 17:26:36Z vivainio $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001 Janko Hauser <jhauser@zscout.de> and
@@ -365,6 +365,8 @@ license. To use profiling, please install"python2.3-profiler" from non-free.""")
         try:
             if parameter_s.split()[0] == '-latex':
                 mode = 'latex'
+            if parameter_s.split()[0] == '-brief':
+                mode = 'brief'
         except:
             pass
 
@@ -378,8 +380,14 @@ license. To use profiling, please install"python2.3-profiler" from non-free.""")
                     pass
                 else:
                     break
+            if mode == 'brief':
+                # only first line
+                fndoc = fn.__doc__.split('\n',1)[0]
+            else:
+                fndoc = fn.__doc__
+                
             magic_docs.append('%s%s:\n\t%s\n' %(self.shell.ESC_MAGIC,
-                                                fname,fn.__doc__))
+                                                fname,fndoc))
         magic_docs = ''.join(magic_docs)
 
         if mode == 'latex':
@@ -387,6 +395,8 @@ license. To use profiling, please install"python2.3-profiler" from non-free.""")
             return
         else:
             magic_docs = self.format_screen(magic_docs)
+        if mode == 'brief':
+            return magic_docs
         
         outmsg = """
 IPython's 'magic' functions
@@ -2758,8 +2768,7 @@ Defaulting color scheme to 'NoColor'"""
              screen_lines=self.shell.rc.screen_length)
 
     def magic_cpaste(self, parameter_s=''):
-        """Allows you to paste & execute a pre-formatted code block from 
-        clipboard.
+        """Allows you to paste & execute a pre-formatted code block from clipboard
         
         You must terminate the block with '--' (two minus-signs) alone on the
         line. You can also provide your own sentinel with '%paste -s %%' ('%%' 
@@ -2800,10 +2809,13 @@ Defaulting color scheme to 'NoColor'"""
         else:
             self.user_ns[par] = block
             print "Block assigned to '%s'" % par
+            
     def magic_quickref(self,arg):
         """ Show a quick reference sheet """
         import IPython.usage
-        page(IPython.usage.quick_reference)
+        qr = IPython.usage.quick_reference + self.magic_magic('-brief')
+        
+        page(qr)
         
     def magic_upgrade(self,arg):
         """ Upgrade your IPython installation
