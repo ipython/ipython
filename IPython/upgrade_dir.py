@@ -65,8 +65,9 @@ def upgrade_dir(srcdir, tgtdir):
                 pr(' == Modified, skipping %s, diffs below == ' % tgt)
                 #rpt[str(tgt)] = md5.new(tgt.bytes()).hexdigest()
                 real = showdiff(tgt,src)
+                pr('') # empty line
                 if not real:
-                    print "(Ok, it wasn't that different at all, upgrading checksum)"
+                    pr("(Ok, it wasn't that different at all, upgrading checksum)")
                     rpt[str(tgt)] = md5.new(tgt.text()).hexdigest()
                 else:
                     modded.append(tgt)
