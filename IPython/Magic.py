@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Magic functions for InteractiveShell.
 
-$Id: Magic.py 1178 2006-02-24 17:26:36Z vivainio $"""
+$Id: Magic.py 1179 2006-02-24 18:32:09Z vivainio $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001 Janko Hauser <jhauser@zscout.de> and
@@ -2823,19 +2823,26 @@ Defaulting color scheme to 'NoColor'"""
         This will copy the config files that don't yet exist in your 
         ipython dir from the system config dir. Use this after upgrading 
         IPython if you don't wish to delete your .ipython dir.
-        
+
+        Call with -nolegacy to get rid of ipythonrc* files (recommended for
+        new users)
+
         """
         ip = self.getapi()
         ipinstallation = path(IPython.__file__).dirname()
         upgrade_script = ipinstallation / 'upgrade_dir.py'
         src_config = ipinstallation / 'UserConfig'
-        cmd = upgrade_script + " " + src_config + " " + ip.options().ipythondir
+        userdir = path(ip.options().ipythondir)
+        cmd = upgrade_script + " " + src_config + " " + userdir
         print ">",cmd
         shell(cmd)
-        
-        
-        
-        
+        if arg == '-nolegacy':
+            legacy = userdir.files('ipythonrc*')
+            print "Nuking legacy files:",legacy
+            
+            [p.remove() for p in legacy]
+            suffix = (sys.platform == 'win32' and '.ini' or '')
+            (userdir / ('ipythonrc' + suffix)).write_text('# Empty, see ipy_user_conf.py\n')
 
 
 # end Magic
