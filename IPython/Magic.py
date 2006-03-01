@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Magic functions for InteractiveShell.
 
-$Id: Magic.py 1179 2006-02-24 18:32:09Z vivainio $"""
+$Id: Magic.py 1181 2006-03-01 11:27:24Z vivainio $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001 Janko Hauser <jhauser@zscout.de> and
@@ -2276,7 +2276,10 @@ Defaulting color scheme to 'NoColor'"""
         '|'-separated string of extensions, stored in the IPython config
         variable win_exec_ext.  This defaults to 'exe|com|bat'. """
         
-        path = filter(os.path.isdir,os.environ['PATH'].split(os.pathsep))
+        path = [os.path.abspath(os.path.expanduser(p)) for p in 
+            os.environ['PATH'].split(os.pathsep)]
+        path = filter(os.path.isdir,path)
+        
         alias_table = self.shell.alias_table
         syscmdlist = []
         if os.name == 'posix':
