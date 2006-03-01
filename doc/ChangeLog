@@ -1,3 +1,8 @@
+2006-03-01  Ville Vainio  <vivainio@gmail.com>  
+
+	* Extensions/ipipe.py: Added Walter Doerwald's "ipipe" module.
+	To use, do "from ipipe import *". 
+
 2006-02-24  Ville Vainio  <vivainio@gmail.com>  
 
 	* Magic.py, upgrade_dir.py: %upgrade magic added. Does things more
