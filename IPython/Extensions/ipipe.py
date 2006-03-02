@@ -278,11 +278,16 @@ def xiter(item, mode):
         func = item.__xiter__
     except AttributeError:
         if isinstance(item, dict):
-            return xiter(idict(item), mode)
+            def items(item):
+                fields = ("key", "value")
+                for (key, value) in item.iteritems():
+                    yield Fields(fields, key=key, value=value)
+            return items(item)
         elif isinstance(item, new.module):
             def items(item):
+                fields = ("key", "value")
                 for key in sorted(item.__dict__):
-                    yield idictentry(key, getattr(item, key))
+                    yield Fields(fields, key, getattr(item, key))
             return items(item)
         elif isinstance(item, basestring):
             if not len(item):
