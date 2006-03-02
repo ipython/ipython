@@ -17,14 +17,14 @@ There are three types of objects in a pipeline expression:
 
 * ``Table``s: These objects produce items. Examples are `ìls`` (listing the
   current directory, ``ienv`` (listing environment variables), ``ipwd`` (listing
-  user account) and ``igrp`` (listing user groups). A ``Table`` must be the first
-  object in a pipe expression.
+  user account) and ``igrp`` (listing user groups). A ``Table`` must be the
+  first object in a pipe expression.
 
-* ``Pipe``s: These objects sit in the middle of a pipe expression. They transform
-  the input in some way (e.g. filtering or sorting it). Examples are: ``ifilter``
-  (which filters the input pipe), ``isort`` (which sorts the input pipe) and
-  ``ieval`` (which evaluates a function or expression for each object in the
-  input pipe).
+* ``Pipe``s: These objects sit in the middle of a pipe expression. They
+  transform the input in some way (e.g. filtering or sorting it). Examples are:
+  ``ifilter`` (which filters the input pipe), ``isort`` (which sorts the input
+  pipe) and ``ieval`` (which evaluates a function or expression for each object
+  in the input pipe).
 
 * ``Display``s: These objects can be put as the last object in a pipeline
   expression. There are responsible for displaying the result of the pipeline
@@ -33,7 +33,8 @@ There are three types of objects in a pipeline expression:
   based browser.
 """
 
-import sys, os, os.path, stat, glob, new, csv, datetime, itertools, mimetypes
+import sys, os, os.path, stat, glob, new, csv, datetime
+import textwrap, itertools, mimetypes
 
 try: # Python 2.3 compatibility
     import collections
@@ -79,7 +80,7 @@ except ImportError:
 
 __all__ = [
     "ifile", "ils", "iglob", "iwalk", "ipwdentry", "ipwd", "igrpentry", "igrp",
-    "icsv", "ix", "ichain", "isort", "ifilter", "ieval", "ienum", "idict", "ienv",
+    "icsv", "ix", "ichain", "isort", "ifilter", "ieval", "ienum", "ienv",
     "idump", "iless"
 ]
 
@@ -173,7 +174,7 @@ class Table(object):
         return False
 
     def __or__(self, other):
-        if isinstance(other, type) and (issubclass(other, Table) or issubclass(other, Display)):
+        if isinstance(other, type) and issubclass(other, (Table, Display)):
             other = other()
         elif not isinstance(other, Display) and not isinstance(other, Table):
             other = ieval(other)
@@ -195,10 +196,10 @@ class Table(object):
 
 class Pipe(Table):
     """
-    A ``Pipe`` is an object that can be used in a pipeline expression. It processes
-    the objects it gets from its input ``Table``/``Pipe``. Note that a ``Pipe``
-    object can't be used as the first object in a pipeline expression, as it
-    doesn't produces items itself.
+    A ``Pipe`` is an object that can be used in a pipeline expression. It
+    processes the objects it gets from its input ``Table``/``Pipe``. Note that
+    a ``Pipe`` object can't be used as the first object in a pipeline
+    expression, as it doesn't produces items itself.
     """
     class __metaclass__(Table.__metaclass__):
         def __ror__(self, input):
@@ -318,7 +319,9 @@ class ichain(Pipe):
         return repr(self)
 
     def __repr__(self):
-        return "%s.%s(%s)" % (self.__class__.__module__, self.__class__.__name__, ", ".join([repr(it) for it in self.iters]))
+        args = ", ".join([repr(it) for it in self.iters])
+        return "%s.%s(%s)" % \
+            (self.__class__.__module__, self.__class__.__name__, args)
 
 
 class ifile(object):
@@ -339,7 +342,8 @@ class ifile(object):
             self._lstat = None
 
     def __repr__(self):
-        return "%s.%s(%r)" % (self.__class__.__module__, self.__class__.__name__, self.name)
+        return "%s.%s(%r)" % \
+            (self.__class__.__module__, self.__class__.__name__, self.name)
 
     def open(self, mode="rb", buffer=None):
         if buffer is None:
@@ -509,7 +513,14 @@ class ifile(object):
 
     def __xattrs__(self, mode):
         if mode == "detail":
-            return ("name", "basename", "abspath", "realpath", "mode", "type", "access", "stat", "lstat", "uid", "gid", "owner", "group", "dev", "nlink", "ctime", "mtime", "atime", "cdate", "mdate", "adate", "size", "blocks", "blksize", "isdir", "islink", "mimetype", "encoding")
+            return (
+                "name", "basename", "abspath", "realpath",
+                "mode", "type", "access", "stat", "lstat",
+                "uid", "gid", "owner", "group", "dev", "nlink",
+                "ctime", "mtime", "atime", "cdate", "mdate", "adate",
+                "size", "blocks", "blksize", "isdir", "islink",
+                "mimetype", "encoding"
+            )
         return ("type", "access", "owner", "group", "mdate", "size", "name")
 
     def __xrepr__(self, mode):
@@ -539,7 +550,8 @@ class ifile(object):
             f.close()
 
     def __repr__(self):
-        return "%s.%s(%r)" % (self.__class__.__module__, self.__class__.__name__, self.abspath)
+        return "%s.%s(%r)" % \
+            (self.__class__.__module__, self.__class__.__name__, self.abspath)
 
 
 class iparentdir(ifile):
@@ -559,7 +571,8 @@ class iparentdir(ifile):
 
     def getrealpath(self):
         if self._realpath is None:
-            self._realpath = os.path.realpath(os.path.join(self._base, self.name))
+            self._realpath = os.path.realpath(
+                os.path.join(self._base, self.name))
         return self._realpath
     realpath = property(getrealpath, None, None, "Path with links resolved")
 
@@ -577,7 +590,8 @@ class ils(Table):
         return repr(self)
 
     def __repr__(self):
-        return "%s.%s(%r)" % (self.__class__.__module__, self.__class__.__name__, self.base)
+        return "%s.%s(%r)" % \
+            (self.__class__.__module__, self.__class__.__name__, self.base)
 
 
 class iglob(Table):
@@ -594,7 +608,8 @@ class iglob(Table):
         return repr(self)
 
     def __repr__(self):
-        return "%s.%s(%r)" % (self.__class__.__module__, self.__class__.__name__, self.glob)
+        return "%s.%s(%r)" % \
+            (self.__class__.__module__, self.__class__.__name__, self.glob)
 
 
 class iwalk(Table):
@@ -618,7 +633,8 @@ class iwalk(Table):
         return repr(self)
 
     def __repr__(self):
-        return "%s.%s(%r)" % (self.__class__.__module__, self.__class__.__name__, self.base)
+        return "%s.%s(%r)" % \
+            (self.__class__.__module__, self.__class__.__name__, self.base)
 
 
 class ipwdentry(object):
@@ -676,7 +692,8 @@ class ipwdentry(object):
         return ("name", "passwd", "uid", "gid", "gecos", "dir", "shell")
 
     def __repr__(self):
-        return "%s.%s(%r)" % (self.__class__.__module__, self.__class__.__name__, self._id)
+        return "%s.%s(%r)" % \
+            (self.__class__.__module__, self.__class__.__name__, self._id)
 
 
 class ipwd(Table):
@@ -738,7 +755,8 @@ class igrpentry(object):
             yield ipwdentry(member)
 
     def __repr__(self):
-        return "%s.%s(%r)" % (self.__class__.__module__, self.__class__.__name__, self._id)
+        return "%s.%s(%r)" % \
+            (self.__class__.__module__, self.__class__.__name__, self._id)
 
 
 class igrp(Table):
@@ -752,43 +770,55 @@ class igrp(Table):
         return repr(self)
 
 
-class idictentry(object):
-    __slots__ = ("key", "value")
+class Fields(object):
+    def __init__(self, fieldnames, **fields):
+        self.__fieldnames = fieldnames
+        for (key, value) in fields.iteritems():
+            setattr(self, key, value)
 
     def __xattrs__(self, mode):
-        return ("key", "value")
+        return self.__fieldnames
 
-    def __init__(self, key, value):
-        self.key = key
-        self.value = value
+    def __xrepr__(self, mode):
+        if mode == "header" or mode == "footer":
+            args = ["%s=%r" % (f, getattr(self, f)) for f in self.__fieldnames]
+            return "%s(%r)" % (self.__class__.__name__, ", ".join(args))
+        return repr(self)
 
-    def __repr__(self):
-        return "%s.%s(%r, %r)" % (self.__class__.__module__, self.__class__.__name__, self.key, self.value)
 
+class FieldTable(Table, list):
+    def __init__(self, *fields):
+        ipipe.Table.__init__(self)
+        list.__init__(self)
+        self.fields = fields
 
-class idict(Table):
-    def __init__(self, dict):
-        self.dict = dict
+    def add(self, **fields):
+        self.append(Fields(self, **fields))
 
     def __xiter__(self, mode):
-        for (key, val) in self.dict.iteritems():
-            yield idictentry(key, val)
+        return list.__iter__(self)
+
+    def __xrepr__(self, mode):
+        if mode == "header" or mode == "footer":
+            return "FieldTable(%r)" % ", ".join(map(repr, self.fields))
+        return repr(self)
+
+    def __repr__(self):
+        return "<%s.%s object with fields=%r at 0x%x>" % \
+            (self.__class__.__module__, self.__class__.__name__,
+             ", ".join(map(repr, self.fields)), id(self))
 
 
 class ienv(Table):
     def __xiter__(self, mode):
-        for (key, val) in os.environ.iteritems():
-            yield idictentry(key, val)
+        fields = ("key", "value")
+        for (key, value) in os.environ.iteritems():
+            yield Fields(fields, key=key, value=value)
 
     def __xrepr__(self, mode):
         if mode == "header" or mode == "footer":
             return "%s()" % self.__class__.__name__
         return repr(self)
-
-
-class icsventry(list):
-    def __xattrs__(self, mode):
-        return xrange(len(self))
 
 
 class icsv(Pipe):
@@ -801,7 +831,7 @@ class icsv(Pipe):
             input = input.open("rb")
         reader = csv.reader(input, **self.csvargs)
         for line in reader:
-            yield icsventry(line)
+            yield line
 
     def __xrepr__(self, mode):
         if mode == "header" or mode == "footer":
@@ -810,11 +840,14 @@ class icsv(Pipe):
                 prefix = "%s | " % xrepr(input, mode)
             else:
                 prefix = ""
-            return "%s%s(%s)" % (prefix, self.__class__.__name__, ", ".join(["%s=%r" % (key, value) for (key, value) in self.csvargs.iteritems()]))
+            args = ", ".join(["%s=%r" % item for item in self.csvargs.iteritems()])
+            return "%s%s(%s)" % (prefix, self.__class__.__name__, args)
         return repr(self)
 
     def __repr__(self):
-        return "<%s.%s %s at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, ", ".join(["%s=%r" % (key, value) for (key, value) in self.csvargs.iteritems()]), id(self))
+        args = ", ".join(["%s=%r" % item for item in self.csvargs.iteritems()])
+        return "<%s.%s %s at 0x%x>" % \
+        (self.__class__.__module__, self.__class__.__name__, args, id(self))
 
 
 class ix(Table):
@@ -826,6 +859,8 @@ class ix(Table):
         self._pipe = os.popen(self.cmd)
         for l in self._pipe:
             yield l.rstrip("\r\n")
+        self._pipe.close()
+        self._pipe = None
 
     def __del__(self):
         if self._pipe is not None and not self._pipe.closed:
@@ -838,7 +873,8 @@ class ix(Table):
         return repr(self)
 
     def __repr__(self):
-        return "%s.%s(%r)" % (self.__class__.__module__, self.__class__.__name__, self.cmd)
+        return "%s.%s(%r)" % \
+            (self.__class__.__module__, self.__class__.__name__, self.cmd)
 
 
 class ifilter(Pipe):
@@ -872,11 +908,14 @@ class ifilter(Pipe):
                 prefix = "%s | " % xrepr(input, mode)
             else:
                 prefix = ""
-            return "%s%s(%s)"% (prefix, self.__class__.__name__, xrepr(self.expr, mode))
+            return "%s%s(%s)"% \
+                (prefix, self.__class__.__name__, xrepr(self.expr, mode))
         return repr(self)
 
     def __repr__(self):
-        return "<%s.%s expr=%r at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self.expr, id(self))
+        return "<%s.%s expr=%r at 0x%x>" % \
+            (self.__class__.__module__, self.__class__.__name__,
+             self.expr, id(self))
 
 
 class ieval(Pipe):
@@ -908,38 +947,21 @@ class ieval(Pipe):
                 prefix = "%s | " % xrepr(input, mode)
             else:
                 prefix = ""
-            return "%s%s(%s)"% (prefix, self.__class__.__name__, xrepr(self.expr, mode))
+            return "%s%s(%s)" % \
+                (prefix, self.__class__.__name__, xrepr(self.expr, mode))
         return repr(self)
 
     def __repr__(self):
-        return "<%s.%s expr=%r at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self.expr, id(self))
-
-
-class ienumentry(object):
-    __slots__ = ("index", "object")
-
-    def __init__(self, index, object):
-        self.index = index
-        self.object = object
-
-    def __xattrs__(self, mode):
-        return ("index", "object")
-
-    def __xrepr__(self, mode):
-        if mode == "header" or mode == "footer":
-            input = getattr(self, "input", None)
-            if input is not None:
-                prefix = "%s | " % xrepr(input, mode)
-            else:
-                prefix = ""
-            return "%s%s()"% (prefix, self.__class__.__name__)
-        return repr(self)
+        return "<%s.%s expr=%r at 0x%x>" % \
+            (self.__class__.__module__, self.__class__.__name__,
+             self.expr, id(self))
 
 
 class ienum(Pipe):
     def __xiter__(self, mode):
+        fields = ("index", "object")
         for (index, object) in enumerate(xiter(self.input, mode)):
-            yield ienumentry(index, object)
+            yield Fields(fields, index=index, object=object)
 
 
 class isort(Pipe):
@@ -949,11 +971,19 @@ class isort(Pipe):
 
     def __xiter__(self, mode):
         if callable(self.key):
-            items = sorted(xiter(self.input, mode), key=self.key, reverse=self.reverse)
+            items = sorted(
+                xiter(self.input, mode),
+                key=self.key,
+                reverse=self.reverse
+            )
         else:
             def key(item):
                 return eval(self.key, globals(), _AttrNamespace(item))
-            items = sorted(xiter(self.input, mode), key=key, reverse=self.reverse)
+            items = sorted(
+                xiter(self.input, mode),
+                key=key,
+                reverse=self.reverse
+            )
         for item in items:
             yield item
 
@@ -965,13 +995,16 @@ class isort(Pipe):
             else:
                 prefix = ""
             if self.reverse:
-                return "%s%s(%r, %r)" % (prefix, self.__class__.__name__, self.key, self.reverse)
+                return "%s%s(%r, %r)" % \
+                    (prefix, self.__class__.__name__, self.key, self.reverse)
             else:
                 return "%s%s(%r)" % (prefix, self.__class__.__name__, self.key)
         return repr(self)
 
     def __repr__(self):
-        return "<%s.%s key=%r reverse=%r at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self.key, self.reverse, id(self))
+        return "<%s.%s key=%r reverse=%r at 0x%x>" % \
+            (self.__class__.__module__, self.__class__.__name__,
+             self.key, self.reverse, id(self))
 
 
 tab = 3 # for expandtabs()
@@ -983,7 +1016,9 @@ def _format(field):
         text = repr(field.expandtabs(tab))[2:-1]
     elif isinstance(field, datetime.datetime):
         # Don't use strftime() here, as this requires year >= 1900
-        text = "%04d-%02d-%02d %02d:%02d:%02d.%06d" % (field.year, field.month, field.day, field.hour, field.minute, field.second, field.microsecond)
+        text = "%04d-%02d-%02d %02d:%02d:%02d.%06d" % \
+            (field.year, field.month, field.day,
+             field.hour, field.minute, field.second, field.microsecond)
     elif isinstance(field, datetime.date):
         text = "%04d-%02d-%02d" % (field.year, field.month, field.day)
     else:
@@ -1013,7 +1048,8 @@ class iless(Display):
             try:
                 for item in xiter(self.input, "default"):
                     attrs = xattrs(item, "default")
-                    pager.write(" ".join(["%s=%s" % (a, _format(_getattr(item, a))) for a in attrs]))
+                    attrs = ["%s=%s" % (a, _format(_getattr(item, a))) for a in attrs]
+                    pager.write(" ".join(attrs))
                     pager.write("\n")
             finally:
                 pager.close()
@@ -1033,7 +1069,7 @@ class idump(Display):
         stream = sys.stdout
         if self.attrs:
             rows = []
-            colwidths = dict([(attrname, len(_attrname(attrname))) for attrname in self.attrs])
+            colwidths = dict([(a, len(_attrname(a))) for a in self.attrs])
 
             for item in xiter(self.input, "default"):
                 row = {}
@@ -1123,7 +1159,9 @@ class XMode(object):
         self.description = description
 
     def __repr__(self):
-        return "<%s.%s object mode=%r at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self.mode, id(self))
+        return "<%s.%s object mode=%r at 0x%x>" % \
+            (self.__class__.__module__, self.__class__.__name__,
+             self.mode, id(self))
 
     def __xrepr__(self, mode):
         if mode == "header" or mode == "footer":
@@ -1151,7 +1189,8 @@ class XAttr(object):
             if exc.__class__.__module__ == "exceptions":
                 self.value = exc.__class__.__name__
             else:
-                self.value = "%s.%s" % (exc.__class__.__module__, exc.__class__.__name__)
+                self.value = "%s.%s" % \
+                    (exc.__class__.__module__, exc.__class__.__name__)
             self.type = self.value
         else:
             t = type(self.value)
@@ -1177,6 +1216,91 @@ class XAttr(object):
 
     def __xattrs__(self, mode):
         return ("name", "type", "doc", "value")
+
+
+_ibrowse_help = """
+down
+Move the cursor to the next line.
+
+up
+Move the cursor to the previous line.
+
+pagedown
+Move the cursor down one page (minus overlap).
+
+pageup
+Move the cursor up one page.
+
+left
+Move the cursor left.
+
+right
+Move the cursor right.
+
+home
+Move the cursor to the first column.
+
+end
+Move the cursor to the last column.
+
+pick
+'Pick' the object under the cursor (i.e. the row the cursor is on). This leaves
+the browser and returns the picked object to the caller. (In IPython this object
+will be available as the '_' variable.)
+
+pickattr
+'Pick' the attribute under the cursor (i.e. the row/column the cursor is on).
+
+pickallattrs
+Pick' the complete column under the cursor (i.e. the attribute under the cursor
+from all currently fetched objects). The attributes will be returned as a list.
+
+tooglemark
+Mark/unmark the object under the cursor. Marked objects have a '!' after the
+row number).
+
+pickmarked
+'Pick' marked objects. Marked objects will be returned as a list.
+
+pickmarkedattr
+'Pick' the attribute under the cursor from all marked objects (This returns a
+list)
+
+enterdefault
+Enter the object under the cursor. (what this mean depends on the object
+itself). This opens a new browser 'level'.
+
+enter
+Enter the object under the cursor. If the object provides different enter modes
+a menu of all modes will be presented, choice one and enter it (via the 'enter'
+or 'enterdefault' command),
+
+enterattr
+Enter the attribute under the cursor.
+
+leave
+Leave the current browser level and go back to the previous one.
+
+detail
+Show a detail view of the object under the cursor. This shows the name, type,
+doc string and value of the object attributes (and it might show more attributes
+than in the list view; depending on the object).
+
+markrange
+Mark all objects from the last marked object before the current cursor position
+to the cursor position.
+
+sortattrasc
+Sort the objects (in ascending order) using the attribute under the cursor as
+the sort key.
+
+sortattrdesc
+Sort the objects (in descending order) using the attribute under the cursor as
+the sort key.
+
+help
+This screen.
+"""
 
 
 if curses is not None:
@@ -1209,9 +1333,8 @@ if curses is not None:
             self.marked = False
 
 
-    class _BrowserHelp(list):
-        def __init__(self, browser, *items):
-            list.__init__(self, items)
+    class _BrowserHelp(object):
+        def __init__(self, browser):
             self.browser = browser
 
         def __xrepr__(self, mode):
@@ -1225,34 +1348,28 @@ if curses is not None:
             for (key, cmd) in self.browser.keymap.iteritems():
                 allkeys.setdefault(cmd, []).append(key)
 
-            for (cmd, description) in list.__iter__(self):
-                if not description:
-                    yield _BrowserHelpLine("", "", "")
-                else:
-                    keys = allkeys.get(cmd, [])
-                    lines = description.splitlines(False)
-                    for i in xrange(max(len(keys), len(lines))):
-                        if i:
-                            cmd = ""
-                        try:
-                            key = self.browser.keylabel(keys[i])
-                        except IndexError:
-                            key = ""
-                        try:
-                            line = lines[i]
-                        except IndexError:
-                            line = ""
-                        yield _BrowserHelpLine(key, cmd, line)
+            fields = ("key", "command", "description")
 
+            for (i, command) in enumerate(_ibrowse_help.strip().split("\n\n")):
+                if i:
+                    yield Fields(fields, key="", command="", description="")
 
-    class _BrowserHelpLine(object):
-        def __init__(self, key, command, description):
-            self.key = key
-            self.command = command
-            self.description = description
+                (name, description) = command.split("\n", 1)
+                keys = allkeys.get(name, [])
+                lines = textwrap.wrap(description, 50)
 
-        def __xattrs__(self, mode):
-            return ("key", "command", "description")
+                for i in xrange(max(len(keys), len(lines))):
+                    if i:
+                        name = ""
+                    try:
+                        key = self.browser.keylabel(keys[i])
+                    except IndexError:
+                        key = ""
+                    try:
+                        line = lines[i]
+                    except IndexError:
+                        line = ""
+                    yield Fields(fields, key=key, command=name, description=line)
 
 
     class _BrowserLevel(object):
@@ -1271,14 +1388,15 @@ if curses is not None:
             self.datastartx = 0 # Index of first data column
             self.mainsizey = mainsizey # height of the data display area
             self.mainsizex = 0 # width of the data display area
-            self.numbersizex = 0 # Length of the number at the left edge of the screen
-            self.displayattrs = [] # Names of attributes to display (in this order)
+            self.numbersizex = 0 # Size of number at the left edge of the screen
+            self.displayattrs = [] # Attribute names to display (in this order)
             self.displayattr = _default # Name of attribute under the cursor
             self.colwidths = {} # Maps attribute names to column widths
 
             self.fetch(mainsizey)
             self.calcdisplayattrs()
-            # formatted attributes for the items on screen (i.e. self.items[self.datastarty:self.datastarty+self.mainsizey])
+            # formatted attributes for the items on screen
+            # (i.e. self.items[self.datastarty:self.datastarty+self.mainsizey])
             self.displayrows = [self.getrow(i) for i in xrange(len(self.items))]
             self.calcwidths()
             self.calcdisplayattr()
@@ -1301,7 +1419,8 @@ if curses is not None:
                 self.displayattrs = self.attrs
             else:
                 self.displayattrs = []
-                for i in xrange(self.datastarty, min(self.datastarty+self.mainsizey, len(self.items))):
+                endy = min(self.datastarty+self.mainsizey, len(self.items))
+                for i in xrange(self.datastarty, endy):
                     for attrname in xattrs(self.items[i].item, "default"):
                         if attrname not in attrnames:
                             self.displayattrs.append(attrname)
@@ -1318,7 +1437,8 @@ if curses is not None:
                 except Exception, exc:
                     row[attrname] = self.browser.format(exc)
                 else:
-                    if value is not _default: # only store attribute if it exists
+                    # only store attribute if it exists
+                    if value is not _default:
                         row[attrname] = self.browser.format(value)
             return row
 
@@ -1328,16 +1448,21 @@ if curses is not None:
             for row in self.displayrows:
                 for attrname in self.displayattrs:
                     (align, text, style) = row.get(attrname, (2, "", None))
-                    if attrname not in self.colwidths: # always add attribute to colwidths, even if the attribute doesn't exist
+                    # always add attribute to colwidths, even if it doesn't exist
+                    if attrname not in self.colwidths:
                         self.colwidths[attrname] = len(_attrname(attrname))
-                    self.colwidths[attrname] = max(self.colwidths[attrname], len(text))
+                    newwidth = max(self.colwidths[attrname], len(text))
+                    self.colwidths[attrname] = newwidth
 
-            self.numbersizex = len(str(self.datastarty+self.mainsizey-1)) # How many characters do we need to paint the item number?
-            self.mainsizex = self.browser.scrsizex-self.numbersizex-3 # How must space have we got to display data?
-            self.datasizex = sum(self.colwidths.itervalues()) + len(self.colwidths) # width of all columns
+            # How many characters do we need to paint the item number?
+            self.numbersizex = len(str(self.datastarty+self.mainsizey-1))
+            # How must space have we got to display data?
+            self.mainsizex = self.browser.scrsizex-self.numbersizex-3
+            # width of all columns
+            self.datasizex = sum(self.colwidths.itervalues()) + len(self.colwidths)
 
         def calcdisplayattr(self):
-            # Find out on which attribute the cursor is
+            # Find out on which attribute the cursor is on
             pos = 0
             for attrname in self.displayattrs:
                 if pos+self.colwidths[attrname] >= self.curx:
@@ -1368,33 +1493,47 @@ if curses is not None:
             if y < self.datastarty+scrollbordery:
                 self.datastarty = max(0, y-scrollbordery)
             elif y >= self.datastarty+self.mainsizey-scrollbordery:
-                self.datastarty = max(0, min(y-self.mainsizey+scrollbordery+1, len(self.items)-self.mainsizey))
+                self.datastarty = max(0, min(y-self.mainsizey+scrollbordery+1,
+                                             len(self.items)-self.mainsizey))
 
             if refresh: # Do we need to refresh the complete display?
                 self.calcdisplayattrs()
-                self.displayrows = [self.getrow(i) for i in xrange(self.datastarty, min(self.datastarty+self.mainsizey, len(self.items)))]
+                endy = min(self.datastarty+self.mainsizey, len(self.items))
+                self.displayrows = map(self.getrow, xrange(self.datastarty, endy))
                 self.calcwidths()
-            # Did we scroll vertically => update displayrows and various other attributes
+
+            # Did we scroll vertically => update displayrows
+            # and various other attributes
             elif self.datastarty != olddatastarty:
                 # Recalculate which attributes we have to display
                 olddisplayattrs = self.displayattrs
                 self.calcdisplayattrs()
-                if self.displayattrs != olddisplayattrs: # There are new attributes => recreate cache
-                    self.displayrows = [self.getrow(i) for i in xrange(self.datastarty, min(self.datastarty+self.mainsizey, len(self.items)))]
+                # If there are new attributes, recreate the cache
+                if self.displayattrs != olddisplayattrs:
+                    endy = min(self.datastarty+self.mainsizey, len(self.items))
+                    self.displayrows = map(self.getrow, xrange(self.datastarty, endy))
                 elif self.datastarty<olddatastarty: # we did scroll up
-                    del self.displayrows[self.datastarty-olddatastarty:] # drop rows from the end
-                    for i in xrange(olddatastarty-1, self.datastarty-1, -1): # fetch new items
+                    # drop rows from the end
+                    del self.displayrows[self.datastarty-olddatastarty:]
+                    # fetch new items
+                    for i in xrange(olddatastarty-1,
+                                    self.datastarty-1, -1):
                         try:
                             row = self.getrow(i)
-                        except IndexError: # we don't have enough objects to fill the screen
+                        except IndexError:
+                            # we didn't have enough objects to fill the screen
                             break
                         self.displayrows.insert(0, row)
                 else: # we did scroll down
-                    del self.displayrows[:self.datastarty-olddatastarty] # drop rows from the start
-                    for i in xrange(olddatastarty+self.mainsizey, self.datastarty+self.mainsizey): # fetch new items
+                    # drop rows from the start
+                    del self.displayrows[:self.datastarty-olddatastarty]
+                    # fetch new items
+                    for i in xrange(olddatastarty+self.mainsizey,
+                                    self.datastarty+self.mainsizey):
                         try:
                             row = self.getrow(i)
-                        except IndexError: # we don't have enough objects to fill the screen
+                        except IndexError:
+                            # we didn't have enough objects to fill the screen
                             break
                         self.displayrows.append(row)
                 self.calcwidths()
@@ -1409,12 +1548,14 @@ if curses is not None:
             if x < self.datastartx+scrollborderx:
                 self.datastartx = max(0, x-scrollborderx)
             elif x >= self.datastartx+self.mainsizex-scrollborderx:
-                self.datastartx = max(0, min(x-self.mainsizex+scrollborderx+1, self.datasizex-self.mainsizex))
+                self.datastartx = max(0, min(x-self.mainsizex+scrollborderx+1,
+                                             self.datasizex-self.mainsizex))
 
             if x == oldx and y == oldy: # couldn't move
                 if self.browser._dobeep:
                     curses.beep()
-                    self.browser._dobeep = False # don't beep again (as long as the same key is pressed)
+                    # don't beep again (as long as the same key is pressed)
+                    self.browser._dobeep = False
             else:
                 self.curx = x
                 self.cury = y
@@ -1443,16 +1584,39 @@ if curses is not None:
 
 
     class ibrowse(Display):
-        pageoverlapx = 1 # Show this many lines from the previous screen when paging horizontally
-        pageoverlapy = 1 # Show this many lines from the previous screen when paging vertically
-        scrollborderx = 10 # Start scrolling when the cursor is less than this number of columns away from the left or right screen edge
-        scrollbordery = 5 # Start scrolling when the cursor is less than this number of lines away from the top or bottom screen edge
-        acceleratex = 1.05 # Accelerate by this factor when scrolling horizontally
-        acceleratey = 1.05 # Accelerate by this factor when scrolling vertically
-        maxspeedx = 0.5 # The maximum horizontal scroll speed (as a factor of the screen width (i.e. 0.5 == half a screen width)
-        maxspeedy = 0.5 # The maximum vertical scroll speed (as a factor of the screen height (i.e. 0.5 == half a screen height)
-        maxheaders = 5 # How many header lines (for nested browser levels) do we want?
+        # Show this many lines from the previous screen when paging horizontally
+        pageoverlapx = 1
 
+        # Show this many lines from the previous screen when paging vertically
+        pageoverlapy = 1
+
+        # Start scrolling when the cursor is less than this number of columns
+        # away from the left or right screen edge
+        scrollborderx = 10
+
+        # Start scrolling when the cursor is less than this number of lines
+        # away from the top or bottom screen edge
+        scrollbordery = 5
+
+        # Accelerate by this factor when scrolling horizontally
+        acceleratex = 1.05
+
+        # Accelerate by this factor when scrolling vertically
+        acceleratey = 1.05
+
+        # The maximum horizontal scroll speed
+        # (as a factor of the screen width (i.e. 0.5 == half a screen width)
+        maxspeedx = 0.5
+
+        # The maximum vertical scroll speed
+        # (as a factor of the screen height (i.e. 0.5 == half a screen height)
+        maxspeedy = 0.5
+
+        # The maximum number of header lines for browser level
+        # if the nesting is deeper, only the innermost levels are displayed
+        maxheaders = 5
+
+        # Styles for various parts of the GUI
         style_objheadertext = Style(curses.COLOR_WHITE, curses.COLOR_BLACK, curses.A_BOLD|curses.A_REVERSE)
         style_objheadernumber = Style(curses.COLOR_WHITE, curses.COLOR_BLUE, curses.A_BOLD|curses.A_REVERSE)
         style_objheaderobject = Style(curses.COLOR_WHITE, curses.COLOR_BLACK, curses.A_REVERSE)
@@ -1470,16 +1634,23 @@ if curses is not None:
         style_default = Style(curses.COLOR_WHITE, curses.COLOR_BLACK)
         style_report = Style(curses.COLOR_WHITE, curses.COLOR_BLACK)
 
-        # Styles for datatype display
+        # Styles for datatypes
         style_type_none = Style(curses.COLOR_MAGENTA, curses.COLOR_BLACK)
         style_type_bool = Style(curses.COLOR_GREEN, curses.COLOR_BLACK)
         style_type_number = Style(curses.COLOR_YELLOW, curses.COLOR_BLACK)
         style_type_datetime = Style(curses.COLOR_CYAN, curses.COLOR_BLACK)
 
-        headersepchar = "|" # Column separator in header
-        datapadchar = "." # Chararacter for padding data cell entries
-        datasepchar = "|" # Column separator
-        nodatachar = "-" # Character to use for "empty" cell (i.e. for non-existing attributes)
+        # Column separator in header
+        headersepchar = "|"
+
+        # Character for padding data cell entries
+        datapadchar = "."
+
+        # Column separator in data area
+        datasepchar = "|"
+
+        # Character to use for "empty" cell (i.e. for non-existing attributes)
+        nodatachar = "-"
 
         # Maps curses key codes to "function" names
         keymap = {
@@ -1494,6 +1665,7 @@ if curses is not None:
             curses.KEY_END: "end",
             ord("p"): "pick",
             ord("P"): "pickattr",
+            ord("C"): "pickallattrs",
             ord("m"): "pickmarked",
             ord("M"): "pickmarkedattr",
             ord("\n"): "enterdefault",
@@ -1507,8 +1679,9 @@ if curses is not None:
             ord("E"): "enterattr",
             ord("d"): "detail",
             ord(" "): "tooglemark",
-            ord("v"): "sortcolumnasc",
-            ord("V"): "sortcolumndesc",
+            ord("r"): "markrange",
+            ord("v"): "sortattrasc",
+            ord("V"): "sortattrdesc",
         }
 
         def __init__(self, *attrs):
@@ -1525,10 +1698,12 @@ if curses is not None:
             self._report = None # report in the footer line
 
         def nextstepx(self, step):
-            return max(1., min(step*self.acceleratex, self.maxspeedx*self.levels[-1].mainsizex))
+            return max(1., min(step*self.acceleratex,
+                               self.maxspeedx*self.levels[-1].mainsizex))
 
         def nextstepy(self, step):
-            return max(1., min(step*self.acceleratey, self.maxspeedy*self.levels[-1].mainsizey))
+            return max(1., min(step*self.acceleratey,
+                               self.maxspeedy*self.levels[-1].mainsizey))
 
         def getstyle(self, style):
             try:
@@ -1556,11 +1731,20 @@ if curses is not None:
                 return (-1, repr(value.expandtabs(tab))[2:-1], self.style_default)
             elif isinstance(value, datetime.datetime):
                 # Don't use strftime() here, as this requires year >= 1900
-                return (-1, "%04d-%02d-%02d %02d:%02d:%02d.%06d" % (value.year, value.month, value.day, value.hour, value.minute, value.second, value.microsecond), self.style_type_datetime)
+                return (-1, "%04d-%02d-%02d %02d:%02d:%02d.%06d" % \
+                            (value.year, value.month, value.day,
+                             value.hour, value.minute, value.second,
+                             value.microsecond),
+                        self.style_type_datetime)
             elif isinstance(value, datetime.date):
-                return (-1, "%04d-%02d-%02d" % (value.year, value.month, value.day), self.style_type_datetime)
+                return (-1, "%04d-%02d-%02d" % \
+                            (value.year, value.month, value.day),
+                        self.style_type_datetime)
             elif isinstance(value, datetime.time):
-                return (-1, "%02d:%02d:%02d.%06d" % (value.hour, value.minute, value.second, value.microsecond), self.style_type_datetime)
+                return (-1, "%02d:%02d:%02d.%06d" % \
+                            (value.hour, value.minute, value.second,
+                             value.microsecond),
+                        self.style_type_datetime)
             elif isinstance(value, datetime.timedelta):
                 return (-1, repr(value), self.style_type_datetime)
             elif isinstance(value, bool):
@@ -1573,7 +1757,9 @@ if curses is not None:
                 if value.__class__.__module__ == "exceptions":
                     value = "%s: %s" % (value.__class__.__name__, value)
                 else:
-                    value = "%s.%s: %s" % (value.__class__.__module__, value.__class__.__name__, value)
+                    value = "%s.%s: %s" % \
+                        (value.__class__.__module__, value.__class__.__name__,
+                         value)
                 return (-1, value, self.style_error)
             return (-1, repr(value), self.style_default)
 
@@ -1585,8 +1771,8 @@ if curses is not None:
 
         def getstylehere(self, style):
             """
-            Return a style for displaying the original style ``style`` in the row
-            the cursor is on.
+            Return a style for displaying the original style ``style``
+            in the row the cursor is on.
             """
             return Style(style.fg, style.bg, style.attrs | curses.A_BOLD)
 
@@ -1603,7 +1789,14 @@ if curses is not None:
                 self.report(exc)
             else:
                 self._calcheaderlines(len(self.levels)+1)
-                self.levels.append(_BrowserLevel(self, item, iterator, self.scrsizey-1-self._headerlines-2, *attrs))
+                level = _BrowserLevel(
+                    self,
+                    item,
+                    iterator,
+                    self.scrsizey-1-self._headerlines-2,
+                    *attrs
+                )
+                self.levels.append(level)
 
         def keylabel(self, keycode):
             if keycode <= 0xff:
@@ -1629,71 +1822,7 @@ if curses is not None:
                     self.report(CommandError("help already active"))
                     return
 
-            if self.pageoverlapy:
-                if self.pageoverlapy > 1:
-                    overlapmsg = " (pages will overlap %d lines)" % self.pageoverlapy
-                else:
-                    overlapmsg = " (pages will overlap one line)"
-            else:
-                overlapmsg = ""
-            help = _BrowserHelp(self,
-                ("up"             , "Move the cursor to the previous line."),
-                (""               , ""),
-                ("down"           , "Move the cursor to the next line."),
-                (""               , ""),
-                ("pageup"         , "Move the cursor up one page%s." % overlapmsg),
-                (""               , ""),
-                ("pagedown"       , "Move the cursor down one page%s." % overlapmsg),
-                (""               , ""),
-                ("left"           , "Move the cursor left."),
-                (""               , ""),
-                ("right"          , "Move the cursor right."),
-                (""               , ""),
-                ("home"           , "Move the cursor to the first column."),
-                (""               , ""),
-                ("end"            , "Move the cursor to the last column."),
-                (""               , ""),
-                ("pick"           , "'Pick' the object under the cursor (i.e. the row the cursor is on).\n"
-                                    "This leaves the browser and returns the picked object to the caller.\n"
-                                    "(In IPython this object will be available as the '_' variable.)"),
-                (""               , ""),
-                ("pickattr"       , "'Pick' the attribute under the cursor (i.e. the row/column the cursor is on).\n"),
-                (""               , ""),
-                ("pickmarked"     , "'Pick' marked objects.\n"
-                                    "Marked objects (those with a '!' after the row number) will be returned as a list"),
-                (""               , ""),
-                ("pickmarkedattr" , "Leave the browser and return the atrribute under the cursor from all\n"
-                                    "marked objects as a list to the caller (i.e. the shell)"),
-                (""               , ""),
-                ("enterdefault"   , "Enter the object under the cursor (what this mean depends on the object itself).\n"
-                                    "This opens a new browser 'level'."),
-                (""               , ""),
-                ("enter"          , "Enter the object under the cursor. If the object provides different enter modes\n"
-                                    "a menu of all modes will be presented, choice one and enter it (via the 'enter' or\n"
-                                    "'enterdefault' command"),
-                (""               , ""),
-                ("enterattr"      , "Enter the attribute under the cursor."),
-                (""               , ""),
-                ("leave"          , "Leave the current browser level and go back to the previous one."),
-                (""               , ""),
-                ("detail"         , "Show a detail view of the object under the cursor.\n"
-                                    "This shows the name, type, doc string and value of the object attributes\n"
-                                    "(and it might show more attributes than in the list view;\n"
-                                    "depending on the object)."),
-                (""               , ""),
-                ("tooglemark"     , "Mark/unmark the object under the cursor. Marked objects have a '!'\n"
-                                    "after the row number)."),
-                (""               , ""),
-                ("sortcolumnasc"  , "Sort the objects (in ascending order) using the column under the cursor\n"
-                                    "as the sort key."),
-                (""               , ""),
-                ("sortcolumndesc" , "Sort the objects (in descending order) using the column under the cursor\n"
-                                    "as the sort key."),
-                (""               , ""),
-                ("help"           , "This screen"),
-            )
-
-            self.enter(help, "default")
+            self.enter(_BrowserHelp(self), "default")
 
         def _dodisplay(self, scr):
             self.scr = scr
@@ -1718,7 +1847,8 @@ if curses is not None:
             lastc = -1
 
             self.levels = []
-            self.enter(self.input, xiter(self.input, "default"), *self.attrs) # the first level
+            # enter the first level
+            self.enter(self.input, xiter(self.input, "default"), *self.attrs)
 
             self._calcheaderlines(None)
 
@@ -1764,6 +1894,7 @@ if curses is not None:
                     scr.addstr(" "*(self.scrsizex-posx), self.getstyle(self.style_colheader))
 
                 # Paint rows
+                posy = self._headerlines+1+level.datastarty
                 for i in xrange(level.datastarty, min(level.datastarty+level.mainsizey, len(level.items))):
                     cache = level.items[i]
                     if i == level.cury:
@@ -1809,6 +1940,7 @@ if curses is not None:
                             break
                     else:
                         scr.clrtoeol()
+
                 # Add blank row headers for the rest of the screen
                 for posy in xrange(posy+1, self.scrsizey-2):
                     scr.addstr(posy, 0, " " * (level.numbersizex+2), self.getstyle(self.style_colheader))
@@ -1836,15 +1968,19 @@ if curses is not None:
                     if isinstance(self._report, Exception):
                         style = self.getstyle(self.style_error)
                         if self._report.__class__.__module__ == "exceptions":
-                            msg = "%s: %s" % (self._report.__class__.__name__, str(self._report))
+                            msg = "%s: %s" % \
+                                  (self._report.__class__.__name__, self._report)
                         else:
-                            msg = "%s.%s: %s" % (self._report.__class__.__module__, self._report.__class__.__name__, str(self._report))
+                            msg = "%s.%s: %s" % \
+                                  (self._report.__class__.__module__,
+                                   self._report.__class__.__name__, self._report)
                     else:
                         style = self.getstyle(self.style_report)
                         msg = self._report
                     try:
                         scr.addstr(self.scrsizey-1, 0, msg[:self.scrsizex], style)
-                    except curses.err: # Protect against error from writing to the last line
+                    except curses.err:
+                        # Protect against error from writing to the last line
                         pass
                     self._report = None
                 else:
@@ -1852,18 +1988,23 @@ if curses is not None:
                 scr.clrtoeol()
 
                 # Position cursor
-                scr.move(1+self._headerlines+level.cury-level.datastarty, level.numbersizex+3+level.curx-level.datastartx) # Position cursor
+                scr.move(
+                    1+self._headerlines+level.cury-level.datastarty,
+                    level.numbersizex+3+level.curx-level.datastartx
+                )
                 scr.refresh()
 
                 # Check keyboard
                 while True:
                     c = scr.getch()
-                    if c == -1: # if no key is pressed slow down and beep again
+                    # if no key is pressed slow down and beep again
+                    if c == -1:
                         self.stepx = 1.
                         self.stepy = 1.
                         self._dobeep = True
                     else:
-                        if c != lastc: # if a different key was pressed slow down and beep too
+                        # if a different key was pressed slow down and beep too
+                        if c != lastc:
                             lastc = c
                             self.stepx = 1.
                             self.stepy = 1.
@@ -1904,6 +2045,13 @@ if curses is not None:
                                 self.report(AttributeError(_attrname(level.displayattr)))
                             else:
                                 return attr
+                        elif cmd == "pickallattrs":
+                            result = []
+                            for cache in level.items:
+                                attr = _getattr(cache.item, level.displayattr)
+                                if attr is not _default:
+                                    result.append(attr)
+                            return result
                         elif cmd == "pickmarked":
                             return [cache.item for cache in level.items if cache.marked]
                         elif cmd == "pickmarkedattr":
@@ -1914,6 +2062,23 @@ if curses is not None:
                                     if attr is not _default:
                                         result.append(attr)
                             return result
+                        elif cmd == "markrange":
+                            self.report("markrange")
+                            start = None
+                            if level.items:
+                                for i in xrange(level.cury, -1, -1):
+                                    if level.items[i].marked:
+                                        start = i
+                                        break
+                            if start is None:
+                                self.report(CommandError("no mark before cursor"))
+                                curses.beep()
+                            else:
+                                for i in xrange(start, level.cury+1):
+                                    cache = level.items[i]
+                                    if not cache.marked:
+                                        cache.marked = True
+                                        level.marked += 1
                         elif cmd == "enterdefault":
                             self.report("entering object (default mode)...")
                             self.enter(level.items[level.cury].item, "default")
@@ -1923,12 +2088,13 @@ if curses is not None:
                                 self._calcheaderlines(len(self.levels)-1)
                                 self.levels.pop(-1)
                             else:
+                                self.report(CommandError("this is the last level"))
                                 curses.beep()
                         elif cmd == "enter":
                             self.report("entering object...")
                             self.enter(level.items[level.cury].item, None)
                         elif cmd == "enterattr":
-                            self.report("entering object attribute...")
+                            self.report("entering object attribute %s..." % _attrname(level.displayattr))
                             self.enter(_getattr(level.items[level.cury].item, level.displayattr), None)
                         elif cmd == "detail":
                             self.enter(level.items[level.cury].item, "detail")
@@ -1945,12 +2111,12 @@ if curses is not None:
                                 else:
                                     item.marked = True
                                     level.marked += 1
-                        elif cmd == "sortcolumnasc":
+                        elif cmd == "sortattrasc":
                             self.report("sort by %s (ascending)" % _attrname(level.displayattr))
                             def key(item):
                                 return _getattr(item, level.displayattr)
                             level.sort(key)
-                        elif cmd == "sortcolumndesc":
+                        elif cmd == "sortattrdesc":
                             self.report("sort by %s (descending)" % _attrname(level.displayattr))
                             def key(item):
                                 return _getattr(item, level.displayattr)
