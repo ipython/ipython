@@ -16,4 +16,5 @@ print sys.argv
 execfile('setup.py')
 
 # clean up the junk left around by setuptools
-os.system('rm -rf ipython.egg-info build')
+if "develop" not in sys.argv:
+    os.system('rm -rf ipython.egg-info build')

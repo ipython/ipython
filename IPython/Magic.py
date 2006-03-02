@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Magic functions for InteractiveShell.
 
-$Id: Magic.py 1181 2006-03-01 11:27:24Z vivainio $"""
+$Id: Magic.py 1188 2006-03-02 18:24:00Z vivainio $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001 Janko Hauser <jhauser@zscout.de> and
@@ -251,7 +251,7 @@ license. To use profiling, please install"python2.3-profiler" from non-free.""")
         """Format a string for latex inclusion."""
 
         # Characters that need to be escaped for latex:
-        escape_re = re.compile(r'(%|_|\$|#)',re.MULTILINE)
+        escape_re = re.compile(r'(%|_|\$|#|&)',re.MULTILINE)
         # Magic command names as headers:
         cmd_name_re = re.compile(r'^(%s.*?):' % self.shell.ESC_MAGIC,
                                  re.MULTILINE)
