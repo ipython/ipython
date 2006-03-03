@@ -526,7 +526,7 @@ class ifile(object):
                 "size", "blocks", "blksize", "isdir", "islink",
                 "mimetype", "encoding"
             )
-        return ("type", "access", "owner", "group", "mdate", "size", "name")
+        return ("name","type", "size", "access", "owner", "group", "mdate")
 
     def __xrepr__(self, mode):
         if mode == "header" or mode == "footer":
