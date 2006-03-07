@@ -8,10 +8,10 @@ objects imported this way starts with ``i`` to minimize collisions.
 ``ipipe`` supports "pipeline expressions", which is something resembling Unix
 pipes. An example is:
 
-   iwalk | ifilter("name.endswith('.py')") | isort("size")
+    >>> ienv | isort("_.key.lower()")
 
-This gives a listing of all files in the current directory (and subdirectories)
-whose name ends with '.py' sorted by size.
+This gives a listing of all environment variables sorted by name.
+
 
 There are three types of objects in a pipeline expression:
 
@@ -31,6 +31,78 @@ There are three types of objects in a pipeline expression:
   expression. If a pipeline expression doesn't end in a display object a default
   display objects will be used. One example is `ìbrowse`` which is a ``curses``
   based browser.
+
+
+Adding support for pipeline expressions to your own objects can be done through
+three extensions points (all of them optional):
+
+* An object that will be displayed as a row by a ``Display`` object should
+  implement the method ``__xattrs__(self, mode)``. This method must return a
+  sequence of attribute names. This sequence may also contain integers, which
+  will be treated as sequence indizes. Also supported is ``None``, which uses
+  the object itself and callables which will be called with the object as the
+  an argument. If ``__xattrs__()`` isn't implemented ``(None,)`` will be used as
+  the attribute sequence (i.e. the object itself (it's ``repr()`` format) will
+  be being displayed. The global function ``xattrs()`` implements this
+  functionality.
+
+* When an object ``foo`` is displayed in the header (or footer) of the browser
+  ``foo.__xrepr__("header")`` (or ``foo.__xrepr__("footer")``) is called.
+  Currently only ``"header"`` and ``"footer"`` are used as the mode argument.
+  When the method doesn't recognize the mode argument, it should fall back to
+  the ``repr()`` output. If the method ``__xrepr__()`` isn't defined the browser
+  falls back to ``repr()``. The global function ``xrepr()`` implements this
+  functionality.
+
+* Objects that can be iterated by ``Pipe``s must implement the method
+``__xiter__(self, mode)``. ``mode`` can take the following values:
+
+  - ``"default"``: This is the default value and ist always used by pipeline
+    expressions. Other values are only used in the browser.
+  - ``None``: This value is passed by the browser. The object must return an
+    iterable of ``XMode`` objects describing all modes supported by the object.
+    (This should never include ``"default"`` or ``None``).
+  - Any other value that the object supports.
+
+  The global function ``xiter()`` can be called to get such an iterator. If
+  the method ``_xiter__`` isn't implemented, ``xiter()`` falls back to
+  ``__iter__``. In addition to that, dictionaries and modules receive special
+  treatment (returning an iterator over ``(key, value)`` pairs). This makes it
+  possible to use dictionaries and modules in pipeline expressions, for example:
+
+      >>> import sys
+      >>> sys | ifilter("isinstance(_.value, int)") | idump
+      key        |value
+      api_version|      1012
+      dllhandle  | 503316480
+      hexversion |  33817328
+      maxint     |2147483647
+      maxunicode |     65535
+      >>> sys.modules | ifilter("_.value is not None") | isort("_.key.lower()")
+      ...
+
+  Note: The expression strings passed to ``ifilter()`` and ``isort()`` can
+  refer to the object to be filtered or sorted via the variable ``_``. When
+  running under Python 2.4 it's also possible to refer to the attributes of
+  the object directy, i.e.:
+
+      >>> sys.modules | ifilter("_.value is not None") | isort("_.key.lower()")
+
+  can be replaced with
+
+      >>> sys.modules | ifilter("value is not None") | isort("key.lower()")
+
+  In addition to expression strings, it's possible to pass callables (taking
+  the object as an argument) to ``ifilter()``, ``isort()`` and ``ieval()``:
+
+      >>> sys | ifilter(lambda _:isinstance(_.value, int)) \
+      ...     | ieval(lambda _: (_.key, hex(_.value))) | idump
+      0          |1
+      api_version|0x3f4
+      dllhandle  |0x1e000000
+      hexversion |0x20402f0
+      maxint     |0x7fffffff
+      maxunicode |0xffff
 """
 
 import sys, os, os.path, stat, glob, new, csv, datetime
@@ -88,6 +160,34 @@ __all__ = [
 os.stat_float_times(True) # enable microseconds
 
 
+class _AttrNamespace(object):
+    """
+    Internal helper class that is used for providing a namespace for evaluating
+    expressions containg attribute names of an object.
+
+    This class can only be used with Python 2.4.
+    """
+    def __init__(self, wrapped):
+        self.wrapped = wrapped
+
+    def __getitem__(self, name):
+        if name == "_":
+            return self.wrapped
+        try:
+            return getattr(self.wrapped, name)
+        except AttributeError:
+            raise KeyError(name)
+
+# Python 2.3 compatibility
+# fall back to a real dictionary (containing just the object itself) if we can't
+# use the _AttrNamespace class in eval()
+try:
+    eval("_", None, _AttrNamespace(None))
+except TypeError:
+    def _AttrNamespace(wrapped):
+        return {"_": wrapped}
+
+
 _default = object()
 
 def item(iterator, index, default=_default):
@@ -124,23 +224,6 @@ def item(iterator, index, default=_default):
         return default
 
 
-class _AttrNamespace(object):
-    """
-    Internal helper that is used for providing a namespace for evaluating
-    expressions containg attribute names of an object.
-    """
-    def __init__(self, wrapped):
-        self.wrapped = wrapped
-
-    def __getitem__(self, name):
-        if name == "_":
-            return self.wrapped
-        try:
-            return getattr(self.wrapped, name)
-        except AttributeError:
-            raise KeyError(name)
-
-
 class Table(object):
     """
     A ``Table`` is an object that produces items (just like a normal Python
@@ -148,6 +231,10 @@ class Table(object):
     expression. The displayhook will open the default browser for such an object
     (instead of simply printing the ``repr()`` result).
     """
+
+    # We want to support ``foo`` and ``foo()`` in pipeline expression:
+    # So we implement the required operators (``|`` and ``+``) in the metaclass,
+    # instantiate the class and forward the operator to the instance
     class __metaclass__(type):
         def __iter__(self):
             return iter(self())
@@ -174,18 +261,23 @@ class Table(object):
         return False
 
     def __or__(self, other):
+        # autoinstantiate right hand side
         if isinstance(other, type) and issubclass(other, (Table, Display)):
             other = other()
+        # treat simple strings and functions as ``ieval`` instances
         elif not isinstance(other, Display) and not isinstance(other, Table):
             other = ieval(other)
+        # forward operations to the right hand side
         return other.__ror__(self)
 
     def __add__(self, other):
+        # autoinstantiate right hand side
         if isinstance(other, type) and issubclass(other, Table):
             other = other()
         return ichain(self, other)
 
     def __radd__(self, other):
+        # autoinstantiate left hand side
         if isinstance(other, type) and issubclass(other, Table):
             other = other()
         return ichain(other, self)
@@ -206,6 +298,7 @@ class Pipe(Table):
             return input | self()
 
     def __ror__(self, input):
+        # autoinstantiate left hand side
         if isinstance(input, type) and issubclass(input, Table):
             input = input()
         self.input = input
@@ -249,9 +342,7 @@ def _attrname(name):
 def xrepr(item, mode):
     try:
         func = item.__xrepr__
-    except (KeyboardInterrupt, SystemExit):
-        raise
-    except Exception:
+    except AttributeError:
         return repr(item)
     else:
         return func(mode)
@@ -287,7 +378,7 @@ def xiter(item, mode):
             def items(item):
                 fields = ("key", "value")
                 for key in sorted(item.__dict__):
-                    yield Fields(fields, key, getattr(item, key))
+                    yield Fields(fields, key=key, value=getattr(item, key))
             return items(item)
         elif isinstance(item, basestring):
             if not len(item):
@@ -526,7 +617,7 @@ class ifile(object):
                 "size", "blocks", "blksize", "isdir", "islink",
                 "mimetype", "encoding"
             )
-        return ("name","type", "size", "access", "owner", "group", "mdate")
+        return ("name", "type", "size", "access", "owner", "group", "mdate")
 
     def __xrepr__(self, mode):
         if mode == "header" or mode == "footer":
@@ -1085,6 +1176,7 @@ class idump(Display):
                     row[attrname] = (value, text)
                 rows.append(row)
 
+            stream.write("\n")
             for (i, attrname) in enumerate(self.attrs):
                 stream.write(_attrname(attrname))
                 spc = colwidths[attrname] - len(_attrname(attrname))
@@ -1157,7 +1249,16 @@ class idump(Display):
 
 
 class XMode(object):
+    """
+    An ``XMode`` object describes one enter mode available for an object
+    """
     def __init__(self, object, mode, title=None, description=None):
+        """
+        Create a new ``XMode`` object for the object ``object``. This object
+        must support the enter mode ``mode`` (i.e. ``object.__xiter__(mode)``
+        must return an iterable). ``title`` and ``description`` will be
+        displayed in the browser when selecting among the available modes.
+        """
         self.object = object
         self.mode = mode
         self.title = title
@@ -1234,7 +1335,7 @@ pagedown
 Move the cursor down one page (minus overlap).
 
 pageup
-Move the cursor up one page.
+Move the cursor up one page (minus overlap).
 
 left
 Move the cursor left.
@@ -1257,8 +1358,8 @@ pickattr
 'Pick' the attribute under the cursor (i.e. the row/column the cursor is on).
 
 pickallattrs
-Pick' the complete column under the cursor (i.e. the attribute under the cursor
-from all currently fetched objects). The attributes will be returned as a list.
+Pick' the complete column under the cursor (i.e. the attribute under the cursor)
+from all currently fetched objects. These attributes will be returned as a list.
 
 tooglemark
 Mark/unmark the object under the cursor. Marked objects have a '!' after the
@@ -1269,16 +1370,17 @@ pickmarked
 
 pickmarkedattr
 'Pick' the attribute under the cursor from all marked objects (This returns a
-list)
+list).
 
 enterdefault
 Enter the object under the cursor. (what this mean depends on the object
-itself). This opens a new browser 'level'.
+itself (i.e. how it implements the '__xiter__' method). This opens a new browser
+'level'.
 
 enter
 Enter the object under the cursor. If the object provides different enter modes
-a menu of all modes will be presented, choice one and enter it (via the 'enter'
-or 'enterdefault' command),
+a menu of all modes will be presented; choice one and enter it (via the 'enter'
+or 'enterdefault' command).
 
 enterattr
 Enter the attribute under the cursor.
@@ -1289,7 +1391,7 @@ Leave the current browser level and go back to the previous one.
 detail
 Show a detail view of the object under the cursor. This shows the name, type,
 doc string and value of the object attributes (and it might show more attributes
-than in the list view; depending on the object).
+than in the list view, depending on the object).
 
 markrange
 Mark all objects from the last marked object before the current cursor position
@@ -1310,18 +1412,29 @@ This screen.
 
 if curses is not None:
     class UnassignedKeyError(Exception):
-        pass
+        """
+        Exception that is used for reporting unassigned keys.
+        """
 
 
     class UnknownCommandError(Exception):
-        pass
+        """
+        Exception that is used for reporting unknown command (this should never
+        happen).
+        """
 
 
     class CommandError(Exception):
-        pass
+        """
+        Exception that is used for reporting that a command can't be executed.
+        """
 
 
     class Style(object):
+        """
+        Store foreground color, background color and attribute (bold, underlined
+        etc.) for ``curses``.
+        """
         __slots__ = ("fg", "bg", "attrs")
 
         def __init__(self, fg, bg, attrs=0):
@@ -1331,6 +1444,8 @@ if curses is not None:
 
 
     class _BrowserCachedItem(object):
+        # This is used internally by ``ibrowse`` to store a item together with its
+        # marked status.
         __slots__ = ("item", "marked")
 
         def __init__(self, item):
@@ -1339,6 +1454,7 @@ if curses is not None:
 
 
     class _BrowserHelp(object):
+        # This is used internally by ``ibrowse`` for displaying the help screen.
         def __init__(self, browser):
             self.browser = browser
 
@@ -1378,6 +1494,10 @@ if curses is not None:
 
 
     class _BrowserLevel(object):
+        # This is used internally to store the state (iterator, fetch items,
+        # position of cursor and screen, etc.) of one browser level
+        # An ``ibrowse`` object keeps multiple ``_BrowserLevel`` objects in
+        # a stack.
         def __init__(self, browser, input, iterator, mainsizey, *attrs):
             self.browser = browser
             self.input = input
@@ -1407,6 +1527,7 @@ if curses is not None:
             self.calcdisplayattr()
 
         def fetch(self, count):
+            # Try to fill ``self.items`` with at least ``count`` objects.
             have = len(self.items)
             while not self.exhausted and have < count:
                 try:
@@ -1419,7 +1540,11 @@ if curses is not None:
                     self.items.append(_BrowserCachedItem(item))
 
         def calcdisplayattrs(self):
+            # Calculate which attributes are available from the objects that are
+            # currently visible on screen (and store it in ``self.displayattrs``)
             attrnames = set()
+            # If the browser object specifies a fixed list of attributes,
+            # simply use it.
             if self.attrs:
                 self.displayattrs = self.attrs
             else:
@@ -1432,6 +1557,10 @@ if curses is not None:
                             attrnames.add(attrname)
 
         def getrow(self, i):
+            # Return a dictinary with the attributes for the object
+            # ``self.items[i]``. Attribute names are taken from
+            # ``self.displayattrs`` so ``calcdisplayattrs()`` must have been
+            # called before.
             row = {}
             item = self.items[i].item
             for attrname in self.displayattrs:
@@ -1448,7 +1577,11 @@ if curses is not None:
             return row
 
         def calcwidths(self):
-            # Recalculate the displayed fields and their width
+            # Recalculate the displayed fields and their width.
+            # ``calcdisplayattrs()'' must have been called and the cache
+            # for attributes of the objects on screen (``self.displayrows``)
+            # must have been filled. This returns a dictionary mapping
+            # colmn names to width.
             self.colwidths = {}
             for row in self.displayrows:
                 for attrname in self.displayattrs:
@@ -1467,7 +1600,8 @@ if curses is not None:
             self.datasizex = sum(self.colwidths.itervalues()) + len(self.colwidths)
 
         def calcdisplayattr(self):
-            # Find out on which attribute the cursor is on
+            # Find out on which attribute the cursor is on and store this
+            # information in ``self.displayattr``.
             pos = 0
             for attrname in self.displayattrs:
                 if pos+self.colwidths[attrname] >= self.curx:
@@ -1478,6 +1612,10 @@ if curses is not None:
                 self.displayattr = None
 
         def moveto(self, x, y, refresh=False):
+            # Move the cursor to the position ``(x,y)`` (in data coordinates,
+            # not in screen coordinates). If ``refresh`` is true, all cached
+            # values will be recalculated (e.g. because the list has been
+            # resorted to screen position etc. are no longer valid).
             olddatastarty = self.datastarty
             oldx = self.curx
             oldy = self.cury
@@ -1506,7 +1644,6 @@ if curses is not None:
                 endy = min(self.datastarty+self.mainsizey, len(self.items))
                 self.displayrows = map(self.getrow, xrange(self.datastarty, endy))
                 self.calcwidths()
-
             # Did we scroll vertically => update displayrows
             # and various other attributes
             elif self.datastarty != olddatastarty:
@@ -1690,27 +1827,61 @@ if curses is not None:
         }
 
         def __init__(self, *attrs):
+            """
+            Create a new browser. If ``attrs`` is not empty, it is the list
+            of attributes that will be displayed in the browser, otherwise
+            these will be determined by the objects on screen.
+            """
             self.attrs = attrs
+
+            # Stack of browser levels
             self.levels = []
-            self.stepx = 1. # how many colums to scroll
-            self.stepy = 1. # how many rows to scroll
-            self._dobeep = True # Beep on the edges of the data area?
+            # how many colums to scroll (Changes when accelerating)
+            self.stepx = 1.
+
+            # how many rows to scroll (Changes when accelerating)
+            self.stepy = 1.
+
+            # Beep on the edges of the data area? (Will be set to ``False``
+            # once the cursor hits the edge of the screen, so we don't get
+            # multiple beeps).
+            self._dobeep = True
+
+            # Cache for registered ``curses`` colors.
             self._colors = {}
             self._maxcolor = 1
-            self._headerlines = 1 # How many header lines do we want to paint (the numbers of levels we have, but with an upper bound)
-            self._firstheaderline = 0 # Index of first header line
-            self.scr = None # curses window
-            self._report = None # report in the footer line
+
+            # How many header lines do we want to paint (the numbers of levels
+            # we have, but with an upper bound)
+            self._headerlines = 1
+
+            # Index of first header line
+            self._firstheaderline = 0
+
+            # curses window
+            self.scr = None
+            # report in the footer line (error, executed command etc.)
+            self._report = None
 
         def nextstepx(self, step):
+            """
+            Accelerate horizontally.
+            """
             return max(1., min(step*self.acceleratex,
                                self.maxspeedx*self.levels[-1].mainsizex))
 
         def nextstepy(self, step):
+            """
+            Accelerate vertically.
+            """
             return max(1., min(step*self.acceleratey,
                                self.maxspeedy*self.levels[-1].mainsizey))
 
         def getstyle(self, style):
+            """
+            Register the ``style`` with ``curses`` or get it from the cache,
+            if it has been registered before.
+            """
             try:
                 return self._colors[style.fg, style.bg] | style.attrs
             except KeyError:
@@ -1722,12 +1893,20 @@ if curses is not None:
                 return c
 
         def addstr(self, y, x, begx, endx, s, style):
+            """
+            A version of ``curses.addstr()`` that can handle ``x`` coordinates
+            that are outside the screen.
+            """
             s2 = s[max(0, begx-x):max(0, endx-x)]
             if s2:
                 self.scr.addstr(y, max(x, begx), s2, self.getstyle(style))
             return len(s)
 
         def format(self, value):
+            """
+            Formats one attribute and returns an ``(alignment, string, style)``
+            tuple.
+            """
             if value is None:
                 return (-1, repr(value), self.style_type_none)
             elif isinstance(value, str):
@@ -1769,6 +1948,8 @@ if curses is not None:
             return (-1, repr(value), self.style_default)
 
         def _calcheaderlines(self, levels):
+            # Calculate how many headerlines do we have to display, if we have
+            # ``levels`` browser levels
             if levels is None:
                 levels = len(self.levels)
             self._headerlines = min(self.maxheaders, levels)
@@ -1782,9 +1963,17 @@ if curses is not None:
             return Style(style.fg, style.bg, style.attrs | curses.A_BOLD)
 
         def report(self, msg):
+            """
+            Store the message ``msg`` for display below the footer line. This
+            will be displayed as soon as the screen is redrawn.
+            """
             self._report = msg
 
         def enter(self, item, mode, *attrs):
+            """
+            Enter the object ``item`` in the mode ``mode``. If ``attrs`` is
+            specified, it will be used as a fixed list of attributes to display.
+            """
             try:
                 iterator = xiter(item, mode)
             except (KeyboardInterrupt, SystemExit):
@@ -1804,6 +1993,10 @@ if curses is not None:
                 self.levels.append(level)
 
         def keylabel(self, keycode):
+            """
+            Return a pretty name for the ``curses`` key ``keycode`` (used in the
+            help screen and in reports about unassigned keys).
+            """
             if keycode <= 0xff:
                 specialsnames = {
                     ord("\n"): "RETURN",
@@ -1821,6 +2014,9 @@ if curses is not None:
             return str(keycode)
 
         def cmd_help(self):
+            """
+            The help command
+            """
             for level in self.levels:
                 if isinstance(level.input, _BrowserHelp):
                     curses.beep()
@@ -1830,6 +2026,10 @@ if curses is not None:
             self.enter(_BrowserHelp(self), "default")
 
         def _dodisplay(self, scr):
+            """
+            This method is the workhorse of the browser. It handles screen
+            drawing and the keyboard.
+            """
             self.scr = scr
             curses.halfdelay(1)
             footery = 2
@@ -2144,6 +2344,7 @@ if curses is not None:
     defaultdisplay = ibrowse
     __all__.append("ibrowse")
 else:
+    # No curses (probably Windows) => use ``idump`` as the default display.
     defaultdisplay = idump
 
 
