@@ -421,6 +421,9 @@ class ichain(Pipe):
 
 
 class ifile(object):
+    """
+    file (or directory) object.
+    """
     __slots__ = ("name", "_abspath", "_realpath", "_stat", "_lstat")
 
     def __init__(self, name):
@@ -674,6 +677,9 @@ class iparentdir(ifile):
 
 
 class ils(Table):
+    """
+    This ``Table`` lists a directory.
+    """
     def __init__(self, base=os.curdir):
         self.base = os.path.expanduser(base)
 
@@ -691,6 +697,10 @@ class ils(Table):
 
 
 class iglob(Table):
+    """
+    This `Table`` lists all files and directories matching a specified pattern.
+    (See ``glob.glob()`` for more info.)
+    """
     def __init__(self, glob):
         self.glob = glob
 
@@ -709,6 +719,10 @@ class iglob(Table):
 
 
 class iwalk(Table):
+    """
+    This `Table`` lists all files and directories in a directory and it's
+    subdirectory.
+    """
     def __init__(self, base=os.curdir, dirs=True, files=True):
         self.base = os.path.expanduser(base)
         self.dirs = dirs
@@ -734,6 +748,10 @@ class iwalk(Table):
 
 
 class ipwdentry(object):
+    """
+    ``ipwdentry`` objects encapsulate entries in the Unix user account and
+    password database.
+    """
     def __init__(self, id):
         self._id = id
         self._entry = None
@@ -793,6 +811,10 @@ class ipwdentry(object):
 
 
 class ipwd(Table):
+    """
+    This ``Table`` lists all entries in the Unix user account and password
+    database.
+    """
     def __iter__(self):
         for entry in pwd.getpwall():
             yield ipwdentry(entry.pw_name)
@@ -804,6 +826,9 @@ class ipwd(Table):
 
 
 class igrpentry(object):
+    """
+    ``igrpentry`` objects encapsulate entries in the Unix group database.
+    """
     def __init__(self, id):
         self._id = id
         self._entry = None
@@ -856,6 +881,9 @@ class igrpentry(object):
 
 
 class igrp(Table):
+    """
+    This ``Table`` lists all entries in the Unix group database.
+    """
     def __xiter__(self, mode):
         for entry in grp.getgrall():
             yield igrpentry(entry.gr_name)
@@ -906,6 +934,10 @@ class FieldTable(Table, list):
 
 
 class ienv(Table):
+    """
+    This ``Table`` lists environment variables.
+    """
+
     def __xiter__(self, mode):
         fields = ("key", "value")
         for (key, value) in os.environ.iteritems():
@@ -918,7 +950,15 @@ class ienv(Table):
 
 
 class icsv(Pipe):
+    """
+    This ``Pipe`` lists turn the input (with must be a pipe outputting lines
+    or an ``ifile``) into lines of CVS columns.
+    """
     def __init__(self, **csvargs):
+        """
+        Create an ``icsv`` object. ``cvsargs`` will be passed through as
+        keyword arguments to ``cvs.reader()``.
+        """
         self.csvargs = csvargs
 
     def __xiter__(self, mode):
@@ -947,6 +987,10 @@ class icsv(Pipe):
 
 
 class ix(Table):
+    """
+    This ``Table`` executes a system command and lists its output as lines
+    (similar to ``os.popen()``).
+    """
     def __init__(self, cmd):
         self.cmd = cmd
         self._pipe = None
@@ -974,7 +1018,16 @@ class ix(Table):
 
 
 class ifilter(Pipe):
+    """
+    This ``Pipe`` filters an input pipe. Only objects where an expression
+    evaluates to true (and doesn't raise an exception) are listed.
+    """
+
     def __init__(self, expr):
+        """
+        Create an ``ifilter`` object. ``expr`` can be a callable or a string
+        containing an expression.
+        """
         self.expr = expr
 
     def __xiter__(self, mode):
@@ -1015,7 +1068,15 @@ class ifilter(Pipe):
 
 
 class ieval(Pipe):
+    """
+    This ``Pipe`` evaluates an expression for each object in the input pipe.
+    """
+
     def __init__(self, expr):
+        """
+        Create an ``ieval`` object. ``expr`` can be a callable or a string
+        containing an expression.
+        """
         self.expr = expr
 
     def __xiter__(self, mode):
@@ -1061,7 +1122,16 @@ class ienum(Pipe):
 
 
 class isort(Pipe):
+    """
+    This ``Pipe`` sorts its input pipe.
+    """
+
     def __init__(self, key, reverse=False):
+        """
+        Create an ``isort`` object. ``key`` can be a callable or a string
+        containing an expression. If ``reverse`` is true the sort order will
+        be reversed.
+        """
         self.key = key
         self.reverse = reverse
 
@@ -1349,6 +1419,12 @@ Move the cursor to the first column.
 end
 Move the cursor to the last column.
 
+prevattr
+Move the cursor one attribute column to the left.
+
+nextattr
+Move the cursor one attribute column to the right.
+
 pick
 'Pick' the object under the cursor (i.e. the row the cursor is on). This leaves
 the browser and returns the picked object to the caller. (In IPython this object
@@ -1392,6 +1468,9 @@ detail
 Show a detail view of the object under the cursor. This shows the name, type,
 doc string and value of the object attributes (and it might show more attributes
 than in the list view, depending on the object).
+
+detailattr
+Show a detail view of the attribute under the cursor.
 
 markrange
 Mark all objects from the last marked object before the current cursor position
@@ -1502,21 +1581,50 @@ if curses is not None:
             self.browser = browser
             self.input = input
             self.header = xrepr(input, "header")
-            self.iterator = iterator # iterator for the input
-            self.exhausted = False # is the iterator exhausted?
+            # iterator for the input
+            self.iterator = iterator
+
+            # is the iterator exhausted?
+            self.exhausted = False
+
+            # attributes to be display (autodetected if empty)
             self.attrs = attrs
+
+            # fetched items (+ marked flag)
             self.items = deque()
-            self.marked = 0 # Number of marked objects
-            self.cury = 0 # Vertical cursor position
-            self.curx = 0 # Horizontal cursor position
-            self.datastarty = 0 # Index of first data line
-            self.datastartx = 0 # Index of first data column
-            self.mainsizey = mainsizey # height of the data display area
-            self.mainsizex = 0 # width of the data display area
-            self.numbersizex = 0 # Size of number at the left edge of the screen
-            self.displayattrs = [] # Attribute names to display (in this order)
-            self.displayattr = _default # Name of attribute under the cursor
-            self.colwidths = {} # Maps attribute names to column widths
+
+            # Number of marked objects
+            self.marked = 0
+
+            # Vertical cursor position
+            self.cury = 0
+
+            # Horizontal cursor position
+            self.curx = 0
+
+            # Index of first data column
+            self.datastartx = 0
+
+            # Index of first data line
+            self.datastarty = 0
+
+            # height of the data display area
+            self.mainsizey = mainsizey
+
+            # width of the data display area (changes when scrolling)
+            self.mainsizex = 0
+
+            # Size of row number (changes when scrolling)
+            self.numbersizex = 0
+
+            # Attribute names to display (in this order)
+            self.displayattrs = []
+
+            # index and name of attribute under the cursor
+            self.displayattr = (None, _default)
+
+            # Maps attribute names to column widths
+            self.colwidths = {}
 
             self.fetch(mainsizey)
             self.calcdisplayattrs()
@@ -1603,24 +1711,26 @@ if curses is not None:
             # Find out on which attribute the cursor is on and store this
             # information in ``self.displayattr``.
             pos = 0
-            for attrname in self.displayattrs:
+            for (i, attrname) in enumerate(self.displayattrs):
                 if pos+self.colwidths[attrname] >= self.curx:
-                    self.displayattr = attrname
+                    self.displayattr = (i, attrname)
                     break
                 pos += self.colwidths[attrname]+1
             else:
-                self.displayattr = None
+                self.displayattr = (None, _default)
 
         def moveto(self, x, y, refresh=False):
             # Move the cursor to the position ``(x,y)`` (in data coordinates,
             # not in screen coordinates). If ``refresh`` is true, all cached
             # values will be recalculated (e.g. because the list has been
-            # resorted to screen position etc. are no longer valid).
+            # resorted, so screen positions etc. are no longer valid).
             olddatastarty = self.datastarty
             oldx = self.curx
             oldy = self.cury
             x = int(x+0.5)
             y = int(y+0.5)
+            newx = x # remember where we wanted to move
+            newy = y # remember where we wanted to move
 
             scrollbordery = min(self.browser.scrollbordery, self.mainsizey//2)
             scrollborderx = min(self.browser.scrollborderx, self.mainsizex//2)
@@ -1693,11 +1803,8 @@ if curses is not None:
                 self.datastartx = max(0, min(x-self.mainsizex+scrollborderx+1,
                                              self.datasizex-self.mainsizex))
 
-            if x == oldx and y == oldy: # couldn't move
-                if self.browser._dobeep:
-                    curses.beep()
-                    # don't beep again (as long as the same key is pressed)
-                    self.browser._dobeep = False
+            if x == oldx and y == oldy and (x != newx or y != newy): # couldn't move
+                self.browser.beep()
             else:
                 self.curx = x
                 self.cury = y
@@ -1805,6 +1912,8 @@ if curses is not None:
             curses.KEY_RIGHT: "right",
             curses.KEY_HOME: "home",
             curses.KEY_END: "end",
+            ord("<"): "prevattr",
+            ord(">"): "nextattr",
             ord("p"): "pick",
             ord("P"): "pickattr",
             ord("C"): "pickallattrs",
@@ -1820,6 +1929,7 @@ if curses is not None:
             ord("e"): "enter",
             ord("E"): "enterattr",
             ord("d"): "detail",
+            ord("D"): "detailattr",
             ord(" "): "tooglemark",
             ord("r"): "markrange",
             ord("v"): "sortattrasc",
@@ -1862,6 +1972,9 @@ if curses is not None:
             self.scr = None
             # report in the footer line (error, executed command etc.)
             self._report = None
+
+            # value to be returned to the caller (set by commands)
+            self.returnvalue = None
 
         def nextstepx(self, step):
             """
@@ -2013,6 +2126,258 @@ if curses is not None:
                     return name
             return str(keycode)
 
+        def beep(self, force=False):
+            if force or self._dobeep:
+                curses.beep()
+                # don't beep again (as long as the same key is pressed)
+                self._dobeep = False
+
+        def cmd_quit(self):
+            self.returnvalue = None
+            return True
+
+        def cmd_up(self):
+            level = self.levels[-1]
+            self.report("up")
+            level.moveto(level.curx, level.cury-self.stepy)
+
+        def cmd_down(self):
+            level = self.levels[-1]
+            self.report("down")
+            level.moveto(level.curx, level.cury+self.stepy)
+
+        def cmd_pageup(self):
+            level = self.levels[-1]
+            self.report("page up")
+            level.moveto(level.curx, level.cury-level.mainsizey+self.pageoverlapy)
+
+        def cmd_pagedown(self):
+            level = self.levels[-1]
+            self.report("page down")
+            level.moveto(level.curx, level.cury+level.mainsizey-self.pageoverlapy)
+
+        def cmd_left(self):
+            level = self.levels[-1]
+            self.report("left")
+            level.moveto(level.curx-self.stepx, level.cury)
+
+        def cmd_right(self):
+            level = self.levels[-1]
+            self.report("right")
+            level.moveto(level.curx+self.stepx, level.cury)
+
+        def cmd_home(self):
+            level = self.levels[-1]
+            self.report("home")
+            level.moveto(0, level.cury)
+
+        def cmd_end(self):
+            level = self.levels[-1]
+            self.report("end")
+            level.moveto(level.datasizex+level.mainsizey-self.pageoverlapx, level.cury)
+
+        def cmd_prevattr(self):
+            level = self.levels[-1]
+            if level.displayattr[0] is None or level.displayattr[0] == 0:
+                self.beep()
+            else:
+                self.report("prevattr")
+                pos = 0
+                for (i, attrname) in enumerate(level.displayattrs):
+                    if i == level.displayattr[0]-1:
+                        break
+                    pos += level.colwidths[attrname] + 1
+                level.moveto(pos, level.cury)
+
+        def cmd_nextattr(self):
+            level = self.levels[-1]
+            if level.displayattr[0] is None or level.displayattr[0] == len(level.displayattrs)-1:
+                self.beep()
+            else:
+                self.report("nextattr")
+                pos = 0
+                for (i, attrname) in enumerate(level.displayattrs):
+                    if i == level.displayattr[0]+1:
+                        break
+                    pos += level.colwidths[attrname] + 1
+                level.moveto(pos, level.cury)
+
+        def cmd_pick(self):
+            level = self.levels[-1]
+            self.returnvalue = level.items[level.cury].item
+            return True
+
+        def cmd_pickattr(self):
+            level = self.levels[-1]
+            attrname = level.displayattr[1]
+            if attrname is _default:
+                curses.beep()
+                self.report(AttributeError(_attrname(attrname)))
+                return
+            attr = _getattr(level.items[level.cury].item, attrname)
+            if attr is _default:
+                curses.beep()
+                self.report(AttributeError(_attrname(attrname)))
+            else:
+                self.returnvalue = attr
+                return True
+
+        def cmd_pickallattrs(self):
+            level = self.levels[-1]
+            attrname = level.displayattr[1]
+            if attrname is _default:
+                curses.beep()
+                self.report(AttributeError(_attrname(attrname)))
+                return
+            result = []
+            for cache in level.items:
+                attr = _getattr(cache.item, attrname)
+                if attr is not _default:
+                    result.append(attr)
+            self.returnvalue = result
+            return True
+
+        def cmd_pickmarked(self):
+            level = self.levels[-1]
+            self.returnvalue = [cache.item for cache in level.items if cache.marked]
+            return True
+
+        def cmd_pickmarkedattr(self):
+            level = self.levels[-1]
+            attrname = level.displayattr[1]
+            if attrname is _default:
+                curses.beep()
+                self.report(AttributeError(_attrname(attrname)))
+                return
+            result = []
+            for cache in level.items:
+                if cache.marked:
+                    attr = _getattr(cache.item, attrname)
+                    if attr is not _default:
+                        result.append(attr)
+            self.returnvalue = result
+            return True
+
+        def cmd_markrange(self):
+            level = self.levels[-1]
+            self.report("markrange")
+            start = None
+            if level.items:
+                for i in xrange(level.cury, -1, -1):
+                    if level.items[i].marked:
+                        start = i
+                        break
+            if start is None:
+                self.report(CommandError("no mark before cursor"))
+                curses.beep()
+            else:
+                for i in xrange(start, level.cury+1):
+                    cache = level.items[i]
+                    if not cache.marked:
+                        cache.marked = True
+                        level.marked += 1
+
+        def cmd_enterdefault(self):
+            level = self.levels[-1]
+            self.report("entering object (default mode)...")
+            self.enter(level.items[level.cury].item, "default")
+
+        def cmd_leave(self):
+            self.report("leave")
+            if len(self.levels) > 1:
+                self._calcheaderlines(len(self.levels)-1)
+                self.levels.pop(-1)
+            else:
+                self.report(CommandError("This is the last level"))
+                curses.beep()
+
+        def cmd_enter(self):
+            level = self.levels[-1]
+            self.report("entering object...")
+            self.enter(level.items[level.cury].item, None)
+
+        def cmd_enterattr(self):
+            level = self.levels[-1]
+            attrname = level.displayattr[1]
+            if attrname is _default:
+                curses.beep()
+                self.report(AttributeError(_attrname(attrname)))
+                return
+            attr = _getattr(level.items[level.cury].item, attrname)
+            if attr is _default:
+                self.report(AttributeError(_attrname(attrname)))
+            else:
+                self.report("entering object attribute %s..." % _attrname(attrname))
+                self.enter(attr, None)
+
+        def cmd_detail(self):
+            level = self.levels[-1]
+            self.report("entering detail view for object...")
+            self.enter(level.items[level.cury].item, "detail")
+
+        def cmd_detailattr(self):
+            level = self.levels[-1]
+            attrname = level.displayattr[1]
+            if attrname is _default:
+                curses.beep()
+                self.report(AttributeError(_attrname(attrname)))
+                return
+            attr = _getattr(level.items[level.cury].item, attrname)
+            if attr is _default:
+                self.report(AttributeError(_attrname(attrname)))
+            else:
+                self.report("entering detail view for attribute...")
+                self.enter(attr, "detail")
+
+        def cmd_tooglemark(self):
+            level = self.levels[-1]
+            self.report("toggle mark")
+            try:
+                item = level.items[level.cury]
+            except IndexError: # no items?
+                pass
+            else:
+                if item.marked:
+                    item.marked = False
+                    level.marked -= 1
+                else:
+                    item.marked = True
+                    level.marked += 1
+
+        def cmd_sortattrasc(self):
+            level = self.levels[-1]
+            attrname = level.displayattr[1]
+            if attrname is _default:
+                curses.beep()
+                self.report(AttributeError(_attrname(attrname)))
+                return
+            self.report("sort by %s (ascending)" % _attrname(attrname))
+            def key(item):
+                try:
+                    return _getattr(item, attrname, None)
+                except (KeyboardInterrupt, SystemExit):
+                    raise
+                except Exception:
+                    return None
+            level.sort(key)
+
+        def cmd_sortattrdesc(self):
+            level = self.levels[-1]
+            attrname = level.displayattr[1]
+            if attrname is _default:
+                curses.beep()
+                self.report(AttributeError(_attrname(attrname)))
+                return
+            self.report("sort by %s (descending)" % _attrname(attrname))
+            def key(item):
+                try:
+                    return _getattr(item, attrname, None)
+                except (KeyboardInterrupt, SystemExit):
+                    raise
+                except Exception:
+                    return None
+            level.sort(key, reverse=True)
+
         def cmd_help(self):
             """
             The help command
@@ -2087,7 +2452,7 @@ if curses is not None:
                     strattrname = _attrname(attrname)
                     cwidth = level.colwidths[attrname]
                     header = strattrname.ljust(cwidth)
-                    if attrname == level.displayattr:
+                    if attrname == level.displayattr[1]:
                         style = self.style_colheaderhere
                     else:
                         style = self.style_colheader
@@ -2162,8 +2527,12 @@ if curses is not None:
                 scr.addstr(self.scrsizey-footery, self.scrsizex-len(helpmsg)-1, helpmsg, self.getstyle(self.style_footer))
 
                 msg = "%d%s objects (%d marked)" % (len(level.items), flag, level.marked)
+                attrname = level.displayattr[1]
                 try:
-                    msg += ": %s > %s" % (xrepr(level.items[level.cury].item, "footer"), _attrname(level.displayattr))
+                    if attrname is not _default:
+                        msg += ": %s > %s" % (xrepr(level.items[level.cury].item, "footer"), _attrname(attrname))
+                    else:
+                        msg += ": %s > no attribute" % xrepr(level.items[level.cury].item, "footer")
                 except IndexError: # empty
                     pass
                 self.addstr(self.scrsizey-footery, 1, 1, self.scrsizex-len(helpmsg)-1, msg, self.style_footer)
@@ -2214,124 +2583,21 @@ if curses is not None:
                             self.stepx = 1.
                             self.stepy = 1.
                             self._dobeep = True
-                        cmd = self.keymap.get(c, None)
-                        if cmd == "quit":
-                            return
-                        elif cmd == "up":
-                            self.report("up")
-                            level.moveto(level.curx, level.cury-self.stepy)
-                        elif cmd == "down":
-                            self.report("down")
-                            level.moveto(level.curx, level.cury+self.stepy)
-                        elif cmd == "pageup":
-                            self.report("page up")
-                            level.moveto(level.curx, level.cury-level.mainsizey+self.pageoverlapy)
-                        elif cmd == "pagedown":
-                            self.report("page down")
-                            level.moveto(level.curx, level.cury+level.mainsizey-self.pageoverlapy)
-                        elif cmd == "left":
-                            self.report("left")
-                            level.moveto(level.curx-self.stepx, level.cury)
-                        elif cmd == "right":
-                            self.report("right")
-                            level.moveto(level.curx+self.stepx, level.cury)
-                        elif cmd == "home":
-                            self.report("home")
-                            level.moveto(0, level.cury)
-                        elif cmd == "end":
-                            self.report("end")
-                            level.moveto(level.datasizex+level.mainsizey-self.pageoverlapx, level.cury)
-                        elif cmd == "pick":
-                            return level.items[level.cury].item
-                        elif cmd == "pickattr":
-                            attr = _getattr(level.items[level.cury].item, level.displayattr)
-                            if attr is _default:
-                                curses.beep()
-                                self.report(AttributeError(_attrname(level.displayattr)))
-                            else:
-                                return attr
-                        elif cmd == "pickallattrs":
-                            result = []
-                            for cache in level.items:
-                                attr = _getattr(cache.item, level.displayattr)
-                                if attr is not _default:
-                                    result.append(attr)
-                            return result
-                        elif cmd == "pickmarked":
-                            return [cache.item for cache in level.items if cache.marked]
-                        elif cmd == "pickmarkedattr":
-                            result = []
-                            for cache in level.items:
-                                if cache.marked:
-                                    attr = _getattr(cache.item, level.displayattr)
-                                    if attr is not _default:
-                                        result.append(attr)
-                            return result
-                        elif cmd == "markrange":
-                            self.report("markrange")
-                            start = None
-                            if level.items:
-                                for i in xrange(level.cury, -1, -1):
-                                    if level.items[i].marked:
-                                        start = i
-                                        break
-                            if start is None:
-                                self.report(CommandError("no mark before cursor"))
-                                curses.beep()
-                            else:
-                                for i in xrange(start, level.cury+1):
-                                    cache = level.items[i]
-                                    if not cache.marked:
-                                        cache.marked = True
-                                        level.marked += 1
-                        elif cmd == "enterdefault":
-                            self.report("entering object (default mode)...")
-                            self.enter(level.items[level.cury].item, "default")
-                        elif cmd == "leave":
-                            self.report("leave")
-                            if len(self.levels) > 1:
-                                self._calcheaderlines(len(self.levels)-1)
-                                self.levels.pop(-1)
-                            else:
-                                self.report(CommandError("this is the last level"))
-                                curses.beep()
-                        elif cmd == "enter":
-                            self.report("entering object...")
-                            self.enter(level.items[level.cury].item, None)
-                        elif cmd == "enterattr":
-                            self.report("entering object attribute %s..." % _attrname(level.displayattr))
-                            self.enter(_getattr(level.items[level.cury].item, level.displayattr), None)
-                        elif cmd == "detail":
-                            self.enter(level.items[level.cury].item, "detail")
-                        elif cmd == "tooglemark":
-                            self.report("toggle mark")
-                            try:
-                                item = level.items[level.cury]
-                            except IndexError: # no items?
-                                pass
-                            else:
-                                if item.marked:
-                                    item.marked = False
-                                    level.marked -= 1
-                                else:
-                                    item.marked = True
-                                    level.marked += 1
-                        elif cmd == "sortattrasc":
-                            self.report("sort by %s (ascending)" % _attrname(level.displayattr))
-                            def key(item):
-                                return _getattr(item, level.displayattr)
-                            level.sort(key)
-                        elif cmd == "sortattrdesc":
-                            self.report("sort by %s (descending)" % _attrname(level.displayattr))
-                            def key(item):
-                                return _getattr(item, level.displayattr)
-                            level.sort(key, reverse=True)
-                        elif cmd == "help":
-                            self.cmd_help()
-                        elif cmd is not None:
-                            self.report(UnknownCommandError("Unknown command %r" % (cmd,)))
+                        cmdname = self.keymap.get(c, None)
+                        if cmdname is None:
+                            self.report(
+                                UnassignedKeyError("Unassigned key %s" %
+                                                   self.keylabel(c)))
                         else:
-                            self.report(UnassignedKeyError("Unassigned key %s" % self.keylabel(c)))
+                            cmdfunc = getattr(self, "cmd_%s" % cmdname, None)
+                            if cmdfunc is None:
+                                self.report(
+                                    UnknownCommandError("Unknown command %r" %
+                                                        (cmdname,)))
+                            elif cmdfunc():
+                                returnvalue = self.returnvalue
+                                self.returnvalue = None
+                                return returnvalue
                         self.stepx = self.nextstepx(self.stepx)
                         self.stepy = self.nextstepy(self.stepy)
                         curses.flushinp() # get rid of type ahead
