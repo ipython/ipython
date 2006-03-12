@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Magic functions for InteractiveShell.
 
-$Id: Magic.py 1203 2006-03-12 09:30:31Z fperez $"""
+$Id: Magic.py 1205 2006-03-12 18:31:19Z vivainio $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001 Janko Hauser <jhauser@zscout.de> and
@@ -1560,6 +1560,107 @@ Currently the magic system has the following functions:\n"""
             self.shell.safe_execfile(f,self.shell.user_ns,
                                      self.shell.user_ns,islog=1)
 
+    def magic_timeit(self, parameter_s =''):
+        """Time execution of a Python statement or expression
+
+        Usage:\\
+          %timeit [-n<N> -r<R> [-t|-c]] statement
+
+        Time execution of a Python statement or expression using the timeit
+        module.
+
+        Options:
+        -n<N>: execute the given statement <N> times in a loop. If this value
+        is not given, a fitting value is chosen. 
+        
+        -r<R>: repeat the loop iteration <R> times and take the best result.
+        Default: 3
+        
+        -t: use time.time to measure the time, which is the default on Unix.
+        This function measures wall time.
+        
+        -c: use time.clock to measure the time, which is the default on
+        Windows and measures wall time. On Unix, resource.getrusage is used
+        instead and returns the CPU user time.
+
+        -p<P>: use a precision of <P> digits to display the timing result.
+        Default: 3
+
+        
+        Examples:\\
+          In [1]: %timeit pass
+          10000000 loops, best of 3: 53.3 ns per loop
+
+          In [2]: u = None
+
+          In [3]: %timeit u is None
+          10000000 loops, best of 3: 184 ns per loop
+
+          In [4]: %timeit -r 4 u == None
+          1000000 loops, best of 4: 242 ns per loop
+
+          In [5]: import time
+
+          In [6]: %timeit -n1 time.sleep(2)
+          1 loops, best of 3: 2 s per loop
+          
+
+        The times reported by %timeit will be slightly higher than those reported
+        by the timeit.py script when variables are accessed. This is due to the
+        fact that %timeit executes the statement in the namespace of the shell,
+        compared with timeit.py, which uses a single setup statement to import
+        function or create variables. Generally, the bias does not matter as long
+        as results from timeit.py are not mixed with those from %timeit."""
+        import timeit
+        import math
+
+        units = ["s", "ms", "\xc2\xb5s", "ns"]
+        scaling = [1, 1e3, 1e6, 1e9]
+
+        opts, stmt = self.parse_options(parameter_s,'n:r:tcp:')
+        if stmt == "":
+            return
+        timefunc = timeit.default_timer
+        number = int(getattr(opts, "n", 0))
+        repeat = int(getattr(opts, "r", timeit.default_repeat))
+        precision = int(getattr(opts, "p", 3))
+        if hasattr(opts, "t"):
+            timefunc = time.time
+        if hasattr(opts, "c"):
+            timefunc = clock
+
+        timer = timeit.Timer(timer=timefunc)
+        # this code has tight coupling to the inner workings of timeit.Timer,
+        # but is there a better way to achieve that the code stmt has access
+        # to the shell namespace?
+
+        src = timeit.template % {'stmt': timeit.reindent(stmt, 8), 'setup': "pass"}
+        code = compile(src, "<magic-timeit>", "exec")
+        ns = {}
+        exec code in self.shell.user_ns, ns
+        timer.inner = ns["inner"]
+        
+        if number == 0:
+            # determine number so that 0.2 <= total time < 2.0
+            number = 1
+            for i in range(1, 10):
+                number *= 10
+                if timer.timeit(number) >= 0.2:
+                    break
+        
+        best = min(timer.repeat(repeat, number)) / number
+
+        if best > 0.0:
+            order = min(-int(math.floor(math.log10(best)) // 3), 3)
+        else:
+            order = 3
+        print "%d loops, best of %d: %.*g %s per loop" % (number, repeat, precision,
+                                                          best * scaling[order],
+                                                          units[order])
+
+
+
+        
     def magic_time(self,parameter_s = ''):
         """Time execution of a Python statement or expression.
 
