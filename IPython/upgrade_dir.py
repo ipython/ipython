@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """ A script/util to upgrade all files in a directory
 
 This is rather conservative in its approach, only copying/overwriting

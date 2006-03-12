@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Magic functions for InteractiveShell.
 
-$Id: Magic.py 1205 2006-03-12 18:31:19Z vivainio $"""
+$Id: Magic.py 1209 2006-03-12 20:34:28Z vivainio $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001 Janko Hauser <jhauser@zscout.de> and
@@ -2934,7 +2934,7 @@ Defaulting color scheme to 'NoColor'"""
         """
         ip = self.getapi()
         ipinstallation = path(IPython.__file__).dirname()
-        upgrade_script = ipinstallation / 'upgrade_dir.py'
+        upgrade_script = sys.executable + " " + ipinstallation / 'upgrade_dir.py'
         src_config = ipinstallation / 'UserConfig'
         userdir = path(ip.options().ipythondir)
         cmd = upgrade_script + " " + src_config + " " + userdir
