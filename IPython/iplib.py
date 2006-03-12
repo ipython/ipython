@@ -6,7 +6,7 @@ Requires Python 2.3 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 1140 2006-02-10 17:07:11Z vivainio $
+$Id: iplib.py 1202 2006-03-12 06:37:52Z fperez $
 """
 
 #*****************************************************************************
@@ -1282,6 +1282,12 @@ want to merge them back into the new files.""" % locals()
         "<string>" when reading from a string).
         """
         etype, value, last_traceback = sys.exc_info()
+
+        # See note about these variables in showtraceback() below
+        sys.last_type = etype
+        sys.last_value = value
+        sys.last_traceback = last_traceback
+        
         if filename and etype is SyntaxError:
             # Work hard to stuff the correct filename in the exception
             try:
@@ -1306,19 +1312,27 @@ want to merge them back into the new files.""" % locals()
             return
         pdb.pm()
 
-    def showtraceback(self,exc_tuple = None,filename=None):
+    def showtraceback(self,exc_tuple = None,filename=None,tb_offset=None):
         """Display the exception that just occurred."""
 
         # Though this won't be called by syntax errors in the input line,
         # there may be SyntaxError cases whith imported code.
         if exc_tuple is None:
-            type, value, tb = sys.exc_info()
+            etype, value, tb = sys.exc_info()
         else:
-            type, value, tb = exc_tuple
-        if type is SyntaxError:
+            etype, value, tb = exc_tuple
+        if etype is SyntaxError:
             self.showsyntaxerror(filename)
         else:
-            self.InteractiveTB()
+            # WARNING: these variables are somewhat deprecated and not
+            # necessarily safe to use in a threaded environment, but tools
+            # like pdb depend on their existence, so let's set them.  If we
+            # find problems in the field, we'll need to revisit their use.
+            sys.last_type = etype
+            sys.last_value = value
+            sys.last_traceback = tb
+            
+            self.InteractiveTB(etype,value,tb,tb_offset=tb_offset)
             if self.InteractiveTB.call_pdb and self.has_readline:
                 # pdb mucks up readline, fix it back
                 self.readline.set_completer(self.Completer.complete)
@@ -1489,7 +1503,7 @@ want to merge them back into the new files.""" % locals()
         # We are off again...
         __builtin__.__dict__['__IPYTHON__active'] -= 1
 
-    def excepthook(self, type, value, tb):
+    def excepthook(self, etype, value, tb):
       """One more defense for GUI apps that call sys.excepthook.
 
       GUI frameworks like wxPython trap exceptions and call
@@ -1511,10 +1525,7 @@ want to merge them back into the new files.""" % locals()
       This hook should be used sparingly, only in places which are not likely
       to be true IPython errors.
       """
-      
-      self.InteractiveTB(type, value, tb, tb_offset=0)
-      if self.InteractiveTB.call_pdb and self.has_readline:
-          self.readline.set_completer(self.Completer.complete)
+      self.showtraceback((etype,value,tb),tb_offset=0)
 
     def transform_alias(self, alias,rest=''):
         """ Transform alias to system command string 
@@ -2254,15 +2265,14 @@ want to merge them back into the new files.""" % locals()
             try:
                 execfile(fname,*where)
             except SyntaxError:
-                etype,evalue = sys.exc_info()[:2]
-                self.SyntaxTB(etype,evalue,[])
+                self.showsyntaxerror()
                 warn('Failure executing file: <%s>' % fname)
             except SystemExit,status:
                 if not kw['exit_ignore']:
-                    self.InteractiveTB()
+                    self.showtraceback()
                     warn('Failure executing file: <%s>' % fname)
             except:
-                self.InteractiveTB()
+                self.showtraceback()
                 warn('Failure executing file: <%s>' % fname)
 
 #************************* end of file <iplib.py> *****************************

@@ -1,3 +1,17 @@
+2006-03-11  Fernando Perez  <Fernando.Perez@colorado.edu>
+
+	* IPython/iplib.py (showtraceback): add back sys.last_traceback
+	and friends, after a discussion with Zach Pincus on ipython-user.
+	I'm not 100% sure, but after thinking aobut it quite a bit, it may
+	be OK.  Testing with the multithreaded shells didn't reveal any
+	problems, but let's keep an eye out.
+
+	In the process, I fixed a few things which were calling
+	self.InteractiveTB() directly (like safe_execfile), which is a
+	mistake: ALL exception reporting should be done by calling
+	self.showtraceback(), which handles state and tab-completion and
+	more.
+
 2006-03-01  Ville Vainio  <vivainio@gmail.com>  
 
 	* Extensions/ipipe.py: Added Walter Doerwald's "ipipe" module.
