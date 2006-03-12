@@ -8,12 +8,6 @@
 	* IPython/Magic.py (magic_macro): fix so that the n1-n2 syntax for
 	line ranges works again.
 
-
-2006-03-12  Fernando Perez  <Fernando.Perez@colorado.edu>
-
-	* IPython/Magic.py (magic_macro): fix so that the n1-n2 syntax for
-	line ranges works again.
-
 2006-03-11  Fernando Perez  <Fernando.Perez@colorado.edu>
 
 	* IPython/iplib.py (showtraceback): add back sys.last_traceback
