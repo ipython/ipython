@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Magic functions for InteractiveShell.
 
-$Id: Magic.py 1188 2006-03-02 18:24:00Z vivainio $"""
+$Id: Magic.py 1203 2006-03-12 09:30:31Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001 Janko Hauser <jhauser@zscout.de> and
@@ -1687,7 +1687,7 @@ Currently the magic system has the following functions:\n"""
 
           In [60]: exec In[44:48]+In[49]"""
 
-        opts,args = self.parse_options(parameter_s,'r')
+        opts,args = self.parse_options(parameter_s,'r',mode='list')
         name,ranges = args[0], args[1:]
         #print 'rng',ranges  # dbg
         lines = self.extract_input_slices(ranges,opts.has_key('r'))
@@ -1717,7 +1717,7 @@ Currently the magic system has the following functions:\n"""
         It adds a '.py' extension to the file if you don't do so yourself, and
         it asks for confirmation before overwriting existing files."""
 
-        opts,args = self.parse_options(parameter_s,'r', mode = 'list')
+        opts,args = self.parse_options(parameter_s,'r',mode='list')
         fname,ranges = args[0], args[1:]
         if not fname.endswith('.py'):
             fname += '.py'
