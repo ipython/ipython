@@ -15,7 +15,7 @@ This gives a listing of all environment variables sorted by name.
 
 There are three types of objects in a pipeline expression:
 
-* ``Table``s: These objects produce items. Examples are `ìls`` (listing the
+* ``Table``s: These objects produce items. Examples are ``ls`` (listing the
   current directory, ``ienv`` (listing environment variables), ``ipwd`` (listing
   user account) and ``igrp`` (listing user groups). A ``Table`` must be the
   first object in a pipe expression.
@@ -29,7 +29,7 @@ There are three types of objects in a pipeline expression:
 * ``Display``s: These objects can be put as the last object in a pipeline
   expression. There are responsible for displaying the result of the pipeline
   expression. If a pipeline expression doesn't end in a display object a default
-  display objects will be used. One example is `ìbrowse`` which is a ``curses``
+  display objects will be used. One example is ``browse`` which is a ``curses``
   based browser.
 
 
@@ -912,7 +912,7 @@ class Fields(object):
 
 class FieldTable(Table, list):
     def __init__(self, *fields):
-        ipipe.Table.__init__(self)
+        Table.__init__(self)
         list.__init__(self)
         self.fields = fields
 
