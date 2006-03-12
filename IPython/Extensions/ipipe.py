@@ -917,7 +917,7 @@ class FieldTable(Table, list):
         self.fields = fields
 
     def add(self, **fields):
-        self.append(Fields(self, **fields))
+        self.append(Fields(self.fields, **fields))
 
     def __xiter__(self, mode):
         return list.__iter__(self)
