@@ -1663,7 +1663,8 @@ this means that your terminal doesn't properly handle color escape sequences.
  
 \layout Standard
 
-You can try using a different terminal emulator program.
+You can try using a different terminal emulator program (Emacs users, see
+ below).
  To permanently set your color preferences, edit the file
 \family typewriter 
  $HOME/.ipython/ipythonrc 
@@ -1834,10 +1835,8 @@ Once you put these files in your Emacs path, all you need in your
 .emacs
 \family default 
  file is:
-\layout Standard
+\layout LyX-Code
 
-
-\family typewriter 
 (require 'ipython)
 \layout Standard
 
@@ -1849,6 +1848,17 @@ C-c\SpecialChar ~
 \family default 
 , etc.
  
+\layout Standard
+
+If you happen to get garbage instead of colored prompts as described in
+ the previous section, you may need to set also in your 
+\family typewriter 
+.emacs
+\family default 
+ file:
+\layout LyX-Code
+
+(setq ansi-color-for-comint-mode t)
 \layout Subsubsection*
 
 Notes

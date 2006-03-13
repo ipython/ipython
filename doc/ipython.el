@@ -6,7 +6,7 @@
 ;; URL:           http://ipython.scipy.org
 ;; Compatibility: Emacs21, XEmacs21
 ;; FIXME: #$@! INPUT RING
-(defconst ipython-version "$Revision: 565 $"
+(defconst ipython-version "$Revision: 1211 $"
   "VC version number.")
 
 ;;; Commentary 
@@ -305,6 +305,9 @@ in the current *Python* session."
       (interactive)
       (let* ((ugly-return nil)
              (sep ";")
+             (python-process (or (get-buffer-process (current-buffer))
+                                 ;XXX hack for .py buffers
+                                 (get-process py-which-bufname)))
              ;; XXX currently we go backwards to find the beginning of an
              ;; expression part; a more powerful approach in the future might be
              ;; to let ipython have the complete line, so that context can be used
@@ -325,10 +328,9 @@ in the current *Python* session."
                           (delete-region comint-last-output-start 
                                          (process-mark (get-buffer-process (current-buffer)))))))))
                                         ;(message (format "#DEBUG pattern: '%s'" pattern))
-        (process-send-string  (or (get-buffer-process (current-buffer))
-                                  (get-process py-which-bufname)) ;XXX hack for .py buffers
+        (process-send-string python-process 
                               (format ipython-completion-command-string pattern))
-        (accept-process-output (get-buffer-process (current-buffer)))
+        (accept-process-output python-process)
                                         ;(message (format "DEBUG return: %s" ugly-return))
         (setq completions 
               (split-string (substring ugly-return 0 (position ?\n ugly-return)) sep))
@@ -354,6 +356,9 @@ in the current *Python* session."
     (interactive)
     (let* ((ugly-return nil)
            (sep ";")
+           (python-process (or (get-buffer-process (current-buffer))
+                                        ;XXX hack for .py buffers
+                               (get-process py-which-bufname)))
            ;; XXX currently we go backwards to find the beginning of an
            ;; expression part; a more powerful approach in the future might be
            ;; to let ipython have the complete line, so that context can be used
@@ -371,10 +376,9 @@ in the current *Python* session."
                     (lambda (string) 
                       (setq ugly-return (concat ugly-return string))
                       "")))))
-      (process-send-string  (or (get-buffer-process (current-buffer))
-                                (get-process py-which-bufname)) ;XXX hack for .py buffers
+      (process-send-string python-process 
                             (format ipython-completion-command-string pattern))
-      (accept-process-output (get-buffer-process (current-buffer)))
+      (accept-process-output python-process)
       (setq completions 
             (split-string (substring ugly-return 0 (position ?\n ugly-return)) sep))
                                         ;(message (format "DEBUG completions: %S" completions))

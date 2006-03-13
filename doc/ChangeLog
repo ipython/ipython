@@ -1,3 +1,14 @@
+2006-03-13  Fernando Perez  <Fernando.Perez@colorado.edu>
+
+	* Manual: thanks to a tip on proper color handling for Emacs, by
+	Eric J Haywiser <ejh1-AT-MIT.EDU>.
+	
+	* ipython.el: close http://www.scipy.net/roundup/ipython/issue57
+	by applying the provided patch.  Thanks to Liu Jin
+	<m.liu.jin-AT-gmail.com> for the contribution.  No problems under
+	XEmacs/Linux, I'm trusting the submitter that it actually helps
+	under win32/GNU Emacs.  Will revisit if any problems are reported.
+
 2006-03-12  Fernando Perez  <Fernando.Perez@colorado.edu>
 
 	* IPython/Gnuplot2.py (_FileClass): update for current Gnuplot.py
