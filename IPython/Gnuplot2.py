@@ -13,7 +13,7 @@ Gnuplot, so it should be safe to do:
 
 import IPython.Gnuplot2 as Gnuplot
 
-$Id: Gnuplot2.py 958 2005-12-27 23:17:51Z fperez $"""
+$Id: Gnuplot2.py 1210 2006-03-13 01:19:31Z fperez $"""
 
 import cStringIO
 import os
@@ -99,10 +99,16 @@ if Gnuplot_ori.__version__ <= '1.6':
     # in any version.
     _FileClass = File
 
-else:  # Gnuplot.py version 1.7 and greater
+elif Gnuplot_ori.__version__ =='1.7':
     _FileClass = _BaseFileItem = PlotItems._FileItem
     _BaseTempFileItem = PlotItems._TempFileItem
     File = PlotItems.File
+
+else:  # changes in the newer version (svn as of March'06)
+     _FileClass = _BaseFileItem = PlotItems._FileItem
+     _BaseTempFileItem = PlotItems._NewFileItem
+     File = PlotItems.File
+
 
 # Now, we can add our generic code which is version independent
 
