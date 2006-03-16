@@ -3,7 +3,11 @@
 	* upgrade_dir.py: Take path.py from Extensions, correcting
 	%upgrade magic
 	
-	* Suggest using %upgrade if ipy_user_conf.py isn't found.
+	* ipmaker.py: Suggest using %upgrade if ipy_user_conf.py isn't found.
+	
+	* hooks.py: Only enclose editor binary in quotes if legal and 
+	necessary (space in the name, and is an existing file). Fixes a bug
+	reported by Zachary Pincus.
 
 2006-03-13  Fernando Perez  <Fernando.Perez@colorado.edu>
 

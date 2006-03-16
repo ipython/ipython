@@ -32,7 +32,7 @@ ip.set_hook('editor', calljed)
 You can then enable the functionality by doing 'import myiphooks'
 somewhere in your configuration files or ipython command line.
 
-$Id: hooks.py 1156 2006-02-12 02:30:36Z fperez $"""
+$Id: hooks.py 1214 2006-03-16 17:22:15Z vivainio $"""
 
 #*****************************************************************************
 #       Copyright (C) 2005 Fernando Perez. <fperez@colorado.edu>
@@ -72,8 +72,13 @@ def editor(self,filename, linenum=None):
         linemark = ''
     else:
         linemark = '+%d' % linenum
+    
+    # Enclose in quotes if necessary and legal
+    if ' ' in editor and os.path.isfile(editor) and editor[0] != '"':
+        editor = '"%s"' % editor
+        
     # Call the actual editor
-    os.system('"%s" %s %s' % (editor,linemark,filename))
+    os.system('%s %s %s' % (editor,linemark,filename))
 
 import tempfile
 def fix_error_editor(self,filename,linenum,column,msg):
