@@ -7,7 +7,8 @@ should reside there.
 
  """
 
-import IPython.ipapi as ip
+import IPython.ipapi
+ip = IPython.ipapi.get()
 
 # add system wide configuration information, import extensions etc. here.
 # nothing here is essential 
@@ -17,3 +18,7 @@ import sys
 import ext_rehashdir # %rehashdir magic
 import ext_rescapture # var = !ls and var = %magic
 import pspersistence # %store magic
+
+# Basic readline config
+
+o = ip.options()

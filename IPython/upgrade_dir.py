@@ -6,7 +6,7 @@ new and unedited files.
 
 To be used by "upgrade" feature.
 """
-from path import path
+from IPython.Extensions.path import path
 import md5,pickle
 
 def showdiff(old,new):
