@@ -622,15 +622,19 @@ class ichain(Pipe):
         return itertools.chain(*self.iters)
 
     def __xrepr__(self, mode):
+        yield (-1, True)
         if mode == "header" or mode == "footer":
-            parts = []
-            for item in self.iters:
-                part = xrepr(item, mode)
+            for (i, item) in enumerate(self.iters):
+                if i:
+                    yield (style_default, "+")
                 if isinstance(item, Pipe):
-                    part = "(%s)" % part
-                parts.append(part)
-            return "+".join(parts)
-        return repr(self)
+                    yield (style_default, "(")
+                for part in xrepr(item, mode):
+                    yield part
+                if isinstance(item, Pipe):
+                    yield (style_default, ")")
+        else:
+            yield (style_default, repr(self))
 
     def __repr__(self):
         args = ", ".join([repr(it) for it in self.iters])
@@ -1101,7 +1105,14 @@ class igrpentry(object):
     def __xrepr__(self, mode):
         yield (-1, True)
         if mode == "header" or mode == "footer" or mode == "cell":
-            yield (style_default, "group %s" % self.name)
+            yield (style_default, "group ")
+            try:
+                yield (style_default, self.name)
+            except KeyError:
+                if isinstance(self._id, basestring):
+                    yield (style_default, self.name_id)
+                else:
+                    yield (style_type_number, str(self._id))
         else:
             yield (style_default, repr(self))
 
@@ -1647,9 +1658,11 @@ class XMode(object):
              self.mode, id(self))
 
     def __xrepr__(self, mode):
+        yield (-1, True)
         if mode == "header" or mode == "footer":
-            return self.title
-        return repr(self)
+            yield (style_default, self.title)
+        else:
+            yield (style_default, repr(self))
 
     def __xattrs__(self, mode):
         if mode == "detail":
@@ -2888,7 +2901,12 @@ if curses is not None:
                         posx += self.addstr(posy, posx, 0, endx, " | ", self.style_footer)
                         posx += self.addstr(posy, posx, 0, endx, _attrname(attrname), self.style_footer)
                         posx += self.addstr(posy, posx, 0, endx, ": ", self.style_footer)
-                        attr = _getattr(item, attrname)
+                        try:
+                            attr = _getattr(item, attrname)
+                        except (SystemExit, KeyboardInterrupt):
+                            raise
+                        except Exception, exc:
+                            attr = exc
                         for (nostyle, text) in xrepr(attr, "footer"):
                             if not isinstance(nostyle, int):
                                 posx += self.addstr(posy, posx, 0, endx, text, self.style_footer)
