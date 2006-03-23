@@ -344,7 +344,10 @@ def _getattr(obj, name, default=_default):
     elif isinstance(name, basestring):
         return getattr(obj, name, default)
     elif callable(name):
-        return name(obj)
+        try:
+            return name(obj)
+        except AttributeError:
+            return default
     else:
         try:
             return obj[name]
@@ -444,8 +447,14 @@ def xrepr(item, mode):
     except AttributeError:
         pass
     else:
-        for x in func(mode):
-            yield x
+        try:
+            for x in func(mode):
+                yield x
+        except (KeyboardInterrupt, SystemExit):
+            raise
+        except Exception:
+            yield (-1, True)
+            yield (style_default, repr(item))
         return
     if item is None:
         yield (-1, True)
@@ -574,7 +583,12 @@ def xattrs(item, mode):
     except AttributeError:
         return (None,)
     else:
-        return func(mode)
+        try:
+            return func(mode)
+        except (KeyboardInterrupt, SystemExit):
+            raise
+        except Exception:
+            return (None,)
 
 
 def xiter(item, mode):
@@ -1887,7 +1901,7 @@ if curses is not None:
         def __init__(self, browser, input, iterator, mainsizey, *attrs):
             self.browser = browser
             self.input = input
-            self.header = list(x for x in xrepr(input, "header") if not isinstance(x[0], int))
+            self.header = [x for x in xrepr(input, "header") if not isinstance(x[0], int)]
             # iterator for the input
             self.iterator = iterator
 
@@ -2626,8 +2640,14 @@ if curses is not None:
 
         def cmd_enterdefault(self):
             level = self.levels[-1]
-            self.report("entering object (default mode)...")
-            self.enter(level.items[level.cury].item, "default")
+            try:
+                item = level.items[level.cury].item
+            except IndexError:
+                self.report(CommandError("No object"))
+                curses.beep()
+            else:
+                self.report("entering object (default mode)...")
+                self.enter(item, "default")
 
         def cmd_leave(self):
             self.report("leave")
@@ -2640,8 +2660,14 @@ if curses is not None:
 
         def cmd_enter(self):
             level = self.levels[-1]
-            self.report("entering object...")
-            self.enter(level.items[level.cury].item, None)
+            try:
+                item = level.items[level.cury].item
+            except IndexError:
+                self.report(CommandError("No object"))
+                curses.beep()
+            else:
+                self.report("entering object...")
+                self.enter(item, None)
 
         def cmd_enterattr(self):
             level = self.levels[-1]
@@ -2650,17 +2676,29 @@ if curses is not None:
                 curses.beep()
                 self.report(AttributeError(_attrname(attrname)))
                 return
-            attr = _getattr(level.items[level.cury].item, attrname)
-            if attr is _default:
-                self.report(AttributeError(_attrname(attrname)))
+            try:
+                item = level.items[level.cury].item
+            except IndexError:
+                self.report(CommandError("No object"))
+                curses.beep()
             else:
-                self.report("entering object attribute %s..." % _attrname(attrname))
-                self.enter(attr, None)
+                attr = _getattr(item, attrname)
+                if attr is _default:
+                    self.report(AttributeError(_attrname(attrname)))
+                else:
+                    self.report("entering object attribute %s..." % _attrname(attrname))
+                    self.enter(attr, None)
 
         def cmd_detail(self):
             level = self.levels[-1]
-            self.report("entering detail view for object...")
-            self.enter(level.items[level.cury].item, "detail")
+            try:
+                item = level.items[level.cury].item
+            except IndexError:
+                self.report(CommandError("No object"))
+                curses.beep()
+            else:
+                self.report("entering detail view for object...")
+                self.enter(item, "detail")
 
         def cmd_detailattr(self):
             level = self.levels[-1]
@@ -2669,12 +2707,18 @@ if curses is not None:
                 curses.beep()
                 self.report(AttributeError(_attrname(attrname)))
                 return
-            attr = _getattr(level.items[level.cury].item, attrname)
-            if attr is _default:
-                self.report(AttributeError(_attrname(attrname)))
+            try:
+                item = level.items[level.cury].item
+            except IndexError:
+                self.report(CommandError("No object"))
+                curses.beep()
             else:
-                self.report("entering detail view for attribute...")
-                self.enter(attr, "detail")
+                attr = _getattr(item, attrname)
+                if attr is _default:
+                    self.report(AttributeError(_attrname(attrname)))
+                else:
+                    self.report("entering detail view for attribute...")
+                    self.enter(attr, "detail")
 
         def cmd_tooglemark(self):
             level = self.levels[-1]
@@ -2795,81 +2839,86 @@ if curses is not None:
                         posx += self.addstr(posy, posx, 0, self.scrsizex, msg, self.style_objheadernumber)
                     posx += self.addchr(posy, posx, 0, self.scrsizex, " ", self.scrsizex-posx, self.style_objheadernumber)
 
-                # Paint column headers
-                scr.move(self._headerlines, 0)
-                scr.addstr(" %*s " % (level.numbersizex, "#"), self.getstyle(self.style_colheader))
-                scr.addstr(self.headersepchar, self.getstyle(self.style_colheadersep))
-                begx = level.numbersizex+3
-                posx = begx-level.datastartx
-                for attrname in level.displayattrs:
-                    strattrname = _attrname(attrname)
-                    cwidth = level.colwidths[attrname]
-                    header = strattrname.ljust(cwidth)
-                    if attrname == level.displayattr[1]:
-                        style = self.style_colheaderhere
-                    else:
-                        style = self.style_colheader
-                    posx += self.addstr(self._headerlines, posx, begx, self.scrsizex, header, style)
-                    posx += self.addstr(self._headerlines, posx, begx, self.scrsizex, self.headersepchar, self.style_colheadersep)
-                    if posx >= self.scrsizex:
-                        break
+                if not level.items:
+                    self.addchr(self._headerlines, 0, 0, self.scrsizex, " ", self.scrsizex, self.style_colheader)
+                    self.addstr(self._headerlines+1, 0, 0, self.scrsizex, " <empty>", style_error)
+                    scr.clrtobot()
                 else:
-                    scr.addstr(" "*(self.scrsizex-posx), self.getstyle(self.style_colheader))
-
-                # Paint rows
-                posy = self._headerlines+1+level.datastarty
-                for i in xrange(level.datastarty, min(level.datastarty+level.mainsizey, len(level.items))):
-                    cache = level.items[i]
-                    if i == level.cury:
-                        style = self.style_numberhere
-                    else:
-                        style = self.style_number
-
-                    posy = self._headerlines+1+i-level.datastarty
+                    # Paint column headers
+                    scr.move(self._headerlines, 0)
+                    scr.addstr(" %*s " % (level.numbersizex, "#"), self.getstyle(self.style_colheader))
+                    scr.addstr(self.headersepchar, self.getstyle(self.style_colheadersep))
+                    begx = level.numbersizex+3
                     posx = begx-level.datastartx
-
-                    scr.move(posy, 0)
-                    scr.addstr(" %*d%s" % (level.numbersizex, i, " !"[cache.marked]), self.getstyle(style))
-                    scr.addstr(self.headersepchar, self.getstyle(self.style_sep))
-
                     for attrname in level.displayattrs:
+                        strattrname = _attrname(attrname)
                         cwidth = level.colwidths[attrname]
-                        try:
-                            (align, length, parts) = level.displayrows[i-level.datastarty][attrname]
-                        except KeyError:
-                            align = 2
-                        padstyle = self.style_datapad
-                        sepstyle = self.style_sep
-                        if i == level.cury:
-                            padstyle = self.getstylehere(padstyle)
-                            sepstyle = self.getstylehere(sepstyle)
-                        if align == 2:
-                            posx += self.addchr(posy, posx, begx, self.scrsizex, self.nodatachar, cwidth, style)
+                        header = strattrname.ljust(cwidth)
+                        if attrname == level.displayattr[1]:
+                            style = self.style_colheaderhere
                         else:
-                            if align == 1:
-                                posx += self.addchr(posy, posx, begx, self.scrsizex, self.datapadchar, cwidth-length, padstyle)
-                            elif align == 0:
-                                pad1 = (cwidth-length)//2
-                                pad2 = cwidth-length-len(pad1)
-                                posx += self.addchr(posy, posx, begx, self.scrsizex, self.datapadchar, pad1, padstyle)
-                            for (style, text) in parts:
-                                if i == level.cury:
-                                    style = self.getstylehere(style)
-                                posx += self.addstr(posy, posx, begx, self.scrsizex, text, style)
-                                if posx >= self.scrsizex:
-                                    break
-                            if align == -1:
-                                posx += self.addchr(posy, posx, begx, self.scrsizex, self.datapadchar, cwidth-length, padstyle)
-                            elif align == 0:
-                                posx += self.addchr(posy, posx, begx, self.scrsizex, self.datapadchar, pad2, padstyle)
-                        posx += self.addstr(posy, posx, begx, self.scrsizex, self.datasepchar, sepstyle)
+                            style = self.style_colheader
+                        posx += self.addstr(self._headerlines, posx, begx, self.scrsizex, header, style)
+                        posx += self.addstr(self._headerlines, posx, begx, self.scrsizex, self.headersepchar, self.style_colheadersep)
+                        if posx >= self.scrsizex:
+                            break
                     else:
-                        scr.clrtoeol()
+                        scr.addstr(" "*(self.scrsizex-posx), self.getstyle(self.style_colheader))
 
-                # Add blank row headers for the rest of the screen
-                for posy in xrange(posy+1, self.scrsizey-2):
-                    scr.addstr(posy, 0, " " * (level.numbersizex+2), self.getstyle(self.style_colheader))
-                    scr.clrtoeol()
+                    # Paint rows
+                    posy = self._headerlines+1+level.datastarty
+                    for i in xrange(level.datastarty, min(level.datastarty+level.mainsizey, len(level.items))):
+                        cache = level.items[i]
+                        if i == level.cury:
+                            style = self.style_numberhere
+                        else:
+                            style = self.style_number
+
+                        posy = self._headerlines+1+i-level.datastarty
+                        posx = begx-level.datastartx
+
+                        scr.move(posy, 0)
+                        scr.addstr(" %*d%s" % (level.numbersizex, i, " !"[cache.marked]), self.getstyle(style))
+                        scr.addstr(self.headersepchar, self.getstyle(self.style_sep))
+
+                        for attrname in level.displayattrs:
+                            cwidth = level.colwidths[attrname]
+                            try:
+                                (align, length, parts) = level.displayrows[i-level.datastarty][attrname]
+                            except KeyError:
+                                align = 2
+                            padstyle = self.style_datapad
+                            sepstyle = self.style_sep
+                            if i == level.cury:
+                                padstyle = self.getstylehere(padstyle)
+                                sepstyle = self.getstylehere(sepstyle)
+                            if align == 2:
+                                posx += self.addchr(posy, posx, begx, self.scrsizex, self.nodatachar, cwidth, style)
+                            else:
+                                if align == 1:
+                                    posx += self.addchr(posy, posx, begx, self.scrsizex, self.datapadchar, cwidth-length, padstyle)
+                                elif align == 0:
+                                    pad1 = (cwidth-length)//2
+                                    pad2 = cwidth-length-len(pad1)
+                                    posx += self.addchr(posy, posx, begx, self.scrsizex, self.datapadchar, pad1, padstyle)
+                                for (style, text) in parts:
+                                    if i == level.cury:
+                                        style = self.getstylehere(style)
+                                    posx += self.addstr(posy, posx, begx, self.scrsizex, text, style)
+                                    if posx >= self.scrsizex:
+                                        break
+                                if align == -1:
+                                    posx += self.addchr(posy, posx, begx, self.scrsizex, self.datapadchar, cwidth-length, padstyle)
+                                elif align == 0:
+                                    posx += self.addchr(posy, posx, begx, self.scrsizex, self.datapadchar, pad2, padstyle)
+                            posx += self.addstr(posy, posx, begx, self.scrsizex, self.datasepchar, sepstyle)
+                        else:
+                            scr.clrtoeol()
+
+                    # Add blank row headers for the rest of the screen
+                    for posy in xrange(posy+1, self.scrsizey-2):
+                        scr.addstr(posy, 0, " " * (level.numbersizex+2), self.getstyle(self.style_colheader))
+                        scr.clrtoeol()
 
                 posy = self.scrsizey-footery
                 # Display footer
