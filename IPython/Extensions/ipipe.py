@@ -437,8 +437,11 @@ style_url = Style(COLOR_GREEN, COLOR_BLACK)
 # Style for ellipsis (when an output has been shortened
 style_ellisis = Style(COLOR_RED, COLOR_BLACK)
 
-# Style for displaying ewxceptions
+# Style for displaying exceptions
 style_error = Style(COLOR_RED, COLOR_BLACK)
+
+# Style for displaying non-existing attributes
+style_nodata = Style(COLOR_RED, COLOR_BLACK)
 
 
 def xrepr(item, mode):
@@ -1342,32 +1345,57 @@ class ifilter(Pipe):
     evaluates to true (and doesn't raise an exception) are listed.
     """
 
-    def __init__(self, expr):
+    def __init__(self, expr, errors="raiseifallfail"):
         """
         Create an ``ifilter`` object. ``expr`` can be a callable or a string
-        containing an expression.
+        containing an expression. ``errors`` specifies how exception during
+        evaluation of ``expr`` are handled:
+
+        * ``drop``: drop all items that have errors;
+
+        * ``keep``: keep all items that have errors;
+
+        * ``keeperror``: keep the exception of all items that have errors;
+
+        * ``raise``: raise the exception;
+
+        * ``raiseifallfail``: raise the first exception if all items have errors;
+          otherwise drop those with errors (this is the default).
         """
         self.expr = expr
+        self.errors = errors
 
     def __xiter__(self, mode):
         if callable(self.expr):
-            for item in xiter(self.input, mode):
-                try:
-                    if self.expr(item):
-                        yield item
-                except (KeyboardInterrupt, SystemExit):
-                    raise
-                except Exception:
-                    pass # Ignore errors
+            def test(item):
+                return self.expr(item)
         else:
-            for item in xiter(self.input, mode):
-                try:
-                    if eval(self.expr, globals(), _AttrNamespace(item)):
-                        yield item
-                except (KeyboardInterrupt, SystemExit):
-                    raise
-                except Exception:
+            def test(item):
+                return eval(self.expr, globals(), _AttrNamespace(item))
+
+        ok = 0
+        exc_info = None
+        for item in xiter(self.input, mode):
+            try:
+                if test(item):
+                    yield item
+                ok += 1
+            except (KeyboardInterrupt, SystemExit):
+                raise
+            except Exception, exc:
+                if self.errors == "drop":
                     pass # Ignore errors
+                elif self.errors == "keep":
+                    yield item
+                elif self.errors == "keeperror":
+                    yield exc
+                elif self.errors == "raise":
+                    raise
+                elif self.errors == "raiseifallfail":
+                    if exc_info is None:
+                        exc_info = sys.exc_info()
+        if not ok and exc_info is not None:
+            raise exc_info[0], exc_info[1], exc_info[2]
 
     def __xrepr__(self, mode):
         yield (-1, True)
@@ -1395,30 +1423,43 @@ class ieval(Pipe):
     This ``Pipe`` evaluates an expression for each object in the input pipe.
     """
 
-    def __init__(self, expr):
+    def __init__(self, expr, errors="raiseifallfail"):
         """
         Create an ``ieval`` object. ``expr`` can be a callable or a string
-        containing an expression.
+        containing an expression. For the meaning of ``errors`` see ``ifilter``.
         """
         self.expr = expr
+        self.errors = errors
 
     def __xiter__(self, mode):
         if callable(self.expr):
-            for item in xiter(self.input, mode):
-                try:
-                    yield self.expr(item)
-                except (KeyboardInterrupt, SystemExit):
-                    raise
-                except Exception:
-                    pass # Ignore errors
+            def do(item):
+                return self.expr(item)
         else:
-            for item in xiter(self.input, mode):
-                try:
-                    yield eval(self.expr, globals(), _AttrNamespace(item))
-                except (KeyboardInterrupt, SystemExit):
-                    raise
-                except Exception:
+            def do(item):
+                return eval(self.expr, globals(), _AttrNamespace(item))
+
+        ok = 0
+        exc_info = None
+        for item in xiter(self.input, mode):
+            try:
+                yield do(item)
+            except (KeyboardInterrupt, SystemExit):
+                raise
+            except Exception, exc:
+                if self.errors == "drop":
                     pass # Ignore errors
+                elif self.errors == "keep":
+                    yield item
+                elif self.errors == "keeperror":
+                    yield exc
+                elif self.errors == "raise":
+                    raise
+                elif self.errors == "raiseifallfail":
+                    if exc_info is None:
+                        exc_info = sys.exc_info()
+        if not ok and exc_info is not None:
+            raise exc_info[0], exc_info[1], exc_info[2]
 
     def __xrepr__(self, mode):
         yield (-1, True)
@@ -2225,7 +2266,6 @@ if curses is not None:
         style_data = Style(COLOR_WHITE, COLOR_BLACK)
         style_datapad = Style(COLOR_BLUE, COLOR_BLACK, A_BOLD)
         style_footer = Style(COLOR_BLACK, COLOR_WHITE)
-        style_noattr = Style(COLOR_RED, COLOR_BLACK)
         style_report = Style(COLOR_WHITE, COLOR_BLACK)
 
         # Column separator in header
@@ -2887,6 +2927,7 @@ if curses is not None:
                                 (align, length, parts) = level.displayrows[i-level.datastarty][attrname]
                             except KeyError:
                                 align = 2
+                                style = style_nodata
                             padstyle = self.style_datapad
                             sepstyle = self.style_sep
                             if i == level.cury:
