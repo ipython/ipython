@@ -24,7 +24,6 @@ ip = IPython.ipapi.get()
 
 def main():
     o = ip.options()
-    import ipy_apps
     # An example on how to set options
     #o.autocall = 1
 
