@@ -6,7 +6,7 @@ Requires Python 2.1 or better.
 
 This file contains the main make_IPython() starter function.
 
-$Id: ipmaker.py 1213 2006-03-16 13:45:11Z vivainio $"""
+$Id: ipmaker.py 1225 2006-03-28 09:11:52Z vivainio $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2006 Fernando Perez. <fperez@colorado.edu>
@@ -620,12 +620,20 @@ object? -> Details about 'object'. ?object also works, ?? prints more.
                       opts_all.profile, ipythondir, profmodname)
 
                       )
+        except:
+            print "Error importing",profmodname
+            IP.InteractiveTB()
+                      
     try:    
         import ipy_user_conf
     except ImportError:
         if opts_all.debug:  IP.InteractiveTB()
         warn("Could not import user config!\n ('%s/ipy_user_conf.py' does not exist? Please run '%%upgrade')\n" %
             ipythondir)
+    except:
+        print "Error importing ipy_user_conf"
+        IP.InteractiveTB()
+        
 
     # release stdout and stderr and save config log into a global summary
     msg.config.release_all()
