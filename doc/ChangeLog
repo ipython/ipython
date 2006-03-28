@@ -1,3 +1,11 @@
+2006-03-28  Ville Vainio  <vivainio@gmail.com>
+
+	* iplib.py: Quote aliases with spaces in the name.
+	"c:\program files\blah\bin" is now legal alias target.
+	
+	* ext_rehashdir.py: Space no longer allowed as arg
+	separator, since space is legal in path names.
+	
 2006-03-16  Ville Vainio  <vivainio@gmail.com>
 
 	* upgrade_dir.py: Take path.py from Extensions, correcting

@@ -35,7 +35,7 @@ def rehashdir_f(self,arg):
      
     Usage:
 
-    %rehashdir c:/bin c:/tools
+    %rehashdir c:/bin;c:/tools
       - Add all executables under c:/bin and c:/tools to alias table, in 
       order to make them directly executable from any directory.
         
@@ -54,7 +54,7 @@ def rehashdir_f(self,arg):
     
     if not arg:
         arg = '.'
-    path = map(os.path.abspath,arg.split())
+    path = map(os.path.abspath,arg.split(';'))
     alias_table = self.shell.alias_table
         
     if os.name == 'posix':
