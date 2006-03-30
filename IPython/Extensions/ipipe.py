@@ -157,6 +157,8 @@ try:
 except ImportError:
     curses = None
 
+import path
+
 
 __all__ = [
     "ifile", "ils", "iglob", "iwalk", "ipwdentry", "ipwd", "igrpentry", "igrp",
@@ -342,7 +344,10 @@ def _getattr(obj, name, default=_default):
     if name is None:
         return obj
     elif isinstance(name, basestring):
-        return getattr(obj, name, default)
+        if name.endswith("()"):
+            return getattr(obj, name[:-2], default)()
+        else:
+            return getattr(obj, name, default)
     elif callable(name):
         try:
             return name(obj)
@@ -429,10 +434,12 @@ style_default = Style(COLOR_WHITE, COLOR_BLACK)
 style_type_none = Style(COLOR_MAGENTA, COLOR_BLACK)
 style_type_bool = Style(COLOR_MAGENTA, COLOR_BLACK)
 style_type_number = Style(COLOR_YELLOW, COLOR_BLACK)
-style_type_datetime = Style(COLOR_CYAN, COLOR_BLACK)
+style_type_datetime = Style(COLOR_MAGENTA, COLOR_BLACK)
 
-# Style for URLs and filenames
+# Style for URLs and file/directory names
 style_url = Style(COLOR_GREEN, COLOR_BLACK)
+style_dir = Style(COLOR_CYAN, COLOR_BLACK)
+style_file = Style(COLOR_GREEN, COLOR_BLACK)
 
 # Style for ellipsis (when an output has been shortened
 style_ellisis = Style(COLOR_RED, COLOR_BLACK)
@@ -659,69 +666,119 @@ class ichain(Pipe):
             (self.__class__.__module__, self.__class__.__name__, args)
 
 
-class ifile(object):
+class ifile(path.path):
     """
     file (or directory) object.
     """
-    __slots__ = ("name", "_abspath", "_realpath", "_stat", "_lstat")
 
-    def __init__(self, name):
-        if isinstance(name, ifile): # copying files
-            self.name = name.name
-            self._abspath = name._abspath
-            self._realpath = name._realpath
-            self._stat = name._stat
-            self._lstat = name._lstat
-        else:
-            self.name = os.path.normpath(name)
-            self._abspath = None
-            self._realpath = None
-            self._stat = None
-            self._lstat = None
+    def __add_(self, other):
+        return ifile(path._base(self) + other)
 
-    def __repr__(self):
-        return "%s.%s(%r)" % \
-            (self.__class__.__module__, self.__class__.__name__, self.name)
+    def __radd_(self, other):
+        return ifile(other + path._base(self))
 
-    def open(self, mode="rb", buffer=None):
-        if buffer is None:
-            return open(self.abspath, mode)
-        else:
-            return open(self.abspath, mode, buffer)
+    def __div_(self, other):
+        return ifile(path.__div__(self, other))
 
-    def remove(self):
-        os.remove(self.abspath)
+    def getcwd():
+        """ Return the current working directory as a path object. """
+        return ifile(path.path.getcwd())
+    getcwd = staticmethod(getcwd)
 
-    def getabspath(self):
-        if self._abspath is None:
-            self._abspath = os.path.abspath(self.name)
-        return self._abspath
-    abspath = property(getabspath, None, None, "Path to file")
+    def abspath(self):
+        return ifile(path.path.abspath(self))
 
-    def getrealpath(self):
-        if self._realpath is None:
-            self._realpath = os.path.realpath(self.name)
-        return self._realpath
-    realpath = property(getrealpath, None, None, "Path with links resolved")
+    def normcase(self):
+        return ifile(path.path.normcase(self))
 
-    def getbasename(self):
-        return os.path.basename(self.abspath)
-    basename = property(getbasename, None, None, "File name without directory")
+    def normpath(self):
+        return ifile(path.path.normpath(self))
 
-    def getstat(self):
-        if self._stat is None:
-            self._stat = os.stat(self.abspath)
-        return self._stat
-    stat = property(getstat, None, None, "os.stat() result")
+    def realpath(self):
+        return ifile(path.path.realpath(self))
 
-    def getlstat(self):
-        if self._lstat is None:
-            self._lstat = os.lstat(self.abspath)
-        return self._lstat
-    lstat = property(getlstat, None, None, "os.lstat() result")
+    def expanduser(self):
+        return ifile(path.path.expanduser(self))
+
+    def expandvars(self):
+        return ifile(path.path.expandvars(self))
+
+    def dirname(self):
+        return ifile(path.path.dirname(self))
+
+    parent = property(dirname, None, None, path.path.parent.__doc__)
+
+    def splitpath(self):
+        (parent, child) = path.path.splitpath(self)
+        return (ifile(parent), child)
+
+    def splitdrive(self):
+        (drive, rel) = path.path.splitdrive(self)
+        return (ifile(drive), rel)
+
+    def splitext(self):
+        (filename, ext) = path.path.splitext(self)
+        return (ifile(filename), ext)
+
+    if hasattr(path.path, "splitunc"):
+        def splitunc(self):
+            (unc, rest) = path.path.splitunc(self)
+            return (ifile(unc), rest)
+
+        def _get_uncshare(self):
+            unc, r = os.path.splitunc(self)
+            return ifile(unc)
+
+        uncshare = property(
+            _get_uncshare, None, None,
+            """ The UNC mount point for this path.
+            This is empty for paths on local drives. """)
+
+    def joinpath(self, *args):
+        return ifile(path.path.joinpath(self, *args))
+
+    def splitall(self):
+        return map(ifile, path.path.splitall(self))
+
+    def relpath(self):
+        return ifile(path.path.relpath(self))
+
+    def relpathto(self, dest):
+        return ifile(path.path.relpathto(self, dest))
+
+    def listdir(self, pattern=None):
+        return [ifile(child) for child in path.path.listdir(self, pattern)]
+
+    def dirs(self, pattern=None):
+        return [ifile(child) for child in path.path.dirs(self, pattern)]
+
+    def files(self, pattern=None):
+        return [ifile(child) for child in path.path.files(self, pattern)]
+
+    def walk(self, pattern=None):
+        for child in path.path.walk(self, pattern):
+            yield ifile(child)
+
+    def walkdirs(self, pattern=None):
+        for child in path.path.walkdirs(self, pattern):
+            yield ifile(child)
+
+    def walkfiles(self, pattern=None):
+        for child in path.path.walkfiles(self, pattern):
+            yield ifile(child)
+
+    def glob(self, pattern):
+        return map(ifile, path.path.glob(self, pattern))
+
+    if hasattr(os, 'readlink'):
+        def readlink(self):
+            return ifile(path.path.readlink(self))
+
+        def readlinkabs(self):
+            return ifile(path.path.readlinkabs(self))
 
     def getmode(self):
-        return self.stat.st_mode
+        return self.stat().st_mode
     mode = property(getmode, None, None, "Access mode")
 
     def gettype(self):
@@ -734,7 +791,7 @@ class ifile(object):
             (stat.S_ISLNK, "symlink"),
             (stat.S_ISSOCK,"socket"),
         ]
-        lstat = self.lstat
+        lstat = self.lstat()
         if lstat is not None:
             types = set([text for (func, text) in data if func(lstat.st_mode)])
         else:
@@ -742,9 +799,9 @@ class ifile(object):
         m = self.mode
         types.update([text for (func, text) in data if func(m)])
         return ", ".join(types)
-    type = property(gettype, None, None, "file type")
+    type = property(gettype, None, None, "file type (file, directory, link, etc.)")
 
-    def getaccess(self):
+    def getmodestr(self):
         m = self.mode
         data = [
             (stat.S_IRUSR, "-r"),
@@ -759,164 +816,130 @@ class ifile(object):
         ]
         return "".join([text[bool(m&bit)] for (bit, text) in data])
 
-    access = property(getaccess, None, None, "Access mode as string")
-
-    def getsize(self):
-        return int(self.stat.st_size)
-    size = property(getsize, None, None, "File size in bytes")
+    modestr = property(getmodestr, None, None, "Access mode as string")
 
     def getblocks(self):
-        return self.stat.st_blocks
+        return self.stat().st_blocks
     blocks = property(getblocks, None, None, "File size in blocks")
 
     def getblksize(self):
-        return self.stat.st_blksize
+        return self.stat().st_blksize
     blksize = property(getblksize, None, None, "Filesystem block size")
 
     def getdev(self):
-        return self.stat.st_dev
+        return self.stat().st_dev
     dev = property(getdev)
 
     def getnlink(self):
-        return self.stat.st_nlink
+        return self.stat().st_nlink
     nlink = property(getnlink, None, None, "Number of links")
 
     def getuid(self):
-        return self.stat.st_uid
+        return self.stat().st_uid
     uid = property(getuid, None, None, "User id of file owner")
 
     def getgid(self):
-        return self.stat.st_gid
+        return self.stat().st_gid
     gid = property(getgid, None, None, "Group id of file owner")
 
     def getowner(self):
+        stat = self.stat()
         try:
-            return pwd.getpwuid(self.stat.st_uid).pw_name
+            return pwd.getpwuid(stat.st_uid).pw_name
         except KeyError:
-            return self.stat.st_uid
+            return stat.st_uid
     owner = property(getowner, None, None, "Owner name (or id)")
 
     def getgroup(self):
+        stat = self.stat()
         try:
-            return grp.getgrgid(self.stat.st_gid).gr_name
+            return grp.getgrgid(stat.st_gid).gr_name
         except KeyError:
-            return self.stat.st_gid
+            return stat.st_gid
     group = property(getgroup, None, None, "Group name (or id)")
-
-    def getatime(self):
-        return self.stat.st_atime
-    atime = property(getatime, None, None, "Access date")
 
     def getadate(self):
         return datetime.datetime.utcfromtimestamp(self.atime)
     adate = property(getadate, None, None, "Access date")
 
-    def getctime(self):
-        return self.stat.st_ctime
-    ctime = property(getctime, None, None, "Creation date")
-
     def getcdate(self):
         return datetime.datetime.utcfromtimestamp(self.ctime)
     cdate = property(getcdate, None, None, "Creation date")
-
-    def getmtime(self):
-        return self.stat.st_mtime
-    mtime = property(getmtime, None, None, "Modification date")
 
     def getmdate(self):
         return datetime.datetime.utcfromtimestamp(self.mtime)
     mdate = property(getmdate, None, None, "Modification date")
 
     def getmimetype(self):
-        return mimetypes.guess_type(self.basename)[0]
+        return mimetypes.guess_type(self.basename())[0]
     mimetype = property(getmimetype, None, None, "MIME type")
 
     def getencoding(self):
-        return mimetypes.guess_type(self.basename)[1]
+        return mimetypes.guess_type(self.basename())[1]
     encoding = property(getencoding, None, None, "Compression")
 
-    def getisdir(self):
-        return os.path.isdir(self.abspath)
-    isdir = property(getisdir, None, None, "Is this a directory?")
+    def __repr__(self):
+        return "ifile(%s)" % path._base.__repr__(self)
 
-    def getislink(self):
-        return os.path.islink(self.abspath)
-    islink = property(getislink, None, None, "Is this a link?")
-
-    def __eq__(self, other):
-        return self.abspath == other.abspath
-
-    def __neq__(self, other):
-        return self.abspath != other.abspath
+    defaultattrs = (None, "type", "size", "modestr", "owner", "group", "mdate")
 
     def __xattrs__(self, mode):
         if mode == "detail":
             return (
-                "name", "basename", "abspath", "realpath",
-                "mode", "type", "access", "stat", "lstat",
+                "name", "basename()", "abspath()", "realpath()",
+                "type", "mode", "modestr", "stat()", "lstat()",
                 "uid", "gid", "owner", "group", "dev", "nlink",
                 "ctime", "mtime", "atime", "cdate", "mdate", "adate",
-                "size", "blocks", "blksize", "isdir", "islink",
+                "size", "blocks", "blksize", "isdir()", "islink()",
                 "mimetype", "encoding"
             )
-        return ("name", "type", "size", "access", "owner", "group", "mdate")
+        return self.defaultattrs
 
     def __xrepr__(self, mode):
         yield (-1, True)
-        if mode in "header" or mode == "footer" or mode == "cell":
+        try:
+            if self.isdir():
+                name = "idir"
+                style = style_dir
+            else:
+                name = "ifile"
+                style = style_file
+        except IOError:
             name = "ifile"
-            try:
-                if self.isdir:
-                    name = "idir"
-            except IOError:
-                pass
-            yield (style_url, "%s(%r)" % (name, self.abspath))
-        elif mode == "cell":
-            yield (style_url, repr(self.abspath)[1:-1])
+            style = style_default
+        if mode == "cell" or mode in "header" or mode == "footer":
+            abspath = repr(path._base(self.abspath()))
+            if abspath.startswith("u"):
+                abspath = abspath[2:-1]
+            else:
+                abspath = abspath[1:-1]
+            if mode == "cell":
+                yield (style, abspath)
+            else:
+                yield (style, "%s(%s)" % (name, abspath))
         else:
-            yield (style_url, repr(self))
+            yield (style, repr(self))
 
     def __xiter__(self, mode):
-        if self.isdir:
-            abspath = self.abspath
-            if abspath != os.path.abspath(os.path.join(abspath, os.pardir)):
-                yield iparentdir(abspath)
-            for name in sorted(os.listdir(abspath), key=lambda n: n.lower()):
-                if self.name != os.curdir:
-                    name = os.path.join(abspath, name)
-                yield ifile(name)
+        if self.isdir():
+            yield iparentdir(self / os.pardir)
+            for child in sorted(self.listdir()):
+                yield child
         else:
             f = self.open("rb")
             for line in f:
                 yield line
             f.close()
 
-    def __repr__(self):
-        return "%s.%s(%r)" % \
-            (self.__class__.__module__, self.__class__.__name__, self.abspath)
-
 
 class iparentdir(ifile):
-    def __init__(self, base):
-        self._base = base
-        self.name = os.pardir
-        self._abspath = None
-        self._realpath = None
-        self._stat = None
-        self._lstat = None
-
-    def getabspath(self):
-        if self._abspath is None:
-            self._abspath = os.path.abspath(os.path.join(self._base, self.name))
-        return self._abspath
-    abspath = property(getabspath, None, None, "Path to file")
-
-    def getrealpath(self):
-        if self._realpath is None:
-            self._realpath = os.path.realpath(
-                os.path.join(self._base, self.name))
-        return self._realpath
-    realpath = property(getrealpath, None, None, "Path with links resolved")
+    def __xrepr__(self, mode):
+        yield (-1, True)
+        if mode == "cell":
+            yield (style_dir, os.pardir)
+        else:
+            for part in ifile.__xrepr__(self, mode):
+                yield part
 
 
 class ils(Table):
@@ -930,13 +953,7 @@ class ils(Table):
         return xiter(ifile(self.base), mode)
 
     def __xrepr__(self, mode):
-        yield (-1, True)
-        if mode == "header" or mode == "footer" or mode == "cell":
-            yield (style_url, "idir(%r)" % (os.path.abspath(self.base)))
-        elif mode == "cell":
-            yield (style_url, repr(os.path.abspath(self.base))[1:-1])
-        else:
-            yield (style_url, repr(self))
+       return ifile(self.base).__xrepr__(mode)
 
     def __repr__(self):
         return "%s.%s(%r)" % \
@@ -1752,18 +1769,19 @@ class XAttr(object):
 
         doc = None
         if isinstance(name, basestring):
-            try:
-                meta = getattr(type(object), name)
-            except AttributeError:
-                pass
+            if name.endswith("()"):
+                doc = getattr(getattr(object, name[:-2]), "__doc__", None)
             else:
-                if isinstance(meta, property):
-                    self.doc = getattr(meta, "__doc__", None)
+                try:
+                    meta = getattr(type(object), name)
+                except AttributeError:
+                    pass
+                else:
+                    if isinstance(meta, property):
+                        doc = getattr(meta, "__doc__", None)
         elif callable(name):
-            try:
-                self.doc = name.__doc__
-            except AttributeError:
-                pass
+            doc = getattr(name, "__doc__", None)
+        self.doc = doc
 
     def __xattrs__(self, mode):
         return ("name", "type", "doc", "value")
