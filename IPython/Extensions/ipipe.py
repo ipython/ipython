@@ -1781,6 +1781,8 @@ class XAttr(object):
                         doc = getattr(meta, "__doc__", None)
         elif callable(name):
             doc = getattr(name, "__doc__", None)
+        if isinstance(doc, basestring):
+            doc = doc.strip()
         self.doc = doc
 
     def __xattrs__(self, mode):
@@ -1877,6 +1879,9 @@ sortattrdesc
 Sort the objects (in descending order) using the attribute under the cursor as
 the sort key.
 
+goto
+Jump to a row. The row number can be entered at the bottom of the screen.
+
 help
 This screen.
 """
@@ -1918,9 +1923,11 @@ if curses is not None:
             self.browser = browser
 
         def __xrepr__(self, mode):
+            yield (-1, True)
             if mode == "header" or mode == "footer":
-                return "ibrowse help screen"
-            return repr(self)
+                yield (style_default, "ibrowse help screen")
+            else:
+                yield (style_default, repr(self))
 
         def __xiter__(self, mode):
             # Get reverse key mapping
@@ -2298,6 +2305,9 @@ if curses is not None:
         # Character to use for "empty" cell (i.e. for non-existing attributes)
         nodatachar = "-"
 
+        # Prompt for the goto command
+        prompt_goto = "goto object #: "
+
         # Maps curses key codes to "function" names
         keymap = {
             ord("q"): "quit",
@@ -2333,6 +2343,7 @@ if curses is not None:
             ord("r"): "markrange",
             ord("v"): "sortattrasc",
             ord("V"): "sortattrdesc",
+            ord("g"): "goto",
         }
 
         def __init__(self, *attrs):
@@ -2375,6 +2386,13 @@ if curses is not None:
 
             # value to be returned to the caller (set by commands)
             self.returnvalue = None
+
+            # The mode the browser is in
+            # e.g. normal browsing or entering an argument for a command
+            self.mode = "default"
+
+            # The partially entered row number for the goto command
+            self.goto = ""
 
         def nextstepx(self, step):
             """
@@ -2827,6 +2845,10 @@ if curses is not None:
                     return None
             level.sort(key, reverse=True)
 
+        def cmd_goto(self):
+            self.mode = "goto"
+            self.goto = ""
+
         def cmd_help(self):
             """
             The help command
@@ -3004,6 +3026,8 @@ if curses is not None:
                             posx += self.addstr(posy, posx, 0, endx, text, self.style_footer)
                             if posx >= endx:
                                 break
+
+                    attrstyle = [(style_default, "no attribute")]
                     attrname = level.displayattr[1]
                     if attrname is not _default and attrname is not None:
                         posx += self.addstr(posy, posx, 0, endx, " | ", self.style_footer)
@@ -3015,81 +3039,104 @@ if curses is not None:
                             raise
                         except Exception, exc:
                             attr = exc
-                        for (nostyle, text) in xrepr(attr, "footer"):
+                        if attr is not _default:
+                            attrstyle = xrepr(attr, "footer")
+                        for (nostyle, text) in attrstyle:
                             if not isinstance(nostyle, int):
                                 posx += self.addstr(posy, posx, 0, endx, text, self.style_footer)
                                 if posx >= endx:
                                     break
 
-                    #else:
-                        #msg += ": %s > no attribute" % xrepr(level.items[level.cury].item, "footer")
-                #self.addstr(posy, 1, 1, self.scrsizex-len(helpmsg)-1, msg, self.style_footer)
-
-                # Display report
-                if self._report is not None:
-                    if isinstance(self._report, Exception):
-                        style = self.getstyle(style_error)
-                        if self._report.__class__.__module__ == "exceptions":
-                            msg = "%s: %s" % \
-                                  (self._report.__class__.__name__, self._report)
-                        else:
-                            msg = "%s.%s: %s" % \
-                                  (self._report.__class__.__module__,
-                                   self._report.__class__.__name__, self._report)
+                try:
+                    # Display goto input prompt
+                    if self.mode == "goto":
+                        scr.addstr(self.scrsizey-1, 0, self.prompt_goto + self.goto, self.getstyle(style_default))
+                    # Display report
                     else:
-                        style = self.getstyle(self.style_report)
-                        msg = self._report
-                    try:
-                        scr.addstr(self.scrsizey-1, 0, msg[:self.scrsizex], style)
-                    except curses.err:
-                        # Protect against error from writing to the last line
-                        pass
-                    self._report = None
-                else:
-                    scr.move(self.scrsizey-1, 0)
+                        if self._report is not None:
+                            if isinstance(self._report, Exception):
+                                style = self.getstyle(style_error)
+                                if self._report.__class__.__module__ == "exceptions":
+                                    msg = "%s: %s" % \
+                                          (self._report.__class__.__name__, self._report)
+                                else:
+                                    msg = "%s.%s: %s" % \
+                                          (self._report.__class__.__module__,
+                                           self._report.__class__.__name__, self._report)
+                            else:
+                                style = self.getstyle(self.style_report)
+                                msg = self._report
+                            scr.addstr(self.scrsizey-1, 0, msg[:self.scrsizex], style)
+                            self._report = None
+                        else:
+                            scr.move(self.scrsizey-1, 0)
+                except curses.error:
+                    # Protect against error from writing to the last line
+                    pass
                 scr.clrtoeol()
 
                 # Position cursor
-                scr.move(
-                    1+self._headerlines+level.cury-level.datastarty,
-                    level.numbersizex+3+level.curx-level.datastartx
-                )
+                if self.mode == "goto":
+                    scr.move(self.scrsizey-1, len(self.prompt_goto)+len(self.goto))
+                else:
+                    scr.move(
+                        1+self._headerlines+level.cury-level.datastarty,
+                        level.numbersizex+3+level.curx-level.datastartx
+                    )
                 scr.refresh()
 
                 # Check keyboard
                 while True:
                     c = scr.getch()
-                    # if no key is pressed slow down and beep again
-                    if c == -1:
-                        self.stepx = 1.
-                        self.stepy = 1.
-                        self._dobeep = True
+                    if self.mode == "goto":
+                        if ord("0") <= c <= ord("9"):
+                            self.goto += chr(c)
+                            break # Redisplay
+                        elif c in (8, 127, curses.KEY_BACKSPACE, ord("x")):
+                            if self.goto:
+                                self.goto = self.goto[:-1]
+                                break
+                            else:
+                                curses.beep()
+                        elif c == ord("\n"):
+                            self.mode = "default"
+                            if self.goto:
+                                level.moveto(level.curx, int(self.goto))
+                            break
+                        else:
+                            curses.beep()
                     else:
-                        # if a different key was pressed slow down and beep too
-                        if c != lastc:
-                            lastc = c
+                        # if no key is pressed slow down and beep again
+                        if c == -1:
                             self.stepx = 1.
                             self.stepy = 1.
                             self._dobeep = True
-                        cmdname = self.keymap.get(c, None)
-                        if cmdname is None:
-                            self.report(
-                                UnassignedKeyError("Unassigned key %s" %
-                                                   self.keylabel(c)))
                         else:
-                            cmdfunc = getattr(self, "cmd_%s" % cmdname, None)
-                            if cmdfunc is None:
+                            # if a different key was pressed slow down and beep too
+                            if c != lastc:
+                                lastc = c
+                                self.stepx = 1.
+                                self.stepy = 1.
+                                self._dobeep = True
+                            cmdname = self.keymap.get(c, None)
+                            if cmdname is None:
                                 self.report(
-                                    UnknownCommandError("Unknown command %r" %
-                                                        (cmdname,)))
-                            elif cmdfunc():
-                                returnvalue = self.returnvalue
-                                self.returnvalue = None
-                                return returnvalue
-                        self.stepx = self.nextstepx(self.stepx)
-                        self.stepy = self.nextstepy(self.stepy)
-                        curses.flushinp() # get rid of type ahead
-                        break # Redisplay
+                                    UnassignedKeyError("Unassigned key %s" %
+                                                       self.keylabel(c)))
+                            else:
+                                cmdfunc = getattr(self, "cmd_%s" % cmdname, None)
+                                if cmdfunc is None:
+                                    self.report(
+                                        UnknownCommandError("Unknown command %r" %
+                                                            (cmdname,)))
+                                elif cmdfunc():
+                                    returnvalue = self.returnvalue
+                                    self.returnvalue = None
+                                    return returnvalue
+                            self.stepx = self.nextstepx(self.stepx)
+                            self.stepy = self.nextstepy(self.stepy)
+                            curses.flushinp() # get rid of type ahead
+                            break # Redisplay
             self.scr = None
 
         def display(self):
