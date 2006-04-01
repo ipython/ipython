@@ -1,5 +1,10 @@
 2006-03-28  Ville Vainio  <vivainio@gmail.com>
 
+	* iplib.py: Fix quoting of aliases so that only argless ones
+	are quoted
+
+2006-03-28  Ville Vainio  <vivainio@gmail.com>
+
 	* iplib.py: Quote aliases with spaces in the name.
 	"c:\program files\blah\bin" is now legal alias target.
 	

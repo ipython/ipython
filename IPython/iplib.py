@@ -6,7 +6,7 @@ Requires Python 2.3 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 1227 2006-03-28 13:20:14Z vivainio $
+$Id: iplib.py 1232 2006-04-01 10:59:41Z vivainio $
 """
 
 #*****************************************************************************
@@ -1532,7 +1532,7 @@ want to merge them back into the new files.""" % locals()
         
         """
         nargs,cmd = self.alias_table[alias]
-        if ' ' in cmd:
+        if ' ' in cmd and os.path.isfile(cmd):
             cmd = '"%s"' % cmd
 
         # Expand the %l special to be the user's input line
