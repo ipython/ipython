@@ -908,7 +908,7 @@ class ifile(path.path):
             name = "ifile"
             style = style_default
         if mode == "cell" or mode in "header" or mode == "footer":
-            abspath = repr(path._base(self.abspath()))
+            abspath = repr(path._base(self.normpath()))
             if abspath.startswith("u"):
                 abspath = abspath[2:-1]
             else:
@@ -3103,7 +3103,7 @@ if curses is not None:
                             if self.goto:
                                 level.moveto(level.curx, int(self.goto))
                             break
-                        else:
+                        elif c != -1:
                             curses.beep()
                     else:
                         # if no key is pressed slow down and beep again
