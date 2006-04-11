@@ -8,6 +8,9 @@
 	added. Supported now are "%clear in" and "%clear out" (clear input and 
 	output history, respectively). Also fixed CachedOutput.flush to 
 	properly flush the output cache.
+	
+	* Extensions/pspersistence.py: Fix %store to avoid "%store obj.attr" 
+	half-success (and fail explicitly).
 
 2006-03-28  Ville Vainio  <vivainio@gmail.com>
 

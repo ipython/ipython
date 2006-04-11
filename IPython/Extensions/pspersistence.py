@@ -136,6 +136,7 @@ def magic_store(self, parameter_s=''):
 
             
             if not isinstance (obj,basestring):
+                from pprint import pprint
                 pprint(obj,fil)
             else:
                 fil.write(obj)
@@ -147,8 +148,8 @@ def magic_store(self, parameter_s=''):
         
         # %store foo
         try:
-            obj = ip.ev(args[0])
-        except NameError:
+            obj = ip.user_ns()[args[0]]
+        except KeyError:
             # it might be an alias
             if args[0] in self.alias_table:
                 staliases = db.get('stored_aliases',{})
@@ -156,6 +157,9 @@ def magic_store(self, parameter_s=''):
                 db['stored_aliases'] = staliases                
                 print "Alias stored:", args[0], self.alias_table[ args[0] ]
                 return
+            else:
+                print "Error: unknown variable '%s'" % args[0]
+            
         else:
             if isinstance(inspect.getmodule(obj), FakeModule):
                 print textwrap.dedent("""\
