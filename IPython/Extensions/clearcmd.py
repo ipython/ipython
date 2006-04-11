@@ -2,6 +2,7 @@
 """ IPython extension: add %clear magic """
 
 import IPython.ipapi
+import gc
 ip = IPython.ipapi.get()
 
 
@@ -27,7 +28,17 @@ def clear_f(self,arg):
                 try:
                     del self.user_ns[key]
                 except: pass
-
+        elif target == 'array':
+            try:
+                pylab=ip.IP.pylab
+                for x in self.user_ns.keys():
+                    if isinstance(self.user_ns[x],pylab.arraytype):
+                        del self.user_ns[x]
+            except AttributeError:
+                print "Clear array only available in -pylab mode"
+            gc.collect()                
+            
+            
 ip.expose_magic("clear",clear_f)
     
 

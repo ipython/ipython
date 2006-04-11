@@ -2,7 +2,7 @@
 """
 Classes for handling input/output prompts.
 
-$Id: Prompts.py 1261 2006-04-11 14:37:02Z vivainio $"""
+$Id: Prompts.py 1264 2006-04-11 19:24:29Z vivainio $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2006 Fernando Perez <fperez@colorado.edu>
@@ -442,7 +442,6 @@ class CachedOutput:
         # Store the last prompt string each time, we need it for aligning
         # continuation and auto-rewrite prompts
         self.last_prompt = ''
-        self.entries = [None]  # output counter starts at 1 for the user
         self.Pprint = Pprint
         self.output_sep = output_sep
         self.output_sep2 = output_sep2
@@ -563,9 +562,8 @@ class CachedOutput:
         # hackish access to top-level  namespace to create _1,_2... dynamically
         to_main = {}
         if self.do_full_cache:
-            self.entries.append(arg)
             new_result = '_'+`self.prompt_count`
-            to_main[new_result] = self.entries[-1]
+            to_main[new_result] = arg
         self.user_ns.update(to_main)
         self.user_ns['_oh'][self.prompt_count] = arg
 
