@@ -2,7 +2,7 @@
 """
 Classes for handling input/output prompts.
 
-$Id: Prompts.py 1076 2006-01-24 17:27:05Z vivainio $"""
+$Id: Prompts.py 1261 2006-04-11 14:37:02Z vivainio $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2006 Fernando Perez <fperez@colorado.edu>
@@ -439,7 +439,6 @@ class CachedOutput:
         # other more normal stuff
         # b/c each call to the In[] prompt raises it by 1, even the first.
         self.prompt_count = 0
-        self.cache_count = 1
         # Store the last prompt string each time, we need it for aligning
         # continuation and auto-rewrite prompts
         self.last_prompt = ''
@@ -545,7 +544,13 @@ class CachedOutput:
 
     def update(self,arg):
         #print '***cache_count', self.cache_count # dbg
-        if self.cache_count >= self.cache_size and self.do_full_cache:
+        if len(self.user_ns['_oh']) >= self.cache_size and self.do_full_cache:
+            warn('Output cache limit (currently '+\
+                  `self.cache_count`+' entries) hit.\n'
+                 'Flushing cache and resetting history counter...\n'
+                 'The only history variables available will be _,__,___ and _1\n'
+                 'with the current result.')
+
             self.flush()
         # Don't overwrite '_' and friends if '_' is in __builtin__ (otherwise
         # we cause buggy behavior for things like gettext).
@@ -558,7 +563,6 @@ class CachedOutput:
         # hackish access to top-level  namespace to create _1,_2... dynamically
         to_main = {}
         if self.do_full_cache:
-            self.cache_count += 1
             self.entries.append(arg)
             new_result = '_'+`self.prompt_count`
             to_main[new_result] = self.entries[-1]
@@ -569,16 +573,16 @@ class CachedOutput:
         if not self.do_full_cache:
             raise ValueError,"You shouldn't have reached the cache flush "\
                   "if full caching is not enabled!"
-        warn('Output cache limit (currently '+\
-              `self.cache_count`+' entries) hit.\n'
-             'Flushing cache and resetting history counter...\n'
-             'The only history variables available will be _,__,___ and _1\n'
-             'with the current result.')
         # delete auto-generated vars from global namespace
+        
         for n in range(1,self.prompt_count + 1):
             key = '_'+`n`
             try:
                 del self.user_ns[key]
             except: pass
-        self.prompt_count = 1
-        self.cache_count = 1
+        self.user_ns['_oh'].clear()
+        
+        if '_' not in __builtin__.__dict__:
+            self.user_ns.update({'_':None,'__':None, '___':None})
+        import gc
+        gc.collect() # xxx needed?
