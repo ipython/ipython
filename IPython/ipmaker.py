@@ -6,7 +6,7 @@ Requires Python 2.1 or better.
 
 This file contains the main make_IPython() starter function.
 
-$Id: ipmaker.py 1225 2006-03-28 09:11:52Z vivainio $"""
+$Id: ipmaker.py 1260 2006-04-11 10:19:34Z vivainio $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2006 Fernando Perez. <fperez@colorado.edu>
@@ -608,7 +608,10 @@ object? -> Details about 'object'. ?object also works, ?? prints more.
     except ImportError:
         if opts_all.debug:  IP.InteractiveTB()
         warn("Could not import 'ipy_system_conf'")        
-
+    except:
+        IP.InteractiveTB()
+        import_fail_info('ipy_system_conf')
+        
     if opts_all.profile:
         profmodname = 'ipy_profile_' + opts_all.profile
         try:
@@ -623,6 +626,7 @@ object? -> Details about 'object'. ?object also works, ?? prints more.
         except:
             print "Error importing",profmodname
             IP.InteractiveTB()
+            import_fail_info(profmodname)
                       
     try:    
         import ipy_user_conf
@@ -633,6 +637,7 @@ object? -> Details about 'object'. ?object also works, ?? prints more.
     except:
         print "Error importing ipy_user_conf"
         IP.InteractiveTB()
+        import_fail_info("ipy_user_conf")
         
 
     # release stdout and stderr and save config log into a global summary
@@ -682,7 +687,8 @@ object? -> Details about 'object'. ?object also works, ?? prints more.
     # ipython prompt.  This would also give them the benefit of ipython's
     # nice tracebacks.
 
-    if not embedded and IP_rc.args:
+    if (not embedded and IP_rc.args and 
+        not IP_rc.args[0].lower().endswith('.ipy')):
         name_save = IP.user_ns['__name__']
         IP.user_ns['__name__'] = '__main__'
         # Set our own excepthook in case the user code tries to call it

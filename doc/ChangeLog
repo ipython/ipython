@@ -1,3 +1,9 @@
+2006-04-11  Ville Vainio  <vivainio@gmail.com>
+
+	* iplib.py, ipmaker.py: .ipy extension now means "ipython batch file"
+	in command line. E.g. "ipython test.ipy" runs test.ipy with ipython
+	prefilters, allowing stuff like magics and aliases in the file.
+
 2006-03-28  Ville Vainio  <vivainio@gmail.com>
 
 	* iplib.py: Fix quoting of aliases so that only argless ones

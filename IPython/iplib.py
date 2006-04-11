@@ -6,7 +6,7 @@ Requires Python 2.3 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 1232 2006-04-01 10:59:41Z vivainio $
+$Id: iplib.py 1260 2006-04-11 10:19:34Z vivainio $
 """
 
 #*****************************************************************************
@@ -665,6 +665,12 @@ class InteractiveShell(object,Magic):
             self.magic_alias(alias)
         self.hooks.late_startup_hook()
         
+        for batchfile in [path(arg) for arg in self.rc.args 
+            if arg.lower().endswith('.ipy')]:
+            if not batchfile.isfile():
+                print "No such batch file:", batchfile
+                continue
+            self.api.runlines(batchfile.text())
 
     def add_builtins(self):
         """Store ipython references into the builtin namespace.
