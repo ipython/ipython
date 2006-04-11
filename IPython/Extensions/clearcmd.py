@@ -4,9 +4,6 @@
 import IPython.ipapi
 ip = IPython.ipapi.get()
 
-def clear_list(l):
-    while l:
-        l.pop()
 
 def clear_f(self,arg):
     """ Clear various data (e.g. stored history data)
@@ -23,8 +20,8 @@ def clear_f(self,arg):
         elif target == 'in':
             print "Flushing input history"
             from IPython import iplib
-            clear_list(self.input_hist)
-            clear_list(self.input_hist_raw)
+            del self.input_hist[:]
+            del self.input_hist_raw[:]
             for n in range(1,self.outputcache.prompt_count + 1):
                 key = '_i'+`n`
                 try:
