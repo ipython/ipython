@@ -12,7 +12,7 @@ ip = IPython.ipapi.get()
 
 import pickleshare
 
-import inspect,pickle,os,textwrap
+import inspect,pickle,os,sys,textwrap
 from IPython.FakeModule import FakeModule
 
 def restore_aliases(self):
