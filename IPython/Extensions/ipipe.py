@@ -158,6 +158,10 @@ except ImportError:
     curses = None
 
 import path
+try:
+    from IPython import genutils
+except ImportError:
+    pass
 
 
 __all__ = [
@@ -375,19 +379,6 @@ def _attrname(name):
         return str(name)
 
 
-class Style(object):
-    """
-    Store foreground color, background color and attribute (bold, underlined
-    etc.).
-    """
-    __slots__ = ("fg", "bg", "attrs")
-
-    def __init__(self, fg, bg, attrs=0):
-        self.fg = fg
-        self.bg = bg
-        self.attrs = attrs
-
-
 COLOR_BLACK   = 0
 COLOR_RED     = 1
 COLOR_GREEN   = 2
@@ -403,6 +394,226 @@ A_DIM       = 1<<2 # Half bright text
 A_REVERSE   = 1<<3 # Reverse-video text
 A_STANDOUT  = 1<<4 # The best highlighting mode available
 A_UNDERLINE = 1<<5 # Underlined text
+
+
+class Style(object):
+    """
+    Store foreground color, background color and attribute (bold, underlined
+    etc.).
+    """
+    __slots__ = ("fg", "bg", "attrs")
+
+    COLORNAMES = {
+        "black": COLOR_BLACK,
+        "red": COLOR_RED,
+        "green": COLOR_GREEN,
+        "yellow": COLOR_YELLOW,
+        "blue": COLOR_BLUE,
+        "magenta": COLOR_MAGENTA,
+        "cyan": COLOR_CYAN,
+        "white": COLOR_WHITE,
+    }
+    ATTRNAMES = {
+        "blink": A_BLINK,
+        "bold": A_BOLD,
+        "dim": A_DIM,
+        "reverse": A_REVERSE,
+        "standout": A_STANDOUT,
+        "underline": A_UNDERLINE,
+    }
+
+    def __init__(self, fg, bg, attrs=0):
+        self.fg = fg
+        self.bg = bg
+        self.attrs = attrs
+
+    def __call__(self, *args):
+        text = Text()
+        for arg in args:
+            if isinstance(arg, Text):
+                text.extend(arg)
+            else:
+                text.append((self, arg))
+        return text
+
+    def __eq__(self, other):
+        return self.fg == other.fg and self.bg == other.bg and self.attrs == other.attrs
+
+    def __neq__(self, other):
+        return self.fg != other.fg or self.bg != other.bg or self.attrs != other.attrs
+
+    def __repr__(self):
+        color2name = ("black", "red", "green", "yellow", "blue", "magenta", "cyan", "white")
+        attrs2name = ("blink", "bold", "dim", "reverse", "standout", "underline")
+
+        return "<%s fg=%s bg=%s attrs=%s>" % (
+            self.__class__.__name__, color2name[self.fg], color2name[self.bg],
+            "|".join(attrs2name[b] for b in xrange(6) if self.attrs&(1<<b)) or 0)
+
+    def fromstr(cls, value):
+        """
+        Create a ``Style`` object from a string. The format looks like this:
+        ``"red:black:bold|blink"``.
+        """
+        # defaults
+        fg = COLOR_WHITE
+        bg = COLOR_BLACK
+        attrs = 0
+
+        parts = value.split(":")
+        if len(parts) > 0:
+            fg = cls.COLORNAMES[parts[0].lower()]
+            if len(parts) > 1:
+                bg = cls.COLORNAMES[parts[1].lower()]
+                if len(parts) > 2:
+                    for strattr in parts[2].split("|"):
+                        attrs |= cls.ATTRNAMES[strattr.lower()]
+        return cls(fg, bg, attrs)
+    fromstr = classmethod(fromstr)
+
+    def fromenv(cls, name, default):
+        """
+        Create a ``Style`` from an environment variable named ``name``
+        (using ``default`` if the environment variable doesn't exist).
+        """
+        return cls.fromstr(os.environ.get(name, default))
+    fromenv = classmethod(fromenv)
+
+
+def switchstyle(s1, s2):
+    """
+    Return the ANSI escape sequence needed to switch from style ``s1`` to
+    style ``s2``.
+    """
+    attrmask = (A_BLINK|A_BOLD|A_UNDERLINE|A_REVERSE)
+    a1 = s1.attrs & attrmask
+    a2 = s2.attrs & attrmask
+
+    args = []
+    if s1 != s2:
+        # do we have to get rid of the bold/underline/blink bit?
+        # (can only be done by a reset)
+        # use reset when our target color is the default color
+        # (this is shorter than 37;40)
+        if (a1 & ~a2 or s2==style_default):
+            args.append("0")
+            s1 = style_default
+            a1 = 0
+
+        # now we know that old and new color have the same boldness,
+        # or the new color is bold and the old isn't,
+        # i.e. we only might have to switch bold on, not off
+        if not (a1 & A_BOLD) and (a2 & A_BOLD):
+            args.append("1")
+
+        # Fix underline
+        if not (a1 & A_UNDERLINE) and (a2 & A_UNDERLINE):
+            args.append("4")
+
+        # Fix blink
+        if not (a1 & A_BLINK) and (a2 & A_BLINK):
+            args.append("5")
+
+        # Fix reverse
+        if not (a1 & A_REVERSE) and (a2 & A_REVERSE):
+            args.append("7")
+
+        # Fix foreground color
+        if s1.fg != s2.fg:
+            args.append("3%d" % s2.fg)
+
+        # Finally fix the background color
+        if s1.bg != s2.bg:
+            args.append("4%d" % s2.bg)
+
+        if args:
+            return "\033[%sm" % ";".join(args)
+    return ""
+
+
+class Text(list):
+    """
+    A colored string. A ``Text`` object is a sequence, the sequence
+    items will be ``(style, string)`` tuples.
+    """
+
+    def __repr__(self):
+        return "%s.%s(%s)" % (
+            self.__class__.__module__, self.__class__.__name__,
+            list.__repr__(self)[1:-1])
+
+    def __init__(self, *args):
+        list.__init__(self)
+        self.append(*args)
+
+    def append(self, *args):
+        for arg in args:
+            if isinstance(arg, Text):
+                self.extend(arg)
+            elif isinstance(arg, tuple): # must be (style, string)
+                list.append(self, arg)
+            elif isinstance(arg, unicode):
+                list.append(self, (style_default, arg))
+            else:
+                list.append(self, (style_default, str(arg)))
+
+    def insert(self, index, *args):
+        self[index:index] = Text(*args)
+
+    def __add__(self, other):
+        new = Text()
+        new.append(self)
+        new.append(other)
+        return new
+
+    def __iadd__(self, other):
+        self.append(other)
+        return self
+
+    def format(self, styled=True):
+        """
+        This generator yields the strings that will make up the final
+        colorized string.
+        """
+        if styled:
+            oldstyle = style_default
+            for (style, string) in self:
+                if not isinstance(style, (int, long)):
+                    switch = switchstyle(oldstyle, style)
+                    if switch:
+                        yield switch
+                    if string:
+                        yield string
+                    oldstyle = style
+            switch = switchstyle(oldstyle, style_default)
+            if switch:
+                yield switch
+        else:
+            for (style, string) in self:
+                if not isinstance(style, (int, long)):
+                    yield string
+
+    def string(self, styled=True):
+        """
+        Return the resulting string (with escape sequences, if ``styled`` is true).
+        """
+        return "".join(self.format(styled))
+
+    def __str__(self):
+        """
+        Return the resulting string with ANSI escape sequences.
+        """
+        return self.string(False)
+
+    def write(self, stream, styled=True):
+        for part in self.format(styled):
+            stream.write(part)
+
+    def __xrepr__(self, mode="default"):
+        yield (-1, True)
+        for info in self:
+            yield info
+
 
 if curses is not None:
     # This is probably just range(8)
@@ -1613,7 +1824,38 @@ class iless(Display):
             print "%s: %s" % (exc.__class__.__name__, str(exc))
 
 
+def xformat(value, mode, maxlength):
+    align = None
+    full = False
+    width = 0
+    text = Text()
+    for part in xrepr(value, mode):
+        # part is (alignment, stop)
+        if isinstance(part[0], int):
+            # only consider the first occurence
+            if align is None:
+                align = part[0]
+                full = part[1]
+        # part is (style, text)
+        else:
+            text.append(part)
+            width += len(part[1])
+            if width >= maxlength and not full:
+                text.append((style_ellisis, "..."))
+                width += 3
+                break
+    if align is None: # default to left alignment
+        align = -1
+    return (align, width, text)
+
+
 class idump(Display):
+    # The approximate maximum length of a column entry
+    maxattrlength = 200
+
+    # Style for column names
+    style_header = Style(COLOR_WHITE, COLOR_BLACK, A_BOLD)
+
     def __init__(self, *attrs):
         self.attrs = attrs
         self.headerpadchar = " "
@@ -1622,90 +1864,59 @@ class idump(Display):
         self.datasepchar = "|"
 
     def display(self):
-        stream = sys.stdout
-        if self.attrs:
-            rows = []
-            colwidths = dict([(a, len(_attrname(a))) for a in self.attrs])
-
-            for item in xiter(self.input, "default"):
-                row = {}
-                for attrname in self.attrs:
-                    value = _getattr(item, attrname, None)
-                    text = _format(value)
-                    colwidths[attrname] = max(colwidths[attrname], width)
-                    row[attrname] = (value, text)
-                rows.append(row)
-
-            stream.write("\n")
-            for (i, attrname) in enumerate(self.attrs):
-                stream.write(_attrname(attrname))
-                spc = colwidths[attrname] - len(_attrname(attrname))
-                if i < len(colwidths)-1:
-                    if spc>0:
-                        stream.write(self.headerpadchar * spc)
-                    stream.write(self.headersepchar)
-            stream.write("\n")
-
-            for row in rows:
-                for (i, attrname) in enumerate(self.attrs):
-                    (value, text) = row[attrname]
-                    spc = colwidths[attrname] - len(text)
-                    if isinstance(value, (int, long)):
-                        if spc>0:
-                            stream.write(self.datapadchar*spc)
-                        stream.write(text)
-                    else:
-                        stream.write(text)
-                        if i < len(colwidths)-1:
-                            if spc>0:
-                                stream.write(self.datapadchar*spc)
-                    if i < len(colwidths)-1:
-                        stream.write(self.datasepchar)
-                stream.write("\n")
-        else:
-            allattrs = []
-            allattrset = set()
-            colwidths = {}
-            rows = []
-            for item in xiter(self.input, "default"):
-                row = {}
+        stream = genutils.Term.cout
+        allattrs = []
+        allattrset = set()
+        colwidths = {}
+        rows = []
+        for item in xiter(self.input, "default"):
+            row = {}
+            if not self.attrs:
                 attrs = xattrs(item, "default")
-                for attrname in attrs:
-                    if attrname not in allattrset:
-                        allattrs.append(attrname)
-                        allattrset.add(attrname)
-                        colwidths[attrname] = len(_attrname(attrname))
-                    value = _getattr(item, attrname, None)
-                    text = _format(value)
-                    colwidths[attrname] = max(colwidths[attrname], len(text))
-                    row[attrname] = (value, text)
-                rows.append(row)
+            for attrname in attrs:
+                if attrname not in allattrset:
+                    allattrs.append(attrname)
+                    allattrset.add(attrname)
+                    colwidths[attrname] = len(_attrname(attrname))
+                value = _getattr(item, attrname, None)
 
+                (align, width, text) = xformat(value, "cell", self.maxattrlength)
+                colwidths[attrname] = max(colwidths[attrname], width)
+                # remember alignment, length and colored parts
+                row[attrname] = (align, width, text)
+            rows.append(row)
+
+        stream.write("\n")
+        for (i, attrname) in enumerate(allattrs):
+            self.style_header(_attrname(attrname)).write(stream)
+            spc = colwidths[attrname] - len(_attrname(attrname))
+            if i < len(colwidths)-1:
+                stream.write(self.headerpadchar*spc)
+                stream.write(self.headersepchar)
+        stream.write("\n")
+
+        for row in rows:
             for (i, attrname) in enumerate(allattrs):
-                stream.write(_attrname(attrname))
-                spc = colwidths[attrname] - len(_attrname(attrname))
-                if i < len(colwidths)-1:
-                    if spc>0:
-                        stream.write(self.headerpadchar*spc)
-                    stream.write(self.headersepchar)
-            stream.write("\n")
-
-            for row in rows:
-                for (i, attrname) in enumerate(attrs):
-                    (value, text) = row.get(attrname, ("", ""))
-                    spc = colwidths[attrname] - len(text)
-                    if isinstance(value, (int, long)):
-                        if spc>0:
-                            stream.write(self.datapadchar*spc)
-                        stream.write(text)
-                    else:
-                        stream.write(text)
-                        if i < len(colwidths)-1:
-                            if spc>0:
-                                stream.write(self.datapadchar*spc)
+                (align, width, text) = row[attrname]
+                spc = colwidths[attrname] - width
+                if align == -1:
+                    text.write(stream)
                     if i < len(colwidths)-1:
-                        stream.write(self.datasepchar)
-                stream.write("\n")
+                        stream.write(self.datapadchar*spc)
+                elif align == 0:
+                    spc = colwidths[attrname] - width
+                    spc1 = spc//2
+                    spc2 = spc-spc1
+                    stream.write(self.datapadchar*spc1)
+                    text.write(stream)
+                    if i < len(colwidths)-1:
+                        stream.write(self.datapadchar*spc2)
+                else:
+                    stream.write(self.datapadchar*spc)
+                    text.write(stream)
+                if i < len(colwidths)-1:
+                    stream.write(self.datasepchar)
+            stream.write("\n")
 
 
 class XMode(object):
