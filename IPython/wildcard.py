@@ -96,7 +96,7 @@ class NameSpace(object):
         """Return dictionary of filtered namespace."""
         def glob_filter(lista,name_pattern,hidehidden,ignore_case):
             """Return list of elements in lista that match pattern."""
-            pattern=name_pattern.replace("*",".*")
+            pattern=name_pattern.replace("*",".*").replace("?",".")
             if ignore_case:
                 reg=re.compile(pattern+"$",re.I)
             else:
