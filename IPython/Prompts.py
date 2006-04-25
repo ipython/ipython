@@ -2,7 +2,7 @@
 """
 Classes for handling input/output prompts.
 
-$Id: Prompts.py 1264 2006-04-11 19:24:29Z vivainio $"""
+$Id: Prompts.py 1272 2006-04-25 17:04:17Z vivainio $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2006 Fernando Perez <fperez@colorado.edu>
@@ -397,7 +397,7 @@ class CachedOutput:
                  output_sep='\n',output_sep2='',
                  ps1 = None, ps2 = None,ps_out = None,pad_left=True):
 
-        cache_size_min = 20
+        cache_size_min = 3
         if cache_size <= 0:
             self.do_full_cache = 0
             cache_size = 0
@@ -544,8 +544,8 @@ class CachedOutput:
     def update(self,arg):
         #print '***cache_count', self.cache_count # dbg
         if len(self.user_ns['_oh']) >= self.cache_size and self.do_full_cache:
-            warn('Output cache limit (currently '+\
-                  `self.cache_count`+' entries) hit.\n'
+            warn('Output cache limit (currently '+
+                  `self.cache_size`+' entries) hit.\n'
                  'Flushing cache and resetting history counter...\n'
                  'The only history variables available will be _,__,___ and _1\n'
                  'with the current result.')

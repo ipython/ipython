@@ -1871,7 +1871,8 @@ class idump(Display):
         rows = []
         for item in xiter(self.input, "default"):
             row = {}
-            if not self.attrs:
+            attrs = self.attrs
+            if not attrs:
                 attrs = xattrs(item, "default")
             for attrname in attrs:
                 if attrname not in allattrset:
