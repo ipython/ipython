@@ -32,7 +32,7 @@ ip.set_hook('editor', calljed)
 You can then enable the functionality by doing 'import myiphooks'
 somewhere in your configuration files or ipython command line.
 
-$Id: hooks.py 1214 2006-03-16 17:22:15Z vivainio $"""
+$Id: hooks.py 1274 2006-04-26 14:01:37Z vivainio $"""
 
 #*****************************************************************************
 #       Copyright (C) 2005 Fernando Perez. <fperez@colorado.edu>
@@ -130,8 +130,10 @@ class CommandChainDispatcher:
             try:
                 ret = cmd(*args, **kw)
                 return ret
-            except ipapi.TryNext:
-                pass
+            except ipapi.TryNext, exc:
+                if exc.args or exc.kwargs:
+                    args = exc.args
+                    kw = exc.kwargs
                 
     def __str__(self):
         return str(self.chain)

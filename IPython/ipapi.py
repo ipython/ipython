@@ -66,9 +66,15 @@ class TryNext(Exception):
      
      Raise this in your hook function to indicate that the next
      hook handler should be used to handle the operation.
+     If you pass arguments to the constructor those arguments will be
+     used by the next hook instead of the original ones.
     """
- 
-   
+
+    def __init__(self, *args, **kwargs):
+        self.args = args
+        self.kwargs = kwargs
+
+
 # contains the most recently instantiated IPApi
 _recent = None
 
