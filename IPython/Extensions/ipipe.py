@@ -802,7 +802,10 @@ def xattrs(item, mode):
     try:
         func = item.__xattrs__
     except AttributeError:
-        return (None,)
+        if mode == "detail":
+            return dir(item)
+        else:
+            return (None,)
     else:
         try:
             return func(mode)
@@ -2517,8 +2520,12 @@ if curses is not None:
         # Character to use for "empty" cell (i.e. for non-existing attributes)
         nodatachar = "-"
 
-        # Prompt for the goto command
-        prompt_goto = "goto object #: "
+        # Prompts for modes that require keyboard input
+        prompts = {
+            "goto": "goto object #: ",
+            "find": "find expression: ",
+            "findbackwards": "find backwards expression: "
+        }
 
         # Maps curses key codes to "function" names
         keymap = {
@@ -2556,6 +2563,8 @@ if curses is not None:
             ord("v"): "sortattrasc",
             ord("V"): "sortattrdesc",
             ord("g"): "goto",
+            ord("f"): "find",
+            ord("b"): "findbackwards",
         }
 
         def __init__(self, *attrs):
@@ -2647,51 +2656,6 @@ if curses is not None:
                 self._styles[style.fg, style.bg, style.attrs] = c
                 return c
 
-        def format(self, value):
-            """
-            Formats one attribute and returns an ``(alignment, string, style)``
-            tuple.
-            """
-            if value is None:
-                return (-1, repr(value), style_type_none)
-            elif isinstance(value, str):
-                return (-1, repr(value.expandtabs(tab))[1:-1], style_default)
-            elif isinstance(value, unicode):
-                return (-1, repr(value.expandtabs(tab))[2:-1], style_default)
-            elif isinstance(value, datetime.datetime):
-                # Don't use strftime() here, as this requires year >= 1900
-                return (-1, "%04d-%02d-%02d %02d:%02d:%02d.%06d" % \
-                            (value.year, value.month, value.day,
-                             value.hour, value.minute, value.second,
-                             value.microsecond),
-                        style_type_datetime)
-            elif isinstance(value, datetime.date):
-                return (-1, "%04d-%02d-%02d" % \
-                            (value.year, value.month, value.day),
-                        style_type_datetime)
-            elif isinstance(value, datetime.time):
-                return (-1, "%02d:%02d:%02d.%06d" % \
-                            (value.hour, value.minute, value.second,
-                             value.microsecond),
-                        style_type_datetime)
-            elif isinstance(value, datetime.timedelta):
-                return (-1, repr(value), style_type_datetime)
-            elif isinstance(value, bool):
-                return (-1, repr(value), style_type_bool)
-            elif isinstance(value, (int, long, float)):
-                return (1, repr(value), style_type_number)
-            elif isinstance(value, complex):
-                return (-1, repr(value), style_type_number)
-            elif isinstance(value, Exception):
-                if value.__class__.__module__ == "exceptions":
-                    value = "%s: %s" % (value.__class__.__name__, value)
-                else:
-                    value = "%s.%s: %s" % \
-                        (value.__class__.__module__, value.__class__.__name__,
-                         value)
-                return (-1, value, style_error)
-            return (-1, repr(value), style_default)
-
         def addstr(self, y, x, begx, endx, text, style):
             """
             A version of ``curses.addstr()`` that can handle ``x`` coordinates
@@ -2753,6 +2717,20 @@ if curses is not None:
                     *attrs
                 )
                 self.levels.append(level)
+
+        def startkeyboardinput(self, mode):
+            """
+            Enter mode ``mode``, which requires keyboard input.
+            """
+            self.mode = mode
+            self.keyboardinput = ""
+            self.cursorpos = 0
+
+        def executekeyboardinput(self, mode):
+            exe = getattr(self, "exe_%s" % mode, None)
+            if exe is not None:
+               exe()
+               self.mode = "default"
 
         def keylabel(self, keycode):
             """
@@ -3058,8 +3036,56 @@ if curses is not None:
             level.sort(key, reverse=True)
 
         def cmd_goto(self):
-            self.mode = "goto"
-            self.goto = ""
+            self.startkeyboardinput("goto")
+
+        def exe_goto(self):
+            level = self.levels[-1]
+            if self.keyboardinput:
+                level.moveto(level.curx, int(self.keyboardinput))
+
+        def cmd_find(self):
+            self.startkeyboardinput("find")
+
+        def exe_find(self):
+            level = self.levels[-1]
+            if self.keyboardinput:
+                while True:
+                    cury = level.cury
+                    level.moveto(level.curx, cury+1)
+                    if cury == level.cury:
+                        curses.beep()
+                        break
+                    item = level.items[level.cury].item
+                    try:
+                        if eval(self.keyboardinput, globals(), _AttrNamespace(item)):
+                            break
+                    except (KeyboardInterrupt, SystemExit):
+                        raise
+                    except Exception, exc:
+                        self.report(exc)
+                        curses.beep()
+                        break # break on error
+
+        def cmd_findbackwards(self):
+            self.startkeyboardinput("findbackwards")
+
+        def exe_findbackwards(self):
+            level = self.levels[-1]
+            if self.keyboardinput:
+                while level.cury:
+                    level.moveto(level.curx, level.cury-1)
+                    item = level.items[level.cury].item
+                    try:
+                        if eval(self.keyboardinput, globals(), _AttrNamespace(item)):
+                            break
+                    except (KeyboardInterrupt, SystemExit):
+                        raise
+                    except Exception, exc:
+                        self.report(exc)
+                        curses.beep()
+                        break # break on error
+                else:
+                    curses.beep()
 
         def cmd_help(self):
             """
@@ -3260,9 +3286,11 @@ if curses is not None:
                                     break
 
                 try:
-                    # Display goto input prompt
-                    if self.mode == "goto":
-                        scr.addstr(self.scrsizey-1, 0, self.prompt_goto + self.goto, self.getstyle(style_default))
+                    # Display input prompt
+                    if self.mode in self.prompts:
+                        scr.addstr(self.scrsizey-1, 0,
+                                   self.prompts[self.mode] + self.keyboardinput,
+                                   self.getstyle(style_default))
                     # Display report
                     else:
                         if self._report is not None:
@@ -3288,8 +3316,8 @@ if curses is not None:
                 scr.clrtoeol()
 
                 # Position cursor
-                if self.mode == "goto":
-                    scr.move(self.scrsizey-1, len(self.prompt_goto)+len(self.goto))
+                if self.mode in self.prompts:
+                    scr.move(self.scrsizey-1, len(self.prompts[self.mode])+self.cursorpos)
                 else:
                     scr.move(
                         1+self._headerlines+level.cury-level.datastarty,
@@ -3300,23 +3328,44 @@ if curses is not None:
                 # Check keyboard
                 while True:
                     c = scr.getch()
-                    if self.mode == "goto":
-                        if ord("0") <= c <= ord("9"):
-                            self.goto += chr(c)
-                            break # Redisplay
-                        elif c in (8, 127, curses.KEY_BACKSPACE, ord("x")):
-                            if self.goto:
-                                self.goto = self.goto[:-1]
+                    if self.mode in self.prompts:
+                        if c in (8, 127, curses.KEY_BACKSPACE):
+                            if self.cursorpos:
+                                self.keyboardinput = self.keyboardinput[:self.cursorpos-1] + self.keyboardinput[self.cursorpos:]
+                                self.cursorpos -= 1
                                 break
                             else:
                                 curses.beep()
-                        elif c == ord("\n"):
+                        elif c == curses.KEY_LEFT:
+                            if self.cursorpos:
+                                self.cursorpos -= 1
+                                break
+                            else:
+                                curses.beep()
+                        elif c == curses.KEY_RIGHT:
+                            if self.cursorpos < len(self.keyboardinput):
+                                self.cursorpos += 1
+                                break
+                            else:
+                                curses.beep()
+                        elif c in (curses.KEY_UP, curses.KEY_DOWN): # cancel
                             self.mode = "default"
-                            if self.goto:
-                                level.moveto(level.curx, int(self.goto))
+                            break
+                        elif c == ord("\n"):
+                            self.executekeyboardinput(self.mode)
                             break
                         elif c != -1:
-                            curses.beep()
+                           try:
+                               c = chr(c)
+                           except ValueError:
+                               curses.beep()
+                           else:
+                               if (self.mode == "goto" and not "0" <= c <= "9"):
+                                   curses.beep()
+                               else:
+                                   self.keyboardinput = self.keyboardinput[:self.cursorpos] + c + self.keyboardinput[self.cursorpos:]
+                                   self.cursorpos += 1
+                                   break # Redisplay
                     else:
                         # if no key is pressed slow down and beep again
                         if c == -1:
