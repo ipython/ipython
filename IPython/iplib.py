@@ -6,7 +6,7 @@ Requires Python 2.3 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 1260 2006-04-11 10:19:34Z vivainio $
+$Id: iplib.py 1277 2006-05-02 10:31:55Z walter.doerwald $
 """
 
 #*****************************************************************************
@@ -570,7 +570,7 @@ class InteractiveShell(object,Magic):
 
         # Make some aliases automatically
         # Prepare list of shell aliases to auto-define
-        if os.name == 'posix':            
+        if os.name == 'posix':
             auto_alias = ('mkdir mkdir', 'rmdir rmdir',
                           'mv mv -i','rm rm -i','cp cp -i',
                           'cat cat','less less','clear clear',
@@ -582,7 +582,7 @@ class InteractiveShell(object,Magic):
                           'lc ls -F -o --color',
                           # ls normal files only
                           'lf ls -F -o --color %l | grep ^-',
-                          # ls symbolic links 
+                          # ls symbolic links
                           'lk ls -F -o --color %l | grep ^l',
                           # directories or links to directories,
                           'ldir ls -F -o --color %l | grep /$',
