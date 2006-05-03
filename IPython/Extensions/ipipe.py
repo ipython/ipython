@@ -2040,16 +2040,17 @@ nextattr
 Move the cursor one attribute column to the right.
 
 pick
-'Pick' the object under the cursor (i.e. the row the cursor is on). This leaves
-the browser and returns the picked object to the caller. (In IPython this object
-will be available as the '_' variable.)
+'Pick' the object under the cursor (i.e. the row the cursor is on). This
+leaves the browser and returns the picked object to the caller. (In IPython
+this object will be available as the '_' variable.)
 
 pickattr
 'Pick' the attribute under the cursor (i.e. the row/column the cursor is on).
 
 pickallattrs
-Pick' the complete column under the cursor (i.e. the attribute under the cursor)
-from all currently fetched objects. These attributes will be returned as a list.
+Pick' the complete column under the cursor (i.e. the attribute under the
+cursor) from all currently fetched objects. These attributes will be returned
+as a list.
 
 tooglemark
 Mark/unmark the object under the cursor. Marked objects have a '!' after the
@@ -2064,13 +2065,13 @@ list).
 
 enterdefault
 Enter the object under the cursor. (what this mean depends on the object
-itself (i.e. how it implements the '__xiter__' method). This opens a new browser
-'level'.
+itself (i.e. how it implements the '__xiter__' method). This opens a new
+browser 'level'.
 
 enter
-Enter the object under the cursor. If the object provides different enter modes
-a menu of all modes will be presented; choice one and enter it (via the 'enter'
-or 'enterdefault' command).
+Enter the object under the cursor. If the object provides different enter
+modes a menu of all modes will be presented; choose one and enter it (via the
+'enter' or 'enterdefault' command).
 
 enterattr
 Enter the attribute under the cursor.
@@ -2080,15 +2081,15 @@ Leave the current browser level and go back to the previous one.
 
 detail
 Show a detail view of the object under the cursor. This shows the name, type,
-doc string and value of the object attributes (and it might show more attributes
-than in the list view, depending on the object).
+doc string and value of the object attributes (and it might show more
+attributes than in the list view, depending on the object).
 
 detailattr
 Show a detail view of the attribute under the cursor.
 
 markrange
-Mark all objects from the last marked object before the current cursor position
-to the cursor position.
+Mark all objects from the last marked object before the current cursor
+position to the cursor position.
 
 sortattrasc
 Sort the objects (in ascending order) using the attribute under the cursor as
@@ -2145,6 +2146,7 @@ if curses is not None:
 
 
     class _BrowserHelp(object):
+        style_header = Style(COLOR_RED, COLOR_BLACK)
         # This is used internally by ``ibrowse`` for displaying the help screen.
         def __init__(self, browser):
             self.browser = browser
@@ -2162,19 +2164,18 @@ if curses is not None:
             for (key, cmd) in self.browser.keymap.iteritems():
                 allkeys.setdefault(cmd, []).append(key)
 
-            fields = ("key", "command", "description")
+            fields = ("key", "description")
 
             for (i, command) in enumerate(_ibrowse_help.strip().split("\n\n")):
                 if i:
-                    yield Fields(fields, key="", command="", description="")
+                    yield Fields(fields, key="", description="")
 
                 (name, description) = command.split("\n", 1)
                 keys = allkeys.get(name, [])
-                lines = textwrap.wrap(description, 50)
+                lines = textwrap.wrap(description, 60)
 
+                yield Fields(fields, description=Text((self.style_header, name)))
                 for i in xrange(max(len(keys), len(lines))):
-                    if i:
-                        name = ""
                     try:
                         key = self.browser.keylabel(keys[i])
                     except IndexError:
@@ -2183,7 +2184,7 @@ if curses is not None:
                         line = lines[i]
                     except IndexError:
                         line = ""
-                    yield Fields(fields, key=key, command=name, description=line)
+                    yield Fields(fields, key=key, description=line)
 
 
     class _BrowserLevel(object):
