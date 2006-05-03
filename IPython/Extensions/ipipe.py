@@ -374,7 +374,7 @@ def _attrname(name):
     elif isinstance(name, basestring):
         return name
     elif callable(name):
-        return name.__name__
+        return getattr(name, "__xname__", name.__name__)
     else:
         return str(name)
 
