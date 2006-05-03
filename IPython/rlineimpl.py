@@ -15,10 +15,15 @@ have_readline = False
 
 if sys.platform == 'win32':
     try:
-        from pyreadline import *
+        import pyreadline.rlmain
+        #add config for inputrcpath here:
+        #pyreadline.rlmain.config_path="c:/python/test_config.ini"
+        from readline import *
         print "Using the new pyreadline (thanks for participating in the testing!)"
+        
         have_readline = True
-        import pyreadline as _rl
+        
+        import readline as _rl
     except ImportError:
         print "IPython team recommends the new pyreadline for Windows use, it wasn't found."
         print "It's superior especially with non-US keyboard layouts."
