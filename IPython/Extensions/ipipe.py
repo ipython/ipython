@@ -1882,8 +1882,13 @@ class idump(Display):
                     allattrs.append(attrname)
                     allattrset.add(attrname)
                     colwidths[attrname] = len(_attrname(attrname))
-                value = _getattr(item, attrname, None)
 
+                try:
+                    value = _getattr(item, attrname, None)
+                except (KeyboardInterrupt, SystemExit):
+                    raise
+                except Exception, exc:
+                    value = exc
                 (align, width, text) = xformat(value, "cell", self.maxattrlength)
                 colwidths[attrname] = max(colwidths[attrname], width)
                 # remember alignment, length and colored parts
