@@ -2101,6 +2101,14 @@ the sort key.
 goto
 Jump to a row. The row number can be entered at the bottom of the screen.
 
+find
+Search forward for a row. At the bottom of the screen the condition can be
+entered.
+
+findbackwards
+Search backward for a row. At the bottom of the screen the condition can be
+entered.
+
 help
 This screen.
 """
