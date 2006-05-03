@@ -423,6 +423,15 @@ class Style(object):
     }
 
     def __init__(self, fg, bg, attrs=0):
+        """
+        Create a ``Style`` object with ``fg`` as the foreground color,
+        ``bg`` as the background color and ``attrs`` as the attributes.
+
+        Examples:
+
+            >>> Style(COLOR_RED, COLOR_BLACK)
+            >>> Style(COLOR_YELLOW, COLOR_BLUE, A_BOLD|A_UNDERLINE)
+        """
         self.fg = fg
         self.bg = bg
         self.attrs = attrs
@@ -537,14 +546,14 @@ class Text(list):
     items will be ``(style, string)`` tuples.
     """
 
+    def __init__(self, *args):
+        list.__init__(self)
+        self.append(*args)
+
     def __repr__(self):
         return "%s.%s(%s)" % (
             self.__class__.__module__, self.__class__.__name__,
             list.__repr__(self)[1:-1])
-
-    def __init__(self, *args):
-        list.__init__(self)
-        self.append(*args)
 
     def append(self, *args):
         for arg in args:
@@ -595,7 +604,8 @@ class Text(list):
 
     def string(self, styled=True):
         """
-        Return the resulting string (with escape sequences, if ``styled`` is true).
+        Return the resulting string (with escape sequences, if ``styled``
+        is true).
         """
         return "".join(self.format(styled))
 
@@ -1158,7 +1168,13 @@ class iparentdir(ifile):
 
 class ils(Table):
     """
-    This ``Table`` lists a directory.
+    List the current (or a specific) directory.
+
+    Examples:
+
+        >>> ils
+        >>> ils("/usr/local/lib/python2.4")
+        >>> ils("~")
     """
     def __init__(self, base=os.curdir):
         self.base = os.path.expanduser(base)
@@ -1176,8 +1192,12 @@ class ils(Table):
 
 class iglob(Table):
     """
-    This `Table`` lists all files and directories matching a specified pattern.
-    (See ``glob.glob()`` for more info.)
+    List all files and directories matching a specified pattern.
+    (See ``glob.glob()`` for more info.).
+
+    Examples:
+
+        >>> iglob("*.py")
     """
     def __init__(self, glob):
         self.glob = glob
@@ -1200,8 +1220,11 @@ class iglob(Table):
 
 class iwalk(Table):
     """
-    This `Table`` lists all files and directories in a directory and it's
-    subdirectory.
+    List all files and directories in a directory and it's subdirectory.
+
+        >>> iwalk
+        >>> iwalk("/usr/local/lib/python2.4")
+        >>> iwalk("~")
     """
     def __init__(self, base=os.curdir, dirs=True, files=True):
         self.base = os.path.expanduser(base)
@@ -1294,8 +1317,11 @@ class ipwdentry(object):
 
 class ipwd(Table):
     """
-    This ``Table`` lists all entries in the Unix user account and password
-    database.
+    List all entries in the Unix user account and password database.
+
+    Example:
+
+        >>> ipwd | isort("uid")
     """
     def __iter__(self):
         for entry in pwd.getpwall():
@@ -1475,7 +1501,11 @@ class List(list):
 
 class ienv(Table):
     """
-    This ``Table`` lists environment variables.
+    List environment variables.
+
+    Example:
+
+        >>> ienv
     """
 
     def __xiter__(self, mode):
@@ -1539,8 +1569,13 @@ class icsv(Pipe):
 
 class ix(Table):
     """
-    This ``Table`` executes a system command and lists its output as lines
+    Execute a system command and list its output as lines
     (similar to ``os.popen()``).
+
+    Examples:
+
+        >>> ix("ps x")
+        >>> ix("find .") | ifile
     """
     def __init__(self, cmd):
         self.cmd = cmd
@@ -1572,8 +1607,14 @@ class ix(Table):
 
 class ifilter(Pipe):
     """
-    This ``Pipe`` filters an input pipe. Only objects where an expression
-    evaluates to true (and doesn't raise an exception) are listed.
+    Filter an input pipe. Only objects where an expression evaluates to true
+    (and doesn't raise an exception) are listed.
+
+    Examples:
+
+        >>> ils | ifilter("_.isfile() and size>1000")
+        >>> igrp | ifilter("len(mem)")
+        >>> sys.modules | ifilter(lambda _:_.value is not None)
     """
 
     def __init__(self, expr, errors="raiseifallfail"):
@@ -1651,7 +1692,12 @@ class ifilter(Pipe):
 
 class ieval(Pipe):
     """
-    This ``Pipe`` evaluates an expression for each object in the input pipe.
+    Evaluate an expression for each object in the input pipe.
+
+    Examples:
+
+        >>> ils | ieval("_.abspath()")
+        >>> sys.path | ieval(ifile)
     """
 
     def __init__(self, expr, errors="raiseifallfail"):
@@ -1714,6 +1760,14 @@ class ieval(Pipe):
 
 
 class ienum(Pipe):
+    """
+    Enumerate the input pipe (i.e. wrap each input object in an object
+    with ``index`` and ``object`` attributes).
+
+    Examples:
+
+        >>> xrange(20) | ieval("_,_*_") | ienum | ifilter("index % 2 == 0") | ieval("object")
+    """
     def __xiter__(self, mode):
         fields = ("index", "object")
         for (index, object) in enumerate(xiter(self.input, mode)):
@@ -1722,7 +1776,12 @@ class ienum(Pipe):
 
 class isort(Pipe):
     """
-    This ``Pipe`` sorts its input pipe.
+    Sorts the input pipe.
+
+    Examples:
+
+        >>> ils | isort("size")
+        >>> ils | isort("_.isdir(), _.lower()", reverse=True)
     """
 
     def __init__(self, key, reverse=False):
