@@ -1882,7 +1882,6 @@ class idump(Display):
                     allattrs.append(attrname)
                     allattrset.add(attrname)
                     colwidths[attrname] = len(_attrname(attrname))
-
                 try:
                     value = _getattr(item, attrname, None)
                 except (KeyboardInterrupt, SystemExit):
