@@ -746,7 +746,7 @@ def xrepr(item, mode):
         if item.__class__.__module__ == "exceptions":
             classname = item.__class__.__name__
         else:
-            classname = "%s.%s: %s" % \
+            classname = "%s.%s" % \
                 (item.__class__.__module__, item.__class__.__name__)
         if mode == "header" or mode == "footer":
             yield (style_error, "%s: %s" % (classname, item))
