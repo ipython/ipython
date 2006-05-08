@@ -1,3 +1,7 @@
+2006-05-07  Fernando Perez  <Fernando.Perez@colorado.edu>
+
+	* IPython/Release.py (version): put out 0.7.2.rc1 for testing.
+
 2006-04-11  Ville Vainio  <vivainio@gmail.com>
 
 	* iplib.py, ipmaker.py: .ipy extension now means "ipython batch file"
