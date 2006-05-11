@@ -27,14 +27,19 @@ def clip_f( self, parameter_s = '' ):
         data = cl.GetClipboardData( win32con.CF_TEXT )
         cl.CloseClipboard()
         return data
-
-    ranges = args[0:]
-    cmds = ''.join( self.extract_input_slices( ranges ) )
+    api = self.getapi()
+    
+    if parameter_s.lstrip().startswith('='):
+        rest = parameter_s[parameter_s.index('=')+1:].strip()
+        val = str(api.ev(rest))
+    else:
+        ranges = args[0:]
+        val = ''.join( self.extract_input_slices( ranges ) )
 
     cl.EmptyClipboard()
-    cl.SetClipboardText( cmds )
+    cl.SetClipboardText( val )
     cl.CloseClipboard()
-    print 'The following commands were written to the clipboard'
-    print cmds
+    print 'The following text was written to the clipboard'
+    print val
     
 ip.expose_magic( "clip", clip_f )
