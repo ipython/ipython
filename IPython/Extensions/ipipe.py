@@ -319,9 +319,6 @@ class Table(object):
     def __iter__(self):
         return xiter(self, "default")
 
-    def __xiter__(self, mode="default"):
-        raise NotImplementedError
-
 
 class Pipe(Table):
     """
