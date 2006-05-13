@@ -1,3 +1,10 @@
+2006-05-13  Fernando Perez  <Fernando.Perez@colorado.edu>
+
+	* IPython\Shell.py (MTInteractiveShell.runsource): Fix threading
+	bug, closes http://www.scipy.net/roundup/ipython/issue55.  A lock
+	was being released in a routine which hadn't checked if it had
+	been the one to acquire it.
+
 2006-05-07  Fernando Perez  <Fernando.Perez@colorado.edu>
 
 	* IPython/Release.py (version): put out 0.7.2.rc1 for testing.
