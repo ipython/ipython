@@ -19,18 +19,19 @@ if sys.platform == 'win32':
         #add config for inputrcpath here:
         #pyreadline.rlmain.config_path="c:/python/test_config.ini"
         from readline import *
-        print "Using the new pyreadline (thanks for participating in the testing!)"
+        #print "Using the new pyreadline (thanks for participating in the testing!)"
         
         have_readline = True
         
         import readline as _rl
     except ImportError:
-        print "IPython team recommends the new pyreadline for Windows use, it wasn't found."
-        print "It's superior especially with non-US keyboard layouts."
-        print "Try installing it with 'easy_install pyreadline (ctypes is required) or"
-        print "svn co http://ipython.scipy.org/svn/ipython/pyreadline/trunk pyreadline"
-        print "Trying 'old' windows readline."
-
+        #print "IPython team recommends the new pyreadline for Windows use, "
+        #print "It's superior especially with non-US keyboard layouts."
+        #print "Try installing it with 'easy_install pyreadline (ctypes is required) or"
+        #print "svn co http://ipython.scipy.org/svn/ipython/pyreadline/trunk pyreadline"
+        #print "Trying 'old' windows readline."
+        print "Using 'old' readline, you might want to try pyreadline:"
+        print "http://projects.scipy.org/ipython/ipython/wiki/PyReadline/Intro"
         try:
             from readline import *
             import readline as _rl
