@@ -1,6 +1,12 @@
+2006-05-15  Ville Vainio  <vivainio@gmail.com>
+
+	* Oinspect.py: Only show docstring for nonexisting/binary files
+	when doing object??, closing ticket #62
+	
+
 2006-05-13  Fernando Perez  <Fernando.Perez@colorado.edu>
 
-	* IPython\Shell.py (MTInteractiveShell.runsource): Fix threading
+	* IPython/Shell.py (MTInteractiveShell.runsource): Fix threading
 	bug, closes http://www.scipy.net/roundup/ipython/issue55.  A lock
 	was being released in a routine which hadn't checked if it had
 	been the one to acquire it.

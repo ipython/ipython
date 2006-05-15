@@ -6,7 +6,7 @@ Uses syntax highlighting for presenting the various information elements.
 Similar in spirit to the inspect module, but all calls take a name argument to
 reference the name under which an object is being read.
 
-$Id: OInspect.py 1058 2006-01-22 14:30:01Z vivainio $
+$Id: OInspect.py 1300 2006-05-15 16:27:36Z vivainio $
 """
 
 #*****************************************************************************
@@ -29,7 +29,7 @@ import linecache
 import string
 import StringIO
 import types
-
+import os
 # IPython's own
 from IPython import PyColorize
 from IPython.genutils import page,indent,Term,mkdict
@@ -239,6 +239,8 @@ class Inspector:
             
             if (ofile.endswith('.so') or ofile.endswith('.dll')):
                 print 'File %r is binary, not printing.' % ofile
+            elif not os.path.isfile(ofile):
+                print 'File %r does not exist, not printing.' % ofile
             else:
                 # Print only text files, not extension binaries.
                 page(self.format(open(ofile).read()),lineno)
@@ -331,7 +333,8 @@ class Inspector:
             fname = inspect.getabsfile(obj)
             if fname.endswith('<string>'):
                 fname = 'Dynamically generated function. No source code available.'
-            if fname.endswith('.so') or fname.endswith('.dll'):
+            if (fname.endswith('.so') or fname.endswith('.dll') or 
+                not os.path.isfile(fname)):
                 binary_file = True
             out.writeln(header('File:\t\t')+fname)
         except:
@@ -349,17 +352,22 @@ class Inspector:
         if ds and detail_level == 0:
                 out.writeln(header('Docstring:\n') + indent(ds))
 
+                
         # Original source code for any callable
         if detail_level:
             # Flush the source cache because inspect can return out-of-date source
             linecache.checkcache()
+            source_success = False
             try:
                 if not binary_file:
                     source = self.format(inspect.getsource(obj))
                     out.write(header('Source:\n')+source.rstrip())
+                    source_success = True
             except:
-                if ds:
-                    out.writeln(header('Docstring:\n') + indent(ds))
+                pass
+            
+            if ds and not source_success:
+                out.writeln(header('Docstring [source file open failed]:\n') + indent(ds))
 
         # Constructor docstring for classes
         if obj_type is types.ClassType:
