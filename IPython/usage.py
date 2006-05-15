@@ -6,7 +6,7 @@
 #  the file COPYING, distributed as part of this software.
 #*****************************************************************************
 
-# $Id: usage.py 1177 2006-02-24 16:40:24Z vivainio $
+# $Id: usage.py 1301 2006-05-15 17:21:55Z vivainio $
 
 from IPython import Release
 __author__  = '%s <%s>' % Release.authors['Fernando']
@@ -143,7 +143,7 @@ REGULAR OPTIONS
               will have no effect in any other position). It adds special sup-
               port   for  the  matplotlib  library  (http://matplotlib.source-
               forge.net), allowing interactive usage of any of its backends as
-              defined  in  the  user’s  .matplotlibrc  file.  It automatically
+              defined  in  the  user's  .matplotlibrc  file.  It automatically
               activates GTK or WX threading for IPyhton if the choice of  mat-
               plotlib  backend requires it.  It also modifies the @run command
               to correctly execute  (without  blocking)  any  matplotlib-based
@@ -174,7 +174,7 @@ REGULAR OPTIONS
               Print the intial information banner (default on).
 
        -c <command>
-              Execute  the  given  command  string, and set sys.argv to [’c’].
+              Execute  the  given  command  string, and set sys.argv to ['c'].
               This is similar to the -c option in  the  normal  Python  inter-
               preter.
 
@@ -184,7 +184,7 @@ REGULAR OPTIONS
               your  config  file.   Setting  it  to  0 completely disables the
               caching system, and the minimum value accepted  is  20  (if  you
               provide  a value less than 20, it is reset to 0 and a warning is
-              issued).  This limit is defined because otherwise  you’ll  spend
+              issued).  This limit is defined because otherwise  you'll  spend
               more time re-flushing a too small cache than working.
 
        -classic|cl
@@ -198,12 +198,12 @@ REGULAR OPTIONS
               IPython can display information about objects via a set of func-
               tions, and optionally can use colors for this, syntax highlight-
               ing source code and various other  elements.   However,  because
-              this  information  is  passed  through a pager (like ’less’) and
+              this  information  is  passed  through a pager (like 'less') and
               many pagers get confused with color codes, this option is off by
               default.   You  can  test  it and turn it on permanently in your
-              ipythonrc file if it works for you.  As a reference, the  ’less’
+              ipythonrc file if it works for you.  As a reference, the  'less'
               pager  supplied  with  Mandrake 8.2 works ok, but that in RedHat
-              7.2 doesn’t.
+              7.2 doesn't.
 
               Test it and turn it on permanently if it works with your system.
               The  magic function @color_info allows you to toggle this inter-
@@ -223,7 +223,7 @@ REGULAR OPTIONS
        -[no]deep_reload
               IPython  can use the deep_reload module which reloads changes in
               modules recursively (it replaces the reload() function,  so  you
-              don’t need to change anything to use it). deep_reload() forces a
+              don't need to change anything to use it). deep_reload() forces a
               full reload of modules whose code may have  changed,  which  the
               default reload() function does not.
 
@@ -256,21 +256,21 @@ REGULAR OPTIONS
 
        -logplay|lp
               Replay  a previous log. For restoring a session as close as pos-
-              sible to the state you left it in, use this option  (don’t  just
+              sible to the state you left it in, use this option  (don't  just
               run the logfile). With -logplay, IPython will try to reconstruct
               the previous working environment in full, not just  execute  the
               commands in the logfile.
               When  a  session is restored, logging is automatically turned on
               again with the name of the logfile it was invoked  with  (it  is
-              read  from the log header). So once you’ve turned logging on for
+              read  from the log header). So once you've turned logging on for
               a session, you can quit IPython and reload it as many  times  as
               you  want  and  it  will continue to log its history and restore
               from the beginning every time.
 
               Caveats: there are limitations in this option. The history vari-
-              ables  _i*,_* and _dh don’t get restored properly. In the future
+              ables  _i*,_* and _dh don't get restored properly. In the future
               we will try to implement full  session  saving  by  writing  and
-              retrieving  a failed because of inherent limitations of Python’s
+              retrieving  a failed because of inherent limitations of Python's
               Pickle module, so this may have to wait.
 
        -[no]messages
@@ -295,7 +295,7 @@ REGULAR OPTIONS
               rent dir first, then in IPYTHONDIR). This is a quick way to keep
               and load multiple config files for different  tasks,  especially
               if  you  use  the include option of config files. You can keep a
-              basic IPYTHONDIR/ipythonrc file and then have  other  ’profiles’
+              basic IPYTHONDIR/ipythonrc file and then have  other  'profiles'
               which  include  this  one  and  load extra things for particular
               tasks. For example:
 
@@ -311,25 +311,25 @@ REGULAR OPTIONS
 
        -prompt_in1|pi1 <string>
               Specify  the string used for input prompts. Note that if you are
-              using numbered prompts, the number is represented with a ’\#’ in
-              the  string.  Don’t forget to quote strings with spaces embedded
-              in them. Default: ’In [\#]:’.
+              using numbered prompts, the number is represented with a '\#' in
+              the  string.  Don't forget to quote strings with spaces embedded
+              in them. Default: 'In [\#]:'.
 
-              Most bash-like  escapes  can  be  used  to  customize  IPython’s
+              Most bash-like  escapes  can  be  used  to  customize  IPython's
               prompts, as well as a few additional ones which are IPython-spe-
               cific.  All valid prompt escapes are described in detail in  the
               Customization section of the IPython HTML/PDF manual.
 
        -prompt_in2|pi2 <string>
               Similar  to  the  previous option, but used for the continuation
-              prompts. The special sequence ’\D’ is similar to ’\#’, but  with
+              prompts. The special sequence '\D' is similar to '\#', but  with
               all  digits  replaced  dots  (so  you can have your continuation
-              prompt aligned with your  input  prompt).  Default:  ’    .\D.:’
-              (note three spaces at the start for alignment with ’In [\#]’).
+              prompt aligned with your  input  prompt).  Default:  '    .\D.:'
+              (note three spaces at the start for alignment with 'In [\#]').
 
        -prompt_out|po <string>
               String   used   for  output  prompts,  also  uses  numbers  like
-              prompt_in1.  Default: ’Out[\#]:’.
+              prompt_in1.  Default: 'Out[\#]:'.
 
        -quick Start in bare bones mode (no config file loaded).
 
@@ -346,8 +346,8 @@ REGULAR OPTIONS
               by default, but may cause  problems  for  users  of  X/Emacs  in
               Python comint or shell buffers.
 
-              Note  that  emacs ’eterm’ buffers (opened with M-x term) support
-              IPython’s readline and syntax coloring fine, only  ’emacs’  (M-x
+              Note  that  emacs 'eterm' buffers (opened with M-x term) support
+              IPython's readline and syntax coloring fine, only  'emacs'  (M-x
               shell and C-c !)  buffers do not.
 
        -screen_length|sl <n>
@@ -357,13 +357,13 @@ REGULAR OPTIONS
 
               The default value for this is 0, which means IPython will  auto-
               detect  your  screen  size  every time it needs to print certain
-              potentially long strings (this doesn’t change  the  behavior  of
-              the  ’print’  keyword,  it’s  only triggered internally). If for
-              some reason this isn’t working well (it needs  curses  support),
-              specify it yourself. Otherwise don’t change the default.
+              potentially long strings (this doesn't change  the  behavior  of
+              the  'print'  keyword,  it's  only triggered internally). If for
+              some reason this isn't working well (it needs  curses  support),
+              specify it yourself. Otherwise don't change the default.
 
        -separate_in|si <string>
-              Separator before input prompts.  Default ’0.
+              Separator before input prompts.  Default '0.
 
        -separate_out|so <string>
               Separator before output prompts.  Default: 0 (nothing).
@@ -371,7 +371,7 @@ REGULAR OPTIONS
        -separate_out2|so2 <string>
               Separator after output prompts.  Default: 0 (nothing).
 
-       -nosep Shorthand for ’-separate_in 0 -separate_out 0 -separate_out2 0’.
+       -nosep Shorthand for '-separate_in 0 -separate_out 0 -separate_out2 0'.
               Simply removes all input/output separators.
 
        -upgrade
@@ -394,7 +394,7 @@ REGULAR OPTIONS
               Mode  for  exception reporting.  The valid modes are Plain, Con-
               text, and Verbose.
 
-              - Plain: similar to python’s normal traceback printing.
+              - Plain: similar to python's normal traceback printing.
 
               - Context: prints 5 lines of context  source  code  around  each
               line in the traceback.
@@ -418,7 +418,7 @@ EMBEDDING
        code,  operate  with  your  variables, analyze them, etc.  Note however
        that any changes you make to values while in the shell do NOT propagate
        back  to  the running code, so it is safe to modify your values because
-       you won’t break your code in bizarre ways by doing so.
+       you won't break your code in bizarre ways by doing so.
 """
 
 cmd_line_usage = __doc__
