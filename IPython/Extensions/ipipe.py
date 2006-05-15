@@ -57,11 +57,11 @@ three extensions points (all of them optional):
   line would use ``True``, but for a large data structure (i.e. a nested list,
   tuple or dictionary) ``False`` would be used). The other output ``__xrepr__()``
   may produce is tuples of ``Style```objects and text (which contain the text
-  representation of the object). If ``__xrepr__()`` recursively outputs a data
-  structure the function ``xrepr(object, mode)`` can be used and ``"default"``
-  must be passed as the mode in these calls. This in turn calls the
-  ``__xrepr__()`` method on ``object`` (or uses ``repr(object)`` as the string
-  representation if ``__xrepr__()`` doesn't exist.
+  representation of the object; see the ``astyle`` module). If ``__xrepr__()``
+  recursively outputs a data structure the function ``xrepr(object, mode)`` can
+  be used and ``"default"`` must be passed as the mode in these calls. This in
+  turn calls the ``__xrepr__()`` method on ``object`` (or uses ``repr(object)``
+  as the string representation if ``__xrepr__()`` doesn't exist).
 
 * Objects that can be iterated by ``Pipe``s must implement the method
 ``__xiter__(self, mode)``. ``mode`` can take the following values:
@@ -162,6 +162,8 @@ try:
     from IPython import genutils
 except ImportError:
     pass
+
+import astyle
 
 
 __all__ = [
@@ -379,299 +381,6 @@ def _attrname(name):
         return str(name)
 
 
-COLOR_BLACK   = 0
-COLOR_RED     = 1
-COLOR_GREEN   = 2
-COLOR_YELLOW  = 3
-COLOR_BLUE    = 4
-COLOR_MAGENTA = 5
-COLOR_CYAN    = 6
-COLOR_WHITE   = 7
-
-A_BLINK     = 1<<0 # Blinking text
-A_BOLD      = 1<<1 # Extra bright or bold text
-A_DIM       = 1<<2 # Half bright text
-A_REVERSE   = 1<<3 # Reverse-video text
-A_STANDOUT  = 1<<4 # The best highlighting mode available
-A_UNDERLINE = 1<<5 # Underlined text
-
-
-class Style(object):
-    """
-    Store foreground color, background color and attribute (bold, underlined
-    etc.).
-    """
-    __slots__ = ("fg", "bg", "attrs")
-
-    COLORNAMES = {
-        "black": COLOR_BLACK,
-        "red": COLOR_RED,
-        "green": COLOR_GREEN,
-        "yellow": COLOR_YELLOW,
-        "blue": COLOR_BLUE,
-        "magenta": COLOR_MAGENTA,
-        "cyan": COLOR_CYAN,
-        "white": COLOR_WHITE,
-    }
-    ATTRNAMES = {
-        "blink": A_BLINK,
-        "bold": A_BOLD,
-        "dim": A_DIM,
-        "reverse": A_REVERSE,
-        "standout": A_STANDOUT,
-        "underline": A_UNDERLINE,
-    }
-
-    def __init__(self, fg, bg, attrs=0):
-        """
-        Create a ``Style`` object with ``fg`` as the foreground color,
-        ``bg`` as the background color and ``attrs`` as the attributes.
-
-        Examples:
-
-            >>> Style(COLOR_RED, COLOR_BLACK)
-            >>> Style(COLOR_YELLOW, COLOR_BLUE, A_BOLD|A_UNDERLINE)
-        """
-        self.fg = fg
-        self.bg = bg
-        self.attrs = attrs
-
-    def __call__(self, *args):
-        text = Text()
-        for arg in args:
-            if isinstance(arg, Text):
-                text.extend(arg)
-            else:
-                text.append((self, arg))
-        return text
-
-    def __eq__(self, other):
-        return self.fg == other.fg and self.bg == other.bg and self.attrs == other.attrs
-
-    def __neq__(self, other):
-        return self.fg != other.fg or self.bg != other.bg or self.attrs != other.attrs
-
-    def __repr__(self):
-        color2name = ("black", "red", "green", "yellow", "blue", "magenta", "cyan", "white")
-        attrs2name = ("blink", "bold", "dim", "reverse", "standout", "underline")
-
-        return "<%s fg=%s bg=%s attrs=%s>" % (
-            self.__class__.__name__, color2name[self.fg], color2name[self.bg],
-            "|".join([attrs2name[b] for b in xrange(6) if self.attrs&(1<<b)]) or 0)
-
-    def fromstr(cls, value):
-        """
-        Create a ``Style`` object from a string. The format looks like this:
-        ``"red:black:bold|blink"``.
-        """
-        # defaults
-        fg = COLOR_WHITE
-        bg = COLOR_BLACK
-        attrs = 0
-
-        parts = value.split(":")
-        if len(parts) > 0:
-            fg = cls.COLORNAMES[parts[0].lower()]
-            if len(parts) > 1:
-                bg = cls.COLORNAMES[parts[1].lower()]
-                if len(parts) > 2:
-                    for strattr in parts[2].split("|"):
-                        attrs |= cls.ATTRNAMES[strattr.lower()]
-        return cls(fg, bg, attrs)
-    fromstr = classmethod(fromstr)
-
-    def fromenv(cls, name, default):
-        """
-        Create a ``Style`` from an environment variable named ``name``
-        (using ``default`` if the environment variable doesn't exist).
-        """
-        return cls.fromstr(os.environ.get(name, default))
-    fromenv = classmethod(fromenv)
-
-
-def switchstyle(s1, s2):
-    """
-    Return the ANSI escape sequence needed to switch from style ``s1`` to
-    style ``s2``.
-    """
-    attrmask = (A_BLINK|A_BOLD|A_UNDERLINE|A_REVERSE)
-    a1 = s1.attrs & attrmask
-    a2 = s2.attrs & attrmask
-
-    args = []
-    if s1 != s2:
-        # do we have to get rid of the bold/underline/blink bit?
-        # (can only be done by a reset)
-        # use reset when our target color is the default color
-        # (this is shorter than 37;40)
-        if (a1 & ~a2 or s2==style_default):
-            args.append("0")
-            s1 = style_default
-            a1 = 0
-
-        # now we know that old and new color have the same boldness,
-        # or the new color is bold and the old isn't,
-        # i.e. we only might have to switch bold on, not off
-        if not (a1 & A_BOLD) and (a2 & A_BOLD):
-            args.append("1")
-
-        # Fix underline
-        if not (a1 & A_UNDERLINE) and (a2 & A_UNDERLINE):
-            args.append("4")
-
-        # Fix blink
-        if not (a1 & A_BLINK) and (a2 & A_BLINK):
-            args.append("5")
-
-        # Fix reverse
-        if not (a1 & A_REVERSE) and (a2 & A_REVERSE):
-            args.append("7")
-
-        # Fix foreground color
-        if s1.fg != s2.fg:
-            args.append("3%d" % s2.fg)
-
-        # Finally fix the background color
-        if s1.bg != s2.bg:
-            args.append("4%d" % s2.bg)
-
-        if args:
-            return "\033[%sm" % ";".join(args)
-    return ""
-
-
-class Text(list):
-    """
-    A colored string. A ``Text`` object is a sequence, the sequence
-    items will be ``(style, string)`` tuples.
-    """
-
-    def __init__(self, *args):
-        list.__init__(self)
-        self.append(*args)
-
-    def __repr__(self):
-        return "%s.%s(%s)" % (
-            self.__class__.__module__, self.__class__.__name__,
-            list.__repr__(self)[1:-1])
-
-    def append(self, *args):
-        for arg in args:
-            if isinstance(arg, Text):
-                self.extend(arg)
-            elif isinstance(arg, tuple): # must be (style, string)
-                list.append(self, arg)
-            elif isinstance(arg, unicode):
-                list.append(self, (style_default, arg))
-            else:
-                list.append(self, (style_default, str(arg)))
-
-    def insert(self, index, *args):
-        self[index:index] = Text(*args)
-
-    def __add__(self, other):
-        new = Text()
-        new.append(self)
-        new.append(other)
-        return new
-
-    def __iadd__(self, other):
-        self.append(other)
-        return self
-
-    def format(self, styled=True):
-        """
-        This generator yields the strings that will make up the final
-        colorized string.
-        """
-        if styled:
-            oldstyle = style_default
-            for (style, string) in self:
-                if not isinstance(style, (int, long)):
-                    switch = switchstyle(oldstyle, style)
-                    if switch:
-                        yield switch
-                    if string:
-                        yield string
-                    oldstyle = style
-            switch = switchstyle(oldstyle, style_default)
-            if switch:
-                yield switch
-        else:
-            for (style, string) in self:
-                if not isinstance(style, (int, long)):
-                    yield string
-
-    def string(self, styled=True):
-        """
-        Return the resulting string (with escape sequences, if ``styled``
-        is true).
-        """
-        return "".join(self.format(styled))
-
-    def __str__(self):
-        """
-        Return the resulting string with ANSI escape sequences.
-        """
-        return self.string(False)
-
-    def write(self, stream, styled=True):
-        for part in self.format(styled):
-            stream.write(part)
-
-    def __xrepr__(self, mode="default"):
-        yield (-1, True)
-        for info in self:
-            yield info
-
-
-if curses is not None:
-    # This is probably just range(8)
-    COLOR2CURSES = [
-        COLOR_BLACK,
-        COLOR_RED,
-        COLOR_GREEN,
-        COLOR_YELLOW,
-        COLOR_BLUE,
-        COLOR_MAGENTA,
-        COLOR_CYAN,
-        COLOR_WHITE,
-    ]
-
-    A2CURSES = {
-        A_BLINK: curses.A_BLINK,
-        A_BOLD: curses.A_BOLD,
-        A_DIM: curses.A_DIM,
-        A_REVERSE: curses.A_REVERSE,
-        A_STANDOUT: curses.A_STANDOUT,
-        A_UNDERLINE: curses.A_UNDERLINE,
-    }
-
-
-# default style
-style_default = Style(COLOR_WHITE, COLOR_BLACK)
-
-# Styles for datatypes
-style_type_none = Style(COLOR_MAGENTA, COLOR_BLACK)
-style_type_bool = Style(COLOR_MAGENTA, COLOR_BLACK)
-style_type_number = Style(COLOR_YELLOW, COLOR_BLACK)
-style_type_datetime = Style(COLOR_MAGENTA, COLOR_BLACK)
-
-# Style for URLs and file/directory names
-style_url = Style(COLOR_GREEN, COLOR_BLACK)
-style_dir = Style(COLOR_CYAN, COLOR_BLACK)
-style_file = Style(COLOR_GREEN, COLOR_BLACK)
-
-# Style for ellipsis (when an output has been shortened
-style_ellisis = Style(COLOR_RED, COLOR_BLACK)
-
-# Style for displaying exceptions
-style_error = Style(COLOR_RED, COLOR_BLACK)
-
-# Style for displaying non-existing attributes
-style_nodata = Style(COLOR_RED, COLOR_BLACK)
-
-
 def xrepr(item, mode):
     try:
         func = item.__xrepr__
@@ -685,62 +394,62 @@ def xrepr(item, mode):
             raise
         except Exception:
             yield (-1, True)
-            yield (style_default, repr(item))
+            yield (astyle.style_default, repr(item))
         return
     if item is None:
         yield (-1, True)
-        yield (style_type_none, repr(item))
+        yield (astyle.style_type_none, repr(item))
     elif isinstance(item, bool):
         yield (-1, True)
-        yield (style_type_bool, repr(item))
+        yield (astyle.style_type_bool, repr(item))
     elif isinstance(item, str):
         yield (-1, True)
         if mode == "cell":
-            yield (style_default, repr(item.expandtabs(tab))[1:-1])
+            yield (astyle.style_default, repr(item.expandtabs(tab))[1:-1])
         else:
-            yield (style_default, repr(item))
+            yield (astyle.style_default, repr(item))
     elif isinstance(item, unicode):
         yield (-1, True)
         if mode == "cell":
-            yield (style_default, repr(item.expandtabs(tab))[2:-1])
+            yield (astyle.style_default, repr(item.expandtabs(tab))[2:-1])
         else:
-            yield (style_default, repr(item))
+            yield (astyle.style_default, repr(item))
     elif isinstance(item, (int, long, float)):
         yield (1, True)
-        yield (style_type_number, repr(item))
+        yield (astyle.style_type_number, repr(item))
     elif isinstance(item, complex):
         yield (-1, True)
-        yield (style_type_number, repr(item))
+        yield (astyle.style_type_number, repr(item))
     elif isinstance(item, datetime.datetime):
         yield (-1, True)
         if mode == "cell":
             # Don't use strftime() here, as this requires year >= 1900
-            yield (style_type_datetime,
+            yield (astyle.style_type_datetime,
                    "%04d-%02d-%02d %02d:%02d:%02d.%06d" % \
                         (item.year, item.month, item.day,
                          item.hour, item.minute, item.second,
                          item.microsecond),
                     )
         else:
-            yield (style_type_datetime, repr(item))
+            yield (astyle.style_type_datetime, repr(item))
     elif isinstance(item, datetime.date):
         yield (-1, True)
         if mode == "cell":
-            yield (style_type_datetime,
+            yield (astyle.style_type_datetime,
                    "%04d-%02d-%02d" % (item.year, item.month, item.day))
         else:
-            yield (style_type_datetime, repr(item))
+            yield (astyle.style_type_datetime, repr(item))
     elif isinstance(item, datetime.time):
         yield (-1, True)
         if mode == "cell":
-            yield (style_type_datetime,
+            yield (astyle.style_type_datetime,
                     "%02d:%02d:%02d.%06d" % \
                         (item.hour, item.minute, item.second, item.microsecond))
         else:
-            yield (style_type_datetime, repr(item))
+            yield (astyle.style_type_datetime, repr(item))
     elif isinstance(item, datetime.timedelta):
         yield (-1, True)
-        yield (style_type_datetime, repr(item))
+        yield (astyle.style_type_datetime, repr(item))
     elif isinstance(item, Exception):
         yield (-1, True)
         if item.__class__.__module__ == "exceptions":
@@ -749,9 +458,9 @@ def xrepr(item, mode):
             classname = "%s.%s" % \
                 (item.__class__.__module__, item.__class__.__name__)
         if mode == "header" or mode == "footer":
-            yield (style_error, "%s: %s" % (classname, item))
+            yield (astyle.style_error, "%s: %s" % (classname, item))
         else:
-            yield (style_error, classname)
+            yield (astyle.style_error, classname)
     elif isinstance(item, (list, tuple)):
         yield (-1, False)
         if mode == "header" or mode == "footer":
@@ -760,22 +469,22 @@ def xrepr(item, mode):
             else:
                 classname = "%s.%s" % \
                     (item.__class__.__module__,item.__class__.__name__)
-            yield (style_default,
+            yield (astyle.style_default,
                    "<%s object with %d items at 0x%x>" % \
                        (classname, len(item), id(item)))
         else:
             if isinstance(item, list):
-                yield (style_default, "[")
+                yield (astyle.style_default, "[")
                 end = "]"
             else:
-                yield (style_default, "(")
+                yield (astyle.style_default, "(")
                 end = ")"
             for (i, subitem) in enumerate(item):
                 if i:
-                    yield (style_default, ", ")
+                    yield (astyle.style_default, ", ")
                 for part in xrepr(subitem, "default"):
                     yield part
-            yield (style_default, end)
+            yield (astyle.style_default, end)
     elif isinstance(item, (dict, types.DictProxyType)):
         yield (-1, False)
         if mode == "header" or mode == "footer":
@@ -784,28 +493,28 @@ def xrepr(item, mode):
             else:
                 classname = "%s.%s" % \
                     (item.__class__.__module__,item.__class__.__name__)
-            yield (style_default,
+            yield (astyle.style_default,
                    "<%s object with %d items at 0x%x>" % \
                     (classname, len(item), id(item)))
         else:
             if isinstance(item, dict):
-                yield (style_default, "{")
+                yield (astyle.style_default, "{")
                 end = "}"
             else:
-                yield (style_default, "dictproxy((")
+                yield (astyle.style_default, "dictproxy((")
                 end = "})"
             for (i, (key, value)) in enumerate(item.iteritems()):
                 if i:
-                    yield (style_default, ", ")
+                    yield (astyle.style_default, ", ")
                 for part in xrepr(key, "default"):
                     yield part
-                yield (style_default, ": ")
+                yield (astyle.style_default, ": ")
                 for part in xrepr(value, "default"):
                     yield part
-            yield (style_default, end)
+            yield (astyle.style_default, end)
     else:
         yield (-1, True)
-        yield (style_default, repr(item))
+        yield (astyle.style_default, repr(item))
 
 
 def xattrs(item, mode):
@@ -874,15 +583,15 @@ class ichain(Pipe):
         if mode == "header" or mode == "footer":
             for (i, item) in enumerate(self.iters):
                 if i:
-                    yield (style_default, "+")
+                    yield (astyle.style_default, "+")
                 if isinstance(item, Pipe):
-                    yield (style_default, "(")
+                    yield (astyle.style_default, "(")
                 for part in xrepr(item, mode):
                     yield part
                 if isinstance(item, Pipe):
-                    yield (style_default, ")")
+                    yield (astyle.style_default, ")")
         else:
-            yield (style_default, repr(self))
+            yield (astyle.style_default, repr(self))
 
     def __repr__(self):
         args = ", ".join([repr(it) for it in self.iters])
@@ -1124,13 +833,13 @@ class ifile(path.path):
         try:
             if self.isdir():
                 name = "idir"
-                style = style_dir
+                style = astyle.style_dir
             else:
                 name = "ifile"
-                style = style_file
+                style = astyle.style_file
         except IOError:
             name = "ifile"
-            style = style_default
+            style = astyle.style_default
         if mode == "cell" or mode in "header" or mode == "footer":
             abspath = repr(path._base(self.normpath()))
             if abspath.startswith("u"):
@@ -1160,7 +869,7 @@ class iparentdir(ifile):
     def __xrepr__(self, mode):
         yield (-1, True)
         if mode == "cell":
-            yield (style_dir, os.pardir)
+            yield (astyle.style_dir, os.pardir)
         else:
             for part in ifile.__xrepr__(self, mode):
                 yield part
@@ -1209,9 +918,10 @@ class iglob(Table):
     def __xrepr__(self, mode):
         yield (-1, True)
         if mode == "header" or mode == "footer" or mode == "cell":
-            yield (style_default, "%s(%r)" % (self.__class__.__name__, self.glob))
+            yield (astyle.style_default,
+                   "%s(%r)" % (self.__class__.__name__, self.glob))
         else:
-            yield (style_default, repr(self))
+            yield (astyle.style_default, repr(self))
 
     def __repr__(self):
         return "%s.%s(%r)" % \
@@ -1243,9 +953,10 @@ class iwalk(Table):
     def __xrepr__(self, mode):
         yield (-1, True)
         if mode == "header" or mode == "footer" or mode == "cell":
-            yield (style_default, "%s(%r)" % (self.__class__.__name__, self.base))
+            yield (astyle.style_default,
+                   "%s(%r)" % (self.__class__.__name__, self.base))
         else:
-            yield (style_default, repr(self))
+            yield (astyle.style_default, repr(self))
 
     def __repr__(self):
         return "%s.%s(%r)" % \
@@ -1330,9 +1041,9 @@ class ipwd(Table):
     def __xrepr__(self, mode):
         yield (-1, True)
         if mode == "header" or mode == "footer" or mode == "cell":
-            yield (style_default, "%s()" % self.__class__.__name__)
+            yield (astyle.style_default, "%s()" % self.__class__.__name__)
         else:
-            yield (style_default, repr(self))
+            yield (astyle.style_default, repr(self))
 
 
 class igrpentry(object):
@@ -1379,16 +1090,16 @@ class igrpentry(object):
     def __xrepr__(self, mode):
         yield (-1, True)
         if mode == "header" or mode == "footer" or mode == "cell":
-            yield (style_default, "group ")
+            yield (astyle.style_default, "group ")
             try:
-                yield (style_default, self.name)
+                yield (astyle.style_default, self.name)
             except KeyError:
                 if isinstance(self._id, basestring):
-                    yield (style_default, self.name_id)
+                    yield (astyle.style_default, self.name_id)
                 else:
-                    yield (style_type_number, str(self._id))
+                    yield (astyle.style_type_number, str(self._id))
         else:
-            yield (style_default, repr(self))
+            yield (astyle.style_default, repr(self))
 
     def __xiter__(self, mode):
         for member in self.mem:
@@ -1410,9 +1121,9 @@ class igrp(Table):
     def __xrepr__(self, mode):
         yield (-1, False)
         if mode == "header" or mode == "footer":
-            yield (style_default, "%s()" % self.__class__.__name__)
+            yield (astyle.style_default, "%s()" % self.__class__.__name__)
         else:
-            yield (style_default, repr(self))
+            yield (astyle.style_default, repr(self))
 
 
 class Fields(object):
@@ -1427,26 +1138,26 @@ class Fields(object):
     def __xrepr__(self, mode):
         yield (-1, False)
         if mode == "header" or mode == "cell":
-            yield (style_default, self.__class__.__name__)
-            yield (style_default, "(")
+            yield (astyle.style_default, self.__class__.__name__)
+            yield (astyle.style_default, "(")
             for (i, f) in enumerate(self.__fieldnames):
                 if i:
-                    yield (style_default, ", ")
-                yield (style_default, f)
-                yield (style_default, "=")
+                    yield (astyle.style_default, ", ")
+                yield (astyle.style_default, f)
+                yield (astyle.style_default, "=")
                 for part in xrepr(getattr(self, f), "default"):
                     yield part
-            yield (style_default, ")")
+            yield (astyle.style_default, ")")
         elif mode == "footer":
-            yield (style_default, self.__class__.__name__)
-            yield (style_default, "(")
+            yield (astyle.style_default, self.__class__.__name__)
+            yield (astyle.style_default, "(")
             for (i, f) in enumerate(self.__fieldnames):
                 if i:
-                    yield (style_default, ", ")
-                yield (style_default, f)
-            yield (style_default, ")")
+                    yield (astyle.style_default, ", ")
+                yield (astyle.style_default, f)
+            yield (astyle.style_default, ")")
         else:
-            yield (style_default, repr(self))
+            yield (astyle.style_default, repr(self))
 
 
 class FieldTable(Table, list):
@@ -1464,15 +1175,15 @@ class FieldTable(Table, list):
     def __xrepr__(self, mode):
         yield (-1, False)
         if mode == "header" or mode == "footer":
-            yield (style_default, self.__class__.__name__)
-            yield (style_default, "(")
+            yield (astyle.style_default, self.__class__.__name__)
+            yield (astyle.style_default, "(")
             for (i, f) in enumerate(self.__fieldnames):
                 if i:
-                    yield (style_default, ", ")
-                yield (style_default, f)
-            yield (style_default, ")")
+                    yield (astyle.style_default, ", ")
+                yield (astyle.style_default, f)
+            yield (astyle.style_default, ")")
         else:
-            yield (style_default, repr(self))
+            yield (astyle.style_default, repr(self))
 
     def __repr__(self):
         return "<%s.%s object with fields=%r at 0x%x>" % \
@@ -1487,16 +1198,16 @@ class List(list):
     def __xrepr__(self, mode):
         yield (-1, False)
         if mode == "header" or mode == "cell" or mode == "footer" or mode == "default":
-            yield (style_default, self.__class__.__name__)
-            yield (style_default, "(")
+            yield (astyle.style_default, self.__class__.__name__)
+            yield (astyle.style_default, "(")
             for (i, item) in enumerate(self):
                 if i:
-                    yield (style_default, ", ")
+                    yield (astyle.style_default, ", ")
                 for part in xrepr(item, "default"):
                     yield part
-            yield (style_default, ")")
+            yield (astyle.style_default, ")")
         else:
-            yield (style_default, repr(self))
+            yield (astyle.style_default, repr(self))
 
 
 class ienv(Table):
@@ -1516,9 +1227,9 @@ class ienv(Table):
     def __xrepr__(self, mode):
         yield (-1, True)
         if mode == "header" or mode == "cell":
-            yield (style_default, "%s()" % self.__class__.__name__)
+            yield (astyle.style_default, "%s()" % self.__class__.__name__)
         else:
-            yield (style_default, repr(self))
+            yield (astyle.style_default, repr(self))
 
 
 class icsv(Pipe):
@@ -1548,18 +1259,18 @@ class icsv(Pipe):
             if input is not None:
                 for part in xrepr(input, mode):
                     yield part
-                yield (style_default, " | ")
-            yield (style_default, "%s(" % self.__class__.__name__)
+                yield (astyle.style_default, " | ")
+            yield (astyle.style_default, "%s(" % self.__class__.__name__)
             for (i, (name, value)) in enumerate(self.csvargs.iteritems()):
                 if i:
-                    yield (style_default, ", ")
-                yield (style_default, name)
-                yield (style_default, "=")
+                    yield (astyle.style_default, ", ")
+                yield (astyle.style_default, name)
+                yield (astyle.style_default, "=")
                 for part in xrepr(value, "default"):
                     yield part
-            yield (style_default, ")")
+            yield (astyle.style_default, ")")
         else:
-            yield (style_default, repr(self))
+            yield (astyle.style_default, repr(self))
 
     def __repr__(self):
         args = ", ".join(["%s=%r" % item for item in self.csvargs.iteritems()])
@@ -1596,9 +1307,10 @@ class ix(Table):
     def __xrepr__(self, mode):
         yield (-1, True)
         if mode == "header" or mode == "footer":
-            yield (style_default, "%s(%r)" % (self.__class__.__name__, self.cmd))
+            yield (astyle.style_default,
+                   "%s(%r)" % (self.__class__.__name__, self.cmd))
         else:
-            yield (style_default, repr(self))
+            yield (astyle.style_default, repr(self))
 
     def __repr__(self):
         return "%s.%s(%r)" % \
@@ -1676,13 +1388,13 @@ class ifilter(Pipe):
             if input is not None:
                 for part in xrepr(input, mode):
                     yield part
-                yield (style_default, " | ")
-            yield (style_default, "%s(" % self.__class__.__name__)
+                yield (astyle.style_default, " | ")
+            yield (astyle.style_default, "%s(" % self.__class__.__name__)
             for part in xrepr(self.expr, "default"):
                 yield part
-            yield (style_default, ")")
+            yield (astyle.style_default, ")")
         else:
-            yield (style_default, repr(self))
+            yield (astyle.style_default, repr(self))
 
     def __repr__(self):
         return "<%s.%s expr=%r at 0x%x>" % \
@@ -1745,13 +1457,13 @@ class ieval(Pipe):
             if input is not None:
                 for part in xrepr(input, mode):
                     yield part
-                yield (style_default, " | ")
-            yield (style_default, "%s(" % self.__class__.__name__)
+                yield (astyle.style_default, " | ")
+            yield (astyle.style_default, "%s(" % self.__class__.__name__)
             for part in xrepr(self.expr, "default"):
                 yield part
-            yield (style_default, ")")
+            yield (astyle.style_default, ")")
         else:
-            yield (style_default, repr(self))
+            yield (astyle.style_default, repr(self))
 
     def __repr__(self):
         return "<%s.%s expr=%r at 0x%x>" % \
@@ -1818,17 +1530,17 @@ class isort(Pipe):
             if input is not None:
                 for part in xrepr(input, mode):
                     yield part
-                yield (style_default, " | ")
-            yield (style_default, "%s(" % self.__class__.__name__)
+                yield (astyle.style_default, " | ")
+            yield (astyle.style_default, "%s(" % self.__class__.__name__)
             for part in xrepr(self.key, "default"):
                 yield part
             if self.reverse:
-                yield (style_default, ", ")
+                yield (astyle.style_default, ", ")
                 for part in xrepr(True, "default"):
                     yield part
-            yield (style_default, ")")
+            yield (astyle.style_default, ")")
         else:
-            yield (style_default, repr(self))
+            yield (astyle.style_default, repr(self))
 
     def __repr__(self):
         return "<%s.%s key=%r reverse=%r at 0x%x>" % \
@@ -1890,7 +1602,7 @@ def xformat(value, mode, maxlength):
     align = None
     full = False
     width = 0
-    text = Text()
+    text = astyle.Text()
     for part in xrepr(value, mode):
         # part is (alignment, stop)
         if isinstance(part[0], int):
@@ -1903,7 +1615,7 @@ def xformat(value, mode, maxlength):
             text.append(part)
             width += len(part[1])
             if width >= maxlength and not full:
-                text.append((style_ellisis, "..."))
+                text.append((astyle.style_ellisis, "..."))
                 width += 3
                 break
     if align is None: # default to left alignment
@@ -1916,7 +1628,7 @@ class idump(Display):
     maxattrlength = 200
 
     # Style for column names
-    style_header = Style(COLOR_WHITE, COLOR_BLACK, A_BOLD)
+    style_header = astyle.Style.fromstr("white:black:bold")
 
     def __init__(self, *attrs):
         self.attrs = attrs
@@ -2010,9 +1722,9 @@ class XMode(object):
     def __xrepr__(self, mode):
         yield (-1, True)
         if mode == "header" or mode == "footer":
-            yield (style_default, self.title)
+            yield (astyle.style_default, self.title)
         else:
-            yield (style_default, repr(self))
+            yield (astyle.style_default, repr(self))
 
     def __xattrs__(self, mode):
         if mode == "detail":
@@ -2205,7 +1917,7 @@ if curses is not None:
 
 
     class _BrowserHelp(object):
-        style_header = Style(COLOR_RED, COLOR_BLACK)
+        style_header = astyle.Style.fromstr("red:blacK")
         # This is used internally by ``ibrowse`` for displaying the help screen.
         def __init__(self, browser):
             self.browser = browser
@@ -2213,9 +1925,9 @@ if curses is not None:
         def __xrepr__(self, mode):
             yield (-1, True)
             if mode == "header" or mode == "footer":
-                yield (style_default, "ibrowse help screen")
+                yield (astyle.style_default, "ibrowse help screen")
             else:
-                yield (style_default, repr(self))
+                yield (astyle.style_default, repr(self))
 
         def __xiter__(self, mode):
             # Get reverse key mapping
@@ -2233,7 +1945,7 @@ if curses is not None:
                 keys = allkeys.get(name, [])
                 lines = textwrap.wrap(description, 60)
 
-                yield Fields(fields, description=Text((self.style_header, name)))
+                yield Fields(fields, description=astyle.Text((self.style_header, name)))
                 for i in xrange(max(len(keys), len(lines))):
                     try:
                         key = self.browser.keylabel(keys[i])
@@ -2371,7 +2083,7 @@ if curses is not None:
                             parts.append(part)
                             totallength += len(part[1])
                             if totallength >= self.browser.maxattrlength and not full:
-                                parts.append((style_ellisis, "..."))
+                                parts.append((astyle.style_ellisis, "..."))
                                 totallength += 3
                                 break
                     # remember alignment, length and colored parts
@@ -2566,19 +2278,19 @@ if curses is not None:
         maxattrlength = 200
 
         # Styles for various parts of the GUI
-        style_objheadertext = Style(COLOR_WHITE, COLOR_BLACK, A_BOLD|A_REVERSE)
-        style_objheadernumber = Style(COLOR_WHITE, COLOR_BLUE, A_BOLD|A_REVERSE)
-        style_objheaderobject = Style(COLOR_WHITE, COLOR_BLACK, A_REVERSE)
-        style_colheader = Style(COLOR_BLUE, COLOR_WHITE, A_REVERSE)
-        style_colheaderhere = Style(COLOR_GREEN, COLOR_BLACK, A_BOLD|A_REVERSE)
-        style_colheadersep = Style(COLOR_BLUE, COLOR_BLACK, A_REVERSE)
-        style_number = Style(COLOR_BLUE, COLOR_WHITE, A_REVERSE)
-        style_numberhere = Style(COLOR_GREEN, COLOR_BLACK, A_BOLD|A_REVERSE)
-        style_sep = Style(COLOR_BLUE, COLOR_BLACK)
-        style_data = Style(COLOR_WHITE, COLOR_BLACK)
-        style_datapad = Style(COLOR_BLUE, COLOR_BLACK, A_BOLD)
-        style_footer = Style(COLOR_BLACK, COLOR_WHITE)
-        style_report = Style(COLOR_WHITE, COLOR_BLACK)
+        style_objheadertext = astyle.Style.fromstr("white:black:bold|reverse")
+        style_objheadernumber = astyle.Style.fromstr("white:blue:bold|reverse")
+        style_objheaderobject = astyle.Style.fromstr("white:black:reverse")
+        style_colheader = astyle.Style.fromstr("blue:white:reverse")
+        style_colheaderhere = astyle.Style.fromstr("green:black:bold|reverse")
+        style_colheadersep = astyle.Style.fromstr("blue:black:reverse")
+        style_number = astyle.Style.fromstr("blue:white:reverse")
+        style_numberhere = astyle.Style.fromstr("green:black:bold|reverse")
+        style_sep = astyle.Style.fromstr("blue:black")
+        style_data = astyle.Style.fromstr("white:black")
+        style_datapad = astyle.Style.fromstr("blue:black:bold")
+        style_footer = astyle.Style.fromstr("black:white")
+        style_report = astyle.Style.fromstr("white:black")
 
         # Column separator in header
         headersepchar = "|"
@@ -2710,16 +2422,16 @@ if curses is not None:
                 return self._styles[style.fg, style.bg, style.attrs]
             except KeyError:
                 attrs = 0
-                for b in A2CURSES:
+                for b in astyle.A2CURSES:
                     if style.attrs & b:
-                        attrs |= A2CURSES[b]
+                        attrs |= astyle.A2CURSES[b]
                 try:
                     color = self._colors[style.fg, style.bg]
                 except KeyError:
                     curses.init_pair(
                         self._maxcolor,
-                        COLOR2CURSES[style.fg],
-                        COLOR2CURSES[style.bg]
+                        astyle.COLOR2CURSES[style.fg],
+                        astyle.COLOR2CURSES[style.bg]
                     )
                     color = curses.color_pair(self._maxcolor)
                     self._colors[style.fg, style.bg] = color
@@ -2758,7 +2470,7 @@ if curses is not None:
             Return a style for displaying the original style ``style``
             in the row the cursor is on.
             """
-            return Style(style.fg, style.bg, style.attrs | A_BOLD)
+            return astyle.Style(style.fg, style.bg, style.attrs | astyle.A_BOLD)
 
         def report(self, msg):
             """
@@ -3337,7 +3049,7 @@ if curses is not None:
                             if posx >= endx:
                                 break
 
-                    attrstyle = [(style_default, "no attribute")]
+                    attrstyle = [(astyle.style_default, "no attribute")]
                     attrname = level.displayattr[1]
                     if attrname is not _default and attrname is not None:
                         posx += self.addstr(posy, posx, 0, endx, " | ", self.style_footer)
