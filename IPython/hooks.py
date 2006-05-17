@@ -32,7 +32,7 @@ ip.set_hook('editor', calljed)
 You can then enable the functionality by doing 'import myiphooks'
 somewhere in your configuration files or ipython command line.
 
-$Id: hooks.py 1274 2006-04-26 14:01:37Z vivainio $"""
+$Id: hooks.py 1303 2006-05-17 03:39:29Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2005 Fernando Perez. <fperez@colorado.edu>
@@ -49,12 +49,14 @@ __version__ = Release.version
 
 import os,bisect
 from genutils import Term
-from pprint import pformat
+from pprint import PrettyPrinter
 
 # List here all the default hooks.  For now it's just the editor functions
 # but over time we'll move here all the public API for user-accessible things.
 __all__ = ['editor', 'fix_error_editor', 'result_display',
            'input_prefilter', 'shutdown_hook', 'late_startup_hook']
+
+pformat = PrettyPrinter().pformat
 
 def editor(self,filename, linenum=None):
     """Open the default editor at the given filename and linenumber.
@@ -157,8 +159,11 @@ def result_display(self,arg):
             Term.cout.write('\n')
         print >>Term.cout, out
     else:
-        print >>Term.cout, arg
-    # the default display hook doesn't manipulate the value to put in history    
+        # By default, the interactive prompt uses repr() to display results,
+        # so we should honor this.  Users who'd rather use a different
+        # mechanism can easily override this hook.
+        print >>Term.cout, repr(arg)
+    # the default display hook doesn't manipulate the value to put in history
     return None 
 
 def input_prefilter(self,line):     

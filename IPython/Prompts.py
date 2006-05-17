@@ -2,7 +2,7 @@
 """
 Classes for handling input/output prompts.
 
-$Id: Prompts.py 1272 2006-04-25 17:04:17Z vivainio $"""
+$Id: Prompts.py 1303 2006-05-17 03:39:29Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2006 Fernando Perez <fperez@colorado.edu>
@@ -23,7 +23,6 @@ import os
 import socket
 import sys
 import time
-from pprint import pprint,pformat
 
 # IPython's own
 from IPython import ColorANSI

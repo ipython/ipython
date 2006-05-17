@@ -1,8 +1,14 @@
+2006-05-16  Fernando Perez  <Fernando.Perez@colorado.edu>
+
+	* IPython/hooks.py (result_display): Fix the fact that our display
+	hook was using str() instead of repr(), as the default python
+	console does.  This had gone unnoticed b/c it only happened if
+	%Pprint was off, but the inconsistency was there.
+
 2006-05-15  Ville Vainio  <vivainio@gmail.com>
 
 	* Oinspect.py: Only show docstring for nonexisting/binary files
 	when doing object??, closing ticket #62
-	
 
 2006-05-13  Fernando Perez  <Fernando.Perez@colorado.edu>
 
