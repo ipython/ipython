@@ -609,49 +609,60 @@ class ifile(path.path):
         return ifile(path.__div__(self, other))
 
     def getcwd():
-        """ Return the current working directory as a path object. """
         return ifile(path.path.getcwd())
+    getcwd.__doc__ = path.path.getcwd.__doc__
     getcwd = staticmethod(getcwd)
 
     def abspath(self):
         return ifile(path.path.abspath(self))
+    abspath.__doc__ = path.path.abspath.__doc__
 
     def normcase(self):
         return ifile(path.path.normcase(self))
+    normcase.__doc__ = path.path.normcase.__doc__
 
     def normpath(self):
         return ifile(path.path.normpath(self))
+    normpath.__doc__ = path.path.normpath.__doc__
 
     def realpath(self):
         return ifile(path.path.realpath(self))
+    realpath.__doc__ = path.path.realpath.__doc__
 
     def expanduser(self):
         return ifile(path.path.expanduser(self))
+    expanduser.__doc__ = path.path.expanduser.__doc__
 
     def expandvars(self):
         return ifile(path.path.expandvars(self))
+    expandvars.__doc__ = path.path.expandvars.__doc__
 
     def dirname(self):
         return ifile(path.path.dirname(self))
+    dirname.__doc__ = path.path.dirname.__doc__
 
     parent = property(dirname, None, None, path.path.parent.__doc__)
 
     def splitpath(self):
         (parent, child) = path.path.splitpath(self)
         return (ifile(parent), child)
+    splitpath.__doc__ = path.path.splitpath.__doc__
 
     def splitdrive(self):
         (drive, rel) = path.path.splitdrive(self)
         return (ifile(drive), rel)
+    splitdrive.__doc__ = path.path.splitdrive.__doc__
 
     def splitext(self):
         (filename, ext) = path.path.splitext(self)
         return (ifile(filename), ext)
+    splitext.__doc__ = path.path.splitext.__doc__
 
     if hasattr(path.path, "splitunc"):
         def splitunc(self):
             (unc, rest) = path.path.splitunc(self)
             return (ifile(unc), rest)
+        splitunc.__doc__ = path.path.splitunc.__doc__
 
         def _get_uncshare(self):
             unc, r = os.path.splitunc(self)
@@ -664,46 +675,59 @@ class ifile(path.path):
 
     def joinpath(self, *args):
         return ifile(path.path.joinpath(self, *args))
+    joinpath.__doc__ = path.path.joinpath.__doc__
 
     def splitall(self):
         return map(ifile, path.path.splitall(self))
+    splitall.__doc__ = path.path.splitall.__doc__
 
     def relpath(self):
         return ifile(path.path.relpath(self))
+    relpath.__doc__ = path.path.relpath.__doc__
 
     def relpathto(self, dest):
         return ifile(path.path.relpathto(self, dest))
+    relpathto.__doc__ = path.path.relpathto.__doc__
 
     def listdir(self, pattern=None):
         return [ifile(child) for child in path.path.listdir(self, pattern)]
+    listdir.__doc__ = path.path.listdir.__doc__
 
     def dirs(self, pattern=None):
         return [ifile(child) for child in path.path.dirs(self, pattern)]
+    dirs.__doc__ = path.path.dirs.__doc__
 
     def files(self, pattern=None):
         return [ifile(child) for child in path.path.files(self, pattern)]
+    files.__doc__ = path.path.files.__doc__
 
     def walk(self, pattern=None):
         for child in path.path.walk(self, pattern):
             yield ifile(child)
+    walk.__doc__ = path.path.walk.__doc__
 
     def walkdirs(self, pattern=None):
         for child in path.path.walkdirs(self, pattern):
             yield ifile(child)
+    walkdirs.__doc__ = path.path.walkdirs.__doc__
 
     def walkfiles(self, pattern=None):
         for child in path.path.walkfiles(self, pattern):
             yield ifile(child)
+    walkfiles.__doc__ = path.path.walkfiles.__doc__
 
     def glob(self, pattern):
         return map(ifile, path.path.glob(self, pattern))
+    glob.__doc__ = path.path.glob.__doc__
 
     if hasattr(os, 'readlink'):
         def readlink(self):
             return ifile(path.path.readlink(self))
+        readlink.__doc__ = path.path.readlink.__doc__
 
         def readlinkabs(self):
             return ifile(path.path.readlinkabs(self))
+        readlinkabs.__doc__ = path.path.readlinkabs.__doc__
 
     def getmode(self):
         return self.stat().st_mode
