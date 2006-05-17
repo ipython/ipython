@@ -232,7 +232,7 @@ class _BrowserLevel(object):
         self.displayattrs = []
 
         # index and name of attribute under the cursor
-        self.displayattr = (None, ipipe._default)
+        self.displayattr = (None, ipipe.noitem)
 
         # Maps attribute names to column widths
         self.colwidths = {}
@@ -284,13 +284,13 @@ class _BrowserLevel(object):
         item = self.items[i].item
         for attrname in self.displayattrs:
             try:
-                value = ipipe._getattr(item, attrname, ipipe._default)
+                value = ipipe._getattr(item, attrname, ipipe.noitem)
             except (KeyboardInterrupt, SystemExit):
                 raise
             except Exception, exc:
                 value = exc
             # only store attribute if it exists (or we got an exception)
-            if value is not ipipe._default:
+            if value is not ipipe.noitem:
                 parts = []
                 totallength = 0
                 align = None
@@ -351,7 +351,7 @@ class _BrowserLevel(object):
                 break
             pos += self.colwidths[attrname]+1
         else:
-            self.displayattr = (None, ipipe._default)
+            self.displayattr = (None, ipipe.noitem)
 
     def moveto(self, x, y, refresh=False):
         # Move the cursor to the position ``(x,y)`` (in data coordinates,
@@ -846,12 +846,12 @@ class ibrowse(ipipe.Display):
     def cmd_pickattr(self):
         level = self.levels[-1]
         attrname = level.displayattr[1]
-        if attrname is ipipe._default:
+        if attrname is ipipe.noitem:
             curses.beep()
             self.report(AttributeError(ipipe._attrname(attrname)))
             return
         attr = ipipe._getattr(level.items[level.cury].item, attrname)
-        if attr is ipipe._default:
+        if attr is ipipe.noitem:
             curses.beep()
             self.report(AttributeError(ipipe._attrname(attrname)))
         else:
@@ -861,14 +861,14 @@ class ibrowse(ipipe.Display):
     def cmd_pickallattrs(self):
         level = self.levels[-1]
         attrname = level.displayattr[1]
-        if attrname is ipipe._default:
+        if attrname is ipipe.noitem:
             curses.beep()
             self.report(AttributeError(ipipe._attrname(attrname)))
             return
         result = []
         for cache in level.items:
             attr = ipipe._getattr(cache.item, attrname)
-            if attr is not ipipe._default:
+            if attr is not ipipe.noitem:
                 result.append(attr)
         self.returnvalue = result
         return True
@@ -881,7 +881,7 @@ class ibrowse(ipipe.Display):
     def cmd_pickmarkedattr(self):
         level = self.levels[-1]
         attrname = level.displayattr[1]
-        if attrname is ipipe._default:
+        if attrname is ipipe.noitem:
             curses.beep()
             self.report(AttributeError(ipipe._attrname(attrname)))
             return
@@ -889,7 +889,7 @@ class ibrowse(ipipe.Display):
         for cache in level.items:
             if cache.marked:
                 attr = ipipe._getattr(cache.item, attrname)
-                if attr is not ipipe._default:
+                if attr is not ipipe.noitem:
                     result.append(attr)
         self.returnvalue = result
         return True
@@ -947,7 +947,7 @@ class ibrowse(ipipe.Display):
     def cmd_enterattr(self):
         level = self.levels[-1]
         attrname = level.displayattr[1]
-        if attrname is ipipe._default:
+        if attrname is ipipe.noitem:
             curses.beep()
             self.report(AttributeError(ipipe._attrname(attrname)))
             return
@@ -958,7 +958,7 @@ class ibrowse(ipipe.Display):
             curses.beep()
         else:
             attr = ipipe._getattr(item, attrname)
-            if attr is ipipe._default:
+            if attr is ipipe.noitem:
                 self.report(AttributeError(ipipe._attrname(attrname)))
             else:
                 self.report("entering object attribute %s..." % ipipe._attrname(attrname))
@@ -978,7 +978,7 @@ class ibrowse(ipipe.Display):
     def cmd_detailattr(self):
         level = self.levels[-1]
         attrname = level.displayattr[1]
-        if attrname is ipipe._default:
+        if attrname is ipipe.noitem:
             curses.beep()
             self.report(AttributeError(ipipe._attrname(attrname)))
             return
@@ -989,7 +989,7 @@ class ibrowse(ipipe.Display):
             curses.beep()
         else:
             attr = ipipe._getattr(item, attrname)
-            if attr is ipipe._default:
+            if attr is ipipe.noitem:
                 self.report(AttributeError(ipipe._attrname(attrname)))
             else:
                 self.report("entering detail view for attribute...")
@@ -1013,7 +1013,7 @@ class ibrowse(ipipe.Display):
     def cmd_sortattrasc(self):
         level = self.levels[-1]
         attrname = level.displayattr[1]
-        if attrname is ipipe._default:
+        if attrname is ipipe.noitem:
             curses.beep()
             self.report(AttributeError(ipipe._attrname(attrname)))
             return
@@ -1030,7 +1030,7 @@ class ibrowse(ipipe.Display):
     def cmd_sortattrdesc(self):
         level = self.levels[-1]
         attrname = level.displayattr[1]
-        if attrname is ipipe._default:
+        if attrname is ipipe.noitem:
             curses.beep()
             self.report(AttributeError(ipipe._attrname(attrname)))
             return
@@ -1276,7 +1276,7 @@ class ibrowse(ipipe.Display):
 
                 attrstyle = [(astyle.style_default, "no attribute")]
                 attrname = level.displayattr[1]
-                if attrname is not ipipe._default and attrname is not None:
+                if attrname is not ipipe.noitem and attrname is not None:
                     posx += self.addstr(posy, posx, 0, endx, " | ", self.style_footer)
                     posx += self.addstr(posy, posx, 0, endx, ipipe._attrname(attrname), self.style_footer)
                     posx += self.addstr(posy, posx, 0, endx, ": ", self.style_footer)
@@ -1286,7 +1286,7 @@ class ibrowse(ipipe.Display):
                         raise
                     except Exception, exc:
                         attr = exc
-                    if attr is not ipipe._default:
+                    if attr is not ipipe.noitem:
                         attrstyle = ipipe.xrepr(attr, "footer")
                     for (nostyle, text) in attrstyle:
                         if not isinstance(nostyle, int):

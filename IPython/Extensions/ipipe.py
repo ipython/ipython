@@ -219,9 +219,9 @@ except TypeError:
         return real_eval(code, _globals, newlocals)
 
 
-_default = object()
+noitem = object()
 
-def item(iterator, index, default=_default):
+def item(iterator, index, default=noitem):
     """
     Return the ``index``th item from the iterator ``iterator``.
     ``index`` must be an integer (negative integers are relative to the
@@ -249,7 +249,7 @@ def item(iterator, index, default=_default):
                 cache.popleft()
         if len(cache)==i:
             return cache.popleft()
-    if default is _default:
+    if default is noitem:
         raise IndexError(index)
     else:
         return default
@@ -336,7 +336,7 @@ class Pipe(Table):
         return self
 
 
-def _getattr(obj, name, default=_default):
+def _getattr(obj, name, default=noitem):
     """
     Internal helper for getting an attribute of an item. If ``name`` is ``None``
     return the object itself. If ``name`` is an integer, use ``__getitem__``
