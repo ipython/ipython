@@ -114,7 +114,7 @@ three extensions points (all of them optional):
 """
 
 import sys, os, os.path, stat, glob, new, csv, datetime, types
-import textwrap, itertools, mimetypes
+import itertools, mimetypes
 
 try: # Python 2.3 compatibility
     import collections

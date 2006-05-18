@@ -1,6 +1,6 @@
 # -*- coding: iso-8859-1 -*-
 
-import curses
+import curses, textwrap
 
 import astyle, ipipe
 
@@ -164,13 +164,13 @@ class _BrowserHelp(object):
 
         for (i, command) in enumerate(_ibrowse_help.strip().split("\n\n")):
             if i:
-                yield Fields(fields, key="", description="")
+                yield ipipe.Fields(fields, key="", description="")
 
             (name, description) = command.split("\n", 1)
             keys = allkeys.get(name, [])
             lines = textwrap.wrap(description, 60)
 
-            yield Fields(fields, description=astyle.Text((self.style_header, name)))
+            yield ipipe.Fields(fields, description=astyle.Text((self.style_header, name)))
             for i in xrange(max(len(keys), len(lines))):
                 try:
                     key = self.browser.keylabel(keys[i])
@@ -180,7 +180,7 @@ class _BrowserHelp(object):
                     line = lines[i]
                 except IndexError:
                     line = ""
-                yield Fields(fields, key=key, description=line)
+                yield ipipe.Fields(fields, key=key, description=line)
 
 
 class _BrowserLevel(object):
