@@ -294,7 +294,7 @@ class _BrowserLevel(object):
                 parts = []
                 totallength = 0
                 align = None
-                full = False
+                full = True
                 # Collect parts until we have enough
                 for part in ipipe.xrepr(value, "cell"):
                     # part gives (alignment, stop)
@@ -311,6 +311,8 @@ class _BrowserLevel(object):
                             parts.append((astyle.style_ellisis, "..."))
                             totallength += 3
                             break
+                if align is None:
+                    align = -1
                 # remember alignment, length and colored parts
                 row[attrname] = (align, totallength, parts)
         return row
