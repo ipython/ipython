@@ -154,9 +154,10 @@ except ImportError:
 
 import path
 try:
-    from IPython import genutils
+    from IPython import genutils, ipapi
 except ImportError:
-    pass
+    genutils = None
+    ipapi = None
 
 import astyle
 
@@ -253,6 +254,15 @@ def item(iterator, index, default=noitem):
         raise IndexError(index)
     else:
         return default
+
+
+def getglobals(g):
+    if g is None:
+        if ipapi is not None:
+            return ipapi.get().user_ns()
+        else:
+            return globals()
+    return g
 
 
 class Table(object):
@@ -1348,11 +1358,13 @@ class ifilter(Pipe):
         >>> sys.modules | ifilter(lambda _:_.value is not None)
     """
 
-    def __init__(self, expr, errors="raiseifallfail"):
+    def __init__(self, expr, globals=None, errors="raiseifallfail"):
         """
         Create an ``ifilter`` object. ``expr`` can be a callable or a string
-        containing an expression. ``errors`` specifies how exception during
-        evaluation of ``expr`` are handled:
+        containing an expression. ``globals`` will be used as the global
+        namespace for calling string expressions (defaulting to IPython's
+        user namespace). ``errors`` specifies how exception during evaluation
+        of ``expr`` are handled:
 
         * ``drop``: drop all items that have errors;
 
@@ -1366,6 +1378,7 @@ class ifilter(Pipe):
           otherwise drop those with errors (this is the default).
         """
         self.expr = expr
+        self.globals = globals
         self.errors = errors
 
     def __xiter__(self, mode):
@@ -1373,8 +1386,9 @@ class ifilter(Pipe):
             def test(item):
                 return self.expr(item)
         else:
+            g = getglobals(self.globals)
             def test(item):
-                return eval(self.expr, globals(), AttrNamespace(item))
+                return eval(self.expr, g, AttrNamespace(item))
 
         ok = 0
         exc_info = None
@@ -1431,12 +1445,14 @@ class ieval(Pipe):
         >>> sys.path | ieval(ifile)
     """
 
-    def __init__(self, expr, errors="raiseifallfail"):
+    def __init__(self, expr, globals=None, errors="raiseifallfail"):
         """
         Create an ``ieval`` object. ``expr`` can be a callable or a string
-        containing an expression. For the meaning of ``errors`` see ``ifilter``.
+        containing an expression. For the meaning of ``globals`` and
+        ``errors`` see ``ifilter``.
         """
         self.expr = expr
+        self.globals = globals
         self.errors = errors
 
     def __xiter__(self, mode):
@@ -1444,8 +1460,9 @@ class ieval(Pipe):
             def do(item):
                 return self.expr(item)
         else:
+            g = getglobals(self.globals)
             def do(item):
-                return eval(self.expr, globals(), AttrNamespace(item))
+                return eval(self.expr, g, AttrNamespace(item))
 
         ok = 0
         exc_info = None
@@ -1515,13 +1532,14 @@ class isort(Pipe):
         >>> ils | isort("_.isdir(), _.lower()", reverse=True)
     """
 
-    def __init__(self, key, reverse=False):
+    def __init__(self, key, globals=None, reverse=False):
         """
         Create an ``isort`` object. ``key`` can be a callable or a string
         containing an expression. If ``reverse`` is true the sort order will
-        be reversed.
+        be reversed. For the meaning of ``globals`` see ``ifilter``.
         """
         self.key = key
+        self.globals = globals
         self.reverse = reverse
 
     def __xiter__(self, mode):
@@ -1532,8 +1550,9 @@ class isort(Pipe):
                 reverse=self.reverse
             )
         else:
+            g = getglobals(self.globals)
             def key(item):
-                return eval(self.key, globals(), AttrNamespace(item))
+                return eval(self.key, g, AttrNamespace(item))
             items = sorted(
                 xiter(self.input, mode),
                 key=key,
@@ -1811,11 +1830,12 @@ else:
 # If we're running under IPython, install an IPython displayhook that
 # returns the object from Display.display(), else install a displayhook
 # directly as sys.displayhook
-try:
-    from IPython import ipapi
-    api = ipapi.get()
-except (ImportError, AttributeError):
-    api = None
+api = None
+if ipapi is not None:
+    try:
+        api = ipapi.get()
+    except AttributeError:
+        pass
 
 if api is not None:
     def displayhook(self, obj):
