@@ -398,23 +398,18 @@ def xrepr(item, mode):
         except (KeyboardInterrupt, SystemExit):
             raise
         except Exception:
-            yield (-1, True)
             yield (astyle.style_default, repr(item))
         return
     if item is None:
-        yield (-1, True)
         yield (astyle.style_type_none, repr(item))
     elif isinstance(item, bool):
-        yield (-1, True)
         yield (astyle.style_type_bool, repr(item))
     elif isinstance(item, str):
-        yield (-1, True)
         if mode == "cell":
             yield (astyle.style_default, repr(item.expandtabs(tab))[1:-1])
         else:
             yield (astyle.style_default, repr(item))
     elif isinstance(item, unicode):
-        yield (-1, True)
         if mode == "cell":
             yield (astyle.style_default, repr(item.expandtabs(tab))[2:-1])
         else:
@@ -423,10 +418,8 @@ def xrepr(item, mode):
         yield (1, True)
         yield (astyle.style_type_number, repr(item))
     elif isinstance(item, complex):
-        yield (-1, True)
         yield (astyle.style_type_number, repr(item))
     elif isinstance(item, datetime.datetime):
-        yield (-1, True)
         if mode == "cell":
             # Don't use strftime() here, as this requires year >= 1900
             yield (astyle.style_type_datetime,
@@ -438,14 +431,12 @@ def xrepr(item, mode):
         else:
             yield (astyle.style_type_datetime, repr(item))
     elif isinstance(item, datetime.date):
-        yield (-1, True)
         if mode == "cell":
             yield (astyle.style_type_datetime,
                    "%04d-%02d-%02d" % (item.year, item.month, item.day))
         else:
             yield (astyle.style_type_datetime, repr(item))
     elif isinstance(item, datetime.time):
-        yield (-1, True)
         if mode == "cell":
             yield (astyle.style_type_datetime,
                     "%02d:%02d:%02d.%06d" % \
@@ -453,10 +444,8 @@ def xrepr(item, mode):
         else:
             yield (astyle.style_type_datetime, repr(item))
     elif isinstance(item, datetime.timedelta):
-        yield (-1, True)
         yield (astyle.style_type_datetime, repr(item))
     elif isinstance(item, Exception):
-        yield (-1, True)
         if item.__class__.__module__ == "exceptions":
             classname = item.__class__.__name__
         else:
@@ -467,7 +456,6 @@ def xrepr(item, mode):
         else:
             yield (astyle.style_error, classname)
     elif isinstance(item, (list, tuple)):
-        yield (-1, False)
         if mode == "header" or mode == "footer":
             if item.__class__.__module__ == "__builtin__":
                 classname = item.__class__.__name__
@@ -478,6 +466,7 @@ def xrepr(item, mode):
                    "<%s object with %d items at 0x%x>" % \
                        (classname, len(item), id(item)))
         else:
+            yield (-1, False)
             if isinstance(item, list):
                 yield (astyle.style_default, "[")
                 end = "]"
@@ -491,7 +480,6 @@ def xrepr(item, mode):
                     yield part
             yield (astyle.style_default, end)
     elif isinstance(item, (dict, types.DictProxyType)):
-        yield (-1, False)
         if mode == "header" or mode == "footer":
             if item.__class__.__module__ == "__builtin__":
                 classname = item.__class__.__name__
@@ -502,6 +490,7 @@ def xrepr(item, mode):
                    "<%s object with %d items at 0x%x>" % \
                     (classname, len(item), id(item)))
         else:
+            yield (-1, False)
             if isinstance(item, dict):
                 yield (astyle.style_default, "{")
                 end = "}"
@@ -518,7 +507,6 @@ def xrepr(item, mode):
                     yield part
             yield (astyle.style_default, end)
     else:
-        yield (-1, True)
         yield (astyle.style_default, repr(item))
 
 
@@ -584,7 +572,6 @@ class ichain(Pipe):
         return itertools.chain(*self.iters)
 
     def __xrepr__(self, mode):
-        yield (-1, True)
         if mode == "header" or mode == "footer":
             for (i, item) in enumerate(self.iters):
                 if i:
@@ -858,7 +845,6 @@ class ifile(path.path):
         return self.defaultattrs
 
     def __xrepr__(self, mode):
-        yield (-1, True)
         try:
             if self.isdir():
                 name = "idir"
@@ -896,7 +882,6 @@ class ifile(path.path):
 
 class iparentdir(ifile):
     def __xrepr__(self, mode):
-        yield (-1, True)
         if mode == "cell":
             yield (astyle.style_dir, os.pardir)
         else:
@@ -945,7 +930,6 @@ class iglob(Table):
             yield ifile(name)
 
     def __xrepr__(self, mode):
-        yield (-1, True)
         if mode == "header" or mode == "footer" or mode == "cell":
             yield (astyle.style_default,
                    "%s(%r)" % (self.__class__.__name__, self.glob))
@@ -980,7 +964,6 @@ class iwalk(Table):
                     yield ifile(os.path.join(dirpath, name))
 
     def __xrepr__(self, mode):
-        yield (-1, True)
         if mode == "header" or mode == "footer" or mode == "cell":
             yield (astyle.style_default,
                    "%s(%r)" % (self.__class__.__name__, self.base))
@@ -1068,7 +1051,6 @@ class ipwd(Table):
             yield ipwdentry(entry.pw_name)
 
     def __xrepr__(self, mode):
-        yield (-1, True)
         if mode == "header" or mode == "footer" or mode == "cell":
             yield (astyle.style_default, "%s()" % self.__class__.__name__)
         else:
@@ -1117,7 +1099,6 @@ class igrpentry(object):
         return ("name", "passwd", "gid", "mem")
 
     def __xrepr__(self, mode):
-        yield (-1, True)
         if mode == "header" or mode == "footer" or mode == "cell":
             yield (astyle.style_default, "group ")
             try:
@@ -1148,7 +1129,6 @@ class igrp(Table):
             yield igrpentry(entry.gr_name)
 
     def __xrepr__(self, mode):
-        yield (-1, False)
         if mode == "header" or mode == "footer":
             yield (astyle.style_default, "%s()" % self.__class__.__name__)
         else:
@@ -1254,7 +1234,6 @@ class ienv(Table):
             yield Fields(fields, key=key, value=value)
 
     def __xrepr__(self, mode):
-        yield (-1, True)
         if mode == "header" or mode == "cell":
             yield (astyle.style_default, "%s()" % self.__class__.__name__)
         else:
@@ -1334,7 +1313,6 @@ class ix(Table):
         self._pipe = None
 
     def __xrepr__(self, mode):
-        yield (-1, True)
         if mode == "header" or mode == "footer":
             yield (astyle.style_default,
                    "%s(%r)" % (self.__class__.__name__, self.cmd))
@@ -1415,7 +1393,6 @@ class ifilter(Pipe):
             raise exc_info[0], exc_info[1], exc_info[2]
 
     def __xrepr__(self, mode):
-        yield (-1, True)
         if mode == "header" or mode == "footer":
             input = getattr(self, "input", None)
             if input is not None:
@@ -1487,7 +1464,6 @@ class ieval(Pipe):
             raise exc_info[0], exc_info[1], exc_info[2]
 
     def __xrepr__(self, mode):
-        yield (-1, True)
         if mode == "header" or mode == "footer":
             input = getattr(self, "input", None)
             if input is not None:
@@ -1562,7 +1538,6 @@ class isort(Pipe):
             yield item
 
     def __xrepr__(self, mode):
-        yield (-1, True)
         if mode == "header" or mode == "footer":
             input = getattr(self, "input", None)
             if input is not None:
@@ -1638,7 +1613,7 @@ class iless(Display):
 
 def xformat(value, mode, maxlength):
     align = None
-    full = False
+    full = True
     width = 0
     text = astyle.Text()
     for part in xrepr(value, mode):
@@ -1758,7 +1733,6 @@ class XMode(object):
              self.mode, id(self))
 
     def __xrepr__(self, mode):
-        yield (-1, True)
         if mode == "header" or mode == "footer":
             yield (astyle.style_default, self.title)
         else:
