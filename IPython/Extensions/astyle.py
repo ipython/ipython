@@ -4,7 +4,7 @@ bold; blink; etc.) to terminal and curses output.
 """
 
 
-import os
+import sys, os
 
 try:
     import curses
