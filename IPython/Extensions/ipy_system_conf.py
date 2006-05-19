@@ -21,4 +21,4 @@ import pspersistence # %store magic
 import clearcmd # %clear
 # Basic readline config
 
-o = ip.options()
+o = ip.options

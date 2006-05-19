@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Magic functions for InteractiveShell.
 
-$Id: Magic.py 1209 2006-03-12 20:34:28Z vivainio $"""
+$Id: Magic.py 1314 2006-05-19 18:24:14Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001 Janko Hauser <jhauser@zscout.de> and
@@ -26,6 +26,7 @@ import inspect
 import os
 import pdb
 import pydoc
+import shlex
 import sys
 import re
 import tempfile
@@ -317,7 +318,7 @@ license. To use profiling, please install"python2.3-profiler" from non-free.""")
         if len(args) >= 1:
             # If the list of inputs only has 0 or 1 thing in it, there's no
             # need to look for options
-            argv = shlex_split(arg_str)
+            argv = shlex.split(arg_str)
             # Do regular option processing
             try:
                 opts,args = getopt(argv,opt_str,*long_opts)
@@ -1654,12 +1655,10 @@ Currently the magic system has the following functions:\n"""
             order = min(-int(math.floor(math.log10(best)) // 3), 3)
         else:
             order = 3
-        print "%d loops, best of %d: %.*g %s per loop" % (number, repeat, precision,
+        print "%d loops, best of %d: %.*g %s per loop" % (number, repeat,
+                                                          precision,
                                                           best * scaling[order],
                                                           units[order])
-
-
-
         
     def magic_time(self,parameter_s = ''):
         """Time execution of a Python statement or expression.
@@ -1669,9 +1668,8 @@ Currently the magic system has the following functions:\n"""
         is always reported as 0, since it can not be measured.
 
         This function provides very basic timing functionality.  In Python
-        2.3, the timeit module offers more control and sophistication, but for
-        now IPython supports Python 2.2, so we can not rely on timeit being
-        present.
+        2.3, the timeit module offers more control and sophistication, so this
+        could be rewritten to use it (patches welcome).
         
         Some examples:
 
@@ -2005,7 +2003,10 @@ Currently the magic system has the following functions:\n"""
         # custom exceptions
         class DataIsObject(Exception): pass
 
-        opts,args = self.parse_options(parameter_s,'prx')
+        opts,args = self.parse_options(parameter_s,'prxn=i')
+
+        print 'opt.n: <%r>' % opts.n  # dbg
+        
         # Set a few locals from the options for convenience:
         opts_p = opts.has_key('p')
         opts_r = opts.has_key('r')
@@ -2421,7 +2422,7 @@ Defaulting color scheme to 'NoColor'"""
             # Call again init_auto_alias() so we get 'rm -i' and other
             # modified aliases since %rehashx will probably clobber them
             self.shell.init_auto_alias()
-            db = self.getapi().getdb()
+            db = self.getapi().db
             db['syscmdlist'] = syscmdlist
         finally:
             os.chdir(savedir)
@@ -2936,7 +2937,7 @@ Defaulting color scheme to 'NoColor'"""
         ipinstallation = path(IPython.__file__).dirname()
         upgrade_script = sys.executable + " " + ipinstallation / 'upgrade_dir.py'
         src_config = ipinstallation / 'UserConfig'
-        userdir = path(ip.options().ipythondir)
+        userdir = path(ip.options.ipythondir)
         cmd = upgrade_script + " " + src_config + " " + userdir
         print ">",cmd
         shell(cmd)

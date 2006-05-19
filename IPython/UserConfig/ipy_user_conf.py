@@ -20,10 +20,10 @@ import IPython.ipapi
 ip = IPython.ipapi.get()
 
 # You probably want to uncomment this if you did %upgrade -nolegacy
-# import ipy_sane_defaults    
+# import ipy_defaults    
 
 def main():
-    o = ip.options()
+    o = ip.options
     # An example on how to set options
     #o.autocall = 1
 

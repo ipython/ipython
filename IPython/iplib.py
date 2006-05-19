@@ -6,7 +6,7 @@ Requires Python 2.3 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 1277 2006-05-02 10:31:55Z walter.doerwald $
+$Id: iplib.py 1314 2006-05-19 18:24:14Z fperez $
 """
 
 #*****************************************************************************
@@ -27,8 +27,6 @@ $Id: iplib.py 1277 2006-05-02 10:31:55Z walter.doerwald $
 
 #****************************************************************************
 # Modules and globals
-
-from __future__ import generators  # for 2.2 backwards-compatibility
 
 from IPython import Release
 __author__  = '%s <%s>\n%s <%s>' % \
@@ -196,10 +194,6 @@ class InteractiveShell(object,Magic):
         # log system
         self.logger = Logger(self,logfname='ipython_log.py',logmode='rotate')
 
-        # Produce a public API instance
-
-        self.api = IPython.ipapi.IPApi(self)
-        
         # some minimal strict typechecks.  For some core data structures, I
         # want actual basic python types, not just anything that looks like
         # one.  This is especially true for namespaces.
@@ -209,12 +203,6 @@ class InteractiveShell(object,Magic):
 
         # Job manager (for jobs run as background threads)
         self.jobs = BackgroundJobManager()
-
-        # track which builtins we add, so we can clean up later
-        self.builtins_added = {}
-        # This method will add the necessary builtins for operation, but
-        # tracking what it did via the builtins_added dict.
-        self.add_builtins()
 
         # Do the intuitively correct thing for quit/exit: we remove the
         # builtins if they exist, and our own magics will deal with this
@@ -599,6 +587,16 @@ class InteractiveShell(object,Magic):
         self.auto_alias = map(lambda s:s.split(None,1),auto_alias)
         # Call the actual (public) initializer
         self.init_auto_alias()
+
+        # Produce a public API instance
+        self.api = IPython.ipapi.IPApi(self)
+
+        # track which builtins we add, so we can clean up later
+        self.builtins_added = {}
+        # This method will add the necessary builtins for operation, but
+        # tracking what it did via the builtins_added dict.
+        self.add_builtins()
+
     # end __init__
 
     def pre_config_initialization(self):
@@ -612,7 +610,6 @@ class InteractiveShell(object,Magic):
         rc = self.rc
         
         self.db = pickleshare.PickleShareDB(rc.ipythondir + "/db")
-
     
     def post_config_initialization(self):
         """Post configuration init method

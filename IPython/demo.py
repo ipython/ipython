@@ -122,10 +122,11 @@ print 'bye!'
 import exceptions
 import os
 import re
+import shlex
 import sys
 
 from IPython.PyColorize import Parser
-from IPython.genutils import marquee, shlex_split, file_read, file_readlines
+from IPython.genutils import marquee, file_read, file_readlines
 
 __all__ = ['Demo','IPythonDemo','LineDemo','IPythonLineDemo','DemoError']
 
@@ -165,7 +166,7 @@ class Demo:
           """
         
         self.fname    = fname
-        self.sys_argv = [fname] + shlex_split(arg_str)
+        self.sys_argv = [fname] + shlex.split(arg_str)
         self.auto_all = auto_all
         
         # get a few things from ipython.  While it's a bit ugly design-wise,

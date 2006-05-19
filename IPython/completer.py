@@ -69,6 +69,7 @@ import glob
 import keyword
 import os
 import re
+import shlex
 import sys
 import IPython.rlineimpl as readline    
 
@@ -80,8 +81,7 @@ try:
 except NameError:
     from sets import Set as set
 
-
-from IPython.genutils import shlex_split,debugx
+from IPython.genutils import debugx
 
 __all__ = ['Completer','IPCompleter']
 
@@ -346,7 +346,7 @@ class IPCompleter(Completer):
         lbuf = self.lbuf
         open_quotes = 0  # track strings with open quotes
         try:
-            lsplit = shlex_split(lbuf)[-1]
+            lsplit = shlex.split(lbuf)[-1]
         except ValueError:
             # typically an unmatched ", or backslash without escaped char.
             if lbuf.count('"')==1:

@@ -17,14 +17,14 @@ from IPython.FakeModule import FakeModule
 
 def restore_aliases(self):
     ip = self.getapi()
-    staliases = ip.getdb().get('stored_aliases', {})
+    staliases = ip.db.get('stored_aliases', {})
     for k,v in staliases.items():
         #print "restore alias",k,v # dbg
         self.alias_table[k] = v
 
 
 def refresh_variables(ip):
-    db = ip.getdb()
+    db = ip.db
     for key in db.keys('autorestore/*'):
         # strip autorestore
         justkey = os.path.basename(key)
@@ -35,7 +35,7 @@ def refresh_variables(ip):
             print "The error was:",sys.exc_info()[0]
         else:
             #print "restored",justkey,"=",obj #dbg
-            ip.user_ns()[justkey] = obj
+            ip.user_ns[justkey] = obj
     
     
 
@@ -83,7 +83,7 @@ def magic_store(self, parameter_s=''):
     opts,argsl = self.parse_options(parameter_s,'drz',mode='string')
     args = argsl.split(None,1)
     ip = self.getapi()
-    db = ip.getdb()
+    db = ip.db
     # delete
     if opts.has_key('d'):
         try:
@@ -148,7 +148,7 @@ def magic_store(self, parameter_s=''):
         
         # %store foo
         try:
-            obj = ip.user_ns()[args[0]]
+            obj = ip.user_ns[args[0]]
         except KeyError:
             # it might be an alias
             if args[0] in self.alias_table:

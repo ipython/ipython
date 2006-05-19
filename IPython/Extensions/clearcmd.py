@@ -16,7 +16,7 @@ def clear_f(self,arg):
     api = self.getapi()
     for target in arg.split():
         if target == 'out':
-            print "Flushing output cache (%d entries)" % len(api.user_ns()['_oh'])
+            print "Flushing output cache (%d entries)" % len(api.user_ns['_oh'])
             self.outputcache.flush()
         elif target == 'in':
             print "Flushing input history"

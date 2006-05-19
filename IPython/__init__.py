@@ -25,9 +25,9 @@ IPython tries to:
 
   iii - serve as an embeddable, ready to go interpreter for your own programs.
 
-IPython requires Python 2.2 or newer.
+IPython requires Python 2.3 or newer.
 
-$Id: __init__.py 1110 2006-01-30 20:43:30Z vivainio $"""
+$Id: __init__.py 1314 2006-05-19 18:24:14Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2004 Fernando Perez. <fperez@colorado.edu>

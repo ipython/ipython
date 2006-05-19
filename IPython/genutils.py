@@ -5,7 +5,7 @@ General purpose utilities.
 This is a grab-bag of stuff I find useful in most programs I write. Some of
 these things are also convenient when working at the command line.
 
-$Id: genutils.py 1217 2006-03-16 21:49:01Z fperez $"""
+$Id: genutils.py 1314 2006-05-19 18:24:14Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2006 Fernando Perez. <fperez@colorado.edu>
@@ -13,8 +13,6 @@ $Id: genutils.py 1217 2006-03-16 21:49:01Z fperez $"""
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
 #*****************************************************************************
-
-from __future__ import generators # 2.2 compatibility
 
 from IPython import Release
 __author__  = '%s <%s>' % Release.authors['Fernando']
@@ -26,7 +24,6 @@ import __main__
 import commands
 import os
 import re
-import shlex
 import shutil
 import sys
 import tempfile
@@ -39,66 +36,6 @@ from IPython import DPyGetOpt
 from path import path
 if os.name == "nt":
     from IPython.winconsole import get_console_size
-
-# Build objects which appeared in Python 2.3 for 2.2, to make ipython
-# 2.2-friendly
-try:
-    basestring
-except NameError:
-    import types
-    basestring = (types.StringType, types.UnicodeType)
-    True = 1==1
-    False = 1==0
-
-    def enumerate(obj):
-        i = -1
-        for item in obj:
-            i += 1
-            yield i, item
-
-    # add these to the builtin namespace, so that all modules find them
-    import __builtin__
-    __builtin__.basestring = basestring
-    __builtin__.True = True
-    __builtin__.False = False
-    __builtin__.enumerate = enumerate
-
-# Try to use shlex.split for converting an input string into a sys.argv-type
-# list.  This appeared in Python 2.3, so here's a quick backport for 2.2.
-try:
-    shlex_split = shlex.split
-except AttributeError:
-    _quotesre = re.compile(r'[\'"](.*)[\'"]')
-    _wordchars = ('abcdfeghijklmnopqrstuvwxyz'
-                  'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-.~*?'
-                  'ÃŸÃ Ã¡Ã¢Ã£Ã¤Ã¥Ã¦Ã§Ã¨Ã©ÃªÃ«Ã¬Ã­Ã®Ã¯Ã°Ã±Ã²Ã³Ã´ÃµÃ¶Ã¸Ã¹ÃºÃ»Ã¼Ã½Ã¾Ã¿'
-                  'Ã?Ã�Ã?Ã?Ã?Ã…Ã†Ã‡Ã?Ã‰ÃŠÃ?ÃŒÃ�ÃŽÃ�Ã�Ã‘Ã’Ã“Ã”Ã•Ã–Ã?Ã™ÃšÃ?ÃœÃ�Ãž%s'
-                  % os.sep)
-    
-    def shlex_split(s):
-        """Simplified backport to Python 2.2 of shlex.split().
-
-        This is a quick and dirty hack, since the shlex module under 2.2 lacks
-        several of the features needed to really match the functionality of
-        shlex.split() in 2.3."""
-
-        lex = shlex.shlex(StringIO(s))
-        # Try to get options, extensions and path separators as characters
-        lex.wordchars = _wordchars
-        lex.commenters = ''
-        # Make a list out of the lexer by hand, since in 2.2 it's not an
-        # iterator.
-        lout = []
-        while 1:
-            token = lex.get_token()
-            if token == '':
-                break
-            # Try to handle quoted tokens correctly
-            quotes = _quotesre.match(token)
-            if quotes:
-                token = quotes.group(1)
-            lout.append(token)
-        return lout
 
 #****************************************************************************
 # Exceptions
@@ -1622,16 +1559,6 @@ def list2dict2(lst,default=''):
 def flatten(seq):
     """Flatten a list of lists (NOT recursive, only works for 2d lists)."""
 
-    # bug in python??? (YES. Fixed in 2.2, let's leave the kludgy fix in).
-
-    # if the x=0 isn't made, a *global* variable x is left over after calling
-    # this function, with the value of the last element in the return
-    # list. This does seem like a bug big time to me.
-
-    # the problem is fixed with the x=0, which seems to force the creation of
-    # a local name
-
-    x = 0 
     return [x for subseq in seq for x in subseq]
 
 #----------------------------------------------------------------------------

@@ -1,14 +1,11 @@
-""" Shell mode for ipython
+"""Shell mode for IPython.
 
 Start ipython in shell mode by invoking "ipython -p sh"
 
 (the old version, "ipython -p pysh" still works but this is the more "modern" 
 shell mode and is recommended for users who don't care about pysh-mode
 compatibility)
-
-
 """
-
 
 from IPython import ipapi
 import os,textwrap
@@ -16,11 +13,11 @@ import os,textwrap
 # The import below effectively obsoletes your old-style ipythonrc[.ini],
 # so consider yourself warned!
 
-import ipy_sane_defaults
+import ipy_defaults
 
 def main():
     ip = ipapi.get()
-    o = ip.options()
+    o = ip.options
     # autocall to "full" mode (smart mode is default, I like full mode)
     
     o.autocall = 2
@@ -66,7 +63,7 @@ def main():
     
     # now alias all syscommands
     
-    db = ip.getdb()
+    db = ip.db
     
     syscmds = db.get("syscmdlist",[] )
     if not syscmds:

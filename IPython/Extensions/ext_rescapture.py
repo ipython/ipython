@@ -39,11 +39,11 @@ def hnd_syscmd(line,mo):
     return itpl('$var = _ip.magic($expr)')
 
 def install_re_handler(pat, hnd):
-    ip.meta().re_prefilters.append((re.compile(pat), hnd))
+    ip.meta.re_prefilters.append((re.compile(pat), hnd))
 
 def init_handlers():
 
-    ip.meta().re_prefilters = []
+    ip.meta.re_prefilters = []
 
     install_re_handler('(?P<varname>[\w\.]+)\s*=\s*%(?P<cmd>.*)',
                        hnd_magic
@@ -56,7 +56,7 @@ def init_handlers():
 init_handlers()
 
 def regex_prefilter_f(self,line):    
-    for pat, handler in ip.meta().re_prefilters:
+    for pat, handler in ip.meta.re_prefilters:
         mo = pat.match(line)
         if mo:
             return handler(line,mo)
