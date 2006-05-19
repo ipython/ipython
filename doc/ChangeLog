@@ -1,3 +1,30 @@
+2006-05-18  Fernando Perez  <Fernando.Perez@colorado.edu>
+
+	* IPython: remove all 2.2-compatibility objects and hacks from
+	everywhere, since we only support 2.3 at this point.  Docs
+	updated.
+
+	* IPython/ipapi.py (IPApi.__init__): Clean up of all getters.
+	Anything requiring extra validation can be turned into a Python
+	property in the future.  I used a property for the db one b/c
+	there was a nasty circularity problem with the initialization
+	order, which rigth now I don't have time to clean up.
+
+	* IPython/Shell.py (MTInteractiveShell.runcode): Fix, I think,
+	another locking bug reported by Jorgen.  I'm not 100% sure though,
+	so more testing is needed...
+
+2006-05-17  Fernando Perez  <Fernando.Perez@colorado.edu>
+
+	* IPython/ipapi.py (IPApi.to_user_ns): New function to inject
+	local variables from any routine in user code (typically executed
+	with %run) directly into the interactive namespace.  Very useful
+	when doing complex debugging.
+	(IPythonNotRunning): Changed the default None object to a dummy
+	whose attributes can be queried as well as called without
+	exploding, to ease writing code which works transparently both in
+	and out of ipython and uses some of this API.
+
 2006-05-16  Fernando Perez  <Fernando.Perez@colorado.edu>
 
 	* IPython/hooks.py (result_display): Fix the fact that our display
