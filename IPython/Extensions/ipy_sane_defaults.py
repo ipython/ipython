@@ -1,4 +1,4 @@
-""" Set default options for "reasonable use" 
+""" Set default options for IPython. 
 
 Just import this module to get reasonable defaults for everything.
 
