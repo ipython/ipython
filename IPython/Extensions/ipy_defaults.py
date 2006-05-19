@@ -16,8 +16,7 @@ import IPython.rlineimpl as readline
 import IPython.ipapi
 ip = IPython.ipapi.get()
 
-o = ip.options()
-
+o = ip.options
 
 o.colors = "Linux"
 o.color_info=1
