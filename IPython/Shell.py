@@ -4,7 +4,7 @@
 All the matplotlib support code was co-developed with John Hunter,
 matplotlib's author.
 
-$Id: Shell.py 1297 2006-05-13 19:14:48Z fperez $"""
+$Id: Shell.py 1313 2006-05-19 17:48:41Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2006 Fernando Perez <fperez@colorado.edu>
@@ -361,8 +361,11 @@ class MTInteractiveShell(InteractiveShell):
                 code_to_run = self.code_queue.get_nowait()
             except Queue.Empty:
                 break
-            self.thread_ready.notify()
-            InteractiveShell.runcode(self,code_to_run)
+            if got_lock:
+                self.thread_ready.notify()
+                InteractiveShell.runcode(self,code_to_run)
+            else:
+                break
             
         # We're done with thread-protected variables
         if got_lock:
@@ -370,11 +373,12 @@ class MTInteractiveShell(InteractiveShell):
         # This MUST return true for gtk threading to work
         return True
 
-    def kill (self):
+    def kill(self):
         """Kill the thread, returning when it has been shut down."""
-        self.thread_ready.acquire(False)
+        got_lock = self.thread_ready.acquire(False)
         self._kill = True
-        self.thread_ready.release()
+        if got_lock:
+            self.thread_ready.release()
 
 class MatplotlibShellBase:
     """Mixin class to provide the necessary modifications to regular IPython
