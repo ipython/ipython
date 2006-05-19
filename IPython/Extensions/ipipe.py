@@ -1616,17 +1616,20 @@ def xformat(value, mode, maxlength):
     full = True
     width = 0
     text = astyle.Text()
-    for part in xrepr(value, mode):
-        # part is (alignment, stop)
-        if isinstance(part[0], int):
-            # only consider the first occurence
-            if align is None:
-                align = part[0]
-                full = part[1]
-        # part is (style, text)
-        else:
-            text.append(part)
-            width += len(part[1])
+    for (style, part) in xrepr(value, mode):
+        # only consider the first result
+        if align is None:
+            if isinstance(style, int):
+                # (style, text) really is (alignment, stop)
+                align = style
+                full = part
+                continue
+            else:
+                align = -1
+                full = True
+        if not isinstance(style, int):
+            text.append((style, part))
+            width += len(part)
             if width >= maxlength and not full:
                 text.append((astyle.style_ellisis, "..."))
                 width += 3

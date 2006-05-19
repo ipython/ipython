@@ -291,30 +291,8 @@ class _BrowserLevel(object):
                 value = exc
             # only store attribute if it exists (or we got an exception)
             if value is not ipipe.noitem:
-                parts = []
-                totallength = 0
-                align = None
-                full = True
-                # Collect parts until we have enough
-                for part in ipipe.xrepr(value, "cell"):
-                    # part gives (alignment, stop)
-                    # instead of (style, text)
-                    if isinstance(part[0], int):
-                        # only consider the first occurence
-                        if align is None:
-                            align = part[0]
-                            full = part[1]
-                    else:
-                        parts.append(part)
-                        totallength += len(part[1])
-                        if totallength >= self.browser.maxattrlength and not full:
-                            parts.append((astyle.style_ellisis, "..."))
-                            totallength += 3
-                            break
-                if align is None:
-                    align = -1
-                # remember alignment, length and colored parts
-                row[attrname] = (align, totallength, parts)
+                # remember alignment, length and colored text
+                row[attrname] = ipipe.xformat(value, "cell", self.browser.maxattrlength)
         return row
 
     def calcwidths(self):
