@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """sys.excepthook for IPython itself, leaves a detailed report on disk.
 
-$Id: CrashHandler.py 994 2006-01-08 08:29:44Z fperez $"""
+$Id: CrashHandler.py 1320 2006-05-23 18:29:11Z vivainio $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2006 Fernando Perez. <fperez@colorado.edu>
@@ -35,8 +35,8 @@ class CrashHandler:
 
     def __init__(self,IP):
         self.IP = IP  # IPython instance
-        self.bug_contact = Release.authors['Fernando'][0]
-        self.mailto = Release.authors['Fernando'][1]
+        self.bug_contact = Release.authors['Ville'][0]
+        self.mailto = Release.authors['Ville'][1]
 
     def __call__(self,etype, evalue, etb):
 
