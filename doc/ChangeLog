@@ -1,3 +1,10 @@
+2006-05-23  Ville Vainio  <vivainio@gmail.com>
+
+	* ipapi.py: Stripped down ip.to_user_ns() to work only as
+	ip.to_user_ns("x1 y1"), which exposes vars x1 and y1. ipapi.get()
+	now returns None (again), unless dummy is specifically allowed by
+	ipapi.get(allow_dummy=True).
+
 2006-05-18  Fernando Perez  <Fernando.Perez@colorado.edu>
 
 	* IPython: remove all 2.2-compatibility objects and hacks from
