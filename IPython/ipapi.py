@@ -103,18 +103,22 @@ class IPythonNotRunning:
         """Dummy function, which doesn't do anything but warn."""
         warn("IPython is not running, this is a dummy no-op function")
 
-_recent = IPythonNotRunning()
+_recent = None
 
-def get():
+
+def get(allow_dummy=False):
     """Get an IPApi object.
 
-    Returns an instance of IPythonNotRunning if not running under IPython.
+    If allow_dummy is true, returns an instance of IPythonNotRunning 
+    instead of None if not running under IPython.
 
     Running this should be the first thing you do when writing extensions that
     can be imported as normal modules. You can then direct all the
     configuration operations against the returned object.
     """
-
+    global _recent
+    if allow_dummy and not _recent:
+        _recent = IPythonNotRunning()
     return _recent
 
 class IPApi:
