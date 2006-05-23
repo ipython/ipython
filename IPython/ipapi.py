@@ -207,28 +207,12 @@ class IPApi:
         else:
             self.IP.runlines('\n'.join(lines))
 
-    def to_user_ns(self,*vars):
+    def to_user_ns(self,vars):
         """Inject a group of variables into the IPython user namespace.
 
         Inputs:
 
-         - *vars: one or more variables from the caller's namespace to be put
-         into the interactive IPython namespace.  The arguments can be given
-         in one of two forms, but ALL arguments must follow the same
-         convention (the first is checked and the rest are assumed to follow
-         it):
-         
-           a) All strings, naming variables in the caller.  These names are
-           evaluated in the caller's frame and put in, with the same name, in
-           the IPython namespace.
-
-           b) Pairs of (name, value), where the name is a string (a valid
-           python identifier).  In this case, the value is put into the
-           IPython namespace labeled by the given name.  This allows you to
-           rename your local variables so they don't collide with other names
-           you may already be using globally, or elsewhere and which you also
-           want to propagate.
-
+         - vars: string with variable names separated by whitespace
 
         This utility routine is meant to ease interactive debugging work,
         where you want to easily propagate some internal variable in your code
@@ -257,46 +241,31 @@ class IPApi:
             
             # This pushes x and y to the interactive prompt immediately, even
             # if this routine crashes on the next line after:
-            ip.to_user_ns('x','y')
+            ip.to_user_ns('x y')
             ...
-            # return
-
-        The following example shows you how to rename variables to avoid
-        clashes:
-
-        def bar():
-            ...
-            x,y,z,w = foo()
-            
-            # Push these variables with different names, so they don't
-            # overwrite x and y from before
-            ip.to_user_ns(('x1',x),('y1',y),('z1',z),('w1',w))
-            # which is more conveniently written as:
-            ip.to_user_ns(*zip(('x1','y1','z1','w1'),(x,y,z,w)))
-            
-            ...
-            # return """
+            # return           
+        
+        If you need to rename variables, just use ip.user_ns with dict
+        and update:
+        
+        # exposes variables 'foo' as 'x' and 'bar' as 'y' in IPython 
+        # user namespace
+        ip.user_ns.update(dict(x=foo,y=bar))    
+                
+        """
 
         # print 'vars given:',vars # dbg
         # Get the caller's frame to evaluate the given names in
         cf = sys._getframe(1)
         
-        # XXX fix this after Ville replies...
         user_ns = self.user_ns
-
-        if isinstance(vars[0],basestring):
-            # assume that all variables are given as strings
+        
+        for name in vars.split():
             try:
-                for name in vars:
-                    user_ns[name] = eval(name,cf.f_globals,cf.f_locals)
+                user_ns[name] = eval(name,cf.f_globals,cf.f_locals)
             except:
                 error('could not get var. %s from %s' %
-                      (name,cf.f_code.co_name))
-
-        else:
-            # assume they are all given as pairs of name,object
-            user_ns.update(dict(vars))
-
+                (name,cf.f_code.co_name))
 
 def launch_new_instance(user_ns = None):
     """ Create and start a new ipython instance.
