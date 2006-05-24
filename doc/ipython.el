@@ -6,7 +6,7 @@
 ;; URL:           http://ipython.scipy.org
 ;; Compatibility: Emacs21, XEmacs21
 ;; FIXME: #$@! INPUT RING
-(defconst ipython-version "$Revision: 1324 $"
+(defconst ipython-version "$Revision: 1325 $"
   "VC version number.")
 
 ;;; Commentary 
@@ -404,5 +404,82 @@ in the current *Python* session."
                (display-completion-list (all-completions pattern completion-table)))
              (message "Making completion list...%s" "done")))))
 )
+
+;;; autoindent support: patch sent in by Jin Liu <m.liu.jin@gmail.com>,
+;;; originally written by doxgen@newsmth.net
+;;; Minor modifications by fperez for xemacs compatibility.
+
+(defvar ipython-autoindent t
+ "If non-nil, enable autoindent for IPython shell through python-mode.")
+
+(defvar ipython-indenting-buffer-name "*IPython Indentation Calculation*"
+ "Temporary buffer for indenting multiline statement.")
+
+(defun ipython-get-indenting-buffer ()
+ "Return a temporary buffer set in python-mode. Create one if necessary."
+ (let ((buf (get-buffer-create ipython-indenting-buffer-name)))
+   (set-buffer buf)
+   (unless (eq major-mode 'python-mode)
+     (python-mode))
+   buf))
+
+(defvar ipython-indentation-string nil
+ "Indentation for the next line in a multiline statement.")
+
+(defun ipython-send-and-indent ()
+ "Send the current line to IPython, and calculate the indentation for
+the next line."
+ (interactive)
+ (if ipython-autoindent
+     (let ((line (buffer-substring (point-at-bol) (point)))
+           (after-prompt1)
+           (after-prompt2))
+       (save-excursion
+           (comint-bol t)
+           (if (looking-at py-shell-input-prompt-1-regexp)
+               (setq after-prompt1 t)
+             (setq after-prompt2 (looking-at py-shell-input-prompt-2-regexp)))
+           (with-current-buffer (ipython-get-indenting-buffer)
+             (when after-prompt1
+               (erase-buffer))
+             (when (or after-prompt1 after-prompt2)
+               (delete-region (point-at-bol) (point))
+               (insert line)
+               (newline-and-indent))))))
+ ;; send input line to ipython interpreter
+ (comint-send-input))
+
+(defun ipython-indentation-hook (string)
+ "Insert indentation string if py-shell-input-prompt-2-regexp
+matches last process output."
+ (let* ((start-marker (or comint-last-output-start
+                          (point-min-marker)))
+        (end-marker (process-mark (get-buffer-process (current-buffer))))
+        (text (ansi-color-filter-apply (buffer-substring start-marker end-marker))))
+   (progn
+     ;; XXX if `text' matches both pattern, it MUST be the last prompt-2
+     (cond ((and (string-match "\n$" text) (string-match
+py-shell-input-prompt-2-regexp text))
+            (with-current-buffer (ipython-get-indenting-buffer)
+              (erase-buffer)))
+           ;; still a prompt-2
+           ((string-match py-shell-input-prompt-2-regexp text)
+            (with-current-buffer (ipython-get-indenting-buffer)
+              (setq ipython-indentation-string
+                    (buffer-substring (point-at-bol) (point))))
+            (unless (eq ipython-indentation-string nil)
+              (message "ipython-indentation-hook: %s#%s##" text
+ipython-indentation-string))
+            (goto-char end-marker)
+            (insert ipython-indentation-string)))
+           (setq ipython-indentation-string nil))))
+
+(add-hook 'py-shell-hook
+         (lambda ()
+           (add-hook 'comint-output-filter-functions
+                     'ipython-indentation-hook)))
+
+(define-key py-shell-map (kbd "RET") 'ipython-send-and-indent)
+;;; / end autoindent support
 
 (provide 'ipython)
