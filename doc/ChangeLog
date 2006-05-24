@@ -1,5 +1,18 @@
 2006-05-24  Fernando Perez  <Fernando.Perez@colorado.edu>
 
+	* ipython.el: fix the py-pdbtrack-input-prompt variable so that
+	python-mode recognizes our debugger mode.
+
+	* IPython/Debugger.py (Pdb.format_stack_entry): fix formatting of
+	tracebacks when walking the stack so that the stack tracking system
+	in emacs' python-mode can identify the frames correctly.
+
+	* IPython/ipmaker.py (make_IPython): make the internal (and
+	default config) autoedit_syntax value false by default.  Too many
+	users have complained to me (both on and off-list) about problems
+	with this option being on by default, so I'm making it default to
+	off.  It can still be enabled by anyone via the usual mechanisms.
+
 	* IPython/completer.py (Completer.attr_matches): add support for
 	PyCrust-style _getAttributeNames magic method.  Patch contributed
 	by <mscott-AT-goldenspud.com>.  Closes #50.

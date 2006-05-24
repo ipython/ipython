@@ -6,7 +6,7 @@ Requires Python 2.1 or better.
 
 This file contains the main make_IPython() starter function.
 
-$Id: ipmaker.py 1260 2006-04-11 10:19:34Z vivainio $"""
+$Id: ipmaker.py 1324 2006-05-24 20:25:11Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2006 Fernando Perez. <fperez@colorado.edu>
@@ -181,8 +181,8 @@ object? -> Details about 'object'. ?object also works, ?? prints more.
     # Set sensible command line defaults.
     # This should have everything from  cmdline_opts and cmdline_only
     opts_def = Struct(autocall = 1,
-                      autoedit_syntax = 1,
-                      autoindent=0,
+                      autoedit_syntax = 0,
+                      autoindent = 0,
                       automagic = 1,
                       banner = 1,
                       cache_size = 1000,

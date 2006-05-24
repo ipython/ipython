@@ -6,7 +6,7 @@
 ;; URL:           http://ipython.scipy.org
 ;; Compatibility: Emacs21, XEmacs21
 ;; FIXME: #$@! INPUT RING
-(defconst ipython-version "$Revision: 1211 $"
+(defconst ipython-version "$Revision: 1324 $"
   "VC version number.")
 
 ;;; Commentary 
@@ -47,8 +47,8 @@
 ;; -------------------------
 ;;
 ;; - IMO the best feature by far of the ipython/emacs combo is how much easier it
-;;   makes it to find and fix bugs thanks to the ``@pdb on``/ pdbtrack combo. Try
-;;   it: first in the ipython to shell do ``@pdb on`` then do something that will
+;;   makes it to find and fix bugs thanks to the ``%pdb on``/ pdbtrack combo. Try
+;;   it: first in the ipython to shell do ``%pdb on`` then do something that will
 ;;   raise an exception (FIXME nice example) -- and be amazed how easy it is to
 ;;   inspect the live objects in each stack frames and to jump to the
 ;;   corresponding sourcecode locations as you walk up and down the stack trace
@@ -177,7 +177,9 @@ the second for a 'normal' command, and the third for a multiline command.")
       (define-key py-shell-map [tab] 'ipython-complete)
       ;;XXX this is really just a cheap hack, it only completes symbols in the
       ;;interactive session -- useful nonetheless.
-      (define-key py-mode-map [(meta tab)] 'ipython-complete))
+      (define-key py-mode-map [(meta tab)] 'ipython-complete)
+      
+      )
     (add-hook 'py-shell-hook 'ipython-shell-hook)
     ;; Regular expression that describes tracebacks for IPython in context and
     ;; verbose mode. 
@@ -191,9 +193,13 @@ the second for a 'normal' command, and the third for a multiline command.")
     ;;     (XXX: should ask Fernando for a change)
     ;;"^   File \"\\(.*?\\)\", line \\([0-9]+\\).*\n.*\n.*\nSyntaxError:"
     ;;^   File \"\\(.*?\\)\", line \\([0-9]+\\)"
+
     (setq py-traceback-line-re
           "\\(^[^\t ].+?\\.py\\).*\n   +[0-9]+[^\00]*?\n-+> \\([0-9]+\\) +")
-
+    
+    ;; Recognize the ipython pdb, whose prompt is 'ipdb>' instead of '(Pdb)'
+    (setq py-pdbtrack-input-prompt "\n[(<]*[Ii]?[Pp]db[>)]+ ")
+    
     (setq py-shell-input-prompt-1-regexp "^In \\[[0-9]+\\]: *"
           py-shell-input-prompt-2-regexp "^   [.][.][.]+: *" )
     ;; select a suitable color-scheme

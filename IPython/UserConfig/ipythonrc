@@ -1,5 +1,5 @@
 # -*- Mode: Shell-Script -*-  Not really, but shows comments correctly
-# $Id: ipythonrc 1155 2006-02-12 01:21:00Z fperez $
+# $Id: ipythonrc 1324 2006-05-24 20:25:11Z fperez $
 
 #***************************************************************************
 #
@@ -87,7 +87,7 @@ autocall 1
 # a file with syntax errors in it.  If this variable is true, IPython will ask
 # you whether to re-open the editor immediately to correct such an error.
 
-autoedit_syntax 1
+autoedit_syntax 0
 
 # Auto-indent. IPython can recognize lines ending in ':' and indent the next
 # line, while also un-indenting automatically after 'raise' or 'return'.  

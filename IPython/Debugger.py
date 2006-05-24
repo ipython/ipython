@@ -15,7 +15,7 @@ details on the PSF (Python Software Foundation) standard license, see:
 
 http://www.python.org/2.2.3/license.html
 
-$Id: Debugger.py 1029 2006-01-18 07:33:38Z fperez $"""
+$Id: Debugger.py 1324 2006-05-24 20:25:11Z fperez $"""
 
 #*****************************************************************************
 #
@@ -31,7 +31,6 @@ $Id: Debugger.py 1029 2006-01-18 07:33:38Z fperez $"""
 #  the file COPYING, distributed as part of this software.
 #
 #*****************************************************************************
-
 
 from IPython import Release
 __author__  = '%s <%s>' % Release.authors['Fernando']
@@ -62,7 +61,6 @@ def _file_lines(fname):
         out = outfile.readlines()
         outfile.close()
         return out
-
 
 class Pdb(pdb.Pdb):
     """Modified Pdb class, does not load readline."""
@@ -113,27 +111,22 @@ class Pdb(pdb.Pdb):
         """Shorthand access to the color table scheme selector method."""
         self.color_scheme_table.set_active_scheme(scheme)
 
-
     def interaction(self, frame, traceback):
         __IPYTHON__.set_completer_frame(frame)
         pdb.Pdb.interaction(self, frame, traceback)
-
 
     def do_up(self, arg):
         pdb.Pdb.do_up(self, arg)
         __IPYTHON__.set_completer_frame(self.curframe)
     do_u = do_up
 
-
     def do_down(self, arg):
         pdb.Pdb.do_down(self, arg)
         __IPYTHON__.set_completer_frame(self.curframe)
     do_d = do_down
 
-
     def postloop(self):
         __IPYTHON__.set_completer_frame(None)
-
 
     def print_stack_trace(self):
         try:
@@ -142,22 +135,20 @@ class Pdb(pdb.Pdb):
         except KeyboardInterrupt:
             pass
 
-
     def print_stack_entry(self,frame_lineno,prompt_prefix='\n-> ',
                           context = 3):
         frame, lineno = frame_lineno
         print >>Term.cout, self.format_stack_entry(frame_lineno, '', context)
 
-
     def format_stack_entry(self, frame_lineno, lprefix=': ', context = 3):
         import linecache, repr
         
-        ret = ""
+        ret = []
         
         Colors = self.color_scheme_table.active_colors
         ColorsNormal = Colors.Normal
         tpl_link = '%s%%s%s' % (Colors.filenameEm, ColorsNormal)
-        tpl_call = 'in %s%%s%s%%s%s' % (Colors.vName, Colors.valEm, ColorsNormal)
+        tpl_call = '%s%%s%s%%s%s' % (Colors.vName, Colors.valEm, ColorsNormal)
         tpl_line = '%%s%s%%s %s%%s' % (Colors.lineno, ColorsNormal)
         tpl_line_em = '%%s%s%%s %s%%s%s' % (Colors.linenoEm, Colors.line,
                                             ColorsNormal)
@@ -169,7 +160,7 @@ class Pdb(pdb.Pdb):
             rv = frame.f_locals['__return__']
             #return_value += '->'
             return_value += repr.repr(rv) + '\n'
-        ret += return_value
+        ret.append(return_value)
 
         #s = filename + '(' + `lineno` + ')'
         filename = self.canonic(frame.f_code.co_filename)
@@ -187,9 +178,10 @@ class Pdb(pdb.Pdb):
             else:
                 args = '()'
             call = tpl_call % (func, args)
-        
-        level = '%s %s\n' % (link, call)
-        ret += level
+
+        # The level info should be generated in the same format pdb uses, to
+        # avoid breaking the pdbtrack functionality of python-mode in *emacs.
+        ret.append('> %s(%s)%s\n' % (link,lineno,call))
             
         start = lineno - 1 - context//2
         lines = linecache.getlines(filename)
@@ -197,15 +189,13 @@ class Pdb(pdb.Pdb):
         start = min(start, len(lines) - context)
         lines = lines[start : start + context]
             
-        for i in range(len(lines)):
-            line = lines[i]
-            if start + 1 + i == lineno:
-                ret += self.__format_line(tpl_line_em, filename, start + 1 + i, line, arrow = True)
-            else:
-                ret += self.__format_line(tpl_line, filename, start + 1 + i, line, arrow = False)
-            
-        return ret
+        for i,line in enumerate(lines):
+            show_arrow = (start + 1 + i == lineno)
+            ret.append(self.__format_line(tpl_line_em, filename,
+                                          start + 1 + i, line,
+                                          arrow = show_arrow) )
 
+        return ''.join(ret)
 
     def __format_line(self, tpl_line, filename, lineno, line, arrow = False):
         bp_mark = ""
@@ -242,7 +232,6 @@ class Pdb(pdb.Pdb):
             line = tpl_line % (bp_mark_color + bp_mark, num, line)
             
         return line
-        
 
     def do_list(self, arg):
         self.lastcmd = 'list'
