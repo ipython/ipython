@@ -6,7 +6,7 @@ Requires Python 2.3 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 1322 2006-05-24 07:51:39Z fperez $
+$Id: iplib.py 1323 2006-05-24 10:26:30Z walter.doerwald $
 """
 
 #*****************************************************************************
@@ -1317,7 +1317,7 @@ want to merge them back into the new files.""" % locals()
 
         If nothing is known about the exception, this is the method which
         should be used throughout the code for presenting user tracebacks,
-        rather htan directly invoking the InteractiveTB object.
+        rather than directly invoking the InteractiveTB object.
 
         A specific showsyntaxerror() also exists, but this method can take
         care of calling it if needed, so unless you are explicitly catching a
