@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Magic functions for InteractiveShell.
 
-$Id: Magic.py 1314 2006-05-19 18:24:14Z fperez $"""
+$Id: Magic.py 1322 2006-05-24 07:51:39Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001 Janko Hauser <jhauser@zscout.de> and
@@ -1874,6 +1874,12 @@ Currently the magic system has the following functions:\n"""
 
         Options:
 
+        -n <number>: open the editor at a specified line number.  By default,
+        the IPython editor hook uses the unix syntax 'editor +N filename', but
+        you can configure this by providing your own modified hook if your
+        favorite editor supports line-number specifications with a different
+        syntax.
+        
         -p: this will call the editor with the same data as the previous time
         it was used, regardless of how long ago (in your current session) it
         was.
@@ -2003,16 +2009,14 @@ Currently the magic system has the following functions:\n"""
         # custom exceptions
         class DataIsObject(Exception): pass
 
-        opts,args = self.parse_options(parameter_s,'prxn=i')
-
-        print 'opt.n: <%r>' % opts.n  # dbg
-        
+        opts,args = self.parse_options(parameter_s,'prxn:')
         # Set a few locals from the options for convenience:
         opts_p = opts.has_key('p')
         opts_r = opts.has_key('r')
-
+        
         # Default line number value
-        lineno = None
+        lineno = opts.get('n',None)
+
         if opts_p:
             args = '_%s' % last_call[0]
             if not self.shell.user_ns.has_key(args):
@@ -2081,7 +2085,8 @@ Currently the magic system has the following functions:\n"""
                 # a temp file it's gone by now).
                 if datafile:
                     try:
-                        lineno = inspect.getsourcelines(data)[1]
+                        if lineno is None:
+                            lineno = inspect.getsourcelines(data)[1]
                     except IOError:
                         filename = make_filename(args)
                         if filename is None:

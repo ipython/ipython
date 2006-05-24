@@ -5,7 +5,7 @@ Class which mimics a module.
 Needed to allow pickle to correctly resolve namespaces during IPython
 sessions.
 
-$Id: FakeModule.py 410 2004-11-04 07:58:17Z fperez $"""
+$Id: FakeModule.py 1322 2006-05-24 07:51:39Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2002-2004 Fernando Perez. <fperez@colorado.edu>
@@ -34,6 +34,9 @@ class FakeModule:
             adict['__nonzero__'] = __nonzero__
 
             self.__dict__ = adict
+
+        # modules should have a __file__ attribute
+        adict['__file__'] = __file__
 
     def __getattr__(self,key):
         try:

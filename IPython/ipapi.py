@@ -251,7 +251,6 @@ class IPApi:
         # exposes variables 'foo' as 'x' and 'bar' as 'y' in IPython 
         # user namespace
         ip.user_ns.update(dict(x=foo,y=bar))    
-                
         """
 
         # print 'vars given:',vars # dbg

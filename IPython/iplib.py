@@ -6,7 +6,7 @@ Requires Python 2.3 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 1314 2006-05-19 18:24:14Z fperez $
+$Id: iplib.py 1322 2006-05-24 07:51:39Z fperez $
 """
 
 #*****************************************************************************
@@ -203,13 +203,6 @@ class InteractiveShell(object,Magic):
 
         # Job manager (for jobs run as background threads)
         self.jobs = BackgroundJobManager()
-
-        # Do the intuitively correct thing for quit/exit: we remove the
-        # builtins if they exist, and our own magics will deal with this
-        try:
-            del __builtin__.exit, __builtin__.quit
-        except AttributeError:
-            pass
 
         # Store the actual shell's name
         self.name = name
@@ -1231,7 +1224,8 @@ want to merge them back into the new files.""" % locals()
         """Utility routine for edit_syntax_error"""
 
         if e.filename in ('<ipython console>','<input>','<string>',
-                          '<console>',None):
+                          '<console>','<BackgroundJob compilation>',
+                          None):
                               
             return False
         try:
@@ -1269,11 +1263,14 @@ want to merge them back into the new files.""" % locals()
             except:
                 self.showtraceback()
             else:
-                f = file(err.filename)
                 try:
-                    sys.displayhook(f.read())
-                finally:
-                    f.close()
+                    f = file(err.filename)
+                    try:
+                        sys.displayhook(f.read())
+                    finally:
+                        f.close()
+                except:
+                    self.showtraceback()
 
     def showsyntaxerror(self, filename=None):
         """Display the syntax error that just occurred.
@@ -1316,7 +1313,16 @@ want to merge them back into the new files.""" % locals()
         pdb.pm()
 
     def showtraceback(self,exc_tuple = None,filename=None,tb_offset=None):
-        """Display the exception that just occurred."""
+        """Display the exception that just occurred.
+
+        If nothing is known about the exception, this is the method which
+        should be used throughout the code for presenting user tracebacks,
+        rather htan directly invoking the InteractiveTB object.
+
+        A specific showsyntaxerror() also exists, but this method can take
+        care of calling it if needed, so unless you are explicitly catching a
+        SyntaxError exception, don't try to analyze the stack manually and
+        simply call this method."""
 
         # Though this won't be called by syntax errors in the input line,
         # there may be SyntaxError cases whith imported code.
@@ -1793,7 +1799,12 @@ want to merge them back into the new files.""" % locals()
             else:
                 self.input_hist_raw.append('%s\n' % line)
 
-        lineout = self.prefilter(line,continue_prompt)
+        try:
+            lineout = self.prefilter(line,continue_prompt)
+        except:
+            # blanket except, in case a user-defined prefilter crashes, so it
+            # can't take all of ipython with it.
+            self.showtraceback()
         return lineout
         
     def split_user_input(self,line):

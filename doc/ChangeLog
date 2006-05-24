@@ -1,3 +1,40 @@
+2006-05-24  Fernando Perez  <Fernando.Perez@colorado.edu>
+
+	* IPython/completer.py (Completer.attr_matches): add support for
+	PyCrust-style _getAttributeNames magic method.  Patch contributed
+	by <mscott-AT-goldenspud.com>.  Closes #50.
+
+	* IPython/iplib.py (InteractiveShell.__init__): remove the
+	deletion of exit/quit from __builtin__, which can break
+	third-party tools like the Zope debugging console.  The
+	%exit/%quit magics remain.  In general, it's probably a good idea
+	not to delete anything from __builtin__, since we never know what
+	that will break.  In any case, python now (for 2.5) will support
+	'real' exit/quit, so this issue is moot.  Closes #55.
+
+	* IPython/genutils.py (with_obj): rename the 'with' function to
+	'withobj' to avoid incompatibilities with Python 2.5, where 'with'
+	becomes a language keyword.  Closes #53.
+
+	* IPython/FakeModule.py (FakeModule.__init__): add a proper
+	__file__ attribute to this so it fools more things into thinking
+	it is a real module.  Closes #59.
+
+	* IPython/Magic.py (magic_edit): add -n option to open the editor
+	at a specific line number.  After a patch by Stefan van der Walt.
+
+2006-05-23  Fernando Perez  <Fernando.Perez@colorado.edu>
+
+	* IPython/iplib.py (edit_syntax_error): fix crash when for some
+	reason the file could not be opened.  After automatic crash
+	reports sent by James Graham <jgraham-AT-ast.cam.ac.uk> and
+	Charles Dolan <charlespatrickdolan-AT-yahoo.com>.
+	(_should_recompile): Don't fire editor if using %bg, since there
+	is no file in the first place.  From the same report as above.
+	(raw_input): protect against faulty third-party prefilters.  After
+	an automatic crash report sent by Dirk Laurie <dirk-AT-sun.ac.za>
+	while running under SAGE.
+
 2006-05-23  Ville Vainio  <vivainio@gmail.com>
 
 	* ipapi.py: Stripped down ip.to_user_ns() to work only as

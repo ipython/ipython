@@ -219,6 +219,17 @@ class Completer:
                 # This will happen if `object` is a class and not an instance.
                 pass
 
+        # Support for PyCrust-style _getAttributeNames magic method.
+        if hasattr(object, '_getAttributeNames'):
+            try:
+                words.extend(object._getAttributeNames())
+                # Eliminate duplicates.
+                words = set(words)
+            except TypeError:
+                # `object` is a class and not an instance.  Ignore
+                # this error.
+                pass
+
         # filter out non-string attributes which may be stuffed by dir() calls
         # and poor coding in third-party modules
         words = [w for w in words

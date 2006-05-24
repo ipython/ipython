@@ -32,7 +32,7 @@ ip.set_hook('editor', calljed)
 You can then enable the functionality by doing 'import myiphooks'
 somewhere in your configuration files or ipython command line.
 
-$Id: hooks.py 1303 2006-05-17 03:39:29Z fperez $"""
+$Id: hooks.py 1322 2006-05-24 07:51:39Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2005 Fernando Perez. <fperez@colorado.edu>
@@ -73,7 +73,7 @@ def editor(self,filename, linenum=None):
     if linenum is None or editor=='notepad':
         linemark = ''
     else:
-        linemark = '+%d' % linenum
+        linemark = '+%d' % int(linenum)
     
     # Enclose in quotes if necessary and legal
     if ' ' in editor and os.path.isfile(editor) and editor[0] != '"':
