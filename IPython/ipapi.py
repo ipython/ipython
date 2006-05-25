@@ -61,6 +61,7 @@ print "done!"
 '''
 
 # stdlib imports
+import __builtin__
 import sys
 
 # our own
@@ -267,7 +268,7 @@ class IPApi:
                 (name,cf.f_code.co_name))
 
 def launch_new_instance(user_ns = None):
-    """ Create and start a new ipython instance.
+    """ Make and start a new ipython instance.
     
     This can be called even without having an already initialized 
     ipython session running.
@@ -275,19 +276,53 @@ def launch_new_instance(user_ns = None):
     This is also used as the egg entry point for the 'ipython' script.
     
     """
-    ses = create_session(user_ns)
+    ses = make_session(user_ns)
     ses.mainloop()
 
 
-def create_session(user_ns = None):    
-    """ Creates, but does not launch an IPython session.
+def make_user_ns(user_ns = None):
+    """Return a valid user interactive namespace.
+
+    This builds a dict with the minimal information needed to operate as a
+    valid IPython user namespace, which you can pass to the various embedding
+    classes in ipython.
+    """
+
+    if user_ns is None:
+        # Set __name__ to __main__ to better match the behavior of the
+        # normal interpreter.
+        user_ns = {'__name__'     :'__main__',
+                   '__builtins__' : __builtin__,
+                   }
+    else:
+        user_ns.setdefault('__name__','__main__')
+        user_ns.setdefault('__builtins__',__builtin__)
+
+    return user_ns
+
+
+def make_user_global_ns(ns = None):
+    """Return a valid user global namespace.
+
+    Similar to make_user_ns(), but global namespaces are really only needed in
+    embedded applications, where there is a distinction between the user's
+    interactive namespace and the global one where ipython is running."""
+
+    if ns is None: ns = {}
+    return ns
+
+
+def make_session(user_ns = None):
+    """Makes, but does not launch an IPython session.
     
     Later on you can call obj.mainloop() on the returned object.
+
+    Inputs:
+
+      - user_ns(None): a dict to be used as the user's namespace with initial
+      data.
     
-    This should *not* be run when a session exists already.
-    
-    """
-    if user_ns is not None: 
-        user_ns["__name__"] = user_ns.get("__name__",'ipy_session')
+    WARNING: This should *not* be run when a session exists already."""
+
     import IPython
-    return IPython.Shell.start(user_ns = user_ns)
+    return IPython.Shell.start(user_ns)

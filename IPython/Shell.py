@@ -4,7 +4,7 @@
 All the matplotlib support code was co-developed with John Hunter,
 matplotlib's author.
 
-$Id: Shell.py 1313 2006-05-19 17:48:41Z fperez $"""
+$Id: Shell.py 1326 2006-05-25 02:07:11Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2006 Fernando Perez <fperez@colorado.edu>
@@ -51,7 +51,8 @@ class IPShell:
     
     def __init__(self,argv=None,user_ns=None,user_global_ns=None,
                  debug=1,shell_class=InteractiveShell):
-        self.IP = make_IPython(argv,user_ns=user_ns,user_global_ns=user_global_ns,
+        self.IP = make_IPython(argv,user_ns=user_ns,
+                               user_global_ns=user_global_ns,
                                debug=debug,shell_class=shell_class)
 
     def mainloop(self,sys_exit=0,banner=None):
@@ -112,7 +113,8 @@ class IPShellEmbed:
     <cmkleffner@gmx.de> on Dec. 06/01 concerning similar uses of pyrepl, and
     by the IDL stop/continue commands."""
 
-    def __init__(self,argv=None,banner='',exit_msg=None,rc_override=None):
+    def __init__(self,argv=None,banner='',exit_msg=None,rc_override=None,
+                 user_ns=None):
         """Note that argv here is a string, NOT a list."""
         self.set_banner(banner)
         self.set_exit_msg(exit_msg)
@@ -129,9 +131,9 @@ class IPShellEmbed:
         except:
             pass # not nested with IPython
         
-        # FIXME. Passing user_ns breaks namespace handling.
-        #self.IP = make_IPython(argv,user_ns=__main__.__dict__)
-        self.IP = make_IPython(argv,rc_override=rc_override,embedded=True)
+        self.IP = make_IPython(argv,rc_override=rc_override,
+                               embedded=True,
+                               user_ns=user_ns)
 
         # copy our own displayhook also
         self.sys_displayhook_embed = sys.displayhook
@@ -387,7 +389,7 @@ class MatplotlibShellBase:
     Given Python's MRO, this should be used as the FIRST class in the
     inheritance hierarchy, so that it overrides the relevant methods."""
     
-    def _matplotlib_config(self,name):
+    def _matplotlib_config(self,name,user_ns):
         """Return items needed to setup the user's shell with matplotlib"""
 
         # Initialize matplotlib to interactive mode always
@@ -432,14 +434,8 @@ class MatplotlibShellBase:
 
         # This must be imported last in the matplotlib series, after
         # backend/interactivity choices have been made
-        try:
-            import matplotlib.pylab as pylab
-            self.pylab = pylab
-            self.pylab_name = 'pylab'
-        except ImportError:
-            import matplotlib.matlab as matlab            
-            self.pylab = matlab
-            self.pylab_name = 'matlab'
+        import matplotlib.pylab as pylab
+        self.pylab = pylab
 
         self.pylab.show._needmain = False
         # We need to detect at runtime whether show() is called by the user.
@@ -447,16 +443,11 @@ class MatplotlibShellBase:
         self.pylab.draw_if_interactive = flag_calls(self.pylab.draw_if_interactive)
 
         # Build a user namespace initialized with matplotlib/matlab features.
-        user_ns = {'__name__':'__main__',
-                   '__builtins__' : __builtin__ }
+        user_ns = IPython.ipapi.make_user_ns(user_ns)
 
-        # Be careful not to remove the final \n in the code string below, or
-        # things will break badly with py22 (I think it's a python bug, 2.3 is
-        # OK).
-        pname = self.pylab_name # Python can't interpolate dotted var names
         exec ("import matplotlib\n"
-              "import matplotlib.%(pname)s as %(pname)s\n"
-              "from matplotlib.%(pname)s import *\n" % locals()) in user_ns
+              "import matplotlib.pylab as pylab\n"
+              "from matplotlib.pylab import *") in user_ns
         
         # Build matplotlib info banner
         b="""
@@ -503,7 +494,7 @@ class MatplotlibShell(MatplotlibShellBase,InteractiveShell):
 
     def __init__(self,name,usage=None,rc=Struct(opts=None,args=None),
                  user_ns=None,user_global_ns=None,**kw):
-        user_ns,b2 = self._matplotlib_config(name)
+        user_ns,b2 = self._matplotlib_config(name,user_ns)
         InteractiveShell.__init__(self,name,usage,rc,user_ns,user_global_ns,
                                   banner2=b2,**kw)
 

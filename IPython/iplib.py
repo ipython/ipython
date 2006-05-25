@@ -6,7 +6,7 @@ Requires Python 2.3 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 1323 2006-05-24 10:26:30Z walter.doerwald $
+$Id: iplib.py 1326 2006-05-25 02:07:11Z fperez $
 """
 
 #*****************************************************************************
@@ -258,17 +258,13 @@ class InteractiveShell(object,Magic):
         # that if you need to access the built-in namespace directly, you
         # should start with "import __builtin__" (note, no 's') which will
         # definitely give you a module. Yeah, it's somewhat confusing:-(.
-        
-        if user_ns is None:
-            # Set __name__ to __main__ to better match the behavior of the
-            # normal interpreter.
-            user_ns = {'__name__'     :'__main__',
-                       '__builtins__' : __builtin__,
-                       }
-            
-        if user_global_ns is None:
-            user_global_ns = {}
 
+        # These routines return properly built dicts as needed by the rest of
+        # the code, and can also be used by extension writers to generate
+        # properly initialized namespaces.
+        user_ns = IPython.ipapi.make_user_ns(user_ns)
+        user_global_ns = IPython.ipapi.make_user_global_ns(user_global_ns)
+            
         # Assign namespaces
         # This is the namespace where all normal user variables live
         self.user_ns = user_ns
@@ -1351,7 +1347,7 @@ want to merge them back into the new files.""" % locals()
 
         If an optional banner argument is given, it will override the
         internally created default banner."""
-        
+
         if self.rc.c:  # Emulate Python's -c option
             self.exec_init_cmd()
         if banner is None:

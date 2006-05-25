@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """sys.excepthook for IPython itself, leaves a detailed report on disk.
 
-$Id: CrashHandler.py 1320 2006-05-23 18:29:11Z vivainio $"""
+$Id: CrashHandler.py 1326 2006-05-25 02:07:11Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2006 Fernando Perez. <fperez@colorado.edu>
@@ -87,7 +87,7 @@ If you want to do it now, the following command will work (under Unix):
 mail -s 'IPython Crash Report' $self.mailto < $self.report_name
 
 To ensure accurate tracking of this issue, please file a report about it at:
-http://www.scipy.net/roundup/ipython  (IPython's online bug tracker).
+http://projects.scipy.org/ipython/ipython/report
 """)
         print >> sys.stderr, msg
 
