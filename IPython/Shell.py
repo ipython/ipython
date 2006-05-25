@@ -4,7 +4,7 @@
 All the matplotlib support code was co-developed with John Hunter,
 matplotlib's author.
 
-$Id: Shell.py 1326 2006-05-25 02:07:11Z fperez $"""
+$Id: Shell.py 1327 2006-05-25 03:33:58Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2006 Fernando Perez <fperez@colorado.edu>
@@ -503,7 +503,7 @@ class MatplotlibMTShell(MatplotlibShellBase,MTInteractiveShell):
 
     def __init__(self,name,usage=None,rc=Struct(opts=None,args=None),
                  user_ns=None,user_global_ns=None, **kw):
-        user_ns,b2 = self._matplotlib_config(name)
+        user_ns,b2 = self._matplotlib_config(name,user_ns)
         MTInteractiveShell.__init__(self,name,usage,rc,user_ns,user_global_ns,
                                     banner2=b2,**kw)
 
