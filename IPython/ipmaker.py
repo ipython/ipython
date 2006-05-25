@@ -6,7 +6,7 @@ Requires Python 2.1 or better.
 
 This file contains the main make_IPython() starter function.
 
-$Id: ipmaker.py 1324 2006-05-24 20:25:11Z fperez $"""
+$Id: ipmaker.py 1328 2006-05-25 07:47:56Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2006 Fernando Perez. <fperez@colorado.edu>
@@ -328,6 +328,11 @@ object? -> Details about 'object'. ?object also works, ?? prints more.
     # check mutually exclusive options in the *original* command line
     mutex_opts(opts,[qw('log logfile'),qw('rcfile profile'),
                      qw('classic profile'),qw('classic rcfile')])
+
+    # Fix up sys.argv to omit the ipython call, for consistency with how
+    # Python itself operates (the inconsistency can break user scripts which
+    # rely on the Python behavior when run under ipython).
+    sys.argv[:] = sys.argv[1:]
 
     #---------------------------------------------------------------------------
     # Log replay

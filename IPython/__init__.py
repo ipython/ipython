@@ -27,10 +27,10 @@ IPython tries to:
 
 IPython requires Python 2.3 or newer.
 
-$Id: __init__.py 1314 2006-05-19 18:24:14Z fperez $"""
+$Id: __init__.py 1328 2006-05-25 07:47:56Z fperez $"""
 
 #*****************************************************************************
-#       Copyright (C) 2001-2004 Fernando Perez. <fperez@colorado.edu>
+#       Copyright (C) 2001-2006 Fernando Perez. <fperez@colorado.edu>
 #
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
@@ -40,14 +40,13 @@ $Id: __init__.py 1314 2006-05-19 18:24:14Z fperez $"""
 import sys
 
 if sys.version[0:3] < '2.3':
-    raise ImportError, 'Python Version 2.3 or above is required.'
+    raise ImportError('Python Version 2.3 or above is required for IPython.')
 
 # Make it easy to import extensions - they are always directly on pythonpath.
 # Therefore, non-IPython modules can be added to Extensions directory
-
 import os
 sys.path.append(os.path.dirname(__file__) + "/Extensions")
-        
+
 # Define what gets imported with a 'from IPython import *'
 __all__ = ['deep_reload','genutils','ipstruct','ultraTB','DPyGetOpt',
            'Itpl','hooks','ConfigLoader','OutputTrap','Release','Shell',

@@ -1,4 +1,9 @@
-2006-05-24  Fernando Perez  <Fernando.Perez@colorado.edu>
+2006-05-25  Fernando Perez  <Fernando.Perez@colorado.edu>
+
+	* IPython/ipmaker.py (make_IPython): remove the ipython call path
+	from sys.argv, to be 100% consistent with how Python itself works
+	(as seen for example with python -i file.py).  After a bug report
+	by Jeffrey Collins.
 
 	* IPython/Shell.py (MatplotlibShellBase._matplotlib_config): Fix
 	nasty bug which was preventing custom namespaces with -pylab,
