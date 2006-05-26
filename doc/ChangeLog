@@ -1,3 +1,18 @@
+2006-05-26  Fernando Perez  <Fernando.Perez@colorado.edu>
+
+	* IPython/iplib.py (_prefilter): fix bug where aliases would
+	shadow variables when autocall was fully off.  Reported by SAGE
+	author William Stein.
+
+	* IPython/OInspect.py (Inspector.__init__): add a flag to control
+	at what detail level strings are computed when foo? is requested.
+	This allows users to ask for example that the string form of an
+	object is only computed when foo?? is called, or even never, by
+	setting the object_info_string_level >= 2 in the configuration
+	file.  This new option has been added and documented.  After a
+	request by SAGE to be able to control the printing of very large
+	objects more easily.
+
 2006-05-25  Fernando Perez  <Fernando.Perez@colorado.edu>
 
 	* IPython/ipmaker.py (make_IPython): remove the ipython call path

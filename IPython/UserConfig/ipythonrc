@@ -1,5 +1,5 @@
 # -*- Mode: Shell-Script -*-  Not really, but shows comments correctly
-# $Id: ipythonrc 1324 2006-05-24 20:25:11Z fperez $
+# $Id: ipythonrc 1329 2006-05-26 07:52:45Z fperez $
 
 #***************************************************************************
 #
@@ -298,6 +298,16 @@ nosep 0
 # prompt.
 
 wildcards_case_sensitive 1
+
+# Object information: at what level of detail to display the string form of an
+# object.  If set to 0, ipython will compute the string form of any object X,
+# by calling str(X), when X? is typed.  If set to 1, str(X) will only be
+# computed when X?? is given, and if set to 2 or higher, it will never be
+# computed (there is no X??? level of detail).  This is mostly of use to
+# people who frequently manipulate objects whose string representation is
+# extremely expensive to compute.
+
+object_info_string_level 0
 
 # xmode - Exception reporting mode. 
 

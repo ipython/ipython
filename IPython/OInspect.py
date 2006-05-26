@@ -6,7 +6,7 @@ Uses syntax highlighting for presenting the various information elements.
 Similar in spirit to the inspect module, but all calls take a name argument to
 reference the name under which an object is being read.
 
-$Id: OInspect.py 1300 2006-05-15 16:27:36Z vivainio $
+$Id: OInspect.py 1329 2006-05-26 07:52:45Z fperez $
 """
 
 #*****************************************************************************
@@ -107,10 +107,12 @@ class myStringIO(StringIO.StringIO):
         self.write('\n')
 
 class Inspector:
-    def __init__(self,color_table,code_color_table,scheme):
+    def __init__(self,color_table,code_color_table,scheme,
+                 str_detail_level=0):
         self.color_table = color_table
         self.parser = PyColorize.Parser(code_color_table,out='str')
         self.format = self.parser.format
+        self.str_detail_level = str_detail_level
         self.set_active_scheme(scheme)
 
     def __getargspec(self,obj):
@@ -302,21 +304,22 @@ class Inspector:
         except: pass
 
         # String form, but snip if too long in ? form (full in ??)
-        try:
-            ostr = str(obj)
-            str_head = 'String Form:'
-            if not detail_level and len(ostr)>string_max:
-                ostr = ostr[:shalf] + ' <...> ' + ostr[-shalf:]
-                ostr = ("\n" + " " * len(str_head.expandtabs())).\
-                       join(map(string.strip,ostr.split("\n")))
-            if ostr.find('\n') > -1:
-                # Print multi-line strings starting at the next line.
-                str_sep = '\n'
-            else:
-                str_sep = '\t'
-            out.writeln("%s%s%s" % (header(str_head),str_sep,ostr))
-        except:
-            pass
+        if detail_level >= self.str_detail_level:
+            try:
+                ostr = str(obj)
+                str_head = 'String Form:'
+                if not detail_level and len(ostr)>string_max:
+                    ostr = ostr[:shalf] + ' <...> ' + ostr[-shalf:]
+                    ostr = ("\n" + " " * len(str_head.expandtabs())).\
+                           join(map(string.strip,ostr.split("\n")))
+                if ostr.find('\n') > -1:
+                    # Print multi-line strings starting at the next line.
+                    str_sep = '\n'
+                else:
+                    str_sep = '\t'
+                out.writeln("%s%s%s" % (header(str_head),str_sep,ostr))
+            except:
+                pass
 
         if ospace:
             out.writeln(header('Namespace:\t')+ospace)

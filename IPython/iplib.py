@@ -6,7 +6,7 @@ Requires Python 2.3 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 1326 2006-05-25 02:07:11Z fperez $
+$Id: iplib.py 1329 2006-05-26 07:52:45Z fperez $
 """
 
 #*****************************************************************************
@@ -537,10 +537,6 @@ class InteractiveShell(object,Magic):
         # and add any custom exception handlers the user may have specified
         self.set_custom_exc(*custom_exceptions)
 
-        # Object inspector
-        self.inspector = OInspect.Inspector(OInspect.InspectColors,
-                                            PyColorize.ANSICodeColors,
-                                            'NoColor')
         # indentation management
         self.autoindent = False
         self.indent_current_nsp = 0
@@ -607,6 +603,12 @@ class InteractiveShell(object,Magic):
         'finalize' the initialization."""
 
         rc = self.rc
+
+        # Object inspector
+        self.inspector = OInspect.Inspector(OInspect.InspectColors,
+                                            PyColorize.ANSICodeColors,
+                                            'NoColor',
+                                            rc.object_info_string_level)
         
         # Load readline proper
         if rc.readline:
@@ -1874,9 +1876,6 @@ want to merge them back into the new files.""" % locals()
             rewritten = pre + rewritten  # add indentation
             return self.handle_normal(rewritten)
             
-        
-        
-
         #print 'pre <%s> iFun <%s> rest <%s>' % (pre,iFun,theRest)  # dbg
 
         # First check for explicit escapes in the last/first character
@@ -1941,8 +1940,18 @@ want to merge them back into the new files.""" % locals()
                 # in this case, all that's left is either an alias or
                 # processing the line normally.
                 if iFun in self.alias_table:
-                    return self.handle_alias(line,continue_prompt,
-                                             pre,iFun,theRest)
+                    # if autocall is off, by not running _ofind we won't know
+                    # whether the given name may also exist in one of the
+                    # user's namespace.  At this point, it's best to do a
+                    # quick check just to be sure that we don't let aliases
+                    # shadow variables.
+                    head = iFun.split('.',1)[0]
+                    if head in self.user_ns or head in self.internal_ns \
+                       or head in __builtin__.__dict__:
+                        return self.handle_normal(line,continue_prompt)
+                    else:
+                        return self.handle_alias(line,continue_prompt,
+                                                 pre,iFun,theRest)
                  
                 else:
                     return self.handle_normal(line,continue_prompt)
