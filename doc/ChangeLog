@@ -1,5 +1,8 @@
 2006-05-26  Fernando Perez  <Fernando.Perez@colorado.edu>
 
+	* IPython/ipmaker.py (make_IPython): modify sys.argv fix (below)
+	so that it doesn't break tkinter apps.
+	
 	* IPython/iplib.py (_prefilter): fix bug where aliases would
 	shadow variables when autocall was fully off.  Reported by SAGE
 	author William Stein.
