@@ -2,7 +2,7 @@
 """
 Logger class for IPython's logging facilities.
 
-$Id: Logger.py 1335 2006-05-30 06:02:44Z fperez $
+$Id: Logger.py 1336 2006-05-30 06:09:15Z fperez $
 """
 
 #*****************************************************************************
@@ -169,6 +169,7 @@ which already exists. But you must first start the logging process with
             print 'Filename       :',self.logfname
             print 'Mode           :',self.logmode
             print 'Output logging :',self.log_output
+            print 'Raw input log  :',self.log_raw_input
             print 'Timestamping   :',self.timestamp
             print 'State          :',state
 
