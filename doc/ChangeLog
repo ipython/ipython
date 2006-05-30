@@ -1,5 +1,10 @@
 2006-05-29  Fernando Perez  <Fernando.Perez@colorado.edu>
 
+	* IPython/iplib.py (InteractiveShell.__init__): add check for the
+	*BSDs to omit --color from all 'ls' aliases, since *BSD ls doesn't
+	recognize the option.  After a bug report by Will Maier.  This
+	closes #64 (will do it after confirmation from W. Maier).
+
 	* IPython/irunner.py: New module to run scripts as if manually
 	typed into an interactive environment, based on pexpect.  After a
 	submission by Ken Schutte <kschutte-AT-csail.mit.edu> on the

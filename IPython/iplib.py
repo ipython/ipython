@@ -6,7 +6,7 @@ Requires Python 2.3 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 1332 2006-05-30 01:41:28Z fperez $
+$Id: iplib.py 1334 2006-05-30 03:36:04Z fperez $
 """
 
 #*****************************************************************************
@@ -549,18 +549,33 @@ class InteractiveShell(object,Magic):
                           # a better ls
                           'ls ls -F',
                           # long ls
-                          'll ls -lF',
-                          # color ls
-                          'lc ls -F -o --color',
-                          # ls normal files only
-                          'lf ls -F -o --color %l | grep ^-',
-                          # ls symbolic links
-                          'lk ls -F -o --color %l | grep ^l',
-                          # directories or links to directories,
-                          'ldir ls -F -o --color %l | grep /$',
-                          # things which are executable
-                          'lx ls -F -o --color %l | grep ^-..x',
-                          )
+                          'll ls -lF')
+            # Extra ls aliases with color, which need special treatment on BSD
+            # variants
+            ls_extra = ( # color ls
+                         'lc ls -F -o --color',
+                         # ls normal files only
+                         'lf ls -F -o --color %l | grep ^-',
+                         # ls symbolic links
+                         'lk ls -F -o --color %l | grep ^l',
+                         # directories or links to directories,
+                         'ldir ls -F -o --color %l | grep /$',
+                         # things which are executable
+                         'lx ls -F -o --color %l | grep ^-..x',
+                         )
+            # The BSDs don't ship GNU ls, so they don't understand the
+            # --color switch out of the box
+            if 'bsd' in sys.platform:
+                ls_extra = ( # ls normal files only
+                             'lf ls -F -o %l | grep ^-',
+                             # ls symbolic links
+                             'lk ls -F -o %l | grep ^l',
+                             # directories or links to directories,
+                             'ldir ls -F -o %l | grep /$',
+                             # things which are executable
+                             'lx ls -F -o %l | grep ^-..x',
+                             )
+            auto_alias = auto_alias + ls_extra
         elif os.name in ['nt','dos']:
             auto_alias = ('dir dir /on', 'ls dir /on',
                           'ddir dir /ad /on', 'ldir dir /ad /on',
@@ -568,7 +583,7 @@ class InteractiveShell(object,Magic):
                           'ren ren','cls cls','copy copy')
         else:
             auto_alias = ()
-        self.auto_alias = map(lambda s:s.split(None,1),auto_alias)
+        self.auto_alias = [s.split(None,1) for s in auto_alias]
         # Call the actual (public) initializer
         self.init_auto_alias()
 
