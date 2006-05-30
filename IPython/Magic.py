@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Magic functions for InteractiveShell.
 
-$Id: Magic.py 1322 2006-05-24 07:51:39Z fperez $"""
+$Id: Magic.py 1335 2006-05-30 06:02:44Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001 Janko Hauser <jhauser@zscout.de> and
@@ -991,7 +991,7 @@ Currently the magic system has the following functions:\n"""
     def magic_logstart(self,parameter_s=''):
         """Start logging anywhere in a session.
 
-        %logstart [-o|-t] [log_name [log_mode]]
+        %logstart [-o|-r|-t] [log_name [log_mode]]
 
         If no name is given, it defaults to a file named 'ipython_log.py' in your
         current directory, in 'rotate' mode (see below).
@@ -1020,11 +1020,18 @@ Currently the magic system has the following functions:\n"""
 
             awk -F'#\\[Out\\]# ' '{if($2) {print $2}}' ipython_log.py
 
+          -r: log 'raw' input.  Normally, IPython's logs contain the processed
+          input, so that user lines are logged in their final form, converted
+          into valid Python.  For example, %Exit is logged as
+          '_ip.magic("Exit").  If the -r flag is given, all input is logged
+          exactly as typed, with no transformations applied.
+
           -t: put timestamps before each input line logged (these are put in
           comments)."""
         
-        opts,par = self.parse_options(parameter_s,'ot')
+        opts,par = self.parse_options(parameter_s,'ort')
         log_output = 'o' in opts
+        log_raw_input = 'r' in opts
         timestamp = 't' in opts
 
         rc = self.shell.rc
@@ -1051,7 +1058,7 @@ Currently the magic system has the following functions:\n"""
         loghead = self.shell.loghead_tpl % (rc.opts,rc.args)
         try:
             started  = logger.logstart(logfname,loghead,logmode,
-                                       log_output,timestamp)
+                                       log_output,timestamp,log_raw_input)
         except:
             rc.opts.logfile = old_logfile
             warn("Couldn't start log: %s" % sys.exc_info()[1])
@@ -1063,16 +1070,21 @@ Currently the magic system has the following functions:\n"""
                 # disable timestamping for the previous history, since we've
                 # lost those already (no time machine here).
                 logger.timestamp = False
+
+            if log_raw_input:
+                input_hist = self.shell.input_hist_raw
+            else:
+                input_hist = self.shell.input_hist
+                
             if log_output:
                 log_write = logger.log_write
-                input_hist = self.shell.input_hist
                 output_hist = self.shell.output_hist
                 for n in range(1,len(input_hist)-1):
                     log_write(input_hist[n].rstrip())
                     if n in output_hist:
                         log_write(repr(output_hist[n]),'output')
             else:
-                logger.log_write(self.shell.input_hist[1:])
+                logger.log_write(input_hist[1:])
             if timestamp:
                 # re-enable timestamping
                 logger.timestamp = True

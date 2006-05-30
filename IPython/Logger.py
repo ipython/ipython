@@ -2,7 +2,7 @@
 """
 Logger class for IPython's logging facilities.
 
-$Id: Logger.py 1077 2006-01-24 18:15:27Z vivainio $
+$Id: Logger.py 1335 2006-05-30 06:02:44Z fperez $
 """
 
 #*****************************************************************************
@@ -46,6 +46,9 @@ class Logger(object):
         self.logmode = logmode
         self.logfile = None
 
+        # Whether to log raw or processed input
+        self.log_raw_input = False
+
         # whether to also log output
         self.log_output = False
 
@@ -67,7 +70,7 @@ class Logger(object):
     logmode = property(_get_mode,_set_mode)
     
     def logstart(self,logfname=None,loghead=None,logmode=None,
-                 log_output=False,timestamp=False):
+                 log_output=False,timestamp=False,log_raw_input=False):
         """Generate a new log-file with a default header.
 
         Raises RuntimeError if the log has already been started"""
@@ -78,12 +81,15 @@ class Logger(object):
         
         self.log_active = True
 
-        # The three parameters can override constructor defaults
-        if logfname: self.logfname = logfname
-        if loghead: self.loghead = loghead
-        if logmode: self.logmode = logmode
+        # The parameters can override constructor defaults
+        if logfname is not None: self.logfname = logfname
+        if loghead is not None: self.loghead = loghead
+        if logmode is not None: self.logmode = logmode
+
+        # Parameters not part of the constructor
         self.timestamp = timestamp
         self.log_output = log_output
+        self.log_raw_input = log_raw_input
         
         # init depending on the log mode requested
         isfile = os.path.isfile
@@ -166,11 +172,22 @@ which already exists. But you must first start the logging process with
             print 'Timestamping   :',self.timestamp
             print 'State          :',state
 
-    def log(self, line,continuation=None):
-        """Write the line to a log and create input cache variables _i*."""
+    def log(self,line_ori,line_mod,continuation=None):
+        """Write the line to a log and create input cache variables _i*.
+
+        Inputs:
+
+        - line_ori: unmodified input line from the user.  This is not
+        necessarily valid Python.
+
+        - line_mod: possibly modified input, such as the transformations made
+        by input prefilters or input handlers of various kinds.  This should
+        always be valid Python.
+
+        - continuation: if True, indicates this is part of multi-line input."""
 
         # update the auto _i tables
-        #print '***logging line',line # dbg
+        #print '***logging line',line_mod # dbg
         #print '***cache_count', self.shell.outputcache.prompt_count # dbg
         try:
             input_hist = self.shell.user_ns['_ih']
@@ -178,13 +195,13 @@ which already exists. But you must first start the logging process with
             print 'userns:',self.shell.user_ns.keys()
             return
         
-        if not continuation and line:
+        if not continuation and line_mod:
             self._iii = self._ii
             self._ii = self._i
             self._i = self._i00
             # put back the final \n of every input line
-            self._i00 = line+'\n'
-            #print 'Logging input:<%s>' % line  # dbg
+            self._i00 = line_mod+'\n'
+            #print 'Logging input:<%s>' % line_mod  # dbg
             input_hist.append(self._i00)
         #print '---[%s]' % (len(input_hist)-1,) # dbg
 
@@ -205,11 +222,17 @@ which already exists. But you must first start the logging process with
                 in_num = self.shell.outputcache.prompt_count = last_num
             new_i = '_i%s' % in_num
             if continuation:
-                self._i00 = '%s%s\n' % (self.shell.user_ns[new_i],line)
+                self._i00 = '%s%s\n' % (self.shell.user_ns[new_i],line_mod)
                 input_hist[in_num] = self._i00
             to_main[new_i] = self._i00
         self.shell.user_ns.update(to_main)
-        self.log_write(line)
+
+        # Write the log line, but decide which one according to the
+        # log_raw_input flag, set when the log is started.
+        if self.log_raw_input:
+            self.log_write(line_ori)
+        else:
+            self.log_write(line_mod)
 
     def log_write(self,data,kind='input'):
         """Write data to the log file, if active"""

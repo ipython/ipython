@@ -1,3 +1,9 @@
+2006-05-30  Fernando Perez  <Fernando.Perez@colorado.edu>
+
+	* IPython/Logger.py (Logger.logstart): add option to log raw input
+	instead of the processed one.  A -r flag was added to the
+	%logstart magic used for controlling logging.
+
 2006-05-29  Fernando Perez  <Fernando.Perez@colorado.edu>
 
 	* IPython/iplib.py (InteractiveShell.__init__): add check for the

@@ -6,7 +6,7 @@ Requires Python 2.3 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 1334 2006-05-30 03:36:04Z fperez $
+$Id: iplib.py 1335 2006-05-30 06:02:44Z fperez $
 """
 
 #*****************************************************************************
@@ -2031,7 +2031,7 @@ want to merge them back into the new files.""" % locals()
         # aliases won't work in indented sections.
         transformed = self.transform_alias(iFun, theRest)        
         line_out = '%s_ip.system(%s)' % (pre, make_quoted_expr( transformed ))        
-        self.log(line_out,continue_prompt)
+        self.log(line,line_out,continue_prompt)
         return line_out
 
     def handle_shell_escape(self, line, continue_prompt=None,
@@ -2053,7 +2053,7 @@ want to merge them back into the new files.""" % locals()
             cmd=line.lstrip().lstrip('!')
             line_out = '%s_ip.system(%s)' % (pre,make_quoted_expr(cmd))
         # update cache/log and return
-        self.log(line_out,continue_prompt)
+        self.log(line,line_out,continue_prompt)
         return line_out
 
     def handle_magic(self, line, continue_prompt=None,
@@ -2062,7 +2062,7 @@ want to merge them back into the new files.""" % locals()
 
 
         cmd = '%s_ip.magic(%s)' % (pre,make_quoted_expr(iFun + " " + theRest))
-        self.log(cmd,continue_prompt)
+        self.log(line,cmd,continue_prompt)
         #print 'in handle_magic, cmd=<%s>' % cmd  # dbg
         return cmd
 
@@ -2074,7 +2074,7 @@ want to merge them back into the new files.""" % locals()
         
         # This should only be active for single-line input!
         if continue_prompt:
-            self.log(line,continue_prompt)
+            self.log(line,line,continue_prompt)
             return line
 
         auto_rewrite = True
@@ -2115,7 +2115,7 @@ want to merge them back into the new files.""" % locals()
             print >>Term.cout, self.outputcache.prompt1.auto_rewrite() + newcmd
         # log what is now valid Python, not the actual user input (without the
         # final newline)
-        self.log(newcmd,continue_prompt)
+        self.log(line,newcmd,continue_prompt)
         return newcmd
 
     def handle_help(self, line, continue_prompt=None,
@@ -2136,7 +2136,7 @@ want to merge them back into the new files.""" % locals()
                 line = line[1:]
             elif line[-1]==self.ESC_HELP:
                 line = line[:-1]
-            self.log('#?'+line)
+            self.log(line,'#?'+line,continue_prompt)
             if line:
                 self.magic_pinfo(line)
             else:
