@@ -120,7 +120,6 @@ class InteractiveRunner(object):
 
         c = pexpect.spawn(self.program,self.args,timeout=None)
             
-        prompts = c.compile_pattern_list(self.prompts[0])
         prompts = c.compile_pattern_list(self.prompts)
 
         prompt_idx = c.expect_list(prompts)
@@ -155,7 +154,7 @@ class InteractiveRunner(object):
                     c.interact()
                 except OSError:
                     # This is what fires when the child stops.  Simply print a
-                    # newline so the system prompt is alingned.  The extra
+                    # newline so the system prompt is aligned.  The extra
                     # space is there to make sure it gets printed, otherwise
                     # OS buffering sometimes just suppresses it.
                     write(' \n')
