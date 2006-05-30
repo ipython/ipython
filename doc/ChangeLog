@@ -1,3 +1,15 @@
+2006-05-29  Fernando Perez  <Fernando.Perez@colorado.edu>
+
+	* IPython/irunner.py: New module to run scripts as if manually
+	typed into an interactive environment, based on pexpect.  After a
+	submission by Ken Schutte <kschutte-AT-csail.mit.edu> on the
+	ipython-user list.  Simple unittests in the tests/ directory.
+
+	* tools/release: add Will Maier, OpenBSD port maintainer, to
+	recepients list.  We are now officially part of the OpenBSD ports:
+	http://www.openbsd.org/ports.html !  Many thanks to Will for the
+	work.
+
 2006-05-26  Fernando Perez  <Fernando.Perez@colorado.edu>
 
 	* IPython/ipmaker.py (make_IPython): modify sys.argv fix (below)

@@ -6,7 +6,7 @@ Requires Python 2.3 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 1329 2006-05-26 07:52:45Z fperez $
+$Id: iplib.py 1332 2006-05-30 01:41:28Z fperez $
 """
 
 #*****************************************************************************
@@ -190,7 +190,6 @@ class InteractiveShell(object,Magic):
                  user_ns = None,user_global_ns=None,banner2='',
                  custom_exceptions=((),None),embedded=False):
 
-        
         # log system
         self.logger = Logger(self,logfname='ipython_log.py',logmode='rotate')
 

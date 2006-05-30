@@ -89,7 +89,7 @@ cd $www
 
 # Alert package maintainers
 echo "Alerting package maintainers..."
-maintainers='fperez@colorado.edu ariciputi@users.sourceforge.net jack@xiph.org tretkowski@inittab.de dryice@hotpop.com'
+maintainers='fperez@colorado.edu ariciputi@users.sourceforge.net jack@xiph.org tretkowski@inittab.de dryice@hotpop.com willmaier@ml1.net'
 #maintainers='fperez@colorado.edu'
 
 for email in $maintainers

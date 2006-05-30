@@ -6,7 +6,7 @@
 #  the file COPYING, distributed as part of this software.
 #*****************************************************************************
 
-# $Id: usage.py 1301 2006-05-15 17:21:55Z vivainio $
+# $Id: usage.py 1332 2006-05-30 01:41:28Z fperez $
 
 from IPython import Release
 __author__  = '%s <%s>' % Release.authors['Fernando']
@@ -313,7 +313,7 @@ REGULAR OPTIONS
               Specify  the string used for input prompts. Note that if you are
               using numbered prompts, the number is represented with a '\#' in
               the  string.  Don't forget to quote strings with spaces embedded
-              in them. Default: 'In [\#]:'.
+              in them. Default: 'In [\#]: '.
 
               Most bash-like  escapes  can  be  used  to  customize  IPython's
               prompts, as well as a few additional ones which are IPython-spe-
@@ -321,10 +321,10 @@ REGULAR OPTIONS
               Customization section of the IPython HTML/PDF manual.
 
        -prompt_in2|pi2 <string>
-              Similar  to  the  previous option, but used for the continuation
-              prompts. The special sequence '\D' is similar to '\#', but  with
-              all  digits  replaced  dots  (so  you can have your continuation
-              prompt aligned with your  input  prompt).  Default:  '    .\D.:'
+              Similar to the previous option, but used for the continuation
+              prompts. The special sequence '\D' is similar to '\#', but with
+              all digits replaced dots (so you can have your continuation
+              prompt aligned with your input prompt).  Default: ' .\D.: '
               (note three spaces at the start for alignment with 'In [\#]').
 
        -prompt_out|po <string>
