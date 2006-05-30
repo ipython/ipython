@@ -30,8 +30,8 @@ if sys.platform == 'win32':
         #print "Try installing it with 'easy_install pyreadline (ctypes is required) or"
         #print "svn co http://ipython.scipy.org/svn/ipython/pyreadline/trunk pyreadline"
         #print "Trying 'old' windows readline."
-        print "Using 'old' readline, you might want to try pyreadline:"
-        print "http://projects.scipy.org/ipython/ipython/wiki/PyReadline/Intro"
+        #print "Using 'old' readline, you might want to try pyreadline:"
+        #print "http://projects.scipy.org/ipython/ipython/wiki/PyReadline/Intro"
         try:
             from readline import *
             import readline as _rl
