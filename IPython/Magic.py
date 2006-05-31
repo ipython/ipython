@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Magic functions for InteractiveShell.
 
-$Id: Magic.py 1335 2006-05-30 06:02:44Z fperez $"""
+$Id: Magic.py 1338 2006-05-31 14:24:23Z vivainio $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001 Janko Hauser <jhauser@zscout.de> and
@@ -2952,10 +2952,10 @@ Defaulting color scheme to 'NoColor'"""
         """
         ip = self.getapi()
         ipinstallation = path(IPython.__file__).dirname()
-        upgrade_script = sys.executable + " " + ipinstallation / 'upgrade_dir.py'
+        upgrade_script = '%s "%s"' % (sys.executable,ipinstallation / 'upgrade_dir.py')
         src_config = ipinstallation / 'UserConfig'
         userdir = path(ip.options.ipythondir)
-        cmd = upgrade_script + " " + src_config + " " + userdir
+        cmd = '%s "%s" "%s"' % (upgrade_script, src_config, userdir)
         print ">",cmd
         shell(cmd)
         if arg == '-nolegacy':

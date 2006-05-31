@@ -76,7 +76,7 @@ def upgrade_dir(srcdir, tgtdir):
         #print rpt
     pickle.dump(rpt, rep.open('w'))
     if modded:
-        print "\n\nDelete the following files manually if you need a full upgrade:"
+        print "\n\nDelete the following files manually (and rerun %upgrade)\nif you need a full upgrade:"
         for m in modded:
             print m
             
