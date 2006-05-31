@@ -6,7 +6,7 @@ Requires Python 2.3 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 1335 2006-05-30 06:02:44Z fperez $
+$Id: iplib.py 1339 2006-05-31 16:13:50Z fperez $
 """
 
 #*****************************************************************************
@@ -1817,7 +1817,9 @@ want to merge them back into the new files.""" % locals()
             # blanket except, in case a user-defined prefilter crashes, so it
             # can't take all of ipython with it.
             self.showtraceback()
-        return lineout
+            return ''
+        else:
+            return lineout
         
     def split_user_input(self,line):
         """Split user input into pre-char, function part and rest."""
@@ -2020,7 +2022,7 @@ want to merge them back into the new files.""" % locals()
              (self.buffer[-1]).isspace() )):
             line = ''
 
-        self.log(line,continue_prompt)
+        self.log(line,line,continue_prompt)
         return line
 
     def handle_alias(self,line,continue_prompt=None,

@@ -1,3 +1,8 @@
+2006-05-31  Fernando Perez  <Fernando.Perez@colorado.edu>
+
+	* IPython/iplib.py (handle_normal): fix nasty crash reported on
+	SAGE list, from improper log() calls.
+
 2006-05-31  Ville Vainio  <vivainio@gmail.com>
 
 	* upgrade_dir.py, Magic.py (magic_upgrade): call upgrade_dir
