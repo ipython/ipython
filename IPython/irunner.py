@@ -71,12 +71,24 @@ class InteractiveRunner(object):
 
           - args(None): optional list of strings to pass as arguments to the
           child program.
+
+        Public members not parameterized in the constructor:
+
+          - delaybeforesend(0): Newer versions of pexpect have a delay before
+          sending each new input.  For our purposes here, it's typically best
+          to just set this to zero, but if you encounter reliability problems
+          or want an interactive run to pause briefly at each prompt, just
+          increase this value (it is measured in seconds).  Note that this
+          variable is not honored at all by older versions of pexpect.
         """
         
         self.program = program
         self.prompts = prompts
         if args is None: args = []
         self.args = args
+        # Other public members which we don't make as parameters, but which
+        # users may occasionally want to tweak
+        self.delaybeforesend = 0
         
     def run_file(self,fname,interact=False):
         """Run the given file interactively.
@@ -119,6 +131,7 @@ class InteractiveRunner(object):
         write = sys.stdout.write
 
         c = pexpect.spawn(self.program,self.args,timeout=None)
+        c.delaybeforesend = self.delaybeforesend
             
         prompts = c.compile_pattern_list(self.prompts)
 
@@ -222,13 +235,12 @@ class PythonRunner(InteractiveRunner):
 class SAGERunner(InteractiveRunner):
     """Interactive SAGE runner.
     
-    XXX - This class is currently untested, meant for feedback from the SAGE
-    team. """
+    WARNING: this runner only works if you manually configure your SAGE copy
+    to use 'colors NoColor' in the ipythonrc config file, since currently the
+    prompt matching regexp does not identify color sequences."""
 
     def __init__(self,program='sage',args=None):
         """New runner, optionally passing the sage command to use."""
-        print 'XXX - This class is currently untested!!!'
-        print 'It is a placeholder,  meant for feedback from the SAGE team.'
 
         prompts = ['sage: ',r'\s*\.\.\. ']
         InteractiveRunner.__init__(self,program,prompts,args)
@@ -246,10 +258,17 @@ irunner.py --python -- --help
 
 will pass --help to the python runner.  Similarly,
 
-irunner.py --ipython -- --log test.log script.ipy
+irunner.py --ipython -- --interact script.ipy
 
-will run the script.ipy file under the IPython runner, logging all output into
-the test.log file.
+will run the script.ipy file under the IPython runner, and then will start to
+interact with IPython at the end of the script (instead of exiting).
+
+The already implemented runners are listed below; adding one for a new program
+is a trivial task, see the source for examples.
+
+WARNING: the SAGE runner only works if you manually configure your SAGE copy
+to use 'colors NoColor' in the ipythonrc config file, since currently the
+prompt matching regexp does not identify color sequences.
 """
 
 def main():
@@ -263,7 +282,7 @@ def main():
     newopt('--python',action='store_const',dest='mode',const='python',
            help='Python interactive runner.')
     newopt('--sage',action='store_const',dest='mode',const='sage',
-           help='SAGE interactive runner - UNTESTED.')
+           help='SAGE interactive runner.')
 
     opts,args = parser.parse_args()
     runners = dict(ipython=IPythonRunner,

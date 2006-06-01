@@ -1011,16 +1011,34 @@ Coloring of prompts, code and tracebacks.
 These, by default, are only available under Unix-like operating systems.
  However, thanks to Gary Bishop's work, Windows XP/2k users can also benefit
  from them.
- His readline library implements both GNU readline functionality and color
- support, so that IPython under Windows XP/2k can be as friendly and powerful
- as under Unix-like environments.
+ His readline library originally implemented both GNU readline functionality
+ and color support, so that IPython under Windows XP/2k can be as friendly
+ and powerful as under Unix-like environments.
+ 
+\layout Standard
+
+This library, now named 
+\family typewriter 
+PyReadline
+\family default 
+, has been absorbed by the IPython team (Jörgen Stenarson, in particular),
+ and it continues to be developed with new features, as well as being distribute
+d directly from the IPython site.
 \layout Standard
 
 The
 \family typewriter 
- readline
+ PyReadline
 \family default 
- extension needs two other libraries to work, so in all you need:
+ extension requires 
+\family typewriter 
+CTypes
+\family default 
+ and the windows IPython installer needs 
+\family typewriter 
+PyWin32
+\family default 
+, so in all you need:
 \layout Enumerate
 
 
@@ -1053,14 +1071,16 @@ must
 
 
 \family typewriter 
-Readline
+PyReadline
 \family default 
  for Windows from 
-\begin_inset LatexCommand \htmlurl{http://sourceforge.net/projects/uncpythontools}
+\begin_inset LatexCommand \htmlurl{http://projects.scipy.org/ipython/ipython/wiki/PyReadline/Intro}
 
 \end_inset 
 
 .
+ That page contains further details on using and configuring the system
+ to your liking.
 \layout Standard
 
 

@@ -1,5 +1,15 @@
 2006-05-31  Fernando Perez  <Fernando.Perez@colorado.edu>
 
+	* scripts/irunner: thin script interface so users don't have to
+	find the module and call it as an executable, since modules rarely
+	live in people's PATH.
+
+	* IPython/irunner.py (InteractiveRunner.__init__): added
+	delaybeforesend attribute to control delays with newer versions of
+	pexpect.  Thanks to detailed help from pexpect's author, Noah
+	Spurrier <noah-AT-noah.org>.  Noted how to use the SAGE runner
+	correctly (it works in NoColor mode).
+
 	* IPython/iplib.py (handle_normal): fix nasty crash reported on
 	SAGE list, from improper log() calls.
 
