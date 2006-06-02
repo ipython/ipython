@@ -113,7 +113,8 @@ manfiles    = filter(isfile, glob('doc/manual/*.html')) + \
               filter(isfile, glob('doc/manual/*.png'))
 manpages    = filter(isfile, glob('doc/*.1.gz'))
 cfgfiles    = filter(isfile, glob('IPython/UserConfig/*'))
-scriptfiles = filter(isfile, ['scripts/ipython','scripts/pycolor'])
+scriptfiles = filter(isfile, ['scripts/ipython','scripts/pycolor',
+                              'scripts/irunner'])
 
 # Script to be run by the windows binary installer after the default setup
 # routine, to add shortcuts and similar windows-only things.  Windows
