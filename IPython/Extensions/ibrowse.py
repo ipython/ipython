@@ -1046,7 +1046,8 @@ class ibrowse(ipipe.Display):
                     break
                 item = level.items[level.cury].item
                 try:
-                    if eval(self.keyboardinput, globals(), ipipe.AttrNamespace(item)):
+                    globals = ipipe.getglobals(None)
+                    if eval(self.keyboardinput, globals, ipipe.AttrNamespace(item)):
                         break
                 except (KeyboardInterrupt, SystemExit):
                     raise
@@ -1065,7 +1066,8 @@ class ibrowse(ipipe.Display):
                 level.moveto(level.curx, level.cury-1)
                 item = level.items[level.cury].item
                 try:
-                    if eval(self.keyboardinput, globals(), ipipe.AttrNamespace(item)):
+                    globals = ipipe.getglobals(None)
+                    if eval(self.keyboardinput, globals, ipipe.AttrNamespace(item)):
                         break
                 except (KeyboardInterrupt, SystemExit):
                     raise
