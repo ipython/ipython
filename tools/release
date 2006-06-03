@@ -37,32 +37,25 @@ rm -rf $ipdir/dist/*
 
 # Perform local backup
 cd $ipdir/tools
-./bkp.py
+./bkp.sh
 
 # Build source and binary distros
 cd $ipdir
 ./setup.py sdist --formats=gztar
-#./setup.py bdist_rpm --release=py$PYVER
-python2.3 ./setup.py bdist_rpm --release=py23 --python=/usr/bin/python2.3
 
-# A 2.4-specific RPM, where we must use the --python option to ensure that
-# the resulting RPM is really built with 2.4 (so things go to
-# lib/python2.4/...)
+# Build version-specific RPMs, where we must use the --python option to ensure
+# that the resulting RPM is really built with the requested python version (so
+# things go to lib/python2.X/...)
+python2.3 ./setup.py bdist_rpm --release=py23 --python=/usr/bin/python2.3
 python2.4 ./setup.py bdist_rpm --release=py24 --python=/usr/bin/python2.4
 
-# Build eggs
-python2.3 ./eggsetup.py bdist_egg
-python2.4 ./eggsetup.py bdist_egg
+# Build egg
+./eggsetup.py bdist_egg
 
 # Call the windows build separately, so that the extra Windows scripts don't
 # get pulled into Unix builds (setup.py has code which checks for
 # bdist_wininst)
-#./setup.py bdist_wininst --install-script=ipython_win_post_install.py
-
-# For now, make the win32 installer with a hand-built 2.3.5 python, which is
-# the only one that fixes a crash in the post-install phase.
-$HOME/tmp/local/bin/python2.3 setup.py bdist_wininst \
-  --install-script=ipython_win_post_install.py
+./setup.py bdist_wininst --install-script=ipython_win_post_install.py
 
 # Register with the Python Package Index (PyPI)
 echo "Registering with PyPI..."
