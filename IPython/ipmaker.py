@@ -6,7 +6,7 @@ Requires Python 2.1 or better.
 
 This file contains the main make_IPython() starter function.
 
-$Id: ipmaker.py 1330 2006-05-26 22:34:48Z fperez $"""
+$Id: ipmaker.py 1346 2006-06-03 23:55:15Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2006 Fernando Perez. <fperez@colorado.edu>
@@ -124,13 +124,9 @@ object? -> Details about 'object'. ?object also works, ?? prints more.
         ipdir_def = '_ipython'
 
     # default directory for configuration
-    ipythondir = os.path.abspath(os.environ.get('IPYTHONDIR',
+    ipythondir_def = os.path.abspath(os.environ.get('IPYTHONDIR',
                                  os.path.join(IP.home_dir,ipdir_def)))
 
-    # add personal .ipython dir to sys.path so that users can put things in
-    # there for customization
-    sys.path.append(ipythondir)
-        
     sys.path.insert(0, '') # add . to sys.path. Fix from Prabhu Ramachandran
 
     # we need the directory where IPython itself is installed
@@ -197,7 +193,7 @@ object? -> Details about 'object'. ?object also works, ?? prints more.
                       editor = '0',
                       help = 0,
                       ignore = 0,
-                      ipythondir = ipythondir,
+                      ipythondir = ipythondir_def,
                       log = 0,
                       logfile = '',
                       logplay = '',
@@ -317,6 +313,10 @@ object? -> Details about 'object'. ?object also works, ?? prints more.
     if opts_all.magic_docstrings:
         IP.magic_magic('-latex')
         sys.exit()
+
+    # add personal ipythondir to sys.path so that users can put things in
+    # there for customization
+    sys.path.append(os.path.abspath(opts_all.ipythondir))
 
     # Create user config directory if it doesn't exist. This must be done
     # *after* getting the cmd line options.
@@ -634,14 +634,14 @@ object? -> Details about 'object'. ?object also works, ?? prints more.
         import ipy_user_conf
     except ImportError:
         if opts_all.debug:  IP.InteractiveTB()
-        warn("Could not import user config!\n ('%s/ipy_user_conf.py' does not exist? Please run '%%upgrade')\n" %
-            ipythondir)
+        warn("Could not import user config!\n "
+             "('%s/ipy_user_conf.py' does not exist? Please run '%%upgrade')\n"
+             % opts_all.ipythondir)
     except:
         print "Error importing ipy_user_conf"
         IP.InteractiveTB()
         import_fail_info("ipy_user_conf")
-        
-
+    
     # release stdout and stderr and save config log into a global summary
     msg.config.release_all()
     if IP_rc.messages:

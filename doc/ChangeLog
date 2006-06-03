@@ -1,5 +1,9 @@
 2006-06-03  Fernando Perez  <Fernando.Perez@colorado.edu>
 
+	* IPython/ipmaker.py (make_IPython): honor -ipythondir flag
+	correctly at initialization time.  Bug reported by Krishna Mohan
+	Gundu <gkmohan-AT-gmail.com> on the user list.
+
 	* IPython/Release.py (version): Mark 0.7.2 version to start
 	testing for release on 06/06.
 
