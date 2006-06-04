@@ -5,7 +5,7 @@ General purpose utilities.
 This is a grab-bag of stuff I find useful in most programs I write. Some of
 these things are also convenient when working at the command line.
 
-$Id: genutils.py 1322 2006-05-24 07:51:39Z fperez $"""
+$Id: genutils.py 1349 2006-06-04 00:57:43Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2006 Fernando Perez. <fperez@colorado.edu>
@@ -992,28 +992,27 @@ def ask_yes_no(prompt,default=None):
 
     If default is given (one of 'y','n'), it is used if the user input is
     empty. Otherwise the question is repeated until an answer is given.
-    If EOF occurs 20 times consecutively, the default answer is assumed,
-    or if there is no default, an exception is raised to prevent infinite
-    loops.
+
+    An EOF is treated as the default answer.  If there is no default, an
+    exception is raised to prevent infinite loops.
 
     Valid answers are: y/yes/n/no (match is not case sensitive)."""
 
     answers = {'y':True,'n':False,'yes':True,'no':False}
     ans = None
-    eofs, max_eofs = 0, 20
     while ans not in answers.keys():
         try:
             ans = raw_input(prompt+' ').lower()
             if not ans:  # response was an empty string
                 ans = default
-            eofs = 0
-        except (EOFError,KeyboardInterrupt):
-            eofs = eofs + 1
-            if eofs >= max_eofs:
-                if default in answers.keys():
-                    ans = default
-                else:
-                    raise
+        except KeyboardInterrupt:
+            pass
+        except EOFError:
+            if default in answers.keys():
+                ans = default
+                print
+            else:
+                raise
             
     return answers[ans]
 

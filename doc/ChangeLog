@@ -1,5 +1,8 @@
 2006-06-03  Fernando Perez  <Fernando.Perez@colorado.edu>
 
+	* IPython/genutils.py (ask_yes_no): treat EOF as a default answer
+	instead of looping 20 times.
+
 	* IPython/ipmaker.py (make_IPython): honor -ipythondir flag
 	correctly at initialization time.  Bug reported by Krishna Mohan
 	Gundu <gkmohan-AT-gmail.com> on the user list.
