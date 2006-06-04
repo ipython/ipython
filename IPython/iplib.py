@@ -6,7 +6,7 @@ Requires Python 2.3 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 1339 2006-05-31 16:13:50Z fperez $
+$Id: iplib.py 1347 2006-06-04 00:42:44Z fperez $
 """
 
 #*****************************************************************************
@@ -450,10 +450,9 @@ class InteractiveShell(object,Magic):
                                    header='IPython system call: ',
                                    verbose=self.rc.system_verbose)
         self.getoutputerror = lambda cmd: \
-                              getoutputerror(str(ItplNS(cmd.replace('#','\#'),
-                                                        self.user_ns)),
-                                             header='IPython system call: ',
-                                             verbose=self.rc.system_verbose)
+                              getoutputerror((self.var_expand(cmd),
+                                              header='IPython system call: ',
+                                              verbose=self.rc.system_verbose)
  
         # RegExp for splitting line contents into pre-char//first
         # word-method//rest.  For clarity, each group in on one line.
@@ -1549,8 +1548,7 @@ want to merge them back into the new files.""" % locals()
       self.showtraceback((etype,value,tb),tb_offset=0)
 
     def transform_alias(self, alias,rest=''):
-        """ Transform alias to system command string 
-        
+        """ Transform alias to system command string.
         """
         nargs,cmd = self.alias_table[alias]
         if ' ' in cmd and os.path.isfile(cmd):
@@ -1572,7 +1570,7 @@ want to merge them back into the new files.""" % locals()
                 return None
             cmd = '%s %s' % (cmd % tuple(args[:nargs]),' '.join(args[nargs:]))
         # Now call the macro, evaluating in the user's namespace
-
+        #print 'new command: <%r>' % cmd  # dbg
         return cmd
         
     def call_alias(self,alias,rest=''):
@@ -2034,6 +2032,7 @@ want to merge them back into the new files.""" % locals()
         transformed = self.transform_alias(iFun, theRest)        
         line_out = '%s_ip.system(%s)' % (pre, make_quoted_expr( transformed ))        
         self.log(line,line_out,continue_prompt)
+        #print 'line out:',line_out # dbg
         return line_out
 
     def handle_shell_escape(self, line, continue_prompt=None,

@@ -6,7 +6,7 @@ Requires Python 2.1 or better.
 
 This file contains the main make_IPython() starter function.
 
-$Id: ipmaker.py 1346 2006-06-03 23:55:15Z fperez $"""
+$Id: ipmaker.py 1347 2006-06-04 00:42:44Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2006 Fernando Perez. <fperez@colorado.edu>
@@ -621,10 +621,9 @@ object? -> Details about 'object'. ?object also works, ?? prints more.
         except ImportError:
             # only warn if ipythonrc-PROFNAME didn't exist
             if opts.profile =='':
-                warn("Could not start with profile '%s'!\n ('%s/%s.py' does not exist? run '%%upgrade')" % (
-                      opts_all.profile, ipythondir, profmodname)
-
-                      )
+                warn("Could not start with profile '%s'!\n"
+                     "('%s/%s.py' does not exist? run '%%upgrade')" %
+                     (opts_all.profile, opts_all.ipythondir, profmodname) )
         except:
             print "Error importing",profmodname
             IP.InteractiveTB()
