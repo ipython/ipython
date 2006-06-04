@@ -6,7 +6,7 @@ Requires Python 2.3 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 1347 2006-06-04 00:42:44Z fperez $
+$Id: iplib.py 1348 2006-06-04 00:45:07Z fperez $
 """
 
 #*****************************************************************************
@@ -450,9 +450,9 @@ class InteractiveShell(object,Magic):
                                    header='IPython system call: ',
                                    verbose=self.rc.system_verbose)
         self.getoutputerror = lambda cmd: \
-                              getoutputerror((self.var_expand(cmd),
-                                              header='IPython system call: ',
-                                              verbose=self.rc.system_verbose)
+                              getoutputerror(self.var_expand(cmd),
+                                             header='IPython system call: ',
+                                             verbose=self.rc.system_verbose)
  
         # RegExp for splitting line contents into pre-char//first
         # word-method//rest.  For clarity, each group in on one line.
