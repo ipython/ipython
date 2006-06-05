@@ -2,6 +2,9 @@
 
 	* Magic.py (magic_rehashx): Honor no_alias list earlier in 
         %rehashx, to avoid clobbering builtins in ipy_profile_sh.py
+	
+        * upgrade_dir.py: try import 'path' module a bit harder
+        (for %upgrade)A
 
 2006-06-03  Fernando Perez  <Fernando.Perez@colorado.edu>
 
