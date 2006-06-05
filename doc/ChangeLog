@@ -1,3 +1,8 @@
+﻿2006-06-05  Ville Vainio  <vivainio@gmail.com>
+
+	* Magic.py (magic_rehashx): Honor no_alias list earlier in 
+        %rehashx, to avoid clobbering builtins in ipy_profile_sh.py
+
 2006-06-03  Fernando Perez  <Fernando.Perez@colorado.edu>
 
 	* IPython/genutils.py (ask_yes_no): treat EOF as a default answer
