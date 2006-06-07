@@ -1,4 +1,9 @@
-﻿2006-06-05  Ville Vainio  <vivainio@gmail.com>
+2006-06-06  Fernando Perez  <Fernando.Perez@colorado.edu>
+
+	* IPython/Release.py (version): Made 0.7.2 final for release.
+	Repo tagged and release cut.
+
+2006-06-05  Ville Vainio  <vivainio@gmail.com>
 
 	* Magic.py (magic_rehashx): Honor no_alias list earlier in 
         %rehashx, to avoid clobbering builtins in ipy_profile_sh.py

@@ -11,9 +11,8 @@ cd ~/ipython/ipython
 
 ./setup.py sdist --formats=gztar
 
-# Build rpms
-python2.3 ./setup.py bdist_rpm --release=py23 --python=/usr/bin/python2.3
-python2.4 ./setup.py bdist_rpm --release=py24 --python=/usr/bin/python2.4
+# Build rpm
+python2.4 ./setup.py bdist_rpm --binary-only --release=py24 --python=/usr/bin/python2.4
 
 # Build eggs
 ./eggsetup.py bdist_egg

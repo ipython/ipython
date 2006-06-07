@@ -46,8 +46,7 @@ cd $ipdir
 # Build version-specific RPMs, where we must use the --python option to ensure
 # that the resulting RPM is really built with the requested python version (so
 # things go to lib/python2.X/...)
-python2.3 ./setup.py bdist_rpm --release=py23 --python=/usr/bin/python2.3
-python2.4 ./setup.py bdist_rpm --release=py24 --python=/usr/bin/python2.4
+python2.4 ./setup.py bdist_rpm --binary-only --release=py24 --python=/usr/bin/python2.4
 
 # Build egg
 ./eggsetup.py bdist_egg
