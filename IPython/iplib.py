@@ -6,7 +6,7 @@ Requires Python 2.3 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 1355 2006-06-07 16:56:50Z vivainio $
+$Id: iplib.py 1356 2006-06-07 23:51:05Z fperez $
 """
 
 #*****************************************************************************
@@ -566,13 +566,13 @@ class InteractiveShell(object,Magic):
             # --color switch out of the box
             if 'bsd' in sys.platform:
                 ls_extra = ( # ls normal files only
-                             'lf ls -F -o %l | grep ^-',
+                             'lf ls -lF | grep ^-',
                              # ls symbolic links
-                             'lk ls -F -o %l | grep ^l',
+                             'lk ls -lF | grep ^l',
                              # directories or links to directories,
-                             'ldir ls -F -o %l | grep /$',
+                             'ldir ls -lF | grep /$',
                              # things which are executable
-                             'lx ls -F -o %l | grep ^-..x',
+                             'lx ls -lF | grep ^-..x',
                              )
             auto_alias = auto_alias + ls_extra
         elif os.name in ['nt','dos']:
