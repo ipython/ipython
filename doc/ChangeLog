@@ -1,3 +1,9 @@
+2006-06-07  Ville Vainio  <vivainio@gmail.com>
+
+	* iplib.py,Magic.py, ipmaker.py (magic_rehashx): 
+	Confirmation prompts can be supressed by 'quiet' option. 
+	_ip.options.quiet = 1 means "assume yes for all yes/no queries".
+
 2006-06-06  Fernando Perez  <Fernando.Perez@colorado.edu>
 
 	* IPython/Release.py (version): Made 0.7.2 final for release.
@@ -6,10 +12,10 @@
 2006-06-05  Ville Vainio  <vivainio@gmail.com>
 
 	* Magic.py (magic_rehashx): Honor no_alias list earlier in 
-        %rehashx, to avoid clobbering builtins in ipy_profile_sh.py
+	%rehashx, to avoid clobbering builtins in ipy_profile_sh.py
 	
-        * upgrade_dir.py: try import 'path' module a bit harder
-        (for %upgrade)A
+	* upgrade_dir.py: try import 'path' module a bit harder
+	(for %upgrade)
 
 2006-06-03  Fernando Perez  <Fernando.Perez@colorado.edu>
 

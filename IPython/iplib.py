@@ -6,7 +6,7 @@ Requires Python 2.3 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 1350 2006-06-04 14:06:06Z fperez $
+$Id: iplib.py 1355 2006-06-07 16:56:50Z vivainio $
 """
 
 #*****************************************************************************
@@ -1231,6 +1231,11 @@ want to merge them back into the new files.""" % locals()
         # Configure auto-indent for all platforms
         self.set_autoindent(self.rc.autoindent)
 
+    def ask_yes_no(self,prompt,default=True):
+        if self.rc.quiet:
+            return True
+        return ask_yes_no(prompt,default)
+    
     def _should_recompile(self,e):
         """Utility routine for edit_syntax_error"""
 
@@ -1241,7 +1246,7 @@ want to merge them back into the new files.""" % locals()
             return False
         try:
             if (self.rc.autoedit_syntax and 
-                not ask_yes_no('Return to editor to correct syntax error? '
+                not self.ask_yes_no('Return to editor to correct syntax error? '
                               '[Y/n] ','y')):
                 return False
         except EOFError:
@@ -2207,7 +2212,7 @@ want to merge them back into the new files.""" % locals()
         This method sets the exit_now attribute."""
 
         if self.rc.confirm_exit:
-            if ask_yes_no('Do you really want to exit ([y]/n)?','y'):
+            if self.ask_yes_no('Do you really want to exit ([y]/n)?','y'):
                 self.exit_now = True
         else:
             self.exit_now = True

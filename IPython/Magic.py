@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Magic functions for InteractiveShell.
 
-$Id: Magic.py 1351 2006-06-05 13:43:18Z vivainio $"""
+$Id: Magic.py 1355 2006-06-07 16:56:50Z vivainio $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001 Janko Hauser <jhauser@zscout.de> and
@@ -973,9 +973,9 @@ Currently the magic system has the following functions:\n"""
 
         Input/Output history are left around in case you need them."""
 
-        ans = raw_input(
-          "Once deleted, variables cannot be recovered. Proceed (y/n)? ")
-        if not ans.lower() == 'y':
+        ans = self.shell.ask_yes_no(
+          "Once deleted, variables cannot be recovered. Proceed (y/[n])? ")
+        if not ans:
             print 'Nothing done.'
             return
         user_ns = self.shell.user_ns

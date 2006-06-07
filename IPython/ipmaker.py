@@ -6,7 +6,7 @@ Requires Python 2.1 or better.
 
 This file contains the main make_IPython() starter function.
 
-$Id: ipmaker.py 1347 2006-06-04 00:42:44Z fperez $"""
+$Id: ipmaker.py 1355 2006-06-07 16:56:50Z vivainio $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2006 Fernando Perez. <fperez@colorado.edu>
@@ -208,6 +208,7 @@ object? -> Details about 'object'. ?object also works, ?? prints more.
                       prompt_in2 = '   .\\D.: ',
                       prompt_out = 'Out[\\#]: ',
                       prompts_pad_left = 1,
+                      quiet = 0,
                       quick = 0,
                       readline = 1,
                       readline_merge_completions = 1,
