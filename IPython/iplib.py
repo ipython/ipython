@@ -6,7 +6,7 @@ Requires Python 2.3 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 1356 2006-06-07 23:51:05Z fperez $
+$Id: iplib.py 1357 2006-06-08 12:15:46Z vivainio $
 """
 
 #*****************************************************************************
@@ -666,12 +666,16 @@ class InteractiveShell(object,Magic):
             self.magic_alias(alias)
         self.hooks.late_startup_hook()
         
+        batchrun = False
         for batchfile in [path(arg) for arg in self.rc.args 
             if arg.lower().endswith('.ipy')]:
             if not batchfile.isfile():
                 print "No such batch file:", batchfile
                 continue
             self.api.runlines(batchfile.text())
+            batchrun = True
+        if batchrun:
+            self.exit_now = True            
 
     def add_builtins(self):
         """Store ipython references into the builtin namespace.
@@ -1470,6 +1474,10 @@ want to merge them back into the new files.""" % locals()
         close!).
 
         """
+        
+        if self.exit_now:
+            # batch run -> do not interact
+            return
         cprt = 'Type "copyright", "credits" or "license" for more information.'
         if banner is None:
             self.write("Python %s on %s\n%s\n(%s)\n" %
@@ -1484,7 +1492,6 @@ want to merge them back into the new files.""" % locals()
         __builtin__.__dict__['__IPYTHON__active'] += 1
 
         # exit_now is set by a call to %Exit or %Quit
-        self.exit_now = False
         while not self.exit_now:
             if more:
                 prompt = self.outputcache.prompt2

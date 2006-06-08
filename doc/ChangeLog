@@ -1,3 +1,8 @@
+2006-06-07  Ville Vainio  <vivainio@gmail.com>
+
+	* iplib.py: ipython mybatch.ipy exits ipython immediately after
+	running the batch files instead of leaving the session open.
+
 2006-06-07  Fernando Perez  <Fernando.Perez@colorado.edu>
 
 	* IPython/iplib.py (InteractiveShell.__init__): update BSD fix, as
