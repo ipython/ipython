@@ -446,6 +446,211 @@ class _BrowserLevel(object):
         self.moveto(self.curx, cury, refresh=True)
 
 
+class _CommandInput(object):
+    keymap = {
+        curses.KEY_LEFT: "left",
+        curses.KEY_RIGHT: "right",
+        curses.KEY_HOME: "home",
+        curses.KEY_END: "end",
+        # FIXME: What's happening here?
+        8: "backspace",
+        127: "backspace",
+        curses.KEY_BACKSPACE: "backspace",
+        curses.KEY_DC: "delete",
+        ord("x"): "delete",
+        ord("\n"): "execute",
+        ord("\r"): "execute",
+        curses.KEY_UP: "up",
+        curses.KEY_DOWN: "down",
+        # CTRL-X
+        0x18: "exit",
+    }
+
+    def __init__(self, prompt):
+        self.prompt = prompt
+        self.history = []
+        self.maxhistory = 100
+        self.input = ""
+        self.curx = 0
+        self.cury = -1 # blank line
+
+    def start(self):
+        self.input = ""
+        self.curx = 0
+        self.cury = -1 # blank line
+
+    def handlekey(self, browser, key):
+        cmdname = self.keymap.get(key, None)
+        if cmdname is not None:
+            cmdfunc = getattr(self, "cmd_%s" % cmdname, None)
+            if cmdfunc is not None:
+                return cmdfunc(browser)
+            curses.beep()
+        elif key != -1:
+            try:
+                char = chr(key)
+            except ValueError:
+                curses.beep()
+            else:
+                return self.handlechar(browser, char)
+
+    def handlechar(self, browser, char):
+        self.input = self.input[:self.curx] + char + self.input[self.curx:]
+        self.curx += 1
+        return True
+
+    def dohistory(self):
+        self.history.insert(0, self.input)
+        del self.history[:-self.maxhistory]
+
+    def cmd_backspace(self, browser):
+        if self.curx:
+            self.input = self.input[:self.curx-1] + self.input[self.curx:]
+            self.curx -= 1
+            return True
+        else:
+            curses.beep()
+
+    def cmd_delete(self, browser):
+        if self.curx<len(self.input):
+            self.input = self.input[:self.curx] + self.input[self.curx+1:]
+            return True
+        else:
+            curses.beep()
+
+    def cmd_left(self, browser):
+        if self.curx:
+            self.curx -= 1
+            return True
+        else:
+            curses.beep()
+
+    def cmd_right(self, browser):
+        if self.curx < len(self.input):
+            self.curx += 1
+            return True
+        else:
+            curses.beep()
+
+    def cmd_home(self, browser):
+        if self.curx:
+            self.curx = 0
+            return True
+        else:
+            curses.beep()
+
+    def cmd_end(self, browser):
+        if self.curx < len(self.input):
+            self.curx = len(self.input)
+            return True
+        else:
+            curses.beep()
+
+    def cmd_up(self, browser):
+        if self.cury < len(self.history)-1:
+            self.cury += 1
+            self.input = self.history[self.cury]
+            self.curx = len(self.input)
+            return True
+        else:
+            curses.beep()
+
+    def cmd_down(self, browser):
+        if self.cury >= 0:
+            self.cury -= 1
+            if self.cury>=0:
+                self.input = self.history[self.cury]
+            else:
+                self.input = ""
+            self.curx = len(self.input)
+            return True
+        else:
+            curses.beep()
+
+    def cmd_exit(self, browser):
+        browser.mode = "default"
+        return True
+
+    def cmd_execute(self, browser):
+        raise NotImplementedError
+
+
+class _CommandGoto(_CommandInput):
+    def __init__(self):
+        _CommandInput.__init__(self, "goto object #")
+
+    def handlechar(self, browser, char):
+        # Only accept digits
+        if not "0" <= char <= "9":
+            curses.beep()
+        else:
+            return _CommandInput.handlechar(self, browser, char)
+
+    def cmd_execute(self, browser):
+        level = browser.levels[-1]
+        if self.input:
+            self.dohistory()
+            level.moveto(level.curx, int(self.input))
+        browser.mode = "default"
+        return True
+
+
+class _CommandFind(_CommandInput):
+    def __init__(self):
+        _CommandInput.__init__(self, "find expression")
+
+    def cmd_execute(self, browser):
+        level = browser.levels[-1]
+        if self.input:
+            self.dohistory()
+            while True:
+                cury = level.cury
+                level.moveto(level.curx, cury+1)
+                if cury == level.cury:
+                    curses.beep()
+                    break # hit end
+                item = level.items[level.cury].item
+                try:
+                    globals = ipipe.getglobals(None)
+                    if eval(self.input, globals, ipipe.AttrNamespace(item)):
+                        break # found something
+                except (KeyboardInterrupt, SystemExit):
+                    raise
+                except Exception, exc:
+                    browser.report(exc)
+                    curses.beep()
+                    break  # break on error
+        browser.mode = "default"
+        return True
+
+
+class _CommandFindBackwards(_CommandInput):
+    def __init__(self):
+        _CommandInput.__init__(self, "find backwards expression")
+
+    def cmd_execute(self, browser):
+        level = browser.levels[-1]
+        if self.input:
+            self.dohistory()
+            while level.cury:
+                level.moveto(level.curx, level.cury-1)
+                item = level.items[level.cury].item
+                try:
+                    globals = ipipe.getglobals(None)
+                    if eval(self.input, globals, ipipe.AttrNamespace(item)):
+                        break # found something
+                except (KeyboardInterrupt, SystemExit):
+                    raise
+                except Exception, exc:
+                    browser.report(exc)
+                    curses.beep()
+                    break # break on error
+            else:
+                curses.beep()
+        browser.mode = "default"
+        return True
+
+
 class ibrowse(ipipe.Display):
     # Show this many lines from the previous screen when paging horizontally
     pageoverlapx = 1
@@ -511,9 +716,9 @@ class ibrowse(ipipe.Display):
 
     # Prompts for modes that require keyboard input
     prompts = {
-        "goto": "goto object #: ",
-        "find": "find expression: ",
-        "findbackwards": "find backwards expression: "
+        "goto": _CommandGoto(),
+        "find": _CommandFind(),
+        "findbackwards": _CommandFindBackwards()
     }
 
     # Maps curses key codes to "function" names
@@ -537,6 +742,7 @@ class ibrowse(ipipe.Display):
         ord("m"): "pickmarked",
         ord("M"): "pickmarkedattr",
         ord("\n"): "enterdefault",
+        ord("\r"): "enterdefault",
         # FIXME: What's happening here?
         8: "leave",
         127: "leave",
@@ -712,14 +918,7 @@ class ibrowse(ipipe.Display):
         Enter mode ``mode``, which requires keyboard input.
         """
         self.mode = mode
-        self.keyboardinput = ""
-        self.cursorpos = 0
-
-    def executekeyboardinput(self, mode):
-        exe = getattr(self, "exe_%s" % mode, None)
-        if exe is not None:
-            exe()
-            self.mode = "default"
+        self.prompts[mode].start()
 
     def keylabel(self, keycode):
         """
@@ -1027,56 +1226,11 @@ class ibrowse(ipipe.Display):
     def cmd_goto(self):
         self.startkeyboardinput("goto")
 
-    def exe_goto(self):
-        level = self.levels[-1]
-        if self.keyboardinput:
-            level.moveto(level.curx, int(self.keyboardinput))
-
     def cmd_find(self):
         self.startkeyboardinput("find")
 
-    def exe_find(self):
-        level = self.levels[-1]
-        if self.keyboardinput:
-            while True:
-                cury = level.cury
-                level.moveto(level.curx, cury+1)
-                if cury == level.cury:
-                    curses.beep()
-                    break
-                item = level.items[level.cury].item
-                try:
-                    globals = ipipe.getglobals(None)
-                    if eval(self.keyboardinput, globals, ipipe.AttrNamespace(item)):
-                        break
-                except (KeyboardInterrupt, SystemExit):
-                    raise
-                except Exception, exc:
-                    self.report(exc)
-                    curses.beep()
-                    break # break on error
-
     def cmd_findbackwards(self):
         self.startkeyboardinput("findbackwards")
-
-    def exe_findbackwards(self):
-        level = self.levels[-1]
-        if self.keyboardinput:
-            while level.cury:
-                level.moveto(level.curx, level.cury-1)
-                item = level.items[level.cury].item
-                try:
-                    globals = ipipe.getglobals(None)
-                    if eval(self.keyboardinput, globals, ipipe.AttrNamespace(item)):
-                        break
-                except (KeyboardInterrupt, SystemExit):
-                    raise
-                except Exception, exc:
-                    self.report(exc)
-                    curses.beep()
-                    break # break on error
-            else:
-                curses.beep()
 
     def cmd_help(self):
         """
@@ -1279,9 +1433,10 @@ class ibrowse(ipipe.Display):
             try:
                 # Display input prompt
                 if self.mode in self.prompts:
+                    history = self.prompts[self.mode]
                     scr.addstr(self.scrsizey-1, 0,
-                               self.prompts[self.mode] + self.keyboardinput,
-                               self.getstyle(astyle.style_default))
+                                  history.prompt + ": " + history.input,
+                                  self.getstyle(astyle.style_default))
                 # Display report
                 else:
                     if self._report is not None:
@@ -1308,7 +1463,8 @@ class ibrowse(ipipe.Display):
 
             # Position cursor
             if self.mode in self.prompts:
-                scr.move(self.scrsizey-1, len(self.prompts[self.mode])+self.cursorpos)
+                history = self.prompts[self.mode]
+                scr.move(self.scrsizey-1, len(history.prompt)+2+history.curx)
             else:
                 scr.move(
                     1+self._headerlines+level.cury-level.datastarty,
@@ -1320,43 +1476,8 @@ class ibrowse(ipipe.Display):
             while True:
                 c = scr.getch()
                 if self.mode in self.prompts:
-                    if c in (8, 127, curses.KEY_BACKSPACE):
-                        if self.cursorpos:
-                            self.keyboardinput = self.keyboardinput[:self.cursorpos-1] + self.keyboardinput[self.cursorpos:]
-                            self.cursorpos -= 1
-                            break
-                        else:
-                            curses.beep()
-                    elif c == curses.KEY_LEFT:
-                        if self.cursorpos:
-                            self.cursorpos -= 1
-                            break
-                        else:
-                            curses.beep()
-                    elif c == curses.KEY_RIGHT:
-                        if self.cursorpos < len(self.keyboardinput):
-                            self.cursorpos += 1
-                            break
-                        else:
-                            curses.beep()
-                    elif c in (curses.KEY_UP, curses.KEY_DOWN): # cancel
-                        self.mode = "default"
-                        break
-                    elif c == ord("\n"):
-                        self.executekeyboardinput(self.mode)
-                        break
-                    elif c != -1:
-                        try:
-                            c = chr(c)
-                        except ValueError:
-                            curses.beep()
-                        else:
-                            if (self.mode == "goto" and not "0" <= c <= "9"):
-                                curses.beep()
-                            else:
-                                self.keyboardinput = self.keyboardinput[:self.cursorpos] + c + self.keyboardinput[self.cursorpos:]
-                                self.cursorpos += 1
-                                break # Redisplay
+                    if self.prompts[self.mode].handlekey(self, c):
+                       break # Redisplay
                 else:
                     # if no key is pressed slow down and beep again
                     if c == -1:
