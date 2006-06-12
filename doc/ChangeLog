@@ -1,3 +1,11 @@
+2006-06-12  Ville Vainio  <vivainio@gmail.com>
+
+	* ipy_profile_sh.py: applied Krisha Mohan Gundu's patch for
+	allowing $variable interpolation within multiline statements, 
+	though so far only with "sh" profile for a testing period.
+	The patch also enables splitting long commands with \ but it 
+	doesn't work properly yet.
+
 2006-06-12  Walter Doerwald  <walter@livinglogic.de>
 
 	* IPython/Extensions/ibrowse.py (_dodisplay): Display the length of the
