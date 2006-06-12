@@ -1,3 +1,9 @@
+2006-06-12  Walter Doerwald  <walter@livinglogic.de>
+
+	* IPython/Extensions/ibrowse.py (_dodisplay): Display the length of the
+	input history and the position of the cursor in the input history for
+	the find, findbackwards and goto command.
+
 2006-06-10  Walter Doerwald  <walter@livinglogic.de>
 
 	* IPython/Extensions/ibrowse.py: Add a class _CommandInput that

@@ -1434,9 +1434,21 @@ class ibrowse(ipipe.Display):
                 # Display input prompt
                 if self.mode in self.prompts:
                     history = self.prompts[self.mode]
-                    scr.addstr(self.scrsizey-1, 0,
-                                  history.prompt + ": " + history.input,
-                                  self.getstyle(astyle.style_default))
+                    posx = 0
+                    posy = self.scrsizey-1
+                    posx += self.addstr(posy, posx, 0, endx, history.prompt, astyle.style_default)
+                    posx += self.addstr(posy, posx, 0, endx, " [", astyle.style_default)
+                    if history.cury==-1:
+                        text = "new"
+                    else:
+                        text = str(history.cury+1)
+                    posx += self.addstr(posy, posx, 0, endx, text, astyle.style_type_number)
+                    if history.history:
+                        posx += self.addstr(posy, posx, 0, endx, "/", astyle.style_default)
+                        posx += self.addstr(posy, posx, 0, endx, str(len(history.history)), astyle.style_type_number)
+                    posx += self.addstr(posy, posx, 0, endx, "]: ", astyle.style_default)
+                    inputstartx = posx
+                    posx += self.addstr(posy, posx, 0, endx, history.input, astyle.style_default)
                 # Display report
                 else:
                     if self._report is not None:
@@ -1464,7 +1476,7 @@ class ibrowse(ipipe.Display):
             # Position cursor
             if self.mode in self.prompts:
                 history = self.prompts[self.mode]
-                scr.move(self.scrsizey-1, len(history.prompt)+2+history.curx)
+                scr.move(self.scrsizey-1, inputstartx+history.curx)
             else:
                 scr.move(
                     1+self._headerlines+level.cury-level.datastarty,
