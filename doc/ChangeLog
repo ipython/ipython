@@ -4,6 +4,9 @@
 	used to create prompts dynamically, instead of the "old" way of 
 	assigning "magic" strings to prompt_in1 and prompt_in2. The old 
 	way still works (it's invoked by the default hook), of course.
+	
+	* Prompts.py: added generate_output_prompt hook for altering output 
+	prompt
 
 	* Release.py: Changed version string to 0.7.3.svn.
 	
