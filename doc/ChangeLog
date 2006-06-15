@@ -1,3 +1,10 @@
+2006-06-15  Walter Doerwald  <walter@livinglogic.de>
+
+	* IPython/Extensions/ibrowse.py: Change _BrowserLevel.moveto() so that
+	the call to fetch() always tries to fetch enough data for at least one
+	full screen. This makes it possible to simply call moveto(0,0,True) in
+	the constructor. Fix typos and removed the obsolete goto attribute.
+
 2006-06-12  Ville Vainio  <vivainio@gmail.com>
 
 	* ipy_profile_sh.py: applied Krisha Mohan Gundu's patch for

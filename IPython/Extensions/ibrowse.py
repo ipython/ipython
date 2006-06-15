@@ -237,13 +237,8 @@ class _BrowserLevel(object):
         # Maps attribute names to column widths
         self.colwidths = {}
 
-        self.fetch(mainsizey)
-        self.calcdisplayattrs()
-        # formatted attributes for the items on screen
-        # (i.e. self.items[self.datastarty:self.datastarty+self.mainsizey])
-        self.displayrows = [self.getrow(i) for i in xrange(len(self.items))]
-        self.calcwidths()
-        self.calcdisplayattr()
+        # This takes care of all the caches etc.
+        self.moveto(0, 0, refresh=True)
 
     def fetch(self, count):
         # Try to fill ``self.items`` with at least ``count`` objects.
@@ -296,11 +291,11 @@ class _BrowserLevel(object):
         return row
 
     def calcwidths(self):
-        # Recalculate the displayed fields and their width.
+        # Recalculate the displayed fields and their widths.
         # ``calcdisplayattrs()'' must have been called and the cache
         # for attributes of the objects on screen (``self.displayrows``)
         # must have been filled. This returns a dictionary mapping
-        # colmn names to width.
+        # column names to widths.
         self.colwidths = {}
         for row in self.displayrows:
             for attrname in self.displayattrs:
@@ -314,7 +309,7 @@ class _BrowserLevel(object):
                 newwidth = max(self.colwidths[attrname], length)
                 self.colwidths[attrname] = newwidth
 
-        # How many characters do we need to paint the item number?
+        # How many characters do we need to paint the largest item number?
         self.numbersizex = len(str(self.datastarty+self.mainsizey-1))
         # How must space have we got to display data?
         self.mainsizex = self.browser.scrsizex-self.numbersizex-3
@@ -322,7 +317,7 @@ class _BrowserLevel(object):
         self.datasizex = sum(self.colwidths.itervalues()) + len(self.colwidths)
 
     def calcdisplayattr(self):
-        # Find out on which attribute the cursor is on and store this
+        # Find out which attribute the cursor is on and store this
         # information in ``self.displayattr``.
         pos = 0
         for (i, attrname) in enumerate(self.displayattrs):
@@ -352,7 +347,8 @@ class _BrowserLevel(object):
         # Make sure that the cursor didn't leave the main area vertically
         if y < 0:
             y = 0
-        self.fetch(y+scrollbordery+1) # try to get more items
+        # try to get enough items to fill the screen
+        self.fetch(max(y+scrollbordery+1, self.mainsizey))
         if y >= len(self.items):
             y = max(0, len(self.items)-1)
 
@@ -806,9 +802,6 @@ class ibrowse(ipipe.Display):
         # The mode the browser is in
         # e.g. normal browsing or entering an argument for a command
         self.mode = "default"
-
-        # The partially entered row number for the goto command
-        self.goto = ""
 
     def nextstepx(self, step):
         """
@@ -1469,7 +1462,7 @@ class ibrowse(ipipe.Display):
                     else:
                         scr.move(self.scrsizey-1, 0)
             except curses.error:
-                # Protect against error from writing to the last line
+                # Protect against errors from writing to the last line
                 pass
             scr.clrtoeol()
 
