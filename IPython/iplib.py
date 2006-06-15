@@ -6,7 +6,7 @@ Requires Python 2.3 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 1357 2006-06-08 12:15:46Z vivainio $
+$Id: iplib.py 1365 2006-06-15 19:11:26Z vivainio $
 """
 
 #*****************************************************************************
@@ -1494,11 +1494,11 @@ want to merge them back into the new files.""" % locals()
         # exit_now is set by a call to %Exit or %Quit
         while not self.exit_now:
             if more:
-                prompt = self.outputcache.prompt2
+                prompt = self.hooks.generate_prompt(True)
                 if self.autoindent:
                     self.readline_startup_hook(self.pre_readline)
             else:
-                prompt = self.outputcache.prompt1
+                prompt = self.hooks.generate_prompt(False)
             try:
                 line = self.raw_input(prompt,more)
                 if self.autoindent:

@@ -1,3 +1,12 @@
+2006-06-15  Ville Vainio  <vivainio@gmail.com>
+
+	* iplib.py, hooks.py: Added new generate_prompt hook that can be 
+	used to create prompts dynamically, instead of the "old" way of 
+	assigning "magic" strings to prompt_in1 and prompt_in2. The old 
+	way still works (it's invoked by the default hook), of course.
+
+	* Release.py: Changed version string to 0.7.3.svn.
+	
 2006-06-15  Walter Doerwald  <walter@livinglogic.de>
 
 	* IPython/Extensions/ibrowse.py: Change _BrowserLevel.moveto() so that
