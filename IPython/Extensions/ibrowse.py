@@ -476,11 +476,14 @@ class _CommandInput(object):
         127: "backspace",
         curses.KEY_BACKSPACE: "backspace",
         curses.KEY_DC: "delete",
-        ord("x"): "delete",
+        # CTRL-K
+        0x0B: "delend",
         ord("\n"): "execute",
         ord("\r"): "execute",
         curses.KEY_UP: "up",
         curses.KEY_DOWN: "down",
+        curses.KEY_PPAGE: "incsearchup",
+        curses.KEY_NPAGE: "incsearchdown",
         # CTRL-X
         0x18: "exit",
     }
@@ -537,6 +540,11 @@ class _CommandInput(object):
         else:
             curses.beep()
 
+    def cmd_delend(self, browser):
+        if self.curx<len(self.input):
+            self.input = self.input[:self.curx]
+            return True
+
     def cmd_left(self, browser):
         if self.curx:
             self.curx -= 1
@@ -585,6 +593,32 @@ class _CommandInput(object):
             return True
         else:
             curses.beep()
+
+    def cmd_incsearchup(self, browser):
+        prefix = self.input[:self.curx]
+        cury = self.cury
+        while True:
+            cury += 1
+            if cury >= len(self.history):
+                break
+            if self.history[cury].startswith(prefix):
+                self.input = self.history[cury]
+                self.cury = cury
+                return True
+        curses.beep()
+
+    def cmd_incsearchdown(self, browser):
+        prefix = self.input[:self.curx]
+        cury = self.cury
+        while True:
+            cury -= 1
+            if cury <= 0:
+                break
+            if self.history[cury].startswith(prefix):
+                self.input = self.history[self.cury]
+                self.cury = cury
+                return True
+        curses.beep()
 
     def cmd_exit(self, browser):
         browser.mode = "default"
