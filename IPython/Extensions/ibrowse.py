@@ -468,7 +468,9 @@ class _CommandInput(object):
         curses.KEY_LEFT: "left",
         curses.KEY_RIGHT: "right",
         curses.KEY_HOME: "home",
+        1: "home",
         curses.KEY_END: "end",
+        5: "end",
         # FIXME: What's happening here?
         8: "backspace",
         127: "backspace",
@@ -748,7 +750,9 @@ class ibrowse(ipipe.Display):
         curses.KEY_LEFT: "left",
         curses.KEY_RIGHT: "right",
         curses.KEY_HOME: "home",
+        1: "home",
         curses.KEY_END: "end",
+        5: "end",
         ord("<"): "prevattr",
         0x1b:     "prevattr", # SHIFT-TAB
         ord(">"): "nextattr",
@@ -951,6 +955,8 @@ class ibrowse(ipipe.Display):
             }
             if keycode in specialsnames:
                 return specialsnames[keycode]
+            elif 0x00 < keycode < 0x20:
+                return "CTRL-%s" % chr(keycode + 64)
             return repr(chr(keycode))
         for name in dir(curses):
             if name.startswith("KEY_") and getattr(curses, name) == keycode:

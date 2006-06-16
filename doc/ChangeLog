@@ -3,8 +3,9 @@
 	* IPython/Extensions/ibrowse.py: Add two new commands to
 	ibrowse: hideattr (mapped to "h") hides the attribute under
 	the cursor. "unhiderattrs" (mapped to "H") reveals all hidden
-	attributes again. Remapped the help command to "?".
-
+	attributes again. Remapped the help command to "?". Display
+	keycodes in the range 0x01-0x1F as CTRL-xx. Add CTRL-a and CTRL-e
+	as keys for the "home" and "end" commands.
 
 2006-06-15  Ville Vainio  <vivainio@gmail.com>
 
