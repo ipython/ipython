@@ -1,3 +1,11 @@
+2006-06-16  Walter Doerwald  <walter@livinglogic.de>
+
+	* IPython/Extensions/ibrowse.py: Add two new commands to
+	ibrowse: hideattr (mapped to "h") hides the attribute under
+	the cursor. "unhiderattrs" (mapped to "H") reveals all hidden
+	attributes again. Remapped the help command to "?".
+
+
 2006-06-15  Ville Vainio  <vivainio@gmail.com>
 
 	* iplib.py, hooks.py: Added new generate_prompt hook that can be 

@@ -5,6 +5,14 @@ import curses, textwrap
 import astyle, ipipe
 
 
+# Python 2.3 compatibility
+try:
+    set
+except NameError:
+    import sets
+    set = sets.Set
+
+
 _ibrowse_help = """
 down
 Move the cursor to the next line.
@@ -95,6 +103,12 @@ the sort key.
 sortattrdesc
 Sort the objects (in descending order) using the attribute under the cursor as
 the sort key.
+
+hideattr
+Hide the attribute under the cursor.
+
+unhideattrs
+Make all attributes visible again.
 
 goto
 Jump to a row. The row number can be entered at the bottom of the screen.
@@ -237,6 +251,9 @@ class _BrowserLevel(object):
         # Maps attribute names to column widths
         self.colwidths = {}
 
+        # Set of hidden attributes
+        self.hiddenattrs = set()
+
         # This takes care of all the caches etc.
         self.moveto(0, 0, refresh=True)
 
@@ -256,17 +273,21 @@ class _BrowserLevel(object):
     def calcdisplayattrs(self):
         # Calculate which attributes are available from the objects that are
         # currently visible on screen (and store it in ``self.displayattrs``)
+
         attrnames = set()
-        # If the browser object specifies a fixed list of attributes,
-        # simply use it.
+        self.displayattrs = []
         if self.attrs:
-            self.displayattrs = self.attrs
+            # If the browser object specifies a fixed list of attributes,
+            # simply use it (removing hidden attributes).
+            for attrname in self.attrs:
+                if attrname not in attrnames and attrname not in self.hiddenattrs:
+                    self.displayattrs.append(attrname)
+                    attrnames.add(attrname)
         else:
-            self.displayattrs = []
             endy = min(self.datastarty+self.mainsizey, len(self.items))
             for i in xrange(self.datastarty, endy):
                 for attrname in ipipe.xattrs(self.items[i].item, "default"):
-                    if attrname not in attrnames:
+                    if attrname not in attrnames and attrname not in self.hiddenattrs:
                         self.displayattrs.append(attrname)
                         attrnames.add(attrname)
 
@@ -744,7 +765,9 @@ class ibrowse(ipipe.Display):
         127: "leave",
         curses.KEY_BACKSPACE: "leave",
         ord("x"): "leave",
-        ord("h"): "help",
+        ord("h"): "hideattr",
+        ord("H"): "unhideattrs",
+        ord("?"): "help",
         ord("e"): "enter",
         ord("E"): "enterattr",
         ord("d"): "detail",
@@ -1236,6 +1259,21 @@ class ibrowse(ipipe.Display):
                 return
 
         self.enter(_BrowserHelp(self), "default")
+
+    def cmd_hideattr(self):
+        level = self.levels[-1]
+        if level.displayattr[0] is None:
+            self.beep()
+        else:
+            self.report("hideattr")
+            level.hiddenattrs.add(level.displayattr[1])
+            level.moveto(level.curx, level.cury, refresh=True)
+
+    def cmd_unhideattrs(self):
+        level = self.levels[-1]
+        self.report("unhideattrs")
+        level.hiddenattrs.clear()
+        level.moveto(level.curx, level.cury, refresh=True)
 
     def _dodisplay(self, scr):
         """
