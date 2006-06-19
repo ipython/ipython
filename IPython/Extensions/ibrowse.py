@@ -1,6 +1,6 @@
 # -*- coding: iso-8859-1 -*-
 
-import curses, textwrap
+import curses, fcntl, signal, struct, tty, textwrap
 
 import astyle, ipipe
 
@@ -864,6 +864,9 @@ class ibrowse(ipipe.Display):
         # e.g. normal browsing or entering an argument for a command
         self.mode = "default"
 
+        # set by the SIGWINCH signal handler
+        self.resized = False
+
     def nextstepx(self, step):
         """
         Accelerate horizontally.
@@ -1300,6 +1303,9 @@ class ibrowse(ipipe.Display):
 
         self.enter(_BrowserHelp(self), "default")
 
+    def sigwinchhandler(self, signal, frame):
+        self.resized = True
+
     def cmd_hideattr(self):
         level = self.levels[-1]
         if level.displayattr[0] is None:
@@ -1558,6 +1564,20 @@ class ibrowse(ipipe.Display):
             # Check keyboard
             while True:
                 c = scr.getch()
+                if self.resized:
+                    size = fcntl.ioctl(0, tty.TIOCGWINSZ, "12345678")
+                    size = struct.unpack("4H", size)
+                    oldsize = scr.getmaxyx()
+                    scr.erase()
+                    curses.resize_term(size[0], size[1])
+                    newsize = scr.getmaxyx()
+                    scr.erase()
+                    for l in self.levels:
+                        l.mainsizey += newsize[0]-oldsize[0]
+                        l.moveto(l.curx, l.cury, refresh=True)
+                    scr.refresh()
+                    self.resized = False
+                    break # Redisplay
                 if self.mode in self.prompts:
                     if self.prompts[self.mode].handlekey(self, c):
                        break # Redisplay
@@ -1596,4 +1616,11 @@ class ibrowse(ipipe.Display):
         self.scr = None
 
     def display(self):
-        return curses.wrapper(self._dodisplay)
+        if hasattr(curses, "resize_term"):
+            oldhandler = signal.signal(signal.SIGWINCH, self.sigwinchhandler)
+            try:
+                return curses.wrapper(self._dodisplay)
+            finally:
+                signal.signal(signal.SIGWINCH, oldhandler)
+        else:
+            return curses.wrapper(self._dodisplay)
