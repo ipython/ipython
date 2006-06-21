@@ -28,3 +28,4 @@ global-exclude *~
 global-exclude *.flc
 global-exclude *.pyc
 global-exclude .dircopy.log
+global-exclude .svn
