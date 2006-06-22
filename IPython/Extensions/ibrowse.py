@@ -145,6 +145,43 @@ class CommandError(Exception):
     """
 
 
+class Keymap(dict):
+    """
+    Stores mapping of keys to commands.
+    """
+    def __init__(self):
+        self._keymap = {}
+
+    def __setitem__(self, key, command):
+        if isinstance(key, str):
+            for c in key:
+                dict.__setitem__(self, ord(c), command)
+        else:
+            dict.__setitem__(self, key, command)
+
+    def register(self, command, *keys):
+        for key in keys:
+            self[key] = command
+
+    def __getitem__(self, key):
+        if isinstance(key, str):
+            key = ord(key)
+        return dict.__getitem__(self, key)
+
+    def get(self, key, default=None):
+        if isinstance(key, str):
+            key = ord(key)
+        return dict.get(self, key, default)
+
+    def findkey(self, command, default=ipipe.noitem):
+        for (key, commandcandidate) in self.iteritems():
+            if commandcandidate == command:
+                return key
+        if default is ipipe.noitem:
+            raise KeyError(command)
+        return default
+
+
 class _BrowserCachedItem(object):
     # This is used internally by ``ibrowse`` to store a item together with its
     # marked status.
@@ -464,29 +501,21 @@ class _BrowserLevel(object):
 
 
 class _CommandInput(object):
-    keymap = {
-        curses.KEY_LEFT: "left",
-        curses.KEY_RIGHT: "right",
-        curses.KEY_HOME: "home",
-        1: "home",
-        curses.KEY_END: "end",
-        5: "end",
-        # FIXME: What's happening here?
-        8: "backspace",
-        127: "backspace",
-        curses.KEY_BACKSPACE: "backspace",
-        curses.KEY_DC: "delete",
-        # CTRL-K
-        0x0B: "delend",
-        ord("\n"): "execute",
-        ord("\r"): "execute",
-        curses.KEY_UP: "up",
-        curses.KEY_DOWN: "down",
-        curses.KEY_PPAGE: "incsearchup",
-        curses.KEY_NPAGE: "incsearchdown",
-        # CTRL-X
-        0x18: "exit",
-    }
+    keymap = Keymap()
+    keymap.register("left", curses.KEY_LEFT)
+    keymap.register("right", curses.KEY_RIGHT)
+    keymap.register("home", curses.KEY_HOME, "\x01") # Ctrl-A
+    keymap.register("end", curses.KEY_END, "\x05") # Ctrl-E
+    # FIXME: What's happening here?
+    keymap.register("backspace", curses.KEY_BACKSPACE, "x\x08\x7f")
+    keymap.register("delete", curses.KEY_DC)
+    keymap.register("delend", 0x0b) # Ctrl-K
+    keymap.register("execute", "\r\n")
+    keymap.register("up", curses.KEY_UP)
+    keymap.register("down", curses.KEY_DOWN)
+    keymap.register("incsearchup", curses.KEY_PPAGE)
+    keymap.register("incsearchdown", curses.KEY_NPAGE)
+    keymap.register("exit", "\x18"), # Ctrl-X
 
     def __init__(self, prompt):
         self.prompt = prompt
@@ -775,49 +804,40 @@ class ibrowse(ipipe.Display):
     }
 
     # Maps curses key codes to "function" names
-    keymap = {
-        ord("q"): "quit",
-        curses.KEY_UP: "up",
-        curses.KEY_DOWN: "down",
-        curses.KEY_PPAGE: "pageup",
-        curses.KEY_NPAGE: "pagedown",
-        curses.KEY_LEFT: "left",
-        curses.KEY_RIGHT: "right",
-        curses.KEY_HOME: "home",
-        1: "home",
-        curses.KEY_END: "end",
-        5: "end",
-        ord("<"): "prevattr",
-        0x1b:     "prevattr", # SHIFT-TAB
-        ord(">"): "nextattr",
-        ord("\t"):"nextattr", # TAB
-        ord("p"): "pick",
-        ord("P"): "pickattr",
-        ord("C"): "pickallattrs",
-        ord("m"): "pickmarked",
-        ord("M"): "pickmarkedattr",
-        ord("\n"): "enterdefault",
-        ord("\r"): "enterdefault",
-        # FIXME: What's happening here?
-        8: "leave",
-        127: "leave",
-        curses.KEY_BACKSPACE: "leave",
-        ord("x"): "leave",
-        ord("h"): "hideattr",
-        ord("H"): "unhideattrs",
-        ord("?"): "help",
-        ord("e"): "enter",
-        ord("E"): "enterattr",
-        ord("d"): "detail",
-        ord("D"): "detailattr",
-        ord(" "): "tooglemark",
-        ord("r"): "markrange",
-        ord("v"): "sortattrasc",
-        ord("V"): "sortattrdesc",
-        ord("g"): "goto",
-        ord("f"): "find",
-        ord("b"): "findbackwards",
-    }
+    keymap = Keymap()
+    keymap.register("quit", "q")
+    keymap.register("up", curses.KEY_UP)
+    keymap.register("down", curses.KEY_DOWN)
+    keymap.register("pageup", curses.KEY_PPAGE)
+    keymap.register("pagedown", curses.KEY_NPAGE)
+    keymap.register("left", curses.KEY_LEFT)
+    keymap.register("right", curses.KEY_RIGHT)
+    keymap.register("home", curses.KEY_HOME, "\x01")
+    keymap.register("end", curses.KEY_END, "\x05")
+    keymap.register("prevattr", "<\x1b")
+    keymap.register("nextattr", ">\t")
+    keymap.register("pick", "p")
+    keymap.register("pickattr", "P")
+    keymap.register("pickallattrs", "C")
+    keymap.register("pickmarked", "m")
+    keymap.register("pickmarkedattr", "M")
+    keymap.register("enterdefault", "\r\n")
+    # FIXME: What's happening here?
+    keymap.register("leave", curses.KEY_BACKSPACE, "x\x08\x7f")
+    keymap.register("hideattr", "h")
+    keymap.register("unhideattrs", "H")
+    keymap.register("help", "?")
+    keymap.register("enter", "e")
+    keymap.register("enterattr", "E")
+    keymap.register("detail", "d")
+    keymap.register("detailattr", "D")
+    keymap.register("tooglemark", " ")
+    keymap.register("markrange", "r")
+    keymap.register("sortattrasc", "v")
+    keymap.register("sortattrdesc", "V")
+    keymap.register("goto", "g")
+    keymap.register("find", "f")
+    keymap.register("findbackwards", "b")
 
     def __init__(self, *attrs):
         """
@@ -1331,12 +1351,12 @@ class ibrowse(ipipe.Display):
         footery = 2
 
         keys = []
-        for (key, cmd) in self.keymap.iteritems():
-            if cmd == "quit":
-                keys.append("%s=%s" % (self.keylabel(key), cmd))
-        for (key, cmd) in self.keymap.iteritems():
-            if cmd == "help":
-                keys.append("%s=%s" % (self.keylabel(key), cmd))
+        quitkey = self.keymap.findkey("quit", None)
+        if quitkey is not None:
+            keys.append("%s=quit" % self.keylabel(quitkey))
+        helpkey = self.keymap.findkey("help", None)
+        if helpkey is not None:
+            keys.append("%s=help" % self.keylabel(helpkey))
         helpmsg = " | %s" % " ".join(keys)
 
         scr.clear()

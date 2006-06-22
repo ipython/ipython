@@ -1,7 +1,12 @@
+2006-06-22  Walter Doerwald  <walter@livinglogic.de>
+
+	* IPython/Extensions/ibrowse.py: Replace the plain dictionaries used
+	for keymaps with a custom class that simplifies handling.
+
 2006-06-19  Walter Doerwald  <walter@livinglogic.de>
 
 	* IPython/Extensions/ibrowse.py: ibrowse now properly handles terminal
-	resizing. This requires Python 2.5 to word.
+	resizing. This requires Python 2.5 to work.
 
 2006-06-16  Walter Doerwald  <walter@livinglogic.de>
 
