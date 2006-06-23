@@ -1,3 +1,9 @@
+2006-06-22  Fernando Perez  <Fernando.Perez@colorado.edu>
+
+	* ipython.el (ipython-indentation-hook): cleanup patch, submitted
+	by Kov Chai <tchaikov-AT-gmail.com>.  He notes that the original
+	autoindent support was authored by Jin Liu.
+
 2006-06-22  Walter Doerwald  <walter@livinglogic.de>
 
 	* IPython/Extensions/ibrowse.py: Replace the plain dictionaries used

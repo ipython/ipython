@@ -6,7 +6,7 @@
 ;; URL:           http://ipython.scipy.org
 ;; Compatibility: Emacs21, XEmacs21
 ;; FIXME: #$@! INPUT RING
-(defconst ipython-version "$Revision: 1325 $"
+(defconst ipython-version "$Revision: 1374 $"
   "VC version number.")
 
 ;;; Commentary 
@@ -456,23 +456,15 @@ matches last process output."
                           (point-min-marker)))
         (end-marker (process-mark (get-buffer-process (current-buffer))))
         (text (ansi-color-filter-apply (buffer-substring start-marker end-marker))))
-   (progn
-     ;; XXX if `text' matches both pattern, it MUST be the last prompt-2
-     (cond ((and (string-match "\n$" text) (string-match
-py-shell-input-prompt-2-regexp text))
-            (with-current-buffer (ipython-get-indenting-buffer)
-              (erase-buffer)))
-           ;; still a prompt-2
-           ((string-match py-shell-input-prompt-2-regexp text)
-            (with-current-buffer (ipython-get-indenting-buffer)
-              (setq ipython-indentation-string
-                    (buffer-substring (point-at-bol) (point))))
-            (unless (eq ipython-indentation-string nil)
-              (message "ipython-indentation-hook: %s#%s##" text
-ipython-indentation-string))
-            (goto-char end-marker)
-            (insert ipython-indentation-string)))
-           (setq ipython-indentation-string nil))))
+   ;; XXX if `text' matches both pattern, it MUST be the last prompt-2
+   (when (and (string-match py-shell-input-prompt-2-regexp text)
+	      (not (string-match "\n$" text)))
+     (with-current-buffer (ipython-get-indenting-buffer)
+       (setq ipython-indentation-string
+	     (buffer-substring (point-at-bol) (point))))
+     (goto-char end-marker)
+     (insert ipython-indentation-string)
+     (setq ipython-indentation-string nil))))
 
 (add-hook 'py-shell-hook
          (lambda ()
