@@ -1,6 +1,6 @@
 # -*- coding: iso-8859-1 -*-
 
-import curses, fcntl, signal, struct, tty, textwrap
+import curses, fcntl, signal, struct, tty, textwrap, inspect
 
 import astyle, ipipe
 
@@ -11,119 +11,6 @@ try:
 except NameError:
     import sets
     set = sets.Set
-
-
-_ibrowse_help = """
-down
-Move the cursor to the next line.
-
-up
-Move the cursor to the previous line.
-
-pagedown
-Move the cursor down one page (minus overlap).
-
-pageup
-Move the cursor up one page (minus overlap).
-
-left
-Move the cursor left.
-
-right
-Move the cursor right.
-
-home
-Move the cursor to the first column.
-
-end
-Move the cursor to the last column.
-
-prevattr
-Move the cursor one attribute column to the left.
-
-nextattr
-Move the cursor one attribute column to the right.
-
-pick
-'Pick' the object under the cursor (i.e. the row the cursor is on). This
-leaves the browser and returns the picked object to the caller. (In IPython
-this object will be available as the '_' variable.)
-
-pickattr
-'Pick' the attribute under the cursor (i.e. the row/column the cursor is on).
-
-pickallattrs
-Pick' the complete column under the cursor (i.e. the attribute under the
-cursor) from all currently fetched objects. These attributes will be returned
-as a list.
-
-tooglemark
-Mark/unmark the object under the cursor. Marked objects have a '!' after the
-row number).
-
-pickmarked
-'Pick' marked objects. Marked objects will be returned as a list.
-
-pickmarkedattr
-'Pick' the attribute under the cursor from all marked objects (This returns a
-list).
-
-enterdefault
-Enter the object under the cursor. (what this mean depends on the object
-itself (i.e. how it implements the '__xiter__' method). This opens a new
-browser 'level'.
-
-enter
-Enter the object under the cursor. If the object provides different enter
-modes a menu of all modes will be presented; choose one and enter it (via the
-'enter' or 'enterdefault' command).
-
-enterattr
-Enter the attribute under the cursor.
-
-leave
-Leave the current browser level and go back to the previous one.
-
-detail
-Show a detail view of the object under the cursor. This shows the name, type,
-doc string and value of the object attributes (and it might show more
-attributes than in the list view, depending on the object).
-
-detailattr
-Show a detail view of the attribute under the cursor.
-
-markrange
-Mark all objects from the last marked object before the current cursor
-position to the cursor position.
-
-sortattrasc
-Sort the objects (in ascending order) using the attribute under the cursor as
-the sort key.
-
-sortattrdesc
-Sort the objects (in descending order) using the attribute under the cursor as
-the sort key.
-
-hideattr
-Hide the attribute under the cursor.
-
-unhideattrs
-Make all attributes visible again.
-
-goto
-Jump to a row. The row number can be entered at the bottom of the screen.
-
-find
-Search forward for a row. At the bottom of the screen the condition can be
-entered.
-
-findbackwards
-Search backward for a row. At the bottom of the screen the condition can be
-entered.
-
-help
-This screen.
-"""
 
 
 class UnassignedKeyError(Exception):
@@ -213,13 +100,25 @@ class _BrowserHelp(object):
 
         fields = ("key", "description")
 
-        for (i, command) in enumerate(_ibrowse_help.strip().split("\n\n")):
+        commands = []
+        for name in dir(self.browser):
+            if name.startswith("cmd_"):
+                command = getattr(self.browser, name)
+                commands.append((inspect.getsourcelines(command)[-1], name[4:], command))
+        commands.sort()
+        commands = [(c[1], c[2]) for c in commands]
+        for (i, (name, command)) in enumerate(commands):
             if i:
                 yield ipipe.Fields(fields, key="", description="")
 
-            (name, description) = command.split("\n", 1)
+            description = command.__doc__
+            if description is None:
+                lines = []
+            else:
+                lines = [l.strip() for l in description.splitlines() if l.strip()]
+                description = "\n".join(lines)
+                lines = textwrap.wrap(description, 60)
             keys = allkeys.get(name, [])
-            lines = textwrap.wrap(description, 60)
 
             yield ipipe.Fields(fields, description=astyle.Text((self.style_header, name)))
             for i in xrange(max(len(keys), len(lines))):
@@ -1026,51 +925,74 @@ class ibrowse(ipipe.Display):
             # don't beep again (as long as the same key is pressed)
             self._dobeep = False
 
-    def cmd_quit(self):
-        self.returnvalue = None
-        return True
-
     def cmd_up(self):
+        """
+        Move the cursor to the previous row.
+        """
         level = self.levels[-1]
         self.report("up")
         level.moveto(level.curx, level.cury-self.stepy)
 
     def cmd_down(self):
+        """
+        Move the cursor to the next row.
+        """
         level = self.levels[-1]
         self.report("down")
         level.moveto(level.curx, level.cury+self.stepy)
 
     def cmd_pageup(self):
+        """
+        Move the cursor up one page.
+        """
         level = self.levels[-1]
         self.report("page up")
         level.moveto(level.curx, level.cury-level.mainsizey+self.pageoverlapy)
 
     def cmd_pagedown(self):
+        """
+        Move the cursor down one page.
+        """
         level = self.levels[-1]
         self.report("page down")
         level.moveto(level.curx, level.cury+level.mainsizey-self.pageoverlapy)
 
     def cmd_left(self):
+        """
+        Move the cursor left.
+        """
         level = self.levels[-1]
         self.report("left")
         level.moveto(level.curx-self.stepx, level.cury)
 
     def cmd_right(self):
+        """
+        Move the cursor right.
+        """
         level = self.levels[-1]
         self.report("right")
         level.moveto(level.curx+self.stepx, level.cury)
 
     def cmd_home(self):
+        """
+        Move the cursor to the first column.
+        """
         level = self.levels[-1]
         self.report("home")
         level.moveto(0, level.cury)
 
     def cmd_end(self):
+        """
+        Move the cursor to the last column.
+        """
         level = self.levels[-1]
         self.report("end")
         level.moveto(level.datasizex+level.mainsizey-self.pageoverlapx, level.cury)
 
     def cmd_prevattr(self):
+        """
+        Move the cursor one attribute column to the left.
+        """
         level = self.levels[-1]
         if level.displayattr[0] is None or level.displayattr[0] == 0:
             self.beep()
@@ -1084,6 +1006,9 @@ class ibrowse(ipipe.Display):
             level.moveto(pos, level.cury)
 
     def cmd_nextattr(self):
+        """
+        Move the cursor one attribute column to the right.
+        """
         level = self.levels[-1]
         if level.displayattr[0] is None or level.displayattr[0] == len(level.displayattrs)-1:
             self.beep()
@@ -1097,11 +1022,20 @@ class ibrowse(ipipe.Display):
             level.moveto(pos, level.cury)
 
     def cmd_pick(self):
+        """
+        'Pick' the object under the cursor (i.e. the row the cursor is on).
+        This leaves the browser and returns the picked object to the caller.
+        (In IPython this object will be available as the '_' variable.)
+        """
         level = self.levels[-1]
         self.returnvalue = level.items[level.cury].item
         return True
 
     def cmd_pickattr(self):
+        """
+        'Pick' the attribute under the cursor (i.e. the row/column the
+        cursor is on).
+        """
         level = self.levels[-1]
         attrname = level.displayattr[1]
         if attrname is ipipe.noitem:
@@ -1117,6 +1051,11 @@ class ibrowse(ipipe.Display):
             return True
 
     def cmd_pickallattrs(self):
+        """
+        Pick' the complete column under the cursor (i.e. the attribute under
+        the cursor) from all currently fetched objects. These attributes
+        will be returned as a list.
+        """
         level = self.levels[-1]
         attrname = level.displayattr[1]
         if attrname is ipipe.noitem:
@@ -1132,11 +1071,19 @@ class ibrowse(ipipe.Display):
         return True
 
     def cmd_pickmarked(self):
+        """
+        'Pick' marked objects. Marked objects will be returned as a list.
+        """
         level = self.levels[-1]
         self.returnvalue = [cache.item for cache in level.items if cache.marked]
         return True
 
     def cmd_pickmarkedattr(self):
+        """
+        'Pick' the attribute under the cursor from all marked objects
+        (This returns a list).
+        """
+
         level = self.levels[-1]
         attrname = level.displayattr[1]
         if attrname is ipipe.noitem:
@@ -1153,6 +1100,10 @@ class ibrowse(ipipe.Display):
         return True
 
     def cmd_markrange(self):
+        """
+        Mark all objects from the last marked object before the current cursor
+        position to the cursor position.
+        """
         level = self.levels[-1]
         self.report("markrange")
         start = None
@@ -1172,6 +1123,11 @@ class ibrowse(ipipe.Display):
                     level.marked += 1
 
     def cmd_enterdefault(self):
+        """
+        Enter the object under the cursor. (what this mean depends on the object
+        itself (i.e. how it implements the '__xiter__' method). This opens a new
+        browser 'level'.
+        """
         level = self.levels[-1]
         try:
             item = level.items[level.cury].item
@@ -1183,6 +1139,9 @@ class ibrowse(ipipe.Display):
             self.enter(item, "default")
 
     def cmd_leave(self):
+        """
+        Leave the current browser level and go back to the previous one.
+        """
         self.report("leave")
         if len(self.levels) > 1:
             self._calcheaderlines(len(self.levels)-1)
@@ -1192,6 +1151,11 @@ class ibrowse(ipipe.Display):
             curses.beep()
 
     def cmd_enter(self):
+        """
+        Enter the object under the cursor. If the object provides different
+        enter modes a menu of all modes will be presented; choose one and enter
+        it (via the 'enter' or 'enterdefault' command).
+        """
         level = self.levels[-1]
         try:
             item = level.items[level.cury].item
@@ -1203,6 +1167,9 @@ class ibrowse(ipipe.Display):
             self.enter(item, None)
 
     def cmd_enterattr(self):
+        """
+        Enter the attribute under the cursor.
+        """
         level = self.levels[-1]
         attrname = level.displayattr[1]
         if attrname is ipipe.noitem:
@@ -1223,6 +1190,12 @@ class ibrowse(ipipe.Display):
                 self.enter(attr, None)
 
     def cmd_detail(self):
+        """
+        Show a detail view of the object under the cursor. This shows the
+        name, type, doc string and value of the object attributes (and it
+        might show more attributes than in the list view, depending on
+        the object).
+        """
         level = self.levels[-1]
         try:
             item = level.items[level.cury].item
@@ -1234,6 +1207,9 @@ class ibrowse(ipipe.Display):
             self.enter(item, "detail")
 
     def cmd_detailattr(self):
+        """
+        Show a detail view of the attribute under the cursor.
+        """
         level = self.levels[-1]
         attrname = level.displayattr[1]
         if attrname is ipipe.noitem:
@@ -1254,6 +1230,10 @@ class ibrowse(ipipe.Display):
                 self.enter(attr, "detail")
 
     def cmd_tooglemark(self):
+        """
+        Mark/unmark the object under the cursor. Marked objects have a '!'
+        after the row number).
+        """
         level = self.levels[-1]
         self.report("toggle mark")
         try:
@@ -1269,6 +1249,10 @@ class ibrowse(ipipe.Display):
                 level.marked += 1
 
     def cmd_sortattrasc(self):
+        """
+        Sort the objects (in ascending order) using the attribute under
+        the cursor as the sort key.
+        """
         level = self.levels[-1]
         attrname = level.displayattr[1]
         if attrname is ipipe.noitem:
@@ -1286,6 +1270,10 @@ class ibrowse(ipipe.Display):
         level.sort(key)
 
     def cmd_sortattrdesc(self):
+        """
+        Sort the objects (in descending order) using the attribute under
+        the cursor as the sort key.
+        """
         level = self.levels[-1]
         attrname = level.displayattr[1]
         if attrname is ipipe.noitem:
@@ -1302,31 +1290,10 @@ class ibrowse(ipipe.Display):
                 return None
         level.sort(key, reverse=True)
 
-    def cmd_goto(self):
-        self.startkeyboardinput("goto")
-
-    def cmd_find(self):
-        self.startkeyboardinput("find")
-
-    def cmd_findbackwards(self):
-        self.startkeyboardinput("findbackwards")
-
-    def cmd_help(self):
-        """
-        The help command
-        """
-        for level in self.levels:
-            if isinstance(level.input, _BrowserHelp):
-                curses.beep()
-                self.report(CommandError("help already active"))
-                return
-
-        self.enter(_BrowserHelp(self), "default")
-
-    def sigwinchhandler(self, signal, frame):
-        self.resized = True
-
     def cmd_hideattr(self):
+        """
+        Hide the attribute under the cursor.
+        """
         level = self.levels[-1]
         if level.displayattr[0] is None:
             self.beep()
@@ -1336,10 +1303,57 @@ class ibrowse(ipipe.Display):
             level.moveto(level.curx, level.cury, refresh=True)
 
     def cmd_unhideattrs(self):
+        """
+        Make all attributes visible again.
+        """
         level = self.levels[-1]
         self.report("unhideattrs")
         level.hiddenattrs.clear()
         level.moveto(level.curx, level.cury, refresh=True)
+
+    def cmd_goto(self):
+        """
+        Jump to a row. The row number can be entered at the
+        bottom of the screen.
+        """
+        self.startkeyboardinput("goto")
+
+    def cmd_find(self):
+        """
+        Search forward for a row. The search condition can be entered at the
+        bottom of the screen.
+        """
+        self.startkeyboardinput("find")
+
+    def cmd_findbackwards(self):
+        """
+        Search backward for a row. The search condition can be entered at the
+        bottom of the screen.
+        """
+        self.startkeyboardinput("findbackwards")
+
+    def cmd_help(self):
+        """
+        Opens the help screen as a new browser level, describing keyboard
+        shortcuts.
+        """
+        for level in self.levels:
+            if isinstance(level.input, _BrowserHelp):
+                curses.beep()
+                self.report(CommandError("help already active"))
+                return
+
+        self.enter(_BrowserHelp(self), "default")
+
+    def cmd_quit(self):
+        """
+        Quit the browser and return to the IPython prompt.
+        """
+        self.returnvalue = None
+        return True
+
+    def sigwinchhandler(self, signal, frame):
+        self.resized = True
 
     def _dodisplay(self, scr):
         """

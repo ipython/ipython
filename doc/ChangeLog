@@ -1,3 +1,8 @@
+2006-06-23  Walter Doerwald  <walter@livinglogic.de>
+
+	* IPython/Extensions/ibrowse.py: Put the documentation of the keyboard
+	commands into the methods implementing them.
+
 2006-06-22  Fernando Perez  <Fernando.Perez@colorado.edu>
 
 	* ipython.el (ipython-indentation-hook): cleanup patch, submitted
