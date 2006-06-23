@@ -46,14 +46,19 @@ class Keymap(dict):
         else:
             dict.__setitem__(self, key, command)
 
-    def register(self, command, *keys):
-        for key in keys:
-            self[key] = command
-
     def __getitem__(self, key):
         if isinstance(key, str):
             key = ord(key)
         return dict.__getitem__(self, key)
+
+    def __detitem__(self, key):
+        if isinstance(key, str):
+            key = ord(key)
+        dict.__detitem__(self, key)
+
+    def register(self, command, *keys):
+        for key in keys:
+            self[key] = command
 
     def get(self, key, default=None):
         if isinstance(key, str):
