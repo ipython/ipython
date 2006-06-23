@@ -1370,12 +1370,10 @@ class ibrowse(ipipe.Display):
         footery = 2
 
         keys = []
-        quitkey = self.keymap.findkey("quit", None)
-        if quitkey is not None:
-            keys.append("%s=quit" % self.keylabel(quitkey))
-        helpkey = self.keymap.findkey("help", None)
-        if helpkey is not None:
-            keys.append("%s=help" % self.keylabel(helpkey))
+        for key in ("quit", "help"):
+            key = self.keymap.findkey(key, None)
+            if key is not None:
+                keys.append("%s=quit" % self.keylabel(key))
         helpmsg = " | %s" % " ".join(keys)
 
         scr.clear()
