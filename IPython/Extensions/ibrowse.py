@@ -411,7 +411,7 @@ class _CommandInput(object):
     keymap.register("home", curses.KEY_HOME, "\x01") # Ctrl-A
     keymap.register("end", curses.KEY_END, "\x05") # Ctrl-E
     # FIXME: What's happening here?
-    keymap.register("backspace", curses.KEY_BACKSPACE, "x\x08\x7f")
+    keymap.register("backspace", curses.KEY_BACKSPACE, "\x08\x7f")
     keymap.register("delete", curses.KEY_DC)
     keymap.register("delend", 0x0b) # Ctrl-K
     keymap.register("execute", "\r\n")
