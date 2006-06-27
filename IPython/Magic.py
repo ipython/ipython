@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Magic functions for InteractiveShell.
 
-$Id: Magic.py 1355 2006-06-07 16:56:50Z vivainio $"""
+$Id: Magic.py 1380 2006-06-27 11:34:39Z vivainio $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001 Janko Hauser <jhauser@zscout.de> and
@@ -195,7 +195,7 @@ license. To use profiling, please install"python2.3-profiler" from non-free.""")
 
         # initialize results to 'null'
         found = 0; obj = None;  ospace = None;  ds = None;
-        ismagic = 0; isalias = 0
+        ismagic = 0; isalias = 0; parent = None
 
         # Look for the given name by splitting it in parts.  If the head is
         # found, then we look for all the remaining parts as members, and only
@@ -210,6 +210,7 @@ license. To use profiling, please install"python2.3-profiler" from non-free.""")
             else:
                 for part in oname_rest:
                     try:
+                        parent = obj
                         obj = getattr(obj,part)
                     except:
                         # Blanket except b/c some badly implemented objects
@@ -241,7 +242,7 @@ license. To use profiling, please install"python2.3-profiler" from non-free.""")
             ospace = 'Interactive'
             
         return {'found':found, 'obj':obj, 'namespace':ospace,
-                'ismagic':ismagic, 'isalias':isalias}
+                'ismagic':ismagic, 'isalias':isalias, 'parent':parent}
     
     def arg_err(self,func):
         """Print docstring if incorrect arguments were passed"""
@@ -632,7 +633,24 @@ Currently the magic system has the following functions:\n"""
         
         oname = oname.strip()
         info = Struct(self._ofind(oname))
+        
         if info.found:
+            # Get the docstring of the class property if it exists.
+            path = oname.split('.')
+            root = '.'.join(path[:-1])
+            if info.parent is not None:
+                try:
+                    target = getattr(info.parent, '__class__') 
+                    # The object belongs to a class instance. 
+                    try: 
+                        target = getattr(target, path[-1])
+                        # The class defines the object. 
+                        if isinstance(target, property):
+                            oname = root + '.__class__.' + path[-1]
+                            info = Struct(self._ofind(oname))
+                    except AttributeError: pass
+                except AttributeError: pass
+                        
             pmethod = getattr(self.shell.inspector,meth)
             formatter = info.ismagic and self.format_screen or None
             if meth == 'pdoc':
