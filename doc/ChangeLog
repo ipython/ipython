@@ -1,3 +1,9 @@
+2006-06-27  Ville Vainio  <vivainio@gmail.com>
+
+	* Magic.py (_inspect, _ofind) Apply David Huard's 
+	patch for displaying the correct docstring for 'property' 
+	attributes.
+
 2006-06-23  Walter Doerwald  <walter@livinglogic.de>
 
 	* IPython/Extensions/ibrowse.py: Put the documentation of the keyboard
