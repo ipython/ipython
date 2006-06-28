@@ -85,7 +85,7 @@ class _BrowserCachedItem(object):
 
 
 class _BrowserHelp(object):
-    style_header = astyle.Style.fromstr("red:blacK")
+    style_header = astyle.Style.fromstr("yellow:black:bold")
     # This is used internally by ``ibrowse`` for displaying the help screen.
     def __init__(self, browser):
         self.browser = browser
@@ -340,7 +340,7 @@ class _BrowserLevel(object):
                 # drop rows from the end
                 del self.displayrows[self.datastarty-olddatastarty:]
                 # fetch new items
-                for i in xrange(olddatastarty-1,
+                for i in xrange(min(olddatastarty, self.datastarty+self.mainsizey)-1,
                                 self.datastarty-1, -1):
                     try:
                         row = self.getrow(i)
@@ -352,7 +352,7 @@ class _BrowserLevel(object):
                 # drop rows from the start
                 del self.displayrows[:self.datastarty-olddatastarty]
                 # fetch new items
-                for i in xrange(olddatastarty+self.mainsizey,
+                for i in xrange(max(olddatastarty+self.mainsizey, self.datastarty),
                                 self.datastarty+self.mainsizey):
                     try:
                         row = self.getrow(i)
@@ -862,7 +862,7 @@ class ibrowse(ipipe.Display):
         Return a style for displaying the original style ``style``
         in the row the cursor is on.
         """
-        return astyle.Style(style.fg, style.bg, style.attrs | astyle.A_BOLD)
+        return astyle.Style(style.fg, astyle.COLOR_BLUE, style.attrs | astyle.A_BOLD)
 
     def report(self, msg):
         """

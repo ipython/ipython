@@ -1,3 +1,9 @@
+2006-06-28  Walter Doerwald  <walter@livinglogic.de>
+
+	* IPython/Extensions/ibrowse.py: Give the ibrowse cursor row
+	a blue background. Fix fetching new display rows when the browser
+	scrolls more than a screenful (e.g. by using the goto command).
+
 2006-06-27  Ville Vainio  <vivainio@gmail.com>
 
 	* Magic.py (_inspect, _ofind) Apply David Huard's 
