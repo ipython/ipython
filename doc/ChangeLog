@@ -1,3 +1,8 @@
+2006-06-29  Ville Vainio  <vivainio@gmail.com>
+
+	* ipmaker.py, Shell.py: qt4agg matplotlib backend support for pylab
+	mode, patch contributed by Darren Dale. NEEDS TESTING! 
+
 2006-06-28  Walter Doerwald  <walter@livinglogic.de>
 
 	* IPython/Extensions/ibrowse.py: Give the ibrowse cursor row

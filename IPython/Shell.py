@@ -4,7 +4,7 @@
 All the matplotlib support code was co-developed with John Hunter,
 matplotlib's author.
 
-$Id: Shell.py 1327 2006-05-25 03:33:58Z fperez $"""
+$Id: Shell.py 1384 2006-06-29 20:04:37Z vivainio $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2006 Fernando Perez <fperez@colorado.edu>
@@ -847,6 +847,81 @@ class IPShellQt(threading.Thread):
         self.timer.start( self.TIMEOUT, True )
         return result
 
+
+class IPShellQt4(threading.Thread):
+    """Run a Qt event loop in a separate thread.
+
+    Python commands can be passed to the thread where they will be executed.
+    This is implemented by periodically checking for passed code using a
+    Qt timer / slot."""
+
+    TIMEOUT = 100 # Millisecond interval between timeouts.
+
+    def __init__(self,argv=None,user_ns=None,user_global_ns=None,
+                 debug=0,shell_class=MTInteractiveShell):
+
+        from PyQt4 import QtCore, QtGui
+
+        class newQApplication:
+            def __init__( self ):
+                self.QApplication = QtGui.QApplication
+
+            def __call__( *args, **kwargs ):
+                return QtGui.qApp
+
+            def exec_loop( *args, **kwargs ):
+                pass
+
+            def __getattr__( self, name ):
+                return getattr( self.QApplication, name )
+
+        QtGui.QApplication = newQApplication()
+
+        # Allows us to use both Tk and QT.
+        self.tk = get_tk()
+
+        self.IP = make_IPython(argv,user_ns=user_ns,
+                               user_global_ns=user_global_ns,
+                               debug=debug,
+                               shell_class=shell_class,
+                               on_kill=[QtGui.qApp.exit])
+
+        # HACK: slot for banner in self; it will be passed to the mainloop
+        # method only and .run() needs it.  The actual value will be set by
+        # .mainloop().
+        self._banner = None
+
+        threading.Thread.__init__(self)
+
+    def run(self):
+        self.IP.mainloop(self._banner)
+        self.IP.kill()
+
+    def mainloop(self,sys_exit=0,banner=None):
+
+        from PyQt4 import QtCore, QtGui
+
+        self._banner = banner
+
+        if QtGui.QApplication.startingUp():
+          a = QtGui.QApplication.QApplication(sys.argv)
+        self.timer = QtCore.QTimer()
+        QtCore.QObject.connect( self.timer, QtCore.SIGNAL( 'timeout()' ), self.on_timer )
+
+        self.start()
+        self.timer.start( self.TIMEOUT )
+        while True:
+            if self.IP._kill: break
+            QtGui.qApp.exec_()
+        self.join()
+
+    def on_timer(self):
+        update_tk(self.tk)
+        result = self.IP.runcode()
+        self.timer.start( self.TIMEOUT )
+        return result
+
+
 # A set of matplotlib public IPython shell classes, for single-threaded
 # (Tk* and FLTK* backends) and multithreaded (GTK* and WX* backends) use.
 class IPShellMatplotlib(IPShell):
@@ -887,6 +962,15 @@ class IPShellMatplotlibQt(IPShellQt):
         IPShellQt.__init__(self,argv,user_ns,user_global_ns,debug,
                            shell_class=MatplotlibMTShell)
 
+class IPShellMatplotlibQt4(IPShellQt4):
+    """Subclass IPShellQt4 with MatplotlibMTShell as the internal shell.
+
+    Multi-threaded class, meant for the Qt4* backends."""
+
+    def __init__(self,argv=None,user_ns=None,user_global_ns=None,debug=1):
+        IPShellQt4.__init__(self,argv,user_ns,user_global_ns,debug,
+                           shell_class=MatplotlibMTShell)
+
 #-----------------------------------------------------------------------------
 # Factory functions to actually start the proper thread-aware shell
 
@@ -907,6 +991,8 @@ def _matplotlib_shell_class():
             sh_class = IPShellMatplotlibGTK
         elif backend.startswith('WX'):
             sh_class = IPShellMatplotlibWX
+        elif backend.startswith('Qt4'):
+            sh_class = IPShellMatplotlibQt4
         elif backend.startswith('Qt'):
             sh_class = IPShellMatplotlibQt
         else:
@@ -935,6 +1021,8 @@ def start(user_ns = None):
             shell = IPShellGTK
         elif arg1.endswith( '-qthread' ):
             shell = IPShellQt
+        elif arg1.endswith( '-q4thread' ):
+            shell = IPShellQt4
         elif arg1.endswith('-wthread'):
             shell = IPShellWX
         elif arg1.endswith('-pylab'):
