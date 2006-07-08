@@ -1,3 +1,9 @@
+2006-07-08  Ville Vainio  <vivainio@gmail.com>
+
+	* Magic.py: %cpaste now strips > from the beginning of lines
+	to ease pasting quoted code from emails. Contributed by 
+	Stefan van der Walt.
+
 2006-06-29  Ville Vainio  <vivainio@gmail.com>
 
 	* ipmaker.py, Shell.py: qt4agg matplotlib backend support for pylab

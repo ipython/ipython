@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Magic functions for InteractiveShell.
 
-$Id: Magic.py 1380 2006-06-27 11:34:39Z vivainio $"""
+$Id: Magic.py 1386 2006-07-08 09:32:30Z vivainio $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001 Janko Hauser <jhauser@zscout.de> and
@@ -2915,8 +2915,10 @@ Defaulting color scheme to 'NoColor'"""
         is the new sentinel for this operation)
         
         The block is dedented prior to execution to enable execution of 
-        method definitions. The executed block is also assigned to variable 
-        named 'pasted_block' for later editing with '%edit pasted_block'.
+        method definitions. '>' characters at the beginning of a line is
+        ignored, to allow pasting directly from e-mails. The executed block
+        is also assigned to variable named 'pasted_block' for later editing
+        with '%edit pasted_block'.
         
         You can also pass a variable name as an argument, e.g. '%cpaste foo'.
         This assigns the pasted block to variable 'foo' as string, without 
@@ -2939,7 +2941,7 @@ Defaulting color scheme to 'NoColor'"""
             l = iplib.raw_input_original(':')
             if l ==sentinel:
                 break
-            lines.append(l)
+            lines.append(l.lstrip('>'))
         block = "\n".join(lines) + '\n'
         #print "block:\n",block
         if not par:
