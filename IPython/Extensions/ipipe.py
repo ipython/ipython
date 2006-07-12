@@ -210,7 +210,10 @@ except TypeError:
         Python 2.3's eval.
         """
 
-        code = compile(codestring, "_eval", "eval")
+        if isinstance(codestring, basestring):
+            code = compile(codestring, "_eval", "eval")
+        else:
+            code = codestring
         newlocals = {}
         for name in code.co_names:
             try:
@@ -1361,12 +1364,12 @@ class ifilter(Pipe):
 
     def __xiter__(self, mode):
         if callable(self.expr):
-            def test(item):
-                return self.expr(item)
+            test = self.expr
         else:
             g = getglobals(self.globals)
+            expr = compile(self.expr, "ipipe-expression", "eval")
             def test(item):
-                return eval(self.expr, g, AttrNamespace(item))
+                return eval(expr, g, AttrNamespace(item))
 
         ok = 0
         exc_info = None
@@ -1434,12 +1437,12 @@ class ieval(Pipe):
 
     def __xiter__(self, mode):
         if callable(self.expr):
-            def do(item):
-                return self.expr(item)
+            do = self.expr
         else:
             g = getglobals(self.globals)
+            expr = compile(self.expr, "ipipe-expression", "eval")
             def do(item):
-                return eval(self.expr, g, AttrNamespace(item))
+                return eval(expr, g, AttrNamespace(item))
 
         ok = 0
         exc_info = None
@@ -1527,11 +1530,12 @@ class isort(Pipe):
             )
         else:
             g = getglobals(self.globals)
-            def key(item):
-                return eval(self.key, g, AttrNamespace(item))
+            key = compile(self.key, "ipipe-expression", "eval")
+            def realkey(item):
+                return eval(key, g, AttrNamespace(item))
             items = sorted(
                 xiter(self.input, mode),
-                key=key,
+                key=realkey,
                 reverse=self.reverse
             )
         for item in items:
