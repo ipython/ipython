@@ -1511,18 +1511,24 @@ class isort(Pipe):
         >>> ils | isort("_.isdir(), _.lower()", reverse=True)
     """
 
-    def __init__(self, key, globals=None, reverse=False):
+    def __init__(self, key=None, globals=None, reverse=False):
         """
         Create an ``isort`` object. ``key`` can be a callable or a string
-        containing an expression. If ``reverse`` is true the sort order will
-        be reversed. For the meaning of ``globals`` see ``ifilter``.
+        containing an expression (or ``None`` in which case the items
+        themselves will be sorted). If ``reverse`` is true the sort order
+        will be reversed. For the meaning of ``globals`` see ``ifilter``.
         """
         self.key = key
         self.globals = globals
         self.reverse = reverse
 
     def __xiter__(self, mode):
-        if callable(self.key):
+        if self.key is None:
+            items = sorted(
+                xiter(self.input, mode),
+                reverse=self.reverse
+            )
+        elif callable(self.key):
             items = sorted(
                 xiter(self.input, mode),
                 key=self.key,
