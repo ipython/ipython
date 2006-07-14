@@ -1,3 +1,8 @@
+2006-07-14  Walter Doerwald  <walter@livinglogic.de>
+
+	* IPython/Extensions/ipipe.py (ix): Use os.popen4() so that the
+	error output of the running command doesn't mess up the screen.
+
 2006-07-13  Walter Doerwald  <walter@livinglogic.de>
 
 	* IPython/Extensions/ipipe.py (isort): Make isort usable without

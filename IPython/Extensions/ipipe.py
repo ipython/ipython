@@ -1301,19 +1301,20 @@ class ix(Table):
     """
     def __init__(self, cmd):
         self.cmd = cmd
-        self._pipe = None
+        self._pipeout = None
 
-    def __xiter__(self, mode):
-        self._pipe = os.popen(self.cmd)
-        for l in self._pipe:
+    def __xiter__(self, mode="default"):
+        (_pipein, self._pipeout) = os.popen4(self.cmd)
+        _pipein.close()
+        for l in self._pipeout:
             yield l.rstrip("\r\n")
-        self._pipe.close()
-        self._pipe = None
+        self._pipeout.close()
+        self._pipeout = None
 
     def __del__(self):
-        if self._pipe is not None and not self._pipe.closed:
-            self._pipe.close()
-        self._pipe = None
+        if self._pipeout is not None and not self._pipeout.closed:
+            self._pipeout.close()
+        self._pipeout = None
 
     def __xrepr__(self, mode):
         if mode == "header" or mode == "footer":
