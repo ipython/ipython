@@ -1,3 +1,8 @@
+2006-07-18  Walter Doerwald  <walter@livinglogic.de>
+
+	* IPython/Extensions/ibrowse.py (ix): Make cursor visible over
+	non existing attributes.
+
 2006-07-14  Walter Doerwald  <walter@livinglogic.de>
 
 	* IPython/Extensions/ipipe.py (ix): Use os.popen4() so that the

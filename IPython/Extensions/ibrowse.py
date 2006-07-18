@@ -1465,6 +1465,8 @@ class ibrowse(ipipe.Display):
                         except KeyError:
                             align = 2
                             style = astyle.style_nodata
+                            if i == level.cury:
+                                style = self.getstylehere(style)
                         padstyle = self.style_datapad
                         sepstyle = self.style_sep
                         if i == level.cury:
