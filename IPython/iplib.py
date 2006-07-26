@@ -6,7 +6,7 @@ Requires Python 2.3 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 1365 2006-06-15 19:11:26Z vivainio $
+$Id: iplib.py 1478 2006-07-26 14:20:44Z vivainio $
 """
 
 #*****************************************************************************
@@ -1775,8 +1775,8 @@ want to merge them back into the new files.""" % locals()
         # push).
 
         #print 'push line: <%s>' % line  # dbg
-        self.autoindent_update(line)
-
+        for subline in line.splitlines():
+            self.autoindent_update(subline)
         self.buffer.append(line)
         more = self.runsource('\n'.join(self.buffer), self.filename)
         if not more:
@@ -1818,6 +1818,14 @@ want to merge them back into the new files.""" % locals()
         if line.strip():
             if continue_prompt:
                 self.input_hist_raw[-1] += '%s\n' % line
+                if self.has_readline: # and some config option is set?
+                    try:
+                        histlen = self.readline.get_current_history_length()
+                        newhist = self.input_hist_raw[-1].rstrip()
+                        self.readline.remove_history_item(histlen-1)
+                        self.readline.replace_history_item(histlen-2,newhist)
+                    except AttributeError:
+                        pass # re{move,place}_history_item are new in 2.4.                
             else:
                 self.input_hist_raw.append('%s\n' % line)
 
