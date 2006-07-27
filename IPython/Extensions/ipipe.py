@@ -1082,6 +1082,8 @@ class ifile(path.path):
     def __repr__(self):
         return "ifile(%s)" % path._base.__repr__(self)
 
+    defaultattrs = (None, "type", "size", "modestr", "owner", "group", "mdate") 
+
     def __xattrs__(self, mode):
         if mode == "detail":
             return (
@@ -1121,7 +1123,7 @@ class ifile(path.path):
                 "-walkfiles()",
             )
         else:
-            return (None, "type", "size", "modestr", "owner", "group", "mdate")
+            return self.defaultattrs
 
     def __xrepr__(self, mode):
         try:
