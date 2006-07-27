@@ -269,6 +269,251 @@ def getglobals(g):
     return g
 
 
+class Descriptor(object):
+    def __hash__(self):
+        return hash(self.__class__) ^ hash(self.key())
+
+    def __eq__(self, other):
+        return self.__class__ is other.__class__ and self.key() == other.key()
+
+    def __ne__(self, other):
+        return self.__class__ is not other.__class__ or self.key() != other.key()
+
+    def key(self):
+        pass
+
+    def name(self):
+        key = self.key()
+        if key is None:
+            return "_"
+        return str(key)
+
+    def attrtype(self, obj):
+        pass
+
+    def valuetype(self, obj):
+        pass
+
+    def value(self, obj):
+        pass
+
+    def doc(self, obj):
+        pass
+
+    def shortdoc(self, obj):
+        doc = self.doc(obj)
+        if doc is not None:
+            doc = doc.strip().splitlines()[0].strip()
+        return doc
+
+    def iter(self, obj):
+        return xiter(self.value(obj))
+
+
+class SelfDescriptor(Descriptor):
+    def key(self):
+        return None
+
+    def attrtype(self, obj):
+        return "self"
+
+    def valuetype(self, obj):
+        return type(obj)
+
+    def value(self, obj):
+        return obj
+
+    def __repr__(self):
+        return "Self"
+
+selfdescriptor = SelfDescriptor() # there's no need for more than one
+
+
+class AttributeDescriptor(Descriptor):
+    __slots__ = ("_name", "_doc")
+
+    def __init__(self, name, doc=None):
+        self._name = name
+        self._doc = doc
+
+    def key(self):
+        return self._name
+
+    def doc(self, obj):
+        return self._doc
+
+    def attrtype(self, obj):
+        return "attr"
+
+    def valuetype(self, obj):
+        return type(getattr(obj, self._name))
+
+    def value(self, obj):
+        return getattr(obj, self._name)
+
+    def __repr__(self):
+        if self._doc is None:
+            return "Attribute(%r)" % self._name
+        else:
+            return "Attribute(%r, %r)" % (self._name, self._doc)
+
+
+class IndexDescriptor(Descriptor):
+    __slots__ = ("_index",)
+
+    def __init__(self, index):
+        self._index = index
+
+    def key(self):
+        return self._index
+
+    def attrtype(self, obj):
+        return "item"
+
+    def valuetype(self, obj):
+        return type(obj[self._index])
+
+    def value(self, obj):
+        return obj[self._index]
+
+    def __repr__(self):
+        return "Index(%r)" % self._index
+
+
+class MethodDescriptor(Descriptor):
+    __slots__ = ("_name", "_doc")
+
+    def __init__(self, name, doc=None):
+        self._name = name
+        self._doc = doc
+
+    def key(self):
+        return self._name
+
+    def doc(self, obj):
+        if self._doc is None:
+            return getattr(obj, self._name).__doc__
+        return self._doc
+
+    def attrtype(self, obj):
+        return "method"
+
+    def valuetype(self, obj):
+        return type(self.value(obj))
+
+    def value(self, obj):
+        return getattr(obj, self._name)()
+
+    def __repr__(self):
+        if self._doc is None:
+            return "Method(%r)" % self._name
+        else:
+            return "Method(%r, %r)" % (self._name, self._doc)
+
+
+class IterAttributeDescriptor(Descriptor):
+    __slots__ = ("_name", "_doc")
+
+    def __init__(self, name, doc=None):
+        self._name = name
+        self._doc = doc
+
+    def key(self):
+        return self._name
+
+    def doc(self, obj):
+        return self._doc
+
+    def attrtype(self, obj):
+        return "iter"
+
+    def valuetype(self, obj):
+        return noitem
+
+    def value(self, obj):
+        return noitem
+
+    def iter(self, obj):
+        return xiter(getattr(obj, self._name))
+
+    def __repr__(self):
+        if self._doc is None:
+            return "IterAttribute(%r)" % self._name
+        else:
+            return "IterAttribute(%r, %r)" % (self._name, self._doc)
+
+
+class IterMethodDescriptor(Descriptor):
+    __slots__ = ("_name", "_doc")
+
+    def __init__(self, name, doc=None):
+        self._name = name
+        self._doc = doc
+
+    def key(self):
+        return self._name
+
+    def doc(self, obj):
+        if self._doc is None:
+            return getattr(obj, self._name).__doc__
+        return self._doc
+
+    def attrtype(self, obj):
+        return "itermethod"
+
+    def valuetype(self, obj):
+        return noitem
+
+    def value(self, obj):
+        return noitem
+
+    def iter(self, obj):
+        return xiter(getattr(obj, self._name)())
+
+    def __repr__(self):
+        if self._doc is None:
+            return "IterMethod(%r)" % self._name
+        else:
+            return "IterMethod(%r, %r)" % (self._name, self._doc)
+
+
+class FunctionDescriptor(Descriptor):
+    __slots__ = ("_function", "_name", "_doc")
+
+    def __init__(self, function, name=None, doc=None):
+        self._function = function
+        self._name = name
+        self._doc = doc
+
+    def key(self):
+        return self._function
+
+    def name(self):
+        if self._name is not None:
+            return self._name
+        return getattr(self._function, "__xname__", self._function.__name__)
+
+    def doc(self, obj):
+        if self._doc is None:
+            return self._function.__doc__
+        return self._doc
+
+    def attrtype(self, obj):
+        return "function"
+
+    def valuetype(self, obj):
+        return type(self._function(obj))
+
+    def value(self, obj):
+        return self._function(obj)
+
+    def __repr__(self):
+        if self._doc is None:
+            return "Function(%r)" % self._name
+        else:
+            return "Function(%r, %r)" % (self._name, self._doc)
+
+
 class Table(object):
     """
     A ``Table`` is an object that produces items (just like a normal Python
@@ -350,47 +595,7 @@ class Pipe(Table):
         return self
 
 
-def _getattr(obj, name, default=noitem):
-    """
-    Internal helper for getting an attribute of an item. If ``name`` is ``None``
-    return the object itself. If ``name`` is an integer, use ``__getitem__``
-    instead. If the attribute or item does not exist, return ``default``.
-    """
-    if name is None:
-        return obj
-    elif isinstance(name, basestring):
-        if name.endswith("()"):
-            return getattr(obj, name[:-2], default)()
-        else:
-            return getattr(obj, name, default)
-    elif callable(name):
-        try:
-            return name(obj)
-        except AttributeError:
-            return default
-    else:
-        try:
-            return obj[name]
-        except IndexError:
-            return default
-
-
-def _attrname(name):
-    """
-    Internal helper that gives a proper name for the attribute ``name``
-    (which might be ``None`` or an ``int``).
-    """
-    if name is None:
-        return "_"
-    elif isinstance(name, basestring):
-        return name
-    elif callable(name):
-        return getattr(name, "__xname__", name.__name__)
-    else:
-        return str(name)
-
-
-def xrepr(item, mode):
+def xrepr(item, mode="default"):
     try:
         func = item.__xrepr__
     except AttributeError:
@@ -449,6 +654,11 @@ def xrepr(item, mode):
             yield (astyle.style_type_datetime, repr(item))
     elif isinstance(item, datetime.timedelta):
         yield (astyle.style_type_datetime, repr(item))
+    elif isinstance(item, type):
+        if item.__module__ == "__builtin__":
+            yield (astyle.style_type_type, item.__name__)
+        else:
+            yield (astyle.style_type_type, "%s.%s" % (item.__module__, item.__name__))
     elif isinstance(item, Exception):
         if item.__class__.__module__ == "exceptions":
             classname = item.__class__.__name__
@@ -514,33 +724,67 @@ def xrepr(item, mode):
         yield (astyle.style_default, repr(item))
 
 
-def xattrs(item, mode):
+def upgradexattr(attr):
+    if attr is None:
+        return selfdescriptor
+    elif isinstance(attr, Descriptor):
+        return attr
+    elif isinstance(attr, str):
+        if attr.endswith("()"):
+            if attr.startswith("-"):
+                return IterMethodDescriptor(attr[1:-2])
+            else:
+                return MethodDescriptor(attr[:-2])
+        else:
+            if attr.startswith("-"):
+                return IterAttributeDescriptor(attr[1:])
+            else:
+                return AttributeDescriptor(attr)
+    elif isinstance(attr, (int, long)):
+        return IndexDescriptor(attr)
+    elif callable(attr):
+        return FunctionDescriptor(attr)
+    else:
+        raise TypeError("can't handle descriptor %r" % attr)
+
+
+def xattrs(item, mode="default"):
     try:
         func = item.__xattrs__
     except AttributeError:
         if mode == "detail":
-            return dir(item)
+            for attrname in dir(item):
+                yield AttributeDescriptor(attrname)
         else:
-            return (None,)
+            yield selfdescriptor
     else:
-        try:
-            return func(mode)
-        except (KeyboardInterrupt, SystemExit):
-            raise
-        except Exception:
-            return (None,)
+        for attr in func(mode):
+            yield upgradexattr(attr)
 
 
-def xiter(item, mode):
-    if mode == "detail":
-        def items():
-            for name in xattrs(item, mode):
-                yield XAttr(item, name)
-        return items()
+def _isdict(item):
+    try:
+        itermeth = item.__class__.__iter__
+    except (AttributeError, TypeError):
+        return False
+    return itermeth is dict.__iter__ or itermeth is types.DictProxyType.__iter__
+
+
+def _isstr(item):
+    if not isinstance(item, basestring):
+        return False
+    try:
+        itermeth = item.__class__.__iter__
+    except AttributeError:
+        return True
+    return False # ``__iter__`` has been redefined
+
+
+def xiter(item, mode="default"):
     try:
         func = item.__xiter__
     except AttributeError:
-        if isinstance(item, (dict, types.DictProxyType)):
+        if _isdict(item):
             def items(item):
                 fields = ("key", "value")
                 for (key, value) in item.iteritems():
@@ -552,8 +796,8 @@ def xiter(item, mode):
                 for key in sorted(item.__dict__):
                     yield Fields(fields, key=key, value=getattr(item, key))
             return items(item)
-        elif isinstance(item, basestring):
-            if not len(item):
+        elif _isstr(item):
+            if not item:
                 raise ValueError("can't enter empty string")
             lines = item.splitlines()
             if len(lines) <= 1:
@@ -572,7 +816,7 @@ class ichain(Pipe):
     def __init__(self, *iters):
         self.iters = iters
 
-    def __xiter__(self, mode):
+    def __iter__(self):
         return itertools.chain(*self.iters)
 
     def __xrepr__(self, mode):
@@ -823,30 +1067,61 @@ class ifile(path.path):
         return datetime.datetime.utcfromtimestamp(self.mtime)
     mdate = property(getmdate, None, None, "Modification date")
 
-    def getmimetype(self):
+    def mimetype(self):
+        """
+        Return MIME type guessed from the extension.
+        """
         return mimetypes.guess_type(self.basename())[0]
-    mimetype = property(getmimetype, None, None, "MIME type")
 
-    def getencoding(self):
+    def encoding(self):
+        """
+        Return guessed compression (like "compress" or "gzip").
+        """
         return mimetypes.guess_type(self.basename())[1]
-    encoding = property(getencoding, None, None, "Compression")
 
     def __repr__(self):
         return "ifile(%s)" % path._base.__repr__(self)
 
-    defaultattrs = (None, "type", "size", "modestr", "owner", "group", "mdate")
-
     def __xattrs__(self, mode):
         if mode == "detail":
             return (
-                "name", "basename()", "abspath()", "realpath()",
-                "type", "mode", "modestr", "stat()", "lstat()",
-                "uid", "gid", "owner", "group", "dev", "nlink",
-                "ctime", "mtime", "atime", "cdate", "mdate", "adate",
-                "size", "blocks", "blksize", "isdir()", "islink()",
-                "mimetype", "encoding"
+                "name",
+                "basename()",
+                "abspath()",
+                "realpath()",
+                "type",
+                "mode",
+                "modestr",
+                "stat()",
+                "lstat()",
+                "uid",
+                "gid",
+                "owner",
+                "group",
+                "dev",
+                "nlink",
+                "ctime",
+                "mtime",
+                "atime",
+                "cdate",
+                "mdate",
+                "adate",
+                "size",
+                "blocks",
+                "blksize",
+                "isdir()",
+                "islink()",
+                "mimetype()",
+                "encoding()",
+                "-listdir()",
+                "-dirs()",
+                "-files()",
+                "-walk()",
+                "-walkdirs()",
+                "-walkfiles()",
             )
-        return self.defaultattrs
+        else:
+            return (None, "type", "size", "modestr", "owner", "group", "mdate")
 
     def __xrepr__(self, mode):
         try:
@@ -872,7 +1147,7 @@ class ifile(path.path):
         else:
             yield (style, repr(self))
 
-    def __xiter__(self, mode):
+    def __iter__(self):
         if self.isdir():
             yield iparentdir(self / os.pardir)
             for child in sorted(self.listdir()):
@@ -906,8 +1181,8 @@ class ils(Table):
     def __init__(self, base=os.curdir):
         self.base = os.path.expanduser(base)
 
-    def __xiter__(self, mode):
-        return xiter(ifile(self.base), mode)
+    def __iter__(self):
+        return xiter(ifile(self.base))
 
     def __xrepr__(self, mode):
        return ifile(self.base).__xrepr__(mode)
@@ -929,7 +1204,7 @@ class iglob(Table):
     def __init__(self, glob):
         self.glob = glob
 
-    def __xiter__(self, mode):
+    def __iter__(self):
         for name in glob.glob(self.glob):
             yield ifile(name)
 
@@ -958,7 +1233,7 @@ class iwalk(Table):
         self.dirs = dirs
         self.files = files
 
-    def __xiter__(self, mode):
+    def __iter__(self):
         for (dirpath, dirnames, filenames) in os.walk(self.base):
             if self.dirs:
                 for name in sorted(dirnames):
@@ -1035,7 +1310,7 @@ class ipwdentry(object):
     shell = property(getshell, None, None, "Login shell")
 
     def __xattrs__(self, mode):
-        return ("name", "passwd", "uid", "gid", "gecos", "dir", "shell")
+       return ("name", "passwd", "uid", "gid", "gecos", "dir", "shell")
 
     def __repr__(self):
         return "%s.%s(%r)" % \
@@ -1115,7 +1390,7 @@ class igrpentry(object):
         else:
             yield (astyle.style_default, repr(self))
 
-    def __xiter__(self, mode):
+    def __iter__(self):
         for member in self.mem:
             yield ipwdentry(member)
 
@@ -1128,7 +1403,7 @@ class igrp(Table):
     """
     This ``Table`` lists all entries in the Unix group database.
     """
-    def __xiter__(self, mode):
+    def __iter__(self):
         for entry in grp.getgrall():
             yield igrpentry(entry.gr_name)
 
@@ -1141,7 +1416,7 @@ class igrp(Table):
 
 class Fields(object):
     def __init__(self, fieldnames, **fields):
-        self.__fieldnames = fieldnames
+        self.__fieldnames = [upgradexattr(fieldname) for fieldname in fieldnames]
         for (key, value) in fields.iteritems():
             setattr(self, key, value)
 
@@ -1156,7 +1431,7 @@ class Fields(object):
             for (i, f) in enumerate(self.__fieldnames):
                 if i:
                     yield (astyle.style_default, ", ")
-                yield (astyle.style_default, f)
+                yield (astyle.style_default, f.name())
                 yield (astyle.style_default, "=")
                 for part in xrepr(getattr(self, f), "default"):
                     yield part
@@ -1167,7 +1442,7 @@ class Fields(object):
             for (i, f) in enumerate(self.__fieldnames):
                 if i:
                     yield (astyle.style_default, ", ")
-                yield (astyle.style_default, f)
+                yield (astyle.style_default, f.name())
             yield (astyle.style_default, ")")
         else:
             yield (astyle.style_default, repr(self))
@@ -1181,9 +1456,6 @@ class FieldTable(Table, list):
 
     def add(self, **fields):
         self.append(Fields(self.fields, **fields))
-
-    def __xiter__(self, mode):
-        return list.__iter__(self)
 
     def __xrepr__(self, mode):
         yield (-1, False)
@@ -1232,7 +1504,7 @@ class ienv(Table):
         >>> ienv
     """
 
-    def __xiter__(self, mode):
+    def __iter__(self):
         fields = ("key", "value")
         for (key, value) in os.environ.iteritems():
             yield Fields(fields, key=key, value=value)
@@ -1256,7 +1528,7 @@ class icsv(Pipe):
         """
         self.csvargs = csvargs
 
-    def __xiter__(self, mode):
+    def __iter__(self):
         input = self.input
         if isinstance(input, ifile):
             input = input.open("rb")
@@ -1304,7 +1576,7 @@ class ix(Table):
         self.cmd = cmd
         self._pipeout = None
 
-    def __xiter__(self, mode="default"):
+    def __iter__(self):
         (_pipein, self._pipeout) = os.popen4(self.cmd)
         _pipein.close()
         for l in self._pipeout:
@@ -1364,7 +1636,7 @@ class ifilter(Pipe):
         self.globals = globals
         self.errors = errors
 
-    def __xiter__(self, mode):
+    def __iter__(self):
         if callable(self.expr):
             test = self.expr
         else:
@@ -1375,7 +1647,7 @@ class ifilter(Pipe):
 
         ok = 0
         exc_info = None
-        for item in xiter(self.input, mode):
+        for item in xiter(self.input):
             try:
                 if test(item):
                     yield item
@@ -1437,7 +1709,7 @@ class ieval(Pipe):
         self.globals = globals
         self.errors = errors
 
-    def __xiter__(self, mode):
+    def __iter__(self):
         if callable(self.expr):
             do = self.expr
         else:
@@ -1448,7 +1720,7 @@ class ieval(Pipe):
 
         ok = 0
         exc_info = None
-        for item in xiter(self.input, mode):
+        for item in xiter(self.input):
             try:
                 yield do(item)
             except (KeyboardInterrupt, SystemExit):
@@ -1497,9 +1769,9 @@ class ienum(Pipe):
 
         >>> xrange(20) | ieval("_,_*_") | ienum | ifilter("index % 2 == 0") | ieval("object")
     """
-    def __xiter__(self, mode):
+    def __iter__(self):
         fields = ("index", "object")
-        for (index, object) in enumerate(xiter(self.input, mode)):
+        for (index, object) in enumerate(xiter(self.input)):
             yield Fields(fields, index=index, object=object)
 
 
@@ -1524,18 +1796,11 @@ class isort(Pipe):
         self.globals = globals
         self.reverse = reverse
 
-    def __xiter__(self, mode):
+    def __iter__(self):
         if self.key is None:
-            items = sorted(
-                xiter(self.input, mode),
-                reverse=self.reverse
-            )
+            items = sorted(xiter(self.input), reverse=self.reverse)
         elif callable(self.key):
-            items = sorted(
-                xiter(self.input, mode),
-                key=self.key,
-                reverse=self.reverse
-            )
+            items = sorted(xiter(self.input), key=self.key, reverse=self.reverse)
         else:
             g = getglobals(self.globals)
             key = compile(self.key, "ipipe-expression", "eval")
@@ -1613,8 +1878,8 @@ class iless(Display):
             pager = os.popen(self.cmd, "w")
             try:
                 for item in xiter(self.input, "default"):
-                    attrs = xattrs(item, "default")
-                    attrs = ["%s=%s" % (a, _format(_getattr(item, a))) for a in attrs]
+                    attrs = tuple(_upgradexattrs(item, "default"))
+                    attrs = ["%s=%s" % (a.name(item), a.value(item)) for a in attrs]
                     pager.write(" ".join(attrs))
                     pager.write("\n")
             finally:
@@ -1659,7 +1924,7 @@ class idump(Display):
     style_header = astyle.Style.fromstr("white:black:bold")
 
     def __init__(self, *attrs):
-        self.attrs = attrs
+        self.attrs = [upgradexattr(attr) for attr in attrs]
         self.headerpadchar = " "
         self.headersepchar = "|"
         self.datapadchar = " "
@@ -1668,7 +1933,7 @@ class idump(Display):
     def display(self):
         stream = genutils.Term.cout
         allattrs = []
-        allattrset = set()
+        attrset = set()
         colwidths = {}
         rows = []
         for item in xiter(self.input, "default"):
@@ -1676,42 +1941,43 @@ class idump(Display):
             attrs = self.attrs
             if not attrs:
                 attrs = xattrs(item, "default")
-            for attrname in attrs:
-                if attrname not in allattrset:
-                    allattrs.append(attrname)
-                    allattrset.add(attrname)
-                    colwidths[attrname] = len(_attrname(attrname))
+            for attr in attrs:
+                if attr not in attrset:
+                    allattrs.append(attr)
+                    attrset.add(attr)
+                    colwidths[attr] = len(attr.name())
                 try:
-                    value = _getattr(item, attrname, None)
+                    value = attr.value(item)
                 except (KeyboardInterrupt, SystemExit):
                     raise
                 except Exception, exc:
                     value = exc
                 (align, width, text) = xformat(value, "cell", self.maxattrlength)
-                colwidths[attrname] = max(colwidths[attrname], width)
+                colwidths[attr] = max(colwidths[attr], width)
                 # remember alignment, length and colored parts
-                row[attrname] = (align, width, text)
+                row[attr] = (align, width, text)
             rows.append(row)
 
         stream.write("\n")
-        for (i, attrname) in enumerate(allattrs):
-            self.style_header(_attrname(attrname)).write(stream)
-            spc = colwidths[attrname] - len(_attrname(attrname))
+        for (i, attr) in enumerate(allattrs):
+            attrname = attr.name()
+            self.style_header(attrname).write(stream)
+            spc = colwidths[attr] - len(attrname)
             if i < len(colwidths)-1:
                 stream.write(self.headerpadchar*spc)
                 stream.write(self.headersepchar)
         stream.write("\n")
 
         for row in rows:
-            for (i, attrname) in enumerate(allattrs):
-                (align, width, text) = row[attrname]
-                spc = colwidths[attrname] - width
+            for (i, attr) in enumerate(allattrs):
+                (align, width, text) = row[attr]
+                spc = colwidths[attr] - width
                 if align == -1:
                     text.write(stream)
                     if i < len(colwidths)-1:
                         stream.write(self.datapadchar*spc)
                 elif align == 0:
-                    spc = colwidths[attrname] - width
+                    spc = colwidths[attr] - width
                     spc1 = spc//2
                     spc2 = spc-spc1
                     stream.write(self.datapadchar*spc1)
@@ -1755,55 +2021,57 @@ class XMode(object):
 
     def __xattrs__(self, mode):
         if mode == "detail":
+            return ("object", "mode")
+        else:
             return ("object", "mode", "title", "description")
-        return ("title", "description")
 
     def __xiter__(self, mode):
         return xiter(self.object, self.mode)
 
 
-class XAttr(object):
-    def __init__(self, object, name):
-        self.name = _attrname(name)
+class AttributeDetail(Table):
+    def __init__(self, object, descriptor):
+        self.object = object
+        self.descriptor = descriptor
 
-        try:
-            self.value = _getattr(object, name)
-        except (KeyboardInterrupt, SystemExit):
-            raise
-        except Exception, exc:
-            if exc.__class__.__module__ == "exceptions":
-                self.value = exc.__class__.__name__
-            else:
-                self.value = "%s.%s" % \
-                    (exc.__class__.__module__, exc.__class__.__name__)
-            self.type = self.value
-        else:
-            t = type(self.value)
-            if t.__module__ == "__builtin__":
-                self.type = t.__name__
-            else:
-                self.type = "%s.%s" % (t.__module__, t.__name__)
+    def __iter__(self):
+        return self.descriptor.iter(self.object)
 
-        doc = None
-        if isinstance(name, basestring):
-            if name.endswith("()"):
-                doc = getattr(getattr(object, name[:-2]), "__doc__", None)
-            else:
-                try:
-                    meta = getattr(type(object), name)
-                except AttributeError:
-                    pass
-                else:
-                    if isinstance(meta, property):
-                        doc = getattr(meta, "__doc__", None)
-        elif callable(name):
-            doc = getattr(name, "__doc__", None)
-        if isinstance(doc, basestring):
-            doc = doc.strip()
-        self.doc = doc
+    def name(self):
+        return self.descriptor.name()
+
+    def attrtype(self):
+        return self.descriptor.attrtype(self.object)
+
+    def valuetype(self):
+        return self.descriptor.valuetype(self.object)
+
+    def doc(self):
+        return self.descriptor.doc(self.object)
+
+    def shortdoc(self):
+        return self.descriptor.shortdoc(self.object)
+
+    def value(self):
+        return self.descriptor.value(self.object)
 
     def __xattrs__(self, mode):
-        return ("name", "type", "doc", "value")
+        attrs = ("name()", "attrtype()", "valuetype()", "value()", "shortdoc()")
+        if mode == "detail":
+            attrs += ("doc()",)
+        return attrs
+
+    def __xrepr__(self, mode):
+        yield (-1, True)
+        yield (astyle.style_default, self.attrtype())
+        yield (astyle.style_default, "(")
+        for part in xrepr(self.valuetype()):
+            yield part
+        yield (astyle.style_default, ") ")
+        yield (astyle.style_default, self.name())
+        yield (astyle.style_default, " of ")
+        for part in xrepr(self.object):
+            yield part
 
 
 try:

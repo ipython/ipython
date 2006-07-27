@@ -97,7 +97,7 @@ class _BrowserHelp(object):
         else:
             yield (astyle.style_default, repr(self))
 
-    def __xiter__(self, mode):
+    def __iter__(self):
         # Get reverse key mapping
         allkeys = {}
         for (key, cmd) in self.browser.keymap.iteritems():
@@ -125,7 +125,7 @@ class _BrowserHelp(object):
                 lines = textwrap.wrap(description, 60)
             keys = allkeys.get(name, [])
 
-            yield ipipe.Fields(fields, description=astyle.Text((self.style_header, name)))
+            yield ipipe.Fields(fields, key="", description=astyle.Text((self.style_header, name)))
             for i in xrange(max(len(keys), len(lines))):
                 try:
                     key = self.browser.keylabel(keys[i])
@@ -183,13 +183,13 @@ class _BrowserLevel(object):
         # Size of row number (changes when scrolling)
         self.numbersizex = 0
 
-        # Attribute names to display (in this order)
+        # Attributes to display (in this order)
         self.displayattrs = []
 
-        # index and name of attribute under the cursor
+        # index and attribute under the cursor
         self.displayattr = (None, ipipe.noitem)
 
-        # Maps attribute names to column widths
+        # Maps attributes to column widths
         self.colwidths = {}
 
         # Set of hidden attributes
@@ -207,6 +207,13 @@ class _BrowserLevel(object):
             except StopIteration:
                 self.exhausted = True
                 break
+            except (KeyboardInterrupt, SystemExit):
+                raise
+            except Exception, exc:
+                have += 1
+                self.items.append(_BrowserCachedItem(exc))
+                self.exhausted = True
+                break
             else:
                 have += 1
                 self.items.append(_BrowserCachedItem(item))
@@ -215,22 +222,23 @@ class _BrowserLevel(object):
         # Calculate which attributes are available from the objects that are
         # currently visible on screen (and store it in ``self.displayattrs``)
 
-        attrnames = set()
+        attrs = set()
         self.displayattrs = []
         if self.attrs:
             # If the browser object specifies a fixed list of attributes,
             # simply use it (removing hidden attributes).
-            for attrname in self.attrs:
-                if attrname not in attrnames and attrname not in self.hiddenattrs:
-                    self.displayattrs.append(attrname)
-                    attrnames.add(attrname)
+            for attr in self.attrs:
+                attr = ipipe.upgradexattr(attr)
+                if attr not in attrs and attr not in self.hiddenattrs:
+                    self.displayattrs.append(attr)
+                    attrs.add(attr)
         else:
             endy = min(self.datastarty+self.mainsizey, len(self.items))
             for i in xrange(self.datastarty, endy):
-                for attrname in ipipe.xattrs(self.items[i].item, "default"):
-                    if attrname not in attrnames and attrname not in self.hiddenattrs:
-                        self.displayattrs.append(attrname)
-                        attrnames.add(attrname)
+                for attr in ipipe.xattrs(self.items[i].item, "default"):
+                    if attr not in attrs and attr not in self.hiddenattrs:
+                        self.displayattrs.append(attr)
+                        attrs.add(attr)
 
     def getrow(self, i):
         # Return a dictinary with the attributes for the object
@@ -239,9 +247,9 @@ class _BrowserLevel(object):
         # called before.
         row = {}
         item = self.items[i].item
-        for attrname in self.displayattrs:
+        for attr in self.displayattrs:
             try:
-                value = ipipe._getattr(item, attrname, ipipe.noitem)
+                value = attr.value(item)
             except (KeyboardInterrupt, SystemExit):
                 raise
             except Exception, exc:
@@ -249,7 +257,7 @@ class _BrowserLevel(object):
             # only store attribute if it exists (or we got an exception)
             if value is not ipipe.noitem:
                 # remember alignment, length and colored text
-                row[attrname] = ipipe.xformat(value, "cell", self.browser.maxattrlength)
+                row[attr] = ipipe.xformat(value, "cell", self.browser.maxattrlength)
         return row
 
     def calcwidths(self):
@@ -260,16 +268,16 @@ class _BrowserLevel(object):
         # column names to widths.
         self.colwidths = {}
         for row in self.displayrows:
-            for attrname in self.displayattrs:
+            for attr in self.displayattrs:
                 try:
-                    length = row[attrname][1]
+                    length = row[attr][1]
                 except KeyError:
                     length = 0
                 # always add attribute to colwidths, even if it doesn't exist
-                if attrname not in self.colwidths:
-                    self.colwidths[attrname] = len(ipipe._attrname(attrname))
-                newwidth = max(self.colwidths[attrname], length)
-                self.colwidths[attrname] = newwidth
+                if attr not in self.colwidths:
+                    self.colwidths[attr] = len(attr.name())
+                newwidth = max(self.colwidths[attr], length)
+                self.colwidths[attr] = newwidth
 
         # How many characters do we need to paint the largest item number?
         self.numbersizex = len(str(self.datastarty+self.mainsizey-1))
@@ -282,11 +290,11 @@ class _BrowserLevel(object):
         # Find out which attribute the cursor is on and store this
         # information in ``self.displayattr``.
         pos = 0
-        for (i, attrname) in enumerate(self.displayattrs):
-            if pos+self.colwidths[attrname] >= self.curx:
-                self.displayattr = (i, attrname)
+        for (i, attr) in enumerate(self.displayattrs):
+            if pos+self.colwidths[attr] >= self.curx:
+                self.displayattr = (i, attr)
                 break
-            pos += self.colwidths[attrname]+1
+            pos += self.colwidths[attr]+1
         else:
             self.displayattr = (None, ipipe.noitem)
 
@@ -1030,7 +1038,7 @@ class ibrowse(ipipe.Display):
         """
         'Pick' the object under the cursor (i.e. the row the cursor is on).
         This leaves the browser and returns the picked object to the caller.
-        (In IPython this object will be available as the '_' variable.)
+        (In IPython this object will be available as the ``_`` variable.)
         """
         level = self.levels[-1]
         self.returnvalue = level.items[level.cury].item
@@ -1042,17 +1050,17 @@ class ibrowse(ipipe.Display):
         cursor is on).
         """
         level = self.levels[-1]
-        attrname = level.displayattr[1]
-        if attrname is ipipe.noitem:
-            curses.beep()
-            self.report(AttributeError(ipipe._attrname(attrname)))
-            return
-        attr = ipipe._getattr(level.items[level.cury].item, attrname)
+        attr = level.displayattr[1]
         if attr is ipipe.noitem:
             curses.beep()
-            self.report(AttributeError(ipipe._attrname(attrname)))
+            self.report(CommandError("no column under cursor"))
+            return
+        value = attr.value(level.items[level.cury].item)
+        if value is ipipe.noitem:
+            curses.beep()
+            self.report(AttributeError(attr.name()))
         else:
-            self.returnvalue = attr
+            self.returnvalue = value
             return True
 
     def cmd_pickallattrs(self):
@@ -1062,16 +1070,16 @@ class ibrowse(ipipe.Display):
         will be returned as a list.
         """
         level = self.levels[-1]
-        attrname = level.displayattr[1]
-        if attrname is ipipe.noitem:
+        attr = level.displayattr[1]
+        if attr is ipipe.noitem:
             curses.beep()
-            self.report(AttributeError(ipipe._attrname(attrname)))
+            self.report(CommandError("no column under cursor"))
             return
         result = []
         for cache in level.items:
-            attr = ipipe._getattr(cache.item, attrname)
-            if attr is not ipipe.noitem:
-                result.append(attr)
+            value = attr.value(cache.item)
+            if value is not ipipe.noitem:
+                result.append(value)
         self.returnvalue = result
         return True
 
@@ -1090,17 +1098,17 @@ class ibrowse(ipipe.Display):
         """
 
         level = self.levels[-1]
-        attrname = level.displayattr[1]
-        if attrname is ipipe.noitem:
+        attr = level.displayattr[1]
+        if attr is ipipe.noitem:
             curses.beep()
-            self.report(AttributeError(ipipe._attrname(attrname)))
+            self.report(CommandError("no column under cursor"))
             return
         result = []
         for cache in level.items:
             if cache.marked:
-                attr = ipipe._getattr(cache.item, attrname)
-                if attr is not ipipe.noitem:
-                    result.append(attr)
+                value = attr.value(cache.item)
+                if value is not ipipe.noitem:
+                    result.append(value)
         self.returnvalue = result
         return True
 
@@ -1130,7 +1138,7 @@ class ibrowse(ipipe.Display):
     def cmd_enterdefault(self):
         """
         Enter the object under the cursor. (what this mean depends on the object
-        itself (i.e. how it implements the '__xiter__' method). This opens a new
+        itself (i.e. how it implements the ``__xiter__`` method). This opens a new
         browser 'level'.
         """
         level = self.levels[-1]
@@ -1176,10 +1184,10 @@ class ibrowse(ipipe.Display):
         Enter the attribute under the cursor.
         """
         level = self.levels[-1]
-        attrname = level.displayattr[1]
-        if attrname is ipipe.noitem:
+        attr = level.displayattr[1]
+        if attr is ipipe.noitem:
             curses.beep()
-            self.report(AttributeError(ipipe._attrname(attrname)))
+            self.report(CommandError("no column under cursor"))
             return
         try:
             item = level.items[level.cury].item
@@ -1187,12 +1195,13 @@ class ibrowse(ipipe.Display):
             self.report(CommandError("No object"))
             curses.beep()
         else:
-            attr = ipipe._getattr(item, attrname)
-            if attr is ipipe.noitem:
-                self.report(AttributeError(ipipe._attrname(attrname)))
+            value = attr.value(item)
+            name = attr.name()
+            if value is ipipe.noitem:
+                self.report(AttributeError(name))
             else:
-                self.report("entering object attribute %s..." % ipipe._attrname(attrname))
-                self.enter(attr, None)
+                self.report("entering object attribute %s..." % name)
+                self.enter(value, None)
 
     def cmd_detail(self):
         """
@@ -1209,17 +1218,18 @@ class ibrowse(ipipe.Display):
             curses.beep()
         else:
             self.report("entering detail view for object...")
-            self.enter(item, "detail")
+            attrs = [ipipe.AttributeDetail(item, attr) for attr in ipipe.xattrs(item, "detail")]
+            self.enter(attrs, "detail")
 
     def cmd_detailattr(self):
         """
         Show a detail view of the attribute under the cursor.
         """
         level = self.levels[-1]
-        attrname = level.displayattr[1]
-        if attrname is ipipe.noitem:
+        attr = level.displayattr[1]
+        if attr is ipipe.noitem:
             curses.beep()
-            self.report(AttributeError(ipipe._attrname(attrname)))
+            self.report(CommandError("no attribute"))
             return
         try:
             item = level.items[level.cury].item
@@ -1227,12 +1237,16 @@ class ibrowse(ipipe.Display):
             self.report(CommandError("No object"))
             curses.beep()
         else:
-            attr = ipipe._getattr(item, attrname)
-            if attr is ipipe.noitem:
-                self.report(AttributeError(ipipe._attrname(attrname)))
+            try:
+                item = attr.value(item)
+            except (KeyboardInterrupt, SystemExit):
+                raise
+            except Exception, exc:
+                self.report(exc)
             else:
-                self.report("entering detail view for attribute...")
-                self.enter(attr, "detail")
+                self.report("entering detail view for attribute %s..." % attr.name())
+                attrs = [ipipe.AttributeDetail(item, attr) for attr in ipipe.xattrs(item, "detail")]
+                self.enter(attrs, "detail")
 
     def cmd_tooglemark(self):
         """
@@ -1259,15 +1273,15 @@ class ibrowse(ipipe.Display):
         the cursor as the sort key.
         """
         level = self.levels[-1]
-        attrname = level.displayattr[1]
-        if attrname is ipipe.noitem:
+        attr = level.displayattr[1]
+        if attr is ipipe.noitem:
             curses.beep()
-            self.report(AttributeError(ipipe._attrname(attrname)))
+            self.report(CommandError("no column under cursor"))
             return
-        self.report("sort by %s (ascending)" % ipipe._attrname(attrname))
+        self.report("sort by %s (ascending)" % attr.name())
         def key(item):
             try:
-                return ipipe._getattr(item, attrname, None)
+                return attr.value(item)
             except (KeyboardInterrupt, SystemExit):
                 raise
             except Exception:
@@ -1280,15 +1294,15 @@ class ibrowse(ipipe.Display):
         the cursor as the sort key.
         """
         level = self.levels[-1]
-        attrname = level.displayattr[1]
-        if attrname is ipipe.noitem:
+        attr = level.displayattr[1]
+        if attr is ipipe.noitem:
             curses.beep()
-            self.report(AttributeError(ipipe._attrname(attrname)))
+            self.report(CommandError("no column under cursor"))
             return
-        self.report("sort by %s (descending)" % ipipe._attrname(attrname))
+        self.report("sort by %s (descending)" % attr.name())
         def key(item):
             try:
-                return ipipe._getattr(item, attrname, None)
+                return attr.value(item)
             except (KeyboardInterrupt, SystemExit):
                 raise
             except Exception:
@@ -1427,11 +1441,11 @@ class ibrowse(ipipe.Display):
                 scr.addstr(self.headersepchar, self.getstyle(self.style_colheadersep))
                 begx = level.numbersizex+3
                 posx = begx-level.datastartx
-                for attrname in level.displayattrs:
-                    strattrname = ipipe._attrname(attrname)
-                    cwidth = level.colwidths[attrname]
-                    header = strattrname.ljust(cwidth)
-                    if attrname == level.displayattr[1]:
+                for attr in level.displayattrs:
+                    attrname = attr.name()
+                    cwidth = level.colwidths[attr]
+                    header = attrname.ljust(cwidth)
+                    if attr is level.displayattr[1]:
                         style = self.style_colheaderhere
                     else:
                         style = self.style_colheader
@@ -1527,19 +1541,19 @@ class ibrowse(ipipe.Display):
                             break
 
                 attrstyle = [(astyle.style_default, "no attribute")]
-                attrname = level.displayattr[1]
-                if attrname is not ipipe.noitem and attrname is not None:
+                attr = level.displayattr[1]
+                if attr is not ipipe.noitem and not isinstance(attr, ipipe.SelfDescriptor):
                     posx += self.addstr(posy, posx, 0, endx, " | ", self.style_footer)
-                    posx += self.addstr(posy, posx, 0, endx, ipipe._attrname(attrname), self.style_footer)
+                    posx += self.addstr(posy, posx, 0, endx, attr.name(), self.style_footer)
                     posx += self.addstr(posy, posx, 0, endx, ": ", self.style_footer)
                     try:
-                        attr = ipipe._getattr(item, attrname)
+                        value = attr.value(item)
                     except (SystemExit, KeyboardInterrupt):
                         raise
                     except Exception, exc:
                         attr = exc
-                    if attr is not ipipe.noitem:
-                        attrstyle = ipipe.xrepr(attr, "footer")
+                    if value is not ipipe.noitem:
+                        attrstyle = ipipe.xrepr(value, "footer")
                     for (nostyle, text) in attrstyle:
                         if not isinstance(nostyle, int):
                             posx += self.addstr(posy, posx, 0, endx, text, self.style_footer)

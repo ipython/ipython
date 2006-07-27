@@ -374,6 +374,7 @@ style_type_none = Style.fromstr("magenta:black")
 style_type_bool = Style.fromstr("magenta:black")
 style_type_number = Style.fromstr("yellow:black")
 style_type_datetime = Style.fromstr("magenta:black")
+style_type_type = Style.fromstr("cyan:black")
 
 # Style for URLs and file/directory names
 style_url = Style.fromstr("green:black")

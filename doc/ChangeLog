@@ -3,6 +3,27 @@
 	* IPython/Extensions/ipipe.py: Fix getglobals() if we're
 	not running under IPython.
 
+	* IPython/Extensions/ipipe.py: Rename XAttr to AttributeDetail
+	and make it iterable (iterating over the attribute itself). Add two new
+	magic strings for __xattrs__(): If the string starts with "-", the attribute
+	will not be displayed in ibrowse's detail view (but it can still be
+	iterated over). This makes it possible to add attributes that are large
+	lists or generator methods to the detail view. Replace magic attribute names
+	and _attrname() and _getattr() with "descriptors": For each type of magic
+	attribute name there's a subclass of Descriptor: None -> SelfDescriptor();
+	"foo" -> AttributeDescriptor("foo"); "foo()" -> MethodDescriptor("foo");
+	"-foo" -> IterAttributeDescriptor("foo"); "-foo()" -> IterMethodDescriptor("foo");
+	foo() -> FunctionDescriptor(foo). Magic strings returned from __xattrs__()
+	are still supported.
+
+	* IPython/Extensions/ibrowse.py: If fetching the next row from the input
+	fails in ibrowse.fetch(), the exception object is added as the last item
+	and item fetching is canceled. This prevents ibrowse from aborting if e.g.
+	a generator throws an exception midway through execution.
+
+	* IPython/Extensions/ipipe.py: Turn ifile's properties mimetype and
+	encoding into methods.
+
 2006-07-26  Ville Vainio  <vivainio@gmail.com>
 
 	* iplib.py: history now stores multiline input as single 
