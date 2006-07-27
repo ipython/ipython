@@ -262,9 +262,10 @@ def item(iterator, index, default=noitem):
 def getglobals(g):
     if g is None:
         if ipapi is not None:
-            return ipapi.get().user_ns
-        else:
-            return globals()
+            api = ipapi.get()
+            if api is not None:
+                return api.user_ns
+        return globals()
     return g
 
 

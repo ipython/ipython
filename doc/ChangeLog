@@ -1,3 +1,8 @@
+2006-07-27  Walter Doerwald  <walter@livinglogic.de>
+
+	* IPython/Extensions/ipipe.py: Fix getglobals() if we're
+	not running under IPython.
+
 2006-07-26  Ville Vainio  <vivainio@gmail.com>
 
 	* iplib.py: history now stores multiline input as single 
@@ -5,7 +10,7 @@
 
 2006-07-18  Walter Doerwald  <walter@livinglogic.de>
 
-	* IPython/Extensions/ibrowse.py (ix): Make cursor visible over
+	* IPython/Extensions/ibrowse.py: Make cursor visible over
 	non existing attributes.
 
 2006-07-14  Walter Doerwald  <walter@livinglogic.de>
