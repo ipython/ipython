@@ -6,13 +6,13 @@
 ;; URL:           http://ipython.scipy.org
 ;; Compatibility: Emacs21, XEmacs21
 ;; FIXME: #$@! INPUT RING
-(defconst ipython-version "$Revision: 1374 $"
+(defconst ipython-version "$Revision: 1499 $"
   "VC version number.")
 
 ;;; Commentary 
 ;; This library makes all the functionality python-mode has when running with
 ;; the normal python-interpreter available for ipython, too. It also enables a
-;; persistent py-shell command history accross sessions (if you exit python
+;; persistent py-shell command history across sessions (if you exit python
 ;; with C-d in py-shell) and defines the command `ipython-to-doctest', which
 ;; can be used to convert bits of a ipython session into something that can be
 ;; used for doctests. To install, put this file somewhere in your emacs
