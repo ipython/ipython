@@ -1808,11 +1808,7 @@ class isort(Pipe):
             key = compile(self.key, "ipipe-expression", "eval")
             def realkey(item):
                 return eval(key, g, AttrNamespace(item))
-            items = sorted(
-                xiter(self.input, mode),
-                key=realkey,
-                reverse=self.reverse
-            )
+            items = sorted(xiter(self.input), key=realkey, reverse=self.reverse)
         for item in items:
             yield item
 
