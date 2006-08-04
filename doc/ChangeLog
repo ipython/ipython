@@ -1,3 +1,8 @@
+2006-08-04  Walter Doerwald  <walter@livinglogic.de>
+
+	* IPython/Extensions/ibrowse.py: Fixed the help message in the footer
+	(which was displaying "quit" twice).
+
 2006-07-28  Walter Doerwald  <walter@livinglogic.de>
 
 	* IPython/Extensions/ipipe.py: Fix isort.__iter__() (was still using

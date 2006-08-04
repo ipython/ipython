@@ -1384,10 +1384,10 @@ class ibrowse(ipipe.Display):
         footery = 2
 
         keys = []
-        for key in ("quit", "help"):
-            key = self.keymap.findkey(key, None)
+        for cmd in ("quit", "help"):
+            key = self.keymap.findkey(cmd, None)
             if key is not None:
-                keys.append("%s=quit" % self.keylabel(key))
+                keys.append("%s=%s" % (self.keylabel(key), cmd))
         helpmsg = " | %s" % " ".join(keys)
 
         scr.clear()
