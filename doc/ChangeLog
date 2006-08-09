@@ -1,3 +1,11 @@
+2006-08-09  Fernando Perez  <Fernando.Perez@colorado.edu>
+
+	* IPython/OInspect.py: monkeypatch inspect from the stdlib if
+	running under python 2.3 with code from 2.4 to fix a bug with
+	help().  Reported by the Debian maintainers, Norbert Tretkowski
+	<norbert-AT-tretkowski.de> and Alexandre Fayolle
+	<afayolle-AT-debian.org>.
+
 2006-08-04  Walter Doerwald  <walter@livinglogic.de>
 
 	* IPython/Extensions/ibrowse.py: Fixed the help message in the footer
