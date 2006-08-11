@@ -1,3 +1,10 @@
+2006-08-11  Ville Vainio  <vivainio@gmail.com>
+
+	* Fakemodule.py, OInspect.py: remove 2006-08-09 monkepatch
+	by resolving issue properly, i.e. by inheriting FakeModule
+	from types.ModuleType. Pickling ipython interactive data
+	should still work as usual (testing appreciated).
+
 2006-08-09  Fernando Perez  <Fernando.Perez@colorado.edu>
 
 	* IPython/OInspect.py: monkeypatch inspect from the stdlib if
