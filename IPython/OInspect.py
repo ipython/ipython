@@ -6,7 +6,7 @@ Uses syntax highlighting for presenting the various information elements.
 Similar in spirit to the inspect module, but all calls take a name argument to
 reference the name under which an object is being read.
 
-$Id: OInspect.py 1602 2006-08-11 09:19:33Z vivainio $
+$Id: OInspect.py 1625 2006-08-12 10:34:44Z vivainio $
 """
 
 #*****************************************************************************
@@ -30,12 +30,52 @@ import string
 import StringIO
 import types
 import os
+import sys
 # IPython's own
 from IPython import PyColorize
 from IPython.genutils import page,indent,Term,mkdict
 from IPython.Itpl import itpl
 from IPython.wildcard import list_namespace
 from IPython.ColorANSI import *
+
+#****************************************************************************
+# HACK!!! This is a crude fix for bugs in python 2.3's inspect module.  We
+# simply monkeypatch inspect with code copied from python 2.4.
+if sys.version_info[:2] == (2,3):
+    from inspect import ismodule, getabsfile, modulesbyfile
+    def getmodule(object):
+        """Return the module an object was defined in, or None if not found."""
+        if ismodule(object):
+            return object
+        if hasattr(object, '__module__'):
+            return sys.modules.get(object.__module__)
+        try:
+            file = getabsfile(object)
+        except TypeError:
+            return None
+        if file in modulesbyfile:
+            return sys.modules.get(modulesbyfile[file])
+        for module in sys.modules.values():
+            if hasattr(module, '__file__'):
+                modulesbyfile[
+                    os.path.realpath(
+                            getabsfile(module))] = module.__name__
+        if file in modulesbyfile:
+            return sys.modules.get(modulesbyfile[file])
+        main = sys.modules['__main__']
+        if not hasattr(object, '__name__'):
+            return None
+        if hasattr(main, object.__name__):
+            mainobject = getattr(main, object.__name__)
+            if mainobject is object:
+                return main
+        builtin = sys.modules['__builtin__']
+        if hasattr(builtin, object.__name__):
+            builtinobject = getattr(builtin, object.__name__)
+            if builtinobject is object:
+                return builtin
+
+    inspect.getmodule = getmodule
 
 #****************************************************************************
 # Builtin color schemes

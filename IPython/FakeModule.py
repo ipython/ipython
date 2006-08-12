@@ -5,7 +5,7 @@ Class which mimics a module.
 Needed to allow pickle to correctly resolve namespaces during IPython
 sessions.
 
-$Id: FakeModule.py 1602 2006-08-11 09:19:33Z vivainio $"""
+$Id: FakeModule.py 1625 2006-08-12 10:34:44Z vivainio $"""
 
 #*****************************************************************************
 #       Copyright (C) 2002-2004 Fernando Perez. <fperez@colorado.edu>
@@ -14,9 +14,7 @@ $Id: FakeModule.py 1602 2006-08-11 09:19:33Z vivainio $"""
 #  the file COPYING, distributed as part of this software.
 #*****************************************************************************
 
-import types
-
-class FakeModule(types.ModuleType):
+class FakeModule:
     """Simple class with attribute access to fake a module.
 
     This is not meant to replace a module, but to allow inserting a fake
@@ -27,7 +25,7 @@ class FakeModule(types.ModuleType):
     Do NOT use this code for anything other than this IPython private hack."""
 
     def __init__(self,adict):
-        types.ModuleType.__init__(self,adict['__name__'])
+
         # It seems pydoc (and perhaps others) needs any module instance to
         # implement a __nonzero__ method, so we add it if missing:
         if '__nonzero__' not in adict:
@@ -35,16 +33,17 @@ class FakeModule(types.ModuleType):
                 return 1
             adict['__nonzero__'] = __nonzero__
 
+            self.__dict__ = adict
+
         # modules should have a __file__ attribute
         adict['__file__'] = __file__
-        self.__origdict = adict
 
     def __getattr__(self,key):
-	try:
-	    return self.__origdict[key]
-	except KeyError, e:
-	    raise AttributeError("FakeModule object has no attribute %s" % e)
-		
+        try:
+            return self.__dict__[key]
+        except KeyError, e:
+            raise AttributeError("FakeModule object has no attribute %s" % e)
+
     def __str__(self):
         return "<IPython.FakeModule instance>"
 
