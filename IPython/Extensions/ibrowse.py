@@ -241,7 +241,7 @@ class _BrowserLevel(object):
                         attrs.add(attr)
 
     def getrow(self, i):
-        # Return a dictinary with the attributes for the object
+        # Return a dictionary with the attributes for the object
         # ``self.items[i]``. Attribute names are taken from
         # ``self.displayattrs`` so ``calcdisplayattrs()`` must have been
         # called before.
@@ -264,8 +264,8 @@ class _BrowserLevel(object):
         # Recalculate the displayed fields and their widths.
         # ``calcdisplayattrs()'' must have been called and the cache
         # for attributes of the objects on screen (``self.displayrows``)
-        # must have been filled. This returns a dictionary mapping
-        # column names to widths.
+        # must have been filled. This sets ``self.colwidths`` which maps
+        # attribute descriptors to widths.
         self.colwidths = {}
         for row in self.displayrows:
             for attr in self.displayattrs:
