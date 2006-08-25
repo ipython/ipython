@@ -1180,11 +1180,22 @@ class ils(Table):
         >>> ils("/usr/local/lib/python2.4")
         >>> ils("~")
     """
-    def __init__(self, base=os.curdir):
+    def __init__(self, base=os.curdir, dirs=True, files=True):
         self.base = os.path.expanduser(base)
+        self.dirs = dirs
+        self.files = files
 
     def __iter__(self):
-        return xiter(ifile(self.base))
+        for child in ifile(self.base).listdir():
+            if self.dirs:
+                if self.files:
+                    yield child
+                else:
+                    if child.isdir():
+                        yield child
+            elif self.files:
+                if not child.isdir():
+                    yield child
 
     def __xrepr__(self, mode):
        return ifile(self.base).__xrepr__(mode)
