@@ -6,7 +6,7 @@ Requires Python 2.3 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 1478 2006-07-26 14:20:44Z vivainio $
+$Id: iplib.py 1785 2006-09-26 21:08:22Z vivainio $
 """
 
 #*****************************************************************************
@@ -1740,7 +1740,7 @@ want to merge them back into the new files.""" % locals()
         except SystemExit:
             self.resetbuffer()
             self.showtraceback()
-            warn("Type exit or quit to exit IPython "
+            warn("Type %exit or %quit to exit IPython "
                  "(%Exit or %Quit do so unconditionally).",level=1)
         except self.custom_exceptions:
             etype,value,tb = sys.exc_info()
@@ -1801,7 +1801,14 @@ want to merge them back into the new files.""" % locals()
           continuation in a sequence of inputs.
         """
 
-        line = raw_input_original(prompt)
+        try:
+            line = raw_input_original(prompt)
+        except ValueError:
+            # python 2.5 closes stdin on exit -> ValueError
+            # xxx should we delete 'exit' and 'quit' from builtin?
+            self.exit_now = True
+            return ''
+            
 
         # Try to be reasonably smart about not re-indenting pasted input more
         # than necessary.  We do this by trimming out the auto-indent initial
