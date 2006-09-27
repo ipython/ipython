@@ -6,7 +6,7 @@ Requires Python 2.3 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 1787 2006-09-27 06:56:29Z fperez $
+$Id: iplib.py 1788 2006-09-27 07:15:44Z fperez $
 """
 
 #*****************************************************************************
@@ -126,6 +126,23 @@ class Bunch: pass
 
 class Undefined: pass
 
+class Quitter(object):
+    """Simple class to handle exit, similar to Python 2.5's.
+
+    It handles exiting in an ipython-safe manner, which the one in Python 2.5
+    doesn't do (obviously, since it doesn't know about ipython)."""
+    
+    def __init__(self,shell,name):
+        self.shell = shell
+        self.name = name
+        
+    def __repr__(self):
+        return 'Type %s() to exit.' % self.name
+    __str__ = __repr__
+
+    def __call__(self):
+        self.shell.exit()
+
 class InputList(list):
     """Class to store user input.
 
@@ -220,11 +237,10 @@ class InteractiveShell(object,Magic):
         self.filename = '<ipython console>'
 
         # Install our own quitter instead of the builtins.  For python2.3-2.4,
-        # this brings in behavior more like 2.5, and for 2.5 it's almost
-        # identical to Python's official behavior (except we lack the message,
-        # but with autocall the need for that is much less).
-        __builtin__.exit = __builtin__.quit = self.exit
-
+        # this brings in behavior like 2.5, and for 2.5 it's identical.
+        __builtin__.exit = Quitter(self,'exit')
+        __builtin__.quit = Quitter(self,'quit')
+        
         # Make an empty namespace, which extension writers can rely on both
         # existing and NEVER being used by ipython itself.  This gives them a
         # convenient location for storing additional information and state
