@@ -32,6 +32,7 @@ NOTES:
 
 # Stdlib imports
 import optparse
+import os
 import sys
 
 # Third-party modules.
@@ -105,7 +106,7 @@ class InteractiveRunner(object):
             self.run_source(fobj,interact)
         finally:
             fobj.close()
-        
+
     def run_source(self,source,interact=False):
         """Run the given source code interactively.
 
@@ -127,8 +128,11 @@ class InteractiveRunner(object):
 
         # grab the true write method of stdout, in case anything later
         # reassigns sys.stdout, so that we really are writing to the true
-        # stdout and not to something else.
-        write = sys.stdout.write
+        # stdout and not to something else.  We also normalize all strings we
+        # write to use the native OS line separators.
+        linesep  = os.linesep
+        stdwrite = sys.stdout.write
+        write    = lambda s: stdwrite(s.replace('\r\n',linesep))
 
         c = pexpect.spawn(self.program,self.args,timeout=None)
         c.delaybeforesend = self.delaybeforesend
@@ -142,7 +146,9 @@ class InteractiveRunner(object):
         for cmd in source:
             # skip blank lines for all matches to the 'main' prompt, while the
             # secondary prompts do not
-            if prompt_idx==0 and cmd.isspace():
+            if prompt_idx==0 and \
+                   (cmd.isspace() or cmd.lstrip().startswith('#')):
+                print cmd,
                 continue
 
             write(c.after)
@@ -156,9 +162,6 @@ class InteractiveRunner(object):
                 break
             write(c.before)
         
-        if isinstance(source,file):
-            source.close()
-
         if end_normal:
             if interact:
                 c.send('\n')
@@ -230,6 +233,28 @@ class PythonRunner(InteractiveRunner):
 
         prompts = [r'>>> ',r'\.\.\. ']
         InteractiveRunner.__init__(self,program,prompts,args)
+
+
+class DocTestRunner(PythonRunner):
+    """A python runner customized for doctest usage."""
+
+    def run_source(self,source,interact=False):
+        """Run the given source code interactively.
+
+        See the parent docstring for details.
+        """
+
+        # if the source is a string, chop it up in lines so we can iterate
+        # over it just as if it were an open file.
+        if not isinstance(source,file):
+            source = source.splitlines(True)
+
+        
+        for line in source:
+            pass
+        # finish by calling the parent run_source method
+        super(DocTestRunner,self).run_source(dsource,interact)
+
 
 
 class SAGERunner(InteractiveRunner):

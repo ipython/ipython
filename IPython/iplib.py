@@ -6,7 +6,7 @@ Requires Python 2.3 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 1785 2006-09-26 21:08:22Z vivainio $
+$Id: iplib.py 1786 2006-09-27 05:47:28Z fperez $
 """
 
 #*****************************************************************************
@@ -2029,8 +2029,22 @@ want to merge them back into the new files.""" % locals()
         """simple prefilter function, for debugging"""
         return self.handle_normal(line,continue_prompt)
 
+    
+    def multiline_prefilter(self, line, continue_prompt):
+        """ Run _prefilter for each line of input
+        
+        Covers cases where there are multiple lines in the user entry,
+        which is the case when the user goes back to a multiline history
+        entry and presses enter.
+        
+        """
+        out = []
+        for l in line.rstrip('\n').split('\n'):
+            out.append(self._prefilter(l, continue_prompt))
+        return '\n'.join(out)
+    
     # Set the default prefilter() function (this can be user-overridden)
-    prefilter = _prefilter
+    prefilter = multiline_prefilter
 
     def handle_normal(self,line,continue_prompt=None,
                       pre=None,iFun=None,theRest=None):

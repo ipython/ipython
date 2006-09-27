@@ -60,7 +60,7 @@ You can implement other color schemes easily, the syntax is fairly
 self-explanatory. Please send back new schemes you develop to the author for
 possible inclusion in future releases.
 
-$Id: ultraTB.py 1154 2006-02-11 23:20:05Z fperez $"""
+$Id: ultraTB.py 1786 2006-09-27 05:47:28Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001 Nathaniel Gray <n8gray@caltech.edu>
@@ -692,7 +692,7 @@ class VerboseTB(TBTools):
                     etb = etb.tb_next
                 self.pdb.botframe = etb.tb_frame
                 self.pdb.interaction(self.tb.tb_frame, self.tb)
-            except:
+            except 'ha':   # dbg
                 print '*** ERROR ***'
                 print 'This version of pdb has a bug and crashed.'
                 print 'Returning to IPython...'

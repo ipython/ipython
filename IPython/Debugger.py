@@ -15,7 +15,7 @@ details on the PSF (Python Software Foundation) standard license, see:
 
 http://www.python.org/2.2.3/license.html
 
-$Id: Debugger.py 1324 2006-05-24 20:25:11Z fperez $"""
+$Id: Debugger.py 1786 2006-09-27 05:47:28Z fperez $"""
 
 #*****************************************************************************
 #
@@ -68,44 +68,122 @@ class Pdb(pdb.Pdb):
     # Ugly hack: we can't call the parent constructor, because it binds
     # readline and breaks tab-completion.  This means we have to COPY the
     # constructor here, and that requires tracking various python versions.
-    
-    def __init__(self,color_scheme='NoColor'):
-        bdb.Bdb.__init__(self)
-        cmd.Cmd.__init__(self,completekey=None) # don't load readline
-        self.prompt = 'ipdb> ' # The default prompt is '(Pdb)'
-        self.aliases = {}
 
-        # These two lines are part of the py2.4 constructor, let's put them
-        # unconditionally here as they won't cause any problems in 2.3.
-        self.mainpyfile = ''
-        self._wait_for_mainpyfile = 0
+    if sys.version[:3] == '2.5':
+        def __init__(self,color_scheme='NoColor',completekey=None,
+                     stdin=None, stdout=None):
+            bdb.Bdb.__init__(self)
 
-        # Read $HOME/.pdbrc and ./.pdbrc
-        try:
-            self.rcLines = _file_lines(os.path.join(os.environ['HOME'],
-                                                    ".pdbrc"))
-        except KeyError:
+            # IPython change
+            # don't load readline
+            cmd.Cmd.__init__(self,completekey,stdin,stdout)
+            #cmd.Cmd.__init__(self, completekey, stdin, stdout)
+            # /IPython change
+
+            if stdout:
+                self.use_rawinput = 0
+            self.prompt = '(Pdb) '
+            self.aliases = {}
+            self.mainpyfile = ''
+            self._wait_for_mainpyfile = 0
+            # Try to load readline if it exists
+            try:
+                import readline
+            except ImportError:
+                pass
+
+            # Read $HOME/.pdbrc and ./.pdbrc
             self.rcLines = []
-        self.rcLines.extend(_file_lines(".pdbrc"))
+            if 'HOME' in os.environ:
+                envHome = os.environ['HOME']
+                try:
+                    rcFile = open(os.path.join(envHome, ".pdbrc"))
+                except IOError:
+                    pass
+                else:
+                    for line in rcFile.readlines():
+                        self.rcLines.append(line)
+                    rcFile.close()
+            try:
+                rcFile = open(".pdbrc")
+            except IOError:
+                pass
+            else:
+                for line in rcFile.readlines():
+                    self.rcLines.append(line)
+                rcFile.close()
 
-        # Create color table: we copy the default one from the traceback
-        # module and add a few attributes needed for debugging
-        self.color_scheme_table = ExceptionColors.copy()
-        
-        # shorthands 
-        C = ColorANSI.TermColors
-        cst = self.color_scheme_table
+            self.commands = {} # associates a command list to breakpoint numbers
+            self.commands_doprompt = {} # for each bp num, tells if the prompt must be disp. after execing the cmd list
+            self.commands_silent = {} # for each bp num, tells if the stack trace must be disp. after execing the cmd list
+            self.commands_defining = False # True while in the process of defining a command list
+            self.commands_bnum = None # The breakpoint number for which we are defining a list
 
-        cst['NoColor'].colors.breakpoint_enabled = C.NoColor
-        cst['NoColor'].colors.breakpoint_disabled = C.NoColor
 
-        cst['Linux'].colors.breakpoint_enabled = C.LightRed
-        cst['Linux'].colors.breakpoint_disabled = C.Red
+            # IPython changes...
 
-        cst['LightBG'].colors.breakpoint_enabled = C.LightRed
-        cst['LightBG'].colors.breakpoint_disabled = C.Red
+            self.prompt = 'ipdb> ' # The default prompt is '(Pdb)'
+            self.aliases = {}
 
-        self.set_colors(color_scheme)
+            # Create color table: we copy the default one from the traceback
+            # module and add a few attributes needed for debugging
+            self.color_scheme_table = ExceptionColors.copy()
+
+            # shorthands 
+            C = ColorANSI.TermColors
+            cst = self.color_scheme_table
+
+            cst['NoColor'].colors.breakpoint_enabled = C.NoColor
+            cst['NoColor'].colors.breakpoint_disabled = C.NoColor
+
+            cst['Linux'].colors.breakpoint_enabled = C.LightRed
+            cst['Linux'].colors.breakpoint_disabled = C.Red
+
+            cst['LightBG'].colors.breakpoint_enabled = C.LightRed
+            cst['LightBG'].colors.breakpoint_disabled = C.Red
+
+            self.set_colors(color_scheme)
+            
+
+    else:
+    
+        def __init__(self,color_scheme='NoColor'):
+            bdb.Bdb.__init__(self)
+            cmd.Cmd.__init__(self,completekey=None) # don't load readline
+            self.prompt = 'ipdb> ' # The default prompt is '(Pdb)'
+            self.aliases = {}
+
+            # These two lines are part of the py2.4 constructor, let's put them
+            # unconditionally here as they won't cause any problems in 2.3.
+            self.mainpyfile = ''
+            self._wait_for_mainpyfile = 0
+
+            # Read $HOME/.pdbrc and ./.pdbrc
+            try:
+                self.rcLines = _file_lines(os.path.join(os.environ['HOME'],
+                                                        ".pdbrc"))
+            except KeyError:
+                self.rcLines = []
+            self.rcLines.extend(_file_lines(".pdbrc"))
+
+            # Create color table: we copy the default one from the traceback
+            # module and add a few attributes needed for debugging
+            self.color_scheme_table = ExceptionColors.copy()
+
+            # shorthands 
+            C = ColorANSI.TermColors
+            cst = self.color_scheme_table
+
+            cst['NoColor'].colors.breakpoint_enabled = C.NoColor
+            cst['NoColor'].colors.breakpoint_disabled = C.NoColor
+
+            cst['Linux'].colors.breakpoint_enabled = C.LightRed
+            cst['Linux'].colors.breakpoint_disabled = C.Red
+
+            cst['LightBG'].colors.breakpoint_enabled = C.LightRed
+            cst['LightBG'].colors.breakpoint_disabled = C.Red
+
+            self.set_colors(color_scheme)
         
     def set_colors(self, scheme):
         """Shorthand access to the color table scheme selector method."""
