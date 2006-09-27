@@ -1,3 +1,21 @@
+2006-09-27  Fernando Perez  <Fernando.Perez@colorado.edu>
+
+	* IPython/irunner.py (InteractiveRunner.run_source): small fixes
+	to help in handling doctests.  irunner is now pretty useful for
+	running standalone scripts and simulate a full interactive session
+	in a format that can be then pasted as a doctest.
+
+	* IPython/iplib.py (InteractiveShell.__init__): Install exit/quit
+	on top of the default (useless) ones.  This also fixes the nasty
+	way in which 2.5's Quitter() exits (reverted [1785]).
+
+	* IPython/Debugger.py (Pdb.__init__): Fix ipdb to work with python
+	2.5.
+
+	* IPython/ultraTB.py (TBTools.set_colors): Make sure that ipdb
+	color scheme is updated as well when color scheme is changed
+	interactively. 
+
 2006-09-27  Ville Vainio  <vivainio@gmail.com>
 
 	* iplib.py (raw_input): python 2.5 closes stdin on quit -> avoid

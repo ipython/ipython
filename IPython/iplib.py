@@ -6,7 +6,7 @@ Requires Python 2.3 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 1786 2006-09-27 05:47:28Z fperez $
+$Id: iplib.py 1787 2006-09-27 06:56:29Z fperez $
 """
 
 #*****************************************************************************
@@ -218,6 +218,12 @@ class InteractiveShell(object,Magic):
 
         # Default name given in compilation of code
         self.filename = '<ipython console>'
+
+        # Install our own quitter instead of the builtins.  For python2.3-2.4,
+        # this brings in behavior more like 2.5, and for 2.5 it's almost
+        # identical to Python's official behavior (except we lack the message,
+        # but with autocall the need for that is much less).
+        __builtin__.exit = __builtin__.quit = self.exit
 
         # Make an empty namespace, which extension writers can rely on both
         # existing and NEVER being used by ipython itself.  This gives them a
@@ -1801,14 +1807,7 @@ want to merge them back into the new files.""" % locals()
           continuation in a sequence of inputs.
         """
 
-        try:
-            line = raw_input_original(prompt)
-        except ValueError:
-            # python 2.5 closes stdin on exit -> ValueError
-            # xxx should we delete 'exit' and 'quit' from builtin?
-            self.exit_now = True
-            return ''
-            
+        line = raw_input_original(prompt)
 
         # Try to be reasonably smart about not re-indenting pasted input more
         # than necessary.  We do this by trimming out the auto-indent initial
@@ -2252,7 +2251,6 @@ want to merge them back into the new files.""" % locals()
                 self.exit_now = True
         else:
             self.exit_now = True
-        return self.exit_now
 
     def safe_execfile(self,fname,*where,**kw):
         fname = os.path.expanduser(fname)

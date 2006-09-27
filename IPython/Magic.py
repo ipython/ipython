@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Magic functions for InteractiveShell.
 
-$Id: Magic.py 1386 2006-07-08 09:32:30Z vivainio $"""
+$Id: Magic.py 1787 2006-09-27 06:56:29Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001 Janko Hauser <jhauser@zscout.de> and
@@ -2198,11 +2198,12 @@ Currently the magic system has the following functions:\n"""
         import IPython.rlineimpl as readline
         if not readline.have_readline:
             msg = """\
-Proper color support under MS Windows requires Gary Bishop's readline library.
+Proper color support under MS Windows requires the pyreadline library.
 You can find it at:
-http://sourceforge.net/projects/uncpythontools
+http://ipython.scipy.org/moin/PyReadline/Intro
 Gary's readline needs the ctypes module, from:
 http://starship.python.net/crew/theller/ctypes
+(Note that ctypes is already part of Python versions 2.5 and newer).
 
 Defaulting color scheme to 'NoColor'"""
             new_scheme = 'NoColor'

@@ -15,7 +15,7 @@ details on the PSF (Python Software Foundation) standard license, see:
 
 http://www.python.org/2.2.3/license.html
 
-$Id: Debugger.py 1786 2006-09-27 05:47:28Z fperez $"""
+$Id: Debugger.py 1787 2006-09-27 06:56:29Z fperez $"""
 
 #*****************************************************************************
 #
@@ -65,63 +65,14 @@ def _file_lines(fname):
 class Pdb(pdb.Pdb):
     """Modified Pdb class, does not load readline."""
 
-    # Ugly hack: we can't call the parent constructor, because it binds
-    # readline and breaks tab-completion.  This means we have to COPY the
-    # constructor here, and that requires tracking various python versions.
-
-    if sys.version[:3] == '2.5':
+    if sys.version[:3] >= '2.5':
         def __init__(self,color_scheme='NoColor',completekey=None,
                      stdin=None, stdout=None):
-            bdb.Bdb.__init__(self)
 
-            # IPython change
-            # don't load readline
-            cmd.Cmd.__init__(self,completekey,stdin,stdout)
-            #cmd.Cmd.__init__(self, completekey, stdin, stdout)
-            # /IPython change
-
-            if stdout:
-                self.use_rawinput = 0
-            self.prompt = '(Pdb) '
-            self.aliases = {}
-            self.mainpyfile = ''
-            self._wait_for_mainpyfile = 0
-            # Try to load readline if it exists
-            try:
-                import readline
-            except ImportError:
-                pass
-
-            # Read $HOME/.pdbrc and ./.pdbrc
-            self.rcLines = []
-            if 'HOME' in os.environ:
-                envHome = os.environ['HOME']
-                try:
-                    rcFile = open(os.path.join(envHome, ".pdbrc"))
-                except IOError:
-                    pass
-                else:
-                    for line in rcFile.readlines():
-                        self.rcLines.append(line)
-                    rcFile.close()
-            try:
-                rcFile = open(".pdbrc")
-            except IOError:
-                pass
-            else:
-                for line in rcFile.readlines():
-                    self.rcLines.append(line)
-                rcFile.close()
-
-            self.commands = {} # associates a command list to breakpoint numbers
-            self.commands_doprompt = {} # for each bp num, tells if the prompt must be disp. after execing the cmd list
-            self.commands_silent = {} # for each bp num, tells if the stack trace must be disp. after execing the cmd list
-            self.commands_defining = False # True while in the process of defining a command list
-            self.commands_bnum = None # The breakpoint number for which we are defining a list
-
-
+            # Parent constructor:
+            pdb.Pdb.__init__(self,completekey,stdin,stdout)
+            
             # IPython changes...
-
             self.prompt = 'ipdb> ' # The default prompt is '(Pdb)'
             self.aliases = {}
 
@@ -143,10 +94,11 @@ class Pdb(pdb.Pdb):
             cst['LightBG'].colors.breakpoint_disabled = C.Red
 
             self.set_colors(color_scheme)
-            
 
     else:
-    
+        # Ugly hack: for Python 2.3-2.4, we can't call the parent constructor,
+        # because it binds readline and breaks tab-completion.  This means we
+        # have to COPY the constructor here.
         def __init__(self,color_scheme='NoColor'):
             bdb.Bdb.__init__(self)
             cmd.Cmd.__init__(self,completekey=None) # don't load readline

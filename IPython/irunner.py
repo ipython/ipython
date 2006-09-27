@@ -235,28 +235,6 @@ class PythonRunner(InteractiveRunner):
         InteractiveRunner.__init__(self,program,prompts,args)
 
 
-class DocTestRunner(PythonRunner):
-    """A python runner customized for doctest usage."""
-
-    def run_source(self,source,interact=False):
-        """Run the given source code interactively.
-
-        See the parent docstring for details.
-        """
-
-        # if the source is a string, chop it up in lines so we can iterate
-        # over it just as if it were an open file.
-        if not isinstance(source,file):
-            source = source.splitlines(True)
-
-        
-        for line in source:
-            pass
-        # finish by calling the parent run_source method
-        super(DocTestRunner,self).run_source(dsource,interact)
-
-
-
 class SAGERunner(InteractiveRunner):
     """Interactive SAGE runner.
     
