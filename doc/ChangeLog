@@ -1,3 +1,9 @@
+2006-10-03  Ville Vainio  <vivainio@gmail.com>
+
+	* iplib.py (raw_input, interact): Return ValueError catching for 
+	raw_input. Fixes infinite loop for sys.stdin.close() or 
+	sys.stdout.close().
+
 2006-09-27  Fernando Perez  <Fernando.Perez@colorado.edu>
 
 	* IPython/irunner.py (InteractiveRunner.run_source): small fixes

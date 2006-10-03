@@ -6,7 +6,7 @@ Requires Python 2.3 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 1788 2006-09-27 07:15:44Z fperez $
+$Id: iplib.py 1803 2006-10-03 16:29:50Z vivainio $
 """
 
 #*****************************************************************************
@@ -1523,6 +1523,9 @@ want to merge them back into the new files.""" % locals()
                 prompt = self.hooks.generate_prompt(False)
             try:
                 line = self.raw_input(prompt,more)
+                if self.exit_now:
+                    # quick exit on sys.std[in|out] close
+                    break
                 if self.autoindent:
                     self.readline_startup_hook(None)
             except KeyboardInterrupt:
@@ -1823,7 +1826,13 @@ want to merge them back into the new files.""" % locals()
           continuation in a sequence of inputs.
         """
 
-        line = raw_input_original(prompt)
+        try:
+            line = raw_input_original(prompt)
+        except ValueError:
+            warn("\n********\nYou or a %run:ed script called sys.stdin.close() or sys.stdout.close()!\nExiting IPython!")
+            self.exit_now = True
+            return ""
+        
 
         # Try to be reasonably smart about not re-indenting pasted input more
         # than necessary.  We do this by trimming out the auto-indent initial
