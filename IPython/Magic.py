@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Magic functions for InteractiveShell.
 
-$Id: Magic.py 1787 2006-09-27 06:56:29Z fperez $"""
+$Id: Magic.py 1815 2006-10-10 04:46:24Z fptest $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001 Janko Hauser <jhauser@zscout.de> and
@@ -61,6 +61,17 @@ def on_off(tag):
     return ['OFF','ON'][tag]
 
 class Bunch: pass
+
+def arg_split(s,posix=True):
+    """Split a command line's arguments in a shell-like manner.
+
+    This is a modified version of the standard library's shlex.split()
+    function, but with a default of posix=False for splitting, so that quotes
+    in inputs are respected."""
+    
+    lex = shlex.shlex(s, posix=posix)
+    lex.whitespace_split = True
+    return list(lex)
 
 #***************************************************************************
 # Main class implementing Magic functionality
@@ -301,8 +312,12 @@ license. To use profiling, please install"python2.3-profiler" from non-free.""")
           returned as a list (split on whitespace) instead of a string.
 
           -list_all: put all option values in lists. Normally only options
-          appearing more than once are put in a list."""
+          appearing more than once are put in a list.
 
+          -posix (True): whether to split the input line in POSIX mode or not,
+          as per the conventions outlined in the shlex module from the
+          standard library."""
+ 
         # inject default options at the beginning of the input line
         caller = sys._getframe(1).f_code.co_name.replace('magic_','')
         arg_str = '%s %s' % (self.options_table.get(caller,''),arg_str)
@@ -312,6 +327,7 @@ license. To use profiling, please install"python2.3-profiler" from non-free.""")
             raise ValueError,'incorrect mode given: %s' % mode
         # Get options
         list_all = kw.get('list_all',0)
+        posix = kw.get('posix',True)
 
         # Check if we have more than one argument to warrant extra processing:
         odict = {}  # Dictionary with options
@@ -319,7 +335,7 @@ license. To use profiling, please install"python2.3-profiler" from non-free.""")
         if len(args) >= 1:
             # If the list of inputs only has 0 or 1 thing in it, there's no
             # need to look for options
-            argv = shlex.split(arg_str)
+            argv = arg_split(arg_str,posix)
             # Do regular option processing
             try:
                 opts,args = getopt(argv,opt_str,*long_opts)
@@ -1636,19 +1652,22 @@ Currently the magic system has the following functions:\n"""
           1 loops, best of 3: 2 s per loop
           
 
-        The times reported by %timeit will be slightly higher than those reported
-        by the timeit.py script when variables are accessed. This is due to the
-        fact that %timeit executes the statement in the namespace of the shell,
-        compared with timeit.py, which uses a single setup statement to import
-        function or create variables. Generally, the bias does not matter as long
-        as results from timeit.py are not mixed with those from %timeit."""
+        The times reported by %timeit will be slightly higher than those
+        reported by the timeit.py script when variables are accessed. This is
+        due to the fact that %timeit executes the statement in the namespace
+        of the shell, compared with timeit.py, which uses a single setup
+        statement to import function or create variables. Generally, the bias
+        does not matter as long as results from timeit.py are not mixed with
+        those from %timeit."""
+
         import timeit
         import math
 
         units = ["s", "ms", "\xc2\xb5s", "ns"]
         scaling = [1, 1e3, 1e6, 1e9]
 
-        opts, stmt = self.parse_options(parameter_s,'n:r:tcp:')
+        opts, stmt = self.parse_options(parameter_s,'n:r:tcp:',
+                                        posix=False)
         if stmt == "":
             return
         timefunc = timeit.default_timer
@@ -1665,7 +1684,8 @@ Currently the magic system has the following functions:\n"""
         # but is there a better way to achieve that the code stmt has access
         # to the shell namespace?
 
-        src = timeit.template % {'stmt': timeit.reindent(stmt, 8), 'setup': "pass"}
+        src = timeit.template % {'stmt': timeit.reindent(stmt, 8),
+                                 'setup': "pass"}
         code = compile(src, "<magic-timeit>", "exec")
         ns = {}
         exec code in self.shell.user_ns, ns
