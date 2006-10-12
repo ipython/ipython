@@ -6,7 +6,7 @@ Requires Python 2.3 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 1821 2006-10-12 21:14:44Z vivainio $
+$Id: iplib.py 1822 2006-10-12 21:38:00Z vivainio $
 """
 
 #*****************************************************************************
@@ -57,7 +57,7 @@ import tempfile
 import traceback
 import types
 import pickleshare
-
+from sets import Set
 from pprint import pprint, pformat
 
 # IPython's own modules
@@ -1598,9 +1598,16 @@ want to merge them back into the new files.""" % locals()
         
         """
         line = fn + " " + rest
+        
+        done = Set()
         while 1:
             pre,fn,rest = self.split_user_input(line)
             if fn in self.alias_table:
+                if fn in done:
+                    warn("Cyclic alias definition, repeated '%s'" % fn)
+                    return ""
+                done.add(fn)
+
                 l2 = self.transform_alias(fn,rest)
                 # dir -> dir 
                 if l2 == line:
