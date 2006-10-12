@@ -21,6 +21,7 @@ README_Windows.txt
 """                     
 
 from subprocess import Popen,PIPE
+import os
 
 from IPython import genutils
 
@@ -30,10 +31,14 @@ class IpyPopen(Popen):
     def go(self):
         print self.communicate()[0]
     def __repr__(self):
-        return '<IPython job "%s">' % self.line
+        return '<IPython job "%s" PID=%d>' % (self.line, self.pid)
 
+    def kill(self):
+        assert os.name == 'nt' # xxx add posix version 
+        os.system('taskkill /PID %d' % self.pid)
+                  
 def startjob(job):
-    p = IpyPopen(job, stdout=PIPE)
+    p = IpyPopen(job, stdout=PIPE, shell = False)
     p.line = job
     return p
 
