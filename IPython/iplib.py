@@ -6,7 +6,7 @@ Requires Python 2.3 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 1819 2006-10-12 19:41:26Z vivainio $
+$Id: iplib.py 1821 2006-10-12 21:14:44Z vivainio $
 """
 
 #*****************************************************************************
@@ -1602,9 +1602,17 @@ want to merge them back into the new files.""" % locals()
             pre,fn,rest = self.split_user_input(line)
             if fn in self.alias_table:
                 l2 = self.transform_alias(fn,rest)
+                # dir -> dir 
                 if l2 == line:
                     break
-                line = l2
+                # ls -> ls -F should not recurse forever
+                if l2.split(None,1)[0] == line.split(None,1)[0]:
+                    line = l2
+                    break
+                
+                line=l2
+                
+                
                 # print "al expand to",line #dbg
             else:
                 break
