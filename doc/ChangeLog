@@ -3,6 +3,9 @@
 	* jobctrl.py: Add new "jobctrl" extension for spawning background
 	processes with "&find /". 'import jobctrl' to try it out. Requires
 	'subprocess' module, standard in python 2.4+.
+	
+	* iplib.py (expand_aliases, handle_alias): Aliases expand transitively, 
+	so if foo -> bar and bar -> baz, then foo -> baz.
 
 2006-10-09  Fernando Perez  <Fernando.Perez@colorado.edu>
 

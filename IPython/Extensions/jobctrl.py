@@ -39,12 +39,15 @@ def startjob(job):
 
 def jobctrl_prefilter_f(self,line):    
     if line.startswith('&'):
-        return '_ip.startjob(%s)' % genutils.make_quoted_expr(line[1:])
+        pre,fn,rest = self.split_user_input(line[1:])
+        
+        line = ip.IP.expand_aliases(fn,rest)
+        return '_ip.startjob(%s)' % genutils.make_quoted_expr(line)
 
     raise IPython.ipapi.TryNext
 
 def install():
-    
+    global ip
     ip = IPython.ipapi.get()
     # needed to make startjob visible as _ip.startjob('blah')
     ip.startjob = startjob
