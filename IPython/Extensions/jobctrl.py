@@ -24,21 +24,30 @@ from subprocess import Popen,PIPE
 
 from IPython import genutils
 
+import IPython.ipapi
+
 class IpyPopen(Popen):
     def go(self):
         print self.communicate()[0]
+    def __repr__(self):
+        return '<IPython job "%s">' % self.line
 
-def job(job):
-    #p = Popen(r"q:\opt\vlc\vlc.exe http://di.fm/mp3/djmixes.pls")
+def startjob(job):
     p = IpyPopen(job, stdout=PIPE)
     p.line = job
     return p
 
 def jobctrl_prefilter_f(self,line):    
     if line.startswith('&'):
-        return 'jobctrl.job(%s)' % genutils.make_quoted_expr(line[1:])
+        return '_ip.startjob(%s)' % genutils.make_quoted_expr(line[1:])
 
     raise IPython.ipapi.TryNext
 
-import IPython.ipapi
-IPython.ipapi.get().set_hook('input_prefilter', jobctrl_prefilter_f)     
+def install():
+    
+    ip = IPython.ipapi.get()
+    # needed to make startjob visible as _ip.startjob('blah')
+    ip.startjob = startjob
+    ip.set_hook('input_prefilter', jobctrl_prefilter_f)     
+    
+install()
