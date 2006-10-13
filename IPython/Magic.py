@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Magic functions for InteractiveShell.
 
-$Id: Magic.py 1823 2006-10-13 15:09:08Z vivainio $"""
+$Id: Magic.py 1824 2006-10-13 21:07:59Z vivainio $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001 Janko Hauser <jhauser@zscout.de> and
@@ -2365,17 +2365,24 @@ Defaulting color scheme to 'NoColor'"""
 
         par = parameter_s.strip()
         if not par:
-            if self.shell.rc.automagic:
-                prechar = ''
-            else:
-                prechar = self.shell.ESC_MAGIC
-            #print 'Alias\t\tSystem Command\n'+'-'*30
+            stored = self.db['stored_aliases']
             atab = self.shell.alias_table
             aliases = atab.keys()
             aliases.sort()
             res = []
+            showlast = []
             for alias in aliases:
-                res.append((alias, atab[alias][1]))                
+                tgt = atab[alias][1]
+                # 'interesting' aliases
+                if (alias in stored or 
+                    alias != os.path.splitext(tgt)[0] or
+                    ' ' in tgt):
+                    showlast.append((alias, tgt))
+                else:
+                    res.append((alias, tgt ))                
+            
+            # show most interesting aliases last
+            res.extend(showlast)
             print "Total number of aliases:",len(aliases)
             return res
         try:
@@ -2398,6 +2405,11 @@ Defaulting color scheme to 'NoColor'"""
         aname = parameter_s.strip()
         if aname in self.shell.alias_table:
             del self.shell.alias_table[aname]
+        stored = self.db['stored_aliases']
+        if aname in stored:
+            print "Removing %stored alias",aname
+            del stored[aname]
+            self.db['stored_aliases'] = stored
             
     def magic_rehash(self, parameter_s = ''):
         """Update the alias table with all entries in $PATH.
