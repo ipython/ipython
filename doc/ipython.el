@@ -6,7 +6,7 @@
 ;; URL:           http://ipython.scipy.org
 ;; Compatibility: Emacs21, XEmacs21
 ;; FIXME: #$@! INPUT RING
-(defconst ipython-version "$Revision: 1499 $"
+(defconst ipython-version "$Revision: 1823 $"
   "VC version number.")
 
 ;;; Commentary 
@@ -197,8 +197,10 @@ the second for a 'normal' command, and the third for a multiline command.")
     (setq py-traceback-line-re
           "\\(^[^\t ].+?\\.py\\).*\n   +[0-9]+[^\00]*?\n-+> \\([0-9]+\\) +")
     
-    ;; Recognize the ipython pdb, whose prompt is 'ipdb>' instead of '(Pdb)'
-    (setq py-pdbtrack-input-prompt "\n[(<]*[Ii]?[Pp]db[>)]+ ")
+    ;; Recognize the ipython pdb, whose prompt is 'ipdb>' or  'ipydb>'
+    ;;instead of '(Pdb)'
+    (setq py-pdbtrack-input-prompt "\n[(<]*[Ii]?[Pp]y?db[>)]+ ")
+    (setq py-pydbtrack-input-prompt "\n[(]*ipydb[>)]+ ")
     
     (setq py-shell-input-prompt-1-regexp "^In \\[[0-9]+\\]: *"
           py-shell-input-prompt-2-regexp "^   [.][.][.]+: *" )

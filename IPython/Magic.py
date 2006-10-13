@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Magic functions for InteractiveShell.
 
-$Id: Magic.py 1815 2006-10-10 04:46:24Z fptest $"""
+$Id: Magic.py 1823 2006-10-13 15:09:08Z vivainio $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001 Janko Hauser <jhauser@zscout.de> and
@@ -180,7 +180,7 @@ license. To use profiling, please install"python2.3-profiler" from non-free.""")
             cmds.append(hist[ini:fin])
         return cmds
         
-    def _ofind(self,oname):
+    def _ofind(self, oname, namespaces=None):
         """Find an object in the available namespaces.
 
         self._ofind(oname) -> dict with keys: found,obj,ospace,ismagic
@@ -190,19 +190,17 @@ license. To use profiling, please install"python2.3-profiler" from non-free.""")
         
         oname = oname.strip()
 
-        # Namespaces to search in:
-        user_ns        = self.shell.user_ns
-        internal_ns    = self.shell.internal_ns
-        builtin_ns     = __builtin__.__dict__
-        alias_ns       = self.shell.alias_table
-
-        # Put them in a list. The order is important so that we find things in
-        # the same order that Python finds them.
-        namespaces = [ ('Interactive',user_ns),
-                       ('IPython internal',internal_ns),
-                       ('Python builtin',builtin_ns),
-                       ('Alias',alias_ns),
-                       ]
+        alias_ns = None
+        if namespaces is None:
+            # Namespaces to search in:
+            # Put them in a list. The order is important so that we
+            # find things in the same order that Python finds them.
+            namespaces = [ ('Interactive', self.shell.user_ns),
+                           ('IPython internal', self.shell.internal_ns),
+                           ('Python builtin', __builtin__.__dict__),
+                           ('Alias', self.shell.alias_table),
+                           ]
+            alias_ns = self.shell.alias_table
 
         # initialize results to 'null'
         found = 0; obj = None;  ospace = None;  ds = None;
@@ -642,13 +640,13 @@ Currently the magic system has the following functions:\n"""
         else:
             print 'No profile active.'
         
-    def _inspect(self,meth,oname,**kw):
+    def _inspect(self,meth,oname,namespaces=None,**kw):
         """Generic interface to the inspector system.
 
         This function is meant to be called by pdef, pdoc & friends."""
         
         oname = oname.strip()
-        info = Struct(self._ofind(oname))
+        info = Struct(self._ofind(oname, namespaces))
         
         if info.found:
             # Get the docstring of the class property if it exists.
@@ -679,22 +677,23 @@ Currently the magic system has the following functions:\n"""
             print 'Object `%s` not found.' % oname
             return 'not found'  # so callers can take other action
         
-    def magic_pdef(self, parameter_s=''):
+    def magic_pdef(self, parameter_s='', namespaces=None):
         """Print the definition header for any callable object.
 
         If the object is a class, print the constructor information."""
-        self._inspect('pdef',parameter_s)
+        print "+++"
+        self._inspect('pdef',parameter_s, namespaces)
         
-    def magic_pdoc(self, parameter_s=''):
+    def magic_pdoc(self, parameter_s='', namespaces=None):
         """Print the docstring for an object.
 
         If the given object is a class, it will print both the class and the
         constructor docstrings."""
-        self._inspect('pdoc',parameter_s)
+        self._inspect('pdoc',parameter_s, namespaces)
 
-    def magic_psource(self, parameter_s=''):
+    def magic_psource(self, parameter_s='', namespaces=None):
         """Print (or run through pager) the source code for an object."""
-        self._inspect('psource',parameter_s)
+        self._inspect('psource',parameter_s, namespaces)
 
     def magic_pfile(self, parameter_s=''):
         """Print (or run through pager) the file where an object is defined.
@@ -719,7 +718,7 @@ Currently the magic system has the following functions:\n"""
                 return
             page(self.shell.inspector.format(file(filename).read()))
             
-    def magic_pinfo(self, parameter_s=''):
+    def magic_pinfo(self, parameter_s='', namespaces=None):
         """Provide detailed information about an object.
 
         '%pinfo object' is just a synonym for object? or ?object."""
@@ -737,7 +736,8 @@ Currently the magic system has the following functions:\n"""
         if "*" in oname:
             self.magic_psearch(oname)
         else:
-            self._inspect('pinfo',oname,detail_level=detail_level)
+            self._inspect('pinfo', oname, detail_level=detail_level,
+                          namespaces=namespaces)
 
     def magic_psearch(self, parameter_s=''):
         """Search for object in namespaces by wildcard.
