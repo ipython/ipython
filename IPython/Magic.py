@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Magic functions for InteractiveShell.
 
-$Id: Magic.py 1824 2006-10-13 21:07:59Z vivainio $"""
+$Id: Magic.py 1825 2006-10-13 21:29:33Z vivainio $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001 Janko Hauser <jhauser@zscout.de> and
@@ -2460,8 +2460,9 @@ Defaulting color scheme to 'NoColor'"""
             try:
                 winext = os.environ['pathext'].replace(';','|').replace('.','')
             except KeyError:
-                winext = 'exe|com|bat'
-    
+                winext = 'exe|com|bat|py'
+            if 'py' not in winext:
+                winext += '|py'
             execre = re.compile(r'(.*)\.(%s)$' % winext,re.IGNORECASE)
             isexec = lambda fname:os.path.isfile(fname) and execre.match(fname)
         savedir = os.getcwd()
