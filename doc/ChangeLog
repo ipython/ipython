@@ -1,3 +1,14 @@
+2006-10-15  Fernando Perez  <Fernando.Perez@colorado.edu>
+
+	* IPython/ipapi.py (IPApi.__init__): Added new entry to public
+	api: set_crash_handler(), to expose the ability to change the
+	internal crash handler.
+
+	* IPython/CrashHandler.py (CrashHandler.__init__): abstract out
+	the various parameters of the crash handler so that apps using
+	IPython as their engine can customize crash handling.  Ipmlemented
+	at the request of SAGE.
+
 2006-10-14  Ville Vainio  <vivainio@gmail.com>
 
 	* Magic.py, ipython.el: applied first "safe" part of Rocky 

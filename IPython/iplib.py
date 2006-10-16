@@ -6,7 +6,7 @@ Requires Python 2.3 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 1822 2006-10-12 21:38:00Z vivainio $
+$Id: iplib.py 1828 2006-10-16 02:04:33Z fptest $
 """
 
 #*****************************************************************************
@@ -543,16 +543,11 @@ class InteractiveShell(object,Magic):
         # thread (such as in GUI code) propagate directly to sys.excepthook,
         # and there's no point in printing crash dumps for every user exception.
         if self.isthreaded:
-            sys.excepthook = ultraTB.FormattedTB()
+            ipCrashHandler = ultraTB.FormattedTB()
         else:
             from IPython import CrashHandler
-            sys.excepthook = CrashHandler.CrashHandler(self)
-
-        # The instance will store a pointer to this, so that runtime code
-        # (such as magics) can access it.  This is because during the
-        # read-eval loop, it gets temporarily overwritten (to deal with GUI
-        # frameworks).
-        self.sys_excepthook = sys.excepthook
+            ipCrashHandler = CrashHandler.IPythonCrashHandler(self)
+        self.set_crash_handler(ipCrashHandler)
 
         # and add any custom exception handlers the user may have specified
         self.set_custom_exc(*custom_exceptions)
@@ -768,6 +763,22 @@ class InteractiveShell(object,Magic):
         
         
         #setattr(self.hooks,name,new.instancemethod(hook,self,self.__class__))
+
+    def set_crash_handler(self,crashHandler):
+        """Set the IPython crash handler.
+
+        This must be a callable with a signature suitable for use as
+        sys.excepthook."""
+
+        # Install the given crash handler as the Python exception hook
+        sys.excepthook = crashHandler
+        
+        # The instance will store a pointer to this, so that runtime code
+        # (such as magics) can access it.  This is because during the
+        # read-eval loop, it gets temporarily overwritten (to deal with GUI
+        # frameworks).
+        self.sys_excepthook = sys.excepthook
+
 
     def set_custom_exc(self,exc_tuple,handler):
         """set_custom_exc(exc_tuple,handler)

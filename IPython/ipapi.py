@@ -145,6 +145,8 @@ class IPApi:
 
         self.user_ns = ip.user_ns
 
+        self.set_crash_handler = ip.set_crash_handler
+
         # Session-specific data store, which can be used to store
         # data that should persist through the ipython session.
         self.meta =  ip.meta
