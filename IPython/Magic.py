@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Magic functions for InteractiveShell.
 
-$Id: Magic.py 1825 2006-10-13 21:29:33Z vivainio $"""
+$Id: Magic.py 1829 2006-10-16 08:04:11Z vivainio $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001 Janko Hauser <jhauser@zscout.de> and
@@ -2365,7 +2365,7 @@ Defaulting color scheme to 'NoColor'"""
 
         par = parameter_s.strip()
         if not par:
-            stored = self.db['stored_aliases']
+            stored = self.db.get('stored_aliases', {} )
             atab = self.shell.alias_table
             aliases = atab.keys()
             aliases.sort()
@@ -2405,7 +2405,7 @@ Defaulting color scheme to 'NoColor'"""
         aname = parameter_s.strip()
         if aname in self.shell.alias_table:
             del self.shell.alias_table[aname]
-        stored = self.db['stored_aliases']
+        stored = self.db.get('stored_aliases', {} )
         if aname in stored:
             print "Removing %stored alias",aname
             del stored[aname]
