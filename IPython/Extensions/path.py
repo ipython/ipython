@@ -11,23 +11,18 @@ This module requires Python 2.2 or later.
 
 
 URL:     http://www.jorendorff.com/articles/python/path
-Author:  Jason Orendorff <jason@jorendorff.com> (and others - see the url!)
+Author:  Jason Orendorff <jason.orendorff\x40gmail\x2ecom> (and others - see the url!)
 Date:    7 Mar 2004
 """
 
-# Original license statement:
-#License: You may use path.py for whatever you wish, at your own risk. (For
-#example, you may modify, relicense, and redistribute it.) It is provided
-#without any guarantee or warranty of any kind, not even for merchantability or
-#fitness for any purpose.
-
-# IPython license note: 
-# For the sake of convenience, IPython includes this module 
-# in its directory structure in unmodified form, apart from 
-# these license statements. The same license still applies.
-
 
 # TODO
+#   - Tree-walking functions don't avoid symlink loops.  Matt Harrison sent me a patch for this.
+#   - Tree-walking functions can't ignore errors.  Matt Harrison asked for this.
+#
+#   - Two people asked for path.chdir().  This just seems wrong to me,
+#     I dunno.  chdir() is moderately evil anyway.
+#
 #   - Bug in write_text().  It doesn't support Universal newline mode.
 #   - Better error message in listdir() when self isn't a
 #     directory. (On Windows, the error message really sucks.)
@@ -36,24 +31,41 @@ Date:    7 Mar 2004
 #   - guess_content_type() method?
 #   - Perhaps support arguments to touch().
 #   - Could add split() and join() methods that generate warnings.
-#   - Note:  __add__() technically has a bug, I think, where
-#     it doesn't play nice with other types that implement
-#     __radd__().  Test this.
 
 from __future__ import generators
 
-import sys, os, fnmatch, glob, shutil, codecs
+import sys, warnings, os, fnmatch, glob, shutil, codecs, md5
 
-__version__ = '2.0.4'
+__version__ = '2.1'
 __all__ = ['path']
+
+# Platform-specific support for path.owner
+if os.name == 'nt':
+    try:
+        import win32security
+    except ImportError:
+        win32security = None
+else:
+    try:
+        import pwd
+    except ImportError:
+        pwd = None
 
 # Pre-2.3 support.  Are unicode filenames supported?
 _base = str
+_getcwd = os.getcwd
 try:
     if os.path.supports_unicode_filenames:
         _base = unicode
+        _getcwd = os.getcwdu
 except AttributeError:
     pass
+
+# Pre-2.3 workaround for booleans
+try:
+    True, False
+except NameError:
+    True, False = 1, 0
 
 # Pre-2.3 workaround for basestring.
 try:
@@ -66,6 +78,9 @@ _textmode = 'r'
 if hasattr(file, 'newlines'):
     _textmode = 'U'
 
+
+class TreeWalkWarning(Warning):
+    pass
 
 class path(_base):
     """ Represents a filesystem path.
@@ -81,10 +96,19 @@ class path(_base):
 
     # Adding a path and a string yields a path.
     def __add__(self, more):
-        return path(_base(self) + more)
+        try:
+            resultStr = _base.__add__(self, more)
+        except TypeError:  #Python bug
+            resultStr = NotImplemented
+        if resultStr is NotImplemented:
+            return resultStr
+        return self.__class__(resultStr)
 
     def __radd__(self, other):
-        return path(other + _base(self))
+        if isinstance(other, basestring):
+            return self.__class__(other.__add__(self))
+        else:
+            return NotImplemented
 
     # The / operator joins paths.
     def __div__(self, rel):
@@ -93,26 +117,27 @@ class path(_base):
         Join two path components, adding a separator character if
         needed.
         """
-        return path(os.path.join(self, rel))
+        return self.__class__(os.path.join(self, rel))
 
     # Make the / operator work even when true division is enabled.
     __truediv__ = __div__
 
-    def getcwd():
+    def getcwd(cls):
         """ Return the current working directory as a path object. """
-        return path(os.getcwd())
-    getcwd = staticmethod(getcwd)
+        return cls(_getcwd())
+    getcwd = classmethod(getcwd)
 
 
     # --- Operations on path strings.
 
-    def abspath(self):       return path(os.path.abspath(self))
-    def normcase(self):      return path(os.path.normcase(self))
-    def normpath(self):      return path(os.path.normpath(self))
-    def realpath(self):      return path(os.path.realpath(self))
-    def expanduser(self):    return path(os.path.expanduser(self))
-    def expandvars(self):    return path(os.path.expandvars(self))
-    def dirname(self):       return path(os.path.dirname(self))
+    isabs = os.path.isabs
+    def abspath(self):       return self.__class__(os.path.abspath(self))
+    def normcase(self):      return self.__class__(os.path.normcase(self))
+    def normpath(self):      return self.__class__(os.path.normpath(self))
+    def realpath(self):      return self.__class__(os.path.realpath(self))
+    def expanduser(self):    return self.__class__(os.path.expanduser(self))
+    def expandvars(self):    return self.__class__(os.path.expandvars(self))
+    def dirname(self):       return self.__class__(os.path.dirname(self))
     basename = os.path.basename
 
     def expand(self):
@@ -134,7 +159,7 @@ class path(_base):
 
     def _get_drive(self):
         drive, r = os.path.splitdrive(self)
-        return path(drive)
+        return self.__class__(drive)
 
     parent = property(
         dirname, None, None,
@@ -171,7 +196,7 @@ class path(_base):
     def splitpath(self):
         """ p.splitpath() -> Return (p.parent, p.name). """
         parent, child = os.path.split(self)
-        return path(parent), child
+        return self.__class__(parent), child
 
     def splitdrive(self):
         """ p.splitdrive() -> Return (p.drive, <the rest of p>).
@@ -181,7 +206,7 @@ class path(_base):
         is simply (path(''), p).  This is always the case on Unix.
         """
         drive, rel = os.path.splitdrive(self)
-        return path(drive), rel
+        return self.__class__(drive), rel
 
     def splitext(self):
         """ p.splitext() -> Return (p.stripext(), p.ext).
@@ -194,7 +219,7 @@ class path(_base):
         (a, b) == p.splitext(), then a + b == p.
         """
         filename, ext = os.path.splitext(self)
-        return path(filename), ext
+        return self.__class__(filename), ext
 
     def stripext(self):
         """ p.stripext() -> Remove one file extension from the path.
@@ -207,11 +232,11 @@ class path(_base):
     if hasattr(os.path, 'splitunc'):
         def splitunc(self):
             unc, rest = os.path.splitunc(self)
-            return path(unc), rest
+            return self.__class__(unc), rest
 
         def _get_uncshare(self):
             unc, r = os.path.splitunc(self)
-            return path(unc)
+            return self.__class__(unc)
 
         uncshare = property(
             _get_uncshare, None, None,
@@ -223,10 +248,10 @@ class path(_base):
         character (os.sep) if needed.  Returns a new path
         object.
         """
-        return path(os.path.join(self, *args))
+        return self.__class__(os.path.join(self, *args))
 
     def splitall(self):
-        """ Return a list of the path components in this path.
+        r""" Return a list of the path components in this path.
 
         The first item in the list will be a path.  Its value will be
         either os.curdir, os.pardir, empty, or the root directory of
@@ -251,7 +276,7 @@ class path(_base):
         """ Return this path as a relative path,
         based from the current working directory.
         """
-        cwd = path(os.getcwd())
+        cwd = self.__class__(os.getcwd())
         return cwd.relpathto(self)
 
     def relpathto(self, dest):
@@ -262,7 +287,7 @@ class path(_base):
         dest.abspath().
         """
         origin = self.abspath()
-        dest = path(dest).abspath()
+        dest = self.__class__(dest).abspath()
 
         orig_list = origin.normcase().splitall()
         # Don't normcase dest!  We want to preserve the case.
@@ -287,10 +312,10 @@ class path(_base):
         segments += dest_list[i:]
         if len(segments) == 0:
             # If they happen to be identical, use os.curdir.
-            return path(os.curdir)
+            relpath = os.curdir
         else:
-            return path(os.path.join(*segments))
-
+            relpath = os.path.join(*segments)
+        return self.__class__(relpath)
 
     # --- Listing, searching, walking, and matching
 
@@ -336,7 +361,7 @@ class path(_base):
         
         return [p for p in self.listdir(pattern) if p.isfile()]
 
-    def walk(self, pattern=None):
+    def walk(self, pattern=None, errors='strict'):
         """ D.walk() -> iterator over files and subdirs, recursively.
 
         The iterator yields path objects naming each child item of
@@ -345,29 +370,85 @@ class path(_base):
 
         This performs a depth-first traversal of the directory tree.
         Each directory is returned just before all its children.
+
+        The errors= keyword argument controls behavior when an
+        error occurs.  The default is 'strict', which causes an
+        exception.  The other allowed values are 'warn', which
+        reports the error via warnings.warn(), and 'ignore'.
         """
-        for child in self.listdir():
+        if errors not in ('strict', 'warn', 'ignore'):
+            raise ValueError("invalid errors parameter")
+
+        try:
+            childList = self.listdir()
+        except Exception:
+            if errors == 'ignore':
+                return
+            elif errors == 'warn':
+                warnings.warn(
+                    "Unable to list directory '%s': %s"
+                    % (self, sys.exc_info()[1]),
+                    TreeWalkWarning)
+            else:
+                raise
+
+        for child in childList:
             if pattern is None or child.fnmatch(pattern):
                 yield child
-            if child.isdir():
-                for item in child.walk(pattern):
+            try:
+                isdir = child.isdir()
+            except Exception:
+                if errors == 'ignore':
+                    isdir = False
+                elif errors == 'warn':
+                    warnings.warn(
+                        "Unable to access '%s': %s"
+                        % (child, sys.exc_info()[1]),
+                        TreeWalkWarning)
+                    isdir = False
+                else:
+                    raise
+
+            if isdir:
+                for item in child.walk(pattern, errors):
                     yield item
 
-    def walkdirs(self, pattern=None):
+    def walkdirs(self, pattern=None, errors='strict'):
         """ D.walkdirs() -> iterator over subdirs, recursively.
 
         With the optional 'pattern' argument, this yields only
         directories whose names match the given pattern.  For
         example, mydir.walkdirs('*test') yields only directories
         with names ending in 'test'.
+
+        The errors= keyword argument controls behavior when an
+        error occurs.  The default is 'strict', which causes an
+        exception.  The other allowed values are 'warn', which
+        reports the error via warnings.warn(), and 'ignore'.
         """
-        for child in self.dirs():
+        if errors not in ('strict', 'warn', 'ignore'):
+            raise ValueError("invalid errors parameter")
+
+        try:
+            dirs = self.dirs()
+        except Exception:
+            if errors == 'ignore':
+                return
+            elif errors == 'warn':
+                warnings.warn(
+                    "Unable to list directory '%s': %s"
+                    % (self, sys.exc_info()[1]),
+                    TreeWalkWarning)
+            else:
+                raise
+
+        for child in dirs:
             if pattern is None or child.fnmatch(pattern):
                 yield child
-            for subsubdir in child.walkdirs(pattern):
+            for subsubdir in child.walkdirs(pattern, errors):
                 yield subsubdir
 
-    def walkfiles(self, pattern=None):
+    def walkfiles(self, pattern=None, errors='strict'):
         """ D.walkfiles() -> iterator over files in D, recursively.
 
         The optional argument, pattern, limits the results to files
@@ -375,12 +456,42 @@ class path(_base):
         mydir.walkfiles('*.tmp') yields only files with the .tmp
         extension.
         """
-        for child in self.listdir():
-            if child.isfile():
+        if errors not in ('strict', 'warn', 'ignore'):
+            raise ValueError("invalid errors parameter")
+
+        try:
+            childList = self.listdir()
+        except Exception:
+            if errors == 'ignore':
+                return
+            elif errors == 'warn':
+                warnings.warn(
+                    "Unable to list directory '%s': %s"
+                    % (self, sys.exc_info()[1]),
+                    TreeWalkWarning)
+            else:
+                raise
+
+        for child in childList:
+            try:
+                isfile = child.isfile()
+                isdir = not isfile and child.isdir()
+            except:
+                if errors == 'ignore':
+                    return
+                elif errors == 'warn':
+                    warnings.warn(
+                        "Unable to access '%s': %s"
+                        % (self, sys.exc_info()[1]),
+                        TreeWalkWarning)
+                else:
+                    raise
+
+            if isfile:
                 if pattern is None or child.fnmatch(pattern):
                     yield child
-            elif child.isdir():
-                for f in child.walkfiles(pattern):
+            elif isdir:
+                for f in child.walkfiles(pattern, errors):
                     yield f
 
     def fnmatch(self, pattern):
@@ -399,7 +510,8 @@ class path(_base):
         For example, path('/users').glob('*/bin/*') returns a list
         of all the files users have in their bin directories.
         """
-        return map(path, glob.glob(_base(self / pattern)))
+        cls = self.__class__
+        return [cls(s) for s in glob.glob(_base(self / pattern))]
 
 
     # --- Reading or writing an entire file at once.
@@ -420,7 +532,7 @@ class path(_base):
         """ Open this file and write the given bytes to it.
 
         Default behavior is to overwrite any existing file.
-        Call this with write_bytes(bytes, append=True) to append instead.
+        Call p.write_bytes(bytes, append=True) to append instead.
         """
         if append:
             mode = 'ab'
@@ -433,7 +545,7 @@ class path(_base):
             f.close()
 
     def text(self, encoding=None, errors='strict'):
-        """ Open this file, read it in, return the content as a string.
+        r""" Open this file, read it in, return the content as a string.
 
         This uses 'U' mode in Python 2.3 and later, so '\r\n' and '\r'
         are automatically translated to '\n'.
@@ -470,7 +582,7 @@ class path(_base):
                      .replace(u'\u2028', u'\n'))
 
     def write_text(self, text, encoding=None, errors='strict', linesep=os.linesep, append=False):
-        """ Write the given text to this file.
+        r""" Write the given text to this file.
 
         The default behavior is to overwrite any existing file;
         to append instead, use the 'append=True' keyword argument.
@@ -559,7 +671,7 @@ class path(_base):
         self.write_bytes(bytes, append)
 
     def lines(self, encoding=None, errors='strict', retain=True):
-        """ Open this file, read all lines, return them in a list.
+        r""" Open this file, read all lines, return them in a list.
 
         Optional arguments:
             encoding - The Unicode encoding (or character set) of
@@ -586,7 +698,7 @@ class path(_base):
 
     def write_lines(self, lines, encoding=None, errors='strict',
                     linesep=os.linesep, append=False):
-        """ Write the given lines of text to this file.
+        r""" Write the given lines of text to this file.
 
         By default this overwrites any existing file at this path.
 
@@ -649,11 +761,26 @@ class path(_base):
         finally:
             f.close()
 
+    def read_md5(self):
+        """ Calculate the md5 hash for this file.
+
+        This reads through the entire file.
+        """
+        f = self.open('rb')
+        try:
+            m = md5.new()
+            while True:
+                d = f.read(8192)
+                if not d:
+                    break
+                m.update(d)
+        finally:
+            f.close()
+        return m.digest()
 
     # --- Methods for querying the filesystem.
 
     exists = os.path.exists
-    isabs = os.path.isabs
     isdir = os.path.isdir
     isfile = os.path.isfile
     islink = os.path.islink
@@ -698,6 +825,32 @@ class path(_base):
     def lstat(self):
         """ Like path.stat(), but do not follow symbolic links. """
         return os.lstat(self)
+
+    def get_owner(self):
+        r""" Return the name of the owner of this file or directory.
+
+        This follows symbolic links.
+
+        On Windows, this returns a name of the form ur'DOMAIN\User Name'.
+        On Windows, a group can own a file or directory.
+        """
+        if os.name == 'nt':
+            if win32security is None:
+                raise Exception("path.owner requires win32all to be installed")
+            desc = win32security.GetFileSecurity(
+                self, win32security.OWNER_SECURITY_INFORMATION)
+            sid = desc.GetSecurityDescriptorOwner()
+            account, domain, typecode = win32security.LookupAccountSid(None, sid)
+            return domain + u'\\' + account
+        else:
+            if pwd is None:
+                raise NotImplementedError("path.owner is not implemented on this platform.")
+            st = self.stat()
+            return pwd.getpwuid(st.st_uid).pw_name
+
+    owner = property(
+        get_owner, None, None,
+        """ Name of the owner of this file or directory. """)
 
     if hasattr(os, 'statvfs'):
         def statvfs(self):
@@ -779,7 +932,7 @@ class path(_base):
 
             The result may be an absolute or a relative path.
             """
-            return path(os.readlink(self))
+            return self.__class__(os.readlink(self))
 
         def readlinkabs(self):
             """ Return the path to which this symbolic link points.

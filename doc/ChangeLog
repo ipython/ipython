@@ -19,6 +19,10 @@
 	interesting (stored / manually defined) aliases last
 	where they catch the eye w/o scrolling.
 
+	* Magic.py (%rehashx), ext_rehashdir.py: files with
+	'py' extension are always considered executable, even
+	when not in PATHEXT environment variable.
+
 2006-10-12  Ville Vainio  <vivainio@gmail.com>
 
 	* jobctrl.py: Add new "jobctrl" extension for spawning background
