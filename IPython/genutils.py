@@ -5,7 +5,7 @@ General purpose utilities.
 This is a grab-bag of stuff I find useful in most programs I write. Some of
 these things are also convenient when working at the command line.
 
-$Id: genutils.py 1349 2006-06-04 00:57:43Z fperez $"""
+$Id: genutils.py 1845 2006-10-27 20:35:47Z fptest $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2006 Fernando Perez. <fperez@colorado.edu>
@@ -24,6 +24,7 @@ import __main__
 import commands
 import os
 import re
+import shlex
 import shutil
 import sys
 import tempfile
@@ -232,6 +233,17 @@ def timing(func,*args,**kw):
 
 #****************************************************************************
 # file and system
+
+def arg_split(s,posix=False):
+    """Split a command line's arguments in a shell-like manner.
+
+    This is a modified version of the standard library's shlex.split()
+    function, but with a default of posix=False for splitting, so that quotes
+    in inputs are respected."""
+    
+    lex = shlex.shlex(s, posix=posix)
+    lex.whitespace_split = True
+    return list(lex)
 
 def system(cmd,verbose=0,debug=0,header=''):
     """Execute a system command, return its exit status.

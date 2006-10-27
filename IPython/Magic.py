@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Magic functions for InteractiveShell.
 
-$Id: Magic.py 1829 2006-10-16 08:04:11Z vivainio $"""
+$Id: Magic.py 1845 2006-10-27 20:35:47Z fptest $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001 Janko Hauser <jhauser@zscout.de> and
@@ -26,7 +26,6 @@ import inspect
 import os
 import pdb
 import pydoc
-import shlex
 import sys
 import re
 import tempfile
@@ -61,17 +60,6 @@ def on_off(tag):
     return ['OFF','ON'][tag]
 
 class Bunch: pass
-
-def arg_split(s,posix=True):
-    """Split a command line's arguments in a shell-like manner.
-
-    This is a modified version of the standard library's shlex.split()
-    function, but with a default of posix=False for splitting, so that quotes
-    in inputs are respected."""
-    
-    lex = shlex.shlex(s, posix=posix)
-    lex.whitespace_split = True
-    return list(lex)
 
 #***************************************************************************
 # Main class implementing Magic functionality
@@ -1489,7 +1477,7 @@ Currently the magic system has the following functions:\n"""
         # Since '%run foo' emulates 'python foo.py' at the cmd line, we must
         # set the __file__ global in the script's namespace
         prog_ns['__file__'] = filename
-        
+
         # pickle fix.  See iplib for an explanation.  But we need to make sure
         # that, if we overwrite __main__, we replace it at the end
         if prog_ns['__name__'] == '__main__':
@@ -1553,7 +1541,8 @@ Currently the magic system has the following functions:\n"""
                             nruns = 1
                         if nruns == 1:
                             t0 = clock2()
-                            runner(filename,prog_ns,prog_ns,exit_ignore=exit_ignore)
+                            runner(filename,prog_ns,prog_ns,
+                                   exit_ignore=exit_ignore)
                             t1 = clock2()
                             t_usr = t1[0]-t0[0]
                             t_sys = t1[1]-t1[1]
@@ -1564,7 +1553,8 @@ Currently the magic system has the following functions:\n"""
                             runs = range(nruns)
                             t0 = clock2()
                             for nr in runs:
-                                runner(filename,prog_ns,prog_ns,exit_ignore=exit_ignore)
+                                runner(filename,prog_ns,prog_ns,
+                                       exit_ignore=exit_ignore)
                             t1 = clock2()
                             t_usr = t1[0]-t0[0]
                             t_sys = t1[1]-t1[1]
