@@ -5,11 +5,11 @@ ip = IPython.ipapi.get()
 
 def call_pydb(self, args):
     argl = arg_split(args)
-    print argl
+    # print argl # dbg
     if ip.IP.has_readline:
         ip.IP.savehist()
     try:
-        pydb.runl(*args)
+        pydb.runl(*argl)
     finally:
     
         if ip.IP.has_readline:
