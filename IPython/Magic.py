@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Magic functions for InteractiveShell.
 
-$Id: Magic.py 1845 2006-10-27 20:35:47Z fptest $"""
+$Id: Magic.py 1846 2006-10-28 07:51:56Z vivainio $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001 Janko Hauser <jhauser@zscout.de> and
@@ -1489,6 +1489,9 @@ Currently the magic system has the following functions:\n"""
         
         stats = None
         try:
+            if self.shell.has_readline:
+                self.shell.savehist()
+
             if opts.has_key('p'):
                 stats = self.magic_prun('',0,opts,arg_lst,prog_ns)
             else:
@@ -1519,9 +1522,10 @@ Currently the magic system has the following functions:\n"""
                     deb.do_break('%s:%s' % (filename,bp))
                     # Start file run
                     print "NOTE: Enter 'c' at the",
-                    print "ipdb> prompt to start your script."
+                    print "%s prompt to start your script." % deb.prompt
                     try:
                         deb.run('execfile("%s")' % filename,prog_ns)
+                        
                     except:
                         etype, value, tb = sys.exc_info()
                         # Skip three frames in the traceback: the %run one,
@@ -1576,6 +1580,9 @@ Currently the magic system has the following functions:\n"""
             sys.argv = save_argv
             if restore_main:
                 sys.modules['__main__'] = restore_main
+            if self.shell.has_readline:
+                self.shell.readline.read_history_file(self.shell.histfile)
+                
         return stats
 
     def magic_runlog(self, parameter_s =''):
