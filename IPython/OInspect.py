@@ -6,7 +6,7 @@ Uses syntax highlighting for presenting the various information elements.
 Similar in spirit to the inspect module, but all calls take a name argument to
 reference the name under which an object is being read.
 
-$Id: OInspect.py 1625 2006-08-12 10:34:44Z vivainio $
+$Id: OInspect.py 1850 2006-10-28 19:48:13Z fptest $
 """
 
 #*****************************************************************************
@@ -136,6 +136,27 @@ def getdoc(obj):
             ds = '%s\n%s' % (ds,ds2)
     return ds
 
+def getsource(obj,is_binary=False):
+    """Wrapper around inspect.getsource.
+
+    This can be modified by other projects to provide customized source
+    extraction.
+
+    Inputs:
+
+    - obj: an object whose source code we will attempt to extract.
+
+    Optional inputs:
+
+    - is_binary: whether the object is known to come from a binary source.
+    This implementation will skip returning any output for binary objects, but
+    custom extractors may know how to meaninfully process them."""
+    
+    if is_binary:
+        return None
+    else:
+        return inspect.getsource(obj)
+
 #****************************************************************************
 # Class definitions
 
@@ -262,7 +283,7 @@ class Inspector:
         # Flush the source cache because inspect can return out-of-date source
         linecache.checkcache()
         try:
-            src = inspect.getsource(obj) 
+            src = getsource(obj) 
         except:
             self.noinfo('source',oname)
         else:
@@ -402,15 +423,16 @@ class Inspector:
             linecache.checkcache()
             source_success = False
             try:
-                if not binary_file:
-                    source = self.format(inspect.getsource(obj))
+                source = self.format(getsource(obj,binary_file))
+                if source:
                     out.write(header('Source:\n')+source.rstrip())
                     source_success = True
-            except:
+            except Exception, msg:
                 pass
             
             if ds and not source_success:
-                out.writeln(header('Docstring [source file open failed]:\n') + indent(ds))
+                out.writeln(header('Docstring [source file open failed]:\n')
+                            + indent(ds))
 
         # Constructor docstring for classes
         if obj_type is types.ClassType:

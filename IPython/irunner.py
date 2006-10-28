@@ -136,6 +136,14 @@ class InteractiveRunner(object):
 
         c = pexpect.spawn(self.program,self.args,timeout=None)
         c.delaybeforesend = self.delaybeforesend
+
+        # pexpect hard-codes the terminal size as (24,80) (rows,columns).
+        # This causes problems because any line longer than 80 characters gets
+        # completely overwrapped on the printed outptut (even though
+        # internally the code runs fine).  We reset this to 99 rows X 200
+        # columns (arbitrarily chosen), which should avoid problems in all
+        # reasonable cases.
+        c.setwinsize(99,200)
             
         prompts = c.compile_pattern_list(self.prompts)
 

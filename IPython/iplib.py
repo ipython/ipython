@@ -6,7 +6,7 @@ Requires Python 2.3 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 1828 2006-10-16 02:04:33Z fptest $
+$Id: iplib.py 1850 2006-10-28 19:48:13Z fptest $
 """
 
 #*****************************************************************************
@@ -665,12 +665,14 @@ class InteractiveShell(object,Magic):
         except AttributeError:
             pass
 
-        # I don't like assigning globally to sys, because it means when embedding
-        # instances, each embedded instance overrides the previous choice. But
-        # sys.displayhook seems to be called internally by exec, so I don't see a
-        # way around it.
+        # I don't like assigning globally to sys, because it means when
+        # embedding instances, each embedded instance overrides the previous
+        # choice. But sys.displayhook seems to be called internally by exec,
+        # so I don't see a way around it.  We first save the original and then
+        # overwrite it.
+        self.sys_displayhook = sys.displayhook
         sys.displayhook = self.outputcache
-
+        
         # Set user colors (don't do it in the constructor above so that it
         # doesn't crash if colors option is invalid)
         self.magic_colors(rc.colors)

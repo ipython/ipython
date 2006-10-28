@@ -2,7 +2,7 @@
 """
 Classes for handling input/output prompts.
 
-$Id: Prompts.py 1366 2006-06-15 19:45:50Z vivainio $"""
+$Id: Prompts.py 1850 2006-10-28 19:48:13Z fptest $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2006 Fernando Perez <fperez@colorado.edu>
@@ -244,7 +244,7 @@ class BasePrompt:
                             ('${self.sep}${self.col_p}',
                              multiple_replace(prompt_specials, self.p_template),
                              '${self.col_norm}'),self.cache.user_ns,loc)
-        
+
         self.p_str_nocolor = ItplNS(multiple_replace(prompt_specials_nocolor,
                                                      self.p_template),
                                     self.cache.user_ns,loc)

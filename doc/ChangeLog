@@ -1,3 +1,15 @@
+2006-10-28  Fernando Perez  <Fernando.Perez@colorado.edu>
+
+	* IPython/genutils.py (arg_split): moved to genutils, since it's a
+	pretty generic function and useful for other things.
+
+	* IPython/OInspect.py (getsource): Add customizable source
+	extractor.  After a request/patch form W. Stein (SAGE).
+
+	* IPython/irunner.py (InteractiveRunner.run_source): reset tty
+	window size to a more reasonable value from what pexpect does,
+	since their choice causes wrapping bugs with long input lines.
+
 2006-10-28  Ville Vainio  <vivainio@gmail.com>
 
 	* Magic.py (%run): Save and restore the readline history from 
