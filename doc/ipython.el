@@ -6,7 +6,7 @@
 ;; URL:           http://ipython.scipy.org
 ;; Compatibility: Emacs21, XEmacs21
 ;; FIXME: #$@! INPUT RING
-(defconst ipython-version "$Revision: 1823 $"
+(defconst ipython-version "$Revision: 1851 $"
   "VC version number.")
 
 ;;; Commentary 
@@ -250,9 +250,9 @@ buffer already exists."
 (defadvice py-execute-region (around py-execute-buffer-ensure-process)
   "HACK: if `py-shell' is not active or ASYNC is explicitly desired, fall back
   to python instead of ipython." 
-  (let ((py-python-command (if (and (comint-check-proc "*Python*") (not async))
-                               py-python-command
-                               ipython-backup-of-py-python-command)))
+  (let ((py-which-shell (if (and (comint-check-proc "*Python*") (not async))
+			    py-python-command
+			  ipython-backup-of-py-python-command)))
     ad-do-it))
 (ad-activate 'py-execute-region)
 

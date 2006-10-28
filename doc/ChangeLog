@@ -1,5 +1,8 @@
 2006-10-28  Fernando Perez  <Fernando.Perez@colorado.edu>
 
+	* ipython.el (py-execute-region): apply Stefan's patch to fix
+	garbled results if the python shell hasn't been previously started.
+
 	* IPython/genutils.py (arg_split): moved to genutils, since it's a
 	pretty generic function and useful for other things.
 
