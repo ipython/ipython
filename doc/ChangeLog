@@ -1,5 +1,8 @@
 2006-10-28  Fernando Perez  <Fernando.Perez@colorado.edu>
 
+	* IPython/UserConfig/ipythonrc-scipy: minor clenaups to remove old
+	Numeric leftovers.
+
 	* ipython.el (py-execute-region): apply Stefan's patch to fix
 	garbled results if the python shell hasn't been previously started.
 

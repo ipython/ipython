@@ -23,21 +23,13 @@
 include ipythonrc
 
 # import ...
-# Load SciPy by itself so that 'help scipy' works
-import_mod scipy
+# Load Numpy an SciPy by themselves so that 'help' works on them
+import_mod numpy scipy
 
 # from ... import ...
 import_some
 
 # Now we load all of SciPy
 # from ... import *
-import_all scipy IPython.numutils
-
-# code 
-execute print 'Welcome to the SciPy Scientific Computing Environment.'
-execute scipy.alter_numeric()
-
-# File with alternate printer system for Numeric Arrays.
-# Files in the 'Extensions' directory will be found by IPython automatically
-# (otherwise give the explicit path):
-execfile Extensions/numeric_formats.py
+import_all numpy
+import_all scipy
