@@ -4,6 +4,9 @@
 	file around %run commands to prevent side effects from 
 	%runned programs that might use readline (e.g. pydb).
 
+	* extensions/pydb_ipy.py: Adds %pydb magic when imported, for 
+	invoking the pydb enhanced debugger.
+
 2006-10-23  Walter Doerwald  <walter@livinglogic.de>
 
 	* IPython/Extensions/ipipe.py (ifile): Remove all methods that
