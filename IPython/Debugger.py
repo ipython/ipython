@@ -15,7 +15,7 @@ details on the PSF (Python Software Foundation) standard license, see:
 
 http://www.python.org/2.2.3/license.html
 
-$Id: Debugger.py 1787 2006-09-27 06:56:29Z fperez $"""
+$Id: Debugger.py 1853 2006-10-30 17:00:39Z vivainio $"""
 
 #*****************************************************************************
 #
@@ -40,12 +40,40 @@ import bdb
 import cmd
 import linecache
 import os
-import pdb
 import sys
 
 from IPython import PyColorize, ColorANSI
 from IPython.genutils import Term
 from IPython.excolors import ExceptionColors
+
+# See if we can use pydb.
+has_pydb = False
+prompt = 'ipdb>'
+if sys.version[:3] >= '2.5':
+    try:
+        import pydb
+        if hasattr(pydb.pydb, "runl"):
+            has_pydb = True
+            from pydb import Pdb as OldPdb
+            prompt = 'ipydb>'
+    except ImportError:
+        pass
+
+if has_pydb:
+    from pydb import Pdb as OldPdb
+else:
+    from pdb import Pdb as OldPdb
+
+def decorate_fn_with_doc(new_fn, old_fn, additional_text=""):
+    """Make new_fn have old_fn's doc string. This is particularly useful
+    for the do_... commands that hook into the help system.
+    Adapted from from a comp.lang.python posting
+    by Duncan Booth."""
+    def wrapper(*args, **kw):
+        return new_fn(*args, **kw)
+    if old_fn.__doc__:
+        wrapper.__doc__ = old_fn.__doc__ + additional_text
+    return wrapper
 
 def _file_lines(fname):
     """Return the contents of a named file as a list of lines.
@@ -62,7 +90,7 @@ def _file_lines(fname):
         outfile.close()
         return out
 
-class Pdb(pdb.Pdb):
+class Pdb(OldPdb):
     """Modified Pdb class, does not load readline."""
 
     if sys.version[:3] >= '2.5':
@@ -70,10 +98,33 @@ class Pdb(pdb.Pdb):
                      stdin=None, stdout=None):
 
             # Parent constructor:
-            pdb.Pdb.__init__(self,completekey,stdin,stdout)
+            OldPdb.__init__(self,completekey,stdin,stdout)
             
             # IPython changes...
-            self.prompt = 'ipdb> ' # The default prompt is '(Pdb)'
+            self.prompt = prompt # The default prompt is '(Pdb)'
+            self.is_pydb = prompt == 'ipydb>'
+
+            if self.is_pydb:
+
+                # iplib.py's ipalias seems to want pdb's checkline
+                # which located in pydb.fn
+                import pydb.fns
+                self.checkline = lambda filename, lineno: \
+                                 pydb.fns.checkline(self, filename, lineno)
+
+                self.curframe = None
+                self.do_restart = self.new_do_restart
+
+                self.old_all_completions = __IPYTHON__.Completer.all_completions
+                __IPYTHON__.Completer.all_completions=self.all_completions
+
+                # Do we have access to pydb's list command parser?
+                self.do_list = decorate_fn_with_doc(self.list_command_pydb,
+                                                    OldPdb.do_list)
+                self.do_l     = self.do_list
+                self.do_frame = decorate_fn_with_doc(self.new_do_frame,
+                                                     OldPdb.do_frame)
+
             self.aliases = {}
 
             # Create color table: we copy the default one from the traceback
@@ -143,17 +194,34 @@ class Pdb(pdb.Pdb):
 
     def interaction(self, frame, traceback):
         __IPYTHON__.set_completer_frame(frame)
-        pdb.Pdb.interaction(self, frame, traceback)
+        OldPdb.interaction(self, frame, traceback)
 
-    def do_up(self, arg):
-        pdb.Pdb.do_up(self, arg)
+    def new_do_up(self, arg):
+        OldPdb.do_up(self, arg)
         __IPYTHON__.set_completer_frame(self.curframe)
-    do_u = do_up
+    do_u = do_up = decorate_fn_with_doc(new_do_up, OldPdb.do_up)
 
-    def do_down(self, arg):
-        pdb.Pdb.do_down(self, arg)
+    def new_do_down(self, arg):
+        OldPdb.do_down(self, arg)
         __IPYTHON__.set_completer_frame(self.curframe)
-    do_d = do_down
+
+    do_d = do_down = decorate_fn_with_doc(new_do_down, OldPdb.do_down)
+
+    def new_do_frame(self, arg):
+        OldPdb.do_frame(self, arg)
+        __IPYTHON__.set_completer_frame(self.curframe)
+
+    def new_do_quit(self, arg):
+        __IPYTHON__.Completer.all_completions=self.old_all_completions
+        return OldPdb.do_quit(self, arg)
+
+    do_q = do_quit = decorate_fn_with_doc(new_do_quit, OldPdb.do_quit)
+
+    def new_do_restart(self, arg):
+        """Restart command. In the context of ipython this is exactly the same
+        thing as 'quit'."""
+        self.msg("Restart doesn't make sense here. Using 'quit' instead.")
+        return self.do_quit(arg)
 
     def postloop(self):
         __IPYTHON__.set_completer_frame(None)
@@ -263,31 +331,15 @@ class Pdb(pdb.Pdb):
             
         return line
 
-    def do_list(self, arg):
-        self.lastcmd = 'list'
-        last = None
-        if arg:
-            try:
-                x = eval(arg, {}, {})
-                if type(x) == type(()):
-                    first, last = x
-                    first = int(first)
-                    last = int(last)
-                    if last < first:
-                        # Assume it's a count
-                        last = first + last
-                else:
-                    first = max(1, int(x) - 5)
-            except:
-                print '*** Error in argument:', `arg`
-                return
-        elif self.lineno is None:
-            first = max(1, self.curframe.f_lineno - 5)
-        else:
-            first = self.lineno + 1
-        if last is None:
-            last = first + 10
-        filename = self.curframe.f_code.co_filename
+    def list_command_pydb(self, arg):
+        """List command to use if we have a newer pydb installed"""
+        filename, first, last = OldPdb.parse_list_cmd(self, arg)
+        if filename is not None:
+            self.print_list_lines(filename, first, last)
+        
+    def print_list_lines(self, filename, first, last):
+        """The printing (as opposed to the parsing part of a 'list'
+        command."""
         try:
             Colors = self.color_scheme_table.active_colors
             ColorsNormal = Colors.Normal
@@ -312,4 +364,48 @@ class Pdb(pdb.Pdb):
         except KeyboardInterrupt:
             pass
 
+    def do_list(self, arg):
+        self.lastcmd = 'list'
+        last = None
+        if arg:
+            try:
+                x = eval(arg, {}, {})
+                if type(x) == type(()):
+                    first, last = x
+                    first = int(first)
+                    last = int(last)
+                    if last < first:
+                        # Assume it's a count
+                        last = first + last
+                else:
+                    first = max(1, int(x) - 5)
+            except:
+                print '*** Error in argument:', `arg`
+                return
+        elif self.lineno is None:
+            first = max(1, self.curframe.f_lineno - 5)
+        else:
+            first = self.lineno + 1
+        if last is None:
+            last = first + 10
+        self.print_list_lines(self.curframe.f_code.co_filename, first, last)
+
     do_l = do_list
+
+    def do_pdef(self, arg):
+        """The debugger interface to magic_pdef"""
+        namespaces = [('Locals', self.curframe.f_locals),
+                      ('Globals', self.curframe.f_globals)]
+        __IPYTHON__.magic_pdef(arg, namespaces=namespaces)
+
+    def do_pdoc(self, arg):
+        """The debugger interface to magic_pdoc"""
+        namespaces = [('Locals', self.curframe.f_locals),
+                      ('Globals', self.curframe.f_globals)]
+        __IPYTHON__.magic_pdoc(arg, namespaces=namespaces)
+
+    def do_pinfo(self, arg):
+        """The debugger equivalant of ?obj"""
+        namespaces = [('Locals', self.curframe.f_locals),
+                      ('Globals', self.curframe.f_globals)]
+        __IPYTHON__.magic_pinfo("pinfo %s" % arg, namespaces=namespaces)
