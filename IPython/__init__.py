@@ -27,7 +27,7 @@ IPython tries to:
 
 IPython requires Python 2.3 or newer.
 
-$Id: __init__.py 1328 2006-05-25 07:47:56Z fperez $"""
+$Id: __init__.py 1854 2006-10-30 19:54:25Z vivainio $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2006 Fernando Perez. <fperez@colorado.edu>
@@ -51,7 +51,7 @@ sys.path.append(os.path.dirname(__file__) + "/Extensions")
 __all__ = ['deep_reload','genutils','ipstruct','ultraTB','DPyGetOpt',
            'Itpl','hooks','ConfigLoader','OutputTrap','Release','Shell',
            'platutils','platutils_win32','platutils_posix','platutils_dummy',
-           'ipapi','rlineimpl']
+           'ipapi','rlineimpl', 'strdispatch']
 
 # Load __all__ in IPython namespace so that a simple 'import IPython' gives
 # access to them via IPython.<name>

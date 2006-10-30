@@ -6,7 +6,7 @@ Requires Python 2.3 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 1853 2006-10-30 17:00:39Z vivainio $
+$Id: iplib.py 1854 2006-10-30 19:54:25Z vivainio $
 """
 
 #*****************************************************************************
@@ -72,6 +72,7 @@ from IPython.ipstruct import Struct
 from IPython.background_jobs import BackgroundJobManager
 from IPython.usage import cmd_line_usage,interactive_usage
 from IPython.genutils import *
+from IPython.strdispatch import StrDispatch
 import IPython.ipapi
 
 # Globals
@@ -403,6 +404,8 @@ class InteractiveShell(object,Magic):
 
         # hooks holds pointers used for user-side customizations
         self.hooks = Struct()
+        
+        self.strdispatchers = {}
         
         # Set all default hooks, defined in the IPython.hooks module.
         hooks = IPython.hooks
@@ -737,7 +740,7 @@ class InteractiveShell(object,Magic):
                 __builtin__.__dict__[biname] = bival
         self.builtins_added.clear()
     
-    def set_hook(self,name,hook, priority = 50):
+    def set_hook(self,name,hook, priority = 50, str_key = None, re_key = None):
         """set_hook(name,hook) -> sets an internal IPython hook.
 
         IPython exposes some of its internal API as user-modifiable hooks.  By
@@ -747,13 +750,27 @@ class InteractiveShell(object,Magic):
         # At some point in the future, this should validate the hook before it
         # accepts it.  Probably at least check that the hook takes the number
         # of args it's supposed to.
+        
+        f = new.instancemethod(hook,self,self.__class__)
+
+        # check if the hook is for strdispatcher first
+        if str_key is not None:
+            sdp = self.strdispatchers.get(name, StrDispatch())
+            sdp.add_s(str_key, f, priority )
+            self.strdispatchers[name] = sdp
+            return
+        if re_key is not None:
+            sdp = self.strdispatchers.get(name, StrDispatch())
+            sdp.add_re(re.compile(re_key), f, priority )
+            self.strdispatchers[name] = sdp
+            return
+            
         dp = getattr(self.hooks, name, None)
         if name not in IPython.hooks.__all__:
             print "Warning! Hook '%s' is not one of %s" % (name, IPython.hooks.__all__ )
         if not dp:
             dp = IPython.hooks.CommandChainDispatcher()
         
-        f = new.instancemethod(hook,self,self.__class__)
         try:
             dp.add(f,priority)
         except AttributeError:
@@ -1220,7 +1237,9 @@ want to merge them back into the new files.""" % locals()
                                             self.user_global_ns,
                                             self.rc.readline_omit__names,
                                             self.alias_table)
-
+            sdisp = self.strdispatchers.get('complete_command', StrDispatch())
+            self.strdispatchers['complete_command'] = sdisp
+            self.Completer.custom_completers = sdisp
             # Platform-specific configuration
             if os.name == 'nt':
                 self.readline_startup_hook = readline.set_pre_input_hook

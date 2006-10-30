@@ -72,6 +72,8 @@ import re
 import shlex
 import sys
 import IPython.rlineimpl as readline    
+from IPython.ipstruct import Struct
+from IPython import ipapi
 
 import types
 
@@ -341,7 +343,7 @@ class IPCompleter(Completer):
         current (as of Python 2.3) Python readline it's possible to do
         better."""
 
-        #print 'Completer->file_matches: <%s>' % text # dbg
+        # print 'Completer->file_matches: <%s>' % text # dbg
 
         # chars that require escaping with backslash - i.e. chars
         # that readline treats incorrectly as delimiters, but we
@@ -526,6 +528,25 @@ class IPCompleter(Completer):
                     argMatches.append("%s=" %namedArg)
         return argMatches
 
+    def dispatch_custom_completer(self,text):
+        # print "Custom! '%s' %s" % (text, self.custom_completers) # dbg
+        line = self.lbuf
+        event = Struct()
+        event.line = line
+        event.symbol = text
+        event.command = None
+        for c in self.custom_completers.flat_matches(self.lbuf):
+            # print "try",c # dbg
+            try:
+                res = c(event)
+                return [r for r in res if r.startswith(text)]
+            except ipapi.TryNext:
+                pass
+            
+        return None
+        
+    
+    
     def complete(self, text, state):
         """Return the next possible completion for 'text'.
 
@@ -547,6 +568,7 @@ class IPCompleter(Completer):
             self.readline.insert_text('\t')
             return None
 
+        
         magic_escape = self.magic_escape
         magic_prefix = self.magic_prefix
 
@@ -556,26 +578,31 @@ class IPCompleter(Completer):
             elif text.startswith('~'):
                 text = os.path.expanduser(text)
             if state == 0:
-                # Extend the list of completions with the results of each
-                # matcher, so we return results to the user from all
-                # namespaces.
-                if self.merge_completions:
-                    self.matches = []
-                    for matcher in self.matchers:
-                        self.matches.extend(matcher(text))
+                custom_res = self.dispatch_custom_completer(text)
+                if custom_res is not None:
+                    # did custom completers produce something?
+                    self.matches = custom_res
                 else:
-                    for matcher in self.matchers:
-                        self.matches = matcher(text)
-                        if self.matches:
-                            break
+                    # Extend the list of completions with the results of each
+                    # matcher, so we return results to the user from all
+                    # namespaces.
+                    if self.merge_completions:
+                        self.matches = []
+                        for matcher in self.matchers:
+                            self.matches.extend(matcher(text))
+                    else:
+                        for matcher in self.matchers:
+                            self.matches = matcher(text)
+                            if self.matches:
+                                break
 
             try:
                 return self.matches[state].replace(magic_prefix,magic_escape)
             except IndexError:
                 return None
         except:
-            #from IPython.ultraTB import AutoFormattedTB; # dbg
-            #tb=AutoFormattedTB('Verbose');tb() #dbg
+            from IPython.ultraTB import AutoFormattedTB; # dbg
+            tb=AutoFormattedTB('Verbose');tb() #dbg
 
             # If completion fails, don't annoy the user.
             return None

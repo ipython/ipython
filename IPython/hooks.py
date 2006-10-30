@@ -32,7 +32,7 @@ ip.set_hook('editor', calljed)
 You can then enable the functionality by doing 'import myiphooks'
 somewhere in your configuration files or ipython command line.
 
-$Id: hooks.py 1366 2006-06-15 19:45:50Z vivainio $"""
+$Id: hooks.py 1854 2006-10-30 19:54:25Z vivainio $"""
 
 #*****************************************************************************
 #       Copyright (C) 2005 Fernando Perez. <fperez@colorado.edu>
@@ -145,6 +145,13 @@ class CommandChainDispatcher:
         """ Add a func to the cmd chain with given priority """
         bisect.insort(self.chain,(priority,func))
 
+    def __iter__(self):
+        """ Return all objects in chain.
+        
+        Handy if the objects are not callable.
+        """
+        return iter(self.chain)
+    
 def result_display(self,arg):
     """ Default display hook.
     

@@ -3,6 +3,12 @@
 	* Debugger.py, iplib.py (debugger()): Add last set of Rocky 
 	Bernsteins's patches for pydb integration.
 	http://bashdb.sourceforge.net/pydb/
+	
+	* strdispatch.py, iplib.py, completer.py, IPython/__init__.py,
+	Extensions/ipy_linux_package_managers.py, hooks.py: Implement 
+	custom completer hook to allow the users to implement their own 
+	completers. See ipy_linux_package_managers.py for example. The 
+	hook name is 'complete_command'. 
 
 2006-10-28  Fernando Perez  <Fernando.Perez@colorado.edu>
 
