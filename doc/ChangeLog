@@ -4,6 +4,7 @@
 	Allow str_key ("command") in completer hooks. Implement 
 	trivial completer for 'import' (stdlib modules only). Rename 
 	ipy_linux_package_managers.py to ipy_stock_completers.py.
+	SVN completer.
 
 2006-10-30  Ville Vainio  <vivainio@gmail.com>
 

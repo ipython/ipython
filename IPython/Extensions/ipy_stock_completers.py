@@ -75,3 +75,16 @@ def module_completer(self,event):
     return py_std_modules.split()
 
 ip.set_hook('complete_command', module_completer, str_key = 'import')
+
+svn_commands = """\
+add blame praise annotate ann cat checkout co cleanup commit ci copy
+cp delete del remove rm diff di export help ? h import info list ls
+lock log merge mkdir move mv rename ren propdel pdel pd propedit pedit
+pe propget pget pg proplist plist pl propset pset ps resolved revert
+status stat st switch sw unlock
+"""
+
+def svn_completer(self,even):
+    return svn_commands.split()
+
+ip.set_hook('complete_command', svn_completer, str_key = 'svn')
