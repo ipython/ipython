@@ -1,3 +1,10 @@
+2006-10-31  Ville Vainio  <vivainio@gmail.com>
+
+	* strdispatch.py, completer.py, ipy_stock_completers.py:
+	Allow str_key ("command") in completer hooks. Implement 
+	trivial completer for 'import' (stdlib modules only). Rename 
+	ipy_linux_package_managers.py to ipy_stock_completers.py.
+
 2006-10-30  Ville Vainio  <vivainio@gmail.com>
 
 	* Debugger.py, iplib.py (debugger()): Add last set of Rocky 

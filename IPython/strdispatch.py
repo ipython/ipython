@@ -37,6 +37,14 @@ class StrDispatch(object):
 
     def __repr__(self):
         return "<Strdispatch %s, %s>" % (self.strs, self.regexs)
+    
+    def s_matches(self, key):
+        if key not in self.strs:
+             return
+        for el in self.strs[key]:
+            yield el[1]
+        
+        
     def flat_matches(self, key):
         """ Yield all 'value' targets, without priority """
         for val in self.dispatch(key):

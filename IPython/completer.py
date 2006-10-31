@@ -72,6 +72,7 @@ import re
 import shlex
 import sys
 import IPython.rlineimpl as readline    
+import itertools
 from IPython.ipstruct import Struct
 from IPython import ipapi
 
@@ -534,8 +535,11 @@ class IPCompleter(Completer):
         event = Struct()
         event.line = line
         event.symbol = text
-        event.command = None
-        for c in self.custom_completers.flat_matches(self.lbuf):
+        cmd = line.split(None,1)[0]
+        event.command = cmd
+        for c in itertools.chain(
+                                 self.custom_completers.s_matches(cmd),
+                                 self.custom_completers.flat_matches(self.lbuf)):
             # print "try",c # dbg
             try:
                 res = c(event)
