@@ -5,6 +5,10 @@
 	trivial completer for 'import' (stdlib modules only). Rename 
 	ipy_linux_package_managers.py to ipy_stock_completers.py.
 	SVN completer.
+	
+	* Extensions/ledit.py: %magic line editor for easily and
+	incrementally manipulating lists of strings. The magic command
+	name is %led.
 
 2006-10-30  Ville Vainio  <vivainio@gmail.com>
 
