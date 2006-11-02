@@ -1,3 +1,10 @@
+2006-11-02  Ville Vainio  <vivainio@gmail.com>
+
+	* ipy_stock_completers.py: Add %run and %cd completers.
+	
+	* completer.py: Try running custom completer for both 
+	"foo" and "%foo" if the command is just "foo".
+	
 2006-10-31  Ville Vainio  <vivainio@gmail.com>
 
 	* strdispatch.py, completer.py, ipy_stock_completers.py:

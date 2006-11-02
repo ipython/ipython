@@ -12,6 +12,7 @@ update  upgrade
 
 """
 import IPython.ipapi
+import glob,os,shlex
 
 ip = IPython.ipapi.get()
 
@@ -92,3 +93,27 @@ def svn_completer(self,event):
     return svn_commands.split()
 
 ip.set_hook('complete_command', svn_completer, str_key = 'svn')
+
+def runlistpy(self, event):
+    comps = shlex.split(event.line)
+    relpath = (len(comps) > 1 and comps[-1] or '')
+   
+    print "rp",relpath
+    if relpath.startswith('~'):
+        relpath = os.path.expanduser(relpath)
+    dirs = [f.replace('\\','/') + "/" for f in  glob.glob(relpath+'*') if os.path.isdir(f)]
+    pys =  [f.replace('\\','/') for f in  glob.glob(relpath+'*.py')]
+    return dirs + pys
+
+ip.set_hook('complete_command', runlistpy, str_key = '%run')
+
+def listdirs(self, event):
+    relpath = event.symbol
+    if relpath.startswith('~'):
+        relpath = os.path.expanduser(relpath).replace('\\','/')
+    found =  [f.replace('\\','/')+'/' for f in glob.glob(relpath+'*') if os.path.isdir(f)]
+    if not found:
+        return [relpath]
+    return found
+
+ip.set_hook('complete_command', listdirs, str_key = '%cd')

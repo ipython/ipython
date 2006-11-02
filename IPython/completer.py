@@ -540,8 +540,19 @@ class IPCompleter(Completer):
         event.symbol = text
         cmd = line.split(None,1)[0]
         event.command = cmd
+        #print "\ncustom:{%s]\n" % event # dbg
+        
+        # for foo etc, try also to find completer for %foo
+        if not cmd.startswith(self.magic_escape):
+            try_magic = self.custom_completers.s_matches(
+              self.magic_escape + cmd)            
+        else:
+            try_magic = []
+        
+        
         for c in itertools.chain(
                                  self.custom_completers.s_matches(cmd),
+                                 try_magic,
                                  self.custom_completers.flat_matches(self.lbuf)):
             # print "try",c # dbg
             try:
