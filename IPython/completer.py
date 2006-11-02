@@ -531,6 +531,8 @@ class IPCompleter(Completer):
 
     def dispatch_custom_completer(self,text):
         # print "Custom! '%s' %s" % (text, self.custom_completers) # dbg
+        if not text.strip():
+            return None
         line = self.lbuf
         event = Struct()
         event.line = line
