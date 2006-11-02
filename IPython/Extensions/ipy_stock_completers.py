@@ -109,6 +109,12 @@ ip.set_hook('complete_command', runlistpy, str_key = '%run')
 
 def listdirs(self, event):
     relpath = event.symbol
+    
+    if '-b' in event.line:
+        # return only bookmark completions
+        bkms = self.db.get('bookmarks',{})
+        return bkms.keys()
+        
     if relpath.startswith('~'):
         relpath = os.path.expanduser(relpath).replace('\\','/')
     found =  [f.replace('\\','/')+'/' for f in glob.glob(relpath+'*') if os.path.isdir(f)]
