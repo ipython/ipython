@@ -12,7 +12,7 @@ update  upgrade
 
 """
 import IPython.ipapi
-import glob,os,shlex
+import glob,os,shlex,sys
 
 ip = IPython.ipapi.get()
 
@@ -50,6 +50,12 @@ pkg_cache = None
 def module_completer(self,event):    
     """ Give completions after user has typed 'import' """
     
+    # only a local version for py 2.4, pkgutil has no walk_packages() there
+    if sys.version_info < (2,5):
+        for el in [f[:-3] for f in glob.glob("*.py")]:
+            yield el
+        return
+
     global pkg_cache
     import pkgutil,imp,time
     #current = 
