@@ -73,7 +73,9 @@ xmlrpclib zipfile"""
 
 def module_completer(self,event):    
     """ Give completions after user has typed 'import' """
-    return py_std_modules.split()
+    
+    import pkgutil    
+    return [m[1] for m in pkgutil.iter_modules()]
 
 ip.set_hook('complete_command', module_completer, str_key = 'import')
 
