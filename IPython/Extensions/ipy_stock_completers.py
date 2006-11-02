@@ -45,15 +45,20 @@ def apt_completers(self, event):
 ip.set_hook('complete_command', apt_completers, re_key = '.*apt-get')
 ip.set_hook('complete_command', apt_completers, re_key = '.*yum')
 
+pkg_cache = None
+
 def module_completer(self,event):    
     """ Give completions after user has typed 'import' """
     
+    global pkg_cache
     import pkgutil,imp,time
-    for ld, name, ispkg in pkgutil.walk_packages():
-        if ispkg:
-            yield name + '.'
-        else:
-            yield name
+    #current = 
+    if pkg_cache is None:
+        print "\n\n[Standby while scanning modules, this can take a while]\n\n"
+        pkg_cache = list(pkgutil.walk_packages())
+    
+    for ld, name, ispkg in pkg_cache:
+        yield name
     return
 
 ip.set_hook('complete_command', module_completer, str_key = 'import')
@@ -89,7 +94,7 @@ def runlistpy(self, event):
 
 ip.set_hook('complete_command', runlistpy, str_key = '%run')
 
-def listdirs(self, event):
+def cd_completer(self, event):
     relpath = event.symbol
     
     if '-b' in event.line:
@@ -112,4 +117,4 @@ def listdirs(self, event):
         return [relpath]
     return found
 
-ip.set_hook('complete_command', listdirs, str_key = '%cd')
+ip.set_hook('complete_command', cd_completer, str_key = '%cd')
