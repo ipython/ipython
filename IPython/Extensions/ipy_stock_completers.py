@@ -57,8 +57,12 @@ def module_completer(self,event):
         print "\n\n[Standby while scanning modules, this can take a while]\n\n"
         pkg_cache = list(pkgutil.walk_packages())
     
+    already = set()
     for ld, name, ispkg in pkg_cache:
-        yield name
+        if name.count('.') < event.symbol.count('.') + 1:
+            if name not in already:
+                already.add(name)
+                yield name + (ispkg and '.' or '')
     return
 
 ip.set_hook('complete_command', module_completer, str_key = 'import')
