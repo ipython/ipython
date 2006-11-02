@@ -23,6 +23,10 @@ ip = IPython.ipapi.get()
 # import ipy_defaults    
 
 def main():
+    # Handy tab-completers for %cd, %run, import etc.
+    # Try commenting this out if you have completion problems/slowness
+    import ipy_stock_completers 
+    
     o = ip.options
     # An example on how to set options
     #o.autocall = 1

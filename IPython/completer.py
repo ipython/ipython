@@ -557,7 +557,7 @@ class IPCompleter(Completer):
             # print "try",c # dbg
             try:
                 res = c(event)
-                return [r for r in res if r.startswith(text)]
+                return [r for r in res if r.lower().startswith(text.lower())]
             except ipapi.TryNext:
                 pass
             
