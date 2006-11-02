@@ -114,7 +114,15 @@ def listdirs(self, event):
         # return only bookmark completions
         bkms = self.db.get('bookmarks',{})
         return bkms.keys()
+    
+    if event.symbol == '-':
+        # jump in directory history by number
+        ents = ['-%d [%s]' % (i,s) for i,s in enumerate(ip.user_ns['_dh'])]
+        if len(ents) > 1:
+            return ents
+        return []
         
+                        
     if relpath.startswith('~'):
         relpath = os.path.expanduser(relpath).replace('\\','/')
     found =  [f.replace('\\','/')+'/' for f in glob.glob(relpath+'*') if os.path.isdir(f)]
