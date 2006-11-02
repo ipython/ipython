@@ -6,7 +6,7 @@ Requires Python 2.3 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 1859 2006-11-02 06:39:54Z vivainio $
+$Id: iplib.py 1868 2006-11-02 15:29:10Z vivainio $
 """
 
 #*****************************************************************************
@@ -1211,6 +1211,24 @@ want to merge them back into the new files.""" % locals()
             print 'Unable to save IPython command history to file: ' + \
                   `self.histfile`
 
+    def history_saving_wrapper(self, func):
+        """ Wrap func for readline history saving
+        
+        Convert func into callable that saves & restores
+        history around the call """
+        
+        if not self.has_readline:
+            return func
+        
+        def wrapper():
+            self.savehist()
+            try:
+                func()
+            finally:
+                readline.read_history_file(self.histfile)
+        return wrapper
+                
+            
     def pre_readline(self):
         """readline hook to be used at the start of each line.
 
@@ -1392,7 +1410,7 @@ want to merge them back into the new files.""" % locals()
                 pass
         if not have_pydb:
             from pdb import pm
-        pm()
+        self.history_saving_wrapper(pm)()
 
     def showtraceback(self,exc_tuple = None,filename=None,tb_offset=None):
         """Display the exception that just occurred.
