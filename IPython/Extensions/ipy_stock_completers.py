@@ -81,10 +81,14 @@ add blame praise annotate ann cat checkout co cleanup commit ci copy
 cp delete del remove rm diff di export help ? h import info list ls
 lock log merge mkdir move mv rename ren propdel pdel pd propedit pedit
 pe propget pget pg proplist plist pl propset pset ps resolved revert
-status stat st switch sw unlock
+status stat st switch sw unlock update
 """
 
-def svn_completer(self,even):
+def svn_completer(self,event):
+    if len((event.line + 'placeholder').split()) > 2:
+        # the rest are probably file names
+        return ip.IP.Completer.file_matches(event.symbol)
+        
     return svn_commands.split()
 
 ip.set_hook('complete_command', svn_completer, str_key = 'svn')
