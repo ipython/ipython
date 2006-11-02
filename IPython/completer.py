@@ -531,9 +531,10 @@ class IPCompleter(Completer):
 
     def dispatch_custom_completer(self,text):
         # print "Custom! '%s' %s" % (text, self.custom_completers) # dbg
-        if not text.strip():
+        line = self.full_lbuf        
+        if not line.strip():
             return None
-        line = self.lbuf
+
         event = Struct()
         event.line = line
         event.symbol = text
@@ -569,7 +570,8 @@ class IPCompleter(Completer):
 
         # don't apply this on 'dumb' terminals, such as emacs buffers, so we
         # don't interfere with their own tab-completion mechanism.
-        self.lbuf = self.get_line_buffer()[:self.readline.get_endidx()]
+        self.full_lbuf = self.get_line_buffer()
+        self.lbuf = self.full_lbuf[:self.readline.get_endidx()]
         if not (self.dumb_terminal or self.get_line_buffer().strip()):
             self.readline.insert_text('\t')
             return None
