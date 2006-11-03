@@ -6,7 +6,7 @@ Requires Python 2.3 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 1874 2006-11-03 08:17:34Z fptest $
+$Id: iplib.py 1878 2006-11-03 23:00:22Z fptest $
 """
 
 #*****************************************************************************
@@ -460,21 +460,19 @@ class InteractiveShell(object,Magic):
 
         # Functions to call the underlying shell.
 
-        # utility to expand user variables via Itpl
-        self.var_expand = lambda cmd: str(ItplNS(cmd.replace('#','\#'),
-                                                 self.user_ns))
         # The first is similar to os.system, but it doesn't return a value,
         # and it allows interpolation of variables in the user's namespace.
-        self.system = lambda cmd: shell(self.var_expand(cmd),
-                                        header='IPython system call: ',
-                                        verbose=self.rc.system_verbose)
+        self.system = lambda cmd: \
+                      shell(self.var_expand(cmd,depth=2),
+                            header='IPython system call: ',
+                            verbose=self.rc.system_verbose)
         # These are for getoutput and getoutputerror:
         self.getoutput = lambda cmd: \
-                         getoutput(self.var_expand(cmd),
+                         getoutput(self.var_expand(cmd,depth=2),
                                    header='IPython system call: ',
                                    verbose=self.rc.system_verbose)
         self.getoutputerror = lambda cmd: \
-                              getoutputerror(self.var_expand(cmd),
+                              getoutputerror(self.var_expand(cmd,depth=2),
                                              header='IPython system call: ',
                                              verbose=self.rc.system_verbose)
  
@@ -615,6 +613,22 @@ class InteractiveShell(object,Magic):
         self.add_builtins()
 
     # end __init__
+
+    def var_expand(self,cmd,depth=0):
+        """Expand python variables in a string.
+
+        The depth argument indicates how many frames above the caller should
+        be walked to look for the local namespace where to expand variables.
+
+        The global namespace for expansion is always the user's interactive
+        namespace.
+        """
+
+        return str(ItplNS(cmd.replace('#','\#'),
+                          self.user_ns,  # globals
+                          # Skip our own frame in searching for locals:
+                          sys._getframe(depth+1).f_locals # locals
+                          ))
 
     def pre_config_initialization(self):
         """Pre-configuration init method
@@ -915,7 +929,7 @@ class InteractiveShell(object,Magic):
         if fn is None:
             error("Magic function `%s` not found." % magic_name)
         else:
-            magic_args = self.var_expand(magic_args)
+            magic_args = self.var_expand(magic_args,1)
             return fn(magic_args)
 
     def ipalias(self,arg_s):

@@ -23,6 +23,10 @@
 
 2006-11-03  Fernando Perez  <Fernando.Perez@colorado.edu>
 
+	* IPython/iplib.py (InteractiveShell.var_expand): fix stack
+	handling in variable expansion so that shells and magics recognize
+	function local scopes correctly.  Bug reported by Brian.
+
 	* scripts/ipython: remove the very first entry in sys.path which
 	Python auto-inserts for scripts, so that sys.path under IPython is
 	as similar as possible to that under plain Python.
