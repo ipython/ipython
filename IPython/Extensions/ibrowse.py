@@ -12,6 +12,12 @@ except NameError:
     import sets
     set = sets.Set
 
+# Python 2.3 compatibility
+try:
+    sorted
+except NameError:
+    from ipipe import sorted
+
 
 class UnassignedKeyError(Exception):
     """
@@ -21,7 +27,7 @@ class UnassignedKeyError(Exception):
 
 class UnknownCommandError(Exception):
     """
-    Exception that is used for reporting unknown command (this should never
+    Exception that is used for reporting unknown commands (this should never
     happen).
     """
 
@@ -733,14 +739,13 @@ class ibrowse(ipipe.Display):
     keymap.register("pickallattrs", "C")
     keymap.register("pickmarked", "m")
     keymap.register("pickmarkedattr", "M")
-    keymap.register("enterdefault", "\r\n")
-    # FIXME: What's happening here?
-    keymap.register("leave", curses.KEY_BACKSPACE, "x\x08\x7f")
     keymap.register("hideattr", "h")
     keymap.register("unhideattrs", "H")
     keymap.register("help", "?")
-    keymap.register("enter", "e")
+    keymap.register("enter", "eenterdefault", "\r\n")
     keymap.register("enterattr", "E")
+    # FIXME: What's happening here?
+    keymap.register("leave", curses.KEY_BACKSPACE, "x\x08\x7f")
     keymap.register("detail", "d")
     keymap.register("detailattr", "D")
     keymap.register("tooglemark", " ")
@@ -879,13 +884,13 @@ class ibrowse(ipipe.Display):
         """
         self._report = msg
 
-    def enter(self, item, mode, *attrs):
+    def enter(self, item, *attrs):
         """
-        Enter the object ``item`` in the mode ``mode``. If ``attrs`` is
-        specified, it will be used as a fixed list of attributes to display.
+        Enter the object ``item``. If ``attrs`` is specified, it will be used
+        as a fixed list of attributes to display.
         """
         try:
-            iterator = ipipe.xiter(item, mode)
+            iterator = ipipe.xiter(item)
         except (KeyboardInterrupt, SystemExit):
             raise
         except Exception, exc:
@@ -1135,11 +1140,10 @@ class ibrowse(ipipe.Display):
                     cache.marked = True
                     level.marked += 1
 
-    def cmd_enterdefault(self):
+    def cmd_enter(self):
         """
         Enter the object under the cursor. (what this mean depends on the object
-        itself (i.e. how it implements the ``__xiter__`` method). This opens a new
-        browser 'level'.
+        itself (i.e. how it implements iteration). This opens a new browser 'level'.
         """
         level = self.levels[-1]
         try:
@@ -1148,8 +1152,8 @@ class ibrowse(ipipe.Display):
             self.report(CommandError("No object"))
             curses.beep()
         else:
-            self.report("entering object (default mode)...")
-            self.enter(item, "default")
+            self.report("entering object...")
+            self.enter(item)
 
     def cmd_leave(self):
         """
@@ -1162,22 +1166,6 @@ class ibrowse(ipipe.Display):
         else:
             self.report(CommandError("This is the last level"))
             curses.beep()
-
-    def cmd_enter(self):
-        """
-        Enter the object under the cursor. If the object provides different
-        enter modes a menu of all modes will be presented; choose one and enter
-        it (via the 'enter' or 'enterdefault' command).
-        """
-        level = self.levels[-1]
-        try:
-            item = level.items[level.cury].item
-        except IndexError:
-            self.report(CommandError("No object"))
-            curses.beep()
-        else:
-            self.report("entering object...")
-            self.enter(item, None)
 
     def cmd_enterattr(self):
         """
@@ -1201,7 +1189,7 @@ class ibrowse(ipipe.Display):
                 self.report(AttributeError(name))
             else:
                 self.report("entering object attribute %s..." % name)
-                self.enter(value, None)
+                self.enter(value)
 
     def cmd_detail(self):
         """
@@ -1219,7 +1207,7 @@ class ibrowse(ipipe.Display):
         else:
             self.report("entering detail view for object...")
             attrs = [ipipe.AttributeDetail(item, attr) for attr in ipipe.xattrs(item, "detail")]
-            self.enter(attrs, "detail")
+            self.enter(attrs)
 
     def cmd_detailattr(self):
         """
@@ -1246,7 +1234,7 @@ class ibrowse(ipipe.Display):
             else:
                 self.report("entering detail view for attribute %s..." % attr.name())
                 attrs = [ipipe.AttributeDetail(item, attr) for attr in ipipe.xattrs(item, "detail")]
-                self.enter(attrs, "detail")
+                self.enter(attrs)
 
     def cmd_tooglemark(self):
         """
@@ -1362,7 +1350,7 @@ class ibrowse(ipipe.Display):
                 self.report(CommandError("help already active"))
                 return
 
-        self.enter(_BrowserHelp(self), "default")
+        self.enter(_BrowserHelp(self))
 
     def cmd_quit(self):
         """
@@ -1400,7 +1388,7 @@ class ibrowse(ipipe.Display):
 
         self.levels = []
         # enter the first level
-        self.enter(self.input, ipipe.xiter(self.input, "default"), *self.attrs)
+        self.enter(self.input, *self.attrs)
 
         self._calcheaderlines(None)
 
@@ -1551,7 +1539,7 @@ class ibrowse(ipipe.Display):
                     except (SystemExit, KeyboardInterrupt):
                         raise
                     except Exception, exc:
-                        attr = exc
+                        value = exc
                     if value is not ipipe.noitem:
                         attrstyle = ipipe.xrepr(value, "footer")
                     for (nostyle, text) in attrstyle:

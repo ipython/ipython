@@ -1,3 +1,26 @@
+2006-11-03  Walter Doerwald  <walter@livinglogic.de>
+
+	* IPython/Extensions/ipipe.py: xrepr(), xiter() and xattrs() are now
+	generic functions (using Philip J. Eby's simplegeneric package).
+	This makes it possible to customize the display of third-party classes
+	without having to monkeypatch them. xiter() no longer supports a mode
+	argument and the XMode class has been removed. The same functionality can
+	be implemented via IterAttributeDescriptor and IterMethodDescriptor.
+	One consequence of the switch to generic functions is that xrepr() and
+	xattrs() implementation must define the default value for the mode
+	argument themselves and xattrs() implementations must return real
+	descriptors.
+
+	* IPython/external: This new subpackage will contain all third-party
+	packages that are bundled with IPython. (The first one is simplegeneric).
+
+	* IPython/Extensions/ipipe.py (ifile/ils): Readd output of the parent
+	directory which as been dropped in r1703.
+
+	* IPython/Extensions/ipipe.py (iless): Fixed.
+
+	* IPython/Extensions/ibrowse: Fixed sorting under Python 2.3.
+
 2006-11-03  Fernando Perez  <Fernando.Perez@colorado.edu>
 
 	* scripts/ipython: remove the very first entry in sys.path which
@@ -50,7 +73,7 @@
 
 2006-10-28  Fernando Perez  <Fernando.Perez@colorado.edu>
 
-	* IPython/UserConfig/ipythonrc-scipy: minor clenaups to remove old
+	* IPython/UserConfig/ipythonrc-scipy: minor cleanups to remove old
 	Numeric leftovers.
 
 	* ipython.el (py-execute-region): apply Stefan's patch to fix

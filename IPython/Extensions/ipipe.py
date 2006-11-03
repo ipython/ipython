@@ -15,9 +15,9 @@ This gives a listing of all environment variables sorted by name.
 
 There are three types of objects in a pipeline expression:
 
-* ``Table``s: These objects produce items. Examples are ``ls`` (listing the
+* ``Table``s: These objects produce items. Examples are ``ils`` (listing the
   current directory, ``ienv`` (listing environment variables), ``ipwd`` (listing
-  user account) and ``igrp`` (listing user groups). A ``Table`` must be the
+  user accounts) and ``igrp`` (listing user groups). A ``Table`` must be the
   first object in a pipe expression.
 
 * ``Pipe``s: These objects sit in the middle of a pipe expression. They
@@ -29,7 +29,7 @@ There are three types of objects in a pipeline expression:
 * ``Display``s: These objects can be put as the last object in a pipeline
   expression. There are responsible for displaying the result of the pipeline
   expression. If a pipeline expression doesn't end in a display object a default
-  display objects will be used. One example is ``browse`` which is a ``curses``
+  display objects will be used. One example is ``ibrowse`` which is a ``curses``
   based browser.
 
 
@@ -37,47 +37,16 @@ Adding support for pipeline expressions to your own objects can be done through
 three extensions points (all of them optional):
 
 * An object that will be displayed as a row by a ``Display`` object should
-  implement the method ``__xattrs__(self, mode)``. This method must return a
-  sequence of attribute names. This sequence may also contain integers, which
-  will be treated as sequence indizes. Also supported is ``None``, which uses
-  the object itself and callables which will be called with the object as the
-  an argument. If ``__xattrs__()`` isn't implemented ``(None,)`` will be used as
-  the attribute sequence (i.e. the object itself (it's ``repr()`` format) will
-  be being displayed. The global function ``xattrs()`` implements this
-  functionality.
+  implement the method ``__xattrs__(self, mode)`` method or register an
+  implementation of the generic function ``xattrs``. For more info see ``xattrs``.
 
-* When an object ``foo`` is displayed in the header, footer or table cell of the
-  browser ``foo.__xrepr__(mode)`` is called. Mode can be ``"header"`` or
-  ``"footer"`` for the header or footer line and ``"cell"`` for a table cell.
-  ``__xrepr__()```must return an iterable (e.g. by being a generator) which
-  produces the following items: The first item should be a tuple containing
-  the alignment (-1 left aligned, 0 centered and 1 right aligned) and whether
-  the complete output must be displayed or if the browser is allowed to stop
-  output after enough text has been produced (e.g. a syntax highlighted text
-  line would use ``True``, but for a large data structure (i.e. a nested list,
-  tuple or dictionary) ``False`` would be used). The other output ``__xrepr__()``
-  may produce is tuples of ``Style```objects and text (which contain the text
-  representation of the object; see the ``astyle`` module). If ``__xrepr__()``
-  recursively outputs a data structure the function ``xrepr(object, mode)`` can
-  be used and ``"default"`` must be passed as the mode in these calls. This in
-  turn calls the ``__xrepr__()`` method on ``object`` (or uses ``repr(object)``
-  as the string representation if ``__xrepr__()`` doesn't exist).
+* When an object ``foo`` is displayed by a ``Display`` object, the generic
+  function ``xrepr`` is used.
 
-* Objects that can be iterated by ``Pipe``s must implement the method
-``__xiter__(self, mode)``. ``mode`` can take the following values:
-
-  - ``"default"``: This is the default value and ist always used by pipeline
-    expressions. Other values are only used in the browser.
-  - ``None``: This value is passed by the browser. The object must return an
-    iterable of ``XMode`` objects describing all modes supported by the object.
-    (This should never include ``"default"`` or ``None``).
-  - Any other value that the object supports.
-
-  The global function ``xiter()`` can be called to get such an iterator. If
-  the method ``_xiter__`` isn't implemented, ``xiter()`` falls back to
-  ``__iter__``. In addition to that, dictionaries and modules receive special
-  treatment (returning an iterator over ``(key, value)`` pairs). This makes it
-  possible to use dictionaries and modules in pipeline expressions, for example:
+* Objects that can be iterated by ``Pipe``s must iterable. For special cases,
+  where iteration for display is different than the normal iteration a special
+  implementation can be registered with the generic function ``xiter``. This makes
+  it possible to use dictionaries and modules in pipeline expressions, for example:
 
       >>> import sys
       >>> sys | ifilter("isinstance(value, int)") | idump
@@ -151,6 +120,8 @@ try:
     import grp
 except ImportError:
     grp = None
+
+from IPython.external import simplegeneric
 
 import path
 try:
@@ -229,7 +200,7 @@ def item(iterator, index, default=noitem):
     """
     Return the ``index``th item from the iterator ``iterator``.
     ``index`` must be an integer (negative integers are relative to the
-    end (i.e. the last item produced by the iterator)).
+    end (i.e. the last items produced by the iterator)).
 
     If ``default`` is given, this will be the default value when
     the iterator doesn't contain an item at this position. Otherwise an
@@ -260,6 +231,11 @@ def item(iterator, index, default=noitem):
 
 
 def getglobals(g):
+    """
+    Return the global namespace that is used for expression strings in
+    ``ifilter`` and others. This is ``g`` or (if ``g`` is ``None``) IPython's
+    user namespace.
+    """
     if g is None:
         if ipapi is not None:
             api = ipapi.get()
@@ -270,6 +246,9 @@ def getglobals(g):
 
 
 class Descriptor(object):
+    """
+    A ``Descriptor`` object is used for describing the attributes of objects.
+    """
     def __hash__(self):
         return hash(self.__class__) ^ hash(self.key())
 
@@ -283,34 +262,57 @@ class Descriptor(object):
         pass
 
     def name(self):
+        """
+        Return the name of this attribute for display by a ``Display`` object
+        (e.g. as a column title).
+        """
         key = self.key()
         if key is None:
             return "_"
         return str(key)
 
     def attrtype(self, obj):
-        pass
+        """
+        Return the type of this attribute (i.e. something like "attribute" or
+        "method").
+        """
 
     def valuetype(self, obj):
-        pass
+        """
+        Return the type of this attribute value of the object ``obj``.
+        """
 
     def value(self, obj):
-        pass
+        """
+        Return the value of this attribute of the object ``obj``.
+        """
 
     def doc(self, obj):
-        pass
+        """
+        Return the documentation for this attribute.
+        """
 
     def shortdoc(self, obj):
+        """
+        Return a short documentation for this attribute (defaulting to the
+        first line).
+        """
         doc = self.doc(obj)
         if doc is not None:
             doc = doc.strip().splitlines()[0].strip()
         return doc
 
     def iter(self, obj):
+        """
+        Return an iterator for this attribute of the object ``obj``.
+        """
         return xiter(self.value(obj))
 
 
 class SelfDescriptor(Descriptor):
+    """
+    A ``SelfDescriptor`` describes the object itself.
+    """
     def key(self):
         return None
 
@@ -330,6 +332,9 @@ selfdescriptor = SelfDescriptor() # there's no need for more than one
 
 
 class AttributeDescriptor(Descriptor):
+    """
+    An ``AttributeDescriptor`` describes a simple attribute of an object.
+    """
     __slots__ = ("_name", "_doc")
 
     def __init__(self, name, doc=None):
@@ -359,6 +364,10 @@ class AttributeDescriptor(Descriptor):
 
 
 class IndexDescriptor(Descriptor):
+    """
+    An ``IndexDescriptor`` describes an "attribute" of an object that is fetched
+    via ``__getitem__``.
+    """
     __slots__ = ("_index",)
 
     def __init__(self, index):
@@ -381,6 +390,10 @@ class IndexDescriptor(Descriptor):
 
 
 class MethodDescriptor(Descriptor):
+    """
+    A ``MethodDescriptor`` describes a method of an object that can be called
+    without argument. Note that this method shouldn't change the object.
+    """
     __slots__ = ("_name", "_doc")
 
     def __init__(self, name, doc=None):
@@ -412,6 +425,11 @@ class MethodDescriptor(Descriptor):
 
 
 class IterAttributeDescriptor(Descriptor):
+    """
+    An ``IterAttributeDescriptor`` works like an ``AttributeDescriptor`` but
+    doesn't return an attribute values (because this value might be e.g. a large
+    list).
+    """
     __slots__ = ("_name", "_doc")
 
     def __init__(self, name, doc=None):
@@ -444,6 +462,10 @@ class IterAttributeDescriptor(Descriptor):
 
 
 class IterMethodDescriptor(Descriptor):
+    """
+    An ``IterMethodDescriptor`` works like an ``MethodDescriptor`` but doesn't
+    return an attribute values (because this value might be e.g. a large list).
+    """
     __slots__ = ("_name", "_doc")
 
     def __init__(self, name, doc=None):
@@ -478,6 +500,10 @@ class IterMethodDescriptor(Descriptor):
 
 
 class FunctionDescriptor(Descriptor):
+    """
+    A ``FunctionDescriptor`` turns a function into a descriptor. The function
+    will be called with the object to get the type and value of the attribute.
+    """
     __slots__ = ("_function", "_name", "_doc")
 
     def __init__(self, function, name=None, doc=None):
@@ -572,9 +598,6 @@ class Table(object):
             other = other()
         return ichain(other, self)
 
-    def __iter__(self):
-        return xiter(self, "default")
-
 
 class Pipe(Table):
     """
@@ -596,10 +619,41 @@ class Pipe(Table):
 
 
 def xrepr(item, mode="default"):
+    """
+    Generic function that adds color output and different display modes to ``repr``.
+
+    The result of an ``xrepr`` call is iterable and consists of ``(style, string)``
+    tuples. The ``style`` in this tuple must be a ``Style`` object from the
+    ``astring`` module. To reconfigure the output the first yielded tuple can be
+    a ``(aligment, full)`` tuple instead of a ``(style, string)`` tuple.
+    ``alignment``  can be -1 for left aligned, 0 for centered and 1 for right
+    aligned (the default is left alignment). ``full`` is a boolean that specifies
+    whether the complete output must be displayed or the ``Display`` object is
+    allowed to stop output after enough text has been produced (e.g. a syntax
+    highlighted text line would use ``True``, but for a large data structure
+    (i.e. a nested list, tuple or dictionary) ``False`` would be used).
+    The default is full output.
+
+    There are four different possible values for ``mode`` depending on where
+    the ``Display`` object will display ``item``:
+
+    * ``"header"``: ``item`` will be displayed in a header line (this is used by
+      ``ibrowse``).
+    * ``"footer"``: ``item`` will be displayed in a footer line (this is used by
+      ``ibrowse``).
+    * ``"cell"``: ``item`` will be displayed in a table cell/list.
+    * ``"default"``: default mode. If an ``xrepr`` implementation recursively
+      outputs objects, ``"default"`` must be passed in the recursive calls to
+      ``xrepr``.
+
+    If no implementation is registered for ``item``, ``xrepr`` will try the
+    ``__xrepr__`` method on ``item``. If ``item`` doesn't have an ``__xrepr__``
+    method it falls back to ``repr``/``__repr__`` for all modes.
+    """
     try:
         func = item.__xrepr__
     except AttributeError:
-        pass
+        yield (astyle.style_default, repr(item))
     else:
         try:
             for x in func(mode):
@@ -608,123 +662,179 @@ def xrepr(item, mode="default"):
             raise
         except Exception:
             yield (astyle.style_default, repr(item))
-        return
-    if item is None:
-        yield (astyle.style_type_none, repr(item))
-    elif isinstance(item, bool):
-        yield (astyle.style_type_bool, repr(item))
-    elif isinstance(item, str):
-        if mode == "cell":
-            yield (astyle.style_default, repr(item.expandtabs(tab))[1:-1])
-        else:
-            yield (astyle.style_default, repr(item))
-    elif isinstance(item, unicode):
-        if mode == "cell":
-            yield (astyle.style_default, repr(item.expandtabs(tab))[2:-1])
-        else:
-            yield (astyle.style_default, repr(item))
-    elif isinstance(item, (int, long, float)):
-        yield (1, True)
-        yield (astyle.style_type_number, repr(item))
-    elif isinstance(item, complex):
-        yield (astyle.style_type_number, repr(item))
-    elif isinstance(item, datetime.datetime):
-        if mode == "cell":
-            # Don't use strftime() here, as this requires year >= 1900
-            yield (astyle.style_type_datetime,
-                   "%04d-%02d-%02d %02d:%02d:%02d.%06d" % \
-                        (item.year, item.month, item.day,
-                         item.hour, item.minute, item.second,
-                         item.microsecond),
-                    )
-        else:
-            yield (astyle.style_type_datetime, repr(item))
-    elif isinstance(item, datetime.date):
-        if mode == "cell":
-            yield (astyle.style_type_datetime,
-                   "%04d-%02d-%02d" % (item.year, item.month, item.day))
-        else:
-            yield (astyle.style_type_datetime, repr(item))
-    elif isinstance(item, datetime.time):
-        if mode == "cell":
-            yield (astyle.style_type_datetime,
-                    "%02d:%02d:%02d.%06d" % \
-                        (item.hour, item.minute, item.second, item.microsecond))
-        else:
-            yield (astyle.style_type_datetime, repr(item))
-    elif isinstance(item, datetime.timedelta):
-        yield (astyle.style_type_datetime, repr(item))
-    elif isinstance(item, type):
-        if item.__module__ == "__builtin__":
-            yield (astyle.style_type_type, item.__name__)
-        else:
-            yield (astyle.style_type_type, "%s.%s" % (item.__module__, item.__name__))
-    elif isinstance(item, Exception):
-        if item.__class__.__module__ == "exceptions":
-            classname = item.__class__.__name__
+xrepr = simplegeneric.generic(xrepr)
+
+
+def xrepr_none(self, mode="default"):
+    yield (astyle.style_type_none, repr(self))
+xrepr.when_object(None)(xrepr_none)
+
+
+def xrepr_bool(self, mode="default"):
+    yield (astyle.style_type_bool, repr(self))
+xrepr.when_type(bool)(xrepr_bool)
+
+
+def xrepr_str(self, mode="default"):
+    if mode == "cell":
+        yield (astyle.style_default, repr(self.expandtabs(tab))[1:-1])
+    else:
+        yield (astyle.style_default, repr(self))
+xrepr.when_type(str)(xrepr_str)
+
+
+def xrepr_unicode(self, mode="default"):
+    if mode == "cell":
+        yield (astyle.style_default, repr(self.expandtabs(tab))[2:-1])
+    else:
+        yield (astyle.style_default, repr(self))
+xrepr.when_type(unicode)(xrepr_unicode)
+
+
+def xrepr_number(self, mode="default"):
+    yield (1, True)
+    yield (astyle.style_type_number, repr(self))
+xrepr.when_type(int)(xrepr_number)
+xrepr.when_type(long)(xrepr_number)
+xrepr.when_type(float)(xrepr_number)
+
+
+def xrepr_complex(self, mode="default"):
+    yield (astyle.style_type_number, repr(self))
+xrepr.when_type(complex)(xrepr_number)
+
+
+def xrepr_datetime(self, mode="default"):
+    if mode == "cell":
+        # Don't use strftime() here, as this requires year >= 1900
+        yield (astyle.style_type_datetime,
+               "%04d-%02d-%02d %02d:%02d:%02d.%06d" % \
+                    (self.year, self.month, self.day,
+                     self.hour, self.minute, self.second,
+                     self.microsecond),
+                )
+    else:
+        yield (astyle.style_type_datetime, repr(self))
+xrepr.when_type(datetime.datetime)(xrepr_datetime)
+
+
+def xrepr_date(self, mode="default"):
+    if mode == "cell":
+        yield (astyle.style_type_datetime,
+               "%04d-%02d-%02d" % (self.year, self.month, self.day))
+    else:
+        yield (astyle.style_type_datetime, repr(self))
+xrepr.when_type(datetime.date)(xrepr_date)
+
+
+def xrepr_time(self, mode="default"):
+    if mode == "cell":
+        yield (astyle.style_type_datetime,
+                "%02d:%02d:%02d.%06d" % \
+                    (self.hour, self.minute, self.second, self.microsecond))
+    else:
+        yield (astyle.style_type_datetime, repr(self))
+xrepr.when_type(datetime.time)(xrepr_time)
+
+
+def xrepr_timedelta(self, mode="default"):
+    yield (astyle.style_type_datetime, repr(self))
+xrepr.when_type(datetime.timedelta)(xrepr_timedelta)
+
+
+def xrepr_type(self, mode="default"):
+    if self.__module__ == "__builtin__":
+        yield (astyle.style_type_type, self.__name__)
+    else:
+        yield (astyle.style_type_type, "%s.%s" % (self.__module__, self.__name__))
+xrepr.when_type(type)(xrepr_type)
+
+
+def xrepr_exception(self, mode="default"):
+    if self.__class__.__module__ == "exceptions":
+        classname = self.__class__.__name__
+    else:
+        classname = "%s.%s" % \
+            (self.__class__.__module__, self.__class__.__name__)
+    if mode == "header" or mode == "footer":
+        yield (astyle.style_error, "%s: %s" % (classname, self))
+    else:
+        yield (astyle.style_error, classname)
+xrepr.when_type(Exception)(xrepr_exception)
+
+
+def xrepr_listtuple(self, mode="default"):
+    if mode == "header" or mode == "footer":
+        if self.__class__.__module__ == "__builtin__":
+            classname = self.__class__.__name__
         else:
             classname = "%s.%s" % \
-                (item.__class__.__module__, item.__class__.__name__)
-        if mode == "header" or mode == "footer":
-            yield (astyle.style_error, "%s: %s" % (classname, item))
-        else:
-            yield (astyle.style_error, classname)
-    elif isinstance(item, (list, tuple)):
-        if mode == "header" or mode == "footer":
-            if item.__class__.__module__ == "__builtin__":
-                classname = item.__class__.__name__
-            else:
-                classname = "%s.%s" % \
-                    (item.__class__.__module__,item.__class__.__name__)
-            yield (astyle.style_default,
-                   "<%s object with %d items at 0x%x>" % \
-                       (classname, len(item), id(item)))
-        else:
-            yield (-1, False)
-            if isinstance(item, list):
-                yield (astyle.style_default, "[")
-                end = "]"
-            else:
-                yield (astyle.style_default, "(")
-                end = ")"
-            for (i, subitem) in enumerate(item):
-                if i:
-                    yield (astyle.style_default, ", ")
-                for part in xrepr(subitem, "default"):
-                    yield part
-            yield (astyle.style_default, end)
-    elif isinstance(item, (dict, types.DictProxyType)):
-        if mode == "header" or mode == "footer":
-            if item.__class__.__module__ == "__builtin__":
-                classname = item.__class__.__name__
-            else:
-                classname = "%s.%s" % \
-                    (item.__class__.__module__,item.__class__.__name__)
-            yield (astyle.style_default,
-                   "<%s object with %d items at 0x%x>" % \
-                    (classname, len(item), id(item)))
-        else:
-            yield (-1, False)
-            if isinstance(item, dict):
-                yield (astyle.style_default, "{")
-                end = "}"
-            else:
-                yield (astyle.style_default, "dictproxy((")
-                end = "})"
-            for (i, (key, value)) in enumerate(item.iteritems()):
-                if i:
-                    yield (astyle.style_default, ", ")
-                for part in xrepr(key, "default"):
-                    yield part
-                yield (astyle.style_default, ": ")
-                for part in xrepr(value, "default"):
-                    yield part
-            yield (astyle.style_default, end)
+                (self.__class__.__module__,self.__class__.__name__)
+        yield (astyle.style_default,
+               "<%s object with %d items at 0x%x>" % \
+                   (classname, len(self), id(self)))
     else:
-        yield (astyle.style_default, repr(item))
+        yield (-1, False)
+        if isinstance(self, list):
+            yield (astyle.style_default, "[")
+            end = "]"
+        else:
+            yield (astyle.style_default, "(")
+            end = ")"
+        for (i, subself) in enumerate(self):
+            if i:
+                yield (astyle.style_default, ", ")
+            for part in xrepr(subself, "default"):
+                yield part
+        yield (astyle.style_default, end)
+xrepr.when_type(list)(xrepr_listtuple)
+xrepr.when_type(tuple)(xrepr_listtuple)
+
+
+def xrepr_dict(self, mode="default"):
+    if mode == "header" or mode == "footer":
+        if self.__class__.__module__ == "__builtin__":
+            classname = self.__class__.__name__
+        else:
+            classname = "%s.%s" % \
+                (self.__class__.__module__,self.__class__.__name__)
+        yield (astyle.style_default,
+               "<%s object with %d items at 0x%x>" % \
+                (classname, len(self), id(self)))
+    else:
+        yield (-1, False)
+        if isinstance(self, dict):
+            yield (astyle.style_default, "{")
+            end = "}"
+        else:
+            yield (astyle.style_default, "dictproxy((")
+            end = "})"
+        for (i, (key, value)) in enumerate(self.iteritems()):
+            if i:
+                yield (astyle.style_default, ", ")
+            for part in xrepr(key, "default"):
+                yield part
+            yield (astyle.style_default, ": ")
+            for part in xrepr(value, "default"):
+                yield part
+        yield (astyle.style_default, end)
+xrepr.when_type(dict)(xrepr_dict)
+xrepr.when_type(types.DictProxyType)(xrepr_dict)
 
 
 def upgradexattr(attr):
+    """
+    Convert an attribute descriptor string to a real descriptor object.
+
+    If attr already is a descriptor object return if unmodified. A
+    ``SelfDescriptor`` will be returned if ``attr`` is ``None``. ``"foo"``
+    returns an ``AttributeDescriptor`` for the attribute named ``"foo"``.
+    ``"foo()"`` returns a ``MethodDescriptor`` for the method named ``"foo"``.
+    ``"-foo"`` will return an ``IterAttributeDescriptor`` for the attribute
+    named ``"foo"`` and ``"-foo()"`` will return an ``IterMethodDescriptor``
+    for the method named ``"foo"``. Furthermore integer will return the appropriate
+    ``IndexDescriptor`` and callables will return a ``FunctionDescriptor``.
+    """
     if attr is None:
         return selfdescriptor
     elif isinstance(attr, Descriptor):
@@ -749,6 +859,28 @@ def upgradexattr(attr):
 
 
 def xattrs(item, mode="default"):
+    """
+    Generic function that returns an iterable of attribute descriptors
+    to be used for displaying the attributes ob the object ``item`` in display
+    mode ``mode``.
+
+    There are two possible modes:
+
+    * ``"detail"``: The ``Display`` object wants to display a detailed list
+      of the object attributes.
+    * ``"default"``: The ``Display`` object wants to display the object in a
+      list view.
+
+    If no implementation is registered for the object ``item`` ``xattrs`` falls
+    back to trying the ``__xattrs__`` method of the object. If this doesn't
+    exist either, ``dir(item)`` is used for ``"detail"`` mode and ``(None,)``
+    for ``"default"`` mode.
+
+    The implementation must yield attribute descriptor (see the class
+    ``Descriptor`` for more info). The ``__xattrs__`` method may also return
+    attribute descriptor string (and ``None``) which will be converted to real
+    descriptors by ``upgradexattr()``.
+    """
     try:
         func = item.__xattrs__
     except AttributeError:
@@ -760,6 +892,14 @@ def xattrs(item, mode="default"):
     else:
         for attr in func(mode):
             yield upgradexattr(attr)
+xattrs = simplegeneric.generic(xattrs)
+
+
+def xattrs_complex(self, mode="default"):
+    if mode == "detail":
+        return (AttributeDescriptor("real"), AttributeDescriptor("imag"))
+    return (selfdescriptor,)
+xattrs.when_type(complex)(xattrs_complex)
 
 
 def _isdict(item):
@@ -780,7 +920,11 @@ def _isstr(item):
     return False # ``__iter__`` has been redefined
 
 
-def xiter(item, mode="default"):
+def xiter(item):
+    """
+    Generic function that implements iteration for pipeline expression. If no
+    implementation is registered for ``item`` ``xiter`` falls back to ``iter``.
+    """
     try:
         func = item.__xiter__
     except AttributeError:
@@ -799,13 +943,11 @@ def xiter(item, mode="default"):
         elif _isstr(item):
             if not item:
                 raise ValueError("can't enter empty string")
-            lines = item.splitlines()
-            if len(lines) <= 1:
-                raise ValueError("can't enter one line string")
-            return iter(lines)
+            return iter(item.splitlines())
         return iter(item)
     else:
-        return iter(func(mode)) # iter() just to be safe
+        return iter(func()) # iter() just to be safe
+xiter = simplegeneric.generic(xiter)
 
 
 class ichain(Pipe):
@@ -819,7 +961,7 @@ class ichain(Pipe):
     def __iter__(self):
         return itertools.chain(*self.iters)
 
-    def __xrepr__(self, mode):
+    def __xrepr__(self, mode="default"):
         if mode == "header" or mode == "footer":
             for (i, item) in enumerate(self.iters):
                 if i:
@@ -954,7 +1096,7 @@ class ifile(path.path):
 
     defaultattrs = (None, "type", "size", "modestr", "owner", "group", "mdate")
 
-    def __xattrs__(self, mode):
+    def __xattrs__(self, mode="default"):
         if mode == "detail":
             return (
                 "name",
@@ -995,54 +1137,51 @@ class ifile(path.path):
         else:
             return self.defaultattrs
 
-    def __xrepr__(self, mode):
-        try:
-            if self.isdir():
-                name = "idir"
-                style = astyle.style_dir
-            else:
-                name = "ifile"
-                style = astyle.style_file
-        except IOError:
-            name = "ifile"
-            style = astyle.style_default
-        if mode == "cell" or mode in "header" or mode == "footer":
-            abspath = repr(path._base(self.normpath()))
-            if abspath.startswith("u"):
-                abspath = abspath[2:-1]
-            else:
-                abspath = abspath[1:-1]
-            if mode == "cell":
-                yield (style, abspath)
-            else:
-                yield (style, "%s(%s)" % (name, abspath))
-        else:
-            yield (style, repr(self))
 
-    def __iter__(self):
+def xiter_ifile(self):
+    if self.isdir():
+        yield (self / os.pardir).abspath()
+        for child in sorted(self.listdir()):
+            yield child
+    else:
+        f = self.open("rb")
+        for line in f:
+            yield line
+        f.close()
+xiter.when_type(ifile)(xiter_ifile)
+
+
+# We need to implement ``xrepr`` for ``ifile`` as a generic function, because
+# otherwise ``xrepr_str`` would kick in.
+def xrepr_ifile(self, mode="default"):
+    try:
         if self.isdir():
-            yield iparentdir(self / os.pardir)
-            for child in sorted(self.listdir()):
-                yield child
+            name = "idir"
+            style = astyle.style_dir
         else:
-            f = self.open("rb")
-            for line in f:
-                yield line
-            f.close()
-
-
-class iparentdir(ifile):
-    def __xrepr__(self, mode):
+            name = "ifile"
+            style = astyle.style_file
+    except IOError:
+        name = "ifile"
+        style = astyle.style_default
+    if mode == "cell" or mode in "header" or mode == "footer":
+        abspath = repr(path._base(self.normpath()))
+        if abspath.startswith("u"):
+            abspath = abspath[2:-1]
+        else:
+            abspath = abspath[1:-1]
         if mode == "cell":
-            yield (astyle.style_dir, os.pardir)
+            yield (style, abspath)
         else:
-            for part in ifile.__xrepr__(self, mode):
-                yield part
+            yield (style, "%s(%s)" % (name, abspath))
+    else:
+        yield (style, repr(self))
+xrepr.when_type(ifile)(xrepr_ifile)
 
 
 class ils(Table):
     """
-    List the current (or a specific) directory.
+    List the current (or a specified) directory.
 
     Examples:
 
@@ -1056,7 +1195,9 @@ class ils(Table):
         self.files = files
 
     def __iter__(self):
-        for child in ifile(self.base).listdir():
+        base = ifile(self.base)
+        yield (base / os.pardir).abspath()
+        for child in base.listdir():
             if self.dirs:
                 if self.files:
                     yield child
@@ -1067,7 +1208,7 @@ class ils(Table):
                 if not child.isdir():
                     yield child
 
-    def __xrepr__(self, mode):
+    def __xrepr__(self, mode="default"):
        return ifile(self.base).__xrepr__(mode)
 
     def __repr__(self):
@@ -1091,7 +1232,7 @@ class iglob(Table):
         for name in glob.glob(self.glob):
             yield ifile(name)
 
-    def __xrepr__(self, mode):
+    def __xrepr__(self, mode="default"):
         if mode == "header" or mode == "footer" or mode == "cell":
             yield (astyle.style_default,
                    "%s(%r)" % (self.__class__.__name__, self.glob))
@@ -1125,7 +1266,7 @@ class iwalk(Table):
                 for name in sorted(filenames):
                     yield ifile(os.path.join(dirpath, name))
 
-    def __xrepr__(self, mode):
+    def __xrepr__(self, mode="default"):
         if mode == "header" or mode == "footer" or mode == "cell":
             yield (astyle.style_default,
                    "%s(%r)" % (self.__class__.__name__, self.base))
@@ -1192,7 +1333,7 @@ class ipwdentry(object):
         return self._getentry().pw_shell
     shell = property(getshell, None, None, "Login shell")
 
-    def __xattrs__(self, mode):
+    def __xattrs__(self, mode="default"):
        return ("name", "passwd", "uid", "gid", "gecos", "dir", "shell")
 
     def __repr__(self):
@@ -1212,7 +1353,7 @@ class ipwd(Table):
         for entry in pwd.getpwall():
             yield ipwdentry(entry.pw_name)
 
-    def __xrepr__(self, mode):
+    def __xrepr__(self, mode="default"):
         if mode == "header" or mode == "footer" or mode == "cell":
             yield (astyle.style_default, "%s()" % self.__class__.__name__)
         else:
@@ -1257,10 +1398,10 @@ class igrpentry(object):
         return self._getentry().gr_mem
     mem = property(getmem, None, None, "Members")
 
-    def __xattrs__(self, mode):
+    def __xattrs__(self, mode="default"):
         return ("name", "passwd", "gid", "mem")
 
-    def __xrepr__(self, mode):
+    def __xrepr__(self, mode="default"):
         if mode == "header" or mode == "footer" or mode == "cell":
             yield (astyle.style_default, "group ")
             try:
@@ -1290,7 +1431,7 @@ class igrp(Table):
         for entry in grp.getgrall():
             yield igrpentry(entry.gr_name)
 
-    def __xrepr__(self, mode):
+    def __xrepr__(self, mode="default"):
         if mode == "header" or mode == "footer":
             yield (astyle.style_default, "%s()" % self.__class__.__name__)
         else:
@@ -1303,10 +1444,10 @@ class Fields(object):
         for (key, value) in fields.iteritems():
             setattr(self, key, value)
 
-    def __xattrs__(self, mode):
+    def __xattrs__(self, mode="default"):
         return self.__fieldnames
 
-    def __xrepr__(self, mode):
+    def __xrepr__(self, mode="default"):
         yield (-1, False)
         if mode == "header" or mode == "cell":
             yield (astyle.style_default, self.__class__.__name__)
@@ -1340,7 +1481,7 @@ class FieldTable(Table, list):
     def add(self, **fields):
         self.append(Fields(self.fields, **fields))
 
-    def __xrepr__(self, mode):
+    def __xrepr__(self, mode="default"):
         yield (-1, False)
         if mode == "header" or mode == "footer":
             yield (astyle.style_default, self.__class__.__name__)
@@ -1360,10 +1501,10 @@ class FieldTable(Table, list):
 
 
 class List(list):
-    def __xattrs__(self, mode):
+    def __xattrs__(self, mode="default"):
         return xrange(len(self))
 
-    def __xrepr__(self, mode):
+    def __xrepr__(self, mode="default"):
         yield (-1, False)
         if mode == "header" or mode == "cell" or mode == "footer" or mode == "default":
             yield (astyle.style_default, self.__class__.__name__)
@@ -1392,7 +1533,7 @@ class ienv(Table):
         for (key, value) in os.environ.iteritems():
             yield Fields(fields, key=key, value=value)
 
-    def __xrepr__(self, mode):
+    def __xrepr__(self, mode="default"):
         if mode == "header" or mode == "cell":
             yield (astyle.style_default, "%s()" % self.__class__.__name__)
         else:
@@ -1419,7 +1560,7 @@ class icsv(Pipe):
         for line in reader:
             yield List(line)
 
-    def __xrepr__(self, mode):
+    def __xrepr__(self, mode="default"):
         yield (-1, False)
         if mode == "header" or mode == "footer":
             input = getattr(self, "input", None)
@@ -1472,7 +1613,7 @@ class ix(Table):
             self._pipeout.close()
         self._pipeout = None
 
-    def __xrepr__(self, mode):
+    def __xrepr__(self, mode="default"):
         if mode == "header" or mode == "footer":
             yield (astyle.style_default,
                    "%s(%r)" % (self.__class__.__name__, self.cmd))
@@ -1552,7 +1693,7 @@ class ifilter(Pipe):
         if not ok and exc_info is not None:
             raise exc_info[0], exc_info[1], exc_info[2]
 
-    def __xrepr__(self, mode):
+    def __xrepr__(self, mode="default"):
         if mode == "header" or mode == "footer":
             input = getattr(self, "input", None)
             if input is not None:
@@ -1623,7 +1764,7 @@ class ieval(Pipe):
         if not ok and exc_info is not None:
             raise exc_info[0], exc_info[1], exc_info[2]
 
-    def __xrepr__(self, mode):
+    def __xrepr__(self, mode="default"):
         if mode == "header" or mode == "footer":
             input = getattr(self, "input", None)
             if input is not None:
@@ -1693,7 +1834,7 @@ class isort(Pipe):
         for item in items:
             yield item
 
-    def __xrepr__(self, mode):
+    def __xrepr__(self, mode="default"):
         if mode == "header" or mode == "footer":
             input = getattr(self, "input", None)
             if input is not None:
@@ -1756,10 +1897,18 @@ class iless(Display):
         try:
             pager = os.popen(self.cmd, "w")
             try:
-                for item in xiter(self.input, "default"):
-                    attrs = tuple(_upgradexattrs(item, "default"))
-                    attrs = ["%s=%s" % (a.name(item), a.value(item)) for a in attrs]
-                    pager.write(" ".join(attrs))
+                for item in xiter(self.input):
+                    first = False
+                    for attr in xattrs(item, "default"):
+                        if first:
+                            first = False
+                        else:
+                            pager.write(" ")
+                        attr = upgradexattr(attr)
+                        if not isinstance(attr, SelfDescriptor):
+                            pager.write(attr.name())
+                            pager.write("=")
+                        pager.write(str(attr.value(item)))
                     pager.write("\n")
             finally:
                 pager.close()
@@ -1815,7 +1964,7 @@ class idump(Display):
         attrset = set()
         colwidths = {}
         rows = []
-        for item in xiter(self.input, "default"):
+        for item in xiter(self.input):
             row = {}
             attrs = self.attrs
             if not attrs:
@@ -1871,44 +2020,11 @@ class idump(Display):
             stream.write("\n")
 
 
-class XMode(object):
-    """
-    An ``XMode`` object describes one enter mode available for an object
-    """
-    def __init__(self, object, mode, title=None, description=None):
-        """
-        Create a new ``XMode`` object for the object ``object``. This object
-        must support the enter mode ``mode`` (i.e. ``object.__xiter__(mode)``
-        must return an iterable). ``title`` and ``description`` will be
-        displayed in the browser when selecting among the available modes.
-        """
-        self.object = object
-        self.mode = mode
-        self.title = title
-        self.description = description
-
-    def __repr__(self):
-        return "<%s.%s object mode=%r at 0x%x>" % \
-            (self.__class__.__module__, self.__class__.__name__,
-             self.mode, id(self))
-
-    def __xrepr__(self, mode):
-        if mode == "header" or mode == "footer":
-            yield (astyle.style_default, self.title)
-        else:
-            yield (astyle.style_default, repr(self))
-
-    def __xattrs__(self, mode):
-        if mode == "detail":
-            return ("object", "mode")
-        else:
-            return ("object", "mode", "title", "description")
-
-    def __xiter__(self, mode):
-        return xiter(self.object, self.mode)
-
-
 class AttributeDetail(Table):
+    """
+    ``AttributeDetail`` objects are use for displaying a detailed list of object
+    attributes.
+    """
     def __init__(self, object, descriptor):
         self.object = object
         self.descriptor = descriptor
@@ -1934,19 +2050,21 @@ class AttributeDetail(Table):
     def value(self):
         return self.descriptor.value(self.object)
 
-    def __xattrs__(self, mode):
+    def __xattrs__(self, mode="default"):
         attrs = ("name()", "attrtype()", "valuetype()", "value()", "shortdoc()")
         if mode == "detail":
             attrs += ("doc()",)
         return attrs
 
-    def __xrepr__(self, mode):
+    def __xrepr__(self, mode="default"):
         yield (-1, True)
+        valuetype = self.valuetype()
+        if valuetype is not noitem:
+            for part in xrepr(valuetype):
+                yield part
+            yield (astyle.style_default, " ")
         yield (astyle.style_default, self.attrtype())
-        yield (astyle.style_default, "(")
-        for part in xrepr(self.valuetype()):
-            yield part
-        yield (astyle.style_default, ") ")
+        yield (astyle.style_default, " ")
         yield (astyle.style_default, self.name())
         yield (astyle.style_default, " of ")
         for part in xrepr(self.object):
