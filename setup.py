@@ -162,7 +162,7 @@ setup(name             = name,
       license          = license,
       platforms        = platforms,
       keywords         = keywords,
-      packages         = ['IPython', 'IPython.Extensions'],
+      packages         = ['IPython', 'IPython.Extensions', 'IPython.external'],
       scripts          = scriptfiles,
       
       cmdclass         = {'install_data': install_data_ext},
