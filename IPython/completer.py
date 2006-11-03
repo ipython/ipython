@@ -344,7 +344,7 @@ class IPCompleter(Completer):
         current (as of Python 2.3) Python readline it's possible to do
         better."""
 
-        # print 'Completer->file_matches: <%s>' % text # dbg
+        #print 'Completer->file_matches: <%s>' % text # dbg
 
         # chars that require escaping with backslash - i.e. chars
         # that readline treats incorrectly as delimiters, but we
@@ -406,7 +406,9 @@ class IPCompleter(Completer):
             # Takes care of links to directories also.  Use '/'
             # explicitly, even under Windows, so that name completions
             # don't end up escaped.
-            matches[0] += '/'
+            pjoin = os.path.join
+            d = matches[0]
+            matches = [ pjoin(d,p) for p in os.listdir(d) ]
         return matches
 
     def alias_matches(self, text):

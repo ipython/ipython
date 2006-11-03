@@ -1,3 +1,10 @@
+2006-11-03  Fernando Perez  <Fernando.Perez@colorado.edu>
+
+	* IPython/completer.py (IPCompleter.file_matches): Fix
+	tab-completion so that quotes are not closed unless the completion
+	is unambiguous.  After a request by Stefan.  Minor cleanups in
+	ipy_stock_completers.
+
 2006-11-02  Ville Vainio  <vivainio@gmail.com>
 
 	* ipy_stock_completers.py: Add %run and %cd completers.

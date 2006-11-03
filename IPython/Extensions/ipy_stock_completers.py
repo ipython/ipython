@@ -95,11 +95,14 @@ def runlistpy(self, event):
     comps = shlex.split(event.line)
     relpath = (len(comps) > 1 and comps[-1] or '')
    
-    print "rp",relpath
+    #print "rp",relpath  # dbg
+    glob = glob.glob
+    isdir = os.path.isdir
     if relpath.startswith('~'):
         relpath = os.path.expanduser(relpath)
-    dirs = [f.replace('\\','/') + "/" for f in  glob.glob(relpath+'*') if os.path.isdir(f)]
-    pys =  [f.replace('\\','/') for f in  glob.glob(relpath+'*.py')]
+    dirs = [f.replace('\\','/') + "/" for f in glob(relpath+'*')
+            if isdir(f)]
+    pys =  [f.replace('\\','/') for f in glob(relpath+'*.py')]
     return dirs + pys
 
 ip.set_hook('complete_command', runlistpy, str_key = '%run')
