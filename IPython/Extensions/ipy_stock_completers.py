@@ -96,13 +96,13 @@ def runlistpy(self, event):
     relpath = (len(comps) > 1 and comps[-1] or '')
    
     #print "rp",relpath  # dbg
-    glob = glob.glob
+    lglob = glob.glob
     isdir = os.path.isdir
     if relpath.startswith('~'):
         relpath = os.path.expanduser(relpath)
-    dirs = [f.replace('\\','/') + "/" for f in glob(relpath+'*')
+    dirs = [f.replace('\\','/') + "/" for f in lglob(relpath+'*')
             if isdir(f)]
-    pys =  [f.replace('\\','/') for f in glob(relpath+'*.py')]
+    pys =  [f.replace('\\','/') for f in lglob(relpath+'*.py')]
     return dirs + pys
 
 ip.set_hook('complete_command', runlistpy, str_key = '%run')
