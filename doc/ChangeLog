@@ -1,5 +1,9 @@
 2006-11-03  Fernando Perez  <Fernando.Perez@colorado.edu>
 
+	* scripts/ipython: remove the very first entry in sys.path which
+	Python auto-inserts for scripts, so that sys.path under IPython is
+	as similar as possible to that under plain Python.
+
 	* IPython/completer.py (IPCompleter.file_matches): Fix
 	tab-completion so that quotes are not closed unless the completion
 	is unambiguous.  After a request by Stefan.  Minor cleanups in

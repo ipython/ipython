@@ -6,7 +6,7 @@ Requires Python 2.3 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 1868 2006-11-02 15:29:10Z vivainio $
+$Id: iplib.py 1874 2006-11-03 08:17:34Z fptest $
 """
 
 #*****************************************************************************
@@ -2380,11 +2380,6 @@ want to merge them back into the new files.""" % locals()
 
     def safe_execfile(self,fname,*where,**kw):
         fname = os.path.expanduser(fname)
-
-        # find things also in current directory
-        dname = os.path.dirname(fname)
-        if not sys.path.count(dname):
-            sys.path.append(dname)
 
         try:
             xfile = open(fname)
