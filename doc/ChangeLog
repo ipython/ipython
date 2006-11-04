@@ -1,5 +1,9 @@
 2006-11-03  Fernando Perez  <Fernando.Perez@colorado.edu>
 
+	* IPython/irunner.py (main): modified irunner so it automatically
+	recognizes the right runner to use based on the extension (.py for
+	python, .ipy for ipython and .sage for sage).
+
 	* IPython/iplib.py (InteractiveShell.ipconfig): new builtin, also
 	visible in ipapi as ip.config(), to programatically control the
 	internal rc object.  There's an accompanying %config magic for
