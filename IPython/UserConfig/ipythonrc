@@ -1,5 +1,5 @@
 # -*- Mode: Shell-Script -*-  Not really, but shows comments correctly
-# $Id: ipythonrc 1329 2006-05-26 07:52:45Z fperez $
+# $Id: ipythonrc 1879 2006-11-04 00:34:34Z fptest $
 
 #***************************************************************************
 #
@@ -339,6 +339,15 @@ xmode Context
 #   ....:     ls -l $i
 
 multi_line_specials 1
+
+
+# System calls: When IPython makes system calls (e.g. via special syntax like
+# !cmd or !!cmd, or magics like %sc or %sx), it can print the command it is
+# executing to standard output, prefixed by a header string.
+
+system_header "IPython system call: "
+
+system_verbose 1
 
 # wxversion: request a specific wxPython version (used for -wthread)
 

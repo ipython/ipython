@@ -299,7 +299,16 @@ def main():
     runners = dict(ipython=IPythonRunner,
                    python=PythonRunner,
                    sage=SAGERunner)
-    runners[opts.mode]().main(args)
+
+    try:
+        ext = os.path.splitext(args[0])
+    except IndexError:
+        ext = ''
+    modes = {'.ipy':'ipython',
+             '.py':'python',
+             '.sage':'sage'}
+    mode = modes.get(ext,opts.mode)
+    runners[mode]().main(args)
 
 if __name__ == '__main__':
     main()

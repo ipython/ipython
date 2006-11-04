@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Magic functions for InteractiveShell.
 
-$Id: Magic.py 1846 2006-10-28 07:51:56Z vivainio $"""
+$Id: Magic.py 1879 2006-11-04 00:34:34Z fptest $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001 Janko Hauser <jhauser@zscout.de> and
@@ -502,16 +502,23 @@ Currently the magic system has the following functions:\n"""
         print "Automatic indentation is:",['OFF','ON'][self.shell.autoindent]
 
     def magic_system_verbose(self, parameter_s = ''):
-        """Toggle verbose printing of system calls on/off."""
+        """Set verbose printing of system calls.
 
-        self.shell.rc_set_toggle('system_verbose')
+        If called without an argument, act as a toggle"""
+
+        if parameter_s:
+            val = bool(eval(parameter_s))
+        else:
+            val = None
+            
+        self.shell.rc_set_toggle('system_verbose',val)
         print "System verbose printing is:",\
               ['OFF','ON'][self.shell.rc.system_verbose]
 
     def magic_history(self, parameter_s = ''):
         """Print input history (_i<n> variables), with most recent last.
         
-        %history        -> print at most 40 inputs (some may be multi-line)\\
+        %history       -> print at most 40 inputs (some may be multi-line)\\
         %history n     -> print at most n inputs\\
         %history n1 n2 -> print inputs between n1 and n2 (n2 not included)\\
         
@@ -1005,10 +1012,52 @@ Currently the magic system has the following functions:\n"""
             del(user_ns[i])
 
     def magic_config(self,parameter_s=''):
-        """Show IPython's internal configuration."""
-        
-        page('Current configuration structure:\n'+
-             pformat(self.shell.rc.dict()))
+        """Handle IPython's internal configuration.
+
+        If called without arguments, it will print IPython's complete internal
+        configuration.
+
+        If called with one argument, it will print the value of that key in
+        the configuration.
+
+        If called with more than one argument, the first is interpreted as a
+        key and the rest as a Python expression which gets eval()'d.
+
+        Examples:
+
+            In [1]: s='A Python string'
+
+            In [2]: !echo $s
+            A Python string
+
+            In [3]: config system_verbose True
+
+            In [4]: !echo $s
+            IPython system call: echo A Python string
+            A Python string
+
+            In [5]: %config system_header 'sys> '
+
+            In [6]: !echo $s
+            sys> echo A Python string
+            A Python string
+
+            # Notice the extra quotes to protect the string after interpolation:
+            In [7]: header = "'sys2> '"
+
+            In [8]: %config system_header $header
+
+            In [9]: !echo $s
+            sys2> echo A Python string
+            A Python string
+        """
+
+        args = parameter_s.split(None,1)
+        key = args[0]
+        if len(args)==1:
+            self.shell.ipconfig(key)
+        else:
+            self.shell.ipconfig(key,eval(args[1]))
 
     def magic_logstart(self,parameter_s=''):
         """Start logging anywhere in a session.

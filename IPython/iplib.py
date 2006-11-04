@@ -6,7 +6,7 @@ Requires Python 2.3 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 1878 2006-11-03 23:00:22Z fptest $
+$Id: iplib.py 1879 2006-11-04 00:34:34Z fptest $
 """
 
 #*****************************************************************************
@@ -464,16 +464,18 @@ class InteractiveShell(object,Magic):
         # and it allows interpolation of variables in the user's namespace.
         self.system = lambda cmd: \
                       shell(self.var_expand(cmd,depth=2),
-                            header='IPython system call: ',
+                            header=self.rc.system_header,
                             verbose=self.rc.system_verbose)
+
         # These are for getoutput and getoutputerror:
         self.getoutput = lambda cmd: \
                          getoutput(self.var_expand(cmd,depth=2),
-                                   header='IPython system call: ',
+                                   header=self.rc.system_header,
                                    verbose=self.rc.system_verbose)
+
         self.getoutputerror = lambda cmd: \
                               getoutputerror(self.var_expand(cmd,depth=2),
-                                             header='IPython system call: ',
+                                             header=self.rc.system_header,
                                              verbose=self.rc.system_verbose)
  
         # RegExp for splitting line contents into pre-char//first
@@ -726,6 +728,7 @@ class InteractiveShell(object,Magic):
                              ipmagic = self.ipmagic,  
                              ipalias = self.ipalias,  
                              ipsystem = self.ipsystem,
+                             ipconfig = self.ipconfig,
                              _ip = self.api
                              )
         for biname,bival in builtins_new.items():
@@ -960,6 +963,29 @@ class InteractiveShell(object,Magic):
             self.call_alias(alias_name,alias_args)
         else:
             error("Alias `%s` not found." % alias_name)
+
+    def ipconfig(self,key=None,value=None):
+        """Manipulate the IPython config.
+
+        This provides a python interface to 
+        If called with no arguments, it prints the internal IPython config
+
+        Optional arguments:
+
+          - key(None): if given, what key of the rc structure to return.
+
+          - value(None): if given, set the key to this value."""
+
+        if key is None:
+            page('Current configuration structure:\n'+
+                 pformat(self.rc.dict()))
+        else:
+            if value is None:
+                print '%s -> %s' % (key,self.rc[key])
+            else:
+                if key not in self.rc:
+                    raise KeyError(str(key))
+                self.rc[key] = value
 
     def ipsystem(self,arg_s):
         """Make a system call, using IPython."""
