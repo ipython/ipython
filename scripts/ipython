@@ -23,11 +23,5 @@ this mode, there is no way to pass IPython any command-line options, as those
 are trapped first by Python itself.
 """
 
-# Start by cleaning up sys.path: Python automatically inserts the script's
-# base directory into sys.path, at the front.  This can lead to unpleasant
-# surprises.
-import sys
-sys.path.pop(0)
-
 import IPython
 IPython.Shell.start().mainloop()

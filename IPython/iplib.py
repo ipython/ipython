@@ -6,7 +6,7 @@ Requires Python 2.3 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 1879 2006-11-04 00:34:34Z fptest $
+$Id: iplib.py 1885 2006-11-08 01:07:28Z fperez $
 """
 
 #*****************************************************************************
@@ -1844,6 +1844,13 @@ want to merge them back into the new files.""" % locals()
         The return value can be used to decide whether to use sys.ps1 or
         sys.ps2 to prompt the next line."""
 
+        # if the source code has leading blanks, add 'if 1:\n' to it
+        # this allows execution of indented pasted code. It is tempting
+        # to add '\n' at the end of source to run commands like ' a=1'
+        # directly, but this fails for more complicated scenarios
+        if source[:1] in [' ', '\t']:
+            source = 'if 1:\n%s' % source
+
         try:
             code = self.compile(source,filename,symbol)
         except (OverflowError, SyntaxError, ValueError):
@@ -2419,13 +2426,37 @@ want to merge them back into the new files.""" % locals()
             self.exit_now = True
 
     def safe_execfile(self,fname,*where,**kw):
+        """A safe version of the builtin execfile().
+
+        This version will never throw an exception, and knows how to handle
+        ipython logs as well."""
+
+        def syspath_cleanup():
+            """Internal cleanup routine for sys.path."""
+            if add_dname:
+                try:
+                    sys.path.remove(dname)
+                except ValueError:
+                    # For some reason the user has already removed it, ignore.
+                    pass
+        
         fname = os.path.expanduser(fname)
+
+        # Find things also in current directory.  This is needed to mimic the
+        # behavior of running a script from the system command line, where
+        # Python inserts the script's directory into sys.path
+        dname = os.path.dirname(os.path.abspath(fname))
+        add_dname = False
+        if dname not in sys.path:
+            sys.path.insert(0,dname)
+            add_dname = True
 
         try:
             xfile = open(fname)
         except:
             print >> Term.cerr, \
                   'Could not open file <%s> for safe execution.' % fname
+            syspath_cleanup()
             return None
 
         kw.setdefault('islog',0)
@@ -2511,5 +2542,7 @@ want to merge them back into the new files.""" % locals()
             except:
                 self.showtraceback()
                 warn('Failure executing file: <%s>' % fname)
+
+        syspath_cleanup()
 
 #************************* end of file <iplib.py> *****************************

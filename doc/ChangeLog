@@ -1,3 +1,12 @@
+2006-11-07  Fernando Perez  <Fernando.Perez@colorado.edu>
+
+	* IPython/iplib.py (runsource): Prepend an 'if 1:' to the user
+	input if it starts with whitespace.  This allows you to paste
+	indented input from any editor without manually having to type in
+	the 'if 1:', which is conveninent when working interactively.
+	Slightly modifed version of a patch by Bo Peng
+	<bpeng-AT-rice.edu>.
+
 2006-11-03  Fernando Perez  <Fernando.Perez@colorado.edu>
 
 	* IPython/irunner.py (main): modified irunner so it automatically
