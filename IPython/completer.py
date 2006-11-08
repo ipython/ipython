@@ -201,7 +201,11 @@ class Completer:
         try:
             object = eval(expr, self.namespace)
         except:
-            object = eval(expr, self.global_namespace)
+            try:
+                object = eval(expr, self.global_namespace)
+            except:
+                return []
+                
 
         # Start building the attribute list via dir(), and then complete it
         # with a few extra special-purpose calls.
