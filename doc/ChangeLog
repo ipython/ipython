@@ -8,7 +8,7 @@
 	* IPython/iplib.py (runsource): Prepend an 'if 1:' to the user
 	input if it starts with whitespace.  This allows you to paste
 	indented input from any editor without manually having to type in
-	the 'if 1:', which is conveninent when working interactively.
+	the 'if 1:', which is convenient when working interactively.
 	Slightly modifed version of a patch by Bo Peng
 	<bpeng-AT-rice.edu>.
 
