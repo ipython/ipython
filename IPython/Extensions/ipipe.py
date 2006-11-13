@@ -1094,7 +1094,10 @@ class ifile(path.path):
     def __repr__(self):
         return "ifile(%s)" % path._base.__repr__(self)
 
-    defaultattrs = (None, "type", "size", "modestr", "owner", "group", "mdate")
+    if sys.platform == "win32":
+        defaultattrs = (None, "type", "size", "modestr", "mdate")
+    else:
+        defaultattrs = (None, "type", "size", "modestr", "owner", "group", "mdate")
 
     def __xattrs__(self, mode="default"):
         if mode == "detail":
