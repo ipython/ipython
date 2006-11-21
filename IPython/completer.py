@@ -409,10 +409,13 @@ class IPCompleter(Completer):
         if len(matches) == 1 and os.path.isdir(matches[0]):
             # Takes care of links to directories also.  Use '/'
             # explicitly, even under Windows, so that name completions
-            # don't end up escaped.
-            pjoin = os.path.join
+            # don't end up escaped.            
             d = matches[0]
-            matches = [ pjoin(d,p) for p in os.listdir(d) ]
+            if d[-1] in ['/','\\']:
+                d = d[:-1]
+            
+            matches = [ (d + '/' + p) for p in os.listdir(d) ]
+            
         return matches
 
     def alias_matches(self, text):
