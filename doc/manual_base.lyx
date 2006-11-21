@@ -8709,7 +8709,7 @@ The bug tracker
 \layout Standard
 
 IPython also has an online bug-tracker, located at 
-\begin_inset LatexCommand \htmlurl{http://www.scipy.net/roundup/ipython}
+\begin_inset LatexCommand \htmlurl{http://projects.scipy.org/ipython/ipython/report/1}
 
 \end_inset 
 
@@ -8717,6 +8717,7 @@ IPython also has an online bug-tracker, located at
  In addition to mailing the developers, it would be a good idea to file
  a bug report here.
  This will ensure that the issue is properly followed to conclusion.
+ To report new bugs you will have to register first.
 \layout Standard
 
 You can also use this bug tracker to file feature requests.
