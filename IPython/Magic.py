@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Magic functions for InteractiveShell.
 
-$Id: Magic.py 1915 2006-11-21 20:11:22Z vivainio $"""
+$Id: Magic.py 1918 2006-11-21 20:19:13Z vivainio $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001 Janko Hauser <jhauser@zscout.de> and
@@ -618,13 +618,25 @@ Currently the magic system has the following functions:\n"""
     def magic_page(self, parameter_s=''):
         """Pretty print the object and display it through a pager.
         
-        If no parameter is given, use _ (last output)."""
+        %page [options] OBJECT
+
+        If no object is given, use _ (last output).
+        
+        Options:
+
+          -r: page str(object), don't pretty-print it."""
+
         # After a function contributed by Olivier Aubert, slightly modified.
 
-        oname = parameter_s and parameter_s or '_' 
+        # Process options/args
+        opts,args = self.parse_options(parameter_s,'r')
+        raw = 'r' in opts
+
+        oname = args and args or '_'
         info = self._ofind(oname)
         if info['found']:
-            page(pformat(info['obj']))
+            txt = (raw and str or pformat)( info['obj'] )
+            page(txt)
         else:
             print 'Object `%s` not found' % oname
 
