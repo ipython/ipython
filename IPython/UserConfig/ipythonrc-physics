@@ -14,7 +14,7 @@
 
 # This profile loads modules useful for doing interactive calculations with
 # physical quantities (with units). It relies on modules from Konrad Hinsen's
-# ScientificPython (http://starship.python.net/crew/hinsen/)
+# ScientificPython (http://dirac.cnrs-orleans.fr/ScientificPython/)
 
 # First load basic user configuration
 include ipythonrc

@@ -7051,7 +7051,7 @@ PhysicalQInteractive
 Physics.PhysicalQuantities
 \family default 
  from Konrad Hinsen's ScientificPython (
-\begin_inset LatexCommand \htmlurl{http://starship.python.net/crew/hinsen/scientific.html}
+\begin_inset LatexCommand \htmlurl{http://dirac.cnrs-orleans.fr/ScientificPython/}
 
 \end_inset 
 
