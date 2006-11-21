@@ -68,6 +68,7 @@ def upgrade_dir(srcdir, tgtdir):
             #print sum
             if sum and md5.new(cont).hexdigest() == sum:
                 pr("Unedited, installing new %s" % tgt)
+                tgt.write_text(src.text())
                 rpt[str(tgt)] = md5.new(tgt.text()).hexdigest()
             else:
                 pr(' == Modified, skipping %s, diffs below == ' % tgt)
