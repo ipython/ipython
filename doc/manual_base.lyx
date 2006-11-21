@@ -2299,7 +2299,7 @@ IPython comes with some pre-defined aliases and a complete system for changing
 \family default 
  and 
 \family typewriter 
-%ds
+%dhist
 \family default 
 ) and via direct 
 \family typewriter 
