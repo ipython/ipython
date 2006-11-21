@@ -92,7 +92,8 @@ def extend_shell_behavior(ip):
     from IPython.Itpl import ItplNS
     from IPython.genutils import shell
     # utility to expand user variables via Itpl
-    ip.IP.var_expand = lambda cmd, lvars=None: \
+    # xxx do something sensible with depth?
+    ip.IP.var_expand = lambda cmd, lvars=None, depth=2: \
         str(ItplNS(cmd.replace('#','\#'), ip.IP.user_ns, get_locals()))
 
     def get_locals():
