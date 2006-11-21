@@ -1,3 +1,15 @@
+2006-11-21  Ville Vainio  <vivainio@gmail.com>
+
+	* upgrade_dir.py: Now actually overwrites a nonmodified user file
+	with one from UserConfig.
+	
+	* ipy_profile_sh.py: Add dummy "depth" to var_expand lambda, 
+	it was missing which broke the sh profile.
+	
+	* completer.py: file completer now uses explicit '/' instead
+	of os.path.join, expansion of 'foo' was broken on win32 
+	if there was one directory with name 'foobar'. 
+
 2006-11-08  Ville Vainio  <vivainio@gmail.com>
 
 	* completer.py (attr_matches): catch all exceptions raised 
