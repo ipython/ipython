@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Magic functions for InteractiveShell.
 
-$Id: Magic.py 1921 2006-11-21 20:49:55Z vivainio $"""
+$Id: Magic.py 1922 2006-11-21 20:56:48Z vivainio $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001 Janko Hauser <jhauser@zscout.de> and
@@ -36,16 +36,11 @@ from cStringIO import StringIO
 from getopt import getopt,GetoptError
 from pprint import pprint, pformat
 
-# cProfile was added in Python2.5
+# profile isn't bundled by default in Debian for license reasons
 try:
-    import cProfile as profile
-    import pstats
+    import profile,pstats
 except ImportError:
-    # profile isn't bundled by default in Debian for license reasons
-    try:
-        import profile,pstats
-    except ImportError:
-        profile = pstats = None
+    profile = pstats = None
 
 # Homebrewed
 import IPython

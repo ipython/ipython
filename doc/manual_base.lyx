@@ -438,15 +438,11 @@ Profiler support.
 profile.run()
 \family default 
 ) or complete programs under the profiler's control.
- While this is possible with standard 
-\family typewriter 
-cProfile
-\family default 
- or 
+ While this is possible with the standard 
 \family typewriter 
 profile
 \family default 
- modules, IPython wraps this functionality with magic commands (see 
+ module, IPython wraps this functionality with magic commands (see 
 \family typewriter 
 `%prun'
 \family default 
