@@ -1,3 +1,4 @@
+
 2006-11-21  Ville Vainio  <vivainio@gmail.com>
 
 	* upgrade_dir.py: Now actually overwrites a nonmodified user file
@@ -9,6 +10,20 @@
 	* completer.py: file completer now uses explicit '/' instead
 	of os.path.join, expansion of 'foo' was broken on win32 
 	if there was one directory with name 'foobar'. 
+
+	* A bunch of patches from Kirill Smelkov:
+	
+	* [patch 9/9] doc: point bug-tracker URL to IPythons trac-tickets.
+
+	* [patch 7/9] Implement %page -r (page in raw mode) - 
+
+	* [patch 5/9] ScientificPython webpage has moved
+
+	* [patch 4/9] The manual mentions %ds, should be %dhist
+
+	* [patch 3/9] Kill old bits from %prun doc.
+
+	* [patch 1/9] Fix typos here and there.
 
 2006-11-08  Ville Vainio  <vivainio@gmail.com>
 
