@@ -519,7 +519,7 @@ Windows 9x support is present, and has been reported to work fine (at least
 \layout Standard
 
 Note, that I have very little access to and experience with Windows development.
- However, an excellent group of Win32 users (led by Ville Vainio), consistenly
+ However, an excellent group of Win32 users (led by Ville Vainio), consistently
  contribute bugfixes and platform-specific enhancements, so they more than
  make up for my deficiencies on that front.
  In fact, Win32 users report using IPython as a system shell (see Sec.\SpecialChar ~
@@ -5046,9 +5046,9 @@ Recursive reload
 
 The 
 \family typewriter 
-%dreload
+dreload
 \family default 
- command does a recursive reload of a module: changes made to the module
+ function does a recursive reload of a module: changes made to the module
  since you imported will actually be available without having to exit.
 \layout Subsection
 

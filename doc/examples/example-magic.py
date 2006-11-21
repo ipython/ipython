@@ -19,7 +19,7 @@ IPython environment, import this file in your configuration file with an
 execfile = this_file.py statement. See the details at the end of the sample
 ipythonrc file.  """
 
-# fisrt define a function with the proper form:
+# first define a function with the proper form:
 def magic_foo(self,parameter_s=''):
     """My very own magic!. (Use docstrings, IPython reads them)."""
     print 'Magic function. Passed parameter is between < >: <'+parameter_s+'>'
