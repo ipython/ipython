@@ -32,7 +32,7 @@ else:
 
 # Under Windows, 'sdist' is not supported, since it requires lyxport (and
 # hence lyx,perl,latex,pdflatex,latex2html,sh,...)
-if os_name == 'windows' and sys.argv[1] == 'sdist':
+if os_name == 'windows' and 'sdist' in sys.argv:
     print 'The sdist command is not available under Windows.  Exiting.'
     sys.exit(1)
 
