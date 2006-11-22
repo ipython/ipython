@@ -1,3 +1,6 @@
+2006-11-22  Walter Doerwald  <walter@livinglogic.de>
+	* IPython/Extensions/astyle.py: Text needs it's own implemenation of the
+	generic xrepr(), otherwise the list implementation would kick in.
 
 2006-11-21  Ville Vainio  <vivainio@gmail.com>
 

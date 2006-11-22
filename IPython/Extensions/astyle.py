@@ -256,10 +256,20 @@ class Text(list):
         for part in self.format(styled):
             stream.write(part)
 
-    def __xrepr__(self, mode="default"):
+
+try:
+    from IPython.Extensions import ipipe
+except ImportError:
+    pass
+else:
+    def xrepr_astyle_text(self, mode="default"):
         yield (-1, True)
         for info in self:
             yield info
+    try:
+        ipipe.xrepr.when_type(Text)(xrepr_astyle_text)
+    except Exception:
+        pass
 
 
 def streamstyle(stream, styled=None):
