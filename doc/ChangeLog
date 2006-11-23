@@ -1,3 +1,12 @@
+2006-11-23  Ville Vainio  <vivainio@gmail.com>
+
+	* manual_base.lyx: Kirill Smelkov patch: Fix wrong 
+	Qt+IPython+Designer link in documentation.
+	
+	* Extensions/ipy_pydb.py: R. Bernstein's patch for passing 
+	correct Pdb object to %pydb.
+
+
 2006-11-22  Walter Doerwald  <walter@livinglogic.de>
 	* IPython/Extensions/astyle.py: Text needs it's own implemenation of the
 	generic xrepr(), otherwise the list implementation would kick in.
