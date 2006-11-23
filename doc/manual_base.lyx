@@ -8004,7 +8004,7 @@ IPython, with one of these options (you can only use one at a time), separates
 
 A nice mini-tutorial on using IPython along with the Qt Designer application
  is available at the SciPy wiki: 
-\begin_inset LatexCommand \htmlurl{http://www.scipy.org/wikis/topical_software/QtWithIPythonAndDesigner}
+\begin_inset LatexCommand \htmlurl{http://www.scipy.org/Cookbook/Matplotlib/Qt_with_IPython_and_Designer}
 
 \end_inset 
 
