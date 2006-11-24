@@ -258,7 +258,7 @@ class Text(list):
 
 
 try:
-    from IPython.Extensions import ipipe
+    import ipipe
 except ImportError:
     pass
 else:

@@ -742,7 +742,7 @@ class ibrowse(ipipe.Display):
     keymap.register("hideattr", "h")
     keymap.register("unhideattrs", "H")
     keymap.register("help", "?")
-    keymap.register("enter", "eenterdefault", "\r\n")
+    keymap.register("enter", "\r\n")
     keymap.register("enterattr", "E")
     # FIXME: What's happening here?
     keymap.register("leave", curses.KEY_BACKSPACE, "x\x08\x7f")

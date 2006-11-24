@@ -1,3 +1,12 @@
+2006-11-24  Walter Doerwald  <walter@livinglogic.de>
+	* IPython/Extensions/astyle.py: Do a relative import of ipipe, so that
+	we don't get a duplicate ipipe module, where registration of the xrepr
+	implementation for Text is useless.
+
+	* IPython/Extensions/ipipe.py: Fix __xrepr__() implementation for ils.
+
+	* IPython/Extensions/ibrowse.py: Fix keymapping for the enter command.
+
 2006-11-24  Ville Vainio  <vivainio@gmail.com>
 
 	* Magic.py, manual_base.lyx: Kirill Smelkov patch: 

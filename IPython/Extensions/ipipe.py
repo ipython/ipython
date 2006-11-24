@@ -1212,7 +1212,7 @@ class ils(Table):
                     yield child
 
     def __xrepr__(self, mode="default"):
-       return ifile(self.base).__xrepr__(mode)
+       return xrepr(ifile(self.base), mode)
 
     def __repr__(self):
         return "%s.%s(%r)" % \
