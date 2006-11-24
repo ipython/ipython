@@ -1,3 +1,9 @@
+2006-11-24  Ville Vainio  <vivainio@gmail.com>
+
+	* Magic.py, manual_base.lyx: Kirill Smelkov patch: 
+	try to use "cProfile" instead of the slower pure python
+	"profile"
+
 2006-11-23  Ville Vainio  <vivainio@gmail.com>
 
 	* manual_base.lyx: Kirill Smelkov patch: Fix wrong 
