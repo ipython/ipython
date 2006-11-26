@@ -1,0 +1,9 @@
+syntax: glob
+
+*~
+*.tmp
+*.pyc
+.svn/
+.bzr/
+.project
+*.diff
