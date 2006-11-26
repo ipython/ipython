@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Magic functions for InteractiveShell.
 
-$Id: Magic.py 1934 2006-11-26 20:37:01Z vivainio $"""
+$Id: Magic.py 1941 2006-11-26 22:24:43Z vivainio $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001 Janko Hauser <jhauser@zscout.de> and
@@ -961,15 +961,24 @@ Currently the magic system has the following functions:\n"""
             array_type = Numeric.ArrayType.__name__
         
         # Find all variable names and types so we can figure out column sizes
-        get_vars = lambda i: self.shell.user_ns[i]
-        type_name = lambda v: type(v).__name__
+        
+        def get_vars(i):
+            return self.shell.user_ns[i]
+        
+        # some types are well known and can be shorter
+        abbrevs = {'IPython.macro.Macro' : 'Macro'}
+        def type_name(v):
+            tn = type(v).__name__
+            return abbrevs.get(tn,tn)
+            
         varlist = map(get_vars,varnames)
 
         typelist = []
         for vv in varlist:
             tt = type_name(vv)
+
             if tt=='instance':
-                typelist.append(str(vv.__class__))
+                typelist.append( abbrevs.get(str(vv.__class__),str(vv.__class__)))
             else:
                 typelist.append(tt)
 

@@ -17,6 +17,8 @@
 
 	* macro.py: Give Macro a useful __repr__ method
 	
+	* Magic.py: %whos abbreviates the typename of Macro for brevity.
+	
 2006-11-24  Walter Doerwald  <walter@livinglogic.de>
 	* IPython/Extensions/astyle.py: Do a relative import of ipipe, so that
 	we don't get a duplicate ipipe module, where registration of the xrepr
