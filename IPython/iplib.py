@@ -6,7 +6,7 @@ Requires Python 2.3 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 1934 2006-11-26 20:37:01Z vivainio $
+$Id: iplib.py 1935 2006-11-26 20:42:29Z vivainio $
 """
 
 #*****************************************************************************
@@ -723,13 +723,13 @@ class InteractiveShell(object,Magic):
         # TODO: deprecate all except _ip; 'jobs' should be installed 
         # by an extension and the rest are under _ip, ipalias is redundant
         builtins_new  = dict(__IPYTHON__ = self,
-                             ip_set_hook = self.set_hook, 
-                             jobs = self.jobs,
-                             ipmagic = self.ipmagic,  
-                             ipalias = self.ipalias,  
-                             ipsystem = self.ipsystem,
-                             _ip = self.api
-                             )
+             ip_set_hook = self.set_hook, 
+             jobs = self.jobs,
+             ipmagic = wrap_deprecated(self.ipmagic,'_ip.magic()'),  
+             ipalias = wrap_deprecated(self.ipalias),  
+             ipsystem = wrap_deprecated(self.ipsystem,'_ip.system()'),
+             _ip = self.api
+             )
         for biname,bival in builtins_new.items():
             try:
                 # store the orignal value so we can restore it
