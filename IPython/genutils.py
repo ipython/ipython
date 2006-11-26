@@ -5,7 +5,7 @@ General purpose utilities.
 This is a grab-bag of stuff I find useful in most programs I write. Some of
 these things are also convenient when working at the command line.
 
-$Id: genutils.py 1845 2006-10-27 20:35:47Z fptest $"""
+$Id: genutils.py 1930 2006-11-26 17:22:13Z vivainio $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2006 Fernando Perez. <fperez@colorado.edu>
@@ -30,6 +30,7 @@ import sys
 import tempfile
 import time
 import types
+import warnings
 
 # Other IPython utilities
 from IPython.Itpl import Itpl,itpl,printpl
@@ -1697,6 +1698,7 @@ def import_fail_info(mod_name,fns=None):
 #----------------------------------------------------------------------------
 # Proposed popitem() extension, written as a method
 
+
 class NotGiven: pass
 
 def popkey(dct,key,default=NotGiven):
@@ -1715,5 +1717,15 @@ def popkey(dct,key,default=NotGiven):
     else:
         del dct[key]
         return val
+
+def wrap_deprecated(func, suggest = '<nothing>'):
+    def newFunc(*args, **kwargs):
+        warnings.warn("Call to deprecated function %s, use %s instead" % 
+                      ( func.__name__, suggest),
+                      category=DeprecationWarning,
+                      stacklevel = 2)
+        return func(*args, **kwargs)
+    return newFunc
+    
 #*************************** end of file <genutils.py> **********************
 
