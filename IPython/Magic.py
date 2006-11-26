@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Magic functions for InteractiveShell.
 
-$Id: Magic.py 1927 2006-11-24 15:37:21Z vivainio $"""
+$Id: Magic.py 1933 2006-11-26 19:53:32Z vivainio $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001 Janko Hauser <jhauser@zscout.de> and
@@ -2531,8 +2531,11 @@ Defaulting color scheme to 'NoColor'"""
                 for pdir in path:
                     os.chdir(pdir)
                     for ff in os.listdir(pdir):
-                        if isexec(ff) and os.path.splitext(ff)[0] not in self.shell.no_alias:
-                            alias_table[execre.sub(r'\1',ff)] = (0,ff)
+                        base, ext = os.path.splitext(ff)
+                        if isexec(ff) and base not in self.shell.no_alias:
+                            if ext.lower() == '.exe':
+                                ff = base
+                            alias_table[base] = (0,ff)
                             syscmdlist.append(ff)
             # Make sure the alias table doesn't contain keywords or builtins
             self.shell.alias_table_validate()
