@@ -91,6 +91,28 @@ def svn_completer(self,event):
 
 ip.set_hook('complete_command', svn_completer, str_key = 'svn')
 
+hg_commands = """
+add addremove annotate archive backout branch branches bundle cat
+clone commit copy diff export grep heads help identify import incoming
+init locate log manifest merge outgoing parents paths pull push
+qapplied qclone qcommit qdelete qdiff qfold qguard qheader qimport
+qinit qnew qnext qpop qprev qpush qrefresh qrename qrestore qsave
+qselect qseries qtop qunapplied recover remove rename revert rollback
+root serve showconfig status strip tag tags tip unbundle update verify
+version
+"""
+
+def hg_completer(self,event):
+    """ Completer for mercurial commands """
+    if len((event.line + 'placeholder').split()) > 2:
+        # the rest are probably file names
+        return ip.IP.Completer.file_matches(event.symbol)
+        
+    return hg_commands.split()
+
+ip.set_hook('complete_command', hg_completer, str_key = 'hg')
+
+
 def runlistpy(self, event):
     comps = shlex.split(event.line)
     relpath = (len(comps) > 1 and comps[-1] or '')
