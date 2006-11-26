@@ -21,3 +21,6 @@ class Macro:
 
     def __str__(self):
         return self.value
+
+    def __repr__(self):
+        return 'IPython.macro.Macro(%s)' % repr(self.value)
