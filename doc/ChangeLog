@@ -1,3 +1,20 @@
+2006-11-26  Ville Vainio  <vivainio@gmail.com>
+
+	* Remove ipconfig and %config; you should use _ip.options structure
+	directly instead!
+	
+	* genutils.py: add wrap_deprecated function for deprecating callables
+	
+	* iplib.py: deprecate ipmagic, ipsystem, ipalias. Use _ip.magic and
+	_ip.system instead. ipalias is redundant.
+	
+	* Magic.py: %rehashdir no longer aliases 'cmdname' to 'cmdname.exe' on 
+	win32, but just 'cmdname'. Other extensions (non-'exe') are still made 
+	explicit.
+
+	* ipy_stock_completers.py: 'hg' (mercurial VCS) now has a custom 
+	completer. Try it by entering 'hg ' and pressing tab.
+
 2006-11-24  Walter Doerwald  <walter@livinglogic.de>
 	* IPython/Extensions/astyle.py: Do a relative import of ipipe, so that
 	we don't get a duplicate ipipe module, where registration of the xrepr
