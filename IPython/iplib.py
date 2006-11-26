@@ -6,7 +6,7 @@ Requires Python 2.3 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 1885 2006-11-08 01:07:28Z fperez $
+$Id: iplib.py 1934 2006-11-26 20:37:01Z vivainio $
 """
 
 #*****************************************************************************
@@ -728,7 +728,6 @@ class InteractiveShell(object,Magic):
                              ipmagic = self.ipmagic,  
                              ipalias = self.ipalias,  
                              ipsystem = self.ipsystem,
-                             ipconfig = self.ipconfig,
                              _ip = self.api
                              )
         for biname,bival in builtins_new.items():
@@ -963,29 +962,6 @@ class InteractiveShell(object,Magic):
             self.call_alias(alias_name,alias_args)
         else:
             error("Alias `%s` not found." % alias_name)
-
-    def ipconfig(self,key=None,value=None):
-        """Manipulate the IPython config.
-
-        This provides a python interface to 
-        If called with no arguments, it prints the internal IPython config
-
-        Optional arguments:
-
-          - key(None): if given, what key of the rc structure to return.
-
-          - value(None): if given, set the key to this value."""
-
-        if key is None:
-            page('Current configuration structure:\n'+
-                 pformat(self.rc.dict()))
-        else:
-            if value is None:
-                print '%s -> %s' % (key,self.rc[key])
-            else:
-                if key not in self.rc:
-                    raise KeyError(str(key))
-                self.rc[key] = value
 
     def ipsystem(self,arg_s):
         """Make a system call, using IPython."""

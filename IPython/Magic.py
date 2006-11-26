@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Magic functions for InteractiveShell.
 
-$Id: Magic.py 1933 2006-11-26 19:53:32Z vivainio $"""
+$Id: Magic.py 1934 2006-11-26 20:37:01Z vivainio $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001 Janko Hauser <jhauser@zscout.de> and
@@ -1027,54 +1027,6 @@ Currently the magic system has the following functions:\n"""
         user_ns = self.shell.user_ns
         for i in self.magic_who_ls():
             del(user_ns[i])
-
-    def magic_config(self,parameter_s=''):
-        """Handle IPython's internal configuration.
-
-        If called without arguments, it will print IPython's complete internal
-        configuration.
-
-        If called with one argument, it will print the value of that key in
-        the configuration.
-
-        If called with more than one argument, the first is interpreted as a
-        key and the rest as a Python expression which gets eval()'d.
-
-        Examples:
-
-            In [1]: s='A Python string'
-
-            In [2]: !echo $s
-            A Python string
-
-            In [3]: config system_verbose True
-
-            In [4]: !echo $s
-            IPython system call: echo A Python string
-            A Python string
-
-            In [5]: %config system_header 'sys> '
-
-            In [6]: !echo $s
-            sys> echo A Python string
-            A Python string
-
-            # Notice the extra quotes to protect the string after interpolation:
-            In [7]: header = "'sys2> '"
-
-            In [8]: %config system_header $header
-
-            In [9]: !echo $s
-            sys2> echo A Python string
-            A Python string
-        """
-
-        args = parameter_s.split(None,1)
-        key = args[0]
-        if len(args)==1:
-            self.shell.ipconfig(key)
-        else:
-            self.shell.ipconfig(key,eval(args[1]))
 
     def magic_logstart(self,parameter_s=''):
         """Start logging anywhere in a session.
