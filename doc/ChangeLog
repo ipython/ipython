@@ -3,6 +3,8 @@
 	* ipy_stock_completers.py: Clean up svn and hg completers
 	by using a common vcs_completer.
 
+	* bzr completer submitted by Stefan van der Walt.
+	
 2006-11-26  Ville Vainio  <vivainio@gmail.com>
 
 	* Remove ipconfig and %config; you should use _ip.options structure
