@@ -113,6 +113,42 @@ def hg_completer(self,event):
 ip.set_hook('complete_command', hg_completer, str_key = 'hg')
 
 
+bzr_commands = """
+add annotate bind branch break-lock bundle-revisions cat check
+checkout commit conflicts deleted diff export gannotate gbranch
+gcommit gdiff help ignore ignored info init init-repository inventory
+log merge missing mkdir mv nick pull push reconcile register-branch
+remerge remove renames resolve revert revno root serve sign-my-commits
+status testament unbind uncommit unknowns update upgrade version
+version-info visualise whoami
+"""
+
+def bzr_completer(self,event):
+    """ Completer for bazaar commands """
+    cmd_param = event.line.split()
+    if event.line.endswith(' '):
+        cmd_param.append('')
+
+    if len(cmd_param) > 2:
+        cmd = cmd_param[1]
+        param = cmd_param[-1]
+        output_file = (param == '--output=')
+        if cmd == 'help':
+            return bzr_commands.split()
+        elif cmd in ['bundle-revisions','conflicts',
+                     'deleted','nick','register-branch',
+                     'serve','unbind','upgrade','version',
+                     'whoami'] and not output_file:
+            return []
+        else:
+            # the rest are probably file names
+            return ip.IP.Completer.file_matches(event.symbol)
+
+    return bzr_commands.split()
+
+ip.set_hook('complete_command', bzr_completer, str_key = 'bzr')
+
+
 def runlistpy(self, event):
     comps = shlex.split(event.line)
     relpath = (len(comps) > 1 and comps[-1] or '')
