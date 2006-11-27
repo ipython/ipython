@@ -16,6 +16,30 @@ import glob,os,shlex,sys
 
 ip = IPython.ipapi.get()
 
+def vcs_completer(commands, event):
+    """ utility to make writing typical version control app completers easier 
+    
+    VCS command line apps typically have the format:
+    
+    [sudo ]PROGNAME [help] [command] file file...
+    
+    """
+    
+    
+    cmd_param = event.line.split()
+    if event.line.endswith(' '):
+        cmd_param.append('')
+
+    if cmd_param[0] == 'sudo':
+        cmd_param = cmd_param[1:]
+    
+    if len(cmd_param) == 2 or 'help' in cmd_param:
+        return commands.split()
+    
+    return ip.IP.Completer.file_matches(event.symbol)
+        
+    
+
 def apt_completers(self, event):
     """ This should return a list of strings with possible completions.
     
@@ -83,11 +107,7 @@ status stat st switch sw unlock update
 """
 
 def svn_completer(self,event):
-    if len((event.line + 'placeholder').split()) > 2:
-        # the rest are probably file names
-        return ip.IP.Completer.file_matches(event.symbol)
-        
-    return svn_commands.split()
+    return vcs_completer(svn_commands, event)
 
 ip.set_hook('complete_command', svn_completer, str_key = 'svn')
 
@@ -104,11 +124,8 @@ version
 
 def hg_completer(self,event):
     """ Completer for mercurial commands """
-    if len((event.line + 'placeholder').split()) > 2:
-        # the rest are probably file names
-        return ip.IP.Completer.file_matches(event.symbol)
         
-    return hg_commands.split()
+    return vcs_completer(hg_commands, event)
 
 ip.set_hook('complete_command', hg_completer, str_key = 'hg')
 
