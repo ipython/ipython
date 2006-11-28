@@ -335,7 +335,7 @@ class IPCompleter(Completer):
                 for f in self.glob("%s*" % text)]            
 
     def file_matches(self, text):
-        """Match filneames, expanding ~USER type strings.
+        """Match filenames, expanding ~USER type strings.
 
         Most of the seemingly convoluted logic in this completer is an
         attempt to handle filenames with spaces in them.  And yet it's not
