@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Mimic C structs with lots of extra functionality.
 
-$Id: ipstruct.py 1949 2006-11-28 19:12:15Z vivainio $"""
+$Id: ipstruct.py 1950 2006-11-28 19:15:35Z vivainio $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2004 Fernando Perez <fperez@colorado.edu>
@@ -17,6 +17,7 @@ __license__ = Release.license
 __all__ = ['Struct']
 
 import types
+import pprint
 
 from IPython.genutils import list2dict2
 
@@ -138,13 +139,13 @@ class Struct:
     def __str__(self):
         """Gets called by print."""
         
-        return 'Struct('+str(self.__dict__)+')'
+        return 'Struct('+ pprint.pformat(self.__dict__)+')'
 
     def __repr__(self):
         """Gets called by repr.
         
         A Struct can be recreated with S_new=eval(repr(S_old))."""
-        return 'Struct('+str(self.__dict__)+')'
+        return self.__str__()
 
     def __getitem__(self,key):
         """Allows struct[key] access."""
