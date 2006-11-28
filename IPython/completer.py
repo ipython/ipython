@@ -357,6 +357,12 @@ class IPCompleter(Completer):
 
         protectables = ' ()[]{}'
 
+        if text.startswith('!'):
+            text = text[1:]
+            text_prefix = '!'
+        else:
+            text_prefix = ''
+            
         def protect_filename(s):
             return "".join([(ch in protectables and '\\' + ch or ch)
                             for ch in s])
@@ -389,7 +395,7 @@ class IPCompleter(Completer):
             text = os.path.expanduser(text)
 
         if text == "":
-            return [protect_filename(f) for f in self.glob("*")]
+            return [text_prefix + protect_filename(f) for f in self.glob("*")]
 
         m0 = self.clean_glob(text.replace('\\',''))
         if has_protectables:
@@ -397,7 +403,8 @@ class IPCompleter(Completer):
             # beginning of filename so that we don't double-write the part
             # of the filename we have so far
             len_lsplit = len(lsplit)
-            matches = [text0 + protect_filename(f[len_lsplit:]) for f in m0]
+            matches = [text_prefix + text0 + 
+                       protect_filename(f[len_lsplit:]) for f in m0]
         else:
             if open_quotes:
                 # if we have a string with an open quote, we don't need to
@@ -405,7 +412,8 @@ class IPCompleter(Completer):
                 # would cause bugs when the filesystem call is made).
                 matches = m0
             else:
-                matches = [protect_filename(f) for f in m0]
+                matches = [text_prefix + 
+                           protect_filename(f) for f in m0]
         if len(matches) == 1 and os.path.isdir(matches[0]):
             # Takes care of links to directories also.  Use '/'
             # explicitly, even under Windows, so that name completions
