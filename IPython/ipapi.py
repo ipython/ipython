@@ -169,6 +169,12 @@ class IPApi:
 
     def get_options(self):
         """All configurable variables."""
+        
+        # catch typos by disabling new attribute creation. If new attr creation
+        # is in fact wanted (e.g. when exposing new options), do allow_new_attr(True) 
+        # for the received rc struct.
+        
+        self.IP.rc.allow_new_attr(False)
         return self.IP.rc
 
     options = property(get_options,None,None,get_options.__doc__)
