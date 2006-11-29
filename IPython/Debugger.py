@@ -15,7 +15,7 @@ details on the PSF (Python Software Foundation) standard license, see:
 
 http://www.python.org/2.2.3/license.html
 
-$Id: Debugger.py 1853 2006-10-30 17:00:39Z vivainio $"""
+$Id: Debugger.py 1951 2006-11-29 07:56:47Z vivainio $"""
 
 #*****************************************************************************
 #
@@ -212,7 +212,11 @@ class Pdb(OldPdb):
         __IPYTHON__.set_completer_frame(self.curframe)
 
     def new_do_quit(self, arg):
-        __IPYTHON__.Completer.all_completions=self.old_all_completions
+        
+        if hasattr(self, 'old_all_completions'):
+            __IPYTHON__.Completer.all_completions=self.old_all_completions
+        
+        
         return OldPdb.do_quit(self, arg)
 
     do_q = do_quit = decorate_fn_with_doc(new_do_quit, OldPdb.do_quit)
