@@ -15,7 +15,7 @@ details on the PSF (Python Software Foundation) standard license, see:
 
 http://www.python.org/2.2.3/license.html
 
-$Id: Debugger.py 1954 2006-11-29 09:39:44Z vivainio $"""
+$Id: Debugger.py 1955 2006-11-29 09:44:32Z vivainio $"""
 
 #*****************************************************************************
 #
@@ -55,8 +55,8 @@ try:
         has_pydb = True
         from pydb import Pdb as OldPdb
         prompt = 'ipydb>'
-    except ImportError:
-        pass
+except ImportError:
+    pass
 
 if has_pydb:
     from pydb import Pdb as OldPdb
