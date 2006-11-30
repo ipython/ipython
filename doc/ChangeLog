@@ -1,4 +1,11 @@
-2006-11-2(8  Ville Vainio  <vivainio@gmail.com>
+2006-11-29  Fernando Perez  <Fernando.Perez@colorado.edu>
+
+	* IPython/Magic.py (magic_debug): new %debug magic to activate the
+	interactive debugger on the last traceback, without having to call
+	%pdb and rerun your code.  Made minor changes in various modules,
+	should automatically recognize pydb if available.
+
+2006-11-28  Ville Vainio  <vivainio@gmail.com>
 
 	* completer.py: If the text start with !, show file completions
 	properly. This helps when trying to complete command name

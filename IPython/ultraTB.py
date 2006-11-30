@@ -60,7 +60,7 @@ You can implement other color schemes easily, the syntax is fairly
 self-explanatory. Please send back new schemes you develop to the author for
 possible inclusion in future releases.
 
-$Id: ultraTB.py 1787 2006-09-27 06:56:29Z fperez $"""
+$Id: ultraTB.py 1956 2006-11-30 05:22:31Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001 Nathaniel Gray <n8gray@caltech.edu>
@@ -666,8 +666,16 @@ class VerboseTB(TBTools):
         # return all our info assembled as a single string
         return '%s\n\n%s\n%s' % (head,'\n'.join(frames),''.join(exception[0]) )
 
-    def debugger(self):
-        """Call up the pdb debugger if desired, always clean up the tb reference.
+    def debugger(self,force=False):
+        """Call up the pdb debugger if desired, always clean up the tb
+        reference.
+
+        Keywords:
+
+          - force(False): by default, this routine checks the instance call_pdb
+          flag and does not actually invoke the debugger if the flag is false.
+          The 'force' option forces the debugger to activate even if the flag
+          is false.
 
         If the call_pdb flag is set, the pdb interactive debugger is
         invoked. In all cases, the self.tb reference to the current traceback
@@ -678,7 +686,7 @@ class VerboseTB(TBTools):
         requires a special setup for the readline completers, you'll have to
         fix that by hand after invoking the exception handler."""
 
-        if self.call_pdb:
+        if force or self.call_pdb:
             if self.pdb is None:
                 self.pdb = Debugger.Pdb(
                     self.color_scheme_table.active_scheme_name)
@@ -688,7 +696,10 @@ class VerboseTB(TBTools):
             sys.displayhook = sys.__displayhook__
             self.pdb.reset()
             # Find the right frame so we don't pop up inside ipython itself
-            etb = self.tb
+            if hasattr(self,'tb'):
+                etb = self.tb
+            else:
+                etb = self.tb = sys.last_traceback
             while self.tb.tb_next is not None:
                 self.tb = self.tb.tb_next
             try:
@@ -696,12 +707,11 @@ class VerboseTB(TBTools):
                     etb = etb.tb_next
                 self.pdb.botframe = etb.tb_frame
                 self.pdb.interaction(self.tb.tb_frame, self.tb)
-            except:
-                print '*** ERROR ***'
-                print 'This version of pdb has a bug and crashed.'
-                print 'Returning to IPython...'
-            sys.displayhook = dhook
-        del self.tb
+            finally:
+                sys.displayhook = dhook
+            
+        if hasattr(self,'tb'):
+            del self.tb
 
     def handler(self, info=None):
         (etype, evalue, etb) = info or sys.exc_info()

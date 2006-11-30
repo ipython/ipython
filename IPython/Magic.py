@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Magic functions for InteractiveShell.
 
-$Id: Magic.py 1941 2006-11-26 22:24:43Z vivainio $"""
+$Id: Magic.py 1956 2006-11-30 05:22:31Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001 Janko Hauser <jhauser@zscout.de> and
@@ -1164,14 +1164,21 @@ Currently the magic system has the following functions:\n"""
         self.shell.logger.logstate()
         
     def magic_pdb(self, parameter_s=''):
-        """Control the calling of the pdb interactive debugger.
+        """Control the automatic calling of the pdb interactive debugger.
 
         Call as '%pdb on', '%pdb 1', '%pdb off' or '%pdb 0'. If called without
         argument it works as a toggle.
 
         When an exception is triggered, IPython can optionally call the
         interactive pdb debugger after the traceback printout. %pdb toggles
-        this feature on and off."""
+        this feature on and off.
+
+        The initial state of this feature is set in your ipythonrc
+        configuration file (the variable is called 'pdb').
+
+        If you want to just activate the debugger AFTER an exception has fired,
+        without having to type '%pdb on' and rerunning your code, you can use
+        the %debug magic."""
 
         par = parameter_s.strip().lower()
 
@@ -1184,11 +1191,26 @@ Currently the magic system has the following functions:\n"""
                 return
         else:
             # toggle
-            new_pdb = not self.shell.InteractiveTB.call_pdb
+            new_pdb = not self.shell.call_pdb
 
         # set on the shell
         self.shell.call_pdb = new_pdb
         print 'Automatic pdb calling has been turned',on_off(new_pdb)
+
+    def magic_debug(self, parameter_s=''):
+        """Activate the interactive debugger in post-mortem mode.
+
+        If an exception has just occurred, this lets you inspect its stack
+        frames interactively.  Note that this will always work only on the last
+        traceback that occurred, so you must call this quickly after an
+        exception that you wish to inspect has fired, because if another one
+        occurs, it clobbers the previous one.
+
+        If you want IPython to automatically do this on every exception, see
+        the %pdb magic for more details.
+        """
+        
+        self.shell.debugger(force=True)
 
     def magic_prun(self, parameter_s ='',user_mode=1,
                    opts=None,arg_lst=None,prog_ns=None):

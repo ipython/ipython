@@ -6,7 +6,7 @@ Requires Python 2.3 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 1935 2006-11-26 20:42:29Z vivainio $
+$Id: iplib.py 1956 2006-11-30 05:22:31Z fperez $
 """
 
 #*****************************************************************************
@@ -1412,20 +1412,31 @@ want to merge them back into the new files.""" % locals()
                     value = msg, (filename, lineno, offset, line)
         self.SyntaxTB(etype,value,[])
 
-    def debugger(self):
-        """Call the pydb/pdb debugger."""
+    def debugger(self,force=False):
+        """Call the pydb/pdb debugger.
 
-        if not self.rc.pdb:
+        Keywords:
+
+          - force(False): by default, this routine checks the instance call_pdb
+          flag and does not actually invoke the debugger if the flag is false.
+          The 'force' option forces the debugger to activate even if the flag
+          is false.
+        """
+
+        if not (force or self.call_pdb):
             return
+
         have_pydb = False
         if sys.version[:3] >= '2.5':
+            # use pydb if available
             try:
                 from pydb import pm
                 have_pydb = True
             except ImportError:
                 pass
         if not have_pydb:
-            from pdb import pm
+            # fallback to our internal debugger
+            pm = lambda : self.InteractiveTB.debugger(force=True)
         self.history_saving_wrapper(pm)()
 
     def showtraceback(self,exc_tuple = None,filename=None,tb_offset=None):
