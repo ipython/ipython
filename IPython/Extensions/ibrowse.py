@@ -424,6 +424,7 @@ class _BrowserLevel(object):
         self.iterator = ipipe.xiter(self.input)
         self.items.clear()
         self.exhausted = False
+        self.datastartx = self.datastarty = 0
         self.moveto(0, 0, refresh=True)
 
     def refreshfind(self):
@@ -442,9 +443,11 @@ class _BrowserLevel(object):
             self.fetch(len(self.items)+1)
             if self.exhausted:
                 curses.beep()
+                self.datastartx = self.datastarty = 0
                 self.moveto(self.curx, 0, refresh=True)
                 break
             if self.items[-1].item == oldobject:
+                self.datastartx = self.datastarty = 0
                 self.moveto(self.curx, len(self.items)-1, refresh=True)
                 break
 
