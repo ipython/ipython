@@ -442,7 +442,7 @@ class _BrowserLevel(object):
             self.fetch(len(self.items)+1)
             if self.exhausted:
                 curses.beep()
-                self.moveto(0, 0, refresh=True)
+                self.moveto(self.curx, 0, refresh=True)
                 break
             if self.items[-1].item == oldobject:
                 self.moveto(self.curx, len(self.items)-1, refresh=True)
@@ -1383,7 +1383,8 @@ class ibrowse(ipipe.Display):
     def cmd_refreshfind(self):
         """
         Refreshes the display by restarting the iterator and goes back to the
-        same object as before (if it can be found in the new iterator).
+        same object the cursor was on before restarting (if this object can't be
+        found the cursor jumps back to the first object).
         """
         level = self.levels[-1]
         self.report("refreshfind")
