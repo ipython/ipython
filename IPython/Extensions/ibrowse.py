@@ -149,12 +149,12 @@ class _BrowserLevel(object):
     # position of cursor and screen, etc.) of one browser level
     # An ``ibrowse`` object keeps multiple ``_BrowserLevel`` objects in
     # a stack.
-    def __init__(self, browser, input, iterator, mainsizey, *attrs):
+    def __init__(self, browser, input,mainsizey, *attrs):
         self.browser = browser
         self.input = input
         self.header = [x for x in ipipe.xrepr(input, "header") if not isinstance(x[0], int)]
         # iterator for the input
-        self.iterator = iterator
+        self.iterator = ipipe.xiter(input)
 
         # is the iterator exhausted?
         self.exhausted = False
@@ -416,6 +416,37 @@ class _BrowserLevel(object):
                 break
 
         self.moveto(self.curx, cury, refresh=True)
+
+    def refresh(self):
+        """
+        Restart iterating the input.
+        """
+        self.iterator = ipipe.xiter(self.input)
+        self.items.clear()
+        self.exhausted = False
+        self.moveto(0, 0, refresh=True)
+
+    def refreshfind(self):
+        """
+        Restart iterating the input and go back to the same object as before
+        (if it can be found in the new iterator).
+        """
+        try:
+            oldobject = self.items[self.cury].item
+        except IndexError:
+            oldobject = ipipe.noitem
+        self.iterator = ipipe.xiter(self.input)
+        self.items.clear()
+        self.exhausted = False
+        while True:
+            self.fetch(len(self.items)+1)
+            if self.exhausted:
+                curses.beep()
+                self.moveto(0, 0, refresh=True)
+                break
+            if self.items[-1].item == oldobject:
+                self.moveto(self.curx, len(self.items)-1, refresh=True)
+                break
 
 
 class _CommandInput(object):
@@ -749,12 +780,14 @@ class ibrowse(ipipe.Display):
     keymap.register("detail", "d")
     keymap.register("detailattr", "D")
     keymap.register("tooglemark", " ")
-    keymap.register("markrange", "r")
+    keymap.register("markrange", "%")
     keymap.register("sortattrasc", "v")
     keymap.register("sortattrdesc", "V")
     keymap.register("goto", "g")
     keymap.register("find", "f")
     keymap.register("findbackwards", "b")
+    keymap.register("refresh", "r")
+    keymap.register("refreshfind", "R")
 
     def __init__(self, *attrs):
         """
@@ -889,22 +922,22 @@ class ibrowse(ipipe.Display):
         Enter the object ``item``. If ``attrs`` is specified, it will be used
         as a fixed list of attributes to display.
         """
+        oldlevels = len(self.levels)
+        self._calcheaderlines(oldlevels+1)
         try:
-            iterator = ipipe.xiter(item)
-        except (KeyboardInterrupt, SystemExit):
-            raise
-        except Exception, exc:
-            curses.beep()
-            self.report(exc)
-        else:
-            self._calcheaderlines(len(self.levels)+1)
             level = _BrowserLevel(
                 self,
                 item,
-                iterator,
                 self.scrsizey-1-self._headerlines-2,
                 *attrs
             )
+        except (KeyboardInterrupt, SystemExit):
+            raise
+        except Exception, exc:
+            self._calcheaderlines(oldlevels)
+            curses.beep()
+            self.report(exc)
+        else:
             self.levels.append(level)
 
     def startkeyboardinput(self, mode):
@@ -1338,6 +1371,23 @@ class ibrowse(ipipe.Display):
         bottom of the screen.
         """
         self.startkeyboardinput("findbackwards")
+
+    def cmd_refresh(self):
+        """
+        Refreshes the display by restarting the iterator.
+        """
+        level = self.levels[-1]
+        self.report("refresh")
+        level.refresh()
+
+    def cmd_refreshfind(self):
+        """
+        Refreshes the display by restarting the iterator and goes back to the
+        same object as before (if it can be found in the new iterator).
+        """
+        level = self.levels[-1]
+        self.report("refreshfind")
+        level.refreshfind()
 
     def cmd_help(self):
         """

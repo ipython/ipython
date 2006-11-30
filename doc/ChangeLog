@@ -1,3 +1,10 @@
+2006-11-30  Walter Doerwald  <walter@livinglogic.de>
+	* IPython/Extensions/ibrowse.py: Add two new commands to ibrowse:
+	"refresh" (mapped to "r") refreshes the screen by restarting the iterator.
+	"refreshfind" (mapped to "R") does the same but tries to go back to the same
+	object the cursor was on before the refresh. The command "markrange" is
+	mapped to "%" now.
+
 2006-11-29  Fernando Perez  <Fernando.Perez@colorado.edu>
 
 	* IPython/Magic.py (magic_debug): new %debug magic to activate the
