@@ -1290,6 +1290,12 @@ class ipwdentry(object):
         self._id = id
         self._entry = None
 
+    def __eq__(self, other):
+        return self.__class__ is other.__class__ and self._id == other._id
+
+    def __ne__(self, other):
+        return self.__class__ is not other.__class__ or self._id != other._id
+
     def _getentry(self):
         if self._entry is None:
             if isinstance(self._id, basestring):
@@ -1370,6 +1376,12 @@ class igrpentry(object):
     def __init__(self, id):
         self._id = id
         self._entry = None
+
+    def __eq__(self, other):
+        return self.__class__ is other.__class__ and self._id == other._id
+
+    def __ne__(self, other):
+        return self.__class__ is not other.__class__ or self._id != other._id
 
     def _getentry(self):
         if self._entry is None:
