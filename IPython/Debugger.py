@@ -15,7 +15,7 @@ details on the PSF (Python Software Foundation) standard license, see:
 
 http://www.python.org/2.2.3/license.html
 
-$Id: Debugger.py 1955 2006-11-29 09:44:32Z vivainio $"""
+$Id: Debugger.py 1961 2006-12-05 21:02:40Z vivainio $"""
 
 #*****************************************************************************
 #
@@ -97,11 +97,14 @@ class Pdb(OldPdb):
                      stdin=None, stdout=None):
 
             # Parent constructor:
-            OldPdb.__init__(self,completekey,stdin,stdout)
+            if has_pydb and completekey is None:
+                OldPdb.__init__(self,stdin=stdin,stdout=stdout)
+            else:
+                OldPdb.__init__(self,completekey,stdin,stdout)
+                self.prompt = prompt # The default prompt is '(Pdb)'
             
             # IPython changes...
-            self.prompt = prompt # The default prompt is '(Pdb)'
-            self.is_pydb = prompt == 'ipydb>'
+            self.is_pydb = has_pydb
 
             if self.is_pydb:
 
@@ -117,7 +120,6 @@ class Pdb(OldPdb):
                 self.old_all_completions = __IPYTHON__.Completer.all_completions
                 __IPYTHON__.Completer.all_completions=self.all_completions
 
-                # Do we have access to pydb's list command parser?
                 self.do_list = decorate_fn_with_doc(self.list_command_pydb,
                                                     OldPdb.do_list)
                 self.do_l     = self.do_list

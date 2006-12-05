@@ -6,7 +6,7 @@ Requires Python 2.3 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 1956 2006-11-30 05:22:31Z fperez $
+$Id: iplib.py 1961 2006-12-05 21:02:40Z vivainio $
 """
 
 #*****************************************************************************
@@ -1427,13 +1427,12 @@ want to merge them back into the new files.""" % locals()
             return
 
         have_pydb = False
-        if sys.version[:3] >= '2.5':
-            # use pydb if available
-            try:
-                from pydb import pm
-                have_pydb = True
-            except ImportError:
-                pass
+        # use pydb if available
+        try:
+            from pydb import pm
+            have_pydb = True
+        except ImportError:
+            pass
         if not have_pydb:
             # fallback to our internal debugger
             pm = lambda : self.InteractiveTB.debugger(force=True)

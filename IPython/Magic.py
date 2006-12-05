@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Magic functions for InteractiveShell.
 
-$Id: Magic.py 1956 2006-11-30 05:22:31Z fperez $"""
+$Id: Magic.py 1961 2006-12-05 21:02:40Z vivainio $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001 Janko Hauser <jhauser@zscout.de> and
@@ -693,7 +693,6 @@ Currently the magic system has the following functions:\n"""
         """Print the definition header for any callable object.
 
         If the object is a class, print the constructor information."""
-        print "+++"
         self._inspect('pdef',parameter_s, namespaces)
         
     def magic_pdoc(self, parameter_s='', namespaces=None):
