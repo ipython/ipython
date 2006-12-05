@@ -78,6 +78,8 @@ def magic_store(self, parameter_s=''):
     
     Note also that the variables will need to be pickleable; most basic
     python types can be safely %stored.
+    
+    Also aliases can be %store'd across sessions.
     """
     
     opts,argsl = self.parse_options(parameter_s,'drz',mode='string')

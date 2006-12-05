@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Magic functions for InteractiveShell.
 
-$Id: Magic.py 1961 2006-12-05 21:02:40Z vivainio $"""
+$Id: Magic.py 1962 2006-12-05 21:08:50Z vivainio $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001 Janko Hauser <jhauser@zscout.de> and
@@ -2538,7 +2538,8 @@ Defaulting color scheme to 'NoColor'"""
 
         This command automatically maintains an internal list of directories
         you visit during your IPython session, in the variable _dh. The
-        command %dhist shows this history nicely formatted.
+        command %dhist shows this history nicely formatted. You can also
+        do 'cd -<tab>' to see directory history conveniently.
 
         Usage:
 
@@ -2551,6 +2552,7 @@ Defaulting color scheme to 'NoColor'"""
           cd -b <bookmark_name>: jump to a bookmark set by %bookmark
              (note: cd <bookmark_name> is enough if there is no
               directory <bookmark_name>, but a bookmark with the name exists.)
+              'cd -b <tab>' allows you to tab-complete bookmark names. 
 
         Options:
 
