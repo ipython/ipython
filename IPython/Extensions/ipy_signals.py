@@ -9,18 +9,19 @@ If _ip.options.verbose is true, show exit status if nonzero
 
 """
 
-import signal,os
+import signal,os,sys
 import IPython.ipapi
 import subprocess
 
 ip = IPython.ipapi.get()
 
-
-def new_ipsystem(cmd):
+def new_ipsystem_posix(cmd):
     """ ctrl+c ignoring replacement for system() command in iplib.
     
     Ignore ctrl + c in IPython process during the command execution. 
     The subprocess will still get the ctrl + c signal.
+    
+    posix implementation
     """
     
     p =  subprocess.Popen(cmd, shell = True)
@@ -31,6 +32,21 @@ def new_ipsystem(cmd):
     if status and ip.options.verbose:
         print "[exit status: %d]" % status
     
+def new_ipsystem_win32(cmd):    
+    """ ctrl+c ignoring replacement for system() command in iplib.
+    
+    Ignore ctrl + c in IPython process during the command execution. 
+    The subprocess will still get the ctrl + c signal.
+    
+    win32 implementation
+    """
+    old_handler = signal.signal(signal.SIGINT, signal.SIG_IGN)
+    status = os.system(cmd)
+    signal.signal(signal.SIGINT, old_handler)
+    if status and ip.options.verbose:
+        print "[exit status: %d]" % status
+    
+    
 def init():
     o = ip.options
     try:
@@ -39,7 +55,8 @@ def init():
         o.allow_new_attr (True )
         o.verbose = 0
         
-    ip.IP.system = new_ipsystem
+    ip.IP.system = (sys.platform == 'win32' and new_ipsystem_win32 or 
+                    new_ipsystem_posix)
     
 init()
     
