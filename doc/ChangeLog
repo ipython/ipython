@@ -1,4 +1,18 @@
-2006-12-5  Ville Vainio  <vivainio@gmail.com>
+2006-12-07  Ville Vainio  <vivainio@gmail.com>
+
+	* Extensions/ipy_signals.py: Ignore ctrl+C in IPython process
+	while executing external code. Provides more shell-like behaviour
+	and overall better response to ctrl + C / ctrl + break.
+
+	* tools/make_tarball.py: new script to create tarball straight from svn
+	(setup.py sdist doesn't work on win32).
+
+	* Extensions/ipy_stock_completers.py: fix cd completer to give up
+	on dirnames with spaces and use the default completer instead.
+
+	* Revision.py: Change version to 0.7.3b2 for release.
+
+2006-12-05  Ville Vainio  <vivainio@gmail.com>
 
 	* Magic.py, iplib.py, completer.py: Apply R. Bernstein's
 	pydb patch 4 (rm debug printing, py 2.5 checking)
