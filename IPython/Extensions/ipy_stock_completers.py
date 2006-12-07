@@ -184,11 +184,12 @@ ip.set_hook('complete_command', runlistpy, str_key = '%run')
 
 def cd_completer(self, event):
     relpath = event.symbol
-    
+    # print event # dbg
     if '-b' in event.line:
         # return only bookmark completions
         bkms = self.db.get('bookmarks',{})
         return bkms.keys()
+    
     
     if event.symbol == '-':
         # jump in directory history by number
@@ -197,12 +198,20 @@ def cd_completer(self, event):
             return ents
         return []
         
-                        
+    if sys.platform != 'win32':
+        protect = lambda n: n
+    else:
+        def protect(n):                    
+            return n.replace('\\' ,'/').replace(' ', '\\ ')
+        
     if relpath.startswith('~'):
         relpath = os.path.expanduser(relpath).replace('\\','/')
-    found =  [f.replace('\\','/')+'/' for f in glob.glob(relpath+'*') if os.path.isdir(f)]
+    found =  [protect(f)+'/' for f in glob.glob(relpath+'*') if os.path.isdir(f)]
+    # print "f",found # dbg
     if not found:
-        return [relpath]
+        if os.path.isdir(relpath):
+            return [relpath]
+        raise IPython.ipapi.TryNext
     return found
 
 ip.set_hook('complete_command', cd_completer, str_key = '%cd')
