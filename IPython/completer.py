@@ -380,7 +380,7 @@ class IPCompleter(Completer):
                 open_quotes = 1
                 lsplit = lbuf.split("'")[-1]
             else:
-                return None
+                return []
         except IndexError:
             # tab pressed on empty line
             lsplit = ""
