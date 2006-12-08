@@ -201,7 +201,8 @@ def cd_completer(self, event):
     if relpath.startswith('~'):
         relpath = os.path.expanduser(relpath).replace('\\','/')
     found = []
-    for d in [f + '/' for f in glob.glob(relpath+'*') if os.path.isdir(f)]:	
+    for d in [f.replace('\\','/') + '/' for f in glob.glob(relpath+'*') 
+              if os.path.isdir(f)]:	
         if ' ' in d:
             # we don't want to deal with any of that, complex code
             # for this is elsewhere
