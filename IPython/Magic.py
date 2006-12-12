@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Magic functions for InteractiveShell.
 
-$Id: Magic.py 1962 2006-12-05 21:08:50Z vivainio $"""
+$Id: Magic.py 1981 2006-12-12 21:51:54Z vivainio $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001 Janko Hauser <jhauser@zscout.de> and
@@ -1375,7 +1375,7 @@ Currently the magic system has the following functions:\n"""
 
         Usage:\\
           %run [-n -i -t [-N<N>] -d [-b<N>] -p [profile options]] file [args]
-
+        
         Parameters after the filename are passed as command-line arguments to
         the program (put in sys.argv). Then, control returns to IPython's
         prompt.
@@ -1472,7 +1472,12 @@ Currently the magic system has the following functions:\n"""
         where the profiler executes them).
 
         Internally this triggers a call to %prun, see its documentation for
-        details on the options available specifically for profiling."""
+        details on the options available specifically for profiling.
+
+        There is one special usage for which the text above doesn't apply:
+        if the filename ends with .ipy, the file is run as ipython script,
+        just as if the commands were written on IPython prompt.
+        """
 
         # get arguments and set sys.argv for program to be run.
         opts,arg_lst = self.parse_options(parameter_s,'nidtN:b:pD:l:rs:T:e',
@@ -1488,6 +1493,10 @@ Currently the magic system has the following functions:\n"""
             error(msg)
             return
 
+        if filename.lower().endswith('.ipy'):
+            self.api.runlines(open(filename).read())
+            return
+        
         # Control the response to exit() calls made by the script being run
         exit_ignore = opts.has_key('e')
         

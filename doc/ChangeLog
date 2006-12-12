@@ -7,6 +7,10 @@
 	* UserConfig/ipy_user_conf.py, UserConfig/ipythonrc:
 	 Add deprecation note to ipythonrc and a url to wiki
 	 in ipy_user_conf.py
+	 
+	 * Magic.py (%run): %run myscript.ipy now runs myscript.ipy
+	 as if it was typed on IPython command prompt, i.e.
+	 as IPython script.
 	
 2006-12-08  Ville Vainio  <vivainio@gmail.com>
 
