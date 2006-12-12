@@ -12,6 +12,8 @@
 	 as if it was typed on IPython command prompt, i.e.
 	 as IPython script.
 	
+	* example-magic.py, magic_grepl.py: remove outdated examples
+	
 2006-12-08  Ville Vainio  <vivainio@gmail.com>
 
 	* Extensions/ipy_stock_completers.py.py: fix cd completer 
