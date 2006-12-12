@@ -177,7 +177,7 @@ def runlistpy(self, event):
         relpath = os.path.expanduser(relpath)
     dirs = [f.replace('\\','/') + "/" for f in lglob(relpath+'*')
             if isdir(f)]
-    pys =  [f.replace('\\','/') for f in lglob(relpath+'*.py')]
+    pys =  [f.replace('\\','/') for f in lglob(relpath+'*.py') + lglob(relpath+'*.ipy')]
     return dirs + pys
 
 ip.set_hook('complete_command', runlistpy, str_key = '%run')
