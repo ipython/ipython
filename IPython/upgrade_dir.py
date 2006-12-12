@@ -10,10 +10,10 @@ try:
     from IPython.Extensions.path import path
 except ImportError:
     try:
-	from Extensions.path import path
+        from Extensions.path import path
     except ImportError:
-	from path import path
-	
+        from path import path
+
 import md5,pickle
 
 def showdiff(old,new):
@@ -24,12 +24,12 @@ def showdiff(old,new):
     for l in lines:
         print l,
         if not realdiff and not l[0].isspace():
-            realdiff = True 
+            realdiff = True
     return realdiff
 
 def upgrade_dir(srcdir, tgtdir):
-    """ Copy over all files in srcdir to tgtdir w/ native line endings 
-    
+    """ Copy over all files in srcdir to tgtdir w/ native line endings
+
     Creates .upgrade_report in tgtdir that stores md5sums of all files
     to notice changed files b/w upgrades.
     """
@@ -41,8 +41,8 @@ def upgrade_dir(srcdir, tgtdir):
         if p.lower().startswith('.svn') or p.startswith('ipythonrc'):
             return True
         return False
-            
-        
+
+
     modded = []
     files = [path(srcdir).relpathto(p) for p in path(srcdir).walkfiles()]
     #print files
@@ -51,7 +51,7 @@ def upgrade_dir(srcdir, tgtdir):
         rpt = pickle.load(rep.open())
     except:
         rpt = {}
-        
+
     for f in files:
         if ignorable(f):
             continue
@@ -59,7 +59,7 @@ def upgrade_dir(srcdir, tgtdir):
         tgt = tgtdir / f
         if not tgt.isfile():
             pr("Creating %s" % str(tgt))
-            
+
             tgt.write_text(src.text())
             rpt[str(tgt)] = md5.new(tgt.text()).hexdigest()
         else:
@@ -87,10 +87,8 @@ def upgrade_dir(srcdir, tgtdir):
         print "\n\nDelete the following files manually (and rerun %upgrade)\nif you need a full upgrade:"
         for m in modded:
             print m
-            
-            
+
+
 import sys
 if __name__ == "__main__":
     upgrade_dir(path(sys.argv[1]), path(sys.argv[2]))
-
-    
