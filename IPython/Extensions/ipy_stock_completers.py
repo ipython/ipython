@@ -1,4 +1,4 @@
-""" Tab completion support for a couple of linux package managers 
+""" Tab completion support for a couple of linux package managers
 
 This is also an example of how to write custom completer plugins
 or hooks.
@@ -17,51 +17,51 @@ import glob,os,shlex,sys
 ip = IPython.ipapi.get()
 
 def vcs_completer(commands, event):
-    """ utility to make writing typical version control app completers easier 
-    
+    """ utility to make writing typical version control app completers easier
+
     VCS command line apps typically have the format:
-    
+
     [sudo ]PROGNAME [help] [command] file file...
-    
+
     """
-    
-    
+
+
     cmd_param = event.line.split()
     if event.line.endswith(' '):
         cmd_param.append('')
 
     if cmd_param[0] == 'sudo':
         cmd_param = cmd_param[1:]
-    
+
     if len(cmd_param) == 2 or 'help' in cmd_param:
         return commands.split()
-    
+
     return ip.IP.Completer.file_matches(event.symbol)
-        
-    
+
+
 
 def apt_completers(self, event):
     """ This should return a list of strings with possible completions.
-    
+
     Note that all the included strings that don't start with event.symbol
     are removed, in order to not confuse readline.
-    
+
     """
     # print event # dbg
-    
+
     # commands are only suggested for the 'command' part of package manager
     # invocation
-        
+
     cmd = (event.line + "<placeholder>").rsplit(None,1)[0]
     # print cmd
     if cmd.endswith('apt-get') or cmd.endswith('yum'):
         return ['update', 'upgrade', 'install', 'remove']
-    
-    # later on, add dpkg -l / whatever to get list of possible 
+
+    # later on, add dpkg -l / whatever to get list of possible
     # packages, add switches etc. for the rest of command line
     # filling
-    
-    raise IPython.ipapi.TryNext 
+
+    raise IPython.ipapi.TryNext
 
 
 # re_key specifies the regexp that triggers the specified completer
@@ -71,9 +71,9 @@ ip.set_hook('complete_command', apt_completers, re_key = '.*yum')
 
 pkg_cache = None
 
-def module_completer(self,event):    
+def module_completer(self,event):
     """ Give completions after user has typed 'import' """
-    
+
     # only a local version for py 2.4, pkgutil has no walk_packages() there
     if sys.version_info < (2,5):
         for el in [f[:-3] for f in glob.glob("*.py")]:
@@ -82,11 +82,11 @@ def module_completer(self,event):
 
     global pkg_cache
     import pkgutil,imp,time
-    #current = 
+    #current =
     if pkg_cache is None:
         print "\n\n[Standby while scanning modules, this can take a while]\n\n"
         pkg_cache = list(pkgutil.walk_packages())
-    
+
     already = set()
     for ld, name, ispkg in pkg_cache:
         if name.count('.') < event.symbol.count('.') + 1:
@@ -124,7 +124,7 @@ version
 
 def hg_completer(self,event):
     """ Completer for mercurial commands """
-        
+
     return vcs_completer(hg_commands, event)
 
 ip.set_hook('complete_command', hg_completer, str_key = 'hg')
@@ -169,7 +169,7 @@ ip.set_hook('complete_command', bzr_completer, str_key = 'bzr')
 def runlistpy(self, event):
     comps = shlex.split(event.line)
     relpath = (len(comps) > 1 and comps[-1] or '')
-   
+
     #print "rp",relpath  # dbg
     lglob = glob.glob
     isdir = os.path.isdir
@@ -189,20 +189,20 @@ def cd_completer(self, event):
         # return only bookmark completions
         bkms = self.db.get('bookmarks',{})
         return bkms.keys()
-    
-    
+
+
     if event.symbol == '-':
         # jump in directory history by number
         ents = ['-%d [%s]' % (i,s) for i,s in enumerate(ip.user_ns['_dh'])]
         if len(ents) > 1:
             return ents
         return []
-        
+
     if relpath.startswith('~'):
         relpath = os.path.expanduser(relpath).replace('\\','/')
     found = []
-    for d in [f.replace('\\','/') + '/' for f in glob.glob(relpath+'*') 
-              if os.path.isdir(f)]:	
+    for d in [f.replace('\\','/') + '/' for f in glob.glob(relpath+'*')
+              if os.path.isdir(f)]:
         if ' ' in d:
             # we don't want to deal with any of that, complex code
             # for this is elsewhere
@@ -212,7 +212,7 @@ def cd_completer(self, event):
     if not found:
         if os.path.isdir(relpath):
             return [relpath]
-    	raise IPython.ipapi.TryNext
+        raise IPython.ipapi.TryNext
     return found
 
 ip.set_hook('complete_command', cd_completer, str_key = '%cd')
