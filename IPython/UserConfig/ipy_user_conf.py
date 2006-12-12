@@ -12,6 +12,8 @@ Note that as such this file does nothing, for backwards compatibility.
 Consult e.g. file 'ipy_profile_sh.py' for an example of the things 
 you can do here.
 
+See http://ipython.scipy.org/moin/IpythonExtensionApi for detailed
+description on what you could do here.
 """
 
 # Most of your config files and extensions will probably start with this import

@@ -6,7 +6,7 @@ Requires Python 2.1 or better.
 
 This file contains the main make_IPython() starter function.
 
-$Id: ipmaker.py 1879 2006-11-04 00:34:34Z fptest $"""
+$Id: ipmaker.py 1979 2006-12-12 18:50:20Z vivainio $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2006 Fernando Perez. <fperez@colorado.edu>
@@ -576,13 +576,13 @@ object? -> Details about 'object'. ?object also works, ?? prints more.
             import_fail_info(mod)
 
     for mod_fn in IP_rc.import_some:
-        if mod_fn == []: break
-        mod,fn = mod_fn[0],','.join(mod_fn[1:])
-        try:
-            exec 'from '+mod+' import '+fn in IP.user_ns
-        except :
-            IP.InteractiveTB()
-            import_fail_info(mod,fn)
+        if not mod_fn == []: 
+            mod,fn = mod_fn[0],','.join(mod_fn[1:])
+            try:
+                exec 'from '+mod+' import '+fn in IP.user_ns
+            except :
+                IP.InteractiveTB()
+                import_fail_info(mod,fn)
 
     for mod in IP_rc.import_all:
         try:
