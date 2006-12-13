@@ -1,3 +1,15 @@
+2006-12-13  Fernando Perez  <Fernando.Perez@colorado.edu>
+
+	* IPython/Shell.py (IPShellWX): update for current WX naming
+	conventions, to avoid a deprecation warning with current WX
+	versions.  Thanks to a report by Danny Shevitz.
+
+2006-12-12  Ville Vainio  <vivainio@gmail.com>
+
+	* ipmaker.py: apply david cournapeau's patch to make
+	import_some work properly even when ipythonrc does 
+	import_some on empty list (it was an old bug!).
+
 2006-12-12  Ville Vainio  <vivainio@gmail.com>
 
 	* ipmaker.py: apply david cournapeau's patch to make
