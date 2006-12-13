@@ -17,12 +17,13 @@
 	import_some on empty list (it was an old bug!).
 
 	* UserConfig/ipy_user_conf.py, UserConfig/ipythonrc:
-	 Add deprecation note to ipythonrc and a url to wiki
-	 in ipy_user_conf.py
-	 
-	 * Magic.py (%run): %run myscript.ipy now runs myscript.ipy
-	 as if it was typed on IPython command prompt, i.e.
-	 as IPython script.
+	Add deprecation note to ipythonrc and a url to wiki
+	in ipy_user_conf.py
+
+		 
+	* Magic.py (%run): %run myscript.ipy now runs myscript.ipy
+	as if it was typed on IPython command prompt, i.e.
+	as IPython script.
 	
 	* example-magic.py, magic_grepl.py: remove outdated examples
 	
