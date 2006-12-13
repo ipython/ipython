@@ -4,7 +4,7 @@
 All the matplotlib support code was co-developed with John Hunter,
 matplotlib's author.
 
-$Id: Shell.py 1384 2006-06-29 20:04:37Z vivainio $"""
+$Id: Shell.py 1988 2006-12-13 16:49:41Z vivainio $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2006 Fernando Perez <fperez@colorado.edu>
@@ -706,7 +706,7 @@ class IPShellWX(threading.Thread):
                     error('Requested wxPython version %s could not be loaded' %
                                                                wantedwxversion)
 
-        import wxPython.wx as wx
+        import wx
 
         threading.Thread.__init__(self)
         self.wx = wx
@@ -738,20 +738,20 @@ class IPShellWX(threading.Thread):
         
         self.start()
 
-        class TimerAgent(self.wx.wxMiniFrame):
+        class TimerAgent(self.wx.MiniFrame):
             wx = self.wx
             IP = self.IP
             tk = self.tk
             def __init__(self, parent, interval):
-                style = self.wx.wxDEFAULT_FRAME_STYLE | self.wx.wxTINY_CAPTION_HORIZ
-                self.wx.wxMiniFrame.__init__(self, parent, -1, ' ', pos=(200, 200),
+                style = self.wx.DEFAULT_FRAME_STYLE | self.wx.TINY_CAPTION_HORIZ
+                self.wx.MiniFrame.__init__(self, parent, -1, ' ', pos=(200, 200),
                                              size=(100, 100),style=style)
                 self.Show(False)
                 self.interval = interval
-                self.timerId = self.wx.wxNewId()                                
+                self.timerId = self.wx.NewId()                                
 
             def StartWork(self):
-                self.timer = self.wx.wxTimer(self, self.timerId)
+                self.timer = self.wx.Timer(self, self.timerId)
                 self.wx.EVT_TIMER(self,  self.timerId, self.OnTimer)
                 self.timer.Start(self.interval)
 
@@ -759,15 +759,15 @@ class IPShellWX(threading.Thread):
                 update_tk(self.tk)
                 self.IP.runcode()
 
-        class App(self.wx.wxApp):
+        class App(self.wx.App):
             wx = self.wx
             TIMEOUT = self.TIMEOUT
             def OnInit(self):
                 'Create the main window and insert the custom frame'
                 self.agent = TimerAgent(None, self.TIMEOUT)
-                self.agent.Show(self.wx.false)
+                self.agent.Show(False)
                 self.agent.StartWork()
-                return self.wx.true
+                return True
         
         self.app = App(redirect=False)
         self.wx_mainloop(self.app)
