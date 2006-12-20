@@ -1,3 +1,32 @@
+2006-12-20  Ville Vainio  <vivainio@gmail.com>
+
+	* 0.7.3 is out - merge all from 0.7.3 branch to trunk
+
+2006-12-17  Ville Vainio  <vivainio@gmail.com>
+
+	* Extensions/jobctrl.py: Fixed &cmd arg arg... 
+	to work properly on posix too
+	
+	* Release.py: Update revnum (version is still just 0.7.3).
+
+2006-12-15  Ville Vainio  <vivainio@gmail.com>
+
+	* scripts/ipython_win_post_install: create ipython.py in
+	prefix + "/scripts".
+	
+	* Release.py: Update version to 0.7.3.
+    
+2006-12-14  Ville Vainio  <vivainio@gmail.com>
+
+	* scripts/ipython_win_post_install: Overwrite old shortcuts
+	if they already exist
+
+	* Release.py: release 0.7.3rc2
+    
+2006-12-13  Ville Vainio  <vivainio@gmail.com>
+
+	* Branch and update Release.py for 0.7.3rc1
+
 2006-12-13  Fernando Perez  <Fernando.Perez@colorado.edu>
 
 	* IPython/Shell.py (IPShellWX): update for current WX naming

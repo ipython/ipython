@@ -6,7 +6,7 @@
 #  the file COPYING, distributed as part of this software.
 #*****************************************************************************
 
-# $Id: usage.py 1332 2006-05-30 01:41:28Z fperez $
+# $Id: usage.py 2010 2006-12-20 15:29:17Z vivainio $
 
 from IPython import Release
 __author__  = '%s <%s>' % Release.authors['Fernando']
@@ -623,7 +623,8 @@ cd /usr/share    : Obvious, also 'cd d:\home\_ipython' works
 History:
 
 _i, _ii, _iii    : Previous, next previous, next next previous input
-_ih[4], _ih[2:5] : Input history line 4, lines 2-4
+_i4, _ih[2:5]    : Input history line 4, lines 2-4
+exec _i81        : Execute input history line #81 again
 _, __, ___       : previous, next previous, next next previous output
 _dh              : Directory history
 _oh              : Output history

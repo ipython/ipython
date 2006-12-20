@@ -21,7 +21,7 @@ README_Windows.txt
 """                     
 
 from subprocess import Popen,PIPE
-import os
+import os,shlex
 
 from IPython import genutils
 
@@ -38,7 +38,7 @@ class IpyPopen(Popen):
         os.system('taskkill /PID %d' % self.pid)
                   
 def startjob(job):
-    p = IpyPopen(job, stdout=PIPE, shell = False)
+    p = IpyPopen(shlex.split(job), stdout=PIPE, shell = False)
     p.line = job
     return p
 

@@ -1,6 +1,6 @@
 import os,sys,shutil
 
-repo = "http://ipython.scipy.org/svn/ipython/ipython/trunk"
+repo = "http://ipython.scipy.org/svn/ipython/ipython/branches/0.7.3"
 basename = 'ipython'
 workdir = './mkdist'
 
