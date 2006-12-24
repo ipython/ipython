@@ -275,6 +275,21 @@ class IPApi:
                 error('could not get var. %s from %s' %
                 (name,cf.f_code.co_name))
 
+    def expand_alias(self,line):
+        """ Expand an alias in the command line 
+        
+        Returns the provided command line, possibly with the first word 
+        (command) translated according to alias expansion rules.
+        
+        [ipython]|16> _ip.expand_aliases("np myfile.txt")
+                 <16> 'q:/opt/np/notepad++.exe myfile.txt'
+        """
+        
+        pre,fn,rest = self.IP.split_user_input(line)
+        res = pre + self.IP.expand_aliases(fn,rest)
+        
+        
+
 def launch_new_instance(user_ns = None):
     """ Make and start a new ipython instance.
     

@@ -1,6 +1,15 @@
+2006-12-24  Ville Vainio  <vivainio@gmail.com>
+
+	* ipmaker.py: more informative message when ipy_user_conf
+	import fails (suggest running %upgrade).
+	
 2006-12-20  Ville Vainio  <vivainio@gmail.com>
 
 	* 0.7.3 is out - merge all from 0.7.3 branch to trunk
+
+	* ipapi.py: Add new ipapi method, expand_alias.
+	
+	* Release.py: Bump up version to 0.7.4.svn
 
 2006-12-17  Ville Vainio  <vivainio@gmail.com>
 
