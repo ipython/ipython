@@ -3,6 +3,9 @@
 	* ipmaker.py: more informative message when ipy_user_conf
 	import fails (suggest running %upgrade).
 	
+	* tools/run_ipy_in_profiler.py: Utility to see where
+	the time during IPython startup is spent.
+	
 2006-12-20  Ville Vainio  <vivainio@gmail.com>
 
 	* 0.7.3 is out - merge all from 0.7.3 branch to trunk
