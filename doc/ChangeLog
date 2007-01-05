@@ -1,3 +1,12 @@
+2007-01-05  Fernando Perez  <Fernando.Perez@colorado.edu>
+
+	* IPython/iplib.py (showtraceback): ensure that we correctly call
+	custom handlers in all cases (some with pdb were slipping through,
+	but I'm not exactly sure why).
+
+	* IPython/Debugger.py (Tracer.__init__): added new class to
+	support set_trace-like usage of IPython's enhanced debugger.
+
 2006-12-24  Ville Vainio  <vivainio@gmail.com>
 
 	* ipmaker.py: more informative message when ipy_user_conf

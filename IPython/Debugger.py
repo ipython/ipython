@@ -15,7 +15,7 @@ details on the PSF (Python Software Foundation) standard license, see:
 
 http://www.python.org/2.2.3/license.html
 
-$Id: Debugger.py 1961 2006-12-05 21:02:40Z vivainio $"""
+$Id: Debugger.py 2014 2007-01-05 10:36:58Z fperez $"""
 
 #*****************************************************************************
 #
@@ -42,7 +42,7 @@ import linecache
 import os
 import sys
 
-from IPython import PyColorize, ColorANSI
+from IPython import PyColorize, ColorANSI, ipapi
 from IPython.genutils import Term
 from IPython.excolors import ExceptionColors
 
@@ -62,6 +62,86 @@ if has_pydb:
     from pydb import Pdb as OldPdb
 else:
     from pdb import Pdb as OldPdb
+
+# Allow the set_trace code to operate outside of an ipython instance, even if
+# it does so with some limitations.  The rest of this support is implemented in
+# the Tracer constructor.
+def BdbQuit_excepthook(et,ev,tb):
+    if et==bdb.BdbQuit:
+        print 'Exiting Debugger.'
+    else:
+        ehook.excepthook_ori(et,ev,tb)
+
+def BdbQuit_IPython_excepthook(self,et,ev,tb):
+    print 'Exiting Debugger.'
+
+class Tracer(object):
+    """Class for local debugging, similar to pdb.set_trace.
+
+    Instances of this class, when called, behave like pdb.set_trace, but
+    providing IPython's enhanced capabilities.
+
+    This is implemented as a class which must be initialized in your own code
+    and not as a standalone function because we need to detect at runtime
+    whether IPython is already active or not.  That detection is done in the
+    constructor, ensuring that this code plays nicely with a running IPython,
+    while functioning acceptably (though with limitations) if outside of it.
+    """
+
+    def __init__(self,colors=None):
+        """Create a local debugger instance.
+
+        :Parameters:
+
+          - `colors` (None): a string containing the name of the color scheme to
+        use, it must be one of IPython's valid color schemes.  If not given, the
+        function will default to the current IPython scheme when running inside
+        IPython, and to 'NoColor' otherwise.
+
+        Usage example:
+
+        from IPython.Debugger import Tracer; debug_here = Tracer()
+
+        ... later in your code
+        debug_here()  # -> will open up the debugger at that point.
+
+        Once the debugger activates, you can use all of its regular commands to
+        step through code, set breakpoints, etc.  See the pdb documentation
+        from the Python standard library for usage details.
+        """
+
+        global __IPYTHON__
+        try:
+            __IPYTHON__
+        except NameError:
+            # Outside of ipython, we set our own exception hook manually
+            __IPYTHON__ = ipapi.get(True,False)
+            BdbQuit_excepthook.excepthook_ori = sys.excepthook
+            sys.excepthook = BdbQuit_excepthook
+            def_colors = 'NoColor'
+            try:
+                # Limited tab completion support
+                import rlcompleter,readline
+                readline.parse_and_bind('tab: complete')
+            except ImportError:
+                pass
+        else:
+            # In ipython, we use its custom exception handler mechanism
+            ip = ipapi.get()
+            def_colors = ip.options.colors
+            ip.set_custom_exc((bdb.BdbQuit,),BdbQuit_IPython_excepthook)
+
+        if colors is None:
+            colors = def_colors
+        self.debugger = Pdb(colors)
+
+    def __call__(self):
+        """Starts an interactive debugger at the point where called.
+
+        This is similar to the pdb.set_trace() function from the std lib, but
+        using IPython's enhanced debugger."""
+        
+        self.debugger.set_trace(sys._getframe().f_back)
 
 def decorate_fn_with_doc(new_fn, old_fn, additional_text=""):
     """Make new_fn have old_fn's doc string. This is particularly useful
@@ -172,6 +252,7 @@ class Pdb(OldPdb):
 
             # Create color table: we copy the default one from the traceback
             # module and add a few attributes needed for debugging
+            ExceptionColors.set_active_scheme(color_scheme)
             self.color_scheme_table = ExceptionColors.copy()
 
             # shorthands 

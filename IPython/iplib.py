@@ -6,7 +6,7 @@ Requires Python 2.3 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 1977 2006-12-11 16:52:12Z fperez $
+$Id: iplib.py 2014 2007-01-05 10:36:58Z fperez $
 """
 
 #*****************************************************************************
@@ -1460,6 +1460,7 @@ want to merge them back into the new files.""" % locals()
             etype, value, tb = sys.exc_info()
         else:
             etype, value, tb = exc_tuple
+
         if etype is SyntaxError:
             self.showsyntaxerror(filename)
         else:
@@ -1470,11 +1471,14 @@ want to merge them back into the new files.""" % locals()
             sys.last_type = etype
             sys.last_value = value
             sys.last_traceback = tb
-            
-            self.InteractiveTB(etype,value,tb,tb_offset=tb_offset)
-            if self.InteractiveTB.call_pdb and self.has_readline:
-                # pdb mucks up readline, fix it back
-                self.readline.set_completer(self.Completer.complete)
+
+            if etype in self.custom_exceptions:
+                self.CustomTB(etype,value,tb)
+            else:
+                self.InteractiveTB(etype,value,tb,tb_offset=tb_offset)
+                if self.InteractiveTB.call_pdb and self.has_readline:
+                    # pdb mucks up readline, fix it back
+                    self.readline.set_completer(self.Completer.complete)
 
     def mainloop(self,banner=None):
         """Creates the local namespace and starts the mainloop.

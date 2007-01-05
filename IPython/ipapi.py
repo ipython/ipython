@@ -91,6 +91,12 @@ class IPythonNotRunning:
     without ipython.  Obviously code which uses the ipython object for
     computations will not work, but this allows a wider range of code to
     transparently work whether ipython is being used or not."""
+
+    def __init__(self,warn=True):
+        if warn:
+            self.dummy = self._dummy_warn
+        else:
+            self.dummy = self._dummy_silent
     
     def __str__(self):
         return "<IPythonNotRunning>"
@@ -100,18 +106,25 @@ class IPythonNotRunning:
     def __getattr__(self,name):
         return self.dummy
 
-    def dummy(self,*args,**kw):
+    def _dummy_warn(self,*args,**kw):
         """Dummy function, which doesn't do anything but warn."""
+
         warn("IPython is not running, this is a dummy no-op function")
+
+    def _dummy_silent(self,*args,**kw):
+        """Dummy function, which doesn't do anything and emits no warnings."""
+        pass
 
 _recent = None
 
 
-def get(allow_dummy=False):
+def get(allow_dummy=False,dummy_warn=True):
     """Get an IPApi object.
 
     If allow_dummy is true, returns an instance of IPythonNotRunning 
     instead of None if not running under IPython.
+
+    If dummy_warn is false, the dummy instance will be completely silent.
 
     Running this should be the first thing you do when writing extensions that
     can be imported as normal modules. You can then direct all the
@@ -119,7 +132,7 @@ def get(allow_dummy=False):
     """
     global _recent
     if allow_dummy and not _recent:
-        _recent = IPythonNotRunning()
+        _recent = IPythonNotRunning(dummy_warn)
     return _recent
 
 class IPApi:
