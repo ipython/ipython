@@ -27,10 +27,17 @@ ip = IPython.ipapi.get()
 def main():
     # Handy tab-completers for %cd, %run, import etc.
     # Try commenting this out if you have completion problems/slowness
-    import ipy_stock_completers 
+    import ipy_stock_completers
+    
+    # uncomment if you want to get ipython -p sh behaviour
+    # without having to use command line switches
+    
+    # import ipy_profile_sh
+
     
     o = ip.options
     # An example on how to set options
     #o.autocall = 1
+    o.system_verbose = 0
 
 main()
