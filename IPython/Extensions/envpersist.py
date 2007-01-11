@@ -37,7 +37,7 @@ def persist_env(self, parameter_s=''):
     %env VISUAL=jed  - set VISUAL to jed
     %env PATH+=;/foo - append ;foo to PATH
     %env PATH+=;/bar - also append ;bar to PATH
-    %env PATH-=/wbin; - prepend /wbin; ts PATH
+    %env PATH-=/wbin; - prepend /wbin; to PATH
     %env -d VISUAL   - forget VISUAL persistent val
     %env -p          - print all persistent env modifications 
     """
