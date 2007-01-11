@@ -14,13 +14,15 @@ import os,sys
 
 def restore_env(self):
     ip = self.getapi()
-    env = ip.db.get('stored_env', {'set' : {}, 'add' : []})
+    env = ip.db.get('stored_env', {'set' : {}, 'add' : [], 'pre' : []})
     for k,v in env['set'].items():
         #print "restore alias",k,v # dbg
         os.environ[k] = v
         self.alias_table[k] = v
     for k,v in env['add']:
         os.environ[k] = os.environ.get(k,"") + v
+    for k,v in env['pre']:
+        os.environ[k] = v + os.environ.get(k,"")
 
   
 ip.set_hook('late_startup_hook', restore_env)
@@ -34,9 +36,10 @@ def persist_env(self, parameter_s=''):
     %env - Show all environment variables
     %env VISUAL=jed  - set VISUAL to jed
     %env PATH+=;/foo - append ;foo to PATH
-    %env PATH+=;/foo - also append ;bar to PATH
-    %env VISUAL=del  - forget VISUAL persistent val
-    
+    %env PATH+=;/bar - also append ;bar to PATH
+    %env PATH-=/wbin; - prepend /wbin; ts PATH
+    %env -d VISUAL   - forget VISUAL persistent val
+    %env -p          - print all persistent env modifications 
     """
     
     
@@ -44,27 +47,42 @@ def persist_env(self, parameter_s=''):
     if not parameter_s.strip():
         return os.environ.data
     
-    parts = parameter_s.strip().split('=')    
-    
     ip = self.getapi()
     db = ip.db
-    env = ip.db.get('stored_env', {'set' : {}, 'add' : []})
+    env = ip.db.get('stored_env', {'set' : {}, 'add' : [], 'pre' : []})
 
+    if parameter_s.startswith('-p'):
+        return env
+        
+    elif parameter_s.startswith('-d'):
+        parts = (parameter_s.split()[1], '<del>')
+        
+    else:
+        parts = parameter_s.strip().split('=')    
+    
     if len(parts) == 2:
         k,v = parts
-        
     
-    if v == 'del':
+    if v == '<del>':
         if k in env['set']:
             del env['set'][k]
-        env['add'] = [el for el in env['add'] if el[0] == k]
-        #del os.environ[k]
-        print "Forgot",k,"(for next session)"
+        env['add'] = [el for el in env['add'] if el[0] != k]
+        env['pre'] = [el for el in env['pre'] if el[0] != k]
+        
+        print "Forgot '%s' (for next session)" % k
         
     elif k.endswith('+'):
         k = k[:-1]
         env['add'].append((k,v))
         os.environ[k] += v
+        print k,"after append =",os.environ[k]
+    elif k.endswith('-'):
+        k = k[:-1]
+        env['pre'].append((k,v))
+        os.environ[k] = v + os.environ.get(k,"")
+        print k,"after prepend =",os.environ[k]
+        
+        
     else:
         env['set'][k] = v
         print "Setting",k,"to",v
