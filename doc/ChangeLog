@@ -1,3 +1,9 @@
+2007-01-17  Fernando Perez  <Fernando.Perez@colorado.edu>
+
+	* IPython/ultraTB.py (AutoFormattedTB.__call__): properly flush
+	all output streams before printing tracebacks.  This ensures that
+	user output doesn't end up interleaved with traceback output.
+
 2007-01-10  Ville Vainio  <vivainio@gmail.com>
 
 	* Extensions/envpersist.py: Turbocharged %env that remembers
