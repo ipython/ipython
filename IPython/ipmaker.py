@@ -6,7 +6,7 @@ Requires Python 2.1 or better.
 
 This file contains the main make_IPython() starter function.
 
-$Id: ipmaker.py 2012 2006-12-24 10:28:29Z vivainio $"""
+$Id: ipmaker.py 2029 2007-01-22 06:35:15Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2006 Fernando Perez. <fperez@colorado.edu>
@@ -431,8 +431,6 @@ object? -> Details about 'object'. ?object also works, ?? prints more.
     rcfiledata = None
     if opts_all.quick:
         print 'Launching IPython in quick mode. No config file read.'
-    elif opts_all.classic:
-        print 'Launching IPython in classic mode. No config file read.'
     elif opts_all.rcfile:
         try:
             cfg_loader = ConfigLoader(conflict)
