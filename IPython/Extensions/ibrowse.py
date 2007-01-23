@@ -149,7 +149,7 @@ class _BrowserLevel(object):
     # position of cursor and screen, etc.) of one browser level
     # An ``ibrowse`` object keeps multiple ``_BrowserLevel`` objects in
     # a stack.
-    def __init__(self, browser, input,mainsizey, *attrs):
+    def __init__(self, browser, input, mainsizey, *attrs):
         self.browser = browser
         self.input = input
         self.header = [x for x in ipipe.xrepr(input, "header") if not isinstance(x[0], int)]
@@ -925,23 +925,27 @@ class ibrowse(ipipe.Display):
         Enter the object ``item``. If ``attrs`` is specified, it will be used
         as a fixed list of attributes to display.
         """
-        oldlevels = len(self.levels)
-        self._calcheaderlines(oldlevels+1)
-        try:
-            level = _BrowserLevel(
-                self,
-                item,
-                self.scrsizey-1-self._headerlines-2,
-                *attrs
-            )
-        except (KeyboardInterrupt, SystemExit):
-            raise
-        except Exception, exc:
-            self._calcheaderlines(oldlevels)
+        if self.levels and item is self.levels[-1].input:
             curses.beep()
-            self.report(exc)
+            self.report(CommandError("Recursion on input object"))
         else:
-            self.levels.append(level)
+            oldlevels = len(self.levels)
+            self._calcheaderlines(oldlevels+1)
+            try:
+                level = _BrowserLevel(
+                    self,
+                    item,
+                    self.scrsizey-1-self._headerlines-2,
+                    *attrs
+                )
+            except (KeyboardInterrupt, SystemExit):
+                raise
+            except Exception, exc:
+                self._calcheaderlines(oldlevels)
+                curses.beep()
+                self.report(exc)
+            else:
+                self.levels.append(level)
 
     def startkeyboardinput(self, mode):
         """

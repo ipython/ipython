@@ -1,3 +1,13 @@
+2007-01-23  Walter Doerwald  <walter@livinglogic.de>
+
+	* IPython/Extensions/ipipe.py (xiter): Make sure that iterating
+	a string containing a single line yields the string itself as the
+	only item.
+
+	* IPython/Extensions/ibrowse.py (ibrowse): Avoid entering an
+	object if it's the same as the one on the last level (This avoids
+	infinite recursion for one line strings).
+
 2007-01-17  Fernando Perez  <Fernando.Perez@colorado.edu>
 
 	* IPython/ultraTB.py (AutoFormattedTB.__call__): properly flush

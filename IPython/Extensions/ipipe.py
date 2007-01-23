@@ -943,7 +943,13 @@ def xiter(item):
         elif _isstr(item):
             if not item:
                 raise ValueError("can't enter empty string")
-            return iter(item.splitlines())
+            lines = item.splitlines()
+            if len(lines) == 1:
+               def iterone(item):
+                   yield item
+               return iterone(item)
+            else:
+                return iter(lines)
         return iter(item)
     else:
         return iter(func()) # iter() just to be safe
