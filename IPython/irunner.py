@@ -301,7 +301,7 @@ def main():
                    sage=SAGERunner)
 
     try:
-        ext = os.path.splitext(args[0])
+        ext = os.path.splitext(args[0])[-1]
     except IndexError:
         ext = ''
     modes = {'.ipy':'ipython',
