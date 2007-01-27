@@ -5,6 +5,10 @@ in IPython for demonstrations.  With very simple markup (a few tags in
 comments), you can control points where the script stops executing and returns
 control to IPython.
 
+
+Provided classes
+================
+
 The classes are (see their docstrings for further details):
 
  - Demo: pure python demos
@@ -19,6 +23,24 @@ The classes are (see their docstrings for further details):
  - IPythonLineDemo: IPython version of the LineDemo class (the demo is
  executed a line at a time, but processed via IPython).
 
+
+Subclassing
+===========
+
+The classes here all include a few methods meant to make customization by
+subclassing more convenient.  Their docstrings below have some more details:
+
+  - marquee(): generates a marquee to provide visible on-screen markers at each
+    block start and end.
+
+  - pre_cmd(): run right before the execution of each block.
+
+  - pre_cmd(): run right after the execution of each block.  If the block
+    raises an exception, this is NOT called.
+    
+
+Operation
+=========
 
 The file is run in its own empty namespace (though you can pass it a string of
 arguments as if in a command line environment, and it will see those as
@@ -76,6 +98,12 @@ has a few useful methods for navigation, like again(), edit(), jump(), seek()
 and back().  It can be reset for a new run via reset() or reloaded from disk
 (in case you've edited the source) via reload().  See their docstrings below.
 
+
+Example
+=======
+
+The following is a very simple example of a valid demo file.
+
 #################### EXAMPLE DEMO <ex_demo.py> ###############################
 '''A simple interactive demo to illustrate the use of IPython's Demo class.'''
 
@@ -111,6 +139,7 @@ print 'z is now:', z
 print 'bye!'
 ################### END EXAMPLE DEMO <ex_demo.py> ############################
 """
+
 #*****************************************************************************
 #     Copyright (C) 2005-2006 Fernando Perez. <Fernando.Perez@colorado.edu>
 #
@@ -296,8 +325,8 @@ class Demo:
         if index is None:
             return
 
-        print marquee('<%s> block # %s (%s remaining)' %
-                      (self.fname,index,self.nblocks-index-1))
+        print self.marquee('<%s> block # %s (%s remaining)' %
+                           (self.fname,index,self.nblocks-index-1))
         print self.src_blocks_colored[index],
         sys.stdout.flush()
 
@@ -307,6 +336,7 @@ class Demo:
         fname = self.fname
         nblocks = self.nblocks
         silent = self._silent
+        marquee = self.marquee
         for index,block in enumerate(self.src_blocks_colored):
             if silent[index]:
                 print marquee('<%s> SILENT block # %s (%s remaining)' %
@@ -335,6 +365,7 @@ class Demo:
         if index is None:
             return
         try:
+            marquee = self.marquee
             next_block = self.src_blocks[index]
             self.block_index += 1
             if self._silent[index]:
@@ -353,7 +384,9 @@ class Demo:
             try:
                 save_argv = sys.argv
                 sys.argv = self.sys_argv
+                self.pre_cmd()
                 self.runlines(next_block)
+                self.post_cmd()
             finally:
                 sys.argv = save_argv
             
@@ -364,9 +397,24 @@ class Demo:
 
         if self.block_index == self.nblocks:
             print
-            print marquee(' END OF DEMO ')
-            print marquee('Use reset() if you want to rerun it.')
+            print self.marquee(' END OF DEMO ')
+            print self.marquee('Use reset() if you want to rerun it.')
             self.finished = True
+
+    # These methods are meant to be overridden by subclasses who may wish to
+    # customize the behavior of of their demos.
+    def marquee(self,txt='',width=78,mark='*'):
+        """Return the input string centered in a 'marquee'."""
+        return marquee(txt,width,mark)
+
+    def pre_cmd(self):
+        """Method called before executing each block."""
+        pass
+
+    def post_cmd(self):
+        """Method called after executing each block."""
+        pass
+
 
 class IPythonDemo(Demo):
     """Class for interactive demos with IPython's input processing applied.
@@ -384,7 +432,7 @@ class IPythonDemo(Demo):
     def runlines(self,source):
         """Execute a string with one or more lines of code"""
 
-        self.runlines(source)
+        self.shell.runlines(source)
         
 class LineDemo(Demo):
     """Demo where each line is executed as a separate block.

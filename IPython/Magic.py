@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Magic functions for InteractiveShell.
 
-$Id: Magic.py 1981 2006-12-12 21:51:54Z vivainio $"""
+$Id: Magic.py 2036 2007-01-27 07:30:22Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001 Janko Hauser <jhauser@zscout.de> and
@@ -2617,16 +2617,20 @@ Defaulting color scheme to 'NoColor'"""
         if ps:
             try:
                 os.chdir(os.path.expanduser(ps))
-                ttitle = ("IPy:" + (
-                    os.getcwd() == '/' and '/' or os.path.basename(os.getcwd())))
-                platutils.set_term_title(ttitle)
+                if self.shell.rc.term_title:
+                    #print 'set term title:',self.shell.rc.term_title  # dbg
+                    ttitle = ("IPy:" + (
+                        os.getcwd() == '/' and '/' or \
+                        os.path.basename(os.getcwd())))
+                    platutils.set_term_title(ttitle)
             except OSError:
                 print sys.exc_info()[1]
             else:
                 self.shell.user_ns['_dh'].append(os.getcwd())
         else:
             os.chdir(self.shell.home_dir)
-            platutils.set_term_title("IPy:~")
+            if self.shell.rc.term_title:
+                platutils.set_term_title("IPy:~")
             self.shell.user_ns['_dh'].append(os.getcwd())
         if not 'q' in opts:
             print self.shell.user_ns['_dh'][-1]

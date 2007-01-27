@@ -49,7 +49,7 @@ runner [opts] script_name
 class InteractiveRunner(object):
     """Class to run a sequence of commands through an interactive program."""
     
-    def __init__(self,program,prompts,args=None):
+    def __init__(self,program,prompts,args=None,out=sys.stdout,echo=True):
         """Construct a runner.
 
         Inputs:
@@ -73,6 +73,9 @@ class InteractiveRunner(object):
           - args(None): optional list of strings to pass as arguments to the
           child program.
 
+          - out(sys.stdout): if given, an output stream to be used when writing
+          output.  The only requirement is that it must have a .write() method.
+
         Public members not parameterized in the constructor:
 
           - delaybeforesend(0): Newer versions of pexpect have a delay before
@@ -87,11 +90,30 @@ class InteractiveRunner(object):
         self.prompts = prompts
         if args is None: args = []
         self.args = args
+        self.out = out
+        self.echo = echo
         # Other public members which we don't make as parameters, but which
         # users may occasionally want to tweak
         self.delaybeforesend = 0
-        
-    def run_file(self,fname,interact=False):
+
+        # Create child process and hold on to it so we don't have to re-create
+        # for every single execution call
+        c = self.child = pexpect.spawn(self.program,self.args,timeout=None)
+        c.delaybeforesend = self.delaybeforesend
+        # pexpect hard-codes the terminal size as (24,80) (rows,columns).
+        # This causes problems because any line longer than 80 characters gets
+        # completely overwrapped on the printed outptut (even though
+        # internally the code runs fine).  We reset this to 99 rows X 200
+        # columns (arbitrarily chosen), which should avoid problems in all
+        # reasonable cases.
+        c.setwinsize(99,200)
+
+    def close(self):
+        """close child process"""
+
+        self.child.close()
+
+    def run_file(self,fname,interact=False,get_output=False):
         """Run the given file interactively.
 
         Inputs:
@@ -103,11 +125,13 @@ class InteractiveRunner(object):
 
         fobj = open(fname,'r')
         try:
-            self.run_source(fobj,interact)
+            out = self.run_source(fobj,interact,get_output)
         finally:
             fobj.close()
+        if get_output:
+            return out
 
-    def run_source(self,source,interact=False):
+    def run_source(self,source,interact=False,get_output=False):
         """Run the given source code interactively.
 
         Inputs:
@@ -119,6 +143,12 @@ class InteractiveRunner(object):
 
           - interact(False): if true, start to interact with the running
           program at the end of the script.  Otherwise, just exit.
+
+          - get_output(False): if true, capture the output of the child process
+          (filtering the input commands out) and return it as a string.
+
+        Returns:
+          A string containing the process output, but only if requested.
           """
 
         # if the source is a string, chop it up in lines so we can iterate
@@ -126,39 +156,38 @@ class InteractiveRunner(object):
         if not isinstance(source,file):
             source = source.splitlines(True)
 
-        # grab the true write method of stdout, in case anything later
-        # reassigns sys.stdout, so that we really are writing to the true
-        # stdout and not to something else.  We also normalize all strings we
-        # write to use the native OS line separators.
-        linesep  = os.linesep
-        stdwrite = sys.stdout.write
-        write    = lambda s: stdwrite(s.replace('\r\n',linesep))
-
-        c = pexpect.spawn(self.program,self.args,timeout=None)
-        c.delaybeforesend = self.delaybeforesend
-
-        # pexpect hard-codes the terminal size as (24,80) (rows,columns).
-        # This causes problems because any line longer than 80 characters gets
-        # completely overwrapped on the printed outptut (even though
-        # internally the code runs fine).  We reset this to 99 rows X 200
-        # columns (arbitrarily chosen), which should avoid problems in all
-        # reasonable cases.
-        c.setwinsize(99,200)
+        if self.echo:
+            # normalize all strings we write to use the native OS line
+            # separators.
+            linesep  = os.linesep
+            stdwrite = self.out.write
+            write    = lambda s: stdwrite(s.replace('\r\n',linesep))
+        else:
+            # Quiet mode, all writes are no-ops
+            write = lambda s: None
             
+        c = self.child
         prompts = c.compile_pattern_list(self.prompts)
-
         prompt_idx = c.expect_list(prompts)
+
         # Flag whether the script ends normally or not, to know whether we can
         # do anything further with the underlying process.
         end_normal = True
+
+        # If the output was requested, store it in a list for return at the end
+        if get_output:
+            output = []
+            store_output = output.append
+        
         for cmd in source:
             # skip blank lines for all matches to the 'main' prompt, while the
             # secondary prompts do not
             if prompt_idx==0 and \
                    (cmd.isspace() or cmd.lstrip().startswith('#')):
-                print cmd,
+                write(cmd)
                 continue
 
+            #write('AFTER: '+c.after)  # dbg
             write(c.after)
             c.send(cmd)
             try:
@@ -168,8 +197,17 @@ class InteractiveRunner(object):
                 write(c.before)
                 end_normal = False
                 break
+            
             write(c.before)
-        
+
+            # With an echoing process, the output we get in c.before contains
+            # the command sent, a newline, and then the actual process output
+            if get_output:
+                store_output(c.before[len(cmd+'\n'):])
+                #write('CMD: <<%s>>' % cmd)  # dbg
+                #write('OUTPUT: <<%s>>' % output[-1])  # dbg
+
+        self.out.flush()
         if end_normal:
             if interact:
                 c.send('\n')
@@ -182,13 +220,19 @@ class InteractiveRunner(object):
                     # space is there to make sure it gets printed, otherwise
                     # OS buffering sometimes just suppresses it.
                     write(' \n')
-                    sys.stdout.flush()
-            else:
-                c.close()
+                    self.out.flush()
         else:
             if interact:
                 e="Further interaction is not possible: child process is dead."
                 print >> sys.stderr, e
+
+        # Leave the child ready for more input later on, otherwise select just
+        # hangs on the second invocation.
+        c.send('\n')
+        
+        # Return any requested output
+        if get_output:
+            return ''.join(output)
                 
     def main(self,argv=None):
         """Run as a command-line script."""
@@ -221,26 +265,28 @@ class IPythonRunner(InteractiveRunner):
     prompts would break this.
     """
     
-    def __init__(self,program = 'ipython',args=None):
+    def __init__(self,program = 'ipython',args=None,out=sys.stdout,echo=True):
         """New runner, optionally passing the ipython command to use."""
         
         args0 = ['-colors','NoColor',
                  '-pi1','In [\\#]: ',
-                 '-pi2','   .\\D.: ']
+                 '-pi2','   .\\D.: ',
+                 '-noterm_title',
+                 '-noautoindent']
         if args is None: args = args0
         else: args = args0 + args
         prompts = [r'In \[\d+\]: ',r'   \.*: ']
-        InteractiveRunner.__init__(self,program,prompts,args)
+        InteractiveRunner.__init__(self,program,prompts,args,out,echo)
 
 
 class PythonRunner(InteractiveRunner):
     """Interactive Python runner."""
 
-    def __init__(self,program='python',args=None):
+    def __init__(self,program='python',args=None,out=sys.stdout,echo=True):
         """New runner, optionally passing the python command to use."""
 
         prompts = [r'>>> ',r'\.\.\. ']
-        InteractiveRunner.__init__(self,program,prompts,args)
+        InteractiveRunner.__init__(self,program,prompts,args,out,echo)
 
 
 class SAGERunner(InteractiveRunner):
@@ -250,11 +296,11 @@ class SAGERunner(InteractiveRunner):
     to use 'colors NoColor' in the ipythonrc config file, since currently the
     prompt matching regexp does not identify color sequences."""
 
-    def __init__(self,program='sage',args=None):
+    def __init__(self,program='sage',args=None,out=sys.stdout,echo=True):
         """New runner, optionally passing the sage command to use."""
 
         prompts = ['sage: ',r'\s*\.\.\. ']
-        InteractiveRunner.__init__(self,program,prompts,args)
+        InteractiveRunner.__init__(self,program,prompts,args,out,echo)
 
 # Global usage string, to avoid indentation issues if typed in a function def.
 MAIN_USAGE = """

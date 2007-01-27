@@ -1,3 +1,15 @@
+2007-01-27  Fernando Perez  <Fernando.Perez@colorado.edu>
+
+	* IPython/irunner.py (InteractiveRunner.run_source): major updates
+	to irunner to allow it to correctly support real doctesting of
+	out-of-process ipython code.
+
+	* IPython/Magic.py (magic_cd): Make the setting of the terminal
+	title an option (-noterm_title) because it completely breaks
+	doctesting.
+
+	* IPython/demo.py: fix IPythonDemo class that was not actually working.
+
 2007-01-24  Fernando Perez  <Fernando.Perez@colorado.edu>
 
 	* IPython/irunner.py (main): fix small bug where extensions were
