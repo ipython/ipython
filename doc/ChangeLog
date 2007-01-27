@@ -1,5 +1,11 @@
 2007-01-27  Fernando Perez  <Fernando.Perez@colorado.edu>
 
+	* IPython/Extensions/ipy_stock_completers.py (runlistpy): fix a
+	bug where only .ipy or .py would be completed.  Once the first
+	argument to %run has been given, all completions are valid because
+	they are the arguments to the script, which may well be non-python
+	filenames.
+
 	* IPython/irunner.py (InteractiveRunner.run_source): major updates
 	to irunner to allow it to correctly support real doctesting of
 	out-of-process ipython code.

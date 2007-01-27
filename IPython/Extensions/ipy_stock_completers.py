@@ -170,14 +170,26 @@ def runlistpy(self, event):
     comps = shlex.split(event.line)
     relpath = (len(comps) > 1 and comps[-1] or '')
 
-    #print "rp",relpath  # dbg
+    #print "\nev=",event  # dbg
+    #print "rp=",relpath  # dbg
+    #print 'comps=',comps  # dbg
+    
     lglob = glob.glob
     isdir = os.path.isdir
     if relpath.startswith('~'):
         relpath = os.path.expanduser(relpath)
     dirs = [f.replace('\\','/') + "/" for f in lglob(relpath+'*')
             if isdir(f)]
-    pys =  [f.replace('\\','/') for f in lglob(relpath+'*.py') + lglob(relpath+'*.ipy')]
+
+    # Find if the user has already typed the first filename, after which we
+    # should complete on all files, since after the first one other files may
+    # be arguments to the input script.
+    #filter(
+    if filter(lambda f: f.endswith('.py') or f.endswith('.ipy'),comps):
+        pys =  [f.replace('\\','/') for f in lglob('*')]
+    else:
+        pys =  [f.replace('\\','/')
+                for f in lglob(relpath+'*.py') + lglob(relpath+'*.ipy')]
     return dirs + pys
 
 ip.set_hook('complete_command', runlistpy, str_key = '%run')
