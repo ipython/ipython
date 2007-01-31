@@ -1,3 +1,10 @@
+2007-01-31  Fernando Perez  <Fernando.Perez@colorado.edu>
+
+	* IPython/completer.py (Completer.attr_matches): Fix small
+	tab-completion bug with Enthought Traits objects with units.
+	Thanks to a bug report by Tom Denniston
+	<tom.denniston-AT-alum.dartmouth.org>.
+
 2007-01-27  Fernando Perez  <Fernando.Perez@colorado.edu>
 
 	* IPython/Extensions/ipy_stock_completers.py (runlistpy): fix a

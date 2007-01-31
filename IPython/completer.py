@@ -215,13 +215,15 @@ class Completer:
             words.append('__class__')
             words.extend(get_class_members(object.__class__))
 
+        # Some libraries (such as traits) may introduce duplicates, we want to
+        # track and clean this up if it happens
+        may_have_dupes = False
+
         # this is the 'dir' function for objects with Enthought's traits
         if hasattr(object, 'trait_names'):
             try:
                 words.extend(object.trait_names())
-                # eliminate possible duplicates, as some traits may also
-                # appear as normal attributes in the dir() call.
-                words = set(words)
+                may_have_dupes = True
             except TypeError:
                 # This will happen if `object` is a class and not an instance.
                 pass
@@ -230,12 +232,16 @@ class Completer:
         if hasattr(object, '_getAttributeNames'):
             try:
                 words.extend(object._getAttributeNames())
-                # Eliminate duplicates.
-                words = set(words)
+                may_have_dupes = True
             except TypeError:
                 # `object` is a class and not an instance.  Ignore
                 # this error.
                 pass
+
+        if may_have_dupes:
+            # eliminate possible duplicates, as some traits may also
+            # appear as normal attributes in the dir() call.
+            words = set(words)
 
         # filter out non-string attributes which may be stuffed by dir() calls
         # and poor coding in third-party modules

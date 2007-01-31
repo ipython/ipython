@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Magic functions for InteractiveShell.
 
-$Id: Magic.py 2036 2007-01-27 07:30:22Z fperez $"""
+$Id: Magic.py 2066 2007-01-31 18:56:06Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001 Janko Hauser <jhauser@zscout.de> and
@@ -3067,6 +3067,5 @@ Defaulting color scheme to 'NoColor'"""
             [p.remove() for p in legacy]
             suffix = (sys.platform == 'win32' and '.ini' or '')
             (userdir / ('ipythonrc' + suffix)).write_text('# Empty, see ipy_user_conf.py\n')
-
 
 # end Magic

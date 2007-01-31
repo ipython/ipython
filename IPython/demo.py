@@ -372,6 +372,7 @@ class Demo:
                 print marquee('Executing silent block # %s (%s remaining)' %
                               (index,self.nblocks-index-1))
             else:
+                self.pre_cmd()
                 self.show(index)
                 if self.auto_all or self._auto[index]:
                     print marquee('output')
@@ -384,7 +385,6 @@ class Demo:
             try:
                 save_argv = sys.argv
                 sys.argv = self.sys_argv
-                self.pre_cmd()
                 self.runlines(next_block)
                 self.post_cmd()
             finally:
