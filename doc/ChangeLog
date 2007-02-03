@@ -130,7 +130,7 @@
 	
 2006-12-08  Ville Vainio  <vivainio@gmail.com>
 
-	* Extensions/ipy_stock_completers.py.py: fix cd completer 
+	* Extensions/ipy_stock_completers.py: fix cd completer 
 	to translate /'s to \'s again.
 	
 	* completer.py: prevent traceback on file completions w/ 
