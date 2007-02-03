@@ -196,6 +196,7 @@ except TypeError:
 
 noitem = object()
 
+
 def item(iterator, index, default=noitem):
     """
     Return the ``index``th item from the iterator ``iterator``.
@@ -668,6 +669,12 @@ xrepr = simplegeneric.generic(xrepr)
 def xrepr_none(self, mode="default"):
     yield (astyle.style_type_none, repr(self))
 xrepr.when_object(None)(xrepr_none)
+
+
+def xrepr_noitem(self, mode="default"):
+    yield (2, True)
+    yield (astyle.style_nodata, "<?>")
+xrepr.when_object(noitem)(xrepr_noitem)
 
 
 def xrepr_bool(self, mode="default"):

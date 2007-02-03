@@ -1,3 +1,8 @@
+2007-02-03  Walter Doerwald  <walter@livinglogic.de>
+
+	* IPython/Extensions/ipipe.py: Add an xrepr implementation
+	for the noitem object.
+
 2007-01-31  Fernando Perez  <Fernando.Perez@colorado.edu>
 
 	* IPython/completer.py (Completer.attr_matches): Fix small
