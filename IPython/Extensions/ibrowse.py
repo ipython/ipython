@@ -941,6 +941,8 @@ class ibrowse(ipipe.Display):
             except (KeyboardInterrupt, SystemExit):
                 raise
             except Exception, exc:
+                if not self.levels:
+                    raise
                 self._calcheaderlines(oldlevels)
                 curses.beep()
                 self.report(exc)
