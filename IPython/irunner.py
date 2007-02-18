@@ -45,6 +45,41 @@ Interactive script runner, type: %s
 runner [opts] script_name
 """
 
+def pexpect_monkeypatch():
+    """Patch pexpect to prevent unhandled exceptions at VM teardown.
+
+    Calling this function will monkeypatch the pexpect.spawn class and modify
+    its __del__ method to make it more robust in the face of failures that can
+    occur if it is called when the Python VM is shutting down.
+
+    Since Python may fire __del__ methods arbitrarily late, it's possible for
+    them to execute during the teardown of the Python VM itself.  At this
+    point, various builtin modules have been reset to None.  Thus, the call to
+    self.close() will trigger an exception because it tries to call os.close(),
+    and os is now None.
+    """
+    
+    if pexpect.__version__[:3] >= '2.2':
+        # No need to patch, fix is already the upstream version.
+        return
+    
+    def __del__(self):
+        """This makes sure that no system resources are left open.
+        Python only garbage collects Python objects. OS file descriptors
+        are not Python objects, so they must be handled explicitly.
+        If the child file descriptor was opened outside of this class
+        (passed to the constructor) then this does not close it.
+        """
+        if not self.closed:
+            try:
+                self.close()
+            except AttributeError:
+                pass
+
+    pexpect.spawn.__del__ = __del__
+
+pexpect_monkeypatch()
+
 # The generic runner class
 class InteractiveRunner(object):
     """Class to run a sequence of commands through an interactive program."""
