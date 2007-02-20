@@ -23,6 +23,13 @@ The classes are (see their docstrings for further details):
  - IPythonLineDemo: IPython version of the LineDemo class (the demo is
  executed a line at a time, but processed via IPython).
 
+ - ClearMixin: mixin to make Demo classes with less visual clutter.  It
+   declares an empty marquee and a pre_cmd that clears the screen before each
+   block (see Subclassing below).
+
+ - ClearDemo, ClearIPDemo: mixin-enabled versions of the Demo and IPythonDemo
+   classes.
+
 
 Subclassing
 ===========
@@ -35,7 +42,7 @@ subclassing more convenient.  Their docstrings below have some more details:
 
   - pre_cmd(): run right before the execution of each block.
 
-  - pre_cmd(): run right after the execution of each block.  If the block
+  - post_cmd(): run right after the execution of each block.  If the block
     raises an exception, this is NOT called.
     
 
@@ -56,10 +63,16 @@ behavior.
 
 The supported tags are:
 
-# <demo> --- stop ---
+# <demo> stop
 
   Defines block boundaries, the points where IPython stops execution of the
   file and returns to the interactive prompt.
+
+  You can optionally mark the stop tag with extra dashes before and after the
+  word 'stop', to help visually distinguish the blocks in a text editor:
+
+  # <demo> --- stop ---
+  
 
 # <demo> silent
 
@@ -110,21 +123,22 @@ The following is a very simple example of a valid demo file.
 print 'Hello, welcome to an interactive IPython demo.'
 
 # The mark below defines a block boundary, which is a point where IPython will
-# stop execution and return to the interactive prompt.
-# Note that in actual interactive execution, 
-# <demo> --- stop ---
+# stop execution and return to the interactive prompt. The dashes are actually
+# optional and used only as a visual aid to clearly separate blocks while
+editing the demo code.
+# <demo> stop
 
 x = 1
 y = 2
 
-# <demo> --- stop ---
+# <demo> stop
 
 # the mark below makes this block as silent
 # <demo> silent
 
 print 'This is a silent block, which gets executed but not printed.'
 
-# <demo> --- stop ---
+# <demo> stop
 # <demo> auto
 print 'This is an automatic block.'
 print 'It is executed without asking for confirmation, but printed.'
@@ -132,7 +146,7 @@ z = x+y
 
 print 'z=',x
 
-# <demo> --- stop ---
+# <demo> stop
 # This is just another normal block.
 print 'z is now:', z
 
@@ -164,9 +178,9 @@ class DemoError(exceptions.Exception): pass
 def re_mark(mark):
     return re.compile(r'^\s*#\s+<demo>\s+%s\s*$' % mark,re.MULTILINE)
 
-class Demo:
+class Demo(object):
 
-    re_stop     = re_mark('---\s?stop\s?---')
+    re_stop     = re_mark('-?\s?stop\s?-?')
     re_silent   = re_mark('silent')
     re_auto     = re_mark('auto')
     re_auto_all = re_mark('auto_all')
@@ -271,7 +285,12 @@ class Demo:
         return index
 
     def seek(self,index):
-        """Move the current seek pointer to the given block"""
+        """Move the current seek pointer to the given block.
+
+        You can use negative indices to seek from the end, with identical
+        semantics to those of Python lists."""
+        if index<0:
+            index = self.nblocks + index
         self._validate_index(index)
         self.block_index = index
         self.finished = False
@@ -280,8 +299,10 @@ class Demo:
         """Move the seek pointer back num blocks (default is 1)."""
         self.seek(self.block_index-num)
 
-    def jump(self,num):
-        """Jump a given number of blocks relative to the current one."""
+    def jump(self,num=1):
+        """Jump a given number of blocks relative to the current one.
+
+        The offset can be positive or negative, defaults to 1."""
         self.seek(self.block_index+num)
 
     def again(self):
@@ -327,7 +348,7 @@ class Demo:
 
         print self.marquee('<%s> block # %s (%s remaining)' %
                            (self.fname,index,self.nblocks-index-1))
-        print self.src_blocks_colored[index],
+        sys.stdout.write(self.src_blocks_colored[index])
         sys.stdout.flush()
 
     def show_all(self):
@@ -375,7 +396,7 @@ class Demo:
                 self.pre_cmd()
                 self.show(index)
                 if self.auto_all or self._auto[index]:
-                    print marquee('output')
+                    print marquee('output:')
                 else:
                     print marquee('Press <q> to quit, <Enter> to execute...'),
                     ans = raw_input().strip()
@@ -396,9 +417,12 @@ class Demo:
             self.ip_ns.update(self.user_ns)
 
         if self.block_index == self.nblocks:
-            print
-            print self.marquee(' END OF DEMO ')
-            print self.marquee('Use reset() if you want to rerun it.')
+            mq1 = self.marquee('END OF DEMO')
+            if mq1:
+                # avoid spurious prints if empty marquees are used
+                print
+                print mq1
+                print self.marquee('Use reset() if you want to rerun it.')
             self.finished = True
 
     # These methods are meant to be overridden by subclasses who may wish to
@@ -462,6 +486,41 @@ class LineDemo(Demo):
         # ensure clean namespace and seek offset
         self.reset()
 
+
 class IPythonLineDemo(IPythonDemo,LineDemo):
     """Variant of the LineDemo class whose input is processed by IPython."""
+    pass
+
+
+class ClearMixin(object):
+    """Use this mixin to make Demo classes with less visual clutter.
+
+    Demos using this mixin will clear the screen before every block and use
+    blank marquees.
+
+    Note that in order for the methods defined here to actually override those
+    of the classes it's mixed with, it must go /first/ in the inheritance
+    tree.  For example:
+
+        class ClearIPDemo(ClearMixin,IPythonDemo): pass
+
+    will provide an IPythonDemo class with the mixin's features.
+    """
+    
+    def marquee(self,txt='',width=78,mark='*'):
+        """Blank marquee that returns '' no matter what the input."""
+        return ''
+
+    def pre_cmd(self):
+        """Method called before executing each block.
+
+        This one simply clears the screen."""
+        os.system('clear')
+
+
+class ClearDemo(ClearMixin,Demo):
+    pass
+
+
+class ClearIPDemo(ClearMixin,IPythonDemo):
     pass
