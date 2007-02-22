@@ -1,3 +1,10 @@
+2007-02-22  Ville Vainio  <vivainio@gmail.com>
+
+	* IPython/Extensions/ipy_p4.py: Extension for improved
+        p4 (perforce version control system) experience.
+        Adds %p4 magic with p4 command completion and
+        automatic -G argument (marshall output as python dict)
+
 2007-02-19  Fernando Perez  <Fernando.Perez@colorado.edu>
 
 	* IPython/demo.py (Demo.re_stop): make dashes optional in demo
