@@ -12,7 +12,15 @@ import ipy_stock_completers
 
 def p4_f(self, parameter_s=''):
     cmd = 'p4 -G ' + parameter_s
-    return marshal.load(os.popen(cmd))
+    fobj = os.popen(cmd)
+    out = []
+    while 1:
+        try:
+            out.append(marshal.load(fobj))
+        except EOFError:
+            break
+        
+    return out
 
 ip.expose_magic('p4', p4_f)
 
@@ -30,5 +38,5 @@ def p4_completer(self,event):
     return ipy_stock_completers.vcs_completer(p4_commands, event)
 
 ip.set_hook('complete_command', p4_completer, str_key = '%p4')
-
+ip.set_hook('complete_command', p4_completer, str_key = 'p4')
 
