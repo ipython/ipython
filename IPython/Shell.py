@@ -4,7 +4,7 @@
 All the matplotlib support code was co-developed with John Hunter,
 matplotlib's author.
 
-$Id: Shell.py 1988 2006-12-13 16:49:41Z vivainio $"""
+$Id: Shell.py 2120 2007-02-27 15:48:24Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2006 Fernando Perez <fperez@colorado.edu>
@@ -645,7 +645,7 @@ class IPShellGTK(threading.Thread):
         if sys.platform != 'win32':
             try:
                 if self.gtk.gtk_version[0] >= 2:
-                    self.gtk.threads_init()
+                    self.gtk.gdk.threads_init()
             except AttributeError:
                 pass
             except RuntimeError:
@@ -658,10 +658,11 @@ class IPShellGTK(threading.Thread):
                       'Note that matplotlib will most likely not work in its '
                       'current state!')
                 self.IP.InteractiveTB()
+
         self.start()
-        self.gtk.threads_enter()
+        self.gtk.gdk.threads_enter()
         self.gtk_mainloop()
-        self.gtk.threads_leave()
+        self.gtk.gdk.threads_leave()
         self.join()
 
     def on_timer(self):
