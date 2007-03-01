@@ -3,6 +3,8 @@
 	* IPython/iplib.py (split_user_input): fix input splitting so we
 	don't attempt attribute accesses on things that can't possibly be
 	valid Python attributes.  After a bug report by Alex Schmolck.
+	(InteractiveShell.__init__): brown-paper bag fix; regexp broke
+	%magic with explicit % prefix.
 
 2007-02-27  Fernando Perez  <Fernando.Perez@colorado.edu>
 
