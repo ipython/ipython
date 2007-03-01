@@ -6,7 +6,7 @@ Requires Python 2.3 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 2014 2007-01-05 10:36:58Z fperez $
+$Id: iplib.py 2122 2007-03-01 02:27:11Z fperez $
 """
 
 #*****************************************************************************
@@ -491,6 +491,15 @@ class InteractiveShell(object,Magic):
         self.line_split = re.compile(r'^([\s*,;/])'
                                      r'([\?\w\.]+\w*\s*)'
                                      r'(\(?.*$)')
+
+        # A simpler regexp used as a fallback if the above doesn't work.  This
+        # one is more conservative in how it partitions the input.  This code
+        # can probably be cleaned up to do everything with just one regexp, but
+        # I'm afraid of breaking something; do it once the unit tests are in
+        # place.
+        self.line_split_fallback = re.compile(r'^(\s*)'
+                                              r'([\w\.]*)'
+                                              r'(.*)')
 
         # Original re, keep around for a while in case changes break something
         #self.line_split = re.compile(r'(^[\s*!\?%,/]?)'
@@ -2017,17 +2026,14 @@ want to merge them back into the new files.""" % locals()
 
         lsplit = self.line_split.match(line)
         if lsplit is None:  # no regexp match returns None
-            try:
-                iFun,theRest = line.split(None,1)
-            except ValueError:
-                iFun,theRest = line,''
-            pre = re.match('^(\s*)(.*)',line).groups()[0]
-        else:
-            pre,iFun,theRest = lsplit.groups()
+            lsplit = self.line_split_fallback.match(line)
 
+        #pre,iFun,theRest = lsplit.groups()  # dbg
         #print 'line:<%s>' % line # dbg
         #print 'pre <%s> iFun <%s> rest <%s>' % (pre,iFun.strip(),theRest) # dbg
-        return pre,iFun.strip(),theRest
+        #return pre,iFun.strip(),theRest  # dbg
+
+        return lsplit.groups()
 
     def _prefilter(self, line, continue_prompt):
         """Calls different preprocessors, depending on the form of line."""

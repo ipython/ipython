@@ -1,3 +1,9 @@
+2007-02-28  Fernando Perez  <Fernando.Perez@colorado.edu>
+
+	* IPython/iplib.py (split_user_input): fix input splitting so we
+	don't attempt attribute accesses on things that can't possibly be
+	valid Python attributes.  After a bug report by Alex Schmolck.
+
 2007-02-27  Fernando Perez  <Fernando.Perez@colorado.edu>
 
 	* IPython/Shell.py (IPShellGTK.mainloop): update threads calls to

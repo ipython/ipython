@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Magic functions for InteractiveShell.
 
-$Id: Magic.py 2104 2007-02-20 10:25:51Z fperez $"""
+$Id: Magic.py 2122 2007-03-01 02:27:11Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001 Janko Hauser <jhauser@zscout.de> and
@@ -210,6 +210,7 @@ license. To use profiling, please install"python2.3-profiler" from non-free.""")
             except KeyError:
                 continue
             else:
+                #print 'oname_rest:', oname_rest  # dbg
                 for part in oname_rest:
                     try:
                         parent = obj
