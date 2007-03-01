@@ -6,7 +6,7 @@ Requires Python 2.3 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 2123 2007-03-01 06:54:44Z fperez $
+$Id: iplib.py 2124 2007-03-01 07:19:24Z fperez $
 """
 
 #*****************************************************************************
@@ -498,7 +498,7 @@ class InteractiveShell(object,Magic):
         # I'm afraid of breaking something; do it once the unit tests are in
         # place.
         self.line_split_fallback = re.compile(r'^(\s*)'
-                                              r'([%\w\.]*)'
+                                              r'([%\!\?\w\.]*)'
                                               r'(.*)')
 
         # Original re, keep around for a while in case changes break something
