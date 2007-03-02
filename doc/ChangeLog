@@ -1,3 +1,10 @@
+2007-03-01  Fernando Perez  <Fernando.Perez@colorado.edu>
+
+	* IPython/iplib.py (split_user_inputBROKEN): temporarily disable
+	my changes from yesterday, they introduced bugs.  Will reactivate
+	once I get a correct solution, which will be much easier thanks to
+	Dan Milstein's new prefilter test suite.
+
 2007-02-28  Fernando Perez  <Fernando.Perez@colorado.edu>
 
 	* IPython/iplib.py (split_user_input): fix input splitting so we
