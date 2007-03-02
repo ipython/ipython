@@ -713,7 +713,7 @@ class IGridFrame(wx.Frame):
         Show the help-HTML in a browser (as a ``HtmlWindow`` does not understand
         CSS this looks better)
         """
-        filename = urllib.pathname2url(os.path.abspath(os.path.join(os.path.dirname(__file__), "help.html")))
+        filename = urllib.pathname2url(os.path.abspath(os.path.join(os.path.dirname(__file__), "igrid_help.html")))
         if not filename.startswith("file"):
                 filename = "file:" + filename
         webbrowser.open(filename, new=1, autoraise=True)
