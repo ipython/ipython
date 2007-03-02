@@ -704,7 +704,7 @@ class IGridFrame(wx.Frame):
         """
         Display a help dialog
         """
-        filename = os.path.join(os.path.dirname(__file__), "help.html")
+        filename = os.path.join(os.path.dirname(__file__), "igrid_help.html")
         frm = IGridHTMLHelp(None, title="Help", filename=filename, size=wx.Size(600,400))
         frm.Show()
 
