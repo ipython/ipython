@@ -1,3 +1,11 @@
+2007-03-02  Walter Doerwald  <walter@livinglogic.de>
+
+	* IPython/Extensions/igrid.py: Add Nik Tautenhahns igrid extension.
+	igrid is a wxPython-based display object for ipipe. If your system has
+	wx installed igrid will be the default display. Without wx ipipe falls
+	back to ibrowse (which needs curses). If no curses is installed ipipe
+	falls back to idump.
+
 2007-03-01  Fernando Perez  <Fernando.Perez@colorado.edu>
 
 	* IPython/iplib.py (split_user_inputBROKEN): temporarily disable
