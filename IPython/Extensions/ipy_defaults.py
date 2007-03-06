@@ -53,7 +53,8 @@ set show-all-if-ambiguous on
 "\C-k": kill-line
 "\C-u": unix-line-discard"""
 
-for cmd in rlopts.split('\n'):
-    readline.parse_and_bind(cmd)
+if readline.have_readline:
+    for cmd in rlopts.split('\n'):
+        readline.parse_and_bind(cmd)
     
     

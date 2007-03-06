@@ -1,3 +1,8 @@
+2007-03-02  Jörgen Stenarson  <jorgen.stenarson@bostream.nu>
+
+	* IPython/Extensions/ipy_defaults.py: Check if readline is available
+	before calling functions from readline.
+
 2007-03-02  Walter Doerwald  <walter@livinglogic.de>
 
 	* IPython/Extensions/igrid.py: Add Nik Tautenhahns igrid extension.
