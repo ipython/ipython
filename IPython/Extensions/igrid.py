@@ -554,6 +554,8 @@ class IGridGrid(wx.grid.Grid):
         quit
         """
         frame = self.GetParent().GetParent().GetParent()
+        if frame.helpdialog:
+            frame.helpdialog.Destroy()
         frame.parent.returnobj = returnobj
         frame.Close()
         frame.Destroy()
@@ -661,6 +663,7 @@ class IGridFrame(wx.Frame):
         self.menubar.Append(self.m_help, "&Help")
         self.SetMenuBar(self.menubar)
         self.searchtext = ""
+        self.helpdialog = None
 
     def sortasc(self, event):
         grid = self.notebook.GetPage(self.notebook.GetSelection()).grid
@@ -704,9 +707,11 @@ class IGridFrame(wx.Frame):
         """
         Display a help dialog
         """
+        if self.helpdialog:
+            self.helpdialog.Destroy()
         filename = os.path.join(os.path.dirname(__file__), "igrid_help.html")
-        frm = IGridHTMLHelp(None, title="Help", filename=filename, size=wx.Size(600,400))
-        frm.Show()
+        self.helpdialog = IGridHTMLHelp(None, title="Help", filename=filename, size=wx.Size(600,400))
+        self.helpdialog.Show()
 
     def display_help_in_browser(self, event):
         """
@@ -715,9 +720,9 @@ class IGridFrame(wx.Frame):
         """
         filename = urllib.pathname2url(os.path.abspath(os.path.join(os.path.dirname(__file__), "igrid_help.html")))
         if not filename.startswith("file"):
-                filename = "file:" + filename
+            filename = "file:" + filename
         webbrowser.open(filename, new=1, autoraise=True)
-        
+
     def enter_searchexpression(self, event):
         pass
 
