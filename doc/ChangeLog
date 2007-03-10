@@ -2,6 +2,10 @@
 
 	* IPython/Extensions/ipipe.py: Prefer ibrowse over igrid
 	as the default browser.
+	* IPython/Extensions/igrid.py: Make a few igrid attributes private.
+	As igrid displays all attributes it ever encounters, fetch() (which has
+	been renamed to _fetch()) doesn't have to recalculate the display attributes
+	every time a new item is fetched. This should speed up scrolling.
 
 2007-03-10  Fernando Perez  <Fernando.Perez@colorado.edu>
 

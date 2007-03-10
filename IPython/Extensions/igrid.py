@@ -35,7 +35,7 @@ class IGridRenderer(wx.grid.PyGridCellRenderer):
 
     def _getvalue(self, row, col):
         try:
-            value = self.table.displayattrs[col].value(self.table.items[row])
+            value = self.table._displayattrs[col].value(self.table.items[row])
             (align, width, text) = ipipe.xformat(value, "cell", self.maxchars)
         except Exception, exc:
             (align, width, text) = ipipe.xformat(exc, "cell", self.maxchars)
@@ -123,12 +123,12 @@ class IGridTable(wx.grid.PyGridTableBase):
         self.input = input
         self.iterator = ipipe.xiter(input)
         self.items = []
-        self.hiddenattrs = []
-        self.attrs = attrs
-        self.displayattrs = []
-        self.fetch(1)
-        self.sizing = False
+        self.attrs = [ipipe.upgradexattr(attr) for attr in attrs]
+        self._displayattrs = self.attrs[:]
+        self._displayattrset = set(self.attrs)
+        self._sizing = False
         self.fontsize = fontsize
+        self._fetch(1)
 
     def GetAttr(self, *args):
         attr = wx.grid.GridCellAttr()
@@ -139,11 +139,11 @@ class IGridTable(wx.grid.PyGridTableBase):
         return len(self.items)
 
     def GetNumberCols(self):
-        return len(self.displayattrs)
+        return len(self._displayattrs)
 
     def GetColLabelValue(self, col):
-        if col < len(self.displayattrs):
-            return self.displayattrs[col].name()
+        if col < len(self._displayattrs):
+            return self._displayattrs[col].name()
         else:
             return ""
 
@@ -153,10 +153,19 @@ class IGridTable(wx.grid.PyGridTableBase):
     def IsEmptyCell(self, row, col):
         return False
 
-    def fetch(self, count):
+    def _append(self, item):
+        self.items.append(item)
+        # Nothing to do if the set of attributes has been fixed by the user
+        if not self.attrs:
+            for attr in ipipe.xattrs(item):
+                attr = ipipe.upgradexattr(attr)
+                if attr not in self._displayattrset:
+                    self._displayattrs.append(attr)
+                    self._displayattrset.add(attr)
+
+    def _fetch(self, count):
         # Try to fill ``self.items`` with at least ``count`` objects.
         have = len(self.items)
-        work = False
         while self.iterator is not None and have < count:
             try:
                 item = self.iterator.next()
@@ -167,58 +176,32 @@ class IGridTable(wx.grid.PyGridTableBase):
                 raise
             except Exception, exc:
                 have += 1
-                self.items.append(exc)
-                work = True
+                self._append(item)
                 self.iterator = None
                 break
             else:
                 have += 1
-                self.items.append(item)
-                work = True
-        if work:
-            self.calcdisplayattrs()
-
-    def calcdisplayattrs(self):
-        # Calculate which attributes are available from the objects that are
-        # currently visible on screen (and store it in ``self.displayattrs``)
-        attrs = set()
-        self.displayattrs = []
-        if self.attrs:
-            # If the browser object specifies a fixed list of attributes,
-            # simply use it (removing hidden attributes).
-            for attr in self.attrs:
-                attr = ipipe.upgradexattr(attr)
-                if attr not in attrs and attr not in self.hiddenattrs:
-                    self.displayattrs.append(attr)
-                    attrs.add(attr)
-        else:
-            endy = len(self.items)
-            for i in xrange(endy):
-                for attr in ipipe.xattrs(self.items[i]):
-                    attr = ipipe.upgradexattr(attr)
-                    if attr not in attrs and attr not in self.hiddenattrs:
-                        self.displayattrs.append(attr)
-                        attrs.add(attr)
+                self._append(item)
 
     def GetValue(self, row, col):
         # some kind of dummy-function: does not return anything but "";
         # (The value isn't use anyway)
         # its main task is to trigger the fetch of new objects
-        had_cols = self.displayattrs[:]
+        had_cols = self._displayattrs[:]
         had_rows = len(self.items)
-        if row == had_rows - 1 and self.iterator is not None and not self.sizing:
-            self.fetch(row + 20)
+        if row == had_rows - 1 and self.iterator is not None and not self._sizing:
+            self._fetch(row + 20)
         have_rows = len(self.items)
-        have_cols = len(self.displayattrs)
+        have_cols = len(self._displayattrs)
         if have_rows > had_rows:
             msg = wx.grid.GridTableMessage(self, wx.grid.GRIDTABLE_NOTIFY_ROWS_APPENDED, have_rows - had_rows)
             self.GetView().ProcessTableMessage(msg)
-            self.sizing = True
+            self._sizing = True
             self.GetView().AutoSizeColumns(False)
-            self.sizing = False
+            self._sizing = False
         if row >= have_rows:
             return ""
-        if self.displayattrs != had_cols:
+        if self._displayattrs != had_cols:
             msg = wx.grid.GridTableMessage(self, wx.grid.GRIDTABLE_NOTIFY_COLS_APPENDED, have_cols - len(had_cols))
             self.GetView().ProcessTableMessage(msg)
         return ""
@@ -300,7 +283,7 @@ class IGridGrid(wx.grid.Grid):
         Sort in ascending order; sorting criteria is the current attribute
         """
         col = self.GetGridCursorCol()
-        attr = self.table.displayattrs[col]
+        attr = self.table._displayattrs[col]
         frame = self.GetParent().GetParent().GetParent()
         if attr is ipipe.noitem:
             self.error_output("no column under cursor")
@@ -320,7 +303,7 @@ class IGridGrid(wx.grid.Grid):
         Sort in descending order; sorting criteria is the current attribute
         """
         col = self.GetGridCursorCol()
-        attr = self.table.displayattrs[col]
+        attr = self.table._displayattrs[col]
         frame = self.GetParent().GetParent().GetParent()
         if attr is ipipe.noitem:
             self.error_output("no column under cursor")
@@ -346,7 +329,7 @@ class IGridGrid(wx.grid.Grid):
         Gets the text which is displayed at ``(row, col)``
         """
         try:
-            value = self.table.displayattrs[col].value(self.table.items[row])
+            value = self.table._displayattrs[col].value(self.table.items[row])
             (align, width, text) = ipipe.xformat(value, "cell", self.maxchars)
         except IndexError:
             raise IndexError
@@ -430,10 +413,10 @@ class IGridGrid(wx.grid.Grid):
             self.SetGridCursor(row, 0)
         elif keycode == ord("C") and sh:
             col = self.GetGridCursorCol()
-            attr = self.table.displayattrs[col]
+            attr = self.table._displayattrs[col]
             returnobj = []
             for i in xrange(self.GetNumberRows()):
-                returnobj.append(self.table.displayattrs[col].value(self.table.items[i]))
+                returnobj.append(self.table._displayattrs[col].value(self.table.items[i]))
             self.quit(returnobj)
         elif keycode in (wx.WXK_ESCAPE, ord("Q")) and not (ctrl or sh):
             self.quit()
@@ -511,7 +494,7 @@ class IGridGrid(wx.grid.Grid):
 
     def enterattr(self, row, col):
         try:
-            attr = self.table.displayattrs[col]
+            attr = self.table._displayattrs[col]
             value = attr.value(self.table.items[row])
         except Exception, exc:
             self.error_output(str(exc))
@@ -531,7 +514,7 @@ class IGridGrid(wx.grid.Grid):
         shows a detail-view of the current cell
         """
         try:
-            attr = self.table.displayattrs[col]
+            attr = self.table._displayattrs[col]
             item = self.table.items[row]
         except Exception, exc:
             self.error_output(str(exc))
@@ -541,7 +524,7 @@ class IGridGrid(wx.grid.Grid):
 
     def detail_attr(self, row, col):
         try:
-            attr = self.table.displayattrs[col]
+            attr = self.table._displayattrs[col]
             item = attr.value(self.table.items[row])
         except Exception, exc:
             self.error_output(str(exc))
@@ -591,7 +574,7 @@ class IGridGrid(wx.grid.Grid):
         """
         values = []
         try:
-            attr = self.table.displayattrs[col]
+            attr = self.table._displayattrs[col]
             for row in rows:
                 try:
                     values.append(attr.value(self.table.items[row]))
@@ -606,7 +589,7 @@ class IGridGrid(wx.grid.Grid):
 
     def pickattr(self, row, col):
         try:
-            attr = self.table.displayattrs[col]
+            attr = self.table._displayattrs[col]
             value = attr.value(self.table.items[row])
         except Exception, exc:
             self.error_output(str(exc))
