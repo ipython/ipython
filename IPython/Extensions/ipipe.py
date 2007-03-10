@@ -2100,20 +2100,20 @@ class AttributeDetail(Table):
 
 
 try:
-    from igrid import igrid
+    from ibrowse import ibrowse
 except ImportError:
-    # no wx
+    # No curses (probably Windows)
     try:
-        from ibrowse import ibrowse
+        from igrid import igrid
     except ImportError:
-        # No curses (probably Windows) => use ``idump`` as the default display.
+        # no wx eithevn do => use ``idump`` as the default display.
         defaultdisplay = idump
     else:
-        defaultdisplay = ibrowse
-        __all__.append("ibrowse")
+        defaultdisplay = igrid
+        __all__.append("igrid")
 else:
-    defaultdisplay = igrid
-    __all__.append("igrid")
+    defaultdisplay = ibrowse
+    __all__.append("ibrowse")
 
 
 # If we're running under IPython, install an IPython displayhook that
