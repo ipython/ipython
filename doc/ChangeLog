@@ -1,3 +1,9 @@
+2007-03-10  Fernando Perez  <Fernando.Perez@colorado.edu>
+
+	* IPython/iplib.py (InteractiveShell.__init__): fix for Alex
+	Schmolck's recently reported tab-completion bug (my previous one
+	had a problem).  Patch by Dan Milstein <danmil-AT-comcast.net>.
+
 2007-03-09  Walter Doerwald  <walter@livinglogic.de>
 
 	* IPython/Extensions/igrid.py: Patch by Nik Tautenhahn:

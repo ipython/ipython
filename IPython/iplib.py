@@ -6,7 +6,7 @@ Requires Python 2.3 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 2126 2007-03-02 06:51:02Z fperez $
+$Id: iplib.py 2135 2007-03-10 09:26:25Z fperez $
 """
 
 #*****************************************************************************
@@ -487,8 +487,7 @@ class InteractiveShell(object,Magic):
         # Don't get carried away with trying to make the autocalling catch too
         # much:  it's better to be conservative rather than to trigger hidden
         # evals() somewhere and end up causing side effects.
-
-        self.line_split = re.compile(r'^([\s*,;/])'
+        self.line_split = re.compile(r'^(\s*[,;/]?\s*)'
                                      r'([\?\w\.]+\w*\s*)'
                                      r'(\(?.*$)')
 
@@ -2026,9 +2025,11 @@ want to merge them back into the new files.""" % locals()
 
         lsplit = self.line_split.match(line)
         if lsplit is None:  # no regexp match returns None
+            #print "match failed for line '%s'" % line  # dbg
             try:
                 iFun,theRest = line.split(None,1)
             except ValueError:
+                #print "split failed for line '%s'" % line  # dbg
                 iFun,theRest = line,''
             pre = re.match('^(\s*)(.*)',line).groups()[0]
         else:
@@ -2038,8 +2039,10 @@ want to merge them back into the new files.""" % locals()
         #print 'pre <%s> iFun <%s> rest <%s>' % (pre,iFun.strip(),theRest) # dbg
         return pre,iFun.strip(),theRest
 
-        
-    def split_user_inputTMP(self,line):
+    # THIS VERSION IS BROKEN!!!  It was intended to prevent spurious attribute
+    # accesses with a more stringent check of inputs, but it introduced other
+    # bugs.  Disable it for now until I can properly fix it.
+    def split_user_inputBROKEN(self,line):
         """Split user input into pre-char, function part and rest."""
 
         lsplit = self.line_split.match(line)

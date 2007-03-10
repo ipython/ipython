@@ -245,6 +245,8 @@ check(attr_mutator.called, 'ofind should be called in absence of assign characte
 for c in list('!=()'):  # XXX What about <> -- they *are* important above
     attr_mutator.called = False
     run_one_test('attr_mutator.foo %s should *not* mutate' % c, handle_normal)
+    run_one_test('attr_mutator.foo%s should *not* mutate' % c, handle_normal)
+    
     check(not attr_mutator.called,
           'ofind should not be called near character %s' % c)
 
