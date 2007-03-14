@@ -15,7 +15,7 @@ import os,textwrap
 
 import ipy_defaults
 
-def main():
+def main():    
     ip = ipapi.get()
     o = ip.options
     # autocall to "full" mode (smart mode is default, I like full mode)
@@ -28,6 +28,10 @@ def main():
         ip.ex("from path import path" )
     except ImportError:
         pass
+    
+    # beefed up %env is handy in shell mode
+    import envpersist
+    
     
     ip.ex('import os')
     ip.ex("def up(): os.chdir('..')")

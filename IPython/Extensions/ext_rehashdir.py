@@ -98,7 +98,7 @@ def rehashdir_f(self,arg):
         self.shell.alias_table_validate()
         # Call again init_auto_alias() so we get 'rm -i' and other
         # modified aliases since %rehashx will probably clobber them
-        self.shell.init_auto_alias()
+        # self.shell.init_auto_alias()
     finally:
         os.chdir(savedir)
 ip.expose_magic("rehashdir",rehashdir_f)
