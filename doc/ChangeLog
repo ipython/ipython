@@ -1,3 +1,9 @@
+2007-03-15  Ville Vainio  <vivainio@gmail.com>
+
+	* Extensions/ipy_stock_completers.py: Fixed exception
+        on mismatching quotes in %run completer. Patch by
+        Jörgen Stenarson. Closes #127.
+
 2007-03-14  Ville Vainio  <vivainio@gmail.com>
 
 	* Extensions/ext_rehashdir.py: Do not do auto_alias

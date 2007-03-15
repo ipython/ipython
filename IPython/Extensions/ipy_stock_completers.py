@@ -164,12 +164,30 @@ def bzr_completer(self,event):
     return bzr_commands.split()
 
 ip.set_hook('complete_command', bzr_completer, str_key = 'bzr')
-
+ 
+def shlex_split(x):
+    """Helper function to split lines into segments."""
+    #shlex.split raise exception if syntax error in sh syntax
+    #for example if no closing " is found. This function keeps dropping
+    #the last character of the line until shlex.split does not raise 
+    #exception. Adds end of the line to the result of shlex.split
+    #example: %run "c:/python  -> ['%run','"c:/python']
+    endofline=[]
+    while x!="":
+        try:
+            comps=shlex.split(x)
+            if endofline>=1:
+                comps.append("".join(endofline))
+            return comps
+        except ValueError:
+            endofline=[x[-1:]]+endofline
+            x=x[:-1]
+    return ["".join(endofline)]
 
 def runlistpy(self, event):
-    comps = shlex.split(event.line)
-    relpath = (len(comps) > 1 and comps[-1] or '')
-
+    comps = shlex_split(event.line)
+    relpath = (len(comps) > 1 and comps[-1] or '').strip("'\"")
+    
     #print "\nev=",event  # dbg
     #print "rp=",relpath  # dbg
     #print 'comps=',comps  # dbg
