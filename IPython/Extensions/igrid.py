@@ -665,7 +665,7 @@ class IGridFrame(wx.Frame):
     maxtitlelen = 30
 
     def __init__(self, parent, input):
-        title =  " ".join([str(x[1]) for x in ipipe.xformat(input, "header", 20)[2]])
+        title =  " ".join([str(text) for (style, text) in ipipe.xformat(input, "header", 20)[2]])
         wx.Frame.__init__(self, None, title=title, size=(640, 480))
         self.menubar = wx.MenuBar()
         self.menucounter = 100
