@@ -289,7 +289,7 @@ class IGridGrid(wx.grid.Grid):
         Sort in ascending order; sorting criteria is the current attribute
         """
         col = self.GetGridCursorCol()
-        attr = self.table._displvayattrs[col]
+        attr = self.table._displayattrs[col]
         frame = self.GetParent().GetParent().GetParent()
         if attr is ipipe.noitem:
             self.error_output("no column under cursor")
