@@ -2,6 +2,9 @@
 
 	* setup.py: Add the igrid help files to the list of data files
 	to be installed alongside igrid.
+	* IPython/Extensions/igrid.py: (Patch by Nik Tautenhahn)
+	Show the input object of the igrid browser as the window tile.
+	Show the object the cursor is on in the statusbar.
 
 2007-03-15  Ville Vainio  <vivainio@gmail.com>
 

@@ -224,6 +224,7 @@ class IGridGrid(wx.grid.Grid):
         self.EnableEditing(False)
         self.Bind(wx.EVT_KEY_DOWN, self.key_pressed)
         self.Bind(wx.grid.EVT_GRID_CELL_LEFT_DCLICK, self.cell_doubleclicked)
+        self.Bind(wx.grid.EVT_GRID_CELL_LEFT_CLICK, self.cell_leftclicked)
         self.Bind(wx.grid.EVT_GRID_LABEL_LEFT_DCLICK, self.label_doubleclicked)
         self.Bind(wx.grid.EVT_GRID_LABEL_LEFT_CLICK, self.on_label_leftclick)
         self.Bind(wx.grid.EVT_GRID_RANGE_SELECT, self._on_selected_range)
@@ -265,7 +266,12 @@ class IGridGrid(wx.grid.Grid):
         curitem = self.table.items[row] # Remember where the cursor is now
         # Sort items
         def realkey(item):
-            return key(item)
+            try:
+                return key(item)
+            except (KeyboardInterrupt, SystemExit):
+                raise
+            except Exception:
+                return None
         try:
             self.table.items = ipipe.deque(sorted(self.table.items, key=realkey, reverse=reverse))
         except TypeError, exc:
@@ -283,7 +289,7 @@ class IGridGrid(wx.grid.Grid):
         Sort in ascending order; sorting criteria is the current attribute
         """
         col = self.GetGridCursorCol()
-        attr = self.table._displayattrs[col]
+        attr = self.table._displvayattrs[col]
         frame = self.GetParent().GetParent().GetParent()
         if attr is ipipe.noitem:
             self.error_output("no column under cursor")
@@ -450,6 +456,32 @@ class IGridGrid(wx.grid.Grid):
                 self.sortattrdesc()
             else:
                 self.sortattrasc()
+        elif keycode == wx.WXK_DOWN:
+            row = self.GetGridCursorRow()
+            try:
+                item = self.table.items[row+1]
+            except IndexError:
+                item = self.table.items[row]
+            self.set_footer(item)
+            event.Skip()
+        elif keycode == wx.WXK_UP:
+            row = self.GetGridCursorRow()
+            if row >= 1:
+                item = self.table.items[row-1]
+            else:
+                item = self.table.items[row]
+            self.set_footer(item)
+            event.Skip()         
+        elif keycode == wx.WXK_RIGHT:
+            row = self.GetGridCursorRow()
+            item = self.table.items[row]
+            self.set_footer(item)
+            event.Skip()
+        elif keycode == wx.WXK_LEFT:
+            row = self.GetGridCursorRow()
+            item = self.table.items[row]
+            self.set_footer(item)
+            event.Skip()
         else:
             event.Skip()
 
@@ -501,6 +533,10 @@ class IGridGrid(wx.grid.Grid):
         else:
             self._doenter(value)
 
+    def set_footer(self, item):
+        frame = self.GetParent().GetParent().GetParent()
+        frame.SetStatusText(" ".join([str(text) for (style, text) in ipipe.xformat(item, "footer", 20)[2]]))
+
     def enter(self, row):
         try:
             value = self.table.items[row]
@@ -545,7 +581,14 @@ class IGridGrid(wx.grid.Grid):
 
     def cell_doubleclicked(self, event):
         self.enterattr(event.GetRow(), event.GetCol())
+        event.Skip()
 
+    def cell_leftclicked(self, event):
+        row = event.GetRow()
+        item = self.table.items[row]
+        self.set_footer(item)
+        event.Skip()
+        
     def pick(self, row):
         """
         pick a single row and return to the IPython prompt
@@ -622,7 +665,8 @@ class IGridFrame(wx.Frame):
     maxtitlelen = 30
 
     def __init__(self, parent, input):
-        wx.Frame.__init__(self, None, title="IGrid", size=(640, 480))
+        title =  " ".join([str(x[1]) for x in ipipe.xformat(input, "header", 20)[2]])
+        wx.Frame.__init__(self, None, title=title, size=(640, 480))
         self.menubar = wx.MenuBar()
         self.menucounter = 100
         self.m_help = wx.Menu()
