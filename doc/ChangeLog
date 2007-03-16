@@ -1,3 +1,8 @@
+2007-03-16  Walter Doerwald  <walter@livinglogic.de>
+
+	* setup.py: Add the igrid help files to the list of data files
+	to be installed alongside igrid.
+
 2007-03-15  Ville Vainio  <vivainio@gmail.com>
 
 	* Extensions/ipy_stock_completers.py: Fixed exception

@@ -115,6 +115,7 @@ manpages    = filter(isfile, glob('doc/*.1.gz'))
 cfgfiles    = filter(isfile, glob('IPython/UserConfig/*'))
 scriptfiles = filter(isfile, ['scripts/ipython','scripts/pycolor',
                               'scripts/irunner'])
+igridhelpfiles = filter(isfile, glob('IPython/Extensions/igrid_help.*'))
 
 # Script to be run by the windows binary installer after the default setup
 # routine, to add shortcuts and similar windows-only things.  Windows
@@ -132,8 +133,8 @@ datafiles = [('data', docdirbase, docfiles),
                           ('data', os.path.join(docdirbase, 'manual'),
                            manfiles),
                           ('data', manpagebase, manpages),
-                          ('lib', 'IPython/UserConfig', cfgfiles)]
-
+                          ('lib', 'IPython/UserConfig', cfgfiles),
+                          ('data','IPython/Extensions', igridhelpfiles)]
 if 'setuptools' in sys.modules:
     # setuptools config for egg building
     egg_extra_kwds = {
