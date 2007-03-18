@@ -5,7 +5,7 @@ General purpose utilities.
 This is a grab-bag of stuff I find useful in most programs I write. Some of
 these things are also convenient when working at the command line.
 
-$Id: genutils.py 2108 2007-02-23 00:31:17Z fperez $"""
+$Id: genutils.py 2152 2007-03-18 20:13:35Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2006 Fernando Perez. <fperez@colorado.edu>
@@ -1247,7 +1247,8 @@ def get_pager_start(pager,start):
     return start_string
 
 #----------------------------------------------------------------------------
-if os.name == "nt":
+# (X)emacs on W32 doesn't like to be bypassed with msvcrt.getch()
+if os.name == 'nt' and os.environ.get('TERM','dumb') != 'emacs':
     import msvcrt
     def page_more():
         """ Smart pausing between pages

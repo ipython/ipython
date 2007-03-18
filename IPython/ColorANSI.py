@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Tools for coloring text in ANSI terminals.
 
-$Id: ColorANSI.py 1005 2006-01-12 08:39:26Z fperez $"""
+$Id: ColorANSI.py 2152 2007-03-18 20:13:35Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2002-2006 Fernando Perez. <fperez@colorado.edu>
@@ -79,8 +79,14 @@ class InputTermColors:
     This class should be used as a mixin for building color schemes."""
     
     NoColor = ''  # for color schemes in color-less terminals.
-    Normal = '\001\033[0m\002'   # Reset normal coloring
-    _base  = '\001\033[%sm\002'  # Template for all other colors
+
+    if os.name == 'nt' and os.environ.get('TERM','dumb') != 'emacs':
+        # (X)emacs on W32 gets confused with \001 and \002 so we remove them
+        Normal = '\033[0m'   # Reset normal coloring
+        _base  = '\033[%sm'  # Template for all other colors
+    else:
+        Normal = '\001\033[0m\002'   # Reset normal coloring
+        _base  = '\001\033[%sm\002'  # Template for all other colors
 
 # Build the actual color table as a set of class attributes:
 make_color_table(InputTermColors)

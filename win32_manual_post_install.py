@@ -88,6 +88,11 @@ def run(wait=0):
     # make shortcuts for IPython, html and pdf docs.
     print 'Making entries for IPython in Start Menu...',
 
+    # Create .bat file in \\Scripts
+    fic = open(sys.prefix + '\\Scripts\\ipython.bat','w')
+    fic.write('"' + sys.prefix + '\\python.exe' + '" -i ' + '"' + sys.prefix + '\\Scripts\ipython" %*')
+    fic.close()
+
     # Create shortcuts in Programs\IPython:
     if not os.path.isdir(ip_prog_dir):
         os.mkdir(ip_prog_dir)

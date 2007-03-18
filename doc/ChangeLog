@@ -1,3 +1,8 @@
+2007-03-18  Fernando Perez  <Fernando.Perez@colorado.edu>
+
+	* IPython/ColorANSI.py (InputTermColors.Normal): applied Nicolas
+	Pernetty's patch to improve support for (X)Emacs under Win32.
+
 2007-03-17  Fernando Perez  <Fernando.Perez@colorado.edu>
 
 	* IPython/Shell.py (hijack_wx): ipmort WX with current semantics

@@ -6,7 +6,7 @@
 #  the file COPYING, distributed as part of this software.
 #*****************************************************************************
 
-# $Id: usage.py 2010 2006-12-20 15:29:17Z vivainio $
+# $Id: usage.py 2152 2007-03-18 20:13:35Z fperez $
 
 from IPython import Release
 __author__  = '%s <%s>' % Release.authors['Fernando']
@@ -53,19 +53,19 @@ SPECIAL THREADING OPTIONS
        ization of ipython itself, before the normal option-handling  mechanism
        is active.
 
-       -gthread, -qthread, -wthread, -pylab
+       -gthread, -qthread, -q4thread, -wthread, -pylab
 
               Only ONE of these can be given, and it can only be given as the
               first option passed to IPython (it will have no effect in any
               other position).  They provide threading support for the GTK, QT
               and WXWidgets toolkits, and for the matplotlib library.
 
-              With any of the first three options, IPython starts running a
+              With any of the first four options, IPython starts running a
               separate thread for the graphical toolkit's operation, so that
               you can open and control graphical elements from within an
-              IPython command line, without blocking.  All three provide
-              essentially the same functionality, respectively for GTK, QT and
-              WXWidgets (via their Python interfaces).
+              IPython command line, without blocking.  All four provide
+              essentially the same functionality, respectively for GTK, QT3,
+              QT4 and WXWidgets (via their Python interfaces).
 
               Note that with -wthread, you can additionally use the -wxversion
               option to request a specific version of wx to be used.  This
@@ -81,14 +81,14 @@ SPECIAL THREADING OPTIONS
               execute (without blocking) any matplotlib-based script which
               calls show() at the end.
 
-       -tk    The -g/q/wthread options, and -pylab (if matplotlib is
+       -tk    The -g/q/q4/wthread options, and -pylab (if matplotlib is
               configured to use GTK, QT or WX), will normally block Tk
               graphical interfaces.  This means that when GTK, QT or WX
               threading is active, any attempt to open a Tk GUI will result in
               a dead window, and possibly cause the Python interpreter to
               crash.  An extra option, -tk, is available to address this
               issue.  It can ONLY be given as a SECOND option after any of the
-              above (-gthread, -qthread, -wthread or -pylab).
+              above (-gthread, -qthread, q4thread, -wthread or -pylab).
 
               If -tk is given, IPython will try to coordinate Tk threading
               with GTK, QT or WX.  This is however potentially unreliable, and

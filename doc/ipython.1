@@ -36,18 +36,18 @@ The following special options are ONLY valid at the beginning of the command
 line, and not later.  This is because they control the initialization of
 ipython itself, before the normal option-handling mechanism is active.
 .TP
-.B \-gthread, \-qthread, \-wthread, \-pylab
+.B \-gthread, \-qthread, \-q4thread, \-wthread, \-pylab
 Only ONE of these can be given, and it can only be given as the first option
-passed to IPython (it will have no effect in any other position).  They
-provide threading support for the GTK, QT and WXWidgets toolkits, and for the
+passed to IPython (it will have no effect in any other position).  They provide
+threading support for the GTK, QT3, QT4 and WXWidgets toolkits, and for the
 matplotlib library.
 .br
 .sp 1
-With any of the first three options, IPython starts running a separate thread
+With any of the first four options, IPython starts running a separate thread
 for the graphical toolkit's operation, so that you can open and control
 graphical elements from within an IPython command line, without blocking.  All
-three provide essentially the same functionality, respectively for GTK, QT and
-WXWidgets (via their Python interfaces).
+four provide essentially the same functionality, respectively for GTK, QT3, QT4
+and WXWidgets (via their Python interfaces).
 .br
 .sp 1
 Note that with \-wthread, you can additionally use the \-wxversion option to
@@ -64,7 +64,7 @@ backend requires it.  It also modifies the %run command to correctly execute
 (without blocking) any matplotlib-based script which calls show() at the end.
 .TP
 .B \-tk
-The \-g/q/wthread options, and \-pylab (if matplotlib is configured to use
+The \-g/q/q4/wthread options, and \-pylab (if matplotlib is configured to use
 GTK, QT or WX), will normally block Tk graphical interfaces.  This means that
 when GTK, QT or WX threading is active, any attempt to open a Tk GUI will
 result in a dead window, and possibly cause the Python interpreter to crash.
