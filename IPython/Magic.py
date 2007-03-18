@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Magic functions for InteractiveShell.
 
-$Id: Magic.py 2122 2007-03-01 02:27:11Z fperez $"""
+$Id: Magic.py 2153 2007-03-18 22:53:18Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001 Janko Hauser <jhauser@zscout.de> and
@@ -1354,14 +1354,23 @@ Currently the magic system has the following functions:\n"""
                     except ValueError:
                         lims.append(lim)
                     
-        # trap output
-        sys_stdout = sys.stdout
+        # Trap output.
         stdout_trap = StringIO()
-        try:
-            sys.stdout = stdout_trap
+
+        if hasattr(stats,'stream'):
+            # In newer versions of python, the stats object has a 'stream'
+            # attribute to write into.
+            stats.stream = stdout_trap
             stats.print_stats(*lims)
-        finally:
-            sys.stdout = sys_stdout
+        else:
+            # For older versions, we manually redirect stdout during printing
+            sys_stdout = sys.stdout
+            try:
+                sys.stdout = stdout_trap
+                stats.print_stats(*lims)
+            finally:
+                sys.stdout = sys_stdout
+                
         output = stdout_trap.getvalue()
         output = output.rstrip()
 
@@ -1375,7 +1384,9 @@ Currently the magic system has the following functions:\n"""
             print '\n*** Profile stats marshalled to file',\
                   `dump_file`+'.',sys_exit
         if text_file:
-            file(text_file,'w').write(output)
+            pfile = file(text_file,'w')
+            pfile.write(output)
+            pfile.close()
             print '\n*** Profile printout saved to text file',\
                   `text_file`+'.',sys_exit
 

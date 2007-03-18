@@ -1,5 +1,9 @@
 2007-03-18  Fernando Perez  <Fernando.Perez@colorado.edu>
 
+	* IPython/Magic.py (magic_prun): Fix saving of profile info for
+	Python 2.5, where the stats object API changed a little.  Thanks
+	to a bug report by Paul Smith <paul.smith-AT-catugmt.com>.
+	
 	* IPython/ColorANSI.py (InputTermColors.Normal): applied Nicolas
 	Pernetty's patch to improve support for (X)Emacs under Win32.
 
