@@ -1,3 +1,9 @@
+2007-03-17  Fernando Perez  <Fernando.Perez@colorado.edu>
+
+	* IPython/Shell.py (hijack_wx): ipmort WX with current semantics
+	to quiet a deprecation warning that fires with Wx 2.8.  Thanks to
+	a report by Nik Tautenhahn.
+
 2007-03-16  Walter Doerwald  <walter@livinglogic.de>
 
 	* setup.py: Add the igrid help files to the list of data files

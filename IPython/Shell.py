@@ -4,7 +4,7 @@
 All the matplotlib support code was co-developed with John Hunter,
 matplotlib's author.
 
-$Id: Shell.py 2120 2007-02-27 15:48:24Z fperez $"""
+$Id: Shell.py 2151 2007-03-18 01:17:00Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2006 Fernando Perez <fperez@colorado.edu>
@@ -555,8 +555,14 @@ def hijack_wx():
     """    
     def dummy_mainloop(*args, **kw):
         pass
-    import wxPython
-    ver = wxPython.__version__
+
+    try:
+        import wx
+    except ImportError:
+        # For very old versions of WX
+        import wxPython as wx
+        
+    ver = wx.__version__
     orig_mainloop = None
     if ver[:3] >= '2.5':
         import wx
@@ -566,8 +572,8 @@ def hijack_wx():
         orig_mainloop = core.PyApp_MainLoop
         core.PyApp_MainLoop = dummy_mainloop
     elif ver[:3] == '2.4':
-        orig_mainloop = wxPython.wxc.wxPyApp_MainLoop
-        wxPython.wxc.wxPyApp_MainLoop = dummy_mainloop
+        orig_mainloop = wx.wxc.wxPyApp_MainLoop
+        wx.wxc.wxPyApp_MainLoop = dummy_mainloop
     else:
         warn("Unable to find either wxPython version 2.4 or >= 2.5.")
     return orig_mainloop
