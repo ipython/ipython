@@ -1,5 +1,10 @@
 2007-03-18  Fernando Perez  <Fernando.Perez@colorado.edu>
 
+	* IPython/Shell.py (_load_pylab): Make the execution of 'from
+	pylab import *' when -pylab is given be optional.  A new flag,
+	pylab_import_all controls this behavior, the default is True for
+	backwards compatibility.
+
 	* IPython/ultraTB.py (_formatTracebackLines): Added (slightly
 	modified) R. Bernstein's patch for fully syntax highlighted
 	tracebacks.  The functionality is also available under ultraTB for

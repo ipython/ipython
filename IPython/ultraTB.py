@@ -60,7 +60,7 @@ You can implement other color schemes easily, the syntax is fairly
 self-explanatory. Please send back new schemes you develop to the author for
 possible inclusion in future releases.
 
-$Id: ultraTB.py 2155 2007-03-19 00:45:51Z fperez $"""
+$Id: ultraTB.py 2156 2007-03-19 02:32:19Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001 Nathaniel Gray <n8gray@caltech.edu>
@@ -103,7 +103,7 @@ INDENT_SIZE = 8
 # formatter.  When running in an actual IPython instance, the user's rc.colors
 # value is used, but havinga module global makes this functionality available
 # to users of ultraTB who are NOT running inside ipython.
-DEFAULT_SCHEME = 'NoColors'
+DEFAULT_SCHEME = 'NoColor'
 
 #---------------------------------------------------------------------------
 # Code begins
@@ -160,16 +160,17 @@ def _fixed_getinnerframes(etb, context=1,tb_offset=0):
 
 _parser = PyColorize.Parser()
     
-def _formatTracebackLines(lnum, index, lines, Colors, lvals=None):
+def _formatTracebackLines(lnum, index, lines, Colors, lvals=None,scheme=None):
     numbers_width = INDENT_SIZE - 1
     res = []
     i = lnum - index
 
     # This lets us get fully syntax-highlighted tracebacks.
-    try:
-        scheme = __IPYTHON__.rc.colors
-    except:
-        scheme = DEFAULT_SCHEME
+    if scheme is None:
+        try:
+            scheme = __IPYTHON__.rc.colors
+        except:
+            scheme = DEFAULT_SCHEME
     _line_format = _parser.format2
 
     for line in lines:
@@ -420,6 +421,7 @@ class VerboseTB(TBTools):
         # some locals
         Colors        = self.Colors   # just a shorthand + quicker name lookup
         ColorsNormal  = Colors.Normal  # used a lot
+        col_scheme    = self.color_scheme_table.active_scheme_name
         indent        = ' '*INDENT_SIZE
         exc           = '%s%s%s' % (Colors.excName, str(etype), ColorsNormal)
         em_normal     = '%s\n%s%s' % (Colors.valEm, indent,ColorsNormal)
@@ -658,7 +660,8 @@ class VerboseTB(TBTools):
                 frames.append(level)
             else:
                 frames.append('%s%s' % (level,''.join(
-                    _formatTracebackLines(lnum,index,lines,self.Colors,lvals))))
+                    _formatTracebackLines(lnum,index,lines,Colors,lvals,
+                                          col_scheme))))
 
         # Get (safely) a string form of the exception info
         try:

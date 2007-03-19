@@ -4,7 +4,7 @@
 All the matplotlib support code was co-developed with John Hunter,
 matplotlib's author.
 
-$Id: Shell.py 2151 2007-03-18 01:17:00Z fperez $"""
+$Id: Shell.py 2156 2007-03-19 02:32:19Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2006 Fernando Perez <fperez@colorado.edu>
@@ -446,8 +446,7 @@ class MatplotlibShellBase:
         user_ns = IPython.ipapi.make_user_ns(user_ns)
 
         exec ("import matplotlib\n"
-              "import matplotlib.pylab as pylab\n"
-              "from matplotlib.pylab import *") in user_ns
+              "import matplotlib.pylab as pylab\n") in user_ns
         
         # Build matplotlib info banner
         b="""
@@ -931,6 +930,17 @@ class IPShellQt4(threading.Thread):
 
 # A set of matplotlib public IPython shell classes, for single-threaded
 # (Tk* and FLTK* backends) and multithreaded (GTK* and WX* backends) use.
+def _load_pylab(user_ns):
+    """Allow users to disable pulling all of pylab into the top-level
+    namespace.
+
+    This little utility must be called AFTER the actual ipython instance is
+    running, since only then will the options file have been fully parsed."""
+    
+    ip = IPython.ipapi.get()
+    if ip.options.pylab_import_all:
+        exec "from matplotlib.pylab import *" in user_ns
+
 class IPShellMatplotlib(IPShell):
     """Subclass IPShell with MatplotlibShell as the internal shell.
 
@@ -941,6 +951,7 @@ class IPShellMatplotlib(IPShell):
     def __init__(self,argv=None,user_ns=None,user_global_ns=None,debug=1):
         IPShell.__init__(self,argv,user_ns,user_global_ns,debug,
                          shell_class=MatplotlibShell)
+        _load_pylab(user_ns)
 
 class IPShellMatplotlibGTK(IPShellGTK):
     """Subclass IPShellGTK with MatplotlibMTShell as the internal shell.
@@ -950,6 +961,7 @@ class IPShellMatplotlibGTK(IPShellGTK):
     def __init__(self,argv=None,user_ns=None,user_global_ns=None,debug=1):
         IPShellGTK.__init__(self,argv,user_ns,user_global_ns,debug,
                             shell_class=MatplotlibMTShell)
+        _load_pylab(user_ns)
 
 class IPShellMatplotlibWX(IPShellWX):
     """Subclass IPShellWX with MatplotlibMTShell as the internal shell.
@@ -959,6 +971,7 @@ class IPShellMatplotlibWX(IPShellWX):
     def __init__(self,argv=None,user_ns=None,user_global_ns=None,debug=1):
         IPShellWX.__init__(self,argv,user_ns,user_global_ns,debug,
                            shell_class=MatplotlibMTShell)
+        _load_pylab(user_ns)
 
 class IPShellMatplotlibQt(IPShellQt):
     """Subclass IPShellQt with MatplotlibMTShell as the internal shell.
@@ -968,6 +981,7 @@ class IPShellMatplotlibQt(IPShellQt):
     def __init__(self,argv=None,user_ns=None,user_global_ns=None,debug=1):
         IPShellQt.__init__(self,argv,user_ns,user_global_ns,debug,
                            shell_class=MatplotlibMTShell)
+        _load_pylab(user_ns)
 
 class IPShellMatplotlibQt4(IPShellQt4):
     """Subclass IPShellQt4 with MatplotlibMTShell as the internal shell.
@@ -977,6 +991,7 @@ class IPShellMatplotlibQt4(IPShellQt4):
     def __init__(self,argv=None,user_ns=None,user_global_ns=None,debug=1):
         IPShellQt4.__init__(self,argv,user_ns,user_global_ns,debug,
                            shell_class=MatplotlibMTShell)
+        _load_pylab(user_ns)
 
 #-----------------------------------------------------------------------------
 # Factory functions to actually start the proper thread-aware shell

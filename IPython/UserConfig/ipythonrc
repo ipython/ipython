@@ -1,5 +1,5 @@
 # -*- Mode: Shell-Script -*-  Not really, but shows comments correctly
-# $Id: ipythonrc 1979 2006-12-12 18:50:20Z vivainio $
+# $Id: ipythonrc 2156 2007-03-19 02:32:19Z fperez $
 
 #***************************************************************************
 #
@@ -257,6 +257,15 @@ prompt_out 'Out[\#]: '
 # prompt, and yet have the output line up with the input.  If set to false,
 # the output prompts will be unpadded (flush left).
 prompts_pad_left 1
+
+# Pylab support: when ipython is started with the -pylab switch, by default it
+# executes 'from matplotlib.pylab import *'.  Set this variable to false if you
+# want to disable this behavior.
+
+# For details on pylab, see the matplotlib website:
+# http://matplotlib.sf.net
+pylab_import_all 1
+
 
 # quick 1 -> same as ipython -quick
 quick 0
