@@ -1,5 +1,10 @@
 2007-03-18  Fernando Perez  <Fernando.Perez@colorado.edu>
 
+	* IPython/completer.py
+	(IPCompleter.file_matches.single_dir_expand): fix a problem
+	reported by Stefan, where directories containign a single subdir
+	would be completed too early.
+
 	* IPython/Shell.py (_load_pylab): Make the execution of 'from
 	pylab import *' when -pylab is given be optional.  A new flag,
 	pylab_import_all controls this behavior, the default is True for

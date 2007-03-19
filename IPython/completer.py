@@ -372,6 +372,22 @@ class IPCompleter(Completer):
         def protect_filename(s):
             return "".join([(ch in protectables and '\\' + ch or ch)
                             for ch in s])
+
+        def single_dir_expand(matches):
+            "Recursively expand match lists containing a single dir."
+            
+            if len(matches) == 1 and os.path.isdir(matches[0]):
+                # Takes care of links to directories also.  Use '/'
+                # explicitly, even under Windows, so that name completions
+                # don't end up escaped.
+                d = matches[0]
+                if d[-1] in ['/','\\']:
+                    d = d[:-1]
+
+                matches = [ (d + '/' + p) for p in os.listdir(d) ]
+                return single_dir_expand(matches)
+            else:
+                return matches
         
         lbuf = self.lbuf
         open_quotes = 0  # track strings with open quotes
@@ -420,17 +436,8 @@ class IPCompleter(Completer):
             else:
                 matches = [text_prefix + 
                            protect_filename(f) for f in m0]
-        if len(matches) == 1 and os.path.isdir(matches[0]):
-            # Takes care of links to directories also.  Use '/'
-            # explicitly, even under Windows, so that name completions
-            # don't end up escaped.            
-            d = matches[0]
-            if d[-1] in ['/','\\']:
-                d = d[:-1]
-            
-            matches = [ (d + '/' + p) for p in os.listdir(d) ]
-            
-        return matches
+
+        return single_dir_expand(matches)
 
     def alias_matches(self, text):
         """Match internal system aliases"""        
