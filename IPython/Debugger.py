@@ -15,7 +15,7 @@ details on the PSF (Python Software Foundation) standard license, see:
 
 http://www.python.org/2.2.3/license.html
 
-$Id: Debugger.py 2154 2007-03-19 00:10:07Z fperez $"""
+$Id: Debugger.py 2155 2007-03-19 00:45:51Z fperez $"""
 
 #*****************************************************************************
 #
@@ -178,7 +178,7 @@ class Pdb(OldPdb):
 
             # Parent constructor:
             if has_pydb and completekey is None:
-                OldPdb.__init__(self,stdin=stdin,stdout=Term.cout) #stdout)
+                OldPdb.__init__(self,stdin=stdin,stdout=Term.cout)
             else:
                 OldPdb.__init__(self,completekey,stdin,stdout)
                 
@@ -228,6 +228,11 @@ class Pdb(OldPdb):
 
             self.set_colors(color_scheme)
 
+            # Add a python parser so we can syntax highlight source while
+            # debugging.
+            self.parser = PyColorize.Parser()
+
+
     else:
         # Ugly hack: for Python 2.3-2.4, we can't call the parent constructor,
         # because it binds readline and breaks tab-completion.  This means we
@@ -270,6 +275,10 @@ class Pdb(OldPdb):
             cst['LightBG'].colors.breakpoint_disabled = C.Red
 
             self.set_colors(color_scheme)
+
+            # Add a python parser so we can syntax highlight source while
+            # debugging.
+            self.parser = PyColorize.Parser()
         
     def set_colors(self, scheme):
         """Shorthand access to the color table scheme selector method."""
@@ -392,6 +401,10 @@ class Pdb(OldPdb):
     def __format_line(self, tpl_line, filename, lineno, line, arrow = False):
         bp_mark = ""
         bp_mark_color = ""
+
+        scheme = self.color_scheme_table.active_scheme_name
+        new_line, err = self.parser.format2(line, 'str', scheme)
+        if not err: line = new_line
 
         bp = None
         if lineno in self.get_file_breaks(filename):

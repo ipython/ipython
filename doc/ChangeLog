@@ -1,5 +1,13 @@
 2007-03-18  Fernando Perez  <Fernando.Perez@colorado.edu>
 
+	* IPython/ultraTB.py (_formatTracebackLines): Added (slightly
+	modified) R. Bernstein's patch for fully syntax highlighted
+	tracebacks.  The functionality is also available under ultraTB for
+	non-ipython users (someone using ultraTB but outside an ipython
+	session).  They can select the color scheme by setting the
+	module-level global DEFAULT_SCHEME.  The highlight functionality
+	also works when debugging.
+
 	* IPython/genutils.py (IOStream.close): small patch by
 	R. Bernstein for improved pydb support.
 

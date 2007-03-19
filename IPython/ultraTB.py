@@ -60,7 +60,7 @@ You can implement other color schemes easily, the syntax is fairly
 self-explanatory. Please send back new schemes you develop to the author for
 possible inclusion in future releases.
 
-$Id: ultraTB.py 2027 2007-01-19 00:55:09Z fperez $"""
+$Id: ultraTB.py 2155 2007-03-19 00:45:51Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001 Nathaniel Gray <n8gray@caltech.edu>
@@ -90,7 +90,7 @@ import types
 
 # IPython's own modules
 # Modified pdb which doesn't damage IPython's readline handling
-from IPython import Debugger
+from IPython import Debugger, PyColorize
 from IPython.ipstruct import Struct
 from IPython.excolors import ExceptionColors
 from IPython.genutils import Term,uniq_stable,error,info
@@ -98,6 +98,12 @@ from IPython.genutils import Term,uniq_stable,error,info
 # Globals
 # amount of space to put line numbers before verbose tracebacks
 INDENT_SIZE = 8
+
+# Default color scheme.  This is used, for example, by the traceback
+# formatter.  When running in an actual IPython instance, the user's rc.colors
+# value is used, but havinga module global makes this functionality available
+# to users of ultraTB who are NOT running inside ipython.
+DEFAULT_SCHEME = 'NoColors'
 
 #---------------------------------------------------------------------------
 # Code begins
@@ -151,11 +157,25 @@ def _fixed_getinnerframes(etb, context=1,tb_offset=0):
 # functionality to produce a pseudo verbose TB for SyntaxErrors, so that they
 # can be recognized properly by ipython.el's py-traceback-line-re
 # (SyntaxErrors have to be treated specially because they have no traceback)
+
+_parser = PyColorize.Parser()
+    
 def _formatTracebackLines(lnum, index, lines, Colors, lvals=None):
     numbers_width = INDENT_SIZE - 1
     res = []
     i = lnum - index
+
+    # This lets us get fully syntax-highlighted tracebacks.
+    try:
+        scheme = __IPYTHON__.rc.colors
+    except:
+        scheme = DEFAULT_SCHEME
+    _line_format = _parser.format2
+
     for line in lines:
+        new_line, err = _line_format(line,'str',scheme)
+        if not err: line = new_line
+        
         if i == lnum:
             # This is the line with the error
             pad = numbers_width - len(str(i))
@@ -180,6 +200,7 @@ def _formatTracebackLines(lnum, index, lines, Colors, lvals=None):
             res.append(lvals + '\n')
         i = i + 1
     return res
+
 
 #---------------------------------------------------------------------------
 # Module classes
