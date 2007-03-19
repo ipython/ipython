@@ -384,8 +384,12 @@ class IPCompleter(Completer):
                 if d[-1] in ['/','\\']:
                     d = d[:-1]
 
-                matches = [ (d + '/' + p) for p in os.listdir(d) ]
-                return single_dir_expand(matches)
+                subdirs = os.listdir(d)
+                if subdirs:
+                    matches = [ (d + '/' + p) for p in subdirs]
+                    return single_dir_expand(matches)
+                else:
+                    return matches
             else:
                 return matches
         
@@ -437,6 +441,7 @@ class IPCompleter(Completer):
                 matches = [text_prefix + 
                            protect_filename(f) for f in m0]
 
+        print 'mm',matches  # dbg
         return single_dir_expand(matches)
 
     def alias_matches(self, text):
