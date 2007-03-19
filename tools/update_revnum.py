@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """ Change the revision number in Release.py """
 
 import os
