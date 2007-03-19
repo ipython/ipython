@@ -780,6 +780,19 @@ class IGridFrame(wx.Frame):
         dlg.Destroy()
 
 
+class App(wx.App):
+    def __init__(self, input):
+        self.input = input
+        wx.App.__init__(self)
+
+    def OnInit(self):
+        frame = IGridFrame(self, self.input)
+        frame.Show()
+        self.SetTopWindow(frame)
+        frame.Raise()
+        return True
+
+
 class igrid(ipipe.Display):
     """
     This is a wx-based display object that can be used instead of ``ibrowse``
@@ -787,10 +800,6 @@ class igrid(ipipe.Display):
     """
     def display(self):
         self.returnobj = None
-        app = wx.App()
-        self.frame = IGridFrame(self, self.input)
-        self.frame.Show()
-        app.SetTopWindow(self.frame)
-        self.frame.Raise()
+        app = App(self.input)
         app.MainLoop()
         return self.returnobj
