@@ -1176,7 +1176,7 @@ PyWin32
 PyWin32
 \family default
  from 
-\begin_inset LatexCommand \htmlurl{http://starship.python.net/crew/mhammond}
+\begin_inset LatexCommand \htmlurl{http://sourceforge.net/projects/pywin32}
 
 \end_inset
 
@@ -1185,6 +1185,25 @@ PyWin32
 
 \begin_layout Enumerate
 
+\family typewriter
+PyReadline
+\family default
+ for Windows from 
+\begin_inset LatexCommand \htmlurl{http://ipython.scipy.org/moin/PyReadline/Intro}
+
+\end_inset
+
+.
+ That page contains further details on using and configuring the system
+ to your liking.
+\end_layout
+
+\begin_layout Enumerate
+Finally, 
+\emph on
+only 
+\emph default
+if you are using Python 2.3 or 2.4, you need 
 \family typewriter
 CTypes
 \family default
@@ -1198,21 +1217,8 @@ CTypes
 must
 \emph default
  use version 0.9.1 or newer).
-\end_layout
-
-\begin_layout Enumerate
-
-\family typewriter
-PyReadline
-\family default
- for Windows from 
-\begin_inset LatexCommand \htmlurl{http://projects.scipy.org/ipython/ipython/wiki/PyReadline/Intro}
-
-\end_inset
-
-.
- That page contains further details on using and configuring the system
- to your liking.
+ This package is included in Python 2.5, so you don't need to manually get
+ it if your Python version is 2.5 or newer.
 \end_layout
 
 \begin_layout Standard

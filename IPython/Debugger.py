@@ -15,7 +15,7 @@ details on the PSF (Python Software Foundation) standard license, see:
 
 http://www.python.org/2.2.3/license.html
 
-$Id: Debugger.py 2014 2007-01-05 10:36:58Z fperez $"""
+$Id: Debugger.py 2154 2007-03-19 00:10:07Z fperez $"""
 
 #*****************************************************************************
 #
@@ -48,18 +48,18 @@ from IPython.excolors import ExceptionColors
 
 # See if we can use pydb.
 has_pydb = False
-prompt = 'ipdb>'
+prompt = 'ipdb> '
 try:
     import pydb
     if hasattr(pydb.pydb, "runl"):
         has_pydb = True
         from pydb import Pdb as OldPdb
-        prompt = 'ipydb>'
 except ImportError:
     pass
 
 if has_pydb:
     from pydb import Pdb as OldPdb
+    prompt = 'ipydb> '
 else:
     from pdb import Pdb as OldPdb
 
@@ -178,10 +178,11 @@ class Pdb(OldPdb):
 
             # Parent constructor:
             if has_pydb and completekey is None:
-                OldPdb.__init__(self,stdin=stdin,stdout=stdout)
+                OldPdb.__init__(self,stdin=stdin,stdout=Term.cout) #stdout)
             else:
                 OldPdb.__init__(self,completekey,stdin,stdout)
-                self.prompt = prompt # The default prompt is '(Pdb)'
+                
+            self.prompt = prompt # The default prompt is '(Pdb)'
             
             # IPython changes...
             self.is_pydb = has_pydb
@@ -321,7 +322,7 @@ class Pdb(OldPdb):
 
     def print_stack_entry(self,frame_lineno,prompt_prefix='\n-> ',
                           context = 3):
-        frame, lineno = frame_lineno
+        #frame, lineno = frame_lineno
         print >>Term.cout, self.format_stack_entry(frame_lineno, '', context)
 
     def format_stack_entry(self, frame_lineno, lprefix=': ', context = 3):
@@ -365,7 +366,11 @@ class Pdb(OldPdb):
 
         # The level info should be generated in the same format pdb uses, to
         # avoid breaking the pdbtrack functionality of python-mode in *emacs.
-        ret.append('> %s(%s)%s\n' % (link,lineno,call))
+        if frame is self.curframe:
+            ret.append('> ')
+        else:
+            ret.append('  ')
+        ret.append('%s(%s)%s\n' % (link,lineno,call))
             
         start = lineno - 1 - context//2
         lines = linecache.getlines(filename)
@@ -375,7 +380,10 @@ class Pdb(OldPdb):
             
         for i,line in enumerate(lines):
             show_arrow = (start + 1 + i == lineno)
-            ret.append(self.__format_line(tpl_line_em, filename,
+            linetpl = (frame is self.curframe or show_arrow) \
+                      and tpl_line_em \
+                      or tpl_line
+            ret.append(self.__format_line(linetpl, filename,
                                           start + 1 + i, line,
                                           arrow = show_arrow) )
 

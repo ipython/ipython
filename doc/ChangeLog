@@ -1,5 +1,12 @@
 2007-03-18  Fernando Perez  <Fernando.Perez@colorado.edu>
 
+	* IPython/genutils.py (IOStream.close): small patch by
+	R. Bernstein for improved pydb support.
+
+	* IPython/Debugger.py (Pdb.format_stack_entry): Added patch by
+	DaveS <davls@telus.net> to improve support of debugging under
+	NTEmacs, including improved pydb behavior.
+
 	* IPython/Magic.py (magic_prun): Fix saving of profile info for
 	Python 2.5, where the stats object API changed a little.  Thanks
 	to a bug report by Paul Smith <paul.smith-AT-catugmt.com>.

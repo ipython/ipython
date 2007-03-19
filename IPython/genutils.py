@@ -5,7 +5,7 @@ General purpose utilities.
 This is a grab-bag of stuff I find useful in most programs I write. Some of
 these things are also convenient when working at the command line.
 
-$Id: genutils.py 2152 2007-03-18 20:13:35Z fperez $"""
+$Id: genutils.py 2154 2007-03-19 00:10:07Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2006 Fernando Perez. <fperez@colorado.edu>
@@ -67,6 +67,10 @@ class IOStream:
                 # if we get here, something is seriously broken.
                 print >> sys.stderr, \
                       'ERROR - failed to write data to stream:', self.stream
+
+    def close(self):
+        pass
+                
         
 class IOTerm:
     """ Term holds the file or file-like objects for handling I/O operations.
