@@ -70,17 +70,17 @@ def run(wait=0):
 
 
     # File and directory names
-    ip_dir = program_files_dir + '\\IPython'
-    ip_prog_dir = programs_dir + '\\IPython'
-    doc_dir = ip_dir+'\\doc'
-    ip_filename = ip_dir+'\\IPython_shell.py'
-    pycon_icon = doc_dir+'\\pycon.ico'
+    ip_dir = program_files_dir + r'\IPython'
+    ip_prog_dir = programs_dir + r'\IPython'
+    doc_dir = ip_dir+r'\doc'
+    ip_filename = ip_dir+r'\IPython_shell.py'
+    pycon_icon = doc_dir+r'\pycon.ico'
 
     if not os.path.isdir(ip_dir):
         os.mkdir(ip_dir)
 
     # Copy startup script and documentation
-    shutil.copy(sys.prefix+'\\Scripts\\ipython',ip_filename)
+    shutil.copy(sys.prefix+r'\Scripts\ipython',ip_filename)
     if os.path.isdir(doc_dir):
         shutil.rmtree(doc_dir)
     shutil.copytree('doc',doc_dir)
@@ -88,9 +88,10 @@ def run(wait=0):
     # make shortcuts for IPython, html and pdf docs.
     print 'Making entries for IPython in Start Menu...',
 
-    # Create .bat file in \\Scripts
-    fic = open(sys.prefix + '\\Scripts\\ipython.bat','w')
-    fic.write('"' + sys.prefix + '\\python.exe' + '" -i ' + '"' + sys.prefix + '\\Scripts\ipython" %*')
+    # Create .bat file in \Scripts
+    fic = open(sys.prefix + r'\Scripts\ipython.bat','w')
+    fic.write('"' + sys.prefix + r'\python.exe' + '" -i ' + '"' +
+              sys.prefix + r'\Scripts\ipython" %*')
     fic.close()
 
     # Create shortcuts in Programs\IPython:
@@ -98,8 +99,8 @@ def run(wait=0):
         os.mkdir(ip_prog_dir)
     os.chdir(ip_prog_dir)
 
-    man_pdf = doc_dir + '\\manual.pdf'
-    man_htm = doc_dir + '\\manual\\manual.html'
+    man_pdf = doc_dir + r'\manual.pdf'
+    man_htm = doc_dir + r'\manual\manual.html'
 
     make_shortcut('IPython.lnk',sys.executable, '"%s"' % ip_filename,
                   my_documents_dir,
