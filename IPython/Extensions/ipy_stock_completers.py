@@ -176,7 +176,7 @@ def shlex_split(x):
     while x!="":
         try:
             comps=shlex.split(x)
-            if endofline>=1:
+            if len(endofline)>=1:
                 comps.append("".join(endofline))
             return comps
         except ValueError:
