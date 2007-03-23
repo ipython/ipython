@@ -6,7 +6,7 @@ Requires Python 2.3 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 2172 2007-03-23 14:04:07Z vivainio $
+$Id: iplib.py 2173 2007-03-23 14:26:16Z vivainio $
 """
 
 #*****************************************************************************
@@ -2120,6 +2120,15 @@ want to merge them back into the new files.""" % locals()
             return self.handle_normal(rewritten)
             
         #print 'pre <%s> iFun <%s> rest <%s>' % (pre,iFun,theRest)  # dbg
+        
+        # Next, check if we can automatically execute this thing
+
+        # Allow ! in multi-line statements if multi_line_specials is on:
+        if continue_prompt and self.rc.multi_line_specials and \
+               iFun.startswith(self.ESC_SHELL):
+            return self.handle_shell_escape(line,continue_prompt,
+                                            pre=pre,iFun=iFun,
+                                            theRest=theRest)        
 
         # First check for explicit escapes in the last/first character
         handler = None
@@ -2134,15 +2143,6 @@ want to merge them back into the new files.""" % locals()
         # Emacs ipython-mode tags certain input lines
         if line.endswith('# PYTHON-MODE'):
             return self.handle_emacs(line,continue_prompt)
-
-        # Next, check if we can automatically execute this thing
-
-        # Allow ! in multi-line statements if multi_line_specials is on:
-        if continue_prompt and self.rc.multi_line_specials and \
-               iFun.startswith(self.ESC_SHELL):
-            return self.handle_shell_escape(line,continue_prompt,
-                                            pre=pre,iFun=iFun,
-                                            theRest=theRest)
 
         # Let's try to find if the input line is a magic fn
         oinfo = None

@@ -6,6 +6,9 @@
 	
 	* Extensions/ipy_gnuglobal.py added, provides %global magic
 	for users of http://www.gnu.org/software/global
+	
+	* iplib.py: '!command /?' now doesn't invoke IPython's help system.
+	Closes #52. Patch by Stefan van der Walt.
 
 2007-03-23  Fernando Perez  <Fernando.Perez@colorado.edu>
 
