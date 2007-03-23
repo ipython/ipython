@@ -1,3 +1,8 @@
+2007-03-22  Fernando Perez  <Fernando.Perez@colorado.edu>
+
+	* IPython/iplib.py (raw_input): Fix mishandling of unicode at
+	input.  Patch sent by Stefan.
+
 2007-03-20  Jörgen Stenarson  <jorgen.stenarson@bostream.nu>
 	* IPython/Extensions/ipy_stock_completer.py
 	shlex_split, fix bug in shlex_split. len function

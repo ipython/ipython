@@ -6,7 +6,7 @@ Requires Python 2.3 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 2135 2007-03-10 09:26:25Z fperez $
+$Id: iplib.py 2168 2007-03-23 00:57:04Z fperez $
 """
 
 #*****************************************************************************
@@ -1977,7 +1977,7 @@ want to merge them back into the new files.""" % locals()
         """
 
         try:
-            line = raw_input_original(prompt)
+            line = raw_input_original(prompt).decode(sys.stdin.encoding)
         except ValueError:
             warn("\n********\nYou or a %run:ed script called sys.stdin.close() or sys.stdout.close()!\nExiting IPython!")
             self.exit_now = True
