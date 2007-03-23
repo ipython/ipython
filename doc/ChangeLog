@@ -1,3 +1,12 @@
+2007-03-23  Ville Vainio  <vivainio@gmail.com>
+
+	* iplib.py: recursive alias expansion now works better, so that
+	cases like 'top' -> 'd:/cygwin/top' -> 'ls :/cygwin/top'
+	doesn't trip up the process, if 'd' has been aliased to 'ls'.
+	
+	* Extensions/ipy_gnuglobal.py added, provides %global magic
+	for users of http://www.gnu.org/software/global
+
 2007-03-23  Fernando Perez  <Fernando.Perez@colorado.edu>
 
 	* IPython/FakeModule.py (FakeModule.__init__): Small fix to

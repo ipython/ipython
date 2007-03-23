@@ -6,7 +6,7 @@ Requires Python 2.3 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 2168 2007-03-23 00:57:04Z fperez $
+$Id: iplib.py 2172 2007-03-23 14:04:07Z vivainio $
 """
 
 #*****************************************************************************
@@ -490,6 +490,11 @@ class InteractiveShell(object,Magic):
         self.line_split = re.compile(r'^(\s*[,;/]?\s*)'
                                      r'([\?\w\.]+\w*\s*)'
                                      r'(\(?.*$)')
+
+        self.shell_line_split = re.compile(r'^(\s*)'
+                                     r'(\S*\s*)'
+                                     r'(\(?.*$)')
+
 
         # A simpler regexp used as a fallback if the above doesn't work.  This
         # one is more conservative in how it partitions the input.  This code
@@ -1701,7 +1706,8 @@ want to merge them back into the new files.""" % locals()
         
         done = Set()
         while 1:
-            pre,fn,rest = self.split_user_input(line)
+            pre,fn,rest = self.split_user_input(line, pattern = self.shell_line_split)
+            # print "!",fn,"!",rest # dbg
             if fn in self.alias_table:
                 if fn in done:
                     warn("Cyclic alias definition, repeated '%s'" % fn)
@@ -2020,10 +2026,13 @@ want to merge them back into the new files.""" % locals()
         else:
             return lineout
 
-    def split_user_input(self,line):
+    def split_user_input(self,line, pattern = None):
         """Split user input into pre-char, function part and rest."""
 
-        lsplit = self.line_split.match(line)
+        if pattern is None:
+            pattern = self.line_split
+            
+        lsplit = pattern.match(line)
         if lsplit is None:  # no regexp match returns None
             #print "match failed for line '%s'" % line  # dbg
             try:
