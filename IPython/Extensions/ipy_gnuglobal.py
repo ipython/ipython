@@ -21,7 +21,8 @@ def global_f(self,cmdline):
         cmdline  = '-rx ' + cmdline
         simple = 1
         
-    lines = os.popen( global_bin + ' ' + cmdline ).readlines()
+    lines = [l.rstrip() for l in os.popen( global_bin + ' ' + cmdline ).readlines()]
+    
     if simple:
         parts = [l.split(None,3) for l in lines]
         lines = ['%s [%s]\n%s' % (p[2].rjust(70),p[1],p[3].rstrip()) for p in parts]
