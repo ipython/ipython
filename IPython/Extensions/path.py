@@ -12,17 +12,13 @@ This module requires Python 2.2 or later.
 
 URL:     http://www.jorendorff.com/articles/python/path
 Author:  Jason Orendorff <jason.orendorff\x40gmail\x2ecom> (and others - see the url!)
-Date:    7 Mar 2004
+Date:    9 Mar 2007
 """
 
 
 # TODO
-#   - Tree-walking functions don't avoid symlink loops.  Matt Harrison sent me a patch for this.
-#   - Tree-walking functions can't ignore errors.  Matt Harrison asked for this.
-#
-#   - Two people asked for path.chdir().  This just seems wrong to me,
-#     I dunno.  chdir() is moderately evil anyway.
-#
+#   - Tree-walking functions don't avoid symlink loops.  Matt Harrison
+#     sent me a patch for this.
 #   - Bug in write_text().  It doesn't support Universal newline mode.
 #   - Better error message in listdir() when self isn't a
 #     directory. (On Windows, the error message really sucks.)
@@ -30,13 +26,12 @@ Date:    7 Mar 2004
 #   - Add methods for regex find and replace.
 #   - guess_content_type() method?
 #   - Perhaps support arguments to touch().
-#   - Could add split() and join() methods that generate warnings.
 
 from __future__ import generators
 
 import sys, warnings, os, fnmatch, glob, shutil, codecs, md5
 
-__version__ = '2.1'
+__version__ = '2.2'
 __all__ = ['path']
 
 # Platform-specific support for path.owner
@@ -389,6 +384,7 @@ class path(_base):
                     "Unable to list directory '%s': %s"
                     % (self, sys.exc_info()[1]),
                     TreeWalkWarning)
+                return
             else:
                 raise
 
@@ -439,6 +435,7 @@ class path(_base):
                     "Unable to list directory '%s': %s"
                     % (self, sys.exc_info()[1]),
                     TreeWalkWarning)
+                return
             else:
                 raise
 
@@ -469,6 +466,7 @@ class path(_base):
                     "Unable to list directory '%s': %s"
                     % (self, sys.exc_info()[1]),
                     TreeWalkWarning)
+                return
             else:
                 raise
 
@@ -478,12 +476,13 @@ class path(_base):
                 isdir = not isfile and child.isdir()
             except:
                 if errors == 'ignore':
-                    return
+                    continue
                 elif errors == 'warn':
                     warnings.warn(
                         "Unable to access '%s': %s"
                         % (self, sys.exc_info()[1]),
                         TreeWalkWarning)
+                    continue
                 else:
                     raise
 
