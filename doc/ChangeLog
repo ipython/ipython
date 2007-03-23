@@ -1,3 +1,9 @@
+2007-03-23  Fernando Perez  <Fernando.Perez@colorado.edu>
+
+	* IPython/FakeModule.py (FakeModule.__init__): Small fix to
+	respect the __file__ attribute when using %run.  Thanks to a bug
+	report by Sebastian Rooks <sebastian.rooks-AT-free.fr>.
+
 2007-03-22  Fernando Perez  <Fernando.Perez@colorado.edu>
 
 	* IPython/iplib.py (raw_input): Fix mishandling of unicode at
