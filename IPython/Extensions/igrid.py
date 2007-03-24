@@ -575,7 +575,9 @@ class IGridGrid(wx.grid.Grid):
         frame = self.GetParent().GetParent().GetParent()
         if frame.helpdialog:
             frame.helpdialog.Destroy()
-        frame.parent.result = result
+        app = frame.parent
+        if app is not None:
+            app.result = result
         frame.Close()
         frame.Destroy()
 
@@ -799,7 +801,25 @@ class igrid(ipipe.Display):
     This is a wx-based display object that can be used instead of ``ibrowse``
     (which is curses-based) or ``idump`` (which simply does a print).
     """
-    def display(self):
-        app = App(self.input)
-        app.MainLoop()
-        return app.result
+    if wx.VERSION < (2, 7):
+        def display(self):
+            try:
+                # Try to create a "standalone" from. If this works we're probably
+                # running with -wthread.
+                # Note that this sets the parent of the frame to None, but we can't
+                # pass a result object back to the shell anyway.
+                frame = IGridFrame(None, self.input)
+                frame.Show()
+                frame.Raise()
+            except wx.PyNoAppError:
+                # There's no wx application yet => create one.
+                app = App(self.input)
+                app.MainLoop()
+                return app.result
+    else:
+        # With wx 2.7 it gets simpler.
+        def display(self):
+            app = App(self.input)
+            app.MainLoop()
+            return app.result
+

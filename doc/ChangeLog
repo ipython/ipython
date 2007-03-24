@@ -1,6 +1,9 @@
 2007-03-24  Walter Doerwald  <walter@livinglogic.de>
 
-	* IPython/Extensions/igrid.py: Fix picking.
+	* IPython/Extensions/igrid.py: Fix picking. Using
+	igrid with wxPyhon 2.6 and -wthread should work now.
+	igrid.display() simply tries to create a frame without
+	an application. Only if this fails an application is created.
 
 2007-03-23  Walter Doerwald  <walter@livinglogic.de>
 
