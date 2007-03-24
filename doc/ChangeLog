@@ -1,3 +1,7 @@
+2007-03-24  Walter Doerwald  <walter@livinglogic.de>
+
+	* IPython/Extensions/igrid.py: Fix picking.
+
 2007-03-23  Walter Doerwald  <walter@livinglogic.de>
 
 	* IPython/Extensions/path.py: Updated to version 2.2.

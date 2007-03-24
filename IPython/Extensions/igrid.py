@@ -420,10 +420,10 @@ class IGridGrid(wx.grid.Grid):
         elif keycode == ord("C") and sh:
             col = self.GetGridCursorCol()
             attr = self.table._displayattrs[col]
-            returnobj = []
+            result = []
             for i in xrange(self.GetNumberRows()):
-                returnobj.append(self.table._displayattrs[col].value(self.table.items[i]))
-            self.quit(returnobj)
+                result.append(self.table._displayattrs[col].value(self.table.items[i]))
+            self.quit(result)
         elif keycode in (wx.WXK_ESCAPE, ord("Q")) and not (ctrl or sh):
             self.quit()
         elif keycode == ord("<"):
@@ -568,14 +568,14 @@ class IGridGrid(wx.grid.Grid):
             attrs = [ipipe.AttributeDetail(item, attr) for attr in ipipe.xattrs(item, "detail")]
             self._doenter(attrs)
 
-    def quit(self, returnobj=None):
+    def quit(self, result=None):
         """
         quit
         """
         frame = self.GetParent().GetParent().GetParent()
         if frame.helpdialog:
             frame.helpdialog.Destroy()
-        frame.parent.returnobj = returnobj
+        frame.parent.result = result
         frame.Close()
         frame.Destroy()
 
@@ -783,6 +783,7 @@ class IGridFrame(wx.Frame):
 class App(wx.App):
     def __init__(self, input):
         self.input = input
+        self.result = None # Result to be returned to IPython. Set by quit().
         wx.App.__init__(self)
 
     def OnInit(self):
@@ -799,7 +800,6 @@ class igrid(ipipe.Display):
     (which is curses-based) or ``idump`` (which simply does a print).
     """
     def display(self):
-        self.returnobj = None
         app = App(self.input)
         app.MainLoop()
-        return self.returnobj
+        return app.result
