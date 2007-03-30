@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Magic functions for InteractiveShell.
 
-$Id: Magic.py 2187 2007-03-30 04:56:40Z fperez $"""
+$Id: Magic.py 2190 2007-03-30 18:35:46Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001 Janko Hauser <jhauser@zscout.de> and
@@ -671,8 +671,11 @@ Currently the magic system has the following functions:\n"""
 
         This function is meant to be called by pdef, pdoc & friends."""
 
+        #oname = oname.strip()
+        #print '1- oname: <%r>' % oname  # dbg
         try:
             oname = oname.strip().encode('ascii')
+            #print '2- oname: <%r>' % oname  # dbg
         except UnicodeEncodeError:
             print 'Python identifiers can only contain ascii characters.'
             return 'not found'
@@ -846,6 +849,11 @@ Currently the magic system has the following functions:\n"""
         Show objects beginning with a single _:
        
         %psearch -a _*         list objects beginning with a single underscore"""
+        try:
+            parameter_s = parameter_s.encode('ascii')
+        except UnicodeEncodeError:
+            print 'Python identifiers can only contain ascii characters.'
+            return
 
         # default namespaces to be searched
         def_search = ['user','builtin']
@@ -855,7 +863,7 @@ Currently the magic system has the following functions:\n"""
         opt = opts.get
         shell = self.shell
         psearch = shell.inspector.psearch
-        
+
         # select case options
         if opts.has_key('i'):
             ignore_case = True

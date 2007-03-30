@@ -5,7 +5,7 @@ General purpose utilities.
 This is a grab-bag of stuff I find useful in most programs I write. Some of
 these things are also convenient when working at the command line.
 
-$Id: genutils.py 2154 2007-03-19 00:10:07Z fperez $"""
+$Id: genutils.py 2190 2007-03-30 18:35:46Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2006 Fernando Perez. <fperez@colorado.edu>
@@ -265,7 +265,14 @@ def arg_split(s,posix=False):
     This is a modified version of the standard library's shlex.split()
     function, but with a default of posix=False for splitting, so that quotes
     in inputs are respected."""
-    
+
+    # XXX - there may be unicode-related problems here!!!  I'm not sure that
+    # shlex is truly unicode-safe, so it might be necessary to do
+    #
+    # s = s.encode(sys.stdin.encoding)
+    #
+    # first, to ensure that shlex gets a normal string.  Input from anyone who
+    # knows more about unicode and shlex than I would be good to have here...
     lex = shlex.shlex(s, posix=posix)
     lex.whitespace_split = True
     return list(lex)

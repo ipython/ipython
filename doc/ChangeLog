@@ -1,3 +1,9 @@
+2007-03-30  Fernando Perez  <Fernando.Perez@colorado.edu>
+
+	* IPython/Magic.py (magic_psearch): add unicode support by
+	encoding to ascii the input, since this routine also only deals
+	with valid Python names.  Fixes a bug reported by Stefan.
+
 2007-03-29  Fernando Perez  <Fernando.Perez@colorado.edu>
 
 	* IPython/Magic.py (_inspect): convert unicode input into ascii
