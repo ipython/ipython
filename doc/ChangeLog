@@ -1,3 +1,10 @@
+2007-03-29  Fernando Perez  <Fernando.Perez@colorado.edu>
+
+	* IPython/Magic.py (_inspect): convert unicode input into ascii
+	before trying to evaluate it as a Python identifier.  This fixes a
+	problem that the new unicode support had introduced when analyzing
+	long definition lines for functions.
+
 2007-03-24  Walter Doerwald  <walter@livinglogic.de>
 
 	* IPython/Extensions/igrid.py: Fix picking. Using

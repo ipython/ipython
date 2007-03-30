@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Magic functions for InteractiveShell.
 
-$Id: Magic.py 2153 2007-03-18 22:53:18Z fperez $"""
+$Id: Magic.py 2187 2007-03-30 04:56:40Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001 Janko Hauser <jhauser@zscout.de> and
@@ -670,8 +670,13 @@ Currently the magic system has the following functions:\n"""
         """Generic interface to the inspector system.
 
         This function is meant to be called by pdef, pdoc & friends."""
-        
-        oname = oname.strip()
+
+        try:
+            oname = oname.strip().encode('ascii')
+        except UnicodeEncodeError:
+            print 'Python identifiers can only contain ascii characters.'
+            return 'not found'
+            
         info = Struct(self._ofind(oname, namespaces))
         
         if info.found:

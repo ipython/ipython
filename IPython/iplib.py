@@ -6,7 +6,7 @@ Requires Python 2.3 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 2173 2007-03-23 14:26:16Z vivainio $
+$Id: iplib.py 2187 2007-03-30 04:56:40Z fperez $
 """
 
 #*****************************************************************************
@@ -2382,6 +2382,7 @@ want to merge them back into the new files.""" % locals()
                 line = line[:-1]
             self.log(line,'#?'+line,continue_prompt)
             if line:
+                #print 'line:<%r>' % line  # dbg
                 self.magic_pinfo(line)
             else:
                 page(self.usage,screen_lines=self.rc.screen_length)
