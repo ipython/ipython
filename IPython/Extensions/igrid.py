@@ -391,7 +391,7 @@ class IGridGrid(wx.grid.Grid):
         keycode = event.GetKeyCode()
         if keycode == ord("P"):
             row = self.GetGridCursorRow()
-            if event.ShiftDown():
+            if sh:
                 col = self.GetGridCursorCol()
                 self.pickattr(row, col)
             else:
@@ -404,13 +404,13 @@ class IGridGrid(wx.grid.Grid):
                 self.pickrows(sorted(self.current_selection))
         elif keycode in (wx.WXK_BACK, wx.WXK_DELETE, ord("X")) and not (ctrl or sh):
             self.delete_current_notebook()
-        elif keycode == ord("E") and not (ctrl or sh):
+        elif keycode in (ord("E"), ord("\r")):
             row = self.GetGridCursorRow()
-            self.enter(row)
-        elif keycode == ord("E") and sh and not ctrl:
-            row = self.GetGridCursorRow()
-            col = self.GetGridCursorCol()
-            self.enterattr(row, col)
+            if sh:
+                col = self.GetGridCursorCol()
+                self.enterattr(row, col)
+            else:
+                self.enter(row)
         elif keycode == ord("E") and ctrl:
             row = self.GetGridCursorRow()
             self.SetGridCursor(row, self.GetNumberCols()-1)

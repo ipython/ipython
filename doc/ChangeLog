@@ -1,3 +1,8 @@
+2007-03-31  Walter Doerwald  <walter@livinglogic.de>
+
+	* IPython/Extensions/igrid.py: Map the return key
+	to enter() and shift-return to enterattr().
+
 2007-03-30  Fernando Perez  <Fernando.Perez@colorado.edu>
 
 	* IPython/Magic.py (magic_psearch): add unicode support by
