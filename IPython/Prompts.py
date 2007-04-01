@@ -2,7 +2,7 @@
 """
 Classes for handling input/output prompts.
 
-$Id: Prompts.py 1850 2006-10-28 19:48:13Z fptest $"""
+$Id: Prompts.py 2192 2007-04-01 20:51:06Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2006 Fernando Perez <fperez@colorado.edu>
@@ -124,56 +124,59 @@ ROOT_SYMBOL    = "$#"[os.name=='nt' or os.getuid()==0]
 prompt_specials_color = {
     # Prompt/history count
     '%n' : '${self.col_num}' '${self.cache.prompt_count}' '${self.col_p}',
-    '\\#': '${self.col_num}' '${self.cache.prompt_count}' '${self.col_p}',
+    r'\#': '${self.col_num}' '${self.cache.prompt_count}' '${self.col_p}',
+    # Just the prompt counter number, WITHOUT any coloring wrappers, so users
+    # can get numbers displayed in whatever color they want.
+    r'\N': '${self.cache.prompt_count}',
     # Prompt/history count, with the actual digits replaced by dots.  Used
     # mainly in continuation prompts (prompt_in2)
-    '\\D': '${"."*len(str(self.cache.prompt_count))}',
+    r'\D': '${"."*len(str(self.cache.prompt_count))}',
     # Current working directory
-    '\\w': '${os.getcwd()}',
+    r'\w': '${os.getcwd()}',
     # Current time
-    '\\t' : '${time.strftime("%H:%M:%S")}',
+    r'\t' : '${time.strftime("%H:%M:%S")}',
     # Basename of current working directory.
     # (use os.sep to make this portable across OSes)
-    '\\W' : '${os.getcwd().split("%s")[-1]}' % os.sep,
+    r'\W' : '${os.getcwd().split("%s")[-1]}' % os.sep,
     # These X<N> are an extension to the normal bash prompts.  They return
     # N terms of the path, after replacing $HOME with '~'
-    '\\X0': '${os.getcwd().replace("%s","~")}' % HOME,
-    '\\X1': '${self.cwd_filt(1)}',
-    '\\X2': '${self.cwd_filt(2)}',
-    '\\X3': '${self.cwd_filt(3)}',
-    '\\X4': '${self.cwd_filt(4)}',
-    '\\X5': '${self.cwd_filt(5)}',
+    r'\X0': '${os.getcwd().replace("%s","~")}' % HOME,
+    r'\X1': '${self.cwd_filt(1)}',
+    r'\X2': '${self.cwd_filt(2)}',
+    r'\X3': '${self.cwd_filt(3)}',
+    r'\X4': '${self.cwd_filt(4)}',
+    r'\X5': '${self.cwd_filt(5)}',
     # Y<N> are similar to X<N>, but they show '~' if it's the directory
     # N+1 in the list.  Somewhat like %cN in tcsh.
-    '\\Y0': '${self.cwd_filt2(0)}',
-    '\\Y1': '${self.cwd_filt2(1)}',
-    '\\Y2': '${self.cwd_filt2(2)}',
-    '\\Y3': '${self.cwd_filt2(3)}',
-    '\\Y4': '${self.cwd_filt2(4)}',
-    '\\Y5': '${self.cwd_filt2(5)}',
+    r'\Y0': '${self.cwd_filt2(0)}',
+    r'\Y1': '${self.cwd_filt2(1)}',
+    r'\Y2': '${self.cwd_filt2(2)}',
+    r'\Y3': '${self.cwd_filt2(3)}',
+    r'\Y4': '${self.cwd_filt2(4)}',
+    r'\Y5': '${self.cwd_filt2(5)}',
     # Hostname up to first .
-    '\\h': HOSTNAME_SHORT,
+    r'\h': HOSTNAME_SHORT,
     # Full hostname
-    '\\H': HOSTNAME,
+    r'\H': HOSTNAME,
     # Username of current user
-    '\\u': USER,
+    r'\u': USER,
     # Escaped '\'
     '\\\\': '\\',
     # Newline
-    '\\n': '\n',
+    r'\n': '\n',
     # Carriage return
-    '\\r': '\r',
+    r'\r': '\r',
     # Release version
-    '\\v': __version__,
+    r'\v': __version__,
     # Root symbol ($ or #)
-    '\\$': ROOT_SYMBOL,
+    r'\$': ROOT_SYMBOL,
     }
 
 # A copy of the prompt_specials dictionary but with all color escapes removed,
 # so we can correctly compute the prompt length for the auto_rewrite method.
 prompt_specials_nocolor = prompt_specials_color.copy()
 prompt_specials_nocolor['%n'] = '${self.cache.prompt_count}'
-prompt_specials_nocolor['\\#'] = '${self.cache.prompt_count}'
+prompt_specials_nocolor[r'\#'] = '${self.cache.prompt_count}'
 
 # Add in all the InputTermColors color escapes as valid prompt characters.
 # They all get added as \\C_COLORNAME, so that we don't have any conflicts
@@ -183,7 +186,7 @@ prompt_specials_nocolor['\\#'] = '${self.cache.prompt_count}'
 input_colors = ColorANSI.InputTermColors
 for _color in dir(input_colors):
     if _color[0] != '_':
-        c_name = '\\C_'+_color
+        c_name = r'\C_'+_color
         prompt_specials_color[c_name] = getattr(input_colors,_color)
         prompt_specials_nocolor[c_name] = ''
 
@@ -422,8 +425,12 @@ class CachedOutput:
 
         # Set input prompt strings and colors
         if cache_size == 0:
-            if ps1.find('%n') > -1 or ps1.find('\\#') > -1: ps1 = '>>> '
-            if ps2.find('%n') > -1 or ps2.find('\\#') > -1: ps2 = '... '
+            if ps1.find('%n') > -1 or ps1.find(r'\#') > -1 \
+                   or ps1.find(r'\N') > -1:
+                ps1 = '>>> '
+            if ps2.find('%n') > -1 or ps2.find(r'\#') > -1 \
+                   or ps2.find(r'\N') > -1:
+                ps2 = '... '
         self.ps1_str = self._set_prompt_str(ps1,'In [\\#]: ','>>> ')
         self.ps2_str = self._set_prompt_str(ps2,'   .\\D.: ','... ')
         self.ps_out_str = self._set_prompt_str(ps_out,'Out[\\#]: ','')

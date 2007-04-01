@@ -6372,7 +6372,17 @@ bash
 \begin_layout Description
 
 \backslash
-# the prompt/history count number
+# the prompt/history count number.
+ This escape is automatically wrapped in the coloring codes for the currently
+ active color scheme.
+\end_layout
+
+\begin_layout Description
+
+\backslash
+N the 'naked' prompt/history count number: this is just the number itself,
+ without any coloring applied to it.
+ This lets you produce numbered prompts with your own colors.
 \end_layout
 
 \begin_layout Description
@@ -6699,7 +6709,7 @@ fperez
 ]
 \color green
 1>
-\color default
+\color none
  1+2
 \newline
 
@@ -6734,7 +6744,7 @@ hspace*{0mm}
 
 \color red
 <1>
-\color default
+\color none
  3
 \newline
 
@@ -6748,7 +6758,7 @@ fperez
 ]
 \color green
 2>
-\color default
+\color none
  for i in (1,2,3):
 \newline
 
@@ -6782,7 +6792,7 @@ hspace*{0mm}
 
 \color green
 ...>
-\color default
+\color none
  \InsetSpace ~
 \InsetSpace ~
 \InsetSpace ~
@@ -6820,7 +6830,7 @@ hspace*{0mm}
 
 \color green
 ...>
-\color default
+\color none
 
 \newline
 1 2 3

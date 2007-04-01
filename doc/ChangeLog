@@ -1,3 +1,10 @@
+2007-04-01  Fernando Perez  <Fernando.Perez@colorado.edu>
+
+	* IPython/Prompts.py (prompt_specials_color): Add \N for the
+	actual prompt number, without any coloring.  This allows users to
+	produce numbered prompts with their own colors.  Added after a
+	report/request by Thorsten Kampe <thorsten-AT-thorstenkampe.de>.
+
 2007-03-31  Walter Doerwald  <walter@livinglogic.de>
 
 	* IPython/Extensions/igrid.py: Map the return key
