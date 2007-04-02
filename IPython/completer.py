@@ -599,12 +599,19 @@ class IPCompleter(Completer):
         return None
         
     
-    
-    def complete(self, text, state):
+    def complete(self, text, state,line_buffer=None):
         """Return the next possible completion for 'text'.
 
         This is called successively with state == 0, 1, 2, ... until it
-        returns None.  The completion should begin with 'text'.  """
+        returns None.  The completion should begin with 'text'.
+
+        :Keywords:
+        - line_buffer: string
+        If not given, the completer attempts to obtain the current line buffer
+        via readline.  This keyword allows clients which are requesting for
+        text completions in non-readline contexts to inform the completer of
+        the entire text.
+        """
 
         #print '\n*** COMPLETE: <%s> (%s)' % (text,state)  # dbg
 
@@ -616,15 +623,19 @@ class IPCompleter(Completer):
 
         # don't apply this on 'dumb' terminals, such as emacs buffers, so we
         # don't interfere with their own tab-completion mechanism.
-        self.full_lbuf = self.get_line_buffer()
-        self.lbuf = self.full_lbuf[:self.readline.get_endidx()]
-        if not (self.dumb_terminal or self.get_line_buffer().strip()):
+        if line_buffer is None:
+            self.full_lbuf = self.get_line_buffer()
+        else:
+            self.full_lbuf = line_buffer
+            
+        if not (self.dumb_terminal or self.full_lbuf.strip()):
             self.readline.insert_text('\t')
             return None
-
         
         magic_escape = self.magic_escape
         magic_prefix = self.magic_prefix
+
+        self.lbuf = self.full_lbuf[:self.readline.get_endidx()]
 
         try:
             if text.startswith(magic_escape):

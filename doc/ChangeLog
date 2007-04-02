@@ -1,5 +1,9 @@
 2007-04-02  Fernando Perez  <Fernando.Perez@colorado.edu>
 
+	* IPython/completer.py (IPCompleter.complete): extend the
+	complete() call API to support completions by other mechanisms
+	than readline.  Closes #109.
+
 	* IPython/iplib.py (safe_execfile): add a safeguard under Win32 to
 	protect against a bug in Python's execfile().  Closes #123.
 

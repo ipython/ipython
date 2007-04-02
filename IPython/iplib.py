@@ -6,7 +6,7 @@ Requires Python 2.3 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 2196 2007-04-02 06:02:16Z fperez $
+$Id: iplib.py 2197 2007-04-02 07:36:55Z fperez $
 """
 
 #*****************************************************************************
@@ -1003,10 +1003,11 @@ class InteractiveShell(object,Magic):
         complete = self.Completer.complete
         state = 0
         # use a dict so we get unique keys, since ipyhton's multiple
-        # completers can return duplicates.
+        # completers can return duplicates.  When we make 2.4 a requirement,
+        # start using sets instead, which are faster.
         comps = {}
         while True:
-            newcomp = complete(text,state)
+            newcomp = complete(text,state,line_buffer=text)
             if newcomp is None:
                 break
             comps[newcomp] = 1
