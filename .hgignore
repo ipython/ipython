@@ -9,3 +9,6 @@ syntax: glob
 .project
 *.diff
 IPython_crash_report.txt
+
+syntax: regexp
+.*\#.*\#$
