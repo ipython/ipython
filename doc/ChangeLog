@@ -74,7 +74,7 @@
 2007-03-20  Jörgen Stenarson  <jorgen.stenarson@bostream.nu>
 	* IPython/Extensions/ipy_stock_completer.py
 	shlex_split, fix bug in shlex_split. len function
-	call was missing in if statement. Caused shlex_split to 
+	call was missing an if statement. Caused shlex_split to
 	sometimes return "" as last element.
 
 2007-03-18  Fernando Perez  <Fernando.Perez@colorado.edu>
