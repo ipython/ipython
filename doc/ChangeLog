@@ -1,5 +1,10 @@
 2007-04-01  Fernando Perez  <Fernando.Perez@colorado.edu>
 
+	* IPython/iplib.py (split_user_input): ensure that when splitting
+	user input, the part that can be treated as a python name is pure
+	ascii (Python identifiers MUST be pure ascii).  Part of the
+	ongoing Unicode support work.
+
 	* IPython/Prompts.py (prompt_specials_color): Add \N for the
 	actual prompt number, without any coloring.  This allows users to
 	produce numbered prompts with their own colors.  Added after a

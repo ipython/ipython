@@ -6,7 +6,7 @@ Requires Python 2.3 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 2190 2007-03-30 18:35:46Z fperez $
+$Id: iplib.py 2195 2007-04-02 05:35:16Z fperez $
 """
 
 #*****************************************************************************
@@ -2045,6 +2045,14 @@ want to merge them back into the new files.""" % locals()
         else:
             pre,iFun,theRest = lsplit.groups()
 
+        # iFun has to be a valid python identifier, so it better be only pure
+        #ascii, no unicode:
+        try:
+            iFun = iFun.encode('ascii')
+        except UnicodeEncodeError:
+            theRest = iFun+u' '+theRest
+            iFun = u''
+            
         #print 'line:<%s>' % line # dbg
         #print 'pre <%s> iFun <%s> rest <%s>' % (pre,iFun.strip(),theRest) # dbg
         return pre,iFun.strip(),theRest
