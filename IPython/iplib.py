@@ -6,7 +6,7 @@ Requires Python 2.3 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 2195 2007-04-02 05:35:16Z fperez $
+$Id: iplib.py 2196 2007-04-02 06:02:16Z fperez $
 """
 
 #*****************************************************************************
@@ -2571,7 +2571,14 @@ want to merge them back into the new files.""" % locals()
                     print >> sys.stderr, badline
         else:  # regular file execution
             try:
-                execfile(fname,*where)
+                if sys.platform == 'win32':
+                    # Work around a bug in Python for Windows.  The bug was
+                    # fixed in in Python 2.5 r54159 and 54158, but that's still
+                    # SVN Python as of March/07.  For details, see:
+                    # http://projects.scipy.org/ipython/ipython/ticket/123
+                    exec file(fname) in where[0],where[1]
+                else:
+                    execfile(fname,*where)
             except SyntaxError:
                 self.showsyntaxerror()
                 warn('Failure executing file: <%s>' % fname)

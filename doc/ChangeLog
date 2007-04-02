@@ -1,3 +1,8 @@
+2007-04-02  Fernando Perez  <Fernando.Perez@colorado.edu>
+
+	* IPython/iplib.py (safe_execfile): add a safeguard under Win32 to
+	protect against a bug in Python's execfile().  Closes #123.
+
 2007-04-01  Fernando Perez  <Fernando.Perez@colorado.edu>
 
 	* IPython/iplib.py (split_user_input): ensure that when splitting
