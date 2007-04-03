@@ -1,5 +1,8 @@
 2007-04-02  Fernando Perez  <Fernando.Perez@colorado.edu>
 
+	* IPython/iplib.py (_prefilter): close #52, second part of a patch
+	set by Stefan (only the first part had been applied before).
+
 	* IPython/Extensions/ipy_stock_completers.py (module_completer):
 	remove usage of the dangerous pkgutil.walk_packages().  See
 	details in comments left in the code.
