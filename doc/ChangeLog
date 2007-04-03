@@ -1,5 +1,12 @@
 2007-04-02  Fernando Perez  <Fernando.Perez@colorado.edu>
 
+	* IPython/Extensions/ipy_stock_completers.py (module_completer):
+	remove usage of the dangerous pkgutil.walk_packages().  See
+	details in comments left in the code.
+
+	* IPython/Magic.py (magic_whos): add support for numpy arrays
+	similar to what we had for Numeric.
+
 	* IPython/completer.py (IPCompleter.complete): extend the
 	complete() call API to support completions by other mechanisms
 	than readline.  Closes #109.

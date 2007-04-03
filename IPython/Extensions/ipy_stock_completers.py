@@ -72,27 +72,18 @@ ip.set_hook('complete_command', apt_completers, re_key = '.*yum')
 pkg_cache = None
 
 def module_completer(self,event):
-    """ Give completions after user has typed 'import' """
+    """ Give completions after user has typed 'import'.
 
-    # only a local version for py 2.4, pkgutil has no walk_packages() there
-    if sys.version_info < (2,5):
-        for el in [f[:-3] for f in glob.glob("*.py")]:
-            yield el
-        return
+    Note that only possible completions in the local directory are returned."""
 
-    global pkg_cache
-    import pkgutil,imp,time
-    #current =
-    if pkg_cache is None:
-        print "\n\n[Standby while scanning modules, this can take a while]\n\n"
-        pkg_cache = list(pkgutil.walk_packages())
-
-    already = set()
-    for ld, name, ispkg in pkg_cache:
-        if name.count('.') < event.symbol.count('.') + 1:
-            if name not in already:
-                already.add(name)
-                yield name + (ispkg and '.' or '')
+    # This works in all versions of python.  While 2.5 has
+    # pkgutil.walk_packages(), that particular routine is fairly dangerous,
+    # since it imports *EVERYTHING* on sys.path.  That is: a) very slow b) full
+    # of possibly problematic side effects.   At some point we may implement
+    # something that searches sys.path in a saner/safer way, but for now we'll
+    # restrict ourselves to local completions only.
+    for el in [f[:-3] for f in glob.glob("*.py")]:
+        yield el
     return
 
 ip.set_hook('complete_command', module_completer, str_key = 'import')

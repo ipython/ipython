@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Magic functions for InteractiveShell.
 
-$Id: Magic.py 2190 2007-03-30 18:35:46Z fperez $"""
+$Id: Magic.py 2200 2007-04-03 05:24:30Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001 Janko Hauser <jhauser@zscout.de> and
@@ -936,12 +936,6 @@ Currently the magic system has the following functions:\n"""
             return
 
         # if we have variables, move on...
-
-        # stupid flushing problem: when prompts have no separators, stdout is
-        # getting lost. I'm starting to think this is a python bug. I'm having
-        # to force a flush with a print because even a sys.stdout.flush
-        # doesn't seem to do anything!
-
         count = 0
         for i in varlist:
             print i+'\t',
@@ -949,9 +943,7 @@ Currently the magic system has the following functions:\n"""
             if count > 8:
                 count = 0
                 print
-            sys.stdout.flush()  # FIXME. Why the hell isn't this flushing???
-            
-        print # well, this does force a flush at the expense of an extra \n
+        print
 
     def magic_whos(self, parameter_s=''):
         """Like %who, but gives some extra information about each variable.
@@ -962,8 +954,8 @@ Currently the magic system has the following functions:\n"""
         
           - For {},[],(): their length.
 
-          - For Numeric arrays, a summary with shape, number of elements,
-          typecode and size in memory.
+          - For numpy and Numeric arrays, a summary with shape, number of
+          elements, typecode and size in memory.
 
           - Everything else: a string representation, snipping their middle if
           too long."""
@@ -978,16 +970,21 @@ Currently the magic system has the following functions:\n"""
         # for these types, show len() instead of data:
         seq_types = [types.DictType,types.ListType,types.TupleType]
 
-        # for Numeric arrays, display summary info
+        # for numpy/Numeric arrays, display summary info
+        try:
+            import numpy
+        except ImportError:
+            ndarray_type = None
+        else:
+            ndarray_type = numpy.ndarray.__name__
         try:
             import Numeric
         except ImportError:
             array_type = None
         else:
             array_type = Numeric.ArrayType.__name__
-        
+
         # Find all variable names and types so we can figure out column sizes
-        
         def get_vars(i):
             return self.shell.user_ns[i]
         
@@ -1004,7 +1001,8 @@ Currently the magic system has the following functions:\n"""
             tt = type_name(vv)
 
             if tt=='instance':
-                typelist.append( abbrevs.get(str(vv.__class__),str(vv.__class__)))
+                typelist.append( abbrevs.get(str(vv.__class__),
+                                             str(vv.__class__)))
             else:
                 typelist.append(tt)
 
@@ -1030,14 +1028,23 @@ Currently the magic system has the following functions:\n"""
             print itpl(vformat),
             if vtype in seq_types:
                 print len(var)
-            elif vtype==array_type:
+            elif vtype in [array_type,ndarray_type]:
                 vshape = str(var.shape).replace(',','').replace(' ','x')[1:-1]
-                vsize  = Numeric.size(var)
-                vbytes = vsize*var.itemsize()
-                if vbytes < 100000:
-                    print aformat % (vshape,vsize,var.typecode(),vbytes)
+                if vtype==ndarray_type:
+                    # numpy
+                    vsize  = var.size
+                    vbytes = vsize*var.itemsize
+                    vdtype = var.dtype
                 else:
-                    print aformat % (vshape,vsize,var.typecode(),vbytes),
+                    # Numeric
+                    vsize  = Numeric.size(var)
+                    vbytes = vsize*var.itemsize()
+                    vdtype = var.typecode()
+                    
+                if vbytes < 100000:
+                    print aformat % (vshape,vsize,vdtype,vbytes)
+                else:
+                    print aformat % (vshape,vsize,vdtype,vbytes),
                     if vbytes < Mb:
                         print '(%s kb)' % (vbytes/kb,)
                     else:
