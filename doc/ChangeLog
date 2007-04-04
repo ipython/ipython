@@ -1,3 +1,11 @@
+2007-04-03  Fernando Perez  <Fernando.Perez@colorado.edu>
+
+	* IPython/Debugger.py: disable the use of pydb version 1.17.  It
+	has a critical bug (a missing import that makes post-mortem not
+	work at all).  Unfortunately as of this time, this is the version
+	shipped with Ubuntu Edgy, so quite a few people have this one.  I
+	hope Edgy will update to a more recent package.
+
 2007-04-02  Fernando Perez  <Fernando.Perez@colorado.edu>
 
 	* IPython/iplib.py (_prefilter): close #52, second part of a patch
