@@ -28,7 +28,7 @@
     scan Python source code and re-emit it with no changes to its original
     formatting (which is the hard part).
 
-    $Id: PyColorize.py 2155 2007-03-19 00:45:51Z fperez $"""
+    $Id: PyColorize.py 2205 2007-04-04 06:04:01Z fperez $"""
 
 __all__ = ['ANSICodeColors','Parser']
 
@@ -131,8 +131,7 @@ class Parser:
         out should be a file-type object. Optionally, out can be given as the
         string 'str' and the parser will automatically return the output in a
         string."""
-        
-        self.raw = string.strip(string.expandtabs(raw))
+
         string_output = 0
         if out == 'str' or self.out == 'str':
             out_old = self.out
@@ -140,22 +139,36 @@ class Parser:
             string_output = 1
         elif out is not None:
             self.out = out
-        # local shorthand
+
+        # Fast return of the unmodified input for NoColor scheme
+        if scheme == 'NoColor':
+            error = False
+            self.out.write(raw)
+            if string_output:
+                return raw,error
+            else:
+                return None,error
+        
+        # local shorthands
         colors = self.color_table[scheme].colors
         self.colors = colors # put in object so __call__ sees it
+
+        # Remove trailing whitespace and normalize tabs
+        self.raw = raw.expandtabs().rstrip()
         # store line offsets in self.lines
         self.lines = [0, 0]
         pos = 0
+        raw_find = raw.find
+        lines_append = self.lines.append
         while 1:
-            pos = string.find(self.raw, '\n', pos) + 1
+            pos = raw_find('\n', pos) + 1
             if not pos: break
-            self.lines.append(pos)
-        self.lines.append(len(self.raw))
+            lines_append(pos)
+        lines_append(len(self.raw))
 
         # parse the source and write it
         self.pos = 0
         text = cStringIO.StringIO(self.raw)
-        #self.out.write('<pre><font face="Courier New">')
 
         error = False
         try:
@@ -179,8 +192,9 @@ class Parser:
     def __call__(self, toktype, toktext, (srow,scol), (erow,ecol), line):
         """ Token handler, with syntax highlighting."""
 
-        # local shorthand
+        # local shorthands
         colors = self.colors
+        owrite = self.out.write
 
         # line separator, so this works across platforms
         linesep = os.linesep
@@ -192,12 +206,12 @@ class Parser:
 
         # handle newlines
         if toktype in [token.NEWLINE, tokenize.NL]:
-            self.out.write(linesep)
+            owrite(linesep)
             return
 
         # send the original whitespace, if needed
         if newpos > oldpos:
-            self.out.write(self.raw[oldpos:newpos])
+            owrite(self.raw[oldpos:newpos])
 
         # skip indenting tokens
         if toktype in [token.INDENT, token.DEDENT]:
@@ -220,7 +234,7 @@ class Parser:
                                       (colors.normal,linesep,color))
 
         # send text
-        self.out.write('%s%s%s' % (color,toktext,colors.normal))
+        owrite('%s%s%s' % (color,toktext,colors.normal))
             
 def main():
     """Colorize a python file using ANSI color escapes and print to stdout.

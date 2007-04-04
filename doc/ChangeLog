@@ -1,3 +1,9 @@
+2007-04-04  Fernando Perez  <Fernando.Perez@colorado.edu>
+
+	* IPython/PyColorize.py (Parser.format2): Fix identation of
+	colorzied output and return early if color scheme is NoColor, to
+	avoid unnecessary and expensive tokenization.  Closes #131.
+
 2007-04-03  Fernando Perez  <Fernando.Perez@colorado.edu>
 
 	* IPython/Debugger.py: disable the use of pydb version 1.17.  It
