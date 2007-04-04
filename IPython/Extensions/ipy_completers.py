@@ -1,0 +1,226 @@
+#!/usr/bin/env python
+
+""" Implementations for various useful completers
+
+See Extensions/ipy_stock_completers.py on examples of how to enable a completer,
+but the basic idea is to do:
+
+ip.set_hook('complete_command', svn_completer, str_key = 'svn')
+
+"""
+
+import IPython.ipapi
+import glob,os,shlex,sys
+
+ip = IPython.ipapi.get()
+
+def vcs_completer(commands, event):
+    """ utility to make writing typical version control app completers easier
+
+    VCS command line apps typically have the format:
+
+    [sudo ]PROGNAME [help] [command] file file...
+
+    """
+
+
+    cmd_param = event.line.split()
+    if event.line.endswith(' '):
+        cmd_param.append('')
+
+    if cmd_param[0] == 'sudo':
+        cmd_param = cmd_param[1:]
+
+    if len(cmd_param) == 2 or 'help' in cmd_param:
+        return commands.split()
+
+    return ip.IP.Completer.file_matches(event.symbol)
+
+
+
+def apt_completers(self, event):
+    """ This should return a list of strings with possible completions.
+
+    Note that all the included strings that don't start with event.symbol
+    are removed, in order to not confuse readline.
+
+    """
+    # print event # dbg
+
+    # commands are only suggested for the 'command' part of package manager
+    # invocation
+
+    cmd = (event.line + "<placeholder>").rsplit(None,1)[0]
+    # print cmd
+    if cmd.endswith('apt-get') or cmd.endswith('yum'):
+        return ['update', 'upgrade', 'install', 'remove']
+
+    # later on, add dpkg -l / whatever to get list of possible
+    # packages, add switches etc. for the rest of command line
+    # filling
+
+    raise IPython.ipapi.TryNext
+
+
+
+pkg_cache = None
+
+def module_completer(self,event):
+    """ Give completions after user has typed 'import'.
+
+    Note that only possible completions in the local directory are returned."""
+
+    # This works in all versions of python.  While 2.5 has
+    # pkgutil.walk_packages(), that particular routine is fairly dangerous,
+    # since it imports *EVERYTHING* on sys.path.  That is: a) very slow b) full
+    # of possibly problematic side effects.   At some point we may implement
+    # something that searches sys.path in a saner/safer way, but for now we'll
+    # restrict ourselves to local completions only.
+    for el in [f[:-3] for f in glob.glob("*.py")]:
+        yield el
+    return
+
+
+svn_commands = """\
+add blame praise annotate ann cat checkout co cleanup commit ci copy
+cp delete del remove rm diff di export help ? h import info list ls
+lock log merge mkdir move mv rename ren propdel pdel pd propedit pedit
+pe propget pget pg proplist plist pl propset pset ps resolved revert
+status stat st switch sw unlock update
+"""
+
+def svn_completer(self,event):
+    return vcs_completer(svn_commands, event)
+
+
+hg_commands = """
+add addremove annotate archive backout branch branches bundle cat
+clone commit copy diff export grep heads help identify import incoming
+init locate log manifest merge outgoing parents paths pull push
+qapplied qclone qcommit qdelete qdiff qfold qguard qheader qimport
+qinit qnew qnext qpop qprev qpush qrefresh qrename qrestore qsave
+qselect qseries qtop qunapplied recover remove rename revert rollback
+root serve showconfig status strip tag tags tip unbundle update verify
+version
+"""
+
+def hg_completer(self,event):
+    """ Completer for mercurial commands """
+
+    return vcs_completer(hg_commands, event)
+
+
+
+bzr_commands = """
+add annotate bind branch break-lock bundle-revisions cat check
+checkout commit conflicts deleted diff export gannotate gbranch
+gcommit gdiff help ignore ignored info init init-repository inventory
+log merge missing mkdir mv nick pull push reconcile register-branch
+remerge remove renames resolve revert revno root serve sign-my-commits
+status testament unbind uncommit unknowns update upgrade version
+version-info visualise whoami
+"""
+
+def bzr_completer(self,event):
+    """ Completer for bazaar commands """
+    cmd_param = event.line.split()
+    if event.line.endswith(' '):
+        cmd_param.append('')
+
+    if len(cmd_param) > 2:
+        cmd = cmd_param[1]
+        param = cmd_param[-1]
+        output_file = (param == '--output=')
+        if cmd == 'help':
+            return bzr_commands.split()
+        elif cmd in ['bundle-revisions','conflicts',
+                     'deleted','nick','register-branch',
+                     'serve','unbind','upgrade','version',
+                     'whoami'] and not output_file:
+            return []
+        else:
+            # the rest are probably file names
+            return ip.IP.Completer.file_matches(event.symbol)
+
+    return bzr_commands.split()
+
+ 
+def shlex_split(x):
+    """Helper function to split lines into segments."""
+    #shlex.split raise exception if syntax error in sh syntax
+    #for example if no closing " is found. This function keeps dropping
+    #the last character of the line until shlex.split does not raise 
+    #exception. Adds end of the line to the result of shlex.split
+    #example: %run "c:/python  -> ['%run','"c:/python']
+    endofline=[]
+    while x!="":
+        try:
+            comps=shlex.split(x)
+            if len(endofline)>=1:
+                comps.append("".join(endofline))
+            return comps
+        except ValueError:
+            endofline=[x[-1:]]+endofline
+            x=x[:-1]
+    return ["".join(endofline)]
+
+def runlistpy(self, event):
+    comps = shlex_split(event.line)
+    relpath = (len(comps) > 1 and comps[-1] or '').strip("'\"")
+    
+    #print "\nev=",event  # dbg
+    #print "rp=",relpath  # dbg
+    #print 'comps=',comps  # dbg
+    
+    lglob = glob.glob
+    isdir = os.path.isdir
+    if relpath.startswith('~'):
+        relpath = os.path.expanduser(relpath)
+    dirs = [f.replace('\\','/') + "/" for f in lglob(relpath+'*')
+            if isdir(f)]
+
+    # Find if the user has already typed the first filename, after which we
+    # should complete on all files, since after the first one other files may
+    # be arguments to the input script.
+    #filter(
+    if filter(lambda f: f.endswith('.py') or f.endswith('.ipy'),comps):
+        pys =  [f.replace('\\','/') for f in lglob('*')]
+    else:
+        pys =  [f.replace('\\','/')
+                for f in lglob(relpath+'*.py') + lglob(relpath+'*.ipy')]
+    return dirs + pys
+
+
+def cd_completer(self, event):
+    relpath = event.symbol
+    #print event # dbg
+    if '-b' in event.line:
+        # return only bookmark completions
+        bkms = self.db.get('bookmarks',{})
+        return bkms.keys()
+
+
+    if event.symbol == '-':
+        # jump in directory history by number
+        ents = ['-%d [%s]' % (i,s) for i,s in enumerate(ip.user_ns['_dh'])]
+        if len(ents) > 1:
+            return ents
+        return []
+
+    if relpath.startswith('~'):
+        relpath = os.path.expanduser(relpath).replace('\\','/')
+    found = []
+    for d in [f.replace('\\','/') + '/' for f in glob.glob(relpath+'*')
+              if os.path.isdir(f)]:
+        if ' ' in d:
+            # we don't want to deal with any of that, complex code
+            # for this is elsewhere
+            raise IPython.ipapi.TryNext
+        found.append( d )
+
+    if not found:
+        if os.path.isdir(relpath):
+            return [relpath]
+        raise IPython.ipapi.TryNext
+    return found
+
