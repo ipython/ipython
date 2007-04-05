@@ -6,7 +6,7 @@ Requires Python 2.3 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 2203 2007-04-04 05:08:36Z fperez $
+$Id: iplib.py 2207 2007-04-05 02:07:24Z fperez $
 """
 
 #*****************************************************************************
@@ -2174,7 +2174,12 @@ want to merge them back into the new files.""" % locals()
         # It also allows users to assign to either alias or magic names true
         # python variables (the magic/alias systems always take second seat to
         # true python code).
-        if theRest and theRest[0] in '!=()':
+        #
+        # We also go to direct execution if there's a binary operator in there,
+        # so users get the regular exception.  Note that '-' is NOT included,
+        # since it is also a unary operator ('+' can also be used as unary, but
+        # in practice it rarely is).
+        if theRest and theRest[0] in '!=()<>+*/%^&|':
             return self.handle_normal(line,continue_prompt)
 
         if oinfo is None:
