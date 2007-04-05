@@ -4,7 +4,7 @@
 All the matplotlib support code was co-developed with John Hunter,
 matplotlib's author.
 
-$Id: Shell.py 2164 2007-03-20 00:15:03Z fperez $"""
+$Id: Shell.py 2216 2007-04-05 06:00:13Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2006 Fernando Perez <fperez@colorado.edu>
@@ -18,15 +18,26 @@ __author__  = '%s <%s>' % Release.authors['Fernando']
 __license__ = Release.license
 
 # Code begins
+# Stdlib imports
 import __builtin__
 import __main__
 import Queue
+import inspect
 import os
-import signal
 import sys
 import threading
 import time
 
+from signal import signal, SIGINT
+
+try:
+    import ctypes
+    HAS_CTYPES = True
+except ImportError:
+    HAS_CTYPES = False
+
+
+# IPython imports
 import IPython
 from IPython import ultraTB
 from IPython.genutils import Term,warn,error,flag_calls
@@ -35,11 +46,18 @@ from IPython.ipmaker import make_IPython
 from IPython.Magic import Magic
 from IPython.ipstruct import Struct
 
+# Globals
 # global flag to pass around information about Ctrl-C without exceptions
 KBINT = False
 
 # global flag to turn on/off Tk support.
 USE_TK = False
+
+# ID for the main thread, used for cross-thread exceptions
+MAIN_THREAD_ID = None
+
+# Tag when runcode() is active, for exception handling
+CODE_RUN = None
 
 #-----------------------------------------------------------------------------
 # This class is trivial now, but I want to have it in to publish a clean
@@ -241,20 +259,70 @@ class IPShellEmbed:
         self.exit_msg = exit_msg
 
 #-----------------------------------------------------------------------------
-def sigint_handler (signum,stack_frame):
-    """Sigint handler for threaded apps.
+if HAS_CTYPES:
+    #  Add async exception support.  Trick taken from:
+    # http://sebulba.wikispaces.com/recipe+thread2
+    def _async_raise(tid, exctype):
+        """raises the exception, performs cleanup if needed"""
+        if not inspect.isclass(exctype):
+            raise TypeError("Only types can be raised (not instances)")
+        res = ctypes.pythonapi.PyThreadState_SetAsyncExc(tid,
+                                                         ctypes.py_object(exctype))
+        if res == 0:
+            raise ValueError("invalid thread id")
+        elif res != 1:
+            # """if it returns a number greater than one, you're in trouble, 
+            # and you should call it again with exc=NULL to revert the effect"""
+            ctypes.pythonapi.PyThreadState_SetAsyncExc(tid, 0)
+            raise SystemError("PyThreadState_SetAsyncExc failed")
 
-    This is a horrible hack to pass information about SIGINT _without_ using
-    exceptions, since I haven't been able to properly manage cross-thread
-    exceptions in GTK/WX.  In fact, I don't think it can be done (or at least
-    that's my understanding from a c.l.py thread where this was discussed)."""
+    def sigint_handler (signum,stack_frame):
+        """Sigint handler for threaded apps.
 
-    global KBINT
-    
-    print '\nKeyboardInterrupt - Press <Enter> to continue.',
-    Term.cout.flush()
-    # Set global flag so that runsource can know that Ctrl-C was hit
-    KBINT = True
+        This is a horrible hack to pass information about SIGINT _without_
+        using exceptions, since I haven't been able to properly manage
+        cross-thread exceptions in GTK/WX.  In fact, I don't think it can be
+        done (or at least that's my understanding from a c.l.py thread where
+        this was discussed)."""
+
+        global KBINT
+
+        if CODE_RUN:
+            _async_raise(MAIN_THREAD_ID,KeyboardInterrupt)
+        else:
+            KBINT = True
+            print '\nKeyboardInterrupt - Press <Enter> to continue.',
+            Term.cout.flush()
+
+else:
+    def sigint_handler (signum,stack_frame):
+        """Sigint handler for threaded apps.
+
+        This is a horrible hack to pass information about SIGINT _without_
+        using exceptions, since I haven't been able to properly manage
+        cross-thread exceptions in GTK/WX.  In fact, I don't think it can be
+        done (or at least that's my understanding from a c.l.py thread where
+        this was discussed)."""
+
+        global KBINT
+
+        print '\nKeyboardInterrupt - Press <Enter> to continue.',
+        Term.cout.flush()
+        # Set global flag so that runsource can know that Ctrl-C was hit
+        KBINT = True
+
+
+def _set_main_thread_id():
+    """Ugly hack to find the main thread's ID.
+    """
+    global MAIN_THREAD_ID
+    for tid, tobj in threading._active.items():
+        # There must be a better way to do this than looking at the str() for
+        # each thread object...
+        if 'MainThread' in str(tobj):
+            #print 'main tid:',tid  # dbg
+            MAIN_THREAD_ID = tid
+            break
 
 class MTInteractiveShell(InteractiveShell):
     """Simple multi-threaded shell."""
@@ -338,16 +406,15 @@ class MTInteractiveShell(InteractiveShell):
 
         Multithreaded wrapper around IPython's runcode()."""
 
+
+        global CODE_RUN
+
+        # Exceptions need to be raised differently depending on which thread is
+        # active
+        CODE_RUN = True
+        
         # lock thread-protected stuff
         got_lock = self.thread_ready.acquire(False)
-
-        # Install sigint handler
-        try:
-            signal.signal(signal.SIGINT, sigint_handler)
-        except SystemError:
-            # This happens under Windows, which seems to have all sorts
-            # of problems with signal handling.  Oh well...
-            pass
 
         if self._kill:
             print >>Term.cout, 'Closing threads...',
@@ -355,6 +422,15 @@ class MTInteractiveShell(InteractiveShell):
             for tokill in self.on_kill:
                 tokill()
             print >>Term.cout, 'Done.'
+
+        # Install sigint handler.  It feels stupid to do this on every single
+        # pass 
+        try:
+            signal(SIGINT,sigint_handler)
+        except SystemError:
+            # This happens under Windows, which seems to have all sorts
+            # of problems with signal handling.  Oh well...
+            pass
 
         # Flush queue of pending code by calling the run methood of the parent
         # class with all items which may be in the queue.
@@ -372,6 +448,9 @@ class MTInteractiveShell(InteractiveShell):
         # We're done with thread-protected variables
         if got_lock:
             self.thread_ready.release()
+
+        # We're done...
+        CODE_RUN = False
         # This MUST return true for gtk threading to work
         return True
 
@@ -597,7 +676,16 @@ def hijack_gtk():
 # desired, the factory function start() below should be used instead (it
 # selects the proper threaded class).
 
-class IPShellGTK(threading.Thread):
+class IPThread(threading.Thread):
+    def run(self):
+        self.IP.mainloop(self._banner)
+        self.IP.kill()
+
+    def start(self):
+        threading.Thread.start(self)
+        _set_main_thread_id()
+
+class IPShellGTK(IPThread):
     """Run a gtk mainloop() in a separate thread.
     
     Python commands can be passed to the thread where they will be executed.
@@ -632,10 +720,6 @@ class IPShellGTK(threading.Thread):
         self._banner = None 
 
         threading.Thread.__init__(self)
-
-    def run(self):
-        self.IP.mainloop(self._banner)
-        self.IP.kill()
 
     def mainloop(self,sys_exit=0,banner=None):
 
@@ -680,7 +764,8 @@ class IPShellGTK(threading.Thread):
         time.sleep(0.01)
         return True
 
-class IPShellWX(threading.Thread):
+
+class IPShellWX(IPThread):
     """Run a wx mainloop() in a separate thread.
     
     Python commands can be passed to the thread where they will be executed.
@@ -721,7 +806,6 @@ class IPShellWX(threading.Thread):
         # Allows us to use both Tk and GTK.
         self.tk = get_tk()
         
-        
         # HACK: slot for banner in self; it will be passed to the mainloop
         # method only and .run() needs it.  The actual value will be set by
         # .mainloop().
@@ -733,10 +817,6 @@ class IPShellWX(threading.Thread):
         if self.app is not None:
             self.app.agent.timer.Stop()
             self.app.ExitMainLoop()
-
-    def run(self):
-        self.IP.mainloop(self._banner)
-        self.IP.kill()
 
     def mainloop(self,sys_exit=0,banner=None):
 
@@ -774,13 +854,14 @@ class IPShellWX(threading.Thread):
                 self.agent.Show(False)
                 self.agent.StartWork()
                 return True
-        
+
+        _set_main_thread_id()
         self.app = App(redirect=False)
         self.wx_mainloop(self.app)
         self.join()
 
 
-class IPShellQt(threading.Thread):
+class IPShellQt(IPThread):
     """Run a Qt event loop in a separate thread.
     
     Python commands can be passed to the thread where they will be executed.
@@ -825,10 +906,6 @@ class IPShellQt(threading.Thread):
         
         threading.Thread.__init__(self)
 
-    def run(self):
-        self.IP.mainloop(self._banner)
-        self.IP.kill()
-
     def mainloop(self,sys_exit=0,banner=None):
 
         import qt
@@ -854,7 +931,7 @@ class IPShellQt(threading.Thread):
         return result
 
 
-class IPShellQt4(threading.Thread):
+class IPShellQt4(IPThread):
     """Run a Qt event loop in a separate thread.
 
     Python commands can be passed to the thread where they will be executed.
@@ -898,10 +975,6 @@ class IPShellQt4(threading.Thread):
         self._banner = None
 
         threading.Thread.__init__(self)
-
-    def run(self):
-        self.IP.mainloop(self._banner)
-        self.IP.kill()
 
     def mainloop(self,sys_exit=0,banner=None):
 

@@ -1,3 +1,24 @@
+2007-04-04  Fernando Perez  <Fernando.Perez@colorado.edu>
+
+	* IPython/Shell.py (sigint_handler): I *THINK* I finally got
+	asynchronous exceptions working, i.e., Ctrl-C can actually
+	interrupt long-running code in the multithreaded shells.
+
+	This is using Tomer Filiba's great ctypes-based trick:
+	http://sebulba.wikispaces.com/recipe+thread2.  I'd already tried
+	this in the past, but hadn't been able to make it work before.  So
+	far it looks like it's actually running, but this needs more
+	testing.  If it really works, I'll be *very* happy, and we'll owe
+	a huge thank you to Tomer.  My current implementation is ugly,
+	hackish and uses nasty globals, but I don't want to try and clean
+	anything up until we know if it actually works.
+
+	NOTE: this feature needs ctypes to work.  ctypes is included in
+	Python2.5, but 2.4 users will need to manually install it.  This
+	feature makes multi-threaded shells so much more usable that it's
+	a minor price to pay (ctypes is very easy to install, already a
+	requirement for win32 and available in major linux distros).
+
 2007-04-04  Ville Vainio  <vivainio@gmail.com>
 
 	* Extensions/ipy_completers.py, ipy_stock_completers.py:
