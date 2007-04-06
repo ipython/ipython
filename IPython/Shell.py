@@ -4,7 +4,7 @@
 All the matplotlib support code was co-developed with John Hunter,
 matplotlib's author.
 
-$Id: Shell.py 2221 2007-04-06 02:58:37Z fperez $"""
+$Id: Shell.py 2222 2007-04-06 17:11:27Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2006 Fernando Perez <fperez@colorado.edu>
@@ -340,9 +340,6 @@ class MTInteractiveShell(InteractiveShell):
         # enough, because uses like macros cause reentrancy.
         self.code_queue = Queue.Queue()
 
-        # Track once we properly install our special sigint handler
-        self._sigint_handler_not_ready = True
-        
         # Stuff to do at closing time
         self._kill = False
         on_kill = kw.get('on_kill')
@@ -413,18 +410,14 @@ class MTInteractiveShell(InteractiveShell):
                 tokill()
             print >>Term.cout, 'Done.'
 
-        # Install sigint handler.  It feels stupid to test this on every single
-        # pass.  At least we keep track of having done it before...  We use a
-        # negative variable so we don't have to call 'not' every time
-        if self._sigint_handler_not_ready:
-            # Try only once...
-            self._sigint_handler_not_ready = False
-            try:
-                signal(SIGINT,sigint_handler)
-            except SystemError:
-                # This happens under Windows, which seems to have all sorts
-                # of problems with signal handling.  Oh well...
-                pass
+        # Install sigint handler.  We do it every time to ensure that if user
+        # code modifies it, we restore our own handling.
+        try:
+            signal(SIGINT,sigint_handler)
+        except SystemError:
+            # This happens under Windows, which seems to have all sorts
+            # of problems with signal handling.  Oh well...
+            pass
 
         # Flush queue of pending code by calling the run methood of the parent
         # class with all items which may be in the queue.
