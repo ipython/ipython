@@ -145,8 +145,15 @@ esc_handler_tests = [
     ( '?thing',    handle_help,  ),
     ( 'thing?',    handle_help ),  # '?' can trail...
     ( 'thing!',    handle_normal), # but only '?' can trail
-    ( '!thing?',   handle_help),   # trailing '?' wins if more than one
     ( '   ?thing', handle_help),   # ignore leading whitespace
+    # Trailing qmark combos.  Odd special cases abound
+    ( '!thing?',   handle_shell_escape), # trailing '?' loses to shell esc
+    ( '!thing ?',  handle_shell_escape),
+    ( '!!thing?',  handle_shell_escape),
+    ( '%cmd?',     handle_help),
+    ( '/cmd?',     handle_help),
+    ( ';cmd?',     handle_help),
+    ( ',cmd?',     handle_help),
     ( '!ls',       handle_shell_escape ),
     ( '%magic',    handle_magic),
     # Possibly, add test for /,; once those are unhooked from %autocall

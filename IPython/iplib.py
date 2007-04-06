@@ -6,7 +6,7 @@ Requires Python 2.3 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 2207 2007-04-05 02:07:24Z fperez $
+$Id: iplib.py 2221 2007-04-06 02:58:37Z fperez $
 """
 
 #*****************************************************************************
@@ -882,6 +882,10 @@ class InteractiveShell(object,Magic):
                                      self.Completer.__class__)
         self.Completer.matchers.insert(pos,newcomp)
 
+    def set_completer(self):
+        """reset readline's completer to be our own."""
+        self.readline.set_completer(self.Completer.complete)
+        
     def _get_call_pdb(self):
         return self._call_pdb
 
@@ -1311,7 +1315,7 @@ want to merge them back into the new files.""" % locals()
             self.readline = readline
             # save this in sys so embedded copies can restore it properly
             sys.ipcompleter = self.Completer.complete
-            readline.set_completer(self.Completer.complete)
+            self.set_completer()
 
             # Configure readline according to user's prefs
             for rlcommand in self.rc.readline_parse_and_bind:
@@ -1488,7 +1492,7 @@ want to merge them back into the new files.""" % locals()
                 self.InteractiveTB(etype,value,tb,tb_offset=tb_offset)
                 if self.InteractiveTB.call_pdb and self.has_readline:
                     # pdb mucks up readline, fix it back
-                    self.readline.set_completer(self.Completer.complete)
+                    self.set_completer()
 
     def mainloop(self,banner=None):
         """Creates the local namespace and starts the mainloop.
@@ -1979,14 +1983,17 @@ want to merge them back into the new files.""" % locals()
           continuation in a sequence of inputs.
         """
 
+        # Code run by the user may have modified the readline completer state.
+        # We must ensure that our completer is back in place.
+        self.set_completer()
+        
         try:
             line = raw_input_original(prompt).decode(sys.stdin.encoding)
-            #line = raw_input_original(prompt)
         except ValueError:
-            warn("\n********\nYou or a %run:ed script called sys.stdin.close() or sys.stdout.close()!\nExiting IPython!")
+            warn("\n********\nYou or a %run:ed script called sys.stdin.close()"
+                 " or sys.stdout.close()!\nExiting IPython!")
             self.exit_now = True
             return ""
-        
 
         # Try to be reasonably smart about not re-indenting pasted input more
         # than necessary.  We do this by trimming out the auto-indent initial
@@ -2174,14 +2181,9 @@ want to merge them back into the new files.""" % locals()
         # It also allows users to assign to either alias or magic names true
         # python variables (the magic/alias systems always take second seat to
         # true python code).
-        #
-        # We also go to direct execution if there's a binary operator in there,
-        # so users get the regular exception.  Note that '-' is NOT included,
-        # since it is also a unary operator ('+' can also be used as unary, but
-        # in practice it rarely is).
-        if theRest and theRest[0] in '!=()<>+*/%^&|':
+        if theRest and theRest[0] in '!=()':
             return self.handle_normal(line,continue_prompt)
-
+        
         if oinfo is None:
             # let's try to ensure that _oinfo is ONLY called when autocall is
             # on.  Since it has inevitable potential side effects, at least

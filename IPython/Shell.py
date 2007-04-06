@@ -4,7 +4,7 @@
 All the matplotlib support code was co-developed with John Hunter,
 matplotlib's author.
 
-$Id: Shell.py 2216 2007-04-05 06:00:13Z fperez $"""
+$Id: Shell.py 2221 2007-04-06 02:58:37Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2006 Fernando Perez <fperez@colorado.edu>
@@ -25,6 +25,7 @@ import Queue
 import inspect
 import os
 import sys
+import thread
 import threading
 import time
 
@@ -35,7 +36,6 @@ try:
     HAS_CTYPES = True
 except ImportError:
     HAS_CTYPES = False
-
 
 # IPython imports
 import IPython
@@ -54,7 +54,7 @@ KBINT = False
 USE_TK = False
 
 # ID for the main thread, used for cross-thread exceptions
-MAIN_THREAD_ID = None
+MAIN_THREAD_ID = thread.get_ident()
 
 # Tag when runcode() is active, for exception handling
 CODE_RUN = None
@@ -203,7 +203,7 @@ class IPShellEmbed:
         # Set global subsystems (display,completions) to our values
         sys.displayhook = self.sys_displayhook_embed
         if self.IP.has_readline:
-            self.IP.readline.set_completer(self.IP.Completer.complete)
+            self.IP.set_completer()
 
         if self.banner and header:
             format = '%s\n%s\n'
@@ -312,18 +312,6 @@ else:
         KBINT = True
 
 
-def _set_main_thread_id():
-    """Ugly hack to find the main thread's ID.
-    """
-    global MAIN_THREAD_ID
-    for tid, tobj in threading._active.items():
-        # There must be a better way to do this than looking at the str() for
-        # each thread object...
-        if 'MainThread' in str(tobj):
-            #print 'main tid:',tid  # dbg
-            MAIN_THREAD_ID = tid
-            break
-
 class MTInteractiveShell(InteractiveShell):
     """Simple multi-threaded shell."""
 
@@ -351,6 +339,9 @@ class MTInteractiveShell(InteractiveShell):
         # A queue to hold the code to be executed.  A scalar variable is NOT
         # enough, because uses like macros cause reentrancy.
         self.code_queue = Queue.Queue()
+
+        # Track once we properly install our special sigint handler
+        self._sigint_handler_not_ready = True
         
         # Stuff to do at closing time
         self._kill = False
@@ -406,7 +397,6 @@ class MTInteractiveShell(InteractiveShell):
 
         Multithreaded wrapper around IPython's runcode()."""
 
-
         global CODE_RUN
 
         # Exceptions need to be raised differently depending on which thread is
@@ -423,14 +413,18 @@ class MTInteractiveShell(InteractiveShell):
                 tokill()
             print >>Term.cout, 'Done.'
 
-        # Install sigint handler.  It feels stupid to do this on every single
-        # pass 
-        try:
-            signal(SIGINT,sigint_handler)
-        except SystemError:
-            # This happens under Windows, which seems to have all sorts
-            # of problems with signal handling.  Oh well...
-            pass
+        # Install sigint handler.  It feels stupid to test this on every single
+        # pass.  At least we keep track of having done it before...  We use a
+        # negative variable so we don't have to call 'not' every time
+        if self._sigint_handler_not_ready:
+            # Try only once...
+            self._sigint_handler_not_ready = False
+            try:
+                signal(SIGINT,sigint_handler)
+            except SystemError:
+                # This happens under Windows, which seems to have all sorts
+                # of problems with signal handling.  Oh well...
+                pass
 
         # Flush queue of pending code by calling the run methood of the parent
         # class with all items which may be in the queue.
@@ -681,10 +675,6 @@ class IPThread(threading.Thread):
         self.IP.mainloop(self._banner)
         self.IP.kill()
 
-    def start(self):
-        threading.Thread.start(self)
-        _set_main_thread_id()
-
 class IPShellGTK(IPThread):
     """Run a gtk mainloop() in a separate thread.
     
@@ -855,7 +845,6 @@ class IPShellWX(IPThread):
                 self.agent.StartWork()
                 return True
 
-        _set_main_thread_id()
         self.app = App(redirect=False)
         self.wx_mainloop(self.app)
         self.join()
@@ -1001,8 +990,8 @@ class IPShellQt4(IPThread):
         return result
 
 
-# A set of matplotlib public IPython shell classes, for single-threaded
-# (Tk* and FLTK* backends) and multithreaded (GTK* and WX* backends) use.
+# A set of matplotlib public IPython shell classes, for single-threaded (Tk*
+# and FLTK*) and multithreaded (GTK*, WX* and Qt*) backends to use.
 def _load_pylab(user_ns):
     """Allow users to disable pulling all of pylab into the top-level
     namespace.

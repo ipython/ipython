@@ -1,3 +1,25 @@
+2007-04-05  Fernando Perez  <Fernando.Perez@colorado.edu>
+
+	* IPython/Shell.py (MAIN_THREAD_ID): get rid of my stupid hack to
+	find the main thread id and use the proper API call.  Thanks to
+	Stefan for the fix.
+
+	* test/test_prefilter.py (esc_handler_tests): udpate one of Dan's
+	unit tests to reflect fixed ticket #52, and add more tests sent by
+	him.
+
+	* IPython/iplib.py (raw_input): restore the readline completer
+	state on every input, in case third-party code messed it up.
+	(_prefilter): revert recent addition of early-escape checks which
+	prevent many valid alias calls from working.
+
+	* IPython/Shell.py (MTInteractiveShell.runcode): add a tracking
+	flag for sigint handler so we don't run a full signal() call on
+	each runcode access.
+
+	* IPython/Magic.py (magic_whos): small improvement to diagnostic
+	message.
+
 2007-04-04  Fernando Perez  <Fernando.Perez@colorado.edu>
 
 	* IPython/Shell.py (sigint_handler): I *THINK* I finally got

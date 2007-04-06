@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Magic functions for InteractiveShell.
 
-$Id: Magic.py 2200 2007-04-03 05:24:30Z fperez $"""
+$Id: Magic.py 2221 2007-04-06 02:58:37Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001 Janko Hauser <jhauser@zscout.de> and
@@ -932,7 +932,10 @@ Currently the magic system has the following functions:\n"""
 
         varlist = self.magic_who_ls(parameter_s)
         if not varlist:
-            print 'Interactive namespace is empty.'
+            if parameter_s:
+                print 'No variables match your requested type.'
+            else:
+                print 'Interactive namespace is empty.'
             return
 
         # if we have variables, move on...
@@ -962,7 +965,10 @@ Currently the magic system has the following functions:\n"""
         
         varnames = self.magic_who_ls(parameter_s)
         if not varnames:
-            print 'Interactive namespace is empty.'
+            if parameter_s:
+                print 'No variables match your requested type.'
+            else:
+                print 'Interactive namespace is empty.'
             return
 
         # if we have variables, move on...
