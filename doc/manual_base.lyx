@@ -4430,28 +4430,47 @@ In [6]: cd ipython # automagic can work again
 
 \begin_layout Standard
 You can define your own magic functions to extend the system.
- The following is a snippet of code which shows how to do it.
- It is provided as file 
+ The following example defines a new magic command, 
 \family typewriter
-example-magic.py
+%impall
 \family default
- in the examples directory:
+:
 \end_layout
 
-\begin_layout Standard
-\begin_inset ERT
-status open
-
-\begin_layout Standard
-
-
-\backslash
-codelist{examples/example-magic.py}
+\begin_layout LyX-Code
+import IPython.ipapi 
 \end_layout
 
-\end_inset
+\begin_layout LyX-Code
+ip = IPython.ipapi.get()
+\end_layout
 
+\begin_layout LyX-Code
 
+\end_layout
+
+\begin_layout LyX-Code
+def doimp(self, arg):
+\end_layout
+
+\begin_layout LyX-Code
+    ip = self.api
+\end_layout
+
+\begin_layout LyX-Code
+    ip.ex("import %s; reload(%s); from %s import *" % (
+\end_layout
+
+\begin_layout LyX-Code
+    arg,arg,arg)
+\end_layout
+
+\begin_layout LyX-Code
+    )
+\end_layout
+
+\begin_layout LyX-Code
+ip.expose_magic('impall', doimp)
 \end_layout
 
 \begin_layout Standard

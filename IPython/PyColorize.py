@@ -28,7 +28,7 @@
     scan Python source code and re-emit it with no changes to its original
     formatting (which is the hard part).
 
-    $Id: PyColorize.py 2205 2007-04-04 06:04:01Z fperez $"""
+    $Id: PyColorize.py 2225 2007-04-08 02:48:16Z jdh2358 $"""
 
 __all__ = ['ANSICodeColors','Parser']
 
@@ -131,7 +131,7 @@ class Parser:
         out should be a file-type object. Optionally, out can be given as the
         string 'str' and the parser will automatically return the output in a
         string."""
-
+        
         string_output = 0
         if out == 'str' or self.out == 'str':
             out_old = self.out
@@ -155,10 +155,11 @@ class Parser:
 
         # Remove trailing whitespace and normalize tabs
         self.raw = raw.expandtabs().rstrip()
+        
         # store line offsets in self.lines
         self.lines = [0, 0]
         pos = 0
-        raw_find = raw.find
+        raw_find = self.raw.find
         lines_append = self.lines.append
         while 1:
             pos = raw_find('\n', pos) + 1

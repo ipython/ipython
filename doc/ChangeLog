@@ -1,3 +1,15 @@
+2007-04-07  Fernando Perez  <Fernando.Perez@colorado.edu>
+
+	* Tag 0.8.0 for release.
+	
+	* IPython/iplib.py (reloadhist): add API function to cleanly
+	reload the readline history, which was growing inappropriately on
+	every %run call.
+
+	* win32_manual_post_install.py (run): apply last part of Nicolas
+	Pernetty's patch (I'd accidentally applied it in a different
+	directory and this particular file didn't get patched).
+
 2007-04-05  Fernando Perez  <Fernando.Perez@colorado.edu>
 
 	* IPython/Shell.py (MAIN_THREAD_ID): get rid of my stupid hack to

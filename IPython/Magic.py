@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Magic functions for InteractiveShell.
 
-$Id: Magic.py 2221 2007-04-06 02:58:37Z fperez $"""
+$Id: Magic.py 2225 2007-04-08 02:48:16Z jdh2358 $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001 Janko Hauser <jhauser@zscout.de> and
@@ -1673,8 +1673,7 @@ Currently the magic system has the following functions:\n"""
             sys.argv = save_argv
             if restore_main:
                 sys.modules['__main__'] = restore_main
-            if self.shell.has_readline:
-                self.shell.readline.read_history_file(self.shell.histfile)
+            self.shell.reloadhist()
                 
         return stats
 

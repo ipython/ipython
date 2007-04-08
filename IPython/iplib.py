@@ -6,7 +6,7 @@ Requires Python 2.3 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 2221 2007-04-06 02:58:37Z fperez $
+$Id: iplib.py 2225 2007-04-08 02:48:16Z jdh2358 $
 """
 
 #*****************************************************************************
@@ -355,6 +355,11 @@ class InteractiveShell(object,Magic):
         # dict of output history
         self.output_hist = {}
 
+        # Get system encoding at startup time.  Certain terminals (like Emacs
+        # under Win32 have it set to None, and we need to have a known valid
+        # encoding to use in the raw_input() method
+        self.stdin_encoding = sys.stdin.encoding or 'ascii'
+
         # dict of things NOT to alias (keywords, builtins and some magics)
         no_alias = {}
         no_alias_magics = ['cd','popd','pushd','dhist','alias','unalias']
@@ -410,7 +415,8 @@ class InteractiveShell(object,Magic):
         # Set all default hooks, defined in the IPython.hooks module.
         hooks = IPython.hooks
         for hook_name in hooks.__all__:
-            # default hooks have priority 100, i.e. low; user hooks should have 0-100 priority
+            # default hooks have priority 100, i.e. low; user hooks should have
+            # 0-100 priority
             self.set_hook(hook_name,getattr(hooks,hook_name), 100)
             #print "bound hook",hook_name
 
@@ -494,7 +500,6 @@ class InteractiveShell(object,Magic):
         self.shell_line_split = re.compile(r'^(\s*)'
                                      r'(\S*\s*)'
                                      r'(\(?.*$)')
-
 
         # A simpler regexp used as a fallback if the above doesn't work.  This
         # one is more conservative in how it partitions the input.  This code
@@ -1245,6 +1250,13 @@ want to merge them back into the new files.""" % locals()
             print 'Unable to save IPython command history to file: ' + \
                   `self.histfile`
 
+    def reloadhist(self):
+        """Reload the input history from disk file."""
+
+        if self.has_readline:
+            self.readline.clear_history()
+            self.readline.read_history_file(self.shell.histfile)
+
     def history_saving_wrapper(self, func):
         """ Wrap func for readline history saving
         
@@ -1988,7 +2000,7 @@ want to merge them back into the new files.""" % locals()
         self.set_completer()
         
         try:
-            line = raw_input_original(prompt).decode(sys.stdin.encoding)
+            line = raw_input_original(prompt).decode(self.stdin_encoding)
         except ValueError:
             warn("\n********\nYou or a %run:ed script called sys.stdin.close()"
                  " or sys.stdout.close()!\nExiting IPython!")

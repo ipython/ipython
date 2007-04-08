@@ -94,6 +94,11 @@ def run(wait=0):
               sys.prefix + r'\Scripts\ipython" %*')
     fic.close()
 
+    # Create .bat file in \\Scripts
+    fic = open(sys.prefix + '\\Scripts\\ipython.bat','w')
+    fic.write('"' + sys.prefix + '\\python.exe' + '" -i ' + '"' + sys.prefix + '\\Scripts\ipython" %*')
+    fic.close()
+
     # Create shortcuts in Programs\IPython:
     if not os.path.isdir(ip_prog_dir):
         os.mkdir(ip_prog_dir)

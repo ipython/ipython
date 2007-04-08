@@ -55,7 +55,6 @@ if len(sys.argv) >= 2 and sys.argv[1] in ('sdist','bdist_rpm'):
                   ['doc/manual.lyx',
                    'doc/magic.tex',
                    'doc/examples/example-gnuplot.py',
-                   'doc/examples/example-magic.py',
                    'doc/examples/example-embed.py',
                    'doc/examples/example-embed-short.py',
                    'IPython/UserConfig/ipythonrc',
