@@ -8498,7 +8498,19 @@ ipythonrc-pysh
 \begin_layout Description
 
 \backslash
-# - Prompt number.
+# - Prompt number, wrapped in the color escapes for the input prompt (determined
+ by the current color scheme).
+\end_layout
+
+\begin_layout Description
+
+\backslash
+N - Just the prompt counter number, 
+\emph on
+without
+\emph default
+ any coloring wrappers.
+ You can thus customize the actual prompt colors manually.
 \end_layout
 
 \begin_layout Description
