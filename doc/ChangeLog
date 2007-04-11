@@ -1,3 +1,9 @@
+2007-04-10  Fernando Perez  <Fernando.Perez@colorado.edu>
+
+	* IPython/Release.py (version): Open trunk for 0.8.1 development.
+
+2007-04-10  *** Released version 0.8.0
+
 2007-04-07  Fernando Perez  <Fernando.Perez@colorado.edu>
 
 	* Tag 0.8.0 for release.
