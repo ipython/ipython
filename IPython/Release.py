@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Release data for the IPython project.
 
-$Id: Release.py 2235 2007-04-11 05:12:33Z jdh2358 $"""
+$Id: Release.py 2236 2007-04-11 05:13:30Z jdh2358 $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2006 Fernando Perez <fperez@colorado.edu>
@@ -22,7 +22,7 @@ name = 'ipython'
 # because bdist_rpm does not accept dashes (an RPM) convention, and
 # bdist_deb does not accept underscores (a Debian convention).
 
-revision = '2191'
+revision = '2235'
 
 version = '0.8.1.svn.r' + revision.rstrip('M')
 
