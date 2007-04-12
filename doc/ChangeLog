@@ -1,3 +1,8 @@
+2007-04-12  Walter Doerwald  <walter@livinglogic.de>
+
+	* IPython/Extensions/ipipe.py: (ils) Directoy listings are now
+	sorted (case sensitive with files and dirs mixed).
+
 2007-04-10  Fernando Perez  <Fernando.Perez@colorado.edu>
 
 	* IPython/Release.py (version): Open trunk for 0.8.1 development.

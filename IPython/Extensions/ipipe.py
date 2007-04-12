@@ -1213,7 +1213,7 @@ class ils(Table):
     def __iter__(self):
         base = ifile(self.base)
         yield (base / os.pardir).abspath()
-        for child in base.listdir():
+        for child in sorted(base.listdir()):
             if self.dirs:
                 if self.files:
                     yield child
