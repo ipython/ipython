@@ -6,7 +6,7 @@ Requires Python 2.3 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 2225 2007-04-08 02:48:16Z jdh2358 $
+$Id: iplib.py 2243 2007-04-16 16:03:00Z vivainio $
 """
 
 #*****************************************************************************
@@ -1480,8 +1480,11 @@ want to merge them back into the new files.""" % locals()
         SyntaxError exception, don't try to analyze the stack manually and
         simply call this method."""
 
+        
         # Though this won't be called by syntax errors in the input line,
         # there may be SyntaxError cases whith imported code.
+        
+        
         if exc_tuple is None:
             etype, value, tb = sys.exc_info()
         else:
@@ -1505,6 +1508,7 @@ want to merge them back into the new files.""" % locals()
                 if self.InteractiveTB.call_pdb and self.has_readline:
                     # pdb mucks up readline, fix it back
                     self.set_completer()
+        
 
     def mainloop(self,banner=None):
         """Creates the local namespace and starts the mainloop.
@@ -1997,7 +2001,8 @@ want to merge them back into the new files.""" % locals()
 
         # Code run by the user may have modified the readline completer state.
         # We must ensure that our completer is back in place.
-        self.set_completer()
+        if self.has_readline:
+            self.set_completer()
         
         try:
             line = raw_input_original(prompt).decode(self.stdin_encoding)
