@@ -1,6 +1,8 @@
 2007-04-19  Ville Vainio  <vivainio@gmail.com>
 
 	* upgrade_dir.py: skip junk files like *.pyc
+	
+	* Release.py: version number to 0.8.1
 
 2007-04-18  Ville Vainio  <vivainio@gmail.com>
 
