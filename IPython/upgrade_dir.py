@@ -36,12 +36,13 @@ def upgrade_dir(srcdir, tgtdir):
 
     def pr(s):
         print s
-
+    junk = ['.svn','ipythonrc*','*.pyc', '*~', '.hg']
+    
     def ignorable(p):
-        if p.lower().startswith('.svn') or p.startswith('ipythonrc'):
-            return True
+        for pat in junk:
+            if p.startswith(pat) or p.fnmatch(pat):
+                return True
         return False
-
 
     modded = []
     files = [path(srcdir).relpathto(p) for p in path(srcdir).walkfiles()]
@@ -67,7 +68,7 @@ def upgrade_dir(srcdir, tgtdir):
             sum = rpt.get(str(tgt), None)
             #print sum
             if sum and md5.new(cont).hexdigest() == sum:
-                pr("Unedited, installing new %s" % tgt)
+                pr("%s: Unedited, installing new version" % tgt)
                 tgt.write_text(src.text())
                 rpt[str(tgt)] = md5.new(tgt.text()).hexdigest()
             else:
@@ -76,7 +77,7 @@ def upgrade_dir(srcdir, tgtdir):
                 real = showdiff(tgt,src)
                 pr('') # empty line
                 if not real:
-                    pr("(Ok, it wasn't that different at all, upgrading checksum)")
+                    pr("(Ok, it was identical, only upgrading checksum)")
                     rpt[str(tgt)] = md5.new(tgt.text()).hexdigest()
                 else:
                     modded.append(tgt)

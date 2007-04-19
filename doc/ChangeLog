@@ -1,3 +1,7 @@
+2007-04-19  Ville Vainio  <vivainio@gmail.com>
+
+	* upgrade_dir.py: skip junk files like *.pyc
+
 2007-04-18  Ville Vainio  <vivainio@gmail.com>
 
 	* iplib.py (safe_execfile): make "ipython foo.py" work with 2.5.1c1
