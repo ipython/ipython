@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+""" IPython extension: Render templates from variables and paste to clipbard """
+
 import IPython.ipapi
 
 ip = IPython.ipapi.get()
@@ -7,8 +9,10 @@ ip = IPython.ipapi.get()
 from string import Template
 import sys
 
+from IPython.Itpl import itplns
+
 def toclip_w32(s):
-    """ places contents of s to clipboard
+    """ Places contents of s to clipboard
     
     Needs pyvin32 to work:
     http://sourceforge.net/projects/pywin32/
@@ -28,7 +32,7 @@ except ImportError:
     
 
 def render(tmpl):
-    """ Render a template (as specified in string.Template docs) from ipython variables
+    """ Render a template (Itpl format) from ipython variables
 
     Example:
     
@@ -38,11 +42,19 @@ def render(tmpl):
     $ render t_submission_form
     
     => returns "Submission report, author: Bob" and copies to clipboard on win32
+
+    Template examples (Ka-Ping Yee's Itpl library):
     
+    Here is a $string.
+    Here is a $module.member.
+    Here is an $object.member.
+    Here is a $functioncall(with, arguments).
+    Here is an ${arbitrary + expression}.
+    Here is an $array[3] member.
+    Here is a $dictionary['member'].
     """
     
-    s = Template(tmpl)
-    res = s.substitute(ip.user_ns)
+    res = itplns(tmpl, ip.user_ns)
     toclip(res)
     return res
 

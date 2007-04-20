@@ -1,8 +1,8 @@
 2007-04-20  Ville Vainio  <vivainio@gmail.com>
 
 	* Extensions/ipy_render.py: added extension for easy
-	interactive text template rendering (todo - add a better
-	renderer than string.Template)
+	interactive text template rendering (to clipboard). Uses Ka-Ping Yee's
+	'Iptl' template notation, 
 	
 	* Extensions/ipy_completers.py: introduced Olivier Lauzanne's
 	safer & faster 'import' completer.
