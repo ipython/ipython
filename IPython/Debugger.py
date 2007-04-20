@@ -15,7 +15,7 @@ details on the PSF (Python Software Foundation) standard license, see:
 
 http://www.python.org/2.2.3/license.html
 
-$Id: Debugger.py 2203 2007-04-04 05:08:36Z fperez $"""
+$Id: Debugger.py 2261 2007-04-20 17:50:00Z jdh2358 $"""
 
 #*****************************************************************************
 #
@@ -72,7 +72,7 @@ def BdbQuit_excepthook(et,ev,tb):
     if et==bdb.BdbQuit:
         print 'Exiting Debugger.'
     else:
-        ehook.excepthook_ori(et,ev,tb)
+        BdbQuit_excepthook.excepthook_ori(et,ev,tb)
 
 def BdbQuit_IPython_excepthook(self,et,ev,tb):
     print 'Exiting Debugger.'
