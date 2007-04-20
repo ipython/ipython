@@ -300,6 +300,46 @@ class IPApi:
         
         pre,fn,rest = self.IP.split_user_input(line)
         res = pre + self.IP.expand_aliases(fn,rest)
+
+    def defalias(self, name, cmd):
+        """ Define a new alias
+        
+        _ip.defalias('bb','bldmake bldfiles')
+        
+        Creates a new alias named 'bb' in ipython user namespace
+        """
+        
+        
+        nargs = cmd.count('%s')
+        if nargs>0 and cmd.find('%l')>=0:
+            raise Exception('The %s and %l specifiers are mutually exclusive '
+                            'in alias definitions.')
+                  
+        else:  # all looks OK
+            self.IP.alias_table[name] = (nargs,cmd)            
+    
+    def defmacro(self, *args):
+        """ Define a new macro
+    
+        2 forms of calling:
+        
+        mac = _ip.defmacro('print "hello"\nprint "world"')
+        
+        (doesn't put the created macro on user namespace)
+        
+        _ip.defmacro('build', 'bldmake bldfiles\nabld build winscw udeb')
+        
+        (creates a macro named 'build' in user namespace)
+        """
+        
+        import IPython.macro
+        print args
+        if len(args) == 1:
+            return IPython.macro.Macro(args[0])
+        elif len(args) == 2:
+            self.user_ns[args[0]] = IPython.macro.Macro(args[1])
+        else:
+            return Exception("_ip.defmacro must be called with 1 or 2 arguments")
         
         
 
@@ -362,3 +402,4 @@ def make_session(user_ns = None):
 
     import IPython
     return IPython.Shell.start(user_ns)
+
