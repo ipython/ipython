@@ -7,7 +7,7 @@ import IPython.ipapi
 ip = IPython.ipapi.get()
 
 from string import Template
-import sys
+import sys,os
 
 from IPython.Itpl import itplns
 
@@ -21,7 +21,7 @@ def toclip_w32(s):
     import win32con
     cl.OpenClipboard()
     cl.EmptyClipboard()
-    cl.SetClipboardText( s )
+    cl.SetClipboardText( s.replace('\n','\r\n' ))
     cl.CloseClipboard()
 
 try:
@@ -43,6 +43,9 @@ def render(tmpl):
     
     => returns "Submission report, author: Bob" and copies to clipboard on win32
 
+    # if template exist as a file, read it. Note: ;f hei vaan => f("hei vaan")
+    $ ;render c:/templates/greeting.txt  
+    
     Template examples (Ka-Ping Yee's Itpl library):
     
     Here is a $string.
@@ -54,6 +57,9 @@ def render(tmpl):
     Here is a $dictionary['member'].
     """
     
+    if os.path.isfile(tmpl):
+        tmpl = open(tmpl).read()
+        
     res = itplns(tmpl, ip.user_ns)
     toclip(res)
     return res
