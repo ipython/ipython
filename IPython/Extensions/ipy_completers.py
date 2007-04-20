@@ -11,8 +11,83 @@ ip.set_hook('complete_command', svn_completer, str_key = 'svn')
 
 import IPython.ipapi
 import glob,os,shlex,sys
-
+import inspect
 ip = IPython.ipapi.get()
+
+def getRootModules():
+    """
+    Returns a list containing the names of all the modules available in the
+    folders of the pythonpath.
+    """
+    modules = []
+    for path in sys.path:
+        modules += moduleList(path)
+    modules += sys.builtin_module_names
+    modules = list(set(modules))
+    if '__init__' in modules:
+        modules.remove('__init__')
+    return list(set(modules))
+
+def moduleList(path):
+    """
+    Return the list containing the names of the modules available in the given
+    folder.
+    """
+    folder_list = glob.glob(os.path.join(path,'*'))
+    folder_list = [path for path in folder_list  \
+       if (os.path.isdir(path) and os.path.exists(os.path.join(path,'__init__.py')))\
+           or path[-3:] in ('.py','.so')\
+           or path[-4:] in ('.pyc','.pyo')]
+    folder_list += folder_list
+    folder_list = [os.path.basename(path).split('.')[0] for path in folder_list]
+    return folder_list
+
+def moduleCompletion(line):
+    """
+    Returns a list containing the completion possibilities for an import line.
+    The line looks like this :
+    'import xml.d'
+    'from xml.dom import'
+    """
+    def tryImport(mod, only_modules=False):
+        def isImportable(module, attr):
+            if only_modules:
+                return inspect.ismodule(getattr(module, attr))
+            else:
+                return not(attr[:2] == '__' and attr[-2:] == '__')
+        try:
+            m = __import__(mod)
+        except:
+            return []
+        mods = mod.split('.')
+        for module in mods[1:]:
+            m = getattr(m,module)
+        if (not hasattr(m, '__file__')) or (not only_modules) or\
+           (hasattr(m, '__file__') and '__init__' in m.__file__):
+            completion_list = [attr for attr in dir(m) if isImportable(m, attr)]
+        completion_list.extend(getattr(m,'__all__',[]))
+        if hasattr(m, '__file__') and '__init__' in m.__file__:
+            completion_list.extend(moduleList(os.path.dirname(m.__file__)))
+        completion_list = list(set(completion_list))
+        if '__init__' in completion_list:
+            completion_list.remove('__init__')
+        return completion_list
+
+    words = line.split(' ')
+    if len(words) == 3 and words[0] == 'from':
+        return ['import ']
+    if len(words) < 3 and (words[0] in ['import','from']) :
+        if len(words) == 1:
+            return getRootModules()
+        mod = words[1].split('.')
+        if len(mod) < 2:
+            return getRootModules()
+        completion_list = tryImport('.'.join(mod[:-1]), True)
+        completion_list = ['.'.join(mod[:-1] + [el]) for el in completion_list]
+        return completion_list
+    if len(words) >= 3 and words[0] == 'from':
+        mod = words[1]
+        return tryImport(mod)
 
 def vcs_completer(commands, event):
     """ utility to make writing typical version control app completers easier
@@ -66,19 +141,15 @@ def apt_completers(self, event):
 pkg_cache = None
 
 def module_completer(self,event):
-    """ Give completions after user has typed 'import'.
-
-    Note that only possible completions in the local directory are returned."""
+    """ Give completions after user has typed 'import ...' or 'from ...'"""
 
     # This works in all versions of python.  While 2.5 has
     # pkgutil.walk_packages(), that particular routine is fairly dangerous,
     # since it imports *EVERYTHING* on sys.path.  That is: a) very slow b) full
-    # of possibly problematic side effects.   At some point we may implement
-    # something that searches sys.path in a saner/safer way, but for now we'll
-    # restrict ourselves to local completions only.
-    for el in [f[:-3] for f in glob.glob("*.py")]:
-        yield el
-    return
+    # of possibly problematic side effects.
+    # This search the folders in the sys.path for available modules.
+
+    return moduleCompletion(event.line)
 
 
 svn_commands = """\
@@ -144,12 +215,12 @@ def bzr_completer(self,event):
 
     return bzr_commands.split()
 
- 
+
 def shlex_split(x):
     """Helper function to split lines into segments."""
     #shlex.split raise exception if syntax error in sh syntax
     #for example if no closing " is found. This function keeps dropping
-    #the last character of the line until shlex.split does not raise 
+    #the last character of the line until shlex.split does not raise
     #exception. Adds end of the line to the result of shlex.split
     #example: %run "c:/python  -> ['%run','"c:/python']
     endofline=[]
@@ -167,11 +238,11 @@ def shlex_split(x):
 def runlistpy(self, event):
     comps = shlex_split(event.line)
     relpath = (len(comps) > 1 and comps[-1] or '').strip("'\"")
-    
+
     #print "\nev=",event  # dbg
     #print "rp=",relpath  # dbg
     #print 'comps=',comps  # dbg
-    
+
     lglob = glob.glob
     isdir = os.path.isdir
     if relpath.startswith('~'):
