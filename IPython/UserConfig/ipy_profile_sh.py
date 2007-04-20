@@ -52,11 +52,11 @@ def main():
     
     ip.magic('alias d ls -F --color=auto')
     
-    # Make available all system commands through "rehashing" immediately. 
-    # You can comment these lines out to speed up startup on very slow 
-    # machines, and to conserve a bit of memory. Note that pysh profile does this
-    # automatically
     ip.IP.default_option('cd','-q')
+    
+    # If you only rarely want to execute the things you %edit...
+    
+    #ip.IP.default_option('edit','-x')
     
 
     o.prompts_pad_left="1"
