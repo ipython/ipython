@@ -8,7 +8,11 @@ from string import Template
 import sys
 
 def toclip_w32(s):
-    """ places contents of s to clipboard """
+    """ places contents of s to clipboard
+    
+    Needs pyvin32 to work:
+    http://sourceforge.net/projects/pywin32/
+    """
     import win32clipboard as cl
     import win32con
     cl.OpenClipboard()
@@ -16,9 +20,10 @@ def toclip_w32(s):
     cl.SetClipboardText( s )
     cl.CloseClipboard()
 
-if sys.platform == 'win32':
+try:
+    import win32clipboard    
     toclip = toclip_w32
-else:
+except ImportError:
     def toclip(s): pass
     
 
@@ -41,5 +46,5 @@ def render(tmpl):
     toclip(res)
     return res
 
-ip.user_ns['render'] = render
+ip.to_user_ns('render')
     
