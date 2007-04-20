@@ -333,7 +333,7 @@ class IPApi:
         """
         
         import IPython.macro
-        print args
+        
         if len(args) == 1:
             return IPython.macro.Macro(args[0])
         elif len(args) == 2:

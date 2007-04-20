@@ -7,8 +7,12 @@
 	* Extensions/ipy_completers.py: introduced Olivier Lauzanne's
 	safer & faster 'import' completer.
 	
-	* Introduced new ipapi methods, _ip.defmacro(name, value)
+	* ipapi.py: Introduced new ipapi methods, _ip.defmacro(name, value)
 	and _ip.defalias(name, command).
+	
+	* Extensions/ipy_exportdb.py: New extension for exporting all the
+	%store'd data in a portable format (normal ipapi calls like
+	defmacro() etc.)
 	
 2007-04-19  Ville Vainio  <vivainio@gmail.com>
 
