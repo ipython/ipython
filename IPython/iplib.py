@@ -6,7 +6,7 @@ Requires Python 2.3 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 2248 2007-04-18 19:58:32Z vivainio $
+$Id: iplib.py 2266 2007-04-22 18:55:48Z jstenar $
 """
 
 #*****************************************************************************
@@ -2597,7 +2597,14 @@ want to merge them back into the new files.""" % locals()
                     # fixed in in Python 2.5 r54159 and 54158, but that's still
                     # SVN Python as of March/07.  For details, see:
                     # http://projects.scipy.org/ipython/ipython/ticket/123
-                    exec file(fname) in where[0],where[1]
+                    try:
+                        globs,locs = where[0:2]
+                    except:
+                        try:
+                            globs = locs = where[0]
+                        except:
+                            globs = locs = globals()
+                    exec file(fname) in globs,locs
                 else:
                     execfile(fname,*where)
             except SyntaxError:

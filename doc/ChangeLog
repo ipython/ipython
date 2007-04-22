@@ -1,3 +1,8 @@
+2007-04-22  Jörgen Stenarson  <jorgen.stenarson@bostream.nu>
+
+	* Fix bug in iplib.py/safe_execfile when launching ipython with a script like ipython.py foo.py
+	  which raised a IndexError.
+
 2007-04-21  Ville Vainio  <vivainio@gmail.com>
 
 	* Extensions/ipy_extutil.py: added extension to manage other ipython
