@@ -32,6 +32,7 @@ def main():
     # beefed up %env is handy in shell mode
     import envpersist
     import ipy_which
+    import ipy_stock_completers
     
     
     ip.ex('import os')

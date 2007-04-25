@@ -6,6 +6,9 @@
 
 	* ipapi.py (expand_alias): Now actually *return* the expanded alias,
 	as opposed to returning nothing.
+	
+	* UserConfig/ipy_user_conf.py, ipy_profile_sh.py: do not import
+	ipy_stock_completers on default profile, do import on sh profile.
 
 2007-04-22  Jörgen Stenarson  <jorgen.stenarson@bostream.nu>
 
