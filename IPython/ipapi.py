@@ -300,6 +300,7 @@ class IPApi:
         
         pre,fn,rest = self.IP.split_user_input(line)
         res = pre + self.IP.expand_aliases(fn,rest)
+        return res
 
     def defalias(self, name, cmd):
         """ Define a new alias

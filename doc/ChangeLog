@@ -1,3 +1,12 @@
+2007-04-25  Ville Vainio  <vivainio@gmail.com>
+
+	* Extensions/ipy_which.py: added extension for %which magic, works
+	a lot like unix 'which' but also finds and expands aliases, and
+	allows wildcards.
+
+	* ipapi.py (expand_alias): Now actually *return* the expanded alias,
+	as opposed to returning nothing.
+
 2007-04-22  Jörgen Stenarson  <jorgen.stenarson@bostream.nu>
 
 	* Fix bug in iplib.py/safe_execfile when launching ipython with a script like ipython.py foo.py
