@@ -8,11 +8,14 @@ but the basic idea is to do:
 ip.set_hook('complete_command', svn_completer, str_key = 'svn')
 
 """
-
 import IPython.ipapi
 import glob,os,shlex,sys
 import inspect
+from time import time
 ip = IPython.ipapi.get()
+
+TIMEOUT_STORAGE = 3 #Time in seconds after which the rootmodules will be stored
+TIMEOUT_GIVEUP = 20 #Time in seconds after which we give up
 
 def getRootModules():
     """
@@ -20,22 +23,45 @@ def getRootModules():
     folders of the pythonpath.
     """
     modules = []
+    if ip.db.has_key('rootmodules'):
+        return ip.db['rootmodules']
+    t = time()
+    store = False
     for path in sys.path:
-        modules += moduleList(path)
+        modules += moduleList(path)        
+        if time() - t >= TIMEOUT_STORAGE and not store:
+            store = True
+            print "\nCaching the list of root modules, please wait!" 
+            print "(This will only be done once - type '%rehashx' to " + \
+            "reset cache!)"
+            print
+        if time() - t > TIMEOUT_GIVEUP:
+            print "This is taking too long, we give up."
+            print
+            ip.db['rootmodules'] = []
+            return []
+
     modules += sys.builtin_module_names
     modules = list(set(modules))
     if '__init__' in modules:
         modules.remove('__init__')
-    return list(set(modules))
+    modules = list(set(modules))
+    if store:
+        ip.db['rootmodules'] = modules
+    return modules
 
 def moduleList(path):
     """
     Return the list containing the names of the modules available in the given
     folder.
     """
-    folder_list = glob.glob(os.path.join(path,'*'))
+    if os.path.isdir(path):
+        folder_list = os.listdir(path)
+    else:
+        folder_list = []
+    #folder_list = glob.glob(os.path.join(path,'*'))
     folder_list = [path for path in folder_list  \
-       if (os.path.isdir(path) and os.path.exists(os.path.join(path,'__init__.py')))\
+       if os.path.exists(os.path.join(path,'__init__.py'))\
            or path[-3:] in ('.py','.so')\
            or path[-4:] in ('.pyc','.pyo')]
     folder_list += folder_list

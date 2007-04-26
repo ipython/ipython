@@ -1,3 +1,11 @@
+2007-04-26  Ville Vainio  <vivainio@gmail.com>
+
+	* Extensions/ipy_completers.py: Olivier's module completer now
+	saves the list of root modules if it takes > 4 secs on the first run.
+	
+	* Magic.py (%rehashx): %rehashx now clears the completer cache
+	
+
 2007-04-26  Fernando Perez  <Fernando.Perez@colorado.edu>
 
 	* ipython.el: fix incorrect color scheme, reported by Stefan.
@@ -21,8 +29,8 @@
 
 2007-04-22  Jörgen Stenarson  <jorgen.stenarson@bostream.nu>
 
-	* Fix bug in iplib.py/safe_execfile when launching ipython with a script like ipython.py foo.py
-	  which raised a IndexError.
+	* Fix bug in iplib.py/safe_execfile when launching ipython with a script
+	like ipython.py foo.py which raised a IndexError.
 
 2007-04-21  Ville Vainio  <vivainio@gmail.com>
 
