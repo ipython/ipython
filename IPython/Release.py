@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Release data for the IPython project.
 
-$Id: Release.py 2277 2007-04-26 16:50:23Z vivainio $"""
+$Id: Release.py 2278 2007-04-26 17:36:26Z jdh2358 $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2006 Fernando Perez <fperez@colorado.edu>
@@ -25,7 +25,7 @@ name = 'ipython'
 revision = '2276M'
 
 #version = '0.8.1.svn.r' + revision.rstrip('M')
-version = '0.8.1'
+version = '0.8.1.rc1'
 
 description = "An enhanced interactive Python shell."
 
