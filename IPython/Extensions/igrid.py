@@ -176,7 +176,7 @@ class IGridTable(wx.grid.PyGridTableBase):
                 raise
             except Exception, exc:
                 have += 1
-                self._append(item)
+                self._append(exc)
                 self.iterator = None
                 break
             else:

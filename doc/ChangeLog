@@ -1,3 +1,9 @@
+2007-04-26  Walter Doerwald  <walter@livinglogic.de>
+
+	* IPython/Extensions/igrid.py: (igrid) Fix bug that surfaced
+	when the igrid input raised an exception. (Patch by Nik Tautenhahn,
+	bug discovered by Ville).
+
 2007-04-26  Ville Vainio  <vivainio@gmail.com>
 
 	* Extensions/ipy_completers.py: Olivier's module completer now
