@@ -1,3 +1,9 @@
+2007-04-26  Fernando Perez  <Fernando.Perez@colorado.edu>
+
+	* IPython/PyColorize.py (Parser.format2): fix state-handling
+	logic.  I still don't like how that code handles state, but at
+	least now it should be correct, if inelegant.  Closes #146.
+
 2007-04-25  Ville Vainio  <vivainio@gmail.com>
 
 	* Extensions/ipy_which.py: added extension for %which magic, works

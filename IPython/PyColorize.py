@@ -28,7 +28,7 @@
     scan Python source code and re-emit it with no changes to its original
     formatting (which is the hard part).
 
-    $Id: PyColorize.py 2225 2007-04-08 02:48:16Z jdh2358 $"""
+    $Id: PyColorize.py 2274 2007-04-26 14:41:43Z jdh2358 $"""
 
 __all__ = ['ANSICodeColors','Parser']
 
@@ -133,7 +133,12 @@ class Parser:
         string."""
         
         string_output = 0
-        if out == 'str' or self.out == 'str':
+        if out == 'str' or self.out == 'str' or \
+           isinstance(self.out,cStringIO.OutputType):
+            # XXX - I don't really like this state handling logic, but at this
+            # point I don't want to make major changes, so adding the
+            # isinstance() check is the simplest I can do to ensure correct
+            # behavior.
             out_old = self.out
             self.out = cStringIO.StringIO()
             string_output = 1
