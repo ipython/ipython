@@ -1,5 +1,8 @@
 2007-04-26  Fernando Perez  <Fernando.Perez@colorado.edu>
 
+	* ipython.el: fix incorrect color scheme, reported by Stefan.
+	Closes #149.
+
 	* IPython/PyColorize.py (Parser.format2): fix state-handling
 	logic.  I still don't like how that code handles state, but at
 	least now it should be correct, if inelegant.  Closes #146.

@@ -6,7 +6,7 @@
 ;; URL:           http://ipython.scipy.org
 ;; Compatibility: Emacs21, XEmacs21
 ;; FIXME: #$@! INPUT RING
-(defconst ipython-version "$Revision: 2232 $"
+(defconst ipython-version "$Revision: 2275 $"
   "VC version number.")
 
 ;;; Commentary 
@@ -215,7 +215,7 @@ the second for a 'normal' command, and the third for a multiline command.")
                    (list "-colors"
                          (cond  
                            ((eq frame-background-mode 'dark)
-                            "DarkBG")
+                            "Linux")
                            ((eq frame-background-mode 'light)
                             "LightBG")
                            (t ; default (backg-mode isn't always set by XEmacs)
