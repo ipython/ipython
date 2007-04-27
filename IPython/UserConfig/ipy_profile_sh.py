@@ -38,10 +38,10 @@ def main():
     ip.ex('import os')
     ip.ex("def up(): os.chdir('..')")
         
-    # Get pysh-like prompt for all profiles. 
+    # Nice prompt
     
-    o.prompt_in1= '\C_LightBlue[\C_LightCyan\Y1\C_LightBlue]\C_Green|\#> '
-    o.prompt_in2= '\C_Green|\C_LightGreen\D\C_Green> '
+    o.prompt_in1= r'\C_LightBlue[\C_LightCyan\Y2\C_LightBlue]\C_Green|\#> '
+    o.prompt_in2= r'\C_Green|\C_LightGreen\D\C_Green> '
     o.prompt_out= '<\#> '
     
     from IPython import Release

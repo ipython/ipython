@@ -22,6 +22,11 @@ def p4_f(self, parameter_s=''):
         
     return out
 
+def p4d(fname):
+    return os.popen('p4 where ' + fname).read().split()[0]
+    
+ip.to_user_ns("p4d")
+
 ip.expose_magic('p4', p4_f)
 
 p4_commands = """\
