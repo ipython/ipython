@@ -1,3 +1,10 @@
+2007-04-27  Ville Vainio  <vivainio@gmail.com>
+
+	* platutils_win32.py: implement set_term_title for windows
+	
+	* Update version number
+	
+
 2007-04-26  Walter Doerwald  <walter@livinglogic.de>
 
 	* IPython/Extensions/igrid.py: (igrid) Fix bug that surfaced
