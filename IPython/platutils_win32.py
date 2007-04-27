@@ -20,6 +20,17 @@ from IPython import Release
 __author__  = '%s <%s>' % Release.authors['Ville']
 __license__ = Release.license
 
+import os
 
+ignore_termtitle = 0
 def set_term_title(title):
-    """ TBD """
+    """ Set terminal title using the 'title' command """
+    
+    global ignore_termtitle
+    
+    if not ignore_termtitle:
+        ret = os.system("title " + title)
+    if ret:
+        ignore = 1
+    
+    
