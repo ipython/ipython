@@ -31,6 +31,6 @@ def set_term_title(title):
     if not ignore_termtitle:
         ret = os.system("title " + title)
     if ret:
-        ignore = 1
+        ignore_termtitle = 1
     
     
