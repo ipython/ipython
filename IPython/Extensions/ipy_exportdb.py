@@ -56,6 +56,11 @@ def export(filename = None):
         lines.extend(['','# === Alias definitions ===',''])
         for k,v in aliases.items():
             lines.append("ip.defalias('%s', %s)" % (k, repr(v[1])))
+
+    env = ip.db.get('stored_env')
+    if env:
+        lines.extend(['','# === Stored env vars ===',''])
+        lines.append("ip.db['stored_env'] = %s " % pprint.pformat(env, indent = 2) )
         
     
     
