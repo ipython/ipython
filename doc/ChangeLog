@@ -4,6 +4,8 @@
 	
 	* Update version number
 	
+	* ipy_profile_sh.py: more informative prompt (2 dir levels)
+	
 
 2007-04-26  Walter Doerwald  <walter@livinglogic.de>
 
