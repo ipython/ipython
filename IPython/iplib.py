@@ -6,7 +6,7 @@ Requires Python 2.3 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 2266 2007-04-22 18:55:48Z jstenar $
+$Id: iplib.py 2297 2007-04-30 11:08:46Z vivainio $
 """
 
 #*****************************************************************************
@@ -659,8 +659,15 @@ class InteractiveShell(object,Magic):
         self.rc already has reasonable default values at this point.
         """
         rc = self.rc
-        
-        self.db = pickleshare.PickleShareDB(rc.ipythondir + "/db")
+        try:
+            self.db = pickleshare.PickleShareDB(rc.ipythondir + "/db")            
+        except exceptions.UnicodeDecodeError:
+            print "Your ipythondir can't be decoded to unicode!"
+            print "Please set HOME environment variable to something that"
+            print r"only has ASCII characters, e.g. c:\home"
+            print "Now it is",rc.ipythondir
+            sys.exit()
+            
     
     def post_config_initialization(self):
         """Post configuration init method

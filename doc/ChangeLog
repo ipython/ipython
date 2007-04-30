@@ -1,3 +1,8 @@
+2007-04-30  Ville Vainio  <vivainio@gmail.com>
+
+	* iplib.py: (pre_config_initialization) Catch UnicodeDecodeError if the
+	user has illegal (non-ascii) home directory name
+
 2007-04-27  Ville Vainio  <vivainio@gmail.com>
 
 	* platutils_win32.py: implement set_term_title for windows
@@ -5,7 +10,6 @@
 	* Update version number
 	
 	* ipy_profile_sh.py: more informative prompt (2 dir levels)
-	
 
 2007-04-26  Walter Doerwald  <walter@livinglogic.de>
 
