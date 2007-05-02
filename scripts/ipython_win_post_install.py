@@ -54,6 +54,10 @@ def install():
     a = prefix + r'\scripts\ipython -p sh'
     mkshortcut(python,'IPython command prompt mode',f,a)
 
+    f = ip_dir + r'\scipy.lnk'
+    a = prefix + r'\scripts\ipython -pylab -p scipy'
+    mkshortcut(python,'IPython scipy profile',f,a)
+
     # Create documentation shortcuts ...    
     t = prefix + r'\share\doc\ipython-%s\manual.pdf' % version
     f = ip_dir + r'\Manual in PDF.lnk'
