@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Magic functions for InteractiveShell.
 
-$Id: Magic.py 2276 2007-04-26 16:35:02Z vivainio $"""
+$Id: Magic.py 2301 2007-05-02 06:47:37Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001 Janko Hauser <jhauser@zscout.de> and
@@ -2251,7 +2251,8 @@ Currently the magic system has the following functions:\n"""
             if opts_r:
                 self.shell.runlines(file_read(filename))
             else:
-                self.shell.safe_execfile(filename,self.shell.user_ns)
+                self.shell.safe_execfile(filename,self.shell.user_ns,
+                                         self.shell.user_ns)
         if use_temp:
             try:
                 return open(filename).read()
