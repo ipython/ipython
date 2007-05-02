@@ -1,3 +1,7 @@
+2007-05-02  Fernando Perez  <Fernando.Perez@colorado.edu>
+
+	* test/test_irunner.py (RunnerTestCase._test_runner): Close #147.
+
 2007-04-30  Ville Vainio  <vivainio@gmail.com>
 
 	* iplib.py: (pre_config_initialization) Catch UnicodeDecodeError if the

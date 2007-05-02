@@ -9,29 +9,34 @@ VERBOSE = True
 
 # stdlib imports
 import cStringIO as StringIO
+import sys
 import unittest
 
 # IPython imports
 from IPython import irunner
-from IPython.OutputTrap import OutputTrap
 
 # Testing code begins
 class RunnerTestCase(unittest.TestCase):
 
+    def setUp(self):
+        self.out = StringIO.StringIO()
+        #self.out = sys.stdout
+
     def _test_runner(self,runner,source,output):
         """Test that a given runner's input/output match."""
         
-        log = OutputTrap(out_head='',quiet_out=True)
-        log.trap_out()
         runner.run_source(source)
-        log.release_out()
-        out = log.summary_out()
+        out = self.out.getvalue()
+        #out = ''
         # this output contains nasty \r\n lineends, and the initial ipython
         # banner.  clean it up for comparison
         output_l = output.split()
         out_l = out.split()
         mismatch  = 0
+        #if len(output_l) != len(out_l):
+        #    self.fail('mismatch in number of lines')
         for n in range(len(output_l)):
+            # Do a line-by-line comparison
             ol1 = output_l[n].strip()
             ol2 = out_l[n].strip()
             if ol1 != ol2:
@@ -72,53 +77,56 @@ print "that's all folks!"
 In [1]: print 'hello, this is python'
 hello, this is python
 
-In [2]: # some more code
 
-In [3]: x=1;y=2
+# some more code
+In [2]: x=1;y=2
 
-In [4]: x+y**2
-Out[4]: 5
+In [3]: x+y**2
+Out[3]: 5
 
-In [5]: # An example of autocall functionality
 
-In [6]: from math import *
+# An example of autocall functionality
+In [4]: from math import *
 
-In [7]: autocall 1
+In [5]: autocall 1
 Automatic calling is: Smart
 
-In [8]: cos pi
+In [6]: cos pi
 ------> cos(pi)
-Out[8]: -1.0
+Out[6]: -1.0
 
-In [9]: autocall 0
+In [7]: autocall 0
 Automatic calling is: OFF
 
-In [10]: cos pi
+In [8]: cos pi
 ------------------------------------------------------------
    File "<ipython console>", line 1
      cos pi
           ^
-SyntaxError: invalid syntax
+<type 'exceptions.SyntaxError'>: invalid syntax
 
 
-In [11]: cos(pi)
-Out[11]: -1.0
+In [9]: cos(pi)
+Out[9]: -1.0
 
-In [12]: for i in range(5):
-   ....:         print i,
-   ....: 
+
+In [10]: for i in range(5):
+   ....:     print i,
+   ....:
 0 1 2 3 4
 
-In [13]: print "that's all folks!"
+In [11]: print "that's all folks!"
 that's all folks!
 
-In [14]: %Exit"""
-        runner = irunner.IPythonRunner()
+
+In [12]: %Exit
+"""
+        runner = irunner.IPythonRunner(out=self.out)
         self._test_runner(runner,source,output)
 
     def testPython(self):
         """Test the Python runner."""
-        runner = irunner.PythonRunner()
+        runner = irunner.PythonRunner(out=self.out)
         source = """
 print 'hello, this is python'
 
@@ -137,19 +145,23 @@ print "that's all folks!"
         output = """\
 >>> print 'hello, this is python'
 hello, this is python
->>> # some more code
-... x=1;y=2
+
+# some more code
+>>> x=1;y=2
 >>> x+y**2
 5
+
 >>> from math import *
 >>> cos(pi)
 -1.0
+
 >>> for i in range(5):
 ...     print i,
 ...
 0 1 2 3 4
 >>> print "that's all folks!"
-that's all folks!"""
+that's all folks!
+"""
         self._test_runner(runner,source,output)
         
 if __name__ == '__main__':
