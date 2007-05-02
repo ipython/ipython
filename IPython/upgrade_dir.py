@@ -36,7 +36,7 @@ def upgrade_dir(srcdir, tgtdir):
 
     def pr(s):
         print s
-    junk = ['.svn','ipythonrc*','*.pyc', '*~', '.hg']
+    junk = ['.svn','ipythonrc*','*.pyc', '*.pyo', '*~', '.hg']
     
     def ignorable(p):
         for pat in junk:
