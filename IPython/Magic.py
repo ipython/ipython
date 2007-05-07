@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Magic functions for InteractiveShell.
 
-$Id: Magic.py 2301 2007-05-02 06:47:37Z fperez $"""
+$Id: Magic.py 2308 2007-05-07 08:25:14Z vivainio $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001 Janko Hauser <jhauser@zscout.de> and
@@ -1056,7 +1056,12 @@ Currently the magic system has the following functions:\n"""
                     else:
                         print '(%s Mb)' % (vbytes/Mb,)
             else:
-                vstr = str(var).replace('\n','\\n')
+                try:
+                    vstr = str(var)
+                except UnicodeEncodeError:
+                    vstr = unicode(var).encode(sys.getdefaultencoding(),
+                                               'backslashreplace')
+                vstr = vstr.replace('\n','\\n')
                 if len(vstr) < 50:
                     print vstr
                 else:
