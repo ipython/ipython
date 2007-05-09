@@ -1,3 +1,8 @@
+2007-05-10  Walter Doerwald  <walter@livinglogic.de>
+
+	* IPython/Extensions/igrid.py: Incorporate html help into
+	the module, so we don't have to search for the file.
+
 2007-05-02  Fernando Perez  <Fernando.Perez@colorado.edu>
 
 	* test/test_irunner.py (RunnerTestCase._test_runner): Close #147.

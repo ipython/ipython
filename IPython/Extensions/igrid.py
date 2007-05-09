@@ -13,6 +13,96 @@ except NameError:
 __all__ = ["igrid"]
 
 
+help = """
+<?xml version='1.0' encoding='iso-8859-1'?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+<link rel="stylesheet" href="igrid_help.css" type="text/css" />
+<title>igrid help</title>
+</head>
+<body>
+<h1>igrid help</h1>
+
+
+<h2>Commands</h2>
+
+
+<h3>pick (P)</h3>
+<p>Pick the whole row (object is available as "_")</p>
+
+<h3>pickattr (Shift-P)</h3>
+<p>Pick the attribute under the cursor</p>
+
+<h3>pickallattrs (Shift-C)</h3>
+<p>Pick' the complete column under the cursor (i.e. the attribute under the
+cursor) from all currently fetched objects. These attributes will be returned
+as a list.</p>
+
+<h3>enter (E)</h3>
+<p>Enter the object under the cursor. (what this mean depends on the object
+itself, i.e. how it implements iteration). This opens a new browser 'level'.</p>
+
+<h3>enterattr (Shift-E)</h3>
+<p>Enter the attribute under the cursor.</p>
+
+<h3>detail (D)</h3>
+<p>Show a detail view of the object under the cursor. This shows the name,
+type, doc string and value of the object attributes (and it might show more
+attributes than in the list view, depending on the object).</p>
+
+<h3>detailattr (Shift-D)</h3>
+<p>Show a detail view of the attribute under the cursor.</p>
+
+<h3>pickrows (M)</h3>
+<p>Pick multiple selected rows (M)</p>
+
+<h3>pickrowsattr (CTRL-M)</h3>
+<p>From multiple selected rows pick the cells matching the attribute the cursor is in (CTRL-M)</p>
+
+<h3>find (CTRL-F)</h3>
+<p>Find text</p>
+
+<h3>find_next (F3)</h3>
+<p>Find next occurrence of the searchtext</p>
+
+<h3>find_previous (Shift-F3)</h3>
+<p>Find previous occurrence of the searchtext </p>
+
+<h3>sortattrasc (V)</h3>
+<p>Sort the objects (in ascending order) using the attribute under the cursor as the sort key.</p>
+
+<h3>sortattrdesc (Shift-V)</h3>
+<p>Sort the objects (in descending order) using the attribute under the cursor as the sort key.</p>
+
+<h3>leave (Backspace, DEL, X)</h3>
+<p>Close current tab (and all the tabs to the right of the current one).</h3>
+
+<h3>quit (ESC,Q)</h3>
+<p>Quit igrid and return to the IPython prompt.</p>
+
+
+<h2>Navigation</h2>
+
+
+<h3>Jump to the last column of the current row (END, CTRL-E, CTRL-Right)</h3>
+
+<h3>Jump to the first column of the current row (HOME, CTRL-A, CTRL-Left)</h3>
+
+<h3>Move the cursor one column to the left (&lt;)</h3>
+
+<h3>Move the cursor one column to the right (&gt;)</h3>
+
+<h3>Jump to the first row in the current column (CTRL-Up)</h3>
+
+<h3>Jump to the last row in the current column (CTRL-Down)</h3>
+
+</body>
+</html>
+"""
+
+
 class IGridRenderer(wx.grid.PyGridCellRenderer):
     """
     This is a custom renderer for our IGridGrid
@@ -655,12 +745,12 @@ class IGridPanel(wx.Panel):
 
 
 class IGridHTMLHelp(wx.Frame):
-    def __init__(self, parent, title, filename, size):
+    def __init__(self, parent, title, size):
         wx.Frame.__init__(self, parent, -1, title, size=size)
         html = wx.html.HtmlWindow(self)
         if "gtk2" in wx.PlatformInfo:
             html.SetStandardFonts()
-        html.LoadFile(filename)
+        html.SetPage(help)
 
 
 class IGridFrame(wx.Frame):
@@ -738,8 +828,7 @@ class IGridFrame(wx.Frame):
         """
         if self.helpdialog:
             self.helpdialog.Destroy()
-        filename = os.path.join(os.path.dirname(__file__), "igrid_help.html")
-        self.helpdialog = IGridHTMLHelp(None, title="Help", filename=filename, size=wx.Size(600,400))
+        self.helpdialog = IGridHTMLHelp(None, title="Help", size=wx.Size(600,400))
         self.helpdialog.Show()
 
     def display_help_in_browser(self, event):
