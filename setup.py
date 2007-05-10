@@ -13,10 +13,16 @@ requires utilities, which are not available under Windows."""
 #  the file COPYING, distributed as part of this software.
 #*****************************************************************************
 
-import sys, os
+# Stdlib imports
+import os
+import sys
+
 from glob import glob
 from setupext import install_data_ext
+
+# A few handy globals
 isfile = os.path.isfile
+pjoin = os.path.join
 
 # BEFORE importing distutils, remove MANIFEST. distutils doesn't properly
 # update it when the contents of directories change.
@@ -79,7 +85,7 @@ if len(sys.argv) >= 2 and sys.argv[1] in ('sdist','bdist_rpm'):
         target_update(*target)
 
 # Release.py contains version, authors, license, url, keywords, etc.
-execfile(os.path.join('IPython','Release.py'))
+execfile(pjoin('IPython','Release.py'))
 
 # A little utility we'll need below, since glob() does NOT allow you to do
 # exclusion on multiple endings!
@@ -127,13 +133,13 @@ if 'bdist_wininst' in sys.argv:
     scriptfiles.append('scripts/ipython_win_post_install.py')
 
 datafiles = [('data', docdirbase, docfiles),
-                          ('data', os.path.join(docdirbase, 'examples'),
-                           examfiles),
-                          ('data', os.path.join(docdirbase, 'manual'),
-                           manfiles),
-                          ('data', manpagebase, manpages),
-                          ('lib', 'IPython/UserConfig', cfgfiles),
-                          ('data','IPython/Extensions', igridhelpfiles)]
+             ('data', pjoin(docdirbase, 'examples'),examfiles),
+             ('data', pjoin(docdirbase, 'manual'),manfiles),
+             ('data', manpagebase, manpages),
+             ('lib', 'IPython/UserConfig', cfgfiles),
+             ('data',pjoin(docdirbase, 'extensions'),igridhelpfiles),
+             ]
+
 if 'setuptools' in sys.modules:
     # setuptools config for egg building
     egg_extra_kwds = {

@@ -1,3 +1,12 @@
+2007-05-09  Fernando Perez  <Fernando.Perez@colorado.edu>
+
+	* IPython/Extensions/ipy_constants.py: Add Gael's constants module
+	in trunk (note that this made it into the 0.8.1 release already,
+	but the changelogs didn't get coordinated).  Many thanks to Gael
+	Varoquaux <gael.varoquaux-AT-normalesup.org>
+
+2007-05-09  *** Released version 0.8.1
+
 2007-05-10  Walter Doerwald  <walter@livinglogic.de>
 
 	* IPython/Extensions/igrid.py: Incorporate html help into

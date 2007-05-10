@@ -1,8 +1,9 @@
 Notes for Windows Users
 =======================
 
-These are just minimal notes.  The manual contains more detailed
-information.
+See http://ipython.scipy.org/moin/IpythonOnWindows for up-to-date information
+about running IPython on Windows.
+
 
 Requirements
 ------------
@@ -11,14 +12,13 @@ IPython runs under (as far as the Windows family is concerned):
 
 - Windows XP, 2000 (and probably WinNT): works well.  It needs:
 
-  * PyWin32, the win32 Python extensions from
-    http://starship.python.net/crew/mhammond.
+  * PyWin32: http://sourceforge.net/projects/pywin32/
 
-  * Gary Bishop's readline from 
-    http://sourceforge.net/projects/uncpythontools.
+  * PyReadline: http://ipython.scipy.org/moin/PyReadline/Intro
     
-  * This in turn requires Tomas Heller's ctypes from
-    http://starship.python.net/crew/theller/ctypes.
+  * If you are using Python2.4, this in turn requires Tomas Heller's ctypes
+    from: http://starship.python.net/crew/theller/ctypes (not needed for Python
+    2.5 users, since 2.5 already ships with ctypes).
 
 - Windows 95/98/ME: I have no idea. It should work, but I can't test.
 
