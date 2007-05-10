@@ -8773,6 +8773,10 @@ IPython, via the
 \family typewriter
 -qthread
 \family default
+, 
+\family typewriter
+-q4thread
+\family default
  and 
 \family typewriter
 -wthread
@@ -8783,11 +8787,11 @@ IPython, via the
 
 \end_inset
 
-), can run in multithreaded mode to support pyGTK, Qt and WXPython applications
- respectively.
+), can run in multithreaded mode to support pyGTK, Qt3, Qt4 and WXPython
+ applications respectively.
  These GUI toolkits need to control the python main loop of execution, so
- under a normal Python interpreter, starting a pyGTK, Qt or WXPython application
- will immediately freeze the shell.
+ under a normal Python interpreter, starting a pyGTK, Qt3, Qt4 or WXPython
+ application will immediately freeze the shell.
  
 \end_layout
 
@@ -8832,50 +8836,6 @@ As indicated in Sec.\InsetSpace ~
  dependent.
  Please experiment with simple test cases before committing to using this
  combination of Tk and GTK/Qt/WX threading in a production environment.
-\end_layout
-
-\begin_layout Subsection
-Signals and Threads
-\end_layout
-
-\begin_layout Standard
-When any of the thread systems (GTK, Qt or WX) are active, either directly
- or via 
-\family typewriter
--pylab
-\family default
- with a threaded backend, it is impossible to interrupt long-running Python
- code via 
-\family typewriter
-Ctrl-C
-\family default
-.
- IPython can not pass the KeyboardInterrupt exception (or the underlying
- 
-\family typewriter
-SIGINT
-\family default
-) across threads, so any long-running process started from IPython will
- run to completion, or will have to be killed via an external (OS-based)
- mechanism.
-\end_layout
-
-\begin_layout Standard
-To the best of my knowledge, this limitation is imposed by the Python interprete
-r itself, and it comes from the difficulty of writing portable signal/threaded
- code.
- If any user is an expert on this topic and can suggest a better solution,
- I would love to hear about it.
- In the IPython sources, look at the 
-\family typewriter
-Shell.py
-\family default
- module, and in particular at the 
-\family typewriter
-runcode()
-\family default
- method.
- 
 \end_layout
 
 \begin_layout Subsection

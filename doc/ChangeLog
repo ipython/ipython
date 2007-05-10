@@ -1,3 +1,8 @@
+2007-05-10  Fernando Perez  <Fernando.Perez@colorado.edu>
+
+	* ipython.1: update man page and full manual with information
+	about threads (remove outdated warning).  Closes #151.
+
 2007-05-09  Fernando Perez  <Fernando.Perez@colorado.edu>
 
 	* IPython/Extensions/ipy_constants.py: Add Gael's constants module
