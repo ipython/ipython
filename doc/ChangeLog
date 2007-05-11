@@ -1,5 +1,10 @@
 2007-05-10  Fernando Perez  <Fernando.Perez@colorado.edu>
 
+	* IPython/rlineimpl.py: check for clear_history in readline and
+	make it a dummy no-op if not available.  This function isn't
+	guaranteed to be in the API and appeared in Python 2.4, so we need
+	to check it ourselves.  Also, clean up this file quite a bit.
+
 	* ipython.1: update man page and full manual with information
 	about threads (remove outdated warning).  Closes #151.
 
