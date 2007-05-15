@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Magic functions for InteractiveShell.
 
-$Id: Magic.py 2345 2007-05-15 15:31:25Z vivainio $"""
+$Id: Magic.py 2353 2007-05-15 19:27:14Z vivainio $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001 Janko Hauser <jhauser@zscout.de> and
@@ -2470,7 +2470,7 @@ Defaulting color scheme to 'NoColor'"""
                 tgt = atab[alias][1]
                 # 'interesting' aliases
                 if (alias in stored or 
-                    alias != os.path.splitext(tgt)[0] or
+                    alias.lower() != os.path.splitext(tgt)[0].lower() or
                     ' ' in tgt):
                     showlast.append((alias, tgt))
                 else:
