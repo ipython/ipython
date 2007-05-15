@@ -13,15 +13,6 @@ with new magic functions.
 Unlike rest of ipython, this requires Python 2.4 (optional
 extensions are allowed to do that).
 
-To install, add
-
-"import_mod ext_rehashdir"
-
-To your ipythonrc or just execute "import rehash_dir" in ipython
-prompt.
-
-
-$Id: InterpreterExec.py 994 2006-01-08 08:29:44Z fperez $
 """
 
 import IPython.ipapi
