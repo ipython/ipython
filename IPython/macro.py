@@ -11,9 +11,9 @@ import IPython.ipapi
 
 
 from IPython.genutils import Term
+from IPython.ipapi import IPyAutocall
 
-
-class Macro:
+class Macro(IPyAutocall):
     """Simple class to store the value of macros as strings.
 
     Macro is just a callable that executes a string of IPython
@@ -34,5 +34,5 @@ class Macro:
     
     def __call__(self):
         Term.cout.flush()
-        ip = IPython.ipapi.get()
-        ip.runlines(self.value)
+        
+        self._ip.runlines(self.value)

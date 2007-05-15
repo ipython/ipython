@@ -10,6 +10,10 @@
 
 	* Magic.py, ipy_rehashdir.py, ipy_profile_sh.py: System command
 	aliases are now lower case on windows (MyCommand.exe => mycommand).
+	
+	* macro.py, ipapi.py, iplib.py, Prompts.py: Macro system rehaul.
+	Macros are now callable objects that inherit from ipapi.IPyAutocall,
+	i.e. get autocalled regardless of system autocall setting.
 
 2007-05-10  Fernando Perez  <Fernando.Perez@colorado.edu>
 

@@ -6,7 +6,7 @@ Requires Python 2.3 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 2344 2007-05-15 15:09:39Z vivainio $
+$Id: iplib.py 2350 2007-05-15 16:56:44Z vivainio $
 """
 
 #*****************************************************************************
@@ -2182,6 +2182,13 @@ want to merge them back into the new files.""" % locals()
         if line.endswith('# PYTHON-MODE'):
             return self.handle_emacs(line,continue_prompt)
 
+        # instances of IPyAutocall in user_ns get autocalled immediately
+        obj = self.user_ns.get(iFun,None)
+        if isinstance(obj, IPython.ipapi.IPyAutocall):
+            obj.set_ip(self.api)
+            return self.handle_auto(line,continue_prompt,
+                        pre,iFun,theRest,obj)
+        
         # Let's try to find if the input line is a magic fn
         oinfo = None
         if hasattr(self,'magic_'+iFun):
@@ -2359,6 +2366,7 @@ want to merge them back into the new files.""" % locals()
             self.log(line,line,continue_prompt)
             return line
 
+        force_auto = isinstance(obj, IPython.ipapi.IPyAutocall)
         auto_rewrite = True
         
         if pre == self.ESC_QUOTE:
@@ -2374,11 +2382,11 @@ want to merge them back into the new files.""" % locals()
             # We only apply it to argument-less calls if the autocall
             # parameter is set to 2.  We only need to check that autocall is <
             # 2, since this function isn't called unless it's at least 1.
-            if not theRest and (self.rc.autocall < 2):
+            if not theRest and (self.rc.autocall < 2) and not force_auto:
                 newcmd = '%s %s' % (iFun,theRest)
                 auto_rewrite = False
             else:
-                if theRest.startswith('['):
+                if not force_auto and theRest.startswith('['):
                     if hasattr(obj,'__getitem__'):
                         # Don't autocall in this case: item access for an object
                         # which is BOTH callable and implements __getitem__.
