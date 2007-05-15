@@ -28,7 +28,7 @@
     scan Python source code and re-emit it with no changes to its original
     formatting (which is the hard part).
 
-    $Id: PyColorize.py 2274 2007-04-26 14:41:43Z jdh2358 $"""
+    $Id: PyColorize.py 2341 2007-05-15 14:44:30Z vivainio $"""
 
 __all__ = ['ANSICodeColors','Parser']
 
@@ -38,6 +38,7 @@ _scheme_default = 'Linux'
 import cStringIO
 import keyword
 import os
+import optparse
 import string
 import sys
 import token
@@ -242,42 +243,38 @@ class Parser:
         # send text
         owrite('%s%s%s' % (color,toktext,colors.normal))
             
-def main():
-    """Colorize a python file using ANSI color escapes and print to stdout.
+def main(argv=None):
+    """Run as a command-line script: colorize a python file using ANSI color
+    escapes and print to stdout.
 
-    Usage:
-      %s [-s scheme] filename
+    Inputs:
 
-    Options:
+      - argv(None): a list of strings like sys.argv[1:] giving the command-line
+        arguments. If None, use sys.argv[1:].
+    """
 
-      -s scheme: give the color scheme to use. Currently only 'Linux'
-      (default) and 'LightBG' and 'NoColor' are implemented (give without
-      quotes).  """  
+    usage_msg = """%prog [options] filename
 
-    def usage():
-        print >> sys.stderr, main.__doc__ % sys.argv[0]
-        sys.exit(1)
-        
-    # FIXME: rewrite this to at least use getopt
-    try:
-        if sys.argv[1] == '-s':
-            scheme_name = sys.argv[2]
-            del sys.argv[1:3]
-        else:
-            scheme_name = _scheme_default
-        
-    except:
-        usage()
+Colorize a python file using ANSI color escapes and print to stdout."""
 
-    try:
-        fname = sys.argv[1]
-    except:
-        usage()
-        
+    parser = optparse.OptionParser(usage=usage_msg)
+    newopt = parser.add_option
+    newopt('-s','--scheme',metavar='NAME',dest='scheme_name',action='store',
+           choices=['Linux','LightBG','NoColor'],default=_scheme_default,
+           help="give the color scheme to use. Currently only 'Linux'\
+ (default) and 'LightBG' and 'NoColor' are implemented (give without\
+ quotes)")
+
+    opts,args = parser.parse_args(argv)
+
+    if len(args) != 1:
+        parser.error("you must give one filename.")
+
     # write colorized version to stdout
+    fname = args[0]
     parser = Parser()
     try:
-        parser.format(file(fname).read(),scheme = scheme_name)
+        parser.format(file(fname).read(),scheme=opts.scheme_name)
     except IOError,msg:
         # if user reads through a pager and quits, don't print traceback
         if msg.args != (32,'Broken pipe'):
