@@ -33,6 +33,7 @@ def main():
     import envpersist
     import ipy_which
     import ipy_stock_completers
+    import ipy_rehashdir
     
     
     ip.ex('import os')
