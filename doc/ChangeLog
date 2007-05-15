@@ -1,3 +1,8 @@
+2007-05-15  Ville Vainio  <vivainio@gmail.com>
+
+	* iplib.py, pycolorize.py, pycolor.1: Paul Mueller's patches that
+	make pycolorize read input from stdin when run without arguments.
+
 2007-05-10  Fernando Perez  <Fernando.Perez@colorado.edu>
 
 	* IPython/rlineimpl.py: check for clear_history in readline and
