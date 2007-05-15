@@ -18,6 +18,8 @@ class Macro(IPyAutocall):
 
     Macro is just a callable that executes a string of IPython
     input when called.
+    
+    Args to macro are available in _margv list if you need them.
     """
 
     def __init__(self,data):
@@ -32,7 +34,11 @@ class Macro(IPyAutocall):
     def __repr__(self):
         return 'IPython.macro.Macro(%s)' % repr(self.value)
     
-    def __call__(self):
+    def __call__(self,*args):
         Term.cout.flush()
-        
+        self._ip.user_ns['_margv'] = args
         self._ip.runlines(self.value)
+    
+    def getstate(self):
+        """ needed for safe pickling via %store """
+        return {'value': self.value}
