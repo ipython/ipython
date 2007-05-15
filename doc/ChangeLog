@@ -10,9 +10,6 @@
 
 	* Magic.py, ipy_rehashdir.py, ipy_profile_sh.py: System command
 	aliases are now lower case on windows (MyCommand.exe => mycommand).
-	
-	
-	
 
 2007-05-10  Fernando Perez  <Fernando.Perez@colorado.edu>
 

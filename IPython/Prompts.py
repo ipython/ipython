@@ -2,7 +2,7 @@
 """
 Classes for handling input/output prompts.
 
-$Id: Prompts.py 2192 2007-04-01 20:51:06Z fperez $"""
+$Id: Prompts.py 2349 2007-05-15 16:20:35Z vivainio $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2006 Fernando Perez <fperez@colorado.edu>
@@ -511,13 +511,6 @@ class CachedOutput:
             outprompt = self.shell.hooks.generate_output_prompt()
             if self.do_full_cache:
                 cout_write(outprompt)
-
-            if isinstance(arg,Macro):
-                print 'Executing Macro...'
-                # in case the macro takes a long time to execute
-                Term.cout.flush()
-                self.shell.runlines(arg.value)
-                return None
 
             # and now call a possibly user-defined print mechanism
             manipulated_val = self.display(arg)

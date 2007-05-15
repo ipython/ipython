@@ -7,20 +7,32 @@
 #  the file COPYING, distributed as part of this software.
 #*****************************************************************************
 
+import IPython.ipapi 
+
+
+from IPython.genutils import Term
+
+
 class Macro:
     """Simple class to store the value of macros as strings.
 
-    This allows us to later exec them by checking when something is an
-    instance of this class."""
+    Macro is just a callable that executes a string of IPython
+    input when called.
+    """
 
     def __init__(self,data):
 
         # store the macro value, as a single string which can be evaluated by
         # runlines()
         self.value = ''.join(data).rstrip()+'\n'
-
+        
     def __str__(self):
         return self.value
 
     def __repr__(self):
         return 'IPython.macro.Macro(%s)' % repr(self.value)
+    
+    def __call__(self):
+        Term.cout.flush()
+        ip = IPython.ipapi.get()
+        ip.runlines(self.value)
