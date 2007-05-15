@@ -1,7 +1,9 @@
 2007-05-15  Ville Vainio  <vivainio@gmail.com>
 
-	* iplib.py, pycolorize.py, pycolor.1: Paul Mueller's patches that
+	* pycolorize.py, pycolor.1: Paul Mueller's patches that
 	make pycolorize read input from stdin when run without arguments.
+	
+	* Magic.py: do not require 'PATH' in %rehash/%rehashx. Closes #155
 
 2007-05-10  Fernando Perez  <Fernando.Perez@colorado.edu>
 

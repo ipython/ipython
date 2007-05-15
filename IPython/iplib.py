@@ -6,7 +6,7 @@ Requires Python 2.3 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 2341 2007-05-15 14:44:30Z vivainio $
+$Id: iplib.py 2344 2007-05-15 15:09:39Z vivainio $
 """
 
 #*****************************************************************************
@@ -1288,9 +1288,7 @@ want to merge them back into the new files.""" % locals()
         Currently it handles auto-indent only."""
 
         #debugx('self.indent_current_nsp','pre_readline:')
-        print "prer",self.indent_current_nsp # dbg
-        print
-        
+
         self.readline.insert_text(self.indent_current_str())
 
     def init_readline(self):
@@ -1809,7 +1807,6 @@ want to merge them back into the new files.""" % locals()
         #debugx('line')
         #debugx('self.indent_current_nsp')
         if self.autoindent:
-            print "ind level", self.indent_current_nsp #dbg
             if line:
                 inisp = num_ini_spaces(line)
                 if inisp < self.indent_current_nsp:
