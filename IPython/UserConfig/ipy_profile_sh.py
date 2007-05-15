@@ -80,10 +80,17 @@ def main():
         """)
         ip.magic('rehashx')
         syscmds = db.get("syscmdlist")
+    
+    # locase aliases on win#2 only
+    if os.name == 'posix':
+        mapper = lambda s:s
+    else:
+        def mapper(s): return s.lower()
+        
     for cmd in syscmds:
         #print "al",cmd
         noext, ext = os.path.splitext(cmd)
-        ip.IP.alias_table[noext] = (0,cmd)
+        ip.IP.alias_table[mapper(noext)] = (0,cmd)
     extend_shell_behavior(ip)
 
 def extend_shell_behavior(ip):

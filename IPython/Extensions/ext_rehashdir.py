@@ -92,6 +92,7 @@ def rehashdir_f(self,arg):
                 for ff in os.listdir(pdir):
                     if isexec(ff) and not isjunk(ff):
                         src, tgt = execre.sub(r'\1',ff), os.path.abspath(ff)
+                        src = src.lower()
                         print "Aliasing:",src,"->",tgt
                         alias_table[src] = (0,tgt)
         # Make sure the alias table doesn't contain keywords or builtins

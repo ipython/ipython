@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Magic functions for InteractiveShell.
 
-$Id: Magic.py 2344 2007-05-15 15:09:39Z vivainio $"""
+$Id: Magic.py 2345 2007-05-15 15:31:25Z vivainio $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001 Janko Hauser <jhauser@zscout.de> and
@@ -2592,7 +2592,7 @@ Defaulting color scheme to 'NoColor'"""
                         if isexec(ff) and base not in self.shell.no_alias:
                             if ext.lower() == '.exe':
                                 ff = base
-                            alias_table[base] = (0,ff)
+                            alias_table[base.lower()] = (0,ff)
                             syscmdlist.append(ff)
             # Make sure the alias table doesn't contain keywords or builtins
             self.shell.alias_table_validate()
