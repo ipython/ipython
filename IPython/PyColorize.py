@@ -28,7 +28,7 @@
     scan Python source code and re-emit it with no changes to its original
     formatting (which is the hard part).
 
-    $Id: PyColorize.py 2341 2007-05-15 14:44:30Z vivainio $"""
+    $Id: PyColorize.py 2342 2007-05-15 14:46:58Z vivainio $"""
 
 __all__ = ['ANSICodeColors','Parser']
 
@@ -244,8 +244,8 @@ class Parser:
         owrite('%s%s%s' % (color,toktext,colors.normal))
             
 def main(argv=None):
-    """Run as a command-line script: colorize a python file using ANSI color
-    escapes and print to stdout.
+    """Run as a command-line script: colorize a python file or stdin using ANSI
+    color escapes and print to stdout.
 
     Inputs:
 
@@ -253,9 +253,10 @@ def main(argv=None):
         arguments. If None, use sys.argv[1:].
     """
 
-    usage_msg = """%prog [options] filename
+    usage_msg = """%prog [options] [filename]
 
-Colorize a python file using ANSI color escapes and print to stdout."""
+Colorize a python file or stdin using ANSI color escapes and print to stdout.
+If no filename is given, or if filename is -, read standard input."""
 
     parser = optparse.OptionParser(usage=usage_msg)
     newopt = parser.add_option
@@ -267,18 +268,34 @@ Colorize a python file using ANSI color escapes and print to stdout."""
 
     opts,args = parser.parse_args(argv)
 
-    if len(args) != 1:
-        parser.error("you must give one filename.")
+    if len(args) > 1:
+        parser.error("you must give at most one filename.")
 
-    # write colorized version to stdout
-    fname = args[0]
+    if len(args) == 0:
+        fname = '-' # no filename given; setup to read from stdin
+    else:
+        fname = args[0]
+
+    if fname == '-':
+        stream = sys.stdin
+    else:
+        stream = file(fname)
+
     parser = Parser()
+
+    # we need nested try blocks because pre-2.5 python doesn't support unified
+    # try-except-finally
     try:
-        parser.format(file(fname).read(),scheme=opts.scheme_name)
-    except IOError,msg:
-        # if user reads through a pager and quits, don't print traceback
-        if msg.args != (32,'Broken pipe'):
-            raise
+        try:
+            # write colorized version to stdout
+            parser.format(stream.read(),scheme=opts.scheme_name)
+        except IOError,msg:
+            # if user reads through a pager and quits, don't print traceback
+            if msg.args != (32,'Broken pipe'):
+                raise
+    finally:
+        if stream is not sys.stdin:
+            stream.close() # in case a non-handled exception happened above
 
 if __name__ == "__main__":
     main()
