@@ -1,3 +1,10 @@
+""" IPython 'sci' profile
+
+Replaces the old scipy profile.
+
+"""
+
+
 import IPython.ipapi
 import ipy_defaults
 

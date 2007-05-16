@@ -1,3 +1,9 @@
+2007-05-16  Ville Vainio  <vivainio@gmail.com>
+
+	* ipy_profile_sci.py, ipython_win_post_install.py: Create
+	new "sci" profile, effectively a modern version of the old
+	"scipy" profile (which is now slated for deprecation).
+
 2007-05-15  Ville Vainio  <vivainio@gmail.com>
 
 	* pycolorize.py, pycolor.1: Paul Mueller's patches that
