@@ -73,6 +73,7 @@ def reset_esc_handlers():
                       s.ESC_MAGIC  : s.handle_magic,
                       s.ESC_HELP   : s.handle_help,
                       s.ESC_SHELL  : s.handle_shell_escape,
+                      s.ESC_SH_CAP : s.handle_shell_escape,
                       }
 reset_esc_handlers()
     
@@ -145,7 +146,14 @@ esc_handler_tests = [
     ( '?thing',    handle_help,  ),
     ( 'thing?',    handle_help ),  # '?' can trail...
     ( 'thing!',    handle_normal), # but only '?' can trail
-    ( '   ?thing', handle_help),   # ignore leading whitespace
+    ( '   ?thing', handle_normal), # leading whitespace turns off esc chars
+    ( '!ls',       handle_shell_escape),
+    ( '! true',    handle_shell_escape),
+    ( '!! true',   handle_shell_escape),
+    ( '%magic',    handle_magic),
+    # XXX Possibly, add test for /,; once those are unhooked from %autocall
+    ( 'emacs_mode # PYTHON-MODE', handle_emacs ),
+    ( ' ',         handle_normal), 
     # Trailing qmark combos.  Odd special cases abound
     ( '!thing?',   handle_shell_escape), # trailing '?' loses to shell esc
     ( '!thing ?',  handle_shell_escape),
@@ -154,11 +162,6 @@ esc_handler_tests = [
     ( '/cmd?',     handle_help),
     ( ';cmd?',     handle_help),
     ( ',cmd?',     handle_help),
-    ( '!ls',       handle_shell_escape ),
-    ( '%magic',    handle_magic),
-    # Possibly, add test for /,; once those are unhooked from %autocall
-    ( 'emacs_mode # PYTHON-MODE', handle_emacs ),
-    ( ' ',         handle_normal), 
     ]
 run_handler_tests(esc_handler_tests)
 
@@ -167,19 +170,26 @@ run_handler_tests(esc_handler_tests)
 # Shell Escapes in Multi-line statements
 # ======================================
 #
-# We can't test this via runlines, since the hacked over-handlers all
-# return None, so continue_prompt never becomes true.  Instead we drop
-# into prefilter directly and pass in continue_prompt.
+# We can't test this via runlines, since the hacked-over-for-testing
+# handlers all return None, so continue_prompt never becomes true.  Instead
+# we drop into prefilter directly and pass in continue_prompt.
 
 old_mls = ip.options.multi_line_specials
-ln = '!ls $f multi_line_specials on'
-ignore = ip.IP.prefilter(ln, continue_prompt=True)
-check_handler(handle_shell_escape, ln)
-       
-ip.options.multi_line_specials = 0
-ln = '!ls $f multi_line_specials off'
-ignore = ip.IP.prefilter(ln, continue_prompt=True)
-check_handler(handle_normal, ln)
+for ln in [ '    !ls $f multi_line_specials %s',
+            '    !!ls $f multi_line_specials %s',  # !! escapes work on mls
+            # Trailing ? doesn't trigger help:            
+            '    !ls $f multi_line_specials %s ?', 
+            '    !!ls $f multi_line_specials %s ?',
+            ]:
+    ip.options.multi_line_specials = 1
+    on_ln = ln % 'on'
+    ignore = ip.IP.prefilter(on_ln, continue_prompt=True)
+    check_handler(handle_shell_escape, on_ln)
+
+    ip.options.multi_line_specials = 0
+    off_ln = ln % 'off'
+    ignore = ip.IP.prefilter(off_ln, continue_prompt=True)
+    check_handler(handle_normal, off_ln)
 
 ip.options.multi_line_specials = old_mls
 
@@ -190,6 +200,7 @@ ip.options.multi_line_specials = old_mls
 # Pick one magic fun and one non_magic fun, make sure both exist
 assert hasattr(ip.IP, "magic_cpaste")
 assert not hasattr(ip.IP, "magic_does_not_exist")
+ip.options.autocall = 0 # gotta have this off to get handle_normal
 ip.options.automagic = 0
 run_handler_tests([
     # Without automagic, only shows up with explicit escape
@@ -214,12 +225,12 @@ run_handler_tests(magic_killing_tests)
 
 # magic on indented continuation lines -- on iff multi_line_specials == 1
 ip.options.multi_line_specials = 0
-ln = 'cpaste multi_line off kills magic'
+ln = '    cpaste multi_line off kills magic'
 ignore = ip.IP.prefilter(ln, continue_prompt=True)
 check_handler(handle_normal, ln)
 
 ip.options.multi_line_specials = 1
-ln = 'cpaste multi_line on enables magic'
+ln = '    cpaste multi_line on enables magic'
 ignore = ip.IP.prefilter(ln, continue_prompt=True)
 check_handler(handle_magic, ln)
 
@@ -229,6 +240,7 @@ run_handler_tests([
     ( 'cpaste',    handle_normal),
     ( '%cpaste',   handle_magic)])
 del ip.user_ns['cpaste']
+
 
 
 # Check for !=() turning off .ofind
@@ -249,7 +261,7 @@ ip.options.autocall = 1
 run_one_test('attr_mutator.foo should mutate', handle_normal)
 check(attr_mutator.called, 'ofind should be called in absence of assign characters')
 
-for c in list('!=()'):  # XXX What about <> -- they *are* important above
+for c in list('!=()<>+*/%^&|'): 
     attr_mutator.called = False
     run_one_test('attr_mutator.foo %s should *not* mutate' % c, handle_normal)
     run_one_test('attr_mutator.foo%s should *not* mutate' % c, handle_normal)
@@ -296,51 +308,73 @@ ip.options.autocall = 1
 # Autocall
 # ========
 
+# For all the tests below, 'len' is callable / 'thing' is not
+
+# Objects which are instances of IPyAutocall are *always* autocalled
+import IPython.ipapi
+class Autocallable(IPython.ipapi.IPyAutocall):
+    def __call__(self):
+        return "called"
+    
+autocallable = Autocallable()
+ip.to_user_ns('autocallable')
+
+
 # First, with autocalling fully off
 ip.options.autocall = 0
 run_handler_tests( [
-    # Since len is callable, these *should* get auto-called
-
-    # XXX Except, at the moment, they're *not*, because the code is wrong
-    # XXX So I'm commenting 'em out to keep the tests quiet
-
-    #( '/len autocall_0',    handle_auto),
-    #( ',len autocall_0 b0', handle_auto),
-    #( ';len autocall_0 b0', handle_auto),
-    
-    # But these, since fun is not a callable, should *not* get auto-called
-    ( '/fun autocall_0',    handle_normal),
-    ( ',fun autocall_0 b0', handle_normal),
-    ( ';fun autocall_0 b0', handle_normal),
-
-    # With no escapes, no autocalling should happen, callable or not
+    # With no escapes, no autocalling expansions happen, callable or not,
+    # unless the obj extends IPyAutocall
     ( 'len autocall_0',     handle_normal),
-    ( 'fun autocall_0',     handle_normal),
+    ( 'thing autocall_0',   handle_normal),
+    ( 'autocallable',       handle_auto),
+    
+    # With explicit escapes, callable and non-callables both get expanded,
+    # regardless of the %autocall setting:
+    ( '/len autocall_0',    handle_auto),
+    ( ',len autocall_0 b0', handle_auto),
+    ( ';len autocall_0 b0', handle_auto),
+    
+    ( '/thing autocall_0',    handle_auto),
+    ( ',thing autocall_0 b0', handle_auto),
+    ( ';thing autocall_0 b0', handle_auto),
+
+    # Explicit autocall should not trigger if there is leading whitespace
+    ( ' /len autocall_0',    handle_normal),
+    ( ' ;len autocall_0',    handle_normal),
+    ( ' ,len autocall_0',    handle_normal),
+    ( ' / len autocall_0',   handle_normal),
+
+    # But should work if the whitespace comes after the esc char
+    ( '/ len autocall_0',    handle_auto),
+    ( '; len autocall_0',    handle_auto),
+    ( ', len autocall_0',    handle_auto),
+    ( '/  len autocall_0',   handle_auto),
     ])
 
 
 # Now, with autocall in default, 'smart' mode
 ip.options.autocall = 1 
 run_handler_tests( [
-    # Since len is callable, these *do* get auto-called
-    ( '/len a1',    handle_auto),
-    ( ',len a1 b1', handle_auto),
-    ( ';len a1 b1', handle_auto),
-    # But these, since fun is not a callable, should *not* get auto-called
-    ( '/fun a1',    handle_normal),
-    ( ',fun a1 b1', handle_normal),
-    ( ';fun a1 b1', handle_normal),
-    # Autocalls without escapes
-    ( 'len a1',     handle_auto),
-    ( 'fun a1',     handle_normal), # Not callable -> no add
+    # Autocalls without escapes -- only expand if it's callable
+    ( 'len a1',       handle_auto),
+    ( 'thing a1',     handle_normal),
+    ( 'autocallable', handle_auto),
+
+    # As above, all explicit escapes generate auto-calls, callable or not
+    ( '/len a1',      handle_auto),
+    ( ',len a1 b1',   handle_auto),
+    ( ';len a1 b1',   handle_auto),
+    ( '/thing a1',    handle_auto),
+    ( ',thing a1 b1', handle_auto),
+    ( ';thing a1 b1', handle_auto),
+
     # Autocalls only happen on things which look like funcs, even if
     # explicitly requested. Which, in this case means they look like a
-    # sequence of identifiers and . attribute references.  So the second
-    # test should pass, but it's not at the moment (meaning, IPython is
-    # attempting to run an autocall).  Though it does blow up in ipython
-    # later (because of how lines are split, I think).
+    # sequence of identifiers and . attribute references. Possibly the
+    # second of these two should trigger handle_auto.  But not for now.
     ( '"abc".join range(4)',   handle_normal),
-    # XXX ( '/"abc".join range(4)',  handle_normal),
+    ( '/"abc".join range(4)',  handle_normal),
     ])
 
 

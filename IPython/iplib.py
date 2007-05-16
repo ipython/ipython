@@ -6,7 +6,7 @@ Requires Python 2.3 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 2350 2007-05-15 16:56:44Z vivainio $
+$Id: iplib.py 2354 2007-05-16 13:06:12Z dan.milstein $
 """
 
 #*****************************************************************************
@@ -74,6 +74,8 @@ from IPython.usage import cmd_line_usage,interactive_usage
 from IPython.genutils import *
 from IPython.strdispatch import StrDispatch
 import IPython.ipapi
+
+import IPython.prefilter as prefilter
 
 # Globals
 
@@ -385,6 +387,7 @@ class InteractiveShell(object,Magic):
         
         # escapes for automatic behavior on the command line
         self.ESC_SHELL  = '!'
+        self.ESC_SH_CAP = '!!'
         self.ESC_HELP   = '?'
         self.ESC_MAGIC  = '%'
         self.ESC_QUOTE  = ','
@@ -398,6 +401,7 @@ class InteractiveShell(object,Magic):
                              self.ESC_MAGIC  : self.handle_magic,
                              self.ESC_HELP   : self.handle_help,
                              self.ESC_SHELL  : self.handle_shell_escape,
+                             self.ESC_SH_CAP : self.handle_shell_escape,
                              }
 
         # class initializations
@@ -484,57 +488,6 @@ class InteractiveShell(object,Magic):
                                              header=self.rc.system_header,
                                              verbose=self.rc.system_verbose)
  
-        # RegExp for splitting line contents into pre-char//first
-        # word-method//rest.  For clarity, each group in on one line.
-
-        # WARNING: update the regexp if the above escapes are changed, as they
-        # are hardwired in.
-
-        # Don't get carried away with trying to make the autocalling catch too
-        # much:  it's better to be conservative rather than to trigger hidden
-        # evals() somewhere and end up causing side effects.
-        self.line_split = re.compile(r'^(\s*[,;/]?\s*)'
-                                     r'([\?\w\.]+\w*\s*)'
-                                     r'(\(?.*$)')
-
-        self.shell_line_split = re.compile(r'^(\s*)'
-                                     r'(\S*\s*)'
-                                     r'(\(?.*$)')
-
-        # A simpler regexp used as a fallback if the above doesn't work.  This
-        # one is more conservative in how it partitions the input.  This code
-        # can probably be cleaned up to do everything with just one regexp, but
-        # I'm afraid of breaking something; do it once the unit tests are in
-        # place.
-        self.line_split_fallback = re.compile(r'^(\s*)'
-                                              r'([%\!\?\w\.]*)'
-                                              r'(.*)')
-
-        # Original re, keep around for a while in case changes break something
-        #self.line_split = re.compile(r'(^[\s*!\?%,/]?)'
-        #                             r'(\s*[\?\w\.]+\w*\s*)'
-        #                             r'(\(?.*$)')
-
-        # RegExp to identify potential function names
-        self.re_fun_name = re.compile(r'[a-zA-Z_]([a-zA-Z0-9_.]*) *$')
-
-        # RegExp to exclude strings with this start from autocalling.  In
-        # particular, all binary operators should be excluded, so that if foo
-        # is callable, foo OP bar doesn't become foo(OP bar), which is
-        # invalid.  The characters '!=()' don't need to be checked for, as the
-        # _prefilter routine explicitely does so, to catch direct calls and
-        # rebindings of existing names.
-
-        # Warning: the '-' HAS TO BE AT THE END of the first group, otherwise
-        # it affects the rest of the group in square brackets.
-        self.re_exclude_auto = re.compile(r'^[<>,&^\|\*/\+-]'
-                                          '|^is |^not |^in |^and |^or ')
-
-        # try to catch also methods for stuff in lists/tuples/dicts: off
-        # (experimental). For this to work, the line_split regexp would need
-        # to be modified so it wouldn't break things at '['. That line is
-        # nasty enough that I shouldn't change it until I can test it _well_.
-        #self.re_fun_name = re.compile (r'[a-zA-Z_]([a-zA-Z0-9_.\[\]]*) ?$')
 
         # keep track of where we started running (mainly for crash post-mortem)
         self.starting_dir = os.getcwd()
@@ -1731,8 +1684,8 @@ want to merge them back into the new files.""" % locals()
         
         done = Set()
         while 1:
-            pre,fn,rest = self.split_user_input(line, pattern = self.shell_line_split)
-            # print "!",fn,"!",rest # dbg
+            pre,fn,rest = prefilter.splitUserInput(line,
+                                                   prefilter.shell_line_split)
             if fn in self.alias_table:
                 if fn in done:
                     warn("Cyclic alias definition, repeated '%s'" % fn)
@@ -2056,53 +2009,6 @@ want to merge them back into the new files.""" % locals()
         else:
             return lineout
 
-    def split_user_input(self,line, pattern = None):
-        """Split user input into pre-char, function part and rest."""
-
-        if pattern is None:
-            pattern = self.line_split
-            
-        lsplit = pattern.match(line)
-        if lsplit is None:  # no regexp match returns None
-            #print "match failed for line '%s'" % line  # dbg
-            try:
-                iFun,theRest = line.split(None,1)
-            except ValueError:
-                #print "split failed for line '%s'" % line  # dbg
-                iFun,theRest = line,''
-            pre = re.match('^(\s*)(.*)',line).groups()[0]
-        else:
-            pre,iFun,theRest = lsplit.groups()
-
-        # iFun has to be a valid python identifier, so it better be only pure
-        #ascii, no unicode:
-        try:
-            iFun = iFun.encode('ascii')
-        except UnicodeEncodeError:
-            theRest = iFun+u' '+theRest
-            iFun = u''
-            
-        #print 'line:<%s>' % line # dbg
-        #print 'pre <%s> iFun <%s> rest <%s>' % (pre,iFun.strip(),theRest) # dbg
-        return pre,iFun.strip(),theRest
-
-    # THIS VERSION IS BROKEN!!!  It was intended to prevent spurious attribute
-    # accesses with a more stringent check of inputs, but it introduced other
-    # bugs.  Disable it for now until I can properly fix it.
-    def split_user_inputBROKEN(self,line):
-        """Split user input into pre-char, function part and rest."""
-
-        lsplit = self.line_split.match(line)
-        if lsplit is None:  # no regexp match returns None
-            lsplit = self.line_split_fallback.match(line)
-
-        #pre,iFun,theRest = lsplit.groups()  # dbg
-        #print 'line:<%s>' % line # dbg
-        #print 'pre <%s> iFun <%s> rest <%s>' % (pre,iFun.strip(),theRest) # dbg
-        #return pre,iFun.strip(),theRest  # dbg
-
-        return lsplit.groups()
-
     def _prefilter(self, line, continue_prompt):
         """Calls different preprocessors, depending on the form of line."""
 
@@ -2111,15 +2017,6 @@ want to merge them back into the new files.""" % locals()
         # Lines are NOT logged here. Handlers should process the line as
         # needed, update the cache AND log it (so that the input cache array
         # stays synced).
-
-        # This function is _very_ delicate, and since it's also the one which
-        # determines IPython's response to user input, it must be as efficient
-        # as possible.  For this reason it has _many_ returns in it, trying
-        # always to exit as quickly as it can figure out what it needs to do.
-
-        # This function is the main responsible for maintaining IPython's
-        # behavior respectful of Python's semantics.  So be _very_ careful if
-        # making changes to anything here.
 
         #.....................................................................
         # Code begins
@@ -2131,6 +2028,8 @@ want to merge them back into the new files.""" % locals()
         self._last_input_line = line
 
         #print '***line: <%s>' % line # dbg
+
+        line_info = prefilter.LineInfo(line, continue_prompt)
         
         # the input history needs to track even empty lines
         stripped = line.strip()
@@ -2138,139 +2037,25 @@ want to merge them back into the new files.""" % locals()
         if not stripped:
             if not continue_prompt:
                 self.outputcache.prompt_count -= 1
-            return self.handle_normal(line,continue_prompt)
-            #return self.handle_normal('',continue_prompt)
+            return self.handle_normal(line_info)
 
         # print '***cont',continue_prompt  # dbg
         # special handlers are only allowed for single line statements
         if continue_prompt and not self.rc.multi_line_specials:
-            return self.handle_normal(line,continue_prompt)
+            return self.handle_normal(line_info)
 
 
-        # For the rest, we need the structure of the input
-        pre,iFun,theRest = self.split_user_input(line)
-
-        # See whether any pre-existing handler can take care of it
-        
+        # See whether any pre-existing handler can take care of it  
         rewritten = self.hooks.input_prefilter(stripped)
         if rewritten != stripped: # ok, some prefilter did something
-            rewritten = pre + rewritten  # add indentation
-            return self.handle_normal(rewritten)
+            rewritten = line_info.pre + rewritten  # add indentation
+            return self.handle_normal(prefilter.LineInfo(rewritten,
+                                                         continue_prompt))
             
         #print 'pre <%s> iFun <%s> rest <%s>' % (pre,iFun,theRest)  # dbg
         
-        # Next, check if we can automatically execute this thing
+        return prefilter.prefilter(line_info, self)
 
-        # Allow ! in multi-line statements if multi_line_specials is on:
-        if continue_prompt and self.rc.multi_line_specials and \
-               iFun.startswith(self.ESC_SHELL):
-            return self.handle_shell_escape(line,continue_prompt,
-                                            pre=pre,iFun=iFun,
-                                            theRest=theRest)        
-
-        # First check for explicit escapes in the last/first character
-        handler = None
-        if line[-1] == self.ESC_HELP and line[0] != self.ESC_SHELL:
-            handler = self.esc_handlers.get(line[-1])  # the ? can be at the end
-        if handler is None:
-            # look at the first character of iFun, NOT of line, so we skip
-            # leading whitespace in multiline input
-            handler = self.esc_handlers.get(iFun[0:1])
-        if handler is not None:
-            return handler(line,continue_prompt,pre,iFun,theRest)
-        # Emacs ipython-mode tags certain input lines
-        if line.endswith('# PYTHON-MODE'):
-            return self.handle_emacs(line,continue_prompt)
-
-        # instances of IPyAutocall in user_ns get autocalled immediately
-        obj = self.user_ns.get(iFun,None)
-        if isinstance(obj, IPython.ipapi.IPyAutocall):
-            obj.set_ip(self.api)
-            return self.handle_auto(line,continue_prompt,
-                        pre,iFun,theRest,obj)
-        
-        # Let's try to find if the input line is a magic fn
-        oinfo = None
-        if hasattr(self,'magic_'+iFun):
-            # WARNING: _ofind uses getattr(), so it can consume generators and
-            # cause other side effects.
-            oinfo = self._ofind(iFun) # FIXME - _ofind is part of Magic
-            if oinfo['ismagic']:
-                # Be careful not to call magics when a variable assignment is
-                # being made (ls='hi', for example)
-                if self.rc.automagic and \
-                       (len(theRest)==0 or theRest[0] not in '!=()<>,') and \
-                       (self.rc.multi_line_specials or not continue_prompt):
-                    return self.handle_magic(line,continue_prompt,
-                                             pre,iFun,theRest)
-                else:
-                    return self.handle_normal(line,continue_prompt)
-
-        # If the rest of the line begins with an (in)equality, assginment or
-        # function call, we should not call _ofind but simply execute it.
-        # This avoids spurious geattr() accesses on objects upon assignment.
-        #
-        # It also allows users to assign to either alias or magic names true
-        # python variables (the magic/alias systems always take second seat to
-        # true python code).
-        if theRest and theRest[0] in '!=()':
-            return self.handle_normal(line,continue_prompt)
-        
-        if oinfo is None:
-            # let's try to ensure that _oinfo is ONLY called when autocall is
-            # on.  Since it has inevitable potential side effects, at least
-            # having autocall off should be a guarantee to the user that no
-            # weird things will happen.
-
-            if self.rc.autocall:
-                oinfo = self._ofind(iFun) # FIXME - _ofind is part of Magic
-            else:
-                # in this case, all that's left is either an alias or
-                # processing the line normally.
-                if iFun in self.alias_table:
-                    # if autocall is off, by not running _ofind we won't know
-                    # whether the given name may also exist in one of the
-                    # user's namespace.  At this point, it's best to do a
-                    # quick check just to be sure that we don't let aliases
-                    # shadow variables.
-                    head = iFun.split('.',1)[0]
-                    if head in self.user_ns or head in self.internal_ns \
-                       or head in __builtin__.__dict__:
-                        return self.handle_normal(line,continue_prompt)
-                    else:
-                        return self.handle_alias(line,continue_prompt,
-                                                 pre,iFun,theRest)
-                 
-                else:
-                    return self.handle_normal(line,continue_prompt)
-        
-        if not oinfo['found']:
-            return self.handle_normal(line,continue_prompt)
-        else:
-            #print 'pre<%s> iFun <%s> rest <%s>' % (pre,iFun,theRest) # dbg
-            if oinfo['isalias']:
-                return self.handle_alias(line,continue_prompt,
-                                             pre,iFun,theRest)
-
-            if (self.rc.autocall 
-                 and
-                   (
-                   #only consider exclusion re if not "," or ";" autoquoting
-                   (pre == self.ESC_QUOTE or pre == self.ESC_QUOTE2
-                     or pre == self.ESC_PAREN) or 
-                   (not self.re_exclude_auto.match(theRest)))
-                 and 
-                   self.re_fun_name.match(iFun) and 
-                   callable(oinfo['obj'])) :
-                #print 'going auto'  # dbg
-                return self.handle_auto(line,continue_prompt,
-                                        pre,iFun,theRest,oinfo['obj'])
-            else:
-                #print 'was callable?', callable(oinfo['obj'])  # dbg
-                return self.handle_normal(line,continue_prompt)
-
-        # If we get here, we have a normal Python line. Log and return.
-        return self.handle_normal(line,continue_prompt)
 
     def _prefilter_dumb(self, line, continue_prompt):
         """simple prefilter function, for debugging"""
@@ -2293,8 +2078,7 @@ want to merge them back into the new files.""" % locals()
     # Set the default prefilter() function (this can be user-overridden)
     prefilter = multiline_prefilter
 
-    def handle_normal(self,line,continue_prompt=None,
-                      pre=None,iFun=None,theRest=None):
+    def handle_normal(self,line_info):
         """Handle normal input lines. Use as a template for handlers."""
 
         # With autoindent on, we need some way to exit the input loop, and I
@@ -2302,6 +2086,8 @@ want to merge them back into the new files.""" % locals()
         # clear the line.  The rule will be in this case, that either two
         # lines of pure whitespace in a row, or a line of pure whitespace but
         # of a size different to the indent level, will exit the input loop.
+        line = line_info.line
+        continue_prompt = line_info.continue_prompt
         
         if (continue_prompt and self.autoindent and line.isspace() and
             (0 < abs(len(line) - self.indent_current_nsp) <= 2 or
@@ -2311,55 +2097,62 @@ want to merge them back into the new files.""" % locals()
         self.log(line,line,continue_prompt)
         return line
 
-    def handle_alias(self,line,continue_prompt=None,
-                     pre=None,iFun=None,theRest=None):
-        """Handle alias input lines. """
+    def handle_alias(self,line_info):
+        """Handle alias input lines. """        
+        transformed = self.expand_aliases(line_info.iFun,line_info.theRest)
 
         # pre is needed, because it carries the leading whitespace.  Otherwise
         # aliases won't work in indented sections.
-        transformed = self.expand_aliases(iFun, theRest)        
-        line_out = '%s_ip.system(%s)' % (pre, make_quoted_expr( transformed ))        
-        self.log(line,line_out,continue_prompt)
+        line_out = '%s_ip.system(%s)' % (line_info.preWhitespace,
+                                         make_quoted_expr( transformed ))
+        
+        self.log(line_info.line,line_out,line_info.continue_prompt)
         #print 'line out:',line_out # dbg
         return line_out
 
-    def handle_shell_escape(self, line, continue_prompt=None,
-                            pre=None,iFun=None,theRest=None):
+    def handle_shell_escape(self, line_info):
         """Execute the line in a shell, empty return value"""
-
         #print 'line in :', `line` # dbg
-        # Example of a special handler. Others follow a similar pattern.
+        line = line_info.line
         if line.lstrip().startswith('!!'):
-            # rewrite iFun/theRest to properly hold the call to %sx and
-            # the actual command to be executed, so handle_magic can work
-            # correctly
-            theRest = '%s %s' % (iFun[2:],theRest)
-            iFun = 'sx'
-            return self.handle_magic('%ssx %s' % (self.ESC_MAGIC,
-                                     line.lstrip()[2:]),
-                                     continue_prompt,pre,iFun,theRest)
+            # rewrite LineInfo's line, iFun and theRest to properly hold the
+            # call to %sx and the actual command to be executed, so
+            # handle_magic can work correctly.  Note that this works even if
+            # the line is indented, so it handles multi_line_specials
+            # properly.
+            new_rest = line.lstrip()[2:]
+            line_info.line = '%ssx %s' % (self.ESC_MAGIC,new_rest)
+            line_info.iFun = 'sx'
+            line_info.theRest = new_rest
+            return self.handle_magic(line_info)
         else:
-            cmd=line.lstrip().lstrip('!')
-            line_out = '%s_ip.system(%s)' % (pre,make_quoted_expr(cmd))
+            cmd = line.lstrip().lstrip('!')
+            line_out = '%s_ip.system(%s)' % (line_info.preWhitespace,
+                                             make_quoted_expr(cmd))
         # update cache/log and return
-        self.log(line,line_out,continue_prompt)
+        self.log(line,line_out,line_info.continue_prompt)
         return line_out
 
-    def handle_magic(self, line, continue_prompt=None,
-                     pre=None,iFun=None,theRest=None):
+    def handle_magic(self, line_info):
         """Execute magic functions."""
-
-
-        cmd = '%s_ip.magic(%s)' % (pre,make_quoted_expr(iFun + " " + theRest))
-        self.log(line,cmd,continue_prompt)
+        iFun    = line_info.iFun
+        theRest = line_info.theRest
+        cmd = '%s_ip.magic(%s)' % (line_info.preWhitespace,
+                                   make_quoted_expr(iFun + " " + theRest))
+        self.log(line_info.line,cmd,line_info.continue_prompt)
         #print 'in handle_magic, cmd=<%s>' % cmd  # dbg
         return cmd
 
-    def handle_auto(self, line, continue_prompt=None,
-                    pre=None,iFun=None,theRest=None,obj=None):
+    def handle_auto(self, line_info):
         """Hande lines which can be auto-executed, quoting if requested."""
 
         #print 'pre <%s> iFun <%s> rest <%s>' % (pre,iFun,theRest)  # dbg
+        line    = line_info.line
+        iFun    = line_info.iFun
+        theRest = line_info.theRest
+        pre     = line_info.pre
+        continue_prompt = line_info.continue_prompt
+        obj = line_info.ofind(self)['obj']
         
         # This should only be active for single-line input!
         if continue_prompt:
@@ -2408,14 +2201,14 @@ want to merge them back into the new files.""" % locals()
         self.log(line,newcmd,continue_prompt)
         return newcmd
 
-    def handle_help(self, line, continue_prompt=None,
-                    pre=None,iFun=None,theRest=None):
+    def handle_help(self, line_info):
         """Try to get some help for the object.
 
         obj? or ?obj   -> basic information.
         obj?? or ??obj -> more details.
         """
-
+        
+        line = line_info.line
         # We need to make sure that we don't process lines which would be
         # otherwise valid python, such as "x=1 # what?"
         try:
@@ -2426,7 +2219,7 @@ want to merge them back into the new files.""" % locals()
                 line = line[1:]
             elif line[-1]==self.ESC_HELP:
                 line = line[:-1]
-            self.log(line,'#?'+line,continue_prompt)
+            self.log(line,'#?'+line,line_info.continue_prompt)
             if line:
                 #print 'line:<%r>' % line  # dbg
                 self.magic_pinfo(line)
@@ -2435,10 +2228,10 @@ want to merge them back into the new files.""" % locals()
             return '' # Empty string is needed here!
         except:
             # Pass any other exceptions through to the normal handler
-            return self.handle_normal(line,continue_prompt)
+            return self.handle_normal(line_info)
         else:
             # If the code compiles ok, we should handle it normally
-            return self.handle_normal(line,continue_prompt)
+            return self.handle_normal(line_info)
 
     def getapi(self):
         """ Get an IPApi object for this shell instance
@@ -2451,17 +2244,16 @@ want to merge them back into the new files.""" % locals()
         
         """
         return self.api
-    
-    def handle_emacs(self,line,continue_prompt=None,
-                    pre=None,iFun=None,theRest=None):
+
+    def handle_emacs(self, line_info):
         """Handle input lines marked by python-mode."""
 
         # Currently, nothing is done.  Later more functionality can be added
         # here if needed.
 
         # The input cache shouldn't be updated
-
-        return line
+        return line_info.line
+    
 
     def mktempfile(self,data=None):
         """Make a new tempfile and return its filename.
