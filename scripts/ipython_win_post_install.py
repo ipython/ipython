@@ -55,7 +55,7 @@ def install():
     mkshortcut(python,'IPython command prompt mode',f,a)
 
     f = ip_dir + r'\scipy.lnk'
-    a = prefix + r'\scripts\ipython -pylab -p scipy'
+    a = prefix + r'\scripts\ipython -pylab -p sci'
     mkshortcut(python,'IPython scipy profile',f,a)
 
     # Create documentation shortcuts ...    
