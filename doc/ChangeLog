@@ -1,3 +1,8 @@
+2007-05-17  Walter Doerwald  <walter@livinglogic.de>
+
+	* IPython/Extensions/ipipe.py: Fix xrepr for ifiles.
+	(Bug detected by Paul Mueller).
+
 2007-05-16  Ville Vainio  <vivainio@gmail.com>
 
 	* ipy_profile_sci.py, ipython_win_post_install.py: Create

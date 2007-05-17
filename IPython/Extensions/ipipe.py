@@ -1180,7 +1180,7 @@ def xrepr_ifile(self, mode="default"):
     except IOError:
         name = "ifile"
         style = astyle.style_default
-    if mode == "cell" or mode in "header" or mode == "footer":
+    if mode in ("cell", "header", "footer"):
         abspath = repr(path._base(self.normpath()))
         if abspath.startswith("u"):
             abspath = abspath[2:-1]
