@@ -28,8 +28,10 @@ def set_term_title(title):
     
     global ignore_termtitle
     
-    if not ignore_termtitle:
-        ret = os.system("title " + title)
+    if ignore_termtitle:
+	return
+        
+    ret = os.system("title " + title)
     if ret:
         ignore_termtitle = 1
     

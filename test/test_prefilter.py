@@ -14,9 +14,9 @@ Fairly quiet output by default.  Pass in -v to get everyone's favorite dots.
 # all of those out so that we can capture which one was called.
 
 import sys
+sys.path.append('..')
 import IPython
 import IPython.ipapi
-import sys
 
 verbose = False
 if len(sys.argv) > 1:

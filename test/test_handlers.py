@@ -2,6 +2,7 @@
 
 from StringIO import StringIO
 import sys
+sys.path.append('..')
 
 failures = []
 num_tests = 0
