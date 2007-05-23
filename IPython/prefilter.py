@@ -138,8 +138,9 @@ def prefilter(line_info, ip):
                    checkIPyAutocall,
                    checkMultiLineShell,
                    checkEscChars,
-                   checkPythonChars,
+                   checkAssignment,
                    checkAutomagic,
+                   checkPythonOps,
                    checkAlias,
                    checkAutocall,
                    ]:
@@ -202,24 +203,27 @@ def checkEscChars(l_info,ip):
         return ip.esc_handlers[l_info.preChar]
     else:
         return None
+
+
+def checkAssignment(l_info,ip):
+    """Check to see if user is assigning to a var for the first time, in
+    which case we want to avoid any sort of automagic / autocall games.
     
-def checkPythonChars(l_info,ip):
-    """If the 'rest' of the line begins with an (in)equality, assginment,
-    function call or tuple comma, we should simply execute the line
-    (regardless of whether or not there's a possible alias, automagic or
-    autocall expansion).  This both avoids spurious geattr() accesses on
-    objects upon assignment, and also allows users to assign to either alias
-    or magic names true python variables (the magic/alias systems always
-    take second seat to true python code).  E.g. ls='hi', or ls,that=1,2"""
-    if l_info.theRest and l_info.theRest[0] in '!=()<>,+*/%^&|':
+    This allows users to assign to either alias or magic names true python
+    variables (the magic/alias systems always take second seat to true
+    python code).  E.g. ls='hi', or ls,that=1,2"""
+    if l_info.theRest and l_info.theRest[0] in '=,':
         return ip.handle_normal
     else:
         return None
 
+
 def checkAutomagic(l_info,ip):
     """If the iFun is magic, and automagic is on, run it.  Note: normal,
     non-auto magic would already have been triggered via '%' in
-    check_esc_chars. This just checks for automagic."""
+    check_esc_chars. This just checks for automagic.  Also, before
+    triggering the magic handler, make sure that there is nothing in the
+    user namespace which could shadow it."""
     if not ip.rc.automagic or not hasattr(ip,'magic_'+l_info.iFun):
         return None
 
@@ -233,7 +237,18 @@ def checkAutomagic(l_info,ip):
 
     return ip.handle_magic
 
-    
+        
+def checkPythonOps(l_info,ip):
+    """If the 'rest' of the line begins with a function call or pretty much
+    any python operator, we should simply execute the line (regardless of
+    whether or not there's a possible alias or autocall expansion).  This
+    avoids spurious (and very confusing) geattr() accesses."""
+    if l_info.theRest and l_info.theRest[0] in '!=()<>,+*/%^&|':
+        return ip.handle_normal
+    else:
+        return None
+
+
 def checkAlias(l_info,ip):
     "Check if the initital identifier on the line is an alias."
     # Note: aliases can not contain '.'

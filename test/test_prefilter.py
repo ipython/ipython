@@ -206,22 +206,25 @@ run_handler_tests([
     # Without automagic, only shows up with explicit escape
     ( 'cpaste', handle_normal),
     ( '%cpaste', handle_magic),
-    ( '%does_not_exist', handle_magic)
+    ( '%does_not_exist', handle_magic),
     ])
 ip.options.automagic = 1
 run_handler_tests([
     ( 'cpaste',          handle_magic),
     ( '%cpaste',         handle_magic),
     ( 'does_not_exist',  handle_normal),
-    ( '%does_not_exist', handle_magic)])
+    ( '%does_not_exist', handle_magic),
+    ( 'cd /',            handle_magic),
+    ( 'cd = 2',          handle_normal),
+    ])
 
 # If next elt starts with anything that could be an assignment, func call,
 # etc, we don't call the magic func, unless explicitly escaped to do so.
-magic_killing_tests = []
-for c in list('!=()<>,'):
-    magic_killing_tests.append(('cpaste %s killed_automagic' % c, handle_normal))
-    magic_killing_tests.append(('%%cpaste %s escaped_magic' % c,   handle_magic))
-run_handler_tests(magic_killing_tests)
+#magic_killing_tests = []
+#for c in list('!=()<>,'):
+#    magic_killing_tests.append(('cpaste %s killed_automagic' % c, handle_normal))
+#    magic_killing_tests.append(('%%cpaste %s escaped_magic' % c,   handle_magic))
+#run_handler_tests(magic_killing_tests)
 
 # magic on indented continuation lines -- on iff multi_line_specials == 1
 ip.options.multi_line_specials = 0
