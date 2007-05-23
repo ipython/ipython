@@ -292,6 +292,7 @@ for ac_state in [0,1]:
         # XXX See note above
         #("alias_head.with_dot unshadowed, autocall=%s" % ac_state, handle_alias), 
         ("alias_cmd.something aliases must match whole expr", handle_normal),
+        ("alias_cmd /", handle_alias),
         ])
 
     for ns in [ip.user_ns, ip.IP.internal_ns, __builtin__.__dict__ ]:

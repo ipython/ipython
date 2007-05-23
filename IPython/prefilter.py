@@ -140,8 +140,8 @@ def prefilter(line_info, ip):
                    checkEscChars,
                    checkAssignment,
                    checkAutomagic,
-                   checkPythonOps,
                    checkAlias,
+                   checkPythonOps,
                    checkAutocall,
                    ]:
         handler = check(line_info, ip)
@@ -238,17 +238,6 @@ def checkAutomagic(l_info,ip):
     return ip.handle_magic
 
         
-def checkPythonOps(l_info,ip):
-    """If the 'rest' of the line begins with a function call or pretty much
-    any python operator, we should simply execute the line (regardless of
-    whether or not there's a possible alias or autocall expansion).  This
-    avoids spurious (and very confusing) geattr() accesses."""
-    if l_info.theRest and l_info.theRest[0] in '!=()<>,+*/%^&|':
-        return ip.handle_normal
-    else:
-        return None
-
-
 def checkAlias(l_info,ip):
     "Check if the initital identifier on the line is an alias."
     # Note: aliases can not contain '.'
@@ -260,6 +249,17 @@ def checkAlias(l_info,ip):
         return None
 
     return ip.handle_alias
+
+
+def checkPythonOps(l_info,ip):
+    """If the 'rest' of the line begins with a function call or pretty much
+    any python operator, we should simply execute the line (regardless of
+    whether or not there's a possible autocall expansion).  This avoids
+    spurious (and very confusing) geattr() accesses."""
+    if l_info.theRest and l_info.theRest[0] in '!=()<>,+*/%^&|':
+        return ip.handle_normal
+    else:
+        return None
 
 
 def checkAutocall(l_info,ip):
