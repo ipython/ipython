@@ -6,7 +6,7 @@ Requires Python 2.3 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 2354 2007-05-16 13:06:12Z dan.milstein $
+$Id: iplib.py 2365 2007-05-23 15:09:43Z dan.milstein $
 """
 
 #*****************************************************************************
@@ -1941,6 +1941,10 @@ want to merge them back into the new files.""" % locals()
         if not more:
             self.resetbuffer()
         return more
+
+    def split_user_input(self, line):
+        # This is really a hold-over to support ipapi and some extensions
+        return prefilter.splitUserInput(line)
 
     def resetbuffer(self):
         """Reset the input buffer."""
