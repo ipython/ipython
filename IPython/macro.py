@@ -39,6 +39,6 @@ class Macro(IPyAutocall):
         self._ip.user_ns['_margv'] = args
         self._ip.runlines(self.value)
     
-    def getstate(self):
+    def __getstate__(self):
         """ needed for safe pickling via %store """
         return {'value': self.value}
