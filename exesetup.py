@@ -4,9 +4,9 @@
 
 - Requires py2exe
 
-- install pyreadline in ipython root directory by running:
+- install pyreadline *package dir* in ipython root directory by running:
   
-svn co http://ipython.scipy.org/svn/ipython/pyreadline/trunk pyreadline
+svn co http://ipython.scipy.org/svn/ipython/pyreadline/trunk/pyreadline
 
 - Create the distribution in 'dist' by running "python exesetup.py py2exe"
 
