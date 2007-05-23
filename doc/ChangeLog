@@ -6,6 +6,9 @@
 	standalone IPython executables with py2exe (i.e.
 	no python installation required).
 	
+	* Removed ipythonrc-scipy, ipy_profile_scipy.py takes
+	its place.
+	
 2007-05-21  Ville Vainio  <vivainio@gmail.com>
 
 	* platutil_win32.py (set_term_title): handle
