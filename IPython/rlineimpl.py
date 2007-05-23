@@ -15,12 +15,17 @@ try:
     import readline as _rl
     have_readline = True
 except ImportError:
-    have_readline = False
+    try:
+        from pyreadline import *
+        import pyreadline as _rl
+        have_readline = True
+    except ImportError:    
+        have_readline = False
 
 if sys.platform == 'win32' and have_readline:
     try:
         _outputfile=_rl.GetOutputFile()
-    except NameError:
+    except AttributeError:
         print "Failed GetOutputFile"
         have_readline = False
     
@@ -31,10 +36,8 @@ if sys.platform == 'win32' and have_readline:
 # has the original discussion.
 
 if have_readline:
-    import readline
     try:
-        readline.clear_history
+        _rl.clear_history
     except AttributeError:
         def clear_history(): pass
-        readline.clear_history = clear_history
-    del readline
+        _rl.clear_history = clear_history
