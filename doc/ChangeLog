@@ -8,6 +8,8 @@
 	
 	* Removed ipythonrc-scipy, ipy_profile_scipy.py takes
 	its place.
+        
+        * rlineimpl.py, genutils.py (get_home_dir): py2exe support
 	
 2007-05-21  Ville Vainio  <vivainio@gmail.com>
 
