@@ -5,7 +5,7 @@ General purpose utilities.
 This is a grab-bag of stuff I find useful in most programs I write. Some of
 these things are also convenient when working at the command line.
 
-$Id: genutils.py 2190 2007-03-30 18:35:46Z fperez $"""
+$Id: genutils.py 2371 2007-05-23 18:40:26Z vivainio $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2006 Fernando Perez. <fperez@colorado.edu>
@@ -33,6 +33,7 @@ import types
 import warnings
 
 # Other IPython utilities
+import IPython
 from IPython.Itpl import Itpl,itpl,printpl
 from IPython import DPyGetOpt
 from path import path
@@ -807,6 +808,14 @@ def get_home_dir():
 
     isdir = os.path.isdir
     env = os.environ
+    
+    # first, check py2exe distribution root directory for _ipython.
+    # This overrides all. Normally does not exist.
+    if '\\library.zip\\' in IPython.__file__.lower():
+        root, rest = IPython.__file__.lower().split('library.zip')
+        if os.path.isdir(root + '_ipython'):
+            return root
+    
     try:
         homedir = env['HOME']
         if not isdir(homedir):
