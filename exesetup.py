@@ -85,7 +85,6 @@ setup(name             = name,
     license          = license,
     platforms        = platforms,
     keywords         = keywords,
-    packages         = ['IPython', 'IPython.Extensions', 'IPython.external'],
     console          = ['ipython.py'],
     
     # extra params needed for eggs
