@@ -67,12 +67,13 @@ if 'setuptools' in sys.modules:
 else:
     egg_extra_kwds = {}
 
-
 # Call the setup() routine which does most of the work
 setup(name             = name,
     options   = {
-        'py2exe': {
-                      'packages' : ['IPython', 'IPython.Extensions', 'IPython.external','pyreadline'],
+    'py2exe': {
+        'packages' : ['IPython', 'IPython.Extensions', 'IPython.external','pyreadline'],
+        'excludes' : ["Tkconstants","Tkinter","tcl",'IPython.igrid','wx','wxPython','igrid']
+                    
                      }
     },
     version          = version,
@@ -90,3 +91,6 @@ setup(name             = name,
     # extra params needed for eggs
     **egg_extra_kwds                        
     )
+
+
+
