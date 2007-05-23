@@ -49,7 +49,7 @@ def main():
 
     import sys
     # I like my banner minimal.
-    o.banner = "Py %s IPy %s\n" % (sys.version.split('\n')[0],Release.version)
+    o.banner = "IPython %s   [on Py %s]\n" % (Release.version,sys.version.split(None,1)[0])
     
     # make 'd' an alias for ls -F
     
@@ -92,7 +92,12 @@ def main():
         #print "al",cmd
         noext, ext = os.path.splitext(cmd)
         ip.IP.alias_table[mapper(noext)] = (0,cmd)
+
+
     extend_shell_behavior(ip)
+
+# XXX You do not need to understand the next function!
+# This should probably be moved out of profile
 
 def extend_shell_behavior(ip):
 
