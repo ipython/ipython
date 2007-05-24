@@ -1,3 +1,22 @@
+2007-05-24  Ville Vainio  <vivainio@gmail.com>
+
+	* Grand magic cleansing (changeset [2380]):
+        
+        * Introduce ipy_legacy.py where the following magics were
+        moved:
+        
+        pdef pdoc psource pfile rehash dhist Quit p r automagic autocall
+        
+        If you need them, either use default profile or "import ipy_legacy"
+        in your ipy_user_conf.py
+        
+        * Move sh and scipy profile to Extensions from UserConfig. this implies
+        you should not edit them, but you don't need to run %upgrade when
+        upgrading IPython anymore.
+        
+        * %hist/%history now operates in "raw" mode by default. To get the old
+        behaviour, run '%hist -n' (native mode).
+	
 2007-05-23  Ville Vainio  <vivainio@gmail.com>
 
 	* macro.py: %store uses __getstate__ properly
