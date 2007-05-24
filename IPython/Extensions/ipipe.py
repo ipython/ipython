@@ -1577,7 +1577,7 @@ class ihist(Table):
         >>> ihist
         >>> ihist(True) (raw mode)
     """
-    def __init__(self, raw=False):
+    def __init__(self, raw=True):
         self.raw = raw
 
     def __iter__(self):
