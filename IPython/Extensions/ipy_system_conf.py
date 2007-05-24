@@ -18,6 +18,5 @@ import sys
 import ext_rescapture # var = !ls and var = %magic
 import pspersistence # %store magic
 import clearcmd # %clear
-# Basic readline config
 
-o = ip.options
+import ipy_stock_completers

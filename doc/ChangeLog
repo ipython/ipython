@@ -16,6 +16,13 @@
         
         * %hist/%history now operates in "raw" mode by default. To get the old
         behaviour, run '%hist -n' (native mode).
+        
+        * split ipy_stock_completers.py to ipy_stock_completers.py and
+        ipy_app_completers.py. Stock completers (%cd, import, %run) are now
+        installed as default.
+        
+        * sh profile now installs ipy_signals.py, for (hopefully) better ctrl+c
+        handling.
 	
 2007-05-23  Ville Vainio  <vivainio@gmail.com>
 
