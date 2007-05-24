@@ -2,6 +2,8 @@
 
 import curses, fcntl, signal, struct, tty, textwrap, inspect
 
+from IPython import ipapi
+
 import astyle, ipipe
 
 
@@ -773,6 +775,8 @@ class ibrowse(ipipe.Display):
     keymap.register("pickallattrs", "C")
     keymap.register("pickmarked", "m")
     keymap.register("pickmarkedattr", "M")
+    keymap.register("pickinput", "i")
+    keymap.register("pickinputattr", "I")
     keymap.register("hideattr", "h")
     keymap.register("unhideattrs", "H")
     keymap.register("help", "?")
@@ -1157,6 +1161,40 @@ class ibrowse(ipipe.Display):
                 if value is not ipipe.noitem:
                     result.append(value)
         self.returnvalue = result
+        return True
+
+    def cmd_pickinput(self):
+        """
+        Use the object under the cursor (i.e. the row the cursor is on) as
+        the next input line. This leaves the browser and puts the picked object
+        in the input.
+        """
+        level = self.levels[-1]
+        value = level.items[level.cury].item
+        self.returnvalue = None
+        api = ipapi.get()
+        api.set_next_input(str(value))
+        return True
+
+    def cmd_pickinputattr(self):
+        """
+        Use the attribute under the cursor i.e. the row/column the cursor is on)
+        as the next input line. This leaves the browser and puts the picked
+        object in the input.
+        """
+        level = self.levels[-1]
+        attr = level.displayattr[1]
+        if attr is ipipe.noitem:
+            curses.beep()
+            self.report(CommandError("no column under cursor"))
+            return
+        value = attr.value(level.items[level.cury].item)
+        if value is ipipe.noitem:
+            curses.beep()
+            self.report(AttributeError(attr.name()))
+        self.returnvalue = None
+        api = ipapi.get()
+        api.set_next_input(str(value))
         return True
 
     def cmd_markrange(self):

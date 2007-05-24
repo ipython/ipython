@@ -135,8 +135,8 @@ import astyle
 
 __all__ = [
     "ifile", "ils", "iglob", "iwalk", "ipwdentry", "ipwd", "igrpentry", "igrp",
-    "icsv", "ix", "ichain", "isort", "ifilter", "ieval", "ienum", "ienv",
-    "idump", "iless"
+    "icsv", "ix", "ichain", "isort", "ifilter", "ieval", "ienum",
+    "ienv", "ihist", "idump", "iless"
 ]
 
 
@@ -1566,6 +1566,28 @@ class ienv(Table):
             yield (astyle.style_default, "%s()" % self.__class__.__name__)
         else:
             yield (astyle.style_default, repr(self))
+
+
+class ihist(Table):
+    """
+    IPython input history
+
+    Example:
+
+        >>> ihist
+        >>> ihist(True) (raw mode)
+    """
+    def __init__(self, raw=False):
+        self.raw = raw
+
+    def __iter__(self):
+        api = ipapi.get()
+        if self.raw:
+            for line in api.IP.input_hist_raw:
+                yield line.rstrip("\n")
+        else:
+            for line in api.IP.input_hist:
+                yield line.rstrip("\n")
 
 
 class icsv(Pipe):
