@@ -23,9 +23,9 @@ def magic_pdef(self, parameter_s='', namespaces=None):
     If the object is a class, print the constructor information."""
     self._inspect('pdef',parameter_s, namespaces)
 
-ip.expose_magic("pdef", magic_pdef)        
+ip.expose_magic("pdef", magic_pdef)
 
-# use ?    
+# use ?
 def magic_pdoc(self, parameter_s='', namespaces=None):
     """Print the docstring for an object.
 
@@ -33,7 +33,7 @@ def magic_pdoc(self, parameter_s='', namespaces=None):
     constructor docstrings."""
     self._inspect('pdoc',parameter_s, namespaces)
 
-ip.expose_magic("pdoc", magic_pdoc)        
+ip.expose_magic("pdoc", magic_pdoc)
 
 # use ??
 def magic_psource(self, parameter_s='', namespaces=None):
@@ -66,10 +66,10 @@ def magic_pfile(self, parameter_s=''):
             return
         page(self.shell.inspector.format(file(filename).read()))
 
-ip.expose_magic("pfile", magic_pfile)        
+ip.expose_magic("pfile", magic_pfile)
 
 # use rehashx
-    
+
 def magic_rehash(self, parameter_s = ''):
     """Update the alias table with all entries in $PATH.
 
@@ -81,7 +81,7 @@ def magic_rehash(self, parameter_s = ''):
     # rather than calling magic_alias, for speed reasons.  A rehash on a
     # typical Linux box involves several thousand entries, so efficiency
     # here is a top concern.
-    
+
     path = filter(os.path.isdir,os.environ.get('PATH','').split(os.pathsep))
     alias_table = self.shell.alias_table
     for pdir in path:
@@ -136,7 +136,7 @@ def magic_Quit(self, parameter_s=''):
     """Exit IPython without confirmation (like %Exit)."""
 
     self.shell.exit_now = True
-    
+
 ip.expose_magic("Quit", magic_Quit)
 
 
@@ -185,13 +185,13 @@ ip.expose_magic("r", magic_r)
 
 def magic_automagic(self, parameter_s = ''):
     """Make magic functions callable without having to type the initial %.
-    
+
     Without argumentsl toggles on/off (when off, you must call it as
     %automagic, of course).  With arguments it sets the value, and you can
     use any of (case insensitive):
 
      - on,1,True: to activate
-     
+
      - off,0,False: to deactivate.
 
     Note that magic functions have lowest priority, so if there's a
@@ -222,7 +222,7 @@ def magic_autocall(self, parameter_s = ''):
 
     The mode can be one of: 0->Off, 1->Smart, 2->Full.  If not given, the
     value is toggled on and off (remembering the previous state)."""
-    
+
     rc = self.shell.rc
 
     if parameter_s:
@@ -245,7 +245,8 @@ def magic_autocall(self, parameter_s = ''):
                 rc.autocall = self._magic_state.autocall_save
             except AttributeError:
                 rc.autocall = self._magic_state.autocall_save = 1
-            
+
     print "Automatic calling is:",['OFF','Smart','Full'][rc.autocall]
 
 ip.expose_magic("autocall", magic_autocall)
+
