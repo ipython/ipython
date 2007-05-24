@@ -6,7 +6,7 @@ Requires Python 2.3 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 2365 2007-05-23 15:09:43Z dan.milstein $
+$Id: iplib.py 2385 2007-05-24 20:18:08Z vivainio $
 """
 
 #*****************************************************************************
@@ -636,10 +636,13 @@ class InteractiveShell(object,Magic):
                                             'NoColor',
                                             rc.object_info_string_level)
         
+        self.rl_next_input = None
+        self.rl_do_indent = False
         # Load readline proper
         if rc.readline:
             self.init_readline()
 
+        
         # local shortcut, this is used a LOT
         self.log = self.logger.log
 
@@ -1242,7 +1245,11 @@ want to merge them back into the new files.""" % locals()
 
         #debugx('self.indent_current_nsp','pre_readline:')
 
-        self.readline.insert_text(self.indent_current_str())
+        if self.rl_do_indent:
+            self.readline.insert_text(self.indent_current_str())
+        if self.rl_next_input is not None:
+            self.readline.insert_text(self.rl_next_input)
+            self.rl_next_input = None
 
     def init_readline(self):
         """Command history completion/saving/reloading."""
@@ -1597,11 +1604,13 @@ want to merge them back into the new files.""" % locals()
         __builtin__.__dict__['__IPYTHON__active'] += 1
 
         # exit_now is set by a call to %Exit or %Quit
+        self.readline_startup_hook(self.pre_readline)
         while not self.exit_now:
             if more:
                 prompt = self.hooks.generate_prompt(True)
                 if self.autoindent:
-                    self.readline_startup_hook(self.pre_readline)
+                    self.rl_do_indent = True
+                    
             else:
                 prompt = self.hooks.generate_prompt(False)
             try:
@@ -1610,7 +1619,8 @@ want to merge them back into the new files.""" % locals()
                     # quick exit on sys.std[in|out] close
                     break
                 if self.autoindent:
-                    self.readline_startup_hook(None)
+                    self.rl_do_indent = False
+                    
             except KeyboardInterrupt:
                 self.write('\nKeyboardInterrupt\n')
                 self.resetbuffer()
@@ -1622,6 +1632,7 @@ want to merge them back into the new files.""" % locals()
                 more = 0
             except EOFError:
                 if self.autoindent:
+                    self.rl_do_indent = False
                     self.readline_startup_hook(None)
                 self.write('\n')
                 self.exit()

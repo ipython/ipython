@@ -358,6 +358,18 @@ class IPApi:
         else:
             return Exception("_ip.defmacro must be called with 1 or 2 arguments")
         
+    def set_next_input(self, s):
+        """ Sets the 'default' input string for the next command line.
+        
+        Requires readline.
+        
+        Example:
+        
+        [D:\ipython]|1> _ip.set_next_input("Hello Word")
+        [D:\ipython]|2> Hello Word_  # cursor is here        
+        """
+
+        self.IP.rl_next_input = s
         
 
 def launch_new_instance(user_ns = None):

@@ -23,6 +23,9 @@
         
         * sh profile now installs ipy_signals.py, for (hopefully) better ctrl+c
         handling.
+        
+        * iplib.py, ipapi.py: _ip.set_next_input(s) sets the next ("default")
+        input if readline is available.
 	
 2007-05-23  Ville Vainio  <vivainio@gmail.com>
 
