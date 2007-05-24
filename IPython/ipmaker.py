@@ -6,7 +6,7 @@ Requires Python 2.1 or better.
 
 This file contains the main make_IPython() starter function.
 
-$Id: ipmaker.py 2156 2007-03-19 02:32:19Z fperez $"""
+$Id: ipmaker.py 2380 2007-05-24 17:03:49Z vivainio $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2006 Fernando Perez. <fperez@colorado.edu>
@@ -637,7 +637,8 @@ object? -> Details about 'object'. ?object also works, ?? prints more.
             print "Error importing",profmodname,"- perhaps you should run %upgrade?"
             IP.InteractiveTB()
             import_fail_info(profmodname)
-                      
+    else:
+        import ipy_profile_none
     try:    
         import ipy_user_conf
     except ImportError:

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Magic functions for InteractiveShell.
 
-$Id: Magic.py 2353 2007-05-15 19:27:14Z vivainio $"""
+$Id: Magic.py 2380 2007-05-24 17:03:49Z vivainio $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001 Janko Hauser <jhauser@zscout.de> and
@@ -452,67 +452,6 @@ Currently the magic system has the following functions:\n"""
 
         page(outmsg,screen_lines=self.shell.rc.screen_length)
   
-    def magic_automagic(self, parameter_s = ''):
-        """Make magic functions callable without having to type the initial %.
-        
-        Without argumentsl toggles on/off (when off, you must call it as
-        %automagic, of course).  With arguments it sets the value, and you can
-        use any of (case insensitive):
-
-         - on,1,True: to activate
-         
-         - off,0,False: to deactivate.
-
-        Note that magic functions have lowest priority, so if there's a
-        variable whose name collides with that of a magic fn, automagic won't
-        work for that function (you get the variable instead). However, if you
-        delete the variable (del var), the previously shadowed magic function
-        becomes visible to automagic again."""
-
-        rc = self.shell.rc
-        arg = parameter_s.lower()
-        if parameter_s in ('on','1','true'):
-            rc.automagic = True
-        elif parameter_s in ('off','0','false'):
-            rc.automagic = False
-        else:
-            rc.automagic = not rc.automagic
-        print '\n' + Magic.auto_status[rc.automagic]
-
-    def magic_autocall(self, parameter_s = ''):
-        """Make functions callable without having to type parentheses.
-
-        Usage:
-
-           %autocall [mode]
-
-        The mode can be one of: 0->Off, 1->Smart, 2->Full.  If not given, the
-        value is toggled on and off (remembering the previous state)."""
-        
-        rc = self.shell.rc
-
-        if parameter_s:
-            arg = int(parameter_s)
-        else:
-            arg = 'toggle'
-
-        if not arg in (0,1,2,'toggle'):
-            error('Valid modes: (0->Off, 1->Smart, 2->Full')
-            return
-
-        if arg in (0,1,2):
-            rc.autocall = arg
-        else: # toggle
-            if rc.autocall:
-                self._magic_state.autocall_save = rc.autocall
-                rc.autocall = 0
-            else:
-                try:
-                    rc.autocall = self._magic_state.autocall_save
-                except AttributeError:
-                    rc.autocall = self._magic_state.autocall_save = 1
-                
-        print "Automatic calling is:",['OFF','Smart','Full'][rc.autocall]
 
     def magic_autoindent(self, parameter_s = ''):
         """Toggle autoindent on/off (if available)."""
@@ -548,18 +487,18 @@ Currently the magic system has the following functions:\n"""
 
         Options:
 
-          -n: do NOT print line numbers.  This is useful if you want to get a
+          -n: do NOT print line numbers. This is useful if you want to get a
           printout of many lines which can be directly pasted into a text
           editor.
 
           This feature is only available if numbered prompts are in use.
 
-          -r: print the 'raw' history.  IPython filters your input and
-          converts it all into valid Python source before executing it (things
-          like magics or aliases are turned into function calls, for
-          example).  With this option, you'll see the unfiltered history
-          instead of the filtered version: '%cd /' will be seen as '%cd /'
-          instead of '_ip.magic("%cd /")'.
+          -n: print the 'native' history, as IPython understands it. IPython
+          filters your input and converts it all into valid Python source before
+          executing it (things like magics or aliases are turned into function
+          calls, for example). With this option, you'll see the native history
+          instead of the user-entered version: '%cd /' will be seen as
+          '_ip.magic("%cd /")' instead of '%cd /'.
         """
 
         shell = self.shell
@@ -568,7 +507,7 @@ Currently the magic system has the following functions:\n"""
             return
         opts,args = self.parse_options(parameter_s,'nr',mode='list')
 
-        if opts.has_key('r'):
+        if not opts.has_key('n'):
             input_hist = shell.input_hist_raw
         else:
             input_hist = shell.input_hist
@@ -600,39 +539,6 @@ Currently the magic system has the following functions:\n"""
         """Alternate name for %history."""
         return self.magic_history(parameter_s)
 
-    def magic_p(self, parameter_s=''):
-        """Just a short alias for Python's 'print'."""
-        exec 'print ' + parameter_s in self.shell.user_ns
-
-    def magic_r(self, parameter_s=''):
-        """Repeat previous input.
-
-        If given an argument, repeats the previous command which starts with
-        the same string, otherwise it just repeats the previous input.
-
-        Shell escaped commands (with ! as first character) are not recognized
-        by this system, only pure python code and magic commands.
-        """
-
-        start = parameter_s.strip()
-        esc_magic = self.shell.ESC_MAGIC
-        # Identify magic commands even if automagic is on (which means
-        # the in-memory version is different from that typed by the user).
-        if self.shell.rc.automagic:
-            start_magic = esc_magic+start
-        else:
-            start_magic = start
-        # Look through the input history in reverse
-        for n in range(len(self.shell.input_hist)-2,0,-1):
-            input = self.shell.input_hist[n]
-            # skip plain 'r' lines so we don't recurse to infinity
-            if input != '_ip.magic("r")\n' and \
-                   (input.startswith(start) or input.startswith(start_magic)):
-                #print 'match',`input`  # dbg
-                print 'Executing:',input,
-                self.shell.runlines(input)
-                return
-        print 'No previous input matching `%s` found.' % start
 
     def magic_page(self, parameter_s=''):
         """Pretty print the object and display it through a pager.
@@ -665,6 +571,27 @@ Currently the magic system has the following functions:\n"""
             printpl('Current IPython profile: $self.shell.rc.profile.')
         else:
             print 'No profile active.'
+
+    def magic_pinfo(self, parameter_s='', namespaces=None):
+        """Provide detailed information about an object.
+    
+        '%pinfo object' is just a synonym for object? or ?object."""
+    
+        #print 'pinfo par: <%s>' % parameter_s  # dbg
+    
+        # detail_level: 0 -> obj? , 1 -> obj??
+        detail_level = 0
+        # We need to detect if we got called as 'pinfo pinfo foo', which can
+        # happen if the user types 'pinfo foo?' at the cmd line.
+        pinfo,qmark1,oname,qmark2 = \
+               re.match('(pinfo )?(\?*)(.*?)(\??$)',parameter_s).groups()
+        if pinfo or qmark1 or qmark2:
+            detail_level = 1
+        if "*" in oname:
+            self.magic_psearch(oname)
+        else:
+            self._inspect('pinfo', oname, detail_level=detail_level,
+                          namespaces=namespaces)
         
     def _inspect(self,meth,oname,namespaces=None,**kw):
         """Generic interface to the inspector system.
@@ -711,67 +638,6 @@ Currently the magic system has the following functions:\n"""
             print 'Object `%s` not found.' % oname
             return 'not found'  # so callers can take other action
         
-    def magic_pdef(self, parameter_s='', namespaces=None):
-        """Print the definition header for any callable object.
-
-        If the object is a class, print the constructor information."""
-        self._inspect('pdef',parameter_s, namespaces)
-        
-    def magic_pdoc(self, parameter_s='', namespaces=None):
-        """Print the docstring for an object.
-
-        If the given object is a class, it will print both the class and the
-        constructor docstrings."""
-        self._inspect('pdoc',parameter_s, namespaces)
-
-    def magic_psource(self, parameter_s='', namespaces=None):
-        """Print (or run through pager) the source code for an object."""
-        self._inspect('psource',parameter_s, namespaces)
-
-    def magic_pfile(self, parameter_s=''):
-        """Print (or run through pager) the file where an object is defined.
-
-        The file opens at the line where the object definition begins. IPython
-        will honor the environment variable PAGER if set, and otherwise will
-        do its best to print the file in a convenient form.
-
-        If the given argument is not an object currently defined, IPython will
-        try to interpret it as a filename (automatically adding a .py extension
-        if needed). You can thus use %pfile as a syntax highlighting code
-        viewer."""
-
-        # first interpret argument as an object name
-        out = self._inspect('pfile',parameter_s)
-        # if not, try the input as a filename
-        if out == 'not found':
-            try:
-                filename = get_py_filename(parameter_s)
-            except IOError,msg:
-                print msg
-                return
-            page(self.shell.inspector.format(file(filename).read()))
-            
-    def magic_pinfo(self, parameter_s='', namespaces=None):
-        """Provide detailed information about an object.
-
-        '%pinfo object' is just a synonym for object? or ?object."""
-
-        #print 'pinfo par: <%s>' % parameter_s  # dbg
-
-        # detail_level: 0 -> obj? , 1 -> obj??
-        detail_level = 0
-        # We need to detect if we got called as 'pinfo pinfo foo', which can
-        # happen if the user types 'pinfo foo?' at the cmd line.
-        pinfo,qmark1,oname,qmark2 = \
-               re.match('(pinfo )?(\?*)(.*?)(\??$)',parameter_s).groups()
-        if pinfo or qmark1 or qmark2:
-            detail_level = 1
-        if "*" in oname:
-            self.magic_psearch(oname)
-        else:
-            self._inspect('pinfo', oname, detail_level=detail_level,
-                          namespaces=namespaces)
-
     def magic_psearch(self, parameter_s=''):
         """Search for object in namespaces by wildcard.
 
@@ -2398,11 +2264,6 @@ Defaulting color scheme to 'NoColor'"""
 
         self.shell.exit_now = True
 
-    def magic_Quit(self, parameter_s=''):
-        """Exit IPython without confirmation (like %Exit)."""
-
-        self.shell.exit_now = True
-        
     #......................................................................
     # Functions to implement unix shell-type things
     
@@ -2506,30 +2367,6 @@ Defaulting color scheme to 'NoColor'"""
             del stored[aname]
             self.db['stored_aliases'] = stored
             
-    def magic_rehash(self, parameter_s = ''):
-        """Update the alias table with all entries in $PATH.
-
-        This version does no checks on execute permissions or whether the
-        contents of $PATH are truly files (instead of directories or something
-        else).  For such a safer (but slower) version, use %rehashx."""
-
-        # This function (and rehashx) manipulate the alias_table directly
-        # rather than calling magic_alias, for speed reasons.  A rehash on a
-        # typical Linux box involves several thousand entries, so efficiency
-        # here is a top concern.
-        
-        path = filter(os.path.isdir,os.environ.get('PATH','').split(os.pathsep))
-        alias_table = self.shell.alias_table
-        for pdir in path:
-            for ff in os.listdir(pdir):
-                # each entry in the alias table must be (N,name), where
-                # N is the number of positional arguments of the alias.
-                alias_table[ff] = (0,ff)
-        # Make sure the alias table doesn't contain keywords or builtins
-        self.shell.alias_table_validate()
-        # Call again init_auto_alias() so we get 'rm -i' and other modified
-        # aliases since %rehash will probably clobber them
-        self.shell.init_auto_alias()
 
     def magic_rehashx(self, parameter_s = ''):
         """Update the alias table with all executable files in $PATH.
@@ -2701,36 +2538,6 @@ Defaulting color scheme to 'NoColor'"""
         if not 'q' in opts:
             print self.shell.user_ns['_dh'][-1]
 
-    def magic_dhist(self, parameter_s=''):
-        """Print your history of visited directories.
-
-        %dhist       -> print full history\\
-        %dhist n     -> print last n entries only\\
-        %dhist n1 n2 -> print entries between n1 and n2 (n1 not included)\\
-
-        This history is automatically maintained by the %cd command, and
-        always available as the global list variable _dh. You can use %cd -<n>
-        to go to directory number <n>."""
-
-        dh = self.shell.user_ns['_dh']
-        if parameter_s:
-            try:
-                args = map(int,parameter_s.split())
-            except:
-                self.arg_err(Magic.magic_dhist)
-                return
-            if len(args) == 1:
-                ini,fin = max(len(dh)-(args[0]),0),len(dh)
-            elif len(args) == 2:
-                ini,fin = args
-            else:
-                self.arg_err(Magic.magic_dhist)
-                return
-        else:
-            ini,fin = 0,len(dh)
-        nlprint(dh,
-                header = 'Directory history (kept in _dh)',
-                start=ini,stop=fin)
 
     def magic_env(self, parameter_s=''):
         """List environment variables."""
