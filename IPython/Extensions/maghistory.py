@@ -42,9 +42,9 @@ def magic_history(self, parameter_s = ''):
     if not shell.outputcache.do_full_cache:
         print 'This feature is only available if numbered prompts are in use.'
         return
-    opts,args = self.parse_options(parameter_s,'nt',mode='list')
+    opts,args = self.parse_options(parameter_s,'gnt',mode='list')
 
-    if not opts.has_key('n'):
+    if not opts.has_key('t'):
         input_hist = shell.input_hist_raw
     else:
         input_hist = shell.input_hist
@@ -73,7 +73,7 @@ def magic_history(self, parameter_s = ''):
     print_nums = not opts.has_key('n')
     for in_num in range(init,final):        
         inline = input_hist[in_num]
-        if pattern is not None and fnmatch.fnmatch(inline, pattern):
+        if pattern is not None and not fnmatch.fnmatch(inline, pattern):
             continue
             
         multiline = int(inline.count('\n') > 1)
