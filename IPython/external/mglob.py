@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-""" mglob - enhanced file list expansion module
+r""" mglob - enhanced file list expansion module
 
 Use as stand-alone utility (for xargs, `backticks` etc.), 
 or a globbing library for own python programs. Globbing the sys.argv is something 
@@ -51,6 +51,9 @@ Supported syntax in globs (wilcard matching patterns)::
      - File foo, or all files in dir foo
  !*.bak readme*                   
      - readme*, exclude files ending with .bak
+ !.svn/ !.hg/ !*_Data/ rec:.
+     - Skip .svn, .hg, foo_Data dirs (and their subdirs) in recurse.
+       Trailing / is the key, \ does not work!
  dir:foo                       
      - the directory foo (not files in foo)
  dir:*                         
@@ -69,16 +72,6 @@ __version__ = "0.2"
 import os,glob,fnmatch,sys
 from sets import Set as set
 
-def recfind(p, pats = ["*"]):
-    for (dp,dnames,fnames) in os.walk(p):
-        for f in fnames:
-            matched = False
-            for p in pats:
-                if fnmatch.fnmatch(f,p):
-                    matched = True
-                    break
-            if matched:
-                yield os.path.join(dp,f)            
                 
 def expand(flist):
     """ Expand the glob(s) in flist.
@@ -91,6 +84,32 @@ def expand(flist):
         flist = flist.split()
     done_set = set()
     denied_set = set()
+
+    def recfind(p, pats = ["*"]):
+        denied_dirs = ["*" + d+"*" for d in denied_set if d.endswith("/")]
+        #print "de", denied_dirs
+        for (dp,dnames,fnames) in os.walk(p):
+            # see if we should ignore the whole directory
+            dp_norm = dp.replace("\\","/") + "/"
+            deny = False
+            #print "dp",dp
+            for deny_pat in denied_dirs:
+                if fnmatch.fnmatch( dp_norm, deny_pat):
+                    deny = True
+                    break
+            if deny:
+                continue
+
+                    
+            for f in fnames:
+                matched = False
+                for p in pats:
+                    if fnmatch.fnmatch(f,p):
+                        matched = True
+                        break
+                if matched:
+                    yield os.path.join(dp,f)            
+
     def once_filter(seq):
         for it in seq:
             p = os.path.abspath(it)
@@ -164,8 +183,11 @@ def main():
     
     print "\n".join(expand(sys.argv[1:])),
 
-def mglob_f(self, arg):    
-    return expand(arg)
+def mglob_f(self, arg):
+    if arg.strip():
+        return expand(arg)
+    print "Please specify pattern!"
+    print globsyntax
 
 def ipython_install():
     """ register %mglob for IPython """
