@@ -166,7 +166,7 @@ class IPApi:
 
         self.magic = ip.ipmagic
         
-        self.system = ip.ipsystem
+        self.system = ip.system
         
         self.set_hook = ip.set_hook
         
