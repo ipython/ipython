@@ -94,7 +94,10 @@ def main():
         noext, ext = os.path.splitext(cmd)
         ip.IP.alias_table[mapper(noext)] = (0,cmd)
 
-
+    # mglob combines 'find', recursion, exclusion... '%mglob?' to learn more
+    import IPython.external.mglob
+    IPython.external.mglob.ipython_install()
+    
     extend_shell_behavior(ip)
 
 # XXX You do not need to understand the next function!

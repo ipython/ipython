@@ -43,6 +43,7 @@ def rehashdir_f(self,arg):
                 return True
         return False
     
+    created = []
     if not arg:
         arg = '.'
     path = map(os.path.abspath,arg.split(';'))
@@ -74,8 +75,8 @@ def rehashdir_f(self,arg):
                         # each entry in the alias table must be (N,name),
                         # where N is the number of positional arguments of the
                         # alias.
-                        src,tgt = os.path.splitext(ff)[0], os.path.abspath(ff)                
-                        print "Aliasing:",src,"->",tgt
+                        src,tgt = os.path.splitext(ff)[0], os.path.abspath(ff)
+                        created.append(src)                        
                         alias_table[src] = (0,tgt)
         else:
             for pdir in path:
@@ -84,7 +85,7 @@ def rehashdir_f(self,arg):
                     if isexec(ff) and not isjunk(ff):
                         src, tgt = execre.sub(r'\1',ff), os.path.abspath(ff)
                         src = src.lower()
-                        print "Aliasing:",src,"->",tgt
+                        created.append(src)                                                
                         alias_table[src] = (0,tgt)
         # Make sure the alias table doesn't contain keywords or builtins
         self.shell.alias_table_validate()
@@ -93,4 +94,5 @@ def rehashdir_f(self,arg):
         # self.shell.init_auto_alias()
     finally:
         os.chdir(savedir)
+    return created
 ip.expose_magic("rehashdir",rehashdir_f)
