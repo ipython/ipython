@@ -20,3 +20,5 @@ import pspersistence # %store magic
 import clearcmd # %clear
 
 import ipy_stock_completers
+
+import IPython.maghistory

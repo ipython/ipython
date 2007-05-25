@@ -184,8 +184,9 @@ def main():
     print "\n".join(expand(sys.argv[1:])),
 
 def mglob_f(self, arg):
+    from IPython.genutils import SList
     if arg.strip():
-        return expand(arg)
+        return SList(expand(arg))
     print "Please specify pattern!"
     print globsyntax
 
@@ -195,9 +196,6 @@ def ipython_install():
     ip = IPython.ipapi.get()
     mglob_f.__doc__ = globsyntax
     ip.expose_magic("mglob",mglob_f)  
-    
-    
-    
     
 # test()
 if __name__ == "__main__":
