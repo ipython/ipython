@@ -5,6 +5,8 @@
 import IPython.ipapi
 ip = IPython.ipapi.get()
 
+import fnmatch
+
 def magic_history(self, parameter_s = ''):
     """Print input history (_i<n> variables), with most recent last.
     
@@ -25,19 +27,22 @@ def magic_history(self, parameter_s = ''):
 
       This feature is only available if numbered prompts are in use.
 
-      -n: print the 'native' history, as IPython understands it. IPython
+      -t: print the 'translated' history, as IPython understands it. IPython
       filters your input and converts it all into valid Python source before
       executing it (things like magics or aliases are turned into function
       calls, for example). With this option, you'll see the native history
       instead of the user-entered version: '%cd /' will be seen as
       '_ip.magic("%cd /")' instead of '%cd /'.
+      
+      -g: treat the arg as a pattern to grep for in (full) history
+      
     """
 
     shell = self.shell
     if not shell.outputcache.do_full_cache:
         print 'This feature is only available if numbered prompts are in use.'
         return
-    opts,args = self.parse_options(parameter_s,'nr',mode='list')
+    opts,args = self.parse_options(parameter_s,'nt',mode='list')
 
     if not opts.has_key('n'):
         input_hist = shell.input_hist_raw
@@ -45,7 +50,13 @@ def magic_history(self, parameter_s = ''):
         input_hist = shell.input_hist
     
     default_length = 40
-    if len(args) == 0:
+    pattern = None
+    if opts.has_key('g'):
+        init = 1
+        final = len(input_hist)
+        head, pattern = parameter_s.split(None,1)
+        pattern = "*" + pattern + "*"
+    elif len(args) == 0:
         final = len(input_hist)
         init = max(1,final-default_length)
     elif len(args) == 1:
@@ -60,8 +71,11 @@ def magic_history(self, parameter_s = ''):
     width = len(str(final))
     line_sep = ['','\n']
     print_nums = not opts.has_key('n')
-    for in_num in range(init,final):
+    for in_num in range(init,final):        
         inline = input_hist[in_num]
+        if pattern is not None and fnmatch.fnmatch(inline, pattern):
+            continue
+            
         multiline = int(inline.count('\n') > 1)
         if print_nums:
             print '%s:%s' % (str(in_num).ljust(width),line_sep[multiline]),
