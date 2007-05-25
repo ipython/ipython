@@ -450,7 +450,7 @@ class IPCompleter(Completer):
         
         # if we are not in the first 'item', alias matching 
         # doesn't make sense
-        if ' ' in self.lbuf:
+        if ' ' in self.lbuf.lstrip():
             return []
         text = os.path.expanduser(text)
         aliases =  self.alias_table.keys()
