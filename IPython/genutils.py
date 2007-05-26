@@ -5,7 +5,7 @@ General purpose utilities.
 This is a grab-bag of stuff I find useful in most programs I write. Some of
 these things are also convenient when working at the command line.
 
-$Id: genutils.py 2371 2007-05-23 18:40:26Z vivainio $"""
+$Id: genutils.py 2397 2007-05-26 10:06:26Z vivainio $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2006 Fernando Perez. <fperez@colorado.edu>
@@ -36,6 +36,7 @@ import warnings
 import IPython
 from IPython.Itpl import Itpl,itpl,printpl
 from IPython import DPyGetOpt
+from IPython.generics import result_display
 from path import path
 if os.name == "nt":
     from IPython.winconsole import get_console_size
@@ -872,6 +873,7 @@ class LSString(str):
         .l (or .list) : value as list (split on newlines).
         .n (or .nlstr): original value (the string itself).
         .s (or .spstr): value as whitespace-separated string.
+        .p (or .paths): list of path objects
         
     Any values which require transformations are computed only once and
     cached.
@@ -912,6 +914,14 @@ class LSString(str):
     p = paths = property(get_paths)
 
 
+
+def print_lsstring(arg):
+    """ Prettier (non-repr-like) and more informative printer for LSString """
+    print "LSString (.p, .n, .l, .s available). Value:"
+    print arg
+    
+print_lsstring = result_display.when_type(LSString)(print_lsstring)
+
 #----------------------------------------------------------------------------
 class SList(list):
     """List derivative with a special access attributes.
@@ -921,7 +931,8 @@ class SList(list):
         .l (or .list) : value as list (the list itself).
         .n (or .nlstr): value as a string, joined on newlines.
         .s (or .spstr): value as a string, joined on spaces.
-
+        .p (or .paths): list of path objects
+        
     Any values which require transformations are computed only once and
     cached."""
 
