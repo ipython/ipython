@@ -116,12 +116,12 @@ def rep_f(self, arg):
     
     
     opts,args = self.parse_options(arg,'',mode='list')
-    print args
+    
     if not args:
         ip.set_next_input(str(ip.user_ns["_"]))
         return
 
-    if len(arg) == 1:
+    if len(args) == 1:
         try:
             num = int(args[0])
             ip.set_next_input(str(ip.IP.input_hist_raw[num]).rstrip())
