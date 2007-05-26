@@ -56,7 +56,7 @@ def persist_env(self, parameter_s=''):
         parts = parameter_s.strip().split('=')    
     
     if len(parts) == 2:
-        k,v = parts
+        k,v = [p.strip() for p in parts]
     
     if v == '<del>':
         if k in env['set']:
@@ -81,7 +81,7 @@ def persist_env(self, parameter_s=''):
     else:
         env['set'][k] = v
         print "Setting",k,"to",v
-        os.environ[k] = os.environ.get(k,"") + v
+        os.environ[k] = v
         
     db['stored_env'] = env
     
