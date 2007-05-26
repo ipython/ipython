@@ -1,7 +1,7 @@
 from IPython.ipapi import TryNext
 from IPython.external.simplegeneric import generic
 
-""" 'Generic' functions for extending IPython
+''' 'Generic' functions for extending IPython
 
 See http://cheeseshop.python.org/pypi/simplegeneric
 
@@ -17,7 +17,7 @@ Here's an example from genutils.py:
 (Yes, the nasty syntax is for python 2.3 compatibility. Your own extensions
 can use the niftier decorator syntax)
 
-"""
+'''
 
 @generic
 def result_display(result):

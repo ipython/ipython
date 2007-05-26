@@ -5,7 +5,7 @@ General purpose utilities.
 This is a grab-bag of stuff I find useful in most programs I write. Some of
 these things are also convenient when working at the command line.
 
-$Id: genutils.py 2397 2007-05-26 10:06:26Z vivainio $"""
+$Id: genutils.py 2398 2007-05-26 10:20:14Z vivainio $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2006 Fernando Perez. <fperez@colorado.edu>
@@ -912,8 +912,6 @@ class LSString(str):
             return self.__paths
     
     p = paths = property(get_paths)
-
-
 
 def print_lsstring(arg):
     """ Prettier (non-repr-like) and more informative printer for LSString """

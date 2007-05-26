@@ -27,7 +27,7 @@ IPython tries to:
 
 IPython requires Python 2.3 or newer.
 
-$Id: __init__.py 2393 2007-05-25 18:26:31Z vivainio $"""
+$Id: __init__.py 2398 2007-05-26 10:20:14Z vivainio $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2006 Fernando Perez. <fperez@colorado.edu>
@@ -48,16 +48,18 @@ import os
 sys.path.append(os.path.dirname(__file__) + "/Extensions")
 
 # Define what gets imported with a 'from IPython import *'
-__all__ = ['deep_reload','genutils','ipstruct','ultraTB','DPyGetOpt',
+__all__ = ['ipapi','generics','deep_reload','genutils','ipstruct','ultraTB','DPyGetOpt',
            'Itpl','hooks','ConfigLoader','OutputTrap','Release','Shell',
            'platutils','platutils_win32','platutils_posix','platutils_dummy',
-           'ipapi','rlineimpl', 'strdispatch']
+           'rlineimpl', 'strdispatch']
 
 # Load __all__ in IPython namespace so that a simple 'import IPython' gives
 # access to them via IPython.<name>
 glob,loc = globals(),locals()
 for name in __all__:
     __import__(name,glob,loc,[])
+
+import Shell
 
 # Release data
 from IPython import Release # do it explicitly so pydoc can see it - pydoc bug

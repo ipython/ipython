@@ -65,7 +65,7 @@ import __builtin__
 import sys
 
 # our own
-from IPython.genutils import warn,error
+#from IPython.genutils import warn,error
  
 class TryNext(Exception):
     """Try next hook exception.
@@ -125,7 +125,7 @@ class IPythonNotRunning:
     def _dummy_warn(self,*args,**kw):
         """Dummy function, which doesn't do anything but warn."""
 
-        warn("IPython is not running, this is a dummy no-op function")
+        print ("IPython is not running, this is a dummy no-op function")
 
     def _dummy_silent(self,*args,**kw):
         """Dummy function, which doesn't do anything and emits no warnings."""
@@ -301,7 +301,7 @@ class IPApi:
             try:
                 user_ns[name] = eval(name,cf.f_globals,cf.f_locals)
             except:
-                error('could not get var. %s from %s' %
+                print ('could not get var. %s from %s' %
                 (name,cf.f_code.co_name))
 
     def expand_alias(self,line):
