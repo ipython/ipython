@@ -19,7 +19,6 @@ can use the niftier decorator syntax)
 
 '''
 
-@generic
 def result_display(result):
     """ print the result of computation """
     raise TryNext
