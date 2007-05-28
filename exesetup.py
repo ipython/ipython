@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""Setup script for exe distribution of IPython (does not require python).
+r"""Setup script for exe distribution of IPython (does not require python).
 
 - Requires py2exe
 
@@ -14,6 +14,12 @@ OR (if you want the latest trunk):
 svn co http://ipython.scipy.org/svn/ipython/pyreadline/trunk/pyreadline
 
 - Create the distribution in 'dist' by running "python exesetup.py py2exe"
+
+- Create initial configuration by running:
+
+mkdir dist\_ipython
+touch dist/_ipython/ipythonrc.ini
+echo "import ipy_profile_sh" > dist/ipy_user_conf.py
 
 - Run ipython.exe to go.
 
