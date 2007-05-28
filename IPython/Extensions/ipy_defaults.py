@@ -31,6 +31,8 @@ o.prompt_in2 ='   .\D.: '
 o.prompt_out = 'Out[\#]: '
 o.prompts_pad_left=1
 
+o.autoindent = 1
+
 o.readline_remove_delims="-/~"
 o.readline_merge_completions=1
 
