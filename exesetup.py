@@ -15,12 +15,6 @@ svn co http://ipython.scipy.org/svn/ipython/pyreadline/trunk/pyreadline
 
 - Create the distribution in 'dist' by running "python exesetup.py py2exe"
 
-- Create initial configuration by running:
-
-mkdir dist\_ipython
-touch dist/_ipython/ipythonrc.ini
-echo import ipy_profile_sh > dist/_ipython/ipy_user_conf.py
-
 - Run ipython.exe to go.
 
 """
@@ -63,20 +57,7 @@ def file_doesnt_endwith(test,endings):
     return True
 
 
-if 'setuptools' in sys.modules:
-    # setuptools config for egg building
-    egg_extra_kwds = {
-        'entry_points': {
-            'console_scripts': [
-            'ipython = IPython.ipapi:launch_new_instance',
-            'pycolor = IPython.PyColorize:main'
-            ]}
-        }
-    scriptfiles = []
-    # eggs will lack docs, examples XXX not anymore
-    #datafiles = [('lib', 'IPython/UserConfig', cfgfiles)]
-else:
-    egg_extra_kwds = {}
+egg_extra_kwds = {}
 
 # Call the setup() routine which does most of the work
 setup(name             = name,
@@ -103,5 +84,8 @@ setup(name             = name,
     **egg_extra_kwds                        
     )
 
-
-
+if not os.path.isdir("dist/_ipython"):
+    print "Creating simple _ipython dir"
+    os.mkdir("dist/_ipython")
+    open("dist/_ipython/ipythonrc.ini","w").write("# intentionally blank\n")
+    open("dist/_ipython/ipy_user_conf.py","w").write("import ipy_kitcfg\nimport ipy_profile_sh\n")
