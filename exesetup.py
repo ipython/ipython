@@ -19,7 +19,7 @@ svn co http://ipython.scipy.org/svn/ipython/pyreadline/trunk/pyreadline
 
 mkdir dist\_ipython
 touch dist/_ipython/ipythonrc.ini
-echo "import ipy_profile_sh" > dist/ipy_user_conf.py
+echo import ipy_profile_sh > dist/_ipython/ipy_user_conf.py
 
 - Run ipython.exe to go.
 
