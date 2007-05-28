@@ -1,3 +1,25 @@
+2007-05-28  Ville Vainio  <vivainio@gmail.com>
+
+	* %cpaste: strip + with > from left (diffs).
+        
+        * iplib.py: Fix crash when readline not installed
+
+2007-05-26  Ville Vainio  <vivainio@gmail.com>
+
+	* generics.py: intruduce easy to extend result_display generic
+        function (using simplegeneric.py).
+        
+        * Fixed the append functionality of %set.
+
+2007-05-25  Ville Vainio  <vivainio@gmail.com>
+
+	* New magic: %rep (fetch / run old commands from history)
+        
+        * New extension: mglob (%mglob magic), for powerful glob / find /filter
+        like functionality
+        
+        % maghistory.py: %hist -g PATTERM greps the history for pattern
+
 2007-05-24  Walter Doerwald  <walter@livinglogic.de>
 
 	* IPython/Extensions/ipipe.py: Added a Table ihist that can be used to
