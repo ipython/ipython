@@ -6,6 +6,11 @@
 
 - install pyreadline *package dir* in ipython root directory by running:
   
+svn co http://ipython.scipy.org/svn/ipython/pyreadline/branches/maintenance_1.3/pyreadline/  
+wget http://ipython.scipy.org/svn/ipython/pyreadline/branches/maintenance_1.3/readline.py
+
+OR (if you want the latest trunk):  
+  
 svn co http://ipython.scipy.org/svn/ipython/pyreadline/trunk/pyreadline
 
 - Create the distribution in 'dist' by running "python exesetup.py py2exe"

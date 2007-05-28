@@ -6,7 +6,7 @@ Requires Python 2.3 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 2385 2007-05-24 20:18:08Z vivainio $
+$Id: iplib.py 2404 2007-05-28 12:57:35Z vivainio $
 """
 
 #*****************************************************************************
@@ -1603,8 +1603,10 @@ want to merge them back into the new files.""" % locals()
         # Mark activity in the builtins
         __builtin__.__dict__['__IPYTHON__active'] += 1
 
+        if readline.have_readline:
+            self.readline_startup_hook(self.pre_readline)
         # exit_now is set by a call to %Exit or %Quit
-        self.readline_startup_hook(self.pre_readline)
+        
         while not self.exit_now:
             if more:
                 prompt = self.hooks.generate_prompt(True)
