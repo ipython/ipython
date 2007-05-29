@@ -1,3 +1,10 @@
+2007-05-29  Jörgen Stenarson  <jorgen.stenarson@bostream.nu>
+	
+	* fixing set_term_title to use ctypes as default
+
+	* fixing set_term_title fallback to work when curent dir 
+	  is on a windows network share
+
 2007-05-28  Ville Vainio  <vivainio@gmail.com>
 
 	* %cpaste: strip + with > from left (diffs).

@@ -23,16 +23,31 @@ __license__ = Release.license
 import os
 
 ignore_termtitle = 0
+
+try:
+    from ctypes import windll
+    SetConsoleTitleA=windll.kernel32.SetConsoleTitleA
+
+    def _set_term_title(title):
+        """ Set terminal title using the ctypes"""
+        SetConsoleTitleA(str(title))
+
+except ImportError:
+    def _set_term_title(title):
+        """ Set terminal title using the 'title' command """
+        curr=os.getcwd()
+        os.chdir("C:") #Cannot be on network share when issuing system commands
+        ret = os.system("title " + title)
+        os.chdir(curr)
+        if ret:
+            ignore_termtitle = 1
+
 def set_term_title(title):
     """ Set terminal title using the 'title' command """
-    
     global ignore_termtitle
-    
+
     if ignore_termtitle:
-	return
-        
-    ret = os.system("title " + title)
-    if ret:
-        ignore_termtitle = 1
-    
-    
+        return
+    _set_term_title(title)
+
+
