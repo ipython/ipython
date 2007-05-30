@@ -154,12 +154,24 @@ esc_handler_tests = [
     # XXX Possibly, add test for /,; once those are unhooked from %autocall
     ( 'emacs_mode # PYTHON-MODE', handle_emacs ),
     ( ' ',         handle_normal), 
+
     # Trailing qmark combos.  Odd special cases abound
-    ( '!thing?',   handle_shell_escape), # trailing '?' loses to shell esc
-    ( '!thing ?',  handle_shell_escape),
-    ( '!!thing?',  handle_shell_escape),
+
+    # The key is: we don't want the trailing ? to trigger help if it's a
+    # part of a shell glob (like, e.g. '!ls file.?').  Instead, we want the
+    # shell handler to be called.  Due to subtleties of the input string
+    # parsing, however, we only call the shell handler if the trailing ? is
+    # part of something whitespace-separated from the !cmd.  See examples.
+    ( '!thing?',      handle_help), 
+    ( '!thing arg?',  handle_shell_escape),
+    ( '!!thing?',     handle_help),
+    ( '!!thing arg?', handle_shell_escape),
+
+    # For all other leading esc chars, we always trigger help
     ( '%cmd?',     handle_help),
+    ( '%cmd ?',    handle_help),
     ( '/cmd?',     handle_help),
+    ( '/cmd ?',    handle_help),
     ( ';cmd?',     handle_help),
     ( ',cmd?',     handle_help),
     ]
@@ -216,6 +228,9 @@ run_handler_tests([
     ( '%does_not_exist', handle_magic),
     ( 'cd /',            handle_magic),
     ( 'cd = 2',          handle_normal),
+    ( 'r',               handle_magic),
+    ( 'r thing',         handle_magic),
+    ( 'r"str"',          handle_normal),
     ])
 
 # If next elt starts with anything that could be an assignment, func call,

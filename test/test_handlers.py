@@ -17,7 +17,8 @@ def run(tests):
         ip.runlines(pre)
         ip.runlines('_i')  # Not sure why I need this...
         actual = ip.user_ns['_i']
-        if actual != None: actual = actual.rstrip('\n')
+        if actual != None:
+            actual = actual.rstrip('\n')
         if actual != post:
             failures.append('Expected %r to become %r, found %r' % (
                 pre, post, actual))
@@ -53,8 +54,8 @@ try:
     # write anything to stdout.
 
     # Turn off actual execution of aliases, because it's noisy
-    old_system_cmd = ip.IP.system
-    ip.IP.system = lambda cmd: None
+    old_system_cmd = ip.system
+    ip.system = lambda cmd: None
     
     
     ip.IP.alias_table['an_alias'] = (0, 'true')
@@ -66,7 +67,7 @@ try:
          # chars, *not* initial chars which happen to be aliases:
          ("top",         '_ip.system("d:/cygwin/top ")'),
          ])
-    ip.IP.system = old_system_cmd
+    ip.system = old_system_cmd
 
 
     call_idx = CallableIndexable()

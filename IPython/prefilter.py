@@ -105,7 +105,7 @@ def splitUserInput(line, pattern=None):
 
     #print 'line:<%s>' % line # dbg
     #print 'pre <%s> iFun <%s> rest <%s>' % (pre,iFun.strip(),theRest) # dbg
-    return pre,iFun.strip(),theRest
+    return pre,iFun.strip(),theRest.lstrip()
 
 
 # RegExp for splitting line contents into pre-char//first word-method//rest.
@@ -122,10 +122,10 @@ def splitUserInput(line, pattern=None):
 # The three parts of the regex are:
 #  1) pre:     pre_char *or* initial whitespace 
 #  2) iFun:    first word/method (mix of \w and '.')
-#  3) theRest: rest of line
+#  3) theRest: rest of line (separated from iFun by space if non-empty)
 line_split = re.compile(r'^([,;/%?]|!!?|\s*)'
-                        r'\s*([\w\.]+)\s*'
-                        r'(.*)$')
+                        r'\s*([\w\.]+)'
+                        r'(\s+.*$|$)')
 
 shell_line_split = re.compile(r'^(\s*)(\S*\s*)(.*$)')
 
