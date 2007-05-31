@@ -1,3 +1,15 @@
+2007-05-31  Walter Doerwald  <walter@livinglogic.de>
+
+	* IPython/Extensions/igrid.py: Add new commands refresh and
+	refresh_timer (mapped to "R"/"F5" and to the menu) which restarts
+	the iterator once (refresh) or after every x seconds (refresh_timer).
+	Add a working implementation of "searchexpression", where the text
+	entered is not the text to search for, but an expression that must
+	be true. Added display of shortcuts to the menu. Added commands "pickinput"
+	and "pickinputattr" that put the object or attribute under the cursor
+	in the input line. Split the statusbar to be able to display the currently
+	active refresh interval. (Patch by Nik Tautenhahn)
+
 2007-05-29  Jörgen Stenarson  <jorgen.stenarson@bostream.nu>
 	
 	* fixing set_term_title to use ctypes as default
