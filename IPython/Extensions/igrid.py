@@ -1,6 +1,7 @@
 # -*- coding: iso-8859-1 -*-
 
 import ipipe, os, webbrowser, urllib
+from IPython import ipapi
 import wx
 import wx.grid, wx.html
 
@@ -36,9 +37,15 @@ help = """
 <p>Pick the attribute under the cursor</p>
 
 <h3>pickallattrs (Shift-C)</h3>
-<p>Pick' the complete column under the cursor (i.e. the attribute under the
+<p>Pick the complete column under the cursor (i.e. the attribute under the
 cursor) from all currently fetched objects. These attributes will be returned
 as a list.</p>
+
+<h3>pickinput (I)</h3>
+<p>Pick the current row as next input line in IPython. Additionally the row is stored as "_"</p>
+
+<h3>pickinputattr (Shift-I)</h3>
+<p>Pick the attribute under the cursor as next input line in IPython. Additionally the row is stored as "_"</p>
 
 <h3>enter (E)</h3>
 <p>Enter the object under the cursor. (what this mean depends on the object
@@ -64,17 +71,32 @@ attributes than in the list view, depending on the object).</p>
 <h3>find (CTRL-F)</h3>
 <p>Find text</p>
 
+<h3>find_expression (CTRL-Shift-F)</h3>
+<p>Find entries matching an expression</p>
+
 <h3>find_next (F3)</h3>
-<p>Find next occurrence of the searchtext</p>
+<p>Find next occurrence</p>
 
 <h3>find_previous (Shift-F3)</h3>
-<p>Find previous occurrence of the searchtext </p>
+<p>Find previous occurrence</p>
 
 <h3>sortattrasc (V)</h3>
 <p>Sort the objects (in ascending order) using the attribute under the cursor as the sort key.</p>
 
 <h3>sortattrdesc (Shift-V)</h3>
 <p>Sort the objects (in descending order) using the attribute under the cursor as the sort key.</p>
+
+<h3>refresh_once (R, F5)</h3>
+<p>Refreshes the display by restarting the iterator</p>
+
+<h3>refresh_every_second</h3>
+<p>Refreshes the display by restarting the iterator every second until stopped by stop_refresh.</p>
+
+<h3>refresh_interval</h3>
+<p>Refreshes the display by restarting the iterator every X ms (X is a custom interval set by the user) until stopped by stop_refresh.</p>
+
+<h3>stop_refresh</h3>
+<p>Stops all refresh timers.</p>
 
 <h3>leave (Backspace, DEL, X)</h3>
 <p>Close current tab (and all the tabs to the right of the current one).</h3>
@@ -100,6 +122,7 @@ attributes than in the list view, depending on the object).</p>
 
 </body>
 </html>
+
 """
 
 
@@ -216,9 +239,10 @@ class IGridTable(wx.grid.PyGridTableBase):
         self.attrs = [ipipe.upgradexattr(attr) for attr in attrs]
         self._displayattrs = self.attrs[:]
         self._displayattrset = set(self.attrs)
-        self._sizing = False
         self.fontsize = fontsize
         self._fetch(1)
+        self.timer = wx.Timer()
+        self.timer.Bind(wx.EVT_TIMER, self.refresh_content)
 
     def GetAttr(self, *args):
         attr = wx.grid.GridCellAttr()
@@ -277,28 +301,49 @@ class IGridTable(wx.grid.PyGridTableBase):
         # some kind of dummy-function: does not return anything but "";
         # (The value isn't use anyway)
         # its main task is to trigger the fetch of new objects
-        had_cols = self._displayattrs[:]
+        sizing_needed = False
+        had_cols = len(self._displayattrs)
         had_rows = len(self.items)
-        if row == had_rows - 1 and self.iterator is not None and not self._sizing:
+        if row == had_rows - 1 and self.iterator is not None:
             self._fetch(row + 20)
+            sizing_needed = True
         have_rows = len(self.items)
         have_cols = len(self._displayattrs)
         if have_rows > had_rows:
             msg = wx.grid.GridTableMessage(self, wx.grid.GRIDTABLE_NOTIFY_ROWS_APPENDED, have_rows - had_rows)
             self.GetView().ProcessTableMessage(msg)
-            self._sizing = True
-            self.GetView().AutoSizeColumns(False)
-            self._sizing = False
+            sizing_needed = True
         if row >= have_rows:
             return ""
-        if self._displayattrs != had_cols:
-            msg = wx.grid.GridTableMessage(self, wx.grid.GRIDTABLE_NOTIFY_COLS_APPENDED, have_cols - len(had_cols))
+        if have_cols != had_cols:
+            msg = wx.grid.GridTableMessage(self, wx.grid.GRIDTABLE_NOTIFY_COLS_APPENDED, have_cols - had_cols)
             self.GetView().ProcessTableMessage(msg)
+            sizing_needed = True
+        if sizing_needed:
+            self.GetView().AutoSizeColumns(False)
         return ""
 
     def SetValue(self, row, col, value):
         pass
 
+    def refresh_content(self, event):
+        msg = wx.grid.GridTableMessage(self, wx.grid.GRIDTABLE_NOTIFY_ROWS_DELETED, 0, self.GetNumberRows())
+        self.GetView().ProcessTableMessage(msg)
+        self.iterator = ipipe.xiter(self.input)
+        self.items = []
+        self.attrs = [] # _append will calculate new displayattrs
+        self._fetch(1) # fetch one...
+        if self.items:
+            msg = wx.grid.GridTableMessage(self, wx.grid.GRIDTABLE_NOTIFY_ROWS_APPENDED, 1)
+            self.GetView().ProcessTableMessage(msg)
+            self.GetValue(0, 0) # and trigger "fetch next 20"
+            item = self.items[0]
+            self.GetView().AutoSizeColumns(False)
+            panel = self.GetView().GetParent()
+            nb = panel.GetParent()
+            current = nb.GetSelection()
+            if nb.GetPage(current) == panel:
+                self.GetView().set_footer(item)
 
 class IGridGrid(wx.grid.Grid):
     # The actual grid
@@ -328,7 +373,7 @@ class IGridGrid(wx.grid.Grid):
     def error_output(self, text):
         wx.Bell()
         frame = self.GetParent().GetParent().GetParent()
-        frame.SetStatusText(text)
+        frame.SetStatusText(str(text))
 
     def _on_selected_range(self, event):
         # Internal update to the selection tracking lists
@@ -337,7 +382,7 @@ class IGridGrid(wx.grid.Grid):
             self.current_selection.update(xrange(event.GetTopRow(), event.GetBottomRow()+1))
         else:
             # removal from list
-            for index in xrange( event.GetTopRow(), event.GetBottomRow()+1):
+            for index in xrange(event.GetTopRow(), event.GetBottomRow()+1):
                 self.current_selection.discard(index)
         event.Skip()
 
@@ -433,14 +478,77 @@ class IGridGrid(wx.grid.Grid):
             (align, width, text) = ipipe.xformat(exc, "cell", self.maxchars)
         return text
 
-    def search(self, searchtext, startrow=0, startcol=0, search_forward=True):
+    def searchexpression(self, searchexp, startrow=None, search_forward=True ):
+        """
+        Find by expression
+        """
+        frame = self.GetParent().GetParent().GetParent()
+        if searchexp:
+            if search_forward:
+                if not startrow:
+                    row = self.GetGridCursorRow()+1
+                else:
+                    row = startrow + 1
+                while True:
+                    try:
+                        foo = self.table.GetValue(row, 0)
+                        item = self.table.items[row]
+                        try:
+                            globals = ipipe.getglobals(None)
+                            if eval(searchexp, globals, ipipe.AttrNamespace(item)):
+                                self.SetGridCursor(row, 0) # found something
+                                self.MakeCellVisible(row, 0)
+                                break
+                        except (KeyboardInterrupt, SystemExit):
+                            raise
+                        except Exception, exc:
+                            frame.SetStatusText(str(exc))
+                            wx.Bell()
+                            break  # break on error
+                    except IndexError:
+                        return
+                    row += 1
+            else:
+                if not startrow:
+                    row = self.GetGridCursorRow() - 1
+                else:
+                    row = startrow - 1
+                while True:
+                    try:
+                        foo = self.table.GetValue(row, 0)
+                        item = self.table.items[row]
+                        try:
+                            globals = ipipe.getglobals(None)
+                            if eval(searchexp, globals, ipipe.AttrNamespace(item)):
+                                self.SetGridCursor(row, 0) # found something
+                                self.MakeCellVisible(row, 0)
+                                break
+                        except (KeyboardInterrupt, SystemExit):
+                            raise
+                        except Exception, exc:
+                            frame.SetStatusText(str(exc))
+                            wx.Bell()
+                            break  # break on error
+                    except IndexError:
+                        return
+                    row -= 1
+
+
+    def search(self, searchtext, startrow=None, startcol=None, search_forward=True):
         """
         search for ``searchtext``, starting in ``(startrow, startcol)``;
         if ``search_forward`` is true the direction is "forward"
         """
-        row = startrow
         searchtext = searchtext.lower()
         if search_forward:
+            if startrow is not None and startcol is not None:
+                row = startrow
+            else:
+                startcol = self.GetGridCursorCol() + 1
+                row = self.GetGridCursorRow()
+                if startcol >= self.GetNumberCols():
+                    startcol = 0
+                    row += 1
             while True:
                 for col in xrange(startcol, self.table.GetNumberCols()):
                     try:
@@ -455,6 +563,14 @@ class IGridGrid(wx.grid.Grid):
                 startcol = 0
                 row += 1
         else:
+            if startrow is not None and startcol is not None:
+                row = startrow
+            else:
+                startcol = self.GetGridCursorCol() - 1
+                row = self.GetGridCursorRow()
+                if startcol < 0:
+                    startcol = self.GetNumberCols() - 1
+                    row -= 1
             while True:
                 for col in xrange(startcol, -1, -1):
                     try:
@@ -535,7 +651,10 @@ class IGridGrid(wx.grid.Grid):
             else:
                 self.detail_attr(row, col)
         elif keycode == ord("F") and ctrl:
-            frame.enter_searchtext(event)
+            if sh:
+                frame.enter_searchexpression(event)
+            else:
+                frame.enter_searchtext(event)
         elif keycode == wx.WXK_F3:
             if sh:
                 frame.find_previous(event)
@@ -561,7 +680,7 @@ class IGridGrid(wx.grid.Grid):
             else:
                 item = self.table.items[row]
             self.set_footer(item)
-            event.Skip()         
+            event.Skip()
         elif keycode == wx.WXK_RIGHT:
             row = self.GetGridCursorRow()
             item = self.table.items[row]
@@ -572,6 +691,15 @@ class IGridGrid(wx.grid.Grid):
             item = self.table.items[row]
             self.set_footer(item)
             event.Skip()
+        elif keycode == ord("R") or keycode == wx.WXK_F5:
+            self.table.refresh_content(event)
+        elif keycode == ord("I"):
+            row = self.GetGridCursorRow()
+            if not sh:
+                self.pickinput(row)
+            else:
+                col = self.GetGridCursorCol()
+                self.pickinputattr(row, col)
         else:
             event.Skip()
 
@@ -625,7 +753,7 @@ class IGridGrid(wx.grid.Grid):
 
     def set_footer(self, item):
         frame = self.GetParent().GetParent().GetParent()
-        frame.SetStatusText(" ".join([str(text) for (style, text) in ipipe.xformat(item, "footer", 20)[2]]))
+        frame.SetStatusText(" ".join([str(text) for (style, text) in ipipe.xformat(item, "footer", 20)[2]]), 0)
 
     def enter(self, row):
         try:
@@ -680,7 +808,7 @@ class IGridGrid(wx.grid.Grid):
         item = self.table.items[row]
         self.set_footer(item)
         event.Skip()
-        
+
     def pick(self, row):
         """
         pick a single row and return to the IPython prompt
@@ -690,6 +818,27 @@ class IGridGrid(wx.grid.Grid):
         except Exception, exc:
             self.error_output(str(exc))
         else:
+            self.quit(value)
+
+    def pickinput(self, row):
+        try:
+            value = self.table.items[row]
+        except Exception, exc:
+            self.error_output(str(exc))
+        else:
+            api = ipapi.get()
+            api.set_next_input(str(value))
+            self.quit(value)
+
+    def pickinputattr(self, row, col):
+        try:
+            attr = self.table._displayattrs[col]
+            value = attr.value(self.table.items[row])
+        except Exception, exc:
+            self.error_output(str(exc))
+        else:
+            api = ipapi.get()
+            api.set_next_input(str(value))
             self.quit(value)
 
     def pickrows(self, rows):
@@ -737,6 +886,7 @@ class IGridPanel(wx.Panel):
     def __init__(self, parent, input, *attrs):
         wx.Panel.__init__(self, parent, -1)
         self.grid = IGridGrid(self, input, *attrs)
+        self.grid.FitInside()
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer.Add(self.grid, proportion=1, flag=wx.EXPAND | wx.ALL, border=10)
         self.SetSizer(sizer)
@@ -764,25 +914,66 @@ class IGridFrame(wx.Frame):
         self.m_help = wx.Menu()
         self.m_search = wx.Menu()
         self.m_sort = wx.Menu()
+        self.m_refresh = wx.Menu()
         self.notebook = wx.Notebook(self, -1, style=0)
         self.statusbar = self.CreateStatusBar(1, wx.ST_SIZEGRIP)
+        self.statusbar.SetFieldsCount(2)
+        self.SetStatusWidths([-1, 200])
         self.parent = parent
         self._add_notebook(input)
         self.Bind(wx.EVT_CLOSE, self.OnCloseWindow)
-        self.makemenu(self.m_sort, "&Sort (asc)", "Sort ascending", self.sortasc)
-        self.makemenu(self.m_sort, "Sort (&desc)", "Sort descending", self.sortdesc)
-        self.makemenu(self.m_help, "&Help", "Help", self.display_help)
-        self.makemenu(self.m_help, "&Show help in browser", "Show help in browser", self.display_help_in_browser)
-        self.makemenu(self.m_search, "&Find text", "Find text", self.enter_searchtext)
-        self.makemenu(self.m_search, "Find by &expression", "Find by expression", self.enter_searchexpression)
-        self.makemenu(self.m_search, "Find &next", "Find next", self.find_next)
-        self.makemenu(self.m_search, "Find &previous", "Find previous", self.find_previous)
+        self.makemenu(self.m_sort, "&Sort (asc)\tV", "Sort ascending", self.sortasc)
+        self.makemenu(self.m_sort, "Sort (&desc)\tShift-V", "Sort descending", self.sortdesc)
+        self.makemenu(self.m_help, "&Help\tF1", "Help", self.display_help)
+#        self.makemenu(self.m_help, "&Show help in browser", "Show help in browser", self.display_help_in_browser)
+        self.makemenu(self.m_search, "&Find text\tCTRL-F", "Find text", self.enter_searchtext)
+        self.makemenu(self.m_search, "Find by &expression\tCTRL-Shift-F", "Find by expression", self.enter_searchexpression)
+        self.makemenu(self.m_search, "Find &next\tF3", "Find next", self.find_next)
+        self.makemenu(self.m_search, "Find &previous\tShift-F3", "Find previous", self.find_previous)
+        self.makemenu(self.m_refresh, "&Refresh once \tF5", "Refresh once", self.refresh_once)
+        self.makemenu(self.m_refresh, "Refresh every &1s", "Refresh every second", self.refresh_every_second)
+        self.makemenu(self.m_refresh, "Refresh every &X seconds", "Refresh every X seconds", self.refresh_interval)
+        self.makemenu(self.m_refresh, "&Stop all refresh timers", "Stop refresh timers", self.stop_refresh)
         self.menubar.Append(self.m_search, "&Find")
         self.menubar.Append(self.m_sort, "&Sort")
+        self.menubar.Append(self.m_refresh, "&Refresh")
         self.menubar.Append(self.m_help, "&Help")
         self.SetMenuBar(self.menubar)
         self.searchtext = ""
+        self.searchexpression = ""
         self.helpdialog = None
+        self.refresh_interval = 1000
+        self.SetStatusText("Refreshing inactive", 1)
+
+    def refresh_once(self, event):
+        table = self.notebook.GetPage(self.notebook.GetSelection()).grid.table
+        table.refresh_content(event)
+
+    def refresh_interval(self, event):
+        table = self.notebook.GetPage(self.notebook.GetSelection()).grid.table
+        dlg = wx.TextEntryDialog(self, "Enter refresh interval (milliseconds):", "Refresh timer:", defaultValue=str(self.refresh_interval))
+        if dlg.ShowModal() == wx.ID_OK:
+            try:
+                milliseconds = int(dlg.GetValue())
+            except ValueError, exc:
+                self.SetStatusText(str(exc))
+            else:
+                table.timer.Start(milliseconds=milliseconds, oneShot=False)
+                self.SetStatusText("Refresh timer set to %s ms" % milliseconds)
+                self.SetStatusText("Refresh interval: %s ms" % milliseconds, 1)
+                self.refresh_interval = milliseconds
+        dlg.Destroy()
+
+    def stop_refresh(self, event):
+        for i in xrange(self.notebook.GetPageCount()):
+            nb = self.notebook.GetPage(i)
+            nb.grid.table.timer.Stop()
+            self.SetStatusText("Refreshing inactive", 1)
+
+    def refresh_every_second(self, event):
+        table = self.notebook.GetPage(self.notebook.GetSelection()).grid.table
+        table.timer.Start(milliseconds=1000, oneShot=False)
+        self.SetStatusText("Refresh interval: 1000 ms", 1)
 
     def sortasc(self, event):
         grid = self.notebook.GetPage(self.notebook.GetSelection()).grid
@@ -796,31 +987,39 @@ class IGridFrame(wx.Frame):
         """
         find previous occurrences
         """
+        grid = self.notebook.GetPage(self.notebook.GetSelection()).grid
         if self.searchtext:
-            grid = self.notebook.GetPage(self.notebook.GetSelection()).grid
             row = grid.GetGridCursorRow()
             col = grid.GetGridCursorCol()
+            self.SetStatusText('Search mode: text; looking for %s' % self.searchtext)
             if col-1 >= 0:
                 grid.search(self.searchtext, row, col-1, False)
             else:
                 grid.search(self.searchtext, row-1, grid.table.GetNumberCols()-1, False)
+        elif self.searchexpression:
+            self.SetStatusText("Search mode: expression; looking for %s" % repr(self.searchexpression)[2:-1])
+            grid.searchexpression(searchexp=self.searchexpression, search_forward=False)
         else:
-            self.enter_searchtext(event)
+            self.SetStatusText("No search yet: please enter search-text or -expression")
 
     def find_next(self, event):
         """
         find the next occurrence
         """
-        if self.searchtext:
-            grid = self.notebook.GetPage(self.notebook.GetSelection()).grid
+        grid = self.notebook.GetPage(self.notebook.GetSelection()).grid
+        if self.searchtext != "":
             row = grid.GetGridCursorRow()
             col = grid.GetGridCursorCol()
+            self.SetStatusText('Search mode: text; looking for %s' % self.searchtext)
             if col+1 < grid.table.GetNumberCols():
                 grid.search(self.searchtext, row, col+1)
             else:
                 grid.search(self.searchtext, row+1, 0)
+        elif self.searchexpression != "":
+            self.SetStatusText('Search mode: expression; looking for %s' % repr(self.searchexpression)[2:-1])
+            grid.searchexpression(searchexp=self.searchexpression)
         else:
-            self.enter_searchtext(event)
+            self.SetStatusText("No search yet: please enter search-text or -expression")
 
     def display_help(self, event):
         """
@@ -842,7 +1041,13 @@ class IGridFrame(wx.Frame):
         webbrowser.open(filename, new=1, autoraise=True)
 
     def enter_searchexpression(self, event):
-        pass
+        dlg = wx.TextEntryDialog(self, "Find:", "Find matching expression:", defaultValue=self.searchexpression)
+        if dlg.ShowModal() == wx.ID_OK:
+            self.searchexpression = dlg.GetValue()
+            self.searchtext = ""
+            self.SetStatusText('Search mode: expression; looking for %s' % repr(self.searchexpression)[2:-1])
+            self.notebook.GetPage(self.notebook.GetSelection()).grid.searchexpression(self.searchexpression)
+        dlg.Destroy()
 
     def makemenu(self, menu, label, help, cmd):
         menu.Append(self.menucounter, label, help)
@@ -864,10 +1069,12 @@ class IGridFrame(wx.Frame):
 
     def enter_searchtext(self, event):
         # Displays a dialog asking for the searchtext
-        dlg = wx.TextEntryDialog(self, "Find:", "Find in list")
+        dlg = wx.TextEntryDialog(self, "Find:", "Find in list", defaultValue=self.searchtext)
         if dlg.ShowModal() == wx.ID_OK:
             self.searchtext = dlg.GetValue()
-            self.notebook.GetPage(self.notebook.GetSelection()).grid.search(self.searchtext, 0, 0)
+            self.searchexpression = ""
+            self.SetStatusText('Search mode: text; looking for %s' % self.searchtext)
+            self.notebook.GetPage(self.notebook.GetSelection()).grid.search(self.searchtext)
         dlg.Destroy()
 
 
