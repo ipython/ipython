@@ -60,7 +60,7 @@ You can implement other color schemes easily, the syntax is fairly
 self-explanatory. Please send back new schemes you develop to the author for
 possible inclusion in future releases.
 
-$Id: ultraTB.py 2156 2007-03-19 02:32:19Z fperez $"""
+$Id: ultraTB.py 2419 2007-06-01 07:31:42Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001 Nathaniel Gray <n8gray@caltech.edu>
@@ -342,9 +342,9 @@ class ListTB(TBTools):
         
         Colors = self.Colors
         list = []
-        if type(etype) == types.ClassType:
+        try:
             stype = Colors.excName + etype.__name__ + Colors.Normal
-        else:
+        except AttributeError:
             stype = etype  # String exceptions don't get special coloring
         if value is None:
             list.append( str(stype) + '\n')
@@ -419,13 +419,17 @@ class VerboseTB(TBTools):
         """Return a nice text document describing the traceback."""
 
         # some locals
+        try:
+            etype = etype.__name__
+        except AttributeError:
+            pass
         Colors        = self.Colors   # just a shorthand + quicker name lookup
         ColorsNormal  = Colors.Normal  # used a lot
         col_scheme    = self.color_scheme_table.active_scheme_name
         indent        = ' '*INDENT_SIZE
-        exc           = '%s%s%s' % (Colors.excName, str(etype), ColorsNormal)
         em_normal     = '%s\n%s%s' % (Colors.valEm, indent,ColorsNormal)
         undefined     = '%sundefined%s' % (Colors.em, ColorsNormal)
+        exc = '%s%s%s' % (Colors.excName,etype,ColorsNormal)
 
         # some internal-use functions
         def text_repr(value):
@@ -459,8 +463,10 @@ class VerboseTB(TBTools):
         def nullrepr(value, repr=text_repr): return ''
 
         # meat of the code begins
-        if type(etype) is types.ClassType:
+        try:
             etype = etype.__name__
+        except AttributeError:
+            pass
 
         if self.long_header:
             # Header with the exception type, python version, and date

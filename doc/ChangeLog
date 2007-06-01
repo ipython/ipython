@@ -1,3 +1,9 @@
+2007-06-01  Fernando Perez  <Fernando.Perez@colorado.edu>
+
+	* IPython/ultraTB.py (VerboseTB.text): update printing of
+	exception types for Python 2.5 (now all exceptions in the stdlib
+	are new-style classes).
+
 2007-05-31  Walter Doerwald  <walter@livinglogic.de>
 
 	* IPython/Extensions/igrid.py: Add new commands refresh and
