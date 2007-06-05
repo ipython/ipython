@@ -83,7 +83,7 @@ three extensions points (all of them optional):
 """
 
 import sys, os, os.path, stat, glob, new, csv, datetime, types
-import itertools, mimetypes
+import itertools, mimetypes, StringIO
 
 try: # Python 2.3 compatibility
     import collections
@@ -136,7 +136,7 @@ import astyle
 __all__ = [
     "ifile", "ils", "iglob", "iwalk", "ipwdentry", "ipwd", "igrpentry", "igrp",
     "icsv", "ix", "ichain", "isort", "ifilter", "ieval", "ienum",
-    "ienv", "ihist", "idump", "iless"
+    "ienv", "ihist", "icap", "idump", "iless"
 ]
 
 
@@ -1964,6 +1964,81 @@ class iless(Display):
                 pager.close()
         except Exception, exc:
             print "%s: %s" % (exc.__class__.__name__, str(exc))
+
+
+class _RedirectIO(object):
+    def __init__(self,*args,**kwargs):
+        """
+        Map the system output streams to self.
+        """
+        self.stream = StringIO.StringIO()
+        self.stdout = sys.stdout
+        sys.stdout = self
+        self.stderr = sys.stderr
+        sys.stderr = self
+
+    def write(self, text):
+        """
+        Write both to screen and to self.
+        """
+        self.stream.write(text)
+        self.stdout.write(text)
+        if "\n" in text:
+            self.stdout.flush()
+
+    def writelines(self, lines):
+        """
+        Write lines both to screen and to self.
+        """
+        self.stream.writelines(lines)
+        self.stdout.writelines(lines)
+        self.stdout.flush()
+
+    def restore(self):
+        """
+        Restore the default system streams.
+        """
+        self.stdout.flush()
+        self.stderr.flush()
+        sys.stdout = self.stdout
+        sys.stderr = self.stderr
+
+
+class icap(Table):
+    """
+    Execute a python string and capture any output to stderr/stdout.
+
+    Examples:
+
+        >>> import time
+        >>> icap("for i in range(10): print i, time.sleep(0.1)")
+
+    """
+    def __init__(self, expr, globals=None):
+        self.expr = expr
+        self.globals = globals
+        log = _RedirectIO()
+        try:
+            exec(expr, getglobals(globals))
+        finally:
+            log.restore()
+        self.stream = log.stream
+
+    def __iter__(self):
+        self.stream.seek(0)
+        for line in self.stream:
+            yield line.rstrip("\r\n")
+
+    def __xrepr__(self, mode="default"):
+        if mode == "header" or mode == "footer":
+            yield (astyle.style_default,
+                   "%s(%r)" % (self.__class__.__name__, self.expr))
+        else:
+            yield (astyle.style_default, repr(self))
+
+    def __repr__(self):
+        return "%s.%s(%r)" % \
+            (self.__class__.__module__, self.__class__.__name__, self.expr)
 
 
 def xformat(value, mode, maxlength):
