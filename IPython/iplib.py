@@ -6,7 +6,7 @@ Requires Python 2.3 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 2423 2007-06-11 16:47:22Z vivainio $
+$Id: iplib.py 2427 2007-06-11 17:17:58Z vivainio $
 """
 
 #*****************************************************************************
@@ -351,7 +351,7 @@ class InteractiveShell(object,Magic):
         # list of visited directories
         try:
             self.dir_hist = [os.getcwd()]
-        except IOError, e:
+        except OSError:
             self.dir_hist = []
 
         # dict of output history
