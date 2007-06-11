@@ -6,7 +6,7 @@ Requires Python 2.3 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 2422 2007-06-11 15:16:45Z vivainio $
+$Id: iplib.py 2423 2007-06-11 16:47:22Z vivainio $
 """
 
 #*****************************************************************************
@@ -1202,7 +1202,6 @@ want to merge them back into the new files.""" % locals()
             except OSError:
                 pass
 
-        # save the "persistent data" catch-all dictionary
         self.hooks.shutdown_hook()
         
     def savehist(self):

@@ -37,12 +37,16 @@ def refresh_variables(ip):
             #print "restored",justkey,"=",obj #dbg
             ip.user_ns[justkey] = obj
     
-    
 
+def restore_dhist(ip):
+    db = ip.db
+    ip.user_ns['_dh'] = db.get('dhist',[])
+    
 def restore_data(self):
     ip = self.getapi()
     refresh_variables(ip)
     restore_aliases(self)
+    restore_dhist(self)
     raise IPython.ipapi.TryNext
     
 ip.set_hook('late_startup_hook', restore_data)
