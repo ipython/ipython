@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Magic functions for InteractiveShell.
 
-$Id: Magic.py 2423 2007-06-11 16:47:22Z vivainio $"""
+$Id: Magic.py 2425 2007-06-11 17:07:21Z vivainio $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001 Janko Hauser <jhauser@zscout.de> and
@@ -65,6 +65,20 @@ def on_off(tag):
     return ['OFF','ON'][tag]
 
 class Bunch: pass
+
+def compress_dhist(dh):
+    head, tail = dh[:-10], dh[-10:]
+
+    newhead = []
+    done = set()
+    for h in head:
+        if h in done:
+            continue
+        newhead.append(h)
+        done.add(h)
+
+    return newhead + tail        
+        
 
 #***************************************************************************
 # Main class implementing Magic functionality
@@ -2463,7 +2477,11 @@ Defaulting color scheme to 'NoColor'"""
             except OSError:
                 print sys.exc_info()[1]
             else:
-                self.shell.user_ns['_dh'].append(os.getcwd())
+                cwd = os.getcwd()
+                dhist = self.shell.user_ns['_dh']
+                dhist.append(cwd)
+                self.db['dhist'] = compress_dhist(dhist[-100:])
+                
         else:
             os.chdir(self.shell.home_dir)
             if self.shell.rc.term_title:
