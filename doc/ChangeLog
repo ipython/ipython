@@ -1,3 +1,12 @@
+2007-06-11  Ville Vainio  <vivainio@gmail.com>
+
+	* pspersistence.py, Magic.py, iplib.py: directory history now saved 
+	to db
+    
+	* iplib.py: "ipython -c <cmd>" now passes the command through prefilter.
+	Also, it exits IPython immediately after evaluating the command (just like 
+	std python)
+
 2007-06-05  Walter Doerwald  <walter@livinglogic.de>
 
 	* IPython/Extensions/ipipe.py: Added a new table icap, which executes a
