@@ -6,7 +6,7 @@ Requires Python 2.3 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 2404 2007-05-28 12:57:35Z vivainio $
+$Id: iplib.py 2422 2007-06-11 15:16:45Z vivainio $
 """
 
 #*****************************************************************************
@@ -1503,7 +1503,8 @@ want to merge them back into the new files.""" % locals()
         This emulates Python's -c option."""
 
         #sys.argv = ['-c']
-        self.push(self.rc.c)
+        self.push(self.prefilter(self.rc.c, False))
+        self.exit_now = True
 
     def embed_mainloop(self,header='',local_ns=None,global_ns=None,stack_depth=0):
         """Embeds IPython into a running python program.
