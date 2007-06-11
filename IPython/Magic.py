@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Magic functions for InteractiveShell.
 
-$Id: Magic.py 2425 2007-06-11 17:07:21Z vivainio $"""
+$Id: Magic.py 2426 2007-06-11 17:12:29Z vivainio $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001 Janko Hauser <jhauser@zscout.de> and
@@ -35,6 +35,7 @@ import textwrap
 from cStringIO import StringIO
 from getopt import getopt,GetoptError
 from pprint import pprint, pformat
+from sets import Set
 
 # cProfile was added in Python2.5
 try:
@@ -70,7 +71,7 @@ def compress_dhist(dh):
     head, tail = dh[:-10], dh[-10:]
 
     newhead = []
-    done = set()
+    done = Set()
     for h in head:
         if h in done:
             continue
@@ -2480,7 +2481,7 @@ Defaulting color scheme to 'NoColor'"""
                 cwd = os.getcwd()
                 dhist = self.shell.user_ns['_dh']
                 dhist.append(cwd)
-                self.db['dhist'] = compress_dhist(dhist[-100:])
+                self.db['dhist'] = compress_dhist(dhist)[-100:]
                 
         else:
             os.chdir(self.shell.home_dir)
@@ -2489,7 +2490,7 @@ Defaulting color scheme to 'NoColor'"""
             cwd = os.getcwd()
             dhist = self.shell.user_ns['_dh']
             dhist.append(cwd)
-            self.db['dhist'] = dhist[-50:]
+            self.db['dhist'] = compress_dhist(dhist)[-100:]
         if not 'q' in opts:
             print self.shell.user_ns['_dh'][-1]
 
