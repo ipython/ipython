@@ -245,13 +245,16 @@ class IPApi:
         else:
             self.IP.runlines('\n'.join(lines))
 
-    def to_user_ns(self,vars):
+    def to_user_ns(self,vars, interactive = True):
         """Inject a group of variables into the IPython user namespace.
 
         Inputs:
 
          - vars: string with variable names separated by whitespace
 
+         - interactive: if True (default), the var will be listed with
+        %whos et. al.
+         
         This utility routine is meant to ease interactive debugging work,
         where you want to easily propagate some internal variable in your code
         up to the interactive namespace for further exploration.
@@ -296,10 +299,15 @@ class IPApi:
         cf = sys._getframe(1)
         
         user_ns = self.user_ns
-        
+        config_ns = self.IP.user_config_ns
         for name in vars.split():
             try:
-                user_ns[name] = eval(name,cf.f_globals,cf.f_locals)
+                val = eval(name,cf.f_globals,cf.f_locals)
+                user_ns[name] = val
+                if not interactive:
+                    config_ns[name] = val
+                else:
+                    config_ns.pop(name,None)
             except:
                 print ('could not get var. %s from %s' %
                 (name,cf.f_code.co_name))
