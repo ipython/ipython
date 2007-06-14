@@ -6,7 +6,7 @@ Requires Python 2.3 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 2427 2007-06-11 17:17:58Z vivainio $
+$Id: iplib.py 2430 2007-06-14 15:59:06Z vivainio $
 """
 
 #*****************************************************************************
@@ -2212,7 +2212,16 @@ want to merge them back into the new files.""" % locals()
                     newcmd = '%s(%s)' % (iFun.rstrip(), theRest)
 
         if auto_rewrite:
-            print >>Term.cout, self.outputcache.prompt1.auto_rewrite() + newcmd
+            rw = self.outputcache.prompt1.auto_rewrite() + newcmd
+            
+            try:
+                # plain ascii works better w/ pyreadline, on some machines, so
+                # we use it and only print uncolored rewrite if we have unicode
+                rw = str(rw)
+                print >>Term.cout, rw
+            except UnicodeEncodeError:
+                print "-------------->" + newcmd
+            
         # log what is now valid Python, not the actual user input (without the
         # final newline)
         self.log(line,newcmd,continue_prompt)

@@ -1,3 +1,10 @@
+2007-06-14  Ville Vainio  <vivainio@gmail.com>
+
+	* iplib.py (handle_auto): Try to use ascii for printing "--->"
+        autocall rewrite indication, becausesometimes unicode fails to print
+        properly (and you get ' - - - '). Use plain uncoloured ---> for
+        unicode.
+
 2007-06-13  Ville Vainio  <vivainio@gmail.com>
 
 	* ipapi.py: _ip.to_user_ns(vars, interactive = True).
