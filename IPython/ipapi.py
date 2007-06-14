@@ -378,6 +378,14 @@ class IPApi:
         """
 
         self.IP.rl_next_input = s
+
+    def load(self, mod):
+        if mod in sys.modules:
+            return
+        __import__(mod)
+        m = sys.modules[mod]
+        if hasattr(m,'init_ipython'):
+            m.init_ipython(self)
         
 
 def launch_new_instance(user_ns = None):

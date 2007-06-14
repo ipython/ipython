@@ -2,9 +2,6 @@
 
 """ History related magics and functionality """
 
-import IPython.ipapi
-ip = IPython.ipapi.get(allow_dummy = True)
-
 import fnmatch
 
 def magic_history(self, parameter_s = ''):
@@ -81,13 +78,13 @@ def magic_history(self, parameter_s = ''):
             print '%s:%s' % (str(in_num).ljust(width),line_sep[multiline]),
         print inline,
 
-ip.expose_magic("history",magic_history)
+
 
 def magic_hist(self, parameter_s=''):
     """Alternate name for %history."""
     return self.magic_history(parameter_s)
 
-ip.expose_magic("hist",magic_hist)        
+
 
 def rep_f(self, arg):
     r""" Repeat a command, or get command to input line for editing
@@ -116,7 +113,7 @@ def rep_f(self, arg):
     
     
     opts,args = self.parse_options(arg,'',mode='list')
-    
+    ip = self.api    
     if not args:
         ip.set_next_input(str(ip.user_ns["_"]))
         return
@@ -134,7 +131,6 @@ def rep_f(self, arg):
     print "lines",lines
     ip.runlines(lines)
 
-ip.expose_magic("rep",rep_f)        
 
 _sentinel = object()
 
@@ -168,5 +164,10 @@ def test_shist():
     s.add('hello')
     s.add('world')
     print "all",s.all()
+
+def init_ipython(ip):
+    ip.expose_magic("rep",rep_f)        
+    ip.expose_magic("hist",magic_hist)            
+    ip.expose_magic("history",magic_history)
     
 # test_shist()
