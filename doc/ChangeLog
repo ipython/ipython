@@ -4,6 +4,11 @@
         autocall rewrite indication, becausesometimes unicode fails to print
         properly (and you get ' - - - '). Use plain uncoloured ---> for
         unicode.
+        
+        * shadow history. Usable through "%hist -g <pat>" and "%rep 0123".
+        
+        . pickleshare 'hash' commands (hget, hset, hcompress,
+        hdict) for efficient shadow history storage.
 
 2007-06-13  Ville Vainio  <vivainio@gmail.com>
 

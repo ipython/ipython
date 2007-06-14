@@ -31,9 +31,12 @@ def magic_history(self, parameter_s = ''):
       instead of the user-entered version: '%cd /' will be seen as
       '_ip.magic("%cd /")' instead of '%cd /'.
       
-      -g: treat the arg as a pattern to grep for in (full) history
+      -g: treat the arg as a pattern to grep for in (full) history.
+      This includes the "shadow history" (almost all commands ever written).
+      Use '%hist -g *' to show full shadow history (may be very long).
+      In shadow history, every index nuwber starts with 0.
       
-      -s: show "shadow" history
+
     """
 
     ip = self.api
