@@ -5,7 +5,7 @@ General purpose utilities.
 This is a grab-bag of stuff I find useful in most programs I write. Some of
 these things are also convenient when working at the command line.
 
-$Id: genutils.py 2408 2007-05-28 16:29:50Z vivainio $"""
+$Id: genutils.py 2439 2007-06-14 18:41:48Z vivainio $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2006 Fernando Perez. <fperez@colorado.edu>
@@ -35,7 +35,7 @@ import warnings
 # Other IPython utilities
 import IPython
 from IPython.Itpl import Itpl,itpl,printpl
-from IPython import DPyGetOpt
+from IPython import DPyGetOpt, platutils
 from IPython.generics import result_display
 from path import path
 if os.name == "nt":
@@ -324,8 +324,11 @@ def shell(cmd,verbose=0,debug=0,header=''):
     if verbose or debug: print header+cmd
     # flush stdout so we don't mangle python's buffering
     sys.stdout.flush()
+    
     if not debug:
+        platutils.set_term_title("IPy:" + cmd)
         os.system(cmd)
+        platutils.set_term_title("IPy:" + os.path.basename(os.getcwd()))
 
 # override shell() for win32 to deal with network shares
 if os.name in ('nt','dos'):

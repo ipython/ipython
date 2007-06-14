@@ -170,4 +170,4 @@ def init_ipython(ip):
     ip.expose_magic("hist",magic_hist)            
     ip.expose_magic("history",magic_history)
     
-# test_shist()
+#test_shist()
