@@ -21,4 +21,4 @@ import clearcmd # %clear
 
 import ipy_stock_completers
 
-import IPython.Extensions.maghistory
+import IPython.history
