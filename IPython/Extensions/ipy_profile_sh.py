@@ -54,7 +54,7 @@ def main():
     
     # make 'd' an alias for ls -F
     
-    ip.magic('alias d ls -F --color=auto')
+    # ip.magic('alias d ls -F --color=auto')
     
     ip.IP.default_option('cd','-q')
     
@@ -95,8 +95,7 @@ def main():
         ip.IP.alias_table[mapper(noext)] = (0,cmd)
 
     # mglob combines 'find', recursion, exclusion... '%mglob?' to learn more
-    import IPython.external.mglob
-    IPython.external.mglob.ipython_install()
+    ip.load("IPython.external.mglob")    
     
     extend_shell_behavior(ip)
 

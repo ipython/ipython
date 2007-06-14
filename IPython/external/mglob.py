@@ -190,10 +190,8 @@ def mglob_f(self, arg):
     print "Please specify pattern!"
     print globsyntax
 
-def ipython_install():
+def init_ipython(ip):
     """ register %mglob for IPython """
-    import IPython.ipapi
-    ip = IPython.ipapi.get()
     mglob_f.__doc__ = globsyntax
     ip.expose_magic("mglob",mglob_f)  
     
