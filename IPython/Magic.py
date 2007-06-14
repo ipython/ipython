@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Magic functions for InteractiveShell.
 
-$Id: Magic.py 2426 2007-06-11 17:12:29Z vivainio $"""
+$Id: Magic.py 2437 2007-06-14 18:24:38Z vivainio $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001 Janko Hauser <jhauser@zscout.de> and
@@ -2384,7 +2384,10 @@ Defaulting color scheme to 'NoColor'"""
             self.shell.alias_table_validate()
             # Call again init_auto_alias() so we get 'rm -i' and other
             # modified aliases since %rehashx will probably clobber them
-            self.shell.init_auto_alias()
+            
+            # no, we don't want them. if %rehashx clobbers them, good,
+            # we'll probably get better versions
+            # self.shell.init_auto_alias()
             db = ip.db
             db['syscmdlist'] = syscmdlist
         finally:
