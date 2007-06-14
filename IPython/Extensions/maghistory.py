@@ -3,7 +3,7 @@
 """ History related magics and functionality """
 
 import IPython.ipapi
-ip = IPython.ipapi.get()
+ip = IPython.ipapi.get(allow_dummy = True)
 
 import fnmatch
 
@@ -135,5 +135,38 @@ def rep_f(self, arg):
     ip.runlines(lines)
 
 ip.expose_magic("rep",rep_f)        
+
+_sentinel = object()
+
+class ShadowHist:
+    def __init__(self,db):
+        # cmd => idx mapping
+        self.curidx = 0
+        self.db = db
     
+    def inc_idx(self):
+        idx = self.db.hget('shadowhist', '__histidx', 0)
+        self.db.hset('shadowhist', '__histidx', idx + 1)
+        return idx
+        
+    def add(self, ent):
+        old = self.db.hget('shadowhist', ent, _sentinel)
+        if old is not _sentinel:
+            return
+        newidx = self.inc_idx()
+        print "new",newidx
+        self.db.hset('shadowhist',ent, newidx)
     
+    def all(self):
+        d = self.db.hdict('shadowhist')
+        items = [(i,s) for (s,i) in d.items()]
+        items.sort()
+        return items
+
+def test_shist():
+    s = ShadowHist(ip.db)
+    s.add('hello')
+    s.add('world')
+    print "all",s.all()
+    
+# test_shist()
