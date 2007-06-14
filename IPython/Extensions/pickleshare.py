@@ -124,9 +124,10 @@ class PickleShareDB(UserDict.DictMixin):
     def hdict(self, hashroot):
         """ Get all data contained in hashed category 'hashroot' as dict """
         hfiles = self.keys(hashroot + "/*")
+        hfiles.sort()
         last = len(hfiles) and hfiles[-1] or ''
         if last.endswith('xx'):
-            print "using xx"
+            # print "using xx"
             hfiles = [last] + hfiles[:-1]
             
         all = {}
