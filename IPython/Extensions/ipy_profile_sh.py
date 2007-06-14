@@ -94,6 +94,9 @@ def main():
         noext, ext = os.path.splitext(cmd)
         ip.IP.alias_table[mapper(noext)] = (0,cmd)
 
+    if 'ls' in syscmds:
+        # use the colors of cygwin ls (recommended)
+        ip.magic('alias d ls -F --color=auto')
     # mglob combines 'find', recursion, exclusion... '%mglob?' to learn more
     ip.load("IPython.external.mglob")    
     
