@@ -40,6 +40,8 @@ import UserDict
 import warnings
 import glob
 
+from sets import Set as set
+
 def gethashfile(key):
     return ("%02x" % abs(hash(key) % 256))[-2:]
 
@@ -52,6 +54,7 @@ class PickleShareDB(UserDict.DictMixin):
             self.root.makedirs()
         # cache has { 'key' : (obj, orig_mod_time) }
         self.cache = {}
+        
 
     def __getitem__(self,key):
         """ db['key'] reading """

@@ -33,13 +33,15 @@ def magic_history(self, parameter_s = ''):
       
       -g: treat the arg as a pattern to grep for in (full) history
       
+      -s: show "shadow" history
     """
 
+    ip = self.api
     shell = self.shell
     if not shell.outputcache.do_full_cache:
         print 'This feature is only available if numbered prompts are in use.'
         return
-    opts,args = self.parse_options(parameter_s,'gnt',mode='list')
+    opts,args = self.parse_options(parameter_s,'gnts',mode='list')
 
     if not opts.has_key('t'):
         input_hist = shell.input_hist_raw
@@ -68,6 +70,20 @@ def magic_history(self, parameter_s = ''):
     width = len(str(final))
     line_sep = ['','\n']
     print_nums = not opts.has_key('n')
+    
+    found = False
+    if pattern is not None:
+        sh = ip.IP.shadowhist.all()
+        for idx, s in sh:
+            if fnmatch.fnmatch(s, pattern):
+                print "0%d: %s" %(idx, s)
+                found = True
+    
+    if found:
+        print "==="
+        print "^shadow history ends, fetch by %rep <number> (must start with 0)"
+        print "=== start of normal history ==="
+        
     for in_num in range(init,final):        
         inline = input_hist[in_num]
         if pattern is not None and not fnmatch.fnmatch(inline, pattern):
@@ -119,6 +135,13 @@ def rep_f(self, arg):
         return
 
     if len(args) == 1:
+        arg = args[0]
+        if len(arg) > 1 and arg.startswith('0'):
+            # get from shadow hist
+            num = int(arg[1:])
+            line = self.shadowhist.get(num)
+            ip.set_next_input(str(line))
+            return
         try:
             num = int(args[0])
             ip.set_next_input(str(ip.IP.input_hist_raw[num]).rstrip())
@@ -150,7 +173,7 @@ class ShadowHist:
         if old is not _sentinel:
             return
         newidx = self.inc_idx()
-        print "new",newidx
+        #print "new",newidx # dbg
         self.db.hset('shadowhist',ent, newidx)
     
     def all(self):
@@ -159,11 +182,25 @@ class ShadowHist:
         items.sort()
         return items
 
+    def get(self, idx):
+        all = self.all()
+        
+        for k, v in all:
+            print k,v
+            if k == idx:
+                return v
+
 def test_shist():
-    s = ShadowHist(ip.db)
+    from IPython.Extensions import pickleshare
+    db = pickleshare.PickleShareDB('~/shist')
+    s = ShadowHist(db)
     s.add('hello')
     s.add('world')
+    s.add('hello')
+    s.add('hello')
+    s.add('karhu')
     print "all",s.all()
+    print s.get(2)
 
 def init_ipython(ip):
     ip.expose_magic("rep",rep_f)        

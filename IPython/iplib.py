@@ -6,7 +6,7 @@ Requires Python 2.3 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 2430 2007-06-14 15:59:06Z vivainio $
+$Id: iplib.py 2440 2007-06-14 19:31:36Z vivainio $
 """
 
 #*****************************************************************************
@@ -60,7 +60,7 @@ from sets import Set
 from pprint import pprint, pformat
 
 # IPython's own modules
-import IPython
+#import IPython
 from IPython import Debugger,OInspect,PyColorize,ultraTB
 from IPython.ColorANSI import ColorScheme,ColorSchemeTable  # too long names
 from IPython.FakeModule import FakeModule
@@ -74,7 +74,7 @@ from IPython.usage import cmd_line_usage,interactive_usage
 from IPython.genutils import *
 from IPython.strdispatch import StrDispatch
 import IPython.ipapi
-
+import IPython.history
 import IPython.prefilter as prefilter
 
 # Globals
@@ -620,6 +620,7 @@ class InteractiveShell(object,Magic):
             print r"only has ASCII characters, e.g. c:\home"
             print "Now it is",rc.ipythondir
             sys.exit()
+        self.shadowhist = IPython.history.ShadowHist(self.db)            
             
     
     def post_config_initialization(self):
@@ -2014,8 +2015,9 @@ want to merge them back into the new files.""" % locals()
                     except AttributeError:
                         pass # re{move,place}_history_item are new in 2.4.                
             else:
-                self.input_hist_raw.append('%s\n' % line)
+                self.input_hist_raw.append('%s\n' % line)                
 
+        self.shadowhist.add(line)
         try:
             lineout = self.prefilter(line,continue_prompt)
         except:
