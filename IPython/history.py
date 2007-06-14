@@ -33,7 +33,7 @@ def magic_history(self, parameter_s = ''):
       
       -g: treat the arg as a pattern to grep for in (full) history.
       This includes the "shadow history" (almost all commands ever written).
-      Use '%hist -g *' to show full shadow history (may be very long).
+      Use '%hist -g' to show full shadow history (may be very long).
       In shadow history, every index nuwber starts with 0.
       
 
@@ -56,7 +56,10 @@ def magic_history(self, parameter_s = ''):
     if opts.has_key('g'):
         init = 1
         final = len(input_hist)
-        head, pattern = parameter_s.split(None,1)
+        parts = parameter_s.split(None,1)
+        if len(parts) == 1:
+            parts += '*'
+        head, pattern = parts
         pattern = "*" + pattern + "*"
     elif len(args) == 0:
         final = len(input_hist)
