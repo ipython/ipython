@@ -183,6 +183,7 @@ class IPApi:
         # The ipython instance provided
         self.IP = ip
 
+        self.extensions = {}
         global _recent
         _recent = self
 
@@ -380,12 +381,18 @@ class IPApi:
         self.IP.rl_next_input = s
 
     def load(self, mod):
-        if mod in sys.modules:
-            return
+        if mod in self.extensions:
+            # just to make sure we don't init it twice
+            # note that if you 'load' a module that has already been
+            # imported, init_ipython gets run anyway
+            
+            return self.extensions[mod]
         __import__(mod)
         m = sys.modules[mod]
         if hasattr(m,'init_ipython'):
             m.init_ipython(self)
+        self.extensions[mod] = m
+        return m
         
 
 def launch_new_instance(user_ns = None):
