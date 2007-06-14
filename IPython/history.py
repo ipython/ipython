@@ -186,7 +186,7 @@ class ShadowHist:
         all = self.all()
         
         for k, v in all:
-            print k,v
+            #print k,v
             if k == idx:
                 return v
 
