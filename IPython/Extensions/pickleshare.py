@@ -40,6 +40,9 @@ import UserDict
 import warnings
 import glob
 
+def gethashfile(key):
+    return ("%02x" % abs(hash(key) % 256))[-2:]
+
 class PickleShareDB(UserDict.DictMixin):
     """ The main 'connection' object for PickleShare database """
     def __init__(self,root):
@@ -81,6 +84,35 @@ class PickleShareDB(UserDict.DictMixin):
         except OSError,e:
             if e.errno != 2:
                 raise
+    
+    def hset(self, hashroot, key, value):
+        hroot = self.root / hashroot
+        if not hroot.isdir():
+            hroot.makedirs()
+        hfile = hroot / gethashfile(key)
+        d = self.get(hfile, {})
+        d.update( {key : value})
+        self[hfile] = d                
+
+    def hget(self, hashroot, key, default = None):
+        hroot = self.root / hashroot
+        hfile = hroot / gethashfile(key)
+        d = self.get(hfile, None)
+        #print "got dict",d,"from",hfile
+        if d is None:
+            return default
+        return d.get(key, default)
+
+    def hdict(self, hashroot):
+        buckets = self.keys(hashroot + "/*")
+        hfiles = [f for f in buckets]
+        all = {}
+        for f in hfiles:
+            # print "using",f
+            all.update(self[f])
+            self.uncache(f)
+        
+        return all
     
     def __delitem__(self,key):
         """ del db["key"] """
@@ -192,6 +224,11 @@ def test():
     db['hello'] = 15
     db['aku ankka'] = [1,2,313]
     db['paths/nest/ok/keyname'] = [1,(5,46)]
+    db.hset('hash', 'aku', 12)
+    db.hset('hash', 'ankka', 313)
+    print "12 =",db.hget('hash','aku')
+    print "313 =",db.hget('hash','ankka')
+    print "all hashed",db.hdict('hash')
     print db.keys()
     print db.keys('paths/nest/ok/k*')
     print dict(db) # snapsot of whole db
@@ -207,7 +244,7 @@ def stress():
     db = PickleShareDB('~/fsdbtest')
     import time,sys
     for i in range(1000):
-        for j in range(300):
+        for j in range(1000):
             if i % 15 == 0 and i < 200:
                 if str(j) in db:
                     del db[str(j)]
@@ -217,6 +254,8 @@ def stress():
                 time.sleep(0.02)
             
             db[str(j)] = db.get(str(j), []) + [(i,j,"proc %d" % os.getpid())]
+            db.hset('hash',j, db.hget('hash',j,15) + 1 )
+            
         print i,
         sys.stdout.flush()
         if i % 10 == 0:
