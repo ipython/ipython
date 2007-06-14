@@ -6,7 +6,7 @@ Requires Python 2.3 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 2440 2007-06-14 19:31:36Z vivainio $
+$Id: iplib.py 2442 2007-06-14 21:20:10Z vivainio $
 """
 
 #*****************************************************************************
@@ -2016,8 +2016,10 @@ want to merge them back into the new files.""" % locals()
                         pass # re{move,place}_history_item are new in 2.4.                
             else:
                 self.input_hist_raw.append('%s\n' % line)                
-
-        self.shadowhist.add(line)
+        
+            if line.lstrip() == line:
+                self.shadowhist.add(line.strip())
+            
         try:
             lineout = self.prefilter(line,continue_prompt)
         except:

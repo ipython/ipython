@@ -164,8 +164,8 @@ class ShadowHist:
         self.db = db
     
     def inc_idx(self):
-        idx = self.db.hget('shadowhist', '__histidx', 0)
-        self.db.hset('shadowhist', '__histidx', idx + 1)
+        idx = self.db.get('shadowhist_idx', 1)
+        self.db['shadowhist_idx'] = idx + 1
         return idx
         
     def add(self, ent):

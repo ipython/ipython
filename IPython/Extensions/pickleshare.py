@@ -45,6 +45,8 @@ from sets import Set as set
 def gethashfile(key):
     return ("%02x" % abs(hash(key) % 256))[-2:]
 
+_sentinel = object()
+
 class PickleShareDB(UserDict.DictMixin):
     """ The main 'connection' object for PickleShare database """
     def __init__(self,root):
@@ -89,6 +91,7 @@ class PickleShareDB(UserDict.DictMixin):
                 raise
     
     def hset(self, hashroot, key, value):
+        """ hashed set """
         hroot = self.root / hashroot
         if not hroot.isdir():
             hroot.makedirs()
@@ -97,19 +100,37 @@ class PickleShareDB(UserDict.DictMixin):
         d.update( {key : value})
         self[hfile] = d                
 
-    def hget(self, hashroot, key, default = None):
+    
+    
+    def hget(self, hashroot, key, default = _sentinel, fast_only = True):
+        """ hashed get """
         hroot = self.root / hashroot
         hfile = hroot / gethashfile(key)
-        d = self.get(hfile, None)
+        
+        d = self.get(hfile, _sentinel )
         #print "got dict",d,"from",hfile
-        if d is None:
-            return default
+        if d is _sentinel:
+            if fast_only:
+                if default is _sentinel:
+                    raise KeyError(key)
+                    
+                return default
+            
+            # slow mode ok, works even after hcompress()
+            d = self.hdict(hashroot)
+        
         return d.get(key, default)
 
     def hdict(self, hashroot):
-        buckets = self.keys(hashroot + "/*")
-        hfiles = [f for f in buckets]
+        """ Get all data contained in hashed category 'hashroot' as dict """
+        hfiles = self.keys(hashroot + "/*")
+        last = len(hfiles) and hfiles[-1] or ''
+        if last.endswith('xx'):
+            print "using xx"
+            hfiles = [last] + hfiles[:-1]
+            
         all = {}
+        
         for f in hfiles:
             # print "using",f
             all.update(self[f])
@@ -117,6 +138,29 @@ class PickleShareDB(UserDict.DictMixin):
         
         return all
     
+    def hcompress(self, hashroot):
+        """ Compress category 'hashroot', so hset is fast again
+        
+        hget will fail if fast_only is True for compressed items (that were
+        hset before hcompress).
+        
+        """
+        hfiles = self.keys(hashroot + "/*")
+        all = {}
+        for f in hfiles:
+            # print "using",f
+            all.update(self[f])
+            self.uncache(f)
+            
+        self[hashroot + '/xx'] = all
+        for f in hfiles:
+            p = self.root / f
+            if p.basename() == 'xx':
+                continue
+            p.remove()
+            
+            
+        
     def __delitem__(self,key):
         """ del db["key"] """
         fil = self.root / key
