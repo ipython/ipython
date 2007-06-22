@@ -3,6 +3,10 @@ syntax: glob
 *~
 *.tmp
 *.pyc
+*.bak
+*.tgz
+*.org
+*.rej
 .svn/
 .bzr/
 .settings/

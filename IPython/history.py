@@ -131,6 +131,11 @@ def rep_f(self, arg):
     Repeat the specified lines immediately. Input slice syntax is the same as
     in %macro and %save.
     
+    %rep foo
+    
+    Place the most recent line that has the substring "foo" to next input.
+    (e.g. 'svn ci -m foobar').
+    
     """
     
     
@@ -140,7 +145,7 @@ def rep_f(self, arg):
         ip.set_next_input(str(ip.user_ns["_"]))
         return
 
-    if len(args) == 1:
+    if len(args) == 1 and not '-' in args[0]:
         arg = args[0]
         if len(arg) > 1 and arg.startswith('0'):
             # get from shadow hist
@@ -154,6 +159,13 @@ def rep_f(self, arg):
             return
         except ValueError:
             pass
+        
+        for h in reversed(self.shell.input_hist_raw):
+            if 'rep' in h:
+                continue
+            if fnmatch.fnmatch(h,'*' + arg + '*'):
+                ip.set_next_input(str(h).rstrip())
+                return
         
 
     lines = self.extract_input_slices(args, True)
