@@ -1,3 +1,17 @@
+2007-06-28  Ville Vainio  <vivainio@gmail.com>
+
+	* shadowns.py, iplib.py, ipapi.py, OInspect.py:
+        Implement "shadow" namespace, and callable aliases that reside there.
+        Use them by:
+        
+        _ip.defalias('foo',myfunc) # creates _sh.foo that points to myfunc
+        
+        foo hello world
+         (gets translated to:)
+        _sh.foo(r"""hello world""")
+
+        In practice, this kind of alias can take the role of a magic function        
+
 2007-06-14  Ville Vainio  <vivainio@gmail.com>
 
 	* iplib.py (handle_auto): Try to use ascii for printing "--->"

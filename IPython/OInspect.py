@@ -6,7 +6,7 @@ Uses syntax highlighting for presenting the various information elements.
 Similar in spirit to the inspect module, but all calls take a name argument to
 reference the name under which an object is being read.
 
-$Id: OInspect.py 1850 2006-10-28 19:48:13Z fptest $
+$Id: OInspect.py 2463 2007-06-27 22:51:16Z vivainio $
 """
 
 #*****************************************************************************
@@ -337,7 +337,10 @@ class Inspector:
             ospace = info.namespace
         # Get docstring, special-casing aliases:
         if isalias:
-            ds = "Alias to the system command:\n  %s" % obj[1]
+            if not callable(obj):
+                ds = "Alias to the system command:\n  %s" % obj[1]
+            else:
+                ds = "Alias to " + str(obj)
         else:
             ds = getdoc(obj)
             if ds is None:

@@ -6,7 +6,7 @@ Requires Python 2.3 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 2442 2007-06-14 21:20:10Z vivainio $
+$Id: iplib.py 2463 2007-06-27 22:51:16Z vivainio $
 """
 
 #*****************************************************************************
@@ -76,7 +76,7 @@ from IPython.strdispatch import StrDispatch
 import IPython.ipapi
 import IPython.history
 import IPython.prefilter as prefilter
-
+import IPython.shadowns
 # Globals
 
 # store the builtin raw_input globally, and use this always, in case user code
@@ -379,6 +379,7 @@ class InteractiveShell(object,Magic):
         self.user_ns['In']  = self.input_hist
         self.user_ns['Out'] = self.output_hist
 
+        self.user_ns['_sh'] = IPython.shadowns
         # Object variable to store code object waiting execution.  This is
         # used mainly by the multithreaded shells, but it can come in handy in
         # other situations.  No need to use a Queue here, since it's a single
@@ -2119,13 +2120,18 @@ want to merge them back into the new files.""" % locals()
         return line
 
     def handle_alias(self,line_info):
-        """Handle alias input lines. """        
-        transformed = self.expand_aliases(line_info.iFun,line_info.theRest)
+        """Handle alias input lines. """
+        tgt = self.alias_table[line_info.iFun]
+        # print "=>",tgt #dbg
+        if callable(tgt):
+            line_out = "_sh." + line_info.iFun + '(r"""' + line_info.theRest + '""")'
+        else:
+            transformed = self.expand_aliases(line_info.iFun,line_info.theRest)
 
-        # pre is needed, because it carries the leading whitespace.  Otherwise
-        # aliases won't work in indented sections.
-        line_out = '%s_ip.system(%s)' % (line_info.preWhitespace,
-                                         make_quoted_expr( transformed ))
+            # pre is needed, because it carries the leading whitespace.  Otherwise
+            # aliases won't work in indented sections.
+            line_out = '%s_ip.system(%s)' % (line_info.preWhitespace,
+                                             make_quoted_expr( transformed ))
         
         self.log(line_info.line,line_out,line_info.continue_prompt)
         #print 'line out:',line_out # dbg

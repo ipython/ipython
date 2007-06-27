@@ -335,6 +335,12 @@ class IPApi:
         Creates a new alias named 'bb' in ipython user namespace
         """
         
+        if callable(cmd):
+            self.IP.alias_table[name] = cmd
+            import IPython.shawodns
+            setattr(IPython.shadowns, name,cmd)
+            return
+            
         
         nargs = cmd.count('%s')
         if nargs>0 and cmd.find('%l')>=0:
