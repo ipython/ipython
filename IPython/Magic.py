@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Magic functions for InteractiveShell.
 
-$Id: Magic.py 2437 2007-06-14 18:24:38Z vivainio $"""
+$Id: Magic.py 2464 2007-06-27 23:03:07Z vivainio $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001 Janko Hauser <jhauser@zscout.de> and
@@ -58,6 +58,8 @@ from IPython.ipstruct import Struct
 from IPython.macro import Macro
 from IPython.genutils import *
 from IPython import platutils
+import IPython.generics
+import IPython.ipapi
 
 #***************************************************************************
 # Utility functions
@@ -528,6 +530,7 @@ Currently the magic system has the following functions:\n"""
     
         #print 'pinfo par: <%s>' % parameter_s  # dbg
     
+        
         # detail_level: 0 -> obj? , 1 -> obj??
         detail_level = 0
         # We need to detect if we got called as 'pinfo pinfo foo', which can
@@ -559,6 +562,11 @@ Currently the magic system has the following functions:\n"""
         info = Struct(self._ofind(oname, namespaces))
         
         if info.found:
+            try:
+                IPython.generics.inspect_object(info.obj)
+                return
+            except IPython.ipapi.TryNext:
+                pass
             # Get the docstring of the class property if it exists.
             path = oname.split('.')
             root = '.'.join(path[:-1])

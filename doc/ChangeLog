@@ -12,6 +12,8 @@
 
         In practice, this kind of alias can take the role of a magic function        
 
+        * New generic inspect_object, called on obj? and obj??
+
 2007-06-14  Ville Vainio  <vivainio@gmail.com>
 
 	* iplib.py (handle_auto): Try to use ascii for printing "--->"

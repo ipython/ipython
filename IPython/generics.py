@@ -25,3 +25,6 @@ def result_display(result):
 
 result_display = generic(result_display)
 
+def inspect_object(obj):
+    """ Called when you do obj? """
+    raise TryNext
