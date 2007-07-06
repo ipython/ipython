@@ -60,7 +60,7 @@ You can implement other color schemes easily, the syntax is fairly
 self-explanatory. Please send back new schemes you develop to the author for
 possible inclusion in future releases.
 
-$Id: ultraTB.py 2419 2007-06-01 07:31:42Z fperez $"""
+$Id: ultraTB.py 2480 2007-07-06 19:33:43Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001 Nathaniel Gray <n8gray@caltech.edu>
@@ -81,12 +81,18 @@ import keyword
 import linecache
 import os
 import pydoc
+import re
 import string
 import sys
 import time
 import tokenize
 import traceback
 import types
+
+# For purposes of monkeypatching inspect to fix a bug in it.
+from inspect import getsourcefile, getfile, getmodule,\
+     ismodule,  isclass, ismethod, isfunction, istraceback, isframe, iscode
+
 
 # IPython's own modules
 # Modified pdb which doesn't damage IPython's readline handling
@@ -116,6 +122,79 @@ def inspect_error():
     
     error('Internal Python error in the inspect module.\n'
           'Below is the traceback from this internal error.\n')
+
+
+def findsource(object):
+    """Return the entire source file and starting line number for an object.
+
+    The argument may be a module, class, method, function, traceback, frame,
+    or code object.  The source code is returned as a list of all the lines
+    in the file and the line number indexes a line in that list.  An IOError
+    is raised if the source code cannot be retrieved.
+
+    FIXED version with which we monkeypatch the stdlib to work around a bug."""
+
+    file = getsourcefile(object) or getfile(object)
+    module = getmodule(object, file)
+    if module:
+        lines = linecache.getlines(file, module.__dict__)
+    else:
+        lines = linecache.getlines(file)
+    if not lines:
+        raise IOError('could not get source code')
+
+    if ismodule(object):
+        return lines, 0
+
+    if isclass(object):
+        name = object.__name__
+        pat = re.compile(r'^(\s*)class\s*' + name + r'\b')
+        # make some effort to find the best matching class definition:
+        # use the one with the least indentation, which is the one
+        # that's most probably not inside a function definition.
+        candidates = []
+        for i in range(len(lines)):
+            match = pat.match(lines[i])
+            if match:
+                # if it's at toplevel, it's already the best one
+                if lines[i][0] == 'c':
+                    return lines, i
+                # else add whitespace to candidate list
+                candidates.append((match.group(1), i))
+        if candidates:
+            # this will sort by whitespace, and by line number,
+            # less whitespace first
+            candidates.sort()
+            return lines, candidates[0][1]
+        else:
+            raise IOError('could not find class definition')
+
+    if ismethod(object):
+        object = object.im_func
+    if isfunction(object):
+        object = object.func_code
+    if istraceback(object):
+        object = object.tb_frame
+    if isframe(object):
+        object = object.f_code
+    if iscode(object):
+        if not hasattr(object, 'co_firstlineno'):
+            raise IOError('could not find function definition')
+        pat = re.compile(r'^(\s*def\s)|(.*(?<!\w)lambda(:|\s))|^(\s*@)')
+        pmatch = pat.match
+        # fperez - fix: sometimes, co_firstlineno can give a number larger than
+        # the length of lines, which causes an error.  Safeguard against that.
+        lnum = min(object.co_firstlineno,len(lines))-1
+        while lnum > 0:
+            if pmatch(lines[lnum]): break
+            lnum -= 1
+ 
+        return lines, lnum
+    raise IOError('could not find code object')
+
+# Monkeypatch inspect to apply our bugfix.  This code only works with py25
+if sys.version_info[:2] >= (2,5):
+    inspect.findsource = findsource
 
 def _fixed_getinnerframes(etb, context=1,tb_offset=0):
     import linecache

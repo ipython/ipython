@@ -6,7 +6,7 @@ Uses syntax highlighting for presenting the various information elements.
 Similar in spirit to the inspect module, but all calls take a name argument to
 reference the name under which an object is being read.
 
-$Id: OInspect.py 2463 2007-06-27 22:51:16Z vivainio $
+$Id: OInspect.py 2480 2007-07-06 19:33:43Z fperez $
 """
 
 #*****************************************************************************
@@ -150,7 +150,7 @@ def getsource(obj,is_binary=False):
 
     - is_binary: whether the object is known to come from a binary source.
     This implementation will skip returning any output for binary objects, but
-    custom extractors may know how to meaninfully process them."""
+    custom extractors may know how to meaningfully process them."""
     
     if is_binary:
         return None
@@ -234,10 +234,12 @@ class Inspector:
             return
 
         header = ''
-        if type(obj) is types.ClassType:
+
+        if inspect.isclass(obj):
             header = self.__head('Class constructor information:\n')
             obj = obj.__init__
-        elif type(obj) is types.InstanceType:
+        elif type(obj) is types.InstanceType or \
+             isinstance(obj,object):
             obj = obj.__call__
 
         output = self.__getdef(obj,oname)
@@ -252,18 +254,19 @@ class Inspector:
         Optional:
         -formatter: a function to run the docstring through for specially
         formatted docstrings."""
-        
+
         head = self.__head  # so that itpl can find it even if private
         ds = getdoc(obj)
         if formatter:
             ds = formatter(ds)
-        if type(obj) is types.ClassType:
+        if inspect.isclass(obj):
             init_ds = getdoc(obj.__init__)
             output = itpl('$head("Class Docstring:")\n'
                           '$indent(ds)\n'
                           '$head("Constructor Docstring"):\n'
                           '$indent(init_ds)')
-        elif type(obj) is types.InstanceType and hasattr(obj,'__call__'):
+        elif (type(obj) is types.InstanceType or isinstance(obj,object)) \
+                 and hasattr(obj,'__call__'):
             call_ds = getdoc(obj.__call__)
             if call_ds:
                 output = itpl('$head("Class Docstring:")\n$indent(ds)\n'
@@ -438,7 +441,7 @@ class Inspector:
                             + indent(ds))
 
         # Constructor docstring for classes
-        if obj_type is types.ClassType:
+        if inspect.isclass(obj):
             # reconstruct the function definition and print it:
             try:
                 obj_init =  obj.__init__
@@ -455,7 +458,8 @@ class Inspector:
                 if init_ds:
                     out.writeln(header('Docstring:\n') + indent(init_ds))
         # and class docstring for instances:
-        elif obj_type is types.InstanceType:
+        elif obj_type is types.InstanceType or \
+                 isinstance(obj,object):
 
             # First, check whether the instance docstring is identical to the
             # class one, and print it separately if they don't coincide.  In
