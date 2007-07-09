@@ -241,7 +241,8 @@ class Completer:
         if may_have_dupes:
             # eliminate possible duplicates, as some traits may also
             # appear as normal attributes in the dir() call.
-            words = set(words)
+            words = list(set(words))
+            words.sort()
 
         # filter out non-string attributes which may be stuffed by dir() calls
         # and poor coding in third-party modules

@@ -1,3 +1,12 @@
+2007-07-09  Ville Vainio  <vivainio@gmail.com>
+
+	* completer.py: Applied Matthew Neeley's patch:
+        Dynamic attributes from trait_names and _getAttributeNames are added
+        to the list of tab completions, but when this happens, the attribute
+        list is turned into a set, so the attributes are unordered when
+        printed, which makes it hard to find the right completion. This patch
+        turns this set back into a list and sort it.
+
 2007-07-06  Fernando Perez  <Fernando.Perez@colorado.edu>
 
 	* IPython/OInspect.py (Inspector.pinfo): Add support for new-style
