@@ -1,3 +1,13 @@
+2007-07-25  Fernando Perez  <Fernando.Perez@colorado.edu>
+
+	* IPython/OInspect.py (Inspector.pinfo): fix small glitches in
+	'foo?' and update the code to prevent printing of default
+	docstrings that started appearing after I added support for
+	new-style classes.  The approach I'm using isn't ideal (I just
+	special-case those strings) but I'm not sure how to more robustly
+	differentiate between truly user-written strings and Python's
+	automatic ones.
+
 2007-07-09  Ville Vainio  <vivainio@gmail.com>
 
 	* completer.py: Applied Matthew Neeley's patch:

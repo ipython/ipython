@@ -6,7 +6,7 @@ Uses syntax highlighting for presenting the various information elements.
 Similar in spirit to the inspect module, but all calls take a name argument to
 reference the name under which an object is being read.
 
-$Id: OInspect.py 2480 2007-07-06 19:33:43Z fperez $
+$Id: OInspect.py 2558 2007-07-25 19:54:28Z fperez $
 """
 
 #*****************************************************************************
@@ -467,6 +467,10 @@ class Inspector:
             # objects which use instance-customized docstrings.
             if ds:
                 class_ds = getdoc(obj.__class__)
+                # Skip Python's auto-generated docstrings
+                if class_ds.startswith('function(code, globals[, name[,') or \
+                   class_ds.startswith('instancemethod(function, instance,'):
+                    class_ds = None
                 if class_ds and ds != class_ds:
                     out.writeln(header('Class Docstring:\n') +
                                 indent(class_ds))
@@ -474,6 +478,9 @@ class Inspector:
             # Next, try to show constructor docstrings
             try:
                 init_ds = getdoc(obj.__init__)
+                # Skip Python's auto-generated docstrings
+                if init_ds.startswith('x.__init__(...) initializes x'):
+                    init_ds = None
             except AttributeError:
                 init_ds = None
             if init_ds:
@@ -482,14 +489,17 @@ class Inspector:
 
             # Call form docstring for callable instances
             if hasattr(obj,'__call__'):
-                out.writeln(header('Callable:\t')+'Yes')
+                #out.writeln(header('Callable:\t')+'Yes')
                 call_def = self.__getdef(obj.__call__,oname)
-                if call_def is None:
-                    out.write(header('Call def:\t')+
-                              'Calling definition not available.')
-                else:
-                    out.write(header('Call def:\t')+self.format(call_def))
+                #if call_def is None:
+                #    out.writeln(header('Call def:\t')+
+                #              'Calling definition not available.')
+                if call_def is not None:
+                    out.writeln(header('Call def:\t')+self.format(call_def))
                 call_ds = getdoc(obj.__call__)
+                # Skip Python's auto-generated docstrings
+                if call_ds.startswith('x.__call__(...) <==> x(...)'):
+                    call_ds = None
                 if call_ds:
                     out.writeln(header('Call docstring:\n') + indent(call_ds))
 
