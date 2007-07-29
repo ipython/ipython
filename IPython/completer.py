@@ -84,16 +84,9 @@ try:
 except NameError:
     from sets import Set as set
 
-from IPython.genutils import debugx
+from IPython.genutils import debugx, dir2
 
 __all__ = ['Completer','IPCompleter']
-
-def get_class_members(cls):
-    ret = dir(cls)
-    if hasattr(cls,'__bases__'):
-        for base in cls.__bases__:
-            ret.extend(get_class_members(base))
-    return ret
 
 class Completer:
     def __init__(self,namespace=None,global_namespace=None):
@@ -199,55 +192,15 @@ class Completer:
         
         expr, attr = m.group(1, 3)
         try:
-            object = eval(expr, self.namespace)
+            obj = eval(expr, self.namespace)
         except:
             try:
-                object = eval(expr, self.global_namespace)
+                obj = eval(expr, self.global_namespace)
             except:
                 return []
-                
 
-        # Start building the attribute list via dir(), and then complete it
-        # with a few extra special-purpose calls.
-        words = dir(object)
+        words = dir2(obj)
 
-        if hasattr(object,'__class__'):
-            words.append('__class__')
-            words.extend(get_class_members(object.__class__))
-
-        # Some libraries (such as traits) may introduce duplicates, we want to
-        # track and clean this up if it happens
-        may_have_dupes = False
-
-        # this is the 'dir' function for objects with Enthought's traits
-        if hasattr(object, 'trait_names'):
-            try:
-                words.extend(object.trait_names())
-                may_have_dupes = True
-            except TypeError:
-                # This will happen if `object` is a class and not an instance.
-                pass
-
-        # Support for PyCrust-style _getAttributeNames magic method.
-        if hasattr(object, '_getAttributeNames'):
-            try:
-                words.extend(object._getAttributeNames())
-                may_have_dupes = True
-            except TypeError:
-                # `object` is a class and not an instance.  Ignore
-                # this error.
-                pass
-
-        if may_have_dupes:
-            # eliminate possible duplicates, as some traits may also
-            # appear as normal attributes in the dir() call.
-            words = list(set(words))
-            words.sort()
-
-        # filter out non-string attributes which may be stuffed by dir() calls
-        # and poor coding in third-party modules
-        words = [w for w in words
-                 if isinstance(w, basestring) and w != "__builtins__"]
         # Build match list to return
         n = len(attr)
         return ["%s.%s" % (expr, w) for w in words if w[:n] == attr ]
@@ -566,7 +519,7 @@ class IPCompleter(Completer):
         return argMatches
 
     def dispatch_custom_completer(self,text):
-        # print "Custom! '%s' %s" % (text, self.custom_completers) # dbg
+        #print "Custom! '%s' %s" % (text, self.custom_completers) # dbg
         line = self.full_lbuf        
         if not line.strip():
             return None
@@ -590,7 +543,7 @@ class IPCompleter(Completer):
                                  self.custom_completers.s_matches(cmd),
                                  try_magic,
                                  self.custom_completers.flat_matches(self.lbuf)):
-            # print "try",c # dbg
+            #print "try",c # dbg
             try:
                 res = c(event)
                 return [r for r in res if r.lower().startswith(text.lower())]

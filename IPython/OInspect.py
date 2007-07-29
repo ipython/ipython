@@ -6,7 +6,7 @@ Uses syntax highlighting for presenting the various information elements.
 Similar in spirit to the inspect module, but all calls take a name argument to
 reference the name under which an object is being read.
 
-$Id: OInspect.py 2558 2007-07-25 19:54:28Z fperez $
+$Id: OInspect.py 2568 2007-07-29 21:38:44Z fperez $
 """
 
 #*****************************************************************************
@@ -468,8 +468,9 @@ class Inspector:
             if ds:
                 class_ds = getdoc(obj.__class__)
                 # Skip Python's auto-generated docstrings
-                if class_ds.startswith('function(code, globals[, name[,') or \
-                   class_ds.startswith('instancemethod(function, instance,'):
+                if class_ds and \
+                       (class_ds.startswith('function(code, globals[,') or \
+                   class_ds.startswith('instancemethod(function, instance,')):
                     class_ds = None
                 if class_ds and ds != class_ds:
                     out.writeln(header('Class Docstring:\n') +
@@ -530,6 +531,8 @@ class Inspector:
           - show_all(False): show all names, including those starting with
           underscores.
         """
+        #print 'ps pattern:<%r>' % pattern # dbg
+        
         # defaults
         type_pattern = 'all'
         filter = ''

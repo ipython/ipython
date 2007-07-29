@@ -22,6 +22,8 @@ import pprint
 import re
 import types
 
+from IPython.genutils import dir2
+
 def create_typestr2type_dicts(dont_include_in_type2type2str=["lambda"]):
     """Return dictionaries mapping lower case typename to type objects, from
     the types package, and vice versa."""
@@ -62,7 +64,6 @@ def show_hidden(str,show_all=False):
     """Return true for strings starting with single _ if show_all is true."""
     return show_all or str.startswith("__") or not str.startswith("_")
 
-
 class NameSpace(object):
     """NameSpace holds the dictionary for a namespace and implements filtering
     on name and types"""
@@ -78,8 +79,20 @@ class NameSpace(object):
        if type(obj) == types.DictType:
            self._ns = obj
        else:
-           self._ns = dict([(key,getattr(obj,key)) for key in dir(obj)
-                            if isinstance(key, basestring)])
+           kv = []
+           for key in dir2(obj):
+               if isinstance(key, basestring):
+                   # This seemingly unnecessary try/except is actually needed
+                   # because there is code out there with metaclasses that
+                   # create 'write only' attributes, where a getattr() call
+                   # will fail even if the attribute appears listed in the
+                   # object's dictionary.  Properties can actually do the same
+                   # thing.  In particular, Traits use this pattern
+                   try:
+                       kv.append((key,getattr(obj,key)))
+                   except AttributeError:
+                       pass
+           self._ns = dict(kv)
                
     def get_ns(self):
         """Return name space dictionary with objects matching type and name patterns."""

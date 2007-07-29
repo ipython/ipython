@@ -1,3 +1,20 @@
+2007-07-29  Fernando Perez  <Fernando.Perez@colorado.edu>
+
+	* IPython/Extensions/ipy_traits_completer.py: Add a new custom
+	completer that it traits-aware, so that traits objects don't show
+	all of their internal attributes all the time.
+
+	* IPython/genutils.py (dir2): moved this code from inside
+	completer.py to expose it publicly, so I could use it in the
+	wildcards bugfix.
+
+	* IPython/wildcard.py (NameSpace.__init__): fix a bug reported by
+	Stefan with Traits.
+
+	* IPython/completer.py (Completer.attr_matches): change internal
+	var name from 'object' to 'obj', since 'object' is now a builtin
+	and this can lead to weird bugs if reusing this code elsewhere.
+
 2007-07-25  Fernando Perez  <Fernando.Perez@colorado.edu>
 
 	* IPython/OInspect.py (Inspector.pinfo): fix small glitches in
