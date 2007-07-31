@@ -1,3 +1,9 @@
+2007-07-31  Fernando Perez  <Fernando.Perez@colorado.edu>
+
+	* IPython/Magic.py (magic_colors): fix win32-related error message
+	that could appear under *nix when readline was missing.  Patch by
+	Scott Jackson, closes #175.
+
 2007-07-29  Fernando Perez  <Fernando.Perez@colorado.edu>
 
 	* IPython/Extensions/ipy_traits_completer.py: Add a new custom
