@@ -191,6 +191,9 @@ def extend_shell_behavior(ip):
                 # add the last (current) line to the command
                 command += line
                 if command or more:
+                    # push to raw history, so hist line numbers stay in sync
+                    ip.IP.input_hist_raw.append("# " + command + "\n")
+                    
                     more = ip.IP.push(ip.IP.prefilter(command,more))
                     command = ''
                     # IPython's runsource returns None if there was an error
