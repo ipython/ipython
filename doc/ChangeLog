@@ -1,3 +1,8 @@
+2007-08-01  Ville Vainio  <vivainio@gmail.com>
+
+	* iplib.py, ipy_profile_sh.py (runlines): Fix the bug where raw
+        history gets out of sync on runlines (e.g. when running macros).
+
 2007-07-31  Fernando Perez  <Fernando.Perez@colorado.edu>
 
 	* IPython/Magic.py (magic_colors): fix win32-related error message
