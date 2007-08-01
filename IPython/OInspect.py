@@ -6,7 +6,7 @@ Uses syntax highlighting for presenting the various information elements.
 Similar in spirit to the inspect module, but all calls take a name argument to
 reference the name under which an object is being read.
 
-$Id: OInspect.py 2568 2007-07-29 21:38:44Z fperez $
+$Id: OInspect.py 2573 2007-08-01 14:55:46Z vivainio $
 """
 
 #*****************************************************************************
@@ -499,7 +499,7 @@ class Inspector:
                     out.writeln(header('Call def:\t')+self.format(call_def))
                 call_ds = getdoc(obj.__call__)
                 # Skip Python's auto-generated docstrings
-                if call_ds.startswith('x.__call__(...) <==> x(...)'):
+                if call_ds and call_ds.startswith('x.__call__(...) <==> x(...)'):
                     call_ds = None
                 if call_ds:
                     out.writeln(header('Call docstring:\n') + indent(call_ds))
