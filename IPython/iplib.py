@@ -6,7 +6,7 @@ Requires Python 2.3 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 2463 2007-06-27 22:51:16Z vivainio $
+$Id: iplib.py 2571 2007-08-01 14:48:03Z vivainio $
 """
 
 #*****************************************************************************
@@ -1786,7 +1786,6 @@ want to merge them back into the new files.""" % locals()
                     self.indent_current_nsp -= 4
             else:
                 self.indent_current_nsp = 0
-
     def runlines(self,lines):
         """Run a string of one or more lines of source.
 
@@ -1800,11 +1799,16 @@ want to merge them back into the new files.""" % locals()
         self.resetbuffer()
         lines = lines.split('\n')
         more = 0
+    
         for line in lines:
             # skip blank lines so we don't mess up the prompt counter, but do
             # NOT skip even a blank line if we are in a code block (more is
             # true)
+            
+            
             if line or more:
+                # push to raw history, so hist line numbers stay in sync
+                self.input_hist_raw.append("# " + line + "\n")
                 more = self.push(self.prefilter(line,more))
                 # IPython's runsource returns None if there was an error
                 # compiling the code.  This allows us to stop processing right
