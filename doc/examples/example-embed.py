@@ -54,7 +54,9 @@ print '\nHello. This is printed from the main controller program.\n'
 # You can then call ipshell() anywhere you need it (with an optional
 # message):
 ipshell('***Called from top level. '
-        'Hit Ctrl-D to exit interpreter and continue program.')
+        'Hit Ctrl-D to exit interpreter and continue program.\n'
+        'Note that if you use %kill_embedded, you can fully deactivate\n'
+        'This embedded instance so it will never turn on again')
 
 print '\nBack in caller program, moving along...\n'
 

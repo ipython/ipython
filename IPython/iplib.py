@@ -6,7 +6,7 @@ Requires Python 2.3 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 2571 2007-08-01 14:48:03Z vivainio $
+$Id: iplib.py 2577 2007-08-02 23:50:02Z fperez $
 """
 
 #*****************************************************************************
@@ -228,6 +228,10 @@ class InteractiveShell(object,Magic):
         # We need to know whether the instance is meant for embedding, since
         # global/local namespaces need to be handled differently in that case
         self.embedded = embedded
+        if embedded:
+            # Control variable so users can, from within the embedded instance,
+            # permanently deactivate it.
+            self.embedded_active = True
 
         # command compiler
         self.compile = codeop.CommandCompiler()
@@ -1566,7 +1570,7 @@ want to merge them back into the new files.""" % locals()
         # all names in the builtin namespace needed by ipython point to
         # ourselves, and not to other instances.
         self.add_builtins()
-        
+
         self.interact(header)
         
         # now, purge out the user namespace from anything we might have added

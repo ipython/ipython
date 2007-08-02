@@ -1,3 +1,17 @@
+2007-08-02  Fernando Perez  <Fernando.Perez@colorado.edu>
+
+	* IPython/Shell.py (IPShellEmbed.__call__): fix bug introduced in
+	r1357, which had killed multiple invocations of an embedded
+	ipython (this means that example-embed has been broken for over 1
+	year!!!).  Rather than possibly breaking the batch stuff for which
+	the code in iplib.py/interact was introduced, I worked around the
+	problem in the embedding class in Shell.py.  We really need a
+	bloody test suite for this code, I'm sick of finding stuff that
+	used to work breaking left and right every time I use an old
+	feature I hadn't touched in a few months.
+	(kill_embedded): Add a new magic that only shows up in embedded
+	mode, to allow users to permanently deactivate an embedded instance.
+
 2007-08-01  Ville Vainio  <vivainio@gmail.com>
 
 	* iplib.py, ipy_profile_sh.py (runlines): Fix the bug where raw

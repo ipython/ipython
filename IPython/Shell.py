@@ -4,7 +4,7 @@
 All the matplotlib support code was co-developed with John Hunter,
 matplotlib's author.
 
-$Id: Shell.py 2222 2007-04-06 17:11:27Z fperez $"""
+$Id: Shell.py 2577 2007-08-02 23:50:02Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2006 Fernando Perez <fperez@colorado.edu>
@@ -39,8 +39,8 @@ except ImportError:
 
 # IPython imports
 import IPython
-from IPython import ultraTB
-from IPython.genutils import Term,warn,error,flag_calls
+from IPython import ultraTB, ipapi
+from IPython.genutils import Term,warn,error,flag_calls, ask_yes_no
 from IPython.iplib import InteractiveShell
 from IPython.ipmaker import make_IPython
 from IPython.Magic import Magic
@@ -79,6 +79,22 @@ class IPShell:
             sys.exit()
 
 #-----------------------------------------------------------------------------
+def kill_embedded(self,parameter_s=''):
+    """%kill_embedded : deactivate for good the current embedded IPython.
+
+    This function (after asking for confirmation) sets an internal flag so that
+    an embedded IPython will never activate again.  This is useful to
+    permanently disable a shell that is being called inside a loop: once you've
+    figured out what you needed from it, you may then kill it and the program
+    will then continue to run without the interactive shell interfering again.
+    """
+    
+    kill = ask_yes_no("Are you sure you want to kill this embedded instance "
+                     "(y/n)? [y/N] ",'n')
+    if kill:
+        self.shell.embedded_active = False
+        print "This embedded IPython will not reactivate anymore once you exit."
+    
 class IPShellEmbed:
     """Allow embedding an IPython shell into a running program.
 
@@ -153,6 +169,9 @@ class IPShellEmbed:
                                embedded=True,
                                user_ns=user_ns)
 
+        ip = ipapi.IPApi(self.IP)
+        ip.expose_magic("kill_embedded",kill_embedded)
+
         # copy our own displayhook also
         self.sys_displayhook_embed = sys.displayhook
         # and leave the system's display hook clean
@@ -195,6 +214,14 @@ class IPShellEmbed:
 
         The optional keyword parameter dummy controls whether the call
         actually does anything.  """
+
+        # If the user has turned it off, go away
+        if not self.IP.embedded_active:
+            return
+
+        # Normal exits from interactive mode set this flag, so the shell can't
+        # re-enter (it checks this variable at the start of interactive mode).
+        self.IP.exit_now = False
 
         # Allow the dummy parameter to override the global __dummy_mode
         if dummy or (dummy != 0 and self.__dummy_mode):
