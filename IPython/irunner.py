@@ -337,6 +337,52 @@ class SAGERunner(InteractiveRunner):
         prompts = ['sage: ',r'\s*\.\.\. ']
         InteractiveRunner.__init__(self,program,prompts,args,out,echo)
 
+
+class RunnerFactory(object):
+    """Code runner factory.
+
+    This class provides an IPython code runner, but enforces that only one
+    runner is ever instantiated.  The runner is created based on the extension
+    of the first file to run, and it raises an exception if a runner is later
+    requested for a different extension type.
+
+    This ensures that we don't generate example files for doctest with a mix of
+    python and ipython syntax.
+    """
+
+    def __init__(self,out=sys.stdout):
+        """Instantiate a code runner."""
+        
+        self.out = out
+        self.runner = None
+        self.runnerClass = None
+
+    def _makeRunner(self,runnerClass):
+        self.runnerClass = runnerClass
+        self.runner = runnerClass(out=self.out)
+        return self.runner
+          
+    def __call__(self,fname):
+        """Return a runner for the given filename."""
+
+        if fname.endswith('.py'):
+            runnerClass = PythonRunner
+        elif fname.endswith('.ipy'):
+            runnerClass = IPythonRunner
+        else:
+            raise ValueError('Unknown file type for Runner: %r' % fname)
+
+        if self.runner is None:
+            return self._makeRunner(runnerClass)
+        else:
+            if runnerClass==self.runnerClass:
+                return self.runner
+            else:
+                e='A runner of type %r can not run file %r' % \
+                   (self.runnerClass,fname)
+                raise ValueError(e)
+
+
 # Global usage string, to avoid indentation issues if typed in a function def.
 MAIN_USAGE = """
 %prog [options] file_to_run

@@ -1,5 +1,8 @@
 2007-08-04  Fernando Perez  <Fernando.Perez@colorado.edu>
 
+	* IPython/irunner.py (RunnerFactory): Add new factory class for
+	creating reusable runners based on filenames.
+
 	* IPython/Extensions/ipy_profile_doctest.py: New profile for
 	doctest support.  It sets prompts/exceptions as similar to
 	standard Python as possible, so that ipython sessions in this
