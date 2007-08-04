@@ -1,3 +1,24 @@
+2007-08-04  Fernando Perez  <Fernando.Perez@colorado.edu>
+
+	* IPython/Extensions/ipy_profile_doctest.py: New profile for
+	doctest support.  It sets prompts/exceptions as similar to
+	standard Python as possible, so that ipython sessions in this
+	profile can be easily pasted as doctests with minimal
+	modifications.  It also enables pasting of doctests from external
+	sources (even if they have leading whitespace), so that you can
+	rerun doctests from existing sources.
+
+	* IPython/iplib.py (_prefilter): fix a buglet where after entering
+	some whitespace, the prompt would become a continuation prompt
+	with no way of exiting it other than Ctrl-C.  This fix brings us
+	into conformity with how the default python prompt works.
+
+	* IPython/Extensions/InterpreterPasteInput.py (prefilter_paste):
+	Add support for pasting not only lines that start with '>>>', but
+	also with ' >>>'.  That is, arbitrary whitespace can now precede
+	the prompts.  This makes the system useful for pasting doctests
+	from docstrings back into a normal session.
+
 2007-08-02  Fernando Perez  <Fernando.Perez@colorado.edu>
 
 	* IPython/Shell.py (IPShellEmbed.__call__): fix bug introduced in

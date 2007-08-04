@@ -6,7 +6,7 @@ Requires Python 2.3 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 2577 2007-08-02 23:50:02Z fperez $
+$Id: iplib.py 2581 2007-08-04 20:52:05Z fperez $
 """
 
 #*****************************************************************************
@@ -2059,6 +2059,17 @@ want to merge them back into the new files.""" % locals()
 
         #print '***line: <%s>' % line # dbg
 
+        if not line:
+            # Return immediately on purely empty lines, so that if the user
+            # previously typed some whitespace that started a continuation
+            # prompt, he can break out of that loop with just an empty line.
+            # This is how the default python prompt works.
+
+            # Only return if the accumulated input buffer was just whitespace!
+            if ''.join(self.buffer).isspace():
+                self.buffer[:] = []
+            return ''
+        
         line_info = prefilter.LineInfo(line, continue_prompt)
         
         # the input history needs to track even empty lines

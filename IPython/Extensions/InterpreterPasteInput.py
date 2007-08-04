@@ -31,7 +31,25 @@ The >>> and ... are stripped from the input so that the python interpreter
 only sees the real part of the code.
 
 All other input is processed normally.
+
+Notes
+=====
+
+* You can even paste code that has extra initial spaces, such as is common in
+doctests:
+
+In [3]:     >>> a = ['Mary', 'had', 'a', 'little', 'lamb']
+
+In [4]:     >>> for i in range(len(a)):
+   ...:         ...     print i, a[i]
+   ...:     ...
+0 Mary
+1 had
+2 a
+3 little
+4 lamb
 """
+
 #*****************************************************************************
 #       Copyright (C) 2001-2006 Fernando Perez <fperez@colorado.edu>
 #
@@ -60,23 +78,32 @@ __license__ = Release.license
 # The prototype of any alternate prefilter must be like this one (the name
 # doesn't matter):
 # - line is a string containing the user input line.
-# - continuation is a parameter which tells us if we are processing a first line of
-#   user input or the second or higher of a multi-line statement.
+# - continuation is a parameter which tells us if we are processing a first
+# line of user input or the second or higher of a multi-line statement.
+
+import re
+
+PROMPT_RE = re.compile(r'(^[ \t]*>>> |^[ \t]*\.\.\. )')
 
 def prefilter_paste(self,line,continuation):
     """Alternate prefilter for input of pasted code from an interpreter.
     """
-
-    from re import match
-
-    if match(r'^>>> |^\.\.\. ',line):
+    if not line:
+        return ''
+    m = PROMPT_RE.match(line)
+    if m:
         # In the end, always call the default IPython _prefilter() function.
         # Note that self must be passed explicitly, b/c we're calling the
         # unbound class method (since this method will overwrite the instance
         # prefilter())
-        return self._prefilter(line[4:],continuation)
+        return self._prefilter(line[len(m.group(0)):],continuation)
     elif line.strip() == '...':
         return self._prefilter('',continuation)
+    elif line.isspace():
+        # This allows us to recognize multiple input prompts separated by blank
+        # lines and pasted in a single chunk, very common when pasting doctests
+        # or long tutorial passages.
+        return ''
     else:
         return self._prefilter(line,continuation)
             
