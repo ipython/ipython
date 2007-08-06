@@ -6,7 +6,7 @@ Requires Python 2.1 or better.
 
 This file contains the main make_IPython() starter function.
 
-$Id: ipmaker.py 2380 2007-05-24 17:03:49Z vivainio $"""
+$Id: ipmaker.py 2587 2007-08-06 19:38:32Z vivainio $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2006 Fernando Perez. <fperez@colorado.edu>
@@ -96,6 +96,7 @@ def make_IPython(argv=None,user_ns=None,user_global_ns=None,debug=1,
 
     # Put 'help' in the user namespace
     from site import _Helper
+    IP.user_config_ns = {}
     IP.user_ns['help'] = _Helper()
 
 
@@ -665,7 +666,7 @@ object? -> Details about 'object'. ?object also works, ?? prints more.
     # Take a snapshot of the user namespace before opening the shell. That way
     # we'll be able to identify which things were interactively defined and
     # which were defined through config files.
-    IP.user_config_ns = IP.user_ns.copy()
+    IP.user_config_ns.update(IP.user_ns)
 
     # Force reading a file as if it were a session log. Slower but safer.
     if load_logplay:
