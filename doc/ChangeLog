@@ -1,3 +1,8 @@
+2007-08-06  Ville Vainio  <vivainio@gmail.com>
+
+	* ipmaker.py: fix bug where user_config_ns didn't exist at all
+	before all the config files were handled.
+
 2007-08-04  Fernando Perez  <Fernando.Perez@colorado.edu>
 
 	* IPython/irunner.py (RunnerFactory): Add new factory class for
