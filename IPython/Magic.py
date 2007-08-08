@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Magic functions for InteractiveShell.
 
-$Id: Magic.py 2592 2007-08-07 13:30:56Z vivainio $"""
+$Id: Magic.py 2595 2007-08-08 09:41:33Z vivainio $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001 Janko Hauser <jhauser@zscout.de> and
@@ -1755,7 +1755,9 @@ Currently the magic system has the following functions:\n"""
 
         opts,args = self.parse_options(parameter_s,'r',mode='list')
         if not args:
-            return [k for k,v in self.shell.user_ns.items() if isinstance(v, Macro)]
+            macs = [k for k,v in self.shell.user_ns.items() if isinstance(v, Macro)]
+            macs.sort()
+            return macs
         name,ranges = args[0], args[1:]
         #print 'rng',ranges  # dbg
         lines = self.extract_input_slices(ranges,opts.has_key('r'))
