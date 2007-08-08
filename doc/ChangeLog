@@ -1,3 +1,17 @@
+2007-08-08  Fernando Perez  <Fernando.Perez@colorado.edu>
+
+	* IPython/Extensions/ipy_profile_doctest.py (main): fix prompt to
+	introduce a blank line between inputs, to conform to doctest
+	requirements.
+
+	* IPython/OInspect.py (Inspector.pinfo): fix another part where
+	auto-generated docstrings for new-style classes were showing up.
+
+2007-08-07  Fernando Perez  <Fernando.Perez@colorado.edu>
+
+	* api_changes: Add new file to track backward-incompatible
+	user-visible changes.
+
 2007-08-06  Ville Vainio  <vivainio@gmail.com>
 
 	* ipmaker.py: fix bug where user_config_ns didn't exist at all

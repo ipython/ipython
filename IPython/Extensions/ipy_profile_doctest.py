@@ -29,10 +29,15 @@ def main():
 
     # No separation between successive inputs
     o.separate_in = ''
+    o.separate_out = ''
+    # But add a blank line after any output, to help separate doctests from
+    # each other.  This is needed by doctest to distinguish each test from the
+    # next.
+    o.separate_out2 = '\n'
 
     # Disable pprint, so that outputs are printed as similarly to standard
     # python as possible
-    o.pprint = 0
+    o.pprint = False
     
     # Use plain exceptions, to also resemble normal pyhton.
     o.xmode = 'plain'
