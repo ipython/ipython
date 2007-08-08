@@ -6,7 +6,7 @@ Requires Python 2.3 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 2581 2007-08-04 20:52:05Z fperez $
+$Id: iplib.py 2596 2007-08-08 11:41:01Z vivainio $
 """
 
 #*****************************************************************************
@@ -1819,6 +1819,8 @@ want to merge them back into the new files.""" % locals()
                 # away, so the user gets the error message at the right place.
                 if more is None:
                     break
+            else:
+                self.input_hist_raw.append("\n")
         # final newline in case the input didn't have it, so that the code
         # actually does get executed
         if more:
@@ -2025,10 +2027,11 @@ want to merge them back into the new files.""" % locals()
                         pass # re{move,place}_history_item are new in 2.4.                
             else:
                 self.input_hist_raw.append('%s\n' % line)                
-        
+            # only entries starting at first column go to shadow history
             if line.lstrip() == line:
                 self.shadowhist.add(line.strip())
-            
+        else:
+            self.input_hist_raw.append('\n')
         try:
             lineout = self.prefilter(line,continue_prompt)
         except:
