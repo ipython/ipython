@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Magic functions for InteractiveShell.
 
-$Id: Magic.py 2595 2007-08-08 09:41:33Z vivainio $"""
+$Id: Magic.py 2601 2007-08-10 07:01:29Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001 Janko Hauser <jhauser@zscout.de> and
@@ -2911,5 +2911,91 @@ Defaulting color scheme to 'NoColor'"""
             [p.remove() for p in legacy]
             suffix = (sys.platform == 'win32' and '.ini' or '')
             (userdir / ('ipythonrc' + suffix)).write_text('# Empty, see ipy_user_conf.py\n')
+
+
+    def magic_doctest_mode(self,parameter_s=''):
+        """Toggle doctest mode on and off.
+
+        This mode allows you to toggle the prompt behavior between normal
+        IPython prompts and ones that are as similar to the default IPython
+        interpreter as possible.
+
+        It also supports the pasting of code snippets that have leading '>>>'
+        and '...' prompts in them.  This means that you can paste doctests from
+        files or docstrings (even if they have leading whitespace), and the
+        code will execute correctly.  You can then use '%history -tn' to see
+        the translated history without line numbers; this will give you the
+        input after removal of all the leading prompts and whitespace, which
+        can be pasted back into an editor.
+
+        With these features, you can switch into this mode easily whenever you
+        need to do testing and changes to doctests, without having to leave
+        your existing IPython session.
+        """
+
+        # XXX - Fix this to have cleaner activate/deactivate calls.
+        from IPython.Extensions import InterpreterPasteInput as ipaste
+        from IPython.ipstruct import Struct
+
+        # Shorthands
+        shell = self.shell
+        oc = shell.outputcache
+        rc = shell.rc
+        meta = shell.meta
+        # dstore is a data store kept in the instance metadata bag to track any
+        # changes we make, so we can undo them later.
+        dstore = meta.setdefault('doctest_mode',Struct())
+        save_dstore = dstore.setdefault
+
+        # save a few values we'll need to recover later
+        mode = save_dstore('mode',False)
+        save_dstore('rc_pprint',rc.pprint)
+        save_dstore('xmode',shell.InteractiveTB.mode)
+        save_dstore('rc_separate_in',rc.separate_in)
+        save_dstore('rc_separate_out',rc.separate_out)
+        save_dstore('rc_separate_out2',rc.separate_out2)
+        save_dstore('rc_prompts_pad_left',rc.prompts_pad_left)
+
+        if mode == False:
+            # turn on
+            ipaste.activate_prefilter()
+
+            oc.prompt1.p_template = '>>> '
+            oc.prompt2.p_template = '... '
+            oc.prompt_out.p_template = ''
+
+            oc.prompt1.sep = ''
+            oc.prompt_out.output_sep = ''
+            oc.prompt_out.output_sep2 = '\n'
+
+            oc.prompt1.pad_left = oc.prompt2.pad_left = \
+                                  oc.prompt_out.pad_left = False
+
+            shell.magic_xmode('Plain')
+
+            rc.pprint = False
+
+        else:
+            # turn off
+            ipaste.deactivate_prefilter()
+
+            oc.prompt1.p_template = rc.prompt_in1
+            oc.prompt2.p_template = rc.prompt_in2
+            oc.prompt_out.p_template = rc.prompt_out
+
+            oc.prompt1.sep = dstore.rc_separate_in
+            oc.prompt_out.output_sep = dstore.rc_separate_out
+            oc.prompt_out.output_sep2 = dstore.rc_separate_out2
+
+            oc.prompt1.pad_left = oc.prompt2.pad_left = \
+                         oc.prompt_out.pad_left = dstore.rc_prompts_pad_left
+            shell.magic_xmode(dstore.xmode)
+
+            rc.pprint = dstore.rc_pprint
+
+        # Store new mode and inform
+        dstore.mode = bool(1-int(mode))
+        print 'Doctest mode is:',
+        print ['OFF','ON'][dstore.mode]
 
 # end Magic

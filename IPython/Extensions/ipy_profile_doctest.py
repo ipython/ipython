@@ -42,4 +42,7 @@ def main():
     # Use plain exceptions, to also resemble normal pyhton.
     o.xmode = 'plain'
 
+    # Store the activity flag in the metadata bag from the running shell
+    ip.IP.meta.doctest_mode = True
+
 main()

@@ -251,7 +251,8 @@ class IPApi:
 
         Inputs:
 
-         - vars: string with variable names separated by whitespace
+         - vars: string with variable names separated by whitespace, or a
+         dict with name/value pairs.
 
          - interactive: if True (default), the var will be listed with
         %whos et. al.
@@ -285,33 +286,53 @@ class IPApi:
             # if this routine crashes on the next line after:
             ip.to_user_ns('x y')
             ...
+            
+            # To expose *ALL* the local variables from the function, use:
+            ip.to_user_ns(locals())
+
+            ...
             # return           
         
-        If you need to rename variables, just use ip.user_ns with dict
-        and update:
-        
-        # exposes variables 'foo' as 'x' and 'bar' as 'y' in IPython 
-        # user namespace
-        ip.user_ns.update(dict(x=foo,y=bar))    
+
+        If you need to rename variables, the dict input makes it easy.  For
+        example, this call exposes variables 'foo' as 'x' and 'bar' as 'y'
+        in IPython user namespace:
+
+        ip.to_user_ns(dict(x=foo,y=bar))    
         """
 
         # print 'vars given:',vars # dbg
-        # Get the caller's frame to evaluate the given names in
-        cf = sys._getframe(1)
         
-        user_ns = self.user_ns
+        # We need a dict of name/value pairs to do namespace updates.
+        if isinstance(vars,dict):
+            # If a dict was given, no need to change anything.
+            vdict = vars
+        elif isinstance(vars,basestring):
+            # If a string with names was given, get the caller's frame to
+            # evaluate the given names in
+            cf = sys._getframe(1)
+            vdict = {}
+            for name in vars.split():
+                try:
+                    vdict[name] = eval(name,cf.f_globals,cf.f_locals)
+                except:
+                    print ('could not get var. %s from %s' %
+                    (name,cf.f_code.co_name))
+        else:
+            raise ValueError('vars must be a string or a dict')
+            
+        # Propagate variables to user namespace
+        self.user_ns.update(vdict)
+
+        # And configure interactive visibility
         config_ns = self.IP.user_config_ns
-        for name in vars.split():
-            try:
-                val = eval(name,cf.f_globals,cf.f_locals)
-                user_ns[name] = val
-                if not interactive:
-                    config_ns[name] = val
-                else:
-                    config_ns.pop(name,None)
-            except:
-                print ('could not get var. %s from %s' %
-                (name,cf.f_code.co_name))
+        if interactive:
+            for name,val in vdict.iteritems():
+                config_ns.pop(name,None)
+        else:
+            for name,val in vdict.iteritems():
+                config_ns[name] = val                    
+
 
     def expand_alias(self,line):
         """ Expand an alias in the command line 

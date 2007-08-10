@@ -83,6 +83,8 @@ __license__ = Release.license
 
 import re
 
+from IPython.iplib import InteractiveShell
+
 PROMPT_RE = re.compile(r'(^[ \t]*>>> |^[ \t]*\.\.\. )')
 
 def prefilter_paste(self,line,continuation):
@@ -106,13 +108,15 @@ def prefilter_paste(self,line,continuation):
         return ''
     else:
         return self._prefilter(line,continuation)
-            
-# Rebind this to be the new IPython prefilter:
-from IPython.iplib import InteractiveShell
-InteractiveShell.prefilter = prefilter_paste
 
-# Clean up the namespace.
-del InteractiveShell,prefilter_paste
+def activate_prefilter():
+    """Rebind the input-pasting filter to be the new IPython prefilter"""
+    InteractiveShell.prefilter = prefilter_paste
+
+def deactivate_prefilter():
+    """Reset the filter."""
+    InteractiveShell.prefilter = InteractiveShell._prefilter
 
 # Just a heads up at the console
+activate_prefilter()
 print '*** Pasting of code with ">>>" or "..." has been enabled.'

@@ -2,7 +2,7 @@
 """
 Classes for handling input/output prompts.
 
-$Id: Prompts.py 2397 2007-05-26 10:06:26Z vivainio $"""
+$Id: Prompts.py 2601 2007-08-10 07:01:29Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2006 Fernando Perez <fperez@colorado.edu>
@@ -215,8 +215,19 @@ def str_safe(arg):
         out = '<ERROR: %s>' % msg
     return out
 
-class BasePrompt:
+class BasePrompt(object):
     """Interactive prompt similar to Mathematica's."""
+
+    def _get_p_template(self):
+        return self._p_template
+
+    def _set_p_template(self,val):
+        self._p_template = val
+        self.set_p_str()
+
+    p_template = property(_get_p_template,_set_p_template,
+                          doc='Template for prompt string creation')
+
     def __init__(self,cache,sep,prompt,pad_left=False):
 
         # Hack: we access information about the primary prompt through the
@@ -232,7 +243,9 @@ class BasePrompt:
         # Flag to left-pad prompt strings to match the length of the primary
         # prompt
         self.pad_left = pad_left
-        # Set template to create each actual prompt (where numbers change)
+
+        # Set template to create each actual prompt (where numbers change).
+        # Use a property
         self.p_template = prompt
         self.set_p_str()
 

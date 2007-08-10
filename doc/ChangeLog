@@ -1,3 +1,14 @@
+2007-8-9  Fernando Perez  <fperez@planck.colorado.edu>
+
+        * IPython/ipapi.py (to_user_ns): update to accept a dict as well as
+          a string with names.
+
+2007-08-09  Fernando Perez  <Fernando.Perez@colorado.edu>
+
+	* IPython/Magic.py (magic_doctest_mode): added new %doctest_mode
+	magic to toggle on/off the doctest pasting support without having
+	to leave a session to switch to a separate profile.
+
 2007-08-08  Fernando Perez  <Fernando.Perez@colorado.edu>
 
 	* IPython/Extensions/ipy_profile_doctest.py (main): fix prompt to
