@@ -6,7 +6,7 @@ Requires Python 2.3 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 2596 2007-08-08 11:41:01Z vivainio $
+$Id: iplib.py 2602 2007-08-12 22:45:38Z fperez $
 """
 
 #*****************************************************************************
@@ -41,6 +41,7 @@ import StringIO
 import bdb
 import cPickle as pickle
 import codeop
+import doctest
 import exceptions
 import glob
 import inspect
@@ -677,7 +678,15 @@ class InteractiveShell(object,Magic):
         # overwrite it.
         self.sys_displayhook = sys.displayhook
         sys.displayhook = self.outputcache
-        
+
+        # Monkeypatch doctest so that its core test runner method is protected
+        # from IPython's modified displayhook.  Doctest expects the default
+        # displayhook behavior deep down, so our modification breaks it
+        # completely.  For this reason, a hard monkeypatch seems like a
+        # reasonable solution rather than asking users to manually use a
+        # different doctest runner when under IPython.
+        doctest.DocTestRunner.run = dhook_wrap(doctest.DocTestRunner.run)
+
         # Set user colors (don't do it in the constructor above so that it
         # doesn't crash if colors option is invalid)
         self.magic_colors(rc.colors)

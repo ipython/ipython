@@ -1,3 +1,9 @@
+2007-08-12  Fernando Perez  <Fernando.Perez@colorado.edu>
+
+	* IPython/iplib.py (InteractiveShell.post_config_initialization):
+	fix problems with doctests failing when run inside IPython due to
+	IPython's modifications of sys.displayhook.
+
 2007-8-9  Fernando Perez  <fperez@planck.colorado.edu>
 
         * IPython/ipapi.py (to_user_ns): update to accept a dict as well as

@@ -509,6 +509,21 @@ profile
 ') convenient for rapid interactive work.
 \end_layout
 
+\begin_layout Itemize
+Doctest support.
+ The special 
+\family typewriter
+%doctest_mode
+\family default
+ command toggles a mode that allows you to paste existing doctests (with
+ leading `
+\family typewriter
+>>>
+\family default
+' prompts and whitespace) and uses doctest-compatible prompts and output,
+ so you can use IPython sessions as doctest code.
+\end_layout
+
 \begin_layout Subsection
 Portability and Python requirements
 \end_layout
@@ -2644,6 +2659,31 @@ Use the IPython.demo.Demo class to load any Python script as an interactive
 \end_inset
 
  for more.
+\end_layout
+
+\begin_layout Itemize
+Run your doctests from within IPython for development and debugging.
+ The special 
+\family typewriter
+%doctest_mode
+\family default
+ command toggles a mode where the prompt, output and exceptions display
+ matches as closely as possible that of the default Python interpreter.
+ In addition, this mode allows you to directly paste in code that contains
+ leading `
+\family typewriter
+>>>
+\family default
+' prompts, even if they have extra leading whitespace (as is common in doctest
+ files).
+ This combined with the `
+\family typewriter
+%history -t
+\family default
+n' call to see your translated history (with these extra prompts removed
+ and no line numbers) allows for an easy doctest workflow, where you can
+ go from doctest to interactive execution to pasting into valid Python code
+ as needed.
 \end_layout
 
 \begin_layout Subsection

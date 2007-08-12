@@ -5,7 +5,7 @@ General purpose utilities.
 This is a grab-bag of stuff I find useful in most programs I write. Some of
 these things are also convenient when working at the command line.
 
-$Id: genutils.py 2577 2007-08-02 23:50:02Z fperez $"""
+$Id: genutils.py 2602 2007-08-12 22:45:38Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2006 Fernando Perez. <fperez@colorado.edu>
@@ -797,6 +797,30 @@ def flag_calls(func):
     wrapper.called = False
     wrapper.__doc__ = func.__doc__
     return wrapper
+
+#----------------------------------------------------------------------------
+def dhook_wrap(func,*a,**k):
+    """Wrap a function call in a sys.displayhook controller.
+
+    Returns a wrapper around func which calls func, with all its arguments and
+    keywords unmodified, using the default sys.displayhook.  Since IPython
+    modifies sys.displayhook, it breaks the behavior of certain systems that
+    rely on the default behavior, notably doctest.
+    """
+
+    def f(*a,**k):
+    
+        dhook_s = sys.displayhook
+        sys.displayhook = sys.__displayhook__
+        try:
+            out = func(*a,**k)
+        finally:
+            sys.displayhook = dhook_s
+
+        return out
+
+    f.__doc__ = func.__doc__
+    return f
 
 #----------------------------------------------------------------------------
 class HomeDirError(Error):
