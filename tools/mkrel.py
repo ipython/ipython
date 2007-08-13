@@ -1,4 +1,4 @@
-""" Create ipykit, source package and exe installer
+""" Create ipykit and exe installer
 
 requires py2exe
 
@@ -23,3 +23,7 @@ os.rename('dist','ipykit')
 c("zip -r ipykit.zip ipykit")
 
 c("python setup.py bdist_wininst --install-script=ipython_win_post_install.py")
+
+os.chdir("dist")
+c("svn export http://ipython.scipy.org/svn/ipython/ipython/trunk ipython")
+c("zip -r ipython_svn.zip ipython")
