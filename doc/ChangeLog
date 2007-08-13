@@ -1,3 +1,12 @@
+2007-08-13  Fernando Perez  <Fernando.Perez@colorado.edu>
+
+	* IPython/iplib.py (safe_execfile): modify so that running code
+	which calls sys.exit(0) (or equivalently, raise SystemExit(0))
+	doesn't get a printed traceback.  Any other value in sys.exit(),
+	including the empty call, still generates a traceback.  This
+	enables use of %run without having to pass '-e' for codes that
+	correctly set the exit status flag.
+
 2007-08-12  Fernando Perez  <Fernando.Perez@colorado.edu>
 
 	* IPython/iplib.py (InteractiveShell.post_config_initialization):

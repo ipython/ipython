@@ -6,7 +6,7 @@ Requires Python 2.3 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 2602 2007-08-12 22:45:38Z fperez $
+$Id: iplib.py 2606 2007-08-13 12:44:48Z fperez $
 """
 
 #*****************************************************************************
@@ -2486,7 +2486,12 @@ want to merge them back into the new files.""" % locals()
                 self.showsyntaxerror()
                 warn('Failure executing file: <%s>' % fname)
             except SystemExit,status:
-                if not kw['exit_ignore']:
+                #print 'STATUS:',status  # dbg
+                if status.message!=0 and not kw['exit_ignore']:
+                    # Code that correctly sets the exit status flag to success
+                    # (0) shouldn't be bothered with a traceback.  Note that a
+                    # plain sys.exit() does NOT set the message to 0 (it's
+                    # empty) so that will still get a traceback.
                     self.showtraceback()
                     warn('Failure executing file: <%s>' % fname)
             except:
