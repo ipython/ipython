@@ -43,6 +43,7 @@ class LineInfo(object):
       Everything else on the line.
     """
     def __init__(self, line, continue_prompt):
+        self.ip = IPython.ipapi.get()
         self.line            = line
         self.continue_prompt = continue_prompt
         self.pre, self.iFun, self.theRest = splitUserInput(line)
@@ -50,8 +51,8 @@ class LineInfo(object):
         self.preChar       = self.pre.strip()
         
         # special override for !, which MUST always have top priority
-        if not self.preChar and self.iFun.startswith('!'):
-            self.preChar = self.pre = '!'
+        if not self.preChar and self.iFun.startswith(self.ip.IP.ESC_SHELL):
+            self.preChar = self.pre = self.ip.IP.ESC_SHELL
             self.iFun = self.iFun[1:]
         if self.preChar:
             self.preWhitespace = '' # No whitespace allowd before esc chars
