@@ -27,13 +27,11 @@ def main():
     o.prompt_in2 = '... '
     o.prompt_out = ''
 
-    # No separation between successive inputs
-    o.separate_in = ''
+    # Add a blank line before each new set of inputs.  This is needed by
+    # doctest to distinguish each test from the next.
+    o.separate_in = '\n'
     o.separate_out = ''
-    # But add a blank line after any output, to help separate doctests from
-    # each other.  This is needed by doctest to distinguish each test from the
-    # next.
-    o.separate_out2 = '\n'
+    o.separate_out2 = ''
 
     # Disable pprint, so that outputs are printed as similarly to standard
     # python as possible

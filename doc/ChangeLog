@@ -1,5 +1,9 @@
 2007-08-13  Fernando Perez  <Fernando.Perez@colorado.edu>
 
+	* IPython/Magic.py (magic_doctest_mode): fix prompt separators in
+	doctest profile and %doctest_mode, so they actually generate the
+	blank lines needed by doctest to separate individual tests.
+
 	* IPython/iplib.py (safe_execfile): modify so that running code
 	which calls sys.exit(0) (or equivalently, raise SystemExit(0))
 	doesn't get a printed traceback.  Any other value in sys.exit(),
