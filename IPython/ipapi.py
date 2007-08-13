@@ -358,7 +358,7 @@ class IPApi:
         
         if callable(cmd):
             self.IP.alias_table[name] = cmd
-            import IPython.shawodns
+            import IPython.shadowns
             setattr(IPython.shadowns, name,cmd)
             return
             

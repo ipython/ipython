@@ -6,7 +6,7 @@ Requires Python 2.3 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 2606 2007-08-13 12:44:48Z fperez $
+$Id: iplib.py 2614 2007-08-13 18:32:38Z vivainio $
 """
 
 #*****************************************************************************
@@ -2155,7 +2155,7 @@ want to merge them back into the new files.""" % locals()
         tgt = self.alias_table[line_info.iFun]
         # print "=>",tgt #dbg
         if callable(tgt):
-            line_out = "_sh." + line_info.iFun + '(r"""' + line_info.theRest + '""")'
+            line_out = "_sh." + line_info.iFun + '(r"""' + line_info.line + '""")'
         else:
             transformed = self.expand_aliases(line_info.iFun,line_info.theRest)
 
