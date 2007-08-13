@@ -1,3 +1,15 @@
+2007-08-13  Ville Vainio  <vivainio@gmail.com>
+
+	* prefilter.py: Take more care to special-case !, so that
+        !c:/bin/foo.exe works.
+        
+        * setup.py: if we are building eggs, strip all docs and
+        examples (it doesn't make sense to bytecompile examples,
+        and docs would be in an awkward place anyway).
+        
+        * Ryan Krauss' patch fixes start menu shortcuts when IPython
+        is installed into a directory that has spaces in the name.
+
 2007-08-13  Fernando Perez  <Fernando.Perez@colorado.edu>
 
 	* IPython/Magic.py (magic_doctest_mode): fix prompt separators in
