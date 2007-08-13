@@ -40,6 +40,7 @@ def install():
         print ('To take full advantage of IPython, you need readline from:\n'
                'http://sourceforge.net/projects/uncpythontools')
 
+    ipybase = '"'+prefix+r'\scripts\ipython"'
     # Create IPython entry ...
     if not os.path.isdir(ip_dir):
         os.mkdir(ip_dir)
@@ -47,15 +48,15 @@ def install():
 
     # Create program shortcuts ...
     f = ip_dir + r'\IPython.lnk'
-    a = prefix + r'\scripts\ipython'
+    a = ipybase
     mkshortcut(python,'IPython',f,a)
 
     f = ip_dir + r'\pysh.lnk'
-    a = prefix + r'\scripts\ipython -p sh'
+    a = ipybase+' -p sh'
     mkshortcut(python,'IPython command prompt mode',f,a)
 
     f = ip_dir + r'\scipy.lnk'
-    a = prefix + r'\scripts\ipython -pylab -p scipy'
+    a = ipybase+' -pylab -p scipy'
     mkshortcut(python,'IPython scipy profile',f,a)
 
     # Create documentation shortcuts ...    

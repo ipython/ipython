@@ -14,8 +14,10 @@ def c(cmd):
     os.system(cmd)
 
 os.chdir('..')
-distutils.dir_util.remove_tree('dist')
-distutils.dir_util.remove_tree('ipykit')
+if os.path.isdir('dist'):
+    distutils.dir_util.remove_tree('dist')
+if os.path.isdir('ipykit'):
+    distutils.dir_util.remove_tree('ipykit')
 
 c("python exesetup.py py2exe")
 os.rename('dist','ipykit')
