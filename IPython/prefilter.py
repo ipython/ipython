@@ -48,6 +48,11 @@ class LineInfo(object):
         self.pre, self.iFun, self.theRest = splitUserInput(line)
 
         self.preChar       = self.pre.strip()
+        
+        # special override for !, which MUST always have top priority
+        if not self.preChar and self.iFun.startswith('!'):
+            self.preChar = self.pre = '!'
+            self.iFun = self.iFun[1:]
         if self.preChar:
             self.preWhitespace = '' # No whitespace allowd before esc chars
         else:
@@ -71,6 +76,11 @@ class LineInfo(object):
         if not self._oinfo:
             self._oinfo = ip._ofind(self.iFun)
         return self._oinfo
+    def __str__(self):
+        return "Lineinfo [%s|%s|%s]" %(self.pre,self.iFun,self.theRest)
+        
+    
+    
 
 
 def splitUserInput(line, pattern=None):
