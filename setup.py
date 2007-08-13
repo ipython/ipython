@@ -150,7 +150,9 @@ if 'setuptools' in sys.modules:
             ]}
         }
     scriptfiles = []
-    # eggs will lack docs, examples XXX not anymore
+    # eggs will lack docs, eaxmples
+    datafiles = []
+    
     #datafiles = [('lib', 'IPython/UserConfig', cfgfiles)]
 else:
     egg_extra_kwds = {}
