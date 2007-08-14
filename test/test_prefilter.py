@@ -157,14 +157,10 @@ esc_handler_tests = [
 
     # Trailing qmark combos.  Odd special cases abound
 
-    # The key is: we don't want the trailing ? to trigger help if it's a
-    # part of a shell glob (like, e.g. '!ls file.?').  Instead, we want the
-    # shell handler to be called.  Due to subtleties of the input string
-    # parsing, however, we only call the shell handler if the trailing ? is
-    # part of something whitespace-separated from the !cmd.  See examples.
-    ( '!thing?',      handle_help), 
+    # ! always takes priority!
+    ( '!thing?',      handle_shell_escape), 
     ( '!thing arg?',  handle_shell_escape),
-    ( '!!thing?',     handle_help),
+    ( '!!thing?',     handle_shell_escape),
     ( '!!thing arg?', handle_shell_escape),
 
     # For all other leading esc chars, we always trigger help
