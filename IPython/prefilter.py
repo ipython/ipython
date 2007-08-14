@@ -71,7 +71,8 @@ class LineInfo(object):
         if not self._oinfo:
             self._oinfo = ip._ofind(self.iFun)
         return self._oinfo
-
+    def __str__(self):                                                         
+        return "Lineinfo [%s|%s|%s]" %(self.pre,self.iFun,self.theRest)        
 
 def splitUserInput(line, pattern=None):
     """Split user input into pre-char/whitespace, function part and rest.
@@ -182,11 +183,13 @@ def checkMultiLineShell(l_info,ip):
     "Allow ! and !! in multi-line statements if multi_line_specials is on"
     # Note that this one of the only places we check the first character of
     # iFun and *not* the preChar.  Also note that the below test matches
-    # both ! and !!.
+    # both ! and !!.    
     if l_info.continue_prompt \
-           and ip.rc.multi_line_specials \
-           and l_info.iFun.startswith(ip.ESC_SHELL):
-        return ip.handle_shell_escape
+        and ip.rc.multi_line_specials:
+            if l_info.iFun.startswith(ip.ESC_SHELL):
+                return ip.handle_shell_escape
+            if l_info.iFun.startswith(ip.ESC_MAGIC):
+                return ip.handle_magic
     else:
         return None
 
