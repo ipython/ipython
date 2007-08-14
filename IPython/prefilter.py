@@ -43,20 +43,14 @@ class LineInfo(object):
       Everything else on the line.
     """
     def __init__(self, line, continue_prompt):
-        self.ip = IPython.ipapi.get()
         self.line            = line
         self.continue_prompt = continue_prompt
         self.pre, self.iFun, self.theRest = splitUserInput(line)
 
         self.preChar       = self.pre.strip()
-        
-        # special override for !, which MUST always have top priority
-        if not self.preChar and self.iFun.startswith(self.ip.IP.ESC_SHELL):
-            self.preChar = self.pre = self.ip.IP.ESC_SHELL
-            self.iFun = self.iFun[1:]
         if self.preChar:
             self.preWhitespace = '' # No whitespace allowd before esc chars
-        else:
+        else: 
             self.preWhitespace = self.pre
 
         self._oinfo = None
@@ -77,11 +71,6 @@ class LineInfo(object):
         if not self._oinfo:
             self._oinfo = ip._ofind(self.iFun)
         return self._oinfo
-    def __str__(self):
-        return "Lineinfo [%s|%s|%s]" %(self.pre,self.iFun,self.theRest)
-        
-    
-    
 
 
 def splitUserInput(line, pattern=None):
