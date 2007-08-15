@@ -479,6 +479,6 @@ def make_session(user_ns = None):
     
     WARNING: This should *not* be run when a session exists already."""
 
-    import IPython
+    import IPython.Shell
     return IPython.Shell.start(user_ns)
 
