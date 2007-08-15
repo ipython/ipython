@@ -136,8 +136,9 @@ def prefilter(line_info, ip):
     value, even if it's a blank ('')."""
     # Note: the order of these checks does matter. 
     for check in [ checkEmacs,
+                   checkShellEscape,
                    checkIPyAutocall,
-                   checkMultiLineShell,
+                   checkMultiLineMagic,
                    checkEscChars,
                    checkAssignment,
                    checkAutomagic,
@@ -162,6 +163,11 @@ def prefilter(line_info, ip):
 # In general, these checks should only take responsibility for their 'own'
 # handler.  If it doesn't get triggered, they should just return None and
 # let the rest of the check sequence run.
+
+def checkShellEscape(l_info,ip):
+    if l_info.line.lstrip().startswith(ip.ESC_SHELL):
+        return ip.handle_shell_escape
+
 def checkEmacs(l_info,ip):
     "Emacs ipython-mode tags certain input lines."
     if l_info.line.endswith('# PYTHON-MODE'):
@@ -179,15 +185,13 @@ def checkIPyAutocall(l_info,ip):
         return None
     
     
-def checkMultiLineShell(l_info,ip):
+def checkMultiLineMagic(l_info,ip):
     "Allow ! and !! in multi-line statements if multi_line_specials is on"
     # Note that this one of the only places we check the first character of
     # iFun and *not* the preChar.  Also note that the below test matches
     # both ! and !!.    
     if l_info.continue_prompt \
         and ip.rc.multi_line_specials:
-            if l_info.iFun.startswith(ip.ESC_SHELL):
-                return ip.handle_shell_escape
             if l_info.iFun.startswith(ip.ESC_MAGIC):
                 return ip.handle_magic
     else:

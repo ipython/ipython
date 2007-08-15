@@ -162,6 +162,7 @@ esc_handler_tests = [
     ( '!thing arg?',  handle_shell_escape),
     ( '!!thing?',     handle_shell_escape),
     ( '!!thing arg?', handle_shell_escape),
+    ( '    !!thing arg?', handle_shell_escape),
 
     # For all other leading esc chars, we always trigger help
     ( '%cmd?',     handle_help),
