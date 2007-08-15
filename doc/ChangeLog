@@ -1,3 +1,10 @@
+2007-08-15  Fernando Perez  <Fernando.Perez@colorado.edu>
+
+	* IPython/iplib.py (safe_execfile): fix the SystemExit
+	auto-suppression code to work in Python2.4 (the internal structure
+	of that exception changed and I'd only tested the code with 2.5).
+	Bug reported by a SciPy attendee.
+
 2007-08-13  Ville Vainio  <vivainio@gmail.com>
 
 	* prefilter.py: reverted !c:/bin/foo fix, made % in
