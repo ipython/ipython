@@ -362,13 +362,12 @@ class IPApi:
             setattr(IPython.shadowns, name,cmd)
             return
             
-        
-        nargs = cmd.count('%s')
-        if nargs>0 and cmd.find('%l')>=0:
-            raise Exception('The %s and %l specifiers are mutually exclusive '
-                            'in alias definitions.')
+        if isinstance(cmd,basestring):
+            nargs = cmd.count('%s')
+            if nargs>0 and cmd.find('%l')>=0:
+                raise Exception('The %s and %l specifiers are mutually exclusive '
+                                'in alias definitions.')
                   
-        else:  # all looks OK
             self.IP.alias_table[name] = (nargs,cmd)            
     
     def defmacro(self, *args):

@@ -20,7 +20,8 @@ def restore_aliases(self):
     staliases = ip.db.get('stored_aliases', {})
     for k,v in staliases.items():
         #print "restore alias",k,v # dbg
-        self.alias_table[k] = v
+        #self.alias_table[k] = v
+        ip.defalias(k,v)
 
 
 def refresh_variables(ip):

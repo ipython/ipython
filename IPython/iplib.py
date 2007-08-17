@@ -6,7 +6,7 @@ Requires Python 2.3 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 2631 2007-08-15 07:07:36Z fperez $
+$Id: iplib.py 2637 2007-08-17 16:18:05Z vivainio $
 """
 
 #*****************************************************************************
@@ -1742,7 +1742,10 @@ want to merge them back into the new files.""" % locals()
     def transform_alias(self, alias,rest=''):
         """ Transform alias to system command string.
         """
-        nargs,cmd = self.alias_table[alias]
+        trg = self.alias_table[alias]
+
+        nargs,cmd = trg
+        # print trg #dbg
         if ' ' in cmd and os.path.isfile(cmd):
             cmd = '"%s"' % cmd
 

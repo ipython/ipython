@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Magic functions for InteractiveShell.
 
-$Id: Magic.py 2607 2007-08-13 13:25:24Z fperez $"""
+$Id: Magic.py 2637 2007-08-17 16:18:05Z vivainio $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001 Janko Hauser <jhauser@zscout.de> and
@@ -2289,7 +2289,11 @@ Defaulting color scheme to 'NoColor'"""
             res = []
             showlast = []
             for alias in aliases:
-                tgt = atab[alias][1]
+                try:
+                    tgt = atab[alias][1]
+                except TypeError:
+                    # unsubscriptable? probably a callable
+                    tgt = atab[alias]
                 # 'interesting' aliases
                 if (alias in stored or 
                     alias.lower() != os.path.splitext(tgt)[0].lower() or
