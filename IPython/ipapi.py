@@ -64,6 +64,12 @@ print "done!"
 import __builtin__
 import sys
 
+try: # Python 2.3 compatibility
+    set
+except NameError:
+    import sets
+    set = sets.Set
+
 # our own
 #from IPython.genutils import warn,error
  
