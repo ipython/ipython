@@ -184,6 +184,9 @@ class IPApi:
         self.IP = ip
 
         self.extensions = {}
+
+        self.dbg = DebugTools(self)
+        
         global _recent
         _recent = self
 
@@ -222,6 +225,11 @@ class IPApi:
                 
         import new
         im = new.instancemethod(func,self.IP, self.IP.__class__)
+        old = getattr(self.IP, "magic_" + magicname, None)
+        if old:
+            self.dbg.debug_stack("Magic redefinition '%s', old %s" % (magicname,
+                                 old))
+            
         setattr(self.IP, "magic_" + magicname, im)
     
     def ex(self,cmd):
@@ -355,7 +363,15 @@ class IPApi:
         
         Creates a new alias named 'bb' in ipython user namespace
         """
+
+        self.dbg.check_hotname(name)
         
+
+        if name in self.IP.alias_table:
+            self.dbg.debug_stack("Alias redefinition: '%s' => '%s' (old '%s')" %
+                             (name, cmd, self.IP.alias_table[name]))
+            
+
         if callable(cmd):
             self.IP.alias_table[name] = cmd
             import IPython.shadowns
@@ -368,7 +384,11 @@ class IPApi:
                 raise Exception('The %s and %l specifiers are mutually exclusive '
                                 'in alias definitions.')
                   
-            self.IP.alias_table[name] = (nargs,cmd)            
+            self.IP.alias_table[name] = (nargs,cmd)
+            return
+        
+        # just put it in - it's probably (0,'foo')
+        self.IP.alias_table[name] = cmd
     
     def defmacro(self, *args):
         """ Define a new macro
@@ -419,7 +439,35 @@ class IPApi:
             m.init_ipython(self)
         self.extensions[mod] = m
         return m
+    
+
+class DebugTools:
+    """ Used for debugging mishaps in api usage
+    
+    So far, tracing redefinitions is supported.
+    """
+    
+    def __init__(self, ip):
+        self.ip = ip
+        self.debugmode = False
+        self.hotnames = set()
         
+        
+    def hotname(self, name_to_catch):
+        self.hotnames.add(name_to_catch)
+        
+    def debug_stack(self, msg = None):
+        if not self.debugmode:
+            return
+        
+        import traceback
+        if msg is not None:
+            print '====== %s  ========' % msg
+        traceback.print_stack()
+
+    def check_hotname(self,name):
+        if name in self.hotnames:
+            self.debug_stack( "HotName '%s' caught" % name)
 
 def launch_new_instance(user_ns = None):
     """ Make and start a new ipython instance.

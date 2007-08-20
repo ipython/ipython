@@ -6,7 +6,7 @@ Requires Python 2.3 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 2637 2007-08-17 16:18:05Z vivainio $
+$Id: iplib.py 2646 2007-08-20 16:28:48Z vivainio $
 """
 
 #*****************************************************************************
@@ -579,11 +579,12 @@ class InteractiveShell(object,Magic):
         else:
             auto_alias = ()
         self.auto_alias = [s.split(None,1) for s in auto_alias]
-        # Call the actual (public) initializer
-        self.init_auto_alias()
 
         # Produce a public API instance
         self.api = IPython.ipapi.IPApi(self)
+
+        # Call the actual (public) initializer
+        self.init_auto_alias()
 
         # track which builtins we add, so we can clean up later
         self.builtins_added = {}
@@ -1017,7 +1018,8 @@ class InteractiveShell(object,Magic):
         These are ALL parameter-less aliases"""
 
         for alias,cmd in self.auto_alias:
-            self.alias_table[alias] = (0,cmd)
+            self.getapi().defalias(alias,cmd)
+            
 
     def alias_table_validate(self,verbose=0):
         """Update information about the alias table.
@@ -1268,7 +1270,9 @@ want to merge them back into the new files.""" % locals()
     def init_readline(self):
         """Command history completion/saving/reloading."""
 
+
         import IPython.rlineimpl as readline
+                  
         if not readline.have_readline:
             self.has_readline = 0
             self.readline = None
@@ -1618,7 +1622,7 @@ want to merge them back into the new files.""" % locals()
         # Mark activity in the builtins
         __builtin__.__dict__['__IPYTHON__active'] += 1
 
-        if readline.have_readline:
+        if self.has_readline:
             self.readline_startup_hook(self.pre_readline)
         # exit_now is set by a call to %Exit or %Quit
         

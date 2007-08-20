@@ -90,9 +90,11 @@ def main():
         def mapper(s): return s.lower()
         
     for cmd in syscmds:
-        #print "al",cmd
+        # print "sys",cmd #dbg
         noext, ext = os.path.splitext(cmd)
-        ip.IP.alias_table[mapper(noext)] = (0,cmd)
+        key = mapper(noext)
+        if key not in ip.IP.alias_table:
+            ip.defalias(key, cmd)
 
     if 'ls' in syscmds:
         # use the colors of cygwin ls (recommended)

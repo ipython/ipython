@@ -7,13 +7,11 @@ ip = IPython.ipapi.get()
 
 import os,sys
 
-def restore_env(self):
+def restore_env(self):    
     ip = self.getapi()
     env = ip.db.get('stored_env', {'set' : {}, 'add' : [], 'pre' : []})
     for k,v in env['set'].items():
-        #print "restore alias",k,v # dbg
         os.environ[k] = v
-        self.alias_table[k] = v
     for k,v in env['add']:
         os.environ[k] = os.environ.get(k,"") + v
     for k,v in env['pre']:
