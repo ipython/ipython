@@ -38,6 +38,7 @@ isfile = os.path.isfile
 pjoin = os.path.join
 
 from distutils.core import setup
+from distutils import dir_util
 import py2exe
 
 # update the manuals when building a source dist
@@ -89,3 +90,5 @@ if not os.path.isdir("dist/_ipython"):
     os.mkdir("dist/_ipython")
     open("dist/_ipython/ipythonrc.ini","w").write("# intentionally blank\n")
     open("dist/_ipython/ipy_user_conf.py","w").write("import ipy_kitcfg\nimport ipy_profile_sh\n")
+    if os.path.isdir('bin'):
+        dir_util.copy_tree('bin','dist/_ipython/bin')
