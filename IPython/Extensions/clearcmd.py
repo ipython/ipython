@@ -37,10 +37,19 @@ def clear_f(self,arg):
             except AttributeError:
                 print "Clear array only available in -pylab mode"
             gc.collect()                
-        elif target == 'shadow':
+
+        elif target == 'shadow_compress':
+            print "Compressing shadow history"
             api.db.hcompress('shadowhist')
             
+        elif target == 'shadow_nuke':
+            print "Erased all keys from shadow history "
+            for k in ip.db.keys('shadowhist/*'):
+                del ip.db[k]
+            
 ip.expose_magic("clear",clear_f)
+import ipy_completers
+ipy_completers.quick_completer('clear','in out shadow_nuke shadow_compress')
     
 
 
