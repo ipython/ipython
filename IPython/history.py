@@ -24,12 +24,14 @@ def magic_history(self, parameter_s = ''):
 
       This feature is only available if numbered prompts are in use.
 
-      -t: print the 'translated' history, as IPython understands it. IPython
-      filters your input and converts it all into valid Python source before
-      executing it (things like magics or aliases are turned into function
-      calls, for example). With this option, you'll see the native history
-      instead of the user-entered version: '%cd /' will be seen as
+      -t: (default) print the 'translated' history, as IPython understands it.
+      IPython filters your input and converts it all into valid Python source
+      before executing it (things like magics or aliases are turned into
+      function calls, for example). With this option, you'll see the native
+      history instead of the user-entered version: '%cd /' will be seen as
       '_ip.magic("%cd /")' instead of '%cd /'.
+      
+      -r: print the 'raw' history, i.e. the actual commands you typed.
       
       -g: treat the arg as a pattern to grep for in (full) history.
       This includes the "shadow history" (almost all commands ever written).
@@ -44,12 +46,15 @@ def magic_history(self, parameter_s = ''):
     if not shell.outputcache.do_full_cache:
         print 'This feature is only available if numbered prompts are in use.'
         return
-    opts,args = self.parse_options(parameter_s,'gnts',mode='list')
+    opts,args = self.parse_options(parameter_s,'gntsr',mode='list')
 
-    if not opts.has_key('t'):
+    if opts.has_key('t'):
+        input_hist = shell.input_hist
+    elif opts.has_key('r'):
         input_hist = shell.input_hist_raw
     else:
         input_hist = shell.input_hist
+        
     
     default_length = 40
     pattern = None

@@ -6,7 +6,7 @@ Requires Python 2.3 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 2646 2007-08-20 16:28:48Z vivainio $
+$Id: iplib.py 2652 2007-08-22 17:25:24Z vivainio $
 """
 
 #*****************************************************************************
@@ -2046,7 +2046,7 @@ want to merge them back into the new files.""" % locals()
             # only entries starting at first column go to shadow history
             if line.lstrip() == line:
                 self.shadowhist.add(line.strip())
-        else:
+        elif not continue_prompt:
             self.input_hist_raw.append('\n')
         try:
             lineout = self.prefilter(line,continue_prompt)

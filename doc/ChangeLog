@@ -1,3 +1,27 @@
+2007-08-22  Ville Vainio  <vivainio@gmail.com>
+
+	* iplib.py: no extra empty (last) line in raw hist w/ multiline
+        statements
+
+2007-08-21  Ville Vainio  <vivainio@gmail.com>
+
+	* ipmaker.py: finding ipythonrc-PROF now skips ipy_profile_PROF.
+        (for backwards compatibility)
+        
+        * history.py: switch back to %hist -t from %hist -r as default.
+        At least until raw history is fixed for good.
+
+2007-08-20  Ville Vainio  <vivainio@gmail.com>
+
+	* ipapi.py, iplib.py: DebugTools accessible via _ip.dbg, to catch &
+        locate alias redeclarations etc. Also, avoid handling
+        _ip.IP.alias_table directly, prefer using _ip.defalias.
+        
+
+2007-08-15  Ville Vainio  <vivainio@gmail.com>
+
+	* prefilter.py: ! is now always served first
+
 2007-08-15  Fernando Perez  <Fernando.Perez@colorado.edu>
 
 	* IPython/iplib.py (safe_execfile): fix the SystemExit
