@@ -79,7 +79,7 @@ setup(name             = name,
     license          = license,
     platforms        = platforms,
     keywords         = keywords,
-    console          = ['ipython.py'],
+    console          = ['ipykit.py'],
     
     # extra params needed for eggs
     **egg_extra_kwds                        

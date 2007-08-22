@@ -18,6 +18,10 @@
         * genutils.py, Prompts.py, Magic.py: win32 - prompt (with \yDEPTH) and
         term title now include the drive letter, and always use / instead of
         os.sep (as per recommended approach for win32 ipython in general).
+        
+        * ipykit.py, ipy_kitcfg.py: special launcher for ipykit. Allows running
+        plain python scripts from ipykit command line by running
+        "py myscript.py", even w/o installed python.
 
 2007-08-21  Ville Vainio  <vivainio@gmail.com>
 
