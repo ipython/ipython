@@ -51,7 +51,7 @@ def clear_f(self,arg):
             
 ip.expose_magic("clear",clear_f)
 import ipy_completers
-ipy_completers.quick_completer('clear','in out shadow_nuke shadow_compress')
+ipy_completers.quick_completer('%clear','in out shadow_nuke shadow_compress')
     
 
 

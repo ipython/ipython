@@ -229,5 +229,7 @@ def init_ipython(ip):
     ip.expose_magic("rep",rep_f)        
     ip.expose_magic("hist",magic_hist)            
     ip.expose_magic("history",magic_history)
-    
+
+    import ipy_completers
+    ipy_completers.quick_completer('%hist' ,'-g -t -r -n')
 #test_shist()
