@@ -23,13 +23,15 @@ def clear_f(self,arg):
         elif target == 'in':
             print "Flushing input history"
             from IPython import iplib
-            del self.input_hist[:]
-            del self.input_hist_raw[:]
-            for n in range(1,self.outputcache.prompt_count + 1):
+            pc = self.outputcache.prompt_count + 1
+            for n in range(1, pc):
                 key = '_i'+`n`
                 try:
                     del self.user_ns[key]
                 except: pass
+            # must be done in-place
+            self.input_hist[:] = ['\n'] * pc 
+            self.input_hist_raw[:] = ['\n'] * pc
         elif target == 'array':
             try:
                 pylab=ip.IP.pylab

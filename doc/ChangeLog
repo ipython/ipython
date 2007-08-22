@@ -10,7 +10,8 @@
         * ipy_completers.py: quick_completer now makes it easy to create
         trivial custom completers
         
-        * clearcmd.py: shadow history compression & erasing
+        * clearcmd.py: shadow history compression & erasing, fixed input hist
+        clearing.
         
         * envpersist.py, history.py: %env (sh profile only), %hist completers
         
