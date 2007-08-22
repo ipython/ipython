@@ -5,7 +5,7 @@ General purpose utilities.
 This is a grab-bag of stuff I find useful in most programs I write. Some of
 these things are also convenient when working at the command line.
 
-$Id: genutils.py 2659 2007-08-22 20:21:07Z vivainio $"""
+$Id: genutils.py 2661 2007-08-22 20:43:34Z vivainio $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2006 Fernando Perez. <fperez@colorado.edu>
@@ -1007,6 +1007,15 @@ class SList(list):
             return self.__paths
     
     p = paths = property(get_paths)
+
+def print_slist(arg):
+    """ Prettier (non-repr-like) and more informative printer for SList """
+    print "SList (.p, .n, .l, .s available). Value:"
+    nlprint(arg)
+    
+print_slist = result_display.when_type(SList)(print_slist)
+
+
 
 #----------------------------------------------------------------------------
 def esc_quotes(strng):
