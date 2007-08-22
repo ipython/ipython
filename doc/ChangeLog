@@ -2,6 +2,10 @@
 
 	* iplib.py: no extra empty (last) line in raw hist w/ multiline
         statements
+        
+        * logger.py: Fix bug where blank lines in history were not
+        added until AFTER adding the current line; translated and raw
+        history should finally be in sync with prompt now.
 
 2007-08-21  Ville Vainio  <vivainio@gmail.com>
 

@@ -2,7 +2,7 @@
 """
 Logger class for IPython's logging facilities.
 
-$Id: Logger.py 1336 2006-05-30 06:09:15Z fperez $
+$Id: Logger.py 2653 2007-08-22 18:01:09Z vivainio $
 """
 
 #*****************************************************************************
@@ -196,6 +196,13 @@ which already exists. But you must first start the logging process with
             print 'userns:',self.shell.user_ns.keys()
             return
         
+        out_cache = self.shell.outputcache
+
+        # add blank lines if the input cache fell out of sync.
+        if out_cache.do_full_cache and \
+            out_cache.prompt_count +1 > len(input_hist):
+            input_hist.extend(['\n'] * (out_cache.prompt_count - len(input_hist)))
+            
         if not continuation and line_mod:
             self._iii = self._ii
             self._ii = self._i
@@ -210,11 +217,7 @@ which already exists. But you must first start the logging process with
         to_main = {'_i':self._i,'_ii':self._ii,'_iii':self._iii}
         if self.shell.outputcache.do_full_cache:
             in_num = self.shell.outputcache.prompt_count
-            # add blank lines if the input cache fell out of sync. This can
-            # happen for embedded instances which get killed via C-D and then
-            # get resumed.
-            while in_num >= len(input_hist):
-                input_hist.append('\n')
+
             # but if the opposite is true (a macro can produce multiple inputs
             # with no output display called), then bring the output counter in
             # sync:
