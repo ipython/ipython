@@ -5,7 +5,7 @@ General purpose utilities.
 This is a grab-bag of stuff I find useful in most programs I write. Some of
 these things are also convenient when working at the command line.
 
-$Id: genutils.py 2602 2007-08-12 22:45:38Z fperez $"""
+$Id: genutils.py 2659 2007-08-22 20:21:07Z vivainio $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2006 Fernando Perez. <fperez@colorado.edu>
@@ -300,6 +300,19 @@ def system(cmd,verbose=0,debug=0,header=''):
     if not debug: stat = os.system(cmd)
     return stat
 
+def abbrev_cwd():
+    """ Return abbreviated version of cwd, e.g. d:mydir """
+    cwd = os.getcwd()
+    drivepart = ''
+    if sys.platform == 'win32':
+        if len(cwd) < 4:
+            return cwd
+        drivepart = os.path.splitdrive(cwd)[0]
+    return (drivepart + (
+        cwd == '/' and '/' or \
+        os.path.basename(cwd)))
+    
+
 # This function is used by ipython in a lot of places to make system calls.
 # We need it to be slightly different under win32, due to the vagaries of
 # 'network shares'.  A win32 override is below.
@@ -326,9 +339,9 @@ def shell(cmd,verbose=0,debug=0,header=''):
     sys.stdout.flush()
     
     if not debug:
-        platutils.set_term_title("IPy:" + cmd)
+        platutils.set_term_title("IPy " + cmd)
         os.system(cmd)
-        platutils.set_term_title("IPy:" + os.path.basename(os.getcwd()))
+        platutils.set_term_title("IPy " + abbrev_cwd())
 
 # override shell() for win32 to deal with network shares
 if os.name in ('nt','dos'):

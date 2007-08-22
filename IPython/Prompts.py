@@ -2,7 +2,7 @@
 """
 Classes for handling input/output prompts.
 
-$Id: Prompts.py 2601 2007-08-10 07:01:29Z fperez $"""
+$Id: Prompts.py 2659 2007-08-22 20:21:07Z vivainio $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2006 Fernando Perez <fperez@colorado.edu>
@@ -309,10 +309,15 @@ class BasePrompt(object):
         $HOME is always replaced with '~'.
         If depth==0, the full path is returned."""
 
-        cwd = os.getcwd().replace(HOME,"~").split(os.sep)
+        full_cwd = os.getcwd()
+        cwd = full_cwd.replace(HOME,"~").split(os.sep)
         if '~' in cwd and len(cwd) == depth+1:
             depth += 1
-        out = os.sep.join(cwd[-depth:])
+        drivepart = ''
+        if sys.platform == 'win32' and len(cwd) > depth:
+            drivepart = os.path.splitdrive(full_cwd)[0]
+        out = drivepart + '/'.join(cwd[-depth:])
+
         if out:
             return out
         else:
