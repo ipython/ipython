@@ -18,7 +18,7 @@ TIMEOUT_STORAGE = 3 #Time in seconds after which the rootmodules will be stored
 TIMEOUT_GIVEUP = 20 #Time in seconds after which we give up
 
 def quick_completer(cmd, completions):
-    """ Easily create a completer a trivial completer for a command.
+    """ Easily create a trivial completer for a command.
 
     Takes either a list of completions, or all completions in string
     (that will be split on whitespace)
@@ -27,8 +27,7 @@ def quick_completer(cmd, completions):
     
         [d:\ipython]|1> import ipy_completers                                       
         [d:\ipython]|2> ipy_completers.quick_completer('foo', ['bar','baz'])        
-        [d:\ipython]|3> foo boooo                                                   
-    
+        [d:\ipython]|3> foo b<TAB>
         bar baz                                                                     
         [d:\ipython]|3> foo ba
     """

@@ -6,6 +6,11 @@
         * logger.py: Fix bug where blank lines in history were not
         added until AFTER adding the current line; translated and raw
         history should finally be in sync with prompt now.
+        
+        * ipy_completers.py: quick_completer now makes it easy to create
+        trivial custom completers
+        
+        * clearcmd.py: shadow history compression & erasing
 
 2007-08-21  Ville Vainio  <vivainio@gmail.com>
 

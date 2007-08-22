@@ -11,6 +11,8 @@ def clear_f(self,arg):
     
     %clear out - clear output history
     %clear in  - clear input history
+    %clear shadow_compress - Compresses shadow history (to speed up ipython)
+    %clear shadow_nuke - permanently erase all entries in shadow history
     """
     
     api = self.getapi()
