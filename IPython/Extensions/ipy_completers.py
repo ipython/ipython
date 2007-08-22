@@ -17,6 +17,29 @@ ip = IPython.ipapi.get()
 TIMEOUT_STORAGE = 3 #Time in seconds after which the rootmodules will be stored
 TIMEOUT_GIVEUP = 20 #Time in seconds after which we give up
 
+def quick_completer(cmd, completions):
+    """ Easily create a completer a trivial completer for a command.
+
+    Takes either a list of completions, or all completions in string
+    (that will be split on whitespace)
+    
+    Example::
+    
+        [d:\ipython]|1> import ipy_completers                                       
+        [d:\ipython]|2> ipy_completers.quick_completer('foo', ['bar','baz'])        
+        [d:\ipython]|3> foo boooo                                                   
+    
+        bar baz                                                                     
+        [d:\ipython]|3> foo ba
+    """
+    if isinstance(completions, basestring):
+        
+        completions = completions.split()
+    def do_complete(self,event):
+        return completions
+    
+    ip.set_hook('complete_command',do_complete, str_key = cmd)
+    
 def getRootModules():
     """
     Returns a list containing the names of all the modules available in the

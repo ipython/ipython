@@ -37,7 +37,8 @@ def clear_f(self,arg):
             except AttributeError:
                 print "Clear array only available in -pylab mode"
             gc.collect()                
-            
+        elif target == 'shadow':
+            api.db.hcompress('shadowhist')
             
 ip.expose_magic("clear",clear_f)
     
