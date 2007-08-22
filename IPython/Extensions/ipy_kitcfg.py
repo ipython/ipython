@@ -24,6 +24,7 @@ def main():
     
     ip.defalias('py',selflaunch)
     
+    ip.defalias('ls','ls -F')
 
 main()
 
