@@ -11,6 +11,8 @@
         trivial custom completers
         
         * clearcmd.py: shadow history compression & erasing
+        
+        * envpersist.py, history.py: %env (sh profile only), %hist completers
 
 2007-08-21  Ville Vainio  <vivainio@gmail.com>
 

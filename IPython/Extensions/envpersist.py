@@ -35,8 +35,6 @@ def persist_env(self, parameter_s=''):
     %env -p          - print all persistent env modifications 
     """
     
-    
-    
     if not parameter_s.strip():
         return os.environ.data
     
@@ -82,8 +80,11 @@ def persist_env(self, parameter_s=''):
         os.environ[k] = v
         
     db['stored_env'] = env
-    
 
-    
+def env_completer(self,event):
+    """ Custom completer that lists all env vars """
+    return os.environ.keys()
 
 ip.expose_magic('env', persist_env)
+ip.set_hook('complete_command',env_completer, str_key = '%env')
+
