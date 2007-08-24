@@ -85,10 +85,18 @@ setup(name             = name,
     **egg_extra_kwds                        
     )
 
+minimal_conf = """
+import IPython.ipapi
+ip = IPython.ipapi.get()
+import ipy_profile_sh
+ip.load('ipy_kitcfg')
+
+"""
+
 if not os.path.isdir("dist/_ipython"):
     print "Creating simple _ipython dir"
     os.mkdir("dist/_ipython")
     open("dist/_ipython/ipythonrc.ini","w").write("# intentionally blank\n")
-    open("dist/_ipython/ipy_user_conf.py","w").write("import ipy_kitcfg\nimport ipy_profile_sh\n")
+    open("dist/_ipython/ipy_user_conf.py","w").write(minimal_conf)
     if os.path.isdir('bin'):
         dir_util.copy_tree('bin','dist/_ipython/bin')

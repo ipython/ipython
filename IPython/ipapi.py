@@ -433,6 +433,16 @@ class IPApi:
         self.IP.rl_next_input = s
 
     def load(self, mod):
+        """ Load an extension.
+        
+        Some modules should (or must) be 'load()':ed, rather than just imported.
+        
+        Loading will do:
+        
+        - run init_ipython(ip)
+        - run ipython_firstrun(ip)
+        
+        """
         if mod in self.extensions:
             # just to make sure we don't init it twice
             # note that if you 'load' a module that has already been
@@ -443,6 +453,14 @@ class IPApi:
         m = sys.modules[mod]
         if hasattr(m,'init_ipython'):
             m.init_ipython(self)
+            
+        if hasattr(m,'ipython_firstrun'):
+            already_loaded = self.db.get('firstrun_done', set())
+            if mod not in already_loaded:
+                m.ipython_firstrun(self)
+                already_loaded.add(mod)
+                self.db['firstrun_done'] = already_loaded
+            
         self.extensions[mod] = m
         return m
     

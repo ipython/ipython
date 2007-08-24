@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Magic functions for InteractiveShell.
 
-$Id: Magic.py 2663 2007-08-22 21:46:52Z vivainio $"""
+$Id: Magic.py 2668 2007-08-24 17:10:46Z vivainio $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001 Janko Hauser <jhauser@zscout.de> and
@@ -2298,7 +2298,7 @@ Defaulting color scheme to 'NoColor'"""
                 special = False
                 try:
                     tgt = atab[alias][1]
-                except TypeError:
+                except (TypeError, AttributeError):
                     # unsubscriptable? probably a callable
                     tgt = atab[alias]
                     special = True

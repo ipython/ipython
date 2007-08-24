@@ -19,8 +19,31 @@ import IPython.ipapi
 ip = IPython.ipapi.get()
 
 
-import os,re,fnmatch
+import os,re,fnmatch,sys
 
+def selflaunch(line):
+    """ Launch python script with 'this' interpreter
+    
+    e.g. d:\foo\ipython.exe a.py
+    
+    """
+    cmd = sys.executable + ' ' + line.split(None,1)[1]
+    print ">",cmd
+    os.system(cmd)
+
+class PyLauncher:
+    """ Invoke selflanucher on the specified script
+    
+    This is mostly useful for associating with scripts using::
+        _ip.defalias('foo',PyLauncher('foo_script.py'))
+    
+    """
+    def __init__(self,script):
+        self.script = os.path.abspath(script)
+    def __call__(self, line):
+        selflaunch("py " + self.script + ' ' + line)
+    def __repr__(self):
+        return 'PyLauncher("%s")' % self.script
 def rehashdir_f(self,arg):
     """ Add executables in all specified dirs to alias table
      
@@ -95,4 +118,5 @@ def rehashdir_f(self,arg):
     finally:
         os.chdir(savedir)
     return created
+
 ip.expose_magic("rehashdir",rehashdir_f)
