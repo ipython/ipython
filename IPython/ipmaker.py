@@ -6,7 +6,7 @@ Requires Python 2.1 or better.
 
 This file contains the main make_IPython() starter function.
 
-$Id: ipmaker.py 2649 2007-08-21 18:19:20Z vivainio $"""
+$Id: ipmaker.py 2672 2007-08-26 09:15:26Z vivainio $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2006 Fernando Perez. <fperez@colorado.edu>
@@ -654,6 +654,9 @@ object? -> Details about 'object'. ?object also works, ?? prints more.
         print "Error importing ipy_user_conf - perhaps you should run %upgrade?"
         IP.InteractiveTB()
         import_fail_info("ipy_user_conf")
+
+    # finally, push the argv to options again to ensure highest priority
+    IP_rc.update(opts)
     
     # release stdout and stderr and save config log into a global summary
     msg.config.release_all()

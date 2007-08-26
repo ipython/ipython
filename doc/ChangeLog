@@ -1,3 +1,7 @@
+2007-08-26  Ville Vainio  <vivainio@gmail.com>
+
+	* ipmaker.py: Command line args have the highest priority again
+    
 2007-08-22  Ville Vainio  <vivainio@gmail.com>
 
 	* iplib.py: no extra empty (last) line in raw hist w/ multiline
