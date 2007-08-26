@@ -1,7 +1,12 @@
 2007-08-26  Ville Vainio  <vivainio@gmail.com>
 
 	* ipmaker.py: Command line args have the highest priority again
+        
+        * iplib.py, ipmaker.py: -i command line argument now behaves as in
+        normal python, i.e. leaves the IPython session running after -c
+        command or running a batch file from command line.
     
+        * 
 2007-08-22  Ville Vainio  <vivainio@gmail.com>
 
 	* iplib.py: no extra empty (last) line in raw hist w/ multiline

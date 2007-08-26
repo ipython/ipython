@@ -6,7 +6,7 @@ Requires Python 2.3 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 2652 2007-08-22 17:25:24Z vivainio $
+$Id: iplib.py 2674 2007-08-26 12:34:05Z vivainio $
 """
 
 #*****************************************************************************
@@ -698,6 +698,7 @@ class InteractiveShell(object,Magic):
         # Load user aliases
         for alias in rc.alias:
             self.magic_alias(alias)
+        
         self.hooks.late_startup_hook()
         
         batchrun = False
@@ -708,7 +709,8 @@ class InteractiveShell(object,Magic):
                 continue
             self.api.runlines(batchfile.text())
             batchrun = True
-        if batchrun:
+        # without -i option, exit after running the batch file
+        if batchrun and not self.rc.interact:
             self.exit_now = True            
 
     def add_builtins(self):
@@ -1522,7 +1524,8 @@ want to merge them back into the new files.""" % locals()
 
         #sys.argv = ['-c']
         self.push(self.prefilter(self.rc.c, False))
-        self.exit_now = True
+        if not self.rc.interact:
+            self.exit_now = True
 
     def embed_mainloop(self,header='',local_ns=None,global_ns=None,stack_depth=0):
         """Embeds IPython into a running python program.
@@ -1621,7 +1624,7 @@ want to merge them back into the new files.""" % locals()
         
         # Mark activity in the builtins
         __builtin__.__dict__['__IPYTHON__active'] += 1
-
+        
         if self.has_readline:
             self.readline_startup_hook(self.pre_readline)
         # exit_now is set by a call to %Exit or %Quit

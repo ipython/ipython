@@ -476,7 +476,6 @@ class DebugTools:
         self.debugmode = False
         self.hotnames = set()
         
-        
     def hotname(self, name_to_catch):
         self.hotnames.add(name_to_catch)
         
