@@ -16,7 +16,7 @@ def restore_env(self):
         os.environ[k] = os.environ.get(k,"") + v
     for k,v in env['pre']:
         os.environ[k] = v + os.environ.get(k,"")
-
+    raise IPython.ipapi.TryNext
   
 ip.set_hook('late_startup_hook', restore_env)
 
