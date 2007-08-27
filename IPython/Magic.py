@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Magic functions for InteractiveShell.
 
-$Id: Magic.py 2668 2007-08-24 17:10:46Z vivainio $"""
+$Id: Magic.py 2675 2007-08-27 17:51:15Z vivainio $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001 Janko Hauser <jhauser@zscout.de> and
@@ -2517,7 +2517,7 @@ Defaulting color scheme to 'NoColor'"""
             dhist = self.shell.user_ns['_dh']
             dhist.append(cwd)
             self.db['dhist'] = compress_dhist(dhist)[-100:]
-        if not 'q' in opts:
+        if not 'q' in opts and self.shell.user_ns['_dh']:
             print self.shell.user_ns['_dh'][-1]
 
 

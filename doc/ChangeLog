@@ -1,3 +1,7 @@
+2007-08-27  Ville Vainio  <vivainio@gmail.com>
+
+	* Magic.py: fix %cd for nonexistent dir when dhist is empty, close #180
+
 2007-08-26  Ville Vainio  <vivainio@gmail.com>
 
 	* ipmaker.py: Command line args have the highest priority again
