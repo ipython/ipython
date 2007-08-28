@@ -55,7 +55,10 @@ def export(filename = None):
     if aliases:
         lines.extend(['','# === Alias definitions ===',''])
         for k,v in aliases.items():
-            lines.append("ip.defalias('%s', %s)" % (k, repr(v[1])))
+            try:
+                lines.append("ip.defalias('%s', %s)" % (k, repr(v[1])))
+            except (AttributeError, TypeError):
+                pass
 
     env = ip.db.get('stored_env')
     if env:
