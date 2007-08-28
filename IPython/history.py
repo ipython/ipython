@@ -173,9 +173,13 @@ def rep_f(self, arg):
                 return
         
 
-    lines = self.extract_input_slices(args, True)
-    print "lines",lines
-    ip.runlines(lines)
+    try:
+        lines = self.extract_input_slices(args, True)
+        print "lines",lines
+        ip.runlines(lines)
+    except ValueError:
+        print "Not found in recent history:", args
+        
 
 
 _sentinel = object()
