@@ -6,7 +6,7 @@
 #  the file COPYING, distributed as part of this software.
 #*****************************************************************************
 
-# $Id: usage.py 2152 2007-03-18 20:13:35Z fperez $
+# $Id: usage.py 2683 2007-08-28 20:01:15Z vivainio $
 
 from IPython import Release
 __author__  = '%s <%s>' % Release.authors['Fernando']
@@ -618,17 +618,18 @@ cp a.txt b/      : after %rehashx, most system commands work without !
 cp ${f}.txt $bar : Variable expansion in magics and system commands
 files = !ls /usr : Capture sytem command output
 files.s, files.l, files.n: "a b c", ['a','b','c'], 'a\nb\nc'
-cd /usr/share    : Obvious, also 'cd d:\home\_ipython' works
+cd /usr/share    : Obvious. cd -<tab> to choose from visited dirs.
 
 History:
 
 _i, _ii, _iii    : Previous, next previous, next next previous input
 _i4, _ih[2:5]    : Input history line 4, lines 2-4
 exec _i81        : Execute input history line #81 again
+%rep 81          : Edit input history line #81        
 _, __, ___       : previous, next previous, next next previous output
 _dh              : Directory history
 _oh              : Output history
-%hist            : Command history
+%hist            : Command history. '-g foo' search history for 'foo'
 
 Autocall:
 
