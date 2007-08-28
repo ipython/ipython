@@ -6,7 +6,7 @@ Requires Python 2.1 or better.
 
 This file contains the main make_IPython() starter function.
 
-$Id: ipmaker.py 2674 2007-08-26 12:34:05Z vivainio $"""
+$Id: ipmaker.py 2684 2007-08-28 20:05:40Z vivainio $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2006 Fernando Perez. <fperez@colorado.edu>
@@ -111,7 +111,8 @@ def make_IPython(argv=None,user_ns=None,user_global_ns=None,debug=1,
                          % (sys.version.split('\n')[0],),
                          "IPython %s -- An enhanced Interactive Python."
                          % (__version__,),
-"""?       -> Introduction to IPython's features.
+"""\
+? or %quickref -> Introduction to IPython's features, or quick reference.
 %magic  -> Information about IPython's 'magic' % functions.
 help    -> Python's own help system.
 object? -> Details about 'object'. ?object also works, ?? prints more.
