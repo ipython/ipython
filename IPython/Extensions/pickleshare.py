@@ -134,7 +134,12 @@ class PickleShareDB(UserDict.DictMixin):
         
         for f in hfiles:
             # print "using",f
-            all.update(self[f])
+            try:
+                all.update(self[f])
+            except KeyError:
+                print "Corrupt",f,"deleted - hset is not threadsafe!"
+                del self[f]
+                
             self.uncache(f)
         
         return all
