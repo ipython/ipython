@@ -3,7 +3,7 @@
 import IPython.ipapi
 ip = IPython.ipapi.get()
 
-import os
+import os, subprocess
 
 workdir = None
 def workdir_f(line):
@@ -16,12 +16,7 @@ def workdir_f(line):
         print "Please set workdir first by doing e.g. 'workdir q:/'"
     else:
         print "Execute command in",workdir
-        cwd = os.getcwd()
-        os.chdir(workdir)
-        try:
-            ip.runlines(cmd)
-        finally:
-            os.chdir(cwd)
+        ret = subprocess.call(cmd, shell = True, cwd = workdir)
 
 ip.defalias("workdir",workdir_f)
         
