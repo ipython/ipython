@@ -136,7 +136,7 @@ import astyle
 __all__ = [
     "ifile", "ils", "iglob", "iwalk", "ipwdentry", "ipwd", "igrpentry", "igrp",
     "icsv", "ix", "ichain", "isort", "ifilter", "ieval", "ienum",
-    "ienv", "ihist", "icap", "idump", "iless", "igrep"
+    "ienv", "ihist", "icap", "idump", "iless"
 ]
 
 
@@ -1499,10 +1499,6 @@ class Fields(object):
         else:
             yield (astyle.style_default, repr(self))
 
-    def __str__(self):
-        return ",".join([getattr(self,f) for f in self.__fieldnames])
-            
-        
 
 class FieldTable(Table, list):
     def __init__(self, *fields):
@@ -1766,12 +1762,6 @@ class ifilter(Pipe):
             (self.__class__.__module__, self.__class__.__name__,
              self.expr, id(self))
 
-def igrep(pat):
-    """ Filter an input pipe. Only yield items that contain the substring pat
-    
-    This is case insensitive.
-    """
-    return ifilter('"""%s""" in str(_).lower()' % pat.lower())
 
 class ieval(Pipe):
     """
