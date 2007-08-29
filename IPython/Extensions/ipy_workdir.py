@@ -15,7 +15,14 @@ def workdir_f(line):
     elif workdir is None:
         print "Please set workdir first by doing e.g. 'workdir q:/'"
     else:
-        print "Execute command in",workdir
+        sp = cmd.split(None,1)
+        if len(sp) == 1:
+            head, tail = cmd, ''
+        else:
+            head, tail = sp
+        if os.path.isfile(head):
+            cmd = os.path.abspath(head) + ' ' + tail
+        print "Execute command",cmd,"in",workdir
         ret = subprocess.call(cmd, shell = True, cwd = workdir)
 
 ip.defalias("workdir",workdir_f)
