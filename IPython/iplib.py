@@ -6,7 +6,7 @@ Requires Python 2.3 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 2695 2007-08-30 17:12:23Z fperez $
+$Id: iplib.py 2696 2007-08-30 17:17:15Z fperez $
 """
 
 #*****************************************************************************
@@ -689,7 +689,9 @@ class InteractiveShell(object,Magic):
         try:
             doctest.DocTestRunner
         except AttributeError:
-            # This is only for python 2.3 compatibility, remove once we move to 2.4 only.
+            # This is only for python 2.3 compatibility, remove once we move to
+            # 2.4 only.
+            pass
         else:
             doctest.DocTestRunner.run = dhook_wrap(doctest.DocTestRunner.run)
 
