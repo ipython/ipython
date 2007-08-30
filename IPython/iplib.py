@@ -6,7 +6,7 @@ Requires Python 2.3 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 2674 2007-08-26 12:34:05Z vivainio $
+$Id: iplib.py 2695 2007-08-30 17:12:23Z fperez $
 """
 
 #*****************************************************************************
@@ -686,7 +686,12 @@ class InteractiveShell(object,Magic):
         # completely.  For this reason, a hard monkeypatch seems like a
         # reasonable solution rather than asking users to manually use a
         # different doctest runner when under IPython.
-        doctest.DocTestRunner.run = dhook_wrap(doctest.DocTestRunner.run)
+        try:
+            doctest.DocTestRunner
+        except AttributeError:
+            # This is only for python 2.3 compatibility, remove once we move to 2.4 only.
+        else:
+            doctest.DocTestRunner.run = dhook_wrap(doctest.DocTestRunner.run)
 
         # Set user colors (don't do it in the constructor above so that it
         # doesn't crash if colors option is invalid)
