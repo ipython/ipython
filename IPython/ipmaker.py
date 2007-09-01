@@ -6,7 +6,7 @@ Requires Python 2.1 or better.
 
 This file contains the main make_IPython() starter function.
 
-$Id: ipmaker.py 2684 2007-08-28 20:05:40Z vivainio $"""
+$Id: ipmaker.py 2704 2007-09-01 14:32:05Z vivainio $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2006 Fernando Perez. <fperez@colorado.edu>
@@ -632,28 +632,21 @@ object? -> Details about 'object'. ?object also works, ?? prints more.
         profmodname = 'ipy_profile_' + opts_all.profile
         try:
             __import__(profmodname)
-        except ImportError:
-            # only warn if ipythonrc-PROFNAME didn't exist
-            if opts.profile =='':
-                warn("Could not start with profile '%s'!\n"
-                     "('%s/%s.py' does not exist? run '%%upgrade')" %
-                     (opts_all.profile, opts_all.ipythondir, profmodname) )
-        except:            
-            print "Error importing",profmodname,"- perhaps you should run %upgrade?"
+        except:
             IP.InteractiveTB()
+            print "Error importing",profmodname,"- perhaps you should run %upgrade?"
             import_fail_info(profmodname)
     else:
         import ipy_profile_none
     try:    
         import ipy_user_conf
-    except ImportError:
-        if opts_all.debug:  IP.InteractiveTB()
-        warn("Could not import user config!\n "
-             "('%s/ipy_user_conf.py' does not exist? Please run '%%upgrade')\n"
-             % opts_all.ipythondir)
+        
     except:
-        print "Error importing ipy_user_conf - perhaps you should run %upgrade?"
+        conf = opts_all.ipythondir + "/ipy_user_conf.py"
         IP.InteractiveTB()
+        if not os.path.isfile(conf):
+            warn(conf + ' does not exist, please run %upgrade!')
+
         import_fail_info("ipy_user_conf")
 
     # finally, push the argv to options again to ensure highest priority
