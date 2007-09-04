@@ -1,6 +1,7 @@
 2007-09-04  Ville Vainio  <vivainio@gmail.com>
 
 	* ipy_profile_zope.py: add zope profile, by Stefan Eletzhofer.
+	Relicensed under BSD with the authors approval.
 
 2007-09-03  Ville Vainio  <vivainio@gmail.com>
 

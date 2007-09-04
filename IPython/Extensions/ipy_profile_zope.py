@@ -7,11 +7,8 @@
 # An ipython profile for zope and plone. Some ideas
 # stolen from http://www.tomster.org.
 #
-# German Free Software License (D-FSL)
-#
-# This Program may be used by anyone in accordance with the terms of the 
-# German Free Software License
-# The License may be obtained under <http://www.d-fsl.org>.
+#  Distributed under the terms of the BSD License.  The full license is in
+#  the file COPYING, distributed as part of this software.
 
 __author__ = """Stefan Eletzhofer <stefan.eletzhofer@inquant.de>"""
 __docformat__ = 'plaintext'
