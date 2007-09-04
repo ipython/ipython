@@ -6,7 +6,7 @@
 #  the file COPYING, distributed as part of this software.
 #*****************************************************************************
 
-# $Id: usage.py 2683 2007-08-28 20:01:15Z vivainio $
+# $Id: usage.py 2710 2007-09-04 21:10:10Z vivainio $
 
 from IPython import Release
 __author__  = '%s <%s>' % Release.authors['Fernando']
@@ -605,11 +605,16 @@ IPython -- An enhanced Interactive Python - Quick Reference Card
 obj?, obj??, ?obj,??obj   : Get help, or more help for object
 ?os.p*           : List names in os starting with p
 
-Example magic:
-    
+Magic functions are prefixed by %, and typically take their arguments without
+parentheses, quotes or even commas for convenience.
+ 
+Example magic function calls:
+
 %alias d ls -F   : 'd' is now an alias for 'ls -F'
 alias d ls -F    : Works if 'alias' not a python name
 alist = %alias   : Get list of aliases to 'alist'
+cd /usr/share    : Obvious. cd -<tab> to choose from visited dirs.
+%cd??            : See help AND source for magic %cd
 
 System commands:
     
@@ -618,7 +623,6 @@ cp a.txt b/      : after %rehashx, most system commands work without !
 cp ${f}.txt $bar : Variable expansion in magics and system commands
 files = !ls /usr : Capture sytem command output
 files.s, files.l, files.n: "a b c", ['a','b','c'], 'a\nb\nc'
-cd /usr/share    : Obvious. cd -<tab> to choose from visited dirs.
 
 History:
 
@@ -629,7 +633,7 @@ exec _i81        : Execute input history line #81 again
 _, __, ___       : previous, next previous, next next previous output
 _dh              : Directory history
 _oh              : Output history
-%hist            : Command history. '-g foo' search history for 'foo'
+%hist            : Command history. '%hist -g foo' search history for 'foo'
 
 Autocall:
 
@@ -637,6 +641,11 @@ f 1,2            : f(1,2)
 /f 1,2           : f(1,2) (forced autoparen)
 ,f 1 2           : f("1","2")
 ;f 1 2           : f("1 2")
+
+Remember: TAB completion works in many contexts, not just file names
+or python names.
+
+The following magic functions are currently available:
 
 """
 
