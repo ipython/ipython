@@ -1,3 +1,8 @@
+2007-09-03  Ville Vainio  <vivainio@gmail.com>
+
+	* Magic.py: %time now passes expression through prefilter,
+	allowing IPython syntax.
+
 2007-09-01  Ville Vainio  <vivainio@gmail.com>
 
 	* ipmaker.py: Always show full traceback when newstyle config fails
