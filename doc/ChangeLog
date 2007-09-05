@@ -4,12 +4,16 @@
 	of ['dirname/foo','dirname/bar', ...].
         
 	* Extensions/ipy_fsops.py: added, has usefull shell utils for plain
-	win32 installations: icp, imv, imkdir, igrep, collect (collect
+	win32 installations: icp, imv, imkdir, igrep, irm, collect (collect
 	is useful for others as well).
 
 	* iplib.py: on callable aliases (as opposed to old style aliases),
 	do var_expand() immediately, and use make_quoted_expr instead
 	of hardcoded r"""
+
+	* Extensions/ipy_profile_sh.py: Try to detect cygwin on win32,
+	if not available load ipy_fsops.py for cp, mv, etc. replacements
+        
         
 2007-09-04  Ville Vainio  <vivainio@gmail.com>
 

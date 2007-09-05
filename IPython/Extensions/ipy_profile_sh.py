@@ -36,7 +36,6 @@ def main():
     import ipy_rehashdir
     import ipy_signals
     
-    
     ip.ex('import os')
     ip.ex("def up(): os.chdir('..')")
         
@@ -52,14 +51,10 @@ def main():
     # I like my banner minimal.
     o.banner = "IPython %s   [on Py %s]\n" % (Release.version,sys.version.split(None,1)[0])
     
-    # make 'd' an alias for ls -F
-    
-    # ip.magic('alias d ls -F --color=auto')
     
     ip.IP.default_option('cd','-q')
     
-    # If you only rarely want to execute the things you %edit...
-    
+    # If you only rarely want to execute the things you %edit...  
     #ip.IP.default_option('edit','-x')
     
 
@@ -83,7 +78,7 @@ def main():
         ip.magic('rehashx')
         syscmds = db.get("syscmdlist")
     
-    # locase aliases on win#2 only
+    # lowcase aliases on win32 only
     if os.name == 'posix':
         mapper = lambda s:s
     else:
@@ -96,11 +91,20 @@ def main():
         if key not in ip.IP.alias_table:
             ip.defalias(key, cmd)
 
-    if 'ls' in syscmds:
-        # use the colors of cygwin ls (recommended)
-        ip.magic('alias d ls -F --color=auto')
     # mglob combines 'find', recursion, exclusion... '%mglob?' to learn more
     ip.load("IPython.external.mglob")    
+
+    # win32 is crippled w/o cygwin, try to help it a little bit
+    if sys.platform == 'win32':
+        if 'cygwin' in os.environ['PATH'].lower():          
+            # use the colors of cygwin ls (recommended)
+            ip.defalias('d', 'ls -F --color=auto')
+        else:
+            # get icp, imv, imkdir, igrep, irm,...
+            ip.load('ipy_fsops')
+            
+            # and the next best thing to real 'ls -F'
+            ip.defalias('d','dir /w /og /on')
     
     extend_shell_behavior(ip)
 
