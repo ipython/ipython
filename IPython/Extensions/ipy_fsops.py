@@ -165,7 +165,7 @@ def inote(arg):
     fname = ip.options.ipythondir + '/notes.txt'
     
     try:
-        entry = time.asctime() + ':\n' + arg.split(None,1)[1] + '\n'
+        entry = " === " + time.asctime() + ': ===\n' + arg.split(None,1)[1] + '\n'
         f= open(fname, 'a').write(entry)    
     except IndexError:
         ip.IP.hooks.editor(fname)        
