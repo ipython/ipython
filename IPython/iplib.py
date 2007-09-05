@@ -6,7 +6,7 @@ Requires Python 2.3 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 2713 2007-09-05 18:34:29Z vivainio $
+$Id: iplib.py 2718 2007-09-05 21:54:50Z vivainio $
 """
 
 #*****************************************************************************
@@ -316,7 +316,6 @@ class InteractiveShell(object,Magic):
                          'internal':self.internal_ns,
                          'builtin':__builtin__.__dict__
                          }
-
         # The user namespace MUST have a pointer to the shell itself.
         self.user_ns[name] = self
 
@@ -591,6 +590,8 @@ class InteractiveShell(object,Magic):
         # This method will add the necessary builtins for operation, but
         # tracking what it did via the builtins_added dict.
         self.add_builtins()
+
+        
 
     # end __init__
 
@@ -2172,8 +2173,13 @@ want to merge them back into the new files.""" % locals()
         tgt = self.alias_table[line_info.iFun]
         # print "=>",tgt #dbg
         if callable(tgt):
-            line_out = "_sh.%s(%s)" % (line_info.iFun, 
-            make_quoted_expr(self.var_expand(line_info.line, depth=2)))
+            if '$' in line_info.line:
+                call_meth = '(_ip.itpl(%s))'
+            else:
+                call_meth = '(%s)'
+            line_out = ("%s_sh.%s" + call_meth) % (line_info.preWhitespace,
+                                         line_info.iFun, 
+            make_quoted_expr(line_info.line))
         else:
             transformed = self.expand_aliases(line_info.iFun,line_info.theRest)
 

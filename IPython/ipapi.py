@@ -362,6 +362,14 @@ class IPApi:
         res = pre + self.IP.expand_aliases(fn,rest)
         return res
 
+    def itpl(self, s, depth = 1):
+        """ Expand Itpl format string s.
+        
+        Only callable from command line (i.e. prefilter results);
+        If you use in your scripts, you need to use a bigger depth!
+        """
+        return self.IP.var_expand(s, depth)
+        
     def defalias(self, name, cmd):
         """ Define a new alias
         
@@ -463,7 +471,7 @@ class IPApi:
             
         self.extensions[mod] = m
         return m
-    
+
 
 class DebugTools:
     """ Used for debugging mishaps in api usage
