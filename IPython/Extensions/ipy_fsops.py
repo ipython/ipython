@@ -143,7 +143,8 @@ def collect(arg):
         f = path(f)
         trg = basedir / f.splitdrive()[1].lstrip('/\\')
         if f.isdir():
-            f.makedirs()
+            print "mkdir",trg
+            trg.makedirs()
             continue
         dname = trg.dirname()
         if not dname.isdir():
