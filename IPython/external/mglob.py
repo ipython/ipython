@@ -48,14 +48,14 @@ Supported syntax in globs (wilcard matching patterns)::
  rec:*.py
      - All .py files under current working dir, recursively
  foo                           
-     - File foo, or all files in dir foo
+     - File or dir foo
  !*.bak readme*                   
      - readme*, exclude files ending with .bak
  !.svn/ !.hg/ !*_Data/ rec:.
      - Skip .svn, .hg, foo_Data dirs (and their subdirs) in recurse.
        Trailing / is the key, \ does not work!
  dir:foo                       
-     - the directory foo (not files in foo)
+     - the directory foo if it exists (not files in foo)
  dir:*                         
      - all directories in current folder
  foo.py bar.* !h* rec:*.py
@@ -73,11 +73,14 @@ import os,glob,fnmatch,sys
 from sets import Set as set
 
                 
-def expand(flist):
+def expand(flist,exp_dirs = False):
     """ Expand the glob(s) in flist.
     
     flist may be either a whitespace-separated list of globs/files
     or an array of globs/files.
+    
+    if exp_dirs is true, directory names in glob are expanded to the files
+    contained in them - otherwise, directory names are returned as is.
     
     """
     if isinstance(flist, basestring):
@@ -157,7 +160,7 @@ def expand(flist):
             res.extend(once_filter(filter(os.path.isdir,glob.glob(ent[4:]))))
             
         # get all files in the specified dir
-        elif os.path.isdir(ent):
+        elif os.path.isdir(ent) and exp_dirs:
             res.extend(once_filter(filter(os.path.isfile,glob.glob(ent + os.sep+"*"))))
             
         # glob only files
