@@ -13,7 +13,9 @@
 
 	* Extensions/ipy_profile_sh.py: Try to detect cygwin on win32,
 	if not available load ipy_fsops.py for cp, mv, etc. replacements
-        
+
+	* OInspect.py, ipy_which.py: improve %which and obj? for callable
+	aliases
         
 2007-09-04  Ville Vainio  <vivainio@gmail.com>
 

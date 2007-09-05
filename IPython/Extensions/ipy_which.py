@@ -26,6 +26,12 @@ def which_alias(fname):
     for al, tgt in ip.IP.alias_table.items():
         if not (al == fname or fnmatch(al, fname)):
             continue
+        if callable(tgt):
+            print "Callable alias",tgt
+            d = tgt.__doc__
+            if d:
+                print "Docstring:\n",d
+                continue
         trg = tgt[1]
         
         trans = ip.expand_alias(trg)

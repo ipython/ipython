@@ -31,8 +31,17 @@ def main():
     
     # beefed up %env is handy in shell mode
     import envpersist
+    
+    # To see where mycmd resides (in path/aliases), do %which mycmd 
     import ipy_which
+    
+    # tab completers for hg, svn, ...
     import ipy_app_completers
+    
+    # To make executables foo and bar in mybin usable without PATH change, do:
+    # %rehashdir c:/mybin
+    # %store foo
+    # %store bar
     import ipy_rehashdir
     import ipy_signals
     
@@ -48,7 +57,7 @@ def main():
     from IPython import Release
 
     import sys
-    # I like my banner minimal.
+    # Non-chatty banner
     o.banner = "IPython %s   [on Py %s]\n" % (Release.version,sys.version.split(None,1)[0])
     
     
