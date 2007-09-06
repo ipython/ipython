@@ -1,3 +1,6 @@
+import sys
+sys.path.append('..')
+
 import IPython.ipapi
 
 IPython.ipapi.make_session()
@@ -17,7 +20,8 @@ def test_db():
 def test_defalias():
     slot = [None]
     # test callable alias
-    def cb(s):
+    def cb(localip,s):
+        assert localip is ip
         slot[0] = s
     
     ip.defalias('testalias', cb)

@@ -21,7 +21,7 @@ ip = IPython.ipapi.get()
 
 import os,re,fnmatch,sys
 
-def selflaunch(line):
+def selflaunch(ip,line):
     """ Launch python script with 'this' interpreter
     
     e.g. d:\foo\ipython.exe a.py
@@ -40,7 +40,7 @@ class PyLauncher:
     """
     def __init__(self,script):
         self.script = os.path.abspath(script)
-    def __call__(self, line):
+    def __call__(self, ip, line):
         selflaunch("py " + self.script + ' ' + line)
     def __repr__(self):
         return 'PyLauncher("%s")' % self.script

@@ -37,7 +37,7 @@ def parse_args(args):
         raise IpyShellCmdException("No files found:" + str(tup2[0:-1]))
     return flist, trg
     
-def icp(arg):
+def icp(ip,arg):
     """ icp files... targetdir
     
     Copy all files to target, creating dirs for target if necessary
@@ -57,7 +57,7 @@ def icp(arg):
     return fs
 ip.defalias("icp",icp)
 
-def imv(arg):
+def imv(ip,arg):
     """ imv src tgt
     
     Move source to target.
@@ -71,7 +71,7 @@ def imv(arg):
     return fs
 ip.defalias("imv",imv)        
 
-def irm(arg):
+def irm(ip,arg):
     """ irm path[s]...
     
     Remove file[s] or dir[s] path. Dirs are deleted recursively.
@@ -87,7 +87,7 @@ def irm(arg):
 
 ip.defalias("irm",irm)
 
-def imkdir(arg):
+def imkdir(ip,arg):
     """ imkdir path
     
     Creates dir path, and all dirs on the road
@@ -98,7 +98,7 @@ def imkdir(arg):
 
 ip.defalias("imkdir",imkdir)    
 
-def igrep(arg):
+def igrep(ip,arg):
     """ igrep PAT files...
     
     Very dumb file scan, case-insensitive.
@@ -124,7 +124,7 @@ def igrep(arg):
 
 ip.defalias("igrep",igrep)    
 
-def collect(arg):
+def collect(ip,arg):
     """ collect foo/a.txt rec:bar=*.py
     
     Copies foo/a.txt to ~/_ipython/collect/foo/a.txt and *.py from bar,
@@ -154,7 +154,7 @@ def collect(arg):
 
 ip.defalias("collect",collect)            
 
-def inote(arg):
+def inote(ip,arg):
     """ inote Hello world
     
     Adds timestamp and Hello world to ~/_ipython/notes.txt
@@ -170,5 +170,4 @@ def inote(arg):
     except IndexError:
         ip.IP.hooks.editor(fname)        
 
-ip.defalias("inote",inote)    
-    
+ip.defalias("inote",inote)

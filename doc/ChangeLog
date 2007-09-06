@@ -1,3 +1,10 @@
+2007-09-06  Ville Vainio  <vivainio@gmail.com>
+
+	* ipy_rehashdir.py, ipy_workdir.py, ipy_fsops.py, iplib.py:
+	Callable aliases now pass the _ip as first arg. This breaks 
+	compatibility with earlier 0.8.2.svn series! (though they should
+	not have been in use yet outside these few extensions)
+
 2007-09-05  Ville Vainio  <vivainio@gmail.com>
 
 	* external/mglob.py: expand('dirname') => ['dirname'], instead
@@ -305,7 +312,7 @@
 
 	* IPython/Extensions/ipipe.py: Added a new table icap, which executes a
 	Python string and captures the output. (Idea and original patch by
-	Stéfan van der Walt)
+	Stefan van der Walt)
 
 2007-06-01  Fernando Perez  <Fernando.Perez@colorado.edu>
 
@@ -325,7 +332,7 @@
 	in the input line. Split the statusbar to be able to display the currently
 	active refresh interval. (Patch by Nik Tautenhahn)
 
-2007-05-29  Jörgen Stenarson  <jorgen.stenarson@bostream.nu>
+2007-05-29  Jorgen Stenarson  <jorgen.stenarson@bostream.nu>
 	
 	* fixing set_term_title to use ctypes as default
 
@@ -515,7 +522,7 @@
 	* UserConfig/ipy_user_conf.py, ipy_profile_sh.py: do not import
 	ipy_stock_completers on default profile, do import on sh profile.
 
-2007-04-22  Jörgen Stenarson  <jorgen.stenarson@bostream.nu>
+2007-04-22  Jorgen Stenarson  <jorgen.stenarson@bostream.nu>
 
 	* Fix bug in iplib.py/safe_execfile when launching ipython with a script
 	like ipython.py foo.py which raised a IndexError.
@@ -731,7 +738,7 @@
 	* IPython/iplib.py (raw_input): Fix mishandling of unicode at
 	input.  Patch sent by Stefan.
 
-2007-03-20  Jörgen Stenarson  <jorgen.stenarson@bostream.nu>
+2007-03-20  Jorgen Stenarson  <jorgen.stenarson@bostream.nu>
 	* IPython/Extensions/ipy_stock_completer.py
 	shlex_split, fix bug in shlex_split. len function
 	call was missing an if statement. Caused shlex_split to
@@ -789,7 +796,7 @@
 
 	* Extensions/ipy_stock_completers.py: Fixed exception
         on mismatching quotes in %run completer. Patch by
-        Jörgen Stenarson. Closes #127.
+        Jorgen Stenarson. Closes #127.
 
 2007-03-14  Ville Vainio  <vivainio@gmail.com>
 
@@ -819,7 +826,7 @@
 	* IPython/Extensions/igrid.py: Patch by Nik Tautenhahn:
 	Close help window if exiting igrid.
 
-2007-03-02  Jörgen Stenarson  <jorgen.stenarson@bostream.nu>
+2007-03-02  Jorgen Stenarson  <jorgen.stenarson@bostream.nu>
 
 	* IPython/Extensions/ipy_defaults.py: Check if readline is available
 	before calling functions from readline.

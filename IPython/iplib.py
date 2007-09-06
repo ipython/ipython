@@ -6,7 +6,7 @@ Requires Python 2.3 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 2718 2007-09-05 21:54:50Z vivainio $
+$Id: iplib.py 2719 2007-09-06 18:53:34Z vivainio $
 """
 
 #*****************************************************************************
@@ -2174,9 +2174,9 @@ want to merge them back into the new files.""" % locals()
         # print "=>",tgt #dbg
         if callable(tgt):
             if '$' in line_info.line:
-                call_meth = '(_ip.itpl(%s))'
+                call_meth = '(_ip, _ip.itpl(%s))'
             else:
-                call_meth = '(%s)'
+                call_meth = '(_ip,%s)'
             line_out = ("%s_sh.%s" + call_meth) % (line_info.preWhitespace,
                                          line_info.iFun, 
             make_quoted_expr(line_info.line))
