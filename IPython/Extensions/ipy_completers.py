@@ -318,10 +318,12 @@ def cd_completer(self, event):
         bkms = self.db.get('bookmarks',{})
         return bkms.keys()
 
-
+    
     if event.symbol == '-':
+        width_dh = str(len(str(len(ip.user_ns['_dh']) + 1)))
         # jump in directory history by number
-        ents = ['-%d [%s]' % (i,s) for i,s in enumerate(ip.user_ns['_dh'])]
+        fmt = '-%0' + width_dh +'d [%s]'
+        ents = [ fmt % (i,s) for i,s in enumerate(ip.user_ns['_dh'])]
         if len(ents) > 1:
             return ents
         return []

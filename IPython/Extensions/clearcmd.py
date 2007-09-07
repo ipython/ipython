@@ -13,6 +13,7 @@ def clear_f(self,arg):
     %clear in  - clear input history
     %clear shadow_compress - Compresses shadow history (to speed up ipython)
     %clear shadow_nuke - permanently erase all entries in shadow history
+    %clear dhist - clear dir history
     """
     
     api = self.getapi()
@@ -50,10 +51,15 @@ def clear_f(self,arg):
             print "Erased all keys from shadow history "
             for k in ip.db.keys('shadowhist/*'):
                 del ip.db[k]
+        elif target == 'dhist':
+            print "Clearing directory history"
+            del ip.user_ns['_dh'][:]
+
             
 ip.expose_magic("clear",clear_f)
 import ipy_completers
-ipy_completers.quick_completer('%clear','in out shadow_nuke shadow_compress')
+ipy_completers.quick_completer(
+ '%clear','in out shadow_nuke shadow_compress dhist')
     
 
 
