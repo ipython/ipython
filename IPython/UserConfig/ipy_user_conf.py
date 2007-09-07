@@ -37,6 +37,16 @@ def main():
     # import ipy_profile_sh
 
     
+    # Configure your favourite editor?
+    # Good idea e.g. for %edit os.path.isfile
+
+    #import ipy_editors
+    #ipy_editors.scite()
+    #ipy_editors.scite('c:/opt/scite/scite.exe')
+    #ipy_editors.komodo()
+    #ipy_editors.install_editor("c:/opt/jed +$line $file")
+    
+    
     o = ip.options
     # An example on how to set options
     #o.autocall = 1
