@@ -41,9 +41,14 @@ def main():
     # Good idea e.g. for %edit os.path.isfile
 
     #import ipy_editors
+    
+    # Choose one of these:
+    
     #ipy_editors.scite()
     #ipy_editors.scite('c:/opt/scite/scite.exe')
     #ipy_editors.komodo()
+    
+    # Or roll your own:
     #ipy_editors.install_editor("c:/opt/jed +$line $file")
     
     
