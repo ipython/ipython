@@ -403,8 +403,8 @@ class IPCompleter(Completer):
         #print 'Completer->alias_matches:',text,'lb',self.lbuf # dbg
         
         # if we are not in the first 'item', alias matching 
-        # doesn't make sense
-        if ' ' in self.lbuf.lstrip():
+        # doesn't make sense - unless we are starting with 'sudo' command.
+        if ' ' in self.lbuf.lstrip() and not self.lbuf.lstrip().startswith('sudo'):
             return []
         text = os.path.expanduser(text)
         aliases =  self.alias_table.keys()
