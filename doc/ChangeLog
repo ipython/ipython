@@ -5,6 +5,12 @@
 
 	* genutils.py: SList.grep() implemented.
         
+	* ipy_editors.py, UserConfig/ipy_user_conf.py: Add some editors
+	for easy "out of the box" setup of several common editors, so that
+	e.g. '%edit os.path.isfile' will jump to the correct line
+	automatically. Contributions for command lines of your favourite
+	editors welcome.
+        
 2007-09-07  Fernando Perez  <Fernando.Perez@colorado.edu>
 
 	* IPython/OInspect.py (Inspector.pinfo): fixed bug that was
