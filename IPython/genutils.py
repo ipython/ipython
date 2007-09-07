@@ -5,7 +5,7 @@ General purpose utilities.
 This is a grab-bag of stuff I find useful in most programs I write. Some of
 these things are also convenient when working at the command line.
 
-$Id: genutils.py 2726 2007-09-07 15:07:17Z vivainio $"""
+$Id: genutils.py 2727 2007-09-07 15:32:08Z vivainio $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2006 Fernando Perez. <fperez@colorado.edu>
@@ -1013,6 +1013,11 @@ class SList(list):
         
         This is case-insensitive. If prune is true, return all items
         NOT matching the pattern.
+        
+        Examples::
+        
+            a.grep( lambda x: x.startswith('C') )
+            a.grep('Cha.*log', prune=1)
         """
         if isinstance(pattern, basestring):
             pred = lambda x : re.search(pattern, x, re.IGNORECASE)
