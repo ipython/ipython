@@ -1,3 +1,35 @@
+2007-09-07  Fernando Perez  <Fernando.Perez@colorado.edu>
+
+	* IPython/OInspect.py (Inspector.pinfo): fixed bug that was
+	preventing source display in certain cases.  In reality I think
+	the problem is with Ubuntu's Python build, but this change works
+	around the issue in some cases (not in all, unfortunately).  I'd
+	filed a Python bug on this with more details, but in the change of
+	bug trackers it seems to have been lost.
+
+	* IPython/Magic.py (magic_dhist): restore %dhist. No, cd -TAB is
+	not the same, it's not self-documenting, doesn't allow range
+	selection, and sorts alphabetically instead of numerically.
+	(magic_r): restore %r.  No, "up + enter. One char magic" is not
+	the same thing, since %r takes parameters to allow fast retrieval
+	of old commands.  I've received emails from users who use this a
+	LOT, so it stays.
+	(magic_automagic): restore %automagic.  "use _ip.option.automagic"
+	is not a valid replacement b/c it doesn't provide an complete
+	explanation (which the automagic docstring does).
+	(magic_autocall): restore %autocall, with improved docstring.
+	Same argument as for others, "use _ip.options.autocall" is not a
+	valid replacement.
+	(magic_pdef): restore %pdef & friends.  Used widely, mentioned in
+	tutorials and online docs.
+
+2007-09-06  Fernando Perez  <Fernando.Perez@colorado.edu>
+
+	* IPython/usage.py (quick_reference): mention magics in quickref,
+	modified main banner to mention %quickref.
+
+	* IPython/FakeModule.py (FakeModule): fixes for doctest compatibility.
+
 2007-09-06  Ville Vainio  <vivainio@gmail.com>
 
 	* ipy_rehashdir.py, ipy_workdir.py, ipy_fsops.py, iplib.py:

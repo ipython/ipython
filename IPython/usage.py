@@ -6,7 +6,7 @@
 #  the file COPYING, distributed as part of this software.
 #*****************************************************************************
 
-# $Id: usage.py 2710 2007-09-04 21:10:10Z vivainio $
+# $Id: usage.py 2723 2007-09-07 07:44:16Z fperez $
 
 from IPython import Release
 __author__  = '%s <%s>' % Release.authors['Fernando']
@@ -602,8 +602,10 @@ quick_reference = r"""
 IPython -- An enhanced Interactive Python - Quick Reference Card
 ================================================================
 
-obj?, obj??, ?obj,??obj   : Get help, or more help for object
-?os.p*           : List names in os starting with p
+obj?, obj??      : Get help, or more help for object (also works as
+                   ?obj, ??obj).
+?foo.*abc*       : List names in 'foo' containing 'abc' in them.
+%magic           : Information about IPython's 'magic' % functions.
 
 Magic functions are prefixed by %, and typically take their arguments without
 parentheses, quotes or even commas for convenience.

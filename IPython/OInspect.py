@@ -6,7 +6,7 @@ Uses syntax highlighting for presenting the various information elements.
 Similar in spirit to the inspect module, but all calls take a name argument to
 reference the name under which an object is being read.
 
-$Id: OInspect.py 2717 2007-09-05 19:49:42Z vivainio $
+$Id: OInspect.py 2723 2007-09-07 07:44:16Z fperez $
 """
 
 #*****************************************************************************
@@ -238,8 +238,7 @@ class Inspector:
         if inspect.isclass(obj):
             header = self.__head('Class constructor information:\n')
             obj = obj.__init__
-        elif type(obj) is types.InstanceType or \
-             isinstance(obj,object):
+        elif type(obj) is types.InstanceType:
             obj = obj.__call__
 
         output = self.__getdef(obj,oname)
@@ -408,8 +407,7 @@ class Inspector:
             fname = inspect.getabsfile(obj)
             if fname.endswith('<string>'):
                 fname = 'Dynamically generated function. No source code available.'
-            if (fname.endswith('.so') or fname.endswith('.dll') or 
-                not os.path.isfile(fname)):
+            if (fname.endswith('.so') or fname.endswith('.dll')):
                 binary_file = True
             out.writeln(header('File:\t\t')+fname)
         except:
@@ -426,11 +424,11 @@ class Inspector:
         # avoid repetitions).  If source fails, we add them back, see below.
         if ds and detail_level == 0:
                 out.writeln(header('Docstring:\n') + indent(ds))
-
                 
         # Original source code for any callable
         if detail_level:
-            # Flush the source cache because inspect can return out-of-date source
+            # Flush the source cache because inspect can return out-of-date
+            # source
             linecache.checkcache()
             source_success = False
             try:
