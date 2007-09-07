@@ -118,8 +118,9 @@ def rep_f(self, arg):
 
     - %rep (no arguments):
     
-    Place a string version of last input to the next input prompt. Allows you
-    to create elaborate command lines without using copy-paste::
+    Place a string version of last computation result (stored in the special '_'
+    variable) to the next input prompt. Allows you to create elaborate command
+    lines without using copy-paste::
     
         $ l = ["hei", "vaan"]       
         $ "".join(l)        
@@ -129,7 +130,8 @@ def rep_f(self, arg):
     
     %rep 45
     
-    Place history line 45 to next input prompt. Use %hist to find out the number.
+    Place history line 45 to next input prompt. Use %hist to find out the
+    number.
     
     %rep 1-4 6-7 3
     
