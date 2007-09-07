@@ -16,6 +16,10 @@ def install_editor(run_template, wait = False):
     
     Installs the editor that is called by IPython, instead of the default
     notepad or vi.
+    
+    If wait is true, wait until the user presses enter before returning,
+    to facilitate non-blocking editors that exit immediately after
+    the call.
     """
     
     def call_editor(self, file, line):
@@ -29,15 +33,47 @@ def install_editor(run_template, wait = False):
 
     ip.set_hook('editor',call_editor)
 
+
+# in these, exe is always the path/name of the executable. Useful
+# if you don't have the editor directory in your path
+
 def komodo(exe = 'komodo'):
-    """ Activestate Komodo [Edit]
-    
-    Warning - komodo does not block, so can't be used for plain %edit
-    
-    """
+    """ Activestate Komodo [Edit] """
     install_editor(exe + ' -l $line "$file"', wait = True)
 
 def scite(exe = "scite"):
-    """ Exe is the executable name of your scite.
-    """
+    """ SciTE or Sc1 """
     install_editor(exe + ' "$file" -goto:$line')
+
+def notepadplusplus(exe = 'notepad++'):
+    """ Notepad++ http://notepad-plus.sourceforge.net """
+    install_editor(exe + ' -n$line "$file"')
+    
+def jed(exe = 'jed'):
+    """ JED, the lightweight emacsish editor """
+    install_editor(exe + ' +$line "$file"')
+
+def idle(exe = None):
+    """ Idle, the editor bundled with python
+    
+    Should be pretty smart about finding the executable.
+    """
+    if exe is None:
+        import idlelib
+        p = os.path.dirname(idlelib.__file__)
+        exe = p + '/idle.py'
+    install_editor(exe + ' "$file"')
+        
+
+# these are untested, report any problems
+
+def emacs(exe = 'emacs'):
+    install_editor(exe + ' +$line "$file"')
+
+def gnuclient(exe= 'gnuclient'):
+    install_editor(exe + ' -nw +$line "$file"')
+
+def crimson_editor(exe = 'cedt.exe'):
+    install_editor(exe + ' /L:%line "$file"')
+   
+    

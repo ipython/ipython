@@ -47,6 +47,8 @@ def main():
     #ipy_editors.scite()
     #ipy_editors.scite('c:/opt/scite/scite.exe')
     #ipy_editors.komodo()
+    #ipy_editors.idle()
+    # ... or many others, try 'ipy_editors??' after import to see them
     
     # Or roll your own:
     #ipy_editors.install_editor("c:/opt/jed +$line $file")
