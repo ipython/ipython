@@ -1,3 +1,8 @@
+2007-09-07  Ville Vainio  <vivainio@gmail.com>
+
+	* iplib.py: do not auto-alias "dir", it screws up other dir auto
+        aliases.
+        
 2007-09-07  Fernando Perez  <Fernando.Perez@colorado.edu>
 
 	* IPython/OInspect.py (Inspector.pinfo): fixed bug that was

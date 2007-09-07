@@ -6,7 +6,7 @@ Requires Python 2.3 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 2719 2007-09-06 18:53:34Z vivainio $
+$Id: iplib.py 2725 2007-09-07 08:59:10Z vivainio $
 """
 
 #*****************************************************************************
@@ -571,7 +571,7 @@ class InteractiveShell(object,Magic):
                              )
             auto_alias = auto_alias + ls_extra
         elif os.name in ['nt','dos']:
-            auto_alias = ('dir dir /on', 'ls dir /on',
+            auto_alias = ('ls dir /on',
                           'ddir dir /ad /on', 'ldir dir /ad /on',
                           'mkdir mkdir','rmdir rmdir','echo echo',
                           'ren ren','cls cls','copy copy')
