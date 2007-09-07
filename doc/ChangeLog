@@ -2,6 +2,8 @@
 
 	* iplib.py: do not auto-alias "dir", it screws up other dir auto
         aliases.
+
+	* genutils.py: SList.grep() implemented.
         
 2007-09-07  Fernando Perez  <Fernando.Perez@colorado.edu>
 

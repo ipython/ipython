@@ -5,7 +5,7 @@ General purpose utilities.
 This is a grab-bag of stuff I find useful in most programs I write. Some of
 these things are also convenient when working at the command line.
 
-$Id: genutils.py 2661 2007-08-22 20:43:34Z vivainio $"""
+$Id: genutils.py 2726 2007-09-07 15:07:17Z vivainio $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2006 Fernando Perez. <fperez@colorado.edu>
@@ -1008,9 +1008,24 @@ class SList(list):
     
     p = paths = property(get_paths)
 
+    def grep(self, pattern, prune = False):
+        """ Return all strings matching 'pattern' (a regex or callable) 
+        
+        This is case-insensitive. If prune is true, return all items
+        NOT matching the pattern.
+        """
+        if isinstance(pattern, basestring):
+            pred = lambda x : re.search(pattern, x, re.IGNORECASE)
+        else:
+            pred = pattern
+        if not prune:
+            return SList([el for el in self if pred(el)])
+        else:
+            return SList([el for el in self if not pred(el)])
+
 def print_slist(arg):
     """ Prettier (non-repr-like) and more informative printer for SList """
-    print "SList (.p, .n, .l, .s available). Value:"
+    print "SList (.p, .n, .l, .s, .grep() available). Value:"
     nlprint(arg)
     
 print_slist = result_display.when_type(SList)(print_slist)
