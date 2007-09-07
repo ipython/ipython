@@ -12,8 +12,9 @@ from IPython.Itpl import itplns
 import os
 
 def install_editor(run_template, wait = False):
-    """ Gets a template in format "myeditor bah bah $file bah bah $line
+    """ Gets a template in format "myeditor bah bah $file bah bah $line"
     
+    $file will be replaced by file name, $line by line number (or 0).
     Installs the editor that is called by IPython, instead of the default
     notepad or vi.
     
