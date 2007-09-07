@@ -24,10 +24,17 @@ import os,re,fnmatch,sys
 def selflaunch(ip,line):
     """ Launch python script with 'this' interpreter
     
-    e.g. d:\foo\ipython.exe a.py
+    e.g. d:\foo\ipykit.exe a.py
     
     """
-    cmd = sys.executable + ' ' + line.split(None,1)[1]
+    
+    tup = line.split(None,1)
+    if len(tup) == 1:
+        print "Launching nested ipython session"
+        os.system(sys.executable)
+        return
+        
+    cmd = sys.executable + ' ' + tup[1]
     print ">",cmd
     os.system(cmd)
 
@@ -41,9 +48,13 @@ class PyLauncher:
     def __init__(self,script):
         self.script = os.path.abspath(script)
     def __call__(self, ip, line):
-        selflaunch("py " + self.script + ' ' + line)
+        if self.script.endswith('.ipy'):
+            ip.runlines(open(self.script).read())
+        else:
+            selflaunch("py " + self.script + ' ' + line)
     def __repr__(self):
         return 'PyLauncher("%s")' % self.script
+
 def rehashdir_f(self,arg):
     """ Add executables in all specified dirs to alias table
      

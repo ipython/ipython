@@ -9,8 +9,10 @@ def pylaunchers():
     This is useful if you want to invoke .py scripts from ipykit session,
     just adding .py files in PATH does not work without file association.
     
+    .ipy files will be run like macros.
+    
     """
-    fs = glob.glob('*.py*')
+    fs = glob.glob('*.?py*')
     for f in fs:
         l = PyLauncher(f)
         n = os.path.splitext(f)[0]
