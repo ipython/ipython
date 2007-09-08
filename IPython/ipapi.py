@@ -86,6 +86,13 @@ class TryNext(Exception):
         self.args = args
         self.kwargs = kwargs
 
+class UsageError(Exception):
+    """ Error in magic function arguments, etc.
+    
+    Something that probably won't warrant a full traceback, but should
+    nevertheless interrupt a macro / batch file.   
+    """
+
 class IPyAutocall:
     """ Instances of this class are always autocalled
     

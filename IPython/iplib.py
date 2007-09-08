@@ -6,7 +6,7 @@ Requires Python 2.3 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 2725 2007-09-07 08:59:10Z vivainio $
+$Id: iplib.py 2746 2007-09-08 14:00:21Z vivainio $
 """
 
 #*****************************************************************************
@@ -471,7 +471,7 @@ class InteractiveShell(object,Magic):
         except HomeDirError,msg:
             fatal(msg)
 
-        self.dir_stack = [os.getcwd().replace(self.home_dir,'~')]
+        self.dir_stack = []
 
         # Functions to call the underlying shell.
 
@@ -1488,6 +1488,8 @@ want to merge them back into the new files.""" % locals()
 
         if etype is SyntaxError:
             self.showsyntaxerror(filename)
+        elif etype is IPython.ipapi.UsageError:
+            print "UsageError:", value
         else:
             # WARNING: these variables are somewhat deprecated and not
             # necessarily safe to use in a threaded environment, but tools
