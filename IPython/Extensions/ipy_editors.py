@@ -23,7 +23,7 @@ def install_editor(run_template, wait = False):
     the call.
     """
     
-    def call_editor(self, file, line):
+    def call_editor(self, file, line=0):
         if line is None:
             line = 0
         cmd = itplns(run_template, locals())
