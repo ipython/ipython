@@ -12,7 +12,7 @@ def pylaunchers():
     .ipy files will be run like macros.
     
     """
-    fs = glob.glob('*.?py*')
+    fs = glob.glob('*.py') + glob.glob('*.ipy')
     for f in fs:
         l = PyLauncher(f)
         n = os.path.splitext(f)[0]

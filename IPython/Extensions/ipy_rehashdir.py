@@ -51,7 +51,14 @@ class PyLauncher:
         if self.script.endswith('.ipy'):
             ip.runlines(open(self.script).read())
         else:
-            selflaunch("py " + self.script + ' ' + line)
+            # first word is the script/alias name itself, strip it
+            tup = line.split(None,1)
+            if len(tup) == 2:
+                tail = ' ' + tup[1]
+            else:
+                tail = ''
+                
+            selflaunch(ip,"py " + self.script + tail)
     def __repr__(self):
         return 'PyLauncher("%s")' % self.script
 
