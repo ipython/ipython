@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Magic functions for InteractiveShell.
 
-$Id: Magic.py 2747 2007-09-08 14:01:45Z vivainio $"""
+$Id: Magic.py 2748 2007-09-08 14:32:40Z vivainio $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001 Janko Hauser <jhauser@zscout.de> and
@@ -60,7 +60,7 @@ from IPython.genutils import *
 from IPython import platutils
 import IPython.generics
 import IPython.ipapi
-
+from IPython.ipapi import UsageError
 #***************************************************************************
 # Utility functions
 def on_off(tag):
@@ -349,7 +349,7 @@ license. To use profiling, please install"python2.3-profiler" from non-free.""")
             try:
                 opts,args = getopt(argv,opt_str,*long_opts)
             except GetoptError,e:
-                raise GetoptError('%s ( allowed: "%s" %s)' % (e.msg,opt_str, 
+                raise UsageError('%s ( allowed: "%s" %s)' % (e.msg,opt_str, 
                                         " ".join(long_opts)))
             for o,a in opts:
                 if o.startswith('--'):
@@ -1895,7 +1895,11 @@ Currently the magic system has the following functions:\n"""
             macs = [k for k,v in self.shell.user_ns.items() if isinstance(v, Macro)]
             macs.sort()
             return macs
+        if len(args) == 1:
+            raise UsageError(
+                "%macro insufficient args; usage '%macro name n1-n2 n3-4...")
         name,ranges = args[0], args[1:]
+        
         #print 'rng',ranges  # dbg
         lines = self.extract_input_slices(ranges,opts.has_key('r'))
         macro = Macro(lines)
@@ -2272,7 +2276,8 @@ Currently the magic system has the following functions:\n"""
         
         new_scheme = parameter_s.strip()
         if not new_scheme:
-            print 'You must specify a color scheme.'
+            raise UsageError(
+                "%colors: you must specify a color scheme. See '%colors?'")
             return
         # local shortcut
         shell = self.shell
@@ -2613,8 +2618,7 @@ Defaulting color scheme to 'NoColor'"""
             try:
                 ps = self.shell.user_ns['_dh'][-2]
             except IndexError:
-                print 'No previous directory to change to.'
-                return
+                raise UsageError('%cd -: No previous directory to change to.')
         # jump to bookmark if needed
         else:
             if not os.path.isdir(ps) or opts.has_key('b'):
@@ -2626,9 +2630,8 @@ Defaulting color scheme to 'NoColor'"""
                     ps = target
                 else:
                     if opts.has_key('b'):
-                        error("Bookmark '%s' not found.  "
+                        raise UsageError("Bookmark '%s' not found.  "
                               "Use '%%bookmark -l' to see your bookmarks." % ps)
-                        return
             
         # at this point ps should point to the target dir
         if ps:
@@ -2682,7 +2685,7 @@ Defaulting color scheme to 'NoColor'"""
         """Change to directory popped off the top of the stack.
         """
         if not self.shell.dir_stack:
-            raise IPython.ipapi.UsageError("%popd on empty stack")
+            raise UsageError("%popd on empty stack")
         top = self.shell.dir_stack.pop(0)
         self.magic_cd(top)
         print "popd ->",top
@@ -2984,8 +2987,7 @@ Defaulting color scheme to 'NoColor'"""
 
         opts,args = self.parse_options(parameter_s,'drl',mode='list')
         if len(args) > 2:
-            error('You can only give at most two arguments')
-            return
+            raise UsageError("%bookmark: too many arguments")
 
         bkms = self.db.get('bookmarks',{})
             
@@ -2993,12 +2995,15 @@ Defaulting color scheme to 'NoColor'"""
             try:
                 todel = args[0]
             except IndexError:
-                error('You must provide a bookmark to delete')
+                raise UsageError(
+                    "%bookmark -d: must provide a bookmark to delete")
             else:
                 try:
                     del bkms[todel]
-                except:
-                    error("Can't delete bookmark '%s'" % todel)
+                except KeyError:
+                    raise UsageError(
+                        "%%bookmark -d: Can't delete bookmark '%s'" % todel)
+
         elif opts.has_key('r'):
             bkms = {}
         elif opts.has_key('l'):
@@ -3014,7 +3019,7 @@ Defaulting color scheme to 'NoColor'"""
                 print fmt % (bk,bkms[bk])
         else:
             if not args:
-                error("You must specify the bookmark name")
+                raise UsageError("%bookmark: You must specify the bookmark name")
             elif len(args)==1:
                 bkms[args[0]] = os.getcwd()
             elif len(args)==2:
