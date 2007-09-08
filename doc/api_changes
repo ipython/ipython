@@ -23,4 +23,6 @@ Version 0.8.2
 
 Changes made since version 0.8.1 was released:
 
-* ...
+* %pushd/%popd behave differently; now "pushd /foo" pushes CURRENT directory 
+  and jumps to /foo. The current behaviour is closer to the documented 
+  behaviour, and should not trip anyone.
