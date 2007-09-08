@@ -20,21 +20,21 @@ ip = IPython.ipapi.get()
 
 import shutil,os,shlex
 from IPython.external import mglob
-class IpyShellCmdException(Exception):
-    pass
+
+from IPython.ipapi import UsageError
 
 def parse_args(args):
     """ Given arg string 'CMD files... target', return ([files], target) """
     
     tup = args.split(None, 1)
     if len(tup) == 1:
-        raise IpyShellCmdException("Expected arguments for " + tup[0])
+        raise UsageError("Expected arguments for " + tup[0])
     
     tup2 = shlex.split(tup[1])
     
     flist, trg = mglob.expand(tup2[0:-1]), tup2[-1]
     if not flist:
-        raise IpyShellCmdException("No files found:" + str(tup2[0:-1]))
+        raise UsageError("No files found:" + str(tup2[0:-1]))
     return flist, trg
     
 def icp(ip,arg):
@@ -50,10 +50,13 @@ def icp(ip,arg):
     import distutils.dir_util
     
     fs, targetdir = parse_args(arg)
-    if not os.path.isdir(targetdir):
+    if not os.path.isdir(targetdir) and len(fs) > 1:
         distutils.dir_util.mkpath(targetdir,verbose =1)
     for f in fs:
-        shutil.copy2(f,targetdir)
+        if os.path.isdir(f):
+            shutil.copytree(f, targetdir)
+        else:
+            shutil.copy2(f,targetdir)
     return fs
 ip.defalias("icp",icp)
 
@@ -76,7 +79,10 @@ def irm(ip,arg):
     
     Remove file[s] or dir[s] path. Dirs are deleted recursively.
     """
-    paths = mglob.expand(arg.split(None,1)[1])
+    try:
+        paths = mglob.expand(arg.split(None,1)[1])
+    except IndexError:
+        raise UsageError("%irm paths...")
     import distutils.dir_util
     for p in paths:
         print "rm",p
