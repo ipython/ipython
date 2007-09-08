@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Magic functions for InteractiveShell.
 
-$Id: Magic.py 2728 2007-09-07 16:12:42Z vivainio $"""
+$Id: Magic.py 2744 2007-09-08 12:58:56Z vivainio $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001 Janko Hauser <jhauser@zscout.de> and
@@ -2676,9 +2676,11 @@ Defaulting color scheme to 'NoColor'"""
         if len(dir_s)>0 and os.path.expanduser(parameter_s) != \
            os.path.expanduser(self.shell.dir_stack[0]):
             try:
+                cwd = os.getcwd().replace(self.home_dir,'~')
                 self.magic_cd(parameter_s)
-                dir_s.insert(0,os.getcwd().replace(self.home_dir,'~'))
-                self.magic_dirs()
+                # print "Pushed:",cwd #dbg
+                dir_s.insert(0,cwd)
+                return self.magic_dirs()
             except:
                 print 'Invalid directory'
         else:
@@ -2688,9 +2690,9 @@ Defaulting color scheme to 'NoColor'"""
         """Change to directory popped off the top of the stack.
         """
         if len (self.shell.dir_stack) > 1:
-            self.shell.dir_stack.pop(0)
-            self.magic_cd(self.shell.dir_stack[0])
-            print self.shell.dir_stack[0]
+            top = self.shell.dir_stack.pop(0)
+            self.magic_cd(top)
+            print "popd ->",top
         else:
             print "You can't remove the starting directory from the stack:",\
                   self.shell.dir_stack
@@ -2698,7 +2700,7 @@ Defaulting color scheme to 'NoColor'"""
     def magic_dirs(self, parameter_s=''):
         """Return the current directory stack."""
 
-        return self.shell.dir_stack[:]
+        return self.shell.dir_stack
 
     def magic_dhist(self, parameter_s=''):
         """Print your history of visited directories.

@@ -1,3 +1,8 @@
+2007-09-08  Ville Vainio  <vivainio@gmail.com>
+
+	* Magic.py (%pushd, %popd, %dirs): Fix dir stack - push *current*
+	directory, not the target directory.
+
 2007-09-07  Ville Vainio  <vivainio@gmail.com>
 
 	* iplib.py: do not auto-alias "dir", it screws up other dir auto
