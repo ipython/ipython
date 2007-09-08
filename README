@@ -8,4 +8,3 @@ redirect the installer via a --prefix/--home option.  Normally, $PREFIX is
 running:
 
 python -c "import sys;print sys.prefix"
-
