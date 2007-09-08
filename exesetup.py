@@ -68,7 +68,8 @@ setup(name             = name,
                       'pyreadline'],
         'excludes' : ["Tkconstants","Tkinter","tcl",'IPython.igrid','wx',
                       'wxPython','igrid', 'PyQt4', 'zope', 'Zope', 'Zope2',
-                      '_curses','enthought.traits','gtk','qt']
+                      '_curses','enthought.traits','gtk','qt', 'pydb','idlelib',                      
+                      ]
                     
                      }
     },
@@ -91,9 +92,9 @@ setup(name             = name,
 minimal_conf = """
 import IPython.ipapi
 ip = IPython.ipapi.get()
-import ipy_profile_sh
-ip.load('ipy_kitcfg')
 
+ip.load('ipy_kitcfg')
+import ipy_profile_sh
 """
 
 if not os.path.isdir("dist/_ipython"):
@@ -102,4 +103,4 @@ if not os.path.isdir("dist/_ipython"):
     open("dist/_ipython/ipythonrc.ini","w").write("# intentionally blank\n")
     open("dist/_ipython/ipy_user_conf.py","w").write(minimal_conf)
     if os.path.isdir('bin'):
-        dir_util.copy_tree('bin','dist/_ipython/bin')
+        dir_util.copy_tree('bin','dist/bin')
