@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Magic functions for InteractiveShell.
 
-$Id: Magic.py 2744 2007-09-08 12:58:56Z vivainio $"""
+$Id: Magic.py 2747 2007-09-08 14:01:45Z vivainio $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001 Janko Hauser <jhauser@zscout.de> and
@@ -2668,34 +2668,24 @@ Defaulting color scheme to 'NoColor'"""
         
         Usage:\\
           %pushd ['dirname']
-
-        %pushd with no arguments does a %pushd to your home directory.
         """
-        if parameter_s == '': parameter_s = '~'
+        
         dir_s = self.shell.dir_stack
-        if len(dir_s)>0 and os.path.expanduser(parameter_s) != \
-           os.path.expanduser(self.shell.dir_stack[0]):
-            try:
-                cwd = os.getcwd().replace(self.home_dir,'~')
-                self.magic_cd(parameter_s)
-                # print "Pushed:",cwd #dbg
-                dir_s.insert(0,cwd)
-                return self.magic_dirs()
-            except:
-                print 'Invalid directory'
-        else:
-            print 'You are already there!'
+        tgt = os.path.expanduser(parameter_s)
+        cwd = os.getcwd().replace(self.home_dir,'~')
+        if tgt:
+            self.magic_cd(parameter_s)
+        dir_s.insert(0,cwd)
+        return self.magic_dirs()
 
     def magic_popd(self, parameter_s=''):
         """Change to directory popped off the top of the stack.
         """
-        if len (self.shell.dir_stack) > 1:
-            top = self.shell.dir_stack.pop(0)
-            self.magic_cd(top)
-            print "popd ->",top
-        else:
-            print "You can't remove the starting directory from the stack:",\
-                  self.shell.dir_stack
+        if not self.shell.dir_stack:
+            raise IPython.ipapi.UsageError("%popd on empty stack")
+        top = self.shell.dir_stack.pop(0)
+        self.magic_cd(top)
+        print "popd ->",top
 
     def magic_dirs(self, parameter_s=''):
         """Return the current directory stack."""
