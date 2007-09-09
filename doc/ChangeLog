@@ -1,3 +1,10 @@
+2007-09-09  Fernando Perez  <Fernando.Perez@colorado.edu>
+
+	* IPython/FakeModule.py (FakeModule.__init__): further fixes for
+	doctest support.  
+
+	* IPython/iplib.py (safe_execfile): minor docstring improvements.
+
 2007-09-08  Ville Vainio  <vivainio@gmail.com>
 
 	* Magic.py (%pushd, %popd, %dirs): Fix dir stack - push *current*

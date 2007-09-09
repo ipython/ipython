@@ -5,7 +5,7 @@ Class which mimics a module.
 Needed to allow pickle to correctly resolve namespaces during IPython
 sessions.
 
-$Id: FakeModule.py 2723 2007-09-07 07:44:16Z fperez $"""
+$Id: FakeModule.py 2754 2007-09-09 10:16:59Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2002-2004 Fernando Perez. <fperez@colorado.edu>
@@ -25,28 +25,19 @@ class FakeModule(types.ModuleType):
     sessions.
 
     Do NOT use this code for anything other than this IPython private hack."""
-    def __init__(self,adict):
 
+    def __init__(self,adict=None):
+        
+        # tmp to force __dict__ instance creation, else self.__dict__ fails
+        self.__iptmp = None
+        
         # It seems pydoc (and perhaps others) needs any module instance to
         # implement a __nonzero__ method, so we add it if missing:
-        if '__nonzero__' not in adict:
-            def __nonzero__():
-                return 1
-            adict['__nonzero__'] = __nonzero__
+        self.__dict__.setdefault('__nonzero__',lambda : True)
+        self.__dict__.setdefault('__file__',__file__)
 
-            self._dict_ = adict
+        # cleanup our temp trick
+        del self.__iptmp
 
-        # modules should have a __file__ attribute
-        adict.setdefault('__file__',__file__)
-
-    def __getattr__(self,key):
-        try:
-            return self._dict_[key]
-        except KeyError, e:
-            raise AttributeError("FakeModule object has no attribute %s" % e)
-
-    def __str__(self):
-        return "<IPython.FakeModule instance>"
-
-    def __repr__(self):
-        return str(self)
+        if adict is not None:
+            self.__dict__.update(adict)

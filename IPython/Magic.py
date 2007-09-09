@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Magic functions for InteractiveShell.
 
-$Id: Magic.py 2748 2007-09-08 14:32:40Z vivainio $"""
+$Id: Magic.py 2754 2007-09-09 10:16:59Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001 Janko Hauser <jhauser@zscout.de> and
@@ -1522,12 +1522,15 @@ Currently the magic system has the following functions:\n"""
             prog_ns = self.shell.user_ns
             __name__save = self.shell.user_ns['__name__']
             prog_ns['__name__'] = '__main__'
+            main_mod = FakeModule(prog_ns)
         else:
             if opts.has_key('n'):
                 name = os.path.splitext(os.path.basename(filename))[0]
             else:
                 name = '__main__'
-            prog_ns = {'__name__':name}
+            main_mod = FakeModule()
+            prog_ns = main_mod.__dict__
+            prog_ns['__name__'] = name
 
         # Since '%run foo' emulates 'python foo.py' at the cmd line, we must
         # set the __file__ global in the script's namespace
@@ -1540,7 +1543,7 @@ Currently the magic system has the following functions:\n"""
         else:
             restore_main = False
             
-        sys.modules[prog_ns['__name__']] = FakeModule(prog_ns)
+        sys.modules[prog_ns['__name__']] = main_mod
         
         stats = None
         try:
