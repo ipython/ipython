@@ -1,3 +1,7 @@
+2007-09-10  Darren Dale  <dd55@cornell.edu>
+
+        * Cleanup of IPShellQt and IPShellQt4
+
 2007-09-09  Fernando Perez  <Fernando.Perez@colorado.edu>
 
 	* IPython/FakeModule.py (FakeModule.__init__): further fixes for

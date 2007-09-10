@@ -4,7 +4,7 @@
 All the matplotlib support code was co-developed with John Hunter,
 matplotlib's author.
 
-$Id: Shell.py 2755 2007-09-09 20:10:30Z darren.dale $"""
+$Id: Shell.py 2756 2007-09-10 18:25:30Z darren.dale $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2006 Fernando Perez <fperez@colorado.edu>
@@ -877,33 +877,45 @@ class IPShellQt(IPThread):
     Python commands can be passed to the thread where they will be executed.
     This is implemented by periodically checking for passed code using a
     Qt timer / slot."""
-    
+
     TIMEOUT = 100 # Millisecond interval between timeouts.
 
-    def __init__(self,argv=None,user_ns=None,user_global_ns=None,
-                 debug=0,shell_class=MTInteractiveShell):
-        
+    def __init__(self, argv=None, user_ns=None, user_global_ns=None,
+                 debug=0, shell_class=MTInteractiveShell):
+
         import qt
 
-        class newQApplication:
-            def __init__( self ):
-                self.QApplication = qt.QApplication
-                
-            def __call__( *args, **kwargs ):
-                return qt.qApp
+        self.qApp = qt.qApp
 
-            def exec_loop( *args, **kwargs ):
+        class DummyQApp:
+            def __init__(self, *args):
+                self.qApp = qt.qApp
+
+            def exec_loop(*args, **kwargs):
                 pass
 
+            def __getattr__(self, name):
+                return getattr(self.qApp, name)
+
+        class DummyQApplication:
+            def __init__(self):
+                self.QApplication = qt.QApplication
+
+            def __call__(*args, **kwargs):
+                # mask until module NoneType errors can be fixed
+#                return DummyQApp()
+                return qt.qApp
+
             def __getattr__( self, name ):
-                return getattr( self.QApplication, name )
-          
-        qt.QApplication = newQApplication()
+                return getattr(self.QApplication, name)
+
+        qt.QApplication = DummyQApplication()
 
         # Allows us to use both Tk and QT.
         self.tk = get_tk()
 
-        self.IP = make_IPython(argv,user_ns=user_ns,
+        self.IP = make_IPython(argv,
+                               user_ns=user_ns,
                                user_global_ns=user_global_ns,
                                debug=debug,
                                shell_class=shell_class,
@@ -923,21 +935,26 @@ class IPShellQt(IPThread):
         self._banner = banner
 
         if qt.QApplication.startingUp():
-          a = qt.QApplication.QApplication(sys.argv)
+            self.qApp = qt.QApplication.QApplication(sys.argv)
+            # mask until module NoneType errors can be fixed
+#            qt.qApp = qt.QApplication()
+
         self.timer = qt.QTimer()
-        qt.QObject.connect( self.timer, qt.SIGNAL( 'timeout()' ), self.on_timer )
+        qt.QObject.connect(self.timer,
+                           qt.SIGNAL( 'timeout()' ),
+                           self.on_timer)
 
         self.start()
-        self.timer.start( self.TIMEOUT, True )
+        self.timer.start(self.TIMEOUT, True)
         while True:
             if self.IP._kill: break
-            qt.qApp.exec_loop()
+            self.qApp.exec_loop()
         self.join()
 
     def on_timer(self):
         update_tk(self.tk)
         result = self.IP.runcode()
-        self.timer.start( self.TIMEOUT, True )
+        self.timer.start(self.TIMEOUT, True)
         return result
 
 
@@ -950,30 +967,42 @@ class IPShellQt4(IPThread):
 
     TIMEOUT = 100 # Millisecond interval between timeouts.
 
-    def __init__(self,argv=None,user_ns=None,user_global_ns=None,
-                 debug=0,shell_class=MTInteractiveShell):
+    def __init__(self, argv=None, user_ns=None, user_global_ns=None,
+                 debug=0, shell_class=MTInteractiveShell):
 
         from PyQt4 import QtCore, QtGui
 
-        class newQApplication:
-            def __init__( self ):
-                self.QApplication = QtGui.QApplication
+        self.qApp = QtGui.qApp
 
-            def __call__( *args, **kwargs ):
-                return QtGui.qApp
+        class DummyQApp:
+            def __init__(self, *args):
+                self.qApp = QtGui.qApp
 
-            def exec_loop( *args, **kwargs ):
+            def exec_(*args, **kwargs):
                 pass
 
-            def __getattr__( self, name ):
-                return getattr( self.QApplication, name )
+            def __getattr__(self, name):
+                return getattr(self.qApp, name)
 
-        QtGui.QApplication = newQApplication()
+        class DummyQApplication:
+            def __init__(self, *args):
+                self.QApplication = QtGui.QApplication
+
+            def __call__(*args, **kwargs):
+                # mask until module NoneType errors can be fixed
+#                return DummyQApp()
+                return QtGui.qApp
+
+            def __getattr__(self, name):
+                return getattr(self.QApplication, name)
+
+        QtGui.QApplication = DummyQApplication()
 
         # Allows us to use both Tk and QT.
         self.tk = get_tk()
 
-        self.IP = make_IPython(argv,user_ns=user_ns,
+        self.IP = make_IPython(argv,
+                               user_ns=user_ns,
                                user_global_ns=user_global_ns,
                                debug=debug,
                                shell_class=shell_class,
@@ -986,28 +1015,33 @@ class IPShellQt4(IPThread):
 
         threading.Thread.__init__(self)
 
-    def mainloop(self,sys_exit=0,banner=None):
+    def mainloop(self, sys_exit=0, banner=None):
 
         from PyQt4 import QtCore, QtGui
 
         self._banner = banner
 
         if QtGui.QApplication.startingUp():
-          a = QtGui.QApplication.QApplication(sys.argv)
+            self.qApp = QtGui.QApplication.QApplication(sys.argv)
+            # mask until module NoneType errors can be fixed
+#            QtGui.qApp = QtGui.QApplication()
+
         self.timer = QtCore.QTimer()
-        QtCore.QObject.connect( self.timer, QtCore.SIGNAL( 'timeout()' ), self.on_timer )
+        QtCore.QObject.connect(self.timer,
+                               QtCore.SIGNAL('timeout()'),
+                               self.on_timer)
 
         self.start()
-        self.timer.start( self.TIMEOUT )
+        self.timer.start(self.TIMEOUT)
         while True:
+            self.qApp.exec_()
             if self.IP._kill: break
-            QtGui.qApp.exec_()
         self.join()
 
     def on_timer(self):
         update_tk(self.tk)
         result = self.IP.runcode()
-        self.timer.start( self.TIMEOUT )
+        self.timer.start(self.TIMEOUT)
         return result
 
 
