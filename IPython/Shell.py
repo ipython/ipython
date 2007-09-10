@@ -4,7 +4,7 @@
 All the matplotlib support code was co-developed with John Hunter,
 matplotlib's author.
 
-$Id: Shell.py 2756 2007-09-10 18:25:30Z darren.dale $"""
+$Id: Shell.py 2758 2007-09-10 20:56:27Z darren.dale $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2006 Fernando Perez <fperez@colorado.edu>
@@ -885,32 +885,6 @@ class IPShellQt(IPThread):
 
         import qt
 
-        self.qApp = qt.qApp
-
-        class DummyQApp:
-            def __init__(self, *args):
-                self.qApp = qt.qApp
-
-            def exec_loop(*args, **kwargs):
-                pass
-
-            def __getattr__(self, name):
-                return getattr(self.qApp, name)
-
-        class DummyQApplication:
-            def __init__(self):
-                self.QApplication = qt.QApplication
-
-            def __call__(*args, **kwargs):
-                # mask until module NoneType errors can be fixed
-#                return DummyQApp()
-                return qt.qApp
-
-            def __getattr__( self, name ):
-                return getattr(self.QApplication, name)
-
-        qt.QApplication = DummyQApplication()
-
         # Allows us to use both Tk and QT.
         self.tk = get_tk()
 
@@ -935,9 +909,7 @@ class IPShellQt(IPThread):
         self._banner = banner
 
         if qt.QApplication.startingUp():
-            self.qApp = qt.QApplication.QApplication(sys.argv)
-            # mask until module NoneType errors can be fixed
-#            qt.qApp = qt.QApplication()
+            self.qApp = qt.QApplication(sys.argv)
 
         self.timer = qt.QTimer()
         qt.QObject.connect(self.timer,
@@ -948,7 +920,7 @@ class IPShellQt(IPThread):
         self.timer.start(self.TIMEOUT, True)
         while True:
             if self.IP._kill: break
-            self.qApp.exec_loop()
+            qt.qApp.exec_loop()
         self.join()
 
     def on_timer(self):
@@ -956,7 +928,6 @@ class IPShellQt(IPThread):
         result = self.IP.runcode()
         self.timer.start(self.TIMEOUT, True)
         return result
-
 
 class IPShellQt4(IPThread):
     """Run a Qt event loop in a separate thread.
@@ -971,32 +942,6 @@ class IPShellQt4(IPThread):
                  debug=0, shell_class=MTInteractiveShell):
 
         from PyQt4 import QtCore, QtGui
-
-        self.qApp = QtGui.qApp
-
-        class DummyQApp:
-            def __init__(self, *args):
-                self.qApp = QtGui.qApp
-
-            def exec_(*args, **kwargs):
-                pass
-
-            def __getattr__(self, name):
-                return getattr(self.qApp, name)
-
-        class DummyQApplication:
-            def __init__(self, *args):
-                self.QApplication = QtGui.QApplication
-
-            def __call__(*args, **kwargs):
-                # mask until module NoneType errors can be fixed
-#                return DummyQApp()
-                return QtGui.qApp
-
-            def __getattr__(self, name):
-                return getattr(self.QApplication, name)
-
-        QtGui.QApplication = DummyQApplication()
 
         # Allows us to use both Tk and QT.
         self.tk = get_tk()
@@ -1022,9 +967,7 @@ class IPShellQt4(IPThread):
         self._banner = banner
 
         if QtGui.QApplication.startingUp():
-            self.qApp = QtGui.QApplication.QApplication(sys.argv)
-            # mask until module NoneType errors can be fixed
-#            QtGui.qApp = QtGui.QApplication()
+            self.qApp = QtGui.QApplication(sys.argv)
 
         self.timer = QtCore.QTimer()
         QtCore.QObject.connect(self.timer,
@@ -1034,8 +977,8 @@ class IPShellQt4(IPThread):
         self.start()
         self.timer.start(self.TIMEOUT)
         while True:
-            self.qApp.exec_()
             if self.IP._kill: break
+            QtGui.qApp.exec_()
         self.join()
 
     def on_timer(self):
