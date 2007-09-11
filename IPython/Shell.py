@@ -4,7 +4,7 @@
 All the matplotlib support code was co-developed with John Hunter,
 matplotlib's author.
 
-$Id: Shell.py 2760 2007-09-11 17:30:32Z darren.dale $"""
+$Id: Shell.py 2761 2007-09-11 17:40:42Z darren.dale $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2006 Fernando Perez <fperez@colorado.edu>
@@ -684,6 +684,33 @@ def hijack_gtk():
     gtk.main = dummy_mainloop
     return orig_mainloop
 
+def hijack_qt():
+    """Modifies PyQt's mainloop with a dummy so user code does not 
+    block IPython.  This function returns the original 
+    `qt.qApp.exec_loop` function that has been hijacked.
+    """    
+    def dummy_mainloop(*args, **kw):
+        pass
+    import qt
+    orig_mainloop = qt.qApp.exec_loop
+    qt.qApp.exec_loop = dummy_mainloop
+    qt.QApplication.exec_loop = dummy_mainloop
+    return orig_mainloop
+
+def hijack_qt4():
+    """Modifies PyQt4's mainloop with a dummy so user code does not
+    block IPython.  This function returns the original 
+    `QtGui.qApp.exec_` function that has been hijacked.
+    """    
+    def dummy_mainloop(*args, **kw):
+        pass
+    from PyQt4 import QtGui, QtCore
+    orig_mainloop = QtGui.qApp.exec_
+    QtGui.qApp.exec_ = dummy_mainloop
+    QtGui.QApplication.exec_ = dummy_mainloop
+    QtCore.QCoreApplication.exec_ = dummy_mainloop
+    return orig_mainloop
+
 #-----------------------------------------------------------------------------
 # The IPShell* classes below are the ones meant to be run by external code as
 # IPython instances.  Note that unless a specific threading strategy is
@@ -884,13 +911,7 @@ class IPShellQt(IPThread):
 
         import qt
 
-        def dummy_mainloop(*args, **kwargs):
-            pass
-
-        self.exec_loop = qt.qApp.exec_loop
-        
-        qt.qApp.exec_loop = dummy_mainloop
-        qt.QApplication.exec_loop = dummy_mainloop
+        self.exec_loop = hijack_qt()
 
         # Allows us to use both Tk and QT.
         self.tk = get_tk()
@@ -950,15 +971,8 @@ class IPShellQt4(IPThread):
                  debug=0, shell_class=MTInteractiveShell):
 
         from PyQt4 import QtCore, QtGui
-        
-        def dummy_mainloop(*args, **kwargs):
-            pass
 
-        self.exec_ = QtGui.qApp.exec_
-        
-        QtGui.qApp.exec_ = dummy_mainloop
-        QtGui.QApplication.exec_ = dummy_mainloop
-        QtCore.QCoreApplication.exec_ = dummy_mainloop
+        self.exec_ = hijack_qt4()
 
         # Allows us to use both Tk and QT.
         self.tk = get_tk()
