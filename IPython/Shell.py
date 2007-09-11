@@ -4,7 +4,7 @@
 All the matplotlib support code was co-developed with John Hunter,
 matplotlib's author.
 
-$Id: Shell.py 2758 2007-09-10 20:56:27Z darren.dale $"""
+$Id: Shell.py 2760 2007-09-11 17:30:32Z darren.dale $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2006 Fernando Perez <fperez@colorado.edu>
@@ -45,7 +45,6 @@ from IPython.iplib import InteractiveShell
 from IPython.ipmaker import make_IPython
 from IPython.Magic import Magic
 from IPython.ipstruct import Struct
-
 
 # Globals
 # global flag to pass around information about Ctrl-C without exceptions
@@ -877,13 +876,21 @@ class IPShellQt(IPThread):
     Python commands can be passed to the thread where they will be executed.
     This is implemented by periodically checking for passed code using a
     Qt timer / slot."""
-
+    
     TIMEOUT = 100 # Millisecond interval between timeouts.
 
     def __init__(self, argv=None, user_ns=None, user_global_ns=None,
                  debug=0, shell_class=MTInteractiveShell):
 
         import qt
+
+        def dummy_mainloop(*args, **kwargs):
+            pass
+
+        self.exec_loop = qt.qApp.exec_loop
+        
+        qt.qApp.exec_loop = dummy_mainloop
+        qt.QApplication.exec_loop = dummy_mainloop
 
         # Allows us to use both Tk and QT.
         self.tk = get_tk()
@@ -902,25 +909,25 @@ class IPShellQt(IPThread):
         
         threading.Thread.__init__(self)
 
-    def mainloop(self,sys_exit=0,banner=None):
+    def mainloop(self, sys_exit=0, banner=None):
 
         import qt
 
         self._banner = banner
 
         if qt.QApplication.startingUp():
-            self.qApp = qt.QApplication(sys.argv)
+            a = qt.QApplication(sys.argv)
 
         self.timer = qt.QTimer()
         qt.QObject.connect(self.timer,
-                           qt.SIGNAL( 'timeout()' ),
+                           qt.SIGNAL('timeout()'),
                            self.on_timer)
 
         self.start()
         self.timer.start(self.TIMEOUT, True)
         while True:
             if self.IP._kill: break
-            qt.qApp.exec_loop()
+            self.exec_loop()
         self.join()
 
     def on_timer(self):
@@ -928,6 +935,7 @@ class IPShellQt(IPThread):
         result = self.IP.runcode()
         self.timer.start(self.TIMEOUT, True)
         return result
+
 
 class IPShellQt4(IPThread):
     """Run a Qt event loop in a separate thread.
@@ -942,6 +950,15 @@ class IPShellQt4(IPThread):
                  debug=0, shell_class=MTInteractiveShell):
 
         from PyQt4 import QtCore, QtGui
+        
+        def dummy_mainloop(*args, **kwargs):
+            pass
+
+        self.exec_ = QtGui.qApp.exec_
+        
+        QtGui.qApp.exec_ = dummy_mainloop
+        QtGui.QApplication.exec_ = dummy_mainloop
+        QtCore.QCoreApplication.exec_ = dummy_mainloop
 
         # Allows us to use both Tk and QT.
         self.tk = get_tk()
@@ -967,7 +984,7 @@ class IPShellQt4(IPThread):
         self._banner = banner
 
         if QtGui.QApplication.startingUp():
-            self.qApp = QtGui.QApplication(sys.argv)
+            a = QtGui.QApplication(sys.argv)
 
         self.timer = QtCore.QTimer()
         QtCore.QObject.connect(self.timer,
@@ -978,7 +995,7 @@ class IPShellQt4(IPThread):
         self.timer.start(self.TIMEOUT)
         while True:
             if self.IP._kill: break
-            QtGui.qApp.exec_()
+            self.exec_()
         self.join()
 
     def on_timer(self):
