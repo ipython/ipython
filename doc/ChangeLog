@@ -1,3 +1,15 @@
+2007-09-14  Fernando Perez  <Fernando.Perez@colorado.edu>
+
+	* IPython/genutils.py (doctest_reload): expose the doctest
+	reloader to the user so that people can easily reset doctest while
+	using it interactively.  Fixes a problem reported by Jorgen.
+
+	* IPython/iplib.py (InteractiveShell.__init__): protect the
+	FakeModule instances used for __main__ in %run calls from
+	deletion, so that user code defined in them isn't left with
+	dangling references due to the Python module deletion machinery.
+	This should fix the problems reported by Darren.
+
 2007-09-10  Darren Dale  <dd55@cornell.edu>
 
         * Cleanup of IPShellQt and IPShellQt4

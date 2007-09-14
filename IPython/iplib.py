@@ -6,7 +6,7 @@ Requires Python 2.3 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 2754 2007-09-09 10:16:59Z fperez $
+$Id: iplib.py 2763 2007-09-14 06:35:44Z fperez $
 """
 
 #*****************************************************************************
@@ -41,7 +41,6 @@ import StringIO
 import bdb
 import cPickle as pickle
 import codeop
-import doctest
 import exceptions
 import glob
 import inspect
@@ -343,6 +342,20 @@ class InteractiveShell(object,Magic):
                 #print "pickle hack in place"  # dbg
                 #print 'main_name:',main_name # dbg
                 sys.modules[main_name] = FakeModule(self.user_ns)
+
+        # Now that FakeModule produces a real module, we've run into a nasty
+        # problem: after script execution (via %run), the module where the user
+        # code ran is deleted.  Now that this object is a true module (needed
+        # so docetst and other tools work correctly), the Python module
+        # teardown mechanism runs over it, and sets to None every variable
+        # present in that module.  This means that later calls to functions
+        # defined in the script (which have become interactively visible after
+        # script exit) fail, because they hold references to objects that have
+        # become overwritten into None.  The only solution I see right now is
+        # to protect every FakeModule used by %run by holding an internal
+        # reference to it.  This private list will be used for that.  The
+        # %reset command will flush it as well.
+        self._user_main_modules = []
 
         # List of input with multi-line handling.
         # Fill its zero entry, user counter starts at 1
@@ -681,21 +694,10 @@ class InteractiveShell(object,Magic):
         self.sys_displayhook = sys.displayhook
         sys.displayhook = self.outputcache
 
-        # Monkeypatch doctest so that its core test runner method is protected
-        # from IPython's modified displayhook.  Doctest expects the default
-        # displayhook behavior deep down, so our modification breaks it
-        # completely.  For this reason, a hard monkeypatch seems like a
-        # reasonable solution rather than asking users to manually use a
-        # different doctest runner when under IPython.
-        try:
-            doctest.DocTestRunner
-        except AttributeError:
-            # This is only for python 2.3 compatibility, remove once we move to
-            # 2.4 only.
-            pass
-        else:
-            doctest.DocTestRunner.run = dhook_wrap(doctest.DocTestRunner.run)
-
+        # Do a proper resetting of doctest, including the necessary displayhook
+        # monkeypatching
+        doctest_reload()
+        
         # Set user colors (don't do it in the constructor above so that it
         # doesn't crash if colors option is invalid)
         self.magic_colors(rc.colors)

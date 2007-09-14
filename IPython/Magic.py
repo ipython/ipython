@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Magic functions for InteractiveShell.
 
-$Id: Magic.py 2754 2007-09-09 10:16:59Z fperez $"""
+$Id: Magic.py 2763 2007-09-14 06:35:44Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001 Janko Hauser <jhauser@zscout.de> and
@@ -1037,6 +1037,10 @@ Currently the magic system has the following functions:\n"""
         user_ns = self.shell.user_ns
         for i in self.magic_who_ls():
             del(user_ns[i])
+            
+        # Also flush the private list of module references kept for script
+        # execution protection
+        self.shell._user_main_modules[:] = []
 
     def magic_logstart(self,parameter_s=''):
         """Start logging anywhere in a session.
@@ -1519,11 +1523,13 @@ Currently the magic system has the following functions:\n"""
         sys.argv = [filename]+ arg_lst[1:]  # put in the proper filename
 
         if opts.has_key('i'):
+            # Run in user's interactive namespace
             prog_ns = self.shell.user_ns
             __name__save = self.shell.user_ns['__name__']
             prog_ns['__name__'] = '__main__'
             main_mod = FakeModule(prog_ns)
         else:
+            # Run in a fresh, empty namespace
             if opts.has_key('n'):
                 name = os.path.splitext(os.path.basename(filename))[0]
             else:
@@ -1531,6 +1537,10 @@ Currently the magic system has the following functions:\n"""
             main_mod = FakeModule()
             prog_ns = main_mod.__dict__
             prog_ns['__name__'] = name
+            # The shell MUST hold a reference to main_mod so after %run exits,
+            # the python deletion mechanism doesn't zero it out (leaving
+            # dangling references)
+            self.shell._user_main_modules.append(main_mod)
 
         # Since '%run foo' emulates 'python foo.py' at the cmd line, we must
         # set the __file__ global in the script's namespace
@@ -1542,7 +1552,7 @@ Currently the magic system has the following functions:\n"""
             restore_main = sys.modules['__main__']
         else:
             restore_main = False
-            
+
         sys.modules[prog_ns['__name__']] = main_mod
         
         stats = None
@@ -1594,6 +1604,7 @@ Currently the magic system has the following functions:\n"""
                     if runner is None:
                         runner = self.shell.safe_execfile
                     if opts.has_key('t'):
+                        # timed execution
                         try:
                             nruns = int(opts['N'][0])
                             if nruns < 1:
@@ -1627,6 +1638,7 @@ Currently the magic system has the following functions:\n"""
                             print "  System: %10s s, %10s s." % (t_sys,t_sys/nruns)
                             
                     else:
+                        # regular execution
                         runner(filename,prog_ns,prog_ns,exit_ignore=exit_ignore)
                 if opts.has_key('i'):
                     self.shell.user_ns['__name__'] = __name__save
