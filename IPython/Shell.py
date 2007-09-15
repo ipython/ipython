@@ -4,7 +4,7 @@
 All the matplotlib support code was co-developed with John Hunter,
 matplotlib's author.
 
-$Id: Shell.py 2761 2007-09-11 17:40:42Z darren.dale $"""
+$Id: Shell.py 2764 2007-09-15 14:16:21Z darren.dale $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2006 Fernando Perez <fperez@colorado.edu>
@@ -971,6 +971,11 @@ class IPShellQt4(IPThread):
                  debug=0, shell_class=MTInteractiveShell):
 
         from PyQt4 import QtCore, QtGui
+
+        if QtCore.PYQT_VERSION_STR == '4.3':
+            warn('''PyQt4 version 4.3 detected.
+If you experience repeated threading warnings, please update PyQt4.
+''')
 
         self.exec_ = hijack_qt4()
 
