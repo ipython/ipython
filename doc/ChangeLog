@@ -1,3 +1,9 @@
+2007-09-18  Ville Vainio  <vivainio@gmail.com>
+
+	* genutils.py(make_quoted_expr): Do not use Itpl, it does
+        not support unicode at the moment. Fixes (many) magic calls with
+        special characters.
+
 2007-09-14  Fernando Perez  <Fernando.Perez@colorado.edu>
 
 	* IPython/genutils.py (doctest_reload): expose the doctest

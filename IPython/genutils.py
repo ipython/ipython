@@ -5,7 +5,7 @@ General purpose utilities.
 This is a grab-bag of stuff I find useful in most programs I write. Some of
 these things are also convenient when working at the command line.
 
-$Id: genutils.py 2763 2007-09-14 06:35:44Z fperez $"""
+$Id: genutils.py 2767 2007-09-18 17:26:52Z vivainio $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2006 Fernando Perez. <fperez@colorado.edu>
@@ -1104,7 +1104,7 @@ def make_quoted_expr(s):
     else:
         # give up, backslash-escaped string will do
         return '"%s"' % esc_quotes(s)
-    res = itpl("$raw$quote$s$tailpadding$quote$tail")
+    res = raw + quote + s + tailpadding + quote + tail
     return res
 
 
