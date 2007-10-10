@@ -1,3 +1,9 @@
+2007-10-09  Fernando Perez  <Fernando.Perez@colorado.edu>
+
+	* IPython/Magic.py (magic_time): track compilation time and report
+	it if longer than 0.1s (fix done to %time and %timeit).  After a
+	SAGE bug report: http://trac.sagemath.org/sage_trac/ticket/632.
+
 2007-09-18  Ville Vainio  <vivainio@gmail.com>
 
 	* genutils.py(make_quoted_expr): Do not use Itpl, it does

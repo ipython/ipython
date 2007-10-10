@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Magic functions for InteractiveShell.
 
-$Id: Magic.py 2763 2007-09-14 06:35:44Z fperez $"""
+$Id: Magic.py 2841 2007-10-10 00:17:26Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001 Janko Hauser <jhauser@zscout.de> and
@@ -1752,7 +1752,14 @@ Currently the magic system has the following functions:\n"""
 
         src = timeit.template % {'stmt': timeit.reindent(stmt, 8),
                                  'setup': "pass"}
+        # Track compilation time so it can be reported if too long
+        # Minimum time above which compilation time will be reported
+        tc_min = 0.1
+        
+        t0 = clock()
         code = compile(src, "<magic-timeit>", "exec")
+        tc = clock()-t0
+        
         ns = {}
         exec code in self.shell.user_ns, ns
         timer.inner = ns["inner"]
@@ -1775,6 +1782,8 @@ Currently the magic system has the following functions:\n"""
                                                           precision,
                                                           best * scaling[order],
                                                           units[order])
+        if tc > tc_min:
+            print "Compiler time: %.2f s" % tc
         
     def magic_time(self,parameter_s = ''):
         """Time execution of a Python statement or expression.
@@ -1805,18 +1814,40 @@ Currently the magic system has the following functions:\n"""
           hello world
           CPU times: user 0.00 s, sys: 0.00 s, total: 0.00 s
           Wall time: 0.00
+
+          Note that the time needed by Python to compile the given expression
+          will be reported if it is more than 0.1s.  In this example, the
+          actual exponentiation is done by Python at compilation time, so while
+          the expression can take a noticeable amount of time to compute, that
+          time is purely due to the compilation:
+
+          In [5]: time 3**9999;
+          CPU times: user 0.00 s, sys: 0.00 s, total: 0.00 s
+          Wall time: 0.00 s
+
+          In [6]: time 3**999999;
+          CPU times: user 0.00 s, sys: 0.00 s, total: 0.00 s
+          Wall time: 0.00 s
+          Compiler : 0.78 s
           """
         
         # fail immediately if the given expression can't be compiled
         
         expr = self.shell.prefilter(parameter_s,False)
+
+        # Minimum time above which compilation time will be reported
+        tc_min = 0.1
         
         try:
             mode = 'eval'
+            t0 = clock()
             code = compile(expr,'<timed eval>',mode)
+            tc = clock()-t0
         except SyntaxError:
             mode = 'exec'
+            t0 = clock()
             code = compile(expr,'<timed exec>',mode)
+            tc = clock()-t0
         # skew measurement as little as possible
         glob = self.shell.user_ns
         clk = clock2
@@ -1840,7 +1871,9 @@ Currently the magic system has the following functions:\n"""
         cpu_tot = cpu_user+cpu_sys
         print "CPU times: user %.2f s, sys: %.2f s, total: %.2f s" % \
               (cpu_user,cpu_sys,cpu_tot)
-        print "Wall time: %.2f" % wall_time
+        print "Wall time: %.2f s" % wall_time
+        if tc > tc_min:
+            print "Compiler : %.2f s" % tc
         return out
 
     def magic_macro(self,parameter_s = ''):
