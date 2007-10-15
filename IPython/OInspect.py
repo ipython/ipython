@@ -6,7 +6,7 @@ Uses syntax highlighting for presenting the various information elements.
 Similar in spirit to the inspect module, but all calls take a name argument to
 reference the name under which an object is being read.
 
-$Id: OInspect.py 2723 2007-09-07 07:44:16Z fperez $
+$Id: OInspect.py 2843 2007-10-15 21:22:32Z fperez $
 """
 
 #*****************************************************************************
@@ -473,7 +473,12 @@ class Inspector:
             # most cases they will, but it's nice to print all the info for
             # objects which use instance-customized docstrings.
             if ds:
-                class_ds = getdoc(obj.__class__)
+                try:
+                    cls = getattr(obj,'__class__')
+                except:
+                    class_ds = None
+                else:
+                    class_ds = getdoc(cls)
                 # Skip Python's auto-generated docstrings
                 if class_ds and \
                        (class_ds.startswith('function(code, globals[,') or \

@@ -1,3 +1,9 @@
+2007-10-15  Fernando Perez  <Fernando.Perez@colorado.edu>
+
+	* IPython/OInspect.py (Inspector.pinfo): fix bug that could arise
+	when querying objects with no __class__ attribute (such as
+	f2py-generated modules).
+
 2007-10-09  Fernando Perez  <Fernando.Perez@colorado.edu>
 
 	* IPython/Magic.py (magic_time): track compilation time and report
