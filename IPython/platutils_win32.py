@@ -25,12 +25,12 @@ import os
 ignore_termtitle = 0
 
 try:
-    from ctypes import windll
-    SetConsoleTitleA=windll.kernel32.SetConsoleTitleA
-
+    import ctypes
+    SetConsoleTitleW=ctypes.windll.kernel32.SetConsoleTitleW
+    SetConsoleTitleW.argtypes=[ctypes.c_wchar_p]
     def _set_term_title(title):
         """ Set terminal title using the ctypes"""
-        SetConsoleTitleA(str(title))
+        SetConsoleTitleW(title)
 
 except ImportError:
     def _set_term_title(title):
