@@ -6,7 +6,7 @@ Requires Python 2.3 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 2844 2007-10-24 14:34:18Z vivainio $
+$Id: iplib.py 2846 2007-10-24 14:44:48Z vivainio $
 """
 
 #*****************************************************************************
@@ -1902,6 +1902,7 @@ want to merge them back into the new files.""" % locals()
         # this allows execution of indented pasted code. It is tempting
         # to add '\n' at the end of source to run commands like ' a=1'
         # directly, but this fails for more complicated scenarios
+        source=source.encode(self.stdin_encoding)
         if source[:1] in [' ', '\t']:
             source = 'if 1:\n%s' % source
 
