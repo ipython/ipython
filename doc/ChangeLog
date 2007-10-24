@@ -1,3 +1,8 @@
+2007-10-24  Ville Vainio  <vivainio@gmail.com>
+
+	* iplib.py(user_setup): To route around buggy installations where
+	UserConfig is not available, create a minimal _ipython.
+
 2007-10-15  Fernando Perez  <Fernando.Perez@colorado.edu>
 
 	* IPython/OInspect.py (Inspector.pinfo): fix bug that could arise

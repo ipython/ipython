@@ -6,7 +6,7 @@ Requires Python 2.3 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 2763 2007-09-14 06:35:44Z fperez $
+$Id: iplib.py 2844 2007-10-24 14:34:18Z vivainio $
 """
 
 #*****************************************************************************
@@ -1104,7 +1104,8 @@ where you can customize many aspects of IPython's functionality in:\n"""
         cfg = lambda d: os.path.join(d,rcdirend)
         try:
             rcdir = filter(os.path.isdir,map(cfg,sys.path))[0]
-        except IOError:
+            print "Initializing from configuration",rcdir
+        except IndexError:
             warning = """
 Installation error. IPython's directory was not found.
 
@@ -1114,10 +1115,21 @@ The ipython/IPython directory should be in a directory belonging to your
 PYTHONPATH environment variable (that is, it should be in a directory
 belonging to sys.path). You can copy it explicitly there or just link to it.
 
-IPython will proceed with builtin defaults.
+IPython will create a minimal default configuration for you.
+
 """
             warn(warning)
             wait()
+            
+            if sys.platform =='win32':
+                inif = 'ipythonrc.ini'
+            else:
+                inif = 'ipythonrc'
+            minimal_setup = {'ipy_user_conf.py' : 'import ipy_defaults', inif : '# intentionally left blank' }    
+            os.makedirs(ipythondir)
+            for f, cont in minimal_setup.items():
+                open(ipythondir + '/' + f,'w').write(cont)
+                             
             return
 
         if mode == 'install':
