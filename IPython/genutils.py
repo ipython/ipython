@@ -5,7 +5,7 @@ General purpose utilities.
 This is a grab-bag of stuff I find useful in most programs I write. Some of
 these things are also convenient when working at the command line.
 
-$Id: genutils.py 2767 2007-09-18 17:26:52Z vivainio $"""
+$Id: genutils.py 2847 2007-10-24 15:16:24Z vivainio $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2006 Fernando Perez. <fperez@colorado.edu>
@@ -1058,10 +1058,47 @@ class SList(list):
             return SList([el for el in self if pred(el)])
         else:
             return SList([el for el in self if not pred(el)])
+    def fields(self, *fields):
+        """ Collect whitespace-separated fields from string list
+        
+        Allows quick awk-like usage of string lists.
+        
+        Example data (in var a, created by 'a = !ls -l')::
+            -rwxrwxrwx  1 ville None      18 Dec 14  2006 ChangeLog
+            drwxrwxrwx+ 6 ville None       0 Oct 24 18:05 IPython        
+        
+        a.fields(0) is ['-rwxrwxrwx', 'drwxrwxrwx+']
+        a.fields(1,0) is ['1 -rwxrwxrwx', '6 drwxrwxrwx+']
+        (note the joining by space).
+        
+        IndexErrors are ignored.
+        
+        Without args, fields() just split()'s the strings.
+        """
+        if len(fields) == 0:
+            return [el.split() for el in self]
+        
+        res = SList()
+        for el in [f.split() for f in self]:
+            lineparts = []
+
+            for fd in fields:
+                try:
+                    lineparts.append(el[fd])
+                except IndexError:
+                    pass
+            if lineparts:
+                res.append(" ".join(lineparts))
+            
+        return res        
+                
+            
+            
+        
 
 def print_slist(arg):
     """ Prettier (non-repr-like) and more informative printer for SList """
-    print "SList (.p, .n, .l, .s, .grep() available). Value:"
+    print "SList (.p, .n, .l, .s, .grep(), .fields() available). Value:"
     nlprint(arg)
     
 print_slist = result_display.when_type(SList)(print_slist)
