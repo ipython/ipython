@@ -75,6 +75,10 @@ def gnuclient(exe= 'gnuclient'):
     install_editor(exe + ' -nw +$line "$file"')
 
 def crimson_editor(exe = 'cedt.exe'):
-    install_editor(exe + ' /L:%line "$file"')
+    install_editor(exe + ' /L:$line "$file"')
+    
+def kate(exe = 'kate'):
+    install_editor(exe + ' -u -l $line "$file"')
+    
    
     
