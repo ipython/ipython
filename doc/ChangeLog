@@ -1,3 +1,8 @@
+2007-11-01  Brian Granger <ellisonbg@gmail.com>
+
+	* iplib.py, rlineimpl.py: Applied Body Water's patches to get IPython
+	working with OS X 10.5 libedit implementation of readline.
+
 2007-10-24  Ville Vainio  <vivainio@gmail.com>
 
 	* iplib.py(user_setup): To route around buggy installations where
