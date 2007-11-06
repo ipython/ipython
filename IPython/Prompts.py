@@ -2,7 +2,7 @@
 """
 Classes for handling input/output prompts.
 
-$Id: Prompts.py 2659 2007-08-22 20:21:07Z vivainio $"""
+$Id: Prompts.py 2855 2007-11-06 06:53:49Z vivainio $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2006 Fernando Perez <fperez@colorado.edu>
@@ -586,8 +586,8 @@ class CachedOutput:
         if self.do_full_cache:
             new_result = '_'+`self.prompt_count`
             to_main[new_result] = arg
-        self.user_ns.update(to_main)
-        self.user_ns['_oh'][self.prompt_count] = arg
+            self.user_ns.update(to_main)
+            self.user_ns['_oh'][self.prompt_count] = arg
 
     def flush(self):
         if not self.do_full_cache:
