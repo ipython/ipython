@@ -1,6 +1,9 @@
 2007-11-08  Ville Vainio  <vivainio@gmail.com>
-	* ipy_completer.py (import completer): assume 'xml' module exists. 
+	* ipy_completers.py (import completer): assume 'xml' module exists. 
 	Do not add every module twice anymore. Closes #196.
+        
+	* ipy_completers.py, ipy_app_completers.py: Add proper apt-get
+	completer that uses apt-cache to search for existing packages.
 
 2007-11-06  Ville Vainio  <vivainio@gmail.com>
 

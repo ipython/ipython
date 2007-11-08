@@ -165,32 +165,6 @@ def vcs_completer(commands, event):
     return ip.IP.Completer.file_matches(event.symbol)
 
 
-
-def apt_completers(self, event):
-    """ This should return a list of strings with possible completions.
-
-    Note that all the included strings that don't start with event.symbol
-    are removed, in order to not confuse readline.
-
-    """
-    # print event # dbg
-
-    # commands are only suggested for the 'command' part of package manager
-    # invocation
-
-    cmd = (event.line + "<placeholder>").rsplit(None,1)[0]
-    # print cmd
-    if cmd.endswith('apt-get') or cmd.endswith('yum'):
-        return ['update', 'upgrade', 'install', 'remove']
-
-    # later on, add dpkg -l / whatever to get list of possible
-    # packages, add switches etc. for the rest of command line
-    # filling
-
-    raise IPython.ipapi.TryNext
-
-
-
 pkg_cache = None
 
 def module_completer(self,event):
@@ -349,4 +323,33 @@ def cd_completer(self, event):
             return [relpath]
         raise IPython.ipapi.TryNext
     return found
+
+def apt_get_packages(prefix):
+    out = os.popen('apt-cache pkgnames')
+    for p in out:
+        if p.startswith(prefix):
+            yield p.rstrip()
+    
+    
+apt_commands = """\
+update upgrade install remove purge source build-dep dist-upgrade
+dselect-upgrade clean autoclean check"""
+
+def apt_completer(self, event):
+    """ Completer for apt-get (uses apt-cache internally)
+
+    """
+
+
+    cmd_param = event.line.split()
+    if event.line.endswith(' '):
+        cmd_param.append('')
+
+    if cmd_param[0] == 'sudo':
+        cmd_param = cmd_param[1:]
+
+    if len(cmd_param) == 2 or 'help' in cmd_param:
+        return apt_commands.split()
+
+    return list(apt_get_packages(event.symbol))
 
