@@ -62,8 +62,12 @@ def getRootModules():
             print
             ip.db['rootmodules'] = []
             return []
-
+    
     modules += sys.builtin_module_names
+    
+    #special modules that don't appear normally
+    modules.extend(['xml'])
+    
     modules = list(set(modules))
     if '__init__' in modules:
         modules.remove('__init__')
@@ -77,17 +81,18 @@ def moduleList(path):
     Return the list containing the names of the modules available in the given
     folder.
     """
+
     if os.path.isdir(path):
         folder_list = os.listdir(path)
     else:
         folder_list = []
     #folder_list = glob.glob(os.path.join(path,'*'))
-    folder_list = [path for path in folder_list  \
-       if os.path.exists(os.path.join(path,'__init__.py'))\
-           or path[-3:] in ('.py','.so')\
-           or path[-4:] in ('.pyc','.pyo')]
-    folder_list += folder_list
-    folder_list = [os.path.basename(path).split('.')[0] for path in folder_list]
+    folder_list = [p for p in folder_list  \
+       if os.path.exists(os.path.join(p,'__init__.py'))\
+           or p[-3:] in ('.py','.so')\
+           or p[-4:] in ('.pyc','.pyo')]
+
+    folder_list = [os.path.basename(p).split('.')[0] for p in folder_list]
     return folder_list
 
 def moduleCompletion(line):

@@ -1,3 +1,7 @@
+2007-11-08  Ville Vainio  <vivainio@gmail.com>
+	* ipy_completer.py (import completer): assume 'xml' module exists. 
+	Do not add every module twice anymore. Closes #196.
+
 2007-11-06  Ville Vainio  <vivainio@gmail.com>
 
 	* Prompts.py: Do not update _oh and _123 when do_full_cache is not
