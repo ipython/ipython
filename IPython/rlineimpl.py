@@ -33,13 +33,13 @@ if sys.platform == 'win32' and have_readline:
 # Thanks to Boyd Waters for this patch.
 uses_libedit = False
 if sys.platform == 'darwin' and have_readline:
-	import commands
-	(status, result) = commands.getstatusoutput( "otool -L %s | grep libedit" % _rl.__file__ )
-	if status == 0 and len(result) > 0:
-		# we are bound to libedit - new in Leopard
-		_rl.parse_and_bind("bind ^I rl_complete")
-		print "Leopard libedit detected."
-		uses_libedit = True
+    import commands
+    (status, result) = commands.getstatusoutput( "otool -L %s | grep libedit" % _rl.__file__ )
+    if status == 0 and len(result) > 0:
+        # we are bound to libedit - new in Leopard
+        _rl.parse_and_bind("bind ^I rl_complete")
+        print "Leopard libedit detected."
+        uses_libedit = True
 
 
 # the clear_history() function was only introduced in Python 2.4 and is
