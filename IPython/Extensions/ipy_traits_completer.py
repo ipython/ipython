@@ -99,6 +99,13 @@ def trait_completer(self,event):
     attr_start = symbol_parts[-1]
     if attr_start:
         attrs = [a for a in attrs if a.startswith(attr_start)]
+    
+    # Let's also respect the user's readline_omit__names setting:
+    omit__names = ipget().options.readline_omit__names
+    if omit__names == 1:
+        attrs = [a for a in attrs if not a.startswith('__')]
+    elif omit__names == 2:
+        attrs = [a for a in attrs if not a.startswith('_')]
 
     #print '\nastart:<%r>' % attr_start  # dbg
 

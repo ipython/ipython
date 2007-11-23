@@ -1,3 +1,7 @@
+2007-11-23  Darren Dale <darren.dale@cornell.edu>
+        * ipy_traits_completer.py: let traits_completer respect the user's
+        readline_omit__names setting.
+
 2007-11-08  Ville Vainio  <vivainio@gmail.com>
 	* ipy_completers.py (import completer): assume 'xml' module exists. 
 	Do not add every module twice anymore. Closes #196.
