@@ -6,7 +6,7 @@ Requires Python 2.1 or better.
 
 This file contains the main make_IPython() starter function.
 
-$Id: ipmaker.py 2872 2007-11-25 17:58:05Z fperez $"""
+$Id: ipmaker.py 2873 2007-11-25 18:01:55Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2006 Fernando Perez. <fperez@colorado.edu>
@@ -200,7 +200,7 @@ object?   -> Details about 'object'. ?object also works, ?? prints more.
                       deep_reload = 0,
                       editor = '0',
                       help = 0,
-                      interact = 0,
+                      interact = 1,
                       ipythondir = ipythondir_def,
                       log = 0,
                       logfile = '',
