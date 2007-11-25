@@ -1,3 +1,10 @@
+2007-11-24  Fernando Perez  <Fernando.Perez@colorado.edu>
+
+	* IPython/DPyGetOpt.py (ArgumentError): Apply patch by Paul Mueller
+	<gakusei-AT-dakotacom.net>, to fix deprecated string exceptions in
+	options handling.  Unicode fix in %whos (committed a while ago)
+	was also contributed by Paul.
+
 2007-11-23  Darren Dale <darren.dale@cornell.edu>
         * ipy_traits_completer.py: let traits_completer respect the user's
         readline_omit__names setting.

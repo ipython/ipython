@@ -6,7 +6,7 @@ Requires Python 2.1 or better.
 
 This file contains the main make_IPython() starter function.
 
-$Id: ipmaker.py 2723 2007-09-07 07:44:16Z fperez $"""
+$Id: ipmaker.py 2872 2007-11-25 17:58:05Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2006 Fernando Perez. <fperez@colorado.edu>
@@ -301,9 +301,9 @@ object?   -> Details about 'object'. ?object also works, ?? prints more.
 
     try:
         getopt.processArguments(argv)
-    except:
+    except DPyGetOpt.ArgumentError, exc:
         print cmd_line_usage
-        warn('\nError in Arguments: ' + `sys.exc_value`)
+        warn('\nError in Arguments: "%s"' % exc)
         sys.exit(1)
 
     # convert the options dict to a struct for much lighter syntax later

@@ -5,7 +5,7 @@ General purpose utilities.
 This is a grab-bag of stuff I find useful in most programs I write. Some of
 these things are also convenient when working at the command line.
 
-$Id: genutils.py 2847 2007-10-24 15:16:24Z vivainio $"""
+$Id: genutils.py 2872 2007-11-25 17:58:05Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2006 Fernando Perez. <fperez@colorado.edu>
@@ -620,9 +620,9 @@ def process_cmdline(argv,names=[],defaults={},usage=''):
 
     try:
         getopt.processArguments(argv)
-    except:
+    except DPyGetOpt.ArgumentError, exc:
         print usage
-        warn(`sys.exc_value`,level=4)
+        warn('"%s"' % exc,level=4)
 
     defaults.update(getopt.optionValues)
     args = getopt.freeValues

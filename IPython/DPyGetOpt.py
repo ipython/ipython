@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """DPyGetOpt -- Demiurge Python GetOptions Module
 
- $Id: DPyGetOpt.py 1980 2006-12-12 21:48:46Z vivainio $
+ $Id: DPyGetOpt.py 2872 2007-11-25 17:58:05Z fperez $
 
 This module is modeled after perl's Getopt::Long module-- which
 is, in turn, modeled after GNU's extended getopt() function.
@@ -33,7 +33,7 @@ and -baz options that appear on within the parsed argument list
 must have a real number argument and that the accumulated list
 of values will be available under the name 'foo'
 
-$Id: DPyGetOpt.py 1980 2006-12-12 21:48:46Z vivainio $"""
+$Id: DPyGetOpt.py 2872 2007-11-25 17:58:05Z fperez $"""
 
 #*****************************************************************************
 #
@@ -74,9 +74,18 @@ import string
 import sys
 import types
 
-arg_error  = 'DPyGetOpt Argument Error'
-spec_error = 'DPyGetOpt Specification Error'
-term_error = 'DPyGetOpt Termination Error'
+class Error(Exception):
+    """Base class for exceptions in the DPyGetOpt module."""
+
+class ArgumentError(Error):
+    """Exception indicating an error in the arguments passed to
+    DPyGetOpt.processArguments."""
+
+class SpecificationError(Error):
+    """Exception indicating an error with an option specification."""
+
+class TerminationError(Error):
+    """Exception indicating an error with an option processing terminator."""
 
 specificationExpr = re.compile('(?P<required>.)(?P<type>.)(?P<multi>@?)')
 
@@ -214,7 +223,7 @@ class DPyGetOpt:
         """
         Adds the option described by oTuple (name, (type, mode,
         default), alias) to optionTuples.  Adds index keyed under name
-        to optionNames.  Raises spec_error if name already in
+        to optionNames.  Raises SpecificationError if name already in
         optionNames
         """
         (name, (type, mode, default, multi), realName) = oTuple
@@ -222,11 +231,13 @@ class DPyGetOpt:
         # verify name and add to option names dictionary
         if self.optionNames.has_key(name):
             if realName:
-                raise spec_error, 'Alias \'' + name + '\' for \'' + realName + \
-                                '\' already used for another option or alias.'
+                raise SpecificationError('Alias \'' + name + '\' for \'' +
+                                         realName +
+                                         '\' already used for another option or alias.')
             else:
-                raise spec_error, 'Option named \'' + name + \
-                                '\' specified more than once. Specification: ' + option
+                raise SpecificationError('Option named \'' + name +
+                                         '\' specified more than once. Specification: '
+                                         + option)
 
         # validated. add to optionNames
         self.optionNames[name] = self.tupleIndex
@@ -244,11 +255,13 @@ class DPyGetOpt:
             # verify name and add to option names dictionary
             if self.optionNames.has_key(alias):
                 if realName:
-                    raise spec_error, 'Negated alias \'' + name + '\' for \'' + realName + \
-                                    '\' already used for another option or alias.'
+                    raise SpecificationError('Negated alias \'' + name +
+                                             '\' for \'' + realName +
+                                             '\' already used for another option or alias.')
                 else:
-                    raise spec_error, 'Negated option named \'' + name + \
-                                    '\' specified more than once. Specification: ' + option
+                    raise SpecificationError('Negated option named \'' + name +
+                                             '\' specified more than once. Specification: '
+                                             + option)
 
             # validated. add to optionNames
             self.optionNames[alias] = self.tupleIndex
@@ -299,7 +312,8 @@ class DPyGetOpt:
             # break into names, specification
             match = splitExpr.match(option)
             if match is None:
-                raise spec_error, 'Invalid specification {' + option + '}'
+                raise SpecificationError('Invalid specification {' + option +
+                                         '}')
 
             names                     = match.group('names')
             specification = match.group('spec')
@@ -328,7 +342,8 @@ class DPyGetOpt:
                 match = specificationExpr.match(specification)
                 if match is None:
                     # failed to parse, die
-                    raise spec_error, 'Invalid configuration for option \'' + option + '\''
+                    raise SpecificationError('Invalid configuration for option \''
+                                             + option + '\'')
 
                 # determine mode
                 required = match.group('required')
@@ -337,7 +352,8 @@ class DPyGetOpt:
                 elif required == ':':
                     argMode = ArgOptional
                 else:
-                    raise spec_error, 'Unknown requirement configuration \'' + required + '\''
+                    raise SpecificationError('Unknown requirement configuration \''
+                                             + required + '\'')
 
                 # determine type
                 type = match.group('type')
@@ -351,7 +367,8 @@ class DPyGetOpt:
                     argType   = RealArgType
                     argDefault = 1
                 else:
-                    raise spec_error, 'Unknown type specifier \'' + type + '\''
+                    raise SpecificationError('Unknown type specifier \'' +
+                                             type + '\'')
 
                 # determine quantity
                 if match.group('multi') == '@':
@@ -425,7 +442,7 @@ class DPyGetOpt:
         terminator.  If it is, sets self.terminator to the full name of
         the terminator.
 
-        If more than one terminator matched, raises a term_error with a
+        If more than one terminator matched, raises a TerminationError with a
         string describing the ambiguity.
         """
 
@@ -445,8 +462,8 @@ class DPyGetOpt:
         if not len(terms):
             return None
         elif len(terms) > 1:
-            raise term_error, 'Ambiguous terminator \'' + optionName + \
-                            '\' matches ' + repr(terms)
+            raise TerminationError('Ambiguous terminator \'' + optionName +
+                                   '\' matches ' + repr(terms))
 
         self.terminator = terms[0]
         return self.terminator
@@ -529,10 +546,11 @@ class DPyGetOpt:
             tuples = self._getArgTuple(optName)
 
             if tuples == None:
-                raise arg_error, 'Illegal option \'' + arg + '\''
+                raise ArgumentError('Illegal option \'' + arg + '\'')
             elif len(tuples) > 1:
-                raise arg_error, 'Ambiguous option \'' + arg + '\';  matches ' + \
-                                repr(map(lambda x: x[0], tuples))
+                raise ArgumentError('Ambiguous option \'' + arg +
+                                    '\';  matches ' +
+                                    repr(map(lambda x: x[0], tuples)))
             else:
                 config = tuples[0]
 
@@ -545,8 +563,9 @@ class DPyGetOpt:
             if (optMode == ArgRequired):
                 if (not nextArg) or self._isTerminator(nextArg):
 #                                       print nextArg
-                    raise arg_error, 'Option \'' + arg + \
-                                    '\' requires an argument of type ' + optType
+                    raise ArgumentError('Option \'' + arg +
+                                        '\' requires an argument of type ' +
+                                        optType)
 
             if (not optMode == None) and nextArg and (not self._isTerminator(nextArg)):
                 # nextArg defined, option configured to possibly consume arg
@@ -559,15 +578,17 @@ class DPyGetOpt:
                     except:
                         # only raise conversion error if REQUIRED to consume argument
                         if optMode == ArgRequired:
-                            raise arg_error, 'Invalid argument to option \'' + arg + \
-                                            '\';  should be \'' + optType + '\''
+                            raise ArgumentError('Invalid argument to option \''
+                                                + arg + '\';  should be \'' +
+                                                optType + '\'')
                         else:
                             optionValue = optDefault
-                except arg_error:
-                    raise arg_error, sys.exc_value
+                except ArgumentError:
+                    raise
                 except:
-                    raise arg_error, '(' + arg + \
-                                    ') Conversion function for \'' + optType + '\' not found.'
+                    raise ArgumentError('(' + arg +
+                                        ') Conversion function for \'' +
+                                        optType + '\' not found.')
             else:
                 optionValue = optDefault
 
@@ -583,7 +604,8 @@ class DPyGetOpt:
             else:
                 # only one value per
                 if self.isPosixCompliant and self.optionValues.has_key(realName):
-                    raise arg_error, 'Argument \'' + arg + '\' occurs multiple times.'
+                    raise ArgumentError('Argument \'' + arg +
+                                        '\' occurs multiple times.')
 
                 self.optionValues[realName] = optionValue
 
@@ -610,25 +632,25 @@ def _test():
     """
     try:
         DPyGetOpt(['foo', 'bar=s', 'foo'])
-    except:
-        print 'EXCEPTION (should be \'foo\' already used..): ' + sys.exc_value
+    except Error, exc:
+        print 'EXCEPTION (should be \'foo\' already used..): %s' % exc
 
     try:
         DPyGetOpt(['foo|bar|apple=s@', 'baz|apple!'])
-    except:
-        print 'EXCEPTION (should be duplicate alias/name error): ' + sys.exc_value
+    except Error, exc:
+        print 'EXCEPTION (should be duplicate alias/name error): %s' % exc
 
     x = DPyGetOpt(['apple|atlas=i@', 'application|executable=f@'])
     try:
         x.processArguments(['-app', '29.3'])
-    except:
-        print 'EXCEPTION (should be ambiguous argument): ' +    sys.exc_value
+    except Error, exc:
+        print 'EXCEPTION (should be ambiguous argument): %s' % exc
 
     x = DPyGetOpt(['foo'], ['antigravity', 'antithesis'])
     try:
         x.processArguments(['-foo', 'anti'])
-    except:
-        print 'EXCEPTION (should be ambiguous terminator): ' + sys.exc_value
+    except Error, exc:
+        print 'EXCEPTION (should be ambiguous terminator): %s' % exc
 
     profile = ['plain-option',
                               'boolean-option!',
