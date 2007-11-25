@@ -6,7 +6,7 @@ Requires Python 2.3 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 2862 2007-11-09 20:56:18Z bgranger $
+$Id: iplib.py 2871 2007-11-25 04:28:19Z fperez $
 """
 
 #*****************************************************************************
@@ -55,7 +55,6 @@ import sys
 import tempfile
 import traceback
 import types
-import pickleshare
 from sets import Set
 from pprint import pprint, pformat
 
@@ -63,6 +62,7 @@ from pprint import pprint, pformat
 #import IPython
 from IPython import Debugger,OInspect,PyColorize,ultraTB
 from IPython.ColorANSI import ColorScheme,ColorSchemeTable  # too long names
+from IPython.Extensions import pickleshare
 from IPython.FakeModule import FakeModule
 from IPython.Itpl import Itpl,itpl,printpl,ItplNS,itplns
 from IPython.Logger import Logger
@@ -1841,6 +1841,7 @@ want to merge them back into the new files.""" % locals()
                     self.indent_current_nsp -= 4
             else:
                 self.indent_current_nsp = 0
+
     def runlines(self,lines):
         """Run a string of one or more lines of source.
 
