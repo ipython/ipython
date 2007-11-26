@@ -1,3 +1,13 @@
+2007-11-25  Fernando Perez  <Fernando.Perez@colorado.edu>
+
+	* IPython/Logger.py (Logger.logstop): add a proper logstop()
+	method to fully stop the logger, along with a corresponding
+	%logstop magic for interactive use.
+
+	* IPython/Extensions/ipy_host_completers.py: added new host
+	completers functionality, contributed by Gael Pasgrimaud
+	<gawel-AT-afpy.org>.
+
 2007-11-24  Fernando Perez  <Fernando.Perez@colorado.edu>
 
 	* IPython/DPyGetOpt.py (ArgumentError): Apply patch by Paul Mueller
@@ -10,9 +20,9 @@
         readline_omit__names setting.
 
 2007-11-08  Ville Vainio  <vivainio@gmail.com>
-	* ipy_completers.py (import completer): assume 'xml' module exists. 
+	* ipy_completers.py (import completer): assume 'xml' module exists.
 	Do not add every module twice anymore. Closes #196.
-        
+
 	* ipy_completers.py, ipy_app_completers.py: Add proper apt-get
 	completer that uses apt-cache to search for existing packages.
 

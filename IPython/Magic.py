@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Magic functions for InteractiveShell.
 
-$Id: Magic.py 2872 2007-11-25 17:58:05Z fperez $"""
+$Id: Magic.py 2874 2007-11-26 06:50:42Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001 Janko Hauser <jhauser@zscout.de> and
@@ -1146,6 +1146,14 @@ Currently the magic system has the following functions:\n"""
             print ('Activating auto-logging. '
                    'Current session state plus future input saved.')
             logger.logstate()
+
+    def magic_logstop(self,parameter_s=''):
+        """Fully stop logging and close log file.
+
+        In order to start logging again, a new %logstart call needs to be made,
+        possibly (though not necessarily) with a new filename, mode and other
+        options."""
+        self.logger.logstop()
 
     def magic_logoff(self,parameter_s=''):
         """Temporarily stop logging.

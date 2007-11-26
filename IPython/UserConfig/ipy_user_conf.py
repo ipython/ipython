@@ -62,6 +62,13 @@ def main():
     #import_all("os sys")
     #execf('~/_ipython/ns.py')
 
+    # A different, more compact set of prompts from the default ones, that
+    # always show your current location in the filesystem:
+    
+    #o.prompt_in1 = r'\C_LightBlue[\C_LightCyan\Y2\C_LightBlue]\C_Normal\n\C_Green|\#>'
+    #o.prompt_in2 = r'.\D: '
+    #o.prompt_out = r'[\#] '
+
 # some config helper functions you can use 
 def import_all(modules):
     """ Usage: import_all("os sys") """ 

@@ -2,7 +2,7 @@
 """
 Logger class for IPython's logging facilities.
 
-$Id: Logger.py 2653 2007-08-22 18:01:09Z vivainio $
+$Id: Logger.py 2874 2007-11-26 06:50:42Z fperez $
 """
 
 #*****************************************************************************
@@ -255,7 +255,17 @@ which already exists. But you must first start the logging process with
                 write('%s\n' % odata)
             self.logfile.flush()
 
-    def close_log(self):
+    def logstop(self):
+        """Fully stop logging and close log file.
+
+        In order to start logging again, a new logstart() call needs to be
+        made, possibly (though not necessarily) with a new filename, mode and
+        other options."""
+        
         self.logfile.close()
         self.logfile = None
         self.logfname = ''
+        self.log_active = False
+
+    # For backwards compatibility, in case anyone was using this.
+    close_log = logstop

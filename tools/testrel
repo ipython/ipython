@@ -11,19 +11,15 @@ cd ~/ipython/ipython
 
 ./setup.py sdist --formats=gztar
 
-# Build rpm
-#python2.4 ./setup.py bdist_rpm --binary-only --release=py24 --python=/usr/bin/python2.4
+# Build rpms
+python2.4 ./setup.py bdist_rpm --binary-only --release=py24 --python=/usr/bin/python2.4
+python2.5 ./setup.py bdist_rpm --binary-only --release=py25 --python=/usr/bin/python2.5
 
 # Build eggs
-./eggsetup.py bdist_egg
+python2.4 ./eggsetup.py bdist_egg
+python2.5 ./eggsetup.py bdist_egg
 
 # Call the windows build separately, so that the extra Windows scripts don't
 # get pulled into Unix builds (setup.py has code which checks for
 # bdist_wininst)
-
-# For now, make the win32 installer with a hand-built 2.3.5 python, which is
-# the only one that fixes a crash in the post-install phase.
-#$HOME/tmp/local/bin/python2.3 setup.py bdist_wininst \
-#  --install-script=ipython_win_post_install.py
-
 ./setup.py bdist_wininst --install-script=ipython_win_post_install.py

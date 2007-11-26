@@ -47,9 +47,11 @@ cd $ipdir
 # that the resulting RPM is really built with the requested python version (so
 # things go to lib/python2.X/...)
 python2.4 ./setup.py bdist_rpm --binary-only --release=py24 --python=/usr/bin/python2.4
+python2.5 ./setup.py bdist_rpm --binary-only --release=py25 --python=/usr/bin/python2.5
 
-# Build egg
-./eggsetup.py bdist_egg
+# Build eggs
+python2.4 ./eggsetup.py bdist_egg
+python2.5 ./eggsetup.py bdist_egg
 
 # Call the windows build separately, so that the extra Windows scripts don't
 # get pulled into Unix builds (setup.py has code which checks for
