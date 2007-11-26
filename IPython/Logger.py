@@ -2,7 +2,7 @@
 """
 Logger class for IPython's logging facilities.
 
-$Id: Logger.py 2874 2007-11-26 06:50:42Z fperez $
+$Id: Logger.py 2875 2007-11-26 08:37:39Z fperez $
 """
 
 #*****************************************************************************
@@ -264,7 +264,6 @@ which already exists. But you must first start the logging process with
         
         self.logfile.close()
         self.logfile = None
-        self.logfname = ''
         self.log_active = False
 
     # For backwards compatibility, in case anyone was using this.
