@@ -60,7 +60,7 @@ You can implement other color schemes easily, the syntax is fairly
 self-explanatory. Please send back new schemes you develop to the author for
 possible inclusion in future releases.
 
-$Id: ultraTB.py 2883 2007-12-02 02:54:17Z rkern $"""
+$Id: ultraTB.py 2884 2007-12-02 04:42:21Z rkern $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001 Nathaniel Gray <n8gray@caltech.edu>
@@ -203,11 +203,31 @@ def findsource(object):
 if sys.version_info[:2] >= (2,5):
     inspect.findsource = findsource
 
+def fix_frame_records_filenames(records):
+    """Try to fix the filenames in each record from inspect.getinnerframes().
+
+    Particularly, modules loaded from within zip files have useless filenames
+    attached to their code object, and inspect.getinnerframes() just uses it.
+    """
+    fixed_records = []
+    for frame, filename, line_no, func_name, lines, index in records:
+        # Look inside the frame's globals dictionary for __file__, which should
+        # be better.
+        better_fn = frame.f_globals.get('__file__', None)
+        if isinstance(better_fn, str):
+            # Check the type just in case someone did something weird with
+            # __file__. It might also be None if the error occurred during
+            # import.
+            filename = better_fn
+        fixed_records.append((frame, filename, line_no, func_name, lines, index))
+    return fixed_records
+
+
 def _fixed_getinnerframes(etb, context=1,tb_offset=0):
     import linecache
     LNUM_POS, LINES_POS, INDEX_POS =  2, 4, 5
 
-    records  = inspect.getinnerframes(etb, context)
+    records  = fix_frame_records_filenames(inspect.getinnerframes(etb, context))
 
     # If the error is at the console, don't build any context, since it would
     # otherwise produce 5 blank lines printed out (there is no file at the

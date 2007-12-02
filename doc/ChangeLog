@@ -3,6 +3,10 @@
 	* IPython/ultraTB.py (findsource): Improve the monkeypatch to
 	inspect.findsource(). It can now find source lines inside zipped
 	packages.
+	
+	* IPython/ultraTB.py: When constructing tracebacks, try to use __file__
+	in the frame's namespace before trusting the filename in the code object
+	which created the frame.
 
 2007-11-29  *** Released version 0.8.2
 
