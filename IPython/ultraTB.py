@@ -60,7 +60,7 @@ You can implement other color schemes easily, the syntax is fairly
 self-explanatory. Please send back new schemes you develop to the author for
 possible inclusion in future releases.
 
-$Id: ultraTB.py 2480 2007-07-06 19:33:43Z fperez $"""
+$Id: ultraTB.py 2883 2007-12-02 02:54:17Z rkern $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001 Nathaniel Gray <n8gray@caltech.edu>
@@ -135,11 +135,18 @@ def findsource(object):
     FIXED version with which we monkeypatch the stdlib to work around a bug."""
 
     file = getsourcefile(object) or getfile(object)
-    module = getmodule(object, file)
-    if module:
-        lines = linecache.getlines(file, module.__dict__)
+    # If the object is a frame, then trying to get the globals dict from its
+    # module won't work. Instead, the frame object itself has the globals
+    # dictionary.
+    globals_dict = None
+    if inspect.isframe(object):
+        # XXX: can this ever be false?
+        globals_dict = object.f_globals
     else:
-        lines = linecache.getlines(file)
+        module = getmodule(object, file)
+        if module:
+            globals_dict = module.__dict__
+    lines = linecache.getlines(file, globals_dict)
     if not lines:
         raise IOError('could not get source code')
 

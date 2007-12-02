@@ -1,3 +1,9 @@
+2007-12-01  Robert Kern  <robert.kern@gmail.com>
+
+	* IPython/ultraTB.py (findsource): Improve the monkeypatch to
+	inspect.findsource(). It can now find source lines inside zipped
+	packages.
+
 2007-11-29  *** Released version 0.8.2
 
 2007-11-25  Fernando Perez  <Fernando.Perez@colorado.edu>
