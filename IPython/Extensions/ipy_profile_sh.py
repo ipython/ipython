@@ -134,7 +134,7 @@ def extend_shell_behavior(ip):
     # utility to expand user variables via Itpl
     # xxx do something sensible with depth?
     ip.IP.var_expand = lambda cmd, lvars=None, depth=2: \
-        str(ItplNS(cmd.replace('#','\#'), ip.IP.user_ns, get_locals()))
+        str(ItplNS(cmd, ip.IP.user_ns, get_locals()))
 
     def get_locals():
         """ Substituting a variable through Itpl deep inside the IPSHELL stack

@@ -6,7 +6,7 @@ Requires Python 2.3 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 2871 2007-11-25 04:28:19Z fperez $
+$Id: iplib.py 2885 2007-12-07 10:59:06Z vivainio $
 """
 
 #*****************************************************************************
@@ -618,7 +618,7 @@ class InteractiveShell(object,Magic):
         namespace.
         """
 
-        return str(ItplNS(cmd.replace('#','\#'),
+        return str(ItplNS(cmd,
                           self.user_ns,  # globals
                           # Skip our own frame in searching for locals:
                           sys._getframe(depth+1).f_locals # locals
