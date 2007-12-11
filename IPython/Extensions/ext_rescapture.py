@@ -35,7 +35,7 @@ def hnd_syscmd(line,mo):
     #return "%s = %s"
     var = mo.group('varname')
     cmd = mo.group('cmd')
-    expr = make_quoted_expr(itpl("sc -lv =$cmd"))
+    expr = make_quoted_expr(itpl("sc -l =$cmd"))
     return itpl('$var = _ip.magic($expr)')
 
 def install_re_handler(pat, hnd):
