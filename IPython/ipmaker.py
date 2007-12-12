@@ -6,7 +6,7 @@ Requires Python 2.1 or better.
 
 This file contains the main make_IPython() starter function.
 
-$Id: ipmaker.py 2873 2007-11-25 18:01:55Z fperez $"""
+$Id: ipmaker.py 2887 2007-12-12 08:28:43Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2006 Fernando Perez. <fperez@colorado.edu>
@@ -178,7 +178,7 @@ object?   -> Details about 'object'. ?object also works, ?? prints more.
     # The "ignore" option is a kludge so that Emacs buffers don't crash, since
     # the 'C-c !' command in emacs automatically appends a -i option at the end.
     cmdline_only = ('help interact|i ipythondir=s Version upgrade '
-                    'gthread! qthread! q4thread! wthread! pylab! tk!')
+                    'gthread! qthread! q4thread! wthread! tkthread! pylab! tk!')
 
     # Build the actual name list to be used by DPyGetOpt
     opts_names = qw(cmdline_opts) + qw(cmdline_only)

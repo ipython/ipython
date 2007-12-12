@@ -4,7 +4,7 @@
 All the matplotlib support code was co-developed with John Hunter,
 matplotlib's author.
 
-$Id: Shell.py 2764 2007-09-15 14:16:21Z darren.dale $"""
+$Id: Shell.py 2887 2007-12-12 08:28:43Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2006 Fernando Perez <fperez@colorado.edu>
@@ -1092,31 +1092,85 @@ class IPShellMatplotlibQt4(IPShellQt4):
 #-----------------------------------------------------------------------------
 # Factory functions to actually start the proper thread-aware shell
 
-def _matplotlib_shell_class():
-    """Factory function to handle shell class selection for matplotlib.
+def _select_shell(argv):
+    """Select a shell from the given argv vector.
 
-    The proper shell class to use depends on the matplotlib backend, since
-    each backend requires a different threading strategy."""
+    This function implements the threading selection policy, allowing runtime
+    control of the threading mode, both for general users and for matplotlib.
 
-    try:
-        import matplotlib
-    except ImportError:
-        error('matplotlib could NOT be imported!  Starting normal IPython.')
-        sh_class = IPShell
-    else:
-        backend = matplotlib.rcParams['backend']
-        if backend.startswith('GTK'):
-            sh_class = IPShellMatplotlibGTK
-        elif backend.startswith('WX'):
-            sh_class = IPShellMatplotlibWX
-        elif backend.startswith('Qt4'):
-            sh_class = IPShellMatplotlibQt4
-        elif backend.startswith('Qt'):
-            sh_class = IPShellMatplotlibQt
+    Return:
+      Shell class to be instantiated for runtime operation.
+    """
+    
+    global USE_TK
+
+    mpl_shell = {'gthread' : IPShellMatplotlibGTK,
+                 'wthread' : IPShellMatplotlibWX,
+                 'qthread' : IPShellMatplotlibQt,
+                 'q4thread' : IPShellMatplotlibQt4,
+                 'tkthread' : IPShellMatplotlib,  # Tk is built-in
+                 }
+
+    th_shell = {'gthread' : IPShellGTK,
+                'wthread' : IPShellWX,
+                'qthread' : IPShellQt,
+                'q4thread' : IPShellQt4,
+                'tkthread' : IPShell, # Tk is built-in
+                }
+
+    backends = {'gthread' : 'GTKAgg',
+                'wthread' : 'WXAgg',
+                'qthread' : 'QtAgg',
+                'q4thread' :'Qt4Agg',
+                'tkthread' :'TkAgg',
+                }
+
+    all_opts = set(['tk','pylab','gthread','qthread','q4thread','wthread',
+                    'tkthread'])
+    user_opts = set([s.replace('-','') for s in argv[:3]])
+    special_opts = user_opts & all_opts
+
+    if 'tk' in special_opts:
+        USE_TK = True
+        special_opts.remove('tk')
+
+    if 'pylab' in special_opts:
+
+        try:
+            import matplotlib
+        except ImportError:
+            error('matplotlib could NOT be imported!  Starting normal IPython.')
+            return IPShell
+        
+        special_opts.remove('pylab')
+        # If there's any option left, it means the user wants to force the
+        # threading backend, else it's auto-selected from the rc file
+        if special_opts:
+            th_mode = special_opts.pop()
+            matplotlib.rcParams['backend'] = backends[th_mode]
         else:
-            sh_class = IPShellMatplotlib
-    #print 'Using %s with the %s backend.' % (sh_class,backend) # dbg
-    return sh_class
+            backend = matplotlib.rcParams['backend']
+            if backend.startswith('GTK'):
+                th_mode = 'gthread'
+            elif backend.startswith('WX'):
+                th_mode = 'wthread'
+            elif backend.startswith('Qt4'):
+                th_mode = 'q4thread'
+            elif backend.startswith('Qt'):
+                th_mode = 'qthread'
+            else:
+                # Any other backend, use plain Tk
+                th_mode = 'tkthread'
+                
+        return mpl_shell[th_mode]
+    else:
+        # No pylab requested, just plain threads
+        try:
+            th_mode = special_opts.pop()
+        except KeyError:
+            th_mode = 'tkthread'
+        return th_shell[th_mode]
+
 
 # This is the one which should be called by external code.
 def start(user_ns = None):
@@ -1126,29 +1180,7 @@ def start(user_ns = None):
     based on the user's threading choice.  Such a selector is needed because
     different GUI toolkits require different thread handling details."""
 
-    global USE_TK
-    # Crude sys.argv hack to extract the threading options.
-    argv = sys.argv
-    if len(argv) > 1:
-        if len(argv) > 2:
-            arg2 = argv[2]
-            if arg2.endswith('-tk'):
-                USE_TK = True
-        arg1 = argv[1]
-        if arg1.endswith('-gthread'):
-            shell = IPShellGTK
-        elif arg1.endswith( '-qthread' ):
-            shell = IPShellQt
-        elif arg1.endswith( '-q4thread' ):
-            shell = IPShellQt4
-        elif arg1.endswith('-wthread'):
-            shell = IPShellWX
-        elif arg1.endswith('-pylab'):
-            shell = _matplotlib_shell_class()
-        else:
-            shell = IPShell
-    else:
-        shell = IPShell
+    shell = _select_shell(sys.argv)
     return shell(user_ns = user_ns)
 
 # Some aliases for backwards compatibility

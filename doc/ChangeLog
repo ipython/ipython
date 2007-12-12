@@ -1,3 +1,10 @@
+2007-12-12  Fernando Perez  <Fernando.Perez@colorado.edu>
+
+	* IPython/Shell.py (_select_shell): add support for controlling
+	the pylab threading mode directly at the command line, without
+	having to modify MPL config files.  Added unit tests for this
+	feature, though manual/docs update is still pending, will do later.
+
 2007-12-01  Robert Kern  <robert.kern@gmail.com>
 
 	* IPython/ultraTB.py (findsource): Improve the monkeypatch to
