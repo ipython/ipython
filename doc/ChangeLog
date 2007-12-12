@@ -1,9 +1,32 @@
+2007-12-12  Ville Vainio  <vivainio@gmail.com>
+
+	* genutils.py (abbrev_cwd): Terminal title now shows 2 levels of current
+	directory.
+	
+	* iplib.py: We now set system default encoding to sys.stdin.encoding with
+	sys.setdefaultencoding, after a patch by 'pan'. This makes str() calls that
+	IPython still has implicitly work. This should be removed when such calls 
+	are cleaned.
+
 2007-12-12  Fernando Perez  <Fernando.Perez@colorado.edu>
 
 	* IPython/Shell.py (_select_shell): add support for controlling
 	the pylab threading mode directly at the command line, without
 	having to modify MPL config files.  Added unit tests for this
 	feature, though manual/docs update is still pending, will do later.
+
+2007-12-11  Ville Vainio  <vivainio@gmail.com>
+
+	* ext_rescapture.py: var = !cmd is no longer verbose (to facilitate
+	use in scripts)
+
+2007-12-07  Ville Vainio  <vivainio@gmail.com>
+
+	* iplib.py, ipy_profile_sh.py: Do not escape # on command lines 
+	anymore (to \#) - even if it is a comment char that is implicitly 
+	escaped in some unix shells in interactive mode, it is ok to leave
+	it in IPython as such.
+
 
 2007-12-01  Robert Kern  <robert.kern@gmail.com>
 
@@ -39,6 +62,7 @@
         readline_omit__names setting.
 
 2007-11-08  Ville Vainio  <vivainio@gmail.com>
+
 	* ipy_completers.py (import completer): assume 'xml' module exists.
 	Do not add every module twice anymore. Closes #196.
 
