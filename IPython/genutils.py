@@ -5,7 +5,7 @@ General purpose utilities.
 This is a grab-bag of stuff I find useful in most programs I write. Some of
 these things are also convenient when working at the command line.
 
-$Id: genutils.py 2872 2007-11-25 17:58:05Z fperez $"""
+$Id: genutils.py 2888 2007-12-12 17:20:42Z vivainio $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2006 Fernando Perez. <fperez@colorado.edu>
@@ -303,15 +303,21 @@ def system(cmd,verbose=0,debug=0,header=''):
 
 def abbrev_cwd():
     """ Return abbreviated version of cwd, e.g. d:mydir """
-    cwd = os.getcwd()
+    cwd = os.getcwd().replace('\\','/')
     drivepart = ''
+    tail = cwd
     if sys.platform == 'win32':
         if len(cwd) < 4:
             return cwd
-        drivepart = os.path.splitdrive(cwd)[0]
+        drivepart,tail = os.path.splitdrive(cwd)
+    
+
+    parts = tail.split('/')    
+    if len(parts) > 2:
+        tail = '/'.join(parts[-2:])
+        
     return (drivepart + (
-        cwd == '/' and '/' or \
-        os.path.basename(cwd)))
+        cwd == '/' and '/' or tail))
     
 
 # This function is used by ipython in a lot of places to make system calls.
