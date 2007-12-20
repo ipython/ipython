@@ -75,7 +75,7 @@ import IPython.rlineimpl as readline
 import itertools
 from IPython.ipstruct import Struct
 from IPython import ipapi
-
+from IPython import generics
 import types
 
 # Python 2.4 offers sets as a builtin
@@ -200,10 +200,15 @@ class Completer:
                 return []
 
         words = dir2(obj)
-
+        
+        try:
+            words = generics.complete_object(obj, words)
+        except ipapi.TryNext:
+            pass
         # Build match list to return
         n = len(attr)
-        return ["%s.%s" % (expr, w) for w in words if w[:n] == attr ]
+        res = ["%s.%s" % (expr, w) for w in words if w[:n] == attr ]
+        return res
 
 class IPCompleter(Completer):
     """Extension of the completer class with IPython-specific features"""
@@ -243,8 +248,7 @@ class IPCompleter(Completer):
         self.readline.set_completer_delims(delims)
         self.get_line_buffer = self.readline.get_line_buffer
         self.omit__names = omit__names
-        self.merge_completions = shell.rc.readline_merge_completions
-
+        self.merge_completions = shell.rc.readline_merge_completions        
         if alias_table is None:
             alias_table = {}
         self.alias_table = alias_table
@@ -614,14 +618,18 @@ class IPCompleter(Completer):
                             self.matches = matcher(text)
                             if self.matches:
                                 break
-
+                    def uniq(alist):
+                        set = {}
+                        return [set.setdefault(e,e) for e in alist if e not in set]
+                    self.matches = uniq(self.matches)                
             try:
-                return self.matches[state].replace(magic_prefix,magic_escape)
+                ret = self.matches[state].replace(magic_prefix,magic_escape)                
+                return ret
             except IndexError:
                 return None
         except:
             #from IPython.ultraTB import AutoFormattedTB; # dbg
             #tb=AutoFormattedTB('Verbose');tb() #dbg
-
+            
             # If completion fails, don't annoy the user.
             return None

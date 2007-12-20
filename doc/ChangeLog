@@ -1,3 +1,9 @@
+2007-12-20  Ville Vainio  <vivainio@gmail.com>
+
+	* completer.py, generics.py(complete_object): Allow 
+	custom complers based on python objects via simplegeneric.
+	See generics.py / my_demo_complete_object
+
 2007-12-13  Ville Vainio  <vivainio@gmail.com>
 
 	* iplib.py(raw_input): unix readline does not allow unicode in
