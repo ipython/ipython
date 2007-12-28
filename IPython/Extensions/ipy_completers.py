@@ -64,10 +64,7 @@ def getRootModules():
             return []
     
     modules += sys.builtin_module_names
-    
-    #special modules that don't appear normally
-    modules.extend(['xml'])
-    
+      
     modules = list(set(modules))
     if '__init__' in modules:
         modules.remove('__init__')
@@ -88,7 +85,7 @@ def moduleList(path):
         folder_list = []
     #folder_list = glob.glob(os.path.join(path,'*'))
     folder_list = [p for p in folder_list  \
-       if os.path.exists(os.path.join(p,'__init__.py'))\
+       if os.path.exists(os.path.join(path, p,'__init__.py'))\
            or p[-3:] in ('.py','.so')\
            or p[-4:] in ('.pyc','.pyo')]
 
