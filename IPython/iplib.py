@@ -6,7 +6,7 @@ Requires Python 2.3 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 2894 2007-12-13 20:34:23Z vivainio $
+$Id: iplib.py 2899 2007-12-28 08:32:59Z fperez $
 """
 
 #*****************************************************************************
@@ -1247,6 +1247,10 @@ want to merge them back into the new files.""" % locals()
         
     def savehist(self):
         """Save input history to a file (via readline library)."""
+
+        if not self.has_readline:
+            return
+        
         try:
             self.readline.write_history_file(self.histfile)
         except:

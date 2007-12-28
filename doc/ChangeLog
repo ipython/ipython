@@ -1,8 +1,20 @@
+2007-12-28  Fernando Perez  <Fernando.Perez@colorado.edu>
+
+	* IPython/dtutils.py: Add utilities for interactively running
+	doctests.  Still needs work to more easily handle the namespace of
+	the package one may be working on, but the basics are in place.
+
 2007-12-20  Ville Vainio  <vivainio@gmail.com>
 
 	* completer.py, generics.py(complete_object): Allow 
 	custom complers based on python objects via simplegeneric.
 	See generics.py / my_demo_complete_object
+
+2007-12-13  Fernando Perez  <Fernando.Perez@colorado.edu>
+
+	* IPython/Prompts.py (BasePrompt.__nonzero__): add proper boolean
+	behavior to prompt objects, useful for display hooks to adjust
+	themselves depending on whether prompts will be there or not.
 
 2007-12-13  Ville Vainio  <vivainio@gmail.com>
 

@@ -2,7 +2,7 @@
 """
 Classes for handling input/output prompts.
 
-$Id: Prompts.py 2855 2007-11-06 06:53:49Z vivainio $"""
+$Id: Prompts.py 2899 2007-12-28 08:32:59Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2006 Fernando Perez <fperez@colorado.edu>
@@ -322,6 +322,13 @@ class BasePrompt(object):
             return out
         else:
             return os.sep
+
+    def __nonzero__(self):
+        """Implement boolean behavior.
+
+        Checks whether the p_str attribute is non-empty"""
+
+        return bool(self.p_template)
 
 class Prompt1(BasePrompt):
     """Input interactive prompt similar to Mathematica's."""

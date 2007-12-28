@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Magic functions for InteractiveShell.
 
-$Id: Magic.py 2874 2007-11-26 06:50:42Z fperez $"""
+$Id: Magic.py 2899 2007-12-28 08:32:59Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001 Janko Hauser <jhauser@zscout.de> and
@@ -1566,8 +1566,7 @@ Currently the magic system has the following functions:\n"""
         
         stats = None
         try:
-            if self.shell.has_readline:
-                self.shell.savehist()
+            self.shell.savehist()
 
             if opts.has_key('p'):
                 stats = self.magic_prun('',0,opts,arg_lst,prog_ns)

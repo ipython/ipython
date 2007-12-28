@@ -32,7 +32,7 @@ ip.set_hook('editor', calljed)
 You can then enable the functionality by doing 'import myiphooks'
 somewhere in your configuration files or ipython command line.
 
-$Id: hooks.py 1854 2006-10-30 19:54:25Z vivainio $"""
+$Id: hooks.py 2899 2007-12-28 08:32:59Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2005 Fernando Perez. <fperez@colorado.edu>
@@ -213,5 +213,3 @@ def generate_prompt(self, is_continuation):
 def generate_output_prompt(self):
     ip = self.api
     return str(ip.IP.outputcache.prompt_out)
-        
-   
