@@ -1,11 +1,20 @@
-__all__ = ["generic"]
-
-from types import ClassType, InstanceType
-classtypes = type, ClassType
+#Name: simplegeneric
+#Version: 0.6
+#Summary: Simple generic functions (similar to Python's own len(), pickle.dump(), etc.)
+#Home-page: http://cheeseshop.python.org/pypi/simplegeneric
+#Author: Phillip J. Eby
+#Author-email: peak@eby-sarna.com
+#License: PSF or ZPL
 
 # This is version 0.6 of Philip J. Eby's simplegeneric module
 # (http://cheeseshop.python.org/pypi/simplegeneric) patched to work
 # with Python 2.3 (which doesn't support assigning to __name__)
+
+__all__ = ["generic"]
+
+
+from types import ClassType, InstanceType
+classtypes = type, ClassType
 
 def generic(func):
     """Create a simple generic function"""

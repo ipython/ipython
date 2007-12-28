@@ -2,6 +2,10 @@
 
 	* ipy_server.py: TCP socket server for "remote control" of an IPython 
 	instance.
+	
+	* Debugger.py: Change to PSF license
+	
+	* simplegeneric.py: Add license & author notes.
 
 2007-12-28  Fernando Perez  <Fernando.Perez@colorado.edu>
 

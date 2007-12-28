@@ -15,20 +15,15 @@ details on the PSF (Python Software Foundation) standard license, see:
 
 http://www.python.org/2.2.3/license.html
 
-$Id: Debugger.py 2261 2007-04-20 17:50:00Z jdh2358 $"""
+$Id: Debugger.py 2902 2007-12-28 12:28:01Z vivainio $"""
 
 #*****************************************************************************
 #
-# Since this file is essentially a modified copy of the pdb module which is
-# part of the standard Python distribution, I assume that the proper procedure
-# is to maintain its copyright as belonging to the Python Software Foundation
-# (in addition to my own, for all new code).
+#       This file is licensed under the PSF license.
 #
 #       Copyright (C) 2001 Python Software Foundation, www.python.org
 #       Copyright (C) 2005-2006 Fernando Perez. <fperez@colorado.edu>
 #
-#  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING, distributed as part of this software.
 #
 #*****************************************************************************
 
