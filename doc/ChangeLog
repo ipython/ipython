@@ -6,6 +6,10 @@
 	* Debugger.py: Change to PSF license
 	
 	* simplegeneric.py: Add license & author notes.
+	
+	* ipy_fsops.py: Added PathObj and FileObj, an object-oriented way 
+	to navigate file system with a custom completer. Run 
+	ipy_fsops.test_pathobj() to play with it.
 
 2007-12-28  Fernando Perez  <Fernando.Perez@colorado.edu>
 

@@ -177,3 +177,70 @@ def inote(ip,arg):
         ip.IP.hooks.editor(fname)        
 
 ip.defalias("inote",inote)
+
+def pathobj_mangle(p):
+    return p.replace(' ', '__').replace('.','DOT')
+def pathobj_unmangle(s):
+    return s.replace('__',' ').replace('DOT','.')
+
+
+class FileObj:
+    def __init__(self,p):
+        self.path = p
+    def __call__(self):
+        os.startfile(self.path)
+    def __str__(self):
+        return self.path
+    
+class PathObj:
+    def __init__(self,p):
+        self.path = p
+        if os.path.isdir(p):
+            self.ents = None
+        self.ents = [pathobj_mangle(ent) for ent in os.listdir(p)]
+    def __complete__(self):
+        if self.ents:
+            return self.ents
+        return None
+    def __getattr__(self,name):
+        if name in self.ents:
+            if self.path.endswith('/'):
+                sep = ''
+            else:
+                sep = '/'
+                
+            tgt = self.path + sep + pathobj_unmangle(name)
+            #print "tgt",tgt
+            if os.path.isdir(tgt):
+                return PathObj(tgt)
+            if os.path.isfile(tgt):
+                return FileObj(tgt)
+
+        raise AttributeError, name  # <<< DON'T FORGET THIS LINE !!
+    def __str__(self):
+        return self.path
+        
+    def __repr__(self):
+        return "<PathObj to %s>" % self.path
+    
+    def __call__(self):
+        print "cd:",self.path
+        os.chdir(self.path)
+        
+def complete_pathobj(obj, prev_completions):
+    
+    if hasattr(obj,'__complete__'):
+        return obj.__complete__()
+    raise TryNext
+
+complete_pathobj = IPython.generics.complete_object.when_type(PathObj)(complete_pathobj)
+
+def test_pathobj():
+    #p = PathObj('c:/prj')
+    #p2 = p.cgi
+    #print p,p2
+    croot = PathObj("c:/")
+    startmenu = PathObj("d:/Documents and Settings/All Users/Start Menu/Programs")
+    ip.to_user_ns("croot startmenu")
+    
+#test_pathobj()
