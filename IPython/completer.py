@@ -80,7 +80,7 @@ import types
 
 # Python 2.4 offers sets as a builtin
 try:
-    set([1,2])
+    set()
 except NameError:
     from sets import Set as set
 
@@ -550,6 +550,11 @@ class IPCompleter(Completer):
             #print "try",c # dbg
             try:
                 res = c(event)
+                # first, try case sensitive match
+                withcase = [r for r in res if r.startswith(text)]
+                if withcase:
+                    return withcase
+                # if none, then case insensitive ones are ok too
                 return [r for r in res if r.lower().startswith(text.lower())]
             except ipapi.TryNext:
                 pass
