@@ -186,6 +186,7 @@ class IPApi:
         self.set_custom_exc = ip.set_custom_exc
 
         self.user_ns = ip.user_ns
+        self.user_ns['_ip'] = self
 
         self.set_crash_handler = ip.set_crash_handler
 
