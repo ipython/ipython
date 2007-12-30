@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """sys.excepthook for IPython itself, leaves a detailed report on disk.
 
-$Id: CrashHandler.py 1828 2006-10-16 02:04:33Z fptest $"""
+$Id: CrashHandler.py 2908 2007-12-30 21:07:46Z vivainio $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2006 Fernando Perez. <fperez@colorado.edu>
@@ -154,6 +154,7 @@ $self.bug_tracker
         # Construct report on disk
         report.write(self.make_report(traceback))
         report.close()
+        raw_input("Press enter to exit:")
 
     def make_report(self,traceback):
         """Return a string containing a crash report."""

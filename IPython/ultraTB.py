@@ -60,7 +60,7 @@ You can implement other color schemes easily, the syntax is fairly
 self-explanatory. Please send back new schemes you develop to the author for
 possible inclusion in future releases.
 
-$Id: ultraTB.py 2907 2007-12-30 20:33:06Z vivainio $"""
+$Id: ultraTB.py 2908 2007-12-30 21:07:46Z vivainio $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001 Nathaniel Gray <n8gray@caltech.edu>
@@ -869,7 +869,7 @@ class VerboseTB(TBTools):
         try:
             self.debugger()
         except KeyboardInterrupt:
-            print "KeyboardInterrupt"
+            print "\nKeyboardInterrupt"
 
 #----------------------------------------------------------------------------
 class FormattedTB(VerboseTB,ListTB):
@@ -987,7 +987,7 @@ class AutoFormattedTB(FormattedTB):
         try:
             self.debugger()
         except KeyboardInterrupt:
-            print "KeyboardInterrupt"
+            print "\nKeyboardInterrupt"
 
     def text(self,etype=None,value=None,tb=None,context=5,mode=None):
         if etype is None:
