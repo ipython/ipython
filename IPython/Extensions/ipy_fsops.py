@@ -185,7 +185,7 @@ def pathobj_unmangle(s):
 
 
     
-class PathObj:
+class PathObj(path):
     def __init__(self,p):
         self.path = p
         if p != '.':
@@ -222,10 +222,12 @@ class PathObj:
         print "cd:",self.path
         os.chdir(self.path)
         
-def complete_pathobj(obj, prev_completions):
-    
+def complete_pathobj(obj, prev_completions):    
     if hasattr(obj,'__complete__'):
-        return obj.__complete__()
+        res = obj.__complete__()
+        if res:
+            return res
+    # just return normal attributes of 'path' object if the dir is empty
     raise IPython.ipapi.TryNext
 
 complete_pathobj = IPython.generics.complete_object.when_type(PathObj)(complete_pathobj)
@@ -234,9 +236,9 @@ def test_pathobj():
     #p = PathObj('c:/prj')
     #p2 = p.cgi
     #print p,p2
-    croot = PathObj("c:/")
+    rootdir = PathObj("/")
     startmenu = PathObj("d:/Documents and Settings/All Users/Start Menu/Programs")
     cwd = PathObj('.')
-    ip.to_user_ns("croot startmenu cwd")
+    ip.to_user_ns("rootdir startmenu cwd")
     
 #test_pathobj()
