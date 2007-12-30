@@ -10,10 +10,9 @@ graft IPython/UserConfig
 
 graft doc
 exclude doc/*.1
-exclude doc/*.lyx
+exclude doc/manual_base*
 exclude doc/ChangeLog.*
 exclude doc/\#*
-exclude doc/magic.tex
 exclude doc/update_magic.sh
 exclude doc/update_version.sh
 exclude doc/manual_base*
