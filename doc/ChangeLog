@@ -1,3 +1,18 @@
+2007-12-31  Ville Vainio  <vivainio@gmail.com>
+
+	* completer.py: custom completer matching is now case sensitive
+	(#207).
+	
+	* ultraTB.py, iplib.py: Add some KeyboardInterrupt catching in
+	an attempt to prevent occasional crashes.
+	
+	* CrashHandler.py: Crash log dump now asks user to press enter
+	before exiting.
+	
+	* Store _ip in user_ns instead of __builtin__, enabling safer
+	coexistence of multiple IPython instances in the same python
+	interpreter (#197).
+
 2007-12-28  Ville Vainio  <vivainio@gmail.com>
 
 	* ipy_server.py: TCP socket server for "remote control" of an IPython 
