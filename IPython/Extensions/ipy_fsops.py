@@ -20,7 +20,7 @@ ip = IPython.ipapi.get()
 
 import shutil,os,shlex
 from IPython.external import mglob
-
+from IPython.Extensions.path import path
 from IPython.ipapi import UsageError
 
 def parse_args(args):
@@ -184,24 +184,19 @@ def pathobj_unmangle(s):
     return s.replace('__',' ').replace('DOT','.')
 
 
-class FileObj:
-    def __init__(self,p):
-        self.path = p
-    def __call__(self):
-        os.startfile(self.path)
-    def __str__(self):
-        return self.path
     
 class PathObj:
     def __init__(self,p):
         self.path = p
-        if os.path.isdir(p):
+        if p != '.':
+            self.ents = [pathobj_mangle(ent) for ent in os.listdir(p)]
+        else:
             self.ents = None
-        self.ents = [pathobj_mangle(ent) for ent in os.listdir(p)]
     def __complete__(self):
-        if self.ents:
+        if self.path != '.':
             return self.ents
-        return None
+        self.ents = [pathobj_mangle(ent) for ent in os.listdir('.')]
+        return self.ents
     def __getattr__(self,name):
         if name in self.ents:
             if self.path.endswith('/'):
@@ -214,7 +209,7 @@ class PathObj:
             if os.path.isdir(tgt):
                 return PathObj(tgt)
             if os.path.isfile(tgt):
-                return FileObj(tgt)
+                return path(tgt)
 
         raise AttributeError, name  # <<< DON'T FORGET THIS LINE !!
     def __str__(self):
@@ -231,7 +226,7 @@ def complete_pathobj(obj, prev_completions):
     
     if hasattr(obj,'__complete__'):
         return obj.__complete__()
-    raise TryNext
+    raise IPython.ipapi.TryNext
 
 complete_pathobj = IPython.generics.complete_object.when_type(PathObj)(complete_pathobj)
 
@@ -241,6 +236,7 @@ def test_pathobj():
     #print p,p2
     croot = PathObj("c:/")
     startmenu = PathObj("d:/Documents and Settings/All Users/Start Menu/Programs")
-    ip.to_user_ns("croot startmenu")
+    cwd = PathObj('.')
+    ip.to_user_ns("croot startmenu cwd")
     
 #test_pathobj()
