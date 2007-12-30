@@ -6,7 +6,7 @@ Requires Python 2.3 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 2910 2007-12-30 22:42:25Z vivainio $
+$Id: iplib.py 2912 2007-12-30 23:27:09Z vivainio $
 """
 
 #*****************************************************************************
@@ -1552,6 +1552,7 @@ want to merge them back into the new files.""" % locals()
         while 1:
             try:
                 self.interact(banner)
+                break
             except KeyboardInterrupt:
                 # this should not be necessary, but KeyboardInterrupt
                 # handling seems rather unpredictable...
