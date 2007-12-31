@@ -6,7 +6,7 @@ Requires Python 2.3 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 2915 2007-12-31 13:05:11Z vivainio $
+$Id: iplib.py 2916 2007-12-31 13:14:43Z vivainio $
 """
 
 #*****************************************************************************
@@ -1124,7 +1124,7 @@ IPython will create a minimal default configuration for you.
             else:
                 inif = 'ipythonrc'
             minimal_setup = {'ipy_user_conf.py' : 'import ipy_defaults', inif : '# intentionally left blank' }    
-            os.makedirs(ipythondir)
+            os.makedirs(ipythondir, mode = 0777)
             for f, cont in minimal_setup.items():
                 open(ipythondir + '/' + f,'w').write(cont)
                              
