@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Magic functions for InteractiveShell.
 
-$Id: Magic.py 2899 2007-12-28 08:32:59Z fperez $"""
+$Id: Magic.py 2917 2007-12-31 14:11:34Z vivainio $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001 Janko Hauser <jhauser@zscout.de> and
@@ -2239,10 +2239,24 @@ Currently the magic system has the following functions:\n"""
                 if isinstance(data,Macro):
                     self._edit_macro(args,data)
                     return
-                
+                                
                 # For objects, try to edit the file where they are defined
                 try:
                     filename = inspect.getabsfile(data)
+                    if 'fakemodule' in filename.lower() and inspect.isclass(data):                     
+                        # class created by %edit? Try to find source
+                        # by looking for method definitions instead, the
+                        # __module__ in those classes is FakeModule.
+                        attrs = [getattr(data, aname) for aname in dir(data)]
+                        for attr in attrs:
+                            if not inspect.ismethod(attr):
+                                continue
+                            filename = inspect.getabsfile(attr)
+                            if filename and 'fakemodule' not in filename.lower():
+                                # change the attribute to be the edit target instead
+                                data = attr 
+                                break
+                    
                     datafile = 1
                 except TypeError:
                     filename = make_filename(args)
