@@ -12,6 +12,9 @@
 	* Store _ip in user_ns instead of __builtin__, enabling safer
 	coexistence of multiple IPython instances in the same python
 	interpreter (#197).
+	
+	* Debugger.py, ipmaker.py: Need to add '-pydb' command line
+	switch to enable pydb in post-mortem debugging and %run -d.
 
 2007-12-28  Ville Vainio  <vivainio@gmail.com>
 

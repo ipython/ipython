@@ -6,7 +6,7 @@ Requires Python 2.1 or better.
 
 This file contains the main make_IPython() starter function.
 
-$Id: ipmaker.py 2899 2007-12-28 08:32:59Z fperez $"""
+$Id: ipmaker.py 2913 2007-12-31 12:42:14Z vivainio $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2006 Fernando Perez. <fperez@colorado.edu>
@@ -161,6 +161,7 @@ object?   -> Details about 'object'. ?object also works, ?? prints more.
                     'debug! deep_reload! editor=s log|l messages! nosep '
                     'object_info_string_level=i pdb! '
                     'pprint! prompt_in1|pi1=s prompt_in2|pi2=s prompt_out|po=s '
+                    'pydb! '
                     'pylab_import_all! '
                     'quick screen_length|sl=i prompts_pad_left=i '
                     'logfile|lf=s logplay|lp=s profile|p=s '
