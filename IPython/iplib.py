@@ -6,7 +6,7 @@ Requires Python 2.3 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 2916 2007-12-31 13:14:43Z vivainio $
+$Id: iplib.py 2919 2007-12-31 14:45:55Z vivainio $
 """
 
 #*****************************************************************************
@@ -1504,32 +1504,35 @@ want to merge them back into the new files.""" % locals()
         # Though this won't be called by syntax errors in the input line,
         # there may be SyntaxError cases whith imported code.
         
-        
-        if exc_tuple is None:
-            etype, value, tb = sys.exc_info()
-        else:
-            etype, value, tb = exc_tuple
-
-        if etype is SyntaxError:
-            self.showsyntaxerror(filename)
-        elif etype is IPython.ipapi.UsageError:
-            print "UsageError:", value
-        else:
-            # WARNING: these variables are somewhat deprecated and not
-            # necessarily safe to use in a threaded environment, but tools
-            # like pdb depend on their existence, so let's set them.  If we
-            # find problems in the field, we'll need to revisit their use.
-            sys.last_type = etype
-            sys.last_value = value
-            sys.last_traceback = tb
-
-            if etype in self.custom_exceptions:
-                self.CustomTB(etype,value,tb)
+        try:
+            if exc_tuple is None:
+                etype, value, tb = sys.exc_info()
             else:
-                self.InteractiveTB(etype,value,tb,tb_offset=tb_offset)
-                if self.InteractiveTB.call_pdb and self.has_readline:
-                    # pdb mucks up readline, fix it back
-                    self.set_completer()
+                etype, value, tb = exc_tuple
+    
+            if etype is SyntaxError:
+                self.showsyntaxerror(filename)
+            elif etype is IPython.ipapi.UsageError:
+                print "UsageError:", value
+            else:
+                # WARNING: these variables are somewhat deprecated and not
+                # necessarily safe to use in a threaded environment, but tools
+                # like pdb depend on their existence, so let's set them.  If we
+                # find problems in the field, we'll need to revisit their use.
+                sys.last_type = etype
+                sys.last_value = value
+                sys.last_traceback = tb
+    
+                if etype in self.custom_exceptions:
+                    self.CustomTB(etype,value,tb)
+                else:
+                    self.InteractiveTB(etype,value,tb,tb_offset=tb_offset)
+                    if self.InteractiveTB.call_pdb and self.has_readline:
+                        # pdb mucks up readline, fix it back
+                        self.set_completer()
+        except KeyboardInterrupt:
+            self.write("\nKeyboardInterrupt\n")
+            
         
 
     def mainloop(self,banner=None):
