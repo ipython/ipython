@@ -1,3 +1,7 @@
+2008-01-08 Ville Vainio  <vivainio@gmail.com>
+
+	* '%macro -r' (raw mode) is now default in sh profile.
+
 2007-12-31  Ville Vainio  <vivainio@gmail.com>
 
 	* completer.py: custom completer matching is now case sensitive
