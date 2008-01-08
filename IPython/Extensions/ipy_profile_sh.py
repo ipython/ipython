@@ -62,7 +62,7 @@ def main():
     
     
     ip.IP.default_option('cd','-q')
-    
+    ip.IP.default_option('macro', '-r')
     # If you only rarely want to execute the things you %edit...  
     #ip.IP.default_option('edit','-x')
     
