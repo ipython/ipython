@@ -6,7 +6,7 @@
 ;; URL:           http://ipython.scipy.org
 ;; Compatibility: Emacs21, XEmacs21
 ;; FIXME: #$@! INPUT RING
-(defconst ipython-version "$Revision: 2275 $"
+(defconst ipython-version "$Revision: 2927 $"
   "VC version number.")
 
 ;;; Commentary 
@@ -375,7 +375,7 @@ in the current *Python* session."
            ;; expression part; a more powerful approach in the future might be
            ;; to let ipython have the complete line, so that context can be used
            ;; to do things like filename completion etc.
-           (beg (save-excursion (skip-chars-backward "a-z0-9A-Z_." (point-at-bol))
+           (beg (save-excursion (skip-chars-backward "a-z0-9A-Z_./" (point-at-bol))
                                 (point))) 
            (end (point))
            (pattern (buffer-substring-no-properties beg end))
