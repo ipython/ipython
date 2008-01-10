@@ -3,7 +3,6 @@
 import wx
 import wx.stc  as  stc
 import keyword
-import images
 
 #-----------------------------------------
 # History widget for IPython
@@ -236,11 +235,11 @@ class PythonSTC(stc.StyledTextCtrl):
 
 
         # register some images for use in the AutoComplete box.
-        self.RegisterImage(1, images.getSmilesBitmap())
-        self.RegisterImage(2, 
-            wx.ArtProvider.GetBitmap(wx.ART_NEW, size=(16,16)))
-        self.RegisterImage(3, 
-            wx.ArtProvider.GetBitmap(wx.ART_COPY, size=(16,16)))
+        #self.RegisterImage(1, images.getSmilesBitmap())
+        #self.RegisterImage(2, 
+        #    wx.ArtProvider.GetBitmap(wx.ART_NEW, size=(16,16)))
+        #self.RegisterImage(3, 
+        #    wx.ArtProvider.GetBitmap(wx.ART_COPY, size=(16,16)))
 
 
     def OnKeyPressed(self, event):
@@ -274,7 +273,7 @@ class PythonSTC(stc.StyledTextCtrl):
                 # Images are specified with a appended "?type"
                 for i in range(len(kw)):
                     if kw[i] in keyword.kwlist:
-                        kw[i] = kw[i] + "?1"
+                        kw[i] = kw[i]# + "?1"
 
                 self.AutoCompShow(0, " ".join(kw))
         else:
