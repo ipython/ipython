@@ -1,3 +1,7 @@
+2008-01-10 Ville Vainio  <vivainio@gmail.com>
+
+	* Prompts.py (set_p_str): do not crash on illegal prompt strings
+
 2008-01-08 Ville Vainio  <vivainio@gmail.com>
 
 	* '%macro -r' (raw mode) is now default in sh profile.

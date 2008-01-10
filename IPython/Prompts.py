@@ -2,7 +2,7 @@
 """
 Classes for handling input/output prompts.
 
-$Id: Prompts.py 2899 2007-12-28 08:32:59Z fperez $"""
+$Id: Prompts.py 2928 2008-01-10 14:30:51Z vivainio $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2006 Fernando Perez <fperez@colorado.edu>
@@ -257,14 +257,19 @@ class BasePrompt(object):
 
         import os,time  # needed in locals for prompt string handling
         loc = locals()
-        self.p_str = ItplNS('%s%s%s' %
-                            ('${self.sep}${self.col_p}',
-                             multiple_replace(prompt_specials, self.p_template),
-                             '${self.col_norm}'),self.cache.user_ns,loc)
-
-        self.p_str_nocolor = ItplNS(multiple_replace(prompt_specials_nocolor,
-                                                     self.p_template),
-                                    self.cache.user_ns,loc)
+        try:
+            self.p_str = ItplNS('%s%s%s' %
+                                ('${self.sep}${self.col_p}',
+                                 multiple_replace(prompt_specials, self.p_template),
+                                 '${self.col_norm}'),self.cache.user_ns,loc)
+    
+            self.p_str_nocolor = ItplNS(multiple_replace(prompt_specials_nocolor,
+                                                         self.p_template),
+                                        self.cache.user_ns,loc)
+        except:
+            print "Illegal prompt template (check $ usage!):",self.p_template
+            self.p_str = self.p_template
+            self.p_str_nocolor = self.p_template
 
     def write(self,msg):  # dbg
         sys.stdout.write(msg)
