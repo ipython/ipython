@@ -26,17 +26,12 @@ ip = IPython.ipapi.get()
 
 import os   
 
-def main():
-    # Handy tab-completers for %cd, %run, import etc.
-    # Try commenting this out if you have completion problems/slowness
-    # import ipy_stock_completers
-    
+def main():   
+
     # uncomment if you want to get ipython -p sh behaviour
-    # without having to use command line switches
-    
+    # without having to use command line switches  
     # import ipy_profile_sh
 
-    
     # Configure your favourite editor?
     # Good idea e.g. for %edit os.path.isfile
 
@@ -62,13 +57,22 @@ def main():
     #import_all("os sys")
     #execf('~/_ipython/ns.py')
 
+
+    # -- prompt
     # A different, more compact set of prompts from the default ones, that
     # always show your current location in the filesystem:
-    
+
     #o.prompt_in1 = r'\C_LightBlue[\C_LightCyan\Y2\C_LightBlue]\C_Normal\n\C_Green|\#>'
     #o.prompt_in2 = r'.\D: '
     #o.prompt_out = r'[\#] '
-
+    
+    # Try one of these color settings if you can't read the text easily
+    # autoexec is a list of IPython commands to execute on startup
+    #o.autoexec.append('%colors LightBG')
+    #o.autoexec.append('%colors NoColor')
+    #o.autoexec.append('%colors Linux')
+    
+    
 # some config helper functions you can use 
 def import_all(modules):
     """ Usage: import_all("os sys") """ 

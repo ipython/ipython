@@ -1,3 +1,12 @@
+2008-01-11 Ville Vainio  <vivainio@gmail.com>
+
+	* iplib.py, ipmaker.py: new rc option - autoexec. It's a list 
+	of ipython commands to be run when IPython has started up
+	(just before running the scripts and -c arg on command line).
+	
+	* ipy_user_conf.py: Added an example on how to change term 
+	colors in config file (through using autoexec).
+	
 2008-01-10 Ville Vainio  <vivainio@gmail.com>
 
 	* Prompts.py (set_p_str): do not crash on illegal prompt strings

@@ -6,7 +6,7 @@ Requires Python 2.3 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 2919 2007-12-31 14:45:55Z vivainio $
+$Id: iplib.py 2930 2008-01-11 07:03:11Z vivainio $
 """
 
 #*****************************************************************************
@@ -591,6 +591,7 @@ class InteractiveShell(object,Magic):
             auto_alias = ()
         self.auto_alias = [s.split(None,1) for s in auto_alias]
 
+        
         # Produce a public API instance
         self.api = IPython.ipapi.IPApi(self)
 
@@ -601,8 +602,11 @@ class InteractiveShell(object,Magic):
         self.builtins_added = {}
         # This method will add the necessary builtins for operation, but
         # tracking what it did via the builtins_added dict.
+        
+        #TODO: remove this, redundant
         self.add_builtins()
 
+        
         
 
     # end __init__
@@ -710,6 +714,10 @@ class InteractiveShell(object,Magic):
         
         self.hooks.late_startup_hook()
         
+        for cmd in self.rc.autoexec:
+            #print "autoexec>",cmd #dbg
+            self.api.runlines(cmd)
+            
         batchrun = False
         for batchfile in [path(arg) for arg in self.rc.args 
             if arg.lower().endswith('.ipy')]:
