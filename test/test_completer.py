@@ -20,7 +20,7 @@ print completer
 
 def do_test(text, line):
     def get_endix():
-        idx = len(line) -1
+        idx = len(line)
         print "Call endidx =>",idx        
         return idx
     def get_line_buffer():
