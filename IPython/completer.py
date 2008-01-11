@@ -247,6 +247,7 @@ class IPCompleter(Completer):
         delims = delims.replace(self.magic_escape,'')
         self.readline.set_completer_delims(delims)
         self.get_line_buffer = self.readline.get_line_buffer
+        self.get_endidx = self.readline.get_endidx
         self.omit__names = omit__names
         self.merge_completions = shell.rc.readline_merge_completions        
         if alias_table is None:
@@ -272,6 +273,7 @@ class IPCompleter(Completer):
                          self.alias_matches,
                          self.python_func_kw_matches]
 
+    
     # Code contributed by Alex Schmolck, for ipython/emacs integration
     def all_completions(self, text):
         """Return all possible completions for the benefit of emacs."""
@@ -560,8 +562,7 @@ class IPCompleter(Completer):
                 pass
             
         return None
-        
-    
+               
     def complete(self, text, state,line_buffer=None):
         """Return the next possible completion for 'text'.
 
@@ -584,6 +585,9 @@ class IPCompleter(Completer):
         # his tab!  Incidentally, this enables pasting of tabbed text from
         # an editor (as long as autoindent is off).
 
+        # It should be noted that at least pyreadline still shows
+        # file completions - is there a way around it?
+        
         # don't apply this on 'dumb' terminals, such as emacs buffers, so we
         # don't interfere with their own tab-completion mechanism.
         if line_buffer is None:
@@ -598,7 +602,7 @@ class IPCompleter(Completer):
         magic_escape = self.magic_escape
         magic_prefix = self.magic_prefix
 
-        self.lbuf = self.full_lbuf[:self.readline.get_endidx()]
+        self.lbuf = self.full_lbuf[:self.get_endidx()]
 
         try:
             if text.startswith(magic_escape):

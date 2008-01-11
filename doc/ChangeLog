@@ -6,6 +6,9 @@
 	
 	* ipy_user_conf.py: Added an example on how to change term 
 	colors in config file (through using autoexec).
+
+	* completer.py, test_completer.py: Ability to specify custom
+	get_endidx to replace readline.get_endidx. For emacs users.
 	
 2008-01-10 Ville Vainio  <vivainio@gmail.com>
 
