@@ -59,8 +59,6 @@ class MyFrame(wx.Frame):
         # tell the manager to "commit" all the changes just made
         self._mgr.Update()
 
-        #self.ipython_panel.run()
-        
         #global event handling
         self.Bind(wx.EVT_CLOSE, self.OnClose)
         self.Bind(wx.EVT_MENU,  self.OnClose,id=wx.ID_EXIT)
@@ -68,6 +66,18 @@ class MyFrame(wx.Frame):
         self.Bind(wx.EVT_MENU,  self.OnShowHistoryPanel,id=wx.ID_HIGHEST+2)
         self.Bind(wx.EVT_MENU,  self.OnShowAbout, id=wx.ID_HIGHEST+3)
         self.Bind(wx.EVT_MENU,  self.OnShowAllPanel,id=wx.ID_HIGHEST+6)
+
+        warn_text = 'Hello from IPython and wxPython.\n'
+        warn_text +='Please Note that this work is still EXPERIMENTAL\n'
+        warn_text +='It does NOT emulate currently all the IPython functions.\n'
+        
+        dlg = wx.MessageDialog(self,
+                               warn_text,
+                               'Warning Box',
+                               wx.OK | wx.ICON_INFORMATION
+                               )
+        dlg.ShowModal()
+        dlg.Destroy()
      
     def createMenu(self):
         """local method used to create one menu bar"""
