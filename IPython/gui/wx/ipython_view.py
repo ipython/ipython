@@ -104,6 +104,7 @@ class IterableIPShell(Thread):
         IPython.OInspect.page = self._pager
         IPython.genutils.page = self._pager
         IPython.iplib.page = self._pager
+        IPython.Magic.page = self._pager
         
         #we replace the ipython default shell command caller by our shell handler
 	#FIXME: any better solution welcome
