@@ -198,8 +198,4 @@ def main():
 
 #if launched as main program run this
 if __name__ == '__main__':
-    import hotshot
-    prof = hotshot.Profile("hotshot_edi_stats")
-    prof.runcall(main)
-    prof.close()
-    #main()
+    main()
