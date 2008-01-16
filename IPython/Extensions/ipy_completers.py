@@ -283,11 +283,13 @@ def runlistpy(self, event):
     # should complete on all files, since after the first one other files may
     # be arguments to the input script.
     #filter(
-    if filter(lambda f: f.endswith('.py') or f.endswith('.ipy'),comps):
+    if filter(lambda f: f.endswith('.py') or f.endswith('.ipy') or
+              f.endswith('.pyw'),comps):
         pys =  [f.replace('\\','/') for f in lglob('*')]
     else:
         pys =  [f.replace('\\','/')
-                for f in lglob(relpath+'*.py') + lglob(relpath+'*.ipy')]
+                for f in lglob(relpath+'*.py') + lglob(relpath+'*.ipy') +
+                lglob(relpath + '*.pyw')]
     return dirs + pys
 
 
