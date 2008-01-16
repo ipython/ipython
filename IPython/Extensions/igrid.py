@@ -9,6 +9,10 @@ try:
     sorted
 except NameError:
     from ipipe import sorted
+try:
+    set
+except:
+    from sets import Set as set
 
 
 __all__ = ["igrid"]

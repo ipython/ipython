@@ -54,6 +54,10 @@ from enthought.traits import api as T
 # IPython imports
 from IPython.ipapi import TryNext, get as ipget
 from IPython.genutils import dir2
+try:
+    set
+except:
+    from sets import Set as set
 
 #############################################################################
 # Module constants

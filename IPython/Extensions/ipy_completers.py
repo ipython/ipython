@@ -14,6 +14,11 @@ import inspect
 from time import time
 ip = IPython.ipapi.get()
 
+try:
+    set
+except:
+    from sets import Set as set
+
 TIMEOUT_STORAGE = 3 #Time in seconds after which the rootmodules will be stored
 TIMEOUT_GIVEUP = 20 #Time in seconds after which we give up
 
