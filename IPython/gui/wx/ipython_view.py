@@ -107,9 +107,8 @@ class IterableIPShell(Thread):
         IPython.Magic.page = self._pager
         
         #we replace the ipython default shell command caller by our shell handler
-	#FIXME: any better solution welcome
-        IPython.genutils.shell_ori = self._shell	#needed by windows
-        self._IP.system = self._shell			#needed for linux
+	self._IP.set_hook('shell_hook',self._shell)
+        
         #we replace the ipython default input command caller by our method
         IPython.iplib.raw_input_original = self._raw_input
         #we replace the ipython default exit command by our method
@@ -405,30 +404,23 @@ class IterableIPShell(Thread):
             self._IP.indent_current_nsp = 0 #we set indentation to 0
         sys.stdout = orig_stdout
     
-    def _shell(self, cmd,verbose=0,debug=0,header=''):
+    def _shell(self, ip, cmd):
         '''
         Replacement method to allow shell commands without them blocking.
 
+        @param ip: Ipython instance, same as self._IP
+        @type cmd: Ipython instance
         @param cmd: Shell command to execute.
         @type cmd: string
-        @param verbose: Verbosity
-        @type verbose: integer
-        @param debug: Debug level
-        @type debug: integer
-        @param header: Header to be printed before output
-        @type header: string
         '''
-        if verbose or debug: print header+cmd
-        # flush stdout so we don't mangle python's buffering
-        if not debug:
-            stdin, stdout = os.popen4(cmd)
-            result = stdout.read().decode('cp437').encode(locale.getpreferredencoding())
-            #we use print command because the shell command is called inside IPython instance and thus is
-            #redirected to thread cout
-            #"\x01\x1b[1;36m\x02" <-- add colour to the text...
-            print "\x01\x1b[1;36m\x02"+result
-            stdout.close()
-            stdin.close()
+        stdin, stdout = os.popen4(cmd)
+        result = stdout.read().decode('cp437').encode(locale.getpreferredencoding())
+        #we use print command because the shell command is called inside IPython instance and thus is
+        #redirected to thread cout
+        #"\x01\x1b[1;36m\x02" <-- add colour to the text...
+        print "\x01\x1b[1;36m\x02"+result
+        stdout.close()
+        stdin.close()
 
 class WxConsoleView(stc.StyledTextCtrl):
     '''
