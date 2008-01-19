@@ -32,7 +32,7 @@ ip.set_hook('editor', calljed)
 You can then enable the functionality by doing 'import myiphooks'
 somewhere in your configuration files or ipython command line.
 
-$Id: hooks.py 2899 2007-12-28 08:32:59Z fperez $"""
+$Id: hooks.py 2951 2008-01-19 11:32:18Z vivainio $"""
 
 #*****************************************************************************
 #       Copyright (C) 2005 Fernando Perez. <fperez@colorado.edu>
@@ -48,14 +48,14 @@ __license__ = Release.license
 __version__ = Release.version
 
 import os,bisect
-from genutils import Term
+from genutils import Term,shell
 from pprint import PrettyPrinter
 
 # List here all the default hooks.  For now it's just the editor functions
 # but over time we'll move here all the public API for user-accessible things.
 __all__ = ['editor', 'fix_error_editor', 'result_display',
            'input_prefilter', 'shutdown_hook', 'late_startup_hook',
-           'generate_prompt', 'generate_output_prompt' ]
+           'generate_prompt', 'generate_output_prompt','shell_hook']
 
 pformat = PrettyPrinter().pformat
 
@@ -213,3 +213,9 @@ def generate_prompt(self, is_continuation):
 def generate_output_prompt(self):
     ip = self.api
     return str(ip.IP.outputcache.prompt_out)
+
+def shell_hook(self,cmd):
+    """ Run system/shell command a'la os.system() """
+
+    shell(cmd, header=self.rc.system_header, verbose=self.rc.system_verbose)
+

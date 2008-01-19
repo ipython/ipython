@@ -6,7 +6,7 @@ Requires Python 2.3 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 2930 2008-01-11 07:03:11Z vivainio $
+$Id: iplib.py 2951 2008-01-19 11:32:18Z vivainio $
 """
 
 #*****************************************************************************
@@ -490,9 +490,7 @@ class InteractiveShell(object,Magic):
         # The first is similar to os.system, but it doesn't return a value,
         # and it allows interpolation of variables in the user's namespace.
         self.system = lambda cmd: \
-                      shell(self.var_expand(cmd,depth=2),
-                            header=self.rc.system_header,
-                            verbose=self.rc.system_verbose)
+                      self.hooks.shell_hook(self.var_expand(cmd,depth=2))
 
         # These are for getoutput and getoutputerror:
         self.getoutput = lambda cmd: \
