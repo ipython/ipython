@@ -5,7 +5,7 @@ General purpose utilities.
 This is a grab-bag of stuff I find useful in most programs I write. Some of
 these things are also convenient when working at the command line.
 
-$Id: genutils.py 2937 2008-01-16 15:25:59Z vivainio $"""
+$Id: genutils.py 2955 2008-01-19 15:22:59Z vivainio $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2006 Fernando Perez. <fperez@colorado.edu>
@@ -38,6 +38,7 @@ import IPython
 from IPython.Itpl import Itpl,itpl,printpl
 from IPython import DPyGetOpt, platutils
 from IPython.generics import result_display
+import IPython.ipapi
 from path import path
 if os.name == "nt":
     from IPython.winconsole import get_console_size
@@ -1497,6 +1498,16 @@ def page(strng,start=0,screen_lines=0,pager_cmd = None):
     written in python, very simplistic.
     """
     
+
+    # first, try the hook
+    ip = IPython.ipapi.get()
+    if ip:
+        try:
+            ip.IP.hooks.show_in_pager(strng)
+            return
+        except IPython.ipapi.TryNext:
+            pass
+        
     # Ugly kludge, but calling curses.initscr() flat out crashes in emacs
     TERM = os.environ.get('TERM','dumb')
     if TERM in ['dumb','emacs'] and os.name != 'nt':
@@ -1607,6 +1618,7 @@ def page_file(fname,start = 0, pager_cmd = None):
             page(open(fname).read(),start)
         except:
             print 'Unable to show file',`fname`
+
 
 #----------------------------------------------------------------------------
 def snip_print(str,width = 75,print_full = 0,header = ''):
