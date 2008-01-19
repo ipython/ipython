@@ -1,3 +1,18 @@
+2008-01-19 Ville Vainio  <vivainio@gmail.com>
+
+	* hooks.py, iplib.py: Added 'shell_hook' to customize how
+	IPython calls shell.
+
+	* hooks.py, iplib.py: Added 'show_in_pager' hook to specify
+	how IPython pages text (%page, %pycat, %pdoc etc.)
+
+	* Extensions/jobctrl.py: Use shell_hook. New magics: '%tasks'
+	and '%kill' to kill hanging processes that won't obey ctrl+C.
+
+2008-01-16 Ville Vainio  <vivainio@gmail.com>
+
+	* ipy_completers.py: pyw extension support for %run completer.
+
 2008-01-11 Ville Vainio  <vivainio@gmail.com>
 
 	* iplib.py, ipmaker.py: new rc option - autoexec. It's a list 
