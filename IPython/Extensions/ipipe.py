@@ -2208,7 +2208,7 @@ except ImportError:
     try:
         from igrid import igrid
     except ImportError:
-        # no wx eithevn do => use ``idump`` as the default display.
+        # no wx either do => use ``idump`` as the default display.
         defaultdisplay = idump
     else:
         defaultdisplay = igrid
