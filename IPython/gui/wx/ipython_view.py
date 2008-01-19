@@ -100,11 +100,7 @@ class IterableIPShell(Thread):
 	if loc:
         	self._IP.stdin_encoding = loc
         #we replace the ipython default pager by our pager
-        #FIXME: add a pager callback to IPython
-        IPython.OInspect.page = self._pager
-        IPython.genutils.page = self._pager
-        IPython.iplib.page = self._pager
-        IPython.Magic.page = self._pager
+        self._IP.set_hook('show_in_pager',self._pager)
         
         #we replace the ipython default shell command caller by our shell handler
 	self._IP.set_hook('shell_hook',self._shell)
@@ -346,7 +342,7 @@ class IterableIPShell(Thread):
         rv = self._IP.input_hist_raw[self._history_level].strip('\n')
         return rv
 
-    def _pager(self,text,start=0,screen_lines=0,pager_cmd = None):
+    def _pager(self,IP,text):
         '''
         This function is used as a callback replacment to IPython pager function
 
