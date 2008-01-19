@@ -97,7 +97,8 @@ def magic_tasks(self,line):
     if not ents:
         print "No tasks running"
     for pid,cmd,cwd,t in ents:
-        print "%d: '%s' (%s)" % (pid,cmd,cwd)
+        dur = int(time.time()-t)
+        print "%d: '%s' (%s) %d:%02d" % (pid,cmd,cwd, dur / 60,dur%60)
 
 def magic_kill(self,line):
     """ Kill a task
