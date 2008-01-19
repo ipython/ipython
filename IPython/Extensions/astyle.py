@@ -266,10 +266,7 @@ else:
         yield (-1, True)
         for info in self:
             yield info
-    try:
-        ipipe.xrepr.when_type(Text)(xrepr_astyle_text)
-    except Exception:
-        pass
+    ipipe.xrepr.when_type(Text)(xrepr_astyle_text)
 
 
 def streamstyle(stream, styled=None):

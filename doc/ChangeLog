@@ -1,9 +1,11 @@
 2008-01-19  Walter Doerwald  <walter@livinglogic.de>
 
-	* IPython/Extensions/ibrowse.py, IPython/Extensions/igrid.py:
-	The input object can now be passed to the constructor of ibrowse/igrid.
+	* ibrowse.py, igrid.py, ipipe.py:
+	The input object can now be passed to the constructor of the display classes.
 	This makes it possible to use them with objects that implement __or__.
-
+	* ipipe.py: Importing astyle.py is done as late as possible to
+	avoid problems with circular imports.
+	
 2008-01-19 Ville Vainio  <vivainio@gmail.com>
 
 	* hooks.py, iplib.py: Added 'shell_hook' to customize how

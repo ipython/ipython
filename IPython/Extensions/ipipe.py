@@ -130,8 +130,6 @@ except ImportError:
     genutils = None
     ipapi = None
 
-import astyle
-
 
 __all__ = [
     "ifile", "ils", "iglob", "iwalk", "ipwdentry", "ipwd", "igrpentry", "igrp",
@@ -1932,6 +1930,9 @@ class Display(object):
         def __ror__(self, input):
             return input | self()
 
+    def __init__(self, input=None):
+        self.input = input
+
     def __ror__(self, input):
         self.input = input
         return self
@@ -2069,6 +2070,9 @@ def xformat(value, mode, maxlength):
     return (align, width, text)
 
 
+
+import astyle
+
 class idump(Display):
     # The approximate maximum length of a column entry
     maxattrlength = 200
@@ -2076,7 +2080,8 @@ class idump(Display):
     # Style for column names
     style_header = astyle.Style.fromstr("white:black:bold")
 
-    def __init__(self, *attrs):
+    def __init__(self, input=None, *attrs):
+        Display.__init__(self, input)
         self.attrs = [upgradexattr(attr) for attr in attrs]
         self.headerpadchar = " "
         self.headersepchar = "|"
