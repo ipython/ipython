@@ -3,6 +3,8 @@
 	* ibrowse.py, igrid.py, ipipe.py:
 	The input object can now be passed to the constructor of the display classes.
 	This makes it possible to use them with objects that implement __or__.
+	Use this constructor in the displayhook instead of piping.
+
 	* ipipe.py: Importing astyle.py is done as late as possible to
 	avoid problems with circular imports.
 	

@@ -2233,7 +2233,7 @@ if api is not None:
         if isinstance(obj, type) and issubclass(obj, Table):
             obj = obj()
         if isinstance(obj, Table):
-            obj = obj | defaultdisplay
+            obj = defaultdisplay(obj)
         if isinstance(obj, Display):
             return obj.display()
         else:
@@ -2246,7 +2246,7 @@ else:
             if isinstance(obj, type) and issubclass(obj, Table):
                 obj = obj()
             if isinstance(obj, Table):
-                obj = obj | defaultdisplay
+                obj = defaultdisplay(obj)
             if isinstance(obj, Display):
                 return obj.display()
             else:
