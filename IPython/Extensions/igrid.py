@@ -1101,6 +1101,10 @@ class igrid(ipipe.Display):
     This is a wx-based display object that can be used instead of ``ibrowse``
     (which is curses-based) or ``idump`` (which simply does a print).
     """
+
+    def __init__(self, input=None):
+        self.input = input
+
     if wx.VERSION < (2, 7):
         def display(self):
             try:

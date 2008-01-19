@@ -796,12 +796,16 @@ class ibrowse(ipipe.Display):
     keymap.register("refresh", "r")
     keymap.register("refreshfind", "R")
 
-    def __init__(self, *attrs):
+    def __init__(self, input=None, attrs=None):
         """
         Create a new browser. If ``attrs`` is not empty, it is the list
         of attributes that will be displayed in the browser, otherwise
         these will be determined by the objects on screen.
         """
+        self.input = input
+
+        if attrs is None:
+            attrs = ()
         self.attrs = attrs
 
         # Stack of browser levels
