@@ -1,3 +1,8 @@
+2008-01-21  Walter Doerwald  <walter@livinglogic.de>
+
+	* ipipe.py: Register ipipe's displayhooks via the generic function
+	generics.result_display() instead of using ipapi.set_hook().
+	
 2008-01-19  Walter Doerwald  <walter@livinglogic.de>
 
 	* ibrowse.py, igrid.py, ipipe.py:

@@ -125,10 +125,10 @@ from IPython.external import simplegeneric
 
 import path
 try:
-    from IPython import genutils, ipapi
+    from IPython import genutils, generics
 except ImportError:
     genutils = None
-    ipapi = None
+    generics = None
 
 
 __all__ = [
@@ -2204,7 +2204,7 @@ class AttributeDetail(Table):
 try:
     from ibrowse import ibrowse
 except ImportError:
-    # No curses (probably Windows)
+    # No curses (probably Windows) => try igrid
     try:
         from igrid import igrid
     except ImportError:
@@ -2218,27 +2218,21 @@ else:
     __all__.append("ibrowse")
 
 
-# If we're running under IPython, install an IPython displayhook that
-# returns the object from Display.display(), else install a displayhook
+# If we're running under IPython, register our objects with IPython's
+# generic function ``result_display``, else install a displayhook
 # directly as sys.displayhook
-api = None
-if ipapi is not None:
-    try:
-        api = ipapi.get()
-    except AttributeError:
-        pass
+if generics is not None:
+    def display_display(obj):
+        return obj.display()
+    generics.result_display.when_type(Display)(display_display)
 
-if api is not None:
-    def displayhook(self, obj):
-        if isinstance(obj, type) and issubclass(obj, Table):
-            obj = obj()
-        if isinstance(obj, Table):
-            obj = defaultdisplay(obj)
-        if isinstance(obj, Display):
-            return obj.display()
-        else:
-            raise ipapi.TryNext
-    api.set_hook("result_display", displayhook)
+    def display_tableobject(obj):
+        return display_display(defaultdisplay(obj))
+    generics.result_display.when_type(Table)(display_tableobject)
+
+    def display_tableclass(obj):
+        return display_tableobject(obj())
+    generics.result_display.when_type(Table.__metaclass__)(display_tableclass)
 else:
     def installdisplayhook():
         _originalhook = sys.displayhook
