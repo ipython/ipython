@@ -634,7 +634,7 @@
 
 2007-05-26  Ville Vainio  <vivainio@gmail.com>
 
-	* generics.py: intruduce easy to extend result_display generic
+	* generics.py: introduce easy to extend result_display generic
         function (using simplegeneric.py).
         
         * Fixed the append functionality of %set.
