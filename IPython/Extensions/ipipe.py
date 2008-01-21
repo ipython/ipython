@@ -124,11 +124,14 @@ except ImportError:
 from IPython.external import simplegeneric
 
 import path
+
 try:
     from IPython import genutils, generics
 except ImportError:
     genutils = None
     generics = None
+
+from IPython import ipapi
 
 
 __all__ = [
