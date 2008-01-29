@@ -42,6 +42,10 @@ def magic_history(self, parameter_s = ''):
       This includes the "shadow history" (almost all commands ever written).
       Use '%hist -g' to show full shadow history (may be very long).
       In shadow history, every index nuwber starts with 0.
+
+      -f FILENAME: instead of printing the output to the screen, redirect it to
+       the given file.  The file is always overwritten, though IPython asks for
+       confirmation first if it already exists.
       
 
     """
