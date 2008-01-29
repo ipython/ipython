@@ -1,3 +1,8 @@
+2008-01-29  Fernando Perez  <Fernando.Perez@colorado.edu>
+
+	* IPython/history.py (magic_history): Add support for declaring an
+	output file directly from the history command.
+
 2008-01-21  Walter Doerwald  <walter@livinglogic.de>
 
 	* ipipe.py: Register ipipe's displayhooks via the generic function

@@ -2,7 +2,12 @@
 
 """ History related magics and functionality """
 
+# Stdlib imports
 import fnmatch
+import os
+
+# IPython imports
+from IPython.genutils import Term, ask_yes_no
 
 def magic_history(self, parameter_s = ''):
     """Print input history (_i<n> variables), with most recent last.
@@ -46,7 +51,25 @@ def magic_history(self, parameter_s = ''):
     if not shell.outputcache.do_full_cache:
         print 'This feature is only available if numbered prompts are in use.'
         return
-    opts,args = self.parse_options(parameter_s,'gntsr',mode='list')
+    opts,args = self.parse_options(parameter_s,'gntsrf:',mode='list')
+
+    # Check if output to specific file was requested.
+    try:
+        outfname = opts['f']
+    except KeyError:
+        outfile = Term.cout
+        # We don't want to close stdout at the end!
+        close_at_end = False
+    else:
+        if os.path.exists(outfname):
+            ans = ask_yes_no("File %r exists. Overwrite?" % outfname)
+            if not ans:
+                print 'Aborting.'
+                return
+            else:
+                outfile = open(outfname,'w')
+                close_at_end = True
+                
 
     if opts.has_key('t'):
         input_hist = shell.input_hist
@@ -92,7 +115,7 @@ def magic_history(self, parameter_s = ''):
     
     if found:
         print "==="
-        print "^shadow history ends, fetch by %rep <number> (must start with 0)"
+        print "shadow history ends, fetch by %rep <number> (must start with 0)"
         print "=== start of normal history ==="
         
     for in_num in range(init,final):        
@@ -102,8 +125,12 @@ def magic_history(self, parameter_s = ''):
             
         multiline = int(inline.count('\n') > 1)
         if print_nums:
-            print '%s:%s' % (str(in_num).ljust(width),line_sep[multiline]),
-        print inline,
+            print >> outfile, \
+                  '%s:%s' % (str(in_num).ljust(width),line_sep[multiline]),
+        print >> outfile, inline,
+
+    if close_at_end:
+        outfile.close()
 
 
 
