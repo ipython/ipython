@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Magic functions for InteractiveShell.
 
-$Id: Magic.py 2917 2007-12-31 14:11:34Z vivainio $"""
+$Id: Magic.py 2996 2008-01-30 06:31:39Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001 Janko Hauser <jhauser@zscout.de> and
@@ -3235,7 +3235,6 @@ Defaulting color scheme to 'NoColor'"""
         mode = save_dstore('mode',False)
         save_dstore('rc_pprint',rc.pprint)
         save_dstore('xmode',shell.InteractiveTB.mode)
-        save_dstore('rc_separate_in',rc.separate_in)
         save_dstore('rc_separate_out',rc.separate_out)
         save_dstore('rc_separate_out2',rc.separate_out2)
         save_dstore('rc_prompts_pad_left',rc.prompts_pad_left)
@@ -3248,7 +3247,6 @@ Defaulting color scheme to 'NoColor'"""
             oc.prompt2.p_template = '... '
             oc.prompt_out.p_template = ''
 
-            oc.prompt1.sep = '\n'
             oc.output_sep = ''
             oc.output_sep2 = ''
 
@@ -3267,7 +3265,6 @@ Defaulting color scheme to 'NoColor'"""
             oc.prompt2.p_template = rc.prompt_in2
             oc.prompt_out.p_template = rc.prompt_out
 
-            oc.prompt1.sep = dstore.rc_separate_in
             oc.output_sep = dstore.rc_separate_out
             oc.output_sep2 = dstore.rc_separate_out2
 

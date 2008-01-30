@@ -1,5 +1,9 @@
 2008-01-29  Fernando Perez  <Fernando.Perez@colorado.edu>
 
+	* IPython/Magic.py (magic_doctest_mode): respect the user's
+	settings for input separators rather than overriding them.  After
+	a report by Jeff Kowalczyk <jtk-AT-yahoo.com>
+
 	* IPython/history.py (magic_history): Add support for declaring an
 	output file directly from the history command.
 
