@@ -4,7 +4,7 @@
 All the matplotlib support code was co-developed with John Hunter,
 matplotlib's author.
 
-$Id: Shell.py 2887 2007-12-12 08:28:43Z fperez $"""
+$Id: Shell.py 2997 2008-01-31 06:58:33Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2006 Fernando Perez <fperez@colorado.edu>
@@ -358,10 +358,8 @@ class MTInteractiveShell(InteractiveShell):
         InteractiveShell.__init__(self,name,usage,rc,user_ns,
                                   user_global_ns,banner2)
 
-        # Locking control variable.  We need to use a norma lock, not an RLock
-        # here.  I'm not exactly sure why, it seems to me like it should be
-        # the opposite, but we deadlock with an RLock.  Puzzled...
-        self.thread_ready = threading.Condition(threading.Lock())
+        # Locking control variable.
+        self.thread_ready = threading.Condition(threading.RLock())
 
         # A queue to hold the code to be executed.  A scalar variable is NOT
         # enough, because uses like macros cause reentrancy.
@@ -408,11 +406,11 @@ class MTInteractiveShell(InteractiveShell):
         # Note that with macros and other applications, we MAY re-enter this
         # section, so we have to acquire the lock with non-blocking semantics,
         # else we deadlock.
-        got_lock = self.thread_ready.acquire(False)
+        got_lock = self.thread_ready.acquire()
         self.code_queue.put(code)
         if got_lock:
-            self.thread_ready.wait()  # Wait until processed in timeout interval
-            self.thread_ready.release()
+           self.thread_ready.wait()  # Wait until processed in timeout interval
+        self.thread_ready.release()
 
         return False
 
@@ -426,9 +424,8 @@ class MTInteractiveShell(InteractiveShell):
         # Exceptions need to be raised differently depending on which thread is
         # active
         CODE_RUN = True
-        
         # lock thread-protected stuff
-        got_lock = self.thread_ready.acquire(False)
+        self.thread_ready.acquire()
 
         if self._kill:
             print >>Term.cout, 'Closing threads...',
@@ -448,20 +445,18 @@ class MTInteractiveShell(InteractiveShell):
 
         # Flush queue of pending code by calling the run methood of the parent
         # class with all items which may be in the queue.
+        code_to_run = None
         while 1:
             try:
                 code_to_run = self.code_queue.get_nowait()
             except Queue.Empty:
                 break
-            if got_lock:
-                self.thread_ready.notify()
-                InteractiveShell.runcode(self,code_to_run)
-            else:
-                break
+            InteractiveShell.runcode(self,code_to_run)
             
         # We're done with thread-protected variables
-        if got_lock:
-            self.thread_ready.release()
+        if code_to_run is not None:
+           self.thread_ready.notify()
+        self.thread_ready.release()
 
         # We're done...
         CODE_RUN = False

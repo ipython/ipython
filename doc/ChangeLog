@@ -1,3 +1,9 @@
+2008-01-30  Fernando Perez  <Fernando.Perez@colorado.edu>
+
+	* IPython/Shell.py (MTInteractiveShell.__init__): Fixed deadlock
+	that could occur due to a race condition in threaded shells.
+	Thanks to code provided by Marc, as #210.
+
 2008-01-29  Fernando Perez  <Fernando.Perez@colorado.edu>
 
 	* IPython/Magic.py (magic_doctest_mode): respect the user's
