@@ -32,7 +32,7 @@ ip.set_hook('editor', calljed)
 You can then enable the functionality by doing 'import myiphooks'
 somewhere in your configuration files or ipython command line.
 
-$Id: hooks.py 2955 2008-01-19 15:22:59Z vivainio $"""
+$Id: hooks.py 2998 2008-01-31 10:06:04Z vivainio $"""
 
 #*****************************************************************************
 #       Copyright (C) 2005 Fernando Perez. <fperez@colorado.edu>
@@ -222,10 +222,16 @@ def shell_hook(self,cmd):
 
     shell(cmd, header=self.rc.system_header, verbose=self.rc.system_verbose)
 
-
 def show_in_pager(self,s):
     """ Run a string through pager """
     # raising TryNext here will use the default paging functionality
     raise ipapi.TryNext
+
+def pre_command_hook(self,cmd):
+    """" Executed before starting to execute a command """
+    return None
+
+def post_command_hook(self,cmd):
+    """ Executed after executing a command """
     
 

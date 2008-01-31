@@ -25,7 +25,7 @@ def main():
     # Jason Orendorff's path class is handy to have in user namespace
     # if you are doing shell-like stuff
     try:
-        ip.ex("from path import path" )
+        ip.ex("from IPython.external.path import path" )
     except ImportError:
         pass
     

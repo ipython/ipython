@@ -7,12 +7,9 @@ new and unedited files.
 To be used by "upgrade" feature.
 """
 try:
-    from IPython.Extensions.path import path
+    from IPython.external.path import path
 except ImportError:
-    try:
-        from Extensions.path import path
-    except ImportError:
-        from path import path
+    from path import path
 
 import md5,pickle
 

@@ -5,7 +5,7 @@ General purpose utilities.
 This is a grab-bag of stuff I find useful in most programs I write. Some of
 these things are also convenient when working at the command line.
 
-$Id: genutils.py 2955 2008-01-19 15:22:59Z vivainio $"""
+$Id: genutils.py 2998 2008-01-31 10:06:04Z vivainio $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2006 Fernando Perez. <fperez@colorado.edu>
@@ -39,7 +39,7 @@ from IPython.Itpl import Itpl,itpl,printpl
 from IPython import DPyGetOpt, platutils
 from IPython.generics import result_display
 import IPython.ipapi
-from path import path
+from IPython.external.path import path
 if os.name == "nt":
     from IPython.winconsole import get_console_size
 

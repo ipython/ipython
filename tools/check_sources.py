@@ -1,4 +1,4 @@
-from path import path
+from IPython.external.path import path
 fs = path('..').walkfiles('*.py')
 
 for f in fs:

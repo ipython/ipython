@@ -5,7 +5,7 @@ or through ipython command line "ipython runtests.py".
 
 """
 
-from path import path
+from IPython.external.path import path
 import pprint,os
 import IPython.ipapi
 ip = IPython.ipapi.get()

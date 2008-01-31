@@ -20,7 +20,7 @@ ip = IPython.ipapi.get()
 
 import shutil,os,shlex
 from IPython.external import mglob
-from IPython.Extensions.path import path
+from IPython.external.path import path
 from IPython.ipapi import UsageError
 
 def parse_args(args):
@@ -138,7 +138,7 @@ def collect(ip,arg):
     
     Without args, try to open ~/_ipython/collect dir (in win32 at least).
     """
-    from path import path
+    from IPython.external.path import path
     basedir = path(ip.options.ipythondir + '/collect')
     try:    
         fs = mglob.expand(arg.split(None,1)[1])
