@@ -884,9 +884,9 @@ def xattrs(item, mode="default"):
     exist either, ``dir(item)`` is used for ``"detail"`` mode and ``(None,)``
     for ``"default"`` mode.
 
-    The implementation must yield attribute descriptor (see the class
+    The implementation must yield attribute descriptors (see the class
     ``Descriptor`` for more info). The ``__xattrs__`` method may also return
-    attribute descriptor string (and ``None``) which will be converted to real
+    attribute descriptor strings (and ``None``) which will be converted to real
     descriptors by ``upgradexattr()``.
     """
     try:
