@@ -58,6 +58,9 @@ python2.5 ./eggsetup.py bdist_egg
 # bdist_wininst)
 ./setup.py bdist_wininst --install-script=ipython_win_post_install.py
 
+# Change name so retarded Vista runs the installer correctly
+rename 's/win32/win32-setup/' $ipdir/dist/*.exe
+
 # Register with the Python Package Index (PyPI)
 echo "Registering with PyPI..."
 cd $ipdir
