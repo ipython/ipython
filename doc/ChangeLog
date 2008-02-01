@@ -1,3 +1,8 @@
+2008-02-01  Fernando Perez  <Fernando.Perez@colorado.edu>
+
+	* IPython/Shell.py (MTInteractiveShell.runcode): Improve handling
+	of KBINT in threaded shells.  After code provided by Marc in #212.
+
 2008-01-30  Fernando Perez  <Fernando.Perez@colorado.edu>
 
 	* IPython/Shell.py (MTInteractiveShell.__init__): Fixed deadlock

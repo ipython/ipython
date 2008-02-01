@@ -4,7 +4,7 @@
 All the matplotlib support code was co-developed with John Hunter,
 matplotlib's author.
 
-$Id: Shell.py 2997 2008-01-31 06:58:33Z fperez $"""
+$Id: Shell.py 3001 2008-02-01 07:07:00Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2006 Fernando Perez <fperez@colorado.edu>
@@ -421,11 +421,8 @@ class MTInteractiveShell(InteractiveShell):
 
         global CODE_RUN
 
-        # Exceptions need to be raised differently depending on which thread is
-        # active
-        CODE_RUN = True
         # lock thread-protected stuff
-        self.thread_ready.acquire()
+        got_lock = self.thread_ready.acquire()
 
         if self._kill:
             print >>Term.cout, 'Closing threads...',
@@ -451,8 +448,27 @@ class MTInteractiveShell(InteractiveShell):
                 code_to_run = self.code_queue.get_nowait()
             except Queue.Empty:
                 break
-            InteractiveShell.runcode(self,code_to_run)
-            
+
+            # Exceptions need to be raised differently depending on which
+            # thread is active.  This convoluted try/except is only there to
+            # protect against asynchronous exceptions, to ensure that a KBINT
+            # at the wrong time doesn't deadlock everything.  The global
+            # CODE_TO_RUN is set to true/false as close as possible to the
+            # runcode() call, so that the KBINT handler is correctly informed.
+            try:
+               CODE_RUN = True
+               InteractiveShell.runcode(self,code_to_run)
+               if got_lock:
+                  CODE_RUN = False              
+            except KeyboardInterrupt:
+               print "Keyboard interrupted in mainloop"
+               while not self.code_queue.empty():
+                  self.code_queue.get_nowait()
+               break
+            finally:
+               if got_lock:
+                  CODE_RUN = False
+
         # We're done with thread-protected variables
         if code_to_run is not None:
            self.thread_ready.notify()
