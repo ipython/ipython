@@ -6,7 +6,7 @@ Requires Python 2.3 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 2951 2008-01-19 11:32:18Z vivainio $
+$Id: iplib.py 3004 2008-02-01 10:24:29Z vivainio $
 """
 
 #*****************************************************************************
@@ -223,6 +223,7 @@ class InteractiveShell(object,Magic):
 
         # Store the actual shell's name
         self.name = name
+        self.more = False
 
         # We need to know whether the instance is meant for embedding, since
         # global/local namespaces need to be handled differently in that case
@@ -1561,6 +1562,8 @@ want to merge them back into the new files.""" % locals()
         while 1:
             try:
                 self.interact(banner)
+                # XXX for testing of a readline-decoupled repl loop
+                #self.interact_with_readline()
                 break
             except KeyboardInterrupt:
                 # this should not be necessary, but KeyboardInterrupt
@@ -1647,6 +1650,62 @@ want to merge them back into the new files.""" % locals()
         # and clean builtins we may have overridden
         self.clean_builtins()
 
+    def interact_prompt(self):
+        """ Print the prompt (in read-eval-print loop) 
+
+        Provided for those who want to implement their own read-eval-print loop (e.g. GUIs), not 
+        used in standard IPython flow.
+        """
+        if self.more:
+            try:
+                prompt = self.hooks.generate_prompt(True)
+            except:
+                self.showtraceback()
+            if self.autoindent:
+                self.rl_do_indent = True
+
+        else:
+            try:
+                prompt = self.hooks.generate_prompt(False)
+            except:
+                self.showtraceback()
+        self.write(prompt)
+
+    def interact_handle_input(self,line):
+        """ Handle the input line (in read-eval-print loop)
+        
+        Provided for those who want to implement their own read-eval-print loop (e.g. GUIs), not 
+        used in standard IPython flow.        
+        """
+        if line.lstrip() == line:
+            self.shadowhist.add(line.strip())
+        lineout = self.prefilter(line,self.more)
+
+        if line.strip():
+            if self.more:
+                self.input_hist_raw[-1] += '%s\n' % line
+            else:
+                self.input_hist_raw.append('%s\n' % line)                
+
+        
+        self.more = self.push(lineout)
+        if (self.SyntaxTB.last_syntax_error and
+            self.rc.autoedit_syntax):
+            self.edit_syntax_error()
+
+    def interact_with_readline(self):
+        """ Demo of using interact_handle_input, interact_prompt
+        
+        This is the main read-eval-print loop. If you need to implement your own (e.g. for GUI),
+        it should work like this.
+        """ 
+        self.readline_startup_hook(self.pre_readline)
+        while not self.exit_now:
+            self.interact_prompt()
+            line = line = raw_input_original().decode(self.stdin_encoding)
+            self.interact_handle_input(line)
+
+        
     def interact(self, banner=None):
         """Closely emulate the interactive Python console.
 
