@@ -6,7 +6,7 @@ Requires Python 2.3 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 3004 2008-02-01 10:24:29Z vivainio $
+$Id: iplib.py 3005 2008-02-01 16:43:34Z vivainio $
 """
 
 #*****************************************************************************
@@ -1562,8 +1562,9 @@ want to merge them back into the new files.""" % locals()
         while 1:
             try:
                 self.interact(banner)
-                # XXX for testing of a readline-decoupled repl loop
-                #self.interact_with_readline()
+                #self.interact_with_readline()                
+                # XXX for testing of a readline-decoupled repl loop, call interact_with_readline above
+
                 break
             except KeyboardInterrupt:
                 # this should not be necessary, but KeyboardInterrupt
@@ -1702,7 +1703,11 @@ want to merge them back into the new files.""" % locals()
         self.readline_startup_hook(self.pre_readline)
         while not self.exit_now:
             self.interact_prompt()
-            line = line = raw_input_original().decode(self.stdin_encoding)
+            if self.more:
+                self.rl_do_indent = True
+            else:
+                self.rl_do_indent = False
+            line = raw_input_original().decode(self.stdin_encoding)
             self.interact_handle_input(line)
 
         
