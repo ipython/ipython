@@ -4,7 +4,7 @@
 All the matplotlib support code was co-developed with John Hunter,
 matplotlib's author.
 
-$Id: Shell.py 3001 2008-02-01 07:07:00Z fperez $"""
+$Id: Shell.py 3006 2008-02-01 18:00:26Z fperez $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2006 Fernando Perez <fperez@colorado.edu>
@@ -456,15 +456,14 @@ class MTInteractiveShell(InteractiveShell):
             # CODE_TO_RUN is set to true/false as close as possible to the
             # runcode() call, so that the KBINT handler is correctly informed.
             try:
-               CODE_RUN = True
-               InteractiveShell.runcode(self,code_to_run)
-               if got_lock:
-                  CODE_RUN = False              
-            except KeyboardInterrupt:
-               print "Keyboard interrupted in mainloop"
-               while not self.code_queue.empty():
-                  self.code_queue.get_nowait()
-               break
+                try:
+                   CODE_RUN = True
+                   InteractiveShell.runcode(self,code_to_run)
+                except KeyboardInterrupt:
+                   print "Keyboard interrupted in mainloop"
+                   while not self.code_queue.empty():
+                      self.code_queue.get_nowait()
+                   break
             finally:
                if got_lock:
                   CODE_RUN = False
