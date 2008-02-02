@@ -6,7 +6,7 @@
 objects imported this way starts with ``i`` to minimize collisions.
 
 ``ipipe`` supports "pipeline expressions", which is something resembling Unix
-pipes. An example is:
+pipes. An example is::
 
     >>> ienv | isort("key.lower()")
 
@@ -45,8 +45,9 @@ three extensions points (all of them optional):
 
 * Objects that can be iterated by ``Pipe``s must iterable. For special cases,
   where iteration for display is different than the normal iteration a special
-  implementation can be registered with the generic function ``xiter``. This makes
-  it possible to use dictionaries and modules in pipeline expressions, for example:
+  implementation can be registered with the generic function ``xiter``. This
+  makes it possible to use dictionaries and modules in pipeline expressions,
+  for example::
 
       >>> import sys
       >>> sys | ifilter("isinstance(value, int)") | idump
@@ -61,16 +62,16 @@ three extensions points (all of them optional):
 
   Note: The expression strings passed to ``ifilter()`` and ``isort()`` can
   refer to the object to be filtered or sorted via the variable ``_`` and to any
-  of the attributes of the object, i.e.:
+  of the attributes of the object, i.e.::
 
       >>> sys.modules | ifilter("_.value is not None") | isort("_.key.lower()")
 
-  does the same as
+  does the same as::
 
       >>> sys.modules | ifilter("value is not None") | isort("key.lower()")
 
   In addition to expression strings, it's possible to pass callables (taking
-  the object as an argument) to ``ifilter()``, ``isort()`` and ``ieval()``:
+  the object as an argument) to ``ifilter()``, ``isort()`` and ``ieval()``::
 
       >>> sys | ifilter(lambda _:isinstance(_.value, int)) \
       ...     | ieval(lambda _: (_.key, hex(_.value))) | idump
@@ -639,14 +640,18 @@ def xrepr(item, mode="default"):
     There are four different possible values for ``mode`` depending on where
     the ``Display`` object will display ``item``:
 
-    * ``"header"``: ``item`` will be displayed in a header line (this is used by
-      ``ibrowse``).
-    * ``"footer"``: ``item`` will be displayed in a footer line (this is used by
-      ``ibrowse``).
-    * ``"cell"``: ``item`` will be displayed in a table cell/list.
-    * ``"default"``: default mode. If an ``xrepr`` implementation recursively
-      outputs objects, ``"default"`` must be passed in the recursive calls to
-      ``xrepr``.
+    ``"header"``
+        ``item`` will be displayed in a header line (this is used by ``ibrowse``).
+
+    ``"footer"``
+        ``item`` will be displayed in a footer line (this is used by ``ibrowse``).
+
+    ``"cell"``
+        ``item`` will be displayed in a table cell/list.
+
+    ``"default"``
+        default mode. If an ``xrepr`` implementation recursively outputs objects,
+        ``"default"`` must be passed in the recursive calls to ``xrepr``.
 
     If no implementation is registered for ``item``, ``xrepr`` will try the
     ``__xrepr__`` method on ``item``. If ``item`` doesn't have an ``__xrepr__``
@@ -874,10 +879,12 @@ def xattrs(item, mode="default"):
 
     There are two possible modes:
 
-    * ``"detail"``: The ``Display`` object wants to display a detailed list
-      of the object attributes.
-    * ``"default"``: The ``Display`` object wants to display the object in a
-      list view.
+    ``"detail"``
+        The ``Display`` object wants to display a detailed list of the object
+        attributes.
+
+    ``"default"``
+        The ``Display`` object wants to display the object in a list view.
 
     If no implementation is registered for the object ``item`` ``xattrs`` falls
     back to trying the ``__xattrs__`` method of the object. If this doesn't
@@ -1200,7 +1207,7 @@ class ils(Table):
     """
     List the current (or a specified) directory.
 
-    Examples:
+    Examples::
 
         >>> ils
         >>> ils("/usr/local/lib/python2.4")
@@ -1238,7 +1245,7 @@ class iglob(Table):
     List all files and directories matching a specified pattern.
     (See ``glob.glob()`` for more info.).
 
-    Examples:
+    Examples::
 
         >>> iglob("*.py")
     """
@@ -1263,7 +1270,7 @@ class iglob(Table):
 
 class iwalk(Table):
     """
-    List all files and directories in a directory and it's subdirectory.
+    List all files and directories in a directory and it's subdirectory::
 
         >>> iwalk
         >>> iwalk("/usr/local/lib/python2.4")
@@ -1368,7 +1375,7 @@ class ipwd(Table):
     """
     List all entries in the Unix user account and password database.
 
-    Example:
+    Example::
 
         >>> ipwd | isort("uid")
     """
@@ -1552,7 +1559,7 @@ class ienv(Table):
     """
     List environment variables.
 
-    Example:
+    Example::
 
         >>> ienv
     """
@@ -1573,7 +1580,7 @@ class ihist(Table):
     """
     IPython input history
 
-    Example:
+    Example::
 
         >>> ihist
         >>> ihist(True) (raw mode)
@@ -1593,7 +1600,7 @@ class ihist(Table):
 
 class icsv(Pipe):
     """
-    This ``Pipe`` lists turn the input (with must be a pipe outputting lines
+    This ``Pipe`` turns the input (with must be a pipe outputting lines
     or an ``ifile``) into lines of CVS columns.
     """
     def __init__(self, **csvargs):
@@ -1642,7 +1649,7 @@ class ix(Table):
     Execute a system command and list its output as lines
     (similar to ``os.popen()``).
 
-    Examples:
+    Examples::
 
         >>> ix("ps x")
         >>> ix("find .") | ifile
@@ -1681,7 +1688,7 @@ class ifilter(Pipe):
     Filter an input pipe. Only objects where an expression evaluates to true
     (and doesn't raise an exception) are listed.
 
-    Examples:
+    Examples::
 
         >>> ils | ifilter("_.isfile() and size>1000")
         >>> igrp | ifilter("len(mem)")
@@ -1696,16 +1703,21 @@ class ifilter(Pipe):
         user namespace). ``errors`` specifies how exception during evaluation
         of ``expr`` are handled:
 
-        * ``drop``: drop all items that have errors;
+        ``"drop"``
+            drop all items that have errors;
 
-        * ``keep``: keep all items that have errors;
+        ``"keep"``
+            keep all items that have errors;
 
-        * ``keeperror``: keep the exception of all items that have errors;
+        ``"keeperror"``
+            keep the exception of all items that have errors;
 
-        * ``raise``: raise the exception;
+        ``"raise"``
+            raise the exception;
 
-        * ``raiseifallfail``: raise the first exception if all items have errors;
-          otherwise drop those with errors (this is the default).
+        ``"raiseifallfail"``
+            raise the first exception if all items have errors; otherwise drop
+            those with errors (this is the default).
         """
         self.expr = expr
         self.globals = globals
@@ -1768,7 +1780,7 @@ class ieval(Pipe):
     """
     Evaluate an expression for each object in the input pipe.
 
-    Examples:
+    Examples::
 
         >>> ils | ieval("_.abspath()")
         >>> sys.path | ieval(ifile)
@@ -1840,7 +1852,7 @@ class ienum(Pipe):
     Enumerate the input pipe (i.e. wrap each input object in an object
     with ``index`` and ``object`` attributes).
 
-    Examples:
+    Examples::
 
         >>> xrange(20) | ieval("_,_*_") | ienum | ifilter("index % 2 == 0") | ieval("object")
     """
@@ -1854,7 +1866,7 @@ class isort(Pipe):
     """
     Sorts the input pipe.
 
-    Examples:
+    Examples::
 
         >>> ils | isort("size")
         >>> ils | isort("_.isdir(), _.lower()", reverse=True)
@@ -2012,7 +2024,7 @@ class icap(Table):
     """
     Execute a python string and capture any output to stderr/stdout.
 
-    Examples:
+    Examples::
 
         >>> import time
         >>> icap("for i in range(10): print i, time.sleep(0.1)")
