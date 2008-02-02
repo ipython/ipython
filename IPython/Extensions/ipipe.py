@@ -138,7 +138,7 @@ from IPython import ipapi
 __all__ = [
     "ifile", "ils", "iglob", "iwalk", "ipwdentry", "ipwd", "igrpentry", "igrp",
     "icsv", "ix", "ichain", "isort", "ifilter", "ieval", "ienum",
-    "ienv", "ihist", "icap", "idump", "iless"
+    "ienv", "ihist", "ialias", "icap", "idump", "iless"
 ]
 
 
@@ -1596,6 +1596,34 @@ class ihist(Table):
         else:
             for line in api.IP.input_hist:
                 yield line.rstrip("\n")
+
+
+class Alias(object):
+    """
+    Entry in the alias table
+    """
+    def __init__(self, name, args, command):
+        self.name = name
+        self.args = args
+        self.command = command
+
+    def __xattrs__(self, mode="default"):
+        return ("name", "args", "command")
+
+
+class ialias(Table):
+    """
+    IPython alias list
+
+    Example::
+
+        >>> ialias
+    """
+    def __iter__(self):
+        api = ipapi.get()
+
+        for (name, (args, command)) in api.IP.alias_table.iteritems():
+            yield Alias(name, args, command)
 
 
 class icsv(Pipe):

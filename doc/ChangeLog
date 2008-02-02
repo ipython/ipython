@@ -1,3 +1,8 @@
+2008-02-02  Walter Doerwald  <walter@livinglogic.de>
+
+	* ipipe.py: A new ipipe table has been added: ialias produces all
+	entries from IPython's alias table.
+	
 2008-02-01  Fernando Perez  <Fernando.Perez@colorado.edu>
 
 	* IPython/Shell.py (MTInteractiveShell.runcode): Improve handling
