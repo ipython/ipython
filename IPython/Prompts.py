@@ -2,7 +2,7 @@
 """
 Classes for handling input/output prompts.
 
-$Id: Prompts.py 2928 2008-01-10 14:30:51Z vivainio $"""
+$Id: Prompts.py 3025 2008-02-07 15:45:43Z vivainio $"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2006 Fernando Perez <fperez@colorado.edu>
@@ -535,7 +535,7 @@ class CachedOutput:
             # first handle the cache and counters
 
             # do not print output if input ends in ';'
-            if self.input_hist[self.prompt_count].endswith(';\n'):
+            if self.prompt_count and self.input_hist[self.prompt_count].endswith(';\n'):
                 return
             # don't use print, puts an extra space
             cout_write(self.output_sep)
