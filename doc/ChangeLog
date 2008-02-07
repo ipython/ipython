@@ -1,3 +1,12 @@
+2008-02-07  Darren Dale <darren.dale@cornell.edu>
+
+        * IPython/Shell.py: Call QtCore.pyqtRemoveInputHook() when creating
+        an IPShellQt4. PyQt4-4.2.1 and later uses PyOS_InputHook to improve 
+        interaction in the interpreter (like Tkinter does), but it seems to 
+        partially interfere with the IPython implementation and exec_()
+        still seems to block. So we disable the PyQt implementation and
+        stick with the IPython one for now.
+
 2008-02-02  Walter Doerwald  <walter@livinglogic.de>
 
 	* ipipe.py: A new ipipe table has been added: ialias produces all
