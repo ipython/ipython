@@ -2,11 +2,12 @@ import IPython.ipapi
 ip = IPython.ipapi.get()
 
 from IPython.external.simplegeneric import generic 
+import pprint
 
 @generic
 def format_for_leo(obj):
     """ Convert obj to string representiation (for editing in Leo)"""
-    return str(obj)
+    return pprint.pformat(obj)
 
 @format_for_leo.when_type(list)
 def format_list(obj):
