@@ -1,9 +1,29 @@
+""" Leo plugin for IPython
+
+Example use:
+
+nodes.foo = "hello world"
+
+  -> create '@ipy foo' node with text "hello world"
+
+Access works also, and so does tab completion.
+   
+"""
 import IPython.ipapi
 import IPython.genutils
+import IPython.generics
+import re
+
+
 
 ip = IPython.ipapi.get()
 leo = ip.user_ns['leox']
 c,g = leo.c, leo.g
+
+# will probably be overwritten by user, but handy for experimentation early on
+ip.user_ns['c'] = c
+ip.user_ns['g'] = g
+
 
 from IPython.external.simplegeneric import generic 
 import pprint
@@ -15,18 +35,60 @@ def format_for_leo(obj):
 
 @format_for_leo.when_type(list)
 def format_list(obj):
-    return '@ipy-type list\n' + "\n".join(str(s) for s in obj)
+    return "\n".join(str(s) for s in obj)
 
+nodename_re = r'(@ipy?[\w-]+)?\s?(\w+)'
 
-def add_var(self,varname):
+def all_cells():
+    d = {}
+    for p in c.allNodes_iter():
+        h = p.headString()
+        if h.startswith('@') and len(h.split()) == 1: 
+            continue
+        mo = re.match(nodename_re, h)
+        if not mo:
+            continue
+        d[mo.group(2)] = p.copy()
+    return d    
+    
+
+class LeoWorkbook:
+    """ class to find cells """
+    def __getattr__(self, key):
+        cells = all_cells()
+        p = cells[key]
+        body = p.bodyString()
+        return eval_body(body)
+    def __setattr__(self,key,val):
+        cells = all_cells()
+        p = cells.get(key,None)
+        if p is None:
+            add_var(key,val)
+        else:
+            c.setBodyString(p,format_for_leo(val))
+    def __str__(self):
+        return "<LeoWorkbook>"
+    __repr__ = __str__
+ip.user_ns['nodes'] = LeoWorkbook()            
+
+_dummyval = object()
+@IPython.generics.complete_object.when_type(LeoWorkbook)
+def workbook_complete(obj, prev):
+    return all_cells().keys()
+    
+
+def add_var(varname, value = _dummyval):
     nodename = '@ipy-var ' + varname
     p2 = g.findNodeAnywhere(c,nodename)
     if not c.positionExists(p2):
         p2 = c.currentPosition().insertAfter()
-        c.setHeadString(p2,'@ipy-var ' + varname)
+        c.setHeadString(p2,'@ipy ' + varname)
         
     c.setCurrentPosition(p2)
-    val = ip.user_ns[varname]
+    if value is _dummyval:
+        val = ip.user_ns[varname]
+    else:
+        val = value
     formatted = format_for_leo(val)
     c.setBodyString(p2,formatted)
 
@@ -41,7 +103,6 @@ def push_script(p):
     print "- Script end -"
     
 def eval_body(body):
-    print "eval",body
     try:
         val = ip.ev(body)
     except:
@@ -72,7 +133,7 @@ def leo_f(self,s):
     ip = self.getapi()
     s = s.strip()
     if s in ip.user_ns:
-        add_var(self,s)
+        add_var(s)
     elif os.path.isfile(s):
         # todo open file
         pass
