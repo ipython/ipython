@@ -52,7 +52,7 @@ def all_cells():
     return d    
     
 
-class LeoWorkbook:
+class TrivialLeoWorkbook:
     """ class to find cells """
     def __getattr__(self, key):
         cells = all_cells()
@@ -67,9 +67,61 @@ class LeoWorkbook:
         else:
             c.setBodyString(p,format_for_leo(val))
     def __str__(self):
+        return "<TrivialLeoWorkbook>"
+    __repr__ = __str__
+
+ip.user_ns['nodes'] = TrivialLeoWorkbook()            
+
+
+class LeoNode(object):
+    def __init__(self,p):
+        self.p = p.copy()
+
+    def get_h(self): return self.p.headString()
+    def set_h(self,val):
+        print "set head",val 
+        c.setHeadString(self.p,val)
+        
+    h = property( get_h, set_h)  
+
+    def get_b(self): return self.p.bodyString()
+    def set_b(self,val):
+        print "set body",val 
+        c.setBodyString(self.p, val)
+    
+    b = property(get_b, set_b)
+    
+    def set_val(self, val):
+        self.b = pprint.pformat(val)
+        
+    val = property(lambda self: ip.ev(self.b.strip()), set_val)
+    
+    def set_l(self,val):
+        self.b = '\n'.join(val )
+    l = property(lambda self : IPython.genutils.SList(self.b.splitlines()), 
+                 set_l)
+    
+    def __iter__(self):
+        return (LeoNode(p) for p in self.p.children_iter())
+     
+
+class LeoWorkbook:
+    """ class for 'advanced' node access """
+    def __getattr__(self, key):
+        if key.startswith('_') or key == 'trait_names':
+            raise AttributeError
+        cells = all_cells()
+        p = cells.get(key, None)
+        if p is None:
+            p = add_var(key,None)
+
+        return LeoNode(p)
+
+    def __str__(self):
         return "<LeoWorkbook>"
     __repr__ = __str__
-ip.user_ns['nodes'] = LeoWorkbook()            
+ip.user_ns['wb'] = LeoWorkbook()
+
 
 _dummyval = object()
 @IPython.generics.complete_object.when_type(LeoWorkbook)
@@ -89,8 +141,10 @@ def add_var(varname, value = _dummyval):
         val = ip.user_ns[varname]
     else:
         val = value
-    formatted = format_for_leo(val)
-    c.setBodyString(p2,formatted)
+    if val is not None:
+        formatted = format_for_leo(val)
+        c.setBodyString(p2,formatted)
+    return p2
 
 def add_file(self,fname):
     p2 = c.currentPosition().insertAfter()
