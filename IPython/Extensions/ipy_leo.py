@@ -149,13 +149,31 @@ def add_var(varname, value = _dummyval):
 def add_file(self,fname):
     p2 = c.currentPosition().insertAfter()
 
-def push_script(p):   
-    script = g.getScript(c,p,useSelectedText=False,forcePythonSentinels=True,useSentinels=False)
+def push_script(p):
+    ohist = ip.IP.output_hist 
+    hstart = len(ip.IP.input_hist)
+    script = g.getScript(c,p,useSelectedText=False,forcePythonSentinels=False,useSentinels=False)
+    
     script = g.splitLines(script + '\n')
     script = ''.join(z for z in script if z.strip())
+    
     ip.runlines(script)
-    g.es('ipy script:',p.headString())
-    print " ->"
+    
+    has_output = False
+    for idx in range(hstart,len(ip.IP.input_hist)):
+        val = ohist.get(idx,None)
+        if val is None:
+            continue
+        has_output = True
+        inp = ip.IP.input_hist[idx]
+        if inp.strip():
+            g.es('In: %s' % (inp[:40], ),  tabName = 'IPython')
+            
+        g.es('<%d> %s' % (idx, pprint.pformat(ohist[idx],width = 40)), tabName = 'IPython')
+    
+    if not has_output:
+        g.es('ipy run: %s' %( p.headString(),), tabName = 'IPython')
+    
     
 def eval_body(body):
     try:
@@ -169,7 +187,7 @@ def push_variable(p,varname):
     body = p.bodyString()
     val = eval_body(body.strip())
     ip.user_ns[varname] = val
-    g.es('ipy var:',varname)
+    g.es('ipy var: %s' % (varname,), tabName = "IPython")
     
 def push_from_leo(p):
     # headstring without @ are just scripts
