@@ -150,11 +150,12 @@ def add_file(self,fname):
     p2 = c.currentPosition().insertAfter()
 
 def push_script(p):   
-    script = g.getScript(c,p,useSelectedText=False,forcePythonSentinels=True,useSentinels=True)
+    script = g.getScript(c,p,useSelectedText=False,forcePythonSentinels=True,useSentinels=False)
     script = g.splitLines(script + '\n')
     script = ''.join(z for z in script if z.strip())
     ip.runlines(script)
-    print "- Script end -"
+    g.es('ipy script:',p.headString())
+    print " ->"
     
 def eval_body(body):
     try:
@@ -168,6 +169,7 @@ def push_variable(p,varname):
     body = p.bodyString()
     val = eval_body(body.strip())
     ip.user_ns[varname] = val
+    g.es('ipy var:',varname)
     
 def push_from_leo(p):
     # headstring without @ are just scripts
