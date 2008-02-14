@@ -2,14 +2,34 @@ import sys
 sys.path.append('..')
 
 import IPython.ipapi
-
 IPython.ipapi.make_session()
 ip = IPython.ipapi.get()
 
 def test_runlines():
+    import textwrap
     ip.runlines(['a = 10', 'a+=1'])
-    ip.runlines('assert a == 11')
+    ip.runlines('assert a == 11\nassert 1')
+
     assert ip.user_ns['a'] == 11
+    complex = textwrap.dedent("""\
+    if 1:
+        print "hello"
+        if 1:
+            print "world"
+        
+    if 1:
+        print "foo"
+    if 1:
+        print "bar"
+
+    if 1:
+        print "bar"
+    
+    """)
+
+    
+    ip.runlines(complex)
+    
 
 def test_db():
     ip.db['__unittest_'] = 12

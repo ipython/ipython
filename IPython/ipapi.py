@@ -263,11 +263,36 @@ class IPApi:
         
         Takes either all lines in one string or list of lines.
         """
-        if isinstance(lines,basestring):
-            self.IP.runlines(lines)
-        else:
-            self.IP.runlines('\n'.join(lines))
 
+        def cleanup_ipy_script(script):
+            """ Make a script safe for _ip.runlines() 
+            
+            - Removes empty lines
+            - Suffixes all indented blocks that end with unindented lines with empty lines
+            
+            """
+            res = []
+            lines = script.splitlines()
+            level = 0
+            for l in lines:
+                stripped = l.lstrip()
+                if not l.strip():
+                    continue
+                newlevel = len(l) - len(stripped)
+                if level > 0 and newlevel == 0:
+                    # add empty line
+                    res.append('')
+                res.append(l)
+                level = newlevel
+            return '\n'.join(res) + '\n'
+        
+        if isinstance(lines,basestring):
+            script = lines            
+        else:
+            script = '\n'.join(lines)
+        clean=cleanup_ipy_script(script)
+
+        self.IP.runlines(clean)
     def to_user_ns(self,vars, interactive = True):
         """Inject a group of variables into the IPython user namespace.
 
@@ -567,4 +592,5 @@ def make_session(user_ns = None):
 
     import IPython.Shell
     return IPython.Shell.start(user_ns)
+
 
