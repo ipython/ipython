@@ -1,0 +1,99 @@
+#!/bin/sh
+# IPython release script
+
+PYVER=`python -V 2>&1 | awk '{print $2}' | awk -F '.' '{print $1$2}' `
+version=`ipython -Version`
+ipdir=~/ipython/ipython
+
+echo
+echo "Releasing IPython version $version"
+echo "=================================="
+
+echo "Marking ChangeLog with release information and making NEWS file..."
+
+# Stamp changelog and save a copy of the status at each version, in case later
+# we want the NEWS file to start from a point before the very last release (if
+# very small interim releases have no significant changes).
+
+cd $ipdir/doc
+cp ChangeLog ChangeLog.old
+cp ChangeLog ChangeLog.$version
+daystamp=`date +%Y-%m-%d`
+echo $daystamp " ***" Released version $version > ChangeLog
+echo >> ChangeLog
+cat ChangeLog.old >> ChangeLog
+rm ChangeLog.old
+
+# Build NEWS file
+echo "Changes between the last two releases (major or minor)" > NEWS
+echo "Note that this is an auto-generated diff of the ChangeLogs" >> NEWS
+echo >> NEWS
+diff ChangeLog.previous ChangeLog | grep -v '^0a' | sed 's/^> //g' >> NEWS
+cp ChangeLog ChangeLog.previous
+
+# Clean up build/dist directories
+rm -rf $ipdir/build/*
+rm -rf $ipdir/dist/*
+
+# Perform local backup
+cd $ipdir/tools
+./bkp.sh
+
+# Build source and binary distros
+cd $ipdir
+./setup.py sdist --formats=gztar
+
+# Build version-specific RPMs, where we must use the --python option to ensure
+# that the resulting RPM is really built with the requested python version (so
+# things go to lib/python2.X/...)
+python2.4 ./setup.py bdist_rpm --binary-only --release=py24 --python=/usr/bin/python2.4
+python2.5 ./setup.py bdist_rpm --binary-only --release=py25 --python=/usr/bin/python2.5
+
+# Build eggs
+python2.4 ./eggsetup.py bdist_egg
+python2.5 ./eggsetup.py bdist_egg
+
+# Call the windows build separately, so that the extra Windows scripts don't
+# get pulled into Unix builds (setup.py has code which checks for
+# bdist_wininst)
+./setup.py bdist_wininst --install-script=ipython_win_post_install.py
+
+# Change name so retarded Vista runs the installer correctly
+rename 's/win32/win32-setup/' $ipdir/dist/*.exe
+
+# Register with the Python Package Index (PyPI)
+echo "Registering with PyPI..."
+cd $ipdir
+./setup.py register
+
+# Upload all files
+cd $ipdir/dist
+echo "Uploading distribution files..."
+scp * ipython@ipython.scipy.org:www/dist/
+
+echo "Uploading backup files..."
+cd ~/ipython/backup
+scp `ls -1tr | tail -1` ipython@ipython.scipy.org:www/backup/
+
+echo "Updating webpage..."
+cd $ipdir/doc
+www=~/ipython/homepage
+cp ChangeLog NEWS $www
+rm -rf $www/doc/*
+cp -r manual.pdf manual/ $www/doc
+cd $www
+./update
+
+# Alert package maintainers
+echo "Alerting package maintainers..."
+maintainers='fperez@colorado.edu ariciputi@users.sourceforge.net jack@xiph.org tretkowski@inittab.de dryice@hotpop.com willmaier@ml1.net'
+#maintainers='fperez@colorado.edu'
+
+for email in $maintainers
+    do
+	echo "Emailing $email..."
+	mail -s "[Package maintainer notice] A new IPython is out. Version: $version" \
+    $email < NEWS
+    done
+
+echo "Done!"

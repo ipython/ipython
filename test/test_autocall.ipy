@@ -1,0 +1,24 @@
+def f1(a,b,c):
+  return a+b+c
+
+
+def f2(a):
+  return a + a
+  
+
+;f2 a b c
+assert _ == "a b ca b c"
+
+,f1 a b c
+assert _ == 'abc'
+print _
+
+/f1 1,2,3
+assert _ == 6
+
+/f2 4
+assert _ == 8
+
+del f1
+del f2
+

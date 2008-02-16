@@ -1,0 +1,35 @@
+=============
+ API Changes
+=============
+
+.. contents::
+..
+    1  Purpose
+    2  Version 0.8.2
+
+
+Purpose
+=======
+
+This file documents backwards-incompatible changes to the IPython API,
+including user-visible changes of commands, magics, etc.
+
+It should be filled in reverse chronological order, with one section for each
+release (which means changes since the previous release).
+
+
+Version 0.8.2
+=============
+
+Changes made since version 0.8.1 was released:
+
+* %pushd/%popd behave differently; now "pushd /foo" pushes CURRENT directory 
+  and jumps to /foo. The current behaviour is closer to the documented 
+  behaviour, and should not trip anyone.
+  
+Version 0.8.3
+=============
+  
+* pydb is now disabled by default (due to %run -d problems). You can enable
+it by passing -pydb command line argument to IPython. Note that setting
+it in config file won't work.

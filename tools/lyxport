@@ -1,0 +1,1049 @@
+#!/usr/bin/env perl
+#
+#*****************************************************************************
+#
+#   lyxport - script for exporting lyx docs to HTML, PostScript and PDF
+#
+#   Inspired on the lyx2html script by Steffen Evers (tron@cs.tu-berlin.de)
+#   (many thanks to him).
+#
+#      Copyright (C) 2001  Fernando Pérez (Fernando.Perez@colorado.edu)
+#
+#*****************************************************************************
+#
+#      This program is free software; you can redistribute it and/or modify
+#      it under the terms of the GNU General Public License as published by
+#      the Free Software Foundation; either version 2 of the License, or
+#      (at your option) any later version.
+#
+#      This program is distributed in the hope that it will be useful,
+#      but WITHOUT ANY WARRANTY; without even the implied warranty of
+#      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#      GNU General Public License for more details.
+#
+#      If you do not have a copy of the GNU General Public License, write
+#      to the Free Software Foundation, Inc., 675 Mass Ave, Cambridge,
+#      MA 02139, USA.
+#
+#      If the author of this software was too lazy to include the full GPL
+#      text along with the code, you can find it at:
+#
+#                 http://www.gnu.org/copyleft/gpl.html
+#
+#*****************************************************************************
+
+=pod
+
+=head1 NAME
+
+B<lyxport> - Export a LyX or LaTeX file to HTML, PostScript and PDF.
+
+=head1 SYNOPSIS
+
+B<lyxport> [options] F<file>
+
+Perl script which takes a LyX or LaTeX file as its only argument and produces
+HTML, PostScript and PDF versions of the document. The name is short for "lyx
+export".
+
+You can call B<lyxport> with a filename with or without extension: F<file>,
+F<file.lyx> and F<file.tex> will all work. B<lyxport> will update the LaTeX
+file if there is a corresponding LyX file with a newer timestamp.
+
+Use B<lyxport --help> for more information, and B<lyxport --man> for a full
+man page.
+
+=cut
+
+#*****************************************************************************
+# modify here the command names to suit your local conditions
+my %cmd= (
+	  lyx => "/usr/bin/lyx",
+	  latex => "latex",
+	  latex2html => "latex2html",
+	  dvips => "dvips",
+	  pdflatex => "pdflatex",
+	  epstopdf => "epstopdf"
+	 );
+
+#************ DO NOT CHANGE ANYTHING BELOW THIS ULESS YOU *REALLY* KNOW
+#************ WHAT YOU ARE DOING.
+
+#*****************************************************************************
+# modules and globals
+use strict;
+use File::Copy;
+use File::Basename;
+my (%opt);                   # command line options
+my $version = "0.3.2";        # keep this up to date with the docs (at end)!
+
+#*****************************************************************************
+# "main" (simple minded way to keep variable scoping under control)
+main();
+
+sub main {
+    my ($runs,			# number of latex runs
+	$file_in,		# input filename as given at cmd line
+	$file_base,		# base (no extension) name of file to work on
+	$lyx_time,		# timestamps of lyx/tex files
+	$tex_time,
+	$l2h_file,               # tex file cleaned up for latex2html
+	$targets_built,
+	$targets_failed,
+	$status,                 # status string for diagnostics printing
+	@latex_from_lyx         # LaTeX files was created from LyX file
+       );
+
+    #------------------------------------------------------------------------
+    # code begins
+
+    cmdline_process(\%opt,\$file_in);
+
+    # set defaults and filenames needed throughout
+    $runs=$opt{runs};
+    set_cmd_defaults(\%cmd);
+    $file_base=check_file_exists($file_in);
+    # various filenames (with extensions)
+    my @exts=qw(lyx tex aux dvi log ps pdf out toc);
+    my ($lyx,$tex,$aux,$dvi,$log,$ps,$pdf,$out,$toc) = map { "$file_base.$_" } @exts;
+
+    # first, if tex file is older than lyx file, update
+    @latex_from_lyx=update_tex($lyx,$tex);
+
+    if ($opt{clean}) {
+	lyxport_info("Cleanup of old auxiliary files requested");
+	safe_system("rm -rf $file_base");
+	unlink ($aux,$log,$out,$toc);
+    }
+
+    # run latex for both html (needs .aux file) and ps (needs .dvi)
+    if ($opt{html} or $opt{ps}) {
+	run_latex("$cmd{latex} -interaction=nonstopmode",$tex,\$runs);
+    }
+    # now make targets
+    if ($opt{html}) {
+	make_html($tex,$file_base,$opt{opts_l2h},\$status,
+		  \$targets_built,\$targets_failed);
+    }
+    if ($opt{ps}) {
+	make_ps($dvi,$ps,$file_base,\$status,\$targets_built,\$targets_failed);
+    }
+    if ($opt{pdf}) {
+	make_pdf($tex,$pdf,\$runs,$file_base,
+		 \$status,\$targets_built,\$targets_failed);
+    }
+
+    #cleanup before exiting and print some diagnostics info
+    unless ($opt{debug}) {
+	unlink ($dvi,$log,$out);
+    }
+    # extra cleanup
+    if ($opt{tidy}) {
+	print "tidy up $opt{tidy},$aux,$log,$out,$toc,@latex_from_lyx\n";
+	tidy_up($opt{tidy},$aux,$log,$out,$toc,@latex_from_lyx);
+    }
+    final_diagnostics($file_in,$status,$targets_built,$targets_failed);
+    exit(0);
+} # end of main()
+
+#*****************************************************************************
+# subroutines
+
+#-----------------------------------------------------------------------------
+sub make_html {
+    my($tex,$html_dir,$opts_l2h,$stat_ref,$built_ref,$failed_ref)=@_;
+    my($success);
+
+    lyxport_info("Making HTML");
+    run_latex2html($tex,$opts_l2h);
+    $success=check_targets("${html_dir}/${html_dir}.html",'HTML',
+			   $built_ref,$failed_ref);
+    if ($success) {$$stat_ref .= "Target HTML built in directory $html_dir\n" }
+} # end of make_html()
+
+#-----------------------------------------------------------------------------
+sub make_ps {
+    my($dvi,$ps,$html_dir,$stat_ref,$built_ref,$failed_ref)=@_;
+    my($success);
+
+    lyxport_info("Making PostScript");
+    safe_system("$cmd{dvips} $dvi -o $ps");
+    $success=check_targets($ps,'PostScript',$built_ref,$failed_ref);
+    if ($success and not $opt{leave}) {
+	move2html_dir('PostScript',$ps,$html_dir,$stat_ref,$built_ref);
+    }
+} # end of make_ps()
+
+#-----------------------------------------------------------------------------
+sub make_pdf {
+    my($tex,$pdf,$runs_ref,$html_dir,$stat_ref,$built_ref,$failed_ref)=@_;
+    my($success);
+
+    lyxport_info("Making PDF");
+    run_pdflatex($tex,$pdf,$runs_ref);
+    $success=check_targets($pdf,'PDF',$built_ref,$failed_ref);
+    if ($success and not $opt{leave}) {
+	move2html_dir('PDF',$pdf,$html_dir,$stat_ref,$built_ref);
+    }
+} # end of make_pdf()
+
+#-----------------------------------------------------------------------------
+# move a given target to the html dir, only if it exists. leaves diagnostics 
+# info in a status string
+sub move2html_dir {
+    my($name,$file,$dir,$stat_ref,$html_status_ref)=@_;
+
+    if ($$html_status_ref =~ /HTML/) {
+	safe_system("mv $file $dir");
+	$$stat_ref .= "Target $name moved to directory $dir\n";
+    } else {
+	$$stat_ref .= "Target $name left in current directory\n";
+    }
+} # end of move2html_dir()
+
+#-----------------------------------------------------------------------------
+# make sure that the tex file is up to date vs the lyx original before starting
+# returns a list of the included .tex files which were generated (besides the main one)
+sub update_tex {
+    my($lyx,$tex)=@_;
+    my($lyx_time,$tex_time);
+    my(@lyx_out,@made_tex,$lc);
+
+    @made_tex=();
+    unless (-e $lyx) {
+	print "LyX file not found. Working off the LaTeX file alone.\n\n";
+	return;
+    }
+    $lyx_time=(stat($lyx))[9];
+    $tex_time=(stat($tex))[9];
+    if ($lyx_time>$tex_time or not(-e $tex)) { 
+	lyxport_info("LaTeX file outdated or not existent, regenerating it...");
+	unlink $tex;
+	@lyx_out=`$cmd{lyx} -dbg latex --export latex $lyx 2>&1 `;
+	# try again without -dbg option: LyX has a bug here! Note that this will
+	# disable the ability to remove extra .tex files generated from \include
+	# statements. But at least it will work, until they fix the bug in LyX.
+	unless (-e $tex) {
+	    @lyx_out=`$cmd{lyx} --export latex $lyx 2>&1 `;
+	}
+	# end of ugly workaround
+	unless (-e $tex) {die "Aborting: couldn't create LaTeX file with LyX.\n\n"};
+	push (@made_tex,$tex);
+	# find whether lyx made auxiliary (included) .tex files and report
+	foreach $lc (0..$#lyx_out-1) {
+	    $_=$lyx_out[$lc];
+	    if (/^incfile:.*\.lyx/) { 
+		$lyx_out[$lc+1] =~ /^writefile:(.*)$/;
+		push (@made_tex,basename($1));
+	    }
+	}
+	if (@made_tex) {
+	    lyxport_info("Made LaTeX included files: @made_tex");
+	}
+	lyxport_info("Done with LaTeX generation. Moving on.");
+    }
+    return @made_tex;
+} # end of update_tex()
+
+#-----------------------------------------------------------------------------
+# run latex on a file as many times as needed
+# if the given # of runs is > 0, that many are done; otherwise latex is run
+# as many times as needed until cross-references work.
+# can be used to run either normal latex or pdflatex
+sub run_latex {
+    my($latex_cmd,$file,$runs_ref)=@_;
+
+    # pre-determined # of runs
+    if ($$runs_ref > 0) {
+	foreach (1..$$runs_ref) {
+	    lyxport_info("$latex_cmd run # $$runs_ref");
+	    safe_system("$latex_cmd $file");
+	}
+    }
+    # or make as many runs as needed to get things right (not very robust...)
+    else {
+	$$runs_ref=0;
+	while (1) {
+	    $$runs_ref++;
+	    lyxport_info("$latex_cmd run # $$runs_ref");
+	    $_ = `$latex_cmd $file`;
+	    print;
+	    last unless (/Rerun to get cross-references right/m or 
+			 /^No file .*\.toc.$/m);
+	}
+    }
+} # end of run_latex()
+
+#-----------------------------------------------------------------------------
+# cleanup the tex code so that latex2html doesn't get too confused
+# this is essentially a Perl version (made with s2p) of Steffan Effer's
+# original improvetex sed script, part of his lyx2html script collection
+sub improve_tex4html {
+    my ($texfile,$newfile)=@_;
+    my ($len1,$pflag);
+    my $printit=1;
+    local *OLD,*NEW;
+
+    open(OLD,"< $texfile") || die "Can't read from file $texfile: $!\n";
+    open(NEW,"> $newfile") || die "Can't write to file $newfile: $!\n";
+    select(NEW) || die "Can't make $newfile default filehandle: $!\n";
+
+# code generated by s2p follows. Emacs can't reindent it properly!
+# this code is ugly (once in Perl, original sed was ok). Clean it up...
+$pflag=$\; # save print flag
+$\="\n";
+LINE:
+while (<OLD>) {
+    chomp;
+    # remove pagerefs over two lines (senseless in HTML)
+    if (/on *$\|on *page *$/) {
+	$_ .= "\n";
+	$len1 = length;
+	$_ .= <OLD>;
+	chop if $len1 < length;
+	s/on *\n*page *\n*\\pageref{[^}]*}/\n/g;
+    }
+    # remove regular pagerefs (senseless in HTML)
+    s/on *page *\\pageref{[^}]*}//g;
+    # comment out redefintion of url tag (confuses latex2html)
+    if (/^\\IfFileExists{url.sty}/) {
+	s/^/%/;
+	print;
+	$_ = <OLD>;
+	s/^/%/;
+    }
+    # remove empty pages
+    if (/^\\thispagestyle{empty}~\\newpage$/) {
+        $printit = 0;
+        next LINE;
+    }
+    if (/^\\thispagestyle{empty}~$/) {
+        $printit = 0;
+        next LINE;
+    }
+    # remove custom latex commands for fancyheaders
+    s/\\fancyhead[^{]*{[^{}]*([^{}]*{[^{}]*})*[^{}]*}*//g;
+    s/\\thispagestyle{[^{}]*}//g;
+    # change documentclass from scrbook to book
+    s/^(\\documentclass[^{}]*{)scrbook}/$1book}/;
+    # comment out unsupported packages
+    s/^(\\usepackage\[T1\]{fontenc})/%$1/;
+    s/^(\\usepackage{a4wide})/%$1/;
+    s/^(\\usepackage{fancyhdr})/%$1/;
+    s/^(\\usepackage{ae)/%$1/;
+    s/^(\\pagestyle{fancy})/%$1/;
+    # the geometry package doesn't make sense in html
+    s/^(\\usepackage{geometry})/%$1/;
+    s/^(\\geometry)/%$1/;
+    # comment out ident/skip block command (produces error message; why?)
+    s/^(\\setlength\\parskip{.*})/%$1/;
+    s/^(\\setlength\\parindent{.*})/%$1/;
+} continue {
+    if ($printit) { print }
+    else { $printit++ }
+}
+close(OLD);
+close(NEW);
+select(STDOUT);
+$\=$pflag; # restore defaults
+}  # end of improve_tex4html()
+
+#-----------------------------------------------------------------------------
+sub run_latex2html {
+    my ($tex,$latex2html_opts)=@_;
+    my ($l2h_file,$symlink_exists,$htmldir);
+
+    ($htmldir=$tex) =~ s/\.tex$//;
+    $l2h_file="${tex}_#tmp_2html#";
+    improve_tex4html($tex,$l2h_file);
+    # add index support
+    my $xtraargs = "";
+    my $idx = "$htmldir.idx";
+    if(-e $idx ) {
+            $xtraargs .= "-index $idx";
+    }
+    safe_system("$cmd{latex2html} $xtraargs $latex2html_opts $l2h_file");
+    unless ($opt{debug}) {
+	unlink($l2h_file,"$htmldir/labels.pl");
+    }
+
+    # latex2html always leaves 2 copies of the file (one as file.html, one as 
+    # index.html). In systems that support symlinks, remove one and replace it 
+    # with a link:
+    $symlink_exists = eval { symlink("",""); 1 };
+    if ($symlink_exists) {
+	unlink("$htmldir/index.html");
+	symlink("$htmldir.html","$htmldir/index.html");
+    }
+} # end of run_latex2html()
+
+#-----------------------------------------------------------------------------
+# remove calls to eps figures if they have an accompanying tiff, jpg or png
+sub improve_tex_figs {
+    my ($tex,$textmp)=@_;
+    local (*TEX,*TMP);
+
+    # begin changes to tex file
+    my ($printit,$figname,$fignoneps,$figbase,$figext,$fignew,@figlist,@tmpfiles);
+    open(TEX,"< $tex") || die "Can't read from LaTeX file $tex: $!\n";
+    open(TMP,"> $textmp") || die "Can't write to temp file $textmp: $!\n";
+    $printit=1;
+    while (<TEX>) {
+	if (/includegraphics{([^\}]*)/) {
+	    $figname=$1;
+	    # remove .eps from fig name and make a .pdf version if necessary
+	    if ($figname =~ /\.eps$/i) {
+		($figbase = $figname) =~ s/\.eps$//i;
+		# now we need to find if there's any non-eps figure for this file:
+		# pdflatex can handle jpegs, tiffs, etc. So we only need to build
+		# an associated pdf if there is no other figure file for pdflatex
+		# to work with
+		@figlist=grep {/\.jpe?g$|\.tiff?$|\.png$|\.pdf$/i} <$figbase.*>;
+		if (@figlist > 1) {
+		    lyxport_info("Problem! More than one figure file found: @figlist");
+		    die "I don't know what to do here. Sorry, aborting...\n\n";
+		} elsif (@figlist==1) {
+		    # problem: pdftex only recognizes jpg (not jpeg, not JPG, etc)
+		    # and tif (not tiff, not TIF, etc). It also gets confused by files
+		    # called a.b.c.jpg (it thinks .b.c.jpg is the extension). argh!!!
+		    ($fignoneps)=(@figlist);
+		    # so first, extract the 3 or 4 letter extension and lowercase it
+		    $fignoneps =~ /.*\.(....??)$/;
+		    ($figext = $1) =~ tr/[A-Z]/[a-z]/;
+		    # and remove any periods from the base of the name (replace by _)
+		    $figbase =~ s/\./_/g;
+		    $fignew="$figbase.$figext";
+		    if ($fignoneps =~ /\.JPE?G$|\.TIFF?$|\.PNG$|\.PDF$/) {
+			lyxport_info("pdflatex only recognizes the following extensions:\n".
+				     "pdf, png, jpg, tif. (all lowercase, no variations like jpeg or tiff).\n".
+				     "lyxport will make a copy of $fignoneps to $fignew so that pdflatex is happy");
+			copy($fignoneps,$fignew);
+			push(@tmpfiles,$fignew);
+		    }
+		    s/$figname/$fignew/;  # in $_, for printing to temp file
+		} else {
+		    s/$figname/$figbase.pdf/;
+		    lyxport_info("Making PDF figure <$figbase.pdf> from <$figname>");
+		    safe_system("$cmd{epstopdf} $figname");
+		}
+
+	    }
+	}
+    } continue {
+	if ($printit) { print TMP $_}
+	else { $printit++ }
+    }
+    close(TEX);
+    close(TMP);
+    return @tmpfiles;
+}  # end of improve_tex_figs()
+
+#-----------------------------------------------------------------------------
+# Make the pdf directly from the latex file
+# Notes: for this to work ok, the following must have been done:
+# 1. ~/.dvipsrc file must contain the lines
+#    p+ psfonts.cmz
+#    p+ psfonts.amz
+# 2. The latex preamble of the lyx file must have
+#    \usepackage{ae,aecompl}
+# This is so that T1 encoded fonts come out looking good in the final pdf.
+sub run_pdflatex {
+    my ($tex,$pdf,$runs_ref)=@_;
+    my ($texbase,$tmpbase,$textmp,@tmpfiles,@extensions,$printit);
+    local *TEX,*TMP;
+
+    # first fix references to eps figures (make sure that pdf versions exist!!!)
+    # make all changes in a temp tex file
+    ($texbase=$tex) =~ s/\.tex$//;
+    $tmpbase = "${texbase}_#tmp_pdf#";
+    @extensions=qw(tex aux out toc log);
+    ($textmp,@tmpfiles)= map { "${tmpbase}.$_" } @extensions;
+
+    push(@tmpfiles,improve_tex_figs($tex,$textmp));
+    # now run the actual pdflatex converter
+    run_latex("$cmd{pdflatex} -interaction=nonstopmode",$textmp,$runs_ref);
+    rename( "${tmpbase}.pdf",$pdf);
+    unless ($opt{debug}) { unlink ($textmp,@tmpfiles,"texput.log"); }
+} # end of run_pdflatex()
+
+#-----------------------------------------------------------------------------
+# general utility routines (not related to latex/html/pdf) follow
+
+#-------------------------------------------------------------------------
+sub cmdline_process{
+    my($opt_ref,$file_ref)=@_;
+
+    # modules
+    no strict "vars";  # avoid some unpleasant warnings while checking options
+
+    use Getopt::Long;
+    # allow bundling of single letter options (-a -b == -ab)
+    Getopt::Long::Configure ("bundling");
+    use Pod::Usage;
+
+    # note: the second name for each option (after |) is an alias for user
+    # convenience only. Internally, the only created hash entries use the *first*
+    # name as a key (i.e. $opt{h} doesn't exist, $opt{html} is set with -h or --html)
+    my(@option_list) = qw(html|h ps|p pdf|f leave
+			  runs|r=i opts_l2h|o=s clean|c tidy|t+
+			  cld|l debug|d help man|m version|v);
+
+    # debug mode overrides all post-run cleanup options
+    if ($opt{debug}) { $opt{t}=0 }
+
+    # default: a negative # of runs means auto-detect
+    $$opt_ref{runs}= -99;
+    # dash options first
+    GetOptions($opt_ref,@option_list)  ||  pod2usage(-verbose => 0);
+
+    # execute all possible "die" modes first
+    cmdline_debug(%$opt_ref) if ($$opt_ref{cld});
+    pod2usage(-verbose => 1)  if ($$opt_ref{help});
+    pod2usage(-verbose => 2)  if ($$opt_ref{man});
+    die "\nlyxport: version $version\n\n" if ($$opt_ref{version});
+
+    ## Now get filename (only ONE)
+    pod2usage(-verbose => 0, -message =>
+	      "\nERROR: lyxport works with exactly ONE file at a time.\n")
+      if (@ARGV != 1);
+    ($$file_ref)=@ARGV;
+
+    # choose whether to make all targets or just the explicitly specified ones
+    unless ($$opt_ref{html} or $$opt_ref{ps} or $$opt_ref{pdf}) {
+	$$opt_ref{html}=$$opt_ref{ps}=$$opt_ref{pdf}=1;
+    }
+} # end of cmdline_process()
+
+#-----------------------------------------------------------------------------
+# quick and dirty hash printing by key/value pairs
+sub print_hash {
+    my($key_msg,$val_msg,%hash)=@_;
+    my($op,$val);
+
+    while ( ($op,$val)=each(%hash) ) {print "$key_msg $op $val_msg $val\n" }
+} # end of print_hash()
+
+#-----------------------------------------------------------------------------
+sub cmdline_debug{
+    my(%opt)=@_;
+
+    print "\nlyxport command line debug mode\n";
+    print "-------------------------------\n\n";
+    print "This is a dump of your command line options, as key-value pairs:\n\n";
+    print_hash("","->",%opt);
+    print "\nExiting...\n\n";
+    exit;
+} # end of cmdline_debug()
+
+#-----------------------------------------------------------------------------
+# execute a system call but die with some info if return value is non-zero
+sub safe_system {
+    my $error;
+
+    $error=system(@_)/256;
+    if ($error) {
+	print "\nERROR: Command\n   @_\nfailed.\n";
+    }
+    return $error;
+} # end of safe_system()
+
+#-----------------------------------------------------------------------------
+# check that the command names specified at the top exist in the system, 
+# otherwise choose bare defaults and hope for the best.
+sub set_cmd_defaults {
+    my ($cmd)=@_;
+    my ($prog,$cmd_name);
+
+    print "\n";
+    while (($prog,$cmd_name)=each(%cmd)) {
+	print "Checking for program <$prog>, as <$cmd_name>... \n";
+	if (system("which $cmd_name")/256) {
+	    $$cmd{$prog}=$prog;
+	    print "Not found. Reverting to default name $prog.\n";
+	} else { print "OK, found it.\n" }
+    }
+    print "\nDone configuring command names\n\n";
+} # end of set_cmd_defaults()
+
+#-----------------------------------------------------------------------------
+# make sure there's either a .lyx or a .tex file to work with
+# returns a stripped name (without .lyx or .tex extension) of the file
+sub check_file_exists {
+    my($file_in)=@_;
+    my($base_file);
+
+    $_=$file_in;
+    if    (/\.lyx$/) { s/\.lyx$// }
+    elsif (/\.tex$/) { s/\.tex$// }
+    $base_file=$_;
+    unless (-e "${base_file}.lyx" or -e "${base_file}.tex") {
+	die "I can't find a LyX or LaTeX file to work with!\nAborting...\n\n";
+    }
+    return $base_file;
+} # end of check_file_exists()
+
+#-----------------------------------------------------------------------------
+sub check_targets{
+    my($file,$tag,$built,$failed)=@_;
+    my($success)=0;
+
+    $tag .= ' ';
+    if (-s $file) { $$built .= $tag; $success=1; }
+    else { $$failed .= $tag }
+    return $success;
+} # end of check_targets()
+
+#-----------------------------------------------------------------------------
+# do extra cleaning of aux, toc, log files generated during running
+sub tidy_up {
+    my($tidy,$aux,$log,$out,$toc,@latex_from_lyx)=@_;
+
+    lyxport_info("Cleanup of leftover auxiliary files");
+    print "Removing files: $aux, $log, $out, $toc\n";
+    unlink ($aux,$log,$out,$toc);
+    if ($tidy>1 and @latex_from_lyx) {
+	lyxport_info("Extra cleanup: removing LaTeX file(s) @latex_from_lyx");
+	unlink(@latex_from_lyx);
+	foreach (@latex_from_lyx) {
+	    s/\.tex$/\.aux/;
+	    if (-e) {
+		print "Removing aux file $_\n";
+		unlink($_);
+	    }
+	}
+    }
+} # end of tidy_up()
+
+#-----------------------------------------------------------------------------
+sub lyxport_info {
+    my ($target)=@_;
+
+    print "\n",'*'x75,"\n";
+    print "<lyxport> $target\n\n";
+} # end of lyxport_info()
+
+#-----------------------------------------------------------------------------
+sub final_diagnostics{
+    my($file_in,$status,$targets_built,$targets_failed)=@_;
+
+    lyxport_info("All done!");
+    print "Input file: $file_in\n\n";
+    print "Targets built : $targets_built\n\n";
+    if ($targets_failed) {
+	print "PROBLEM!\nTargets failed: $targets_failed\n\n";
+    }
+    print "Diagnostics of build process:\n\n$status\nBye!\n\n";
+} # end of final_diagnostics()
+
+
+#************************ end of code for <lyxport> *******************
+
+__END__
+
+=pod
+
+=head1 DESCRIPTION
+
+=head2 Purpose
+
+LyX ( http://www.lyx.org ) is a wonderful document processor, which can produce
+from a single source multiple versions for different purposes: a PostScript
+file for printing on a Unix-type system, a PDF file for distribution across
+multiple operating systems, or an HTML file for Internet display. It
+accomplishes this by exporting its own file format to a LaTeX file and then
+running various converters on this resulting file.
+
+However, it turns out that this process isn't exactly foolproof, as these
+converters have all sorts of little quirks which can produce anything from
+surprises in the way the final result looks like to outright failure of the
+export process. The purpose of B<lyxport> is to serve as a "smart wrapper"
+around those export facilities which LyX normally uses, trying to massage the
+LaTeX file that everything starts from in the hopes of having better success
+in producing HTML and PDF (PostScript usually poses no problems). 
+
+B<lyxport> also allows you to keep around only the LyX file, and possibly any
+ancillary figure files. B<lyxport> takes care of generating (and removing
+afterwards if instructed to do so) any intermediate files necessary for the
+export process.
+
+For example, in order to make PDF from a LaTeX file, any included eps figures
+need to be converted to pdf format. But LyX likes to have the figures in eps
+format for on-screen display, which is a great feature to have. B<lyxport>
+allows you to keep your LyX file as usual (with references to .eps figures)
+and will make .pdf versions of any included figure on the fly as needed. You
+can even ask it to remove those pdf files after it finishes, if you really
+want to maintain a minimum of files around (though it will have to remake them
+again if you ever need to update your pdf exported document).
+
+=head2 Command line use
+
+If you simply type B<lyxport> F<file>, it will try to make PostScript, HTML,
+and PDF versions of your file, putting them all in a single directory named
+F<file> (without a .lyx or .tex extension if your file had one). But it has
+L<command line options|OPTIONS AND ARGUMENTS> for making only the
+formats you want, and fairly detailed control over its behavior.
+
+=head2 If you don't have LyX
+
+Despite its name, if you are a regular LaTeX user and don't even have LyX
+installed in your system, B<lyxport> can still be useful to you. In fact,
+B<lyxport> only uses LyX once in each run: if there is no F<file.tex> or if
+F<file.lyx> file is newer than F<file.tex>, B<lyxport> updates F<file.tex>
+from F<file.lyx>. But if there is no F<file.lyx> at all it will simply use
+F<file.tex> and proceed with all its functionality intact.
+
+=cut
+###########################################################################
+=pod
+
+=head1 OPTIONS AND ARGUMENTS
+
+Single letter options (preceded by a single dash B<->) can be bundled: B<-pf>
+is equivalent to B<-p -f>. Long options (preceded by two dashes B<-->) can be
+abbreviated to as few letters as needed to clear ambiguity.
+
+=over
+
+=item B<-r --runs> I<NUM>
+
+Set number of latex runs by hand (otherwise auto-determined).
+
+=item B<-o --opts_l2h> I<'string'>
+
+String with options to be passed to B<latex2html>. This string should be
+protected by single quotes to allow double quotes inside of it.
+
+For example, if you want to pass to B<latex2html> the option B<-info "my
+info"> you can do so with B<lyxport -o ' -info "my info" '> (the extra spaces
+around the quote marks are not needed, they are here only for the sake of
+clarity).
+
+B<latex2html> has I<many> command-line options. For a project you are working
+constantly on, it may be more convenient to permanently set some of those
+options via a file called F<.latex2html-init> which B<latex2html> always
+reads at startup. See the B<latex2html> man page or the excellent online
+documentation kept at http://www-texdev.mpce.mq.edu.au/l2h/docs/manual for
+full details.
+
+=item B<-h --html>
+
+Export to HTML.
+
+=item B<-p --ps>
+
+Export to PostScript.
+
+=item B<-f --pdf>
+
+Export to PDF. See below the section L<PDF GENERATION> for details on how to
+obtain nice-looking PDF from your LaTeX sources.
+
+If none of the three above options is specified, the default behavior is to
+export I<all> three formats. If any is given, then only those formats
+explicitly specified will be produced (e.g. B<-h -f> makes HTML and PDF only,
+but not PostScript).
+
+=item B<--leave>
+
+By default lyxport moves the resulting PostScript and PDF files into the
+directory containing the HTML results (if it was created). This option tells
+it to leave them in the current directory.
+
+=item B<-c --clean>
+
+Do a clean start export, removing first any html directory, .aux, .log
+and .toc files which may have been left from previous runs.
+
+=item B<-t --tidy>
+
+B<lyxport> will tidy up I<after> itself, removing .aux, .log and .toc files left
+in the current directory. Use this only for "final" publication of documents, as
+those files are otherwise useful to shorten the time of runs.
+
+This option is incremental: you can call it twice (you can bundle it as
+B<-tt>). If called twice, B<lyxport> will remove also the LaTeX file
+associated with your LyX file, but I<only if> B<lyxport> I<itself created it
+in the same run>. This behavior is meant to be a safety net, so that
+B<lyxport> doesn't accidentally remove LaTeX files which you may have manually
+modified in some way.
+
+So if this option is called twice, you can start with a LyX file named F<file.lyx>
+and end up only with your original file plus a single directory named F<file> which 
+will contain F<file.html>, F<file.ps> and F<file.pdf> (plus some ancillary stuff for
+the html version). This mode of operation is obviously provided for the neatness
+freaks amongst us.
+
+=item B<-d --debug>
+
+Debugging mode: B<lyxport> will leave I<all> temporary files it creates lying
+around. If a particular target refuses to build, you can then try to run the
+respective commands on the temporary files manually, and possibly diagnose the
+source of the problem.
+
+This option will override any calls made to option B<--tidy>.
+
+=item B<-l --cld>
+
+Special command-line debugging mode: only prints (in a rather primitive form)
+the names and values of all command-line options which were set. Useful for
+finding problems with complicated option strings being passed to
+B<latex2html>.
+
+=item B<--help>
+
+Print this help and quit.
+
+=item B<-m --man>
+
+Print a complete man page. B<lyxport> is documented using embedded pod
+strings, so you can see its full documentation using the command B<perldoc
+lyxport>.
+
+You can also convert this documentation to other formats using the
+I<pod2_anything> family of converters (L<pod2html>, L<pod2latex>, L<pod2man>
+and L<pod2text>). See their respective man pages for details.
+
+Note that if you installed B<lyxport> properly, you should already have a man
+page available, plus html and plain text versions of the documents. These are
+by default installed to a directory named F</usr/local/doc/lyxport-XXX>, where
+F<XXX> is the version number. At installation time, you may manually change
+the F</usr/local> prefix. Consult your local documents or ask your system
+administrator for details on the specifics of your configuration.
+
+=item B<-v --version>
+
+Print version information and quit.
+
+=item B<filename>
+
+The given filename may have a .lyx or .tex extension (or none at
+all). I<lyxport> will update the tex file from the lyx file if necessary.
+
+B<lyxport> accepts only I<one> filename at a time.
+
+=back
+
+=cut
+###########################################################################
+=pod
+
+=head1 INTEGRATION WITH LyX
+
+If you find that B<lyxport> is more succesful in exporting your files than
+LyX's default calls to B<latex2html> and B<pdflatex>, you can modify LyX to
+use B<lyxport> as its conversion routine. For LyX versions 1.1.6 and above, go
+to C<< Edit->Preferences->Converters->Converters >> and specify B<lyxport> as your
+converter for C<< LaTeX->HTML >> and C<< LaTeX->PDF >>. LyX's convention
+is to call B<$$i> the current file.
+
+For example, if you want to setup B<lyxport> to be your PDF export filter
+under LyX, in the C<Converters> dialog, in the C<< LaTeX->PDF(pdflatex) >>
+option, set:
+
+    lyxport --pdf $$i
+
+This way you'll be able to export to pdf directly from within LyX, even if
+your figures are in eps format.
+
+LyX's C<Converters> dialog is a bit confusing: after making changes, you must
+first press the C<Modify> button for your changes to actually be recorded, and
+then C<Save>.
+
+You can similarly set up B<lyxport> to be your LaTeX to HTML converter.
+
+For LyX versions earlier than 1.1.6 (which didn't have the new Preferences
+dialog) these same options can be configured via your LyX defaults file. See
+the LyX documentation for details.
+
+=cut
+###########################################################################
+=pod
+
+=head1 PDF GENERATION
+
+=head2 Fonts
+
+Normally PDF documents made on Unix-type systems from LaTeX sources produce
+horrible looking fonts when viewed with Adobe's own Acrobat Reader. I don't
+know the many intricacies of the problem (you can search for the details on
+your own). I'll simply list here the trick that has helped I<me> solve the
+font problem. Try it, your mileage may vary.
+
+=over
+
+=item 1
+
+In your home directory, make (or modify it if it already exists) a file
+named F<.dvipsrc> which must contain the lines:
+
+    p+ psfonts.cmz
+    p+ psfonts.amz
+
+=item 2
+
+Make sure that the LaTeX preamble of your LyX file (or the part before
+C<\begin{document}> if you are using straight LaTeX files) contains:
+
+    \usepackage[T1]{fontenc}
+    \usepackage{ae,aecompl}
+
+This will guarantee that T1 encoded fonts come out looking good in the final PDF.
+
+=back
+
+=head2 Figures
+
+B<pdflatex> (if I understand correctly) only accepts filenames with a single
+B<.> in them, and only uses graphic files with extensions pdf, png, jpg and
+tif (all lowercase). B<lyxport> will do its best to analyze your latex file
+and try to change references to figures to accommodate B<pdflatex>, by
+creating temporary copies of your image files if necessary.
+
+Ideally, you should be able to have for example a figure called F<fig.1.JPG>
+along with a F<fig.1.eps> (for B<lyx> to preview it), and B<lyxport> would
+export a pdf document without leaving any more files after itself, even though
+it temporarily had to create F<fig_1.jpg> to make B<pdflatex> happy. As I
+said, ideally... If things don't quite work, try the B<--debug> option. If you
+find a fix for the problem, mail it to me: fperez@pizero.colorado.edu
+
+=head2 Links
+
+In order for URLs and similar elements to produce proper active links in the
+PDF document, you need to include in your LaTeX preamble the line
+
+    \usepackage{hyperref}
+
+=cut
+###########################################################################
+=pod
+
+=head1 REQUIRES
+
+B<lyxport> relies on some programs listed below, for the reasons indicated:
+
+=over
+
+=item B<lyx>
+
+To make LaTeX files from LyX files. Tested with lyx version 1.1.6fix1, should
+work with earlier versions (perhaps with minor changes to the way LyX is called).
+
+=item B<latex>
+
+To produce PostScript and for latex2html to work properly (cross-references).
+
+=item B<dvips>
+
+For making PostScript output.
+
+=item B<latex2html>
+
+For generating HTML from latex sources.
+
+=item B<pdflatex>
+
+For making PDF output from a latex file with proper cross-referencing and
+internal document links.
+
+=item B<epstopdf>
+
+A Perl script to automatically generate pdf versions of eps figures included
+in lyx files. It is more robust in its handling of various eps quirks than a
+straight call to B<ps2pdf>.
+
+=item B<perl>
+
+Well, it's a Perl script after all, isn't it?
+
+=back
+
+However, partial use of B<lyxport> is still possible without some of these
+components. If for example you don't have B<latex2html> in your system, you
+can still use B<lyxport> to produce PostScript and PDF. Various combinations
+are possible.
+
+=head2 Portability
+
+There are calls in B<lyxport> to some Unix commands like B<rm -rf>. For this
+reason it is not totally portable. These calls are however reasonably few and
+could be eliminated if there is enough demand by replacing them with
+equivalent Perl code. It's just more work...
+
+=cut
+###########################################################################
+=pod
+
+=head1 TO DO
+
+=over
+
+=item *
+
+Build rpm for more convenient installation.
+
+=item *
+
+Clean up the C<improve_tex4html()> code for readability.
+
+=back
+
+=cut
+###########################################################################
+=pod
+
+=head1 VERSION
+
+This is B<lyxport> version 0.3.1
+
+=cut
+###########################################################################
+=pod
+
+=head1 AUTHOR
+
+Fernando Pérez E<lt>fperez@pizero.colorado.eduE<gt>.
+
+Please email me with comments, suggestions, bugfixes, etc.
+
+The most current version of B<lyxport> should always be available at
+http://www-hep.colorado.edu/~fperez/lyxport
+
+=cut
+###########################################################################
+=pod
+
+=head1 ACKNOWLEDGEMENTS
+
+Inspired on the B<lyx2html> script by Steffen Evers
+E<lt>tron@cs.tu-berlin.deE<gt>.  Some of the code is a blatant ripoff of
+Steffen's code, using B<s2p> to get Perl versions of his original B<sed>
+scripts.
+
+=cut
+###########################################################################
+=pod
+
+
+=head1 COPYRIGHT AND DISCLAIMER
+
+This program is Copyright 2001 by Fernando Pérez.
+
+This program is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation; either version 2 of the License, or (at your option) any later
+version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+If you do not have a copy of the GNU General Public License write to
+the Free Software Foundation, Inc., 675 Mass Ave, Cambridge,
+MA 02139, USA.
+
+If the author of this software was too lazy to include the full GPL text along
+with the code, you can find it at: http://www.gnu.org/copyleft/gpl.html
+
+=cut
+#************************** end of file <lyxport> **********************

@@ -1,0 +1,14 @@
+Document: ipython
+Title: IPython Manual
+Author: Fernando Perez <fperez@colorado.edu>
+Abstract: Full documentation on all features of IPython.
+Section: devel
+
+Format: pdf
+Files: /usr/share/doc/ipython/ipython.pdf
+
+Format: HTML
+Index: /usr/share/doc/ipython/manual/index.html
+Files: /usr/share/doc/ipython/manual/*.html
+
+  

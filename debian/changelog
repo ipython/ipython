@@ -1,0 +1,70 @@
+ipython (0.6.4-1) unstable; urgency=low
+
+  * Fix dpatch dependency (Closes: #280505)
+
+ -- Fernando Perez <fperez@colorado.edu> Wed Nov 17 22:54:23 MST 2004
+
+ipython (0.6.3-1) unstable; urgency=low
+
+  * New upstream release (Closes: #262244, #252525)
+
+ -- Jack Moffitt <jack@xiph.org>  Wed, 22 Sep 2004 21:39:38 -0600
+
+ipython (0.6.0-1) unstable; urgency=low
+
+  * New upstream release
+
+ -- Jack Moffitt <jack@xiph.org>  Sun,  9 May 2004 17:38:00 +0200
+
+ipython (0.4.0-1.1) unstable; urgency=low
+
+  * Non maintainer upload with maintainer consensus.
+  * Updated buil-dep to depend on python-2.3 (Closes: #206653)
+  * Included encoding comment string in modules under IPython to 
+    avoid python2.3 Warnigs (upstream noticed).
+
+ -- Marco Presi (Zufus) <zufus@debian.org>  Mon, 25 Aug 2003 19:02:20 +0200
+
+ipython (0.4.0-1) unstable; urgency=low
+
+  * New upstream release (Closes #195215)
+  * Updated Build-Depends (Closes #200021)
+
+ -- Jack Moffitt <jack@xiph.org>  Fri, 25 Jul 2003 10:16:12 -0600
+
+ipython (0.2.15pre3-4) unstable; urgency=low
+
+  * Add python-dev Build-Depends (Closes: #189901)
+
+ -- Jack Moffitt <jack@babyjesus.cantcode.com>  Mon, 12 May 2003 23:33:43 -0600
+
+ipython (0.2.15pre3-3) unstable; urgency=low
+
+  * Fix for accidently converting home directory files' line ends
+    instead of just the appropriate ipython configuration files
+    (Closes: #189042)
+
+ -- Jack Moffitt <jack@xiph.org>  Mon, 14 Apr 2003 21:18:18 -0600
+
+ipython (0.2.15pre3-2) unstable; urgency=low
+
+  * Added text of the PSF license to debian/copyright.
+
+ -- Jack Moffitt <jack@xiph.org>  Sat,  5 Apr 2003 11:41:31 -0700
+
+ipython (0.2.15pre3-1) unstable; urgency=low
+
+  * Updated documentation to point to the new homepage -
+    http://ipython.scipy.org
+  * Removed doc/COPYING and doc/GNU-LGPL to fix lintian warnings
+  * Public release ready (Closes: #185789)
+
+ -- Jack Moffitt <jack@xiph.org>  Tue,  1 Apr 2003 20:53:31 -0700
+
+ipython (0.2.15pre3-0a) unstable; urgency=low
+
+  * Initial Release.
+  * This is my first Debian package
+
+ -- Jack Moffitt <jack@xiph.org>  Wed, 12 Mar 2003 21:04:22 -0700
+

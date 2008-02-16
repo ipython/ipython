@@ -1,0 +1,78 @@
+#!/usr/bin/env python
+"""Simple svn commit wrapper which emails a given list of people.
+
+Usage:
+
+  ipsvnc [args]
+
+This is equivalent to doing
+
+  svn commit [args]
+
+If the commit operation is successful (the script asks for confirmation), a
+hardwired list of maintainers is informed of the commit.
+
+This is a poor-man's substitute for a proper svn post-commit hook with an
+ipython-svn email list, which we're waiting to get soon.  It should be removed
+once that facility is in place.
+
+This only works on a unix box which can send mail by itself."""
+
+import os
+import commands
+import sys
+import time
+
+# Package maintainers to be alerted
+maintainers = ['fperez@colorado.edu', 'rkern@ucsd.edu', 'antont@an.org',
+               'tsanko@gmail.com']
+
+#maintainers = ['fperez@colorado.edu']  # dbg
+
+# Assemble command line back, before passing it to svn
+svnargs = []
+for arg in sys.argv[1:]:
+    if ' ' in arg:
+        svnargs.append('"%s"' % arg)
+    else:
+        svnargs.append(arg)
+svnargs = ' '.join(svnargs)
+
+#print 'SVN args: <%s>' % svnargs; sys.exit()  # dbg
+
+# perform commit
+print 'Performing SVN commit, this may take some time...'
+os.system('svn commit %s' % svnargs)
+svntime = time.asctime()
+print 'Getting SVN log and version info...'
+svnstatus = commands.getoutput('svn log -r HEAD')
+svnversion = commands.getoutput('svnversion .').split(':')[-1]
+
+# Confirm with user (trying to get the status from the svn commit blocks
+# silently, I don't care to debug it)
+ans = raw_input('If commit was succesful, proceed '
+                'with email notification? [Y/n] ')
+if ans.lower().startswith('n'):
+    print "Exiting now..."
+    sys.exit(1)
+else:
+    print "OK.  Emailing maintainers..."
+
+# Send emails
+subject = "[IPython SVN] New commit performed by %s" % os.getlogin()
+body = """\
+Commit performed at: %s
+
+SVN arguments used: %s
+
+SVN Version: %s
+
+This version probably points to this changeset:
+http://projects.scipy.org/ipython/ipython/changeset/%s
+
+Current SVN status after last commit:
+%s""" % (svntime,svnargs,svnversion,svnversion,svnstatus)
+
+for maint in maintainers:
+    print "Emailing",maint
+    os.system('echo "%s" | mail -s "%s" %s' % (body, subject,maint))

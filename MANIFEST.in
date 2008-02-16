@@ -1,0 +1,30 @@
+include README_Windows.txt
+include win32_manual_post_install.py
+include ipython.py
+
+graft scripts
+
+graft setupext
+
+graft IPython/UserConfig
+
+graft doc
+exclude doc/*.1
+exclude doc/manual_base*
+exclude doc/ChangeLog.*
+exclude doc/\#*
+exclude doc/update_magic.sh
+exclude doc/update_version.sh
+exclude doc/manual_base*
+exclude doc/manual/WARNINGS
+exclude doc/manual/*.aux
+exclude doc/manual/*.log
+exclude doc/manual/*.out
+exclude doc/manual/*.pl
+exclude doc/manual/*.tex
+
+global-exclude *~
+global-exclude *.flc
+global-exclude *.pyc
+global-exclude .dircopy.log
+global-exclude .svn

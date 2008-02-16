@@ -1,0 +1,18 @@
+# assumes there is /tmp and /opt
+
+def curpath():
+    cwd = os.path.splitdrive(os.getcwd())[1].replace('\\','/')
+    print cwd
+    return cwd
+
+import os
+cd /
+assert curpath() == '/'
+%cd /tmp
+assert curpath() == '/tmp'
+pushd /opt
+assert curpath() == '/opt'
+popd
+assert curpath() == '/tmp'
+
+
