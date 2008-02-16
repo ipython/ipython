@@ -53,7 +53,9 @@ def all_cells():
     
 
 class TrivialLeoWorkbook:
-    """ class to find cells """
+    """ class to find cells with simple syntax
+    
+    """
     def __getattr__(self, key):
         cells = all_cells()
         p = cells[key]
@@ -79,22 +81,30 @@ class LeoNode(object):
 
     def get_h(self): return self.p.headString()
     def set_h(self,val):
-        print "set head",val 
-        c.setHeadString(self.p,val)
+        print "set head",val
+        c.beginUpdate() 
+        try:
+            c.setHeadString(self.p,val)
+        finally:
+            c.endUpdate()
         
     h = property( get_h, set_h)  
 
     def get_b(self): return self.p.bodyString()
     def set_b(self,val):
-        print "set body",val 
-        c.setBodyString(self.p, val)
+        print "set body",val
+        c.beginUpdate()
+        try: 
+            c.setBodyString(self.p, val)
+        finally:
+            c.endUpdate()
     
     b = property(get_b, set_b)
     
     def set_val(self, val):
         self.b = pprint.pformat(val)
         
-    val = property(lambda self: ip.ev(self.b.strip()), set_val)
+    v = property(lambda self: ip.ev(self.b.strip()), set_val)
     
     def set_l(self,val):
         self.b = '\n'.join(val )
@@ -130,49 +140,58 @@ def workbook_complete(obj, prev):
     
 
 def add_var(varname, value = _dummyval):
-    nodename = '@ipy-var ' + varname
-    p2 = g.findNodeAnywhere(c,nodename)
-    if not c.positionExists(p2):
-        p2 = c.currentPosition().insertAfter()
-        c.setHeadString(p2,'@ipy ' + varname)
+    c.beginUpdate()
+    try:
         
-    c.setCurrentPosition(p2)
-    if value is _dummyval:
-        val = ip.user_ns[varname]
-    else:
-        val = value
-    if val is not None:
-        formatted = format_for_leo(val)
-        c.setBodyString(p2,formatted)
-    return p2
+        nodename = '@ipy-var ' + varname
+        p2 = g.findNodeAnywhere(c,nodename)
+        if not c.positionExists(p2):
+            p2 = c.currentPosition().insertAfter()
+            c.setHeadString(p2,'@ipy ' + varname)
+            
+        c.setCurrentPosition(p2)
+        if value is _dummyval:
+            val = ip.user_ns[varname]
+        else:
+            val = value
+        if val is not None:
+            formatted = format_for_leo(val)
+            c.setBodyString(p2,formatted)
+        return p2
+    finally:
+        c.endUpdate()
 
 def add_file(self,fname):
     p2 = c.currentPosition().insertAfter()
 
 def push_script(p):
-    ohist = ip.IP.output_hist 
-    hstart = len(ip.IP.input_hist)
-    script = g.getScript(c,p,useSelectedText=False,forcePythonSentinels=False,useSentinels=False)
-    
-    script = g.splitLines(script + '\n')
-    script = ''.join(z for z in script if z.strip())
-    
-    ip.runlines(script)
-    
-    has_output = False
-    for idx in range(hstart,len(ip.IP.input_hist)):
-        val = ohist.get(idx,None)
-        if val is None:
-            continue
-        has_output = True
-        inp = ip.IP.input_hist[idx]
-        if inp.strip():
-            g.es('In: %s' % (inp[:40], ),  tabName = 'IPython')
-            
-        g.es('<%d> %s' % (idx, pprint.pformat(ohist[idx],width = 40)), tabName = 'IPython')
-    
-    if not has_output:
-        g.es('ipy run: %s' %( p.headString(),), tabName = 'IPython')
+    c.beginUpdate()
+    try:
+        ohist = ip.IP.output_hist 
+        hstart = len(ip.IP.input_hist)
+        script = g.getScript(c,p,useSelectedText=False,forcePythonSentinels=False,useSentinels=False)
+        
+        script = g.splitLines(script + '\n')
+        script = ''.join(z for z in script if z.strip())
+        
+        ip.runlines(script)
+        
+        has_output = False
+        for idx in range(hstart,len(ip.IP.input_hist)):
+            val = ohist.get(idx,None)
+            if val is None:
+                continue
+            has_output = True
+            inp = ip.IP.input_hist[idx]
+            if inp.strip():
+                g.es('In: %s' % (inp[:40], ),  tabName = 'IPython')
+                
+            g.es('<%d> %s' % (idx, pprint.pformat(ohist[idx],width = 40)), tabName = 'IPython')
+        
+        if not has_output:
+            g.es('ipy run: %s' %( p.headString(),), tabName = 'IPython')
+    finally:
+        c.endUpdate()
     
     
 def eval_body(body):
@@ -189,27 +208,41 @@ def push_variable(p,varname):
     ip.user_ns[varname] = val
     g.es('ipy var: %s' % (varname,), tabName = "IPython")
     
-def push_from_leo(p):
-    # headstring without @ are just scripts
-    if not p.headString().startswith('@'):
-        push_script(p)
-        return
+def push_from_leo(p):    
     tup = p.headString().split(None,1)
     # @ipy foo is variable foo
     if len(tup) == 2 and tup[0] == '@ipy':
         varname = tup[1]
         push_variable(p,varname)
         return
+
+    push_script(p)
+    return
+    
     
 ip.user_ns['leox'].push = push_from_leo    
     
 def leo_f(self,s):
-    ip = self.getapi()
-    s = s.strip()
-    if s in ip.user_ns:
-        add_var(s)
-    elif os.path.isfile(s):
-        # todo open file
-        pass
+    """ open file(s) in Leo
+    
+    Takes an mglob pattern, e.g. '%leo *.cpp' or %leo 'rec:*.cpp'  
+    """
+    import os
+    from IPython.external import mglob
+    
+    files = mglob.expand(s)
+    c.beginUpdate()
+    try:
+        for fname in files:
+            p = g.findNodeAnywhere(c,'@auto ' + fname)
+            if not p:
+                p = c.currentPosition().insertAfter()
+            
+            p.setHeadString('@auto ' + fname)
+            if os.path.isfile(fname):
+                c.setBodyString(p,open(fname).read())
+            c.selectPosition(p)
+    finally:
+        c.endUpdate()
 
 ip.expose_magic('leo',leo_f)
