@@ -207,13 +207,22 @@ def push_variable(p,varname):
     val = eval_body(body.strip())
     ip.user_ns[varname] = val
     g.es('ipy var: %s' % (varname,), tabName = "IPython")
+
+def push_plain_python(p):
+    script = g.getScript(c,p,useSelectedText=False,forcePythonSentinels=False,useSentinels=False)
+    exec script in ip.user_ns
+    g.es('ipy plain: %s' % (p.headString(),), tabName = "IPython")
     
-def push_from_leo(p):    
-    tup = p.headString().split(None,1)
+def push_from_leo(p):
+    h =  p.headString()   
+    tup = h.split(None,1)
     # @ipy foo is variable foo
     if len(tup) == 2 and tup[0] == '@ipy':
         varname = tup[1]
         push_variable(p,varname)
+        return
+    if h.endswith('P'):
+        push_plain_python(p)
         return
 
     push_script(p)
