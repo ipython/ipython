@@ -41,7 +41,7 @@ def format_for_leo(obj):
 def format_list(obj):
     return "\n".join(str(s) for s in obj)
 
-nodename_re = r'(@ipy?[\w-]+)?\s?(\w+)'
+nodename_re = r'^(@ipy\w*\s+)?(\w+)$'
 
 def all_cells():
     d = {}
@@ -91,8 +91,6 @@ def eval_node(n):
     xformer = ip.ev(hd.strip())
     es('Transform w/ %s' % repr(xformer))
     return xformer(rest)
-    
-    
 
 class LeoNode(object):
     def __init__(self,p):
@@ -221,9 +219,14 @@ def eval_body(body):
         val = IPython.genutils.SList(body.splitlines())
     return val 
     
-def push_variable(p,varname):
-    body = p.bodyString()
-    val = eval_body(body.strip())
+def push_variable(p,varname):    
+    try:
+        val = eval_node(LeoNode(p))
+    except:
+        
+        body = p.bodyString()
+        val = IPython.genutils.SList(body.splitlines())
+        
     ip.user_ns[varname] = val
     es('ipy var: %s' % (varname,))
 

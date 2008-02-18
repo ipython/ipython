@@ -3,7 +3,7 @@
 <leo_file>
 <leo_header file_format="2" tnodes="0" max_tnode_index="0" clone_windows="0"/>
 <globals body_outline_ratio="0.5">
-	<global_window_position top="263" left="521" height="600" width="800"/>
+	<global_window_position top="167" left="763" height="600" width="800"/>
 	<global_log_window_position top="0" left="0" height="0" width="0"/>
 </globals>
 <preferences/>
@@ -15,17 +15,22 @@
 <v t="vivainio.20080218184613.1"><vh>b</vh></v>
 <v t="vivainio.20080218200031" a="E"><vh>Some classes</vh>
 <v t="vivainio.20080218190816"><vh>File-like access</vh></v>
-<v t="vivainio.20080218200106" a="TV"><vh>csv data</vh></v>
+<v t="vivainio.20080218200106"><vh>csv data</vh></v>
 </v>
 </v>
-<v t="vivainio.20080218195413" a="E"><vh>Class tests</vh>
+<v t="vivainio.20080218195413"><vh>Class tests</vh>
 <v t="vivainio.20080218200509"><vh>csvr</vh></v>
 <v t="vivainio.20080218191007"><vh>tempfile</vh></v>
 <v t="vivainio.20080218195413.1"><vh>rfile</vh></v>
 </v>
+<v t="vivainio.20080218201219" a="E"><vh>Direct variables</vh>
+<v t="vivainio.20080218201219.1" a="TV"><vh>@ipy foo</vh></v>
+<v t="vivainio.20080218201622"><vh>@ipy </vh></v>
+<v t="vivainio.20080218201219.2"><vh>@ipy bar</vh></v>
+</v>
 </vnodes>
 <tnodes>
-<t tx="vivainio.20080218184525"></t>
+<t tx="vivainio.20080218184525">?</t>
 <t tx="vivainio.20080218184540"># this stuff will be pushed at ipython bridge startup
 
 @others</t>
@@ -72,5 +77,10 @@ readable </t>
 
 a,b,b
 1,2,2</t>
+<t tx="vivainio.20080218201219"></t>
+<t tx="vivainio.20080218201219.1">@cl rfile
+121212</t>
+<t tx="vivainio.20080218201219.2">"hello world"</t>
+<t tx="vivainio.20080218201622"></t>
 </tnodes>
 </leo_file>
