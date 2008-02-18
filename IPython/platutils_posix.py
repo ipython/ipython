@@ -37,4 +37,5 @@ if os.environ.get('TERM','') == 'xterm':
 else:
     set_term_title = _dummy_op
 
+freeze_term_title = _dummy_op
     

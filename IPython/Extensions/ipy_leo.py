@@ -255,3 +255,30 @@ def leo_f(self,s):
         c.endUpdate()
 
 ip.expose_magic('leo',leo_f)
+
+def leoref_f(self,s):
+    import textwrap
+    print textwrap.dedent("""\
+    %leo file - open file in leo
+    wb.foo.v  - eval node foo (i.e. headstring is 'foo' or '@ipy foo')
+    wb.foo.v = 12 - assign to body of node foo
+    wb.foo.b - read or write the body of node foo
+    wb.foo.l - body of node foo as string list
+    
+    for el in wb.foo:
+      print el.v
+      
+    
+    """
+    )
+ip.expose_magic('leoref',leoref_f)
+
+def show_welcome():
+    print "------------------"
+    print "Welcome to Leo-enabled IPython session!"
+    print "Try %leoref for quick reference."
+    import IPython.platutils
+    IPython.platutils.set_term_title('Leo IPython')
+    IPython.platutils.freeze_term_title()
+show_welcome()
+    
