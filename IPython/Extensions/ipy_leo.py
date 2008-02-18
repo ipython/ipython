@@ -28,6 +28,10 @@ ip.user_ns['g'] = g
 from IPython.external.simplegeneric import generic 
 import pprint
 
+def es(s):    
+    g.es(s, tabName = 'IPython')
+    pass
+
 @generic
 def format_for_leo(obj):
     """ Convert obj to string representiation (for editing in Leo)"""
@@ -74,6 +78,21 @@ class TrivialLeoWorkbook:
 
 ip.user_ns['nodes'] = TrivialLeoWorkbook()            
 
+def eval_node(n):
+    body = n.b    
+    if not body.startswith('@cl'):
+        # plain python repr node, just eval it
+        return ip.ev(n.b)
+    # @cl nodes deserve special treatment - first eval the first line (minus cl), then use it to call the rest of body
+    first, rest = body.split('\n',1)
+    cl, hd = first.split(None, 1)
+    if cl != '@cl':
+        return None
+    xformer = ip.ev(hd.strip())
+    es('Transform w/ %s' % repr(xformer))
+    return xformer(rest)
+    
+    
 
 class LeoNode(object):
     def __init__(self,p):
@@ -104,7 +123,7 @@ class LeoNode(object):
     def set_val(self, val):
         self.b = pprint.pformat(val)
         
-    v = property(lambda self: ip.ev(self.b.strip()), set_val)
+    v = property(lambda self: eval_node(self), set_val)
     
     def set_l(self,val):
         self.b = '\n'.join(val )
@@ -184,12 +203,12 @@ def push_script(p):
             has_output = True
             inp = ip.IP.input_hist[idx]
             if inp.strip():
-                g.es('In: %s' % (inp[:40], ),  tabName = 'IPython')
+                es('In: %s' % (inp[:40], ))
                 
-            g.es('<%d> %s' % (idx, pprint.pformat(ohist[idx],width = 40)), tabName = 'IPython')
+            es('<%d> %s' % (idx, pprint.pformat(ohist[idx],width = 40)))
         
         if not has_output:
-            g.es('ipy run: %s' %( p.headString(),), tabName = 'IPython')
+            es('ipy run: %s' %( p.headString(),))
     finally:
         c.endUpdate()
     
@@ -206,14 +225,15 @@ def push_variable(p,varname):
     body = p.bodyString()
     val = eval_body(body.strip())
     ip.user_ns[varname] = val
-    g.es('ipy var: %s' % (varname,), tabName = "IPython")
+    es('ipy var: %s' % (varname,))
 
 def push_plain_python(p):
     script = g.getScript(c,p,useSelectedText=False,forcePythonSentinels=False,useSentinels=False)
     exec script in ip.user_ns
-    g.es('ipy plain: %s' % (p.headString(),), tabName = "IPython")
+    es('ipy plain: %s' % (p.headString(),))
     
 def push_from_leo(p):
+    nod = LeoNode(p)
     h =  p.headString()   
     tup = h.split(None,1)
     # @ipy foo is variable foo
@@ -224,7 +244,10 @@ def push_from_leo(p):
     if h.endswith('P'):
         push_plain_python(p)
         return
-
+    if nod.b.startswith('@cl'):
+        es(nod.v)
+        return
+    
     push_script(p)
     return
     
@@ -277,7 +300,7 @@ def show_welcome():
     print "Welcome to Leo-enabled IPython session!"
     print "Try %leoref for quick reference."
     import IPython.platutils
-    IPython.platutils.set_term_title('Leo IPython')
+    IPython.platutils.set_term_title('ILeo')
     IPython.platutils.freeze_term_title()
 
 def run_leo_startup_node():
