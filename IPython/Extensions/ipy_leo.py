@@ -267,8 +267,7 @@ def leoref_f(self,s):
     
     for el in wb.foo:
       print el.v
-      
-    
+       
     """
     )
 ip.expose_magic('leoref',leoref_f)
@@ -280,5 +279,13 @@ def show_welcome():
     import IPython.platutils
     IPython.platutils.set_term_title('Leo IPython')
     IPython.platutils.freeze_term_title()
+
+def run_leo_startup_node():
+    p = g.findNodeAnywhere(c,'@ipy-startup')
+    if p:
+        print "Running @ipy-startup"
+        push_script(p)
+
+run_leo_startup_node()
 show_welcome()
-    
+
