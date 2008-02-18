@@ -3,30 +3,27 @@
 <leo_file>
 <leo_header file_format="2" tnodes="0" max_tnode_index="0" clone_windows="0"/>
 <globals body_outline_ratio="0.5">
-	<global_window_position top="167" left="763" height="600" width="800"/>
+	<global_window_position top="262" left="259" height="600" width="800"/>
 	<global_log_window_position top="0" left="0" height="0" width="0"/>
 </globals>
 <preferences/>
 <find_panel_settings/>
 <vnodes>
 <v t="vivainio.20080218184525"><vh>@chapters</vh></v>
-<v t="vivainio.20080218184540" a="E"><vh>@ipy-startup</vh>
-<v t="vivainio.20080218184613"><vh>a</vh></v>
-<v t="vivainio.20080218184613.1"><vh>b</vh></v>
-<v t="vivainio.20080218200031" a="E"><vh>Some classes</vh>
+<v t="vivainio.20080218184540" a="ET"><vh>@ipy-startup</vh>
+<v t="vivainio.20080218184613.1" a="V"><vh>b</vh></v>
+<v t="vivainio.20080218200031"><vh>Some classes</vh>
 <v t="vivainio.20080218190816"><vh>File-like access</vh></v>
 <v t="vivainio.20080218200106"><vh>csv data</vh></v>
 </v>
 </v>
-<v t="vivainio.20080218195413"><vh>Class tests</vh>
+<v t="vivainio.20080218195413" a="E"><vh>Class tests</vh>
 <v t="vivainio.20080218200509"><vh>csvr</vh></v>
 <v t="vivainio.20080218191007"><vh>tempfile</vh></v>
 <v t="vivainio.20080218195413.1"><vh>rfile</vh></v>
 </v>
 <v t="vivainio.20080218201219" a="E"><vh>Direct variables</vh>
-<v t="vivainio.20080218201219.1" a="TV"><vh>@ipy foo</vh></v>
-<v t="vivainio.20080218201622"><vh>@ipy </vh></v>
-<v t="vivainio.20080218201219.2"><vh>@ipy bar</vh></v>
+<v t="vivainio.20080218201219.2"><vh>bar</vh></v>
 </v>
 </vnodes>
 <tnodes>
@@ -34,7 +31,6 @@
 <t tx="vivainio.20080218184540"># this stuff will be pushed at ipython bridge startup
 
 @others</t>
-<t tx="vivainio.20080218184613">print "hello"</t>
 <t tx="vivainio.20080218184613.1">print "world"</t>
 <t tx="vivainio.20080218190816">def rfile(body):
     """ @cl rfile 
@@ -60,7 +56,7 @@ def tmpfile(body):
 <t tx="vivainio.20080218191007">@cl tmpfile
 
 Hello</t>
-<t tx="vivainio.20080218195413"></t>
+<t tx="vivainio.20080218195413">?</t>
 <t tx="vivainio.20080218195413.1">@cl rfile
 These
 lines
@@ -78,9 +74,6 @@ readable </t>
 a,b,b
 1,2,2</t>
 <t tx="vivainio.20080218201219"></t>
-<t tx="vivainio.20080218201219.1">@cl rfile
-121212</t>
 <t tx="vivainio.20080218201219.2">"hello world"</t>
-<t tx="vivainio.20080218201622"></t>
 </tnodes>
 </leo_file>

@@ -1,19 +1,12 @@
-""" Leo plugin for IPython
+""" ILeo - Leo plugin for IPython
 
-Example use:
-
-nodes.foo = "hello world"
-
-  -> create '@ipy foo' node with text "hello world"
-
-Access works also, and so does tab completion.
    
 """
 import IPython.ipapi
 import IPython.genutils
 import IPython.generics
 import re
-
+import UserDict
 
 
 ip = IPython.ipapi.get()
@@ -41,42 +34,20 @@ def format_for_leo(obj):
 def format_list(obj):
     return "\n".join(str(s) for s in obj)
 
-nodename_re = r'^(@ipy\w*\s+)?(\w+)$'
+attribute_re = re.compile('^[a-zA-Z_][a-zA-Z0-9_]*$')
+def valid_attribute(s):
+    return attribute_re.match(s)    
 
 def all_cells():
     d = {}
     for p in c.allNodes_iter():
         h = p.headString()
-        if h.startswith('@') and len(h.split()) == 1: 
-            continue
-        mo = re.match(nodename_re, h)
-        if not mo:
-            continue
-        d[mo.group(2)] = p.copy()
+        if not valid_attribute(h):
+            continue 
+        d[h] = p.copy()
     return d    
     
 
-class TrivialLeoWorkbook:
-    """ class to find cells with simple syntax
-    
-    """
-    def __getattr__(self, key):
-        cells = all_cells()
-        p = cells[key]
-        body = p.bodyString()
-        return eval_body(body)
-    def __setattr__(self,key,val):
-        cells = all_cells()
-        p = cells.get(key,None)
-        if p is None:
-            add_var(key,val)
-        else:
-            c.setBodyString(p,format_for_leo(val))
-    def __str__(self):
-        return "<TrivialLeoWorkbook>"
-    __repr__ = __str__
-
-ip.user_ns['nodes'] = TrivialLeoWorkbook()            
 
 def eval_node(n):
     body = n.b    
@@ -85,14 +56,21 @@ def eval_node(n):
         return ip.ev(n.b)
     # @cl nodes deserve special treatment - first eval the first line (minus cl), then use it to call the rest of body
     first, rest = body.split('\n',1)
-    cl, hd = first.split(None, 1)
-    if cl != '@cl':
-        return None
+    tup = first.split(None, 1)
+    # @cl alone SPECIAL USE-> dump var to user_ns
+    if len(tup) == 1:
+        val = ip.ev(rest)
+        ip.user_ns[n.h] = val
+        es("%s = %s" % (n.h, repr(val)[:20]  )) 
+        return val
+
+    cl, hd = tup 
+
     xformer = ip.ev(hd.strip())
     es('Transform w/ %s' % repr(xformer))
     return xformer(rest)
 
-class LeoNode(object):
+class LeoNode(object, UserDict.DictMixin):
     def __init__(self,p):
         self.p = p.copy()
 
@@ -130,12 +108,48 @@ class LeoNode(object):
     
     def __iter__(self):
         return (LeoNode(p) for p in self.p.children_iter())
-     
+
+    def _children(self):
+        d = {}
+        for child in self:
+            head = child.h
+            tup = head.split(None,1)
+            if len(tup) > 1 and tup[0] == '@k':
+                d[tup[1]] = child
+                continue
+            
+            if not valid_attribute(head):
+                d[head] = child
+                continue
+        return d
+    def keys(self):
+        d = self._children()
+        return d.keys()
+    def __getitem__(self, key):
+        key = str(key)
+        d = self._children()
+        return d[key]
+    def __setitem__(self, key, val):
+        key = str(key)
+        d = self._children()
+        if key in d:
+            d[key].v = val
+            return
+        
+        if not valid_attribute(key):
+            head = key
+        else:
+            head = '@k ' + key
+        p = c.createLastChildNode(self.p, head, '')
+        LeoNode(p).v = val
+    def __delitem__(self,key):
+        pass
+        
 
 class LeoWorkbook:
     """ class for 'advanced' node access """
     def __getattr__(self, key):
-        if key.startswith('_') or key == 'trait_names':
+        if key.startswith('_') or key == 'trait_names' or not valid_attribute(key):
             raise AttributeError
         cells = all_cells()
         p = cells.get(key, None)
@@ -146,6 +160,9 @@ class LeoWorkbook:
 
     def __str__(self):
         return "<LeoWorkbook>"
+    def __setattr__(self,key, val):
+        raise AttributeError("Direct assignment to workbook denied, try wb.%s.v = %s" % (key,val))
+        
     __repr__ = __str__
 ip.user_ns['wb'] = LeoWorkbook()
 
