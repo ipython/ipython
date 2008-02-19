@@ -68,7 +68,7 @@ def eval_node(n):
 
     xformer = ip.ev(hd.strip())
     es('Transform w/ %s' % repr(xformer))
-    return xformer(rest)
+    return xformer(rest, n)
 
 class LeoNode(object, UserDict.DictMixin):
     def __init__(self,p):
