@@ -96,8 +96,8 @@ class LeoNode(object, UserDict.DictMixin):
     
     b = property(get_b, set_b)
     
-    def set_val(self, val):
-        self.b = pprint.pformat(val)
+    def set_val(self, val):        
+        self.b = format_for_leo(val)
         
     v = property(lambda self: eval_node(self), set_val)
     
@@ -176,12 +176,10 @@ def workbook_complete(obj, prev):
 def add_var(varname, value = _dummyval):
     c.beginUpdate()
     try:
-        
-        nodename = '@ipy-var ' + varname
-        p2 = g.findNodeAnywhere(c,nodename)
+        p2 = g.findNodeAnywhere(c,varname)
         if not c.positionExists(p2):
             p2 = c.currentPosition().insertAfter()
-            c.setHeadString(p2,'@ipy ' + varname)
+            c.setHeadString(p2,varname)
             
         c.setCurrentPosition(p2)
         if value is _dummyval:
