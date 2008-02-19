@@ -234,31 +234,18 @@ def eval_body(body):
         val = IPython.genutils.SList(body.splitlines())
     return val 
     
-def push_variable(p,varname):    
-    try:
-        val = eval_node(LeoNode(p))
-    except:
-        
-        body = p.bodyString()
-        val = IPython.genutils.SList(body.splitlines())
-        
-    ip.user_ns[varname] = val
-    es('ipy var: %s' % (varname,))
-
 def push_plain_python(p):
     script = g.getScript(c,p,useSelectedText=False,forcePythonSentinels=False,useSentinels=False)
-    exec script in ip.user_ns
+    try:
+        exec script in ip.user_ns
+    except:
+        print " -- Exception in script:\n"+script + "\n --"
+        raise
     es('ipy plain: %s' % (p.headString(),))
     
 def push_from_leo(p):
     nod = LeoNode(p)
     h =  p.headString()   
-    tup = h.split(None,1)
-    # @ipy foo is variable foo
-    if len(tup) == 2 and tup[0] == '@ipy':
-        varname = tup[1]
-        push_variable(p,varname)
-        return
     if h.endswith('P'):
         push_plain_python(p)
         return
@@ -324,8 +311,11 @@ def show_welcome():
 def run_leo_startup_node():
     p = g.findNodeAnywhere(c,'@ipy-startup')
     if p:
-        print "Running @ipy-startup"
-        push_script(p)
+        print "Running @ipy-startup nodes"
+        for n in LeoNode(p):
+            push_from_leo(n.p)
+            
+            
 
 run_leo_startup_node()
 show_welcome()
