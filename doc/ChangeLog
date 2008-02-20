@@ -1,6 +1,9 @@
 2008-02-20  Ville Vainio <vivainio@gmail.com>
 
 	* completer.py: do not treat [](){} as protectable chars anymore
+	
+	* magic.py, test_cpaste.py: Allow different prefix for pasting 
+	from email
 
 2008-02-17  Ville Vainio <vivainio@gmail.com>
 
