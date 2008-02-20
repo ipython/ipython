@@ -1,11 +1,30 @@
+2008-02-20  Ville Vainio <vivainio@gmail.com>
+
+	* completer.py: do not treat [](){} as protectable chars anymore
+
+2008-02-17  Ville Vainio <vivainio@gmail.com>
+
+	* Switched over to Launchpad/bzr as primary VCS.
+
+2008-02-14  Ville Vainio <vivainio@gmail.com>
+
+	* ipapi.py: _ip.runlines() is now much more liberal about 
+	indentation - it cleans up the scripts it gets
+	
+2008-02-14  Ville Vainio <vivainio@gmail.com>
+
+	* Extensions/ipy_leo.py: created 'ILeo' IPython-Leo bridge.
+	Changes to it (later on) are too numerous to list in ChangeLog
+	until it stabilizes
+	
 2008-02-07  Darren Dale <darren.dale@cornell.edu>
 
-        * IPython/Shell.py: Call QtCore.pyqtRemoveInputHook() when creating
-        an IPShellQt4. PyQt4-4.2.1 and later uses PyOS_InputHook to improve 
-        interaction in the interpreter (like Tkinter does), but it seems to 
-        partially interfere with the IPython implementation and exec_()
-        still seems to block. So we disable the PyQt implementation and
-        stick with the IPython one for now.
+	* IPython/Shell.py: Call QtCore.pyqtRemoveInputHook() when creating
+	an IPShellQt4. PyQt4-4.2.1 and later uses PyOS_InputHook to improve 
+	interaction in the interpreter (like Tkinter does), but it seems to 
+	partially interfere with the IPython implementation and exec_()
+	still seems to block. So we disable the PyQt implementation and
+	stick with the IPython one for now.
 
 2008-02-02  Walter Doerwald  <walter@livinglogic.de>
 

@@ -321,7 +321,7 @@ class IPCompleter(Completer):
         # don't want to treat as delimiters in filename matching
         # when escaped with backslash
 
-        protectables = ' ()[]{}'
+        protectables = ' '
 
         if text.startswith('!'):
             text = text[1:]
