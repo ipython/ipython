@@ -3143,7 +3143,9 @@ Defaulting color scheme to 'NoColor'"""
         opts,args = self.parse_options(parameter_s,'s:',mode='string')
         par = args.strip()
         sentinel = opts.get('s','--')
-        
+
+        strip_from_start = [re.compile(e) for e in 
+                            ['^(.?>)+','^In \[\d+\]:','^\++']]         
         from IPython import iplib
         lines = []
         print "Pasting code; enter '%s' alone on the line to stop." % sentinel
@@ -3151,7 +3153,11 @@ Defaulting color scheme to 'NoColor'"""
             l = iplib.raw_input_original(':')
             if l ==sentinel:
                 break
-            lines.append(l.lstrip('>').lstrip('+'))
+            
+            for pat in strip_from_start: 
+                l = pat.sub('',l)
+            lines.append(l)
+                         
         block = "\n".join(lines) + '\n'
         #print "block:\n",block
         if not par:
