@@ -42,7 +42,9 @@ def all_cells():
     d = {}
     for p in c.allNodes_iter():
         h = p.headString()
-        if not valid_attribute(h):
+        if h.startswith('@a '):
+            d[h.lstrip('@a ').strip()] = p.parent().copy()
+        elif not valid_attribute(h):
             continue 
         d[h] = p.copy()
     return d    
@@ -154,7 +156,7 @@ class LeoWorkbook:
         cells = all_cells()
         p = cells.get(key, None)
         if p is None:
-            p = add_var(key,None)
+            p = add_var(key)
 
         return LeoNode(p)
 
@@ -167,28 +169,24 @@ class LeoWorkbook:
 ip.user_ns['wb'] = LeoWorkbook()
 
 
-_dummyval = object()
+
 @IPython.generics.complete_object.when_type(LeoWorkbook)
 def workbook_complete(obj, prev):
     return all_cells().keys()
     
 
-def add_var(varname, value = _dummyval):
+def add_var(varname):
     c.beginUpdate()
     try:
         p2 = g.findNodeAnywhere(c,varname)
-        if not c.positionExists(p2):
-            p2 = c.currentPosition().insertAfter()
-            c.setHeadString(p2,varname)
-            
-        c.setCurrentPosition(p2)
-        if value is _dummyval:
-            val = ip.user_ns[varname]
-        else:
-            val = value
-        if val is not None:
-            formatted = format_for_leo(val)
-            c.setBodyString(p2,formatted)
+        if p2:
+            return
+
+        rootpos = g.findNodeAnywhere(c,'@ipy-results')
+        if not rootpos:
+            rootpos = c.currentPosition() 
+        p2 = rootpos.insertAsLastChild()
+        c.setHeadString(p2,varname)
         return p2
     finally:
         c.endUpdate()
@@ -204,7 +202,6 @@ def push_script(p):
         script = g.getScript(c,p,useSelectedText=False,forcePythonSentinels=False,useSentinels=False)
         
         script = g.splitLines(script + '\n')
-        script = ''.join(z for z in script if z.strip())
         
         ip.runlines(script)
         
@@ -221,7 +218,7 @@ def push_script(p):
             es('<%d> %s' % (idx, pprint.pformat(ohist[idx],width = 40)))
         
         if not has_output:
-            es('ipy run: %s' %( p.headString(),))
+            es('ipy run: %s (%d LL)' %( p.headString(),len(script)))
     finally:
         c.endUpdate()
     
@@ -236,12 +233,13 @@ def eval_body(body):
     
 def push_plain_python(p):
     script = g.getScript(c,p,useSelectedText=False,forcePythonSentinels=False,useSentinels=False)
+    lines = script.count('\n')
     try:
         exec script in ip.user_ns
     except:
         print " -- Exception in script:\n"+script + "\n --"
         raise
-    es('ipy plain: %s' % (p.headString(),))
+    es('ipy plain: %s (%d LL)' % (p.headString(),lines))
     
 def push_from_leo(p):
     nod = LeoNode(p)
@@ -250,6 +248,10 @@ def push_from_leo(p):
         push_plain_python(p)
         return
     if nod.b.startswith('@cl'):
+        p2 = g.findNodeAnywhere(c,'@ipy-results')
+        if p2:
+            es("=> @ipy-results")
+            LeoNode(p2).v = nod.v
         es(nod.v)
         return
     
@@ -285,6 +287,7 @@ def leo_f(self,s):
 ip.expose_magic('leo',leo_f)
 
 def leoref_f(self,s):
+    """ Quick reference for ILeo """
     import textwrap
     print textwrap.dedent("""\
     %leo file - open file in leo

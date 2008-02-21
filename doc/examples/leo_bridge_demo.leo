@@ -3,7 +3,7 @@
 <leo_file>
 <leo_header file_format="2" tnodes="0" max_tnode_index="0" clone_windows="0"/>
 <globals body_outline_ratio="0.5">
-	<global_window_position top="161" left="139" height="621" width="1280"/>
+	<global_window_position top="131" left="404" height="621" width="1280"/>
 	<global_log_window_position top="0" left="0" height="0" width="0"/>
 </globals>
 <preferences/>
@@ -11,8 +11,8 @@
 <vnodes>
 <v t="vivainio.20080218184525"><vh>@chapters</vh></v>
 <v t="vivainio.20080218184540" a="E"><vh>@ipy-startup</vh>
-<v t="vivainio.20080218184613.1"><vh>b</vh></v>
-<v t="vivainio.20080218200031" a="ETV"><vh>Some classes P</vh>
+<v t="vivainio.20080218184613.1" a="TV"><vh>b</vh></v>
+<v t="vivainio.20080218200031" a="E"><vh>Some classes P</vh>
 <v t="vivainio.20080218190816"><vh>File-like access</vh></v>
 <v t="vivainio.20080218200106"><vh>csv data</vh></v>
 <v t="vivainio.20080219225120"><vh>String list</vh></v>
