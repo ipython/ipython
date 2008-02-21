@@ -409,7 +409,10 @@ license. To use profiling, please install"python2.3-profiler" from non-free.""")
                     break
             if mode == 'brief':
                 # only first line
-                fndoc = fn.__doc__.split('\n',1)[0]
+                if fn.__doc__:                    
+                    fndoc = fn.__doc__.split('\n',1)[0]
+                else:
+                    fndoc = 'No documentation'
             else:
                 fndoc = fn.__doc__
                 
