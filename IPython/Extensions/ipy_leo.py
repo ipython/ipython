@@ -187,12 +187,27 @@ class LeoNode(object, UserDict.DictMixin):
     def ipush(self):
         """ Does push-to-ipython on the node """
         push_from_leo(self)
+    def go(self):
+        """ Set node as current node (to quickly see it in Outline) """
+        c.beginUpdate()
+        try:
+            c.setCurrentPosition(self.p)
+        finally:
+            c.endUpdate()
         
         
         
 
 class LeoWorkbook:
-    """ class for 'advanced' node access """
+    """ class for 'advanced' node access 
+    
+    Has attributes for all "discoverable" nodes. Node is discoverable if it 
+    either
+    
+    - has a valid python name (Foo, bar_12)
+    - is a parent of an anchor node (if it has a child '@a foo', it is visible as foo)
+    
+    """
     def __getattr__(self, key):
         if key.startswith('_') or key == 'trait_names' or not valid_attribute(key):
             raise AttributeError
@@ -209,6 +224,12 @@ class LeoWorkbook:
         raise AttributeError("Direct assignment to workbook denied, try wb.%s.v = %s" % (key,val))
         
     __repr__ = __str__
+    
+    def __iter__(self):
+        """ Iterate all (even non-exposed) nodes """
+        cells = all_cells()
+        return (LeoNode(p) for p in c.allNodes_iter())
+    
 ip.user_ns['wb'] = LeoWorkbook()
 
 
