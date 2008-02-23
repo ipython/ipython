@@ -203,7 +203,7 @@ class LeoNode(object, UserDict.DictMixin):
         
         d = p.v.t.unknownAttributes.setdefault('ipython', {})
         return d        
-    uA = property(__get_uA, doc = "Access persistent unknownAttributes of node'")
+    uA = property(__get_uA, doc = "Access persistent unknownAttributes of node")
         
 
 class LeoWorkbook:

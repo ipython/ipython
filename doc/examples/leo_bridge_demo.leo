@@ -2,20 +2,35 @@
 <?xml-stylesheet ekr_test?>
 <leo_file>
 <leo_header file_format="2" tnodes="0" max_tnode_index="0" clone_windows="0"/>
-<globals body_outline_ratio="0.5">
-	<global_window_position top="261" left="404" height="621" width="1280"/>
+<globals body_outline_ratio="0.307814992026">
+	<global_window_position top="140" left="145" height="627" width="1280"/>
 	<global_log_window_position top="0" left="0" height="0" width="0"/>
 </globals>
 <preferences/>
 <find_panel_settings/>
 <vnodes>
+<v t="vivainio.20080222193236" a="E"><vh>Documentation</vh>
+<v t="vivainio.20080223121915" a="E" tnodeList="vivainio.20080223121915,vivainio.20080222193236.1,vivainio.20080223133858,vivainio.20080223133922,vivainio.20080223133947,vivainio.20080223134018,vivainio.20080223134100,vivainio.20080223134118,vivainio.20080223134433,vivainio.20080223142207,vivainio.20080223134136"><vh>@nosent ileointro.txt</vh>
+<v t="vivainio.20080222193236.1" a="E"><vh>Documentation</vh>
+<v t="vivainio.20080223133858"><vh>Introduction</vh></v>
+<v t="vivainio.20080223133922"><vh>Installation</vh></v>
+<v t="vivainio.20080223133947"><vh>Accessing IPython from Leo</vh></v>
+<v t="vivainio.20080223134018" a="TV"><vh>Accessing Leo nodes from IPython</vh></v>
+<v t="vivainio.20080223134100"><vh>Cl definitions</vh></v>
+<v t="vivainio.20080223134118"><vh>Special node types</vh></v>
+<v t="vivainio.20080223134433"><vh>Custom push</vh></v>
+<v t="vivainio.20080223142207" a="E"><vh>Code snippets</vh></v>
+<v t="vivainio.20080223134136"><vh>Acknowledgements and history</vh></v>
+</v>
+</v>
+</v>
 <v t="vivainio.20080218184525"><vh>@chapters</vh></v>
-<v t="vivainio.20080223133721" a="E"><vh>@settings</vh>
+<v t="vivainio.20080223133721"><vh>@settings</vh>
 <v t="vivainio.20080223133721.1"><vh>@enabled-plugins</vh></v>
 </v>
 <v t="vivainio.20080218184540" a="E"><vh>@ipy-startup</vh>
 <v t="vivainio.20080218184613.1"><vh>b</vh></v>
-<v t="vivainio.20080218200031" a="E"><vh>Some classes P</vh>
+<v t="vivainio.20080218200031"><vh>Some classes P</vh>
 <v t="vivainio.20080218190816"><vh>File-like access</vh></v>
 <v t="vivainio.20080218200106"><vh>csv data</vh></v>
 <v t="vivainio.20080219225120"><vh>String list</vh></v>
@@ -32,22 +47,16 @@
 <v t="vivainio.20080222201226"><vh>NewHeadline</vh></v>
 <v t="vivainio.20080218201219.2"><vh>bar</vh></v>
 </v>
-<v t="vivainio.20080222193236" a="E"><vh>Docs</vh>
-<v t="vivainio.20080223121915" a="E" tnodeList="vivainio.20080223121915,vivainio.20080222193236.1,vivainio.20080223133858,vivainio.20080223133922,vivainio.20080223133947,vivainio.20080223134018,vivainio.20080223134100,vivainio.20080223134118,vivainio.20080223134433,vivainio.20080223134136"><vh>@nosent ileointro.txt</vh>
-<v t="vivainio.20080222193236.1" a="E"><vh>Quick intro</vh>
-<v t="vivainio.20080223133858"><vh>Introduction</vh></v>
-<v t="vivainio.20080223133922"><vh>Installation</vh></v>
-<v t="vivainio.20080223133947"><vh>Accessing IPython from Leo</vh></v>
-<v t="vivainio.20080223134018"><vh>Accessing Leo nodes from IPython</vh></v>
-<v t="vivainio.20080223134100"><vh>Cl definitions</vh></v>
-<v t="vivainio.20080223134118"><vh>Special node types</vh></v>
-<v t="vivainio.20080223134433" a="TV"><vh>Custom push</vh></v>
-<v t="vivainio.20080223134136"><vh>Acknowledgements and history</vh></v>
-</v>
-</v>
-</v>
 <v t="vivainio.20080222202211"><vh>test stuff</vh></v>
-<v t="vivainio.20080222202211.1"><vh>spam</vh></v>
+<v t="vivainio.20080223142403" a="E"><vh>@ipy-results</vh>
+<v t="vivainio.20080223142403.1"><vh>foo</vh></v>
+<v t="vivainio.20080223152600" a="E"><vh>baz</vh>
+<v t="vivainio.20080223174603"><vh>@k hello</vh></v>
+</v>
+</v>
+<v t="vivainio.20080222202211.1"><vh>spam</vh>
+<v t="vivainio.20080223180139"><vh>foo bar</vh></v>
+</v>
 <v t="vivainio.20080222202211.2"><vh>NewHeadline</vh></v>
 </vnodes>
 <tnodes>
@@ -116,7 +125,7 @@ lines
 def format_slist(obj):
     return "@cl slist\n" + obj.n
 </t>
-<t tx="vivainio.20080222193236"></t>
+<t tx="vivainio.20080222193236">?</t>
 <t tx="vivainio.20080222193236.1">@wrap
 @nocolor</t>
 <t tx="vivainio.20080222201226">1+2
@@ -128,7 +137,7 @@ def f(x):
 
 f('hello world')</t>
 <t tx="vivainio.20080222202211"></t>
-<t tx="vivainio.20080222202211.1">@cl rfile
+<t tx="vivainio.20080222202211.1" ipython="7d71005506636f6f7264737101284b0c4bde747102732e">@cl rfile
 hello
 world
 and whatever</t>
@@ -178,6 +187,8 @@ You need to enable the 'ipython.py' plugin in Leo:
 
 - Edit @settings--&gt;Plugins--&gt;@enabled-plugins, add/uncomment 'ipython.py'
 
+- Alternatively, you can add @settings--&gt;@enabled-plugins with body ipython.py to your leo document.
+
 - Restart Leo. Be sure that you have the console window open (start leo.py from console, or double-click leo.py on windows)
 
 - Press alt+5 OR alt-x start-ipython to launch IPython in the console that
@@ -192,9 +203,10 @@ IPython code
 ------------
 
 Just enter IPython commands on a Leo node and press alt-I to execute
-push-to-ipython to execute the script in IPython. 'commands' is interpreted
-loosely here - you can enter function and class definitions, in addition to the
-things you would usually enter at IPython prompt - calculations, system commands etc.
+push-to-ipython in order to execute the script in IPython. 'commands' is
+interpreted loosely here - you can enter function and class definitions, in
+addition to the things you would usually enter at IPython prompt - calculations,
+system commands etc.
 
 Everything that would be legal to enter on IPython prompt is legal to execute
 from ILeo.
@@ -213,7 +225,7 @@ def f(x):
 f('hello world')
 }}}
 
-If you press alt+I on that done, you will see the following in Leo log window (IPython tab):
+If you press alt+I on that node, you will see the following in Leo log window (IPython tab):
 
 {{{
 In: 1+2
@@ -224,7 +236,8 @@ In: f('hello world')
 &lt;6&gt; 'HELLO WORLD'
 }}}
 
-(numbers like &lt;6&gt; mean IPython output history indices).
+(numbers like &lt;6&gt; mean IPython output history indices; the actual object can be
+referenced with _6 as usual in IPython).
 
 
 Plain Python code
@@ -257,6 +270,14 @@ You can see what nodes are accessible be entering (in IPython) wb.&lt;TAB&gt;. E
 [C:leo/src]|12&gt; wb.
 wb.b           wb.tempfile    wb.rfile       wb.NewHeadline
 wb.bar         wb.Docs        wb.strlist     wb.csvr    
+[C:leo/src]|12&gt; wb.tempfile
+           &lt;12&gt; &lt;ipy_leo.LeoNode object at 0x044B6D90&gt;
+
+So here, we meet the 'LeoNode' class that is your key to manipulating Leo
+content from IPython!
+
+LeoNode
+-------
 
 Suppose that we had a node with headline 'spam' and body: 
 
@@ -281,27 +302,74 @@ Which will result in the node 'spam' having the following text:
 'mystring'
 
 What assignment to 'v' does can be configured through generic functions
-(simplegeneric module, will be explained later).
+('simplegeneric' module, will be explained later).
 
-Besides v, you can set the body text directly through wb.spam.b =
-"some\nstring", headline by wb.spam.h = 'new_headline' (obviously you must
-access the node through wb.new_headline from that point onwards), and access the
-contents as string list (IPython SList) through 'wb.spam.l'.
+Besides v, you can set the body text directly through 
+
+wb.spam.b = "some\nstring", 
+
+headline by 
+
+wb.spam.h = 'new_headline' 
+
+(obviously you must access the node through wb.new_headline from that point
+onwards), and access the contents as string list (IPython SList) through
+'wb.spam.l'.
 
 If you do 'wb.foo.v = 12' when node named 'foo' does not exist, the node titled
 'foo' will be automatically created and assigned body 12.
+
+LeoNode also supports go() that focuses the node in the Leo window, ipush that
+simulates pressing alt+I on the node.
+
+You can access unknownAttributes by .uA property dictionary. Unknown attributes
+allow you to store arbitrary (pickleable) python objects in the Leo nodes;
+the attributes are stored when you save the .leo document, and recreated when
+you open the document again. Example::
+
+    [C:leo/src]|12&gt; wb.spam.uA['coords'] = (12,222)
+    [C:leo/src]|13&gt; wb.spam.uA
+               &lt;13&gt; {'coords': (12, 222)}    
+
+Accessing children with iteration and dict notation
+---------------------------------------------------
+
+Sometimes, you may want to treat a node as a 'database', where the nodes
+children represent elements in the database. You can create a new child node for
+node 'spam', with headline 'foo bar' like this:
+
+    wb.spam['foo bar'] = "Hello"
+
+And assign a new value for it by doing 
+
+    wb.spam['foo bar'].v = "Hello again"
+
+Note how you can't use .v when you first create the node - i.e. the node needs
+to be initialized by simple assignment, that will be interpreted as assignment
+to '.v'. This is a conscious design choice.
+
+If you try to do wb.spam['bar'] = 'Hello', ILeo will assign '@k bar' as the
+headline for the child instead, because 'bar' is a legal python name (and as
+such would be incorporated in the workbook namespace). This is done to avoid
+crowding the workbook namespace with extraneous items. The item will still be
+accessible as wb.spam['bar']
+
+LeoNodes are iterable, so to see the headlines of all the children of 'spam' do:
+
+    for n in wb.spam:
+        print n.h
 </t>
 <t tx="vivainio.20080223134100">
 @cl definitions
 ===============
 
 If the first line in the body text is of the form '@cl sometext', IPython will
-will evaluate 'sometext' and call the result with the rest of the body when you
-do 'wb.foo.v'. An example is in place here. Suppose that we have defined a class
-(I use the term class in a non-python sense here)
+evaluate 'sometext' and call the result with the rest of the body when you do
+'wb.foo.v'. An example is in place here. Suppose that we have defined a class (I
+use the term class in a non-python sense here)
 
 {{{
-def rfile(body,n):
+def rfile(body,node):
     """ @cl rfile 
 
     produces a StringIO (file like obj) of the rest of the body """
@@ -310,7 +378,10 @@ def rfile(body,n):
     return StringIO.StringIO(body)
 }}}
 
-Now, let's say you node 'spam' with text
+(note that node is ignored here - but it could be used to access headline,
+children etc.),
+
+Now, let's say you have node 'spam' with text
 
 {{{
 @cl rfile
@@ -319,7 +390,7 @@ world
 and whatever
 }}}
 
-Now, on IPython, we can do this:
+Now, in IPython, we can do this:
 
 {{{    
 [C:leo/src]|22&gt; f = wb.spam.v
@@ -335,7 +406,9 @@ Now, on IPython, we can do this:
            &lt;27&gt; u''    
 }}} 
 
-You should declare new @cl types to make ILeo as convenient your problem domain as possible. For example, a "@cl etree" could return the elementtree object for xml content, or 
+You should declare new @cl types to make ILeo as convenient your problem domain
+as possible. For example, a "@cl etree" could return the elementtree object for
+xml content.
 </t>
 <t tx="vivainio.20080223134118">
 Special node types
@@ -389,21 +462,47 @@ Declaring custom push-to-ipython handlers
 Sometimes, you might want to configure what alt+I on a node does. You can do
 that by creating your own push function and expose it using
 ipy_leo.expose_ileo_push(f, priority). The function should check whether the
-node should by handled by it and raise IPython.ipapi.TryNext if it will not do
-the handling.
+node should by handled by the function and raise IPython.ipapi.TryNext if it
+will not do the handling, giving the next function in the chain a chance to see
+whether it should handle the push.
 
-This would print an uppercase version of node body if the node headline ends
-with U (yes, this is completely useless!)
+This example would print an uppercase version of node body if the node headline ends
+with U (yes, this is completely useless!):
 
+{{{
 def push_upcase(node):
     if not node.h.endswith('U'):
         raise TryNext
     print node.b.upper()
 
-expose_ileo_push(push_upcase, 12)
+ipy_leo.expose_ileo_push(push_upcase, 12)
+}}}
 
 (the priority should be between 0-100 - typically, you don't need to care about
-it and can omit the argument altogether)
+it and can usually omit the argument altogether)
 </t>
+<t tx="vivainio.20080223142207">
+Example code snippets
+=====================
+
+Get list of all headlines of all the nodes in leo:
+
+    [node.h for node in wb]
+
+Create node with headline 'baz', empty body:
+    wb.baz
+
+Create 10 child nodes for baz, where i is headline and 'Hello ' + i is body:       
+
+    for i in range(10):
+        wb.baz[i] = 'Hello %d' % i
+
+
+</t>
+<t tx="vivainio.20080223142403"></t>
+<t tx="vivainio.20080223142403.1">12</t>
+<t tx="vivainio.20080223152600"></t>
+<t tx="vivainio.20080223174603"></t>
+<t tx="vivainio.20080223180139">'hello again'</t>
 </tnodes>
 </leo_file>
