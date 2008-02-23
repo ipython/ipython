@@ -96,6 +96,11 @@ class LeoNode(object, UserDict.DictMixin):
     def __init__(self,p):
         self.p = p.copy()
 
+    def __str__(self):
+        return "<LeoNode %s>" % str(self.p)
+    
+    __repr__ = __str__
+    
     def __get_h(self): return self.p.headString()
     def __set_h(self,val):
         print "set head",val
@@ -182,11 +187,11 @@ class LeoNode(object, UserDict.DictMixin):
             head = '@k ' + key
         p = c.createLastChildNode(self.p, head, '')
         LeoNode(p).v = val
-    def __delitem__(self,key):
-        pass
+        
     def ipush(self):
         """ Does push-to-ipython on the node """
         push_from_leo(self)
+        
     def go(self):
         """ Set node as current node (to quickly see it in Outline) """
         c.beginUpdate()
@@ -195,6 +200,13 @@ class LeoNode(object, UserDict.DictMixin):
         finally:
             c.endUpdate()  
         
+    def script(self):
+        """ Method to get the 'tangled' contents of the node
+        
+        (parse @others, << section >> references etc.)
+        """
+        return g.getScript(c,self.p,useSelectedText=False,useSentinels=False)
+    
     def __get_uA(self):
         p = self.p
         # Create the uA if necessary.
@@ -203,6 +215,7 @@ class LeoNode(object, UserDict.DictMixin):
         
         d = p.v.t.unknownAttributes.setdefault('ipython', {})
         return d        
+    
     uA = property(__get_uA, doc = "Access persistent unknownAttributes of node")
         
 
@@ -238,13 +251,22 @@ class LeoWorkbook:
         cells = all_cells()
         return (LeoNode(p) for p in c.allNodes_iter())
     
+    current = property(lambda self: LeoNode(c.currentPosition()), doc = "Currently selected node")
+    
+    def match_h(self, regex):
+        cmp = re.compile(regex)
+        for node in self:
+            if re.match(cmp, node.h, re.IGNORECASE):
+                yield node
+        return
+            
 ip.user_ns['wb'] = LeoWorkbook()
 
 
 
 @IPython.generics.complete_object.when_type(LeoWorkbook)
 def workbook_complete(obj, prev):
-    return all_cells().keys()
+    return all_cells().keys() + [s for s in prev if not s.startswith('_')]
     
 
 def add_var(varname):
@@ -277,7 +299,7 @@ def push_ipython_script(node):
     try:
         ohist = ip.IP.output_hist 
         hstart = len(ip.IP.input_hist)
-        script = g.getScript(c,node.p,useSelectedText=False,forcePythonSentinels=False,useSentinels=False)
+        script = node.script()
         
         script = g.splitLines(script + '\n')
         
@@ -314,7 +336,7 @@ def eval_body(body):
 def push_plain_python(node):
     if not node.h.endswith('P'):
         raise TryNext
-    script = g.getScript(c,node.p,useSelectedText=False,forcePythonSentinels=False,useSentinels=False)
+    script = node.script()
     lines = script.count('\n')
     try:
         exec script in ip.user_ns
