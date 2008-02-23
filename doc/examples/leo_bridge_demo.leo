@@ -3,16 +3,19 @@
 <leo_file>
 <leo_header file_format="2" tnodes="0" max_tnode_index="0" clone_windows="0"/>
 <globals body_outline_ratio="0.5">
-	<global_window_position top="165" left="26" height="621" width="1280"/>
+	<global_window_position top="261" left="404" height="621" width="1280"/>
 	<global_log_window_position top="0" left="0" height="0" width="0"/>
 </globals>
 <preferences/>
 <find_panel_settings/>
 <vnodes>
 <v t="vivainio.20080218184525"><vh>@chapters</vh></v>
+<v t="vivainio.20080223133721" a="E"><vh>@settings</vh>
+<v t="vivainio.20080223133721.1"><vh>@enabled-plugins</vh></v>
+</v>
 <v t="vivainio.20080218184540" a="E"><vh>@ipy-startup</vh>
 <v t="vivainio.20080218184613.1"><vh>b</vh></v>
-<v t="vivainio.20080218200031"><vh>Some classes P</vh>
+<v t="vivainio.20080218200031" a="E"><vh>Some classes P</vh>
 <v t="vivainio.20080218190816"><vh>File-like access</vh></v>
 <v t="vivainio.20080218200106"><vh>csv data</vh></v>
 <v t="vivainio.20080219225120"><vh>String list</vh></v>
@@ -30,7 +33,18 @@
 <v t="vivainio.20080218201219.2"><vh>bar</vh></v>
 </v>
 <v t="vivainio.20080222193236" a="E"><vh>Docs</vh>
-<v t="vivainio.20080222193236.1" a="TV"><vh>Quick intro</vh></v>
+<v t="vivainio.20080223121915" a="E" tnodeList="vivainio.20080223121915,vivainio.20080222193236.1,vivainio.20080223133858,vivainio.20080223133922,vivainio.20080223133947,vivainio.20080223134018,vivainio.20080223134100,vivainio.20080223134118,vivainio.20080223134433,vivainio.20080223134136"><vh>@nosent ileointro.txt</vh>
+<v t="vivainio.20080222193236.1" a="E"><vh>Quick intro</vh>
+<v t="vivainio.20080223133858"><vh>Introduction</vh></v>
+<v t="vivainio.20080223133922"><vh>Installation</vh></v>
+<v t="vivainio.20080223133947"><vh>Accessing IPython from Leo</vh></v>
+<v t="vivainio.20080223134018"><vh>Accessing Leo nodes from IPython</vh></v>
+<v t="vivainio.20080223134100"><vh>Cl definitions</vh></v>
+<v t="vivainio.20080223134118"><vh>Special node types</vh></v>
+<v t="vivainio.20080223134433" a="TV"><vh>Custom push</vh></v>
+<v t="vivainio.20080223134136"><vh>Acknowledgements and history</vh></v>
+</v>
+</v>
 </v>
 <v t="vivainio.20080222202211"><vh>test stuff</vh></v>
 <v t="vivainio.20080222202211.1"><vh>spam</vh></v>
@@ -104,8 +118,26 @@ def format_slist(obj):
 </t>
 <t tx="vivainio.20080222193236"></t>
 <t tx="vivainio.20080222193236.1">@wrap
-@nocolor
+@nocolor</t>
+<t tx="vivainio.20080222201226">1+2
+print "hello"
+3+4
 
+def f(x):
+    return x.upper()
+
+f('hello world')</t>
+<t tx="vivainio.20080222202211"></t>
+<t tx="vivainio.20080222202211.1">@cl rfile
+hello
+world
+and whatever</t>
+<t tx="vivainio.20080222202211.2"></t>
+<t tx="vivainio.20080223121915">@others
+</t>
+<t tx="vivainio.20080223133721"></t>
+<t tx="vivainio.20080223133721.1">ipython.py</t>
+<t tx="vivainio.20080223133858">
 Introduction
 ============
 
@@ -126,13 +158,13 @@ Obviously, you can save the Leo document as usual - this is a great advantage
 of ILeo over using %edit, you can save your experimental scripts all at one
 time, without having to organize them into script/module files (before you
 really want to, of course!)
-
-
+</t>
+<t tx="vivainio.20080223133922">
 Installation
 ============
 
-You need the latest version of Leo, and the development version of IPython (ILeo
-will be incorporated to IPython 0.8.3.
+You need at least Leo 4.4.7, and the development version of IPython (ILeo
+will be incorporated to IPython 0.8.3).
 
 You can get IPython from Launchpad by installing bzr and doing
 
@@ -150,8 +182,9 @@ You need to enable the 'ipython.py' plugin in Leo:
 
 - Press alt+5 OR alt-x start-ipython to launch IPython in the console that
 started leo. You can start entering IPython commands normally, and Leo will keep
-running in the same time.
-
+running at the same time.
+</t>
+<t tx="vivainio.20080223133947">
 Accessing IPython from Leo
 ==========================
 
@@ -181,7 +214,7 @@ f('hello world')
 }}}
 
 If you press alt+I on that done, you will see the following in Leo log window (IPython tab):
-    
+
 {{{
 In: 1+2
 &lt;2&gt; 3
@@ -203,7 +236,8 @@ through IPython translation mechanism but use the direct python 'exec' statement
 history, and sometimes it is safer (and more efficient) to execute things as
 plain Python statements. Large class definitions are good candidates for P
 nodes.
-
+</t>
+<t tx="vivainio.20080223134018">
 Accessing Leo nodes from IPython
 ================================
 
@@ -229,7 +263,7 @@ Suppose that we had a node with headline 'spam' and body:
 ['12',2222+32]
 
 we can access it from IPython (or from scripts entered into other Leo nodes!) by doing:
-    
+
 C:leo/src]|19&gt; wb.spam.v
           &lt;19&gt; ['12', 2254]
 
@@ -256,7 +290,8 @@ contents as string list (IPython SList) through 'wb.spam.l'.
 
 If you do 'wb.foo.v = 12' when node named 'foo' does not exist, the node titled
 'foo' will be automatically created and assigned body 12.
-
+</t>
+<t tx="vivainio.20080223134100">
 @cl definitions
 ===============
 
@@ -301,7 +336,8 @@ Now, on IPython, we can do this:
 }}} 
 
 You should declare new @cl types to make ILeo as convenient your problem domain as possible. For example, a "@cl etree" could return the elementtree object for xml content, or 
-
+</t>
+<t tx="vivainio.20080223134118">
 Special node types
 ==================
 
@@ -325,15 +361,16 @@ You can attach these as children of existing nodes to provide a way to access
 nodes with arbitrary headlines, or to provide aliases to other nodes. If
 multiple @a nodes are attached as children of a node, all the names can be used
 to access the same object.
-
+</t>
+<t tx="vivainio.20080223134136">
 Acknowledgements &amp; History
 ==========================
 
 This idea got started when I (Ville) saw this post by Edward Ream (the author of
 Leo) on IPython developer mailing list:
-    
+
     http://lists.ipython.scipy.org/pipermail/ipython-dev/2008-January/003551.html
-    
+
 I was using FreeMind as mind mapping software, and so I had an immediate use
 case for Leo (which, incidentally, is superior to FreeMind as mind mapper). The
 wheels started rolling, I got obsessed with the power of this concept
@@ -344,20 +381,29 @@ revolutionary technologies (think Python here).
 The discussion that "built" ILeo is here:
     http://sourceforge.net/forum/forum.php?thread_id=1911662&amp;forum_id=10226    
 
+?</t>
+<t tx="vivainio.20080223134433">
+Declaring custom push-to-ipython handlers
+=========================================
+
+Sometimes, you might want to configure what alt+I on a node does. You can do
+that by creating your own push function and expose it using
+ipy_leo.expose_ileo_push(f, priority). The function should check whether the
+node should by handled by it and raise IPython.ipapi.TryNext if it will not do
+the handling.
+
+This would print an uppercase version of node body if the node headline ends
+with U (yes, this is completely useless!)
+
+def push_upcase(node):
+    if not node.h.endswith('U'):
+        raise TryNext
+    print node.b.upper()
+
+expose_ileo_push(push_upcase, 12)
+
+(the priority should be between 0-100 - typically, you don't need to care about
+it and can omit the argument altogether)
 </t>
-<t tx="vivainio.20080222201226">1+2
-print "hello"
-3+4
-
-def f(x):
-    return x.upper()
-
-f('hello world')</t>
-<t tx="vivainio.20080222202211"></t>
-<t tx="vivainio.20080222202211.1">@cl rfile
-hello
-world
-and whatever</t>
-<t tx="vivainio.20080222202211.2"></t>
 </tnodes>
 </leo_file>
