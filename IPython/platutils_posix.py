@@ -23,12 +23,17 @@ __license__ = Release.license
 import sys
 import os
 
+ignore_termtitle = False
 
 def _dummy_op(*a, **b):
     """ A no-op function """
 
 def _set_term_title_xterm(title):
     """ Change virtual terminal title in xterm-workalikes """
+
+    if ignore_termtitle:
+        return
+    
     sys.stdout.write('\033]%d;%s\007' % (0,title))
 
 
@@ -37,5 +42,6 @@ if os.environ.get('TERM','') == 'xterm':
 else:
     set_term_title = _dummy_op
 
-freeze_term_title = _dummy_op
-    
+def freeze_term_title():
+    global ignore_termtitle
+    ignore_termtitle = True
