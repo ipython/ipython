@@ -96,8 +96,8 @@ class LeoNode(object, UserDict.DictMixin):
     def __init__(self,p):
         self.p = p.copy()
 
-    def get_h(self): return self.p.headString()
-    def set_h(self,val):
+    def __get_h(self): return self.p.headString()
+    def __set_h(self,val):
         print "set head",val
         c.beginUpdate() 
         try:
@@ -105,10 +105,10 @@ class LeoNode(object, UserDict.DictMixin):
         finally:
             c.endUpdate()
         
-    h = property( get_h, set_h, doc = "Node headline string")  
+    h = property( __get_h, __set_h, doc = "Node headline string")  
 
-    def get_b(self): return self.p.bodyString()
-    def set_b(self,val):
+    def __get_b(self): return self.p.bodyString()
+    def __set_b(self,val):
         print "set body",val
         c.beginUpdate()
         try: 
@@ -116,24 +116,24 @@ class LeoNode(object, UserDict.DictMixin):
         finally:
             c.endUpdate()
     
-    b = property(get_b, set_b, doc = "Nody body string")
+    b = property(__get_b, __set_b, doc = "Nody body string")
     
-    def set_val(self, val):        
+    def __set_val(self, val):        
         self.b = format_for_leo(val)
         
-    v = property(lambda self: eval_node(self), set_val, doc = "Node evaluated value")
+    v = property(lambda self: eval_node(self), __set_val, doc = "Node evaluated value")
     
-    def set_l(self,val):
+    def __set_l(self,val):
         self.b = '\n'.join(val )
     l = property(lambda self : IPython.genutils.SList(self.b.splitlines()), 
-                 set_l, doc = "Node value as string list")
+                 __set_l, doc = "Node value as string list")
     
     def __iter__(self):
         """ Iterate through nodes direct children """
         
         return (LeoNode(p) for p in self.p.children_iter())
 
-    def _children(self):
+    def __children(self):
         d = {}
         for child in self:
             head = child.h
@@ -147,7 +147,7 @@ class LeoNode(object, UserDict.DictMixin):
                 continue
         return d
     def keys(self):
-        d = self._children()
+        d = self.__children()
         return d.keys()
     def __getitem__(self, key):
         """ wb.foo['Some stuff'] Return a child node with headline 'Some stuff'
@@ -155,7 +155,7 @@ class LeoNode(object, UserDict.DictMixin):
         If key is a valid python name (e.g. 'foo'), look for headline '@k foo' as well
         """  
         key = str(key)
-        d = self._children()
+        d = self.__children()
         return d[key]
     def __setitem__(self, key, val):
         """ You can do wb.foo['My Stuff'] = 12 to create children 
@@ -171,7 +171,7 @@ class LeoNode(object, UserDict.DictMixin):
         and we don't want to crowd the WorkBook namespace with (possibly numerous) entries
         """
         key = str(key)
-        d = self._children()
+        d = self.__children()
         if key in d:
             d[key].v = val
             return
@@ -193,9 +193,17 @@ class LeoNode(object, UserDict.DictMixin):
         try:
             c.setCurrentPosition(self.p)
         finally:
-            c.endUpdate()
+            c.endUpdate()  
         
+    def __get_uA(self):
+        p = self.p
+        # Create the uA if necessary.
+        if not hasattr(p.v.t,'unknownAttributes'):
+            p.v.t.unknownAttributes = {}        
         
+        d = p.v.t.unknownAttributes.setdefault('ipython', {})
+        return d        
+    uA = property(__get_uA, doc = "Access persistent unknownAttributes of node'")
         
 
 class LeoWorkbook:
