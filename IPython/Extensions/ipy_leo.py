@@ -5,9 +5,10 @@
 import IPython.ipapi
 import IPython.genutils
 import IPython.generics
+from IPython.hooks import CommandChainDispatcher
 import re
 import UserDict
-
+from IPython.ipapi import TryNext 
 
 ip = IPython.ipapi.get()
 leo = ip.user_ns['leox']
@@ -73,6 +74,25 @@ def eval_node(n):
     return xformer(rest, n)
 
 class LeoNode(object, UserDict.DictMixin):
+    """ Node in Leo outline
+    
+    Most important attributes (getters/setters available:
+     .v     - evaluate node, can also be alligned 
+     .b, .h - body string, headline string
+     .l     - value as string list
+    
+    Also supports iteration, 
+    
+    setitem / getitem (indexing):  
+     wb.foo['key'] = 12
+     assert wb.foo['key'].v == 12
+    
+    Note the asymmetry on setitem and getitem! Also other
+    dict methods are available. 
+    
+    .ipush() - run push-to-ipython
+    
+    """
     def __init__(self,p):
         self.p = p.copy()
 
@@ -85,7 +105,7 @@ class LeoNode(object, UserDict.DictMixin):
         finally:
             c.endUpdate()
         
-    h = property( get_h, set_h)  
+    h = property( get_h, set_h, doc = "Node headline string")  
 
     def get_b(self): return self.p.bodyString()
     def set_b(self,val):
@@ -96,19 +116,21 @@ class LeoNode(object, UserDict.DictMixin):
         finally:
             c.endUpdate()
     
-    b = property(get_b, set_b)
+    b = property(get_b, set_b, doc = "Nody body string")
     
     def set_val(self, val):        
         self.b = format_for_leo(val)
         
-    v = property(lambda self: eval_node(self), set_val)
+    v = property(lambda self: eval_node(self), set_val, doc = "Node evaluated value")
     
     def set_l(self,val):
         self.b = '\n'.join(val )
     l = property(lambda self : IPython.genutils.SList(self.b.splitlines()), 
-                 set_l)
+                 set_l, doc = "Node value as string list")
     
     def __iter__(self):
+        """ Iterate through nodes direct children """
+        
         return (LeoNode(p) for p in self.p.children_iter())
 
     def _children(self):
@@ -128,10 +150,26 @@ class LeoNode(object, UserDict.DictMixin):
         d = self._children()
         return d.keys()
     def __getitem__(self, key):
+        """ wb.foo['Some stuff'] Return a child node with headline 'Some stuff'
+        
+        If key is a valid python name (e.g. 'foo'), look for headline '@k foo' as well
+        """  
         key = str(key)
         d = self._children()
         return d[key]
     def __setitem__(self, key, val):
+        """ You can do wb.foo['My Stuff'] = 12 to create children 
+        
+        This will create 'My Stuff' as a child of foo (if it does not exist), and 
+        do .v = 12 assignment.
+        
+        Exception:
+        
+        wb.foo['bar'] = 12
+        
+        will create a child with headline '@k bar', because bar is a valid python name
+        and we don't want to crowd the WorkBook namespace with (possibly numerous) entries
+        """
         key = str(key)
         d = self._children()
         if key in d:
@@ -146,6 +184,11 @@ class LeoNode(object, UserDict.DictMixin):
         LeoNode(p).v = val
     def __delitem__(self,key):
         pass
+    def ipush(self):
+        """ Does push-to-ipython on the node """
+        push_from_leo(self)
+        
+        
         
 
 class LeoWorkbook:
@@ -194,12 +237,18 @@ def add_var(varname):
 def add_file(self,fname):
     p2 = c.currentPosition().insertAfter()
 
-def push_script(p):
+push_from_leo = CommandChainDispatcher()
+
+def expose_ileo_push(f, prio = 0):
+    push_from_leo.add(f, prio)
+
+def push_ipython_script(node):
+    """ Execute the node body in IPython, as if it was entered in interactive prompt """
     c.beginUpdate()
     try:
         ohist = ip.IP.output_hist 
         hstart = len(ip.IP.input_hist)
-        script = g.getScript(c,p,useSelectedText=False,forcePythonSentinels=False,useSentinels=False)
+        script = g.getScript(c,node.p,useSelectedText=False,forcePythonSentinels=False,useSentinels=False)
         
         script = g.splitLines(script + '\n')
         
@@ -218,10 +267,12 @@ def push_script(p):
             es('<%d> %s' % (idx, pprint.pformat(ohist[idx],width = 40)))
         
         if not has_output:
-            es('ipy run: %s (%d LL)' %( p.headString(),len(script)))
+            es('ipy run: %s (%d LL)' %( node.h,len(script)))
     finally:
         c.endUpdate()
-    
+
+# this should be the LAST one that will be executed, and it will never raise TryNext
+expose_ileo_push(push_ipython_script, 1000)
     
 def eval_body(body):
     try:
@@ -231,35 +282,41 @@ def eval_body(body):
         val = IPython.genutils.SList(body.splitlines())
     return val 
     
-def push_plain_python(p):
-    script = g.getScript(c,p,useSelectedText=False,forcePythonSentinels=False,useSentinels=False)
+def push_plain_python(node):
+    if not node.h.endswith('P'):
+        raise TryNext
+    script = g.getScript(c,node.p,useSelectedText=False,forcePythonSentinels=False,useSentinels=False)
     lines = script.count('\n')
     try:
         exec script in ip.user_ns
     except:
         print " -- Exception in script:\n"+script + "\n --"
         raise
-    es('ipy plain: %s (%d LL)' % (p.headString(),lines))
+    es('ipy plain: %s (%d LL)' % (node.h,lines))
     
-def push_from_leo(p):
-    nod = LeoNode(p)
-    h =  p.headString()   
-    if h.endswith('P'):
-        push_plain_python(p)
-        return
-    if nod.b.startswith('@cl'):
-        p2 = g.findNodeAnywhere(c,'@ipy-results')
-        if p2:
-            es("=> @ipy-results")
-            LeoNode(p2).v = nod.v
-        es(nod.v)
-        return
+expose_ileo_push(push_plain_python, 100)
+
+def push_cl_node(node):
+    """ If node starts with @cl, eval it
     
-    push_script(p)
-    return
+    The result is put to root @ipy-results node
+    """
+    if not node.b.startswith('@cl'):
+        raise TryNext
+        
+    p2 = g.findNodeAnywhere(c,'@ipy-results')
+    val = node.v
+    if p2:
+        es("=> @ipy-results")
+        LeoNode(p2).v = val
+    es(val)
+
+expose_ileo_push(push_cl_node,100)
+
+def push_position_from_leo(p):
+    push_from_leo(LeoNode(p))   
     
-    
-ip.user_ns['leox'].push = push_from_leo    
+ip.user_ns['leox'].push = push_position_from_leo    
     
 def leo_f(self,s):
     """ open file(s) in Leo
@@ -316,9 +373,7 @@ def run_leo_startup_node():
     if p:
         print "Running @ipy-startup nodes"
         for n in LeoNode(p):
-            push_from_leo(n.p)
-            
-            
+            push_from_leo(n)
 
 run_leo_startup_node()
 show_welcome()
