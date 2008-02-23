@@ -3,19 +3,19 @@
 <leo_file>
 <leo_header file_format="2" tnodes="0" max_tnode_index="0" clone_windows="0"/>
 <globals body_outline_ratio="0.307814992026">
-	<global_window_position top="140" left="145" height="627" width="1280"/>
+	<global_window_position top="122" left="624" height="627" width="1280"/>
 	<global_log_window_position top="0" left="0" height="0" width="0"/>
 </globals>
 <preferences/>
 <find_panel_settings/>
 <vnodes>
 <v t="vivainio.20080222193236" a="E"><vh>Documentation</vh>
-<v t="vivainio.20080223121915" a="E" tnodeList="vivainio.20080223121915,vivainio.20080222193236.1,vivainio.20080223133858,vivainio.20080223133922,vivainio.20080223133947,vivainio.20080223134018,vivainio.20080223134100,vivainio.20080223134118,vivainio.20080223134433,vivainio.20080223142207,vivainio.20080223134136"><vh>@nosent ILeo_doc.txt</vh>
-<v t="vivainio.20080222193236.1" a="E"><vh>Documentation</vh>
+<v t="vivainio.20080223121915" tnodeList="vivainio.20080223121915,vivainio.20080222193236.1,vivainio.20080223133858,vivainio.20080223133922,vivainio.20080223133947,vivainio.20080223134018,vivainio.20080223134100,vivainio.20080223134118,vivainio.20080223134433,vivainio.20080223142207,vivainio.20080223134136"><vh>@nosent ILeo_doc.txt</vh>
+<v t="vivainio.20080222193236.1"><vh>Documentation</vh>
 <v t="vivainio.20080223133858"><vh>Introduction</vh></v>
 <v t="vivainio.20080223133922"><vh>Installation</vh></v>
 <v t="vivainio.20080223133947"><vh>Accessing IPython from Leo</vh></v>
-<v t="vivainio.20080223134018" a="TV"><vh>Accessing Leo nodes from IPython</vh></v>
+<v t="vivainio.20080223134018"><vh>Accessing Leo nodes from IPython</vh></v>
 <v t="vivainio.20080223134100"><vh>Cl definitions</vh></v>
 <v t="vivainio.20080223134118"><vh>Special node types</vh></v>
 <v t="vivainio.20080223134433"><vh>Custom push</vh></v>
@@ -28,7 +28,7 @@
 <v t="vivainio.20080223133721"><vh>@settings</vh>
 <v t="vivainio.20080223133721.1"><vh>@enabled-plugins</vh></v>
 </v>
-<v t="vivainio.20080218184540" a="E"><vh>@ipy-startup</vh>
+<v t="vivainio.20080218184540"><vh>@ipy-startup</vh>
 <v t="vivainio.20080218184613.1"><vh>b</vh></v>
 <v t="vivainio.20080218200031"><vh>Some classes P</vh>
 <v t="vivainio.20080218190816"><vh>File-like access</vh></v>
@@ -43,21 +43,15 @@
 <v t="vivainio.20080218195413.1"><vh>rfile</vh></v>
 <v t="vivainio.20080219225804"><vh>strlist</vh></v>
 </v>
-<v t="vivainio.20080218201219"><vh>Direct variables</vh>
+<v t="vivainio.20080218201219" a="E"><vh>Direct variables</vh>
 <v t="vivainio.20080222201226"><vh>NewHeadline</vh></v>
 <v t="vivainio.20080218201219.2"><vh>bar</vh></v>
 </v>
 <v t="vivainio.20080222202211"><vh>test stuff</vh></v>
 <v t="vivainio.20080223142403" a="E"><vh>@ipy-results</vh>
 <v t="vivainio.20080223142403.1"><vh>foo</vh></v>
-<v t="vivainio.20080223152600" a="E"><vh>baz</vh>
-<v t="vivainio.20080223174603"><vh>@k hello</vh></v>
 </v>
-</v>
-<v t="vivainio.20080222202211.1"><vh>spam</vh>
-<v t="vivainio.20080223180139"><vh>foo bar</vh></v>
-</v>
-<v t="vivainio.20080222202211.2"><vh>NewHeadline</vh></v>
+<v t="vivainio.20080222202211.1" a="ETV"><vh>spam</vh></v>
 </vnodes>
 <tnodes>
 <t tx="vivainio.20080218184525">?</t>
@@ -141,7 +135,6 @@ f('hello world')</t>
 hello
 world
 and whatever</t>
-<t tx="vivainio.20080222202211.2"></t>
 <t tx="vivainio.20080223121915">@others
 </t>
 <t tx="vivainio.20080223133721"></t>
@@ -502,8 +495,5 @@ Create 10 child nodes for baz, where i is headline and 'Hello ' + i is body:
 </t>
 <t tx="vivainio.20080223142403"></t>
 <t tx="vivainio.20080223142403.1">12</t>
-<t tx="vivainio.20080223152600"></t>
-<t tx="vivainio.20080223174603"></t>
-<t tx="vivainio.20080223180139">'hello again'</t>
 </tnodes>
 </leo_file>
