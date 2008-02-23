@@ -10,7 +10,7 @@
 <find_panel_settings/>
 <vnodes>
 <v t="vivainio.20080222193236" a="E"><vh>Documentation</vh>
-<v t="vivainio.20080223121915" a="E" tnodeList="vivainio.20080223121915,vivainio.20080222193236.1,vivainio.20080223133858,vivainio.20080223133922,vivainio.20080223133947,vivainio.20080223134018,vivainio.20080223134100,vivainio.20080223134118,vivainio.20080223134433,vivainio.20080223142207,vivainio.20080223134136"><vh>@nosent ileointro.txt</vh>
+<v t="vivainio.20080223121915" a="E" tnodeList="vivainio.20080223121915,vivainio.20080222193236.1,vivainio.20080223133858,vivainio.20080223133922,vivainio.20080223133947,vivainio.20080223134018,vivainio.20080223134100,vivainio.20080223134118,vivainio.20080223134433,vivainio.20080223142207,vivainio.20080223134136"><vh>@nosent ILeo_doc.txt</vh>
 <v t="vivainio.20080222193236.1" a="E"><vh>Documentation</vh>
 <v t="vivainio.20080223133858"><vh>Introduction</vh></v>
 <v t="vivainio.20080223133922"><vh>Installation</vh></v>
@@ -319,13 +319,14 @@ onwards), and access the contents as string list (IPython SList) through
 If you do 'wb.foo.v = 12' when node named 'foo' does not exist, the node titled
 'foo' will be automatically created and assigned body 12.
 
-LeoNode also supports go() that focuses the node in the Leo window, ipush that
-simulates pressing alt+I on the node.
+LeoNode also supports go() that focuses the node in the Leo window, and ipush()
+that simulates pressing alt+I on the node.
 
 You can access unknownAttributes by .uA property dictionary. Unknown attributes
-allow you to store arbitrary (pickleable) python objects in the Leo nodes;
-the attributes are stored when you save the .leo document, and recreated when
-you open the document again. Example::
+allow you to store arbitrary (pickleable) python objects in the Leo nodes; the
+attributes are stored when you save the .leo document, and recreated when you
+open the document again. The attributes are not visible anywhere, but can be
+used for domain-specific metatada. Example:
 
     [C:leo/src]|12&gt; wb.spam.uA['coords'] = (12,222)
     [C:leo/src]|13&gt; wb.spam.uA
