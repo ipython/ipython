@@ -28,7 +28,9 @@ def init_ipython(ipy):
     expose_ileo_push(push_ipython_script, 1000)
     expose_ileo_push(push_plain_python, 100)
     expose_ileo_push(push_ev_node, 100)
-    ip.user_ns['wb'] = LeoWorkbook()
+    global wb
+    wb = LeoWorkbook()
+    ip.user_ns['wb'] = wb 
     
     show_welcome()
 
@@ -311,9 +313,12 @@ def add_var(varname):
             return LeoNode(p2)
 
         rootpos = g.findNodeAnywhere(c,'@ipy-results')
-        if not rootpos:
-            rootpos = c.currentPosition() 
-        p2 = rootpos.insertAsLastChild()
+        if rootpos:
+            p2 = rootpos.insertAsLastChild()
+        
+        else:
+            p2 =  c.currentPosition().insertAfter()
+        
         c.setHeadString(p2,varname)
         return LeoNode(p2)
     finally:
@@ -411,7 +416,10 @@ def push_position_from_leo(p):
 def edit_object_in_leo(obj, varname):
     """ Make it @cl node so it can be pushed back directly by alt+I """
     node = add_var(varname)
-    node.b = '@cl\n' + format_for_leo(obj)
+    formatted = format_for_leo(obj)
+    if not formatted.startswith('@cl'):
+        formatted = '@cl\n' + formatted
+    node.b = formatted 
     node.go()
     
 @edit_object_in_leo.when_type(IPython.macro.Macro)
@@ -420,17 +428,41 @@ def edit_macro(obj,varname):
     node = add_var('Macro_' + varname)
     node.b = bod
     node.go()
+
+def get_history(hstart = 0):
+    res = []
+    ohist = ip.IP.output_hist 
+
+    for idx in range(hstart, len(ip.IP.input_hist)):
+        val = ohist.get(idx,None)
+        has_output = True
+        inp = ip.IP.input_hist_raw[idx]
+        if inp.strip():
+            res.append('In [%d]: %s' % (idx, inp))
+        if val:
+            res.append(pprint.pformat(val))
+            res.append('\n')    
+    return ''.join(res)
+    
     
 def lee_f(self,s):
     """ Open file(s)/objects in Leo
     
-    Takes an mglob pattern, e.g. '%lee *.cpp' or %leo 'rec:*.cpp'  
+    - %lee hist -> open full session history in leo
+    - Takes an object
+    - Takes an mglob pattern, e.g. '%lee *.cpp' or %leo 'rec:*.cpp'  
     """
     import os
     
     c.beginUpdate()
     try:
-    
+        if s == 'hist':
+            wb.ipython_history.b = get_history()
+            wb.ipython_history.go()
+            return
+        
+            
+        
         # try editing the object directly
         obj = ip.user_ns.get(s, None)
         if obj is not None:
@@ -440,7 +472,7 @@ def lee_f(self,s):
         # if it's not object, it's a file name / mglob pattern
         from IPython.external import mglob
         
-        files = mglob.expand(s)
+        files = (os.path.abspath(f) for f in mglob.expand(s))
         for fname in files:
             p = g.findNodeAnywhere(c,'@auto ' + fname)
             if not p:
@@ -450,6 +482,7 @@ def lee_f(self,s):
             if os.path.isfile(fname):
                 c.setBodyString(p,open(fname).read())
             c.selectPosition(p)
+        print "Editing file(s), press ctrl+shift+w in Leo to write @auto nodes"
     finally:
         c.endUpdate()
 
