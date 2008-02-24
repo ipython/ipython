@@ -10,14 +10,48 @@ import re
 import UserDict
 from IPython.ipapi import TryNext 
 
-ip = IPython.ipapi.get()
-leo = ip.user_ns['leox']
-c,g = leo.c, leo.g
 
-# will probably be overwritten by user, but handy for experimentation early on
-ip.user_ns['c'] = c
-ip.user_ns['g'] = g
+def init_ipython(ipy):
+    """ This will be run by _ip.load('ipy_leo') 
+    
+    Leo still needs to run update_commander() after this.
+    
+    """
+    global ip
+    ip = ipy
+    ip.set_hook('complete_command', mb_completer, str_key = 'mb')
+    ip.expose_magic('mb',mb_f)
+    ip.expose_magic('leo',leo_f)
+    ip.expose_magic('leoref',leoref_f)
+    expose_ileo_push(push_cl_node,100)
+    # this should be the LAST one that will be executed, and it will never raise TryNext
+    expose_ileo_push(push_ipython_script, 1000)
+    expose_ileo_push(push_plain_python, 100)
+    ip.user_ns['wb'] = LeoWorkbook()
+    
+    show_welcome()
 
+
+def update_commander(new_leox):
+    """ Set the Leo commander to use
+    
+    This will be run every time Leo does ipython-launch; basically,
+    when the user switches the document he is focusing on, he should do
+    ipython-launch to tell ILeo what document the commands apply to.
+    
+    """
+    
+    global c,g
+    c,g = new_leox.c, new_leox.g
+    print "Set Leo Commander:",c.frame.getTitle()
+    
+    # will probably be overwritten by user, but handy for experimentation early on
+    ip.user_ns['c'] = c
+    ip.user_ns['g'] = g
+    ip.user_ns['_leo'] = new_leox
+    
+    new_leox.push = push_position_from_leo
+    run_leo_startup_node()
 
 from IPython.external.simplegeneric import generic 
 import pprint
@@ -49,8 +83,6 @@ def all_cells():
             continue 
         d[h] = p.copy()
     return d    
-    
-
 
 def eval_node(n):
     body = n.b    
@@ -91,6 +123,10 @@ class LeoNode(object, UserDict.DictMixin):
     dict methods are available. 
     
     .ipush() - run push-to-ipython
+
+    Minibuffer command access (tab completion works):
+    
+     mb save-to-file
     
     """
     def __init__(self,p):
@@ -259,10 +295,6 @@ class LeoWorkbook:
             if re.match(cmp, node.h, re.IGNORECASE):
                 yield node
         return
-            
-ip.user_ns['wb'] = LeoWorkbook()
-
-
 
 @IPython.generics.complete_object.when_type(LeoWorkbook)
 def workbook_complete(obj, prev):
@@ -322,8 +354,6 @@ def push_ipython_script(node):
     finally:
         c.endUpdate()
 
-# this should be the LAST one that will be executed, and it will never raise TryNext
-expose_ileo_push(push_ipython_script, 1000)
     
 def eval_body(body):
     try:
@@ -345,7 +375,6 @@ def push_plain_python(node):
         raise
     es('ipy plain: %s (%d LL)' % (node.h,lines))
     
-expose_ileo_push(push_plain_python, 100)
 
 def push_cl_node(node):
     """ If node starts with @cl, eval it
@@ -362,12 +391,10 @@ def push_cl_node(node):
         LeoNode(p2).v = val
     es(val)
 
-expose_ileo_push(push_cl_node,100)
+
 
 def push_position_from_leo(p):
-    push_from_leo(LeoNode(p))   
-    
-ip.user_ns['leox'].push = push_position_from_leo    
+    push_from_leo(LeoNode(p))         
     
 def leo_f(self,s):
     """ open file(s) in Leo
@@ -392,7 +419,7 @@ def leo_f(self,s):
     finally:
         c.endUpdate()
 
-ip.expose_magic('leo',leo_f)
+
 
 def leoref_f(self,s):
     """ Quick reference for ILeo """
@@ -409,14 +436,15 @@ def leoref_f(self,s):
        
     """
     )
-ip.expose_magic('leoref',leoref_f)
 
-from ipy_leo import *
 
-ip = IPython.ipapi.get()
 
 def mb_f(self, arg):
-    """ Execute leo minibuffer commands """
+    """ Execute leo minibuffer commands 
+    
+    Example:
+     mb save-to-file
+    """
     c.executeMinibufferCommand(arg)
 
 def mb_completer(self,event):
@@ -429,11 +457,6 @@ def mb_completer(self,event):
     cmds = c.commandsDict.keys()
     cmds.sort()
     return cmds
-
-    pass
-ip.set_hook('complete_command', mb_completer, str_key = 'mb')
-ip.expose_magic('mb',mb_f)
-
 
 def show_welcome():
     print "------------------"
@@ -449,7 +472,3 @@ def run_leo_startup_node():
         print "Running @ipy-startup nodes"
         for n in LeoNode(p):
             push_from_leo(n)
-
-run_leo_startup_node()
-show_welcome()
-
