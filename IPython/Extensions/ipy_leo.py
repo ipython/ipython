@@ -421,6 +421,11 @@ def mb_f(self, arg):
 
 def mb_completer(self,event):
     """ Custom completer for minibuffer """
+    cmd_param = event.line.split()
+    if event.line.endswith(' '):
+        cmd_param.append('')
+    if len(cmd_param) > 2:
+        return ip.IP.Completer.file_matches(event.symbol)
     cmds = c.commandsDict.keys()
     cmds.sort()
     return cmds
