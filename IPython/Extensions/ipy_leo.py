@@ -9,7 +9,7 @@ from IPython.hooks import CommandChainDispatcher
 import re
 import UserDict
 from IPython.ipapi import TryNext 
-
+import IPython.macro
 
 def init_ipython(ipy):
     """ This will be run by _ip.load('ipy_leo') 
@@ -21,7 +21,7 @@ def init_ipython(ipy):
     ip = ipy
     ip.set_hook('complete_command', mb_completer, str_key = 'mb')
     ip.expose_magic('mb',mb_f)
-    ip.expose_magic('leo',leo_f)
+    ip.expose_magic('lee',lee_f)
     ip.expose_magic('leoref',leoref_f)
     expose_ileo_push(push_cl_node,100)
     # this should be the LAST one that will be executed, and it will never raise TryNext
@@ -69,6 +69,7 @@ def format_for_leo(obj):
 @format_for_leo.when_type(list)
 def format_list(obj):
     return "\n".join(str(s) for s in obj)
+  
 
 attribute_re = re.compile('^[a-zA-Z_][a-zA-Z0-9_]*$')
 def valid_attribute(s):
@@ -272,7 +273,7 @@ class LeoWorkbook:
         cells = all_cells()
         p = cells.get(key, None)
         if p is None:
-            p = add_var(key)
+            return add_var(key)
 
         return LeoNode(p)
 
@@ -307,14 +308,14 @@ def add_var(varname):
     try:
         p2 = g.findNodeAnywhere(c,varname)
         if p2:
-            return
+            return LeoNode(p2)
 
         rootpos = g.findNodeAnywhere(c,'@ipy-results')
         if not rootpos:
             rootpos = c.currentPosition() 
         p2 = rootpos.insertAsLastChild()
         c.setHeadString(p2,varname)
-        return p2
+        return LeoNode(p2)
     finally:
         c.endUpdate()
 
@@ -403,22 +404,43 @@ def push_ev_node(node):
     node.v = res
     
     
-
-
 def push_position_from_leo(p):
     push_from_leo(LeoNode(p))         
+
+@generic
+def edit_object_in_leo(obj, varname):
+    """ Make it @cl node so it can be pushed back directly by alt+I """
+    node = add_var(varname)
+    node.b = '@cl\n' + format_for_leo(obj)
+    node.go()
     
-def leo_f(self,s):
-    """ open file(s) in Leo
+@edit_object_in_leo.when_type(IPython.macro.Macro)
+def edit_macro(obj,varname):
+    bod = '_ip.defmacro("""\\\n' + obj.value + '""")'
+    node = add_var('Macro_' + varname)
+    node.b = bod
+    node.go()
     
-    Takes an mglob pattern, e.g. '%leo *.cpp' or %leo 'rec:*.cpp'  
+def lee_f(self,s):
+    """ Open file(s)/objects in Leo
+    
+    Takes an mglob pattern, e.g. '%lee *.cpp' or %leo 'rec:*.cpp'  
     """
     import os
-    from IPython.external import mglob
     
-    files = mglob.expand(s)
     c.beginUpdate()
     try:
+    
+        # try editing the object directly
+        obj = ip.user_ns.get(s, None)
+        if obj is not None:
+            edit_object_in_leo(obj,s)
+            return
+        
+        # if it's not object, it's a file name / mglob pattern
+        from IPython.external import mglob
+        
+        files = mglob.expand(s)
         for fname in files:
             p = g.findNodeAnywhere(c,'@auto ' + fname)
             if not p:
@@ -437,7 +459,7 @@ def leoref_f(self,s):
     """ Quick reference for ILeo """
     import textwrap
     print textwrap.dedent("""\
-    %leo file - open file in leo
+    %leoe file/object - open file / object in leo
     wb.foo.v  - eval node foo (i.e. headstring is 'foo' or '@ipy foo')
     wb.foo.v = 12 - assign to body of node foo
     wb.foo.b - read or write the body of node foo
