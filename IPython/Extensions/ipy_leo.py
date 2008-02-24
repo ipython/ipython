@@ -411,6 +411,25 @@ def leoref_f(self,s):
     )
 ip.expose_magic('leoref',leoref_f)
 
+from ipy_leo import *
+
+ip = IPython.ipapi.get()
+
+def mb_f(self, arg):
+    """ Execute leo minibuffer commands """
+    c.executeMinibufferCommand(arg)
+
+def mb_completer(self,event):
+    """ Custom completer for minibuffer """
+    cmds = c.commandsDict.keys()
+    cmds.sort()
+    return cmds
+
+    pass
+ip.set_hook('complete_command', mb_completer, str_key = 'mb')
+ip.expose_magic('mb',mb_f)
+
+
 def show_welcome():
     print "------------------"
     print "Welcome to Leo-enabled IPython session!"
