@@ -27,6 +27,7 @@ def init_ipython(ipy):
     # this should be the LAST one that will be executed, and it will never raise TryNext
     expose_ileo_push(push_ipython_script, 1000)
     expose_ileo_push(push_plain_python, 100)
+    expose_ileo_push(push_ev_node, 100)
     ip.user_ns['wb'] = LeoWorkbook()
     
     show_welcome()
@@ -334,8 +335,9 @@ def push_ipython_script(node):
         script = node.script()
         
         script = g.splitLines(script + '\n')
-        
+        ip.user_ns['_p'] = node
         ip.runlines(script)
+        del ip.user_ns['_p']
         
         has_output = False
         for idx in range(hstart,len(ip.IP.input_hist)):
@@ -391,6 +393,16 @@ def push_cl_node(node):
         LeoNode(p2).v = val
     es(val)
 
+def push_ev_node(node):
+    """ If headline starts with @ev, eval it and put result in body """
+    if not node.h.startswith('@ev '):
+        raise TryNext
+    expr = node.h.lstrip('@ev ')
+    es('ipy eval ' + expr)
+    res = ip.ev(expr)
+    node.v = res
+    
+    
 
 
 def push_position_from_leo(p):
