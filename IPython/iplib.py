@@ -6,7 +6,6 @@ Requires Python 2.3 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 3005 2008-02-01 16:43:34Z vivainio $
 """
 
 #*****************************************************************************
@@ -377,7 +376,10 @@ class InteractiveShell(object,Magic):
         # Get system encoding at startup time.  Certain terminals (like Emacs
         # under Win32 have it set to None, and we need to have a known valid
         # encoding to use in the raw_input() method
-        self.stdin_encoding = sys.stdin.encoding or 'ascii'
+        try:
+            self.stdin_encoding = sys.stdin.encoding or 'ascii'
+        except AttributeError:
+            self.stdin_encoding = 'ascii'
 
         # dict of things NOT to alias (keywords, builtins and some magics)
         no_alias = {}
