@@ -19,7 +19,7 @@ def init_ipython(ipy):
     """
     global ip
     ip = ipy
-    ip.set_hook('complete_command', mb_completer, str_key = 'mb')
+    ip.set_hook('complete_command', mb_completer, str_key = '%mb')
     ip.expose_magic('mb',mb_f)
     ip.expose_magic('lee',lee_f)
     ip.expose_magic('leoref',leoref_f)
