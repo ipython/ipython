@@ -133,6 +133,7 @@ else:
 
 def jobctrl_shellcmd(ip,cmd):
     """ os.system replacement that stores process info to db['tasks/t1234'] """
+    cmd = cmd.strip()
     cmdname = cmd.split(None,1)[0]
     if cmdname in shell_internal_commands:
         use_shell = True
