@@ -139,14 +139,26 @@ def jobctrl_shellcmd(ip,cmd):
     else:
         use_shell = False
 
-    p = Popen(cmd,shell = use_shell)
-    jobentry = 'tasks/t' + str(p.pid)
-    
+    jobentry = None
     try:
+        try:
+            p = Popen(cmd,shell = use_shell)
+        except WindowsError:
+            if use_shell:
+                # try with os.system
+                os.system(cmd)
+                return
+            else:
+                # have to go via shell, sucks
+                p = Popen(cmd,shell = True)
+            
+        jobentry = 'tasks/t' + str(p.pid)
         ip.db[jobentry] = (p.pid,cmd,os.getcwd(),time.time())
-        p.communicate()
+        p.communicate()        
+
     finally:
-        del ip.db[jobentry]
+        if jobentry:
+            del ip.db[jobentry]
 
 
 def install():
