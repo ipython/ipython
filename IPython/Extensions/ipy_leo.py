@@ -77,10 +77,39 @@ attribute_re = re.compile('^[a-zA-Z_][a-zA-Z0-9_]*$')
 def valid_attribute(s):
     return attribute_re.match(s)    
 
+_rootnode = None
+def rootnode():
+    """ Get ileo root node (@ipy-root) 
+    
+    if node has become invalid or has not been set, return None
+    
+    Note that the root is the *first* @ipy-root item found    
+    """
+    global _rootnode
+    if _rootnode is None:
+        return None
+    if c.positionExists(_rootnode.p):
+        return _rootnode
+    _rootnode = None
+    return None  
+
 def all_cells():
+    global _rootnode
     d = {}
-    for p in c.allNodes_iter():
+    r = rootnode() 
+    if r is not None:
+        nodes = r.p.children_iter()
+    else:
+        nodes = c.allNodes_iter()
+
+    for p in nodes:
         h = p.headString()
+        if h.strip() == '@ipy-root':
+            # update root node (found it for the first time)
+            _rootnode = LeoNode(p)            
+            # the next recursive call will use the children of new root
+            return all_cells()
+        
         if h.startswith('@a '):
             d[h.lstrip('@a ').strip()] = p.parent().copy()
         elif not valid_attribute(h):
@@ -307,14 +336,17 @@ def workbook_complete(obj, prev):
 
 def add_var(varname):
     c.beginUpdate()
+    r = rootnode()
     try:
-        p2 = g.findNodeAnywhere(c,varname)
+        if r is None:
+            p2 = g.findNodeAnywhere(c,varname)
+        else:
+            p2 = g.findNodeInChildren(c, r.p, varname)
         if p2:
             return LeoNode(p2)
 
-        rootpos = g.findNodeAnywhere(c,'@ipy-results')
-        if rootpos:
-            p2 = rootpos.insertAsLastChild()
+        if r is not None:
+            p2 = r.p.insertAsLastChild()
         
         else:
             p2 =  c.currentPosition().insertAfter()
@@ -387,7 +419,7 @@ def push_plain_python(node):
 def push_cl_node(node):
     """ If node starts with @cl, eval it
     
-    The result is put to root @ipy-results node
+    The result is put as last child of @ipy-results node, if it exists
     """
     if not node.b.startswith('@cl'):
         raise TryNext
@@ -539,3 +571,5 @@ def run_leo_startup_node():
         print "Running @ipy-startup nodes"
         for n in LeoNode(p):
             push_from_leo(n)
+            
+
