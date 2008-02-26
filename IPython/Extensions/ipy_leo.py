@@ -375,7 +375,7 @@ def push_ipython_script(node):
         script = g.splitLines(script + '\n')
         ip.user_ns['_p'] = node
         ip.runlines(script)
-        del ip.user_ns['_p']
+        ip.user_ns.pop('_p',None)
         
         has_output = False
         for idx in range(hstart,len(ip.IP.input_hist)):
