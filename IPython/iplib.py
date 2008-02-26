@@ -1746,6 +1746,7 @@ want to merge them back into the new files.""" % locals()
         # exit_now is set by a call to %Exit or %Quit
         
         while not self.exit_now:
+            self.hooks.pre_prompt_hook()
             if more:
                 try:
                     prompt = self.hooks.generate_prompt(True)
