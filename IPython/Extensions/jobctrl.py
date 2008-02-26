@@ -91,8 +91,16 @@ def magic_tasks(self,line):
 
     A 'task' is a process that has been started in IPython when 'jobctrl' extension is enabled.
     Tasks can be killed with %kill.
+    
+    '%tasks clear' clears the task list (from stale tasks)
     """
     ip = self.getapi()
+    if line.strip() == 'clear':
+        for k in ip.db.keys('tasks/*'):
+            print "Clearing",ip.db[k]
+            del ip.db[k]
+        return
+        
     ents = job_list(ip)
     if not ents:
         print "No tasks running"
