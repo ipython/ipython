@@ -9,15 +9,52 @@ from IPython.hooks import CommandChainDispatcher
 import re
 import UserDict
 from IPython.ipapi import TryNext 
+import IPython.macro
 
-ip = IPython.ipapi.get()
-leo = ip.user_ns['leox']
-c,g = leo.c, leo.g
+def init_ipython(ipy):
+    """ This will be run by _ip.load('ipy_leo') 
+    
+    Leo still needs to run update_commander() after this.
+    
+    """
+    global ip
+    ip = ipy
+    ip.set_hook('complete_command', mb_completer, str_key = '%mb')
+    ip.expose_magic('mb',mb_f)
+    ip.expose_magic('lee',lee_f)
+    ip.expose_magic('leoref',leoref_f)
+    expose_ileo_push(push_cl_node,100)
+    # this should be the LAST one that will be executed, and it will never raise TryNext
+    expose_ileo_push(push_ipython_script, 1000)
+    expose_ileo_push(push_plain_python, 100)
+    expose_ileo_push(push_ev_node, 100)
+    global wb
+    wb = LeoWorkbook()
+    ip.user_ns['wb'] = wb 
+    
+    show_welcome()
 
-# will probably be overwritten by user, but handy for experimentation early on
-ip.user_ns['c'] = c
-ip.user_ns['g'] = g
 
+def update_commander(new_leox):
+    """ Set the Leo commander to use
+    
+    This will be run every time Leo does ipython-launch; basically,
+    when the user switches the document he is focusing on, he should do
+    ipython-launch to tell ILeo what document the commands apply to.
+    
+    """
+    
+    global c,g
+    c,g = new_leox.c, new_leox.g
+    print "Set Leo Commander:",c.frame.getTitle()
+    
+    # will probably be overwritten by user, but handy for experimentation early on
+    ip.user_ns['c'] = c
+    ip.user_ns['g'] = g
+    ip.user_ns['_leo'] = new_leox
+    
+    new_leox.push = push_position_from_leo
+    run_leo_startup_node()
 
 from IPython.external.simplegeneric import generic 
 import pprint
@@ -34,23 +71,51 @@ def format_for_leo(obj):
 @format_for_leo.when_type(list)
 def format_list(obj):
     return "\n".join(str(s) for s in obj)
+  
 
 attribute_re = re.compile('^[a-zA-Z_][a-zA-Z0-9_]*$')
 def valid_attribute(s):
     return attribute_re.match(s)    
 
+_rootnode = None
+def rootnode():
+    """ Get ileo root node (@ipy-root) 
+    
+    if node has become invalid or has not been set, return None
+    
+    Note that the root is the *first* @ipy-root item found    
+    """
+    global _rootnode
+    if _rootnode is None:
+        return None
+    if c.positionExists(_rootnode.p):
+        return _rootnode
+    _rootnode = None
+    return None  
+
 def all_cells():
+    global _rootnode
     d = {}
-    for p in c.allNodes_iter():
+    r = rootnode() 
+    if r is not None:
+        nodes = r.p.children_iter()
+    else:
+        nodes = c.allNodes_iter()
+
+    for p in nodes:
         h = p.headString()
+        if h.strip() == '@ipy-root':
+            # update root node (found it for the first time)
+            _rootnode = LeoNode(p)            
+            # the next recursive call will use the children of new root
+            return all_cells()
+        
         if h.startswith('@a '):
             d[h.lstrip('@a ').strip()] = p.parent().copy()
         elif not valid_attribute(h):
             continue 
         d[h] = p.copy()
     return d    
-    
-
 
 def eval_node(n):
     body = n.b    
@@ -91,6 +156,10 @@ class LeoNode(object, UserDict.DictMixin):
     dict methods are available. 
     
     .ipush() - run push-to-ipython
+
+    Minibuffer command access (tab completion works):
+    
+     mb save-to-file
     
     """
     def __init__(self,p):
@@ -235,7 +304,7 @@ class LeoWorkbook:
         cells = all_cells()
         p = cells.get(key, None)
         if p is None:
-            p = add_var(key)
+            return add_var(key)
 
         return LeoNode(p)
 
@@ -259,10 +328,6 @@ class LeoWorkbook:
             if re.match(cmp, node.h, re.IGNORECASE):
                 yield node
         return
-            
-ip.user_ns['wb'] = LeoWorkbook()
-
-
 
 @IPython.generics.complete_object.when_type(LeoWorkbook)
 def workbook_complete(obj, prev):
@@ -271,17 +336,23 @@ def workbook_complete(obj, prev):
 
 def add_var(varname):
     c.beginUpdate()
+    r = rootnode()
     try:
-        p2 = g.findNodeAnywhere(c,varname)
+        if r is None:
+            p2 = g.findNodeAnywhere(c,varname)
+        else:
+            p2 = g.findNodeInChildren(c, r.p, varname)
         if p2:
-            return
+            return LeoNode(p2)
 
-        rootpos = g.findNodeAnywhere(c,'@ipy-results')
-        if not rootpos:
-            rootpos = c.currentPosition() 
-        p2 = rootpos.insertAsLastChild()
+        if r is not None:
+            p2 = r.p.insertAsLastChild()
+        
+        else:
+            p2 =  c.currentPosition().insertAfter()
+        
         c.setHeadString(p2,varname)
-        return p2
+        return LeoNode(p2)
     finally:
         c.endUpdate()
 
@@ -302,8 +373,9 @@ def push_ipython_script(node):
         script = node.script()
         
         script = g.splitLines(script + '\n')
-        
+        ip.user_ns['_p'] = node
         ip.runlines(script)
+        ip.user_ns.pop('_p',None)
         
         has_output = False
         for idx in range(hstart,len(ip.IP.input_hist)):
@@ -322,8 +394,6 @@ def push_ipython_script(node):
     finally:
         c.endUpdate()
 
-# this should be the LAST one that will be executed, and it will never raise TryNext
-expose_ileo_push(push_ipython_script, 1000)
     
 def eval_body(body):
     try:
@@ -345,12 +415,11 @@ def push_plain_python(node):
         raise
     es('ipy plain: %s (%d LL)' % (node.h,lines))
     
-expose_ileo_push(push_plain_python, 100)
 
 def push_cl_node(node):
     """ If node starts with @cl, eval it
     
-    The result is put to root @ipy-results node
+    The result is put as last child of @ipy-results node, if it exists
     """
     if not node.b.startswith('@cl'):
         raise TryNext
@@ -362,24 +431,80 @@ def push_cl_node(node):
         LeoNode(p2).v = val
     es(val)
 
-expose_ileo_push(push_cl_node,100)
-
+def push_ev_node(node):
+    """ If headline starts with @ev, eval it and put result in body """
+    if not node.h.startswith('@ev '):
+        raise TryNext
+    expr = node.h.lstrip('@ev ')
+    es('ipy eval ' + expr)
+    res = ip.ev(expr)
+    node.v = res
+    
+    
 def push_position_from_leo(p):
-    push_from_leo(LeoNode(p))   
+    push_from_leo(LeoNode(p))         
+
+@generic
+def edit_object_in_leo(obj, varname):
+    """ Make it @cl node so it can be pushed back directly by alt+I """
+    node = add_var(varname)
+    formatted = format_for_leo(obj)
+    if not formatted.startswith('@cl'):
+        formatted = '@cl\n' + formatted
+    node.b = formatted 
+    node.go()
     
-ip.user_ns['leox'].push = push_position_from_leo    
+@edit_object_in_leo.when_type(IPython.macro.Macro)
+def edit_macro(obj,varname):
+    bod = '_ip.defmacro("""\\\n' + obj.value + '""")'
+    node = add_var('Macro_' + varname)
+    node.b = bod
+    node.go()
+
+def get_history(hstart = 0):
+    res = []
+    ohist = ip.IP.output_hist 
+
+    for idx in range(hstart, len(ip.IP.input_hist)):
+        val = ohist.get(idx,None)
+        has_output = True
+        inp = ip.IP.input_hist_raw[idx]
+        if inp.strip():
+            res.append('In [%d]: %s' % (idx, inp))
+        if val:
+            res.append(pprint.pformat(val))
+            res.append('\n')    
+    return ''.join(res)
     
-def leo_f(self,s):
-    """ open file(s) in Leo
     
-    Takes an mglob pattern, e.g. '%leo *.cpp' or %leo 'rec:*.cpp'  
+def lee_f(self,s):
+    """ Open file(s)/objects in Leo
+    
+    - %lee hist -> open full session history in leo
+    - Takes an object
+    - Takes an mglob pattern, e.g. '%lee *.cpp' or %leo 'rec:*.cpp'  
     """
     import os
-    from IPython.external import mglob
     
-    files = mglob.expand(s)
     c.beginUpdate()
     try:
+        if s == 'hist':
+            wb.ipython_history.b = get_history()
+            wb.ipython_history.go()
+            return
+        
+            
+        
+        # try editing the object directly
+        obj = ip.user_ns.get(s, None)
+        if obj is not None:
+            edit_object_in_leo(obj,s)
+            return
+        
+        # if it's not object, it's a file name / mglob pattern
+        from IPython.external import mglob
+        
+        files = (os.path.abspath(f) for f in mglob.expand(s))
         for fname in files:
             p = g.findNodeAnywhere(c,'@auto ' + fname)
             if not p:
@@ -389,16 +514,17 @@ def leo_f(self,s):
             if os.path.isfile(fname):
                 c.setBodyString(p,open(fname).read())
             c.selectPosition(p)
+        print "Editing file(s), press ctrl+shift+w in Leo to write @auto nodes"
     finally:
         c.endUpdate()
 
-ip.expose_magic('leo',leo_f)
+
 
 def leoref_f(self,s):
     """ Quick reference for ILeo """
     import textwrap
     print textwrap.dedent("""\
-    %leo file - open file in leo
+    %leoe file/object - open file / object in leo
     wb.foo.v  - eval node foo (i.e. headstring is 'foo' or '@ipy foo')
     wb.foo.v = 12 - assign to body of node foo
     wb.foo.b - read or write the body of node foo
@@ -409,14 +535,15 @@ def leoref_f(self,s):
        
     """
     )
-ip.expose_magic('leoref',leoref_f)
 
-from ipy_leo import *
 
-ip = IPython.ipapi.get()
 
 def mb_f(self, arg):
-    """ Execute leo minibuffer commands """
+    """ Execute leo minibuffer commands 
+    
+    Example:
+     mb save-to-file
+    """
     c.executeMinibufferCommand(arg)
 
 def mb_completer(self,event):
@@ -429,11 +556,6 @@ def mb_completer(self,event):
     cmds = c.commandsDict.keys()
     cmds.sort()
     return cmds
-
-    pass
-ip.set_hook('complete_command', mb_completer, str_key = 'mb')
-ip.expose_magic('mb',mb_f)
-
 
 def show_welcome():
     print "------------------"
@@ -449,7 +571,5 @@ def run_leo_startup_node():
         print "Running @ipy-startup nodes"
         for n in LeoNode(p):
             push_from_leo(n)
-
-run_leo_startup_node()
-show_welcome()
+            
 

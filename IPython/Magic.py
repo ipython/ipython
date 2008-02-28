@@ -2670,6 +2670,7 @@ Defaulting color scheme to 'NoColor'"""
         parameter_s = parameter_s.strip()
         #bkms = self.shell.persist.get("bookmarks",{})
 
+        oldcwd = os.getcwd()
         numcd = re.match(r'(-)(\d+)$',parameter_s)
         # jump in directory history by number
         if numcd:
@@ -2708,7 +2709,7 @@ Defaulting color scheme to 'NoColor'"""
             
         # at this point ps should point to the target dir
         if ps:
-            try:
+            try:                
                 os.chdir(os.path.expanduser(ps))
                 if self.shell.rc.term_title:
                     #print 'set term title:',self.shell.rc.term_title  # dbg
@@ -2719,8 +2720,9 @@ Defaulting color scheme to 'NoColor'"""
             else:
                 cwd = os.getcwd()
                 dhist = self.shell.user_ns['_dh']
-                dhist.append(cwd)
-                self.db['dhist'] = compress_dhist(dhist)[-100:]
+                if oldcwd != cwd:
+                    dhist.append(cwd)
+                    self.db['dhist'] = compress_dhist(dhist)[-100:]
                 
         else:
             os.chdir(self.shell.home_dir)
@@ -2728,8 +2730,10 @@ Defaulting color scheme to 'NoColor'"""
                 platutils.set_term_title("IPy ~")
             cwd = os.getcwd()
             dhist = self.shell.user_ns['_dh']
-            dhist.append(cwd)
-            self.db['dhist'] = compress_dhist(dhist)[-100:]
+            
+            if oldcwd != cwd:
+                dhist.append(cwd)
+                self.db['dhist'] = compress_dhist(dhist)[-100:]
         if not 'q' in opts and self.shell.user_ns['_dh']:
             print self.shell.user_ns['_dh'][-1]
 

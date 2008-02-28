@@ -56,7 +56,7 @@ from pprint import PrettyPrinter
 __all__ = ['editor', 'fix_error_editor', 'result_display',
            'input_prefilter', 'shutdown_hook', 'late_startup_hook',
            'generate_prompt', 'generate_output_prompt','shell_hook',
-           'show_in_pager']
+           'show_in_pager','pre_prompt_hook']
 
 pformat = PrettyPrinter().pformat
 
@@ -227,8 +227,13 @@ def show_in_pager(self,s):
     # raising TryNext here will use the default paging functionality
     raise ipapi.TryNext
 
-def pre_command_hook(self,cmd):
-    """" Executed before starting to execute a command """
+def pre_prompt_hook(self):
+    """ Run before displaying the next prompt
+    
+    Use this e.g. to display output from asynchronous operations (in order 
+    to not mess up text entry)   
+    """
+    
     return None
 
 def post_command_hook(self,cmd):
