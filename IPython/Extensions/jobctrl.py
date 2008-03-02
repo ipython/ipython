@@ -189,7 +189,7 @@ def magic_kill(self,line):
         magic_tasks(self,line)
         
 if sys.platform == 'win32':
-    shell_internal_commands = 'break chcp cls copy ctty date del erase dir md mkdir path prompt rd rmdir time 	type ver vol'.split()
+    shell_internal_commands = 'break chcp cls copy ctty date del erase dir md mkdir path prompt rd rmdir time type ver vol'.split()
 else:
     # todo linux commands
     shell_internal_commands = [] 
@@ -199,7 +199,7 @@ def jobctrl_shellcmd(ip,cmd):
     """ os.system replacement that stores process info to db['tasks/t1234'] """
     cmd = cmd.strip()
     cmdname = cmd.split(None,1)[0]
-    if cmdname in shell_internal_commands:
+    if cmdname in shell_internal_commands or '|' in cmd or '>' in cmd or '<' in cmd:
         use_shell = True
     else:
         use_shell = False
