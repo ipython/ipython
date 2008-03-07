@@ -1,6 +1,11 @@
 """
 IPython extension: autoreload modules before executing the next line
 
+Try:: 
+
+    %autoreload?
+
+for documentation.
 """
 
 # Pauli Virtanen <pav@iki.fi>, 2008.
