@@ -2056,6 +2056,7 @@ want to merge them back into the new files.""" % locals()
         outflag = 1  # happens in more places, so it's easier as default
         try:
             try:
+                self.hooks.pre_runcode_hook()
                 # Embedded instances require separate global/local namespaces
                 # so they can see both the surrounding (local) namespace and
                 # the module-level globals when called inside another function.

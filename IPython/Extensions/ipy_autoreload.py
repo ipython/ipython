@@ -129,21 +129,26 @@ reloader = ModuleReloader()
 
 import IPython.iplib
 
-if 'runcode_old' not in globals():
-    # safeguard against reloading *this* module
-    runcode_old = IPython.iplib.InteractiveShell.runcode
+autoreload_enabled = False
 
-def runcode_new(*a, **kw):
-    try: reloader.check()
-    except: pass
-    return runcode_old(*a, **kw)
+def runcode_hook(self):
+    if not autoreload_enabled:
+        raise IPython.ipapi.TryNext
+    try:
+        reloader.check()
+    except:
+        pass
+
 
 def enable_autoreload():
-    IPython.iplib.InteractiveShell.runcode = runcode_new
+    global autoreload_enabled
+    autoreload_enabled = True
+    
 
 def disable_autoreload():
-    IPython.iplib.InteractiveShell.runcode = runcode_old
-
+    global autoreload_enabled
+    autoreload_enabled = False
+    
 #------------------------------------------------------------------------------
 # IPython connectivity
 #------------------------------------------------------------------------------
@@ -226,5 +231,9 @@ def aimport_f(self, parameter_s=''):
         mod = __import__(modname)
         ip.to_user_ns({modname: mod})
 
-ip.expose_magic('autoreload', autoreload_f)
-ip.expose_magic('aimport', aimport_f)
+def init():
+    ip.expose_magic('autoreload', autoreload_f)
+    ip.expose_magic('aimport', aimport_f)
+    ip.set_hook('pre_runcode_hook', runcode_hook)
+    
+init()

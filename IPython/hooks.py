@@ -56,7 +56,7 @@ from pprint import PrettyPrinter
 __all__ = ['editor', 'fix_error_editor', 'result_display',
            'input_prefilter', 'shutdown_hook', 'late_startup_hook',
            'generate_prompt', 'generate_output_prompt','shell_hook',
-           'show_in_pager','pre_prompt_hook']
+           'show_in_pager','pre_prompt_hook', 'pre_runcode_hook']
 
 pformat = PrettyPrinter().pformat
 
@@ -236,7 +236,8 @@ def pre_prompt_hook(self):
     
     return None
 
-def post_command_hook(self,cmd):
-    """ Executed after executing a command """
+def pre_runcode_hook(self):
+    """ Executed before running the (prefiltered) code in IPython """
+    return None
     
 
