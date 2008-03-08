@@ -1268,7 +1268,11 @@ want to merge them back into the new files.""" % locals()
         """Reload the input history from disk file."""
 
         if self.has_readline:
-            self.readline.clear_history()
+            try:
+                self.readline.clear_history()
+            except AttributeError:
+                pass
+            
             self.readline.read_history_file(self.shell.histfile)
 
     def history_saving_wrapper(self, func):
