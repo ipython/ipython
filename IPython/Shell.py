@@ -1051,7 +1051,9 @@ def _load_pylab(user_ns):
     
     ip = IPython.ipapi.get()
     if ip.options.pylab_import_all:
-        exec "from matplotlib.pylab import *" in user_ns
+        ip.ex("from matplotlib.pylab import *")
+        ip.IP.user_config_ns.update(ip.user_ns)
+        
 
 class IPShellMatplotlib(IPShell):
     """Subclass IPShell with MatplotlibShell as the internal shell.
