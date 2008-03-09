@@ -128,7 +128,7 @@ class LastArgFinder:
         ip = ipapi.get()        
         for cmd in reversed(ip.IP.input_hist_raw):
             parts = cmd.strip().split()
-            if len(parts) < 2 or parts[-1] == '$LA':
+            if len(parts) < 2 or parts[-1] in ['$LA', 'LA()']:
                 continue
             return parts[-1]
         return ""
