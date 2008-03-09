@@ -47,7 +47,7 @@ def main():
     
     ip.ex('import os')
     ip.ex("def up(): os.chdir('..')")
-        
+    ip.user_ns['LA'] = LastArgFinder() 
     # Nice prompt
     
     o.prompt_in1= r'\C_LightBlue[\C_LightCyan\Y2\C_LightBlue]\C_Green|\#> '
@@ -116,6 +116,23 @@ def main():
             ip.defalias('d','dir /w /og /on')
     
     extend_shell_behavior(ip)
+
+class LastArgFinder:
+    """ Allow $LA work as "last argument of previous command, like $! in bash
+    
+    """
+    def __str__(self):
+        ip = ipapi.get()        
+        for cmd in reversed(ip.IP.input_hist_raw):
+            parts = cmd.strip().split()
+            if len(parts) < 2 or parts[-1] == '$LA':
+                continue
+            return parts[-1]
+        return ""
+
+
+
+
 
 # XXX You do not need to understand the next function!
 # This should probably be moved out of profile
