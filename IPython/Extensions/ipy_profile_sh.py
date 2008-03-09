@@ -118,10 +118,12 @@ def main():
     extend_shell_behavior(ip)
 
 class LastArgFinder:
-    """ Allow $LA to work as "last argument of previous command, like $! in bash
+    """ Allow $LA to work as "last argument of previous command", like $! in bash
     
-    To call this in normal IPython code, do str(LA).
+    To call this in normal IPython code, do LA()
     """
+    def __call__(self):
+        return str(self)
     def __str__(self):
         ip = ipapi.get()        
         for cmd in reversed(ip.IP.input_hist_raw):
