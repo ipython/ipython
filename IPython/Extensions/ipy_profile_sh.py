@@ -122,8 +122,11 @@ class LastArgFinder:
     
     To call this in normal IPython code, do LA()
     """
-    def __call__(self):
-        return str(self)
+    def __call__(self, hist_idx = None):
+        ip = ipapi.get()
+        if hist_idx is None:
+            return str(self)
+        return ip.IP.input_hist_raw[hist_idx].strip().split()[-1]
     def __str__(self):
         ip = ipapi.get()        
         for cmd in reversed(ip.IP.input_hist_raw):
