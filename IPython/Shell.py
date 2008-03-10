@@ -408,9 +408,11 @@ class MTInteractiveShell(InteractiveShell):
         # section, so we have to acquire the lock with non-blocking semantics,
         # else we deadlock.
         
-        # shortcut - if we are in worker thread, execute directly (to allow recursion)
+        # shortcut - if we are in worker thread, or the worker thread is not running, 
+        # execute directly (to allow recursion and prevent deadlock if code is run early 
+        # in IPython construction)
         
-        if self.worker_ident == thread.get_ident():
+        if self.worker_ident is None or self.worker_ident == thread.get_ident():
             InteractiveShell.runcode(self,code)
             return
         
