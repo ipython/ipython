@@ -404,7 +404,13 @@ class Inspector:
         # Filename where object was defined
         binary_file = False
         try:
-            fname = inspect.getabsfile(obj)
+            try:
+                fname = inspect.getabsfile(obj)
+            except TypeError:
+                # For an instance, the file that matters is where its class was
+                # declared.
+                if hasattr(obj,'__class__'):
+                    fname = inspect.getabsfile(obj.__class__)
             if fname.endswith('<string>'):
                 fname = 'Dynamically generated function. No source code available.'
             if (fname.endswith('.so') or fname.endswith('.dll')):
@@ -432,8 +438,13 @@ class Inspector:
             linecache.checkcache()
             source_success = False
             try:
-                source = self.format(getsource(obj,binary_file))
-                if source:
+                try:
+                    src = getsource(obj,binary_file)
+                except TypeError:
+                    if hasattr(obj,'__class__'):
+                        src = getsource(obj.__class__,binary_file)
+                if src is not None:
+                    source = self.format(src)
                     out.write(header('Source:\n')+source.rstrip())
                     source_success = True
             except Exception, msg:
