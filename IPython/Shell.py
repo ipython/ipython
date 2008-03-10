@@ -375,7 +375,8 @@ class MTInteractiveShell(InteractiveShell):
             if not callable(t):
                 raise TypeError,'on_kill must be a list of callables'
         self.on_kill = on_kill
-
+        # thread identity of the "worker thread" (that may execute code directly)
+        self.worker_ident = None
     def runsource(self, source, filename="<input>", symbol="single"):
         """Compile and run some source in the interpreter.
 
@@ -406,7 +407,14 @@ class MTInteractiveShell(InteractiveShell):
         # Note that with macros and other applications, we MAY re-enter this
         # section, so we have to acquire the lock with non-blocking semantics,
         # else we deadlock.
-        got_lock = self.thread_ready.acquire()
+        
+        # shortcut - if we are in worker thread, execute directly (to allow recursion)
+        
+        if self.worker_ident == thread.get_ident():
+            InteractiveShell.runcode(self,code)
+            return
+        
+        got_lock = self.thread_ready.acquire(blocking=False)
         self.code_queue.put(code)
         if got_lock:
            self.thread_ready.wait()  # Wait until processed in timeout interval
@@ -420,8 +428,8 @@ class MTInteractiveShell(InteractiveShell):
         Multithreaded wrapper around IPython's runcode()."""
 
         global CODE_RUN
-
         # lock thread-protected stuff
+        self.worker_ident = thread.get_ident()
         got_lock = self.thread_ready.acquire()
 
         if self._kill:
@@ -448,7 +456,6 @@ class MTInteractiveShell(InteractiveShell):
                 code_to_run = self.code_queue.get_nowait()
             except Queue.Empty:
                 break
-
             # Exceptions need to be raised differently depending on which
             # thread is active.  This convoluted try/except is only there to
             # protect against asynchronous exceptions, to ensure that a KBINT
