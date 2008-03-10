@@ -22,9 +22,9 @@ name = 'ipython'
 # because bdist_rpm does not accept dashes (an RPM) convention, and
 # bdist_deb does not accept underscores (a Debian convention).
 
-revision = '3001'
+revision = '45'
 
-version = '0.8.3.svn.r' + revision.rstrip('M')
+version = '0.8.3.bzr.r' + revision
 
 description = "An enhanced interactive Python shell."
 

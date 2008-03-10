@@ -4,7 +4,7 @@
 import os
 import re
 
-rev = os.popen('svnversion ..').read().strip()
+rev = os.popen('bzr revno').read().strip()
 
 print "current rev is",rev
 assert ':' not in rev
