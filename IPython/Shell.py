@@ -430,7 +430,7 @@ class MTInteractiveShell(InteractiveShell):
             print >>Term.cout, 'Done.'
             # allow kill() to return
             self._kill.set()
-            return
+            return True
 
         # Install sigint handler.  We do it every time to ensure that if user
         # code modifies it, we restore our own handling.
