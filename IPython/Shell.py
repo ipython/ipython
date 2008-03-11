@@ -358,18 +358,13 @@ class MTInteractiveShell(InteractiveShell):
         InteractiveShell.__init__(self,name,usage,rc,user_ns,
                                   user_global_ns,banner2)
 
-        # Locking control variable.
-        self.thread_ready = threading.Condition(threading.RLock())
 
-        # A queue to hold the code to be executed.  A scalar variable is NOT
-        # enough, because uses like macros cause reentrancy.
+        # A queue to hold the code to be executed. 
         self.code_queue = Queue.Queue()
 
         # Stuff to do at closing time
-        self._kill = False
-        on_kill = kw.get('on_kill')
-        if on_kill is None:
-            on_kill = []
+        self._kill = None
+        on_kill = kw.get('on_kill', [])
         # Check that all things to kill are callable:
         for t in on_kill:
             if not callable(t):
@@ -401,13 +396,6 @@ class MTInteractiveShell(InteractiveShell):
             # Case 2
             return True
 
-        # Case 3
-        # Store code in queue, so the execution thread can handle it.
-
-        # Note that with macros and other applications, we MAY re-enter this
-        # section, so we have to acquire the lock with non-blocking semantics,
-        # else we deadlock.
-        
         # shortcut - if we are in worker thread, or the worker thread is not running, 
         # execute directly (to allow recursion and prevent deadlock if code is run early 
         # in IPython construction)
@@ -415,13 +403,13 @@ class MTInteractiveShell(InteractiveShell):
         if self.worker_ident is None or self.worker_ident == thread.get_ident():
             InteractiveShell.runcode(self,code)
             return
-        
-        got_lock = self.thread_ready.acquire(blocking=False)
-        self.code_queue.put(code)
-        if got_lock:
-           self.thread_ready.wait()  # Wait until processed in timeout interval
-        self.thread_ready.release()
 
+        # Case 3
+        # Store code in queue, so the execution thread can handle it.
+
+        ev = threading.Event()
+        self.code_queue.put((code,ev))
+        ev.wait()
         return False
 
     def runcode(self):
@@ -430,9 +418,9 @@ class MTInteractiveShell(InteractiveShell):
         Multithreaded wrapper around IPython's runcode()."""
 
         global CODE_RUN
-        # lock thread-protected stuff
+        
+        # we are in worker thread, stash out the id for runsource() 
         self.worker_ident = thread.get_ident()
-        got_lock = self.thread_ready.acquire()
 
         if self._kill:
             print >>Term.cout, 'Closing threads...',
@@ -440,6 +428,9 @@ class MTInteractiveShell(InteractiveShell):
             for tokill in self.on_kill:
                 tokill()
             print >>Term.cout, 'Done.'
+            # allow kill() to return
+            self._kill.set()
+            return
 
         # Install sigint handler.  We do it every time to ensure that if user
         # code modifies it, we restore our own handling.
@@ -455,7 +446,7 @@ class MTInteractiveShell(InteractiveShell):
         code_to_run = None
         while 1:
             try:
-                code_to_run = self.code_queue.get_nowait()
+                code_to_run, event = self.code_queue.get_nowait()                
             except Queue.Empty:
                 break
             # Exceptions need to be raised differently depending on which
@@ -471,28 +462,22 @@ class MTInteractiveShell(InteractiveShell):
                 except KeyboardInterrupt:
                    print "Keyboard interrupted in mainloop"
                    while not self.code_queue.empty():
-                      self.code_queue.get_nowait()
+                      code, ev = self.code_queue.get_nowait()
+                      ev.set()
                    break
             finally:
-               if got_lock:
-                  CODE_RUN = False
-
-        # We're done with thread-protected variables
-        if code_to_run is not None:
-           self.thread_ready.notify()
-        self.thread_ready.release()
-
-        # We're done...
-        CODE_RUN = False
+                CODE_RUN = False
+                # allow runsource() return from wait
+                event.set()
+                
+        
         # This MUST return true for gtk threading to work
         return True
 
     def kill(self):
         """Kill the thread, returning when it has been shut down."""
-        got_lock = self.thread_ready.acquire(False)
-        self._kill = True
-        if got_lock:
-            self.thread_ready.release()
+        self._kill = threading.Event()        
+        self._kill.wait()
 
 class MatplotlibShellBase:
     """Mixin class to provide the necessary modifications to regular IPython
