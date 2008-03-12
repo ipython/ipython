@@ -6,27 +6,37 @@ user namespace.
 """
 
 import sys
-sys.path.append('..')
+sys.path.insert(1,'..')
 
 import IPython.ipapi
 
-my_ns = dict(a=10)
 
-ses = IPython.ipapi.make_session(my_ns)
 
-# Now get the ipapi instance, to be stored somewhere in your program for manipulation of the running 
-# IPython session. See http://ipython.scipy.org/moin/IpythonExtensionApi
+def test_session(shellclass):
+    print "*****************\nLaunch shell for",shellclass
+    my_ns = dict(a=10)
+    ses = IPython.ipapi.make_session(my_ns)
+    
+    # Now get the ipapi instance, to be stored somewhere in your program for manipulation of the running 
+    # IPython session. See http://ipython.scipy.org/moin/IpythonExtensionApi
+    
+    ip = ses.IP.getapi()   
+    
+    # let's play with the ipapi a bit, creating a magic function for a soon-to-be-started IPython
+    def mymagic_f(self,s):
+        print "mymagic says",s
+    
+    ip.expose_magic("mymagic",mymagic_f)
+    
+    # And finally, start the IPython interaction! This will block until you say Exit.
+    
+    ses.mainloop()
+    
+    print "IPython session for shell ",shellclass," finished! namespace content:"
+    for k,v in my_ns.items():
+        print k,':',str(v)[:80].rstrip()
+    
+import  IPython.Shell    
 
-ip = ses.IP.getapi()   
-
-# let's play with the ipapi a bit, creating a magic function for a soon-to-be-started IPython
-def mymagic_f(self,s):
-    print "mymagic says",s
-
-ip.expose_magic("mymagic",mymagic_f)
-
-# And finally, start the IPython interaction! This will block until you say Exit.
-
-ses.mainloop()
-
-print "IPython session finished! namespace content:",my_ns
+test_session(shellclass = None)
+test_session(IPython.Shell._select_shell(['ipython', '-q4thread']))
