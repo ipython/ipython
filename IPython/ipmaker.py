@@ -58,6 +58,14 @@ from IPython.iplib import InteractiveShell
 from IPython.usage import cmd_line_usage,interactive_usage
 from IPython.genutils import *
 
+def force_import(modname):
+    if modname in sys.modules:
+        print "reload",modname
+        reload(sys.modules[modname])
+    else:
+        __import__(modname)
+        
+
 #-----------------------------------------------------------------------------
 def make_IPython(argv=None,user_ns=None,user_global_ns=None,debug=1,
                  rc_override=None,shell_class=InteractiveShell,
@@ -633,15 +641,17 @@ object?   -> Details about 'object'. ?object also works, ?? prints more.
     if opts_all.profile and not profile_handled_by_legacy:
         profmodname = 'ipy_profile_' + opts_all.profile
         try:
-            __import__(profmodname)
+            
+            force_import(profmodname)
         except:
             IP.InteractiveTB()
             print "Error importing",profmodname,"- perhaps you should run %upgrade?"
             import_fail_info(profmodname)
     else:
-        import ipy_profile_none
-    try:    
-        import ipy_user_conf
+        force_import('ipy_profile_none')
+    try:
+            
+        force_import('ipy_user_conf')
         
     except:
         conf = opts_all.ipythondir + "/ipy_user_conf.py"
