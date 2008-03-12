@@ -372,12 +372,13 @@ class MTInteractiveShell(InteractiveShell):
         self.on_kill = on_kill
         # thread identity of the "worker thread" (that may execute code directly)
         self.worker_ident = None
+        
     def runsource(self, source, filename="<input>", symbol="single"):
         """Compile and run some source in the interpreter.
 
         Modified version of code.py's runsource(), to handle threading issues.
         See the original for full docstring details."""
-
+        
         global KBINT
         
         # If Ctrl-C was typed, we reset the flag and return right away
@@ -411,16 +412,25 @@ class MTInteractiveShell(InteractiveShell):
         # Case 3
         # Store code in queue, so the execution thread can handle it.
 
-        ev = threading.Event()
-        self.code_queue.put((code,ev))
-        ev.wait()
+        completed_ev, received_ev = threading.Event(), threading.Event() 
+        
+        self.code_queue.put((code,completed_ev, received_ev))
+        # first make sure the message was received, with timeout
+        received_ev.wait(5)
+        if not received_ev.isSet():
+            # the mainloop is dead, start executing code directly
+            print "Warning: Timeout for mainloop thread exceeded"
+            print "switching to nonthreaded mode (until mainloop wakes up again)"
+            self.worker_ident = None
+        else:
+            completed_ev.wait()
         return False
 
     def runcode(self):
         """Execute a code object.
 
         Multithreaded wrapper around IPython's runcode()."""
-
+        
         global CODE_RUN
         
         # we are in worker thread, stash out the id for runsource() 
@@ -450,9 +460,11 @@ class MTInteractiveShell(InteractiveShell):
         code_to_run = None
         while 1:
             try:
-                code_to_run, event = self.code_queue.get_nowait()                
+                code_to_run, completed_ev, received_ev = self.code_queue.get_nowait()                
             except Queue.Empty:
                 break
+            received_ev.set()
+            
             # Exceptions need to be raised differently depending on which
             # thread is active.  This convoluted try/except is only there to
             # protect against asynchronous exceptions, to ensure that a KBINT
@@ -466,13 +478,14 @@ class MTInteractiveShell(InteractiveShell):
                 except KeyboardInterrupt:
                    print "Keyboard interrupted in mainloop"
                    while not self.code_queue.empty():
-                      code, ev = self.code_queue.get_nowait()
-                      ev.set()
+                      code, ev1,ev2 = self.code_queue.get_nowait()
+                      ev1.set()
+                      ev2.set()                      
                    break
             finally:
                 CODE_RUN = False
                 # allow runsource() return from wait
-                event.set()
+                completed_ev.set()
                 
         
         # This MUST return true for gtk threading to work
@@ -480,7 +493,7 @@ class MTInteractiveShell(InteractiveShell):
 
     def kill(self):
         """Kill the thread, returning when it has been shut down."""
-        self._kill = threading.Event()        
+        self._kill = threading.Event()
         self._kill.wait()
 
 class MatplotlibShellBase:
