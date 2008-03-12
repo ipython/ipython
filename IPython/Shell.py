@@ -384,6 +384,10 @@ class MTInteractiveShell(InteractiveShell):
         if KBINT:
             KBINT = False
             return False
+
+        if self._kill:
+            # can't queue new code if we are being killed
+            return True
         
         try:
             code = self.compile(source, filename, symbol)
