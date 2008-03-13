@@ -533,7 +533,7 @@ class DebugTools:
         if name in self.hotnames:
             self.debug_stack( "HotName '%s' caught" % name)
 
-def launch_new_instance(user_ns = None):
+def launch_new_instance(user_ns = None,shellclass = None):
     """ Make and start a new ipython instance.
     
     This can be called even without having an already initialized 
@@ -542,7 +542,7 @@ def launch_new_instance(user_ns = None):
     This is also used as the egg entry point for the 'ipython' script.
     
     """
-    ses = make_session(user_ns)
+    ses = make_session(user_ns,shellclass)
     ses.mainloop()
 
 
@@ -578,7 +578,7 @@ def make_user_global_ns(ns = None):
     return ns
 
 
-def make_session(user_ns = None):
+def make_session(user_ns = None, shellclass = None):
     """Makes, but does not launch an IPython session.
     
     Later on you can call obj.mainloop() on the returned object.
@@ -591,6 +591,6 @@ def make_session(user_ns = None):
     WARNING: This should *not* be run when a session exists already."""
 
     import IPython.Shell
-    return IPython.Shell.start(user_ns)
-
-
+    if shellclass is None:
+        return IPython.Shell.start(user_ns)
+    return shellclass(user_ns = user_ns)
