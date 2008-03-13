@@ -211,15 +211,10 @@ def hg_completer(self,event):
 
 
 
-bzr_commands = """
-add annotate bind branch break-lock bundle-revisions cat check
-checkout commit conflicts deleted diff export gannotate gbranch
-gcommit gdiff help ignore ignored info init init-repository inventory
-log merge missing mkdir mv nick pull push reconcile register-branch
-remerge remove renames resolve revert revno root serve sign-my-commits
-status testament unbind uncommit unknowns update upgrade version
-version-info visualise whoami
-"""
+def bzr_commands():
+    out = os.popen('bzr help commands')
+    return [l.split()[0] for l in out] 
+                 
 
 def bzr_completer(self,event):
     """ Completer for bazaar commands """
@@ -232,7 +227,7 @@ def bzr_completer(self,event):
         param = cmd_param[-1]
         output_file = (param == '--output=')
         if cmd == 'help':
-            return bzr_commands.split()
+            return bzr_commands()
         elif cmd in ['bundle-revisions','conflicts',
                      'deleted','nick','register-branch',
                      'serve','unbind','upgrade','version',
@@ -242,7 +237,7 @@ def bzr_completer(self,event):
             # the rest are probably file names
             return ip.IP.Completer.file_matches(event.symbol)
 
-    return bzr_commands.split()
+    return bzr_commands()
 
 
 def shlex_split(x):
