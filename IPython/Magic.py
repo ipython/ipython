@@ -2223,6 +2223,9 @@ Currently the magic system has the following functions:\n"""
 
                 #print '*** args',args,'type',type(args)  # dbg
                 data = eval(args,self.shell.user_ns)
+                # convert string to unicode, "just in case"
+                if isinstance(data,str):
+                    data = data.decode(self.stdin_encoding) 
                 if not type(data) in StringTypes:
                     raise DataIsObject
 
