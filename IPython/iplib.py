@@ -2484,13 +2484,12 @@ want to merge them back into the new files.""" % locals()
 
           - data(None): if data is given, it gets written out to the temp file
           immediately, and the file is closed again."""
-          
+
         filename = tempfile.mktemp('.py','ipython_edit_')
-        import codecs
         self.tempfiles.append(filename)
         
         if data:
-            tmp_file = codecs.open(filename,'w', encoding='UTF-8')            
+            tmp_file = open(filename,'w')
             tmp_file.write(data)
             tmp_file.close()
         return filename
