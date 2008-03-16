@@ -275,11 +275,12 @@ class IPApi:
             lines = script.splitlines()
             level = 0
             for l in lines:
-                stripped = l.lstrip()
-                if not l.strip():
+                lstripped = l.lstrip()
+                stripped = l.strip()
+                if not stripped:
                     continue
-                newlevel = len(l) - len(stripped)
-                if level > 0 and newlevel == 0:
+                newlevel = len(l) - len(lstripped)
+                if level > 0 and newlevel == 0 and not stripped.endswith(':'):
                     # add empty line
                     res.append('')
                 res.append(l)
