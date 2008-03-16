@@ -3,7 +3,7 @@
 <leo_file>
 <leo_header file_format="2" tnodes="0" max_tnode_index="0" clone_windows="0"/>
 <globals body_outline_ratio="0.307814992026">
-	<global_window_position top="122" left="624" height="627" width="1280"/>
+	<global_window_position top="311" left="261" height="627" width="1280"/>
 	<global_log_window_position top="0" left="0" height="0" width="0"/>
 </globals>
 <preferences/>
@@ -44,14 +44,14 @@
 <v t="vivainio.20080219225804"><vh>strlist</vh></v>
 </v>
 <v t="vivainio.20080218201219" a="E"><vh>Direct variables</vh>
-<v t="vivainio.20080222201226"><vh>NewHeadline</vh></v>
+<v t="vivainio.20080222201226" a="TV"><vh>NewHeadline</vh></v>
 <v t="vivainio.20080218201219.2"><vh>bar</vh></v>
 </v>
 <v t="vivainio.20080222202211"><vh>test stuff</vh></v>
 <v t="vivainio.20080223142403" a="E"><vh>@ipy-results</vh>
 <v t="vivainio.20080223142403.1"><vh>foo</vh></v>
 </v>
-<v t="vivainio.20080222202211.1" a="ETV"><vh>spam</vh></v>
+<v t="vivainio.20080222202211.1" a="E"><vh>spam</vh></v>
 </vnodes>
 <tnodes>
 <t tx="vivainio.20080218184525">?</t>
@@ -129,7 +129,13 @@ print "hello"
 def f(x):
     return x.upper()
 
-f('hello world')</t>
+f('hello world')
+
+if 0:
+    print "foo"
+else:
+    print "bar"
+    </t>
 <t tx="vivainio.20080222202211"></t>
 <t tx="vivainio.20080222202211.1" ipython="7d71005506636f6f7264737101284b0c4bde747102732e">@cl rfile
 hello
