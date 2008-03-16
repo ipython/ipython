@@ -2,13 +2,22 @@
 """ Change the revision number in Release.py """
 
 import os
-import re
+import re,pprint
 
-rev = os.popen('bzr revno').read().strip()
+def verinfo():
+    
+    out = os.popen('bzr version-info')
+    pairs = (l.split(':',1) for l in out)
+    d = dict(((k,v.strip()) for (k,v) in pairs)) 
+    return d
 
-print "current rev is",rev
-assert ':' not in rev
+ver = verinfo()
+
+pprint.pprint(ver)
 
 rfile = open('../IPython/Release.py','rb').read()
-newcont = re.sub(r'revision\s*=.*', "revision = '%s'" % rev, rfile)
+newcont = re.sub(r'revision\s*=.*', "revision = '%s'" % ver['revno'], rfile)
+
+newcont = re.sub(r'^branch\s*=[^=].*', "branch = '%s'"  % ver['branch-nick'], newcont )
+
 open('../IPython/Release.py','wb').write(newcont)
