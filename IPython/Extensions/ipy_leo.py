@@ -483,11 +483,12 @@ def lee_f(self,s):
     """ Open file(s)/objects in Leo
     
     - %lee hist -> open full session history in leo
-    - Takes an object
-    - Takes an mglob pattern, e.g. '%lee *.cpp' or %leo 'rec:*.cpp'  
+    - Takes an object. l = [1,2,"hello"]; %lee l. Alt+I in leo pushes the object back
+    - Takes an mglob pattern, e.g. '%lee *.cpp' or %lee 'rec:*.cpp'
+    - Takes input history indices:  %lee 4 6-8 10 12-47
     """
     import os
-    
+        
     c.beginUpdate()
     try:
         if s == 'hist':
@@ -496,12 +497,20 @@ def lee_f(self,s):
             return
         
             
+        if s and s[0].isdigit():
+            # numbers; push input slices to leo
+            lines = self.extract_input_slices(s.strip().split(), True)
+            v = add_var('stored_ipython_input')
+            v.b = '\n'.join(lines)
+            return
+            
         
         # try editing the object directly
         obj = ip.user_ns.get(s, None)
         if obj is not None:
             edit_object_in_leo(obj,s)
             return
+     
         
         # if it's not object, it's a file name / mglob pattern
         from IPython.external import mglob
