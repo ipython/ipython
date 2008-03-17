@@ -3,7 +3,7 @@
 <leo_file>
 <leo_header file_format="2" tnodes="0" max_tnode_index="0" clone_windows="0"/>
 <globals body_outline_ratio="0.307814992026">
-	<global_window_position top="122" left="624" height="627" width="1280"/>
+	<global_window_position top="180" left="223" height="627" width="1280"/>
 	<global_log_window_position top="0" left="0" height="0" width="0"/>
 </globals>
 <preferences/>
@@ -25,7 +25,8 @@
 </v>
 </v>
 <v t="vivainio.20080218184525"><vh>@chapters</vh></v>
-<v t="vivainio.20080223133721"><vh>@settings</vh>
+<v t="vivainio.20080223133721" a="E"><vh>@settings</vh>
+<v t="vivainio.20080316092617"><vh>@@string ipython_argv = ipython -pylab</vh></v>
 <v t="vivainio.20080223133721.1"><vh>@enabled-plugins</vh></v>
 </v>
 <v t="vivainio.20080218184540"><vh>@ipy-startup</vh>
@@ -47,11 +48,16 @@
 <v t="vivainio.20080222201226"><vh>NewHeadline</vh></v>
 <v t="vivainio.20080218201219.2"><vh>bar</vh></v>
 </v>
+<v t="vivainio.20080316144536" a="E"><vh>pylab tests</vh>
+<v t="vivainio.20080316145539.2" a="TV"><vh>Generate testarr</vh></v>
+<v t="vivainio.20080316085925"><vh>testarr</vh></v>
+<v t="vivainio.20080316085950"><vh>Call plotter on testarr</vh></v>
+</v>
 <v t="vivainio.20080222202211"><vh>test stuff</vh></v>
-<v t="vivainio.20080223142403" a="E"><vh>@ipy-results</vh>
+<v t="vivainio.20080223142403"><vh>@ipy-results</vh>
 <v t="vivainio.20080223142403.1"><vh>foo</vh></v>
 </v>
-<v t="vivainio.20080222202211.1" a="ETV"><vh>spam</vh></v>
+<v t="vivainio.20080222202211.1" a="E"><vh>spam</vh></v>
 </vnodes>
 <tnodes>
 <t tx="vivainio.20080218184525">?</t>
@@ -129,7 +135,14 @@ print "hello"
 def f(x):
     return x.upper()
 
-f('hello world')</t>
+f('hello world')
+
+if 0:
+    print "foo"
+else:
+    print "bar"
+
+</t>
 <t tx="vivainio.20080222202211"></t>
 <t tx="vivainio.20080222202211.1" ipython="7d71005506636f6f7264737101284b0c4bde747102732e">@cl rfile
 hello
@@ -495,5 +508,21 @@ Create 10 child nodes for baz, where i is headline and 'Hello ' + i is body:
 </t>
 <t tx="vivainio.20080223142403"></t>
 <t tx="vivainio.20080223142403.1">12</t>
+<t tx="vivainio.20080316085925">array([[ 0,  1,  2],
+       [ 3,  4,  5],
+       [ 6,  7,  8],
+       [ 9, 10, 11]])</t>
+<t tx="vivainio.20080316085950"># press alt+i here to plot testarr
+
+plot(wb.testarr.v)</t>
+<t tx="vivainio.20080316092617"></t>
+<t tx="vivainio.20080316144536">Quickstart:
+    easy_install numpy    
+    easy_install matplotlib
+
+Make sure you have '@string ipython-argv = ipython -pylab' in @settings. We currently recommend using TkAgg as the backend (it's also the default)</t>
+<t tx="vivainio.20080316145539.2">#press alt+i here to generate an array for plotter
+
+wb.testarr.v = arange(12).reshape(4,3)</t>
 </tnodes>
 </leo_file>

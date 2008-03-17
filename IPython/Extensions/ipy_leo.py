@@ -10,6 +10,7 @@ import re
 import UserDict
 from IPython.ipapi import TryNext 
 import IPython.macro
+import IPython.Shell
 
 def init_ipython(ipy):
     """ This will be run by _ip.load('ipy_leo') 
@@ -19,6 +20,7 @@ def init_ipython(ipy):
     """
     global ip
     ip = ipy
+    IPython.Shell.hijack_tk()
     ip.set_hook('complete_command', mb_completer, str_key = '%mb')
     ip.expose_magic('mb',mb_f)
     ip.expose_magic('lee',lee_f)

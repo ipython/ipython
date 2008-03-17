@@ -15,7 +15,7 @@ import IPython.ipapi
 def test_session(shellclass):
     print "*****************\nLaunch shell for",shellclass
     my_ns = dict(a=10)
-    ses = IPython.ipapi.make_session(my_ns)
+    ses = IPython.ipapi.make_session(my_ns, shellclass=shellclass)
     
     # Now get the ipapi instance, to be stored somewhere in your program for manipulation of the running 
     # IPython session. See http://ipython.scipy.org/moin/IpythonExtensionApi
@@ -38,5 +38,11 @@ def test_session(shellclass):
     
 import  IPython.Shell    
 
-test_session(shellclass = None)
-test_session(IPython.Shell._select_shell(['ipython', '-q4thread']))
+def do_test(arg_line):
+    test_session(IPython.Shell._select_shell(arg_line.split()))
+
+do_test('')
+do_test('ipython -gthread')
+do_test('ipython -q4thread')
+do_test('ipython -pylab')
+do_test('ipython -pylab -gthread')

@@ -211,10 +211,15 @@ def hg_completer(self,event):
 
 
 
+__bzr_commands = None
+
 def bzr_commands():
+    global __bzr_commands
+    if __bzr_commands is not None:
+        return __bzr_commands
     out = os.popen('bzr help commands')
-    return [l.split()[0] for l in out] 
-                 
+    __bzr_commands = [l.split()[0] for l in out]
+    return __bzr_commands                
 
 def bzr_completer(self,event):
     """ Completer for bazaar commands """
