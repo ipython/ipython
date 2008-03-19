@@ -2615,7 +2615,7 @@ Defaulting color scheme to 'NoColor'"""
                     os.chdir(pdir)
                     for ff in os.listdir(pdir):
                         base, ext = os.path.splitext(ff)
-                        if isexec(ff) and base not in self.shell.no_alias:
+                        if isexec(ff) and base.lower() not in self.shell.no_alias:
                             if ext.lower() == '.exe':
                                 ff = base
                             alias_table[base.lower()] = (0,ff)
