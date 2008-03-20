@@ -1,3 +1,14 @@
+""" Extension for bzr command tab completer. Supports comlpeting commands and options
+
+Unlike the core IPython, you should note that this extension is under GPL, not BSD.
+
+Based on "shell" bzr plugin by Aaron Bentley, license is below. The IPython additions
+are at the bottom of the file, the rest is left untouched.
+
+Must be loaded with ip.load('ipy_bzr') 
+
+""" 
+a 
 # Copyright (C) 2004, 2005 Aaron Bentley
 # <aaron@aaronbentley.com>
 #
@@ -29,7 +40,7 @@ from bzrlib.config import config_dir, ensure_config_dir_exists
 from bzrlib.commands import get_cmd_object, get_all_cmds, get_alias
 from bzrlib.errors import BzrError
 from bzrlib.workingtree import WorkingTree
-
+import bzrlib.plugin
 
 
 SHELL_BLACKLIST = set(['rm', 'ls'])
@@ -328,7 +339,5 @@ def init_ipython(ip):
             cmd = None
                   
         return CompletionContext(ev.symbol, command = cmd).get_completions()
+    bzrlib.plugin.load_plugins()
     ip.set_hook('complete_command', bzr_completer, str_key = 'bzr')    
-
-    
-    
