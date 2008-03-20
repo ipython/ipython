@@ -12,10 +12,10 @@ from IPython.ipmaker import make_IPython
 from IPython.iplib import InteractiveShell 
 from IPython.ipstruct import Struct
 import Queue,thread,threading,signal
-
-from IPython.Shell import *
-
 from signal import signal, SIGINT
+from IPython.genutils import Term,warn,error,flag_calls, ask_yes_no
+import shellglobals
+
 
 def hijack_reactor():
     """Modifies Twisted's reactor with a dummy so user code does
@@ -81,12 +81,9 @@ class TwistedInteractiveShell(InteractiveShell):
         Modified version of code.py's runsource(), to handle threading issues.
         See the original for full docstring details."""
         
-        print "rs"
-        global KBINT
-        
         # If Ctrl-C was typed, we reset the flag and return right away
-        if KBINT:
-            KBINT = False
+        if shellglobals.KBINT:
+            shellglobals.KBINT = False
             return False
 
         if self._kill:
@@ -113,7 +110,6 @@ class TwistedInteractiveShell(InteractiveShell):
             InteractiveShell.runcode(self,code)
             return
 
-        self.first_run = False
         # Case 3
         # Store code in queue, so the execution thread can handle it.
  
@@ -130,6 +126,7 @@ class TwistedInteractiveShell(InteractiveShell):
             print "switching to nonthreaded mode (until mainloop wakes up again)"
             self.worker_ident = None
         else:
+            shellglobals.CURRENT_COMPLETE_EV = completed_ev
             completed_ev.wait()
         
         return False
@@ -139,7 +136,6 @@ class TwistedInteractiveShell(InteractiveShell):
 
         Multithreaded wrapper around IPython's runcode()."""
         
-        global CODE_RUN
         
         # we are in worker thread, stash out the id for runsource() 
         self.worker_ident = thread.get_ident()
@@ -154,10 +150,11 @@ class TwistedInteractiveShell(InteractiveShell):
             self._kill.set()
             return True
 
-        # Install sigint handler.  We do it every time to ensure that if user
+        # Install SIGINT handler.  We do it every time to ensure that if user
         # code modifies it, we restore our own handling.
         try:
-            signal(SIGINT,sigint_handler)
+            pass
+            signal(SIGINT,shellglobals.sigint_handler)
         except SystemError:
             # This happens under Windows, which seems to have all sorts
             # of problems with signal handling.  Oh well...
@@ -176,13 +173,13 @@ class TwistedInteractiveShell(InteractiveShell):
             
             # Exceptions need to be raised differently depending on which
             # thread is active.  This convoluted try/except is only there to
-            # protect against asynchronous exceptions, to ensure that a KBINT
+            # protect against asynchronous exceptions, to ensure that a shellglobals.KBINT
             # at the wrong time doesn't deadlock everything.  The global
             # CODE_TO_RUN is set to true/false as close as possible to the
             # runcode() call, so that the KBINT handler is correctly informed.
             try:
                 try:
-                   CODE_RUN = True
+                   shellglobals.CODE_RUN = True
                    InteractiveShell.runcode(self,code_to_run)
                 except KeyboardInterrupt:
                    print "Keyboard interrupted in mainloop"
@@ -190,7 +187,7 @@ class TwistedInteractiveShell(InteractiveShell):
                       code = self.code_queue.get_nowait()
                    break
             finally:
-                CODE_RUN = False
+                shellglobals.CODE_RUN = False
                 # allow runsource() return from wait
                 completed_ev.set()                
         
