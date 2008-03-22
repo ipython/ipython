@@ -36,11 +36,11 @@ The following special options are ONLY valid at the beginning of the command
 line, and not later.  This is because they control the initialization of
 ipython itself, before the normal option-handling mechanism is active.
 .TP
-.B \-gthread, \-qthread, \-q4thread, \-wthread, \-pylab
+.B \-gthread, \-qthread, \-q4thread, \-wthread, \-pylab, \-twisted
 Only ONE of these can be given, and it can only be given as the first option
 passed to IPython (it will have no effect in any other position).  They provide
-threading support for the GTK, QT3, QT4 and WXWidgets toolkits, and for the
-matplotlib library.
+threading support for the GTK, QT3, QT4 and WXWidgets toolkits, for the
+matplotlib library and Twisted reactor.
 .br
 .sp 1
 With any of the first four options, IPython starts running a separate thread
@@ -54,6 +54,10 @@ Note that with \-wthread, you can additionally use the \-wxversion option to
 request a specific version of wx to be used.  This requires that you have the
 'wxversion' Python module installed, which is part of recent wxPython
 distributions.
+.br
+.sp 1
+If \-twisted is given, IPython start a Twisted reactor and runs IPython mainloop
+in a dedicated thread, passing commands to be run inside the Twisted reactor. 
 .br
 .sp 1
 If \-pylab is given, IPython loads special support for the matplotlib library
