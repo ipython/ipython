@@ -105,7 +105,7 @@ class TwistedInteractiveShell(InteractiveShell):
         # in IPython construction)
         
         if (not self.reactor_started or (self.worker_ident is None and not self.first_run) 
-            or self.worker_ident == thread.get_ident()):
+            or self.worker_ident == thread.get_ident() or shellglobals.run_in_frontend(source)):
             InteractiveShell.runcode(self,code)
             return
 
