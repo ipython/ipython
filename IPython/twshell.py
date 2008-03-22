@@ -1,12 +1,6 @@
 import sys
 
-from twisted.internet import gtk2reactor
-gtk2reactor.install()
-
 from twisted.internet import reactor, threads
-
-""" change here to choose the plot shell with the MT option
-    which should cost extra """
 
 from IPython.ipmaker import make_IPython
 from IPython.iplib import InteractiveShell 
@@ -15,6 +9,11 @@ import Queue,thread,threading,signal
 from signal import signal, SIGINT
 from IPython.genutils import Term,warn,error,flag_calls, ask_yes_no
 import shellglobals
+
+def install_gtk2():
+    """ Install gtk2 reactor, needs to be called bef """
+    from twisted.internet import gtk2reactor
+    gtk2reactor.install()
 
 
 def hijack_reactor():
@@ -106,7 +105,7 @@ class TwistedInteractiveShell(InteractiveShell):
         # in IPython construction)
         
         if (not self.reactor_started or (self.worker_ident is None and not self.first_run) 
-            or self.worker_ident == thread.get_ident()):
+            or self.worker_ident == thread.get_ident() or shellglobals.run_in_frontend(source)):
             InteractiveShell.runcode(self,code)
             return
 
@@ -125,8 +124,7 @@ class TwistedInteractiveShell(InteractiveShell):
             print "Warning: Timeout for mainloop thread exceeded"
             print "switching to nonthreaded mode (until mainloop wakes up again)"
             self.worker_ident = None
-        else:
-            shellglobals.CURRENT_COMPLETE_EV = completed_ev
+        else:            
             completed_ev.wait()
         
         return False

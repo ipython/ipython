@@ -80,3 +80,17 @@ else:
         Term.cout.flush()
         # Set global flag so that runsource can know that Ctrl-C was hit
         KBINT = True
+
+def run_in_frontend(src):
+    """ Check if source snippet can be run in the REPL thread, as opposed to GUI mainloop
+    
+    (to prevent unnecessary hanging of mainloop).  
+    
+    """
+    
+    if src.startswith('_ip.system(') and not '\n' in src:
+        return True
+    return False
+    
+    
+    
