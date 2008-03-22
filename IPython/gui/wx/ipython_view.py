@@ -547,7 +547,7 @@ class WxIPythonViewPanel(wx.Panel):
         self.doExecuteLine(self.text_ctrl.getCurrentLine())
         
     def doExecuteLine(self,line):
-        print >>sys.__stdout__,"command:",line
+        #print >>sys.__stdout__,"command:",line
         self.IP.doExecute(line.replace('\t',' '*4))
         self.updateHistoryTracker(self.text_ctrl.getCurrentLine())
         self.cur_state = 'WAIT_END_OF_EXECUTION'
