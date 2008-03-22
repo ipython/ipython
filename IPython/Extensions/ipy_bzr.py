@@ -8,7 +8,7 @@ are at the bottom of the file, the rest is left untouched.
 Must be loaded with ip.load('ipy_bzr') 
 
 """ 
-a 
+
 # Copyright (C) 2004, 2005 Aaron Bentley
 # <aaron@aaronbentley.com>
 #
