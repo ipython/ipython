@@ -405,7 +405,7 @@ class MTInteractiveShell(InteractiveShell):
         # execute directly (to allow recursion and prevent deadlock if code is run early 
         # in IPython construction)
         
-        if self.worker_ident is None or self.worker_ident == thread.get_ident():
+        if (self.worker_ident is None or self.worker_ident == thread.get_ident()):
             InteractiveShell.runcode(self,code)
             return
 
@@ -1155,10 +1155,13 @@ def _select_shell(argv):
                 }
 
     all_opts = set(['tk','pylab','gthread','qthread','q4thread','wthread',
-                    'tkthread'])
+                    'tkthread', 'twisted'])
     user_opts = set([s.replace('-','') for s in argv[:3]])
     special_opts = user_opts & all_opts
 
+    if 'twisted' in special_opts:
+        import twshell
+        return twshell.IPShellTwisted
     if 'tk' in special_opts:
         USE_TK = True
         special_opts.remove('tk')

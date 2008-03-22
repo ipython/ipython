@@ -184,10 +184,9 @@ object?   -> Details about 'object'. ?object also works, ?? prints more.
 
     # Options that can *only* appear at the cmd line (not in rcfiles).
     
-    # The "ignore" option is a kludge so that Emacs buffers don't crash, since
-    # the 'C-c !' command in emacs automatically appends a -i option at the end.
     cmdline_only = ('help interact|i ipythondir=s Version upgrade '
-                    'gthread! qthread! q4thread! wthread! tkthread! pylab! tk!')
+                    'gthread! qthread! q4thread! wthread! tkthread! pylab! tk! '
+                    'twisted!')
 
     # Build the actual name list to be used by DPyGetOpt
     opts_names = qw(cmdline_opts) + qw(cmdline_only)
@@ -245,6 +244,7 @@ object?   -> Details about 'object'. ?object also works, ?? prints more.
                       system_verbose = 0,
                       term_title = 1,
                       tk = 0,
+                      twisted= 0,
                       upgrade = 0,
                       Version = 0,
                       wildcards_case_sensitive = 1,
