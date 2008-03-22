@@ -36,10 +36,10 @@ class MyFrame(wx.Frame):
         
         #self.ipython_panel    = WxIPythonViewPanel(self,self.OnExitDlg,
         #                                           background_color = "WHITE")
-        
+
         self.ipython_panel.setHistoryTrackerHook(self.history_panel.write)
         self.ipython_panel.setStatusTrackerHook(self.updateStatus)
-        
+
         self.statusbar = self.createStatus()
         self.createMenu()
         
@@ -48,13 +48,11 @@ class MyFrame(wx.Frame):
         # main panels
         self._mgr.AddPane(self.ipython_panel , wx.CENTER, "IPython Shell")
         self._mgr.AddPane(self.history_panel , wx.RIGHT,  "IPython history")
-        
+        	
         # now we specify some panel characteristics
         self._mgr.GetPane(self.ipython_panel).CaptionVisible(True);
         self._mgr.GetPane(self.history_panel).CaptionVisible(True);
         self._mgr.GetPane(self.history_panel).MinSize((200,400));
-                
-        
         
         # tell the manager to "commit" all the changes just made
         self._mgr.Update()
