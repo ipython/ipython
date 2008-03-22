@@ -22,6 +22,7 @@ import sys
 import os
 import locale
 import time
+import pydoc,__builtin__,site
 from ThreadEx import Thread
 from StringIO import StringIO
 
@@ -29,7 +30,33 @@ try:
         import IPython
 except Exception,e:
         raise "Error importing IPython (%s)" % str(e)
+
+class _Helper(object):
+    """Redefine the built-in 'help'.
+    This is a wrapper around pydoc.help (with a twist).
+    """
+    def __init__(self,pager):
+        self._pager = pager
+
+    def __repr__(self):
+        return "Type help() for interactive help, " \
+               "or help(object) for help about object."
+    def __call__(self, *args, **kwds):
+        class DummyWriter(object):
+            def __init__(self,pager):
+                self._pager = pager
+                
+            def write(self,data):
+                self._pager(data)
+
+        import pydoc
+        pydoc.help.output = DummyWriter(self._pager)
+        pydoc.help.interact = lambda :1
         
+        #helper.output.write = self.doc.append
+        return pydoc.help(*args, **kwds)
+
+  
 class IterableIPShell(Thread):
     '''
     Create an IPython instance inside a dedicated thread.
@@ -40,7 +67,8 @@ class IterableIPShell(Thread):
     via raise_exc()
     '''
 
-    def __init__(self,argv=[],user_ns={},user_global_ns=None,
+    def __init__(self,argv
+                 =[],user_ns={},user_global_ns=None,
                  cin=None, cout=None, cerr=None,
                  exit_handler=None,time_loop = 0.1):
         '''
@@ -99,7 +127,7 @@ class IterableIPShell(Thread):
         IPython.iplib.raw_input_original = self._raw_input
         #we replace the ipython default exit command by our method
         self._IP.exit = self._setAskExit
-            
+                    
         sys.excepthook = excepthook
 
         self._iter_more = 0
@@ -110,15 +138,18 @@ class IterableIPShell(Thread):
         #thread working vars
         self._terminate = False
         self._time_loop = time_loop
-        self._has_doc = False
         self._do_execute = False
         self._line_to_execute = ''
 
         #vars that will be checked by GUI loop to handle thread states...
         #will be replaced later by PostEvent GUI funtions...
         self._doc_text = None
+        self._help_text = None
         self._ask_exit = False
         self._add_button = None
+
+        #we replace the help command
+        self._IP.user_ns['help'] = _Helper(self._pager_help)
         
     #----------------------- Thread management section ----------------------    
     def run (self):
@@ -132,6 +163,7 @@ class IterableIPShell(Thread):
             try:
                 if self._do_execute:
                     self._doc_text = None
+                    self._help_text = None
                     self._execute()
                     self._do_execute = False
                     self._afterExecute() #used for uper class to generate event after execution
@@ -183,6 +215,15 @@ class IterableIPShell(Thread):
         """
         return self._doc_text
         
+    def getHelpText(self):
+        """
+        Returns the output of the processing that need to be paged via help pager(if any)
+
+        @return: The std output string.
+        @rtype: string
+        """
+        return self._help_text
+
     def getBanner(self):
         """
         Returns the IPython banner for useful info on IPython instance
@@ -343,6 +384,18 @@ class IterableIPShell(Thread):
         rv = self._IP.input_hist_raw[self._history_level].strip('\n')
         return rv
 
+    def _pager_help(self,text):
+        '''
+        This function is used as a callback replacment to IPython help pager function
+
+        It puts the 'text' value inside the self._help_text string that can be retrived via getHelpText
+        function.
+        '''
+        if self._help_text == None:
+            self._help_text = text
+        else:
+            self._help_text += text
+    
     def _pager(self,IP,text):
         '''
         This function is used as a callback replacment to IPython pager function

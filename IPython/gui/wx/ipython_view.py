@@ -543,7 +543,7 @@ class WxIPythonViewPanel(wx.Panel):
         
     #---------------------------- IPython Thread Management ---------------------------------------
     def stateDoExecuteLine(self):
-        #print >>self.sys_stdout,"command:",self.getCurrentLine()
+        #print >>sys.__stdout__,"command:",self.getCurrentLine()
         self.doExecuteLine(self.text_ctrl.getCurrentLine())
         
     def doExecuteLine(self,line):
@@ -555,11 +555,16 @@ class WxIPythonViewPanel(wx.Panel):
         
     def evtStateExecuteDone(self,evt):
         self.doc = self.IP.getDocText()
+        self.help = self.IP.getHelpText()
         if self.doc:
             self.pager_state = 'INIT'
             self.cur_state = 'SHOW_DOC'
             self.pager(self.doc)
             #if self.pager_state == 'DONE':
+        if self.help:
+            self.pager_state = 'INIT_HELP'
+            self.cur_state = 'SHOW_DOC'
+            self.pager(self.help)
                 
         else:
             self.stateShowPrompt()
@@ -577,7 +582,7 @@ class WxIPythonViewPanel(wx.Panel):
 	self.cur_state = 'IDLE'
 	
 ##    def runStateMachine(self,event):
-##        #print >>self.sys_stdout,"state:",self.cur_state
+##        #print >>sys.__stdout__,"state:",self.cur_state
 ##        self.updateStatusTracker(self.cur_state)
 ##        
 ##        #if self.cur_state == 'DO_EXECUTE_LINE':
@@ -626,12 +631,21 @@ class WxIPythonViewPanel(wx.Panel):
     #---------------------------- IPython pager ---------------------------------------
     def pager(self,text):#,start=0,screen_lines=0,pager_cmd = None):
         if self.pager_state == 'WAITING':
-		#print >>self.sys_stdout,"PAGER waiting"
+		#print >>sys.__stdout__,"PAGER waiting"
         	return
 	
 	if self.pager_state == 'INIT':
-		#print >>self.sys_stdout,"PAGER state:",self.pager_state
+		#print >>sys.__stdout__,"PAGER state:",self.pager_state
         	self.pager_lines = text[7:].split('\n')
+		self.pager_nb_lines = len(self.pager_lines)
+		self.pager_index = 0
+		self.pager_do_remove = False
+		self.text_ctrl.write('\n')
+		self.pager_state = 'PROCESS_LINES'
+
+	if self.pager_state == 'INIT_HELP':
+		#print >>sys.__stdout__,"HELP PAGER state:",self.pager_state
+        	self.pager_lines = text[:].split('\n')
 		self.pager_nb_lines = len(self.pager_lines)
 		self.pager_index = 0
 		self.pager_do_remove = False
@@ -639,13 +653,13 @@ class WxIPythonViewPanel(wx.Panel):
 		self.pager_state = 'PROCESS_LINES'
 		
 	if self.pager_state == 'PROCESS_LINES':
-        	#print >>self.sys_stdout,"PAGER state:",self.pager_state
+        	#print >>sys.__stdout__,"PAGER state:",self.pager_state
         	if self.pager_do_remove == True:
 			self.text_ctrl.removeCurrentLine()
 			self.pager_do_remove = False
 	
 		if self.pager_nb_lines > 10:
-	                #print >>self.sys_stdout,"PAGER processing 10 lines"
+	                #print >>sys.__stdout__,"PAGER processing 10 lines"
 			if self.pager_index > 0:
 				self.text_ctrl.write(">\x01\x1b[1;36m\x02"+self.pager_lines[self.pager_index]+'\n')
 			else:
@@ -660,7 +674,7 @@ class WxIPythonViewPanel(wx.Panel):
 			self.pager_state = 'WAITING'
 			return
         	else:
-	                #print >>self.sys_stdout,"PAGER processing last lines"
+	                #print >>sys.__stdout__,"PAGER processing last lines"
 			if self.pager_nb_lines > 0:
 				if self.pager_index > 0:
 					self.text_ctrl.write(">\x01\x1b[1;36m\x02"+self.pager_lines[self.pager_index]+'\n')
