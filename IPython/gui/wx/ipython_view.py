@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: iso-8859-15 -*-
 '''
-Provides IPython WX console widget.
+Provides IPython WX console widgets.
 
 @author: Laurent Dufrechou
 laurent.dufrechou _at_ gmail.com
@@ -33,7 +33,6 @@ import sys
 import os
 import locale
 import time
-#from ThreadEx import Thread
 from StringIO import StringIO
 try:
         import IPython
@@ -41,11 +40,11 @@ except Exception,e:
         raise "Error importing IPython (%s)" % str(e)
 
 
-from ipython_interactive_shell import *
+from non_blocking_ip_shell import *
 
-class WxIterableIPShell(IterableIPShell):
+class WxNonBlockingIPShell(NonBlockingIPShell):
     '''
-    An IterableIPShell Thread that is WX dependent.
+    An NonBlockingIPShell Thread that is WX dependent.
     Thus it permits direct interaction with a WX GUI without OnIdle event state machine trick...
     '''
     def __init__(self,wx_instance,
@@ -54,7 +53,7 @@ class WxIterableIPShell(IterableIPShell):
                  exit_handler=None,time_loop = 0.1):
         
         user_ns['addGUIShortcut'] = self.addGUIShortcut
-        IterableIPShell.__init__(self,argv,user_ns,user_global_ns,
+        NonBlockingIPShell.__init__(self,argv,user_ns,user_global_ns,
                                  cin, cout, cerr,
                                  exit_handler,time_loop)
 
@@ -464,8 +463,10 @@ class WxIPythonViewPanel(wx.Panel):
     I've choosed to derivate from a wx.Panel because it seems to be ore usefull
     Any idea to make it more 'genric' welcomed.
     '''
-    def __init__(self,parent,exit_handler=None,intro=None,
-                 background_color="BLACK",add_button_handler=None):
+    def __init__(self, parent, exit_handler=None, intro=None,
+                 background_color="BLACK", add_button_handler=None, 
+                 wx_ip_shell=None,
+                 ):
         '''
         Initialize.
         Instanciate an IPython thread.
@@ -480,7 +481,10 @@ class WxIPythonViewPanel(wx.Panel):
         self.add_button_handler = add_button_handler
         self.exit_handler = exit_handler
 
-        self.IP = WxIterableIPShell(self,
+        if wx_ip_shell is not None:
+            self.IP = wx_ip_shell
+        else:
+            self.IP = WxNonBlockingIPShell(self,
                                     cout=self.cout,cerr=self.cout,
                                     exit_handler = exit_handler,
                                     time_loop = 0.1)
@@ -526,7 +530,7 @@ class WxIPythonViewPanel(wx.Panel):
         #               'SHOW_PROMPT']
         
         self.cur_state = 'IDLE'
-	self.pager_state = 'DONE'
+        self.pager_state = 'DONE'
         #wx.CallAfter(self.runStateMachine)
 
         # This creates a new Event class and a EVT binder function
@@ -578,9 +582,9 @@ class WxIPythonViewPanel(wx.Panel):
         if rv: rv = rv.strip('\n')
         self.text_ctrl.showReturned(rv)
         self.cout.truncate(0)
-	self.IP.initHistoryIndex()
-	self.cur_state = 'IDLE'
-	
+        self.IP.initHistoryIndex()
+        self.cur_state = 'IDLE'
+        
 ##    def runStateMachine(self,event):
 ##        #print >>sys.__stdout__,"state:",self.cur_state
 ##        self.updateStatusTracker(self.cur_state)
@@ -598,8 +602,8 @@ class WxIPythonViewPanel(wx.Panel):
 ##                self.doc = self.IP.getDocText()
 ##                if self.doc:
 ##                    self.pager_state = 'INIT'
-##		    self.cur_state = 'SHOW_DOC'
-##		#if self.button:
+##          self.cur_state = 'SHOW_DOC'
+##      #if self.button:
 ##                    #self.IP.doExecute('print "cool"')#self.button['func'])
 ##                    #self.updateHistoryTracker(self.text_ctrl.getCurrentLine())
 ##            

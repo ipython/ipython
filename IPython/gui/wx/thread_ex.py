@@ -1,3 +1,8 @@
+"""
+Thread subclass that can deal with asynchronously function calls via
+raise_exc.
+"""
+
 import threading
 import inspect
 import ctypes
@@ -17,7 +22,7 @@ def _async_raise(tid, exctype):
         raise SystemError("PyThreadState_SetAsyncExc failed")
  
  
-class Thread(threading.Thread):
+class ThreadEx(threading.Thread):
     def _get_my_tid(self):
         """determines this (self's) thread id"""
         if not self.isAlive():

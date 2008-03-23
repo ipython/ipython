@@ -23,7 +23,7 @@ import os
 import locale
 import time
 import pydoc,__builtin__,site
-from ThreadEx import Thread
+from thread_ex import ThreadEx
 from StringIO import StringIO
 
 try:
@@ -57,13 +57,13 @@ class _Helper(object):
         return pydoc.help(*args, **kwds)
 
   
-class IterableIPShell(Thread):
+class NonBlockingIPShell(ThreadEx):
     '''
     Create an IPython instance inside a dedicated thread.
     Does not start a blocking event loop, instead allow single iterations.
     This allows embedding in any GUI without blockage.
     The thread is a slave one, in that it doesn't interact directly with the GUI.
-    Note Thread class comes from ThreadEx that supports asynchroneous function call
+    Note ThreadEx class supports asynchroneous function call
     via raise_exc()
     '''
 
@@ -89,7 +89,7 @@ class IterableIPShell(Thread):
         @param time_loop: Define the sleep time between two thread's loop
         @type int
         '''
-        Thread.__init__(self)
+        ThreadEx.__init__(self)
 
         #first we redefine in/out/error functions of IPython 
         if cin:
