@@ -50,30 +50,34 @@ class WxNonBlockingIPShell(NonBlockingIPShell):
     def __init__(self,wx_instance,
                  argv=[],user_ns={},user_global_ns=None,
                  cin=None, cout=None, cerr=None,
-                 exit_handler=None,time_loop = 0.1):
+                 ask_exit_handler=None):
         
-        user_ns['addGUIShortcut'] = self.addGUIShortcut
+        #user_ns['addGUIShortcut'] = self.addGUIShortcut
         NonBlockingIPShell.__init__(self,argv,user_ns,user_global_ns,
                                  cin, cout, cerr,
-                                 exit_handler,time_loop)
+                                 ask_exit_handler)
 
         # This creates a new Event class and a EVT binder function
         (self.IPythonAskExitEvent, EVT_IP_ASK_EXIT) = wx.lib.newevent.NewEvent()
-        (self.IPythonAddButtonEvent, EVT_IP_ADD_BUTTON_EXIT) = wx.lib.newevent.NewEvent()
-        (self.IPythonExecuteDoneEvent, EVT_IP_EXECUTE_DONE) = wx.lib.newevent.NewEvent()
+        (self.IPythonAddButtonEvent, EVT_IP_ADD_BUTTON_EXIT) = \
+                                            wx.lib.newevent.NewEvent()
+        (self.IPythonExecuteDoneEvent, EVT_IP_EXECUTE_DONE) = \
+                                            wx.lib.newevent.NewEvent()
 
-        wx_instance.Bind(EVT_IP_ASK_EXIT, wx_instance.exit_handler)
+        wx_instance.Bind(EVT_IP_ASK_EXIT, wx_instance.ask_exit_handler)
         wx_instance.Bind(EVT_IP_ADD_BUTTON_EXIT, wx_instance.add_button_handler)
         wx_instance.Bind(EVT_IP_EXECUTE_DONE, wx_instance.evtStateExecuteDone)
 
         self.wx_instance = wx_instance
-        self._IP.exit = self._AskExit
+        self._IP.ask_exit = self._askExit
         
     def addGUIShortcut(self,text,func):
-        evt = self.IPythonAddButtonEvent(button_info={'text':text,'func':self.wx_instance.doExecuteLine(func)})
+        evt = self.IPythonAddButtonEvent(
+            button_info={   'text':text, 
+                            'func':self.wx_instance.doExecuteLine(func)})
         wx.PostEvent(self.wx_instance, evt)
                     
-    def _AskExit(self):
+    def _askExit(self):
         evt = self.IPythonAskExitEvent()
         wx.PostEvent(self.wx_instance, evt)
 
@@ -463,7 +467,8 @@ class WxIPythonViewPanel(wx.Panel):
     I've choosed to derivate from a wx.Panel because it seems to be ore usefull
     Any idea to make it more 'genric' welcomed.
     '''
-    def __init__(self, parent, exit_handler=None, intro=None,
+
+    def __init__(self, parent, ask_exit_handler=None, intro=None,
                  background_color="BLACK", add_button_handler=None, 
                  wx_ip_shell=None,
                  ):
@@ -479,17 +484,14 @@ class WxIPythonViewPanel(wx.Panel):
         self.cout = StringIO()
 
         self.add_button_handler = add_button_handler
-        self.exit_handler = exit_handler
+        self.ask_exit_handler = ask_exit_handler
 
         if wx_ip_shell is not None:
             self.IP = wx_ip_shell
         else:
             self.IP = WxNonBlockingIPShell(self,
                                     cout=self.cout,cerr=self.cout,
-                                    exit_handler = exit_handler,
-                                    time_loop = 0.1)
-        self.IP.start()
-        
+                                    ask_exit_handler = ask_exit_handler)
         ### IPython wx console view instanciation ###
         #If user didn't defined an intro text, we create one for him
         #If you really wnat an empty intrp just call wxIPythonViewPanel with intro=''
@@ -541,8 +543,6 @@ class WxIPythonViewPanel(wx.Panel):
         #self.Bind(wx.EVT_IDLE, self.runStateMachine)
                 
     def __del__(self):
-        self.IP.shutdown()
-        self.IP.join()
         WxConsoleView.__del__()
         
     #---------------------------- IPython Thread Management ---------------------------------------
@@ -705,7 +705,7 @@ class WxIPythonViewPanel(wx.Panel):
             if event.Modifiers == wx.MOD_CONTROL:
                 if self.cur_state == 'WAIT_END_OF_EXECUTION':
                     #we raise an exception inside the IPython thread container
-                    self.IP.raise_exc(KeyboardInterrupt)
+                    self.IP.ce.raise_exc(KeyboardInterrupt)
                     return
                 
         if event.KeyCode == wx.WXK_RETURN:
