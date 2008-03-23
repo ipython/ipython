@@ -30,9 +30,7 @@ import wx.lib.newevent
 
 import re
 import sys
-import os
 import locale
-import time
 from StringIO import StringIO
 try:
         import IPython
@@ -76,35 +74,39 @@ class WxNonBlockingIPShell(NonBlockingIPShell):
 class WxConsoleView(stc.StyledTextCtrl):
     '''
     Specialized styled text control view for console-like workflow.
-    We use here a scintilla frontend thus it can be reused in any GUI taht supports
-    scintilla with less work.
+    We use here a scintilla frontend thus it can be reused in any GUI that 
+    supports scintilla with less work.
 
-    @cvar ANSI_COLORS_BLACK: Mapping of terminal colors to X11 names.(with Black background)
+    @cvar ANSI_COLORS_BLACK: Mapping of terminal colors to X11 names.
+                    (with Black background)
     @type ANSI_COLORS_BLACK: dictionary
 
-    @cvar ANSI_COLORS_WHITE: Mapping of terminal colors to X11 names.(with White background)
+    @cvar ANSI_COLORS_WHITE: Mapping of terminal colors to X11 names.
+                    (with White background)
     @type ANSI_COLORS_WHITE: dictionary
 
     @ivar color_pat: Regex of terminal color pattern
     @type color_pat: _sre.SRE_Pattern
     '''
-    ANSI_STYLES_BLACK ={'0;30': [0,'WHITE'],             '0;31': [1,'RED'],
-                        '0;32': [2,'GREEN'],             '0;33': [3,'BROWN'],
-                        '0;34': [4,'BLUE'],              '0;35': [5,'PURPLE'],
-                        '0;36': [6,'CYAN'],              '0;37': [7,'LIGHT GREY'],
-                        '1;30': [8,'DARK GREY'],         '1;31': [9,'RED'],
-                        '1;32': [10,'SEA GREEN'],        '1;33': [11,'YELLOW'],
-                        '1;34': [12,'LIGHT BLUE'],       '1;35': [13,'MEDIUM VIOLET RED'],
-                        '1;36': [14,'LIGHT STEEL BLUE'], '1;37': [15,'YELLOW']}
+    ANSI_STYLES_BLACK={'0;30': [0,'WHITE'],            '0;31': [1,'RED'],
+                       '0;32': [2,'GREEN'],            '0;33': [3,'BROWN'],
+                       '0;34': [4,'BLUE'],             '0;35': [5,'PURPLE'],
+                       '0;36': [6,'CYAN'],             '0;37': [7,'LIGHT GREY'],
+                       '1;30': [8,'DARK GREY'],        '1;31': [9,'RED'],
+                       '1;32': [10,'SEA GREEN'],       '1;33': [11,'YELLOW'],
+                       '1;34': [12,'LIGHT BLUE'],      '1;35': 
+                                                    [13,'MEDIUM VIOLET RED'],
+                       '1;36': [14,'LIGHT STEEL BLUE'],'1;37': [15,'YELLOW']}
 
-    ANSI_STYLES_WHITE ={'0;30': [0,'BLACK'],             '0;31': [1,'RED'],
-                        '0;32': [2,'GREEN'],             '0;33': [3,'BROWN'],
-                        '0;34': [4,'BLUE'],              '0;35': [5,'PURPLE'],
-                        '0;36': [6,'CYAN'],              '0;37': [7,'LIGHT GREY'],
-                        '1;30': [8,'DARK GREY'],         '1;31': [9,'RED'],
-                        '1;32': [10,'SEA GREEN'],        '1;33': [11,'YELLOW'],
-                        '1;34': [12,'LIGHT BLUE'],       '1;35': [13,'MEDIUM VIOLET RED'],
-                        '1;36': [14,'LIGHT STEEL BLUE'], '1;37': [15,'YELLOW']}
+    ANSI_STYLES_WHITE={'0;30': [0,'BLACK'],            '0;31': [1,'RED'],
+                       '0;32': [2,'GREEN'],            '0;33': [3,'BROWN'],
+                       '0;34': [4,'BLUE'],             '0;35': [5,'PURPLE'],
+                       '0;36': [6,'CYAN'],             '0;37': [7,'LIGHT GREY'],
+                       '1;30': [8,'DARK GREY'],        '1;31': [9,'RED'],
+                       '1;32': [10,'SEA GREEN'],       '1;33': [11,'YELLOW'],
+                       '1;34': [12,'LIGHT BLUE'],      '1;35':
+                                                    [13,'MEDIUM VIOLET RED'],
+                       '1;36': [14,'LIGHT STEEL BLUE'],'1;37': [15,'YELLOW']}
 
     def __init__(self,parent,prompt,intro="",background_color="BLACK",
                  pos=wx.DefaultPosition, ID = -1, size=wx.DefaultSize,
@@ -451,13 +453,14 @@ class WxConsoleView(stc.StyledTextCtrl):
             #print pt
             #self.Refresh(False)
         
-class WxIPythonViewPanel(wx.Panel):
+class IPShellWidget(wx.Panel):
     '''
     This is wx.Panel that embbed the IPython Thread and the wx.StyledTextControl
-    If you want to port this to any other GUI toolkit, just replace the WxConsoleView
-    by YOURGUIConsoleView and make YOURGUIIPythonView derivate from whatever container you want.
-    I've choosed to derivate from a wx.Panel because it seems to be ore usefull
-    Any idea to make it more 'genric' welcomed.
+    If you want to port this to any other GUI toolkit, just replace the 
+    WxConsoleView by YOURGUIConsoleView and make YOURGUIIPythonView derivate 
+    from whatever container you want. I've choosed to derivate from a wx.Panel 
+    because it seems to be more useful
+    Any idea to make it more 'generic' welcomed.
     '''
 
     def __init__(self, parent, ask_exit_handler=None, intro=None,
@@ -514,9 +517,6 @@ class WxIPythonViewPanel(wx.Panel):
         self.cur_state = 'IDLE'
         self.pager_state = 'DONE'
 
-    def __del__(self):
-        WxConsoleView.__del__()
-        
     #---------------------- IPython Thread Management ------------------------
     def stateDoExecuteLine(self):
         #print >>sys.__stdout__,"command:",self.getCurrentLine()
@@ -703,4 +703,25 @@ class WxIPythonViewPanel(wx.Panel):
         Define a new status tracker
         '''
         self.updateStatusTracker = func
-    
+
+
+if __name__ == '__main__':
+    # Some simple code to test the shell widget.
+    class MainWindow(wx.Frame):
+        def __init__(self, parent, id, title):
+            wx.Frame.__init__(self, parent, id, title, size=(300,250))
+            self._sizer = wx.BoxSizer(wx.VERTICAL)
+            self.shell = IPShellWidget(self)
+            self._sizer.Add(self.shell, 1, wx.EXPAND)
+            self.SetSizer(self._sizer)
+            self.SetAutoLayout(1)
+            self.Show(True)
+
+    app = wx.PySimpleApp()
+    frame = MainWindow(None, wx.ID_ANY, 'Ipython')
+    frame.SetSize((780, 460))
+    shell = frame.shell
+
+    app.MainLoop()
+
+
