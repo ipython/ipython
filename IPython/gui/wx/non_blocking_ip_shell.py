@@ -56,7 +56,6 @@ class _Helper(object):
         pydoc.help.output = DummyWriter(self._pager)
         pydoc.help.interact = lambda :1
         
-        #helper.output.write = self.doc.append
         return pydoc.help(*args, **kwds)
 
   
@@ -153,9 +152,12 @@ class NonBlockingIPShell(object):
         ip = IPython.ipapi.get()
         ip.expose_magic('Exit', self._setDoExit)
         ip.expose_magic('Quit', self._setDoExit)
-
+        #we replace the help command
+        self._IP.user_ns['help'] = _Helper(self._pager_help)
+        
         sys.excepthook = excepthook
 
+        #vars used by _execute
         self._iter_more = 0
         self._history_level = 0
         self._complete_sep =  re.compile('[\s\{\}\[\]\(\)]')
@@ -171,9 +173,6 @@ class NonBlockingIPShell(object):
         self._ask_exit = False
         self._add_button = None
 
-        #we replace the help command
-        self._IP.user_ns['help'] = _Helper(self._pager_help)
-        
     #----------------------- Thread management section ----------------------    
     def doExecute(self,line):
         """
