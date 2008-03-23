@@ -180,7 +180,7 @@ class NonBlockingIPShell(object):
         """
 
         self._line_to_execute = line
-       
+        #we launch the ipython line execution in a thread to make it interruptible
         self.ce = _CodeExecutor(self,self._afterExecute)
         self.ce.start()
         

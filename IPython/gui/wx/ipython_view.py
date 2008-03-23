@@ -40,7 +40,7 @@ except Exception,e:
         raise "Error importing IPython (%s)" % str(e)
 
 
-from non_blocking_ip_shell import *
+from NonBlockingIPShell import *
 
 class WxNonBlockingIPShell(NonBlockingIPShell):
     '''
@@ -54,28 +54,28 @@ class WxNonBlockingIPShell(NonBlockingIPShell):
         
         #user_ns['addGUIShortcut'] = self.addGUIShortcut
         NonBlockingIPShell.__init__(self,argv,user_ns,user_global_ns,
-                                 cin, cout, cerr,
-                                 ask_exit_handler)
+                                    cin, cout, cerr,
+                                    ask_exit_handler)
 
         # This creates a new Event class and a EVT binder function
         (self.IPythonAskExitEvent, EVT_IP_ASK_EXIT) = wx.lib.newevent.NewEvent()
-        (self.IPythonAddButtonEvent, EVT_IP_ADD_BUTTON_EXIT) = \
-                                            wx.lib.newevent.NewEvent()
+        #(self.IPythonAddButtonEvent, EVT_IP_ADD_BUTTON_EXIT) = \
+        #                                     wx.lib.newevent.NewEvent()
         (self.IPythonExecuteDoneEvent, EVT_IP_EXECUTE_DONE) = \
                                             wx.lib.newevent.NewEvent()
 
         wx_instance.Bind(EVT_IP_ASK_EXIT, wx_instance.ask_exit_handler)
-        wx_instance.Bind(EVT_IP_ADD_BUTTON_EXIT, wx_instance.add_button_handler)
+        #wx_instance.Bind(EVT_IP_ADD_BUTTON_EXIT, wx_instance.add_button_handler)
         wx_instance.Bind(EVT_IP_EXECUTE_DONE, wx_instance.evtStateExecuteDone)
 
         self.wx_instance = wx_instance
         self._IP.ask_exit = self._askExit
         
-    def addGUIShortcut(self,text,func):
-        evt = self.IPythonAddButtonEvent(
-            button_info={   'text':text, 
-                            'func':self.wx_instance.doExecuteLine(func)})
-        wx.PostEvent(self.wx_instance, evt)
+    #def addGUIShortcut(self,text,func):
+    #    evt = self.IPythonAddButtonEvent(
+    #        button_info={   'text':text, 
+    #                        'func':self.wx_instance.doExecuteLine(func)})
+    #    wx.PostEvent(self.wx_instance, evt)
                     
     def _askExit(self):
         evt = self.IPythonAskExitEvent()
@@ -480,7 +480,7 @@ class WxIPythonViewPanel(wx.Panel):
         '''
         wx.Panel.__init__(self,parent,-1)
 
-        ### IPython thread instanciation ###
+        ### IPython non blocking shell instanciation ###
         self.cout = StringIO()
 
         self.add_button_handler = add_button_handler
@@ -492,6 +492,7 @@ class WxIPythonViewPanel(wx.Panel):
             self.IP = WxNonBlockingIPShell(self,
                                     cout=self.cout,cerr=self.cout,
                                     ask_exit_handler = ask_exit_handler)
+
         ### IPython wx console view instanciation ###
         #If user didn't defined an intro text, we create one for him
         #If you really wnat an empty intrp just call wxIPythonViewPanel with intro=''
@@ -518,30 +519,10 @@ class WxIPythonViewPanel(wx.Panel):
         #and we focus on the widget :)
         self.SetFocus()
 
-        ### below are the thread communication variable ###
-        # the IPython thread is managed via unidirectional communication.
-        # It's a thread slave that can't interact by itself with the GUI.
-        # When the GUI event loop is done runStateMachine() is called and the thread sate is then
-        # managed.
-        
-        #Initialize the state machine #kept for information
-        #self.states = ['IDLE',
-        #               'DO_EXECUTE_LINE',
-        #               'WAIT_END_OF_EXECUTION',
-        #               'SHOW_DOC',
-        #               'SHOW_PROMPT']
-        
-        self.cur_state = 'IDLE'
+        #widget state management (for key handling different cases)
+        self.setCurrentState('IDLE')
         self.pager_state = 'DONE'
-        #wx.CallAfter(self.runStateMachine)
-
-        # This creates a new Event class and a EVT binder function
-        #(self.AskExitEvent, EVT_ASK_EXIT) = wx.lib.newevent.NewEvent()
-        #(self.AddButtonEvent, EVT_ADDBUTTON_EXIT) = wx.lib.newevent.NewEvent()
         
-        
-        #self.Bind(wx.EVT_IDLE, self.runStateMachine)
-                
     def __del__(self):
         WxConsoleView.__del__()
         
@@ -554,27 +535,29 @@ class WxIPythonViewPanel(wx.Panel):
         #print >>sys.__stdout__,"command:",line
         self.IP.doExecute(line.replace('\t',' '*4))
         self.updateHistoryTracker(self.text_ctrl.getCurrentLine())
-        self.cur_state = 'WAIT_END_OF_EXECUTION'
+        self.setCurrentState('WAIT_END_OF_EXECUTION')
 
         
     def evtStateExecuteDone(self,evt):
         self.doc = self.IP.getDocText()
         self.help = self.IP.getHelpText()
         if self.doc:
-            self.pager_state = 'INIT'
-            self.cur_state = 'SHOW_DOC'
+            self.pager_lines = self.doc[7:].split('\n')
+	    self.pager_state = 'INIT'
+            self.setCurrentState('SHOW_DOC')
             self.pager(self.doc)
-            #if self.pager_state == 'DONE':
+            
         if self.help:
-            self.pager_state = 'INIT_HELP'
-            self.cur_state = 'SHOW_DOC'
+            self.pager_lines = self.help.split('\n')
+	    self.pager_state = 'INIT'
+            self.setCurrentState('SHOW_DOC')
             self.pager(self.help)
                 
         else:
             self.stateShowPrompt()
 
     def stateShowPrompt(self):
-        self.cur_state = 'SHOW_PROMPT'
+        self.setCurrentState('SHOW_PROMPT')
         self.text_ctrl.setPrompt(self.IP.getPrompt())
         self.text_ctrl.setIndentation(self.IP.getIndentation())
         self.text_ctrl.setPromptCount(self.IP.getPromptCount())
@@ -583,55 +566,12 @@ class WxIPythonViewPanel(wx.Panel):
         self.text_ctrl.showReturned(rv)
         self.cout.truncate(0)
         self.IP.initHistoryIndex()
-        self.cur_state = 'IDLE'
-        
-##    def runStateMachine(self,event):
-##        #print >>sys.__stdout__,"state:",self.cur_state
-##        self.updateStatusTracker(self.cur_state)
-##        
-##        #if self.cur_state == 'DO_EXECUTE_LINE':
-##        #    self.doExecuteLine()
-##            
-##        if self.cur_state == 'WAIT_END_OF_EXECUTION':
-##            if self.IP.isExecuteDone():
-##                #self.button = self.IP.getAddButton()
-##                #if self.IP.getAskExit():
-##                #    evt = self.AskExitEvent()
-##                #    wx.PostEvent(self, evt)
-##                #    self.IP.clearAskExit()
-##                self.doc = self.IP.getDocText()
-##                if self.doc:
-##                    self.pager_state = 'INIT'
-##          self.cur_state = 'SHOW_DOC'
-##      #if self.button:
-##                    #self.IP.doExecute('print "cool"')#self.button['func'])
-##                    #self.updateHistoryTracker(self.text_ctrl.getCurrentLine())
-##            
-##                #    self.button['func']='print "cool!"'
-##                #    self.add_button_handler(self.button)
-##                #    self.IP.shortcutProcessed()
-##                    
-##                else:
-##                    self.cur_state = 'SHOW_PROMPT'
-##                
-##        if self.cur_state == 'SHOW_PROMPT':
-##            self.text_ctrl.setPrompt(self.IP.getPrompt())
-##            self.text_ctrl.setIndentation(self.IP.getIndentation())
-##            self.text_ctrl.setPromptCount(self.IP.getPromptCount())
-##            rv = self.cout.getvalue()
-##            if rv: rv = rv.strip('\n')
-##            self.text_ctrl.showReturned(rv)
-##            self.cout.truncate(0)
-##	    self.IP.initHistoryIndex()
-##            self.cur_state = 'IDLE'
-##            
-##        if self.cur_state == 'SHOW_DOC':
-##            self.pager(self.doc)
-##            if self.pager_state == 'DONE':
-##                self.cur_state = 'SHOW_PROMPT'
-##                
-##        event.Skip()
+        self.setCurrentState('IDLE')
 
+    def setCurrentState(self, state):
+        self.cur_state = state
+        self.updateStatusTracker(self.cur_state)
+        
     #---------------------------- IPython pager ---------------------------------------
     def pager(self,text):#,start=0,screen_lines=0,pager_cmd = None):
         if self.pager_state == 'WAITING':
@@ -640,22 +580,12 @@ class WxIPythonViewPanel(wx.Panel):
 	
 	if self.pager_state == 'INIT':
 		#print >>sys.__stdout__,"PAGER state:",self.pager_state
-        	self.pager_lines = text[7:].split('\n')
-		self.pager_nb_lines = len(self.pager_lines)
+                self.pager_nb_lines = len(self.pager_lines)
 		self.pager_index = 0
 		self.pager_do_remove = False
 		self.text_ctrl.write('\n')
 		self.pager_state = 'PROCESS_LINES'
 
-	if self.pager_state == 'INIT_HELP':
-		#print >>sys.__stdout__,"HELP PAGER state:",self.pager_state
-        	self.pager_lines = text[:].split('\n')
-		self.pager_nb_lines = len(self.pager_lines)
-		self.pager_index = 0
-		self.pager_do_remove = False
-		self.text_ctrl.write('\n')
-		self.pager_state = 'PROCESS_LINES'
-		
 	if self.pager_state == 'PROCESS_LINES':
         	#print >>sys.__stdout__,"PAGER state:",self.pager_state
         	if self.pager_do_remove == True:
@@ -711,7 +641,7 @@ class WxIPythonViewPanel(wx.Panel):
         if event.KeyCode == wx.WXK_RETURN:
             if self.cur_state == 'IDLE':
                 #we change the state ot the state machine
-                self.cur_state = 'DO_EXECUTE_LINE'
+                self.setCurrentState('DO_EXECUTE_LINE')
                 self.stateDoExecuteLine()
                 return
             if self.pager_state == 'WAITING':
