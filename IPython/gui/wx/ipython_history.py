@@ -70,8 +70,8 @@ class IPythonHistoryPanel(wx.Panel):
                 add = False
             if self.filter_magic.GetValue() == True and history_line[0] == '%':
                 add = False
-	if add:
-        	self.text_ctrl.AppendText(history_line+'\n')
+        if add:
+                self.text_ctrl.AppendText(history_line+'\n')
 
 
 #----------------------------------------------------------------------

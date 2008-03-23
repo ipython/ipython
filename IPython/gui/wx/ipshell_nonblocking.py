@@ -90,8 +90,7 @@ class NonBlockingIPShell(object):
           via raise_exc()
     '''
 
-    def __init__(self,argv
-                 =[],user_ns={},user_global_ns=None,
+    def __init__(self,argv=[],user_ns={},user_global_ns=None,
                  cin=None, cout=None, cerr=None,
                  ask_exit_handler=None):
         '''
@@ -158,14 +157,14 @@ class NonBlockingIPShell(object):
                                             shell_class=IPython.Shell.InteractiveShell)
 
         #we replace IPython default encoding by wx locale encoding
-	loc = locale.getpreferredencoding()
-	if loc:
-        	self._IP.stdin_encoding = loc
+        loc = locale.getpreferredencoding()
+        if loc:
+                self._IP.stdin_encoding = loc
         #we replace the ipython default pager by our pager
         self._IP.set_hook('show_in_pager',self._pager)
         
         #we replace the ipython default shell command caller by our shell handler
-	self._IP.set_hook('shell_hook',self._shell)
+        self._IP.set_hook('shell_hook',self._shell)
         
         #we replace the ipython default input command caller by our method
         IPython.iplib.raw_input_original = self._raw_input
@@ -300,10 +299,10 @@ class NonBlockingIPShell(object):
         '''
         history = ''
         #the below while loop is used to suppress empty history lines
-	while((history == '' or history == '\n') and self._history_level >0):
-		if self._history_level>=1:
-			self._history_level -= 1
-		history = self._getHistory()		
+        while((history == '' or history == '\n') and self._history_level >0):
+                if self._history_level>=1:
+                        self._history_level -= 1
+                history = self._getHistory()            
         return history
 
     def historyForward(self):
@@ -313,18 +312,18 @@ class NonBlockingIPShell(object):
         @return: The command string.
         @rtype: string
         '''
-	history = ''
-	#the below while loop is used to suppress empty history lines
-	while((history == '' or history == '\n') and self._history_level <= self._getHistoryMaxIndex()):
-		if self._history_level < self._getHistoryMaxIndex():
-			self._history_level += 1
-			history = self._getHistory()
-		else:
-			if self._history_level == self._getHistoryMaxIndex():
-				history = self._getHistory()
-				self._history_level += 1
-			else:
-				history = ''
+        history = ''
+        #the below while loop is used to suppress empty history lines
+        while((history == '' or history == '\n') and self._history_level <= self._getHistoryMaxIndex()):
+                if self._history_level < self._getHistoryMaxIndex():
+                        self._history_level += 1
+                        history = self._getHistory()
+                else:
+                        if self._history_level == self._getHistoryMaxIndex():
+                                history = self._getHistory()
+                                self._history_level += 1
+                        else:
+                                history = ''
         return history
 
     def initHistoryIndex(self):
