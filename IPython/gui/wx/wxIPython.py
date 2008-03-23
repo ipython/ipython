@@ -2,11 +2,13 @@
 # -*- coding: iso-8859-15 -*-
 
 import wx.aui
-import wx.py
+
+#used for about dialog
 from wx.lib.wordwrap import wordwrap
 
-from ipython_view import IPShellWidget
-from ipython_history import *
+#used for ipython GUI objects
+from IPython.gui.wx.ipython_view import IPShellWidget 
+from IPython.gui.wx.ipython_history import IPythonHistoryPanel
 
 __version__ = 0.8
 __author__  = "Laurent Dufrechou"
