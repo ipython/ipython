@@ -40,50 +40,37 @@ except Exception,e:
         raise "Error importing IPython (%s)" % str(e)
 
 
-from non_blocking_ip_shell import *
+from non_blocking_ip_shell import NonBlockingIPShell
 
 class WxNonBlockingIPShell(NonBlockingIPShell):
     '''
     An NonBlockingIPShell Thread that is WX dependent.
-    Thus it permits direct interaction with a WX GUI without OnIdle event state machine trick...
     '''
-    def __init__(self,wx_instance,
+    def __init__(self, parent, 
                  argv=[],user_ns={},user_global_ns=None,
                  cin=None, cout=None, cerr=None,
                  ask_exit_handler=None):
         
-        #user_ns['addGUIShortcut'] = self.addGUIShortcut
         NonBlockingIPShell.__init__(self,argv,user_ns,user_global_ns,
                                  cin, cout, cerr,
                                  ask_exit_handler)
 
-        # This creates a new Event class and a EVT binder function
-        (self.IPythonAskExitEvent, EVT_IP_ASK_EXIT) = wx.lib.newevent.NewEvent()
-        (self.IPythonAddButtonEvent, EVT_IP_ADD_BUTTON_EXIT) = \
-                                            wx.lib.newevent.NewEvent()
-        (self.IPythonExecuteDoneEvent, EVT_IP_EXECUTE_DONE) = \
-                                            wx.lib.newevent.NewEvent()
+        self.parent = parent
 
-        wx_instance.Bind(EVT_IP_ASK_EXIT, wx_instance.ask_exit_handler)
-        wx_instance.Bind(EVT_IP_ADD_BUTTON_EXIT, wx_instance.add_button_handler)
-        wx_instance.Bind(EVT_IP_EXECUTE_DONE, wx_instance.evtStateExecuteDone)
-
-        self.wx_instance = wx_instance
+        self.ask_exit_callback = ask_exit_handler
         self._IP.ask_exit = self._askExit
+
         
     def addGUIShortcut(self,text,func):
-        evt = self.IPythonAddButtonEvent(
-            button_info={   'text':text, 
-                            'func':self.wx_instance.doExecuteLine(func)})
-        wx.PostEvent(self.wx_instance, evt)
+        wx.CallAfter(self.parent.add_button_handler, 
+                button_info={   'text':text, 
+                                'func':self.parent.doExecuteLine(func)})
                     
     def _askExit(self):
-        evt = self.IPythonAskExitEvent()
-        wx.PostEvent(self.wx_instance, evt)
+        wx.CallAfter(self.ask_exit_callback, ())
 
     def _afterExecute(self):
-        evt = self.IPythonExecuteDoneEvent()
-        wx.PostEvent(self.wx_instance, evt)
+        wx.CallAfter(self.parent.evtStateExecuteDone, ())
 
                 
 class WxConsoleView(stc.StyledTextCtrl):
