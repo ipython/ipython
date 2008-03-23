@@ -112,6 +112,29 @@ class NonBlockingIPShell(object):
         @param time_loop: Define the sleep time between two thread's loop
         @type int
         '''
+        #ipython0 initialisation
+        self.initIpython0(argv, user_ns, user_global_ns,
+                          cin, cout, cerr,
+                          ask_exit_handler)
+        
+        #vars used by _execute
+        self._iter_more = 0
+        self._history_level = 0
+        self._complete_sep =  re.compile('[\s\{\}\[\]\(\)]')
+        self._prompt = str(self._IP.outputcache.prompt1).strip()
+
+        #thread working vars
+        self._line_to_execute = ''
+
+        #vars that will be checked by GUI loop to handle thread states...
+        #will be replaced later by PostEvent GUI funtions...
+        self._doc_text = None
+        self._help_text = None
+        self._add_button = None
+
+    def initIpython0(self, argv=[], user_ns={}, user_global_ns=None,
+                     cin=None, cout=None, cerr=None,
+                     ask_exit_handler=None):
         #first we redefine in/out/error functions of IPython 
         if cin:
             IPython.Shell.Term.cin = cin
@@ -147,31 +170,11 @@ class NonBlockingIPShell(object):
         #we replace the ipython default input command caller by our method
         IPython.iplib.raw_input_original = self._raw_input
         #we replace the ipython default exit command by our method
-        self._IP.exit = self._setAskExit
-        #we modify Exit and Quit Magic
-        ip = IPython.ipapi.get()
-        ip.expose_magic('Exit', self._setDoExit)
-        ip.expose_magic('Quit', self._setDoExit)
+        self._IP.exit = ask_exit_handler
         #we replace the help command
         self._IP.user_ns['help'] = _Helper(self._pager_help)
         
         sys.excepthook = excepthook
-
-        #vars used by _execute
-        self._iter_more = 0
-        self._history_level = 0
-        self._complete_sep =  re.compile('[\s\{\}\[\]\(\)]')
-        self._prompt = str(self._IP.outputcache.prompt1).strip()
-
-        #thread working vars
-        self._line_to_execute = ''
-
-        #vars that will be checked by GUI loop to handle thread states...
-        #will be replaced later by PostEvent GUI funtions...
-        self._doc_text = None
-        self._help_text = None
-        self._ask_exit = False
-        self._add_button = None
 
     #----------------------- Thread management section ----------------------    
     def doExecute(self,line):
@@ -185,19 +188,6 @@ class NonBlockingIPShell(object):
         self.ce.start()
         
     #----------------------- IPython management section ----------------------    
-    def getAskExit(self):
-        '''
-        returns the _ask_exit variable that can be checked by GUI to see if
-        IPython request an exit handling
-        '''
-        return self._ask_exit
-
-    def clearAskExit(self):
-        '''
-        clear the _ask_exit var when GUI as handled the request.
-        '''
-        self._ask_exit = False
-        
     def getDocText(self):
         """
         Returns the output of the processing that need to be paged (if any)
@@ -350,20 +340,12 @@ class NonBlockingIPShell(object):
         '''
         pass
 
-    def _setAskExit(self):
-        '''
-        set the _ask_exit variable that can be checked by GUI to see if
-        IPython request an exit handling
-        '''
-        self._ask_exit = True
+    #def _askExit(self):
+    #    '''
+    #    Can be redefined to generate post event to exit the Ipython shell
+    #    '''
+    #    pass
 
-    def _setDoExit(self, toto, arg):
-        '''
-        set the _do_exit variable that can be checked by GUI to see if
-        IPython do a direct exit of the app
-        '''
-        self._do_exit = True
-        
     def _getHistoryMaxIndex(self):
         '''
         returns the max length of the history buffer

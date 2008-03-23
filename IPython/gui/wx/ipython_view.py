@@ -40,7 +40,7 @@ except Exception,e:
         raise "Error importing IPython (%s)" % str(e)
 
 
-from NonBlockingIPShell import *
+from ipshell_nonblocking import NonBlockingIPShell
 
 class WxNonBlockingIPShell(NonBlockingIPShell):
     '''
@@ -70,6 +70,7 @@ class WxNonBlockingIPShell(NonBlockingIPShell):
 
         self.wx_instance = wx_instance
         self._IP.ask_exit = self._askExit
+        self._IP.exit = self._askExit
         
     #def addGUIShortcut(self,text,func):
     #    evt = self.IPythonAddButtonEvent(
@@ -529,14 +530,10 @@ class WxIPythonViewPanel(wx.Panel):
     #---------------------------- IPython Thread Management ---------------------------------------
     def stateDoExecuteLine(self):
         #print >>sys.__stdout__,"command:",self.getCurrentLine()
-        self.doExecuteLine(self.text_ctrl.getCurrentLine())
-        
-    def doExecuteLine(self,line):
-        #print >>sys.__stdout__,"command:",line
+        line=self.text_ctrl.getCurrentLine()
         self.IP.doExecute(line.replace('\t',' '*4))
         self.updateHistoryTracker(self.text_ctrl.getCurrentLine())
         self.setCurrentState('WAIT_END_OF_EXECUTION')
-
         
     def evtStateExecuteDone(self,evt):
         self.doc = self.IP.getDocText()
