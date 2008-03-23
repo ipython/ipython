@@ -55,9 +55,8 @@ class _Helper(object):
         
         #helper.output.write = self.doc.append
         return pydoc.help(*args, **kwds)
-
-  
-class IterableIPShell(Thread):
+    
+class IterableIPShell(object):
     '''
     Create an IPython instance inside a dedicated thread.
     Does not start a blocking event loop, instead allow single iterations.
@@ -70,7 +69,7 @@ class IterableIPShell(Thread):
     def __init__(self,argv
                  =[],user_ns={},user_global_ns=None,
                  cin=None, cout=None, cerr=None,
-                 exit_handler=None,time_loop = 0.1):
+                 ask_exit_handler=None, do_exit_handler=None, time_loop = 0.1):
         '''
         @param argv: Command line options for IPython
         @type argv: list
@@ -89,7 +88,6 @@ class IterableIPShell(Thread):
         @param time_loop: Define the sleep time between two thread's loop
         @type int
         '''
-        Thread.__init__(self)
 
         #first we redefine in/out/error functions of IPython 
         if cin:
@@ -127,7 +125,11 @@ class IterableIPShell(Thread):
         IPython.iplib.raw_input_original = self._raw_input
         #we replace the ipython default exit command by our method
         self._IP.exit = self._setAskExit
-                    
+        #we modify Exit and Quit Magic
+        ip = IPython.ipapi.get()
+        ip.expose_magic('Exit', self._setDoExit)
+        ip.expose_magic('Quit', self._setDoExit)
+
         sys.excepthook = excepthook
 
         self._iter_more = 0
@@ -136,9 +138,6 @@ class IterableIPShell(Thread):
         self._prompt = str(self._IP.outputcache.prompt1).strip()
 
         #thread working vars
-        self._terminate = False
-        self._time_loop = time_loop
-        self._do_execute = False
         self._line_to_execute = ''
 
         #vars that will be checked by GUI loop to handle thread states...
@@ -152,46 +151,30 @@ class IterableIPShell(Thread):
         self._IP.user_ns['help'] = _Helper(self._pager_help)
         
     #----------------------- Thread management section ----------------------    
-    def run (self):
-        """
-        Thread main loop
-        The thread will run until self._terminate will be set to True via shutdown() function
-        Command processing can be interrupted with Instance.raise_exc(KeyboardInterrupt) call in the
-        GUI thread.
-        """
-        while(not self._terminate):
-            try:
-                if self._do_execute:
-                    self._doc_text = None
-                    self._help_text = None
-                    self._execute()
-                    self._do_execute = False
-                    self._afterExecute() #used for uper class to generate event after execution
-                
-            except KeyboardInterrupt:
-                pass
-
-            time.sleep(self._time_loop)
-            
-    def shutdown(self): 
-        """
-        Shutdown the tread
-        """
-        self._terminate = True
-
     def doExecute(self,line):
         """
         Tell the thread to process the 'line' command
         """
-        self._do_execute = True
-        self._line_to_execute = line
-        
-    def isExecuteDone(self):
-        """
-        Returns the processing state
-        """
-        return not self._do_execute
 
+        self._line_to_execute = line
+        class CodeExecutor(Thread):
+            def __init__(self,instance,after):
+                Thread.__init__(self)
+                self.instance = instance
+                self._afterExecute=after
+            def run(self):
+                try:
+                    self.instance._doc_text = None
+                    self.instance._help_text = None
+                    self.instance._execute()
+                    self._afterExecute() #used for uper class to generate event after execution
+                    
+                except KeyboardInterrupt:
+                    pass
+        
+        self.ce = CodeExecutor(self,self._afterExecute)
+        self.ce.start()
+        
     #----------------------- IPython management section ----------------------    
     def getAskExit(self):
         '''
@@ -360,10 +343,17 @@ class IterableIPShell(Thread):
 
     def _setAskExit(self):
         '''
-        set the _ask_exit variable that can be cjhecked by GUI to see if
+        set the _ask_exit variable that can be checked by GUI to see if
         IPython request an exit handling
         '''
         self._ask_exit = True
+
+    def _setDoExit(self, toto, arg):
+        '''
+        set the _do_exit variable that can be checked by GUI to see if
+        IPython do a direct exit of the app
+        '''
+        self._do_exit = True
         
     def _getHistoryMaxIndex(self):
         '''
@@ -378,7 +368,7 @@ class IterableIPShell(Thread):
         '''
         Get's the command string of the current history level.
 
-        @return: Historic command string.
+        @return: Historic command stri
         @rtype: string
         '''
         rv = self._IP.input_hist_raw[self._history_level].strip('\n')
