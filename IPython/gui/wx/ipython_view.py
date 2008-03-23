@@ -543,13 +543,11 @@ class WxIPythonViewPanel(wx.Panel):
 	    self.pager_state = 'INIT'
             self.setCurrentState('SHOW_DOC')
             self.pager(self.doc)
-            
-        if self.help:
+        elif self.help:
             self.pager_lines = self.help.split('\n')
 	    self.pager_state = 'INIT'
             self.setCurrentState('SHOW_DOC')
-            self.pager(self.help)
-                
+            self.pager(self.help)                
         else:
             self.stateShowPrompt()
 
