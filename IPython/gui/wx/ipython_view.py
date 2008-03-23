@@ -569,11 +569,8 @@ class WxIPythonViewPanel(wx.Panel):
         
     #---------------------------- IPython pager ---------------------------------------
     def pager(self,text):#,start=0,screen_lines=0,pager_cmd = None):
-        if self.pager_state == 'WAITING':
-		#print >>sys.__stdout__,"PAGER waiting"
-        	return
-	
-	if self.pager_state == 'INIT':
+
+        if self.pager_state == 'INIT':
 		#print >>sys.__stdout__,"PAGER state:",self.pager_state
                 self.pager_nb_lines = len(self.pager_lines)
 		self.pager_index = 0
