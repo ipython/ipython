@@ -106,7 +106,8 @@ class WxConsoleView(stc.StyledTextCtrl):
                         '1;34': [12,'LIGHT BLUE'],       '1;35': [13,'MEDIUM VIOLET RED'],
                         '1;36': [14,'LIGHT STEEL BLUE'], '1;37': [15,'YELLOW']}
 
-    def __init__(self,parent,prompt,intro="",background_color="BLACK",pos=wx.DefaultPosition, ID = -1, size=wx.DefaultSize,
+    def __init__(self,parent,prompt,intro="",background_color="BLACK",
+                 pos=wx.DefaultPosition, ID = -1, size=wx.DefaultSize,
                  style=0):
         '''
         Initialize console view.
@@ -122,9 +123,10 @@ class WxConsoleView(stc.StyledTextCtrl):
         '''
         stc.StyledTextCtrl.__init__(self, parent, ID, pos, size, style)
 
-        ####### Scintilla configuration ##################################################
+        ####### Scintilla configuration ###################################
         
-        # Ctrl + B or Ctrl + N can be used to zoomin/zoomout the text inside the widget
+        # Ctrl + B or Ctrl + N can be used to zoomin/zoomout the text inside 
+        # the widget
         self.CmdKeyAssign(ord('B'), stc.STC_SCMOD_CTRL, stc.STC_CMD_ZOOMIN)
         self.CmdKeyAssign(ord('N'), stc.STC_SCMOD_CTRL, stc.STC_CMD_ZOOMOUT)
 
@@ -186,12 +188,16 @@ class WxConsoleView(stc.StyledTextCtrl):
             self.SetCaretForeground("WHITE")
             self.ANSI_STYLES = self.ANSI_STYLES_BLACK
 
-        self.StyleSetSpec(stc.STC_STYLE_DEFAULT, "fore:%s,back:%s,size:%d,face:%s" % (self.ANSI_STYLES['0;30'][1],
-                                                                                      self.background_color,
-                                                                                      faces['size'], faces['mono']))
+        self.StyleSetSpec(stc.STC_STYLE_DEFAULT, 
+                          "fore:%s,back:%s,size:%d,face:%s" 
+                                    % (self.ANSI_STYLES['0;30'][1],
+                          self.background_color,
+                          faces['size'], faces['mono']))
         self.StyleClearAll()
-        self.StyleSetSpec(stc.STC_STYLE_BRACELIGHT,  "fore:#FF0000,back:#0000FF,bold")
-        self.StyleSetSpec(stc.STC_STYLE_BRACEBAD,    "fore:#000000,back:#FF0000,bold")
+        self.StyleSetSpec(stc.STC_STYLE_BRACELIGHT,  
+                          "fore:#FF0000,back:#0000FF,bold")
+        self.StyleSetSpec(stc.STC_STYLE_BRACEBAD,
+                          "fore:#000000,back:#FF0000,bold")
     
         for style in self.ANSI_STYLES.values():
             self.StyleSetSpec(style[0], "bold,fore:%s" % style[1])
@@ -207,7 +213,6 @@ class WxConsoleView(stc.StyledTextCtrl):
         self.showPrompt()
         
         self.Bind(wx.EVT_KEY_DOWN, self._onKeypress, self)
-        #self.Bind(stc.EVT_STC_UPDATEUI, self.OnUpdateUI)
 
     def write(self, text):
         '''
@@ -481,7 +486,8 @@ class WxIPythonViewPanel(wx.Panel):
                                     ask_exit_handler = ask_exit_handler)
         ### IPython wx console view instanciation ###
         #If user didn't defined an intro text, we create one for him
-        #If you really wnat an empty intrp just call wxIPythonViewPanel with intro=''
+        #If you really wnat an empty intrp just call wxIPythonViewPanel 
+        #with intro=''
         if intro == None:
             welcome_text = "Welcome to WxIPython Shell.\n\n"
             welcome_text+= self.IP.getBanner()
@@ -505,34 +511,13 @@ class WxIPythonViewPanel(wx.Panel):
         #and we focus on the widget :)
         self.SetFocus()
 
-        ### below are the thread communication variable ###
-        # the IPython thread is managed via unidirectional communication.
-        # It's a thread slave that can't interact by itself with the GUI.
-        # When the GUI event loop is done runStateMachine() is called and the thread sate is then
-        # managed.
-        
-        #Initialize the state machine #kept for information
-        #self.states = ['IDLE',
-        #               'DO_EXECUTE_LINE',
-        #               'WAIT_END_OF_EXECUTION',
-        #               'SHOW_DOC',
-        #               'SHOW_PROMPT']
-        
         self.cur_state = 'IDLE'
         self.pager_state = 'DONE'
-        #wx.CallAfter(self.runStateMachine)
 
-        # This creates a new Event class and a EVT binder function
-        #(self.AskExitEvent, EVT_ASK_EXIT) = wx.lib.newevent.NewEvent()
-        #(self.AddButtonEvent, EVT_ADDBUTTON_EXIT) = wx.lib.newevent.NewEvent()
-        
-        
-        #self.Bind(wx.EVT_IDLE, self.runStateMachine)
-                
     def __del__(self):
         WxConsoleView.__del__()
         
-    #---------------------------- IPython Thread Management ---------------------------------------
+    #---------------------- IPython Thread Management ------------------------
     def stateDoExecuteLine(self):
         #print >>sys.__stdout__,"command:",self.getCurrentLine()
         self.doExecuteLine(self.text_ctrl.getCurrentLine())
@@ -571,55 +556,8 @@ class WxIPythonViewPanel(wx.Panel):
         self.cout.truncate(0)
         self.IP.initHistoryIndex()
         self.cur_state = 'IDLE'
-        
-##    def runStateMachine(self,event):
-##        #print >>sys.__stdout__,"state:",self.cur_state
-##        self.updateStatusTracker(self.cur_state)
-##        
-##        #if self.cur_state == 'DO_EXECUTE_LINE':
-##        #    self.doExecuteLine()
-##            
-##        if self.cur_state == 'WAIT_END_OF_EXECUTION':
-##            if self.IP.isExecuteDone():
-##                #self.button = self.IP.getAddButton()
-##                #if self.IP.getAskExit():
-##                #    evt = self.AskExitEvent()
-##                #    wx.PostEvent(self, evt)
-##                #    self.IP.clearAskExit()
-##                self.doc = self.IP.getDocText()
-##                if self.doc:
-##                    self.pager_state = 'INIT'
-##          self.cur_state = 'SHOW_DOC'
-##      #if self.button:
-##                    #self.IP.doExecute('print "cool"')#self.button['func'])
-##                    #self.updateHistoryTracker(self.text_ctrl.getCurrentLine())
-##            
-##                #    self.button['func']='print "cool!"'
-##                #    self.add_button_handler(self.button)
-##                #    self.IP.shortcutProcessed()
-##                    
-##                else:
-##                    self.cur_state = 'SHOW_PROMPT'
-##                
-##        if self.cur_state == 'SHOW_PROMPT':
-##            self.text_ctrl.setPrompt(self.IP.getPrompt())
-##            self.text_ctrl.setIndentation(self.IP.getIndentation())
-##            self.text_ctrl.setPromptCount(self.IP.getPromptCount())
-##            rv = self.cout.getvalue()
-##            if rv: rv = rv.strip('\n')
-##            self.text_ctrl.showReturned(rv)
-##            self.cout.truncate(0)
-##          self.IP.initHistoryIndex()
-##            self.cur_state = 'IDLE'
-##            
-##        if self.cur_state == 'SHOW_DOC':
-##            self.pager(self.doc)
-##            if self.pager_state == 'DONE':
-##                self.cur_state = 'SHOW_PROMPT'
-##                
-##        event.Skip()
 
-    #---------------------------- IPython pager ---------------------------------------
+    #------------------------ IPython pager ----------------------------------
     def pager(self,text):#,start=0,screen_lines=0,pager_cmd = None):
         if self.pager_state == 'WAITING':
                 #print >>sys.__stdout__,"PAGER waiting"
@@ -681,7 +619,7 @@ class WxIPythonViewPanel(wx.Panel):
                         self.pager_state = 'DONE'
                         self.stateShowPrompt()
                 
-    #---------------------------- Key Handler --------------------------------------------
+    #------------------------ Key Handler ------------------------------------
     def keyPress(self, event):
         '''
         Key press callback with plenty of shell goodness, like history,
@@ -741,7 +679,7 @@ class WxIPythonViewPanel(wx.Panel):
                 return
             event.Skip()
         
-    #---------------------------- Hook Section --------------------------------------------
+    #------------------------ Hook Section -----------------------------------
     def updateHistoryTracker(self,command_line):
         '''
         Default history tracker (does nothing)
@@ -753,6 +691,7 @@ class WxIPythonViewPanel(wx.Panel):
         Define a new history tracker
         '''
         self.updateHistoryTracker = func
+
     def updateStatusTracker(self,status):
         '''
         Default status tracker (does nothing)

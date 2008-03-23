@@ -90,8 +90,7 @@ class NonBlockingIPShell(object):
           via raise_exc()
     '''
 
-    def __init__(self,argv
-                 =[],user_ns={},user_global_ns=None,
+    def __init__(self,argv=[],user_ns={},user_global_ns=None,
                  cin=None, cout=None, cerr=None,
                  ask_exit_handler=None):
         '''
