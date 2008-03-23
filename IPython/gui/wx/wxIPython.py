@@ -48,7 +48,7 @@ class MyFrame(wx.Frame):
         # main panels
         self._mgr.AddPane(self.ipython_panel , wx.CENTER, "IPython Shell")
         self._mgr.AddPane(self.history_panel , wx.RIGHT,  "IPython history")
-        	
+                
         # now we specify some panel characteristics
         self._mgr.GetPane(self.ipython_panel).CaptionVisible(True);
         self._mgr.GetPane(self.history_panel).CaptionVisible(True);

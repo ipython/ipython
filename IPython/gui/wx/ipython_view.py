@@ -375,7 +375,7 @@ class WxConsoleView(stc.StyledTextCtrl):
         @return: Return True if event as been catched.
         @rtype: boolean
         '''
-	
+        
         if event.GetKeyCode() == wx.WXK_HOME:
             if event.Modifiers == wx.MOD_NONE:
                 self.moveCursorOnNewValidKey()
@@ -399,9 +399,9 @@ class WxConsoleView(stc.StyledTextCtrl):
 
         elif event.GetKeyCode() == wx.WXK_BACK:
             self.moveCursorOnNewValidKey()
-	    if self.getCursorPos() > self.getCurrentPromptStart():
+            if self.getCursorPos() > self.getCurrentPromptStart():
                 self.removeFromTo(self.getCursorPos()-1,self.getCursorPos())
-	    return True
+            return True
         
         if skip:
             if event.GetKeyCode() not in [wx.WXK_PAGEUP,wx.WXK_PAGEDOWN] and event.Modifiers == wx.MOD_NONE:
@@ -609,7 +609,7 @@ class WxIPythonViewPanel(wx.Panel):
 ##            if rv: rv = rv.strip('\n')
 ##            self.text_ctrl.showReturned(rv)
 ##            self.cout.truncate(0)
-##	    self.IP.initHistoryIndex()
+##          self.IP.initHistoryIndex()
 ##            self.cur_state = 'IDLE'
 ##            
 ##        if self.cur_state == 'SHOW_DOC':
@@ -622,64 +622,64 @@ class WxIPythonViewPanel(wx.Panel):
     #---------------------------- IPython pager ---------------------------------------
     def pager(self,text):#,start=0,screen_lines=0,pager_cmd = None):
         if self.pager_state == 'WAITING':
-		#print >>sys.__stdout__,"PAGER waiting"
-        	return
-	
-	if self.pager_state == 'INIT':
-		#print >>sys.__stdout__,"PAGER state:",self.pager_state
-        	self.pager_lines = text[7:].split('\n')
-		self.pager_nb_lines = len(self.pager_lines)
-		self.pager_index = 0
-		self.pager_do_remove = False
-		self.text_ctrl.write('\n')
-		self.pager_state = 'PROCESS_LINES'
+                #print >>sys.__stdout__,"PAGER waiting"
+                return
+        
+        if self.pager_state == 'INIT':
+                #print >>sys.__stdout__,"PAGER state:",self.pager_state
+                self.pager_lines = text[7:].split('\n')
+                self.pager_nb_lines = len(self.pager_lines)
+                self.pager_index = 0
+                self.pager_do_remove = False
+                self.text_ctrl.write('\n')
+                self.pager_state = 'PROCESS_LINES'
 
-	if self.pager_state == 'INIT_HELP':
-		#print >>sys.__stdout__,"HELP PAGER state:",self.pager_state
-        	self.pager_lines = text[:].split('\n')
-		self.pager_nb_lines = len(self.pager_lines)
-		self.pager_index = 0
-		self.pager_do_remove = False
-		self.text_ctrl.write('\n')
-		self.pager_state = 'PROCESS_LINES'
-		
-	if self.pager_state == 'PROCESS_LINES':
-        	#print >>sys.__stdout__,"PAGER state:",self.pager_state
-        	if self.pager_do_remove == True:
-			self.text_ctrl.removeCurrentLine()
-			self.pager_do_remove = False
-	
-		if self.pager_nb_lines > 10:
-	                #print >>sys.__stdout__,"PAGER processing 10 lines"
-			if self.pager_index > 0:
-				self.text_ctrl.write(">\x01\x1b[1;36m\x02"+self.pager_lines[self.pager_index]+'\n')
-			else:
-				self.text_ctrl.write("\x01\x1b[1;36m\x02 "+self.pager_lines[self.pager_index]+'\n')
-			
-			for line in self.pager_lines[self.pager_index+1:self.pager_index+9]:
-				self.text_ctrl.write("\x01\x1b[1;36m\x02 "+line+'\n')
-			self.pager_index += 10
-			self.pager_nb_lines -= 10
-			self.text_ctrl.write("--- Push Enter to continue or 'Q' to quit---")
-			self.pager_do_remove = True
-			self.pager_state = 'WAITING'
-			return
-        	else:
-	                #print >>sys.__stdout__,"PAGER processing last lines"
-			if self.pager_nb_lines > 0:
-				if self.pager_index > 0:
-					self.text_ctrl.write(">\x01\x1b[1;36m\x02"+self.pager_lines[self.pager_index]+'\n')
-				else:
-					self.text_ctrl.write("\x01\x1b[1;36m\x02 "+self.pager_lines[self.pager_index]+'\n')
-				
-				self.pager_index += 1
+        if self.pager_state == 'INIT_HELP':
+                #print >>sys.__stdout__,"HELP PAGER state:",self.pager_state
+                self.pager_lines = text[:].split('\n')
+                self.pager_nb_lines = len(self.pager_lines)
+                self.pager_index = 0
+                self.pager_do_remove = False
+                self.text_ctrl.write('\n')
+                self.pager_state = 'PROCESS_LINES'
+                
+        if self.pager_state == 'PROCESS_LINES':
+                #print >>sys.__stdout__,"PAGER state:",self.pager_state
+                if self.pager_do_remove == True:
+                        self.text_ctrl.removeCurrentLine()
+                        self.pager_do_remove = False
+        
+                if self.pager_nb_lines > 10:
+                        #print >>sys.__stdout__,"PAGER processing 10 lines"
+                        if self.pager_index > 0:
+                                self.text_ctrl.write(">\x01\x1b[1;36m\x02"+self.pager_lines[self.pager_index]+'\n')
+                        else:
+                                self.text_ctrl.write("\x01\x1b[1;36m\x02 "+self.pager_lines[self.pager_index]+'\n')
+                        
+                        for line in self.pager_lines[self.pager_index+1:self.pager_index+9]:
+                                self.text_ctrl.write("\x01\x1b[1;36m\x02 "+line+'\n')
+                        self.pager_index += 10
+                        self.pager_nb_lines -= 10
+                        self.text_ctrl.write("--- Push Enter to continue or 'Q' to quit---")
+                        self.pager_do_remove = True
+                        self.pager_state = 'WAITING'
+                        return
+                else:
+                        #print >>sys.__stdout__,"PAGER processing last lines"
+                        if self.pager_nb_lines > 0:
+                                if self.pager_index > 0:
+                                        self.text_ctrl.write(">\x01\x1b[1;36m\x02"+self.pager_lines[self.pager_index]+'\n')
+                                else:
+                                        self.text_ctrl.write("\x01\x1b[1;36m\x02 "+self.pager_lines[self.pager_index]+'\n')
+                                
+                                self.pager_index += 1
                                 self.pager_nb_lines -= 1
-	              	if self.pager_nb_lines > 0:
-        	        	for line in self.pager_lines[self.pager_index:]:
-					self.text_ctrl.write("\x01\x1b[1;36m\x02 "+line+'\n')
-                			self.pager_nb_lines = 0
-			self.pager_state = 'DONE'
-			self.stateShowPrompt()
+                        if self.pager_nb_lines > 0:
+                                for line in self.pager_lines[self.pager_index:]:
+                                        self.text_ctrl.write("\x01\x1b[1;36m\x02 "+line+'\n')
+                                        self.pager_nb_lines = 0
+                        self.pager_state = 'DONE'
+                        self.stateShowPrompt()
                 
     #---------------------------- Key Handler --------------------------------------------
     def keyPress(self, event):
@@ -687,7 +687,7 @@ class WxIPythonViewPanel(wx.Panel):
         Key press callback with plenty of shell goodness, like history,
         autocompletions, etc.
         '''
-	
+        
         if event.GetKeyCode() == ord('C'):
             if event.Modifiers == wx.MOD_CONTROL:
                 if self.cur_state == 'WAIT_END_OF_EXECUTION':
@@ -713,7 +713,7 @@ class WxIPythonViewPanel(wx.Panel):
                 return
             
         #scroll_position = self.text_ctrl.GetScrollPos(wx.VERTICAL)
-	if self.cur_state == 'IDLE':
+        if self.cur_state == 'IDLE':
             if event.KeyCode == wx.WXK_UP:
                 history = self.IP.historyBack()
                 self.text_ctrl.writeHistory(history)
@@ -740,7 +740,7 @@ class WxIPythonViewPanel(wx.Panel):
                 
                 return
             event.Skip()
-	
+        
     #---------------------------- Hook Section --------------------------------------------
     def updateHistoryTracker(self,command_line):
         '''
