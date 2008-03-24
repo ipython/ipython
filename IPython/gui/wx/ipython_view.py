@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: iso-8859-15 -*-
 '''
-Provides IPython WX console widget.
+Provides IPython WX console widgets.
 
 @author: Laurent Dufrechou
 laurent.dufrechou _at_ gmail.com
@@ -30,428 +30,85 @@ import wx.lib.newevent
 
 import re
 import sys
-import os
 import locale
-import time
-from ThreadEx import Thread
 from StringIO import StringIO
-
 try:
         import IPython
 except Exception,e:
         raise "Error importing IPython (%s)" % str(e)
 
-class IterableIPShell(Thread):
-    '''
-    Create an IPython instance inside a dedicated thread.
-    Does not start a blocking event loop, instead allow single iterations.
-    This allows embedding in any GUI without blockage.
-    The thread is a slave one, in that it doesn't interact directly with the GUI.
-    Note Thread class comes from ThreadEx that supports asynchroneous function call
-    via raise_exc()
-    '''
+from ipshell_nonblocking import NonBlockingIPShell
 
-    def __init__(self,argv=[],user_ns=None,user_global_ns=None,
+
+class WxNonBlockingIPShell(NonBlockingIPShell):
+    '''
+    An NonBlockingIPShell Thread that is WX dependent.
+    '''
+    def __init__(self, parent, 
+                 argv=[],user_ns={},user_global_ns=None,
                  cin=None, cout=None, cerr=None,
-                 exit_handler=None,time_loop = 0.1):
-        '''
-        @param argv: Command line options for IPython
-        @type argv: list
-        @param user_ns: User namespace.
-        @type user_ns: dictionary
-        @param user_global_ns: User global namespace.
-        @type user_global_ns: dictionary.
-        @param cin: Console standard input.
-        @type cin: IO stream
-        @param cout: Console standard output.
-        @type cout: IO stream
-        @param cerr: Console standard error.
-        @type cerr: IO stream
-        @param exit_handler: Replacement for builtin exit() function
-        @type exit_handler: function
-        @param time_loop: Define the sleep time between two thread's loop
-        @type int
-        '''
-        Thread.__init__(self)
-
-        #first we redefine in/out/error functions of IPython 
-        if cin:
-            IPython.Shell.Term.cin = cin
-        if cout:
-            IPython.Shell.Term.cout = cout
-        if cerr:
-            IPython.Shell.Term.cerr = cerr
+                 ask_exit_handler=None):
         
-        # This is to get rid of the blockage that accurs during
-        # IPython.Shell.InteractiveShell.user_setup()
-        IPython.iplib.raw_input = lambda x: None
+        NonBlockingIPShell.__init__(self,argv,user_ns,user_global_ns,
+                                    cin, cout, cerr,
+                                    ask_exit_handler)
 
-        self._term = IPython.genutils.IOTerm(cin=cin, cout=cout, cerr=cerr)
+        self.parent = parent
 
-        excepthook = sys.excepthook
-        self._IP = IPython.Shell.make_IPython(
-                                            argv,user_ns=user_ns,
-                                            user_global_ns=user_global_ns,
-                                            embedded=True,
-                                            shell_class=IPython.Shell.InteractiveShell)
+        self.ask_exit_callback = ask_exit_handler
+        self._IP.exit = self._askExit
 
-        #we replace IPython default encoding by wx locale encoding
-	loc = locale.getpreferredencoding()
-	if loc:
-        	self._IP.stdin_encoding = loc
-        #we replace the ipython default pager by our pager
-        self._IP.set_hook('show_in_pager',self._pager)
-        
-        #we replace the ipython default shell command caller by our shell handler
-	self._IP.set_hook('shell_hook',self._shell)
-        
-        #we replace the ipython default input command caller by our method
-        IPython.iplib.raw_input_original = self._raw_input
-        #we replace the ipython default exit command by our method
-        self._IP.exit = self._setAskExit
-            
-        sys.excepthook = excepthook
+    def addGUIShortcut(self,text,func):
+        wx.CallAfter(self.parent.add_button_handler, 
+                button_info={   'text':text, 
+                                'func':self.parent.doExecuteLine(func)})
 
-        self._iter_more = 0
-        self._history_level = 0
-        self._complete_sep =  re.compile('[\s\{\}\[\]\(\)]')
-        self._prompt = str(self._IP.outputcache.prompt1).strip()
+    def _askExit(self):
+        wx.CallAfter(self.ask_exit_callback, ())
 
-        #thread working vars
-        self._terminate = False
-        self._time_loop = time_loop
-        self._has_doc = False
-        self._do_execute = False
-        self._line_to_execute = ''
-        self._doc_text = None
-        self._ask_exit = False
+    def _afterExecute(self):
+        wx.CallAfter(self.parent.evtStateExecuteDone, ())
 
-    #----------------------- Thread management section ----------------------    
-    def run (self):
-        """
-        Thread main loop
-        The thread will run until self._terminate will be set to True via shutdown() function
-        Command processing can be interrupted with Instance.raise_exc(KeyboardInterrupt) call in the
-        GUI thread.
-        """
-        while(not self._terminate):
-            try:
-                if self._do_execute:
-                    self._doc_text = None
-                    self._execute()
-                    self._do_execute = False
                 
-            except KeyboardInterrupt:
-                pass
-
-            time.sleep(self._time_loop)
-            
-    def shutdown(self): 
-        """
-        Shutdown the tread
-        """
-        self._terminate = True
-
-    def doExecute(self,line):
-        """
-        Tell the thread to process the 'line' command
-        """
-        self._do_execute = True
-        self._line_to_execute = line
-        
-    def isExecuteDone(self):
-        """
-        Returns the processing state
-        """
-        return not self._do_execute
-
-    #----------------------- IPython management section ----------------------    
-    def getAskExit(self):
-        '''
-        returns the _ask_exit variable that can be checked by GUI to see if
-        IPython request an exit handling
-        '''
-        return self._ask_exit
-
-    def clearAskExit(self):
-        '''
-        clear the _ask_exit var when GUI as handled the request.
-        '''
-        self._ask_exit = False
-        
-    def getDocText(self):
-        """
-        Returns the output of the processing that need to be paged (if any)
-
-        @return: The std output string.
-        @rtype: string
-        """
-        return self._doc_text
-        
-    def getBanner(self):
-        """
-        Returns the IPython banner for useful info on IPython instance
-
-        @return: The banner string.
-        @rtype: string
-        """
-        return self._IP.BANNER
-    
-    def getPromptCount(self):
-        """
-        Returns the prompt number.
-        Each time a user execute a line in the IPython shell the prompt count is increased
-
-        @return: The prompt number
-        @rtype: int
-        """
-        return self._IP.outputcache.prompt_count
-
-    def getPrompt(self):
-        """
-        Returns current prompt inside IPython instance
-        (Can be In [...]: ot ...:)
-
-        @return: The current prompt.
-        @rtype: string
-        """
-        return self._prompt
-
-    def getIndentation(self):
-        """
-        Returns the current indentation level
-        Usefull to put the caret at the good start position if we want to do autoindentation.
-
-        @return: The indentation level.
-        @rtype: int
-        """
-        return self._IP.indent_current_nsp
-        
-    def updateNamespace(self, ns_dict):
-        '''
-        Add the current dictionary to the shell namespace.
-
-        @param ns_dict: A dictionary of symbol-values.
-        @type ns_dict: dictionary
-        '''
-        self._IP.user_ns.update(ns_dict)
-
-    def complete(self, line):
-        '''
-        Returns an auto completed line and/or posibilities for completion.
-
-        @param line: Given line so far.
-        @type line: string
-
-        @return: Line completed as for as possible,
-        and possible further completions.
-        @rtype: tuple
-        '''
-        split_line = self._complete_sep.split(line)
-        possibilities = self._IP.complete(split_line[-1])
-        if possibilities:
-
-            def _commonPrefix(str1, str2):
-                '''
-                Reduction function. returns common prefix of two given strings.
-
-                @param str1: First string.
-                @type str1: string
-                @param str2: Second string
-                @type str2: string
-
-                @return: Common prefix to both strings.
-                @rtype: string
-                '''
-                for i in range(len(str1)):
-                    if not str2.startswith(str1[:i+1]):
-                        return str1[:i]
-                return str1
-            common_prefix = reduce(_commonPrefix, possibilities)
-            completed = line[:-len(split_line[-1])]+common_prefix
-        else:
-            completed = line
-        return completed, possibilities
-
-    def historyBack(self):
-        '''
-        Provides one history command back.
-
-        @return: The command string.
-        @rtype: string
-        '''
-        history = ''
-        #the below while loop is used to suppress empty history lines
-	while((history == '' or history == '\n') and self._history_level >0):
-		if self._history_level>=1:
-			self._history_level -= 1
-		history = self._getHistory()		
-        return history
-
-    def historyForward(self):
-        '''
-        Provides one history command forward.
-
-        @return: The command string.
-        @rtype: string
-        '''
-	history = ''
-	#the below while loop is used to suppress empty history lines
-	while((history == '' or history == '\n') and self._history_level <= self._getHistoryMaxIndex()):
-		if self._history_level < self._getHistoryMaxIndex():
-			self._history_level += 1
-			history = self._getHistory()
-		else:
-			if self._history_level == self._getHistoryMaxIndex():
-				history = self._getHistory()
-				self._history_level += 1
-			else:
-				history = ''
-        return history
-
-    def initHistoryIndex(self):
-        '''
-        set history to last command entered
-        '''
-        self._history_level = self._getHistoryMaxIndex()+1
-
-    #----------------------- IPython PRIVATE management section ----------------------    
-    def _setAskExit(self):
-        '''
-        set the _ask_exit variable that can be cjhecked by GUI to see if
-        IPython request an exit handling
-        '''
-        self._ask_exit = True
-        
-    def _getHistoryMaxIndex(self):
-        '''
-        returns the max length of the history buffer
-
-        @return: history length
-        @rtype: int
-        '''
-        return len(self._IP.input_hist_raw)-1
-        
-    def _getHistory(self):
-        '''
-        Get's the command string of the current history level.
-
-        @return: Historic command string.
-        @rtype: string
-        '''
-        rv = self._IP.input_hist_raw[self._history_level].strip('\n')
-        return rv
-
-    def _pager(self,IP,text):
-        '''
-        This function is used as a callback replacment to IPython pager function
-
-        It puts the 'text' value inside the self._doc_text string that can be retrived via getDocText
-        function.
-        '''
-        self._doc_text = text
-    
-    def _raw_input(self, prompt=''):
-        '''
-        Custom raw_input() replacement. Get's current line from console buffer.
-
-        @param prompt: Prompt to print. Here for compatability as replacement.
-        @type prompt: string
-
-        @return: The current command line text.
-        @rtype: string
-        '''
-        return self._line_to_execute
-
-    def _execute(self):
-        '''
-        Executes the current line provided by the shell object.
-        '''
-        orig_stdout = sys.stdout
-        sys.stdout = IPython.Shell.Term.cout
-                
-        try:
-            line = self._IP.raw_input(None, self._iter_more)
-            if self._IP.autoindent:
-                self._IP.readline_startup_hook(None)
-
-        except KeyboardInterrupt:
-            self._IP.write('\nKeyboardInterrupt\n')
-            self._IP.resetbuffer()
-            # keep cache in sync with the prompt counter:
-            self._IP.outputcache.prompt_count -= 1
-
-            if self._IP.autoindent:
-                self._IP.indent_current_nsp = 0
-            self._iter_more = 0
-        except:
-            self._IP.showtraceback()
-        else:
-            self._iter_more = self._IP.push(line)
-            if (self._IP.SyntaxTB.last_syntax_error and
-                    self._IP.rc.autoedit_syntax):
-                self._IP.edit_syntax_error()
-        if self._iter_more:
-            self._prompt = str(self._IP.outputcache.prompt2).strip()
-            if self._IP.autoindent:
-                self._IP.readline_startup_hook(self._IP.pre_readline)
-        else:
-            self._prompt = str(self._IP.outputcache.prompt1).strip()
-            self._IP.indent_current_nsp = 0 #we set indentation to 0
-        sys.stdout = orig_stdout
-    
-    def _shell(self, ip, cmd):
-        '''
-        Replacement method to allow shell commands without them blocking.
-
-        @param ip: Ipython instance, same as self._IP
-        @type cmd: Ipython instance
-        @param cmd: Shell command to execute.
-        @type cmd: string
-        '''
-        stdin, stdout = os.popen4(cmd)
-        result = stdout.read().decode('cp437').encode(locale.getpreferredencoding())
-        #we use print command because the shell command is called inside IPython instance and thus is
-        #redirected to thread cout
-        #"\x01\x1b[1;36m\x02" <-- add colour to the text...
-        print "\x01\x1b[1;36m\x02"+result
-        stdout.close()
-        stdin.close()
-
 class WxConsoleView(stc.StyledTextCtrl):
     '''
     Specialized styled text control view for console-like workflow.
-    We use here a scintilla frontend thus it can be reused in any GUI taht supports
-    scintilla with less work.
+    We use here a scintilla frontend thus it can be reused in any GUI that 
+    supports scintilla with less work.
 
-    @cvar ANSI_COLORS_BLACK: Mapping of terminal colors to X11 names.(with Black background)
+    @cvar ANSI_COLORS_BLACK: Mapping of terminal colors to X11 names.
+                    (with Black background)
     @type ANSI_COLORS_BLACK: dictionary
 
-    @cvar ANSI_COLORS_WHITE: Mapping of terminal colors to X11 names.(with White background)
+    @cvar ANSI_COLORS_WHITE: Mapping of terminal colors to X11 names.
+                    (with White background)
     @type ANSI_COLORS_WHITE: dictionary
 
     @ivar color_pat: Regex of terminal color pattern
     @type color_pat: _sre.SRE_Pattern
     '''
-    ANSI_STYLES_BLACK ={'0;30': [0,'WHITE'],             '0;31': [1,'RED'],
-                        '0;32': [2,'GREEN'],             '0;33': [3,'BROWN'],
-                        '0;34': [4,'BLUE'],              '0;35': [5,'PURPLE'],
-                        '0;36': [6,'CYAN'],              '0;37': [7,'LIGHT GREY'],
-                        '1;30': [8,'DARK GREY'],         '1;31': [9,'RED'],
-                        '1;32': [10,'SEA GREEN'],        '1;33': [11,'YELLOW'],
-                        '1;34': [12,'LIGHT BLUE'],       '1;35': [13,'MEDIUM VIOLET RED'],
-                        '1;36': [14,'LIGHT STEEL BLUE'], '1;37': [15,'YELLOW']}
+    ANSI_STYLES_BLACK={'0;30': [0,'WHITE'],            '0;31': [1,'RED'],
+                       '0;32': [2,'GREEN'],            '0;33': [3,'BROWN'],
+                       '0;34': [4,'BLUE'],             '0;35': [5,'PURPLE'],
+                       '0;36': [6,'CYAN'],             '0;37': [7,'LIGHT GREY'],
+                       '1;30': [8,'DARK GREY'],        '1;31': [9,'RED'],
+                       '1;32': [10,'SEA GREEN'],       '1;33': [11,'YELLOW'],
+                       '1;34': [12,'LIGHT BLUE'],      '1;35': 
+                                                    [13,'MEDIUM VIOLET RED'],
+                       '1;36': [14,'LIGHT STEEL BLUE'],'1;37': [15,'YELLOW']}
 
-    ANSI_STYLES_WHITE ={'0;30': [0,'BLACK'],             '0;31': [1,'RED'],
-                        '0;32': [2,'GREEN'],             '0;33': [3,'BROWN'],
-                        '0;34': [4,'BLUE'],              '0;35': [5,'PURPLE'],
-                        '0;36': [6,'CYAN'],              '0;37': [7,'LIGHT GREY'],
-                        '1;30': [8,'DARK GREY'],         '1;31': [9,'RED'],
-                        '1;32': [10,'SEA GREEN'],        '1;33': [11,'YELLOW'],
-                        '1;34': [12,'LIGHT BLUE'],       '1;35': [13,'MEDIUM VIOLET RED'],
-                        '1;36': [14,'LIGHT STEEL BLUE'], '1;37': [15,'YELLOW']}
+    ANSI_STYLES_WHITE={'0;30': [0,'BLACK'],            '0;31': [1,'RED'],
+                       '0;32': [2,'GREEN'],            '0;33': [3,'BROWN'],
+                       '0;34': [4,'BLUE'],             '0;35': [5,'PURPLE'],
+                       '0;36': [6,'CYAN'],             '0;37': [7,'LIGHT GREY'],
+                       '1;30': [8,'DARK GREY'],        '1;31': [9,'RED'],
+                       '1;32': [10,'SEA GREEN'],       '1;33': [11,'YELLOW'],
+                       '1;34': [12,'LIGHT BLUE'],      '1;35':
+                                                    [13,'MEDIUM VIOLET RED'],
+                       '1;36': [14,'LIGHT STEEL BLUE'],'1;37': [15,'YELLOW']}
 
-    def __init__(self,parent,prompt,intro="",background_color="BLACK",pos=wx.DefaultPosition, ID = -1, size=wx.DefaultSize,
+    def __init__(self,parent,prompt,intro="",background_color="BLACK",
+                 pos=wx.DefaultPosition, ID = -1, size=wx.DefaultSize,
                  style=0):
         '''
         Initialize console view.
@@ -467,9 +124,10 @@ class WxConsoleView(stc.StyledTextCtrl):
         '''
         stc.StyledTextCtrl.__init__(self, parent, ID, pos, size, style)
 
-        ####### Scintilla configuration ##################################################
+        ####### Scintilla configuration ###################################
         
-        # Ctrl + B or Ctrl + N can be used to zoomin/zoomout the text inside the widget
+        # Ctrl + B or Ctrl + N can be used to zoomin/zoomout the text inside 
+        # the widget
         self.CmdKeyAssign(ord('B'), stc.STC_SCMOD_CTRL, stc.STC_CMD_ZOOMIN)
         self.CmdKeyAssign(ord('N'), stc.STC_SCMOD_CTRL, stc.STC_CMD_ZOOMOUT)
 
@@ -531,12 +189,16 @@ class WxConsoleView(stc.StyledTextCtrl):
             self.SetCaretForeground("WHITE")
             self.ANSI_STYLES = self.ANSI_STYLES_BLACK
 
-        self.StyleSetSpec(stc.STC_STYLE_DEFAULT, "fore:%s,back:%s,size:%d,face:%s" % (self.ANSI_STYLES['0;30'][1],
-                                                                                      self.background_color,
-                                                                                      faces['size'], faces['mono']))
+        self.StyleSetSpec(stc.STC_STYLE_DEFAULT, 
+                          "fore:%s,back:%s,size:%d,face:%s" 
+                                    % (self.ANSI_STYLES['0;30'][1],
+                          self.background_color,
+                          faces['size'], faces['mono']))
         self.StyleClearAll()
-        self.StyleSetSpec(stc.STC_STYLE_BRACELIGHT,  "fore:#FF0000,back:#0000FF,bold")
-        self.StyleSetSpec(stc.STC_STYLE_BRACEBAD,    "fore:#000000,back:#FF0000,bold")
+        self.StyleSetSpec(stc.STC_STYLE_BRACELIGHT,  
+                          "fore:#FF0000,back:#0000FF,bold")
+        self.StyleSetSpec(stc.STC_STYLE_BRACEBAD,
+                          "fore:#000000,back:#FF0000,bold")
     
         for style in self.ANSI_STYLES.values():
             self.StyleSetSpec(style[0], "bold,fore:%s" % style[1])
@@ -552,7 +214,6 @@ class WxConsoleView(stc.StyledTextCtrl):
         self.showPrompt()
         
         self.Bind(wx.EVT_KEY_DOWN, self._onKeypress, self)
-        #self.Bind(stc.EVT_STC_UPDATEUI, self.OnUpdateUI)
 
     def write(self, text):
         '''
@@ -720,7 +381,7 @@ class WxConsoleView(stc.StyledTextCtrl):
         @return: Return True if event as been catched.
         @rtype: boolean
         '''
-	
+        
         if event.GetKeyCode() == wx.WXK_HOME:
             if event.Modifiers == wx.MOD_NONE:
                 self.moveCursorOnNewValidKey()
@@ -744,9 +405,9 @@ class WxConsoleView(stc.StyledTextCtrl):
 
         elif event.GetKeyCode() == wx.WXK_BACK:
             self.moveCursorOnNewValidKey()
-	    if self.getCursorPos() > self.getCurrentPromptStart():
+            if self.getCursorPos() > self.getCurrentPromptStart():
                 self.removeFromTo(self.getCursorPos()-1,self.getCursorPos())
-	    return True
+            return True
         
         if skip:
             if event.GetKeyCode() not in [wx.WXK_PAGEUP,wx.WXK_PAGEDOWN] and event.Modifiers == wx.MOD_NONE:
@@ -791,15 +452,20 @@ class WxConsoleView(stc.StyledTextCtrl):
             #print pt
             #self.Refresh(False)
         
-class WxIPythonViewPanel(wx.Panel):
+class IPShellWidget(wx.Panel):
     '''
     This is wx.Panel that embbed the IPython Thread and the wx.StyledTextControl
-    If you want to port this to any other GUI toolkit, just replace the WxConsoleView
-    by YOURGUIConsoleView and make YOURGUIIPythonView derivate from whatever container you want.
-    I've choosed to derivate from a wx.Panel because it seems to be ore usefull
-    Any idea to make it more 'genric' welcomed.
+    If you want to port this to any other GUI toolkit, just replace the 
+    WxConsoleView by YOURGUIConsoleView and make YOURGUIIPythonView derivate 
+    from whatever container you want. I've choosed to derivate from a wx.Panel 
+    because it seems to be more useful
+    Any idea to make it more 'generic' welcomed.
     '''
-    def __init__(self,parent,exit_handler=None,intro=None,background_color="BLACK"):
+
+    def __init__(self, parent, ask_exit_handler=None, intro=None,
+                 background_color="BLACK", add_button_handler=None, 
+                 wx_ip_shell=None,
+                 ):
         '''
         Initialize.
         Instanciate an IPython thread.
@@ -808,16 +474,23 @@ class WxIPythonViewPanel(wx.Panel):
         '''
         wx.Panel.__init__(self,parent,-1)
 
-        ### IPython thread instanciation ###
+        ### IPython non blocking shell instanciation ###
         self.cout = StringIO()
-        self.IP = IterableIPShell(cout=self.cout,cerr=self.cout,
-                             exit_handler = exit_handler,
-                             time_loop = 0.1)
-        self.IP.start()
-        
+
+        self.add_button_handler = add_button_handler
+        self.ask_exit_handler = ask_exit_handler
+
+        if wx_ip_shell is not None:
+            self.IP = wx_ip_shell
+        else:
+            self.IP = WxNonBlockingIPShell(self,
+                                    cout=self.cout,cerr=self.cout,
+                                    ask_exit_handler = ask_exit_handler)
+
         ### IPython wx console view instanciation ###
         #If user didn't defined an intro text, we create one for him
-        #If you really wnat an empty intrp just call wxIPythonViewPanel with intro=''
+        #If you really wnat an empty intrp just call wxIPythonViewPanel 
+        #with intro=''
         if intro == None:
             welcome_text = "Welcome to WxIPython Shell.\n\n"
             welcome_text+= self.IP.getBanner()
@@ -841,99 +514,69 @@ class WxIPythonViewPanel(wx.Panel):
         #and we focus on the widget :)
         self.SetFocus()
 
-        ### below are the thread communication variable ###
-        # the IPython thread is managed via unidirectional communication.
-        # It's a thread slave that can't interact by itself with the GUI.
-        # When the GUI event loop is done runStateMachine() is called and the thread sate is then
-        # managed.
-        
-        #Initialize the state machine #kept for information
-        #self.states = ['IDLE',
-        #               'DO_EXECUTE_LINE',
-        #               'WAIT_END_OF_EXECUTION',
-        #               'SHOW_DOC',
-        #               'SHOW_PROMPT']
-        
-        self.cur_state = 'IDLE'
-	self.pager_state = 'DONE'
-        #wx.CallAfter(self.runStateMachine)
+        #widget state management (for key handling different cases)
+        self.setCurrentState('IDLE')
+        self.pager_state = 'DONE'
 
-        # This creates a new Event class and a EVT binder function
-        (self.AskExitEvent, EVT_ASK_EXIT) = wx.lib.newevent.NewEvent()
+    #---------------------- IPython Thread Management ------------------------
+    def stateDoExecuteLine(self):
+        #print >>sys.__stdout__,"command:",self.getCurrentLine()
+        line=self.text_ctrl.getCurrentLine()
+        self.IP.doExecute(line.replace('\t',' '*4))
+        self.updateHistoryTracker(self.text_ctrl.getCurrentLine())
+        self.setCurrentState('WAIT_END_OF_EXECUTION')
+        
+    def evtStateExecuteDone(self,evt):
+        self.doc = self.IP.getDocText()
+        self.help = self.IP.getHelpText()
+        if self.doc:
+            self.pager_lines = self.doc[7:].split('\n')
+	    self.pager_state = 'INIT'
+            self.setCurrentState('SHOW_DOC')
+            self.pager(self.doc)
+        elif self.help:
+            self.pager_lines = self.help.split('\n')
+	    self.pager_state = 'INIT'
+            self.setCurrentState('SHOW_DOC')
+            self.pager(self.help)                
+        else:
+            self.stateShowPrompt()
 
-        self.Bind(wx.EVT_IDLE, self.runStateMachine)
-        self.Bind(EVT_ASK_EXIT, exit_handler)
-        
-    def __del__(self):
-        self.IP.shutdown()
-        self.IP.join()
-        WxConsoleView.__del__()
-        
-    #---------------------------- IPython Thread Management ---------------------------------------
-    def runStateMachine(self,event):
-        #print >>self.sys_stdout,"state:",self.cur_state
+    def stateShowPrompt(self):
+        self.setCurrentState('SHOW_PROMPT')
+        self.text_ctrl.setPrompt(self.IP.getPrompt())
+        self.text_ctrl.setIndentation(self.IP.getIndentation())
+        self.text_ctrl.setPromptCount(self.IP.getPromptCount())
+        rv = self.cout.getvalue()
+        if rv: rv = rv.strip('\n')
+        self.text_ctrl.showReturned(rv)
+        self.cout.truncate(0)
+        self.IP.initHistoryIndex()
+        self.setCurrentState('IDLE')
+
+    def setCurrentState(self, state):
+        self.cur_state = state
         self.updateStatusTracker(self.cur_state)
         
-        if self.cur_state == 'DO_EXECUTE_LINE':
-            #print >>self.sys_stdout,"command:",self.getCurrentLine()
-            self.IP.doExecute(self.text_ctrl.getCurrentLine().replace('\t',' '*4))
-            self.updateHistoryTracker(self.text_ctrl.getCurrentLine())
-            self.cur_state = 'WAIT_END_OF_EXECUTION'
-        
-        if self.cur_state == 'WAIT_END_OF_EXECUTION':
-            if self.IP.isExecuteDone():
-                self.doc = self.IP.getDocText()
-                if self.IP.getAskExit():
-                    evt = self.AskExitEvent()
-                    wx.PostEvent(self, evt)
-                    self.IP.clearAskExit()
-                if self.doc:
-                    self.pager_state = 'INIT'
-		    self.cur_state = 'SHOW_DOC'
-                else:
-                    self.cur_state = 'SHOW_PROMPT'
-                
-        if self.cur_state == 'SHOW_PROMPT':
-            self.text_ctrl.setPrompt(self.IP.getPrompt())
-            self.text_ctrl.setIndentation(self.IP.getIndentation())
-            self.text_ctrl.setPromptCount(self.IP.getPromptCount())
-            rv = self.cout.getvalue()
-            if rv: rv = rv.strip('\n')
-            self.text_ctrl.showReturned(rv)
-            self.cout.truncate(0)
-	    self.IP.initHistoryIndex()
-            self.cur_state = 'IDLE'
-            
-        if self.cur_state == 'SHOW_DOC':
-            self.pager(self.doc)
-            if self.pager_state == 'DONE':
-                self.cur_state = 'SHOW_PROMPT'
-                
-        event.Skip()
-
     #---------------------------- IPython pager ---------------------------------------
     def pager(self,text):#,start=0,screen_lines=0,pager_cmd = None):
-        if self.pager_state == 'WAITING':
-		#print >>self.sys_stdout,"PAGER waiting"
-        	return
-	
-	if self.pager_state == 'INIT':
-		#print >>self.sys_stdout,"PAGER state:",self.pager_state
-        	self.pager_lines = text[7:].split('\n')
-		self.pager_nb_lines = len(self.pager_lines)
+
+        if self.pager_state == 'INIT':
+		#print >>sys.__stdout__,"PAGER state:",self.pager_state
+                self.pager_nb_lines = len(self.pager_lines)
 		self.pager_index = 0
 		self.pager_do_remove = False
 		self.text_ctrl.write('\n')
 		self.pager_state = 'PROCESS_LINES'
-		
+
 	if self.pager_state == 'PROCESS_LINES':
-        	#print >>self.sys_stdout,"PAGER state:",self.pager_state
+        	#print >>sys.__stdout__,"PAGER state:",self.pager_state
         	if self.pager_do_remove == True:
 			self.text_ctrl.removeCurrentLine()
 			self.pager_do_remove = False
 	
 		if self.pager_nb_lines > 10:
-	                #print >>self.sys_stdout,"PAGER processing 10 lines"
+	                #print >>sys.__stdout__,"PAGER processing 10 lines"
 			if self.pager_index > 0:
 				self.text_ctrl.write(">\x01\x1b[1;36m\x02"+self.pager_lines[self.pager_index]+'\n')
 			else:
@@ -948,7 +591,7 @@ class WxIPythonViewPanel(wx.Panel):
 			self.pager_state = 'WAITING'
 			return
         	else:
-	                #print >>self.sys_stdout,"PAGER processing last lines"
+	                #print >>sys.__stdout__,"PAGER processing last lines"
 			if self.pager_nb_lines > 0:
 				if self.pager_index > 0:
 					self.text_ctrl.write(">\x01\x1b[1;36m\x02"+self.pager_lines[self.pager_index]+'\n')
@@ -957,42 +600,46 @@ class WxIPythonViewPanel(wx.Panel):
 				
 				self.pager_index += 1
                                 self.pager_nb_lines -= 1
-	              	if self.pager_nb_lines > 0:
-        	        	for line in self.pager_lines[self.pager_index:]:
-					self.text_ctrl.write("\x01\x1b[1;36m\x02 "+line+'\n')
-                			self.pager_nb_lines = 0
-			self.pager_state = 'DONE'          
+                        if self.pager_nb_lines > 0:
+                                for line in self.pager_lines[self.pager_index:]:
+                                        self.text_ctrl.write("\x01\x1b[1;36m\x02 "+line+'\n')
+                                        self.pager_nb_lines = 0
+                        self.pager_state = 'DONE'
+                        self.stateShowPrompt()
                 
-    #---------------------------- Key Handler --------------------------------------------
+    #------------------------ Key Handler ------------------------------------
     def keyPress(self, event):
         '''
         Key press callback with plenty of shell goodness, like history,
         autocompletions, etc.
         '''
-	
+        
         if event.GetKeyCode() == ord('C'):
             if event.Modifiers == wx.MOD_CONTROL:
                 if self.cur_state == 'WAIT_END_OF_EXECUTION':
                     #we raise an exception inside the IPython thread container
-                    self.IP.raise_exc(KeyboardInterrupt)
+                    self.IP.ce.raise_exc(KeyboardInterrupt)
                     return
                 
         if event.KeyCode == wx.WXK_RETURN:
             if self.cur_state == 'IDLE':
                 #we change the state ot the state machine
-                self.cur_state = 'DO_EXECUTE_LINE'
+                self.setCurrentState('DO_EXECUTE_LINE')
+                self.stateDoExecuteLine()
                 return
             if self.pager_state == 'WAITING':
                 self.pager_state = 'PROCESS_LINES'
+                self.pager(self.doc)
                 return
             
         if event.GetKeyCode() in [ord('q'),ord('Q')]:
             if self.pager_state == 'WAITING':
                 self.pager_state = 'DONE'
+                self.stateShowPrompt()
                 return
             
         #scroll_position = self.text_ctrl.GetScrollPos(wx.VERTICAL)
-	if self.cur_state == 'IDLE':
+        if self.cur_state == 'IDLE':
             if event.KeyCode == wx.WXK_UP:
                 history = self.IP.historyBack()
                 self.text_ctrl.writeHistory(history)
@@ -1019,8 +666,8 @@ class WxIPythonViewPanel(wx.Panel):
                 
                 return
             event.Skip()
-	
-    #---------------------------- Hook Section --------------------------------------------
+        
+    #------------------------ Hook Section -----------------------------------
     def updateHistoryTracker(self,command_line):
         '''
         Default history tracker (does nothing)
@@ -1032,6 +679,7 @@ class WxIPythonViewPanel(wx.Panel):
         Define a new history tracker
         '''
         self.updateHistoryTracker = func
+
     def updateStatusTracker(self,status):
         '''
         Default status tracker (does nothing)
@@ -1043,4 +691,25 @@ class WxIPythonViewPanel(wx.Panel):
         Define a new status tracker
         '''
         self.updateStatusTracker = func
-    
+
+
+if __name__ == '__main__':
+    # Some simple code to test the shell widget.
+    class MainWindow(wx.Frame):
+        def __init__(self, parent, id, title):
+            wx.Frame.__init__(self, parent, id, title, size=(300,250))
+            self._sizer = wx.BoxSizer(wx.VERTICAL)
+            self.shell = IPShellWidget(self)
+            self._sizer.Add(self.shell, 1, wx.EXPAND)
+            self.SetSizer(self._sizer)
+            self.SetAutoLayout(1)
+            self.Show(True)
+
+    app = wx.PySimpleApp()
+    frame = MainWindow(None, wx.ID_ANY, 'Ipython')
+    frame.SetSize((780, 460))
+    shell = frame.shell
+
+    app.MainLoop()
+
+

@@ -2,11 +2,13 @@
 # -*- coding: iso-8859-15 -*-
 
 import wx.aui
-import wx.py
+
+#used for about dialog
 from wx.lib.wordwrap import wordwrap
 
-from ipython_view import *
-from ipython_history import *
+#used for ipython GUI objects
+from IPython.gui.wx.ipython_view import IPShellWidget 
+from IPython.gui.wx.ipython_history import IPythonHistoryPanel
 
 __version__ = 0.8
 __author__  = "Laurent Dufrechou"
@@ -20,7 +22,8 @@ __license__ = "BSD"
 class MyFrame(wx.Frame):
     """Creating one main frame for our 
     application with movables windows"""
-    def __init__(self, parent=None, id=-1, title="WxIPython", pos=wx.DefaultPosition,
+    def __init__(self, parent=None, id=-1, title="WxIPython", 
+                pos=wx.DefaultPosition,
                 size=(800, 600), style=wx.DEFAULT_FRAME_STYLE):
         wx.Frame.__init__(self, parent, id, title, pos, size, style)
         self._mgr = wx.aui.AuiManager()
@@ -31,15 +34,15 @@ class MyFrame(wx.Frame):
         #create differents panels and make them persistant 
         self.history_panel    = IPythonHistoryPanel(self)
         
-        self.ipython_panel    = WxIPythonViewPanel(self,self.OnExitDlg,
+        self.ipython_panel    = IPShellWidget(self,self.OnExitDlg,
                                                    background_color = "BLACK")
         
         #self.ipython_panel    = WxIPythonViewPanel(self,self.OnExitDlg,
         #                                           background_color = "WHITE")
-        
+
         self.ipython_panel.setHistoryTrackerHook(self.history_panel.write)
         self.ipython_panel.setStatusTrackerHook(self.updateStatus)
-        
+
         self.statusbar = self.createStatus()
         self.createMenu()
         
@@ -48,13 +51,11 @@ class MyFrame(wx.Frame):
         # main panels
         self._mgr.AddPane(self.ipython_panel , wx.CENTER, "IPython Shell")
         self._mgr.AddPane(self.history_panel , wx.RIGHT,  "IPython history")
-        
+                
         # now we specify some panel characteristics
         self._mgr.GetPane(self.ipython_panel).CaptionVisible(True);
         self._mgr.GetPane(self.history_panel).CaptionVisible(True);
         self._mgr.GetPane(self.history_panel).MinSize((200,400));
-                
-        
         
         # tell the manager to "commit" all the changes just made
         self._mgr.Update()
