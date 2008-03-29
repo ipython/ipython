@@ -228,24 +228,31 @@ manner. If you download the tar archive, the process is:
       ipython with the -upgrade option and it will do this automatically
       for you.
    3. IPython uses distutils, so you can install it by simply typing at
-      the system prompt (don't type the $)
-      $ python setup.py install
+      the system prompt (don't type the $)::
+      
+      	$ python setup.py install
+      	
       Note that this assumes you have root access to your machine. If
       you don't have root access or don't want IPython to go in the
-      default python directories, you'll need to use the |--home| option
-      (or |--prefix|). For example:
-      |$ python setup.py install --home $HOME/local|
+      default python directories, you'll need to use the ``--home`` option
+      (or ``--prefix``). For example::
+      
+      	$ python setup.py install --home $HOME/local
+      	
       will install IPython into $HOME/local and its subdirectories
       (creating them if necessary).
-      You can type
-      |$ python setup.py --help|
+      You can type::
+      
+      	$ python setup.py --help
+      	
       for more details.
-      Note that if you change the default location for |--home| at
+      
+      Note that if you change the default location for ``--home`` at
       installation, IPython may end up installed at a location which is
       not part of your $PYTHONPATH environment variable. In this case,
       you'll need to configure this variable to include the actual
       directory where the IPython/ directory ended (typically the value
-      you give to |--home| plus /lib/python).
+      you give to ``--home`` plus /lib/python).
 
 
 Mac OSX information
@@ -280,10 +287,14 @@ and GTK apps. Under OSX, however, this requires that ipython is
 installed by calling the special pythonw script at installation time,
 which takes care of coordinating things with Apple's graphical environment.
 
-So when installing under OSX, it is best to use the following command: 
-| $ sudo pythonw setup.py install --install-scripts=/usr/local/bin|
+So when installing under OSX, it is best to use the following command:: 
+
+	$ sudo pythonw setup.py install --install-scripts=/usr/local/bin
+
 or
-| $ sudo pythonw setup.py install --install-scripts=/usr/bin|
+
+	$ sudo pythonw setup.py install --install-scripts=/usr/bin
+	
 depending on where you like to keep hand-installed executables.
 
 The resulting script will have an appropriate shebang line (the first
@@ -294,7 +305,7 @@ does not work and has a shebang line that points to, for example, just
 build/scripts-<python-version> directory. Delete that directory and
 rerun the setup.py.
 
-It is also a good idea to use the special flag |--install-scripts| as
+It is also a good idea to use the special flag ``--install-scripts`` as
 indicated above, to ensure that the ipython scripts end up in a location
 which is part of your $PATH. Otherwise Apple's Python will put the
 scripts in an internal directory not available by default at the command
@@ -665,11 +676,11 @@ the previous section, you may need to set also in your .emacs file::
     (setq ansi-color-for-comint-mode t) 
 
 
-Notes::
+Notes:
 
     * There is one caveat you should be aware of: you must start the
       IPython shell before attempting to execute any code regions via
-      C-c |. Simply type C-c ! to start IPython before passing any code
+      ``C-c |``. Simply type C-c ! to start IPython before passing any code
       regions to the interpreter, and you shouldn't experience any
       problems.
       This is due to a bug in Python itself, which has been fixed for
@@ -2824,7 +2835,6 @@ Any input line beginning with a ! character is passed verbatim (minus
 the !, of course) to the underlying operating system. For example,
 typing !ls will run 'ls' in the current directory.
 
-
 Manual capture of command output
 --------------------------------
 
@@ -2836,10 +2846,9 @@ output. The !! syntax is a shorthand for the %sx magic command.
 
 Finally, the %sc magic (short for 'shell capture') is similar to %sx,
 but allowing more fine-grained control of the capture details, and
-storing the result directly into a named variable.
-
-See Sec. 6.2 <#sec:magic> for details on the magics %sc and %sx, or use
-IPython's own help (sc? and sx?) for further details.
+storing the result directly into a named variable. The direct use of 
+%sc is now deprecated, and you should ise the ``var = !cmd`` syntax
+instead.
 
 IPython also allows you to expand the value of python variables when
 making system calls. Any python variable or expression which you prepend
@@ -3008,7 +3017,8 @@ Directory history
 
 Your history of visited directories is kept in the global list _dh, and
 the magic %cd command can be used to go to any entry in that list. The
-%dhist command allows you to view this history.
+%dhist command allows you to view this history. do ``cd -<TAB`` to
+conventiently view the directory history.
 
 
 Automatic parentheses and quotes
@@ -4170,7 +4180,6 @@ code fragments in your programs which are ready for cut and paste::
 Using the Python debugger (pdb)
 ===============================
 
-
 Running entire programs via pdb
 -------------------------------
 
@@ -4323,143 +4332,61 @@ from math import * # math MUST be imported BEFORE PhysicalQInteractive
 from IPython.Extensions.PhysicalQInteractive import * 
 import IPython.Extensions.PhysicalQInput
 
-IPython as a system shell
-=========================
 
-IPython ships with a special profile called pysh, which you can activate
-at the command line as 'ipython -p pysh'. This loads InterpreterExec,
-along with some additional facilities and a prompt customized for
-filesystem navigation.
+IPython as a system shell - the 'Sh' profile
+============================================
 
-Note that this does not make IPython a full-fledged system shell. In
-particular, it has no job control, so if you type Ctrl-Z (under Unix),
-you'll suspend pysh itself, not the process you just started.
+The 'sh' profile optimizes IPython for system shell usage. Apart from
+certain job control functionality that is present in unix (ctrl+z does
+"suspend"), the sh profile should provide you with most of the
+functionality you use daily in system shell, and more. Invoke IPython
+in 'sh' profile by doing 'ipython -p sh', or (in win32) by launching
+the "pysh" shortcut in start menu.
 
-What the shell profile allows you to do is to use the convenient and
-powerful syntax of Python to do quick scripting at the command line.
-Below we describe some of its features.
+If you want to use the features of sh profile as your defaults (which
+might be a good idea if you use other profiles a lot of the time but
+still want the convenience of sh profile), add "import ipy_profile_sh"
+to your ~/.ipython/ipy_user_conf.py.
 
+The 'sh' profile is different from the default profile in that:
+
+ * Prompt shows the current directory
+ * Spacing between prompts and input is more compact (no padding with
+   empty lines). The startup banner is more compact as well.
+ * System commands are directly available (in alias table) without
+   requesting %rehashx - however, if you install new programs along
+   your PATH, you might want to run %rehashx to update the persistent
+   alias table
+ * Macros are stored in raw format by default. That is, instead of
+   '_ip.system("cat foo"), the macro will contain text 'cat foo')
+ * Autocall is in full mode
+ * Calling "up" does "cd .."
+
+The 'sh' profile is different from the now-obsolete (and unavailable)
+'pysh' profile in that:
+
+ * '$$var = command' and '$var = command' syntax is not supported
+ * anymore. Use 'var = !command' instead (incidentally, this is
+ * available in all IPython profiles). Note that !!command *will*
+ * work.
 
 Aliases
 -------
 
 All of your $PATH has been loaded as IPython aliases, so you should be
-able to type any normal system command and have it executed. See %alias?
-and %unalias? for details on the alias facilities. See also %rehash? and
+able to type any normal system command and have it executed. See
+%alias?  and %unalias? for details on the alias facilities. See also
 %rehashx? for details on the mechanism used to load $PATH.
-
-
-Special syntax
---------------
-
-Any lines which begin with '~', '/' and '.' will be executed as shell
-commands instead of as Python code. The special escapes below are also
-recognized. !cmd is valid in single or multi-line input, all others are
-only valid in single-line input::
-
-	!cmd
-	    pass 'cmd' directly to the shell 
-	!!cmd*
-	    execute 'cmd' and return output as a list (split on '\n') 
-	var=!cmd
-	    capture output of cmd into var, as a string list
-
-A few brief examples will illustrate these (note that the indentation
-below may be incorrectly displayed)::
-
-    fperez[~/test]|3> !ls *s.py  
-    scopes.py strings.py
-
-ls is an internal alias, so there's no need to use !::
-
-    fperez[~/test]|4> ls *s.py  
-    scopes.py* strings.py
-
-!!ls will return the output into a Python variable FIXME!!!::
-
-    fperez[~/test]|5> !!ls *s.py  
-                  <5> ['scopes.py', 'strings.py']  
-    fperez[~/test]|6> print _5  
-    ['scopes.py', 'strings.py']
-
-$ and $$ allow direct capture to named variables:
-
-fperez[~/test]|7> $astr = ls *s.py  
-fperez[~/test]|8> astr  
-              <8> 'scopes.py\nstrings.py'
-
-fperez[~/test]|9> $$alist = ls *s.py  
-fperez[~/test]|10> alist  
-              <10> ['scopes.py', 'strings.py']
-
-alist is now a normal python list you can loop over. Using $ will expand
-back the python values when alias calls are made:
-
-fperez[~/test]|11> for f in alist:  
-              |..>    print 'file',f,  
-              |..>    wc -l $f  
-              |..>  
-file scopes.py 13 scopes.py  
-file strings.py 4 strings.py
-
-Note that you may need to protect your variables with braces if you want
-to append strings to their names. To copy all files in alist to .bak
-extensions, you must use::
-
-    fperez[~/test]|12> for f in alist:  
-                  |..>    cp $f ${f}.bak
-
-If you try using $f.bak, you'll get an AttributeError exception saying
-that your string object doesn't have a .bak attribute. This is because
-the $ expansion mechanism allows you to expand full Python expressions::
-
-    fperez[~/test]|13> echo "sys.platform is: $sys.platform"  
-    sys.platform is: linux2
-
-IPython's input history handling is still active, which allows you to
-rerun a single block of multi-line input by simply using exec::
-
-    fperez[~/test]|14> $$alist = ls *.eps  
-    fperez[~/test]|15> exec _i11  
-    file image2.eps 921 image2.eps  
-    file image.eps 921 image.eps
-
-While these are new special-case syntaxes, they are designed to allow
-very efficient use of the shell with minimal typing. At an interactive
-shell prompt, conciseness of expression wins over readability.
-
-
-Useful functions and modules
-----------------------------
-
-The os, sys and shutil modules from the Python standard library are
-automatically loaded. Some additional functions, useful for shell usage,
-are listed below. You can request more help about them with '?'.
-
-*shell*
-    - execute a command in the underlying system shell 
-*system*
-    - like shell(), but return the exit status of the command 
-*sout*
-    - capture the output of a command as a string 
-*lout*
-    - capture the output of a command as a list (split on '\n') 
-*getoutputerror*
-    - capture (output,error) of a shell commandss 
-
-sout/lout are the functional equivalents of $/$$. They are provided to
-allow you to capture system output in the middle of true python code,
-function definitions, etc (where $ and $$ are invalid).
 
 
 Directory management
 --------------------
 
-Since each command passed by pysh to the underlying system is executed
+Since each command passed by ipython to the underlying system is executed
 in a subshell which exits immediately, you can NOT use !cd to navigate
 the filesystem.
 
-Pysh provides its own builtin '%cd' magic command to move in the
+IPython provides its own builtin '%cd' magic command to move in the
 filesystem (the % is not required with automagic on). It also maintains
 a list of visited directories (use %dhist to see it) and allows direct
 switching to any of them. Type 'cd?' for more details.
@@ -4467,86 +4394,152 @@ switching to any of them. Type 'cd?' for more details.
 %pushd, %popd and %dirs are provided for directory stack handling.
 
 
+Enabled extensions
+------------------
+
+Some extensions, listed below, are enabled as default in this profile.
+
+envpersist
+++++++++++
+
+%env can be used to "remember" environment variable manipulations. Examples::
+
+	%env - Show all environment variables
+	%env VISUAL=jed  - set VISUAL to jed
+	%env PATH+=;/foo - append ;foo to PATH
+	%env PATH+=;/bar - also append ;bar to PATH
+	%env PATH-=/wbin; - prepend /wbin; to PATH
+	%env -d VISUAL   - forget VISUAL persistent val
+	%env -p          - print all persistent env modifications
+
+ipy_which
++++++++++
+
+%which magic command. Like 'which' in unix, but knows about ipython aliases.
+
+Example::
+
+ [C:/ipython]|14> %which st
+ st -> start .
+ [C:/ipython]|15> %which d
+ d -> dir /w /og /on
+ [C:/ipython]|16> %which cp
+ cp -> cp
+   == c:\bin\cp.exe
+ c:\bin\cp.exe
+
+ipy_app_completers
+++++++++++++++++++
+
+Custom tab completers for some apps like svn, hg, bzr, apt-get. Try 'apt-get install <TAB>' in debian/ubuntu.
+
+ipy_rehashdir
++++++++++++++
+
+Allows you to add system command aliases for commands that are not along your path. Let's say that you just installed Putty and want to be able to invoke it without adding it to path, you can create the alias for it with rehashdir::
+
+ [~]|22> cd c:/opt/PuTTY/
+ [c:opt/PuTTY]|23> rehashdir .
+              <23> ['pageant', 'plink', 'pscp', 'psftp', 'putty', 'puttygen', 'unins000']
+
+Now, you can execute any of those commams directly::
+
+ [c:opt/PuTTY]|24> cd
+ [~]|25> putty
+
+(the putty window opens).
+
+If you want to store the alias so that it will always be available, do '%store putty'. If you want to %store all these aliases persistently, just do it in a for loop::
+
+ [~]|27> for a in _23:
+    |..>     %store $a
+    |..>
+    |..>
+ Alias stored: pageant (0, 'c:\\opt\\PuTTY\\pageant.exe')
+ Alias stored: plink (0, 'c:\\opt\\PuTTY\\plink.exe')
+ Alias stored: pscp (0, 'c:\\opt\\PuTTY\\pscp.exe')
+ Alias stored: psftp (0, 'c:\\opt\\PuTTY\\psftp.exe')
+ ...
+
+mglob
++++++
+
+Provide the magic function %mglob, which makes it easier (than the 'find' command) to collect (possibly recursive) file lists. Examples::
+
+ [c:/ipython]|9> mglob *.py
+ [c:/ipython]|10> mglob *.py rec:*.txt
+ [c:/ipython]|19> workfiles = %mglob !.svn/ !.hg/ !*_Data/ !*.bak rec:.
+
+Note that the first 2 calls will put the file list in result history (_, _9, _10), and the last one will assign it to 'workfiles'.
+
+
+
+
+
 Prompt customization
 --------------------
 
 The supplied ipy_profile_sh.py profile comes with an example of a very
 colored and detailed prompt, mainly to serve as an illustration. The
-valid escape sequences, besides color names, are:
+valid escape sequences, besides color names, are::
 
-*\#*
-    - Prompt number, wrapped in the color escapes for the input prompt
-      (determined by the current color scheme). 
-*\N*
-    - Just the prompt counter number, without any coloring wrappers. You
-      can thus customize the actual prompt colors manually. 
-*\D*
-    - Dots, as many as there are digits in \# (so they align). 
-*\w*
-    - Current working directory (cwd). 
-*\W*
-    - Basename of current working directory. 
-*\XN*
-    - Where N=0..5. N terms of the cwd, with $HOME written as ~. 
-*\YN*
-    - Where N=0..5. Like XN, but if ~ is term N+1 it's also shown. 
-*\u*
-    - Username. 
-*\H*
-    - Full hostname. 
-*\h*
-    - Hostname up to first '.' 
-*\$*
-    - Root symbol ($ or #). 
-*\t*
-    - Current time, in H:M:S format. 
-*\v*
-    - IPython release version. 
-*\n*
-    - Newline. 
-*\r*
-    - Carriage return. 
-*\\*
-    - An explicitly escaped '\'. 
+	\#
+	    - Prompt number, wrapped in the color escapes for the input prompt
+	      (determined by the current color scheme). 
+	\N
+	    - Just the prompt counter number, without any coloring wrappers. You
+	      can thus customize the actual prompt colors manually. 
+	\D
+	    - Dots, as many as there are digits in \# (so they align). 
+	\w
+	    - Current working directory (cwd). 
+	\W
+	    - Basename of current working directory. 
+	\XN
+	    - Where N=0..5. N terms of the cwd, with $HOME written as ~. 
+	\YN
+	    - Where N=0..5. Like XN, but if ~ is term N+1 it's also shown. 
+	\u
+	    - Username. 
+	\H
+	    - Full hostname. 
+	\h
+	    - Hostname up to first '.' 
+	\$
+	    - Root symbol ($ or #). 
+	\t
+	    - Current time, in H:M:S format. 
+	\v
+	    - IPython release version. 
+	\n
+	    - Newline. 
+	\r
+	    - Carriage return. 
+	\\
+	    - An explicitly escaped '\'. 
 
 You can configure your prompt colors using any ANSI color escape. Each
 color escape sets the color for any subsequent text, until another
-escape comes in and changes things. The valid color escapes are:
+escape comes in and changes things. The valid color escapes are::
 
-*\C_Black*
-
-*\C_Blue*
-
-*\C_Brown*
-
-*\C_Cyan*
-
-*\C_DarkGray*
-
-*\C_Green*
-
-*\C_LightBlue*
-
-*\C_LightCyan*
-
-*\C_LightGray*
-
-*\C_LightGreen*
-
-*\C_LightPurple*
-
-*\C_LightRed*
-
-*\C_Purple*
-
-*\C_Red*
-
-*\C_White*
-
-*\C_Yellow*
-
-*\C_Normal*
-    Stop coloring, defaults to your terminal settings. 
+	\C_Black
+	\C_Blue
+	\C_Brown
+	\C_Cyan
+	\C_DarkGray
+	\C_Green
+	\C_LightBlue
+	\C_LightCyan
+	\C_LightGray
+	\C_LightGreen
+	\C_LightPurple
+	\C_LightRed
+	\C_Purple
+	\C_Red
+	\C_White
+	\C_Yellow
+	\C_Normal
+	    Stop coloring, defaults to your terminal settings. 
 
 Threading support
 =================
