@@ -5113,6 +5113,60 @@ the IPython team and request that the functionality be exposed in a
 future version of IPython. Things not in ipapi are more likely to
 change over time.
 
+Provided extensions
+===================
+
+You can see the list of available extensions (and profiles) by doing
+``import ipy_<TAB>``. Some extensions don't have the ``ipy_`` prefix in
+module name, so you may need to see the contents of IPython/Extensions
+folder to see what's available.
+
+You can see a brief documentation of an extension by looking at the
+module docstring::
+
+    [c:p/ipython_main]|190> import ipy_fsops
+    [c:p/ipython_main]|191> ipy_fsops?
+
+    ...
+
+    Docstring:
+        File system operations
+
+    Contains: Simple variants of normal unix shell commands (icp, imv, irm,
+    imkdir, igrep).
+
+You can also install your own extensions - the recommended way is to
+just copy the module to ~/.ipython. Extensions are typically enabled
+by just importing them (e.g. in ipy_user_conf.py), but some extensions
+require additional steps, for example::
+
+    [c:p]|192> import ipy_traits_completer
+    [c:p]|193> ipy_traits_completer.activate()    
+
+Note that extensions, even if provided in the stock IPython
+installation, are not guaranteed to have the same requirements as the
+rest of IPython - an extension may require external libraries or a
+newer version of Python than what IPython officially requires. An
+extension may also be under a more restrictive license than IPython
+(e.g. ipy_bzr is under GPL).
+
+Just for reference, the list of bundled extensions at the time of
+writing is below:
+
+astyle.py clearcmd.py envpersist.py ext_rescapture.py ibrowse.py
+igrid.py InterpreterExec.py InterpreterPasteInput.py ipipe.py
+ipy_app_completers.py ipy_autoreload.py ipy_bzr.py ipy_completers.py
+ipy_constants.py ipy_defaults.py ipy_editors.py ipy_exportdb.py
+ipy_extutil.py ipy_fsops.py ipy_gnuglobal.py ipy_kitcfg.py
+ipy_legacy.py ipy_leo.py ipy_p4.py ipy_profile_doctest.py
+ipy_profile_none.py ipy_profile_scipy.py ipy_profile_sh.py
+ipy_profile_zope.py ipy_pydb.py ipy_rehashdir.py ipy_render.py
+ipy_server.py ipy_signals.py ipy_stock_completers.py
+ipy_system_conf.py ipy_traits_completer.py ipy_vimserver.py
+ipy_which.py ipy_workdir.py jobctrl.py ledit.py numeric_formats.py
+PhysicalQInput.py PhysicalQInteractive.py pickleshare.py
+pspersistence.py win32clip.py __init__.py
+
 Reporting bugs
 ==============
 
