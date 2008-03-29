@@ -170,7 +170,7 @@ setup(name             = name,
       license          = license,
       platforms        = platforms,
       keywords         = keywords,
-      packages         = ['IPython', 'IPython.Extensions', 'IPython.external'],
+      packages         = ['IPython', 'IPython.Extensions', 'IPython.external', 'IPython.gui', 'IPython.gui.wx'],
       scripts          = scriptfiles,
       
       cmdclass         = {'install_data': install_data_ext},
