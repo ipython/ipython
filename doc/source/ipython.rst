@@ -52,96 +52,97 @@ which tries to:
       shell can only do this for Tkinter applications.
 
 
-    Main features
+Main features
+-------------
 
-    * Dynamic object introspection. One can access docstrings, function
-      definition prototypes, source code, source files and other details
-      of any object accessible to the interpreter with a single
-      keystroke ('?', and using '??' provides additional detail).
-    * Searching through modules and namespaces with '*' wildcards, both
-      when using the '?' system and via the %psearch command.
-    * Completion in the local namespace, by typing TAB at the prompt.
-      This works for keywords, methods, variables and files in the
-      current directory. This is supported via the readline library, and
-      full access to configuring readline's behavior is provided.
-    * Numbered input/output prompts with command history (persistent
-      across sessions and tied to each profile), full searching in this
-      history and caching of all input and output.
-    * User-extensible 'magic' commands. A set of commands prefixed with
-      % is available for controlling IPython itself and provides
-      directory control, namespace information and many aliases to
-      common system shell commands.
-    * Alias facility for defining your own system aliases.
-    * Complete system shell access. Lines starting with ! are passed
-      directly to the system shell, and using !! captures shell output
-      into python variables for further use.
-    * Background execution of Python commands in a separate thread.
-      IPython has an internal job manager called jobs, and a
-      conveninence backgrounding magic function called %bg.
-    * The ability to expand python variables when calling the system
-      shell. In a shell command, any python variable prefixed with $ is
-      expanded. A double $$ allows passing a literal $ to the shell (for
-      access to shell and environment variables like $PATH).
-    * Filesystem navigation, via a magic %cd command, along with a
-      persistent bookmark system (using %bookmark) for fast access to
-      frequently visited directories.
-    * A lightweight persistence framework via the %store command, which
-      allows you to save arbitrary Python variables. These get restored
-      automatically when your session restarts.
-    * Automatic indentation (optional) of code as you type (through the
-      readline library).
-    * Macro system for quickly re-executing multiple lines of previous
-      input with a single name. Macros can be stored persistently via
-      %store and edited via %edit.
-    * Session logging (you can then later use these logs as code in your
-      programs). Logs can optionally timestamp all input, and also store
-      session output (marked as comments, so the log remains valid
-      Python source code).
-    * Session restoring: logs can be replayed to restore a previous
-      session to the state where you left it.
-    * Verbose and colored exception traceback printouts. Easier to parse
-      visually, and in verbose mode they produce a lot of useful
-      debugging information (basically a terminal version of the cgitb
-      module).
-    * Auto-parentheses: callable objects can be executed without
-      parentheses: 'sin 3' is automatically converted to 'sin(3)'.
-    * Auto-quoting: using ',' or ';' as the first character forces
-      auto-quoting of the rest of the line: ',my_function a b' becomes
-      automatically 'my_function("a","b")', while ';my_function a b'
-      becomes 'my_function("a b")'.
-    * Extensible input syntax. You can define filters that pre-process
-      user input to simplify input in special situations. This allows
-      for example pasting multi-line code fragments which start with
-      '>>>' or '...' such as those from other python sessions or the
-      standard Python documentation.
-    * Flexible configuration system. It uses a configuration file which
-      allows permanent setting of all command-line options, module
-      loading, code and file execution. The system allows recursive file
-      inclusion, so you can have a base file with defaults and layers
-      which load other customizations for particular projects.
-    * Embeddable. You can call IPython as a python shell inside your own
-      python programs. This can be used both for debugging code or for
-      providing interactive abilities to your programs with knowledge
-      about the local namespaces (very useful in debugging and data
-      analysis situations).
-    * Easy debugger access. You can set IPython to call up an enhanced
-      version of the Python debugger (pdb) every time there is an
-      uncaught exception. This drops you inside the code which triggered
-      the exception with all the data live and it is possible to
-      navigate the stack to rapidly isolate the source of a bug. The
-      %run magic command -with the -d option- can run any script under
-      pdb's control, automatically setting initial breakpoints for you.
-      This version of pdb has IPython-specific improvements, including
-      tab-completion and traceback coloring support.
-    * Profiler support. You can run single statements (similar to
-      profile.run()) or complete programs under the profiler's control.
-      While this is possible with standard cProfile or profile modules,
-      IPython wraps this functionality with magic commands (see '%prun'
-      and '%run -p') convenient for rapid interactive work.
-    * Doctest support. The special %doctest_mode command toggles a mode
-      that allows you to paste existing doctests (with leading '>>>'
-      prompts and whitespace) and uses doctest-compatible prompts and
-      output, so you can use IPython sessions as doctest code.
+* Dynamic object introspection. One can access docstrings, function
+  definition prototypes, source code, source files and other details
+  of any object accessible to the interpreter with a single
+  keystroke ('?', and using '??' provides additional detail).
+* Searching through modules and namespaces with '*' wildcards, both
+  when using the '?' system and via the %psearch command.
+* Completion in the local namespace, by typing TAB at the prompt.
+  This works for keywords, methods, variables and files in the
+  current directory. This is supported via the readline library, and
+  full access to configuring readline's behavior is provided.
+* Numbered input/output prompts with command history (persistent
+  across sessions and tied to each profile), full searching in this
+  history and caching of all input and output.
+* User-extensible 'magic' commands. A set of commands prefixed with
+  % is available for controlling IPython itself and provides
+  directory control, namespace information and many aliases to
+  common system shell commands.
+* Alias facility for defining your own system aliases.
+* Complete system shell access. Lines starting with ! are passed
+  directly to the system shell, and using !! captures shell output
+  into python variables for further use.
+* Background execution of Python commands in a separate thread.
+  IPython has an internal job manager called jobs, and a
+  conveninence backgrounding magic function called %bg.
+* The ability to expand python variables when calling the system
+  shell. In a shell command, any python variable prefixed with $ is
+  expanded. A double $$ allows passing a literal $ to the shell (for
+  access to shell and environment variables like $PATH).
+* Filesystem navigation, via a magic %cd command, along with a
+  persistent bookmark system (using %bookmark) for fast access to
+  frequently visited directories.
+* A lightweight persistence framework via the %store command, which
+  allows you to save arbitrary Python variables. These get restored
+  automatically when your session restarts.
+* Automatic indentation (optional) of code as you type (through the
+  readline library).
+* Macro system for quickly re-executing multiple lines of previous
+  input with a single name. Macros can be stored persistently via
+  %store and edited via %edit.
+* Session logging (you can then later use these logs as code in your
+  programs). Logs can optionally timestamp all input, and also store
+  session output (marked as comments, so the log remains valid
+  Python source code).
+* Session restoring: logs can be replayed to restore a previous
+  session to the state where you left it.
+* Verbose and colored exception traceback printouts. Easier to parse
+  visually, and in verbose mode they produce a lot of useful
+  debugging information (basically a terminal version of the cgitb
+  module).
+* Auto-parentheses: callable objects can be executed without
+  parentheses: 'sin 3' is automatically converted to 'sin(3)'.
+* Auto-quoting: using ',' or ';' as the first character forces
+  auto-quoting of the rest of the line: ',my_function a b' becomes
+  automatically 'my_function("a","b")', while ';my_function a b'
+  becomes 'my_function("a b")'.
+* Extensible input syntax. You can define filters that pre-process
+  user input to simplify input in special situations. This allows
+  for example pasting multi-line code fragments which start with
+  '>>>' or '...' such as those from other python sessions or the
+  standard Python documentation.
+* Flexible configuration system. It uses a configuration file which
+  allows permanent setting of all command-line options, module
+  loading, code and file execution. The system allows recursive file
+  inclusion, so you can have a base file with defaults and layers
+  which load other customizations for particular projects.
+* Embeddable. You can call IPython as a python shell inside your own
+  python programs. This can be used both for debugging code or for
+  providing interactive abilities to your programs with knowledge
+  about the local namespaces (very useful in debugging and data
+  analysis situations).
+* Easy debugger access. You can set IPython to call up an enhanced
+  version of the Python debugger (pdb) every time there is an
+  uncaught exception. This drops you inside the code which triggered
+  the exception with all the data live and it is possible to
+  navigate the stack to rapidly isolate the source of a bug. The
+  %run magic command -with the -d option- can run any script under
+  pdb's control, automatically setting initial breakpoints for you.
+  This version of pdb has IPython-specific improvements, including
+  tab-completion and traceback coloring support.
+* Profiler support. You can run single statements (similar to
+  profile.run()) or complete programs under the profiler's control.
+  While this is possible with standard cProfile or profile modules,
+  IPython wraps this functionality with magic commands (see '%prun'
+  and '%run -p') convenient for rapid interactive work.
+* Doctest support. The special %doctest_mode command toggles a mode
+  that allows you to paste existing doctests (with leading '>>>'
+  prompts and whitespace) and uses doctest-compatible prompts and
+  output, so you can use IPython sessions as doctest code.
 
 
 Portability and Python requirements
@@ -602,10 +603,14 @@ Input/Output prompts and exception tracebacks
 You can test whether the colored prompts and tracebacks work on your
 system interactively by typing '%colors Linux' at the prompt (use
 '%colors LightBG' if your terminal has a light background). If the input
-prompt shows garbage like:
-[0;32mIn [[1;32m1[0;32m]: [0;00m
-instead of (in color) something like:
-In [1]:
+prompt shows garbage like::
+
+    [0;32mIn [[1;32m1[0;32m]: [0;00m
+                               
+instead of (in color) something like::
+    
+    In [1]:
+        
 this means that your terminal doesn't properly handle color escape
 sequences. You can go to a 'no color' mode by typing '%colors NoColor'.
 
@@ -3092,6 +3097,23 @@ won't work::
 Customization
 =============
 
+There are 2 ways to configure IPython - the old way of using ipythonrc
+files (an INI-file like format), and the new way that involves editing
+your ipy_user_conf.py. Both configuration systems work at the same
+time, so you can set your options in both, but if you are hesitating
+about which alternative to choose, we recommend the ipy_user_conf.py
+approach, as it will give you more power and control in the long
+run. However, there are few options such as pylab_import_all that can
+only be specified in ipythonrc file or command line - the reason for
+this is that they are needed before IPython has been started up, and
+the IPApi object used in ipy_user_conf.py is not yet available at that
+time. A hybrid approach of specifying a few options in ipythonrc and
+doing the more advanced configuration in ipy_user_conf.py is also
+possible.
+
+The ipythonrc approach
+----------------------
+
 As we've already mentioned, IPython reads a configuration file which can
 be specified at the command line (-rcfile) or which by default is
 assumed to be called ipythonrc. Such a file is looked for in the current
@@ -3148,7 +3170,6 @@ Each of these options may appear as many times as you need it in the file.
       with files while testing code. This gives you the flexibility to
       have within IPython any aliases you may be used to under your
       normal system shell.
-
 
 
 Sample ipythonrc file
@@ -3791,7 +3812,95 @@ reproduce it here for reference::
     # alias 
 
     #************************* end of file <ipythonrc> ************************
-    
+
+
+ipy_user_conf.py
+----------------
+
+There should be a simple template ipy_user_conf.py file in your
+~/.ipython directory. It is a plain python module that is imported
+during IPython startup, so you can do pretty much what you want there
+- import modules, configure extensions, change options, define magic
+commands, put variables and functions in the IPython namespace,
+etc. You use the IPython extension api object, acquired by
+IPython.ipapi.get() and documented in the "IPython extension API"
+chapter, to interact with IPython. A sample ipy_user_conf.py is listed
+below for reference::
+
+    # Most of your config files and extensions will probably start
+    # with this import
+
+    import IPython.ipapi
+    ip = IPython.ipapi.get()
+
+    # You probably want to uncomment this if you did %upgrade -nolegacy
+    # import ipy_defaults    
+
+    import os   
+
+    def main():   
+
+        #ip.dbg.debugmode = True
+        ip.dbg.debug_stack()
+
+        # uncomment if you want to get ipython -p sh behaviour
+        # without having to use command line switches  
+        import ipy_profile_sh
+        import jobctrl
+
+        # Configure your favourite editor?
+        # Good idea e.g. for %edit os.path.isfile
+
+        #import ipy_editors
+
+        # Choose one of these:
+
+        #ipy_editors.scite()
+        #ipy_editors.scite('c:/opt/scite/scite.exe')
+        #ipy_editors.komodo()
+        #ipy_editors.idle()
+        # ... or many others, try 'ipy_editors??' after import to see them
+
+        # Or roll your own:
+        #ipy_editors.install_editor("c:/opt/jed +$line $file")
+
+
+        o = ip.options
+        # An example on how to set options
+        #o.autocall = 1
+        o.system_verbose = 0
+
+        #import_all("os sys")
+        #execf('~/_ipython/ns.py')
+
+
+        # -- prompt
+        # A different, more compact set of prompts from the default ones, that
+        # always show your current location in the filesystem:
+
+        #o.prompt_in1 = r'\C_LightBlue[\C_LightCyan\Y2\C_LightBlue]\C_Normal\n\C_Green|\#>'
+        #o.prompt_in2 = r'.\D: '
+        #o.prompt_out = r'[\#] '
+
+        # Try one of these color settings if you can't read the text easily
+        # autoexec is a list of IPython commands to execute on startup
+        #o.autoexec.append('%colors LightBG')
+        #o.autoexec.append('%colors NoColor')
+        o.autoexec.append('%colors Linux')
+
+
+    # some config helper functions you can use 
+    def import_all(modules):
+        """ Usage: import_all("os sys") """ 
+        for m in modules.split():
+            ip.ex("from %s import *" % m)
+
+    def execf(fname):
+        """ Execute a file in user namespace """
+        ip.ex('execfile("%s")' % os.path.expanduser(fname))
+
+    main()
+
 
 
 Fine-tuning your prompt
@@ -3799,42 +3908,42 @@ Fine-tuning your prompt
 
 IPython's prompts can be customized using a syntax similar to that of
 the bash shell. Many of bash's escapes are supported, as well as a few
-additional ones. We list them below:
+additional ones. We list them below::
 
-*\#*
-    the prompt/history count number. This escape is automatically
-    wrapped in the coloring codes for the currently active color scheme. 
-*\N*
-    the 'naked' prompt/history count number: this is just the number
-    itself, without any coloring applied to it. This lets you produce
-    numbered prompts with your own colors. 
-*\D*
-    the prompt/history count, with the actual digits replaced by dots.
-    Used mainly in continuation prompts (prompt_in2) 
-*\w*
-    the current working directory 
-*\W*
-    the basename of current working directory 
-*\Xn*
-    where $n=0\ldots5.$ The current working directory, with $HOME
-    replaced by ~, and filtered out to contain only $n$ path elements 
-*\Yn*
-    Similar to \Xn, but with the $n+1$ element included if it is ~ (this
-    is similar to the behavior of the %cn escapes in tcsh) 
-*\u*
-    the username of the current user 
-*\$*
-    if the effective UID is 0, a #, otherwise a $ 
-*\h*
-    the hostname up to the first '.' 
-*\H*
-    the hostname 
-*\n*
-    a newline 
-*\r*
-    a carriage return 
-*\v*
-    IPython version string 
+    \#
+        the prompt/history count number. This escape is automatically
+        wrapped in the coloring codes for the currently active color scheme. 
+    \N
+        the 'naked' prompt/history count number: this is just the number
+        itself, without any coloring applied to it. This lets you produce
+        numbered prompts with your own colors. 
+    \D
+        the prompt/history count, with the actual digits replaced by dots.
+        Used mainly in continuation prompts (prompt_in2) 
+    \w
+        the current working directory 
+    \W
+        the basename of current working directory 
+    \Xn
+        where $n=0\ldots5.$ The current working directory, with $HOME
+        replaced by ~, and filtered out to contain only $n$ path elements 
+    \Yn
+        Similar to \Xn, but with the $n+1$ element included if it is ~ (this
+        is similar to the behavior of the %cn escapes in tcsh) 
+    \u
+        the username of the current user 
+    \$
+        if the effective UID is 0, a #, otherwise a $ 
+    \h
+        the hostname up to the first '.' 
+    \H
+        the hostname 
+    \n
+        a newline 
+    \r
+        a carriage return 
+    \v
+        IPython version string 
 
 In addition to these, ANSI color escapes can be insterted into the
 prompts, as \C_ColorName. The list of valid color names is: Black, Blue,
@@ -4225,11 +4334,11 @@ uncaught exception is triggered by your code.
 
 For stand-alone use of the feature in your programs which do not use
 IPython at all, put the following lines toward the top of your 'main'
-routine:
+routine::
 
-import sys,IPython.ultraTB  
-sys.excepthook = IPython.ultraTB.FormattedTB(mode='Verbose',
-color_scheme='Linux', call_pdb=1)
+    import sys,IPython.ultraTB  
+    sys.excepthook = IPython.ultraTB.FormattedTB(mode='Verbose',
+    color_scheme='Linux', call_pdb=1)
 
 The mode keyword can be either 'Verbose' or 'Plain', giving either very
 detailed or normal tracebacks respectively. The color_scheme keyword can
@@ -4255,7 +4364,7 @@ supplied, which we will briefly describe now. These can be used 'as is'
 starting point for writing your own extensions.
 
 
-Pasting of code starting with '»> ' or '... '
+Pasting of code starting with '>>> ' or '... '
 ----------------------------------------------
 
 In the python tutorial it is common to find code examples which have
@@ -4345,7 +4454,7 @@ the "pysh" shortcut in start menu.
 
 If you want to use the features of sh profile as your defaults (which
 might be a good idea if you use other profiles a lot of the time but
-still want the convenience of sh profile), add "import ipy_profile_sh"
+still want the convenience of sh profile), add ``import ipy_profile_sh``
 to your ~/.ipython/ipy_user_conf.py.
 
 The 'sh' profile is different from the default profile in that:
@@ -4473,73 +4582,145 @@ Provide the magic function %mglob, which makes it easier (than the 'find' comman
 Note that the first 2 calls will put the file list in result history (_, _9, _10), and the last one will assign it to 'workfiles'.
 
 
-
-
-
 Prompt customization
 --------------------
 
-The supplied ipy_profile_sh.py profile comes with an example of a very
-colored and detailed prompt, mainly to serve as an illustration. The
-valid escape sequences, besides color names, are::
+The sh profile uses the following prompt configurations::
 
-	\#
-	    - Prompt number, wrapped in the color escapes for the input prompt
-	      (determined by the current color scheme). 
-	\N
-	    - Just the prompt counter number, without any coloring wrappers. You
-	      can thus customize the actual prompt colors manually. 
-	\D
-	    - Dots, as many as there are digits in \# (so they align). 
-	\w
-	    - Current working directory (cwd). 
-	\W
-	    - Basename of current working directory. 
-	\XN
-	    - Where N=0..5. N terms of the cwd, with $HOME written as ~. 
-	\YN
-	    - Where N=0..5. Like XN, but if ~ is term N+1 it's also shown. 
-	\u
-	    - Username. 
-	\H
-	    - Full hostname. 
-	\h
-	    - Hostname up to first '.' 
-	\$
-	    - Root symbol ($ or #). 
-	\t
-	    - Current time, in H:M:S format. 
-	\v
-	    - IPython release version. 
-	\n
-	    - Newline. 
-	\r
-	    - Carriage return. 
-	\\
-	    - An explicitly escaped '\'. 
+    o.prompt_in1= r'\C_LightBlue[\C_LightCyan\Y2\C_LightBlue]\C_Green|\#>'
+    o.prompt_in2= r'\C_Green|\C_LightGreen\D\C_Green>'
 
-You can configure your prompt colors using any ANSI color escape. Each
-color escape sets the color for any subsequent text, until another
-escape comes in and changes things. The valid color escapes are::
+You can change the prompt configuration to your liking by editing
+ipy_user_conf.py.  
 
-	\C_Black
-	\C_Blue
-	\C_Brown
-	\C_Cyan
-	\C_DarkGray
-	\C_Green
-	\C_LightBlue
-	\C_LightCyan
-	\C_LightGray
-	\C_LightGreen
-	\C_LightPurple
-	\C_LightRed
-	\C_Purple
-	\C_Red
-	\C_White
-	\C_Yellow
-	\C_Normal
-	    Stop coloring, defaults to your terminal settings. 
+String lists
+============
+
+String lists (IPython.genutils.SList) are handy way to process output
+from system commands. They are produced by ``var = !cmd`` syntax.
+
+First, we acquire the output of 'ls -l'::
+
+    [Q:doc/examples]|2> lines = !ls -l
+     ==
+    ['total 23',
+     '-rw-rw-rw- 1 ville None 1163 Sep 30  2006 example-demo.py',
+     '-rw-rw-rw- 1 ville None 1927 Sep 30  2006 example-embed-short.py',
+     '-rwxrwxrwx 1 ville None 4606 Sep  1 17:15 example-embed.py',
+     '-rwxrwxrwx 1 ville None 1017 Sep 30  2006 example-gnuplot.py',
+     '-rwxrwxrwx 1 ville None  339 Jun 11 18:01 extension.py',
+     '-rwxrwxrwx 1 ville None  113 Dec 20  2006 seteditor.py',
+     '-rwxrwxrwx 1 ville None  245 Dec 12  2006 seteditor.pyc']
+
+Now, let's take a look at the contents of 'lines' (the first number is
+the list element number)::
+
+    [Q:doc/examples]|3> lines
+                    <3> SList (.p, .n, .l, .s, .grep(), .fields() available). Value:
+
+    0: total 23
+    1: -rw-rw-rw- 1 ville None 1163 Sep 30  2006 example-demo.py
+    2: -rw-rw-rw- 1 ville None 1927 Sep 30  2006 example-embed-short.py
+    3: -rwxrwxrwx 1 ville None 4606 Sep  1 17:15 example-embed.py
+    4: -rwxrwxrwx 1 ville None 1017 Sep 30  2006 example-gnuplot.py
+    5: -rwxrwxrwx 1 ville None  339 Jun 11 18:01 extension.py
+    6: -rwxrwxrwx 1 ville None  113 Dec 20  2006 seteditor.py
+    7: -rwxrwxrwx 1 ville None  245 Dec 12  2006 seteditor.pyc
+
+Now, let's filter out the 'embed' lines::
+
+    [Q:doc/examples]|4> l2 = lines.grep('embed',prune=1)
+    [Q:doc/examples]|5> l2
+                    <5> SList (.p, .n, .l, .s, .grep(), .fields() available). Value:
+
+    0: total 23
+    1: -rw-rw-rw- 1 ville None 1163 Sep 30  2006 example-demo.py
+    2: -rwxrwxrwx 1 ville None 1017 Sep 30  2006 example-gnuplot.py
+    3: -rwxrwxrwx 1 ville None  339 Jun 11 18:01 extension.py
+    4: -rwxrwxrwx 1 ville None  113 Dec 20  2006 seteditor.py
+    5: -rwxrwxrwx 1 ville None  245 Dec 12  2006 seteditor.pyc
+
+Now, we want strings having just file names and permissions::
+
+    [Q:doc/examples]|6> l2.fields(8,0)
+                    <6> SList (.p, .n, .l, .s, .grep(), .fields() available). Value:
+
+    0: total
+    1: example-demo.py -rw-rw-rw-
+    2: example-gnuplot.py -rwxrwxrwx
+    3: extension.py -rwxrwxrwx
+    4: seteditor.py -rwxrwxrwx
+    5: seteditor.pyc -rwxrwxrwx
+
+Note how the line with 'total' does not raise IndexError.
+
+If you want to split these (yielding lists), call fields() without
+arguments::
+
+    [Q:doc/examples]|7> _.fields()
+                    <7>
+    [['total'],
+     ['example-demo.py', '-rw-rw-rw-'],
+     ['example-gnuplot.py', '-rwxrwxrwx'],
+     ['extension.py', '-rwxrwxrwx'],
+     ['seteditor.py', '-rwxrwxrwx'],
+     ['seteditor.pyc', '-rwxrwxrwx']]
+
+If you want to pass these separated with spaces to a command (typical
+for lists if files), use the .s property::
+
+
+    [Q:doc/examples]|13> files = l2.fields(8).s
+    [Q:doc/examples]|14> files
+                    <14> 'example-demo.py example-gnuplot.py extension.py seteditor.py seteditor.pyc'
+    [Q:doc/examples]|15> ls $files
+    example-demo.py  example-gnuplot.py  extension.py  seteditor.py  seteditor.pyc
+
+SLists are inherited from normal python lists, so every list method is
+available::
+
+    [Q:doc/examples]|21> lines.append('hey')
+
+
+Real world example: remove all files outside version control
+------------------------------------------------------------
+
+First, capture output of "hg status"::
+
+    [Q:/ipython]|28> out = !hg status
+     ==
+    ['M IPython\\Extensions\\ipy_kitcfg.py',
+     'M IPython\\Extensions\\ipy_rehashdir.py',
+    ...
+     '? build\\lib\\IPython\\Debugger.py',
+     '? build\\lib\\IPython\\Extensions\\InterpreterExec.py',
+     '? build\\lib\\IPython\\Extensions\\InterpreterPasteInput.py',
+    ...
+
+(lines starting with ? are not under version control).
+
+::
+
+    [Q:/ipython]|35> junk = out.grep(r'^\?').fields(1)
+    [Q:/ipython]|36> junk
+                <36> SList (.p, .n, .l, .s, .grep(), .fields() availab
+    ...
+    10: build\bdist.win32\winexe\temp\_ctypes.py
+    11: build\bdist.win32\winexe\temp\_hashlib.py
+    12: build\bdist.win32\winexe\temp\_socket.py
+
+Now we can just remove these files by doing 'rm $junk.s'. 
+
+The .s, .n, .p properties
+-------------------------
+
+The '.s' property returns one string where lines are separated by
+single space (for convenient passing to system commands). The '.n'
+property return one string where the lines are separated by '\n'
+(i.e. the original output of the function). If the items in string
+list are file names, '.p' can be used to get a list of "path" objects
+for convenient file manipulation.
+
 
 Threading support
 =================
@@ -4734,6 +4915,204 @@ mechanism (Sec. 7.3 <node7.html#sec:profiles>): ''ipython -pylab -p
 myprofile'' will load the profile defined in ipythonrc-myprofile after
 configuring matplotlib.
 
+IPython Extension Api
+=====================
+
+IPython api (defined in IPython/ipapi.py) is the public api that
+should be used for
+
+ * Configuration of user preferences (.ipython/ipy_user_conf.py)
+ * Creating new profiles (.ipython/ipy_profile_PROFILENAME.py)
+ * Writing extensions 
+
+Note that by using the extension api for configuration (editing
+ipy_user_conf.py instead of ipythonrc), you get better validity checks
+and get richer functionality - for example, you can import an
+extension and call functions in it to configure it for your purposes.
+
+For an example extension (the 'sh' profile), see
+IPython/Extensions/ipy_profile_sh.py.
+
+For the last word on what's available, see the source code of
+IPython/ipapi.py.
+
+
+Getting started
+---------------
+
+If you want to define an extension, create a normal python module that
+can be imported. The module will access IPython functionality through
+the 'ip' object defined below.
+
+If you are creating a new profile (e.g. foobar), name the module as
+'ipy_profile_foobar.py' and put it in your ~/.ipython directory. Then,
+when you start ipython with the '-p foobar' argument, the module is
+automatically imported on ipython startup.
+
+If you are just doing some per-user configuration, you can either 
+
+ * Put the commands directly into ipy_user_conf.py. 
+
+ * Create a new module with your customization code and import *that*
+   module in ipy_user_conf.py. This is preferable to the first approach,
+   because now you can reuse and distribute your customization code.
+
+Getting a handle to the api
+---------------------------
+
+Put this in the start of your module::
+
+    #!python
+    import IPython.ipapi
+    ip = IPython.ipapi.get()
+
+The 'ip' object will then be used for accessing IPython
+functionality. 'ip' will mean this api object in all the following
+code snippets. The same 'ip' that we just acquired is always
+accessible in interactive IPython sessions by the name _ip - play with
+it like this::
+
+    [~\_ipython]|81> a = 10
+    [~\_ipython]|82> _ip.e
+    _ip.ev           _ip.ex           _ip.expose_magic
+    [~\_ipython]|82> _ip.ev('a+13')
+                <82> 23
+
+The _ip object is also used in some examples in this document - it can
+be substituted by 'ip' in non-interactive use.
+
+Changing options
+----------------
+
+The ip object has 'options' attribute that can be used te get/set
+configuration options (just as in the ipythonrc file)::
+
+    o = ip.options
+    o.autocall = 2
+    o.automagic = 1
+
+Executing statements in IPython namespace with 'ex' and 'ev'
+------------------------------------------------------------
+
+Often, you want to e.g. import some module or define something that
+should be visible in IPython namespace. Use ``ip.ev`` to
+*evaluate* (calculate the value of) expression and ``ip.ex`` to
+'''execute''' a statement::
+
+    # path module will be visible to the interactive session
+    ip.ex("from path import path" )
+
+    # define a handy function 'up' that changes the working directory
+
+    ip.ex('import os')
+    ip.ex("def up(): os.chdir('..')")
+
+
+    # _i2 has the input history entry #2, print its value in uppercase.
+    print ip.ev('_i2.upper()')
+
+Accessing the IPython namespace
+-------------------------------
+
+ip.user_ns attribute has a dictionary containing the IPython global
+namespace (the namespace visible in the interactive session).
+
+::
+
+    [~\_ipython]|84> tauno = 555
+    [~\_ipython]|85> _ip.user_ns['tauno']
+                <85> 555
+
+Defining new magic commands
+---------------------------
+
+The following example defines a new magic command, %impall. What the
+command does should be obvious::
+
+    def doimp(self, arg):
+        ip = self.api
+        ip.ex("import %s; reload(%s); from %s import *" % (
+        arg,arg,arg)
+        )
+
+    ip.expose_magic('impall', doimp)
+
+Things to observe in this example:
+
+ * Define a function that implements the magic command using the 
+   ipapi methods defined in this document
+ * The first argument of the function is 'self', i.e. the 
+   interpreter object. It shouldn't be used directly. however. 
+   The interpreter object is probably *not* going to remain stable 
+   through IPython versions.
+ * Access the ipapi through 'self.api' instead of the global 'ip' object.
+ * All the text following the magic command on the command line is 
+   contained in the second argument
+ * Expose the magic by ip.expose_magic()
+
+
+Calling magic functions and system commands
+-------------------------------------------
+
+Use ip.magic() to execute a magic function, and ip.system() to execute
+a system command::
+
+    # go to a bookmark
+    ip.magic('%cd -b relfiles')
+
+    # execute 'ls -F' system command. Interchangeable with os.system('ls'), really.
+    ip.system('ls -F')
+
+Launching IPython instance from normal python code
+--------------------------------------------------
+
+Use ipapi.launch_new_instance() with an argument that specifies the
+namespace to use. This can be useful for trivially embedding IPython
+into your program. Here's an example of normal python program test.py
+('''without''' an existing IPython session) that launches an IPython
+interpreter and regains control when the interpreter is exited::
+
+    [ipython]|1> cat test.py
+    my_ns = dict(
+        kissa = 15,
+        koira = 16)
+    import IPython.ipapi
+    print "launching IPython instance"
+    IPython.ipapi.launch_new_instance(my_ns)
+    print "Exited IPython instance!"
+    print "New vals:",my_ns['kissa'], my_ns['koira']
+
+And here's what it looks like when run (note how we don't start it
+from an ipython session)::
+
+    Q:\ipython>python test.py
+    launching IPython instance
+    Py 2.5 (r25:51908, Sep 19 2006, 09:52:17) [MSC v.1310 32 bit (Intel)] IPy 0.7.3b3.r1975
+    [ipython]|1> kissa = 444
+    [ipython]|2> koira = 555
+    [ipython]|3> Exit
+    Exited IPython instance!
+    New vals: 444 555
+
+Accessing unexposed functionality
+---------------------------------
+
+There are still many features that are not exposed via the ipapi. If
+you can't avoid using them, you can use the functionality in
+InteractiveShell object (central IPython session class, defined in
+iplib.py) through ip.IP.
+
+For example::
+
+    [~]|7> _ip.IP.expand_aliases('np','myfile.py')
+       <7> 'c:/opt/Notepad++/notepad++.exe myfile.py'
+    [~]|8>
+
+Still, it's preferable that if you encounter such a feature, contact
+the IPython team and request that the functionality be exposed in a
+future version of IPython. Things not in ipapi are more likely to
+change over time.
+
 Reporting bugs
 ==============
 
@@ -4768,7 +5147,8 @@ Brief history
 =============
 
 
-    Origins
+Origins
+-------
 
 The current IPython system grew out of the following three projects:
 
