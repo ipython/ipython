@@ -52,96 +52,97 @@ which tries to:
       shell can only do this for Tkinter applications.
 
 
-    Main features
+Main features
+-------------
 
-    * Dynamic object introspection. One can access docstrings, function
-      definition prototypes, source code, source files and other details
-      of any object accessible to the interpreter with a single
-      keystroke ('?', and using '??' provides additional detail).
-    * Searching through modules and namespaces with '*' wildcards, both
-      when using the '?' system and via the %psearch command.
-    * Completion in the local namespace, by typing TAB at the prompt.
-      This works for keywords, methods, variables and files in the
-      current directory. This is supported via the readline library, and
-      full access to configuring readline's behavior is provided.
-    * Numbered input/output prompts with command history (persistent
-      across sessions and tied to each profile), full searching in this
-      history and caching of all input and output.
-    * User-extensible 'magic' commands. A set of commands prefixed with
-      % is available for controlling IPython itself and provides
-      directory control, namespace information and many aliases to
-      common system shell commands.
-    * Alias facility for defining your own system aliases.
-    * Complete system shell access. Lines starting with ! are passed
-      directly to the system shell, and using !! captures shell output
-      into python variables for further use.
-    * Background execution of Python commands in a separate thread.
-      IPython has an internal job manager called jobs, and a
-      conveninence backgrounding magic function called %bg.
-    * The ability to expand python variables when calling the system
-      shell. In a shell command, any python variable prefixed with $ is
-      expanded. A double $$ allows passing a literal $ to the shell (for
-      access to shell and environment variables like $PATH).
-    * Filesystem navigation, via a magic %cd command, along with a
-      persistent bookmark system (using %bookmark) for fast access to
-      frequently visited directories.
-    * A lightweight persistence framework via the %store command, which
-      allows you to save arbitrary Python variables. These get restored
-      automatically when your session restarts.
-    * Automatic indentation (optional) of code as you type (through the
-      readline library).
-    * Macro system for quickly re-executing multiple lines of previous
-      input with a single name. Macros can be stored persistently via
-      %store and edited via %edit.
-    * Session logging (you can then later use these logs as code in your
-      programs). Logs can optionally timestamp all input, and also store
-      session output (marked as comments, so the log remains valid
-      Python source code).
-    * Session restoring: logs can be replayed to restore a previous
-      session to the state where you left it.
-    * Verbose and colored exception traceback printouts. Easier to parse
-      visually, and in verbose mode they produce a lot of useful
-      debugging information (basically a terminal version of the cgitb
-      module).
-    * Auto-parentheses: callable objects can be executed without
-      parentheses: 'sin 3' is automatically converted to 'sin(3)'.
-    * Auto-quoting: using ',' or ';' as the first character forces
-      auto-quoting of the rest of the line: ',my_function a b' becomes
-      automatically 'my_function("a","b")', while ';my_function a b'
-      becomes 'my_function("a b")'.
-    * Extensible input syntax. You can define filters that pre-process
-      user input to simplify input in special situations. This allows
-      for example pasting multi-line code fragments which start with
-      '>>>' or '...' such as those from other python sessions or the
-      standard Python documentation.
-    * Flexible configuration system. It uses a configuration file which
-      allows permanent setting of all command-line options, module
-      loading, code and file execution. The system allows recursive file
-      inclusion, so you can have a base file with defaults and layers
-      which load other customizations for particular projects.
-    * Embeddable. You can call IPython as a python shell inside your own
-      python programs. This can be used both for debugging code or for
-      providing interactive abilities to your programs with knowledge
-      about the local namespaces (very useful in debugging and data
-      analysis situations).
-    * Easy debugger access. You can set IPython to call up an enhanced
-      version of the Python debugger (pdb) every time there is an
-      uncaught exception. This drops you inside the code which triggered
-      the exception with all the data live and it is possible to
-      navigate the stack to rapidly isolate the source of a bug. The
-      %run magic command -with the -d option- can run any script under
-      pdb's control, automatically setting initial breakpoints for you.
-      This version of pdb has IPython-specific improvements, including
-      tab-completion and traceback coloring support.
-    * Profiler support. You can run single statements (similar to
-      profile.run()) or complete programs under the profiler's control.
-      While this is possible with standard cProfile or profile modules,
-      IPython wraps this functionality with magic commands (see '%prun'
-      and '%run -p') convenient for rapid interactive work.
-    * Doctest support. The special %doctest_mode command toggles a mode
-      that allows you to paste existing doctests (with leading '>>>'
-      prompts and whitespace) and uses doctest-compatible prompts and
-      output, so you can use IPython sessions as doctest code.
+* Dynamic object introspection. One can access docstrings, function
+  definition prototypes, source code, source files and other details
+  of any object accessible to the interpreter with a single
+  keystroke ('?', and using '??' provides additional detail).
+* Searching through modules and namespaces with '*' wildcards, both
+  when using the '?' system and via the %psearch command.
+* Completion in the local namespace, by typing TAB at the prompt.
+  This works for keywords, methods, variables and files in the
+  current directory. This is supported via the readline library, and
+  full access to configuring readline's behavior is provided.
+* Numbered input/output prompts with command history (persistent
+  across sessions and tied to each profile), full searching in this
+  history and caching of all input and output.
+* User-extensible 'magic' commands. A set of commands prefixed with
+  % is available for controlling IPython itself and provides
+  directory control, namespace information and many aliases to
+  common system shell commands.
+* Alias facility for defining your own system aliases.
+* Complete system shell access. Lines starting with ! are passed
+  directly to the system shell, and using !! captures shell output
+  into python variables for further use.
+* Background execution of Python commands in a separate thread.
+  IPython has an internal job manager called jobs, and a
+  conveninence backgrounding magic function called %bg.
+* The ability to expand python variables when calling the system
+  shell. In a shell command, any python variable prefixed with $ is
+  expanded. A double $$ allows passing a literal $ to the shell (for
+  access to shell and environment variables like $PATH).
+* Filesystem navigation, via a magic %cd command, along with a
+  persistent bookmark system (using %bookmark) for fast access to
+  frequently visited directories.
+* A lightweight persistence framework via the %store command, which
+  allows you to save arbitrary Python variables. These get restored
+  automatically when your session restarts.
+* Automatic indentation (optional) of code as you type (through the
+  readline library).
+* Macro system for quickly re-executing multiple lines of previous
+  input with a single name. Macros can be stored persistently via
+  %store and edited via %edit.
+* Session logging (you can then later use these logs as code in your
+  programs). Logs can optionally timestamp all input, and also store
+  session output (marked as comments, so the log remains valid
+  Python source code).
+* Session restoring: logs can be replayed to restore a previous
+  session to the state where you left it.
+* Verbose and colored exception traceback printouts. Easier to parse
+  visually, and in verbose mode they produce a lot of useful
+  debugging information (basically a terminal version of the cgitb
+  module).
+* Auto-parentheses: callable objects can be executed without
+  parentheses: 'sin 3' is automatically converted to 'sin(3)'.
+* Auto-quoting: using ',' or ';' as the first character forces
+  auto-quoting of the rest of the line: ',my_function a b' becomes
+  automatically 'my_function("a","b")', while ';my_function a b'
+  becomes 'my_function("a b")'.
+* Extensible input syntax. You can define filters that pre-process
+  user input to simplify input in special situations. This allows
+  for example pasting multi-line code fragments which start with
+  '>>>' or '...' such as those from other python sessions or the
+  standard Python documentation.
+* Flexible configuration system. It uses a configuration file which
+  allows permanent setting of all command-line options, module
+  loading, code and file execution. The system allows recursive file
+  inclusion, so you can have a base file with defaults and layers
+  which load other customizations for particular projects.
+* Embeddable. You can call IPython as a python shell inside your own
+  python programs. This can be used both for debugging code or for
+  providing interactive abilities to your programs with knowledge
+  about the local namespaces (very useful in debugging and data
+  analysis situations).
+* Easy debugger access. You can set IPython to call up an enhanced
+  version of the Python debugger (pdb) every time there is an
+  uncaught exception. This drops you inside the code which triggered
+  the exception with all the data live and it is possible to
+  navigate the stack to rapidly isolate the source of a bug. The
+  %run magic command -with the -d option- can run any script under
+  pdb's control, automatically setting initial breakpoints for you.
+  This version of pdb has IPython-specific improvements, including
+  tab-completion and traceback coloring support.
+* Profiler support. You can run single statements (similar to
+  profile.run()) or complete programs under the profiler's control.
+  While this is possible with standard cProfile or profile modules,
+  IPython wraps this functionality with magic commands (see '%prun'
+  and '%run -p') convenient for rapid interactive work.
+* Doctest support. The special %doctest_mode command toggles a mode
+  that allows you to paste existing doctests (with leading '>>>'
+  prompts and whitespace) and uses doctest-compatible prompts and
+  output, so you can use IPython sessions as doctest code.
 
 
 Portability and Python requirements
@@ -228,24 +229,31 @@ manner. If you download the tar archive, the process is:
       ipython with the -upgrade option and it will do this automatically
       for you.
    3. IPython uses distutils, so you can install it by simply typing at
-      the system prompt (don't type the $)
-      $ python setup.py install
+      the system prompt (don't type the $)::
+      
+      	$ python setup.py install
+      	
       Note that this assumes you have root access to your machine. If
       you don't have root access or don't want IPython to go in the
-      default python directories, you'll need to use the |--home| option
-      (or |--prefix|). For example:
-      |$ python setup.py install --home $HOME/local|
+      default python directories, you'll need to use the ``--home`` option
+      (or ``--prefix``). For example::
+      
+      	$ python setup.py install --home $HOME/local
+      	
       will install IPython into $HOME/local and its subdirectories
       (creating them if necessary).
-      You can type
-      |$ python setup.py --help|
+      You can type::
+      
+      	$ python setup.py --help
+      	
       for more details.
-      Note that if you change the default location for |--home| at
+      
+      Note that if you change the default location for ``--home`` at
       installation, IPython may end up installed at a location which is
       not part of your $PYTHONPATH environment variable. In this case,
       you'll need to configure this variable to include the actual
       directory where the IPython/ directory ended (typically the value
-      you give to |--home| plus /lib/python).
+      you give to ``--home`` plus /lib/python).
 
 
 Mac OSX information
@@ -280,10 +288,14 @@ and GTK apps. Under OSX, however, this requires that ipython is
 installed by calling the special pythonw script at installation time,
 which takes care of coordinating things with Apple's graphical environment.
 
-So when installing under OSX, it is best to use the following command: 
-| $ sudo pythonw setup.py install --install-scripts=/usr/local/bin|
+So when installing under OSX, it is best to use the following command:: 
+
+	$ sudo pythonw setup.py install --install-scripts=/usr/local/bin
+
 or
-| $ sudo pythonw setup.py install --install-scripts=/usr/bin|
+
+	$ sudo pythonw setup.py install --install-scripts=/usr/bin
+	
 depending on where you like to keep hand-installed executables.
 
 The resulting script will have an appropriate shebang line (the first
@@ -294,7 +306,7 @@ does not work and has a shebang line that points to, for example, just
 build/scripts-<python-version> directory. Delete that directory and
 rerun the setup.py.
 
-It is also a good idea to use the special flag |--install-scripts| as
+It is also a good idea to use the special flag ``--install-scripts`` as
 indicated above, to ensure that the ipython scripts end up in a location
 which is part of your $PATH. Otherwise Apple's Python will put the
 scripts in an internal directory not available by default at the command
@@ -591,10 +603,14 @@ Input/Output prompts and exception tracebacks
 You can test whether the colored prompts and tracebacks work on your
 system interactively by typing '%colors Linux' at the prompt (use
 '%colors LightBG' if your terminal has a light background). If the input
-prompt shows garbage like:
-[0;32mIn [[1;32m1[0;32m]: [0;00m
-instead of (in color) something like:
-In [1]:
+prompt shows garbage like::
+
+    [0;32mIn [[1;32m1[0;32m]: [0;00m
+                               
+instead of (in color) something like::
+    
+    In [1]:
+        
 this means that your terminal doesn't properly handle color escape
 sequences. You can go to a 'no color' mode by typing '%colors NoColor'.
 
@@ -665,11 +681,11 @@ the previous section, you may need to set also in your .emacs file::
     (setq ansi-color-for-comint-mode t) 
 
 
-Notes::
+Notes:
 
     * There is one caveat you should be aware of: you must start the
       IPython shell before attempting to execute any code regions via
-      C-c |. Simply type C-c ! to start IPython before passing any code
+      ``C-c |``. Simply type C-c ! to start IPython before passing any code
       regions to the interpreter, and you shouldn't experience any
       problems.
       This is due to a bug in Python itself, which has been fixed for
@@ -1035,7 +1051,7 @@ Regular Options
 After the above threading options have been given, regular options can
 follow in any order. All options can be abbreviated to their shortest
 non-ambiguous form and are case-sensitive. One or two dashes can be
-used. Some options have an alternate short form, indicated after a |.
+used. Some options have an alternate short form, indicated after a ``|``.
 
 Most options can also be set from your ipythonrc configuration file. See
 the provided example for more details on what the options do. Options
@@ -1373,1244 +1389,1246 @@ typing %magic at the prompt, but that will also give you information
 about magic commands you may have added as part of your personal
 customizations.
 
-
-%Exit: Exit IPython without confirmation.
-
-
-%Pprint: Toggle pretty printing on/off.
-
-
-%alias: Define an alias for a system command.
-
-'%alias alias_name cmd' defines 'alias_name' as an alias for 'cmd'
-
-Then, typing 'alias_name params' will execute the system command 'cmd
-params' (from your underlying operating system).
-
-Aliases have lower precedence than magic functions and Python normal
-variables, so if 'foo' is both a Python variable and an alias, the alias
-can not be executed until 'del foo' removes the Python variable.
-
-You can use the %l specifier in an alias definition to represent the
-whole line when the alias is called. For example:
-
-In [2]: alias all echo "Input in brackets: <%l>"
-In [3]: all hello world
-Input in brackets: <hello world>
-
-You can also define aliases with parameters using %s specifiers (one per
-parameter):
-
-In [1]: alias parts echo first %s second %s
-In [2]: %parts A B
-first A second B
-In [3]: %parts A
-Incorrect number of arguments: 2 expected.
-parts is an alias to: 'echo first %s second %s'
-
-Note that %l and %s are mutually exclusive. You can only use one or the
-other in your aliases.
-
-Aliases expand Python variables just like system calls using ! or !! do:
-all expressions prefixed with '$' get expanded. For details of the
-semantic rules, see PEP-215: http://www.python.org/peps/pep-0215.html.
-This is the library used by IPython for variable expansion. If you want
-to access a true shell variable, an extra $ is necessary to prevent its
-expansion by IPython:
-
-In [6]: alias show echo
-In [7]: PATH='A Python string'
-In [8]: show $PATH
-A Python string
-In [9]: show $$PATH
-/usr/local/lf9560/bin:/usr/local/intel/compiler70/ia32/bin:...
-
-You can use the alias facility to acess all of $PATH. See the %rehash
-and %rehashx functions, which automatically create aliases for the
-contents of your $PATH.
-
-If called with no parameters, %alias prints the current alias table.
-
-
-%autocall: Make functions callable without having to type parentheses.
-
-Usage:
-
-%autocall [mode]
-
-The mode can be one of: 0->Off, 1->Smart, 2->Full. If not given, the
-value is toggled on and off (remembering the previous state).
-
-In more detail, these values mean:
-
-0 -> fully disabled
-
-1 -> active, but do not apply if there are no arguments on the line.
-
-In this mode, you get:
-
-In [1]: callable Out[1]: <built-in function callable>
-
-In [2]: callable 'hello' ---> callable('hello') Out[2]: False
-
-2 -> Active always. Even if no arguments are present, the callable
-object is called:
-
-In [4]: callable ---> callable()
-
-Note that even with autocall off, you can still use '/' at the start of
-a line to treat the first argument on the command line as a function and
-add parentheses to it:
-
-In [8]: /str 43 ---> str(43) Out[8]: '43'
-
-
-%autoindent: Toggle autoindent on/off (if available).
-
-
-%automagic: Make magic functions callable without having to type the
-initial %.
-
-Without argumentsl toggles on/off (when off, you must call it as
-%automagic, of course). With arguments it sets the value, and you can
-use any of (case insensitive):
-
-- on,1,True: to activate
-
-- off,0,False: to deactivate.
-
-Note that magic functions have lowest priority, so if there's a variable
-whose name collides with that of a magic fn, automagic won't work for
-that function (you get the variable instead). However, if you delete the
-variable (del var), the previously shadowed magic function becomes
-visible to automagic again.
-
-
-%bg: Run a job in the background, in a separate thread.
-
-For example,
-
-%bg myfunc(x,y,z=1)
-
-will execute 'myfunc(x,y,z=1)' in a background thread. As soon as the
-execution starts, a message will be printed indicating the job number.
-If your job number is 5, you can use
-
-myvar = jobs.result(5) or myvar = jobs[5].result
-
-to assign this result to variable 'myvar'.
-
-IPython has a job manager, accessible via the 'jobs' object. You can
-type jobs? to get more information about it, and use jobs.<TAB> to see
-its attributes. All attributes not starting with an underscore are meant
-for public use.
-
-In particular, look at the jobs.new() method, which is used to create
-new jobs. This magic %bg function is just a convenience wrapper around
-jobs.new(), for expression-based jobs. If you want to create a new job
-with an explicit function object and arguments, you must call jobs.new()
-directly.
-
-The jobs.new docstring also describes in detail several important
-caveats associated with a thread-based model for background job
-execution. Type jobs.new? for details.
-
-You can check the status of all jobs with jobs.status().
-
-The jobs variable is set by IPython into the Python builtin namespace.
-If you ever declare a variable named 'jobs', you will shadow this name.
-You can either delete your global jobs variable to regain access to the
-job manager, or make a new name and assign it manually to the manager
-(stored in IPython's namespace). For example, to assign the job manager
-to the Jobs name, use:
-
-Jobs = __builtins__.jobs
-
-
-%bookmark: Manage IPython's bookmark system.
-
-%bookmark <name> - set bookmark to current dir %bookmark <name> <dir> -
-set bookmark to <dir> %bookmark -l - list all bookmarks %bookmark -d
-<name> - remove bookmark %bookmark -r - remove all bookmarks
-
-You can later on access a bookmarked folder with: %cd -b <name> or
-simply '%cd <name>' if there is no directory called <name> AND there is
-such a bookmark defined.
-
-Your bookmarks persist through IPython sessions, but they are associated
-with each profile.
-
-
-%cd: Change the current working directory.
-
-This command automatically maintains an internal list of directories you
-visit during your IPython session, in the variable _dh. The command
-%dhist shows this history nicely formatted. You can also do 'cd -<tab>'
-to see directory history conveniently.
-
-Usage:
-
-cd 'dir': changes to directory 'dir'.
-
-cd -: changes to the last visited directory.
-
-cd -<n>: changes to the n-th directory in the directory history.
-
-cd -b <bookmark_name>: jump to a bookmark set by %bookmark (note: cd
-<bookmark_name> is enough if there is no directory <bookmark_name>, but
-a bookmark with the name exists.) 'cd -b <tab>' allows you to
-tab-complete bookmark names.
-
-Options:
-
--q: quiet. Do not print the working directory after the cd command is
-executed. By default IPython's cd command does print this directory,
-since the default prompts do not display path information.
-
-Note that !cd doesn't work for this purpose because the shell where
-!command runs is immediately discarded after executing 'command'.
-
-
-%color_info: Toggle color_info.
-
-The color_info configuration parameter controls whether colors are used
-for displaying object details (by things like %psource, %pfile or the
-'?' system). This function toggles this value with each call.
-
-Note that unless you have a fairly recent pager (less works better than
-more) in your system, using colored object information displays will not
-work properly. Test it and see.
-
-
-%colors: Switch color scheme for prompts, info system and exception
-handlers.
-
-Currently implemented schemes: NoColor, Linux, LightBG.
-
-Color scheme names are not case-sensitive.
-
-
-%cpaste: Allows you to paste & execute a pre-formatted code block from
-clipboard
-
-You must terminate the block with '-' (two minus-signs) alone on the
-line. You can also provide your own sentinel with '%paste -s %%' ('%%'
-is the new sentinel for this operation)
-
-The block is dedented prior to execution to enable execution of method
-definitions. '>' and '+' characters at the beginning of a line are
-ignored, to allow pasting directly from e-mails or diff files. The
-executed block is also assigned to variable named 'pasted_block' for
-later editing with '%edit pasted_block'.
-
-You can also pass a variable name as an argument, e.g. '%cpaste foo'.
-This assigns the pasted block to variable 'foo' as string, without
-dedenting or executing it.
-
-Do not be alarmed by garbled output on Windows (it's a readline bug).
-Just press enter and type - (and press enter again) and the block will
-be what was just pasted.
-
-IPython statements (magics, shell escapes) are not supported (yet).
-
-
-%debug: Activate the interactive debugger in post-mortem mode.
-
-If an exception has just occurred, this lets you inspect its stack
-frames interactively. Note that this will always work only on the last
-traceback that occurred, so you must call this quickly after an
-exception that you wish to inspect has fired, because if another one
-occurs, it clobbers the previous one.
-
-If you want IPython to automatically do this on every exception, see the
-%pdb magic for more details.
-
-
-%dhist: Print your history of visited directories.
-
-%dhist -> print full history
-%dhist n -> print last n entries only
-%dhist n1 n2 -> print entries between n1 and n2 (n1 not included)
-
-This history is automatically maintained by the %cd command, and always
-available as the global list variable _dh. You can use %cd -<n> to go to
-directory number <n>.
-
-Note that most of time, you should view directory history by entering cd
--<TAB>.
-
-
-%dirs: Return the current directory stack.
-
-
-%doctest_mode: Toggle doctest mode on and off.
-
-This mode allows you to toggle the prompt behavior between normal
-IPython prompts and ones that are as similar to the default IPython
-interpreter as possible.
-
-It also supports the pasting of code snippets that have leading '»>' and
-'...' prompts in them. This means that you can paste doctests from files
-or docstrings (even if they have leading whitespace), and the code will
-execute correctly. You can then use '%history -tn' to see the translated
-history without line numbers; this will give you the input after removal
-of all the leading prompts and whitespace, which can be pasted back into
-an editor.
-
-With these features, you can switch into this mode easily whenever you
-need to do testing and changes to doctests, without having to leave your
-existing IPython session.
-
-
-%ed: Alias to %edit.
-
-
-%edit: Bring up an editor and execute the resulting code.
-
-Usage: %edit [options] [args]
-
-%edit runs IPython's editor hook. The default version of this hook is
-set to call the __IPYTHON__.rc.editor command. This is read from your
-environment variable $EDITOR. If this isn't found, it will default to vi
-under Linux/Unix and to notepad under Windows. See the end of this
-docstring for how to change the editor hook.
-
-You can also set the value of this editor via the command line option
-'-editor' or in your ipythonrc file. This is useful if you wish to use
-specifically for IPython an editor different from your typical default
-(and for Windows users who typically don't set environment variables).
-
-This command allows you to conveniently edit multi-line code right in
-your IPython session.
-
-If called without arguments, %edit opens up an empty editor with a
-temporary file and will execute the contents of this file when you close
-it (don't forget to save it!).
-
-Options:
-
--n <number>: open the editor at a specified line number. By default, the
-IPython editor hook uses the unix syntax 'editor +N filename', but you
-can configure this by providing your own modified hook if your favorite
-editor supports line-number specifications with a different syntax.
-
--p: this will call the editor with the same data as the previous time it
-was used, regardless of how long ago (in your current session) it was.
-
--r: use 'raw' input. This option only applies to input taken from the
-user's history. By default, the 'processed' history is used, so that
-magics are loaded in their transformed version to valid Python. If this
-option is given, the raw input as typed as the command line is used
-instead. When you exit the editor, it will be executed by IPython's own
-processor.
-
--x: do not execute the edited code immediately upon exit. This is mainly
-useful if you are editing programs which need to be called with command
-line arguments, which you can then do using %run.
-
-Arguments:
-
-If arguments are given, the following possibilites exist:
-
-    - The arguments are numbers or pairs of colon-separated numbers (like 1
-    4:8 9). These are interpreted as lines of previous input to be loaded
-    into the editor. The syntax is the same of the %macro command.
-
-    - If the argument doesn't start with a number, it is evaluated as a
-    variable and its contents loaded into the editor. You can thus edit any
-    string which contains python code (including the result of previous edits).
-
-    - If the argument is the name of an object (other than a string),
-    IPython will try to locate the file where it was defined and open the
-    editor at the point where it is defined. You can use '%edit function' to
-    load an editor exactly at the point where 'function' is defined, edit it
-    and have the file be executed automatically.
-
-If the object is a macro (see %macro for details), this opens up your
-specified editor with a temporary file containing the macro's data. Upon
-exit, the macro is reloaded with the contents of the file.
-
-Note: opening at an exact line is only supported under Unix, and some
-editors (like kedit and gedit up to Gnome 2.8) do not understand the
-'+NUMBER' parameter necessary for this feature. Good editors like
-(X)Emacs, vi, jed, pico and joe all do.
-
-- If the argument is not found as a variable, IPython will look for a
-file with that name (adding .py if necessary) and load it into the
-editor. It will execute its contents with execfile() when you exit,
-loading any code in the file into your interactive namespace.
-
-After executing your code, %edit will return as output the code you
-typed in the editor (except when it was an existing file). This way you
-can reload the code in further invocations of %edit as a variable, via
-_<NUMBER> or Out[<NUMBER>], where <NUMBER> is the prompt number of the
-output.
-
-Note that %edit is also available through the alias %ed.
-
-This is an example of creating a simple function inside the editor and
-then modifying it. First, start up the editor::
-
-    In [1]: ed
-    Editing... done. Executing edited code...
-    Out[1]: 'def foo():\n print "foo() was defined in an editing session"\n'
-
-    We can then call the function foo():
-
-    In [2]: foo()
-    foo() was defined in an editing session
-
-    Now we edit foo. IPython automatically loads the editor with the
-    (temporary) file where foo() was previously defined:
-
-    In [3]: ed foo
-    Editing... done. Executing edited code...
-
-    And if we call foo() again we get the modified version:
-
-    In [4]: foo()
-    foo() has now been changed!
-
-    Here is an example of how to edit a code snippet successive times. First
-    we call the editor:
-
-    In [8]: ed
-    Editing... done. Executing edited code...
-    hello
-    Out[8]: "print 'hello'\n"
-
-    Now we call it again with the previous output (stored in _):
-
-    In [9]: ed _
-    Editing... done. Executing edited code...
-    hello world
-    Out[9]: "print 'hello world'\n"
-
-    Now we call it with the output #8 (stored in _8, also as Out[8]):
-
-    In [10]: ed _8
-    Editing... done. Executing edited code...
-    hello again
-    Out[10]: "print 'hello again'\n"
-
-Changing the default editor hook:
-
-If you wish to write your own editor hook, you can put it in a
-configuration file which you load at startup time. The default hook is
-defined in the IPython.hooks module, and you can use that as a starting
-example for further modifications. That file also has general
-instructions on how to set a new hook for use once you've defined it.
-
-
-%env: List environment variables.
-
-
-%exit: Exit IPython, confirming if configured to do so.
-
-You can configure whether IPython asks for confirmation upon exit by
-setting the confirm_exit flag in the ipythonrc file.
-
-
-%logoff: Temporarily stop logging.
-
-You must have previously started logging.
-
-
-%logon: Restart logging.
-
-This function is for restarting logging which you've temporarily stopped
-with %logoff. For starting logging for the first time, you must use the
-%logstart function, which allows you to specify an optional log filename.
-
-
-%logstart: Start logging anywhere in a session.
-
-%logstart [-o|-r|-t] [log_name [log_mode]]
-
-If no name is given, it defaults to a file named 'ipython_log.py' in
-your current directory, in 'rotate' mode (see below).
-
-'%logstart name' saves to file 'name' in 'backup' mode. It saves your
-history up to that point and then continues logging.
-
-%logstart takes a second optional parameter: logging mode. This can be
-one of (note that the modes are given unquoted):
-append: well, that says it.
-backup: rename (if exists) to name  and start name.
-global: single logfile in your home dir, appended to.
-over : overwrite existing log.
-rotate: create rotating logs name.1 , name.2 , etc.
-
-Options:
-
--o: log also IPython's output. In this mode, all commands which generate
-an Out[NN] prompt are recorded to the logfile, right after their
-corresponding input line. The output lines are always prepended with a
-'#[Out]# ' marker, so that the log remains valid Python code.
-
-Since this marker is always the same, filtering only the output from a
-log is very easy, using for example a simple awk call:
-
-awk -F'#
-
-\begin{displaymath}Out\end{displaymath}
-
-# ' 'if($2) print $2' ipython_log.py
-
--r: log 'raw' input. Normally, IPython's logs contain the processed
-input, so that user lines are logged in their final form, converted into
-valid Python. For example, %Exit is logged as '_ip.magic("Exit"). If the
--r flag is given, all input is logged exactly as typed, with no
-transformations applied.
-
--t: put timestamps before each input line logged (these are put in
-comments).
-
-
-%logstate: Print the status of the logging system.
-
-
-%logstop: Fully stop logging and close log file.
-
-In order to start logging again, a new %logstart call needs to be made,
-possibly (though not necessarily) with a new filename, mode and other
-options.
-
-
-%lsmagic: List currently available magic functions.
-
-
-%macro: Define a set of input lines as a macro for future re-execution.
-
-Usage:
-%macro [options] name n1-n2 n3-n4 ... n5 .. n6 ...
-
-Options:
-
--r: use 'raw' input. By default, the 'processed' history is used, so
-that magics are loaded in their transformed version to valid Python. If
-this option is given, the raw input as typed as the command line is used
-instead.
-
-This will define a global variable called 'name' which is a string made
-of joining the slices and lines you specify (n1,n2,... numbers above)
-from your input history into a single string. This variable acts like an
-automatic function which re-executes those lines as if you had typed
-them. You just type 'name' at the prompt and the code executes.
-
-The notation for indicating number ranges is: n1-n2 means 'use line
-numbers n1,...n2' (the endpoint is included). That is, '5-7' means using
-the lines numbered 5,6 and 7.
-
-Note: as a 'hidden' feature, you can also use traditional python slice
-notation, where N:M means numbers N through M-1.
-
-For example, if your history contains (%hist prints it):
-
-44: x=1
-45: y=3
-46: z=x+y
-47: print x
-48: a=5
-49: print 'x',x,'y',y
-
-you can create a macro with lines 44 through 47 (included) and line 49
-called my_macro with:
-
-In [51]: %macro my_macro 44-47 49
-
-Now, typing 'my_macro' (without quotes) will re-execute all this code in
-one pass.
-
-You don't need to give the line-numbers in order, and any given line
-number can appear multiple times. You can assemble macros with any lines
-from your input history in any order.
-
-The macro is a simple object which holds its value in an attribute, but
-IPython's display system checks for macros and executes them as code
-instead of printing them when you type their name.
-
-You can view a macro's contents by explicitly printing it with:
-
-'print macro_name'.
-
-For one-off cases which DON'T contain magic function calls in them you
-can obtain similar results by explicitly executing slices from your
-input history with:
-
-In [60]: exec In[44:48]+In[49]
-
-
-%magic: Print information about the magic function system.
-
-
-%page: Pretty print the object and display it through a pager.
-
-%page [options] OBJECT
-
-If no object is given, use _ (last output).
-
-Options:
-
--r: page str(object), don't pretty-print it.
-
-
-%pdb: Control the automatic calling of the pdb interactive debugger.
-
-Call as '%pdb on', '%pdb 1', '%pdb off' or '%pdb 0'. If called without
-argument it works as a toggle.
-
-When an exception is triggered, IPython can optionally call the
-interactive pdb debugger after the traceback printout. %pdb toggles this
-feature on and off.
-
-The initial state of this feature is set in your ipythonrc configuration
-file (the variable is called 'pdb').
-
-If you want to just activate the debugger AFTER an exception has fired,
-without having to type '%pdb on' and rerunning your code, you can use
-the %debug magic.
-
-
-%pdef: Print the definition header for any callable object.
-
-If the object is a class, print the constructor information.
-
-
-%pdoc: Print the docstring for an object.
-
-If the given object is a class, it will print both the class and the
-constructor docstrings.
-
-
-%pfile: Print (or run through pager) the file where an object is defined.
-
-The file opens at the line where the object definition begins. IPython
-will honor the environment variable PAGER if set, and otherwise will do
-its best to print the file in a convenient form.
-
-If the given argument is not an object currently defined, IPython will
-try to interpret it as a filename (automatically adding a .py extension
-if needed). You can thus use %pfile as a syntax highlighting code viewer.
-
-
-%pinfo: Provide detailed information about an object.
-
-'%pinfo object' is just a synonym for object? or ?object.
-
-
-%popd: Change to directory popped off the top of the stack.
-
-
-%profile: Print your currently active IPyhton profile.
-
-
-%prun: Run a statement through the python code profiler.
-
-Usage:
-%prun [options] statement
-
-The given statement (which doesn't require quote marks) is run via the
-python profiler in a manner similar to the profile.run() function.
-Namespaces are internally managed to work correctly; profile.run cannot
-be used in IPython because it makes certain assumptions about namespaces
-which do not hold under IPython.
-
-Options:
-
--l <limit>: you can place restrictions on what or how much of the
-profile gets printed. The limit value can be:
-
-* A string: only information for function names containing this string
-is printed.
-
-* An integer: only these many lines are printed.
-
-* A float (between 0 and 1): this fraction of the report is printed (for
-example, use a limit of 0.4 to see the topmost 40% only).
-
-You can combine several limits with repeated use of the option. For
-example, '-l __init__ -l 5' will print only the topmost 5 lines of
-information about class constructors.
-
--r: return the pstats.Stats object generated by the profiling. This
-object has all the information about the profile in it, and you can
-later use it for further analysis or in other functions.
-
--s <key>: sort profile by given key. You can provide more than one key
-by using the option several times: '-s key1 -s key2 -s key3...'. The
-default sorting key is 'time'.
-
-The following is copied verbatim from the profile documentation
-referenced below:
-
-When more than one key is provided, additional keys are used as
-secondary criteria when the there is equality in all keys selected
-before them.
-
-Abbreviations can be used for any key names, as long as the abbreviation
-is unambiguous. The following are the keys currently defined:
-
-Valid Arg Meaning
-"calls" call count
-"cumulative" cumulative time
-"file" file name
-"module" file name
-"pcalls" primitive call count
-"line" line number
-"name" function name
-"nfl" name/file/line
-"stdname" standard name
-"time" internal time
-
-Note that all sorts on statistics are in descending order (placing most
-time consuming items first), where as name, file, and line number
-searches are in ascending order (i.e., alphabetical). The subtle
-distinction between "nfl" and "stdname" is that the standard name is a
-sort of the name as printed, which means that the embedded line numbers
-get compared in an odd way. For example, lines 3, 20, and 40 would (if
-the file names were the same) appear in the string order "20" "3" and
-"40". In contrast, "nfl" does a numeric compare of the line numbers. In
-fact, sort_stats("nfl") is the same as sort_stats("name", "file", "line").
-
--T <filename>: save profile results as shown on screen to a text file.
-The profile is still shown on screen.
-
--D <filename>: save (via dump_stats) profile statistics to given
-filename. This data is in a format understod by the pstats module, and
-is generated by a call to the dump_stats() method of profile objects.
-The profile is still shown on screen.
-
-If you want to run complete programs under the profiler's control, use
-'%run -p [prof_opts] filename.py [args to program]' where prof_opts
-contains profiler specific options as described here.
-
-You can read the complete documentation for the profile module with:
-In [1]: import profile; profile.help()
-
-
-%psearch: Search for object in namespaces by wildcard.
-
-%psearch [options] PATTERN [OBJECT TYPE]
-
-Note: ? can be used as a synonym for %psearch, at the beginning or at
-the end: both a*? and ?a* are equivalent to '%psearch a*'. Still, the
-rest of the command line must be unchanged (options come first), so for
-example the following forms are equivalent
-
-%psearch -i a* function -i a* function? ?-i a* function
-
-Arguments:
-
-PATTERN
-
-where PATTERN is a string containing * as a wildcard similar to its use
-in a shell. The pattern is matched in all namespaces on the search path.
-By default objects starting with a single _ are not matched, many
-IPython generated objects have a single underscore. The default is case
-insensitive matching. Matching is also done on the attributes of objects
-and not only on the objects in a module.
-
-[OBJECT TYPE]
-
-Is the name of a python type from the types module. The name is given in
-lowercase without the ending type, ex. StringType is written string. By
-adding a type here only objects matching the given type are matched.
-Using all here makes the pattern match all types (this is the default).
-
-Options:
-
--a: makes the pattern match even objects whose names start with a single
-underscore. These names are normally ommitted from the search.
-
--i/-c: make the pattern case insensitive/sensitive. If neither of these
-options is given, the default is read from your ipythonrc file. The
-option name which sets this value is 'wildcards_case_sensitive'. If this
-option is not specified in your ipythonrc file, IPython's internal
-default is to do a case sensitive search.
-
--e/-s NAMESPACE: exclude/search a given namespace. The pattern you
-specifiy can be searched in any of the following namespaces: 'builtin',
-'user', 'user_global','internal', 'alias', where 'builtin' and 'user'
-are the search defaults. Note that you should not use quotes when
-specifying namespaces.
-
-'Builtin' contains the python module builtin, 'user' contains all user
-data, 'alias' only contain the shell aliases and no python objects,
-'internal' contains objects used by IPython. The 'user_global' namespace
-is only used by embedded IPython instances, and it contains module-level
-globals. You can add namespaces to the search with -s or exclude them
-with -e (these options can be given more than once).
-
-Examples:
-
-%psearch a* -> objects beginning with an a %psearch -e builtin a* ->
-objects NOT in the builtin space starting in a %psearch a* function ->
-all functions beginning with an a %psearch re.e* -> objects beginning
-with an e in module re %psearch r*.e* -> objects that start with e in
-modules starting in r %psearch r*.* string -> all strings in modules
-beginning with r
-
-Case sensitve search:
-
-%psearch -c a* list all object beginning with lower case a
-
-Show objects beginning with a single _:
-
-%psearch -a _* list objects beginning with a single underscore
-
-
-%psource: Print (or run through pager) the source code for an object.
-
-
-%pushd: Place the current dir on stack and change directory.
-
-Usage:
-%pushd ['dirname']
-
-
-%pwd: Return the current working directory path.
-
-
-%pycat: Show a syntax-highlighted file through a pager.
-
-This magic is similar to the cat utility, but it will assume the file to
-be Python source and will show it with syntax highlighting.
-
-
-%quickref: Show a quick reference sheet
-
-
-%quit: Exit IPython, confirming if configured to do so (like %exit)
-
-
-%r: Repeat previous input.
-
-Note: Consider using the more powerfull %rep instead!
-
-If given an argument, repeats the previous command which starts with the
-same string, otherwise it just repeats the previous input.
-
-Shell escaped commands (with ! as first character) are not recognized by
-this system, only pure python code and magic commands.
-
-
-%rehashx: Update the alias table with all executable files in $PATH.
-
-This version explicitly checks that every entry in $PATH is a file with
-execute access (os.X_OK), so it is much slower than %rehash.
-
-Under Windows, it checks executability as a match agains a '|'-separated
-string of extensions, stored in the IPython config variable
-win_exec_ext. This defaults to 'exe|com|bat'.
-
-This function also resets the root module cache of module completer,
-used on slow filesystems.
-
-
-%reset: Resets the namespace by removing all names defined by the user.
-
-Input/Output history are left around in case you need them.
-
-
-%run: Run the named file inside IPython as a program.
-
-Usage:
-%run [-n -i -t [-N<N>] -d [-b<N>] -p [profile options]] file [args]
-
-Parameters after the filename are passed as command-line arguments to
-the program (put in sys.argv). Then, control returns to IPython's prompt.
-
-This is similar to running at a system prompt:
-$ python file args
-but with the advantage of giving you IPython's tracebacks, and of
-loading all variables into your interactive namespace for further use
-(unless -p is used, see below).
-
-The file is executed in a namespace initially consisting only of
-__name__=='__main__' and sys.argv constructed as indicated. It thus sees
-its environment as if it were being run as a stand-alone program (except
-for sharing global objects such as previously imported modules). But
-after execution, the IPython interactive namespace gets updated with all
-variables defined in the program (except for __name__ and sys.argv).
-This allows for very convenient loading of code for interactive work,
-while giving each program a 'clean sheet' to run in.
-
-Options:
-
--n: __name__ is NOT set to '__main__', but to the running file's name
-without extension (as python does under import). This allows running
-scripts and reloading the definitions in them without calling code
-protected by an ' if __name__ == "__main__" ' clause.
-
--i: run the file in IPython's namespace instead of an empty one. This is
-useful if you are experimenting with code written in a text editor which
-depends on variables defined interactively.
-
--e: ignore sys.exit() calls or SystemExit exceptions in the script being
-run. This is particularly useful if IPython is being used to run
-unittests, which always exit with a sys.exit() call. In such cases you
-are interested in the output of the test results, not in seeing a
-traceback of the unittest module.
-
--t: print timing information at the end of the run. IPython will give
-you an estimated CPU time consumption for your script, which under Unix
-uses the resource module to avoid the wraparound problems of
-time.clock(). Under Unix, an estimate of time spent on system tasks is
-also given (for Windows platforms this is reported as 0.0).
-
-If -t is given, an additional -N<N> option can be given, where <N> must
-be an integer indicating how many times you want the script to run. The
-final timing report will include total and per run results.
-
-For example (testing the script uniq_stable.py):
-
-In [1]: run -t uniq_stable
-
-IPython CPU timings (estimated):
-User : 0.19597 s.
-System: 0.0 s.
-
-In [2]: run -t -N5 uniq_stable
-
-IPython CPU timings (estimated):
-Total runs performed: 5
-Times : Total Per run
-User : 0.910862 s, 0.1821724 s.
-System: 0.0 s, 0.0 s.
-
--d: run your program under the control of pdb, the Python debugger. This
-allows you to execute your program step by step, watch variables, etc.
-Internally, what IPython does is similar to calling:
-
-pdb.run('execfile("YOURFILENAME")')
-
-with a breakpoint set on line 1 of your file. You can change the line
-number for this automatic breakpoint to be <N> by using the -bN option
-(where N must be an integer). For example:
-
-%run -d -b40 myscript
-
-will set the first breakpoint at line 40 in myscript.py. Note that the
-first breakpoint must be set on a line which actually does something
-(not a comment or docstring) for it to stop execution.
-
-When the pdb debugger starts, you will see a (Pdb) prompt. You must
-first enter 'c' (without qoutes) to start execution up to the first
-breakpoint.
-
-Entering 'help' gives information about the use of the debugger. You can
-easily see pdb's full documentation with "import pdb;pdb.help()" at a
-prompt.
-
--p: run program under the control of the Python profiler module (which
-prints a detailed report of execution times, function calls, etc).
-
-You can pass other options after -p which affect the behavior of the
-profiler itself. See the docs for %prun for details.
-
-In this mode, the program's variables do NOT propagate back to the
-IPython interactive namespace (because they remain in the namespace
-where the profiler executes them).
-
-Internally this triggers a call to %prun, see its documentation for
-details on the options available specifically for profiling.
-
-There is one special usage for which the text above doesn't apply: if
-the filename ends with .ipy, the file is run as ipython script, just as
-if the commands were written on IPython prompt.
-
-
-%runlog: Run files as logs.
-
-Usage:
-%runlog file1 file2 ...
-
-Run the named files (treating them as log files) in sequence inside the
-interpreter, and return to the prompt. This is much slower than %run
-because each line is executed in a try/except block, but it allows
-running files with syntax errors in them.
-
-Normally IPython will guess when a file is one of its own logfiles, so
-you can typically use %run even for logs. This shorthand allows you to
-force any file to be treated as a log file.
-
-
-%save: Save a set of lines to a given filename.
-
-Usage:
-%save [options] filename n1-n2 n3-n4 ... n5 .. n6 ...
-
-Options:
-
--r: use 'raw' input. By default, the 'processed' history is used, so
-that magics are loaded in their transformed version to valid Python. If
-this option is given, the raw input as typed as the command line is used
-instead.
-
-This function uses the same syntax as %macro for line extraction, but
-instead of creating a macro it saves the resulting string to the
-filename you specify.
-
-It adds a '.py' extension to the file if you don't do so yourself, and
-it asks for confirmation before overwriting existing files.
-
-
-%sc: Shell capture - execute a shell command and capture its output.
-
-DEPRECATED. Suboptimal, retained for backwards compatibility.
-
-You should use the form 'var = !command' instead. Example:
-
-"%sc -l myfiles = ls " should now be written as
-
-"myfiles = !ls "
-
-myfiles.s, myfiles.l and myfiles.n still apply as documented below.
-
-- %sc [options] varname=command
-
-IPython will run the given command using commands.getoutput(), and will
-then update the user's interactive namespace with a variable called
-varname, containing the value of the call. Your command can contain
-shell wildcards, pipes, etc.
-
-The '=' sign in the syntax is mandatory, and the variable name you
-supply must follow Python's standard conventions for valid names.
-
-(A special format without variable name exists for internal use)
-
-Options:
-
--l: list output. Split the output on newlines into a list before
-assigning it to the given variable. By default the output is stored as a
-single string.
-
--v: verbose. Print the contents of the variable.
-
-In most cases you should not need to split as a list, because the
-returned value is a special type of string which can automatically
-provide its contents either as a list (split on newlines) or as a
-space-separated string. These are convenient, respectively, either for
-sequential processing or to be passed to a shell command.
-
-For example:
-
-# Capture into variable a In [9]: sc a=ls *py
-
-# a is a string with embedded newlines In [10]: a Out[10]: 'setup.py
-win32_manual_post_install.py'
-
-# which can be seen as a list: In [11]: a.l Out[11]: ['setup.py',
-'win32_manual_post_install.py']
-
-# or as a whitespace-separated string: In [12]: a.s Out[12]: 'setup.py
-win32_manual_post_install.py'
-
-# a.s is useful to pass as a single command line: In [13]: !wc -l $a.s
-146 setup.py 130 win32_manual_post_install.py 276 total
-
-# while the list form is useful to loop over: In [14]: for f in a.l:
-....: !wc -l $f ....: 146 setup.py 130 win32_manual_post_install.py
-
-Similiarly, the lists returned by the -l option are also special, in the
-sense that you can equally invoke the .s attribute on them to
-automatically get a whitespace-separated string from their contents:
-
-In [1]: sc -l b=ls *py
-
-In [2]: b Out[2]: ['setup.py', 'win32_manual_post_install.py']
-
-In [3]: b.s Out[3]: 'setup.py win32_manual_post_install.py'
-
-In summary, both the lists and strings used for ouptut capture have the
-following special attributes:
-
-.l (or .list) : value as list. .n (or .nlstr): value as
-newline-separated string. .s (or .spstr): value as space-separated string.
-
-
-%sx: Shell execute - run a shell command and capture its output.
-
-%sx command
-
-IPython will run the given command using commands.getoutput(), and
-return the result formatted as a list (split on '\n'). Since the output
-is _returned_, it will be stored in ipython's regular output cache
-Out[N] and in the '_N' automatic variables.
-
-Notes:
-
-1) If an input line begins with '!!', then %sx is automatically invoked.
-That is, while: !ls causes ipython to simply issue system('ls'), typing
-!!ls is a shorthand equivalent to: %sx ls
-
-2) %sx differs from %sc in that %sx automatically splits into a list,
-like '%sc -l'. The reason for this is to make it as easy as possible to
-process line-oriented shell output via further python commands. %sc is
-meant to provide much finer control, but requires more typing.
-
-3) Just like %sc -l, this is a list with special attributes:
-
-.l (or .list) : value as list. .n (or .nlstr): value as
-newline-separated string. .s (or .spstr): value as whitespace-separated
-string.
-
-This is very useful when trying to use such lists as arguments to system
-commands.
-
-
-%system_verbose: Set verbose printing of system calls.
-
-If called without an argument, act as a toggle
-
-
-%time: Time execution of a Python statement or expression.
-
-The CPU and wall clock times are printed, and the value of the
-expression (if any) is returned. Note that under Win32, system time is
-always reported as 0, since it can not be measured.
-
-This function provides very basic timing functionality. In Python 2.3,
-the timeit module offers more control and sophistication, so this could
-be rewritten to use it (patches welcome).
-
-Some examples:
-
-In [1]: time 2**128 CPU times: user 0.00 s, sys: 0.00 s, total: 0.00 s
-Wall time: 0.00 Out[1]: 340282366920938463463374607431768211456L
-
-In [2]: n = 1000000
-
-In [3]: time sum(range(n)) CPU times: user 1.20 s, sys: 0.05 s, total:
-1.25 s Wall time: 1.37 Out[3]: 499999500000L
-
-In [4]: time print 'hello world' hello world CPU times: user 0.00 s,
-sys: 0.00 s, total: 0.00 s Wall time: 0.00
-
-Note that the time needed by Python to compile the given expression will
-be reported if it is more than 0.1s. In this example, the actual
-exponentiation is done by Python at compilation time, so while the
-expression can take a noticeable amount of time to compute, that time is
-purely due to the compilation:
-
-In [5]: time 3**9999; CPU times: user 0.00 s, sys: 0.00 s, total: 0.00 s
-Wall time: 0.00 s
-
-In [6]: time 3**999999; CPU times: user 0.00 s, sys: 0.00 s, total: 0.00
-s Wall time: 0.00 s Compiler : 0.78 s
-
-
-%timeit: Time execution of a Python statement or expression
-
-Usage:
-%timeit [-n<N> -r<R> [-t|-c]] statement
-
-Time execution of a Python statement or expression using the timeit module.
-
-Options: -n<N>: execute the given statement <N> times in a loop. If this
-value is not given, a fitting value is chosen.
-
--r<R>: repeat the loop iteration <R> times and take the best result.
-Default: 3
-
--t: use time.time to measure the time, which is the default on Unix.
-This function measures wall time.
-
--c: use time.clock to measure the time, which is the default on Windows
-and measures wall time. On Unix, resource.getrusage is used instead and
-returns the CPU user time.
-
--p<P>: use a precision of <P> digits to display the timing result.
-Default: 3
-
-Examples:
-In [1]: %timeit pass 10000000 loops, best of 3: 53.3 ns per loop
-
-In [2]: u = None
-
-In [3]: %timeit u is None 10000000 loops, best of 3: 184 ns per loop
-
-In [4]: %timeit -r 4 u == None 1000000 loops, best of 4: 242 ns per loop
-
-In [5]: import time
-
-In [6]: %timeit -n1 time.sleep(2) 1 loops, best of 3: 2 s per loop
-
-The times reported by %timeit will be slightly higher than those
-reported by the timeit.py script when variables are accessed. This is
-due to the fact that %timeit executes the statement in the namespace of
-the shell, compared with timeit.py, which uses a single setup statement
-to import function or create variables. Generally, the bias does not
-matter as long as results from timeit.py are not mixed with those from
-%timeit.
-
-
-%unalias: Remove an alias
-
-
-%upgrade: Upgrade your IPython installation
-
-This will copy the config files that don't yet exist in your ipython dir
-from the system config dir. Use this after upgrading IPython if you
-don't wish to delete your .ipython dir.
-
-Call with -nolegacy to get rid of ipythonrc* files (recommended for new
-users)
-
-
-%who: Print all interactive variables, with some minimal formatting.
-
-If any arguments are given, only variables whose type matches one of
-these are printed. For example:
-
-%who function str
-
-will only list functions and strings, excluding all other types of
-variables. To find the proper type names, simply use type(var) at a
-command line to see how python prints type names. For example:
-
-In [1]: type('hello')
-Out[1]: <type 'str'>
-
-indicates that the type name for strings is 'str'.
-
-%who always excludes executed names loaded through your configuration
-file and things which are internal to IPython.
-
-This is deliberate, as typically you may load many modules and the
-purpose of %who is to show you only what you've manually defined.
-
-
-%who_ls: Return a sorted list of all interactive variables.
-
-If arguments are given, only variables of types matching these arguments
-are returned.
-
-
-%whos: Like %who, but gives some extra information about each variable.
-
-The same type filtering of %who can be applied here.
-
-For all variables, the type is printed. Additionally it prints:
-
-- For ,[],(): their length.
-
-- For numpy and Numeric arrays, a summary with shape, number of
-elements, typecode and size in memory.
-
-- Everything else: a string representation, snipping their middle if too
-long.
-
-
-%xmode: Switch modes for the exception handlers.
-
-Valid modes: Plain, Context and Verbose.
-
-If called without arguments, acts as a toggle.
-
-
-    Access to the standard Python help
+::
+
+	%Exit: Exit IPython without confirmation.
+	
+	
+	%Pprint: Toggle pretty printing on/off.
+	
+	
+	%alias: Define an alias for a system command.
+	
+	'%alias alias_name cmd' defines 'alias_name' as an alias for 'cmd'
+	
+	Then, typing 'alias_name params' will execute the system command 'cmd
+	params' (from your underlying operating system).
+	
+	Aliases have lower precedence than magic functions and Python normal
+	variables, so if 'foo' is both a Python variable and an alias, the alias
+	can not be executed until 'del foo' removes the Python variable.
+	
+	You can use the %l specifier in an alias definition to represent the
+	whole line when the alias is called. For example:
+	
+	In [2]: alias all echo "Input in brackets: <%l>"
+	In [3]: all hello world
+	Input in brackets: <hello world>
+	
+	You can also define aliases with parameters using %s specifiers (one per
+	parameter):
+	
+	In [1]: alias parts echo first %s second %s
+	In [2]: %parts A B
+	first A second B
+	In [3]: %parts A
+	Incorrect number of arguments: 2 expected.
+	parts is an alias to: 'echo first %s second %s'
+	
+	Note that %l and %s are mutually exclusive. You can only use one or the
+	other in your aliases.
+	
+	Aliases expand Python variables just like system calls using ! or !! do:
+	all expressions prefixed with '$' get expanded. For details of the
+	semantic rules, see PEP-215: http://www.python.org/peps/pep-0215.html.
+	This is the library used by IPython for variable expansion. If you want
+	to access a true shell variable, an extra $ is necessary to prevent its
+	expansion by IPython:
+	
+	In [6]: alias show echo
+	In [7]: PATH='A Python string'
+	In [8]: show $PATH
+	A Python string
+	In [9]: show $$PATH
+	/usr/local/lf9560/bin:/usr/local/intel/compiler70/ia32/bin:...
+	
+	You can use the alias facility to acess all of $PATH. See the %rehash
+	and %rehashx functions, which automatically create aliases for the
+	contents of your $PATH.
+	
+	If called with no parameters, %alias prints the current alias table.
+	
+	
+	%autocall: Make functions callable without having to type parentheses.
+	
+	Usage:
+	
+	%autocall [mode]
+	
+	The mode can be one of: 0->Off, 1->Smart, 2->Full. If not given, the
+	value is toggled on and off (remembering the previous state).
+	
+	In more detail, these values mean:
+	
+	0 -> fully disabled
+	
+	1 -> active, but do not apply if there are no arguments on the line.
+	
+	In this mode, you get:
+	
+	In [1]: callable Out[1]: <built-in function callable>
+	
+	In [2]: callable 'hello' ---> callable('hello') Out[2]: False
+	
+	2 -> Active always. Even if no arguments are present, the callable
+	object is called:
+	
+	In [4]: callable ---> callable()
+	
+	Note that even with autocall off, you can still use '/' at the start of
+	a line to treat the first argument on the command line as a function and
+	add parentheses to it:
+	
+	In [8]: /str 43 ---> str(43) Out[8]: '43'
+	
+	
+	%autoindent: Toggle autoindent on/off (if available).
+	
+	
+	%automagic: Make magic functions callable without having to type the
+	initial %.
+	
+	Without argumentsl toggles on/off (when off, you must call it as
+	%automagic, of course). With arguments it sets the value, and you can
+	use any of (case insensitive):
+	
+	- on,1,True: to activate
+	
+	- off,0,False: to deactivate.
+	
+	Note that magic functions have lowest priority, so if there's a variable
+	whose name collides with that of a magic fn, automagic won't work for
+	that function (you get the variable instead). However, if you delete the
+	variable (del var), the previously shadowed magic function becomes
+	visible to automagic again.
+	
+	
+	%bg: Run a job in the background, in a separate thread.
+	
+	For example,
+	
+	%bg myfunc(x,y,z=1)
+	
+	will execute 'myfunc(x,y,z=1)' in a background thread. As soon as the
+	execution starts, a message will be printed indicating the job number.
+	If your job number is 5, you can use
+	
+	myvar = jobs.result(5) or myvar = jobs[5].result
+	
+	to assign this result to variable 'myvar'.
+	
+	IPython has a job manager, accessible via the 'jobs' object. You can
+	type jobs? to get more information about it, and use jobs.<TAB> to see
+	its attributes. All attributes not starting with an underscore are meant
+	for public use.
+	
+	In particular, look at the jobs.new() method, which is used to create
+	new jobs. This magic %bg function is just a convenience wrapper around
+	jobs.new(), for expression-based jobs. If you want to create a new job
+	with an explicit function object and arguments, you must call jobs.new()
+	directly.
+	
+	The jobs.new docstring also describes in detail several important
+	caveats associated with a thread-based model for background job
+	execution. Type jobs.new? for details.
+	
+	You can check the status of all jobs with jobs.status().
+	
+	The jobs variable is set by IPython into the Python builtin namespace.
+	If you ever declare a variable named 'jobs', you will shadow this name.
+	You can either delete your global jobs variable to regain access to the
+	job manager, or make a new name and assign it manually to the manager
+	(stored in IPython's namespace). For example, to assign the job manager
+	to the Jobs name, use:
+	
+	Jobs = __builtins__.jobs
+	
+	
+	%bookmark: Manage IPython's bookmark system.
+	
+	%bookmark <name> - set bookmark to current dir %bookmark <name> <dir> -
+	set bookmark to <dir> %bookmark -l - list all bookmarks %bookmark -d
+	<name> - remove bookmark %bookmark -r - remove all bookmarks
+	
+	You can later on access a bookmarked folder with: %cd -b <name> or
+	simply '%cd <name>' if there is no directory called <name> AND there is
+	such a bookmark defined.
+	
+	Your bookmarks persist through IPython sessions, but they are associated
+	with each profile.
+	
+	
+	%cd: Change the current working directory.
+	
+	This command automatically maintains an internal list of directories you
+	visit during your IPython session, in the variable _dh. The command
+	%dhist shows this history nicely formatted. You can also do 'cd -<tab>'
+	to see directory history conveniently.
+	
+	Usage:
+	
+	cd 'dir': changes to directory 'dir'.
+	
+	cd -: changes to the last visited directory.
+	
+	cd -<n>: changes to the n-th directory in the directory history.
+	
+	cd -b <bookmark_name>: jump to a bookmark set by %bookmark (note: cd
+	<bookmark_name> is enough if there is no directory <bookmark_name>, but
+	a bookmark with the name exists.) 'cd -b <tab>' allows you to
+	tab-complete bookmark names.
+	
+	Options:
+	
+	-q: quiet. Do not print the working directory after the cd command is
+	executed. By default IPython's cd command does print this directory,
+	since the default prompts do not display path information.
+	
+	Note that !cd doesn't work for this purpose because the shell where
+	!command runs is immediately discarded after executing 'command'.
+	
+	
+	%color_info: Toggle color_info.
+	
+	The color_info configuration parameter controls whether colors are used
+	for displaying object details (by things like %psource, %pfile or the
+	'?' system). This function toggles this value with each call.
+	
+	Note that unless you have a fairly recent pager (less works better than
+	more) in your system, using colored object information displays will not
+	work properly. Test it and see.
+	
+	
+	%colors: Switch color scheme for prompts, info system and exception
+	handlers.
+	
+	Currently implemented schemes: NoColor, Linux, LightBG.
+	
+	Color scheme names are not case-sensitive.
+	
+	
+	%cpaste: Allows you to paste & execute a pre-formatted code block from
+	clipboard
+	
+	You must terminate the block with '-' (two minus-signs) alone on the
+	line. You can also provide your own sentinel with '%paste -s %%' ('%%'
+	is the new sentinel for this operation)
+	
+	The block is dedented prior to execution to enable execution of method
+	definitions. '>' and '+' characters at the beginning of a line are
+	ignored, to allow pasting directly from e-mails or diff files. The
+	executed block is also assigned to variable named 'pasted_block' for
+	later editing with '%edit pasted_block'.
+	
+	You can also pass a variable name as an argument, e.g. '%cpaste foo'.
+	This assigns the pasted block to variable 'foo' as string, without
+	dedenting or executing it.
+	
+	Do not be alarmed by garbled output on Windows (it's a readline bug).
+	Just press enter and type - (and press enter again) and the block will
+	be what was just pasted.
+	
+	IPython statements (magics, shell escapes) are not supported (yet).
+	
+	
+	%debug: Activate the interactive debugger in post-mortem mode.
+	
+	If an exception has just occurred, this lets you inspect its stack
+	frames interactively. Note that this will always work only on the last
+	traceback that occurred, so you must call this quickly after an
+	exception that you wish to inspect has fired, because if another one
+	occurs, it clobbers the previous one.
+	
+	If you want IPython to automatically do this on every exception, see the
+	%pdb magic for more details.
+	
+	
+	%dhist: Print your history of visited directories.
+	
+	%dhist -> print full history
+	%dhist n -> print last n entries only
+	%dhist n1 n2 -> print entries between n1 and n2 (n1 not included)
+	
+	This history is automatically maintained by the %cd command, and always
+	available as the global list variable _dh. You can use %cd -<n> to go to
+	directory number <n>.
+	
+	Note that most of time, you should view directory history by entering cd
+	-<TAB>.
+	
+	
+	%dirs: Return the current directory stack.
+	
+	
+	%doctest_mode: Toggle doctest mode on and off.
+	
+	This mode allows you to toggle the prompt behavior between normal
+	IPython prompts and ones that are as similar to the default IPython
+	interpreter as possible.
+	
+	It also supports the pasting of code snippets that have leading '»>' and
+	'...' prompts in them. This means that you can paste doctests from files
+	or docstrings (even if they have leading whitespace), and the code will
+	execute correctly. You can then use '%history -tn' to see the translated
+	history without line numbers; this will give you the input after removal
+	of all the leading prompts and whitespace, which can be pasted back into
+	an editor.
+	
+	With these features, you can switch into this mode easily whenever you
+	need to do testing and changes to doctests, without having to leave your
+	existing IPython session.
+	
+	
+	%ed: Alias to %edit.
+	
+	
+	%edit: Bring up an editor and execute the resulting code.
+	
+	Usage: %edit [options] [args]
+	
+	%edit runs IPython's editor hook. The default version of this hook is
+	set to call the __IPYTHON__.rc.editor command. This is read from your
+	environment variable $EDITOR. If this isn't found, it will default to vi
+	under Linux/Unix and to notepad under Windows. See the end of this
+	docstring for how to change the editor hook.
+	
+	You can also set the value of this editor via the command line option
+	'-editor' or in your ipythonrc file. This is useful if you wish to use
+	specifically for IPython an editor different from your typical default
+	(and for Windows users who typically don't set environment variables).
+	
+	This command allows you to conveniently edit multi-line code right in
+	your IPython session.
+	
+	If called without arguments, %edit opens up an empty editor with a
+	temporary file and will execute the contents of this file when you close
+	it (don't forget to save it!).
+	
+	Options:
+	
+	-n <number>: open the editor at a specified line number. By default, the
+	IPython editor hook uses the unix syntax 'editor +N filename', but you
+	can configure this by providing your own modified hook if your favorite
+	editor supports line-number specifications with a different syntax.
+	
+	-p: this will call the editor with the same data as the previous time it
+	was used, regardless of how long ago (in your current session) it was.
+	
+	-r: use 'raw' input. This option only applies to input taken from the
+	user's history. By default, the 'processed' history is used, so that
+	magics are loaded in their transformed version to valid Python. If this
+	option is given, the raw input as typed as the command line is used
+	instead. When you exit the editor, it will be executed by IPython's own
+	processor.
+	
+	-x: do not execute the edited code immediately upon exit. This is mainly
+	useful if you are editing programs which need to be called with command
+	line arguments, which you can then do using %run.
+	
+	Arguments:
+	
+	If arguments are given, the following possibilites exist:
+	
+	    - The arguments are numbers or pairs of dash-separated numbers (like 1
+	      4-8 9). These are interpreted as lines of previous input to be loaded
+	      into the editor. The syntax is the same of the %macro command.
+	
+	    - If the argument doesn't start with a number, it is evaluated as a
+	      variable and its contents loaded into the editor. You can thus edit any
+	      string which contains python code (including the result of previous edits).
+	
+	    - If the argument is the name of an object (other than a string),
+	      IPython will try to locate the file where it was defined and open the
+	      editor at the point where it is defined. You can use '%edit function' to
+	      load an editor exactly at the point where 'function' is defined, edit it
+	      and have the file be executed automatically.
+	
+	If the object is a macro (see %macro for details), this opens up your
+	specified editor with a temporary file containing the macro's data. Upon
+	exit, the macro is reloaded with the contents of the file.
+	
+	Note: opening at an exact line is only supported under Unix, and some
+	editors (like kedit and gedit up to Gnome 2.8) do not understand the
+	'+NUMBER' parameter necessary for this feature. Good editors like
+	(X)Emacs, vi, jed, pico and joe all do.
+	
+	If the argument is not found as a variable, IPython will look for a
+	file with that name (adding .py if necessary) and load it into the
+	editor. It will execute its contents with execfile() when you exit,
+	loading any code in the file into your interactive namespace.
+	
+	After executing your code, %edit will return as output the code you
+	typed in the editor (except when it was an existing file). This way you
+	can reload the code in further invocations of %edit as a variable, via
+	_<NUMBER> or Out[<NUMBER>], where <NUMBER> is the prompt number of the
+	output.
+	
+	Note that %edit is also available through the alias %ed.
+	
+	This is an example of creating a simple function inside the editor and
+	then modifying it. First, start up the editor::
+	
+	    In [1]: ed
+	    Editing... done. Executing edited code...
+	    Out[1]: 'def foo():\n print "foo() was defined in an editing session"\n'
+	
+	    We can then call the function foo():
+	
+	    In [2]: foo()
+	    foo() was defined in an editing session
+	
+	    Now we edit foo. IPython automatically loads the editor with the
+	    (temporary) file where foo() was previously defined:
+	
+	    In [3]: ed foo
+	    Editing... done. Executing edited code...
+	
+	    And if we call foo() again we get the modified version:
+	
+	    In [4]: foo()
+	    foo() has now been changed!
+	
+	    Here is an example of how to edit a code snippet successive times. First
+	    we call the editor:
+	
+	    In [8]: ed
+	    Editing... done. Executing edited code...
+	    hello
+	    Out[8]: "print 'hello'\n"
+	
+	    Now we call it again with the previous output (stored in _):
+	
+	    In [9]: ed _
+	    Editing... done. Executing edited code...
+	    hello world
+	    Out[9]: "print 'hello world'\n"
+	
+	    Now we call it with the output #8 (stored in _8, also as Out[8]):
+	
+	    In [10]: ed _8
+	    Editing... done. Executing edited code...
+	    hello again
+	    Out[10]: "print 'hello again'\n"
+	
+	Changing the default editor hook:
+	
+	If you wish to write your own editor hook, you can put it in a
+	configuration file which you load at startup time. The default hook is
+	defined in the IPython.hooks module, and you can use that as a starting
+	example for further modifications. That file also has general
+	instructions on how to set a new hook for use once you've defined it.
+	
+	
+	%env: List environment variables.
+	
+	
+	%exit: Exit IPython, confirming if configured to do so.
+	
+	You can configure whether IPython asks for confirmation upon exit by
+	setting the confirm_exit flag in the ipythonrc file.
+	
+	
+	%logoff: Temporarily stop logging.
+	
+	You must have previously started logging.
+	
+	
+	%logon: Restart logging.
+	
+	This function is for restarting logging which you've temporarily stopped
+	with %logoff. For starting logging for the first time, you must use the
+	%logstart function, which allows you to specify an optional log filename.
+	
+	
+	%logstart: Start logging anywhere in a session.
+	
+	%logstart [-o|-r|-t] [log_name [log_mode]]
+	
+	If no name is given, it defaults to a file named 'ipython_log.py' in
+	your current directory, in 'rotate' mode (see below).
+	
+	'%logstart name' saves to file 'name' in 'backup' mode. It saves your
+	history up to that point and then continues logging.
+	
+	%logstart takes a second optional parameter: logging mode. This can be
+	one of (note that the modes are given unquoted):
+	append: well, that says it.
+	backup: rename (if exists) to name  and start name.
+	global: single logfile in your home dir, appended to.
+	over : overwrite existing log.
+	rotate: create rotating logs name.1 , name.2 , etc.
+	
+	Options:
+	
+	-o: log also IPython's output. In this mode, all commands which generate
+	an Out[NN] prompt are recorded to the logfile, right after their
+	corresponding input line. The output lines are always prepended with a
+	'#[Out]# ' marker, so that the log remains valid Python code.
+	
+	Since this marker is always the same, filtering only the output from a
+	log is very easy, using for example a simple awk call:
+	
+	awk -F'#
+	
+	\begin{displaymath}Out\end{displaymath}
+	
+	# ' 'if($2) print $2' ipython_log.py
+	
+	-r: log 'raw' input. Normally, IPython's logs contain the processed
+	input, so that user lines are logged in their final form, converted into
+	valid Python. For example, %Exit is logged as '_ip.magic("Exit"). If the
+	-r flag is given, all input is logged exactly as typed, with no
+	transformations applied.
+	
+	-t: put timestamps before each input line logged (these are put in
+	comments).
+	
+	
+	%logstate: Print the status of the logging system.
+	
+	
+	%logstop: Fully stop logging and close log file.
+	
+	In order to start logging again, a new %logstart call needs to be made,
+	possibly (though not necessarily) with a new filename, mode and other
+	options.
+	
+	
+	%lsmagic: List currently available magic functions.
+	
+	
+	%macro: Define a set of input lines as a macro for future re-execution.
+	
+	Usage:
+	%macro [options] name n1-n2 n3-n4 ... n5 .. n6 ...
+	
+	Options:
+	
+	-r: use 'raw' input. By default, the 'processed' history is used, so
+	that magics are loaded in their transformed version to valid Python. If
+	this option is given, the raw input as typed as the command line is used
+	instead.
+	
+	This will define a global variable called 'name' which is a string made
+	of joining the slices and lines you specify (n1,n2,... numbers above)
+	from your input history into a single string. This variable acts like an
+	automatic function which re-executes those lines as if you had typed
+	them. You just type 'name' at the prompt and the code executes.
+	
+	The notation for indicating number ranges is: n1-n2 means 'use line
+	numbers n1,...n2' (the endpoint is included). That is, '5-7' means using
+	the lines numbered 5,6 and 7.
+	
+	Note: as a 'hidden' feature, you can also use traditional python slice
+	notation, where N:M means numbers N through M-1.
+	
+	For example, if your history contains (%hist prints it):
+	
+	44: x=1
+	45: y=3
+	46: z=x+y
+	47: print x
+	48: a=5
+	49: print 'x',x,'y',y
+	
+	you can create a macro with lines 44 through 47 (included) and line 49
+	called my_macro with:
+	
+	In [51]: %macro my_macro 44-47 49
+	
+	Now, typing 'my_macro' (without quotes) will re-execute all this code in
+	one pass.
+	
+	You don't need to give the line-numbers in order, and any given line
+	number can appear multiple times. You can assemble macros with any lines
+	from your input history in any order.
+	
+	The macro is a simple object which holds its value in an attribute, but
+	IPython's display system checks for macros and executes them as code
+	instead of printing them when you type their name.
+	
+	You can view a macro's contents by explicitly printing it with:
+	
+	'print macro_name'.
+	
+	For one-off cases which DON'T contain magic function calls in them you
+	can obtain similar results by explicitly executing slices from your
+	input history with:
+	
+	In [60]: exec In[44:48]+In[49]
+	
+	
+	%magic: Print information about the magic function system.
+	
+	
+	%page: Pretty print the object and display it through a pager.
+	
+	%page [options] OBJECT
+	
+	If no object is given, use _ (last output).
+	
+	Options:
+	
+	-r: page str(object), don't pretty-print it.
+	
+	
+	%pdb: Control the automatic calling of the pdb interactive debugger.
+	
+	Call as '%pdb on', '%pdb 1', '%pdb off' or '%pdb 0'. If called without
+	argument it works as a toggle.
+	
+	When an exception is triggered, IPython can optionally call the
+	interactive pdb debugger after the traceback printout. %pdb toggles this
+	feature on and off.
+	
+	The initial state of this feature is set in your ipythonrc configuration
+	file (the variable is called 'pdb').
+	
+	If you want to just activate the debugger AFTER an exception has fired,
+	without having to type '%pdb on' and rerunning your code, you can use
+	the %debug magic.
+	
+	
+	%pdef: Print the definition header for any callable object.
+	
+	If the object is a class, print the constructor information.
+	
+	
+	%pdoc: Print the docstring for an object.
+	
+	If the given object is a class, it will print both the class and the
+	constructor docstrings.
+	
+	
+	%pfile: Print (or run through pager) the file where an object is defined.
+	
+	The file opens at the line where the object definition begins. IPython
+	will honor the environment variable PAGER if set, and otherwise will do
+	its best to print the file in a convenient form.
+	
+	If the given argument is not an object currently defined, IPython will
+	try to interpret it as a filename (automatically adding a .py extension
+	if needed). You can thus use %pfile as a syntax highlighting code viewer.
+	
+	
+	%pinfo: Provide detailed information about an object.
+	
+	'%pinfo object' is just a synonym for object? or ?object.
+	
+	
+	%popd: Change to directory popped off the top of the stack.
+	
+	
+	%profile: Print your currently active IPyhton profile.
+	
+	
+	%prun: Run a statement through the python code profiler.
+	
+	Usage:
+	%prun [options] statement
+	
+	The given statement (which doesn't require quote marks) is run via the
+	python profiler in a manner similar to the profile.run() function.
+	Namespaces are internally managed to work correctly; profile.run cannot
+	be used in IPython because it makes certain assumptions about namespaces
+	which do not hold under IPython.
+	
+	Options:
+	
+	-l <limit>: you can place restrictions on what or how much of the
+	profile gets printed. The limit value can be:
+	
+	 * A string: only information for function names containing this string
+	   is printed.
+	
+	 * An integer: only these many lines are printed.
+	
+	 * A float (between 0 and 1): this fraction of the report is printed (for
+	  example, use a limit of 0.4 to see the topmost 40% only).
+	
+	You can combine several limits with repeated use of the option. For
+	example, '-l __init__ -l 5' will print only the topmost 5 lines of
+	information about class constructors.
+	
+	-r: return the pstats.Stats object generated by the profiling. This
+	object has all the information about the profile in it, and you can
+	later use it for further analysis or in other functions.
+	
+	-s <key>: sort profile by given key. You can provide more than one key
+	by using the option several times: '-s key1 -s key2 -s key3...'. The
+	default sorting key is 'time'.
+	
+	The following is copied verbatim from the profile documentation
+	referenced below:
+	
+	When more than one key is provided, additional keys are used as
+	secondary criteria when the there is equality in all keys selected
+	before them.
+	
+	Abbreviations can be used for any key names, as long as the abbreviation
+	is unambiguous. The following are the keys currently defined:
+	
+	Valid Arg Meaning
+	"calls" call count
+	"cumulative" cumulative time
+	"file" file name
+	"module" file name
+	"pcalls" primitive call count
+	"line" line number
+	"name" function name
+	"nfl" name/file/line
+	"stdname" standard name
+	"time" internal time
+	
+	Note that all sorts on statistics are in descending order (placing most
+	time consuming items first), where as name, file, and line number
+	searches are in ascending order (i.e., alphabetical). The subtle
+	distinction between "nfl" and "stdname" is that the standard name is a
+	sort of the name as printed, which means that the embedded line numbers
+	get compared in an odd way. For example, lines 3, 20, and 40 would (if
+	the file names were the same) appear in the string order "20" "3" and
+	"40". In contrast, "nfl" does a numeric compare of the line numbers. In
+	fact, sort_stats("nfl") is the same as sort_stats("name", "file", "line").
+	
+	-T <filename>: save profile results as shown on screen to a text file.
+	The profile is still shown on screen.
+	
+	-D <filename>: save (via dump_stats) profile statistics to given
+	filename. This data is in a format understod by the pstats module, and
+	is generated by a call to the dump_stats() method of profile objects.
+	The profile is still shown on screen.
+	
+	If you want to run complete programs under the profiler's control, use
+	'%run -p [prof_opts] filename.py [args to program]' where prof_opts
+	contains profiler specific options as described here.
+	
+	You can read the complete documentation for the profile module with:
+	In [1]: import profile; profile.help()
+	
+	
+	%psearch: Search for object in namespaces by wildcard.
+	
+	%psearch [options] PATTERN [OBJECT TYPE]
+	
+	Note: ? can be used as a synonym for %psearch, at the beginning or at
+	the end: both a*? and ?a* are equivalent to '%psearch a*'. Still, the
+	rest of the command line must be unchanged (options come first), so for
+	example the following forms are equivalent
+	
+	%psearch -i a* function -i a* function? ?-i a* function
+	
+	Arguments:
+	
+	PATTERN
+	
+	where PATTERN is a string containing * as a wildcard similar to its use
+	in a shell. The pattern is matched in all namespaces on the search path.
+	By default objects starting with a single _ are not matched, many
+	IPython generated objects have a single underscore. The default is case
+	insensitive matching. Matching is also done on the attributes of objects
+	and not only on the objects in a module.
+	
+	[OBJECT TYPE]
+	
+	Is the name of a python type from the types module. The name is given in
+	lowercase without the ending type, ex. StringType is written string. By
+	adding a type here only objects matching the given type are matched.
+	Using all here makes the pattern match all types (this is the default).
+	
+	Options:
+	
+	-a: makes the pattern match even objects whose names start with a single
+	underscore. These names are normally ommitted from the search.
+	
+	-i/-c: make the pattern case insensitive/sensitive. If neither of these
+	options is given, the default is read from your ipythonrc file. The
+	option name which sets this value is 'wildcards_case_sensitive'. If this
+	option is not specified in your ipythonrc file, IPython's internal
+	default is to do a case sensitive search.
+	
+	-e/-s NAMESPACE: exclude/search a given namespace. The pattern you
+	specifiy can be searched in any of the following namespaces: 'builtin',
+	'user', 'user_global','internal', 'alias', where 'builtin' and 'user'
+	are the search defaults. Note that you should not use quotes when
+	specifying namespaces.
+	
+	'Builtin' contains the python module builtin, 'user' contains all user
+	data, 'alias' only contain the shell aliases and no python objects,
+	'internal' contains objects used by IPython. The 'user_global' namespace
+	is only used by embedded IPython instances, and it contains module-level
+	globals. You can add namespaces to the search with -s or exclude them
+	with -e (these options can be given more than once).
+	
+	Examples:
+	
+	%psearch a* -> objects beginning with an a %psearch -e builtin a* ->
+	objects NOT in the builtin space starting in a %psearch a* function ->
+	all functions beginning with an a %psearch re.e* -> objects beginning
+	with an e in module re %psearch r*.e* -> objects that start with e in
+	modules starting in r %psearch r*.* string -> all strings in modules
+	beginning with r
+	
+	Case sensitve search:
+	
+	%psearch -c a* list all object beginning with lower case a
+	
+	Show objects beginning with a single _:
+	
+	%psearch -a _* list objects beginning with a single underscore
+	
+	
+	%psource: Print (or run through pager) the source code for an object.
+	
+	
+	%pushd: Place the current dir on stack and change directory.
+	
+	Usage:
+	%pushd ['dirname']
+	
+	
+	%pwd: Return the current working directory path.
+	
+	
+	%pycat: Show a syntax-highlighted file through a pager.
+	
+	This magic is similar to the cat utility, but it will assume the file to
+	be Python source and will show it with syntax highlighting.
+	
+	
+	%quickref: Show a quick reference sheet
+	
+	
+	%quit: Exit IPython, confirming if configured to do so (like %exit)
+	
+	
+	%r: Repeat previous input.
+	
+	Note: Consider using the more powerfull %rep instead!
+	
+	If given an argument, repeats the previous command which starts with the
+	same string, otherwise it just repeats the previous input.
+	
+	Shell escaped commands (with ! as first character) are not recognized by
+	this system, only pure python code and magic commands.
+	
+	
+	%rehashx: Update the alias table with all executable files in $PATH.
+	
+	This version explicitly checks that every entry in $PATH is a file with
+	execute access (os.X_OK), so it is much slower than %rehash.
+	
+	Under Windows, it checks executability as a match agains a ``|``-separated
+	string of extensions, stored in the IPython config variable
+	win_exec_ext. This defaults to ``exe|com|bat``.
+	
+	This function also resets the root module cache of module completer,
+	used on slow filesystems.
+	
+	
+	%reset: Resets the namespace by removing all names defined by the user.
+	
+	Input/Output history are left around in case you need them.
+	
+	
+	%run: Run the named file inside IPython as a program.
+	
+	Usage:
+	%run [-n -i -t [-N<N>] -d [-b<N>] -p [profile options]] file [args]
+	
+	Parameters after the filename are passed as command-line arguments to
+	the program (put in sys.argv). Then, control returns to IPython's prompt.
+	
+	This is similar to running at a system prompt:
+	$ python file args
+	but with the advantage of giving you IPython's tracebacks, and of
+	loading all variables into your interactive namespace for further use
+	(unless -p is used, see below).
+	
+	The file is executed in a namespace initially consisting only of
+	__name__=='__main__' and sys.argv constructed as indicated. It thus sees
+	its environment as if it were being run as a stand-alone program (except
+	for sharing global objects such as previously imported modules). But
+	after execution, the IPython interactive namespace gets updated with all
+	variables defined in the program (except for __name__ and sys.argv).
+	This allows for very convenient loading of code for interactive work,
+	while giving each program a 'clean sheet' to run in.
+	
+	Options:
+	
+	-n: __name__ is NOT set to '__main__', but to the running file's name
+	without extension (as python does under import). This allows running
+	scripts and reloading the definitions in them without calling code
+	protected by an ' if __name__ == "__main__" ' clause.
+	
+	-i: run the file in IPython's namespace instead of an empty one. This is
+	useful if you are experimenting with code written in a text editor which
+	depends on variables defined interactively.
+	
+	-e: ignore sys.exit() calls or SystemExit exceptions in the script being
+	run. This is particularly useful if IPython is being used to run
+	unittests, which always exit with a sys.exit() call. In such cases you
+	are interested in the output of the test results, not in seeing a
+	traceback of the unittest module.
+	
+	-t: print timing information at the end of the run. IPython will give
+	you an estimated CPU time consumption for your script, which under Unix
+	uses the resource module to avoid the wraparound problems of
+	time.clock(). Under Unix, an estimate of time spent on system tasks is
+	also given (for Windows platforms this is reported as 0.0).
+	
+	If -t is given, an additional -N<N> option can be given, where <N> must
+	be an integer indicating how many times you want the script to run. The
+	final timing report will include total and per run results.
+	
+	For example (testing the script uniq_stable.py):
+	
+	In [1]: run -t uniq_stable
+	
+	IPython CPU timings (estimated):
+	User : 0.19597 s.
+	System: 0.0 s.
+	
+	In [2]: run -t -N5 uniq_stable
+	
+	IPython CPU timings (estimated):
+	Total runs performed: 5
+	Times : Total Per run
+	User : 0.910862 s, 0.1821724 s.
+	System: 0.0 s, 0.0 s.
+	
+	-d: run your program under the control of pdb, the Python debugger. This
+	allows you to execute your program step by step, watch variables, etc.
+	Internally, what IPython does is similar to calling:
+	
+	pdb.run('execfile("YOURFILENAME")')
+	
+	with a breakpoint set on line 1 of your file. You can change the line
+	number for this automatic breakpoint to be <N> by using the -bN option
+	(where N must be an integer). For example:
+	
+	%run -d -b40 myscript
+	
+	will set the first breakpoint at line 40 in myscript.py. Note that the
+	first breakpoint must be set on a line which actually does something
+	(not a comment or docstring) for it to stop execution.
+	
+	When the pdb debugger starts, you will see a (Pdb) prompt. You must
+	first enter 'c' (without qoutes) to start execution up to the first
+	breakpoint.
+	
+	Entering 'help' gives information about the use of the debugger. You can
+	easily see pdb's full documentation with "import pdb;pdb.help()" at a
+	prompt.
+	
+	-p: run program under the control of the Python profiler module (which
+	prints a detailed report of execution times, function calls, etc).
+	
+	You can pass other options after -p which affect the behavior of the
+	profiler itself. See the docs for %prun for details.
+	
+	In this mode, the program's variables do NOT propagate back to the
+	IPython interactive namespace (because they remain in the namespace
+	where the profiler executes them).
+	
+	Internally this triggers a call to %prun, see its documentation for
+	details on the options available specifically for profiling.
+	
+	There is one special usage for which the text above doesn't apply: if
+	the filename ends with .ipy, the file is run as ipython script, just as
+	if the commands were written on IPython prompt.
+	
+	
+	%runlog: Run files as logs.
+	
+	Usage:
+	%runlog file1 file2 ...
+	
+	Run the named files (treating them as log files) in sequence inside the
+	interpreter, and return to the prompt. This is much slower than %run
+	because each line is executed in a try/except block, but it allows
+	running files with syntax errors in them.
+	
+	Normally IPython will guess when a file is one of its own logfiles, so
+	you can typically use %run even for logs. This shorthand allows you to
+	force any file to be treated as a log file.
+	
+	
+	%save: Save a set of lines to a given filename.
+	
+	Usage:
+	%save [options] filename n1-n2 n3-n4 ... n5 .. n6 ...
+	
+	Options:
+	
+	-r: use 'raw' input. By default, the 'processed' history is used, so
+	that magics are loaded in their transformed version to valid Python. If
+	this option is given, the raw input as typed as the command line is used
+	instead.
+	
+	This function uses the same syntax as %macro for line extraction, but
+	instead of creating a macro it saves the resulting string to the
+	filename you specify.
+	
+	It adds a '.py' extension to the file if you don't do so yourself, and
+	it asks for confirmation before overwriting existing files.
+	
+	
+	%sc: Shell capture - execute a shell command and capture its output.
+	
+	DEPRECATED. Suboptimal, retained for backwards compatibility.
+	
+	You should use the form 'var = !command' instead. Example:
+	
+	"%sc -l myfiles = ls " should now be written as
+	
+	"myfiles = !ls "
+	
+	myfiles.s, myfiles.l and myfiles.n still apply as documented below.
+	
+	- %sc [options] varname=command
+	
+	IPython will run the given command using commands.getoutput(), and will
+	then update the user's interactive namespace with a variable called
+	varname, containing the value of the call. Your command can contain
+	shell wildcards, pipes, etc.
+	
+	The '=' sign in the syntax is mandatory, and the variable name you
+	supply must follow Python's standard conventions for valid names.
+	
+	(A special format without variable name exists for internal use)
+	
+	Options:
+	
+	-l: list output. Split the output on newlines into a list before
+	assigning it to the given variable. By default the output is stored as a
+	single string.
+	
+	-v: verbose. Print the contents of the variable.
+	
+	In most cases you should not need to split as a list, because the
+	returned value is a special type of string which can automatically
+	provide its contents either as a list (split on newlines) or as a
+	space-separated string. These are convenient, respectively, either for
+	sequential processing or to be passed to a shell command.
+	
+	For example:
+	
+	# Capture into variable a In [9]: sc a=ls *py
+	
+	# a is a string with embedded newlines In [10]: a Out[10]: 'setup.py
+	win32_manual_post_install.py'
+	
+	# which can be seen as a list: In [11]: a.l Out[11]: ['setup.py',
+	'win32_manual_post_install.py']
+	
+	# or as a whitespace-separated string: In [12]: a.s Out[12]: 'setup.py
+	win32_manual_post_install.py'
+	
+	# a.s is useful to pass as a single command line: In [13]: !wc -l $a.s
+	146 setup.py 130 win32_manual_post_install.py 276 total
+	
+	# while the list form is useful to loop over: In [14]: for f in a.l:
+	....: !wc -l $f ....: 146 setup.py 130 win32_manual_post_install.py
+	
+	Similiarly, the lists returned by the -l option are also special, in the
+	sense that you can equally invoke the .s attribute on them to
+	automatically get a whitespace-separated string from their contents:
+	
+	In [1]: sc -l b=ls *py
+	
+	In [2]: b Out[2]: ['setup.py', 'win32_manual_post_install.py']
+	
+	In [3]: b.s Out[3]: 'setup.py win32_manual_post_install.py'
+	
+	In summary, both the lists and strings used for ouptut capture have the
+	following special attributes:
+	
+	.l (or .list) : value as list. .n (or .nlstr): value as
+	newline-separated string. .s (or .spstr): value as space-separated string.
+	
+	
+	%sx: Shell execute - run a shell command and capture its output.
+	
+	%sx command
+	
+	IPython will run the given command using commands.getoutput(), and
+	return the result formatted as a list (split on '\n'). Since the output
+	is _returned_, it will be stored in ipython's regular output cache
+	Out[N] and in the '_N' automatic variables.
+	
+	Notes:
+	
+	1) If an input line begins with '!!', then %sx is automatically invoked.
+	That is, while: !ls causes ipython to simply issue system('ls'), typing
+	!!ls is a shorthand equivalent to: %sx ls
+	
+	2) %sx differs from %sc in that %sx automatically splits into a list,
+	like '%sc -l'. The reason for this is to make it as easy as possible to
+	process line-oriented shell output via further python commands. %sc is
+	meant to provide much finer control, but requires more typing.
+	
+	3) Just like %sc -l, this is a list with special attributes:
+	
+	.l (or .list) : value as list. .n (or .nlstr): value as
+	newline-separated string. .s (or .spstr): value as whitespace-separated
+	string.
+	
+	This is very useful when trying to use such lists as arguments to system
+	commands.
+	
+	
+	%system_verbose: Set verbose printing of system calls.
+	
+	If called without an argument, act as a toggle
+	
+	
+	%time: Time execution of a Python statement or expression.
+	
+	The CPU and wall clock times are printed, and the value of the
+	expression (if any) is returned. Note that under Win32, system time is
+	always reported as 0, since it can not be measured.
+	
+	This function provides very basic timing functionality. In Python 2.3,
+	the timeit module offers more control and sophistication, so this could
+	be rewritten to use it (patches welcome).
+	
+	Some examples:
+	
+	In [1]: time 2**128 CPU times: user 0.00 s, sys: 0.00 s, total: 0.00 s
+	Wall time: 0.00 Out[1]: 340282366920938463463374607431768211456L
+	
+	In [2]: n = 1000000
+	
+	In [3]: time sum(range(n)) CPU times: user 1.20 s, sys: 0.05 s, total:
+	1.25 s Wall time: 1.37 Out[3]: 499999500000L
+	
+	In [4]: time print 'hello world' hello world CPU times: user 0.00 s,
+	sys: 0.00 s, total: 0.00 s Wall time: 0.00
+	
+	Note that the time needed by Python to compile the given expression will
+	be reported if it is more than 0.1s. In this example, the actual
+	exponentiation is done by Python at compilation time, so while the
+	expression can take a noticeable amount of time to compute, that time is
+	purely due to the compilation:
+	
+	In [5]: time 3**9999; CPU times: user 0.00 s, sys: 0.00 s, total: 0.00 s
+	Wall time: 0.00 s
+	
+	In [6]: time 3**999999; CPU times: user 0.00 s, sys: 0.00 s, total: 0.00
+	s Wall time: 0.00 s Compiler : 0.78 s
+	
+	
+	%timeit: Time execution of a Python statement or expression
+	
+	Usage:
+	%timeit [-n<N> -r<R> [-t|-c]] statement
+	
+	Time execution of a Python statement or expression using the timeit module.
+	
+	Options: -n<N>: execute the given statement <N> times in a loop. If this
+	value is not given, a fitting value is chosen.
+	
+	-r<R>: repeat the loop iteration <R> times and take the best result.
+	Default: 3
+	
+	-t: use time.time to measure the time, which is the default on Unix.
+	This function measures wall time.
+	
+	-c: use time.clock to measure the time, which is the default on Windows
+	and measures wall time. On Unix, resource.getrusage is used instead and
+	returns the CPU user time.
+	
+	-p<P>: use a precision of <P> digits to display the timing result.
+	Default: 3
+	
+	Examples:
+	In [1]: %timeit pass 10000000 loops, best of 3: 53.3 ns per loop
+	
+	In [2]: u = None
+	
+	In [3]: %timeit u is None 10000000 loops, best of 3: 184 ns per loop
+	
+	In [4]: %timeit -r 4 u == None 1000000 loops, best of 4: 242 ns per loop
+	
+	In [5]: import time
+	
+	In [6]: %timeit -n1 time.sleep(2) 1 loops, best of 3: 2 s per loop
+	
+	The times reported by %timeit will be slightly higher than those
+	reported by the timeit.py script when variables are accessed. This is
+	due to the fact that %timeit executes the statement in the namespace of
+	the shell, compared with timeit.py, which uses a single setup statement
+	to import function or create variables. Generally, the bias does not
+	matter as long as results from timeit.py are not mixed with those from
+	%timeit.
+	
+	
+	%unalias: Remove an alias
+	
+	
+	%upgrade: Upgrade your IPython installation
+	
+	This will copy the config files that don't yet exist in your ipython dir
+	from the system config dir. Use this after upgrading IPython if you
+	don't wish to delete your .ipython dir.
+	
+	Call with -nolegacy to get rid of ipythonrc* files (recommended for new
+	users)
+	
+	
+	%who: Print all interactive variables, with some minimal formatting.
+	
+	If any arguments are given, only variables whose type matches one of
+	these are printed. For example:
+	
+	%who function str
+	
+	will only list functions and strings, excluding all other types of
+	variables. To find the proper type names, simply use type(var) at a
+	command line to see how python prints type names. For example:
+	
+	In [1]: type('hello')
+	Out[1]: <type 'str'>
+	
+	indicates that the type name for strings is 'str'.
+	
+	%who always excludes executed names loaded through your configuration
+	file and things which are internal to IPython.
+	
+	This is deliberate, as typically you may load many modules and the
+	purpose of %who is to show you only what you've manually defined.
+	
+	
+	%who_ls: Return a sorted list of all interactive variables.
+	
+	If arguments are given, only variables of types matching these arguments
+	are returned.
+	
+	
+	%whos: Like %who, but gives some extra information about each variable.
+	
+	The same type filtering of %who can be applied here.
+	
+	For all variables, the type is printed. Additionally it prints:
+	
+	- For ,[],(): their length.
+	
+	- For numpy and Numeric arrays, a summary with shape, number of
+	elements, typecode and size in memory.
+	
+	- Everything else: a string representation, snipping their middle if too
+	long.
+	
+	
+	%xmode: Switch modes for the exception handlers.
+	
+	Valid modes: Plain, Context and Verbose.
+	
+	If called without arguments, acts as a toggle.
+
+
+Access to the standard Python help
+----------------------------------
 
 As of Python 2.1, a help system is available with access to object
 docstrings and the Python manuals. Simply type 'help' (no quotes) to
@@ -2621,7 +2639,8 @@ your environment variable PYTHONDOCS for this feature to work correctly.
 
 
 
-    Dynamic object information
+Dynamic object information
+--------------------------
 
 Typing ?word or word? prints detailed information about an object. If
 certain strings in the object are too long (docstrings, code, etc.) they
@@ -2662,7 +2681,8 @@ are not really defined as separate identifiers. Try for example typing
 
 
 
-    Readline-based features
+Readline-based features
+-----------------------
 
 These features require the GNU readline library, so they won't work if
 your Python installation lacks readline support. We will first describe
@@ -2820,7 +2840,6 @@ Any input line beginning with a ! character is passed verbatim (minus
 the !, of course) to the underlying operating system. For example,
 typing !ls will run 'ls' in the current directory.
 
-
 Manual capture of command output
 --------------------------------
 
@@ -2832,10 +2851,9 @@ output. The !! syntax is a shorthand for the %sx magic command.
 
 Finally, the %sc magic (short for 'shell capture') is similar to %sx,
 but allowing more fine-grained control of the capture details, and
-storing the result directly into a named variable.
-
-See Sec. 6.2 <#sec:magic> for details on the magics %sc and %sx, or use
-IPython's own help (sc? and sx?) for further details.
+storing the result directly into a named variable. The direct use of 
+%sc is now deprecated, and you should ise the ``var = !cmd`` syntax
+instead.
 
 IPython also allows you to expand the value of python variables when
 making system calls. Any python variable or expression which you prepend
@@ -3004,7 +3022,8 @@ Directory history
 
 Your history of visited directories is kept in the global list _dh, and
 the magic %cd command can be used to go to any entry in that list. The
-%dhist command allows you to view this history.
+%dhist command allows you to view this history. do ``cd -<TAB`` to
+conventiently view the directory history.
 
 
 Automatic parentheses and quotes
@@ -3078,6 +3097,23 @@ won't work::
 Customization
 =============
 
+There are 2 ways to configure IPython - the old way of using ipythonrc
+files (an INI-file like format), and the new way that involves editing
+your ipy_user_conf.py. Both configuration systems work at the same
+time, so you can set your options in both, but if you are hesitating
+about which alternative to choose, we recommend the ipy_user_conf.py
+approach, as it will give you more power and control in the long
+run. However, there are few options such as pylab_import_all that can
+only be specified in ipythonrc file or command line - the reason for
+this is that they are needed before IPython has been started up, and
+the IPApi object used in ipy_user_conf.py is not yet available at that
+time. A hybrid approach of specifying a few options in ipythonrc and
+doing the more advanced configuration in ipy_user_conf.py is also
+possible.
+
+The ipythonrc approach
+----------------------
+
 As we've already mentioned, IPython reads a configuration file which can
 be specified at the command line (-rcfile) or which by default is
 assumed to be called ipythonrc. Such a file is looked for in the current
@@ -3118,7 +3154,7 @@ Each of these options may appear as many times as you need it in the file.
     * [import_some <mod> <f1> <f2> ...:] import functions with 'from
       <mod> import <f1>,<f2>,...'
     * [import_all <mod1> <mod2> ...:] for each module listed import
-      functions with 'from <mod> import *'
+      functions with ``from <mod> import *``.
     * [execute <python code>:] give any single-line python code to be
       executed.
     * [execfile <filename>:] execute the python file given with an
@@ -3134,7 +3170,6 @@ Each of these options may appear as many times as you need it in the file.
       with files while testing code. This gives you the flexibility to
       have within IPython any aliases you may be used to under your
       normal system shell.
-
 
 
 Sample ipythonrc file
@@ -3777,7 +3812,95 @@ reproduce it here for reference::
     # alias 
 
     #************************* end of file <ipythonrc> ************************
-    
+
+
+ipy_user_conf.py
+----------------
+
+There should be a simple template ipy_user_conf.py file in your
+~/.ipython directory. It is a plain python module that is imported
+during IPython startup, so you can do pretty much what you want there
+- import modules, configure extensions, change options, define magic
+commands, put variables and functions in the IPython namespace,
+etc. You use the IPython extension api object, acquired by
+IPython.ipapi.get() and documented in the "IPython extension API"
+chapter, to interact with IPython. A sample ipy_user_conf.py is listed
+below for reference::
+
+    # Most of your config files and extensions will probably start
+    # with this import
+
+    import IPython.ipapi
+    ip = IPython.ipapi.get()
+
+    # You probably want to uncomment this if you did %upgrade -nolegacy
+    # import ipy_defaults    
+
+    import os   
+
+    def main():   
+
+        #ip.dbg.debugmode = True
+        ip.dbg.debug_stack()
+
+        # uncomment if you want to get ipython -p sh behaviour
+        # without having to use command line switches  
+        import ipy_profile_sh
+        import jobctrl
+
+        # Configure your favourite editor?
+        # Good idea e.g. for %edit os.path.isfile
+
+        #import ipy_editors
+
+        # Choose one of these:
+
+        #ipy_editors.scite()
+        #ipy_editors.scite('c:/opt/scite/scite.exe')
+        #ipy_editors.komodo()
+        #ipy_editors.idle()
+        # ... or many others, try 'ipy_editors??' after import to see them
+
+        # Or roll your own:
+        #ipy_editors.install_editor("c:/opt/jed +$line $file")
+
+
+        o = ip.options
+        # An example on how to set options
+        #o.autocall = 1
+        o.system_verbose = 0
+
+        #import_all("os sys")
+        #execf('~/_ipython/ns.py')
+
+
+        # -- prompt
+        # A different, more compact set of prompts from the default ones, that
+        # always show your current location in the filesystem:
+
+        #o.prompt_in1 = r'\C_LightBlue[\C_LightCyan\Y2\C_LightBlue]\C_Normal\n\C_Green|\#>'
+        #o.prompt_in2 = r'.\D: '
+        #o.prompt_out = r'[\#] '
+
+        # Try one of these color settings if you can't read the text easily
+        # autoexec is a list of IPython commands to execute on startup
+        #o.autoexec.append('%colors LightBG')
+        #o.autoexec.append('%colors NoColor')
+        o.autoexec.append('%colors Linux')
+
+
+    # some config helper functions you can use 
+    def import_all(modules):
+        """ Usage: import_all("os sys") """ 
+        for m in modules.split():
+            ip.ex("from %s import *" % m)
+
+    def execf(fname):
+        """ Execute a file in user namespace """
+        ip.ex('execfile("%s")' % os.path.expanduser(fname))
+
+    main()
+
 
 
 Fine-tuning your prompt
@@ -3785,42 +3908,42 @@ Fine-tuning your prompt
 
 IPython's prompts can be customized using a syntax similar to that of
 the bash shell. Many of bash's escapes are supported, as well as a few
-additional ones. We list them below:
+additional ones. We list them below::
 
-*\#*
-    the prompt/history count number. This escape is automatically
-    wrapped in the coloring codes for the currently active color scheme. 
-*\N*
-    the 'naked' prompt/history count number: this is just the number
-    itself, without any coloring applied to it. This lets you produce
-    numbered prompts with your own colors. 
-*\D*
-    the prompt/history count, with the actual digits replaced by dots.
-    Used mainly in continuation prompts (prompt_in2) 
-*\w*
-    the current working directory 
-*\W*
-    the basename of current working directory 
-*\Xn*
-    where $n=0\ldots5.$ The current working directory, with $HOME
-    replaced by ~, and filtered out to contain only $n$ path elements 
-*\Yn*
-    Similar to \Xn, but with the $n+1$ element included if it is ~ (this
-    is similar to the behavior of the %cn escapes in tcsh) 
-*\u*
-    the username of the current user 
-*\$*
-    if the effective UID is 0, a #, otherwise a $ 
-*\h*
-    the hostname up to the first '.' 
-*\H*
-    the hostname 
-*\n*
-    a newline 
-*\r*
-    a carriage return 
-*\v*
-    IPython version string 
+    \#
+        the prompt/history count number. This escape is automatically
+        wrapped in the coloring codes for the currently active color scheme. 
+    \N
+        the 'naked' prompt/history count number: this is just the number
+        itself, without any coloring applied to it. This lets you produce
+        numbered prompts with your own colors. 
+    \D
+        the prompt/history count, with the actual digits replaced by dots.
+        Used mainly in continuation prompts (prompt_in2) 
+    \w
+        the current working directory 
+    \W
+        the basename of current working directory 
+    \Xn
+        where $n=0\ldots5.$ The current working directory, with $HOME
+        replaced by ~, and filtered out to contain only $n$ path elements 
+    \Yn
+        Similar to \Xn, but with the $n+1$ element included if it is ~ (this
+        is similar to the behavior of the %cn escapes in tcsh) 
+    \u
+        the username of the current user 
+    \$
+        if the effective UID is 0, a #, otherwise a $ 
+    \h
+        the hostname up to the first '.' 
+    \H
+        the hostname 
+    \n
+        a newline 
+    \r
+        a carriage return 
+    \v
+        IPython version string 
 
 In addition to these, ANSI color escapes can be insterted into the
 prompts, as \C_ColorName. The list of valid color names is: Black, Blue,
@@ -3848,7 +3971,7 @@ default prompts::
     prompt_in2 '   .\D.:' 
     prompt_out 'Out[\#]:'
 
-which look like this:
+which look like this::
 
     In [1]: 1+2 
     Out[1]: 3
@@ -4166,7 +4289,6 @@ code fragments in your programs which are ready for cut and paste::
 Using the Python debugger (pdb)
 ===============================
 
-
 Running entire programs via pdb
 -------------------------------
 
@@ -4212,11 +4334,11 @@ uncaught exception is triggered by your code.
 
 For stand-alone use of the feature in your programs which do not use
 IPython at all, put the following lines toward the top of your 'main'
-routine:
+routine::
 
-import sys,IPython.ultraTB  
-sys.excepthook = IPython.ultraTB.FormattedTB(mode='Verbose',
-color_scheme='Linux', call_pdb=1)
+    import sys,IPython.ultraTB  
+    sys.excepthook = IPython.ultraTB.FormattedTB(mode='Verbose',
+    color_scheme='Linux', call_pdb=1)
 
 The mode keyword can be either 'Verbose' or 'Plain', giving either very
 detailed or normal tracebacks respectively. The color_scheme keyword can
@@ -4242,7 +4364,7 @@ supplied, which we will briefly describe now. These can be used 'as is'
 starting point for writing your own extensions.
 
 
-Pasting of code starting with '»> ' or '... '
+Pasting of code starting with '>>> ' or '... '
 ----------------------------------------------
 
 In the python tutorial it is common to find code examples which have
@@ -4304,6 +4426,7 @@ Physics.PhysicalQuantities from Konrad Hinsen's ScientificPython
 The Physics.PhysicalQuantities module defines PhysicalQuantity objects,
 but these must be declared as instances of a class. For example, to
 define v as a velocity of 3 m/s, normally you would write::
+
     In [1]: v = PhysicalQuantity(3,'m/s')
 
 Using the PhysicalQ_Input extension this can be input instead as: 
@@ -4318,149 +4441,61 @@ from math import * # math MUST be imported BEFORE PhysicalQInteractive
 from IPython.Extensions.PhysicalQInteractive import * 
 import IPython.Extensions.PhysicalQInput
 
-IPython as a system shell
-=========================
 
-IPython ships with a special profile called pysh, which you can activate
-at the command line as 'ipython -p pysh'. This loads InterpreterExec,
-along with some additional facilities and a prompt customized for
-filesystem navigation.
+IPython as a system shell - the 'Sh' profile
+============================================
 
-Note that this does not make IPython a full-fledged system shell. In
-particular, it has no job control, so if you type Ctrl-Z (under Unix),
-you'll suspend pysh itself, not the process you just started.
+The 'sh' profile optimizes IPython for system shell usage. Apart from
+certain job control functionality that is present in unix (ctrl+z does
+"suspend"), the sh profile should provide you with most of the
+functionality you use daily in system shell, and more. Invoke IPython
+in 'sh' profile by doing 'ipython -p sh', or (in win32) by launching
+the "pysh" shortcut in start menu.
 
-What the shell profile allows you to do is to use the convenient and
-powerful syntax of Python to do quick scripting at the command line.
-Below we describe some of its features.
+If you want to use the features of sh profile as your defaults (which
+might be a good idea if you use other profiles a lot of the time but
+still want the convenience of sh profile), add ``import ipy_profile_sh``
+to your ~/.ipython/ipy_user_conf.py.
 
+The 'sh' profile is different from the default profile in that:
+
+ * Prompt shows the current directory
+ * Spacing between prompts and input is more compact (no padding with
+   empty lines). The startup banner is more compact as well.
+ * System commands are directly available (in alias table) without
+   requesting %rehashx - however, if you install new programs along
+   your PATH, you might want to run %rehashx to update the persistent
+   alias table
+ * Macros are stored in raw format by default. That is, instead of
+   '_ip.system("cat foo"), the macro will contain text 'cat foo')
+ * Autocall is in full mode
+ * Calling "up" does "cd .."
+
+The 'sh' profile is different from the now-obsolete (and unavailable)
+'pysh' profile in that:
+
+ * '$$var = command' and '$var = command' syntax is not supported
+ * anymore. Use 'var = !command' instead (incidentally, this is
+ * available in all IPython profiles). Note that !!command *will*
+ * work.
 
 Aliases
 -------
 
 All of your $PATH has been loaded as IPython aliases, so you should be
-able to type any normal system command and have it executed. See %alias?
-and %unalias? for details on the alias facilities. See also %rehash? and
+able to type any normal system command and have it executed. See
+%alias?  and %unalias? for details on the alias facilities. See also
 %rehashx? for details on the mechanism used to load $PATH.
-
-
-Special syntax
---------------
-
-Any lines which begin with '~', '/' and '.' will be executed as shell
-commands instead of as Python code. The special escapes below are also
-recognized. !cmd is valid in single or multi-line input, all others are
-only valid in single-line input::
-
-*!cmd*
-    pass 'cmd' directly to the shell 
-*!!cmd*
-    execute 'cmd' and return output as a list (split on '\n') 
-*var=!cmd
-    capture output of cmd into var, as a string list
-
-The $/$$ syntaxes make Python variables from system output, which you
-can later use for further scripting. The converse is also possible: when
-executing an alias or calling to the system via !/!!, you can expand any
-python variable or expression by prepending it with $. Full details of
-the allowed syntax can be found in Python's PEP 215.
-
-A few brief examples will illustrate these (note that the indentation
-below may be incorrectly displayed)::
-
-    fperez[~/test]|3> !ls *s.py  
-    scopes.py strings.py
-
-ls is an internal alias, so there's no need to use !::
-
-    fperez[~/test]|4> ls *s.py  
-    scopes.py* strings.py
-
-!!ls will return the output into a Python variable FIXME!!!::
-
-    fperez[~/test]|5> !!ls *s.py  
-                  <5> ['scopes.py', 'strings.py']  
-    fperez[~/test]|6> print _5  
-    ['scopes.py', 'strings.py']
-
-$ and $$ allow direct capture to named variables:
-
-fperez[~/test]|7> $astr = ls *s.py  
-fperez[~/test]|8> astr  
-              <8> 'scopes.py\nstrings.py'
-
-fperez[~/test]|9> $$alist = ls *s.py  
-fperez[~/test]|10> alist  
-              <10> ['scopes.py', 'strings.py']
-
-alist is now a normal python list you can loop over. Using $ will expand
-back the python values when alias calls are made:
-
-fperez[~/test]|11> for f in alist:  
-              |..>    print 'file',f,  
-              |..>    wc -l $f  
-              |..>  
-file scopes.py 13 scopes.py  
-file strings.py 4 strings.py
-
-Note that you may need to protect your variables with braces if you want
-to append strings to their names. To copy all files in alist to .bak
-extensions, you must use::
-
-    fperez[~/test]|12> for f in alist:  
-                  |..>    cp $f ${f}.bak
-
-If you try using $f.bak, you'll get an AttributeError exception saying
-that your string object doesn't have a .bak attribute. This is because
-the $ expansion mechanism allows you to expand full Python expressions::
-
-    fperez[~/test]|13> echo "sys.platform is: $sys.platform"  
-    sys.platform is: linux2
-
-IPython's input history handling is still active, which allows you to
-rerun a single block of multi-line input by simply using exec::
-
-    fperez[~/test]|14> $$alist = ls *.eps  
-    fperez[~/test]|15> exec _i11  
-    file image2.eps 921 image2.eps  
-    file image.eps 921 image.eps
-
-While these are new special-case syntaxes, they are designed to allow
-very efficient use of the shell with minimal typing. At an interactive
-shell prompt, conciseness of expression wins over readability.
-
-
-Useful functions and modules
-----------------------------
-
-The os, sys and shutil modules from the Python standard library are
-automatically loaded. Some additional functions, useful for shell usage,
-are listed below. You can request more help about them with '?'.
-
-*shell*
-    - execute a command in the underlying system shell 
-*system*
-    - like shell(), but return the exit status of the command 
-*sout*
-    - capture the output of a command as a string 
-*lout*
-    - capture the output of a command as a list (split on '\n') 
-*getoutputerror*
-    - capture (output,error) of a shell commandss 
-
-sout/lout are the functional equivalents of $/$$. They are provided to
-allow you to capture system output in the middle of true python code,
-function definitions, etc (where $ and $$ are invalid).
 
 
 Directory management
 --------------------
 
-Since each command passed by pysh to the underlying system is executed
+Since each command passed by ipython to the underlying system is executed
 in a subshell which exits immediately, you can NOT use !cd to navigate
 the filesystem.
 
-Pysh provides its own builtin '%cd' magic command to move in the
+IPython provides its own builtin '%cd' magic command to move in the
 filesystem (the % is not required with automagic on). It also maintains
 a list of visited directories (use %dhist to see it) and allows direct
 switching to any of them. Type 'cd?' for more details.
@@ -4468,85 +4503,224 @@ switching to any of them. Type 'cd?' for more details.
 %pushd, %popd and %dirs are provided for directory stack handling.
 
 
-    Prompt customization
+Enabled extensions
+------------------
 
-The supplied ipythonrc-pysh profile comes with an example of a very
-colored and detailed prompt, mainly to serve as an illustration. The
-valid escape sequences, besides color names, are:
+Some extensions, listed below, are enabled as default in this profile.
 
-*\#*
-    - Prompt number, wrapped in the color escapes for the input prompt
-    (determined by the current color scheme). 
-*\N*
-    - Just the prompt counter number, without any coloring wrappers. You
-    can thus customize the actual prompt colors manually. 
-*\D*
-    - Dots, as many as there are digits in \# (so they align). 
-*\w*
-    - Current working directory (cwd). 
-*\W*
-    - Basename of current working directory. 
-*\XN*
-    - Where N=0..5. N terms of the cwd, with $HOME written as ~. 
-*\YN*
-    - Where N=0..5. Like XN, but if ~ is term N+1 it's also shown. 
-*\u*
-    - Username. 
-*\H*
-    - Full hostname. 
-*\h*
-    - Hostname up to first '.' 
-*\$*
-    - Root symbol ($ or #). 
-*\t*
-    - Current time, in H:M:S format. 
-*\v*
-    - IPython release version. 
-*\n*
-    - Newline. 
-*\r*
-    - Carriage return. 
-*\\*
-    - An explicitly escaped '\'. 
+envpersist
+++++++++++
 
-You can configure your prompt colors using any ANSI color escape. Each
-color escape sets the color for any subsequent text, until another
-escape comes in and changes things. The valid color escapes are:
+%env can be used to "remember" environment variable manipulations. Examples::
 
-*\C_Black*
+	%env - Show all environment variables
+	%env VISUAL=jed  - set VISUAL to jed
+	%env PATH+=;/foo - append ;foo to PATH
+	%env PATH+=;/bar - also append ;bar to PATH
+	%env PATH-=/wbin; - prepend /wbin; to PATH
+	%env -d VISUAL   - forget VISUAL persistent val
+	%env -p          - print all persistent env modifications
 
-*\C_Blue*
+ipy_which
++++++++++
 
-*\C_Brown*
+%which magic command. Like 'which' in unix, but knows about ipython aliases.
 
-*\C_Cyan*
+Example::
 
-*\C_DarkGray*
+ [C:/ipython]|14> %which st
+ st -> start .
+ [C:/ipython]|15> %which d
+ d -> dir /w /og /on
+ [C:/ipython]|16> %which cp
+ cp -> cp
+   == c:\bin\cp.exe
+ c:\bin\cp.exe
 
-*\C_Green*
+ipy_app_completers
+++++++++++++++++++
 
-*\C_LightBlue*
+Custom tab completers for some apps like svn, hg, bzr, apt-get. Try 'apt-get install <TAB>' in debian/ubuntu.
 
-*\C_LightCyan*
+ipy_rehashdir
++++++++++++++
 
-*\C_LightGray*
+Allows you to add system command aliases for commands that are not along your path. Let's say that you just installed Putty and want to be able to invoke it without adding it to path, you can create the alias for it with rehashdir::
 
-*\C_LightGreen*
+ [~]|22> cd c:/opt/PuTTY/
+ [c:opt/PuTTY]|23> rehashdir .
+              <23> ['pageant', 'plink', 'pscp', 'psftp', 'putty', 'puttygen', 'unins000']
 
-*\C_LightPurple*
+Now, you can execute any of those commams directly::
 
-*\C_LightRed*
+ [c:opt/PuTTY]|24> cd
+ [~]|25> putty
 
-*\C_Purple*
+(the putty window opens).
 
-*\C_Red*
+If you want to store the alias so that it will always be available, do '%store putty'. If you want to %store all these aliases persistently, just do it in a for loop::
 
-*\C_White*
+ [~]|27> for a in _23:
+    |..>     %store $a
+    |..>
+    |..>
+ Alias stored: pageant (0, 'c:\\opt\\PuTTY\\pageant.exe')
+ Alias stored: plink (0, 'c:\\opt\\PuTTY\\plink.exe')
+ Alias stored: pscp (0, 'c:\\opt\\PuTTY\\pscp.exe')
+ Alias stored: psftp (0, 'c:\\opt\\PuTTY\\psftp.exe')
+ ...
 
-*\C_Yellow*
+mglob
++++++
 
-*\C_Normal*
-    Stop coloring, defaults to your terminal settings. 
+Provide the magic function %mglob, which makes it easier (than the 'find' command) to collect (possibly recursive) file lists. Examples::
+
+ [c:/ipython]|9> mglob *.py
+ [c:/ipython]|10> mglob *.py rec:*.txt
+ [c:/ipython]|19> workfiles = %mglob !.svn/ !.hg/ !*_Data/ !*.bak rec:.
+
+Note that the first 2 calls will put the file list in result history (_, _9, _10), and the last one will assign it to 'workfiles'.
+
+
+Prompt customization
+--------------------
+
+The sh profile uses the following prompt configurations::
+
+    o.prompt_in1= r'\C_LightBlue[\C_LightCyan\Y2\C_LightBlue]\C_Green|\#>'
+    o.prompt_in2= r'\C_Green|\C_LightGreen\D\C_Green>'
+
+You can change the prompt configuration to your liking by editing
+ipy_user_conf.py.  
+
+String lists
+============
+
+String lists (IPython.genutils.SList) are handy way to process output
+from system commands. They are produced by ``var = !cmd`` syntax.
+
+First, we acquire the output of 'ls -l'::
+
+    [Q:doc/examples]|2> lines = !ls -l
+     ==
+    ['total 23',
+     '-rw-rw-rw- 1 ville None 1163 Sep 30  2006 example-demo.py',
+     '-rw-rw-rw- 1 ville None 1927 Sep 30  2006 example-embed-short.py',
+     '-rwxrwxrwx 1 ville None 4606 Sep  1 17:15 example-embed.py',
+     '-rwxrwxrwx 1 ville None 1017 Sep 30  2006 example-gnuplot.py',
+     '-rwxrwxrwx 1 ville None  339 Jun 11 18:01 extension.py',
+     '-rwxrwxrwx 1 ville None  113 Dec 20  2006 seteditor.py',
+     '-rwxrwxrwx 1 ville None  245 Dec 12  2006 seteditor.pyc']
+
+Now, let's take a look at the contents of 'lines' (the first number is
+the list element number)::
+
+    [Q:doc/examples]|3> lines
+                    <3> SList (.p, .n, .l, .s, .grep(), .fields() available). Value:
+
+    0: total 23
+    1: -rw-rw-rw- 1 ville None 1163 Sep 30  2006 example-demo.py
+    2: -rw-rw-rw- 1 ville None 1927 Sep 30  2006 example-embed-short.py
+    3: -rwxrwxrwx 1 ville None 4606 Sep  1 17:15 example-embed.py
+    4: -rwxrwxrwx 1 ville None 1017 Sep 30  2006 example-gnuplot.py
+    5: -rwxrwxrwx 1 ville None  339 Jun 11 18:01 extension.py
+    6: -rwxrwxrwx 1 ville None  113 Dec 20  2006 seteditor.py
+    7: -rwxrwxrwx 1 ville None  245 Dec 12  2006 seteditor.pyc
+
+Now, let's filter out the 'embed' lines::
+
+    [Q:doc/examples]|4> l2 = lines.grep('embed',prune=1)
+    [Q:doc/examples]|5> l2
+                    <5> SList (.p, .n, .l, .s, .grep(), .fields() available). Value:
+
+    0: total 23
+    1: -rw-rw-rw- 1 ville None 1163 Sep 30  2006 example-demo.py
+    2: -rwxrwxrwx 1 ville None 1017 Sep 30  2006 example-gnuplot.py
+    3: -rwxrwxrwx 1 ville None  339 Jun 11 18:01 extension.py
+    4: -rwxrwxrwx 1 ville None  113 Dec 20  2006 seteditor.py
+    5: -rwxrwxrwx 1 ville None  245 Dec 12  2006 seteditor.pyc
+
+Now, we want strings having just file names and permissions::
+
+    [Q:doc/examples]|6> l2.fields(8,0)
+                    <6> SList (.p, .n, .l, .s, .grep(), .fields() available). Value:
+
+    0: total
+    1: example-demo.py -rw-rw-rw-
+    2: example-gnuplot.py -rwxrwxrwx
+    3: extension.py -rwxrwxrwx
+    4: seteditor.py -rwxrwxrwx
+    5: seteditor.pyc -rwxrwxrwx
+
+Note how the line with 'total' does not raise IndexError.
+
+If you want to split these (yielding lists), call fields() without
+arguments::
+
+    [Q:doc/examples]|7> _.fields()
+                    <7>
+    [['total'],
+     ['example-demo.py', '-rw-rw-rw-'],
+     ['example-gnuplot.py', '-rwxrwxrwx'],
+     ['extension.py', '-rwxrwxrwx'],
+     ['seteditor.py', '-rwxrwxrwx'],
+     ['seteditor.pyc', '-rwxrwxrwx']]
+
+If you want to pass these separated with spaces to a command (typical
+for lists if files), use the .s property::
+
+
+    [Q:doc/examples]|13> files = l2.fields(8).s
+    [Q:doc/examples]|14> files
+                    <14> 'example-demo.py example-gnuplot.py extension.py seteditor.py seteditor.pyc'
+    [Q:doc/examples]|15> ls $files
+    example-demo.py  example-gnuplot.py  extension.py  seteditor.py  seteditor.pyc
+
+SLists are inherited from normal python lists, so every list method is
+available::
+
+    [Q:doc/examples]|21> lines.append('hey')
+
+
+Real world example: remove all files outside version control
+------------------------------------------------------------
+
+First, capture output of "hg status"::
+
+    [Q:/ipython]|28> out = !hg status
+     ==
+    ['M IPython\\Extensions\\ipy_kitcfg.py',
+     'M IPython\\Extensions\\ipy_rehashdir.py',
+    ...
+     '? build\\lib\\IPython\\Debugger.py',
+     '? build\\lib\\IPython\\Extensions\\InterpreterExec.py',
+     '? build\\lib\\IPython\\Extensions\\InterpreterPasteInput.py',
+    ...
+
+(lines starting with ? are not under version control).
+
+::
+
+    [Q:/ipython]|35> junk = out.grep(r'^\?').fields(1)
+    [Q:/ipython]|36> junk
+                <36> SList (.p, .n, .l, .s, .grep(), .fields() availab
+    ...
+    10: build\bdist.win32\winexe\temp\_ctypes.py
+    11: build\bdist.win32\winexe\temp\_hashlib.py
+    12: build\bdist.win32\winexe\temp\_socket.py
+
+Now we can just remove these files by doing 'rm $junk.s'. 
+
+The .s, .n, .p properties
+-------------------------
+
+The '.s' property returns one string where lines are separated by
+single space (for convenient passing to system commands). The '.n'
+property return one string where the lines are separated by '\n'
+(i.e. the original output of the function). If the items in string
+list are file names, '.p' can be used to get a list of "path" objects
+for convenient file manipulation.
+
 
 Threading support
 =================
@@ -4595,8 +4769,10 @@ value can be read by using the sys.getcheckinterval() function, and it
 can be reset via sys.setcheckinterval(N). This switching of threads can
 cause subtly confusing effects if one of your threads is doing file I/O.
 In text mode, most systems only flush file buffers when they encounter a
-'\n'. An instruction as simple as 
+'\n'. An instruction as simple as:: 
+
   print >> filehandle, ''hello world''
+
 actually consists of several bytecodes, so it is possible that the
 newline does not reach your file before the next thread switch.
 Similarly, if you are writing to a file in binary mode, the file won't
@@ -4608,6 +4784,7 @@ example) a GUI application which will read data generated by files
 written to from the IPython thread, the safest approach is to open all
 of your files in unbuffered mode (the third argument to the file/open
 function is the buffering value)::
+
   filehandle = open(filename,mode,0)
 
 This is obviously a brute force way of avoiding race conditions with the
@@ -4738,6 +4915,204 @@ mechanism (Sec. 7.3 <node7.html#sec:profiles>): ''ipython -pylab -p
 myprofile'' will load the profile defined in ipythonrc-myprofile after
 configuring matplotlib.
 
+IPython Extension Api
+=====================
+
+IPython api (defined in IPython/ipapi.py) is the public api that
+should be used for
+
+ * Configuration of user preferences (.ipython/ipy_user_conf.py)
+ * Creating new profiles (.ipython/ipy_profile_PROFILENAME.py)
+ * Writing extensions 
+
+Note that by using the extension api for configuration (editing
+ipy_user_conf.py instead of ipythonrc), you get better validity checks
+and get richer functionality - for example, you can import an
+extension and call functions in it to configure it for your purposes.
+
+For an example extension (the 'sh' profile), see
+IPython/Extensions/ipy_profile_sh.py.
+
+For the last word on what's available, see the source code of
+IPython/ipapi.py.
+
+
+Getting started
+---------------
+
+If you want to define an extension, create a normal python module that
+can be imported. The module will access IPython functionality through
+the 'ip' object defined below.
+
+If you are creating a new profile (e.g. foobar), name the module as
+'ipy_profile_foobar.py' and put it in your ~/.ipython directory. Then,
+when you start ipython with the '-p foobar' argument, the module is
+automatically imported on ipython startup.
+
+If you are just doing some per-user configuration, you can either 
+
+ * Put the commands directly into ipy_user_conf.py. 
+
+ * Create a new module with your customization code and import *that*
+   module in ipy_user_conf.py. This is preferable to the first approach,
+   because now you can reuse and distribute your customization code.
+
+Getting a handle to the api
+---------------------------
+
+Put this in the start of your module::
+
+    #!python
+    import IPython.ipapi
+    ip = IPython.ipapi.get()
+
+The 'ip' object will then be used for accessing IPython
+functionality. 'ip' will mean this api object in all the following
+code snippets. The same 'ip' that we just acquired is always
+accessible in interactive IPython sessions by the name _ip - play with
+it like this::
+
+    [~\_ipython]|81> a = 10
+    [~\_ipython]|82> _ip.e
+    _ip.ev           _ip.ex           _ip.expose_magic
+    [~\_ipython]|82> _ip.ev('a+13')
+                <82> 23
+
+The _ip object is also used in some examples in this document - it can
+be substituted by 'ip' in non-interactive use.
+
+Changing options
+----------------
+
+The ip object has 'options' attribute that can be used te get/set
+configuration options (just as in the ipythonrc file)::
+
+    o = ip.options
+    o.autocall = 2
+    o.automagic = 1
+
+Executing statements in IPython namespace with 'ex' and 'ev'
+------------------------------------------------------------
+
+Often, you want to e.g. import some module or define something that
+should be visible in IPython namespace. Use ``ip.ev`` to
+*evaluate* (calculate the value of) expression and ``ip.ex`` to
+'''execute''' a statement::
+
+    # path module will be visible to the interactive session
+    ip.ex("from path import path" )
+
+    # define a handy function 'up' that changes the working directory
+
+    ip.ex('import os')
+    ip.ex("def up(): os.chdir('..')")
+
+
+    # _i2 has the input history entry #2, print its value in uppercase.
+    print ip.ev('_i2.upper()')
+
+Accessing the IPython namespace
+-------------------------------
+
+ip.user_ns attribute has a dictionary containing the IPython global
+namespace (the namespace visible in the interactive session).
+
+::
+
+    [~\_ipython]|84> tauno = 555
+    [~\_ipython]|85> _ip.user_ns['tauno']
+                <85> 555
+
+Defining new magic commands
+---------------------------
+
+The following example defines a new magic command, %impall. What the
+command does should be obvious::
+
+    def doimp(self, arg):
+        ip = self.api
+        ip.ex("import %s; reload(%s); from %s import *" % (
+        arg,arg,arg)
+        )
+
+    ip.expose_magic('impall', doimp)
+
+Things to observe in this example:
+
+ * Define a function that implements the magic command using the 
+   ipapi methods defined in this document
+ * The first argument of the function is 'self', i.e. the 
+   interpreter object. It shouldn't be used directly. however. 
+   The interpreter object is probably *not* going to remain stable 
+   through IPython versions.
+ * Access the ipapi through 'self.api' instead of the global 'ip' object.
+ * All the text following the magic command on the command line is 
+   contained in the second argument
+ * Expose the magic by ip.expose_magic()
+
+
+Calling magic functions and system commands
+-------------------------------------------
+
+Use ip.magic() to execute a magic function, and ip.system() to execute
+a system command::
+
+    # go to a bookmark
+    ip.magic('%cd -b relfiles')
+
+    # execute 'ls -F' system command. Interchangeable with os.system('ls'), really.
+    ip.system('ls -F')
+
+Launching IPython instance from normal python code
+--------------------------------------------------
+
+Use ipapi.launch_new_instance() with an argument that specifies the
+namespace to use. This can be useful for trivially embedding IPython
+into your program. Here's an example of normal python program test.py
+('''without''' an existing IPython session) that launches an IPython
+interpreter and regains control when the interpreter is exited::
+
+    [ipython]|1> cat test.py
+    my_ns = dict(
+        kissa = 15,
+        koira = 16)
+    import IPython.ipapi
+    print "launching IPython instance"
+    IPython.ipapi.launch_new_instance(my_ns)
+    print "Exited IPython instance!"
+    print "New vals:",my_ns['kissa'], my_ns['koira']
+
+And here's what it looks like when run (note how we don't start it
+from an ipython session)::
+
+    Q:\ipython>python test.py
+    launching IPython instance
+    Py 2.5 (r25:51908, Sep 19 2006, 09:52:17) [MSC v.1310 32 bit (Intel)] IPy 0.7.3b3.r1975
+    [ipython]|1> kissa = 444
+    [ipython]|2> koira = 555
+    [ipython]|3> Exit
+    Exited IPython instance!
+    New vals: 444 555
+
+Accessing unexposed functionality
+---------------------------------
+
+There are still many features that are not exposed via the ipapi. If
+you can't avoid using them, you can use the functionality in
+InteractiveShell object (central IPython session class, defined in
+iplib.py) through ip.IP.
+
+For example::
+
+    [~]|7> _ip.IP.expand_aliases('np','myfile.py')
+       <7> 'c:/opt/Notepad++/notepad++.exe myfile.py'
+    [~]|8>
+
+Still, it's preferable that if you encounter such a feature, contact
+the IPython team and request that the functionality be exposed in a
+future version of IPython. Things not in ipapi are more likely to
+change over time.
+
 Reporting bugs
 ==============
 
@@ -4772,7 +5147,8 @@ Brief history
 =============
 
 
-    Origins
+Origins
+-------
 
 The current IPython system grew out of the following three projects:
 
