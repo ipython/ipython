@@ -522,7 +522,7 @@ class IPShellWidget(wx.Panel):
     def stateDoExecuteLine(self):
         #print >>sys.__stdout__,"command:",self.getCurrentLine()
         line=self.text_ctrl.getCurrentLine()
-        self.IP.doExecute(line.replace('\t',' '*4))
+        self.IP.doExecute((line.replace('\t',' '*4)).encode('cp1252'))
         self.updateHistoryTracker(self.text_ctrl.getCurrentLine())
         self.setCurrentState('WAIT_END_OF_EXECUTION')
         
