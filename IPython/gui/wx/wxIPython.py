@@ -36,8 +36,7 @@ class MyFrame(wx.Frame):
         
         self.ipython_panel    = IPShellWidget(self,background_color = "BLACK")
         
-        #self.ipython_panel    = WxIPythonViewPanel(self,
-        #                                           background_color = "WHITE")
+        #self.ipython_panel    = IPShellWidget(self,background_color = "WHITE")
 
         self.ipython_panel.setHistoryTrackerHook(self.history_panel.write)
         self.ipython_panel.setStatusTrackerHook(self.updateStatus)
