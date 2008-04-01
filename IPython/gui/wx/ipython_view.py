@@ -47,11 +47,12 @@ class WxNonBlockingIPShell(NonBlockingIPShell):
     def __init__(self, parent, 
                  argv=[],user_ns={},user_global_ns=None,
                  cin=None, cout=None, cerr=None,
-                 ask_exit_handler=None):
+                 ask_exit_handler=None, rawinput=None):
         
         NonBlockingIPShell.__init__(self,argv,user_ns,user_global_ns,
                                     cin, cout, cerr,
-                                    ask_exit_handler)
+                                    ask_exit_handler,
+                                    rawinput)
 
         self.parent = parent
 
@@ -394,7 +395,7 @@ class WxConsoleView(stc.StyledTextCtrl):
         elif event.GetKeyCode() == wx.WXK_BACK:
             self.moveCursorOnNewValidKey()
             if self.getCursorPos() > self.getCurrentPromptStart():
-                self.removeFromTo(self.getCursorPos()-1,self.getCursorPos())
+                event.Skip()
             return True
         
         if skip:
@@ -470,8 +471,9 @@ class IPShellWidget(wx.Panel):
             self.IP = wx_ip_shell
         else:
             self.IP = WxNonBlockingIPShell(self,
-                                    cout = self.cout,cerr = self.cout,
-                                    ask_exit_handler = self.askExitCallback)
+                                    cout = self.cout, cerr = self.cout,
+                                    ask_exit_handler = self.askExitCallback,
+                                    rawinput = self.rawInput)
 
         ### IPython wx console view instanciation ###
         #If user didn't defined an intro text, we create one for him
@@ -548,9 +550,17 @@ class IPShellWidget(wx.Panel):
     def setCurrentState(self, state):
         self.cur_state = state
         self.updateStatusTracker(self.cur_state)
-        
+    #---------------------------- Ipython raw_input -----------------------------------
+    def rawInput(self, prompt=''):
+        self.setCurrentState('WAITING_USER_INPUT')
+        while self.cur_state != 'WAIT_END_OF_EXECUTION':
+                pass
+        line = self.text_ctrl.getCurrentLine()
+        line = line.split('\n')
+        return line[-2]
+            
     #---------------------------- IPython pager ---------------------------------------
-    def pager(self,text):#,start=0,screen_lines=0,pager_cmd = None):
+    def pager(self,text):
 
         if self.pager_state == 'INIT':
 		#print >>sys.__stdout__,"PAGER state:",self.pager_state
@@ -623,15 +633,20 @@ class IPShellWidget(wx.Panel):
                 self.pager(self.doc)
                 return
             
+            if self.cur_state == 'WAITING_USER_INPUT':
+                line=self.text_ctrl.getCurrentLine()
+                self.text_ctrl.write('\n')
+                self.setCurrentState('WAIT_END_OF_EXECUTION')
+                return
+          
         if event.GetKeyCode() in [ord('q'),ord('Q')]:
             if self.pager_state == 'WAITING':
                 self.pager_state = 'DONE'
                 self.stateShowPrompt()
                 return
 
-#        if self.cur_state == 'WAIT_END_OF_EXECUTION':
-#            print self.cur_state
-#            self.text_ctrl.write('.')
+        if self.cur_state == 'WAITING_USER_INPUT':
+            event.Skip()   
 
         if self.cur_state == 'IDLE':
             if event.KeyCode == wx.WXK_UP:

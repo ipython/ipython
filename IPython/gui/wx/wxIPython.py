@@ -121,6 +121,7 @@ class MyFrame(wx.Frame):
         states = {'IDLE':'Idle',
                   'DO_EXECUTE_LINE':'Send command',
                   'WAIT_END_OF_EXECUTION':'Running command',
+                  'WAITING_USER_INPUT':'Waiting user input',
                   'SHOW_DOC':'Showing doc',
                   'SHOW_PROMPT':'Showing prompt'}
         self.statusbar.SetStatusText(states[text], 0)
