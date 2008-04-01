@@ -34,14 +34,14 @@ class MyFrame(wx.Frame):
         #create differents panels and make them persistant 
         self.history_panel    = IPythonHistoryPanel(self)
         
-        self.ipython_panel    = IPShellWidget(self,self.OnExitDlg,
-                                                   background_color = "BLACK")
+        self.ipython_panel    = IPShellWidget(self,background_color = "BLACK")
         
-        #self.ipython_panel    = WxIPythonViewPanel(self,self.OnExitDlg,
+        #self.ipython_panel    = WxIPythonViewPanel(self,
         #                                           background_color = "WHITE")
 
         self.ipython_panel.setHistoryTrackerHook(self.history_panel.write)
         self.ipython_panel.setStatusTrackerHook(self.updateStatus)
+        self.ipython_panel.setAskExitHandler(self.OnExitDlg)
 
         self.statusbar = self.createStatus()
         self.createMenu()

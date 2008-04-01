@@ -461,8 +461,7 @@ class IPShellWidget(wx.Panel):
     because it seems to be more useful
     Any idea to make it more 'generic' welcomed.
     '''
-
-    def __init__(self, parent, ask_exit_handler=None, intro=None,
+    def __init__(self, parent, intro=None,
                  background_color="BLACK", add_button_handler=None, 
                  wx_ip_shell=None,
                  ):
@@ -478,24 +477,25 @@ class IPShellWidget(wx.Panel):
         self.cout = StringIO()
 
         self.add_button_handler = add_button_handler
-        self.ask_exit_handler = ask_exit_handler
 
         if wx_ip_shell is not None:
             self.IP = wx_ip_shell
         else:
             self.IP = WxNonBlockingIPShell(self,
-                                    cout=self.cout,cerr=self.cout,
-                                    ask_exit_handler = ask_exit_handler)
+                                    cout = self.cout,cerr = self.cout,
+                                    ask_exit_handler = self.askExitCallback)
 
         ### IPython wx console view instanciation ###
         #If user didn't defined an intro text, we create one for him
         #If you really wnat an empty intrp just call wxIPythonViewPanel 
         #with intro=''
-        if intro == None:
+        if intro is None:
             welcome_text = "Welcome to WxIPython Shell.\n\n"
             welcome_text+= self.IP.getBanner()
             welcome_text+= "!command  -> Execute command in shell\n"
             welcome_text+= "TAB       -> Autocompletion\n"
+        else:
+            welcome_text = intro
 
         self.text_ctrl = WxConsoleView(self,
                                        self.IP.getPrompt(),
@@ -518,6 +518,9 @@ class IPShellWidget(wx.Panel):
         self.setCurrentState('IDLE')
         self.pager_state = 'DONE'
 
+    def askExitCallback(self, event):
+        self.askExitHandler(event)
+        
     #---------------------- IPython Thread Management ------------------------
     def stateDoExecuteLine(self):
         #print >>sys.__stdout__,"command:",self.getCurrentLine()
@@ -692,6 +695,17 @@ class IPShellWidget(wx.Panel):
         '''
         self.updateStatusTracker = func
 
+    def askExitHandler(self, event):
+        '''
+        Default exit handler
+        '''
+        self.text_ctrl.write('\nExit callback has not been set.')
+
+    def setAskExitHandler(self, func):
+        '''
+        Define an exit handler
+        '''
+        self.askExitHandler = func
 
 if __name__ == '__main__':
     # Some simple code to test the shell widget.
