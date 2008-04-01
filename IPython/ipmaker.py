@@ -210,7 +210,7 @@ object?   -> Details about 'object'. ?object also works, ?? prints more.
                       editor = '0',
                       gthread = 0,
                       help = 0,
-                      interact = 1,
+                      interact = 0,
                       ipythondir = ipythondir_def,
                       log = 0,
                       logfile = '',

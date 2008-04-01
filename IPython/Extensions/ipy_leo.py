@@ -373,8 +373,7 @@ def push_ipython_script(node):
         ohist = ip.IP.output_hist 
         hstart = len(ip.IP.input_hist)
         script = node.script()
-        
-        script = g.splitLines(script + '\n')
+                
         ip.user_ns['_p'] = node
         ip.runlines(script)
         ip.user_ns.pop('_p',None)
