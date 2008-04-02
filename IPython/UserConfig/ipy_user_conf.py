@@ -87,6 +87,8 @@ def main():
     # For bzr completer, requires bzrlib (the python installation of bzr)
     #import ipy_bzr
     
+    
+    
 # some config helper functions you can use 
 def import_all(modules):
     """ Usage: import_all("os sys") """ 

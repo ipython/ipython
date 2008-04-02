@@ -47,11 +47,12 @@ class WxNonBlockingIPShell(NonBlockingIPShell):
     def __init__(self, parent, 
                  argv=[],user_ns={},user_global_ns=None,
                  cin=None, cout=None, cerr=None,
-                 ask_exit_handler=None):
+                 ask_exit_handler=None, rawinput=None):
         
         NonBlockingIPShell.__init__(self,argv,user_ns,user_global_ns,
                                     cin, cout, cerr,
-                                    ask_exit_handler)
+                                    ask_exit_handler,
+                                    rawinput)
 
         self.parent = parent
 
@@ -302,18 +303,6 @@ class WxConsoleView(stc.StyledTextCtrl):
         return self.GetTextRange(self.getCurrentPromptStart(),
                                  self.getCurrentLineEnd())
 
-    def showReturned(self, text):
-        '''
-        Show returned text from last command and print new prompt.
-
-        @param text: Text to show.
-        @type text: string
-        '''
-        self.write('\n'+text)
-        if text:
-            self.write('\n')
-        self.showPrompt()
-
     def moveCursorOnNewValidKey(self):
         #If cursor is at wrong position put it at last line...
         if self.GetCurrentPos() < self.getCurrentPromptStart():
@@ -406,7 +395,7 @@ class WxConsoleView(stc.StyledTextCtrl):
         elif event.GetKeyCode() == wx.WXK_BACK:
             self.moveCursorOnNewValidKey()
             if self.getCursorPos() > self.getCurrentPromptStart():
-                self.removeFromTo(self.getCursorPos()-1,self.getCursorPos())
+                event.Skip()
             return True
         
         if skip:
@@ -461,6 +450,7 @@ class IPShellWidget(wx.Panel):
     because it seems to be more useful
     Any idea to make it more 'generic' welcomed.
     '''
+
     def __init__(self, parent, intro=None,
                  background_color="BLACK", add_button_handler=None, 
                  wx_ip_shell=None,
@@ -475,15 +465,15 @@ class IPShellWidget(wx.Panel):
 
         ### IPython non blocking shell instanciation ###
         self.cout = StringIO()
-
         self.add_button_handler = add_button_handler
 
         if wx_ip_shell is not None:
             self.IP = wx_ip_shell
         else:
             self.IP = WxNonBlockingIPShell(self,
-                                    cout = self.cout,cerr = self.cout,
-                                    ask_exit_handler = self.askExitCallback)
+                                    cout = self.cout, cerr = self.cout,
+                                    ask_exit_handler = self.askExitCallback,
+                                    rawinput = self.rawInput)
 
         ### IPython wx console view instanciation ###
         #If user didn't defined an intro text, we create one for him
@@ -501,9 +491,11 @@ class IPShellWidget(wx.Panel):
                                        self.IP.getPrompt(),
                                        intro=welcome_text,
                                        background_color=background_color)
+
+        self.cout.write = self.text_ctrl.write
         
         self.text_ctrl.Bind(wx.EVT_KEY_DOWN, self.keyPress, self.text_ctrl)
-
+    
         ### making the layout of the panel ###
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer.Add(self.text_ctrl, 1, wx.EXPAND)
@@ -525,6 +517,7 @@ class IPShellWidget(wx.Panel):
     def stateDoExecuteLine(self):
         #print >>sys.__stdout__,"command:",self.getCurrentLine()
         line=self.text_ctrl.getCurrentLine()
+        self.text_ctrl.write('\n')
         self.IP.doExecute((line.replace('\t',' '*4)).encode('cp1252'))
         self.updateHistoryTracker(self.text_ctrl.getCurrentLine())
         self.setCurrentState('WAIT_END_OF_EXECUTION')
@@ -550,19 +543,24 @@ class IPShellWidget(wx.Panel):
         self.text_ctrl.setPrompt(self.IP.getPrompt())
         self.text_ctrl.setIndentation(self.IP.getIndentation())
         self.text_ctrl.setPromptCount(self.IP.getPromptCount())
-        rv = self.cout.getvalue()
-        if rv: rv = rv.strip('\n')
-        self.text_ctrl.showReturned(rv)
-        self.cout.truncate(0)
+        self.text_ctrl.showPrompt()
         self.IP.initHistoryIndex()
         self.setCurrentState('IDLE')
 
     def setCurrentState(self, state):
         self.cur_state = state
         self.updateStatusTracker(self.cur_state)
-        
+    #---------------------------- Ipython raw_input -----------------------------------
+    def rawInput(self, prompt=''):
+        self.setCurrentState('WAITING_USER_INPUT')
+        while self.cur_state != 'WAIT_END_OF_EXECUTION':
+                pass
+        line = self.text_ctrl.getCurrentLine()
+        line = line.split('\n')
+        return line[-2]
+            
     #---------------------------- IPython pager ---------------------------------------
-    def pager(self,text):#,start=0,screen_lines=0,pager_cmd = None):
+    def pager(self,text):
 
         if self.pager_state == 'INIT':
 		#print >>sys.__stdout__,"PAGER state:",self.pager_state
@@ -635,13 +633,21 @@ class IPShellWidget(wx.Panel):
                 self.pager(self.doc)
                 return
             
+            if self.cur_state == 'WAITING_USER_INPUT':
+                line=self.text_ctrl.getCurrentLine()
+                self.text_ctrl.write('\n')
+                self.setCurrentState('WAIT_END_OF_EXECUTION')
+                return
+          
         if event.GetKeyCode() in [ord('q'),ord('Q')]:
             if self.pager_state == 'WAITING':
                 self.pager_state = 'DONE'
                 self.stateShowPrompt()
                 return
-            
-        #scroll_position = self.text_ctrl.GetScrollPos(wx.VERTICAL)
+
+        if self.cur_state == 'WAITING_USER_INPUT':
+            event.Skip()   
+
         if self.cur_state == 'IDLE':
             if event.KeyCode == wx.WXK_UP:
                 history = self.IP.historyBack()
@@ -669,7 +675,7 @@ class IPShellWidget(wx.Panel):
                 
                 return
             event.Skip()
-        
+            
     #------------------------ Hook Section -----------------------------------
     def updateHistoryTracker(self,command_line):
         '''

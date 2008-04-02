@@ -36,8 +36,7 @@ class MyFrame(wx.Frame):
         
         self.ipython_panel    = IPShellWidget(self,background_color = "BLACK")
         
-        #self.ipython_panel    = WxIPythonViewPanel(self,
-        #                                           background_color = "WHITE")
+        #self.ipython_panel    = IPShellWidget(self,background_color = "WHITE")
 
         self.ipython_panel.setHistoryTrackerHook(self.history_panel.write)
         self.ipython_panel.setStatusTrackerHook(self.updateStatus)
@@ -122,6 +121,7 @@ class MyFrame(wx.Frame):
         states = {'IDLE':'Idle',
                   'DO_EXECUTE_LINE':'Send command',
                   'WAIT_END_OF_EXECUTION':'Running command',
+                  'WAITING_USER_INPUT':'Waiting user input',
                   'SHOW_DOC':'Showing doc',
                   'SHOW_PROMPT':'Showing prompt'}
         self.statusbar.SetStatusText(states[text], 0)
