@@ -516,9 +516,10 @@ class IPShellWidget(wx.Panel):
     #---------------------- IPython Thread Management ------------------------
     def stateDoExecuteLine(self):
         #print >>sys.__stdout__,"command:",self.getCurrentLine()
-        line=self.text_ctrl.getCurrentLine()
+        lines=self.text_ctrl.getCurrentLine()
         self.text_ctrl.write('\n')
-        self.IP.doExecute((line.replace('\t',' '*4)).encode('cp1252'))
+        for line in lines.split('\n'):
+            self.IP.doExecute((line.replace('\t',' '*4)).encode('cp1252'))
         self.updateHistoryTracker(self.text_ctrl.getCurrentLine())
         self.setCurrentState('WAIT_END_OF_EXECUTION')
         
@@ -527,12 +528,12 @@ class IPShellWidget(wx.Panel):
         self.help = self.IP.getHelpText()
         if self.doc:
             self.pager_lines = self.doc[7:].split('\n')
-	    self.pager_state = 'INIT'
+            self.pager_state = 'INIT'
             self.setCurrentState('SHOW_DOC')
             self.pager(self.doc)
         elif self.help:
             self.pager_lines = self.help.split('\n')
-	    self.pager_state = 'INIT'
+            self.pager_state = 'INIT'
             self.setCurrentState('SHOW_DOC')
             self.pager(self.help)                
         else:
@@ -563,43 +564,43 @@ class IPShellWidget(wx.Panel):
     def pager(self,text):
 
         if self.pager_state == 'INIT':
-		#print >>sys.__stdout__,"PAGER state:",self.pager_state
+                #print >>sys.__stdout__,"PAGER state:",self.pager_state
                 self.pager_nb_lines = len(self.pager_lines)
-		self.pager_index = 0
-		self.pager_do_remove = False
-		self.text_ctrl.write('\n')
-		self.pager_state = 'PROCESS_LINES'
+                self.pager_index = 0
+                self.pager_do_remove = False
+                self.text_ctrl.write('\n')
+                self.pager_state = 'PROCESS_LINES'
 
-	if self.pager_state == 'PROCESS_LINES':
-        	#print >>sys.__stdout__,"PAGER state:",self.pager_state
-        	if self.pager_do_remove == True:
-			self.text_ctrl.removeCurrentLine()
-			self.pager_do_remove = False
-	
-		if self.pager_nb_lines > 10:
-	                #print >>sys.__stdout__,"PAGER processing 10 lines"
-			if self.pager_index > 0:
-				self.text_ctrl.write(">\x01\x1b[1;36m\x02"+self.pager_lines[self.pager_index]+'\n')
-			else:
-				self.text_ctrl.write("\x01\x1b[1;36m\x02 "+self.pager_lines[self.pager_index]+'\n')
-			
-			for line in self.pager_lines[self.pager_index+1:self.pager_index+9]:
-				self.text_ctrl.write("\x01\x1b[1;36m\x02 "+line+'\n')
-			self.pager_index += 10
-			self.pager_nb_lines -= 10
-			self.text_ctrl.write("--- Push Enter to continue or 'Q' to quit---")
-			self.pager_do_remove = True
-			self.pager_state = 'WAITING'
-			return
-        	else:
-	                #print >>sys.__stdout__,"PAGER processing last lines"
-			if self.pager_nb_lines > 0:
-				if self.pager_index > 0:
-					self.text_ctrl.write(">\x01\x1b[1;36m\x02"+self.pager_lines[self.pager_index]+'\n')
-				else:
-					self.text_ctrl.write("\x01\x1b[1;36m\x02 "+self.pager_lines[self.pager_index]+'\n')
-				
-				self.pager_index += 1
+        if self.pager_state == 'PROCESS_LINES':
+                #print >>sys.__stdout__,"PAGER state:",self.pager_state
+                if self.pager_do_remove == True:
+                        self.text_ctrl.removeCurrentLine()
+                        self.pager_do_remove = False
+
+                if self.pager_nb_lines > 10:
+                        #print >>sys.__stdout__,"PAGER processing 10 lines"
+                        if self.pager_index > 0:
+                                self.text_ctrl.write(">\x01\x1b[1;36m\x02"+self.pager_lines[self.pager_index]+'\n')
+                        else:
+                                self.text_ctrl.write("\x01\x1b[1;36m\x02 "+self.pager_lines[self.pager_index]+'\n')
+                        
+                        for line in self.pager_lines[self.pager_index+1:self.pager_index+9]:
+                                self.text_ctrl.write("\x01\x1b[1;36m\x02 "+line+'\n')
+                        self.pager_index += 10
+                        self.pager_nb_lines -= 10
+                        self.text_ctrl.write("--- Push Enter to continue or 'Q' to quit---")
+                        self.pager_do_remove = True
+                        self.pager_state = 'WAITING'
+                        return
+                else:
+                        #print >>sys.__stdout__,"PAGER processing last lines"
+                        if self.pager_nb_lines > 0:
+                                if self.pager_index > 0:
+                                        self.text_ctrl.write(">\x01\x1b[1;36m\x02"+self.pager_lines[self.pager_index]+'\n')
+                                else:
+                                        self.text_ctrl.write("\x01\x1b[1;36m\x02 "+self.pager_lines[self.pager_index]+'\n')
+                                
+                                self.pager_index += 1
                                 self.pager_nb_lines -= 1
                         if self.pager_nb_lines > 0:
                                 for line in self.pager_lines[self.pager_index:]:
@@ -642,6 +643,7 @@ class IPShellWidget(wx.Panel):
         if event.GetKeyCode() in [ord('q'),ord('Q')]:
             if self.pager_state == 'WAITING':
                 self.pager_state = 'DONE'
+                self.text_ctrl.write('\n')
                 self.stateShowPrompt()
                 return
 
