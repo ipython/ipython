@@ -85,7 +85,7 @@ def main():
     #import ipy_winpdb
     
     # For bzr completer, requires bzrlib (the python installation of bzr)
-    #import ipy_bzr
+    #ip.load('ipy_bzr')
     
     
     
