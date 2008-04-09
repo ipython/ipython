@@ -992,50 +992,58 @@ command line, and not later. This is because they control the initial-
 ization of ipython itself, before the normal option-handling mechanism
 is active.
 
-    * [-gthread, -qthread, -q4thread, -wthread, -pylab:] Only one of
-      these can be given, and it can only be given as the first option
-      passed to IPython (it will have no effect in any other position).
-      They provide threading support for the GTK, Qt (versions 3 and 4)
-      and WXPython toolkits, and for the matplotlib library.
-    * [ ] With any of the first four options, IPython starts running a
-      separate thread for the graphical toolkit's operation, so that you
-      can open and control graphical elements from within an IPython
-      command line, without blocking. All four provide essentially the
-      same functionality, respectively for GTK, Qt3, Qt4 and WXWidgets
-      (via their Python interfaces).
-    * [ ] Note that with -wthread, you can additionally use the
-      -wxversion option to request a specific version of wx to be used.
-      This requires that you have the wxversion Python module installed,
-      which is part of recent wxPython distributions.
-    * [ ] If -pylab is given, IPython loads special support for the mat
-      plotlib library (http://matplotlib.sourceforge.net), allowing
-      interactive usage of any of its backends as defined in the user's
-      ~/.matplotlib/matplotlibrc file. It automatically activates GTK,
-      Qt or WX threading for IPyhton if the choice of matplotlib backend
-      requires it. It also modifies the %run command to correctly
-      execute (without blocking) any matplotlib-based script which calls
-      show() at the end.
-    * [-tk] The -g/q/q4/wthread options, and -pylab (if matplotlib is
-      configured to use GTK, Qt3, Qt4 or WX), will normally block Tk
-      graphical interfaces. This means that when either GTK, Qt or WX
-      threading is active, any attempt to open a Tk GUI will result in a
-      dead window, and possibly cause the Python interpreter to crash.
-      An extra option, -tk, is available to address this issue. It can
-      only be given as a second option after any of the above (-gthread,
-      -wthread or -pylab).
-    * [ ] If -tk is given, IPython will try to coordinate Tk threading
-      with GTK, Qt or WX. This is however potentially unreliable, and
-      you will have to test on your platform and Python configuration to
-      determine whether it works for you. Debian users have reported
-      success, apparently due to the fact that Debian builds all of Tcl,
-      Tk, Tkinter and Python with pthreads support. Under other Linux
-      environments (such as Fedora Core 2/3), this option has caused
-      random crashes and lockups of the Python interpreter. Under other
-      operating systems (Mac OSX and Windows), you'll need to try it to
-      find out, since currently no user reports are available.
-    * [ ] There is unfortunately no way for IPython to determine at run
-      time whether -tk will work reliably or not, so you will need to do
-      some experiments before relying on it for regular work.
+    -gthread, -qthread, -q4thread, -wthread, -pylab: 
+	Only one of these can be given, and it can only be given as
+	the first option passed to IPython (it will have no effect in
+	any other position).  They provide threading support for the
+	GTK, Qt (versions 3 and 4) and WXPython toolkits, and for the
+	matplotlib library.
+
+	With any of the first four options, IPython starts running a
+	separate thread for the graphical toolkit's operation, so that
+	you can open and control graphical elements from within an
+	IPython command line, without blocking. All four provide
+	essentially the same functionality, respectively for GTK, Qt3,
+	Qt4 and WXWidgets (via their Python interfaces).
+
+	Note that with -wthread, you can additionally use the
+	-wxversion option to request a specific version of wx to be
+	used.  This requires that you have the wxversion Python module
+	installed, which is part of recent wxPython distributions.
+
+	If -pylab is given, IPython loads special support for the mat
+	plotlib library (http://matplotlib.sourceforge.net), allowing
+	interactive usage of any of its backends as defined in the
+	user's ~/.matplotlib/matplotlibrc file. It automatically
+	activates GTK, Qt or WX threading for IPyhton if the choice of
+	matplotlib backend requires it. It also modifies the %run
+	command to correctly execute (without blocking) any
+	matplotlib-based script which calls show() at the end.
+
+    -tk
+	The -g/q/q4/wthread options, and -pylab (if matplotlib is
+	configured to use GTK, Qt3, Qt4 or WX), will normally block Tk
+	graphical interfaces. This means that when either GTK, Qt or WX
+	threading is active, any attempt to open a Tk GUI will result in a
+	dead window, and possibly cause the Python interpreter to crash.
+	An extra option, -tk, is available to address this issue. It can
+	only be given as a second option after any of the above (-gthread,
+	-wthread or -pylab).
+
+	If -tk is given, IPython will try to coordinate Tk threading
+	with GTK, Qt or WX. This is however potentially unreliable, and
+	you will have to test on your platform and Python configuration to
+	determine whether it works for you. Debian users have reported
+	success, apparently due to the fact that Debian builds all of Tcl,
+	Tk, Tkinter and Python with pthreads support. Under other Linux
+	environments (such as Fedora Core 2/3), this option has caused
+	random crashes and lockups of the Python interpreter. Under other
+	operating systems (Mac OSX and Windows), you'll need to try it to
+	find out, since currently no user reports are available.
+    
+	There is unfortunately no way for IPython to determine at run time
+	whether -tk will work reliably or not, so you will need to do some
+	experiments before relying on it for regular work.
 
 
 
@@ -1054,199 +1062,283 @@ given at the command line override the values set in the ipythonrc file.
 All options with a [no] prepended can be specified in negated form
 (-nooption instead of -option) to turn the feature off.
 
-    * [-help:] print a help message and exit.
-    * [-pylab:] this can only be given as the first option passed to
-      IPython (it will have no effect in any other position). It adds
-      special support for the matplotlib library
-      (http://matplotlib.sourceforge.net
-      http://matplotlib.sourceforge.net), allowing interactive usage of
-      any of its backends as defined in the user's .matplotlibrc file.
-      It automatically activates GTK or WX threading for IPyhton if the
-      choice of matplotlib backend requires it. It also modifies the
-      %run command to correctly execute (without blocking) any
-      matplotlib-based script which calls show() at the end. See 
-      `Matplotlib support`_ for more details.
-    * [-autocall] <val>: Make IPython automatically call any callable
-      object even if you didn't type explicit parentheses. For example,
-      'str 43' becomes 'str(43)' automatically. The value can be '0' to
-      disable the feature, '1' for smart autocall, where it is not
-      applied if there are no more arguments on the line, and '2' for
-      full autocall, where all callable objects are automatically called
-      (even if no arguments are present). The default is '1'.
-    * [-[no]autoindent:] Turn automatic indentation on/off.
-    * [-[no]automagic:] make magic commands automatic (without needing
-      their first character to be %). Type %magic at the IPython prompt
-      for more information.
-    * [-[no]autoedit_syntax:] When a syntax error occurs after editing a
-      file, automatically open the file to the trouble causing line for
-      convenient fixing.
-    * [-[no]banner:] Print the initial information banner (default on).
-    * [-c <command>:] execute the given command string, and set sys.argv
-      to ['c']. This is similar to the -c option in the normal Python
-      interpreter.
-    * [-cache_size|cs <n>:] size of the output cache (maximum number of
-      entries to hold in memory). The default is 1000, you can change it
-      permanently in your config file. Setting it to 0 completely
-      disables the caching system, and the minimum value accepted is 20
-      (if you provide a value less than 20, it is reset to 0 and a
-      warning is issued) This limit is defined because otherwise you'll
-      spend more time re-flushing a too small cache than working.
-    * [-classic|cl:] Gives IPython a similar feel to the classic Python
-      prompt.
-    * [-colors <scheme>:] Color scheme for prompts and exception
-      reporting. Currently implemented: NoColor, Linux and LightBG.
-    * [-[no]color_info:] IPython can display information about objects
-      via a set of functions, and optionally can use colors for this,
-      syntax highlighting source code and various other elements.
-      However, because this information is passed through a pager (like
-      'less') and many pagers get confused with color codes, this option
-      is off by default. You can test it and turn it on permanently in
-      your ipythonrc file if it works for you. As a reference, the
-      'less' pager supplied with Mandrake 8.2 works ok, but that in
-      RedHat 7.2 doesn't.
-    * [ ] Test it and turn it on permanently if it works with your
-      system. The magic function %color_info allows you to toggle this
-      interactively for testing.
-    * [-[no]debug:] Show information about the loading process. Very
-      useful to pin down problems with your configuration files or to
-      get details about session restores.
-    * [-[no]deep_reload:] IPython can use the deep_reload module which
-      reloads changes in modules recursively (it replaces the reload()
-      function, so you don't need to change anything to use it).
-      deep_reload() forces a full reload of modules whose code may have
-      changed, which the default reload() function does not.
-    * [ ] When deep_reload is off, IPython will use the normal reload(),
-      but deep_reload will still be available as dreload(). This feature
-      is off by default [which means that you have both normal reload()
-      and dreload()].
-    * [-editor <name>:] Which editor to use with the %edit command. By
-      default, IPython will honor your EDITOR environment variable (if
-      not set, vi is the Unix default and notepad the Windows one).
-      Since this editor is invoked on the fly by IPython and is meant
-      for editing small code snippets, you may want to use a small,
-      lightweight editor here (in case your default EDITOR is something
-      like Emacs).
-    * [-ipythondir <name>:] name of your IPython configuration directory
-      IPYTHONDIR. This can also be specified through the environment
-      variable IPYTHONDIR.
-    * [-log|l:] generate a log file of all input. The file is named
-      ipython_log.py in your current directory (which prevents logs from
-      multiple IPython sessions from trampling each other). You can use
-      this to later restore a session by loading your logfile as a file
-      to be executed with option -logplay (see below).
-    * [-logfile|lf <name>:] specify the name of your logfile.
-    * [-logplay|lp <name>:] you can replay a previous log. For restoring
-      a session as close as possible to the state you left it in, use
-      this option (don't just run the logfile). With -logplay, IPython
-      will try to reconstruct the previous working environment in full,
-      not just execute the commands in the logfile.
-    * [ ] When a session is restored, logging is automatically turned on
-      again with the name of the logfile it was invoked with (it is read
-      from the log header). So once you've turned logging on for a
-      session, you can quit IPython and reload it as many times as you
-      want and it will continue to log its history and restore from the
-      beginning every time.
-    * [ ] Caveats: there are limitations in this option. The history
+    -help  print a help message and exit.
+
+    -pylab
+	this can only be given as the first option passed to IPython
+	(it will have no effect in any other position). It adds
+	special support for the matplotlib library
+	(http://matplotlib.sourceforge.ne), allowing interactive usage
+	of any of its backends as defined in the user's .matplotlibrc
+	file.  It automatically activates GTK or WX threading for
+	IPyhton if the choice of matplotlib backend requires it. It
+	also modifies the %run command to correctly execute (without
+	blocking) any matplotlib-based script which calls show() at
+	the end. See `Matplotlib support`_ for more details.
+
+    -autocall <val>
+	Make IPython automatically call any callable object even if you
+	didn't type explicit parentheses. For example, 'str 43' becomes
+	'str(43)' automatically. The value can be '0' to disable the feature,
+	'1' for smart autocall, where it is not applied if there are no more
+	arguments on the line, and '2' for full autocall, where all callable
+	objects are automatically called (even if no arguments are
+	present). The default is '1'.
+
+    -[no]autoindent    
+	Turn automatic indentation on/off.
+
+    -[no]automagic 
+	make magic commands automatic (without needing their first character
+	to be %). Type %magic at the IPython prompt for more information.
+
+    -[no]autoedit_syntax 
+	When a syntax error occurs after editing a file, automatically
+	open the file to the trouble causing line for convenient
+	fixing.
+
+    -[no]banner		Print the initial information banner (default on).
+
+    -c <command>
+	execute the given command string. This is similar to the -c
+	option in the normal Python interpreter.
+
+    -cache_size, cs <n> 
+	size of the output cache (maximum number of entries to hold in
+	memory). The default is 1000, you can change it permanently in your
+	config file. Setting it to 0 completely disables the caching system,
+	and the minimum value accepted is 20 (if you provide a value less than
+	20, it is reset to 0 and a warning is issued) This limit is defined
+	because otherwise you'll spend more time re-flushing a too small cache
+	than working.
+
+    -classic, cl 
+	Gives IPython a similar feel to the classic Python
+	prompt.
+
+    -colors <scheme> 
+	Color scheme for prompts and exception reporting. Currently
+	implemented: NoColor, Linux and LightBG.
+
+    -[no]color_info 
+	IPython can display information about objects via a set of functions,
+	and optionally can use colors for this, syntax highlighting source
+	code and various other elements.  However, because this information is
+	passed through a pager (like 'less') and many pagers get confused with
+	color codes, this option is off by default. You can test it and turn
+	it on permanently in your ipythonrc file if it works for you. As a
+	reference, the 'less' pager supplied with Mandrake 8.2 works ok, but
+	that in RedHat 7.2 doesn't.
+
+	Test it and turn it on permanently if it works with your
+	system. The magic function %color_info allows you to toggle this
+	interactively for testing.
+
+    -[no]debug 
+	Show information about the loading process. Very useful to pin down
+	problems with your configuration files or to get details about
+	session restores.
+
+    -[no]deep_reload: 
+	IPython can use the deep_reload module which reloads changes in
+	modules recursively (it replaces the reload() function, so you don't
+	need to change anything to use it).  deep_reload() forces a full
+	reload of modules whose code may have changed, which the default
+	reload() function does not.
+
+	When deep_reload is off, IPython will use the normal reload(),
+	but deep_reload will still be available as dreload(). This
+	feature is off by default [which means that you have both
+	normal reload() and dreload()].
+
+    -editor <name>
+	Which editor to use with the %edit command. By default,
+	IPython will honor your EDITOR environment variable (if not
+	set, vi is the Unix default and notepad the Windows one).
+	Since this editor is invoked on the fly by IPython and is
+	meant for editing small code snippets, you may want to use a
+	small, lightweight editor here (in case your default EDITOR is
+	something like Emacs).
+
+    -ipythondir <name> 
+	name of your IPython configuration directory IPYTHONDIR. This
+	can also be specified through the environment variable
+	IPYTHONDIR.
+
+    -log, l 
+	generate a log file of all input. The file is named
+	ipython_log.py in your current directory (which prevents logs
+	from multiple IPython sessions from trampling each other). You
+	can use this to later restore a session by loading your
+	logfile as a file to be executed with option -logplay (see
+	below).
+
+    -logfile, lf <name>   specify the name of your logfile.
+
+    -logplay, lp <name> 
+
+      you can replay a previous log. For restoring a session as close as
+      possible to the state you left it in, use this option (don't just run
+      the logfile). With -logplay, IPython will try to reconstruct the
+      previous working environment in full, not just execute the commands in
+      the logfile.
+
+      When a session is restored, logging is automatically turned on
+      again with the name of the logfile it was invoked with (it is
+      read from the log header). So once you've turned logging on for
+      a session, you can quit IPython and reload it as many times as
+      you want and it will continue to log its history and restore
+      from the beginning every time.
+      
+      Caveats: there are limitations in this option. The history
       variables _i*,_* and _dh don't get restored properly. In the
-      future we will try to implement full session saving by writing and
-      retrieving a 'snapshot' of the memory state of IPython. But our
-      first attempts failed because of inherent limitations of Python's
-      Pickle module, so this may have to wait.
-    * [-[no]messages:] Print messages which IPython collects about its
-      startup process (default on).
-    * [-[no]pdb:] Automatically call the pdb debugger after every
-      uncaught exception. If you are used to debugging using pdb, this
-      puts you automatically inside of it after any call (either in
-      IPython or in code called by it) which triggers an exception which
-      goes uncaught.
-    * [-[no]pprint:] ipython can optionally use the pprint (pretty
-      printer) module for displaying results. pprint tends to give a
-      nicer display of nested data structures. If you like it, you can
-      turn it on permanently in your config file (default off).
-    * [-profile|p] <name>: assume that your config file is
-      ipythonrc-<name> (looks in current dir first, then in IPYTHONDIR).
-      This is a quick way to keep and load multiple config files for
-      different tasks, especially if you use the include option of
-      config files. You can keep a basic IPYTHONDIR/ipythonrc file and
-      then have other 'profiles' which include this one and load extra
-      things for particular tasks. For example:
-    * [ ] 1. $HOME/.ipython/ipythonrc : load basic things you always want.
-    * [ ] 2. $HOME/.ipython/ipythonrc-math : load (1) and basic
-      math-related modules.
-    * [ ] 3. $HOME/.ipython/ipythonrc-numeric : load (1) and Numeric and
-      plotting modules.
-    * [ ] Since it is possible to create an endless loop by having
-      circular file inclusions, IPython will stop if it reaches 15
-      recursive inclusions.
-    * [-prompt_in1|pi1 <string>:] Specify the string used for input
-      prompts. Note that if you are using numbered prompts, the number
-      is represented with a '\#' in the string. Don't forget to quote
-      strings with spaces embedded in them. Default: 'In [\#]:'.
-      Sec. Prompts_ discusses in detail all the
-      available escapes to customize your prompts.
-    * [-prompt_in2|pi2 <string>:] Similar to the previous option, but
-      used for the continuation prompts. The special sequence '\D' is
-      similar to '\#', but with all digits replaced dots (so you can
-      have your continuation prompt aligned with your input prompt).
-      Default: '   .\D.:' (note three spaces at the start for alignment
-      with 'In [\#]').
-    * [-prompt_out|po <string>:] String used for output prompts, also
-      uses numbers like prompt_in1. Default: 'Out[\#]:'
-    * [-quick:] start in bare bones mode (no config file loaded).
-    * [-rcfile <name>:] name of your IPython resource configuration
-      file. Normally IPython loads ipythonrc (from current directory) or
-      IPYTHONDIR/ipythonrc.
-    * [ ] If the loading of your config file fails, IPython starts with
-      a bare bones configuration (no modules loaded at all).
-    * [-[no]readline:] use the readline library, which is needed to
-      support name completion and command history, among other things.
-      It is enabled by default, but may cause problems for users of
-      X/Emacs in Python comint or shell buffers.
-    * [ ] Note that X/Emacs 'eterm' buffers (opened with M-x term)
-      support IPython's readline and syntax coloring fine, only 'emacs'
-      (M-x shell and C-c !) buffers do not.
-    * [-screen_length|sl <n>:] number of lines of your screen. This is
-      used to control printing of very long strings. Strings longer than
-      this number of lines will be sent through a pager instead of
-      directly printed.
-    * [ ] The default value for this is 0, which means IPython will
-      auto-detect your screen size every time it needs to print certain
-      potentially long strings (this doesn't change the behavior of the
-      'print' keyword, it's only triggered internally). If for some
-      reason this isn't working well (it needs curses support), specify
-      it yourself. Otherwise don't change the default.
-    * [-separate_in|si <string>:] separator before input prompts.
-      Default: '\n'
-    * [-separate_out|so <string>:] separator before output prompts.
-      Default: nothing.
-    * [-separate_out2|so2 <string>:] separator after output prompts.
-      Default: nothing.
-    * [ ] For these three options, use the value 0 to specify no separator.
-    * [-nosep:] shorthand for '-SeparateIn 0 -SeparateOut 0
-      -SeparateOut2 0'. Simply removes all input/output separators.
-    * [-upgrade:] allows you to upgrade your IPYTHONDIR configuration
-      when you install a new version of IPython. Since new versions may
-      include new command line options or example files, this copies
-      updated ipythonrc-type files. However, it backs up (with a .old
-      extension) all files which it overwrites so that you can merge
-      back any customizations you might have in your personal files.
-    * [-Version:] print version information and exit.
-    * [-wxversion <string>:] Select a specific version of wxPython (used
-      in conjunction with -wthread). Requires the wxversion module, part
-      of recent wxPython distributions
-    * [-xmode <modename>:] Mode for exception reporting.
-    * [ ] Valid modes: Plain, Context and Verbose.
-    * [ ] Plain: similar to python's normal traceback printing.
-    * [ ] Context: prints 5 lines of context source code around each
-      line in the traceback.
-    * [ ] Verbose: similar to Context, but additionally prints the
-      variables currently visible where the exception happened
-      (shortening their strings if too long). This can potentially be
-      very slow, if you happen to have a huge data structure whose
-      string representation is complex to compute. Your computer may
-      appear to freeze for a while with cpu usage at 100%. If this
-      occurs, you can cancel the traceback with Ctrl-C (maybe hitting it
-      more than once).
+      future we will try to implement full session saving by writing
+      and retrieving a 'snapshot' of the memory state of IPython. But
+      our first attempts failed because of inherent limitations of
+      Python's Pickle module, so this may have to wait.
+
+    -[no]messages   
+	Print messages which IPython collects about its startup
+	process (default on).
+
+    -[no]pdb
+	Automatically call the pdb debugger after every uncaught
+	exception. If you are used to debugging using pdb, this puts
+	you automatically inside of it after any call (either in
+	IPython or in code called by it) which triggers an exception
+	which goes uncaught.
+
+    -[no]pprint
+	ipython can optionally use the pprint (pretty printer) module
+	for displaying results. pprint tends to give a nicer display
+	of nested data structures. If you like it, you can turn it on
+	permanently in your config file (default off).
+
+    -profile, p <name>
+
+	assume that your config file is ipythonrc-<name> or
+	ipy_profile_<name>.py (looks in current dir first, then in
+	IPYTHONDIR).  This is a quick way to keep and load multiple
+	config files for different tasks, especially if you use the
+	include option of config files. You can keep a basic
+	IPYTHONDIR/ipythonrc file and then have other 'profiles' which
+	include this one and load extra things for particular
+	tasks. For example:
+
+	1. $HOME/.ipython/ipythonrc : load basic things you always want.
+	2. $HOME/.ipython/ipythonrc-math : load (1) and basic math-related modules.
+	3. $HOME/.ipython/ipythonrc-numeric : load (1) and Numeric and plotting modules.
+
+	Since it is possible to create an endless loop by having
+	circular file inclusions, IPython will stop if it reaches 15
+	recursive inclusions.
+
+    -prompt_in1, pi1 <string>
+	Specify the string used for input prompts. Note that if you
+	are using numbered prompts, the number is represented with a
+	'\#' in the string. Don't forget to quote strings with spaces
+	embedded in them. Default: 'In [\#]:'.  Sec. Prompts_
+	discusses in detail all the available escapes to customize
+	your prompts.
+
+    -prompt_in2, pi2 <string>
+	Similar to the previous option, but used for the continuation
+	prompts. The special sequence '\D' is similar to '\#', but
+	with all digits replaced dots (so you can have your
+	continuation prompt aligned with your input prompt).  Default:
+	' .\D.:' (note three spaces at the start for alignment with
+	'In [\#]').
+
+    -prompt_out,po <string> 
+	String used for output prompts, also uses numbers like
+	prompt_in1. Default: 'Out[\#]:'
+
+    -quick   start in bare bones mode (no config file loaded).
+
+    -rcfile <name>   
+	name of your IPython resource configuration file. Normally
+	IPython loads ipythonrc (from current directory) or
+	IPYTHONDIR/ipythonrc.
+
+	If the loading of your config file fails, IPython starts with
+	a bare bones configuration (no modules loaded at all).
+
+    -[no]readline
+	use the readline library, which is needed to support name
+	completion and command history, among other things.  It is
+	enabled by default, but may cause problems for users of
+	X/Emacs in Python comint or shell buffers.
+
+	Note that X/Emacs 'eterm' buffers (opened with M-x term) support
+	IPython's readline and syntax coloring fine, only 'emacs' (M-x
+	shell and C-c !) buffers do not.
+
+    -screen_length, sl <n>
+	number of lines of your screen. This is used to control
+	printing of very long strings. Strings longer than this number
+	of lines will be sent through a pager instead of directly
+	printed.
+
+	The default value for this is 0, which means IPython will
+	auto-detect your screen size every time it needs to print certain
+	potentially long strings (this doesn't change the behavior of the
+	'print' keyword, it's only triggered internally). If for some
+	reason this isn't working well (it needs curses support), specify
+	it yourself. Otherwise don't change the default.
+
+    -separate_in, si <string>
+
+	separator before input prompts.
+	Default: '\n'
+
+    -separate_out, so <string>  
+        separator before output prompts.
+        Default: nothing.
+
+    -separate_out2, so2
+	separator after output prompts.
+	Default: nothing.
+	For these three options, use the value 0 to specify no separator.
+
+    -nosep   
+	shorthand for '-SeparateIn 0 -SeparateOut 0 -SeparateOut2
+	0'. Simply removes all input/output separators.
+
+    -upgrade 
+	allows you to upgrade your IPYTHONDIR configuration when you
+	install a new version of IPython. Since new versions may
+	include new command line options or example files, this copies
+	updated ipythonrc-type files. However, it backs up (with a
+	.old extension) all files which it overwrites so that you can
+	merge back any customizations you might have in your personal
+	files. Note that you should probably use %upgrade instead,
+	it's a safer alternative.
+
+
+    -Version    print version information and exit.
+
+    -wxversion <string> 
+	Select a specific version of wxPython (used in conjunction
+	with -wthread). Requires the wxversion module, part of recent
+	wxPython distributions
+
+    -xmode <modename>
+
+	Mode for exception reporting.
+
+	Valid modes: Plain, Context and Verbose.
+
+	* Plain: similar to python's normal traceback printing.
+	* Context: prints 5 lines of context source code around each
+	  line in the traceback.
+	* Verbose: similar to Context, but additionally prints the
+	  variables currently visible where the exception happened
+	  (shortening their strings if too long). This can potentially be
+	  very slow, if you happen to have a huge data structure whose
+	  string representation is complex to compute. Your computer may
+	  appear to freeze for a while with cpu usage at 100%. If this
+	  occurs, you can cancel the traceback with Ctrl-C (maybe hitting it
+	  more than once).
 
 Interactive use
 ===============
