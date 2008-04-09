@@ -189,7 +189,7 @@ def magic_kill(self,line):
         magic_tasks(self,line)
         
 if sys.platform == 'win32':
-    shell_internal_commands = 'break chcp cls copy ctty date del erase dir md mkdir path prompt rd rmdir time type ver vol'.split()
+    shell_internal_commands = 'break chcp cls copy ctty date del erase dir md mkdir path prompt rd rmdir start time type ver vol'.split()
 else:
     # todo linux commands
     shell_internal_commands = [] 

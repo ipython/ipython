@@ -3,7 +3,7 @@
 <leo_file>
 <leo_header file_format="2" tnodes="0" max_tnode_index="0" clone_windows="0"/>
 <globals body_outline_ratio="0.307814992026">
-	<global_window_position top="180" left="223" height="627" width="1280"/>
+	<global_window_position top="257" left="131" height="627" width="1280"/>
 	<global_log_window_position top="0" left="0" height="0" width="0"/>
 </globals>
 <preferences/>
@@ -38,18 +38,18 @@
 <v t="vivainio.20080219230342"><vh>slist to leo</vh></v>
 </v>
 </v>
-<v t="vivainio.20080218195413"><vh>Class tests</vh>
+<v t="vivainio.20080218195413" a="E"><vh>Class tests</vh>
 <v t="vivainio.20080218200509"><vh>csvr</vh></v>
 <v t="vivainio.20080218191007"><vh>tempfile</vh></v>
 <v t="vivainio.20080218195413.1"><vh>rfile</vh></v>
 <v t="vivainio.20080219225804"><vh>strlist</vh></v>
 </v>
+<v t="vivainio.20080222201226" a="V"><vh>IPython script push tests</vh></v>
 <v t="vivainio.20080218201219" a="E"><vh>Direct variables</vh>
-<v t="vivainio.20080222201226"><vh>NewHeadline</vh></v>
 <v t="vivainio.20080218201219.2"><vh>bar</vh></v>
 </v>
 <v t="vivainio.20080316144536" a="E"><vh>pylab tests</vh>
-<v t="vivainio.20080316145539.2" a="TV"><vh>Generate testarr</vh></v>
+<v t="vivainio.20080316145539.2"><vh>Generate testarr</vh></v>
 <v t="vivainio.20080316085925"><vh>testarr</vh></v>
 <v t="vivainio.20080316085950"><vh>Call plotter on testarr</vh></v>
 </v>
@@ -128,21 +128,45 @@ def format_slist(obj):
 <t tx="vivainio.20080222193236">?</t>
 <t tx="vivainio.20080222193236.1">@wrap
 @nocolor</t>
-<t tx="vivainio.20080222201226">1+2
+<t tx="vivainio.20080222201226"># test ipython script 'cleanup' with complex blocks
+1+2
 print "hello"
 3+4
 
 def f(x):
     return x.upper()
 
-f('hello world')
 
 if 0:
     print "foo"
 else:
     print "bar"
 
-</t>
+def g():
+    pass
+
+g()
+
+if 1:
+    if 1:
+        print "hello"
+
+        print "world"
+
+if 1:
+    print "hello"
+
+    print "word"
+else:
+    print "foo"
+
+    print "bar"
+    print "baz"
+
+try:
+    raise Exception
+except:
+    print "exc ok"</t>
 <t tx="vivainio.20080222202211"></t>
 <t tx="vivainio.20080222202211.1" ipython="7d71005506636f6f7264737101284b0c4bde747102732e">@cl rfile
 hello

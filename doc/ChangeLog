@@ -1,4 +1,115 @@
+2008-04-02  Ville Vainio <vivainio@gmail.com>
+
+	* ipy_winpdb.py: New extension for winpdb integration.  %wdb
+	test.py is winpdb equivalent of %run -d test.py.  winpdb is a
+	crossplatform remote GUI debugger based on wxpython.
+
+2008-03-29  Ville Vainio <vivainio@gmail.com>
+
+	* ipython.rst, do_sphinx.py: New documentation base, based on
+	reStucturedText and Sphinx (html/pdf generation).  The old Lyx
+	based documentation will not be updated anymore.
+
+	* jobctrl.py: Use shell in Popen for 'start' command (in windows).
+
+2008-03-24  Ville Vainio <vivainio@gmail.com>
+
+	* ipython.rst, do_sphinx.py: New documentation base, based on
+	reStucturedText and Sphinx (html/pdf generation).  The old Lyx
+	based documentation will not be updated anymore.
+
+	ipython.rst has up to date documentation on matters that were not
+	documented at all, and it also removes various
+	misdocumented/deprecated features.
+	
+2008-03-22  Ville Vainio <vivainio@gmail.com>
+
+	* Shell.py: Merge mtexp branch:
+	https://code.launchpad.net/~ipython/ipython/mtexp
+
+	Privides simpler and more robust MTInteractiveShell that won't
+	deadlock, even when the worker thread (GUI) stops doing runcode()
+	regularly. r71.
+
+2008-03-20  Ville Vainio <vivainio@gmail.com>
+
+	* twshell.py: New shell that runs IPython code in Twisted reactor.
+	Launch by doing ipython -twisted. r67.
+
+2008-03-19  Ville Vainio <vivainio@gmail.com>
+
+	* Magic.py: %rehashx works correctly when shadowed system commands
+	have upper case characters (e.g. Print.exe). r64.
+
+	* ipy_bzr.py, ipy_app_completers.py: new bzr completer that also
+	knows options to commands, based on bzrtools. Uses bzrlib
+	directly. r66.
+
+2008-03-16  Ville Vainio <vivainio@gmail.com>
+
+	* make_tarball.py: Fixed for bzr.
+
+	* ipapi.py: Better _ip.runlines() script cleanup. r56,r79.
+
+	 * ipy_vimserver.py, ipy.vim: New extension for vim server mode,
+	 by Erich Heine.
+
+2008-03-12  Ville Vainio <vivainio@gmail.com>
+
+	* ipmaker.py: Force (reload?) import of ipy_user_conf and
+	ipy_profile_foo, so that embedded instances can be relaunched and
+	configuration is still done. r50
+
+	* ipapi.py, test_embed.py: Allow specifying shell class in
+	launch_new_instance & make_new instance. Use this in
+	test_embed.py. r51.
+
+	test_embed.py is also a good and simple demo of embedding IPython.
+	
+
+2008-03-10  Ville Vainio <vivainio@gmail.com>
+
+	* tool/update_revnum.py: Change to bzr revisioning scheme in 
+	revision numbers.
+
+	* Shell.py: Threading improvements:
+
+	In multithreaded shells, do not hang on macros and o.autoexec
+	commands (or anything executed with _ip.runlines()) anymore. Allow
+	recursive execution of IPython code in
+	MTInteractiveShell.runsource by checking if we are already in
+	worker thread, and execute code directly if we are. r48.
+
+	MTInteractiveShell.runsource: execute code directly if worker
+	thread is not running yet (this is the case in config files). r49.
+
+2008-03-09  Ville Vainio <vivainio@gmail.com>
+
+	* ipy_profile_sh.py: You can now use $LA or LA() to refer to last
+	argument of previous command in sh profile. Similar to bash '!$'.
+	LA(3) or $LA(3) stands for last argument of input history command 
+	3.
+
+	* Shell.py: -pylab names don't clutter %whos listing.
+
+2008-03-07  Ville Vainio <vivainio@gmail.com>
+
+	* ipy_autoreload.py: new extension (by Pauli Virtanen) for 
+	autoreloading modules; try %autoreload and %aimport. Close #154.
+	Uses the new pre_runcode_hook.
+
+2008-02-24  Ville Vainio <vivainio@gmail.com>
+
+	* platutils_posix.py: freeze_term_title works
+
+2008-02-21  Ville Vainio <vivainio@gmail.com>
+
+	* Magic.py: %quickref does not crash with empty docstring
+
 2008-02-20  Ville Vainio <vivainio@gmail.com>
+
+	* completer.py: do not treat [](){} as protectable chars anymore,
+	close #233.
 
 	* completer.py: do not treat [](){} as protectable chars anymore
 	

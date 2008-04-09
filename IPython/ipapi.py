@@ -273,16 +273,27 @@ class IPApi:
             """
             res = []
             lines = script.splitlines()
+
             level = 0
             for l in lines:
                 lstripped = l.lstrip()
-                stripped = l.strip()
+                stripped = l.strip()                
                 if not stripped:
                     continue
                 newlevel = len(l) - len(lstripped)
-                if level > 0 and newlevel == 0 and not stripped.endswith(':'):
+                def is_secondary_block_start(s):
+                    if not s.endswith(':'):
+                        return False
+                    if (s.startswith('elif') or 
+                        s.startswith('else') or 
+                        s.startswith('except') or
+                        s.startswith('finally')):
+                        return True
+                        
+                if level > 0 and newlevel == 0 and not is_secondary_block_start(stripped): 
                     # add empty line
                     res.append('')
+                    
                 res.append(l)
                 level = newlevel
             return '\n'.join(res) + '\n'
@@ -292,7 +303,7 @@ class IPApi:
         else:
             script = '\n'.join(lines)
         clean=cleanup_ipy_script(script)
-
+        # print "_ip.runlines() script:\n",clean #dbg
         self.IP.runlines(clean)
     def to_user_ns(self,vars, interactive = True):
         """Inject a group of variables into the IPython user namespace.
