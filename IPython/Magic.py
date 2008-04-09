@@ -147,7 +147,7 @@ license. To use profiling, please install"python2.3-profiler" from non-free.""")
                  filter(inst_magic,self.__dict__.keys()) + \
                  filter(inst_bound_magic,self.__class__.__dict__.keys())
         out = []
-        for fn in magics:
+        for fn in Set(magics):
             out.append(fn.replace('magic_','',1))
         out.sort()
         return out
@@ -386,7 +386,10 @@ license. To use profiling, please install"python2.3-profiler" from non-free.""")
         return None
         
     def magic_magic(self, parameter_s = ''):
-        """Print information about the magic function system."""
+        """Print information about the magic function system.
+        
+        Supported formats: -latex, -brief, -rest        
+        """
 
         mode = ''
         try:
@@ -394,6 +397,9 @@ license. To use profiling, please install"python2.3-profiler" from non-free.""")
                 mode = 'latex'
             if parameter_s.split()[0] == '-brief':
                 mode = 'brief'
+            if parameter_s.split()[0] == '-rest':
+                mode = 'rest'
+                rest_docs = []
         except:
             pass
 
@@ -414,12 +420,21 @@ license. To use profiling, please install"python2.3-profiler" from non-free.""")
                 else:
                     fndoc = 'No documentation'
             else:
-                fndoc = fn.__doc__
+                fndoc = fn.__doc__.rstrip()
                 
-            magic_docs.append('%s%s:\n\t%s\n' %(self.shell.ESC_MAGIC,
-                                                fname,fndoc))
+            if mode == 'rest':
+                rest_docs.append('**%s%s**::\n\n\t%s\n\n' %(self.shell.ESC_MAGIC,
+                                                    fname,fndoc))
+                
+            else:
+                magic_docs.append('%s%s:\n\t%s\n' %(self.shell.ESC_MAGIC,
+                                                    fname,fndoc))
+                
         magic_docs = ''.join(magic_docs)
 
+        if mode == 'rest':
+            return "".join(rest_docs)
+        
         if mode == 'latex':
             print self.format_latex(magic_docs)
             return
