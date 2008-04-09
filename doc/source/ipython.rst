@@ -168,22 +168,13 @@ configuration file if you experience problems. If you have proper color
 support under cygwin, please post to the IPython mailing list so this
 issue can be resolved for all users.
 
-Windows: it works well under Windows XP/2k, and I suspect NT should
-behave similarly. Section 2.3 <node2.html#sub:Under-Windows> describes
+Windows: it works well under Windows Vista/XP/2k, and I suspect NT should
+behave similarly. Section "Installation under windows" describes
 installation details for Windows, including some additional tools needed
 on this platform.
 
 Windows 9x support is present, and has been reported to work fine (at
 least on WinME).
-
-Note, that I have very little access to and experience with Windows
-development. However, an excellent group of Win32 users (led by Ville
-Vainio), consistently contribute bugfixes and platform-specific
-enhancements, so they more than make up for my deficiencies on that
-front. In fact, Win32 users report using IPython as a system shell (see
-Sec. 12 <node12.html#sec:IPython-as-shell> for details), as it offers a
-level of control and features which the default cmd.exe doesn't provide.
-
 
 Location
 ========
@@ -204,12 +195,12 @@ If you are of the impatient kind, under Linux/Unix simply untar/unzip
 the download, then install with 'python setup.py install'. Under
 Windows, double-click on the provided .exe binary installer.
 
-Then, take a look at Sections 3 <node3.html#sec:good_config> for
-configuring things optimally and 4 <node4.html#sec:quick_tips> for quick
-tips on efficient use of IPython. You can later refer to the rest of the
-manual for all the gory details.
+Then, take a look at Customization_ section for configuring things
+optimally and `Quick tips`_ for quick tips on efficient use of
+IPython. You can later refer to the rest of the manual for all the
+gory details.
 
-See the notes in sec. 2.4 <#sec:upgrade> for upgrading IPython versions.
+See the notes in upgrading_ section for upgrading IPython versions.
 
 
     Detailed Unix instructions (Linux, Mac OS X, etc.)
@@ -270,6 +261,9 @@ known installation issues under OSX, along with their solutions.
 This page: http://geosci.uchicago.edu/~tobis/pylab.html contains
 information on this topic, with additional details on how to make
 IPython and matplotlib play nicely under OSX.
+
+To run IPython and readline on OSX "Leopard" system python, see the 
+wiki page at http://ipython.scipy.org/moin/InstallationOSXLeopard
 
 
 GUI problems
@@ -367,6 +361,8 @@ Some of IPython's very useful features are:
       etc.)
     * Coloring of prompts, code and tracebacks.
 
+.. _pyreadline:
+
 These, by default, are only available under Unix-like operating systems.
 However, thanks to Gary Bishop's work, Windows XP/2k users can also
 benefit from them. His readline library originally implemented both GNU
@@ -445,24 +441,16 @@ After the installation, run the supplied win32_manual_post_install.py
 script, which creates the necessary Start Menu shortcuts for you.
 
 
+.. upgrading:
 
 Upgrading from a previous version
 ---------------------------------
 
-If you are upgrading from a previous version of IPython, after doing the
-routine installation described above, you should call IPython with the
--upgrade option the first time you run your new copy. This will
-automatically update your configuration directory while preserving
-copies of your old files. You can then later merge back any personal
-customizations you may have made into the new files. It is a good idea
-to do this as there may be new options available in the new
-configuration files which you will not have.
-
-Under Windows, if you don't know how to call python scripts with
-arguments from a command line, simply delete the old config directory
-and IPython will make a new one. Win2k and WinXP users will find it in
-C:\Documents and Settings\YourUserName\_ipython, and Win 9x users under
-C:\Program Files\IPython\_ipython.
+If you are upgrading from a previous version of IPython, you may want
+to upgrade the contents of your ~/.ipython directory. Just run
+%upgrade, look at the diffs and delete the suggested files manually,
+if you think you can lose the old versions. %upgrade will never
+overwrite or delete anything.
 
 Initial configuration of your environment
 =========================================
@@ -474,19 +462,19 @@ in a directory named by default $HOME/.ipython. You can change this by
 defining the environment variable IPYTHONDIR, or at runtime with the
 command line option -ipythondir.
 
-If all goes well, the first time you run IPython it should automatically
-create a user copy of the config directory for you, based on its builtin
-defaults. You can look at the files it creates to learn more about
-configuring the system. The main file you will modify to configure
-IPython's behavior is called ipythonrc (with a .ini extension under
-Windows), included for reference in Sec. 7.1
-<node7.html#sec:ipytonrc-sample>. This file is very commented and has
-many variables you can change to suit your taste, you can find more
-details in Sec. 7 <node7.html#sec:customization>. Here we discuss the
-basic things you will want to make sure things are working properly from
-the beginning.
+If all goes well, the first time you run IPython it should
+automatically create a user copy of the config directory for you,
+based on its builtin defaults. You can look at the files it creates to
+learn more about configuring the system. The main file you will modify
+to configure IPython's behavior is called ipythonrc (with a .ini
+extension under Windows), included for reference in `ipythonrc`_ 
+section. This file is very commented and has many variables you can
+change to suit your taste, you can find more details in
+Sec. customization_. Here we discuss the basic things you will want to
+make sure things are working properly from the beginning.
 
 
+.. _Accessing help:
 
 Access to the Python help system
 --------------------------------
@@ -562,11 +550,9 @@ The following terminals seem to handle the color sequences fine:
     * Linux main text console, KDE Konsole, Gnome Terminal, E-term,
       rxvt, xterm.
     * CDE terminal (tested under Solaris). This one boldfaces light colors.
-    * (X)Emacs buffers. See sec.3.4 <#sec:emacs> for more details on
+    * (X)Emacs buffers. See the emacs_ section for more details on
       using IPython with (X)Emacs.
-    * A Windows (XP/2k) command prompt with Gary Bishop's support
-      extensions. Gary's extensions are discussed in Sec. 2.3
-      <node2.html#sub:Under-Windows>.
+    * A Windows (XP/2k) command prompt with pyreadline_.
     * A Windows (XP/2k) CygWin shell. Although some users have reported
       problems; it is not clear whether there is an issue for everyone
       or only under specific configurations. If you have full color
@@ -622,14 +608,14 @@ $HOME/.ipython/ipythonrc and set the colors option to the desired value.
 Object details (types, docstrings, source code, etc.)
 -----------------------------------------------------
 
-IPython has a set of special functions for studying the objects you are
-working with, discussed in detail in Sec. 6.4
-<node6.html#sec:dyn-object-info>. But this system relies on passing
-information which is longer than your screen through a data pager, such
-as the common Unix less and more programs. In order to be able to see
-this information in color, your pager needs to be properly configured. I
-strongly recommend using less instead of more, as it seems that more
-simply can not understand colored text correctly.
+IPython has a set of special functions for studying the objects you
+are working with, discussed in detail in Sec. `dynamic object
+information`_. But this system relies on passing information which is
+longer than your screen through a data pager, such as the common Unix
+less and more programs. In order to be able to see this information in
+color, your pager needs to be properly configured. I strongly
+recommend using less instead of more, as it seems that more simply can
+not understand colored text correctly.
 
 In order to configure less as your default pager, do the following:
 
@@ -649,6 +635,8 @@ documentation for details.
 
 If you are on a system which lacks proper data pagers (such as Windows),
 IPython will use a very limited builtin pager.
+
+.. _emacs:
 
 (X)Emacs configuration
 ----------------------
@@ -700,6 +688,8 @@ Notes:
       value will override what ipython.el does (because loading the
       customization variables comes later).
 
+.. Quick tips:
+
 Quick tips
 ==========
 
@@ -718,8 +708,8 @@ http://www.onlamp.com/pub/a/python/2005/01/27/ipython.html
     * The TAB key. TAB-completion, especially for attributes, is a
       convenient way to explore the structure of any object you're
       dealing with. Simply type object_name.<TAB> and a list of the
-      object's attributes will be printed (see sec. 6.5
-      <node6.html#sec:readline> for more). Tab completion also works on
+      object's attributes will be printed (see readline_ for
+      more). Tab completion also works on
       file and directory names, which combined with IPython's alias
       system allows you to do from within IPython many of the things you
       normally would need the system shell for.
@@ -730,23 +720,23 @@ http://www.onlamp.com/pub/a/python/2005/01/27/ipython.html
       respectively print the docstring, function definition line, full
       source code and the complete file for any object (when they can be
       found). If automagic is on (it is by default), you don't need to
-      type the '%' explicitly. See sec. 6.4
-      <node6.html#sec:dyn-object-info> for more.
+      type the '%' explicitly. See sec. `dynamic object information`_
+      for more.
     * The %run magic command allows you to run any python script and
       load all of its data directly into the interactive namespace.
       Since the file is re-read from disk each time, changes you make to
       it are reflected immediately (in contrast to the behavior of
       import). I rarely use import for code I am testing, relying on
-      %run instead. See sec. 6.2 <node6.html#sec:magic> for more on this
+      %run instead. See magic_ section for more on this
       and other magic commands, or type the name of any magic command
-      and ? to get details on it. See also sec. 6.9
-      <node6.html#sec:dreload> for a recursive reload command.
+      and ? to get details on it. See also sec. dreload_ for a
+      recursive reload command.
       %run also has special flags for timing the execution of your
       scripts (-t) and for executing them under the control of either
       Python's pdb debugger (-d) or profiler (-p). With all of these,
       %run can be used as the main tool for efficient interactive
       development of code which you write in your editor of choice.
-    * Use the Python debugger, pdb^2 <footnode.html#foot360>. The %pdb
+    * Use the Python debugger, pdb. The %pdb
       command allows you to toggle on and off the automatic invocation
       of an IPython-enhanced pdb debugger (with coloring, tab completion
       and more) at any uncaught exception. The advantage of this is that
@@ -763,7 +753,7 @@ http://www.onlamp.com/pub/a/python/2005/01/27/ipython.html
       pieces of code and then remove the 1/0.
       Note also that '%run -d' activates pdb and automatically sets
       initial breakpoints for you to step through your code, watch
-      variables, etc. See Sec. 6.12 <node6.html#sec:cache_output> for
+      variables, etc. See Sec. `Output caching`_ for
       details.
     * Use the output cache. All output results are automatically stored
       in a global dictionary named Out and variables named _1, _2, etc.
@@ -771,8 +761,7 @@ http://www.onlamp.com/pub/a/python/2005/01/27/ipython.html
       either as Out[4] or as _4. Additionally, three variables named _,
       __ and ___ are always kept updated with the for the last three
       results. This allows you to recall any previous result and further
-      use it for new calculations. See Sec. 6.12
-      <node6.html#sec:cache_output> for more.
+      use it for new calculations. See Sec. `Output caching`_ for more.
     * Put a ';' at the end of a line to supress the printing of output.
       This is useful when doing calculations which generate long output
       you are not interested in seeing. The _* variables and the Out[]
@@ -784,7 +773,7 @@ http://www.onlamp.com/pub/a/python/2005/01/27/ipython.html
       28 plus line 34 by typing 'exec In[22:29]+In[34]' (using Python
       slicing notation). If you need to execute the same set of lines
       often, you can assign them to a macro with the %macro function.
-      See sec. 6.11 <node6.html#sec:cache_input> for more.
+      See sec. `Input caching`_ for more.
     * Use your input history. The %hist command can show you all
       previous input, without line numbers if desired (option -n) so you
       can directly copy and paste code either back in IPython or in a
@@ -805,16 +794,16 @@ http://www.onlamp.com/pub/a/python/2005/01/27/ipython.html
       capture system output into Python variables.
     * Expand python variables when calling the shell (either via '!' and
       '!!' or via aliases) by prepending a $ in front of them. You can
-      also expand complete python expressions. See sec. 6.7
-      <node6.html#sub:System-shell-access> for more.
+      also expand complete python expressions. See 
+      `System shell access`_ for more.
     * Use profiles to maintain different configurations (modules to
       load, function definitions, option settings) for particular tasks.
       You can then have customized versions of IPython for specific
-      purposes. See sec. 7.3 <node7.html#sec:profiles> for more.
+      purposes. See sec. profiles_ for more.
     * Embed IPython in your programs. A few lines of code are enough to
       load a complete IPython inside your own programs, giving you the
       ability to work with your data interactively after automatic
-      processing has been completed. See sec. 9 <node9.html#sec:embed>
+      processing has been completed. See sec. embedding_
       for more.
     * Use the Python profiler. When dealing with performance issues, the
       %run command with a -p option allows you to run complete programs
@@ -823,7 +812,7 @@ http://www.onlamp.com/pub/a/python/2005/01/27/ipython.html
     * Use the IPython.demo.Demo class to load any Python script as an
       interactive demo. With a minimal amount of simple markup, you can
       control the execution of the script, stopping as needed. See
-      sec. 14 <node14.html#sec:interactive-demos> for more.
+      sec. `interactive demos`_ for more.
     * Run your doctests from within IPython for development and
       debugging. The special %doctest_mode command toggles a mode where
       the prompt, output and exceptions display matches as closely as
@@ -969,6 +958,8 @@ Contribute your own: If you have your own favorite tip on using IPython
 efficiently for a certain task (especially things which can't be done in
 the normal Python interpreter), don't hesitate to send it!
 
+.. _Command line options:
+
 Command-line use
 ================
 
@@ -990,8 +981,11 @@ $HOME resolves to C:\\Documents and Settings\\YourUserName in most
 instances. In the rest of this text, we will refer to this directory as
 IPYTHONDIR.
 
+.. _Threading options:
+
 
 Special Threading Options
+-------------------------
 
 The following special options are ONLY valid at the beginning of the
 command line, and not later. This is because they control the initial-
@@ -1070,8 +1064,8 @@ All options with a [no] prepended can be specified in negated form
       It automatically activates GTK or WX threading for IPyhton if the
       choice of matplotlib backend requires it. It also modifies the
       %run command to correctly execute (without blocking) any
-      matplotlib-based script which calls show() at the end. See Sec. 15
-      <node15.html#sec:matplotlib-support> for more details.
+      matplotlib-based script which calls show() at the end. See 
+      `Matplotlib support`_ for more details.
     * [-autocall] <val>: Make IPython automatically call any callable
       object even if you didn't type explicit parentheses. For example,
       'str 43' becomes 'str(43)' automatically. The value can be '0' to
@@ -1188,7 +1182,7 @@ All options with a [no] prepended can be specified in negated form
       prompts. Note that if you are using numbered prompts, the number
       is represented with a '\#' in the string. Don't forget to quote
       strings with spaces embedded in them. Default: 'In [\#]:'.
-      Sec. 7.2 <node7.html#sec:prompts> discusses in detail all the
+      Sec. Prompts_ discusses in detail all the
       available escapes to customize your prompts.
     * [-prompt_in2|pi2 <string>:] Similar to the previous option, but
       used for the continuation prompts. The special sequence '\D' is
@@ -1286,9 +1280,9 @@ a contrived manner like:
 %copy \opt/foo/bar.txt \tmp
 
 There is no sensible thing IPython can do to truly work around this flaw
-in Windows^3 <footnode.html#foot878>.
+in Windows.
 
-
+.. _magic:
 
 Magic command system
 --------------------
@@ -2948,9 +2942,8 @@ As of Python 2.1, a help system is available with access to object
 docstrings and the Python manuals. Simply type 'help' (no quotes) to
 access it. You can also type help(object) to obtain information about a
 given object, and help('keyword') for information on a keyword. As noted
-in sec. 3.1 <node3.html#sec:help-access>, you need to properly configure
+in sec. `accessing help`_, you need to properly configure
 your environment variable PYTHONDOCS for this feature to work correctly.
-
 
 
 Dynamic object information
@@ -2994,6 +2987,7 @@ are not really defined as separate identifiers. Try for example typing
 {}.get? or after doing import os, type os.path.abspath??.
 
 
+.. _Readline:
 
 Readline-based features
 -----------------------
@@ -3005,7 +2999,7 @@ your preferences.
 
 
 Command line completion
------------------------
++++++++++++++++++++++++
 
 At any time, hitting TAB will complete any available python commands or
 variable names, and show you a list of the possible completions if
@@ -3014,7 +3008,7 @@ current directory if no python names match what you've typed so far.
 
 
 Search command history
-----------------------
+++++++++++++++++++++++
 
 IPython provides two ways for searching through previous input and thus
 reduce the need for repetitive typing:
@@ -3029,7 +3023,7 @@ reduce the need for repetitive typing:
 
 
 Persistent command history across sessions
-------------------------------------------
+++++++++++++++++++++++++++++++++++++++++++
 
 IPython will save your input history when it leaves and reload it next
 time you restart it. By default, the history file is named
@@ -3041,7 +3035,7 @@ example.
 
 
 Autoindent
-----------
+++++++++++
 
 IPython can recognize lines ending in ':' and indent the next line,
 while also un-indenting automatically after 'raise' or 'return'.
@@ -3066,7 +3060,7 @@ your ipythonrc file (set autoindent 0).
 
 
 Customizing readline behavior
------------------------------
++++++++++++++++++++++++++++++
 
 All these features are based on the GNU readline library, which has an
 extremely customizable interface. Normally, readline is configured via a
@@ -3106,10 +3100,10 @@ explanation in your ipythonrc file.
 Session logging and restoring
 -----------------------------
 
-You can log all input from a session either by starting IPython with the
-command line switches -log or -logfile (see sec. 5.2
-<node5.html#sec:cmd-line-opts>)or by activating the logging at any
-moment with the magic function %logstart.
+You can log all input from a session either by starting IPython with
+the command line switches -log or -logfile (see sec. `command line
+options`_) or by activating the logging at any moment with the magic
+function %logstart.
 
 Log files can later be reloaded with the -logplay option and IPython
 will attempt to 'replay' the log by executing all the lines in it, thus
@@ -3144,8 +3138,6 @@ The %logoff and %logon functions allow you to temporarily stop and
 resume logging to a file which had previously been started with
 %logstart. They will fail (with an explanation) if you try to use them
 before logging has been started.
-
-
 
 System shell access
 -------------------
@@ -3231,6 +3223,7 @@ ipython aliases. See their respective docstrings (or sec. 6.2
 <#sec:magic> for further details).
 
 
+.. _dreload:
 
 Recursive reload
 ----------------
@@ -3256,6 +3249,7 @@ These features are basically a terminal version of Ka-Ping Yee's cgitb
 module, now part of the standard Python library.
 
 
+.. _Input caching:
 
 Input caching system
 --------------------
@@ -3294,6 +3288,8 @@ sec. 6.2 <#sec:magic> for more details on the macro system.
 
 A history function %hist allows you to see any part of your input
 history by printing a range of the _i variables.
+
+.. _Output caching:
 
 Output caching system
 ---------------------
@@ -3408,6 +3404,8 @@ won't work::
 
     >>> x = ,my_function /home/me # syntax error
 
+.. customization:
+
 Customization
 =============
 
@@ -3444,10 +3442,10 @@ deliberate, because it allows us to do some things which would be quite
 tricky to implement if they were normal python files.
 
 First, an rcfile can contain permanent default values for almost all
-command line options (except things like -help or -Version). Sec 5.2
-<node5.html#sec:cmd-line-opts> contains a description of all
-command-line options. However, values you explicitly specify at the
-command line override the values defined in the rcfile.
+command line options (except things like -help or -Version). Sec
+`command line options`_ contains a description of all command-line
+options. However, values you explicitly specify at the command line
+override the values defined in the rcfile.
 
 Besides command line option values, the rcfile can specify values for
 certain extra special options which are not available at the command
@@ -3485,6 +3483,8 @@ Each of these options may appear as many times as you need it in the file.
       have within IPython any aliases you may be used to under your
       normal system shell.
 
+
+.. _ipythonrc:
 
 Sample ipythonrc file
 ---------------------
@@ -4215,7 +4215,7 @@ below for reference::
 
     main()
 
-
+.. _Prompts:
 
 Fine-tuning your prompt
 -----------------------
@@ -4311,17 +4311,18 @@ which look like this::
     1 2 3
 
 
+.. _Profiles:
 
 IPython profiles
 ----------------
 
 As we already mentioned, IPython supports the -profile command-line
-option (see sec. 5.2 <node5.html#sec:cmd-line-opts>). A profile is
-nothing more than a particular configuration file like your basic
-ipythonrc one, but with particular customizations for a specific
-purpose. When you start IPython with 'ipython -profile <name>', it
-assumes that in your IPYTHONDIR there is a file called ipythonrc-<name>,
-and loads it instead of the normal ipythonrc.
+option (see sec. `command line options`_). A profile is nothing more
+than a particular configuration file like your basic ipythonrc one,
+but with particular customizations for a specific purpose. When you
+start IPython with 'ipython -profile <name>', it assumes that in your
+IPYTHONDIR there is a file called ipythonrc-<name> or
+ipy_profile_<name>.py, and loads it instead of the normal ipythonrc.
 
 This system allows you to maintain multiple configurations which load
 modules, set options, define functions, etc. suitable for different
@@ -4331,13 +4332,6 @@ change such as your color preferences, for example), any profile can
 include another configuration file. The most common way to use profiles
 is then to have each one include your basic ipythonrc file as a starting
 point, and then add further customizations.
-
-In sections 11 <node11.html#sec:syntax-extensions> and 16
-<node16.html#sec:Gnuplot> we discuss some particular profiles which come
-as part of the standard IPython distribution. You may also look in your
-IPYTHONDIR directory, any file whose name begins with ipythonrc- is a
-profile. You can use those as examples for further customizations to
-suit your own needs.
 
 IPython as your default Python environment
 ==========================================
@@ -4352,12 +4346,14 @@ this file the following two lines of code::
 then IPython will be your working environment anytime you start Python.
 The sys_exit=1 is needed to have IPython issue a call to sys.exit() when
 it finishes, otherwise you'll be back at the normal Python '>>>'
-prompt^4 <footnode.html#foot2368>.
+prompt.
 
 This is probably useful to developers who manage multiple Python
 versions and don't want to have correspondingly multiple IPython
 versions. Note that in this mode, there is no way to pass IPython any
 command-line options, as those are trapped first by Python itself.
+
+.. _Embedding:
 
 Embedding IPython
 =================
@@ -4377,7 +4373,7 @@ feature can be very valuable.
 
 It can also be useful in scientific computing situations where it is
 common to need to do some automatic, computationally intensive part and
-then stop to look at data, plots, etc^5 <footnode.html#foot3206>.
+then stop to look at data, plots, etc.
 Opening an IPython instance will give you full access to your data and
 functions, and you can resume program execution once you are done with
 the interactive part (perhaps to stop again later, as many times as
@@ -4607,13 +4603,13 @@ Running entire programs via pdb
 -------------------------------
 
 pdb, the Python debugger, is a powerful interactive debugger which
-allows you to step through code, set breakpoints, watch variables, etc.
-IPython makes it very easy to start any script under the control of pdb,
-regardless of whether you have wrapped it into a 'main()' function or
-not. For this, simply type '%run -d myscript' at an IPython prompt. See
-the %run command's documentation (via '%run?' or in Sec. 6.2
-<node6.html#sec:magic>) for more details, including how to control where
-pdb will stop execution first.
+allows you to step through code, set breakpoints, watch variables,
+etc.  IPython makes it very easy to start any script under the control
+of pdb, regardless of whether you have wrapped it into a 'main()'
+function or not. For this, simply type '%run -d myscript' at an
+IPython prompt. See the %run command's documentation (via '%run?' or
+in Sec. magic_ for more details, including how to control where pdb
+will stop execution first.
 
 For more information on the use of the pdb debugger, read the included
 pdb.doc file (part of the standard Python distribution). On a stock
@@ -4632,7 +4628,7 @@ Automatic invocation of pdb on exceptions
 
 IPython, if started with the -pdb option (or if the option is set in
 your rc file) can call the Python pdb debugger every time your code
-triggers an uncaught exception^6 <footnode.html#foot2403>. This feature
+triggers an uncaught exception. This feature
 can also be toggled at any time with the %pdb magic command. This can be
 extremely useful in order to find the origin of subtle bugs, because pdb
 opens up at the point in your code which triggered the exception, and
@@ -4642,7 +4638,7 @@ the origin of the problem.
 
 Furthermore, you can use these debugging facilities both with the
 embedded IPython mode and without IPython at all. For an embedded shell
-(see sec. 9 <node9.html#sec:embed>), simply call the constructor with
+(see sec. Embedding_), simply call the constructor with
 '-pdb' in the argument string and automatically pdb will be called if an
 uncaught exception is triggered by your code.
 
@@ -5047,7 +5043,7 @@ I will have to rely on user's experiences and assistance for this area
 of IPython to improve under other platforms.
 
 IPython, via the -gthread , -qthread, -q4thread and -wthread options
-(described in Sec. 5.1 <node5.html#sec:threading-opts>), can run in
+(described in Sec. `Threading options`_), can run in
 multithreaded mode to support pyGTK, Qt3, Qt4 and WXPython applications
 respectively. These GUI toolkits need to control the python main loop of
 execution, so under a normal Python interpreter, starting a pyGTK, Qt3,
@@ -5066,12 +5062,12 @@ http://www.scipy.org/Cookbook/Matplotlib/Qt_with_IPython_and_Designer.
 Tk issues
 ---------
 
-As indicated in Sec. 5.1 <node5.html#sec:threading-opts>, a special -tk
-option is provided to try and allow Tk graphical applications to coexist
+As indicated in Sec. `Threading options`_, a special -tk option is
+provided to try and allow Tk graphical applications to coexist
 interactively with WX, Qt or GTK ones. Whether this works at all,
-however, is very platform and configuration dependent. Please experiment
-with simple test cases before committing to using this combination of Tk
-and GTK/Qt/WX threading in a production environment.
+however, is very platform and configuration dependent. Please
+experiment with simple test cases before committing to using this
+combination of Tk and GTK/Qt/WX threading in a production environment.
 
 
 I/O pitfalls
@@ -5106,6 +5102,8 @@ file buffering. If you want to do it cleanly, and you have a resource
 which is being shared by the interactive IPython loop and your GUI
 thread, you should really handle it with thread locking and
 syncrhonization properties. The Python documentation discusses these.
+
+.. _Interactive demos:
 
 Interactive demos with IPython
 ==============================
@@ -5202,6 +5200,8 @@ instance at an arbitrary point in a program, you can use IPython's
 embedding facilities, described in detail in Sec. 9
 
 
+.. _Matplotlib support:
+
 Plotting with matplotlib
 ========================
 
@@ -5212,20 +5212,20 @@ toolkits, including Tk, GTK and WXPython. It also provides a number of
 commands useful for scientific computing, all with a syntax compatible
 with that of the popular Matlab program.
 
-IPython accepts the special option -pylab (Sec. 5.2
-<node5.html#sec:cmd-line-opts>). This configures it to support
-matplotlib, honoring the settings in the .matplotlibrc file. IPython
-will detect the user's choice of matplotlib GUI backend, and
-automatically select the proper threading model to prevent blocking. It
-also sets matplotlib in interactive mode and modifies %run slightly, so
-that any matplotlib-based script can be executed using %run and the
-final show() command does not block the interactive shell.
+IPython accepts the special option -pylab (Sec. `Command line
+options`_). This configures it to support matplotlib, honoring the
+settings in the .matplotlibrc file. IPython will detect the user's
+choice of matplotlib GUI backend, and automatically select the proper
+threading model to prevent blocking. It also sets matplotlib in
+interactive mode and modifies %run slightly, so that any
+matplotlib-based script can be executed using %run and the final
+show() command does not block the interactive shell.
 
-The -pylab option must be given first in order for IPython to configure
-its threading mode. However, you can still issue other options
-afterwards. This allows you to have a matplotlib-based environment
-customized with additional modules using the standard IPython profile
-mechanism (Sec. 7.3 <node7.html#sec:profiles>): ''ipython -pylab -p
+The -pylab option must be given first in order for IPython to
+configure its threading mode. However, you can still issue other
+options afterwards. This allows you to have a matplotlib-based
+environment customized with additional modules using the standard
+IPython profile mechanism (Sec. Profiles_): ''ipython -pylab -p
 myprofile'' will load the profile defined in ipythonrc-myprofile after
 configuring matplotlib.
 
@@ -5493,11 +5493,11 @@ produced by you, but bugs in its internals will still crash it.
 In such a situation, IPython will leave a file named
 IPython_crash_report.txt in your IPYTHONDIR directory (that way if
 crashes happen several times it won't litter many directories, the
-post-mortem file is always located in the same place and new occurrences
-just overwrite the previous one). If you can mail this file to the
-developers (see sec. 20 <node20.html#sec:credits> for names and
-addresses), it will help us a lot in understanding the cause of the
-problem and fixing it sooner.
+post-mortem file is always located in the same place and new
+occurrences just overwrite the previous one). If you can mail this
+file to the developers (see sec. credits_ for names and addresses), it
+will help us a lot in understanding the cause of the problem and
+fixing it sooner.
 
 
 The bug tracker
@@ -5531,13 +5531,13 @@ The current IPython system grew out of the following three projects:
       syntax (auto parens, auto quotes) and verbose/colored tracebacks
       were all taken from here.
 
-When I found out (see sec. 20 <node20.html#figgins>) about IPP and
-LazyPython I tried to join all three into a unified system. I thought
-this could provide a very nice working environment, both for regular
-programming and scientific computing: shell-like features, IDL/Matlab
-numerics, Mathematica-type prompt history and great object introspection
-and help facilities. I think it worked reasonably well, though it was a
-lot more work than I had initially planned.
+When I found out about IPP and LazyPython I tried to join all three
+into a unified system. I thought this could provide a very nice
+working environment, both for regular programming and scientific
+computing: shell-like features, IDL/Matlab numerics, Mathematica-type
+prompt history and great object introspection and help facilities. I
+think it worked reasonably well, though it was a lot more work than I
+had initially planned.
 
 
 Current status
@@ -5653,7 +5653,7 @@ User or development help should be requested via the IPython mailing lists:
 *Developer's list:*
     http://scipy.net/mailman/listinfo/ipython-dev 
 
-The IPython project is also very grateful to^7 <footnode.html#foot2913>:
+The IPython project is also very grateful to:
 
 Bill Bumgarner <bbum-AT-friday.com>: for providing the DPyGetOpt module
 which gives very powerful and convenient handling of command-line
