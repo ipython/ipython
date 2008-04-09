@@ -62,9 +62,11 @@ Main features
 * Searching through modules and namespaces with '*' wildcards, both
   when using the '?' system and via the %psearch command.
 * Completion in the local namespace, by typing TAB at the prompt.
-  This works for keywords, methods, variables and files in the
+  This works for keywords, modules, methods, variables and files in the
   current directory. This is supported via the readline library, and
-  full access to configuring readline's behavior is provided.
+  full access to configuring readline's behavior is provided. 
+  Custom completers can be implemented easily for different purposes
+  (system commands, magic arguments etc.)
 * Numbered input/output prompts with command history (persistent
   across sessions and tied to each profile), full searching in this
   history and caching of all input and output.
@@ -74,8 +76,8 @@ Main features
   common system shell commands.
 * Alias facility for defining your own system aliases.
 * Complete system shell access. Lines starting with ! are passed
-  directly to the system shell, and using !! captures shell output
-  into python variables for further use.
+  directly to the system shell, and using !! or var = !cmd 
+  captures shell output into python variables for further use.
 * Background execution of Python commands in a separate thread.
   IPython has an internal job manager called jobs, and a
   conveninence backgrounding magic function called %bg.
@@ -133,7 +135,9 @@ Main features
   %run magic command -with the -d option- can run any script under
   pdb's control, automatically setting initial breakpoints for you.
   This version of pdb has IPython-specific improvements, including
-  tab-completion and traceback coloring support.
+  tab-completion and traceback coloring support. For even easier
+  debugger access, try %debug after seeing an exception. winpdb is 
+  also supported, see ipy_winpdb extension.
 * Profiler support. You can run single statements (similar to
   profile.run()) or complete programs under the profiler's control.
   While this is possible with standard cProfile or profile modules,
@@ -1344,7 +1348,7 @@ Interactive use
 ===============
 
 Warning: IPython relies on the existence of a global variable called
-__IP which controls the shell itself. If you redefine __IP to anything,
+_ip which controls the shell itself. If you redefine _ip to anything,
 bizarre behavior will quickly occur.
 
 Other than the above warning, IPython is meant to work as a drop-in
@@ -1358,21 +1362,14 @@ follows is a list of these.
 Caution for Windows users
 -------------------------
 
-Windows, unfortunately, uses the '\' character as a path separator. This
-is a terrible choice, because '\' also represents the escape character
-in most modern programming languages, including Python. For this reason,
-issuing many of the commands discussed below (especially magics which
-affect the filesystem) with '\' in them will cause strange errors.
-
-A partial solution is to use instead the '/' character as a path
-separator, which Windows recognizes in most situations. However, in
-Windows commands '/' flags options, so you can not use it for the root
-directory. This means that paths beginning at the root must be typed in
-a contrived manner like:
-%copy \opt/foo/bar.txt \tmp
-
-There is no sensible thing IPython can do to truly work around this flaw
-in Windows.
+Windows, unfortunately, uses the '\' character as a path
+separator. This is a terrible choice, because '\' also represents the
+escape character in most modern programming languages, including
+Python. For this reason, using '/' character is recommended if you
+have problems with ``\``.  However, in Windows commands '/' flags
+options, so you can not use it for the root directory. This means that
+paths beginning at the root must be typed in a contrived manner like:
+``%copy \opt/foo/bar.txt \tmp``
 
 .. _magic:
 
@@ -3057,17 +3054,17 @@ information about your working environment. You can get more details by
 typing %magic or querying them individually (use %function_name? with or
 without the %), this is just a summary:
 
-    * [%pdoc <object>:] Print (or run through a pager if too long) the
+    * **%pdoc <object>**: Print (or run through a pager if too long) the
       docstring for an object. If the given object is a class, it will
       print both the class and the constructor docstrings.
-    * [%pdef <object>:] Print the definition header for any callable
+    * **%pdef <object>**: Print the definition header for any callable
       object. If the object is a class, print the constructor information.
-    * [%psource <object>:] Print (or run through a pager if too long)
+    * **%psource <object>**: Print (or run through a pager if too long)
       the source code for an object.
-    * [%pfile <object>:] Show the entire source file where an object was
+    * **%pfile <object>**: Show the entire source file where an object was
       defined via a pager, opening it at the line where the object
       definition begins.
-    * [%who/%whos:] These functions give information about identifiers
+    * **%who/%whos**: These functions give information about identifiers
       you have defined interactively (not things you loaded or defined
       in your configuration files). %who just prints a list of
       identifiers and %whos prints a table with some basic details about
@@ -3164,17 +3161,17 @@ options via a simple interface. In brief, you can customize readline by
 setting the following options in your ipythonrc configuration file (note
 that these options can not be specified at the command line):
 
-    * [readline_parse_and_bind:] this option can appear as many times as
+    * **readline_parse_and_bind**: this option can appear as many times as
       you want, each time defining a string to be executed via a
       readline.parse_and_bind() command. The syntax for valid commands
       of this kind can be found by reading the documentation for the GNU
       readline library, as these commands are of the kind which readline
       accepts in its configuration file.
-    * [readline_remove_delims:] a string of characters to be removed
+    * **readline_remove_delims**: a string of characters to be removed
       from the default word-delimiters list used by readline, so that
       completions may be performed on strings which contain them. Do not
       change the default value unless you know what you're doing.
-    * [readline_omit__names:] when tab-completion is enabled, hitting
+    * **readline_omit__names**: when tab-completion is enabled, hitting
       <tab> after a '.' in a name will complete all attributes of an
       object, including all the special methods whose names include
       double underscores (like __getitem__ or __class__). If you'd
@@ -3182,7 +3179,8 @@ that these options can not be specified at the command line):
       1. Note that even when this option is set, you can still see those
       names by explicitly typing a _ after the period and hitting <tab>:
       'name._<tab>' will always complete attribute names starting with '_'.
-    * [ ] This option is off by default so that new users see all
+      
+      This option is off by default so that new users see all
       attributes of any objects they are dealing with.
 
 You will find the default values along with a corresponding detailed
@@ -3545,7 +3543,7 @@ line. These options are briefly described below.
 
 Each of these options may appear as many times as you need it in the file.
 
-    * [include <file1> <file2> ...:] you can name other rcfiles you want
+    * include <file1> <file2> ...: you can name other rcfiles you want
       to recursively load up to 15 levels (don't use the <> brackets in
       your names!). This feature allows you to define a 'base' rcfile
       with general options and special-purpose files which can be loaded
@@ -3553,20 +3551,20 @@ Each of these options may appear as many times as you need it in the file.
       this more convenient, IPython accepts the -profile <name> option
       (abbreviates to -p <name>) which tells it to look for an rcfile
       named ipythonrc-<name>.
-    * [import_mod <mod1> <mod2> ...:] import modules with 'import
+    * import_mod <mod1> <mod2> ...: import modules with 'import
       <mod1>,<mod2>,...'
-    * [import_some <mod> <f1> <f2> ...:] import functions with 'from
+    * import_some <mod> <f1> <f2> ...: import functions with 'from
       <mod> import <f1>,<f2>,...'
-    * [import_all <mod1> <mod2> ...:] for each module listed import
+    * import_all <mod1> <mod2> ...: for each module listed import
       functions with ``from <mod> import *``.
-    * [execute <python code>:] give any single-line python code to be
+    * execute <python code>: give any single-line python code to be
       executed.
-    * [execfile <filename>:] execute the python file given with an
+    * execfile <filename>: execute the python file given with an
       'execfile(filename)' command. Username expansion is performed on
       the given names. So if you need any amount of extra fancy
       customization that won't fit in any of the above 'canned' options,
       you can just put it in a separate python file and execute it.
-    * [alias <alias_def>:] this is equivalent to calling
+    * alias <alias_def>: this is equivalent to calling
       '%alias <alias_def>' at the IPython command line. This way, from
       within IPython you can do common system tasks without having to
       exit it or use the ! escape. IPython isn't meant to be a shell
