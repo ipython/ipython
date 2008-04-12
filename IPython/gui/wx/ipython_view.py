@@ -453,7 +453,7 @@ class IPShellWidget(wx.Panel):
 
     def __init__(self, parent, intro=None,
                  background_color="BLACK", add_button_handler=None, 
-                 wx_ip_shell=None,
+                 wx_ip_shell=None, user_ns={},user_global_ns=None,
                  ):
         '''
         Initialize.
