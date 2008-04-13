@@ -92,7 +92,7 @@ class NonBlockingIPShell(object):
 
     def __init__(self,argv=[],user_ns={},user_global_ns=None,
                  cin=None, cout=None, cerr=None,
-                 ask_exit_handler=None, rawinput=None):
+                 ask_exit_handler=None):
         '''
         @param argv: Command line options for IPython
         @type argv: list
@@ -114,7 +114,7 @@ class NonBlockingIPShell(object):
         #ipython0 initialisation
         self.initIpython0(argv, user_ns, user_global_ns,
                           cin, cout, cerr,
-                          ask_exit_handler, rawinput)
+                          ask_exit_handler)
         
         #vars used by _execute
         self._iter_more = 0
@@ -133,7 +133,7 @@ class NonBlockingIPShell(object):
 
     def initIpython0(self, argv=[], user_ns={}, user_global_ns=None,
                      cin=None, cout=None, cerr=None,
-                     ask_exit_handler=None, rawinput=None):
+                     ask_exit_handler=None):
         #first we redefine in/out/error functions of IPython 
         if cin:
             IPython.Shell.Term.cin = cin
@@ -167,12 +167,18 @@ class NonBlockingIPShell(object):
         self._IP.set_hook('shell_hook',self._shell)
         
         #we replace the ipython default input command caller by our method
-        IPython.iplib.raw_input_original = rawinput
-
+        IPython.iplib.raw_input_original = self._raw_input
         #we replace the ipython default exit command by our method
         self._IP.exit = ask_exit_handler
         #we replace the help command
         self._IP.user_ns['help'] = _Helper(self._pager_help)
+
+        #we disable cpase magic... until we found a way to use it properly.
+        #import IPython.ipapi
+        ip = IPython.ipapi.get()
+        def bypassMagic(self, arg):
+            print '%this magic is currently disabled.'
+        ip.expose_magic('cpaste', bypassMagic)
         
         sys.excepthook = excepthook
 
@@ -340,6 +346,12 @@ class NonBlockingIPShell(object):
         '''
         pass
 
+    #def _askExit(self):
+    #    '''
+    #    Can be redefined to generate post event to exit the Ipython shell
+    #    '''
+    #    pass
+
     def _getHistoryMaxIndex(self):
         '''
         returns the max length of the history buffer
@@ -380,6 +392,18 @@ class NonBlockingIPShell(object):
         '''
         self._doc_text = text
     
+    def _raw_input(self, prompt=''):
+        '''
+        Custom raw_input() replacement. Get's current line from console buffer.
+
+        @param prompt: Prompt to print. Here for compatability as replacement.
+        @type prompt: string
+
+        @return: The current command line text.
+        @rtype: string
+        '''
+        return self._line_to_execute
+
     def _execute(self):
         '''
         Executes the current line provided by the shell object.
