@@ -12,6 +12,7 @@ import IPython.ipapi
 import glob,os,shlex,sys
 import inspect
 from time import time
+from zipimport import zipimporter
 ip = IPython.ipapi.get()
 
 try:
@@ -86,6 +87,11 @@ def moduleList(path):
 
     if os.path.isdir(path):
         folder_list = os.listdir(path)
+    elif path.endswith('.egg'):
+        try:
+            folder_list = [f for f in zipimporter(path)._files]
+        except:
+            folder_list = []
     else:
         folder_list = []
     #folder_list = glob.glob(os.path.join(path,'*'))

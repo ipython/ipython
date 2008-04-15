@@ -2,6 +2,9 @@
 
 	* genutils.py: SList.grep supports 'field' argument
 
+	* ipy_completers.py: module completer looks inside
+	.egg zip files (patch by mc). Close #196.
+
 2008-04-09  Ville Vainio <vivainio@gmail.com>
 
 	* deep_reload.py: do not crash on from __future__ import 
