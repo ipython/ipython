@@ -47,12 +47,11 @@ class WxNonBlockingIPShell(NonBlockingIPShell):
     def __init__(self, parent, 
                  argv=[],user_ns={},user_global_ns=None,
                  cin=None, cout=None, cerr=None,
-                 ask_exit_handler=None, rawinput=None):
+                 ask_exit_handler=None):
         
         NonBlockingIPShell.__init__(self,argv,user_ns,user_global_ns,
                                     cin, cout, cerr,
-                                    ask_exit_handler,
-                                    rawinput)
+                                    ask_exit_handler)
 
         self.parent = parent
 
@@ -216,6 +215,31 @@ class WxConsoleView(stc.StyledTextCtrl):
         
         self.Bind(wx.EVT_KEY_DOWN, self._onKeypress, self)
 
+    def asyncWrite(self, text):
+        '''
+        Write given text to buffer in an asynchroneous way.
+        It is used from another thread to be able to acces the GUI.
+        @param text: Text to append
+        @type text: string
+        '''
+        try:
+                #print >>sys.__stdout__,'entering'
+                wx.MutexGuiEnter()
+                #print >>sys.__stdout__,'locking the GUI'
+                
+                #be sure not to be interrutpted before the MutexGuiLeave!
+                self.write(text)
+                #print >>sys.__stdout__,'done'
+                
+        except KeyboardInterrupt:
+                #print >>sys.__stdout__,'got keyboard interrupt'
+                wx.MutexGuiLeave()
+                #print >>sys.__stdout__,'interrupt unlock the GUI'
+                raise KeyboardInterrupt
+        wx.MutexGuiLeave()
+        #print >>sys.__stdout__,'normal unlock the GUI'
+        
+                
     def write(self, text):
         '''
         Write given text to buffer.
@@ -453,7 +477,7 @@ class IPShellWidget(wx.Panel):
 
     def __init__(self, parent, intro=None,
                  background_color="BLACK", add_button_handler=None, 
-                 wx_ip_shell=None,
+                 wx_ip_shell=None, user_ns={},user_global_ns=None,
                  ):
         '''
         Initialize.
@@ -472,8 +496,7 @@ class IPShellWidget(wx.Panel):
         else:
             self.IP = WxNonBlockingIPShell(self,
                                     cout = self.cout, cerr = self.cout,
-                                    ask_exit_handler = self.askExitCallback,
-                                    rawinput = self.rawInput)
+                                    ask_exit_handler = self.askExitCallback)
 
         ### IPython wx console view instanciation ###
         #If user didn't defined an intro text, we create one for him
@@ -492,7 +515,7 @@ class IPShellWidget(wx.Panel):
                                        intro=welcome_text,
                                        background_color=background_color)
 
-        self.cout.write = self.text_ctrl.write
+        self.cout.write = self.text_ctrl.asyncWrite
         
         self.text_ctrl.Bind(wx.EVT_KEY_DOWN, self.keyPress, self.text_ctrl)
     
@@ -509,18 +532,19 @@ class IPShellWidget(wx.Panel):
         #widget state management (for key handling different cases)
         self.setCurrentState('IDLE')
         self.pager_state = 'DONE'
+        self.raw_input_current_line = 0
 
     def askExitCallback(self, event):
         self.askExitHandler(event)
         
     #---------------------- IPython Thread Management ------------------------
     def stateDoExecuteLine(self):
-        #print >>sys.__stdout__,"command:",self.getCurrentLine()
         lines=self.text_ctrl.getCurrentLine()
         self.text_ctrl.write('\n')
-        for line in lines.split('\n'):
-            self.IP.doExecute((line.replace('\t',' '*4)).encode('cp1252'))
-        self.updateHistoryTracker(self.text_ctrl.getCurrentLine())
+        lines_to_execute = lines.replace('\t',' '*4)
+        lines_to_execute = lines_to_execute.replace('\r\n','\n')
+        self.IP.doExecute(lines.encode('cp1252'))
+        self.updateHistoryTracker(lines)
         self.setCurrentState('WAIT_END_OF_EXECUTION')
         
     def evtStateExecuteDone(self,evt):
@@ -551,16 +575,7 @@ class IPShellWidget(wx.Panel):
     def setCurrentState(self, state):
         self.cur_state = state
         self.updateStatusTracker(self.cur_state)
-    #---------------------------- Ipython raw_input -----------------------------------
-    def rawInput(self, prompt=''):
-        self.setCurrentState('WAITING_USER_INPUT')
-        while self.cur_state != 'WAIT_END_OF_EXECUTION':
-                pass
-        line = self.text_ctrl.getCurrentLine()
-        line = line.split('\n')
-        return line[-2]
-            
-    #---------------------------- IPython pager ---------------------------------------
+
     def pager(self,text):
 
         if self.pager_state == 'INIT':
