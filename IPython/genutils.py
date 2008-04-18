@@ -33,6 +33,18 @@ import time
 import types
 import warnings
 
+# Curses and termios are Unix-only modules
+try:
+    import curses
+    # We need termios as well, so if its import happens to raise, we bail on
+    # using curses altogether.
+    import termios
+except ImportError:
+    USE_CURSES = False
+else:
+    # Curses on Solaris may not be complete, so we can't use it there
+    USE_CURSES = hasattr(curses,'initscr')
+
 # Other IPython utilities
 import IPython
 from IPython.Itpl import Itpl,itpl,printpl
@@ -1548,26 +1560,30 @@ def page(strng,start=0,screen_lines=0,pager_cmd = None):
     # auto-determine screen size
     if screen_lines <= 0:
         if TERM=='xterm':
-            try:
-                import curses
-                if hasattr(curses,'initscr'):
-                    use_curses = 1
-                else:
-                    use_curses = 0
-            except ImportError:
-                use_curses = 0
+            use_curses = USE_CURSES
         else:
             # curses causes problems on many terminals other than xterm.
-            use_curses = 0
+            use_curses = False
         if use_curses:
-                scr = curses.initscr()
-                screen_lines_real,screen_cols = scr.getmaxyx()
-                curses.endwin()
-                screen_lines += screen_lines_real
-                #print '***Screen size:',screen_lines_real,'lines x',\
-                #screen_cols,'columns.' # dbg
+            # There is a bug in curses, where *sometimes* it fails to properly
+            # initialize, and then after the endwin() call is made, the
+            # terminal is left in an unusable state.  Rather than trying to
+            # check everytime for this (by requesting and comparing termios
+            # flags each time), we just save the initial terminal state and
+            # unconditionally reset it every time.  It's cheaper than making
+            # the checks.
+            term_flags = termios.tcgetattr(sys.stdout)
+            scr = curses.initscr()
+            screen_lines_real,screen_cols = scr.getmaxyx()
+            curses.endwin()
+            # Restore terminal state in case endwin() didn't.
+            termios.tcsetattr(sys.stdout,termios.TCSANOW,term_flags)
+            # Now we have what we needed: the screen size in rows/columns
+            screen_lines += screen_lines_real
+            #print '***Screen size:',screen_lines_real,'lines x',\
+            #screen_cols,'columns.' # dbg
         else:
-                screen_lines += screen_lines_def
+            screen_lines += screen_lines_def
 
     #print 'numlines',numlines,'screenlines',screen_lines  # dbg
     if numlines <= screen_lines :
