@@ -397,6 +397,7 @@ class WxConsoleView(stc.StyledTextCtrl):
         else:
             possibilities.sort()  # Python sorts are case sensitive
             self.AutoCompSetIgnoreCase(False)
+            self.AutoCompSetAutoHide(False)
             #let compute the length ot last word
             splitter = [' ','(','[','{']
             last_word = self.getCurrentLine()
@@ -581,8 +582,8 @@ class IPShellWidget(wx.Panel):
         lines=self.text_ctrl.getCurrentLine()
         self.text_ctrl.write('\n')
         lines_to_execute = lines.replace('\t',' '*4)
-        lines_to_execute = lines_to_execute.replace('\r\n','\n')
-        self.IP.doExecute(lines.encode('cp1252'))
+        lines_to_execute = lines_to_execute.replace('\r','')
+        self.IP.doExecute(lines_to_execute.encode('cp1252'))
         self.updateHistoryTracker(lines)
         self.setCurrentState('WAIT_END_OF_EXECUTION')
         
