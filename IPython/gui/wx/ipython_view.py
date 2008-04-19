@@ -394,7 +394,6 @@ class WxConsoleView(stc.StyledTextCtrl):
         @return: Return True if event as been catched.
         @rtype: boolean
         '''
-        
         if event.GetKeyCode() == wx.WXK_HOME:
             if event.Modifiers == wx.MOD_NONE:
                 self.moveCursorOnNewValidKey()
@@ -485,7 +484,7 @@ class IPShellWidget(wx.Panel):
         Instanciate a WxConsoleView.
         Redirect I/O to console.
         '''
-        wx.Panel.__init__(self,parent,-1)
+        wx.Panel.__init__(self,parent,wx.ID_ANY)
 
         ### IPython non blocking shell instanciation ###
         self.cout = StringIO()
@@ -517,7 +516,7 @@ class IPShellWidget(wx.Panel):
 
         self.cout.write = self.text_ctrl.asyncWrite
         
-        self.text_ctrl.Bind(wx.EVT_KEY_DOWN, self.keyPress, self.text_ctrl)
+        self.text_ctrl.Bind(wx.EVT_KEY_DOWN, self.keyPress)
     
         ### making the layout of the panel ###
         sizer = wx.BoxSizer(wx.VERTICAL)
@@ -630,7 +629,6 @@ class IPShellWidget(wx.Panel):
         Key press callback with plenty of shell goodness, like history,
         autocompletions, etc.
         '''
-        
         if event.GetKeyCode() == ord('C'):
             if event.Modifiers == wx.MOD_CONTROL:
                 if self.cur_state == 'WAIT_END_OF_EXECUTION':
@@ -644,6 +642,7 @@ class IPShellWidget(wx.Panel):
                 self.setCurrentState('DO_EXECUTE_LINE')
                 self.stateDoExecuteLine()
                 return
+
             if self.pager_state == 'WAITING':
                 self.pager_state = 'PROCESS_LINES'
                 self.pager(self.doc)
