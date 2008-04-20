@@ -3,6 +3,11 @@
 	* Extensions/ipy_lookfor.py: add %lookfor magic command
 	(search docstrings for words) by Pauli Virtanen. Close #245.
 
+	* Extension/ipy_jot.py: %jot and %read magics, analogous
+	to %store but you can specify some notes. Not read 
+	in automatically on startup, you need %read.
+	Contributed by Yichun Wei.
+
 2008-04-18  Fernando Perez  <Fernando.Perez@berkeley.edu>
 
 	* IPython/genutils.py (page): apply workaround to curses bug that
