@@ -147,6 +147,7 @@ class WxConsoleView(stc.StyledTextCtrl):
         self.SetBufferedDraw(True)
         #self.SetUseAntiAliasing(True)
         self.SetLayoutCache(stc.STC_CACHE_PAGE)
+        self.SetUndoCollection(False)
 
         self.EnsureCaretVisible()
         
@@ -538,7 +539,7 @@ class IPShellWidget(wx.Panel):
 
         ### IPython wx console view instanciation ###
         #If user didn't defined an intro text, we create one for him
-        #If you really wnat an empty intrp just call wxIPythonViewPanel 
+        #If you really wnat an empty intro just call wxIPythonViewPanel 
         #with intro=''
         if intro is None:
             welcome_text = "Welcome to WxIPython Shell.\n\n"
@@ -555,10 +556,10 @@ class IPShellWidget(wx.Panel):
 
         self.cout.write = self.text_ctrl.asyncWrite
 
-        option_text = wx.StaticText(self,-1,'Options:')
-        self.completion_option = wx.CheckBox(self, -1, "Scintilla completion")
+        option_text = wx.StaticText(self, -1, "Options:")
+        self.completion_option = wx.CheckBox(self, -1, "Scintilla Completion")
         self.completion_option.SetValue(False)
-        self.background_option = wx.CheckBox(self, -1, "White background")
+        self.background_option = wx.CheckBox(self, -1, "White Background")
         self.background_option.SetValue(False)
         
         self.text_ctrl.Bind(wx.EVT_KEY_DOWN, self.keyPress)
@@ -569,12 +570,13 @@ class IPShellWidget(wx.Panel):
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer.Add(self.text_ctrl, 1, wx.EXPAND)
         option_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        sizer.Add(option_sizer,0)
-        option_sizer.AddMany([(10,15),
-                              option_text,
-                              (20,15),
-                              self.completion_option,
-                              self.background_option,
+        sizer.Add(option_sizer, 0)
+        option_sizer.AddMany([(10, 20),
+                              (option_text, 0, wx.ALIGN_CENTER_VERTICAL),
+                              (5, 5),
+                              (self.completion_option, 0, wx.ALIGN_CENTER_VERTICAL),
+                              (8, 8),
+                              (self.background_option, 0, wx.ALIGN_CENTER_VERTICAL)
                               ])
         self.SetAutoLayout(True)
         sizer.Fit(self)
