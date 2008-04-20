@@ -134,6 +134,44 @@ class WxConsoleView(stc.StyledTextCtrl):
         self.CmdKeyAssign(ord('B'), stc.STC_SCMOD_CTRL, stc.STC_CMD_ZOOMIN)
         self.CmdKeyAssign(ord('N'), stc.STC_SCMOD_CTRL, stc.STC_CMD_ZOOMOUT)
 
+        #We draw a line at position 80
+        self.SetEdgeMode(stc.STC_EDGE_LINE)
+        self.SetEdgeColumn(80)
+        self.SetEdgeColour(wx.LIGHT_GREY)
+
+        #self.SetViewWhiteSpace(True)
+        #self.SetViewEOL(True)
+        self.SetEOLMode(stc.STC_EOL_CRLF)
+        #self.SetWrapMode(stc.STC_WRAP_CHAR)
+        #self.SetWrapMode(stc.STC_WRAP_WORD)
+        self.SetBufferedDraw(True)
+        #self.SetUseAntiAliasing(True)
+        self.SetLayoutCache(stc.STC_CACHE_PAGE)
+
+        self.EnsureCaretVisible()
+        
+        self.SetMargins(3,3) #text is moved away from border with 3px
+        # Suppressing Scintilla margins
+        self.SetMarginWidth(0,0)
+        self.SetMarginWidth(1,0)
+        self.SetMarginWidth(2,0)
+
+        self.background_color = background_color
+        self.buildStyles()
+        
+        self.indent = 0
+        self.prompt_count = 0
+        self.color_pat = re.compile('\x01?\x1b\[(.*?)m\x02?')
+        
+        self.write(intro)
+        self.setPrompt(prompt)
+        self.showPrompt()
+
+        self.autocomplete_mode = autocomplete_mode
+        
+        self.Bind(wx.EVT_KEY_DOWN, self._onKeypress)
+
+    def buildStyles(self):
         #we define platform specific fonts
         if wx.Platform == '__WXMSW__':
                 faces = { 'times': 'Times New Roman',
@@ -160,35 +198,12 @@ class WxConsoleView(stc.StyledTextCtrl):
                       'size2': 8,
                      }
 
-        #We draw a line at position 80
-        self.SetEdgeMode(stc.STC_EDGE_LINE)
-        self.SetEdgeColumn(80)
-        self.SetEdgeColour(wx.LIGHT_GREY)
-
-        #self.SetViewWhiteSpace(True)
-        #self.SetViewEOL(True)
-        self.SetEOLMode(stc.STC_EOL_CRLF)
-        #self.SetWrapMode(stc.STC_WRAP_CHAR)
-        #self.SetWrapMode(stc.STC_WRAP_WORD)
-        self.SetBufferedDraw(True)
-        #self.SetUseAntiAliasing(True)
-        self.SetLayoutCache(stc.STC_CACHE_PAGE)
-
-        self.EnsureCaretVisible()
-        
-        self.SetMargins(3,3) #text is moved away from border with 3px
-        # Suppressing Scintilla margins
-        self.SetMarginWidth(0,0)
-        self.SetMarginWidth(1,0)
-        self.SetMarginWidth(2,0)
-
         # make some styles
-        if background_color != "BLACK":
+        if self.background_color != "BLACK":
             self.background_color = "WHITE"
             self.SetCaretForeground("BLACK")
             self.ANSI_STYLES = self.ANSI_STYLES_WHITE
         else:
-            self.background_color = background_color
             self.SetCaretForeground("WHITE")
             self.ANSI_STYLES = self.ANSI_STYLES_BLACK
 
@@ -202,24 +217,19 @@ class WxConsoleView(stc.StyledTextCtrl):
                           "fore:#FF0000,back:#0000FF,bold")
         self.StyleSetSpec(stc.STC_STYLE_BRACEBAD,
                           "fore:#000000,back:#FF0000,bold")
-    
+
         for style in self.ANSI_STYLES.values():
             self.StyleSetSpec(style[0], "bold,fore:%s" % style[1])
         
         #######################################################################
         
-        self.indent = 0
-        self.prompt_count = 0
-        self.color_pat = re.compile('\x01?\x1b\[(.*?)m\x02?')
-        
-        self.write(intro)
-        self.setPrompt(prompt)
-        self.showPrompt()
+    def setBackgroundColor(self,color):
+        self.background_color = color
+        self.buildStyles()
 
-        self.autocomplete_mode = autocomplete_mode
+    def getBackgroundColor(self,color):
+        return self.background_color
         
-        self.Bind(wx.EVT_KEY_DOWN, self._onKeypress)
-    
     def asyncWrite(self, text):
         '''
         Write given text to buffer in an asynchroneous way.
@@ -545,12 +555,15 @@ class IPShellWidget(wx.Panel):
 
         self.cout.write = self.text_ctrl.asyncWrite
 
+        option_text = wx.StaticText(self,-1,'Options:')
         self.completion_option = wx.CheckBox(self, -1, "Scintilla completion")
         self.completion_option.SetValue(False)
-        option_text = wx.StaticText(self,-1,'Options:')
+        self.background_option = wx.CheckBox(self, -1, "White background")
+        self.background_option.SetValue(False)
         
         self.text_ctrl.Bind(wx.EVT_KEY_DOWN, self.keyPress)
-        self.Bind(wx.EVT_CHECKBOX, self.evtCheckOptionCompletion, self.completion_option)
+        self.completion_option.Bind(wx.EVT_CHECKBOX, self.evtCheckOptionCompletion)
+        self.background_option.Bind(wx.EVT_CHECKBOX, self.evtCheckOptionBackgroundColor)
             
         ### making the layout of the panel ###
         sizer = wx.BoxSizer(wx.VERTICAL)
@@ -560,7 +573,8 @@ class IPShellWidget(wx.Panel):
         option_sizer.AddMany([(10,15),
                               option_text,
                               (20,15),
-                              self.completion_option
+                              self.completion_option,
+                              self.background_option,
                               ])
         self.SetAutoLayout(True)
         sizer.Fit(self)
@@ -753,7 +767,14 @@ class IPShellWidget(wx.Panel):
         else:
             self.text_ctrl.setCompletionMethod('IPYTHON')
         self.text_ctrl.SetFocus()
-            
+
+    def evtCheckOptionBackgroundColor(self, event):
+        if event.IsChecked():
+            self.text_ctrl.setBackgroundColor('WHITE')
+        else:
+            self.text_ctrl.setBackgroundColor('BLACK')
+        self.text_ctrl.SetFocus()
+     
     #------------------------ Hook Section -----------------------------------
     def updateHistoryTracker(self,command_line):
         '''
