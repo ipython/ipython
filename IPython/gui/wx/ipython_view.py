@@ -218,7 +218,7 @@ class WxConsoleView(stc.StyledTextCtrl):
 
         self.autocomplete_mode = autocomplete_mode
         
-        self.Bind(wx.EVT_KEY_DOWN, self._onKeypress, self)
+        self.Bind(wx.EVT_KEY_DOWN, self._onKeypress)
     
     def asyncWrite(self, text):
         '''
