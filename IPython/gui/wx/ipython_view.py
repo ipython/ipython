@@ -26,7 +26,6 @@ __license__ = "BSD"
 
 import wx
 import wx.stc  as  stc
-import wx.lib.newevent
 
 import re
 import sys
@@ -38,7 +37,6 @@ except Exception,e:
         raise "Error importing IPython (%s)" % str(e)
 
 from ipshell_nonblocking import NonBlockingIPShell
-
 
 class WxNonBlockingIPShell(NonBlockingIPShell):
     '''
@@ -171,7 +169,7 @@ class WxConsoleView(stc.StyledTextCtrl):
         self.autocomplete_mode = autocomplete_mode
         
         self.Bind(wx.EVT_KEY_DOWN, self._onKeypress)
-
+        
     def buildStyles(self):
         #we define platform specific fonts
         if wx.Platform == '__WXMSW__':
@@ -231,7 +229,7 @@ class WxConsoleView(stc.StyledTextCtrl):
     def getBackgroundColor(self,color):
         return self.background_color
         
-    def asyncWrite(self, text):
+    def asyncWrite(self, evt):
         '''
         Write given text to buffer in an asynchroneous way.
         It is used from another thread to be able to acces the GUI.
@@ -245,6 +243,7 @@ class WxConsoleView(stc.StyledTextCtrl):
                 
                 #be sure not to be interrutpted before the MutexGuiLeave!
                 self.write(text)
+                
                 #print >>sys.__stdout__,'done'
                 
         except KeyboardInterrupt:
@@ -526,6 +525,7 @@ class IPShellWidget(wx.Panel):
         '''
         wx.Panel.__init__(self,parent,wx.ID_ANY)
 
+        self.parent = parent
         ### IPython non blocking shell instanciation ###
         self.cout = StringIO()
         self.add_button_handler = add_button_handler
@@ -558,9 +558,18 @@ class IPShellWidget(wx.Panel):
 
         option_text = wx.StaticText(self, -1, "Options:")
         self.completion_option = wx.CheckBox(self, -1, "Scintilla Completion")
-        self.completion_option.SetValue(False)
+        #self.completion_option.SetValue(False)
         self.background_option = wx.CheckBox(self, -1, "White Background")
-        self.background_option.SetValue(False)
+        #self.background_option.SetValue(False)
+        
+        self.options={'completion':{'value':'IPYTHON',
+                                    'checkbox':self.completion_option,'STC':True,'IPYTHON':False,
+                                    'setfunc':self.text_ctrl.setCompletionMethod},
+                      'background_color':{'value':'BLACK',
+                                          'checkbox':self.background_option,'WHITE':True,'BLACK':False,
+                                          'setfunc':self.text_ctrl.setBackgroundColor},
+                     }
+        self.reloadOptions(self.options)
         
         self.text_ctrl.Bind(wx.EVT_KEY_DOWN, self.keyPress)
         self.completion_option.Bind(wx.EVT_CHECKBOX, self.evtCheckOptionCompletion)
@@ -765,19 +774,48 @@ class IPShellWidget(wx.Panel):
     #------------------------ Option Section ---------------------------------
     def evtCheckOptionCompletion(self, event):
         if event.IsChecked():
-            self.text_ctrl.setCompletionMethod('STC')
+            self.options['completion']['value']='STC'
         else:
-            self.text_ctrl.setCompletionMethod('IPYTHON')
+            self.options['completion']['value']='IPYTHON'
+        self.text_ctrl.setCompletionMethod(self.options['completion']['value'])
+        self.updateOptionTracker('completion',
+                                 self.options['completion']['value'])
         self.text_ctrl.SetFocus()
 
     def evtCheckOptionBackgroundColor(self, event):
         if event.IsChecked():
-            self.text_ctrl.setBackgroundColor('WHITE')
+            self.options['background_color']['value']='WHITE'
         else:
-            self.text_ctrl.setBackgroundColor('BLACK')
+            self.options['background_color']['value']='BLACK'
+        self.text_ctrl.setBackgroundColor(self.options['background_color']['value'])
+        self.updateOptionTracker('background_color',
+                                 self.options['background_color']['value'])
         self.text_ctrl.SetFocus()
-     
+    
+    def getOptions(self):
+        return self.options
+        
+    def reloadOptions(self,options):
+        self.options = options
+        for key in self.options.keys():
+            value = self.options[key]['value']
+            self.options[key]['checkbox'].SetValue(self.options[key][value])
+            self.options[key]['setfunc'](value)
+        
+        
     #------------------------ Hook Section -----------------------------------
+    def updateOptionTracker(self,name,value):
+        '''
+        Default history tracker (does nothing)
+        '''
+        pass
+    
+    def setOptionTrackerHook(self,func):
+        '''
+        Define a new history tracker
+        '''
+        self.updateOptionTracker = func
+
     def updateHistoryTracker(self,command_line):
         '''
         Default history tracker (does nothing)

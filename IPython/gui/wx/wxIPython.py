@@ -7,7 +7,7 @@ import wx.aui
 from wx.lib.wordwrap import wordwrap
 
 #used for ipython GUI objects
-from IPython.gui.wx.ipython_view import IPShellWidget 
+from IPython.gui.wx.ipython_view import IPShellWidget
 from IPython.gui.wx.ipython_history import IPythonHistoryPanel
 
 __version__ = 0.8
@@ -41,7 +41,10 @@ class MyFrame(wx.Frame):
         self.ipython_panel.setHistoryTrackerHook(self.history_panel.write)
         self.ipython_panel.setStatusTrackerHook(self.updateStatus)
         self.ipython_panel.setAskExitHandler(self.OnExitDlg)
+        self.ipython_panel.setOptionTrackerHook(self.optionSave)
+        self.optionLoad()
 
+        
         self.statusbar = self.createStatus()
         self.createMenu()
         
@@ -66,7 +69,7 @@ class MyFrame(wx.Frame):
         self.Bind(wx.EVT_MENU,  self.OnShowHistoryPanel,id=wx.ID_HIGHEST+2)
         self.Bind(wx.EVT_MENU,  self.OnShowAbout, id=wx.ID_HIGHEST+3)
         self.Bind(wx.EVT_MENU,  self.OnShowAllPanel,id=wx.ID_HIGHEST+6)
-
+        
         warn_text = 'Hello from IPython and wxPython.\n'
         warn_text +='Please Note that this work is still EXPERIMENTAL\n'
         warn_text +='It does NOT emulate currently all the IPython functions.\n'
@@ -78,7 +81,27 @@ class MyFrame(wx.Frame):
                                )
         dlg.ShowModal()
         dlg.Destroy()
-     
+
+    def optionSave(self, name, value):
+        opt = open('options.conf','w')
+        options = self.ipython_panel.getOptions()
+        for key in options.keys():
+            opt.write(key + '=' + options[key]['value']+'\n')
+        opt.close()
+        
+    def optionLoad(self):
+        opt = open('options.conf','r')
+        lines = opt.readlines()
+        opt.close()
+                      
+        options = self.ipython_panel.getOptions()
+        
+        for line in lines:
+            key = line.split('=')[0]
+            value = line.split('=')[1].replace('\n','')
+            options[key]['value'] = value
+        self.ipython_panel.reloadOptions(options)
+        
     def createMenu(self):
         """local method used to create one menu bar"""
         
