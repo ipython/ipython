@@ -229,7 +229,7 @@ class WxConsoleView(stc.StyledTextCtrl):
     def getBackgroundColor(self,color):
         return self.background_color
         
-    def asyncWrite(self, evt):
+    def asyncWrite(self, text):
         '''
         Write given text to buffer in an asynchroneous way.
         It is used from another thread to be able to acces the GUI.
