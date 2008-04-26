@@ -98,7 +98,7 @@ class MyFrame(wx.Frame):
         
         for line in lines:
             key = line.split('=')[0]
-            value = line.split('=')[1].replace('\n','')
+            value = line.split('=')[1].replace('\n','')..replace('\r','')
             options[key]['value'] = value
         self.ipython_panel.reloadOptions(options)
         
