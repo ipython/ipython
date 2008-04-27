@@ -33,17 +33,18 @@ class MyFrame(wx.Frame):
         
         #create differents panels and make them persistant 
         self.history_panel    = IPythonHistoryPanel(self)
+
+        self.history_panel.setOptionTrackerHook(self.optionSave)
         
         self.ipython_panel    = IPShellWidget(self,background_color = "BLACK")
-        
         #self.ipython_panel    = IPShellWidget(self,background_color = "WHITE")
 
         self.ipython_panel.setHistoryTrackerHook(self.history_panel.write)
         self.ipython_panel.setStatusTrackerHook(self.updateStatus)
         self.ipython_panel.setAskExitHandler(self.OnExitDlg)
         self.ipython_panel.setOptionTrackerHook(self.optionSave)
-        self.optionLoad()
 
+        self.optionLoad()
         
         self.statusbar = self.createStatus()
         self.createMenu()
@@ -84,23 +85,37 @@ class MyFrame(wx.Frame):
 
     def optionSave(self, name, value):
         opt = open('options.conf','w')
-        options = self.ipython_panel.getOptions()
-        for key in options.keys():
-            opt.write(key + '=' + options[key]['value']+'\n')
-        opt.close()
+
+        try:
+            options_ipython_panel = self.ipython_panel.getOptions()
+            options_history_panel = self.history_panel.getOptions()
+
+            for key in options_ipython_panel.keys():
+                opt.write(key + '=' + options_ipython_panel[key]['value']+'\n')
+            for key in options_history_panel.keys():
+                opt.write(key + '=' + options_history_panel[key]['value']+'\n')
+        finally:    
+            opt.close()
         
     def optionLoad(self):
         opt = open('options.conf','r')
         lines = opt.readlines()
         opt.close()
                       
-        options = self.ipython_panel.getOptions()
+        options_ipython_panel = self.ipython_panel.getOptions()
+        options_history_panel = self.history_panel.getOptions()
         
         for line in lines:
             key = line.split('=')[0]
             value = line.split('=')[1].replace('\n','').replace('\r','')
-            options[key]['value'] = value
-        self.ipython_panel.reloadOptions(options)
+            if key in options_ipython_panel.keys():
+                options_ipython_panel[key]['value'] = value
+            elif key in options_history_panel.keys():
+                options_history_panel[key]['value'] = value
+            else:
+                print >>sys.__stdout__,"Warning: key ",key,"not found in widget options. Check Options.conf"
+        self.ipython_panel.reloadOptions(options_ipython_panel)
+        self.history_panel.reloadOptions(options_history_panel)
         
     def createMenu(self):
         """local method used to create one menu bar"""
