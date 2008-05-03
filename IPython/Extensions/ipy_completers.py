@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 
 """ Implementations for various useful completers
 

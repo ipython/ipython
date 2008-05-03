@@ -115,9 +115,9 @@ class Magic:
 
     def profile_missing_notice(self, *args, **kwargs):
         error("""\
-The profile module could not be found.  If you are a Debian user,
-it has been removed from the standard Debian package because of its non-free
-license. To use profiling, please install"python2.3-profiler" from non-free.""")
+The profile module could not be found. It has been removed from the standard
+python packages because of its non-free license. To use profiling, install the
+python-profiler package from non-free.""")
 
     def default_option(self,fn,optstr):
         """Make an entry in the options_table for fn, with value optstr"""
