@@ -104,7 +104,7 @@ def file_doesnt_endwith(test,endings):
 # Note that http://www.redbrick.dcu.ie/~noel/distutils.html, ex. 2/3, contain
 # information on how to do this more cleanly once python 2.4 can be assumed.
 # Thanks to Noel for the tip.
-docdirbase  = 'share/doc/ipython-%s' % version
+docdirbase  = 'share/doc/ipython'
 manpagebase = 'share/man/man1'
 
 # We only need to exclude from this things NOT already excluded in the
@@ -136,7 +136,6 @@ datafiles = [('data', docdirbase, docfiles),
              ('data', pjoin(docdirbase, 'examples'),examfiles),
              ('data', pjoin(docdirbase, 'manual'),manfiles),
              ('data', manpagebase, manpages),
-             ('lib', 'IPython/UserConfig', cfgfiles),
              ('data',pjoin(docdirbase, 'extensions'),igridhelpfiles),
              ]
 
@@ -156,6 +155,11 @@ if 'setuptools' in sys.modules:
     #datafiles = [('lib', 'IPython/UserConfig', cfgfiles)]
 else:
     egg_extra_kwds = {}
+    # package_data of setuptools was introduced to distutils in 2.4
+    if sys.version_info < (2,4):
+        datafiles.append(('lib', 'IPython/UserConfig', cfgfiles))
+    
+    
 
 
 # Call the setup() routine which does most of the work
@@ -170,8 +174,9 @@ setup(name             = name,
       license          = license,
       platforms        = platforms,
       keywords         = keywords,
-      packages         = ['IPython', 'IPython.Extensions', 'IPython.external', 'IPython.gui', 'IPython.gui.wx'],
+      packages         = ['IPython', 'IPython.Extensions', 'IPython.external', 'IPython.gui', 'IPython.gui.wx', 'IPython.UserConfig'],
       scripts          = scriptfiles,
+      package_data     = {'IPython.UserConfig' : ['*'] },
       
       cmdclass         = {'install_data': install_data_ext},
       data_files       = datafiles,
