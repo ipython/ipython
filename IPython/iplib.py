@@ -2016,7 +2016,7 @@ want to merge them back into the new files.""" % locals()
 
         try:
             code = self.compile(source,filename,symbol)
-        except (OverflowError, SyntaxError, ValueError):
+        except (OverflowError, SyntaxError, ValueError, TypeError):
             # Case 1
             self.showsyntaxerror(filename)
             return None
