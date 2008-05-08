@@ -26,7 +26,6 @@ __license__ = "BSD"
 
 import wx
 import wx.stc  as  stc
-import wx.lib.newevent
 
 import re
 import sys
@@ -38,7 +37,6 @@ except Exception,e:
         raise "Error importing IPython (%s)" % str(e)
 
 from ipshell_nonblocking import NonBlockingIPShell
-
 
 class WxNonBlockingIPShell(NonBlockingIPShell):
     '''
@@ -109,7 +107,7 @@ class WxConsoleView(stc.StyledTextCtrl):
 
     def __init__(self,parent,prompt,intro="",background_color="BLACK",
                  pos=wx.DefaultPosition, ID = -1, size=wx.DefaultSize,
-                 style=0):
+                 style=0, autocomplete_mode = 'IPYTHON'):
         '''
         Initialize console view.
 
@@ -121,6 +119,9 @@ class WxConsoleView(stc.StyledTextCtrl):
         @param background_color: Can be BLACK or WHITE
         @type background_color: string
         @param other: init param of styledTextControl (can be used as-is)
+        @param autocomplete_mode: Can be 'IPYTHON' or 'STC'
+            'IPYTHON' show autocompletion the ipython way
+            'STC" show it scintilla text control way
         '''
         stc.StyledTextCtrl.__init__(self, parent, ID, pos, size, style)
 
@@ -131,6 +132,45 @@ class WxConsoleView(stc.StyledTextCtrl):
         self.CmdKeyAssign(ord('B'), stc.STC_SCMOD_CTRL, stc.STC_CMD_ZOOMIN)
         self.CmdKeyAssign(ord('N'), stc.STC_SCMOD_CTRL, stc.STC_CMD_ZOOMOUT)
 
+        #We draw a line at position 80
+        self.SetEdgeMode(stc.STC_EDGE_LINE)
+        self.SetEdgeColumn(80)
+        self.SetEdgeColour(wx.LIGHT_GREY)
+
+        #self.SetViewWhiteSpace(True)
+        #self.SetViewEOL(True)
+        self.SetEOLMode(stc.STC_EOL_CRLF)
+        #self.SetWrapMode(stc.STC_WRAP_CHAR)
+        #self.SetWrapMode(stc.STC_WRAP_WORD)
+        self.SetBufferedDraw(True)
+        #self.SetUseAntiAliasing(True)
+        self.SetLayoutCache(stc.STC_CACHE_PAGE)
+        self.SetUndoCollection(False)
+
+        self.EnsureCaretVisible()
+        
+        self.SetMargins(3,3) #text is moved away from border with 3px
+        # Suppressing Scintilla margins
+        self.SetMarginWidth(0,0)
+        self.SetMarginWidth(1,0)
+        self.SetMarginWidth(2,0)
+
+        self.background_color = background_color
+        self.buildStyles()
+        
+        self.indent = 0
+        self.prompt_count = 0
+        self.color_pat = re.compile('\x01?\x1b\[(.*?)m\x02?')
+        
+        self.write(intro)
+        self.setPrompt(prompt)
+        self.showPrompt()
+
+        self.autocomplete_mode = autocomplete_mode
+        
+        self.Bind(wx.EVT_KEY_DOWN, self._onKeypress)
+        
+    def buildStyles(self):
         #we define platform specific fonts
         if wx.Platform == '__WXMSW__':
                 faces = { 'times': 'Times New Roman',
@@ -157,35 +197,12 @@ class WxConsoleView(stc.StyledTextCtrl):
                       'size2': 8,
                      }
 
-        #We draw a line at position 80
-        self.SetEdgeMode(stc.STC_EDGE_LINE)
-        self.SetEdgeColumn(80)
-        self.SetEdgeColour(wx.LIGHT_GREY)
-
-        #self.SetViewWhiteSpace(True)
-        #self.SetViewEOL(True)
-        self.SetEOLMode(stc.STC_EOL_CRLF)
-        #self.SetWrapMode(stc.STC_WRAP_CHAR)
-        #self.SetWrapMode(stc.STC_WRAP_WORD)
-        self.SetBufferedDraw(True)
-        #self.SetUseAntiAliasing(True)
-        self.SetLayoutCache(stc.STC_CACHE_PAGE)
-
-        self.EnsureCaretVisible()
-        
-        self.SetMargins(3,3) #text is moved away from border with 3px
-        # Suppressing Scintilla margins
-        self.SetMarginWidth(0,0)
-        self.SetMarginWidth(1,0)
-        self.SetMarginWidth(2,0)
-
         # make some styles
-        if background_color != "BLACK":
+        if self.background_color != "BLACK":
             self.background_color = "WHITE"
             self.SetCaretForeground("BLACK")
             self.ANSI_STYLES = self.ANSI_STYLES_WHITE
         else:
-            self.background_color = background_color
             self.SetCaretForeground("WHITE")
             self.ANSI_STYLES = self.ANSI_STYLES_BLACK
 
@@ -199,22 +216,19 @@ class WxConsoleView(stc.StyledTextCtrl):
                           "fore:#FF0000,back:#0000FF,bold")
         self.StyleSetSpec(stc.STC_STYLE_BRACEBAD,
                           "fore:#000000,back:#FF0000,bold")
-    
+
         for style in self.ANSI_STYLES.values():
             self.StyleSetSpec(style[0], "bold,fore:%s" % style[1])
         
         #######################################################################
         
-        self.indent = 0
-        self.prompt_count = 0
-        self.color_pat = re.compile('\x01?\x1b\[(.*?)m\x02?')
-        
-        self.write(intro)
-        self.setPrompt(prompt)
-        self.showPrompt()
-        
-        self.Bind(wx.EVT_KEY_DOWN, self._onKeypress, self)
+    def setBackgroundColor(self,color):
+        self.background_color = color
+        self.buildStyles()
 
+    def getBackgroundColor(self,color):
+        return self.background_color
+        
     def asyncWrite(self, text):
         '''
         Write given text to buffer in an asynchroneous way.
@@ -229,6 +243,7 @@ class WxConsoleView(stc.StyledTextCtrl):
                 
                 #be sure not to be interrutpted before the MutexGuiLeave!
                 self.write(text)
+                
                 #print >>sys.__stdout__,'done'
                 
         except KeyboardInterrupt:
@@ -353,33 +368,53 @@ class WxConsoleView(stc.StyledTextCtrl):
     def writeHistory(self,history):
         self.removeFromTo(self.getCurrentPromptStart(),self.getCurrentLineEnd())
         self.changeLine(history)
+
+    def setCompletionMethod(self, completion):
+        if completion in ['IPYTHON','STC']:
+            self.autocomplete_mode = completion
+        else:
+            raise AttributeError
+
+    def getCompletionMethod(self, completion):
+        return self.autocomplete_mode
         
     def writeCompletion(self, possibilities):
-        max_len = len(max(possibilities,key=len))
-        max_symbol =' '*max_len
+        if self.autocomplete_mode == 'IPYTHON':
+            max_len = len(max(possibilities,key=len))
+            max_symbol =' '*max_len
+            
+            #now we check how much symbol we can put on a line...
+            cursor_pos = self.getCursorPos()
+            test_buffer = max_symbol + ' '*4
+            current_lines = self.GetLineCount()
+            
+            allowed_symbols = 80/len(test_buffer)
+            if allowed_symbols == 0:
+                    allowed_symbols = 1
+            
+            pos = 1
+            buf = ''
+            for symbol in possibilities:
+                #buf += symbol+'\n'#*spaces)
+                if pos<allowed_symbols:
+                    spaces = max_len - len(symbol) + 4
+                    buf += symbol+' '*spaces
+                    pos += 1
+                else:
+                    buf+=symbol+'\n'
+                    pos = 1
+            self.write(buf)
+        else:
+            possibilities.sort()  # Python sorts are case sensitive
+            self.AutoCompSetIgnoreCase(False)
+            self.AutoCompSetAutoHide(False)
+            #let compute the length ot last word
+            splitter = [' ','(','[','{']
+            last_word = self.getCurrentLine()
+            for breaker in splitter:
+                last_word = last_word.split(breaker)[-1]
+            self.AutoCompShow(len(last_word), " ".join(possibilities))
         
-        #now we check how much symbol we can put on a line...
-        cursor_pos = self.getCursorPos()
-        test_buffer = max_symbol + ' '*4
-        current_lines = self.GetLineCount()
-        
-        allowed_symbols = 80/len(test_buffer)
-        if allowed_symbols == 0:
-                allowed_symbols = 1
-        
-        pos = 1
-        buf = ''
-        for symbol in possibilities:
-            #buf += symbol+'\n'#*spaces)
-            if pos<allowed_symbols:
-                spaces = max_len - len(symbol) + 4
-                buf += symbol+' '*spaces
-                pos += 1
-            else:
-                buf+=symbol+'\n'
-                pos = 1
-        self.write(buf)
-                             
     def _onKeypress(self, event, skip=True):
         '''
         Key press callback used for correcting behavior for console-like
@@ -394,42 +429,45 @@ class WxConsoleView(stc.StyledTextCtrl):
         @return: Return True if event as been catched.
         @rtype: boolean
         '''
-        
-        if event.GetKeyCode() == wx.WXK_HOME:
-            if event.Modifiers == wx.MOD_NONE:
-                self.moveCursorOnNewValidKey()
-                self.moveCursor(self.getCurrentPromptStart())
-                return True
-            elif event.Modifiers == wx.MOD_SHIFT:
-                self.moveCursorOnNewValidKey()
-                self.selectFromTo(self.getCurrentPromptStart(),self.getCursorPos())
-                return True
-            else:
-                return False
 
-        elif event.GetKeyCode() == wx.WXK_LEFT:
-            if event.Modifiers == wx.MOD_NONE:
-                self.moveCursorOnNewValidKey()
-                
-                self.moveCursor(self.getCursorPos()-1)
-                if self.getCursorPos() < self.getCurrentPromptStart():
+        if not self.AutoCompActive():
+            if event.GetKeyCode() == wx.WXK_HOME:
+                if event.Modifiers == wx.MOD_NONE:
+                    self.moveCursorOnNewValidKey()
                     self.moveCursor(self.getCurrentPromptStart())
-                return True
+                    return True
+                elif event.Modifiers == wx.MOD_SHIFT:
+                    self.moveCursorOnNewValidKey()
+                    self.selectFromTo(self.getCurrentPromptStart(),self.getCursorPos())
+                    return True
+                else:
+                    return False
 
-        elif event.GetKeyCode() == wx.WXK_BACK:
-            self.moveCursorOnNewValidKey()
-            if self.getCursorPos() > self.getCurrentPromptStart():
-                event.Skip()
-            return True
-        
-        if skip:
-            if event.GetKeyCode() not in [wx.WXK_PAGEUP,wx.WXK_PAGEDOWN] and event.Modifiers == wx.MOD_NONE:
+            elif event.GetKeyCode() == wx.WXK_LEFT:
+                if event.Modifiers == wx.MOD_NONE:
+                    self.moveCursorOnNewValidKey()
+                    
+                    self.moveCursor(self.getCursorPos()-1)
+                    if self.getCursorPos() < self.getCurrentPromptStart():
+                        self.moveCursor(self.getCurrentPromptStart())
+                    return True
+
+            elif event.GetKeyCode() == wx.WXK_BACK:
                 self.moveCursorOnNewValidKey()
-                
+                if self.getCursorPos() > self.getCurrentPromptStart():
+                    event.Skip()
+                return True
+            
+            if skip:
+                if event.GetKeyCode() not in [wx.WXK_PAGEUP,wx.WXK_PAGEDOWN] and event.Modifiers == wx.MOD_NONE:
+                    self.moveCursorOnNewValidKey()
+                    
+                event.Skip()
+                return True
+            return False
+        else:
             event.Skip()
-            return True
-        return False
-
+            
     def OnUpdateUI(self, evt):
         # check for matching braces
         braceAtCaret = -1
@@ -485,8 +523,9 @@ class IPShellWidget(wx.Panel):
         Instanciate a WxConsoleView.
         Redirect I/O to console.
         '''
-        wx.Panel.__init__(self,parent,-1)
+        wx.Panel.__init__(self,parent,wx.ID_ANY)
 
+        self.parent = parent
         ### IPython non blocking shell instanciation ###
         self.cout = StringIO()
         self.add_button_handler = add_button_handler
@@ -500,7 +539,7 @@ class IPShellWidget(wx.Panel):
 
         ### IPython wx console view instanciation ###
         #If user didn't defined an intro text, we create one for him
-        #If you really wnat an empty intrp just call wxIPythonViewPanel 
+        #If you really wnat an empty intro just call wxIPythonViewPanel 
         #with intro=''
         if intro is None:
             welcome_text = "Welcome to WxIPython Shell.\n\n"
@@ -516,12 +555,38 @@ class IPShellWidget(wx.Panel):
                                        background_color=background_color)
 
         self.cout.write = self.text_ctrl.asyncWrite
+
+        option_text = wx.StaticText(self, -1, "Options:")
+        self.completion_option = wx.CheckBox(self, -1, "Scintilla Completion")
+        #self.completion_option.SetValue(False)
+        self.background_option = wx.CheckBox(self, -1, "White Background")
+        #self.background_option.SetValue(False)
         
-        self.text_ctrl.Bind(wx.EVT_KEY_DOWN, self.keyPress, self.text_ctrl)
-    
+        self.options={'completion':{'value':'IPYTHON',
+                                    'checkbox':self.completion_option,'STC':True,'IPYTHON':False,
+                                    'setfunc':self.text_ctrl.setCompletionMethod},
+                      'background_color':{'value':'BLACK',
+                                          'checkbox':self.background_option,'WHITE':True,'BLACK':False,
+                                          'setfunc':self.text_ctrl.setBackgroundColor},
+                     }
+        self.reloadOptions(self.options)
+        
+        self.text_ctrl.Bind(wx.EVT_KEY_DOWN, self.keyPress)
+        self.completion_option.Bind(wx.EVT_CHECKBOX, self.evtCheckOptionCompletion)
+        self.background_option.Bind(wx.EVT_CHECKBOX, self.evtCheckOptionBackgroundColor)
+            
         ### making the layout of the panel ###
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer.Add(self.text_ctrl, 1, wx.EXPAND)
+        option_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        sizer.Add(option_sizer, 0)
+        option_sizer.AddMany([(10, 20),
+                              (option_text, 0, wx.ALIGN_CENTER_VERTICAL),
+                              (5, 5),
+                              (self.completion_option, 0, wx.ALIGN_CENTER_VERTICAL),
+                              (8, 8),
+                              (self.background_option, 0, wx.ALIGN_CENTER_VERTICAL)
+                              ])
         self.SetAutoLayout(True)
         sizer.Fit(self)
         sizer.SetSizeHints(self)
@@ -542,8 +607,8 @@ class IPShellWidget(wx.Panel):
         lines=self.text_ctrl.getCurrentLine()
         self.text_ctrl.write('\n')
         lines_to_execute = lines.replace('\t',' '*4)
-        lines_to_execute = lines_to_execute.replace('\r\n','\n')
-        self.IP.doExecute(lines.encode('cp1252'))
+        lines_to_execute = lines_to_execute.replace('\r','')
+        self.IP.doExecute(lines_to_execute.encode('cp1252'))
         self.updateHistoryTracker(lines)
         self.setCurrentState('WAIT_END_OF_EXECUTION')
         
@@ -630,20 +695,28 @@ class IPShellWidget(wx.Panel):
         Key press callback with plenty of shell goodness, like history,
         autocompletions, etc.
         '''
-        
         if event.GetKeyCode() == ord('C'):
-            if event.Modifiers == wx.MOD_CONTROL:
+            if event.Modifiers == wx.MOD_CONTROL or event.Modifiers == wx.MOD_ALT:
                 if self.cur_state == 'WAIT_END_OF_EXECUTION':
                     #we raise an exception inside the IPython thread container
                     self.IP.ce.raise_exc(KeyboardInterrupt)
                     return
                 
+        #let this before 'wx.WXK_RETURN' because we have to put 'IDLE'
+        #mode if AutoComp has been set as inactive
+        if self.cur_state == 'COMPLETING':
+            if not self.text_ctrl.AutoCompActive():
+                self.cur_state = 'IDLE'
+            else:
+                event.Skip()
+
         if event.KeyCode == wx.WXK_RETURN:
             if self.cur_state == 'IDLE':
                 #we change the state ot the state machine
                 self.setCurrentState('DO_EXECUTE_LINE')
                 self.stateDoExecuteLine()
                 return
+
             if self.pager_state == 'WAITING':
                 self.pager_state = 'PROCESS_LINES'
                 self.pager(self.doc)
@@ -664,7 +737,7 @@ class IPShellWidget(wx.Panel):
 
         if self.cur_state == 'WAITING_USER_INPUT':
             event.Skip()   
-
+            
         if self.cur_state == 'IDLE':
             if event.KeyCode == wx.WXK_UP:
                 history = self.IP.historyBack()
@@ -681,19 +754,68 @@ class IPShellWidget(wx.Panel):
                     return
                 completed, possibilities = self.IP.complete(self.text_ctrl.getCurrentLine())
                 if len(possibilities) > 1:
-                    cur_slice = self.text_ctrl.getCurrentLine()
-                    self.text_ctrl.write('\n')
-                    self.text_ctrl.writeCompletion(possibilities)
-                    self.text_ctrl.write('\n')
+                    if self.text_ctrl.autocomplete_mode == 'IPYTHON':    
+                        cur_slice = self.text_ctrl.getCurrentLine()
+                        self.text_ctrl.write('\n')
+                        self.text_ctrl.writeCompletion(possibilities)
+                        self.text_ctrl.write('\n')
 
-                    self.text_ctrl.showPrompt()
-                    self.text_ctrl.write(cur_slice)
-                self.text_ctrl.changeLine(completed or cur_slice)
-                
+                        self.text_ctrl.showPrompt()
+                        self.text_ctrl.write(cur_slice)
+                        self.text_ctrl.changeLine(completed or cur_slice)
+                    else:
+                        self.cur_state = 'COMPLETING'
+                        self.text_ctrl.writeCompletion(possibilities)
+                else:
+                    self.text_ctrl.changeLine(completed or cur_slice)
                 return
             event.Skip()
-            
+
+    #------------------------ Option Section ---------------------------------
+    def evtCheckOptionCompletion(self, event):
+        if event.IsChecked():
+            self.options['completion']['value']='STC'
+        else:
+            self.options['completion']['value']='IPYTHON'
+        self.text_ctrl.setCompletionMethod(self.options['completion']['value'])
+        self.updateOptionTracker('completion',
+                                 self.options['completion']['value'])
+        self.text_ctrl.SetFocus()
+
+    def evtCheckOptionBackgroundColor(self, event):
+        if event.IsChecked():
+            self.options['background_color']['value']='WHITE'
+        else:
+            self.options['background_color']['value']='BLACK'
+        self.text_ctrl.setBackgroundColor(self.options['background_color']['value'])
+        self.updateOptionTracker('background_color',
+                                 self.options['background_color']['value'])
+        self.text_ctrl.SetFocus()
+    
+    def getOptions(self):
+        return self.options
+        
+    def reloadOptions(self,options):
+        self.options = options
+        for key in self.options.keys():
+            value = self.options[key]['value']
+            self.options[key]['checkbox'].SetValue(self.options[key][value])
+            self.options[key]['setfunc'](value)
+        
+        
     #------------------------ Hook Section -----------------------------------
+    def updateOptionTracker(self,name,value):
+        '''
+        Default history tracker (does nothing)
+        '''
+        pass
+    
+    def setOptionTrackerHook(self,func):
+        '''
+        Define a new history tracker
+        '''
+        self.updateOptionTracker = func
+
     def updateHistoryTracker(self,command_line):
         '''
         Default history tracker (does nothing)

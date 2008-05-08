@@ -200,7 +200,7 @@ class TwistedInteractiveShell(InteractiveShell):
 
 
 
-class IPShellTwisted():
+class IPShellTwisted:
     """Run a Twisted reactor while in an IPython session.
 
     Python commands can be passed to the thread where they will be

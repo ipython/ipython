@@ -7,7 +7,7 @@ import wx.aui
 from wx.lib.wordwrap import wordwrap
 
 #used for ipython GUI objects
-from IPython.gui.wx.ipython_view import IPShellWidget 
+from IPython.gui.wx.ipython_view import IPShellWidget
 from IPython.gui.wx.ipython_history import IPythonHistoryPanel
 
 __version__ = 0.8
@@ -33,15 +33,19 @@ class MyFrame(wx.Frame):
         
         #create differents panels and make them persistant 
         self.history_panel    = IPythonHistoryPanel(self)
+
+        self.history_panel.setOptionTrackerHook(self.optionSave)
         
         self.ipython_panel    = IPShellWidget(self,background_color = "BLACK")
-        
         #self.ipython_panel    = IPShellWidget(self,background_color = "WHITE")
 
         self.ipython_panel.setHistoryTrackerHook(self.history_panel.write)
         self.ipython_panel.setStatusTrackerHook(self.updateStatus)
         self.ipython_panel.setAskExitHandler(self.OnExitDlg)
+        self.ipython_panel.setOptionTrackerHook(self.optionSave)
 
+        self.optionLoad()
+        
         self.statusbar = self.createStatus()
         self.createMenu()
         
@@ -66,7 +70,7 @@ class MyFrame(wx.Frame):
         self.Bind(wx.EVT_MENU,  self.OnShowHistoryPanel,id=wx.ID_HIGHEST+2)
         self.Bind(wx.EVT_MENU,  self.OnShowAbout, id=wx.ID_HIGHEST+3)
         self.Bind(wx.EVT_MENU,  self.OnShowAllPanel,id=wx.ID_HIGHEST+6)
-
+        
         warn_text = 'Hello from IPython and wxPython.\n'
         warn_text +='Please Note that this work is still EXPERIMENTAL\n'
         warn_text +='It does NOT emulate currently all the IPython functions.\n'
@@ -78,7 +82,41 @@ class MyFrame(wx.Frame):
                                )
         dlg.ShowModal()
         dlg.Destroy()
-     
+
+    def optionSave(self, name, value):
+        opt = open('options.conf','w')
+
+        try:
+            options_ipython_panel = self.ipython_panel.getOptions()
+            options_history_panel = self.history_panel.getOptions()
+
+            for key in options_ipython_panel.keys():
+                opt.write(key + '=' + options_ipython_panel[key]['value']+'\n')
+            for key in options_history_panel.keys():
+                opt.write(key + '=' + options_history_panel[key]['value']+'\n')
+        finally:    
+            opt.close()
+        
+    def optionLoad(self):
+        opt = open('options.conf','r')
+        lines = opt.readlines()
+        opt.close()
+                      
+        options_ipython_panel = self.ipython_panel.getOptions()
+        options_history_panel = self.history_panel.getOptions()
+        
+        for line in lines:
+            key = line.split('=')[0]
+            value = line.split('=')[1].replace('\n','').replace('\r','')
+            if key in options_ipython_panel.keys():
+                options_ipython_panel[key]['value'] = value
+            elif key in options_history_panel.keys():
+                options_history_panel[key]['value'] = value
+            else:
+                print >>sys.__stdout__,"Warning: key ",key,"not found in widget options. Check Options.conf"
+        self.ipython_panel.reloadOptions(options_ipython_panel)
+        self.history_panel.reloadOptions(options_history_panel)
+        
     def createMenu(self):
         """local method used to create one menu bar"""
         

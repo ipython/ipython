@@ -28,10 +28,30 @@ class IPythonHistoryPanel(wx.Panel):
         self.filter_cmd   = wx.CheckBox(self, -1, "!: Sys commands")
         self.filter_magic = wx.CheckBox(self, -1, "%: Magic keys")
 
-        self.filter_empty.SetValue(flt_empty)
-        self.filter_doc.SetValue(flt_doc)
-        self.filter_cmd.SetValue(flt_cmd)
-        self.filter_magic.SetValue(flt_magic)
+        self.options={'filter_empty':{'value':'True',
+                                      'checkbox':self.filter_empty,'True':True,'False':False,
+                                      'setfunc':lambda x:None},
+                      'filter_doc':{'value':'True',
+                                    'checkbox':self.filter_doc,'True':True,'False':False,
+                                    'setfunc':lambda x:None},
+                      'filter_cmd':{'value':'True',
+                                    'checkbox':self.filter_cmd,'True':True,'False':False,
+                                    'setfunc':lambda x:None},
+                      'filter_magic':{'value':'True',
+                                      'checkbox':self.filter_magic,'True':True,'False':False,
+                                      'setfunc':lambda x:None},
+                     }
+        self.reloadOptions(self.options)
+
+        self.filter_empty.Bind(wx.EVT_CHECKBOX, self.evtCheckEmptyFilter)
+        self.filter_doc.Bind(wx.EVT_CHECKBOX, self.evtCheckDocFilter)
+        self.filter_cmd.Bind(wx.EVT_CHECKBOX, self.evtCheckCmdFilter)
+        self.filter_magic.Bind(wx.EVT_CHECKBOX, self.evtCheckMagicFilter)
+        
+        #self.filter_empty.SetValue(flt_empty)
+        #self.filter_doc.SetValue(flt_doc)
+        #self.filter_cmd.SetValue(flt_cmd)
+        #self.filter_magic.SetValue(flt_magic)
         
         sizer = wx.BoxSizer(wx.VERTICAL)
 
@@ -73,7 +93,51 @@ class IPythonHistoryPanel(wx.Panel):
         if add:
                 self.text_ctrl.AppendText(history_line+'\n')
 
+#------------------------ Option Section -----------------------------------
+    def processOptionCheckedEvt(self, event, name):
+        if event.IsChecked():
+            self.options[name]['value']='True'
+        else:
+            self.options[name]['value']='False'
+        self.updateOptionTracker(name,
+                                 self.options[name]['value'])
+        
+    def evtCheckEmptyFilter(self, event):
+        self.processOptionCheckedEvt(event, 'filter_empty')
+        
+    def evtCheckDocFilter(self, event):
+        self.processOptionCheckedEvt(event, 'filter_doc')
 
+    def evtCheckCmdFilter(self, event):
+        self.processOptionCheckedEvt(event, 'filter_cmd')
+
+    def evtCheckMagicFilter(self, event):
+        self.processOptionCheckedEvt(event, 'filter_magic')
+        
+    def getOptions(self):
+        return self.options
+    
+    def reloadOptions(self,options):
+        self.options = options
+        for key in self.options.keys():
+            value = self.options[key]['value']
+            self.options[key]['checkbox'].SetValue(self.options[key][value])
+            self.options[key]['setfunc'](value)
+
+#------------------------ Hook Section -----------------------------------
+    def updateOptionTracker(self,name,value):
+        '''
+        Default history tracker (does nothing)
+        '''
+        pass
+    
+    def setOptionTrackerHook(self,func):
+        '''
+        Define a new history tracker
+        '''
+        self.updateOptionTracker = func
+
+            
 #----------------------------------------------------------------------
 # Font definition for Styled Text Control
 

@@ -119,7 +119,7 @@ class NonBlockingIPShell(object):
         #vars used by _execute
         self._iter_more = 0
         self._history_level = 0
-        self._complete_sep =  re.compile('[\s\{\}\[\]\(\)]')
+        self._complete_sep =  re.compile('[\s\{\}\[\]\(\)\=]')
         self._prompt = str(self._IP.outputcache.prompt1).strip()
 
         #thread working vars

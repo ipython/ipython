@@ -443,7 +443,14 @@ def push_ev_node(node):
     
     
 def push_position_from_leo(p):
-    push_from_leo(LeoNode(p))         
+    try:
+        push_from_leo(LeoNode(p))
+    except AttributeError,e:
+        if e.args == ("Commands instance has no attribute 'frame'",):
+            es("Error: ILeo not associated with .leo document")
+            es("Press alt+shift+I to fix!")
+        else:
+            raise
 
 @generic
 def edit_object_in_leo(obj, varname):
