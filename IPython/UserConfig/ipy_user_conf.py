@@ -87,6 +87,11 @@ def main():
     # For bzr completer, requires bzrlib (the python installation of bzr)
     #ip.load('ipy_bzr')
     
+    # Tab completer that is not quite so picky (i.e. 
+    # "foo".<TAB> and str(2).<TAB> will work). Complete 
+    # at your own risk!
+    #import ipy_greedycompleter
+    
     
     
 # some config helper functions you can use 
