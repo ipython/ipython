@@ -34,7 +34,7 @@ master_doc = 'ipython'
 
 # General substitutions.
 project = 'IPython'
-copyright = '2008, IPython team'
+copyright = '2008, Fernando Perez'
 
 # The default replacements for |version| and |release|, also used in various
 # other places throughout the built documents.
@@ -120,7 +120,7 @@ latex_font_size = '10pt'
 
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, document class [howto/manual]).
-latex_documents = [('ipython','ipython.tex','IPython Documentation','IPython developers','manual')]
+latex_documents = [('ipython','ipython.tex','IPython Documentation','Fernando Perez','manual')]
 
 # Additional stuff for the LaTeX preamble.
 #latex_preamble = ''
