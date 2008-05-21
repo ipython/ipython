@@ -54,6 +54,8 @@ import sys
 import tempfile
 import traceback
 import types
+import warnings
+warnings.filterwarnings('ignore', r'.*sets module*')
 from sets import Set
 from pprint import pprint, pformat
 
