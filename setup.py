@@ -60,8 +60,7 @@ if len(sys.argv) >= 2 and sys.argv[1] in ('sdist','bdist_rpm'):
         os.chdir(cwd)
         
     oscmd("""\
-          cd doc
-          python do_sphinx.py""")
+          cd doc && python do_sphinx.py""")
     
     oscmd("cd doc && gzip -9c ipython.1 > ipython.1.gz")
     oscmd("cd doc && gzip -9c pycolor.1 > pycolor.1.gz")
