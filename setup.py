@@ -52,15 +52,10 @@ if len(sys.argv) >= 2 and sys.argv[1] in ('sdist','bdist_rpm'):
     # target_update()
     
     def oscmd(s):
-        cwd = os.getcwd()
-        for l in textwrap.dedent(s).splitlines():
-            print ">", l.strip()
-            os.system(l.strip())
+        print ">", s
+        os.system(s)
         
-        os.chdir(cwd)
-        
-    oscmd("""\
-          cd doc && python do_sphinx.py""")
+    oscmd("cd doc && python do_sphinx.py")
     
     oscmd("cd doc && gzip -9c ipython.1 > ipython.1.gz")
     oscmd("cd doc && gzip -9c pycolor.1 > pycolor.1.gz")
