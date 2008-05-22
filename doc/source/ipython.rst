@@ -17,6 +17,21 @@ Indices and tables
 * :ref:`modindex`
 * :ref:`search`
 
+Introduction
+============
+
+This is the official documentation for IPython 0.x series (i.e. what
+we are used to refer to just as "IPython"). The original text of the
+manual (most of which is still in place) has been authored by Fernando
+Perez, but as recommended usage patterns and new features have
+emerged, this manual has been updated to reflect that fact. Most of
+the additions have been authored by Ville M. Vainio.
+
+The manual has been generated from reStructuredText source markup with
+Sphinx, which should make it much easier to keep it up-to-date in the
+future. Some reST artifacts and bugs may still be apparent in the
+documentation, but this should improve as the toolchain matures.
+
 Overview
 ========
 
@@ -181,7 +196,7 @@ Windows 9x support is present, and has been reported to work fine (at
 least on WinME).
 
 Location
-========
+--------
 
 IPython is generously hosted at http://ipython.scipy.org by the
 Enthought, Inc and the SciPy project. This site offers downloads,

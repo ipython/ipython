@@ -120,7 +120,7 @@ latex_font_size = '10pt'
 
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, document class [howto/manual]).
-latex_documents = [('ipython','ipython.tex','IPython Documentation','Fernando Perez','manual')]
+latex_documents = [('ipython','ipython.tex','IPython Documentation','Fernando Perez (and contributors)','manual')]
 
 # Additional stuff for the LaTeX preamble.
 #latex_preamble = ''
