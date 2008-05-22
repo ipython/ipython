@@ -60,5 +60,5 @@ if sys.platform != 'win32':
     oscmd('makeindex -s python.ist modipython.idx')
     oscmd('pdflatex ipython.tex')
     oscmd('pdflatex ipython.tex')
-
+    oscmd('cp ipython.pdf ../html')
     os.chdir('../..')

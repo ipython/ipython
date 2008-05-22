@@ -46,43 +46,25 @@ from distutils.core import setup
 
 # update the manuals when building a source dist
 if len(sys.argv) >= 2 and sys.argv[1] in ('sdist','bdist_rpm'):
+    import textwrap
     from IPython.genutils import target_update
     # list of things to be updated. Each entry is a triplet of args for
     # target_update()
-    to_update = [('doc/magic.tex',
-                  ['IPython/Magic.py'],
-                  "cd doc && ./update_magic.sh" ),
-                 
-                 ('doc/manual.lyx',
-                  ['IPython/Release.py','doc/manual_base.lyx'],
-                  "cd doc && ./update_version.sh" ),
-                 
-                 ('doc/manual/manual.html',
-                  ['doc/manual.lyx',
-                   'doc/magic.tex',
-                   'doc/examples/example-gnuplot.py',
-                   'doc/examples/example-embed.py',
-                   'doc/examples/example-embed-short.py',
-                   'IPython/UserConfig/ipythonrc',
-                   ],
-                  "cd doc && "
-                  "lyxport -tt --leave --pdf "
-                  "--html -o '-noinfo -split +1 -local_icons' manual.lyx"),
-                 
-                 ('doc/new_design.pdf',
-                  ['doc/new_design.lyx'],
-                  "cd doc && lyxport -tt --pdf new_design.lyx"),
-
-                 ('doc/ipython.1.gz',
-                  ['doc/ipython.1'],
-                  "cd doc && gzip -9c ipython.1 > ipython.1.gz"),
-
-                 ('doc/pycolor.1.gz',
-                  ['doc/pycolor.1'],
-                  "cd doc && gzip -9c pycolor.1 > pycolor.1.gz"),
-                 ]
-    for target in to_update:
-        target_update(*target)
+    
+    def oscmd(s):
+        cwd = os.getcwd()
+        for l in textwrap.dedent(s).splitlines():
+            print ">", l.strip()
+            os.system(l.strip())
+        
+        os.chdir(cwd)
+        
+    oscmd("""\
+          cd doc
+          python do_sphinx.py""")
+    
+    oscmd("cd doc && gzip -9c ipython.1 > ipython.1.gz")
+    oscmd("cd doc && gzip -9c pycolor.1 > pycolor.1.gz")
 
 # Release.py contains version, authors, license, url, keywords, etc.
 execfile(pjoin('IPython','Release.py'))
@@ -113,9 +95,12 @@ exclude     = ('.sh','.1.gz')
 docfiles    = filter(lambda f:file_doesnt_endwith(f,exclude),glob('doc/*'))
 
 examfiles   = filter(isfile, glob('doc/examples/*.py'))
-manfiles    = filter(isfile, glob('doc/manual/*.html')) + \
-              filter(isfile, glob('doc/manual/*.css')) + \
-              filter(isfile, glob('doc/manual/*.png'))
+manfiles    = filter(isfile, glob('doc/build/html/*'))
+manstatic = filter(isfile, glob('doc/build/html/_static/*'))
+                     
+#            filter(isfile, glob('doc/manual/*.css')) + \
+#              filter(isfile, glob('doc/manual/*.png'))
+              
 manpages    = filter(isfile, glob('doc/*.1.gz'))
 cfgfiles    = filter(isfile, glob('IPython/UserConfig/*'))
 scriptfiles = filter(isfile, ['scripts/ipython','scripts/pycolor',
@@ -135,6 +120,7 @@ if 'bdist_wininst' in sys.argv:
 datafiles = [('data', docdirbase, docfiles),
              ('data', pjoin(docdirbase, 'examples'),examfiles),
              ('data', pjoin(docdirbase, 'manual'),manfiles),
+             ('data', pjoin(docdirbase, 'manual/_static'),manstatic),
              ('data', manpagebase, manpages),
              ('data',pjoin(docdirbase, 'extensions'),igridhelpfiles),
              ]
