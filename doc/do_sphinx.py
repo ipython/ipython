@@ -13,9 +13,43 @@ if sys.platform != 'win32':
     # Produce pdf.
     os.chdir('build/latex')
 
-    # Change chapter style to section style: allows chapters to start on the current page.  Works much better for the short chapters we have.
+    # Change chapter style to section style: allows chapters to start on 
+    # the current page.  Works much better for the short chapters we have.
+    # This must go in the class file rather than the preamble, so we modify 
+    # manual.cls at runtime.
+    chapter_cmds=r'''
+% Local changes.
+\renewcommand\chapter{
+    \thispagestyle{plain}
+    \global\@topnum\z@
+    \@afterindentfalse
+    \secdef\@chapter\@schapter
+}
+\def\@makechapterhead#1{
+    \vspace*{10\p@}
+    {\raggedright \reset@font \Huge \bfseries \thechapter \quad #1}
+    \par\nobreak
+    \hrulefill
+    \par\nobreak
+    \vspace*{10\p@}
+}
+\def\@makeschapterhead#1{
+    \vspace*{10\p@}
+    {\raggedright \reset@font \Huge \bfseries #1}
+    \par\nobreak
+    \hrulefill
+    \par\nobreak
+    \vspace*{10\p@}
+}
+'''
+
+    unmodified=True
     for line in fileinput.FileInput('manual.cls',inplace=1):
-        line=line.replace('py@OldChapter=\chapter','py@OldChapter=\section')
+        if 'Support for module synopsis' in line and unmodified:
+            line=chapter_cmds+line
+        elif 'makechapterhead' in line:
+            # Already have altered manual.cls: don't need to again.
+            unmodified=False
         print line,
 
     # Copying the makefile produced by sphinx...

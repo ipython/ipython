@@ -1,3 +1,10 @@
+2008-05-14  Ville Vainio <vivainio@gmail.com>
+
+	* Extensions/ipy_greedycompleter.py: 
+	New extension that enables a bit more "relaxed" tab 
+	completer that evaluates code without safety checks
+	(i.e. there can be side effects like function calls)
+
 2008-04-20  Ville Vainio <vivainio@gmail.com>
 
 	* Extensions/ipy_lookfor.py: add %lookfor magic command

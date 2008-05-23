@@ -123,7 +123,7 @@ latex_font_size = '10pt'
 latex_documents = [('ipython','ipython.tex','IPython Documentation','IPython developers','manual')]
 
 # Additional stuff for the LaTeX preamble.
-latex_preamble = '\\def\\thesection{\\arabic{section}}'
+#latex_preamble = ''
 
 # Documents to append as an appendix to all manuals.
 #latex_appendices = []
