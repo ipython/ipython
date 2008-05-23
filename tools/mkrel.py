@@ -26,14 +26,25 @@ if os.path.isdir('dist'):
 if os.path.isdir(ipykit_name):
     distutils.dir_util.remove_tree(ipykit_name)
 
-c("python exesetup.py py2exe")
+if sys.platform == 'win32':
+    c("python exesetup.py py2exe")
 
-os.rename('dist',ipykit_name)
+    os.rename('dist',ipykit_name)
 
-c("zip -r %s.zip %s" % (ipykit_name, ipykit_name))
+    c("zip -r %s.zip %s" % (ipykit_name, ipykit_name))
+
+# Build source and binary distros
+c('./setup.py sdist --formats=gztar')
+
+c("python2.4 ./setup.py bdist_rpm --binary-only --release=py24 --python=/usr/bin/python2.4")
+c("python2.5 ./setup.py bdist_rpm --binary-only --release=py25 --python=/usr/bin/python2.5")
+
+# Build eggs
+c('python2.4 ./eggsetup.py bdist_egg')
+c('python2.5 ./eggsetup.py bdist_egg')
 
 c("python setup.py bdist_wininst --install-script=ipython_win_post_install.py")
 
-os.chdir("dist")
-#c("svn export http://ipython.scipy.org/svn/ipython/ipython/trunk ipython")
-#c("zip -r ipython_svn.zip ipython")
+os.chdir('tools')
+c('python make_tarball.py')
+

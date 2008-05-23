@@ -1,5 +1,6 @@
 import os,sys,shutil
 
+
 basever = '0.8.3'
 
 def oscmd(c):
@@ -19,7 +20,7 @@ def verinfo():
 basename = 'ipython'
 
 #tarname = '%s.r%s.tgz' % (basename, ver)
-oscmd('update_revnum.py')
+oscmd('python update_revnum.py')
 
 ver = verinfo()
 
