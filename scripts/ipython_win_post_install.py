@@ -60,11 +60,11 @@ def install():
     mkshortcut(python,'IPython scipy profile',f,a)
 
     # Create documentation shortcuts ...    
-    t = prefix + r'\share\doc\ipython-%s\manual.pdf' % version
+    t = prefix + r'\share\doc\ipython\manual\ipython.pdf'
     f = ip_dir + r'\Manual in PDF.lnk'
     mkshortcut(t,r'IPython Manual - PDF-Format',f)
 
-    t = prefix + r'\share\doc\ipython-%s\manual\manual.html' % version
+    t = prefix + r'\share\doc\ipython\manual\ipython.html'
     f = ip_dir + r'\Manual in HTML.lnk'
     mkshortcut(t,'IPython Manual - HTML-Format',f)
 
