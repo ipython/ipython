@@ -22,7 +22,10 @@ __license__ = Release.license
 # required modules from the Python standard library
 import __main__
 import commands
-import doctest
+try:
+    import doctest
+except ImportError:
+    pass
 import os
 import re
 import shlex
