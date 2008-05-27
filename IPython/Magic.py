@@ -3148,13 +3148,13 @@ Defaulting color scheme to 'NoColor'"""
         
         The block is dedented prior to execution to enable execution of method
         definitions. '>' and '+' characters at the beginning of a line are
-        ignored, to allow pasting directly from e-mails or diff files. The
-        executed block is also assigned to variable named 'pasted_block' for
+        ignored, to allow pasting directly from e-mails, diff files and doctests. 
+        The executed block is also assigned to variable named 'pasted_block' for
         later editing with '%edit pasted_block'.
         
         You can also pass a variable name as an argument, e.g. '%cpaste foo'.
         This assigns the pasted block to variable 'foo' as string, without 
-        dedenting or executing it.
+        dedenting or executing it (preceding >>> and + is still stripped)
         
         Do not be alarmed by garbled output on Windows (it's a readline bug). 
         Just press enter and type -- (and press enter again) and the block 
