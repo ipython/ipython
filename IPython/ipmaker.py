@@ -103,9 +103,12 @@ def make_IPython(argv=None,user_ns=None,user_global_ns=None,debug=1,
                      embedded=embedded,**kw)
 
     # Put 'help' in the user namespace
-    from site import _Helper
+    try:
+        from site import _Helper
+        IP.user_ns['help'] = _Helper()
+    except ImportError:
+        warn('help() not available - check site.py')
     IP.user_config_ns = {}
-    IP.user_ns['help'] = _Helper()
 
 
     if DEVDEBUG:

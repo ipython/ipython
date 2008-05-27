@@ -1,3 +1,8 @@
+2008-05-27  Ville Vainio <vivainio@gmail.com>
+
+	* iplib.py, ipmaker.py: survive lack of doctest and site._Helper
+	for minimal environments (e.g. Maemo sdk python)
+
 2008-05-14  Ville Vainio <vivainio@gmail.com>
 
 	* Extensions/ipy_greedycompleter.py: 

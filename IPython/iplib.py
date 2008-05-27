@@ -702,7 +702,10 @@ class InteractiveShell(object,Magic):
 
         # Do a proper resetting of doctest, including the necessary displayhook
         # monkeypatching
-        doctest_reload()
+        try:
+            doctest_reload()
+        except ImportError:
+            warn("doctest module does not exist.")
         
         # Set user colors (don't do it in the constructor above so that it
         # doesn't crash if colors option is invalid)
