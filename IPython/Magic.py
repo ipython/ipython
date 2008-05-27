@@ -3167,7 +3167,7 @@ Defaulting color scheme to 'NoColor'"""
         sentinel = opts.get('s','--')
 
         strip_from_start = [re.compile(e) for e in 
-                            ['^(.?>)+','^In \[\d+\]:','^\++']]         
+                            [r'^\s*(\s?>)+',r'^\s*In \[\d+\]:',r'^\++']]         
         from IPython import iplib
         lines = []
         print "Pasting code; enter '%s' alone on the line to stop." % sentinel

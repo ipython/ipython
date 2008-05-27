@@ -3,7 +3,8 @@
 	* iplib.py, ipmaker.py: survive lack of doctest and site._Helper
 	for minimal environments (e.g. Maemo sdk python)
 
-	* Branch for 0.8.3	
+	* Magic.py: cpaste strips whitespace before >>> (allow pasting
+	doctests)
 
 2008-05-14  Ville Vainio <vivainio@gmail.com>
 
