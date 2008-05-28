@@ -16,8 +16,8 @@ python2.4 ./setup.py bdist_rpm --binary-only --release=py24 --python=/usr/bin/py
 python2.5 ./setup.py bdist_rpm --binary-only --release=py25 --python=/usr/bin/python2.5
 
 # Build eggs
-python2.4 ./eggsetup.py bdist_egg
-python2.5 ./eggsetup.py bdist_egg
+python2.4 ./setup_bdist_egg.py
+python2.5 ./setup_bdist_egg.py
 
 # Call the windows build separately, so that the extra Windows scripts don't
 # get pulled into Unix builds (setup.py has code which checks for

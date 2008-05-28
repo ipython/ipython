@@ -1,3 +1,7 @@
+#!/usr/bin/env python
+"""Script to build documentation using Sphinx.
+"""
+
 import fileinput,os,sys
 
 def oscmd(c):
@@ -11,6 +15,7 @@ if sys.platform != 'win32':
     oscmd('sphinx-build -b latex -d build/doctrees source build/latex')
 
     # Produce pdf.
+    topdir = os.getcwd()
     os.chdir('build/latex')
 
     # Change chapter style to section style: allows chapters to start on 
@@ -60,5 +65,10 @@ if sys.platform != 'win32':
     oscmd('makeindex -s python.ist modipython.idx')
     oscmd('pdflatex ipython.tex')
     oscmd('pdflatex ipython.tex')
-    oscmd('cp ipython.pdf ../html')
-    os.chdir('../..')
+
+    # Create a manual/ directory with final html/pdf output
+    os.chdir(topdir)
+    oscmd('rm -rf manual')
+    oscmd('mkdir manual')
+    oscmd('cp -r build/html/*.html build/html/_static manual/')
+    oscmd('cp build/latex/ipython.pdf manual/')

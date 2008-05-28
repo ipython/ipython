@@ -1,11 +1,10 @@
-""" Create ipykit and exe installer
+#!/usr/bin/env python
+"""IPython release script
+
+Create ipykit and exe installer
 
 requires py2exe
-
 """
-#!/bin/sh
-# IPython release script
-
 
 import os
 import distutils.dir_util
@@ -18,7 +17,6 @@ def c(cmd):
     os.system(cmd)
 
 ipykit_name = "ipykit-%s" % version
-
 
 os.chdir('..')
 if os.path.isdir('dist'):

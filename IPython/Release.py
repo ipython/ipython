@@ -22,7 +22,7 @@ name = 'ipython'
 # because bdist_rpm does not accept dashes (an RPM) convention, and
 # bdist_deb does not accept underscores (a Debian convention).
 
-revision = '117'
+revision = '83'
 branch = 'ipython'
 
 if branch == 'ipython':

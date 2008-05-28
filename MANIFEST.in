@@ -22,9 +22,8 @@ exclude doc/manual/*.log
 exclude doc/manual/*.out
 exclude doc/manual/*.pl
 exclude doc/manual/*.tex
-exclude doc/build/doctrees/*
-exclude doc/build/latex/*
-exclude doc/build/html/_sources/*
+exclude doc/build
+exclude doc/attic
 
 
 
@@ -34,3 +33,4 @@ global-exclude *.flc
 global-exclude *.pyc
 global-exclude .dircopy.log
 global-exclude .svn
+global-exclude .bzr
