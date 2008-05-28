@@ -331,7 +331,29 @@ def cd_completer(self, event):
         if os.path.isdir(relpath):
             return [relpath]
         raise IPython.ipapi.TryNext
-    return found
+
+
+    def single_dir_expand(matches):
+        "Recursively expand match lists containing a single dir."
+        
+        if len(matches) == 1 and os.path.isdir(matches[0]):
+            # Takes care of links to directories also.  Use '/'
+            # explicitly, even under Windows, so that name completions
+            # don't end up escaped.
+            d = matches[0]
+            if d[-1] in ['/','\\']:
+                d = d[:-1]
+
+            subdirs = [p for p in os.listdir(d) if os.path.isdir( d + '/' + p)]
+            if subdirs:
+                matches = [ (d + '/' + p) for p in subdirs ]
+                return single_dir_expand(matches)
+            else:
+                return matches
+        else:
+            return matches
+
+    return single_dir_expand(found)
 
 def apt_get_packages(prefix):
     out = os.popen('apt-cache pkgnames')
