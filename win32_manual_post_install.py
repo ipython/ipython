@@ -104,8 +104,8 @@ def run(wait=0):
         os.mkdir(ip_prog_dir)
     os.chdir(ip_prog_dir)
 
-    man_pdf = doc_dir + r'\manual.pdf'
-    man_htm = doc_dir + r'\manual\manual.html'
+    man_pdf = doc_dir + r'\manual\ipython.pdf'
+    man_htm = doc_dir + r'\manual\ipython.html'
 
     make_shortcut('IPython.lnk',sys.executable, '"%s"' % ip_filename,
                   my_documents_dir,

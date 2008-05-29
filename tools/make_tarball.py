@@ -1,5 +1,8 @@
-import os,sys,shutil
+#!/usr/bin/env python
+"""Simple script to create a tarball with proper bzr version info.
+"""
 
+import os,sys,shutil
 
 basever = '0.8.3'
 

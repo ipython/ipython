@@ -377,8 +377,8 @@ class ListTB(TBTools):
         
     def __call__(self, etype, value, elist):
         Term.cout.flush()
-        Term.cerr.flush()
         print >> Term.cerr, self.text(etype,value,elist)
+        Term.cerr.flush()
 
     def text(self,etype, value, elist,context=5):
         """Return a color formatted string with the traceback info."""
@@ -855,8 +855,8 @@ class VerboseTB(TBTools):
         (etype, evalue, etb) = info or sys.exc_info()
         self.tb = etb
         Term.cout.flush()
-        Term.cerr.flush()
         print >> Term.cerr, self.text(etype, evalue, etb)
+        Term.cerr.flush()
 
     # Changed so an instance can just be called as VerboseTB_inst() and print
     # out the right info on its own.
@@ -977,13 +977,13 @@ class AutoFormattedTB(FormattedTB):
         if out is None:
             out = Term.cerr
         Term.cout.flush()
-        out.flush()
         if tb_offset is not None:
             tb_offset, self.tb_offset = self.tb_offset, tb_offset
             print >> out, self.text(etype, evalue, etb)
             self.tb_offset = tb_offset
         else:
             print >> out, self.text(etype, evalue, etb)
+        out.flush()
         try:
             self.debugger()
         except KeyboardInterrupt:
