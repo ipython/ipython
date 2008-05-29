@@ -75,7 +75,7 @@ scp * ipython@ipython.scipy.org:www/dist/
 
 echo "Uploading backup files..."
 cd $ipbackupdir
-scp `ls -1tr | tail -1` ipython@ipython.scipy.org:www/backup/
+scp `ls -1tr *tgz | tail -1` ipython@ipython.scipy.org:www/backup/
 
 echo "Updating webpage..."
 cd $ipdir/doc

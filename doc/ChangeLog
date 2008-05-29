@@ -1,3 +1,5 @@
+2008-05-28  *** Released version 0.8.3
+
 2008-05-28  Fernando Perez  <Fernando.Perez@berkeley.edu>
 
 	* ../win32_manual_post_install.py (run): Fix the windows installer
