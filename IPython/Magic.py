@@ -3140,7 +3140,7 @@ Defaulting color scheme to 'NoColor'"""
              screen_lines=self.shell.rc.screen_length)
 
     def magic_cpaste(self, parameter_s=''):
-        """Allows you to paste & execute a pre-formatted code block from clipboard
+        """Allows you to paste & execute a pre-formatted code block from clipboard.
         
         You must terminate the block with '--' (two minus-signs) alone on the
         line. You can also provide your own sentinel with '%paste -s %%' ('%%' 
@@ -3148,8 +3148,9 @@ Defaulting color scheme to 'NoColor'"""
         
         The block is dedented prior to execution to enable execution of method
         definitions. '>' and '+' characters at the beginning of a line are
-        ignored, to allow pasting directly from e-mails, diff files and doctests. 
-        The executed block is also assigned to variable named 'pasted_block' for
+        ignored, to allow pasting directly from e-mails, diff files and
+        doctests (the '...' continuation prompt is also stripped).  The
+        executed block is also assigned to variable named 'pasted_block' for
         later editing with '%edit pasted_block'.
         
         You can also pass a variable name as an argument, e.g. '%cpaste foo'.
@@ -3166,8 +3167,15 @@ Defaulting color scheme to 'NoColor'"""
         par = args.strip()
         sentinel = opts.get('s','--')
 
-        strip_from_start = [re.compile(e) for e in 
-                            [r'^\s*(\s?>)+',r'^\s*In \[\d+\]:',r'^\++']]         
+        # Regular expressions that declare text we strip from the input:
+        strip_re =  [r'^\s*In \[\d+\]:', # IPython input prompt
+                     r'^\s*(\s?>)+', # Python input prompt
+                     r'^\s*\.{3,}', # Continuation prompts
+                     r'^\++',
+                     ]
+
+        strip_from_start = map(re.compile,strip_re)
+        
         from IPython import iplib
         lines = []
         print "Pasting code; enter '%s' alone on the line to stop." % sentinel

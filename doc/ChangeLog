@@ -1,3 +1,18 @@
+2008-05-28  Fernando Perez  <Fernando.Perez@berkeley.edu>
+
+	* ../win32_manual_post_install.py (run): Fix the windows installer
+	so the links to the docs are correct.
+
+	* IPython/ultraTB.py: flush stderr after writing to it to fix
+	problems with exception traceback ordering in some platforms.
+	Thanks to a report/fix by Jie Tang <jietang86-AT-gmail.com>.
+
+	* IPython/Magic.py (magic_cpaste): add stripping of continuation
+	prompts, feature requested by Stefan vdW.
+
+	* ../setup.py: updates to build and release tools in preparation
+	for 0.8.3 release.
+
 2008-05-27  Ville Vainio <vivainio@gmail.com>
 
 	* iplib.py, ipmaker.py: survive lack of doctest and site._Helper
