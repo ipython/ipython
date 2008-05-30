@@ -1167,8 +1167,15 @@ def _select_shell(argv):
     special_opts = user_opts & all_opts
 
     if 'twisted' in special_opts:
-        import twshell
-        return twshell.IPShellTwisted
+        if sys.platform == 'win32':
+            import twshell
+            return twshell.IPShellTwisted
+        else:
+            error('-twisted currently only works on win32. Starting normal IPython.')
+            special_opts.remove('twisted')
+            return IPShell
+            
+
     if 'tk' in special_opts:
         USE_TK = True
         special_opts.remove('tk')
