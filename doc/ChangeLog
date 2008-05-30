@@ -3,6 +3,9 @@
 	* shell.py: disable -twisted on non-win32 platforms.
 	import sets module on python 2.3.
 
+	* ipy_profile_sh.py: disable ipy_signals. Now, ipython
+	is verified to work with python 2.3
+	
 	* Release.py: update version to 0.8.4 for quick point fix
 
 2008-05-28  *** Released version 0.8.3
