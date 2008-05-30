@@ -43,7 +43,9 @@ def main():
     # %store foo
     # %store bar
     import ipy_rehashdir
-    import ipy_signals
+
+    # does not work without subprocess module!
+    #import ipy_signals
     
     ip.ex('import os')
     ip.ex("def up(): os.chdir('..')")
