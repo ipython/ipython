@@ -1,3 +1,10 @@
+2008-05-30  Ville Vainio <vivainio@gmail.com>
+
+	* shell.py: disable -twisted on non-win32 platforms.
+	import sets module on python 2.3.
+
+	* Release.py: update version to 0.8.4 for quick point fix
+
 2008-05-28  *** Released version 0.8.3
 
 2008-05-28  Fernando Perez  <Fernando.Perez@berkeley.edu>
