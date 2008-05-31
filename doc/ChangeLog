@@ -1,3 +1,17 @@
+2008-05-31  Fernando Perez  <Fernando.Perez@berkeley.edu>
+
+	* IPython/ipmaker.py (make_IPython): The -twisted option is fully
+	disabled.
+
+	* IPython/Shell.py (_select_shell): completely disable -twisted.
+	This code is of dubious quality and  normal users should not
+	encounter it until we can clarify things further, even under
+	win32.  Since we need a quick emergency 0.8.4 release, it is now
+	disabled completely.  Users who want to run it can use the
+	following command (it's easy to put it in an alias or script):
+	
+	python -c"from IPython import twshell;twshell.IPShellTwisted().mainloop()"
+
 2008-05-30  Ville Vainio <vivainio@gmail.com>
 
 	* shell.py: disable -twisted on non-win32 platforms.

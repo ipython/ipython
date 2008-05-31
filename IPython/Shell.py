@@ -1162,19 +1162,9 @@ def _select_shell(argv):
                 }
 
     all_opts = set(['tk','pylab','gthread','qthread','q4thread','wthread',
-                    'tkthread', 'twisted'])
+                    'tkthread'])
     user_opts = set([s.replace('-','') for s in argv[:3]])
-    special_opts = user_opts & all_opts
-
-    if 'twisted' in special_opts:
-        if sys.platform == 'win32':
-            import twshell
-            return twshell.IPShellTwisted
-        else:
-            error('-twisted currently only works on win32. Starting normal IPython.')
-            special_opts.remove('twisted')
-            return IPShell
-            
+    special_opts = user_opts & all_opts            
 
     if 'tk' in special_opts:
         USE_TK = True

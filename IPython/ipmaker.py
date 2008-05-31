@@ -189,7 +189,8 @@ object?   -> Details about 'object'. ?object also works, ?? prints more.
     
     cmdline_only = ('help interact|i ipythondir=s Version upgrade '
                     'gthread! qthread! q4thread! wthread! tkthread! pylab! tk! '
-                    'twisted!')
+                    # 'twisted!'  # disabled for now.
+                    )
 
     # Build the actual name list to be used by DPyGetOpt
     opts_names = qw(cmdline_opts) + qw(cmdline_only)
@@ -247,7 +248,7 @@ object?   -> Details about 'object'. ?object also works, ?? prints more.
                       system_verbose = 0,
                       term_title = 1,
                       tk = 0,
-                      twisted= 0,
+                      #twisted= 0,  # disabled for now
                       upgrade = 0,
                       Version = 0,
                       wildcards_case_sensitive = 1,
