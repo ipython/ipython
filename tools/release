@@ -82,20 +82,20 @@ cd $ipdir/doc
 www=~/ipython/homepage
 cp ChangeLog NEWS $www
 rm -rf $www/doc/*
-cp -r manual.pdf manual/ $www/doc
+cp -r manual/ $www/doc
 cd $www
 ./update
 
 # Alert package maintainers
-echo "Alerting package maintainers..."
+#echo "Alerting package maintainers..."
 #maintainers='fernando.perez@berkeley.edu ariciputi@users.sourceforge.net jack@xiph.org tretkowski@inittab.de dryice@hotpop.com willmaier@ml1.net'
-maintainers='fernando.perez@berkeley.edu'
+# maintainers='fernando.perez@berkeley.edu'
 
-for email in $maintainers
-    do
-	echo "Emailing $email..."
-	mail -s "[Package maintainer notice] A new IPython is out. Version: $version" \
-    $email < NEWS
-    done
+# for email in $maintainers
+#     do
+# 	echo "Emailing $email..."
+# 	mail -s "[Package maintainer notice] A new IPython is out. Version: $version" \
+#     $email < NEWS
+#     done
 
 echo "Done!"
