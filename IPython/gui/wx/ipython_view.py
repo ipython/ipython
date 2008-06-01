@@ -146,6 +146,9 @@ class WxConsoleView(stc.StyledTextCtrl):
         #self.SetUseAntiAliasing(True)
         self.SetLayoutCache(stc.STC_CACHE_PAGE)
         self.SetUndoCollection(False)
+	self.SetUseTabs(True)
+	self.SetIndent(4)
+	self.SetTabWidth(4)
 
         self.EnsureCaretVisible()
         
