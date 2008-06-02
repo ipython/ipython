@@ -566,8 +566,18 @@ class MatplotlibShellBase:
         # Build a user namespace initialized with matplotlib/matlab features.
         user_ns = IPython.ipapi.make_user_ns(user_ns)
 
-        exec ("import matplotlib\n"
-              "import matplotlib.pylab as pylab\n") in user_ns
+        # Import numpy as np/pyplot as plt are conventions we're trying to
+        # somewhat standardize on.  Making them available to users by default
+        # will greatly help this. 
+        exec ("import numpy\n"
+              "import numpy as np\n"
+              "import matplotlib\n"
+              "import matplotlib.pylab as pylab\n"
+              "try:\n"
+              "    import matplotlib.pyplot as plt\n"
+              "except ImportError:\n"
+              "    pass\n"
+              ) in user_ns
         
         # Build matplotlib info banner
         b="""
