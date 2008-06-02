@@ -21,15 +21,13 @@ import re
 import sys
 import os
 import locale
-import time
-import pydoc,__builtin__,site
 from thread_ex import ThreadEx
-from StringIO import StringIO
 
 try:
-        import IPython
+    import IPython
 except Exception,e:
-        raise "Error importing IPython (%s)" % str(e)
+    print "Error importing IPython (%s)" % str(e)
+    raise Exception, e
 
 ##############################################################################
 class _Helper(object):
@@ -37,7 +35,7 @@ class _Helper(object):
     This is a wrapper around pydoc.help (with a twist).
     """
 
-    def __init__(self,pager):
+    def __init__(self, pager):
         self._pager = pager
 
     def __repr__(self):
@@ -46,10 +44,12 @@ class _Helper(object):
     
     def __call__(self, *args, **kwds):
         class DummyWriter(object):
-            def __init__(self,pager):
+            '''Dumy class to handle help output'''	
+            def __init__(self, pager):
                 self._pager = pager
                 
-            def write(self,data):
+            def write(self, data):
+                '''hook to fill self._pager'''
                 self._pager(data)
 
         import pydoc
@@ -61,13 +61,14 @@ class _Helper(object):
   
 ##############################################################################
 class _CodeExecutor(ThreadEx):
-    
+    ''' Thread that execute ipython code '''
     def __init__(self, instance, after):
         ThreadEx.__init__(self)
         self.instance = instance
-        self._afterExecute=after
+        self._afterExecute = after
 
     def run(self):
+        '''Thread main loop'''
         try:
             self.instance._doc_text = None
             self.instance._help_text = None
@@ -90,7 +91,7 @@ class NonBlockingIPShell(object):
           via raise_exc()
     '''
 
-    def __init__(self,argv=[],user_ns={},user_global_ns=None,
+    def __init__(self, argv=[], user_ns={}, user_global_ns=None,
                  cin=None, cout=None, cerr=None,
                  ask_exit_handler=None):
         '''
@@ -112,6 +113,8 @@ class NonBlockingIPShell(object):
         @type int
         '''
         #ipython0 initialisation
+        self._IP = None
+        self._term = None
         self.initIpython0(argv, user_ns, user_global_ns,
                           cin, cout, cerr,
                           ask_exit_handler)
@@ -134,6 +137,8 @@ class NonBlockingIPShell(object):
     def initIpython0(self, argv=[], user_ns={}, user_global_ns=None,
                      cin=None, cout=None, cerr=None,
                      ask_exit_handler=None):
+        ''' Initialize an ithon0 instance '''
+        
         #first we redefine in/out/error functions of IPython 
         if cin:
             IPython.Shell.Term.cin = cin
@@ -151,20 +156,20 @@ class NonBlockingIPShell(object):
         excepthook = sys.excepthook
 
         self._IP = IPython.Shell.make_IPython(
-                                            argv,user_ns=user_ns,
-                                            user_global_ns=user_global_ns,
-                                            embedded=True,
-                                            shell_class=IPython.Shell.InteractiveShell)
+                                    argv,user_ns=user_ns,
+                                    user_global_ns=user_global_ns,
+                                    embedded=True,
+                                    shell_class=IPython.Shell.InteractiveShell)
 
         #we replace IPython default encoding by wx locale encoding
         loc = locale.getpreferredencoding()
         if loc:
-                self._IP.stdin_encoding = loc
+            self._IP.stdin_encoding = loc
         #we replace the ipython default pager by our pager
-        self._IP.set_hook('show_in_pager',self._pager)
+        self._IP.set_hook('show_in_pager', self._pager)
         
         #we replace the ipython default shell command caller by our shell handler
-        self._IP.set_hook('shell_hook',self._shell)
+        self._IP.set_hook('shell_hook', self._shell)
         
         #we replace the ipython default input command caller by our method
         IPython.iplib.raw_input_original = self._raw_input
@@ -183,15 +188,15 @@ class NonBlockingIPShell(object):
         sys.excepthook = excepthook
 
     #----------------------- Thread management section ----------------------    
-    def doExecute(self,line):
+    def doExecute(self, line):
         """
         Tell the thread to process the 'line' command
         """
 
         self._line_to_execute = line
         #we launch the ipython line execution in a thread to make it interruptible
-        self.ce = _CodeExecutor(self,self._afterExecute)
-        self.ce.start()
+        ce = _CodeExecutor(self, self._afterExecute)
+        ce.start()
         
     #----------------------- IPython management section ----------------------    
     def getDocText(self):
@@ -307,9 +312,9 @@ class NonBlockingIPShell(object):
         history = ''
         #the below while loop is used to suppress empty history lines
         while((history == '' or history == '\n') and self._history_level >0):
-                if self._history_level>=1:
-                        self._history_level -= 1
-                history = self._getHistory()            
+            if self._history_level >= 1:
+                self._history_level -= 1
+            history = self._getHistory()            
         return history
 
     def historyForward(self):
@@ -321,16 +326,17 @@ class NonBlockingIPShell(object):
         '''
         history = ''
         #the below while loop is used to suppress empty history lines
-        while((history == '' or history == '\n') and self._history_level <= self._getHistoryMaxIndex()):
-                if self._history_level < self._getHistoryMaxIndex():
-                        self._history_level += 1
-                        history = self._getHistory()
+        while((history == '' or history == '\n') \
+        and self._history_level <= self._getHistoryMaxIndex()):
+            if self._history_level < self._getHistoryMaxIndex():
+                self._history_level += 1
+                history = self._getHistory()
+            else:
+                if self._history_level == self._getHistoryMaxIndex():
+                    history = self._getHistory()
+                    self._history_level += 1
                 else:
-                        if self._history_level == self._getHistoryMaxIndex():
-                                history = self._getHistory()
-                                self._history_level += 1
-                        else:
-                                history = ''
+                    history = ''
         return history
 
     def initHistoryIndex(self):
@@ -371,24 +377,24 @@ class NonBlockingIPShell(object):
         rv = self._IP.input_hist_raw[self._history_level].strip('\n')
         return rv
 
-    def _pager_help(self,text):
+    def _pager_help(self, text):
         '''
         This function is used as a callback replacment to IPython help pager function
 
-        It puts the 'text' value inside the self._help_text string that can be retrived via getHelpText
-        function.
+        It puts the 'text' value inside the self._help_text string that can be retrived via
+        getHelpText function.
         '''
         if self._help_text == None:
             self._help_text = text
         else:
             self._help_text += text
     
-    def _pager(self,IP,text):
+    def _pager(self, IP, text):
         '''
         This function is used as a callback replacment to IPython pager function
 
-        It puts the 'text' value inside the self._doc_text string that can be retrived via getDocText
-        function.
+        It puts the 'text' value inside the self._doc_text string that can be retrived via
+        getDocText function.
         '''
         self._doc_text = text
     
@@ -429,8 +435,7 @@ class NonBlockingIPShell(object):
             self._IP.showtraceback()
         else:
             self._iter_more = self._IP.push(line)
-            if (self._IP.SyntaxTB.last_syntax_error and
-                    self._IP.rc.autoedit_syntax):
+            if (self._IP.SyntaxTB.last_syntax_error and self._IP.rc.autoedit_syntax):
                 self._IP.edit_syntax_error()
         if self._iter_more:
             self._prompt = str(self._IP.outputcache.prompt2).strip()
@@ -452,8 +457,8 @@ class NonBlockingIPShell(object):
         '''
         stdin, stdout = os.popen4(cmd)
         result = stdout.read().decode('cp437').encode(locale.getpreferredencoding())
-        #we use print command because the shell command is called inside IPython instance and thus is
-        #redirected to thread cout
+        #we use print command because the shell command is called
+        #inside IPython instance and thus is redirected to thread cout
         #"\x01\x1b[1;36m\x02" <-- add colour to the text...
         print "\x01\x1b[1;36m\x02"+result
         stdout.close()

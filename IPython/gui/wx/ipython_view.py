@@ -28,13 +28,7 @@ import wx
 import wx.stc  as  stc
 
 import re
-import sys
-import locale
 from StringIO import StringIO
-try:
-        import IPython
-except Exception,e:
-        raise "Error importing IPython (%s)" % str(e)
 
 from ipshell_nonblocking import NonBlockingIPShell
 
@@ -47,7 +41,7 @@ class WxNonBlockingIPShell(NonBlockingIPShell):
                  cin=None, cout=None, cerr=None,
                  ask_exit_handler=None):
         
-        NonBlockingIPShell.__init__(self,argv,user_ns,user_global_ns,
+        NonBlockingIPShell.__init__(self, argv, user_ns, user_global_ns,
                                     cin, cout, cerr,
                                     ask_exit_handler)
 
@@ -56,7 +50,7 @@ class WxNonBlockingIPShell(NonBlockingIPShell):
         self.ask_exit_callback = ask_exit_handler
         self._IP.exit = self._askExit
 
-    def addGUIShortcut(self,text,func):
+    def addGUIShortcut(self, text, func):
         wx.CallAfter(self.parent.add_button_handler, 
                 button_info={   'text':text, 
                                 'func':self.parent.doExecuteLine(func)})
@@ -85,27 +79,27 @@ class WxConsoleView(stc.StyledTextCtrl):
     @ivar color_pat: Regex of terminal color pattern
     @type color_pat: _sre.SRE_Pattern
     '''
-    ANSI_STYLES_BLACK={'0;30': [0,'WHITE'],            '0;31': [1,'RED'],
-                       '0;32': [2,'GREEN'],            '0;33': [3,'BROWN'],
-                       '0;34': [4,'BLUE'],             '0;35': [5,'PURPLE'],
-                       '0;36': [6,'CYAN'],             '0;37': [7,'LIGHT GREY'],
-                       '1;30': [8,'DARK GREY'],        '1;31': [9,'RED'],
-                       '1;32': [10,'SEA GREEN'],       '1;33': [11,'YELLOW'],
-                       '1;34': [12,'LIGHT BLUE'],      '1;35': 
-                                                    [13,'MEDIUM VIOLET RED'],
-                       '1;36': [14,'LIGHT STEEL BLUE'],'1;37': [15,'YELLOW']}
+    ANSI_STYLES_BLACK = {'0;30': [0, 'WHITE'],            '0;31': [1, 'RED'],
+                         '0;32': [2, 'GREEN'],            '0;33': [3, 'BROWN'],
+                         '0;34': [4, 'BLUE'],             '0;35': [5, 'PURPLE'],
+                         '0;36': [6, 'CYAN'],             '0;37': [7, 'LIGHT GREY'],
+                         '1;30': [8, 'DARK GREY'],        '1;31': [9, 'RED'],
+                         '1;32': [10, 'SEA GREEN'],       '1;33': [11, 'YELLOW'],
+                         '1;34': [12, 'LIGHT BLUE'],      '1;35': 
+                                                          [13, 'MEDIUM VIOLET RED'],
+                         '1;36': [14, 'LIGHT STEEL BLUE'], '1;37': [15, 'YELLOW']}
 
-    ANSI_STYLES_WHITE={'0;30': [0,'BLACK'],            '0;31': [1,'RED'],
-                       '0;32': [2,'GREEN'],            '0;33': [3,'BROWN'],
-                       '0;34': [4,'BLUE'],             '0;35': [5,'PURPLE'],
-                       '0;36': [6,'CYAN'],             '0;37': [7,'LIGHT GREY'],
-                       '1;30': [8,'DARK GREY'],        '1;31': [9,'RED'],
-                       '1;32': [10,'SEA GREEN'],       '1;33': [11,'YELLOW'],
-                       '1;34': [12,'LIGHT BLUE'],      '1;35':
-                                                    [13,'MEDIUM VIOLET RED'],
-                       '1;36': [14,'LIGHT STEEL BLUE'],'1;37': [15,'YELLOW']}
+    ANSI_STYLES_WHITE = {'0;30': [0, 'BLACK'],            '0;31': [1, 'RED'],
+                         '0;32': [2, 'GREEN'],            '0;33': [3, 'BROWN'],
+                         '0;34': [4, 'BLUE'],             '0;35': [5, 'PURPLE'],
+                         '0;36': [6, 'CYAN'],             '0;37': [7, 'LIGHT GREY'],
+                         '1;30': [8, 'DARK GREY'],        '1;31': [9, 'RED'],
+                         '1;32': [10, 'SEA GREEN'],       '1;33': [11, 'YELLOW'],
+                         '1;34': [12, 'LIGHT BLUE'],      '1;35':
+                                                           [13, 'MEDIUM VIOLET RED'],
+                         '1;36': [14, 'LIGHT STEEL BLUE'], '1;37': [15, 'YELLOW']}
 
-    def __init__(self,parent,prompt,intro="",background_color="BLACK",
+    def __init__(self, parent, prompt, intro="", background_color="BLACK",
                  pos=wx.DefaultPosition, ID = -1, size=wx.DefaultSize,
                  style=0, autocomplete_mode = 'IPYTHON'):
         '''
@@ -146,17 +140,17 @@ class WxConsoleView(stc.StyledTextCtrl):
         #self.SetUseAntiAliasing(True)
         self.SetLayoutCache(stc.STC_CACHE_PAGE)
         self.SetUndoCollection(False)
-	self.SetUseTabs(True)
-	self.SetIndent(4)
-	self.SetTabWidth(4)
+        self.SetUseTabs(True)
+        self.SetIndent(4)
+        self.SetTabWidth(4)
 
         self.EnsureCaretVisible()
         
-        self.SetMargins(3,3) #text is moved away from border with 3px
+        self.SetMargins(3, 3) #text is moved away from border with 3px
         # Suppressing Scintilla margins
-        self.SetMarginWidth(0,0)
-        self.SetMarginWidth(1,0)
-        self.SetMarginWidth(2,0)
+        self.SetMarginWidth(0, 0)
+        self.SetMarginWidth(1, 0)
+        self.SetMarginWidth(2, 0)
 
         self.background_color = background_color
         self.buildStyles()
@@ -176,13 +170,13 @@ class WxConsoleView(stc.StyledTextCtrl):
     def buildStyles(self):
         #we define platform specific fonts
         if wx.Platform == '__WXMSW__':
-                faces = { 'times': 'Times New Roman',
-                          'mono' : 'Courier New',
-                          'helv' : 'Arial',
-                          'other': 'Comic Sans MS',
-                          'size' : 10,
-                          'size2': 8,
-                         }
+            faces = { 'times': 'Times New Roman',
+                      'mono' : 'Courier New',
+                      'helv' : 'Arial',
+                      'other': 'Comic Sans MS',
+                      'size' : 10,
+                      'size2': 8,
+                     }
         elif wx.Platform == '__WXMAC__':
             faces = { 'times': 'Times New Roman',
                       'mono' : 'Monaco',
@@ -225,11 +219,11 @@ class WxConsoleView(stc.StyledTextCtrl):
         
         #######################################################################
         
-    def setBackgroundColor(self,color):
+    def setBackgroundColor(self, color):
         self.background_color = color
         self.buildStyles()
 
-    def getBackgroundColor(self,color):
+    def getBackgroundColor(self, color):
         return self.background_color
         
     def asyncWrite(self, text):
@@ -240,20 +234,20 @@ class WxConsoleView(stc.StyledTextCtrl):
         @type text: string
         '''
         try:
-                #print >>sys.__stdout__,'entering'
-                wx.MutexGuiEnter()
-                #print >>sys.__stdout__,'locking the GUI'
+            #print >>sys.__stdout__,'entering'
+            wx.MutexGuiEnter()
+            #print >>sys.__stdout__,'locking the GUI'
                 
-                #be sure not to be interrutpted before the MutexGuiLeave!
-                self.write(text)
+            #be sure not to be interrutpted before the MutexGuiLeave!
+            self.write(text)
                 
-                #print >>sys.__stdout__,'done'
+            #print >>sys.__stdout__,'done'
                 
         except KeyboardInterrupt:
-                #print >>sys.__stdout__,'got keyboard interrupt'
-                wx.MutexGuiLeave()
-                #print >>sys.__stdout__,'interrupt unlock the GUI'
-                raise KeyboardInterrupt
+            #print >>sys.__stdout__,'got keyboard interrupt'
+            wx.MutexGuiLeave()
+            #print >>sys.__stdout__,'interrupt unlock the GUI'
+            raise KeyboardInterrupt
         wx.MutexGuiLeave()
         #print >>sys.__stdout__,'normal unlock the GUI'
         
@@ -267,7 +261,7 @@ class WxConsoleView(stc.StyledTextCtrl):
         '''
         segments = self.color_pat.split(text)
         segment = segments.pop(0)
-        self.StartStyling(self.getCurrentLineEnd(),0xFF)
+        self.StartStyling(self.getCurrentLineEnd(), 0xFF)
         self.AppendText(segment)
         
         if segments:
@@ -275,11 +269,11 @@ class WxConsoleView(stc.StyledTextCtrl):
 
             for tag in ansi_tags:
                 i = segments.index(tag)
-                self.StartStyling(self.getCurrentLineEnd(),0xFF)
+                self.StartStyling(self.getCurrentLineEnd(), 0xFF)
                 self.AppendText(segments[i+1])
 
                 if tag != '0':
-                    self.SetStyling(len(segments[i+1]),self.ANSI_STYLES[tag][0])
+                    self.SetStyling(len(segments[i+1]), self.ANSI_STYLES[tag][0])
 
                 segments.pop(i)
                 
@@ -291,13 +285,13 @@ class WxConsoleView(stc.StyledTextCtrl):
         '''
         return len(str(self.prompt_count)) + 7
 
-    def setPrompt(self,prompt):
+    def setPrompt(self, prompt):
         self.prompt = prompt
 
-    def setIndentation(self,indentation):
+    def setIndentation(self, indentation):
         self.indent = indentation
         
-    def setPromptCount(self,count):
+    def setPromptCount(self, count):
         self.prompt_count = count
         
     def showPrompt(self):
@@ -322,7 +316,7 @@ class WxConsoleView(stc.StyledTextCtrl):
         @param text: Text to use as replacement.
         @type text: string
         '''
-        self.SetSelection(self.getCurrentPromptStart(),self.getCurrentLineEnd())
+        self.SetSelection(self.getCurrentPromptStart(), self.getCurrentLineEnd())
         self.ReplaceSelection(text)
         self.moveCursor(self.getCurrentLineEnd())
 
@@ -350,30 +344,30 @@ class WxConsoleView(stc.StyledTextCtrl):
         if self.GetCurrentPos() < self.getCurrentPromptStart():
             self.GotoPos(self.getCurrentPromptStart())
         
-    def removeFromTo(self,from_pos,to_pos):
+    def removeFromTo(self, from_pos, to_pos):
         if from_pos < to_pos:
-            self.SetSelection(from_pos,to_pos)
+            self.SetSelection(from_pos, to_pos)
             self.DeleteBack()
                                                           
     def removeCurrentLine(self):
         self.LineDelete()
         
-    def moveCursor(self,position):
+    def moveCursor(self, position):
         self.GotoPos(position)
 
     def getCursorPos(self):
         return self.GetCurrentPos()
 
-    def selectFromTo(self,from_pos,to_pos):
+    def selectFromTo(self, from_pos, to_pos):
         self.SetSelectionStart(from_pos)
         self.SetSelectionEnd(to_pos)
         
-    def writeHistory(self,history):
-        self.removeFromTo(self.getCurrentPromptStart(),self.getCurrentLineEnd())
+    def writeHistory(self, history):
+        self.removeFromTo(self.getCurrentPromptStart(), self.getCurrentLineEnd())
         self.changeLine(history)
 
     def setCompletionMethod(self, completion):
-        if completion in ['IPYTHON','STC']:
+        if completion in ['IPYTHON', 'STC']:
             self.autocomplete_mode = completion
         else:
             raise AttributeError
@@ -383,28 +377,26 @@ class WxConsoleView(stc.StyledTextCtrl):
         
     def writeCompletion(self, possibilities):
         if self.autocomplete_mode == 'IPYTHON':
-            max_len = len(max(possibilities,key=len))
-            max_symbol =' '*max_len
+            max_len = len(max(possibilities, key=len))
+            max_symbol = ' '*max_len
             
             #now we check how much symbol we can put on a line...
-            cursor_pos = self.getCursorPos()
             test_buffer = max_symbol + ' '*4
-            current_lines = self.GetLineCount()
             
             allowed_symbols = 80/len(test_buffer)
             if allowed_symbols == 0:
-                    allowed_symbols = 1
+                allowed_symbols = 1
             
             pos = 1
             buf = ''
             for symbol in possibilities:
                 #buf += symbol+'\n'#*spaces)
-                if pos<allowed_symbols:
+                if pos < allowed_symbols:
                     spaces = max_len - len(symbol) + 4
                     buf += symbol+' '*spaces
                     pos += 1
                 else:
-                    buf+=symbol+'\n'
+                    buf += symbol+'\n'
                     pos = 1
             self.write(buf)
         else:
@@ -412,7 +404,7 @@ class WxConsoleView(stc.StyledTextCtrl):
             self.AutoCompSetIgnoreCase(False)
             self.AutoCompSetAutoHide(False)
             #let compute the length ot last word
-            splitter = [' ','(','[','{']
+            splitter = [' ', '(', '[', '{']
             last_word = self.getCurrentLine()
             for breaker in splitter:
                 last_word = last_word.split(breaker)[-1]
@@ -441,7 +433,7 @@ class WxConsoleView(stc.StyledTextCtrl):
                     return True
                 elif event.Modifiers == wx.MOD_SHIFT:
                     self.moveCursorOnNewValidKey()
-                    self.selectFromTo(self.getCurrentPromptStart(),self.getCursorPos())
+                    self.selectFromTo(self.getCurrentPromptStart(), self.getCursorPos())
                     return True
                 else:
                     return False
@@ -462,7 +454,8 @@ class WxConsoleView(stc.StyledTextCtrl):
                 return True
             
             if skip:
-                if event.GetKeyCode() not in [wx.WXK_PAGEUP,wx.WXK_PAGEDOWN] and event.Modifiers == wx.MOD_NONE:
+                if event.GetKeyCode() not in [wx.WXK_PAGEUP, wx.WXK_PAGEDOWN]\
+                and event.Modifiers == wx.MOD_NONE:
                     self.moveCursorOnNewValidKey()
                     
                 event.Skip()
@@ -647,51 +640,51 @@ class IPShellWidget(wx.Panel):
     def pager(self,text):
 
         if self.pager_state == 'INIT':
-                #print >>sys.__stdout__,"PAGER state:",self.pager_state
-                self.pager_nb_lines = len(self.pager_lines)
-                self.pager_index = 0
-                self.pager_do_remove = False
-                self.text_ctrl.write('\n')
-                self.pager_state = 'PROCESS_LINES'
+            #print >>sys.__stdout__,"PAGER state:",self.pager_state
+            self.pager_nb_lines = len(self.pager_lines)
+            self.pager_index = 0
+            self.pager_do_remove = False
+            self.text_ctrl.write('\n')
+            self.pager_state = 'PROCESS_LINES'
 
         if self.pager_state == 'PROCESS_LINES':
-                #print >>sys.__stdout__,"PAGER state:",self.pager_state
-                if self.pager_do_remove == True:
-                        self.text_ctrl.removeCurrentLine()
-                        self.pager_do_remove = False
+            #print >>sys.__stdout__,"PAGER state:",self.pager_state
+            if self.pager_do_remove == True:
+                self.text_ctrl.removeCurrentLine()
+                self.pager_do_remove = False
 
-                if self.pager_nb_lines > 10:
-                        #print >>sys.__stdout__,"PAGER processing 10 lines"
-                        if self.pager_index > 0:
-                                self.text_ctrl.write(">\x01\x1b[1;36m\x02"+self.pager_lines[self.pager_index]+'\n')
-                        else:
-                                self.text_ctrl.write("\x01\x1b[1;36m\x02 "+self.pager_lines[self.pager_index]+'\n')
-                        
-                        for line in self.pager_lines[self.pager_index+1:self.pager_index+9]:
-                                self.text_ctrl.write("\x01\x1b[1;36m\x02 "+line+'\n')
-                        self.pager_index += 10
-                        self.pager_nb_lines -= 10
-                        self.text_ctrl.write("--- Push Enter to continue or 'Q' to quit---")
-                        self.pager_do_remove = True
-                        self.pager_state = 'WAITING'
-                        return
+            if self.pager_nb_lines > 10:
+                #print >>sys.__stdout__,"PAGER processing 10 lines"
+                if self.pager_index > 0:
+                    self.text_ctrl.write(">\x01\x1b[1;36m\x02"+self.pager_lines[self.pager_index]+'\n')
                 else:
-                        #print >>sys.__stdout__,"PAGER processing last lines"
-                        if self.pager_nb_lines > 0:
-                                if self.pager_index > 0:
-                                        self.text_ctrl.write(">\x01\x1b[1;36m\x02"+self.pager_lines[self.pager_index]+'\n')
-                                else:
-                                        self.text_ctrl.write("\x01\x1b[1;36m\x02 "+self.pager_lines[self.pager_index]+'\n')
-                                
-                                self.pager_index += 1
-                                self.pager_nb_lines -= 1
-                        if self.pager_nb_lines > 0:
-                                for line in self.pager_lines[self.pager_index:]:
-                                        self.text_ctrl.write("\x01\x1b[1;36m\x02 "+line+'\n')
-                                        self.pager_nb_lines = 0
-                        self.pager_state = 'DONE'
-                        self.stateShowPrompt()
-                
+                    self.text_ctrl.write("\x01\x1b[1;36m\x02 "+self.pager_lines[self.pager_index]+'\n')
+                    
+                for line in self.pager_lines[self.pager_index+1:self.pager_index+9]:
+                    self.text_ctrl.write("\x01\x1b[1;36m\x02 "+line+'\n')
+                self.pager_index += 10
+                self.pager_nb_lines -= 10
+                self.text_ctrl.write("--- Push Enter to continue or 'Q' to quit---")
+                self.pager_do_remove = True
+                self.pager_state = 'WAITING'
+                return
+            else:
+                #print >>sys.__stdout__,"PAGER processing last lines"
+                if self.pager_nb_lines > 0:
+                    if self.pager_index > 0:
+                        self.text_ctrl.write(">\x01\x1b[1;36m\x02"+self.pager_lines[self.pager_index]+'\n')
+                    else:
+                        self.text_ctrl.write("\x01\x1b[1;36m\x02 "+self.pager_lines[self.pager_index]+'\n')
+                            
+                    self.pager_index += 1
+                    self.pager_nb_lines -= 1
+                if self.pager_nb_lines > 0:
+                    for line in self.pager_lines[self.pager_index:]:
+                        self.text_ctrl.write("\x01\x1b[1;36m\x02 "+line+'\n')
+                        self.pager_nb_lines = 0
+                self.pager_state = 'DONE'
+                self.stateShowPrompt()
+            
     #------------------------ Key Handler ------------------------------------
     def keyPress(self, event):
         '''
