@@ -1,12 +1,11 @@
+#!/usr/bin/env python
+"""Simple script to create a tarball with proper bzr version info.
+"""
+
 import os,sys,shutil
 
-repo = "http://ipython.scipy.org/svn/ipython/ipython/branches/0.7.3"
-basename = 'ipython'
-workdir = './mkdist'
+basever = '0.8.3'
 
-workdir = os.path.abspath(workdir)
-
-print "working at",workdir
 def oscmd(c):
     print ">",c
     s = os.system(c)
@@ -14,15 +13,24 @@ def oscmd(c):
         print "Error",s
         sys.exit(s)
 
+def verinfo():
+    
+    out = os.popen('bzr version-info')
+    pairs = (l.split(':',1) for l in out)
+    d = dict(((k,v.strip()) for (k,v) in pairs)) 
+    return d
 
-assert not os.path.isdir(workdir)
-os.mkdir(workdir)
-os.chdir(workdir)
+basename = 'ipython'
 
-oscmd('svn export %s %s' % (repo,basename))
-ver = os.popen('svnversion ../..').read().strip()
-tarname = '%s.r%s.tgz' % (basename, ver)
-oscmd('tar czvf ../%s %s' % (tarname, basename))
-print "Produced: ",os.path.abspath('../' + tarname)
-os.chdir('/')
-shutil.rmtree(workdir)
+#tarname = '%s.r%s.tgz' % (basename, ver)
+oscmd('python update_revnum.py')
+
+ver = verinfo()
+
+if ver['branch-nick'] == 'ipython':
+    tarname = 'ipython-%s.bzr.r%s.tgz' % (basever, ver['revno'])
+else:
+    tarname = 'ipython-%s.bzr.r%s.%s.tgz' % (basever, ver['revno'], ver['branch-nick'])
+    
+oscmd('bzr export ' + tarname)
+

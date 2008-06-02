@@ -6,7 +6,6 @@ Requires Python 2.3 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
 
-$Id: iplib.py 3005 2008-02-01 16:43:34Z vivainio $
 """
 
 #*****************************************************************************
@@ -55,6 +54,8 @@ import sys
 import tempfile
 import traceback
 import types
+import warnings
+warnings.filterwarnings('ignore', r'.*sets module*')
 from sets import Set
 from pprint import pprint, pformat
 
@@ -377,7 +378,10 @@ class InteractiveShell(object,Magic):
         # Get system encoding at startup time.  Certain terminals (like Emacs
         # under Win32 have it set to None, and we need to have a known valid
         # encoding to use in the raw_input() method
-        self.stdin_encoding = sys.stdin.encoding or 'ascii'
+        try:
+            self.stdin_encoding = sys.stdin.encoding or 'ascii'
+        except AttributeError:
+            self.stdin_encoding = 'ascii'
 
         # dict of things NOT to alias (keywords, builtins and some magics)
         no_alias = {}
@@ -698,7 +702,10 @@ class InteractiveShell(object,Magic):
 
         # Do a proper resetting of doctest, including the necessary displayhook
         # monkeypatching
-        doctest_reload()
+        try:
+            doctest_reload()
+        except ImportError:
+            warn("doctest module does not exist.")
         
         # Set user colors (don't do it in the constructor above so that it
         # doesn't crash if colors option is invalid)
@@ -1266,8 +1273,12 @@ want to merge them back into the new files.""" % locals()
         """Reload the input history from disk file."""
 
         if self.has_readline:
-            self.readline.clear_history()
-            self.readline.read_history_file(self.shell.histfile)
+            try:
+                self.readline.clear_history()
+                self.readline.read_history_file(self.shell.histfile)
+            except AttributeError:
+                pass
+            
 
     def history_saving_wrapper(self, func):
         """ Wrap func for readline history saving
@@ -1744,6 +1755,7 @@ want to merge them back into the new files.""" % locals()
         # exit_now is set by a call to %Exit or %Quit
         
         while not self.exit_now:
+            self.hooks.pre_prompt_hook()
             if more:
                 try:
                     prompt = self.hooks.generate_prompt(True)
@@ -2009,7 +2021,7 @@ want to merge them back into the new files.""" % locals()
 
         try:
             code = self.compile(source,filename,symbol)
-        except (OverflowError, SyntaxError, ValueError):
+        except (OverflowError, SyntaxError, ValueError, TypeError):
             # Case 1
             self.showsyntaxerror(filename)
             return None
@@ -2053,6 +2065,7 @@ want to merge them back into the new files.""" % locals()
         outflag = 1  # happens in more places, so it's easier as default
         try:
             try:
+                self.hooks.pre_runcode_hook()
                 # Embedded instances require separate global/local namespaces
                 # so they can see both the surrounding (local) namespace and
                 # the module-level globals when called inside another function.

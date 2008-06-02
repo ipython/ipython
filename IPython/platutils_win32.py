@@ -50,4 +50,7 @@ def set_term_title(title):
         return
     _set_term_title(title)
 
+def freeze_term_title():
+    global ignore_termtitle
+    ignore_termtitle = 1
 

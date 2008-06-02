@@ -72,6 +72,27 @@ def main():
     #o.autoexec.append('%colors NoColor')
     #o.autoexec.append('%colors Linux')
     
+    # for sane integer division that converts to float (1/2 == 0.5)
+    #o.autoexec.append('from __future__ import division')
+    
+    # For %tasks and %kill
+    #import jobctrl 
+    
+    # For autoreloading of modules (%autoreload, %aimport)    
+    #import ipy_autoreload
+    
+    # For winpdb support (%wdb)
+    #import ipy_winpdb
+    
+    # For bzr completer, requires bzrlib (the python installation of bzr)
+    #ip.load('ipy_bzr')
+    
+    # Tab completer that is not quite so picky (i.e. 
+    # "foo".<TAB> and str(2).<TAB> will work). Complete 
+    # at your own risk!
+    #import ipy_greedycompleter
+    
+    
     
 # some config helper functions you can use 
 def import_all(modules):

@@ -9,22 +9,23 @@ graft setupext
 graft IPython/UserConfig
 
 graft doc
-exclude doc/*.1
-exclude doc/manual_base*
-exclude doc/ChangeLog.*
 exclude doc/\#*
-exclude doc/update_magic.sh
+exclude doc/*.1
+exclude doc/ChangeLog.*
 exclude doc/update_version.sh
-exclude doc/manual_base*
-exclude doc/manual/WARNINGS
-exclude doc/manual/*.aux
-exclude doc/manual/*.log
-exclude doc/manual/*.out
-exclude doc/manual/*.pl
-exclude doc/manual/*.tex
+
+# There seems to be no way of excluding whole subdirectories, other than
+# manually excluding all their subdirs.  distutils really is horrible...
+exclude doc/attic/*
+exclude doc/build/doctrees/*
+exclude doc/build/html/_sources/*
+exclude doc/build/html/_static/*
+exclude doc/build/html/*
+exclude doc/build/latex/*
 
 global-exclude *~
 global-exclude *.flc
 global-exclude *.pyc
 global-exclude .dircopy.log
 global-exclude .svn
+global-exclude .bzr

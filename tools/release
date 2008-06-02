@@ -4,6 +4,7 @@
 PYVER=`python -V 2>&1 | awk '{print $2}' | awk -F '.' '{print $1$2}' `
 version=`ipython -Version`
 ipdir=~/ipython/ipython
+ipbackupdir=~/ipython/backup
 
 echo
 echo "Releasing IPython version $version"
@@ -37,7 +38,8 @@ rm -rf $ipdir/dist/*
 
 # Perform local backup
 cd $ipdir/tools
-./bkp.sh
+./make_tarball.py
+mv ipython-*.tgz $ipbackupdir
 
 # Build source and binary distros
 cd $ipdir
@@ -50,8 +52,8 @@ python2.4 ./setup.py bdist_rpm --binary-only --release=py24 --python=/usr/bin/py
 python2.5 ./setup.py bdist_rpm --binary-only --release=py25 --python=/usr/bin/python2.5
 
 # Build eggs
-python2.4 ./eggsetup.py bdist_egg
-python2.5 ./eggsetup.py bdist_egg
+python2.4 ./setup_bdist_egg.py
+python2.5 ./setup_bdist_egg.py
 
 # Call the windows build separately, so that the extra Windows scripts don't
 # get pulled into Unix builds (setup.py has code which checks for
@@ -72,28 +74,28 @@ echo "Uploading distribution files..."
 scp * ipython@ipython.scipy.org:www/dist/
 
 echo "Uploading backup files..."
-cd ~/ipython/backup
-scp `ls -1tr | tail -1` ipython@ipython.scipy.org:www/backup/
+cd $ipbackupdir
+scp `ls -1tr *tgz | tail -1` ipython@ipython.scipy.org:www/backup/
 
 echo "Updating webpage..."
 cd $ipdir/doc
 www=~/ipython/homepage
 cp ChangeLog NEWS $www
 rm -rf $www/doc/*
-cp -r manual.pdf manual/ $www/doc
+cp -r manual/ $www/doc
 cd $www
 ./update
 
 # Alert package maintainers
-echo "Alerting package maintainers..."
-maintainers='fperez@colorado.edu ariciputi@users.sourceforge.net jack@xiph.org tretkowski@inittab.de dryice@hotpop.com willmaier@ml1.net'
-#maintainers='fperez@colorado.edu'
+#echo "Alerting package maintainers..."
+#maintainers='fernando.perez@berkeley.edu ariciputi@users.sourceforge.net jack@xiph.org tretkowski@inittab.de dryice@hotpop.com willmaier@ml1.net'
+# maintainers='fernando.perez@berkeley.edu'
 
-for email in $maintainers
-    do
-	echo "Emailing $email..."
-	mail -s "[Package maintainer notice] A new IPython is out. Version: $version" \
-    $email < NEWS
-    done
+# for email in $maintainers
+#     do
+# 	echo "Emailing $email..."
+# 	mail -s "[Package maintainer notice] A new IPython is out. Version: $version" \
+#     $email < NEWS
+#     done
 
 echo "Done!"

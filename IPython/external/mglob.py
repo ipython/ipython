@@ -34,35 +34,35 @@ License: MIT Open Source license
 #Assigned in variable for "usage" printing convenience"
 
 globsyntax = """\
-This program allows specifying filenames with "mglob" mechanism.
-Supported syntax in globs (wilcard matching patterns)::
-
- *.cpp ?ellowo*                
-     - obvious. Differs from normal glob in that dirs are not included.
-       Unix users might want to write this as: "*.cpp" "?ellowo*"
- rec:/usr/share=*.txt,*.doc    
-     - get all *.txt and *.doc under /usr/share, 
-       recursively
- rec:/usr/share
-     - All files under /usr/share, recursively
- rec:*.py
-     - All .py files under current working dir, recursively
- foo                           
-     - File or dir foo
- !*.bak readme*                   
-     - readme*, exclude files ending with .bak
- !.svn/ !.hg/ !*_Data/ rec:.
-     - Skip .svn, .hg, foo_Data dirs (and their subdirs) in recurse.
-       Trailing / is the key, \ does not work!
- dir:foo                       
-     - the directory foo if it exists (not files in foo)
- dir:*                         
-     - all directories in current folder
- foo.py bar.* !h* rec:*.py
-     - Obvious. !h* exclusion only applies for rec:*.py.
-       foo.py is *not* included twice.
- @filelist.txt
-     - All files listed in 'filelist.txt' file, on separate lines.
+    This program allows specifying filenames with "mglob" mechanism.
+    Supported syntax in globs (wilcard matching patterns)::
+    
+     *.cpp ?ellowo*                
+         - obvious. Differs from normal glob in that dirs are not included.
+           Unix users might want to write this as: "*.cpp" "?ellowo*"
+     rec:/usr/share=*.txt,*.doc    
+         - get all *.txt and *.doc under /usr/share, 
+           recursively
+     rec:/usr/share
+         - All files under /usr/share, recursively
+     rec:*.py
+         - All .py files under current working dir, recursively
+     foo                           
+         - File or dir foo
+     !*.bak readme*                   
+         - readme*, exclude files ending with .bak
+     !.svn/ !.hg/ !*_Data/ rec:.
+         - Skip .svn, .hg, foo_Data dirs (and their subdirs) in recurse.
+           Trailing / is the key, \ does not work!
+     dir:foo                       
+         - the directory foo if it exists (not files in foo)
+     dir:*                         
+         - all directories in current folder
+     foo.py bar.* !h* rec:*.py
+         - Obvious. !h* exclusion only applies for rec:*.py.
+           foo.py is *not* included twice.
+     @filelist.txt
+         - All files listed in 'filelist.txt' file, on separate lines.
  """
 
 

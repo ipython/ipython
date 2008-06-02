@@ -29,7 +29,10 @@ Date:    9 Mar 2007
 
 from __future__ import generators
 
-import sys, warnings, os, fnmatch, glob, shutil, codecs, md5
+import sys, warnings, os, fnmatch, glob, shutil, codecs
+# deprecated in python 2.6
+warnings.filterwarnings('ignore', r'.*md5.*')
+import md5
 
 __version__ = '2.2'
 __all__ = ['path']

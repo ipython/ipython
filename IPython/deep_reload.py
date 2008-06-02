@@ -32,7 +32,9 @@ import imp
 import sys
 
 # Replacement for __import__()
-def deep_import_hook(name, globals=None, locals=None, fromlist=None):
+def deep_import_hook(name, globals=None, locals=None, fromlist=None, level=-1):
+    # For now level is ignored, it's just there to prevent crash  
+    # with from __future__ import absolute_import
     parent = determine_parent(globals)
     q, tail = find_head_package(parent, name)
     m = load_tail(q, tail)

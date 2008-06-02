@@ -43,11 +43,13 @@ def main():
     # %store foo
     # %store bar
     import ipy_rehashdir
-    import ipy_signals
+
+    # does not work without subprocess module!
+    #import ipy_signals
     
     ip.ex('import os')
     ip.ex("def up(): os.chdir('..')")
-        
+    ip.user_ns['LA'] = LastArgFinder() 
     # Nice prompt
     
     o.prompt_in1= r'\C_LightBlue[\C_LightCyan\Y2\C_LightBlue]\C_Green|\#> '
@@ -116,6 +118,29 @@ def main():
             ip.defalias('d','dir /w /og /on')
     
     extend_shell_behavior(ip)
+
+class LastArgFinder:
+    """ Allow $LA to work as "last argument of previous command", like $! in bash
+    
+    To call this in normal IPython code, do LA()
+    """
+    def __call__(self, hist_idx = None):
+        ip = ipapi.get()
+        if hist_idx is None:
+            return str(self)
+        return ip.IP.input_hist_raw[hist_idx].strip().split()[-1]
+    def __str__(self):
+        ip = ipapi.get()        
+        for cmd in reversed(ip.IP.input_hist_raw):
+            parts = cmd.strip().split()
+            if len(parts) < 2 or parts[-1] in ['$LA', 'LA()']:
+                continue
+            return parts[-1]
+        return ""
+
+
+
+
 
 # XXX You do not need to understand the next function!
 # This should probably be moved out of profile

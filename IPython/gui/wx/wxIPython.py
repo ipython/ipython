@@ -2,11 +2,13 @@
 # -*- coding: iso-8859-15 -*-
 
 import wx.aui
-import wx.py
+
+#used for about dialog
 from wx.lib.wordwrap import wordwrap
 
-from ipython_view import *
-from ipython_history import *
+#used for ipython GUI objects
+from IPython.gui.wx.ipython_view import IPShellWidget
+from IPython.gui.wx.ipython_history import IPythonHistoryPanel
 
 __version__ = 0.8
 __author__  = "Laurent Dufrechou"
@@ -20,7 +22,8 @@ __license__ = "BSD"
 class MyFrame(wx.Frame):
     """Creating one main frame for our 
     application with movables windows"""
-    def __init__(self, parent=None, id=-1, title="WxIPython", pos=wx.DefaultPosition,
+    def __init__(self, parent=None, id=-1, title="WxIPython", 
+                pos=wx.DefaultPosition,
                 size=(800, 600), style=wx.DEFAULT_FRAME_STYLE):
         wx.Frame.__init__(self, parent, id, title, pos, size, style)
         self._mgr = wx.aui.AuiManager()
@@ -30,15 +33,18 @@ class MyFrame(wx.Frame):
         
         #create differents panels and make them persistant 
         self.history_panel    = IPythonHistoryPanel(self)
+
+        self.history_panel.setOptionTrackerHook(self.optionSave)
         
-        self.ipython_panel    = WxIPythonViewPanel(self,self.OnExitDlg,
-                                                   background_color = "BLACK")
-        
-        #self.ipython_panel    = WxIPythonViewPanel(self,self.OnExitDlg,
-        #                                           background_color = "WHITE")
-        
+        self.ipython_panel    = IPShellWidget(self,background_color = "BLACK")
+        #self.ipython_panel    = IPShellWidget(self,background_color = "WHITE")
+
         self.ipython_panel.setHistoryTrackerHook(self.history_panel.write)
         self.ipython_panel.setStatusTrackerHook(self.updateStatus)
+        self.ipython_panel.setAskExitHandler(self.OnExitDlg)
+        self.ipython_panel.setOptionTrackerHook(self.optionSave)
+
+        self.optionLoad()
         
         self.statusbar = self.createStatus()
         self.createMenu()
@@ -48,13 +54,11 @@ class MyFrame(wx.Frame):
         # main panels
         self._mgr.AddPane(self.ipython_panel , wx.CENTER, "IPython Shell")
         self._mgr.AddPane(self.history_panel , wx.RIGHT,  "IPython history")
-        
+                
         # now we specify some panel characteristics
         self._mgr.GetPane(self.ipython_panel).CaptionVisible(True);
         self._mgr.GetPane(self.history_panel).CaptionVisible(True);
         self._mgr.GetPane(self.history_panel).MinSize((200,400));
-                
-        
         
         # tell the manager to "commit" all the changes just made
         self._mgr.Update()
@@ -66,7 +70,7 @@ class MyFrame(wx.Frame):
         self.Bind(wx.EVT_MENU,  self.OnShowHistoryPanel,id=wx.ID_HIGHEST+2)
         self.Bind(wx.EVT_MENU,  self.OnShowAbout, id=wx.ID_HIGHEST+3)
         self.Bind(wx.EVT_MENU,  self.OnShowAllPanel,id=wx.ID_HIGHEST+6)
-
+        
         warn_text = 'Hello from IPython and wxPython.\n'
         warn_text +='Please Note that this work is still EXPERIMENTAL\n'
         warn_text +='It does NOT emulate currently all the IPython functions.\n'
@@ -78,7 +82,41 @@ class MyFrame(wx.Frame):
                                )
         dlg.ShowModal()
         dlg.Destroy()
-     
+
+    def optionSave(self, name, value):
+        opt = open('options.conf','w')
+
+        try:
+            options_ipython_panel = self.ipython_panel.getOptions()
+            options_history_panel = self.history_panel.getOptions()
+
+            for key in options_ipython_panel.keys():
+                opt.write(key + '=' + options_ipython_panel[key]['value']+'\n')
+            for key in options_history_panel.keys():
+                opt.write(key + '=' + options_history_panel[key]['value']+'\n')
+        finally:    
+            opt.close()
+        
+    def optionLoad(self):
+        opt = open('options.conf','r')
+        lines = opt.readlines()
+        opt.close()
+                      
+        options_ipython_panel = self.ipython_panel.getOptions()
+        options_history_panel = self.history_panel.getOptions()
+        
+        for line in lines:
+            key = line.split('=')[0]
+            value = line.split('=')[1].replace('\n','').replace('\r','')
+            if key in options_ipython_panel.keys():
+                options_ipython_panel[key]['value'] = value
+            elif key in options_history_panel.keys():
+                options_history_panel[key]['value'] = value
+            else:
+                print >>sys.__stdout__,"Warning: key ",key,"not found in widget options. Check Options.conf"
+        self.ipython_panel.reloadOptions(options_ipython_panel)
+        self.history_panel.reloadOptions(options_history_panel)
+        
     def createMenu(self):
         """local method used to create one menu bar"""
         
@@ -121,6 +159,7 @@ class MyFrame(wx.Frame):
         states = {'IDLE':'Idle',
                   'DO_EXECUTE_LINE':'Send command',
                   'WAIT_END_OF_EXECUTION':'Running command',
+                  'WAITING_USER_INPUT':'Waiting user input',
                   'SHOW_DOC':'Showing doc',
                   'SHOW_PROMPT':'Showing prompt'}
         self.statusbar.SetStatusText(states[text], 0)

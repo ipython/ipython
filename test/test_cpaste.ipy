@@ -1,0 +1,62 @@
+"""Test cpaste magic"""
+
+tests = {'pass': ["> > > run()",
+                  ">>> > run()",
+                  "+++ run()",
+                  "++ run()",
+		  "  >>> run()"],
+
+         'fail': ["+ + run()",
+                  " ++ run()"]}
+
+from StringIO import StringIO
+import sys
+
+stdin_save = sys.stdin
+
+# NOTE: no blank lines allowed in function definition
+def testcase(code,should_fail=False):
+    """Execute code via 'cpaste' and ensure it was executed, unless
+    should_fail is set.
+
+    """
+    _ip.user_ns['code_ran'] = False
+    #
+    src = StringIO()
+    src.write('\n')
+    src.write(code)
+    src.write('\n--\n')
+    src.seek(0)
+    #
+    sys.stdin = src
+    
+    try:
+        cpaste
+    except:
+        if not should_fail:
+            raise AssertionError("Failure not expected : '%s'" %
+                                 code)
+    else:
+        assert code_ran
+        if should_fail:
+            raise AssertionError("Failure expected : '%s'" % code)
+    #
+    finally:
+        sys.stdin = stdin_save
+    #
+
+def run():
+    """Marker function: sets a flag when executed.
+
+    """
+    _ip.user_ns['code_ran'] = True
+    return 'run' # return string so '+ run()' doesn't result in success
+
+
+### Actual testing happens here
+
+for code in tests['pass']:
+    testcase(code)
+
+for code in tests['fail']:
+    testcase(code,should_fail=True)

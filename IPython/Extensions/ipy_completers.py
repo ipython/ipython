@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 
 """ Implementations for various useful completers
 
@@ -12,6 +11,7 @@ import IPython.ipapi
 import glob,os,shlex,sys
 import inspect
 from time import time
+from zipimport import zipimporter
 ip = IPython.ipapi.get()
 
 try:
@@ -86,13 +86,18 @@ def moduleList(path):
 
     if os.path.isdir(path):
         folder_list = os.listdir(path)
+    elif path.endswith('.egg'):
+        try:
+            folder_list = [f for f in zipimporter(path)._files]
+        except:
+            folder_list = []
     else:
         folder_list = []
     #folder_list = glob.glob(os.path.join(path,'*'))
     folder_list = [p for p in folder_list  \
        if os.path.exists(os.path.join(path, p,'__init__.py'))\
            or p[-3:] in ('.py','.so')\
-           or p[-4:] in ('.pyc','.pyo')]
+           or p[-4:] in ('.pyc','.pyo','.pyd')]
 
     folder_list = [os.path.basename(p).split('.')[0] for p in folder_list]
     return folder_list
@@ -211,15 +216,15 @@ def hg_completer(self,event):
 
 
 
-bzr_commands = """
-add annotate bind branch break-lock bundle-revisions cat check
-checkout commit conflicts deleted diff export gannotate gbranch
-gcommit gdiff help ignore ignored info init init-repository inventory
-log merge missing mkdir mv nick pull push reconcile register-branch
-remerge remove renames resolve revert revno root serve sign-my-commits
-status testament unbind uncommit unknowns update upgrade version
-version-info visualise whoami
-"""
+__bzr_commands = None
+
+def bzr_commands():
+    global __bzr_commands
+    if __bzr_commands is not None:
+        return __bzr_commands
+    out = os.popen('bzr help commands')
+    __bzr_commands = [l.split()[0] for l in out]
+    return __bzr_commands                
 
 def bzr_completer(self,event):
     """ Completer for bazaar commands """
@@ -232,7 +237,7 @@ def bzr_completer(self,event):
         param = cmd_param[-1]
         output_file = (param == '--output=')
         if cmd == 'help':
-            return bzr_commands.split()
+            return bzr_commands()
         elif cmd in ['bundle-revisions','conflicts',
                      'deleted','nick','register-branch',
                      'serve','unbind','upgrade','version',
@@ -242,7 +247,7 @@ def bzr_completer(self,event):
             # the rest are probably file names
             return ip.IP.Completer.file_matches(event.symbol)
 
-    return bzr_commands.split()
+    return bzr_commands()
 
 
 def shlex_split(x):
@@ -326,7 +331,29 @@ def cd_completer(self, event):
         if os.path.isdir(relpath):
             return [relpath]
         raise IPython.ipapi.TryNext
-    return found
+
+
+    def single_dir_expand(matches):
+        "Recursively expand match lists containing a single dir."
+        
+        if len(matches) == 1 and os.path.isdir(matches[0]):
+            # Takes care of links to directories also.  Use '/'
+            # explicitly, even under Windows, so that name completions
+            # don't end up escaped.
+            d = matches[0]
+            if d[-1] in ['/','\\']:
+                d = d[:-1]
+
+            subdirs = [p for p in os.listdir(d) if os.path.isdir( d + '/' + p)]
+            if subdirs:
+                matches = [ (d + '/' + p) for p in subdirs ]
+                return single_dir_expand(matches)
+            else:
+                return matches
+        else:
+            return matches
+
+    return single_dir_expand(found)
 
 def apt_get_packages(prefix):
     out = os.popen('apt-cache pkgnames')

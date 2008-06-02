@@ -273,15 +273,27 @@ class IPApi:
             """
             res = []
             lines = script.splitlines()
+
             level = 0
             for l in lines:
-                stripped = l.lstrip()
-                if not l.strip():
+                lstripped = l.lstrip()
+                stripped = l.strip()                
+                if not stripped:
                     continue
-                newlevel = len(l) - len(stripped)
-                if level > 0 and newlevel == 0:
+                newlevel = len(l) - len(lstripped)
+                def is_secondary_block_start(s):
+                    if not s.endswith(':'):
+                        return False
+                    if (s.startswith('elif') or 
+                        s.startswith('else') or 
+                        s.startswith('except') or
+                        s.startswith('finally')):
+                        return True
+                        
+                if level > 0 and newlevel == 0 and not is_secondary_block_start(stripped): 
                     # add empty line
                     res.append('')
+                    
                 res.append(l)
                 level = newlevel
             return '\n'.join(res) + '\n'
@@ -291,7 +303,7 @@ class IPApi:
         else:
             script = '\n'.join(lines)
         clean=cleanup_ipy_script(script)
-
+        # print "_ip.runlines() script:\n",clean #dbg
         self.IP.runlines(clean)
     def to_user_ns(self,vars, interactive = True):
         """Inject a group of variables into the IPython user namespace.
@@ -533,7 +545,7 @@ class DebugTools:
         if name in self.hotnames:
             self.debug_stack( "HotName '%s' caught" % name)
 
-def launch_new_instance(user_ns = None):
+def launch_new_instance(user_ns = None,shellclass = None):
     """ Make and start a new ipython instance.
     
     This can be called even without having an already initialized 
@@ -542,7 +554,7 @@ def launch_new_instance(user_ns = None):
     This is also used as the egg entry point for the 'ipython' script.
     
     """
-    ses = make_session(user_ns)
+    ses = make_session(user_ns,shellclass)
     ses.mainloop()
 
 
@@ -578,7 +590,7 @@ def make_user_global_ns(ns = None):
     return ns
 
 
-def make_session(user_ns = None):
+def make_session(user_ns = None, shellclass = None):
     """Makes, but does not launch an IPython session.
     
     Later on you can call obj.mainloop() on the returned object.
@@ -591,6 +603,6 @@ def make_session(user_ns = None):
     WARNING: This should *not* be run when a session exists already."""
 
     import IPython.Shell
-    return IPython.Shell.start(user_ns)
-
-
+    if shellclass is None:
+        return IPython.Shell.start(user_ns)
+    return shellclass(user_ns = user_ns)

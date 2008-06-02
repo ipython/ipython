@@ -58,6 +58,14 @@ from IPython.iplib import InteractiveShell
 from IPython.usage import cmd_line_usage,interactive_usage
 from IPython.genutils import *
 
+def force_import(modname):
+    if modname in sys.modules:
+        print "reload",modname
+        reload(sys.modules[modname])
+    else:
+        __import__(modname)
+        
+
 #-----------------------------------------------------------------------------
 def make_IPython(argv=None,user_ns=None,user_global_ns=None,debug=1,
                  rc_override=None,shell_class=InteractiveShell,
@@ -95,9 +103,12 @@ def make_IPython(argv=None,user_ns=None,user_global_ns=None,debug=1,
                      embedded=embedded,**kw)
 
     # Put 'help' in the user namespace
-    from site import _Helper
+    try:
+        from site import _Helper
+        IP.user_ns['help'] = _Helper()
+    except ImportError:
+        warn('help() not available - check site.py')
     IP.user_config_ns = {}
-    IP.user_ns['help'] = _Helper()
 
 
     if DEVDEBUG:
@@ -176,10 +187,10 @@ object?   -> Details about 'object'. ?object also works, ?? prints more.
 
     # Options that can *only* appear at the cmd line (not in rcfiles).
     
-    # The "ignore" option is a kludge so that Emacs buffers don't crash, since
-    # the 'C-c !' command in emacs automatically appends a -i option at the end.
     cmdline_only = ('help interact|i ipythondir=s Version upgrade '
-                    'gthread! qthread! q4thread! wthread! tkthread! pylab! tk!')
+                    'gthread! qthread! q4thread! wthread! tkthread! pylab! tk! '
+                    # 'twisted!'  # disabled for now.
+                    )
 
     # Build the actual name list to be used by DPyGetOpt
     opts_names = qw(cmdline_opts) + qw(cmdline_only)
@@ -203,7 +214,7 @@ object?   -> Details about 'object'. ?object also works, ?? prints more.
                       editor = '0',
                       gthread = 0,
                       help = 0,
-                      interact = 1,
+                      interact = 0,
                       ipythondir = ipythondir_def,
                       log = 0,
                       logfile = '',
@@ -237,6 +248,7 @@ object?   -> Details about 'object'. ?object also works, ?? prints more.
                       system_verbose = 0,
                       term_title = 1,
                       tk = 0,
+                      #twisted= 0,  # disabled for now
                       upgrade = 0,
                       Version = 0,
                       wildcards_case_sensitive = 1,
@@ -633,15 +645,17 @@ object?   -> Details about 'object'. ?object also works, ?? prints more.
     if opts_all.profile and not profile_handled_by_legacy:
         profmodname = 'ipy_profile_' + opts_all.profile
         try:
-            __import__(profmodname)
+            
+            force_import(profmodname)
         except:
             IP.InteractiveTB()
             print "Error importing",profmodname,"- perhaps you should run %upgrade?"
             import_fail_info(profmodname)
     else:
-        import ipy_profile_none
-    try:    
-        import ipy_user_conf
+        force_import('ipy_profile_none')
+    try:
+            
+        force_import('ipy_user_conf')
         
     except:
         conf = opts_all.ipythondir + "/ipy_user_conf.py"

@@ -23,5 +23,5 @@ this mode, there is no way to pass IPython any command-line options, as those
 are trapped first by Python itself.
 """
 
-import IPython
+import IPython.Shell
 IPython.Shell.start().mainloop()

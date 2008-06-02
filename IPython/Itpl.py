@@ -94,7 +94,15 @@ def matchorfail(text, pos):
     match = tokenprog.match(text, pos)
     if match is None:
         raise ItplError(text, pos)
+
     return match, match.end()
+
+try:
+    itpl_encoding = sys.stdin.encoding or 'ascii'
+except AttributeError:
+    itpl_encoding = 'ascii'
+
+    
 
 class Itpl:
     """Class representing a string with interpolation abilities.
@@ -104,7 +112,7 @@ class Itpl:
     evaluation and substitution happens in the namespace of the
     caller when str(instance) is called."""
 
-    def __init__(self, format,codec=sys.stdin.encoding,encoding_errors='backslashreplace'):
+    def __init__(self, format,codec=itpl_encoding,encoding_errors='backslashreplace'):
         """The single mandatory argument to this constructor is a format
         string.
 

@@ -1,11 +1,232 @@
+2008-05-31  *** Released version 0.8.4
+
+2008-05-31  Fernando Perez  <Fernando.Perez@berkeley.edu>
+
+	* IPython/ipmaker.py (make_IPython): The -twisted option is fully
+	disabled.
+
+	* IPython/Shell.py (_select_shell): completely disable -twisted.
+	This code is of dubious quality and  normal users should not
+	encounter it until we can clarify things further, even under
+	win32.  Since we need a quick emergency 0.8.4 release, it is now
+	disabled completely.  Users who want to run it can use the
+	following command (it's easy to put it in an alias or script):
+	
+	python -c"from IPython import twshell;twshell.IPShellTwisted().mainloop()"
+
+2008-05-30  Ville Vainio <vivainio@gmail.com>
+
+	* shell.py: disable -twisted on non-win32 platforms.
+	import sets module on python 2.3.
+
+	* ipy_profile_sh.py: disable ipy_signals. Now, ipython
+	is verified to work with python 2.3
+	
+	* Release.py: update version to 0.8.4 for quick point fix
+
+2008-05-28  *** Released version 0.8.3
+
+2008-05-28  Fernando Perez  <Fernando.Perez@berkeley.edu>
+
+	* ../win32_manual_post_install.py (run): Fix the windows installer
+	so the links to the docs are correct.
+
+	* IPython/ultraTB.py: flush stderr after writing to it to fix
+	problems with exception traceback ordering in some platforms.
+	Thanks to a report/fix by Jie Tang <jietang86-AT-gmail.com>.
+
+	* IPython/Magic.py (magic_cpaste): add stripping of continuation
+	prompts, feature requested by Stefan vdW.
+
+	* ../setup.py: updates to build and release tools in preparation
+	for 0.8.3 release.
+
+2008-05-27  Ville Vainio <vivainio@gmail.com>
+
+	* iplib.py, ipmaker.py: survive lack of doctest and site._Helper
+	for minimal environments (e.g. Maemo sdk python)
+
+	* Magic.py: cpaste strips whitespace before >>> (allow pasting
+	doctests)
+
+	* ipy_completers.py: cd completer now does recursive path expand
+	(old behaviour is buggy on some readline versions)
+
+2008-05-14  Ville Vainio <vivainio@gmail.com>
+
+	* Extensions/ipy_greedycompleter.py: 
+	New extension that enables a bit more "relaxed" tab 
+	completer that evaluates code without safety checks
+	(i.e. there can be side effects like function calls)
+
+2008-04-20  Ville Vainio <vivainio@gmail.com>
+
+	* Extensions/ipy_lookfor.py: add %lookfor magic command
+	(search docstrings for words) by Pauli Virtanen. Close #245.
+
+	* Extension/ipy_jot.py: %jot and %read magics, analogous
+	to %store but you can specify some notes. Not read 
+	in automatically on startup, you need %read.
+	Contributed by Yichun Wei.
+
+2008-04-18  Fernando Perez  <Fernando.Perez@berkeley.edu>
+
+	* IPython/genutils.py (page): apply workaround to curses bug that
+	can leave terminal corrupted after a call to initscr().
+
+2008-04-15  Ville Vainio <vivainio@gmail.com>
+
+	* genutils.py: SList.grep supports 'field' argument
+
+	* ipy_completers.py: module completer looks inside
+	.egg zip files (patch by mc). Close #196.
+
+2008-04-09  Ville Vainio <vivainio@gmail.com>
+
+	* deep_reload.py: do not crash on from __future__ import 
+	absolute_import. Close #244.
+
+2008-04-02  Ville Vainio <vivainio@gmail.com>
+
+	* ipy_winpdb.py: New extension for winpdb integration.  %wdb
+	test.py is winpdb equivalent of %run -d test.py.  winpdb is a
+	crossplatform remote GUI debugger based on wxpython.
+
+2008-03-29  Ville Vainio <vivainio@gmail.com>
+
+	* ipython.rst, do_sphinx.py: New documentation base, based on
+	reStucturedText and Sphinx (html/pdf generation).  The old Lyx
+	based documentation will not be updated anymore.
+
+	* jobctrl.py: Use shell in Popen for 'start' command (in windows).
+
+2008-03-24  Ville Vainio <vivainio@gmail.com>
+
+	* ipython.rst, do_sphinx.py: New documentation base, based on
+	reStucturedText and Sphinx (html/pdf generation).  The old Lyx
+	based documentation will not be updated anymore.
+
+	ipython.rst has up to date documentation on matters that were not
+	documented at all, and it also removes various
+	misdocumented/deprecated features.
+	
+2008-03-22  Ville Vainio <vivainio@gmail.com>
+
+	* Shell.py: Merge mtexp branch:
+	https://code.launchpad.net/~ipython/ipython/mtexp
+
+	Privides simpler and more robust MTInteractiveShell that won't
+	deadlock, even when the worker thread (GUI) stops doing runcode()
+	regularly. r71.
+
+2008-03-20  Ville Vainio <vivainio@gmail.com>
+
+	* twshell.py: New shell that runs IPython code in Twisted reactor.
+	Launch by doing ipython -twisted. r67.
+
+2008-03-19  Ville Vainio <vivainio@gmail.com>
+
+	* Magic.py: %rehashx works correctly when shadowed system commands
+	have upper case characters (e.g. Print.exe). r64.
+
+	* ipy_bzr.py, ipy_app_completers.py: new bzr completer that also
+	knows options to commands, based on bzrtools. Uses bzrlib
+	directly. r66.
+
+2008-03-16  Ville Vainio <vivainio@gmail.com>
+
+	* make_tarball.py: Fixed for bzr.
+
+	* ipapi.py: Better _ip.runlines() script cleanup. r56,r79.
+
+	 * ipy_vimserver.py, ipy.vim: New extension for vim server mode,
+	 by Erich Heine.
+
+2008-03-12  Ville Vainio <vivainio@gmail.com>
+
+	* ipmaker.py: Force (reload?) import of ipy_user_conf and
+	ipy_profile_foo, so that embedded instances can be relaunched and
+	configuration is still done. r50
+
+	* ipapi.py, test_embed.py: Allow specifying shell class in
+	launch_new_instance & make_new instance. Use this in
+	test_embed.py. r51.
+
+	test_embed.py is also a good and simple demo of embedding IPython.
+	
+
+2008-03-10  Ville Vainio <vivainio@gmail.com>
+
+	* tool/update_revnum.py: Change to bzr revisioning scheme in 
+	revision numbers.
+
+	* Shell.py: Threading improvements:
+
+	In multithreaded shells, do not hang on macros and o.autoexec
+	commands (or anything executed with _ip.runlines()) anymore. Allow
+	recursive execution of IPython code in
+	MTInteractiveShell.runsource by checking if we are already in
+	worker thread, and execute code directly if we are. r48.
+
+	MTInteractiveShell.runsource: execute code directly if worker
+	thread is not running yet (this is the case in config files). r49.
+
+2008-03-09  Ville Vainio <vivainio@gmail.com>
+
+	* ipy_profile_sh.py: You can now use $LA or LA() to refer to last
+	argument of previous command in sh profile. Similar to bash '!$'.
+	LA(3) or $LA(3) stands for last argument of input history command 
+	3.
+
+	* Shell.py: -pylab names don't clutter %whos listing.
+
+2008-03-07  Ville Vainio <vivainio@gmail.com>
+
+	* ipy_autoreload.py: new extension (by Pauli Virtanen) for 
+	autoreloading modules; try %autoreload and %aimport. Close #154.
+	Uses the new pre_runcode_hook.
+
+2008-02-24  Ville Vainio <vivainio@gmail.com>
+
+	* platutils_posix.py: freeze_term_title works
+
+2008-02-21  Ville Vainio <vivainio@gmail.com>
+
+	* Magic.py: %quickref does not crash with empty docstring
+
+2008-02-20  Ville Vainio <vivainio@gmail.com>
+
+	* completer.py: do not treat [](){} as protectable chars anymore,
+	close #233.
+
+	* completer.py: do not treat [](){} as protectable chars anymore
+	
+	* magic.py, test_cpaste.py: Allow different prefix for pasting 
+	from email
+
+2008-02-17  Ville Vainio <vivainio@gmail.com>
+
+	* Switched over to Launchpad/bzr as primary VCS.
+
+2008-02-14  Ville Vainio <vivainio@gmail.com>
+
+	* ipapi.py: _ip.runlines() is now much more liberal about 
+	indentation - it cleans up the scripts it gets
+	
+2008-02-14  Ville Vainio <vivainio@gmail.com>
+
+	* Extensions/ipy_leo.py: created 'ILeo' IPython-Leo bridge.
+	Changes to it (later on) are too numerous to list in ChangeLog
+	until it stabilizes
+	
 2008-02-07  Darren Dale <darren.dale@cornell.edu>
 
-        * IPython/Shell.py: Call QtCore.pyqtRemoveInputHook() when creating
-        an IPShellQt4. PyQt4-4.2.1 and later uses PyOS_InputHook to improve 
-        interaction in the interpreter (like Tkinter does), but it seems to 
-        partially interfere with the IPython implementation and exec_()
-        still seems to block. So we disable the PyQt implementation and
-        stick with the IPython one for now.
+	* IPython/Shell.py: Call QtCore.pyqtRemoveInputHook() when creating
+	an IPShellQt4. PyQt4-4.2.1 and later uses PyOS_InputHook to improve 
+	interaction in the interpreter (like Tkinter does), but it seems to 
+	partially interfere with the IPython implementation and exec_()
+	still seems to block. So we disable the PyQt implementation and
+	stick with the IPython one for now.
 
 2008-02-02  Walter Doerwald  <walter@livinglogic.de>
 

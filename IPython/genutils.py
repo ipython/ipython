@@ -22,7 +22,10 @@ __license__ = Release.license
 # required modules from the Python standard library
 import __main__
 import commands
-import doctest
+try:
+    import doctest
+except ImportError:
+    pass
 import os
 import re
 import shlex
@@ -32,6 +35,18 @@ import tempfile
 import time
 import types
 import warnings
+
+# Curses and termios are Unix-only modules
+try:
+    import curses
+    # We need termios as well, so if its import happens to raise, we bail on
+    # using curses altogether.
+    import termios
+except ImportError:
+    USE_CURSES = False
+else:
+    # Curses on Solaris may not be complete, so we can't use it there
+    USE_CURSES = hasattr(curses,'initscr')
 
 # Other IPython utilities
 import IPython
@@ -1052,25 +1067,40 @@ class SList(list):
     
     p = paths = property(get_paths)
 
-    def grep(self, pattern, prune = False):
+    def grep(self, pattern, prune = False, field = None):
         """ Return all strings matching 'pattern' (a regex or callable) 
         
         This is case-insensitive. If prune is true, return all items
         NOT matching the pattern.
         
+        If field is specified, the match must occur in the specified 
+        whitespace-separated field.
+               
         Examples::
         
             a.grep( lambda x: x.startswith('C') )
             a.grep('Cha.*log', prune=1)
+            a.grep('chm', field=-1)
         """
+        
+        def match_target(s):
+            if field is None:
+                return s
+            parts = s.split()
+            try:
+                tgt = parts[field]
+                return tgt
+            except IndexError:
+                return ""
+        
         if isinstance(pattern, basestring):
             pred = lambda x : re.search(pattern, x, re.IGNORECASE)
         else:
             pred = pattern
         if not prune:
-            return SList([el for el in self if pred(el)])
+            return SList([el for el in self if pred(match_target(el))])
         else:
-            return SList([el for el in self if not pred(el)])
+            return SList([el for el in self if not pred(match_target(el))])
     def fields(self, *fields):
         """ Collect whitespace-separated fields from string list
         
@@ -1083,6 +1113,7 @@ class SList(list):
         a.fields(0) is ['-rwxrwxrwx', 'drwxrwxrwx+']
         a.fields(1,0) is ['1 -rwxrwxrwx', '6 drwxrwxrwx+']
         (note the joining by space).
+        a.fields(-1) is ['ChangeLog', 'IPython']
         
         IndexErrors are ignored.
         
@@ -1532,26 +1563,30 @@ def page(strng,start=0,screen_lines=0,pager_cmd = None):
     # auto-determine screen size
     if screen_lines <= 0:
         if TERM=='xterm':
-            try:
-                import curses
-                if hasattr(curses,'initscr'):
-                    use_curses = 1
-                else:
-                    use_curses = 0
-            except ImportError:
-                use_curses = 0
+            use_curses = USE_CURSES
         else:
             # curses causes problems on many terminals other than xterm.
-            use_curses = 0
+            use_curses = False
         if use_curses:
-                scr = curses.initscr()
-                screen_lines_real,screen_cols = scr.getmaxyx()
-                curses.endwin()
-                screen_lines += screen_lines_real
-                #print '***Screen size:',screen_lines_real,'lines x',\
-                #screen_cols,'columns.' # dbg
+            # There is a bug in curses, where *sometimes* it fails to properly
+            # initialize, and then after the endwin() call is made, the
+            # terminal is left in an unusable state.  Rather than trying to
+            # check everytime for this (by requesting and comparing termios
+            # flags each time), we just save the initial terminal state and
+            # unconditionally reset it every time.  It's cheaper than making
+            # the checks.
+            term_flags = termios.tcgetattr(sys.stdout)
+            scr = curses.initscr()
+            screen_lines_real,screen_cols = scr.getmaxyx()
+            curses.endwin()
+            # Restore terminal state in case endwin() didn't.
+            termios.tcsetattr(sys.stdout,termios.TCSANOW,term_flags)
+            # Now we have what we needed: the screen size in rows/columns
+            screen_lines += screen_lines_real
+            #print '***Screen size:',screen_lines_real,'lines x',\
+            #screen_cols,'columns.' # dbg
         else:
-                screen_lines += screen_lines_def
+            screen_lines += screen_lines_def
 
     #print 'numlines',numlines,'screenlines',screen_lines  # dbg
     if numlines <= screen_lines :

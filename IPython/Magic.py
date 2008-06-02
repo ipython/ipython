@@ -115,9 +115,9 @@ class Magic:
 
     def profile_missing_notice(self, *args, **kwargs):
         error("""\
-The profile module could not be found.  If you are a Debian user,
-it has been removed from the standard Debian package because of its non-free
-license. To use profiling, please install"python2.3-profiler" from non-free.""")
+The profile module could not be found. It has been removed from the standard
+python packages because of its non-free license. To use profiling, install the
+python-profiler package from non-free.""")
 
     def default_option(self,fn,optstr):
         """Make an entry in the options_table for fn, with value optstr"""
@@ -147,7 +147,7 @@ license. To use profiling, please install"python2.3-profiler" from non-free.""")
                  filter(inst_magic,self.__dict__.keys()) + \
                  filter(inst_bound_magic,self.__class__.__dict__.keys())
         out = []
-        for fn in magics:
+        for fn in Set(magics):
             out.append(fn.replace('magic_','',1))
         out.sort()
         return out
@@ -386,7 +386,10 @@ license. To use profiling, please install"python2.3-profiler" from non-free.""")
         return None
         
     def magic_magic(self, parameter_s = ''):
-        """Print information about the magic function system."""
+        """Print information about the magic function system.
+        
+        Supported formats: -latex, -brief, -rest        
+        """
 
         mode = ''
         try:
@@ -394,6 +397,9 @@ license. To use profiling, please install"python2.3-profiler" from non-free.""")
                 mode = 'latex'
             if parameter_s.split()[0] == '-brief':
                 mode = 'brief'
+            if parameter_s.split()[0] == '-rest':
+                mode = 'rest'
+                rest_docs = []
         except:
             pass
 
@@ -409,14 +415,26 @@ license. To use profiling, please install"python2.3-profiler" from non-free.""")
                     break
             if mode == 'brief':
                 # only first line
-                fndoc = fn.__doc__.split('\n',1)[0]
+                if fn.__doc__:                    
+                    fndoc = fn.__doc__.split('\n',1)[0]
+                else:
+                    fndoc = 'No documentation'
             else:
-                fndoc = fn.__doc__
+                fndoc = fn.__doc__.rstrip()
                 
-            magic_docs.append('%s%s:\n\t%s\n' %(self.shell.ESC_MAGIC,
-                                                fname,fndoc))
+            if mode == 'rest':
+                rest_docs.append('**%s%s**::\n\n\t%s\n\n' %(self.shell.ESC_MAGIC,
+                                                    fname,fndoc))
+                
+            else:
+                magic_docs.append('%s%s:\n\t%s\n' %(self.shell.ESC_MAGIC,
+                                                    fname,fndoc))
+                
         magic_docs = ''.join(magic_docs)
 
+        if mode == 'rest':
+            return "".join(rest_docs)
+        
         if mode == 'latex':
             print self.format_latex(magic_docs)
             return
@@ -2612,7 +2630,7 @@ Defaulting color scheme to 'NoColor'"""
                     os.chdir(pdir)
                     for ff in os.listdir(pdir):
                         base, ext = os.path.splitext(ff)
-                        if isexec(ff) and base not in self.shell.no_alias:
+                        if isexec(ff) and base.lower() not in self.shell.no_alias:
                             if ext.lower() == '.exe':
                                 ff = base
                             alias_table[base.lower()] = (0,ff)
@@ -2667,6 +2685,7 @@ Defaulting color scheme to 'NoColor'"""
         parameter_s = parameter_s.strip()
         #bkms = self.shell.persist.get("bookmarks",{})
 
+        oldcwd = os.getcwd()
         numcd = re.match(r'(-)(\d+)$',parameter_s)
         # jump in directory history by number
         if numcd:
@@ -2705,7 +2724,7 @@ Defaulting color scheme to 'NoColor'"""
             
         # at this point ps should point to the target dir
         if ps:
-            try:
+            try:                
                 os.chdir(os.path.expanduser(ps))
                 if self.shell.rc.term_title:
                     #print 'set term title:',self.shell.rc.term_title  # dbg
@@ -2716,8 +2735,9 @@ Defaulting color scheme to 'NoColor'"""
             else:
                 cwd = os.getcwd()
                 dhist = self.shell.user_ns['_dh']
-                dhist.append(cwd)
-                self.db['dhist'] = compress_dhist(dhist)[-100:]
+                if oldcwd != cwd:
+                    dhist.append(cwd)
+                    self.db['dhist'] = compress_dhist(dhist)[-100:]
                 
         else:
             os.chdir(self.shell.home_dir)
@@ -2725,8 +2745,10 @@ Defaulting color scheme to 'NoColor'"""
                 platutils.set_term_title("IPy ~")
             cwd = os.getcwd()
             dhist = self.shell.user_ns['_dh']
-            dhist.append(cwd)
-            self.db['dhist'] = compress_dhist(dhist)[-100:]
+            
+            if oldcwd != cwd:
+                dhist.append(cwd)
+                self.db['dhist'] = compress_dhist(dhist)[-100:]
         if not 'q' in opts and self.shell.user_ns['_dh']:
             print self.shell.user_ns['_dh'][-1]
 
@@ -3118,7 +3140,7 @@ Defaulting color scheme to 'NoColor'"""
              screen_lines=self.shell.rc.screen_length)
 
     def magic_cpaste(self, parameter_s=''):
-        """Allows you to paste & execute a pre-formatted code block from clipboard
+        """Allows you to paste & execute a pre-formatted code block from clipboard.
         
         You must terminate the block with '--' (two minus-signs) alone on the
         line. You can also provide your own sentinel with '%paste -s %%' ('%%' 
@@ -3126,13 +3148,14 @@ Defaulting color scheme to 'NoColor'"""
         
         The block is dedented prior to execution to enable execution of method
         definitions. '>' and '+' characters at the beginning of a line are
-        ignored, to allow pasting directly from e-mails or diff files. The
+        ignored, to allow pasting directly from e-mails, diff files and
+        doctests (the '...' continuation prompt is also stripped).  The
         executed block is also assigned to variable named 'pasted_block' for
         later editing with '%edit pasted_block'.
         
         You can also pass a variable name as an argument, e.g. '%cpaste foo'.
         This assigns the pasted block to variable 'foo' as string, without 
-        dedenting or executing it.
+        dedenting or executing it (preceding >>> and + is still stripped)
         
         Do not be alarmed by garbled output on Windows (it's a readline bug). 
         Just press enter and type -- (and press enter again) and the block 
@@ -3143,6 +3166,15 @@ Defaulting color scheme to 'NoColor'"""
         opts,args = self.parse_options(parameter_s,'s:',mode='string')
         par = args.strip()
         sentinel = opts.get('s','--')
+
+        # Regular expressions that declare text we strip from the input:
+        strip_re =  [r'^\s*In \[\d+\]:', # IPython input prompt
+                     r'^\s*(\s?>)+', # Python input prompt
+                     r'^\s*\.{3,}', # Continuation prompts
+                     r'^\++',
+                     ]
+
+        strip_from_start = map(re.compile,strip_re)
         
         from IPython import iplib
         lines = []
@@ -3151,7 +3183,11 @@ Defaulting color scheme to 'NoColor'"""
             l = iplib.raw_input_original(':')
             if l ==sentinel:
                 break
-            lines.append(l.lstrip('>').lstrip('+'))
+            
+            for pat in strip_from_start: 
+                l = pat.sub('',l)
+            lines.append(l)
+                         
         block = "\n".join(lines) + '\n'
         #print "block:\n",block
         if not par:
