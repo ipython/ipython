@@ -1,3 +1,13 @@
+2008-06-03  Ville Vainio <vivainio@gmail.com>
+
+	* ipython.rst, ipython.1: remove -twisted from man page,
+	add -pydb to both man page and manual.
+
+2008-05-31  Fernando Perez  <Fernando.Perez@berkeley.edu>
+
+	* IPython/ipmaker.py (make_IPython): The -twisted option is fully
+	disabled.
+
 2008-05-31  *** Released version 0.8.4
 
 2008-05-31  Fernando Perez  <Fernando.Perez@berkeley.edu>

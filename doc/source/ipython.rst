@@ -1227,6 +1227,10 @@ All options with a [no] prepended can be specified in negated form
 	IPython or in code called by it) which triggers an exception
 	which goes uncaught.
 
+    -pydb
+	Makes IPython use the third party "pydb" package as debugger,
+	instead of pdb. Requires that pydb is installed.
+	
     -[no]pprint
 	ipython can optionally use the pprint (pretty printer) module
 	for displaying results. pprint tends to give a nicer display
