@@ -8,6 +8,7 @@ $Id: iplib.py 1107 2006-01-30 19:02:20Z vivainio $
 """
 
 import IPython.ipapi
+from IPython.ipapi import UsageError
 ip = IPython.ipapi.get()
 
 import pickleshare
@@ -96,12 +97,12 @@ def magic_store(self, parameter_s=''):
         try:
             todel = args[0]
         except IndexError:
-            error('You must provide the variable to forget')
+            raise UsageError('You must provide the variable to forget')
         else:
             try:
                 del db['autorestore/' + todel]
             except:
-                error("Can't delete variable '%s'" % todel)
+                raise UsageError("Can't delete variable '%s'" % todel)
     # reset
     elif opts.has_key('z'):
         for k in db.keys('autorestore/*'):
@@ -165,7 +166,7 @@ def magic_store(self, parameter_s=''):
                 print "Alias stored:", args[0], self.alias_table[ args[0] ]
                 return
             else:
-                print "Error: unknown variable '%s'" % args[0]
+                raise UsageError("Unknown variable '%s'" % args[0])
             
         else:
             if isinstance(inspect.getmodule(obj), FakeModule):
