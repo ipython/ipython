@@ -3,6 +3,9 @@
 	* ipython.rst, ipython.1: remove -twisted from man page,
 	add -pydb to both man page and manual.
 
+	* pspersistence.py: report UsageError on %store -w w/o arg,
+	and other usage pattern errors. Bug report by Johann Cohen-Tanugi.
+
 2008-05-31  Fernando Perez  <Fernando.Perez@berkeley.edu>
 
 	* IPython/ipmaker.py (make_IPython): The -twisted option is fully
