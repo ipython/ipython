@@ -663,9 +663,9 @@ object?   -> Details about 'object'. ?object also works, ?? prints more.
         import_fail_info("ipy_user_conf")
 
     # Define the history file for saving commands in between sessions
-    if opts.profile:
+    try:
         histfname = 'history-%s' % opts.profile
-    else:
+    except AttributeError:
         histfname = 'history'
     IP.histfile = os.path.join(opts_all.ipythondir,histfname)
 
