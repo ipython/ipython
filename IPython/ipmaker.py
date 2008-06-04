@@ -530,12 +530,6 @@ object?   -> Details about 'object'. ?object also works, ?? prints more.
 
     IP.pre_config_initialization()
     # configure readline
-    # Define the history file for saving commands in between sessions
-    if IP_rc.profile:
-        histfname = 'history-%s' % IP_rc.profile
-    else:
-        histfname = 'history'
-    IP.histfile = os.path.join(opts_all.ipythondir,histfname)
 
     # update exception handlers with rc file status
     otrap.trap_out()  # I don't want these messages ever.
@@ -652,6 +646,8 @@ object?   -> Details about 'object'. ?object also works, ?? prints more.
             IP.InteractiveTB()
             print "Error importing",profmodname,"- perhaps you should run %upgrade?"
             import_fail_info(profmodname)
+        else:
+            opts.profile = opts_all.profile
     else:
         force_import('ipy_profile_none')
     try:
@@ -665,6 +661,13 @@ object?   -> Details about 'object'. ?object also works, ?? prints more.
             warn(conf + ' does not exist, please run %upgrade!')
 
         import_fail_info("ipy_user_conf")
+
+    # Define the history file for saving commands in between sessions
+    if opts.profile:
+        histfname = 'history-%s' % opts.profile
+    else:
+        histfname = 'history'
+    IP.histfile = os.path.join(opts_all.ipythondir,histfname)
 
     # finally, push the argv to options again to ensure highest priority
     IP_rc.update(opts)
