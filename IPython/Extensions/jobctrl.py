@@ -190,9 +190,11 @@ def magic_kill(self,line):
         
 if sys.platform == 'win32':
     shell_internal_commands = 'break chcp cls copy ctty date del erase dir md mkdir path prompt rd rmdir start time type ver vol'.split()
+    PopenExc = WindowsError
 else:
     # todo linux commands
     shell_internal_commands = [] 
+    PopenExc = OSError
 
 
 def jobctrl_shellcmd(ip,cmd):
@@ -208,7 +210,7 @@ def jobctrl_shellcmd(ip,cmd):
     try:
         try:
             p = Popen(cmd,shell = use_shell)
-        except WindowsError:
+        except PopenExc :
             if use_shell:
                 # try with os.system
                 os.system(cmd)
