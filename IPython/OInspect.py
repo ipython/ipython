@@ -155,7 +155,12 @@ def getsource(obj,is_binary=False):
     if is_binary:
         return None
     else:
-        return inspect.getsource(obj)
+        try:
+            src = inspect.getsource(obj)
+        except TypeError:
+            if hasattr(obj,'__class__'):
+                src = inspect.getsource(obj.__class__)
+        return src
 
 #****************************************************************************
 # Class definitions
@@ -278,7 +283,7 @@ class Inspector:
             self.noinfo('documentation',oname)
             return
         page(output)
-
+    
     def psource(self,obj,oname=''):
         """Print the source code for an object."""
 
@@ -293,23 +298,35 @@ class Inspector:
 
     def pfile(self,obj,oname=''):
         """Show the whole file where an object was defined."""
+
         try:
-            sourcelines,lineno = inspect.getsourcelines(obj)
+            try:
+                lineno = inspect.getsourcelines(obj)[1]
+            except TypeError:
+                # For instances, try the class object like getsource() does
+                if hasattr(obj,'__class__'):
+                    lineno = inspect.getsourcelines(obj.__class__)[1]
+                    # Adjust the inspected object so getabsfile() below works
+                    obj = obj.__class__
         except:
             self.noinfo('file',oname)
+            return
+
+        # We only reach this point if object was successfully queried
+        
+        # run contents of file through pager starting at line
+        # where the object is defined
+        ofile = inspect.getabsfile(obj)
+
+        if (ofile.endswith('.so') or ofile.endswith('.dll')):
+            print 'File %r is binary, not printing.' % ofile
+        elif not os.path.isfile(ofile):
+            print 'File %r does not exist, not printing.' % ofile
         else:
-            # run contents of file through pager starting at line
-            # where the object is defined
-            ofile = inspect.getabsfile(obj)
-            
-            if (ofile.endswith('.so') or ofile.endswith('.dll')):
-                print 'File %r is binary, not printing.' % ofile
-            elif not os.path.isfile(ofile):
-                print 'File %r does not exist, not printing.' % ofile
-            else:
-                # Print only text files, not extension binaries.
-                page(self.format(open(ofile).read()),lineno)
-            #page(self.format(open(inspect.getabsfile(obj)).read()),lineno)
+            # Print only text files, not extension binaries.  Note that
+            # getsourcelines returns lineno with 1-offset and page() uses
+            # 0-offset, so we must adjust.
+            page(self.format(open(ofile).read()),lineno-1)
 
     def pinfo(self,obj,oname='',formatter=None,info=None,detail_level=0):
         """Show detailed information about an object.

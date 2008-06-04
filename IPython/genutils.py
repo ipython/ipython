@@ -1528,7 +1528,10 @@ def page(strng,start=0,screen_lines=0,pager_cmd = None):
     If no system pager works, the string is sent through a 'dumb pager'
     written in python, very simplistic.
     """
-    
+
+    # Some routines may auto-compute start offsets incorrectly and pass a
+    # negative value.  Offset to 0 for robustness.
+    start = max(0,start)
 
     # first, try the hook
     ip = IPython.ipapi.get()
