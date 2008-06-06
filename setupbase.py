@@ -1,5 +1,15 @@
 # encoding: utf-8
 
+"""
+This module defines the things that are used in setup.py for building IPython
+
+This includes:
+
+    * The basic arguments to setup
+    * Functions for finding things like packages, package data, etc.
+    * A function for checking dependencies.
+"""
+
 __docformat__ = "restructuredtext en"
 
 #-------------------------------------------------------------------------------
@@ -73,6 +83,9 @@ setup_args = dict(
 #---------------------------------------------------------------------------
 
 def add_package(packages, pname, config=False, tests=False, scripts=False, others=None):
+    """
+    Add a package to the list of packages, including certain subpackages.
+    """
     packages.append('.'.join(['ipython1',pname]))
     if config:
         packages.append('.'.join(['ipython1',pname,'config']))
@@ -85,6 +98,9 @@ def add_package(packages, pname, config=False, tests=False, scripts=False, other
             packages.append('.'.join(['ipython1',pname,o]))
 
 def find_packages():
+    """
+    Find all of IPython's packages.
+    """
     packages = ['ipython']
     add_package(packages, 'config', tests=True)
     add_package(packages , 'Extensions')
@@ -103,6 +119,9 @@ def find_packages():
 #---------------------------------------------------------------------------
 
 def find_package_data():
+    """
+    Find IPython's package_data.
+    """
     # This is not enough for these things to appear in an sdist.
     # We need to muck with the MANIFEST to get this to work
     package_data = {'IPython.UserConfig' : ['*'] }
@@ -114,6 +133,9 @@ def find_package_data():
 #---------------------------------------------------------------------------
 
 def find_data_files():
+    """
+    Find IPython's data_files.
+    """
     
     # I can't find how to make distutils create a nested dir. structure, so
     # in the meantime do it manually. Butt ugly.
@@ -149,6 +171,9 @@ def find_data_files():
 #---------------------------------------------------------------------------
 
 def find_scripts():
+    """
+    Find IPython's scripts.
+    """
     scripts = []
     scripts.append('ipython1/kernel/scripts/ipengine')
     scripts.append('ipython1/kernel/scripts/ipcontroller')
@@ -174,6 +199,10 @@ def find_scripts():
 #---------------------------------------------------------------------------
 
 def check_for_dependencies():
+    """Check for IPython's dependencies.
+    
+    This function should NOT be called if running under setuptools!
+    """
     from setupext.setupext import (
         print_line, print_raw, print_status, print_message,
         check_for_zopeinterface, check_for_twisted,

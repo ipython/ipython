@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""Wrapper to build IPython as an egg (setuptools format)."""
+"""Wrapper to run setup.py using setuptools."""
 
 import os
 import sys
