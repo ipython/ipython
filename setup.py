@@ -152,6 +152,9 @@ else:
 # Do the actual setup now
 #---------------------------------------------------------------------------
 
+print packages
+
+
 setup_args['packages'] = packages
 setup_args['package_data'] = package_data
 setup_args['scripts'] = scripts

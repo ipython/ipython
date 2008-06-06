@@ -86,22 +86,22 @@ def add_package(packages, pname, config=False, tests=False, scripts=False, other
     """
     Add a package to the list of packages, including certain subpackages.
     """
-    packages.append('.'.join(['ipython1',pname]))
+    packages.append('.'.join(['IPython',pname]))
     if config:
-        packages.append('.'.join(['ipython1',pname,'config']))
+        packages.append('.'.join(['IPython',pname,'config']))
     if tests:
-        packages.append('.'.join(['ipython1',pname,'tests']))
+        packages.append('.'.join(['IPython',pname,'tests']))
     if scripts:
-        packages.append('.'.join(['ipython1',pname,'scripts']))
+        packages.append('.'.join(['IPython',pname,'scripts']))
     if others is not None:
         for o in others:
-            packages.append('.'.join(['ipython1',pname,o]))
+            packages.append('.'.join(['IPython',pname,o]))
 
 def find_packages():
     """
     Find all of IPython's packages.
     """
-    packages = ['ipython']
+    packages = ['IPython']
     add_package(packages, 'config', tests=True)
     add_package(packages , 'Extensions')
     add_package(packages, 'external')
@@ -175,9 +175,9 @@ def find_scripts():
     Find IPython's scripts.
     """
     scripts = []
-    scripts.append('ipython1/kernel/scripts/ipengine')
-    scripts.append('ipython1/kernel/scripts/ipcontroller')
-    scripts.append('ipython1/kernel/scripts/ipcluster')
+    scripts.append('ipython/kernel/scripts/ipengine')
+    scripts.append('ipython/kernel/scripts/ipcontroller')
+    scripts.append('ipython/kernel/scripts/ipcluster')
     scripts.append('scripts/ipython')
     scripts.append('scripts/pycolor')
     scripts.append('scripts/irunner')

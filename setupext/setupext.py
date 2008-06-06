@@ -76,12 +76,13 @@ def check_for_twisted():
         major = twisted.version.major
         minor = twisted.version.minor
         micro = twisted.version.micro
+        print_status("Twisted", twisted.version.short())
         if not ((major==2 and minor>=5 and micro>=0) or \
                 major>=8):
             print_message("WARNING: IPython requires Twisted 2.5.0 or greater, you have version %s"%twisted.version.short())
+            print_message("Twisted is required for parallel computing capabilities")
             return False
         else:
-            print_status("Twisted", twisted.version.short())
             return True
 
 def check_for_foolscap():
@@ -108,7 +109,7 @@ def check_for_sphinx():
     try:
         import sphinx
     except ImportError:
-        print_status('sphinx', "Not found (required for building the IPtyhon documentation)")
+        print_status('sphinx', "Not found (required for building documentation)")
         return False
     else:
         print_status('sphinx', sphinx.__version__) 
@@ -118,7 +119,7 @@ def check_for_pygments():
     try:
         import pygments
     except ImportError:
-        print_status('pygments', "Not found (required for syntax highlighting of code in the IPtyhon documentation)")
+        print_status('pygments', "Not found (required for syntax highlighting documentation)")
         return False
     else:
         print_status('pygments', pygments.__version__)
@@ -128,7 +129,7 @@ def check_for_nose():
     try:
         import nose
     except ImportError:
-        print_status('nose', "Not found (required for running the IPython test suite)")
+        print_status('nose', "Not found (required for running the test suite)")
         return False
     else:
         print_status('nose', nose.__version__)
