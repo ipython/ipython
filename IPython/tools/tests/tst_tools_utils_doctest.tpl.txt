@@ -1,0 +1,18 @@
+=========================================
+ Doctests for the ``tools.utils`` module
+=========================================
+
+The way doctest loads these, the entire document is applied as a single test
+rather than multiple individual ones, unfortunately.
+
+
+Auto-generated tests
+====================
+
+%run tst_tools_utils_doctest.py
+
+
+Manually generated tests
+========================
+
+These are one-off tests written by hand, copied from an interactive prompt.
