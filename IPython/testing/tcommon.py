@@ -2,7 +2,7 @@
 
 This file is meant to be used as
 
-from IPython.testutils.tcommon import *
+from IPython.testing.tcommon import *
 
 by any test code.
 
@@ -32,5 +32,5 @@ try:
 except ImportError:
     pexpect = None
 else:
-    from IPython.testutils.ipdoctest import IPDocTestLoader,makeTestSuite
+    from IPython.testing.ipdoctest import IPDocTestLoader,makeTestSuite
     

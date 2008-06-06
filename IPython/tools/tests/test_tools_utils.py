@@ -3,8 +3,8 @@
 """
 
 # Module imports
-from IPython.testutils import tcommon
-from IPython.testutils.tcommon import *
+from IPython.testing import tcommon
+from IPython.testing.tcommon import *
 
 # If you have standalone doctests in a separate file, set their names in the
 # dt_files variable (as a single string  or a list thereof).  The mkPath call

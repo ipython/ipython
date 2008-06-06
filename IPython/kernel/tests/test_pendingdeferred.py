@@ -19,9 +19,9 @@ __docformat__ = "restructuredtext en"
 from twisted.internet import defer
 from twisted.python import failure
 
-from IPython.testutils import tcommon
-from IPython.testutils.tcommon import *
-from IPython.testutils.util import DeferredTestCase
+from IPython.testing import tcommon
+from IPython.testing.tcommon import *
+from IPython.testing.util import DeferredTestCase
 import IPython.kernel.pendingdeferred as pd
 from IPython.kernel import error
 from IPython.kernel.util import printer

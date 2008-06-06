@@ -27,7 +27,7 @@ from twisted.application.service import IService
 from IPython.kernel.controllerservice import ControllerService
 from IPython.kernel.tests import multienginetest as met
 from controllertest import IControllerCoreTestCase
-from IPython.testutils.util import DeferredTestCase
+from IPython.testing.util import DeferredTestCase
 
 class BasicControllerServiceTest(DeferredTestCase,
     IControllerCoreTestCase):

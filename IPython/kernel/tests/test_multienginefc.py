@@ -18,7 +18,7 @@ from twisted.internet import defer, reactor
 
 from IPython.kernel.fcutil import Tub, UnauthenticatedTub
 
-from IPython.testutils.util import DeferredTestCase
+from IPython.testing.util import DeferredTestCase
 from IPython.kernel.controllerservice import ControllerService
 from IPython.kernel.multiengine import IMultiEngine
 from IPython.kernel.tests.multienginetest import IFullSynchronousMultiEngineTestCase

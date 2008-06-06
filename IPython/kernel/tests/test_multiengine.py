@@ -16,7 +16,7 @@ __docformat__ = "restructuredtext en"
 #-------------------------------------------------------------------------------
 
 from twisted.internet import defer
-from IPython.testutils.util import DeferredTestCase
+from IPython.testing.util import DeferredTestCase
 from IPython.kernel.controllerservice import ControllerService
 from IPython.kernel import multiengine as me
 from IPython.kernel.tests.multienginetest import (IMultiEngineTestCase,

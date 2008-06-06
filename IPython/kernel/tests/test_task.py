@@ -22,7 +22,7 @@ from twisted.trial import unittest
 
 from IPython.kernel import task, controllerservice as cs, engineservice as es
 from IPython.kernel.multiengine import IMultiEngine
-from IPython.testutils.util import DeferredTestCase
+from IPython.testing.util import DeferredTestCase
 from IPython.kernel.tests.tasktest import ITaskControllerTestCase
 
 #-------------------------------------------------------------------------------

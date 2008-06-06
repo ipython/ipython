@@ -26,7 +26,7 @@ import zope.interface as zi
 
 from IPython.kernel.fcutil import Tub, UnauthenticatedTub
 from IPython.kernel import engineservice as es
-from IPython.testutils.util import DeferredTestCase
+from IPython.testing.util import DeferredTestCase
 from IPython.kernel.controllerservice import IControllerBase
 from IPython.kernel.enginefc import FCRemoteEngineRefFromService, IEngineBase
 from IPython.kernel.engineservice import IEngineQueued

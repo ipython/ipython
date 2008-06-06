@@ -28,7 +28,7 @@ import zope.interface as zi
 
 from IPython.kernel import engineservice as es
 from IPython.kernel import error
-from IPython.testutils.util import DeferredTestCase
+from IPython.testing.util import DeferredTestCase
 from IPython.kernel.controllerservice import \
     IControllerCore
 

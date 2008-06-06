@@ -25,8 +25,8 @@ __docformat__ = "restructuredtext en"
 # Imports
 #-------------------------------------------------------------------------------
 
-from IPython.testutils import tcommon
-from IPython.testutils.tcommon import *
+from IPython.testing import tcommon
+from IPython.testing.tcommon import *
 
 #-------------------------------------------------------------------------------
 # Setup for inline and standalone doctests

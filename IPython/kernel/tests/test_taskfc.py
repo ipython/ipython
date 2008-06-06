@@ -23,7 +23,7 @@ from IPython.kernel.fcutil import Tub, UnauthenticatedTub
 from IPython.kernel import task as taskmodule
 from IPython.kernel import controllerservice as cs
 import IPython.kernel.multiengine as me
-from IPython.testutils.util import DeferredTestCase
+from IPython.testing.util import DeferredTestCase
 from IPython.kernel.multienginefc import IFCSynchronousMultiEngine
 from IPython.kernel.taskfc import IFCTaskController
 from IPython.kernel.util import printer

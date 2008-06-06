@@ -25,8 +25,8 @@ __docformat__ = "restructuredtext en"
 # Imports
 #-------------------------------------------------------------------------------
 
-from IPython.testutils import tcommon
-from IPython.testutils.tcommon import *
+from IPython.testing import tcommon
+from IPython.testing.tcommon import *
 
 #-------------------------------------------------------------------------------
 # Setup for inline and standalone doctests
@@ -43,7 +43,7 @@ dt_files = fullPath(__file__,[])
 # If you have any modules whose docstrings should be scanned for embedded tests
 # as examples accorging to standard doctest practice, set them here (as a
 # single string or a list thereof):
-dt_modules = ['IPython.testutils.tutils']
+dt_modules = ['IPython.testing.tutils']
 
 #-------------------------------------------------------------------------------
 # Regular Unittests

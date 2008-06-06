@@ -13,7 +13,7 @@ test_toeplitz_doctest.py, which is run via IPython's irunner script to create
 valid doctest input automatically.
 
 # Setup - all imports are done in tcommon
->>> from IPython.testutils.tcommon import *
+>>> from IPython.testing.tcommon import *
 
 # Rest of doctest goes here...
 

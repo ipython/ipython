@@ -27,7 +27,7 @@ from twisted.internet import defer
 from twisted.application.service import IService
 
 from IPython.kernel import engineservice as es
-from IPython.testutils.util import DeferredTestCase
+from IPython.testing.util import DeferredTestCase
 from IPython.kernel.tests.engineservicetest import \
     IEngineCoreTestCase, \
     IEngineSerializedTestCase, \

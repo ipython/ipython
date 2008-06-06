@@ -27,7 +27,7 @@ from IPython.kernel import error
 from IPython.kernel.pickleutil import can, uncan
 import IPython.kernel.engineservice as es
 from IPython.kernel.core.interpreter import Interpreter
-from IPython.testutils.parametric import Parametric, parametric
+from IPython.testing.parametric import Parametric, parametric
 
 #-------------------------------------------------------------------------------
 # Tests
