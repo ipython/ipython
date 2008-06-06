@@ -344,7 +344,7 @@ def cd_completer(self, event):
             if d[-1] in ['/','\\']:
                 d = d[:-1]
 
-            subdirs = [p for p in os.listdir(d) if os.path.isdir( d + '/' + p)]
+            subdirs = [p for p in os.listdir(d) if os.path.isdir( d + '/' + p) and not p.startswith('.')]
             if subdirs:
                 matches = [ (d + '/' + p) for p in subdirs ]
                 return single_dir_expand(matches)
