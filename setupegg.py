@@ -11,7 +11,7 @@ sys.path.insert(0,'%s/usr/local/lib/python%s/site-packages' %
 
 # now, import setuptools and call the actual setup
 import setuptools
-print sys.argv
+# print sys.argv
 #sys.argv=['','bdist_egg']
 execfile('setup.py')
 

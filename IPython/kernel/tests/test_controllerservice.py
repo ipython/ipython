@@ -23,18 +23,21 @@ __docformat__ = "restructuredtext en"
 # Imports
 #-------------------------------------------------------------------------------
 
-from twisted.application.service import IService
-from IPython.kernel.controllerservice import ControllerService
-from IPython.kernel.tests import multienginetest as met
-from controllertest import IControllerCoreTestCase
-from IPython.testing.util import DeferredTestCase
-
-class BasicControllerServiceTest(DeferredTestCase,
-    IControllerCoreTestCase):
+try:
+    from twisted.application.service import IService
+    from IPython.kernel.controllerservice import ControllerService
+    from IPython.kernel.tests import multienginetest as met
+    from controllertest import IControllerCoreTestCase
+    from IPython.testing.util import DeferredTestCase
+except ImportError:
+    pass
+else:
+    class BasicControllerServiceTest(DeferredTestCase,
+        IControllerCoreTestCase):
     
-    def setUp(self):
-        self.controller  = ControllerService()
-        self.controller.startService()
+        def setUp(self):
+            self.controller  = ControllerService()
+            self.controller.startService()
     
-    def tearDown(self):
-        self.controller.stopService()
+        def tearDown(self):
+            self.controller.stopService()

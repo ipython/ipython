@@ -72,12 +72,7 @@ if len(sys.argv) >= 2 and sys.argv[1] in ('sdist','bdist_rpm'):
 
     # List of things to be updated. Each entry is a triplet of args for
     # target_update()
-    to_update = [ # The do_sphinx scripts builds html and pdf, so just one
-                  # target is enough to cover all manual generation
-                 ('doc/manual/ipython.pdf',
-                  ['IPython/Release.py','doc/source/ipython.rst'],
-                  "cd doc && python do_sphinx.py" ),
-
+    to_update = [
                   # FIXME - Disabled for now: we need to redo an automatic way
                   # of generating the magic info inside the rst.                
                   #('doc/magic.tex',
@@ -93,6 +88,18 @@ if len(sys.argv) >= 2 and sys.argv[1] in ('sdist','bdist_rpm'):
                   "cd doc && gzip -9c pycolor.1 > pycolor.1.gz"),
                  ]
 
+    try:
+        import sphinx
+    except ImportError:
+        pass
+    else:
+        # The do_sphinx scripts builds html and pdf, so just one
+        # target is enough to cover all manual generation
+        to_update.append(
+            ('doc/manual/ipython.pdf',
+            ['IPython/Release.py','doc/source/ipython.rst'],
+            "cd doc && python do_sphinx.py")
+        )
     [ target_update(*t) for t in to_update ]
 
 #---------------------------------------------------------------------------
@@ -151,9 +158,6 @@ else:
 #---------------------------------------------------------------------------
 # Do the actual setup now
 #---------------------------------------------------------------------------
-
-print packages
-
 
 setup_args['packages'] = packages
 setup_args['package_data'] = package_data

@@ -23,42 +23,44 @@ __docformat__ = "restructuredtext en"
 # Imports
 #-------------------------------------------------------------------------------
 
-from twisted.internet import defer
-from twisted.application.service import IService
-
-from IPython.kernel import engineservice as es
-from IPython.testing.util import DeferredTestCase
-from IPython.kernel.tests.engineservicetest import \
-    IEngineCoreTestCase, \
-    IEngineSerializedTestCase, \
-    IEngineQueuedTestCase, \
-    IEnginePropertiesTestCase
+try:
+    from twisted.internet import defer
+    from twisted.application.service import IService
     
-
-class BasicEngineServiceTest(DeferredTestCase,
-                             IEngineCoreTestCase, 
-                             IEngineSerializedTestCase,
-                             IEnginePropertiesTestCase):
+    from IPython.kernel import engineservice as es
+    from IPython.testing.util import DeferredTestCase
+    from IPython.kernel.tests.engineservicetest import \
+        IEngineCoreTestCase, \
+        IEngineSerializedTestCase, \
+        IEngineQueuedTestCase, \
+        IEnginePropertiesTestCase
+except ImportError:
+    pass
+else:
+    class BasicEngineServiceTest(DeferredTestCase,
+                                 IEngineCoreTestCase, 
+                                 IEngineSerializedTestCase,
+                                 IEnginePropertiesTestCase):
     
-    def setUp(self):
-        self.engine = es.EngineService()
-        self.engine.startService()
+        def setUp(self):
+            self.engine = es.EngineService()
+            self.engine.startService()
     
-    def tearDown(self):
-        return self.engine.stopService()
+        def tearDown(self):
+            return self.engine.stopService()
 
-class QueuedEngineServiceTest(DeferredTestCase,
-                              IEngineCoreTestCase, 
-                              IEngineSerializedTestCase,
-                              IEnginePropertiesTestCase,
-                              IEngineQueuedTestCase):
+    class QueuedEngineServiceTest(DeferredTestCase,
+                                  IEngineCoreTestCase, 
+                                  IEngineSerializedTestCase,
+                                  IEnginePropertiesTestCase,
+                                  IEngineQueuedTestCase):
                               
-    def setUp(self):
-        self.rawEngine = es.EngineService()
-        self.rawEngine.startService()
-        self.engine = es.IEngineQueued(self.rawEngine)
+        def setUp(self):
+            self.rawEngine = es.EngineService()
+            self.rawEngine.startService()
+            self.engine = es.IEngineQueued(self.rawEngine)
         
-    def tearDown(self):
-        return self.rawEngine.stopService()
+        def tearDown(self):
+            return self.rawEngine.stopService()
 
  

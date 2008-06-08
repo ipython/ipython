@@ -8,6 +8,11 @@ graft setupext
 
 graft IPython/UserConfig
 
+graft IPython/kernel
+graft IPython/config
+graft IPython/testing
+graft IPython/tools
+
 graft doc
 exclude doc/\#*
 exclude doc/*.1

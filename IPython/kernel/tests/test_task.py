@@ -15,33 +15,36 @@ __docformat__ = "restructuredtext en"
 # Imports
 #-------------------------------------------------------------------------------
 
-import time
+try:
+    import time
 
-from twisted.internet import defer
-from twisted.trial import unittest
+    from twisted.internet import defer
+    from twisted.trial import unittest
 
-from IPython.kernel import task, controllerservice as cs, engineservice as es
-from IPython.kernel.multiengine import IMultiEngine
-from IPython.testing.util import DeferredTestCase
-from IPython.kernel.tests.tasktest import ITaskControllerTestCase
+    from IPython.kernel import task, controllerservice as cs, engineservice as es
+    from IPython.kernel.multiengine import IMultiEngine
+    from IPython.testing.util import DeferredTestCase
+    from IPython.kernel.tests.tasktest import ITaskControllerTestCase
+except ImportError:
+    pass
+else:
+    #-------------------------------------------------------------------------------
+    # Tests
+    #-------------------------------------------------------------------------------
 
-#-------------------------------------------------------------------------------
-# Tests
-#-------------------------------------------------------------------------------
-
-class BasicTaskControllerTestCase(DeferredTestCase, ITaskControllerTestCase):
+    class BasicTaskControllerTestCase(DeferredTestCase, ITaskControllerTestCase):
     
-    def setUp(self):
-        self.controller  = cs.ControllerService()
-        self.controller.startService()
-        self.multiengine = IMultiEngine(self.controller)
-        self.tc = task.ITaskController(self.controller)
-        self.tc.failurePenalty = 0
-        self.engines=[]
+        def setUp(self):
+            self.controller  = cs.ControllerService()
+            self.controller.startService()
+            self.multiengine = IMultiEngine(self.controller)
+            self.tc = task.ITaskController(self.controller)
+            self.tc.failurePenalty = 0
+            self.engines=[]
         
-    def tearDown(self):
-        self.controller.stopService()
-        for e in self.engines:
-            e.stopService()
+        def tearDown(self):
+            self.controller.stopService()
+            for e in self.engines:
+                e.stopService()
 
 
