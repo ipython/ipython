@@ -1,11 +1,11 @@
-Please see the doc/ directory for full manuals and other documents. The manual is
-prepared using the LyX system (www.lyx.org), but in the doc/manual directory
-you'll find HTML and PDF versions.
+===============
+IPython1 README
+===============
+ 
+.. contents::
 
-These manuals normally get installed to $PREFIX/share/doc/ipython-VERSION, unless you
-redirect the installer via a --prefix/--home option.  Normally, $PREFIX is
-/usr, but your Python may be installed elsewhere.  You can see its value by
-running:
+Overview
+========
 
-python -c "import sys;print sys.prefix"
-
+Welcome to IPython.  New users should consult our documentation, which can be found
+in the docs/source subdirectory.

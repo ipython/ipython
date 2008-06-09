@@ -32,6 +32,9 @@ POSSIBILITY OF SUCH DAMAGE.
 About the IPython Development Team
 ----------------------------------
 
+Fernando Perez began IPython in 2001 based on code from Janko Hauser <jhauser@zscout.de> 
+and Nathaniel Gray <n8gray@caltech.edu>.  Fernando is still the project lead.
+
 The IPython Development Team is the set of all contributors to the IPython project.
 This includes all of the IPython subprojects. Here is a list of the currently active contributors:
 
@@ -48,7 +51,7 @@ This includes all of the IPython subprojects. Here is a list of the currently ac
 	* Tech-X Corporation
 	* Barry Wark
 
-If your name is missing, please add it.
+If your name is missing, please add it.  
 
 Our Copyright Policy
 --------------------
