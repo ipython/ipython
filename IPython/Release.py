@@ -32,7 +32,7 @@ else:
 
 version = '0.8.4'
 
-description = "An enhanced interactive Python shell."
+description = "Tools for interactive development in Python."
 
 long_description = \
 """
@@ -77,8 +77,14 @@ license = 'BSD'
 authors = {'Fernando' : ('Fernando Perez','fperez@colorado.edu'),
            'Janko'    : ('Janko Hauser','jhauser@zscout.de'),
            'Nathan'   : ('Nathaniel Gray','n8gray@caltech.edu'),
-           'Ville'    : ('Ville Vainio','vivainio@gmail.com')           
+           'Ville'    : ('Ville Vainio','vivainio@gmail.com'),
+           'Brian'    : ('Brian E Granger', 'ellisonbg@gmail.com'),
+           'Min'      : ('Min Ragan-Kelley', 'benjaminrk@gmail.com')
            }
+
+author = 'The IPython Development Team'
+
+author_email = 'ipython-dev@scipy.org'
 
 url = 'http://ipython.scipy.org'
 
@@ -86,4 +92,4 @@ download_url = 'http://ipython.scipy.org/dist'
 
 platforms = ['Linux','Mac OSX','Windows XP/2000/NT','Windows 95/98/ME']
 
-keywords = ['Interactive','Interpreter','Shell']
+keywords = ['Interactive','Interpreter','Shell','Parallel','Distributed']

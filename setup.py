@@ -6,12 +6,16 @@ Under Posix environments it works like a typical setup.py script.
 Under Windows, the command sdist is not supported, since IPython 
 requires utilities which are not available under Windows."""
 
-#*****************************************************************************
-#       Copyright (C) 2001-2005 Fernando Perez <fperez@colorado.edu>
+#-------------------------------------------------------------------------------
+#  Copyright (C) 2008  The IPython Development Team
 #
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
-#*****************************************************************************
+#-------------------------------------------------------------------------------
+
+#-------------------------------------------------------------------------------
+# Imports
+#-------------------------------------------------------------------------------
 
 # Stdlib imports
 import os
@@ -24,35 +28,24 @@ from glob import glob
 if os.path.exists('MANIFEST'): os.remove('MANIFEST')
 
 from distutils.core import setup
-from setupext import install_data_ext
 
 # Local imports
 from IPython.genutils import target_update
 
-# A few handy globals
+from setupbase import (
+    setup_args, 
+    find_packages, 
+    find_package_data, 
+    find_scripts,
+    find_data_files,
+    check_for_dependencies
+)
+
 isfile = os.path.isfile
-pjoin = os.path.join
 
-##############################################################################
-# Utility functions
-def oscmd(s):
-    print ">", s
-    os.system(s)
-
-# A little utility we'll need below, since glob() does NOT allow you to do
-# exclusion on multiple endings!
-def file_doesnt_endwith(test,endings):
-    """Return true if test is a file and its name does NOT end with any
-    of the strings listed in endings."""
-    if not isfile(test):
-        return False
-    for e in endings:
-        if test.endswith(e):
-            return False
-    return True
-
-###############################################################################
-# Main code begins
+#-------------------------------------------------------------------------------
+# Handle OS specific things
+#-------------------------------------------------------------------------------
 
 if os.name == 'posix':
     os_name = 'posix'
@@ -69,18 +62,17 @@ if os_name == 'windows' and 'sdist' in sys.argv:
     print 'The sdist command is not available under Windows.  Exiting.'
     sys.exit(1)
 
+#-------------------------------------------------------------------------------
+# Things related to the IPython documentation
+#-------------------------------------------------------------------------------
+
 # update the manuals when building a source dist
 if len(sys.argv) >= 2 and sys.argv[1] in ('sdist','bdist_rpm'):
     import textwrap
 
     # List of things to be updated. Each entry is a triplet of args for
     # target_update()
-    to_update = [ # The do_sphinx scripts builds html and pdf, so just one
-                  # target is enough to cover all manual generation
-                 ('doc/manual/ipython.pdf',
-                  ['IPython/Release.py','doc/source/ipython.rst'],
-                  "cd doc && python do_sphinx.py" ),
-
+    to_update = [
                   # FIXME - Disabled for now: we need to redo an automatic way
                   # of generating the magic info inside the rst.                
                   #('doc/magic.tex',
@@ -96,91 +88,82 @@ if len(sys.argv) >= 2 and sys.argv[1] in ('sdist','bdist_rpm'):
                   "cd doc && gzip -9c pycolor.1 > pycolor.1.gz"),
                  ]
 
+    try:
+        import sphinx
+    except ImportError:
+        pass
+    else:
+        # The do_sphinx scripts builds html and pdf, so just one
+        # target is enough to cover all manual generation
+        to_update.append(
+            ('doc/manual/ipython.pdf',
+            ['IPython/Release.py','doc/source/ipython.rst'],
+            "cd doc && python do_sphinx.py")
+        )
     [ target_update(*t) for t in to_update ]
 
-# Release.py contains version, authors, license, url, keywords, etc.
-execfile(pjoin('IPython','Release.py'))
+#---------------------------------------------------------------------------
+# Find all the packages, package data, scripts and data_files
+#---------------------------------------------------------------------------
 
-# I can't find how to make distutils create a nested dir. structure, so
-# in the meantime do it manually. Butt ugly.
-# Note that http://www.redbrick.dcu.ie/~noel/distutils.html, ex. 2/3, contain
-# information on how to do this more cleanly once python 2.4 can be assumed.
-# Thanks to Noel for the tip.
-docdirbase  = 'share/doc/ipython'
-manpagebase = 'share/man/man1'
+packages = find_packages()
+package_data = find_package_data()
+scripts = find_scripts()
+data_files = find_data_files()
 
-# We only need to exclude from this things NOT already excluded in the
-# MANIFEST.in file.
-exclude     = ('.sh','.1.gz')
-docfiles    = filter(lambda f:file_doesnt_endwith(f,exclude),glob('doc/*'))
-examfiles   = filter(isfile, glob('doc/examples/*.py'))
-manfiles    = filter(isfile, glob('doc/manual/*'))
-manstatic   = filter(isfile, glob('doc/manual/_static/*'))
-manpages    = filter(isfile, glob('doc/*.1.gz'))
+#---------------------------------------------------------------------------
+# Handle dependencies and setuptools specific things
+#---------------------------------------------------------------------------
 
-cfgfiles    = filter(isfile, glob('IPython/UserConfig/*'))
-scriptfiles = filter(isfile, ['scripts/ipython','scripts/pycolor',
-                              'scripts/irunner'])
-
-igridhelpfiles = filter(isfile, glob('IPython/Extensions/igrid_help.*'))
-
-# Script to be run by the windows binary installer after the default setup
-# routine, to add shortcuts and similar windows-only things.  Windows
-# post-install scripts MUST reside in the scripts/ dir, otherwise distutils
-# doesn't find them.
-if 'bdist_wininst' in sys.argv:
-    if len(sys.argv) > 2 and ('sdist' in sys.argv or 'bdist_rpm' in sys.argv):
-        print >> sys.stderr,"ERROR: bdist_wininst must be run alone. Exiting."
-        sys.exit(1)
-    scriptfiles.append('scripts/ipython_win_post_install.py')
-
-datafiles = [('data', docdirbase, docfiles),
-             ('data', pjoin(docdirbase, 'examples'),examfiles),
-             ('data', pjoin(docdirbase, 'manual'),manfiles),
-             ('data', pjoin(docdirbase, 'manual/_static'),manstatic),
-             ('data', manpagebase, manpages),
-             ('data',pjoin(docdirbase, 'extensions'),igridhelpfiles),
-             ]
+# This dict is used for passing extra arguments that are setuptools 
+# specific to setup
+setuptools_extra_args = {}
 
 if 'setuptools' in sys.modules:
-    # setuptools config for egg building
-    egg_extra_kwds = {
-        'entry_points': {
-            'console_scripts': [
+    setuptools_extra_args['zip_safe'] = False
+    setuptools_extra_args['entry_points'] = {
+        'console_scripts': [
             'ipython = IPython.ipapi:launch_new_instance',
-            'pycolor = IPython.PyColorize:main'
-            ]}
-        }
-    scriptfiles = []
+            'pycolor = IPython.PyColorize:main',
+            'ipcontroller = IPython.kernel.scripts.ipcontroller:main',
+            'ipengine = IPython.kernel.scripts.ipengine:main',
+            'ipcluster = IPython.kernel.scripts.ipcluster:main'
+        ]
+    }
+    setup_args["extras_require"] = dict(
+        kernel = [
+            "zope.interface>=3.4.1",
+            "Twisted>=8.0.1",
+            "foolscap>=0.2.6"        
+        ],
+        doc=['Sphinx>=0.3','pygments'],
+        test='nose>=0.10.1',
+        security=["pyOpenSSL>=0.6"]
+    )
+    # Allow setuptools to handle the scripts
+    scripts = []
     # eggs will lack docs, examples
-    datafiles = []
+    data_files = []
 else:
-    # Normal, non-setuptools install
-    egg_extra_kwds = {}
     # package_data of setuptools was introduced to distutils in 2.4
+    cfgfiles = filter(isfile, glob('IPython/UserConfig/*'))
     if sys.version_info < (2,4):
-        datafiles.append(('lib', 'IPython/UserConfig', cfgfiles))
-    
-# Call the setup() routine which does most of the work
-setup(name             = name,
-      version          = version,
-      description      = description,
-      long_description = long_description,
-      author           = authors['Fernando'][0],
-      author_email     = authors['Fernando'][1],
-      url              = url,
-      download_url     = download_url,
-      license          = license,
-      platforms        = platforms,
-      keywords         = keywords,
-      packages         = ['IPython', 'IPython.Extensions', 'IPython.external',
-                          'IPython.gui', 'IPython.gui.wx',
-                          'IPython.UserConfig'],
-      scripts          = scriptfiles,
-      package_data     = {'IPython.UserConfig' : ['*'] },
-      
-      cmdclass         = {'install_data': install_data_ext},
-      data_files       = datafiles,
-      # extra params needed for eggs
-      **egg_extra_kwds                        
-      )
+        data_files.append(('lib', 'IPython/UserConfig', cfgfiles))
+    # If we are running without setuptools, call this function which will
+    # check for dependencies an inform the user what is needed.  This is
+    # just to make life easy for users.
+    check_for_dependencies()
+
+
+#---------------------------------------------------------------------------
+# Do the actual setup now
+#---------------------------------------------------------------------------
+
+setup_args['packages'] = packages
+setup_args['package_data'] = package_data
+setup_args['scripts'] = scripts
+setup_args['data_files'] = data_files
+setup_args.update(setuptools_extra_args)
+
+if __name__ == '__main__':
+    setup(**setup_args)
