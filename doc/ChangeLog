@@ -1,3 +1,13 @@
+2008-06-09  Ville Vainio <vivainio@gmail.com>
+
+	* Extensions/ipy_autoreload.py: Apply Pauli Virtanen's patch
+	to autoreloading that also replaces the changed code objects 
+	with new versions
+
+	* pspersistence.py: report UsageError on %store -w w/o arg,
+	and other usage pattern errors. Bug report by Johann Cohen-Tanugi.
+	
+	
 2008-06-03  Ville Vainio <vivainio@gmail.com>
 
 	* ipython.rst, ipython.1: remove -twisted from man page,
