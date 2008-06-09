@@ -52,7 +52,7 @@ and WXWidgets (via their Python interfaces).
 .sp 1
 Note that with \-wthread, you can additionally use the \-wxversion option to
 request a specific version of wx to be used.  This requires that you have the
-'wxversion' Python module installed, which is part of recent wxPython
+wxversion Python module installed, which is part of recent wxPython
 distributions.
 .br
 .sp 1
@@ -109,7 +109,7 @@ Show summary of options.
 .B \-autocall <val>
 Make IPython automatically call any callable object even if you didn't type
 explicit parentheses. For example, 'str 43' becomes
-'str(43)' automatically.  The value can be '0' to disable the
+str(43) automatically.  The value can be '0' to disable the
 feature, '1' for 'smart' autocall, where it is not applied if
 there are no more arguments on the line, and '2' for 'full'
 autocall, where all callable objects are automatically called
@@ -216,7 +216,7 @@ logfile). With \-logplay, IPython will try to reconstruct the previous
 working environment in full, not just execute the commands in the
 logfile.
 .br
-.sh 1
+.sp 1
 When a session is restored, logging is automatically turned on again
 with the name of the logfile it was invoked with (it is read from the
 log header). So once you've turned logging on for a session, you can
@@ -227,7 +227,7 @@ continue to log its history and restore from the beginning every time.
 Caveats: there are limitations in this option. The history variables
 _i*,_* and _dh don't get restored properly. In the future we will try
 to implement full session saving by writing and retrieving a
-'snapshot' of the memory state of IPython. But our first attempts
+snapshot of the memory state of IPython. But our first attempts
 failed because of inherent limitations of Python's Pickle module, so
 this may have to wait.
 .TP
