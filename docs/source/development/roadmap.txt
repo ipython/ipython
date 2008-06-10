@@ -1,0 +1,96 @@
+.. _roadmap:
+
+===================
+Development roadmap
+===================
+
+.. contents::
+
+IPython is an ambitious project that is still under heavy development.  However, we want IPython to become useful to as many people as possible, as quickly as possible.  To help us accomplish this, we are laying out a roadmap of where we are headed and what needs to happen to get there.  Hopefully, this will help the IPython developers figure out the best things to work on for each upcoming release.
+
+Speaking of releases, we are going to begin releasing a new version of IPython every four weeks.  We are hoping that a regular release schedule, along with a clear roadmap of where we are headed will propel the project forward.
+
+Where are we headed
+===================
+
+Our goal with IPython is simple: to provide a *powerful*, *robust* and *easy to use* framework for parallel computing.  While there are other secondary goals you will hear us talking about at various times, this is the primary goal of IPython that frames the roadmap.
+
+Steps along the way
+===================
+
+Here we describe the various things that we need to work on to accomplish this goal.
+
+Setting up for regular release schedule
+---------------------------------------
+
+We would like to begin to release IPython regularly (probably a 4 week release cycle).  To get ready for this, we need to revisit the development guidelines and put in information about releasing IPython.  
+
+Process startup and management
+------------------------------
+
+IPython is implemented using a distributed set of processes that communicate using TCP/IP network channels.  Currently, users have to start each of the various processes separately using command line scripts.  This is both difficult and error prone.  Furthermore, there are a number of things that often need to be managed once the processes have been started, such as the sending of signals and the shutting down and cleaning up of processes.
+
+We need to build a system that makes it trivial for users to start and manage IPython processes.  This system should have the following properties:
+
+	* It should possible to do everything through an extremely simple API that users
+	  can call from their own Python script.  No shell commands should be needed.
+	* This simple API should be configured using standard .ini files.
+	* The system should make it possible to start processes using a number of different
+	  approaches:  SSH, PBS/Torque, Xgrid, Windows Server, mpirun, etc.
+	* The controller and engine processes should each have a daemon for monitoring, 
+	  signaling and clean up.
+	* The system should be secure.
+	* The system should work under all the major operating systems, including
+	  Windows.
+
+Initial work has begun on the daemon infrastructure, and some of the needed logic is contained in the ipcluster script.
+
+Ease of use/high-level approaches to parallelism
+------------------------------------------------
+
+While our current API for clients is well designed, we can still do a lot better in designing a user-facing API that is super simple.  The main goal here is that it should take *almost no extra code* for users to get their code running in parallel.  For this to be possible, we need to tie into Python's standard idioms that enable efficient coding.  The biggest ones we are looking at are using context managers (i.e., Python 2.5's ``with`` statement) and decorators.  Initial work on this front has begun, but more work is needed.
+
+We also need to think about new models for expressing parallelism.  This is fun work as most of the foundation has already been established.
+
+Security
+--------
+
+Currently, IPython has no built in security or security model.  Because we would like IPython to be usable on public computer systems and over wide area networks, we need to come up with a robust solution for security.  Here are some of the specific things that need to be included:
+
+	* User authentication between all processes (engines, controller and clients).
+	* Optional TSL/SSL based encryption of all communication channels.
+	* A good way of picking network ports so multiple users on the same system can
+	  run their own controller and engines without interfering with those of others.
+	* A clear model for security that enables users to evaluate the security risks
+	  associated with using IPython in various manners.
+
+For the implementation of this, we plan on using Twisted's support for SSL and authentication.  One things that we really should look at is the `Foolscap`_ network protocol, which provides many of these things out of the box.
+
+.. _Foolscap: http://foolscap.lothar.com/trac
+
+The security work needs to be done in conjunction with other network protocol stuff.
+
+Latent performance issues
+-------------------------
+
+Currently, we have a number of performance issues that are waiting to bite users:
+
+	* The controller store a large amount of state in Python dictionaries.  Under heavy
+	  usage, these dicts with get very large, causing memory usage problems.  We need to 
+	  develop more scalable solutions to this problem, such as using a sqlite database
+	  to store this state.  This will also help the controller to be more fault tolerant.
+	* Currently, the client to controller connections are done through XML-RPC using 
+	  HTTP 1.0.  This is very inefficient as XML-RPC is a very verbose protocol and 
+	  each request must be handled with a new connection.  We need to move these network
+	  connections over to PB or Foolscap.
+	* We currently don't have a good way of handling large objects in the controller.
+	  The biggest problem is that because we don't have any way of streaming objects,
+	  we get lots of temporary copies in the low-level buffers.  We need to implement
+	  a better serialization approach and true streaming support.
+	* The controller currently unpickles and repickles objects.  We need to use the 
+	  [push|pull]_serialized methods instead.
+	* Currently the controller is a bottleneck.  We need the ability to scale the 
+	  controller by aggregating multiple controllers into one effective controller.
+
+
+

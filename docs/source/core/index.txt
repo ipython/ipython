@@ -1,0 +1,7 @@
+IPython Documentation
+=====================
+
+.. toctree::
+   :maxdepth: 2
+
+   ipython.txt

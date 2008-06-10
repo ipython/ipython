@@ -1,0 +1,16 @@
+IPython Documentation
+=====================
+
+.. toctree::
+   :maxdepth: 1
+
+   core/index.txt
+   dev/index.txt
+   kernel/index.txt
+
+Indices and tables
+==================
+
+* :ref:`genindex`
+* :ref:`modindex`
+* :ref:`search`
