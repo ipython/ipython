@@ -175,9 +175,9 @@ def find_scripts():
     Find IPython's scripts.
     """
     scripts = []
-    scripts.append('ipython/kernel/scripts/ipengine')
-    scripts.append('ipython/kernel/scripts/ipcontroller')
-    scripts.append('ipython/kernel/scripts/ipcluster')
+    scripts.append('IPython/kernel/scripts/ipengine')
+    scripts.append('IPython/kernel/scripts/ipcontroller')
+    scripts.append('IPython/kernel/scripts/ipcluster')
     scripts.append('scripts/ipython')
     scripts.append('scripts/pycolor')
     scripts.append('scripts/irunner')
