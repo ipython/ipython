@@ -7,10 +7,5 @@ User Documentation
 .. toctree::
    :maxdepth: 2
 
-   install.txt
-   parallel_intro.txt
-   parallel_multiengine.txt
-   parallel_task.txt
-   parallel_mpi.txt
-   changes.txt
-   faq.txt
+   basic.txt
+   advanced.txt
