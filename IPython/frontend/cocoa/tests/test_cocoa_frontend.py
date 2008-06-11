@@ -23,14 +23,14 @@ __docformat__ = "restructuredtext en"
 #-------------------------------------------------------------------------------
 # Imports
 #-------------------------------------------------------------------------------
-from ipython1.core.interpreter import Interpreter
-from ipython1.testutils.parametric import Parametric, parametric
-from ipython1.core.interpreter import COMPILER_ERROR, INCOMPLETE_INPUT,\
+from IPython.kernel.core.interpreter import Interpreter
+from IPython.testutils.parametric import Parametric, parametric
+from IPython.kernel.core.interpreter import COMPILER_ERROR, INCOMPLETE_INPUT,\
                                         COMPLETE_INPUT
-import ipython1.kernel.engineservice as es
-from ipython1.testutils.util import DeferredTestCase
+import IPython.kernel.engineservice as es
+from IPython.testutils.util import DeferredTestCase
 from twisted.internet.defer import succeed
-from ipython1.frontend.cocoa.cocoa_frontend import IPythonCocoaController,\
+from IPython.frontend.cocoa.cocoa_frontend import IPythonCocoaController,\
                                                     IPythonCLITextViewDelegate,\
                                                     CompilerError
                                                     
