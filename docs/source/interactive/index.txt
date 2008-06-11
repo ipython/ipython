@@ -1,16 +1,11 @@
-IPython Documentation
-=====================
+==================================
+Using IPython for interactive work
+==================================
 
 .. toctree::
    :maxdepth: 1
 
-   core/index.txt
-   dev/index.txt
-   kernel/index.txt
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+   tutorial.txt
+   reference.txt
+   shell.txt
+   extension_api.txt

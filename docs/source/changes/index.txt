@@ -1,7 +1,0 @@
-What's new in IPython
-=====================
-
-.. toctree::
-   :maxdepth: 1
-
-   changes.txt

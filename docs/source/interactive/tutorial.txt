@@ -1,0 +1,315 @@
+.. _tutorial:
+
+======================
+Quick IPython tutorial
+======================
+
+.. contents::
+
+IPython can be used as an improved replacement for the Python prompt,
+and for that you don't really need to read any more of this manual. But
+in this section we'll try to summarize a few tips on how to make the
+most effective use of it for everyday Python development, highlighting
+things you might miss in the rest of the manual (which is getting long).
+We'll give references to parts in the manual which provide more detail
+when appropriate.
+
+The following article by Jeremy Jones provides an introductory tutorial
+about IPython: http://www.onlamp.com/pub/a/python/2005/01/27/ipython.html
+
+Highlights
+==========
+
+Tab completion
+--------------
+
+TAB-completion, especially for attributes, is a convenient way to explore the
+structure of any object you're dealing with. Simply type object_name.<TAB>
+and a list of the object's attributes will be printed (see readline_ for
+more). Tab completion also works on file and directory names, which combined
+with IPython's alias system allows you to do from within IPython many of the
+things you normally would need the system shell for.
+
+Explore your objects
+--------------------
+
+Typing object_name? will print all sorts of details about any object,
+including docstrings, function definition lines (for call arguments) and
+constructor details for classes. The magic commands %pdoc, %pdef, %psource
+and %pfile will respectively print the docstring, function definition line,
+full source code and the complete file for any object (when they can be
+found). If automagic is on (it is by default), you don't need to type the '%'
+explicitly. See sec. `dynamic object information`_ for more.
+
+The `%run` magic command
+------------------------
+
+The %run magic command allows you to run any python script and load all of
+its data directly into the interactive namespace. Since the file is re-read
+from disk each time, changes you make to it are reflected immediately (in
+contrast to the behavior of import). I rarely use import for code I am
+testing, relying on %run instead. See magic_ section for more on this and
+other magic commands, or type the name of any magic command and ? to get
+details on it. See also sec. dreload_ for a recursive reload command. %run
+also has special flags for timing the execution of your scripts (-t) and for
+executing them under the control of either Python's pdb debugger (-d) or
+profiler (-p). With all of these, %run can be used as the main tool for
+efficient interactive development of code which you write in your editor of
+choice.
+
+Debug a Python script
+---------------------
+
+Use the Python debugger, pdb. The %pdb command allows you to toggle on and
+off the automatic invocation of an IPython-enhanced pdb debugger (with
+coloring, tab completion and more) at any uncaught exception. The advantage
+of this is that pdb starts inside the function where the exception occurred,
+with all data still available. You can print variables, see code, execute
+statements and even walk up and down the call stack to track down the true
+source of the problem (which often is many layers in the stack above where
+the exception gets triggered). Running programs with %run and pdb active can
+be an efficient to develop and debug code, in many cases eliminating the need
+for print statements or external debugging tools. I often simply put a 1/0 in
+a place where I want to take a look so that pdb gets called, quickly view
+whatever variables I need to or test various pieces of code and then remove
+the 1/0. Note also that '%run -d' activates pdb and automatically sets
+initial breakpoints for you to step through your code, watch variables, etc.
+See Sec. `Output caching`_ for details.
+
+Use the output cache
+--------------------
+
+All output results are automatically stored in a global dictionary named Out
+and variables named _1, _2, etc. alias them. For example, the result of input
+line 4 is available either as Out[4] or as _4. Additionally, three variables
+named _, __ and ___ are always kept updated with the for the last three
+results. This allows you to recall any previous result and further use it for
+new calculations. See Sec. `Output caching`_ for more.
+
+Suppress output
+---------------
+
+Put a ';' at the end of a line to suppress the printing of output. This is
+useful when doing calculations which generate long output you are not
+interested in seeing. The _* variables and the Out[] list do get updated with
+the contents of the output, even if it is not printed. You can thus still
+access the generated results this way for further processing.
+
+Input cache
+-----------
+
+A similar system exists for caching input. All input is stored in a global
+list called In , so you can re-execute lines 22 through 28 plus line 34 by
+typing 'exec In[22:29]+In[34]' (using Python slicing notation). If you need
+to execute the same set of lines often, you can assign them to a macro with
+the %macro function. See sec. `Input caching`_ for more.
+
+Use your input history
+----------------------
+
+The %hist command can show you all previous input, without line numbers if
+desired (option -n) so you can directly copy and paste code either back in
+IPython or in a text editor. You can also save all your history by turning on
+logging via %logstart; these logs can later be either reloaded as IPython
+sessions or used as code for your programs.
+
+Define your own system aliases
+------------------------------
+
+Even though IPython gives you access to your system shell via the ! prefix,
+it is convenient to have aliases to the system commands you use most often.
+This allows you to work seamlessly from inside IPython with the same commands
+you are used to in your system shell. IPython comes with some pre-defined
+aliases and a complete system for changing directories, both via a stack (see
+%pushd, %popd and %dhist) and via direct %cd. The latter keeps a history of
+visited directories and allows you to go to any previously visited one.
+
+Call system shell commands
+--------------------------
+
+Use Python to manipulate the results of system commands. The '!!' special
+syntax, and the %sc and %sx magic commands allow you to capture system output
+into Python variables.
+
+Use Python variables when calling the shell
+-------------------------------------------
+
+Expand python variables when calling the shell (either via '!' and '!!' or
+via aliases) by prepending a $ in front of them. You can also expand complete
+python expressions. See `System shell access`_ for more.
+
+Use profiles
+------------
+
+Use profiles to maintain different configurations (modules to load, function
+definitions, option settings) for particular tasks. You can then have
+customized versions of IPython for specific purposes. See sec. profiles_ for
+more.
+
+
+Embed IPython in your programs
+------------------------------
+
+A few lines of code are enough to load a complete IPython inside your own
+programs, giving you the ability to work with your data interactively after
+automatic processing has been completed. See sec. embedding_ for more.
+
+Use the Python profiler
+-----------------------
+
+When dealing with performance issues, the %run command with a -p option
+allows you to run complete programs under the control of the Python profiler.
+The %prun command does a similar job for single Python expressions (like
+function calls).
+
+Use IPython to present interactive demos
+----------------------------------------
+
+Use the IPython.demo.Demo class to load any Python script as an interactive
+demo. With a minimal amount of simple markup, you can control the execution
+of the script, stopping as needed. See sec. `interactive demos`_ for more.
+
+Run doctests
+------------
+
+Run your doctests from within IPython for development and debugging. The
+special %doctest_mode command toggles a mode where the prompt, output and
+exceptions display matches as closely as possible that of the default Python
+interpreter. In addition, this mode allows you to directly paste in code that
+contains leading '>>>' prompts, even if they have extra leading whitespace
+(as is common in doctest files). This combined with the '%history -tn' call
+to see your translated history (with these extra prompts removed and no line
+numbers) allows for an easy doctest workflow, where you can go from doctest
+to interactive execution to pasting into valid Python code as needed.
+
+Source code handling tips
+=========================
+
+IPython is a line-oriented program, without full control of the
+terminal. Therefore, it doesn't support true multiline editing. However,
+it has a number of useful tools to help you in dealing effectively with
+more complex editing.
+
+The %edit command gives a reasonable approximation of multiline editing,
+by invoking your favorite editor on the spot. IPython will execute the
+code you type in there as if it were typed interactively. Type %edit?
+for the full details on the edit command.
+
+If you have typed various commands during a session, which you'd like to
+reuse, IPython provides you with a number of tools. Start by using %hist
+to see your input history, so you can see the line numbers of all input.
+Let us say that you'd like to reuse lines 10 through 20, plus lines 24
+and 28. All the commands below can operate on these with the syntax::
+
+    %command 10-20 24 28 
+
+where the command given can be:
+
+    * %macro <macroname>: this stores the lines into a variable which,
+      when called at the prompt, re-executes the input. Macros can be
+      edited later using '%edit macroname', and they can be stored
+      persistently across sessions with '%store macroname' (the storage
+      system is per-profile). The combination of quick macros,
+      persistent storage and editing, allows you to easily refine
+      quick-and-dirty interactive input into permanent utilities, always
+      available both in IPython and as files for general reuse.
+    * %edit: this will open a text editor with those lines pre-loaded
+      for further modification. It will then execute the resulting
+      file's contents as if you had typed it at the prompt.
+    * %save <filename>: this saves the lines directly to a named file on
+      disk.
+
+While %macro saves input lines into memory for interactive re-execution,
+sometimes you'd like to save your input directly to a file. The %save
+magic does this: its input sytnax is the same as %macro, but it saves
+your input directly to a Python file. Note that the %logstart command
+also saves input, but it logs all input to disk (though you can
+temporarily suspend it and reactivate it with %logoff/%logon); %save
+allows you to select which lines of input you need to save.
+
+
+Lightweight 'version control'
+=============================
+
+When you call %edit with no arguments, IPython opens an empty editor
+with a temporary file, and it returns the contents of your editing
+session as a string variable. Thanks to IPython's output caching
+mechanism, this is automatically stored::
+
+    In [1]: %edit
+
+    IPython will make a temporary file named: /tmp/ipython_edit_yR-HCN.py
+
+    Editing... done. Executing edited code...
+
+    hello - this is a temporary file
+
+    Out[1]: "print 'hello - this is a temporary file'\n"
+
+Now, if you call '%edit -p', IPython tries to open an editor with the
+same data as the last time you used %edit. So if you haven't used %edit
+in the meantime, this same contents will reopen; however, it will be
+done in a new file. This means that if you make changes and you later
+want to find an old version, you can always retrieve it by using its
+output number, via '%edit _NN', where NN is the number of the output
+prompt.
+
+Continuing with the example above, this should illustrate this idea::
+
+    In [2]: edit -p
+
+    IPython will make a temporary file named: /tmp/ipython_edit_nA09Qk.py
+
+    Editing... done. Executing edited code...
+
+    hello - now I made some changes
+
+    Out[2]: "print 'hello - now I made some changes'\n"
+
+    In [3]: edit _1
+
+    IPython will make a temporary file named: /tmp/ipython_edit_gy6-zD.py
+
+    Editing... done. Executing edited code...
+
+    hello - this is a temporary file
+
+    IPython version control at work :)
+
+    Out[3]: "print 'hello - this is a temporary file'\nprint 'IPython version control at work :)'\n"
+
+
+This section was written after a contribution by Alexander Belchenko on
+the IPython user list.
+
+
+Effective logging
+=================
+
+A very useful suggestion sent in by Robert Kern follows:
+
+I recently happened on a nifty way to keep tidy per-project log files. I
+made a profile for my project (which is called "parkfield")::
+
+    include ipythonrc
+
+    # cancel earlier logfile invocation:
+
+    logfile ''
+
+    execute import time
+
+    execute __cmd = '/Users/kern/research/logfiles/parkfield-%s.log rotate'
+
+    execute __IP.magic_logstart(__cmd % time.strftime('%Y-%m-%d'))
+
+I also added a shell alias for convenience::
+
+    alias parkfield="ipython -pylab -profile parkfield" 
+
+Now I have a nice little directory with everything I ever type in,
+organized by project and date.
+
+Contribute your own: If you have your own favorite tip on using IPython
+efficiently for a certain task (especially things which can't be done in
+the normal Python interpreter), don't hesitate to send it!

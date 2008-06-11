@@ -1,0 +1,189 @@
+.. _overview:
+
+============
+Introduction
+============
+
+This is the official documentation for IPython 0.x series (i.e. what
+we are used to refer to just as "IPython"). The original text of the
+manual (most of which is still in place) has been authored by Fernando
+Perez, but as recommended usage patterns and new features have
+emerged, this manual has been updated to reflect that fact. Most of
+the additions have been authored by Ville M. Vainio.
+
+The manual has been generated from reStructuredText source markup with
+Sphinx, which should make it much easier to keep it up-to-date in the
+future. Some reST artifacts and bugs may still be apparent in the
+documentation, but this should improve as the toolchain matures.
+
+Overview
+========
+
+One of Python's most useful features is its interactive interpreter.
+This system allows very fast testing of ideas without the overhead of
+creating test files as is typical in most programming languages.
+However, the interpreter supplied with the standard Python distribution
+is somewhat limited for extended interactive use.
+
+IPython is a free software project (released under the BSD license)
+which tries to:
+
+   1. Provide an interactive shell superior to Python's default. IPython
+      has many features for object introspection, system shell access,
+      and its own special command system for adding functionality when
+      working interactively. It tries to be a very efficient environment
+      both for Python code development and for exploration of problems
+      using Python objects (in situations like data analysis).
+   2. Serve as an embeddable, ready to use interpreter for your own
+      programs. IPython can be started with a single call from inside
+      another program, providing access to the current namespace. This
+      can be very useful both for debugging purposes and for situations
+      where a blend of batch-processing and interactive exploration are
+      needed.
+   3. Offer a flexible framework which can be used as the base
+      environment for other systems with Python as the underlying
+      language. Specifically scientific environments like Mathematica,
+      IDL and Matlab inspired its design, but similar ideas can be
+      useful in many fields.
+   4. Allow interactive testing of threaded graphical toolkits. IPython
+      has support for interactive, non-blocking control of GTK, Qt and
+      WX applications via special threading flags. The normal Python
+      shell can only do this for Tkinter applications.
+
+
+Main features
+-------------
+
+* Dynamic object introspection. One can access docstrings, function
+  definition prototypes, source code, source files and other details
+  of any object accessible to the interpreter with a single
+  keystroke ('?', and using '??' provides additional detail).
+* Searching through modules and namespaces with '*' wildcards, both
+  when using the '?' system and via the %psearch command.
+* Completion in the local namespace, by typing TAB at the prompt.
+  This works for keywords, modules, methods, variables and files in the
+  current directory. This is supported via the readline library, and
+  full access to configuring readline's behavior is provided. 
+  Custom completers can be implemented easily for different purposes
+  (system commands, magic arguments etc.)
+* Numbered input/output prompts with command history (persistent
+  across sessions and tied to each profile), full searching in this
+  history and caching of all input and output.
+* User-extensible 'magic' commands. A set of commands prefixed with
+  % is available for controlling IPython itself and provides
+  directory control, namespace information and many aliases to
+  common system shell commands.
+* Alias facility for defining your own system aliases.
+* Complete system shell access. Lines starting with ! are passed
+  directly to the system shell, and using !! or var = !cmd 
+  captures shell output into python variables for further use.
+* Background execution of Python commands in a separate thread.
+  IPython has an internal job manager called jobs, and a
+  conveninence backgrounding magic function called %bg.
+* The ability to expand python variables when calling the system
+  shell. In a shell command, any python variable prefixed with $ is
+  expanded. A double $$ allows passing a literal $ to the shell (for
+  access to shell and environment variables like $PATH).
+* Filesystem navigation, via a magic %cd command, along with a
+  persistent bookmark system (using %bookmark) for fast access to
+  frequently visited directories.
+* A lightweight persistence framework via the %store command, which
+  allows you to save arbitrary Python variables. These get restored
+  automatically when your session restarts.
+* Automatic indentation (optional) of code as you type (through the
+  readline library).
+* Macro system for quickly re-executing multiple lines of previous
+  input with a single name. Macros can be stored persistently via
+  %store and edited via %edit.
+* Session logging (you can then later use these logs as code in your
+  programs). Logs can optionally timestamp all input, and also store
+  session output (marked as comments, so the log remains valid
+  Python source code).
+* Session restoring: logs can be replayed to restore a previous
+  session to the state where you left it.
+* Verbose and colored exception traceback printouts. Easier to parse
+  visually, and in verbose mode they produce a lot of useful
+  debugging information (basically a terminal version of the cgitb
+  module).
+* Auto-parentheses: callable objects can be executed without
+  parentheses: 'sin 3' is automatically converted to 'sin(3)'.
+* Auto-quoting: using ',' or ';' as the first character forces
+  auto-quoting of the rest of the line: ',my_function a b' becomes
+  automatically 'my_function("a","b")', while ';my_function a b'
+  becomes 'my_function("a b")'.
+* Extensible input syntax. You can define filters that pre-process
+  user input to simplify input in special situations. This allows
+  for example pasting multi-line code fragments which start with
+  '>>>' or '...' such as those from other python sessions or the
+  standard Python documentation.
+* Flexible configuration system. It uses a configuration file which
+  allows permanent setting of all command-line options, module
+  loading, code and file execution. The system allows recursive file
+  inclusion, so you can have a base file with defaults and layers
+  which load other customizations for particular projects.
+* Embeddable. You can call IPython as a python shell inside your own
+  python programs. This can be used both for debugging code or for
+  providing interactive abilities to your programs with knowledge
+  about the local namespaces (very useful in debugging and data
+  analysis situations).
+* Easy debugger access. You can set IPython to call up an enhanced
+  version of the Python debugger (pdb) every time there is an
+  uncaught exception. This drops you inside the code which triggered
+  the exception with all the data live and it is possible to
+  navigate the stack to rapidly isolate the source of a bug. The
+  %run magic command -with the -d option- can run any script under
+  pdb's control, automatically setting initial breakpoints for you.
+  This version of pdb has IPython-specific improvements, including
+  tab-completion and traceback coloring support. For even easier
+  debugger access, try %debug after seeing an exception. winpdb is 
+  also supported, see ipy_winpdb extension.
+* Profiler support. You can run single statements (similar to
+  profile.run()) or complete programs under the profiler's control.
+  While this is possible with standard cProfile or profile modules,
+  IPython wraps this functionality with magic commands (see '%prun'
+  and '%run -p') convenient for rapid interactive work.
+* Doctest support. The special %doctest_mode command toggles a mode
+  that allows you to paste existing doctests (with leading '>>>'
+  prompts and whitespace) and uses doctest-compatible prompts and
+  output, so you can use IPython sessions as doctest code.
+
+
+Portability and Python requirements
+-----------------------------------
+
+Python requirements: IPython requires with Python version 2.3 or newer.
+If you are still using Python 2.2 and can not upgrade, the last version
+of IPython which worked with Python 2.2 was 0.6.15, so you will have to
+use that.
+
+IPython is developed under Linux, but it should work in any reasonable
+Unix-type system (tested OK under Solaris and the BSD family, for which
+a port exists thanks to Dryice Liu).
+
+Mac OS X: it works, apparently without any problems (thanks to Jim Boyle
+at Lawrence Livermore for the information). Thanks to Andrea Riciputi,
+Fink support is available.
+
+CygWin: it works mostly OK, though some users have reported problems
+with prompt coloring. No satisfactory solution to this has been found so
+far, you may want to disable colors permanently in the ipythonrc
+configuration file if you experience problems. If you have proper color
+support under cygwin, please post to the IPython mailing list so this
+issue can be resolved for all users.
+
+Windows: it works well under Windows Vista/XP/2k, and I suspect NT should
+behave similarly. Section "Installation under windows" describes
+installation details for Windows, including some additional tools needed
+on this platform.
+
+Windows 9x support is present, and has been reported to work fine (at
+least on WinME).
+
+Location
+--------
+
+IPython is generously hosted at http://ipython.scipy.org by the
+Enthought, Inc and the SciPy project. This site offers downloads,
+subversion access, mailing lists and a bug tracking system. I am very
+grateful to Enthought (http://www.enthought.com) and all of the SciPy
+team for their contribution.

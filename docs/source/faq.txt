@@ -1,33 +1,11 @@
 .. _faq:
 
-================
-FAQ for IPython
-================
+========================================
+Frequently asked questions
+========================================
 
 General questions
 =================
-
-What is the difference between IPython and IPython?
-----------------------------------------------------
-
-IPython is the next generation of IPython. It is being created with three main goals in
-mind:
-
-	1. Clean up the existing codebase and write lots of tests.
-	2. Separate the core functionality of IPython from the terminal to enable IPython
-	   to be used from within a variety of GUI applications.
-	3. Implement a system for interactive parallel computing.
-
-Currently, IPython is not a full replacement for IPython and until that happens,
-IPython will be developed as a separate project. IPython currently provides a stable
-and powerful architecture for parallel computing that can be used with IPython or even
-the default Python shell. For more information, see our `introduction to parallel
-computing with IPython`__.
-
-.. __: ./parallel_intro
-
-What is the history of IPython?
---------------------------------
 
 Questions about parallel computing with IPython
 ================================================

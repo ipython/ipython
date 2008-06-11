@@ -1,0 +1,10 @@
+===============================
+Configuration and customization
+===============================
+
+.. toctree::
+   :maxdepth: 1
+
+   initial_config.txt
+   customization.txt
+   new_config.txt

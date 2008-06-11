@@ -1,12 +1,24 @@
+=====================
 IPython Documentation
 =====================
+
+Contents
+========
 
 .. toctree::
    :maxdepth: 1
 
-   core/index.txt
-   dev/index.txt
-   kernel/index.txt
+   overview.txt
+   install/index.txt
+   interactive/index.txt
+   parallel/index.txt
+   config/index.txt
+   changes.txt
+   development/index.txt
+   faq.txt
+   history.txt
+   license_and_copyright.txt
+   credits.txt
 
 Indices and tables
 ==================

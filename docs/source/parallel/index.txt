@@ -1,8 +1,9 @@
-IPython kernel documentation
-============================
+====================================
+Using IPython for Parallel computing
+====================================
 
 User Documentation
-------------------
+==================
 
 .. toctree::
    :maxdepth: 2

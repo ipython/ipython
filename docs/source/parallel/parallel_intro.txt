@@ -168,12 +168,6 @@ Starting the controller and engines on different machines
 This section needs to be updated to reflect the new Foolscap capabilities based
 model.
 
-Specifying custom ports
------------------------
-
-This section needs to be updated to reflect the new Foolscap capabilities based
-model.
-
 Using ``ipcluster`` with ``ssh``
 --------------------------------
 
@@ -215,28 +209,6 @@ All of the components of IPython have log files associated with them.
 These log files can be extremely useful in debugging problems with
 IPython and can be found in the directory ``~/.ipython/log``.  Sending
 the log files to us will often help us to debug any problems.
-
-Security and firewalls
-----------------------
-
-The only process in IPython's architecture that listens on a network
-port is the controller. Thus the controller is the main security concern.
-Through the controller, an attacker can execute arbitrary code on the
-engines. Thus, we highly recommend taking the following precautions:
-
-	* Don't run the controller on a machine that is exposed to the
-	  internet.
-	* Don't run the controller on a machine that could have hostile
-	  users on it.
-	* If you need to connect to a controller that is behind a firewall,
-	  tunnel everything through ssh.
-
-Currently, IPython does not have any built-in security.  Thus, it 
-is up to you to be aware of the security risks associated with using IPython and to take steps to mitigate those risks.
-
-However, we do have plans to add security measures to IPython itself.
-This will probably take the form of using SSL for encryption and some
-authentication scheme.
 
 Next Steps
 ==========

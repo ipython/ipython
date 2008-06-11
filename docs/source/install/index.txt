@@ -1,8 +1,6 @@
-IPython kernel documentation
-============================
-
-User Documentation
-------------------
+==================
+Installation
+==================
 
 .. toctree::
    :maxdepth: 2
