@@ -1,0 +1,27 @@
+2008-03-14 00:06:49-0700 [-] Log opened.
+2008-03-14 00:06:49-0700 [-] --> ipython1.frontend.cocoa.tests.test_cocoa_frontend.TestIPythonCocoaControler.testControllerCompletesToken <--
+2008-03-14 00:06:49-0700 [-] Unhandled error in Deferred:
+2008-03-14 00:06:49-0700 [-] Unhandled Error
+	Traceback (most recent call last):
+	  File "/Library/Python/2.5/site-packages/Twisted-2.5.0_rUnknown-py2.5-macosx-10.3-i386.egg/twisted/internet/utils.py", line 144, in runWithWarningsSuppressed
+	    result = f(*a, **kw)
+	  File "/Users/barry/Desktop/ipython1-cocoa/ipython1/frontend/cocoa/tests/test_cocoa_frontend.py", line 94, in testControllerCompletesToken
+	    self.controller.executeRequest([code]).addCallback(testCompletes)
+	  File "/Library/Python/2.5/site-packages/Twisted-2.5.0_rUnknown-py2.5-macosx-10.3-i386.egg/twisted/internet/defer.py", line 196, in addCallback
+	    callbackKeywords=kw)
+	  File "/Library/Python/2.5/site-packages/Twisted-2.5.0_rUnknown-py2.5-macosx-10.3-i386.egg/twisted/internet/defer.py", line 187, in addCallbacks
+	    self._runCallbacks()
+	--- <exception caught here> ---
+	  File "/Library/Python/2.5/site-packages/Twisted-2.5.0_rUnknown-py2.5-macosx-10.3-i386.egg/twisted/internet/defer.py", line 325, in _runCallbacks
+	    self.result = callback(self.result, *args, **kw)
+	  File "/Users/barry/Desktop/ipython1-cocoa/ipython1/frontend/cocoa/tests/test_cocoa_frontend.py", line 89, in testCompletes
+	    self.assert_("longNameVariable" in result)
+	  File "/Library/Python/2.5/site-packages/Twisted-2.5.0_rUnknown-py2.5-macosx-10.3-i386.egg/twisted/trial/unittest.py", line 136, in failUnless
+	    raise self.failureException(msg)
+	twisted.trial.unittest.FailTest: None
+	
+2008-03-14 00:06:49-0700 [-] --> ipython1.frontend.cocoa.tests.test_cocoa_frontend.TestIPythonCocoaControler.testControllerExecutesCode <--
+2008-03-14 00:06:49-0700 [-] --> ipython1.frontend.cocoa.tests.test_cocoa_frontend.TestIPythonCocoaControler.testControllerInstantiatesIEngineInteractive <--
+2008-03-14 00:06:49-0700 [-] --> ipython1.frontend.cocoa.tests.test_cocoa_frontend.TestIPythonCocoaControler.testControllerMirrorsUserNSWithValuesAsStrings <--
+2008-03-14 00:06:49-0700 [-] --> ipython1.frontend.cocoa.tests.test_cocoa_frontend.TestIPythonCocoaControler.testControllerRaisesCompilerErrorForIllegalCode <--
+2008-03-14 00:06:49-0700 [-] --> ipython1.frontend.cocoa.tests.test_cocoa_frontend.TestIPythonCocoaControler.testControllerReturnsNoneForIncompleteCode <--

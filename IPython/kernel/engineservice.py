@@ -852,13 +852,16 @@ class ThreadedEngineService(EngineService):
 
     def __init__(self, shellClass=Interpreter, mpi=None):
         EngineService.__init__(self, shellClass, mpi)
+    
+    
+    def execute(self, lines):
         # Only import this if we are going to use this class
         from twisted.internet import threads
         
-    def execute(self, lines):
-        msg = """engine: %r
-method: execute(lines)
-lines = %s""" % (self.id, lines)
-        d = threads.deferToThread(self.executeAndRaise, msg, self.shell.execute, lines)
+        msg = {'engineid':self.id,
+               'method':'execute',
+               'args':[lines]}
+        
+        d = threads.deferToThread(self.shell.execute, lines)
         d.addCallback(self.addIDToResult)
         return d
