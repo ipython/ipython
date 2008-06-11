@@ -1,0 +1,138 @@
+=========================================
+Advanced installation options for IPython
+=========================================
+
+.. contents::
+
+Introduction
+============
+
+IPython enables parallel applications to be developed in Python. This document
+describes the steps required to install IPython. For an overview of IPython's
+architecture as it relates to parallel computing, see our :ref:`introduction to
+parallel computing with IPython <ip1par>`.
+
+Please let us know if you have problems installing IPython or any of its
+dependencies. We have tested IPython extensively with Python 2.4 and 2.5.
+
+.. warning::
+
+	IPython will not work with Python 2.3 or below.
+
+IPython has three required dependencies:
+
+	1. `IPython`__
+	2. `Zope Interface`__
+	3. `Twisted`__
+	4. `Foolscap`__
+
+.. __: http://ipython.scipy.org
+.. __: http://pypi.python.org/pypi/zope.interface
+.. __: http://twistedmatrix.com
+.. __: http://foolscap.lothar.com/trac
+
+It also has the following optional dependencies:
+
+	1. pexpect (used for certain tests)
+	2. nose (used to run our test suite)
+	3. sqlalchemy (used for database support)
+	4. mpi4py (for MPI support)
+	5. Sphinx and pygments (for building documentation)
+	6. pyOpenSSL (for security)
+
+Getting IPython
+================
+
+IPython development has been moved to `Launchpad`_.  The development branch of IPython can be checkout out using `Bazaar`_::
+
+    $ bzr branch lp:///~ipython/ipython/ipython1-dev
+
+.. _Launchpad: http://www.launchpad.net/ipython
+.. _Bazaar: http://bazaar-vcs.org/
+
+Installation using setuptools
+=============================
+
+The easiest way of installing IPython and its dependencies is using
+`setuptools`_. If you have setuptools installed you can simple use the ``easy_install``
+script that comes with setuptools (this should be on your path if you have setuptools)::
+
+	$ easy_install ipython1
+
+This will download and install the latest version of IPython as well as all of its dependencies.  For this to work, you will need to be connected to the internet when you run this command. This will install everything info the ``site-packages`` directory of your Python distribution. If this is the system wide Python, you will likely need admin privileges. For information about installing Python packages to other locations (that don't require admin privileges) see the `setuptools`_ documentation.
+
+.. _setuptools: http://peak.telecommunity.com/DevCenter/setuptools
+
+If you don't want `setuptools`_ to automatically install the dependencies, you can also get the dependencies yourself, using ``easy_install``::
+
+	$ easy_install IPython
+	$ easy_install zope.interface
+	$ easy_install Twisted
+	$ easy_install foolscap
+
+or by simply downloading and installing the dependencies manually.
+
+If you want to have secure (highly recommended) network connections, you will also
+need to get `pyOpenSSL`__, version 0.6, or just do:
+
+	$ easy_install ipython1[security]
+
+.. hint::	If you want to do development on IPython and want to always 
+   run off your development branch, you can run 
+   :command:`python setupegg.py develop` in the IPython source tree.
+
+.. __: http://pyopenssl.sourceforge.net/
+
+Installation using plain distutils
+==================================
+
+If you don't have `setuptools`_ installed or don't want to use it, you can also install IPython and its dependencies using ``distutils``.  In this approach, you will need to get the most recent stable releases of IPython's dependencies and install each of them by doing::
+
+	$ python setup.py install
+
+The dependencies need to be installed before installing IPython.  After installing the dependencies, install IPython by running::
+
+	$ cd ipython1-dev
+	$ python setup.py install
+
+.. note:: Here we are using setup.py rather than setupegg.py.
+
+.. _install_testing:
+
+Testing
+=======
+
+Once you have completed the installation of the IPython kernel you can run our test suite
+with the command::
+
+	trial ipython1
+	
+Or if you have `nose`__ installed::
+
+	nosetests -v ipython1
+	
+The ``trial`` command is part of Twisted and allows asynchronous network based
+applications to be tested using Python's unittest framework. Please let us know
+if the tests do not pass. The best way to get in touch with us is on the `IPython
+developer mailing list`_.
+
+.. __: http://somethingaboutorange.com/mrl/projects/nose/
+.. _IPython developer mailing list: http://projects.scipy.org/mailman/listinfo/ipython-dev
+
+MPI Support
+===========
+
+IPython includes optional support for the Message Passing Interface (`MPI`_),
+which enables the IPython Engines to pass data between each other using `MPI`_.  To use MPI with IPython, the minimal requirements are:
+
+	* An MPI implementation (we recommend `Open MPI`_)
+	* A way to call MPI (we recommend `mpi4py`_)
+
+But, IPython should work with any MPI implementation and with any code
+(Python/C/C++/Fortran) that uses MPI. Please contact us for more information about
+this.
+
+.. _MPI: http://www-unix.mcs.anl.gov/mpi/
+.. _mpi4py: http://mpi4py.scipy.org/
+.. _Open MPI: http://www.open-mpi.org/
+

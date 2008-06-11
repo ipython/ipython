@@ -1,0 +1,28 @@
+=====================
+IPython Documentation
+=====================
+
+Contents
+========
+
+.. toctree::
+   :maxdepth: 1
+
+   overview.txt
+   install/index.txt
+   interactive/index.txt
+   parallel/index.txt
+   config/index.txt
+   changes.txt
+   development/index.txt
+   faq.txt
+   history.txt
+   license_and_copyright.txt
+   credits.txt
+
+Indices and tables
+==================
+
+* :ref:`genindex`
+* :ref:`modindex`
+* :ref:`search`

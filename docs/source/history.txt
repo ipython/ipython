@@ -1,0 +1,56 @@
+.. _history:
+
+=======
+History
+=======
+
+Origins
+=======
+
+The current IPython system grew out of the following three projects:
+
+    * [ipython] by Fernando Pérez. I was working on adding
+      Mathematica-type prompts and a flexible configuration system
+      (something better than $PYTHONSTARTUP) to the standard Python
+      interactive interpreter.
+    * [IPP] by Janko Hauser. Very well organized, great usability. Had
+      an old help system. IPP was used as the 'container' code into
+      which I added the functionality from ipython and LazyPython.
+    * [LazyPython] by Nathan Gray. Simple but very powerful. The quick
+      syntax (auto parens, auto quotes) and verbose/colored tracebacks
+      were all taken from here.
+
+When I found out about IPP and LazyPython I tried to join all three
+into a unified system. I thought this could provide a very nice
+working environment, both for regular programming and scientific
+computing: shell-like features, IDL/Matlab numerics, Mathematica-type
+prompt history and great object introspection and help facilities. I
+think it worked reasonably well, though it was a lot more work than I
+had initially planned.
+
+
+Current status
+==============
+
+The above listed features work, and quite well for the most part. But
+until a major internal restructuring is done (see below), only bug
+fixing will be done, no other features will be added (unless very minor
+and well localized in the cleaner parts of the code).
+
+IPython consists of some 18000 lines of pure python code, of which
+roughly two thirds is reasonably clean. The rest is, messy code which
+needs a massive restructuring before any further major work is done.
+Even the messy code is fairly well documented though, and most of the
+problems in the (non-existent) class design are well pointed to by a
+PyChecker run. So the rewriting work isn't that bad, it will just be
+time-consuming.
+
+
+Future
+------
+
+See the separate new_design document for details. Ultimately, I would
+like to see IPython become part of the standard Python distribution as a
+'big brother with batteries' to the standard Python interactive
+interpreter. But that will never happen with the current state of the
+code, so all contributions are welcome.

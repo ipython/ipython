@@ -1,0 +1,15 @@
+====================================
+Using IPython for Parallel computing
+====================================
+
+User Documentation
+==================
+
+.. toctree::
+   :maxdepth: 2
+
+   parallel_intro.txt
+   parallel_multiengine.txt
+   parallel_task.txt
+   parallel_mpi.txt
+

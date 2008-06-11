@@ -1,0 +1,22 @@
+.. _parallelmpi:
+
+=======================
+Using MPI with IPython
+=======================
+
+The simplest way of getting started with MPI is to install an MPI implementation
+(we recommend `Open MPI`_) and `mpi4py`_ and then start the engines using the
+``mpirun`` command::
+
+	mpirun -n 4 ipengine --mpi=mpi4py
+	
+This will automatically import `mpi4py`_ and make sure that `MPI_Init` is called
+at the right time. We also have built in support for `PyTrilinos`_, which can be
+used (assuming `PyTrilinos`_ is installed) by starting the engines with::
+
+	mpirun -n 4 ipengine --mpi=pytrilinos
+
+.. _MPI: http://www-unix.mcs.anl.gov/mpi/
+.. _mpi4py: http://mpi4py.scipy.org/
+.. _Open MPI: http://www.open-mpi.org/
+.. _PyTrilinos: http://trilinos.sandia.gov/packages/pytrilinos/

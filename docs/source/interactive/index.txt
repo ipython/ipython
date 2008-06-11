@@ -1,0 +1,11 @@
+==================================
+Using IPython for interactive work
+==================================
+
+.. toctree::
+   :maxdepth: 1
+
+   tutorial.txt
+   reference.txt
+   shell.txt
+   extension_api.txt

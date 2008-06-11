@@ -1,0 +1,315 @@
+.. _development:
+
+==================================
+IPython development guidelines
+==================================
+
+.. contents::
+..
+    1  Overview
+    2  Project organization
+      2.1  Subpackages
+      2.2  Installation and dependencies
+      2.3  Specific subpackages
+    3  Version control
+    4  Documentation
+      4.1  Standalone documentation
+      4.2  Docstring format
+    5  Coding conventions
+      5.1  General
+      5.2  Naming conventions
+    6  Testing
+    7  Configuration
+..
+
+
+Overview
+========
+
+IPython is the next generation of IPython.  It is named such for two reasons:
+
+- Eventually, IPython will become IPython version 1.0.
+- This new code base needs to be able to co-exist with the existing IPython until
+  it is a full replacement for it.  Thus we needed a different name.  We couldn't
+  use ``ipython`` (lowercase) as some files systems are case insensitive.
+
+There are two, no three, main goals of the IPython effort:
+
+1. Clean up the existing codebase and write lots of tests.
+2. Separate the core functionality of IPython from the terminal to enable IPython
+   to be used from within a variety of GUI applications.
+3. Implement a system for interactive parallel computing.
+
+While the third goal may seem a bit unrelated to the main focus of IPython, it turns
+out that the technologies required for this goal are nearly identical with those
+required for goal two. This is the main reason the interactive parallel computing
+capabilities are being put into IPython proper. Currently the third of these goals is
+furthest along.
+
+This document describes IPython from the perspective of developers.  
+
+
+Project organization
+====================
+
+Subpackages
+-----------
+
+IPython is organized into semi self-contained subpackages.  Each of the subpackages will have its own:
+
+- **Dependencies**.  One of the most important things to keep in mind in
+  partitioning code amongst subpackages, is that they should be used to cleanly
+  encapsulate dependencies.  
+- **Tests**.  Each subpackage shoud have its own ``tests`` subdirectory that
+  contains all of the tests for that package.  For information about writing tests
+  for IPython, see the `Testing System`_ section of this document.
+- **Configuration**.  Each subpackage should have its own ``config`` subdirectory
+  that contains the configuration information for the components of the 
+  subpackage.  For information about how the IPython configuration system
+  works, see the `Configuration System`_ section of this document.
+- **Scripts**.  Each subpackage should have its own ``scripts`` subdirectory that
+  contains all of the command line scripts associated with the subpackage.
+
+Installation and dependencies
+-----------------------------
+   
+IPython will not use `setuptools`_ for installation. Instead, we will use standard
+``setup.py`` scripts that use `distutils`_. While there are a number a extremely nice
+features that `setuptools`_ has (like namespace packages), the current implementation
+of `setuptools`_ has performance problems, particularly on shared file systems. In
+particular, when Python packages are installed on NSF file systems, import times
+become much too long (up towards 10 seconds). 
+
+Because IPython is being used extensively in the context of high performance
+computing, where performance is critical but shared file systems are common, we feel
+these performance hits are not acceptable. Thus, until the performance problems
+associated with `setuptools`_ are addressed, we will stick with plain `distutils`_. We
+are hopeful that these problems will be addressed and that we will eventually begin
+using `setuptools`_. Because of this, we are trying to organize IPython in a way that
+will make the eventual transition to `setuptools`_ as painless as possible.
+
+Because we will be using `distutils`_, there will be no method for automatically installing dependencies.  Instead, we are following the approach of `Matplotlib`_ which can be summarized as follows:
+
+- Distinguish between required and optional dependencies.  However, the required
+  dependencies for IPython should be only the Python standard library.
+- Upon installation check to see which optional dependencies are present and tell
+  the user which parts of IPython need which optional dependencies.
+
+It is absolutely critical that each subpackage of IPython has a clearly specified set
+of dependencies and that dependencies are not carelessly inherited from other IPython
+subpackages. Furthermore, tests that have certain dependencies should not fail if
+those dependencies are not present. Instead they should be skipped and print a
+message.
+
+.. _setuptools: http://peak.telecommunity.com/DevCenter/setuptools
+.. _distutils: http://docs.python.org/lib/module-distutils.html
+.. _Matplotlib: http://matplotlib.sourceforge.net/
+
+Specific subpackages
+--------------------
+
+``core``
+	This is the core functionality of IPython that is independent of the
+	terminal, network and GUIs.  Most of the code that is in the current
+	IPython trunk will be refactored, cleaned up and moved here.
+
+``kernel``
+	The enables the IPython core to be expose to a the network.  This is
+	also where all of the parallel computing capabilities are to be found.
+	
+``config``
+	The configuration package used by IPython.
+
+``frontends``
+	The various frontends for IPython.  A frontend is the end-user application
+	that exposes the capabilities of IPython to the user.  The most basic frontend
+	will simply be a terminal based application that looks just like today 's 
+	IPython.  Other frontends will likely be more powerful and based on GUI toolkits.
+
+``notebook``
+	An application that allows users to work with IPython notebooks.
+
+``tools``
+	This is where general utilities go.
+
+
+Version control
+===============
+
+In the past, IPython development has been done using `Subversion`__.  We are currently trying out `Bazaar`__ and `Launchpad`__.
+
+.. __: http://subversion.tigris.org/
+.. __: http://bazaar-vcs.org/
+.. __: http://www.launchpad.net/ipython
+
+Documentation
+=============
+
+Standalone documentation
+------------------------
+
+All standalone documentation should be written in plain text (``.txt``) files using
+`reStructuredText`_ for markup and formatting. All such documentation should be placed
+in the top level directory ``docs`` of the IPython source tree. Or, when appropriate,
+a suitably named subdirectory should be used. The documentation in this location will
+serve as the main source for IPython documentation and all existing documentation
+should be converted to this format.
+
+In the future, the text files in the ``docs`` directory will be used to generate all
+forms of documentation for IPython. This include documentation on the IPython website
+as well as *pdf* documentation.
+
+.. _reStructuredText: http://docutils.sourceforge.net/rst.html
+
+Docstring format
+----------------
+
+Good docstrings are very important. All new code will use `Epydoc`_ for generating API
+docs, so we will follow the `Epydoc`_ conventions. More specifically, we will use
+`reStructuredText`_ for markup and formatting, since it is understood by a wide
+variety of tools. This means that if in the future we have any reason to change from
+`Epydoc`_ to something else, we'll have fewer transition pains.
+
+Details about using `reStructuredText`_ for docstrings can be found `here
+<http://epydoc.sourceforge.net/manual-othermarkup.html>`_.
+
+.. _Epydoc: http://epydoc.sourceforge.net/
+
+Additional PEPs of interest regarding documentation of code:
+
+- `Docstring Conventions <http://www.python.org/peps/pep-0257.html>`_
+- `Docstring Processing System Framework <http://www.python.org/peps/pep-0256.html>`_
+- `Docutils Design Specification <http://www.python.org/peps/pep-0258.html>`_
+
+
+Coding conventions
+==================
+
+General
+-------
+
+In general, we'll try to follow the standard Python style conventions as described here:
+
+- `Style Guide for Python Code  <http://www.python.org/peps/pep-0008.html>`_  
+
+
+Other comments:
+
+- In a large file, top level classes and functions should be 
+  separated by 2-3 lines to make it easier to separate them visually.
+- Use 4 spaces for indentation.
+- Keep the ordering of methods the same in classes that have the same 
+  methods.  This is particularly true for classes that implement 
+  similar interfaces and for interfaces that are similar.
+
+Naming conventions
+------------------
+
+In terms of naming conventions, we'll follow the guidelines from the `Style Guide for
+Python Code`_.
+
+For all new IPython code (and much existing code is being refactored), we'll use:
+
+- All ``lowercase`` module names.
+
+- ``CamelCase`` for class names.
+
+- ``lowercase_with_underscores`` for methods, functions, variables and attributes.
+
+This may be confusing as most of the existing IPython codebase uses a different convention (``lowerCamelCase`` for methods and attributes).  Slowly, we will move IPython over to the new
+convention, providing shadow names for backward compatibility in public interfaces. 
+
+There are, however, some important exceptions to these rules.  In some cases, IPython
+code will interface with packages (Twisted, Wx, Qt) that use other conventions.  At some level this makes it impossible to adhere to our own standards at all times.  In particular, when subclassing classes that use other naming conventions, you must follow their naming conventions.  To deal with cases like this, we propose the following policy:
+
+- If you are subclassing a class that uses different conventions, use its
+  naming conventions throughout your subclass.  Thus, if you are creating a 
+  Twisted Protocol class, used Twisted's ``namingSchemeForMethodsAndAttributes.``
+
+- All IPython's official interfaces should use our conventions.  In some cases 
+  this will mean that you need to provide shadow names (first implement ``fooBar``
+  and then ``foo_bar = fooBar``).  We want to avoid this at all costs, but it 
+  will probably be necessary at times.  But, please use this sparingly!
+
+Implementation-specific *private* methods will use ``_single_underscore_prefix``.
+Names with a leading double underscore will *only* be used in special cases, as they
+makes subclassing difficult (such names are not easily seen by child classes).
+
+Occasionally some run-in lowercase names are used, but mostly for very short names or
+where we are implementing methods very similar to existing ones in a base class (like
+``runlines()`` where ``runsource()`` and ``runcode()`` had established precedent).
+
+The old IPython codebase has a big mix of classes and modules prefixed with an
+explicit ``IP``. In Python this is mostly unnecessary, redundant and frowned upon, as
+namespaces offer cleaner prefixing. The only case where this approach is justified is
+for classes which are expected to be imported into external namespaces and a very
+generic name (like Shell) is too likely to clash with something else. We'll need to
+revisit this issue as we clean up and refactor the code, but in general we should
+remove as many unnecessary ``IP``/``ip`` prefixes as possible. However, if a prefix
+seems absolutely necessary the more specific ``IPY`` or ``ipy`` are preferred.
+
+.. _devel_testing:
+
+Testing system
+==============
+
+It is extremely important that all code contributed to IPython has tests. Tests should
+be written as unittests, doctests or as entities that the `Nose`_ testing package will
+find. Regardless of how the tests are written, we will use `Nose`_ for discovering and
+running the tests. `Nose`_ will be required to run the IPython test suite, but will
+not be required to simply use IPython.
+
+.. _Nose: http://code.google.com/p/python-nose/
+
+Tests of `Twisted`__ using code should be written by subclassing the ``TestCase`` class
+that comes with ``twisted.trial.unittest``. When this is done, `Nose`_ will be able to
+run the tests and the twisted reactor will be handled correctly.
+
+.. __: http://www.twistedmatrix.com
+
+Each subpackage in IPython should have its own ``tests`` directory that contains all
+of the tests for that subpackage. This allows each subpackage to be self-contained. If
+a subpackage has any dependencies beyond the Python standard library, the tests for
+that subpackage should be skipped if the dependencies are not found. This is very
+important so users don't get tests failing simply because they don't have dependencies.
+
+We also need to look into use Noses ability to tag tests to allow a more modular
+approach of running tests.
+
+.. _devel_config:
+
+Configuration system
+====================
+
+IPython uses `.ini`_ files for configuration purposes. This represents a huge
+improvement over the configuration system used in IPython. IPython works with these
+files using the `ConfigObj`_ package, which IPython includes as
+``ipython1/external/configobj.py``.
+
+Currently, we are using raw `ConfigObj`_ objects themselves. Each subpackage of IPython
+should contain a ``config`` subdirectory that contains all of the configuration
+information for the subpackage. To see how configuration information is defined (along
+with defaults) see at the examples in ``ipython1/kernel/config`` and
+``ipython1/core/config``. Likewise, to see how the configuration information is used,
+see examples in ``ipython1/kernel/scripts/ipengine.py``.
+
+Eventually, we will add a new layer on top of the raw `ConfigObj`_ objects. We are
+calling this new layer, ``tconfig``, as it will use a `Traits`_-like validation model.
+We won't actually use `Traits`_, but will implement something similar in pure Python.
+But, even in this new system, we will still use `ConfigObj`_ and `.ini`_ files
+underneath the hood. Talk to Fernando if you are interested in working on this part of
+IPython. The current prototype of ``tconfig`` is located in the IPython sandbox.
+
+.. _.ini: http://docs.python.org/lib/module-ConfigParser.html
+.. _ConfigObj: http://www.voidspace.org.uk/python/configobj.html
+.. _Traits: http://code.enthought.com/traits/
+
+
+
+
+
+
+
+
+
+

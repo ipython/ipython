@@ -13,20 +13,15 @@ graft IPython/config
 graft IPython/testing
 graft IPython/tools
 
-graft doc
-exclude doc/\#*
-exclude doc/*.1
-exclude doc/ChangeLog.*
-exclude doc/update_version.sh
+graft docs
+exclude docs/\#*
+exclude docs/man/*.1
+exclude docs/ChangeLog.*
 
 # There seems to be no way of excluding whole subdirectories, other than
 # manually excluding all their subdirs.  distutils really is horrible...
-exclude doc/attic/*
-exclude doc/build/doctrees/*
-exclude doc/build/html/_sources/*
-exclude doc/build/html/_static/*
-exclude doc/build/html/*
-exclude doc/build/latex/*
+exclude docs/attic/*
+exclude docs/build/*
 
 global-exclude *~
 global-exclude *.flc
