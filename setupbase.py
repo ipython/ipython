@@ -148,19 +148,15 @@ def find_data_files():
     # We only need to exclude from this things NOT already excluded in the
     # MANIFEST.in file.
     exclude     = ('.sh','.1.gz')
-    docfiles    = filter(lambda f:file_doesnt_endwith(f,exclude),glob('doc/*'))
-    examfiles   = filter(isfile, glob('doc/examples/*.py'))
-    manfiles    = filter(isfile, glob('doc/manual/*'))
-    manstatic   = filter(isfile, glob('doc/manual/_static/*'))
-    manpages    = filter(isfile, glob('doc/*.1.gz'))
-    scriptfiles = filter(isfile, ['scripts/ipython','scripts/pycolor',
-                                  'scripts/irunner'])
+    # We need to figure out how we want to package all of our rst docs?
+    # docfiles    = filter(lambda f:file_doesnt_endwith(f,exclude),glob('docs/*'))
+    examfiles   = filter(isfile, glob('docs/examples/core/*.py'))
+    examfiles.append(filter(isfile, glob('docs/examples/kernel/*.py')))
+    manpages    = filter(isfile, glob('docs/man/*.1.gz'))
     igridhelpfiles = filter(isfile, glob('IPython/Extensions/igrid_help.*'))
     
-    data_files = [('data', docdirbase, docfiles),
+    data_files = [#('data', docdirbase, docfiles),
                  ('data', pjoin(docdirbase, 'examples'),examfiles),
-                 ('data', pjoin(docdirbase, 'manual'),manfiles),
-                 ('data', pjoin(docdirbase, 'manual/_static'),manstatic),
                  ('data', manpagebase, manpages),
                  ('data',pjoin(docdirbase, 'extensions'),igridhelpfiles),
                  ]
