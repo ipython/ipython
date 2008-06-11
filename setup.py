@@ -94,6 +94,7 @@ if len(sys.argv) >= 2 and sys.argv[1] in ('sdist','bdist_rpm'):
     except ImportError:
         pass
     else:
+        pass
         # BEG: This is disabled as I am not sure what to depend on.
         # I actually don't think we should be automatically building
         # the docs for people.
@@ -103,7 +104,7 @@ if len(sys.argv) >= 2 and sys.argv[1] in ('sdist','bdist_rpm'):
         #     ('doc/manual/ipython.pdf',
         #     ['IPython/Release.py','doc/source/ipython.rst'],
         #     "cd docs && python do_sphinx.py")
-        )
+        # )
     [ target_update(*t) for t in to_update ]
 
 #---------------------------------------------------------------------------
