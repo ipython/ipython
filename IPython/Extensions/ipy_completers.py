@@ -298,6 +298,8 @@ def runlistpy(self, event):
     return dirs + pys
 
 
+greedy_cd_completer = False
+
 def cd_completer(self, event):
     relpath = event.symbol
     #print event # dbg
@@ -353,7 +355,10 @@ def cd_completer(self, event):
         else:
             return matches
 
-    return single_dir_expand(found)
+    if greedy_cd_completer:
+        return single_dir_expand(found)
+    else:
+        return found
 
 def apt_get_packages(prefix):
     out = os.popen('apt-cache pkgnames')
