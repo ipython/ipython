@@ -160,7 +160,9 @@ def find_data_files():
                  ('data', manpagebase, manpages),
                  ('data',pjoin(docdirbase, 'extensions'),igridhelpfiles),
                  ]
-    return data_files
+    # import pprint
+    # pprint.pprint(data_files)
+    return []
 
 #---------------------------------------------------------------------------
 # Find scripts
