@@ -137,6 +137,22 @@ and then commit those changes using the commit command::
 	$ ...do work in ipython-mybranch...
 	$ bzr ci -m "the commit message goes here"
 
+Please note that since we now don't use an old-style linear ChangeLog
+(that tends to cause problems with distributed version control
+systems), you should ensure that your log messages are reasonably
+detailed.  Use a docstring-like approach in the commit messages
+(including the second line being left *blank*)::
+
+  Single line summary of  changes being committed.
+
+  - more details when warranted ...
+  - including crediting outside contributors if they sent the
+    code/bug/idea!
+
+If we couple this with a policy of making single commits for each
+reasonably atomic change, the bzr log should give an excellent view of
+the project, and the `--short` log option becomes a nice summary.
+
 While working with this branch, it is a good idea to merge in changes that have been
 made upstream in the parent branch.  This can be done by doing::
 
