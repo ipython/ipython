@@ -847,6 +847,13 @@ class Command(object):
         self.deferred.errback(reason)
 
 class ThreadedEngineService(EngineService):
+    """An EngineService subclass that defers execute commands to a separate thread.
+    
+    ThreadedEngineService uses twisted.internet.threads.deferToThread to defer execute
+    requests to a separate thread. GUI frontends may want to use ThreadedEngineService as
+    the engine in an IPython.frontend.frontendbase.FrontEndBase subclass to prevent
+    block execution from blocking the GUI thread.
+    """
     
     zi.implements(IEngineBase)
 

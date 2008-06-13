@@ -24,23 +24,19 @@ __docformat__ = "restructuredtext en"
 # Imports
 #-------------------------------------------------------------------------------
 from IPython.kernel.core.interpreter import Interpreter
-from IPython.testutils.parametric import Parametric, parametric
-from IPython.kernel.core.interpreter import COMPILER_ERROR, INCOMPLETE_INPUT,\
-                                        COMPLETE_INPUT
 import IPython.kernel.engineservice as es
-from IPython.testutils.util import DeferredTestCase
+from IPython.testing.util import DeferredTestCase
 from twisted.internet.defer import succeed
-from IPython.frontend.cocoa.cocoa_frontend import IPythonCocoaController,\
-                                                    IPythonCLITextViewDelegate,\
-                                                    CompilerError
+from IPython.frontend.cocoa.cocoa_frontend import IPythonCocoaController
                                                     
+from Foundation import NSMakeRect
+from AppKit import NSTextView, NSScrollView                                                
 
 class TestIPythonCocoaControler(DeferredTestCase):
     """Tests for IPythonCocoaController"""
     
     def setUp(self):
         self.controller = IPythonCocoaController.alloc().init()
-        self.controller.awakeFromNib()
         self.engine = es.EngineService()
         self.engine.startService()
     
@@ -57,31 +53,19 @@ class TestIPythonCocoaControler(DeferredTestCase):
             del result['number']
             del result['id']
             return result
-        self.assertDeferredEquals(self.controller.executeRequest([code]).addCallback(removeNumberAndID), expected)
-    
-    def testControllerReturnsNoneForIncompleteCode(self):
-        code = """def test(a):"""
-        expected = None
-        self.assertDeferredEquals(self.controller.executeRequest([code]), expected)
-    
-    
-    def testControllerRaisesCompilerErrorForIllegalCode(self):
-        """testControllerRaisesCompilerErrorForIllegalCode"""
-        
-        code = """def test() pass"""
-        self.assertDeferredRaises(self.controller.executeRequest([code]), CompilerError)
+        self.assertDeferredEquals(self.controller.execute(code).addCallback(removeNumberAndID), expected)
     
     def testControllerMirrorsUserNSWithValuesAsStrings(self):
         code = """userns1=1;userns2=2"""
         def testControllerUserNS(result):
-            self.assertEquals(self.controller.userNS['userns1'], str(1))
-            self.assertEquals(self.controller.userNS['userns2'], str(2))
+            self.assertEquals(self.controller.userNS['userns1'], 1)
+            self.assertEquals(self.controller.userNS['userns2'], 2)
         
-        self.controller.executeRequest([code]).addCallback(testControllerUserNS)
+        self.controller.execute(code).addCallback(testControllerUserNS)
     
     
     def testControllerInstantiatesIEngine(self):
-        self.assert_(es.IEngine.providedBy(self.controller.engine))
+        self.assert_(es.IEngineBase.providedBy(self.controller.engine))
     
     def testControllerCompletesToken(self):
         code = """longNameVariable=10"""
@@ -91,7 +75,5 @@ class TestIPythonCocoaControler(DeferredTestCase):
         def testCompleteToken(result):
             self.controller.complete("longNa").addCallback(testCompletes)
         
-        self.controller.executeRequest([code]).addCallback(testCompletes)
+        self.controller.execute(code).addCallback(testCompletes)
     
-
-Parametric(TestIPythonCocoaControler)
