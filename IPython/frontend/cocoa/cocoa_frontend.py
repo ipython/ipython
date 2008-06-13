@@ -34,6 +34,7 @@ from AppKit import NSApplicationWillTerminateNotification, NSBeep,\
 
 from pprint import saferepr
 
+import IPython
 from IPython.kernel.engineservice import EngineService, ThreadedEngineService
 from IPython.frontend.frontendbase import FrontEndBase
 
@@ -160,7 +161,7 @@ class IPythonCocoaController(NSObject, FrontEndBase):
     def startCLIForTextView(self):
         """Print banner"""
         
-        banner = """IPython1 0.X -- An enhanced Interactive Python."""
+        banner = """IPython1 %s -- An enhanced Interactive Python.""" % IPython.__version__
         
         self.insert_text(banner + '\n\n')
     

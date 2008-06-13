@@ -191,10 +191,12 @@ class FrontEndBase(object):
         """
         
         try:
-            self.compile_ast(block)
-            return True
+            ast = self.compile_ast(block)
         except:
             return False
+        
+        lines = block.split('\n')
+        return (len(lines)==1 or str(lines[-1])=='')
     
     
     def compile_ast(self, block):
