@@ -20,16 +20,15 @@ __docformat__ = "restructuredtext en"
 #-------------------------------------------------------------------------------
 import string
 import uuid
-
-
-from IPython.kernel.core.history import FrontEndHistory
-from IPython.kernel.core.util import Bunch
-
-from IPython.kernel.engineservice import IEngineCore
+import _ast
 
 import zope.interface as zi
 
-import _ast
+from IPython.kernel.core.history import FrontEndHistory
+from IPython.kernel.core.util import Bunch
+from IPython.kernel.engineservice import IEngineCore
+
+from twisted.python.failure import Failure
 
 ##############################################################################
 # TEMPORARY!!! fake configuration, while we decide whether to use tconfig or
@@ -115,11 +114,11 @@ class IFrontEnd(zi.Interface):
         pass
     
     
-    def get_history_item_previous(currentBlock):
+    def get_history_previous(currentBlock):
         """Returns the block previous in  the history."""
         pass
     
-    def get_history_item_next(currentBlock):
+    def get_history_next(currentBlock):
         """Returns the next block in the history."""
         
         pass
@@ -226,38 +225,52 @@ class FrontEndBase(object):
         Result:
             Deferred result of self.interpreter.execute
         """
-        # if(not isinstance(block, _ast.AST)):
-        #     block = self.compile_ast(block)
+        
+        if(not self.is_complete(block)):
+            return Failure(Exception("Block is not compilable"))
         
         if(blockID == None):
             blockID = uuid.uuid4() #random UUID
         
         d = self.engine.execute(block)
         d.addCallback(self._add_block_id, blockID)
+        d.addCallback(self._add_history, block=block)
         d.addCallback(self.update_cell_prompt)
         d.addCallbacks(self.render_result, errback=self.render_error)
         
         return d
     
+    
     def _add_block_id(self, result, blockID):
-        """add_block_id"""
+        """Add the blockID to result"""
         
         result['blockID'] = blockID
         
         return result
     
+    def _add_history(self, result, block=None):
+        """Add block to the history"""
+        
+        assert(block != None)
+        self.history.add_items([block])
+        self.history_cursor += 1
+        
+        return result
     
-    def get_history_item_previous(self, currentBlock):
+    
+    def get_history_previous(self, currentBlock):
         """ Returns previous history string and decrement history cursor.
         """
+        print self.history
         command = self.history.get_history_item(self.history_cursor - 1)
+        print command
         if command is not None:
             self.history.input_cache[self.history_cursor] = currentBlock
             self.history_cursor -= 1
         return command
     
     
-    def get_history_item_next(self, currentBlock):
+    def get_history_next(self, currentBlock):
         """ Returns next history string and increment history cursor.
         """
         command = self.history.get_history_item(self.history_cursor + 1)

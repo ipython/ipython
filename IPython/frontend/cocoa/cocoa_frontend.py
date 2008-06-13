@@ -29,6 +29,7 @@ import uuid
 from Foundation import NSObject, NSMutableArray, NSMutableDictionary,\
                         NSLog, NSNotificationCenter, NSMakeRange,\
                         NSLocalizedString, NSIntersectionRange
+                        
 from AppKit import NSApplicationWillTerminateNotification, NSBeep,\
                     NSTextView, NSRulerView, NSVerticalRuler
 
@@ -181,17 +182,26 @@ class IPythonCocoaController(NSObject, FrontEndBase):
             if(self.is_complete(self.currentBlock())):
                 self.execute(self.currentBlock(),
                                 blockID=self.currentBlockID)
-                self.currentBlockID = self.nextBlockID()
+                self.startNewBlock()
+                
                 return True
             
             return False
         
         elif(selector == 'moveUp:'):
-            self.replaceCurrentBlockWithString(textView, self.get_history_item_previous(self.currentBlock()))
+            prevBlock = self.get_history_previous(self.currentBlock())
+            if(prevBlock != None):
+                self.replaceCurrentBlockWithString(textView, prevBlock)
+            else:
+                NSBeep()
             return True
         
         elif(selector == 'moveDown:'):
-            self.replaceCurrentBlockWithString(textView, self.get_history_item_next(self.currentBlock()))
+            nextBlock = self.get_history_next(self.currentBlock())
+            if(nextBlock != None):
+                self.replaceCurrentBlockWithString(textView, nextBlock)
+            else:
+                NSBeep()
             return True
         
         elif(selector == 'moveToBeginningOfParagraph:'):
@@ -265,6 +275,13 @@ class IPythonCocoaController(NSObject, FrontEndBase):
         return (completions,0)
     
     
+    def startNewBlock(self):
+        """"""
+        
+        self.currentBlockID = self.nextBlockID()
+    
+    
+    
     def nextBlockID(self):
         
         return uuid.uuid4()
@@ -312,7 +329,8 @@ class IPythonCocoaController(NSObject, FrontEndBase):
     
         
     def render_error(self, failure):
-        self.insert_text(str(failure))
+        self.insert_text('\n\n'+str(failure)+'\n\n')
+        self.startNewBlock()
         return failure
     
     
@@ -344,6 +362,7 @@ class IPythonCocoaController(NSObject, FrontEndBase):
     def replaceCurrentBlockWithString(self, textView, string):
         textView.replaceCharactersInRange_withString_(self.currentBlockRange(),
                                                         string)
+        self.currentBlockRange().length = len(string)
         r = NSMakeRange(textView.textStorage().length(), 0)
         textView.scrollRangeToVisible_(r)
         textView.setSelectedRange_(r)
