@@ -110,5 +110,30 @@ class TestFrontendBase(unittest.TestCase):
     def checkRenderError(self, result):
         assert(self.fb.renderErrorCalled)
     
-    # TODO: add tests for history
+    def test_history_returns_expected_block(self):
+        """Make sure history browsing doesn't fail"""
+        
+        blocks = ["a=1","a=2","a=3"]
+        for b in blocks:
+            d = self.fb.execute(b)
+        
+        # d is now the deferred for the last executed block
+        d.addCallback(self.historyTests, blocks)
+        
+    
+    def historyTests(self, result, blocks):
+        """historyTests"""
+        
+        assert(len(blocks) >= 3)
+        assert(self.fb.get_history_previous("") == blocks[-2])
+        assert(self.fb.get_history_previous("") == blocks[-3])
+        assert(self.fb.get_history_next() == blocks[-2])
+    
+    
+    def test_history_returns_none_at_startup(self):
+        """test_history_returns_none_at_startup"""
+        
+        assert(self.fb.get_history_previous("")==None)
+        assert(self.fb.get_history_next()==None)
+    
     

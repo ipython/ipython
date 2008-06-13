@@ -197,7 +197,7 @@ class IPythonCocoaController(NSObject, FrontEndBase):
             return True
         
         elif(selector == 'moveDown:'):
-            nextBlock = self.get_history_next(self.currentBlock())
+            nextBlock = self.get_history_next()
             if(nextBlock != None):
                 self.replaceCurrentBlockWithString(textView, nextBlock)
             else:

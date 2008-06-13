@@ -115,10 +115,11 @@ class IFrontEnd(zi.Interface):
     
     
     def get_history_previous(currentBlock):
-        """Returns the block previous in  the history."""
+        """Returns the block previous in  the history. Saves currentBlock if
+        the history_cursor is currently at the end of the input history"""
         pass
     
-    def get_history_next(currentBlock):
+    def get_history_next():
         """Returns the next block in the history."""
         
         pass
@@ -261,21 +262,21 @@ class FrontEndBase(object):
     def get_history_previous(self, currentBlock):
         """ Returns previous history string and decrement history cursor.
         """
-        print self.history
         command = self.history.get_history_item(self.history_cursor - 1)
-        print command
+        
         if command is not None:
-            self.history.input_cache[self.history_cursor] = currentBlock
+            if(self.history_cursor == len(self.history.input_cache)):
+                self.history.input_cache[self.history_cursor] = currentBlock
             self.history_cursor -= 1
         return command
     
     
-    def get_history_next(self, currentBlock):
+    def get_history_next(self):
         """ Returns next history string and increment history cursor.
         """
-        command = self.history.get_history_item(self.history_cursor + 1)
+        command = self.history.get_history_item(self.history_cursor+1)
+        
         if command is not None:
-            self.history.input_cache[self.history_cursor] = currentBlock
             self.history_cursor += 1
         return command
     
