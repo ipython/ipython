@@ -55,24 +55,32 @@ class Struct:
     Define a dictionary and initialize both with dict and k=v pairs:
     >>> d={'a':1,'b':2}
     >>> s=Struct(d,hi=10,ho=20)
+
     The return of __repr__ can be used to create a new instance:
     >>> s
-    Struct({'ho': 20, 'b': 2, 'hi': 10, 'a': 1})
+    Struct({'__allownew': True, 'a': 1, 'b': 2, 'hi': 10, 'ho': 20})
+
+    Note: the special '__allownew' key is used for internal purposes.
+    
     __str__ (called by print) shows it's not quite a regular dictionary:
     >>> print s
-    Struct {a: 1, b: 2, hi: 10, ho: 20}
+    Struct({'__allownew': True, 'a': 1, 'b': 2, 'hi': 10, 'ho': 20})
+
     Access by explicitly named key with dot notation:
     >>> s.a
     1
+
     Or like a dictionary:
     >>> s['a']
     1
+
     If you want a variable to hold the key value, only dictionary access works:
     >>> key='hi'
     >>> s.key
     Traceback (most recent call last):
       File "<stdin>", line 1, in ?
     AttributeError: Struct instance has no attribute 'key'
+
     >>> s[key]
     10
 
@@ -81,13 +89,16 @@ class Struct:
     accessed using the dictionary syntax. Again, an example:
 
     This doesn't work:
-    >>> s=Struct(4='hi')
+    >>> s=Struct(4='hi')  #doctest: +IGNORE_EXCEPTION_DETAIL
+    Traceback (most recent call last):
+        ...
     SyntaxError: keyword can't be an expression
+
     But this does:
     >>> s=Struct()
     >>> s[4]='hi'
     >>> s
-    Struct({4: 'hi'})
+    Struct({4: 'hi', '__allownew': True})
     >>> s[4]
     'hi'
     """
@@ -318,7 +329,8 @@ class Struct:
         if __conflict_solve:
             inv_conflict_solve_user = __conflict_solve.copy()
             for name, func in [('preserve',preserve), ('update',update),
-                               ('add',add), ('add_flip',add_flip), ('add_s',add_s)]:
+                               ('add',add), ('add_flip',add_flip),
+                               ('add_s',add_s)]:
                 if name in inv_conflict_solve_user.keys():
                     inv_conflict_solve_user[func] = inv_conflict_solve_user[name]
                     del inv_conflict_solve_user[name]
@@ -369,14 +381,14 @@ class Struct:
             return ret
 
     def get(self,attr,val=None):
-        """S.get(k[,d]) -> S[k] if S.has_key(k), else d.  d defaults to None."""
+        """S.get(k[,d]) -> S[k] if k in S, else d.  d defaults to None."""
         try:
             return self[attr]
         except KeyError:
             return val
 
     def setdefault(self,attr,val=None):
-        """S.setdefault(k[,d]) -> S.get(k,d), also set S[k]=d if not S.has_key(k)"""
+        """S.setdefault(k[,d]) -> S.get(k,d), also set S[k]=d if k not in S"""
         if not self.has_key(attr):
             self[attr] = val
         return self.get(attr,val)
@@ -384,8 +396,8 @@ class Struct:
     def allow_new_attr(self, allow = True):
         """ Set whether new attributes can be created inside struct
         
-        This can be used to catch typos by verifying that the attribute user tries to 
-        change already exists in this Struct.
+        This can be used to catch typos by verifying that the attribute user
+        tries to change already exists in this Struct.
         """
         self['__allownew'] = allow
         
