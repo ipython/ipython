@@ -1,15 +1,15 @@
 # encoding: utf-8
 """
-FrontEndBase: Base classes for frontends. 
+frontendbase provides an interface and base class for GUI frontends for IPython.kernel/IPython.kernel.core.
 
-Todo: 
-- synchronous and asynchronous interfaces
-- adapter to add async to FrontEndBase
+Frontend implementations will likely want to subclass FrontEndBase. 
+
+Author: Barry Wark
 """
 __docformat__ = "restructuredtext en"
 
 #-------------------------------------------------------------------------------
-#       Copyright (C) 2008 Barry Wark <barrywark at gmail _dot_ com>
+#  Copyright (C) 2008  The IPython Development Team
 #
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
@@ -42,6 +42,19 @@ rc.prompt_out = r'Out [$number]:  '
 
 ##############################################################################
 
+class IFrontEndFactory(zi.Interface):
+    """Factory interface for frontends."""
+    
+    def __call__(engine=None, history=None):
+        """
+        Parameters:
+        interpreter : IPython.kernel.engineservice.IEngineCore
+        """
+        
+        pass
+
+
+
 class IFrontEnd(zi.Interface):
     """Interface for frontends. All methods return t.i.d.Deferred"""
     
@@ -49,19 +62,12 @@ class IFrontEnd(zi.Interface):
     zi.Attribute("output_prompt_template", "string.Template instance substituteable with execute result.")
     zi.Attribute("continuation_prompt_template", "string.Template instance substituteable with execute result.")
     
-    def __init__(engine=None, history=None):
-        """
-        Parameters:
-        interpreter : IPython.kernel.engineservice.IEngineCore
-        """
-        pass
-    
     def update_cell_prompt(self, result):
         """Subclass may override to update the input prompt for a block. 
         Since this method will be called as a twisted.internet.defer.Deferred's callback,
         implementations should return result when finished."""
         
-        return result
+        pass
     
     def render_result(self, result):
         """Render the result of an execute call. Implementors may choose the method of rendering.
@@ -74,16 +80,50 @@ class IFrontEnd(zi.Interface):
             Output of frontend rendering
         """
         
-        return result
+        pass
     
     def render_error(self, failure):
         """Subclasses must override to render the failure. Since this method will be called as a 
         twisted.internet.defer.Deferred's callback, implementations should return result 
         when finished."""
         
-        return failure
+        pass
     
-    # TODO: finish interface
+    
+    def inputPrompt(result={}):
+        """Returns the input prompt by subsituting into self.input_prompt_template"""
+        pass
+    
+    def outputPrompt(result):
+        """Returns the output prompt by subsituting into self.output_prompt_template"""
+        
+        pass
+    
+    def continuationPrompt():
+        """Returns the continuation prompt by subsituting into self.continuation_prompt_template"""
+        
+        pass
+    
+    def is_complete(block):
+        """Returns True if block is complete, False otherwise."""
+        
+        pass
+    
+    def compile_ast(block):
+        """Compiles block to an _ast.AST"""
+        
+        pass
+    
+    
+    def get_history_item_previous(currentBlock):
+        """Returns the block previous in  the history."""
+        pass
+    
+    def get_history_item_next(currentBlock):
+        """Returns the next block in the history."""
+        
+        pass
+    
 
 class FrontEndBase(object):
     """
@@ -97,6 +137,7 @@ class FrontEndBase(object):
     """
     
     zi.implements(IFrontEnd)
+    zi.classProvides(IFrontEndFactory)
     
     history_cursor = 0
     
@@ -204,22 +245,22 @@ class FrontEndBase(object):
         return result
     
     
-    def get_history_item_previous(self, current_block):
+    def get_history_item_previous(self, currentBlock):
         """ Returns previous history string and decrement history cursor.
         """
         command = self.history.get_history_item(self.history_cursor - 1)
         if command is not None:
-            self.history.input_cache[self.history_cursor] = current_block
+            self.history.input_cache[self.history_cursor] = currentBlock
             self.history_cursor -= 1
         return command
     
     
-    def get_history_item_next(self, current_block):
+    def get_history_item_next(self, currentBlock):
         """ Returns next history string and increment history cursor.
         """
         command = self.history.get_history_item(self.history_cursor + 1)
         if command is not None:
-            self.history.input_cache[self.history_cursor] = current_block
+            self.history.input_cache[self.history_cursor] = currentBlock
             self.history_cursor += 1
         return command
     
