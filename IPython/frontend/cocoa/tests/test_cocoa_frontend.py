@@ -5,8 +5,6 @@ Things that should be tested:
 
  - IPythonCocoaController instantiates an IEngineInteractive
  - IPythonCocoaController executes code on the engine
- - IPythonCocoaController returns continuation for incomplete code
- - IPythonCocoaController returns failure for exceptions raised in executed code
  - IPythonCocoaController mirrors engine's user_ns
 """
 __docformat__ = "restructuredtext en"
