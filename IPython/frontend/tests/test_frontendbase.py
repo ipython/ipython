@@ -50,18 +50,18 @@ class TestFrontendBase(unittest.TestCase):
         self.fb = FrontEndCallbackChecker(engine=EngineService())
     
     
-    def test_implementsIFrontEnd(self):
+    def test_implements_IFrontEnd(self):
         assert(frontendbase.IFrontEnd.implementedBy(frontendbase.FrontEndBase))
     
     
-    def test_is_completeReturnsFalseForIncompleteBlock(self):
+    def test_is_complete_returns_False_for_incomplete_block(self):
         """"""
         
         block = """def test(a):"""
         
         assert(self.fb.is_complete(block) == False)
     
-    def test_is_completeReturnsTrueForCompleteBlock(self):
+    def test_is_complete_returns_True_for_complete_block(self):
         """"""
         
         block = """def test(a): pass"""
@@ -73,7 +73,7 @@ class TestFrontendBase(unittest.TestCase):
         assert(self.fb.is_complete(block))
     
     
-    def test_blockIDAddedToResult(self):
+    def test_blockID_added_to_result(self):
         block = """3+3"""
         
         d = self.fb.execute(block, blockID='TEST_ID')
@@ -84,7 +84,7 @@ class TestFrontendBase(unittest.TestCase):
         assert(result['blockID'] == expected)
     
     
-    def test_callbacksAddedToExecuteRequest(self):
+    def test_callbacks_added_to_execute(self):
         """test that
         update_cell_prompt
         render_result
@@ -101,7 +101,7 @@ class TestFrontendBase(unittest.TestCase):
         assert(self.fb.renderResultCalled)
     
     
-    def test_errorCallbackAddedToExecuteRequest(self):
+    def test_error_callback_added_to_execute(self):
         """test that render_error called on execution error"""
         
         d = self.fb.execute("raise Exception()")

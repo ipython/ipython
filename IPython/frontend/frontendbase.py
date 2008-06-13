@@ -89,16 +89,16 @@ class IFrontEnd(zi.Interface):
         pass
     
     
-    def inputPrompt(result={}):
+    def input_prompt(result={}):
         """Returns the input prompt by subsituting into self.input_prompt_template"""
         pass
     
-    def outputPrompt(result):
+    def output_prompt(result):
         """Returns the output prompt by subsituting into self.output_prompt_template"""
         
         pass
     
-    def continuationPrompt():
+    def continuation_prompt():
         """Returns the continuation prompt by subsituting into self.continuation_prompt_template"""
         
         pass
@@ -157,7 +157,7 @@ class FrontEndBase(object):
             self.history = history
         
     
-    def inputPrompt(self, result={}):
+    def input_prompt(self, result={}):
         """Returns the current input prompt
         
         It would be great to use ipython1.core.prompts.Prompt1 here
@@ -168,12 +168,12 @@ class FrontEndBase(object):
         return self.input_prompt_template.safe_substitute(result)
     
     
-    def continuationPrompt(self):
+    def continuation_prompt(self):
         """Returns the current continuation prompt"""
         
         return self.continuation_prompt_template.safe_substitute()
     
-    def outputPrompt(self, result):
+    def output_prompt(self, result):
         """Returns the output prompt for result"""
         
         return self.output_prompt_template.safe_substitute(result)

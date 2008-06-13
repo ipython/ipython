@@ -306,7 +306,7 @@ class IPythonCocoaController(NSObject, FrontEndBase):
     
     def update_cell_prompt(self, result):
         blockID = result['blockID']
-        self.insert_text(self.inputPrompt(result=result),
+        self.insert_text(self.input_prompt(result=result),
                         textRange=NSMakeRange(self.blockRanges[blockID].location,0),
                         scrollToVisible=False
                         )
@@ -321,7 +321,7 @@ class IPythonCocoaController(NSObject, FrontEndBase):
         
         #print inputRange,self.currentBlockRange()
         self.insert_text('\n' +
-                        self.outputPrompt(result) +
+                        self.output_prompt(result) +
                         result.get('display',{}).get('pprint','') +
                         '\n\n',
                         textRange=NSMakeRange(inputRange.location+inputRange.length, 0))
