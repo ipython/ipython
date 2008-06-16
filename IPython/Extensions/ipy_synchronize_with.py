@@ -23,11 +23,32 @@ def findFilename(filename):
     return ""
 
 
+def runCommand(path, command, arguments, asynchronous = True):
+    line = ''
+    if asynchronous:
+        line += 'start '
+        
+    try:
+        line += win32api.GetShortPathName(os.path.join(path, command) + ".exe") + " "
+    except:
+        print 'could not find: "%s"' % (os.path.join(path, command) + ".exe")
+        return -1
+        
+    line += arguments
+    r = os.system(line)
+    return r
+
+
+def sleep(milliseconds):
+    win32api.Sleep(milliseconds)
+
+
 def restoreConsoleFocus():
     h = win32console.GetConsoleWindow()
     console_window = win32ui.CreateWindowFromHandle(h)
     console_window.SetForegroundWindow()
-
+    
+    
 
 # This is the most simple example of hook:
 class GVimHook:
@@ -41,10 +62,9 @@ class GVimHook:
         if not filename:
             return
 
-        command = r'start %s --remote-silent +%d "%s"' % (win32api.GetShortPathName(os.path.join(self.path, "gvim.exe")), lineno, filename)
-        os.system(command)
+        runCommand(self.path, 'gvim', '--remote-silent +%d "%s"' % (lineno, filename))
 
-        win32api.Sleep(self.wakeup_duration)
+        sleep(self.wakeup_duration)
 
         restoreConsoleFocus()
 
@@ -66,14 +86,12 @@ class EmacsHook:
         if not filename:
             return
 
-        command = r'%s -n +%d:%d "%s" 2>nul' % (win32api.GetShortPathName(os.path.join(self.path, "emacsclient.exe")), lineno, columnno, filename)
-        r = os.system(command)
+        r = runCommand(self.path, "emacsclient", '-n +%d:%d "%s" 2>nul' % (lineno, columnno, filename), False)
         if r != 0:
-            command = r'start %s --quick -f server-start +%d:%d "%s"' % (win32api.GetShortPathName(os.path.join(self.path, "runemacs.exe")), lineno, columnno, filename)
-            os.system(command)
-            win32api.Sleep(self.start_duration)
+            runCommand(self.path, 'runemacs', '--quick -f server-start +%d:%d "%s"' % (lineno, columnno, filename))
+            sleep(self.start_duration)
         else:
-            win32api.Sleep(self.wakeup_duration)
+            sleep(self.wakeup_duration)
 
         restoreConsoleFocus()
 
@@ -97,10 +115,9 @@ class SciteHook:
 
         scites = scitedirector.findWindows()
         if not scites:
-            command = r'start %s "-open:%s" -goto:%d' % (win32api.GetShortPathName(os.path.join(self.path, "scite.exe")), filename.replace("\\", "/"), lineno)
-            os.system(command)
+            runCommand(self.path, "scite", '"-open:%s" -goto:%d' % (filename.replace("\\", "/"), lineno))
 
-            win32api.Sleep(self.start_duration)
+            sleep(self.start_duration)
             restoreConsoleFocus()
         else:
             scite = scites[0]
@@ -124,10 +141,9 @@ class NodePadPlusPlusHook:
         if not filename:
             return
 
-        command = r'start %s "%s" -n%d' % (win32api.GetShortPathName(os.path.join(self.path, "notepad++.exe")), filename, lineno)
-        os.system(command)
+        runCommand(self.path, "notepad++", '"%s" -n%d' % (filename, lineno))
 
-        win32api.Sleep(self.wakeup_duration)
+        sleep(self.wakeup_duration)
 
         restoreConsoleFocus()
 
@@ -148,10 +164,9 @@ class PsPadHook:
         if not filename:
             return
 
-        command = r'start %s "%s" -%d ' % (win32api.GetShortPathName(os.path.join(self.path, "pspad.exe")), filename, lineno)
-        os.system(command)
+        runCommand(self.path, "pspad", '"%s" -%d' % (filename, lineno))
 
-        win32api.Sleep(self.wakeup_duration)
+        sleep(self.wakeup_duration)
 
         restoreConsoleFocus()
 
@@ -180,11 +195,12 @@ class UltraEditHook:
         try:
             conversation.ConnectTo("uedit32", "System")
             conversation.Exec(r'[open("%s/%d"])' % (filename, lineno))
-            win32api.Sleep(self.wakeup_duration)
+            
+            sleep(self.wakeup_duration)
         except:
-            command = r'start %s "%s/%d"' % (win32api.GetShortPathName(os.path.join(self.path, "uedit32.exe")), filename, lineno)
-            os.system(command)
-            win32api.Sleep(self.start_duration)
+            runCommand(self.path, 'uedit32', '"%s/%d"' % (filename, lineno))
+            
+            sleep(self.start_duration)
 
         server.Shutdown()
 
@@ -194,3 +210,4 @@ class UltraEditHook:
 def ultraedit(path = r"C:\Program Files\IDM Computer Solutions\UltraEdit-32", wakeup_duration = 10, start_duration = 2000):
     synchronize_with_editor = UltraEditHook(path, wakeup_duration, start_duration)
     setHook(synchronize_with_editor)
+    
