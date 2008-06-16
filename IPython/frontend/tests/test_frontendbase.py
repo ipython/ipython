@@ -80,8 +80,18 @@ class TestFrontendBase(unittest.TestCase):
         
         d.addCallback(self.checkBlockID, expected='TEST_ID')
     
+    def test_blockID_added_to_failure(self):
+        block = "raise  Exception()"
+        
+        d = self.fb.execute(block,blockID='TEST_ID')
+        d.addErrback(self.checkFailureID, expected='TEST_ID')
+    
     def checkBlockID(self, result, expected=""):
         assert(result['blockID'] == expected)
+    
+    
+    def checkFailureID(self, failure, expected=""):
+        assert(failure.blockID == expected)
     
     
     def test_callbacks_added_to_execute(self):

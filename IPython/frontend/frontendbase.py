@@ -234,18 +234,23 @@ class FrontEndBase(object):
             blockID = uuid.uuid4() #random UUID
         
         d = self.engine.execute(block)
-        d.addCallback(self._add_block_id, blockID)
         d.addCallback(self._add_history, block=block)
-        d.addCallback(self.update_cell_prompt)
+        d.addBoth(self._add_block_id, blockID)
+        d.addBoth(self.update_cell_prompt)
         d.addCallbacks(self.render_result, errback=self.render_error)
         
         return d
     
     
     def _add_block_id(self, result, blockID):
-        """Add the blockID to result"""
+        """Add the blockID to result or failure. Unfortunatley, we have to treat failures
+        differently than result dicts
+        """
         
-        result['blockID'] = blockID
+        if(isinstance(result, Failure)):
+            result.blockID = blockID
+        else:
+            result['blockID'] = blockID
         
         return result
     
@@ -287,7 +292,17 @@ class FrontEndBase(object):
     def update_cell_prompt(self, result):
         """Subclass may override to update the input prompt for a block. 
         Since this method will be called as a twisted.internet.defer.Deferred's callback,
-        implementations should return result when finished."""
+        implementations should return result when finished.
+        
+        NP: result is a failure if the execute returned a failre. To get the blockID, you should
+        do something like::
+            if(isinstance(result, twisted.python.failure.Failure)):
+                blockID = result.blockID
+            else:
+                blockID = result['blockID']
+            
+        
+        """
         
         return result
     
