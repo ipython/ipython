@@ -4,16 +4,16 @@
 
 __docformat__ = "restructuredtext en"
 
-#-------------------------------------------------------------------------------
-#  Copyright (C) 2008  The IPython Development Team
-#
-#  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING, distributed as part of this software.
-#-------------------------------------------------------------------------------
-
-#-------------------------------------------------------------------------------
-# Imports
-#-------------------------------------------------------------------------------
+#---------------------------------------------------------------------------
+#  Copyright (C) 2008  The IPython Development Team                         
+#                                                                           
+#  Distributed under the terms of the BSD License.  The full license is in  
+#  the file COPYING, distributed as part of this software.                  
+#---------------------------------------------------------------------------
+                                                                            
+#---------------------------------------------------------------------------
+# Imports                                                                   
+#---------------------------------------------------------------------------
 
 import unittest
 from IPython.frontend import frontendbase
@@ -22,7 +22,8 @@ from IPython.kernel.engineservice import EngineService
 class FrontEndCallbackChecker(frontendbase.FrontEndBase):
     """FrontEndBase subclass for checking callbacks"""
     def __init__(self, engine=None, history=None):
-        super(FrontEndCallbackChecker, self).__init__(engine=engine, history=history)
+        super(FrontEndCallbackChecker, self).__init__(engine=engine, 
+                                                    history=history)
         self.updateCalled = False
         self.renderResultCalled = False
         self.renderErrorCalled = False
@@ -51,7 +52,8 @@ class TestFrontendBase(unittest.TestCase):
     
     
     def test_implements_IFrontEnd(self):
-        assert(frontendbase.IFrontEnd.implementedBy(frontendbase.FrontEndBase))
+        assert(frontendbase.IFrontEnd.implementedBy(
+                                                frontendbase.FrontEndBase))
     
     
     def test_is_complete_returns_False_for_incomplete_block(self):
