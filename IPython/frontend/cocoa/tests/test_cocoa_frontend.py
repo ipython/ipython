@@ -70,3 +70,22 @@ class TestIPythonCocoaControler(DeferredTestCase):
         
         self.controller.execute(code).addCallback(testCompletes)
     
+    
+    def testCurrentIndent(self):
+        """test that current_indent_string returns current indent or None.
+        Uses _indent_for_block for direct unit testing.
+        """
+        
+        self.controller.tabUsesSpaces = True
+        self.assert_(self.controller._indent_for_block("""a=3""") == None)
+        self.assert_(self.controller._indent_for_block("") == None)
+        block = """def test():\n    a=3"""
+        self.assert_(self.controller._indent_for_block(block) == \
+                    ' ' * self.controller.tabSpaces)
+        
+        block = """if(True):\n%sif(False):\n%spass""" % \
+                    (' '*self.controller.tabSpaces,
+                     2*' '*self.controller.tabSpaces)
+        self.assert_(self.controller._indent_for_block(block) == \
+                    2*(' '*self.controller.tabSpaces))
+    

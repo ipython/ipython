@@ -288,9 +288,13 @@ class IPythonCocoaController(NSObject, FrontEndBase):
     def current_indent_string(self):
         """returns string for indent or None if no indent"""
         
-        if(len(self.current_block()) > 0):
-            lines = self.current_block().split('\n')
-            currentIndent = len(lines[-1]) - len(lines[-1])
+        return self._indent_for_block(self.currentBlock())
+    
+    
+    def _indent_for_block(self, block):
+        lines = block.split('\n')
+        if(len(lines) > 1):
+            currentIndent = len(lines[-1]) - len(lines[-1].lstrip())
             if(currentIndent == 0):
                 currentIndent = self.tabSpaces
         
