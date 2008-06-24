@@ -288,7 +288,7 @@ class IPythonCocoaController(NSObject, FrontEndBase):
     def current_indent_string(self):
         """returns string for indent or None if no indent"""
         
-        return self._indent_for_block(self.currentBlock())
+        return self._indent_for_block(self.current_block())
     
     
     def _indent_for_block(self, block):
