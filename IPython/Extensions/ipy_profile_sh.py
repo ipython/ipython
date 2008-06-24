@@ -117,6 +117,7 @@ def main():
             # and the next best thing to real 'ls -F'
             ip.defalias('d','dir /w /og /on')
     
+    ip.set_hook('input_prefilter', dotslash_prefilter_f)
     extend_shell_behavior(ip)
 
 class LastArgFinder:
@@ -138,9 +139,15 @@ class LastArgFinder:
             return parts[-1]
         return ""
 
-
-
-
+def dotslash_prefilter_f(self,line):
+    """ ./foo now runs foo as system command 
+    
+    Removes the need for doing !./foo
+    """
+    import IPython.genutils
+    if line.startswith("./"):
+        return "_ip.system(" + IPython.genutils.make_quoted_expr(line)+")"
+    raise ipapi.TryNext
 
 # XXX You do not need to understand the next function!
 # This should probably be moved out of profile

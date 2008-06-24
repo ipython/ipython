@@ -29,6 +29,7 @@ New features
 	  Development Team" as the copyright holder.  We give more details about exactly
 	  what this means in this file.  All developer should read this and use the new
 	  banner in all IPython source code files.
+        * sh profile: ./foo runs foo as system command, no need to do !./foo anymore
 
 Bug fixes
 ---------
