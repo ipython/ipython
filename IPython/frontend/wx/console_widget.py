@@ -1,6 +1,8 @@
 # encoding: utf-8
 """
-A Wx widget that deals with prompts and provides an edit buffer
+A Wx widget to act as a console and input commands.
+
+This widget deals with prompts and provides an edit buffer
 restricted to after the last prompt.
 """
 
@@ -30,6 +32,7 @@ import re
 #-------------------------------------------------------------------------------
 class ConsoleWidget(stc.StyledTextCtrl):
     """ Specialized styled text control view for console-like workflow.
+
         This widget is mainly interested in dealing with the prompt and
         keeping the cursor inside the editing line.
     """
