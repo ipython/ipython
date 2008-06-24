@@ -40,6 +40,7 @@ from IPython.kernel.engineservice import EngineService, ThreadedEngineService
 from IPython.frontend.frontendbase import FrontEndBase
 
 from twisted.internet.threads import blockingCallFromThread
+from twisted.python.failure import Failure
 
 #-------------------------------------------------------------------------------
 # Classes to implement the Cocoa frontend
@@ -305,8 +306,13 @@ class IPythonCocoaController(NSObject, FrontEndBase):
         return block[-1]
     
     def update_cell_prompt(self, result):
-        blockID = result['blockID']
-        self.insert_text(self.inputPrompt(result=result),
+        if(isinstance(result, Failure)):
+            blockID = result.blockID
+        else:
+            blockID = result['blockID']
+        
+        
+        self.insert_text(self.input_prompt(result=result),
                         textRange=NSMakeRange(self.blockRanges[blockID].location,0),
                         scrollToVisible=False
                         )
@@ -321,7 +327,7 @@ class IPythonCocoaController(NSObject, FrontEndBase):
         
         #print inputRange,self.currentBlockRange()
         self.insert_text('\n' +
-                        self.outputPrompt(result) +
+                        self.output_prompt(result) +
                         result.get('display',{}).get('pprint','') +
                         '\n\n',
                         textRange=NSMakeRange(inputRange.location+inputRange.length, 0))

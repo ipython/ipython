@@ -89,16 +89,16 @@ class IFrontEnd(zi.Interface):
         pass
     
     
-    def inputPrompt(result={}):
+    def input_prompt(result={}):
         """Returns the input prompt by subsituting into self.input_prompt_template"""
         pass
     
-    def outputPrompt(result):
+    def output_prompt(result):
         """Returns the output prompt by subsituting into self.output_prompt_template"""
         
         pass
     
-    def continuationPrompt():
+    def continuation_prompt():
         """Returns the continuation prompt by subsituting into self.continuation_prompt_template"""
         
         pass
@@ -157,7 +157,7 @@ class FrontEndBase(object):
             self.history = history
         
     
-    def inputPrompt(self, result={}):
+    def input_prompt(self, result={}):
         """Returns the current input prompt
         
         It would be great to use ipython1.core.prompts.Prompt1 here
@@ -168,12 +168,12 @@ class FrontEndBase(object):
         return self.input_prompt_template.safe_substitute(result)
     
     
-    def continuationPrompt(self):
+    def continuation_prompt(self):
         """Returns the current continuation prompt"""
         
         return self.continuation_prompt_template.safe_substitute()
     
-    def outputPrompt(self, result):
+    def output_prompt(self, result):
         """Returns the output prompt for result"""
         
         return self.output_prompt_template.safe_substitute(result)
@@ -234,18 +234,23 @@ class FrontEndBase(object):
             blockID = uuid.uuid4() #random UUID
         
         d = self.engine.execute(block)
-        d.addCallback(self._add_block_id, blockID)
         d.addCallback(self._add_history, block=block)
-        d.addCallback(self.update_cell_prompt)
+        d.addBoth(self._add_block_id, blockID)
+        d.addBoth(self.update_cell_prompt)
         d.addCallbacks(self.render_result, errback=self.render_error)
         
         return d
     
     
     def _add_block_id(self, result, blockID):
-        """Add the blockID to result"""
+        """Add the blockID to result or failure. Unfortunatley, we have to treat failures
+        differently than result dicts
+        """
         
-        result['blockID'] = blockID
+        if(isinstance(result, Failure)):
+            result.blockID = blockID
+        else:
+            result['blockID'] = blockID
         
         return result
     
@@ -287,7 +292,17 @@ class FrontEndBase(object):
     def update_cell_prompt(self, result):
         """Subclass may override to update the input prompt for a block. 
         Since this method will be called as a twisted.internet.defer.Deferred's callback,
-        implementations should return result when finished."""
+        implementations should return result when finished.
+        
+        NP: result is a failure if the execute returned a failre. To get the blockID, you should
+        do something like::
+            if(isinstance(result, twisted.python.failure.Failure)):
+                blockID = result.blockID
+            else:
+                blockID = result['blockID']
+            
+        
+        """
         
         return result
     
