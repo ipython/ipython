@@ -227,19 +227,19 @@ class IPythonCocoaController(NSObject, FrontEndBase):
                         NSMakeRange(self.textView.textStorage().length(), 
                         0))
     
-    def currentBlock(self):
+    def current_block(self):
         """The current block's text"""
         
-        return self.textForRange(self.current_block_range())
+        return self.text_for_range(self.current_block_range())
     
-    def textForRange(self, textRange):
-        """textForRange"""
+    def text_for_range(self, textRange):
+        """text_for_range"""
         
         ts = self.textView.textStorage()
         return ts.string().substringWithRange_(textRange)
     
-    def currentLine(self):
-        block = self.textForRange(self.current_block_range())
+    def current_line(self):
+        block = self.text_for_range(self.current_block_range())
         block = block.split('\n')
         return block[-1]
     
@@ -288,8 +288,8 @@ class IPythonCocoaController(NSObject, FrontEndBase):
     def current_indent_string(self):
         """returns string for indent or None if no indent"""
         
-        if(len(self.currentBlock()) > 0):
-            lines = self.currentBlock().split('\n')
+        if(len(self.current_block()) > 0):
+            lines = self.current_block().split('\n')
             currentIndent = len(lines[-1]) - len(lines[-1])
             if(currentIndent == 0):
                 currentIndent = self.tabSpaces
@@ -313,12 +313,12 @@ class IPythonCocoaController(NSObject, FrontEndBase):
         if(selector == 'insertNewline:'):
             indent = self.current_indent_string()
             if(indent):
-                line = indent + self.currentLine()
+                line = indent + self.current_line()
             else:
-                line = self.currentLine()
+                line = self.current_line()
             
-            if(self.is_complete(self.currentBlock())):
-                self.execute(self.currentBlock(),
+            if(self.is_complete(self.current_block())):
+                self.execute(self.current_block(),
                                 blockID=self.currentBlockID)
                 self.start_new_block()
                 
@@ -327,7 +327,7 @@ class IPythonCocoaController(NSObject, FrontEndBase):
             return False
         
         elif(selector == 'moveUp:'):
-            prevBlock = self.get_history_previous(self.currentBlock())
+            prevBlock = self.get_history_previous(self.current_block())
             if(prevBlock != None):
                 self.replace_current_block_with_string(textView, prevBlock)
             else:
@@ -368,7 +368,7 @@ class IPythonCocoaController(NSObject, FrontEndBase):
             return False # don't actually handle the delete
         
         elif(selector == 'insertTab:'):
-            if(len(self.currentLine().strip()) == 0): #only white space
+            if(len(self.current_line().strip()) == 0): #only white space
                 return False
             else:
                 self.textView.complete_(self)

@@ -70,7 +70,15 @@ class IFrontEnd(zi.Interface):
         """Subclass may override to update the input prompt for a block. 
         Since this method will be called as a 
         twisted.internet.defer.Deferred's callback,
-        implementations should return result when finished."""
+        implementations should return result when finished.
+        
+        NB: result is a failure if the execute returned a failre. 
+        To get the blockID, you should do something like::
+            if(isinstance(result, twisted.python.failure.Failure)):
+                blockID = result.blockID
+            else:
+                blockID = result['blockID']
+        """
         
         pass
     
@@ -311,7 +319,7 @@ class FrontEndBase(object):
         twisted.internet.defer.Deferred's callback, implementations should 
         return result when finished.
         
-        NP: result is a failure if the execute returned a failre. 
+        NB: result is a failure if the execute returned a failre. 
         To get the blockID, you should do something like::
             if(isinstance(result, twisted.python.failure.Failure)):
                 blockID = result.blockID
