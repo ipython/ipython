@@ -48,6 +48,18 @@ else:
     
         def tearDown(self):
             return self.engine.stopService()
+    
+    class ThreadedEngineServiceTest(DeferredTestCase,
+                                 IEngineCoreTestCase, 
+                                 IEngineSerializedTestCase,
+                                 IEnginePropertiesTestCase):
+    
+        def setUp(self):
+            self.engine = es.ThreadedEngineService()
+            self.engine.startService()
+    
+        def tearDown(self):
+            return self.engine.stopService()
 
     class QueuedEngineServiceTest(DeferredTestCase,
                                   IEngineCoreTestCase, 
