@@ -1,27 +1,20 @@
 # encoding: utf-8
-"""This file contains unittests for the ipython1.frontend.cocoa.cocoa_frontend module.
-
-Things that should be tested:
-
- - IPythonCocoaController instantiates an IEngineInteractive
- - IPythonCocoaController executes code on the engine
- - IPythonCocoaController mirrors engine's user_ns
+"""This file contains unittests for the 
+IPython.frontend.cocoa.cocoa_frontend module.
 """
 __docformat__ = "restructuredtext en"
-
-#-------------------------------------------------------------------------------
-#       Copyright (C) 2005  Fernando Perez <fperez@colorado.edu>
-#                           Brian E Granger <ellisonbg@gmail.com>
-#                           Benjamin Ragan-Kelley <benjaminrk@gmail.com>
-#
-#  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING, distributed as part of this software.
-#-------------------------------------------------------------------------------
-
-#-------------------------------------------------------------------------------
-# Imports
-#-------------------------------------------------------------------------------
-from IPython.kernel.core.interpreter import Interpreter
+                                                                            
+#---------------------------------------------------------------------------
+#       Copyright (C) 2005  The IPython Development Team    
+#                                                                           
+#  Distributed under the terms of the BSD License.  The full license is in  
+#  the file COPYING, distributed as part of this software.                  
+#---------------------------------------------------------------------------
+                                                                            
+#---------------------------------------------------------------------------
+# Imports                                                                   
+#---------------------------------------------------------------------------
+from IPython.kernel.core.interpreter import Interpreter                     
 import IPython.kernel.engineservice as es
 from IPython.testing.util import DeferredTestCase
 from twisted.internet.defer import succeed
@@ -51,7 +44,9 @@ class TestIPythonCocoaControler(DeferredTestCase):
             del result['number']
             del result['id']
             return result
-        self.assertDeferredEquals(self.controller.execute(code).addCallback(removeNumberAndID), expected)
+        self.assertDeferredEquals(
+            self.controller.execute(code).addCallback(removeNumberAndID), 
+            expected)
     
     def testControllerMirrorsUserNSWithValuesAsStrings(self):
         code = """userns1=1;userns2=2"""

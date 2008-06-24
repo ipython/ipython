@@ -1,27 +1,28 @@
 # encoding: utf-8
-# -*- test-case-name: ipython1.frontend.cocoa.tests.test_cocoa_frontend -*-
+# -*- test-case-name: IPython.frontend.cocoa.tests.test_cocoa_frontend -*-
 
-"""PyObjC classes to provide a Cocoa frontend to the ipython1.kernel.engineservice.EngineService.
+"""PyObjC classes to provide a Cocoa frontend to the 
+IPython.kernel.engineservice.EngineService.
 
-The Cocoa frontend is divided into two classes:
-    - IPythonCocoaController
-    - IPythonCLITextViewDelegate
+To add an IPython interpreter to a cocoa app, instantiate an 
+IPythonCocoaController in a XIB and connect its textView outlet to an
+NSTextView instance in your UI. That's it.
 
-To add an IPython interpreter to a cocoa app, instantiate both of these classes in an XIB...[FINISH]
+Author: Barry Wark
 """
 
 __docformat__ = "restructuredtext en"
 
-#-------------------------------------------------------------------------------
-#       Copyright (C) 2008  Barry Wark <barrywark@gmail.com>
+#-----------------------------------------------------------------------------
+#       Copyright (C) 2008  The IPython Development Team
 #
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
-#-------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------
 
-#-------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------
 # Imports
-#-------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------
 
 import objc
 import uuid
@@ -42,12 +43,13 @@ from IPython.frontend.frontendbase import FrontEndBase
 from twisted.internet.threads import blockingCallFromThread
 from twisted.python.failure import Failure
 
-#-------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
 # Classes to implement the Cocoa frontend
-#-------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
 
 # TODO: 
-#   1. use MultiEngineClient and out-of-process engine rather than ThreadedEngineService?
+#   1. use MultiEngineClient and out-of-process engine rather than 
+#       ThreadedEngineService?
 #   2. integrate Xgrid launching of engines
         
     
@@ -89,16 +91,17 @@ class IPythonCocoaController(NSObject, FrontEndBase):
         NSLog('IPython engine started')
         
         # Register for app termination
-        NSNotificationCenter.defaultCenter().addObserver_selector_name_object_(self,
-                                                'appWillTerminate:',
-                                                 NSApplicationWillTerminateNotification,
-                                                  None)
+        NSNotificationCenter.defaultCenter().addObserver_selector_name_object_(
+                                        self,
+                                        'appWillTerminate:',
+                                        NSApplicationWillTerminateNotification,
+                                        None)
         
         self.textView.setDelegate_(self)
         self.textView.enclosingScrollView().setHasVerticalRuler_(True)
         self.verticalRulerView = NSRulerView.alloc().initWithScrollView_orientation_(
-            self.textView.enclosingScrollView(),
-            NSVerticalRuler)
+                                            self.textView.enclosingScrollView(),
+                                            NSVerticalRuler)
         self.verticalRulerView.setClientView_(self.textView)
         self.startCLIForTextView()
     
@@ -163,7 +166,8 @@ class IPythonCocoaController(NSObject, FrontEndBase):
     def startCLIForTextView(self):
         """Print banner"""
         
-        banner = """IPython1 %s -- An enhanced Interactive Python.""" % IPython.__version__
+        banner = """IPython1 %s -- An enhanced Interactive Python.""" % \
+                    IPython.__version__
         
         self.insert_text(banner + '\n\n')
     
@@ -206,14 +210,18 @@ class IPythonCocoaController(NSObject, FrontEndBase):
             return True
         
         elif(selector == 'moveToBeginningOfParagraph:'):
-            textView.setSelectedRange_(NSMakeRange(self.currentBlockRange().location, 0))
+            textView.setSelectedRange_(NSMakeRange(
+                                        self.currentBlockRange().location, 
+                                        0))
             return True
         elif(selector == 'moveToEndOfParagraph:'):
-            textView.setSelectedRange_(NSMakeRange(self.currentBlockRange().location + \
-                                                self.currentBlockRange().length, 0))
+            textView.setSelectedRange_(NSMakeRange(
+                                    self.currentBlockRange().location + \
+                                    self.currentBlockRange().length, 0))
             return True
         elif(selector == 'deleteToEndOfParagraph:'):
-            if(textView.selectedRange().location <= self.currentBlockRange().location):
+            if(textView.selectedRange().location <= \
+                self.currentBlockRange().location):
                 # Intersect the selected range with the current line range
                 if(self.currentBlockRange().length < 0):
                     self.blockRanges[self.currentBlockID].length = 0
@@ -235,7 +243,8 @@ class IPythonCocoaController(NSObject, FrontEndBase):
         
         elif(selector == 'deleteBackward:'):
             #if we're at the beginning of the current block, ignore
-            if(textView.selectedRange().location == self.currentBlockRange().location):
+            if(textView.selectedRange().location == \
+                self.currentBlockRange().location):
                 return True
             else:
                 self.currentBlockRange().length-=1
@@ -243,14 +252,15 @@ class IPythonCocoaController(NSObject, FrontEndBase):
         return False
     
     
-    def textView_shouldChangeTextInRanges_replacementStrings_(self, textView, ranges, replacementStrings):
+    def textView_shouldChangeTextInRanges_replacementStrings_(self, 
+        textView, ranges, replacementStrings):
         """
         Delegate method for NSTextView.
         
-        Refuse change text in ranges not at end, but make those changes at end.
+        Refuse change text in ranges not at end, but make those changes at 
+        end.
         """
         
-        #print 'textView_shouldChangeTextInRanges_replacementStrings_:',ranges,replacementStrings
         assert(len(ranges) == len(replacementStrings))
         allow = True
         for r,s in zip(ranges, replacementStrings):
@@ -261,13 +271,17 @@ class IPythonCocoaController(NSObject, FrontEndBase):
                 allow = False
             
             
-            self.blockRanges.setdefault(self.currentBlockID, self.currentBlockRange()).length += len(s)
+            self.blockRanges.setdefault(self.currentBlockID, 
+                                        self.currentBlockRange()).length +=\
+                                         len(s)
         
         return allow
     
-    def textView_completions_forPartialWordRange_indexOfSelectedItem_(self, textView, words, charRange, index):
+    def textView_completions_forPartialWordRange_indexOfSelectedItem_(self, 
+        textView, words, charRange, index):
         try:
-            token = textView.textStorage().string().substringWithRange_(charRange)
+            ts = textView.textStorage()
+            token = ts.string().substringWithRange_(charRange)
             completions = blockingCallFromThread(self.complete, token)
         except:
             completions = objc.nil
@@ -288,7 +302,9 @@ class IPythonCocoaController(NSObject, FrontEndBase):
         return uuid.uuid4()
     
     def currentBlockRange(self):
-        return self.blockRanges.get(self.currentBlockID, NSMakeRange(self.textView.textStorage().length(), 0))
+        return self.blockRanges.get(self.currentBlockID, 
+                        NSMakeRange(self.textView.textStorage().length(), 
+                        0))
     
     def currentBlock(self):
         """The current block's text"""
@@ -298,7 +314,8 @@ class IPythonCocoaController(NSObject, FrontEndBase):
     def textForRange(self, textRange):
         """textForRange"""
         
-        return self.textView.textStorage().string().substringWithRange_(textRange)
+        ts = self.textView.textStorage()
+        return ts.string().substringWithRange_(textRange)
     
     def currentLine(self):
         block = self.textForRange(self.currentBlockRange())
@@ -313,9 +330,9 @@ class IPythonCocoaController(NSObject, FrontEndBase):
         
         
         self.insert_text(self.input_prompt(result=result),
-                        textRange=NSMakeRange(self.blockRanges[blockID].location,0),
-                        scrollToVisible=False
-                        )
+                textRange=NSMakeRange(self.blockRanges[blockID].location,0),
+                scrollToVisible=False
+                )
         
         return result
     
@@ -327,10 +344,11 @@ class IPythonCocoaController(NSObject, FrontEndBase):
         
         #print inputRange,self.currentBlockRange()
         self.insert_text('\n' +
-                        self.output_prompt(result) +
-                        result.get('display',{}).get('pprint','') +
-                        '\n\n',
-                        textRange=NSMakeRange(inputRange.location+inputRange.length, 0))
+                self.output_prompt(result) +
+                result.get('display',{}).get('pprint','') +
+                '\n\n',
+                textRange=NSMakeRange(inputRange.location+inputRange.length,
+                                    0))
         return result
     
         
@@ -341,7 +359,9 @@ class IPythonCocoaController(NSObject, FrontEndBase):
     
     
     def insert_text(self, string=None, textRange=None, scrollToVisible=True):
-        """Insert text into textView at textRange, updating blockRanges as necessary"""
+        """Insert text into textView at textRange, updating blockRanges 
+        as necessary
+        """
         
         if(textRange == None):
             textRange = NSMakeRange(self.textView.textStorage().length(), 0) #range for end of text
