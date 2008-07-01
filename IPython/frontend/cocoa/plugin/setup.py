@@ -29,6 +29,7 @@ setup(
     setup_requires=['py2app'],
 	options=dict(py2app=dict(
 		plist=infoPlist,
-		excludes=['IPython','twisted']
+		site_packages=True,
+		excludes=['IPython','twisted','PyObjCTools']
 	)),
 )
