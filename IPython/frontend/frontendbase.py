@@ -159,9 +159,6 @@ class FrontEndBase(object):
         - How do we handle completions?
     """
     
-    zi.implements(IFrontEnd)
-    zi.classProvides(IFrontEndFactory)
-    
     history_cursor = 0
     
     current_indent_level = 0
@@ -171,9 +168,8 @@ class FrontEndBase(object):
     output_prompt_template = string.Template(rc.prompt_out)
     continuation_prompt_template = string.Template(rc.prompt_in2)
     
-    def __init__(self, engine=None, history=None):
-        assert(engine==None or IEngineCore.providedBy(engine))
-        self.engine = IEngineCore(engine)
+    def __init__(self, shell=None, history=None):
+        self.shell = shell
         if history is None:
                 self.history = FrontEndHistory(input_cache=[''])
         else:
@@ -236,7 +232,7 @@ class FrontEndBase(object):
     
     
     def execute(self, block, blockID=None):
-        """Execute the block and return result.
+        """Execute the block and return the result.
         
         Parameters:
             block : {str, AST}
@@ -249,22 +245,23 @@ class FrontEndBase(object):
         """
         
         if(not self.is_complete(block)):
-            return Failure(Exception("Block is not compilable"))
+            raise Exception("Block is not compilable")
         
         if(blockID == None):
             blockID = uuid.uuid4() #random UUID
         
-        d = self.engine.execute(block)
-        d.addCallback(self._add_history, block=block)
-        d.addCallbacks(self._add_block_id_for_result,
-                errback=self._add_block_id_for_failure,
-                callbackArgs=(blockID,),
-                errbackArgs=(blockID,))
-        d.addBoth(self.update_cell_prompt, blockID=blockID)
-        d.addCallbacks(self.render_result, 
-            errback=self.render_error)
+        try:
+            result = self.shell.execute(block)
+        except Exception,e:
+            e = self._add_block_id_for_failure(e, blockID=blockID)
+            e = self.update_cell_prompt(e, blockID=blockID)
+            e = self.render_error(e)
+        else:
+            result = self._add_block_id_for_result(result, blockID=blockID)
+            result = self.update_cell_prompt(result, blockID=blockID)
+            result = self.render_result(result)
         
-        return d
+        return result
     
     
     def _add_block_id_for_result(self, result, blockID):
@@ -346,4 +343,54 @@ class FrontEndBase(object):
         return failure
     
 
+
+class AsynchronousFrontEndBase(FrontEndBase):
+    """
+    Overrides FrontEndBase to wrap execute in a deferred result.
+    All callbacks are made as callbacks on the deferred result.
+    """
+    
+    zi.implements(IFrontEnd)
+    zi.classProvides(IFrontEndFactory)
+    
+    def __init__(self, engine=None, history=None):
+        assert(engine==None or IEngineCore.providedBy(engine))
+        self.engine = IEngineCore(engine)
+        if history is None:
+                self.history = FrontEndHistory(input_cache=[''])
+        else:
+            self.history = history
+    
+    
+    def execute(self, block, blockID=None):
+        """Execute the block and return the deferred result.
+        
+        Parameters:
+            block : {str, AST}
+            blockID : any
+                Caller may provide an ID to identify this block. 
+                result['blockID'] := blockID
+        
+        Result:
+            Deferred result of self.interpreter.execute
+        """
+        
+        if(not self.is_complete(block)):
+            return Failure(Exception("Block is not compilable"))
+        
+        if(blockID == None):
+            blockID = uuid.uuid4() #random UUID
+        
+        d = self.engine.execute(block)
+        d.addCallback(self._add_history, block=block)
+        d.addCallbacks(self._add_block_id_for_result,
+                errback=self._add_block_id_for_failure,
+                callbackArgs=(blockID,),
+                errbackArgs=(blockID,))
+        d.addBoth(self.update_cell_prompt, blockID=blockID)
+        d.addCallbacks(self.render_result, 
+            errback=self.render_error)
+        
+        return d
+    
 
