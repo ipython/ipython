@@ -24,6 +24,7 @@ __docformat__ = "restructuredtext en"
 # Imports
 #-----------------------------------------------------------------------------
 
+import sys
 import objc
 import uuid
 
@@ -56,12 +57,29 @@ from twisted.python.failure import Failure
 class AutoreleasePoolWrappedThreadedEngineService(ThreadedEngineService):
     """Wrap all blocks in an NSAutoreleasePool"""
     
-    def wrapped_execute(self, lines):
+    def wrapped_execute(self, msg, lines):
         """wrapped_execute"""
-        
-        p = NSAutoreleasePool.alloc().init()
-        result = self.shell.execute(lines)
-        p.drain()
+        try:
+            p = NSAutoreleasePool.alloc().init()
+            result = self.shell.execute(lines)
+        except Exception,e:
+            # This gives the following:
+            # et=exception class
+            # ev=exception class instance
+            # tb=traceback object
+            et,ev,tb = sys.exc_info()
+            # This call adds attributes to the exception value
+            et,ev,tb = self.shell.formatTraceback(et,ev,tb,msg)
+            # Add another attribute
+            
+            # Create a new exception with the new attributes
+            e = et(ev._ipython_traceback_text)
+            e._ipython_engine_info = msg
+            
+            # Re-raise
+            raise e
+        finally:
+            p.drain()
         
         return result
     
@@ -73,7 +91,7 @@ class AutoreleasePoolWrappedThreadedEngineService(ThreadedEngineService):
                'method':'execute',
                'args':[lines]}
         
-        d = threads.deferToThread(self.wrapped_execute, lines)
+        d = threads.deferToThread(self.wrapped_execute, msg, lines)
         d.addCallback(self.addIDToResult)
         return d
 
@@ -241,7 +259,7 @@ class IPythonCocoaController(NSObject, FrontEndBase):
         
         #print inputRange,self.current_block_range()
         self.insert_text('\n' +
-                self.output_prompt(result) +
+                self.output_prompt(number=result['number']) +
                 result.get('display',{}).get('pprint','') +
                 '\n\n',
                 textRange=NSMakeRange(inputRange.location+inputRange.length,
@@ -250,7 +268,11 @@ class IPythonCocoaController(NSObject, FrontEndBase):
     
         
     def render_error(self, failure):
-        self.insert_text('\n\n'+str(failure)+'\n\n')
+        self.insert_text('\n' +
+                        self.output_prompt() +
+                        '\n' +
+                        failure.getErrorMessage() +
+                        '\n\n')
         self.start_new_block()
         return failure
     
