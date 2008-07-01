@@ -24,13 +24,24 @@ import string
 import uuid
 import _ast
 
-import zope.interface as zi
+try:
+    from zope.interface import Interface, Attribute, implements, classProvides
+except ImportError:
+    #zope.interface is not available
+    Interface = object
+    def Attribute(name, doc): pass
+    def implements(interface): pass
+    def classProvides(interface): pass
 
 from IPython.kernel.core.history import FrontEndHistory
 from IPython.kernel.core.util import Bunch
 from IPython.kernel.engineservice import IEngineCore
 
-from twisted.python.failure import Failure
+try:
+    from twisted.python.failure import Failure
+except ImportError:
+    #Twisted not available
+    Failure = Exception
 
 ##############################################################################
 # TEMPORARY!!! fake configuration, while we decide whether to use tconfig or
@@ -43,7 +54,7 @@ rc.prompt_out = r'Out [$number]:  '
 
 ##############################################################################
 
-class IFrontEndFactory(zi.Interface):
+class IFrontEndFactory(Interface):
     """Factory interface for frontends."""
     
     def __call__(engine=None, history=None):
@@ -56,14 +67,14 @@ class IFrontEndFactory(zi.Interface):
 
 
 
-class IFrontEnd(zi.Interface):
+class IFrontEnd(Interface):
     """Interface for frontends. All methods return t.i.d.Deferred"""
     
-    zi.Attribute("input_prompt_template", "string.Template instance\
+    Attribute("input_prompt_template", "string.Template instance\
                 substituteable with execute result.")
-    zi.Attribute("output_prompt_template", "string.Template instance\
+    Attribute("output_prompt_template", "string.Template instance\
                 substituteable with execute result.")
-    zi.Attribute("continuation_prompt_template", "string.Template instance\
+    Attribute("continuation_prompt_template", "string.Template instance\
                 substituteable with execute result.")
     
     def update_cell_prompt(result, blockID=None):
@@ -350,8 +361,8 @@ class AsynchronousFrontEndBase(FrontEndBase):
     All callbacks are made as callbacks on the deferred result.
     """
     
-    zi.implements(IFrontEnd)
-    zi.classProvides(IFrontEndFactory)
+    implements(IFrontEnd)
+    classProvides(IFrontEndFactory)
     
     def __init__(self, engine=None, history=None):
         assert(engine==None or IEngineCore.providedBy(engine))
