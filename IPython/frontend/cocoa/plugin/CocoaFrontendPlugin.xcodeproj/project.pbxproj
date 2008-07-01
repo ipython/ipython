@@ -1,0 +1,110 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 42;
+	objects = {
+
+/* Begin PBXGroup section */
+		4C96F4FC0E199AB500B03430 = {
+			isa = PBXGroup;
+			children = (
+			);
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXLegacyTarget section */
+		4C96F50C0E199AF100B03430 /* Cocoa Frontend Plugin */ = {
+			isa = PBXLegacyTarget;
+			buildArgumentsString = "$(ACTION)";
+			buildConfigurationList = 4C96F5110E199B3300B03430 /* Build configuration list for PBXLegacyTarget "Cocoa Frontend Plugin" */;
+			buildPhases = (
+			);
+			buildToolPath = /usr/bin/make;
+			buildWorkingDirectory = "";
+			dependencies = (
+			);
+			name = "Cocoa Frontend Plugin";
+			passBuildSettingsInEnvironment = 1;
+			productName = "Cocoa Frontend Plugin";
+		};
+/* End PBXLegacyTarget section */
+
+/* Begin PBXProject section */
+		4C96F4FE0E199AB500B03430 /* Project object */ = {
+			isa = PBXProject;
+			buildConfigurationList = 4C96F5010E199AB500B03430 /* Build configuration list for PBXProject "CocoaFrontendPlugin" */;
+			compatibilityVersion = "Xcode 2.4";
+			hasScannedForEncodings = 0;
+			mainGroup = 4C96F4FC0E199AB500B03430;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				4C96F50C0E199AF100B03430 /* Cocoa Frontend Plugin */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin XCBuildConfiguration section */
+		4C96F4FF0E199AB500B03430 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = NO;
+			};
+			name = Debug;
+		};
+		4C96F5000E199AB500B03430 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = YES;
+			};
+			name = Release;
+		};
+		4C96F50D0E199AF100B03430 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = NO;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				PRODUCT_NAME = "Cocoa Frontend Plugin";
+			};
+			name = Debug;
+		};
+		4C96F50E0E199AF100B03430 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				PRODUCT_NAME = "Cocoa Frontend Plugin";
+				ZERO_LINK = NO;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		4C96F5010E199AB500B03430 /* Build configuration list for PBXProject "CocoaFrontendPlugin" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				4C96F4FF0E199AB500B03430 /* Debug */,
+				4C96F5000E199AB500B03430 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		4C96F5110E199B3300B03430 /* Build configuration list for PBXLegacyTarget "Cocoa Frontend Plugin" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				4C96F50D0E199AF100B03430 /* Debug */,
+				4C96F50E0E199AF100B03430 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 4C96F4FE0E199AB500B03430 /* Project object */;
+}
