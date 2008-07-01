@@ -159,9 +159,6 @@ class FrontEndBase(object):
         - How do we handle completions?
     """
     
-    zi.implements(IFrontEnd)
-    zi.classProvides(IFrontEndFactory)
-    
     history_cursor = 0
     
     current_indent_level = 0
@@ -248,23 +245,7 @@ class FrontEndBase(object):
             Deferred result of self.interpreter.execute
         """
         
-        if(not self.is_complete(block)):
-            return Failure(Exception("Block is not compilable"))
-        
-        if(blockID == None):
-            blockID = uuid.uuid4() #random UUID
-        
-        d = self.engine.execute(block)
-        d.addCallback(self._add_history, block=block)
-        d.addCallbacks(self._add_block_id_for_result,
-                errback=self._add_block_id_for_failure,
-                callbackArgs=(blockID,),
-                errbackArgs=(blockID,))
-        d.addBoth(self.update_cell_prompt, blockID=blockID)
-        d.addCallbacks(self.render_result, 
-            errback=self.render_error)
-        
-        return d
+        pass
     
     
     def _add_block_id_for_result(self, result, blockID):
@@ -346,4 +327,45 @@ class FrontEndBase(object):
         return failure
     
 
+
+class AsynchronousFrontEndBase(FrontEndBase):
+    """
+    Overrides FrontEndBase to wrap execute in a deferred result.
+    All callbacks are made as callbacks on the deferred result.
+    """
+    
+    zi.implements(IFrontEnd)
+    zi.classProvides(IFrontEndFactory)
+    
+    def execute(self, block, blockID=None):
+        """Execute the block and return the deferred result.
+        
+        Parameters:
+            block : {str, AST}
+            blockID : any
+                Caller may provide an ID to identify this block. 
+                result['blockID'] := blockID
+        
+        Result:
+            Deferred result of self.interpreter.execute
+        """
+        
+        if(not self.is_complete(block)):
+            return Failure(Exception("Block is not compilable"))
+        
+        if(blockID == None):
+            blockID = uuid.uuid4() #random UUID
+        
+        d = self.engine.execute(block)
+        d.addCallback(self._add_history, block=block)
+        d.addCallbacks(self._add_block_id_for_result,
+                errback=self._add_block_id_for_failure,
+                callbackArgs=(blockID,),
+                errbackArgs=(blockID,))
+        d.addBoth(self.update_cell_prompt, blockID=blockID)
+        d.addCallbacks(self.render_result, 
+            errback=self.render_error)
+        
+        return d
+    
 
