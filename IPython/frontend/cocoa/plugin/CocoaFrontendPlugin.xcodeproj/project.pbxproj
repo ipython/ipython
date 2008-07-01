@@ -6,10 +6,23 @@
 	objectVersion = 42;
 	objects = {
 
+/* Begin PBXFileReference section */
+		4C5B7A8D0E1A0B4C006CB905 /* Plugin-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "Plugin-Info.plist"; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
 /* Begin PBXGroup section */
+		4C5B7A8C0E1A0B4C006CB905 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
 		4C96F4FC0E199AB500B03430 = {
 			isa = PBXGroup;
 			children = (
+				4C5B7A8C0E1A0B4C006CB905 /* Products */,
+				4C5B7A8D0E1A0B4C006CB905 /* Plugin-Info.plist */,
 			);
 			sourceTree = "<group>";
 		};
@@ -39,6 +52,7 @@
 			compatibilityVersion = "Xcode 2.4";
 			hasScannedForEncodings = 0;
 			mainGroup = 4C96F4FC0E199AB500B03430;
+			productRefGroup = 4C5B7A8C0E1A0B4C006CB905 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
