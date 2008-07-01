@@ -19,7 +19,7 @@ import unittest
 from IPython.frontend import frontendbase
 from IPython.kernel.engineservice import EngineService
 
-class FrontEndCallbackChecker(frontendbase.AsynchronousFrontEndBase):
+class FrontEndCallbackChecker(frontendbase.AsyncFrontEndBase):
     """FrontEndBase subclass for checking callbacks"""
     def __init__(self, engine=None, history=None):
         super(FrontEndCallbackChecker, self).__init__(engine=engine, 
@@ -44,7 +44,7 @@ class FrontEndCallbackChecker(frontendbase.AsynchronousFrontEndBase):
 
 
     
-class TestAsynchronousFrontendBase(unittest.TestCase):
+class TestAsyncFrontendBase(unittest.TestCase):
     def setUp(self):
         """Setup the EngineService and FrontEndBase"""
         
@@ -53,7 +53,7 @@ class TestAsynchronousFrontendBase(unittest.TestCase):
     
     def test_implements_IFrontEnd(self):
         assert(frontendbase.IFrontEnd.implementedBy(
-                                    frontendbase.AsynchronousFrontEndBase))
+                                    frontendbase.AsyncFrontEndBase))
     
     
     def test_is_complete_returns_False_for_incomplete_block(self):

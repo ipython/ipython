@@ -355,7 +355,7 @@ class FrontEndBase(object):
     
 
 
-class AsynchronousFrontEndBase(FrontEndBase):
+class AsyncFrontEndBase(FrontEndBase):
     """
     Overrides FrontEndBase to wrap execute in a deferred result.
     All callbacks are made as callbacks on the deferred result.
