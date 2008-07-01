@@ -200,13 +200,14 @@ class IPythonCocoaController(NSObject, AsyncFrontEndBase):
         result = blockingCallFromThread(self.engine.pull, keys)
         self.waitingForEngine = False
     
-    def executeFileAtPath_(self, path):
+    @objc.signature('v@:@I')
+    def executeFileAtPath_encoding_(self, path, encoding):
         """Execute file at path in an empty namespace. Update the engine
         user_ns with the resulting locals."""
         
         lines,err = NSString.stringWithContentsOfFile_encoding_error_(
             path,
-            NSString.defaultCStringEncoding(),
+            encoding,
             None)
         self.engine.execute(lines)
     
