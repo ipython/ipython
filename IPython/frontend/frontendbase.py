@@ -66,23 +66,20 @@ class IFrontEnd(zi.Interface):
     zi.Attribute("continuation_prompt_template", "string.Template instance\
                 substituteable with execute result.")
     
-    def update_cell_prompt(self, result):
+    def update_cell_prompt(result, blockID=None):
         """Subclass may override to update the input prompt for a block. 
         Since this method will be called as a 
-        twisted.internet.defer.Deferred's callback,
+        twisted.internet.defer.Deferred's callback/errback,
         implementations should return result when finished.
         
-        NB: result is a failure if the execute returned a failre. 
-        To get the blockID, you should do something like::
-            if(isinstance(result, twisted.python.failure.Failure)):
-                blockID = result.blockID
-            else:
-                blockID = result['blockID']
+        Result is a result dict in case of success, and a
+        twisted.python.util.failure.Failure in case of an error
         """
         
         pass
     
-    def render_result(self, result):
+    
+    def render_result(result):
         """Render the result of an execute call. Implementors may choose the
          method of rendering.
         For example, a notebook-style frontend might render a Chaco plot 
@@ -90,6 +87,7 @@ class IFrontEnd(zi.Interface):
         
         Parameters:
             result : dict (result of IEngineBase.execute )
+                blockID = result['blockID']
         
         Result:
             Output of frontend rendering
@@ -97,22 +95,24 @@ class IFrontEnd(zi.Interface):
         
         pass
     
-    def render_error(self, failure):
+    def render_error(failure):
         """Subclasses must override to render the failure. Since this method 
-        ill be called as a twisted.internet.defer.Deferred's callback, 
+        will be called as a twisted.internet.defer.Deferred's callback, 
         implementations should return result when finished.
+        
+        blockID = failure.blockID
         """
         
         pass
     
     
-    def input_prompt(result={}):
+    def input_prompt(number=None):
         """Returns the input prompt by subsituting into 
         self.input_prompt_template
         """
         pass
     
-    def output_prompt(result):
+    def output_prompt(number=None):
         """Returns the output prompt by subsituting into 
         self.output_prompt_template
         """
@@ -180,15 +180,12 @@ class FrontEndBase(object):
             self.history = history
         
     
-    def input_prompt(self, result={}):
+    def input_prompt(self, number=None):
         """Returns the current input prompt
         
         It would be great to use ipython1.core.prompts.Prompt1 here
         """
-        
-        result.setdefault('number','')
-        
-        return self.input_prompt_template.safe_substitute(result)
+        return self.input_prompt_template.safe_substitute({'number':number})
     
     
     def continuation_prompt(self):
@@ -196,10 +193,10 @@ class FrontEndBase(object):
         
         return self.continuation_prompt_template.safe_substitute()
     
-    def output_prompt(self, result):
+    def output_prompt(self, number=None):
         """Returns the output prompt for result"""
         
-        return self.output_prompt_template.safe_substitute(result)
+        return self.output_prompt_template.safe_substitute({'number':number})
     
     
     def is_complete(self, block):
@@ -259,24 +256,32 @@ class FrontEndBase(object):
         
         d = self.engine.execute(block)
         d.addCallback(self._add_history, block=block)
-        d.addBoth(self._add_block_id, blockID)
-        d.addBoth(self.update_cell_prompt)
-        d.addCallbacks(self.render_result, errback=self.render_error)
+        d.addCallbacks(self._add_block_id_for_result,
+                errback=self._add_block_id_for_failure,
+                callbackArgs=(blockID,),
+                errbackArgs=(blockID,))
+        d.addBoth(self.update_cell_prompt, blockID=blockID)
+        d.addCallbacks(self.render_result, 
+            errback=self.render_error)
         
         return d
     
     
-    def _add_block_id(self, result, blockID):
+    def _add_block_id_for_result(self, result, blockID):
         """Add the blockID to result or failure. Unfortunatley, we have to 
         treat failures differently than result dicts.
         """
         
-        if(isinstance(result, Failure)):
-            result.blockID = blockID
-        else:
-            result['blockID'] = blockID
+        result['blockID'] = blockID
         
         return result
+    
+    def _add_block_id_for_failure(self, failure, blockID):
+        """_add_block_id_for_failure"""
+        
+        failure.blockID = blockID
+        return failure
+    
     
     def _add_history(self, result, block=None):
         """Add block to the history"""
@@ -313,20 +318,11 @@ class FrontEndBase(object):
     # Subclasses probably want to override these methods...
     ###
     
-    def update_cell_prompt(self, result):
+    def update_cell_prompt(self, result, blockID=None):
         """Subclass may override to update the input prompt for a block. 
         Since this method will be called as a 
         twisted.internet.defer.Deferred's callback, implementations should 
         return result when finished.
-        
-        NB: result is a failure if the execute returned a failre. 
-        To get the blockID, you should do something like::
-            if(isinstance(result, twisted.python.failure.Failure)):
-                blockID = result.blockID
-            else:
-                blockID = result['blockID']
-            
-        
         """
         
         return result
@@ -344,7 +340,8 @@ class FrontEndBase(object):
     def render_error(self, failure):
         """Subclasses must override to render the failure. Since this method 
         will be called as a twisted.internet.defer.Deferred's callback, 
-        implementations should return result when finished."""
+        implementations should return result when finished.
+        """
         
         return failure
     

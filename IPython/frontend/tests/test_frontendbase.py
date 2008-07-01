@@ -28,7 +28,7 @@ class FrontEndCallbackChecker(frontendbase.FrontEndBase):
         self.renderResultCalled = False
         self.renderErrorCalled = False
     
-    def update_cell_prompt(self, result):
+    def update_cell_prompt(self, result, blockID=None):
         self.updateCalled = True
         return result
     

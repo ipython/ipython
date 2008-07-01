@@ -25,10 +25,10 @@ infoPlist = dict(
 )
 
 setup(
-	plugin=['FrontendLoader.py'],
+	plugin=['IPythonCocoaFrontendLoader.py'],
     setup_requires=['py2app'],
 	options=dict(py2app=dict(
 		plist=infoPlist,
-		excludes=['IPython']
+		excludes=['IPython','twisted']
 	)),
 )

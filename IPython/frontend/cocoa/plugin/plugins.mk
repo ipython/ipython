@@ -1,5 +1,4 @@
 %.plugin::
-	mkdir -p plugin
 	rm -rf dist/$(notdir $@)
 	rm -rf build dist && \
 	python setup.py py2app -s

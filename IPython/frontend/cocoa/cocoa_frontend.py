@@ -29,7 +29,8 @@ import uuid
 
 from Foundation import NSObject, NSMutableArray, NSMutableDictionary,\
                         NSLog, NSNotificationCenter, NSMakeRange,\
-                        NSLocalizedString, NSIntersectionRange
+                        NSLocalizedString, NSIntersectionRange,\
+                        NSString, NSAutoreleasePool
                         
 from AppKit import NSApplicationWillTerminateNotification, NSBeep,\
                     NSTextView, NSRulerView, NSVerticalRuler
@@ -52,7 +53,29 @@ from twisted.python.failure import Failure
 #       ThreadedEngineService?
 #   2. integrate Xgrid launching of engines
         
+class AutoreleasePoolWrappedThreadedEngineService(ThreadedEngineService):
+    """Wrap all blocks in an NSAutoreleasePool"""
     
+    def wrapped_execute(self, lines):
+        """wrapped_execute"""
+        
+        p = NSAutoreleasePool.alloc().init()
+        result = self.shell.execute(lines)
+        p.drain()
+        
+        return result
+    
+    def execute(self, lines):
+        # Only import this if we are going to use this class
+        from twisted.internet import threads
+        
+        msg = {'engineid':self.id,
+               'method':'execute',
+               'args':[lines]}
+        
+        d = threads.deferToThread(self.wrapped_execute, lines)
+        d.addCallback(self.addIDToResult)
+        return d
 
 
 class IPythonCocoaController(NSObject, FrontEndBase):
@@ -62,7 +85,8 @@ class IPythonCocoaController(NSObject, FrontEndBase):
     
     def init(self):
         self = super(IPythonCocoaController, self).init()
-        FrontEndBase.__init__(self, engine=ThreadedEngineService())
+        FrontEndBase.__init__(self,
+                    engine=AutoreleasePoolWrappedThreadedEngineService())
         if(self != None):
             self._common_init()
         
@@ -133,13 +157,42 @@ class IPythonCocoaController(NSObject, FrontEndBase):
     def execute(self, block, blockID=None):
         self.waitingForEngine = True
         self.willChangeValueForKey_('commandHistory')
-        d = super(IPythonCocoaController, self).execute(block, blockID)
+        d = super(IPythonCocoaController, self).execute(block,
+                                                        blockID)
         d.addBoth(self._engine_done)
         d.addCallback(self._update_user_ns)
         
         return d
     
+    
+    def push_(self, namespace):
+        """Push dictionary of key=>values to python namespace"""
         
+        self.waitingForEngine = True
+        self.willChangeValueForKey_('commandHistory')
+        d = self.engine.push(namespace)
+        d.addBoth(self._engine_done)
+        d.addCallback(self._update_user_ns)
+    
+    
+    def pull_(self, keys):
+        """Pull keys from python namespace"""
+        
+        self.waitingForEngine = True
+        result = blockingCallFromThread(self.engine.pull, keys)
+        self.waitingForEngine = False
+    
+    def executeFileAtPath_(self, path):
+        """Execute file at path in an empty namespace. Update the engine
+        user_ns with the resulting locals."""
+        
+        lines,err = NSString.stringWithContentsOfFile_encoding_error_(
+            path,
+            NSString.defaultCStringEncoding(),
+            None)
+        self.engine.execute(lines)
+    
+    
     def _engine_done(self, x):
         self.waitingForEngine = False
         self.didChangeValueForKey_('commandHistory')
@@ -166,14 +219,14 @@ class IPythonCocoaController(NSObject, FrontEndBase):
         self.didChangeValueForKey_('userNS')
     
     
-    def update_cell_prompt(self, result):
+    def update_cell_prompt(self, result, blockID=None):
         if(isinstance(result, Failure)):
-            blockID = result.blockID
+            self.insert_text(self.input_prompt(),
+                textRange=NSMakeRange(self.blockRanges[blockID].location,0),
+                scrollToVisible=False
+                )
         else:
-            blockID = result['blockID']
-        
-        
-        self.insert_text(self.input_prompt(result=result),
+            self.insert_text(self.input_prompt(number=result['number']),
                 textRange=NSMakeRange(self.blockRanges[blockID].location,0),
                 scrollToVisible=False
                 )
