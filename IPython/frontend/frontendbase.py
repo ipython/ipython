@@ -168,9 +168,8 @@ class FrontEndBase(object):
     output_prompt_template = string.Template(rc.prompt_out)
     continuation_prompt_template = string.Template(rc.prompt_in2)
     
-    def __init__(self, engine=None, history=None):
-        assert(engine==None or IEngineCore.providedBy(engine))
-        self.engine = IEngineCore(engine)
+    def __init__(self, shell=None, history=None):
+        self.shell = shell
         if history is None:
                 self.history = FrontEndHistory(input_cache=[''])
         else:
@@ -233,7 +232,7 @@ class FrontEndBase(object):
     
     
     def execute(self, block, blockID=None):
-        """Execute the block and return result.
+        """Execute the block and return the result.
         
         Parameters:
             block : {str, AST}
@@ -245,7 +244,24 @@ class FrontEndBase(object):
             Deferred result of self.interpreter.execute
         """
         
-        pass
+        if(not self.is_complete(block)):
+            raise Exception("Block is not compilable")
+        
+        if(blockID == None):
+            blockID = uuid.uuid4() #random UUID
+        
+        try:
+            result = self.shell.execute(block)
+        except Exception,e:
+            e = self._add_block_id_for_failure(e, blockID=blockID)
+            e = self.update_cell_prompt(e, blockID=blockID)
+            e = self.render_error(e)
+        else:
+            result = self._add_block_id_for_result(result, blockID=blockID)
+            result = self.update_cell_prompt(result, blockID=blockID)
+            result = self.render_result(result)
+        
+        return result
     
     
     def _add_block_id_for_result(self, result, blockID):
@@ -336,6 +352,15 @@ class AsynchronousFrontEndBase(FrontEndBase):
     
     zi.implements(IFrontEnd)
     zi.classProvides(IFrontEndFactory)
+    
+    def __init__(self, engine=None, history=None):
+        assert(engine==None or IEngineCore.providedBy(engine))
+        self.engine = IEngineCore(engine)
+        if history is None:
+                self.history = FrontEndHistory(input_cache=[''])
+        else:
+            self.history = history
+    
     
     def execute(self, block, blockID=None):
         """Execute the block and return the deferred result.
