@@ -281,7 +281,6 @@ class FrontEndBase(object):
     
     def _add_block_id_for_failure(self, failure, blockID):
         """_add_block_id_for_failure"""
-        
         failure.blockID = blockID
         return failure
     
@@ -390,10 +389,8 @@ class AsyncFrontEndBase(FrontEndBase):
         
         d = self.engine.execute(block)
         d.addCallback(self._add_history, block=block)
-        d.addCallbacks(self._add_block_id_for_result,
-                errback=self._add_block_id_for_failure,
-                callbackArgs=(blockID,),
-                errbackArgs=(blockID,))
+        d.addCallback(self._add_block_id_for_result, blockID)
+        d.addErrback(self._add_block_id_for_failure, blockID)
         d.addBoth(self.update_cell_prompt, blockID=blockID)
         d.addCallbacks(self.render_result, 
             errback=self.render_error)
