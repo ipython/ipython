@@ -37,11 +37,6 @@ from IPython.kernel.core.history import FrontEndHistory
 from IPython.kernel.core.util import Bunch
 from IPython.kernel.engineservice import IEngineCore
 
-try:
-    from twisted.python.failure import Failure
-except ImportError:
-    #Twisted not available
-    Failure = Exception
 
 ##############################################################################
 # TEMPORARY!!! fake configuration, while we decide whether to use tconfig or
@@ -387,6 +382,7 @@ class AsyncFrontEndBase(FrontEndBase):
         """
         
         if(not self.is_complete(block)):
+            from twisted.python.failure import Failure
             return Failure(Exception("Block is not compilable"))
         
         if(blockID == None):

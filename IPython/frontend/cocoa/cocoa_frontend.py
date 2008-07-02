@@ -45,9 +45,9 @@ from IPython.frontend.frontendbase import AsyncFrontEndBase
 from twisted.internet.threads import blockingCallFromThread
 from twisted.python.failure import Failure
 
-#------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------
 # Classes to implement the Cocoa frontend
-#------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------
 
 # TODO: 
 #   1. use MultiEngineClient and out-of-process engine rather than 
@@ -61,39 +61,13 @@ class AutoreleasePoolWrappedThreadedEngineService(ThreadedEngineService):
         """wrapped_execute"""
         try:
             p = NSAutoreleasePool.alloc().init()
-            result = self.shell.execute(lines)
-        except Exception,e:
-            # This gives the following:
-            # et=exception class
-            # ev=exception class instance
-            # tb=traceback object
-            et,ev,tb = sys.exc_info()
-            # This call adds attributes to the exception value
-            et,ev,tb = self.shell.formatTraceback(et,ev,tb,msg)
-            # Add another attribute
-            
-            # Create a new exception with the new attributes
-            e = et(ev._ipython_traceback_text)
-            e._ipython_engine_info = msg
-            
-            # Re-raise
-            raise e
+            result = super(AutoreleasePoolWrappedThreadedEngineService,
+                            self).wrapped_execute(msg, lines)
         finally:
             p.drain()
         
         return result
     
-    def execute(self, lines):
-        # Only import this if we are going to use this class
-        from twisted.internet import threads
-        
-        msg = {'engineid':self.id,
-               'method':'execute',
-               'args':[lines]}
-        
-        d = threads.deferToThread(self.wrapped_execute, msg, lines)
-        d.addCallback(self.addIDToResult)
-        return d
 
 
 class IPythonCocoaController(NSObject, AsyncFrontEndBase):
