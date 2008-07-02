@@ -40,7 +40,7 @@ from pprint import saferepr
 
 import IPython
 from IPython.kernel.engineservice import ThreadedEngineService
-from IPython.frontend.frontendbase import AsynchronousFrontEndBase
+from IPython.frontend.frontendbase import AsyncFrontEndBase
 
 from twisted.internet.threads import blockingCallFromThread
 from twisted.python.failure import Failure
@@ -96,14 +96,14 @@ class AutoreleasePoolWrappedThreadedEngineService(ThreadedEngineService):
         return d
 
 
-class IPythonCocoaController(NSObject, AsynchronousFrontEndBase):
+class IPythonCocoaController(NSObject, AsyncFrontEndBase):
     userNS = objc.ivar() #mirror of engine.user_ns (key=>str(value))
     waitingForEngine = objc.ivar().bool()
     textView = objc.IBOutlet()
     
     def init(self):
         self = super(IPythonCocoaController, self).init()
-        AsynchronousFrontEndBase.__init__(self,
+        AsyncFrontEndBase.__init__(self,
                     engine=AutoreleasePoolWrappedThreadedEngineService())
         if(self != None):
             self._common_init()
@@ -200,13 +200,14 @@ class IPythonCocoaController(NSObject, AsynchronousFrontEndBase):
         result = blockingCallFromThread(self.engine.pull, keys)
         self.waitingForEngine = False
     
-    def executeFileAtPath_(self, path):
+    @objc.signature('v@:@I')
+    def executeFileAtPath_encoding_(self, path, encoding):
         """Execute file at path in an empty namespace. Update the engine
         user_ns with the resulting locals."""
         
         lines,err = NSString.stringWithContentsOfFile_encoding_error_(
             path,
-            NSString.defaultCStringEncoding(),
+            encoding,
             None)
         self.engine.execute(lines)
     

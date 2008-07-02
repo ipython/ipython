@@ -16,7 +16,6 @@ graft IPython/tools
 graft docs
 exclude docs/\#*
 exclude docs/man/*.1
-exclude docs/ChangeLog.*
 
 # There seems to be no way of excluding whole subdirectories, other than
 # manually excluding all their subdirs.  distutils really is horrible...

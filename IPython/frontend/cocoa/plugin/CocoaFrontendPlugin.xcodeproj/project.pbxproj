@@ -11,7 +11,7 @@
 			isa = PBXContainerItemProxy;
 			containerPortal = 4C96F4FE0E199AB500B03430 /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = 4C96F50C0E199AF100B03430 /* Cocoa Frontend Plugin */;
+			remoteGlobalIDString = 4C96F50C0E199AF100B03430;
 			remoteInfo = "Cocoa Frontend Plugin";
 		};
 /* End PBXContainerItemProxy section */
