@@ -70,6 +70,19 @@ class AutoreleasePoolWrappedThreadedEngineService(ThreadedEngineService):
     
 
 
+class Cell(NSObject):
+    """
+    Representation of the prompts, input and output of a cell in the
+    frontend
+    """
+    
+    blockNumber = objc.ivar().unsigned_long()
+    blockID = objc.ivar()
+    inputBlock = objc.ivar()
+    output = objc.ivar()
+     
+
+   
 class CellBlock(object):
     """
     Storage for information about text ranges relating to a single cell
@@ -353,9 +366,9 @@ class IPythonCocoaController(NSObject, AsyncFrontEndBase):
     def new_cell_block(self):
         """A new CellBlock at the end of self.textView.textStorage()"""
         
-        return CellBlock(NSMakeRange(self.textView.textStorage().length()-1, 
+        return CellBlock(NSMakeRange(self.textView.textStorage().length(), 
                                     0), #len(self.input_prompt())),
-                        NSMakeRange(self.textView.textStorage().length()-1,# + len(self.input_prompt()),
+                        NSMakeRange(self.textView.textStorage().length(),# + len(self.input_prompt()),
                                     0))
     
     
@@ -389,7 +402,6 @@ class IPythonCocoaController(NSObject, AsyncFrontEndBase):
             textRange = NSMakeRange(self.textView.textStorage().length(), 0) 
         
         
-        print textRange,string,self.textView.textStorage(),self.textView.textStorage().length()
         self.textView.replaceCharactersInRange_withString_(
             textRange, string)
             
@@ -528,7 +540,7 @@ class IPythonCocoaController(NSObject, AsyncFrontEndBase):
             r = r.rangeValue()
             if(textView.textStorage().length() > 0 and
                 r.location < self.current_block_range().inputRange.location):
-                self.insert_text(s, textRange=r)
+                self.insert_text(s)
                 allow = False
         
         return allow
