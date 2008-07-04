@@ -31,6 +31,12 @@
 ;; To start an interactive ipython session run `py-shell' with ``M-x py-shell``
 ;; (or the default keybinding ``C-c C-!``).
 ;;
+;; You can customize the arguments passed to the IPython instance at startup by
+;; setting the ``py-python-command-args`` variable.  For example, to start
+;; always in ``pylab`` mode with hardcoded light-background colors, you can use:
+;; (setq py-python-command-args '("-pylab" "-colors" "LightBG"))
+;;
+;;
 ;; NOTE: This mode is currently somewhat alpha and although I hope that it
 ;; will work fine for most cases, doing certain things (like the
 ;; autocompletion and a decent scheme to switch between python interpreters)
@@ -46,14 +52,15 @@
 ;; Hints for effective usage
 ;; -------------------------
 ;;
-;; - IMO the best feature by far of the ipython/emacs combo is how much easier it
-;;   makes it to find and fix bugs thanks to the ``%pdb on``/ pdbtrack combo. Try
-;;   it: first in the ipython to shell do ``%pdb on`` then do something that will
-;;   raise an exception (FIXME nice example) -- and be amazed how easy it is to
-;;   inspect the live objects in each stack frames and to jump to the
-;;   corresponding sourcecode locations as you walk up and down the stack trace
-;;   (even without ``%pdb on`` you can always use ``C-c -`` (`py-up-exception')
-;;   to jump to the corresponding source code locations).
+;; - IMO the best feature by far of the ipython/emacs combo is how much easier
+;;   it makes it to find and fix bugs thanks to the ``%pdb on or %debug``/
+;;   pdbtrack combo. Try it: first in the ipython to shell do ``%pdb on`` then
+;;   do something that will raise an exception (FIXME nice example), or type
+;;   ``%debug`` after the exception has been raised.  YOu'll be amazed at how
+;;   easy it is to inspect the live objects in each stack frames and to jump to
+;;   the corresponding sourcecode locations as you walk up and down the stack
+;;   trace (even without ``%pdb on`` you can always use ``C-c -``
+;;   (`py-up-exception') to jump to the corresponding source code locations).
 ;;
 ;; - emacs gives you much more powerful commandline editing and output searching
 ;;   capabilities than ipython-standalone -- isearch is your friend if you
@@ -79,7 +86,7 @@
 ;;   variables comes later).
 ;;
 ;; Please send comments and feedback to the ipython-list
-;; (<ipython-user@scipy.net>) where I (a.s.) or someone else will try to
+;; (<ipython-user@scipy.org>) where I (a.s.) or someone else will try to
 ;; answer them (it helps if you specify your emacs version, OS etc; 
 ;; familiarity with <http://www.catb.org/~esr/faqs/smart-questions.html> might
 ;; speed up things further).
