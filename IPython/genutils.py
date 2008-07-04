@@ -1137,10 +1137,31 @@ class SList(list):
                 res.append(" ".join(lineparts))
             
         return res        
-                
-            
-            
+    def sort(self,field,  nums = False):
+        """ sort by specified fields (see fields())
         
+        Example::
+            a.sort(1, nums = True)
+        
+        Sorts a by second field, in numerical order (so that 21 > 3)
+        
+        """ 
+        
+        #decorate, sort, undecorate
+        dsu = [[SList([line]).fields(field),  line] for line in self]
+        if nums:
+            for i in range(len(dsu)):
+                numstr = "".join([ch for ch in dsu[i][0] if ch.isdigit()])
+                print numstr
+                try:
+                    n = int(numstr)
+                except ValueError:
+                    n = 0;
+                dsu[i][0] = n
+                
+                
+        dsu.sort()
+        return [t[1] for t in dsu]
 
 def print_slist(arg):
     """ Prettier (non-repr-like) and more informative printer for SList """
