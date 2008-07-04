@@ -1155,7 +1155,6 @@ class SList(list):
         if nums:
             for i in range(len(dsu)):
                 numstr = "".join([ch for ch in dsu[i][0] if ch.isdigit()])
-                print numstr
                 try:
                     n = int(numstr)
                 except ValueError:
