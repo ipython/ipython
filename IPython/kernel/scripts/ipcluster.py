@@ -168,8 +168,7 @@ def startMsg(control_host,control_port=10105):
     print 'For interactive use, you can make a MultiEngineClient with:'
     print
     print 'from IPython.kernel import client'
-    print "mec = client.MultiEngineClient((%r,%s))" % \
-          (control_host,control_port)
+    print "mec = client.MultiEngineClient()"
     print
     print 'You can then cleanly stop the cluster from IPython using:'
     print
@@ -195,12 +194,13 @@ def clusterLocal(opt,arg):
     print 'Controller PID:',controller.pid
 
     print 'Starting engines:   ',
-    time.sleep(3)
+    time.sleep(5)
 
     englogfile = '%s%s-' % (logfile,controller.pid)
     mpi = opt.mpi
     if mpi: # start with mpi - killing the engines with sigterm will not work if you do this
         engines = [Popen(['mpirun', '-np', str(opt.n), 'ipengine', '--mpi', mpi, '--logfile',englogfile])]
+        # engines = [Popen(['mpirun', '-np', str(opt.n), 'ipengine', '--mpi', mpi])]
     else: # do what we would normally do
         engines = [ Popen(['ipengine','--logfile',englogfile])
                     for i in range(opt.n) ]

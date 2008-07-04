@@ -29,11 +29,13 @@ New features
 	  Development Team" as the copyright holder.  We give more details about exactly
 	  what this means in this file.  All developer should read this and use the new
 	  banner in all IPython source code files.
-        * sh profile: ./foo runs foo as system command, no need to do !./foo anymore
+    * sh profile: ./foo runs foo as system command, no need to do !./foo anymore
 
 Bug fixes
 ---------
 
+	* The :mod:`IPython.kernel.scripts.ipengine` script was exec'ing mpi_import_statement
+	  incorrectly, which was leading the engine to crash when mpi was enabled.
 	* A few subpackages has missing `__init__.py` files.
 	* The documentation is only created is Sphinx is found.  Previously, the `setup.py`
 	  script would fail if it was missing.

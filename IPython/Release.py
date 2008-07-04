@@ -22,15 +22,19 @@ name = 'ipython'
 # because bdist_rpm does not accept dashes (an RPM) convention, and
 # bdist_deb does not accept underscores (a Debian convention).
 
-revision = '1016'
+development = True    # change this to False to do a release
+version_base = '0.9.0'
 branch = 'ipython'
+revision = '1016'
 
-if branch == 'ipython':
-    version = '0.9.0.bzr.r' + revision
+if development:
+    if branch == 'ipython':
+        version = '%s.bzr.r%s' % (version_base, revision)
+    else:
+        version = '%s.bzr.r%s.%s' % (version_base, revision, branch)
 else:
-    version = '0.9.0.bzr.r%s.%s'  % (revision,branch)
+    version = version_base
 
-# version = '0.8.4'
 
 description = "Tools for interactive development in Python."
 
