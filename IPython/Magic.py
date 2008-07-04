@@ -3195,7 +3195,7 @@ Defaulting color scheme to 'NoColor'"""
             exec b in self.user_ns            
             self.user_ns['pasted_block'] = b
         else:
-            self.user_ns[par] = block
+            self.user_ns[par] = SList(block.splitlines())
             print "Block assigned to '%s'" % par
             
     def magic_quickref(self,arg):

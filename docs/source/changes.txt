@@ -32,6 +32,7 @@ New features
 	* sh profile: ./foo runs foo as system command, no need to do !./foo anymore
 	* String lists now support 'sort(field, nums = True)' method (to easily
 	  sort system command output). Try it with 'a = !ls -l ; a.sort(1, nums=1)'
+	* '%cpaste foo' now assigns the pasted block as string list, instead of string
 
 	
 

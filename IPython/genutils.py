@@ -1137,7 +1137,7 @@ class SList(list):
                 res.append(" ".join(lineparts))
             
         return res        
-    def sort(self,field,  nums = False):
+    def sort(self,field= None,  nums = False):
         """ sort by specified fields (see fields())
         
         Example::
@@ -1148,7 +1148,10 @@ class SList(list):
         """ 
         
         #decorate, sort, undecorate
-        dsu = [[SList([line]).fields(field),  line] for line in self]
+        if field is not None:
+            dsu = [[SList([line]).fields(field),  line] for line in self]
+        else:
+            dsu = [[line,  line] for line in self]
         if nums:
             for i in range(len(dsu)):
                 numstr = "".join([ch for ch in dsu[i][0] if ch.isdigit()])
@@ -1161,11 +1164,15 @@ class SList(list):
                 
                 
         dsu.sort()
-        return [t[1] for t in dsu]
+        return SList([t[1] for t in dsu])
 
 def print_slist(arg):
     """ Prettier (non-repr-like) and more informative printer for SList """
-    print "SList (.p, .n, .l, .s, .grep(), .fields() available). Value:"
+    print "SList (.p, .n, .l, .s, .grep(), .fields(), sort() available):"
+    if hasattr(arg,  'hideonce') and arg.hideonce:
+        arg.hideonce = False
+        return
+        
     nlprint(arg)
     
 print_slist = result_display.when_type(SList)(print_slist)
