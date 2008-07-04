@@ -14,6 +14,11 @@ def setHook(synchronize_with_editor):
 
 
 def findFilename(filename):
+    filename = os.path.splitext(filename)
+    if filename[1] == ".pyc":
+        filename = (filename[0], ".py")
+    filename = "".join(filename)
+
     if not os.path.isabs(filename):
         filename = os.path.join(os.getcwd(), filename)
 
