@@ -2728,8 +2728,7 @@ Defaulting color scheme to 'NoColor'"""
                 os.chdir(os.path.expanduser(ps))
                 if self.shell.rc.term_title:
                     #print 'set term title:',self.shell.rc.term_title  # dbg
-                    ttitle = 'IPy ' + abbrev_cwd()
-                    platutils.set_term_title(ttitle)
+                    platutils.set_term_title('IPy ' + abbrev_cwd())
             except OSError:
                 print sys.exc_info()[1]
             else:

@@ -3,11 +3,7 @@
 
 Importing this module directly is not portable - rather, import platutils 
 to use these functions in platform agnostic fashion.
-
-$Id: ipstruct.py 1005 2006-01-12 08:39:26Z fperez $
-
 """
-
 
 #*****************************************************************************
 #       Copyright (C) 2001-2006 Fernando Perez <fperez@colorado.edu>
@@ -31,9 +27,6 @@ def _dummy_op(*a, **b):
 def _set_term_title_xterm(title):
     """ Change virtual terminal title in xterm-workalikes """
 
-    if ignore_termtitle:
-        return
-    
     sys.stdout.write('\033]%d;%s\007' % (0,title))
 
 
@@ -41,7 +34,3 @@ if os.environ.get('TERM','') == 'xterm':
     set_term_title = _set_term_title_xterm
 else:
     set_term_title = _dummy_op
-
-def freeze_term_title():
-    global ignore_termtitle
-    ignore_termtitle = True
