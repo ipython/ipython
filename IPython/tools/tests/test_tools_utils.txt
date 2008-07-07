@@ -1,0 +1,17 @@
+=========================================
+ Doctests for the ``tools.utils`` module
+=========================================
+
+The way doctest loads these, the entire document is applied as a single test
+rather than multiple individual ones, unfortunately::
+
+    >>> from IPython.tools import utils
+
+    # Some other tests for utils
+
+    >>> utils.marquee('Testing marquee')
+    '****************************** Testing marquee ******************************'
+
+    >>> utils.marquee('Another test',30,'.')
+    '........ Another test ........'
+

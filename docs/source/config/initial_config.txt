@@ -16,7 +16,7 @@ automatically create a user copy of the config directory for you,
 based on its builtin defaults. You can look at the files it creates to
 learn more about configuring the system. The main file you will modify
 to configure IPython's behavior is called ipythonrc (with a .ini
-extension under Windows), included for reference in `ipythonrc`_ 
+extension under Windows), included for reference in `ipythonrc`_
 section. This file is very commented and has many variables you can
 change to suit your taste, you can find more details in
 Sec. customization_. Here we discuss the basic things you will want to
@@ -39,7 +39,7 @@ manuals. Unfortunately it seems that different Linux distributions
 package these files differently, so you may have to look around a bit.
 Below I show the contents of this directory on my system for reference::
 
-    [html]> ls 
+    [html]> ls
     about.dat acks.html dist/ ext/ index.html lib/ modindex.html
     stdabout.dat tut/ about.html api/ doc/ icons/ inst/ mac/ ref/ style.css
 
@@ -71,11 +71,11 @@ EDITOR environment variable to 'emacsclient'. The code below, supplied
 by Francois Pinard, can then be used in your .emacs file to enable the
 server::
 
-    (defvar server-buffer-clients) 
-    (when (and (fboundp 'server-start) (string-equal (getenv "TERM") 'xterm)) 
-      (server-start) 
-      (defun fp-kill-server-with-buffer-routine () 
-        (and server-buffer-clients (server-done))) 
+    (defvar server-buffer-clients)
+    (when (and (fboundp 'server-start) (string-equal (getenv "TERM") 'xterm))
+      (server-start)
+      (defun fp-kill-server-with-buffer-routine ()
+        (and server-buffer-clients (server-done)))
       (add-hook 'kill-buffer-hook 'fp-kill-server-with-buffer-routine))
 
 You can also set the value of this editor via the commmand-line option
@@ -141,11 +141,11 @@ system interactively by typing '%colors Linux' at the prompt (use
 prompt shows garbage like::
 
     [0;32mIn [[1;32m1[0;32m]: [0;00m
-                               
+
 instead of (in color) something like::
-    
+
     In [1]:
-        
+
 this means that your terminal doesn't properly handle color escape
 sequences. You can go to a 'no color' mode by typing '%colors NoColor'.
 
@@ -176,7 +176,7 @@ In order to configure less as your default pager, do the following:
 
 For the csh or tcsh shells, add to your ~/.cshrc file the lines::
 
-    setenv PAGER less 
+    setenv PAGER less
     setenv LESS -r
 
 There is similar syntax for other Unix shells, look at your system
@@ -207,16 +207,21 @@ formats).
 Once you put these files in your Emacs path, all you need in your .emacs
 file is::
 
-    (require 'ipython) 
+    (require 'ipython)
 
 This should give you full support for executing code snippets via
-IPython, opening IPython as your Python shell via C-c !, etc.
+IPython, opening IPython as your Python shell via ``C-c !``, etc.
+
+You can customize the arguments passed to the IPython instance at startup by
+setting the ``py-python-command-args`` variable.  For example, to start always
+in ``pylab`` mode with hardcoded light-background colors, you can use::
+
+    (setq py-python-command-args '("-pylab" "-colors" "LightBG"))
 
 If you happen to get garbage instead of colored prompts as described in
 the previous section, you may need to set also in your .emacs file::
 
-    (setq ansi-color-for-comint-mode t) 
-
+    (setq ansi-color-for-comint-mode t)
 
 Notes:
 
