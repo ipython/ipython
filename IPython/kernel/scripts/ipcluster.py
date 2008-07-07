@@ -190,7 +190,7 @@ def clusterLocal(opt,arg):
         logfile = pjoin(logdir_base,'ipcluster-')
 
     print 'Starting controller:',
-    controller = Popen(['ipcontroller','--logfile',logfile])
+    controller = Popen(['ipcontroller','--logfile',logfile,'-x','-y'])
     print 'Controller PID:',controller.pid
 
     print 'Starting engines:   ',
@@ -199,7 +199,8 @@ def clusterLocal(opt,arg):
     englogfile = '%s%s-' % (logfile,controller.pid)
     mpi = opt.mpi
     if mpi: # start with mpi - killing the engines with sigterm will not work if you do this
-        engines = [Popen(['mpirun', '-np', str(opt.n), 'ipengine', '--mpi', mpi, '--logfile',englogfile])]
+        engines = [Popen(['mpirun', '-np', str(opt.n), 'ipengine', '--mpi', 
+            mpi, '--logfile',englogfile])]
         # engines = [Popen(['mpirun', '-np', str(opt.n), 'ipengine', '--mpi', mpi])]
     else: # do what we would normally do
         engines = [ Popen(['ipengine','--logfile',englogfile])

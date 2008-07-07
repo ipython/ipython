@@ -33,6 +33,10 @@ New features
 	* String lists now support 'sort(field, nums = True)' method (to easily
 	  sort system command output). Try it with 'a = !ls -l ; a.sort(1, nums=1)'
 	* '%cpaste foo' now assigns the pasted block as string list, instead of string
+	* The ipcluster script now run by default with no security.  This is done because
+	  the main usage of the script is for starting things on localhost.  Eventually
+	  when ipcluster is able to start things on other hosts, we will put security
+	  back.
 
 	
 

@@ -69,7 +69,7 @@ def start_engine():
         except:
             mpi = None
     else:
-        mpi = mpi_namespace.get('mpi')
+        mpi = None
     
     # Start logging
     logfile = kernel_config['engine']['logfile']
