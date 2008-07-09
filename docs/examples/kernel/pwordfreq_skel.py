@@ -14,7 +14,7 @@ def pwordfreq(rc, text):
 
 if __name__ == '__main__':
     # Create a MultiEngineClient
-    from ipython1.kernel import client
+    from IPython.kernel import client
     ipc = client.MultiEngineClient()
     
     # Run the wordfreq script on the engines.

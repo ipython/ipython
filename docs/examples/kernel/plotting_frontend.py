@@ -18,7 +18,7 @@ are available in IPython, so for example you can make additional plots.
 
 import numpy as N
 from pylab import *
-from ipython1.kernel import client
+from IPython.kernel import client
 
 # Get an IPython1 client
 rc = client.MultiEngineClient()

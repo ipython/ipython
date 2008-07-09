@@ -5,7 +5,7 @@
 # asynchronous manner.  The TaskClient also works in this mode.
 
 from twisted.internet import reactor, defer
-from ipython1.kernel import asyncclient
+from IPython.kernel import asyncclient
 
 def printer(r):
     print r

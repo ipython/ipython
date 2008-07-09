@@ -2,12 +2,13 @@
 # encoding: utf-8
 
 # This example shows how the AsynTaskClient can be used
+# This example is currently broken
 
 from twisted.internet import reactor, defer
-from ipython1.kernel import asynclient
+from IPython.kernel import asyncclient
 
-mec = asynclient.AsynMultiEngineClient(('localhost', 10105))
-tc = asynclient.AsynTaskClient(('localhost',10113))
+mec = asyncclient.AsyncMultiEngineClient(('localhost', 10105))
+tc = asyncclient.AsyncTaskClient(('localhost',10113))
 
 cmd1 = """\
 a = 5
@@ -15,7 +16,7 @@ b = 10*d
 c = a*b*d
 """
 
-t1 = asynclient.Task(cmd1, clear_before=False, clear_after=True, pull=['a','b','c'])
+t1 = asyncclient.Task(cmd1, clear_before=False, clear_after=True, pull=['a','b','c'])
 
 d = mec.push(dict(d=30))
 

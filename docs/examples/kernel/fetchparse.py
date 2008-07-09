@@ -9,7 +9,7 @@ and some engines using something like::
     ipcluster -n 4
 """
 from twisted.python.failure import Failure
-from ipython1.kernel import client
+from IPython.kernel import client
 import time
 
 fetchParse = """

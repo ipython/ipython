@@ -7,7 +7,7 @@
 # doing run rmt.ipy.
 
 from rmtkernel import *
-from ipython1.kernel import client
+from IPython.kernel import client
 
 
 def wignerDistribution(s):

@@ -30,7 +30,7 @@ Creating a ``MultiEngineClient`` instance
 
 The first step is to import the IPython ``client`` module and then create a ``MultiEngineClient`` instance::
 
-	In [1]: from ipython1.kernel import client
+	In [1]: from IPython.kernel import client
 	
 	In [2]: mec = client.MultiEngineClient()
 
@@ -303,7 +303,7 @@ The ``%autopx`` magic switches to a mode where everything you type is executed o
 	Type %autopx to disable
 
 	In [32]: max_evals = []
-	<ipython1.kernel.multiengineclient.PendingResult object at 0x17b8a70>
+	<IPython.kernel.multiengineclient.PendingResult object at 0x17b8a70>
 
 	In [33]: for i in range(100):
 	   ....:     a = numpy.random.rand(10,10)
@@ -312,7 +312,7 @@ The ``%autopx`` magic switches to a mode where everything you type is executed o
 	   ....:     max_evals.append(evals[0].real)
 	   ....:
 	   ....:
-	<ipython1.kernel.multiengineclient.PendingResult object at 0x17af8f0>
+	<IPython.kernel.multiengineclient.PendingResult object at 0x17af8f0>
 
 	In [34]: %autopx
 	Auto Parallel Disabled

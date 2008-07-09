@@ -19,7 +19,7 @@ import random, sys
 from optparse import OptionParser
 
 from IPython.genutils import time
-from ipython1.kernel import client
+from IPython.kernel import client
 
 def main():
     parser = OptionParser()

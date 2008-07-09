@@ -5,9 +5,9 @@
 import time
 import numpy
 
-import ipython1.kernel.magic
-from ipython1.kernel import client
-from ipython1.kernel.error import *
+import IPython.kernel.magic
+from IPython.kernel import client
+from IPython.kernel.error import *
 
 mec = client.MultiEngineClient()
 

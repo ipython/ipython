@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # encoding: utf-8
 
-from ipython1.kernel import client
+from IPython.kernel import client
 import time
 
 tc = client.TaskClient()

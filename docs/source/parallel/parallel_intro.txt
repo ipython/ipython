@@ -217,7 +217,7 @@ Once you have started the IPython controller and one or more engines, you
 are ready to use the engines to do somnething useful. To make sure
 everything is working correctly, try the following commands::
 
-	In [1]: from ipython1.kernel import client
+	In [1]: from IPython.kernel import client
 	
 	In [2]: mec = client.MultiEngineClient()    # This looks for .furl files in ~./ipython
 	

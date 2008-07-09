@@ -4,7 +4,7 @@
 # http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/511509
 
 import heapq
-from ipython1.kernel.error import CompositeError
+from IPython.kernel.error import CompositeError
 
 def mergesort(list_of_lists, key=None):
     """ Perform an N-way merge operation on sorted lists.
@@ -91,7 +91,7 @@ def remote_iterator(rc,engine,name):
 # Main, interactive testing
 if __name__ == '__main__':
 
-    from ipython1.kernel import client
+    from IPython.kernel import client
     ipc = client.MultiEngineClient()
     print 'Engine IDs:',ipc.get_ids()
 

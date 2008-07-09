@@ -2,7 +2,7 @@
 # encoding: utf-8
 """Run a Monte-Carlo options pricer in parallel."""
 
-from ipython1.kernel import client
+from IPython.kernel import client
 import numpy as N
 from mcpricer import MCOptionPricer
 

@@ -2,7 +2,7 @@
 A Distributed Hello world
 Ken Kinder <ken@kenkinder.com>
 """
-from ipython1.kernel import client
+from IPython.kernel import client
 
 tc = client.TaskClient()
 mec = client.MultiEngineClient()
