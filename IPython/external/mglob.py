@@ -53,7 +53,7 @@ globsyntax = """\
          - readme*, exclude files ending with .bak
      !.svn/ !.hg/ !*_Data/ rec:.
          - Skip .svn, .hg, foo_Data dirs (and their subdirs) in recurse.
-           Trailing / is the key, \ does not work!
+           Trailing / is the key, \ does not work! Use !.*/ for all hidden.
      dir:foo                       
          - the directory foo if it exists (not files in foo)
      dir:*                         
@@ -63,13 +63,16 @@ globsyntax = """\
            foo.py is *not* included twice.
      @filelist.txt
          - All files listed in 'filelist.txt' file, on separate lines.
+     "cont:class \wak:" rec:*.py
+         - Match files containing regexp. Applies to subsequent files.
+           note quotes because of whitespace.
  """
 
 
 __version__ = "0.2"
 
 
-import os,glob,fnmatch,sys
+import os,glob,fnmatch,sys,re
 from sets import Set as set
 
                 
@@ -84,21 +87,34 @@ def expand(flist,exp_dirs = False):
     
     """
     if isinstance(flist, basestring):
-        flist = flist.split()
+        import shlex
+        flist = shlex.split(flist)
     done_set = set()
     denied_set = set()
-
+    cont_set = set()
+    cur_rejected_dirs = set()
+    
     def recfind(p, pats = ["*"]):
-        denied_dirs = ["*" + d+"*" for d in denied_set if d.endswith("/")]
-        #print "de", denied_dirs
+        denied_dirs = [os.path.dirname(d) for d in denied_set if d.endswith("/")]
         for (dp,dnames,fnames) in os.walk(p):
             # see if we should ignore the whole directory
             dp_norm = dp.replace("\\","/") + "/"
             deny = False
-            #print "dp",dp
-            for deny_pat in denied_dirs:
-                if fnmatch.fnmatch( dp_norm, deny_pat):
+            # do not traverse under already rejected dirs
+            for d in cur_rejected_dirs:
+                if dp.startswith(d):
                     deny = True
+                    break
+            if deny:
+                continue
+            
+
+            #print "dp",dp
+            bname = os.path.basename(dp)
+            for deny_pat in denied_dirs:
+                if fnmatch.fnmatch( bname, deny_pat):
+                    deny = True
+                    cur_rejected_dirs.add(dp)
                     break
             if deny:
                 continue
@@ -124,6 +140,17 @@ def expand(flist,exp_dirs = False):
                 if fnmatch.fnmatch(os.path.basename(p), deny_pat):
                     deny = True
                     break
+            if cont_set:
+                try:
+                    cont = open(p).read()
+                except IOError:
+                    # deny
+                    continue
+                for pat in cont_set:
+                    if not re.search(pat,cont, re.IGNORECASE):
+                        deny = True
+                        break
+                    
             if not deny:
                 yield it
         return
@@ -158,7 +185,8 @@ def expand(flist,exp_dirs = False):
         # glob only dirs
         elif ent.lower().startswith('dir:'):
             res.extend(once_filter(filter(os.path.isdir,glob.glob(ent[4:]))))
-            
+        elif ent.lower().startswith('cont:'):
+            cont_set.add(ent[5:])
         # get all files in the specified dir
         elif os.path.isdir(ent) and exp_dirs:
             res.extend(once_filter(filter(os.path.isfile,glob.glob(ent + os.sep+"*"))))
