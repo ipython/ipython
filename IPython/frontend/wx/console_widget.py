@@ -27,6 +27,40 @@ import re
 # FIXME: Need to provide an API for non user-generated display on the
 # screen: this should not be editable by the user.
 
+if wx.Platform == '__WXMSW__':
+    _DEFAULT_SIZE = 80
+else:
+    _DEFAULT_SIZE = 10
+
+_DEFAULT_STYLE = {
+    'stdout'      : 'fore:#0000FF',
+    'stderr'      : 'fore:#007f00',
+    'trace'       : 'fore:#FF0000',
+
+    'default'     : 'size:%d' % _DEFAULT_SIZE,
+    'bracegood'   : 'fore:#FFFFFF,back:#0000FF,bold',
+    'bracebad'    : 'fore:#000000,back:#FF0000,bold',
+
+    # properties for the various Python lexer styles
+    'comment'     : 'fore:#007F00',
+    'number'      : 'fore:#007F7F',
+    'string'      : 'fore:#7F007F,italic',
+    'char'        : 'fore:#7F007F,italic',
+    'keyword'     : 'fore:#00007F,bold',
+    'triple'      : 'fore:#7F0000',
+    'tripledouble': 'fore:#7F0000',
+    'class'       : 'fore:#0000FF,bold,underline',
+    'def'         : 'fore:#007F7F,bold',
+    'operator'    : 'bold',
+
+    }
+
+# new style numbers
+_STDOUT_STYLE = 15
+_STDERR_STYLE = 16
+_TRACE_STYLE  = 17
+
+
 #-------------------------------------------------------------------------------
 # The console widget class
 #-------------------------------------------------------------------------------
@@ -36,6 +70,8 @@ class ConsoleWidget(stc.StyledTextCtrl):
         This widget is mainly interested in dealing with the prompt and
         keeping the cursor inside the editing line.
     """
+
+    style = _DEFAULT_STYLE.copy()
 
     # Translation table from ANSI escape sequences to color. Override
     # this to specify your colors.
@@ -57,6 +93,88 @@ class ConsoleWidget(stc.StyledTextCtrl):
     # Public API
     #--------------------------------------------------------------------------
     
+    def __init__(self, parent, id=wx.ID_ANY, pos=wx.DefaultPosition, 
+                        size=wx.DefaultSize, style=0, 
+                        autocomplete_mode='IPYTHON'):
+        """ Autocomplete_mode: Can be 'IPYTHON' or 'STC'
+            'IPYTHON' show autocompletion the ipython way
+            'STC" show it scintilla text control way
+        """
+        stc.StyledTextCtrl.__init__(self, parent, id, pos, size, style)
+        self.configure_scintilla()
+
+        # FIXME: we need to retrieve this from the interpreter.
+        self.prompt = \
+            '\n\x01\x1b[0;34m\x02In [\x01\x1b[1;34m\x02%i\x01\x1b[0;34m\x02]: \x01\x1b[0m\x02'
+        self.new_prompt(self.prompt % 1)
+
+        self.autocomplete_mode = autocomplete_mode
+        
+        self.Bind(wx.EVT_KEY_DOWN, self._onKeypress)
+    
+
+    def configure_scintilla(self):
+        # Ctrl"+" or Ctrl "-" can be used to zoomin/zoomout the text inside 
+        # the widget
+        self.CmdKeyAssign(ord('+'), stc.STC_SCMOD_CTRL, stc.STC_CMD_ZOOMIN)
+        self.CmdKeyAssign(ord('-'), stc.STC_SCMOD_CTRL, stc.STC_CMD_ZOOMOUT)
+        # Also allow Ctrl Shift "=" for poor non US keyboard users. 
+        self.CmdKeyAssign(ord('='), stc.STC_SCMOD_CTRL|stc.STC_SCMOD_SHIFT, 
+                                            stc.STC_CMD_ZOOMIN)
+
+        self.SetEOLMode(stc.STC_EOL_CRLF)
+        self.SetWrapMode(stc.STC_WRAP_CHAR)
+        self.SetWrapMode(stc.STC_WRAP_WORD)
+        self.SetBufferedDraw(True)
+        self.SetUseAntiAliasing(True)
+        self.SetLayoutCache(stc.STC_CACHE_PAGE)
+        self.SetUndoCollection(False)
+        self.SetUseTabs(True)
+        self.SetIndent(4)
+        self.SetTabWidth(4)
+
+        self.EnsureCaretVisible()
+        
+        self.SetMargins(3, 3) #text is moved away from border with 3px
+        # Suppressing Scintilla margins
+        self.SetMarginWidth(0, 0)
+        self.SetMarginWidth(1, 0)
+        self.SetMarginWidth(2, 0)
+
+        self._apply_style()
+        
+        self.indent = 0
+        self.color_pat = re.compile('\x01?\x1b\[(.*?)m\x02?')
+
+        #self.SetEdgeMode(stc.STC_EDGE_LINE)
+        #self.SetEdgeColumn(80)
+
+        # styles
+        p = self.style
+        self.StyleSetSpec(stc.STC_STYLE_DEFAULT, p['default'])
+        self.StyleClearAll()
+        self.StyleSetSpec(_STDOUT_STYLE, p['stdout'])
+        self.StyleSetSpec(_STDERR_STYLE, p['stderr'])
+        self.StyleSetSpec(_TRACE_STYLE, p['trace'])
+
+        self.StyleSetSpec(stc.STC_STYLE_BRACELIGHT, p['bracegood'])
+        self.StyleSetSpec(stc.STC_STYLE_BRACEBAD, p['bracebad'])
+        self.StyleSetSpec(stc.STC_P_COMMENTLINE, p['comment'])
+        self.StyleSetSpec(stc.STC_P_NUMBER, p['number'])
+        self.StyleSetSpec(stc.STC_P_STRING, p['string'])
+        self.StyleSetSpec(stc.STC_P_CHARACTER, p['char'])
+        self.StyleSetSpec(stc.STC_P_WORD, p['keyword'])
+        self.StyleSetSpec(stc.STC_P_TRIPLE, p['triple'])
+        self.StyleSetSpec(stc.STC_P_TRIPLEDOUBLE, p['tripledouble'])
+        self.StyleSetSpec(stc.STC_P_CLASSNAME, p['class'])
+        self.StyleSetSpec(stc.STC_P_DEFNAME, p['def'])
+        self.StyleSetSpec(stc.STC_P_OPERATOR, p['operator'])
+        self.StyleSetSpec(stc.STC_P_COMMENTBLOCK, p['comment'])
+
+
+
+
+
     def write(self, text):
         """ Write given text to buffer, while translating the ansi escape
             sequences.
@@ -118,59 +236,6 @@ class ConsoleWidget(stc.StyledTextCtrl):
     # Private API
     #--------------------------------------------------------------------------
     
-    def __init__(self, parent, pos=wx.DefaultPosition, ID=-1, 
-                        size=wx.DefaultSize, style=0, 
-                        autocomplete_mode='IPYTHON'):
-        """ Autocomplete_mode: Can be 'IPYTHON' or 'STC'
-            'IPYTHON' show autocompletion the ipython way
-            'STC" show it scintilla text control way
-        """
-        stc.StyledTextCtrl.__init__(self, parent, ID, pos, size, style)
-
-        #------ Scintilla configuration -----------------------------------
-        
-        # Ctrl"+" or Ctrl "-" can be used to zoomin/zoomout the text inside 
-        # the widget
-        self.CmdKeyAssign(ord('+'), stc.STC_SCMOD_CTRL, stc.STC_CMD_ZOOMIN)
-        self.CmdKeyAssign(ord('-'), stc.STC_SCMOD_CTRL, stc.STC_CMD_ZOOMOUT)
-        # Also allow Ctrl Shift "=" for poor non US keyboard users. 
-        self.CmdKeyAssign(ord('='), stc.STC_SCMOD_CTRL|stc.STC_SCMOD_SHIFT, 
-                                            stc.STC_CMD_ZOOMIN)
-
-        self.SetEOLMode(stc.STC_EOL_CRLF)
-        self.SetWrapMode(stc.STC_WRAP_CHAR)
-        self.SetWrapMode(stc.STC_WRAP_WORD)
-        self.SetBufferedDraw(True)
-        self.SetUseAntiAliasing(True)
-        self.SetLayoutCache(stc.STC_CACHE_PAGE)
-        self.SetUndoCollection(False)
-        self.SetUseTabs(True)
-        self.SetIndent(4)
-        self.SetTabWidth(4)
-
-        self.EnsureCaretVisible()
-        
-        self.SetMargins(3, 3) #text is moved away from border with 3px
-        # Suppressing Scintilla margins
-        self.SetMarginWidth(0, 0)
-        self.SetMarginWidth(1, 0)
-        self.SetMarginWidth(2, 0)
-
-        self._apply_style()
-        
-        self.indent = 0
-        self.color_pat = re.compile('\x01?\x1b\[(.*?)m\x02?')
-        
-        # FIXME: we need to retrieve this from the interpreter.
-        self.prompt = \
-            '\n\x01\x1b[0;34m\x02In [\x01\x1b[1;34m\x026\x01\x1b[0;34m\x02]: \x01\x1b[0m\x02'
-        self.new_prompt(self.prompt)
-
-        self.autocomplete_mode = autocomplete_mode
-        
-        self.Bind(wx.EVT_KEY_DOWN, self._onKeypress)
-    
-    
     def _apply_style(self):
         """ Applies the colors for the different text elements and the
             carret.
@@ -220,7 +285,7 @@ class ConsoleWidget(stc.StyledTextCtrl):
             self.StyleSetSpec(style[0], "bold,fore:%s" % style[1])
 
 
-     def removeFromTo(self, from_pos, to_pos):
+    def removeFromTo(self, from_pos, to_pos):
         if from_pos < to_pos:
             self.SetSelection(from_pos, to_pos)
             self.DeleteBack()
@@ -278,7 +343,7 @@ class ConsoleWidget(stc.StyledTextCtrl):
         if self.AutoCompActive():
             event.Skip()
         else:
-            if event.GetKeyCode() == wx.WXK_HOME:
+            if event.KeyCode == wx.WXK_HOME:
                 if event.Modifiers in (wx.MOD_NONE, wx.MOD_WIN):
                     self.GotoPos(self.current_prompt_pos)
                     catched = True
@@ -288,7 +353,7 @@ class ConsoleWidget(stc.StyledTextCtrl):
                                                         self.GetCurrentPos())
                     catched = True
 
-            elif event.GetKeyCode() == wx.WXK_UP:
+            elif event.KeyCode == wx.WXK_UP:
                 if self.GetCurrentLine() > self.current_prompt_line:
                     if self.GetCurrentLine() == self.current_prompt_line + 1 \
                             and self.GetColumn(self.GetCurrentPos()) < \
@@ -298,7 +363,7 @@ class ConsoleWidget(stc.StyledTextCtrl):
                         event.Skip()
                 catched = True
 
-            elif event.GetKeyCode() in (wx.WXK_LEFT, wx.WXK_BACK):
+            elif event.KeyCode in (wx.WXK_LEFT, wx.WXK_BACK):
                 if self.GetCurrentPos() > self.current_prompt_pos:
                     event.Skip()
                 catched = True
@@ -306,7 +371,7 @@ class ConsoleWidget(stc.StyledTextCtrl):
             if skip and not catched:
                 event.Skip()
 
-            if event.GetKeyCode() not in (wx.WXK_PAGEUP, wx.WXK_PAGEDOWN)\
+            if event.KeyCode not in (wx.WXK_PAGEUP, wx.WXK_PAGEDOWN)\
                     and event.Modifiers in (wx.MOD_NONE, wx.MOD_WIN,
                                                             wx.MOD_SHIFT):
                 # If cursor is outside the editing region, put it back.
