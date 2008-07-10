@@ -13,7 +13,8 @@ rc = client.MultiEngineClient()
 # Initialize the common code on the engines
 rc.run('mcpricer.py')
 
-# Push the variables that won't change (stock print, interest rate, days and MC paths)
+# Push the variables that won't change 
+#(stock print, interest rate, days and MC paths)
 rc.push(dict(S=100.0, r=0.05, days=260, paths=10000))
 
 task_string = """\
@@ -23,8 +24,8 @@ vp, ap, vc, ac = op.vanilla_put, op.asian_put, op.vanilla_call, op.asian_call
 """
 
 # Create arrays of strike prices and volatilities
-K_vals = N.arange(90.0,110.0,2.0)
-sigma_vals = N.arange(0.02, 0.3, 0.02)
+K_vals = N.linspace(90.0,100.0,5)
+sigma_vals = N.linspace(0.0, 0.2,5)
 
 # Submit tasks
 taskids = []
