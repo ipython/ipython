@@ -17,7 +17,7 @@ __docformat__ = "restructuredtext en"
 #-------------------------------------------------------------------------------
 
 import copy, time
-from types import FunctionType as function
+from types import FunctionType
 
 import zope.interface as zi, string
 from twisted.internet import defer, reactor
@@ -31,18 +31,20 @@ from IPython.kernel.twistedutil import gatherBoth, DeferredList
 
 from IPython.kernel.pickleutil import can,uncan, CannedFunction
 
-def canTask(task):
+def can_task(task):
     t = copy.copy(task)
     t.depend = can(t.depend)
+    t.expression = can(t.expression)
     if t.recovery_task:
-        t.recovery_task = canTask(t.recovery_task)
+        t.recovery_task = can_task(t.recovery_task)
     return t
 
-def uncanTask(task):
+def uncan_task(task):
     t = copy.copy(task)
     t.depend = uncan(t.depend)
+    t.expression = uncan(t.expression)
     if t.recovery_task and t.recovery_task is not task:
-        t.recovery_task = uncanTask(t.recovery_task)
+        t.recovery_task = uncan_task(t.recovery_task)
     return t
 
 time_format = '%Y/%m/%d %H:%M:%S'
@@ -96,10 +98,18 @@ class Task(object):
     >>> t = Task('mpi.send(blah,blah)', depend = hasMPI)
     """
     
-    def __init__(self, expression, pull=None, push=None,
+    def __init__(self, expression, args=None, kwargs=None, pull=None, push=None,
             clear_before=False, clear_after=False, retries=0, 
             recovery_task=None, depend=None, **options):
         self.expression = expression
+        if args is None:
+            self.args = ()
+        else:
+            self.args = args
+        if kwargs is None:
+            self.kwargs = {}
+        else:
+            self.kwargs = kwargs
         if isinstance(pull, str):
             self.pull = [pull]
         else:
@@ -266,16 +276,30 @@ class WorkerFromQueuedEngine(object):
             d = self.queuedEngine.reset()
         else:
             d = defer.succeed(None)
-            
-        if task.push is not None:
-            d.addCallback(lambda r: self.queuedEngine.push(task.push))
         
-        d.addCallback(lambda r: self.queuedEngine.execute(task.expression))
+        if isinstance(task.expression, FunctionType):
+            d.addCallback(lambda r: self.queuedEngine.push_function(
+                dict(_ipython_task_function=task.expression))
+            )
+            d.addCallback(lambda r: self.queuedEngine.push(
+                dict(_ipython_task_args=task.args,_ipython_task_kwargs=task.kwargs))
+            )
+            d.addCallback(lambda r: self.queuedEngine.execute(
+                '_ipython_task_result = _ipython_task_function(*_ipython_task_args,**_ipython_task_kwargs)')
+            )
+            d.addCallback(lambda r: self.queuedEngine.pull('_ipython_task_result'))
+        elif isinstance(task.expression, str):
+            if task.push is not None:
+                d.addCallback(lambda r: self.queuedEngine.push(task.push))
         
-        if task.pull is not None:
-            d.addCallback(lambda r: self.queuedEngine.pull(task.pull))
+            d.addCallback(lambda r: self.queuedEngine.execute(task.expression))
+        
+            if task.pull is not None:
+                d.addCallback(lambda r: self.queuedEngine.pull(task.pull))
+            else:
+                d.addCallback(lambda r: None)
         else:
-            d.addCallback(lambda r: None)
+            raise TypeError("task expression must be a str or function")
         
         def reseter(result):
             self.queuedEngine.reset()
@@ -284,7 +308,10 @@ class WorkerFromQueuedEngine(object):
         if task.clear_after:
             d.addBoth(reseter)
         
-        return d.addBoth(self._zipResults, task.pull, time.time(), time.localtime())
+        if isinstance(task.expression, FunctionType):
+            return d.addBoth(self._zipResults, None, time.time(), time.localtime())
+        else:
+            return d.addBoth(self._zipResults, task.pull, time.time(), time.localtime())
     
     def _zipResults(self, result, names, start, start_struct):
         """Callback for construting the TaskResult object."""
@@ -292,12 +319,16 @@ class WorkerFromQueuedEngine(object):
             tr = TaskResult(result, self.queuedEngine.id)
         else:
             if names is None:
-                resultDict = {} 
+                resultDict = {}
             elif len(names) == 1:
                 resultDict = {names[0]:result}
             else:
                 resultDict = dict(zip(names, result))
             tr = TaskResult(resultDict, self.queuedEngine.id)
+            if names is None:
+                tr.result = result
+            else:
+                tr.result = None
         # the time info
         tr.submitted = time.strftime(time_format, start_struct)
         tr.completed = time.strftime(time_format)

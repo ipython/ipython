@@ -605,15 +605,21 @@ class FCFullSynchronousMultiEngineClient(object):
         return d
 
     def map(self, func, seq, style='basic', targets='all', block=True):
+        """
+        Call a callable on elements of a sequence.
+        
+        map(f, range(10)) -> [f(0), f(1), f(2), ...]
+        map(f, zip(range))
+        """
         d_list = []
         if isinstance(func, FunctionType):
             d = self.push_function(dict(_ipython_map_func=func), targets=targets, block=False)
             d.addCallback(lambda did: self.get_pending_deferred(did, True))
-            sourceToRun = '_ipython_map_seq_result = map(_ipython_map_func, _ipython_map_seq)'
+            sourceToRun = '_ipython_map_seq_result = map(_ipython_map_func, *zip(*_ipython_map_seq))'
         elif isinstance(func, str):
             d = defer.succeed(None)
             sourceToRun = \
-                '_ipython_map_seq_result = map(%s, _ipython_map_seq)' % func
+                '_ipython_map_seq_result = map(%s, *zip(*_ipython_map_seq))' % func
         else:
             raise TypeError("func must be a function or str")
         

@@ -93,7 +93,7 @@ class FCTaskControllerFromTaskController(Referenceable):
     def remote_run(self, ptask):
         try:
             ctask = pickle.loads(ptask)
-            task = taskmodule.uncanTask(ctask)
+            task = taskmodule.uncan_task(ctask)
         except:
             d = defer.fail(pickle.UnpickleableError("Could not unmarshal task"))
         else:
@@ -201,7 +201,7 @@ class FCTaskClient(object):
             `get_task_result` to get the `TaskResult` object.
         """
         assert isinstance(task, taskmodule.Task), "task must be a Task object!"
-        ctask = taskmodule.canTask(task) # handles arbitrary function in .depend
+        ctask = taskmodule.can_task(task) # handles arbitrary function in .depend
                                 # as well as arbitrary recovery_task chains
         ptask = pickle.dumps(ctask, 2)
         d = self.remote_reference.callRemote('run', ptask)
