@@ -22,7 +22,7 @@ __docformat__ = "restructuredtext en"
 
 import wx
 from console_widget import ConsoleWidget
-
+import re
 
 import IPython
 from IPython.kernel.engineservice import EngineService
@@ -40,7 +40,15 @@ class IPythonWxController(FrontEndBase, ConsoleWidget):
 
     output_prompt = \
     '\n\x01\x1b[0;31m\x02Out[\x01\x1b[1;31m\x02%i\x01\x1b[0;31m\x02]: \x01\x1b[0m\x02'
-   
+  
+    # Are we entering multi line input?
+    multi_line_input = False
+
+    # The added tab stop to the string. It may, for instance, come from 
+    # copy and pasting something with tabs.
+    tab_stop = 0
+    # FIXME: We still have to deal with this.
+
     #--------------------------------------------------------------------------
     # Public API
     #--------------------------------------------------------------------------
@@ -121,10 +129,35 @@ class IPythonWxController(FrontEndBase, ConsoleWidget):
         """ Called when the return key is pressed in a line editing
             buffer.
         """
-        result = self.engine.shell.execute(self.get_current_edit_buffer())
-        self.render_result(result)
-        self.new_prompt(self.prompt % result['number'])
+        current_buffer = self.get_current_edit_buffer()
+        current_buffer = current_buffer.replace('\r\n', '\n')
+        current_buffer = current_buffer.replace('\t', 4*' ')
+        if (    not self.multi_line_input
+                or re.findall(r"\n[\t ]*\n[\t ]*$", current_buffer)):
+            if self.is_complete(current_buffer):
+                result = self.engine.shell.execute(current_buffer)
+                self.render_result(result)
+                self.new_prompt(self.prompt % result['number'])
+                self.multi_line_input = False
+            else:
+                if self.multi_line_input:
+                    self.write(self._get_indent_string(current_buffer[:-1]))
+                else:
+                    self.multi_line_input = True
+                    self.write('\t')
+        else:
+            self.write(self._get_indent_string(current_buffer[:-1]))
 
+
+    def _get_indent_string(self, string):
+        string = string.split('\n')[-1]
+        indent_chars = len(string) - len(string.lstrip())
+        indent_string = '\t'*(indent_chars // 4) + \
+                            ' '*(indent_chars % 4)
+
+        return indent_string
+ 
+        
 
 if __name__ == '__main__':
     class MainWindow(wx.Frame):
@@ -143,5 +176,5 @@ if __name__ == '__main__':
     frame.SetSize((780, 460))
     shell = frame.shell
 
-    #app.MainLoop()
+#    app.MainLoop()
 

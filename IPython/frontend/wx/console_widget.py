@@ -22,6 +22,8 @@ __docformat__ = "restructuredtext en"
 import wx
 import wx.stc  as  stc
 
+from wx.py import editwindow
+
 import re
 
 # FIXME: Need to provide an API for non user-generated display on the
@@ -64,7 +66,7 @@ _TRACE_STYLE  = 17
 #-------------------------------------------------------------------------------
 # The console widget class
 #-------------------------------------------------------------------------------
-class ConsoleWidget(stc.StyledTextCtrl):
+class ConsoleWidget(editwindow.EditWindow):
     """ Specialized styled text control view for console-like workflow.
 
         This widget is mainly interested in dealing with the prompt and
@@ -100,7 +102,8 @@ class ConsoleWidget(stc.StyledTextCtrl):
             'IPYTHON' show autocompletion the ipython way
             'STC" show it scintilla text control way
         """
-        stc.StyledTextCtrl.__init__(self, parent, id, pos, size, style)
+        #stc.StyledTextCtrl.__init__(self, parent, id, pos, size, style)
+        editwindow.EditWindow.__init__(self, parent, id, pos, size, style)
         self.configure_scintilla()
 
         # FIXME: we need to retrieve this from the interpreter.
