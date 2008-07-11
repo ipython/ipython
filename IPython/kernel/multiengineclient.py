@@ -31,6 +31,7 @@ from IPython.ColorANSI import TermColors
 from IPython.kernel.twistedutil import blockingCallFromThread
 from IPython.kernel import error
 from IPython.kernel.parallelfunction import ParallelFunction
+from IPython.kernel.mapper import Mapper
 from IPython.kernel import map as Map
 from IPython.kernel import multiengine as me
 from IPython.kernel.multiengine import (IFullMultiEngine,
@@ -779,29 +780,40 @@ class FullBlockingMultiEngineClient(InteractiveMultiEngineClient):
     # IMultiEngineCoordinator
     #---------------------------------------------------------------------------
              
-    def scatter(self, key, seq, style='basic', flatten=False, targets=None, block=None):
+    def scatter(self, key, seq, dist='b', flatten=False, targets=None, block=None):
         """
         Partition a Python sequence and send the partitions to a set of engines.
         """
         targets, block = self._findTargetsAndBlock(targets, block)
         return self._blockFromThread(self.smultiengine.scatter, key, seq, 
-            style, flatten, targets=targets, block=block)
+            dist, flatten, targets=targets, block=block)
     
-    def gather(self, key, style='basic', targets=None, block=None):
+    def gather(self, key, dist='b', targets=None, block=None):
         """
         Gather a partitioned sequence on a set of engines as a single local seq.
         """
         targets, block = self._findTargetsAndBlock(targets, block)
-        return self._blockFromThread(self.smultiengine.gather, key, style, 
+        return self._blockFromThread(self.smultiengine.gather, key, dist, 
             targets=targets, block=block)
     
-    def map(self, func, seq, style='basic', targets=None, block=None):
+    def _map(self, func, seq, dist='b', targets=None, block=None):
         """
         A parallelized version of Python's builtin map
         """
         targets, block = self._findTargetsAndBlock(targets, block)
-        return self._blockFromThread(self.smultiengine.map, func, seq, 
-            style, targets=targets, block=block)
+        return self._blockFromThread(self.smultiengine._map, func, seq, 
+            dist, targets=targets, block=block)
+    
+    def map(self, func, *sequences):
+        return self.mapper()(func, *sequences)
+    
+    def mapper(self, dist='b', targets='all', block=None):
+        return Mapper(self, dist, targets, block)
+    
+    def parallel(self, dist='b', targets=None, block=None):
+        targets, block = self._findTargetsAndBlock(targets, block)       
+        pf = ParallelFunction(self, dist=dist, targets=targets, block=block)
+        return pf
     
     #---------------------------------------------------------------------------
     # IMultiEngineExtras

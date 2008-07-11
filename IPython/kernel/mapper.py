@@ -1,6 +1,6 @@
 # encoding: utf-8
 
-"""A parallelized function that does scatter/execute/gather."""
+"""A parallelized version of Python's builtin map."""
 
 __docformat__ = "restructuredtext en"
 
@@ -18,30 +18,25 @@ __docformat__ = "restructuredtext en"
 from types import FunctionType
 from zope.interface import Interface, implements
 
+class IMapper(Interface):
+    
+    def __call__(func, *sequences):
+        """Do map in parallel."""
 
-class ParallelFunction(object):
-    """
-    A decorator for building parallel functions.
-    """
+class Mapper(object):
+    
+    implements(IMapper)
     
     def __init__(self, multiengine, dist='b', targets='all', block=True):
-        """
-        Create a `ParallelFunction decorator`.
-        """
         self.multiengine = multiengine
         self.dist = dist
         self.targets = targets
         self.block = block
         
-    def __call__(self, func):
-        """
-        Decorate the function to make it run in parallel.
-        """
-        assert isinstance(func, (str, FunctionType)), "func must be a fuction or str"
-        self.func = func
-        def call_function(*sequences):
-            return self.multiengine._map(self.func, sequences, dist=self.dist,
-                targets=self.targets, block=self.block)
-        return call_function
-
+    def __call__(self, func, *sequences):
+        return self.map(func, *sequences)
     
+    def map(self, func, *sequences):
+        assert isinstance(func, (str, FunctionType)), "func must be a fuction or str"
+        return self.multiengine._map(func, sequences, dist=self.dist,
+            targets=self.targets, block=self.block)

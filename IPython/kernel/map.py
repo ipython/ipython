@@ -115,7 +115,7 @@ class RoundRobinMap(Map):
         #    result.append(concat[i:totalLength:maxPartitionLength])
         return self.concatenate(listOfPartitions)
         
-styles = {'basic':Map}
+dists = {'b':Map}
 
     
     

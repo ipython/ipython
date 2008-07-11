@@ -29,6 +29,8 @@ from foolscap import Referenceable
 from IPython.kernel import error 
 from IPython.kernel.util import printer
 from IPython.kernel import map as Map
+from IPython.kernel.parallelfunction import ParallelFunction
+from IPython.kernel.mapper import Mapper
 from IPython.kernel.twistedutil import gatherBoth
 from IPython.kernel.multiengine import (MultiEngine,
     IMultiEngine,
@@ -475,7 +477,7 @@ class FCFullSynchronousMultiEngineClient(object):
         d.addCallback(create_targets)
         return d
     
-    def scatter(self, key, seq, style='basic', flatten=False, targets='all', block=True):
+    def scatter(self, key, seq, dist='b', flatten=False, targets='all', block=True):
         
         # Note: scatter and gather handle pending deferreds locally through self.pdm.
         # This enables us to collect a bunch fo deferred ids and make a secondary 
@@ -483,7 +485,7 @@ class FCFullSynchronousMultiEngineClient(object):
         # difficult to get right though.
         def do_scatter(engines):
             nEngines = len(engines)
-            mapClass = Map.styles[style]
+            mapClass = Map.dists[dist]
             mapObject = mapClass()
             d_list = []
             # Loop through and push to each engine in non-blocking mode.
@@ -541,7 +543,7 @@ class FCFullSynchronousMultiEngineClient(object):
         d.addCallback(do_scatter)
         return d
 
-    def gather(self, key, style='basic', targets='all', block=True):
+    def gather(self, key, dist='b', targets='all', block=True):
         
         # Note: scatter and gather handle pending deferreds locally through self.pdm.
         # This enables us to collect a bunch fo deferred ids and make a secondary 
@@ -549,7 +551,7 @@ class FCFullSynchronousMultiEngineClient(object):
         # difficult to get right though.
         def do_gather(engines):
             nEngines = len(engines)
-            mapClass = Map.styles[style]
+            mapClass = Map.dists[dist]
             mapObject = mapClass()
             d_list = []
             # Loop through and push to each engine in non-blocking mode.
@@ -604,14 +606,16 @@ class FCFullSynchronousMultiEngineClient(object):
         d.addCallback(do_gather)
         return d
 
-    def map(self, func, seq, style='basic', targets='all', block=True):
+    def _map(self, func, sequences, dist='b', targets='all', block=True):
         """
         Call a callable on elements of a sequence.
-        
-        map(f, range(10)) -> [f(0), f(1), f(2), ...]
-        map(f, zip(range))
         """
-        d_list = []
+        if not isinstance(sequences, (list, tuple)):
+            raise TypeError('sequences must be a list or tuple')
+        max_len = max(len(s) for s in sequences)
+        for s in sequences:
+            if len(s)!=max_len:
+                raise ValueError('all sequences must have equal length')
         if isinstance(func, FunctionType):
             d = self.push_function(dict(_ipython_map_func=func), targets=targets, block=False)
             d.addCallback(lambda did: self.get_pending_deferred(did, True))
@@ -623,12 +627,22 @@ class FCFullSynchronousMultiEngineClient(object):
         else:
             raise TypeError("func must be a function or str")
         
-        d.addCallback(lambda _: self.scatter('_ipython_map_seq', seq, style, targets=targets))
+        d.addCallback(lambda _: self.scatter('_ipython_map_seq', zip(*sequences), dist, targets=targets))
         d.addCallback(lambda _: self.execute(sourceToRun, targets=targets, block=False))
         d.addCallback(lambda did: self.get_pending_deferred(did, True))
-        d.addCallback(lambda _: self.gather('_ipython_map_seq_result', style, targets=targets, block=block))
+        d.addCallback(lambda _: self.gather('_ipython_map_seq_result', dist, targets=targets, block=block))
         return d
 
+    def map(self, func, *sequences):
+        return self.mapper()(func, *sequences)
+    
+    def mapper(self, dist='b', targets='all', block=True):
+        return Mapper(self, dist, targets, block)
+
+    def parallel(self, dist='b', targets='all', block=True):
+        pf = ParallelFunction(self, dist=dist, targets=targets, block=True)
+        return pf
+    
     #---------------------------------------------------------------------------
     # ISynchronousMultiEngineExtras related methods
     #---------------------------------------------------------------------------

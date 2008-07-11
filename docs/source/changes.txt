@@ -52,6 +52,10 @@ Bug fixes
 Backwards incompatible changes
 ------------------------------
 
+	* The keyword argument `style` has been renamed `dist` in `scatter`, `gather`
+	  and `map`.
+	* Renamed the values that the rename `dist` keyword argument can have from
+	  `'basic'` to `'b'`.
 	* IPython has a larger set of dependencies if you want all of its capabilities.
 	  See the `setup.py` script for details.
 	* The constructors for :class:`IPython.kernel.client.MultiEngineClient` and 
