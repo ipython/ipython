@@ -31,11 +31,6 @@ class LineFrontEndBase(FrontEndBase):
     # Are we entering multi line input?
     multi_line_input = False
 
-    # The added tab stop to the string. It may, for instance, come from 
-    # copy and pasting something with tabs.
-    tab_stop = 0
-    # FIXME: We still have to deal with this.
-
     #--------------------------------------------------------------------------
     # Public API
     #--------------------------------------------------------------------------
@@ -81,7 +76,7 @@ class LineFrontEndBase(FrontEndBase):
         return failure
     
 
-    def on_enter(self):
+    def _on_enter(self):
         """ Called when the return key is pressed in a line editing
             buffer.
         """
@@ -93,11 +88,14 @@ class LineFrontEndBase(FrontEndBase):
         if (    not self.multi_line_input
                 or re.findall(r"\n[\t ]*$", cleaned_buffer)):
             if self.is_complete(cleaned_buffer):
-                self._add_history(None, cleaned_buffer.rstrip())
+                self.history.input_cache[-1] = \
+                            current_buffer
                 result = self.shell.execute(cleaned_buffer)
                 self.render_result(result)
                 self.new_prompt(self.prompt % (result['number'] + 1))
                 self.multi_line_input = False
+                # Start a new empty history entry
+                self._add_history(None, '')
             else:
                 if self.multi_line_input:
                     self.write('\n' + self._get_indent_string(current_buffer))

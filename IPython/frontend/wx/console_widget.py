@@ -113,6 +113,7 @@ class ConsoleWidget(editwindow.EditWindow):
         self.autocomplete_mode = autocomplete_mode
         
         self.Bind(wx.EVT_KEY_DOWN, self._on_key_down)
+        self.Bind(wx.EVT_KEY_UP, self._on_key_up)
     
 
     def configure_scintilla(self):
@@ -124,11 +125,11 @@ class ConsoleWidget(editwindow.EditWindow):
         self.CmdKeyAssign(ord('='), stc.STC_SCMOD_CTRL|stc.STC_SCMOD_SHIFT, 
                                             stc.STC_CMD_ZOOMIN)
         
-        self.CmdKeyAssign(stc.STC_KEY_PRIOR, stc.STC_SCMOD_SHIFT,
-                                            stc.STC_CMD_PAGEUP)
+        #self.CmdKeyAssign(stc.STC_KEY_PRIOR, stc.STC_SCMOD_SHIFT,
+        #                                    stc.STC_CMD_PAGEUP)
 
-        self.CmdKeyAssign(stc.STC_KEY_NEXT, stc.STC_SCMOD_SHIFT,
-                                            stc.STC_CMD_PAGEDOWN)
+        #self.CmdKeyAssign(stc.STC_KEY_NEXT, stc.STC_SCMOD_SHIFT,
+        #                                    stc.STC_CMD_PAGEDOWN)
 
         # Keys: we need to clear some of the keys the that don't play
         # well with a console.
@@ -259,17 +260,6 @@ class ConsoleWidget(editwindow.EditWindow):
             self.StyleSetSpec(style[0], "bold,fore:%s" % style[1])
 
 
-    def removeFromTo(self, from_pos, to_pos):
-        if from_pos < to_pos:
-            self.SetSelection(from_pos, to_pos)
-            self.DeleteBack()
-
-
-    def selectFromTo(self, from_pos, to_pos):
-        self.SetSelectionStart(from_pos)
-        self.SetSelectionEnd(to_pos)
-    
-    
     def writeCompletion(self, possibilities):
         if self.autocomplete_mode == 'IPYTHON':
             max_len = len(max(possibilities, key=len))
@@ -310,6 +300,11 @@ class ConsoleWidget(editwindow.EditWindow):
         maxrange = self.GetScrollRange(wx.VERTICAL)
         self.ScrollLines(maxrange)
 
+    def on_enter(self):
+        """ Called when the return key is hit.
+        """
+        pass
+
 
     def _on_key_down(self, event, skip=True):
         """ Key press callback used for correcting behavior for 
@@ -319,22 +314,35 @@ class ConsoleWidget(editwindow.EditWindow):
             Return True if event as been catched.
         """
         catched = False
+        # Intercept some specific keys.
         if event.KeyCode == ord('L') and event.ControlDown() :
-            skip = False
             catched = True
             self.scroll_to_bottom()
+        elif event.KeyCode == wx.WXK_PAGEUP and event.ShiftDown():
+            catched = True
+            self.ScrollPages(-1)
+        elif event.KeyCode == wx.WXK_PAGEDOWN and event.ShiftDown():
+            catched = True
+            self.ScrollPages(1)
 
         if self.AutoCompActive():
             event.Skip()
         else:
-            if event.KeyCode == wx.WXK_HOME:
+            if event.KeyCode in (13, wx.WXK_NUMPAD_ENTER) and \
+                        event.Modifiers in (wx.MOD_NONE, wx.MOD_WIN):
+                catched = True
+                self._on_enter()
+
+            elif event.KeyCode == wx.WXK_HOME:
                 if event.Modifiers in (wx.MOD_NONE, wx.MOD_WIN):
                     self.GotoPos(self.current_prompt_pos)
                     catched = True
 
                 elif event.Modifiers in  (wx.MOD_SHIFT, wx.MOD_WIN) :
-                    self.selectFromTo(self.current_prompt_pos, 
-                                                        self.GetCurrentPos())
+                    # FIXME: This behavior is not ideal: if the selection
+                    # is already started, it will jump.
+                    self.SetSelectionStart(self.current_prompt_pos) 
+                    self.SetSelectionEnd(self.GetCurrentPos())
                     catched = True
 
             elif event.KeyCode == wx.WXK_UP:
@@ -355,14 +363,16 @@ class ConsoleWidget(editwindow.EditWindow):
             if skip and not catched:
                 event.Skip()
 
-            if event.KeyCode not in (wx.WXK_PAGEUP, wx.WXK_PAGEDOWN)\
-                    and event.Modifiers in (wx.MOD_NONE, wx.MOD_WIN,
-                                                            wx.MOD_SHIFT):
-                # If cursor is outside the editing region, put it back.
-                if self.GetCurrentPos() < self.current_prompt_pos:
-                    self.GotoPos(self.current_prompt_pos)
-
         return catched
+
+
+    def _on_key_up(self, event, skip=True):
+        """ If cursor is outside the editing region, put it back.
+        """
+        event.Skip()
+        if self.GetCurrentPos() < self.current_prompt_pos:
+            self.GotoPos(self.current_prompt_pos)
+
 
 
 

@@ -141,7 +141,7 @@ class IFrontEnd(Interface):
         pass
     
     
-    def get_history_previous(currentBlock):
+    def get_history_previous(current_block):
         """Returns the block previous in  the history. Saves currentBlock if
         the history_cursor is currently at the end of the input history"""
         pass
@@ -294,14 +294,14 @@ class FrontEndBase(object):
         return result
     
     
-    def get_history_previous(self, currentBlock):
+    def get_history_previous(self, current_block):
         """ Returns previous history string and decrement history cursor.
         """
         command = self.history.get_history_item(self.history_cursor - 1)
         
         if command is not None:
-            if(self.history_cursor == len(self.history.input_cache)):
-                self.history.input_cache[self.history_cursor] = currentBlock
+            if(self.history_cursor+1 == len(self.history.input_cache)):
+                self.history.input_cache[self.history_cursor] = current_block
             self.history_cursor -= 1
         return command
     

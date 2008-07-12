@@ -63,12 +63,8 @@ class IPythonWxController(LineFrontEndBase, ConsoleWidget):
             widget handle them, and put our logic afterward.
         """
         current_line_number = self.GetCurrentLine()
-        # Capture enter
-        if event.KeyCode in (13, wx.WXK_NUMPAD_ENTER) and \
-                event.Modifiers in (wx.MOD_NONE, wx.MOD_WIN):
-            self.on_enter()
         # Up history
-        elif event.KeyCode == wx.WXK_UP and (
+        if event.KeyCode == wx.WXK_UP and (
                 ( current_line_number == self.current_prompt_line and
                     event.Modifiers in (wx.MOD_NONE, wx.MOD_WIN) ) 
                 or event.ControlDown() ):
@@ -76,6 +72,9 @@ class IPythonWxController(LineFrontEndBase, ConsoleWidget):
                                         self.get_current_edit_buffer())
             if new_buffer is not None:
                 self.replace_current_edit_buffer(new_buffer)
+                if self.GetCurrentLine() > self.current_prompt_line:
+                    # Go to first line, for seemless history up.
+                    self.GotoPos(self.current_prompt_pos)
         # Down history
         elif event.KeyCode == wx.WXK_DOWN and (
                 ( current_line_number == self.LineCount -1 and
@@ -85,7 +84,7 @@ class IPythonWxController(LineFrontEndBase, ConsoleWidget):
             if new_buffer is not None:
                 self.replace_current_edit_buffer(new_buffer)
         else:
-            ConsoleWidget._on_key_down(self, event, skip=True)
+            ConsoleWidget._on_key_down(self, event, skip=skip)
 
 
        

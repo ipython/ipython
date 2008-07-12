@@ -56,7 +56,7 @@ class History(object):
         """ Returns the history string at index, where index is the
         distance from the end (positive). 
         """
-        if index>0 and index<len(self.input_cache):
+        if index>=0 and index<len(self.input_cache):
             return self.input_cache[index]
 
 
