@@ -102,7 +102,6 @@ class ConsoleWidget(editwindow.EditWindow):
             'IPYTHON' show autocompletion the ipython way
             'STC" show it scintilla text control way
         """
-        #stc.StyledTextCtrl.__init__(self, parent, id, pos, size, style)
         editwindow.EditWindow.__init__(self, parent, id, pos, size, style)
         self.configure_scintilla()
 
@@ -113,7 +112,7 @@ class ConsoleWidget(editwindow.EditWindow):
 
         self.autocomplete_mode = autocomplete_mode
         
-        self.Bind(wx.EVT_KEY_DOWN, self._onKeypress)
+        self.Bind(wx.EVT_KEY_DOWN, self._on_key_down)
     
 
     def configure_scintilla(self):
@@ -146,7 +145,6 @@ class ConsoleWidget(editwindow.EditWindow):
 
         self._apply_style()
         
-        self.indent = 0
         self.color_pat = re.compile('\x01?\x1b\[(.*?)m\x02?')
 
         #self.SetEdgeMode(stc.STC_EDGE_LINE)
@@ -173,9 +171,6 @@ class ConsoleWidget(editwindow.EditWindow):
         self.StyleSetSpec(stc.STC_P_DEFNAME, p['def'])
         self.StyleSetSpec(stc.STC_P_OPERATOR, p['operator'])
         self.StyleSetSpec(stc.STC_P_COMMENTBLOCK, p['comment'])
-
-
-
 
 
     def write(self, text):
@@ -215,10 +210,6 @@ class ConsoleWidget(editwindow.EditWindow):
         self.current_prompt_pos = self.GetLength()
         self.current_prompt_line = self.GetCurrentLine()
         
-        autoindent = self.indent * ' '
-        autoindent = autoindent.replace('    ','\t')
-        self.write(autoindent)
-
         
     def replace_current_edit_buffer(self, text):
         """ Replace currently entered command line with given text.
@@ -243,39 +234,6 @@ class ConsoleWidget(editwindow.EditWindow):
         """ Applies the colors for the different text elements and the
             carret.
         """
-        # FIXME: We need to do something for the fonts, but this is
-        # clearly not the right option.
-        #we define platform specific fonts
-#        if wx.Platform == '__WXMSW__':
-#            faces = { 'times': 'Times New Roman',
-#                      'mono' : 'Courier New',
-#                      'helv' : 'Arial',
-#                      'other': 'Comic Sans MS',
-#                      'size' : 10,
-#                      'size2': 8,
-#                     }
-#        elif wx.Platform == '__WXMAC__':
-#            faces = { 'times': 'Times New Roman',
-#                      'mono' : 'Monaco',
-#                      'helv' : 'Arial',
-#                      'other': 'Comic Sans MS',
-#                      'size' : 10,
-#                      'size2': 8,
-#                     }
-#        else:
-#            faces = { 'times': 'Times',
-#                      'mono' : 'Courier',
-#                      'helv' : 'Helvetica',
-#                      'other': 'new century schoolbook',
-#                      'size' : 10,
-#                      'size2': 8,
-#                     }
-#        self.StyleSetSpec(stc.STC_STYLE_DEFAULT, 
-#                          "fore:%s,back:%s,size:%d,face:%s" 
-#                                    % (self.ANSI_STYLES['0;30'][1],
-#                          self.background_color,
-#                          faces['size'], faces['mono']))
-
         self.SetCaretForeground(self.carret_color)
 
         self.StyleClearAll()
@@ -335,7 +293,7 @@ class ConsoleWidget(editwindow.EditWindow):
             self.AutoCompShow(len(last_word), " ".join(possibilities))
 
 
-    def _onKeypress(self, event, skip=True):
+    def _on_key_down(self, event, skip=True):
         """ Key press callback used for correcting behavior for 
             console-like interfaces: the cursor is constraint to be after
             the last prompt.
@@ -343,6 +301,11 @@ class ConsoleWidget(editwindow.EditWindow):
             Return True if event as been catched.
         """
         catched = False
+        # Intercept annoying entries (eg: ctrl-D, ctrl-L)
+        if event.KeyCode in (68, 76) and event.ControlDown() :
+            skip = False
+            catched = True
+
         if self.AutoCompActive():
             event.Skip()
         else:
@@ -351,7 +314,7 @@ class ConsoleWidget(editwindow.EditWindow):
                     self.GotoPos(self.current_prompt_pos)
                     catched = True
 
-                elif event.Modifiers == wx.MOD_SHIFT:
+                elif event.Modifiers in  (wx.MOD_SHIFT, wx.MOD_WIN) :
                     self.selectFromTo(self.current_prompt_pos, 
                                                         self.GetCurrentPos())
                     catched = True
@@ -383,37 +346,6 @@ class ConsoleWidget(editwindow.EditWindow):
 
         return catched
 
-
-    def OnUpdateUI(self, evt):
-        # check for matching braces
-        braceAtCaret = -1
-        braceOpposite = -1
-        charBefore = None
-        caretPos = self.GetCurrentPos()
-
-        if caretPos > 0:
-            charBefore = self.GetCharAt(caretPos - 1)
-            styleBefore = self.GetStyleAt(caretPos - 1)
-
-        # check before
-        if charBefore and chr(charBefore) in "[]{}()" and styleBefore == stc.STC_P_OPERATOR:
-            braceAtCaret = caretPos - 1
-
-        # check after
-        if braceAtCaret < 0:
-            charAfter = self.GetCharAt(caretPos)
-            styleAfter = self.GetStyleAt(caretPos)
-
-            if charAfter and chr(charAfter) in "[]{}()" and styleAfter == stc.STC_P_OPERATOR:
-                braceAtCaret = caretPos
-
-        if braceAtCaret >= 0:
-            braceOpposite = self.BraceMatch(braceAtCaret)
-
-        if braceAtCaret != -1  and braceOpposite == -1:
-            self.BraceBadLight(braceAtCaret)
-        else:
-            self.BraceHighlight(braceAtCaret, braceOpposite)
 
 
 if __name__ == '__main__':
