@@ -35,7 +35,6 @@ except ImportError:
 
 from IPython.kernel.core.history import FrontEndHistory
 from IPython.kernel.core.util import Bunch
-from IPython.kernel.engineservice import IEngineCore
 
 ##############################################################################
 # TEMPORARY!!! fake configuration, while we decide whether to use tconfig or
