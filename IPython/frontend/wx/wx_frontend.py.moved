@@ -26,7 +26,7 @@ from console_widget import ConsoleWidget
 import re
 
 import IPython
-from IPython.kernel.engineservice import EngineService
+from IPython.kernel.core.interpreter import Interpreter
 from IPython.frontend.frontendbase import FrontEndBase
 
 #-------------------------------------------------------------------------------
@@ -59,7 +59,7 @@ class IPythonWxController(FrontEndBase, ConsoleWidget):
         """ Create Shell instance.
         """
         ConsoleWidget.__init__(self, parent, id, pos, size, style)
-        FrontEndBase.__init__(self, engine=EngineService(),
+        FrontEndBase.__init__(self, shell=Interpreter(),
                                     )
 
         # FIXME: Something is wrong with the history, I instanciate it
@@ -67,7 +67,7 @@ class IPythonWxController(FrontEndBase, ConsoleWidget):
         self.lines = {}
 
         # Start the IPython engine
-        self.engine.startService()
+        self.shell
         
         # Capture Character keys
         self.Bind(wx.EVT_KEY_DOWN, self._on_key_down)
@@ -75,12 +75,6 @@ class IPythonWxController(FrontEndBase, ConsoleWidget):
         #FIXME: print banner.
         banner = """IPython1 %s -- An enhanced Interactive Python.""" \
                             % IPython.__version__
-    
-    
-    def appWillTerminate_(self, notification):
-        """appWillTerminate"""
-        
-        self.engine.stopService()
     
     
     def complete(self, token):
@@ -96,7 +90,7 @@ class IPythonWxController(FrontEndBase, ConsoleWidget):
         IPython.kernel.engineservice.IEngineBase.complete
         """
         
-        return self.engine.complete(token)
+        return self.shell.complete(token)
     
     
     def render_result(self, result):
@@ -162,7 +156,7 @@ class IPythonWxController(FrontEndBase, ConsoleWidget):
                 or re.findall(r"\n[\t ]*$", cleaned_buffer)):
             if self.is_complete(cleaned_buffer):
                 self._add_history(None, cleaned_buffer.rstrip())
-                result = self.engine.shell.execute(cleaned_buffer)
+                result = self.shell.execute(cleaned_buffer)
                 self.render_result(result)
                 self.new_prompt(self.prompt % (result['number'] + 1))
                 self.multi_line_input = False
