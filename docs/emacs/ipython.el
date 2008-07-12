@@ -9,7 +9,7 @@
 (defconst ipython-version "$Revision: 2927 $"
   "VC version number.")
 
-;;; Commentary 
+;;; Commentary
 ;; This library makes all the functionality python-mode has when running with
 ;; the normal python-interpreter available for ipython, too. It also enables a
 ;; persistent py-shell command history across sessions (if you exit python
@@ -31,13 +31,20 @@
 ;; To start an interactive ipython session run `py-shell' with ``M-x py-shell``
 ;; (or the default keybinding ``C-c C-!``).
 ;;
+;; You can customize the arguments passed to the IPython instance at startup by
+;; setting the ``py-python-command-args`` variable.  For example, to start
+;; always in ``pylab`` mode with hardcoded light-background colors, you can
+;; use::
+;;
+;; (setq py-python-command-args '("-pylab" "-colors" "LightBG"))
+;;
+;;
 ;; NOTE: This mode is currently somewhat alpha and although I hope that it
 ;; will work fine for most cases, doing certain things (like the
 ;; autocompletion and a decent scheme to switch between python interpreters)
 ;; properly will also require changes to ipython that will likely have to wait
 ;; for a larger rewrite scheduled some time in the future.
-;; 
-;; Also note that you currently NEED THE CVS VERSION OF PYTHON.EL.
+;;
 ;;
 ;; Further note that I don't know whether this runs under windows or not and
 ;; that if it doesn't I can't really help much, not being afflicted myself.
@@ -46,14 +53,15 @@
 ;; Hints for effective usage
 ;; -------------------------
 ;;
-;; - IMO the best feature by far of the ipython/emacs combo is how much easier it
-;;   makes it to find and fix bugs thanks to the ``%pdb on``/ pdbtrack combo. Try
-;;   it: first in the ipython to shell do ``%pdb on`` then do something that will
-;;   raise an exception (FIXME nice example) -- and be amazed how easy it is to
-;;   inspect the live objects in each stack frames and to jump to the
-;;   corresponding sourcecode locations as you walk up and down the stack trace
-;;   (even without ``%pdb on`` you can always use ``C-c -`` (`py-up-exception')
-;;   to jump to the corresponding source code locations).
+;; - IMO the best feature by far of the ipython/emacs combo is how much easier
+;;   it makes it to find and fix bugs thanks to the ``%pdb on or %debug``/
+;;   pdbtrack combo. Try it: first in the ipython to shell do ``%pdb on`` then
+;;   do something that will raise an exception (FIXME nice example), or type
+;;   ``%debug`` after the exception has been raised.  YOu'll be amazed at how
+;;   easy it is to inspect the live objects in each stack frames and to jump to
+;;   the corresponding sourcecode locations as you walk up and down the stack
+;;   trace (even without ``%pdb on`` you can always use ``C-c -``
+;;   (`py-up-exception') to jump to the corresponding source code locations).
 ;;
 ;; - emacs gives you much more powerful commandline editing and output searching
 ;;   capabilities than ipython-standalone -- isearch is your friend if you
@@ -65,9 +73,9 @@
 ;;   ipython, you can change ``meta p`` etc. for ``control p``)::
 ;;
 ;;         (require 'comint)
-;;         (define-key comint-mode-map [(meta p)] 
+;;         (define-key comint-mode-map [(meta p)]
 ;;           'comint-previous-matching-input-from-input)
-;;         (define-key comint-mode-map [(meta n)] 
+;;         (define-key comint-mode-map [(meta n)]
 ;;           'comint-next-matching-input-from-input)
 ;;         (define-key comint-mode-map [(control meta n)]
 ;;            'comint-next-input)
@@ -79,8 +87,8 @@
 ;;   variables comes later).
 ;;
 ;; Please send comments and feedback to the ipython-list
-;; (<ipython-user@scipy.net>) where I (a.s.) or someone else will try to
-;; answer them (it helps if you specify your emacs version, OS etc; 
+;; (<ipython-user@scipy.org>) where I (a.s.) or someone else will try to
+;; answer them (it helps if you specify your emacs version, OS etc;
 ;; familiarity with <http://www.catb.org/~esr/faqs/smart-questions.html> might
 ;; speed up things further).
 ;;
@@ -106,10 +114,10 @@
 ;;      - neither::
 ;;
 ;;         (py-shell "-c print 'FOOBAR'")
-;;       
+;;
 ;;        nor::
-;;       
-;;         (let ((py-python-command-args (append py-python-command-args 
+;;
+;;         (let ((py-python-command-args (append py-python-command-args
 ;;                                              '("-c" "print 'FOOBAR'"))))
 ;;           (py-shell))
 ;;
@@ -127,7 +135,7 @@
 
 (defcustom ipython-command "ipython"
   "*Shell command used to start ipython."
-  :type 'string 
+  :type 'string
   :group 'python)
 
 ;; Users can set this to nil
@@ -138,7 +146,7 @@
 (defvar ipython-backup-of-py-python-command nil
   "HACK")
 
-  
+
 (defvar ipython-de-input-prompt-regexp "\\(?:
 In \\[[0-9]+\\]: *.*
 ----+> \\(.*
@@ -181,16 +189,16 @@ the second for a 'normal' command, and the third for a multiline command.")
       ;;XXX this is really just a cheap hack, it only completes symbols in the
       ;;interactive session -- useful nonetheless.
       (define-key py-mode-map [(meta tab)] 'ipython-complete)
-      
+
       )
     (add-hook 'py-shell-hook 'ipython-shell-hook)
     ;; Regular expression that describes tracebacks for IPython in context and
-    ;; verbose mode. 
-  
+    ;; verbose mode.
+
     ;;Adapt python-mode settings for ipython.
     ;; (this works for %xmode 'verbose' or 'context')
 
-    ;; XXX putative regexps for syntax errors; unfortunately the 
+    ;; XXX putative regexps for syntax errors; unfortunately the
     ;;     current python-mode traceback-line-re scheme is too primitive,
     ;;     so it's either matching syntax errors, *or* everything else
     ;;     (XXX: should ask Fernando for a change)
@@ -200,20 +208,20 @@ the second for a 'normal' command, and the third for a multiline command.")
     (setq py-traceback-line-re
           "\\(^[^\t >].+?\\.py\\).*\n   +[0-9]+[^\00]*?\n-+> \\([0-9]+\\)+")
 
-    
+
     ;; Recognize the ipython pdb, whose prompt is 'ipdb>' or  'ipydb>'
     ;;instead of '(Pdb)'
     (setq py-pdbtrack-input-prompt "\n[(<]*[Ii]?[Pp]y?db[>)]+ ")
     (setq pydb-pydbtrack-input-prompt "\n[(]*ipydb[>)]+ ")
-    
+
     (setq py-shell-input-prompt-1-regexp "^In \\[[0-9]+\\]: *"
           py-shell-input-prompt-2-regexp "^   [.][.][.]+: *" )
     ;; select a suitable color-scheme
     (unless (member "-colors" py-python-command-args)
-      (setq py-python-command-args 
-            (nconc py-python-command-args 
+      (setq py-python-command-args
+            (nconc py-python-command-args
                    (list "-colors"
-                         (cond  
+                         (cond
                            ((eq frame-background-mode 'dark)
                             "Linux")
                            ((eq frame-background-mode 'light)
@@ -253,7 +261,7 @@ buffer already exists."
 
 (defadvice py-execute-region (around py-execute-buffer-ensure-process)
   "HACK: if `py-shell' is not active or ASYNC is explicitly desired, fall back
-  to python instead of ipython." 
+  to python instead of ipython."
   (let ((py-which-shell (if (and (comint-check-proc "*Python*") (not async))
 			    py-python-command
 			  ipython-backup-of-py-python-command)))
@@ -267,14 +275,14 @@ be used in doctests. Example:
 
 
     In [1]: import sys
-    
+
     In [2]: sys.stdout.write 'Hi!\n'
     ------> sys.stdout.write ('Hi!\n')
     Hi!
-    
+
     In [3]: 3 + 4
     Out[3]: 7
-    
+
 gets converted to:
 
     >>> import sys
@@ -288,7 +296,7 @@ gets converted to:
   ;(message (format "###DEBUG s:%de:%d" start end))
   (save-excursion
     (save-match-data
-      ;; replace ``In [3]: bla`` with ``>>> bla`` and 
+      ;; replace ``In [3]: bla`` with ``>>> bla`` and
       ;;         ``... :   bla`` with ``...    bla``
       (goto-char start)
       (while (re-search-forward ipython-de-input-prompt-regexp end t)
@@ -302,7 +310,7 @@ gets converted to:
       (while (re-search-forward ipython-de-output-prompt-regexp end t)
         (replace-match "" t nil)))))
 
-(defvar ipython-completion-command-string 
+(defvar ipython-completion-command-string
   "print ';'.join(__IP.Completer.all_completions('%s')) #PYTHON-MODE SILENT\n"
   "The string send to ipython to query for all possible completions")
 
@@ -332,19 +340,19 @@ in the current *Python* session."
              (completion-table nil)
              completion
              (comint-output-filter-functions
-              (append comint-output-filter-functions 
+              (append comint-output-filter-functions
                       '(ansi-color-filter-apply
-                        (lambda (string) 
+                        (lambda (string)
                                         ;(message (format "DEBUG filtering: %s" string))
                           (setq ugly-return (concat ugly-return string))
-                          (delete-region comint-last-output-start 
+                          (delete-region comint-last-output-start
                                          (process-mark (get-buffer-process (current-buffer)))))))))
                                         ;(message (format "#DEBUG pattern: '%s'" pattern))
-        (process-send-string python-process 
+        (process-send-string python-process
                               (format ipython-completion-command-string pattern))
         (accept-process-output python-process)
                                         ;(message (format "DEBUG return: %s" ugly-return))
-        (setq completions 
+        (setq completions
               (split-string (substring ugly-return 0 (position ?\n ugly-return)) sep))
         (setq completion-table (loop for str in completions
                                      collect (list str nil)))
@@ -376,22 +384,22 @@ in the current *Python* session."
            ;; to let ipython have the complete line, so that context can be used
            ;; to do things like filename completion etc.
            (beg (save-excursion (skip-chars-backward "a-z0-9A-Z_./" (point-at-bol))
-                                (point))) 
+                                (point)))
            (end (point))
            (pattern (buffer-substring-no-properties beg end))
            (completions nil)
            (completion-table nil)
            completion
          (comint-preoutput-filter-functions
-          (append comint-preoutput-filter-functions 
+          (append comint-preoutput-filter-functions
                   '(ansi-color-filter-apply
-                    (lambda (string) 
+                    (lambda (string)
                       (setq ugly-return (concat ugly-return string))
                       "")))))
-      (process-send-string python-process 
+      (process-send-string python-process
                             (format ipython-completion-command-string pattern))
       (accept-process-output python-process)
-      (setq completions 
+      (setq completions
             (split-string (substring ugly-return 0 (position ?\n ugly-return)) sep))
                                         ;(message (format "DEBUG completions: %S" completions))
       (setq completion-table (loop for str in completions

@@ -18,7 +18,7 @@ configuration files are (in your ``~/.ipython`` directory):
 
 To create these files for the first time, do the following::
 
-	from ipython1.kernel.config import config_manager as kernel_config
+	from IPython.kernel.config import config_manager as kernel_config
 	kernel_config.write_default_config_file()
 
 But, you should only need to do this if you need to modify the defaults. If needed

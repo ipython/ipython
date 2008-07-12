@@ -58,12 +58,14 @@ def start_engine():
     kernel_config = kernel_config_manager.get_config_obj()
     core_config = core_config_manager.get_config_obj()
     
+
     # Execute the mpi import statement that needs to call MPI_Init
+    global mpi
     mpikey = kernel_config['mpi']['default']
     mpi_import_statement = kernel_config['mpi'].get(mpikey, None)
     if mpi_import_statement is not None:
         try:
-            exec mpi_import_statement in locals(), globals()
+            exec mpi_import_statement in globals()
         except:
             mpi = None
     else:

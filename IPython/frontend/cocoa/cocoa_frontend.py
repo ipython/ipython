@@ -24,12 +24,14 @@ __docformat__ = "restructuredtext en"
 # Imports
 #-----------------------------------------------------------------------------
 
+import sys
 import objc
 import uuid
 
 from Foundation import NSObject, NSMutableArray, NSMutableDictionary,\
                         NSLog, NSNotificationCenter, NSMakeRange,\
-                        NSLocalizedString, NSIntersectionRange
+                        NSLocalizedString, NSIntersectionRange,\
+                        NSString, NSAutoreleasePool
                         
 from AppKit import NSApplicationWillTerminateNotification, NSBeep,\
                     NSTextView, NSRulerView, NSVerticalRuler
@@ -38,7 +40,7 @@ from pprint import saferepr
 
 import IPython
 from IPython.kernel.engineservice import ThreadedEngineService
-from IPython.frontend.frontendbase import FrontEndBase
+from IPython.frontend.frontendbase import AsyncFrontEndBase
 
 from twisted.internet.threads import blockingCallFromThread
 from twisted.python.failure import Failure
@@ -52,17 +54,57 @@ from twisted.python.failure import Failure
 #       ThreadedEngineService?
 #   2. integrate Xgrid launching of engines
         
+class AutoreleasePoolWrappedThreadedEngineService(ThreadedEngineService):
+    """Wrap all blocks in an NSAutoreleasePool"""
     
+    def wrapped_execute(self, msg, lines):
+        """wrapped_execute"""
+        try:
+            p = NSAutoreleasePool.alloc().init()
+            result = self.shell.execute(lines)
+        except Exception,e:
+            # This gives the following:
+            # et=exception class
+            # ev=exception class instance
+            # tb=traceback object
+            et,ev,tb = sys.exc_info()
+            # This call adds attributes to the exception value
+            et,ev,tb = self.shell.formatTraceback(et,ev,tb,msg)
+            # Add another attribute
+            
+            # Create a new exception with the new attributes
+            e = et(ev._ipython_traceback_text)
+            e._ipython_engine_info = msg
+            
+            # Re-raise
+            raise e
+        finally:
+            p.drain()
+        
+        return result
+    
+    def execute(self, lines):
+        # Only import this if we are going to use this class
+        from twisted.internet import threads
+        
+        msg = {'engineid':self.id,
+               'method':'execute',
+               'args':[lines]}
+        
+        d = threads.deferToThread(self.wrapped_execute, msg, lines)
+        d.addCallback(self.addIDToResult)
+        return d
 
 
-class IPythonCocoaController(NSObject, FrontEndBase):
+class IPythonCocoaController(NSObject, AsyncFrontEndBase):
     userNS = objc.ivar() #mirror of engine.user_ns (key=>str(value))
     waitingForEngine = objc.ivar().bool()
     textView = objc.IBOutlet()
     
     def init(self):
         self = super(IPythonCocoaController, self).init()
-        FrontEndBase.__init__(self, engine=ThreadedEngineService())
+        AsyncFrontEndBase.__init__(self,
+                    engine=AutoreleasePoolWrappedThreadedEngineService())
         if(self != None):
             self._common_init()
         
@@ -133,13 +175,43 @@ class IPythonCocoaController(NSObject, FrontEndBase):
     def execute(self, block, blockID=None):
         self.waitingForEngine = True
         self.willChangeValueForKey_('commandHistory')
-        d = super(IPythonCocoaController, self).execute(block, blockID)
+        d = super(IPythonCocoaController, self).execute(block,
+                                                        blockID)
         d.addBoth(self._engine_done)
         d.addCallback(self._update_user_ns)
         
         return d
     
+    
+    def push_(self, namespace):
+        """Push dictionary of key=>values to python namespace"""
         
+        self.waitingForEngine = True
+        self.willChangeValueForKey_('commandHistory')
+        d = self.engine.push(namespace)
+        d.addBoth(self._engine_done)
+        d.addCallback(self._update_user_ns)
+    
+    
+    def pull_(self, keys):
+        """Pull keys from python namespace"""
+        
+        self.waitingForEngine = True
+        result = blockingCallFromThread(self.engine.pull, keys)
+        self.waitingForEngine = False
+    
+    @objc.signature('v@:@I')
+    def executeFileAtPath_encoding_(self, path, encoding):
+        """Execute file at path in an empty namespace. Update the engine
+        user_ns with the resulting locals."""
+        
+        lines,err = NSString.stringWithContentsOfFile_encoding_error_(
+            path,
+            encoding,
+            None)
+        self.engine.execute(lines)
+    
+    
     def _engine_done(self, x):
         self.waitingForEngine = False
         self.didChangeValueForKey_('commandHistory')
@@ -166,14 +238,14 @@ class IPythonCocoaController(NSObject, FrontEndBase):
         self.didChangeValueForKey_('userNS')
     
     
-    def update_cell_prompt(self, result):
+    def update_cell_prompt(self, result, blockID=None):
         if(isinstance(result, Failure)):
-            blockID = result.blockID
+            self.insert_text(self.input_prompt(),
+                textRange=NSMakeRange(self.blockRanges[blockID].location,0),
+                scrollToVisible=False
+                )
         else:
-            blockID = result['blockID']
-        
-        
-        self.insert_text(self.input_prompt(result=result),
+            self.insert_text(self.input_prompt(number=result['number']),
                 textRange=NSMakeRange(self.blockRanges[blockID].location,0),
                 scrollToVisible=False
                 )
@@ -188,7 +260,7 @@ class IPythonCocoaController(NSObject, FrontEndBase):
         
         #print inputRange,self.current_block_range()
         self.insert_text('\n' +
-                self.output_prompt(result) +
+                self.output_prompt(number=result['number']) +
                 result.get('display',{}).get('pprint','') +
                 '\n\n',
                 textRange=NSMakeRange(inputRange.location+inputRange.length,
@@ -197,7 +269,11 @@ class IPythonCocoaController(NSObject, FrontEndBase):
     
         
     def render_error(self, failure):
-        self.insert_text('\n\n'+str(failure)+'\n\n')
+        self.insert_text('\n' +
+                        self.output_prompt() +
+                        '\n' +
+                        failure.getErrorMessage() +
+                        '\n\n')
         self.start_new_block()
         return failure
     
@@ -288,9 +364,13 @@ class IPythonCocoaController(NSObject, FrontEndBase):
     def current_indent_string(self):
         """returns string for indent or None if no indent"""
         
-        if(len(self.current_block()) > 0):
-            lines = self.current_block().split('\n')
-            currentIndent = len(lines[-1]) - len(lines[-1])
+        return self._indent_for_block(self.current_block())
+    
+    
+    def _indent_for_block(self, block):
+        lines = block.split('\n')
+        if(len(lines) > 1):
+            currentIndent = len(lines[-1]) - len(lines[-1].lstrip())
             if(currentIndent == 0):
                 currentIndent = self.tabSpaces
         

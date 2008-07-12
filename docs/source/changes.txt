@@ -29,11 +29,22 @@ New features
 	  Development Team" as the copyright holder.  We give more details about exactly
 	  what this means in this file.  All developer should read this and use the new
 	  banner in all IPython source code files.
-        * sh profile: ./foo runs foo as system command, no need to do !./foo anymore
+	* sh profile: ./foo runs foo as system command, no need to do !./foo anymore
+	* String lists now support 'sort(field, nums = True)' method (to easily
+	  sort system command output). Try it with 'a = !ls -l ; a.sort(1, nums=1)'
+	* '%cpaste foo' now assigns the pasted block as string list, instead of string
+	* The ipcluster script now run by default with no security.  This is done because
+	  the main usage of the script is for starting things on localhost.  Eventually
+	  when ipcluster is able to start things on other hosts, we will put security
+	  back.
+
+	
 
 Bug fixes
 ---------
 
+	* The :mod:`IPython.kernel.scripts.ipengine` script was exec'ing mpi_import_statement
+	  incorrectly, which was leading the engine to crash when mpi was enabled.
 	* A few subpackages has missing `__init__.py` files.
 	* The documentation is only created is Sphinx is found.  Previously, the `setup.py`
 	  script would fail if it was missing.
