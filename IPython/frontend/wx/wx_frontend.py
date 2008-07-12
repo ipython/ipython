@@ -203,5 +203,5 @@ if __name__ == '__main__':
     frame.SetSize((660, 460))
     self = frame.shell
 
-#    app.MainLoop()
+    app.MainLoop()
 

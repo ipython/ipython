@@ -123,6 +123,19 @@ class ConsoleWidget(editwindow.EditWindow):
         # Also allow Ctrl Shift "=" for poor non US keyboard users. 
         self.CmdKeyAssign(ord('='), stc.STC_SCMOD_CTRL|stc.STC_SCMOD_SHIFT, 
                                             stc.STC_CMD_ZOOMIN)
+        
+        self.CmdKeyAssign(stc.STC_KEY_PRIOR, stc.STC_SCMOD_SHIFT,
+                                            stc.STC_CMD_PAGEUP)
+
+        self.CmdKeyAssign(stc.STC_KEY_NEXT, stc.STC_SCMOD_SHIFT,
+                                            stc.STC_CMD_PAGEDOWN)
+
+        # Keys: we need to clear some of the keys the that don't play
+        # well with a console.
+        self.CmdKeyClear(ord('D'), stc.STC_SCMOD_CTRL)
+        self.CmdKeyClear(ord('L'), stc.STC_SCMOD_CTRL)
+        self.CmdKeyClear(ord('T'), stc.STC_SCMOD_CTRL)
+
 
         self.SetEOLMode(stc.STC_EOL_CRLF)
         self.SetWrapMode(stc.STC_WRAP_CHAR)
@@ -292,6 +305,11 @@ class ConsoleWidget(editwindow.EditWindow):
                 last_word = last_word.split(breaker)[-1]
             self.AutoCompShow(len(last_word), " ".join(possibilities))
 
+    
+    def scroll_to_bottom(self):
+        maxrange = self.GetScrollRange(wx.VERTICAL)
+        self.ScrollLines(maxrange)
+
 
     def _on_key_down(self, event, skip=True):
         """ Key press callback used for correcting behavior for 
@@ -301,10 +319,10 @@ class ConsoleWidget(editwindow.EditWindow):
             Return True if event as been catched.
         """
         catched = False
-        # Intercept annoying entries (eg: ctrl-D, ctrl-L)
-        if event.KeyCode in (68, 76) and event.ControlDown() :
+        if event.KeyCode == ord('L') and event.ControlDown() :
             skip = False
             catched = True
+            self.scroll_to_bottom()
 
         if self.AutoCompActive():
             event.Skip()
