@@ -40,7 +40,7 @@ from pprint import saferepr
 
 import IPython
 from IPython.kernel.engineservice import ThreadedEngineService
-from IPython.frontend.frontendbase import AsyncFrontEndBase
+from IPython.frontend.asyncfrontendbase import AsyncFrontEndBase
 
 from twisted.internet.threads import blockingCallFromThread
 from twisted.python.failure import Failure
