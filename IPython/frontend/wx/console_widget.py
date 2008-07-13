@@ -73,6 +73,8 @@ class ConsoleWidget(editwindow.EditWindow):
         keeping the cursor inside the editing line.
     """
 
+    title = 'Console'
+
     style = _DEFAULT_STYLE.copy()
 
     # Translation table from ANSI escape sequences to color. Override
@@ -158,8 +160,10 @@ class ConsoleWidget(editwindow.EditWindow):
         self.SetMarginWidth(2, 0)
 
         self._apply_style()
-        
+
+        # Xterm escape sequences
         self.color_pat = re.compile('\x01?\x1b\[(.*?)m\x02?')
+        self.title_pat = re.compile('\x1b]0;(.*?)\x07')
 
         #self.SetEdgeMode(stc.STC_EDGE_LINE)
         #self.SetEdgeColumn(80)
@@ -191,11 +195,16 @@ class ConsoleWidget(editwindow.EditWindow):
         """ Write given text to buffer, while translating the ansi escape
             sequences.
         """
+        title = self.title_pat.split(text)
+        if len(title)>0:
+            self.title = title[-1]
+
+        text = self.title_pat.sub('', text)
         segments = self.color_pat.split(text)
         segment = segments.pop(0)
         self.StartStyling(self.GetLength(), 0xFF)
         self.AppendText(segment)
-                
+        
         if segments:
             ansi_tags = self.color_pat.findall(text)
 
