@@ -476,11 +476,12 @@ class SystemExec:
      - bq: alias to getoutput
 
     An instance can then be created as:
-     >>> sysexec = SystemExec(verbose=1,debug=0,header='Calling: ')
+    >>> sysexec = SystemExec(verbose=1,debug=0,header='Calling: ')
 
     And used as:
-     >>> sysexec.xsys('pwd')
-     >>> dirlist = sysexec.bq('ls -l')
+    >>> sysexec.xsys('echo "Hello Python"')
+    Calling: echo "Hello Python"
+    Hello Python
     """
     
     def __init__(self,verbose=0,debug=0,header='',split=0):
@@ -684,7 +685,6 @@ def optstr2types(ostr):
 
 #----------------------------------------------------------------------------
 def read_dict(filename,type_conv=None,**opt):
-
     """Read a dictionary of key=value pairs from an input file, optionally
     performing conversions on the resulting values.
 
@@ -1306,9 +1306,12 @@ class EvalDict:
     Emulate a dict which evaluates its contents in the caller's frame.
 
     Usage:
-    >>>number = 19
-    >>>text = "python"
-    >>>print "%(text.capitalize())s %(number/9.0).1f rules!" % EvalDict()
+    >>> number = 19
+
+    >>> text = "python"
+
+    >>> print "%(text.capitalize())s %(number/9.0).1f rules!" % EvalDict()
+    Python 2.1 rules!
     """
 
     # This version is due to sismex01@hebmex.com on c.l.py, and is basically a
@@ -1328,15 +1331,20 @@ def qw(words,flat=0,sep=None,maxsplit=-1):
     qw(words,flat=0,sep=' ',maxsplit=-1) -> words.split(sep,maxsplit)
 
     words can also be a list itself, and with flat=1, the output will be
-    recursively flattened. Examples:
+    recursively flattened.
+
+    Examples:
 
     >>> qw('1 2')
     ['1', '2']
+
     >>> qw(['a b','1 2',['m n','p q']])
     [['a', 'b'], ['1', '2'], [['m', 'n'], ['p', 'q']]]
-    >>> qw(['a b','1 2',['m n','p q']],flat=1)
-    ['a', 'b', '1', '2', 'm', 'n', 'p', 'q']    """
 
+    >>> qw(['a b','1 2',['m n','p q']],flat=1)
+    ['a', 'b', '1', '2', 'm', 'n', 'p', 'q']
+    """
+    
     if type(words) in StringTypes:
         return [word.strip() for word in words.split(sep,maxsplit)
                 if word and not word.isspace() ]
@@ -1802,20 +1810,6 @@ def sort_compare(lst1,lst2,inplace = 1):
         lst2 = lst2[:]
     lst1.sort(); lst2.sort()
     return lst1 == lst2
-
-#----------------------------------------------------------------------------
-def mkdict(**kwargs):
-    """Return a dict from a keyword list.
-
-    It's just syntactic sugar for making ditcionary creation more convenient:
-    # the standard way
-    >>>data = { 'red' : 1, 'green' : 2, 'blue' : 3 }
-    # a cleaner way
-    >>>data = dict(red=1, green=2, blue=3)
-
-    If you need more than this, look at the Struct() class."""
-
-    return kwargs
 
 #----------------------------------------------------------------------------
 def list2dict(lst):
