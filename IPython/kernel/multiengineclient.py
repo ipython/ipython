@@ -312,13 +312,6 @@ class InteractiveMultiEngineClient(object):
                 A Python string that names a callable defined on the engines.
         
         :Returns:  A `ParallelFunction` object.                
-        
-        Examples
-        ========
-        
-        >>> psin = rc.parallelize('all','lambda x:sin(x)')
-        >>> psin(range(10000))
-        [0,2,4,9,25,36,...]
         """
         targets, block = self._findTargetsAndBlock(targets, block)
         return ParallelFunction(func, self, targets, block)
