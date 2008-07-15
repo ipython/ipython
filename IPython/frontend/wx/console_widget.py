@@ -297,7 +297,7 @@ class ConsoleWidget(editwindow.EditWindow):
             possibilities.sort()  # Python sorts are case sensitive
             self.AutoCompSetIgnoreCase(False)
             self.AutoCompSetAutoHide(False)
-            #let compute the length ot last word
+            #let compute the length ot text)last word
             splitter = [' ', '(', '[', '{']
             last_word = self.get_current_edit_buffer()
             for breaker in splitter:
@@ -309,7 +309,7 @@ class ConsoleWidget(editwindow.EditWindow):
         maxrange = self.GetScrollRange(wx.VERTICAL)
         self.ScrollLines(maxrange)
 
-    def on_enter(self):
+    def _on_enter(self):
         """ Called when the return key is hit.
         """
         pass

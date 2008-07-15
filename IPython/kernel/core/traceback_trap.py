@@ -38,6 +38,8 @@ class TracebackTrap(object):
     def hook(self, *args):
         """ This method actually implements the hook.
         """
+        import sys
+        print >>sys.stderr, "I have been raised"
 
         self.args = args
 

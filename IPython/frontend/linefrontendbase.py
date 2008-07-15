@@ -31,6 +31,11 @@ class LineFrontEndBase(FrontEndBase):
     # Are we entering multi line input?
     multi_line_input = False
 
+    # We need to keep the prompt number, to be able to increment
+    # it when there is an exception.
+    prompt_number = 1
+
+
     #--------------------------------------------------------------------------
     # Public API
     #--------------------------------------------------------------------------
@@ -69,41 +74,67 @@ class LineFrontEndBase(FrontEndBase):
                             self.output_prompt % result['number'],
                             result['display']['pprint']
                             ) )
-    
-        
+       
+
     def render_error(self, failure):
         self.insert_text('\n\n'+str(failure)+'\n\n')
         return failure
+
+
+    def prefilter_input(self, string):
+        string = string.replace('\r\n', '\n')
+        string = string.replace('\t', 4*' ')
+        # Clean the trailing whitespace
+        string = '\n'.join(l.rstrip()  for l in string.split('\n'))
+        return string
+
+
+    def is_complete(self, string):
+        if ( self.multi_line_input and not re.findall(r"\n[\t ]*$", string)):
+            return False
+        else:
+            return FrontEndBase.is_complete(self, string)
     
+
+    def execute(self, python_string, raw_string=None):
+        """ Send the python_string to the interpreter, stores the
+            raw_string in the history and starts a new prompt.
+        """
+        if raw_string is None:
+            raw_string = string
+        # Create a false result, in case there is an exception
+        result = dict(number=self.prompt_number)
+        try:
+            self.history.input_cache[-1] = raw_string
+            result = self.shell.execute(python_string)
+            self.render_result(result)
+        except Exception, e:
+            self.show_traceback()
+        finally:
+            self.prompt_number += 1
+            self.new_prompt(self.prompt % (result['number'] + 1))
+            self.multi_line_input = False
+            # Start a new empty history entry
+            self._add_history(None, '')
+            # The result contains useful information that can be used
+            # elsewhere.
+            self.last_result = result
+
 
     def _on_enter(self):
         """ Called when the return key is pressed in a line editing
             buffer.
         """
         current_buffer = self.get_current_edit_buffer()
-        current_buffer = current_buffer.replace('\r\n', '\n')
-        current_buffer = current_buffer.replace('\t', 4*' ')
-        cleaned_buffer = '\n'.join(l.rstrip() 
-                        for l in current_buffer.split('\n'))
-        if (    not self.multi_line_input
-                or re.findall(r"\n[\t ]*$", cleaned_buffer)):
-            if self.is_complete(cleaned_buffer):
-                self.history.input_cache[-1] = \
-                            current_buffer
-                result = self.shell.execute(cleaned_buffer)
-                self.render_result(result)
-                self.new_prompt(self.prompt % (result['number'] + 1))
-                self.multi_line_input = False
-                # Start a new empty history entry
-                self._add_history(None, '')
-            else:
-                if self.multi_line_input:
-                    self.write('\n' + self._get_indent_string(current_buffer))
-                else:
-                    self.multi_line_input = True
-                    self.write('\n\t')
+        cleaned_buffer = self.prefilter_input(current_buffer)
+        if self.is_complete(cleaned_buffer):
+            self.execute(cleaned_buffer, raw_string=current_buffer)
         else:
-            self.write('\n'+self._get_indent_string(current_buffer))
+            if self.multi_line_input:
+                self.write('\n' + self._get_indent_string(current_buffer))
+            else:
+                self.multi_line_input = True
+                self.write('\n\t')
 
 
     #--------------------------------------------------------------------------

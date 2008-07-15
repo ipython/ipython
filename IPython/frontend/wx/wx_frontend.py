@@ -3,7 +3,7 @@
 # ipython1.frontend.cocoa.tests.test_cocoa_frontend -*-
 
 """Classes to provide a Wx frontend to the
-ipython1.kernel.engineservice.EngineService.
+IPython.kernel.core.interpreter.
 
 """
 
@@ -24,16 +24,12 @@ __docformat__ = "restructuredtext en"
 import wx
 from console_widget import ConsoleWidget
 
-from IPython.frontend.linefrontendbase import LineFrontEndBase
+from IPython.frontend.prefilterfrontend import PrefilterFrontEnd
 
 #-------------------------------------------------------------------------------
 # Classes to implement the Wx frontend
 #-------------------------------------------------------------------------------
-
-   
-
-
-class IPythonWxController(LineFrontEndBase, ConsoleWidget):
+class IPythonWxController(PrefilterFrontEnd, ConsoleWidget):
 
     output_prompt = \
     '\n\x01\x1b[0;31m\x02Out[\x01\x1b[1;31m\x02%i\x01\x1b[0;31m\x02]: \x01\x1b[0m\x02'
@@ -48,7 +44,7 @@ class IPythonWxController(LineFrontEndBase, ConsoleWidget):
         """ Create Shell instance.
         """
         ConsoleWidget.__init__(self, parent, id, pos, size, style)
-        LineFrontEndBase.__init__(self)
+        PrefilterFrontEnd.__init__(self)
 
         # Capture Character keys
         self.Bind(wx.EVT_KEY_DOWN, self._on_key_down)
