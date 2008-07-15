@@ -325,17 +325,18 @@ class ConsoleWidget(editwindow.EditWindow):
 
             Return True if event as been catched.
         """
-        catched = False
+        catched = True
         # Intercept some specific keys.
         if event.KeyCode == ord('L') and event.ControlDown() :
-            catched = True
             self.scroll_to_bottom()
+        if event.KeyCode == ord('K') and event.ControlDown() :
+            self.replace_current_edit_buffer('')
         elif event.KeyCode == wx.WXK_PAGEUP and event.ShiftDown():
-            catched = True
             self.ScrollPages(-1)
         elif event.KeyCode == wx.WXK_PAGEDOWN and event.ShiftDown():
-            catched = True
             self.ScrollPages(1)
+        else:
+            catched = False
 
         if self.AutoCompActive():
             event.Skip()
