@@ -32,7 +32,7 @@ from IPython.frontend.prefilterfrontend import PrefilterFrontEnd
 class IPythonWxController(PrefilterFrontEnd, ConsoleWidget):
 
     output_prompt = \
-    '\n\x01\x1b[0;31m\x02Out[\x01\x1b[1;31m\x02%i\x01\x1b[0;31m\x02]: \x01\x1b[0m\x02'
+    '\x01\x1b[0;31m\x02Out[\x01\x1b[1;31m\x02%i\x01\x1b[0;31m\x02]: \x01\x1b[0m\x02'
   
     #--------------------------------------------------------------------------
     # Public API

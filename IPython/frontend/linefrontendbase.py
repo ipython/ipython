@@ -101,21 +101,28 @@ class LineFrontEndBase(FrontEndBase):
         if raw_string is None:
             raw_string = string
         # Create a false result, in case there is an exception
-        result = dict(number=self.prompt_number)
+        self.last_result = dict(number=self.prompt_number)
         try:
             self.history.input_cache[-1] = raw_string
             result = self.shell.execute(python_string)
+            self.last_result = result
             self.render_result(result)
-        except Exception, e:
+        except:
             self.show_traceback()
         finally:
-            self.prompt_number += 1
-            self.new_prompt(self.prompt % (result['number'] + 1))
-            # Start a new empty history entry
-            self._add_history(None, '')
-            # The result contains useful information that can be used
-            # elsewhere.
-            self.last_result = result
+            self.after_execute()
+
+
+    def after_execute(self):
+        """ All the operations required after an execution to put the
+            terminal back in a shape where it is usable.
+        """
+        self.prompt_number += 1
+        self.new_prompt(self.prompt % (self.last_result['number'] + 1))
+        # Start a new empty history entry
+        self._add_history(None, '')
+        # The result contains useful information that can be used
+        # elsewhere.
 
 
     def _on_enter(self):
@@ -124,13 +131,15 @@ class LineFrontEndBase(FrontEndBase):
         """
         current_buffer = self.get_current_edit_buffer()
         cleaned_buffer = self.prefilter_input(current_buffer)
-        if self.is_complete(cleaned_buffer):
+        if self.is_complete(cleaned_buffer + '\n'):
+            # The '\n' is important in case prefiltering empties the
+            # line, to get a new prompt.
             self.execute(cleaned_buffer, raw_string=current_buffer)
         else:
             if len(current_buffer.split('\n'))>1:
-                self.write('\n' + self._get_indent_string(current_buffer))
+                self.write(self._get_indent_string(current_buffer))
             else:
-                self.write('\n\t')
+                self.write('\t')
 
 
     #--------------------------------------------------------------------------
@@ -138,7 +147,7 @@ class LineFrontEndBase(FrontEndBase):
     #--------------------------------------------------------------------------
  
     def _get_indent_string(self, string):
-        print >>sys.__stderr__, string.split('\n')
+        string = string.replace('\t', ' '*4)
         string = string.split('\n')[-1]
         indent_chars = len(string) - len(string.lstrip())
         indent_string = '\t'*(indent_chars // 4) + \

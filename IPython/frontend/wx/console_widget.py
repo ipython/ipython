@@ -343,6 +343,7 @@ class ConsoleWidget(editwindow.EditWindow):
             if event.KeyCode in (13, wx.WXK_NUMPAD_ENTER) and \
                         event.Modifiers in (wx.MOD_NONE, wx.MOD_WIN):
                 catched = True
+                self.write('\n')
                 self._on_enter()
 
             elif event.KeyCode == wx.WXK_HOME:
