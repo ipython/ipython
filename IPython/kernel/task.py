@@ -48,7 +48,7 @@ def uncanTask(task):
 time_format = '%Y/%m/%d %H:%M:%S'
 
 class Task(object):
-    """Our representation of a task for the `TaskController` interface.
+    r"""Our representation of a task for the `TaskController` interface.
 
     The user should create instances of this class to represent a task that 
     needs to be done.
@@ -90,7 +90,8 @@ class Task(object):
     >>> t = Task('a=5', pull='a')
     >>> t = Task('a=5\nb=4', pull=['a','b'])
     >>> t = Task('os.kill(os.getpid(),9)', retries=100) # this is a bad idea
-        # A dependency case:
+
+    A dependency case:
     >>> def hasMPI(props):
     ...     return props.get('mpi') is not None
     >>> t = Task('mpi.send(blah,blah)', depend = hasMPI)
@@ -127,12 +128,15 @@ class ResultNS:
     --------
     
     >>> ns = ResultNS({'a':17,'foo':range(3)})
+
     >>> print ns
-        NS{'a':17,'foo':range(3)}
+    NS{'a': 17, 'foo': [0, 1, 2]}
+
     >>> ns.a
-        17
+    17
+
     >>> ns['foo']
-        [0,1,2]
+    [0, 1, 2]
     """
     def __init__(self, dikt):
         for k,v in dikt.iteritems():
