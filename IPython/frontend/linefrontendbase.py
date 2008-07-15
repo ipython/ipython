@@ -28,9 +28,6 @@ from IPython.kernel.core.interpreter import Interpreter
 #-------------------------------------------------------------------------------
 class LineFrontEndBase(FrontEndBase):
     
-    # Are we entering multi line input?
-    multi_line_input = False
-
     # We need to keep the prompt number, to be able to increment
     # it when there is an exception.
     prompt_number = 1
@@ -90,7 +87,8 @@ class LineFrontEndBase(FrontEndBase):
 
 
     def is_complete(self, string):
-        if ( self.multi_line_input and not re.findall(r"\n[\t ]*$", string)):
+        if ( len(self.get_current_edit_buffer().split('\n'))>1 
+                        and not re.findall(r"\n[\t ]*$", string)):
             return False
         else:
             return FrontEndBase.is_complete(self, string)
@@ -113,7 +111,6 @@ class LineFrontEndBase(FrontEndBase):
         finally:
             self.prompt_number += 1
             self.new_prompt(self.prompt % (result['number'] + 1))
-            self.multi_line_input = False
             # Start a new empty history entry
             self._add_history(None, '')
             # The result contains useful information that can be used
@@ -130,10 +127,9 @@ class LineFrontEndBase(FrontEndBase):
         if self.is_complete(cleaned_buffer):
             self.execute(cleaned_buffer, raw_string=current_buffer)
         else:
-            if self.multi_line_input:
+            if len(current_buffer.split('\n'))>1:
                 self.write('\n' + self._get_indent_string(current_buffer))
             else:
-                self.multi_line_input = True
                 self.write('\n\t')
 
 
@@ -142,6 +138,7 @@ class LineFrontEndBase(FrontEndBase):
     #--------------------------------------------------------------------------
  
     def _get_indent_string(self, string):
+        print >>sys.__stderr__, string.split('\n')
         string = string.split('\n')[-1]
         indent_chars = len(string) - len(string.lstrip())
         indent_string = '\t'*(indent_chars // 4) + \

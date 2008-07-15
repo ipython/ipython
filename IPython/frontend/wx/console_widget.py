@@ -232,7 +232,9 @@ class ConsoleWidget(editwindow.EditWindow):
         # now we update our cursor giving end of prompt
         self.current_prompt_pos = self.GetLength()
         self.current_prompt_line = self.GetCurrentLine()
-        
+        wx.Yield()
+        self.EnsureCaretVisible()
+
         
     def replace_current_edit_buffer(self, text):
         """ Replace currently entered command line with given text.
@@ -308,6 +310,7 @@ class ConsoleWidget(editwindow.EditWindow):
     def scroll_to_bottom(self):
         maxrange = self.GetScrollRange(wx.VERTICAL)
         self.ScrollLines(maxrange)
+
 
     def _on_enter(self):
         """ Called when the return key is hit.
