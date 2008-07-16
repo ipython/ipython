@@ -22,6 +22,7 @@ __docformat__ = "restructuredtext en"
 
 
 import wx
+import re
 from console_widget import ConsoleWidget
 
 from IPython.frontend.prefilterfrontend import PrefilterFrontEnd
@@ -48,7 +49,23 @@ class IPythonWxController(PrefilterFrontEnd, ConsoleWidget):
 
         # Capture Character keys
         self.Bind(wx.EVT_KEY_DOWN, self._on_key_down)
-       
+
+
+    def do_completion(self):
+        line = self.get_current_edit_buffer()
+        completions = self.complete(line)
+        self.write_completion(completions)
+
+
+    def execute(self, *args, **kwargs):
+        self._cursor = wx.BusyCursor()
+        PrefilterFrontEnd.execute(self, *args, **kwargs)
+
+    
+    def after_execute(self):
+        PrefilterFrontEnd.after_execute(self)
+        del self._cursor
+
     #--------------------------------------------------------------------------
     # Private API
     #--------------------------------------------------------------------------
@@ -59,28 +76,37 @@ class IPythonWxController(PrefilterFrontEnd, ConsoleWidget):
             widget handle them, and put our logic afterward.
         """
         current_line_number = self.GetCurrentLine()
-        # Up history
-        if event.KeyCode == wx.WXK_UP and (
-                ( current_line_number == self.current_prompt_line and
-                    event.Modifiers in (wx.MOD_NONE, wx.MOD_WIN) ) 
-                or event.ControlDown() ):
-            new_buffer = self.get_history_previous(
-                                        self.get_current_edit_buffer())
-            if new_buffer is not None:
-                self.replace_current_edit_buffer(new_buffer)
-                if self.GetCurrentLine() > self.current_prompt_line:
-                    # Go to first line, for seemless history up.
-                    self.GotoPos(self.current_prompt_pos)
-        # Down history
-        elif event.KeyCode == wx.WXK_DOWN and (
-                ( current_line_number == self.LineCount -1 and
-                    event.Modifiers in (wx.MOD_NONE, wx.MOD_WIN) ) 
-                or event.ControlDown() ):
-            new_buffer = self.get_history_next()
-            if new_buffer is not None:
-                self.replace_current_edit_buffer(new_buffer)
+        if self.AutoCompActive():
+            event.Skip()
         else:
-            ConsoleWidget._on_key_down(self, event, skip=skip)
+            # Up history
+            if event.KeyCode == wx.WXK_UP and (
+                    ( current_line_number == self.current_prompt_line and
+                        event.Modifiers in (wx.MOD_NONE, wx.MOD_WIN) ) 
+                    or event.ControlDown() ):
+                new_buffer = self.get_history_previous(
+                                            self.get_current_edit_buffer())
+                if new_buffer is not None:
+                    self.replace_current_edit_buffer(new_buffer)
+                    if self.GetCurrentLine() > self.current_prompt_line:
+                        # Go to first line, for seemless history up.
+                        self.GotoPos(self.current_prompt_pos)
+            # Down history
+            elif event.KeyCode == wx.WXK_DOWN and (
+                    ( current_line_number == self.LineCount -1 and
+                        event.Modifiers in (wx.MOD_NONE, wx.MOD_WIN) ) 
+                    or event.ControlDown() ):
+                new_buffer = self.get_history_next()
+                if new_buffer is not None:
+                    self.replace_current_edit_buffer(new_buffer)
+            elif event.KeyCode == ord('\t'):
+                last_line = self.get_current_edit_buffer().split('\n')[-1]
+                if not re.match(r'^\s*$', last_line):
+                    self.do_completion()
+                else:
+                    event.Skip()
+            else:
+                ConsoleWidget._on_key_down(self, event, skip=skip)
 
 
        

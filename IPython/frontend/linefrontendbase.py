@@ -87,8 +87,8 @@ class LineFrontEndBase(FrontEndBase):
 
 
     def is_complete(self, string):
-        if ( len(self.get_current_edit_buffer().split('\n'))>1 
-                        and not re.findall(r"\n[\t ]*$", string)):
+        if ( len(self.get_current_edit_buffer().split('\n'))>2 
+                        and not re.findall(r"\n[\t ]*\n[\t ]*$", string)):
             return False
         else:
             return FrontEndBase.is_complete(self, string)
@@ -103,7 +103,7 @@ class LineFrontEndBase(FrontEndBase):
         # Create a false result, in case there is an exception
         self.last_result = dict(number=self.prompt_number)
         try:
-            self.history.input_cache[-1] = raw_string
+            self.history.input_cache[-1] = raw_string.rstrip()
             result = self.shell.execute(python_string)
             self.last_result = result
             self.render_result(result)
@@ -121,8 +121,7 @@ class LineFrontEndBase(FrontEndBase):
         self.new_prompt(self.prompt % (self.last_result['number'] + 1))
         # Start a new empty history entry
         self._add_history(None, '')
-        # The result contains useful information that can be used
-        # elsewhere.
+        self.history_cursor = len(self.history.input_cache) - 1
 
 
     def _on_enter(self):
@@ -131,13 +130,12 @@ class LineFrontEndBase(FrontEndBase):
         """
         current_buffer = self.get_current_edit_buffer()
         cleaned_buffer = self.prefilter_input(current_buffer)
-        if self.is_complete(cleaned_buffer + '\n'):
-            # The '\n' is important in case prefiltering empties the
-            # line, to get a new prompt.
+        if self.is_complete(cleaned_buffer):
             self.execute(cleaned_buffer, raw_string=current_buffer)
         else:
-            if len(current_buffer.split('\n'))>1:
-                self.write(self._get_indent_string(current_buffer))
+            if len(current_buffer.split('\n'))>2:
+                # We need to clean the trailing '\n'
+                self.write(self._get_indent_string(current_buffer[:-1]))
             else:
                 self.write('\t')
 

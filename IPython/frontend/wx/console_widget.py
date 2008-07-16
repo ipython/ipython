@@ -99,7 +99,7 @@ class ConsoleWidget(editwindow.EditWindow):
     
     def __init__(self, parent, id=wx.ID_ANY, pos=wx.DefaultPosition, 
                         size=wx.DefaultSize, style=0, 
-                        autocomplete_mode='IPYTHON'):
+                        autocomplete_mode='STC'):
         """ Autocomplete_mode: Can be 'IPYTHON' or 'STC'
             'IPYTHON' show autocompletion the ipython way
             'STC" show it scintilla text control way
@@ -152,7 +152,11 @@ class ConsoleWidget(editwindow.EditWindow):
         self.SetTabWidth(4)
 
         self.EnsureCaretVisible()
-        
+        # Tell autocompletion to choose automaticaly out of a single
+        # choice list
+        self.AutoCompSetChooseSingle(True)
+        self.AutoCompSetMaxHeight(10)
+
         self.SetMargins(3, 3) #text is moved away from border with 3px
         # Suppressing Scintilla margins
         self.SetMarginWidth(0, 0)
@@ -271,7 +275,7 @@ class ConsoleWidget(editwindow.EditWindow):
             self.StyleSetSpec(style[0], "bold,fore:%s" % style[1])
 
 
-    def writeCompletion(self, possibilities):
+    def write_completion(self, possibilities):
         if self.autocomplete_mode == 'IPYTHON':
             max_len = len(max(possibilities, key=len))
             max_symbol = ' '*max_len
@@ -304,6 +308,7 @@ class ConsoleWidget(editwindow.EditWindow):
             last_word = self.get_current_edit_buffer()
             for breaker in splitter:
                 last_word = last_word.split(breaker)[-1]
+            self.AutoCompSetMaxHeight(len(possibilities))
             self.AutoCompShow(len(last_word), " ".join(possibilities))
 
     
@@ -329,7 +334,7 @@ class ConsoleWidget(editwindow.EditWindow):
         # Intercept some specific keys.
         if event.KeyCode == ord('L') and event.ControlDown() :
             self.scroll_to_bottom()
-        if event.KeyCode == ord('K') and event.ControlDown() :
+        elif event.KeyCode == ord('K') and event.ControlDown() :
             self.replace_current_edit_buffer('')
         elif event.KeyCode == wx.WXK_PAGEUP and event.ShiftDown():
             self.ScrollPages(-1)
