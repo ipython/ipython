@@ -1329,7 +1329,7 @@ Currently the magic system has the following functions:\n"""
         contains profiler specific options as described here.
         
         You can read the complete documentation for the profile module with:\\
-          In [1]: import profile; profile.help() """
+          In []: import profile; profile.help() """
 
         opts_def = Struct(D=[''],l=[],s=['time'],T=[''])
         # protect user quote marks
@@ -1755,7 +1755,7 @@ Currently the magic system has the following functions:\n"""
         import timeit
         import math
 
-        units = ["s", "ms", "\xc2\xb5s", "ns"]
+        units = [u"s", u"ms", u"\xb5s", u"ns"]
         scaling = [1, 1e3, 1e6, 1e9]
 
         opts, stmt = self.parse_options(parameter_s,'n:r:tcp:',
@@ -1804,7 +1804,7 @@ Currently the magic system has the following functions:\n"""
             order = min(-int(math.floor(math.log10(best)) // 3), 3)
         else:
             order = 3
-        print "%d loops, best of %d: %.*g %s per loop" % (number, repeat,
+        print u"%d loops, best of %d: %.*g %s per loop" % (number, repeat,
                                                           precision,
                                                           best * scaling[order],
                                                           units[order])
@@ -1941,7 +1941,7 @@ Currently the magic system has the following functions:\n"""
         you can create a macro with lines 44 through 47 (included) and line 49
         called my_macro with:
 
-          In [51]: %macro my_macro 44-47 49
+          In []: %macro my_macro 44-47 49
 
         Now, typing `my_macro` (without quotes) will re-execute all this code
         in one pass.
@@ -1962,7 +1962,7 @@ Currently the magic system has the following functions:\n"""
         can obtain similar results by explicitly executing slices from your
         input history with:
 
-          In [60]: exec In[44:48]+In[49]"""
+          In []: exec In[44:48]+In[49]"""
 
         opts,args = self.parse_options(parameter_s,'r',mode='list')
         if not args:
@@ -2126,47 +2126,47 @@ Currently the magic system has the following functions:\n"""
         This is an example of creating a simple function inside the editor and
         then modifying it. First, start up the editor:
 
-        In [1]: ed\\
+        In []: ed\\
         Editing... done. Executing edited code...\\
-        Out[1]: 'def foo():\\n    print "foo() was defined in an editing session"\\n'
+        Out[]: 'def foo():\\n    print "foo() was defined in an editing session"\\n'
 
         We can then call the function foo():
         
-        In [2]: foo()\\
+        In []: foo()\\
         foo() was defined in an editing session
 
         Now we edit foo.  IPython automatically loads the editor with the
         (temporary) file where foo() was previously defined:
         
-        In [3]: ed foo\\
+        In []: ed foo\\
         Editing... done. Executing edited code...
 
         And if we call foo() again we get the modified version:
         
-        In [4]: foo()\\
+        In []: foo()\\
         foo() has now been changed!
 
         Here is an example of how to edit a code snippet successive
         times. First we call the editor:
 
-        In [8]: ed\\
+        In []: ed\\
         Editing... done. Executing edited code...\\
         hello\\
-        Out[8]: "print 'hello'\\n"
+        Out[]: "print 'hello'\\n"
 
         Now we call it again with the previous output (stored in _):
 
-        In [9]: ed _\\
+        In []: ed _\\
         Editing... done. Executing edited code...\\
         hello world\\
-        Out[9]: "print 'hello world'\\n"
+        Out[]: "print 'hello world'\\n"
 
         Now we call it with the output #8 (stored in _8, also as Out[8]):
 
-        In [10]: ed _8\\
+        In []: ed _8\\
         Editing... done. Executing edited code...\\
         hello again\\
-        Out[10]: "print 'hello again'\\n"
+        Out[]: "print 'hello again'\\n"
 
 
         Changing the default editor hook:
@@ -2867,30 +2867,30 @@ Defaulting color scheme to 'NoColor'"""
         For example:
 
             # Capture into variable a
-            In [9]: sc a=ls *py
+            In []: sc a=ls *py
 
             # a is a string with embedded newlines
-            In [10]: a
-            Out[10]: 'setup.py\nwin32_manual_post_install.py'
+            In []: a
+            Out[]: 'setup.py\nwin32_manual_post_install.py'
 
             # which can be seen as a list:
-            In [11]: a.l
-            Out[11]: ['setup.py', 'win32_manual_post_install.py']
+            In []: a.l
+            Out[]: ['setup.py', 'win32_manual_post_install.py']
 
             # or as a whitespace-separated string:
-            In [12]: a.s
-            Out[12]: 'setup.py win32_manual_post_install.py'
+            In []: a.s
+            Out[]: 'setup.py win32_manual_post_install.py'
 
             # a.s is useful to pass as a single command line:
-            In [13]: !wc -l $a.s
+            In []: !wc -l $a.s
               146 setup.py
               130 win32_manual_post_install.py
               276 total
 
             # while the list form is useful to loop over:
-            In [14]: for f in a.l:
-               ....:      !wc -l $f
-               ....:
+            In []: for f in a.l:
+              ...:      !wc -l $f
+              ...:
             146 setup.py
             130 win32_manual_post_install.py
 
@@ -2898,13 +2898,13 @@ Defaulting color scheme to 'NoColor'"""
         the sense that you can equally invoke the .s attribute on them to
         automatically get a whitespace-separated string from their contents:
 
-            In [1]: sc -l b=ls *py
+            In []: sc -l b=ls *py
 
-            In [2]: b
-            Out[2]: ['setup.py', 'win32_manual_post_install.py']
+            In []: b
+            Out[]: ['setup.py', 'win32_manual_post_install.py']
 
-            In [3]: b.s
-            Out[3]: 'setup.py win32_manual_post_install.py'
+            In []: b.s
+            Out[]: 'setup.py win32_manual_post_install.py'
 
         In summary, both the lists and strings used for ouptut capture have
         the following special attributes:
