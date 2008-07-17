@@ -70,3 +70,38 @@ def ipfunc():
 
     return 'ipfunc'
 
+
+def ranfunc():
+    """A function with some random output.
+
+       >>> 1+3 #random
+       junk goes here...
+
+       >>> 1+3
+       4
+
+       >>> 1+2 #random
+       again,  anything goes
+    """
+    return 'ranfunc'
+
+
+def ranf2():
+    """A function whose examples are all all random
+
+    Examples:
+
+    #all-random
+
+       >>> 1+3 #random
+       junk goes here...
+
+       >>> 1+3
+       klasdfj;
+
+       >>> 1+2 #random
+       again,  anything goes
+
+    """
+    return 'ranf2'
+

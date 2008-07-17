@@ -4,8 +4,12 @@ PREFIX=~/tmp/local
 
 plugin: IPython_doctest_plugin.egg-info
 
+dtest: plugin dtexample.py
+	nosetests -vs --with-ipdoctest --doctest-tests --doctest-extension=txt \
+	dtexample.py
+
 test: plugin dtexample.py
-	nosetests -s --with-ipdoctest --doctest-tests --doctest-extension=txt \
+	nosetests -vs --with-ipdoctest --doctest-tests --doctest-extension=txt \
 	dtexample.py test*.txt
 
 deb: plugin dtexample.py

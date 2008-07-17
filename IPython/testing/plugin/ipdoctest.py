@@ -222,6 +222,20 @@ class DocTestCase(doctests.DocTestCase):
     for purposes of determining the test address, if it is provided.
     """
 
+    # Note: this method was taken from numpy's nosetester module.
+    
+    # Subclass nose.plugins.doctests.DocTestCase to work around a bug in 
+    # its constructor that blocks non-default arguments from being passed
+    # down into doctest.DocTestCase
+    ## def __init__(self, test, optionflags=0, setUp=None, tearDown=None,
+    ##              checker=None, obj=None, result_var='_'):
+    ##     self._result_var = result_var
+    ##     self._nose_obj = obj
+    ##     doctest.DocTestCase.__init__(self, test, 
+    ##                                  optionflags=optionflags,
+    ##                                  setUp=setUp, tearDown=tearDown, 
+    ##                                  checker=checker)
+
     # doctests loaded via find(obj) omit the module name
     # so we need to override id, __repr__ and shortDescription
     # bonus: this will squash a 2.3 vs 2.4 incompatiblity
@@ -233,6 +247,7 @@ class DocTestCase(doctests.DocTestCase):
             if pk is not None and not name.startswith(pk):
                 name = "%s.%s" % (pk, name)
         return name
+
 
 
 # A simple subclassing of the original with a different class name, so we can
@@ -311,7 +326,7 @@ class IPDocTestParser(doctest.DocTestParser):
         used for error messages.
         """
 
-        #print 'Parse string:\n',string # dbg
+        print 'Parse string:\n',string # dbg
 
         string = string.expandtabs()
         # If all lines begin with the same indentation, then strip it.
@@ -375,6 +390,8 @@ class IPDocTestParser(doctest.DocTestParser):
             charno = m.end()
         # Add any remaining post-example text to `output`.
         output.append(string[charno:])
+
+        #print 'OUT:',output  # dbg
 
         return output
 
@@ -501,6 +518,8 @@ class ExtensionDoctest(doctests.Doctest):
         return tests
 
     def loadTestsFromFile(self, filename):
+        print 'lTF',filename  # dbg
+
         if is_extension_module(filename):
             for t in self.loadTestsFromExtensionModule(filename):
                 yield t
@@ -510,7 +529,6 @@ class ExtensionDoctest(doctests.Doctest):
             pass
 
         if self.extension and anyp(filename.endswith, self.extension):
-            #print 'lTF',filename  # dbg
             name = os.path.basename(filename)
             dh = open(filename)
             try:
@@ -532,7 +550,7 @@ class ExtensionDoctest(doctests.Doctest):
         Modified version that accepts extension modules as valid containers for
         doctests.
         """
-        #print 'Filename:',filename  # dbg
+        print 'Filename:',filename  # dbg
 
         # temporarily hardcoded list, will move to driver later
         exclude = ['IPython/external/',
@@ -553,14 +571,9 @@ class ExtensionDoctest(doctests.Doctest):
         else:
             return doctests.Doctest.wantFile(self,filename)
 
-    # NOTE: the method below is a *copy* of the one in the nose doctests
-    # plugin, but we have to replicate it here in order to have it resolve the
-    # DocTestCase (last line) to our local copy, since the nose plugin doesn't
-    # provide a public hook for what TestCase class to use.  The alternative
-    # would be to monkeypatch doctest in the stdlib, but that's ugly and
-    # brittle, since a change in plugin load order can break it.  So for now,
-    # we just paste this in here, inelegant as this may be.
-
+    # NOTE: the method below is almost a copy of the original one in nose, with
+    # a  few modifications to control output checking.
+    
     def loadTestsFromModule(self, module):
         #print 'lTM',module  # dbg
 
@@ -581,6 +594,15 @@ class ExtensionDoctest(doctests.Doctest):
                 test.filename = module_file
             yield DocTestCase(test)
 
+            # always use whitespace and ellipsis options
+            optionflags = doctest.NORMALIZE_WHITESPACE | doctest.ELLIPSIS
+            #checker = DoctestOutputChecker()
+            checker = None
+            yield DocTestCase(test, 
+                              optionflags=optionflags,
+                              checker=checker)
+
+
 
 class IPythonDoctest(ExtensionDoctest):
     """Nose Plugin that supports doctests in extension modules.
@@ -594,5 +616,4 @@ class IPythonDoctest(ExtensionDoctest):
         self.doctest_tests = options.doctest_tests
         self.extension = tolist(options.doctestExtension)
         self.parser = IPDocTestParser()
-        #self.finder = DocTestFinder(parser=IPDocTestParser())
         self.finder = DocTestFinder(parser=self.parser)
