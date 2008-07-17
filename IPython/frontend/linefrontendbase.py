@@ -105,7 +105,7 @@ class LineFrontEndBase(FrontEndBase):
             raw_string in the history and starts a new prompt.
         """
         if raw_string is None:
-            raw_string = string
+            raw_string = python_string
         # Create a false result, in case there is an exception
         self.last_result = dict(number=self.prompt_number)
         try:

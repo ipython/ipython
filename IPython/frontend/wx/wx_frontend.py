@@ -23,9 +23,16 @@ __docformat__ = "restructuredtext en"
 
 import wx
 import re
+from wx import stc
 from console_widget import ConsoleWidget
 
 from IPython.frontend.prefilterfrontend import PrefilterFrontEnd
+
+#_COMMAND_BG = '#FAFAF1' # Nice green
+_RUNNING_BUFFER_BG = '#FDFFBE' # Nice yellow
+
+_RUNNING_BUFFER_MARKER = 31
+
 
 #-------------------------------------------------------------------------------
 # Classes to implement the Wx frontend
@@ -50,6 +57,11 @@ class IPythonWxController(PrefilterFrontEnd, ConsoleWidget):
         # Capture Character keys
         self.Bind(wx.EVT_KEY_DOWN, self._on_key_down)
 
+        # Marker for running buffer.
+        self.MarkerDefine(_RUNNING_BUFFER_MARKER, stc.STC_MARK_BACKGROUND,
+                                background=_RUNNING_BUFFER_BG)
+
+
 
     def do_completion(self, mode=None):
         """ Do code completion. 
@@ -57,7 +69,8 @@ class IPythonWxController(PrefilterFrontEnd, ConsoleWidget):
         """
         line = self.get_current_edit_buffer()
         completions = self.complete(line)
-        self.write_completion(completions, mode=mode)
+        if len(completions)>0:
+            self.write_completion(completions, mode=mode)
 
 
     def update_completion(self):
@@ -71,11 +84,17 @@ class IPythonWxController(PrefilterFrontEnd, ConsoleWidget):
             self.AutoCompSetChooseSingle(choose_single)
 
 
-    def execute(self, *args, **kwargs):
+    def execute(self, python_string, raw_string=None):
         self._cursor = wx.BusyCursor()
-        PrefilterFrontEnd.execute(self, *args, **kwargs)
+        if raw_string is None:
+            raw_string = python_string
+        end_line = self.current_prompt_line \
+                        + max(1,  len(raw_string.split('\n'))-1)
+        for i in range(self.current_prompt_line, end_line):
+            self.MarkerAdd(i, 31)
+        PrefilterFrontEnd.execute(self, python_string, raw_string=raw_string)
 
-    
+
     def after_execute(self):
         PrefilterFrontEnd.after_execute(self)
         if hasattr(self, '_cursor'):
@@ -133,7 +152,7 @@ class IPythonWxController(PrefilterFrontEnd, ConsoleWidget):
         if event.KeyCode == 59:
             # Intercepting '.'
             event.Skip()
-            self.do_completion(mode='popup')
+            #self.do_completion(mode='popup')
         else:
             ConsoleWidget._on_key_up(self, event, skip=skip)
 

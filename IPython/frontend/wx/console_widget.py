@@ -44,17 +44,16 @@ _DEFAULT_STYLE = {
     'bracebad'    : 'fore:#000000,back:#FF0000,bold',
 
     # properties for the various Python lexer styles
-    'comment'     : 'fore:#007F00',
-    'number'      : 'fore:#007F7F',
-    'string'      : 'fore:#7F007F,italic',
-    'char'        : 'fore:#7F007F,italic',
-    'keyword'     : 'fore:#00007F,bold',
-    'triple'      : 'fore:#7F0000',
-    'tripledouble': 'fore:#7F0000',
-    'class'       : 'fore:#0000FF,bold,underline',
-    'def'         : 'fore:#007F7F,bold',
-    'operator'    : 'bold',
-
+    'comment'       : 'fore:#007F00',
+    'number'        : 'fore:#007F7F',
+    'string'        : 'fore:#7F007F,italic',
+    'char'          : 'fore:#7F007F,italic',
+    'keyword'       : 'fore:#00007F,bold',
+    'triple'        : 'fore:#7F0000',
+    'tripledouble'  : 'fore:#7F0000',
+    'class'         : 'fore:#0000FF,bold,underline',
+    'def'           : 'fore:#007F7F,bold',
+    'operator'      : 'bold'
     }
 
 # new style numbers
@@ -190,6 +189,7 @@ class ConsoleWidget(editwindow.EditWindow):
         self.StyleSetSpec(stc.STC_P_STRING, p['string'])
         self.StyleSetSpec(stc.STC_P_CHARACTER, p['char'])
         self.StyleSetSpec(stc.STC_P_WORD, p['keyword'])
+        self.StyleSetSpec(stc.STC_P_WORD2, p['keyword'])
         self.StyleSetSpec(stc.STC_P_TRIPLE, p['triple'])
         self.StyleSetSpec(stc.STC_P_TRIPLEDOUBLE, p['tripledouble'])
         self.StyleSetSpec(stc.STC_P_CLASSNAME, p['class'])
