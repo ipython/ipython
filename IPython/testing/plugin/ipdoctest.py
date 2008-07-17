@@ -298,9 +298,9 @@ class IPDocTestParser(doctest.DocTestParser):
         """Convert input IPython source into valid Python."""
         out = []
         newline = out.append
-        for line in source.splitlines():
+        for lnum,line in enumerate(source.splitlines()):
             #newline(_ip.IPipython.prefilter(line,True))
-            newline(_ip.IP.prefilter(line,True))
+            newline(_ip.IP.prefilter(line,lnum>0))
         newline('')  # ensure a closing newline, needed by doctest
         return '\n'.join(out)
 
@@ -537,6 +537,20 @@ class ExtensionDoctest(doctests.Doctest):
         doctests.
         """
         #print 'Filename:',filename  # dbg
+
+        # temporarily hardcoded list, will move to driver later
+        exclude = ['IPython/external/',
+                   'IPython/Extensions/ipy_',
+                   'IPython/platutils_win32',
+                   'IPython/frontend/cocoa',
+                   'IPython_doctest_plugin',
+                   'IPython/Gnuplot',
+                   'IPython/Extensions/PhysicalQIn']
+
+        for fex in exclude:
+            if fex in filename:  # substring
+                #print '###>>> SKIP:',filename  # dbg
+                return False
 
         if is_extension_module(filename):
             return True

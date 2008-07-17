@@ -97,8 +97,8 @@ class IOStream:
 
     def close(self):
         pass
-                
-        
+
+
 class IOTerm:
     """ Term holds the file or file-like objects for handling I/O operations.
 
@@ -113,16 +113,16 @@ class IOTerm:
         self.cin  = IOStream(cin,sys.stdin)
         self.cout = IOStream(cout,sys.stdout)
         self.cerr = IOStream(cerr,sys.stderr)
-        
+
 # Global variable to be used for all I/O
 Term = IOTerm()
 
 import IPython.rlineimpl as readline
 # Remake Term to use the readline i/o facilities
 if sys.platform == 'win32' and readline.have_readline:
-    
+
     Term = IOTerm(cout=readline._outputfile,cerr=readline._outputfile)
-    
+
 
 #****************************************************************************
 # Generic warning/error printer, used by everything else
@@ -130,9 +130,9 @@ def warn(msg,level=2,exit_val=1):
     """Standard warning printer. Gives formatting consistency.
 
     Output is sent to Term.cerr (sys.stderr by default).
-    
+
     Options:
-    
+
     -level(2): allows finer control:
       0 -> Do nothing, dummy function.
       1 -> Print message.
@@ -142,7 +142,7 @@ def warn(msg,level=2,exit_val=1):
 
     -exit_val (1): exit value returned by sys.exit() for a level 4
     warning. Ignored for all other levels."""
-    
+
     if level>0:
         header = ['','','WARNING: ','ERROR: ','FATAL ERROR: ']
         print >> Term.cerr, '%s%s' % (header[level],msg)
@@ -167,10 +167,10 @@ def fatal(msg,exit_val=1):
 
 #---------------------------------------------------------------------------
 # Debugging routines
-# 
+#
 def debugx(expr,pre_msg=''):
     """Print the value of an expression from the caller's frame.
-    
+
     Takes an expression, evaluates it in the caller's frame and prints both
     the given expression and the resulting value (as well as a debug mark
     indicating the name of the calling function.  The input must be of a form
@@ -178,7 +178,7 @@ def debugx(expr,pre_msg=''):
 
     An optional message can be passed, which will be prepended to the printed
     expr->value pair."""
-    
+
     cf = sys._getframe(1)
     print '[DBG:%s] %s%s -> %r' % (cf.f_code.co_name,pre_msg,expr,
                                    eval(expr,cf.f_globals,cf.f_locals))
@@ -200,18 +200,18 @@ try:
         Return the *USER* CPU time in seconds since the start of the process.
         This is done via a call to resource.getrusage, so it avoids the
         wraparound problems in time.clock()."""
-        
+
         return resource.getrusage(resource.RUSAGE_SELF)[0]
-    
+
     def clocks():
         """clocks() -> floating point number
 
         Return the *SYSTEM* CPU time in seconds since the start of the process.
         This is done via a call to resource.getrusage, so it avoids the
         wraparound problems in time.clock()."""
-        
+
         return resource.getrusage(resource.RUSAGE_SELF)[1]
-    
+
     def clock():
         """clock() -> floating point number
 
@@ -219,9 +219,9 @@ try:
         the process.  This is done via a call to resource.getrusage, so it
         avoids the wraparound problems in time.clock()."""
 
-        u,s = resource.getrusage(resource.RUSAGE_SELF)[:2] 
+        u,s = resource.getrusage(resource.RUSAGE_SELF)[:2]
         return u+s
-    
+
     def clock2():
         """clock2() -> (t_user,t_system)
 
@@ -247,7 +247,7 @@ def timings_out(reps,func,*args,**kw):
     Under Unix, the return value is the sum of user+system time consumed by
     the process, computed via the resource module.  This prevents problems
     related to the wraparound effect which the time.clock() function has.
-    
+
     Under Windows the return value is in wall clock seconds. See the
     documentation for the time module for more details."""
 
@@ -310,7 +310,7 @@ def system(cmd,verbose=0,debug=0,header=''):
     Options:
 
     - verbose (0): print the command to be executed.
-    
+
     - debug (0): only print, do not actually execute.
 
     - header (''): Header to print on screen prior to the executed command (it
@@ -334,15 +334,15 @@ def abbrev_cwd():
         if len(cwd) < 4:
             return cwd
         drivepart,tail = os.path.splitdrive(cwd)
-    
 
-    parts = tail.split('/')    
+
+    parts = tail.split('/')
     if len(parts) > 2:
         tail = '/'.join(parts[-2:])
-        
+
     return (drivepart + (
         cwd == '/' and '/' or tail))
-    
+
 
 # This function is used by ipython in a lot of places to make system calls.
 # We need it to be slightly different under win32, due to the vagaries of
@@ -354,7 +354,7 @@ def shell(cmd,verbose=0,debug=0,header=''):
     Options:
 
     - verbose (0): print the command to be executed.
-    
+
     - debug (0): only print, do not actually execute.
 
     - header (''): Header to print on screen prior to the executed command (it
@@ -368,7 +368,7 @@ def shell(cmd,verbose=0,debug=0,header=''):
     if verbose or debug: print header+cmd
     # flush stdout so we don't mangle python's buffering
     sys.stdout.flush()
-    
+
     if not debug:
         platutils.set_term_title("IPy " + cmd)
         os.system(cmd)
@@ -406,10 +406,10 @@ def getoutput(cmd,verbose=0,debug=0,header='',split=0):
 
     Note: a stateful version of this function is available through the
     SystemExec class.
-    
-    This is pretty much deprecated and rarely used, 
+
+    This is pretty much deprecated and rarely used,
     genutils.getoutputerror may be what you need.
-    
+
     """
 
     if verbose or debug: print header+cmd
@@ -461,7 +461,7 @@ class SystemExec:
 
     Note: here we refer to the system and getoutput functions from this
     library, not the ones from the standard python library.
-    
+
     This class offers the system and getoutput functions as methods, but the
     verbose, debug and header parameters can be set for the instance (at
     creation time or later) so that they don't need to be specified on each
@@ -477,13 +477,8 @@ class SystemExec:
 
     An instance can then be created as:
     >>> sysexec = SystemExec(verbose=1,debug=0,header='Calling: ')
-
-    And used as:
-    >>> sysexec.xsys('echo "Hello Python"')
-    Calling: echo "Hello Python"
-    Hello Python
     """
-    
+
     def __init__(self,verbose=0,debug=0,header='',split=0):
         """Specify the instance's values for verbose, debug and header."""
         setattr_list(self,'verbose debug header split')
@@ -635,7 +630,7 @@ def process_cmdline(argv,names=[],defaults={},usage=''):
     Arguments:
 
     - argv: list of arguments, typically sys.argv.
-    
+
     - names: list of option names. See DPyGetOpt docs for details on options
     syntax.
 
@@ -657,7 +652,7 @@ def process_cmdline(argv,names=[],defaults={},usage=''):
 
     defaults.update(getopt.optionValues)
     args = getopt.freeValues
-    
+
     return defaults,args
 
 #----------------------------------------------------------------------------
@@ -685,7 +680,7 @@ def optstr2types(ostr):
 
 #----------------------------------------------------------------------------
 def read_dict(filename,type_conv=None,**opt):
-    """Read a dictionary of key=value pairs from an input file, optionally
+    r"""Read a dictionary of key=value pairs from an input file, optionally
     performing conversions on the resulting values.
 
     read_dict(filename,type_conv,**opt) -> dict
@@ -731,20 +726,33 @@ def read_dict(filename,type_conv=None,**opt):
         to make a list of all appearances.
 
     Example:
-    If the input file test.ini has:
-      i 3
-      x 4.5
-      y 5.5
-      s hi ho
-    Then:
 
+    If the input file test.ini contains (we put it in a string to keep the test
+    self-contained):
+
+    >>> test_ini = '''\
+    ... i 3
+    ... x 4.5
+    ... y 5.5
+    ... s hi ho'''
+
+    Then we can use it as follows:
     >>> type_conv={int:'i',float:'x',None:'s'}
-    >>> read_dict('test.ini')
-    {'i': '3', 's': 'hi ho', 'x': '4.5', 'y': '5.5'}
-    >>> read_dict('test.ini',type_conv)
-    {'i': 3, 's': 'hi ho', 'x': 4.5, 'y': '5.5'}
-    >>> read_dict('test.ini',type_conv,purge=1)
-    {'i': 3, 's': 'hi ho', 'x': 4.5}
+
+    >>> d = read_dict(test_ini)
+
+    >>> sorted(d.items())
+    [('i', '3'), ('s', 'hi ho'), ('x', '4.5'), ('y', '5.5')]
+
+    >>> d = read_dict(test_ini,type_conv)
+
+    >>> sorted(d.items())
+    [('i', 3), ('s', 'hi ho'), ('x', 4.5), ('y', '5.5')]
+
+    >>> d = read_dict(test_ini,type_conv,purge=True)
+
+    >>> sorted(d.items())
+    [('i', 3), ('s', 'hi ho'), ('x', 4.5)]
     """
 
     # starting config
@@ -762,9 +770,15 @@ def read_dict(filename,type_conv=None,**opt):
         raise ValueError, 'Unique keys must be given as a string, List or Tuple'
 
     dict = {}
+
     # first read in table of values as strings
-    file = open(filename,'r')
-    for line in file.readlines():
+    if '\n' in filename:
+        lines = filename.splitlines()
+        file = None
+    else:
+        file = open(filename,'r')
+        lines = file.readlines()
+    for line in lines:
         line = line.strip()
         if len(line) and line[0]=='#': continue
         if len(line)>0:
@@ -831,7 +845,7 @@ def flag_calls(func):
 
     Testing for truth in wrapper.called allows you to determine if a call to
     func() was attempted and succeeded."""
-    
+
     def wrapper(*args,**kw):
         wrapper.called = False
         out = func(*args,**kw)
@@ -853,7 +867,7 @@ def dhook_wrap(func,*a,**k):
     """
 
     def f(*a,**k):
-    
+
         dhook_s = sys.displayhook
         sys.displayhook = sys.__displayhook__
         try:
@@ -873,10 +887,10 @@ def doctest_reload():
     This routine:
 
       - reloads doctest
-      
+
       - resets its global 'master' attribute to None, so that multiple uses of
       the module interactively don't produce cumulative reports.
-    
+
       - Monkeypatches its core test runner method to protect it from IPython's
       modified displayhook.  Doctest expects the default displayhook behavior
       deep down, so our modification breaks it completely.  For this reason, a
@@ -910,16 +924,16 @@ def get_home_dir():
 
     isdir = os.path.isdir
     env = os.environ
-    
+
     # first, check py2exe distribution root directory for _ipython.
     # This overrides all. Normally does not exist.
-    
+
     if '\\library.zip\\' in IPython.__file__.lower():
         root, rest = IPython.__file__.lower().split('library.zip')
         if isdir(root + '_ipython'):
             os.environ["IPYKITROOT"] = root.rstrip('\\')
             return root
-    
+
     try:
         homedir = env['HOME']
         if not isdir(homedir):
@@ -977,7 +991,7 @@ class LSString(str):
         .n (or .nlstr): original value (the string itself).
         .s (or .spstr): value as whitespace-separated string.
         .p (or .paths): list of path objects
-        
+
     Any values which require transformations are computed only once and
     cached.
 
@@ -1013,14 +1027,14 @@ class LSString(str):
         except AttributeError:
             self.__paths = [path(p) for p in self.split('\n') if os.path.exists(p)]
             return self.__paths
-    
+
     p = paths = property(get_paths)
 
 def print_lsstring(arg):
     """ Prettier (non-repr-like) and more informative printer for LSString """
     print "LSString (.p, .n, .l, .s available). Value:"
     print arg
-    
+
 print_lsstring = result_display.when_type(LSString)(print_lsstring)
 
 #----------------------------------------------------------------------------
@@ -1033,7 +1047,7 @@ class SList(list):
         .n (or .nlstr): value as a string, joined on newlines.
         .s (or .spstr): value as a string, joined on spaces.
         .p (or .paths): list of path objects
-        
+
     Any values which require transformations are computed only once and
     cached."""
 
@@ -1059,32 +1073,32 @@ class SList(list):
             return self.__nlstr
 
     n = nlstr = property(get_nlstr)
-    
+
     def get_paths(self):
         try:
             return self.__paths
         except AttributeError:
             self.__paths = [path(p) for p in self if os.path.exists(p)]
             return self.__paths
-    
+
     p = paths = property(get_paths)
 
     def grep(self, pattern, prune = False, field = None):
-        """ Return all strings matching 'pattern' (a regex or callable) 
-        
+        """ Return all strings matching 'pattern' (a regex or callable)
+
         This is case-insensitive. If prune is true, return all items
         NOT matching the pattern.
-        
-        If field is specified, the match must occur in the specified 
+
+        If field is specified, the match must occur in the specified
         whitespace-separated field.
-               
+
         Examples::
-        
+
             a.grep( lambda x: x.startswith('C') )
             a.grep('Cha.*log', prune=1)
             a.grep('chm', field=-1)
         """
-        
+
         def match_target(s):
             if field is None:
                 return s
@@ -1094,7 +1108,7 @@ class SList(list):
                 return tgt
             except IndexError:
                 return ""
-        
+
         if isinstance(pattern, basestring):
             pred = lambda x : re.search(pattern, x, re.IGNORECASE)
         else:
@@ -1105,25 +1119,25 @@ class SList(list):
             return SList([el for el in self if not pred(match_target(el))])
     def fields(self, *fields):
         """ Collect whitespace-separated fields from string list
-        
+
         Allows quick awk-like usage of string lists.
-        
+
         Example data (in var a, created by 'a = !ls -l')::
             -rwxrwxrwx  1 ville None      18 Dec 14  2006 ChangeLog
-            drwxrwxrwx+ 6 ville None       0 Oct 24 18:05 IPython        
-        
+            drwxrwxrwx+ 6 ville None       0 Oct 24 18:05 IPython
+
         a.fields(0) is ['-rwxrwxrwx', 'drwxrwxrwx+']
         a.fields(1,0) is ['1 -rwxrwxrwx', '6 drwxrwxrwx+']
         (note the joining by space).
         a.fields(-1) is ['ChangeLog', 'IPython']
-        
+
         IndexErrors are ignored.
-        
+
         Without args, fields() just split()'s the strings.
         """
         if len(fields) == 0:
             return [el.split() for el in self]
-        
+
         res = SList()
         for el in [f.split() for f in self]:
             lineparts = []
@@ -1135,18 +1149,18 @@ class SList(list):
                     pass
             if lineparts:
                 res.append(" ".join(lineparts))
-            
-        return res        
+
+        return res
     def sort(self,field= None,  nums = False):
         """ sort by specified fields (see fields())
-        
+
         Example::
             a.sort(1, nums = True)
-        
+
         Sorts a by second field, in numerical order (so that 21 > 3)
-        
-        """ 
-        
+
+        """
+
         #decorate, sort, undecorate
         if field is not None:
             dsu = [[SList([line]).fields(field),  line] for line in self]
@@ -1160,8 +1174,8 @@ class SList(list):
                 except ValueError:
                     n = 0;
                 dsu[i][0] = n
-                
-                
+
+
         dsu.sort()
         return SList([t[1] for t in dsu])
 
@@ -1171,9 +1185,9 @@ def print_slist(arg):
     if hasattr(arg,  'hideonce') and arg.hideonce:
         arg.hideonce = False
         return
-        
+
     nlprint(arg)
-    
+
 print_slist = result_display.when_type(SList)(print_slist)
 
 
@@ -1187,14 +1201,14 @@ def esc_quotes(strng):
 #----------------------------------------------------------------------------
 def make_quoted_expr(s):
     """Return string s in appropriate quotes, using raw string if possible.
-    
+
     Effectively this turns string: cd \ao\ao\
     to: r"cd \ao\ao\_"[:-1]
-    
+
     Note the use of raw string and padding at the end to allow trailing backslash.
-    
+
     """
-    
+
     tail = ''
     tailpadding = ''
     raw  = ''
@@ -1245,7 +1259,7 @@ def raw_input_multi(header='', ps1='==> ', ps2='..> ',terminate_str = '.'):
             while new_line.endswith('\\'):
                 new_line = new_line[:-1] + raw_input(ps2)
             lines.append(new_line)
-                
+
         return lines[:-1]  # don't return the termination command
     except EOFError:
         print
@@ -1287,7 +1301,7 @@ def ask_yes_no(prompt,default=None):
                 print
             else:
                 raise
-            
+
     return answers[ans]
 
 #----------------------------------------------------------------------------
@@ -1344,7 +1358,7 @@ def qw(words,flat=0,sep=None,maxsplit=-1):
     >>> qw(['a b','1 2',['m n','p q']],flat=1)
     ['a', 'b', '1', '2', 'm', 'n', 'p', 'q']
     """
-    
+
     if type(words) in StringTypes:
         return [word.strip() for word in words.split(sep,maxsplit)
                 if word and not word.isspace() ]
@@ -1423,7 +1437,7 @@ def igrep(pat,list):
 #----------------------------------------------------------------------------
 def indent(str,nspaces=4,ntabs=0):
     """Indent a string a given number of spaces or tabstops.
-    
+
     indent(str,nspaces=4,ntabs=0) -> indent str by ntabs+nspaces.
     """
     if str is None:
@@ -1434,7 +1448,7 @@ def indent(str,nspaces=4,ntabs=0):
         return outstr[:-len(ind)]
     else:
         return outstr
-    
+
 #-----------------------------------------------------------------------------
 def native_line_ends(filename,backup=1):
     """Convert (in-place) a file to line-ends native to the current OS.
@@ -1460,13 +1474,13 @@ def native_line_ends(filename,backup=1):
             os.remove(bak_filename)
         except:
             pass
-    
+
 #----------------------------------------------------------------------------
 def get_pager_cmd(pager_cmd = None):
     """Return a pager command.
 
     Makes some attempts at finding an OS-correct one."""
-    
+
     if os.name == 'posix':
         default_pager_cmd = 'less -r'  # -r for color control sequences
     elif os.name in ['nt','dos']:
@@ -1578,7 +1592,7 @@ def page(strng,start=0,screen_lines=0,pager_cmd = None):
             return
         except IPython.ipapi.TryNext:
             pass
-        
+
     # Ugly kludge, but calling curses.initscr() flat out crashes in emacs
     TERM = os.environ.get('TERM','dumb')
     if TERM in ['dumb','emacs'] and os.name != 'nt':
@@ -1589,7 +1603,7 @@ def page(strng,start=0,screen_lines=0,pager_cmd = None):
     str_toprint = os.linesep.join(str_lines)
     num_newlines = len(str_lines)
     len_str = len(str_toprint)
-    
+
     # Dumb heuristics to guesstimate number of on-screen lines the string
     # takes.  Very basic, but good enough for docstrings in reasonable
     # terminals. If someone later feels like refining it, it's not hard.
@@ -1746,7 +1760,7 @@ def uniq_stable(elems):
     Note: All elements in the input must be valid dictionary keys for this
     routine to work, as it internally uses a dictionary for efficiency
     reasons."""
-    
+
     unique = []
     unique_dict = {}
     for nn in elems:
@@ -1761,13 +1775,13 @@ class NLprinter:
 
     An instance of this class called nlprint is available and callable as a
     function.
-    
+
     nlprint(list,indent=' ',sep=': ') -> prints indenting each level by 'indent'
     and using 'sep' to separate the index from the value. """
 
     def __init__(self):
         self.depth = 0
-    
+
     def __call__(self,lst,pos='',**kw):
         """Prints the nested list numbering levels."""
         kw.setdefault('indent',' ')
@@ -1780,7 +1794,7 @@ class NLprinter:
         stop = kw['stop']; del kw['stop']
         if self.depth == 0 and 'header' in kw.keys():
             print kw['header']
-            
+
         for idx in range(start,stop):
             elem = lst[idx]
             if type(elem)==type([]):
@@ -1929,7 +1943,7 @@ def getattr_list(obj,alist,*args):
             raise ValueError,'getattr_list() takes only one optional argument'
     else:
         return map(lambda attr: getattr(obj,attr),alist)
-    
+
 #----------------------------------------------------------------------------
 def map_method(method,object_list,*argseq,**kw):
     """map_method(method,object_list,*args,**kw) -> list
@@ -1981,7 +1995,7 @@ def dir2(obj):
     are later not really valid for attribute access (many extension libraries
     have such bugs).
     """
-    
+
     # Start building the attribute list via dir(), and then complete it
     # with a few extra special-purpose calls.
     words = dir(obj)
@@ -2058,7 +2072,7 @@ def popkey(dct,key,default=NotGiven):
 
 def wrap_deprecated(func, suggest = '<nothing>'):
     def newFunc(*args, **kwargs):
-        warnings.warn("Call to deprecated function %s, use %s instead" % 
+        warnings.warn("Call to deprecated function %s, use %s instead" %
                       ( func.__name__, suggest),
                       category=DeprecationWarning,
                       stacklevel = 2)
@@ -2092,7 +2106,7 @@ def num_cpus():
    If it can't find a sensible answer, it returns 1 (though an error *may* make
    it return a large positive number that's actually incorrect).
    """
-   
+
    # Many thanks to the Parallel Python project (http://www.parallelpython.com)
    # for the names of the keys we needed to look up for this function.  This
    # code was inspired by their equivalent function.

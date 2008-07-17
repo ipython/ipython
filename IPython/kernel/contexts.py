@@ -172,7 +172,13 @@ if __name__ == '__main__':
         # A comment
         remote()  # this means the code below only runs remotely
         print 'Hello remote world'
-        x = 3.14
+        x = range(10)
         # Comments are OK
         # Even misindented.
         y = x+1
+
+
+    with pfor('i',sequence) as pr:
+        print x[i]
+
+    print pr.x + pr.y

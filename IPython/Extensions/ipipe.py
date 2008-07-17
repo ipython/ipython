@@ -8,7 +8,7 @@ objects imported this way starts with ``i`` to minimize collisions.
 ``ipipe`` supports "pipeline expressions", which is something resembling Unix
 pipes. An example is::
 
-    >>> ienv | isort("key.lower()")
+    py> ienv | isort("key.lower()")
 
 This gives a listing of all environment variables sorted by name.
 
@@ -49,31 +49,31 @@ three extensions points (all of them optional):
   makes it possible to use dictionaries and modules in pipeline expressions,
   for example::
 
-      >>> import sys
-      >>> sys | ifilter("isinstance(value, int)") | idump
+      py> import sys
+      py> sys | ifilter("isinstance(value, int)") | idump
       key        |value
       api_version|      1012
       dllhandle  | 503316480
       hexversion |  33817328
       maxint     |2147483647
       maxunicode |     65535
-      >>> sys.modules | ifilter("_.value is not None") | isort("_.key.lower()")
+      py> sys.modules | ifilter("_.value is not None") | isort("_.key.lower()")
       ...
 
   Note: The expression strings passed to ``ifilter()`` and ``isort()`` can
   refer to the object to be filtered or sorted via the variable ``_`` and to any
   of the attributes of the object, i.e.::
 
-      >>> sys.modules | ifilter("_.value is not None") | isort("_.key.lower()")
+      py> sys.modules | ifilter("_.value is not None") | isort("_.key.lower()")
 
   does the same as::
 
-      >>> sys.modules | ifilter("value is not None") | isort("key.lower()")
+      py> sys.modules | ifilter("value is not None") | isort("key.lower()")
 
   In addition to expression strings, it's possible to pass callables (taking
   the object as an argument) to ``ifilter()``, ``isort()`` and ``ieval()``::
 
-      >>> sys | ifilter(lambda _:isinstance(_.value, int)) \
+      py> sys | ifilter(lambda _:isinstance(_.value, int)) \
       ...     | ieval(lambda _: (_.key, hex(_.value))) | idump
       0          |1
       api_version|0x3f4
@@ -123,8 +123,7 @@ except ImportError:
     grp = None
 
 from IPython.external import simplegeneric
-
-import path
+from IPython.external import path
 
 try:
     from IPython import genutils, generics
@@ -1209,9 +1208,9 @@ class ils(Table):
 
     Examples::
 
-        >>> ils
-        >>> ils("/usr/local/lib/python2.4")
-        >>> ils("~")
+        py> ils
+        py> ils("/usr/local/lib/python2.4")
+        py> ils("~")
     """
     def __init__(self, base=os.curdir, dirs=True, files=True):
         self.base = os.path.expanduser(base)
@@ -1247,7 +1246,7 @@ class iglob(Table):
 
     Examples::
 
-        >>> iglob("*.py")
+        py> iglob("*.py")
     """
     def __init__(self, glob):
         self.glob = glob
@@ -1272,9 +1271,9 @@ class iwalk(Table):
     """
     List all files and directories in a directory and it's subdirectory::
 
-        >>> iwalk
-        >>> iwalk("/usr/local/lib/python2.4")
-        >>> iwalk("~")
+        py> iwalk
+        py> iwalk("/usr/local/lib/python2.4")
+        py> iwalk("~")
     """
     def __init__(self, base=os.curdir, dirs=True, files=True):
         self.base = os.path.expanduser(base)
@@ -1377,7 +1376,7 @@ class ipwd(Table):
 
     Example::
 
-        >>> ipwd | isort("uid")
+        py> ipwd | isort("uid")
     """
     def __iter__(self):
         for entry in pwd.getpwall():
@@ -1561,7 +1560,7 @@ class ienv(Table):
 
     Example::
 
-        >>> ienv
+        py> ienv
     """
 
     def __iter__(self):
@@ -1582,8 +1581,8 @@ class ihist(Table):
 
     Example::
 
-        >>> ihist
-        >>> ihist(True) (raw mode)
+        py> ihist
+        py> ihist(True) (raw mode)
     """
     def __init__(self, raw=True):
         self.raw = raw
@@ -1617,7 +1616,7 @@ class ialias(Table):
 
     Example::
 
-        >>> ialias
+        py> ialias
     """
     def __iter__(self):
         api = ipapi.get()
@@ -1679,8 +1678,8 @@ class ix(Table):
 
     Examples::
 
-        >>> ix("ps x")
-        >>> ix("find .") | ifile
+        py> ix("ps x")
+        py> ix("find .") | ifile
     """
     def __init__(self, cmd):
         self.cmd = cmd
@@ -1718,9 +1717,9 @@ class ifilter(Pipe):
 
     Examples::
 
-        >>> ils | ifilter("_.isfile() and size>1000")
-        >>> igrp | ifilter("len(mem)")
-        >>> sys.modules | ifilter(lambda _:_.value is not None)
+        py> ils | ifilter("_.isfile() and size>1000")
+        py> igrp | ifilter("len(mem)")
+        py> sys.modules | ifilter(lambda _:_.value is not None)
     """
 
     def __init__(self, expr, globals=None, errors="raiseifallfail"):
@@ -1810,8 +1809,8 @@ class ieval(Pipe):
 
     Examples::
 
-        >>> ils | ieval("_.abspath()")
-        >>> sys.path | ieval(ifile)
+        py> ils | ieval("_.abspath()")
+        py> sys.path | ieval(ifile)
     """
 
     def __init__(self, expr, globals=None, errors="raiseifallfail"):
@@ -1882,7 +1881,7 @@ class ienum(Pipe):
 
     Examples::
 
-        >>> xrange(20) | ieval("_,_*_") | ienum | ifilter("index % 2 == 0") | ieval("object")
+        py> xrange(20) | ieval("_,_*_") | ienum | ifilter("index % 2 == 0") | ieval("object")
     """
     def __iter__(self):
         fields = ("index", "object")
@@ -1896,8 +1895,8 @@ class isort(Pipe):
 
     Examples::
 
-        >>> ils | isort("size")
-        >>> ils | isort("_.isdir(), _.lower()", reverse=True)
+        py> ils | isort("size")
+        py> ils | isort("_.isdir(), _.lower()", reverse=True)
     """
 
     def __init__(self, key=None, globals=None, reverse=False):
@@ -2054,8 +2053,8 @@ class icap(Table):
 
     Examples::
 
-        >>> import time
-        >>> icap("for i in range(10): print i, time.sleep(0.1)")
+        py> import time
+        py> icap("for i in range(10): print i, time.sleep(0.1)")
 
     """
     def __init__(self, expr, globals=None):

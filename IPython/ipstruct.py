@@ -89,7 +89,7 @@ class Struct:
     accessed using the dictionary syntax. Again, an example:
 
     This doesn't work:
-    >> s=Struct(4='hi')  #doctest: +IGNORE_EXCEPTION_DETAIL
+    py> s=Struct(4='hi')  #doctest: +IGNORE_EXCEPTION_DETAIL
     Traceback (most recent call last):
         ...
     SyntaxError: keyword can't be an expression

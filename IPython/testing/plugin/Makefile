@@ -12,6 +12,10 @@ deb: plugin dtexample.py
 	nosetests -vs --with-ipdoctest --doctest-tests --doctest-extension=txt \
         test_combo.txt
 
+iptest: plugin
+	nosetests -vs --with-ipdoctest --doctest-tests --doctest-extension=txt \
+        IPython
+
 IPython_doctest_plugin.egg-info: ipdoctest.py setup.py
 	python setup.py install --prefix=$(PREFIX)
 	touch $@
