@@ -280,14 +280,30 @@ class ConsoleWidget(editwindow.EditWindow):
 
     def write_completion(self, possibilities, mode=None):
         if mode=='text' or self.autocomplete_mode == 'text':
-            max_len = len(max(possibilities, key=len))
+            # FIXME: This is non Wx specific and needs to be moved into
+            # the base class.
             current_buffer = self.get_current_edit_buffer()
            
             self.write('\n')
+            max_len = len(max(possibilities, key=len))
+            
+            #now we check how much symbol we can put on a line...
+            chars_per_line = self.GetSize()[0]/self.GetCharWidth()
+            symbols_per_line = max(1, chars_per_line/max_len)
+
+            pos = 1
+            buf = []
             for symbol in possibilities:
-                self.write(symbol.ljust(max_len))
+                if pos < symbols_per_line:
+                    buf.append(symbol.ljust(max_len))
+                    pos += 1
+                else:
+                    buf.append(symbol.rstrip() +'\n')
+                    pos = 1
+            self.write(''.join(buf))
             self.new_prompt(self.prompt % (self.last_result['number'] + 1))
             self.replace_current_edit_buffer(current_buffer)
+
         else:
             self.AutoCompSetIgnoreCase(False)
             self.AutoCompSetAutoHide(False)

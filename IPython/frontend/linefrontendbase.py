@@ -23,6 +23,19 @@ import IPython
 from frontendbase import FrontEndBase
 from IPython.kernel.core.interpreter import Interpreter
 
+
+def common_prefix(strings):
+    ref = strings[0]
+    prefix = ''
+    for size in range(len(ref)):
+        test_prefix = ref[:size+1]
+        for string in strings[1:]:
+            if not string.startswith(test_prefix):
+                return prefix
+        prefix = test_prefix
+
+    return prefix
+
 #-------------------------------------------------------------------------------
 # Base class for the line-oriented front ends
 #-------------------------------------------------------------------------------
@@ -49,20 +62,24 @@ class LineFrontEndBase(FrontEndBase):
                             % IPython.__version__
 
 
-    def complete(self, token):
-        """Complete token in engine's user_ns
+    def complete(self, line):
+        """Complete line in engine's user_ns
         
         Parameters
         ----------
-        token : string
+        line : string
         
         Result
         ------
-        Deferred result of 
-        IPython.kernel.engineservice.IEngineBase.complete
+        The replacement for the line and the list of possible completions.
         """
-        
-        return self.shell.complete(token)
+        completions = self.shell.complete(line)
+        complete_sep =  re.compile('[\s\{\}\[\]\(\)\=]')
+        if completions:
+            prefix = common_prefix(completions) 
+            residual = complete_sep.split(line)[:-1]
+            line = line[:-len(residual)] + prefix
+        return line, completions 
  
 
     def render_result(self, result):

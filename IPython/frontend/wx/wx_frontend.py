@@ -69,13 +69,13 @@ class IPythonWxController(PrefilterFrontEnd, ConsoleWidget):
             mode can be 'text', 'popup' or 'none' to use default.
         """
         line = self.get_current_edit_buffer()
-        completions = self.complete(line)
-        if len(completions)>0:
+        new_line, completions = self.complete(line)
+        if len(completions)>1:
             self.write_completion(completions, mode=mode)
+        self.replace_current_edit_buffer(new_line)
 
 
     def do_calltip(self):
-        # compute the length ot the last word
         separators = [' ', '(', '[', '{', '\n', '\t']
         symbol = self.get_current_edit_buffer()
         for separator in separators:
@@ -92,6 +92,7 @@ class IPythonWxController(PrefilterFrontEnd, ConsoleWidget):
         for name in base_symbol_string.split('.')[1:] + ['__doc__']:
             symbol = getattr(symbol, name)
         self.CallTipShow(self.GetCurrentPos(), symbol)
+
 
     def update_completion(self):
         line = self.get_current_edit_buffer()
