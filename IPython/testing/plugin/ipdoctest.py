@@ -115,7 +115,16 @@ start_ipython()
 # *** END HACK ***
 ###########################################################################
 
-#-----------------------------------------------------------------------------
+# Classes and functions
+
+def is_extension_module(filename):
+    """Return whether the given filename is an extension module.
+
+    This simply checks that the extension is either .so or .pyd.
+    """
+    return os.path.splitext(filename)[1].lower() in ('.so','.pyd')
+
+
 # Modified version of the one in the stdlib, that fixes a python bug (doctests
 # not found in extension modules, http://bugs.python.org/issue3158)
 class DocTestFinder(doctest.DocTestFinder):
@@ -157,8 +166,6 @@ class DocTestFinder(doctest.DocTestFinder):
         else:
             raise ValueError("object must be a class or function")
 
-
-
     def _find(self, tests, obj, name, module, source_lines, globs, seen):
         """
         Find tests for the given object and any contained objects, and
@@ -184,7 +191,6 @@ class DocTestFinder(doctest.DocTestFinder):
 
                     self._find(tests, val, valname1, module, source_lines,
                                globs, seen)
-
 
         # Look for tests in a class's contained objects.
         if inspect.isclass(obj) and self._recurse:
@@ -229,19 +235,10 @@ class DocTestCase(doctests.DocTestCase):
         return name
 
 
-# Classes and functions
-
-def is_extension_module(filename):
-    """Return whether the given filename is an extension module.
-
-    This simply checks that the extension is either .so or .pyd.
-    """
-    return os.path.splitext(filename)[1].lower() in ('.so','.pyd')
-
-
 # A simple subclassing of the original with a different class name, so we can
 # distinguish and treat differently IPython examples from pure python ones.
 class IPExample(doctest.Example): pass
+
 
 class IPExternalExample(doctest.Example):
     """Doctest examples to be run in an external process."""
@@ -253,6 +250,7 @@ class IPExternalExample(doctest.Example):
 
         # An EXTRA newline is needed to prevent pexpect hangs
         self.source += '\n'
+
 
 class IPDocTestParser(doctest.DocTestParser):
     """
@@ -466,7 +464,6 @@ class IPDocTestParser(doctest.DocTestParser):
 
 SKIP = doctest.register_optionflag('SKIP')
 
-###########################################################################
 
 class DocFileCase(doctest.DocFileCase):
     """Overrides to provide filename
@@ -529,7 +526,6 @@ class ExtensionDoctest(doctests.Doctest):
             else:
                 yield False # no tests to load
 
-
     def wantFile(self,filename):
         """Return whether the given filename should be scanned for tests.
 
@@ -584,6 +580,7 @@ class ExtensionDoctest(doctests.Doctest):
             if not test.filename:
                 test.filename = module_file
             yield DocTestCase(test)
+
 
 class IPythonDoctest(ExtensionDoctest):
     """Nose Plugin that supports doctests in extension modules.
