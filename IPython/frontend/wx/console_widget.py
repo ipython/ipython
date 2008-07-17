@@ -289,16 +289,15 @@ class ConsoleWidget(editwindow.EditWindow):
             self.new_prompt(self.prompt % (self.last_result['number'] + 1))
             self.replace_current_edit_buffer(current_buffer)
         else:
-            #possibilities.sort()  # Python sorts are case sensitive
             self.AutoCompSetIgnoreCase(False)
             self.AutoCompSetAutoHide(False)
-            #let compute the length ot text)last word
-            splitter = [' ', '(', '[', '{']
-            last_word = self.get_current_edit_buffer()
-            for breaker in splitter:
-                last_word = last_word.split(breaker)[-1]
+            # compute the length ot the last word
+            separators = [' ', '(', '[', '{', '\n', '\t', '.']
+            symbol = self.get_current_edit_buffer()
+            for separator in separators:
+                symbol = symbol.split(separator)[-1]
             self.AutoCompSetMaxHeight(len(possibilities))
-            self.AutoCompShow(len(last_word), " ".join(possibilities))
+            self.AutoCompShow(len(symbol), " ".join(possibilities))
 
     
     def scroll_to_bottom(self):

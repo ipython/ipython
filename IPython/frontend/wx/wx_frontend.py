@@ -25,11 +25,12 @@ import wx
 import re
 from wx import stc
 from console_widget import ConsoleWidget
+import __builtin__
 
 from IPython.frontend.prefilterfrontend import PrefilterFrontEnd
 
 #_COMMAND_BG = '#FAFAF1' # Nice green
-_RUNNING_BUFFER_BG = '#FDFFBE' # Nice yellow
+_RUNNING_BUFFER_BG = '#FDFFD3' # Nice yellow
 
 _RUNNING_BUFFER_MARKER = 31
 
@@ -72,6 +73,25 @@ class IPythonWxController(PrefilterFrontEnd, ConsoleWidget):
         if len(completions)>0:
             self.write_completion(completions, mode=mode)
 
+
+    def do_calltip(self):
+        # compute the length ot the last word
+        separators = [' ', '(', '[', '{', '\n', '\t']
+        symbol = self.get_current_edit_buffer()
+        for separator in separators:
+            symbol_string = symbol.split(separator)[-1]
+        base_symbol_string = symbol_string.split('.')[0]
+        if base_symbol_string in self.shell.user_ns:
+            symbol = self.shell.user_ns[base_symbol_string]
+        elif base_symbol_string in self.shell.user_global_ns:
+            symbol = self.shell.user_global_ns[base_symbol_string]
+        elif base_symbol_string in __builtin__.__dict__:
+            symbol = __builtin__.__dict__[base_symbol_string]
+        else:
+            return False
+        for name in base_symbol_string.split('.')[1:] + ['__doc__']:
+            symbol = getattr(symbol, name)
+        self.CallTipShow(self.GetCurrentPos(), symbol)
 
     def update_completion(self):
         line = self.get_current_edit_buffer()
@@ -144,6 +164,9 @@ class IPythonWxController(PrefilterFrontEnd, ConsoleWidget):
                     self.do_completion(mode='text')
                 else:
                     event.Skip()
+            elif event.KeyCode == ord('('):
+                event.Skip()
+                self.do_calltip()
             else:
                 ConsoleWidget._on_key_down(self, event, skip=skip)
 
