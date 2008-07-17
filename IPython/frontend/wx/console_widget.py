@@ -63,6 +63,9 @@ _STDERR_STYLE = 16
 _TRACE_STYLE  = 17
 
 
+# system colors
+SYS_COLOUR_BACKGROUND = wx.SystemSettings.GetColour(wx.SYS_COLOUR_BACKGROUND)
+
 #-------------------------------------------------------------------------------
 # The console widget class
 #-------------------------------------------------------------------------------
@@ -99,10 +102,10 @@ class ConsoleWidget(editwindow.EditWindow):
     
     def __init__(self, parent, id=wx.ID_ANY, pos=wx.DefaultPosition, 
                         size=wx.DefaultSize, style=0, 
-                        autocomplete_mode='STC'):
-        """ Autocomplete_mode: Can be 'IPYTHON' or 'STC'
-            'IPYTHON' show autocompletion the ipython way
-            'STC" show it scintilla text control way
+                        autocomplete_mode='popup'):
+        """ Autocomplete_mode: Can be 'popup' or 'text'
+            'text' show autocompletion in the text buffer
+            'popup' show it with a dropdown popup
         """
         editwindow.EditWindow.__init__(self, parent, id, pos, size, style)
         self.configure_scintilla()
@@ -265,7 +268,7 @@ class ConsoleWidget(editwindow.EditWindow):
         """
         self.SetCaretForeground(self.carret_color)
 
-        self.StyleClearAll()
+        #self.StyleClearAll()
         self.StyleSetSpec(stc.STC_STYLE_BRACELIGHT,  
                           "fore:#FF0000,back:#0000FF,bold")
         self.StyleSetSpec(stc.STC_STYLE_BRACEBAD,
@@ -275,32 +278,18 @@ class ConsoleWidget(editwindow.EditWindow):
             self.StyleSetSpec(style[0], "bold,fore:%s" % style[1])
 
 
-    def write_completion(self, possibilities):
-        if self.autocomplete_mode == 'IPYTHON':
+    def write_completion(self, possibilities, mode=None):
+        if mode=='text' or self.autocomplete_mode == 'text':
             max_len = len(max(possibilities, key=len))
-            max_symbol = ' '*max_len
-            
-            #now we check how much symbol we can put on a line...
-            test_buffer = max_symbol + ' '*4
-            
-            allowed_symbols = 80/len(test_buffer)
-            if allowed_symbols == 0:
-                allowed_symbols = 1
-            
-            pos = 1
-            buf = ''
+            current_buffer = self.get_current_edit_buffer()
+           
+            self.write('\n')
             for symbol in possibilities:
-                #buf += symbol+'\n'#*spaces)
-                if pos < allowed_symbols:
-                    spaces = max_len - len(symbol) + 4
-                    buf += symbol+' '*spaces
-                    pos += 1
-                else:
-                    buf += symbol+'\n'
-                    pos = 1
-            self.write(buf)
+                self.write(symbol.ljust(max_len))
+            self.new_prompt(self.prompt % (self.last_result['number'] + 1))
+            self.replace_current_edit_buffer(current_buffer)
         else:
-            possibilities.sort()  # Python sorts are case sensitive
+            #possibilities.sort()  # Python sorts are case sensitive
             self.AutoCompSetIgnoreCase(False)
             self.AutoCompSetAutoHide(False)
             #let compute the length ot text)last word

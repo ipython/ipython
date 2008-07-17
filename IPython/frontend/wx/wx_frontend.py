@@ -51,10 +51,24 @@ class IPythonWxController(PrefilterFrontEnd, ConsoleWidget):
         self.Bind(wx.EVT_KEY_DOWN, self._on_key_down)
 
 
-    def do_completion(self):
+    def do_completion(self, mode=None):
+        """ Do code completion. 
+            mode can be 'text', 'popup' or 'none' to use default.
+        """
         line = self.get_current_edit_buffer()
         completions = self.complete(line)
-        self.write_completion(completions)
+        self.write_completion(completions, mode=mode)
+
+
+    def update_completion(self):
+        line = self.get_current_edit_buffer()
+        if self.AutoCompActive() and not line[-1] == '.':
+            line = line[:-1]
+            completions = self.complete(line)
+            choose_single = self.AutoCompGetChooseSingle()
+            self.AutoCompSetChooseSingle(False)
+            self.write_completion(completions, mode='popup')
+            self.AutoCompSetChooseSingle(choose_single)
 
 
     def execute(self, *args, **kwargs):
@@ -64,7 +78,8 @@ class IPythonWxController(PrefilterFrontEnd, ConsoleWidget):
     
     def after_execute(self):
         PrefilterFrontEnd.after_execute(self)
-        del self._cursor
+        if hasattr(self, '_cursor'):
+            del self._cursor
 
     #--------------------------------------------------------------------------
     # Private API
@@ -78,6 +93,11 @@ class IPythonWxController(PrefilterFrontEnd, ConsoleWidget):
         current_line_number = self.GetCurrentLine()
         if self.AutoCompActive():
             event.Skip()
+            if event.KeyCode in (wx.WXK_BACK, wx.WXK_DELETE): 
+                wx.CallAfter(self.do_completion)
+            elif not event.KeyCode in (wx.WXK_UP, wx.WXK_DOWN, wx.WXK_LEFT,
+                            wx.WXK_RIGHT):
+                wx.CallAfter(self.update_completion)
         else:
             # Up history
             if event.KeyCode == wx.WXK_UP and (
@@ -102,14 +122,21 @@ class IPythonWxController(PrefilterFrontEnd, ConsoleWidget):
             elif event.KeyCode == ord('\t'):
                 last_line = self.get_current_edit_buffer().split('\n')[-1]
                 if not re.match(r'^\s*$', last_line):
-                    self.do_completion()
+                    self.do_completion(mode='text')
                 else:
                     event.Skip()
             else:
                 ConsoleWidget._on_key_down(self, event, skip=skip)
 
 
-       
+    def _on_key_up(self, event, skip=True):
+        if event.KeyCode == 59:
+            # Intercepting '.'
+            event.Skip()
+            self.do_completion(mode='popup')
+        else:
+            ConsoleWidget._on_key_up(self, event, skip=skip)
+
 
 if __name__ == '__main__':
     class MainWindow(wx.Frame):

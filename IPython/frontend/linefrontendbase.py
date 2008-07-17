@@ -32,6 +32,8 @@ class LineFrontEndBase(FrontEndBase):
     # it when there is an exception.
     prompt_number = 1
 
+    # To bootstrap
+    last_result = dict(number=0)
 
     #--------------------------------------------------------------------------
     # Public API
@@ -87,11 +89,15 @@ class LineFrontEndBase(FrontEndBase):
 
 
     def is_complete(self, string):
-        if ( len(self.get_current_edit_buffer().split('\n'))>2 
+        if string in ('', '\n'):
+            return True
+        elif ( len(self.get_current_edit_buffer().split('\n'))>2 
                         and not re.findall(r"\n[\t ]*\n[\t ]*$", string)):
             return False
         else:
-            return FrontEndBase.is_complete(self, string)
+            # Add line returns here, to make sure that the statement is
+            # complete.
+            return FrontEndBase.is_complete(self, string.rstrip() + '\n\n')
     
 
     def execute(self, python_string, raw_string=None):
