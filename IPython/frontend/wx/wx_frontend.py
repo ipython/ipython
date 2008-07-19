@@ -41,7 +41,7 @@ _RUNNING_BUFFER_MARKER = 31
 class IPythonWxController(PrefilterFrontEnd, ConsoleWidget):
 
     output_prompt = \
-    '\x01\x1b[0;31m\x02Out[\x01\x1b[1;31m\x02%i\x01\x1b[0;31m\x02]: \x01\x1b[0m\x02'
+    '\n\x01\x1b[0;31m\x02Out[\x01\x1b[1;31m\x02%i\x01\x1b[0;31m\x02]: \x01\x1b[0m\x02'
   
     #--------------------------------------------------------------------------
     # Public API
@@ -64,14 +64,13 @@ class IPythonWxController(PrefilterFrontEnd, ConsoleWidget):
 
 
 
-    def do_completion(self, mode=None):
+    def do_completion(self):
         """ Do code completion. 
-            mode can be 'text', 'popup' or 'none' to use default.
         """
         line = self.get_current_edit_buffer()
         new_line, completions = self.complete(line)
         if len(completions)>1:
-            self.write_completion(completions, mode=mode)
+            self.write_completion(completions)
         self.replace_current_edit_buffer(new_line)
 
 
@@ -91,21 +90,31 @@ class IPythonWxController(PrefilterFrontEnd, ConsoleWidget):
             return False
         for name in base_symbol_string.split('.')[1:] + ['__doc__']:
             symbol = getattr(symbol, name)
-        self.CallTipShow(self.GetCurrentPos(), symbol)
+        try:
+            self.CallTipShow(self.GetCurrentPos(), symbol)
+        except TypeError:
+            # The retrieve symbol couldn't be converted to a string
+            pass
 
 
-    def update_completion(self):
+    def popup_completion(self, create=False):
+        """ Updates the popup completion menu if it exists. If create is 
+            true, open the menu.
+        """
         line = self.get_current_edit_buffer()
-        if self.AutoCompActive() and not line[-1] == '.':
-            line = line[:-1]
-            completions = self.complete(line)
-            choose_single = self.AutoCompGetChooseSingle()
-            self.AutoCompSetChooseSingle(False)
-            self.write_completion(completions, mode='popup')
-            self.AutoCompSetChooseSingle(choose_single)
+        if (self.AutoCompActive() and not line[-1] == '.') \
+                    or create==True:
+            suggestion, completions = self.complete(line)
+            offset=0
+            if completions:
+                complete_sep =  re.compile('[\s\{\}\[\]\(\)\= ]')
+                residual = complete_sep.split(line)[-1]
+                offset = len(residual)
+            self.pop_completion(completions, offset=offset)
 
 
     def execute(self, python_string, raw_string=None):
+        self.CallTipCancel()
         self._cursor = wx.BusyCursor()
         if raw_string is None:
             raw_string = python_string
@@ -113,6 +122,10 @@ class IPythonWxController(PrefilterFrontEnd, ConsoleWidget):
                         + max(1,  len(raw_string.split('\n'))-1)
         for i in range(self.current_prompt_line, end_line):
             self.MarkerAdd(i, 31)
+        # Remove the trailing "\n" for cleaner display
+        self.SetSelection(self.GetLength()-1, self.GetLength())
+        self.ReplaceSelection('')
+        self.GotoPos(self.GetLength())
         PrefilterFrontEnd.execute(self, python_string, raw_string=raw_string)
 
 
@@ -134,10 +147,10 @@ class IPythonWxController(PrefilterFrontEnd, ConsoleWidget):
         if self.AutoCompActive():
             event.Skip()
             if event.KeyCode in (wx.WXK_BACK, wx.WXK_DELETE): 
-                wx.CallAfter(self.do_completion)
+                wx.CallAfter(self.popup_completion)
             elif not event.KeyCode in (wx.WXK_UP, wx.WXK_DOWN, wx.WXK_LEFT,
                             wx.WXK_RIGHT):
-                wx.CallAfter(self.update_completion)
+                wx.CallAfter(self.popup_completion)
         else:
             # Up history
             if event.KeyCode == wx.WXK_UP and (
@@ -162,7 +175,7 @@ class IPythonWxController(PrefilterFrontEnd, ConsoleWidget):
             elif event.KeyCode == ord('\t'):
                 last_line = self.get_current_edit_buffer().split('\n')[-1]
                 if not re.match(r'^\s*$', last_line):
-                    self.do_completion(mode='text')
+                    self.do_completion()
                 else:
                     event.Skip()
             elif event.KeyCode == ord('('):
@@ -176,7 +189,7 @@ class IPythonWxController(PrefilterFrontEnd, ConsoleWidget):
         if event.KeyCode == 59:
             # Intercepting '.'
             event.Skip()
-            #self.do_completion(mode='popup')
+            self.popup_completion(create=True)
         else:
             ConsoleWidget._on_key_up(self, event, skip=skip)
 
@@ -195,7 +208,7 @@ if __name__ == '__main__':
     app = wx.PySimpleApp()
     frame = MainWindow(None, wx.ID_ANY, 'Ipython')
     frame.shell.SetFocus()
-    frame.SetSize((660, 460))
+    frame.SetSize((680, 460))
     self = frame.shell
 
     app.MainLoop()

@@ -63,7 +63,7 @@ _TRACE_STYLE  = 17
 
 
 # system colors
-SYS_COLOUR_BACKGROUND = wx.SystemSettings.GetColour(wx.SYS_COLOUR_BACKGROUND)
+#SYS_COLOUR_BACKGROUND = wx.SystemSettings.GetColour(wx.SYS_COLOUR_BACKGROUND)
 
 #-------------------------------------------------------------------------------
 # The console widget class
@@ -100,12 +100,7 @@ class ConsoleWidget(editwindow.EditWindow):
     #--------------------------------------------------------------------------
     
     def __init__(self, parent, id=wx.ID_ANY, pos=wx.DefaultPosition, 
-                        size=wx.DefaultSize, style=0, 
-                        autocomplete_mode='popup'):
-        """ Autocomplete_mode: Can be 'popup' or 'text'
-            'text' show autocompletion in the text buffer
-            'popup' show it with a dropdown popup
-        """
+                        size=wx.DefaultSize, style=0, ):
         editwindow.EditWindow.__init__(self, parent, id, pos, size, style)
         self.configure_scintilla()
 
@@ -114,8 +109,6 @@ class ConsoleWidget(editwindow.EditWindow):
             '\n\x01\x1b[0;34m\x02In [\x01\x1b[1;34m\x02%i\x01\x1b[0;34m\x02]: \x01\x1b[0m\x02'
         self.new_prompt(self.prompt % 1)
 
-        self.autocomplete_mode = autocomplete_mode
-        
         self.Bind(wx.EVT_KEY_DOWN, self._on_key_down)
         self.Bind(wx.EVT_KEY_UP, self._on_key_up)
     
@@ -154,9 +147,10 @@ class ConsoleWidget(editwindow.EditWindow):
         self.SetTabWidth(4)
 
         self.EnsureCaretVisible()
-        # Tell autocompletion to choose automaticaly out of a single
-        # choice list
-        self.AutoCompSetChooseSingle(True)
+        # we don't want scintilla's autocompletion to choose 
+        # automaticaly out of a single choice list, as we pop it up
+        # automaticaly
+        self.AutoCompSetChooseSingle(False)
         self.AutoCompSetMaxHeight(10)
 
         self.SetMargins(3, 3) #text is moved away from border with 3px
@@ -278,42 +272,41 @@ class ConsoleWidget(editwindow.EditWindow):
             self.StyleSetSpec(style[0], "bold,fore:%s" % style[1])
 
 
-    def write_completion(self, possibilities, mode=None):
-        if mode=='text' or self.autocomplete_mode == 'text':
-            # FIXME: This is non Wx specific and needs to be moved into
-            # the base class.
-            current_buffer = self.get_current_edit_buffer()
-           
-            self.write('\n')
-            max_len = len(max(possibilities, key=len))
-            
-            #now we check how much symbol we can put on a line...
-            chars_per_line = self.GetSize()[0]/self.GetCharWidth()
-            symbols_per_line = max(1, chars_per_line/max_len)
+    def write_completion(self, possibilities):
+        # FIXME: This is non Wx specific and needs to be moved into
+        # the base class.
+        current_buffer = self.get_current_edit_buffer()
+        
+        self.write('\n')
+        max_len = len(max(possibilities, key=len)) + 1
+        
+        #now we check how much symbol we can put on a line...
+        chars_per_line = self.GetSize()[0]/self.GetCharWidth()
+        symbols_per_line = max(1, chars_per_line/max_len)
 
-            pos = 1
-            buf = []
-            for symbol in possibilities:
-                if pos < symbols_per_line:
-                    buf.append(symbol.ljust(max_len))
-                    pos += 1
-                else:
-                    buf.append(symbol.rstrip() +'\n')
-                    pos = 1
-            self.write(''.join(buf))
-            self.new_prompt(self.prompt % (self.last_result['number'] + 1))
-            self.replace_current_edit_buffer(current_buffer)
+        pos = 1
+        buf = []
+        for symbol in possibilities:
+            if pos < symbols_per_line:
+                buf.append(symbol.ljust(max_len))
+                pos += 1
+            else:
+                buf.append(symbol.rstrip() +'\n')
+                pos = 1
+        self.write(''.join(buf))
+        self.new_prompt(self.prompt % (self.last_result['number'] + 1))
+        self.replace_current_edit_buffer(current_buffer)
 
-        else:
-            self.AutoCompSetIgnoreCase(False)
-            self.AutoCompSetAutoHide(False)
-            # compute the length ot the last word
-            separators = [' ', '(', '[', '{', '\n', '\t', '.']
-            symbol = self.get_current_edit_buffer()
-            for separator in separators:
-                symbol = symbol.split(separator)[-1]
-            self.AutoCompSetMaxHeight(len(possibilities))
-            self.AutoCompShow(len(symbol), " ".join(possibilities))
+
+    def pop_completion(self, possibilities, offset=0):
+        """ Pops up an autocompletion menu. Offset is the offset
+            in characters of the position at which the menu should
+            appear, relativ to the cursor.
+        """
+        self.AutoCompSetIgnoreCase(False)
+        self.AutoCompSetAutoHide(False)
+        self.AutoCompSetMaxHeight(len(possibilities))
+        self.AutoCompShow(offset, " ".join(possibilities))
 
     
     def scroll_to_bottom(self):
@@ -344,6 +337,10 @@ class ConsoleWidget(editwindow.EditWindow):
             self.ScrollPages(-1)
         elif event.KeyCode == wx.WXK_PAGEDOWN and event.ShiftDown():
             self.ScrollPages(1)
+        elif event.KeyCode == wx.WXK_UP and event.ShiftDown():
+            self.ScrollLines(-1)
+        elif event.KeyCode == wx.WXK_DOWN and event.ShiftDown():
+            self.ScrollLinees(1)
         else:
             catched = False
 
