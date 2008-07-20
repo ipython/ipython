@@ -40,7 +40,7 @@ _ERROR_MARKER = 30
 #-------------------------------------------------------------------------------
 # Classes to implement the Wx frontend
 #-------------------------------------------------------------------------------
-class IPythonWxController(PrefilterFrontEnd, ConsoleWidget):
+class WxController(PrefilterFrontEnd, ConsoleWidget):
 
     output_prompt = \
     '\x01\x1b[0;31m\x02Out[\x01\x1b[1;31m\x02%i\x01\x1b[0;31m\x02]: \x01\x1b[0m\x02'
@@ -128,7 +128,7 @@ class IPythonWxController(PrefilterFrontEnd, ConsoleWidget):
         def my_on_enter():
             self.waiting = False
         self._on_enter = my_on_enter
-        # Busy waiting, ugly.
+        # XXX: Busy waiting, ugly.
         while self.waiting:
             wx.Yield()
             sleep(0.1)
@@ -236,7 +236,7 @@ if __name__ == '__main__':
         def __init__(self, parent, id, title):
             wx.Frame.__init__(self, parent, id, title, size=(300,250))
             self._sizer = wx.BoxSizer(wx.VERTICAL)
-            self.shell = IPythonWxController(self)
+            self.shell = WxController(self)
             self._sizer.Add(self.shell, 1, wx.EXPAND)
             self.SetSizer(self._sizer)
             self.SetAutoLayout(1)

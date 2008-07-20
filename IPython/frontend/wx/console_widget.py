@@ -339,7 +339,7 @@ class ConsoleWidget(editwindow.EditWindow):
         elif event.KeyCode == wx.WXK_UP and event.ShiftDown():
             self.ScrollLines(-1)
         elif event.KeyCode == wx.WXK_DOWN and event.ShiftDown():
-            self.ScrollLinees(1)
+            self.ScrollLines(1)
         else:
             catched = False
 
