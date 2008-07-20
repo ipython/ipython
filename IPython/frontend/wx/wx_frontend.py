@@ -31,9 +31,10 @@ from IPython.frontend.prefilterfrontend import PrefilterFrontEnd
 
 #_COMMAND_BG = '#FAFAF1' # Nice green
 _RUNNING_BUFFER_BG = '#FDFFD3' # Nice yellow
+_ERROR_BG = '#FFF1F1' # Nice red
 
 _RUNNING_BUFFER_MARKER = 31
-
+_ERROR_MARKER = 30
 
 #-------------------------------------------------------------------------------
 # Classes to implement the Wx frontend
@@ -61,6 +62,9 @@ class IPythonWxController(PrefilterFrontEnd, ConsoleWidget):
         # Marker for running buffer.
         self.MarkerDefine(_RUNNING_BUFFER_MARKER, stc.STC_MARK_BACKGROUND,
                                 background=_RUNNING_BUFFER_BG)
+        # Marker for tracebacks.
+        self.MarkerDefine(_ERROR_MARKER, stc.STC_MARK_BACKGROUND,
+                                background=_ERROR_BG)
 
 
 
@@ -122,7 +126,7 @@ class IPythonWxController(PrefilterFrontEnd, ConsoleWidget):
         end_line = self.current_prompt_line \
                         + max(1,  len(raw_string.split('\n'))-1)
         for i in range(self.current_prompt_line, end_line):
-            self.MarkerAdd(i, 31)
+            self.MarkerAdd(i, _RUNNING_BUFFER_MARKER)
         # Update the display:
         wx.Yield()
         ## Remove the trailing "\n" for cleaner display
@@ -136,6 +140,15 @@ class IPythonWxController(PrefilterFrontEnd, ConsoleWidget):
         PrefilterFrontEnd.after_execute(self)
         if hasattr(self, '_cursor'):
             del self._cursor
+
+
+    def show_traceback(self):
+        start_line = self.GetCurrentLine()
+        PrefilterFrontEnd.show_traceback(self)
+        wx.Yield()
+        for i in range(start_line, self.GetCurrentLine()):
+            self.MarkerAdd(i, _ERROR_MARKER)
+            
 
     #--------------------------------------------------------------------------
     # Private API
