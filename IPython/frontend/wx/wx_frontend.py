@@ -88,9 +88,11 @@ class IPythonWxController(PrefilterFrontEnd, ConsoleWidget):
             symbol = __builtin__.__dict__[base_symbol_string]
         else:
             return False
-        for name in base_symbol_string.split('.')[1:] + ['__doc__']:
+        for name in symbol_string.split('.')[1:] + ['__doc__']:
             symbol = getattr(symbol, name)
         try:
+            self.AutoCompCancel()
+            wx.Yield()
             self.CallTipShow(self.GetCurrentPos(), symbol)
         except TypeError:
             # The retrieve symbol couldn't be converted to a string
@@ -110,7 +112,7 @@ class IPythonWxController(PrefilterFrontEnd, ConsoleWidget):
                 complete_sep =  re.compile('[\s\{\}\[\]\(\)\= ]')
                 residual = complete_sep.split(line)[-1]
                 offset = len(residual)
-            self.pop_completion(completions, offset=offset)
+                self.pop_completion(completions, offset=offset)
 
 
     def execute(self, python_string, raw_string=None):
@@ -122,6 +124,8 @@ class IPythonWxController(PrefilterFrontEnd, ConsoleWidget):
                         + max(1,  len(raw_string.split('\n'))-1)
         for i in range(self.current_prompt_line, end_line):
             self.MarkerAdd(i, 31)
+        # Update the display:
+        wx.Yield()
         # Remove the trailing "\n" for cleaner display
         self.SetSelection(self.GetLength()-1, self.GetLength())
         self.ReplaceSelection('')
@@ -144,10 +148,13 @@ class IPythonWxController(PrefilterFrontEnd, ConsoleWidget):
             widget handle them, and put our logic afterward.
         """
         current_line_number = self.GetCurrentLine()
-        if self.AutoCompActive():
+        if event.KeyCode == ord('('):
+            event.Skip()
+            self.do_calltip()
+        elif self.AutoCompActive():
             event.Skip()
             if event.KeyCode in (wx.WXK_BACK, wx.WXK_DELETE): 
-                wx.CallAfter(self.popup_completion)
+                wx.CallAfter(self.popup_completion, create=True)
             elif not event.KeyCode in (wx.WXK_UP, wx.WXK_DOWN, wx.WXK_LEFT,
                             wx.WXK_RIGHT):
                 wx.CallAfter(self.popup_completion)
@@ -178,9 +185,6 @@ class IPythonWxController(PrefilterFrontEnd, ConsoleWidget):
                     self.do_completion()
                 else:
                     event.Skip()
-            elif event.KeyCode == ord('('):
-                event.Skip()
-                self.do_calltip()
             else:
                 ConsoleWidget._on_key_down(self, event, skip=skip)
 
