@@ -181,6 +181,7 @@ class WxController(PrefilterFrontEnd, ConsoleWidget):
             widget handle them, and put our logic afterward.
         """
         current_line_number = self.GetCurrentLine()
+        # Calltips
         if event.KeyCode == ord('('):
             event.Skip()
             self.do_calltip()
@@ -212,6 +213,7 @@ class WxController(PrefilterFrontEnd, ConsoleWidget):
                 new_buffer = self.get_history_next()
                 if new_buffer is not None:
                     self.replace_current_edit_buffer(new_buffer)
+            # Tab-completion
             elif event.KeyCode == ord('\t'):
                 last_line = self.get_current_edit_buffer().split('\n')[-1]
                 if not re.match(r'^\s*$', last_line):

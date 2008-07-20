@@ -72,6 +72,8 @@ class PrefilterFrontEnd(LineFrontEndBase):
         self.shell.output_trap = SyncOutputTrap(write_out=self.write,
                                                 write_err=self.write)
 
+        import pydoc
+        pydoc.help.output = self.shell.output_trap.out
 
     
     def prefilter_input(self, input_string):
@@ -114,7 +116,7 @@ class PrefilterFrontEnd(LineFrontEndBase):
         self.__old_stderr= sys.stderr
         sys.stdout = Term.cout
         sys.stderr = Term.cerr
-        # FIXME: I still need to provide the writelines method
+
 
     def release_output(self):
         """ Release all the different captures we have made,
