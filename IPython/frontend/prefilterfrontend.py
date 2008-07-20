@@ -69,10 +69,6 @@ class PrefilterFrontEnd(LineFrontEndBase):
             setattr(_ip.IP, 'magic_%s' % alias_name, magic)
         # FIXME: I should create a real file-like object dedicated to this
         # terminal
-        Term.cout.flush = lambda : None
-        Term.cout.getvalue = lambda : ''
-        Term.cerr.flush = lambda : None
-        Term.cerr.getvalue = lambda : ''
         self.shell.output_trap = SyncOutputTrap(write_out=self.write,
                                                 write_err=self.write)
 

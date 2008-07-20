@@ -207,18 +207,16 @@ class ConsoleWidget(editwindow.EditWindow):
         self.AppendText(segment)
         
         if segments:
-            ansi_tags = self.color_pat.findall(text)
-
-            for tag in ansi_tags:
-                i = segments.index(tag)
+            for ansi_tag, text in zip(segments[::2], segments[1::2]):
                 self.StartStyling(self.GetLength(), 0xFF)
-                self.AppendText(segments[i+1])
+                self.AppendText(text)
 
-                if tag != '0':
-                    self.SetStyling(len(segments[i+1]), 
-                                            self.ANSI_STYLES[tag][0])
+                if ansi_tag == '0':
+                    style = 0
+                else:
+                    style = self.ANSI_STYLES[ansi_tag][0]
 
-                segments.pop(i)
+                self.SetStyling(len(text), style) 
                 
         self.GotoPos(self.GetLength())
         wx.Yield()
