@@ -41,7 +41,7 @@ _RUNNING_BUFFER_MARKER = 31
 class IPythonWxController(PrefilterFrontEnd, ConsoleWidget):
 
     output_prompt = \
-    '\n\x01\x1b[0;31m\x02Out[\x01\x1b[1;31m\x02%i\x01\x1b[0;31m\x02]: \x01\x1b[0m\x02'
+    '\x01\x1b[0;31m\x02Out[\x01\x1b[1;31m\x02%i\x01\x1b[0;31m\x02]: \x01\x1b[0m\x02'
   
     #--------------------------------------------------------------------------
     # Public API
@@ -125,9 +125,9 @@ class IPythonWxController(PrefilterFrontEnd, ConsoleWidget):
             self.MarkerAdd(i, 31)
         # Update the display:
         wx.Yield()
-        # Remove the trailing "\n" for cleaner display
-        self.SetSelection(self.GetLength()-1, self.GetLength())
-        self.ReplaceSelection('')
+        ## Remove the trailing "\n" for cleaner display
+        #self.SetSelection(self.GetLength()-1, self.GetLength())
+        #self.ReplaceSelection('')
         self.GotoPos(self.GetLength())
         PrefilterFrontEnd.execute(self, python_string, raw_string=raw_string)
 

@@ -221,6 +221,7 @@ class ConsoleWidget(editwindow.EditWindow):
                 segments.pop(i)
                 
         self.GotoPos(self.GetLength())
+        wx.Yield()
     
     
     def new_prompt(self, prompt):
@@ -350,6 +351,7 @@ class ConsoleWidget(editwindow.EditWindow):
             if event.KeyCode in (13, wx.WXK_NUMPAD_ENTER) and \
                         event.Modifiers in (wx.MOD_NONE, wx.MOD_WIN):
                 catched = True
+                self.CallTipCancel()
                 self.write('\n')
                 self._on_enter()
 

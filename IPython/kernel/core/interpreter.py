@@ -20,13 +20,11 @@ __docformat__ = "restructuredtext en"
 #-------------------------------------------------------------------------------
 
 # Standard library imports.
-from compiler.ast import Discard
 from types import FunctionType
 
 import __builtin__
 import codeop
 import compiler
-import pprint
 import sys
 import traceback
 
