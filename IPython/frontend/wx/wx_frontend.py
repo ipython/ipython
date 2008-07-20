@@ -75,10 +75,9 @@ class IPythonWxController(PrefilterFrontEnd, ConsoleWidget):
 
 
     def do_calltip(self):
-        separators = [' ', '(', '[', '{', '\n', '\t']
+        separators =  re.compile('[\s\{\}\[\]\(\)\= ,:]')
         symbol = self.get_current_edit_buffer()
-        for separator in separators:
-            symbol_string = symbol.split(separator)[-1]
+        symbol_string = separators.split(symbol)[-1]
         base_symbol_string = symbol_string.split('.')[0]
         if base_symbol_string in self.shell.user_ns:
             symbol = self.shell.user_ns[base_symbol_string]
@@ -94,7 +93,7 @@ class IPythonWxController(PrefilterFrontEnd, ConsoleWidget):
             self.AutoCompCancel()
             wx.Yield()
             self.CallTipShow(self.GetCurrentPos(), symbol)
-        except TypeError:
+        except:
             # The retrieve symbol couldn't be converted to a string
             pass
 
@@ -109,7 +108,7 @@ class IPythonWxController(PrefilterFrontEnd, ConsoleWidget):
             suggestion, completions = self.complete(line)
             offset=0
             if completions:
-                complete_sep =  re.compile('[\s\{\}\[\]\(\)\= ]')
+                complete_sep =  re.compile('[\s\{\}\[\]\(\)\= ,:]')
                 residual = complete_sep.split(line)[-1]
                 offset = len(residual)
                 self.pop_completion(completions, offset=offset)
