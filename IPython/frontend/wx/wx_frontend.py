@@ -26,6 +26,7 @@ import re
 from wx import stc
 from console_widget import ConsoleWidget
 import __builtin__
+from time import sleep
 
 from IPython.frontend.prefilterfrontend import PrefilterFrontEnd
 
@@ -118,6 +119,23 @@ class IPythonWxController(PrefilterFrontEnd, ConsoleWidget):
                 self.pop_completion(completions, offset=offset)
 
 
+    def raw_input(self, prompt):
+        """ A replacement from python's raw_input.
+        """
+        self.new_prompt(prompt)
+        self.waiting = True
+        self.__old_on_enter = self._on_enter
+        def my_on_enter():
+            self.waiting = False
+        self._on_enter = my_on_enter
+        # Busy waiting, ugly.
+        while self.waiting:
+            wx.Yield()
+            sleep(0.1)
+        self._on_enter = self.__old_on_enter
+        return self.get_current_edit_buffer().rstrip('\n')
+        
+ 
     def execute(self, python_string, raw_string=None):
         self.CallTipCancel()
         self._cursor = wx.BusyCursor()
@@ -133,7 +151,10 @@ class IPythonWxController(PrefilterFrontEnd, ConsoleWidget):
         #self.SetSelection(self.GetLength()-1, self.GetLength())
         #self.ReplaceSelection('')
         self.GotoPos(self.GetLength())
+        self.__old_raw_input = __builtin__.raw_input
+        __builtin__.raw_input = self.raw_input
         PrefilterFrontEnd.execute(self, python_string, raw_string=raw_string)
+        __builtin__.raw_input = self.__old_raw_input
 
 
     def after_execute(self):

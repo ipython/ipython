@@ -221,7 +221,7 @@ class ConsoleWidget(editwindow.EditWindow):
         self.GotoPos(self.GetLength())
         wx.Yield()
     
-    
+   
     def new_prompt(self, prompt):
         """ Prints a prompt at start of line, and move the start of the
             current block there.
