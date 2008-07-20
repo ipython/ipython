@@ -156,10 +156,8 @@ class LineFrontEndBase(FrontEndBase):
         if self.is_complete(cleaned_buffer):
             self.execute(cleaned_buffer, raw_string=current_buffer)
         else:
-            if len(current_buffer.split('\n'))>2:
-                # We need to clean the trailing '\n'
-                self.write(self._get_indent_string(current_buffer[:-1]))
-            else:
+            self.write(self._get_indent_string(current_buffer[:-1]))
+            if current_buffer.rstrip().endswith(':'):
                 self.write('\t')
 
 
