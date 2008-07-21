@@ -41,15 +41,8 @@ class WIPythonController(WxController):
         """ Exits the interpreter, kills the windows.
         """
         WxController.do_exit(self)
-        # Remove the callbacks, to avoid PyDeadObjectErrors
-        do_nothing = lambda *args, **kwargs: True
         self.release_output()
-        self._on_key_down = do_nothing
-        self._on_key_up = do_nothing
-        self._on_enter = do_nothing
-        self.after_execute = do_nothing
-        wx.Yield()
-        wx.CallAfter(self.Parent.Destroy)
+        wx.CallAfter(wx.Exit)
 
 
 
@@ -69,7 +62,7 @@ class WIPython(wx.Frame):
 
 def main():
     app = wx.PySimpleApp()
-    frame = WIPython(None, wx.ID_ANY, 'WIpython')
+    frame = WIPython(None, wx.ID_ANY, 'WIPython')
     frame.shell.SetFocus()
     frame.shell.app = app
     frame.SetSize((680, 460))
