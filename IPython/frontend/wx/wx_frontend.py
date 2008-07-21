@@ -151,10 +151,18 @@ class WxController(PrefilterFrontEnd, ConsoleWidget):
         #self.SetSelection(self.GetLength()-1, self.GetLength())
         #self.ReplaceSelection('')
         self.GotoPos(self.GetLength())
+        PrefilterFrontEnd.execute(self, python_string, raw_string=raw_string)
+
+
+    def capture_output(self):
         self.__old_raw_input = __builtin__.raw_input
         __builtin__.raw_input = self.raw_input
-        PrefilterFrontEnd.execute(self, python_string, raw_string=raw_string)
+        PrefilterFrontEnd.capture_output(self)
+        
+    
+    def release_output(self):
         __builtin__.raw_input = self.__old_raw_input
+        PrefilterFrontEnd.capture_output(self)
 
 
     def after_execute(self):

@@ -2459,7 +2459,7 @@ Defaulting color scheme to 'NoColor'"""
     def magic_Exit(self, parameter_s=''):
         """Exit IPython without confirmation."""
 
-        self.shell.exit_now = True
+        self.shell.ask_exit()
 
     #......................................................................
     # Functions to implement unix shell-type things

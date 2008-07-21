@@ -49,7 +49,7 @@ ip.expose_magic("rehash", magic_rehash)
 def magic_Quit(self, parameter_s=''):
     """Exit IPython without confirmation (like %Exit)."""
 
-    self.shell.exit_now = True
+    self.shell.ask_exit()
 
 ip.expose_magic("Quit", magic_Quit)
 

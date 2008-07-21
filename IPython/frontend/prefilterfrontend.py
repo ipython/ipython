@@ -24,6 +24,7 @@ from IPython.ipapi import IPApi
 from IPython.kernel.core.sync_output_trap import SyncOutputTrap
 
 from IPython.genutils import Term
+import pydoc
 
 #-------------------------------------------------------------------------------
 # Utility functions (temporary, should be moved out of here)
@@ -71,9 +72,10 @@ class PrefilterFrontEnd(LineFrontEndBase):
         # terminal
         self.shell.output_trap = SyncOutputTrap(write_out=self.write,
                                                 write_err=self.write)
-
-        import pydoc
-        pydoc.help.output = self.shell.output_trap.out
+        # Capture and release the outputs, to make sure all the
+        # shadow variables are set
+        self.capture_output()
+        self.release_output()
 
     
     def prefilter_input(self, input_string):
@@ -105,8 +107,15 @@ class PrefilterFrontEnd(LineFrontEndBase):
         self.release_output()
 
 
+    def execute(self, python_string, raw_string=None):
+        self.capture_output()
+        LineFrontEndBase.execute(self, python_string,
+                                    raw_string=raw_string)
+        self.release_output()
+
+
     def capture_output(self):
-        """ Capture all the output mechanism we can think of.
+        """ Capture all the output mechanisms we can think of.
         """
         self.__old_cout_write = Term.cout.write
         self.__old_err_write = Term.cerr.write
@@ -116,16 +125,18 @@ class PrefilterFrontEnd(LineFrontEndBase):
         self.__old_stderr= sys.stderr
         sys.stdout = Term.cout
         sys.stderr = Term.cerr
+        self.__old_help_output = pydoc.help.output
+        pydoc.help.output = self.shell.output_trap.out
 
 
     def release_output(self):
-        """ Release all the different captures we have made,
-            and flush the buffers.
+        """ Release all the different captures we have made.
         """
         Term.cout.write = self.__old_cout_write
         Term.cerr.write = self.__old_err_write
         sys.stdout = self.__old_stdout
         sys.stderr = self.__old_stderr
+        pydoc.help.output = self.__old_help_output 
 
 
     def complete(self, line):
@@ -138,4 +149,9 @@ class PrefilterFrontEnd(LineFrontEndBase):
             line = line[:-len(word)] + prefix
         return line, completions 
  
+
+    def do_exit(self):
+        """ Exit the shell, cleanup and save the history.
+        """
+        self.ipython0.atexit_operations()
 
