@@ -196,9 +196,14 @@ class ConsoleWidget(editwindow.EditWindow):
         """ Write given text to buffer, while translating the ansi escape
             sequences.
         """
+        # XXX: do not put print statements in this method, the print
+        # statements will call this method, and you will end up with
+        # an infinit loop
         title = self.title_pat.split(text)
-        if len(title)>0:
-            self.title = title[-1]
+        if len(title)>1:
+            import sys
+            print >>sys.__stderr__, "title :", title
+            self.title = title[-2]
 
         text = self.title_pat.sub('', text)
         segments = self.color_pat.split(text)

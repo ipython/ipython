@@ -241,6 +241,15 @@ class WxController(PrefilterFrontEnd, ConsoleWidget):
             ConsoleWidget._on_key_up(self, event, skip=skip)
 
 
+    def _set_title(self, title):
+            return self.Parent.SetTitle(title)
+
+    def _get_title(self):
+            return self.Parent.GetTitle()
+
+    title = property(_get_title, _set_title)
+
+
 if __name__ == '__main__':
     class MainWindow(wx.Frame):
         def __init__(self, parent, id, title):
