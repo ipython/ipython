@@ -8,6 +8,7 @@ import dde
 import os
 import scitedirector
 
+# test to write.
 
 def setHook(synchronize_with_editor):
     ip.set_hook("synchronize_with_editor", synchronize_with_editor)
