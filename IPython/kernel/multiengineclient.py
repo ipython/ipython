@@ -31,6 +31,11 @@ from IPython.ColorANSI import TermColors
 from IPython.kernel.twistedutil import blockingCallFromThread
 from IPython.kernel import error
 from IPython.kernel.parallelfunction import ParallelFunction
+from IPython.kernel.mapper import (
+    MultiEngineMapper, 
+    IMultiEngineMapperFactory,
+    IMapper
+)
 from IPython.kernel import map as Map
 from IPython.kernel import multiengine as me
 from IPython.kernel.multiengine import (IFullMultiEngine,
@@ -186,10 +191,14 @@ class ResultList(list):
     
     def __repr__(self):
         output = []
-        blue = TermColors.Blue
-        normal = TermColors.Normal
-        red = TermColors.Red
-        green = TermColors.Green
+        # These colored prompts were not working on Windows
+        if sys.platform == 'win32':
+            blue = normal = red = green = ''
+        else:
+            blue = TermColors.Blue
+            normal = TermColors.Normal
+            red = TermColors.Red
+            green = TermColors.Green
         output.append("<Results List>\n")
         for cmd in self:
             if isinstance(cmd, Failure):
@@ -294,35 +303,7 @@ class InteractiveMultiEngineClient(object):
     def __len__(self):
         """Return the number of available engines."""
         return len(self.get_ids())
-        
-    def parallelize(self, func, targets=None, block=None):
-        """Build a `ParallelFunction` object for functionName on engines.
-        
-        The returned object will implement a parallel version of functionName
-        that takes a local sequence as its only argument and calls (in 
-        parallel) functionName on each element of that sequence.  The
-        `ParallelFunction` object has a `targets` attribute that controls
-        which engines the function is run on.
-        
-        :Parameters:
-            targets : int, list or 'all'
-                The engine ids the action will apply to.  Call `get_ids` to see
-                a list of currently available engines.
-            functionName : str
-                A Python string that names a callable defined on the engines.
-        
-        :Returns:  A `ParallelFunction` object.                
-        
-        Examples
-        ========
-        
-        >>> psin = rc.parallelize('all','lambda x:sin(x)')
-        >>> psin(range(10000))
-        [0,2,4,9,25,36,...]
-        """
-        targets, block = self._findTargetsAndBlock(targets, block)
-        return ParallelFunction(func, self, targets, block)
-
+    
     #---------------------------------------------------------------------------
     # Make this a context manager for with
     #---------------------------------------------------------------------------
@@ -422,7 +403,11 @@ class FullBlockingMultiEngineClient(InteractiveMultiEngineClient):
     engine, run code on it, etc.
     """
     
-    implements(IFullBlockingMultiEngineClient)
+    implements(
+        IFullBlockingMultiEngineClient,
+        IMultiEngineMapperFactory,
+        IMapper
+    )
     
     def __init__(self, smultiengine):
         self.smultiengine = smultiengine
@@ -779,29 +764,100 @@ class FullBlockingMultiEngineClient(InteractiveMultiEngineClient):
     # IMultiEngineCoordinator
     #---------------------------------------------------------------------------
              
-    def scatter(self, key, seq, style='basic', flatten=False, targets=None, block=None):
+    def scatter(self, key, seq, dist='b', flatten=False, targets=None, block=None):
         """
         Partition a Python sequence and send the partitions to a set of engines.
         """
         targets, block = self._findTargetsAndBlock(targets, block)
         return self._blockFromThread(self.smultiengine.scatter, key, seq, 
-            style, flatten, targets=targets, block=block)
+            dist, flatten, targets=targets, block=block)
     
-    def gather(self, key, style='basic', targets=None, block=None):
+    def gather(self, key, dist='b', targets=None, block=None):
         """
         Gather a partitioned sequence on a set of engines as a single local seq.
         """
         targets, block = self._findTargetsAndBlock(targets, block)
-        return self._blockFromThread(self.smultiengine.gather, key, style, 
+        return self._blockFromThread(self.smultiengine.gather, key, dist, 
             targets=targets, block=block)
     
-    def map(self, func, seq, style='basic', targets=None, block=None):
+    def raw_map(self, func, seq, dist='b', targets=None, block=None):
         """
-        A parallelized version of Python's builtin map
+        A parallelized version of Python's builtin map.
+        
+        This has a slightly different syntax than the builtin `map`.
+        This is needed because we need to have keyword arguments and thus
+        can't use *args to capture all the sequences.  Instead, they must
+        be passed in a list or tuple.
+        
+        raw_map(func, seqs) -> map(func, seqs[0], seqs[1], ...)
+        
+        Most users will want to use parallel functions or the `mapper`
+        and `map` methods for an API that follows that of the builtin
+        `map`.
         """
         targets, block = self._findTargetsAndBlock(targets, block)
-        return self._blockFromThread(self.smultiengine.map, func, seq, 
-            style, targets=targets, block=block)
+        return self._blockFromThread(self.smultiengine.raw_map, func, seq, 
+            dist, targets=targets, block=block)
+    
+    def map(self, func, *sequences):
+        """
+        A parallel version of Python's builtin `map` function.
+        
+        This method applies a function to sequences of arguments.  It 
+        follows the same syntax as the builtin `map`.
+        
+        This method creates a mapper objects by calling `self.mapper` with
+        no arguments and then uses that mapper to do the mapping.  See
+        the documentation of `mapper` for more details.
+        """
+        return self.mapper().map(func, *sequences)
+    
+    def mapper(self, dist='b', targets='all', block=None):
+        """
+        Create a mapper object that has a `map` method.
+        
+        This method returns an object that implements the `IMapper` 
+        interface.  This method is a factory that is used to control how 
+        the map happens.
+        
+        :Parameters:
+            dist : str
+                What decomposition to use, 'b' is the only one supported
+                currently
+            targets : str, int, sequence of ints
+                Which engines to use for the map
+            block : boolean
+                Should calls to `map` block or not
+        """
+        return MultiEngineMapper(self, dist, targets, block)
+    
+    def parallel(self, dist='b', targets=None, block=None):
+        """
+        A decorator that turns a function into a parallel function.
+        
+        This can be used as:
+        
+        @parallel()
+        def f(x, y)
+            ...
+        
+        f(range(10), range(10))
+        
+        This causes f(0,0), f(1,1), ... to be called in parallel.
+        
+        :Parameters:
+            dist : str
+                What decomposition to use, 'b' is the only one supported
+                currently
+            targets : str, int, sequence of ints
+                Which engines to use for the map
+            block : boolean
+                Should calls to `map` block or not
+        """
+        targets, block = self._findTargetsAndBlock(targets, block)       
+        mapper = self.mapper(dist, targets, block)
+        pf = ParallelFunction(mapper)
+        return pf
     
     #---------------------------------------------------------------------------
     # IMultiEngineExtras
