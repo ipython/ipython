@@ -163,7 +163,6 @@ class IEngineCoreTestCase(object):
         try:
             import numpy
         except:
-            print 'no numpy, ',
             return
         a = numpy.random.random(1000)
         d = self.engine.push(dict(a=a))

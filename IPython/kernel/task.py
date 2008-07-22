@@ -476,7 +476,7 @@ class TaskResult(object):
             return self._ns
     
     def _setNS(self, v):
-        raise Exception("I am protected!")
+        raise Exception("the ns attribute cannot be changed")
     
     ns = property(_getNS, _setNS)
     
