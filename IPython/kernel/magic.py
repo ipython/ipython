@@ -79,7 +79,7 @@ def magic_px(self,parameter_s=''):
     except AttributeError:
         print NO_ACTIVE_CONTROLLER
     else:
-        print "Executing command on Controller"
+        print "Parallel execution on engines: %s" % activeController.targets
         result = activeController.execute(parameter_s)
         return result
 

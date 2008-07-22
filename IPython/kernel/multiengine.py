@@ -659,17 +659,23 @@ class IMultiEngineCoordinator(Interface):
     def gather(key, dist='b', targets='all'):
         """Gather object key from targets."""
     
-    def _map(func, seq, dist='b', targets='all'):
-        """A parallelized version of Python's builtin map."""
-    
-    def map(func, *sequences):
-        """Do a basic map with default for dist and targets."""
-    
-    def mapper(dist='b', targets='all'):
-        """Create a mapper with dist and targets."""
-    
-    def parallel(dist='b', targets='all'):
-        """A decorator that build a parallel function."""
+    def raw_map(func, seqs, dist='b', targets='all'):
+        """
+        A parallelized version of Python's builtin `map` function.
+        
+        This has a slightly different syntax than the builtin `map`.
+        This is needed because we need to have keyword arguments and thus
+        can't use *args to capture all the sequences.  Instead, they must
+        be passed in a list or tuple.
+        
+        The equivalence is:
+        
+        raw_map(func, seqs) -> map(func, seqs[0], seqs[1], ...)
+        
+        Most users will want to use parallel functions or the `mapper`
+        and `map` methods for an API that follows that of the builtin
+        `map`.
+        """
 
 
 class ISynchronousMultiEngineCoordinator(IMultiEngineCoordinator):
@@ -681,17 +687,21 @@ class ISynchronousMultiEngineCoordinator(IMultiEngineCoordinator):
     def gather(key, dist='b', targets='all', block=True):
         """Gather object key from targets"""
     
-    def _map(func, sequences, dist='b', targets='all', block=True):
-        """Perform an actual map."""
-    
-    def map(func, *sequences):
-        """Do a basic map with default for dist and targets."""
-    
-    def mapper(dist='b', targets='all', block=True):
-        """Create a mapper with dist, targets and block."""
-    
-    def parallel(dist='b', targets='all', block=True):
-        """A decorator that build a parallel function."""
+    def raw_map(func, seqs, dist='b', targets='all', block=True):
+        """
+        A parallelized version of Python's builtin map.
+        
+        This has a slightly different syntax than the builtin `map`.
+        This is needed because we need to have keyword arguments and thus
+        can't use *args to capture all the sequences.  Instead, they must
+        be passed in a list or tuple.
+        
+        raw_map(func, seqs) -> map(func, seqs[0], seqs[1], ...)
+        
+        Most users will want to use parallel functions or the `mapper`
+        and `map` methods for an API that follows that of the builtin
+        `map`.
+        """
 
 
 #-------------------------------------------------------------------------------

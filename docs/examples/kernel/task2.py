@@ -10,7 +10,7 @@ mec = client.MultiEngineClient()
 mec.execute('import time')
 
 for i in range(24):
-    tc.irun('time.sleep(1)')
+    tc.run(client.StringTask('time.sleep(1)'))
 
 for i in range(6):
     time.sleep(1.0)
@@ -18,7 +18,7 @@ for i in range(6):
     print tc.queue_status()
     
 for i in range(24):
-    tc.irun('time.sleep(1)')
+    tc.run(client.StringTask('time.sleep(1)'))
 
 for i in range(6):
     time.sleep(1.0)
@@ -26,7 +26,7 @@ for i in range(6):
     print tc.queue_status(True)
 
 for i in range(12):
-    tc.irun('time.sleep(2)')
+    tc.run(client.StringTask('time.sleep(2)'))
 
 print "Queue status (vebose=True)"
 print tc.queue_status(True)

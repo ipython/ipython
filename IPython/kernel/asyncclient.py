@@ -27,7 +27,7 @@ from IPython.kernel import codeutil
 from IPython.kernel.clientconnector import ClientConnector
 
 # Other things that the user will need
-from IPython.kernel.task import Task
+from IPython.kernel.task import MapTask, StringTask
 from IPython.kernel.error import CompositeError
 
 #-------------------------------------------------------------------------------

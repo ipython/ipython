@@ -31,7 +31,7 @@ sigma_vals = N.linspace(0.0, 0.2,5)
 taskids = []
 for K in K_vals:
     for sigma in sigma_vals:
-        t = client.Task(task_string, 
+        t = client.StringTask(task_string, 
             push=dict(sigma=sigma,K=K),
             pull=('vp','ap','vc','ac','sigma','K'))
         taskids.append(tc.run(t))

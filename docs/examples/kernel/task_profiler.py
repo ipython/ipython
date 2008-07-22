@@ -55,7 +55,7 @@ def main():
 
     # the jobs should take a random time within a range
     times = [random.random()*(opts.tmax-opts.tmin)+opts.tmin for i in range(opts.n)]
-    tasks = [client.Task("time.sleep(%f)"%t) for t in times]
+    tasks = [client.StringTask("time.sleep(%f)"%t) for t in times]
     stime = sum(times)
     
     print "executing %i tasks, totalling %.1f secs on %i engines"%(opts.n, stime, nengines)

@@ -30,7 +30,11 @@ from IPython.kernel import error
 from IPython.kernel.util import printer
 from IPython.kernel import map as Map
 from IPython.kernel.parallelfunction import ParallelFunction
-from IPython.kernel.mapper import Mapper
+from IPython.kernel.mapper import (
+    MultiEngineMapper, 
+    IMultiEngineMapperFactory,
+    IMapper
+)
 from IPython.kernel.twistedutil import gatherBoth
 from IPython.kernel.multiengine import (MultiEngine,
     IMultiEngine,
@@ -282,7 +286,12 @@ components.registerAdapter(FCSynchronousMultiEngineFromMultiEngine,
 
 class FCFullSynchronousMultiEngineClient(object):
     
-    implements(IFullSynchronousMultiEngine, IBlockingClientAdaptor)
+    implements(
+        IFullSynchronousMultiEngine, 
+        IBlockingClientAdaptor,
+        IMultiEngineMapperFactory,
+        IMapper
+    )
     
     def __init__(self, remote_reference):
         self.remote_reference = remote_reference
@@ -606,9 +615,20 @@ class FCFullSynchronousMultiEngineClient(object):
         d.addCallback(do_gather)
         return d
 
-    def _map(self, func, sequences, dist='b', targets='all', block=True):
+    def raw_map(self, func, sequences, dist='b', targets='all', block=True):
         """
-        Call a callable on elements of a sequence.
+        A parallelized version of Python's builtin map.
+        
+        This has a slightly different syntax than the builtin `map`.
+        This is needed because we need to have keyword arguments and thus
+        can't use *args to capture all the sequences.  Instead, they must
+        be passed in a list or tuple.
+        
+        raw_map(func, seqs) -> map(func, seqs[0], seqs[1], ...)
+        
+        Most users will want to use parallel functions or the `mapper`
+        and `map` methods for an API that follows that of the builtin
+        `map`.
         """
         if not isinstance(sequences, (list, tuple)):
             raise TypeError('sequences must be a list or tuple')
@@ -634,13 +654,62 @@ class FCFullSynchronousMultiEngineClient(object):
         return d
 
     def map(self, func, *sequences):
-        return self.mapper()(func, *sequences)
+        """
+        A parallel version of Python's builtin `map` function.
+        
+        This method applies a function to sequences of arguments.  It 
+        follows the same syntax as the builtin `map`.
+        
+        This method creates a mapper objects by calling `self.mapper` with
+        no arguments and then uses that mapper to do the mapping.  See
+        the documentation of `mapper` for more details.
+        """
+        return self.mapper().map(func, *sequences)
     
     def mapper(self, dist='b', targets='all', block=True):
-        return Mapper(self, dist, targets, block)
+        """
+        Create a mapper object that has a `map` method.
+        
+        This method returns an object that implements the `IMapper` 
+        interface.  This method is a factory that is used to control how 
+        the map happens.
+        
+        :Parameters:
+            dist : str
+                What decomposition to use, 'b' is the only one supported
+                currently
+            targets : str, int, sequence of ints
+                Which engines to use for the map
+            block : boolean
+                Should calls to `map` block or not
+        """
+        return MultiEngineMapper(self, dist, targets, block)
 
     def parallel(self, dist='b', targets='all', block=True):
-        pf = ParallelFunction(self, dist=dist, targets=targets, block=True)
+        """
+        A decorator that turns a function into a parallel function.
+        
+        This can be used as:
+        
+        @parallel()
+        def f(x, y)
+            ...
+        
+        f(range(10), range(10))
+        
+        This causes f(0,0), f(1,1), ... to be called in parallel.
+        
+        :Parameters:
+            dist : str
+                What decomposition to use, 'b' is the only one supported
+                currently
+            targets : str, int, sequence of ints
+                Which engines to use for the map
+            block : boolean
+                Should calls to `map` block or not
+        """
+        mapper = self.mapper(dist, targets, block)
+        pf = ParallelFunction(mapper)
         return pf
     
     #---------------------------------------------------------------------------
