@@ -8,9 +8,13 @@ dtest: plugin dtexample.py
 	nosetests -vs --with-ipdoctest --doctest-tests --doctest-extension=txt \
 	dtexample.py
 
+# Note: this test is double counting!!!
+rtest: plugin dtexample.py
+	nosetests -vs --with-ipdoctest --doctest-tests test_refs.py
+
 test: plugin dtexample.py
 	nosetests -vs --with-ipdoctest --doctest-tests --doctest-extension=txt \
-	dtexample.py test*.txt
+	dtexample.py test*.py test*.txt
 
 deb: plugin dtexample.py
 	nosetests -vs --with-ipdoctest --doctest-tests --doctest-extension=txt \

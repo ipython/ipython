@@ -71,37 +71,47 @@ def ipfunc():
     return 'ipfunc'
 
 
-def ranfunc():
-    """A function with some random output.
+if 1:
+    def ranfunc():
+        """A function with some random output.
 
-       >>> 1+3 #random
-       junk goes here...
+           >>> 1+3
+           junk goes here...  #random
 
-       >>> 1+3
-       4
+           >>> 1+3
+           4
 
-       >>> 1+2 #random
-       again,  anything goes
-    """
-    return 'ranfunc'
+           >>> 1+2
+           again,  anything goes #random
+           if multiline, the random mark is only needed in teh first line.
+
+           >>> 1+3
+           4
+
+           >>> ranfunc()
+           'ranfunc'
+        """
+        return 'ranfunc'
 
 
-def ranf2():
-    """A function whose examples are all all random
+if 0:
+    def ranf2():
+        """A function whose examples'output are all to be ignored.
 
-    Examples:
+        Examples:
 
-    #all-random
+        #all-random
 
-       >>> 1+3 #random
-       junk goes here...
+           >>> 1+3
+           junk goes here...
 
-       >>> 1+3
-       klasdfj;
+           >>> 1+3
+           klasdfj;
 
-       >>> 1+2 #random
-       again,  anything goes
+           >>> 1+2
+           again,  anything goes
+           blah...
 
-    """
-    return 'ranf2'
+        """
+        return 'ranf2'
 

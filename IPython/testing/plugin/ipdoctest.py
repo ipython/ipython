@@ -214,6 +214,22 @@ class DocTestFinder(doctest.DocTestFinder):
                                globs, seen)
 
 
+# second-chance checker; if the default comparison doesn't 
+# pass, then see if the expected output string contains flags that
+# tell us to ignore the output
+class IPDoctestOutputChecker(doctest.OutputChecker):
+    def check_output(self, want, got, optionflags):
+        #print '*** My Checker!'  # dbg
+        
+        ret = doctest.OutputChecker.check_output(self, want, got, 
+                                                 optionflags)
+        if not ret:
+            if "#random" in want:
+                return True
+
+        return ret
+
+
 class DocTestCase(doctests.DocTestCase):
     """Proxy for DocTestCase: provides an address() method that
     returns the correct address for the doctest case. Otherwise
@@ -227,26 +243,23 @@ class DocTestCase(doctests.DocTestCase):
     # Subclass nose.plugins.doctests.DocTestCase to work around a bug in 
     # its constructor that blocks non-default arguments from being passed
     # down into doctest.DocTestCase
-    ## def __init__(self, test, optionflags=0, setUp=None, tearDown=None,
-    ##              checker=None, obj=None, result_var='_'):
-    ##     self._result_var = result_var
-    ##     self._nose_obj = obj
-    ##     doctest.DocTestCase.__init__(self, test, 
-    ##                                  optionflags=optionflags,
-    ##                                  setUp=setUp, tearDown=tearDown, 
-    ##                                  checker=checker)
 
-    # doctests loaded via find(obj) omit the module name
-    # so we need to override id, __repr__ and shortDescription
-    # bonus: this will squash a 2.3 vs 2.4 incompatiblity
-    def id(self):
-        name = self._dt_test.name
-        filename = self._dt_test.filename
-        if filename is not None:
-            pk = getpackage(filename)
-            if pk is not None and not name.startswith(pk):
-                name = "%s.%s" % (pk, name)
-        return name
+    def __init__(self, test, optionflags=0, setUp=None, tearDown=None,
+                 checker=None, obj=None, result_var='_'):
+        self._result_var = result_var
+        doctests.DocTestCase.__init__(self, test, 
+                                      optionflags=optionflags,
+                                      setUp=setUp, tearDown=tearDown, 
+                                      checker=checker)
+        # Now we must actually copy the original constructor from the stdlib
+        # doctest class, because we can't call it directly and a bug in nose
+        # means it never gets passed the right arguments.
+        
+        self._dt_optionflags = optionflags
+        self._dt_checker = checker
+        self._dt_test = test
+        self._dt_setUp = setUp
+        self._dt_tearDown = tearDown
 
 
 
@@ -325,8 +338,8 @@ class IPDocTestParser(doctest.DocTestParser):
         argument `name` is a name identifying this string, and is only
         used for error messages.
         """
-
-        print 'Parse string:\n',string # dbg
+        
+        #print 'Parse string:\n',string # dbg
 
         string = string.expandtabs()
         # If all lines begin with the same indentation, then strip it.
@@ -390,9 +403,6 @@ class IPDocTestParser(doctest.DocTestParser):
             charno = m.end()
         # Add any remaining post-example text to `output`.
         output.append(string[charno:])
-
-        #print 'OUT:',output  # dbg
-
         return output
 
     def _parse_example(self, m, name, lineno,ip2py=False):
@@ -517,8 +527,39 @@ class ExtensionDoctest(doctests.Doctest):
             sys.path.pop()
         return tests
 
+    # NOTE: the method below is almost a copy of the original one in nose, with
+    # a  few modifications to control output checking.
+    
+    def loadTestsFromModule(self, module):
+        #print 'lTM',module  # dbg
+
+        if not self.matches(module.__name__):
+            log.debug("Doctest doesn't want module %s", module)
+            return
+        tests = self.finder.find(module)
+        if not tests:
+            return
+        tests.sort()
+        module_file = module.__file__
+        if module_file[-4:] in ('.pyc', '.pyo'):
+            module_file = module_file[:-1]
+        for test in tests:
+            if not test.examples:
+                continue
+            if not test.filename:
+                test.filename = module_file
+
+            #yield DocTestCase(test)
+
+            # always use whitespace and ellipsis options
+            optionflags = doctest.NORMALIZE_WHITESPACE | doctest.ELLIPSIS
+            checker = IPDoctestOutputChecker()
+            yield DocTestCase(test, 
+                              optionflags=optionflags,
+                              checker=checker)
+
     def loadTestsFromFile(self, filename):
-        print 'lTF',filename  # dbg
+        #print 'lTF',filename  # dbg
 
         if is_extension_module(filename):
             for t in self.loadTestsFromExtensionModule(filename):
@@ -570,38 +611,6 @@ class ExtensionDoctest(doctests.Doctest):
             return True
         else:
             return doctests.Doctest.wantFile(self,filename)
-
-    # NOTE: the method below is almost a copy of the original one in nose, with
-    # a  few modifications to control output checking.
-    
-    def loadTestsFromModule(self, module):
-        #print 'lTM',module  # dbg
-
-        if not self.matches(module.__name__):
-            log.debug("Doctest doesn't want module %s", module)
-            return
-        tests = self.finder.find(module)
-        if not tests:
-            return
-        tests.sort()
-        module_file = module.__file__
-        if module_file[-4:] in ('.pyc', '.pyo'):
-            module_file = module_file[:-1]
-        for test in tests:
-            if not test.examples:
-                continue
-            if not test.filename:
-                test.filename = module_file
-            yield DocTestCase(test)
-
-            # always use whitespace and ellipsis options
-            optionflags = doctest.NORMALIZE_WHITESPACE | doctest.ELLIPSIS
-            #checker = DoctestOutputChecker()
-            checker = None
-            yield DocTestCase(test, 
-                              optionflags=optionflags,
-                              checker=checker)
-
 
 
 class IPythonDoctest(ExtensionDoctest):
