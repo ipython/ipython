@@ -1575,12 +1575,16 @@ Currently the magic system has the following functions:\n"""
 
         # pickle fix.  See iplib for an explanation.  But we need to make sure
         # that, if we overwrite __main__, we replace it at the end
-        if prog_ns['__name__'] == '__main__':
+        main_mod_name = prog_ns['__name__']
+
+        if main_mod_name == '__main__':
             restore_main = sys.modules['__main__']
         else:
             restore_main = False
 
-        sys.modules[prog_ns['__name__']] = main_mod
+        # This needs to be undone at the end to prevent holding references to
+        # every single object ever created.
+        sys.modules[main_mod_name] = main_mod
         
         stats = None
         try:
@@ -1673,9 +1677,15 @@ Currently the magic system has the following functions:\n"""
                     del prog_ns['__name__']
                     self.shell.user_ns.update(prog_ns)
         finally:
+            # Ensure key global structures are restored
             sys.argv = save_argv
             if restore_main:
                 sys.modules['__main__'] = restore_main
+            else:
+                # Remove from sys.modules the reference to main_mod we'd
+                # added.  Otherwise it will trap references to objects
+                # contained therein.
+                del sys.modules[main_mod_name]
             self.shell.reloadhist()
                 
         return stats
