@@ -48,7 +48,7 @@ def strip_whitespace(source,require_remote=True):
     """strip leading whitespace from input source.
 
     :Parameters:
-    
+
     """
     remote_mark = 'remote()'
     # Expand tabs to avoid any confusion.
@@ -101,7 +101,7 @@ def strip_whitespace(source,require_remote=True):
 class RemoteContextBase(object):
     def __init__(self):
         self.ip = ipapi.get()
-    
+
     def _findsource_file(self,f):
         linecache.checkcache()
         s = findsource(f.f_code)
@@ -113,10 +113,10 @@ class RemoteContextBase(object):
         from IPython import ipapi
         self.ip = ipapi.get()
         buf = self.ip.IP.input_hist_raw[-1].splitlines()[1:]
-        wsource = [l+'\n' for l in buf ] 
-                   
+        wsource = [l+'\n' for l in buf ]
+
         return strip_whitespace(wsource)
-        
+
     def findsource(self,frame):
         local_ns = frame.f_locals
         global_ns = frame.f_globals
@@ -128,7 +128,7 @@ class RemoteContextBase(object):
 
     def __enter__(self):
         raise NotImplementedError
-        
+
     def __exit__ (self, etype, value, tb):
         if issubclass(etype,error.StopLocalExecution):
             return True
@@ -167,6 +167,8 @@ if __name__ == '__main__':
     c = itertools.count()
 
     parallel = RemoteMultiEngine(mec)
+
+    mec.pushAll()
 
     with parallel as pr:
         # A comment
