@@ -66,6 +66,9 @@ MAIN_THREAD_ID = thread.get_ident()
 # Tag when runcode() is active, for exception handling
 CODE_RUN = None
 
+# Default timeout for waiting for multithreaded shells (in seconds)
+GUI_TIMEOUT = 10
+
 #-----------------------------------------------------------------------------
 # This class is trivial now, but I want to have it in to publish a clean
 # interface. Later when the internals are reorganized, code that uses this
@@ -359,12 +362,15 @@ class MTInteractiveShell(InteractiveShell):
     isthreaded = True
 
     def __init__(self,name,usage=None,rc=Struct(opts=None,args=None),
-                 user_ns=None,user_global_ns=None,banner2='',**kw):
+                 user_ns=None,user_global_ns=None,banner2='',
+                 gui_timeout=GUI_TIMEOUT,**kw):
         """Similar to the normal InteractiveShell, but with threading control"""
         
         InteractiveShell.__init__(self,name,usage,rc,user_ns,
                                   user_global_ns,banner2)
 
+        # Timeout we wait for GUI thread
+        self.gui_timeout = gui_timeout
 
         # A queue to hold the code to be executed. 
         self.code_queue = Queue.Queue()
@@ -408,11 +414,12 @@ class MTInteractiveShell(InteractiveShell):
             # Case 2
             return True
 
-        # shortcut - if we are in worker thread, or the worker thread is not running, 
-        # execute directly (to allow recursion and prevent deadlock if code is run early 
-        # in IPython construction)
+        # shortcut - if we are in worker thread, or the worker thread is not
+        # running, execute directly (to allow recursion and prevent deadlock if
+        # code is run early in IPython construction)
         
-        if (self.worker_ident is None or self.worker_ident == thread.get_ident()):
+        if (self.worker_ident is None
+            or self.worker_ident == thread.get_ident() ):
             InteractiveShell.runcode(self,code)
             return
 
@@ -423,7 +430,7 @@ class MTInteractiveShell(InteractiveShell):
         
         self.code_queue.put((code,completed_ev, received_ev))
         # first make sure the message was received, with timeout
-        received_ev.wait(5)
+        received_ev.wait(self.gui_timeout)
         if not received_ev.isSet():
             # the mainloop is dead, start executing code directly
             print "Warning: Timeout for mainloop thread exceeded"
