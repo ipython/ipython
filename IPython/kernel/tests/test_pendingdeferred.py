@@ -20,8 +20,6 @@ try:
     from twisted.internet import defer
     from twisted.python import failure
 
-    from IPython.testing import tcommon
-    #from IPython.testing.tcommon import *
     from IPython.testing.util import DeferredTestCase
     import IPython.kernel.pendingdeferred as pd
     from IPython.kernel import error
@@ -29,6 +27,11 @@ try:
 except ImportError:
     pass
 else:
+    
+    class Foo(object):
+    
+        def bar(self, bahz):
+            return defer.succeed('blahblah: %s' % bahz)
 
     class TwoPhaseFoo(pd.PendingDeferredManager):
     
@@ -181,6 +184,3 @@ else:
             d3 = self.pdm.get_pending_deferred(did,False)
             d3.addCallback(lambda r: self.assertEquals(r,'bar'))
 
-
-# Global object expected by Twisted's trial
-testSuite = lambda : makeTestSuite(__name__,dt_files,dt_modules)

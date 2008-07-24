@@ -1,3 +1,5 @@
+.. _parallel_index:
+
 ====================================
 Using IPython for Parallel computing
 ====================================
