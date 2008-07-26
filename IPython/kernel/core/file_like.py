@@ -1,6 +1,6 @@
 # encoding: utf-8
 
-""" Redirects stdout/stderr to given write methods."""
+""" File like object that redirects its write calls to a given callback."""
 
 __docformat__ = "restructuredtext en"
 
@@ -11,12 +11,7 @@ __docformat__ = "restructuredtext en"
 #  the file COPYING, distributed as part of this software.
 #-------------------------------------------------------------------------------
 
-#-------------------------------------------------------------------------------
-# Imports
-#-------------------------------------------------------------------------------
-
 import sys
-from IPython.kernel.core.output_trap import OutputTrap 
 
 class FileLike(object):
     """ FileLike object that redirects all write to a callback.
@@ -26,8 +21,8 @@ class FileLike(object):
     """
     closed = False
 
-    def __init__(self, write):
-        self.write = write
+    def __init__(self, write_callback):
+        self.write = write_callback
 
     def flush(self):
         pass
@@ -45,23 +40,10 @@ class FileLike(object):
     def getvalue(self):
         return ''
 
-
-class SyncOutputTrap(OutputTrap):
-    """ Object which redirect text sent to stdout and stderr to write
-        callbacks.
-    """
-    
-    def __init__(self, write_out, write_err):
-        # Store callbacks
-        self.out = FileLike(write_out)
-        self.err = FileLike(write_err)
-
-        # Boolean to check if the stdout/stderr hook is set.
-        self.out_set = False
-        self.err_set = False
-
-    def clear(self):
-        """ Clear out the buffers.
-        """
+    def reset(self):
         pass
+
+    def truncate(self):
+        pass
+
 

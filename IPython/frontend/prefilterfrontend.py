@@ -21,7 +21,8 @@ from linefrontendbase import LineFrontEndBase, common_prefix
 
 from IPython.ipmaker import make_IPython
 from IPython.ipapi import IPApi
-from IPython.kernel.core.sync_output_trap import SyncOutputTrap
+from IPython.kernel.core.file_like import FileLike
+from IPython.kernel.core.output_trap import OutputTrap
 
 from IPython.genutils import Term
 import pydoc
@@ -33,13 +34,10 @@ import os
 def xterm_system(command):
     """ Run a command in a separate console window.
     """
-    os.system("""
-    xterm -title "%s" -e \'/bin/sh -c "%s ; 
-    printf \\"\\\\n\\"; 
-    printf \\"press a key to close\\" ; 
-    printf \\"\x1b]0;%s (finished -- press a key to close)\x07\\" ;
-    read foo;"\'
-    """  % (command, command, command) )
+    os.system(("""xterm -title "%s" -e \'/bin/sh -c "%s ; """
+               """echo; echo press enter to close ; """
+#               """echo \\"\x1b]0;%s (finished -- press enter to close)\x07\\" ;
+               """read foo;"\' """)  % (command, command) )
 
 #-------------------------------------------------------------------------------
 # Frontend class using ipython0 to do the prefiltering. 
@@ -70,8 +68,10 @@ class PrefilterFrontEnd(LineFrontEndBase):
             setattr(_ip.IP, 'magic_%s' % alias_name, magic)
         # FIXME: I should create a real file-like object dedicated to this
         # terminal
-        self.shell.output_trap = SyncOutputTrap(write_out=self.write,
-                                                write_err=self.write)
+        self.shell.output_trap = OutputTrap(
+                                out=FileLike(write_callback=self.write),
+                                err=FileLike(write_callback=self.write),
+                                            )
         # Capture and release the outputs, to make sure all the
         # shadow variables are set
         self.capture_output()
@@ -142,6 +142,7 @@ class PrefilterFrontEnd(LineFrontEndBase):
     def complete(self, line):
         word = line.split('\n')[-1].split(' ')[-1]
         completions = self.ipython0.complete(word)
+        # FIXME: The proper sort should be done in the complete method.
         key = lambda x: x.replace('_', '')
         completions.sort(key=key)
         if completions:
