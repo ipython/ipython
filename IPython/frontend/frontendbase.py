@@ -37,11 +37,6 @@ from IPython.kernel.core.history import FrontEndHistory
 from IPython.kernel.core.util import Bunch
 from IPython.kernel.engineservice import IEngineCore
 
-try:
-    from twisted.python.failure import Failure
-except ImportError:
-    #Twisted not available
-    Failure = Exception
 
 ##############################################################################
 # TEMPORARY!!! fake configuration, while we decide whether to use tconfig or
@@ -286,7 +281,6 @@ class FrontEndBase(object):
     
     def _add_block_id_for_failure(self, failure, blockID):
         """_add_block_id_for_failure"""
-        
         failure.blockID = blockID
         return failure
     
@@ -387,6 +381,7 @@ class AsyncFrontEndBase(FrontEndBase):
         """
         
         if(not self.is_complete(block)):
+            from twisted.python.failure import Failure
             return Failure(Exception("Block is not compilable"))
         
         if(blockID == None):
@@ -394,10 +389,8 @@ class AsyncFrontEndBase(FrontEndBase):
         
         d = self.engine.execute(block)
         d.addCallback(self._add_history, block=block)
-        d.addCallbacks(self._add_block_id_for_result,
-                errback=self._add_block_id_for_failure,
-                callbackArgs=(blockID,),
-                errbackArgs=(blockID,))
+        d.addCallback(self._add_block_id_for_result, blockID)
+        d.addErrback(self._add_block_id_for_failure, blockID)
         d.addBoth(self.update_cell_prompt, blockID=blockID)
         d.addCallbacks(self.render_result, 
             errback=self.render_error)
