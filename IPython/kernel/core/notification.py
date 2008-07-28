@@ -20,6 +20,12 @@ class NotificationCenter(object):
     """Synchronous notification center"""
     def __init__(self):
         super(NotificationCenter, self).__init__()
+        self._init_observers()
+    
+    
+    def _init_observers(self):
+        """Initialize observer storage"""
+        
         self.registeredTypes = set() #set of types that are observed
         self.registeredSenders = set() #set of senders that are observed
         self.observers = {} #map (type,sender) => callback (callable)
@@ -41,20 +47,34 @@ class NotificationCenter(object):
                 type and sender.")
         
         # If there are no registered observers for the type/sender pair
-        if((theType not in self.registeredTypes) or
-            (sender not in self.registeredSenders)):
+        if((theType not in self.registeredTypes and None not in self.registeredTypes) or
+            (sender not in self.registeredSenders and None not in self.registeredSenders)):
+            print theType,sender,self.registeredTypes,self.registeredSenders
             return
         
-        keys = ((theType,sender), (None, sender), (theType, None), (None,None))
-        observers = set()
-        for k in keys:
-            observers.update(self.observers.get(k, set()))
-        
-        for o in observers:
+        for o in self._observers_for_notification(theType, sender):
             o(theType, sender, args=kwargs)
-        
     
-    def add_observer(self, observerCallback, theType, sender):
+        
+    def _observers_for_notification(self, theType, sender):
+        """Find all registered observers that should recieve notification"""
+        
+        keys = (
+                    (theType,sender),
+                    (theType, None),
+                    (None, sender),  
+                    (None,None)
+                )
+        
+        
+        obs = set()
+        for k in keys:
+            obs.update(self.observers.get(k, set()))
+        
+        return obs
+    
+    
+    def add_observer(self, callback, theType, sender):
         """Add an observer callback to this notification center.
         
         The given callback will be called upon posting of notifications of
@@ -75,10 +95,15 @@ class NotificationCenter(object):
             The notification sender. If None, all notifications of theType
             will be posted.
         """
-        assert(observerCallback != None)
+        assert(callback != None)
         self.registeredTypes.add(theType)
         self.registeredSenders.add(sender)
-        self.observers.setdefault((theType,sender), set()).add(observerCallback)
+        self.observers.setdefault((theType,sender), set()).add(callback)
+    
+    def remove_all_observers(self):
+        """Removes all observers from this notification center"""
+        
+        self._init_observers()
     
 
 

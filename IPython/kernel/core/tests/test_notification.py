@@ -15,8 +15,9 @@ __docformat__ = "restructuredtext en"
 # Imports                                                                     
 #-----------------------------------------------------------------------------
 
-from IPython.kernel.core.notification import NotificationCenter,\
-                                            sharedCenter
+import unittest
+import IPython.kernel.core.notification as notification
+from nose.tools import timed
 
 #
 # Supporting test classes
@@ -24,22 +25,25 @@ from IPython.kernel.core.notification import NotificationCenter,\
 
 class Observer(object):
     """docstring for Observer"""
-    def __init__(self, expectedType, expectedSender, **kwargs):
+    def __init__(self, expectedType, expectedSender, 
+                    center=notification.sharedCenter, **kwargs):
         super(Observer, self).__init__()
         self.expectedType = expectedType
         self.expectedSender = expectedSender
         self.expectedKwArgs = kwargs
         self.recieved = False
-        sharedCenter.add_observer(self.callback, 
-                                    self.expectedType, 
-                                    self.expectedSender)
+        center.add_observer(self.callback, 
+                            self.expectedType, 
+                            self.expectedSender)
     
     
     def callback(self, theType, sender, args={}):
         """callback"""
         
-        assert(theType == self.expectedType)
-        assert(sender == self.expectedSender)
+        assert(theType == self.expectedType or
+                self.expectedType == None)
+        assert(sender == self.expectedSender or
+                self.expectedSender == None)
         assert(args == self.expectedKwArgs)
         self.recieved = True
     
@@ -48,6 +52,11 @@ class Observer(object):
         """verify"""
         
         assert(self.recieved)
+    
+    def reset(self):
+        """reset"""
+        
+        self.recieved = False
     
 
 
@@ -58,7 +67,7 @@ class Notifier(object):
         self.theType = theType
         self.kwargs = kwargs
     
-    def post(self, center=sharedCenter):
+    def post(self, center=notification.sharedCenter):
         """fire"""
         
         center.post_notification(self.theType, self,
@@ -69,50 +78,102 @@ class Notifier(object):
 # Test Cases
 #
 
-
-def test_notification_delivered():
-    """Test that notifications are delivered"""
-    expectedType = 'EXPECTED_TYPE'
-    sender = Notifier(expectedType)
-    observer = Observer(expectedType, sender)
+class NotificationTests(unittest.TestCase):
+    """docstring for NotificationTests"""
     
-    sender.post()
+    def tearDown(self):
+        notification.sharedCenter.remove_all_observers()
     
-    observer.verify()
-
-
-def test_type_specificity():
-    """Test that observers are registered by type"""
+    def test_notification_delivered(self):
+        """Test that notifications are delivered"""
+        expectedType = 'EXPECTED_TYPE'
+        sender = Notifier(expectedType)
+        observer = Observer(expectedType, sender)
+        
+        sender.post()
+        
+        observer.verify()
     
-    expectedType = 1
-    unexpectedType = "UNEXPECTED_TYPE"
-    sender = Notifier(expectedType)
-    unexpectedSender = Notifier(unexpectedType)
-    observer = Observer(expectedType, sender)
     
-    sender.post()
-    unexpectedSender.post()
+    def test_type_specificity(self):
+        """Test that observers are registered by type"""
+        
+        expectedType = 1
+        unexpectedType = "UNEXPECTED_TYPE"
+        sender = Notifier(expectedType)
+        unexpectedSender = Notifier(unexpectedType)
+        observer = Observer(expectedType, sender)
     
-    observer.verify()
-
-
-def test_sender_specificity():
-    """Test that observers are registered by sender"""
+        sender.post()
+        unexpectedSender.post()
     
-    expectedType = "EXPECTED_TYPE"
-    sender1 = Notifier(expectedType)
-    sender2 = Notifier(expectedType)
-    observer = Observer(expectedType, sender1)
+        observer.verify()
     
-    sender1.post()
-    sender2.post()
     
-    observer.verify()
-
-
-def test_complexity_with_no_observers():
-    """Test that the notification center's algorithmic complexity is O(1)
-    with no registered observers (for the given notification type)
-    """
+    def test_sender_specificity(self):
+        """Test that observers are registered by sender"""
+        
+        expectedType = "EXPECTED_TYPE"
+        sender1 = Notifier(expectedType)
+        sender2 = Notifier(expectedType)
+        observer = Observer(expectedType, sender1)
+        
+        sender1.post()
+        sender2.post()
+        
+        observer.verify()
     
-    assert(False) #I'm not sure how to test this yet
+    
+    def test_remove_all_observers(self):
+        """White-box test for remove_all_observers"""
+        
+        for i in xrange(10):
+            Observer('TYPE', None, center=notification.sharedCenter)
+        
+        self.assert_(len(notification.sharedCenter.observers[('TYPE',None)]) >= 10, 
+            "observers registered")
+        
+        notification.sharedCenter.remove_all_observers()
+        
+        self.assert_(len(notification.sharedCenter.observers) == 0, "observers removed")
+    
+    
+    def test_any_sender(self):
+        """test_any_sender"""
+        
+        expectedType = "EXPECTED_TYPE"
+        sender1 = Notifier(expectedType)
+        sender2 = Notifier(expectedType)
+        observer = Observer(expectedType, None)
+        
+        
+        sender1.post()
+        observer.verify()
+        
+        observer.reset()
+        sender2.post()
+        observer.verify()
+        
+    
+    @timed(.01)
+    def test_post_performance(self):
+        """Test that post_notification, even with many registered irrelevant
+        observers is fast"""
+        
+        for i in xrange(10):
+            Observer("UNRELATED_TYPE", None)
+        
+        o = Observer('EXPECTED_TYPE', None)
+        
+        notification.sharedCenter.post_notification('EXPECTED_TYPE', self)
+        
+        o.verify()
+    
+    
+    def test_complexity_with_no_observers(self):
+        """Test that the notification center's algorithmic complexity is O(1)
+        with no registered observers (for the given notification type)
+        """
+        
+        self.fail("I'm not sure how to test this.")
+    
