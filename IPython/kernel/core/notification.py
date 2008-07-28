@@ -17,7 +17,19 @@ __docformat__ = "restructuredtext en"
 
 
 class NotificationCenter(object):
-    """Synchronous notification center"""
+    """Synchronous notification center
+    
+    Example
+    -------
+    >>> import IPython.kernel.core.notification as notification
+    >>> def callback(theType, theSender, args={}):
+    ...     print theType,theSender,args
+    ...     
+    >>> notification.sharedCenter.add_observer(callback, 'NOTIFICATION_TYPE', None)
+    >>> notification.sharedCenter.post_notification('NOTIFICATION_TYPE', object())
+    NOTIFICATION_TYPE <object object at 0x284b0> {}
+        
+    """
     def __init__(self):
         super(NotificationCenter, self).__init__()
         self._init_observers()
