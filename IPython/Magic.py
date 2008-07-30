@@ -3283,6 +3283,7 @@ Defaulting color scheme to 'NoColor'"""
         save_dstore('rc_separate_out',rc.separate_out)
         save_dstore('rc_separate_out2',rc.separate_out2)
         save_dstore('rc_prompts_pad_left',rc.prompts_pad_left)
+        save_dstore('rc_separate_in',rc.separate_in)
 
         if mode == False:
             # turn on
@@ -3292,6 +3293,8 @@ Defaulting color scheme to 'NoColor'"""
             oc.prompt2.p_template = '... '
             oc.prompt_out.p_template = ''
 
+            # Prompt separators like plain python
+            oc.input_sep = oc.prompt1.sep = ''
             oc.output_sep = ''
             oc.output_sep2 = ''
 
@@ -3309,6 +3312,8 @@ Defaulting color scheme to 'NoColor'"""
             oc.prompt1.p_template = rc.prompt_in1
             oc.prompt2.p_template = rc.prompt_in2
             oc.prompt_out.p_template = rc.prompt_out
+
+            oc.input_sep = oc.prompt1.sep = dstore.rc_separate_in
 
             oc.output_sep = dstore.rc_separate_out
             oc.output_sep2 = dstore.rc_separate_out2
