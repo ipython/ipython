@@ -29,35 +29,35 @@ import IPython.ipapi
 ip = IPython.ipapi.get()
 
 def ankka_f(self, arg):
-    print "Ankka",self,"says uppercase:",arg.upper()
+    print 'Ankka',self,'says uppercase:',arg.upper()
 
-ip.expose_magic("ankka",ankka_f)
+ip.expose_magic('ankka',ankka_f)
 
 ip.magic('alias sayhi echo "Testing, hi ok"')
 ip.magic('alias helloworld echo "Hello world"')
 ip.system('pwd')
 
 ip.ex('import re')
-ip.ex("""
+ip.ex('''
 def funcci(a,b):
     print a+b
 print funcci(3,4)
-""")
-ip.ex("funcci(348,9)")
+''')
+ip.ex('funcci(348,9)')
 
 def jed_editor(self,filename, linenum=None):
-    print "Calling my own editor, jed ... via hook!"
+    print 'Calling my own editor, jed ... via hook!'
     import os
     if linenum is None: linenum = 0
     os.system('jed +%d %s' % (linenum, filename))
-    print "exiting jed"
+    print 'exiting jed'
 
 ip.set_hook('editor',jed_editor)
 
 o = ip.options
 o.autocall = 2  # FULL autocall mode
 
-print "done!"
+print 'done!'
 """
 
 #-----------------------------------------------------------------------------
@@ -86,12 +86,14 @@ class TryNext(Exception):
         self.args = args
         self.kwargs = kwargs
 
+
 class UsageError(Exception):
     """ Error in magic function arguments, etc.
     
     Something that probably won't warrant a full traceback, but should
     nevertheless interrupt a macro / batch file.   
     """
+
 
 class IPyAutocall:
     """ Instances of this class are always autocalled
@@ -108,7 +110,6 @@ class IPyAutocall:
         """
         self._ip = ip
     
-
 
 class IPythonNotRunning:
     """Dummy do-nothing class.
@@ -161,7 +162,8 @@ def get(allow_dummy=False,dummy_warn=True):
         _RECENT_IP = IPythonNotRunning(dummy_warn)
     return _RECENT_IP
 
-class IPApi:
+
+class IPApi(object):
     """ The actual API class for configuring IPython 
     
     You should do all of the IPython configuration by getting an IPApi object
@@ -225,22 +227,23 @@ class IPApi:
     options = property(get_options,None,None,get_options.__doc__)
     
     def expose_magic(self,magicname, func):
-        ''' Expose own function as magic function for ipython 
+        """Expose own function as magic function for ipython 
     
         def foo_impl(self,parameter_s=''):
-            """My very own magic!. (Use docstrings, IPython reads them)."""
-            print 'Magic function. Passed parameter is between < >: <'+parameter_s+'>'
+            'My very own magic!. (Use docstrings, IPython reads them).'
+            print 'Magic function. Passed parameter is between < >:'
+            print '<%s>' % parameter_s
             print 'The self object is:',self
     
-        ipapi.expose_magic("foo",foo_impl)
-        '''
-                
+        ipapi.expose_magic('foo',foo_impl)
+        """
+        
         import new
         im = new.instancemethod(func,self.IP, self.IP.__class__)
         old = getattr(self.IP, "magic_" + magicname, None)
         if old:
-            self.dbg.debug_stack("Magic redefinition '%s', old %s" % (magicname,
-                                 old))
+            self.dbg.debug_stack("Magic redefinition '%s', old %s" %
+                                 (magicname,old) )
             
         setattr(self.IP, "magic_" + magicname, im)
     
