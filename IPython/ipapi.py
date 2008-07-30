@@ -1,4 +1,4 @@
-''' IPython customization API
+"""IPython customization API
 
 Your one-stop module for configuring & extending ipython
 
@@ -58,21 +58,21 @@ o = ip.options
 o.autocall = 2  # FULL autocall mode
 
 print "done!"
-'''
+"""
+
+#-----------------------------------------------------------------------------
+# Modules and globals
 
 # stdlib imports
 import __builtin__
 import sys
 
-try: # Python 2.3 compatibility
-    set
-except NameError:
-    import sets
-    set = sets.Set
+# contains the most recently instantiated IPApi
+_RECENT_IP = None
 
-# our own
-#from IPython.genutils import warn,error
- 
+#-----------------------------------------------------------------------------
+# Code begins
+
 class TryNext(Exception):
     """Try next hook exception.
      
@@ -109,7 +109,6 @@ class IPyAutocall:
         self._ip = ip
     
 
-# contains the most recently instantiated IPApi
 
 class IPythonNotRunning:
     """Dummy do-nothing class.
@@ -144,8 +143,6 @@ class IPythonNotRunning:
         """Dummy function, which doesn't do anything and emits no warnings."""
         pass
 
-_recent = None
-
 
 def get(allow_dummy=False,dummy_warn=True):
     """Get an IPApi object.
@@ -159,10 +156,10 @@ def get(allow_dummy=False,dummy_warn=True):
     can be imported as normal modules. You can then direct all the
     configuration operations against the returned object.
     """
-    global _recent
-    if allow_dummy and not _recent:
-        _recent = IPythonNotRunning(dummy_warn)
-    return _recent
+    global _RECENT_IP
+    if allow_dummy and not _RECENT_IP:
+        _RECENT_IP = IPythonNotRunning(dummy_warn)
+    return _RECENT_IP
 
 class IPApi:
     """ The actual API class for configuring IPython 
@@ -173,6 +170,8 @@ class IPApi:
     
     def __init__(self,ip):
         
+        global _RECENT_IP
+
         # All attributes exposed here are considered to be the public API of
         # IPython.  As needs dictate, some of these may be wrapped as
         # properties.
@@ -201,8 +200,7 @@ class IPApi:
 
         self.dbg = DebugTools(self)
         
-        global _recent
-        _recent = self
+        _RECENT_IP = self
 
     # Use a property for some things which are added to the instance very
     # late.  I don't have time right now to disentangle the initialization
@@ -218,8 +216,8 @@ class IPApi:
         """All configurable variables."""
         
         # catch typos by disabling new attribute creation. If new attr creation
-        # is in fact wanted (e.g. when exposing new options), do allow_new_attr(True) 
-        # for the received rc struct.
+        # is in fact wanted (e.g. when exposing new options), do
+        # allow_new_attr(True) for the received rc struct.
         
         self.IP.rc.allow_new_attr(False)
         return self.IP.rc
@@ -267,10 +265,10 @@ class IPApi:
         def cleanup_ipy_script(script):
             """ Make a script safe for _ip.runlines() 
             
-            - Removes empty lines
-            - Suffixes all indented blocks that end with unindented lines with empty lines
-            
+            - Removes empty lines Suffixes all indented blocks that end with
+            - unindented lines with empty lines
             """
+            
             res = []
             lines = script.splitlines()
 
@@ -290,7 +288,8 @@ class IPApi:
                         s.startswith('finally')):
                         return True
                         
-                if level > 0 and newlevel == 0 and not is_secondary_block_start(stripped): 
+                if level > 0 and newlevel == 0 and \
+                       not is_secondary_block_start(stripped): 
                     # add empty line
                     res.append('')
                     
@@ -303,8 +302,9 @@ class IPApi:
         else:
             script = '\n'.join(lines)
         clean=cleanup_ipy_script(script)
-        # print "_ip.runlines() script:\n",clean #dbg
+        # print "_ip.runlines() script:\n",clean # dbg
         self.IP.runlines(clean)
+        
     def to_user_ns(self,vars, interactive = True):
         """Inject a group of variables into the IPython user namespace.
 
@@ -392,7 +392,6 @@ class IPApi:
             for name,val in vdict.iteritems():
                 config_ns[name] = val                    
 
-
     def expand_alias(self,line):
         """ Expand an alias in the command line 
         
@@ -425,11 +424,9 @@ class IPApi:
 
         self.dbg.check_hotname(name)
         
-
         if name in self.IP.alias_table:
-            self.dbg.debug_stack("Alias redefinition: '%s' => '%s' (old '%s')" %
-                             (name, cmd, self.IP.alias_table[name]))
-            
+            self.dbg.debug_stack("Alias redefinition: '%s' => '%s' (old '%s')"
+                                 % (name, cmd, self.IP.alias_table[name]))
 
         if callable(cmd):
             self.IP.alias_table[name] = cmd
@@ -440,8 +437,8 @@ class IPApi:
         if isinstance(cmd,basestring):
             nargs = cmd.count('%s')
             if nargs>0 and cmd.find('%l')>=0:
-                raise Exception('The %s and %l specifiers are mutually exclusive '
-                                'in alias definitions.')
+                raise Exception('The %s and %l specifiers are mutually '
+                                'exclusive in alias definitions.')
                   
             self.IP.alias_table[name] = (nargs,cmd)
             return
@@ -494,8 +491,8 @@ class IPApi:
         
         - run init_ipython(ip)
         - run ipython_firstrun(ip)
-        
         """
+        
         if mod in self.extensions:
             # just to make sure we don't init it twice
             # note that if you 'load' a module that has already been
@@ -544,6 +541,7 @@ class DebugTools:
     def check_hotname(self,name):
         if name in self.hotnames:
             self.debug_stack( "HotName '%s' caught" % name)
+
 
 def launch_new_instance(user_ns = None,shellclass = None):
     """ Make and start a new ipython instance.
