@@ -46,13 +46,6 @@ from IPython.ipmaker import make_IPython
 from IPython.Magic import Magic
 from IPython.ipstruct import Struct
 
-try: # Python 2.3 compatibility
-    set
-except NameError:
-    import sets
-    set = sets.Set
-
-
 # Globals
 # global flag to pass around information about Ctrl-C without exceptions
 KBINT = False
