@@ -2,29 +2,45 @@
 PREFIX=~/usr/local
 PREFIX=~/tmp/local
 
+NOSE0=nosetests -vs --with-doctest --doctest-tests
+NOSE=nosetests -vvs --with-ipdoctest --doctest-tests --doctest-extension=txt
+
+#--with-color 
+
+SRC=ipdoctest.py setup.py decorators.py
+
 plugin: IPython_doctest_plugin.egg-info
 
 dtest: plugin dtexample.py
-	nosetests -vs --with-ipdoctest --doctest-tests --doctest-extension=txt \
-	dtexample.py
+	$(NOSE) dtexample.py
 
 # Note: this test is double counting!!!
 rtest: plugin dtexample.py
-	nosetests -vs --with-ipdoctest --doctest-tests test_refs.py
+	$(NOSE) test_refs.py
+
+std: plugin
+	nosetests -vs --with-doctest --doctest-tests IPython.strdispatch
+	$(NOSE) IPython.strdispatch
 
 test: plugin dtexample.py
-	nosetests -vs --with-ipdoctest --doctest-tests --doctest-extension=txt \
-	dtexample.py test*.py test*.txt
+	$(NOSE) dtexample.py test*.py test*.txt
 
 deb: plugin dtexample.py
-	nosetests -vs --with-ipdoctest --doctest-tests --doctest-extension=txt \
-        test_combo.txt
+	$(NOSE) test_combo.txt
 
 iptest: plugin
-	nosetests -vs --with-ipdoctest --doctest-tests --doctest-extension=txt \
-        IPython
+	$(NOSE) IPython
 
-IPython_doctest_plugin.egg-info: ipdoctest.py setup.py
+deco:
+	$(NOSE0) decorators.py
+
+sr: rtest std
+
+base: dtest rtest test std deco
+
+all: base iptest
+
+IPython_doctest_plugin.egg-info: $(SRC)
 	python setup.py install --prefix=$(PREFIX)
 	touch $@
 

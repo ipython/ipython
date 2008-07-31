@@ -68,6 +68,29 @@ log = logging.getLogger(__name__)
 # machinery into a fit.  This code should be considered a gross hack, but it
 # gets the job done.
 
+class ncdict(dict):
+    """Non-copying dict class.
+
+    This is a special-purpose dict subclass that overrides the .copy() method
+    to return the original object itself.  We need it to ensure that doctests
+    happen in the IPython namespace, but doctest always makes a shallow copy of
+    the given globals for execution.  Since we actually *want* this namespace
+    to be persistent (this is how the user's session maintains state), we
+    simply fool doctest by returning the original object upoon copy.
+    """
+    
+    def copy(self):
+        return self
+
+
+def _my_run(self,arg_s,runner=None):
+    """
+    """
+    #print 'HA!'  # dbg
+    
+    return _ip.IP.magic_run_ori(arg_s,runner)
+
+
 def start_ipython():
     """Start a global IPython shell, which we need for IPython-specific syntax.
     """
@@ -88,8 +111,11 @@ def start_ipython():
     _excepthook = sys.excepthook
     _main = sys.modules.get('__main__')
 
-    # Start IPython instance
-    IPython.Shell.IPShell(['--classic','--noterm_title'])
+    # Start IPython instance.  We customize it to start with minimal frills and
+    # with our own namespace.
+    argv = ['--classic','--noterm_title']
+    user_ns = ncdict()
+    IPython.Shell.IPShell(argv,user_ns)
 
     # Deactivate the various python system hooks added by ipython for
     # interactive convenience so we don't confuse the doctest system
@@ -106,6 +132,11 @@ def start_ipython():
     # can capture subcommands and print them to Python's stdout, otherwise the
     # doctest machinery would miss them.
     _ip.system = xsys
+
+    import new
+    im = new.instancemethod(_my_run,_ip.IP, _ip.IP.__class__)
+    _ip.IP.magic_run_ori = _ip.IP.magic_run
+    _ip.IP.magic_run = im
 
 # The start call MUST be made here.  I'm not sure yet why it doesn't work if
 # it is made later, at plugin initialization time, but in all my tests, that's
@@ -214,14 +245,14 @@ class DocTestFinder(doctest.DocTestFinder):
                                globs, seen)
 
 
-# second-chance checker; if the default comparison doesn't 
+# second-chance checker; if the default comparison doesn't
 # pass, then see if the expected output string contains flags that
 # tell us to ignore the output
 class IPDoctestOutputChecker(doctest.OutputChecker):
     def check_output(self, want, got, optionflags):
         #print '*** My Checker!'  # dbg
-        
-        ret = doctest.OutputChecker.check_output(self, want, got, 
+
+        ret = doctest.OutputChecker.check_output(self, want, got,
                                                  optionflags)
         if not ret:
             if "#random" in want:
@@ -239,22 +270,22 @@ class DocTestCase(doctests.DocTestCase):
     """
 
     # Note: this method was taken from numpy's nosetester module.
-    
-    # Subclass nose.plugins.doctests.DocTestCase to work around a bug in 
+
+    # Subclass nose.plugins.doctests.DocTestCase to work around a bug in
     # its constructor that blocks non-default arguments from being passed
     # down into doctest.DocTestCase
 
     def __init__(self, test, optionflags=0, setUp=None, tearDown=None,
                  checker=None, obj=None, result_var='_'):
         self._result_var = result_var
-        doctests.DocTestCase.__init__(self, test, 
+        doctests.DocTestCase.__init__(self, test,
                                       optionflags=optionflags,
-                                      setUp=setUp, tearDown=tearDown, 
+                                      setUp=setUp, tearDown=tearDown,
                                       checker=checker)
         # Now we must actually copy the original constructor from the stdlib
         # doctest class, because we can't call it directly and a bug in nose
         # means it never gets passed the right arguments.
-        
+
         self._dt_optionflags = optionflags
         self._dt_checker = checker
         self._dt_test = test
@@ -325,9 +356,9 @@ class IPDocTestParser(doctest.DocTestParser):
         out = []
         newline = out.append
         for lnum,line in enumerate(source.splitlines()):
-            #newline(_ip.IPipython.prefilter(line,True))
             newline(_ip.IP.prefilter(line,lnum>0))
         newline('')  # ensure a closing newline, needed by doctest
+        #print "PYSRC:", '\n'.join(out)  # dbg
         return '\n'.join(out)
 
     def parse(self, string, name='<string>'):
@@ -338,7 +369,7 @@ class IPDocTestParser(doctest.DocTestParser):
         argument `name` is a name identifying this string, and is only
         used for error messages.
         """
-        
+
         #print 'Parse string:\n',string # dbg
 
         string = string.expandtabs()
@@ -492,6 +523,201 @@ class IPDocTestParser(doctest.DocTestParser):
 SKIP = doctest.register_optionflag('SKIP')
 
 
+class IPDocTestRunner(doctest.DocTestRunner):
+    
+    # Unfortunately, doctest uses a private method (__run) for the actual run
+    # execution, so we can't cleanly override just that part.  Instead, we have
+    # to copy/paste the entire run() implementation so we can call our own
+    # customized runner.
+    #/////////////////////////////////////////////////////////////////
+    # DocTest Running
+    #/////////////////////////////////////////////////////////////////
+
+    def __run(self, test, compileflags, out):
+        """
+        Run the examples in `test`.  Write the outcome of each example
+        with one of the `DocTestRunner.report_*` methods, using the
+        writer function `out`.  `compileflags` is the set of compiler
+        flags that should be used to execute examples.  Return a tuple
+        `(f, t)`, where `t` is the number of examples tried, and `f`
+        is the number of examples that failed.  The examples are run
+        in the namespace `test.globs`.
+        """
+        # Keep track of the number of failures and tries.
+        failures = tries = 0
+
+        # Save the option flags (since option directives can be used
+        # to modify them).
+        original_optionflags = self.optionflags
+
+        SUCCESS, FAILURE, BOOM = range(3) # `outcome` state
+
+        check = self._checker.check_output
+
+        # Process each example.
+        for examplenum, example in enumerate(test.examples):
+
+            # If REPORT_ONLY_FIRST_FAILURE is set, then supress
+            # reporting after the first failure.
+            quiet = (self.optionflags & REPORT_ONLY_FIRST_FAILURE and
+                     failures > 0)
+
+            # Merge in the example's options.
+            self.optionflags = original_optionflags
+            if example.options:
+                for (optionflag, val) in example.options.items():
+                    if val:
+                        self.optionflags |= optionflag
+                    else:
+                        self.optionflags &= ~optionflag
+
+            # If 'SKIP' is set, then skip this example.
+            if self.optionflags & SKIP:
+                continue
+
+            # Record that we started this example.
+            tries += 1
+            if not quiet:
+                self.report_start(out, test, example)
+
+            # Use a special filename for compile(), so we can retrieve
+            # the source code during interactive debugging (see
+            # __patched_linecache_getlines).
+            filename = '<doctest %s[%d]>' % (test.name, examplenum)
+
+            # Run the example in the given context (globs), and record
+            # any exception that gets raised.  (But don't intercept
+            # keyboard interrupts.)
+            try:
+                # Don't blink!  This is where the user's code gets run.
+                exec compile(example.source, filename, "single",
+                             compileflags, 1) in test.globs
+                self.debugger.set_continue() # ==== Example Finished ====
+                exception = None
+            except KeyboardInterrupt:
+                raise
+            except:
+                exception = sys.exc_info()
+                self.debugger.set_continue() # ==== Example Finished ====
+
+            got = self._fakeout.getvalue()  # the actual output
+            self._fakeout.truncate(0)
+            outcome = FAILURE   # guilty until proved innocent or insane
+
+            # If the example executed without raising any exceptions,
+            # verify its output.
+            if exception is None:
+                if check(example.want, got, self.optionflags):
+                    outcome = SUCCESS
+
+            # The example raised an exception:  check if it was expected.
+            else:
+                exc_info = sys.exc_info()
+                exc_msg = traceback.format_exception_only(*exc_info[:2])[-1]
+                if not quiet:
+                    got += _exception_traceback(exc_info)
+
+                # If `example.exc_msg` is None, then we weren't expecting
+                # an exception.
+                if example.exc_msg is None:
+                    outcome = BOOM
+
+                # We expected an exception:  see whether it matches.
+                elif check(example.exc_msg, exc_msg, self.optionflags):
+                    outcome = SUCCESS
+
+                # Another chance if they didn't care about the detail.
+                elif self.optionflags & IGNORE_EXCEPTION_DETAIL:
+                    m1 = re.match(r'[^:]*:', example.exc_msg)
+                    m2 = re.match(r'[^:]*:', exc_msg)
+                    if m1 and m2 and check(m1.group(0), m2.group(0),
+                                           self.optionflags):
+                        outcome = SUCCESS
+
+            # Report the outcome.
+            if outcome is SUCCESS:
+                if not quiet:
+                    self.report_success(out, test, example, got)
+            elif outcome is FAILURE:
+                if not quiet:
+                    self.report_failure(out, test, example, got)
+                failures += 1
+            elif outcome is BOOM:
+                if not quiet:
+                    self.report_unexpected_exception(out, test, example,
+                                                     exc_info)
+                failures += 1
+            else:
+                assert False, ("unknown outcome", outcome)
+
+        # Restore the option flags (in case they were modified)
+        self.optionflags = original_optionflags
+
+        # Record and return the number of failures and tries.
+
+        #self.__record_outcome(test, failures, tries)
+        
+        # Hack to access a parent private method by working around Python's
+        # name mangling (which is fortunately simple).
+        doctest.DocTestRunner._DocTestRunner__record_outcome(self,test,
+                                                             failures, tries)
+        return failures, tries
+
+    def run(self, test, compileflags=None, out=None, clear_globs=True):
+        """
+        Run the examples in `test`, and display the results using the
+        writer function `out`.
+
+        The examples are run in the namespace `test.globs`.  If
+        `clear_globs` is true (the default), then this namespace will
+        be cleared after the test runs, to help with garbage
+        collection.  If you would like to examine the namespace after
+        the test completes, then use `clear_globs=False`.
+
+        `compileflags` gives the set of flags that should be used by
+        the Python compiler when running the examples.  If not
+        specified, then it will default to the set of future-import
+        flags that apply to `globs`.
+
+        The output of each example is checked using
+        `DocTestRunner.check_output`, and the results are formatted by
+        the `DocTestRunner.report_*` methods.
+        """
+        self.test = test
+
+        if compileflags is None:
+            compileflags = _extract_future_flags(test.globs)
+
+        save_stdout = sys.stdout
+        if out is None:
+            out = save_stdout.write
+        sys.stdout = self._fakeout
+
+        # Patch pdb.set_trace to restore sys.stdout during interactive
+        # debugging (so it's not still redirected to self._fakeout).
+        # Note that the interactive output will go to *our*
+        # save_stdout, even if that's not the real sys.stdout; this
+        # allows us to write test cases for the set_trace behavior.
+        save_set_trace = pdb.set_trace
+        self.debugger = _OutputRedirectingPdb(save_stdout)
+        self.debugger.reset()
+        pdb.set_trace = self.debugger.set_trace
+
+        # Patch linecache.getlines, so we can see the example's source
+        # when we're inside the debugger.
+        self.save_linecache_getlines = linecache.getlines
+        linecache.getlines = self.__patched_linecache_getlines
+
+        try:
+            return self.__run(test, compileflags, out)
+        finally:
+            sys.stdout = save_stdout
+            pdb.set_trace = save_set_trace
+            linecache.getlines = self.save_linecache_getlines
+            if clear_globs:
+                test.globs.clear()
+
+
 class DocFileCase(doctest.DocFileCase):
     """Overrides to provide filename
     """
@@ -514,7 +740,8 @@ class ExtensionDoctest(doctests.Doctest):
         self.extension = tolist(options.doctestExtension)
         self.finder = DocTestFinder()
         self.parser = doctest.DocTestParser()
-
+        self.globs = None
+        self.extraglobs = None
 
     def loadTestsFromExtensionModule(self,filename):
         bpath,mod = os.path.split(filename)
@@ -529,14 +756,21 @@ class ExtensionDoctest(doctests.Doctest):
 
     # NOTE: the method below is almost a copy of the original one in nose, with
     # a  few modifications to control output checking.
-    
+
     def loadTestsFromModule(self, module):
         #print 'lTM',module  # dbg
 
         if not self.matches(module.__name__):
             log.debug("Doctest doesn't want module %s", module)
             return
-        tests = self.finder.find(module)
+
+        ## try:
+        ##     print 'Globs:',self.globs.keys() # dbg
+        ## except:
+        ##     pass
+        
+        tests = self.finder.find(module,globs=self.globs,
+                                 extraglobs=self.extraglobs)
         if not tests:
             return
         tests.sort()
@@ -549,12 +783,13 @@ class ExtensionDoctest(doctests.Doctest):
             if not test.filename:
                 test.filename = module_file
 
-            #yield DocTestCase(test)
+            # xxx - checker and options may be ok instantiated once outside loop
 
             # always use whitespace and ellipsis options
             optionflags = doctest.NORMALIZE_WHITESPACE | doctest.ELLIPSIS
             checker = IPDoctestOutputChecker()
-            yield DocTestCase(test, 
+            
+            yield DocTestCase(test,
                               optionflags=optionflags,
                               checker=checker)
 
@@ -565,25 +800,21 @@ class ExtensionDoctest(doctests.Doctest):
             for t in self.loadTestsFromExtensionModule(filename):
                 yield t
         else:
-            ## for t in list(doctests.Doctest.loadTestsFromFile(self,filename)):
-            ##     yield t
-            pass
-
-        if self.extension and anyp(filename.endswith, self.extension):
-            name = os.path.basename(filename)
-            dh = open(filename)
-            try:
-                doc = dh.read()
-            finally:
-                dh.close()
-            test = self.parser.get_doctest(
-                doc, globs={'__file__': filename}, name=name,
-                filename=filename, lineno=0)
-            if test.examples:
-                #print 'FileCase:',test.examples  # dbg
-                yield DocFileCase(test)
-            else:
-                yield False # no tests to load
+            if self.extension and anyp(filename.endswith, self.extension):
+                name = os.path.basename(filename)
+                dh = open(filename)
+                try:
+                    doc = dh.read()
+                finally:
+                    dh.close()
+                test = self.parser.get_doctest(
+                    doc, globs={'__file__': filename}, name=name,
+                    filename=filename, lineno=0)
+                if test.examples:
+                    #print 'FileCase:',test.examples  # dbg
+                    yield DocFileCase(test)
+                else:
+                    yield False # no tests to load
 
     def wantFile(self,filename):
         """Return whether the given filename should be scanned for tests.
@@ -591,7 +822,7 @@ class ExtensionDoctest(doctests.Doctest):
         Modified version that accepts extension modules as valid containers for
         doctests.
         """
-        print 'Filename:',filename  # dbg
+        #print 'Filename:',filename  # dbg
 
         # temporarily hardcoded list, will move to driver later
         exclude = ['IPython/external/',
@@ -626,3 +857,11 @@ class IPythonDoctest(ExtensionDoctest):
         self.extension = tolist(options.doctestExtension)
         self.parser = IPDocTestParser()
         self.finder = DocTestFinder(parser=self.parser)
+
+        # XXX - we need to run in the ipython user's namespace, but doing so is
+        # breaking normal doctests!
+        
+        #self.globs = _ip.user_ns
+        self.globs = None
+        
+        self.extraglobs = None
