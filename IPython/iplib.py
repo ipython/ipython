@@ -212,13 +212,7 @@ class InteractiveShell(object,Magic):
 
         # log system
         self.logger = Logger(self,logfname='ipython_log.py',logmode='rotate')
-
-        # some minimal strict typechecks.  For some core data structures, I
-        # want actual basic python types, not just anything that looks like
-        # one.  This is especially true for namespaces.
-        for ns in (user_ns,user_global_ns):
-            if ns is not None and type(ns) != types.DictType:
-                raise TypeError,'namespace must be a dictionary'
+            
         # Job manager (for jobs run as background threads)
         self.jobs = BackgroundJobManager()
 
@@ -1033,7 +1027,7 @@ class InteractiveShell(object,Magic):
             state += 1
         outcomps = comps.keys()
         outcomps.sort()
-        print "T:",text,"OC:",outcomps  # dbg
+        #print "T:",text,"OC:",outcomps  # dbg
         #print "vars:",self.user_ns.keys()
         return outcomps
         
@@ -2382,7 +2376,6 @@ want to merge them back into the new files.""" % locals()
 
         # This should only be active for single-line input!
         if continue_prompt:
-            print 'getting out!'  # dbg
             self.log(line,line,continue_prompt)
             return line
 
