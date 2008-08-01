@@ -97,17 +97,22 @@ class ncdict(dict):
 # with the test globals.  Once we move over to a clean magic system, this will
 # be done with much less ugliness.
 
-def _my_run(self,arg_s,runner=None):
+def _run_ns_sync(self,arg_s,runner=None):
+    """Modified version of %run that syncs testing namespaces.
+
+    This is strictly needed for running doctests that call %run.
     """
-    """
-    #print 'HA!'  # dbg
-    
-    return _ip.IP.magic_run_ori(arg_s,runner)
+
+    out = _ip.IP.magic_run_ori(arg_s,runner)
+    _run_ns_sync.test_globs.update(_ip.user_ns)
+    return out
 
 
 def start_ipython():
     """Start a global IPython shell, which we need for IPython-specific syntax.
     """
+    import new
+
     import IPython
 
     def xsys(cmd):
@@ -147,8 +152,7 @@ def start_ipython():
     # doctest machinery would miss them.
     _ip.system = xsys
 
-    import new
-    im = new.instancemethod(_my_run,_ip.IP, _ip.IP.__class__)
+    im = new.instancemethod(_run_ns_sync,_ip.IP, _ip.IP.__class__)
     _ip.IP.magic_run_ori = _ip.IP.magic_run
     _ip.IP.magic_run = im
 
@@ -648,13 +652,19 @@ class IPDocTestRunner(doctest.DocTestRunner):
             # keyboard interrupts.)
             try:
                 # Don't blink!  This is where the user's code gets run.
+
+                # Hack: ipython needs access to the execution context of the
+                # example, so that it can propagate user variables loaded by
+                # %run into test.globs.  We put them here into our modified
+                # %run as a function attribute.  Our new %run will then only
+                # make the namespace update when called (rather than
+                # unconconditionally updating test.globs here for all examples,
+                # most of which won't be calling %run anyway).
+                _run_ns_sync.test_globs = test.globs
+                
                 exec compile(example.source, filename, "single",
                              compileflags, 1) in test.globs
                 self.debugger.set_continue() # ==== Example Finished ====
-                # ipython
-                #_ip.user_ns.update(test.globs)
-                test.globs.update(_ip.user_ns)
-                #
                 exception = None
             except KeyboardInterrupt:
                 raise
@@ -726,6 +736,10 @@ class IPDocTestRunner(doctest.DocTestRunner):
         return failures, tries
 
 
+    # Unfortunately doctest has chosen to implement a couple of key methods as
+    # private (__run, in particular).  We are forced to copy the entire run
+    # method here just so we can override that one.  Ugh.
+    
     def run(self, test, compileflags=None, out=None, clear_globs=True):
         """
         Run the examples in `test`, and display the results using the
