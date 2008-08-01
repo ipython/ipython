@@ -74,28 +74,36 @@ def ipfunc():
 def ranfunc():
     """A function with some random output.
 
-       >>> 1+3
-       junk goes here...  #random
-
+       Normal inputs are verified as usual:
        >>> 1+3
        4
+
+       But if you put '# random' in the output, it is ignored:
+       >>> 1+3
+       junk goes here...  # random
 
        >>> 1+2
        again,  anything goes #random
-       if multiline, the random mark is only needed in teh first line.
+       if multiline, the random mark is only needed once.
 
-       >>> 1+3
-       4
+       >>> 1+2
+       You can also put the random marker at the end:
+       # random
 
+       >>> 1+2
+       # random
+       .. or at the beginning.
+
+       More correct input is properly verified:
        >>> ranfunc()
        'ranfunc'
     """
     return 'ranfunc'
 
 
-if 1:
+if 0:
     def ranf2():
-        """A function whose examples'output are all to be ignored.
+        """A function whose examples' output are completely ignored.
 
         Examples:
 

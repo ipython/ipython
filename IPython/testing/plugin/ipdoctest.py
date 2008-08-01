@@ -184,33 +184,24 @@ class DocTestFinder(doctest.DocTestFinder):
         module.
         """
         if module is None:
-            #print '_fm C1'  # dbg
             return True
         elif inspect.isfunction(object):
-            #print '_fm C2'  # dbg
             return module.__dict__ is object.func_globals
         elif inspect.isbuiltin(object):
-            #print '_fm C2-1'  # dbg
             return module.__name__ == object.__module__
         elif inspect.isclass(object):
-            #print '_fm C3'  # dbg
             return module.__name__ == object.__module__
         elif inspect.ismethod(object):
             # This one may be a bug in cython that fails to correctly set the
             # __module__ attribute of methods, but since the same error is easy
             # to make by extension code writers, having this safety in place
             # isn't such a bad idea
-            #print '_fm C3-1'  # dbg
             return module.__name__ == object.im_class.__module__
         elif inspect.getmodule(object) is not None:
-            #print '_fm C4'  # dbg
-            #print 'C4 mod',module,'obj',object # dbg
             return module is inspect.getmodule(object)
         elif hasattr(object, '__module__'):
-            #print '_fm C5'  # dbg
             return module.__name__ == object.__module__
         elif isinstance(object, property):
-            #print '_fm C6'  # dbg
             return True # [XX] no way not be sure.
         else:
             raise ValueError("object must be a class or function")
@@ -263,18 +254,28 @@ class DocTestFinder(doctest.DocTestFinder):
                                globs, seen)
 
 
-# second-chance checker; if the default comparison doesn't
-# pass, then see if the expected output string contains flags that
-# tell us to ignore the output
 class IPDoctestOutputChecker(doctest.OutputChecker):
-    def check_output(self, want, got, optionflags):
-        #print '*** My Checker!'  # dbg
+    """Second-chance checker with support for random tests.
+    
+    If the default comparison doesn't pass, this checker looks in the expected
+    output string for flags that tell us to ignore the output.
+    """
 
+    random_re = re.compile(r'#\s*random')
+    
+    def check_output(self, want, got, optionflags):
+        """Check output, accepting special markers embedded in the output.
+
+        If the output didn't pass the default validation but the special string
+        '#random' is included, we accept it."""
+
+        # Let the original tester verify first, in case people have valid tests
+        # that happen to have a comment saying '#random' embedded in.
         ret = doctest.OutputChecker.check_output(self, want, got,
                                                  optionflags)
-        if not ret:
-            if "#random" in want:
-                return True
+        if not ret and self.random_re.search(want):
+            #print >> sys.stderr, 'RANDOM OK:',want  # dbg
+            return True
 
         return ret
 
@@ -405,6 +406,8 @@ class IPDocTestParser(doctest.DocTestParser):
     _EXAMPLE_RE_IP = re.compile( _RE_TPL % (_PS1_IP,_PS2_IP,_PS1_IP,_PS2_IP),
                                  re.MULTILINE | re.VERBOSE)
 
+    _EXTERNAL_IP = re.compile(r'#\s*ipdoctest:\s*EXTERNAL')
+    
     def ip2py(self,source):
         """Convert input IPython source into valid Python."""
         out = []
@@ -452,7 +455,7 @@ class IPDocTestParser(doctest.DocTestParser):
             # IPExternalExamples are run out-of-process (via pexpect) so they
             # don't need any filtering (a real ipython will be executing them).
             terms = list(self._EXAMPLE_RE_IP.finditer(string))
-            if re.search(r'#\s*ipdoctest:\s*EXTERNAL',string):
+            if self._EXTERNAL_IP.search(string):
                 #print '-'*70  # dbg
                 #print 'IPExternalExample, Source:\n',string  # dbg
                 #print '-'*70  # dbg
