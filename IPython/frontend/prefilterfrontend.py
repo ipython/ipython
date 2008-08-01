@@ -38,6 +38,13 @@ def xterm_system(command):
 #               """echo \\"\x1b]0;%s (finished -- press enter to close)\x07\\" ;
                """read foo;"\' """)  % (command, command) )
 
+def system_call(command):
+    """ Temporary hack for aliases
+    """
+    def my_system_call(args):
+        os.system("%s %s" % (command, args))
+    return my_system_call
+
 #-------------------------------------------------------------------------------
 # Frontend class using ipython0 to do the prefiltering. 
 #-------------------------------------------------------------------------------
@@ -59,6 +66,9 @@ class PrefilterFrontEnd(LineFrontEndBase):
         # Make sure the raw system call doesn't get called, as we don't
         # have a stdin accessible.
         self._ip.system = xterm_system
+        # XXX: Muck around with magics so that they work better
+        # in our environment
+        self.ipython0.magic_ls = system_call('ls -CF')
         self.shell.output_trap = RedirectorOutputTrap(
                             out_callback=self.write,
                             err_callback=self.write,

@@ -201,8 +201,6 @@ class ConsoleWidget(editwindow.EditWindow):
         # an infinit loop
         title = self.title_pat.split(text)
         if len(title)>1:
-            import sys
-            print >>sys.__stderr__, "title :", title
             self.title = title[-2]
 
         text = self.title_pat.sub('', text)
@@ -216,7 +214,7 @@ class ConsoleWidget(editwindow.EditWindow):
                 self.StartStyling(self.GetLength(), 0xFF)
                 self.AppendText(text)
 
-                if ansi_tag == '0':
+                if ansi_tag not in self.ANSI_STYLES:
                     style = 0
                 else:
                     style = self.ANSI_STYLES[ansi_tag][0]
