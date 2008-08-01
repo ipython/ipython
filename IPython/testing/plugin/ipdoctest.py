@@ -43,9 +43,19 @@ import logging
 import os
 import re
 import sys
+import traceback
 import unittest
 
 from inspect import getmodule
+from StringIO import StringIO
+
+# We are overriding the default doctest runner, so we need to import a few
+# things from doctest directly
+from doctest import (REPORTING_FLAGS, REPORT_ONLY_FIRST_FAILURE,
+                     _unittest_reportflags, DocTestRunner,
+                     _extract_future_flags, pdb, _OutputRedirectingPdb,
+                     _exception_traceback,
+                     linecache)
 
 # Third-party modules
 import nose.core
@@ -82,6 +92,10 @@ class ncdict(dict):
     def copy(self):
         return self
 
+
+# XXX - Hack to modify the %run command so we can sync the user's namespace
+# with the test globals.  Once we move over to a clean magic system, this will
+# be done with much less ugliness.
 
 def _my_run(self,arg_s,runner=None):
     """
@@ -292,6 +306,32 @@ class DocTestCase(doctests.DocTestCase):
         self._dt_setUp = setUp
         self._dt_tearDown = tearDown
 
+    # Modified runTest from the default stdlib
+    def runTest(self):
+        #print 'HERE!'  # dbg
+        
+        test = self._dt_test
+        old = sys.stdout
+        new = StringIO()
+        optionflags = self._dt_optionflags
+
+        if not (optionflags & REPORTING_FLAGS):
+            # The option flags don't include any reporting flags,
+            # so add the default reporting flags
+            optionflags |= _unittest_reportflags
+
+        runner = IPDocTestRunner(optionflags=optionflags,
+                                 checker=self._dt_checker, verbose=False)
+
+        try:
+            runner.DIVIDER = "-"*70
+            failures, tries = runner.run(
+                test, out=new.write, clear_globs=False)
+        finally:
+            sys.stdout = old
+
+        if failures:
+            raise self.failureException(self.format_failure(new.getvalue()))
 
 
 # A simple subclassing of the original with a different class name, so we can
@@ -520,6 +560,7 @@ class IPDocTestParser(doctest.DocTestParser):
                                  (lineno+i+1, name,
                                   line[indent:space_idx], line))
 
+
 SKIP = doctest.register_optionflag('SKIP')
 
 
@@ -529,11 +570,25 @@ class IPDocTestRunner(doctest.DocTestRunner):
     # execution, so we can't cleanly override just that part.  Instead, we have
     # to copy/paste the entire run() implementation so we can call our own
     # customized runner.
+
     #/////////////////////////////////////////////////////////////////
     # DocTest Running
     #/////////////////////////////////////////////////////////////////
+    
+    __LINECACHE_FILENAME_RE = re.compile(r'<doctest '
+                                         r'(?P<name>[\w\.]+)'
+                                         r'\[(?P<examplenum>\d+)\]>$')
+    
+    def __patched_linecache_getlines(self, filename, module_globals=None):
+        m = self.__LINECACHE_FILENAME_RE.match(filename)
+        if m and m.group('name') == self.test.name:
+            example = self.test.examples[int(m.group('examplenum'))]
+            return example.source.splitlines(True)
+        else:
+            return self.save_linecache_getlines(filename, module_globals)
 
-    def __run(self, test, compileflags, out):
+
+    def _run_ip(self, test, compileflags, out):
         """
         Run the examples in `test`.  Write the outcome of each example
         with one of the `DocTestRunner.report_*` methods, using the
@@ -543,6 +598,9 @@ class IPDocTestRunner(doctest.DocTestRunner):
         is the number of examples that failed.  The examples are run
         in the namespace `test.globs`.
         """
+
+        #print 'Custom ip runner! __run' # dbg
+
         # Keep track of the number of failures and tries.
         failures = tries = 0
 
@@ -593,6 +651,10 @@ class IPDocTestRunner(doctest.DocTestRunner):
                 exec compile(example.source, filename, "single",
                              compileflags, 1) in test.globs
                 self.debugger.set_continue() # ==== Example Finished ====
+                # ipython
+                #_ip.user_ns.update(test.globs)
+                test.globs.update(_ip.user_ns)
+                #
                 exception = None
             except KeyboardInterrupt:
                 raise
@@ -655,13 +717,14 @@ class IPDocTestRunner(doctest.DocTestRunner):
 
         # Record and return the number of failures and tries.
 
-        #self.__record_outcome(test, failures, tries)
-        
         # Hack to access a parent private method by working around Python's
         # name mangling (which is fortunately simple).
+        #self.__record_outcome(test, failures, tries)
         doctest.DocTestRunner._DocTestRunner__record_outcome(self,test,
                                                              failures, tries)
+
         return failures, tries
+
 
     def run(self, test, compileflags=None, out=None, clear_globs=True):
         """
@@ -683,6 +746,8 @@ class IPDocTestRunner(doctest.DocTestRunner):
         `DocTestRunner.check_output`, and the results are formatted by
         the `DocTestRunner.report_*` methods.
         """
+        #print 'Custom ip runner!' # dbg
+    
         self.test = test
 
         if compileflags is None:
@@ -709,8 +774,14 @@ class IPDocTestRunner(doctest.DocTestRunner):
         linecache.getlines = self.__patched_linecache_getlines
 
         try:
-            return self.__run(test, compileflags, out)
+            # Hack to access a parent private method by working around Python's
+            # name mangling (which is fortunately simple).
+            #return self.__run(test, compileflags, out)
+            return self._run_ip(test, compileflags, out)
+            #return doctest.DocTestRunner._DocTestRunner__run(self,test,
+            #                                                 compileflags, out)
         finally:
+            _ip.user_ns.update(test.globs)
             sys.stdout = save_stdout
             pdb.set_trace = save_set_trace
             linecache.getlines = self.save_linecache_getlines
@@ -865,3 +936,6 @@ class IPythonDoctest(ExtensionDoctest):
         self.globs = None
         
         self.extraglobs = None
+
+        # Use a specially modified test runner that is IPython-aware
+        self.iprunner = None
