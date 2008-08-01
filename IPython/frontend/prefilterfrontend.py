@@ -21,8 +21,7 @@ from linefrontendbase import LineFrontEndBase, common_prefix
 
 from IPython.ipmaker import make_IPython
 from IPython.ipapi import IPApi
-from IPython.kernel.core.file_like import FileLike
-from IPython.kernel.core.output_trap import OutputTrap
+from IPython.kernel.core.redirector_output_trap import RedirectorOutputTrap
 
 from IPython.genutils import Term
 import pydoc
@@ -60,17 +59,9 @@ class PrefilterFrontEnd(LineFrontEndBase):
         # Make sure the raw system call doesn't get called, as we don't
         # have a stdin accessible.
         self._ip.system = xterm_system
-        # Redefine a serie of magics to avoid os.system:
-        # FIXME: I am redefining way too much magics.
-        for alias_name, (_, alias_value) in \
-                    _ip.IP.shell.alias_table.iteritems():
-            magic = lambda s : _ip.magic('sx %s %s' % (alias_value, s))
-            setattr(_ip.IP, 'magic_%s' % alias_name, magic)
-        # FIXME: I should create a real file-like object dedicated to this
-        # terminal
-        self.shell.output_trap = OutputTrap(
-                                out=FileLike(write_callback=self.write),
-                                err=FileLike(write_callback=self.write),
+        self.shell.output_trap = RedirectorOutputTrap(
+                            out_callback=self.write,
+                            err_callback=self.write,
                                             )
         # Capture and release the outputs, to make sure all the
         # shadow variables are set

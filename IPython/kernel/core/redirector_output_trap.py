@@ -59,7 +59,10 @@ class RedirectorOutputTrap(OutputTrap):
             redirectors.
         """
         OutputTrap.unset(self)
+        # Flush the redirectors before stopping them
+        self.on_out_write('')
         self.err_redirector.stop()
+        self.on_err_write('')
         self.out_redirector.stop()
 
 
@@ -69,11 +72,22 @@ class RedirectorOutputTrap(OutputTrap):
     def on_out_write(self, string):
         """ Callback called when there is some Python output on stdout.
         """
-        self.out_callback(self.out_redirector.getvalue() + string)
+        try:
+            self.out_callback(self.out_redirector.getvalue() + string)
+        except:
+            # If tracebacks are happening and we can't see them, it is
+            # quasy impossible to debug
+            self.unset()
+            raise
 
     def on_err_write(self, string):
         """ Callback called when there is some Python output on stderr.
         """
-        self.err_callback(self.err_redirector.getvalue() + string)
-
+        try:
+            self.err_callback(self.err_redirector.getvalue() + string)
+        except:
+            # If tracebacks are happening and we can't see them, it is
+            # quasy impossible to debug
+            self.unset()
+            raise
 
