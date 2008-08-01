@@ -310,6 +310,9 @@ class DocTestCase(doctests.DocTestCase):
         self._dt_setUp = setUp
         self._dt_tearDown = tearDown
 
+        # Each doctest should remember what directory it was loaded from...
+        self._ori_dir = os.getcwd()
+
     # Modified runTest from the default stdlib
     def runTest(self):
         #print 'HERE!'  # dbg
@@ -328,11 +331,18 @@ class DocTestCase(doctests.DocTestCase):
                                  checker=self._dt_checker, verbose=False)
 
         try:
+            # Save our current directory and switch out to the one where the
+            # test was originally created, in case another doctest did a
+            # directory change.  We'll restore this in the finally clause.
+            curdir = os.getcwd()
+            os.chdir(self._ori_dir)
+
             runner.DIVIDER = "-"*70
             failures, tries = runner.run(
                 test, out=new.write, clear_globs=False)
         finally:
             sys.stdout = old
+            os.chdir(curdir)
 
         if failures:
             raise self.failureException(self.format_failure(new.getvalue()))
@@ -632,15 +642,11 @@ class ExtensionDoctest(doctests.Doctest):
             log.debug("Doctest doesn't want module %s", module)
             return
 
-        ## try:
-        ##     print 'Globs:',self.globs.keys() # dbg
-        ## except:
-        ##     pass
-        
         tests = self.finder.find(module,globs=self.globs,
                                  extraglobs=self.extraglobs)
         if not tests:
             return
+
         tests.sort()
         module_file = module.__file__
         if module_file[-4:] in ('.pyc', '.pyo'):
@@ -652,7 +658,6 @@ class ExtensionDoctest(doctests.Doctest):
                 test.filename = module_file
 
             # xxx - checker and options may be ok instantiated once outside loop
-
             # always use whitespace and ellipsis options
             optionflags = doctest.NORMALIZE_WHITESPACE | doctest.ELLIPSIS
             checker = IPDoctestOutputChecker()
@@ -725,14 +730,5 @@ class IPythonDoctest(ExtensionDoctest):
         self.extension = tolist(options.doctestExtension)
         self.parser = IPDocTestParser()
         self.finder = DocTestFinder(parser=self.parser)
-
-        # XXX - we need to run in the ipython user's namespace, but doing so is
-        # breaking normal doctests!
-        
-        #self.globs = _ip.user_ns
         self.globs = None
-        
         self.extraglobs = None
-
-        # Use a specially modified test runner that is IPython-aware
-        self.iprunner = None
