@@ -8,7 +8,7 @@ objects imported this way starts with ``i`` to minimize collisions.
 ``ipipe`` supports "pipeline expressions", which is something resembling Unix
 pipes. An example is::
 
-    py> ienv | isort("key.lower()")
+    >>> ienv | isort("key.lower()")
 
 This gives a listing of all environment variables sorted by name.
 
@@ -49,31 +49,31 @@ three extensions points (all of them optional):
   makes it possible to use dictionaries and modules in pipeline expressions,
   for example::
 
-      py> import sys
-      py> sys | ifilter("isinstance(value, int)") | idump
+      >>> import sys
+      >>> sys | ifilter("isinstance(value, int)") | idump
       key        |value
       api_version|      1012
       dllhandle  | 503316480
       hexversion |  33817328
       maxint     |2147483647
       maxunicode |     65535
-      py> sys.modules | ifilter("_.value is not None") | isort("_.key.lower()")
+      >>> sys.modules | ifilter("_.value is not None") | isort("_.key.lower()")
       ...
 
   Note: The expression strings passed to ``ifilter()`` and ``isort()`` can
   refer to the object to be filtered or sorted via the variable ``_`` and to any
   of the attributes of the object, i.e.::
 
-      py> sys.modules | ifilter("_.value is not None") | isort("_.key.lower()")
+      >>> sys.modules | ifilter("_.value is not None") | isort("_.key.lower()")
 
   does the same as::
 
-      py> sys.modules | ifilter("value is not None") | isort("key.lower()")
+      >>> sys.modules | ifilter("value is not None") | isort("key.lower()")
 
   In addition to expression strings, it's possible to pass callables (taking
   the object as an argument) to ``ifilter()``, ``isort()`` and ``ieval()``::
 
-      py> sys | ifilter(lambda _:isinstance(_.value, int)) \
+      >>> sys | ifilter(lambda _:isinstance(_.value, int)) \
       ...     | ieval(lambda _: (_.key, hex(_.value))) | idump
       0          |1
       api_version|0x3f4
@@ -82,6 +82,8 @@ three extensions points (all of them optional):
       maxint     |0x7fffffff
       maxunicode |0xffff
 """
+
+skip_doctest = True  # ignore top-level docstring as a doctest.
 
 import sys, os, os.path, stat, glob, new, csv, datetime, types
 import itertools, mimetypes, StringIO
@@ -1208,9 +1210,13 @@ class ils(Table):
 
     Examples::
 
-        py> ils
-        py> ils("/usr/local/lib/python2.4")
-        py> ils("~")
+        >>> ils
+        <class 'IPython.Extensions.ipipe.ils'>
+        >>> ils("/usr/local/lib/python2.4")
+        IPython.Extensions.ipipe.ils('/usr/local/lib/python2.4')
+        >>> ils("~")
+        IPython.Extensions.ipipe.ils('/home/fperez')
+        # all-random
     """
     def __init__(self, base=os.curdir, dirs=True, files=True):
         self.base = os.path.expanduser(base)
@@ -1246,7 +1252,8 @@ class iglob(Table):
 
     Examples::
 
-        py> iglob("*.py")
+        >>> iglob("*.py")
+        IPython.Extensions.ipipe.iglob('*.py')
     """
     def __init__(self, glob):
         self.glob = glob
@@ -1271,9 +1278,13 @@ class iwalk(Table):
     """
     List all files and directories in a directory and it's subdirectory::
 
-        py> iwalk
-        py> iwalk("/usr/local/lib/python2.4")
-        py> iwalk("~")
+        >>> iwalk
+        <class 'IPython.Extensions.ipipe.iwalk'>
+        >>> iwalk("/usr/lib")
+        IPython.Extensions.ipipe.iwalk('/usr/lib')
+        >>> iwalk("~")
+        IPython.Extensions.ipipe.iwalk('/home/fperez')  # random
+        
     """
     def __init__(self, base=os.curdir, dirs=True, files=True):
         self.base = os.path.expanduser(base)
@@ -1376,7 +1387,9 @@ class ipwd(Table):
 
     Example::
 
-        py> ipwd | isort("uid")
+        >>> ipwd | isort("uid")
+        <IPython.Extensions.ipipe.isort key='uid' reverse=False at 0x849efec>
+        # random
     """
     def __iter__(self):
         for entry in pwd.getpwall():
@@ -1560,7 +1573,8 @@ class ienv(Table):
 
     Example::
 
-        py> ienv
+        >>> ienv
+        <class 'IPython.Extensions.ipipe.ienv'>
     """
 
     def __iter__(self):
@@ -1581,8 +1595,10 @@ class ihist(Table):
 
     Example::
 
-        py> ihist
-        py> ihist(True) (raw mode)
+        >>> ihist
+        <class 'IPython.Extensions.ipipe.ihist'>
+        >>> ihist(True) # raw mode
+        <IPython.Extensions.ipipe.ihist object at 0x849602c>  # random
     """
     def __init__(self, raw=True):
         self.raw = raw
@@ -1616,7 +1632,8 @@ class ialias(Table):
 
     Example::
 
-        py> ialias
+        >>> ialias
+        <class 'IPython.Extensions.ipipe.ialias'>
     """
     def __iter__(self):
         api = ipapi.get()
@@ -1678,8 +1695,12 @@ class ix(Table):
 
     Examples::
 
-        py> ix("ps x")
-        py> ix("find .") | ifile
+        >>> ix("ps x")
+        IPython.Extensions.ipipe.ix('ps x')
+
+        >>> ix("find .") | ifile
+        <IPython.Extensions.ipipe.ieval expr=<class 'IPython.Extensions.ipipe.ifile'> at 0x8509d2c>
+        # random
     """
     def __init__(self, cmd):
         self.cmd = cmd
@@ -1717,9 +1738,10 @@ class ifilter(Pipe):
 
     Examples::
 
-        py> ils | ifilter("_.isfile() and size>1000")
-        py> igrp | ifilter("len(mem)")
-        py> sys.modules | ifilter(lambda _:_.value is not None)
+        >>> ils | ifilter("_.isfile() and size>1000")
+        >>> igrp | ifilter("len(mem)")
+        >>> sys.modules | ifilter(lambda _:_.value is not None)
+        # all-random
     """
 
     def __init__(self, expr, globals=None, errors="raiseifallfail"):
@@ -1809,8 +1831,10 @@ class ieval(Pipe):
 
     Examples::
 
-        py> ils | ieval("_.abspath()")
-        py> sys.path | ieval(ifile)
+        >>> ils | ieval("_.abspath()")
+        # random
+        >>> sys.path | ieval(ifile)
+        # random
     """
 
     def __init__(self, expr, globals=None, errors="raiseifallfail"):
@@ -1881,8 +1905,10 @@ class ienum(Pipe):
 
     Examples::
 
-        py> xrange(20) | ieval("_,_*_") | ienum | ifilter("index % 2 == 0") | ieval("object")
+        >>> xrange(20) | ieval("_,_*_") | ienum | ifilter("index % 2 == 0") | ieval("object")
     """
+    skip_doctest = True
+    
     def __iter__(self):
         fields = ("index", "object")
         for (index, object) in enumerate(xiter(self.input)):
@@ -1895,8 +1921,11 @@ class isort(Pipe):
 
     Examples::
 
-        py> ils | isort("size")
-        py> ils | isort("_.isdir(), _.lower()", reverse=True)
+        >>> ils | isort("size")
+        <IPython.Extensions.ipipe.isort key='size' reverse=False at 0x849ec2c>
+        >>> ils | isort("_.isdir(), _.lower()", reverse=True)
+        <IPython.Extensions.ipipe.isort key='_.isdir(), _.lower()' reverse=True at 0x849eacc>
+        # all-random
     """
 
     def __init__(self, key=None, globals=None, reverse=False):
@@ -2053,10 +2082,12 @@ class icap(Table):
 
     Examples::
 
-        py> import time
-        py> icap("for i in range(10): print i, time.sleep(0.1)")
+        >>> import time
+        >>> icap("for i in range(10): print i, time.sleep(0.1)")
 
     """
+    skip_doctest = True
+    
     def __init__(self, expr, globals=None):
         self.expr = expr
         self.globals = globals
