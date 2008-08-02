@@ -78,20 +78,6 @@ log = logging.getLogger(__name__)
 # machinery into a fit.  This code should be considered a gross hack, but it
 # gets the job done.
 
-class ncdict(dict):
-    """Non-copying dict class.
-
-    This is a special-purpose dict subclass that overrides the .copy() method
-    to return the original object itself.  We need it to ensure that doctests
-    happen in the IPython namespace, but doctest always makes a shallow copy of
-    the given globals for execution.  Since we actually *want* this namespace
-    to be persistent (this is how the user's session maintains state), we
-    simply fool doctest by returning the original object upoon copy.
-    """
-    
-    def copy(self):
-        return self
-
 
 # XXX - Hack to modify the %run command so we can sync the user's namespace
 # with the test globals.  Once we move over to a clean magic system, this will
@@ -130,11 +116,8 @@ def start_ipython():
     _excepthook = sys.excepthook
     _main = sys.modules.get('__main__')
 
-    # Start IPython instance.  We customize it to start with minimal frills and
-    # with our own namespace.
-    argv = ['--classic','--noterm_title']
-    user_ns = ncdict()
-    IPython.Shell.IPShell(argv,user_ns)
+    # Start IPython instance.  We customize it to start with minimal frills.
+    IPython.Shell.IPShell(['--classic','--noterm_title'])
 
     # Deactivate the various python system hooks added by ipython for
     # interactive convenience so we don't confuse the doctest system
@@ -152,6 +135,7 @@ def start_ipython():
     # doctest machinery would miss them.
     _ip.system = xsys
 
+    # Also patch our %run function in.
     im = new.instancemethod(_run_ns_sync,_ip.IP, _ip.IP.__class__)
     _ip.IP.magic_run_ori = _ip.IP.magic_run
     _ip.IP.magic_run = im
@@ -406,6 +390,12 @@ class IPDocTestParser(doctest.DocTestParser):
     _EXAMPLE_RE_IP = re.compile( _RE_TPL % (_PS1_IP,_PS2_IP,_PS1_IP,_PS2_IP),
                                  re.MULTILINE | re.VERBOSE)
 
+    # Mark a test as being fully random.  In this case, we simply append the
+    # random marker ('#random') to each individual example's output.  This way
+    # we don't need to modify any other code.
+    _RANDOM_TEST = re.compile(r'#\s*all-random')
+
+    # Mark tests to be executed in an external process - currently unsupported.
     _EXTERNAL_IP = re.compile(r'#\s*ipdoctest:\s*EXTERNAL')
     
     def ip2py(self,source):
@@ -437,6 +427,11 @@ class IPDocTestParser(doctest.DocTestParser):
 
         output = []
         charno, lineno = 0, 0
+
+        if self._RANDOM_TEST.search(string):
+            random_marker = '\n# random'
+        else:
+            random_marker = ''
 
         # Whether to convert the input from ipython to python syntax
         ip2py = False
@@ -475,9 +470,15 @@ class IPDocTestParser(doctest.DocTestParser):
             # Extract info from the regexp match.
             (source, options, want, exc_msg) = \
                      self._parse_example(m, name, lineno,ip2py)
+
+            # Append the random-output marker (it defaults to empty in most
+            # cases, it's only non-empty for 'all-random' tests):
+            want += random_marker
+                
             if Example is IPExternalExample:
                 options[doctest.NORMALIZE_WHITESPACE] = True
                 want += '\n'
+
             # Create an Example, and add it to the list.
             if not self._IS_BLANK_OR_COMMENT(source):
                 #print 'Example source:', source # dbg

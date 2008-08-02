@@ -21,8 +21,8 @@ def pyfunc():
     ...
     0 1 1 2 2 3
     """
-
     return 'pyfunc'
+
 
 def ipfunc():
     """Some ipython tests...
@@ -67,14 +67,13 @@ def ipfunc():
     In [9]: ipfunc()
     Out[9]: 'ipfunc'
     """
-
     return 'ipfunc'
 
 
 def ranfunc():
     """A function with some random output.
 
-       Normal inputs are verified as usual:
+       Normal examples are verified as usual:
        >>> 1+3
        4
 
@@ -101,24 +100,26 @@ def ranfunc():
     return 'ranfunc'
 
 
-if 0:
-    def ranf2():
-        """A function whose examples' output are completely ignored.
+def random_all():
+    """A function where we ignore the output of ALL examples.
 
-        Examples:
+    Examples:
 
-        #all-random
+      # all-random
 
-           >>> 1+3
-           junk goes here...
+      This mark tells the testing machinery that all subsequent examples should
+      be treated as random (ignoring their output).  They are still executed,
+      so if a they raise an error, it will be detected as such, but their
+      output is completely ignored.
 
-           >>> 1+3
-           klasdfj;
+      >>> 1+3
+      junk goes here...
 
-           >>> 1+2
-           again,  anything goes
-           blah...
+      >>> 1+3
+      klasdfj;
 
-        """
-        return 'ranf2'
-
+      >>> 1+2
+      again,  anything goes
+      blah...
+    """
+    pass
