@@ -5,7 +5,7 @@ import inspect
 # Third party
 
 # Our own
-import decorators as dec
+from IPython.testing import decorators as dec
 
 #-----------------------------------------------------------------------------
 # Utilities
@@ -55,7 +55,65 @@ def doctest_bad(x,y=1,**k):
     >>> 1+1
     3
     """
-    z=2
+    print 'x:',x
+    print 'y:',y
+    print 'k:',k
+
+
+def call_doctest_bad():
+    """Check that we can still call the decorated functions.
+    
+    >>> doctest_bad(3,y=4)
+    x: 3
+    y: 4
+    k: {}
+    """
+    pass
+
+
+# Doctest skipping should work for class methods too
+class foo(object):
+    """Foo
+
+    Example:
+
+    >>> 1+1
+    2
+    """
+
+    @dec.skip_doctest
+    def __init__(self,x):
+        """Make a foo.
+
+        Example:
+
+        >>> f = foo(3)
+        junk
+        """
+        print 'Making a foo.'
+        self.x = x
+        
+    @dec.skip_doctest
+    def bar(self,y):
+        """Example:
+
+        >>> f = foo(3)
+        >>> f.bar(0)
+        boom!
+        >>> 1/0
+        bam!
+        """
+        return 1/y
+
+    def baz(self,y):
+        """Example:
+
+        >>> f = foo(3)
+        Making a foo.
+        >>> f.baz(3)
+        True
+        """
+        return self.x==y
 
 
 def test_skip_dt_decorator():

@@ -158,6 +158,16 @@ def is_extension_module(filename):
     return os.path.splitext(filename)[1].lower() in ('.so','.pyd')
 
 
+class nodoc(object):
+    def __init__(self,obj):
+        self.obj = obj
+
+    def __getattribute__(self,key):
+        if key == '__doc__':
+            return None
+        else:
+            return getattr(object.__getattribute__(self,'obj'),key)
+
 # Modified version of the one in the stdlib, that fixes a python bug (doctests
 # not found in extension modules, http://bugs.python.org/issue3158)
 class DocTestFinder(doctest.DocTestFinder):
@@ -195,6 +205,10 @@ class DocTestFinder(doctest.DocTestFinder):
         Find tests for the given object and any contained objects, and
         add them to `tests`.
         """
+
+        if hasattr(obj,"skip_doctest"):
+            #print 'SKIPPING DOCTEST FOR:',obj  # dbg
+            obj = nodoc(obj)
 
         doctest.DocTestFinder._find(self,tests, obj, name, module,
                                     source_lines, globs, seen)
@@ -590,6 +604,12 @@ class IPDocTestRunner(doctest.DocTestRunner,object):
         # when called (rather than unconconditionally updating test.globs here
         # for all examples, most of which won't be calling %run anyway).
         _run_ns_sync.test_globs = test.globs
+
+        # dbg
+        ## print >> sys.stderr, "Test:",test
+        ## for ex in test.examples:
+        ##     print >> sys.stderr, ex.source
+        ##     print >> sys.stderr, 'Want:\n',ex.want,'\n--'
 
         return super(IPDocTestRunner,self).run(test,
                                                compileflags,out,clear_globs)

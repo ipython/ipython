@@ -7,7 +7,7 @@ NOSE=nosetests -vvs --with-ipdoctest --doctest-tests --doctest-extension=txt
 
 #--with-color 
 
-SRC=ipdoctest.py setup.py decorators.py
+SRC=ipdoctest.py setup.py ../decorators.py
 
 plugin: IPython_doctest_plugin.egg-info
 
@@ -32,7 +32,13 @@ iptest: plugin
 	$(NOSE) IPython
 
 deco:
-	$(NOSE0) decorators.py
+	$(NOSE0) IPython.testing.decorators
+
+mtest: plugin
+	$(NOSE) -x IPython.Magic
+
+ipipe: plugin
+	$(NOSE) -x IPython.Extensions.ipipe
 
 sr: rtest std
 

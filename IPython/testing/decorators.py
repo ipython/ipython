@@ -19,7 +19,7 @@ import inspect
 # Third-party imports
 
 # This is Michele Simionato's decorator module, also kept verbatim.
-from decorator_msim import decorator
+from decorator_msim import decorator, update_wrapper
 
 # Grab the numpy-specific decorators which we keep in a file that we
 # occasionally update from upstream: decorators_numpy.py is an IDENTICAL copy
@@ -113,23 +113,12 @@ def make_label_dec(label,ds=None):
 #-----------------------------------------------------------------------------
 # Decorators for public use
 
-def skip_doctest(func):
-    """Decorator - mark a function for skipping its doctest.
+skip_doctest = make_label_dec('skip_doctest',
+    """Decorator - mark a function or method for skipping its doctest.
 
     This decorator allows you to mark a function whose docstring you wish to
     omit from testing, while preserving the docstring for introspection, help,
-    etc."""
-
-    # We just return the function unmodified, but the wrapping has the effect
-    # of making the doctest plugin skip the doctest.
-    def wrapper(*a,**k):
-        return func(*a,**k)
-
-    # Here we use plain 'decorator' and not apply_wrapper, because we don't
-    # need all the nose-protection machinery (functions containing doctests
-    # can't be full-blown nose tests, so we don't need to prserve
-    # setup/teardown).
-    return decorator(wrapper,func)
+    etc.""")                              
 
 
 def skip(func):
