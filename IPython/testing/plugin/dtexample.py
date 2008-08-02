@@ -123,3 +123,37 @@ def random_all():
       blah...
     """
     pass
+
+
+def iprand():
+    """Some ipython tests with random output.
+
+    In [7]: 3+4
+    Out[7]: 7
+
+    In [8]: print 'hello'
+    world  # random
+
+    In [9]: iprand()
+    Out[9]: 'iprand'
+    """
+    return 'iprand'
+
+
+def iprand_all():
+    """Some ipython tests with fully random output.
+
+    # all-random
+    
+    In [7]: 1
+    Out[7]: 99
+
+    In [8]: print 'hello'
+    world
+
+    In [9]: iprand_all()
+    Out[9]: 'junk'
+    """
+    return 'iprand_all'
+
+

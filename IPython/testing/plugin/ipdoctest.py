@@ -220,8 +220,6 @@ class DocTestFinder(doctest.DocTestFinder):
         if inspect.isclass(obj) and self._recurse:
             #print 'RECURSE into class:',obj  # dbg
             for valname, val in obj.__dict__.items():
-                #valname1 = '%s.%s' % (name, valname)  # dbg
-                #print 'N',name,'VN:',valname,'val:',str(val)[:77] # dbg
                 # Special handling for staticmethod/classmethod.
                 if isinstance(val, staticmethod):
                     val = getattr(obj, valname)
@@ -300,8 +298,6 @@ class DocTestCase(doctests.DocTestCase):
 
     # Modified runTest from the default stdlib
     def runTest(self):
-        #print 'HERE!'  # dbg
-        
         test = self._dt_test
         old = sys.stdout
         new = StringIO()
@@ -481,7 +477,6 @@ class IPDocTestParser(doctest.DocTestParser):
 
             # Create an Example, and add it to the list.
             if not self._IS_BLANK_OR_COMMENT(source):
-                #print 'Example source:', source # dbg
                 output.append(Example(source, want, exc_msg,
                                       lineno=lineno,
                                       indent=min_indent+len(m.group('indent')),
