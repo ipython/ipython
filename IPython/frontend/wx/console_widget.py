@@ -23,16 +23,17 @@ import wx
 import wx.stc  as  stc
 
 from wx.py import editwindow
+import sys
+LINESEP = '\n'
+if sys.platform == 'win32':
+    LINESEP = '\n\r'
 
 import re
 
 # FIXME: Need to provide an API for non user-generated display on the
 # screen: this should not be editable by the user.
 
-if wx.Platform == '__WXMSW__':
-    _DEFAULT_SIZE = 80
-else:
-    _DEFAULT_SIZE = 10
+_DEFAULT_SIZE = 10
 
 _DEFAULT_STYLE = {
     'stdout'      : 'fore:#0000FF',
@@ -94,7 +95,6 @@ class ConsoleWidget(editwindow.EditWindow):
     # The color of the carret (call _apply_style() after setting)
     carret_color = 'BLACK'
     
-    
     #--------------------------------------------------------------------------
     # Public API
     #--------------------------------------------------------------------------
@@ -114,6 +114,8 @@ class ConsoleWidget(editwindow.EditWindow):
     
 
     def configure_scintilla(self):
+        self.SetEOLMode(stc.STC_EOL_LF)
+
         # Ctrl"+" or Ctrl "-" can be used to zoomin/zoomout the text inside 
         # the widget
         self.CmdKeyAssign(ord('+'), stc.STC_SCMOD_CTRL, stc.STC_CMD_ZOOMIN)
@@ -206,6 +208,7 @@ class ConsoleWidget(editwindow.EditWindow):
         text = self.title_pat.sub('', text)
         segments = self.color_pat.split(text)
         segment = segments.pop(0)
+        self.GotoPos(self.GetLength())
         self.StartStyling(self.GetLength(), 0xFF)
         self.AppendText(segment)
         
@@ -223,7 +226,7 @@ class ConsoleWidget(editwindow.EditWindow):
                 
         self.GotoPos(self.GetLength())
         wx.Yield()
-    
+
    
     def new_prompt(self, prompt):
         """ Prints a prompt at start of line, and move the start of the
@@ -250,8 +253,10 @@ class ConsoleWidget(editwindow.EditWindow):
     def get_current_edit_buffer(self):
         """ Returns the text in current edit buffer.
         """
-        return self.GetTextRange(self.current_prompt_pos,
-                                 self.GetLength())
+        current_edit_buffer = self.GetTextRange(self.current_prompt_pos,
+                                                self.GetLength())
+        current_edit_buffer = current_edit_buffer.replace(LINESEP, '\n')
+        return current_edit_buffer
 
 
     #--------------------------------------------------------------------------
@@ -293,7 +298,7 @@ class ConsoleWidget(editwindow.EditWindow):
                 buf.append(symbol.ljust(max_len))
                 pos += 1
             else:
-                buf.append(symbol.rstrip() +'\n')
+                buf.append(symbol.rstrip() + '\n')
                 pos = 1
         self.write(''.join(buf))
         self.new_prompt(self.prompt % (self.last_result['number'] + 1))
@@ -314,12 +319,6 @@ class ConsoleWidget(editwindow.EditWindow):
     def scroll_to_bottom(self):
         maxrange = self.GetScrollRange(wx.VERTICAL)
         self.ScrollLines(maxrange)
-
-
-    def _on_enter(self):
-        """ Called when the return key is hit.
-        """
-        pass
 
 
     def _on_key_down(self, event, skip=True):
@@ -354,6 +353,12 @@ class ConsoleWidget(editwindow.EditWindow):
                 catched = True
                 self.CallTipCancel()
                 self.write('\n')
+                # Under windows scintilla seems to be doing funny stuff to the 
+                # line returns here, but get_current_edit_buffer filters this 
+                # out.
+                if sys.platform == 'win32':
+                    self.replace_current_edit_buffer(
+                                self.get_current_edit_buffer())
                 self._on_enter()
 
             elif event.KeyCode == wx.WXK_HOME:
@@ -384,7 +389,11 @@ class ConsoleWidget(editwindow.EditWindow):
                 catched = True
 
             if skip and not catched:
-                event.Skip()
+                # Put the cursor back in the edit region
+                if self.GetCurrentPos() < self.current_prompt_pos:
+                    self.GotoPos(self.current_prompt_pos)
+                else:
+                    event.Skip()
 
         return catched
 

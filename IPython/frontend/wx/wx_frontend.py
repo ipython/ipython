@@ -44,6 +44,8 @@ class WxController(PrefilterFrontEnd, ConsoleWidget):
 
     output_prompt = \
     '\x01\x1b[0;31m\x02Out[\x01\x1b[1;31m\x02%i\x01\x1b[0;31m\x02]: \x01\x1b[0m\x02'
+
+    debug = True
   
     #--------------------------------------------------------------------------
     # Public API
@@ -66,7 +68,6 @@ class WxController(PrefilterFrontEnd, ConsoleWidget):
         # Marker for tracebacks.
         self.MarkerDefine(_ERROR_MARKER, stc.STC_MARK_BACKGROUND,
                                 background=_ERROR_BG)
-
 
 
     def do_completion(self):
@@ -240,6 +241,11 @@ class WxController(PrefilterFrontEnd, ConsoleWidget):
         else:
             ConsoleWidget._on_key_up(self, event, skip=skip)
 
+    def _on_enter(self):
+        if self.debug:
+            import sys
+            print >>sys.__stdout__, repr(self.get_current_edit_buffer())
+        PrefilterFrontEnd._on_enter(self)
 
     def _set_title(self, title):
             return self.Parent.SetTitle(title)

@@ -19,10 +19,8 @@ import re
 
 import IPython
 
-
 from frontendbase import FrontEndBase
 from IPython.kernel.core.interpreter import Interpreter
-
 
 def common_prefix(strings):
     ref = strings[0]
@@ -156,8 +154,9 @@ class LineFrontEndBase(FrontEndBase):
         if self.is_complete(cleaned_buffer):
             self.execute(cleaned_buffer, raw_string=current_buffer)
         else:
-            self.write(self._get_indent_string(current_buffer[:-1]))
-            if current_buffer.rstrip().endswith(':'):
+            self.write(self._get_indent_string(
+                            current_buffer[:-1]))
+            if current_buffer[:-1].split('\n')[-1].rstrip().endswith(':'):
                 self.write('\t')
 
 
