@@ -198,9 +198,11 @@ class ConsoleWidget(editwindow.EditWindow):
         """ Write given text to buffer, while translating the ansi escape
             sequences.
         """
-        # XXX: do not put print statements in this method, the print
-        # statements will call this method, and you will end up with
-        # an infinit loop
+        # XXX: do not put print statements to sys.stdout/sys.stderr in 
+        # this method, the print statements will call this method, as 
+        # you will end up with an infinit loop
+        if self.debug:
+            print >>sys.__stderr__, text
         title = self.title_pat.split(text)
         if len(title)>1:
             self.title = title[-2]

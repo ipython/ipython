@@ -5,6 +5,7 @@ ipython.
 
 import wx
 from wx_frontend import WxController
+import __builtin__
 
 class WIPythonController(WxController):
     """ Sub class of WxController that adds some application-specific
@@ -19,7 +20,8 @@ class WIPythonController(WxController):
     def _on_key_down(self, event, skip=True):
         # Intercept Ctrl-D to quit
         if event.KeyCode == ord('D') and event.ControlDown() and \
-                self.get_current_edit_buffer()=='':
+                self.get_current_edit_buffer()=='' and \
+                not self.raw_input == __builtin__.raw_input:
             wx.CallAfter(self.ask_exit)
         else:
             WxController._on_key_down(self, event, skip=skip) 

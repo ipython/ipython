@@ -23,26 +23,19 @@ from IPython.ipmaker import make_IPython
 from IPython.ipapi import IPApi
 from IPython.kernel.core.redirector_output_trap import RedirectorOutputTrap
 
+from IPython.kernel.core.sync_traceback_trap import SyncTracebackTrap
+
+from IPython.ultraTB import ColorTB
 from IPython.genutils import Term
 import pydoc
 
-#-------------------------------------------------------------------------------
-# Utility functions (temporary, should be moved out of here)
-#-------------------------------------------------------------------------------
-import os
-def xterm_system(command):
-    """ Run a command in a separate console window.
-    """
-    os.system(("""xterm -title "%s" -e \'/bin/sh -c "%s ; """
-               """echo; echo press enter to close ; """
-#               """echo \\"\x1b]0;%s (finished -- press enter to close)\x07\\" ;
-               """read foo;"\' """)  % (command, command) )
-
-def system_call(command):
-    """ Temporary hack for aliases
+def mk_system_call(system_call_function, command):
+    """ given a os.system replacement, and a leading string command,
+        returns a function that will execute the command with the given
+        argument string.
     """
     def my_system_call(args):
-        os.system("%s %s" % (command, args))
+        system_call_function("%s %s" % (command, args))
     return my_system_call
 
 #-------------------------------------------------------------------------------
@@ -65,14 +58,18 @@ class PrefilterFrontEnd(LineFrontEndBase):
         self.shell.user_global_ns = self.ipython0.user_global_ns
         # Make sure the raw system call doesn't get called, as we don't
         # have a stdin accessible.
-        self._ip.system = xterm_system
+        self._ip.system = self.system_call
         # XXX: Muck around with magics so that they work better
         # in our environment
-        self.ipython0.magic_ls = system_call('ls -CF')
+        self.ipython0.magic_ls = mk_system_call(self.system_call, 
+                                                            'ls -CF')
         self.shell.output_trap = RedirectorOutputTrap(
                             out_callback=self.write,
                             err_callback=self.write,
                                             )
+        self.shell.traceback_trap = SyncTracebackTrap(
+                        formatters=[ColorTB(color_scheme='LightBG'), ]
+                            )
         # Capture and release the outputs, to make sure all the
         # shadow variables are set
         self.capture_output()
@@ -113,6 +110,13 @@ class PrefilterFrontEnd(LineFrontEndBase):
         LineFrontEndBase.execute(self, python_string,
                                     raw_string=raw_string)
         self.release_output()
+
+
+    def system_call(self, command):
+        """ Allows for frontend to define their own system call, to be
+            able capture output and redirect input.
+        """
+        return os.system(command, args)
 
 
     def capture_output(self):
