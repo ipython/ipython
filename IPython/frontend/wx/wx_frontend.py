@@ -197,6 +197,7 @@ class WxController(PrefilterFrontEnd, ConsoleWidget):
 
     
     def system_call(self, command_string):
+        self.running_process = True
         self.running_process = PipedProcess(command_string, 
                     out_callback=self.buffered_write,
                     end_callback = self._end_system_call)

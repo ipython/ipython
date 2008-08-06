@@ -7,7 +7,7 @@ import wx
 from wx_frontend import WxController
 import __builtin__
 
-class WIPythonController(WxController):
+class IPythonXController(WxController):
     """ Sub class of WxController that adds some application-specific
         bindings.
     """
@@ -48,14 +48,14 @@ class WIPythonController(WxController):
 
 
 
-class WIPython(wx.Frame):
-    """ Main frame of the WIPython app.
+class IPythonX(wx.Frame):
+    """ Main frame of the IPythonX app.
     """
 
     def __init__(self, parent, id, title):
         wx.Frame.__init__(self, parent, id, title, size=(300,250))
         self._sizer = wx.BoxSizer(wx.VERTICAL)
-        self.shell = WIPythonController(self)
+        self.shell = IPythonXController(self)
         self._sizer.Add(self.shell, 1, wx.EXPAND)
         self.SetSizer(self._sizer)
         self.SetAutoLayout(1)
@@ -64,7 +64,7 @@ class WIPython(wx.Frame):
 
 def main():
     app = wx.PySimpleApp()
-    frame = WIPython(None, wx.ID_ANY, 'WIPython')
+    frame = IPythonX(None, wx.ID_ANY, 'IPythonX')
     frame.shell.SetFocus()
     frame.shell.app = app
     frame.SetSize((680, 460))
