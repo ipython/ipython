@@ -204,9 +204,12 @@ class WxController(PrefilterFrontEnd, ConsoleWidget):
         self.running_process.start()
         # XXX: another one of these polling loops to have a blocking
         # call
+        wx.Yield()
         while self.running_process:
             wx.Yield()
             sleep(0.1)
+        # Be sure to flush the buffer.
+        self._buffer_flush(event=None)
 
 
     def buffered_write(self, text):
