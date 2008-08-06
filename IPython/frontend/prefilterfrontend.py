@@ -25,7 +25,6 @@ from IPython.kernel.core.redirector_output_trap import RedirectorOutputTrap
 
 from IPython.kernel.core.sync_traceback_trap import SyncTracebackTrap
 
-from IPython.ultraTB import ColorTB
 from IPython.genutils import Term
 import pydoc
 
@@ -68,7 +67,7 @@ class PrefilterFrontEnd(LineFrontEndBase):
                             err_callback=self.write,
                                             )
         self.shell.traceback_trap = SyncTracebackTrap(
-                        formatters=[ColorTB(color_scheme='LightBG'), ]
+                        formatters=self.shell.traceback_trap.formatters
                             )
         # Capture and release the outputs, to make sure all the
         # shadow variables are set

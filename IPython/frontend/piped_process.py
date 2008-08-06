@@ -17,7 +17,7 @@ __docformat__ = "restructuredtext en"
 #-------------------------------------------------------------------------------
 from subprocess import Popen, PIPE
 from threading import Thread
-
+from time import sleep
 
 class PipedProcess(Thread):
 
@@ -38,9 +38,16 @@ class PipedProcess(Thread):
         self.process = process
         while True:
             out_char = process.stdout.read(1)
-            if out_char == '' and process.poll() is not None:
-                break
-            self.out_callback(out_char)
+            if out_char == '':
+                if process.poll() is not None:
+                    # The process has finished
+                    break
+                else:
+                    # The process is not giving any interesting
+                    # output. No use polling it immediatly.
+                    sleep(0.1)
+            else:
+                self.out_callback(out_char)
 
         if self.end_callback is not None:
             self.end_callback()
