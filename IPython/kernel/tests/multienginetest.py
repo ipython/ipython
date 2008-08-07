@@ -733,7 +733,7 @@ class ISynchronousMultiEngineCoordinatorTestCase(IMultiEngineCoordinatorTestCase
         d.addCallback(lambda did: self.multiengine.get_pending_deferred(did, True))
         d.addCallback(lambda r: self.assertEquals(r, range(16)))
         return d
-
+    
     def testScatterGatherNumpyNonblocking(self):
         try:
             import numpy
@@ -749,17 +749,7 @@ class ISynchronousMultiEngineCoordinatorTestCase(IMultiEngineCoordinatorTestCase
             d.addCallback(lambda did: self.multiengine.get_pending_deferred(did, True))
             d.addCallback(lambda r: assert_array_equal(r, a))
             return d
-
-    def testMapNonblocking(self):
-        self.addEngine(4)
-        def f(x):
-            return x**2
-        data = range(16)
-        d= self.multiengine.map(f, data, block=False)
-        d.addCallback(lambda did: self.multiengine.get_pending_deferred(did, True))
-        d.addCallback(lambda r: self.assertEquals(r,[f(x) for x in data]))
-        return d
-
+    
     def test_clear_pending_deferreds(self):
         self.addEngine(4)
         did_list = []

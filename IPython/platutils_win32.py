@@ -3,11 +3,7 @@
 
 Importing this module directly is not portable - rather, import platutils 
 to use these functions in platform agnostic fashion.
-
-$Id: ipstruct.py 1005 2006-01-12 08:39:26Z fperez $
-
 """
-
 
 #*****************************************************************************
 #       Copyright (C) 2001-2006 Fernando Perez <fperez@colorado.edu>
@@ -22,35 +18,30 @@ __license__ = Release.license
 
 import os
 
-ignore_termtitle = 0
+ignore_termtitle = False
 
 try:
     import ctypes
-    SetConsoleTitleW=ctypes.windll.kernel32.SetConsoleTitleW
-    SetConsoleTitleW.argtypes=[ctypes.c_wchar_p]
-    def _set_term_title(title):
-        """ Set terminal title using the ctypes"""
+
+    SetConsoleTitleW = ctypes.windll.kernel32.SetConsoleTitleW
+    SetConsoleTitleW.argtypes = [ctypes.c_wchar_p]
+    
+    def set_term_title(title):
+        """Set terminal title using ctypes to access the Win32 APIs."""
         SetConsoleTitleW(title)
 
 except ImportError:
-    def _set_term_title(title):
-        """ Set terminal title using the 'title' command """
-        curr=os.getcwd()
-        os.chdir("C:") #Cannot be on network share when issuing system commands
-        ret = os.system("title " + title)
-        os.chdir(curr)
+    def set_term_title(title):
+        """Set terminal title using the 'title' command."""
+        global ignore_termtitle
+
+        try:
+            # Cannot be on network share when issuing system commands
+            curr = os.getcwd()
+            os.chdir("C:")
+            ret = os.system("title " + title)
+        finally:
+            os.chdir(curr)
         if ret:
-            ignore_termtitle = 1
-
-def set_term_title(title):
-    """ Set terminal title using the 'title' command """
-    global ignore_termtitle
-
-    if ignore_termtitle:
-        return
-    _set_term_title(title)
-
-def freeze_term_title():
-    global ignore_termtitle
-    ignore_termtitle = 1
-
+            # non-zero return code signals error, don't try again
+            ignore_termtitle = True

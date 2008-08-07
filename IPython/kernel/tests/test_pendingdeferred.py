@@ -20,8 +20,6 @@ try:
     from twisted.internet import defer
     from twisted.python import failure
 
-    from IPython.testing import tcommon
-    from IPython.testing.tcommon import *
     from IPython.testing.util import DeferredTestCase
     import IPython.kernel.pendingdeferred as pd
     from IPython.kernel import error
@@ -29,26 +27,7 @@ try:
 except ImportError:
     pass
 else:
-
-    #-------------------------------------------------------------------------------
-    # Setup for inline and standalone doctests
-    #-------------------------------------------------------------------------------
-
-
-    # If you have standalone doctests in a separate file, set their names in the
-    # dt_files variable (as a single string  or a list thereof):
-    dt_files = []
-
-    # If you have any modules whose docstrings should be scanned for embedded tests
-    # as examples accorging to standard doctest practice, set them here (as a
-    # single string or a list thereof):
-    dt_modules = []
-
-    #-------------------------------------------------------------------------------
-    # Regular Unittests
-    #-------------------------------------------------------------------------------
-
-
+    
     class Foo(object):
     
         def bar(self, bahz):
@@ -205,14 +184,3 @@ else:
             d3 = self.pdm.get_pending_deferred(did,False)
             d3.addCallback(lambda r: self.assertEquals(r,'bar'))
 
-#-------------------------------------------------------------------------------
-# Regular Unittests
-#-------------------------------------------------------------------------------
-
-# This ensures that the code will run either standalone as a script, or that it
-# can be picked up by Twisted's `trial` test wrapper to run all the tests.
-if tcommon.pexpect is not None:
-    if __name__ == '__main__':
-        unittest.main(testLoader=IPDocTestLoader(dt_files,dt_modules))
-    else:
-        testSuite = lambda : makeTestSuite(__name__,dt_files,dt_modules)

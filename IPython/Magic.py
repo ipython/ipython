@@ -2728,8 +2728,7 @@ Defaulting color scheme to 'NoColor'"""
                 os.chdir(os.path.expanduser(ps))
                 if self.shell.rc.term_title:
                     #print 'set term title:',self.shell.rc.term_title  # dbg
-                    ttitle = 'IPy ' + abbrev_cwd()
-                    platutils.set_term_title(ttitle)
+                    platutils.set_term_title('IPy ' + abbrev_cwd())
             except OSError:
                 print sys.exc_info()[1]
             else:
@@ -3195,7 +3194,7 @@ Defaulting color scheme to 'NoColor'"""
             exec b in self.user_ns            
             self.user_ns['pasted_block'] = b
         else:
-            self.user_ns[par] = block
+            self.user_ns[par] = SList(block.splitlines())
             print "Block assigned to '%s'" % par
             
     def magic_quickref(self,arg):

@@ -3,12 +3,7 @@
 
 This has empty implementation of the platutils functions, used for 
 unsupported operating systems.
-
-$Id: ipstruct.py 1005 2006-01-12 08:39:26Z fperez $
-
-
 """
-
 
 #*****************************************************************************
 #       Copyright (C) 2001-2006 Fernando Perez <fperez@colorado.edu>
@@ -21,9 +16,9 @@ from IPython import Release
 __author__  = '%s <%s>' % Release.authors['Ville']
 __license__ = Release.license
 
+# This variable is part of the expected API of the module:
+ignore_termtitle = True
 
-def _dummy(*args,**kw):
+def set_term_title(*args,**kw):
+    """Dummy no-op."""
     pass
-
-set_term_title = _dummy
-

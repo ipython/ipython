@@ -1,5 +1,19 @@
-"""Utilities for testing code.
+"""DEPRECATED - use IPython.testing.util instead.
+
+Utilities for testing code.
 """
+
+#############################################################################
+
+# This was old testing code we never really used in IPython.  The pieces of
+# testing machinery from snakeoil that were good have already been merged into
+# the nose plugin, so this can be taken away soon.  Leave a warning for now,
+# we'll remove it in a later release (around 0.10 or so).
+from warnings import warn
+warn('This will be removed soon.  Use IPython.testing.util instead',
+     DeprecationWarning)
+
+#############################################################################
 
 # Required modules and packages
 
@@ -36,7 +50,7 @@ def test_path(path):
 
     This finds the correct path of the test package on disk, and prepends it
     to the input path."""
-    
+
     return os.path.join(TEST_PATH,path)
 
 def fullPath(startPath,files):
@@ -55,7 +69,7 @@ def fullPath(startPath,files):
         One or more files.
 
     :Examples:
-    
+
     >>> fullPath('/foo/bar.py',['a.txt','b.txt'])
     ['/foo/a.txt', '/foo/b.txt']
 
@@ -66,7 +80,7 @@ def fullPath(startPath,files):
     >>> fullPath('/foo','a.txt')
     ['/a.txt']
     """
-    
+
     files = utils.list_strings(files)
     base = os.path.split(startPath)[0]
     return [ os.path.join(base,f) for f in files ]

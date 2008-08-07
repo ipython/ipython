@@ -27,7 +27,7 @@ QuickStart Task Farming
 First, a quick example of how to start running the most basic Tasks.
 The first step is to import the IPython ``client`` module and then create a ``TaskClient`` instance::
     
-    In [1]: from ipython1.kernel import client
+    In [1]: from IPython.kernel import client
     
     In [2]: tc = client.TaskClient()
 
@@ -90,7 +90,7 @@ The TaskClient
 
 The ``TaskClient`` is the object the user use to connect to the ``Controller`` that is managing the user's Tasks.  It is the analog of the ``MultiEngineClient`` for the standard IPython multiplexing interface.  As with all client interfaces, the first step is to import the IPython Client Module::
 
-    In [1]: from ipython1.kernel import client
+    In [1]: from IPython.kernel import client
 
 Just as with the ``MultiEngineClient``, the user create the ``TaskClient`` with a tuple, containing the ip-address and port of the ``Controller``.  the ``client`` module conveniently has the default address of the ``Task`` interface of the controller.  Creating a default ``TaskClient`` object would be done with this::
 
