@@ -169,11 +169,3 @@ class NotificationTests(unittest.TestCase):
         
         o.verify()
     
-    
-    def test_complexity_with_no_observers(self):
-        """Test that the notification center's algorithmic complexity is O(1)
-        with no registered observers (for the given notification type)
-        """
-        
-        self.fail("I'm not sure how to test this.")
-    
