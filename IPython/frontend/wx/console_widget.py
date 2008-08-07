@@ -194,7 +194,7 @@ class ConsoleWidget(editwindow.EditWindow):
         self.StyleSetSpec(stc.STC_P_COMMENTBLOCK, p['comment'])
 
 
-    def write(self, text):
+    def write(self, text, refresh=True):
         """ Write given text to buffer, while translating the ansi escape
             sequences.
         """
@@ -227,7 +227,8 @@ class ConsoleWidget(editwindow.EditWindow):
                 self.SetStyling(len(text), style) 
                 
         self.GotoPos(self.GetLength())
-        wx.Yield()
+        if refresh:
+            wx.Yield()
 
    
     def new_prompt(self, prompt):

@@ -257,7 +257,7 @@ class WxController(PrefilterFrontEnd, ConsoleWidget):
         self._out_buffer.append(text)
         self._out_buffer_lock.release()
         if not self._buffer_flush_timer.IsRunning():
-            self._buffer_flush_timer.Start(100)  # milliseconds
+            wx.CallAfter(self._buffer_flush_timer.Start, 100)  # milliseconds
 
 
     def show_traceback(self):
@@ -297,6 +297,7 @@ class WxController(PrefilterFrontEnd, ConsoleWidget):
             if self.debug:
                 print >>sys.__stderr__, chr(event.KeyCode)
             self._running_process.process.stdin.write(chr(event.KeyCode))
+            self._running_process.process.stdin.flush()
         elif event.KeyCode in (ord('('), 57):
             # Calltips
             event.Skip()
@@ -372,7 +373,7 @@ class WxController(PrefilterFrontEnd, ConsoleWidget):
         _out_buffer = self._out_buffer
         self._out_buffer = []
         self._out_buffer_lock.release()
-        self.write(''.join(_out_buffer))
+        self.write(''.join(_out_buffer), refresh=False)
         self._buffer_flush_timer.Stop()
 
 

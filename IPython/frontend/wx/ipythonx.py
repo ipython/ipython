@@ -21,7 +21,7 @@ class IPythonXController(WxController):
         # Intercept Ctrl-D to quit
         if event.KeyCode == ord('D') and event.ControlDown() and \
                 self.get_current_edit_buffer()=='' and \
-                not self.raw_input == __builtin__.raw_input:
+                self._input_state == 'readline':
             wx.CallAfter(self.ask_exit)
         else:
             WxController._on_key_down(self, event, skip=skip) 

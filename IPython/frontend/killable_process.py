@@ -107,7 +107,7 @@ class Popen(subprocess.Popen):
 
             if startupinfo is None:
                 startupinfo = winprocess.STARTUPINFO()
-
+            
             if None not in (p2cread, c2pwrite, errwrite):
                 startupinfo.dwFlags |= winprocess.STARTF_USESTDHANDLES
                 
