@@ -26,7 +26,7 @@ class NotificationCenter(object):
     ...     print theType,theSender,args
     ...     
     >>> notification.sharedCenter.add_observer(callback, 'NOTIFICATION_TYPE', None)
-    >>> notification.sharedCenter.post_notification('NOTIFICATION_TYPE', object())
+    >>> notification.sharedCenter.post_notification('NOTIFICATION_TYPE', object()) # doctest:+ELLIPSIS
     NOTIFICATION_TYPE ...
         
     """
