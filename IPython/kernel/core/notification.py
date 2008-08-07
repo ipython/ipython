@@ -2,7 +2,7 @@
 
 """The IPython Core Notification Center.
 
-See docs/blueprints/notification_blueprint.txt for an overview of the
+See docs/source/development/notification_blueprint.txt for an overview of the
 notification module.
 """
 
@@ -27,7 +27,7 @@ class NotificationCenter(object):
     ...     
     >>> notification.sharedCenter.add_observer(callback, 'NOTIFICATION_TYPE', None)
     >>> notification.sharedCenter.post_notification('NOTIFICATION_TYPE', object())
-    NOTIFICATION_TYPE <object object at 0x284b0> {}
+    NOTIFICATION_TYPE ...
         
     """
     def __init__(self):
@@ -38,8 +38,8 @@ class NotificationCenter(object):
     def _init_observers(self):
         """Initialize observer storage"""
         
-        self.registeredTypes = set() #set of types that are observed
-        self.registeredSenders = set() #set of senders that are observed
+        self.registered_types = set() #set of types that are observed
+        self.registered_senders = set() #set of senders that are observed
         self.observers = {} #map (type,sender) => callback (callable)
     
     
@@ -59,9 +59,10 @@ class NotificationCenter(object):
                 type and sender.")
         
         # If there are no registered observers for the type/sender pair
-        if((theType not in self.registeredTypes and None not in self.registeredTypes) or
-            (sender not in self.registeredSenders and None not in self.registeredSenders)):
-            print theType,sender,self.registeredTypes,self.registeredSenders
+        if((theType not in self.registered_types and 
+                None not in self.registered_types) or
+            (sender not in self.registered_senders and 
+                None not in self.registered_senders)):
             return
         
         for o in self._observers_for_notification(theType, sender):
@@ -108,8 +109,8 @@ class NotificationCenter(object):
             will be posted.
         """
         assert(callback != None)
-        self.registeredTypes.add(theType)
-        self.registeredSenders.add(sender)
+        self.registered_types.add(theType)
+        self.registered_senders.add(sender)
         self.observers.setdefault((theType,sender), set()).add(callback)
     
     def remove_all_observers(self):
