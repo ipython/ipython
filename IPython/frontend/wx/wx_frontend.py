@@ -28,6 +28,7 @@ from console_widget import ConsoleWidget
 import __builtin__
 from time import sleep
 import sys
+import signal
 
 from threading import Lock
 
@@ -49,19 +50,45 @@ class WxController(PrefilterFrontEnd, ConsoleWidget):
     output_prompt = \
     '\x01\x1b[0;31m\x02Out[\x01\x1b[1;31m\x02%i\x01\x1b[0;31m\x02]: \x01\x1b[0m\x02'
 
+    # Print debug info on what is happening to the console.
     debug = True
+
+    # The title of the terminal, as captured through the ANSI escape
+    # sequences.
+
+    def _set_title(self, title):
+            return self.Parent.SetTitle(title)
+
+    def _get_title(self):
+            return self.Parent.GetTitle()
+
+    title = property(_get_title, _set_title)
+
+    #--------------------------------------------------------------------------
+    # Private Attributes
+    #--------------------------------------------------------------------------
+
+    # A flag governing the behavior of the input. Can be:
+    #
+    #       'readline' for readline-like behavior with a prompt 
+    #            and an edit buffer.
+    #       'subprocess' for sending the raw input directly to a
+    #           subprocess.
+    #       'buffering' for buffering of the input, that will be used
+    #           when the input state switches back to another state.
+    _input_state = 'readline'
 
     # Attribute to store reference to the pipes of a subprocess, if we
     # are running any.
-    running_process = False
+    _running_process = False
 
     # A queue for writing fast streams to the screen without flooding the
     # event loop
-    write_buffer = []
+    _out_buffer = []
 
-    # A lock to lock the write_buffer to make sure we don't empty it
+    # A lock to lock the _out_buffer to make sure we don't empty it
     # while it is being swapped
-    write_buffer_lock = Lock()
+    _out_buffer_lock = Lock()
 
     #--------------------------------------------------------------------------
     # Public API
@@ -147,6 +174,11 @@ class WxController(PrefilterFrontEnd, ConsoleWidget):
                     print >>sys.__stdout__, completions 
 
 
+    def new_prompt(self, prompt):
+        self._input_state = 'readline'
+        ConsoleWidget.new_prompt(self, prompt)
+
+
     def raw_input(self, prompt):
         """ A replacement from python's raw_input.
         """
@@ -161,10 +193,12 @@ class WxController(PrefilterFrontEnd, ConsoleWidget):
             wx.Yield()
             sleep(0.1)
         self._on_enter = self.__old_on_enter
+        self._input_state = 'buffering'
         return self.get_current_edit_buffer().rstrip('\n')
         
  
     def execute(self, python_string, raw_string=None):
+        self._input_state = 'buffering'
         self.CallTipCancel()
         self._cursor = wx.BusyCursor()
         if raw_string is None:
@@ -197,15 +231,15 @@ class WxController(PrefilterFrontEnd, ConsoleWidget):
 
     
     def system_call(self, command_string):
-        self.running_process = True
-        self.running_process = PipedProcess(command_string, 
+        self._input_state = 'subprocess'
+        self._running_process = PipedProcess(command_string, 
                     out_callback=self.buffered_write,
                     end_callback = self._end_system_call)
-        self.running_process.start()
+        self._running_process.start()
         # XXX: another one of these polling loops to have a blocking
         # call
         wx.Yield()
-        while self.running_process:
+        while self._running_process:
             wx.Yield()
             sleep(0.1)
         # Be sure to flush the buffer.
@@ -219,30 +253,11 @@ class WxController(PrefilterFrontEnd, ConsoleWidget):
             This can be called outside of the main loop, in separate
             threads.
         """
-        self.write_buffer_lock.acquire()
-        self.write_buffer.append(text)
-        self.write_buffer_lock.release()
+        self._out_buffer_lock.acquire()
+        self._out_buffer.append(text)
+        self._out_buffer_lock.release()
         if not self._buffer_flush_timer.IsRunning():
             self._buffer_flush_timer.Start(100)  # milliseconds
-
-
-    def _end_system_call(self):
-        """ Called at the end of a system call.
-        """
-        self.running_process = False
-
-
-    def _buffer_flush(self, event):
-        """ Called by the timer to flush the write buffer.
-            
-            This is always called in the mainloop, by the wx timer.
-        """
-        self.write_buffer_lock.acquire()
-        write_buffer = self.write_buffer
-        self.write_buffer = []
-        self.write_buffer_lock.release()
-        self.write(''.join(write_buffer))
-        self._buffer_flush_timer.Stop()
 
 
     def show_traceback(self):
@@ -261,14 +276,27 @@ class WxController(PrefilterFrontEnd, ConsoleWidget):
         """ Capture the character events, let the parent
             widget handle them, and put our logic afterward.
         """
+        print >>sys.__stderr__, event.KeyCode
         current_line_number = self.GetCurrentLine()
-        if self.running_process and event.KeyCode<256 \
+        if event.KeyCode in (ord('c'), ord('C')) and event.ControlDown():
+            # Capture Control-C
+            if self._input_state == 'subprocess':
+                if self.debug:
+                    print >>sys.__stderr__, 'Killing running process'
+                self._running_process.process.kill()
+            elif self._input_state == 'buffering':
+                if self.debug:
+                    print >>sys.__stderr__, 'Raising KeyboardException'
+                raise KeyboardException
+                # XXX: We need to make really sure we
+                # get back to a prompt.
+        elif self._input_state == 'subprocess' and event.KeyCode<256 \
                         and event.Modifiers in (wx.MOD_NONE, wx.MOD_WIN):
-            #  We are running a process, let us not be too clever.
+            #  We are running a process, we redirect keys.
             ConsoleWidget._on_key_down(self, event, skip=skip)
             if self.debug:
                 print >>sys.__stderr__, chr(event.KeyCode)
-            self.running_process.process.stdin.write(chr(event.KeyCode))
+            self._running_process.process.stdin.write(chr(event.KeyCode))
         elif event.KeyCode in (ord('('), 57):
             # Calltips
             event.Skip()
@@ -320,18 +348,32 @@ class WxController(PrefilterFrontEnd, ConsoleWidget):
         else:
             ConsoleWidget._on_key_up(self, event, skip=skip)
 
+
     def _on_enter(self):
         if self.debug:
             print >>sys.__stdout__, repr(self.get_current_edit_buffer())
         PrefilterFrontEnd._on_enter(self)
 
-    def _set_title(self, title):
-            return self.Parent.SetTitle(title)
 
-    def _get_title(self):
-            return self.Parent.GetTitle()
+    def _end_system_call(self):
+        """ Called at the end of a system call.
+        """
+        print >>sys.__stderr__, 'End of system call'
+        self._input_state = 'buffering'
+        self._running_process = False
 
-    title = property(_get_title, _set_title)
+
+    def _buffer_flush(self, event):
+        """ Called by the timer to flush the write buffer.
+            
+            This is always called in the mainloop, by the wx timer.
+        """
+        self._out_buffer_lock.acquire()
+        _out_buffer = self._out_buffer
+        self._out_buffer = []
+        self._out_buffer_lock.release()
+        self.write(''.join(_out_buffer))
+        self._buffer_flush_timer.Stop()
 
 
 if __name__ == '__main__':
