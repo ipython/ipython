@@ -276,7 +276,6 @@ class WxController(PrefilterFrontEnd, ConsoleWidget):
         """ Capture the character events, let the parent
             widget handle them, and put our logic afterward.
         """
-        print >>sys.__stderr__, event.KeyCode
         current_line_number = self.GetCurrentLine()
         if event.KeyCode in (ord('c'), ord('C')) and event.ControlDown():
             # Capture Control-C
@@ -290,13 +289,23 @@ class WxController(PrefilterFrontEnd, ConsoleWidget):
                 raise KeyboardException
                 # XXX: We need to make really sure we
                 # get back to a prompt.
-        elif self._input_state == 'subprocess' and event.KeyCode<256 \
-                        and event.Modifiers in (wx.MOD_NONE, wx.MOD_WIN):
+        elif self._input_state == 'subprocess' and (
+                ( event.KeyCode<256 and
+                  event.Modifiers in (wx.MOD_NONE, wx.MOD_WIN, wx.MOD_SHIFT))
+                    or 
+                ( event.KeyCode in (ord('d'), ord('D')) and
+                  event.ControlDown())):
             #  We are running a process, we redirect keys.
             ConsoleWidget._on_key_down(self, event, skip=skip)
-            if self.debug:
-                print >>sys.__stderr__, chr(event.KeyCode)
-            self._running_process.process.stdin.write(chr(event.KeyCode))
+            char = chr(event.KeyCode)
+            # Deal with some inconsistency in wx keycodes:
+            if char == '\r':
+                char = '\n'
+            elif not event.ShiftDown():
+                char = char.lower()
+            if event.ControlDown() and event.KeyCode in (ord('d'), ord('D')):
+                char = '\04'
+            self._running_process.process.stdin.write(char)
             self._running_process.process.stdin.flush()
         elif event.KeyCode in (ord('('), 57):
             # Calltips

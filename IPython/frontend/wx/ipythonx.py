@@ -12,6 +12,8 @@ class IPythonXController(WxController):
         bindings.
     """
 
+    debug = False
+
     def __init__(self, *args, **kwargs):
         WxController.__init__(self, *args, **kwargs)
         self.ipython0.ask_exit = self.do_exit

@@ -34,7 +34,7 @@ class PipedProcess(Thread):
         """
         process = Popen((self.command_string + ' 2>&1', ), shell=True,
                                 universal_newlines=True,
-                                stdout=PIPE, stdin=PIPE)
+                                stdout=PIPE, stdin=PIPE, )
         self.process = process
         while True:
             out_char = process.stdout.read(1)
