@@ -257,7 +257,7 @@ class IPDoctestOutputChecker(doctest.OutputChecker):
     output string for flags that tell us to ignore the output.
     """
 
-    random_re = re.compile(r'#\s*random')
+    random_re = re.compile(r'#\s*random\s+')
     
     def check_output(self, want, got, optionflags):
         """Check output, accepting special markers embedded in the output.
@@ -403,7 +403,7 @@ class IPDocTestParser(doctest.DocTestParser):
     # Mark a test as being fully random.  In this case, we simply append the
     # random marker ('#random') to each individual example's output.  This way
     # we don't need to modify any other code.
-    _RANDOM_TEST = re.compile(r'#\s*all-random')
+    _RANDOM_TEST = re.compile(r'#\s*all-random\s+')
 
     # Mark tests to be executed in an external process - currently unsupported.
     _EXTERNAL_IP = re.compile(r'#\s*ipdoctest:\s*EXTERNAL')
