@@ -276,6 +276,7 @@ class WxController(PrefilterFrontEnd, ConsoleWidget):
         """ Capture the character events, let the parent
             widget handle them, and put our logic afterward.
         """
+        # FIXME: This method needs to be broken down in smaller ones.
         current_line_number = self.GetCurrentLine()
         if event.KeyCode in (ord('c'), ord('C')) and event.ControlDown():
             # Capture Control-C

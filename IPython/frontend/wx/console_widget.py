@@ -212,12 +212,20 @@ class ConsoleWidget(editwindow.EditWindow):
         segment = segments.pop(0)
         self.GotoPos(self.GetLength())
         self.StartStyling(self.GetLength(), 0xFF)
-        self.AppendText(segment)
+        try:
+            self.AppendText(segment)
+        except UnicodeDecodeError:
+            # XXX: Do I really want to skip the exception?
+            pass
         
         if segments:
             for ansi_tag, text in zip(segments[::2], segments[1::2]):
                 self.StartStyling(self.GetLength(), 0xFF)
-                self.AppendText(text)
+                try:
+                    self.AppendText(text)
+                except UnicodeDecodeError:
+                    # XXX: Do I really want to skip the exception?
+                    pass
 
                 if ansi_tag not in self.ANSI_STYLES:
                     style = 0

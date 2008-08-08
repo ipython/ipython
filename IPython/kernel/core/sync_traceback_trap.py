@@ -34,7 +34,7 @@ class SyncTracebackTrap(TracebackTrap):
         """
         self.args = args
         
-        print self.sync_formatters(*self.args)
+        print self.sync_formatter(*self.args)
 
 
         
