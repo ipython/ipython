@@ -174,23 +174,15 @@ class LeoNode(object, UserDict.DictMixin):
     
     def __get_h(self): return self.p.headString()
     def __set_h(self,val):
-        print "set head",val
-        c.beginUpdate() 
-        try:
-            c.setHeadString(self.p,val)
-        finally:
-            c.endUpdate()
+        c.setHeadString(self.p,val)
+        c.redraw()
         
     h = property( __get_h, __set_h, doc = "Node headline string")  
 
     def __get_b(self): return self.p.bodyString()
     def __set_b(self,val):
-        print "set body",val
-        c.beginUpdate()
-        try: 
-            c.setBodyString(self.p, val)
-        finally:
-            c.endUpdate()
+        c.setBodyString(self.p, val)
+        c.redraw()
     
     b = property(__get_b, __set_b, doc = "Nody body string")
     
@@ -265,11 +257,8 @@ class LeoNode(object, UserDict.DictMixin):
         
     def go(self):
         """ Set node as current node (to quickly see it in Outline) """
-        c.beginUpdate()
-        try:
-            c.setCurrentPosition(self.p)
-        finally:
-            c.endUpdate()  
+        c.setCurrentPosition(self.p)
+        c.redraw()
         
     def script(self):
         """ Method to get the 'tangled' contents of the node
@@ -337,7 +326,6 @@ def workbook_complete(obj, prev):
     
 
 def add_var(varname):
-    c.beginUpdate()
     r = rootnode()
     try:
         if r is None:
@@ -356,7 +344,7 @@ def add_var(varname):
         c.setHeadString(p2,varname)
         return LeoNode(p2)
     finally:
-        c.endUpdate()
+        c.redraw()
 
 def add_file(self,fname):
     p2 = c.currentPosition().insertAfter()
@@ -368,7 +356,6 @@ def expose_ileo_push(f, prio = 0):
 
 def push_ipython_script(node):
     """ Execute the node body in IPython, as if it was entered in interactive prompt """
-    c.beginUpdate()
     try:
         ohist = ip.IP.output_hist 
         hstart = len(ip.IP.input_hist)
@@ -393,7 +380,7 @@ def push_ipython_script(node):
         if not has_output:
             es('ipy run: %s (%d LL)' %( node.h,len(script)))
     finally:
-        c.endUpdate()
+        c.redraw()
 
     
 def eval_body(body):
@@ -495,7 +482,6 @@ def lee_f(self,s):
     """
     import os
         
-    c.beginUpdate()
     try:
         if s == 'hist':
             wb.ipython_history.b = get_history()
@@ -533,7 +519,7 @@ def lee_f(self,s):
             c.selectPosition(p)
         print "Editing file(s), press ctrl+shift+w in Leo to write @auto nodes"
     finally:
-        c.endUpdate()
+        c.redraw()
 
 
 
