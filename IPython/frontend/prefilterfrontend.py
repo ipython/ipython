@@ -2,6 +2,12 @@
 Frontend class that uses IPython0 to prefilter the inputs.
 
 Using the IPython0 mechanism gives us access to the magics.
+
+This is a transitory class, used here to do the transition between
+ipython0 and ipython1. This class is meant to be short-lived as more
+functionnality is abstracted out of ipython0 in reusable functions and
+is added on the interpreter. This class can be a used to guide this
+refactoring.
 """
 __docformat__ = "restructuredtext en"
 
@@ -27,6 +33,8 @@ from IPython.kernel.core.sync_traceback_trap import SyncTracebackTrap
 
 from IPython.genutils import Term
 import pydoc
+import os
+
 
 def mk_system_call(system_call_function, command):
     """ given a os.system replacement, and a leading string command,
@@ -41,6 +49,14 @@ def mk_system_call(system_call_function, command):
 # Frontend class using ipython0 to do the prefiltering. 
 #-------------------------------------------------------------------------------
 class PrefilterFrontEnd(LineFrontEndBase):
+    """ Class that uses ipython0 to do prefilter the input, do the
+    completion and the magics.
+
+    The core trick is to use an ipython0 instance to prefilter the
+    input, and share the namespace between the interpreter instance used
+    to execute the statements and the ipython0 used for code
+    completion...
+    """
     
     def __init__(self, *args, **kwargs):
         LineFrontEndBase.__init__(self, *args, **kwargs)
@@ -67,38 +83,20 @@ class PrefilterFrontEnd(LineFrontEndBase):
                             err_callback=self.write,
                                             )
         self.shell.traceback_trap = SyncTracebackTrap(
-                        formatters=self.shell.traceback_trap.formatters
+                        formatters=self.shell.traceback_trap.formatters,
                             )
         # Capture and release the outputs, to make sure all the
         # shadow variables are set
         self.capture_output()
         self.release_output()
 
-    
-    def prefilter_input(self, input_string):
-        """ Using IPython0 to prefilter the commands.
-        """
-        input_string = LineFrontEndBase.prefilter_input(self, input_string)
-        filtered_lines = []
-        # The IPython0 prefilters sometime produce output. We need to
-        # capture it.
-        self.capture_output()
-        self.last_result = dict(number=self.prompt_number)
-        try:
-            for line in input_string.split('\n'):
-                filtered_lines.append(self.ipython0.prefilter(line, False))
-        except:
-            # XXX: probably not the right thing to do.
-            self.ipython0.showsyntaxerror()
-            self.after_execute()
-        finally:
-            self.release_output()
-
-        filtered_string = '\n'.join(filtered_lines)
-        return filtered_string
-
+    #--------------------------------------------------------------------------
+    # FrontEndBase interface 
+    #--------------------------------------------------------------------------
 
     def show_traceback(self):
+        """ Use ipython0 to capture the last traceback and display it.
+        """
         self.capture_output()
         self.ipython0.showtraceback()
         self.release_output()
@@ -109,13 +107,6 @@ class PrefilterFrontEnd(LineFrontEndBase):
         LineFrontEndBase.execute(self, python_string,
                                     raw_string=raw_string)
         self.release_output()
-
-
-    def system_call(self, command):
-        """ Allows for frontend to define their own system call, to be
-            able capture output and redirect input.
-        """
-        return os.system(command, args)
 
 
     def capture_output(self):
@@ -154,6 +145,45 @@ class PrefilterFrontEnd(LineFrontEndBase):
             line = line[:-len(word)] + prefix
         return line, completions 
  
+    
+    #--------------------------------------------------------------------------
+    # LineFrontEndBase interface 
+    #--------------------------------------------------------------------------
+
+    def prefilter_input(self, input_string):
+        """ Using IPython0 to prefilter the commands to turn them
+        in executable statements that are valid Python strings.
+        """
+        input_string = LineFrontEndBase.prefilter_input(self, input_string)
+        filtered_lines = []
+        # The IPython0 prefilters sometime produce output. We need to
+        # capture it.
+        self.capture_output()
+        self.last_result = dict(number=self.prompt_number)
+        try:
+            for line in input_string.split('\n'):
+                filtered_lines.append(self.ipython0.prefilter(line, False))
+        except:
+            # XXX: probably not the right thing to do.
+            self.ipython0.showsyntaxerror()
+            self.after_execute()
+        finally:
+            self.release_output()
+
+        filtered_string = '\n'.join(filtered_lines)
+        return filtered_string
+
+
+    #--------------------------------------------------------------------------
+    # PrefilterLineFrontEnd interface 
+    #--------------------------------------------------------------------------
+ 
+    def system_call(self, command_string):
+        """ Allows for frontend to define their own system call, to be
+            able capture output and redirect input.
+        """
+        return os.system(command_string)
+
 
     def do_exit(self):
         """ Exit the shell, cleanup and save the history.

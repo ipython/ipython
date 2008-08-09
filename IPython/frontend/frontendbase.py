@@ -24,14 +24,7 @@ import string
 import uuid
 import _ast
 
-try:
-    from zope.interface import Interface, Attribute, implements, classProvides
-except ImportError:
-    #zope.interface is not available
-    Interface = object
-    def Attribute(name, doc): pass
-    def implements(interface): pass
-    def classProvides(interface): pass
+from zopeinterface import Interface, Attribute, implements, classProvides
 
 from IPython.kernel.core.history import FrontEndHistory
 from IPython.kernel.core.util import Bunch
@@ -46,6 +39,8 @@ rc.prompt_in2 = r'...'
 rc.prompt_out = r'Out [$number]:  '
 
 ##############################################################################
+# Interface definitions
+##############################################################################
 
 class IFrontEndFactory(Interface):
     """Factory interface for frontends."""
@@ -57,7 +52,6 @@ class IFrontEndFactory(Interface):
         """
         
         pass
-
 
 
 class IFrontEnd(Interface):
@@ -72,16 +66,16 @@ class IFrontEnd(Interface):
     
     def update_cell_prompt(result, blockID=None):
         """Subclass may override to update the input prompt for a block. 
-        Since this method will be called as a 
-        twisted.internet.defer.Deferred's callback/errback,
-        implementations should return result when finished.
+
+        In asynchronous frontends, this method will be called as a
+        twisted.internet.defer.Deferred's callback/errback.
+        Implementations should thus return result when finished.
         
         Result is a result dict in case of success, and a
         twisted.python.util.failure.Failure in case of an error
         """
         
         pass
-    
     
     def render_result(result):
         """Render the result of an execute call. Implementors may choose the
@@ -100,15 +94,16 @@ class IFrontEnd(Interface):
         pass
     
     def render_error(failure):
-        """Subclasses must override to render the failure. Since this method 
-        will be called as a twisted.internet.defer.Deferred's callback, 
-        implementations should return result when finished.
+        """Subclasses must override to render the failure. 
+        
+        In asynchronous frontend, since this method will be called as a
+        twisted.internet.defer.Deferred's callback. Implementations
+        should thus return result when finished.
         
         blockID = failure.blockID
         """
         
         pass
-    
     
     def input_prompt(number=''):
         """Returns the input prompt by subsituting into 
@@ -140,7 +135,6 @@ class IFrontEnd(Interface):
         
         pass
     
-    
     def get_history_previous(current_block):
         """Returns the block previous in  the history. Saves currentBlock if
         the history_cursor is currently at the end of the input history"""
@@ -151,6 +145,20 @@ class IFrontEnd(Interface):
         
         pass
     
+    def complete(self, line):
+        """Returns the list of possible completions, and the completed
+            line.
+
+        The input argument is the full line to be completed. This method
+        returns both the line completed as much as possible, and the list
+        of further possible completions (full words).
+        """
+        pass
+
+
+##############################################################################
+# Base class for all the frontends. 
+##############################################################################
 
 class FrontEndBase(object):
     """
@@ -321,6 +329,8 @@ class FrontEndBase(object):
     
     def update_cell_prompt(self, result, blockID=None):
         """Subclass may override to update the input prompt for a block. 
+
+        This method only really makes sens in asyncrhonous frontend.
         Since this method will be called as a 
         twisted.internet.defer.Deferred's callback, implementations should 
         return result when finished.
@@ -330,18 +340,22 @@ class FrontEndBase(object):
     
     
     def render_result(self, result):
-        """Subclasses must override to render result. Since this method will
-        be called as a twisted.internet.defer.Deferred's callback, 
-        implementations should return result when finished.
+        """Subclasses must override to render result. 
+        
+        In asynchronous frontends, this method will be called as a
+        twisted.internet.defer.Deferred's callback. Implementations
+        should thus return result when finished.
         """
         
         return result
     
     
     def render_error(self, failure):
-        """Subclasses must override to render the failure. Since this method 
-        will be called as a twisted.internet.defer.Deferred's callback, 
-        implementations should return result when finished.
+        """Subclasses must override to render the failure. 
+        
+        In asynchronous frontends, this method will be called as a
+        twisted.internet.defer.Deferred's callback. Implementations
+        should thus return result when finished.
         """
         
         return failure

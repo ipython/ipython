@@ -15,7 +15,7 @@ __docformat__ = "restructuredtext en"
 #-------------------------------------------------------------------------------
 # Imports
 #-------------------------------------------------------------------------------
-from killable_process import Popen, PIPE
+from killableprocess import Popen, PIPE
 from threading import Thread
 from time import sleep
 

@@ -22,19 +22,23 @@ from IPython.ultraTB import ColorTB
 
 class SyncTracebackTrap(TracebackTrap):
 
-    def __init__(self, sync_formatter=None, formatters=None):
+    def __init__(self, sync_formatter=None, formatters=None,
+                                                    raiseException=True):
         TracebackTrap.__init__(self, formatters=formatters)
         if sync_formatter is None:
             sync_formatter = ColorTB(color_scheme='LightBG')
         self.sync_formatter = sync_formatter
+        self.raiseException = raiseException
 
 
     def hook(self, *args):
         """ This method actually implements the hook.
         """
         self.args = args
-        
-        print self.sync_formatter(*self.args)
+        if not self.raiseException:
+            print self.sync_formatter(*self.args)
+        else:
+            raise
 
 
         

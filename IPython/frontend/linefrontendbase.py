@@ -1,5 +1,6 @@
 """
-Base front end class for all line-oriented frontends.
+Base front end class for all line-oriented frontends, rather than
+block-oriented.
 
 Currently this focuses on synchronous frontends.
 """
@@ -23,6 +24,9 @@ from frontendbase import FrontEndBase
 from IPython.kernel.core.interpreter import Interpreter
 
 def common_prefix(strings):
+    """ Given a list of strings, return the common prefix between all
+        these strings.
+    """
     ref = strings[0]
     prefix = ''
     for size in range(len(ref)):
@@ -38,6 +42,10 @@ def common_prefix(strings):
 # Base class for the line-oriented front ends
 #-------------------------------------------------------------------------------
 class LineFrontEndBase(FrontEndBase):
+    """ Concrete implementation of the FrontEndBase class. This is meant
+    to be the base class behind all the frontend that are line-oriented,
+    rather than block-oriented.
+    """
     
     # We need to keep the prompt number, to be able to increment
     # it when there is an exception.
@@ -47,7 +55,7 @@ class LineFrontEndBase(FrontEndBase):
     last_result = dict(number=0)
 
     #--------------------------------------------------------------------------
-    # Public API
+    # FrontEndBase interface
     #--------------------------------------------------------------------------
 
     def __init__(self, shell=None, history=None):
@@ -81,6 +89,9 @@ class LineFrontEndBase(FrontEndBase):
  
 
     def render_result(self, result):
+        """ Frontend-specific rendering of the result of a calculation
+        that has been sent to an engine.
+        """
         if 'stdout' in result and result['stdout']:
             self.write('\n' + result['stdout'])
         if 'display' in result and result['display']:
@@ -91,20 +102,25 @@ class LineFrontEndBase(FrontEndBase):
        
 
     def render_error(self, failure):
+        """ Frontend-specific rendering of error. 
+        """
         self.insert_text('\n\n'+str(failure)+'\n\n')
         return failure
 
 
-    def prefilter_input(self, string):
-        string = string.replace('\r\n', '\n')
-        string = string.replace('\t', 4*' ')
-        # Clean the trailing whitespace
-        string = '\n'.join(l.rstrip()  for l in string.split('\n'))
-        return string
-
-
     def is_complete(self, string):
+        """ Check if a string forms a complete, executable set of
+        commands.
+
+        For the line-oriented frontend, multi-line code is not executed
+        as soon as it is complete: the users has to enter two line
+        returns.
+        """
         if string in ('', '\n'):
+            # Prefiltering, eg through ipython0, may return an empty
+            # string although some operations have been accomplished. We
+            # thus want to consider an empty string as a complete
+            # statement.
             return True
         elif ( len(self.get_current_edit_buffer().split('\n'))>2 
                         and not re.findall(r"\n[\t ]*\n[\t ]*$", string)):
@@ -116,8 +132,8 @@ class LineFrontEndBase(FrontEndBase):
     
 
     def execute(self, python_string, raw_string=None):
-        """ Send the python_string to the interpreter, stores the
-            raw_string in the history and starts a new prompt.
+        """ Stores the raw_string in the history, and sends the
+        python string to the interpreter.
         """
         if raw_string is None:
             raw_string = python_string
@@ -133,6 +149,18 @@ class LineFrontEndBase(FrontEndBase):
         finally:
             self.after_execute()
 
+    #--------------------------------------------------------------------------
+    # LineFrontEndBase interface
+    #--------------------------------------------------------------------------
+
+    def prefilter_input(self, string):
+        """ Priflter the input to turn it in valid python.
+        """
+        string = string.replace('\r\n', '\n')
+        string = string.replace('\t', 4*' ')
+        # Clean the trailing whitespace
+        string = '\n'.join(l.rstrip()  for l in string.split('\n'))
+        return string
 
     def after_execute(self):
         """ All the operations required after an execution to put the
@@ -145,6 +173,10 @@ class LineFrontEndBase(FrontEndBase):
         self.history_cursor = len(self.history.input_cache) - 1
 
 
+    #--------------------------------------------------------------------------
+    # Private API
+    #--------------------------------------------------------------------------
+ 
     def _on_enter(self):
         """ Called when the return key is pressed in a line editing
             buffer.
@@ -160,11 +192,10 @@ class LineFrontEndBase(FrontEndBase):
                 self.write('\t')
 
 
-    #--------------------------------------------------------------------------
-    # Private API
-    #--------------------------------------------------------------------------
- 
     def _get_indent_string(self, string):
+        """ Return the string of whitespace that prefixes a line. Used to
+        add the right amount of indendation when creating a new line.
+        """
         string = string.replace('\t', ' '*4)
         string = string.split('\n')[-1]
         indent_chars = len(string) - len(string.lstrip())

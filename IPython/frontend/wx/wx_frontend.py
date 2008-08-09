@@ -5,6 +5,8 @@
 """Classes to provide a Wx frontend to the
 IPython.kernel.core.interpreter.
 
+This class inherits from ConsoleWidget, that provides a console-like
+widget to provide a text-rendering widget suitable for a terminal.
 """
 
 __docformat__ = "restructuredtext en"
@@ -20,20 +22,24 @@ __docformat__ = "restructuredtext en"
 # Imports
 #-------------------------------------------------------------------------------
 
-
-import wx
+# Major library imports
 import re
-from wx import stc
-from console_widget import ConsoleWidget
 import __builtin__
 from time import sleep
 import sys
-import signal
-
 from threading import Lock
 
-from IPython.frontend.piped_process import PipedProcess
+import wx
+from wx import stc
+
+# Ipython-specific imports.
+from IPython.frontend._process import PipedProcess
+from console_widget import ConsoleWidget
 from IPython.frontend.prefilterfrontend import PrefilterFrontEnd
+
+#-------------------------------------------------------------------------------
+# Constants 
+#-------------------------------------------------------------------------------
 
 #_COMMAND_BG = '#FAFAF1' # Nice green
 _RUNNING_BUFFER_BG = '#FDFFD3' # Nice yellow
@@ -46,7 +52,14 @@ _ERROR_MARKER = 30
 # Classes to implement the Wx frontend
 #-------------------------------------------------------------------------------
 class WxController(PrefilterFrontEnd, ConsoleWidget):
+    """Classes to provide a Wx frontend to the
+    IPython.kernel.core.interpreter.
 
+    This class inherits from ConsoleWidget, that provides a console-like
+    widget to provide a text-rendering widget suitable for a terminal.
+    """
+
+    # FIXME: this shouldn't be there.
     output_prompt = \
     '\x01\x1b[0;31m\x02Out[\x01\x1b[1;31m\x02%i\x01\x1b[0;31m\x02]: \x01\x1b[0m\x02'
 
@@ -55,7 +68,6 @@ class WxController(PrefilterFrontEnd, ConsoleWidget):
 
     # The title of the terminal, as captured through the ANSI escape
     # sequences.
-
     def _set_title(self, title):
             return self.Parent.SetTitle(title)
 
@@ -114,8 +126,43 @@ class WxController(PrefilterFrontEnd, ConsoleWidget):
         self._buffer_flush_timer = wx.Timer(self, BUFFER_FLUSH_TIMER_ID)
         wx.EVT_TIMER(self, BUFFER_FLUSH_TIMER_ID, self._buffer_flush)
 
+
+    def raw_input(self, prompt):
+        """ A replacement from python's raw_input.
+        """
+        self.new_prompt(prompt)
+        self.waiting = True
+        self.__old_on_enter = self._on_enter
+        def my_on_enter():
+            self.waiting = False
+        self._on_enter = my_on_enter
+        # XXX: Busy waiting, ugly.
+        while self.waiting:
+            wx.Yield()
+            sleep(0.1)
+        self._on_enter = self.__old_on_enter
+        self._input_state = 'buffering'
+        return self.get_current_edit_buffer().rstrip('\n')
+
+
+    def system_call(self, command_string):
+        self._input_state = 'subprocess'
+        self._running_process = PipedProcess(command_string, 
+                    out_callback=self.buffered_write,
+                    end_callback = self._end_system_call)
+        self._running_process.start()
+        # XXX: another one of these polling loops to have a blocking
+        # call
+        wx.Yield()
+        while self._running_process:
+            wx.Yield()
+            sleep(0.1)
+        # Be sure to flush the buffer.
+        self._buffer_flush(event=None)
+
+
     def do_completion(self):
-        """ Do code completion. 
+        """ Do code completion on current line. 
         """
         if self.debug:
             print >>sys.__stdout__, "do_completion", 
@@ -129,6 +176,8 @@ class WxController(PrefilterFrontEnd, ConsoleWidget):
 
 
     def do_calltip(self):
+        """ Analyse current and displays useful calltip for it.
+        """
         if self.debug:
             print >>sys.__stdout__, "do_calltip" 
         separators =  re.compile('[\s\{\}\[\]\(\)\= ,:]')
@@ -154,12 +203,12 @@ class WxController(PrefilterFrontEnd, ConsoleWidget):
             pass
 
 
-    def popup_completion(self, create=False):
+    def _popup_completion(self, create=False):
         """ Updates the popup completion menu if it exists. If create is 
             true, open the menu.
         """
         if self.debug:
-            print >>sys.__stdout__, "popup_completion", 
+            print >>sys.__stdout__, "_popup_completion", 
         line = self.get_current_edit_buffer()
         if (self.AutoCompActive() and not line[-1] == '.') \
                     or create==True:
@@ -174,28 +223,23 @@ class WxController(PrefilterFrontEnd, ConsoleWidget):
                     print >>sys.__stdout__, completions 
 
 
-    def new_prompt(self, prompt):
-        self._input_state = 'readline'
-        ConsoleWidget.new_prompt(self, prompt)
+    def buffered_write(self, text):
+        """ A write method for streams, that caches the stream in order
+            to avoid flooding the event loop.
 
-
-    def raw_input(self, prompt):
-        """ A replacement from python's raw_input.
+            This can be called outside of the main loop, in separate
+            threads.
         """
-        self.new_prompt(prompt)
-        self.waiting = True
-        self.__old_on_enter = self._on_enter
-        def my_on_enter():
-            self.waiting = False
-        self._on_enter = my_on_enter
-        # XXX: Busy waiting, ugly.
-        while self.waiting:
-            wx.Yield()
-            sleep(0.1)
-        self._on_enter = self.__old_on_enter
-        self._input_state = 'buffering'
-        return self.get_current_edit_buffer().rstrip('\n')
-        
+        self._out_buffer_lock.acquire()
+        self._out_buffer.append(text)
+        self._out_buffer_lock.release()
+        if not self._buffer_flush_timer.IsRunning():
+            wx.CallAfter(self._buffer_flush_timer.Start, 100)  # milliseconds
+
+
+    #--------------------------------------------------------------------------
+    # LineFrontEnd interface 
+    #--------------------------------------------------------------------------
  
     def execute(self, python_string, raw_string=None):
         self._input_state = 'buffering'
@@ -226,38 +270,9 @@ class WxController(PrefilterFrontEnd, ConsoleWidget):
 
     def after_execute(self):
         PrefilterFrontEnd.after_execute(self)
+        # Clear the wait cursor
         if hasattr(self, '_cursor'):
             del self._cursor
-
-    
-    def system_call(self, command_string):
-        self._input_state = 'subprocess'
-        self._running_process = PipedProcess(command_string, 
-                    out_callback=self.buffered_write,
-                    end_callback = self._end_system_call)
-        self._running_process.start()
-        # XXX: another one of these polling loops to have a blocking
-        # call
-        wx.Yield()
-        while self._running_process:
-            wx.Yield()
-            sleep(0.1)
-        # Be sure to flush the buffer.
-        self._buffer_flush(event=None)
-
-
-    def buffered_write(self, text):
-        """ A write method for streams, that caches the stream in order
-            to avoid flooding the event loop.
-
-            This can be called outside of the main loop, in separate
-            threads.
-        """
-        self._out_buffer_lock.acquire()
-        self._out_buffer.append(text)
-        self._out_buffer_lock.release()
-        if not self._buffer_flush_timer.IsRunning():
-            wx.CallAfter(self._buffer_flush_timer.Start, 100)  # milliseconds
 
 
     def show_traceback(self):
@@ -266,12 +281,19 @@ class WxController(PrefilterFrontEnd, ConsoleWidget):
         wx.Yield()
         for i in range(start_line, self.GetCurrentLine()):
             self.MarkerAdd(i, _ERROR_MARKER)
-            
 
+    
     #--------------------------------------------------------------------------
-    # Private API
+    # ConsoleWidget interface 
     #--------------------------------------------------------------------------
- 
+
+    def new_prompt(self, prompt):
+        """ Display a new prompt, and start a new input buffer.
+        """
+        self._input_state = 'readline'
+        ConsoleWidget.new_prompt(self, prompt)
+
+
     def _on_key_down(self, event, skip=True):
         """ Capture the character events, let the parent
             widget handle them, and put our logic afterward.
@@ -286,8 +308,8 @@ class WxController(PrefilterFrontEnd, ConsoleWidget):
                 self._running_process.process.kill()
             elif self._input_state == 'buffering':
                 if self.debug:
-                    print >>sys.__stderr__, 'Raising KeyboardException'
-                raise KeyboardException
+                    print >>sys.__stderr__, 'Raising KeyboardInterrupt'
+                raise KeyboardInterrupt
                 # XXX: We need to make really sure we
                 # get back to a prompt.
         elif self._input_state == 'subprocess' and (
@@ -315,10 +337,10 @@ class WxController(PrefilterFrontEnd, ConsoleWidget):
         elif self.AutoCompActive():
             event.Skip()
             if event.KeyCode in (wx.WXK_BACK, wx.WXK_DELETE): 
-                wx.CallAfter(self.popup_completion, create=True)
+                wx.CallAfter(self._popup_completion, create=True)
             elif not event.KeyCode in (wx.WXK_UP, wx.WXK_DOWN, wx.WXK_LEFT,
                             wx.WXK_RIGHT):
-                wx.CallAfter(self.popup_completion)
+                wx.CallAfter(self._popup_completion)
         else:
             # Up history
             if event.KeyCode == wx.WXK_UP and (
@@ -352,20 +374,28 @@ class WxController(PrefilterFrontEnd, ConsoleWidget):
 
 
     def _on_key_up(self, event, skip=True):
+        """ Called when any key is released.
+        """
         if event.KeyCode in (59, ord('.')):
             # Intercepting '.'
             event.Skip()
-            self.popup_completion(create=True)
+            self._popup_completion(create=True)
         else:
             ConsoleWidget._on_key_up(self, event, skip=skip)
 
 
     def _on_enter(self):
+        """ Called on return key down, in readline input_state.
+        """
         if self.debug:
             print >>sys.__stdout__, repr(self.get_current_edit_buffer())
         PrefilterFrontEnd._on_enter(self)
 
 
+    #--------------------------------------------------------------------------
+    # Private API
+    #--------------------------------------------------------------------------
+ 
     def _end_system_call(self):
         """ Called at the end of a system call.
         """

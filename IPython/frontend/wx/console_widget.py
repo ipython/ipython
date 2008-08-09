@@ -76,6 +76,8 @@ class ConsoleWidget(editwindow.EditWindow):
         keeping the cursor inside the editing line.
     """
 
+    # This is where the title captured from the ANSI escape sequences are
+    # stored.
     title = 'Console'
 
     style = _DEFAULT_STYLE.copy()
@@ -102,7 +104,7 @@ class ConsoleWidget(editwindow.EditWindow):
     def __init__(self, parent, id=wx.ID_ANY, pos=wx.DefaultPosition, 
                         size=wx.DefaultSize, style=0, ):
         editwindow.EditWindow.__init__(self, parent, id, pos, size, style)
-        self.configure_scintilla()
+        self._configure_scintilla()
 
         # FIXME: we need to retrieve this from the interpreter.
         self.prompt = \
@@ -113,7 +115,144 @@ class ConsoleWidget(editwindow.EditWindow):
         self.Bind(wx.EVT_KEY_UP, self._on_key_up)
     
 
-    def configure_scintilla(self):
+    def write(self, text, refresh=True):
+        """ Write given text to buffer, while translating the ansi escape
+            sequences.
+        """
+        # XXX: do not put print statements to sys.stdout/sys.stderr in 
+        # this method, the print statements will call this method, as 
+        # you will end up with an infinit loop
+        if self.debug:
+            print >>sys.__stderr__, text
+        title = self.title_pat.split(text)
+        if len(title)>1:
+            self.title = title[-2]
+
+        text = self.title_pat.sub('', text)
+        segments = self.color_pat.split(text)
+        segment = segments.pop(0)
+        self.GotoPos(self.GetLength())
+        self.StartStyling(self.GetLength(), 0xFF)
+        try:
+            self.AppendText(segment)
+        except UnicodeDecodeError:
+            # XXX: Do I really want to skip the exception?
+            pass
+        
+        if segments:
+            for ansi_tag, text in zip(segments[::2], segments[1::2]):
+                self.StartStyling(self.GetLength(), 0xFF)
+                try:
+                    self.AppendText(text)
+                except UnicodeDecodeError:
+                    # XXX: Do I really want to skip the exception?
+                    pass
+
+                if ansi_tag not in self.ANSI_STYLES:
+                    style = 0
+                else:
+                    style = self.ANSI_STYLES[ansi_tag][0]
+
+                self.SetStyling(len(text), style) 
+                
+        self.GotoPos(self.GetLength())
+        if refresh:
+            wx.Yield()
+
+   
+    def new_prompt(self, prompt):
+        """ Prints a prompt at start of line, and move the start of the
+            current block there.
+
+            The prompt can be give with ascii escape sequences.
+        """
+        self.write(prompt)
+        # now we update our cursor giving end of prompt
+        self.current_prompt_pos = self.GetLength()
+        self.current_prompt_line = self.GetCurrentLine()
+        wx.Yield()
+        self.EnsureCaretVisible()
+
+        
+    def replace_current_edit_buffer(self, text):
+        """ Replace currently entered command line with given text.
+        """
+        self.SetSelection(self.current_prompt_pos, self.GetLength())
+        self.ReplaceSelection(text)
+        self.GotoPos(self.GetLength())
+    
+    
+    def get_current_edit_buffer(self):
+        """ Returns the text in current edit buffer.
+        """
+        current_edit_buffer = self.GetTextRange(self.current_prompt_pos,
+                                                self.GetLength())
+        current_edit_buffer = current_edit_buffer.replace(LINESEP, '\n')
+        return current_edit_buffer
+
+
+    def scroll_to_bottom(self):
+        maxrange = self.GetScrollRange(wx.VERTICAL)
+        self.ScrollLines(maxrange)
+
+
+    def pop_completion(self, possibilities, offset=0):
+        """ Pops up an autocompletion menu. Offset is the offset
+            in characters of the position at which the menu should
+            appear, relativ to the cursor.
+        """
+        self.AutoCompSetIgnoreCase(False)
+        self.AutoCompSetAutoHide(False)
+        self.AutoCompSetMaxHeight(len(possibilities))
+        self.AutoCompShow(offset, " ".join(possibilities))
+
+
+    def write_completion(self, possibilities):
+        # FIXME: This is non Wx specific and needs to be moved into
+        # the base class.
+        current_buffer = self.get_current_edit_buffer()
+        
+        self.write('\n')
+        max_len = len(max(possibilities, key=len)) + 1
+        
+        #now we check how much symbol we can put on a line...
+        chars_per_line = self.GetSize()[0]/self.GetCharWidth()
+        symbols_per_line = max(1, chars_per_line/max_len)
+
+        pos = 1
+        buf = []
+        for symbol in possibilities:
+            if pos < symbols_per_line:
+                buf.append(symbol.ljust(max_len))
+                pos += 1
+            else:
+                buf.append(symbol.rstrip() + '\n')
+                pos = 1
+        self.write(''.join(buf))
+        self.new_prompt(self.prompt % (self.last_result['number'] + 1))
+        self.replace_current_edit_buffer(current_buffer)
+
+    #--------------------------------------------------------------------------
+    # Private API
+    #--------------------------------------------------------------------------
+    
+    def _apply_style(self):
+        """ Applies the colors for the different text elements and the
+            carret.
+        """
+        self.SetCaretForeground(self.carret_color)
+
+        #self.StyleClearAll()
+        self.StyleSetSpec(stc.STC_STYLE_BRACELIGHT,  
+                          "fore:#FF0000,back:#0000FF,bold")
+        self.StyleSetSpec(stc.STC_STYLE_BRACEBAD,
+                          "fore:#000000,back:#FF0000,bold")
+
+        for style in self.ANSI_STYLES.values():
+            self.StyleSetSpec(style[0], "bold,fore:%s" % style[1])
+
+   
+    def _configure_scintilla(self):
         self.SetEOLMode(stc.STC_EOL_LF)
 
         # Ctrl"+" or Ctrl "-" can be used to zoomin/zoomout the text inside 
@@ -192,144 +331,6 @@ class ConsoleWidget(editwindow.EditWindow):
         self.StyleSetSpec(stc.STC_P_DEFNAME, p['def'])
         self.StyleSetSpec(stc.STC_P_OPERATOR, p['operator'])
         self.StyleSetSpec(stc.STC_P_COMMENTBLOCK, p['comment'])
-
-
-    def write(self, text, refresh=True):
-        """ Write given text to buffer, while translating the ansi escape
-            sequences.
-        """
-        # XXX: do not put print statements to sys.stdout/sys.stderr in 
-        # this method, the print statements will call this method, as 
-        # you will end up with an infinit loop
-        if self.debug:
-            print >>sys.__stderr__, text
-        title = self.title_pat.split(text)
-        if len(title)>1:
-            self.title = title[-2]
-
-        text = self.title_pat.sub('', text)
-        segments = self.color_pat.split(text)
-        segment = segments.pop(0)
-        self.GotoPos(self.GetLength())
-        self.StartStyling(self.GetLength(), 0xFF)
-        try:
-            self.AppendText(segment)
-        except UnicodeDecodeError:
-            # XXX: Do I really want to skip the exception?
-            pass
-        
-        if segments:
-            for ansi_tag, text in zip(segments[::2], segments[1::2]):
-                self.StartStyling(self.GetLength(), 0xFF)
-                try:
-                    self.AppendText(text)
-                except UnicodeDecodeError:
-                    # XXX: Do I really want to skip the exception?
-                    pass
-
-                if ansi_tag not in self.ANSI_STYLES:
-                    style = 0
-                else:
-                    style = self.ANSI_STYLES[ansi_tag][0]
-
-                self.SetStyling(len(text), style) 
-                
-        self.GotoPos(self.GetLength())
-        if refresh:
-            wx.Yield()
-
-   
-    def new_prompt(self, prompt):
-        """ Prints a prompt at start of line, and move the start of the
-            current block there.
-
-            The prompt can be give with ascii escape sequences.
-        """
-        self.write(prompt)
-        # now we update our cursor giving end of prompt
-        self.current_prompt_pos = self.GetLength()
-        self.current_prompt_line = self.GetCurrentLine()
-        wx.Yield()
-        self.EnsureCaretVisible()
-
-        
-    def replace_current_edit_buffer(self, text):
-        """ Replace currently entered command line with given text.
-        """
-        self.SetSelection(self.current_prompt_pos, self.GetLength())
-        self.ReplaceSelection(text)
-        self.GotoPos(self.GetLength())
-    
-    
-    def get_current_edit_buffer(self):
-        """ Returns the text in current edit buffer.
-        """
-        current_edit_buffer = self.GetTextRange(self.current_prompt_pos,
-                                                self.GetLength())
-        current_edit_buffer = current_edit_buffer.replace(LINESEP, '\n')
-        return current_edit_buffer
-
-
-    #--------------------------------------------------------------------------
-    # Private API
-    #--------------------------------------------------------------------------
-    
-    def _apply_style(self):
-        """ Applies the colors for the different text elements and the
-            carret.
-        """
-        self.SetCaretForeground(self.carret_color)
-
-        #self.StyleClearAll()
-        self.StyleSetSpec(stc.STC_STYLE_BRACELIGHT,  
-                          "fore:#FF0000,back:#0000FF,bold")
-        self.StyleSetSpec(stc.STC_STYLE_BRACEBAD,
-                          "fore:#000000,back:#FF0000,bold")
-
-        for style in self.ANSI_STYLES.values():
-            self.StyleSetSpec(style[0], "bold,fore:%s" % style[1])
-
-
-    def write_completion(self, possibilities):
-        # FIXME: This is non Wx specific and needs to be moved into
-        # the base class.
-        current_buffer = self.get_current_edit_buffer()
-        
-        self.write('\n')
-        max_len = len(max(possibilities, key=len)) + 1
-        
-        #now we check how much symbol we can put on a line...
-        chars_per_line = self.GetSize()[0]/self.GetCharWidth()
-        symbols_per_line = max(1, chars_per_line/max_len)
-
-        pos = 1
-        buf = []
-        for symbol in possibilities:
-            if pos < symbols_per_line:
-                buf.append(symbol.ljust(max_len))
-                pos += 1
-            else:
-                buf.append(symbol.rstrip() + '\n')
-                pos = 1
-        self.write(''.join(buf))
-        self.new_prompt(self.prompt % (self.last_result['number'] + 1))
-        self.replace_current_edit_buffer(current_buffer)
-
-
-    def pop_completion(self, possibilities, offset=0):
-        """ Pops up an autocompletion menu. Offset is the offset
-            in characters of the position at which the menu should
-            appear, relativ to the cursor.
-        """
-        self.AutoCompSetIgnoreCase(False)
-        self.AutoCompSetAutoHide(False)
-        self.AutoCompSetMaxHeight(len(possibilities))
-        self.AutoCompShow(offset, " ".join(possibilities))
-
-    
-    def scroll_to_bottom(self):
-        maxrange = self.GetScrollRange(wx.VERTICAL)
-        self.ScrollLines(maxrange)
 
 
     def _on_key_down(self, event, skip=True):
@@ -415,7 +416,6 @@ class ConsoleWidget(editwindow.EditWindow):
         event.Skip()
         if self.GetCurrentPos() < self.current_prompt_pos:
             self.GotoPos(self.current_prompt_pos)
-
 
 
 
