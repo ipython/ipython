@@ -50,7 +50,7 @@ class RedirectorOutputTrap(OutputTrap):
         """ Set the hooks: set the redirectors and call the base class.
         """
         self.out_redirector.start()
-        #self.err_redirector.start()
+        self.err_redirector.start()
         OutputTrap.set(self)
 
 
@@ -60,9 +60,9 @@ class RedirectorOutputTrap(OutputTrap):
         """
         OutputTrap.unset(self)
         # Flush the redirectors before stopping them
-        self.on_out_write('')
-        self.err_redirector.stop()
         self.on_err_write('')
+        self.err_redirector.stop()
+        self.on_out_write('')
         self.out_redirector.stop()
 
 
