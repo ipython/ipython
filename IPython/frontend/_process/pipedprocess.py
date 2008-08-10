@@ -20,9 +20,24 @@ from threading import Thread
 from time import sleep
 
 class PipedProcess(Thread):
+    """ Class that encapsulates process execution by using callbacks for
+        stdout, stderr and stdin, and providing a reliable way of
+        killing it.
+    """
 
     def __init__(self, command_string, out_callback, 
                         end_callback=None,):
+        """ command_string: the command line executed to start the
+        process. 
+
+        out_callback: the python callable called on stdout/stderr.
+
+        end_callback: an optional callable called when the process
+        finishes.
+
+        These callbacks are called from a different thread as the
+        thread from which is started.
+        """
         self.command_string = command_string
         self.out_callback = out_callback
         self.end_callback = end_callback

@@ -16,10 +16,11 @@ __docformat__ = "restructuredtext en"
 #---------------------------------------------------------------------------
 
 import unittest
-from IPython.frontend import frontendbase
+from IPython.frontend.asyncfrontendbase import AsyncFrontEndBase
+from IPython.frontend import frontendbase 
 from IPython.kernel.engineservice import EngineService
 
-class FrontEndCallbackChecker(frontendbase.AsyncFrontEndBase):
+class FrontEndCallbackChecker(AsyncFrontEndBase):
     """FrontEndBase subclass for checking callbacks"""
     def __init__(self, engine=None, history=None):
         super(FrontEndCallbackChecker, self).__init__(engine=engine, 
@@ -53,7 +54,7 @@ class TestAsyncFrontendBase(unittest.TestCase):
     
     def test_implements_IFrontEnd(self):
         assert(frontendbase.IFrontEnd.implementedBy(
-                                    frontendbase.AsyncFrontEndBase))
+                                    AsyncFrontEndBase))
     
     
     def test_is_complete_returns_False_for_incomplete_block(self):
