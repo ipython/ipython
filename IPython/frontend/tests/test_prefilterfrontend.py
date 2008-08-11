@@ -115,6 +115,9 @@ def test_completion():
     f.input_buffer = 'zzzb = 2'
     f._on_enter()
     f.input_buffer = 'zz'
+    f.complete_current_input()
+    assert f.out.getvalue() == '\nzzza zzzb '
+    assert f.input_buffer == 'zzz'
 
 
 if __name__ == '__main__':
@@ -123,3 +126,4 @@ if __name__ == '__main__':
     test_execution()
     test_multiline()
     test_capture()
+    test_completion()

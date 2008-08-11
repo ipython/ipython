@@ -204,6 +204,12 @@ class LineFrontEndBase(FrontEndBase):
             print >>sys.__stdout__, completions 
 
 
+    def get_line_width(self):
+        """ Return the width of the line in characters.
+        """
+        return 80
+
+
     def write_completion(self, possibilities):
         """ Write the list of possible completions.
         """
@@ -212,8 +218,8 @@ class LineFrontEndBase(FrontEndBase):
         self.write('\n')
         max_len = len(max(possibilities, key=len)) + 1
         
-        #now we check how much symbol we can put on a line...
-        chars_per_line =self.get_line_width()
+        # Now we check how much symbol we can put on a line...
+        chars_per_line = self.get_line_width()
         symbols_per_line = max(1, chars_per_line/max_len)
 
         pos = 1
@@ -229,7 +235,6 @@ class LineFrontEndBase(FrontEndBase):
         self.new_prompt(self.input_prompt_template.substitute(
                             number=self.last_result['number'] + 1))
         self.input_buffer = current_buffer
-
 
 
     def new_prompt(self, prompt):
