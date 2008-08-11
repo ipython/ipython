@@ -510,7 +510,7 @@ class MatplotlibShellBase:
     Given Python's MRO, this should be used as the FIRST class in the
     inheritance hierarchy, so that it overrides the relevant methods."""
     
-    def _matplotlib_config(self,name,user_ns):
+    def _matplotlib_config(self,name,user_ns,user_global_ns=None):
         """Return items needed to setup the user's shell with matplotlib"""
 
         # Initialize matplotlib to interactive mode always
@@ -564,7 +564,8 @@ class MatplotlibShellBase:
         self.pylab.draw_if_interactive = flag_calls(self.pylab.draw_if_interactive)
 
         # Build a user namespace initialized with matplotlib/matlab features.
-        user_ns = IPython.ipapi.make_user_ns(user_ns)
+        user_ns, user_global_ns = IPython.ipapi.make_user_namespaces(user_ns,
+            user_global_ns)
 
         # Import numpy as np/pyplot as plt are conventions we're trying to
         # somewhat standardize on.  Making them available to users by default
@@ -584,7 +585,7 @@ class MatplotlibShellBase:
   Welcome to pylab, a matplotlib-based Python environment.
   For more information, type 'help(pylab)'.
 """
-        return user_ns,b
+        return user_ns,,user_global_ns,b
 
     def mplot_exec(self,fname,*where,**kw):
         """Execute a matplotlib script.
@@ -624,7 +625,7 @@ class MatplotlibShell(MatplotlibShellBase,InteractiveShell):
 
     def __init__(self,name,usage=None,rc=Struct(opts=None,args=None),
                  user_ns=None,user_global_ns=None,**kw):
-        user_ns,b2 = self._matplotlib_config(name,user_ns)
+        user_ns,user_global_ns,b2 = self._matplotlib_config(name,user_ns,user_global_ns)
         InteractiveShell.__init__(self,name,usage,rc,user_ns,user_global_ns,
                                   banner2=b2,**kw)
 
