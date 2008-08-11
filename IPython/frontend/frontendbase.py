@@ -173,9 +173,6 @@ class FrontEndBase(object):
     
     history_cursor = 0
     
-    current_indent_level = 0
-    
-    
     input_prompt_template = string.Template(rc.prompt_in1)
     output_prompt_template = string.Template(rc.prompt_out)
     continuation_prompt_template = string.Template(rc.prompt_in2)
@@ -336,7 +333,7 @@ class FrontEndBase(object):
         return result when finished.
         """
         
-        return result
+        raise NotImplementedError
     
     
     def render_result(self, result):
@@ -347,7 +344,7 @@ class FrontEndBase(object):
         should thus return result when finished.
         """
         
-        return result
+        raise NotImplementedError
     
     
     def render_error(self, failure):
@@ -358,7 +355,7 @@ class FrontEndBase(object):
         should thus return result when finished.
         """
         
-        return failure
+        raise NotImplementedError
     
 
 

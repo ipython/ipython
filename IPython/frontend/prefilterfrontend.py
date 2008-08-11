@@ -175,7 +175,7 @@ class PrefilterFrontEnd(LineFrontEndBase):
 
 
     #--------------------------------------------------------------------------
-    # PrefilterLineFrontEnd interface 
+    # PrefilterFrontEnd interface 
     #--------------------------------------------------------------------------
  
     def system_call(self, command_string):

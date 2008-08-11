@@ -38,7 +38,8 @@ class IPythonXController(WxController):
         self.release_output()
         wx.Yield()
         if not self.ipython0.exit_now:
-            self.new_prompt(self.prompt % (self.last_result['number'] + 1))
+            self.new_prompt(self.input_prompt_template.substitute(
+                                number=self.last_result['number'] + 1))
  
 
     def do_exit(self):

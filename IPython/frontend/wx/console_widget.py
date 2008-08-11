@@ -106,11 +106,6 @@ class ConsoleWidget(editwindow.EditWindow):
         editwindow.EditWindow.__init__(self, parent, id, pos, size, style)
         self._configure_scintilla()
 
-        # FIXME: we need to retrieve this from the interpreter.
-        self.prompt = \
-            '\n\x01\x1b[0;34m\x02In [\x01\x1b[1;34m\x02%i\x01\x1b[0;34m\x02]: \x01\x1b[0m\x02'
-        self.new_prompt(self.prompt % 1)
-
         self.Bind(wx.EVT_KEY_DOWN, self._on_key_down)
         self.Bind(wx.EVT_KEY_UP, self._on_key_up)
     
@@ -229,7 +224,10 @@ class ConsoleWidget(editwindow.EditWindow):
                 buf.append(symbol.rstrip() + '\n')
                 pos = 1
         self.write(''.join(buf))
-        self.new_prompt(self.prompt % (self.last_result['number'] + 1))
+        # FIXME: I have some mixing of interfaces between console_widget
+        # and wx_frontend, here.
+        self.new_prompt(self.input_prompt_template.substitute(
+                            number=self.last_result['number'] + 1))
         self.replace_current_edit_buffer(current_buffer)
 
     #--------------------------------------------------------------------------

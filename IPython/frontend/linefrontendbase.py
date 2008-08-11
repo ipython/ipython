@@ -19,6 +19,7 @@ __docformat__ = "restructuredtext en"
 import re
 
 import IPython
+import sys
 
 from frontendbase import FrontEndBase
 from IPython.kernel.core.interpreter import Interpreter
@@ -63,9 +64,7 @@ class LineFrontEndBase(FrontEndBase):
             shell = Interpreter()
         FrontEndBase.__init__(self, shell=shell, history=history)
         
-        #FIXME: print banner.
-        banner = """IPython1 %s -- An enhanced Interactive Python.""" \
-                            % IPython.__version__
+        self.new_prompt(self.input_prompt_template.substitute(number=1))
 
 
     def complete(self, line):
@@ -96,7 +95,8 @@ class LineFrontEndBase(FrontEndBase):
             self.write('\n' + result['stdout'])
         if 'display' in result and result['display']:
             self.write("%s%s\n" % ( 
-                            self.output_prompt % result['number'],
+                            self.output_prompt_template.substitute(
+                                    number=result['number']),
                             result['display']['pprint']
                             ) )
        
@@ -104,7 +104,7 @@ class LineFrontEndBase(FrontEndBase):
     def render_error(self, failure):
         """ Frontend-specific rendering of error. 
         """
-        self.insert_text('\n\n'+str(failure)+'\n\n')
+        self.write('\n\n'+str(failure)+'\n\n')
         return failure
 
 
@@ -129,7 +129,37 @@ class LineFrontEndBase(FrontEndBase):
             # Add line returns here, to make sure that the statement is
             # complete.
             return FrontEndBase.is_complete(self, string.rstrip() + '\n\n')
+
+
+    def get_current_edit_buffer(self):
+        """ Return the current buffer being entered.
+        """
+        raise NotImplementedError
+
+
+    def write(self, string):
+        """ Write some characters to the display.
+
+            Subclass should overide this method.
+        """
+        print >>sys.__stderr__, string
+
     
+    def add_to_edit_buffer(self, string):
+        """ Add the given string to the current edit buffer.
+        """
+        raise NotImplementedError
+
+
+    def new_prompt(self, prompt):
+        """ Prints a prompt and starts a new editing buffer. 
+
+            Subclasses should use this method to make sure that the
+            terminal is put in a state favorable for a new line
+            input.
+        """
+        self.write(prompt)
+
 
     def execute(self, python_string, raw_string=None):
         """ Stores the raw_string in the history, and sends the
@@ -167,7 +197,8 @@ class LineFrontEndBase(FrontEndBase):
             terminal back in a shape where it is usable.
         """
         self.prompt_number += 1
-        self.new_prompt(self.prompt % (self.last_result['number'] + 1))
+        self.new_prompt(self.input_prompt_template.substitute(
+                            number=(self.last_result['number'] + 1)))
         # Start a new empty history entry
         self._add_history(None, '')
         self.history_cursor = len(self.history.input_cache) - 1
@@ -186,10 +217,10 @@ class LineFrontEndBase(FrontEndBase):
         if self.is_complete(cleaned_buffer):
             self.execute(cleaned_buffer, raw_string=current_buffer)
         else:
-            self.write(self._get_indent_string(
+            self.add_to_edit_buffer(self._get_indent_string(
                             current_buffer[:-1]))
             if current_buffer[:-1].split('\n')[-1].rstrip().endswith(':'):
-                self.write('\t')
+                self.add_to_edit_buffer('\t')
 
 
     def _get_indent_string(self, string):

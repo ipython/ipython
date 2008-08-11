@@ -44,9 +44,6 @@ def test_io():
 
 
 def test_kill():
-    pass
-
-if True:
     """ Check that we can kill a process, and its subprocess.
     """
     s = StringIO()

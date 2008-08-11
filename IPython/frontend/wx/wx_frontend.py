@@ -28,6 +28,7 @@ import __builtin__
 from time import sleep
 import sys
 from threading import Lock
+import string
 
 import wx
 from wx import stc
@@ -48,6 +49,12 @@ _ERROR_BG = '#FFF1F1' # Nice red
 _RUNNING_BUFFER_MARKER = 31
 _ERROR_MARKER = 30
 
+prompt_in1 = \
+        '\n\x01\x1b[0;34m\x02In [\x01\x1b[1;34m\x02$number\x01\x1b[0;34m\x02]: \x01\x1b[0m\x02'
+
+prompt_out = \
+    '\x01\x1b[0;31m\x02Out[\x01\x1b[1;31m\x02$number\x01\x1b[0;31m\x02]: \x01\x1b[0m\x02'
+
 #-------------------------------------------------------------------------------
 # Classes to implement the Wx frontend
 #-------------------------------------------------------------------------------
@@ -59,9 +66,9 @@ class WxController(PrefilterFrontEnd, ConsoleWidget):
     widget to provide a text-rendering widget suitable for a terminal.
     """
 
-    # FIXME: this shouldn't be there.
-    output_prompt = \
-    '\x01\x1b[0;31m\x02Out[\x01\x1b[1;31m\x02%i\x01\x1b[0;31m\x02]: \x01\x1b[0m\x02'
+    output_prompt_template = string.Template(prompt_out)
+
+    input_prompt_template = string.Template(prompt_in1)
 
     # Print debug info on what is happening to the console.
     debug = True
@@ -283,6 +290,13 @@ class WxController(PrefilterFrontEnd, ConsoleWidget):
             self.MarkerAdd(i, _ERROR_MARKER)
 
     
+    def add_to_edit_buffer(self, string):
+        """ Add the given string to the current edit buffer.
+        """
+        # XXX: I should check the input_state here.
+        self.write(string)
+
+    
     #--------------------------------------------------------------------------
     # ConsoleWidget interface 
     #--------------------------------------------------------------------------
@@ -292,6 +306,18 @@ class WxController(PrefilterFrontEnd, ConsoleWidget):
         """
         self._input_state = 'readline'
         ConsoleWidget.new_prompt(self, prompt)
+
+
+    def write(self, *args, **kwargs):
+        # Avoid multiple inheritence, be explicit about which
+        # parent method class gets called
+        ConsoleWidget.write(self, *args, **kwargs)
+
+
+    def get_current_edit_buffer(self):
+        # Avoid multiple inheritence, be explicit about which
+        # parent method class gets called
+        return ConsoleWidget.get_current_edit_buffer(self)
 
 
     def _on_key_down(self, event, skip=True):
@@ -399,7 +425,6 @@ class WxController(PrefilterFrontEnd, ConsoleWidget):
     def _end_system_call(self):
         """ Called at the end of a system call.
         """
-        print >>sys.__stderr__, 'End of system call'
         self._input_state = 'buffering'
         self._running_process = False
 
