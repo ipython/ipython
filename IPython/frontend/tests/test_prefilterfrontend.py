@@ -21,9 +21,10 @@ class TestPrefilterFrontEnd(PrefilterFrontEnd):
     input_prompt_template = string.Template('')
     output_prompt_template = string.Template('')
 
+    edit_buffer = ''
 
-    def __init__(self, edit_buffer=''):
-        self.edit_buffer = edit_buffer
+
+    def __init__(self):
         self.out = StringIO()
         PrefilterFrontEnd.__init__(self)
 
@@ -40,11 +41,16 @@ class TestPrefilterFrontEnd(PrefilterFrontEnd):
         self.add_to_edit_buffer('\n')
         PrefilterFrontEnd._on_enter(self)
 
+    def new_prompt(self, prompt):
+        self.edit_buffer = ''
+        PrefilterFrontEnd.new_prompt(self, prompt)
+
 
 def test_execution():
     """ Test execution of a command.
     """
-    f = TestPrefilterFrontEnd(edit_buffer='print 1\n')
+    f = TestPrefilterFrontEnd()
+    f.edit_buffer='print 1\n'
     f._on_enter()
     assert f.out.getvalue() == '1\n'
 
@@ -52,14 +58,16 @@ def test_execution():
 def test_multiline():
     """ Test execution of a multiline command.
     """
-    f = TestPrefilterFrontEnd(edit_buffer='if True:')
+    f = TestPrefilterFrontEnd()
+    f.edit_buffer='if True:'
     f._on_enter()
     f.add_to_edit_buffer('print 1')
     f._on_enter()
     assert f.out.getvalue() == ''
     f._on_enter()
     assert f.out.getvalue() == '1\n'
-    f = TestPrefilterFrontEnd(edit_buffer='(1 +')
+    f = TestPrefilterFrontEnd()
+    f.edit_buffer='(1 +'
     f._on_enter()
     f.add_to_edit_buffer('0)')
     f._on_enter()
@@ -71,18 +79,44 @@ def test_multiline():
 def test_capture():
     """ Test the capture of output in different channels.
     """
-    f = TestPrefilterFrontEnd(
-            edit_buffer='import os; out=os.fdopen(1, "w"); out.write("1")')
-    f._on_enter()
-    f._on_enter()
-    assert f.out.getvalue() == '1'
-    f = TestPrefilterFrontEnd(
-            edit_buffer='import os; out=os.fdopen(2, "w"); out.write("1")')
-    f._on_enter()
+    # Test on the OS-level stdout, stderr.
+    f = TestPrefilterFrontEnd()
+    f.edit_buffer='import os; out=os.fdopen(1, "w"); out.write("1") ; out.flush()'
     f._on_enter()
     assert f.out.getvalue() == '1'
-     
+    f = TestPrefilterFrontEnd()
+    f.edit_buffer='import os; out=os.fdopen(2, "w"); out.write("1") ; out.flush()'
+    f._on_enter()
+    assert f.out.getvalue() == '1'
 
+     
+def test_magic():
+    """ Test the magic expansion and history.
+    
+        This test is fairly fragile and will break when magics change.
+    """
+    pass
+
+if True:
+    f = TestPrefilterFrontEnd()
+    f.edit_buffer='%hist'
+    f._on_enter()
+    assert f.out.getvalue() == '1: _ip.magic("hist ")\n'
+    f.out.reset()
+    f.out.truncate()
+    f.add_to_edit_buffer('%who\n')
+    f._on_enter()
+    assert f.out.getvalue() == 'Interactive namespace is empty.\n'
+    f.out.reset()
+    f.out.truncate()
+    f.add_to_edit_buffer('%hist')
+    f._on_enter()
+    assert f.out.getvalue() == """1: _ip.magic("hist ")
+2: _ip.magic("who ")
+3: _ip.magic("hist ")
+"""
+    
+ 
 
 if __name__ == '__main__':
     test_execution()

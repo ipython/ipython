@@ -39,7 +39,7 @@ def test_redirector():
 def test_redirector_output_trap():
     """ This test check not only that the redirector_output_trap does
         trap the output, but also that it does it in a gready way, that
-        is by calling the callabck ASAP.
+        is by calling the callback ASAP.
     """
     from IPython.kernel.core.redirector_output_trap import RedirectorOutputTrap
     out = StringIO()

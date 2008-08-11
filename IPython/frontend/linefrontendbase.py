@@ -52,7 +52,8 @@ class LineFrontEndBase(FrontEndBase):
     # it when there is an exception.
     prompt_number = 1
 
-    # To bootstrap
+    # We keep a reference to the last result: it helps testing and
+    # programatic control of the frontend. 
     last_result = dict(number=0)
 
     #--------------------------------------------------------------------------

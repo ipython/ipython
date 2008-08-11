@@ -1,6 +1,6 @@
 # encoding: utf-8 -*- test-case-name:
 # FIXME: Need to add tests.
-# ipython1.frontend.cocoa.tests.test_cocoa_frontend -*-
+# ipython1.frontend.wx.tests.test_wx_frontend -*-
 
 """Classes to provide a Wx frontend to the
 IPython.kernel.core.interpreter.
@@ -340,7 +340,7 @@ class WxController(PrefilterFrontEnd, ConsoleWidget):
                 # get back to a prompt.
         elif self._input_state == 'subprocess' and (
                 ( event.KeyCode<256 and
-                  event.Modifiers in (wx.MOD_NONE, wx.MOD_WIN, wx.MOD_SHIFT))
+                        not event.ControlDown() )
                     or 
                 ( event.KeyCode in (ord('d'), ord('D')) and
                   event.ControlDown())):
