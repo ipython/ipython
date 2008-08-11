@@ -201,33 +201,11 @@ class ConsoleWidget(editwindow.EditWindow):
         self.AutoCompShow(offset, " ".join(possibilities))
 
 
-    def write_completion(self, possibilities):
-        # FIXME: This is non Wx specific and needs to be moved into
-        # the base class.
-        current_buffer = self.input_buffer
-        
-        self.write('\n')
-        max_len = len(max(possibilities, key=len)) + 1
-        
-        #now we check how much symbol we can put on a line...
-        chars_per_line = self.GetSize()[0]/self.GetCharWidth()
-        symbols_per_line = max(1, chars_per_line/max_len)
+    def get_line_width(self):
+        """ Return the width of the line in characters.
+        """
+        return self.GetSize()[0]/self.GetCharWidth()
 
-        pos = 1
-        buf = []
-        for symbol in possibilities:
-            if pos < symbols_per_line:
-                buf.append(symbol.ljust(max_len))
-                pos += 1
-            else:
-                buf.append(symbol.rstrip() + '\n')
-                pos = 1
-        self.write(''.join(buf))
-        # FIXME: I have some mixing of interfaces between console_widget
-        # and wx_frontend, here.
-        self.new_prompt(self.input_prompt_template.substitute(
-                            number=self.last_result['number'] + 1))
-        self.input_buffer = current_buffer
 
     #--------------------------------------------------------------------------
     # Private API

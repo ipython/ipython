@@ -59,6 +59,9 @@ class LineFrontEndBase(FrontEndBase):
     # The input buffer being edited
     input_buffer = ''
 
+    # Set to true for debug output
+    debug = False
+
     #--------------------------------------------------------------------------
     # FrontEndBase interface
     #--------------------------------------------------------------------------
@@ -143,17 +146,6 @@ class LineFrontEndBase(FrontEndBase):
         print >>sys.__stderr__, string
 
 
-    def new_prompt(self, prompt):
-        """ Prints a prompt and starts a new editing buffer. 
-
-            Subclasses should use this method to make sure that the
-            terminal is put in a state favorable for a new line
-            input.
-        """
-        self.input_buffer = ''
-        self.write(prompt)
-
-
     def execute(self, python_string, raw_string=None):
         """ Stores the raw_string in the history, and sends the
         python string to the interpreter.
@@ -185,6 +177,7 @@ class LineFrontEndBase(FrontEndBase):
         string = '\n'.join(l.rstrip()  for l in string.split('\n'))
         return string
 
+
     def after_execute(self):
         """ All the operations required after an execution to put the
             terminal back in a shape where it is usable.
@@ -195,6 +188,59 @@ class LineFrontEndBase(FrontEndBase):
         # Start a new empty history entry
         self._add_history(None, '')
         self.history_cursor = len(self.history.input_cache) - 1
+
+
+    def complete_current_input(self):
+        """ Do code completion on current line. 
+        """
+        if self.debug:
+            print >>sys.__stdout__, "complete_current_input", 
+        line = self.input_buffer
+        new_line, completions = self.complete(line)
+        if len(completions)>1:
+            self.write_completion(completions)
+        self.input_buffer = new_line
+        if self.debug:
+            print >>sys.__stdout__, completions 
+
+
+    def write_completion(self, possibilities):
+        """ Write the list of possible completions.
+        """
+        current_buffer = self.input_buffer
+        
+        self.write('\n')
+        max_len = len(max(possibilities, key=len)) + 1
+        
+        #now we check how much symbol we can put on a line...
+        chars_per_line =self.get_line_width()
+        symbols_per_line = max(1, chars_per_line/max_len)
+
+        pos = 1
+        buf = []
+        for symbol in possibilities:
+            if pos < symbols_per_line:
+                buf.append(symbol.ljust(max_len))
+                pos += 1
+            else:
+                buf.append(symbol.rstrip() + '\n')
+                pos = 1
+        self.write(''.join(buf))
+        self.new_prompt(self.input_prompt_template.substitute(
+                            number=self.last_result['number'] + 1))
+        self.input_buffer = current_buffer
+
+
+
+    def new_prompt(self, prompt):
+        """ Prints a prompt and starts a new editing buffer. 
+
+            Subclasses should use this method to make sure that the
+            terminal is put in a state favorable for a new line
+            input.
+        """
+        self.input_buffer = ''
+        self.write(prompt)
 
 
     #--------------------------------------------------------------------------

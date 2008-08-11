@@ -183,20 +183,6 @@ class WxController(ConsoleWidget, PrefilterFrontEnd):
         self._buffer_flush(event=None)
 
 
-    def do_completion(self):
-        """ Do code completion on current line. 
-        """
-        if self.debug:
-            print >>sys.__stdout__, "do_completion", 
-        line = self.input_buffer
-        new_line, completions = self.complete(line)
-        if len(completions)>1:
-            self.write_completion(completions)
-        self.input_buffer = new_line
-        if self.debug:
-            print >>sys.__stdout__, completions 
-
-
     def do_calltip(self):
         """ Analyse current and displays useful calltip for it.
         """
@@ -394,7 +380,7 @@ class WxController(ConsoleWidget, PrefilterFrontEnd):
             elif event.KeyCode == ord('\t'):
                 last_line = self.input_buffer.split('\n')[-1]
                 if not re.match(r'^\s*$', last_line):
-                    self.do_completion()
+                    self.complete_current_input()
                 else:
                     event.Skip()
             else:
