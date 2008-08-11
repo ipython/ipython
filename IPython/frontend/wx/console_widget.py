@@ -175,7 +175,7 @@ class ConsoleWidget(editwindow.EditWindow):
         """ Prints a prompt at start of line, and move the start of the
             current block there.
 
-            The prompt can be give with ascii escape sequences.
+            The prompt can be given with ascii escape sequences.
         """
         self.write(prompt)
         # now we update our cursor giving end of prompt
