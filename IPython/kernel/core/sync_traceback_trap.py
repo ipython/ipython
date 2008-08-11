@@ -21,9 +21,17 @@ from traceback_trap import TracebackTrap
 from IPython.ultraTB import ColorTB
 
 class SyncTracebackTrap(TracebackTrap):
+    """ TracebackTrap that displays immediatly the traceback in addition
+    to capturing it. Useful in frontends, as without this traceback trap, 
+    some tracebacks never get displayed.
+    """
 
     def __init__(self, sync_formatter=None, formatters=None,
                                                     raiseException=True):
+        """
+        sync_formatter: Callable to display the traceback.
+        formatters: A list of formatters to apply.
+        """
         TracebackTrap.__init__(self, formatters=formatters)
         if sync_formatter is None:
             sync_formatter = ColorTB(color_scheme='LightBG')

@@ -25,25 +25,42 @@ class FileLike(object):
         self.write = write_callback
 
     def flush(self):
+        """ This method is there for compatibility with other file-like
+        objects.
+        """
         pass
 
     def close(self):
+        """ This method is there for compatibility with other file-like
+        objects.
+        """
         pass
 
     def writelines(self, lines):
-        for line in lines:
-            self.write(line)
+        map(self.write, lines)
 
     def isatty(self):
+        """ This method is there for compatibility with other file-like
+        objects.
+        """
         return False
 
     def getvalue(self):
+        """ This method is there for compatibility with other file-like
+        objects.
+        """
         return ''
 
     def reset(self):
+        """ This method is there for compatibility with other file-like
+        objects.
+        """
         pass
 
     def truncate(self):
+        """ This method is there for compatibility with other file-like
+        objects.
+        """
         pass
 
 

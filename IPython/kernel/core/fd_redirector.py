@@ -2,6 +2,8 @@
 
 """
 Stdout/stderr redirector, at the OS level, using file descriptors.
+
+This also works under windows.
 """
 
 __docformat__ = "restructuredtext en"
@@ -31,8 +33,12 @@ class FDRedirector(object):
         """
         self.fd = fd
         self.started = False
+        self.piper = None
+        self.pipew = None
 
     def start(self):
+        """ Setup the redirection.
+        """
         if not self.started:
             self.oldhandle = os.dup(self.fd)
             self.piper, self.pipew = os.pipe()
@@ -42,12 +48,17 @@ class FDRedirector(object):
             self.started = True
 
     def flush(self):
+        """ Flush the captured output, similar to the flush method of any
+        stream.
+        """
         if self.fd == STDOUT:
             sys.stdout.flush()
         elif self.fd == STDERR:
             sys.stderr.flush()
 
     def stop(self):
+        """ Unset the redirection and return the captured output. 
+        """
         if self.started:
             self.flush()
             os.dup2(self.oldhandle, self.fd)
@@ -62,6 +73,9 @@ class FDRedirector(object):
             return ''
 
     def getvalue(self):
+        """ Return the output captured since the last getvalue, or the
+        start of the redirection.
+        """
         output = self.stop()
         self.start()
         return output

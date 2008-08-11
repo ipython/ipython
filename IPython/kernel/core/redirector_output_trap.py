@@ -31,6 +31,10 @@ class RedirectorOutputTrap(OutputTrap):
     # OutputTrap interface.
     #------------------------------------------------------------------------
     def __init__(self, out_callback, err_callback):
+        """ 
+        out_callback : callable called when there is output in the stdout
+        err_callback : callable called when there is output in the stderr
+        """
         # Callback invoked on write to stdout and stderr 
         self.out_callback = out_callback
         self.err_callback = err_callback
