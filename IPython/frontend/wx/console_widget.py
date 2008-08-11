@@ -80,6 +80,22 @@ class ConsoleWidget(editwindow.EditWindow):
     # stored.
     title = 'Console'
 
+    # The buffer being edited.
+    def _set_input_buffer(self, string):
+        self.SetSelection(self.current_prompt_pos, self.GetLength())
+        self.ReplaceSelection(string)
+        self.GotoPos(self.GetLength())
+
+    def _get_input_buffer(self):
+        """ Returns the text in current edit buffer.
+        """
+        input_buffer = self.GetTextRange(self.current_prompt_pos,
+                                                self.GetLength())
+        input_buffer = input_buffer.replace(LINESEP, '\n')
+        return input_buffer
+
+    input_buffer = property(_get_input_buffer, _set_input_buffer)
+
     style = _DEFAULT_STYLE.copy()
 
     # Translation table from ANSI escape sequences to color. Override
@@ -168,23 +184,6 @@ class ConsoleWidget(editwindow.EditWindow):
         wx.Yield()
         self.EnsureCaretVisible()
 
-        
-    def replace_current_edit_buffer(self, text):
-        """ Replace currently entered command line with given text.
-        """
-        self.SetSelection(self.current_prompt_pos, self.GetLength())
-        self.ReplaceSelection(text)
-        self.GotoPos(self.GetLength())
-    
-    
-    def get_current_edit_buffer(self):
-        """ Returns the text in current edit buffer.
-        """
-        current_edit_buffer = self.GetTextRange(self.current_prompt_pos,
-                                                self.GetLength())
-        current_edit_buffer = current_edit_buffer.replace(LINESEP, '\n')
-        return current_edit_buffer
-
 
     def scroll_to_bottom(self):
         maxrange = self.GetScrollRange(wx.VERTICAL)
@@ -205,7 +204,7 @@ class ConsoleWidget(editwindow.EditWindow):
     def write_completion(self, possibilities):
         # FIXME: This is non Wx specific and needs to be moved into
         # the base class.
-        current_buffer = self.get_current_edit_buffer()
+        current_buffer = self.input_buffer
         
         self.write('\n')
         max_len = len(max(possibilities, key=len)) + 1
@@ -228,7 +227,7 @@ class ConsoleWidget(editwindow.EditWindow):
         # and wx_frontend, here.
         self.new_prompt(self.input_prompt_template.substitute(
                             number=self.last_result['number'] + 1))
-        self.replace_current_edit_buffer(current_buffer)
+        self.input_buffer = current_buffer
 
     #--------------------------------------------------------------------------
     # Private API
@@ -343,7 +342,7 @@ class ConsoleWidget(editwindow.EditWindow):
         if event.KeyCode == ord('L') and event.ControlDown() :
             self.scroll_to_bottom()
         elif event.KeyCode == ord('K') and event.ControlDown() :
-            self.replace_current_edit_buffer('')
+            self.input_buffer = ''
         elif event.KeyCode == wx.WXK_PAGEUP and event.ShiftDown():
             self.ScrollPages(-1)
         elif event.KeyCode == wx.WXK_PAGEDOWN and event.ShiftDown():
@@ -364,11 +363,10 @@ class ConsoleWidget(editwindow.EditWindow):
                 self.CallTipCancel()
                 self.write('\n')
                 # Under windows scintilla seems to be doing funny stuff to the 
-                # line returns here, but get_current_edit_buffer filters this 
-                # out.
+                # line returns here, but the getter for input_buffer filters 
+                # this out.
                 if sys.platform == 'win32':
-                    self.replace_current_edit_buffer(
-                                self.get_current_edit_buffer())
+                    self.input_buffer = self.input_buffer
                 self._on_enter()
 
             elif event.KeyCode == wx.WXK_HOME:

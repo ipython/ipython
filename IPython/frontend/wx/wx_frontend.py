@@ -58,7 +58,7 @@ prompt_out = \
 #-------------------------------------------------------------------------------
 # Classes to implement the Wx frontend
 #-------------------------------------------------------------------------------
-class WxController(PrefilterFrontEnd, ConsoleWidget):
+class WxController(ConsoleWidget, PrefilterFrontEnd):
     """Classes to provide a Wx frontend to the
     IPython.kernel.core.interpreter.
 
@@ -82,6 +82,21 @@ class WxController(PrefilterFrontEnd, ConsoleWidget):
             return self.Parent.GetTitle()
 
     title = property(_get_title, _set_title)
+
+
+    # The buffer being edited.
+    # We are duplicating the defination here because of multiple
+    # inheritence
+    def _set_input_buffer(self, string):
+        return ConsoleWidget._set_input_buffer(self, string)
+
+    def _get_input_buffer(self):
+        """ Returns the text in current edit buffer.
+        """
+        return ConsoleWidget._get_input_buffer(self)
+
+    input_buffer = property(_get_input_buffer, _set_input_buffer)
+
 
     #--------------------------------------------------------------------------
     # Private Attributes
@@ -149,7 +164,7 @@ class WxController(PrefilterFrontEnd, ConsoleWidget):
             sleep(0.1)
         self._on_enter = self.__old_on_enter
         self._input_state = 'buffering'
-        return self.get_current_edit_buffer().rstrip('\n')
+        return self.input_buffer.rstrip('\n')
 
 
     def system_call(self, command_string):
@@ -173,11 +188,11 @@ class WxController(PrefilterFrontEnd, ConsoleWidget):
         """
         if self.debug:
             print >>sys.__stdout__, "do_completion", 
-        line = self.get_current_edit_buffer()
+        line = self.input_buffer
         new_line, completions = self.complete(line)
         if len(completions)>1:
             self.write_completion(completions)
-        self.replace_current_edit_buffer(new_line)
+        self.input_buffer = new_line
         if self.debug:
             print >>sys.__stdout__, completions 
 
@@ -188,7 +203,7 @@ class WxController(PrefilterFrontEnd, ConsoleWidget):
         if self.debug:
             print >>sys.__stdout__, "do_calltip" 
         separators =  re.compile('[\s\{\}\[\]\(\)\= ,:]')
-        symbol = self.get_current_edit_buffer()
+        symbol = self.input_buffer
         symbol_string = separators.split(symbol)[-1]
         base_symbol_string = symbol_string.split('.')[0]
         if base_symbol_string in self.shell.user_ns:
@@ -216,7 +231,7 @@ class WxController(PrefilterFrontEnd, ConsoleWidget):
         """
         if self.debug:
             print >>sys.__stdout__, "_popup_completion", 
-        line = self.get_current_edit_buffer()
+        line = self.input_buffer
         if (self.AutoCompActive() and not line[-1] == '.') \
                     or create==True:
             suggestion, completions = self.complete(line)
@@ -290,13 +305,6 @@ class WxController(PrefilterFrontEnd, ConsoleWidget):
             self.MarkerAdd(i, _ERROR_MARKER)
 
     
-    def add_to_edit_buffer(self, string):
-        """ Add the given string to the current edit buffer.
-        """
-        # XXX: I should check the input_state here.
-        self.write(string)
-
-    
     #--------------------------------------------------------------------------
     # ConsoleWidget interface 
     #--------------------------------------------------------------------------
@@ -312,12 +320,6 @@ class WxController(PrefilterFrontEnd, ConsoleWidget):
         # Avoid multiple inheritence, be explicit about which
         # parent method class gets called
         ConsoleWidget.write(self, *args, **kwargs)
-
-
-    def get_current_edit_buffer(self):
-        # Avoid multiple inheritence, be explicit about which
-        # parent method class gets called
-        return ConsoleWidget.get_current_edit_buffer(self)
 
 
     def _on_key_down(self, event, skip=True):
@@ -374,9 +376,9 @@ class WxController(PrefilterFrontEnd, ConsoleWidget):
                         event.Modifiers in (wx.MOD_NONE, wx.MOD_WIN) ) 
                     or event.ControlDown() ):
                 new_buffer = self.get_history_previous(
-                                            self.get_current_edit_buffer())
+                                            self.input_buffer)
                 if new_buffer is not None:
-                    self.replace_current_edit_buffer(new_buffer)
+                    self.input_buffer = new_buffer
                     if self.GetCurrentLine() > self.current_prompt_line:
                         # Go to first line, for seemless history up.
                         self.GotoPos(self.current_prompt_pos)
@@ -387,10 +389,10 @@ class WxController(PrefilterFrontEnd, ConsoleWidget):
                     or event.ControlDown() ):
                 new_buffer = self.get_history_next()
                 if new_buffer is not None:
-                    self.replace_current_edit_buffer(new_buffer)
+                    self.input_buffer = new_buffer
             # Tab-completion
             elif event.KeyCode == ord('\t'):
-                last_line = self.get_current_edit_buffer().split('\n')[-1]
+                last_line = self.input_buffer.split('\n')[-1]
                 if not re.match(r'^\s*$', last_line):
                     self.do_completion()
                 else:
@@ -414,7 +416,7 @@ class WxController(PrefilterFrontEnd, ConsoleWidget):
         """ Called on return key down, in readline input_state.
         """
         if self.debug:
-            print >>sys.__stdout__, repr(self.get_current_edit_buffer())
+            print >>sys.__stdout__, repr(self.input_buffer)
         PrefilterFrontEnd._on_enter(self)
 
 

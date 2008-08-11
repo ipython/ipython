@@ -56,6 +56,9 @@ class LineFrontEndBase(FrontEndBase):
     # programatic control of the frontend. 
     last_result = dict(number=0)
 
+    # The input buffer being edited
+    input_buffer = ''
+
     #--------------------------------------------------------------------------
     # FrontEndBase interface
     #--------------------------------------------------------------------------
@@ -123,19 +126,13 @@ class LineFrontEndBase(FrontEndBase):
             # thus want to consider an empty string as a complete
             # statement.
             return True
-        elif ( len(self.get_current_edit_buffer().split('\n'))>2 
+        elif ( len(self.input_buffer.split('\n'))>2 
                         and not re.findall(r"\n[\t ]*\n[\t ]*$", string)):
             return False
         else:
             # Add line returns here, to make sure that the statement is
             # complete.
             return FrontEndBase.is_complete(self, string.rstrip() + '\n\n')
-
-
-    def get_current_edit_buffer(self):
-        """ Return the current buffer being entered.
-        """
-        raise NotImplementedError
 
 
     def write(self, string):
@@ -145,12 +142,6 @@ class LineFrontEndBase(FrontEndBase):
         """
         print >>sys.__stderr__, string
 
-    
-    def add_to_edit_buffer(self, string):
-        """ Add the given string to the current edit buffer.
-        """
-        raise NotImplementedError
-
 
     def new_prompt(self, prompt):
         """ Prints a prompt and starts a new editing buffer. 
@@ -159,6 +150,7 @@ class LineFrontEndBase(FrontEndBase):
             terminal is put in a state favorable for a new line
             input.
         """
+        self.input_buffer = ''
         self.write(prompt)
 
 
@@ -213,15 +205,15 @@ class LineFrontEndBase(FrontEndBase):
         """ Called when the return key is pressed in a line editing
             buffer.
         """
-        current_buffer = self.get_current_edit_buffer()
+        current_buffer = self.input_buffer
         cleaned_buffer = self.prefilter_input(current_buffer)
         if self.is_complete(cleaned_buffer):
             self.execute(cleaned_buffer, raw_string=current_buffer)
         else:
-            self.add_to_edit_buffer(self._get_indent_string(
-                            current_buffer[:-1]))
+            self.input_buffer += self._get_indent_string(
+                                                current_buffer[:-1])
             if current_buffer[:-1].split('\n')[-1].rstrip().endswith(':'):
-                self.add_to_edit_buffer('\t')
+                self.input_buffer += '\t'
 
 
     def _get_indent_string(self, string):
