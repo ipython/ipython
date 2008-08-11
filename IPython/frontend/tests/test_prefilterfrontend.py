@@ -95,30 +95,41 @@ def test_magic():
     
         This test is fairly fragile and will break when magics change.
     """
-    pass
-
-if True:
     f = TestPrefilterFrontEnd()
-    f.edit_buffer='%hist'
-    f._on_enter()
-    assert f.out.getvalue() == '1: _ip.magic("hist ")\n'
-    f.out.reset()
-    f.out.truncate()
     f.add_to_edit_buffer('%who\n')
     f._on_enter()
     assert f.out.getvalue() == 'Interactive namespace is empty.\n'
-    f.out.reset()
-    f.out.truncate()
-    f.add_to_edit_buffer('%hist')
+
+
+def test_help():
+    """ Test object inspection.
+    """
+    f = TestPrefilterFrontEnd()
+    f.add_to_edit_buffer("def f():")
     f._on_enter()
-    assert f.out.getvalue() == """1: _ip.magic("hist ")
-2: _ip.magic("who ")
-3: _ip.magic("hist ")
-"""
-    
- 
+    f.add_to_edit_buffer("'foobar'")
+    f._on_enter()
+    f.add_to_edit_buffer("pass")
+    f._on_enter()
+    f._on_enter()
+    f.add_to_edit_buffer("f?")
+    f._on_enter()
+    assert f.out.getvalue().split()[-1] == 'foobar' 
+
+def test_completion():
+    """ Test command-line completion.
+    """
+    f = TestPrefilterFrontEnd()
+    f.edit_buffer = 'zzza = 1'
+    f._on_enter()
+    f.edit_buffer = 'zzzb = 2'
+    f._on_enter()
+    f.edit_buffer = 'zz'
+
 
 if __name__ == '__main__':
+    test_magic()
+    test_help()
     test_execution()
     test_multiline()
     test_capture()
