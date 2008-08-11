@@ -39,8 +39,8 @@ $Id: __init__.py 2399 2007-05-26 10:23:10Z vivainio $"""
 # Enforce proper version requirements
 import sys
 
-if sys.version[0:3] < '2.3':
-    raise ImportError('Python Version 2.3 or above is required for IPython.')
+if sys.version[0:3] < '2.4':
+    raise ImportError('Python Version 2.4 or above is required for IPython.')
 
 # Make it easy to import extensions - they are always directly on pythonpath.
 # Therefore, non-IPython modules can be added to Extensions directory
@@ -54,6 +54,7 @@ __all__ = ['ipapi','generics','ipstruct','Release','Shell']
 # access to them via IPython.<name>
 glob,loc = globals(),locals()
 for name in __all__:
+    #print 'Importing: ',name # dbg
     __import__(name,glob,loc,[])
 
 import Shell

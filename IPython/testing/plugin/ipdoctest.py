@@ -43,9 +43,19 @@ import logging
 import os
 import re
 import sys
+import traceback
 import unittest
 
 from inspect import getmodule
+from StringIO import StringIO
+
+# We are overriding the default doctest runner, so we need to import a few
+# things from doctest directly
+from doctest import (REPORTING_FLAGS, REPORT_ONLY_FIRST_FAILURE,
+                     _unittest_reportflags, DocTestRunner,
+                     _extract_future_flags, pdb, _OutputRedirectingPdb,
+                     _exception_traceback,
+                     linecache)
 
 # Third-party modules
 import nose.core
@@ -68,9 +78,27 @@ log = logging.getLogger(__name__)
 # machinery into a fit.  This code should be considered a gross hack, but it
 # gets the job done.
 
+
+# XXX - Hack to modify the %run command so we can sync the user's namespace
+# with the test globals.  Once we move over to a clean magic system, this will
+# be done with much less ugliness.
+
+def _run_ns_sync(self,arg_s,runner=None):
+    """Modified version of %run that syncs testing namespaces.
+
+    This is strictly needed for running doctests that call %run.
+    """
+
+    out = _ip.IP.magic_run_ori(arg_s,runner)
+    _run_ns_sync.test_globs.update(_ip.user_ns)
+    return out
+
+
 def start_ipython():
     """Start a global IPython shell, which we need for IPython-specific syntax.
     """
+    import new
+
     import IPython
 
     def xsys(cmd):
@@ -88,7 +116,7 @@ def start_ipython():
     _excepthook = sys.excepthook
     _main = sys.modules.get('__main__')
 
-    # Start IPython instance
+    # Start IPython instance.  We customize it to start with minimal frills.
     IPython.Shell.IPShell(['--classic','--noterm_title'])
 
     # Deactivate the various python system hooks added by ipython for
@@ -107,6 +135,11 @@ def start_ipython():
     # doctest machinery would miss them.
     _ip.system = xsys
 
+    # Also patch our %run function in.
+    im = new.instancemethod(_run_ns_sync,_ip.IP, _ip.IP.__class__)
+    _ip.IP.magic_run_ori = _ip.IP.magic_run
+    _ip.IP.magic_run = im
+
 # The start call MUST be made here.  I'm not sure yet why it doesn't work if
 # it is made later, at plugin initialization time, but in all my tests, that's
 # the case.
@@ -115,7 +148,26 @@ start_ipython()
 # *** END HACK ***
 ###########################################################################
 
-#-----------------------------------------------------------------------------
+# Classes and functions
+
+def is_extension_module(filename):
+    """Return whether the given filename is an extension module.
+
+    This simply checks that the extension is either .so or .pyd.
+    """
+    return os.path.splitext(filename)[1].lower() in ('.so','.pyd')
+
+
+class nodoc(object):
+    def __init__(self,obj):
+        self.obj = obj
+
+    def __getattribute__(self,key):
+        if key == '__doc__':
+            return None
+        else:
+            return getattr(object.__getattribute__(self,'obj'),key)
+
 # Modified version of the one in the stdlib, that fixes a python bug (doctests
 # not found in extension modules, http://bugs.python.org/issue3158)
 class DocTestFinder(doctest.DocTestFinder):
@@ -126,44 +178,37 @@ class DocTestFinder(doctest.DocTestFinder):
         module.
         """
         if module is None:
-            #print '_fm C1'  # dbg
             return True
         elif inspect.isfunction(object):
-            #print '_fm C2'  # dbg
             return module.__dict__ is object.func_globals
         elif inspect.isbuiltin(object):
-            #print '_fm C2-1'  # dbg
             return module.__name__ == object.__module__
         elif inspect.isclass(object):
-            #print '_fm C3'  # dbg
             return module.__name__ == object.__module__
         elif inspect.ismethod(object):
             # This one may be a bug in cython that fails to correctly set the
             # __module__ attribute of methods, but since the same error is easy
             # to make by extension code writers, having this safety in place
             # isn't such a bad idea
-            #print '_fm C3-1'  # dbg
             return module.__name__ == object.im_class.__module__
         elif inspect.getmodule(object) is not None:
-            #print '_fm C4'  # dbg
-            #print 'C4 mod',module,'obj',object # dbg
             return module is inspect.getmodule(object)
         elif hasattr(object, '__module__'):
-            #print '_fm C5'  # dbg
             return module.__name__ == object.__module__
         elif isinstance(object, property):
-            #print '_fm C6'  # dbg
             return True # [XX] no way not be sure.
         else:
             raise ValueError("object must be a class or function")
-
-
 
     def _find(self, tests, obj, name, module, source_lines, globs, seen):
         """
         Find tests for the given object and any contained objects, and
         add them to `tests`.
         """
+
+        if hasattr(obj,"skip_doctest"):
+            #print 'SKIPPING DOCTEST FOR:',obj  # dbg
+            obj = nodoc(obj)
 
         doctest.DocTestFinder._find(self,tests, obj, name, module,
                                     source_lines, globs, seen)
@@ -185,13 +230,10 @@ class DocTestFinder(doctest.DocTestFinder):
                     self._find(tests, val, valname1, module, source_lines,
                                globs, seen)
 
-
         # Look for tests in a class's contained objects.
         if inspect.isclass(obj) and self._recurse:
             #print 'RECURSE into class:',obj  # dbg
             for valname, val in obj.__dict__.items():
-                #valname1 = '%s.%s' % (name, valname)  # dbg
-                #print 'N',name,'VN:',valname,'val:',str(val)[:77] # dbg
                 # Special handling for staticmethod/classmethod.
                 if isinstance(val, staticmethod):
                     val = getattr(obj, valname)
@@ -208,6 +250,32 @@ class DocTestFinder(doctest.DocTestFinder):
                                globs, seen)
 
 
+class IPDoctestOutputChecker(doctest.OutputChecker):
+    """Second-chance checker with support for random tests.
+    
+    If the default comparison doesn't pass, this checker looks in the expected
+    output string for flags that tell us to ignore the output.
+    """
+
+    random_re = re.compile(r'#\s*random')
+    
+    def check_output(self, want, got, optionflags):
+        """Check output, accepting special markers embedded in the output.
+
+        If the output didn't pass the default validation but the special string
+        '#random' is included, we accept it."""
+
+        # Let the original tester verify first, in case people have valid tests
+        # that happen to have a comment saying '#random' embedded in.
+        ret = doctest.OutputChecker.check_output(self, want, got,
+                                                 optionflags)
+        if not ret and self.random_re.search(want):
+            #print >> sys.stderr, 'RANDOM OK:',want  # dbg
+            return True
+
+        return ret
+
+
 class DocTestCase(doctests.DocTestCase):
     """Proxy for DocTestCase: provides an address() method that
     returns the correct address for the doctest case. Otherwise
@@ -216,32 +284,69 @@ class DocTestCase(doctests.DocTestCase):
     for purposes of determining the test address, if it is provided.
     """
 
-    # doctests loaded via find(obj) omit the module name
-    # so we need to override id, __repr__ and shortDescription
-    # bonus: this will squash a 2.3 vs 2.4 incompatiblity
-    def id(self):
-        name = self._dt_test.name
-        filename = self._dt_test.filename
-        if filename is not None:
-            pk = getpackage(filename)
-            if pk is not None and not name.startswith(pk):
-                name = "%s.%s" % (pk, name)
-        return name
+    # Note: this method was taken from numpy's nosetester module.
 
+    # Subclass nose.plugins.doctests.DocTestCase to work around a bug in
+    # its constructor that blocks non-default arguments from being passed
+    # down into doctest.DocTestCase
 
-# Classes and functions
+    def __init__(self, test, optionflags=0, setUp=None, tearDown=None,
+                 checker=None, obj=None, result_var='_'):
+        self._result_var = result_var
+        doctests.DocTestCase.__init__(self, test,
+                                      optionflags=optionflags,
+                                      setUp=setUp, tearDown=tearDown,
+                                      checker=checker)
+        # Now we must actually copy the original constructor from the stdlib
+        # doctest class, because we can't call it directly and a bug in nose
+        # means it never gets passed the right arguments.
 
-def is_extension_module(filename):
-    """Return whether the given filename is an extension module.
+        self._dt_optionflags = optionflags
+        self._dt_checker = checker
+        self._dt_test = test
+        self._dt_setUp = setUp
+        self._dt_tearDown = tearDown
 
-    This simply checks that the extension is either .so or .pyd.
-    """
-    return os.path.splitext(filename)[1].lower() in ('.so','.pyd')
+        # Each doctest should remember what directory it was loaded from...
+        self._ori_dir = os.getcwd()
+
+    # Modified runTest from the default stdlib
+    def runTest(self):
+        test = self._dt_test
+        old = sys.stdout
+        new = StringIO()
+        optionflags = self._dt_optionflags
+
+        if not (optionflags & REPORTING_FLAGS):
+            # The option flags don't include any reporting flags,
+            # so add the default reporting flags
+            optionflags |= _unittest_reportflags
+
+        runner = IPDocTestRunner(optionflags=optionflags,
+                                 checker=self._dt_checker, verbose=False)
+
+        try:
+            # Save our current directory and switch out to the one where the
+            # test was originally created, in case another doctest did a
+            # directory change.  We'll restore this in the finally clause.
+            curdir = os.getcwd()
+            os.chdir(self._ori_dir)
+
+            runner.DIVIDER = "-"*70
+            failures, tries = runner.run(
+                test, out=new.write, clear_globs=False)
+        finally:
+            sys.stdout = old
+            os.chdir(curdir)
+
+        if failures:
+            raise self.failureException(self.format_failure(new.getvalue()))
 
 
 # A simple subclassing of the original with a different class name, so we can
 # distinguish and treat differently IPython examples from pure python ones.
 class IPExample(doctest.Example): pass
+
 
 class IPExternalExample(doctest.Example):
     """Doctest examples to be run in an external process."""
@@ -253,6 +358,7 @@ class IPExternalExample(doctest.Example):
 
         # An EXTRA newline is needed to prevent pexpect hangs
         self.source += '\n'
+
 
 class IPDocTestParser(doctest.DocTestParser):
     """
@@ -294,14 +400,22 @@ class IPDocTestParser(doctest.DocTestParser):
     _EXAMPLE_RE_IP = re.compile( _RE_TPL % (_PS1_IP,_PS2_IP,_PS1_IP,_PS2_IP),
                                  re.MULTILINE | re.VERBOSE)
 
+    # Mark a test as being fully random.  In this case, we simply append the
+    # random marker ('#random') to each individual example's output.  This way
+    # we don't need to modify any other code.
+    _RANDOM_TEST = re.compile(r'#\s*all-random')
+
+    # Mark tests to be executed in an external process - currently unsupported.
+    _EXTERNAL_IP = re.compile(r'#\s*ipdoctest:\s*EXTERNAL')
+    
     def ip2py(self,source):
         """Convert input IPython source into valid Python."""
         out = []
         newline = out.append
-        for line in source.splitlines():
-            #newline(_ip.IPipython.prefilter(line,True))
-            newline(_ip.IP.prefilter(line,True))
+        for lnum,line in enumerate(source.splitlines()):
+            newline(_ip.IP.prefilter(line,lnum>0))
         newline('')  # ensure a closing newline, needed by doctest
+        #print "PYSRC:", '\n'.join(out)  # dbg
         return '\n'.join(out)
 
     def parse(self, string, name='<string>'):
@@ -324,6 +438,11 @@ class IPDocTestParser(doctest.DocTestParser):
         output = []
         charno, lineno = 0, 0
 
+        if self._RANDOM_TEST.search(string):
+            random_marker = '\n# random'
+        else:
+            random_marker = ''
+
         # Whether to convert the input from ipython to python syntax
         ip2py = False
         # Find all doctest examples in the string.  First, try them as Python
@@ -341,7 +460,7 @@ class IPDocTestParser(doctest.DocTestParser):
             # IPExternalExamples are run out-of-process (via pexpect) so they
             # don't need any filtering (a real ipython will be executing them).
             terms = list(self._EXAMPLE_RE_IP.finditer(string))
-            if re.search(r'#\s*ipdoctest:\s*EXTERNAL',string):
+            if self._EXTERNAL_IP.search(string):
                 #print '-'*70  # dbg
                 #print 'IPExternalExample, Source:\n',string  # dbg
                 #print '-'*70  # dbg
@@ -361,12 +480,17 @@ class IPDocTestParser(doctest.DocTestParser):
             # Extract info from the regexp match.
             (source, options, want, exc_msg) = \
                      self._parse_example(m, name, lineno,ip2py)
+
+            # Append the random-output marker (it defaults to empty in most
+            # cases, it's only non-empty for 'all-random' tests):
+            want += random_marker
+                
             if Example is IPExternalExample:
                 options[doctest.NORMALIZE_WHITESPACE] = True
                 want += '\n'
+
             # Create an Example, and add it to the list.
             if not self._IS_BLANK_OR_COMMENT(source):
-                #print 'Example source:', source # dbg
                 output.append(Example(source, want, exc_msg,
                                       lineno=lineno,
                                       indent=min_indent+len(m.group('indent')),
@@ -377,7 +501,6 @@ class IPDocTestParser(doctest.DocTestParser):
             charno = m.end()
         # Add any remaining post-example text to `output`.
         output.append(string[charno:])
-
         return output
 
     def _parse_example(self, m, name, lineno,ip2py=False):
@@ -464,9 +587,33 @@ class IPDocTestParser(doctest.DocTestParser):
                                  (lineno+i+1, name,
                                   line[indent:space_idx], line))
 
+
 SKIP = doctest.register_optionflag('SKIP')
 
-###########################################################################
+
+class IPDocTestRunner(doctest.DocTestRunner,object):
+    """Test runner that synchronizes the IPython namespace with test globals.
+    """
+    
+    def run(self, test, compileflags=None, out=None, clear_globs=True):
+
+        # Hack: ipython needs access to the execution context of the example,
+        # so that it can propagate user variables loaded by %run into
+        # test.globs.  We put them here into our modified %run as a function
+        # attribute.  Our new %run will then only make the namespace update
+        # when called (rather than unconconditionally updating test.globs here
+        # for all examples, most of which won't be calling %run anyway).
+        _run_ns_sync.test_globs = test.globs
+
+        # dbg
+        ## print >> sys.stderr, "Test:",test
+        ## for ex in test.examples:
+        ##     print >> sys.stderr, ex.source
+        ##     print >> sys.stderr, 'Want:\n',ex.want,'\n--'
+
+        return super(IPDocTestRunner,self).run(test,
+                                               compileflags,out,clear_globs)
+
 
 class DocFileCase(doctest.DocFileCase):
     """Overrides to provide filename
@@ -490,7 +637,8 @@ class ExtensionDoctest(doctests.Doctest):
         self.extension = tolist(options.doctestExtension)
         self.finder = DocTestFinder()
         self.parser = doctest.DocTestParser()
-
+        self.globs = None
+        self.extraglobs = None
 
     def loadTestsFromExtensionModule(self,filename):
         bpath,mod = os.path.split(filename)
@@ -503,53 +651,8 @@ class ExtensionDoctest(doctests.Doctest):
             sys.path.pop()
         return tests
 
-    def loadTestsFromFile(self, filename):
-        if is_extension_module(filename):
-            for t in self.loadTestsFromExtensionModule(filename):
-                yield t
-        else:
-            ## for t in list(doctests.Doctest.loadTestsFromFile(self,filename)):
-            ##     yield t
-            pass
-
-        if self.extension and anyp(filename.endswith, self.extension):
-            #print 'lTF',filename  # dbg
-            name = os.path.basename(filename)
-            dh = open(filename)
-            try:
-                doc = dh.read()
-            finally:
-                dh.close()
-            test = self.parser.get_doctest(
-                doc, globs={'__file__': filename}, name=name,
-                filename=filename, lineno=0)
-            if test.examples:
-                #print 'FileCase:',test.examples  # dbg
-                yield DocFileCase(test)
-            else:
-                yield False # no tests to load
-
-
-    def wantFile(self,filename):
-        """Return whether the given filename should be scanned for tests.
-
-        Modified version that accepts extension modules as valid containers for
-        doctests.
-        """
-        #print 'Filename:',filename  # dbg
-
-        if is_extension_module(filename):
-            return True
-        else:
-            return doctests.Doctest.wantFile(self,filename)
-
-    # NOTE: the method below is a *copy* of the one in the nose doctests
-    # plugin, but we have to replicate it here in order to have it resolve the
-    # DocTestCase (last line) to our local copy, since the nose plugin doesn't
-    # provide a public hook for what TestCase class to use.  The alternative
-    # would be to monkeypatch doctest in the stdlib, but that's ugly and
-    # brittle, since a change in plugin load order can break it.  So for now,
-    # we just paste this in here, inelegant as this may be.
+    # NOTE: the method below is almost a copy of the original one in nose, with
+    # a  few modifications to control output checking.
 
     def loadTestsFromModule(self, module):
         #print 'lTM',module  # dbg
@@ -557,9 +660,12 @@ class ExtensionDoctest(doctests.Doctest):
         if not self.matches(module.__name__):
             log.debug("Doctest doesn't want module %s", module)
             return
-        tests = self.finder.find(module)
+
+        tests = self.finder.find(module,globs=self.globs,
+                                 extraglobs=self.extraglobs)
         if not tests:
             return
+
         tests.sort()
         module_file = module.__file__
         if module_file[-4:] in ('.pyc', '.pyo'):
@@ -569,7 +675,66 @@ class ExtensionDoctest(doctests.Doctest):
                 continue
             if not test.filename:
                 test.filename = module_file
-            yield DocTestCase(test)
+
+            # xxx - checker and options may be ok instantiated once outside loop
+            # always use whitespace and ellipsis options
+            optionflags = doctest.NORMALIZE_WHITESPACE | doctest.ELLIPSIS
+            checker = IPDoctestOutputChecker()
+            
+            yield DocTestCase(test,
+                              optionflags=optionflags,
+                              checker=checker)
+
+    def loadTestsFromFile(self, filename):
+        #print 'lTF',filename  # dbg
+
+        if is_extension_module(filename):
+            for t in self.loadTestsFromExtensionModule(filename):
+                yield t
+        else:
+            if self.extension and anyp(filename.endswith, self.extension):
+                name = os.path.basename(filename)
+                dh = open(filename)
+                try:
+                    doc = dh.read()
+                finally:
+                    dh.close()
+                test = self.parser.get_doctest(
+                    doc, globs={'__file__': filename}, name=name,
+                    filename=filename, lineno=0)
+                if test.examples:
+                    #print 'FileCase:',test.examples  # dbg
+                    yield DocFileCase(test)
+                else:
+                    yield False # no tests to load
+
+    def wantFile(self,filename):
+        """Return whether the given filename should be scanned for tests.
+
+        Modified version that accepts extension modules as valid containers for
+        doctests.
+        """
+        #print 'Filename:',filename  # dbg
+
+        # temporarily hardcoded list, will move to driver later
+        exclude = ['IPython/external/',
+                   'IPython/Extensions/ipy_',
+                   'IPython/platutils_win32',
+                   'IPython/frontend/cocoa',
+                   'IPython_doctest_plugin',
+                   'IPython/Gnuplot',
+                   'IPython/Extensions/PhysicalQIn']
+
+        for fex in exclude:
+            if fex in filename:  # substring
+                #print '###>>> SKIP:',filename  # dbg
+                return False
+
+        if is_extension_module(filename):
+            return True
+        else:
+            return doctests.Doctest.wantFile(self,filename)
+
 
 class IPythonDoctest(ExtensionDoctest):
     """Nose Plugin that supports doctests in extension modules.
@@ -583,5 +748,6 @@ class IPythonDoctest(ExtensionDoctest):
         self.doctest_tests = options.doctest_tests
         self.extension = tolist(options.doctestExtension)
         self.parser = IPDocTestParser()
-        #self.finder = DocTestFinder(parser=IPDocTestParser())
         self.finder = DocTestFinder(parser=self.parser)
+        self.globs = None
+        self.extraglobs = None

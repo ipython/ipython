@@ -653,67 +653,55 @@ components.registerAdapter(SynchronousMultiEngine, IMultiEngine, ISynchronousMul
 class IMultiEngineCoordinator(Interface):
     """Methods that work on multiple engines explicitly."""
        
-    def scatter(key, seq, style='basic', flatten=False, targets='all'):
-        """Partition and distribute a sequence to targets.
+    def scatter(key, seq, dist='b', flatten=False, targets='all'):
+        """Partition and distribute a sequence to targets."""
         
-        :Parameters:
-            key : str
-                The variable name to call the scattered sequence.
-            seq : list, tuple, array
-                The sequence to scatter.  The type should be preserved.
-            style : string
-                A specification of how the sequence is partitioned.  Currently 
-                only 'basic' is implemented.
-            flatten : boolean
-                Should single element sequences be converted to scalars.
-        """
-        
-    def gather(key, style='basic', targets='all'):
-        """Gather object key from targets.
+    def gather(key, dist='b', targets='all'):
+        """Gather object key from targets."""
     
-        :Parameters:
-            key : string
-                The name of a sequence on the targets to gather.
-            style : string
-                A specification of how the sequence is partitioned.  Currently 
-                only 'basic' is implemented.                
+    def raw_map(func, seqs, dist='b', targets='all'):
         """
-    
-    def map(func, seq, style='basic', targets='all'):
-        """A parallelized version of Python's builtin map.
+        A parallelized version of Python's builtin `map` function.
         
-        This function implements the following pattern:
+        This has a slightly different syntax than the builtin `map`.
+        This is needed because we need to have keyword arguments and thus
+        can't use *args to capture all the sequences.  Instead, they must
+        be passed in a list or tuple.
         
-        1. The sequence seq is scattered to the given targets.
-        2. map(functionSource, seq) is called on each engine.
-        3. The resulting sequences are gathered back to the local machine.
-                
-        :Parameters:
-            targets : int, list or 'all'
-                The engine ids the action will apply to.  Call `get_ids` to see
-                a list of currently available engines.
-            func : str, function
-                An actual function object or a Python string that names a 
-                callable defined on the engines.
-            seq : list, tuple or numpy array
-                The local sequence to be scattered.
-            style : str
-                Only 'basic' is supported for now.
-                
-        :Returns: A list of len(seq) with functionSource called on each element
-        of seq.
-                
-        Example
-        =======
+        The equivalence is:
         
-        >>> rc.mapAll('lambda x: x*x', range(10000))
-        [0,2,4,9,25,36,...]
+        raw_map(func, seqs) -> map(func, seqs[0], seqs[1], ...)
+        
+        Most users will want to use parallel functions or the `mapper`
+        and `map` methods for an API that follows that of the builtin
+        `map`.
         """
 
 
 class ISynchronousMultiEngineCoordinator(IMultiEngineCoordinator):
     """Methods that work on multiple engines explicitly."""
-    pass
+
+    def scatter(key, seq, dist='b', flatten=False, targets='all', block=True):
+        """Partition and distribute a sequence to targets."""
+        
+    def gather(key, dist='b', targets='all', block=True):
+        """Gather object key from targets"""
+    
+    def raw_map(func, seqs, dist='b', targets='all', block=True):
+        """
+        A parallelized version of Python's builtin map.
+        
+        This has a slightly different syntax than the builtin `map`.
+        This is needed because we need to have keyword arguments and thus
+        can't use *args to capture all the sequences.  Instead, they must
+        be passed in a list or tuple.
+        
+        raw_map(func, seqs) -> map(func, seqs[0], seqs[1], ...)
+        
+        Most users will want to use parallel functions or the `mapper`
+        and `map` methods for an API that follows that of the builtin
+        `map`.
+        """
 
 
 #-------------------------------------------------------------------------------
@@ -722,46 +710,31 @@ class ISynchronousMultiEngineCoordinator(IMultiEngineCoordinator):
 
 class IMultiEngineExtras(Interface):
     
-    def zip_pull(targets, *keys):
-        """Pull, but return results in a different format from `pull`.
+    def zip_pull(targets, keys):
+        """
+        Pull, but return results in a different format from `pull`.
         
         This method basically returns zip(pull(targets, *keys)), with a few 
         edge cases handled differently.  Users of chainsaw will find this format 
         familiar.
-        
-        :Parameters:
-            targets : int, list or 'all'
-                The engine ids the action will apply to.  Call `get_ids` to see
-                a list of currently available engines.
-            keys: list or tuple of str
-                A list of variable names as string of the Python objects to be pulled
-                back to the client.
-        
-        :Returns: A list of pulled Python objects for each target.
         """
     
     def run(targets, fname):
-        """Run a .py file on targets.
-        
-        :Parameters:
-            targets : int, list or 'all'
-                The engine ids the action will apply to.  Call `get_ids` to see
-                a list of currently available engines.
-            fname : str
-                The filename of a .py file on the local system to be sent to and run
-                on the engines.
-            block : boolean
-                Should I block or not.  If block=True, wait for the action to
-                complete and return the result.  If block=False, return a
-                `PendingResult` object that can be used to later get the
-                result.  If block is not specified, the block attribute 
-                will be used instead. 
-        """
+        """Run a .py file on targets."""
 
 
 class ISynchronousMultiEngineExtras(IMultiEngineExtras):
-    pass
-
+    def zip_pull(targets, keys, block=True):
+        """
+        Pull, but return results in a different format from `pull`.
+        
+        This method basically returns zip(pull(targets, *keys)), with a few 
+        edge cases handled differently.  Users of chainsaw will find this format 
+        familiar.
+        """
+    
+    def run(targets, fname, block=True):
+        """Run a .py file on targets."""
 
 #-------------------------------------------------------------------------------
 # The full MultiEngine interface

@@ -12,6 +12,22 @@ Release 0.9
 New features
 ------------
 
+	* The notion of a task has been completely reworked.  An `ITask` interface has
+	  been created.  This interface defines the methods that tasks need to implement.
+	  These methods are now responsible for things like submitting tasks and processing
+	  results.  There are two basic task types: :class:`IPython.kernel.task.StringTask`
+	  (this is the old `Task` object, but renamed) and the new 
+	  :class:`IPython.kernel.task.MapTask`, which is based on a function.
+	* A new interface, :class:`IPython.kernel.mapper.IMapper` has been defined to
+	  standardize the idea of a `map` method.  This interface has a single
+	  `map` method that has the same syntax as the built-in `map`.  We have also defined
+	  a `mapper` factory interface that creates objects that implement
+	  :class:`IPython.kernel.mapper.IMapper` for different controllers.  Both
+	  the multiengine and task controller now have mapping capabilties.
+	* The parallel function capabilities have been reworks.  The major changes are that
+	  i) there is now an `@parallel` magic that creates parallel functions, ii)
+	  the syntax for mulitple variable follows that of `map`, iii) both the
+	  multiengine and task controller now have a parallel function implementation.
 	* All of the parallel computing capabilities from `ipython1-dev` have been merged into
 	  IPython proper.  This resulted in the following new subpackages:  
 	  :mod:`IPython.kernel`, :mod:`IPython.kernel.core`, :mod:`IPython.config`,
@@ -38,11 +54,11 @@ New features
 	  when ipcluster is able to start things on other hosts, we will put security
 	  back.
 
-	
-
 Bug fixes
 ---------
 
+	* The colors escapes in the multiengine client are now turned off on win32 as they
+	  don't print correctly.
 	* The :mod:`IPython.kernel.scripts.ipengine` script was exec'ing mpi_import_statement
 	  incorrectly, which was leading the engine to crash when mpi was enabled.
 	* A few subpackages has missing `__init__.py` files.
@@ -52,6 +68,12 @@ Bug fixes
 Backwards incompatible changes
 ------------------------------
 
+	* :class:`IPython.kernel.client.Task` has been renamed
+	  :class:`IPython.kernel.client.StringTask` to make way for new task types.
+	* The keyword argument `style` has been renamed `dist` in `scatter`, `gather`
+	  and `map`.
+	* Renamed the values that the rename `dist` keyword argument can have from
+	  `'basic'` to `'b'`.
 	* IPython has a larger set of dependencies if you want all of its capabilities.
 	  See the `setup.py` script for details.
 	* The constructors for :class:`IPython.kernel.client.MultiEngineClient` and 

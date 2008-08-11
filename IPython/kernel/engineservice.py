@@ -226,29 +226,31 @@ class IEngineThreaded(zi.Interface):
 class StrictDict(dict):
     """This is a strict copying dictionary for use as the interface to the 
     properties of an Engine.
+
     :IMPORTANT:
         This object copies the values you set to it, and returns copies to you
         when you request them.  The only way to change properties os explicitly
         through the setitem and getitem of the dictionary interface.
-        Example:
-        >>> e = kernel.get_engine(id)
-        >>> L = someList
+
+    Example:
+        >>> e = get_engine(id)
+        >>> L = [1,2,3]
         >>> e.properties['L'] = L
         >>> L == e.properties['L']
-        ... True
-        >>> L.append(something Else)
+        True
+        >>> L.append(99)
         >>> L == e.properties['L']
-        ... False
+        False
         
-        getitem copies, so calls to methods of objects do not affect the
-        properties, as in the following example:
+        Note that getitem copies, so calls to methods of objects do not affect
+        the properties, as seen here:
+        
         >>> e.properties[1] = range(2)
         >>> print e.properties[1]
-        ... [0, 1]
+        [0, 1]
         >>> e.properties[1].append(2)
         >>> print e.properties[1]
-        ... [0, 1]
-        
+        [0, 1]
     """
     def __init__(self, *args, **kwargs):
         dict.__init__(self, *args, **kwargs)
@@ -394,6 +396,7 @@ class EngineService(object, service.Service):
             d.callback(result)
             
         return d
+    
     
     # The IEngine methods.  See the interface for documentation.
     
@@ -862,6 +865,30 @@ class ThreadedEngineService(EngineService):
     def __init__(self, shellClass=Interpreter, mpi=None):
         EngineService.__init__(self, shellClass, mpi)
     
+    def wrapped_execute(self, msg, lines):
+        """Wrap self.shell.execute to add extra information to tracebacks"""
+        
+        try:
+            result = self.shell.execute(lines)
+        except Exception,e:
+            # This gives the following:
+            # et=exception class
+            # ev=exception class instance
+            # tb=traceback object
+            et,ev,tb = sys.exc_info()
+            # This call adds attributes to the exception value
+            et,ev,tb = self.shell.formatTraceback(et,ev,tb,msg)
+            # Add another attribute
+            
+            # Create a new exception with the new attributes
+            e = et(ev._ipython_traceback_text)
+            e._ipython_engine_info = msg
+            
+            # Re-raise
+            raise e
+        
+        return result
+    
     
     def execute(self, lines):
         # Only import this if we are going to use this class
@@ -871,6 +898,6 @@ class ThreadedEngineService(EngineService):
                'method':'execute',
                'args':[lines]}
         
-        d = threads.deferToThread(self.shell.execute, lines)
+        d = threads.deferToThread(self.wrapped_execute, msg, lines)
         d.addCallback(self.addIDToResult)
         return d

@@ -84,7 +84,7 @@ class TestAsyncFrontendBase(unittest.TestCase):
         d.addCallback(self.checkBlockID, expected='TEST_ID')
     
     def test_blockID_added_to_failure(self):
-        block = "raise  Exception()"
+        block = "raise Exception()"
         
         d = self.fb.execute(block,blockID='TEST_ID')
         d.addErrback(self.checkFailureID, expected='TEST_ID')

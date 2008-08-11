@@ -61,9 +61,11 @@ class Style(object):
         ``bg`` as the background color and ``attrs`` as the attributes.
 
         Examples:
+        >>> Style(COLOR_RED, COLOR_BLACK)
+        <Style fg=red bg=black attrs=0>
 
-            >>> Style(COLOR_RED, COLOR_BLACK)
-            >>> Style(COLOR_YELLOW, COLOR_BLUE, A_BOLD|A_UNDERLINE)
+        >>> Style(COLOR_YELLOW, COLOR_BLUE, A_BOLD|A_UNDERLINE)
+        <Style fg=yellow bg=blue attrs=bold|underline>
         """
         self.fg = fg
         self.bg = bg

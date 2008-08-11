@@ -45,9 +45,9 @@ from IPython.frontend.asyncfrontendbase import AsyncFrontEndBase
 from twisted.internet.threads import blockingCallFromThread
 from twisted.python.failure import Failure
 
-#------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------
 # Classes to implement the Cocoa frontend
-#------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------
 
 # TODO: 
 #   1. use MultiEngineClient and out-of-process engine rather than 
@@ -61,41 +61,94 @@ class AutoreleasePoolWrappedThreadedEngineService(ThreadedEngineService):
         """wrapped_execute"""
         try:
             p = NSAutoreleasePool.alloc().init()
-            result = self.shell.execute(lines)
-        except Exception,e:
-            # This gives the following:
-            # et=exception class
-            # ev=exception class instance
-            # tb=traceback object
-            et,ev,tb = sys.exc_info()
-            # This call adds attributes to the exception value
-            et,ev,tb = self.shell.formatTraceback(et,ev,tb,msg)
-            # Add another attribute
-            
-            # Create a new exception with the new attributes
-            e = et(ev._ipython_traceback_text)
-            e._ipython_engine_info = msg
-            
-            # Re-raise
-            raise e
+            result = super(AutoreleasePoolWrappedThreadedEngineService,
+                            self).wrapped_execute(msg, lines)
         finally:
             p.drain()
         
         return result
     
-    def execute(self, lines):
-        # Only import this if we are going to use this class
-        from twisted.internet import threads
-        
-        msg = {'engineid':self.id,
-               'method':'execute',
-               'args':[lines]}
-        
-        d = threads.deferToThread(self.wrapped_execute, msg, lines)
-        d.addCallback(self.addIDToResult)
-        return d
 
 
+class Cell(NSObject):
+    """
+    Representation of the prompts, input and output of a cell in the
+    frontend
+    """
+    
+    blockNumber = objc.ivar().unsigned_long()
+    blockID = objc.ivar()
+    inputBlock = objc.ivar()
+    output = objc.ivar()
+     
+
+   
+class CellBlock(object):
+    """
+    Storage for information about text ranges relating to a single cell
+    """
+
+        
+    def __init__(self, inputPromptRange, inputRange=None, outputPromptRange=None,
+                outputRange=None):
+        super(CellBlock, self).__init__()
+        self.inputPromptRange = inputPromptRange
+        self.inputRange = inputRange
+        self.outputPromptRange = outputPromptRange
+        self.outputRange = outputRange
+    
+    def update_ranges_for_insertion(self, text, textRange):
+        """Update ranges for text insertion at textRange"""
+        
+        for r in [self.inputPromptRange,self.inputRange,
+                    self.outputPromptRange, self.outputRange]:
+            if(r == None):
+                continue
+            intersection = NSIntersectionRange(r,textRange)
+            if(intersection.length == 0): #ranges don't intersect
+                if r.location >= textRange.location:
+                    r.location += len(text)
+            else: #ranges intersect
+                if(r.location > textRange.location):
+                    offset = len(text) - intersection.length
+                    r.length -= offset
+                    r.location += offset
+                elif(r.location == textRange.location):
+                    r.length += len(text) - intersection.length
+                else:
+                    r.length -= intersection.length
+    
+    
+    def update_ranges_for_deletion(self, textRange):
+        """Update ranges for text deletion at textRange"""
+        
+        for r in [self.inputPromptRange,self.inputRange,
+                    self.outputPromptRange, self.outputRange]:
+            if(r==None):
+                continue
+            intersection = NSIntersectionRange(r, textRange)
+            if(intersection.length == 0): #ranges don't intersect
+                if r.location >= textRange.location:
+                    r.location -= textRange.length
+            else: #ranges intersect
+                if(r.location > textRange.location):
+                    offset = intersection.length
+                    r.length -= offset
+                    r.location += offset
+                elif(r.location == textRange.location):
+                    r.length += intersection.length
+                else:
+                    r.length -= intersection.length
+    
+    def __repr__(self):
+        return 'CellBlock('+ str((self.inputPromptRange,
+                                self.inputRange,
+                                self.outputPromptRange,
+                                self.outputRange)) + ')'
+    
+
+
+        
 class IPythonCocoaController(NSObject, AsyncFrontEndBase):
     userNS = objc.ivar() #mirror of engine.user_ns (key=>str(value))
     waitingForEngine = objc.ivar().bool()
@@ -120,7 +173,7 @@ class IPythonCocoaController(NSObject, AsyncFrontEndBase):
         self.tabSpaces = 4
         self.tabUsesSpaces = True
         self.currentBlockID = self.next_block_ID()
-        self.blockRanges = {} # blockID=>NSRange
+        self.blockRanges = {} # blockID=>CellBlock
     
     
     def awakeFromNib(self):
@@ -148,6 +201,7 @@ class IPythonCocoaController(NSObject, AsyncFrontEndBase):
         self.verticalRulerView = r
         self.verticalRulerView.setClientView_(self.textView)
         self._start_cli_banner()
+        self.start_new_block()
     
     
     def appWillTerminate_(self, notification):
@@ -239,14 +293,16 @@ class IPythonCocoaController(NSObject, AsyncFrontEndBase):
     
     
     def update_cell_prompt(self, result, blockID=None):
+        print self.blockRanges
         if(isinstance(result, Failure)):
-            self.insert_text(self.input_prompt(),
-                textRange=NSMakeRange(self.blockRanges[blockID].location,0),
-                scrollToVisible=False
-                )
+            prompt = self.input_prompt()
+            
         else:
-            self.insert_text(self.input_prompt(number=result['number']),
-                textRange=NSMakeRange(self.blockRanges[blockID].location,0),
+            prompt = self.input_prompt(number=result['number'])
+        
+        r = self.blockRanges[blockID].inputPromptRange
+        self.insert_text(prompt,
+                textRange=r,
                 scrollToVisible=False
                 )
         
@@ -255,7 +311,7 @@ class IPythonCocoaController(NSObject, AsyncFrontEndBase):
     
     def render_result(self, result):
         blockID = result['blockID']
-        inputRange = self.blockRanges[blockID]
+        inputRange = self.blockRanges[blockID].inputRange
         del self.blockRanges[blockID]
         
         #print inputRange,self.current_block_range()
@@ -269,11 +325,17 @@ class IPythonCocoaController(NSObject, AsyncFrontEndBase):
     
         
     def render_error(self, failure):
+        print failure
+        blockID = failure.blockID
+        inputRange = self.blockRanges[blockID].inputRange
         self.insert_text('\n' +
                         self.output_prompt() +
                         '\n' +
                         failure.getErrorMessage() +
-                        '\n\n')
+                        '\n\n',
+                        textRange=NSMakeRange(inputRange.location +
+                                                inputRange.length,
+                                                0))
         self.start_new_block()
         return failure
     
@@ -291,6 +353,9 @@ class IPythonCocoaController(NSObject, AsyncFrontEndBase):
         """"""
         
         self.currentBlockID = self.next_block_ID()
+        self.blockRanges[self.currentBlockID] = self.new_cell_block()
+        self.insert_text(self.input_prompt(), 
+            textRange=self.current_block_range().inputPromptRange)
     
     
     
@@ -298,15 +363,23 @@ class IPythonCocoaController(NSObject, AsyncFrontEndBase):
         
         return uuid.uuid4()
     
+    def new_cell_block(self):
+        """A new CellBlock at the end of self.textView.textStorage()"""
+        
+        return CellBlock(NSMakeRange(self.textView.textStorage().length(), 
+                                    0), #len(self.input_prompt())),
+                        NSMakeRange(self.textView.textStorage().length(),# + len(self.input_prompt()),
+                                    0))
+    
+    
     def current_block_range(self):
         return self.blockRanges.get(self.currentBlockID, 
-                        NSMakeRange(self.textView.textStorage().length(), 
-                        0))
+                        self.new_cell_block())
     
     def current_block(self):
         """The current block's text"""
         
-        return self.text_for_range(self.current_block_range())
+        return self.text_for_range(self.current_block_range().inputRange)
     
     def text_for_range(self, textRange):
         """text_for_range"""
@@ -315,7 +388,7 @@ class IPythonCocoaController(NSObject, AsyncFrontEndBase):
         return ts.string().substringWithRange_(textRange)
     
     def current_line(self):
-        block = self.text_for_range(self.current_block_range())
+        block = self.text_for_range(self.current_block_range().inputRange)
         block = block.split('\n')
         return block[-1]
     
@@ -324,38 +397,28 @@ class IPythonCocoaController(NSObject, AsyncFrontEndBase):
         """Insert text into textView at textRange, updating blockRanges 
         as necessary
         """
-        
         if(textRange == None):
             #range for end of text
             textRange = NSMakeRange(self.textView.textStorage().length(), 0) 
         
-        for r in self.blockRanges.itervalues():
-            intersection = NSIntersectionRange(r,textRange)
-            if(intersection.length == 0): #ranges don't intersect
-                if r.location >= textRange.location:
-                    r.location += len(string)
-            else: #ranges intersect
-                if(r.location <= textRange.location):
-                    assert(intersection.length == textRange.length)
-                    r.length += textRange.length
-                else:
-                    r.location += intersection.length
         
         self.textView.replaceCharactersInRange_withString_(
             textRange, string)
-        self.textView.setSelectedRange_(
-            NSMakeRange(textRange.location+len(string), 0))
+            
+        for r in self.blockRanges.itervalues():
+            r.update_ranges_for_insertion(string, textRange)
+        
+        self.textView.setSelectedRange_(textRange)
         if(scrollToVisible):
             self.textView.scrollRangeToVisible_(textRange)
-        
     
     
     
     def replace_current_block_with_string(self, textView, string):
         textView.replaceCharactersInRange_withString_(
-                                                self.current_block_range(),
-                                                string)
-        self.current_block_range().length = len(string)
+                                    self.current_block_range().inputRange,
+                                    string)
+        self.current_block_range().inputRange.length = len(string)
         r = NSMakeRange(textView.textStorage().length(), 0)
         textView.scrollRangeToVisible_(r)
         textView.setSelectedRange_(r)
@@ -424,26 +487,18 @@ class IPythonCocoaController(NSObject, AsyncFrontEndBase):
         
         elif(selector == 'moveToBeginningOfParagraph:'):
             textView.setSelectedRange_(NSMakeRange(
-                                        self.current_block_range().location, 
-                                        0))
+                            self.current_block_range().inputRange.location, 
+                            0))
             return True
         elif(selector == 'moveToEndOfParagraph:'):
             textView.setSelectedRange_(NSMakeRange(
-                                    self.current_block_range().location + \
-                                    self.current_block_range().length, 0))
+                            self.current_block_range().inputRange.location + \
+                            self.current_block_range().inputRange.length, 0))
             return True
         elif(selector == 'deleteToEndOfParagraph:'):
             if(textView.selectedRange().location <= \
                 self.current_block_range().location):
-                # Intersect the selected range with the current line range
-                if(self.current_block_range().length < 0):
-                    self.blockRanges[self.currentBlockID].length = 0
-            
-                r = NSIntersectionRange(textView.rangesForUserTextChange()[0],
-                                        self.current_block_range())
-                
-                if(r.length > 0): #no intersection
-                    textView.setSelectedRange_(r)
+                raise NotImplemented()
             
             return False # don't actually handle the delete
         
@@ -457,10 +512,15 @@ class IPythonCocoaController(NSObject, AsyncFrontEndBase):
         elif(selector == 'deleteBackward:'):
             #if we're at the beginning of the current block, ignore
             if(textView.selectedRange().location == \
-                self.current_block_range().location):
+                self.current_block_range().inputRange.location):
                 return True
             else:
-                self.current_block_range().length-=1
+                for r in self.blockRanges.itervalues():
+                    deleteRange = textView.selectedRange
+                    if(deleteRange.length == 0):
+                        deleteRange.location -= 1
+                        deleteRange.length = 1
+                    r.update_ranges_for_deletion(deleteRange)
                 return False
         return False
     
@@ -479,14 +539,9 @@ class IPythonCocoaController(NSObject, AsyncFrontEndBase):
         for r,s in zip(ranges, replacementStrings):
             r = r.rangeValue()
             if(textView.textStorage().length() > 0 and
-                    r.location < self.current_block_range().location):
+                r.location < self.current_block_range().inputRange.location):
                 self.insert_text(s)
                 allow = False
-            
-            
-            self.blockRanges.setdefault(self.currentBlockID, 
-                                        self.current_block_range()).length +=\
-                                         len(s)
         
         return allow
     

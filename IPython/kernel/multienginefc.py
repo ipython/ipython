@@ -29,6 +29,12 @@ from foolscap import Referenceable
 from IPython.kernel import error 
 from IPython.kernel.util import printer
 from IPython.kernel import map as Map
+from IPython.kernel.parallelfunction import ParallelFunction
+from IPython.kernel.mapper import (
+    MultiEngineMapper, 
+    IMultiEngineMapperFactory,
+    IMapper
+)
 from IPython.kernel.twistedutil import gatherBoth
 from IPython.kernel.multiengine import (MultiEngine,
     IMultiEngine,
@@ -280,7 +286,12 @@ components.registerAdapter(FCSynchronousMultiEngineFromMultiEngine,
 
 class FCFullSynchronousMultiEngineClient(object):
     
-    implements(IFullSynchronousMultiEngine, IBlockingClientAdaptor)
+    implements(
+        IFullSynchronousMultiEngine, 
+        IBlockingClientAdaptor,
+        IMultiEngineMapperFactory,
+        IMapper
+    )
     
     def __init__(self, remote_reference):
         self.remote_reference = remote_reference
@@ -475,7 +486,7 @@ class FCFullSynchronousMultiEngineClient(object):
         d.addCallback(create_targets)
         return d
     
-    def scatter(self, key, seq, style='basic', flatten=False, targets='all', block=True):
+    def scatter(self, key, seq, dist='b', flatten=False, targets='all', block=True):
         
         # Note: scatter and gather handle pending deferreds locally through self.pdm.
         # This enables us to collect a bunch fo deferred ids and make a secondary 
@@ -483,7 +494,7 @@ class FCFullSynchronousMultiEngineClient(object):
         # difficult to get right though.
         def do_scatter(engines):
             nEngines = len(engines)
-            mapClass = Map.styles[style]
+            mapClass = Map.dists[dist]
             mapObject = mapClass()
             d_list = []
             # Loop through and push to each engine in non-blocking mode.
@@ -541,7 +552,7 @@ class FCFullSynchronousMultiEngineClient(object):
         d.addCallback(do_scatter)
         return d
 
-    def gather(self, key, style='basic', targets='all', block=True):
+    def gather(self, key, dist='b', targets='all', block=True):
         
         # Note: scatter and gather handle pending deferreds locally through self.pdm.
         # This enables us to collect a bunch fo deferred ids and make a secondary 
@@ -549,7 +560,7 @@ class FCFullSynchronousMultiEngineClient(object):
         # difficult to get right though.
         def do_gather(engines):
             nEngines = len(engines)
-            mapClass = Map.styles[style]
+            mapClass = Map.dists[dist]
             mapObject = mapClass()
             d_list = []
             # Loop through and push to each engine in non-blocking mode.
@@ -604,25 +615,103 @@ class FCFullSynchronousMultiEngineClient(object):
         d.addCallback(do_gather)
         return d
 
-    def map(self, func, seq, style='basic', targets='all', block=True):
-        d_list = []
+    def raw_map(self, func, sequences, dist='b', targets='all', block=True):
+        """
+        A parallelized version of Python's builtin map.
+        
+        This has a slightly different syntax than the builtin `map`.
+        This is needed because we need to have keyword arguments and thus
+        can't use *args to capture all the sequences.  Instead, they must
+        be passed in a list or tuple.
+        
+        raw_map(func, seqs) -> map(func, seqs[0], seqs[1], ...)
+        
+        Most users will want to use parallel functions or the `mapper`
+        and `map` methods for an API that follows that of the builtin
+        `map`.
+        """
+        if not isinstance(sequences, (list, tuple)):
+            raise TypeError('sequences must be a list or tuple')
+        max_len = max(len(s) for s in sequences)
+        for s in sequences:
+            if len(s)!=max_len:
+                raise ValueError('all sequences must have equal length')
         if isinstance(func, FunctionType):
             d = self.push_function(dict(_ipython_map_func=func), targets=targets, block=False)
             d.addCallback(lambda did: self.get_pending_deferred(did, True))
-            sourceToRun = '_ipython_map_seq_result = map(_ipython_map_func, _ipython_map_seq)'
+            sourceToRun = '_ipython_map_seq_result = map(_ipython_map_func, *zip(*_ipython_map_seq))'
         elif isinstance(func, str):
             d = defer.succeed(None)
             sourceToRun = \
-                '_ipython_map_seq_result = map(%s, _ipython_map_seq)' % func
+                '_ipython_map_seq_result = map(%s, *zip(*_ipython_map_seq))' % func
         else:
             raise TypeError("func must be a function or str")
         
-        d.addCallback(lambda _: self.scatter('_ipython_map_seq', seq, style, targets=targets))
+        d.addCallback(lambda _: self.scatter('_ipython_map_seq', zip(*sequences), dist, targets=targets))
         d.addCallback(lambda _: self.execute(sourceToRun, targets=targets, block=False))
         d.addCallback(lambda did: self.get_pending_deferred(did, True))
-        d.addCallback(lambda _: self.gather('_ipython_map_seq_result', style, targets=targets, block=block))
+        d.addCallback(lambda _: self.gather('_ipython_map_seq_result', dist, targets=targets, block=block))
         return d
 
+    def map(self, func, *sequences):
+        """
+        A parallel version of Python's builtin `map` function.
+        
+        This method applies a function to sequences of arguments.  It 
+        follows the same syntax as the builtin `map`.
+        
+        This method creates a mapper objects by calling `self.mapper` with
+        no arguments and then uses that mapper to do the mapping.  See
+        the documentation of `mapper` for more details.
+        """
+        return self.mapper().map(func, *sequences)
+    
+    def mapper(self, dist='b', targets='all', block=True):
+        """
+        Create a mapper object that has a `map` method.
+        
+        This method returns an object that implements the `IMapper` 
+        interface.  This method is a factory that is used to control how 
+        the map happens.
+        
+        :Parameters:
+            dist : str
+                What decomposition to use, 'b' is the only one supported
+                currently
+            targets : str, int, sequence of ints
+                Which engines to use for the map
+            block : boolean
+                Should calls to `map` block or not
+        """
+        return MultiEngineMapper(self, dist, targets, block)
+
+    def parallel(self, dist='b', targets='all', block=True):
+        """
+        A decorator that turns a function into a parallel function.
+        
+        This can be used as:
+        
+        @parallel()
+        def f(x, y)
+            ...
+        
+        f(range(10), range(10))
+        
+        This causes f(0,0), f(1,1), ... to be called in parallel.
+        
+        :Parameters:
+            dist : str
+                What decomposition to use, 'b' is the only one supported
+                currently
+            targets : str, int, sequence of ints
+                Which engines to use for the map
+            block : boolean
+                Should calls to `map` block or not
+        """
+        mapper = self.mapper(dist, targets, block)
+        pf = ParallelFunction(mapper)
+        return pf
+    
     #---------------------------------------------------------------------------
     # ISynchronousMultiEngineExtras related methods
     #---------------------------------------------------------------------------

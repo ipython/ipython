@@ -61,6 +61,8 @@ from IPython import platutils
 import IPython.generics
 import IPython.ipapi
 from IPython.ipapi import UsageError
+from IPython.testing import decorators as testdec
+
 #***************************************************************************
 # Utility functions
 def on_off(tag):
@@ -522,7 +524,7 @@ Currently the magic system has the following functions:\n"""
             rc.automagic = not rc.automagic
         print '\n' + Magic.auto_status[rc.automagic]
 
-
+    @testdec.skip_doctest
     def magic_autocall(self, parameter_s = ''):
         """Make functions callable without having to type parentheses.
 
@@ -551,8 +553,9 @@ Currently the magic system has the following functions:\n"""
         2 -> Active always.  Even if no arguments are present, the callable
         object is called:
 
-        In [4]: callable
-        ------> callable()
+        In [2]: float
+        ------> float()
+        Out[2]: 0.0
 
         Note that even with autocall off, you can still use '/' at the start of
         a line to treat the first argument on the command line as a function
@@ -561,6 +564,8 @@ Currently the magic system has the following functions:\n"""
         In [8]: /str 43
         ------> str(43)
         Out[8]: '43'
+
+        # all-random (note for auto-testing)
         """
 
         rc = self.shell.rc
@@ -1243,12 +1248,13 @@ Currently the magic system has the following functions:\n"""
         
         self.shell.debugger(force=True)
 
+    @testdec.skip_doctest
     def magic_prun(self, parameter_s ='',user_mode=1,
                    opts=None,arg_lst=None,prog_ns=None):
 
         """Run a statement through the python code profiler.
 
-        Usage:\\
+        Usage:
           %prun [options] statement
 
         The given statement (which doesn't require quote marks) is run via the
@@ -1293,16 +1299,16 @@ Currently the magic system has the following functions:\n"""
         abbreviation is unambiguous.  The following are the keys currently
         defined:
 
-                Valid Arg       Meaning\\
-                  "calls"      call count\\
-                  "cumulative" cumulative time\\
-                  "file"       file name\\
-                  "module"     file name\\
-                  "pcalls"     primitive call count\\
-                  "line"       line number\\
-                  "name"       function name\\
-                  "nfl"        name/file/line\\
-                  "stdname"    standard name\\
+                Valid Arg       Meaning
+                  "calls"      call count
+                  "cumulative" cumulative time
+                  "file"       file name
+                  "module"     file name
+                  "pcalls"     primitive call count
+                  "line"       line number
+                  "name"       function name
+                  "nfl"        name/file/line
+                  "stdname"    standard name
                   "time"       internal time
 
         Note that all sorts on statistics are in descending order (placing
@@ -1328,8 +1334,10 @@ Currently the magic system has the following functions:\n"""
         '%run -p [prof_opts] filename.py [args to program]' where prof_opts
         contains profiler specific options as described here.
         
-        You can read the complete documentation for the profile module with:\\
-          In [1]: import profile; profile.help() """
+        You can read the complete documentation for the profile module with::
+        
+          In [1]: import profile; profile.help()
+        """
 
         opts_def = Struct(D=[''],l=[],s=['time'],T=[''])
         # protect user quote marks
@@ -1413,6 +1421,7 @@ Currently the magic system has the following functions:\n"""
         else:
             return None
 
+    @testdec.skip_doctest
     def magic_run(self, parameter_s ='',runner=None):
         """Run the named file inside IPython as a program.
 
@@ -1575,12 +1584,16 @@ Currently the magic system has the following functions:\n"""
 
         # pickle fix.  See iplib for an explanation.  But we need to make sure
         # that, if we overwrite __main__, we replace it at the end
-        if prog_ns['__name__'] == '__main__':
+        main_mod_name = prog_ns['__name__']
+
+        if main_mod_name == '__main__':
             restore_main = sys.modules['__main__']
         else:
             restore_main = False
 
-        sys.modules[prog_ns['__name__']] = main_mod
+        # This needs to be undone at the end to prevent holding references to
+        # every single object ever created.
+        sys.modules[main_mod_name] = main_mod
         
         stats = None
         try:
@@ -1673,9 +1686,15 @@ Currently the magic system has the following functions:\n"""
                     del prog_ns['__name__']
                     self.shell.user_ns.update(prog_ns)
         finally:
+            # Ensure key global structures are restored
             sys.argv = save_argv
             if restore_main:
                 sys.modules['__main__'] = restore_main
+            else:
+                # Remove from sys.modules the reference to main_mod we'd
+                # added.  Otherwise it will trap references to objects
+                # contained therein.
+                del sys.modules[main_mod_name]
             self.shell.reloadhist()
                 
         return stats
@@ -1699,6 +1718,7 @@ Currently the magic system has the following functions:\n"""
             self.shell.safe_execfile(f,self.shell.user_ns,
                                      self.shell.user_ns,islog=1)
 
+    @testdec.skip_doctest
     def magic_timeit(self, parameter_s =''):
         """Time execution of a Python statement or expression
 
@@ -1726,7 +1746,8 @@ Currently the magic system has the following functions:\n"""
         Default: 3
 
         
-        Examples:\\
+        Examples:
+
           In [1]: %timeit pass
           10000000 loops, best of 3: 53.3 ns per loop
 
@@ -1755,7 +1776,7 @@ Currently the magic system has the following functions:\n"""
         import timeit
         import math
 
-        units = ["s", "ms", "\xc2\xb5s", "ns"]
+        units = [u"s", u"ms", u"\xb5s", u"ns"]
         scaling = [1, 1e3, 1e6, 1e9]
 
         opts, stmt = self.parse_options(parameter_s,'n:r:tcp:',
@@ -1804,13 +1825,14 @@ Currently the magic system has the following functions:\n"""
             order = min(-int(math.floor(math.log10(best)) // 3), 3)
         else:
             order = 3
-        print "%d loops, best of %d: %.*g %s per loop" % (number, repeat,
+        print u"%d loops, best of %d: %.*g %s per loop" % (number, repeat,
                                                           precision,
                                                           best * scaling[order],
                                                           units[order])
         if tc > tc_min:
             print "Compiler time: %.2f s" % tc
-        
+
+    @testdec.skip_doctest
     def magic_time(self,parameter_s = ''):
         """Time execution of a Python statement or expression.
 
@@ -1902,6 +1924,7 @@ Currently the magic system has the following functions:\n"""
             print "Compiler : %.2f s" % tc
         return out
 
+    @testdec.skip_doctest
     def magic_macro(self,parameter_s = ''):
         """Define a set of input lines as a macro for future re-execution.
 
@@ -1931,17 +1954,17 @@ Currently the magic system has the following functions:\n"""
 
         For example, if your history contains (%hist prints it):
         
-          44: x=1\\
-          45: y=3\\
-          46: z=x+y\\
-          47: print x\\
-          48: a=5\\
-          49: print 'x',x,'y',y\\
+          44: x=1
+          45: y=3
+          46: z=x+y
+          47: print x
+          48: a=5
+          49: print 'x',x,'y',y
 
         you can create a macro with lines 44 through 47 (included) and line 49
         called my_macro with:
 
-          In [51]: %macro my_macro 44-47 49
+          In [55]: %macro my_macro 44-47 49
 
         Now, typing `my_macro` (without quotes) will re-execute all this code
         in one pass.
@@ -2033,6 +2056,7 @@ Currently the magic system has the following functions:\n"""
         """Alias to %edit."""
         return self.magic_edit(parameter_s)
 
+    @testdec.skip_doctest
     def magic_edit(self,parameter_s='',last_call=['','']):
         """Bring up an editor and execute the resulting code.
 
@@ -2126,47 +2150,47 @@ Currently the magic system has the following functions:\n"""
         This is an example of creating a simple function inside the editor and
         then modifying it. First, start up the editor:
 
-        In [1]: ed\\
-        Editing... done. Executing edited code...\\
-        Out[1]: 'def foo():\\n    print "foo() was defined in an editing session"\\n'
+        In [1]: ed
+        Editing... done. Executing edited code...
+        Out[1]: 'def foo():n    print "foo() was defined in an editing session"n'
 
         We can then call the function foo():
         
-        In [2]: foo()\\
+        In [2]: foo()
         foo() was defined in an editing session
 
         Now we edit foo.  IPython automatically loads the editor with the
         (temporary) file where foo() was previously defined:
         
-        In [3]: ed foo\\
+        In [3]: ed foo
         Editing... done. Executing edited code...
 
         And if we call foo() again we get the modified version:
         
-        In [4]: foo()\\
+        In [4]: foo()
         foo() has now been changed!
 
         Here is an example of how to edit a code snippet successive
         times. First we call the editor:
 
-        In [8]: ed\\
-        Editing... done. Executing edited code...\\
-        hello\\
-        Out[8]: "print 'hello'\\n"
+        In [5]: ed
+        Editing... done. Executing edited code...
+        hello
+        Out[5]: "print 'hello'n"
 
         Now we call it again with the previous output (stored in _):
 
-        In [9]: ed _\\
-        Editing... done. Executing edited code...\\
-        hello world\\
-        Out[9]: "print 'hello world'\\n"
+        In [6]: ed _
+        Editing... done. Executing edited code...
+        hello world
+        Out[6]: "print 'hello world'n"
 
         Now we call it with the output #8 (stored in _8, also as Out[8]):
 
-        In [10]: ed _8\\
-        Editing... done. Executing edited code...\\
-        hello again\\
-        Out[10]: "print 'hello again'\\n"
+        In [7]: ed _8
+        Editing... done. Executing edited code...
+        hello again
+        Out[7]: "print 'hello again'n"
 
 
         Changing the default editor hook:
@@ -2463,7 +2487,8 @@ Defaulting color scheme to 'NoColor'"""
 
     #......................................................................
     # Functions to implement unix shell-type things
-    
+
+    @testdec.skip_doctest
     def magic_alias(self, parameter_s = ''):
         """Define an alias for a system command.
 
@@ -2479,18 +2504,18 @@ Defaulting color scheme to 'NoColor'"""
         You can use the %l specifier in an alias definition to represent the
         whole line when the alias is called.  For example:
 
-          In [2]: alias all echo "Input in brackets: <%l>"\\
-          In [3]: all hello world\\
+          In [2]: alias all echo "Input in brackets: <%l>"
+          In [3]: all hello world
           Input in brackets: <hello world>
 
         You can also define aliases with parameters using %s specifiers (one
         per parameter):
         
-          In [1]: alias parts echo first %s second %s\\
-          In [2]: %parts A B\\
-          first A second B\\
-          In [3]: %parts A\\
-          Incorrect number of arguments: 2 expected.\\
+          In [1]: alias parts echo first %s second %s
+          In [2]: %parts A B
+          first A second B
+          In [3]: %parts A
+          Incorrect number of arguments: 2 expected.
           parts is an alias to: 'echo first %s second %s'
 
         Note that %l and %s are mutually exclusive.  You can only use one or
@@ -2503,11 +2528,11 @@ Defaulting color scheme to 'NoColor'"""
         IPython for variable expansion.  If you want to access a true shell
         variable, an extra $ is necessary to prevent its expansion by IPython:
 
-        In [6]: alias show echo\\
-        In [7]: PATH='A Python string'\\
-        In [8]: show $PATH\\
-        A Python string\\
-        In [9]: show $$PATH\\
+        In [6]: alias show echo
+        In [7]: PATH='A Python string'
+        In [8]: show $PATH
+        A Python string
+        In [9]: show $$PATH
         /usr/local/lf9560/bin:/usr/local/intel/compiler70/ia32/bin:...
 
         You can use the alias facility to acess all of $PATH.  See the %rehash
@@ -2822,7 +2847,7 @@ Defaulting color scheme to 'NoColor'"""
                 header = 'Directory history (kept in _dh)',
                 start=ini,stop=fin)
 
-
+    @testdec.skip_doctest
     def magic_sc(self, parameter_s=''):
         """Shell capture - execute a shell command and capture its output.
 
@@ -2866,31 +2891,33 @@ Defaulting color scheme to 'NoColor'"""
 
         For example:
 
+        # all-random
+        
             # Capture into variable a
-            In [9]: sc a=ls *py
+            In [1]: sc a=ls *py
 
             # a is a string with embedded newlines
-            In [10]: a
-            Out[10]: 'setup.py\nwin32_manual_post_install.py'
+            In [2]: a
+            Out[2]: 'setup.py\\nwin32_manual_post_install.py'
 
             # which can be seen as a list:
-            In [11]: a.l
-            Out[11]: ['setup.py', 'win32_manual_post_install.py']
+            In [3]: a.l
+            Out[3]: ['setup.py', 'win32_manual_post_install.py']
 
             # or as a whitespace-separated string:
-            In [12]: a.s
-            Out[12]: 'setup.py win32_manual_post_install.py'
+            In [4]: a.s
+            Out[4]: 'setup.py win32_manual_post_install.py'
 
             # a.s is useful to pass as a single command line:
-            In [13]: !wc -l $a.s
+            In [5]: !wc -l $a.s
               146 setup.py
               130 win32_manual_post_install.py
               276 total
 
             # while the list form is useful to loop over:
-            In [14]: for f in a.l:
-               ....:      !wc -l $f
-               ....:
+            In [6]: for f in a.l:
+              ...:      !wc -l $f
+              ...:
             146 setup.py
             130 win32_manual_post_install.py
 
@@ -2898,13 +2925,13 @@ Defaulting color scheme to 'NoColor'"""
         the sense that you can equally invoke the .s attribute on them to
         automatically get a whitespace-separated string from their contents:
 
-            In [1]: sc -l b=ls *py
+            In [7]: sc -l b=ls *py
 
-            In [2]: b
-            Out[2]: ['setup.py', 'win32_manual_post_install.py']
+            In [8]: b
+            Out[8]: ['setup.py', 'win32_manual_post_install.py']
 
-            In [3]: b.s
-            Out[3]: 'setup.py win32_manual_post_install.py'
+            In [9]: b.s
+            Out[9]: 'setup.py win32_manual_post_install.py'
 
         In summary, both the lists and strings used for ouptut capture have
         the following special attributes:
@@ -3273,6 +3300,7 @@ Defaulting color scheme to 'NoColor'"""
         save_dstore('rc_separate_out',rc.separate_out)
         save_dstore('rc_separate_out2',rc.separate_out2)
         save_dstore('rc_prompts_pad_left',rc.prompts_pad_left)
+        save_dstore('rc_separate_in',rc.separate_in)
 
         if mode == False:
             # turn on
@@ -3282,6 +3310,8 @@ Defaulting color scheme to 'NoColor'"""
             oc.prompt2.p_template = '... '
             oc.prompt_out.p_template = ''
 
+            # Prompt separators like plain python
+            oc.input_sep = oc.prompt1.sep = ''
             oc.output_sep = ''
             oc.output_sep2 = ''
 
@@ -3299,6 +3329,8 @@ Defaulting color scheme to 'NoColor'"""
             oc.prompt1.p_template = rc.prompt_in1
             oc.prompt2.p_template = rc.prompt_in2
             oc.prompt_out.p_template = rc.prompt_out
+
+            oc.input_sep = oc.prompt1.sep = dstore.rc_separate_in
 
             oc.output_sep = dstore.rc_separate_out
             oc.output_sep2 = dstore.rc_separate_out2

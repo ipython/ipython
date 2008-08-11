@@ -1,9 +1,8 @@
 # encoding: utf-8
 # -*- test-case-name: IPython.kernel.tests.test_taskcontrollerxmlrpc -*-
 
-"""The Generic Task Client object.  
-
-This must be subclassed based on your connection method.
+"""
+A blocking version of the task client.
 """
 
 __docformat__ = "restructuredtext en"
@@ -24,119 +23,100 @@ from twisted.python import components, log
 
 from IPython.kernel.twistedutil import blockingCallFromThread
 from IPython.kernel import task, error
+from IPython.kernel.mapper import (
+    SynchronousTaskMapper,
+    ITaskMapperFactory,
+    IMapper
+)
+from IPython.kernel.parallelfunction import (
+    ParallelFunction, 
+    ITaskParallelDecorator
+)
 
 #-------------------------------------------------------------------------------
-# Connecting Task Client
+# The task client
 #-------------------------------------------------------------------------------
-
-class InteractiveTaskClient(object):
-    
-    def irun(self, *args, **kwargs):
-        """Run a task on the `TaskController`.
-        
-        This method is a shorthand for run(task) and its arguments are simply
-        passed onto a `Task` object:
-        
-        irun(*args, **kwargs) -> run(Task(*args, **kwargs))
-
-        :Parameters:
-            expression : str
-                A str that is valid python code that is the task.
-            pull : str or list of str 
-                The names of objects to be pulled as results.
-            push : dict
-                A dict of objects to be pushed into the engines namespace before
-                execution of the expression.
-            clear_before : boolean
-                Should the engine's namespace be cleared before the task is run.
-                Default=False.
-            clear_after : boolean 
-                Should the engine's namespace be cleared after the task is run.
-                Default=False.
-            retries : int
-                The number of times to resumbit the task if it fails.  Default=0.
-            options : dict
-                Any other keyword options for more elaborate uses of tasks
-            
-        :Returns: A `TaskResult` object.      
-        """
-        block = kwargs.pop('block', False)
-        if len(args) == 1 and isinstance(args[0], task.Task):
-            t = args[0]
-        else:
-            t = task.Task(*args, **kwargs)
-        taskid = self.run(t)
-        print "TaskID = %i"%taskid
-        if block:
-            return self.get_task_result(taskid, block)
-        else:
-            return taskid
 
 class IBlockingTaskClient(Interface):
     """
-    An interface for blocking task clients.
+    A vague interface of the blocking task client
     """
     pass
 
-
-class BlockingTaskClient(InteractiveTaskClient):
+class BlockingTaskClient(object):
     """
-    This class provides a blocking task client.
+    A blocking task client that adapts a non-blocking one.
     """
     
-    implements(IBlockingTaskClient)
+    implements(
+        IBlockingTaskClient, 
+        ITaskMapperFactory,
+        IMapper,
+        ITaskParallelDecorator
+    )
     
     def __init__(self, task_controller):
         self.task_controller = task_controller
         self.block = True
         
-    def run(self, task):
-        """
-        Run a task and return a task id that can be used to get the task result.
+    def run(self, task, block=False):
+        """Run a task on the `TaskController`.
+        
+        See the documentation of the `MapTask` and `StringTask` classes for 
+        details on how to build a task of different types.
         
         :Parameters:
-            task : `Task`
-                The `Task` object to run
+            task : an `ITask` implementer
+        
+        :Returns: The int taskid of the submitted task.  Pass this to 
+            `get_task_result` to get the `TaskResult` object.
         """
-        return blockingCallFromThread(self.task_controller.run, task)
+        tid = blockingCallFromThread(self.task_controller.run, task)
+        if block:
+            return self.get_task_result(tid, block=True)
+        else:
+            return tid
     
     def get_task_result(self, taskid, block=False):
         """
-        Get or poll for a task result.
+        Get a task result by taskid.
         
         :Parameters:
             taskid : int
-                The id of the task whose result to get
+                The taskid of the task to be retrieved.
             block : boolean
-                If True, wait until the task is done and then result the
-                `TaskResult` object.  If False, just poll for the result and
-                return None if the task is not done.
+                Should I block until the task is done?
+        
+        :Returns: A `TaskResult` object that encapsulates the task result.
         """
         return blockingCallFromThread(self.task_controller.get_task_result,
             taskid, block)
     
     def abort(self, taskid):
         """
-        Abort a task by task id if it has not been started.
+        Abort a task by taskid.
+        
+        :Parameters:
+            taskid : int
+                The taskid of the task to be aborted.
         """
         return blockingCallFromThread(self.task_controller.abort, taskid)
     
     def barrier(self, taskids):
-        """
-        Wait for a set of tasks to finish.
+        """Block until a set of tasks are completed.
         
         :Parameters:
-            taskids : list of ints
-                A list of task ids to wait for.
+            taskids : list, tuple
+                A sequence of taskids to block on.
         """
         return blockingCallFromThread(self.task_controller.barrier, taskids)
     
     def spin(self):
         """
-        Cause the scheduler to schedule tasks.
+        Touch the scheduler, to resume scheduling without submitting a task.
         
         This method only needs to be called in unusual situations where the
-        scheduler is idle for some reason.
+        scheduler is idle for some reason. 
         """
         return blockingCallFromThread(self.task_controller.spin)
     
@@ -153,7 +133,46 @@ class BlockingTaskClient(InteractiveTaskClient):
             A dict with the queue status.
         """
         return blockingCallFromThread(self.task_controller.queue_status, verbose)
+    
+    def clear(self):
+        """
+        Clear all previously run tasks from the task controller.
+        
+        This is needed because the task controller keep all task results
+        in memory.  This can be a problem is there are many completed
+        tasks.  Users should call this periodically to clean out these
+        cached task results.
+        """
+        return blockingCallFromThread(self.task_controller.clear)
+    
+    def map(self, func, *sequences):
+        """
+        Apply func to *sequences elementwise.  Like Python's builtin map.
+        
+        This version is load balanced.
+        """
+        return self.mapper().map(func, *sequences)
 
+    def mapper(self, clear_before=False, clear_after=False, retries=0, 
+                recovery_task=None, depend=None, block=True):
+        """
+        Create an `IMapper` implementer with a given set of arguments.
+        
+        The `IMapper` created using a task controller is load balanced.
+        
+        See the documentation for `IPython.kernel.task.BaseTask` for 
+        documentation on the arguments to this method.
+        """
+        return SynchronousTaskMapper(self, clear_before=clear_before, 
+            clear_after=clear_after, retries=retries, 
+            recovery_task=recovery_task, depend=depend, block=block)
+    
+    def parallel(self, clear_before=False, clear_after=False, retries=0, 
+        recovery_task=None, depend=None, block=True):
+        mapper = self.mapper(clear_before, clear_after, retries,
+            recovery_task, depend, block)
+        pf = ParallelFunction(mapper)
+        return pf
 
 components.registerAdapter(BlockingTaskClient,
             task.ITaskController, IBlockingTaskClient)

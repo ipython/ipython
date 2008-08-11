@@ -53,7 +53,7 @@ class DistributedSpider(object):
             self.allLinks.append(url)
             if url.startswith(self.site):
                 print '    ', url
-                self.linksWorking[url] = self.tc.run(client.Task('links = fetchAndParse(url)', pull=['links'], push={'url': url}))
+                self.linksWorking[url] = self.tc.run(client.StringTask('links = fetchAndParse(url)', pull=['links'], push={'url': url}))
         
     def onVisitDone(self, result, url):
         print url, ':'
