@@ -4,7 +4,16 @@ Entry point for a simple application giving a graphical frontend to
 ipython.
 """
 
-import wx
+try:
+    import wx
+except ImportError, e:
+    e.message = """%s
+________________________________________________________________________________
+You need wxPython to run this application.
+""" % e.message
+    e.args = (e.message, ) + e.args[1:]
+    raise e
+
 from wx_frontend import WxController
 import __builtin__
 
