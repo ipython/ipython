@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 Entry point for a simple application giving a graphical frontend to
 ipython.
@@ -12,7 +13,7 @@ class IPythonXController(WxController):
         bindings.
     """
 
-    debug = True
+    debug = False
 
     def __init__(self, *args, **kwargs):
         WxController.__init__(self, *args, **kwargs)
@@ -66,8 +67,20 @@ class IPythonX(wx.Frame):
 
 
 def main():
+    from optparse import OptionParser
+    usage = """usage: %prog [options]
+
+Simple graphical frontend to IPython, using WxWidgets."""
+    parser = OptionParser(usage=usage)
+    parser.add_option("-d", "--debug",
+                    action="store_true", dest="debug", default=False,
+                    help="Enable debug message for the wx frontend.")
+
+    options, args = parser.parse_args()
+
     app = wx.PySimpleApp()
     frame = IPythonX(None, wx.ID_ANY, 'IPythonX')
+    frame.shell.debug = options.debug
     frame.shell.SetFocus()
     frame.shell.app = app
     frame.SetSize((680, 460))

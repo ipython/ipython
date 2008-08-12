@@ -72,7 +72,7 @@ class WxController(ConsoleWidget, PrefilterFrontEnd):
     input_prompt_template = string.Template(prompt_in1)
 
     # Print debug info on what is happening to the console.
-    debug = True
+    debug = False
 
     # The title of the terminal, as captured through the ANSI escape
     # sequences.
@@ -422,7 +422,6 @@ class WxController(ConsoleWidget, PrefilterFrontEnd):
         if self.debug:
             print >>sys.__stdout__, repr(self.input_buffer)
         PrefilterFrontEnd._on_enter(self)
-        #self._colorize_input_buffer()
 
 
     #--------------------------------------------------------------------------
@@ -451,6 +450,8 @@ class WxController(ConsoleWidget, PrefilterFrontEnd):
     def _colorize_input_buffer(self):
         """ Keep the input buffer lines at a bright color.
         """
+        if not self._input_state == 'readline':
+            return
         end_line = self.GetCurrentLine() + 1
         for i in range(self.current_prompt_line, end_line):
             if i in self._markers:
