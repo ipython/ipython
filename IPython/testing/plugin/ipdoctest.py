@@ -94,6 +94,28 @@ def _run_ns_sync(self,arg_s,runner=None):
     return out
 
 
+# XXX1 - namespace handling
+class ncdict(dict):
+    def __init__(self,*a):
+        dict.__init__(self,*a)
+        self._savedict = {}
+        
+    def copy(self):
+        return self
+
+    def clear(self):
+        import IPython
+        
+        print 'NCDICT - clear'   # dbg
+        dict.clear(self)
+        self.update(IPython.ipapi.make_user_ns())
+        self.update(self._savedict)
+
+    def remember(self,adict):
+        self._savedict = adict
+    
+#class ncdict(dict): pass
+
 def start_ipython():
     """Start a global IPython shell, which we need for IPython-specific syntax.
     """
@@ -117,7 +139,10 @@ def start_ipython():
     _main = sys.modules.get('__main__')
 
     # Start IPython instance.  We customize it to start with minimal frills.
-    IPython.Shell.IPShell(['--classic','--noterm_title'])
+    user_ns = IPython.ipapi.make_user_ns(ncdict())
+    
+    IPython.Shell.IPShell(['--classic','--noterm_title'],
+                          user_ns)
 
     # Deactivate the various python system hooks added by ipython for
     # interactive convenience so we don't confuse the doctest system
@@ -250,6 +275,85 @@ class DocTestFinder(doctest.DocTestFinder):
                                globs, seen)
 
 
+    # XXX1 - namespace handling
+    def Xfind(self, obj, name=None, module=None, globs=None, extraglobs=None):
+        """
+        Return a list of the DocTests that are defined by the given
+        object's docstring, or by any of its contained objects'
+        docstrings.
+
+        The optional parameter `module` is the module that contains
+        the given object.  If the module is not specified or is None, then
+        the test finder will attempt to automatically determine the
+        correct module.  The object's module is used:
+
+            - As a default namespace, if `globs` is not specified.
+            - To prevent the DocTestFinder from extracting DocTests
+              from objects that are imported from other modules.
+            - To find the name of the file containing the object.
+            - To help find the line number of the object within its
+              file.
+
+        Contained objects whose module does not match `module` are ignored.
+
+        If `module` is False, no attempt to find the module will be made.
+        This is obscure, of use mostly in tests:  if `module` is False, or
+        is None but cannot be found automatically, then all objects are
+        considered to belong to the (non-existent) module, so all contained
+        objects will (recursively) be searched for doctests.
+
+        The globals for each DocTest is formed by combining `globs`
+        and `extraglobs` (bindings in `extraglobs` override bindings
+        in `globs`).  A new copy of the globals dictionary is created
+        for each DocTest.  If `globs` is not specified, then it
+        defaults to the module's `__dict__`, if specified, or {}
+        otherwise.  If `extraglobs` is not specified, then it defaults
+        to {}.
+
+        """
+
+        # Find the module that contains the given object (if obj is
+        # a module, then module=obj.).  Note: this may fail, in which
+        # case module will be None.
+        if module is False:
+            module = None
+        elif module is None:
+            module = inspect.getmodule(obj)
+
+        # always build our own globals
+        if globs is None:
+            if module is None:
+                globs = {}
+            else:
+                globs = module.__dict__.copy()
+        else:
+            globs.update(module.__dict__.copy())
+
+        print 'globs is:',globs.keys()
+        
+        if extraglobs is not None:
+            globs.update(extraglobs)
+
+        try:
+            globs.remember(module.__dict__)
+        except:
+            pass
+        
+        ## # Initialize globals, and merge in extraglobs.
+        ## if globs is None:
+        ##     if module is None:
+        ##         globs = {}
+        ##     else:
+        ##         globs = module.__dict__.copy()
+        ## else:
+        ##     globs = globs.copy()
+        ## if extraglobs is not None:
+        ##     globs.update(extraglobs)
+
+        return doctest.DocTestFinder.find(self,obj,name,module,globs,
+                                          extraglobs)
+
+
 class IPDoctestOutputChecker(doctest.OutputChecker):
     """Second-chance checker with support for random tests.
     
@@ -341,6 +445,12 @@ class DocTestCase(doctests.DocTestCase):
 
         if failures:
             raise self.failureException(self.format_failure(new.getvalue()))
+
+    # XXX1 - namespace handling
+    def XtearDown(self):
+        print '!! teardown!'  # dbg
+        doctests.DocTestCase.tearDown(self)
+
 
 
 # A simple subclassing of the original with a different class name, so we can
@@ -749,5 +859,9 @@ class IPythonDoctest(ExtensionDoctest):
         self.extension = tolist(options.doctestExtension)
         self.parser = IPDocTestParser()
         self.finder = DocTestFinder(parser=self.parser)
+
+        # XXX1 - namespace handling
         self.globs = None
+        #self.globs = _ip.IP.user_ns
+        
         self.extraglobs = None

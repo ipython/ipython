@@ -5,22 +5,23 @@ PREFIX=~/tmp/local
 NOSE0=nosetests -vs --with-doctest --doctest-tests
 NOSE=nosetests -vvs --with-ipdoctest --doctest-tests --doctest-extension=txt
 
-#--with-color 
-
 SRC=ipdoctest.py setup.py ../decorators.py
 
+# Default target for clean 'make'
+default: iplib
+
+# The actual plugin installation
 plugin: IPython_doctest_plugin.egg-info
+
+# Simple targets that test one thing
+simple: plugin simple.py
+	$(NOSE) simple.py
 
 dtest: plugin dtexample.py
 	$(NOSE) dtexample.py
 
-# Note: this test is double counting!!!
-rtest: plugin dtexample.py
+rtest: plugin test_refs.py
 	$(NOSE) test_refs.py
-
-std: plugin
-	nosetests -vs --with-doctest --doctest-tests IPython.strdispatch
-	$(NOSE) IPython.strdispatch
 
 test: plugin dtexample.py
 	$(NOSE) dtexample.py test*.py test*.txt
@@ -28,24 +29,35 @@ test: plugin dtexample.py
 deb: plugin dtexample.py
 	$(NOSE) test_combo.txt
 
-iptest: plugin
-	$(NOSE) IPython
-
+# IPython tests
 deco:
-	$(NOSE0) IPython.testing.decorators
+	$(NOSE0) -x IPython.testing.decorators
 
-mtest: plugin
+magic: plugin
 	$(NOSE) -x IPython.Magic
 
 ipipe: plugin
 	$(NOSE) -x IPython.Extensions.ipipe
 
-sr: rtest std
+iplib: plugin
+	$(NOSE) -x IPython.iplib
 
-base: dtest rtest test std deco
+strd: plugin
+	nosetests -vs --with-doctest --doctest-tests IPython.strdispatch
+	$(NOSE) IPython.strdispatch
 
-all: base iptest
+# All of ipython itself
+ipython: plugin
+	$(NOSE) IPython
 
+# Combined targets
+sr: rtest strd
+
+base: dtest rtest test strd deco
+
+all: base ipython
+
+# Main plugin and cleanup
 IPython_doctest_plugin.egg-info: $(SRC)
 	python setup.py install --prefix=$(PREFIX)
 	touch $@
