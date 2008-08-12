@@ -108,6 +108,8 @@ class WxController(ConsoleWidget, PrefilterFrontEnd):
     #
     #       'readline' for readline-like behavior with a prompt 
     #            and an edit buffer.
+    #       'raw_input' similar to readline, but triggered by a raw-input
+    #           call. Can be used by subclasses to act differently.
     #       'subprocess' for sending the raw input directly to a
     #           subprocess.
     #       'buffering' for buffering of the input, that will be used
@@ -164,6 +166,7 @@ class WxController(ConsoleWidget, PrefilterFrontEnd):
         """ A replacement from python's raw_input.
         """
         self.new_prompt(prompt)
+        self._input_state = 'raw_input'
         self.waiting = True
         self.__old_on_enter = self._on_enter
         def my_on_enter():
@@ -449,7 +452,7 @@ class WxController(ConsoleWidget, PrefilterFrontEnd):
     def _colorize_input_buffer(self):
         """ Keep the input buffer lines at a bright color.
         """
-        if not self._input_state == 'readline':
+        if not self._input_state in ('readline', 'raw_input'):
             return
         end_line = self.GetCurrentLine()
         if not sys.platform == 'win32':
