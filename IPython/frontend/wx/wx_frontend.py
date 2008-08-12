@@ -86,10 +86,12 @@ class WxController(ConsoleWidget, PrefilterFrontEnd):
 
 
     # The buffer being edited.
-    # We are duplicating the defination here because of multiple
+    # We are duplicating the definition here because of multiple
     # inheritence
     def _set_input_buffer(self, string):
-        return ConsoleWidget._set_input_buffer(self, string)
+        ConsoleWidget._set_input_buffer(self, string)
+        wx.Yield()
+        self._colorize_input_buffer()
 
     def _get_input_buffer(self):
         """ Returns the text in current edit buffer.
@@ -276,9 +278,11 @@ class WxController(ConsoleWidget, PrefilterFrontEnd):
         self.GotoPos(self.GetLength())
         PrefilterFrontEnd.execute(self, python_string, raw_string=raw_string)
 
+    def save_output_hooks(self):    
+        self.__old_raw_input = __builtin__.raw_input
+        PrefilterFrontEnd.save_output_hooks(self)
 
     def capture_output(self):
-        self.__old_raw_input = __builtin__.raw_input
         __builtin__.raw_input = self.raw_input
         PrefilterFrontEnd.capture_output(self)
         
@@ -312,6 +316,8 @@ class WxController(ConsoleWidget, PrefilterFrontEnd):
         """
         self._input_state = 'readline'
         ConsoleWidget.new_prompt(self, prompt)
+        i = self.current_prompt_line
+        self._markers[i] = self.MarkerAdd(i, _INPUT_MARKER)
 
 
     def write(self, *args, **kwargs):
@@ -415,9 +421,8 @@ class WxController(ConsoleWidget, PrefilterFrontEnd):
         """
         if self.debug:
             print >>sys.__stdout__, repr(self.input_buffer)
-        i = self.GetLineCount()
-        self._markers[i] = self.MarkerAdd(i, _INPUT_MARKER)
         PrefilterFrontEnd._on_enter(self)
+        #self._colorize_input_buffer()
 
 
     #--------------------------------------------------------------------------
@@ -442,6 +447,15 @@ class WxController(ConsoleWidget, PrefilterFrontEnd):
         self._out_buffer_lock.release()
         self.write(''.join(_out_buffer), refresh=False)
         self._buffer_flush_timer.Stop()
+
+    def _colorize_input_buffer(self):
+        """ Keep the input buffer lines at a bright color.
+        """
+        end_line = self.GetCurrentLine() + 1
+        for i in range(self.current_prompt_line, end_line):
+            if i in self._markers:
+                self.MarkerDeleteHandle(self._markers[i])
+            self._markers[i] = self.MarkerAdd(i, _INPUT_MARKER)
 
 
 if __name__ == '__main__':
