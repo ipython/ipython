@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """
 Entry point for a simple application giving a graphical frontend to
 ipython.
