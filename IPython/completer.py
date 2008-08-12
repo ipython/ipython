@@ -108,13 +108,6 @@ class Completer:
         readline.set_completer(Completer(my_namespace).complete)
         """
 
-        # some minimal strict typechecks.  For some core data structures, I
-        # want actual basic python types, not just anything that looks like
-        # one.  This is especially true for namespaces.
-        for ns in (namespace,global_namespace):
-            if ns is not None and type(ns) != types.DictType:
-                raise TypeError,'namespace must be a dictionary'
-
         # Don't bind to namespace quite yet, but flag whether the user wants a
         # specific namespace or to use __main__.__dict__. This will allow us
         # to bind to __main__.__dict__ at completion time, not now.
