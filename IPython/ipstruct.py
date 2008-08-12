@@ -88,8 +88,8 @@ class Struct:
     initialization): keys can't be numbers. But numeric keys can be used and
     accessed using the dictionary syntax. Again, an example:
 
-    This doesn't work:
-    >>> s=Struct(4='hi')  #doctest: +IGNORE_EXCEPTION_DETAIL
+    This doesn't work (prompt changed to avoid confusing the test system):
+    ->> s=Struct(4='hi')
     Traceback (most recent call last):
         ...
     SyntaxError: keyword can't be an expression

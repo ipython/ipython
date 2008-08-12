@@ -416,11 +416,11 @@ class ResultNS(object):
     
     >>> ns = ResultNS({'a':17,'foo':range(3)})
     >>> print ns
-        NS{'a':17,'foo':range(3)}
+    NS{'a': 17, 'foo': [0, 1, 2]}
     >>> ns.a
-        17
+    17
     >>> ns['foo']
-        [0,1,2]
+    [0, 1, 2]
     """
     def __init__(self, dikt):
         for k,v in dikt.iteritems():

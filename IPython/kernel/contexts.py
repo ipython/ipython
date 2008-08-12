@@ -48,7 +48,7 @@ def strip_whitespace(source,require_remote=True):
     """strip leading whitespace from input source.
 
     :Parameters:
-    
+
     """
     remote_mark = 'remote()'
     # Expand tabs to avoid any confusion.
@@ -101,7 +101,7 @@ def strip_whitespace(source,require_remote=True):
 class RemoteContextBase(object):
     def __init__(self):
         self.ip = ipapi.get()
-    
+
     def _findsource_file(self,f):
         linecache.checkcache()
         s = findsource(f.f_code)
@@ -113,10 +113,10 @@ class RemoteContextBase(object):
         from IPython import ipapi
         self.ip = ipapi.get()
         buf = self.ip.IP.input_hist_raw[-1].splitlines()[1:]
-        wsource = [l+'\n' for l in buf ] 
-                   
+        wsource = [l+'\n' for l in buf ]
+
         return strip_whitespace(wsource)
-        
+
     def findsource(self,frame):
         local_ns = frame.f_locals
         global_ns = frame.f_globals
@@ -128,7 +128,7 @@ class RemoteContextBase(object):
 
     def __enter__(self):
         raise NotImplementedError
-        
+
     def __exit__ (self, etype, value, tb):
         if issubclass(etype,error.StopLocalExecution):
             return True
@@ -141,40 +141,3 @@ class RemoteMultiEngine(RemoteContextBase):
     def __enter__(self):
         src = self.findsource(sys._getframe(1))
         return self.mec.execute(src)
-
-
-# XXX - Temporary hackish testing, we'll move this into proper tests right
-# away.  This has been commented out as it doesn't run under Python 2.4
-# because of the usage of the with statement below.  We need to protect
-# such things with a try:except.
-
-# if __name__ == '__main__':
-# 
-#     # XXX - for now, we need a running cluster to be started separately.  The
-#     # daemon work is almost finished, and will make much of this unnecessary.
-#     from IPython.kernel import client
-#     mec = client.MultiEngineClient(('127.0.0.1',10105))
-# 
-#     try:
-#         mec.get_ids()
-#     except ConnectionRefusedError:
-#         import os, time
-#         os.system('ipcluster -n 2 &')
-#         time.sleep(2)
-#         mec = client.MultiEngineClient(('127.0.0.1',10105))
-# 
-#     mec.block = False
-# 
-#     import itertools
-#     c = itertools.count()
-# 
-#     parallel = RemoteMultiEngine(mec)
-# 
-#     with parallel as pr:
-#         # A comment
-#         remote()  # this means the code below only runs remotely
-#         print 'Hello remote world'
-#         x = 3.14
-#         # Comments are OK
-#         # Even misindented.
-#         y = x+1

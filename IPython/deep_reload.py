@@ -4,6 +4,7 @@ A module to change reload() so that it acts recursively.
 To enable it type:
     >>> import __builtin__, deep_reload
     >>> __builtin__.reload = deep_reload.reload
+
 You can then disable it with:
     >>> __builtin__.reload = deep_reload.original_reload
     
