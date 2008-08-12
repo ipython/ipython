@@ -207,7 +207,7 @@ class InteractiveShell(object,Magic):
     isthreaded = False
 
     def __init__(self,name,usage=None,rc=Struct(opts=None,args=None),
-                 user_ns = None,user_global_ns=None,banner2='',
+                 user_ns=None,user_global_ns=None,banner2='',
                  custom_exceptions=((),None),embedded=False):
 
         # log system
@@ -254,7 +254,8 @@ class InteractiveShell(object,Magic):
         # the locals argument.  But we do carry a user_global_ns namespace
         # given as the exec 'globals' argument,  This is useful in embedding
         # situations where the ipython shell opens in a context where the
-        # distinction between locals and globals is meaningful.
+        # distinction between locals and globals is meaningful.  For
+        # non-embedded contexts, it is just the same object as the user_ns dict.
 
         # FIXME. For some strange reason, __builtins__ is showing up at user
         # level as a dict instead of a module. This is a manual fix, but I
@@ -284,14 +285,12 @@ class InteractiveShell(object,Magic):
         # These routines return properly built dicts as needed by the rest of
         # the code, and can also be used by extension writers to generate
         # properly initialized namespaces.
-        user_ns = IPython.ipapi.make_user_ns(user_ns)
-        user_global_ns = IPython.ipapi.make_user_global_ns(user_global_ns)
-            
+        user_ns, user_global_ns = IPython.ipapi.make_user_namespaces(user_ns,
+            user_global_ns)
+
         # Assign namespaces
         # This is the namespace where all normal user variables live
         self.user_ns = user_ns
-        # Embedded instances require a separate namespace for globals.
-        # Normally this one is unused by non-embedded instances.
         self.user_global_ns = user_global_ns
         # A namespace to keep track of internal data structures to prevent
         # them from cluttering user-visible stuff.  Will be updated later
@@ -2070,16 +2069,7 @@ want to merge them back into the new files.""" % locals()
         try:
             try:
                 self.hooks.pre_runcode_hook()
-                # Embedded instances require separate global/local namespaces
-                # so they can see both the surrounding (local) namespace and
-                # the module-level globals when called inside another function.
-                if self.embedded:
-                    exec code_obj in self.user_global_ns, self.user_ns
-                # Normal (non-embedded) instances should only have a single
-                # namespace for user code execution, otherwise functions won't
-                # see interactive top-level globals.
-                else:
-                    exec code_obj in self.user_ns
+                exec code_obj in self.user_global_ns, self.user_ns
             finally:
                 # Reset our crash handler in place
                 sys.excepthook = old_excepthook
