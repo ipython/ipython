@@ -452,7 +452,9 @@ class WxController(ConsoleWidget, PrefilterFrontEnd):
         """
         if not self._input_state == 'readline':
             return
-        end_line = self.GetCurrentLine() + 1
+        end_line = self.GetCurrentLine()
+        if not sys.platform == 'win32':
+            end_line += 1
         for i in range(self.current_prompt_line, end_line):
             if i in self._markers:
                 self.MarkerDeleteHandle(self._markers[i])
