@@ -585,7 +585,7 @@ class MatplotlibShellBase:
   Welcome to pylab, a matplotlib-based Python environment.
   For more information, type 'help(pylab)'.
 """
-        return user_ns,,user_global_ns,b
+        return user_ns,user_global_ns,b
 
     def mplot_exec(self,fname,*where,**kw):
         """Execute a matplotlib script.
