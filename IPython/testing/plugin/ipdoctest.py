@@ -139,10 +139,10 @@ def start_ipython():
     _main = sys.modules.get('__main__')
 
     # Start IPython instance.  We customize it to start with minimal frills.
-    user_ns = IPython.ipapi.make_user_ns(ncdict())
+    user_ns,global_ns = IPython.ipapi.make_user_namespaces(ncdict(),dict())
     
     IPython.Shell.IPShell(['--classic','--noterm_title'],
-                          user_ns)
+                          user_ns,global_ns)
 
     # Deactivate the various python system hooks added by ipython for
     # interactive convenience so we don't confuse the doctest system
