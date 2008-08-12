@@ -60,6 +60,7 @@ class PrefilterFrontEnd(LineFrontEndBase):
     
     def __init__(self, *args, **kwargs):
         LineFrontEndBase.__init__(self, *args, **kwargs)
+        self.save_output_hooks()
         # Instanciate an IPython0 interpreter to be able to use the
         # prefiltering.
         self.ipython0 = make_IPython()
@@ -78,6 +79,8 @@ class PrefilterFrontEnd(LineFrontEndBase):
         # in our environment
         self.ipython0.magic_ls = mk_system_call(self.system_call, 
                                                             'ls -CF')
+        # And now clean up the mess created by ipython0
+        self.release_output()
         self.shell.output_trap = RedirectorOutputTrap(
                             out_callback=self.write,
                             err_callback=self.write,
@@ -85,10 +88,6 @@ class PrefilterFrontEnd(LineFrontEndBase):
         self.shell.traceback_trap = SyncTracebackTrap(
                         formatters=self.shell.traceback_trap.formatters,
                             )
-        # Capture and release the outputs, to make sure all the
-        # shadow variables are set
-        self.capture_output()
-        self.release_output()
 
     #--------------------------------------------------------------------------
     # FrontEndBase interface 
@@ -109,18 +108,29 @@ class PrefilterFrontEnd(LineFrontEndBase):
         self.release_output()
 
 
+    def save_output_hooks(self):
+        """ Store all the output hooks we can think of, to be able to
+        restore them. 
+        
+        We need to do this early, as starting the ipython0 instance will
+        screw ouput hooks.
+        """
+        self.__old_cout_write = Term.cout.write
+        self.__old_cerr_write = Term.cerr.write
+        self.__old_stdout = sys.stdout
+        self.__old_stderr= sys.stderr
+        self.__old_help_output = pydoc.help.output
+        self.__old_display_hook = sys.displayhook
+
+
     def capture_output(self):
         """ Capture all the output mechanisms we can think of.
         """
-        self.__old_cout_write = Term.cout.write
-        self.__old_err_write = Term.cerr.write
+        self.save_output_hooks()
         Term.cout.write = self.write
         Term.cerr.write = self.write
-        self.__old_stdout = sys.stdout
-        self.__old_stderr= sys.stderr
         sys.stdout = Term.cout
         sys.stderr = Term.cerr
-        self.__old_help_output = pydoc.help.output
         pydoc.help.output = self.shell.output_trap.out
 
 
@@ -128,10 +138,11 @@ class PrefilterFrontEnd(LineFrontEndBase):
         """ Release all the different captures we have made.
         """
         Term.cout.write = self.__old_cout_write
-        Term.cerr.write = self.__old_err_write
+        Term.cerr.write = self.__old_cerr_write
         sys.stdout = self.__old_stdout
         sys.stderr = self.__old_stderr
         pydoc.help.output = self.__old_help_output 
+        sys.displayhook = self.__old_display_hook 
 
 
     def complete(self, line):

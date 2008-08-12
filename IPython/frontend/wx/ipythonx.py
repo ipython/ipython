@@ -12,7 +12,7 @@ class IPythonXController(WxController):
         bindings.
     """
 
-    debug = False
+    debug = True
 
     def __init__(self, *args, **kwargs):
         WxController.__init__(self, *args, **kwargs)

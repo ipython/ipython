@@ -42,12 +42,13 @@ from IPython.frontend.prefilterfrontend import PrefilterFrontEnd
 # Constants 
 #-------------------------------------------------------------------------------
 
-#_COMMAND_BG = '#FAFAF1' # Nice green
-_RUNNING_BUFFER_BG = '#FDFFD3' # Nice yellow
+_COMPLETE_BUFFER_BG = '#FAFAF1' # Nice green
+_INPUT_BUFFER_BG = '#FDFFD3' # Nice yellow
 _ERROR_BG = '#FFF1F1' # Nice red
 
-_RUNNING_BUFFER_MARKER = 31
+_COMPLETE_BUFFER_MARKER = 31
 _ERROR_MARKER = 30
+_INPUT_MARKER = 29
 
 prompt_in1 = \
         '\n\x01\x1b[0;34m\x02In [\x01\x1b[1;34m\x02$number\x01\x1b[0;34m\x02]: \x01\x1b[0m\x02'
@@ -124,6 +125,8 @@ class WxController(ConsoleWidget, PrefilterFrontEnd):
     # while it is being swapped
     _out_buffer_lock = Lock()
 
+    _markers = dict()
+
     #--------------------------------------------------------------------------
     # Public API
     #--------------------------------------------------------------------------
@@ -136,9 +139,12 @@ class WxController(ConsoleWidget, PrefilterFrontEnd):
         ConsoleWidget.__init__(self, parent, id, pos, size, style)
         PrefilterFrontEnd.__init__(self)
 
-        # Marker for running buffer.
-        self.MarkerDefine(_RUNNING_BUFFER_MARKER, stc.STC_MARK_BACKGROUND,
-                                background=_RUNNING_BUFFER_BG)
+        # Marker for complete buffer.
+        self.MarkerDefine(_COMPLETE_BUFFER_MARKER, stc.STC_MARK_BACKGROUND,
+                                background=_COMPLETE_BUFFER_BG)
+        # Marker for current input buffer.
+        self.MarkerDefine(_INPUT_MARKER, stc.STC_MARK_BACKGROUND,
+                                background=_INPUT_BUFFER_BG)
         # Marker for tracebacks.
         self.MarkerDefine(_ERROR_MARKER, stc.STC_MARK_BACKGROUND,
                                 background=_ERROR_BG)
@@ -147,6 +153,10 @@ class WxController(ConsoleWidget, PrefilterFrontEnd):
         BUFFER_FLUSH_TIMER_ID = 100
         self._buffer_flush_timer = wx.Timer(self, BUFFER_FLUSH_TIMER_ID)
         wx.EVT_TIMER(self, BUFFER_FLUSH_TIMER_ID, self._buffer_flush)
+
+        # Inject self in namespace, for debug
+        if self.debug:
+            self.shell.user_ns['self'] = self
 
 
     def raw_input(self, prompt):
@@ -258,7 +268,9 @@ class WxController(ConsoleWidget, PrefilterFrontEnd):
         end_line = self.current_prompt_line \
                         + max(1,  len(raw_string.split('\n'))-1)
         for i in range(self.current_prompt_line, end_line):
-            self.MarkerAdd(i, _RUNNING_BUFFER_MARKER)
+            if i in self._markers:
+                self.MarkerDeleteHandle(self._markers[i])
+            self._markers[i] = self.MarkerAdd(i, _COMPLETE_BUFFER_MARKER)
         # Update the display:
         wx.Yield()
         self.GotoPos(self.GetLength())
@@ -273,7 +285,7 @@ class WxController(ConsoleWidget, PrefilterFrontEnd):
     
     def release_output(self):
         __builtin__.raw_input = self.__old_raw_input
-        PrefilterFrontEnd.capture_output(self)
+        PrefilterFrontEnd.release_output(self)
 
 
     def after_execute(self):
@@ -288,7 +300,7 @@ class WxController(ConsoleWidget, PrefilterFrontEnd):
         PrefilterFrontEnd.show_traceback(self)
         wx.Yield()
         for i in range(start_line, self.GetCurrentLine()):
-            self.MarkerAdd(i, _ERROR_MARKER)
+            self._markers[i] = self.MarkerAdd(i, _ERROR_MARKER)
 
     
     #--------------------------------------------------------------------------
@@ -403,6 +415,8 @@ class WxController(ConsoleWidget, PrefilterFrontEnd):
         """
         if self.debug:
             print >>sys.__stdout__, repr(self.input_buffer)
+        i = self.GetLineCount()
+        self._markers[i] = self.MarkerAdd(i, _INPUT_MARKER)
         PrefilterFrontEnd._on_enter(self)
 
 

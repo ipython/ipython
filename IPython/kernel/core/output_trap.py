@@ -68,10 +68,12 @@ class OutputTrap(object):
         """ Remove the hooks.
         """
 
-        sys.stdout = self._out_save
+        if self.out_set:
+            sys.stdout = self._out_save
         self.out_set = False
 
-        sys.stderr = self._err_save
+        if self.err_set:
+            sys.stderr = self._err_save
         self.err_set = False
 
     def clear(self):

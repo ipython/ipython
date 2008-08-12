@@ -15,6 +15,7 @@ __docformat__ = "restructuredtext en"
 from IPython.frontend.prefilterfrontend import PrefilterFrontEnd
 from cStringIO import StringIO
 import string
+import sys
 
 class TestPrefilterFrontEnd(PrefilterFrontEnd):
     
