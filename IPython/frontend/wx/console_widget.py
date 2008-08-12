@@ -337,7 +337,7 @@ class ConsoleWidget(editwindow.EditWindow):
                         event.Modifiers in (wx.MOD_NONE, wx.MOD_WIN):
                 catched = True
                 self.CallTipCancel()
-                self.write('\n')
+                self.write('\n', refresh=False)
                 # Under windows scintilla seems to be doing funny stuff to the 
                 # line returns here, but the getter for input_buffer filters 
                 # this out.

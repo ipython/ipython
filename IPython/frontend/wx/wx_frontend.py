@@ -90,7 +90,6 @@ class WxController(ConsoleWidget, PrefilterFrontEnd):
     # inheritence
     def _set_input_buffer(self, string):
         ConsoleWidget._set_input_buffer(self, string)
-        wx.Yield()
         self._colorize_input_buffer()
 
     def _get_input_buffer(self):

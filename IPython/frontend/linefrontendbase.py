@@ -138,10 +138,14 @@ class LineFrontEndBase(FrontEndBase):
             return FrontEndBase.is_complete(self, string.rstrip() + '\n\n')
 
 
-    def write(self, string):
+    def write(self, string, refresh=True):
         """ Write some characters to the display.
 
             Subclass should overide this method.
+
+            The refresh keyword argument is used in frontends with an
+            event loop, to choose whether the write should trigget an UI
+            refresh, and thus be syncrhonous, or not.
         """
         print >>sys.__stderr__, string
 

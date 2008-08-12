@@ -42,13 +42,14 @@ class IPythonXController(WxController):
     def ask_exit(self):
         """ Ask the user whether to exit.
         """
-        self.write('\n')
+        self._input_state = 'subprocess'
+        self.write('\n', refresh=False)
         self.capture_output()
         self.ipython0.shell.exit()
         self.release_output()
-        wx.Yield()
         if not self.ipython0.exit_now:
-            self.new_prompt(self.input_prompt_template.substitute(
+            wx.CallAfter(self.new_prompt,
+                         self.input_prompt_template.substitute(
                                 number=self.last_result['number'] + 1))
  
 
@@ -86,6 +87,10 @@ Simple graphical frontend to IPython, using WxWidgets."""
                     help="Enable debug message for the wx frontend.")
 
     options, args = parser.parse_args()
+
+    # Clear the options, to avoid having the ipython0 instance complain
+    import sys
+    sys.argv = sys.argv[:1]
 
     app = wx.PySimpleApp()
     frame = IPythonX(None, wx.ID_ANY, 'IPythonX')
