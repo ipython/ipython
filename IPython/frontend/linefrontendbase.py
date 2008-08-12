@@ -66,7 +66,7 @@ class LineFrontEndBase(FrontEndBase):
     # FrontEndBase interface
     #--------------------------------------------------------------------------
 
-    def __init__(self, shell=None, history=None):
+    def __init__(self, shell=None, history=None, *args, **kwargs):
         if shell is None:
             shell = Interpreter()
         FrontEndBase.__init__(self, shell=shell, history=history)

@@ -140,7 +140,7 @@ class WxController(ConsoleWidget, PrefilterFrontEnd):
         """ Create Shell instance.
         """
         ConsoleWidget.__init__(self, parent, id, pos, size, style)
-        PrefilterFrontEnd.__init__(self)
+        PrefilterFrontEnd.__init__(self, **kwds)
 
         # Marker for complete buffer.
         self.MarkerDefine(_COMPLETE_BUFFER_MARKER, stc.STC_MARK_BACKGROUND,
@@ -157,6 +157,10 @@ class WxController(ConsoleWidget, PrefilterFrontEnd):
         self._buffer_flush_timer = wx.Timer(self, BUFFER_FLUSH_TIMER_ID)
         wx.EVT_TIMER(self, BUFFER_FLUSH_TIMER_ID, self._buffer_flush)
 
+        if 'debug' in kwds:
+            self.debug = kwds['debug']
+            kwds.pop('debug')
+
         # Inject self in namespace, for debug
         if self.debug:
             self.shell.user_ns['self'] = self
@@ -167,6 +171,8 @@ class WxController(ConsoleWidget, PrefilterFrontEnd):
         """
         self.new_prompt(prompt)
         self._input_state = 'raw_input'
+        del self._cursor 
+        self.SetCursor(wx.StockCursor(wx.CURSOR_CROSS))
         self.waiting = True
         self.__old_on_enter = self._on_enter
         def my_on_enter():
@@ -178,6 +184,7 @@ class WxController(ConsoleWidget, PrefilterFrontEnd):
             sleep(0.1)
         self._on_enter = self.__old_on_enter
         self._input_state = 'buffering'
+        self._cursor = wx.BusyCursor()
         return self.input_buffer.rstrip('\n')
 
 
@@ -214,9 +221,9 @@ class WxController(ConsoleWidget, PrefilterFrontEnd):
             symbol = __builtin__.__dict__[base_symbol_string]
         else:
             return False
-        for name in symbol_string.split('.')[1:] + ['__doc__']:
-            symbol = getattr(symbol, name)
         try:
+            for name in symbol_string.split('.')[1:] + ['__doc__']:
+                symbol = getattr(symbol, name)
             self.AutoCompCancel()
             wx.Yield()
             self.CallTipShow(self.GetCurrentPos(), symbol)
@@ -299,6 +306,7 @@ class WxController(ConsoleWidget, PrefilterFrontEnd):
         # Clear the wait cursor
         if hasattr(self, '_cursor'):
             del self._cursor
+        self.SetCursor(wx.StockCursor(wx.CURSOR_CHAR))
 
 
     def show_traceback(self):

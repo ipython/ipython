@@ -66,10 +66,10 @@ class IPythonX(wx.Frame):
     """ Main frame of the IPythonX app.
     """
 
-    def __init__(self, parent, id, title):
+    def __init__(self, parent, id, title, debug=False):
         wx.Frame.__init__(self, parent, id, title, size=(300,250))
         self._sizer = wx.BoxSizer(wx.VERTICAL)
-        self.shell = IPythonXController(self)
+        self.shell = IPythonXController(self, debug=debug)
         self._sizer.Add(self.shell, 1, wx.EXPAND)
         self.SetSizer(self._sizer)
         self.SetAutoLayout(1)
@@ -93,8 +93,7 @@ Simple graphical frontend to IPython, using WxWidgets."""
     sys.argv = sys.argv[:1]
 
     app = wx.PySimpleApp()
-    frame = IPythonX(None, wx.ID_ANY, 'IPythonX')
-    frame.shell.debug = options.debug
+    frame = IPythonX(None, wx.ID_ANY, 'IPythonX', debug=options.debug)
     frame.shell.SetFocus()
     frame.shell.app = app
     frame.SetSize((680, 460))
