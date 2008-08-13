@@ -236,12 +236,6 @@ class ConsoleWidget(editwindow.EditWindow):
         self.CmdKeyAssign(ord('='), stc.STC_SCMOD_CTRL|stc.STC_SCMOD_SHIFT, 
                                             stc.STC_CMD_ZOOMIN)
         
-        #self.CmdKeyAssign(stc.STC_KEY_PRIOR, stc.STC_SCMOD_SHIFT,
-        #                                    stc.STC_CMD_PAGEUP)
-
-        #self.CmdKeyAssign(stc.STC_KEY_NEXT, stc.STC_SCMOD_SHIFT,
-        #                                    stc.STC_CMD_PAGEDOWN)
-
         # Keys: we need to clear some of the keys the that don't play
         # well with a console.
         self.CmdKeyClear(ord('D'), stc.STC_SCMOD_CTRL)
@@ -319,9 +313,9 @@ class ConsoleWidget(editwindow.EditWindow):
             self.scroll_to_bottom()
         elif event.KeyCode == ord('K') and event.ControlDown() :
             self.input_buffer = ''
-        elif event.KeyCode == wx.WXK_PAGEUP and event.ShiftDown():
+        elif event.KeyCode == wx.WXK_PAGEUP:
             self.ScrollPages(-1)
-        elif event.KeyCode == wx.WXK_PAGEDOWN and event.ShiftDown():
+        elif event.KeyCode == wx.WXK_PAGEDOWN:
             self.ScrollPages(1)
         elif event.KeyCode == wx.WXK_UP and event.ShiftDown():
             self.ScrollLines(-1)
