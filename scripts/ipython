@@ -24,4 +24,5 @@ are trapped first by Python itself.
 """
 
 import IPython.Shell
+
 IPython.Shell.start().mainloop()

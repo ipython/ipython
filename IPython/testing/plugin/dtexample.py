@@ -21,8 +21,8 @@ def pyfunc():
     ...
     0 1 1 2 2 3
     """
-
     return 'pyfunc'
+
 
 def ipfunc():
     """Some ipython tests...
@@ -67,6 +67,93 @@ def ipfunc():
     In [9]: ipfunc()
     Out[9]: 'ipfunc'
     """
-
     return 'ipfunc'
+
+
+def ranfunc():
+    """A function with some random output.
+
+       Normal examples are verified as usual:
+       >>> 1+3
+       4
+
+       But if you put '# random' in the output, it is ignored:
+       >>> 1+3
+       junk goes here...  # random
+
+       >>> 1+2
+       again,  anything goes #random
+       if multiline, the random mark is only needed once.
+
+       >>> 1+2
+       You can also put the random marker at the end:
+       # random
+
+       >>> 1+2
+       # random
+       .. or at the beginning.
+
+       More correct input is properly verified:
+       >>> ranfunc()
+       'ranfunc'
+    """
+    return 'ranfunc'
+
+
+def random_all():
+    """A function where we ignore the output of ALL examples.
+
+    Examples:
+
+      # all-random
+
+      This mark tells the testing machinery that all subsequent examples should
+      be treated as random (ignoring their output).  They are still executed,
+      so if a they raise an error, it will be detected as such, but their
+      output is completely ignored.
+
+      >>> 1+3
+      junk goes here...
+
+      >>> 1+3
+      klasdfj;
+
+      >>> 1+2
+      again,  anything goes
+      blah...
+    """
+    pass
+
+
+def iprand():
+    """Some ipython tests with random output.
+
+    In [7]: 3+4
+    Out[7]: 7
+
+    In [8]: print 'hello'
+    world  # random
+
+    In [9]: iprand()
+    Out[9]: 'iprand'
+    """
+    return 'iprand'
+
+
+def iprand_all():
+    """Some ipython tests with fully random output.
+
+    # all-random
+    
+    In [7]: 1
+    Out[7]: 99
+
+    In [8]: print 'hello'
+    world
+
+    In [9]: iprand_all()
+    Out[9]: 'junk'
+    """
+    return 'iprand_all'
+
 

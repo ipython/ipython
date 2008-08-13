@@ -212,14 +212,7 @@ class InteractiveShell(object,Magic):
 
         # log system
         self.logger = Logger(self,logfname='ipython_log.py',logmode='rotate')
-
-        # some minimal strict typechecks.  For some core data structures, I
-        # want actual basic python types, not just anything that looks like
-        # one.  This is especially true for the global namespace.
-        if user_global_ns is not None and type(user_global_ns) is not dict:
-            raise TypeError('global namespace must be a true dict; got %r'
-                % type(user_global_ns))
-
+            
         # Job manager (for jobs run as background threads)
         self.jobs = BackgroundJobManager()
 
@@ -1007,10 +1000,17 @@ class InteractiveShell(object,Magic):
 
         Simple usage example:
 
-        In [1]: x = 'hello'
+        In [7]: x = 'hello'
 
-        In [2]: __IP.complete('x.l')
-        Out[2]: ['x.ljust', 'x.lower', 'x.lstrip']"""
+        In [8]: x
+        Out[8]: 'hello'
+
+        In [9]: print x
+        hello
+
+        In [10]: _ip.IP.complete('x.l')
+        Out[10]: ['x.ljust', 'x.lower', 'x.lstrip'] # random
+        """
         
         complete = self.Completer.complete
         state = 0
@@ -1026,6 +1026,8 @@ class InteractiveShell(object,Magic):
             state += 1
         outcomps = comps.keys()
         outcomps.sort()
+        #print "T:",text,"OC:",outcomps  # dbg
+        #print "vars:",self.user_ns.keys()
         return outcomps
         
     def set_completer_frame(self, frame=None):
@@ -1636,6 +1638,7 @@ want to merge them back into the new files.""" % locals()
         # previous call (which most likely existed in a separate scope).
         local_varnames = local_ns.keys()
         self.user_ns.update(local_ns)
+        #self.user_ns['local_ns'] = local_ns  # dbg
 
         # Patch for global embedding to make sure that things don't overwrite
         # user globals accidentally. Thanks to Richard <rxe@renre-europe.com>
@@ -2352,14 +2355,15 @@ want to merge them back into the new files.""" % locals()
     def handle_auto(self, line_info):
         """Hande lines which can be auto-executed, quoting if requested."""
 
-        #print 'pre <%s> iFun <%s> rest <%s>' % (pre,iFun,theRest)  # dbg
         line    = line_info.line
         iFun    = line_info.iFun
         theRest = line_info.theRest
         pre     = line_info.pre
         continue_prompt = line_info.continue_prompt
         obj = line_info.ofind(self)['obj']
-        
+
+        #print 'pre <%s> iFun <%s> rest <%s>' % (pre,iFun,theRest)  # dbg
+
         # This should only be active for single-line input!
         if continue_prompt:
             self.log(line,line,continue_prompt)
