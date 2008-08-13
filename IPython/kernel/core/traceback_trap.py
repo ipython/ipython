@@ -15,6 +15,7 @@ __docformat__ = "restructuredtext en"
 # Imports
 #-------------------------------------------------------------------------------
 import sys
+from traceback import format_list
 
 class TracebackTrap(object):
     """ Object to trap and format tracebacks.
@@ -73,8 +74,12 @@ class TracebackTrap(object):
 
         # Go through the list of formatters and let them add their formatting.
         traceback = {}
-        for formatter in self.formatters:
-            traceback[formatter.identifier] = formatter(*self.args)
-        
+        try:
+            for formatter in self.formatters:
+                traceback[formatter.identifier] = formatter(*self.args)
+        except:
+            # This works always, including with string exceptions.
+            traceback['fallback'] = repr(self.args)
+
         message['traceback'] = traceback
 
