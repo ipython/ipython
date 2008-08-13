@@ -54,6 +54,9 @@ class IPythonXController(WxController):
             wx.CallAfter(self.new_prompt,
                          self.input_prompt_template.substitute(
                                 number=self.last_result['number'] + 1))
+        else:
+            wx.CallAfter(wx.GetApp().Exit)
+        self.write('Exiting ...', refresh=False)
  
 
     def do_exit(self):

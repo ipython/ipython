@@ -34,6 +34,8 @@ import re
 # screen: this should not be editable by the user.
 
 _DEFAULT_SIZE = 10
+if sys.platform == 'darwin':
+    _DEFAULT_STYLE = 12
 
 _DEFAULT_STYLE = {
     'stdout'      : 'fore:#0000FF',

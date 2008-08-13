@@ -107,6 +107,8 @@ This is the wx frontend, by Gael Varoquaux. This is EXPERIMENTAL code."""
 
 
     def execute(self, python_string, raw_string=None):
+        if self.debug:
+            print 'Executing Python code:', repr(python_string)
         self.capture_output()
         LineFrontEndBase.execute(self, python_string,
                                     raw_string=raw_string)
@@ -178,7 +180,8 @@ This is the wx frontend, by Gael Varoquaux. This is EXPERIMENTAL code."""
         self.last_result = dict(number=self.prompt_number)
         try:
             for line in input_string.split('\n'):
-                filtered_lines.append(self.ipython0.prefilter(line, False))
+                filtered_lines.append(
+                        self.ipython0.prefilter(line, False).rstrip())
         except:
             # XXX: probably not the right thing to do.
             self.ipython0.showsyntaxerror()
@@ -186,6 +189,7 @@ This is the wx frontend, by Gael Varoquaux. This is EXPERIMENTAL code."""
         finally:
             self.release_output()
 
+        # Clean up the trailing whitespace, to avoid indentation errors
         filtered_string = '\n'.join(filtered_lines)
         return filtered_string
 
