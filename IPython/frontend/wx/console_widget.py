@@ -41,8 +41,8 @@ _DEFAULT_STYLE = {
     'trace'       : 'fore:#FF0000',
 
     'default'     : 'size:%d' % _DEFAULT_SIZE,
-    'bracegood'   : 'fore:#FFFFFF,back:#0000FF,bold',
-    'bracebad'    : 'fore:#000000,back:#FF0000,bold',
+    'bracegood'   : 'fore:#00AA00,back:#000000,bold',
+    'bracebad'    : 'fore:#FF0000,back:#000000,bold',
 
     # properties for the various Python lexer styles
     'comment'       : 'fore:#007F00',
