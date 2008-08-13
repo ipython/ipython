@@ -264,7 +264,8 @@ class WxController(ConsoleWidget, PrefilterFrontEnd):
         self._out_buffer.append(text)
         self._out_buffer_lock.release()
         if not self._buffer_flush_timer.IsRunning():
-            wx.CallAfter(self._buffer_flush_timer.Start, 100)  # milliseconds
+            wx.CallAfter(self._buffer_flush_timer.Start, 
+                                        milliseconds=100, oneShot=True)
 
 
     #--------------------------------------------------------------------------
@@ -294,12 +295,14 @@ class WxController(ConsoleWidget, PrefilterFrontEnd):
 
     def capture_output(self):
         __builtin__.raw_input = self.raw_input
+        self.SetLexer(stc.STC_LEX_NULL)
         PrefilterFrontEnd.capture_output(self)
         
     
     def release_output(self):
         __builtin__.raw_input = self.__old_raw_input
         PrefilterFrontEnd.release_output(self)
+        self.SetLexer(stc.STC_LEX_PYTHON)
 
 
     def after_execute(self):
@@ -438,6 +441,18 @@ class WxController(ConsoleWidget, PrefilterFrontEnd):
 
 
     #--------------------------------------------------------------------------
+    # EditWindow API
+    #--------------------------------------------------------------------------
+
+    def OnUpdateUI(self, event):
+        """ Override the OnUpdateUI of the EditWindow class, to prevent 
+            syntax highlighting both for faster redraw, and for more
+            consistent look and feel.
+        """
+        if not self._input_state == 'readline':
+            ConsoleWidget.OnUpdateUI(self, event)
+
+    #--------------------------------------------------------------------------
     # Private API
     #--------------------------------------------------------------------------
  
@@ -458,7 +473,7 @@ class WxController(ConsoleWidget, PrefilterFrontEnd):
         self._out_buffer = []
         self._out_buffer_lock.release()
         self.write(''.join(_out_buffer), refresh=False)
-        self._buffer_flush_timer.Stop()
+
 
     def _colorize_input_buffer(self):
         """ Keep the input buffer lines at a bright color.

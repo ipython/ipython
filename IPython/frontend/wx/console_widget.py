@@ -168,7 +168,9 @@ class ConsoleWidget(editwindow.EditWindow):
                 
         self.GotoPos(self.GetLength())
         if refresh:
-            wx.Yield()
+            # Maybe this is faster than wx.Yield()
+            self.ProcessEvent(wx.PaintEvent())
+            #wx.Yield()
 
    
     def new_prompt(self, prompt):
@@ -206,6 +208,15 @@ class ConsoleWidget(editwindow.EditWindow):
         """
         return self.GetSize()[0]/self.GetCharWidth()
 
+    #--------------------------------------------------------------------------
+    # EditWindow API
+    #--------------------------------------------------------------------------
+
+    def OnUpdateUI(self, event):
+        """ Override the OnUpdateUI of the EditWindow class, to prevent 
+            syntax highlighting both for faster redraw, and for more
+            consistent look and feel.
+        """
 
     #--------------------------------------------------------------------------
     # Private API
