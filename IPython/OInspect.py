@@ -24,16 +24,17 @@ __all__ = ['Inspector','InspectColors']
 
 # stdlib modules
 import __builtin__
+import StringIO
 import inspect
 import linecache
-import string
-import StringIO
-import types
 import os
+import string
 import sys
+import types
+
 # IPython's own
 from IPython import PyColorize
-from IPython.genutils import page,indent,Term,mkdict
+from IPython.genutils import page,indent,Term
 from IPython.Itpl import itpl
 from IPython.wildcard import list_namespace
 from IPython.ColorANSI import *
@@ -136,6 +137,7 @@ def getdoc(obj):
             ds = '%s\n%s' % (ds,ds2)
     return ds
 
+
 def getsource(obj,is_binary=False):
     """Wrapper around inspect.getsource.
 
@@ -162,6 +164,26 @@ def getsource(obj,is_binary=False):
                 src = inspect.getsource(obj.__class__)
         return src
 
+def getargspec(obj):
+    """Get the names and default values of a function's arguments.
+
+    A tuple of four things is returned: (args, varargs, varkw, defaults).
+    'args' is a list of the argument names (it may contain nested lists).
+    'varargs' and 'varkw' are the names of the * and ** arguments or None.
+    'defaults' is an n-tuple of the default values of the last n arguments.
+
+    Modified version of inspect.getargspec from the Python Standard
+    Library."""
+
+    if inspect.isfunction(obj):
+        func_obj = obj
+    elif inspect.ismethod(obj):
+        func_obj = obj.im_func
+    else:
+        raise TypeError, 'arg is not a Python function'
+    args, varargs, varkw = inspect.getargs(func_obj.func_code)
+    return args, varargs, varkw, func_obj.func_defaults
+
 #****************************************************************************
 # Class definitions
 
@@ -172,6 +194,7 @@ class myStringIO(StringIO.StringIO):
         self.write(*arg,**kw)
         self.write('\n')
 
+
 class Inspector:
     def __init__(self,color_table,code_color_table,scheme,
                  str_detail_level=0):
@@ -181,26 +204,6 @@ class Inspector:
         self.str_detail_level = str_detail_level
         self.set_active_scheme(scheme)
 
-    def __getargspec(self,obj):
-        """Get the names and default values of a function's arguments.
-
-        A tuple of four things is returned: (args, varargs, varkw, defaults).
-        'args' is a list of the argument names (it may contain nested lists).
-        'varargs' and 'varkw' are the names of the * and ** arguments or None.
-        'defaults' is an n-tuple of the default values of the last n arguments.
-
-        Modified version of inspect.getargspec from the Python Standard
-        Library."""
-
-        if inspect.isfunction(obj):
-            func_obj = obj
-        elif inspect.ismethod(obj):
-            func_obj = obj.im_func
-        else:
-            raise TypeError, 'arg is not a Python function'
-        args, varargs, varkw = inspect.getargs(func_obj.func_code)
-        return args, varargs, varkw, func_obj.func_defaults
-
     def __getdef(self,obj,oname=''):
         """Return the definition header for any callable object.
 
@@ -208,7 +211,7 @@ class Inspector:
         exception is suppressed."""
         
         try:
-            return oname + inspect.formatargspec(*self.__getargspec(obj))
+            return oname + inspect.formatargspec(*getargspec(obj))
         except:
             return None
  
