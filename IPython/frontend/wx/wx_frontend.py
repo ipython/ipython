@@ -171,7 +171,8 @@ class WxController(ConsoleWidget, PrefilterFrontEnd):
         """
         self.new_prompt(prompt)
         self._input_state = 'raw_input'
-        del self._cursor 
+        if hasattr(self, '_cursor'):
+            del self._cursor 
         self.SetCursor(wx.StockCursor(wx.CURSOR_CROSS))
         self.waiting = True
         self.__old_on_enter = self._on_enter
