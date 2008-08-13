@@ -59,7 +59,6 @@ class PrefilterFrontEnd(LineFrontEndBase):
     """
     
     def __init__(self, *args, **kwargs):
-        LineFrontEndBase.__init__(self, *args, **kwargs)
         self.save_output_hooks()
         # Instanciate an IPython0 interpreter to be able to use the
         # prefiltering.
@@ -69,9 +68,6 @@ class PrefilterFrontEnd(LineFrontEndBase):
                     lambda s, string: self.write("\n"+string))
         self.ipython0.write = self.write
         self._ip = _ip = IPApi(self.ipython0)
-        # XXX: Hack: mix the two namespaces
-        self.shell.user_ns = self.ipython0.user_ns
-        self.shell.user_global_ns = self.ipython0.user_global_ns
         # Make sure the raw system call doesn't get called, as we don't
         # have a stdin accessible.
         self._ip.system = self.system_call
@@ -81,6 +77,15 @@ class PrefilterFrontEnd(LineFrontEndBase):
                                                             'ls -CF')
         # And now clean up the mess created by ipython0
         self.release_output()
+        if not 'banner' in kwargs:
+            kwargs['banner'] = self.ipython0.BANNER + """
+This is the wx frontend, by Gael Varoquaux. This is EXPERIMENTAL code."""
+
+        LineFrontEndBase.__init__(self, *args, **kwargs)
+        # XXX: Hack: mix the two namespaces
+        self.shell.user_ns = self.ipython0.user_ns
+        self.shell.user_global_ns = self.ipython0.user_global_ns
+
         self.shell.output_trap = RedirectorOutputTrap(
                             out_callback=self.write,
                             err_callback=self.write,

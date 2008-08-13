@@ -62,15 +62,23 @@ class LineFrontEndBase(FrontEndBase):
     # Set to true for debug output
     debug = False
 
+    # A banner to print at startup
+    banner = None
+
     #--------------------------------------------------------------------------
     # FrontEndBase interface
     #--------------------------------------------------------------------------
 
-    def __init__(self, shell=None, history=None, *args, **kwargs):
+    def __init__(self, shell=None, history=None, banner=None, *args, **kwargs):
         if shell is None:
             shell = Interpreter()
         FrontEndBase.__init__(self, shell=shell, history=history)
-        
+
+        if banner is not None:
+            self.banner = banner
+        if self.banner is not None:
+            self.write(self.banner, refresh=False)
+
         self.new_prompt(self.input_prompt_template.substitute(number=1))
 
 

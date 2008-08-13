@@ -175,7 +175,7 @@ class ConsoleWidget(editwindow.EditWindow):
 
             The prompt can be given with ascii escape sequences.
         """
-        self.write(prompt)
+        self.write(prompt, refresh=False)
         # now we update our cursor giving end of prompt
         self.current_prompt_pos = self.GetLength()
         self.current_prompt_line = self.GetCurrentLine()
@@ -253,7 +253,6 @@ class ConsoleWidget(editwindow.EditWindow):
         self.SetIndent(4)
         self.SetTabWidth(4)
 
-        self.EnsureCaretVisible()
         # we don't want scintilla's autocompletion to choose 
         # automaticaly out of a single choice list, as we pop it up
         # automaticaly
@@ -299,7 +298,6 @@ class ConsoleWidget(editwindow.EditWindow):
         self.StyleSetSpec(stc.STC_P_DEFNAME, p['def'])
         self.StyleSetSpec(stc.STC_P_OPERATOR, p['operator'])
         self.StyleSetSpec(stc.STC_P_COMMENTBLOCK, p['comment'])
-
 
     def _on_key_down(self, event, skip=True):
         """ Key press callback used for correcting behavior for 

@@ -16,6 +16,7 @@ You need wxPython to run this application.
 from wx_frontend import WxController
 import __builtin__
 
+
 class IPythonXController(WxController):
     """ Sub class of WxController that adds some application-specific
         bindings.
@@ -26,6 +27,9 @@ class IPythonXController(WxController):
     def __init__(self, *args, **kwargs):
         WxController.__init__(self, *args, **kwargs)
         self.ipython0.ask_exit = self.do_exit
+        # Scroll to top
+        maxrange = self.GetScrollRange(wx.VERTICAL)
+        self.ScrollLines(-maxrange)
 
 
     def _on_key_down(self, event, skip=True):
