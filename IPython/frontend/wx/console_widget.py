@@ -242,7 +242,6 @@ class ConsoleWidget(editwindow.EditWindow):
         self.CmdKeyClear(ord('L'), stc.STC_SCMOD_CTRL)
         self.CmdKeyClear(ord('T'), stc.STC_SCMOD_CTRL)
 
-
         self.SetEOLMode(stc.STC_EOL_CRLF)
         self.SetWrapMode(stc.STC_WRAP_CHAR)
         self.SetWrapMode(stc.STC_WRAP_WORD)
@@ -260,6 +259,8 @@ class ConsoleWidget(editwindow.EditWindow):
         # automaticaly
         self.AutoCompSetChooseSingle(False)
         self.AutoCompSetMaxHeight(10)
+        # XXX: this doesn't seem to have an effect.
+        self.AutoCompSetFillUps('\n')
 
         self.SetMargins(3, 3) #text is moved away from border with 3px
         # Suppressing Scintilla margins

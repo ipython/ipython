@@ -377,12 +377,12 @@ class WxController(ConsoleWidget, PrefilterFrontEnd):
             # Calltips
             event.Skip()
             self.do_calltip()
-        elif self.AutoCompActive():
+        elif self.AutoCompActive() and not event.KeyCode == ord('\t'):
             event.Skip()
             if event.KeyCode in (wx.WXK_BACK, wx.WXK_DELETE): 
                 wx.CallAfter(self._popup_completion, create=True)
             elif not event.KeyCode in (wx.WXK_UP, wx.WXK_DOWN, wx.WXK_LEFT,
-                            wx.WXK_RIGHT):
+                            wx.WXK_RIGHT, wx.WXK_ESCAPE):
                 wx.CallAfter(self._popup_completion)
         else:
             # Up history
@@ -410,6 +410,8 @@ class WxController(ConsoleWidget, PrefilterFrontEnd):
                 last_line = self.input_buffer.split('\n')[-1]
                 if not re.match(r'^\s*$', last_line):
                     self.complete_current_input()
+                    if self.AutoCompActive():
+                        wx.CallAfter(self._popup_completion, create=True)
                 else:
                     event.Skip()
             else:
