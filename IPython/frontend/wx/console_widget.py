@@ -241,6 +241,7 @@ class ConsoleWidget(editwindow.EditWindow):
         self.CmdKeyClear(ord('D'), stc.STC_SCMOD_CTRL)
         self.CmdKeyClear(ord('L'), stc.STC_SCMOD_CTRL)
         self.CmdKeyClear(ord('T'), stc.STC_SCMOD_CTRL)
+        self.CmdKeyClear(ord('A'), stc.STC_SCMOD_CTRL)
 
         self.SetEOLMode(stc.STC_EOL_CRLF)
         self.SetWrapMode(stc.STC_WRAP_CHAR)
@@ -312,6 +313,14 @@ class ConsoleWidget(editwindow.EditWindow):
             self.scroll_to_bottom()
         elif event.KeyCode == ord('K') and event.ControlDown() :
             self.input_buffer = ''
+        elif event.KeyCode == ord('A') and event.ControlDown() :
+            self.GotoPos(self.GetLength())
+            self.SetSelectionStart(self.current_prompt_pos)
+            self.SetSelectionEnd(self.GetCurrentPos())
+            catched = True
+        elif event.KeyCode == ord('E') and event.ControlDown() :
+            self.GotoPos(self.GetLength())
+            catched = True
         elif event.KeyCode == wx.WXK_PAGEUP:
             self.ScrollPages(-1)
         elif event.KeyCode == wx.WXK_PAGEDOWN:
@@ -343,7 +352,7 @@ class ConsoleWidget(editwindow.EditWindow):
                     self.GotoPos(self.current_prompt_pos)
                     catched = True
 
-                elif event.Modifiers in  (wx.MOD_SHIFT, wx.MOD_WIN) :
+                elif event.Modifiers == wx.MOD_SHIFT:
                     # FIXME: This behavior is not ideal: if the selection
                     # is already started, it will jump.
                     self.SetSelectionStart(self.current_prompt_pos) 
