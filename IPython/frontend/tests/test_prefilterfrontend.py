@@ -16,6 +16,7 @@ from IPython.frontend.prefilterfrontend import PrefilterFrontEnd
 from cStringIO import StringIO
 import string
 import sys
+from IPython.ipapi import get as get_ipython0
 
 class TestPrefilterFrontEnd(PrefilterFrontEnd):
     
@@ -23,8 +24,9 @@ class TestPrefilterFrontEnd(PrefilterFrontEnd):
     output_prompt_template = string.Template('')
 
     def __init__(self):
+        ipython0 = get_ipython0()        
         self.out = StringIO()
-        PrefilterFrontEnd.__init__(self)
+        PrefilterFrontEnd.__init__(self, ipython0=ipython0)
 
     def write(self, string):
        self.out.write(string) 

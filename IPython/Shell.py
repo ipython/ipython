@@ -634,7 +634,7 @@ class MatplotlibMTShell(MatplotlibShellBase,MTInteractiveShell):
 
     def __init__(self,name,usage=None,rc=Struct(opts=None,args=None),
                  user_ns=None,user_global_ns=None, **kw):
-        user_ns,b2 = self._matplotlib_config(name,user_ns)
+        user_ns,user_global_ns,b2 = self._matplotlib_config(name,user_ns,user_global_ns)
         MTInteractiveShell.__init__(self,name,usage,rc,user_ns,user_global_ns,
                                     banner2=b2,**kw)
 

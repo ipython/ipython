@@ -565,6 +565,19 @@ def make_user_ns(user_ns = None):
     This builds a dict with the minimal information needed to operate as a
     valid IPython user namespace, which you can pass to the various embedding
     classes in ipython.
+
+    This API is currently deprecated. Use ipapi.make_user_namespaces() instead
+    to make both the local and global namespace objects simultaneously.
+
+    :Parameters:
+        user_ns : dict-like, optional
+            The current user namespace. The items in this namespace should be
+            included in the output. If None, an appropriate blank namespace
+            should be created.
+
+    :Returns:
+        A dictionary-like object to be used as the local namespace of the
+        interpreter.
     """
 
     raise NotImplementedError
@@ -575,7 +588,20 @@ def make_user_global_ns(ns = None):
 
     Similar to make_user_ns(), but global namespaces are really only needed in
     embedded applications, where there is a distinction between the user's
-    interactive namespace and the global one where ipython is running."""
+    interactive namespace and the global one where ipython is running.
+
+    This API is currently deprecated. Use ipapi.make_user_namespaces() instead
+    to make both the local and global namespace objects simultaneously.
+
+    :Parameters:
+        ns : dict, optional
+            The current user global namespace. The items in this namespace
+            should be included in the output. If None, an appropriate blank
+            namespace should be created.
+
+    :Returns:
+        A true dict to be used as the global namespace of the interpreter.
+    """
 
     raise NotImplementedError
 
@@ -599,6 +625,20 @@ def make_user_namespaces(user_ns = None,user_global_ns = None):
     namespace synchronize with the globals dict somehow.
 
     Raises TypeError if the provided globals namespace is not a true dict.
+
+    :Parameters:
+        user_ns : dict-like, optional
+            The current user namespace. The items in this namespace should be
+            included in the output. If None, an appropriate blank namespace
+            should be created.
+        user_global_ns : dict, optional
+            The current user global namespace. The items in this namespace
+            should be included in the output. If None, an appropriate blank
+            namespace should be created.
+
+    :Returns:
+        A tuple pair of dictionary-like object to be used as the local namespace
+        of the interpreter and a dict to be used as the global namespace.
     """
 
     if user_ns is None:

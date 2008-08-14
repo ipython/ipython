@@ -58,14 +58,22 @@ class PrefilterFrontEnd(LineFrontEndBase):
     completion...
     """
     
-    def __init__(self, *args, **kwargs):
+    def __init__(self, ipython0=None, *args, **kwargs):
+        """ Parameters:
+            -----------
+
+            ipython0: an optional ipython0 instance to use for command
+            prefiltering and completion.
+        """
         self.save_output_hooks()
-        # Instanciate an IPython0 interpreter to be able to use the
-        # prefiltering.
-        self.ipython0 = make_IPython()
+        if ipython0 is None:
+            # Instanciate an IPython0 interpreter to be able to use the
+            # prefiltering.
+            ipython0 = make_IPython()
+        self.ipython0 = ipython0
         # Set the pager:
         self.ipython0.set_hook('show_in_pager', 
-                    lambda s, string: self.write("\n"+string))
+                    lambda s, string: self.write("\n" + string))
         self.ipython0.write = self.write
         self._ip = _ip = IPApi(self.ipython0)
         # Make sure the raw system call doesn't get called, as we don't
