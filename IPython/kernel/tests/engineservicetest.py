@@ -128,8 +128,9 @@ class IEngineCoreTestCase(object):
         return d
     
     @parametric
-    def testExecuteFailures(cls):
-        return [(cls.runTestExecuteFailures, cmd, exc) for cmd, exc in invalidCommands]
+    def testExecuteFailuresEngineService(cls):
+        return [(cls.runTestExecuteFailures, cmd, exc)
+                for cmd, exc in invalidCommands]
     
     def runTestPushPull(self, o):
         d = self.engine.push(dict(a=o))

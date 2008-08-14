@@ -187,7 +187,7 @@ class IMultiEngineTestCase(IMultiEngineBaseTestCase):
         return d
 
     @parametric
-    def testExecuteFailures(cls):
+    def testExecuteFailuresMultiEng(cls):
         return [(cls.runExecuteFailures,cmd,exc) for
                 cmd,exc in invalidCommands]
 
