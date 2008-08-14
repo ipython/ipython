@@ -12,7 +12,7 @@ from IPython.ipapi import TryNext
 import IPython.macro
 import IPython.Shell
 
-__leo_push_history = set()
+_leo_push_history = set()
 
 def init_ipython(ipy):
     """ This will be run by _ip.load('ipy_leo') 
@@ -27,6 +27,8 @@ def init_ipython(ipy):
     ip.expose_magic('mb',mb_f)
     ip.expose_magic('lee',lee_f)
     ip.expose_magic('leoref',leoref_f)
+    # Note that no other push command should EVER have lower than 0
+    expose_ileo_push(push_mark_req, -1)
     expose_ileo_push(push_cl_node,100)
     # this should be the LAST one that will be executed, and it will never raise TryNext
     expose_ileo_push(push_ipython_script, 1000)
@@ -338,6 +340,7 @@ class LeoWorkbook:
             if re.match(cmp, node.h, re.IGNORECASE):
                 yield node
         return
+    
     def require(self, req):
         """ Used to control node push dependencies 
         
@@ -346,8 +349,9 @@ class LeoWorkbook:
         E.g. wb.require('foo') will do wb.foo.ipush() if it hasn't been done already
         """
         
-        if req not in __leo_push_history:
-            getattr(self.req).ipush()
+        if req not in _leo_push_history:
+            es('Require: ' + req)
+            getattr(self,req).ipush()
      
 
 @IPython.generics.complete_object.when_type(LeoWorkbook)
@@ -457,6 +461,14 @@ def push_ev_node(node):
     es('ipy eval ' + expr)
     res = ip.ev(expr)
     node.v = res
+    
+def push_mark_req(node):
+    """ This should be the first one that gets called.
+    
+    It will mark the node as 'pushed', for wb.require.
+    """
+    _leo_push_history.add(node.h)
+    raise TryNext
     
     
 def push_position_from_leo(p):
