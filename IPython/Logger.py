@@ -193,7 +193,7 @@ which already exists. But you must first start the logging process with
         try:
             input_hist = self.shell.user_ns['_ih']
         except:
-            print 'userns:',self.shell.user_ns.keys()
+            #print 'userns:',self.shell.user_ns.keys()  # dbg
             return
         
         out_cache = self.shell.outputcache
