@@ -2693,7 +2693,7 @@ Defaulting color scheme to 'NoColor'"""
 
           cd -<n>: changes to the n-th directory in the directory history.
 
-          cd -foo: change to directory that matches 'foo' in history
+          cd --foo: change to directory that matches 'foo' in history
             
           cd -b <bookmark_name>: jump to a bookmark set by %bookmark
              (note: cd <bookmark_name> is enough if there is no
@@ -2714,7 +2714,6 @@ Defaulting color scheme to 'NoColor'"""
 
         oldcwd = os.getcwd()
         numcd = re.match(r'(-)(\d+)$',parameter_s)
-        wordcd = re.match(r'(-)(\w+)$',parameter_s)
         # jump in directory history by number
         if numcd:
             nn = int(numcd.group(2))
@@ -2725,18 +2724,18 @@ Defaulting color scheme to 'NoColor'"""
                 return
             else:
                 opts = {}
-        elif wordcd:
+        elif parameter_s.startswith('--'):
             ps = None
             fallback = None
-            pat = wordcd.group(2)
+            pat = parameter_s[2:]
             dh = self.shell.user_ns['_dh']
             # first search only by basename (last component)
             for ent in reversed(dh):
-                if pat in os.path.basename(ent):
+                if pat in os.path.basename(ent) and os.path.isdir(ent):
                     ps = ent
                     break
             
-                if fallback is None and pat in ent:
+                if fallback is None and pat in ent and os.path.isdir(ent):
                     fallback = ent
                 
             # if we have no last part match, pick the first full path match

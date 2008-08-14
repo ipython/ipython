@@ -318,6 +318,9 @@ def cd_completer(self, event):
             return ents
         return []
 
+    if event.symbol.startswith('--'):
+        return ["--" + os.path.basename(d) for d in ip.user_ns['_dh']]
+    
     if relpath.startswith('~'):
         relpath = os.path.expanduser(relpath).replace('\\','/')
     found = []
