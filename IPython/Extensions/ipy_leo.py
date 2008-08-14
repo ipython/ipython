@@ -395,9 +395,13 @@ def push_ipython_script(node):
         hstart = len(ip.IP.input_hist)
         script = node.script()
                 
+        # The current node _p needs to handle wb.require() and recursive ipushes
+        old_p = ip.user_ns.get('_p',None)
         ip.user_ns['_p'] = node
         ip.runlines(script)
-        ip.user_ns.pop('_p',None)
+        ip.user_ns['_p'] = old_p
+        if old_p is None:
+            del ip.user_ns['_p']
         
         has_output = False
         for idx in range(hstart,len(ip.IP.input_hist)):
