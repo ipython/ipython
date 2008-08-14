@@ -3,7 +3,8 @@ PREFIX=~/usr/local
 PREFIX=~/tmp/local
 
 NOSE0=nosetests -vs --with-doctest --doctest-tests --detailed-errors
-NOSE=nosetests -vvs --with-ipdoctest --doctest-tests --doctest-extension=txt --detailed-errors
+NOSE=nosetests -vvs --with-ipdoctest --doctest-tests --doctest-extension=txt \
+--detailed-errors
 
 SRC=ipdoctest.py setup.py ../decorators.py
 
@@ -31,29 +32,37 @@ deb: plugin dtexample.py
 
 # IPython tests
 deco:
-	$(NOSE0) -x IPython.testing.decorators
+	$(NOSE0) IPython.testing.decorators
 
 magic: plugin
-	$(NOSE) -x IPython.Magic
+	$(NOSE) IPython.Magic
 
 ipipe: plugin
-	$(NOSE) -x IPython.Extensions.ipipe
+	$(NOSE) IPython.Extensions.ipipe
 
 iplib: plugin
-	$(NOSE) -x IPython.iplib
+	$(NOSE)  IPython.iplib
 
 strd: plugin
-	nosetests -vs --with-doctest --doctest-tests IPython.strdispatch
 	$(NOSE) IPython.strdispatch
+
+engine: plugin
+	$(NOSE) IPython.kernel
+
+tf: plugin
+	$(NOSE) IPython.config.traitlets
 
 # All of ipython itself
 ipython: plugin
 	$(NOSE) IPython
 
+
 # Combined targets
 sr: rtest strd
 
 base: dtest rtest test strd deco
+
+quick: base iplib ipipe
 
 all: base ipython
 

@@ -13,21 +13,6 @@ Limitations:
   '_34==True', for example).  For IPython tests run via an external process the
   prompt numbers may be different, and IPython tests run as normal python code
   won't even have these special _NN variables set at all.
-
-- IPython functions that produce output as a side-effect of calling a system
-  process (e.g. 'ls') can be doc-tested, but they must be handled in an
-  external IPython process.  Such doctests must be tagged with:
-
-        # ipdoctest: EXTERNAL
-
-  so that the testing machinery handles them differently.  Since these are run
-  via pexpect in an external process, they can't deal with exceptions or other
-  fancy featurs of regular doctests.  You must limit such tests to simple
-  matching of the output.  For this reason, I recommend you limit these kinds
-  of doctests to features that truly require a separate process, and use the
-  normal IPython ones (which have all the features of normal doctests) for
-  everything else.  See the examples at the bottom of this file for a
-  comparison of what can be done with both types.
 """
 
 
@@ -63,9 +48,6 @@ import nose.core
 from nose.plugins import doctests, Plugin
 from nose.util import anyp, getpackage, test_address, resolve_name, tolist
 
-# Our own imports
-#from extdoctest import ExtensionDoctest, DocTestFinder
-#from dttools import DocTestFinder, DocTestCase
 #-----------------------------------------------------------------------------
 # Module globals and other constants
 
@@ -79,9 +61,9 @@ log = logging.getLogger(__name__)
 # gets the job done.
 
 
-# XXX - Hack to modify the %run command so we can sync the user's namespace
-# with the test globals.  Once we move over to a clean magic system, this will
-# be done with much less ugliness.
+# Hack to modify the %run command so we can sync the user's namespace with the
+# test globals.  Once we move over to a clean magic system, this will be done
+# with much less ugliness.
 
 def _run_ns_sync(self,arg_s,runner=None):
     """Modified version of %run that syncs testing namespaces.
@@ -94,27 +76,34 @@ def _run_ns_sync(self,arg_s,runner=None):
     return out
 
 
-# XXX1 - namespace handling
-class ncdict(dict):
+class ipnsdict(dict):
+    """A special subclass of dict for use as an IPython namespace in doctests.
+
+    This subclass adds a simple checkpointing capability so that when testing
+    machinery clears it (we use it as the test execution context), it doesn't
+    get completely destroyed.
+    """
+    
     def __init__(self,*a):
         dict.__init__(self,*a)
         self._savedict = {}
         
-    def copy(self):
-        return self
-
     def clear(self):
-        import IPython
-        
-        print 'NCDICT - clear'   # dbg
         dict.clear(self)
-        self.update(IPython.ipapi.make_user_ns())
         self.update(self._savedict)
 
-    def remember(self,adict):
-        self._savedict = adict
-    
-#class ncdict(dict): pass
+    def _checkpoint(self):
+        self._savedict.clear()
+        self._savedict.update(self)
+
+    def update(self,other):
+        self._checkpoint()
+        dict.update(self,other)
+        # If '_' is in the namespace, python won't set it when executing code,
+        # and we have examples that test it.  So we ensure that the namespace
+        # is always 'clean' of it before it's used for test code execution.
+        self.pop('_',None)
+        
 
 def start_ipython():
     """Start a global IPython shell, which we need for IPython-specific syntax.
@@ -139,7 +128,7 @@ def start_ipython():
     _main = sys.modules.get('__main__')
 
     # Start IPython instance.  We customize it to start with minimal frills.
-    user_ns,global_ns = IPython.ipapi.make_user_namespaces(ncdict(),dict())
+    user_ns,global_ns = IPython.ipapi.make_user_namespaces(ipnsdict(),dict())
     
     IPython.Shell.IPShell(['--classic','--noterm_title'],
                           user_ns,global_ns)
@@ -275,85 +264,6 @@ class DocTestFinder(doctest.DocTestFinder):
                                globs, seen)
 
 
-    # XXX1 - namespace handling
-    def Xfind(self, obj, name=None, module=None, globs=None, extraglobs=None):
-        """
-        Return a list of the DocTests that are defined by the given
-        object's docstring, or by any of its contained objects'
-        docstrings.
-
-        The optional parameter `module` is the module that contains
-        the given object.  If the module is not specified or is None, then
-        the test finder will attempt to automatically determine the
-        correct module.  The object's module is used:
-
-            - As a default namespace, if `globs` is not specified.
-            - To prevent the DocTestFinder from extracting DocTests
-              from objects that are imported from other modules.
-            - To find the name of the file containing the object.
-            - To help find the line number of the object within its
-              file.
-
-        Contained objects whose module does not match `module` are ignored.
-
-        If `module` is False, no attempt to find the module will be made.
-        This is obscure, of use mostly in tests:  if `module` is False, or
-        is None but cannot be found automatically, then all objects are
-        considered to belong to the (non-existent) module, so all contained
-        objects will (recursively) be searched for doctests.
-
-        The globals for each DocTest is formed by combining `globs`
-        and `extraglobs` (bindings in `extraglobs` override bindings
-        in `globs`).  A new copy of the globals dictionary is created
-        for each DocTest.  If `globs` is not specified, then it
-        defaults to the module's `__dict__`, if specified, or {}
-        otherwise.  If `extraglobs` is not specified, then it defaults
-        to {}.
-
-        """
-
-        # Find the module that contains the given object (if obj is
-        # a module, then module=obj.).  Note: this may fail, in which
-        # case module will be None.
-        if module is False:
-            module = None
-        elif module is None:
-            module = inspect.getmodule(obj)
-
-        # always build our own globals
-        if globs is None:
-            if module is None:
-                globs = {}
-            else:
-                globs = module.__dict__.copy()
-        else:
-            globs.update(module.__dict__.copy())
-
-        print 'globs is:',globs.keys()
-        
-        if extraglobs is not None:
-            globs.update(extraglobs)
-
-        try:
-            globs.remember(module.__dict__)
-        except:
-            pass
-        
-        ## # Initialize globals, and merge in extraglobs.
-        ## if globs is None:
-        ##     if module is None:
-        ##         globs = {}
-        ##     else:
-        ##         globs = module.__dict__.copy()
-        ## else:
-        ##     globs = globs.copy()
-        ## if extraglobs is not None:
-        ##     globs.update(extraglobs)
-
-        return doctest.DocTestFinder.find(self,obj,name,module,globs,
-                                          extraglobs)
-
-
 class IPDoctestOutputChecker(doctest.OutputChecker):
     """Second-chance checker with support for random tests.
     
@@ -411,12 +321,20 @@ class DocTestCase(doctests.DocTestCase):
         self._dt_setUp = setUp
         self._dt_tearDown = tearDown
 
+        # XXX - store this runner once in the object!
+        runner = IPDocTestRunner(optionflags=optionflags,
+                                 checker=checker, verbose=False)
+        self._dt_runner = runner
+
+
         # Each doctest should remember what directory it was loaded from...
         self._ori_dir = os.getcwd()
 
     # Modified runTest from the default stdlib
     def runTest(self):
         test = self._dt_test
+        runner = self._dt_runner
+        
         old = sys.stdout
         new = StringIO()
         optionflags = self._dt_optionflags
@@ -426,9 +344,6 @@ class DocTestCase(doctests.DocTestCase):
             # so add the default reporting flags
             optionflags |= _unittest_reportflags
 
-        runner = IPDocTestRunner(optionflags=optionflags,
-                                 checker=self._dt_checker, verbose=False)
-
         try:
             # Save our current directory and switch out to the one where the
             # test was originally created, in case another doctest did a
@@ -437,8 +352,8 @@ class DocTestCase(doctests.DocTestCase):
             os.chdir(self._ori_dir)
 
             runner.DIVIDER = "-"*70
-            failures, tries = runner.run(
-                test, out=new.write, clear_globs=False)
+            failures, tries = runner.run(test,out=new.write,
+                                         clear_globs=False)
         finally:
             sys.stdout = old
             os.chdir(curdir)
@@ -446,11 +361,18 @@ class DocTestCase(doctests.DocTestCase):
         if failures:
             raise self.failureException(self.format_failure(new.getvalue()))
 
-    # XXX1 - namespace handling
-    def XtearDown(self):
-        print '!! teardown!'  # dbg
-        doctests.DocTestCase.tearDown(self)
+    def setUp(self):
+        """Modified test setup that syncs with ipython namespace"""
+        
+        if isinstance(self._dt_test.examples[0],IPExample):
+            # for IPython examples *only*, we swap the globals with the ipython
+            # namespace, after updating it with the globals (which doctest
+            # fills with the necessary info from the module being tested).
+            _ip.IP.user_ns.update(self._dt_test.globs)
+            self._dt_test.globs = _ip.IP.user_ns
 
+        doctests.DocTestCase.setUp(self)
+    
 
 
 # A simple subclassing of the original with a different class name, so we can
@@ -548,6 +470,8 @@ class IPDocTestParser(doctest.DocTestParser):
         output = []
         charno, lineno = 0, 0
 
+        # We make 'all random' tests by adding the '# random' mark to every
+        # block of output in the test.
         if self._RANDOM_TEST.search(string):
             random_marker = '\n# random'
         else:
@@ -715,12 +639,6 @@ class IPDocTestRunner(doctest.DocTestRunner,object):
         # for all examples, most of which won't be calling %run anyway).
         _run_ns_sync.test_globs = test.globs
 
-        # dbg
-        ## print >> sys.stderr, "Test:",test
-        ## for ex in test.examples:
-        ##     print >> sys.stderr, ex.source
-        ##     print >> sys.stderr, 'Want:\n',ex.want,'\n--'
-
         return super(IPDocTestRunner,self).run(test,
                                                compileflags,out,clear_globs)
 
@@ -745,8 +663,10 @@ class ExtensionDoctest(doctests.Doctest):
         Plugin.configure(self, options, config)
         self.doctest_tests = options.doctest_tests
         self.extension = tolist(options.doctestExtension)
-        self.finder = DocTestFinder()
+
         self.parser = doctest.DocTestParser()
+        self.finder = DocTestFinder()
+        self.checker = IPDoctestOutputChecker()
         self.globs = None
         self.extraglobs = None
 
@@ -776,6 +696,9 @@ class ExtensionDoctest(doctests.Doctest):
         if not tests:
             return
 
+        # always use whitespace and ellipsis options
+        optionflags = doctest.NORMALIZE_WHITESPACE | doctest.ELLIPSIS
+
         tests.sort()
         module_file = module.__file__
         if module_file[-4:] in ('.pyc', '.pyo'):
@@ -785,15 +708,11 @@ class ExtensionDoctest(doctests.Doctest):
                 continue
             if not test.filename:
                 test.filename = module_file
-
-            # xxx - checker and options may be ok instantiated once outside loop
-            # always use whitespace and ellipsis options
-            optionflags = doctest.NORMALIZE_WHITESPACE | doctest.ELLIPSIS
-            checker = IPDoctestOutputChecker()
             
             yield DocTestCase(test,
                               optionflags=optionflags,
-                              checker=checker)
+                              checker=self.checker)
+
 
     def loadTestsFromFile(self, filename):
         #print 'lTF',filename  # dbg
@@ -826,7 +745,7 @@ class ExtensionDoctest(doctests.Doctest):
         """
         #print 'Filename:',filename  # dbg
 
-        # temporarily hardcoded list, will move to driver later
+        # XXX - temporarily hardcoded list, will move to driver later
         exclude = ['IPython/external/',
                    'IPython/Extensions/ipy_',
                    'IPython/platutils_win32',
@@ -857,11 +776,9 @@ class IPythonDoctest(ExtensionDoctest):
         Plugin.configure(self, options, config)
         self.doctest_tests = options.doctest_tests
         self.extension = tolist(options.doctestExtension)
+
         self.parser = IPDocTestParser()
         self.finder = DocTestFinder(parser=self.parser)
-
-        # XXX1 - namespace handling
+        self.checker = IPDoctestOutputChecker()
         self.globs = None
-        #self.globs = _ip.IP.user_ns
-        
         self.extraglobs = None
