@@ -12,6 +12,8 @@ from IPython.ipapi import TryNext
 import IPython.macro
 import IPython.Shell
 
+__leo_push_history = set()
+
 def init_ipython(ipy):
     """ This will be run by _ip.load('ipy_leo') 
     
@@ -336,6 +338,17 @@ class LeoWorkbook:
             if re.match(cmp, node.h, re.IGNORECASE):
                 yield node
         return
+    def require(self, req):
+        """ Used to control node push dependencies 
+        
+        Call this as first statement in nodes. If node has not been pushed, it will be pushed before proceeding
+        
+        E.g. wb.require('foo') will do wb.foo.ipush() if it hasn't been done already
+        """
+        
+        if req not in __leo_push_history:
+            getattr(self.req).ipush()
+     
 
 @IPython.generics.complete_object.when_type(LeoWorkbook)
 def workbook_complete(obj, prev):
