@@ -18,6 +18,7 @@ __docformat__ = "restructuredtext en"
 from killableprocess import Popen, PIPE
 from threading import Thread
 from time import sleep
+import os
 
 class PipedProcess(Thread):
     """ Class that encapsulates process execution by using callbacks for
@@ -47,7 +48,10 @@ class PipedProcess(Thread):
     def run(self):
         """ Start the process and hook up the callbacks.
         """
+        env = os.environ
+        env['TERM'] = 'xterm'
         process = Popen((self.command_string + ' 2>&1', ), shell=True,
+                                env=env,
                                 universal_newlines=True,
                                 stdout=PIPE, stdin=PIPE, )
         self.process = process
