@@ -254,6 +254,14 @@ class LeoNode(object, UserDict.DictMixin):
         p = c.createLastChildNode(self.p, head, '')
         LeoNode(p).v = val
         
+    def __delitem__(self, key):
+        """ Remove child
+        
+        Allows stuff like wb.foo.clear() to remove all children
+        """
+        self[key].p.doDelete()
+        c.redraw()
+    
     def ipush(self):
         """ Does push-to-ipython on the node """
         push_from_leo(self)
@@ -262,6 +270,12 @@ class LeoNode(object, UserDict.DictMixin):
         """ Set node as current node (to quickly see it in Outline) """
         c.setCurrentPosition(self.p)
         c.redraw()
+        
+    def append(self):
+        """ Add new node as the last child, return the new node """
+        p = self.p.insertAsLastChild()
+        return LeoNode(p)
+        
         
     def script(self):
         """ Method to get the 'tangled' contents of the node
