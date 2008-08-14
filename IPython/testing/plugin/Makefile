@@ -2,8 +2,8 @@
 PREFIX=~/usr/local
 PREFIX=~/tmp/local
 
-NOSE0=nosetests -vs --with-doctest --doctest-tests
-NOSE=nosetests -vvs --with-ipdoctest --doctest-tests --doctest-extension=txt
+NOSE0=nosetests -vs --with-doctest --doctest-tests --detailed-errors
+NOSE=nosetests -vvs --with-ipdoctest --doctest-tests --doctest-extension=txt --detailed-errors
 
 #--with-color 
 

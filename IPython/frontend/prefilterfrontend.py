@@ -69,7 +69,8 @@ class PrefilterFrontEnd(LineFrontEndBase):
         if ipython0 is None:
             # Instanciate an IPython0 interpreter to be able to use the
             # prefiltering.
-            ipython0 = make_IPython()
+            # XXX: argv=[] is a bit bold.
+            ipython0 = make_IPython(argv=[])
         self.ipython0 = ipython0
         # Set the pager:
         self.ipython0.set_hook('show_in_pager', 
@@ -85,7 +86,7 @@ class PrefilterFrontEnd(LineFrontEndBase):
                                                             'ls -CF')
         # And now clean up the mess created by ipython0
         self.release_output()
-        if not 'banner' in kwargs:
+        if not 'banner' in kwargs and self.banner is None:
             kwargs['banner'] = self.ipython0.BANNER + """
 This is the wx frontend, by Gael Varoquaux. This is EXPERIMENTAL code."""
 
