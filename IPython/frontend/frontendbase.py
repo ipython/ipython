@@ -24,19 +24,11 @@ import string
 import uuid
 import _ast
 
-try:
-    from zope.interface import Interface, Attribute, implements, classProvides
-except ImportError:
-    #zope.interface is not available
-    Interface = object
-    def Attribute(name, doc): pass
-    def implements(interface): pass
-    def classProvides(interface): pass
+from zopeinterface import Interface, Attribute, implements, classProvides
 
 from IPython.kernel.core.history import FrontEndHistory
 from IPython.kernel.core.util import Bunch
 from IPython.kernel.engineservice import IEngineCore
-
 
 ##############################################################################
 # TEMPORARY!!! fake configuration, while we decide whether to use tconfig or
@@ -47,6 +39,8 @@ rc.prompt_in1 = r'In [$number]:  '
 rc.prompt_in2 = r'...'
 rc.prompt_out = r'Out [$number]:  '
 
+##############################################################################
+# Interface definitions
 ##############################################################################
 
 class IFrontEndFactory(Interface):
@@ -61,7 +55,6 @@ class IFrontEndFactory(Interface):
         pass
 
 
-
 class IFrontEnd(Interface):
     """Interface for frontends. All methods return t.i.d.Deferred"""
     
@@ -74,16 +67,16 @@ class IFrontEnd(Interface):
     
     def update_cell_prompt(result, blockID=None):
         """Subclass may override to update the input prompt for a block. 
-        Since this method will be called as a 
-        twisted.internet.defer.Deferred's callback/errback,
-        implementations should return result when finished.
+
+        In asynchronous frontends, this method will be called as a
+        twisted.internet.defer.Deferred's callback/errback.
+        Implementations should thus return result when finished.
         
         Result is a result dict in case of success, and a
         twisted.python.util.failure.Failure in case of an error
         """
         
         pass
-    
     
     def render_result(result):
         """Render the result of an execute call. Implementors may choose the
@@ -102,15 +95,16 @@ class IFrontEnd(Interface):
         pass
     
     def render_error(failure):
-        """Subclasses must override to render the failure. Since this method 
-        will be called as a twisted.internet.defer.Deferred's callback, 
-        implementations should return result when finished.
+        """Subclasses must override to render the failure. 
+        
+        In asynchronous frontend, since this method will be called as a
+        twisted.internet.defer.Deferred's callback. Implementations
+        should thus return result when finished.
         
         blockID = failure.blockID
         """
         
         pass
-    
     
     def input_prompt(number=''):
         """Returns the input prompt by subsituting into 
@@ -142,8 +136,7 @@ class IFrontEnd(Interface):
         
         pass
     
-    
-    def get_history_previous(currentBlock):
+    def get_history_previous(current_block):
         """Returns the block previous in  the history. Saves currentBlock if
         the history_cursor is currently at the end of the input history"""
         pass
@@ -153,6 +146,20 @@ class IFrontEnd(Interface):
         
         pass
     
+    def complete(self, line):
+        """Returns the list of possible completions, and the completed
+            line.
+
+        The input argument is the full line to be completed. This method
+        returns both the line completed as much as possible, and the list
+        of further possible completions (full words).
+        """
+        pass
+
+
+##############################################################################
+# Base class for all the frontends. 
+##############################################################################
 
 class FrontEndBase(object):
     """
@@ -166,9 +173,6 @@ class FrontEndBase(object):
     """
     
     history_cursor = 0
-    
-    current_indent_level = 0
-    
     
     input_prompt_template = string.Template(rc.prompt_in1)
     output_prompt_template = string.Template(rc.prompt_out)
@@ -295,14 +299,14 @@ class FrontEndBase(object):
         return result
     
     
-    def get_history_previous(self, currentBlock):
+    def get_history_previous(self, current_block):
         """ Returns previous history string and decrement history cursor.
         """
         command = self.history.get_history_item(self.history_cursor - 1)
         
         if command is not None:
-            if(self.history_cursor == len(self.history.input_cache)):
-                self.history.input_cache[self.history_cursor] = currentBlock
+            if(self.history_cursor+1 == len(self.history.input_cache)):
+                self.history.input_cache[self.history_cursor] = current_block
             self.history_cursor -= 1
         return command
     
@@ -322,79 +326,34 @@ class FrontEndBase(object):
     
     def update_cell_prompt(self, result, blockID=None):
         """Subclass may override to update the input prompt for a block. 
+
+        This method only really makes sens in asyncrhonous frontend.
         Since this method will be called as a 
         twisted.internet.defer.Deferred's callback, implementations should 
         return result when finished.
         """
         
-        return result
+        raise NotImplementedError
     
     
     def render_result(self, result):
-        """Subclasses must override to render result. Since this method will
-        be called as a twisted.internet.defer.Deferred's callback, 
-        implementations should return result when finished.
+        """Subclasses must override to render result. 
+        
+        In asynchronous frontends, this method will be called as a
+        twisted.internet.defer.Deferred's callback. Implementations
+        should thus return result when finished.
         """
         
-        return result
+        raise NotImplementedError
     
     
     def render_error(self, failure):
-        """Subclasses must override to render the failure. Since this method 
-        will be called as a twisted.internet.defer.Deferred's callback, 
-        implementations should return result when finished.
+        """Subclasses must override to render the failure. 
+        
+        In asynchronous frontends, this method will be called as a
+        twisted.internet.defer.Deferred's callback. Implementations
+        should thus return result when finished.
         """
         
-        return failure
-    
-
-
-class AsyncFrontEndBase(FrontEndBase):
-    """
-    Overrides FrontEndBase to wrap execute in a deferred result.
-    All callbacks are made as callbacks on the deferred result.
-    """
-    
-    implements(IFrontEnd)
-    classProvides(IFrontEndFactory)
-    
-    def __init__(self, engine=None, history=None):
-        assert(engine==None or IEngineCore.providedBy(engine))
-        self.engine = IEngineCore(engine)
-        if history is None:
-                self.history = FrontEndHistory(input_cache=[''])
-        else:
-            self.history = history
-    
-    
-    def execute(self, block, blockID=None):
-        """Execute the block and return the deferred result.
-        
-        Parameters:
-            block : {str, AST}
-            blockID : any
-                Caller may provide an ID to identify this block. 
-                result['blockID'] := blockID
-        
-        Result:
-            Deferred result of self.interpreter.execute
-        """
-        
-        if(not self.is_complete(block)):
-            from twisted.python.failure import Failure
-            return Failure(Exception("Block is not compilable"))
-        
-        if(blockID == None):
-            blockID = uuid.uuid4() #random UUID
-        
-        d = self.engine.execute(block)
-        d.addCallback(self._add_history, block=block)
-        d.addCallback(self._add_block_id_for_result, blockID)
-        d.addErrback(self._add_block_id_for_failure, blockID)
-        d.addBoth(self.update_cell_prompt, blockID=blockID)
-        d.addCallbacks(self.render_result, 
-            errback=self.render_error)
-        
-        return d
-    
+        raise NotImplementedError
 

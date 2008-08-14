@@ -727,7 +727,7 @@ class InteractiveShell(object,Magic):
             batchrun = True
         # without -i option, exit after running the batch file
         if batchrun and not self.rc.interact:
-            self.exit_now = True            
+            self.ask_exit()            
 
     def add_builtins(self):
         """Store ipython references into the builtin namespace.
@@ -1592,7 +1592,7 @@ want to merge them back into the new files.""" % locals()
         #sys.argv = ['-c']
         self.push(self.prefilter(self.rc.c, False))
         if not self.rc.interact:
-            self.exit_now = True
+            self.ask_exit()
 
     def embed_mainloop(self,header='',local_ns=None,global_ns=None,stack_depth=0):
         """Embeds IPython into a running python program.
@@ -1755,7 +1755,8 @@ want to merge them back into the new files.""" % locals()
         
         if self.has_readline:
             self.readline_startup_hook(self.pre_readline)
-        # exit_now is set by a call to %Exit or %Quit
+        # exit_now is set by a call to %Exit or %Quit, through the
+        # ask_exit callback.
         
         while not self.exit_now:
             self.hooks.pre_prompt_hook()
@@ -2151,7 +2152,7 @@ want to merge them back into the new files.""" % locals()
         except ValueError:
             warn("\n********\nYou or a %run:ed script called sys.stdin.close()"
                  " or sys.stdout.close()!\nExiting IPython!")
-            self.exit_now = True
+            self.ask_exit()
             return ""
 
         # Try to be reasonably smart about not re-indenting pasted input more
@@ -2502,16 +2503,20 @@ want to merge them back into the new files.""" % locals()
         """Write a string to the default error output"""
         Term.cerr.write(data)
 
+    def ask_exit(self):
+        """ Call for exiting. Can be overiden and used as a callback. """
+        self.exit_now = True
+
     def exit(self):
         """Handle interactive exit.
 
-        This method sets the exit_now attribute."""
+        This method calls the ask_exit callback."""
 
         if self.rc.confirm_exit:
             if self.ask_yes_no('Do you really want to exit ([y]/n)?','y'):
-                self.exit_now = True
+                self.ask_exit()
         else:
-            self.exit_now = True
+            self.ask_exit()
 
     def safe_execfile(self,fname,*where,**kw):
         """A safe version of the builtin execfile().

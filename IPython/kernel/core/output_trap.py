@@ -23,10 +23,16 @@ class OutputTrap(object):
     """ Object which can trap text sent to stdout and stderr.
     """
 
-    def __init__(self):
+    def __init__(self, out=None, err=None):
         # Filelike objects to store stdout/stderr text.
-        self.out = StringIO()
-        self.err = StringIO()
+        if out is None:
+            self.out = StringIO()
+        else:
+            self.out = out
+        if err is None:
+            self.err = StringIO()
+        else:
+            self.err = err
 
         # Boolean to check if the stdout/stderr hook is set.
         self.out_set = False
@@ -62,21 +68,23 @@ class OutputTrap(object):
         """ Remove the hooks.
         """
 
-        sys.stdout = self._out_save
+        if self.out_set:
+            sys.stdout = self._out_save
         self.out_set = False
 
-        sys.stderr = self._err_save
+        if self.err_set:
+            sys.stderr = self._err_save
         self.err_set = False
 
     def clear(self):
         """ Clear out the buffers.
         """
 
-        self.out.close()
-        self.out = StringIO()
+        self.out.reset()
+        self.out.truncate()
 
-        self.err.close()
-        self.err = StringIO()
+        self.err.reset()
+        self.err.truncate()
 
     def add_to_message(self, message):
         """ Add the text from stdout and stderr to the message from the
