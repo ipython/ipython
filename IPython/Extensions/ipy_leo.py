@@ -176,6 +176,7 @@ class LeoNode(object, UserDict.DictMixin):
     def __get_h(self): return self.p.headString()
     def __set_h(self,val):
         c.setHeadString(self.p,val)
+        LeoNode.last_edited = self
         c.redraw()
         
     h = property( __get_h, __set_h, doc = "Node headline string")  
@@ -183,6 +184,7 @@ class LeoNode(object, UserDict.DictMixin):
     def __get_b(self): return self.p.bodyString()
     def __set_b(self,val):
         c.setBodyString(self.p, val)
+        LeoNode.last_edited = self
         c.redraw()
     
     b = property(__get_b, __set_b, doc = "Nody body string")
