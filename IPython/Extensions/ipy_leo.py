@@ -70,9 +70,10 @@ def format_for_leo(obj):
     """ Convert obj to string representiation (for editing in Leo)"""
     return pprint.pformat(obj)
 
-@format_for_leo.when_type(list)
-def format_list(obj):
-    return "\n".join(str(s) for s in obj)
+# Just an example - note that this is a bad to actually do!
+#@format_for_leo.when_type(list)
+#def format_list(obj):
+#    return "\n".join(str(s) for s in obj)
   
 
 attribute_re = re.compile('^[a-zA-Z_][a-zA-Z0-9_]*$')
