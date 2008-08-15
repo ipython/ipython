@@ -49,6 +49,21 @@ class TestPrefilterFrontEnd(PrefilterFrontEnd):
         PrefilterFrontEnd._on_enter(self)
 
 
+def isolate_ipython0(func):
+    """ Decorator to isolate execution that involves an iptyhon0.
+    """
+    def my_func(*args, **kwargs):
+        ipython0 = get_ipython0().IP
+        user_ns = ipython0.user_ns
+        global_ns = ipython0.global_ns
+        func(*args, **kwargs)
+        ipython0.user_ns = user_ns
+        ipython0.global_ns = global_ns
+
+    return my_func
+
+
+@isolate_ipython0
 def test_execution():
     """ Test execution of a command.
     """
@@ -59,6 +74,7 @@ def test_execution():
     assert out_value  == '1\n'
 
 
+@isolate_ipython0
 def test_multiline():
     """ Test execution of a multiline command.
     """
@@ -84,6 +100,7 @@ def test_multiline():
     assert out_value == '1\n'
 
 
+@isolate_ipython0
 def test_capture():
     """ Test the capture of output in different channels.
     """
@@ -102,6 +119,7 @@ def test_capture():
     assert out_value == '1'
 
      
+@isolate_ipython0
 def test_magic():
     """ Test the magic expansion and history.
     
@@ -114,6 +132,7 @@ def test_magic():
     assert out_value == 'Interactive namespace is empty.\n'
 
 
+@isolate_ipython0
 def test_help():
     """ Test object inspection.
     """
@@ -133,6 +152,7 @@ def test_help():
     #assert out_value.split()[-1] == 'foobar' 
 
 
+@isolate_ipython0
 def test_completion():
     """ Test command-line completion.
     """

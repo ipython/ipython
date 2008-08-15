@@ -92,8 +92,10 @@ This is the wx frontend, by Gael Varoquaux. This is EXPERIMENTAL code."""
 
         LineFrontEndBase.__init__(self, *args, **kwargs)
         # XXX: Hack: mix the two namespaces
-        self.shell.user_ns = self.ipython0.user_ns
-        self.shell.user_global_ns = self.ipython0.user_global_ns
+        self.shell.user_ns.update(self.ipython0.user_ns)
+        self.ipython0.user_ns = self.shell.user_ns 
+        self.shell.user_global_ns.update(self.ipython0.user_global_ns)
+        self.ipython0.user_global_ns = self.shell.user_global_ns
 
         self.shell.output_trap = RedirectorOutputTrap(
                             out_callback=self.write,
