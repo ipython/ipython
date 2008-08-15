@@ -44,7 +44,7 @@ copyright = '2008, The IPython Development Team'
 # The short X.Y version.
 version = '0.9'
 # The full version, including alpha/beta/rc tags.
-release = '0.9'
+release = '0.9.beta1'
 
 # There are two options for replacing |today|: either, you set today to some
 # non-false value, then it is used:
@@ -135,13 +135,17 @@ htmlhelp_basename = 'IPythondoc'
 latex_paper_size = 'letter'
 
 # The font size ('10pt', '11pt' or '12pt').
-latex_font_size = '10pt'
+latex_font_size = '11pt'
 
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, document class [howto/manual]).
-latex_documents = [
-  ('index', 'IPython.tex', 'IPython Documentation', 'The IPython Development Team', 'manual'),
-]
+
+latex_documents = [ ('index', 'IPython.tex', 'IPython Documentation',
+                     ur"""Brian Granger and Fernando Pérez\\
+                     With contributions from:\\
+                     Benjamin Ragan-Kelley and Ville Vainio.""",
+                     'manual'),
+                    ]
 
 # The name of an image file (relative to this directory) to place at the top of
 # the title page.

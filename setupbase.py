@@ -82,7 +82,8 @@ setup_args = dict(
 # Find packages
 #---------------------------------------------------------------------------
 
-def add_package(packages, pname, config=False, tests=False, scripts=False, others=None):
+def add_package(packages,pname,config=False,tests=False,scripts=False,
+                others=None):
     """
     Add a package to the list of packages, including certain subpackages.
     """
@@ -140,37 +141,67 @@ def find_package_data():
 # Find data files
 #---------------------------------------------------------------------------
 
+def make_dir_struct(tag,base,out_base):
+    """Make the directory structure of all files below a starting dir.
+
+    This is just a convenience routine to help build a nested directory
+    hierarchy because distutils is too stupid to do this by itself.
+
+    XXX - this needs a proper docstring!
+    """
+    
+    # we'll use these a lot below
+    lbase = len(base)
+    pathsep = os.path.sep
+    lpathsep = len(pathsep)
+    
+    out = []
+    for (dirpath,dirnames,filenames) in os.walk(base):
+        # we need to strip out the dirpath from the base to map it to the
+        # output (installation) path.  This requires possibly stripping the
+        # path separator, because otherwise pjoin will not work correctly
+        # (pjoin('foo/','/bar') returns '/bar').
+        
+        dp_eff = dirpath[lbase:]
+        if dp_eff.startswith(pathsep):
+            dp_eff = dp_eff[lpathsep:]
+        # The output path must be anchored at the out_base marker    
+        out_path = pjoin(out_base,dp_eff)
+        # Now we can generate the final filenames. Since os.walk only produces
+        # filenames, we must join back with the dirpath to get full valid file
+        # paths:
+        pfiles = [pjoin(dirpath,f) for f in filenames]
+        # Finally, generate the entry we need, which is a triple of (tag,output
+        # path, files) for use as a data_files parameter in install_data.
+        out.append((tag,out_path,pfiles))
+
+    return out
+    
+
 def find_data_files():
     """
     Find IPython's data_files.
+
+    Most of these are docs.
     """
     
-    # I can't find how to make distutils create a nested dir. structure, so
-    # in the meantime do it manually. Butt ugly.
-    # Note that http://www.redbrick.dcu.ie/~noel/distutils.html, ex. 2/3, contain
-    # information on how to do this more cleanly once python 2.4 can be assumed.
-    # Thanks to Noel for the tip.
     docdirbase  = 'share/doc/ipython'
     manpagebase = 'share/man/man1'
 
-    # We only need to exclude from this things NOT already excluded in the
-    # MANIFEST.in file.
-    exclude     = ('.sh','.1.gz')
-    # We need to figure out how we want to package all of our rst docs?
-    # docfiles    = filter(lambda f:file_doesnt_endwith(f,exclude),glob('docs/*'))
-    # XXX  - For now all the example files 
-    examfiles   = filter(isfile, glob('docs/examples/core/*.py'))
-    examfiles  += filter(isfile, glob('docs/examples/kernel/*.py'))
-    
-    manpages    = filter(isfile, glob('docs/man/*.1.gz'))
+    # Simple file lists can be made by hand
+    manpages  = filter(isfile, glob('docs/man/*.1.gz'))
     igridhelpfiles = filter(isfile, glob('IPython/Extensions/igrid_help.*'))
-    
-    data_files = [#('data', docdirbase, docfiles),
-                 ('data', pjoin(docdirbase, 'examples'),examfiles),
-                 ('data', manpagebase, manpages),
-                 ('data',pjoin(docdirbase, 'extensions'),igridhelpfiles),
-                 ]
-    
+
+    # For nested structures, use the utility above
+    example_files = make_dir_struct('data','docs/examples',
+                                    pjoin(docdirbase,'examples'))
+    manual_files = make_dir_struct('data','docs/dist',pjoin(docdirbase,'manual'))
+
+    # And assemble the entire output list
+    data_files = [ ('data',manpagebase, manpages),
+                   ('data',pjoin(docdirbase,'extensions'),igridhelpfiles),
+                   ] + manual_files + example_files
+                 
     ## import pprint  # dbg
     ## print '*'*80
     ## print 'data files'
@@ -187,14 +218,14 @@ def find_scripts():
     """
     Find IPython's scripts.
     """
-    scripts = []
-    scripts.append('IPython/kernel/scripts/ipengine')
-    scripts.append('IPython/kernel/scripts/ipcontroller')
-    scripts.append('IPython/kernel/scripts/ipcluster')
-    scripts.append('scripts/ipython')
-    scripts.append('scripts/ipythonx')
-    scripts.append('scripts/pycolor')
-    scripts.append('scripts/irunner')
+    scripts = ['IPython/kernel/scripts/ipengine',
+               'IPython/kernel/scripts/ipcontroller',
+                'IPython/kernel/scripts/ipcluster',
+               'scripts/ipython',
+               'scripts/ipythonx',
+               'scripts/pycolor',
+               'scripts/irunner',
+               ]
     
     # Script to be run by the windows binary installer after the default setup
     # routine, to add shortcuts and similar windows-only things.  Windows
@@ -209,7 +240,7 @@ def find_scripts():
     return scripts
 
 #---------------------------------------------------------------------------
-# Find scripts
+# Verify all dependencies
 #---------------------------------------------------------------------------
 
 def check_for_dependencies():

@@ -105,8 +105,12 @@ if len(sys.argv) >= 2 and sys.argv[1] in ('sdist','bdist_rpm'):
         #     ['IPython/Release.py','docs/source/ipython.rst'],
         #     "cd docs && python do_sphinx.py")
         # )
+        
     [ target_update(*t) for t in to_update ]
 
+    # Build the docs
+    os.system('cd docs && make dist')
+    
 #---------------------------------------------------------------------------
 # Find all the packages, package data, scripts and data_files
 #---------------------------------------------------------------------------

@@ -14,14 +14,15 @@ graft IPython/config
 graft IPython/testing
 graft IPython/tools
 
+recursive-include IPython/Extensions igrid_help*
+
 graft docs
 exclude docs/\#*
 exclude docs/man/*.1
 
-# There seems to be no way of excluding whole subdirectories, other than
-# manually excluding all their subdirs.  distutils really is horrible...
-exclude docs/attic/*
-exclude docs/build/*
+# docs subdirs we want to skip
+prune docs/attic
+prune docs/build
 
 global-exclude *~
 global-exclude *.flc
