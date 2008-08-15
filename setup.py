@@ -75,17 +75,17 @@ if len(sys.argv) >= 2 and sys.argv[1] in ('sdist','bdist_rpm'):
     to_update = [
                   # FIXME - Disabled for now: we need to redo an automatic way
                   # of generating the magic info inside the rst.                
-                  #('doc/magic.tex',
+                  #('docs/magic.tex',
                   #['IPython/Magic.py'],
                   #"cd doc && ./update_magic.sh" ),
                  
-                 ('doc/ipython.1.gz',
-                  ['doc/ipython.1'],
-                  "cd doc && gzip -9c ipython.1 > ipython.1.gz"),
+                 ('docs/man/ipython.1.gz',
+                  ['docs/man/ipython.1'],
+                  "cd docs/man && gzip -9c ipython.1 > ipython.1.gz"),
 
-                 ('doc/pycolor.1.gz',
-                  ['doc/pycolor.1'],
-                  "cd doc && gzip -9c pycolor.1 > pycolor.1.gz"),
+                 ('docs/man/pycolor.1.gz',
+                  ['docs/man/pycolor.1'],
+                  "cd docs/man && gzip -9c pycolor.1 > pycolor.1.gz"),
                  ]
 
     # Only build the docs is sphinx is present
@@ -101,12 +101,16 @@ if len(sys.argv) >= 2 and sys.argv[1] in ('sdist','bdist_rpm'):
         # The do_sphinx scripts builds html and pdf, so just one
         # target is enough to cover all manual generation
         # to_update.append(
-        #     ('doc/manual/ipython.pdf',
-        #     ['IPython/Release.py','doc/source/ipython.rst'],
+        #     ('docs/manual/ipython.pdf',
+        #     ['IPython/Release.py','docs/source/ipython.rst'],
         #     "cd docs && python do_sphinx.py")
         # )
+        
     [ target_update(*t) for t in to_update ]
 
+    # Build the docs
+    os.system('cd docs && make dist')
+    
 #---------------------------------------------------------------------------
 # Find all the packages, package data, scripts and data_files
 #---------------------------------------------------------------------------

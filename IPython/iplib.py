@@ -1009,7 +1009,7 @@ class InteractiveShell(object,Magic):
         hello
 
         In [10]: _ip.IP.complete('x.l')
-        Out[10]: ['x.ljust', 'x.lower', 'x.lstrip'] # random
+        Out[10]: ['x.ljust', 'x.lower', 'x.lstrip']
         """
         
         complete = self.Completer.complete

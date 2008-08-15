@@ -4,7 +4,7 @@
 
 import os,sys,shutil
 
-basever = '0.8.3'
+basever = '0.9.0'
 
 def oscmd(c):
     print ">",c
@@ -30,7 +30,7 @@ ver = verinfo()
 if ver['branch-nick'] == 'ipython':
     tarname = 'ipython-%s.bzr.r%s.tgz' % (basever, ver['revno'])
 else:
-    tarname = 'ipython-%s.bzr.r%s.%s.tgz' % (basever, ver['revno'], ver['branch-nick'])
+    tarname = 'ipython-%s.bzr.r%s.%s.tgz' % (basever, ver['revno'],
+                                             ver['branch-nick'])
     
 oscmd('bzr export ' + tarname)
-

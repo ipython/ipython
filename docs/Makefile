@@ -21,9 +21,26 @@ help:
 	@echo "  latex     to make LaTeX files, you can set PAPER=a4 or PAPER=letter"
 	@echo "  changes   to make an overview over all changed/added/deprecated items"
 	@echo "  linkcheck to check all external links for integrity"
+	@echo
+	@echo "Compound utility targets:"
+	@echo "pdf          latex and then runs the PDF generation"
+	@echo "all          html and pdf"
+	@echo "dist         all, and then puts the results in dist/"
 
 clean:
 	-rm -rf build/*
+
+pdf: latex
+	cd build/latex && make all-pdf
+
+all: html pdf
+
+dist: all
+	mkdir -p dist
+	-rm -rf dist/*
+	ln build/latex/IPython.pdf dist/
+	cp -al build/html dist/
+	@echo "Build finished.  Final docs are in dist/"
 
 html:
 	mkdir -p build/html build/doctrees

@@ -58,6 +58,12 @@ def ipfunc():
     numbered history of _NN outputs, since those won't exist under the
     doctest environment:
 
+    In [7]: 'hi'
+    Out[7]: 'hi'
+
+    In [8]: print repr(_)
+    'hi'
+    
     In [7]: 3+4
     Out[7]: 7
 

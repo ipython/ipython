@@ -12,6 +12,8 @@ from IPython.ipapi import TryNext
 import IPython.macro
 import IPython.Shell
 
+_leo_push_history = set()
+
 def init_ipython(ipy):
     """ This will be run by _ip.load('ipy_leo') 
     
@@ -25,17 +27,21 @@ def init_ipython(ipy):
     ip.expose_magic('mb',mb_f)
     ip.expose_magic('lee',lee_f)
     ip.expose_magic('leoref',leoref_f)
+    ip.expose_magic('lleo',lleo_f)    
+    # Note that no other push command should EVER have lower than 0
+    expose_ileo_push(push_mark_req, -1)
     expose_ileo_push(push_cl_node,100)
     # this should be the LAST one that will be executed, and it will never raise TryNext
     expose_ileo_push(push_ipython_script, 1000)
     expose_ileo_push(push_plain_python, 100)
     expose_ileo_push(push_ev_node, 100)
+    ip.set_hook('pre_prompt_hook', ileo_pre_prompt_hook)     
     global wb
     wb = LeoWorkbook()
     ip.user_ns['wb'] = wb 
     
-    show_welcome()
 
+first_launch = True
 
 def update_commander(new_leox):
     """ Set the Leo commander to use
@@ -45,7 +51,12 @@ def update_commander(new_leox):
     ipython-launch to tell ILeo what document the commands apply to.
     
     """
-    
+
+    global first_launch
+    if first_launch:
+        show_welcome()
+        first_launch = False
+
     global c,g
     c,g = new_leox.c, new_leox.g
     print "Set Leo Commander:",c.frame.getTitle()
@@ -70,9 +81,10 @@ def format_for_leo(obj):
     """ Convert obj to string representiation (for editing in Leo)"""
     return pprint.pformat(obj)
 
-@format_for_leo.when_type(list)
-def format_list(obj):
-    return "\n".join(str(s) for s in obj)
+# Just an example - note that this is a bad to actually do!
+#@format_for_leo.when_type(list)
+#def format_list(obj):
+#    return "\n".join(str(s) for s in obj)
   
 
 attribute_re = re.compile('^[a-zA-Z_][a-zA-Z0-9_]*$')
@@ -175,6 +187,7 @@ class LeoNode(object, UserDict.DictMixin):
     def __get_h(self): return self.p.headString()
     def __set_h(self,val):
         c.setHeadString(self.p,val)
+        LeoNode.last_edited = self
         c.redraw()
         
     h = property( __get_h, __set_h, doc = "Node headline string")  
@@ -182,6 +195,7 @@ class LeoNode(object, UserDict.DictMixin):
     def __get_b(self): return self.p.bodyString()
     def __set_b(self,val):
         c.setBodyString(self.p, val)
+        LeoNode.last_edited = self
         c.redraw()
     
     b = property(__get_b, __set_b, doc = "Nody body string")
@@ -251,6 +265,14 @@ class LeoNode(object, UserDict.DictMixin):
         p = c.createLastChildNode(self.p, head, '')
         LeoNode(p).v = val
         
+    def __delitem__(self, key):
+        """ Remove child
+        
+        Allows stuff like wb.foo.clear() to remove all children
+        """
+        self[key].p.doDelete()
+        c.redraw()
+    
     def ipush(self):
         """ Does push-to-ipython on the node """
         push_from_leo(self)
@@ -259,6 +281,12 @@ class LeoNode(object, UserDict.DictMixin):
         """ Set node as current node (to quickly see it in Outline) """
         c.setCurrentPosition(self.p)
         c.redraw()
+        
+    def append(self):
+        """ Add new node as the last child, return the new node """
+        p = self.p.insertAsLastChild()
+        return LeoNode(p)
+        
         
     def script(self):
         """ Method to get the 'tangled' contents of the node
@@ -319,6 +347,19 @@ class LeoWorkbook:
             if re.match(cmp, node.h, re.IGNORECASE):
                 yield node
         return
+    
+    def require(self, req):
+        """ Used to control node push dependencies 
+        
+        Call this as first statement in nodes. If node has not been pushed, it will be pushed before proceeding
+        
+        E.g. wb.require('foo') will do wb.foo.ipush() if it hasn't been done already
+        """
+        
+        if req not in _leo_push_history:
+            es('Require: ' + req)
+            getattr(self,req).ipush()
+     
 
 @IPython.generics.complete_object.when_type(LeoWorkbook)
 def workbook_complete(obj, prev):
@@ -361,9 +402,13 @@ def push_ipython_script(node):
         hstart = len(ip.IP.input_hist)
         script = node.script()
                 
+        # The current node _p needs to handle wb.require() and recursive ipushes
+        old_p = ip.user_ns.get('_p',None)
         ip.user_ns['_p'] = node
         ip.runlines(script)
-        ip.user_ns.pop('_p',None)
+        ip.user_ns['_p'] = old_p
+        if old_p is None:
+            del ip.user_ns['_p']
         
         has_output = False
         for idx in range(hstart,len(ip.IP.input_hist)):
@@ -427,6 +472,14 @@ def push_ev_node(node):
     es('ipy eval ' + expr)
     res = ip.ev(expr)
     node.v = res
+    
+def push_mark_req(node):
+    """ This should be the first one that gets called.
+    
+    It will mark the node as 'pushed', for wb.require.
+    """
+    _leo_push_history.add(node.h)
+    raise TryNext
     
     
 def push_position_from_leo(p):
@@ -521,13 +574,12 @@ def lee_f(self,s):
     finally:
         c.redraw()
 
-
-
 def leoref_f(self,s):
     """ Quick reference for ILeo """
     import textwrap
     print textwrap.dedent("""\
-    %leoe file/object - open file / object in leo
+    %lee file/object - open file / object in leo
+    %lleo Launch leo (use if you started ipython first!)
     wb.foo.v  - eval node foo (i.e. headstring is 'foo' or '@ipy foo')
     wb.foo.v = 12 - assign to body of node foo
     wb.foo.b - read or write the body of node foo
@@ -560,6 +612,16 @@ def mb_completer(self,event):
     cmds.sort()
     return cmds
 
+def ileo_pre_prompt_hook(self):
+    # this will fail if leo is not running yet
+    try:
+        c.outerUpdate()
+    except NameError:
+        pass
+    raise TryNext
+    
+
+
 def show_welcome():
     print "------------------"
     print "Welcome to Leo-enabled IPython session!"
@@ -574,5 +636,25 @@ def run_leo_startup_node():
         print "Running @ipy-startup nodes"
         for n in LeoNode(p):
             push_from_leo(n)
-            
 
+def lleo_f(selg,  args):
+    """ Launch leo from within IPython
+
+    This command will return immediately when Leo has been
+    launched, leaving a Leo session that is connected 
+    with current IPython session (once you press alt+I in leo)
+
+    Usage::
+      lleo foo.leo
+      lleo 
+    """
+    
+    import shlex, sys
+    argv = ['leo'] + shlex.split(args)
+    sys.argv = argv
+    # if this var exists and is true, leo will "launch" (connect)
+    # ipython immediately when it's started
+    global _request_immediate_connect
+    _request_immediate_connect = True
+    import leo.core.runLeo
+    leo.core.runLeo.run()
