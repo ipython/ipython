@@ -34,6 +34,7 @@ def init_ipython(ipy):
     expose_ileo_push(push_ipython_script, 1000)
     expose_ileo_push(push_plain_python, 100)
     expose_ileo_push(push_ev_node, 100)
+    ip.set_hook('pre_prompt_hook', ileo_pre_prompt_hook)     
     global wb
     wb = LeoWorkbook()
     ip.user_ns['wb'] = wb 
@@ -605,6 +606,12 @@ def mb_completer(self,event):
     cmds = c.commandsDict.keys()
     cmds.sort()
     return cmds
+
+def ileo_pre_prompt_hook(self):
+    c.outerUpdate()
+    raise TryNext
+    
+
 
 def show_welcome():
     print "------------------"
