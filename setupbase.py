@@ -158,8 +158,10 @@ def find_data_files():
     exclude     = ('.sh','.1.gz')
     # We need to figure out how we want to package all of our rst docs?
     # docfiles    = filter(lambda f:file_doesnt_endwith(f,exclude),glob('docs/*'))
+    # XXX  - For now all the example files 
     examfiles   = filter(isfile, glob('docs/examples/core/*.py'))
-    examfiles.append(filter(isfile, glob('docs/examples/kernel/*.py')))
+    examfiles  += filter(isfile, glob('docs/examples/kernel/*.py'))
+    
     manpages    = filter(isfile, glob('docs/man/*.1.gz'))
     igridhelpfiles = filter(isfile, glob('IPython/Extensions/igrid_help.*'))
     
@@ -168,9 +170,14 @@ def find_data_files():
                  ('data', manpagebase, manpages),
                  ('data',pjoin(docdirbase, 'extensions'),igridhelpfiles),
                  ]
-    # import pprint
-    # pprint.pprint(data_files)
-    return []
+    
+    ## import pprint  # dbg
+    ## print '*'*80
+    ## print 'data files'
+    ## pprint.pprint(data_files)
+    ## print '*'*80
+    
+    return data_files
 
 #---------------------------------------------------------------------------
 # Find scripts
