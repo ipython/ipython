@@ -27,6 +27,7 @@ def init_ipython(ipy):
     ip.expose_magic('mb',mb_f)
     ip.expose_magic('lee',lee_f)
     ip.expose_magic('leoref',leoref_f)
+    ip.expose_magic('lleo',lleo_f)    
     # Note that no other push command should EVER have lower than 0
     expose_ileo_push(push_mark_req, -1)
     expose_ileo_push(push_cl_node,100)
@@ -574,7 +575,8 @@ def leoref_f(self,s):
     """ Quick reference for ILeo """
     import textwrap
     print textwrap.dedent("""\
-    %leoe file/object - open file / object in leo
+    %lee file/object - open file / object in leo
+    %lleo Launch leo (use if you started ipython first!)
     wb.foo.v  - eval node foo (i.e. headstring is 'foo' or '@ipy foo')
     wb.foo.v = 12 - assign to body of node foo
     wb.foo.b - read or write the body of node foo
@@ -608,7 +610,11 @@ def mb_completer(self,event):
     return cmds
 
 def ileo_pre_prompt_hook(self):
-    c.outerUpdate()
+    # this will fail if leo is not running yet
+    try:
+        c.outerUpdate()
+    except NameError:
+        pass
     raise TryNext
     
 
@@ -627,5 +633,21 @@ def run_leo_startup_node():
         print "Running @ipy-startup nodes"
         for n in LeoNode(p):
             push_from_leo(n)
-            
 
+def lleo_f(selg,  args):
+    """ Launch leo from within IPython
+
+    This command will return immediately when Leo has been
+    launched, leaving a Leo session that is connected 
+    with current IPython session (once you press alt+I in leo)
+
+    Usage::
+      lleo foo.leo
+      lleo 
+    """
+    
+    import shlex, sys
+    argv = ['leo'] + shlex.split(args)
+    sys.argv = argv
+    import leo.core.runLeo
+    leo.core.runLeo.run()
