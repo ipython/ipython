@@ -40,8 +40,8 @@ def init_ipython(ipy):
     wb = LeoWorkbook()
     ip.user_ns['wb'] = wb 
     
-    show_welcome()
 
+first_launch = True
 
 def update_commander(new_leox):
     """ Set the Leo commander to use
@@ -51,7 +51,12 @@ def update_commander(new_leox):
     ipython-launch to tell ILeo what document the commands apply to.
     
     """
-    
+
+    global first_launch
+    if first_launch:
+        show_welcome()
+        first_launch = False
+
     global c,g
     c,g = new_leox.c, new_leox.g
     print "Set Leo Commander:",c.frame.getTitle()
@@ -569,8 +574,6 @@ def lee_f(self,s):
     finally:
         c.redraw()
 
-
-
 def leoref_f(self,s):
     """ Quick reference for ILeo """
     import textwrap
@@ -649,5 +652,9 @@ def lleo_f(selg,  args):
     import shlex, sys
     argv = ['leo'] + shlex.split(args)
     sys.argv = argv
+    # if this var exists and is true, leo will "launch" (connect)
+    # ipython immediately when it's started
+    global _request_immediate_connect
+    _request_immediate_connect = True
     import leo.core.runLeo
     leo.core.runLeo.run()
