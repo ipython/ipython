@@ -333,6 +333,12 @@ class Pdb(OldPdb):
         #frame, lineno = frame_lineno
         print >>Term.cout, self.format_stack_entry(frame_lineno, '', context)
 
+        # vds: >>
+        frame, lineno = frame_lineno
+        filename = frame.f_code.co_filename
+        __IPYTHON__.hooks.synchronize_with_editor(filename, lineno, 0)
+        # vds: <<
+
     def format_stack_entry(self, frame_lineno, lprefix=': ', context = 3):
         import linecache, repr
         
@@ -495,6 +501,12 @@ class Pdb(OldPdb):
         if last is None:
             last = first + 10
         self.print_list_lines(self.curframe.f_code.co_filename, first, last)
+
+        # vds: >>
+        lineno = first
+        filename = self.curframe.f_code.co_filename
+        __IPYTHON__.hooks.synchronize_with_editor(filename, lineno, 0)
+        # vds: <<
 
     do_l = do_list
 
