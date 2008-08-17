@@ -15,26 +15,6 @@ def install():
     
     from IPython.Release import version
     
-    # Some usability warnings at installation time.  I don't want them at the
-    # top-level, so they don't appear if the user is uninstalling.
-    try:
-        import ctypes
-    except ImportError:
-        print ('To take full advantage of IPython, you need ctypes from:\n'
-               'http://sourceforge.net/projects/ctypes')
-    
-    try:
-        import win32con
-    except ImportError:
-        print ('To take full advantage of IPython, you need pywin32 from:\n'
-               'http://starship.python.net/crew/mhammond/win32/Downloads.html')
-    
-    try:
-        import readline
-    except ImportError:
-        print ('To take full advantage of IPython, you need readline from:\n'
-               'https://launchpad.net/pyreadline')
-    
     # Get some system constants
     prefix = sys.prefix
     python = pjoin(prefix, 'python.exe')
@@ -48,9 +28,18 @@ def install():
     
     # Create .py and .bat files to make things available from
     # the Windows command line
-    programs = 'ipython iptest ipcontroller ipengine ipcluster'
+    programs = [
+        'ipython',
+        'iptest',
+        'ipcontroller',
+        'ipengine',
+        'ipcluster',
+        'ipythonx',
+        'ipython-wx',
+        'irunner'
+    ]
     scripts = pjoin(prefix,'scripts')
-    for program in programs.split():
+    for program in programs:
         raw = pjoin(scripts, program)
         bat = raw + '.bat'
         py = raw + '.py'
@@ -60,26 +49,37 @@ def install():
         bat_file = file(bat,'w')
         bat_file.write("@%s %s %%*" % (python, py))
         bat_file.close()
-    
+            
     # Now move onto setting the Start Menu up
-    ipybase = '"' + prefix + r'\scripts\ipython"'    
+    ipybase = pjoin(scripts, 'ipython')
 
-    # Create program shortcuts ...
-    f = ip_start_menu + r'\IPython.lnk'
-    a = ipybase
-    mkshortcut(python,'IPython',f,a)
+    link = pjoin(ip_start_menu, 'IPython.lnk')
+    cmd = '"%s"' % ipybase
+    mkshortcut(python,'IPython',link,cmd)
     
-    f = ip_start_menu + r'\pysh.lnk'
-    a = ipybase+' -p sh'
-    mkshortcut(python,'IPython (command prompt mode)',f,a)
+    link = pjoin(ip_start_menu, 'pysh.lnk')
+    cmd = '"%s" -p sh' % ipybase
+    mkshortcut(python,'IPython (command prompt mode)',link,cmd)
     
-    f = ip_start_menu + r'\pylab.lnk'
-    a = ipybase+' -pylab'
-    mkshortcut(python,'IPython (PyLab mode)',f,a)
+    link = pjoin(ip_start_menu, 'pylab.lnk')
+    cmd = '"%s" -pylab' % ipybase
+    mkshortcut(python,'IPython (PyLab mode)',link,cmd)
     
-    f = ip_start_menu + r'\scipy.lnk'
-    a = ipybase+' -pylab -p scipy'
-    mkshortcut(python,'IPython (scipy profile)',f,a)
+    link = pjoin(ip_start_menu, 'scipy.lnk')
+    cmd = '"%s" -pylab -p scipy' % ipybase
+    mkshortcut(python,'IPython (scipy profile)',link,cmd)
+    
+    link = pjoin(ip_start_menu, 'IPython test suite.lnk')
+    cmd = '"%s" -vv' % pjoin(scripts, 'iptest')
+    mkshortcut(python,'Run the IPython test suite',link,cmd)
+    
+    link = pjoin(ip_start_menu, 'ipcontroller.lnk')
+    cmd = '"%s" -xy' % pjoin(scripts, 'ipcontroller')
+    mkshortcut(python,'IPython controller',link,cmd)
+    
+    link = pjoin(ip_start_menu, 'ipengine.lnk')
+    cmd = '"%s"' % pjoin(scripts, 'ipengine')
+    mkshortcut(python,'IPython engine',link,cmd)
     
     # Create documentation shortcuts ...
     t = prefix + r'\share\doc\ipython\manual\ipython.pdf'
