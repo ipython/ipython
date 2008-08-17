@@ -2,7 +2,7 @@
 
 # release test
 
-ipdir=~/ipython/ipython
+ipdir=$PWD/..
 ipbackupdir=~/ipython/backup
 
 cd $ipdir
