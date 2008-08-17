@@ -329,6 +329,11 @@ and ipengine separately.
 def main():
     """Main driver for the two big options: local or remote cluster."""
     
+    if sys.platform=='win32':
+        print """ipcluster does not work on Microsoft Windows.  Please start
+your IPython cluster using the ipcontroller and ipengine scripts."""
+        sys.exit(1)
+    
     opt,arg = parse_args()
 
     clusterfile = opt.clusterfile

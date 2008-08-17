@@ -27,7 +27,8 @@ def install():
         directory_created(ip_start_menu)
     
     # Create .py and .bat files to make things available from
-    # the Windows command line
+    # the Windows command line.  Thanks to the Twisted project
+    # for this logic!
     programs = [
         'ipython',
         'iptest',
