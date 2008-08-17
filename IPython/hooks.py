@@ -53,10 +53,12 @@ from pprint import PrettyPrinter
 
 # List here all the default hooks.  For now it's just the editor functions
 # but over time we'll move here all the public API for user-accessible things.
-__all__ = ['editor', 'fix_error_editor', 'result_display',
+# vds: >>
+__all__ = ['editor', 'fix_error_editor', 'synchronize_with_editor', 'result_display',
            'input_prefilter', 'shutdown_hook', 'late_startup_hook',
            'generate_prompt', 'generate_output_prompt','shell_hook',
            'show_in_pager','pre_prompt_hook', 'pre_runcode_hook']
+# vds: <<
 
 pformat = PrettyPrinter().pformat
 
@@ -107,6 +109,10 @@ def fix_error_editor(self,filename,linenum,column,msg):
     finally:
         t.close()
 
+# vds: >>
+def synchronize_with_editor(self, filename, linenum, column):
+	pass
+# vds: <<
 
 class CommandChainDispatcher:
     """ Dispatch calls to a chain of commands until some func can handle it
