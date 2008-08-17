@@ -23,9 +23,9 @@ name = 'ipython'
 # bdist_deb does not accept underscores (a Debian convention).
 
 development = False    # change this to False to do a release
-version_base = '0.9.beta'
+version_base = '0.9.beta2'
 branch = 'ipython'
-revision = '1099'
+revision = '1104'
 
 if development:
     if branch == 'ipython':

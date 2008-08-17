@@ -2,6 +2,11 @@
 #
 # IPython documentation build configuration file, created by
 # sphinx-quickstart on Thu May  8 16:45:02 2008.
+
+# NOTE: This file has been edited manually from the auto-generated one from
+# sphinx.  Do NOT delete and re-generate.  If any changes from sphinx are
+# needed, generate a scratch one and merge by hand any new fields needed.
+
 #
 # This file is execfile()d with the current directory set to its containing dir.
 #
@@ -17,6 +22,10 @@ import sys, os
 # is relative to the documentation root, use os.path.abspath to make it
 # absolute, like shown here.
 #sys.path.append(os.path.abspath('some/directory'))
+
+# We load the ipython release info into a dict by explicit execution
+iprelease = {}
+execfile('../../IPython/Release.py',iprelease)
 
 # General configuration
 # ---------------------
@@ -41,10 +50,11 @@ copyright = '2008, The IPython Development Team'
 # The default replacements for |version| and |release|, also used in various
 # other places throughout the built documents.
 #
-# The short X.Y version.
-version = '0.9'
 # The full version, including alpha/beta/rc tags.
-release = '0.9.beta1'
+release = iprelease['version']
+# The short X.Y version.
+version = '.'.join(release.split('.',2)[:2])
+
 
 # There are two options for replacing |today|: either, you set today to some
 # non-false value, then it is used:
@@ -164,3 +174,7 @@ latex_documents = [ ('index', 'IPython.tex', 'IPython Documentation',
 
 # If false, no module index is generated.
 #latex_use_modindex = True
+
+
+# Cleanup: delete release info to avoid pickling errors from sphinx
+del iprelease
