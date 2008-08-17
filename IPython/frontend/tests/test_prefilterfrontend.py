@@ -17,6 +17,7 @@ import string
 
 from IPython.ipapi import get as get_ipython0
 from IPython.frontend.prefilterfrontend import PrefilterFrontEnd
+from copy import deepcopy
 
 class TestPrefilterFrontEnd(PrefilterFrontEnd):
     
@@ -54,11 +55,13 @@ def isolate_ipython0(func):
     """
     def my_func(*args, **kwargs):
         ipython0 = get_ipython0().IP
-        user_ns = ipython0.user_ns
-        global_ns = ipython0.global_ns
-        func(*args, **kwargs)
-        ipython0.user_ns = user_ns
-        ipython0.global_ns = global_ns
+        user_ns = deepcopy(ipython0.user_ns)
+        global_ns = deepcopy(ipython0.global_ns)
+        try:
+            func(*args, **kwargs)
+        finally:
+            ipython0.user_ns = user_ns
+            ipython0.global_ns = global_ns
 
     return my_func
 
