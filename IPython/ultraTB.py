@@ -490,6 +490,11 @@ class ListTB(TBTools):
                                               Colors.Normal, s))
             else:
                 list.append('%s\n' % str(stype))
+
+        # vds:>>
+        __IPYTHON__.hooks.synchronize_with_editor(filename, lineno, 0)
+        # vds:<<
+
         return list
 
     def _some_str(self, value):
@@ -801,6 +806,15 @@ class VerboseTB(TBTools):
             for name in names:
                 value = text_repr(getattr(evalue, name))
                 exception.append('\n%s%s = %s' % (indent, name, value))
+
+        # vds: >>
+        if records:
+             frame, file, lnum, func, lines, index = records[-1]
+             #print "file:", str(file), "linenb", str(lnum)         
+             file = abspath(file)
+             __IPYTHON__.hooks.synchronize_with_editor(file, lnum, 0)
+        # vds: <<
+                
         # return all our info assembled as a single string
         return '%s\n\n%s\n%s' % (head,'\n'.join(frames),''.join(exception[0]) )
 
