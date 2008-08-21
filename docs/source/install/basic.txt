@@ -68,29 +68,25 @@ Mac OSX information
 -------------------
 
 Under OSX, there is a choice you need to make. Apple ships its own build
-of Python, which lives in the core OSX filesystem hierarchy. You can
+of Python, which lives in the core OSX filesystem hierarchy (/System/Library/Frameworks/Python.framework). You can
 also manually install a separate Python, either purely by hand
-(typically in /usr/local) or by using Fink, which puts everything under
-/sw. Which route to follow is a matter of personal preference, as I've
-seen users who favor each of the approaches. Here I will simply list the
-known installation issues under OSX, along with their solutions.
+(typically in /usr/local), by using Fink or DarwinPorts, which put everything under /sw or /opt respectively, or using the python.org "Framework" python, which installs a framework similar to the system python in /Library/Frameworks. The Enthought Python Distribution (http://www.enthought.com/products/epd.php), uses the python.org "Framework" python and thus also installs into /Library/Frameworks. Which route to follow is a matter of personal preference, as I've seen users who favor each of the approaches. 
+
+For users of OS X 10.5 (Leopard), the system python installation contains support for `DTrace`_, a kernel-level profiling system integrated into OS X 10.5. This facility provides significant advantage to developers and users interested in high-performance computing by using the system python.
+
+.. _DTrace: http://www.apple.com/macosx/technology/unix.html
+
+IPython is known to work with all the above installation options. As such, we do not endorse one choice over the others. Here we will simply list the known installation issues under OSX, along with their solutions.
 
 This page: http://geosci.uchicago.edu/~tobis/pylab.html contains
 information on this topic, with additional details on how to make
 IPython and matplotlib play nicely under OSX.
 
-To run IPython and readline on OSX "Leopard" system python, see the 
-wiki page at http://ipython.scipy.org/moin/InstallationOSXLeopard
 
+GUI problems (older versions of OS X)
+-------------------------------------
 
-GUI problems
-------------
-
-The following instructions apply to an install of IPython under OSX from
-unpacking the .tar.gz distribution and installing it for the default
-Python interpreter shipped by Apple. If you are using a fink install,
-fink will take care of these details for you, by installing IPython
-against fink's Python.
+The following instructions apply to an install of IPython under OSX before OS X 10.5 (users of OS X 10.5 see [#]_ ) by unpacking the .tar.gz distribution and installing it for the default Python interpreter shipped by Apple. If you are using a fink or DarwinPorts install, they will take care of these details for you, by installing IPython against their Python.
 
 IPython offers various forms of support for interacting with graphical
 applications from the command line, from simple Tk apps (which are in
@@ -103,7 +99,7 @@ So when installing under OSX, it is best to use the following command::
 
 	$ sudo pythonw setup.py install --install-scripts=/usr/local/bin
 
-or
+or::
 
 	$ sudo pythonw setup.py install --install-scripts=/usr/bin
 	
@@ -124,12 +120,14 @@ scripts in an internal directory not available by default at the command
 line (if you use /usr/local/bin, you need to make sure this is in your
 $PATH, which may not be true by default).
 
+.. [#] Users of OS X 10.5 who choose to use the system-installed python should install IPython using ``sudo python setupegg.py install`` from the IPython source directory or from `PyPI`_ using ``sudo easy_install ipython``.
+
+.. _PyPI: http://pypi.python.org/pypi
 
 Readline problems
 -----------------
 
-By default, the Python version shipped by Apple does not include the
-readline library, so central to IPython's behavior. If you install
+By default, the Python version shipped by Apple before OS X 10.5 does not include the readline library, so central to IPython's behavior. If you install
 IPython against Apple's Python, you will not have arrow keys, tab
 completion, etc. For Mac OSX 10.3 (Panther), you can find a prebuilt
 readline library here:
@@ -142,9 +140,25 @@ need to either:
       /Library/Python/2.3/site-packages, or
    2. install http://pythonmac.org/packages/TigerPython23Compat.pkg.zip
 
-Users installing against Fink's Python or a properly hand-built one
-should not have this problem.
 
+Beginning with OS X 10.5, Apple's python installation uses libedit, a BSD-licensed not-quite-compatible readline replacement. As of IPython 0.9, many of the issues related to the differences between readline and libedit have been resolved. If you find that you are experiencing readline-related issues (e.g. problems with tab-completion, history movement, or line editing), you can install Ludwig Schwartz's readline package which effectively replaces libedit with readline for packages installed via setuptools. If you installed IPython from the source directory using::
+
+	sudo python setupegg.py
+
+or from PyPI with::
+
+	sudo easy_install ipython
+
+then you can install the readline egg via [#]_::
+
+	sudo easy_install readline
+
+If needed, the readline egg can be build and installed from source (see the 
+wiki page at http://ipython.scipy.org/moin/InstallationOSXLeopard).
+
+Users installing against Fink or DarwinPorts's Python or a properly hand-built python installation should not have this problem.
+
+.. [#] If you have installed SVN 1.5, you will also to install a patch to setuptools before installing the readline egg. Use ``sudo easy_install http://www.jaraco.com/ASP/eggs/setuptools-0.6c8_svn15fix.egg``.
 
 DarwinPorts
 -----------
