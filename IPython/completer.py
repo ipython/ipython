@@ -314,7 +314,10 @@ class IPCompleter(Completer):
         # don't want to treat as delimiters in filename matching
         # when escaped with backslash
 
-        protectables = ' '
+        if sys.platform == 'win32':
+            protectables = ' '
+        else:
+            protectables = ' ()'
 
         if text.startswith('!'):
             text = text[1:]
