@@ -23,6 +23,7 @@ import wx
 import wx.stc  as  stc
 
 from wx.py import editwindow
+import time
 import sys
 LINESEP = '\n'
 if sys.platform == 'win32':
@@ -115,6 +116,9 @@ class ConsoleWidget(editwindow.EditWindow):
     # The color of the carret (call _apply_style() after setting)
     carret_color = 'BLACK'
     
+    # Store the last time a refresh was done
+    _last_refresh_time = 0
+
     #--------------------------------------------------------------------------
     # Public API
     #--------------------------------------------------------------------------
@@ -170,7 +174,10 @@ class ConsoleWidget(editwindow.EditWindow):
         if refresh:
             # Maybe this is faster than wx.Yield()
             self.ProcessEvent(wx.PaintEvent())
-            #wx.Yield()
+            current_time = time.time()
+            if current_time - self._last_refresh_time > 0.03:
+                wx.Yield()
+                self._last_refresh_time = current_time 
 
    
     def new_prompt(self, prompt):
