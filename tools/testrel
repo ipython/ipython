@@ -3,18 +3,12 @@
 # release test
 
 ipdir=$PWD/..
-ipbackupdir=~/ipython/backup
 
 cd $ipdir
 
 # Clean up build/dist directories
 rm -rf $ipdir/build/*
 rm -rf $ipdir/dist/*
-
-# Perform local backup
-cd $ipdir/tools
-./make_tarball.py
-mv ipython-*.tgz $ipbackupdir
 
 # build source distros
 cd $ipdir
