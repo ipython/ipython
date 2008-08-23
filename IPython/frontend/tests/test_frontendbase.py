@@ -16,9 +16,14 @@ __docformat__ = "restructuredtext en"
 #---------------------------------------------------------------------------
 
 import unittest
-from IPython.frontend.asyncfrontendbase import AsyncFrontEndBase
-from IPython.frontend import frontendbase 
-from IPython.kernel.engineservice import EngineService
+
+try:
+	from IPython.frontend.asyncfrontendbase import AsyncFrontEndBase
+	from IPython.frontend import frontendbase 
+	from IPython.kernel.engineservice import EngineService
+except ImportError:
+	import nose
+	raise nose.SkipTest("This test requires zope.interface and Twisted")
 
 class FrontEndCallbackChecker(AsyncFrontEndBase):
     """FrontEndBase subclass for checking callbacks"""
@@ -28,11 +33,11 @@ class FrontEndCallbackChecker(AsyncFrontEndBase):
         self.updateCalled = False
         self.renderResultCalled = False
         self.renderErrorCalled = False
-    
+   
     def update_cell_prompt(self, result, blockID=None):
         self.updateCalled = True
         return result
-    
+   
     def render_result(self, result):
         self.renderResultCalled = True
         return result

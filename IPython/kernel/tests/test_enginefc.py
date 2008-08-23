@@ -37,8 +37,7 @@ try:
         IEngineSerializedTestCase, \
         IEngineQueuedTestCase
 except ImportError:
-    print "we got an error!!!"
-    raise
+	pass
 else:
     class EngineFCTest(DeferredTestCase, 
                        IEngineCoreTestCase, 

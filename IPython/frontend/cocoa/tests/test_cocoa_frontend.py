@@ -14,16 +14,18 @@ __docformat__ = "restructuredtext en"
 #---------------------------------------------------------------------------
 # Imports                                                                   
 #---------------------------------------------------------------------------
-from IPython.kernel.core.interpreter import Interpreter                     
-import IPython.kernel.engineservice as es
-from IPython.testing.util import DeferredTestCase
-from twisted.internet.defer import succeed
 
 try:
+	from IPython.kernel.core.interpreter import Interpreter                     
+	import IPython.kernel.engineservice as es
+	from IPython.testing.util import DeferredTestCase
+	from twisted.internet.defer import succeed
 	from IPython.frontend.cocoa.cocoa_frontend import IPythonCocoaController                                                    
 	from Foundation import NSMakeRect
 	from AppKit import NSTextView, NSScrollView                                                
 except ImportError:
+	pass
+else:
 	class TestIPythonCocoaControler(DeferredTestCase):
 	    """Tests for IPythonCocoaController"""
     
