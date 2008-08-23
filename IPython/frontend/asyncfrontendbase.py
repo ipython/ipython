@@ -26,10 +26,10 @@ zope.interface is required to run asynchronous frontends.""" % e.message
 
 from frontendbase import FrontEndBase, IFrontEnd, IFrontEndFactory
 
-from IPython.kernel.engineservice import IEngineCore
 from IPython.kernel.core.history import FrontEndHistory
 
 try:
+    from IPython.kernel.engineservice import IEngineCore
     from twisted.python.failure import Failure
 except ImportError, e:
     e.message = """%s
