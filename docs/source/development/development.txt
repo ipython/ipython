@@ -349,6 +349,39 @@ IPython. The current prototype of ``tconfig`` is located in the IPython sandbox.
 .. _ConfigObj: http://www.voidspace.org.uk/python/configobj.html
 .. _Traits: http://code.enthought.com/traits/
 
+Installation and testing scenarios
+==================================
+
+This section outlines the various scenarios that we need to test before we release an IPython version.  These scenarios represent different ways of installing IPython and its dependencies.
+
+Installation scenarios
+----------------------
+
+	1.  Install from tarball using `python setup.py install`.
+		a.  With only readline+nose dependencies installed (test1)
+		b.  With all dependencies installed (readline, zope.interface,
+		    Twisted, foolscap, Sphinx, nose, pyOpenSSL) (test2)
+	2.  Install using easy_install.
+	    a.  With only readline+nose dependencies installed (test3)
+			i.  Default dependencies.
+			ii. Optional dependency sets (kernel, doc, test, security)
+			easy_install -f ipython-0.9.beta3-py2.5.egg IPython[kernel,doc,test,security]
+			
+		b.  With all dependencies already installed (test2)
+
+
+Tests to run for these scenarios
+--------------------------------
+
+	1.  Run the full test suite.
+	2.  Start a controller and engines and try a few things by hand.
+		a.  Using ipcluster.
+		b.  Using ipcontroller/ipengine by hand.
+	3.  Run a few of the parallel examples.
+	4.  Try the kernel with and without security with and without PyOpenSSL
+	    installed.
+	5.  Beat on the IPython terminal a bunch.
+	6.  Make sure that furl files are being put in proper locations.
 
 
 
