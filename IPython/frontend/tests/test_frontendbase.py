@@ -18,12 +18,12 @@ __docformat__ = "restructuredtext en"
 import unittest
 
 try:
-	from IPython.frontend.asyncfrontendbase import AsyncFrontEndBase
-	from IPython.frontend import frontendbase 
-	from IPython.kernel.engineservice import EngineService
+    from IPython.frontend.asyncfrontendbase import AsyncFrontEndBase
+    from IPython.frontend import frontendbase 
+    from IPython.kernel.engineservice import EngineService
 except ImportError:
-	import nose
-	raise nose.SkipTest("This test requires zope.interface and Twisted")
+    import nose
+    raise nose.SkipTest("This test requires zope.interface, Twisted and Foolscap")
 
 class FrontEndCallbackChecker(AsyncFrontEndBase):
     """FrontEndBase subclass for checking callbacks"""

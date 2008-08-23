@@ -30,14 +30,15 @@ try:
     from controllertest import IControllerCoreTestCase
     from IPython.testing.util import DeferredTestCase
 except ImportError:
-    pass
-else:
-    class BasicControllerServiceTest(DeferredTestCase,
-        IControllerCoreTestCase):
-    
-        def setUp(self):
-            self.controller  = ControllerService()
-            self.controller.startService()
-    
-        def tearDown(self):
-            self.controller.stopService()
+    import nose
+    raise nose.SkipTest("This test requires zope.interface, Twisted and Foolscap")
+
+class BasicControllerServiceTest(DeferredTestCase,
+    IControllerCoreTestCase):
+
+    def setUp(self):
+        self.controller  = ControllerService()
+        self.controller.startService()
+
+    def tearDown(self):
+        self.controller.stopService()
