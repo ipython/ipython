@@ -358,24 +358,14 @@ Installation scenarios
 ----------------------
 
     1.  Install from tarball using `python setup.py install`.
-        a.  With only readline+nose dependencies installed (test1)
-        
-        virtualenv --no-site-packages test1
-        # Activate it
-        easy_install nose
-        easy_install readline # On OS X or pyreadline on win32
-        cd ipython-0.9.beta3
-        python setup.py install
-        
+        a.  With only readline+nose dependencies installed.
         b.  With all dependencies installed (readline, zope.interface,
-            Twisted, foolscap, Sphinx, nose, pyOpenSSL) (test2)
+            Twisted, foolscap, Sphinx, nose, pyOpenSSL).
     2.  Install using easy_install.
-        a.  With only readline+nose dependencies installed (test3)
-            i.  Default dependencies.
-            ii. Optional dependency sets (kernel, doc, test, security)
-            easy_install -f ipython-0.9.beta3-py2.5.egg IPython[kernel,doc,test,security]
-            
-        b.  With all dependencies already installed (test2)
+        a.  With only readline+nose dependencies installed.
+            i.  Default dependencies: `easy_install ipython-0.9.beta3-py2.5.egg`
+            ii. Optional dependency sets: `easy_install -f ipython-0.9.beta3-py2.5.egg IPython[kernel,doc,test,security]`
+        b.  With all dependencies already installed.
 
 
 Tests to run for these scenarios
