@@ -45,6 +45,11 @@ def test_deliberately_broken():
     """A deliberately broken test - we want to skip this one."""
     1/0
 
+@dec.skip('foo')
+def test_deliberately_broken2():
+    """Another deliberately broken test - we want to skip this one."""
+    1/0
+
 
 # Verify that we can correctly skip the doctest for a function at will, but
 # that the docstring itself is NOT destroyed by the decorator.
