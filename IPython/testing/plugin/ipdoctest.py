@@ -658,6 +658,24 @@ class ExtensionDoctest(doctests.Doctest):
 
     def options(self, parser, env=os.environ):
         Plugin.options(self, parser, env)
+        parser.add_option('--doctest-tests', action='store_true',
+                          dest='doctest_tests',
+                          default=env.get('NOSE_DOCTEST_TESTS',True),
+                          help="Also look for doctests in test modules. "
+                          "Note that classes, methods and functions should "
+                          "have either doctests or non-doctest tests, "
+                          "not both. [NOSE_DOCTEST_TESTS]")
+        parser.add_option('--doctest-extension', action="append",
+                          dest="doctestExtension",
+                          help="Also look for doctests in files with "
+                          "this extension [NOSE_DOCTEST_EXTENSION]")
+        # Set the default as a list, if given in env; otherwise
+        # an additional value set on the command line will cause
+        # an error.
+        env_setting = env.get('NOSE_DOCTEST_EXTENSION')
+        if env_setting is not None:
+            parser.set_defaults(doctestExtension=tolist(env_setting))
+
 
     def configure(self, options, config):
         Plugin.configure(self, options, config)
@@ -743,16 +761,19 @@ class ExtensionDoctest(doctests.Doctest):
         Modified version that accepts extension modules as valid containers for
         doctests.
         """
-        #print 'Filename:',filename  # dbg
+        print 'Filename:',filename  # dbg
 
         # XXX - temporarily hardcoded list, will move to driver later
         exclude = ['IPython/external/',
-                   'IPython/Extensions/ipy_',
                    'IPython/platutils_win32',
                    'IPython/frontend/cocoa',
                    'IPython_doctest_plugin',
                    'IPython/Gnuplot',
-                   'IPython/Extensions/PhysicalQIn']
+                   'IPython/Extensions/ipy_',
+                   'IPython/Extensions/PhysicalQIn',
+                   'IPython/Extensions/scitedirector',
+                   'IPython/testing/plugin',
+                   ]
 
         for fex in exclude:
             if fex in filename:  # substring
@@ -782,3 +803,4 @@ class IPythonDoctest(ExtensionDoctest):
         self.checker = IPDoctestOutputChecker()
         self.globs = None
         self.extraglobs = None
+

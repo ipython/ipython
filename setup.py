@@ -152,8 +152,6 @@ if 'setuptools' in sys.modules:
     )
     # Allow setuptools to handle the scripts
     scripts = []
-    # eggs will lack docs, examples
-    data_files = []
 else:
     # package_data of setuptools was introduced to distutils in 2.4
     cfgfiles = filter(isfile, glob('IPython/UserConfig/*'))
