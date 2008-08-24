@@ -137,7 +137,8 @@ if 'setuptools' in sys.modules:
             'ipcontroller = IPython.kernel.scripts.ipcontroller:main',
             'ipengine = IPython.kernel.scripts.ipengine:main',
             'ipcluster = IPython.kernel.scripts.ipcluster:main',
-            'ipythonx = IPython.frontend.wx.ipythonx:main'
+            'ipythonx = IPython.frontend.wx.ipythonx:main',
+            'iptest = IPython.testing.iptest:main',
         ]
     }
     setup_args["extras_require"] = dict(
