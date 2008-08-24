@@ -121,14 +121,25 @@ skip_doctest = make_label_dec('skip_doctest',
     etc.""")                              
 
 
-def skip(func):
-    """Decorator - mark a test function for skipping from test suite."""
+def skip(func,msg=''):
+    """Decorator - mark a test function for skipping from test suite.
+
+    :Parameters:
+
+      func : function
+        Test function to be skipped
+
+      msg : string
+        Optional message to be added.
+      """
 
     import nose
     
     def wrapper(*a,**k):
-        raise nose.SkipTest("Skipping test for function: %s" %
-                            func.__name__)
+        if msg:
+            msg = '\n'+msg
+        raise nose.SkipTest("Skipping test for function: %s%s" %
+                            (func.__name__,msg))
     
     return apply_wrapper(wrapper,func)
 
