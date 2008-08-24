@@ -140,15 +140,15 @@ if 'setuptools' in sys.modules:
             'ipythonx = IPython.frontend.wx.ipythonx:main'
         ]
     }
-    setup_args["extras_require"] = dict(
+    setup_args['extras_require'] = dict(
         kernel = [
-            "zope.interface>=3.4.1",
-            "Twisted>=8.0.1",
-            "foolscap>=0.2.6"        
+            'zope.interface>=3.4.1',
+            'Twisted>=8.0.1',
+            'foolscap>=0.2.6'
         ],
-        doc=['Sphinx>=0.3','pygments'],
+        doc='Sphinx>=0.3',
         test='nose>=0.10.1',
-        security=["pyOpenSSL>=0.6"]
+        security='pyOpenSSL>=0.6'
     )
     # Allow setuptools to handle the scripts
     scripts = []
