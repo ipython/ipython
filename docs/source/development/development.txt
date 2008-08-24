@@ -93,28 +93,28 @@ Specific subpackages
 --------------------
 
 ``core``
-	This is the core functionality of IPython that is independent of the
-	terminal, network and GUIs.  Most of the code that is in the current
-	IPython trunk will be refactored, cleaned up and moved here.
+    This is the core functionality of IPython that is independent of the
+    terminal, network and GUIs.  Most of the code that is in the current
+    IPython trunk will be refactored, cleaned up and moved here.
 
 ``kernel``
-	The enables the IPython core to be expose to a the network.  This is
-	also where all of the parallel computing capabilities are to be found.
-	
+    The enables the IPython core to be expose to a the network.  This is
+    also where all of the parallel computing capabilities are to be found.
+    
 ``config``
-	The configuration package used by IPython.
+    The configuration package used by IPython.
 
 ``frontends``
-	The various frontends for IPython.  A frontend is the end-user application
-	that exposes the capabilities of IPython to the user.  The most basic frontend
-	will simply be a terminal based application that looks just like today 's 
-	IPython.  Other frontends will likely be more powerful and based on GUI toolkits.
+    The various frontends for IPython.  A frontend is the end-user application
+    that exposes the capabilities of IPython to the user.  The most basic frontend
+    will simply be a terminal based application that looks just like today 's 
+    IPython.  Other frontends will likely be more powerful and based on GUI toolkits.
 
 ``notebook``
-	An application that allows users to work with IPython notebooks.
+    An application that allows users to work with IPython notebooks.
 
 ``tools``
-	This is where general utilities go.
+    This is where general utilities go.
 
 
 Version control
@@ -125,17 +125,17 @@ to contribute code to IPython.  Here is a sketch of how to use Bazaar for IPytho
 development.  First, you should install Bazaar.  After you have done that, make
 sure that it is working by getting the latest main branch of IPython::
 
-	$ bzr branch lp:ipython
+    $ bzr branch lp:ipython
 
 Now you can create a new branch for you to do your work in::
 
-	$ bzr branch ipython ipython-mybranch
+    $ bzr branch ipython ipython-mybranch
 
 The typical work cycle in this branch will be to make changes in `ipython-mybranch`
 and then commit those changes using the commit command::
 
-	$ ...do work in ipython-mybranch...
-	$ bzr ci -m "the commit message goes here"
+    $ ...do work in ipython-mybranch...
+    $ bzr ci -m "the commit message goes here"
 
 Please note that since we now don't use an old-style linear ChangeLog
 (that tends to cause problems with distributed version control
@@ -156,26 +156,26 @@ the project, and the `--short` log option becomes a nice summary.
 While working with this branch, it is a good idea to merge in changes that have been
 made upstream in the parent branch.  This can be done by doing::
 
-	$ bzr pull
-	
+    $ bzr pull
+    
 If this command shows that the branches have diverged, then you should do a merge
 instead::
 
-	$ bzr merge lp:ipython
+    $ bzr merge lp:ipython
 
 If you want others to be able to see your branch, you can create an account with
 launchpad and push the branch to your own workspace::
 
-	$ bzr push bzr+ssh://<me>@bazaar.launchpad.net/~<me>/+junk/ipython-mybranch
+    $ bzr push bzr+ssh://<me>@bazaar.launchpad.net/~<me>/+junk/ipython-mybranch
 
 Finally, once the work in your branch is done, you can merge your changes back into
 the `ipython` branch by using merge::
 
-	$ cd ipython
-	$ merge ../ipython-mybranch
-	[resolve any conflicts]
-	$ bzr ci -m "Fixing that bug"
-	$ bzr push
+    $ cd ipython
+    $ merge ../ipython-mybranch
+    [resolve any conflicts]
+    $ bzr ci -m "Fixing that bug"
+    $ bzr push
 
 But this will require you to have write permissions to the `ipython` branch.  It you don't
 you can tell one of the IPython devs about your branch and they can do the merge for you.
@@ -349,6 +349,37 @@ IPython. The current prototype of ``tconfig`` is located in the IPython sandbox.
 .. _ConfigObj: http://www.voidspace.org.uk/python/configobj.html
 .. _Traits: http://code.enthought.com/traits/
 
+Installation and testing scenarios
+==================================
+
+This section outlines the various scenarios that we need to test before we release an IPython version.  These scenarios represent different ways of installing IPython and its dependencies.
+
+Installation scenarios
+----------------------
+
+    1.  Install from tarball using `python setup.py install`.
+        a.  With only readline+nose dependencies installed.
+        b.  With all dependencies installed (readline, zope.interface,
+            Twisted, foolscap, Sphinx, nose, pyOpenSSL).
+    2.  Install using easy_install.
+        a.  With only readline+nose dependencies installed.
+            i.  Default dependencies: `easy_install ipython-0.9.beta3-py2.5.egg`
+            ii. Optional dependency sets: `easy_install -f ipython-0.9.beta3-py2.5.egg IPython[kernel,doc,test,security]`
+        b.  With all dependencies already installed.
+
+
+Tests to run for these scenarios
+--------------------------------
+
+    1.  Run the full test suite.
+    2.  Start a controller and engines and try a few things by hand.
+        a.  Using ipcluster.
+        b.  Using ipcontroller/ipengine by hand.
+    3.  Run a few of the parallel examples.
+    4.  Try the kernel with and without security with and without PyOpenSSL
+        installed.
+    5.  Beat on the IPython terminal a bunch.
+    6.  Make sure that furl files are being put in proper locations.
 
 
 
