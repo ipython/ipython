@@ -459,8 +459,9 @@ class ListTB(TBTools):
                 try:
                     msg, (filename, lineno, offset, line) = value
                 except:
-                    pass
+                    have_filedata = False
                 else:
+                    have_filedata = True
                     #print 'filename is',filename  # dbg
                     if not filename: filename = "<string>"
                     list.append('%s  File %s"%s"%s, line %s%d%s\n' % \
@@ -492,7 +493,8 @@ class ListTB(TBTools):
                 list.append('%s\n' % str(stype))
 
         # vds:>>
-        __IPYTHON__.hooks.synchronize_with_editor(filename, lineno, 0)
+        if have_filedata:
+            __IPYTHON__.hooks.synchronize_with_editor(filename, lineno, 0)
         # vds:<<
 
         return list
@@ -809,10 +811,10 @@ class VerboseTB(TBTools):
 
         # vds: >>
         if records:
-             frame, file, lnum, func, lines, index = records[-1]
-             #print "file:", str(file), "linenb", str(lnum)         
-             file = abspath(file)
-             __IPYTHON__.hooks.synchronize_with_editor(file, lnum, 0)
+             filepath, lnum = records[-1][1:3]
+             #print "file:", str(file), "linenb", str(lnum) # dbg
+             filepath = os.path.abspath(filepath)
+             __IPYTHON__.hooks.synchronize_with_editor(filepath, lnum, 0)
         # vds: <<
                 
         # return all our info assembled as a single string

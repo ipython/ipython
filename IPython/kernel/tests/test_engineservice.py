@@ -35,44 +35,46 @@ try:
         IEngineQueuedTestCase, \
         IEnginePropertiesTestCase
 except ImportError:
-    pass
-else:
-    class BasicEngineServiceTest(DeferredTestCase,
-                                 IEngineCoreTestCase, 
-                                 IEngineSerializedTestCase,
-                                 IEnginePropertiesTestCase):
-    
-        def setUp(self):
-            self.engine = es.EngineService()
-            self.engine.startService()
-    
-        def tearDown(self):
-            return self.engine.stopService()
-    
-    class ThreadedEngineServiceTest(DeferredTestCase,
-                                 IEngineCoreTestCase, 
-                                 IEngineSerializedTestCase,
-                                 IEnginePropertiesTestCase):
-    
-        def setUp(self):
-            self.engine = es.ThreadedEngineService()
-            self.engine.startService()
-    
-        def tearDown(self):
-            return self.engine.stopService()
+    import nose
+    raise nose.SkipTest("This test requires zope.interface, Twisted and Foolscap")    
 
-    class QueuedEngineServiceTest(DeferredTestCase,
-                                  IEngineCoreTestCase, 
-                                  IEngineSerializedTestCase,
-                                  IEnginePropertiesTestCase,
-                                  IEngineQueuedTestCase):
-                              
-        def setUp(self):
-            self.rawEngine = es.EngineService()
-            self.rawEngine.startService()
-            self.engine = es.IEngineQueued(self.rawEngine)
-        
-        def tearDown(self):
-            return self.rawEngine.stopService()
 
- 
+class BasicEngineServiceTest(DeferredTestCase,
+                             IEngineCoreTestCase, 
+                             IEngineSerializedTestCase,
+                             IEnginePropertiesTestCase):
+
+    def setUp(self):
+        self.engine = es.EngineService()
+        self.engine.startService()
+
+    def tearDown(self):
+        return self.engine.stopService()
+
+class ThreadedEngineServiceTest(DeferredTestCase,
+                             IEngineCoreTestCase, 
+                             IEngineSerializedTestCase,
+                             IEnginePropertiesTestCase):
+
+    def setUp(self):
+        self.engine = es.ThreadedEngineService()
+        self.engine.startService()
+
+    def tearDown(self):
+        return self.engine.stopService()
+
+class QueuedEngineServiceTest(DeferredTestCase,
+                              IEngineCoreTestCase, 
+                              IEngineSerializedTestCase,
+                              IEnginePropertiesTestCase,
+                              IEngineQueuedTestCase):
+                          
+    def setUp(self):
+        self.rawEngine = es.EngineService()
+        self.rawEngine.startService()
+        self.engine = es.IEngineQueued(self.rawEngine)
+    
+    def tearDown(self):
+        return self.rawEngine.stopService()
+
+

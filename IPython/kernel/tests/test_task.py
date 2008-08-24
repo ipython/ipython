@@ -26,25 +26,26 @@ try:
     from IPython.testing.util import DeferredTestCase
     from IPython.kernel.tests.tasktest import ITaskControllerTestCase
 except ImportError:
-    pass
-else:
-    #-------------------------------------------------------------------------------
-    # Tests
-    #-------------------------------------------------------------------------------
+    import nose
+    raise nose.SkipTest("This test requires zope.interface, Twisted and Foolscap")
 
-    class BasicTaskControllerTestCase(DeferredTestCase, ITaskControllerTestCase):
+#-------------------------------------------------------------------------------
+# Tests
+#-------------------------------------------------------------------------------
+
+class BasicTaskControllerTestCase(DeferredTestCase, ITaskControllerTestCase):
+
+    def setUp(self):
+        self.controller  = cs.ControllerService()
+        self.controller.startService()
+        self.multiengine = IMultiEngine(self.controller)
+        self.tc = task.ITaskController(self.controller)
+        self.tc.failurePenalty = 0
+        self.engines=[]
     
-        def setUp(self):
-            self.controller  = cs.ControllerService()
-            self.controller.startService()
-            self.multiengine = IMultiEngine(self.controller)
-            self.tc = task.ITaskController(self.controller)
-            self.tc.failurePenalty = 0
-            self.engines=[]
-        
-        def tearDown(self):
-            self.controller.stopService()
-            for e in self.engines:
-                e.stopService()
+    def tearDown(self):
+        self.controller.stopService()
+        for e in self.engines:
+            e.stopService()
 
 
