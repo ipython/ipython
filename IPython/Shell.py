@@ -40,11 +40,12 @@ except ImportError:
 # IPython imports
 import IPython
 from IPython import ultraTB, ipapi
+from IPython.Magic import Magic
 from IPython.genutils import Term,warn,error,flag_calls, ask_yes_no
 from IPython.iplib import InteractiveShell
 from IPython.ipmaker import make_IPython
-from IPython.Magic import Magic
 from IPython.ipstruct import Struct
+from IPython.testing import decorators as testdec
 
 # Globals
 # global flag to pass around information about Ctrl-C without exceptions
@@ -607,7 +608,8 @@ class MatplotlibShellBase:
         # if a backend switch was performed, reverse it now
         if self.mpl_use._called:
             self.matplotlib.rcParams['backend'] = self.mpl_backend
-        
+
+    @testdec.skip_doctest
     def magic_run(self,parameter_s=''):
         Magic.magic_run(self,parameter_s,runner=self.mplot_exec)
 

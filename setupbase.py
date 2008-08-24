@@ -220,11 +220,12 @@ def find_scripts():
     """
     scripts = ['IPython/kernel/scripts/ipengine',
                'IPython/kernel/scripts/ipcontroller',
-                'IPython/kernel/scripts/ipcluster',
+               'IPython/kernel/scripts/ipcluster',
                'scripts/ipython',
                'scripts/ipythonx',
                'scripts/pycolor',
                'scripts/irunner',
+               'scripts/iptest',
                ]
     
     # Script to be run by the windows binary installer after the default setup

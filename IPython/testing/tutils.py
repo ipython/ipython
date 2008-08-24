@@ -9,6 +9,7 @@ Utilities for testing code.
 # testing machinery from snakeoil that were good have already been merged into
 # the nose plugin, so this can be taken away soon.  Leave a warning for now,
 # we'll remove it in a later release (around 0.10 or so).
+
 from warnings import warn
 warn('This will be removed soon.  Use IPython.testing.util instead',
      DeprecationWarning)
