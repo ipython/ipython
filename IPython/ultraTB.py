@@ -445,7 +445,8 @@ class ListTB(TBTools):
         
         Also lifted nearly verbatim from traceback.py
         """
-        
+
+        have_filedata = False
         Colors = self.Colors
         list = []
         try:

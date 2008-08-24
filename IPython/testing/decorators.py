@@ -136,10 +136,10 @@ def skip(func,msg=''):
     import nose
     
     def wrapper(*a,**k):
-        if msg:
-            msg = '\n'+msg
+        if msg: out = '\n'+msg
+        else: out = ''
         raise nose.SkipTest("Skipping test for function: %s%s" %
-                            (func.__name__,msg))
+                            (func.__name__,out))
     
     return apply_wrapper(wrapper,func)
 
