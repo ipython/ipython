@@ -46,6 +46,15 @@ def make_color_table(in_class):
     for name,value in color_templates:
         setattr(in_class,name,in_class._base % value)
 
+        # Automatically add Blink versions of the above colors.  This
+        # just involves setting the attribute field (before the first
+        # semicolon) to '5'.
+        # Note: this is a little easter egg contributed by Peter Wang from
+        # Enthought at the Scipy2008 sprint :)
+        value = '5'+value[1:]
+        setattr(in_class,"Blink"+name,in_class._base % value)
+
+
 class TermColors:
     """Color escape sequences.
 
