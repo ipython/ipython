@@ -137,23 +137,22 @@ if 'setuptools' in sys.modules:
             'ipcontroller = IPython.kernel.scripts.ipcontroller:main',
             'ipengine = IPython.kernel.scripts.ipengine:main',
             'ipcluster = IPython.kernel.scripts.ipcluster:main',
-            'ipythonx = IPython.frontend.wx.ipythonx:main'
+            'ipythonx = IPython.frontend.wx.ipythonx:main',
+            'iptest = IPython.testing.iptest:main',
         ]
     }
-    setup_args["extras_require"] = dict(
+    setup_args['extras_require'] = dict(
         kernel = [
-            "zope.interface>=3.4.1",
-            "Twisted>=8.0.1",
-            "foolscap>=0.2.6"        
+            'zope.interface>=3.4.1',
+            'Twisted>=8.0.1',
+            'foolscap>=0.2.6'
         ],
-        doc=['Sphinx>=0.3','pygments'],
+        doc='Sphinx>=0.3',
         test='nose>=0.10.1',
-        security=["pyOpenSSL>=0.6"]
+        security='pyOpenSSL>=0.6'
     )
     # Allow setuptools to handle the scripts
     scripts = []
-    # eggs will lack docs, examples
-    data_files = []
 else:
     # package_data of setuptools was introduced to distutils in 2.4
     cfgfiles = filter(isfile, glob('IPython/UserConfig/*'))

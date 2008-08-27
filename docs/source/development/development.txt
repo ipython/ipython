@@ -354,8 +354,8 @@ Installation and testing scenarios
 
 This section outlines the various scenarios that we need to test before we release an IPython version.  These scenarios represent different ways of installing IPython and its dependencies.
 
-Installation scenarios
-----------------------
+Installation scenarios under Linux and OS X
+-------------------------------------------
 
     1.  Install from tarball using `python setup.py install`.
         a.  With only readline+nose dependencies installed.
@@ -366,6 +366,12 @@ Installation scenarios
             i.  Default dependencies: `easy_install ipython-0.9.beta3-py2.5.egg`
             ii. Optional dependency sets: `easy_install -f ipython-0.9.beta3-py2.5.egg IPython[kernel,doc,test,security]`
         b.  With all dependencies already installed.
+
+Installation scenarios under Win32
+----------------------------------
+
+	1.  Install everything from .exe installers
+	2.  easy_install?
 
 
 Tests to run for these scenarios
