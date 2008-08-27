@@ -9,7 +9,7 @@ def surfraw_completer(self,cmdline):
     """ Completer for 'surfraw'
 
     example::
-      sr go<tob>  => sr google
+      sr go<tab>  => sr google
 
     """
     compl = [l.split(None,1)[0] for l in os.popen('sr -elvi')]
