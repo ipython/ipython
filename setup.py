@@ -88,28 +88,39 @@ if len(sys.argv) >= 2 and sys.argv[1] in ('sdist','bdist_rpm'):
                   "cd docs/man && gzip -9c pycolor.1 > pycolor.1.gz"),
                  ]
 
-    # Only build the docs is sphinx is present
+    # Only build the docs if sphinx is present
     try:
         import sphinx
     except ImportError:
         pass
     else:
-        pass
-        # BEG: This is disabled as I am not sure what to depend on.
-        # I actually don't think we should be automatically building
-        # the docs for people.
-        # The do_sphinx scripts builds html and pdf, so just one
-        # target is enough to cover all manual generation
-        # to_update.append(
-        #     ('docs/manual/ipython.pdf',
-        #     ['IPython/Release.py','docs/source/ipython.rst'],
-        #     "cd docs && python do_sphinx.py")
-        # )
+        # The Makefile calls the do_sphinx scripts to build html and pdf, so
+        # just one target is enough to cover all manual generation
+
+        # First, compute all the dependencies that can force us to rebuild the
+        # docs.  Start with the main release file that contains metadata
+        docdeps = ['IPython/Release.py']
+        # Inculde all the reST sources
+        pjoin = os.path.join
+        for dirpath,dirnames,filenames in os.walk('docs/source'):
+            if dirpath in ['_static','_templates']:
+                continue
+            docdeps += [ pjoin(dirpath,f) for f in filenames
+                         if f.endswith('.txt') ]
+        # and the examples
+        for dirpath,dirnames,filenames in os.walk('docs/example'):
+            docdeps += [ pjoin(dirpath,f) for f in filenames
+                         if not f.endswith('~') ]
+        # then, make them all dependencies for the main PDF (the html will get
+        # auto-generated as well).
+        to_update.append(
+            ('docs/dist/ipython.pdf',
+             docdeps,
+             "cd docs && make dist")
+            )
         
     [ target_update(*t) for t in to_update ]
 
-    # Build the docs
-    os.system('cd docs && make dist')
     
 #---------------------------------------------------------------------------
 # Find all the packages, package data, scripts and data_files
