@@ -154,12 +154,17 @@ class NonBlockingIPShell(object):
         self._term = IPython.genutils.IOTerm(cin=cin, cout=cout, cerr=cerr)
 
         excepthook = sys.excepthook
-
+        #Hack to save sys.displayhook, because ipython seems to overwrite it...
+        self.sys_displayhook_ori = sys.displayhook
+        
         self._IP = IPython.Shell.make_IPython(
                                     argv,user_ns=user_ns,
                                     user_global_ns=user_global_ns,
                                     embedded=True,
                                     shell_class=IPython.Shell.InteractiveShell)
+
+        #we restore sys.displayhook
+        sys.displayhook = self.sys_displayhook_ori
 
         #we replace IPython default encoding by wx locale encoding
         loc = locale.getpreferredencoding()
@@ -195,8 +200,9 @@ class NonBlockingIPShell(object):
 
         self._line_to_execute = line
         #we launch the ipython line execution in a thread to make it interruptible
-        ce = _CodeExecutor(self, self._afterExecute)
-        ce.start()
+        #with include it in self namespace to be able to call ce.raise_exc(KeyboardInterrupt)
+        self.ce = _CodeExecutor(self, self._afterExecute)
+        self.ce.start()
         
     #----------------------- IPython management section ----------------------    
     def getDocText(self):
