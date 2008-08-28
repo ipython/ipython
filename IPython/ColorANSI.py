@@ -26,6 +26,7 @@ def make_color_table(in_class):
     Helper function for building the *TermColors classes."""
     
     color_templates = (
+        # Dark colors
         ("Black"       , "0;30"),
         ("Red"         , "0;31"),
         ("Green"       , "0;32"),
@@ -34,6 +35,7 @@ def make_color_table(in_class):
         ("Purple"      , "0;35"),
         ("Cyan"        , "0;36"),
         ("LightGray"   , "0;37"),
+        # Light colors
         ("DarkGray"    , "1;30"),
         ("LightRed"    , "1;31"),
         ("LightGreen"  , "1;32"),
@@ -41,18 +43,17 @@ def make_color_table(in_class):
         ("LightBlue"   , "1;34"),
         ("LightPurple" , "1;35"),
         ("LightCyan"   , "1;36"),
-        ("White"       , "1;37"),  )
-
-    for name,value in color_templates:
-        setattr(in_class,name,in_class._base % value)
-
-        # Automatically add Blink versions of the above colors.  This
-        # just involves setting the attribute field (before the first
-        # semicolon) to '5'.
-        # Note: this is a little easter egg contributed by Peter Wang from
-        # Enthought at the Scipy2008 sprint :)
-        value = '5'+value[1:]
-        setattr(in_class,"Blink"+name,in_class._base % value)
+        ("White"       , "1;37"),  
+        # Blinking colors.  Probably should not be used in anything serious.
+        ("BlinkBlack"  , "5;30"),
+        ("BlinkRed"    , "5;31"),
+        ("BlinkGreen"  , "5;32"),
+        ("BlinkYellow" , "5;33"),
+        ("BlinkBlue"   , "5;34"),
+        ("BlinkPurple" , "5;35"),
+        ("BlinkCyan"   , "5;36"),
+        ("BlinkLightGray", "5;37"),
+        )
 
 
 class TermColors:
