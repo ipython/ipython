@@ -55,6 +55,8 @@ def make_color_table(in_class):
         ("BlinkLightGray", "5;37"),
         )
 
+    for name,value in color_templates:
+        setattr(in_class,name,in_class._base % value)
 
 class TermColors:
     """Color escape sequences.
