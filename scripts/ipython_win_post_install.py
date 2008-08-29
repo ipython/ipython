@@ -38,7 +38,7 @@ def install():
         import readline
     except ImportError:
         print ('To take full advantage of IPython, you need readline from:\n'
-               'http://sourceforge.net/projects/uncpythontools')
+               'https://launchpad.net/pyreadline')
 
     ipybase = '"' + prefix + r'\scripts\ipython"'
     # Create IPython entry ...
@@ -53,11 +53,15 @@ def install():
 
     f = ip_dir + r'\pysh.lnk'
     a = ipybase+' -p sh'
-    mkshortcut(python,'IPython command prompt mode',f,a)
+    mkshortcut(python,'IPython (command prompt mode)',f,a)
+
+    f = ip_dir + r'\pylab.lnk'
+    a = ipybase+' -pylab'
+    mkshortcut(python,'IPython (PyLab mode)',f,a)
 
     f = ip_dir + r'\scipy.lnk'
     a = ipybase+' -pylab -p scipy'
-    mkshortcut(python,'IPython scipy profile',f,a)
+    mkshortcut(python,'IPython (scipy profile)',f,a)
 
     # Create documentation shortcuts ...
     t = prefix + r'\share\doc\ipython\manual\ipython.pdf'

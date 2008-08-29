@@ -72,7 +72,7 @@ def run(wait=0):
     # File and directory names
     ip_dir = program_files_dir + r'\IPython'
     ip_prog_dir = programs_dir + r'\IPython'
-    doc_dir = ip_dir+r'\doc'
+    doc_dir = ip_dir+r'\docs'
     ip_filename = ip_dir+r'\IPython_shell.py'
     pycon_icon = doc_dir+r'\pycon.ico'
 
@@ -83,7 +83,7 @@ def run(wait=0):
     shutil.copy(sys.prefix+r'\Scripts\ipython',ip_filename)
     if os.path.isdir(doc_dir):
         shutil.rmtree(doc_dir)
-    shutil.copytree('doc',doc_dir)
+    shutil.copytree('docs',doc_dir)
 
     # make shortcuts for IPython, html and pdf docs.
     print 'Making entries for IPython in Start Menu...',
@@ -104,8 +104,8 @@ def run(wait=0):
         os.mkdir(ip_prog_dir)
     os.chdir(ip_prog_dir)
 
-    man_pdf = doc_dir + r'\manual\ipython.pdf'
-    man_htm = doc_dir + r'\manual\ipython.html'
+    man_pdf = doc_dir + r'\dist\ipython.pdf'
+    man_htm = doc_dir + r'\dist\index.html'
 
     make_shortcut('IPython.lnk',sys.executable, '"%s"' % ip_filename,
                   my_documents_dir,
