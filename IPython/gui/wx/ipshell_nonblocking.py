@@ -44,7 +44,7 @@ class _Helper(object):
     
     def __call__(self, *args, **kwds):
         class DummyWriter(object):
-            '''Dumy class to handle help output'''	
+            '''Dumy class to handle help output'''
             def __init__(self, pager):
                 self._pager = pager
                 

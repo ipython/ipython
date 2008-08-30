@@ -560,10 +560,16 @@ class IPShellWidget(wx.Panel):
 
         option_text = wx.StaticText(self, -1, "Options:")
         self.completion_option = wx.CheckBox(self, -1, "Scintilla Completion")
+        self.completion_option.SetToolTip(wx.ToolTip(
+            "Selects the completion type:\nEither Ipython default style or Scintilla one"))
         #self.completion_option.SetValue(False)
         self.background_option = wx.CheckBox(self, -1, "White Background")
+        self.background_option.SetToolTip(wx.ToolTip(
+            "Selects the back ground color: BLACK or WHITE"))
         #self.background_option.SetValue(False)
         self.threading_option = wx.CheckBox(self, -1, "Execute in thread")
+        self.threading_option.SetToolTip(wx.ToolTip(
+            "Use threading: infinite loop don't freeze the GUI and commands can be breaked\nNo  threading: maximum compatibility"))
         #self.threading_option.SetValue(False)
         
         self.options={'completion':{'value':'IPYTHON',
