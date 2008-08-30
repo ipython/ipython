@@ -128,6 +128,7 @@ class WxController(ConsoleWidget, PrefilterFrontEnd):
     # while it is being swapped
     _out_buffer_lock = Lock()
 
+    # The different line markers used to higlight the prompts.
     _markers = dict()
 
     #--------------------------------------------------------------------------
@@ -238,9 +239,9 @@ class WxController(ConsoleWidget, PrefilterFrontEnd):
             true, open the menu.
         """
         if self.debug:
-            print >>sys.__stdout__, "_popup_completion", 
+            print >>sys.__stdout__, "_popup_completion" 
         line = self.input_buffer
-        if (self.AutoCompActive() and not line[-1] == '.') \
+        if (self.AutoCompActive() and line and not line[-1] == '.') \
                     or create==True:
             suggestion, completions = self.complete(line)
             offset=0
@@ -427,7 +428,7 @@ class WxController(ConsoleWidget, PrefilterFrontEnd):
         if event.KeyCode in (59, ord('.')):
             # Intercepting '.'
             event.Skip()
-            self._popup_completion(create=True)
+            wx.CallAfter(self._popup_completion, create=True)
         else:
             ConsoleWidget._on_key_up(self, event, skip=skip)
 
