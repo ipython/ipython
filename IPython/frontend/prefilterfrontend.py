@@ -108,17 +108,6 @@ class PrefilterFrontEnd(LineFrontEndBase):
             self.banner = self.ipython0.BANNER + """
 This is the wx frontend, by Gael Varoquaux. This is EXPERIMENTAL code."""
 
-        # XXX: Hack: mix the two namespaces
-#        self.shell.user_ns.update(self.ipython0.user_ns)
-#        self.ipython0.user_ns = self.shell.user_ns 
-#        self.shell.user_global_ns.update(self.ipython0.user_global_ns)
-#        self.ipython0.user_global_ns = self.shell.user_global_ns
-        
-#        self.ipython0.user_ns.update(self.shell.user_ns)
-#        self.shell.user_ns = self.ipython0.user_ns 
-#        self.ipython0.user_global_ns.update(self.shell.user_global_ns)
-#        self.shell.user_global_ns = self.ipython0.user_global_ns
-
         self.start()
 
     #--------------------------------------------------------------------------
