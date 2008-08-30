@@ -10,6 +10,9 @@ from wx.lib.wordwrap import wordwrap
 from IPython.gui.wx.ipython_view import IPShellWidget
 from IPython.gui.wx.ipython_history import IPythonHistoryPanel
 
+#used to invoke ipython1 wx implementation
+from IPython.frontend.wx.ipythonx import IPythonXController
+
 #used to create options.conf file in user directory
 from IPython.ipapi import get
 
@@ -40,6 +43,7 @@ class MyFrame(wx.Frame):
         self.history_panel.setOptionTrackerHook(self.optionSave)
         
         self.ipython_panel    = IPShellWidget(self,background_color = "BLACK")
+        self.ipython_panel2   = IPythonXController(self)
         #self.ipython_panel    = IPShellWidget(self,background_color = "WHITE")
 
         self.ipython_panel.setHistoryTrackerHook(self.history_panel.write)
@@ -47,6 +51,9 @@ class MyFrame(wx.Frame):
         self.ipython_panel.setAskExitHandler(self.OnExitDlg)
         self.ipython_panel.setOptionTrackerHook(self.optionSave)
 
+        #Create a notebook to display different IPython shell implementations
+        self.nb = wx.aui.AuiNotebook(self)
+        
         self.optionLoad()
         
         self.statusbar = self.createStatus()
@@ -55,7 +62,10 @@ class MyFrame(wx.Frame):
         ########################################################################
         ### add the panes to the manager
         # main panels
-        self._mgr.AddPane(self.ipython_panel , wx.CENTER, "IPython Shell")
+        self._mgr.AddPane(self.nb , wx.CENTER, "IPython Shells")
+        self.nb.AddPage(self.ipython_panel , "IPython0 Shell")
+        self.nb.AddPage(self.ipython_panel2, "IPython1 Synchroneous Shell")
+
         self._mgr.AddPane(self.history_panel , wx.RIGHT,  "IPython history")
                 
         # now we specify some panel characteristics
@@ -146,13 +156,6 @@ class MyFrame(wx.Frame):
         about_menu = wx.Menu()
         about_menu.Append(wx.ID_HIGHEST+3, "About")
 
-        #view_menu.AppendSeparator()
-        #options_menu = wx.Menu()
-        #options_menu.AppendCheckItem(wx.ID_HIGHEST+7, "Allow Floating")
-        #options_menu.AppendCheckItem(wx.ID_HIGHEST+8, "Transparent Hint")
-        #options_menu.AppendCheckItem(wx.ID_HIGHEST+9, "Transparent Hint Fade-in")
-        
-        
         mb.Append(file_menu, "File")
         mb.Append(view_menu, "View")
         mb.Append(about_menu, "About")

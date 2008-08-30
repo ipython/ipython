@@ -44,7 +44,7 @@ class _Helper(object):
     
     def __call__(self, *args, **kwds):
         class DummyWriter(object):
-            '''Dumy class to handle help output'''
+            '''Dumy class to handle help output'''	
             def __init__(self, pager):
                 self._pager = pager
                 
@@ -113,7 +113,6 @@ class NonBlockingIPShell(object):
         '''
         #ipython0 initialisation
         self._IP = None
-        self._term = None
         self.initIpython0(argv, user_ns, user_global_ns,
                           cin, cout, cerr,
                           ask_exit_handler)
@@ -139,21 +138,19 @@ class NonBlockingIPShell(object):
                      ask_exit_handler=None):
         ''' Initialize an ipython0 instance '''
         
-        #first we redefine in/out/error functions of IPython 
+        #first we redefine in/out/error functions of IPython
+        #BUG: we've got a limitation form ipython0 there
+        #only one instance can be instanciated else tehre will be
+        #cin/cout/cerr clash...
         if cin:
-            IPython.Shell.Term.cin = cin
+            IPython.genutils.Term.cin = cin
         if cout:
-            IPython.Shell.Term.cout = cout
+            IPython.genutils.Term.cout = cout
         if cerr:
-            IPython.Shell.Term.cerr = cerr
+            IPython.genutils.Term.cerr = cerr
         
-        # This is to get rid of the blockage that accurs during
-        # IPython.Shell.InteractiveShell.user_setup()
-        IPython.iplib.raw_input = lambda x: None
-
-        self._term = IPython.genutils.IOTerm(cin=cin, cout=cout, cerr=cerr)
-
         excepthook = sys.excepthook
+
         #Hack to save sys.displayhook, because ipython seems to overwrite it...
         self.sys_displayhook_ori = sys.displayhook
         
@@ -163,7 +160,8 @@ class NonBlockingIPShell(object):
                                     embedded=True,
                                     shell_class=IPython.Shell.InteractiveShell)
 
-        #we restore sys.displayhook
+        #we save ipython0 displayhook and we restore sys.displayhook
+        self.displayhook = sys.displayhook
         sys.displayhook = self.sys_displayhook_ori
 
         #we replace IPython default encoding by wx locale encoding
@@ -199,6 +197,7 @@ class NonBlockingIPShell(object):
         """
 
         self._line_to_execute = line
+
         if self._threading:
             #we launch the ipython line execution in a thread to make it interruptible
             #with include it in self namespace to be able to call ce.raise_exc(KeyboardInterrupt)
@@ -214,6 +213,7 @@ class NonBlockingIPShell(object):
             
             except KeyboardInterrupt:
                 pass
+
     #----------------------- IPython management section ----------------------    
     def getThreading(self):
         """
@@ -456,9 +456,12 @@ class NonBlockingIPShell(object):
         '''
         Executes the current line provided by the shell object.
         '''
+
         orig_stdout = sys.stdout
         sys.stdout = IPython.Shell.Term.cout
-                
+        #self.sys_displayhook_ori = sys.displayhook
+        #sys.displayhook = self.displayhook
+        
         try:
             line = self._IP.raw_input(None, self._iter_more)
             if self._IP.autoindent:
@@ -486,8 +489,10 @@ class NonBlockingIPShell(object):
         else:
             self._prompt = str(self._IP.outputcache.prompt1).strip()
             self._IP.indent_current_nsp = 0 #we set indentation to 0
+
         sys.stdout = orig_stdout
-    
+        #sys.displayhook = self.sys_displayhook_ori
+                
     def _shell(self, ip, cmd):
         '''
         Replacement method to allow shell commands without them blocking.
