@@ -62,11 +62,10 @@ class _Helper(object):
 ##############################################################################
 class _CodeExecutor(ThreadEx):
     ''' Thread that execute ipython code '''
-    def __init__(self, instance, after):
+    def __init__(self, instance):
         ThreadEx.__init__(self)
         self.instance = instance
-        self._afterExecute = after
-
+        
     def run(self):
         '''Thread main loop'''
         try:
@@ -74,7 +73,7 @@ class _CodeExecutor(ThreadEx):
             self.instance._help_text = None
             self.instance._execute()
             # used for uper class to generate event after execution
-            self._afterExecute() 
+            self.instance._afterExecute() 
             
         except KeyboardInterrupt:
             pass
@@ -127,7 +126,8 @@ class NonBlockingIPShell(object):
 
         #thread working vars
         self._line_to_execute = ''
-
+        self._threading = True
+        
         #vars that will be checked by GUI loop to handle thread states...
         #will be replaced later by PostEvent GUI funtions...
         self._doc_text = None
@@ -137,7 +137,7 @@ class NonBlockingIPShell(object):
     def initIpython0(self, argv=[], user_ns={}, user_global_ns=None,
                      cin=None, cout=None, cerr=None,
                      ask_exit_handler=None):
-        ''' Initialize an ithon0 instance '''
+        ''' Initialize an ipython0 instance '''
         
         #first we redefine in/out/error functions of IPython 
         if cin:
@@ -199,12 +199,48 @@ class NonBlockingIPShell(object):
         """
 
         self._line_to_execute = line
-        #we launch the ipython line execution in a thread to make it interruptible
-        #with include it in self namespace to be able to call ce.raise_exc(KeyboardInterrupt)
-        self.ce = _CodeExecutor(self, self._afterExecute)
-        self.ce.start()
-        
+        if self._threading:
+            #we launch the ipython line execution in a thread to make it interruptible
+            #with include it in self namespace to be able to call ce.raise_exc(KeyboardInterrupt)
+            self.ce = _CodeExecutor(self)
+            self.ce.start()
+        else:
+            try:
+                self._doc_text = None
+                self._help_text = None
+                self._execute()
+                # used for uper class to generate event after execution
+                self._afterExecute() 
+            
+            except KeyboardInterrupt:
+                pass
     #----------------------- IPython management section ----------------------    
+    def getThreading(self):
+        """
+        Returns threading status, is set to True, then each command sent to
+        the interpreter will be executed in a separated thread allowing,
+        for example, breaking a long running commands.
+        Disallowing it, permits better compatibilty with instance that is embedding
+        IPython instance.
+
+        @return: Execution method
+        @rtype: bool
+        """
+        return self._threading
+    
+    def setThreading(self, state):
+        """
+        Sets threading state, if set to True, then each command sent to
+        the interpreter will be executed in a separated thread allowing,
+        for example, breaking a long running commands.
+        Disallowing it, permits better compatibilty with instance that is embedding
+        IPython instance.
+
+        @param state: Sets threading state
+        @type bool
+        """
+        self._threading = state
+
     def getDocText(self):
         """
         Returns the output of the processing that need to be paged (if any)

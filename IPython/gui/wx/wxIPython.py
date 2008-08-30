@@ -13,7 +13,7 @@ from IPython.gui.wx.ipython_history import IPythonHistoryPanel
 #used to create options.conf file in user directory
 from IPython.ipapi import get
 
-__version__ = 0.8
+__version__ = 0.9
 __author__  = "Laurent Dufrechou"
 __email__   = "laurent.dufrechou _at_ gmail.com"
 __license__ = "BSD"

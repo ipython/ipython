@@ -19,7 +19,7 @@ available under the terms of the BSD which accompanies this distribution, and
 is available at U{http://www.opensource.org/licenses/bsd-license.php}
 '''
 
-__version__ = 0.8
+__version__ = 0.9
 __author__  = "Laurent Dufrechou"
 __email__   = "laurent.dufrechou _at_ gmail.com"
 __license__ = "BSD"
@@ -249,22 +249,15 @@ class WxConsoleView(stc.StyledTextCtrl):
         @type text: string
         '''
         try:
-            #print >>sys.__stdout__,'entering'
             wx.MutexGuiEnter()
-            #print >>sys.__stdout__,'locking the GUI'
                 
             #be sure not to be interrutpted before the MutexGuiLeave!
             self.write(text)
                 
-            #print >>sys.__stdout__,'done'
-                
         except KeyboardInterrupt:
-            #print >>sys.__stdout__,'got keyboard interrupt'
             wx.MutexGuiLeave()
-            #print >>sys.__stdout__,'interrupt unlock the GUI'
             raise KeyboardInterrupt
         wx.MutexGuiLeave()
-        #print >>sys.__stdout__,'normal unlock the GUI'
         
                 
     def write(self, text):
@@ -565,13 +558,13 @@ class IPShellWidget(wx.Panel):
                                        intro=welcome_text,
                                        background_color=background_color)
 
-        self.cout.write = self.text_ctrl.asyncWrite
-
         option_text = wx.StaticText(self, -1, "Options:")
         self.completion_option = wx.CheckBox(self, -1, "Scintilla Completion")
         #self.completion_option.SetValue(False)
         self.background_option = wx.CheckBox(self, -1, "White Background")
         #self.background_option.SetValue(False)
+        self.threading_option = wx.CheckBox(self, -1, "Execute in thread")
+        #self.threading_option.SetValue(False)
         
         self.options={'completion':{'value':'IPYTHON',
                                     'checkbox':self.completion_option,'STC':True,'IPYTHON':False,
@@ -579,12 +572,20 @@ class IPShellWidget(wx.Panel):
                       'background_color':{'value':'BLACK',
                                           'checkbox':self.background_option,'WHITE':True,'BLACK':False,
                                           'setfunc':self.text_ctrl.setBackgroundColor},
+                      'threading':{'value':'True',
+                                   'checkbox':self.threading_option,'True':True,'False':False,
+                                   'setfunc':self.IP.setThreading},
                      }
+
+        #self.cout.write dEfault option is asynchroneous because default sate is threading ON
+        self.cout.write = self.text_ctrl.asyncWrite
+        #we reloard options
         self.reloadOptions(self.options)
         
         self.text_ctrl.Bind(wx.EVT_KEY_DOWN, self.keyPress)
         self.completion_option.Bind(wx.EVT_CHECKBOX, self.evtCheckOptionCompletion)
         self.background_option.Bind(wx.EVT_CHECKBOX, self.evtCheckOptionBackgroundColor)
+        self.threading_option.Bind(wx.EVT_CHECKBOX, self.evtCheckOptionThreading)
             
         ### making the layout of the panel ###
         sizer = wx.BoxSizer(wx.VERTICAL)
@@ -596,7 +597,9 @@ class IPShellWidget(wx.Panel):
                               (5, 5),
                               (self.completion_option, 0, wx.ALIGN_CENTER_VERTICAL),
                               (8, 8),
-                              (self.background_option, 0, wx.ALIGN_CENTER_VERTICAL)
+                              (self.background_option, 0, wx.ALIGN_CENTER_VERTICAL),
+                              (8, 8),
+                              (self.threading_option, 0, wx.ALIGN_CENTER_VERTICAL)
                               ])
         self.SetAutoLayout(True)
         sizer.Fit(self)
@@ -802,7 +805,20 @@ class IPShellWidget(wx.Panel):
         self.updateOptionTracker('background_color',
                                  self.options['background_color']['value'])
         self.text_ctrl.SetFocus()
-    
+
+    def evtCheckOptionThreading(self, event):
+        if event.IsChecked():
+            self.options['threading']['value']='True'
+            self.IP.setThreading(True)
+            self.cout.write = self.text_ctrl.asyncWrite
+        else:
+            self.options['threading']['value']='False'
+            self.IP.setThreading(False)
+            self.cout.write = self.text_ctrl.write
+        self.updateOptionTracker('threading',
+                                 self.options['threading']['value'])
+        self.text_ctrl.SetFocus()
+        
     def getOptions(self):
         return self.options
         
@@ -813,7 +829,13 @@ class IPShellWidget(wx.Panel):
             self.options[key]['checkbox'].SetValue(self.options[key][value])
             self.options[key]['setfunc'](value)
         
-        
+        if self.options['threading']['value']=='True':
+            self.IP.setThreading(True)
+            self.cout.write = self.text_ctrl.asyncWrite
+        else:
+            self.IP.setThreading(False)
+            self.cout.write = self.text_ctrl.write
+            
     #------------------------ Hook Section -----------------------------------
     def updateOptionTracker(self,name,value):
         '''
