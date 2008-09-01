@@ -22,8 +22,8 @@ Log in by doing::
  
  [~]|749> gms englische
    <749>
-a: <T 'Englische Bücher: 5 EUR Rabatt'>
-b: <T '\u003cb\u003eBuch-Empfehlungen für Sie\u003c/b\u003e'>
+a: <T 'Englische Bucher: 5 EUR Rabatt'>
+b: <T '\u003cb\u003eBuch-Empfehlungen fur Sie\u003c/b\u003e'>
 c: <T 'Buch-Restposten ab 2,95 EUR'>
 d: <T 'Die besten Preis-Hits und Neuheiten bei Amazon.de'>
 [~]|750> m = _.a.g
