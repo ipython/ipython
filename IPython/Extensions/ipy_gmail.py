@@ -1,5 +1,8 @@
 """ Gmail interface for IPython
 
+LICENSE: This extension is licensed under GPL 2.0  (i.e. the same license as
+libgmail)
+
 This extension requires libgmail (http://libgmail.sourceforge.net/, 
 apt-gettable on ubuntu), and is mostly provided for entertainment purposes .
 
