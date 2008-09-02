@@ -224,6 +224,7 @@ def find_scripts():
                'IPython/kernel/scripts/ipcluster',
                'scripts/ipython',
                'scripts/ipythonx',
+               'scripts/ipython-wx',
                'scripts/pycolor',
                'scripts/irunner',
                'scripts/iptest',

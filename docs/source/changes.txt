@@ -27,6 +27,11 @@ Release 0.9
 New features
 ------------
 
+* Laurent's WX application has been given a top-level script called ipython-wx,
+  and it has received numerous fixes.  We expect this code to be
+  architecturally better integrated with Gael's WX 'ipython widget' over the
+  next few releases.
+
 * The Editor synchronization work by Vivian De Smedt has been merged in.  This
   code adds a number of new editor hooks to synchronize with editors under
   Windows.

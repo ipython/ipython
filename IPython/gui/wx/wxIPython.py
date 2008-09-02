@@ -2,13 +2,16 @@
 # -*- coding: iso-8859-15 -*-
 
 import wx.aui
-
+import sys
 #used for about dialog
 from wx.lib.wordwrap import wordwrap
 
 #used for ipython GUI objects
 from IPython.gui.wx.ipython_view import IPShellWidget
 from IPython.gui.wx.ipython_history import IPythonHistoryPanel
+
+#used to create options.conf file in user directory
+from IPython.ipapi import get
 
 __version__ = 0.8
 __author__  = "Laurent Dufrechou"
@@ -84,7 +87,9 @@ class MyFrame(wx.Frame):
         dlg.Destroy()
 
     def optionSave(self, name, value):
-        opt = open('options.conf','w')
+        ip = get()
+        path = ip.IP.rc.ipythondir
+        opt = open(path + '/options.conf','w')
 
         try:
             options_ipython_panel = self.ipython_panel.getOptions()
@@ -98,24 +103,31 @@ class MyFrame(wx.Frame):
             opt.close()
         
     def optionLoad(self):
-        opt = open('options.conf','r')
-        lines = opt.readlines()
-        opt.close()
+        try:
+            ip = get()
+            path = ip.IP.rc.ipythondir
+            opt = open(path + '/options.conf','r')
+            lines = opt.readlines()
+            opt.close()
                       
-        options_ipython_panel = self.ipython_panel.getOptions()
-        options_history_panel = self.history_panel.getOptions()
+            options_ipython_panel = self.ipython_panel.getOptions()
+            options_history_panel = self.history_panel.getOptions()
+            
+            for line in lines:
+                key = line.split('=')[0]
+                value = line.split('=')[1].replace('\n','').replace('\r','')
+                if key in options_ipython_panel.keys():
+                    options_ipython_panel[key]['value'] = value
+                elif key in options_history_panel.keys():
+                    options_history_panel[key]['value'] = value
+                else:
+                    print >>sys.__stdout__,"Warning: key ",key,"not found in widget options. Check Options.conf"
+            self.ipython_panel.reloadOptions(options_ipython_panel)
+            self.history_panel.reloadOptions(options_history_panel)
         
-        for line in lines:
-            key = line.split('=')[0]
-            value = line.split('=')[1].replace('\n','').replace('\r','')
-            if key in options_ipython_panel.keys():
-                options_ipython_panel[key]['value'] = value
-            elif key in options_history_panel.keys():
-                options_history_panel[key]['value'] = value
-            else:
-                print >>sys.__stdout__,"Warning: key ",key,"not found in widget options. Check Options.conf"
-        self.ipython_panel.reloadOptions(options_ipython_panel)
-        self.history_panel.reloadOptions(options_history_panel)
+        except IOError:
+            print >>sys.__stdout__,"Could not open Options.conf, defaulting to default values."
+            
         
     def createMenu(self):
         """local method used to create one menu bar"""
