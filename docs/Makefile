@@ -28,17 +28,16 @@ help:
 	@echo "dist         all, and then puts the results in dist/"
 
 clean:
-	-rm -rf build/*
+	-rm -rf build/* dist/*
 
 pdf: latex
 	cd build/latex && make all-pdf
 
 all: html pdf
 
-dist: all
+dist: clean all
 	mkdir -p dist
-	-rm -rf dist/*
-	ln build/latex/IPython.pdf dist/
+	ln build/latex/ipython.pdf dist/
 	cp -al build/html dist/
 	@echo "Build finished.  Final docs are in dist/"
 

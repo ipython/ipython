@@ -30,6 +30,21 @@ import wx.stc  as  stc
 import re
 from StringIO import StringIO
 
+import sys
+import codecs
+import locale
+for enc in (locale.getpreferredencoding(),
+            sys.getfilesystemencoding(),
+            sys.getdefaultencoding()):
+    try:
+        codecs.lookup(enc)
+        ENCODING = enc
+        break
+    except LookupError:
+        pass
+else:
+    ENCODING = 'utf-8'
+
 from ipshell_nonblocking import NonBlockingIPShell
 
 class WxNonBlockingIPShell(NonBlockingIPShell):
@@ -604,7 +619,7 @@ class IPShellWidget(wx.Panel):
         self.text_ctrl.write('\n')
         lines_to_execute = lines.replace('\t',' '*4)
         lines_to_execute = lines_to_execute.replace('\r','')
-        self.IP.doExecute(lines_to_execute.encode('cp1252'))
+        self.IP.doExecute(lines_to_execute.encode(ENCODING))
         self.updateHistoryTracker(lines)
         self.setCurrentState('WAIT_END_OF_EXECUTION')
         

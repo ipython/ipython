@@ -30,3 +30,4 @@ global-exclude *.pyc
 global-exclude .dircopy.log
 global-exclude .svn
 global-exclude .bzr
+global-exclude .hgignore
