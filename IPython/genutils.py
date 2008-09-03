@@ -995,6 +995,22 @@ def get_ipython_dir():
                                            os.path.join(home_dir,ipdir_def)))
     return ipdir
 
+def get_security_dir():
+    """Get the IPython security directory.
+    
+    This directory is the default location for all security related files,
+    including SSL/TLS certificates and FURL files.
+    
+    If the directory does not exist, it is created with 0700 permissions.
+    If it exists, permissions are set to 0700.
+    """
+    security_dir = os.path.join(get_ipython_dir(), 'security')
+    if not os.path.isdir(security_dir):
+        os.mkdir(security_dir, 0700)
+    else:
+        os.chmod(security_dir, 0700)
+    return security_dir
+        
 #****************************************************************************
 # strings and text
 
