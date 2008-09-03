@@ -12,26 +12,6 @@ echo "=================================="
 
 echo "Marking ChangeLog with release information and making NEWS file..."
 
-# Stamp changelog and save a copy of the status at each version, in case later
-# we want the NEWS file to start from a point before the very last release (if
-# very small interim releases have no significant changes).
-
-cd $ipdir/doc
-cp ChangeLog ChangeLog.old
-cp ChangeLog ChangeLog.$version
-daystamp=`date +%Y-%m-%d`
-echo $daystamp " ***" Released version $version > ChangeLog
-echo >> ChangeLog
-cat ChangeLog.old >> ChangeLog
-rm ChangeLog.old
-
-# Build NEWS file
-echo "Changes between the last two releases (major or minor)" > NEWS
-echo "Note that this is an auto-generated diff of the ChangeLogs" >> NEWS
-echo >> NEWS
-diff ChangeLog.previous ChangeLog | grep -v '^0a' | sed 's/^> //g' >> NEWS
-cp ChangeLog ChangeLog.previous
-
 # Clean up build/dist directories
 rm -rf $ipdir/build/*
 rm -rf $ipdir/dist/*
@@ -76,26 +56,5 @@ scp * ipython@ipython.scipy.org:www/dist/
 echo "Uploading backup files..."
 cd $ipbackupdir
 scp `ls -1tr *tgz | tail -1` ipython@ipython.scipy.org:www/backup/
-
-echo "Updating webpage..."
-cd $ipdir/doc
-www=~/ipython/homepage
-cp ChangeLog NEWS $www
-rm -rf $www/doc/*
-cp -r manual/ $www/doc
-cd $www
-./update
-
-# Alert package maintainers
-#echo "Alerting package maintainers..."
-#maintainers='fernando.perez@berkeley.edu ariciputi@users.sourceforge.net jack@xiph.org tretkowski@inittab.de dryice@hotpop.com willmaier@ml1.net'
-# maintainers='fernando.perez@berkeley.edu'
-
-# for email in $maintainers
-#     do
-# 	echo "Emailing $email..."
-# 	mail -s "[Package maintainer notice] A new IPython is out. Version: $version" \
-#     $email < NEWS
-#     done
 
 echo "Done!"
