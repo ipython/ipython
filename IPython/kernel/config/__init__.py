@@ -17,7 +17,7 @@ __docformat__ = "restructuredtext en"
 
 from IPython.external.configobj import ConfigObj
 from IPython.config.api import ConfigObjManager
-from IPython.config.cutils import get_ipython_dir
+from IPython.genutils import get_ipython_dir
 
 default_kernel_config = ConfigObj()
 

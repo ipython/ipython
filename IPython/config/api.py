@@ -16,7 +16,7 @@ __docformat__ = "restructuredtext en"
 #-------------------------------------------------------------------------------
 
 import os
-from IPython.config.cutils import get_home_dir, get_ipython_dir
+from IPython.genutils import get_home_dir, get_ipython_dir
 from IPython.external.configobj import ConfigObj
 
 # Traitlets config imports

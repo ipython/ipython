@@ -979,6 +979,22 @@ def get_home_dir():
         else:
             raise HomeDirError,'support for your operating system not implemented.'
 
+
+def get_ipython_dir():
+    """Get the IPython directory for this platform and user.
+    
+    This uses the logic in `get_home_dir` to find the home directory
+    and the adds either .ipython or _ipython to the end of the path.
+    """
+    if os.name == 'posix':
+         ipdir_def = '.ipython'
+    else:
+         ipdir_def = '_ipython'
+    home_dir = get_home_dir()
+    ipdir = os.path.abspath(os.environ.get('IPYTHONDIR',
+                                           os.path.join(home_dir,ipdir_def)))
+    return ipdir
+
 #****************************************************************************
 # strings and text
 
