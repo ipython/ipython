@@ -216,7 +216,7 @@ class LineFrontEndBase(FrontEndBase):
         new_line, completions = self.complete(line)
         if len(completions)>1:
             self.write_completion(completions, new_line=new_line)
-        if not line == new_line:
+        elif not line == new_line:
             self.input_buffer = new_line
         if self.debug:
             print >>sys.__stdout__, 'line', line
