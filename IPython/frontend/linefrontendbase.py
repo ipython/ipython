@@ -186,7 +186,7 @@ class LineFrontEndBase(FrontEndBase):
     #--------------------------------------------------------------------------
 
     def prefilter_input(self, string):
-        """ Priflter the input to turn it in valid python.
+        """ Prefilter the input to turn it in valid python.
         """
         string = string.replace('\r\n', '\n')
         string = string.replace('\t', 4*' ')

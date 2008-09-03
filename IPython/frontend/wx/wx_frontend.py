@@ -136,7 +136,8 @@ class WxController(ConsoleWidget, PrefilterFrontEnd):
     #--------------------------------------------------------------------------
  
     def __init__(self, parent, id=wx.ID_ANY, pos=wx.DefaultPosition,
-                 size=wx.DefaultSize, style=wx.CLIP_CHILDREN,
+                 size=wx.DefaultSize,
+                 style=wx.CLIP_CHILDREN|wx.WANTS_CHARS,
                  *args, **kwds):
         """ Create Shell instance.
         """

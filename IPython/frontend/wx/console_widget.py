@@ -124,7 +124,7 @@ class ConsoleWidget(editwindow.EditWindow):
     #--------------------------------------------------------------------------
     
     def __init__(self, parent, id=wx.ID_ANY, pos=wx.DefaultPosition, 
-                        size=wx.DefaultSize, style=0, ):
+                        size=wx.DefaultSize, style=wx.WANTS_CHARS, ):
         editwindow.EditWindow.__init__(self, parent, id, pos, size, style)
         self._configure_scintilla()
 
