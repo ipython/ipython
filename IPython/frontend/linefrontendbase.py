@@ -20,6 +20,7 @@ import re
 
 import IPython
 import sys
+import codeop
 
 from frontendbase import FrontEndBase
 from IPython.kernel.core.interpreter import Interpreter
@@ -148,7 +149,8 @@ class LineFrontEndBase(FrontEndBase):
         else:
             # Add line returns here, to make sure that the statement is
             # complete.
-            return FrontEndBase.is_complete(self, string.rstrip() + '\n\n')
+            return codeop.compile_command(string.rstrip() + '\n\n',
+                        "<string>", "exec")
 
 
     def write(self, string, refresh=True):
