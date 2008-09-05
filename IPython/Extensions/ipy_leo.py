@@ -14,6 +14,8 @@ import IPython.Shell
 
 _leo_push_history = set()
 
+wb = None
+
 def init_ipython(ipy):
     """ This will be run by _ip.load('ipy_leo') 
     
@@ -29,6 +31,7 @@ def init_ipython(ipy):
     ip.expose_magic('leoref',leoref_f)
     ip.expose_magic('lleo',lleo_f)    
     ip.expose_magic('lshadow', lshadow_f)
+    ip.expose_magic('lno', lno_f)    
     # Note that no other push command should EVER have lower than 0
     expose_ileo_push(push_mark_req, -1)
     expose_ileo_push(push_cl_node,100)
@@ -43,6 +46,8 @@ def init_ipython(ipy):
     
 
 first_launch = True
+
+c,g = None, None
 
 def update_commander(new_leox):
     """ Set the Leo commander to use
@@ -281,7 +286,13 @@ class LeoNode(object, UserDict.DictMixin):
     def go(self):
         """ Set node as current node (to quickly see it in Outline) """
         c.setCurrentPosition(self.p)
-        c.redraw()
+	
+	# argh, there should be another way
+	c.redraw()
+	s = self.p.bodyString()
+	c.setBodyString(self.p,s)
+        
+	
         
     def append(self):
         """ Add new node as the last child, return the new node """
@@ -617,7 +628,7 @@ def ileo_pre_prompt_hook(self):
     # this will fail if leo is not running yet
     try:
         c.outerUpdate()
-    except NameError:
+    except (NameError, AttributeError):
         pass
     raise TryNext
     
@@ -666,6 +677,30 @@ def lleo_f(selg,  args):
     _request_immediate_connect = True
     import leo.core.runLeo
     leo.core.runLeo.run()
+
+def lno_f(self, arg):
+    """ %lno [note text]
+    
+    Gather quick notes to leo notebook
+    
+    """
+    
+	
+    import time
+    try:
+	scr = wb.Scratch
+    except AttributeError:
+	print "No leo yet, attempt launch of notebook..."
+	lleo_f(self,'')
+	scr = wb.Scratch
+    
+    child = scr.get(arg, None)
+    if child is None:
+	scr[arg] = time.asctime()
+	child = scr[arg]
+    
+    child.go()
+
 
 def lshadow_f(self, arg):
     """ lshadow [path] 
