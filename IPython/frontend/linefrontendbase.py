@@ -288,6 +288,8 @@ class LineFrontEndBase(FrontEndBase):
         else:
             self.input_buffer += self._get_indent_string(
                                                 current_buffer[:-1])
+            if len(current_buffer.split('\n')) == 2:
+                self.input_buffer += '\t\t'
             if current_buffer[:-1].split('\n')[-1].rstrip().endswith(':'):
                 self.input_buffer += '\t'
 
