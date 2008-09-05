@@ -172,11 +172,12 @@ class ConsoleWidget(editwindow.EditWindow):
                 
         self.GotoPos(self.GetLength())
         if refresh:
-            # Maybe this is faster than wx.Yield()
-            self.ProcessEvent(wx.PaintEvent())
             current_time = time.time()
             if current_time - self._last_refresh_time > 0.03:
-                wx.Yield()
+                # Maybe this is faster than wx.Yield(), this is certainly
+                # more robust under windows, as it avoids recursive
+                # Yields.
+                self.ProcessEvent(wx.PaintEvent())
                 self._last_refresh_time = current_time 
 
    
