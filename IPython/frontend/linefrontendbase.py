@@ -21,6 +21,7 @@ import re
 import IPython
 import sys
 import codeop
+import traceback
 
 from frontendbase import FrontEndBase
 from IPython.kernel.core.interpreter import Interpreter
@@ -147,10 +148,18 @@ class LineFrontEndBase(FrontEndBase):
                         and not re.findall(r"\n[\t ]*\n[\t ]*$", string)):
             return False
         else:
-            # Add line returns here, to make sure that the statement is
-            # complete.
-            return codeop.compile_command(string.rstrip() + '\n\n',
-                        "<string>", "exec")
+            self.capture_output()
+            try:
+                # Add line returns here, to make sure that the statement is
+                # complete.
+                is_complete = codeop.compile_command(string.rstrip() + '\n\n',
+                            "<string>", "exec")
+                self.release_output()
+            except Exception, e:
+                # XXX: Hack: return True so that the
+                # code gets executed and the error captured.
+                is_complete = True
+            return is_complete
 
 
     def write(self, string, refresh=True):

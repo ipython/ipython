@@ -324,6 +324,17 @@ class WxController(ConsoleWidget, PrefilterFrontEnd):
 
     
     #--------------------------------------------------------------------------
+    # FrontEndBase interface 
+    #--------------------------------------------------------------------------
+    
+    def render_error(self, e):
+        start_line = self.GetCurrentLine()
+        self.write('\n' + e + '\n')
+        for i in range(start_line, self.GetCurrentLine()):
+            self._markers[i] = self.MarkerAdd(i, _ERROR_MARKER)
+
+
+    #--------------------------------------------------------------------------
     # ConsoleWidget interface 
     #--------------------------------------------------------------------------
 
