@@ -118,7 +118,7 @@ This is the wx frontend, by Gael Varoquaux. This is EXPERIMENTAL code."""
         """ Use ipython0 to capture the last traceback and display it.
         """
         self.capture_output()
-        self.ipython0.showtraceback()
+        self.ipython0.showtraceback(tb_offset=-1)
         self.release_output()
 
 
