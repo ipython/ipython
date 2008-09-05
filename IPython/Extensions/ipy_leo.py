@@ -28,6 +28,7 @@ def init_ipython(ipy):
     ip.expose_magic('lee',lee_f)
     ip.expose_magic('leoref',leoref_f)
     ip.expose_magic('lleo',lleo_f)    
+    ip.expose_magic('lshadow', lshadow_f)
     # Note that no other push command should EVER have lower than 0
     expose_ileo_push(push_mark_req, -1)
     expose_ileo_push(push_cl_node,100)
@@ -649,12 +650,85 @@ def lleo_f(selg,  args):
       lleo 
     """
     
-    import shlex, sys
-    argv = ['leo'] + shlex.split(args)
-    sys.argv = argv
+    import shlex, sys,os
+    argv = shlex.split(args)
+
+    # when run without args, leo will open ipython_notebook for 
+    # quick note taking / experimentation
+    
+    if not argv:
+	argv = [os.path.join(ip.options.ipythondir,'ipython_notebook.leo')]
+	
+    sys.argv = ['leo'] + argv
     # if this var exists and is true, leo will "launch" (connect)
     # ipython immediately when it's started
     global _request_immediate_connect
     _request_immediate_connect = True
     import leo.core.runLeo
     leo.core.runLeo.run()
+
+def lshadow_f(self, arg):
+    """ lshadow [path] 
+    
+    Create shadow nodes for path (default .)
+    
+    """
+    if not arg.split():
+	arg = '.'
+
+    p = c.currentPosition().insertAfter()
+    c.setCurrentPosition(p)
+    shadow_walk(arg)
+    c.redraw()
+
+
+def shadow_walk(directory, parent=None, isroot=True):
+    """ source: http://leo.zwiki.org/CreateShadows
+    
+    """
+
+    from os import listdir
+    from os.path import join, abspath, basename, normpath, isfile
+    from fnmatch import fnmatch
+
+    RELATIVE_PATHS = False
+
+    patterns_to_ignore = ['*.pyc', '*.leo', '*.gif', '*.png', '*.jpg', '*.json']
+
+    match = lambda s: any(fnmatch(s, p) for p in patterns_to_ignore)
+
+    is_ignorable = lambda s: any([ s.startswith('.'), match(s) ])
+
+    p = c.currentPosition()
+    
+    if not RELATIVE_PATHS: directory = abspath(directory)
+    if isroot:
+        body = "@path %s" % normpath(directory)
+        c.setHeadString(p, body)
+    for name in listdir(directory):
+        if is_ignorable(name):
+            continue
+        path = join(directory, name)
+        if isfile(path):
+            g.es('file:', path)
+            headline = '@shadow %s' % basename(path)
+            if parent:
+                node = parent
+            else:
+                node = p
+            child = node.insertAsLastChild()
+            child.initHeadString(headline)
+        else:
+            g.es('dir:', path)
+            headline = basename(path)
+            body = "@path %s" % normpath(path)
+            if parent:
+                node = parent
+            else:
+                node = p
+            child = node.insertAsLastChild()
+            child.initHeadString(headline)
+            child.initBodyString(body)
+            shadow_walk(path, parent=child, isroot=False)
+
+
