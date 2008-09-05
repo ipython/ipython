@@ -104,6 +104,7 @@ New features
 	* 'cd --foo' searches directory history for string foo, and jumps to that dir.
 	  Last part of dir name is checked first. If no matches for that are found,
 	  look at the whole path.
+        * '%cpaste -r' re-executes the block previously executed by cpaste.
 
 Bug fixes
 ---------
