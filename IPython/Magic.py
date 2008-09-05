@@ -3210,6 +3210,8 @@ Defaulting color scheme to 'NoColor'"""
         This assigns the pasted block to variable 'foo' as string, without 
         dedenting or executing it (preceding >>> and + is still stripped)
         
+        '%cpaste rep' re-executes the block previously entered by cpaste.
+        
         Do not be alarmed by garbled output on Windows (it's a readline bug). 
         Just press enter and type -- (and press enter again) and the block 
         will be what was just pasted.
@@ -3218,6 +3220,15 @@ Defaulting color scheme to 'NoColor'"""
         """
         opts,args = self.parse_options(parameter_s,'s:',mode='string')
         par = args.strip()
+        if par == 'rep':
+            b = self.user_ns.get('pasted_block', None)
+            if b is None:
+                raise UsageError('No previous pasted block available')
+            print "Re-executing '%s...' (%d chars)"% (b.split('\n',1)[0], len(b))
+            exec b in self.user_ns
+            
+            return
+        
         sentinel = opts.get('s','--')
 
         # Regular expressions that declare text we strip from the input:
@@ -3245,8 +3256,8 @@ Defaulting color scheme to 'NoColor'"""
         #print "block:\n",block
         if not par:
             b = textwrap.dedent(block)
-            exec b in self.user_ns            
             self.user_ns['pasted_block'] = b
+            exec b in self.user_ns
         else:
             self.user_ns[par] = SList(block.splitlines())
             print "Block assigned to '%s'" % par
