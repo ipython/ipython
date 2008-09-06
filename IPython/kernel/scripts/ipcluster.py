@@ -93,7 +93,7 @@ from subprocess import Popen,call
 # IPython imports
 #---------------------------------------------------------------------------
 from IPython.tools import utils
-from IPython.config import cutils
+from IPython.genutils import get_ipython_dir
 
 #---------------------------------------------------------------------------
 # Normal code begins
@@ -180,7 +180,7 @@ def clusterLocal(opt,arg):
     """Start a cluster on the local machine."""
     
     # Store all logs inside the ipython directory
-    ipdir = cutils.get_ipython_dir()
+    ipdir = get_ipython_dir()
     pjoin = os.path.join
 
     logfile = opt.logfile
@@ -256,6 +256,24 @@ def clusterLocal(opt,arg):
 def clusterRemote(opt,arg):
     """Start a remote cluster over SSH"""
 
+    # B. Granger, 9/3/08
+    # The launching of a remote cluster using SSH and a clusterfile
+    # is broken.  Because it won't be fixed before the 0.9 release, 
+    # we are removing it.  For now, we just print a message to the 
+    # user and abort.
+    
+    print """The launching of a remote IPython cluster using SSL
+and a clusterfile has been removed in this release.  
+It has been broken for a while and we are in the process 
+of building a new process management system that will be 
+used to provide a more robust way of starting an IPython
+cluster.
+
+For now remote clusters have to be launched using ipcontroller
+and ipengine separately.
+    """
+    sys.exit(1)
+
     # Load the remote cluster configuration
     clConfig = {}
     execfile(opt.clusterfile,clConfig)
@@ -265,7 +283,7 @@ def clusterRemote(opt,arg):
     sshx = clConfig.get('sshx',os.environ.get('IPYTHON_SSHX','sshx'))
     
     # Store all logs inside the ipython directory
-    ipdir = cutils.get_ipython_dir()
+    ipdir = get_ipython_dir()
     pjoin = os.path.join
 
     logfile = opt.logfile
@@ -310,6 +328,11 @@ def clusterRemote(opt,arg):
         
 def main():
     """Main driver for the two big options: local or remote cluster."""
+    
+    if sys.platform=='win32':
+        print """ipcluster does not work on Microsoft Windows.  Please start
+your IPython cluster using the ipcontroller and ipengine scripts."""
+        sys.exit(1)
     
     opt,arg = parse_args()
 

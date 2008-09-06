@@ -105,6 +105,7 @@ def start_engine():
     # register_engine to tell the controller we are ready to do work
     engine_connector = EngineConnector(tub_service)
     furl_file = kernel_config['engine']['furl_file']
+    log.msg("Using furl file: %s" % furl_file)
     d = engine_connector.connect_to_controller(engine_service, furl_file)
     d.addErrback(lambda _: reactor.stop())
     
