@@ -143,6 +143,9 @@ class WxController(ConsoleWidget, PrefilterFrontEnd):
         """
         ConsoleWidget.__init__(self, parent, id, pos, size, style)
         PrefilterFrontEnd.__init__(self, **kwds)
+        
+        # Stick in our own raw_input:
+        self.ipython0.raw_input = self.raw_input
 
         # Marker for complete buffer.
         self.MarkerDefine(_COMPLETE_BUFFER_MARKER, stc.STC_MARK_BACKGROUND,
@@ -166,6 +169,8 @@ class WxController(ConsoleWidget, PrefilterFrontEnd):
         # Inject self in namespace, for debug
         if self.debug:
             self.shell.user_ns['self'] = self
+        # Inject our own raw_input in namespace
+        self.shell.user_ns['raw_input'] = self.raw_input
 
 
     def raw_input(self, prompt):
@@ -298,9 +303,9 @@ class WxController(ConsoleWidget, PrefilterFrontEnd):
         PrefilterFrontEnd.save_output_hooks(self)
 
     def capture_output(self):
-        __builtin__.raw_input = self.raw_input
         self.SetLexer(stc.STC_LEX_NULL)
         PrefilterFrontEnd.capture_output(self)
+        __builtin__.raw_input = self.raw_input
         
     
     def release_output(self):

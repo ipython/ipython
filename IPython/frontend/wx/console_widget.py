@@ -192,7 +192,6 @@ class ConsoleWidget(editwindow.EditWindow):
         # now we update our cursor giving end of prompt
         self.current_prompt_pos = self.GetLength()
         self.current_prompt_line = self.GetCurrentLine()
-        wx.Yield()
         self.EnsureCaretVisible()
 
 
