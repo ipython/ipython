@@ -181,15 +181,13 @@ class WxController(ConsoleWidget, PrefilterFrontEnd):
         if hasattr(self, '_cursor'):
             del self._cursor 
         self.SetCursor(wx.StockCursor(wx.CURSOR_CROSS))
-        self.waiting = True
         self.__old_on_enter = self._on_enter
+        event_loop = wx.EventLoop()
         def my_on_enter():
-            self.waiting = False
+            event_loop.Exit()
         self._on_enter = my_on_enter
-        # XXX: Busy waiting, ugly.
-        while self.waiting:
-            wx.Yield()
-            sleep(0.1)
+        # XXX: Running a separate event_loop. Ugly.
+        event_loop.Run() 
         self._on_enter = self.__old_on_enter
         self._input_state = 'buffering'
         self._cursor = wx.BusyCursor()
