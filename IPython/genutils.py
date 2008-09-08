@@ -979,6 +979,38 @@ def get_home_dir():
         else:
             raise HomeDirError,'support for your operating system not implemented.'
 
+
+def get_ipython_dir():
+    """Get the IPython directory for this platform and user.
+    
+    This uses the logic in `get_home_dir` to find the home directory
+    and the adds either .ipython or _ipython to the end of the path.
+    """
+    if os.name == 'posix':
+         ipdir_def = '.ipython'
+    else:
+         ipdir_def = '_ipython'
+    home_dir = get_home_dir()
+    ipdir = os.path.abspath(os.environ.get('IPYTHONDIR',
+                                           os.path.join(home_dir,ipdir_def)))
+    return ipdir
+
+def get_security_dir():
+    """Get the IPython security directory.
+    
+    This directory is the default location for all security related files,
+    including SSL/TLS certificates and FURL files.
+    
+    If the directory does not exist, it is created with 0700 permissions.
+    If it exists, permissions are set to 0700.
+    """
+    security_dir = os.path.join(get_ipython_dir(), 'security')
+    if not os.path.isdir(security_dir):
+        os.mkdir(security_dir, 0700)
+    else:
+        os.chmod(security_dir, 0700)
+    return security_dir
+        
 #****************************************************************************
 # strings and text
 

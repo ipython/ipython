@@ -15,17 +15,15 @@ __docformat__ = "restructuredtext en"
 # Imports
 #-------------------------------------------------------------------------------
 
+from os.path import join as pjoin
+
 from IPython.external.configobj import ConfigObj
 from IPython.config.api import ConfigObjManager
-from IPython.config.cutils import get_ipython_dir
+from IPython.genutils import get_ipython_dir, get_security_dir
 
 default_kernel_config = ConfigObj()
 
-try:
-    ipython_dir = get_ipython_dir() + '/'
-except:
-    # This will defaults to the cwd
-    ipython_dir = ''
+security_dir = get_security_dir()
 
 #-------------------------------------------------------------------------------
 # Engine Configuration
@@ -33,7 +31,7 @@ except:
 
 engine_config = dict(
     logfile = '',    # Empty means log to stdout
-    furl_file = ipython_dir + 'ipcontroller-engine.furl'
+    furl_file = pjoin(security_dir, 'ipcontroller-engine.furl')
 )
 
 #-------------------------------------------------------------------------------
@@ -69,10 +67,10 @@ controller_config = dict(
         port = 0,        # 0 means pick a port for me
         location = '',    # Empty string means try to set automatically
         secure = True,
-        cert_file = ipython_dir + 'ipcontroller-engine.pem',
+        cert_file = pjoin(security_dir, 'ipcontroller-engine.pem'),
     ),
     engine_fc_interface = 'IPython.kernel.enginefc.IFCControllerBase',
-    engine_furl_file = ipython_dir + 'ipcontroller-engine.furl',
+    engine_furl_file = pjoin(security_dir, 'ipcontroller-engine.furl'),
     
     controller_interfaces = dict(
         # multiengine = dict(
@@ -83,12 +81,12 @@ controller_config = dict(
         task = dict(
             controller_interface = 'IPython.kernel.task.ITaskController',
             fc_interface = 'IPython.kernel.taskfc.IFCTaskController',
-            furl_file = ipython_dir + 'ipcontroller-tc.furl'
+            furl_file = pjoin(security_dir, 'ipcontroller-tc.furl')
         ),
         multiengine = dict(
             controller_interface = 'IPython.kernel.multiengine.IMultiEngine',
             fc_interface = 'IPython.kernel.multienginefc.IFCSynchronousMultiEngine',
-            furl_file = ipython_dir + 'ipcontroller-mec.furl'
+            furl_file = pjoin(security_dir, 'ipcontroller-mec.furl')
         )
     ),
 
@@ -97,7 +95,7 @@ controller_config = dict(
         port = 0,        # 0 means pick a port for me
         location = '',    # Empty string means try to set automatically
         secure = True,
-        cert_file = ipython_dir + 'ipcontroller-client.pem'
+        cert_file = pjoin(security_dir, 'ipcontroller-client.pem')
     )
 )
 
@@ -108,10 +106,10 @@ controller_config = dict(
 client_config = dict(
     client_interfaces = dict(
         task = dict(
-            furl_file = ipython_dir + 'ipcontroller-tc.furl'
+            furl_file = pjoin(security_dir, 'ipcontroller-tc.furl')
         ),
         multiengine = dict(
-            furl_file = ipython_dir + 'ipcontroller-mec.furl'
+            furl_file = pjoin(security_dir, 'ipcontroller-mec.furl')
         )
     )
 )
