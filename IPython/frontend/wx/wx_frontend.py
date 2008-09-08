@@ -364,7 +364,8 @@ class WxController(ConsoleWidget, PrefilterFrontEnd):
             if self._input_state == 'subprocess':
                 if self.debug:
                     print >>sys.__stderr__, 'Killing running process'
-                self._running_process.process.kill()
+                if hasattr(self._running_process, 'process'):
+                    self._running_process.process.kill()
             elif self._input_state == 'buffering':
                 if self.debug:
                     print >>sys.__stderr__, 'Raising KeyboardInterrupt'
