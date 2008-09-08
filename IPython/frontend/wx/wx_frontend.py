@@ -397,7 +397,7 @@ class WxController(ConsoleWidget, PrefilterFrontEnd):
                 char = '\04'
             self._running_process.process.stdin.write(char)
             self._running_process.process.stdin.flush()
-        elif event.KeyCode in (ord('('), 57):
+        elif event.KeyCode in (ord('('), 57, 53):
             # Calltips
             event.Skip()
             self.do_calltip()
