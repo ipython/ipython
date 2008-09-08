@@ -196,16 +196,18 @@ class WxController(ConsoleWidget, PrefilterFrontEnd):
 
     def system_call(self, command_string):
         self._input_state = 'subprocess'
+        event_loop = wx.EventLoop()
+        def _end_system_call():
+            self._input_state = 'buffering'
+            self._running_process = False
+            event_loop.Exit()
+
         self._running_process = PipedProcess(command_string, 
                     out_callback=self.buffered_write,
-                    end_callback = self._end_system_call)
+                    end_callback = _end_system_call)
         self._running_process.start()
-        # XXX: another one of these polling loops to have a blocking
-        # call
-        wx.Yield()
-        while self._running_process:
-            wx.Yield()
-            sleep(0.1)
+        # XXX: Running a separate event_loop. Ugly.
+        event_loop.Run() 
         # Be sure to flush the buffer.
         self._buffer_flush(event=None)
 
@@ -476,13 +478,6 @@ class WxController(ConsoleWidget, PrefilterFrontEnd):
     # Private API
     #--------------------------------------------------------------------------
  
-    def _end_system_call(self):
-        """ Called at the end of a system call.
-        """
-        self._input_state = 'buffering'
-        self._running_process = False
-
-
     def _buffer_flush(self, event):
         """ Called by the timer to flush the write buffer.
             
