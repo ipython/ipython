@@ -174,10 +174,7 @@ class ConsoleWidget(editwindow.EditWindow):
         if refresh:
             current_time = time.time()
             if current_time - self._last_refresh_time > 0.03:
-                # Maybe this is faster than wx.Yield(), this is certainly
-                # more robust under windows, as it avoids recursive
-                # Yields.
-                self.ProcessEvent(wx.PaintEvent())
+                wx.Yield()
                 self._last_refresh_time = current_time 
 
    

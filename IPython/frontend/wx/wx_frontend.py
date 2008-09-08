@@ -286,10 +286,12 @@ class WxController(ConsoleWidget, PrefilterFrontEnd):
             if i in self._markers:
                 self.MarkerDeleteHandle(self._markers[i])
             self._markers[i] = self.MarkerAdd(i, _COMPLETE_BUFFER_MARKER)
-        # Update the display:
-        wx.Yield()
-        self.GotoPos(self.GetLength())
-        PrefilterFrontEnd.execute(self, python_string, raw_string=raw_string)
+        # Use a callafter to update the display robustly under windows
+        def callback():
+            self.GotoPos(self.GetLength())
+            PrefilterFrontEnd.execute(self, python_string, 
+                                            raw_string=raw_string)
+        wx.CallAfter(callback)
 
     def save_output_hooks(self):    
         self.__old_raw_input = __builtin__.raw_input
