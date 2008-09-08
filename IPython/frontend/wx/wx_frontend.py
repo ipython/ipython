@@ -233,8 +233,7 @@ class WxController(ConsoleWidget, PrefilterFrontEnd):
             for name in symbol_string.split('.')[1:] + ['__doc__']:
                 symbol = getattr(symbol, name)
             self.AutoCompCancel()
-            wx.Yield()
-            self.CallTipShow(self.GetCurrentPos(), symbol)
+            wx.CallAfter(self.CallTipShow, self.GetCurrentPos(), symbol)
         except:
             # The retrieve symbol couldn't be converted to a string
             pass
