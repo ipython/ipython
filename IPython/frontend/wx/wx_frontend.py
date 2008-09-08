@@ -427,8 +427,8 @@ class WxController(ConsoleWidget, PrefilterFrontEnd):
                     self.input_buffer = new_buffer
             # Tab-completion
             elif event.KeyCode == ord('\t'):
-                last_line = self.input_buffer.split('\n')[-1]
-                if not re.match(r'^\s*$', last_line):
+                current_line, current_line_number = self.CurLine
+                if not re.match(r'^\s*$', current_line):
                     self.complete_current_input()
                     if self.AutoCompActive():
                         wx.CallAfter(self._popup_completion, create=True)
