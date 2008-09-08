@@ -320,7 +320,8 @@ class WxController(ConsoleWidget, PrefilterFrontEnd):
     def show_traceback(self):
         start_line = self.GetCurrentLine()
         PrefilterFrontEnd.show_traceback(self)
-        wx.Yield()
+        self.ProcessEvent(wx.PaintEvent())
+        #wx.Yield()
         for i in range(start_line, self.GetCurrentLine()):
             self._markers[i] = self.MarkerAdd(i, _ERROR_MARKER)
 

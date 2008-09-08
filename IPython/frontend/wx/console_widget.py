@@ -175,6 +175,7 @@ class ConsoleWidget(editwindow.EditWindow):
             current_time = time.time()
             if current_time - self._last_refresh_time > 0.03:
                 wx.Yield()
+                #    self.ProcessEvent(wx.PaintEvent())
                 self._last_refresh_time = current_time 
 
    
