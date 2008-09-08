@@ -173,7 +173,7 @@ class WxController(ConsoleWidget, PrefilterFrontEnd):
         self.shell.user_ns['raw_input'] = self.raw_input
 
 
-    def raw_input(self, prompt):
+    def raw_input(self, prompt=''):
         """ A replacement from python's raw_input.
         """
         self.new_prompt(prompt)
