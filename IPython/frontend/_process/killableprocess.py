@@ -73,6 +73,8 @@ skip = False
 if mswindows:
     import platform
     if platform.uname()[3] == '' or platform.uname()[3] > '6.0.6000':
+        # Killable process does not work under vista when starting for
+        # something else than cmd.
         skip = True
     else:
         import winprocess
