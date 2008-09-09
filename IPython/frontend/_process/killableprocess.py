@@ -71,16 +71,11 @@ mswindows = (sys.platform == "win32")
 skip = False
 
 if mswindows:
-    # Some versions of windows, in some strange corner cases, give
-    # errror with the killableprocess.
-    if sys.version_info[:2] > (2, 4):
-        import platform
-        if platform.uname()[3] == '' or platform.uname()[3] > '6.0.6000':
-            skip = True
-        else:
-            import winprocess
-    else:
+    import platform
+    if platform.uname()[3] == '' or platform.uname()[3] > '6.0.6000':
         skip = True
+    else:
+        import winprocess
 else:
     import signal
 
