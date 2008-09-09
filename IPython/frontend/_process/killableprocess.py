@@ -50,7 +50,6 @@ import subprocess
 from subprocess import PIPE
 import sys
 import os
-import time
 import types
 
 try:
@@ -69,8 +68,19 @@ except ImportError:
 
 mswindows = (sys.platform == "win32")
 
+skip = False
+
 if mswindows:
-    import winprocess
+    # Some versions of windows, in some strange corner cases, give
+    # errror with the killableprocess.
+    if sys.version_info[:2] > (2, 4):
+        import platform
+        if platform.uname()[3] == '' or platform.uname()[3] > '6.0.6000':
+            skip = True
+        else:
+            import winprocess
+    else:
+        skip = True
 else:
     import signal
 
@@ -78,7 +88,11 @@ if not mswindows:
     def DoNothing(*args):
         pass
 
-class Popen(subprocess.Popen):
+
+if skip:
+ Popen = subprocess.Popen
+else:
+ class Popen(subprocess.Popen):
     if not mswindows:
         # Override __init__ to set a preexec_fn
         def __init__(self, *args, **kwargs):
