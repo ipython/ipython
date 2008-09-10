@@ -36,7 +36,7 @@ import re
 
 _DEFAULT_SIZE = 10
 if sys.platform == 'darwin':
-    _DEFAULT_STYLE = 12
+    _DEFAULT_SIZE = 12
 
 _DEFAULT_STYLE = {
     'stdout'      : 'fore:#0000FF',
