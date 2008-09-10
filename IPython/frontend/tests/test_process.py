@@ -19,6 +19,7 @@ import sys
 from IPython.frontend._process import PipedProcess
 from IPython.testing import decorators as testdec
 
+
 def test_capture_out():
     """ A simple test to see if we can execute a process and get the output.
     """
@@ -29,8 +30,7 @@ def test_capture_out():
     result = s.getvalue().rstrip()
     assert result == '1'
 
-# FIXME
-@testdec.skip("This doesn't work under Windows")
+
 def test_io():
     """ Checks that we can send characters on stdin to the process.
     """

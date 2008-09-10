@@ -245,7 +245,7 @@ class IEngineSerializedTestCase(object):
         self.assert_(es.IEngineSerialized.providedBy(self.engine))
         
     def testIEngineSerializedInterfaceMethods(self):
-        """Does self.engine have the methods and attributes in IEngireCore."""
+        """Does self.engine have the methods and attributes in IEngineCore."""
         for m in list(es.IEngineSerialized):
             self.assert_(hasattr(self.engine, m))
        
@@ -288,7 +288,7 @@ class IEngineQueuedTestCase(object):
         self.assert_(es.IEngineQueued.providedBy(self.engine))
         
     def testIEngineQueuedInterfaceMethods(self):
-        """Does self.engine have the methods and attributes in IEngireQueued."""
+        """Does self.engine have the methods and attributes in IEngineQueued."""
         for m in list(es.IEngineQueued):
             self.assert_(hasattr(self.engine, m))
             
@@ -326,7 +326,7 @@ class IEnginePropertiesTestCase(object):
         self.assert_(es.IEngineProperties.providedBy(self.engine))
     
     def testIEnginePropertiesInterfaceMethods(self):
-        """Does self.engine have the methods and attributes in IEngireProperties."""
+        """Does self.engine have the methods and attributes in IEngineProperties."""
         for m in list(es.IEngineProperties):
             self.assert_(hasattr(self.engine, m))
     

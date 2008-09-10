@@ -38,6 +38,8 @@ ececute rad = pi/180.
 execute print '*** q is an alias for PhysicalQuantityInteractive'
 execute print '*** g = 9.8 m/s^2 has been defined'
 execute print '*** rad = pi/180  has been defined'
+execute import ipy_constants as C
+execute print '*** C is the physical constants module'
 
 # Files to execute
 execfile 

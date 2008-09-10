@@ -53,5 +53,5 @@ if __name__ == '__main__':
     %timeit -n1 -r1 parallelDiffs(rc, nmats, matsize)
 
     # Uncomment these to plot the histogram
-    import pylab
-    pylab.hist(parallelDiffs(rc,matsize,matsize))
+    # import pylab
+    # pylab.hist(parallelDiffs(rc,matsize,matsize))
