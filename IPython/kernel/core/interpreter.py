@@ -680,6 +680,13 @@ class Interpreter(object):
         # how trailing whitespace is handled, but this seems to work.
         python = python.strip()
 
+        # The compiler module does not like unicode. We need to convert
+        # it encode it:
+        if isinstance(python, unicode):
+            # Use the utf-8-sig BOM so the compiler detects this a UTF-8
+            # encode string.
+            python = '\xef\xbb\xbf' + python.encode('utf-8')
+
         # The compiler module will parse the code into an abstract syntax tree.
         ast = compiler.parse(python)
 

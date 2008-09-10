@@ -50,7 +50,7 @@ class PipedProcess(Thread):
         """
         env = os.environ
         env['TERM'] = 'xterm'
-        process = Popen((self.command_string + ' 2>&1', ), shell=True,
+        process = Popen(self.command_string + ' 2>&1', shell=True,
                                 env=env,
                                 universal_newlines=True,
                                 stdout=PIPE, stdin=PIPE, )
