@@ -20,8 +20,6 @@ from IPython.frontend._process import PipedProcess
 from IPython.testing import decorators as testdec
 
 
-# FIXME
-@testdec.skip("This doesn't work under Windows")
 def test_capture_out():
     """ A simple test to see if we can execute a process and get the output.
     """
@@ -33,8 +31,6 @@ def test_capture_out():
     assert result == '1'
 
 
-# FIXME
-@testdec.skip("This doesn't work under Windows")
 def test_io():
     """ Checks that we can send characters on stdin to the process.
     """
@@ -51,8 +47,6 @@ def test_io():
     assert result == test_string
 
 
-# FIXME
-@testdec.skip("This doesn't work under Windows")
 def test_kill():
     """ Check that we can kill a process, and its subprocess.
     """
