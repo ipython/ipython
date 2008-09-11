@@ -1,4 +1,4 @@
-.. Notification:
+.. _notification:
 
 ==========================================
 IPython.kernel.core.notification blueprint
