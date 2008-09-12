@@ -1,8 +1,8 @@
 .. _ip1par:
 
-======================================
-Using IPython for parallel computing
-======================================
+============================
+Overview and getting started
+============================
 
 .. contents::
 
