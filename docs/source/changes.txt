@@ -27,6 +27,12 @@ Release 0.9
 New features
 ------------
 
+* All furl files and security certificates are now put in a read-only directory
+  named ~./ipython/security.
+
+* A single function :func:`get_ipython_dir`, in :mod:`IPython.genutils` that
+  determines the user's IPython directory in a robust manner.
+
 * Laurent's WX application has been given a top-level script called ipython-wx,
   and it has received numerous fixes.  We expect this code to be
   architecturally better integrated with Gael's WX 'ipython widget' over the
@@ -58,7 +64,8 @@ New features
   time and report problems), but it now works for the developers.  We are
   working hard on continuing to improve it, as this was probably IPython's
   major Achilles heel (the lack of proper test coverage made it effectively
-  impossible to do large-scale refactoring).
+  impossible to do large-scale refactoring).  The full test suite can now
+  be run using the :command:`iptest` command line program.
 
 * The notion of a task has been completely reworked.  An `ITask` interface has
   been created.  This interface defines the methods that tasks need to implement.
@@ -120,6 +127,9 @@ New features
 Bug fixes
 ---------
 
+* The Windows installer has been fixed.  Now all IPython scripts have ``.bat``
+  versions created.  Also, the Start Menu shortcuts have been updated.
+
 * The colors escapes in the multiengine client are now turned off on win32 as they
   don't print correctly.
 
@@ -128,7 +138,7 @@ Bug fixes
 
 * A few subpackages has missing `__init__.py` files.
 
-* The documentation is only created is Sphinx is found.  Previously, the `setup.py`
+* The documentation is only created if Sphinx is found.  Previously, the `setup.py`
   script would fail if it was missing.
 
 * Greedy 'cd' completion has been disabled again (it was enabled in 0.8.4)
@@ -136,6 +146,13 @@ Bug fixes
 
 Backwards incompatible changes
 ------------------------------
+
+* The ``clusterfile`` options of the :command:`ipcluster` command has been
+  removed as it was not working and it will be replaced soon by something much
+  more robust.
+
+* The :mod:`IPython.kernel` configuration now properly find the user's
+  IPython directory.
 
 * In ipapi, the :func:`make_user_ns` function has been replaced with
   :func:`make_user_namespaces`, to support dict subclasses in namespace
