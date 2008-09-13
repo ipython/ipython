@@ -151,10 +151,7 @@ latex_font_size = '11pt'
 # (source start file, target name, title, author, document class [howto/manual]).
 
 latex_documents = [ ('index', 'ipython.tex', 'IPython Documentation',
-                     ur"""Brian Granger, Fernando Pérez and Ville Vainio\\
-                     \ \\
-                     With contributions from:\\
-                     Benjamin Ragan-Kelley and Barry Wark.""",
+                     ur"""The IPython Development Team""",
                      'manual'),
                     ]
 
