@@ -100,7 +100,7 @@ def main():
         noext, ext = os.path.splitext(cmd)
         key = mapper(noext)
         if key not in ip.IP.alias_table:
-            ip.defalias(key, cmd)
+            ip.defalias(key.replace('.',''), cmd)
 
     # mglob combines 'find', recursion, exclusion... '%mglob?' to learn more
     ip.load("IPython.external.mglob")    

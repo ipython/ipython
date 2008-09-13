@@ -2648,7 +2648,7 @@ Defaulting color scheme to 'NoColor'"""
                             # each entry in the alias table must be (N,name),
                             # where N is the number of positional arguments of the
                             # alias.
-                            alias_table[ff] = (0,ff)
+                            alias_table[ff.replace('.','')] = (0,ff)
                             syscmdlist.append(ff)
             else:
                 for pdir in path:
@@ -2658,7 +2658,7 @@ Defaulting color scheme to 'NoColor'"""
                         if isexec(ff) and base.lower() not in self.shell.no_alias:
                             if ext.lower() == '.exe':
                                 ff = base
-                            alias_table[base.lower()] = (0,ff)
+                            alias_table[base.lower().replace('.','')] = (0,ff)
                             syscmdlist.append(ff)
             # Make sure the alias table doesn't contain keywords or builtins
             self.shell.alias_table_validate()
