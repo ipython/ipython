@@ -42,7 +42,8 @@ def init_ipython(ipy):
     ip.set_hook('pre_prompt_hook', ileo_pre_prompt_hook)     
     global wb
     wb = LeoWorkbook()
-    ip.user_ns['wb'] = wb 
+    ip.user_ns['wb'] = wb
+    
     
 
 first_launch = True
@@ -74,6 +75,7 @@ def update_commander(new_leox):
     
     new_leox.push = push_position_from_leo
     run_leo_startup_node()
+    ip.user_ns['_prompt_title'] = 'ileo'
 
 from IPython.external.simplegeneric import generic 
 import pprint
