@@ -335,6 +335,12 @@ def cd_completer(self, event):
     if not found:
         if os.path.isdir(relpath):
             return [relpath]
+        
+        bks = self.db.get('bookmarks',{}).keys()
+        bkmatches = [s for s in bks if s.startswith(event.symbol)]
+        if bkmatches:
+            return bkmatches
+        
         raise IPython.ipapi.TryNext
 
 
