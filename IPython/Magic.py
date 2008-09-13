@@ -2329,6 +2329,12 @@ Currently the magic system has the following functions:\n"""
         print 'Editing...',
         sys.stdout.flush()
         self.shell.hooks.editor(filename,lineno)
+        
+        # XXX TODO: should this be generalized for all string vars?
+        # For now, this is special-cased to blocks created by cpaste
+        if args.strip() == 'pasted_block':
+            self.shell.user_ns['pasted_block'] = file_read(filename)
+        
         if opts.has_key('x'):  # -x prevents actual execution
             print
         else:
@@ -2338,6 +2344,8 @@ Currently the magic system has the following functions:\n"""
             else:
                 self.shell.safe_execfile(filename,self.shell.user_ns,
                                          self.shell.user_ns)
+        
+                                                     
         if use_temp:
             try:
                 return open(filename).read()
