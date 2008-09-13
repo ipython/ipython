@@ -16,10 +16,13 @@ Will IPython speed my Python code up?
 Yes and no. When converting a serial code to run in parallel, there often many
 difficulty questions that need to be answered, such as:
 
-	* How should data be decomposed onto the set of processors?
-	* What are the data movement patterns?
-	* Can the algorithm be structured to minimize data movement?
-	* Is dynamic load balancing important?
+* How should data be decomposed onto the set of processors?
+
+* What are the data movement patterns?
+
+* Can the algorithm be structured to minimize data movement?
+
+* Is dynamic load balancing important?
 
 We can't answer such questions for you. This is the hard (but fun) work of parallel
 computing. But, once you understand these things IPython will make it easier for you to
@@ -28,9 +31,7 @@ resulting parallel code interactively.
 
 With that said, if your problem is trivial to parallelize, IPython has a number of
 different interfaces that will enable you to parallelize things is almost no time at
-all.  A good place to start is the ``map`` method of our `multiengine interface`_.
-
-.. _multiengine interface: ./parallel_multiengine
+all.  A good place to start is the ``map`` method of our :class:`MultiEngineClient`.
 
 What is the best way to use MPI from Python?
 --------------------------------------------
@@ -40,26 +41,33 @@ What about all the other parallel computing packages in Python?
 
 Some of the unique characteristic of IPython are:
 
-	* IPython is the only architecture that abstracts out the notion of a 
-	  parallel computation in such a way that new models of parallel computing
-	  can be explored quickly and easily.  If you don't like the models we
-	  provide, you can simply create your own using the capabilities we provide.
-	* IPython is asynchronous from the ground up (we use `Twisted`_).
-	* IPython's architecture is designed to avoid subtle problems 
-	  that emerge because of Python's global interpreter lock (GIL).
-	* While IPython'1 architecture is designed to support a wide range
-	  of novel parallel computing models, it is fully interoperable with
-	  traditional MPI applications.
-	* IPython has been used and tested extensively on modern supercomputers.
-	* IPython's networking layers are completely modular.  Thus, is 
-	  straightforward to replace our existing network protocols with 
-	  high performance alternatives (ones based upon Myranet/Infiniband).
-	* IPython is designed from the ground up to support collaborative
-	  parallel computing.  This enables multiple users to actively develop
-	  and run the *same* parallel computation.
-	* Interactivity is a central goal for us.  While IPython does not have
-	  to be used interactivly, is can be.
-	  
+* IPython is the only architecture that abstracts out the notion of a 
+  parallel computation in such a way that new models of parallel computing
+  can be explored quickly and easily.  If you don't like the models we
+  provide, you can simply create your own using the capabilities we provide.
+  
+* IPython is asynchronous from the ground up (we use `Twisted`_).
+
+* IPython's architecture is designed to avoid subtle problems 
+  that emerge because of Python's global interpreter lock (GIL).
+  
+* While IPython's architecture is designed to support a wide range
+  of novel parallel computing models, it is fully interoperable with
+  traditional MPI applications.
+  
+* IPython has been used and tested extensively on modern supercomputers.
+
+* IPython's networking layers are completely modular.  Thus, is 
+  straightforward to replace our existing network protocols with 
+  high performance alternatives (ones based upon Myranet/Infiniband).
+  
+* IPython is designed from the ground up to support collaborative
+  parallel computing.  This enables multiple users to actively develop
+  and run the *same* parallel computation.
+  
+* Interactivity is a central goal for us.  While IPython does not have
+  to be used interactivly, it can be.
+      
 .. _Twisted: http://www.twistedmatrix.com
 
 Why The IPython controller a bottleneck in my parallel calculation?
@@ -71,13 +79,17 @@ too much data is being pushed and pulled to and from the engines. If your algori
 is structured in this way, you really should think about alternative ways of
 handling the data movement. Here are some ideas:
 
-	1. Have the engines write data to files on the locals disks of the engines.
-	2. Have the engines write data to files on a file system that is shared by
-	   the engines.
-	3. Have the engines write data to a database that is shared by the engines.
-	4. Simply keep data in the persistent memory of the engines and move the
-	   computation to the data (rather than the data to the computation).
-	5. See if you can pass data directly between engines using MPI.
+1. Have the engines write data to files on the locals disks of the engines.
+
+2. Have the engines write data to files on a file system that is shared by
+   the engines.
+
+3. Have the engines write data to a database that is shared by the engines.
+
+4. Simply keep data in the persistent memory of the engines and move the
+   computation to the data (rather than the data to the computation).
+
+5. See if you can pass data directly between engines using MPI.
 
 Isn't Python slow to be used for high-performance parallel computing?
 ---------------------------------------------------------------------

@@ -7,5 +7,4 @@ Installation
 .. toctree::
    :maxdepth: 2
 
-   basic.txt
-   advanced.txt
+   install.txt
