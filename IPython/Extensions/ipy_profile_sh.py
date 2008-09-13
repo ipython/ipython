@@ -98,7 +98,10 @@ def main():
     for cmd in syscmds:
         # print "sys",cmd #dbg
         noext, ext = os.path.splitext(cmd)
-        key = mapper(noext)
+        if ext.lower() == '.exe':
+            cmd = noext
+        
+        key = mapper(cmd)
         if key not in ip.IP.alias_table:
             ip.defalias(key.replace('.',''), cmd)
 
