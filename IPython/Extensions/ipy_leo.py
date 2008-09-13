@@ -768,4 +768,9 @@ def shadow_walk(directory, parent=None, isroot=True):
             child.initBodyString(body)
             shadow_walk(path, parent=child, isroot=False)
 
+def mkbutton(text, node_to_push):
+    ib = c.frame.getIconBarObject()
+    ib.add(text = text, command = node_to_push.ipush)
+    
+
 
