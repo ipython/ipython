@@ -357,15 +357,19 @@ This section outlines the various scenarios that we need to test before we relea
 Installation scenarios under Linux and OS X
 -------------------------------------------
 
-    1.  Install from tarball using `python setup.py install`.
+    1.  Install from tarball using ``python setup.py install``.
         a.  With only readline+nose dependencies installed.
-        b.  With all dependencies installed (readline, zope.interface,
-            Twisted, foolscap, Sphinx, nose, pyOpenSSL).
+        b.  With all dependencies installed (readline, zope.interface, Twisted,
+        foolscap, Sphinx, nose, pyOpenSSL).
+	    
     2.  Install using easy_install.
+
         a.  With only readline+nose dependencies installed.
-            i.  Default dependencies: `easy_install ipython-0.9.beta3-py2.5.egg`
-            ii. Optional dependency sets: `easy_install -f ipython-0.9.beta3-py2.5.egg IPython[kernel,doc,test,security]`
+            i.  Default dependencies: ``easy_install ipython-0.9.beta3-py2.5.egg``
+            ii. Optional dependency sets: ``easy_install -f ipython-0.9.beta3-py2.5.egg IPython[kernel,doc,test,security]``
+
         b.  With all dependencies already installed.
+	
 
 Installation scenarios under Win32
 ----------------------------------
@@ -381,6 +385,7 @@ Tests to run for these scenarios
     2.  Start a controller and engines and try a few things by hand.
         a.  Using ipcluster.
         b.  Using ipcontroller/ipengine by hand.
+
     3.  Run a few of the parallel examples.
     4.  Try the kernel with and without security with and without PyOpenSSL
         installed.

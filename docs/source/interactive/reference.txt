@@ -8,7 +8,7 @@ IPython reference
 
 .. contents::
 
-.. _Command line options:
+.. _command_line_options:
 
 Command-line usage
 ==================
@@ -288,12 +288,13 @@ All options with a [no] prepended can be specified in negated form
 	recursive inclusions.
 
     -prompt_in1, pi1 <string>
-	Specify the string used for input prompts. Note that if you
-	are using numbered prompts, the number is represented with a
-	'\#' in the string. Don't forget to quote strings with spaces
-	embedded in them. Default: 'In [\#]:'.  Sec. Prompts_
-	discusses in detail all the available escapes to customize
-	your prompts.
+
+        Specify the string used for input prompts. Note that if you are using
+	numbered prompts, the number is represented with a '\#' in the
+	string. Don't forget to quote strings with spaces embedded in
+	them. Default: 'In [\#]:'.  The :ref:`prompts section <prompts>`
+	discusses in detail all the available escapes to customize your
+	prompts.
 
     -prompt_in2, pi2 <string>
 	Similar to the previous option, but used for the continuation
@@ -2077,13 +2078,14 @@ customizations.
 Access to the standard Python help
 ----------------------------------
 
-As of Python 2.1, a help system is available with access to object
-docstrings and the Python manuals. Simply type 'help' (no quotes) to
-access it. You can also type help(object) to obtain information about a
-given object, and help('keyword') for information on a keyword. As noted
-in sec. `accessing help`_, you need to properly configure
-your environment variable PYTHONDOCS for this feature to work correctly.
+As of Python 2.1, a help system is available with access to object docstrings
+and the Python manuals. Simply type 'help' (no quotes) to access it. You can
+also type help(object) to obtain information about a given object, and
+help('keyword') for information on a keyword. As noted :ref:`here
+<accessing_help>`, you need to properly configure your environment variable
+PYTHONDOCS for this feature to work correctly.
 
+.. _dynamic_object_info:
 
 Dynamic object information
 --------------------------
@@ -2126,7 +2128,7 @@ are not really defined as separate identifiers. Try for example typing
 {}.get? or after doing import os, type os.path.abspath??.
 
 
-.. _Readline:
+.. _readline:
 
 Readline-based features
 -----------------------
@@ -2240,10 +2242,9 @@ explanation in your ipythonrc file.
 Session logging and restoring
 -----------------------------
 
-You can log all input from a session either by starting IPython with
-the command line switches -log or -logfile (see sec. `command line
-options`_) or by activating the logging at any moment with the magic
-function %logstart.
+You can log all input from a session either by starting IPython with the
+command line switches -log or -logfile (see :ref:`here <command_line_options>`)
+or by activating the logging at any moment with the magic function %logstart.
 
 Log files can later be reloaded with the -logplay option and IPython
 will attempt to 'replay' the log by executing all the lines in it, thus
@@ -2278,6 +2279,8 @@ The %logoff and %logon functions allow you to temporarily stop and
 resume logging to a file which had previously been started with
 %logstart. They will fail (with an explanation) if you try to use them
 before logging has been started.
+
+.. _system_shell_access:
 
 System shell access
 -------------------
@@ -2389,7 +2392,7 @@ These features are basically a terminal version of Ka-Ping Yee's cgitb
 module, now part of the standard Python library.
 
 
-.. _Input caching:
+.. _input_caching:
 
 Input caching system
 --------------------
@@ -2429,7 +2432,7 @@ sec. 6.2 <#sec:magic> for more details on the macro system.
 A history function %hist allows you to see any part of your input
 history by printing a range of the _i variables.
 
-.. _Output caching:
+.. _output_caching:
 
 Output caching system
 ---------------------
@@ -3034,7 +3037,7 @@ which is being shared by the interactive IPython loop and your GUI
 thread, you should really handle it with thread locking and
 syncrhonization properties. The Python documentation discusses these.
 
-.. _Interactive demos:
+.. _interactive_demos:
 
 Interactive demos with IPython
 ==============================
@@ -3143,21 +3146,17 @@ toolkits, including Tk, GTK and WXPython. It also provides a number of
 commands useful for scientific computing, all with a syntax compatible
 with that of the popular Matlab program.
 
-IPython accepts the special option -pylab (Sec. `Command line
-options`_). This configures it to support matplotlib, honoring the
-settings in the .matplotlibrc file. IPython will detect the user's
-choice of matplotlib GUI backend, and automatically select the proper
-threading model to prevent blocking. It also sets matplotlib in
-interactive mode and modifies %run slightly, so that any
-matplotlib-based script can be executed using %run and the final
-show() command does not block the interactive shell.
+IPython accepts the special option -pylab (see :ref:`here
+<command_line_options>`). This configures it to support matplotlib, honoring
+the settings in the .matplotlibrc file. IPython will detect the user's choice
+of matplotlib GUI backend, and automatically select the proper threading model
+to prevent blocking. It also sets matplotlib in interactive mode and modifies
+%run slightly, so that any matplotlib-based script can be executed using %run
+and the final show() command does not block the interactive shell.
 
-The -pylab option must be given first in order for IPython to
-configure its threading mode. However, you can still issue other
-options afterwards. This allows you to have a matplotlib-based
-environment customized with additional modules using the standard
-IPython profile mechanism (Sec. Profiles_): ''ipython -pylab -p
-myprofile'' will load the profile defined in ipythonrc-myprofile after
-configuring matplotlib.
-
-
+The -pylab option must be given first in order for IPython to configure its
+threading mode. However, you can still issue other options afterwards. This
+allows you to have a matplotlib-based environment customized with additional
+modules using the standard IPython profile mechanism (see :ref:`here
+<profiles>`): ``ipython -pylab -p myprofile`` will load the profile defined in
+ipythonrc-myprofile after configuring matplotlib.
