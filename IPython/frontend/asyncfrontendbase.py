@@ -14,7 +14,7 @@ __docformat__ = "restructuredtext en"
 #-------------------------------------------------------------------------------
 # Imports
 #-------------------------------------------------------------------------------
-import uuid
+from IPython.external import guid
 
 
 from zope.interface import Interface, Attribute, implements, classProvides
@@ -59,7 +59,7 @@ class AsyncFrontEndBase(FrontEndBase):
             return Failure(Exception("Block is not compilable"))
         
         if(blockID == None):
-            blockID = uuid.uuid4() #random UUID
+            blockID = guid.generate() 
         
         d = self.engine.execute(block)
         d.addCallback(self._add_history, block=block)

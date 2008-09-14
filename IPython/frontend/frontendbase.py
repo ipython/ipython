@@ -21,83 +21,13 @@ __docformat__ = "restructuredtext en"
 # Imports
 #-------------------------------------------------------------------------------
 import string
-
-try:
-    import _ast
-except ImportError:
-    # Python 2.4 hackish workaround.
-    class bunch: pass
-    _ast = bunch()
-    _ast.PyCF_ONLY_AST = 1024
-    
-
-
-try:
-    import uuid
-except ImportError:
-    # Python 2.4 hackish workaround.
-    class UUID:
-        def __init__(self,bytes):
-            version = 4
-            int = long(('%02x'*16) % tuple(map(ord, bytes)), 16)
-            # Set the variant to RFC 4122.
-            int &= ~(0xc000 << 48L)
-            int |= 0x8000 << 48L
-            # Set the version number.
-            int &= ~(0xf000 << 64L)
-            int |= version << 76L
-            self.__dict__['int'] = int
-
-        def __cmp__(self, other):
-            if isinstance(other, UUID):
-                return cmp(self.int, other.int)
-            return NotImplemented
-
-        def __hash__(self):
-            return hash(self.int)
-
-        def __int__(self):
-            return self.int
-
-        def __repr__(self):
-            return 'UUID(%r)' % str(self)
-
-        def __setattr__(self, name, value):
-            raise TypeError('UUID objects are immutable')
-
-        def __str__(self):
-            hex = '%032x' % self.int
-            return '%s-%s-%s-%s-%s' % (
-                hex[:8], hex[8:12], hex[12:16], hex[16:20], hex[20:])
-
-        def get_bytes(self):
-            bytes = ''
-            for shift in range(0, 128, 8):
-                bytes = chr((self.int >> shift) & 0xff) + bytes
-            return bytes
-
-        bytes = property(get_bytes)
- 
-    
-    def _u4():
-        "Fake random uuid"
-        
-        import random
-        bytes = [chr(random.randrange(256)) for i in range(16)]
-        return UUID(bytes)
-
-    class bunch: pass
-    uuid = bunch()
-    uuid.uuid4 = _u4
-    del _u4
-
+import codeop
+from IPython.external import guid
 
 
 from IPython.frontend.zopeinterface import (
     Interface, 
     Attribute, 
-    implements, 
-    classProvides
 )
 from IPython.kernel.core.history import FrontEndHistory
 from IPython.kernel.core.util import Bunch
@@ -203,11 +133,7 @@ class IFrontEnd(Interface):
         
         pass
     
-    def compile_ast(block):
-        """Compiles block to an _ast.AST"""
-        
-        pass
-    
+   
     def get_history_previous(current_block):
         """Returns the block previous in  the history. Saves currentBlock if
         the history_cursor is currently at the end of the input history"""
@@ -289,28 +215,14 @@ class FrontEndBase(object):
         """
         
         try:
-            ast = self.compile_ast(block)
+            is_complete = codeop.compile_command(block.rstrip() + '\n\n',
+                            "<string>", "exec") 
         except:
             return False
         
         lines = block.split('\n')
-        return (len(lines)==1 or str(lines[-1])=='')
-    
-    
-    def compile_ast(self, block):
-        """Compile block to an AST
-        
-        Parameters:
-            block : str
-        
-        Result:
-            AST
-        
-        Throws:
-            Exception if block cannot be compiled
-        """
-        
-        return compile(block, "<string>", "exec", _ast.PyCF_ONLY_AST)
+        return ((is_complete is not None) 
+                    and (len(lines)==1 or str(lines[-1])==''))
     
     
     def execute(self, block, blockID=None):
@@ -330,7 +242,7 @@ class FrontEndBase(object):
             raise Exception("Block is not compilable")
         
         if(blockID == None):
-            blockID = uuid.uuid4() #random UUID
+            blockID = guid.generate()
         
         try:
             result = self.shell.execute(block)

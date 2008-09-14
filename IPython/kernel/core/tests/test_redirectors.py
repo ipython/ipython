@@ -16,10 +16,12 @@ __docformat__ = "restructuredtext en"
 import os
 from cStringIO import StringIO
 
-from IPython.testing import decorators as testdec
+# FIXME:
+import nose
+import sys
+if sys.platform == 'win32':
+    raise nose.SkipTest("These tests are not reliable under windows")
 
-# FIXME
-@testdec.skip("This doesn't work under Windows")
 def test_redirector():
     """ Checks that the redirector can be used to do synchronous capture.
     """
@@ -40,8 +42,6 @@ def test_redirector():
     result2 = "".join("%ic\n%i\n" %(i, i) for i in range(10))
     assert result1 == result2
 
-# FIXME
-@testdec.skip("This doesn't work under Windows")
 def test_redirector_output_trap():
     """ This test check not only that the redirector_output_trap does
         trap the output, but also that it does it in a gready way, that
