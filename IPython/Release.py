@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Release data for the IPython project.
-
-$Id: Release.py 3002 2008-02-01 07:17:00Z fperez $"""
+"""Release data for the IPython project."""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2006 Fernando Perez <fperez@colorado.edu>
@@ -25,7 +23,7 @@ name = 'ipython'
 development = False    # change this to False to do a release
 version_base = '0.9'
 branch = 'ipython'
-revision = '1124'
+revision = '1143'
 
 if development:
     if branch == 'ipython':
