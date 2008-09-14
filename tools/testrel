@@ -15,8 +15,8 @@ cd $ipdir
 ./setup.py sdist --formats=gztar
 
 # Build rpms
-#python2.4 ./setup.py bdist_rpm --binary-only --release=py24 --python=/usr/bin/python2.4
-#python2.5 ./setup.py bdist_rpm --binary-only --release=py25 --python=/usr/bin/python2.5
+python2.4 ./setup.py bdist_rpm --binary-only --release=py24 --python=/usr/bin/python2.4
+python2.5 ./setup.py bdist_rpm --binary-only --release=py25 --python=/usr/bin/python2.5
 
 # Build eggs
 python2.4 ./setup_bdist_egg.py

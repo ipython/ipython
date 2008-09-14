@@ -19,10 +19,6 @@ __docformat__ = "restructuredtext en"
 #-------------------------------------------------------------------------------
 # Imports
 #-------------------------------------------------------------------------------
-import string
-import uuid
-import _ast
-
 try:
     from zope.interface import Interface, Attribute, implements, classProvides
 except ImportError:

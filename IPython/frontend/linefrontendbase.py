@@ -182,15 +182,28 @@ class LineFrontEndBase(FrontEndBase):
             raw_string = python_string
         # Create a false result, in case there is an exception
         self.last_result = dict(number=self.prompt_number)
+
+        ## try:
+        ##     self.history.input_cache[-1] = raw_string.rstrip()
+        ##     result = self.shell.execute(python_string)
+        ##     self.last_result = result
+        ##     self.render_result(result)
+        ## except:
+        ##     self.show_traceback()
+        ## finally:
+        ##     self.after_execute()
+
         try:
-            self.history.input_cache[-1] = raw_string.rstrip()
-            result = self.shell.execute(python_string)
-            self.last_result = result
-            self.render_result(result)
-        except:
-            self.show_traceback()
+            try:
+                self.history.input_cache[-1] = raw_string.rstrip()
+                result = self.shell.execute(python_string)
+                self.last_result = result
+                self.render_result(result)
+            except:
+                self.show_traceback()
         finally:
             self.after_execute()
+
 
     #--------------------------------------------------------------------------
     # LineFrontEndBase interface
