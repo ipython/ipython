@@ -15,8 +15,8 @@ What's new
         1.4.2  Bug fixes
         1.4.3  Backwards incompatible changes
     2  Release 0.8.4
-    3  Release 0.8.2
-    4  Release 0.8.3
+    3  Release 0.8.3
+    4  Release 0.8.2
     5  Older releases
 ..
 
@@ -68,80 +68,84 @@ New features
   be run using the :command:`iptest` command line program.
 
 * The notion of a task has been completely reworked.  An `ITask` interface has
-  been created.  This interface defines the methods that tasks need to implement.
-  These methods are now responsible for things like submitting tasks and processing
-  results.  There are two basic task types: :class:`IPython.kernel.task.StringTask`
-  (this is the old `Task` object, but renamed) and the new 
-  :class:`IPython.kernel.task.MapTask`, which is based on a function.
+  been created.  This interface defines the methods that tasks need to
+  implement.  These methods are now responsible for things like submitting
+  tasks and processing results.  There are two basic task types:
+  :class:`IPython.kernel.task.StringTask` (this is the old `Task` object, but
+  renamed) and the new :class:`IPython.kernel.task.MapTask`, which is based on
+  a function.
 
 * A new interface, :class:`IPython.kernel.mapper.IMapper` has been defined to
-  standardize the idea of a `map` method.  This interface has a single
-  `map` method that has the same syntax as the built-in `map`.  We have also defined
+  standardize the idea of a `map` method.  This interface has a single `map`
+  method that has the same syntax as the built-in `map`.  We have also defined
   a `mapper` factory interface that creates objects that implement
-  :class:`IPython.kernel.mapper.IMapper` for different controllers.  Both
-  the multiengine and task controller now have mapping capabilties.
+  :class:`IPython.kernel.mapper.IMapper` for different controllers.  Both the
+  multiengine and task controller now have mapping capabilties.
 
-* The parallel function capabilities have been reworks.  The major changes are that
-  i) there is now an `@parallel` magic that creates parallel functions, ii)
-  the syntax for mulitple variable follows that of `map`, iii) both the
+* The parallel function capabilities have been reworks.  The major changes are
+  that i) there is now an `@parallel` magic that creates parallel functions,
+  ii) the syntax for mulitple variable follows that of `map`, iii) both the
   multiengine and task controller now have a parallel function implementation.
 
-* All of the parallel computing capabilities from `ipython1-dev` have been merged into
-  IPython proper.  This resulted in the following new subpackages:  
+* All of the parallel computing capabilities from `ipython1-dev` have been
+  merged into IPython proper.  This resulted in the following new subpackages:
   :mod:`IPython.kernel`, :mod:`IPython.kernel.core`, :mod:`IPython.config`,
   :mod:`IPython.tools` and :mod:`IPython.testing`.
 
-* As part of merging in the `ipython1-dev` stuff, the `setup.py` script and friends
-  have been completely refactored.  Now we are checking for dependencies using
-  the approach that matplotlib uses.
+* As part of merging in the `ipython1-dev` stuff, the `setup.py` script and
+  friends have been completely refactored.  Now we are checking for
+  dependencies using the approach that matplotlib uses.
 
 * The documentation has been completely reorganized to accept the documentation
   from `ipython1-dev`.
 
 * We have switched to using Foolscap for all of our network protocols in
-  :mod:`IPython.kernel`.  This gives us secure connections that are both encrypted
-  and authenticated.
+  :mod:`IPython.kernel`.  This gives us secure connections that are both
+  encrypted and authenticated.
 
 * We have a brand new `COPYING.txt` files that describes the IPython license
   and copyright.  The biggest change is that we are putting "The IPython
-  Development Team" as the copyright holder.  We give more details about exactly
-  what this means in this file.  All developer should read this and use the new
-  banner in all IPython source code files.
+  Development Team" as the copyright holder.  We give more details about
+  exactly what this means in this file.  All developer should read this and use
+  the new banner in all IPython source code files.
 
 * sh profile: ./foo runs foo as system command, no need to do !./foo anymore
 
-* String lists now support 'sort(field, nums = True)' method (to easily
-  sort system command output). Try it with 'a = !ls -l ; a.sort(1, nums=1)'
+* String lists now support ``sort(field, nums = True)`` method (to easily sort
+  system command output). Try it with ``a = !ls -l ; a.sort(1, nums=1)``.
 
 * '%cpaste foo' now assigns the pasted block as string list, instead of string
 
-* The ipcluster script now run by default with no security.  This is done because
-  the main usage of the script is for starting things on localhost.  Eventually
-  when ipcluster is able to start things on other hosts, we will put security
-  back.
+* The ipcluster script now run by default with no security.  This is done
+  because the main usage of the script is for starting things on localhost.
+  Eventually when ipcluster is able to start things on other hosts, we will put
+  security back.
 
 * 'cd --foo' searches directory history for string foo, and jumps to that dir.
   Last part of dir name is checked first. If no matches for that are found,
   look at the whole path.
 
+  
 Bug fixes
 ---------
 
 * The Windows installer has been fixed.  Now all IPython scripts have ``.bat``
   versions created.  Also, the Start Menu shortcuts have been updated.
 
-* The colors escapes in the multiengine client are now turned off on win32 as they
-  don't print correctly.
+* The colors escapes in the multiengine client are now turned off on win32 as
+  they don't print correctly.
 
-* The :mod:`IPython.kernel.scripts.ipengine` script was exec'ing mpi_import_statement
-  incorrectly, which was leading the engine to crash when mpi was enabled.
+* The :mod:`IPython.kernel.scripts.ipengine` script was exec'ing
+  mpi_import_statement incorrectly, which was leading the engine to crash when
+  mpi was enabled.
 
-* A few subpackages has missing `__init__.py` files.
+* A few subpackages had missing ``__init__.py`` files.
 
-* The documentation is only created if Sphinx is found.  Previously, the `setup.py`
-  script would fail if it was missing.
+* The documentation is only created if Sphinx is found.  Previously, the
+  ``setup.py`` script would fail if it was missing.
 
-* Greedy 'cd' completion has been disabled again (it was enabled in 0.8.4)
+* Greedy ``cd`` completion has been disabled again (it was enabled in 0.8.4) as
+  it caused problems on certain platforms.
           
 
 Backwards incompatible changes
@@ -184,9 +188,9 @@ Backwards incompatible changes
   reflect the new Foolscap network protocol and the FURL files.  Please see the
   help for these scripts for details.
 
-* The configuration files for the kernel have changed because of the Foolscap stuff.
-  If you were using custom config files before, you should delete them and regenerate
-  new ones.
+* The configuration files for the kernel have changed because of the Foolscap
+  stuff.  If you were using custom config files before, you should delete them
+  and regenerate new ones.
 
 Changes merged in from IPython1
 -------------------------------
@@ -194,8 +198,8 @@ Changes merged in from IPython1
 New features
 ............
 
-* Much improved ``setup.py`` and ``setupegg.py`` scripts.  Because Twisted
-  and zope.interface are now easy installable, we can declare them as dependencies
+* Much improved ``setup.py`` and ``setupegg.py`` scripts.  Because Twisted and
+  zope.interface are now easy installable, we can declare them as dependencies
   in our setupegg.py script.
 
 * IPython is now compatible with Twisted 2.5.0 and 8.x.
@@ -222,7 +226,8 @@ New features
   :func:`blockingCallFromThread` function that is in recent versions of Twisted.
 
 * Functions can now be pushed/pulled to/from engines using
-  :meth:`MultiEngineClient.push_function` and :meth:`MultiEngineClient.pull_function`.
+  :meth:`MultiEngineClient.push_function` and
+  :meth:`MultiEngineClient.pull_function`.
 
 * Gather/scatter are now implemented in the client to reduce the work load
   of the controller and improve performance.
@@ -234,9 +239,9 @@ New features
 
 * New developer oriented documentation: development guidelines and roadmap. 
 
-* Traditional ``ChangeLog`` has been changed to a more useful ``changes.txt`` file
-  that is organized by release and is meant to provide something more relevant
-  for users.
+* Traditional ``ChangeLog`` has been changed to a more useful ``changes.txt``
+  file that is organized by release and is meant to provide something more
+  relevant for users.
 
 Bug fixes
 .........
@@ -261,43 +266,41 @@ Backwards incompatible changes
   convention.  This will require users to change references to all names like
   ``queueStatus`` to ``queue_status``.
 
-* Previously, methods like :meth:`MultiEngineClient.push` and    	
-  :meth:`MultiEngineClient.push` used ``*args`` and ``**kwargs``.  This was 
+* Previously, methods like :meth:`MultiEngineClient.push` and
+  :meth:`MultiEngineClient.push` used ``*args`` and ``**kwargs``.  This was
   becoming a problem as we weren't able to introduce new keyword arguments into
-  the API.  Now these methods simple take a dict or sequence.  This has also allowed
-  us to get rid of the ``*All`` methods like :meth:`pushAll` and :meth:`pullAll`.
-  These things are now handled with the ``targets`` keyword argument that defaults
-  to ``'all'``.
+  the API.  Now these methods simple take a dict or sequence.  This has also
+  allowed us to get rid of the ``*All`` methods like :meth:`pushAll` and
+  :meth:`pullAll`.  These things are now handled with the ``targets`` keyword
+  argument that defaults to ``'all'``.
 
 * The :attr:`MultiEngineClient.magicTargets` has been renamed to
   :attr:`MultiEngineClient.targets`. 
 
-* All methods in the MultiEngine interface now accept the optional keyword argument
-  ``block``.
+* All methods in the MultiEngine interface now accept the optional keyword
+  argument ``block``.
 
 * Renamed :class:`RemoteController` to :class:`MultiEngineClient` and 
   :class:`TaskController` to :class:`TaskClient`.
 
 * Renamed the top-level module from :mod:`api` to :mod:`client`.
 
-* Most methods in the multiengine interface now raise a :exc:`CompositeError` exception
-  that wraps the user's exceptions, rather than just raising the raw user's exception.
+* Most methods in the multiengine interface now raise a :exc:`CompositeError`
+  exception that wraps the user's exceptions, rather than just raising the raw
+  user's exception.
 
 * Changed the ``setupNS`` and ``resultNames`` in the ``Task`` class to ``push`` 
   and ``pull``.
 
+  
 Release 0.8.4
 =============
 
-Someone needs to describe what went into 0.8.4.
+This was a quick release to fix an unfortunate bug that slipped into the 0.8.3
+release.  The ``--twisted`` option was disabled, as it turned out to be broken
+across several platforms.
 
-Release 0.8.2
-=============
 
-* %pushd/%popd behave differently; now "pushd /foo" pushes CURRENT directory 
-  and jumps to /foo. The current behaviour is closer to the documented 
-  behaviour, and should not trip anyone.
-  
 Release 0.8.3
 =============
   
@@ -305,9 +308,18 @@ Release 0.8.3
   it by passing -pydb command line argument to IPython. Note that setting
   it in config file won't work.
 
+  
+Release 0.8.2
+=============
+
+* %pushd/%popd behave differently; now "pushd /foo" pushes CURRENT directory 
+  and jumps to /foo. The current behaviour is closer to the documented 
+  behaviour, and should not trip anyone.
+
+  
 Older releases
 ==============
 
-Changes in earlier releases of IPython are described in the older file ``ChangeLog``.  
-Please refer to this document for details.
+Changes in earlier releases of IPython are described in the older file
+``ChangeLog``.  Please refer to this document for details.
 
