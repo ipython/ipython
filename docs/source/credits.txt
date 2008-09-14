@@ -6,7 +6,7 @@ Credits
 
 IPython is led by Fernando Pérez.
 
-As of early 2006, the following developers have joined the core team:
+As of this writing, the following developers have joined the core team:
 
 * [Robert Kern] <rkern-AT-enthought.com>: co-mentored the 2005
   Google Summer of Code project to develop python interactive
@@ -23,6 +23,20 @@ As of early 2006, the following developers have joined the core team:
 * [Ville Vainio] <vivainio-AT-gmail.com>: Ville has made many improvements
   to the core of IPython and was the maintainer of the main IPython
   trunk from version 0.7.1 to 0.8.4.
+
+* [Gael Varoquaux] <gael.varoquaux-AT-normalesup.org>: work on the merged
+  architecture for the interpreter as of version 0.9, implementing a new WX GUI
+  based on this system.
+
+* [Barry Wark] <barrywark-AT-gmail.com>: implementing a new Cocoa GUI, as well
+  as work on the new interpreter architecture and Twisted support.
+
+* [Laurent Dufrechou] <laurent.dufrechou-AT-gmail.com>: development of the WX
+  GUI support.
+
+* [Jörgen Stenarson] <jorgen.stenarson-AT-bostream.nu>: maintainer of the
+  PyReadline project, necessary for IPython under windows.
+
 
 The IPython project is also very grateful to:
 
@@ -51,9 +65,9 @@ an O'Reilly Python editor. His Oct/11/2001 article about IPP and
 LazyPython, was what got this project started. You can read it at:
 http://www.onlamp.com/pub/a/python/2001/10/11/pythonnews.html.
 
-And last but not least, all the kind IPython users who have emailed new
-code, bug reports, fixes, comments and ideas. A brief list follows,
-please let me know if I have ommitted your name by accident:
+And last but not least, all the kind IPython users who have emailed new code,
+bug reports, fixes, comments and ideas. A brief list follows, please let us
+know if we have ommitted your name by accident:
 
 * Dan Milstein <danmil-AT-comcast.net>.  A bold refactoring of the 
   core prefilter stuff in the IPython interpreter.
@@ -186,3 +200,8 @@ please let me know if I have ommitted your name by accident:
   paging system.
 
 * [Will Maier] <willmaier-AT-ml1.net> Official OpenBSD port.
+
+* [Ondrej Certik] <ondrej@certik.cz>: set up the IPython docs to use the new
+  Sphinx system used by Python, Matplotlib and many more projects.
+
+* [Stefan van der Walt] <stefan@sun.ac.za>: support for the new config system.
