@@ -21,10 +21,6 @@ from os.path import join as pjoin
 from IPython.genutils import get_home_dir, get_ipython_dir
 from IPython.external.configobj import ConfigObj
 
-# Traitlets config imports
-# from IPython.config import traitlets
-# from IPython.config.config import *
-# from traitlets import *
 
 class ConfigObjManager(object):
     
