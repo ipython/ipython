@@ -32,16 +32,21 @@ IPython is implemented using a distributed set of processes that communicate usi
 
 We need to build a system that makes it trivial for users to start and manage IPython processes.  This system should have the following properties:
 
-	* It should possible to do everything through an extremely simple API that users
-	  can call from their own Python script.  No shell commands should be needed.
-	* This simple API should be configured using standard .ini files.
-	* The system should make it possible to start processes using a number of different
-	  approaches:  SSH, PBS/Torque, Xgrid, Windows Server, mpirun, etc.
-	* The controller and engine processes should each have a daemon for monitoring, 
-	  signaling and clean up.
-	* The system should be secure.
-	* The system should work under all the major operating systems, including
-	  Windows.
+* It should possible to do everything through an extremely simple API that users
+  can call from their own Python script.  No shell commands should be needed.
+  
+* This simple API should be configured using standard .ini files.
+
+* The system should make it possible to start processes using a number of different
+  approaches:  SSH, PBS/Torque, Xgrid, Windows Server, mpirun, etc.
+  
+* The controller and engine processes should each have a daemon for monitoring, 
+  signaling and clean up.
+  
+* The system should be secure.
+
+* The system should work under all the major operating systems, including
+  Windows.
 
 Initial work has begun on the daemon infrastructure, and some of the needed logic is contained in the ipcluster script.
 
@@ -57,18 +62,24 @@ Security
 
 Currently, IPython has no built in security or security model.  Because we would like IPython to be usable on public computer systems and over wide area networks, we need to come up with a robust solution for security.  Here are some of the specific things that need to be included:
 
-	* User authentication between all processes (engines, controller and clients).
-	* Optional TSL/SSL based encryption of all communication channels.
-	* A good way of picking network ports so multiple users on the same system can
-	  run their own controller and engines without interfering with those of others.
-	* A clear model for security that enables users to evaluate the security risks
-	  associated with using IPython in various manners.
+* User authentication between all processes (engines, controller and clients).
+
+* Optional TSL/SSL based encryption of all communication channels.
+
+* A good way of picking network ports so multiple users on the same system can
+  run their own controller and engines without interfering with those of others.
+  
+* A clear model for security that enables users to evaluate the security risks
+  associated with using IPython in various manners.
 
 For the implementation of this, we plan on using Twisted's support for SSL and authentication.  One things that we really should look at is the `Foolscap`_ network protocol, which provides many of these things out of the box.
 
 .. _Foolscap: http://foolscap.lothar.com/trac
 
 The security work needs to be done in conjunction with other network protocol stuff.
+
+As of the 0.9 release of IPython, we are using Foolscap and we have implemented
+a full security model.
 
 Latent performance issues
 -------------------------
@@ -82,7 +93,7 @@ Currently, we have a number of performance issues that are waiting to bite users
 	* Currently, the client to controller connections are done through XML-RPC using 
 	  HTTP 1.0.  This is very inefficient as XML-RPC is a very verbose protocol and 
 	  each request must be handled with a new connection.  We need to move these network
-	  connections over to PB or Foolscap.
+	  connections over to PB or Foolscap.  Done!
 	* We currently don't have a good way of handling large objects in the controller.
 	  The biggest problem is that because we don't have any way of streaming objects,
 	  we get lots of temporary copies in the low-level buffers.  We need to implement

@@ -11,28 +11,27 @@ in a directory named by default $HOME/.ipython. You can change this by
 defining the environment variable IPYTHONDIR, or at runtime with the
 command line option -ipythondir.
 
-If all goes well, the first time you run IPython it should
-automatically create a user copy of the config directory for you,
-based on its builtin defaults. You can look at the files it creates to
-learn more about configuring the system. The main file you will modify
-to configure IPython's behavior is called ipythonrc (with a .ini
-extension under Windows), included for reference in `ipythonrc`_
-section. This file is very commented and has many variables you can
-change to suit your taste, you can find more details in
-Sec. customization_. Here we discuss the basic things you will want to
-make sure things are working properly from the beginning.
+If all goes well, the first time you run IPython it should automatically create
+a user copy of the config directory for you, based on its builtin defaults. You
+can look at the files it creates to learn more about configuring the
+system. The main file you will modify to configure IPython's behavior is called
+ipythonrc (with a .ini extension under Windows), included for reference
+:ref:`here <ipythonrc>`. This file is very commented and has many variables you
+can change to suit your taste, you can find more details :ref:`here
+<customization>`. Here we discuss the basic things you will want to make sure
+things are working properly from the beginning.
 
 
-.. _Accessing help:
+.. _accessing_help:
 
 Access to the Python help system
 ================================
 
-This is true for Python in general (not just for IPython): you should
-have an environment variable called PYTHONDOCS pointing to the directory
-where your HTML Python documentation lives. In my system it's
-/usr/share/doc/python-docs-2.3.4/html, check your local details or ask
-your systems administrator.
+This is true for Python in general (not just for IPython): you should have an
+environment variable called PYTHONDOCS pointing to the directory where your
+HTML Python documentation lives. In my system it's
+:file:`/usr/share/doc/python-doc/html`, check your local details or ask your
+systems administrator.
 
 This is the directory which holds the HTML version of the Python
 manuals. Unfortunately it seems that different Linux distributions
@@ -40,8 +39,9 @@ package these files differently, so you may have to look around a bit.
 Below I show the contents of this directory on my system for reference::
 
     [html]> ls
-    about.dat acks.html dist/ ext/ index.html lib/ modindex.html
-    stdabout.dat tut/ about.html api/ doc/ icons/ inst/ mac/ ref/ style.css
+    about.html  dist/  icons/      lib/           python2.5.devhelp.gz  whatsnew/
+    acks.html   doc/   index.html  mac/           ref/
+    api/        ext/   inst/       modindex.html  tut/
 
 You should really make sure this variable is correctly set so that
 Python's pydoc-based help system works. It is a powerful and convenient
@@ -108,6 +108,8 @@ The following terminals seem to handle the color sequences fine:
       support under cygwin, please post to the IPython mailing list so
       this issue can be resolved for all users.
 
+.. _pyreadline: https://code.launchpad.net/pyreadline
+      
 These have shown problems:
 
     * Windows command prompt in WinXP/2k logged into a Linux machine via
@@ -157,13 +159,12 @@ $HOME/.ipython/ipythonrc and set the colors option to the desired value.
 Object details (types, docstrings, source code, etc.)
 =====================================================
 
-IPython has a set of special functions for studying the objects you
-are working with, discussed in detail in Sec. `dynamic object
-information`_. But this system relies on passing information which is
-longer than your screen through a data pager, such as the common Unix
-less and more programs. In order to be able to see this information in
-color, your pager needs to be properly configured. I strongly
-recommend using less instead of more, as it seems that more simply can
+IPython has a set of special functions for studying the objects you are working
+with, discussed in detail :ref:`here <dynamic_object_info>`. But this system
+relies on passing information which is longer than your screen through a data
+pager, such as the common Unix less and more programs. In order to be able to
+see this information in color, your pager needs to be properly configured. I
+strongly recommend using less instead of more, as it seems that more simply can
 not understand colored text correctly.
 
 In order to configure less as your default pager, do the following:

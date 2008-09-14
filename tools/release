@@ -10,16 +10,14 @@ echo
 echo "Releasing IPython version $version"
 echo "=================================="
 
-echo "Marking ChangeLog with release information and making NEWS file..."
-
-# Clean up build/dist directories
-rm -rf $ipdir/build/*
-rm -rf $ipdir/dist/*
-
 # Perform local backup
 cd $ipdir/tools
 ./make_tarball.py
 mv ipython-*.tgz $ipbackupdir
+
+# Clean up build/dist directories
+rm -rf $ipdir/build/*
+rm -rf $ipdir/dist/*
 
 # Build source and binary distros
 cd $ipdir
@@ -28,8 +26,8 @@ cd $ipdir
 # Build version-specific RPMs, where we must use the --python option to ensure
 # that the resulting RPM is really built with the requested python version (so
 # things go to lib/python2.X/...)
-python2.4 ./setup.py bdist_rpm --binary-only --release=py24 --python=/usr/bin/python2.4
-python2.5 ./setup.py bdist_rpm --binary-only --release=py25 --python=/usr/bin/python2.5
+#python2.4 ./setup.py bdist_rpm --binary-only --release=py24 --python=/usr/bin/python2.4
+#python2.5 ./setup.py bdist_rpm --binary-only --release=py25 --python=/usr/bin/python2.5
 
 # Build eggs
 python2.4 ./setup_bdist_egg.py

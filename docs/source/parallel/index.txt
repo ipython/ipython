@@ -1,11 +1,8 @@
 .. _parallel_index:
 
 ====================================
-Using IPython for Parallel computing
+Using IPython for parallel computing
 ====================================
-
-User Documentation
-==================
 
 .. toctree::
    :maxdepth: 2

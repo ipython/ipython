@@ -18,6 +18,8 @@ time. A hybrid approach of specifying a few options in ipythonrc and
 doing the more advanced configuration in ipy_user_conf.py is also
 possible.
 
+.. _ipythonrc:
+
 The ipythonrc approach
 ======================
 
@@ -36,11 +38,11 @@ fairly primitive). Note that these are not python files, and this is
 deliberate, because it allows us to do some things which would be quite
 tricky to implement if they were normal python files.
 
-First, an rcfile can contain permanent default values for almost all
-command line options (except things like -help or -Version). Sec
-`command line options`_ contains a description of all command-line
-options. However, values you explicitly specify at the command line
-override the values defined in the rcfile.
+First, an rcfile can contain permanent default values for almost all command
+line options (except things like -help or -Version). :ref:`This section
+<command_line_options>` contains a description of all command-line
+options. However, values you explicitly specify at the command line override
+the values defined in the rcfile.
 
 Besides command line option values, the rcfile can specify values for
 certain extra special options which are not available at the command
@@ -266,13 +268,13 @@ which look like this::
 IPython profiles
 ================
 
-As we already mentioned, IPython supports the -profile command-line
-option (see sec. `command line options`_). A profile is nothing more
-than a particular configuration file like your basic ipythonrc one,
-but with particular customizations for a specific purpose. When you
-start IPython with 'ipython -profile <name>', it assumes that in your
-IPYTHONDIR there is a file called ipythonrc-<name> or
-ipy_profile_<name>.py, and loads it instead of the normal ipythonrc.
+As we already mentioned, IPython supports the -profile command-line option (see
+:ref:`here <command_line_options>`).  A profile is nothing more than a
+particular configuration file like your basic ipythonrc one, but with
+particular customizations for a specific purpose. When you start IPython with
+'ipython -profile <name>', it assumes that in your IPYTHONDIR there is a file
+called ipythonrc-<name> or ipy_profile_<name>.py, and loads it instead of the
+normal ipythonrc.
 
 This system allows you to maintain multiple configurations which load
 modules, set options, define functions, etc. suitable for different
