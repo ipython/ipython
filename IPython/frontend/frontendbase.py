@@ -21,8 +21,77 @@ __docformat__ = "restructuredtext en"
 # Imports
 #-------------------------------------------------------------------------------
 import string
-import uuid
-import _ast
+
+try:
+    import _ast
+except ImportError:
+    # Python 2.4 hackish workaround.
+    class bunch: pass
+    _ast = bunch()
+    _ast.PyCF_ONLY_AST = 1024
+    
+
+
+try:
+    import uuid
+except ImportError:
+    # Python 2.4 hackish workaround.
+    class UUID:
+        def __init__(self,bytes):
+            version = 4
+            int = long(('%02x'*16) % tuple(map(ord, bytes)), 16)
+            # Set the variant to RFC 4122.
+            int &= ~(0xc000 << 48L)
+            int |= 0x8000 << 48L
+            # Set the version number.
+            int &= ~(0xf000 << 64L)
+            int |= version << 76L
+            self.__dict__['int'] = int
+
+        def __cmp__(self, other):
+            if isinstance(other, UUID):
+                return cmp(self.int, other.int)
+            return NotImplemented
+
+        def __hash__(self):
+            return hash(self.int)
+
+        def __int__(self):
+            return self.int
+
+        def __repr__(self):
+            return 'UUID(%r)' % str(self)
+
+        def __setattr__(self, name, value):
+            raise TypeError('UUID objects are immutable')
+
+        def __str__(self):
+            hex = '%032x' % self.int
+            return '%s-%s-%s-%s-%s' % (
+                hex[:8], hex[8:12], hex[12:16], hex[16:20], hex[20:])
+
+        def get_bytes(self):
+            bytes = ''
+            for shift in range(0, 128, 8):
+                bytes = chr((self.int >> shift) & 0xff) + bytes
+            return bytes
+
+        bytes = property(get_bytes)
+ 
+    
+    def _u4():
+        "Fake random uuid"
+        
+        import random
+        bytes = [chr(random.randrange(256)) for i in range(16)]
+        return UUID(bytes)
+
+    class bunch: pass
+    uuid = bunch()
+    uuid.uuid4 = _u4
+    del _u4
+
+
 
 from IPython.frontend.zopeinterface import (
     Interface, 

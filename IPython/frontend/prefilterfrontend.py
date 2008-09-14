@@ -196,16 +196,32 @@ This is the wx frontend, by Gael Varoquaux. This is EXPERIMENTAL code."""
         # capture it.
         self.capture_output()
         self.last_result = dict(number=self.prompt_number)
+        
+        ## try:
+        ##     for line in input_string.split('\n'):
+        ##         filtered_lines.append(
+        ##                 self.ipython0.prefilter(line, False).rstrip())
+        ## except:
+        ##     # XXX: probably not the right thing to do.
+        ##     self.ipython0.showsyntaxerror()
+        ##     self.after_execute()
+        ## finally:
+        ##     self.release_output()
+
+
         try:
-            for line in input_string.split('\n'):
-                filtered_lines.append(
-                        self.ipython0.prefilter(line, False).rstrip())
-        except:
-            # XXX: probably not the right thing to do.
-            self.ipython0.showsyntaxerror()
-            self.after_execute()
+            try:
+                for line in input_string.split('\n'):
+                    filtered_lines.append(
+                            self.ipython0.prefilter(line, False).rstrip())
+            except:
+                # XXX: probably not the right thing to do.
+                self.ipython0.showsyntaxerror()
+                self.after_execute()
         finally:
             self.release_output()
+
+
 
         # Clean up the trailing whitespace, to avoid indentation errors
         filtered_string = '\n'.join(filtered_lines)
