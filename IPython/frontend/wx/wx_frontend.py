@@ -25,7 +25,6 @@ __docformat__ = "restructuredtext en"
 # Major library imports
 import re
 import __builtin__
-from time import sleep
 import sys
 from threading import Lock
 import string
@@ -274,6 +273,38 @@ class WxController(ConsoleWidget, PrefilterFrontEnd):
         if not self._buffer_flush_timer.IsRunning():
             wx.CallAfter(self._buffer_flush_timer.Start, 
                                         milliseconds=100, oneShot=True)
+
+
+    def execute_command(self, command, hidden=False):
+        """ Execute a command, not only in the model, but also in the
+            view.
+        """
+        if hidden:
+            return self.shell.execute(command)
+        else:
+            # XXX: we are not storing the input buffer previous to the
+            # execution, as this forces us to run the execution
+            # input_buffer a yield, which is not good.
+            ##current_buffer = self.shell.control.input_buffer
+            command = command.rstrip()
+            if len(command.split('\n')) > 1:
+                # The input command is several lines long, we need to
+                # force the execution to happen
+                command += '\n'
+            cleaned_command = self.prefilter_input(command)
+            self.input_buffer = command
+            # Do not use wx.Yield() (aka GUI.process_events()) to avoid
+            # recursive yields.
+            self.ProcessEvent(wx.PaintEvent())
+            self.write('\n')
+            if not self.is_complete(cleaned_command + '\n'):
+                self._colorize_input_buffer()
+                self.render_error('Incomplete or invalid input')
+                self.new_prompt(self.input_prompt_template.substitute(
+                                number=(self.last_result['number'] + 1)))
+                return False
+            self._on_enter()
+            return True
 
 
     #--------------------------------------------------------------------------

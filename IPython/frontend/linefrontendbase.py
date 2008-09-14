@@ -18,10 +18,8 @@ __docformat__ = "restructuredtext en"
 #-------------------------------------------------------------------------------
 import re
 
-import IPython
 import sys
 import codeop
-import traceback
 
 from frontendbase import FrontEndBase
 from IPython.kernel.core.interpreter import Interpreter
@@ -296,6 +294,12 @@ class LineFrontEndBase(FrontEndBase):
         self.input_buffer = ''
         self.write(prompt)
 
+
+    def execute_command(self, command, hidden=False):
+        """ Execute a command, not only in the model, but also in the
+            view, if any.
+        """
+        return self.shell.execute(command)
 
     #--------------------------------------------------------------------------
     # Private API
