@@ -201,7 +201,7 @@ know if we have ommitted your name by accident:
 
 * [Will Maier] <willmaier-AT-ml1.net> Official OpenBSD port.
 
-* [Ondrej Certik] <ondrej@certik.cz>: set up the IPython docs to use the new
+* [Ondrej Certik] <ondrej-AT-certik.cz>: set up the IPython docs to use the new
   Sphinx system used by Python, Matplotlib and many more projects.
 
-* [Stefan van der Walt] <stefan@sun.ac.za>: support for the new config system.
+* [Stefan van der Walt] <stefan-AT-sun.ac.za>: support for the new config system.
