@@ -1,10 +1,8 @@
 .. _development:
 
-==================================
+==============================
 IPython development guidelines
-==================================
-
-.. contents::
+==============================
 
 
 Overview
@@ -380,6 +378,7 @@ are interested in working on this part of IPython. The current prototype of
 .. _ConfigObj: http://www.voidspace.org.uk/python/configobj.html
 .. _Traits: http://code.enthought.com/traits/
 
+
 Installation and testing scenarios
 ==================================
 
@@ -424,3 +423,24 @@ Tests to run for these scenarios
         installed.
     5.  Beat on the IPython terminal a bunch.
     6.  Make sure that furl files are being put in proper locations.
+
+
+Release checklist
+=================
+
+Most of the release process is automated by the :file:`release` script in the
+:file:`tools` directory.  This is just a handy reminder for the release manager.
+
+#. Run the release script, which makes the tar.gz, eggs and Win32 .exe
+   installer.  It posts them to the site and registers the release with PyPI.
+
+#. Updating the website with announcements and links to the updated changes.txt
+   in html form.  Remember to put a short note both on the news page of the site
+   and on launcphad.
+
+#. Drafting a short release announcement with i) highlights and ii) a link to
+   the html changes.txt.
+
+#. Make sure that the released version of the docs is live on the site.
+
+#. Celebrate!
