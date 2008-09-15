@@ -64,7 +64,10 @@ def make_tub(ip, port, secure, cert_file):
         if have_crypto:
             tub = Tub(certFile=cert_file)
         else:
-            raise SecurityError("OpenSSL is not available, so we can't run in secure mode, aborting")
+            raise SecurityError("""
+OpenSSL/pyOpenSSL is not available, so we can't run in secure mode.
+Try running without security using 'ipcontroller -xy'.
+""")
     else:
         tub = UnauthenticatedTub()
     
