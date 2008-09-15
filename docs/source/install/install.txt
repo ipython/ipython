@@ -16,6 +16,19 @@ Some of the installation approaches use the :mod:`setuptools` package and its :c
 
 More general information about installing Python packages can be found in Python's documentation at http://www.python.org/doc/.
 
+Quickstart
+==========
+
+If you have :mod:`setuptools` installed and you are on OS X or Linux (not Windows), the following will download and install IPython *and* the main optional dependencies::
+
+    $ easy_install ipython[kernel,security,test]
+
+This will get Twisted, zope.interface and Foolscap, which are needed for IPython's parallel computing features as well as the nose package, which will enable you to run IPython's test suite.  To run IPython's test suite, use the :command:`iptest` command::
+
+    $ iptest
+
+Read on for more specific details and instructions for Windows.
+
 Installing IPython itself
 =========================
 
@@ -26,7 +39,7 @@ Installation using easy_install
 
 If you have :mod:`setuptools` installed, the easiest way of getting IPython is to simple use :command:`easy_install`::
 
-	$ easy_install IPython
+	$ easy_install ipython
 
 That's it.
 
@@ -117,7 +130,7 @@ To run the IPython test suite you will need the :mod:`nose` package.  Nose provi
 
 Another way of getting this is to do::
 
-    $ easy_install IPython[test]
+    $ easy_install ipython[test]
 
 For more installation options, see the `nose website <http://somethingaboutorange.com/mrl/projects/nose/>`_.  Once you have nose installed, you can run IPython's test suite using the iptest command::
 
@@ -145,8 +158,8 @@ The IPython kernel provides a nice architecture for parallel computing.  The mai
 
 On a Unix style platform (including OS X), if you want to use :mod:`setuptools`, you can just do::
 
-    $ easy_install IPython[kernel]    # the first three
-    $ easy_install IPython[security]  # pyOpenSSL
+    $ easy_install ipython[kernel]    # the first three
+    $ easy_install ipython[security]  # pyOpenSSL
 
 zope.interface and Twisted
 --------------------------
