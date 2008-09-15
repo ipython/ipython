@@ -8,8 +8,6 @@ which can also be useful as templates for writing new, application-specific
 managers.
 """
 
-from __future__ import with_statement
-
 __docformat__ = "restructuredtext en"
 
 #-------------------------------------------------------------------------------
