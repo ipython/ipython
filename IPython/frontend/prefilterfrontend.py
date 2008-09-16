@@ -45,6 +45,8 @@ def mk_system_call(system_call_function, command):
     """
     def my_system_call(args):
         system_call_function("%s %s" % (command, args))
+
+    my_system_call.__doc__ = "Calls %s" % command
     return my_system_call
 
 #-------------------------------------------------------------------------------
