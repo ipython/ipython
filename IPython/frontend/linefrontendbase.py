@@ -18,10 +18,8 @@ __docformat__ = "restructuredtext en"
 #-------------------------------------------------------------------------------
 import re
 
-import IPython
 import sys
 import codeop
-import traceback
 
 from frontendbase import FrontEndBase
 from IPython.kernel.core.interpreter import Interpreter
@@ -182,15 +180,28 @@ class LineFrontEndBase(FrontEndBase):
             raw_string = python_string
         # Create a false result, in case there is an exception
         self.last_result = dict(number=self.prompt_number)
+
+        ## try:
+        ##     self.history.input_cache[-1] = raw_string.rstrip()
+        ##     result = self.shell.execute(python_string)
+        ##     self.last_result = result
+        ##     self.render_result(result)
+        ## except:
+        ##     self.show_traceback()
+        ## finally:
+        ##     self.after_execute()
+
         try:
-            self.history.input_cache[-1] = raw_string.rstrip()
-            result = self.shell.execute(python_string)
-            self.last_result = result
-            self.render_result(result)
-        except:
-            self.show_traceback()
+            try:
+                self.history.input_cache[-1] = raw_string.rstrip()
+                result = self.shell.execute(python_string)
+                self.last_result = result
+                self.render_result(result)
+            except:
+                self.show_traceback()
         finally:
             self.after_execute()
+
 
     #--------------------------------------------------------------------------
     # LineFrontEndBase interface
@@ -283,6 +294,12 @@ class LineFrontEndBase(FrontEndBase):
         self.input_buffer = ''
         self.write(prompt)
 
+
+    def execute_command(self, command, hidden=False):
+        """ Execute a command, not only in the model, but also in the
+            view, if any.
+        """
+        return self.shell.execute(command)
 
     #--------------------------------------------------------------------------
     # Private API

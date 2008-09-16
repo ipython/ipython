@@ -1,57 +1,68 @@
 .. _ip1par:
 
-======================================
-Using IPython for parallel computing
-======================================
+============================
+Overview and getting started
+============================
 
 .. contents::
 
 Introduction
 ============
 
-This file gives an overview of IPython. IPython has a sophisticated and
+This file gives an overview of IPython's sophisticated and
 powerful architecture for parallel and distributed computing. This
 architecture abstracts out parallelism in a very general way, which
 enables IPython to support many different styles of parallelism
 including:
 
-	* Single program, multiple data (SPMD) parallelism.
-	* Multiple program, multiple data (MPMD) parallelism.
-	* Message passing using ``MPI``.
-	* Task farming.
-	* Data parallel.
-	* Combinations of these approaches.
-	* Custom user defined approaches.
+* Single program, multiple data (SPMD) parallelism.
+* Multiple program, multiple data (MPMD) parallelism.
+* Message passing using ``MPI``.
+* Task farming.
+* Data parallel.
+* Combinations of these approaches.
+* Custom user defined approaches.
 
 Most importantly, IPython enables all types of parallel applications to
 be developed, executed, debugged and monitored *interactively*. Hence,
 the ``I`` in IPython.  The following are some example usage cases for IPython:
 
-	* Quickly parallelize algorithms that are embarrassingly parallel
-	  using a number of simple approaches.  Many simple things can be
-	  parallelized interactively in one or two lines of code.
-	* Steer traditional MPI applications on a supercomputer from an
-	  IPython session on your laptop.
-	* Analyze and visualize large datasets (that could be remote and/or
-	  distributed) interactively using IPython and tools like
-	  matplotlib/TVTK.
-	* Develop, test and debug new parallel algorithms 
-	  (that may use MPI) interactively.
-	* Tie together multiple MPI jobs running on different systems into
-	  one giant distributed and parallel system.
-	* Start a parallel job on your cluster and then have a remote 	
-	  collaborator connect to it and pull back data into their 
-	  local IPython session for plotting and analysis.
-	* Run a set of tasks on a set of CPUs using dynamic load balancing.
+* Quickly parallelize algorithms that are embarrassingly parallel
+  using a number of simple approaches.  Many simple things can be
+  parallelized interactively in one or two lines of code.
+
+* Steer traditional MPI applications on a supercomputer from an
+  IPython session on your laptop.
+
+* Analyze and visualize large datasets (that could be remote and/or
+  distributed) interactively using IPython and tools like
+  matplotlib/TVTK.
+
+* Develop, test and debug new parallel algorithms 
+  (that may use MPI) interactively.
+
+* Tie together multiple MPI jobs running on different systems into
+  one giant distributed and parallel system.
+
+* Start a parallel job on your cluster and then have a remote 	
+  collaborator connect to it and pull back data into their 
+  local IPython session for plotting and analysis.
+
+* Run a set of tasks on a set of CPUs using dynamic load balancing.
 
 Architecture overview
 =====================
 
 The IPython architecture consists of three components:
 
-	* The IPython engine.
-	* The IPython controller.
-	* Various controller Clients.
+* The IPython engine.
+* The IPython controller.
+* Various controller clients.
+
+These components live in the :mod:`IPython.kernel` package and are
+installed with IPython.  They do, however, have additional dependencies
+that must be installed.  For more information, see our
+:ref:`installation documentation <install_index>`.
 
 IPython engine
 ---------------
@@ -75,16 +86,21 @@ IPython engines can connect. For each connected engine, the controller
 manages a queue. All actions that can be performed on the engine go
 through this queue. While the engines themselves block when user code is
 run, the controller hides that from the user to provide a fully
-asynchronous interface to a set of engines. Because the controller
-listens on a network port for engines to connect to it, it must be
-started before any engines are started.  
+asynchronous interface to a set of engines. 
+
+.. note::
+
+    Because the controller listens on a network port for engines to 
+    connect to it, it must be started *before* any engines are started.  
 
 The controller also provides a single point of contact for users who wish
 to utilize the engines connected to the controller. There are different
 ways of working with a controller. In IPython these ways correspond to different interfaces that the controller is adapted to.  Currently we have two default interfaces to the controller: 
 
-	* The MultiEngine interface.
-	* The Task interface.
+* The MultiEngine interface, which provides the simplest possible way of working
+  with engines interactively.
+* The Task interface, which provides presents the engines as a load balanced
+  task farming system.
 
 Advanced users can easily add new custom interfaces to enable other
 styles of parallelism. 
@@ -100,18 +116,37 @@ Controller clients
 
 For each controller interface, there is a corresponding client. These
 clients allow users to interact with a set of engines through the
-interface.
+interface.  Here are the two default clients:
+
+* The :class:`MultiEngineClient` class.
+* The :class:`TaskClient` class.
 
 Security
 --------
 
-By default (as long as `pyOpenSSL` is installed) all network connections between the controller and engines and the controller and clients are secure.  What does this mean?  First of all, all of the connections will be encrypted using SSL.  Second, the connections are authenticated.  We handle authentication in a `capabilities`__ based security model.  In this model,  a "capability (known in some systems as a key) is a communicable, unforgeable token of authority".  Put simply, a capability is like a key to your house.  If you have the key to your house, you can get in, if not you can't.  
+By default (as long as `pyOpenSSL` is installed) all network connections between the controller and engines and the controller and clients are secure.  What does this mean?  First of all, all of the connections will be encrypted using SSL.  Second, the connections are authenticated.  We handle authentication in a `capabilities`__ based security model.  In this model,  a "capability (known in some systems as a key) is a communicable, unforgeable token of authority".  Put simply, a capability is like a key to your house.  If you have the key to your house, you can get in.  If not, you can't.  
 
 .. __: http://en.wikipedia.org/wiki/Capability-based_security
 
-In our architecture, the controller is the only process that listens on network ports, and is thus responsible to creating these keys.  In IPython, these keys are known as Foolscap URLs, or FURLs, because of the underlying network protocol we are using.  As a user, you don't need to know anything about the details of these FURLs, other than that when the controller starts, it saves a set of FURLs to files named something.furl.  The default location of these files is your ~./ipython directory.
+In our architecture, the controller is the only process that listens on network ports, and is thus responsible to creating these keys.  In IPython, these keys are known as Foolscap URLs, or FURLs, because of the underlying network protocol we are using.  As a user, you don't need to know anything about the details of these FURLs, other than that when the controller starts, it saves a set of FURLs to files named :file:`something.furl`.  The default location of these files is the :file:`~./ipython/security` directory.
 
-To connect and authenticate to the controller an engine or client simply needs to present an appropriate furl (that was originally created by the controller) to the controller.  Thus, the .furl files need to be copied to a location where the clients and engines can find them.  Typically, this is the ~./ipython directory on the host where the client/engine is running (which could be a different host than the controller).  Once the .furl files are copied over, everything should work fine.
+To connect and authenticate to the controller an engine or client simply needs to present an appropriate furl (that was originally created by the controller) to the controller.  Thus, the .furl files need to be copied to a location where the clients and engines can find them.  Typically, this is the :file:`~./ipython/security` directory on the host where the client/engine is running (which could be a different host than the controller).  Once the .furl files are copied over, everything should work fine.
+
+Currently, there are three .furl files that the controller creates:
+
+ipcontroller-engine.furl
+    This ``.furl`` file is the key that gives an engine the ability to connect
+    to a controller.
+
+ipcontroller-tc.furl
+    This ``.furl`` file is the key that a :class:`TaskClient` must use to
+    connect to the task interface of a controller.
+    
+ipcontroller-mec.furl
+    This ``.furl`` file is the key that a :class:`MultiEngineClient` must use to
+    connect to the multiengine interface of a controller.
+
+More details of how these ``.furl`` files are used are given below.
 
 Getting Started
 ===============
@@ -127,28 +162,40 @@ Starting the controller and engine on your local machine
 
 This is the simplest configuration that can be used and is useful for
 testing the system and on machines that have multiple cores and/or
-multple CPUs. The easiest way of doing this is using the ``ipcluster``
+multple CPUs. The easiest way of getting started is to use the :command:`ipcluster`
 command::
 
 	$ ipcluster -n 4
-	
+
 This will start an IPython controller and then 4 engines that connect to
 the controller. Lastly, the script will print out the Python commands
 that you can use to connect to the controller. It is that easy.
 
-Underneath the hood, the ``ipcluster`` script uses two other top-level
+.. warning::
+
+    The :command:`ipcluster` does not currently work on Windows.  We are
+    working on it though.
+
+Underneath the hood, the controller creates ``.furl`` files in the
+:file:`~./ipython/security` directory.  Because the engines are on the
+same host, they automatically find the needed :file:`ipcontroller-engine.furl`
+there and use it to connect to the controller.
+
+The :command:`ipcluster` script uses two other top-level
 scripts that you can also use yourself. These scripts are
-``ipcontroller``, which starts the controller and ``ipengine`` which
+:command:`ipcontroller`, which starts the controller and :command:`ipengine` which
 starts one engine. To use these scripts to start things on your local
 machine, do the following.
 
 First start the controller::
 
-	$ ipcontroller &
+	$ ipcontroller
 	
 Next, start however many instances of the engine you want using (repeatedly) the command::
 
-	$ ipengine &
+	$ ipengine
+
+The engines should start and automatically connect to the controller using the ``.furl`` files in :file:`~./ipython/security`. You are now ready to use the controller and engines from IPython.
 
 .. warning:: 
 	
@@ -156,47 +203,71 @@ Next, start however many instances of the engine you want using (repeatedly) the
  	start the controller before the engines, since the engines connect 
 	to the controller as they get started.
 
-On some platforms you may need to give these commands in the form
-``(ipcontroller &)`` and ``(ipengine &)`` for them to work properly. The
-engines should start and automatically connect to the controller on the
-default ports, which are chosen for this type of setup. You are now ready
-to use the controller and engines from IPython.
+.. note::
 
-Starting the controller and engines on different machines
----------------------------------------------------------
+    On some platforms (OS X), to put the controller and engine into the background
+    you may need to give these commands in the form ``(ipcontroller &)`` 
+    and ``(ipengine &)`` (with the parentheses) for them to work properly. 
 
-This section needs to be updated to reflect the new Foolscap capabilities based
-model.
 
-Using ``ipcluster`` with ``ssh``
---------------------------------
+Starting the controller and engines on different hosts
+------------------------------------------------------
 
-The ``ipcluster`` command can also start a controller and engines using
-``ssh``.  We need more documentation on this, but for now here is any
-example startup script::
+When the controller and engines are running on different hosts, things are
+slightly more complicated, but the underlying ideas are the same:
 
-	controller = dict(host='myhost',
-	                  engine_port=None, # default is 10105
-	                  control_port=None,
-	                  )
+1. Start the controller on a host using :command:`ipcontroler`.
+2. Copy :file:`ipcontroller-engine.furl` from :file:`~./ipython/security` on the controller's host to the host where the engines will run.
+3. Use :command:`ipengine` on the engine's hosts to start the engines.
 
-	# keys are hostnames, values are the number of engine on that host
-	engines = dict(node1=2,
-	               node2=2,
-	               node3=2,
-	               node3=2,
-	               )
+The only thing you have to be careful of is to tell :command:`ipengine` where the :file:`ipcontroller-engine.furl` file is located.  There are two ways you can do this:
+
+* Put :file:`ipcontroller-engine.furl` in the :file:`~./ipython/security` directory
+  on the engine's host, where it will be found automatically.
+* Call :command:`ipengine` with the ``--furl-file=full_path_to_the_file`` flag.
+
+The ``--furl-file`` flag works like this::
+
+    $ ipengine --furl-file=/path/to/my/ipcontroller-engine.furl
+
+.. note::
+    
+    If the controller's and engine's hosts all have a shared file system  
+    (:file:`~./ipython/security` is the same on all of them), then things
+    will just work!
+
+Make .furl files persistent
+---------------------------
+
+At fist glance it may seem that that managing the ``.furl`` files is a bit annoying.  Going back to the house and key analogy, copying the ``.furl`` around each time you start the controller is like having to make a new key everytime you want to unlock the door and enter your house.  As with your house, you want to be able to create the key (or ``.furl`` file) once, and then simply use it at any point in the future.
+
+This is possible.  The only thing you have to do is decide what ports the controller will listen on for the engines and clients.  This is done as follows::
+
+    $ ipcontroller --client-port=10101 --engine-port=10102
+
+Then, just copy the furl files over the first time and you are set.  You can start and stop the controller and engines any many times as you want in the future, just make sure to tell the controller to use the *same* ports.
+
+.. note::
+
+    You may ask the question: what ports does the controller listen on if you
+    don't tell is to use specific ones?  The default is to use high random port
+    numbers.  We do this for two reasons: i) to increase security through obcurity
+    and ii) to multiple controllers on a given host to start and automatically
+    use different ports.
 
 Starting engines using ``mpirun``
 ---------------------------------
 
 The IPython engines can be started using ``mpirun``/``mpiexec``, even if
-the engines don't call MPI_Init() or use the MPI API in any way. This is
+the engines don't call ``MPI_Init()`` or use the MPI API in any way. This is
 supported on modern MPI implementations like `Open MPI`_.. This provides
 an really nice way of starting a bunch of engine. On a system with MPI
 installed you can do::
 
-	mpirun -n 4 ipengine --controller-port=10000 --controller-ip=host0
+	mpirun -n 4 ipengine
+
+to start 4 engine on a cluster.  This works even if you don't have any
+Python-MPI bindings installed.
 
 .. _Open MPI: http://www.open-mpi.org/
 
@@ -214,12 +285,12 @@ Next Steps
 ==========
 
 Once you have started the IPython controller and one or more engines, you
-are ready to use the engines to do somnething useful. To make sure
+are ready to use the engines to do something useful. To make sure
 everything is working correctly, try the following commands::
 
 	In [1]: from IPython.kernel import client
 	
-	In [2]: mec = client.MultiEngineClient()    # This looks for .furl files in ~./ipython
+	In [2]: mec = client.MultiEngineClient()
 	
 	In [4]: mec.get_ids()
 	Out[4]: [0, 1, 2, 3]
@@ -239,4 +310,18 @@ everything is working correctly, try the following commands::
 	[3] In [1]: print "Hello World"
 	[3] Out[1]: Hello World
 
-If this works, you are ready to learn more about the :ref:`MultiEngine <parallelmultiengine>` and :ref:`Task <paralleltask>` interfaces to the controller.
+Remember, a client also needs to present a ``.furl`` file to the controller.  How does this happen?  When a multiengine client is created with no arguments, the client tries to find the corresponding ``.furl`` file in the local :file:`~./ipython/security` directory.  If it finds it, you are set.  If you have put the ``.furl`` file in a different location or it has a different name, create the client like this::
+
+    mec = client.MultiEngineClient('/path/to/my/ipcontroller-mec.furl')
+
+Same thing hold true of creating a task client::
+
+    tc = client.TaskClient('/path/to/my/ipcontroller-tc.furl')
+
+You are now ready to learn more about the :ref:`MultiEngine <parallelmultiengine>` and :ref:`Task <paralleltask>` interfaces to the controller.
+
+.. note:: 
+
+    Don't forget that the engine, multiengine client and task client all have
+    *different* furl files.  You must move *each* of these around to an appropriate
+    location so that the engines and clients can use them to connect to the controller.

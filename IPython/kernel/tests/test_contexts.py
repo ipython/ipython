@@ -1,4 +1,6 @@
-from __future__ import with_statement
+#from __future__ import with_statement
+
+# XXX This file is currently disabled to preserve 2.4 compatibility.
 
 #def test_simple():
 if 0:
@@ -25,17 +27,17 @@ if 0:
 
     mec.pushAll()
 
-    with parallel as pr:
-        # A comment
-        remote()  # this means the code below only runs remotely
-        print 'Hello remote world'
-        x = range(10)
-        # Comments are OK
-        # Even misindented.
-        y = x+1
+    ## with parallel as pr:
+    ##     # A comment
+    ##     remote()  # this means the code below only runs remotely
+    ##     print 'Hello remote world'
+    ##     x = range(10)
+    ##     # Comments are OK
+    ##     # Even misindented.
+    ##     y = x+1
 
 
-    with pfor('i',sequence) as pr:
-        print x[i]
+    ## with pfor('i',sequence) as pr:
+    ##     print x[i]
 
     print pr.x + pr.y

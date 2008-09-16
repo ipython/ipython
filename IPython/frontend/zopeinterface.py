@@ -16,13 +16,6 @@ __docformat__ = "restructuredtext en"
 #  the file COPYING, distributed as part of this software.
 #-------------------------------------------------------------------------------
 
-#-------------------------------------------------------------------------------
-# Imports
-#-------------------------------------------------------------------------------
-import string
-import uuid
-import _ast
-
 try:
     from zope.interface import Interface, Attribute, implements, classProvides
 except ImportError:
