@@ -275,6 +275,30 @@ class WxController(ConsoleWidget, PrefilterFrontEnd):
                                         milliseconds=100, oneShot=True)
 
 
+    #--------------------------------------------------------------------------
+    # LineFrontEnd interface 
+    #--------------------------------------------------------------------------
+ 
+    def execute(self, python_string, raw_string=None):
+        self._input_state = 'buffering'
+        self.CallTipCancel()
+        self._cursor = wx.BusyCursor()
+        if raw_string is None:
+            raw_string = python_string
+        end_line = self.current_prompt_line \
+                        + max(1,  len(raw_string.split('\n'))-1)
+        for i in range(self.current_prompt_line, end_line):
+            if i in self._markers:
+                self.MarkerDeleteHandle(self._markers[i])
+            self._markers[i] = self.MarkerAdd(i, _COMPLETE_BUFFER_MARKER)
+        # Use a callafter to update the display robustly under windows
+        def callback():
+            self.GotoPos(self.GetLength())
+            PrefilterFrontEnd.execute(self, python_string, 
+                                            raw_string=raw_string)
+        wx.CallAfter(callback)
+
+
     def execute_command(self, command, hidden=False):
         """ Execute a command, not only in the model, but also in the
             view.
@@ -306,29 +330,6 @@ class WxController(ConsoleWidget, PrefilterFrontEnd):
             self._on_enter()
             return True
 
-
-    #--------------------------------------------------------------------------
-    # LineFrontEnd interface 
-    #--------------------------------------------------------------------------
- 
-    def execute(self, python_string, raw_string=None):
-        self._input_state = 'buffering'
-        self.CallTipCancel()
-        self._cursor = wx.BusyCursor()
-        if raw_string is None:
-            raw_string = python_string
-        end_line = self.current_prompt_line \
-                        + max(1,  len(raw_string.split('\n'))-1)
-        for i in range(self.current_prompt_line, end_line):
-            if i in self._markers:
-                self.MarkerDeleteHandle(self._markers[i])
-            self._markers[i] = self.MarkerAdd(i, _COMPLETE_BUFFER_MARKER)
-        # Use a callafter to update the display robustly under windows
-        def callback():
-            self.GotoPos(self.GetLength())
-            PrefilterFrontEnd.execute(self, python_string, 
-                                            raw_string=raw_string)
-        wx.CallAfter(callback)
 
     def save_output_hooks(self):    
         self.__old_raw_input = __builtin__.raw_input
