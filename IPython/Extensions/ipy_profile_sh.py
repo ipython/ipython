@@ -109,6 +109,9 @@ def main():
         
         key = mapper(cmd)
         if key not in ip.IP.alias_table:
+            # Dots will be removed from alias names, since ipython
+            # assumes names with dots to be python code
+            
             ip.defalias(key.replace('.',''), cmd)
 
     # mglob combines 'find', recursion, exclusion... '%mglob?' to learn more

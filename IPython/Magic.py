@@ -2655,7 +2655,9 @@ Defaulting color scheme to 'NoColor'"""
                         if isexec(ff) and ff not in self.shell.no_alias:
                             # each entry in the alias table must be (N,name),
                             # where N is the number of positional arguments of the
-                            # alias.
+                            # alias.                            
+                            # Dots will be removed from alias names, since ipython
+                            # assumes names with dots to be python code
                             alias_table[ff.replace('.','')] = (0,ff)
                             syscmdlist.append(ff)
             else:
