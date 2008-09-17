@@ -20,6 +20,8 @@ import re
 
 import IPython
 import sys
+import codeop
+import traceback
 
 from frontendbase import FrontEndBase
 from IPython.kernel.core.interpreter import Interpreter
@@ -76,6 +78,11 @@ class LineFrontEndBase(FrontEndBase):
 
         if banner is not None:
             self.banner = banner
+
+    def start(self):
+        """ Put the frontend in a state where it is ready for user
+            interaction.
+        """
         if self.banner is not None:
             self.write(self.banner, refresh=False)
 
@@ -141,9 +148,18 @@ class LineFrontEndBase(FrontEndBase):
                         and not re.findall(r"\n[\t ]*\n[\t ]*$", string)):
             return False
         else:
-            # Add line returns here, to make sure that the statement is
-            # complete.
-            return FrontEndBase.is_complete(self, string.rstrip() + '\n\n')
+            self.capture_output()
+            try:
+                # Add line returns here, to make sure that the statement is
+                # complete.
+                is_complete = codeop.compile_command(string.rstrip() + '\n\n',
+                            "<string>", "exec")
+                self.release_output()
+            except Exception, e:
+                # XXX: Hack: return True so that the
+                # code gets executed and the error captured.
+                is_complete = True
+            return is_complete
 
 
     def write(self, string, refresh=True):
@@ -166,22 +182,35 @@ class LineFrontEndBase(FrontEndBase):
             raw_string = python_string
         # Create a false result, in case there is an exception
         self.last_result = dict(number=self.prompt_number)
+
+        ## try:
+        ##     self.history.input_cache[-1] = raw_string.rstrip()
+        ##     result = self.shell.execute(python_string)
+        ##     self.last_result = result
+        ##     self.render_result(result)
+        ## except:
+        ##     self.show_traceback()
+        ## finally:
+        ##     self.after_execute()
+
         try:
-            self.history.input_cache[-1] = raw_string.rstrip()
-            result = self.shell.execute(python_string)
-            self.last_result = result
-            self.render_result(result)
-        except:
-            self.show_traceback()
+            try:
+                self.history.input_cache[-1] = raw_string.rstrip()
+                result = self.shell.execute(python_string)
+                self.last_result = result
+                self.render_result(result)
+            except:
+                self.show_traceback()
         finally:
             self.after_execute()
+
 
     #--------------------------------------------------------------------------
     # LineFrontEndBase interface
     #--------------------------------------------------------------------------
 
     def prefilter_input(self, string):
-        """ Priflter the input to turn it in valid python.
+        """ Prefilter the input to turn it in valid python.
         """
         string = string.replace('\r\n', '\n')
         string = string.replace('\t', 4*' ')
@@ -210,9 +239,12 @@ class LineFrontEndBase(FrontEndBase):
         line = self.input_buffer
         new_line, completions = self.complete(line)
         if len(completions)>1:
-            self.write_completion(completions)
-        self.input_buffer = new_line
+            self.write_completion(completions, new_line=new_line)
+        elif not line == new_line:
+            self.input_buffer = new_line
         if self.debug:
+            print >>sys.__stdout__, 'line', line
+            print >>sys.__stdout__, 'new_line', new_line
             print >>sys.__stdout__, completions 
 
 
@@ -222,10 +254,15 @@ class LineFrontEndBase(FrontEndBase):
         return 80
 
 
-    def write_completion(self, possibilities):
+    def write_completion(self, possibilities, new_line=None):
         """ Write the list of possible completions.
+
+            new_line is the completed input line that should be displayed
+            after the completion are writen. If None, the input_buffer
+            before the completion is used.
         """
-        current_buffer = self.input_buffer
+        if new_line is None:
+            new_line = self.input_buffer
         
         self.write('\n')
         max_len = len(max(possibilities, key=len)) + 1
@@ -246,7 +283,7 @@ class LineFrontEndBase(FrontEndBase):
         self.write(''.join(buf))
         self.new_prompt(self.input_prompt_template.substitute(
                             number=self.last_result['number'] + 1))
-        self.input_buffer = current_buffer
+        self.input_buffer = new_line
 
 
     def new_prompt(self, prompt):
@@ -275,6 +312,8 @@ class LineFrontEndBase(FrontEndBase):
         else:
             self.input_buffer += self._get_indent_string(
                                                 current_buffer[:-1])
+            if len(current_buffer.split('\n')) == 2:
+                self.input_buffer += '\t\t'
             if current_buffer[:-1].split('\n')[-1].rstrip().endswith(':'):
                 self.input_buffer += '\t'
 

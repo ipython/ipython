@@ -115,6 +115,7 @@ def find_packages():
     add_package(packages, 'kernel', config=True, tests=True, scripts=True)
     add_package(packages, 'kernel.core', config=True, tests=True)
     add_package(packages, 'testing', tests=True)
+    add_package(packages, 'tests')
     add_package(packages, 'testing.plugin', tests=False)
     add_package(packages, 'tools', tests=True)
     add_package(packages, 'UserConfig')

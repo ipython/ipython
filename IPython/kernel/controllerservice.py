@@ -50,7 +50,7 @@ from IPython.kernel.engineservice import \
     IEngineSerialized, \
     IEngineQueued
     
-from IPython.config import cutils
+from IPython.genutils import get_ipython_dir
 from IPython.kernel import codeutil
 
 #-------------------------------------------------------------------------------
@@ -170,7 +170,7 @@ class ControllerService(object, service.Service):
     
     def _getEngineInfoLogFile(self):
         # Store all logs inside the ipython directory
-        ipdir = cutils.get_ipython_dir()
+        ipdir = get_ipython_dir()
         pjoin = os.path.join
         logdir_base = pjoin(ipdir,'log')
         if not os.path.isdir(logdir_base):

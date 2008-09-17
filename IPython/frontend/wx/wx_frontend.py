@@ -128,6 +128,7 @@ class WxController(ConsoleWidget, PrefilterFrontEnd):
     # while it is being swapped
     _out_buffer_lock = Lock()
 
+    # The different line markers used to higlight the prompts.
     _markers = dict()
 
     #--------------------------------------------------------------------------
@@ -135,12 +136,16 @@ class WxController(ConsoleWidget, PrefilterFrontEnd):
     #--------------------------------------------------------------------------
  
     def __init__(self, parent, id=wx.ID_ANY, pos=wx.DefaultPosition,
-                 size=wx.DefaultSize, style=wx.CLIP_CHILDREN,
+                 size=wx.DefaultSize,
+                 style=wx.CLIP_CHILDREN|wx.WANTS_CHARS,
                  *args, **kwds):
         """ Create Shell instance.
         """
         ConsoleWidget.__init__(self, parent, id, pos, size, style)
         PrefilterFrontEnd.__init__(self, **kwds)
+        
+        # Stick in our own raw_input:
+        self.ipython0.raw_input = self.raw_input
 
         # Marker for complete buffer.
         self.MarkerDefine(_COMPLETE_BUFFER_MARKER, stc.STC_MARK_BACKGROUND,
@@ -164,9 +169,11 @@ class WxController(ConsoleWidget, PrefilterFrontEnd):
         # Inject self in namespace, for debug
         if self.debug:
             self.shell.user_ns['self'] = self
+        # Inject our own raw_input in namespace
+        self.shell.user_ns['raw_input'] = self.raw_input
 
 
-    def raw_input(self, prompt):
+    def raw_input(self, prompt=''):
         """ A replacement from python's raw_input.
         """
         self.new_prompt(prompt)
@@ -174,15 +181,13 @@ class WxController(ConsoleWidget, PrefilterFrontEnd):
         if hasattr(self, '_cursor'):
             del self._cursor 
         self.SetCursor(wx.StockCursor(wx.CURSOR_CROSS))
-        self.waiting = True
         self.__old_on_enter = self._on_enter
+        event_loop = wx.EventLoop()
         def my_on_enter():
-            self.waiting = False
+            event_loop.Exit()
         self._on_enter = my_on_enter
-        # XXX: Busy waiting, ugly.
-        while self.waiting:
-            wx.Yield()
-            sleep(0.1)
+        # XXX: Running a separate event_loop. Ugly.
+        event_loop.Run() 
         self._on_enter = self.__old_on_enter
         self._input_state = 'buffering'
         self._cursor = wx.BusyCursor()
@@ -191,16 +196,18 @@ class WxController(ConsoleWidget, PrefilterFrontEnd):
 
     def system_call(self, command_string):
         self._input_state = 'subprocess'
+        event_loop = wx.EventLoop()
+        def _end_system_call():
+            self._input_state = 'buffering'
+            self._running_process = False
+            event_loop.Exit()
+
         self._running_process = PipedProcess(command_string, 
                     out_callback=self.buffered_write,
-                    end_callback = self._end_system_call)
+                    end_callback = _end_system_call)
         self._running_process.start()
-        # XXX: another one of these polling loops to have a blocking
-        # call
-        wx.Yield()
-        while self._running_process:
-            wx.Yield()
-            sleep(0.1)
+        # XXX: Running a separate event_loop. Ugly.
+        event_loop.Run() 
         # Be sure to flush the buffer.
         self._buffer_flush(event=None)
 
@@ -226,8 +233,9 @@ class WxController(ConsoleWidget, PrefilterFrontEnd):
             for name in symbol_string.split('.')[1:] + ['__doc__']:
                 symbol = getattr(symbol, name)
             self.AutoCompCancel()
-            wx.Yield()
-            self.CallTipShow(self.GetCurrentPos(), symbol)
+            # Check that the symbol can indeed be converted to a string:
+            symbol += ''
+            wx.CallAfter(self.CallTipShow, self.GetCurrentPos(), symbol)
         except:
             # The retrieve symbol couldn't be converted to a string
             pass
@@ -238,9 +246,9 @@ class WxController(ConsoleWidget, PrefilterFrontEnd):
             true, open the menu.
         """
         if self.debug:
-            print >>sys.__stdout__, "_popup_completion", 
+            print >>sys.__stdout__, "_popup_completion" 
         line = self.input_buffer
-        if (self.AutoCompActive() and not line[-1] == '.') \
+        if (self.AutoCompActive() and line and not line[-1] == '.') \
                     or create==True:
             suggestion, completions = self.complete(line)
             offset=0
@@ -284,19 +292,21 @@ class WxController(ConsoleWidget, PrefilterFrontEnd):
             if i in self._markers:
                 self.MarkerDeleteHandle(self._markers[i])
             self._markers[i] = self.MarkerAdd(i, _COMPLETE_BUFFER_MARKER)
-        # Update the display:
-        wx.Yield()
-        self.GotoPos(self.GetLength())
-        PrefilterFrontEnd.execute(self, python_string, raw_string=raw_string)
+        # Use a callafter to update the display robustly under windows
+        def callback():
+            self.GotoPos(self.GetLength())
+            PrefilterFrontEnd.execute(self, python_string, 
+                                            raw_string=raw_string)
+        wx.CallAfter(callback)
 
     def save_output_hooks(self):    
         self.__old_raw_input = __builtin__.raw_input
         PrefilterFrontEnd.save_output_hooks(self)
 
     def capture_output(self):
-        __builtin__.raw_input = self.raw_input
         self.SetLexer(stc.STC_LEX_NULL)
         PrefilterFrontEnd.capture_output(self)
+        __builtin__.raw_input = self.raw_input
         
     
     def release_output(self):
@@ -316,11 +326,23 @@ class WxController(ConsoleWidget, PrefilterFrontEnd):
     def show_traceback(self):
         start_line = self.GetCurrentLine()
         PrefilterFrontEnd.show_traceback(self)
-        wx.Yield()
+        self.ProcessEvent(wx.PaintEvent())
+        #wx.Yield()
         for i in range(start_line, self.GetCurrentLine()):
             self._markers[i] = self.MarkerAdd(i, _ERROR_MARKER)
 
     
+    #--------------------------------------------------------------------------
+    # FrontEndBase interface 
+    #--------------------------------------------------------------------------
+    
+    def render_error(self, e):
+        start_line = self.GetCurrentLine()
+        self.write('\n' + e + '\n')
+        for i in range(start_line, self.GetCurrentLine()):
+            self._markers[i] = self.MarkerAdd(i, _ERROR_MARKER)
+
+
     #--------------------------------------------------------------------------
     # ConsoleWidget interface 
     #--------------------------------------------------------------------------
@@ -351,7 +373,8 @@ class WxController(ConsoleWidget, PrefilterFrontEnd):
             if self._input_state == 'subprocess':
                 if self.debug:
                     print >>sys.__stderr__, 'Killing running process'
-                self._running_process.process.kill()
+                if hasattr(self._running_process, 'process'):
+                    self._running_process.process.kill()
             elif self._input_state == 'buffering':
                 if self.debug:
                     print >>sys.__stderr__, 'Raising KeyboardInterrupt'
@@ -376,7 +399,7 @@ class WxController(ConsoleWidget, PrefilterFrontEnd):
                 char = '\04'
             self._running_process.process.stdin.write(char)
             self._running_process.process.stdin.flush()
-        elif event.KeyCode in (ord('('), 57):
+        elif event.KeyCode in (ord('('), 57, 53):
             # Calltips
             event.Skip()
             self.do_calltip()
@@ -410,8 +433,8 @@ class WxController(ConsoleWidget, PrefilterFrontEnd):
                     self.input_buffer = new_buffer
             # Tab-completion
             elif event.KeyCode == ord('\t'):
-                last_line = self.input_buffer.split('\n')[-1]
-                if not re.match(r'^\s*$', last_line):
+                current_line, current_line_number = self.CurLine
+                if not re.match(r'^\s*$', current_line):
                     self.complete_current_input()
                     if self.AutoCompActive():
                         wx.CallAfter(self._popup_completion, create=True)
@@ -427,7 +450,7 @@ class WxController(ConsoleWidget, PrefilterFrontEnd):
         if event.KeyCode in (59, ord('.')):
             # Intercepting '.'
             event.Skip()
-            self._popup_completion(create=True)
+            wx.CallAfter(self._popup_completion, create=True)
         else:
             ConsoleWidget._on_key_up(self, event, skip=skip)
 
@@ -456,13 +479,6 @@ class WxController(ConsoleWidget, PrefilterFrontEnd):
     # Private API
     #--------------------------------------------------------------------------
  
-    def _end_system_call(self):
-        """ Called at the end of a system call.
-        """
-        self._input_state = 'buffering'
-        self._running_process = False
-
-
     def _buffer_flush(self, event):
         """ Called by the timer to flush the write buffer.
             
