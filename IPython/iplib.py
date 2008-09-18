@@ -1572,6 +1572,11 @@ want to merge them back into the new files.""" % locals()
             else:                
                 banner = self.BANNER+self.banner2
 
+        # if you run stuff with -c <cmd>, raw hist is not updated
+        # ensure that it's in sync
+        if len(self.input_hist) != len (self.input_hist_raw):
+            self.input_hist_raw = InputList(self.input_hist)
+
         while 1:
             try:
                 self.interact(banner)
