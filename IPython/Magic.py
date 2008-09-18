@@ -422,7 +422,11 @@ python-profiler package from non-free.""")
                 else:
                     fndoc = 'No documentation'
             else:
-                fndoc = fn.__doc__.rstrip()
+                if fn.__doc__:
+                    fndoc = fn.__doc__.rstrip()       
+                else:
+                    fndoc = 'No documentation'
+                
                 
             if mode == 'rest':
                 rest_docs.append('**%s%s**::\n\n\t%s\n\n' %(self.shell.ESC_MAGIC,
