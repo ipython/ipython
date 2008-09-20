@@ -1419,8 +1419,12 @@ want to merge them back into the new files.""" % locals()
             except TypeError:
                 return 0
         # always pass integer line and offset values to editor hook
-        self.hooks.fix_error_editor(e.filename,
-            int0(e.lineno),int0(e.offset),e.msg)
+        try:
+            self.hooks.fix_error_editor(e.filename,
+                int0(e.lineno),int0(e.offset),e.msg)
+        except IPython.ipapi.TryNext:
+            warn('Could not open editor')
+            return False
         return True
         
     def edit_syntax_error(self):

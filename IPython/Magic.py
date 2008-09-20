@@ -2332,7 +2332,11 @@ Currently the magic system has the following functions:\n"""
         # do actual editing here
         print 'Editing...',
         sys.stdout.flush()
-        self.shell.hooks.editor(filename,lineno)
+        try:
+            self.shell.hooks.editor(filename,lineno)
+        except IPython.ipapi.TryNext:
+            warn('Could not open editor')
+            return
         
         # XXX TODO: should this be generalized for all string vars?
         # For now, this is special-cased to blocks created by cpaste
