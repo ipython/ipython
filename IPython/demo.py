@@ -180,7 +180,7 @@ def re_mark(mark):
 
 class Demo(object):
 
-    re_stop     = re_mark('-?\s?stop\s?-?')
+    re_stop     = re_mark('-*\s?stop\s?-*')
     re_silent   = re_mark('silent')
     re_auto     = re_mark('auto')
     re_auto_all = re_mark('auto_all')
