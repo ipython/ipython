@@ -16,11 +16,25 @@ __docformat__ = "restructuredtext en"
 #-----------------------------------------------------------------------------
 
 from IPython import genutils
+import os
+env = os.environ
 
 
-def test_get_home_dir():
+def test_get_home_dir_1():
     """Make sure we can get the home directory."""
     home_dir = genutils.get_home_dir()
+
+def test_get_home_dir_2():
+    """Make sure we can get the home directory."""
+    old=env["HOME"]
+    env["HOME"]=os.path.join(".","home_test_dir")
+    home_dir = genutils.get_home_dir()
+    assert home_dir==env["HOME"]
+    env["HOME"]=old
+    
+
+
+
 
 def test_get_ipython_dir():
     """Make sure we can get the ipython directory."""
