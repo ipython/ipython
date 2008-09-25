@@ -931,13 +931,11 @@ def get_home_dir():
     if hasattr(sys, "frozen"): #Is frozen by py2exe
         if '\\library.zip\\' in IPython.__file__.lower():#libraries compressed to zip-file
             root, rest = IPython.__file__.lower().split('library.zip')
-            if isdir(root + '_ipython'):
-                os.environ["IPYKITROOT"] = root.rstrip('\\')
-                return root
         else: 
-            root=os.path.abspath(os.path.join(os.path.split(IPython.__file__)[0],"../../"))
+            root=os.path.join(os.path.split(IPython.__file__)[0],"../../")
+        root=os.path.abspath(root).rstrip('\\')
         if isdir(os.path.join(root, '_ipython')):
-            os.environ["IPYKITROOT"] = root.rstrip('\\')
+            os.environ["IPYKITROOT"] = root
             return root
     try:
         homedir = env['HOME']
@@ -958,7 +956,7 @@ def get_home_dir():
                     if not isdir(homedir):
                         raise HomeDirError
                 return homedir
-            except:
+            except KeyError:
                 try:
                     # Use the registry to get the 'My Documents' folder.
                     import _winreg as wreg
