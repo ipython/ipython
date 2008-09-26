@@ -8,6 +8,7 @@ import os
 
 # IPython imports
 from IPython.genutils import Term, ask_yes_no
+import IPython.ipapi
 
 def magic_history(self, parameter_s = ''):
     """Print input history (_i<n> variables), with most recent last.
@@ -222,6 +223,7 @@ class ShadowHist:
         # cmd => idx mapping
         self.curidx = 0
         self.db = db
+        self.disabled = False
     
     def inc_idx(self):
         idx = self.db.get('shadowhist_idx', 1)
@@ -229,12 +231,19 @@ class ShadowHist:
         return idx
         
     def add(self, ent):
-        old = self.db.hget('shadowhist', ent, _sentinel)
-        if old is not _sentinel:
+        if self.disabled:
             return
-        newidx = self.inc_idx()
-        #print "new",newidx # dbg
-        self.db.hset('shadowhist',ent, newidx)
+        try:
+            old = self.db.hget('shadowhist', ent, _sentinel)
+            if old is not _sentinel:
+                return
+            newidx = self.inc_idx()
+            #print "new",newidx # dbg
+            self.db.hset('shadowhist',ent, newidx)
+        except:
+            IPython.ipapi.get().IP.showtraceback()
+            print "WARNING: disabling shadow history"
+            self.disabled = True
     
     def all(self):
         d = self.db.hdict('shadowhist')

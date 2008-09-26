@@ -21,6 +21,32 @@ What's new
     6  Older releases
 ..
 
+Release DEV
+===========
+
+* cd completer: show bookmarks if no other completions are available.
+
+* Remove ipy_leo.py. "easy_install ipython-extension" to get it.
+  (done to decouple it from ipython release cycle)
+  
+* sh profile: easy way to give 'title' to prompt: assign to variable
+  '_prompt_title'. It looks like this::
+      
+        [~]|1> _prompt_title = 'sudo!'
+        sudo![~]|2>
+        
+* %rehashx: Aliases no longer contain dots. python3.0 binary
+  will create alias python30. Fixes:
+  #259716 "commands with dots in them don't work"
+  
+* %cpaste: %cpaste -r repeats the last pasted block.
+  The block is assigned to pasted_block even if code
+  raises exception.
+
+* %edit: If you do '%edit pasted_block', pasted_block
+  variable gets updated with new data (so repeated 
+  editing makes sense)
+
 
 Release 0.9.1
 =============
