@@ -131,20 +131,15 @@ object?   -> Details about 'object'. ?object also works, ?? prints more.
 
     IP.usage = interactive_usage
 
-    # Platform-dependent suffix and directory names.  We use _ipython instead
-    # of .ipython under win32 b/c there's software that breaks with .named
-    # directories on that platform.
+    # Platform-dependent suffix.
     if os.name == 'posix':
         rc_suffix = ''
-        ipdir_def = '.ipython'
     else:
         rc_suffix = '.ini'
-        ipdir_def = '_ipython'
 
     # default directory for configuration
-    ipythondir_def = os.path.abspath(os.environ.get('IPYTHONDIR',
-                                 os.path.join(IP.home_dir,ipdir_def)))
-
+    ipythondir_def = get_ipython_dir() 
+    
     sys.path.insert(0, '') # add . to sys.path. Fix from Prabhu Ramachandran
 
     # we need the directory where IPython itself is installed

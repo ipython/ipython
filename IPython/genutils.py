@@ -995,8 +995,8 @@ def get_ipython_dir():
          ipdir_def = '_ipython'
     home_dir = get_home_dir()
     ipdir = os.path.abspath(os.environ.get('IPYTHONDIR',
-                                           os.path.join(home_dir,ipdir_def)))
-    return ipdir
+                                           os.path.join(home_dir, ipdir_def)))
+    return ipdir.decode(sys.getfilesystemencoding())
 
 def get_security_dir():
     """Get the IPython security directory.

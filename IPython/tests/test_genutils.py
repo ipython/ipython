@@ -147,11 +147,58 @@ def test_get_home_dir_9():
      wreg.OpenKey, wreg.QueryValueEx,) = oldstuff
      
 
-def test_get_ipython_dir():
+def test_get_ipython_dir_1():
     """Testcase to see if we can call get_ipython_dir without Exceptions."""
     ipdir = genutils.get_ipython_dir()
 
-def test_get_security_dir():
-    """Testcase to see if we can call get_security_dir without Exceptions."""
-    sdir = genutils.get_security_dir()
+def test_get_ipython_dir_2():
+    """Testcase to see if we can call get_ipython_dir without Exceptions."""
+    oldstuff = (env['IPYTHONDIR'],)
+
+    env['IPYTHONDIR']="someplace/.ipython"
+    ipdir = genutils.get_ipython_dir()
+    assert ipdir == os.path.abspath("someplace/.ipython")
+
+    (env['IPYTHONDIR'],)=oldstuff
+
+class test_get_ipython_dir_3:
+    @classmethod
+    def setup_class(cls):
+        cls.oldstuff = (env['IPYTHONDIR'], os.name, genutils.get_home_dir)
+        del env['IPYTHONDIR']
+        genutils.get_home_dir=lambda : "someplace"
+
+    @classmethod
+    def teardown_class(cls):
+        (env['IPYTHONDIR'], os.name, genutils.get_home_dir)=cls.oldstuff
+        
+    def test_get_ipython_dir_a(self):
+        """Testcase to see if we can call get_ipython_dir without Exceptions."""
+
+        os.name="posix"
+        ipdir = genutils.get_ipython_dir()
+        assert ipdir == os.path.abspath(os.path.join("someplace", ".ipython"))
+        
+    def test_get_ipython_dir_b(self):
+        """Testcase to see if we can call get_ipython_dir without Exceptions."""
+
+        os.name="nt"
+        ipdir = genutils.get_ipython_dir()
+        assert ipdir == os.path.abspath(os.path.join("someplace", "_ipython"))
+    
+class test_get_security_dir:
+    @classmethod
+    def setup_class(cls):
+        cls.oldstuff = (env['IPYTHONDIR'], os.name, genutils.get_home_dir)
+        del env['IPYTHONDIR']
+        genutils.get_home_dir=lambda : "someplace"
+
+    @classmethod
+    def teardown_class(cls):
+        (env['IPYTHONDIR'], os.name, genutils.get_home_dir)=cls.oldstuff
+        
+
+    def test_get_security_dir():
+        """Testcase to see if we can call get_security_dir without Exceptions."""
+        sdir = genutils.get_security_dir()
     
