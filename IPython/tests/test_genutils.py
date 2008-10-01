@@ -16,61 +16,82 @@ __docformat__ = "restructuredtext en"
 #-----------------------------------------------------------------------------
 
 from IPython import genutils
-
+from IPython.testing.decorators import skipif
+from nose import with_setup
 import os, sys, IPython
 env = os.environ
 
 from os.path import join, abspath
 
+try:
+    import _winreg as wreg
+except ImportError:
+    pass
+
+skip_if_not_win32 = skipif(sys.platform!='win32',"This test only runs under Windows")
+    
+def setup_environment():
+    global oldstuff, platformstuff
+    oldstuff = (env.copy(), os.name, genutils.get_home_dir, IPython.__file__,)
+
+    if os.name=='nt':
+        platformstuff=(wreg.OpenKey, wreg.QueryValueEx,)
+
+    if 'IPYTHONDIR' in env:
+        del env['IPYTHONDIR']
+
+def teardown_environment():
+    (oldenv, os.name, genutils.get_home_dir, IPython.__file__,) = oldstuff
+    for key in env.keys():
+        if key not in oldenv:
+            del env[key]
+    env.update(oldenv)
+    if hasattr(sys, 'frozen'):
+        del sys.frozen
+    if os.name=='nt':
+        (wreg.OpenKey, wreg.QueryValueEx,)=platformstuff
+
+with_enivronment=with_setup(setup_environment, teardown_environment)
+
+@with_enivronment
 def test_get_home_dir_1():
     """Testcase to see if we can call get_home_dir without Exceptions."""
     home_dir = genutils.get_home_dir()
     
+@with_enivronment
 def test_get_home_dir_2():
     """Testcase for py2exe logic, un-compressed lib
     """
     sys.frozen=True
-    oldstuff=IPython.__file__
     
     #fake filename for IPython.__init__
     IPython.__file__=abspath(join(".", "home_test_dir/Lib/IPython/__init__.py"))
     
     home_dir = genutils.get_home_dir()
     assert home_dir==abspath(join(".", "home_test_dir"))
-    IPython.__file__=oldstuff
-    del sys.frozen
     
+@with_enivronment
 def test_get_home_dir_3():
     """Testcase for py2exe logic, compressed lib
     """
-    
     sys.frozen=True
-    oldstuff=IPython.__file__
-    
     #fake filename for IPython.__init__
     IPython.__file__=abspath(join(".", "home_test_dir/Library.zip/IPython/__init__.py"))
     
     home_dir = genutils.get_home_dir()
     assert home_dir==abspath(join(".", "home_test_dir")).lower()
 
-    del sys.frozen
-    IPython.__file__=oldstuff
-
-
+@with_enivronment
 def test_get_home_dir_4():
     """Testcase $HOME is set, then use its value as home directory."""
-    oldstuff=env["HOME"]
-
     env["HOME"]=join(".","home_test_dir")
     home_dir = genutils.get_home_dir()
     assert home_dir==env["HOME"]
-    
-    env["HOME"]=oldstuff
 
+@with_enivronment
 def test_get_home_dir_5():
     """Testcase $HOME is not set, os=='posix'. 
     This should fail with HomeDirError"""
-    oldstuff=env["HOME"],os.name
     
     os.name='posix'
     del os.environ["HOME"]
@@ -79,14 +100,11 @@ def test_get_home_dir_5():
         assert False
     except genutils.HomeDirError:
         pass
-    finally:
-        env["HOME"],os.name=oldstuff
         
+@with_enivronment
 def test_get_home_dir_6():
     """Testcase $HOME is not set, os=='nt' 
     env['HOMEDRIVE'],env['HOMEPATH'] points to path."""
-    
-    oldstuff=env["HOME"],os.name,env['HOMEDRIVE'],env['HOMEPATH']
     
     os.name='nt'
     del os.environ["HOME"]
@@ -94,16 +112,14 @@ def test_get_home_dir_6():
 
     home_dir = genutils.get_home_dir()
     assert home_dir==abspath(join(".", "home_test_dir"))
-    
-    env["HOME"],os.name,env['HOMEDRIVE'],env['HOMEPATH']=oldstuff
 
+@with_enivronment
 def test_get_home_dir_8():
     """Testcase $HOME is not set, os=='nt' 
     env['HOMEDRIVE'],env['HOMEPATH'] do not point to path.
     env['USERPROFILE'] points to path
     """
-    oldstuff=(env["HOME"],os.name,env['HOMEDRIVE'],env['HOMEPATH'])
-    
+
     os.name='nt'
     del os.environ["HOME"]
     env['HOMEDRIVE'],env['HOMEPATH']=os.path.abspath("."),"DOES NOT EXIST"
@@ -111,18 +127,16 @@ def test_get_home_dir_8():
 
     home_dir = genutils.get_home_dir()
     assert home_dir==abspath(join(".", "home_test_dir"))
-    
-    (env["HOME"],os.name,env['HOMEDRIVE'],env['HOMEPATH'])=oldstuff
 
+
+
+# Should we stub wreg fully so we can run the test on all platforms?
+@skip_if_not_win32
+@with_enivronment
 def test_get_home_dir_9():
     """Testcase $HOME is not set, os=='nt' 
     env['HOMEDRIVE'],env['HOMEPATH'], env['USERPROFILE'] missing
     """
-    import _winreg as wreg
-    oldstuff = (env["HOME"],os.name,env['HOMEDRIVE'],
-                env['HOMEPATH'],env["USERPROFILE"],
-                wreg.OpenKey, wreg.QueryValueEx,
-                )
     os.name='nt'
     del env["HOME"],env['HOMEDRIVE']
 
@@ -138,67 +152,51 @@ def test_get_home_dir_9():
     wreg.OpenKey=OpenKey
     wreg.QueryValueEx=QueryValueEx
 
-
     home_dir = genutils.get_home_dir()
     assert home_dir==abspath(join(".", "home_test_dir"))
 
-    (env["HOME"],os.name,env['HOMEDRIVE'],
-     env['HOMEPATH'],env["USERPROFILE"],
-     wreg.OpenKey, wreg.QueryValueEx,) = oldstuff
-     
 
+#
+# Tests for get_ipython_dir
+#
+
+@with_enivronment
 def test_get_ipython_dir_1():
-    """Testcase to see if we can call get_ipython_dir without Exceptions."""
+    """1 Testcase to see if we can call get_ipython_dir without Exceptions."""
     ipdir = genutils.get_ipython_dir()
 
-def test_get_ipython_dir_2():
-    """Testcase to see if we can call get_ipython_dir without Exceptions."""
-    oldstuff = (env['IPYTHONDIR'],)
 
+@with_enivronment
+def test_get_ipython_dir_2():
+    """2 Testcase to see if we can call get_ipython_dir without Exceptions."""
     env['IPYTHONDIR']="someplace/.ipython"
     ipdir = genutils.get_ipython_dir()
     assert ipdir == os.path.abspath("someplace/.ipython")
 
-    (env['IPYTHONDIR'],)=oldstuff
 
-class test_get_ipython_dir_3:
-    @classmethod
-    def setup_class(cls):
-        cls.oldstuff = (env['IPYTHONDIR'], os.name, genutils.get_home_dir)
-        del env['IPYTHONDIR']
-        genutils.get_home_dir=lambda : "someplace"
+@with_enivronment
+def test_get_ipython_dir_3():
+    """3 Testcase to see if we can call get_ipython_dir without Exceptions."""
+    genutils.get_home_dir=lambda : "someplace"
+    os.name="posix"
+    ipdir = genutils.get_ipython_dir()
+    assert ipdir == os.path.abspath(os.path.join("someplace", ".ipython"))
 
-    @classmethod
-    def teardown_class(cls):
-        (env['IPYTHONDIR'], os.name, genutils.get_home_dir)=cls.oldstuff
-        
-    def test_get_ipython_dir_a(self):
-        """Testcase to see if we can call get_ipython_dir without Exceptions."""
+@with_enivronment
+def test_get_ipython_dir_4():
+    """4 Testcase to see if we can call get_ipython_dir without Exceptions."""
+    genutils.get_home_dir=lambda : "someplace"
+    os.name="nt"
+    ipdir = genutils.get_ipython_dir()
+    assert ipdir == os.path.abspath(os.path.join("someplace", "_ipython"))
 
-        os.name="posix"
-        ipdir = genutils.get_ipython_dir()
-        assert ipdir == os.path.abspath(os.path.join("someplace", ".ipython"))
-        
-    def test_get_ipython_dir_b(self):
-        """Testcase to see if we can call get_ipython_dir without Exceptions."""
 
-        os.name="nt"
-        ipdir = genutils.get_ipython_dir()
-        assert ipdir == os.path.abspath(os.path.join("someplace", "_ipython"))
-    
-class test_get_security_dir:
-    @classmethod
-    def setup_class(cls):
-        cls.oldstuff = (env['IPYTHONDIR'], os.name, genutils.get_home_dir)
-        del env['IPYTHONDIR']
-        genutils.get_home_dir=lambda : "someplace"
 
-    @classmethod
-    def teardown_class(cls):
-        (env['IPYTHONDIR'], os.name, genutils.get_home_dir)=cls.oldstuff
-        
+#
+# Tests for get_security_dir
+#
 
-    def test_get_security_dir():
-        """Testcase to see if we can call get_security_dir without Exceptions."""
-        sdir = genutils.get_security_dir()
-    
+@with_enivronment
+def test_get_security_dir():
+    """Testcase to see if we can call get_security_dir without Exceptions."""
+    sdir = genutils.get_security_dir()
