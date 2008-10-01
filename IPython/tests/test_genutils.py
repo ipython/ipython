@@ -18,6 +18,8 @@ __docformat__ = "restructuredtext en"
 from IPython import genutils
 from IPython.testing.decorators import skipif
 from nose import with_setup
+from nose.tools import raises
+
 import os, sys, IPython
 env = os.environ
 
@@ -200,3 +202,36 @@ def test_get_ipython_dir_4():
 def test_get_security_dir():
     """Testcase to see if we can call get_security_dir without Exceptions."""
     sdir = genutils.get_security_dir()
+
+
+
+
+
+def test_popkey_1():
+    dct=dict(a=1, b=2, c=3)
+    assert genutils.popkey(dct, "a")==1
+    assert dct==dict(b=2, c=3)
+    assert genutils.popkey(dct, "b")==2
+    assert dct==dict(c=3)
+    assert genutils.popkey(dct, "c")==3
+    assert dct==dict()
+
+@raises(KeyError)
+def test_popkey_2():
+    dct=dict(a=1, b=2, c=3)
+    genutils.popkey(dct, "d")
+
+def test_popkey_3():
+    dct=dict(a=1, b=2, c=3)
+    assert genutils.popkey(dct, "A", 13)==13
+    assert dct==dict(a=1, b=2, c=3)
+    assert genutils.popkey(dct, "B", 14)==14
+    assert dct==dict(a=1, b=2, c=3)
+    assert genutils.popkey(dct, "C", 15)==15
+    assert dct==dict(a=1, b=2, c=3)
+    assert genutils.popkey(dct, "a")==1
+    assert dct==dict(b=2, c=3)
+    assert genutils.popkey(dct, "b")==2
+    assert dct==dict(c=3)
+    assert genutils.popkey(dct, "c")==3
+    assert dct==dict()
