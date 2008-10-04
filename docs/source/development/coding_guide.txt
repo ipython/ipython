@@ -1,0 +1,141 @@
+==============
+ Coding guide
+==============
+
+
+Coding conventions
+==================
+
+In general, we'll try to follow the standard Python style conventions as
+described in Python's `PEP 8`_, the official Python Style Guide.
+
+.. _PEP 8: http://www.python.org/peps/pep-0008.html
+
+Other comments:
+
+- In a large file, top level classes and functions should be separated by 2-3
+  lines to make it easier to separate them visually.
+
+- Use 4 spaces for indentation, *never* use hard tabs.
+
+- Keep the ordering of methods the same in classes that have the same methods.
+  This is particularly true for classes that implement similar interfaces and
+  for interfaces that are similar.
+
+Naming conventions
+------------------
+
+In terms of naming conventions, we'll follow the guidelines of PEP 8.  Some of
+the existing code doesn't honor this perfectly, but for all new IPython code
+(and much existing code is being refactored), we'll use:
+
+- All ``lowercase`` module names.
+
+- ``CamelCase`` for class names.
+
+- ``lowercase_with_underscores`` for methods, functions, variables and
+  attributes.
+
+This may be confusing as some of the existing codebase uses a different
+convention (``lowerCamelCase`` for methods and attributes).  Slowly, we will
+move IPython over to the new convention, providing shadow names for backward
+compatibility in public interfaces.
+
+There are, however, some important exceptions to these rules.  In some cases,
+IPython code will interface with packages (Twisted, Wx, Qt) that use other
+conventions.  At some level this makes it impossible to adhere to our own
+standards at all times.  In particular, when subclassing classes that use other
+naming conventions, you must follow their naming conventions.  To deal with
+cases like this, we propose the following policy:
+
+- If you are subclassing a class that uses different conventions, use its
+  naming conventions throughout your subclass.  Thus, if you are creating a
+  Twisted Protocol class, used Twisted's
+  ``namingSchemeForMethodsAndAttributes.``
+
+- All IPython's official interfaces should use our conventions.  In some cases
+  this will mean that you need to provide shadow names (first implement
+  ``fooBar`` and then ``foo_bar = fooBar``).  We want to avoid this at all
+  costs, but it will probably be necessary at times.  But, please use this
+  sparingly!
+
+Implementation-specific *private* methods will use
+``_single_underscore_prefix``.  Names with a leading double underscore will
+*only* be used in special cases, as they makes subclassing difficult (such
+names are not easily seen by child classes).
+
+Occasionally some run-in lowercase names are used, but mostly for very short
+names or where we are implementing methods very similar to existing ones in a
+base class (like ``runlines()`` where ``runsource()`` and ``runcode()`` had
+established precedent).
+
+The old IPython codebase has a big mix of classes and modules prefixed with an
+explicit ``IP``. In Python this is mostly unnecessary, redundant and frowned
+upon, as namespaces offer cleaner prefixing. The only case where this approach
+is justified is for classes which are expected to be imported into external
+namespaces and a very generic name (like Shell) is too likely to clash with
+something else.  We'll need to revisit this issue as we clean up and refactor
+the code, but in general we should remove as many unnecessary ``IP``/``ip``
+prefixes as possible. However, if a prefix seems absolutely necessary the more
+specific ``IPY`` or ``ipy`` are preferred.
+
+
+.. _devel-testing:
+
+Testing system
+==============
+
+It is extremely important that all code contributed to IPython has tests. Tests
+should be written as unittests, doctests or as entities that the `Nose`_
+testing package will find. Regardless of how the tests are written, we will use
+`Nose`_ for discovering and running the tests. `Nose`_ will be required to run
+the IPython test suite, but will not be required to simply use IPython.
+
+.. _Nose: http://code.google.com/p/python-nose/
+
+Tests of `Twisted`__ using code should be written by subclassing the
+``TestCase`` class that comes with ``twisted.trial.unittest``. When this is
+done, `Nose`_ will be able to run the tests and the twisted reactor will be
+handled correctly.
+
+.. __: http://www.twistedmatrix.com
+
+Each subpackage in IPython should have its own ``tests`` directory that
+contains all of the tests for that subpackage. This allows each subpackage to
+be self-contained. If a subpackage has any dependencies beyond the Python
+standard library, the tests for that subpackage should be skipped if the
+dependencies are not found. This is very important so users don't get tests
+failing simply because they don't have dependencies.
+
+We also need to look into use Noses ability to tag tests to allow a more
+modular approach of running tests.
+
+.. _devel-config:
+
+Configuration system
+====================
+
+IPython uses `.ini`_ files for configuration purposes. This represents a huge
+improvement over the configuration system used in IPython. IPython works with
+these files using the `ConfigObj`_ package, which IPython includes as
+``ipython1/external/configobj.py``.
+
+Currently, we are using raw `ConfigObj`_ objects themselves. Each subpackage of
+IPython should contain a ``config`` subdirectory that contains all of the
+configuration information for the subpackage. To see how configuration
+information is defined (along with defaults) see at the examples in
+``ipython1/kernel/config`` and ``ipython1/core/config``. Likewise, to see how
+the configuration information is used, see examples in
+``ipython1/kernel/scripts/ipengine.py``.
+
+Eventually, we will add a new layer on top of the raw `ConfigObj`_ objects. We
+are calling this new layer, ``tconfig``, as it will use a `Traits`_-like
+validation model.  We won't actually use `Traits`_, but will implement
+something similar in pure Python.  But, even in this new system, we will still
+use `ConfigObj`_ and `.ini`_ files underneath the hood. Talk to Fernando if you
+are interested in working on this part of IPython. The current prototype of
+``tconfig`` is located in the IPython sandbox.
+
+.. _.ini: http://docs.python.org/lib/module-ConfigParser.html
+.. _ConfigObj: http://www.voidspace.org.uk/python/configobj.html
+.. _Traits: http://code.enthought.com/traits/

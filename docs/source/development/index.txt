@@ -1,10 +1,13 @@
-==================
-Development
-==================
+===========================
+ IPython Developer's Guide
+===========================
 
 .. toctree::
    :maxdepth: 2
 
-   development.txt
+   overview.txt
+   coding_guide.txt
+   doc_guide.txt
    roadmap.txt
+
    notification_blueprint.txt

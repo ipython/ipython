@@ -1,0 +1,76 @@
+Documenting IPython
+===================
+
+Standalone documentation
+------------------------
+
+All standalone documentation should be written in plain text (``.txt``) files
+using `reStructuredText`_ for markup and formatting. All such documentation
+should be placed in the top level directory ``docs`` of the IPython source
+tree. Or, when appropriate, a suitably named subdirectory should be used. The
+documentation in this location will serve as the main source for IPython
+documentation and all existing documentation should be converted to this
+format.
+
+In the future, the text files in the ``docs`` directory will be used to
+generate all forms of documentation for IPython. This include documentation on
+the IPython website as well as *pdf* documentation.
+
+.. _reStructuredText: http://docutils.sourceforge.net/rst.html
+
+A bit of shell code:
+
+.. code-block:: bash
+
+    cd /tmp
+    echo "My home directory is: $HOME"
+    ls
+
+A bit of Python code:
+
+.. code-block:: python
+
+    for i in range(10):
+        print i,
+    print "A big number:",2**34
+
+An interactive Python session:
+
+.. code-block:: python
+
+    >>> from IPython import genutils
+    >>> genutils.get_ipython_dir()
+    '/home/fperez/.ipython'
+
+
+An IPython session:
+
+.. code-block:: ipython
+
+  In [8]: import IPython
+
+  In [9]: print "This IPython is version:",IPython.__version__
+  This IPython is version: 0.9.1
+
+
+
+Docstring format
+----------------
+
+Good docstrings are very important. All new code will use `Epydoc`_ for
+generating API docs, so we will follow the `Epydoc`_ conventions. More
+specifically, we will use `reStructuredText`_ for markup and formatting, since
+it is understood by a wide variety of tools. This means that if in the future
+we have any reason to change from `Epydoc`_ to something else, we'll have fewer
+transition pains.
+
+Details about using `reStructuredText`_ for docstrings can be found `here
+<http://epydoc.sourceforge.net/manual-othermarkup.html>`_.
+
+.. _Epydoc: http://epydoc.sourceforge.net/
+
+Additional PEPs of interest regarding documentation of code:
+
+- `Docstring Conventions <http://www.python.org/peps/pep-0257.html>`_
+- `Docstring Processing System Framework <http://www.python.org/peps/pep-0256.html>`_
+- `Docutils Design Specification <http://www.python.org/peps/pep-0258.html>`_
