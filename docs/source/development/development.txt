@@ -8,18 +8,16 @@ IPython development guidelines
 Overview
 ========
 
-IPython is the next generation of IPython.  It is named such for two reasons:
-
-- Eventually, IPython will become IPython version 1.0.
-- This new code base needs to be able to co-exist with the existing IPython until
-  it is a full replacement for it.  Thus we needed a different name.  We couldn't
-  use ``ipython`` (lowercase) as some files systems are case insensitive.
-
-There are two, no three, main goals of the IPython effort:
+Currently, IPython's development tree contains all of the code that used to be
+part of IPython since the project's inception in 2001, plus all of the effort
+that was known for a while (roughly 2004-2008) as `IPython1'.  The IPyhton1
+development was meant to be an effort to:
 
 1. Clean up the existing codebase and write lots of tests.
-2. Separate the core functionality of IPython from the terminal to enable IPython
-   to be used from within a variety of GUI applications.
+
+2. Separate the core functionality of IPython from the terminal to enable
+   IPython to be used from within a variety of GUI applications.
+   
 3. Implement a system for interactive parallel computing.
 
 While the third goal may seem a bit unrelated to the main focus of IPython, it
@@ -56,6 +54,7 @@ subpackages will have its own:
 - **Scripts**.  Each subpackage should have its own ``scripts`` subdirectory
   that contains all of the command line scripts associated with the subpackage.
 
+  
 Installation and dependencies
 -----------------------------
    
@@ -127,116 +126,140 @@ Specific subpackages
 Version control
 ===============
 
-In the past, IPython development has been done using `Subversion`__.  Recently,
-we made the transition to using `Bazaar`__ and `Launchpad`__.  This makes it
-much easier for people to contribute code to IPython.  Here is a sketch of how
-to use Bazaar for IPython development.  First, you should install Bazaar.
-After you have done that, make sure that it is working by getting the latest
-main branch of IPython::
+All IPython development today is done using the `Bazaar`__ system for
+distributed version control and the `Launchpad`__ site for code hosting and bug
+tracking.  This makes it very easy for anyone to contribute code to IPython.
 
-    $ bzr branch lp:ipython
+.. __: http://bazaar-vcs.org
+.. __: http://launchpad.net/ipython
 
-Now you can create a new branch for you to do your work in::
+If you are interested in contributing to IPython, you should familiarize a bit
+with how to use bazaar, but this document gives you a concise set of steps to
+get started.  If you are going to become heavily involved with creating code
+for IPython you'll eventually want to have a Launchpad account (free) so you
+can publish your own code on the site for review and merging, but small
+contributions can be simply sent via email to the IPython list as patches.
 
-    $ bzr branch ipython ipython-mybranch
+Start by creating what Bazaar calls a `shared repository`_:
 
-The typical work cycle in this branch will be to make changes in
-``ipython-mybranch`` and then commit those changes using the commit command::
+.. sourcecode:: bash
 
-    $ ...do work in ipython-mybranch...
-    $ bzr ci -m "the commit message goes here"
+    # You can choose any name you want instead of "ipython-repo"
+    bzr init-repo ipython-repo
+
+.. _shared repository: http://bazaar-vcs.org/SharedRepositoryTutorial
+
+This creates an empty repository where a lot of related branches can be kept,
+and they all reuse common storage.  This way, many operations are very fast and
+take up less space.  Now, go to the newly created repository and make a local
+branch of the public trunk:
+
+.. sourcecode:: bash
+
+    cd ipython-repo
+    # This makes a local copy of the public trunk called "trunk-lp"
+    bzr branch lp:ipython trunk-lp
+
+The ``trunk-lp`` branch is meant to always be a pristine copy of the public
+trunk.  From here, make a personal development copy of the public trunk, where
+you'll make your changes:
+
+.. sourcecode:: bash
+
+    bzr branch trunk-lp trunk-dev
+
+Now, your working area looks like this::
+    
+    maqroll[ipython-repo]> ls -a
+    ./  ../  .bzr/  trunk-dev/  trunk-lp/
+
+The ``.bzr`` directory is the Bazaar storage area, and you now have both the
+reference copy of the public trunk and one working copy for your own
+development.  You can later make further branches as needed (a common workflow
+is to make branches to contain specific feature implementations until they are
+ready to be merged).
+    
+The typical work cycle will be to make changes in ``trunk-dev`` and then commit
+those changes as often as needed:
+
+.. sourcecode:: bash
+
+    cd trunk-dev
+    # ... implement cool new feature...
+    bzr commit -m "Commit message goes here."
 
 Please note that since we now don't use an old-style linear ChangeLog (that
 tends to cause problems with distributed version control systems), you should
-ensure that your log messages are reasonably detailed.  Use a docstring-like
-approach in the commit messages (including the second line being left
-*blank*)::
+ensure that your log messages are reasonably detailed.  For non-trivial
+changes, use a docstring-like approach in the commit messages (including the
+second line being left *blank*).  Type ``bzr commit`` *without* the ``-m``
+switch, and Bazaar will open an editor where you can type a more detailed
+message::
 
-  Single line summary of  changes being committed.
+    Single line summary of changes being committed.
 
-  - more details when warranted ...
-  - including crediting outside contributors if they sent the
-    code/bug/idea!
+    - more details when warranted ...
+    - including crediting outside contributors if they sent the
+      code/bug/idea!
 
 If we couple this with a policy of making single commits for each reasonably
 atomic change, the bzr log should give an excellent view of the project, and
-the `--short` log option becomes a nice summary.
+the ``--short`` log option becomes a nice summary.
 
-While working with this branch, it is a good idea to merge in changes that have
-been made upstream in the parent branch.  This can be done by doing::
+As you work on the branch, it's a good idea to frequently keep your copy of the
+trunk updated with respect to Launchpad.  This is done via:
 
-    $ bzr pull
+.. sourcecode:: bash
+
+    cd trunk-lp
+    bzr pull
+
+Bazaar can then merge any changes that were done to the public trunk into your
+local branch via:
+
+.. sourcecode:: bash
+
+    cd trunk-dev
+    bzr merge ../trunk-lp
+    bzr commit -m"Merged upstream changes"
+
+This workflow ensures that a local copy stays in sync with the public trunk,
+while allowing for local development to be pushed back for public review.
+
+Once your changes are ready for review, you can push them to Launchpad where
+the IPython team can review them and give you feedback.  The first time, use:
+
+.. sourcecode:: bash
+
+    bzr push --remember bzr+ssh://<you>@bazaar.launchpad.net/~<you>/ipython/trunk-dev
+
+where ``<you>`` is your Launchpad user name. This will make this branch
+publicly visible to all.  In subsequent uses you can simply run in the branch:
+
+.. sourcecode:: bash
+
+    bzr push
+
+.. note::
+
+    Before you can push your code to Launchpad, you need to configure your SSH
+    keys.  You can do this by clicking on ``Change details`` for your profile
+    and then clicking on the ``SSH Keys`` tab.  This should take you to a URL
+    of the form ``https://launchpad.net/~<you>/+editsshkeys`` with instructions
+    on how to upload your keys.
     
-If this command shows that the branches have diverged, then you should do a
-merge instead::
+Once the branch is publicly visible, using the launchpad interface it can be
+marked for merging with the link ``Propose for merging into another branch``,
+leaving the default choice of trunk as its target.  This way, Launchpad tracks
+what changes of this branch are new with respect to the trunk, others in the
+team can review it, and merge the changes into the trunk.
 
-    $ bzr merge lp:ipython
-
-If you want others to be able to see your branch, you can create an account
-with launchpad and push the branch to your own workspace::
-
-    $ bzr push bzr+ssh://<me>@bazaar.launchpad.net/~<me>/+junk/ipython-mybranch
-
-Finally, once the work in your branch is done, you can merge your changes back
-into the `ipython` branch by using merge::
-
-    $ cd ipython
-    $ merge ../ipython-mybranch
-    [resolve any conflicts]
-    $ bzr ci -m "Fixing that bug"
-    $ bzr push
-
-But this will require you to have write permissions to the `ipython` branch.
-It you don't you can tell one of the IPython devs about your branch and they
-can do the merge for you.
-
-More information about Bazaar workflows can be found `here`__.
-
-.. __: http://subversion.tigris.org/
-.. __: http://bazaar-vcs.org/
-.. __: http://www.launchpad.net/ipython
-.. __: http://doc.bazaar-vcs.org/bzr.dev/en/user-guide/index.html
-
-Documentation
-=============
-
-Standalone documentation
-------------------------
-
-All standalone documentation should be written in plain text (``.txt``) files
-using `reStructuredText`_ for markup and formatting. All such documentation
-should be placed in the top level directory ``docs`` of the IPython source
-tree. Or, when appropriate, a suitably named subdirectory should be used. The
-documentation in this location will serve as the main source for IPython
-documentation and all existing documentation should be converted to this
-format.
-
-In the future, the text files in the ``docs`` directory will be used to
-generate all forms of documentation for IPython. This include documentation on
-the IPython website as well as *pdf* documentation.
-
-.. _reStructuredText: http://docutils.sourceforge.net/rst.html
-
-Docstring format
-----------------
-
-Good docstrings are very important. All new code will use `Epydoc`_ for
-generating API docs, so we will follow the `Epydoc`_ conventions. More
-specifically, we will use `reStructuredText`_ for markup and formatting, since
-it is understood by a wide variety of tools. This means that if in the future
-we have any reason to change from `Epydoc`_ to something else, we'll have fewer
-transition pains.
-
-Details about using `reStructuredText`_ for docstrings can be found `here
-<http://epydoc.sourceforge.net/manual-othermarkup.html>`_.
-
-.. _Epydoc: http://epydoc.sourceforge.net/
-
-Additional PEPs of interest regarding documentation of code:
-
-- `Docstring Conventions <http://www.python.org/peps/pep-0257.html>`_
-- `Docstring Processing System Framework <http://www.python.org/peps/pep-0256.html>`_
-- `Docutils Design Specification <http://www.python.org/peps/pep-0258.html>`_
+The IPython team has a policy of reviewing all code (both from core members of
+the team and from external contributors) before merging it.  Code should be
+clearly documented (as explained further in this guide), clear and well tested.
+We will be happy to provide you with feedback for your code to be a great
+contribution to the project, and we've found that peer review of code is an
+excellent way to improve the quality of everyone's work.
 
 
 Coding conventions
@@ -317,6 +340,86 @@ something else. We'll need to revisit this issue as we clean up and refactor
 the code, but in general we should remove as many unnecessary ``IP``/``ip``
 prefixes as possible. However, if a prefix seems absolutely necessary the more
 specific ``IPY`` or ``ipy`` are preferred.
+
+
+Documentation
+=============
+
+Standalone documentation
+------------------------
+
+All standalone documentation should be written in plain text (``.txt``) files
+using `reStructuredText`_ for markup and formatting. All such documentation
+should be placed in the top level directory ``docs`` of the IPython source
+tree. Or, when appropriate, a suitably named subdirectory should be used. The
+documentation in this location will serve as the main source for IPython
+documentation and all existing documentation should be converted to this
+format.
+
+In the future, the text files in the ``docs`` directory will be used to
+generate all forms of documentation for IPython. This include documentation on
+the IPython website as well as *pdf* documentation.
+
+.. _reStructuredText: http://docutils.sourceforge.net/rst.html
+
+A bit of shell code:
+
+.. sourcecode:: bash
+
+    cd /tmp
+    echo "My home directory is: $HOME"
+    ls
+
+A bit of Python code:
+
+.. sourcecode:: python
+
+    for i in range(10):
+        print i,
+    print "A big number:",2**34
+
+An interactive Python session:
+
+.. sourcecode:: python
+
+    >>> from IPython import genutils
+    >>> genutils.get_ipython_dir()
+    '/home/fperez/.ipython'
+
+
+An IPython session:
+
+.. sourcecode:: ipython
+
+  In [8]: import IPython
+
+  In [9]: print "This IPython is version:",IPython.__version__
+  This IPython is version: 0.9.1
+
+
+
+Docstring format
+----------------
+
+Good docstrings are very important. All new code will use `Epydoc`_ for
+generating API docs, so we will follow the `Epydoc`_ conventions. More
+specifically, we will use `reStructuredText`_ for markup and formatting, since
+it is understood by a wide variety of tools. This means that if in the future
+we have any reason to change from `Epydoc`_ to something else, we'll have fewer
+transition pains.
+
+Details about using `reStructuredText`_ for docstrings can be found `here
+<http://epydoc.sourceforge.net/manual-othermarkup.html>`_.
+
+.. _Epydoc: http://epydoc.sourceforge.net/
+
+Additional PEPs of interest regarding documentation of code:
+
+- `Docstring Conventions <http://www.python.org/peps/pep-0257.html>`_
+- `Docstring Processing System Framework <http://www.python.org/peps/pep-0256.html>`_
+- `Docutils Design Specification <http://www.python.org/peps/pep-0258.html>`_
+
+
 
 .. _devel_testing:
 

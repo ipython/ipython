@@ -11,4 +11,4 @@ Using IPython for parallel computing
    parallel_multiengine.txt
    parallel_task.txt
    parallel_mpi.txt
-
+   visionhpc.txt
