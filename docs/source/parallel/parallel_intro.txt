@@ -148,6 +148,9 @@ ipcontroller-mec.furl
 
 More details of how these ``.furl`` files are used are given below.
 
+A detailed description of the security model and its implementation in IPython
+can be found :ref:`here <parallelsecurity>`.
+
 Getting Started
 ===============
 
