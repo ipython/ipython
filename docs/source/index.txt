@@ -4,7 +4,7 @@ IPython Documentation
 
 .. htmlonly::
 
-   :Release: |version|
+   :Release: |release|
    :Date: |today|
 
    Contents:

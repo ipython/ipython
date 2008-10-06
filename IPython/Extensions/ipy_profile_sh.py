@@ -50,9 +50,15 @@ def main():
     ip.ex('import os')
     ip.ex("def up(): os.chdir('..')")
     ip.user_ns['LA'] = LastArgFinder() 
-    # Nice prompt
     
-    o.prompt_in1= r'\C_LightBlue[\C_LightCyan\Y2\C_LightBlue]\C_Green|\#> '
+    # You can assign to _prompt_title variable 
+    # to provide some extra information for prompt
+    # (e.g. the current mode, host/username...)
+
+    ip.user_ns['_prompt_title'] = ''
+    
+    # Nice prompt
+    o.prompt_in1= r'\C_Green${_prompt_title}\C_LightBlue[\C_LightCyan\Y2\C_LightBlue]\C_Green|\#> '
     o.prompt_in2= r'\C_Green|\C_LightGreen\D\C_Green> '
     o.prompt_out= '<\#> '
     
@@ -98,9 +104,15 @@ def main():
     for cmd in syscmds:
         # print "sys",cmd #dbg
         noext, ext = os.path.splitext(cmd)
-        key = mapper(noext)
+        if ext.lower() == '.exe':
+            cmd = noext
+        
+        key = mapper(cmd)
         if key not in ip.IP.alias_table:
-            ip.defalias(key, cmd)
+            # Dots will be removed from alias names, since ipython
+            # assumes names with dots to be python code
+            
+            ip.defalias(key.replace('.',''), cmd)
 
     # mglob combines 'find', recursion, exclusion... '%mglob?' to learn more
     ip.load("IPython.external.mglob")    
