@@ -385,7 +385,7 @@ class MTInteractiveShell(InteractiveShell):
 
         Modified version of code.py's runsource(), to handle threading issues.
         See the original for full docstring details."""
-        
+                
         global KBINT
         
         # If Ctrl-C was typed, we reset the flag and return right away
@@ -415,7 +415,7 @@ class MTInteractiveShell(InteractiveShell):
         if (self.worker_ident is None
             or self.worker_ident == thread.get_ident() ):
             InteractiveShell.runcode(self,code)
-            return
+            return False
 
         # Case 3
         # Store code in queue, so the execution thread can handle it.
