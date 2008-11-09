@@ -688,6 +688,7 @@ class ExtensionDoctest(doctests.Doctest):
         self.globs = None
         self.extraglobs = None
 
+
     def loadTestsFromExtensionModule(self,filename):
         bpath,mod = os.path.split(filename)
         modname = os.path.splitext(mod)[0]
@@ -703,8 +704,8 @@ class ExtensionDoctest(doctests.Doctest):
     # a  few modifications to control output checking.
 
     def loadTestsFromModule(self, module):
-        #print 'lTM',module  # dbg
-
+        #print '*** ipdoctest - lTM',module  # dbg
+        
         if not self.matches(module.__name__):
             log.debug("Doctest doesn't want module %s", module)
             return
@@ -733,8 +734,6 @@ class ExtensionDoctest(doctests.Doctest):
 
 
     def loadTestsFromFile(self, filename):
-        #print 'lTF',filename  # dbg
-
         if is_extension_module(filename):
             for t in self.loadTestsFromExtensionModule(filename):
                 yield t
@@ -761,7 +760,7 @@ class ExtensionDoctest(doctests.Doctest):
         Modified version that accepts extension modules as valid containers for
         doctests.
         """
-        print 'Filename:',filename  # dbg
+        #print '*** ipdoctest- wantFile:',filename  # dbg
 
         # XXX - temporarily hardcoded list, will move to driver later
         exclude = ['IPython/external/',
@@ -791,7 +790,7 @@ class IPythonDoctest(ExtensionDoctest):
     """
     name = 'ipdoctest'   # call nosetests with --with-ipdoctest
     enabled = True
-
+    
     def configure(self, options, config):
 
         Plugin.configure(self, options, config)
