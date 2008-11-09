@@ -73,14 +73,14 @@ class ConfigLoader:
         # avoid including the same file more than once
         if fname in self.included:
             return data
-        Xinfo = ultraTB.AutoFormattedTB()
+        Xinfo = ultraTB.AutoFormattedTB(color_scheme='NoColor')
         if convert==None and recurse_key : convert = {qwflat:recurse_key}
         # for production, change warn to 0:
         data.merge(read_dict(fname,convert,fs=self.field_sep,strip=1,
                              warn=0,no_empty=0,**kw))
         # keep track of successfully loaded files
         self.included.append(fname)
-        if recurse_key in data.keys():
+        if recurse_key in data:
             for incfilename in data[recurse_key]:
                 found=0
                 try:
