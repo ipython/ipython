@@ -65,13 +65,28 @@ log = logging.getLogger(__name__)
 # test globals.  Once we move over to a clean magic system, this will be done
 # with much less ugliness.
 
+class py_file_finder(object):
+    def __init__(self,test_filename):
+        self.test_filename = test_filename
+        
+    def __call__(self,name):
+        from IPython.genutils import get_py_filename
+        try:
+            get_py_filename(name)
+        except IOError:
+            test_dir = os.path.dirname(self.test_filename)
+            new_path = os.path.join(test_dir,name)
+            return get_py_filename(new_path)
+    
+
 def _run_ns_sync(self,arg_s,runner=None):
     """Modified version of %run that syncs testing namespaces.
 
     This is strictly needed for running doctests that call %run.
     """
 
-    out = _ip.IP.magic_run_ori(arg_s,runner)
+    finder = py_file_finder(_run_ns_sync.test_filename)
+    out = _ip.IP.magic_run_ori(arg_s,runner,finder)
     _run_ns_sync.test_globs.update(_ip.user_ns)
     return out
 
@@ -129,8 +144,7 @@ def start_ipython():
 
     # Start IPython instance.  We customize it to start with minimal frills.
     user_ns,global_ns = IPython.ipapi.make_user_namespaces(ipnsdict(),dict())
-    
-    IPython.Shell.IPShell(['--classic','--noterm_title'],
+    IPython.Shell.IPShell(['--colors=NoColor','--noterm_title'],
                           user_ns,global_ns)
 
     # Deactivate the various python system hooks added by ipython for
@@ -638,7 +652,8 @@ class IPDocTestRunner(doctest.DocTestRunner,object):
         # when called (rather than unconconditionally updating test.globs here
         # for all examples, most of which won't be calling %run anyway).
         _run_ns_sync.test_globs = test.globs
-
+        _run_ns_sync.test_filename = test.filename
+        
         return super(IPDocTestRunner,self).run(test,
                                                compileflags,out,clear_globs)
 
