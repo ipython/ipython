@@ -186,13 +186,19 @@ def is_extension_module(filename):
     return os.path.splitext(filename)[1].lower() in ('.so','.pyd')
 
 
-class nodoc(object):
+class DocTestSkip(object):
+    """Object wrapper for doctests to be skipped."""
+    
+    ds_skip = """Doctest to skip.
+    >>> 1 #doctest: +SKIP
+    """
+
     def __init__(self,obj):
         self.obj = obj
 
     def __getattribute__(self,key):
         if key == '__doc__':
-            return None
+            return DocTestSkip.ds_skip
         else:
             return getattr(object.__getattribute__(self,'obj'),key)
 
@@ -236,7 +242,7 @@ class DocTestFinder(doctest.DocTestFinder):
 
         if hasattr(obj,"skip_doctest"):
             #print 'SKIPPING DOCTEST FOR:',obj  # dbg
-            obj = nodoc(obj)
+            obj = DocTestSkip(obj)
 
         doctest.DocTestFinder._find(self,tests, obj, name, module,
                                     source_lines, globs, seen)
