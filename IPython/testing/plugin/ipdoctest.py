@@ -806,6 +806,23 @@ class IPythonDoctest(ExtensionDoctest):
     name = 'ipdoctest'   # call nosetests with --with-ipdoctest
     enabled = True
     
+    def makeTest(self, obj, parent):
+        """Look for doctests in the given object, which will be a
+        function, method or class.
+        """
+        # always use whitespace and ellipsis options
+        optionflags = doctest.NORMALIZE_WHITESPACE | doctest.ELLIPSIS
+
+        doctests = self.finder.find(obj, module=getmodule(parent))
+        if doctests:
+            for test in doctests:
+                if len(test.examples) == 0:
+                    continue
+
+                yield DocTestCase(test, obj=obj,
+                                  optionflags=optionflags,
+                                  checker=self.checker)
+
     def configure(self, options, config):
 
         Plugin.configure(self, options, config)
