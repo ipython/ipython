@@ -32,19 +32,15 @@ IPython is implemented using a distributed set of processes that communicate usi
 
 We need to build a system that makes it trivial for users to start and manage IPython processes.  This system should have the following properties:
 
-* It should possible to do everything through an extremely simple API that users
-  can call from their own Python script.  No shell commands should be needed.
-  
+* It should possible to do everything through an extremely simple API that
+  users can call from their own Python script. No shell commands should be
+  needed.
 * This simple API should be configured using standard .ini files.
-
-* The system should make it possible to start processes using a number of different
-  approaches:  SSH, PBS/Torque, Xgrid, Windows Server, mpirun, etc.
-  
-* The controller and engine processes should each have a daemon for monitoring, 
-  signaling and clean up.
-  
+* The system should make it possible to start processes using a number of
+  different approaches: SSH, PBS/Torque, Xgrid, Windows Server, mpirun, etc.
+* The controller and engine processes should each have a daemon for
+  monitoring, signaling and clean up.
 * The system should be secure.
-
 * The system should work under all the major operating systems, including
   Windows.
 
@@ -63,12 +59,10 @@ Security
 Currently, IPython has no built in security or security model.  Because we would like IPython to be usable on public computer systems and over wide area networks, we need to come up with a robust solution for security.  Here are some of the specific things that need to be included:
 
 * User authentication between all processes (engines, controller and clients).
-
 * Optional TSL/SSL based encryption of all communication channels.
-
 * A good way of picking network ports so multiple users on the same system can
-  run their own controller and engines without interfering with those of others.
-  
+  run their own controller and engines without interfering with those of
+  others.
 * A clear model for security that enables users to evaluate the security risks
   associated with using IPython in various manners.
 
@@ -86,22 +80,25 @@ Latent performance issues
 
 Currently, we have a number of performance issues that are waiting to bite users:
 
-	* The controller store a large amount of state in Python dictionaries.  Under heavy
-	  usage, these dicts with get very large, causing memory usage problems.  We need to 
-	  develop more scalable solutions to this problem, such as using a sqlite database
-	  to store this state.  This will also help the controller to be more fault tolerant.
-	* Currently, the client to controller connections are done through XML-RPC using 
-	  HTTP 1.0.  This is very inefficient as XML-RPC is a very verbose protocol and 
-	  each request must be handled with a new connection.  We need to move these network
-	  connections over to PB or Foolscap.  Done!
-	* We currently don't have a good way of handling large objects in the controller.
-	  The biggest problem is that because we don't have any way of streaming objects,
-	  we get lots of temporary copies in the low-level buffers.  We need to implement
-	  a better serialization approach and true streaming support.
-	* The controller currently unpickles and repickles objects.  We need to use the 
-	  [push|pull]_serialized methods instead.
-	* Currently the controller is a bottleneck.  We need the ability to scale the 
-	  controller by aggregating multiple controllers into one effective controller.
+* The controller store a large amount of state in Python dictionaries. Under
+  heavy usage, these dicts with get very large, causing memory usage problems.
+  We need to develop more scalable solutions to this problem, such as using a
+  sqlite database to store this state. This will also help the controller to
+  be more fault tolerant.
+* Currently, the client to controller connections are done through XML-RPC
+  using HTTP 1.0. This is very inefficient as XML-RPC is a very verbose
+  protocol and each request must be handled with a new connection. We need to
+  move these network connections over to PB or Foolscap. Done!
+* We currently don't have a good way of handling large objects in the
+  controller. The biggest problem is that because we don't have any way of
+  streaming objects, we get lots of temporary copies in the low-level buffers.
+  We need to implement a better serialization approach and true streaming
+  support.
+* The controller currently unpickles and repickles objects. We need to use the
+  [push|pull]_serialized methods instead.
+* Currently the controller is a bottleneck. We need the ability to scale the
+  controller by aggregating multiple controllers into one effective
+  controller.
 
 
 
