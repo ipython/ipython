@@ -2397,9 +2397,11 @@ module, now part of the standard Python library.
 Input caching system
 --------------------
 
-IPython offers numbered prompts (In/Out) with input and output caching.
-All input is saved and can be retrieved as variables (besides the usual
-arrow key recall).
+IPython offers numbered prompts (In/Out) with input and output caching
+(also referred to as 'input history'). All input is saved and can be 
+retrieved as variables (besides the usual arrow key recall), in 
+addition to the %rep magic command that brings a history entry
+up for editing on the next  command line.
 
 The following GLOBAL variables always exist (so don't overwrite them!):
 _i: stores previous input. _ii: next previous. _iii: next-next previous.
@@ -2431,6 +2433,16 @@ sec. 6.2 <#sec:magic> for more details on the macro system.
 
 A history function %hist allows you to see any part of your input
 history by printing a range of the _i variables.
+
+You can also search ('grep') through your history by typing 
+'%hist -g somestring'. This also searches through the so called 'shadow history',
+which remembers all the commands (apart from multiline code blocks)
+you have ever entered. Handy for searching for svn/bzr URL's, IP adrresses
+etc. You can bring shadow history entries listed by '%hist -g' up for editing 
+(or re-execution by just pressing ENTER) with %rep command. Shadow history 
+entries are not available as _iNUMBER variables, and they are identified by 
+the '0' prefix in %hist -g output. That is, history entry 12 is a normal 
+history entry, but 0231 is a shadow history entry.
 
 .. _output_caching:
 
@@ -2475,7 +2487,7 @@ Directory history
 
 Your history of visited directories is kept in the global list _dh, and
 the magic %cd command can be used to go to any entry in that list. The
-%dhist command allows you to view this history. do ``cd -<TAB`` to
+%dhist command allows you to view this history. Do ``cd -<TAB`` to
 conventiently view the directory history.
 
 
