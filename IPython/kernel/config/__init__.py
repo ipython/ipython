@@ -61,6 +61,7 @@ controller_config = dict(
 
     logfile = '',    # Empty means log to stdout
     import_statement = '',
+    reuse_furls = False, # If False, old furl files are deleted
 
     engine_tub = dict(
         ip = '',         # Empty string means all interfaces

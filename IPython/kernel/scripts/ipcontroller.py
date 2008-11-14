@@ -205,6 +205,17 @@ def start_controller():
         except:
             log.msg("Error running import_statement: %s" % cis)
     
+    # Delete old furl files unless the reuse_furls is set
+    reuse = config['controller']['reuse_furls']
+    if not reuse:
+        paths = (config['controller']['engine_furl_file'],
+            config['controller']['controller_interfaces']['task']['furl_file'],
+            config['controller']['controller_interfaces']['multiengine']['furl_file']
+        )
+        for p in paths:
+            if os.path.isfile(p):
+                os.remove(p)
+    
     # Create the service hierarchy
     main_service = service.MultiService()
     # The controller service
@@ -319,6 +330,12 @@ def init_config():
         dest="ipythondir",
         help="look for config files and profiles in this directory"
     )
+    parser.add_option(
+        "-r",
+        action="store_true",
+        dest="reuse_furls",
+        help="try to reuse all furl files"
+    )
     
     (options, args) = parser.parse_args()
     
@@ -352,6 +369,8 @@ def init_config():
         config['controller']['engine_tub']['cert_file'] = options.engine_cert_file
     if options.engine_furl_file is not None:
         config['controller']['engine_furl_file'] = options.engine_furl_file
+    if options.reuse_furls is not None:
+            config['controller']['reuse_furls'] = options.reuse_furls
 
     if options.logfile is not None:
         config['controller']['logfile'] = options.logfile
