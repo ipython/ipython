@@ -1,3 +1,19 @@
+#!/usr/bin/env python
+# encoding: utf-8
+
+"""Start an IPython cluster = (controller + engines)."""
+
+#-----------------------------------------------------------------------------
+#  Copyright (C) 2008  The IPython Development Team
+#
+#  Distributed under the terms of the BSD License.  The full license is in
+#  the file COPYING, distributed as part of this software.
+#-----------------------------------------------------------------------------
+
+#-----------------------------------------------------------------------------
+# Imports
+#-----------------------------------------------------------------------------
+
 import os
 import re
 import sys
@@ -16,6 +32,10 @@ from IPython.kernel.twistedutil import gatherBoth
 from IPython.kernel.util import printer
 from IPython.genutils import get_ipython_dir, num_cpus
 
+#-----------------------------------------------------------------------------
+# General process handling code
+#-----------------------------------------------------------------------------
+
 def find_exe(cmd):
     try:
         import win32api
@@ -24,10 +44,6 @@ def find_exe(cmd):
     else:
         (path, offest) = win32api.SearchPath(os.environ['PATH'],cmd)
         return path
-
-# Test local cluster on Win32
-# Look at local cluster usage strings
-# PBS stuff
 
 class ProcessStateError(Exception):
     pass
@@ -146,6 +162,11 @@ class ProcessLauncher(object):
         reactor.callLater(delay, self.signal, 'KILL')
 
 
+#-----------------------------------------------------------------------------
+# Code for launching controller and engines
+#-----------------------------------------------------------------------------
+
+
 class ControllerLauncher(ProcessLauncher):
     
     def __init__(self, extra_args=None):
@@ -247,7 +268,6 @@ class BatchEngineSet(object):
         self.context['n'] = n
         template = open(self.template_file, 'r').read()
         log.msg('Using template for batch script: %s' % self.template_file)
-        log.msg(repr(self.context))
         script_as_string = Itpl.itplns(template, self.context)
         log.msg('Writing instantiated batch script: %s' % self.batch_file)
         f = open(self.batch_file,'w')
@@ -280,6 +300,16 @@ class PBSEngineSet(BatchEngineSet):
     def __init__(self, template_file, **kwargs):
         BatchEngineSet.__init__(self, template_file, **kwargs)
 
+
+#-----------------------------------------------------------------------------
+# Main functions for the different types of clusters
+#-----------------------------------------------------------------------------
+
+# TODO:
+# The logic in these codes should be moved into classes like LocalCluster
+# MpirunCluster, PBSCluster, etc.  This would remove alot of the duplications.
+# The main functions should then just parse the command line arguments, create
+# the appropriate class and call a 'start' method.
 
 def main_local(args):
     cont_args = []
@@ -430,7 +460,7 @@ def get_args():
     parser_mpirun.set_defaults(func=main_mpirun)
     
     parser_pbs = subparsers.add_parser(
-	'pbs', 
+        'pbs', 
         help='run a pbs cluster',
         parents=[base_parser]
     )
