@@ -231,7 +231,7 @@ class BatchEngineSet(object):
         self.template_file = template_file
         self.context = {}
         self.context.update(kwargs)
-        self.batch_file = 'batch-script'
+        self.batch_file = self.template_file+'-run'
 
     def parse_job_id(self, output):
         m = re.match(self.job_id_regexp, output)
@@ -240,25 +240,23 @@ class BatchEngineSet(object):
         else:
             raise Exception("job id couldn't be determined: %s" % output)
         self.job_id = job_id
-        print 'Job started with job id:', job_id
+        log.msg('Job started with job id: %r' % job_id)
         return job_id
     
     def write_batch_script(self, n):
-        print 'n', n
         self.context['n'] = n
         template = open(self.template_file, 'r').read()
-        print 'template', template
-        log.msg(template)
+        log.msg('Using template for batch script: %s' % self.template_file)
         log.msg(repr(self.context))
         script_as_string = Itpl.itplns(template, self.context)
-        log.msg(script_as_string)
+        log.msg('Writing instantiated batch script: %s' % self.batch_file)
         f = open(self.batch_file,'w')
         f.write(script_as_string)
         f.close()
 
     def handle_error(self, f):
         f.printTraceback()
-        #f.raiseException()
+        f.raiseException()
     
     def start(self, n):
         self.write_batch_script(n)
@@ -361,6 +359,12 @@ def main_pbs(args):
     dstart = cl.start()
     def start_engines(r):
         pbs_set =  PBSEngineSet(args.pbsscript)
+        def shutdown(signum, frame):
+            log.msg('Stopping pbs cluster')
+            d = pbs_set.kill()
+            d.addBoth(lambda _: cl.interrupt_then_kill(1.0))
+            d.addBoth(lambda _: reactor.callLater(2.0, reactor.stop))
+        signal.signal(signal.SIGINT,shutdown)
         d = pbs_set.start(args.n)
         return d
     dstart.addCallback(start_engines)
