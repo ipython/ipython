@@ -248,22 +248,24 @@ class BatchEngineSet(object):
         self.context['n'] = n
         template = open(self.template_file, 'r').read()
         print 'template', template
+        log.msg(template)
+        log.msg(repr(self.context))
         script_as_string = Itpl.itplns(template, self.context)
-        print 'script', script_as_string
+        log.msg(script_as_string)
         f = open(self.batch_file,'w')
         f.write(script_as_string)
         f.close()
 
     def handle_error(self, f):
         f.printTraceback()
-        f.raiseException()
+        #f.raiseException()
     
     def start(self, n):
         self.write_batch_script(n)
         d = getProcessOutput(self.submit_command,
             [self.batch_file],env=os.environ)
         d.addCallback(self.parse_job_id)
-        #d.addErrback(self.handle_error)
+        d.addErrback(self.handle_error)
         return d
         
     def kill(self):
@@ -349,15 +351,20 @@ def main_mpirun(args):
     dstart.addErrback(lambda f: f.raiseException())
 
 def main_pbs(args):
-    cl = ControllerLauncher()
+    cont_args = []
+    cont_args.append('--logfile=%s' % pjoin(args.logdir,'ipcontroller'))
+    if args.x:
+	cont_args.append('-x')
+    if args.y:
+	cont_args.append('-y')
+    cl = ControllerLauncher(extra_args=cont_args)
     dstart = cl.start()
     def start_engines(r):
-        pbs_set =  PBSEngineSet('pbs.template')
-        print pbs_set.template_file
+        pbs_set =  PBSEngineSet(args.pbsscript)
         d = pbs_set.start(args.n)
         return d
     dstart.addCallback(start_engines)
-    dstart.addErrback(lambda f: f.printTraceback())
+    dstart.addErrback(lambda f: f.raiseException())
 
 
 def get_args():
@@ -418,9 +425,18 @@ def get_args():
     )
     parser_mpirun.set_defaults(func=main_mpirun)
     
-    parser_pbs = subparsers.add_parser('pbs', help='run a pbs cluster')
-    parser_pbs.add_argument('--pbs-script', type=str, dest='pbsscript',
-        help='PBS script template')
+    parser_pbs = subparsers.add_parser(
+	'pbs', 
+        help='run a pbs cluster',
+        parents=[base_parser]
+    )
+    parser_pbs.add_argument(
+        '--pbs-script',
+        type=str, 
+        dest='pbsscript',
+        help='PBS script template',
+        default='pbs.template'
+    )
     parser_pbs.set_defaults(func=main_pbs)
     args = parser.parse_args()
     return args
