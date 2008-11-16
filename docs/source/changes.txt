@@ -21,31 +21,61 @@ What's new
     6  Older releases
 ..
 
-Release DEV
+Release dev
 ===========
+
+New features
+------------
+
+* Fully refactored :command:`ipcluster` command line program for starting
+  IPython clusters.  This new version is a complete rewrite and 1) is fully
+  cross platform (we now use Twisted's process management), 2) has much
+  improved performance, 3) uses subcommands for different types of clusters, 
+  4) uses argparse for parsing command line options, 5) has better support
+  for starting clusters using :command:`mpirun`, 6) has experimental support
+  for starting engines using PBS.  However, this new version of ipcluster
+  should be considered a technology preview.  We plan on changing the API
+  in significant ways before it is final.
+
+* The :mod:`argparse` module has been added to :mod:`IPython.external`.
+
+* Fully description of the security model added to the docs.
 
 * cd completer: show bookmarks if no other completions are available.
 
-* Remove ipy_leo.py. "easy_install ipython-extension" to get it.
-  (done to decouple it from ipython release cycle)
-  
 * sh profile: easy way to give 'title' to prompt: assign to variable
   '_prompt_title'. It looks like this::
       
         [~]|1> _prompt_title = 'sudo!'
         sudo![~]|2>
-        
-* %rehashx: Aliases no longer contain dots. python3.0 binary
-  will create alias python30. Fixes:
-  #259716 "commands with dots in them don't work"
-  
-* %cpaste: %cpaste -r repeats the last pasted block.
-  The block is assigned to pasted_block even if code
-  raises exception.
 
 * %edit: If you do '%edit pasted_block', pasted_block
   variable gets updated with new data (so repeated 
   editing makes sense)
+
+Bug fixes
+---------
+
+* The ipengine and ipcontroller scripts now handle missing furl files
+  more gracefully by giving better error messages.
+
+* %rehashx: Aliases no longer contain dots. python3.0 binary
+  will create alias python30. Fixes:
+  #259716 "commands with dots in them don't work"
+
+* %cpaste: %cpaste -r repeats the last pasted block.
+  The block is assigned to pasted_block even if code
+  raises exception.
+
+Backwards incompatible changes
+------------------------------
+
+* The controller now has a ``-r`` flag that needs to be used if you want to
+  reuse existing furl files.  Otherwise they are deleted (the default).
+
+* Remove ipy_leo.py. "easy_install ipython-extension" to get it.
+  (done to decouple it from ipython release cycle)
+
 
 
 Release 0.9.1
@@ -62,14 +92,14 @@ Release 0.9
 New features
 ------------
 
-* All furl files and security certificates are now put in a read-only directory
-  named ~./ipython/security.
+* All furl files and security certificates are now put in a read-only
+  directory named ~./ipython/security.
 
 * A single function :func:`get_ipython_dir`, in :mod:`IPython.genutils` that
   determines the user's IPython directory in a robust manner.
 
-* Laurent's WX application has been given a top-level script called ipython-wx,
-  and it has received numerous fixes.  We expect this code to be
+* Laurent's WX application has been given a top-level script called
+  ipython-wx, and it has received numerous fixes. We expect this code to be
   architecturally better integrated with Gael's WX 'ipython widget' over the
   next few releases.
 
@@ -80,7 +110,7 @@ New features
 * A new, still experimental but highly functional, WX shell by Gael Varoquaux.
   This work was sponsored by Enthought, and while it's still very new, it is
   based on a more cleanly organized arhictecture of the various IPython
-  components.  We will continue to develop this over the next few releases as a
+  components. We will continue to develop this over the next few releases as a
   model for GUI components that use IPython.
 
 * Another GUI frontend, Cocoa based (Cocoa is the OSX native GUI framework),
@@ -131,17 +161,17 @@ New features
   friends have been completely refactored.  Now we are checking for
   dependencies using the approach that matplotlib uses.
 
-* The documentation has been completely reorganized to accept the documentation
-  from `ipython1-dev`.
+* The documentation has been completely reorganized to accept the 
+  documentation from `ipython1-dev`.
 
 * We have switched to using Foolscap for all of our network protocols in
   :mod:`IPython.kernel`.  This gives us secure connections that are both
   encrypted and authenticated.
 
 * We have a brand new `COPYING.txt` files that describes the IPython license
-  and copyright.  The biggest change is that we are putting "The IPython
-  Development Team" as the copyright holder.  We give more details about
-  exactly what this means in this file.  All developer should read this and use
+  and copyright. The biggest change is that we are putting "The IPython
+  Development Team" as the copyright holder. We give more details about
+  exactly what this means in this file. All developer should read this and use
   the new banner in all IPython source code files.
 
 * sh profile: ./foo runs foo as system command, no need to do !./foo anymore

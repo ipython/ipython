@@ -433,7 +433,8 @@ def get_args():
     
     parser = argparse.ArgumentParser(
         description='IPython cluster startup.  This starts a controller and\
-        engines using various approaches'
+        engines using various approaches.  THIS IS A TECHNOLOGY PREVIEW AND\
+        THE API WILL CHANGE SIGNIFICANTLY BEFORE THE FINAL RELEASE.'
     )
     subparsers = parser.add_subparsers(
         help='available cluster types.  For help, do "ipcluster TYPE --help"')
