@@ -14,8 +14,16 @@ from IPython.external import argparse
 from IPython.external import Itpl
 from IPython.kernel.twistedutil import gatherBoth
 from IPython.kernel.util import printer
-from IPython.genutils import get_ipython_dir
+from IPython.genutils import get_ipython_dir, num_cpus
 
+def find_exe(cmd):
+    try:
+        import win32api
+    except ImportError:
+        raise ImportError('you need to have pywin32 installed for this to work')
+    else:
+        (path, offest) = win32api.SearchPath(os.environ['PATH'],cmd)
+        return path
 
 # Test local cluster on Win32
 # Look at local cluster usage strings
@@ -66,7 +74,6 @@ class ProcessLauncher(object):
     a formal NotificationCenter.
     """
     def __init__(self, cmd_and_args):
-
         self.cmd = cmd_and_args[0]
         self.args = cmd_and_args
         self._reset()
@@ -131,8 +138,8 @@ class ProcessLauncher(object):
         if self.state == 'running':
             self.process_transport.signalProcess(sig)
     
-    def __del__(self):
-        self.signal('KILL')
+    # def __del__(self):
+    #     self.signal('KILL')
     
     def interrupt_then_kill(self, delay=1.0):
         self.signal('INT')
@@ -142,23 +149,29 @@ class ProcessLauncher(object):
 class ControllerLauncher(ProcessLauncher):
     
     def __init__(self, extra_args=None):
-        self.args = ['ipcontroller']
+        if sys.platform == 'win32':
+            args = [find_exe('ipcontroller.bat')]
+        else:
+            args = ['ipcontroller']
         self.extra_args = extra_args
         if extra_args is not None:
-            self.args.extend(extra_args)
+            args.extend(extra_args)
         
-        ProcessLauncher.__init__(self, self.args)
+        ProcessLauncher.__init__(self, args)
 
 
 class EngineLauncher(ProcessLauncher):
     
     def __init__(self, extra_args=None):
-        self.args = ['ipengine']
+        if sys.platform == 'win32':
+            args = [find_exe('ipengine.bat')]
+        else:
+            args = ['ipengine']
         self.extra_args = extra_args
         if extra_args is not None:
-            self.args.extend(extra_args)
+            args.extend(extra_args)
         
-        ProcessLauncher.__init__(self, self.args)
+        ProcessLauncher.__init__(self, args)
 
 
 class LocalEngineSet(object):
@@ -271,6 +284,10 @@ class PBSEngineSet(BatchEngineSet):
 def main_local(args):
     cont_args = []
     cont_args.append('--logfile=%s' % pjoin(args.logdir,'ipcontroller'))
+    if args.x:
+        cont_args.append('-x')
+    if args.y:
+        cont_args.append('-y')
     cl = ControllerLauncher(extra_args=cont_args)
     dstart = cl.start()
     def start_engines(cont_pid):
@@ -299,6 +316,10 @@ def main_local(args):
 def main_mpirun(args):
     cont_args = []
     cont_args.append('--logfile=%s' % pjoin(args.logdir,'ipcontroller'))
+    if args.x:
+        cont_args.append('-x')
+    if args.y:
+        cont_args.append('-y')
     cl = ControllerLauncher(extra_args=cont_args)
     dstart = cl.start()
     def start_engines(cont_pid):
@@ -340,29 +361,62 @@ def main_pbs(args):
 
 
 def get_args():
-    parser = argparse.ArgumentParser(
-        description='IPython cluster startup')
-    newopt = parser.add_argument  # shorthand
-    
-    subparsers = parser.add_subparsers(help='sub-command help')
-    
-    parser_local = subparsers.add_parser('local', help='run a local cluster')
-    parser_local.add_argument("--logdir", type=str, dest="logdir",
+    base_parser = argparse.ArgumentParser(add_help=False)
+    base_parser.add_argument(
+        '-x',
+        action='store_true',
+        dest='x',
+        help='turn off client security'
+    )
+    base_parser.add_argument(
+        '-y',
+        action='store_true',
+        dest='y',
+        help='turn off engine security'
+    )
+    base_parser.add_argument(
+        "--logdir", 
+        type=str,
+        dest="logdir",
         help="directory to put log files (default=$IPYTHONDIR/log)",
-        default=pjoin(get_ipython_dir(),'log'))
-    parser_local.add_argument("-n", "--num", type=int, dest="n",default=2,
-        help="the number of engines to start")
+        default=pjoin(get_ipython_dir(),'log')
+    )
+    base_parser.add_argument(
+        "-n",
+        "--num", 
+        type=int,
+        dest="n",
+        default=2,
+        help="the number of engines to start"
+    )
+    
+    parser = argparse.ArgumentParser(
+        description='IPython cluster startup.  This starts a controller and\
+        engines using various approaches'
+    )
+    subparsers = parser.add_subparsers(
+        help='available cluster types.  For help, do "ipcluster TYPE --help"')
+    
+    parser_local = subparsers.add_parser(
+        'local',
+        help='run a local cluster',
+        parents=[base_parser]
+    )
     parser_local.set_defaults(func=main_local)
     
-    parser_local = subparsers.add_parser('mpirun', help='run a cluster using mpirun')
-    parser_local.add_argument("--logdir", type=str, dest="logdir",
-        help="directory to put log files (default=$IPYTHONDIR/log)",
-        default=pjoin(get_ipython_dir(),'log'))
-    parser_local.add_argument("-n", "--num", type=int, dest="n",default=2,
-        help="the number of engines to start")
-    parser_local.add_argument("--mpi", type=str, dest="mpi",default='mpi4py',
-        help="how to call MPI_Init (default=mpi4py)")
-    parser_local.set_defaults(func=main_mpirun)
+    parser_mpirun = subparsers.add_parser(
+        'mpirun',
+        help='run a cluster using mpirun',
+        parents=[base_parser]
+    )
+    parser_mpirun.add_argument(
+        "--mpi",
+        type=str,
+        dest="mpi",
+        default='mpi4py',
+        help="how to call MPI_Init (default=mpi4py)"
+    )
+    parser_mpirun.set_defaults(func=main_mpirun)
     
     parser_pbs = subparsers.add_parser('pbs', help='run a pbs cluster')
     parser_pbs.add_argument('--pbs-script', type=str, dest='pbsscript',
