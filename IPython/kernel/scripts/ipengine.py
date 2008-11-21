@@ -91,7 +91,7 @@ def start_engine():
         try:
             engine_service.execute(shell_import_statement)
         except:
-            log.msg("Error running import_statement: %s" % sis)
+            log.msg("Error running import_statement: %s" % shell_import_statement)
     
     # Create the service hierarchy
     main_service = service.MultiService()

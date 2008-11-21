@@ -14,7 +14,7 @@ However, the interpreter supplied with the standard Python distribution
 is somewhat limited for extended interactive use.
 
 The goal of IPython is to create a comprehensive environment for
-interactive and exploratory computing.  To support, this goal, IPython
+interactive and exploratory computing.  To support this goal, IPython
 has two main components:
 
 * An enhanced interactive Python shell.
