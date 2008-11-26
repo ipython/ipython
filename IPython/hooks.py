@@ -25,7 +25,8 @@ ip = IPython.ipapi.get()
 def calljed(self,filename, linenum):
     "My editor hook calls the jed editor directly."
     print "Calling my own editor, jed ..."
-    os.system('jed +%d %s' % (linenum,filename))
+    if os.system('jed +%d %s' % (linenum,filename)) != 0:
+        raise ipapi.TryNext()
 
 ip.set_hook('editor', calljed)
 
@@ -84,7 +85,8 @@ def editor(self,filename, linenum=None):
         editor = '"%s"' % editor
         
     # Call the actual editor
-    os.system('%s %s %s' % (editor,linemark,filename))
+    if os.system('%s %s %s' % (editor,linemark,filename)) != 0:
+        raise ipapi.TryNext()
 
 import tempfile
 def fix_error_editor(self,filename,linenum,column,msg):
@@ -105,7 +107,8 @@ def fix_error_editor(self,filename,linenum,column,msg):
         return
     t = vim_quickfix_file()
     try:
-        os.system('vim --cmd "set errorformat=%f:%l:%c:%m" -q ' + t.name)
+        if os.system('vim --cmd "set errorformat=%f:%l:%c:%m" -q ' + t.name):
+            raise ipapi.TryNext()
     finally:
         t.close()
 

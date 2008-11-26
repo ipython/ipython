@@ -8,7 +8,7 @@ compatibility)
 """
 
 from IPython import ipapi
-import os,textwrap
+import os,re,textwrap
 
 # The import below effectively obsoletes your old-style ipythonrc[.ini],
 # so consider yourself warned!
@@ -129,7 +129,7 @@ def main():
             # and the next best thing to real 'ls -F'
             ip.defalias('d','dir /w /og /on')
     
-    ip.set_hook('input_prefilter', dotslash_prefilter_f)
+    ip.set_hook('input_prefilter', slash_prefilter_f)
     extend_shell_behavior(ip)
 
 class LastArgFinder:
@@ -151,13 +151,13 @@ class LastArgFinder:
             return parts[-1]
         return ""
 
-def dotslash_prefilter_f(self,line):
-    """ ./foo now runs foo as system command 
+def slash_prefilter_f(self,line):
+    """ ./foo, ~/foo and /bin/foo now run foo as system command
     
-    Removes the need for doing !./foo
+    Removes the need for doing !./foo, !~/foo or !/bin/foo
     """
     import IPython.genutils
-    if line.startswith("./"):
+    if re.match('(?:[.~]|/[a-zA-Z_0-9]+)/', line):
         return "_ip.system(" + IPython.genutils.make_quoted_expr(line)+")"
     raise ipapi.TryNext
 
