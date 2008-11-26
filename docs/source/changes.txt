@@ -27,6 +27,9 @@ Release dev
 New features
 ------------
 
+* The wonderful TextMate editor can now be used with %edit on OS X.  Thanks
+  to Matt Foster for this patch.
+
 * Fully refactored :command:`ipcluster` command line program for starting
   IPython clusters.  This new version is a complete rewrite and 1) is fully
   cross platform (we now use Twisted's process management), 2) has much

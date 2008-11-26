@@ -20,11 +20,11 @@ If you want to use MPI with IPython, you will need to install:
 
     The `mpi4py`_ package is not a strict requirement. However, you need to
     have *some* way of calling MPI from Python. You also need some way of
-    making sure that `MPI_Init` is called when the IPython engines start up.
-    There are a number of ways of doing this and a good number of associated
-    subtleties. We highly recommend just using `mpi4py`_ as it takes care of
-    most of these problems. If you want to do something different, let us know
-    and we can help you get started.
+    making sure that :func:`MPI_Init` is called when the IPython engines start
+    up. There are a number of ways of doing this and a good number of
+    associated subtleties. We highly recommend just using `mpi4py`_ as it
+    takes care of most of these problems. If you want to do something
+    different, let us know and we can help you get started.
 
 Starting the engines with MPI enabled
 =====================================
@@ -33,7 +33,7 @@ To use code that calls `MPI`_, there are typically two things that `MPI`_ requir
 
 1. The process that wants to call `MPI`_ must be started using
    :command:`mpirun` or a batch system (like PBS) that has `MPI`_ support.
-2. Once the process starts, it must call `MPI_Init`.
+2. Once the process starts, it must call :func:`MPI_Init`.
 
 There are a couple of ways that you can start the IPython engines and get these things to happen.
 
@@ -65,12 +65,89 @@ The :command:`ipcluster` command also has built-in integration with PBS. For mor
 Actually using MPI
 ==================
 
-Once the engines are running with `MPI`_ enabled, you are ready to go.  You can now call any code that uses MPI in the IPython engines.  And all of this can be done interactively.
+Once the engines are running with `MPI`_ enabled, you are ready to go.  You can now call any code that uses MPI in the IPython engines.  And, all of this can be done interactively.  Here we show a simple example that uses `mpi4py`_.
+
+First, lets define a simply function that uses MPI to calculate the sum of a distributed array.  Save the following text in a file called :file:`psum.py`::
+
+    from mpi4py import MPI
+    import numpy as np
+    
+    def psum(a):
+        s = np.sum(a)
+        return MPI.COMM_WORLD.Allreduce(s,MPI.SUM)
+
+Now, start an IPython cluster in the same directory as :file:`psum.py`::
+
+    $ ipcluster mpirun -n 4
+
+Finally, connect to the cluster and use this function interactively.  In this case, we create a random array on each engine and sum up all the random arrays using our :func:`psum` function::
+
+    In [1]: from IPython.kernel import client
+    
+    In [2]: mec = client.MultiEngineClient()
+    
+    In [3]: mec.activate()
+    
+    In [4]: px import numpy as np
+    Parallel execution on engines: all
+    Out[4]: 
+    <Results List>
+    [0] In [13]: import numpy as np
+    [1] In [13]: import numpy as np
+    [2] In [13]: import numpy as np
+    [3] In [13]: import numpy as np
+    
+    In [6]: px a = np.random.rand(100)
+    Parallel execution on engines: all
+    Out[6]: 
+    <Results List>
+    [0] In [15]: a = np.random.rand(100)
+    [1] In [15]: a = np.random.rand(100)
+    [2] In [15]: a = np.random.rand(100)
+    [3] In [15]: a = np.random.rand(100)
+    
+    In [7]: px from psum import psum
+    Parallel execution on engines: all
+    Out[7]: 
+    <Results List>
+    [0] In [16]: from psum import psum
+    [1] In [16]: from psum import psum
+    [2] In [16]: from psum import psum
+    [3] In [16]: from psum import psum
+    
+    In [8]: px s = psum(a)
+    Parallel execution on engines: all
+    Out[8]: 
+    <Results List>
+    [0] In [17]: s = psum(a)
+    [1] In [17]: s = psum(a)
+    [2] In [17]: s = psum(a)
+    [3] In [17]: s = psum(a)
+    
+    In [9]: px print s
+    Parallel execution on engines: all
+    Out[9]: 
+    <Results List>
+    [0] In [18]: print s
+    [0] Out[18]: 187.451545803
+    
+    [1] In [18]: print s
+    [1] Out[18]: 187.451545803
+    
+    [2] In [18]: print s
+    [2] Out[18]: 187.451545803
+
+    [3] In [18]: print s
+    [3] Out[18]: 187.451545803
+
+Any Python code that makes calls to MPI [MPIref]_ can be used in this manner.
 
 Complications
 =============
 
 Talk about how some older MPI implementations are broken and need to have a custom Python mail loop.
+
+.. [MPIref] http://www-unix.mcs.anl.gov/mpi/
 
 .. _MPI: http://www-unix.mcs.anl.gov/mpi/
 .. _mpi4py: http://mpi4py.scipy.org/
