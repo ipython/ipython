@@ -65,7 +65,10 @@ def idle(exe = None):
         p = os.path.dirname(idlelib.__file__)
         exe = p + '/idle.py'
     install_editor(exe + ' "$file"')
-        
+
+def mate(exe = 'mate'):
+    """ TextMate, the missing editor"""
+    install_editor(exe + ' -w -l $line "$file"')
 
 # these are untested, report any problems
 
