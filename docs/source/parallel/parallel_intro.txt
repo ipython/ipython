@@ -4,20 +4,17 @@
 Overview and getting started
 ============================
 
-.. contents::
-
 Introduction
 ============
 
-This file gives an overview of IPython's sophisticated and
-powerful architecture for parallel and distributed computing. This
-architecture abstracts out parallelism in a very general way, which
-enables IPython to support many different styles of parallelism
-including:
+This section gives an overview of IPython's sophisticated and powerful
+architecture for parallel and distributed computing. This architecture
+abstracts out parallelism in a very general way, which enables IPython to
+support many different styles of parallelism including:
 
 * Single program, multiple data (SPMD) parallelism.
 * Multiple program, multiple data (MPMD) parallelism.
-* Message passing using ``MPI``.
+* Message passing using MPI.
 * Task farming.
 * Data parallel.
 * Combinations of these approaches.
@@ -97,8 +94,8 @@ The controller also provides a single point of contact for users who wish
 to utilize the engines connected to the controller. There are different
 ways of working with a controller. In IPython these ways correspond to different interfaces that the controller is adapted to.  Currently we have two default interfaces to the controller: 
 
-* The MultiEngine interface, which provides the simplest possible way of working
-  with engines interactively.
+* The MultiEngine interface, which provides the simplest possible way of
+  working with engines interactively.
 * The Task interface, which provides presents the engines as a load balanced
   task farming system.
 
@@ -124,29 +121,27 @@ interface.  Here are the two default clients:
 Security
 --------
 
-By default (as long as `pyOpenSSL` is installed) all network connections between the controller and engines and the controller and clients are secure.  What does this mean?  First of all, all of the connections will be encrypted using SSL.  Second, the connections are authenticated.  We handle authentication in a `capabilities`__ based security model.  In this model,  a "capability (known in some systems as a key) is a communicable, unforgeable token of authority".  Put simply, a capability is like a key to your house.  If you have the key to your house, you can get in.  If not, you can't.  
-
-.. __: http://en.wikipedia.org/wiki/Capability-based_security
+By default (as long as `pyOpenSSL` is installed) all network connections between the controller and engines and the controller and clients are secure.  What does this mean?  First of all, all of the connections will be encrypted using SSL.  Second, the connections are authenticated.  We handle authentication in a capability based security model [Capability]_.  In this model,  a "capability (known in some systems as a key) is a communicable, unforgeable token of authority".  Put simply, a capability is like a key to your house.  If you have the key to your house, you can get in.  If not, you can't.  
 
 In our architecture, the controller is the only process that listens on network ports, and is thus responsible to creating these keys.  In IPython, these keys are known as Foolscap URLs, or FURLs, because of the underlying network protocol we are using.  As a user, you don't need to know anything about the details of these FURLs, other than that when the controller starts, it saves a set of FURLs to files named :file:`something.furl`.  The default location of these files is the :file:`~./ipython/security` directory.
 
-To connect and authenticate to the controller an engine or client simply needs to present an appropriate furl (that was originally created by the controller) to the controller.  Thus, the .furl files need to be copied to a location where the clients and engines can find them.  Typically, this is the :file:`~./ipython/security` directory on the host where the client/engine is running (which could be a different host than the controller).  Once the .furl files are copied over, everything should work fine.
+To connect and authenticate to the controller an engine or client simply needs to present an appropriate FURL (that was originally created by the controller) to the controller.  Thus, the FURL files need to be copied to a location where the clients and engines can find them.  Typically, this is the :file:`~./ipython/security` directory on the host where the client/engine is running (which could be a different host than the controller).  Once the FURL files are copied over, everything should work fine.
 
-Currently, there are three .furl files that the controller creates:
+Currently, there are three FURL files that the controller creates:
 
 ipcontroller-engine.furl
-    This ``.furl`` file is the key that gives an engine the ability to connect
+    This FURL file is the key that gives an engine the ability to connect
     to a controller.
 
 ipcontroller-tc.furl
-    This ``.furl`` file is the key that a :class:`TaskClient` must use to
+    This FURL file is the key that a :class:`TaskClient` must use to
     connect to the task interface of a controller.
     
 ipcontroller-mec.furl
-    This ``.furl`` file is the key that a :class:`MultiEngineClient` must use to
-    connect to the multiengine interface of a controller.
+    This FURL file is the key that a :class:`MultiEngineClient` must use
+    to connect to the multiengine interface of a controller.
 
-More details of how these ``.furl`` files are used are given below.
+More details of how these FURL files are used are given below.
 
 A detailed description of the security model and its implementation in IPython
 can be found :ref:`here <parallelsecurity>`.
@@ -157,13 +152,15 @@ Getting Started
 To use IPython for parallel computing, you need to start one instance of
 the controller and one or more instances of the engine. Initially, it is best to simply start a controller and engines on a single host using the :command:`ipcluster` command.  To start a controller and 4 engines on you localhost, just do::
 
-    $ ipcluster -n 4
+    $ ipcluster local -n 4
 
 More details about starting the IPython controller and engines can be found :ref:`here <parallel_process>`
 
 Once you have started the IPython controller and one or more engines, you
 are ready to use the engines to do something useful. To make sure
-everything is working correctly, try the following commands::
+everything is working correctly, try the following commands:
+
+.. sourcecode:: ipython
 
 	In [1]: from IPython.kernel import client
 	
@@ -187,7 +184,7 @@ everything is working correctly, try the following commands::
 	[3] In [1]: print "Hello World"
 	[3] Out[1]: Hello World
 
-Remember, a client also needs to present a ``.furl`` file to the controller.  How does this happen?  When a multiengine client is created with no arguments, the client tries to find the corresponding ``.furl`` file in the local :file:`~./ipython/security` directory.  If it finds it, you are set.  If you have put the ``.furl`` file in a different location or it has a different name, create the client like this::
+Remember, a client also needs to present a FURL file to the controller.  How does this happen?  When a multiengine client is created with no arguments, the client tries to find the corresponding FURL file in the local :file:`~./ipython/security` directory.  If it finds it, you are set.  If you have put the FURL file in a different location or it has a different name, create the client like this::
 
     mec = client.MultiEngineClient('/path/to/my/ipcontroller-mec.furl')
 
@@ -200,5 +197,9 @@ You are now ready to learn more about the :ref:`MultiEngine <parallelmultiengine
 .. note:: 
 
     Don't forget that the engine, multiengine client and task client all have
-    *different* furl files.  You must move *each* of these around to an appropriate
-    location so that the engines and clients can use them to connect to the controller.
+    *different* furl files. You must move *each* of these around to an
+    appropriate location so that the engines and clients can use them to
+    connect to the controller.
+
+.. [Capability] Capability-based security, http://en.wikipedia.org/wiki/Capability-based_security
+

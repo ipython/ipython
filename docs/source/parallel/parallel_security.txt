@@ -1,6 +1,5 @@
 .. _parallelsecurity:
 
-
 ===========================
 Security details of IPython
 ===========================
@@ -73,31 +72,30 @@ engines and controller are fully encrypted and authenticated. This section
 describes the details of the encryption and authentication approached used
 within IPython.
 
-IPython uses the `Foolscap <http://foolscap.lothar.com/trac>`_ network
-protocol for all communications between processes. Thus, the details of
-IPython's security model are directly related to those of Foolscap. Thus, much
-of the following discussion is actually just a discussion of the security that
-is built in to Foolscap.
+IPython uses the Foolscap network protocol [Foolscap]_ for all communications
+between processes. Thus, the details of IPython's security model are directly
+related to those of Foolscap. Thus, much of the following discussion is
+actually just a discussion of the security that is built in to Foolscap.
 
 Encryption
 ----------
 
 For encryption purposes, IPython and Foolscap use the well known Secure Socket
-Layer (SSL) protocol (`RFC5246 <http://tools.ietf.org/html/rfc5246>`_). We use
-the implementation of this protocol provided by the OpenSSL project through
-the `pyOpenSSL <http://pyopenssl.sourceforge.net/>`_ Python bindings to OpenSSL.
+Layer (SSL) protocol [RFC5246]_. We use the implementation of this protocol
+provided by the OpenSSL project through the pyOpenSSL [pyOpenSSL]_ Python
+bindings to OpenSSL.
 
 Authentication
 --------------
 
 IPython clients and engines must also authenticate themselves with the
-controller. This is handled in a `capabilities based security model
-<http://en.wikipedia.org/wiki/Capability-based_security>`_. In this model, the
-controller creates a strong cryptographic key or token that represents each
-set of capability that the controller offers. Any party who has this key and
-presents it to the controller has full access to the corresponding
-capabilities of the controller. This model is analogous to using a physical
-key to gain access to physical items (capabilities) behind a locked door.
+controller. This is handled in a capabilities based security model
+[Capability]_. In this model, the controller creates a strong cryptographic
+key or token that represents each set of capability that the controller
+offers. Any party who has this key and presents it to the controller has full
+access to the corresponding capabilities of the controller. This model is
+analogous to using a physical key to gain access to physical items
+(capabilities) behind a locked door.
 
 For a capabilities based authentication system to prevent unauthorized access,
 two things must be ensured:
@@ -118,7 +116,7 @@ controller creates a number of FURLs for different purposes:
   to execute.
 
 Upon starting, the controller creates these different FURLS and writes them
-files in the user-read-only directory $HOME/.ipython/security. Thus, only the
+files in the user-read-only directory :file:`$HOME/.ipython/security`. Thus, only the
 user who starts the controller has access to the FURLs.
 
 For an IPython client or engine to authenticate with a controller, it must
@@ -361,3 +359,5 @@ the certificate of their peer. This mutual authentication is handled by the
 SSL handshake and is separate and independent from the additional
 authentication steps that the CLIENT and SERVER perform after an encrypted
 channel is established.
+
+.. [RFC5246] <http://tools.ietf.org/html/rfc5246>

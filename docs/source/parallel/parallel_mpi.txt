@@ -6,36 +6,46 @@ Using MPI with IPython
 
 Often, a parallel algorithm will require moving data between the engines.  One way of accomplishing this is by doing a pull and then a push using the multiengine client.  However, this will be slow as all the data has to go through the controller to the client and then back through the controller, to its final destination.
 
-A much better way of moving data between engines is to use a message passing library, such as the Message Passing Interface (`MPI`_).  IPython's parallel computing architecture has been designed from the ground up to integrate with `MPI`_.  This document describe how to use MPI with IPython.
+A much better way of moving data between engines is to use a message passing library, such as the Message Passing Interface (MPI) [MPI]_.  IPython's parallel computing architecture has been designed from the ground up to integrate with MPI.  This document describes how to use MPI with IPython.
 
 Additional installation requirements
 ====================================
 
 If you want to use MPI with IPython, you will need to install:
 
-* A standard MPI implementation such as `Open MPI`_ or MPICH.
-* The `mpi4py`_ package.
+* A standard MPI implementation such as OpenMPI [OpenMPI]_ or MPICH.
+* The mpi4py [mpi4py]_ package.
 
 .. note::
 
-    The `mpi4py`_ package is not a strict requirement. However, you need to
+    The mpi4py package is not a strict requirement. However, you need to
     have *some* way of calling MPI from Python. You also need some way of
     making sure that :func:`MPI_Init` is called when the IPython engines start
     up. There are a number of ways of doing this and a good number of
-    associated subtleties. We highly recommend just using `mpi4py`_ as it
+    associated subtleties. We highly recommend just using mpi4py as it
     takes care of most of these problems. If you want to do something
     different, let us know and we can help you get started.
 
 Starting the engines with MPI enabled
 =====================================
 
-To use code that calls `MPI`_, there are typically two things that `MPI`_ requires.
+To use code that calls MPI, there are typically two things that MPI requires.
 
-1. The process that wants to call `MPI`_ must be started using
-   :command:`mpirun` or a batch system (like PBS) that has `MPI`_ support.
+1. The process that wants to call MPI must be started using
+   :command:`mpirun` or a batch system (like PBS) that has MPI support.
 2. Once the process starts, it must call :func:`MPI_Init`.
 
 There are a couple of ways that you can start the IPython engines and get these things to happen.
+
+Automatic starting using :command:`mpirun` and :command:`ipcluster`
+-------------------------------------------------------------------
+
+The easiest approach is to use the `mpirun` mode of :command:`ipcluster`, which will first start a controller and then a set of engines using :command:`mpirun`::
+
+    $ ipcluster mpirun -n 4
+
+This approach is best as interrupting :command:`ipcluster` will automatically
+stop and clean up the controller and engines.
 
 Manual starting using :command:`mpirun`
 ---------------------------------------
@@ -44,18 +54,12 @@ If you want to start the IPython engines using the :command:`mpirun`, just do::
 
     $ mpirun -n 4 ipengine --mpi=mpi4py
 
-This requires that you already have a controller running. We also have built
-in support for `PyTrilinos`_, which can be used (assuming `PyTrilinos`_ is
-installed) by starting the engines with::
+This requires that you already have a controller running and that the FURL
+files for the engines are in place. We also have built in support for
+PyTrilinos [PyTrilinos]_, which can be used (assuming is installed) by
+starting the engines with::
 
     	mpirun -n 4 ipengine --mpi=pytrilinos
-
-Automatic starting using :command:`mpirun` and :command:`ipcluster`
--------------------------------------------------------------------
-
-The easiest approach is to use the `mpirun` mode of :command:`ipcluster`, which will first start a controller and then a set of engines using :command:`mpirun`::
-
-    $ ipcluster mpirun -n 4
 
 Automatic starting using PBS and :command:`ipcluster`
 -----------------------------------------------------
@@ -65,9 +69,11 @@ The :command:`ipcluster` command also has built-in integration with PBS. For mor
 Actually using MPI
 ==================
 
-Once the engines are running with `MPI`_ enabled, you are ready to go.  You can now call any code that uses MPI in the IPython engines.  And, all of this can be done interactively.  Here we show a simple example that uses `mpi4py`_.
+Once the engines are running with MPI enabled, you are ready to go.  You can now call any code that uses MPI in the IPython engines.  And, all of this can be done interactively.  Here we show a simple example that uses mpi4py [mpi4py]_.
 
-First, lets define a simply function that uses MPI to calculate the sum of a distributed array.  Save the following text in a file called :file:`psum.py`::
+First, lets define a simply function that uses MPI to calculate the sum of a distributed array.  Save the following text in a file called :file:`psum.py`:
+
+.. sourcecode:: python
 
     from mpi4py import MPI
     import numpy as np
@@ -80,7 +86,9 @@ Now, start an IPython cluster in the same directory as :file:`psum.py`::
 
     $ ipcluster mpirun -n 4
 
-Finally, connect to the cluster and use this function interactively.  In this case, we create a random array on each engine and sum up all the random arrays using our :func:`psum` function::
+Finally, connect to the cluster and use this function interactively.  In this case, we create a random array on each engine and sum up all the random arrays using our :func:`psum` function:
+
+.. sourcecode:: ipython
 
     In [1]: from IPython.kernel import client
     
@@ -140,16 +148,10 @@ Finally, connect to the cluster and use this function interactively.  In this ca
     [3] In [18]: print s
     [3] Out[18]: 187.451545803
 
-Any Python code that makes calls to MPI [MPIref]_ can be used in this manner.
+Any Python code that makes calls to MPI can be used in this manner, including
+compiled C, C++ and Fortran libraries that have been exposed to Python.
 
-Complications
-=============
-
-Talk about how some older MPI implementations are broken and need to have a custom Python mail loop.
-
-.. [MPIref] http://www-unix.mcs.anl.gov/mpi/
-
-.. _MPI: http://www-unix.mcs.anl.gov/mpi/
-.. _mpi4py: http://mpi4py.scipy.org/
-.. _Open MPI: http://www.open-mpi.org/
-.. _PyTrilinos: http://trilinos.sandia.gov/packages/pytrilinos/
+.. [MPI] Message Passing Interface.  http://www-unix.mcs.anl.gov/mpi/
+.. [mpi4py] MPI for Python. mpi4py: http://mpi4py.scipy.org/
+.. [OpenMPI] Open MPI. http://www.open-mpi.org/
+.. [PyTrilinos] PyTrilinos. http://trilinos.sandia.gov/packages/pytrilinos/

@@ -4,8 +4,6 @@
 Quick IPython tutorial
 ======================
 
-.. contents::
-
 IPython can be used as an improved replacement for the Python prompt,
 and for that you don't really need to read any more of this manual. But
 in this section we'll try to summarize a few tips on how to make the

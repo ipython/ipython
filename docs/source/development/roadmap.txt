@@ -4,8 +4,6 @@
 Development roadmap
 ===================
 
-.. contents::
-
 IPython is an ambitious project that is still under heavy development.  However, we want IPython to become useful to as many people as possible, as quickly as possible.  To help us accomplish this, we are laying out a roadmap of where we are headed and what needs to happen to get there.  Hopefully, this will help the IPython developers figure out the best things to work on for each upcoming release.
 
 Speaking of releases, we are going to begin releasing a new version of IPython every four weeks.  We are hoping that a regular release schedule, along with a clear roadmap of where we are headed will propel the project forward.

@@ -4,8 +4,6 @@
 The IPython task interface
 ==========================
 
-.. contents::
-
 The task interface to the controller presents the engines as a fault tolerant, dynamic load-balanced system or workers. Unlike the multiengine interface, in the task interface, the user have no direct access to individual engines. In some ways, this interface is simpler, but in other ways it is more powerful.
 
 Best of all the user can use both of these interfaces running at the same time to take advantage or both of their strengths.  When the user can break up the user's work into segments that do not depend on previous execution, the task interface is ideal.  But it also has more power and flexibility, allowing the user to guide the distribution of jobs, without having to assign tasks to engines explicitly.
@@ -17,7 +15,7 @@ To follow along with this tutorial, you will need to start the IPython
 controller and four IPython engines. The simplest way of doing this is to use
 the :command:`ipcluster` command::
 
-	$ ipcluster -n 4
+	$ ipcluster local -n 4
 	
 For more detailed information about starting the controller and engines, see
 our :ref:`introduction <ip1par>` to using IPython for parallel computing.
@@ -26,7 +24,9 @@ Creating a ``TaskClient`` instance
 =========================================
 
 The first step is to import the IPython :mod:`IPython.kernel.client` module
-and then create a :class:`TaskClient` instance::
+and then create a :class:`TaskClient` instance:
+
+.. sourcecode:: ipython
 
 	In [1]: from IPython.kernel import client
 	
@@ -34,10 +34,12 @@ and then create a :class:`TaskClient` instance::
 
 This form assumes that the :file:`ipcontroller-tc.furl` is in the
 :file:`~./ipython/security` directory on the client's host. If not, the
-location of the ``.furl`` file must be given as an argument to the
-constructor::
+location of the FURL file must be given as an argument to the
+constructor:
 
-    In[2]: mec = client.TaskClient('/path/to/my/ipcontroller-tc.furl')
+.. sourcecode:: ipython
+
+    In [2]: mec = client.TaskClient('/path/to/my/ipcontroller-tc.furl')
 
 Quick and easy parallelism
 ==========================
@@ -47,7 +49,9 @@ In many cases, you simply want to apply a Python function to a sequence of objec
 Parallel map
 ------------
 
-The parallel :meth:`map` in the task interface is similar to that in the multiengine interface::
+The parallel :meth:`map` in the task interface is similar to that in the multiengine interface:
+
+.. sourcecode:: ipython
 
 	In [63]: serial_result = map(lambda x:x**10, range(32))
 
@@ -59,7 +63,9 @@ The parallel :meth:`map` in the task interface is similar to that in the multien
 Parallel function decorator
 ---------------------------
 
-Parallel functions are just like normal function, but they can be called on sequences and *in parallel*.  The multiengine interface provides a decorator that turns any Python function into a parallel function::
+Parallel functions are just like normal function, but they can be called on sequences and *in parallel*.  The multiengine interface provides a decorator that turns any Python function into a parallel function:
+
+.. sourcecode:: ipython
 
     In [10]: @tc.parallel()
        ....: def f(x):

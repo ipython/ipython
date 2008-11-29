@@ -358,7 +358,8 @@ def main_mpirun(args):
         raw_args.append('ipengine')
         raw_args.append('-l')
         raw_args.append(pjoin(args.logdir,'ipengine%s-' % cont_pid))
-        raw_args.append('--mpi=%s' % args.mpi)
+        if args.mpi:
+            raw_args.append('--mpi=%s' % args.mpi)
         eset = ProcessLauncher(raw_args)
         def shutdown(signum, frame):
             log.msg('Stopping local cluster')
@@ -454,8 +455,7 @@ def get_args():
     parser_mpirun.add_argument(
         "--mpi",
         type=str,
-        dest="mpi",
-        default='mpi4py',
+        dest="mpi", # Don't put a default here to allow no MPI support
         help="how to call MPI_Init (default=mpi4py)"
     )
     parser_mpirun.set_defaults(func=main_mpirun)

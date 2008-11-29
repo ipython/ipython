@@ -119,7 +119,13 @@ Most users on OS X will want to get the full :mod:`readline` module.  To get a w
 
 If needed, the readline egg can be build and installed from source (see the wiki page at http://ipython.scipy.org/moin/InstallationOSXLeopard).
 
-On Windows, you will need the PyReadline module.  PyReadline is a separate, Windows only implementation of readline that uses native Windows calls through :mod:`ctypes`.  The easiest way of installing PyReadline is you use the binary installer available `here <http://ipython.scipy.org/dist/>`_.  The :mod:`ctypes` module, which comes with Python 2.5 and greater, is required by PyReadline.  It is available for Python 2.4 at http://python.net/crew/theller/ctypes.
+On Windows, you will need the PyReadline module. PyReadline is a separate,
+Windows only implementation of readline that uses native Windows calls through
+:mod:`ctypes`. The easiest way of installing PyReadline is you use the binary
+installer available `here <http://ipython.scipy.org/dist/>`_. The
+:mod:`ctypes` module, which comes with Python 2.5 and greater, is required by
+PyReadline. It is available for Python 2.4 at
+http://python.net/crew/theller/ctypes.
 
 nose
 ----
@@ -164,7 +170,9 @@ On a Unix style platform (including OS X), if you want to use :mod:`setuptools`,
 zope.interface and Twisted
 --------------------------
 
-On Unix style platforms (including OS X), the simplest way of getting the these is to use :command:`easy_install`::
+Twisted [Twisted]_ and zope.interface [ZopeInterface]_ are used for networking related things. On Unix
+style platforms (including OS X), the simplest way of getting the these is to
+use :command:`easy_install`::
 
 	$ easy_install zope.interface
 	$ easy_install Twisted
@@ -176,7 +184,7 @@ Windows is a bit different.  For zope.interface and Twisted, simply get the late
 Foolscap
 --------
 
-Foolscap uses Twisted to provide a very nice secure RPC protocol that we use to implement our parallel computing features.
+Foolscap [Foolscap]_ uses Twisted to provide a very nice secure RPC protocol that we use to implement our parallel computing features.
 
 On all platforms a simple::
 
@@ -187,7 +195,7 @@ should work.  You can also download the source tarballs from the `Foolscap websi
 pyOpenSSL
 ---------
 
-IPython requires an older version of pyOpenSSL (0.6 rather than the current 0.7).  There are a couple of options for getting this:
+IPython requires an older version of pyOpenSSL [pyOpenSSL]_ (0.6 rather than the current 0.7).  There are a couple of options for getting this:
 
 1.  Most Linux distributions have packages for pyOpenSSL.
 2.  The built-in Python 2.5 on OS X 10.5 already has it installed.
@@ -201,4 +209,9 @@ Dependencies for IPython.frontend (the IPython GUI)
 wxPython
 --------
 
-Starting with IPython 0.9, IPython has a new IPython.frontend package that has a nice wxPython based IPython GUI.  As you would expect, this GUI requires wxPython.  Most Linux distributions have wxPython packages available and the built-in Python on OS X comes with wxPython preinstalled.  For Windows, a binary installer is available on the `wxPython website <http://www.wxpython.org/>`_. 
+Starting with IPython 0.9, IPython has a new IPython.frontend package that has a nice wxPython based IPython GUI.  As you would expect, this GUI requires wxPython.  Most Linux distributions have wxPython packages available and the built-in Python on OS X comes with wxPython preinstalled.  For Windows, a binary installer is available on the `wxPython website <http://www.wxpython.org/>`_.
+
+.. [Twisted] Twisted matrix.  http://twistedmatrix.org
+.. [ZopeInterface] http://pypi.python.org/pypi/zope.interface
+.. [Foolscap] Foolscap network protocol.  http://foolscap.lothar.com/trac
+.. [pyOpenSSL] pyOpenSSL.  http://pyopenssl.sourceforge.net
