@@ -2,6 +2,8 @@
 Notes on the IPython configuration system
 =========================================
 
+This document has some random notes on the configuration system.
+
 To start, an IPython process needs:
 
 * Configuration files
