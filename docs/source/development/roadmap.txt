@@ -16,22 +16,30 @@ Release 0.10
 
 * Better TextMate integration.
 
+* Merge in the daemon branch.
+
 Release 0.11
 ------------
 
-* Refactor of configuration system and command line options for
+* Refactor the configuration system and command line options for
   :command:`ipengine` and :command:`ipcontroller`. This will include the
   creation of cluster directories that encapsulate all the configuration
   files, log files and security related files for a particular cluster.
 
-* Merge in the daemon branch.
+* Refactor :command:`ipcluster` to support the new configuration system.
+
+* Refactor the daemon stuff to support the new configuration system.
 
 * Merge back in the core of the notebook.
 
 Release 0.12
 ------------
 
-* Integrate process startup with the daemons for full process management.
+* Fully integrate process startup with the daemons for full process 
+  management.
+
+* Make the capabilites of :command:`ipcluster` available from simple Python 
+  classes.
 
 Major areas of work
 ===================
