@@ -35,7 +35,7 @@ except ImportError:
     #Add entries that needs to be stubbed by the testing code
     (wreg.OpenKey, wreg.QueryValueEx,) = (None, None)
 
-skip_if_not_win32 = skipif(sys.platform!='win32',"This test only runs under Windows")
+#skip_if_not_win32 = skipif(sys.platform!='win32',"This test only runs under Windows")
     
 def setup_environment():
     global oldstuff, platformstuff
@@ -139,7 +139,7 @@ def test_get_home_dir_8():
     assert home_dir==abspath(join(".", "home_test_dir"))
 
 # Should we stub wreg fully so we can run the test on all platforms?
-@skip_if_not_win32
+#@skip_if_not_win32
 @with_enivronment
 def test_get_home_dir_9():
     """Testcase $HOME is not set, os=='nt' 
