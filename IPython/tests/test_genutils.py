@@ -30,7 +30,7 @@ try:
 except ImportError:
     #Fake _winreg module on none windows platforms
     import new
-    sys.modules["_winreg"]=new.module("_winreg")
+    sys.modules["_winreg"] = new.module("_winreg")
     import _winreg as wreg
     #Add entries that needs to be stubbed by the testing code
     (wreg.OpenKey, wreg.QueryValueEx,) = (None, None)
@@ -41,8 +41,8 @@ def setup_environment():
     global oldstuff, platformstuff
     oldstuff = (env.copy(), os.name, genutils.get_home_dir, IPython.__file__,)
 
-    if os.name=='nt':
-        platformstuff=(wreg.OpenKey, wreg.QueryValueEx,)
+    if os.name == 'nt':
+        platformstuff = (wreg.OpenKey, wreg.QueryValueEx,)
 
     if 'IPYTHONDIR' in env:
         del env['IPYTHONDIR']
@@ -55,10 +55,10 @@ def teardown_environment():
     env.update(oldenv)
     if hasattr(sys, 'frozen'):
         del sys.frozen
-    if os.name=='nt':
-        (wreg.OpenKey, wreg.QueryValueEx,)=platformstuff
+    if os.name == 'nt':
+        (wreg.OpenKey, wreg.QueryValueEx,) = platformstuff
 
-with_enivronment=with_setup(setup_environment, teardown_environment)
+with_enivronment = with_setup(setup_environment, teardown_environment)
 
 
 
@@ -72,13 +72,13 @@ def test_get_home_dir_1():
 def test_get_home_dir_2():
     """Testcase for py2exe logic, un-compressed lib
     """
-    sys.frozen=True
+    sys.frozen = True
     
     #fake filename for IPython.__init__
-    IPython.__file__=abspath(join(".", "home_test_dir/Lib/IPython/__init__.py"))
+    IPython.__file__ = abspath(join(".", "home_test_dir/Lib/IPython/__init__.py"))
     
     home_dir = genutils.get_home_dir()
-    assert home_dir==abspath(join(".", "home_test_dir"))
+    assert home_dir == abspath(join(".", "home_test_dir"))
     
 @with_enivronment
 def test_get_home_dir_3():
@@ -86,24 +86,24 @@ def test_get_home_dir_3():
     """
     sys.frozen=True
     #fake filename for IPython.__init__
-    IPython.__file__=abspath(join(".", "home_test_dir/Library.zip/IPython/__init__.py"))
+    IPython.__file__ = abspath(join(".", "home_test_dir/Library.zip/IPython/__init__.py"))
     
     home_dir = genutils.get_home_dir()
-    assert home_dir==abspath(join(".", "home_test_dir")).lower()
+    assert home_dir == abspath(join(".", "home_test_dir")).lower()
 
 @with_enivronment
 def test_get_home_dir_4():
     """Testcase $HOME is set, then use its value as home directory."""
-    env["HOME"]=join(".","home_test_dir")
+    env["HOME"] = join(".","home_test_dir")
     home_dir = genutils.get_home_dir()
-    assert home_dir==env["HOME"]
+    assert home_dir == env["HOME"]
 
 @with_enivronment
 def test_get_home_dir_5():
     """Testcase $HOME is not set, os=='posix'. 
     This should fail with HomeDirError"""
     
-    os.name='posix'
+    os.name = 'posix'
     del os.environ["HOME"]
     try:
         genutils.get_home_dir()
@@ -116,12 +116,12 @@ def test_get_home_dir_6():
     """Testcase $HOME is not set, os=='nt' 
     env['HOMEDRIVE'],env['HOMEPATH'] points to path."""
     
-    os.name='nt'
+    os.name = 'nt'
     del os.environ["HOME"]
-    env['HOMEDRIVE'],env['HOMEPATH']=os.path.abspath("."),"home_test_dir"
+    env['HOMEDRIVE'],env['HOMEPATH'] = os.path.abspath("."),"home_test_dir"
 
     home_dir = genutils.get_home_dir()
-    assert home_dir==abspath(join(".", "home_test_dir"))
+    assert home_dir == abspath(join(".", "home_test_dir"))
 
 @with_enivronment
 def test_get_home_dir_8():
@@ -130,13 +130,13 @@ def test_get_home_dir_8():
     env['USERPROFILE'] points to path
     """
 
-    os.name='nt'
+    os.name = 'nt'
     del os.environ["HOME"]
-    env['HOMEDRIVE'],env['HOMEPATH']=os.path.abspath("."),"DOES NOT EXIST"
-    env["USERPROFILE"]=abspath(join(".","home_test_dir"))
+    env['HOMEDRIVE'],env['HOMEPATH'] = os.path.abspath("."),"DOES NOT EXIST"
+    env["USERPROFILE"] = abspath(join(".","home_test_dir"))
 
     home_dir = genutils.get_home_dir()
-    assert home_dir==abspath(join(".", "home_test_dir"))
+    assert home_dir == abspath(join(".", "home_test_dir"))
 
 # Should we stub wreg fully so we can run the test on all platforms?
 #@skip_if_not_win32
@@ -145,23 +145,23 @@ def test_get_home_dir_9():
     """Testcase $HOME is not set, os=='nt' 
     env['HOMEDRIVE'],env['HOMEPATH'], env['USERPROFILE'] missing
     """
-    os.name='nt'
+    os.name = 'nt'
     del env["HOME"],env['HOMEDRIVE']
 
     #Stub windows registry functions
-    def OpenKey(x,y):
+    def OpenKey(x, y):
         class key:
             def Close(self):
                 pass
         return key()
-    def QueryValueEx(x,y):
+    def QueryValueEx(x, y):
         return [abspath(join(".", "home_test_dir"))]
 
-    wreg.OpenKey=OpenKey
-    wreg.QueryValueEx=QueryValueEx
+    wreg.OpenKey = OpenKey
+    wreg.QueryValueEx = QueryValueEx
 
     home_dir = genutils.get_home_dir()
-    assert home_dir==abspath(join(".", "home_test_dir"))
+    assert home_dir == abspath(join(".", "home_test_dir"))
 
 
 #
@@ -177,7 +177,7 @@ def test_get_ipython_dir_1():
 @with_enivronment
 def test_get_ipython_dir_2():
     """2 Testcase to see if we can call get_ipython_dir without Exceptions."""
-    env['IPYTHONDIR']="someplace/.ipython"
+    env['IPYTHONDIR'] = "someplace/.ipython"
     ipdir = genutils.get_ipython_dir()
     assert ipdir == os.path.abspath("someplace/.ipython")
 
@@ -186,15 +186,15 @@ def test_get_ipython_dir_2():
 def test_get_ipython_dir_3():
     """3 Testcase to see if we can call get_ipython_dir without Exceptions."""
     genutils.get_home_dir=lambda : "someplace"
-    os.name="posix"
+    os.name = "posix"
     ipdir = genutils.get_ipython_dir()
     assert ipdir == os.path.abspath(os.path.join("someplace", ".ipython"))
 
 @with_enivronment
 def test_get_ipython_dir_4():
     """4 Testcase to see if we can call get_ipython_dir without Exceptions."""
-    genutils.get_home_dir=lambda : "someplace"
-    os.name="nt"
+    genutils.get_home_dir = lambda : "someplace"
+    os.name = "nt"
     ipdir = genutils.get_ipython_dir()
     assert ipdir == os.path.abspath(os.path.join("someplace", "_ipython"))
 
@@ -214,30 +214,30 @@ def test_get_security_dir():
 #
 
 def test_popkey_1():
-    dct=dict(a=1, b=2, c=3)
-    assert genutils.popkey(dct, "a")==1
-    assert dct==dict(b=2, c=3)
-    assert genutils.popkey(dct, "b")==2
-    assert dct==dict(c=3)
-    assert genutils.popkey(dct, "c")==3
-    assert dct==dict()
+    dct = dict(a=1, b=2, c=3)
+    assert genutils.popkey(dct, "a") == 1
+    assert dct == dict(b=2, c=3)
+    assert genutils.popkey(dct, "b") == 2
+    assert dct == dict(c=3)
+    assert genutils.popkey(dct, "c") == 3
+    assert dct == dict()
 
 @raises(KeyError)
 def test_popkey_2():
-    dct=dict(a=1, b=2, c=3)
+    dct = dict(a=1, b=2, c=3)
     genutils.popkey(dct, "d")
 
 def test_popkey_3():
-    dct=dict(a=1, b=2, c=3)
+    dct = dict(a=1, b=2, c=3)
     assert genutils.popkey(dct, "A", 13)==13
-    assert dct==dict(a=1, b=2, c=3)
+    assert dct == dict(a=1, b=2, c=3)
     assert genutils.popkey(dct, "B", 14)==14
-    assert dct==dict(a=1, b=2, c=3)
+    assert dct == dict(a=1, b=2, c=3)
     assert genutils.popkey(dct, "C", 15)==15
-    assert dct==dict(a=1, b=2, c=3)
+    assert dct == dict(a=1, b=2, c=3)
     assert genutils.popkey(dct, "a")==1
-    assert dct==dict(b=2, c=3)
+    assert dct == dict(b=2, c=3)
     assert genutils.popkey(dct, "b")==2
-    assert dct==dict(c=3)
+    assert dct == dict(c=3)
     assert genutils.popkey(dct, "c")==3
-    assert dct==dict()
+    assert dct == dict()
