@@ -28,7 +28,12 @@ from os.path import join, abspath
 try:
     import _winreg as wreg
 except ImportError:
-    pass
+    #Fake _winreg module on none windows platforms
+    import new
+    sys.modules["_winreg"]=new.module("_winreg")
+    import _winreg as wreg
+    #Add entries that needs to be stubbed by the testing code
+    (wreg.OpenKey, wreg.QueryValueEx,) = (None, None)
 
 skip_if_not_win32 = skipif(sys.platform!='win32',"This test only runs under Windows")
     
@@ -54,6 +59,9 @@ def teardown_environment():
         (wreg.OpenKey, wreg.QueryValueEx,)=platformstuff
 
 with_enivronment=with_setup(setup_environment, teardown_environment)
+
+
+
 
 @with_enivronment
 def test_get_home_dir_1():
@@ -130,8 +138,6 @@ def test_get_home_dir_8():
     home_dir = genutils.get_home_dir()
     assert home_dir==abspath(join(".", "home_test_dir"))
 
-
-
 # Should we stub wreg fully so we can run the test on all platforms?
 @skip_if_not_win32
 @with_enivronment
@@ -193,7 +199,6 @@ def test_get_ipython_dir_4():
     assert ipdir == os.path.abspath(os.path.join("someplace", "_ipython"))
 
 
-
 #
 # Tests for get_security_dir
 #
@@ -204,8 +209,9 @@ def test_get_security_dir():
     sdir = genutils.get_security_dir()
 
 
-
-
+#
+# Tests for popkey
+#
 
 def test_popkey_1():
     dct=dict(a=1, b=2, c=3)
