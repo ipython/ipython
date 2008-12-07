@@ -1,0 +1,33 @@
+=========================================
+Notes on the IPython configuration system
+=========================================
+
+This document has some random notes on the configuration system.
+
+To start, an IPython process needs:
+
+* Configuration files
+* Command line options
+* Additional files (FURL files, extra scripts, etc.)
+
+It feeds these things into the core logic of the process, and as output,
+produces:
+
+* Log files
+* Security files
+
+There are a number of things that complicate this:
+
+* A process may need to be started on a different host that doesn't have
+  any of the config files or additional files.  Those files need to be
+  moved over and put in a staging area.  The process then needs to be told
+  about them.
+* The location of the output files should somehow be set by config files or
+  command line options.
+* Our config files are very hierarchical, but command line options are flat,
+  making it difficult to relate command line options to config files.
+* Some processes (like ipcluster and the daemons) have to manage the input and
+  output files for multiple different subprocesses, each possibly on a
+  different host.  Ahhhh!
+* Our configurations are not singletons.  A given user will likely have
+  many different configurations for different clusters.

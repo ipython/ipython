@@ -1,7 +1,6 @@
-include README_Windows.txt
-include win32_manual_post_install.py
 include ipython.py
 include setupbase.py
+include setupegg.py
 
 graft scripts
 

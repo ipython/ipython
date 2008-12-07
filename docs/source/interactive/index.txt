@@ -3,7 +3,7 @@ Using IPython for interactive work
 ==================================
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
 
    tutorial.txt
    reference.txt
