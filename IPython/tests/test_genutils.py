@@ -62,16 +62,8 @@ def teardown_environment():
 
 with_enivronment = with_setup(setup_environment, teardown_environment)
 
-
-
-
 @with_enivronment
 def test_get_home_dir_1():
-    """Testcase to see if we can call get_home_dir without Exceptions."""
-    home_dir = genutils.get_home_dir()
-    
-@with_enivronment
-def test_get_home_dir_2():
     """Testcase for py2exe logic, un-compressed lib
     """
     sys.frozen = True
@@ -83,7 +75,7 @@ def test_get_home_dir_2():
     assert home_dir == abspath(join(test_file_path, "home_test_dir"))
     
 @with_enivronment
-def test_get_home_dir_3():
+def test_get_home_dir_2():
     """Testcase for py2exe logic, compressed lib
     """
     sys.frozen=True
@@ -94,14 +86,14 @@ def test_get_home_dir_3():
     assert home_dir == abspath(join(test_file_path, "home_test_dir")).lower()
 
 @with_enivronment
-def test_get_home_dir_4():
+def test_get_home_dir_3():
     """Testcase $HOME is set, then use its value as home directory."""
     env["HOME"] = join(test_file_path,"home_test_dir")
     home_dir = genutils.get_home_dir()
     assert home_dir == env["HOME"]
 
 @with_enivronment
-def test_get_home_dir_5():
+def test_get_home_dir_4():
     """Testcase $HOME is not set, os=='posix'. 
     This should fail with HomeDirError"""
     
@@ -114,7 +106,7 @@ def test_get_home_dir_5():
         pass
         
 @with_enivronment
-def test_get_home_dir_6():
+def test_get_home_dir_5():
     """Testcase $HOME is not set, os=='nt' 
     env['HOMEDRIVE'],env['HOMEPATH'] points to path."""
     
@@ -126,7 +118,7 @@ def test_get_home_dir_6():
     assert home_dir == abspath(join(test_file_path, "home_test_dir"))
 
 @with_enivronment
-def test_get_home_dir_8():
+def test_get_home_dir_6():
     """Testcase $HOME is not set, os=='nt' 
     env['HOMEDRIVE'],env['HOMEPATH'] do not point to path.
     env['USERPROFILE'] points to path
@@ -143,7 +135,7 @@ def test_get_home_dir_8():
 # Should we stub wreg fully so we can run the test on all platforms?
 #@skip_if_not_win32
 @with_enivronment
-def test_get_home_dir_9():
+def test_get_home_dir_7():
     """Testcase $HOME is not set, os=='nt' 
     env['HOMEDRIVE'],env['HOMEPATH'], env['USERPROFILE'] missing
     """
@@ -172,12 +164,6 @@ def test_get_home_dir_9():
 
 @with_enivronment
 def test_get_ipython_dir_1():
-    """1 Testcase to see if we can call get_ipython_dir without Exceptions."""
-    ipdir = genutils.get_ipython_dir()
-
-
-@with_enivronment
-def test_get_ipython_dir_2():
     """2 Testcase to see if we can call get_ipython_dir without Exceptions."""
     env['IPYTHONDIR'] = "someplace/.ipython"
     ipdir = genutils.get_ipython_dir()
@@ -185,7 +171,7 @@ def test_get_ipython_dir_2():
 
 
 @with_enivronment
-def test_get_ipython_dir_3():
+def test_get_ipython_dir_2():
     """3 Testcase to see if we can call get_ipython_dir without Exceptions."""
     genutils.get_home_dir=lambda : "someplace"
     os.name = "posix"
@@ -193,7 +179,7 @@ def test_get_ipython_dir_3():
     assert ipdir == os.path.abspath(os.path.join("someplace", ".ipython"))
 
 @with_enivronment
-def test_get_ipython_dir_4():
+def test_get_ipython_dir_3():
     """4 Testcase to see if we can call get_ipython_dir without Exceptions."""
     genutils.get_home_dir = lambda : "someplace"
     os.name = "nt"
