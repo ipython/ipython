@@ -22,6 +22,7 @@ from nose.tools import raises
 
 from os.path import join, abspath, split
 import os, sys, IPython
+import nose.tools as nt
 
 env = os.environ
 
@@ -72,7 +73,7 @@ def test_get_home_dir_1():
     IPython.__file__ = abspath(join(test_file_path, "home_test_dir/Lib/IPython/__init__.py"))
     
     home_dir = genutils.get_home_dir()
-    assert home_dir == abspath(join(test_file_path, "home_test_dir"))
+    nt.assert_equal(home_dir, abspath(join(test_file_path, "home_test_dir")))
     
 @with_enivronment
 def test_get_home_dir_2():
@@ -83,14 +84,14 @@ def test_get_home_dir_2():
     IPython.__file__ = abspath(join(test_file_path, "home_test_dir/Library.zip/IPython/__init__.py"))
     
     home_dir = genutils.get_home_dir()
-    assert home_dir == abspath(join(test_file_path, "home_test_dir")).lower()
+    nt.assert_equal(home_dir, abspath(join(test_file_path, "home_test_dir")).lower())
 
 @with_enivronment
 def test_get_home_dir_3():
     """Testcase $HOME is set, then use its value as home directory."""
     env["HOME"] = join(test_file_path, "home_test_dir")
     home_dir = genutils.get_home_dir()
-    assert home_dir == env["HOME"]
+    nt.assert_equal(home_dir, env["HOME"])
 
 @with_enivronment
 def test_get_home_dir_4():
@@ -99,11 +100,7 @@ def test_get_home_dir_4():
     
     os.name = 'posix'
     del os.environ["HOME"]
-    try:
-        genutils.get_home_dir()
-        assert False
-    except genutils.HomeDirError:
-        pass
+    nt.assert_raises(genutils.HomeDirError, genutils.get_home_dir)
         
 @with_enivronment
 def test_get_home_dir_5():
@@ -115,7 +112,7 @@ def test_get_home_dir_5():
     env['HOMEDRIVE'], env['HOMEPATH'] = os.path.abspath(test_file_path), "home_test_dir"
 
     home_dir = genutils.get_home_dir()
-    assert home_dir == abspath(join(test_file_path, "home_test_dir"))
+    nt.assert_equal(home_dir, abspath(join(test_file_path, "home_test_dir")))
 
 @with_enivronment
 def test_get_home_dir_6():
@@ -130,7 +127,7 @@ def test_get_home_dir_6():
     env["USERPROFILE"] = abspath(join(test_file_path, "home_test_dir"))
 
     home_dir = genutils.get_home_dir()
-    assert home_dir == abspath(join(test_file_path, "home_test_dir"))
+    nt.assert_equal(home_dir, abspath(join(test_file_path, "home_test_dir")))
 
 # Should we stub wreg fully so we can run the test on all platforms?
 #@skip_if_not_win32
@@ -155,7 +152,7 @@ def test_get_home_dir_7():
     wreg.QueryValueEx = QueryValueEx
 
     home_dir = genutils.get_home_dir()
-    assert home_dir == abspath(join(test_file_path, "home_test_dir"))
+    nt.assert_equal(home_dir, abspath(join(test_file_path, "home_test_dir")))
 
 
 #
@@ -167,7 +164,7 @@ def test_get_ipython_dir_1():
     """2 Testcase to see if we can call get_ipython_dir without Exceptions."""
     env['IPYTHONDIR'] = "someplace/.ipython"
     ipdir = genutils.get_ipython_dir()
-    assert ipdir == os.path.abspath("someplace/.ipython")
+    nt.assert_equal(ipdir, os.path.abspath("someplace/.ipython"))
 
 
 @with_enivronment
@@ -176,7 +173,7 @@ def test_get_ipython_dir_2():
     genutils.get_home_dir = lambda : "someplace"
     os.name = "posix"
     ipdir = genutils.get_ipython_dir()
-    assert ipdir == os.path.abspath(os.path.join("someplace", ".ipython"))
+    nt.assert_equal(ipdir, os.path.abspath(os.path.join("someplace", ".ipython")))
 
 @with_enivronment
 def test_get_ipython_dir_3():
@@ -184,7 +181,7 @@ def test_get_ipython_dir_3():
     genutils.get_home_dir = lambda : "someplace"
     os.name = "nt"
     ipdir = genutils.get_ipython_dir()
-    assert ipdir == os.path.abspath(os.path.join("someplace", "_ipython"))
+    nt.assert_equal(ipdir, os.path.abspath(os.path.join("someplace", "_ipython")))
 
 
 #
@@ -203,29 +200,28 @@ def test_get_security_dir():
 
 def test_popkey_1():
     dct = dict(a=1, b=2, c=3)
-    assert genutils.popkey(dct, "a") == 1
-    assert dct == dict(b=2, c=3)
-    assert genutils.popkey(dct, "b") == 2
-    assert dct == dict(c=3)
-    assert genutils.popkey(dct, "c") == 3
-    assert dct == dict()
+    nt.assert_equal(genutils.popkey(dct, "a"), 1)
+    nt.assert_equal(dct, dict(b=2, c=3))
+    nt.assert_equal(genutils.popkey(dct, "b"), 2)
+    nt.assert_equal(dct, dict(c=3))
+    nt.assert_equal(genutils.popkey(dct, "c"), 3)
+    nt.assert_equal(dct, dict())
 
-@raises(KeyError)
 def test_popkey_2():
     dct = dict(a=1, b=2, c=3)
-    genutils.popkey(dct, "d")
+    nt.assert_raises(KeyError, genutils.popkey, dct, "d")
 
 def test_popkey_3():
     dct = dict(a=1, b=2, c=3)
-    assert genutils.popkey(dct, "A", 13) == 13
-    assert dct == dict(a=1, b=2, c=3)
-    assert genutils.popkey(dct, "B", 14) == 14
-    assert dct == dict(a=1, b=2, c=3)
-    assert genutils.popkey(dct, "C", 15) == 15
-    assert dct == dict(a=1, b=2, c=3)
-    assert genutils.popkey(dct, "a") == 1
-    assert dct == dict(b=2, c=3)
-    assert genutils.popkey(dct, "b") == 2
-    assert dct == dict(c=3)
-    assert genutils.popkey(dct, "c") == 3
-    assert dct == dict()
+    nt.assert_equal(genutils.popkey(dct, "A", 13), 13)
+    nt.assert_equal(dct, dict(a=1, b=2, c=3))
+    nt.assert_equal(genutils.popkey(dct, "B", 14), 14)
+    nt.assert_equal(dct, dict(a=1, b=2, c=3))
+    nt.assert_equal(genutils.popkey(dct, "C", 15), 15)
+    nt.assert_equal(dct, dict(a=1, b=2, c=3))
+    nt.assert_equal(genutils.popkey(dct, "a"), 1)
+    nt.assert_equal(dct, dict(b=2, c=3))
+    nt.assert_equal(genutils.popkey(dct, "b"), 2)
+    nt.assert_equal(dct, dict(c=3))
+    nt.assert_equal(genutils.popkey(dct, "c"), 3)
+    nt.assert_equal(dct, dict())
