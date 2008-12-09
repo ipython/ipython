@@ -23,7 +23,7 @@ from nose.tools import raises
 import os, sys, IPython
 env = os.environ
 
-from os.path import join, abspath
+from os.path import join, abspath, split
 
 try:
     import _winreg as wreg
@@ -34,6 +34,8 @@ except ImportError:
     import _winreg as wreg
     #Add entries that needs to be stubbed by the testing code
     (wreg.OpenKey, wreg.QueryValueEx,) = (None, None)
+
+test_file_path = split(abspath(__file__))[0]
 
 #skip_if_not_win32 = skipif(sys.platform!='win32',"This test only runs under Windows")
     
@@ -75,10 +77,10 @@ def test_get_home_dir_2():
     sys.frozen = True
     
     #fake filename for IPython.__init__
-    IPython.__file__ = abspath(join(".", "home_test_dir/Lib/IPython/__init__.py"))
+    IPython.__file__ = abspath(join(test_file_path, "home_test_dir/Lib/IPython/__init__.py"))
     
     home_dir = genutils.get_home_dir()
-    assert home_dir == abspath(join(".", "home_test_dir"))
+    assert home_dir == abspath(join(test_file_path, "home_test_dir"))
     
 @with_enivronment
 def test_get_home_dir_3():
@@ -86,15 +88,15 @@ def test_get_home_dir_3():
     """
     sys.frozen=True
     #fake filename for IPython.__init__
-    IPython.__file__ = abspath(join(".", "home_test_dir/Library.zip/IPython/__init__.py"))
+    IPython.__file__ = abspath(join(test_file_path, "home_test_dir/Library.zip/IPython/__init__.py"))
     
     home_dir = genutils.get_home_dir()
-    assert home_dir == abspath(join(".", "home_test_dir")).lower()
+    assert home_dir == abspath(join(test_file_path, "home_test_dir")).lower()
 
 @with_enivronment
 def test_get_home_dir_4():
     """Testcase $HOME is set, then use its value as home directory."""
-    env["HOME"] = join(".","home_test_dir")
+    env["HOME"] = join(test_file_path,"home_test_dir")
     home_dir = genutils.get_home_dir()
     assert home_dir == env["HOME"]
 
@@ -118,10 +120,10 @@ def test_get_home_dir_6():
     
     os.name = 'nt'
     del os.environ["HOME"]
-    env['HOMEDRIVE'],env['HOMEPATH'] = os.path.abspath("."),"home_test_dir"
+    env['HOMEDRIVE'],env['HOMEPATH'] = os.path.abspath(test_file_path),"home_test_dir"
 
     home_dir = genutils.get_home_dir()
-    assert home_dir == abspath(join(".", "home_test_dir"))
+    assert home_dir == abspath(join(test_file_path, "home_test_dir"))
 
 @with_enivronment
 def test_get_home_dir_8():
@@ -132,11 +134,11 @@ def test_get_home_dir_8():
 
     os.name = 'nt'
     del os.environ["HOME"]
-    env['HOMEDRIVE'],env['HOMEPATH'] = os.path.abspath("."),"DOES NOT EXIST"
-    env["USERPROFILE"] = abspath(join(".","home_test_dir"))
+    env['HOMEDRIVE'],env['HOMEPATH'] = os.path.abspath(test_file_path),"DOES NOT EXIST"
+    env["USERPROFILE"] = abspath(join(test_file_path,"home_test_dir"))
 
     home_dir = genutils.get_home_dir()
-    assert home_dir == abspath(join(".", "home_test_dir"))
+    assert home_dir == abspath(join(test_file_path, "home_test_dir"))
 
 # Should we stub wreg fully so we can run the test on all platforms?
 #@skip_if_not_win32
@@ -155,13 +157,13 @@ def test_get_home_dir_9():
                 pass
         return key()
     def QueryValueEx(x, y):
-        return [abspath(join(".", "home_test_dir"))]
+        return [abspath(join(test_file_path, "home_test_dir"))]
 
     wreg.OpenKey = OpenKey
     wreg.QueryValueEx = QueryValueEx
 
     home_dir = genutils.get_home_dir()
-    assert home_dir == abspath(join(".", "home_test_dir"))
+    assert home_dir == abspath(join(test_file_path, "home_test_dir"))
 
 
 #
