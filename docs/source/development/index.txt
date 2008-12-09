@@ -9,3 +9,4 @@ Development
    roadmap.txt
    notification_blueprint.txt
    config_blueprint.txt
+   reorg.txt
