@@ -38,7 +38,11 @@ except ImportError:
 
 test_file_path = split(abspath(__file__))[0]
 
+
 #
+# Setup/teardown functions/decorators
+#
+
 
 def setup():
     try:
@@ -75,6 +79,11 @@ def teardown_environment():
         (wreg.OpenKey, wreg.QueryValueEx,) = platformstuff
 
 with_enivronment = with_setup(setup_environment, teardown_environment)
+
+
+#
+# Tests for get_home_dir
+#
 
 @with_enivronment
 def test_get_home_dir_1():
