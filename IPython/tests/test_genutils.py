@@ -45,12 +45,20 @@ test_file_path = split(abspath(__file__))[0]
 
 
 def setup():
+    """Setup testenvironment for the module:
+    
+            - Adds dummy home dir tree
+    """
     try:
         os.makedirs("home_test_dir/_ipython")
     except WindowsError:
         pass #Or should we complain that the test directory already exists??
 
 def teardown():
+    """Teardown testenvironment for the module:
+    
+            - Remove dummy home dir tree
+    """
     try:
         os.removedirs("home_test_dir/_ipython")
     except WindowsError:
@@ -58,6 +66,12 @@ def teardown():
 
     
 def setup_environment():
+    """Setup testenvironment for some functions that are tested 
+    in this module. In particular this functions stores attributes
+    and other things that we need to stub in some test functions.
+    This needs to be done on a function level and not module level because 
+    each testfunction needs a pristine environment.
+    """
     global oldstuff, platformstuff
     oldstuff = (env.copy(), os.name, genutils.get_home_dir, IPython.__file__,)
 
@@ -68,6 +82,8 @@ def setup_environment():
         del env['IPYTHONDIR']
 
 def teardown_environment():
+    """Restore things that were remebered by the setup_environment function
+    """
     (oldenv, os.name, genutils.get_home_dir, IPython.__file__,) = oldstuff
     for key in env.keys():
         if key not in oldenv:
@@ -78,7 +94,8 @@ def teardown_environment():
     if os.name == 'nt':
         (wreg.OpenKey, wreg.QueryValueEx,) = platformstuff
 
-with_enivronment = with_setup(setup_environment, teardown_environment)
+# Build decorator that uses the setup_environment/setup_environment
+with_enivronment = with_setup(setup_environment, setup_environment)
 
 
 #
@@ -183,7 +200,7 @@ def test_get_home_dir_7():
 
 @with_enivronment
 def test_get_ipython_dir_1():
-    """2 Testcase to see if we can call get_ipython_dir without Exceptions."""
+    """test_get_ipython_dir_1, Testcase to see if we can call get_ipython_dir without Exceptions."""
     env['IPYTHONDIR'] = "someplace/.ipython"
     ipdir = genutils.get_ipython_dir()
     nt.assert_equal(ipdir, os.path.abspath("someplace/.ipython"))
@@ -191,7 +208,7 @@ def test_get_ipython_dir_1():
 
 @with_enivronment
 def test_get_ipython_dir_2():
-    """3 Testcase to see if we can call get_ipython_dir without Exceptions."""
+    """test_get_ipython_dir_2, Testcase to see if we can call get_ipython_dir without Exceptions."""
     genutils.get_home_dir = lambda : "someplace"
     os.name = "posix"
     ipdir = genutils.get_ipython_dir()
@@ -199,7 +216,7 @@ def test_get_ipython_dir_2():
 
 @with_enivronment
 def test_get_ipython_dir_3():
-    """4 Testcase to see if we can call get_ipython_dir without Exceptions."""
+    """test_get_ipython_dir_3, Testcase to see if we can call get_ipython_dir without Exceptions."""
     genutils.get_home_dir = lambda : "someplace"
     os.name = "nt"
     ipdir = genutils.get_ipython_dir()
@@ -221,6 +238,8 @@ def test_get_security_dir():
 #
 
 def test_popkey_1():
+    """test_popkey_1, Basic usage test of popkey
+    """
     dct = dict(a=1, b=2, c=3)
     nt.assert_equal(genutils.popkey(dct, "a"), 1)
     nt.assert_equal(dct, dict(b=2, c=3))
@@ -230,10 +249,16 @@ def test_popkey_1():
     nt.assert_equal(dct, dict())
 
 def test_popkey_2():
+    """test_popkey_2, Test to see that popkey of non occuring keys
+    generates a KeyError exception
+    """
     dct = dict(a=1, b=2, c=3)
     nt.assert_raises(KeyError, genutils.popkey, dct, "d")
 
 def test_popkey_3():
+    """test_popkey_3, Tests to see that popkey calls returns the correct value
+    and that the key/value was removed from the dict.
+    """
     dct = dict(a=1, b=2, c=3)
     nt.assert_equal(genutils.popkey(dct, "A", 13), 13)
     nt.assert_equal(dct, dict(a=1, b=2, c=3))
