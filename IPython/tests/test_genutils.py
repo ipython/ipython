@@ -20,10 +20,10 @@ from IPython.testing.decorators import skipif
 from nose import with_setup
 from nose.tools import raises
 
-import os, sys, IPython
-env = os.environ
-
 from os.path import join, abspath, split
+import os, sys, IPython
+
+env = os.environ
 
 try:
     import _winreg as wreg
@@ -78,7 +78,7 @@ def test_get_home_dir_1():
 def test_get_home_dir_2():
     """Testcase for py2exe logic, compressed lib
     """
-    sys.frozen=True
+    sys.frozen = True
     #fake filename for IPython.__init__
     IPython.__file__ = abspath(join(test_file_path, "home_test_dir/Library.zip/IPython/__init__.py"))
     
@@ -88,7 +88,7 @@ def test_get_home_dir_2():
 @with_enivronment
 def test_get_home_dir_3():
     """Testcase $HOME is set, then use its value as home directory."""
-    env["HOME"] = join(test_file_path,"home_test_dir")
+    env["HOME"] = join(test_file_path, "home_test_dir")
     home_dir = genutils.get_home_dir()
     assert home_dir == env["HOME"]
 
@@ -112,7 +112,7 @@ def test_get_home_dir_5():
     
     os.name = 'nt'
     del os.environ["HOME"]
-    env['HOMEDRIVE'],env['HOMEPATH'] = os.path.abspath(test_file_path),"home_test_dir"
+    env['HOMEDRIVE'], env['HOMEPATH'] = os.path.abspath(test_file_path), "home_test_dir"
 
     home_dir = genutils.get_home_dir()
     assert home_dir == abspath(join(test_file_path, "home_test_dir"))
@@ -126,8 +126,8 @@ def test_get_home_dir_6():
 
     os.name = 'nt'
     del os.environ["HOME"]
-    env['HOMEDRIVE'],env['HOMEPATH'] = os.path.abspath(test_file_path),"DOES NOT EXIST"
-    env["USERPROFILE"] = abspath(join(test_file_path,"home_test_dir"))
+    env['HOMEDRIVE'], env['HOMEPATH'] = os.path.abspath(test_file_path), "DOES NOT EXIST"
+    env["USERPROFILE"] = abspath(join(test_file_path, "home_test_dir"))
 
     home_dir = genutils.get_home_dir()
     assert home_dir == abspath(join(test_file_path, "home_test_dir"))
@@ -140,7 +140,7 @@ def test_get_home_dir_7():
     env['HOMEDRIVE'],env['HOMEPATH'], env['USERPROFILE'] missing
     """
     os.name = 'nt'
-    del env["HOME"],env['HOMEDRIVE']
+    del env["HOME"], env['HOMEDRIVE']
 
     #Stub windows registry functions
     def OpenKey(x, y):
@@ -173,7 +173,7 @@ def test_get_ipython_dir_1():
 @with_enivronment
 def test_get_ipython_dir_2():
     """3 Testcase to see if we can call get_ipython_dir without Exceptions."""
-    genutils.get_home_dir=lambda : "someplace"
+    genutils.get_home_dir = lambda : "someplace"
     os.name = "posix"
     ipdir = genutils.get_ipython_dir()
     assert ipdir == os.path.abspath(os.path.join("someplace", ".ipython"))
@@ -217,15 +217,15 @@ def test_popkey_2():
 
 def test_popkey_3():
     dct = dict(a=1, b=2, c=3)
-    assert genutils.popkey(dct, "A", 13)==13
+    assert genutils.popkey(dct, "A", 13) == 13
     assert dct == dict(a=1, b=2, c=3)
-    assert genutils.popkey(dct, "B", 14)==14
+    assert genutils.popkey(dct, "B", 14) == 14
     assert dct == dict(a=1, b=2, c=3)
-    assert genutils.popkey(dct, "C", 15)==15
+    assert genutils.popkey(dct, "C", 15) == 15
     assert dct == dict(a=1, b=2, c=3)
-    assert genutils.popkey(dct, "a")==1
+    assert genutils.popkey(dct, "a") == 1
     assert dct == dict(b=2, c=3)
-    assert genutils.popkey(dct, "b")==2
+    assert genutils.popkey(dct, "b") == 2
     assert dct == dict(c=3)
-    assert genutils.popkey(dct, "c")==3
+    assert genutils.popkey(dct, "c") == 3
     assert dct == dict()
