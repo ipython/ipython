@@ -155,6 +155,11 @@ def skip(msg=''):
     return inner
 
 # Decorators to skip certain tests on specific platforms.
-skip_win32 = skipif(sys.platform=='win32',"This test does not run under Windows")
-skip_linux = skipif(sys.platform=='linux2',"This test does not run under Linux")
-skip_osx = skipif(sys.platform=='darwin',"This test does not run under OSX")
+skip_win32 = skipif(sys.platform == 'win32',"This test does not run under Windows")
+skip_linux = skipif(sys.platform == 'linux2',"This test does not run under Linux")
+skip_osx = skipif(sys.platform == 'darwin',"This test does not run under OSX")
+
+# Decorators to skip tests if not on specific platforms.
+skip_if_not_win32 = skipif(sys.platform != 'win32', "This test only runs under Windows")
+skip_if_not_linux = skipif(sys.platform != 'linux2', "This test only runs under Linux")
+skip_if_not_osx = skipif(sys.platform != 'darwin', "This test only runs under OSX")

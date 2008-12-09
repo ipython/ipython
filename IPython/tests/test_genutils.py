@@ -38,7 +38,20 @@ except ImportError:
 
 test_file_path = split(abspath(__file__))[0]
 
-#skip_if_not_win32 = skipif(sys.platform!='win32',"This test only runs under Windows")
+#
+
+def setup():
+    try:
+        os.makedirs("home_test_dir/_ipython")
+    except WindowsError:
+        pass #Or should we complain that the test directory already exists??
+
+def teardown():
+    try:
+        os.removedirs("home_test_dir/_ipython")
+    except WindowsError:
+        pass #Or should we complain that the test directory already exists??
+
     
 def setup_environment():
     global oldstuff, platformstuff
