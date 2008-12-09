@@ -444,3 +444,18 @@ Most of the release process is automated by the :file:`release` script in the
 #. Make sure that the released version of the docs is live on the site.
 
 #. Celebrate!
+
+
+Porting to 3.0
+==============
+There are no definite plans for porting of IPython to python 3. The major 
+issue is the dependency on twisted framework for the networking/threading 
+stuff. It is possible that it the traditional IPython interactive console 
+could be ported more easily since it has no such dependency. Here are a few
+things that will need to be considered when doing such a port especially
+if we want to have a codebase that works directly on both 2.x and 3.x.
+
+	1. The syntax for exceptions changed (PEP 3110). The old 
+	   `except exc, var` changed to `except exc as var`. At last
+	   count there was 78 occurences of this usage in the codebase
+	   
