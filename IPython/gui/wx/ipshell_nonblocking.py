@@ -187,7 +187,27 @@ class NonBlockingIPShell(object):
         def bypassMagic(self, arg):
             print '%this magic is currently disabled.'
         ip.expose_magic('cpaste', bypassMagic)
-        
+
+        def resetMagic(self, arg):
+            """Resets the namespace by removing all names defined by the user.
+
+            Input/Output history are left around in case you need them."""
+
+            ans = True ##todo find away to ask the user...
+                       ##seems hard to do it cleanly...
+            if not ans:
+                print 'Nothing done.'
+                return
+            user_ns = self.shell.user_ns
+            for i in self.magic_who_ls():
+                del(user_ns[i])
+                
+            # Also flush the private list of module references kept for script
+            # execution protection
+            self.shell._user_main_modules[:] = []
+            
+        ip.expose_magic('reset', resetMagic)
+
         sys.excepthook = excepthook
 
     #----------------------- Thread management section ----------------------    
