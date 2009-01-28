@@ -95,7 +95,9 @@ class MyFrame(wx.Frame):
         warn_text +='Please Note that this work is still EXPERIMENTAL\n'
         warn_text +='It does NOT emulate currently all the IPython functions.\n'
         warn_text +="\nIf you use MATPLOTLIB with show() you'll need to deactivate the THREADING option.\n"
-        
+        if(not sync_ok):
+            warn_text +="\n->No twisted package detected, IPython1 example deactivated."
+            
         dlg = wx.MessageDialog(self,
                                warn_text,
                                'Warning Box',
