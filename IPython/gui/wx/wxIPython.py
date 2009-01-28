@@ -11,12 +11,16 @@ from IPython.gui.wx.ipython_view import IPShellWidget
 from IPython.gui.wx.ipython_history import IPythonHistoryPanel
 
 #used to invoke ipython1 wx implementation
-from IPython.frontend.wx.ipythonx import IPythonXController
+is_sync_frontend_ok = True
+try:
+    from IPython.frontend.wx.ipythonx import IPythonXController
+except ImportError:
+    is_sync_frontend_ok = False
 
 #used to create options.conf file in user directory
 from IPython.ipapi import get
 
-__version__ = 0.9
+__version__ = 0.91
 __author__  = "Laurent Dufrechou"
 __email__   = "laurent.dufrechou _at_ gmail.com"
 __license__ = "BSD"
@@ -30,7 +34,7 @@ class MyFrame(wx.Frame):
     application with movables windows"""
     def __init__(self, parent=None, id=-1, title="WxIPython", 
                 pos=wx.DefaultPosition,
-                size=(800, 600), style=wx.DEFAULT_FRAME_STYLE):
+                size=(800, 600), style=wx.DEFAULT_FRAME_STYLE, sync_ok=False):
         wx.Frame.__init__(self, parent, id, title, pos, size, style)
         self._mgr = wx.aui.AuiManager()
         
@@ -43,9 +47,11 @@ class MyFrame(wx.Frame):
         self.history_panel.setOptionTrackerHook(self.optionSave)
         
         self.ipython_panel    = IPShellWidget(self,background_color = "BLACK")
-        self.ipython_panel2   = IPythonXController(self)
         #self.ipython_panel    = IPShellWidget(self,background_color = "WHITE")
-
+        if(sync_ok):
+            self.ipython_panel2   = IPythonXController(self)
+        else:
+            self.ipython_panel2   = None
         self.ipython_panel.setHistoryTrackerHook(self.history_panel.write)
         self.ipython_panel.setStatusTrackerHook(self.updateStatus)
         self.ipython_panel.setAskExitHandler(self.OnExitDlg)
@@ -64,7 +70,8 @@ class MyFrame(wx.Frame):
         # main panels
         self._mgr.AddPane(self.nb , wx.CENTER, "IPython Shells")
         self.nb.AddPage(self.ipython_panel , "IPython0 Shell")
-        self.nb.AddPage(self.ipython_panel2, "IPython1 Synchroneous Shell")
+        if(sync_ok):
+            self.nb.AddPage(self.ipython_panel2, "IPython1 Synchroneous Shell")
 
         self._mgr.AddPane(self.history_panel , wx.RIGHT,  "IPython history")
                 
@@ -237,20 +244,20 @@ class MyFrame(wx.Frame):
 #----------------------------------------- 
 class MyApp(wx.PySimpleApp):
     """Creating our application"""
-    def __init__(self):
+    def __init__(self, sync_ok=False):
         wx.PySimpleApp.__init__(self)
         
-        self.frame = MyFrame()
+        self.frame = MyFrame(sync_ok=sync_ok)
         self.frame.Show()
         
 #-----------------------------------------
 #Main loop
 #----------------------------------------- 
-def main():
-    app = MyApp()
+def main(sync_ok):
+    app = MyApp(sync_ok)
     app.SetTopWindow(app.frame)
     app.MainLoop()
 
 #if launched as main program run this
 if __name__ == '__main__':
-    main()
+    main(is_sync_frontend_ok)
