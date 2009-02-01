@@ -412,7 +412,7 @@ class WxConsoleView(stc.StyledTextCtrl):
             self.AutoCompSetIgnoreCase(False)
             self.AutoCompSetAutoHide(False)
             #let compute the length ot last word
-            splitter = [' ', '(', '[', '{']
+            splitter = [' ', '(', '[', '{','=']
             last_word = self.getCurrentLine()
             for breaker in splitter:
                 last_word = last_word.split(breaker)[-1]
