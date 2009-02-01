@@ -630,6 +630,8 @@ class IPShellWidget(wx.Panel):
         lines_to_execute = lines_to_execute.replace('\r','')
         self.IP.doExecute(lines_to_execute.encode(ENCODING))
         self.updateHistoryTracker(lines)
+        if(self.text_ctrl.getCursorPos()!=0):
+            self.text_ctrl.removeCurrentLine()
         self.setCurrentState('WAIT_END_OF_EXECUTION')
         
     def evtStateExecuteDone(self,evt):
