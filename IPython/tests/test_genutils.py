@@ -16,7 +16,7 @@ __docformat__ = "restructuredtext en"
 #-----------------------------------------------------------------------------
 
 from IPython import genutils
-from IPython.testing.decorators import skipif
+from IPython.testing.decorators import skipif, skip_if_not_win32
 from nose import with_setup
 from nose.tools import raises
 
@@ -37,7 +37,6 @@ except ImportError:
     (wreg.OpenKey, wreg.QueryValueEx,) = (None, None)
 
 test_file_path = split(abspath(__file__))[0]
-
 
 #
 # Setup/teardown functions/decorators
@@ -95,7 +94,7 @@ def teardown_environment():
         (wreg.OpenKey, wreg.QueryValueEx,) = platformstuff
 
 # Build decorator that uses the setup_environment/setup_environment
-with_enivronment = with_setup(setup_environment, setup_environment)
+with_enivronment = with_setup(setup_environment, teardown_environment)
 
 
 #
@@ -114,13 +113,14 @@ def test_get_home_dir_1():
     home_dir = genutils.get_home_dir()
     nt.assert_equal(home_dir, abspath(join(test_file_path, "home_test_dir")))
     
+@skip_if_not_win32
 @with_enivronment
 def test_get_home_dir_2():
     """Testcase for py2exe logic, compressed lib
     """
     sys.frozen = True
     #fake filename for IPython.__init__
-    IPython.__file__ = abspath(join(test_file_path, "home_test_dir/Library.zip/IPython/__init__.py"))
+    IPython.__file__ = abspath(join(test_file_path, "home_test_dir/Library.zip/IPython/__init__.py")).lower()
     
     home_dir = genutils.get_home_dir()
     nt.assert_equal(home_dir, abspath(join(test_file_path, "home_test_dir")).lower())
@@ -134,20 +134,20 @@ def test_get_home_dir_3():
 
 @with_enivronment
 def test_get_home_dir_4():
-    """Testcase $HOME is not set, os=='posix'. 
+    """Testcase $HOME is not set, os=='poix'. 
     This should fail with HomeDirError"""
     
     os.name = 'posix'
-    del os.environ["HOME"]
+    if 'HOME' in env: del env['HOME']
     nt.assert_raises(genutils.HomeDirError, genutils.get_home_dir)
         
 @with_enivronment
 def test_get_home_dir_5():
     """Testcase $HOME is not set, os=='nt' 
     env['HOMEDRIVE'],env['HOMEPATH'] points to path."""
-    
+
     os.name = 'nt'
-    del os.environ["HOME"]
+    if 'HOME' in env: del env['HOME']
     env['HOMEDRIVE'], env['HOMEPATH'] = os.path.abspath(test_file_path), "home_test_dir"
 
     home_dir = genutils.get_home_dir()
@@ -161,7 +161,7 @@ def test_get_home_dir_6():
     """
 
     os.name = 'nt'
-    del os.environ["HOME"]
+    if 'HOME' in env: del env['HOME']
     env['HOMEDRIVE'], env['HOMEPATH'] = os.path.abspath(test_file_path), "DOES NOT EXIST"
     env["USERPROFILE"] = abspath(join(test_file_path, "home_test_dir"))
 
@@ -169,14 +169,15 @@ def test_get_home_dir_6():
     nt.assert_equal(home_dir, abspath(join(test_file_path, "home_test_dir")))
 
 # Should we stub wreg fully so we can run the test on all platforms?
-#@skip_if_not_win32
+@skip_if_not_win32
 @with_enivronment
 def test_get_home_dir_7():
     """Testcase $HOME is not set, os=='nt' 
     env['HOMEDRIVE'],env['HOMEPATH'], env['USERPROFILE'] missing
     """
     os.name = 'nt'
-    del env["HOME"], env['HOMEDRIVE']
+    if 'HOME' in env: del env['HOME']
+    if 'HOMEDRIVE' in env: del env['HOMEDRIVE']
 
     #Stub windows registry functions
     def OpenKey(x, y):
