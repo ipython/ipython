@@ -42,8 +42,11 @@ def find_exe(cmd):
     except ImportError:
         raise ImportError('you need to have pywin32 installed for this to work')
     else:
-        (path, offest) = win32api.SearchPath(os.environ['PATH'],cmd)
-        return path
+		try:
+			(path, offest) = win32api.SearchPath(os.environ['PATH'],cmd + '.exe')
+		except:
+			(path, offset) = win32api.SearchPath(os.environ['PATH'],cmd + '.bat')
+    return path
 
 class ProcessStateError(Exception):
     pass
@@ -171,7 +174,7 @@ class ControllerLauncher(ProcessLauncher):
     
     def __init__(self, extra_args=None):
         if sys.platform == 'win32':
-            args = [find_exe('ipcontroller.bat')]
+            args = [find_exe('ipcontroller')]
         else:
             args = ['ipcontroller']
         self.extra_args = extra_args
@@ -185,7 +188,7 @@ class EngineLauncher(ProcessLauncher):
     
     def __init__(self, extra_args=None):
         if sys.platform == 'win32':
-            args = [find_exe('ipengine.bat')]
+            args = [find_exe('ipengine')]
         else:
             args = ['ipengine']
         self.extra_args = extra_args
