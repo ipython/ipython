@@ -31,6 +31,8 @@ from IPython.external import Itpl
 from IPython.kernel.twistedutil import gatherBoth
 from IPython.kernel.util import printer
 from IPython.genutils import get_ipython_dir, num_cpus
+from IPython.kernel.fcutil import have_crypto
+from IPython.kernel.error import SecurityError
 
 #-----------------------------------------------------------------------------
 # General process handling code
@@ -174,7 +176,13 @@ class ControllerLauncher(ProcessLauncher):
     
     def __init__(self, extra_args=None):
         if sys.platform == 'win32':
-            args = [find_exe('ipcontroller')]
+            # This logic is needed because the ipcontroller script doesn't
+            # always get installed in the same way or in the same location.
+            from IPython.kernel.scripts import ipcontroller
+            script_location = ipcontroller.__file__.replace('.pyc', '.py')
+            # The -u option here turns on unbuffered output, which is required
+            # on Win32 to prevent wierd conflict and problems with Twisted
+            args = [find_exe('python'), '-u', script_location]
         else:
             args = ['ipcontroller']
         self.extra_args = extra_args
@@ -188,7 +196,13 @@ class EngineLauncher(ProcessLauncher):
     
     def __init__(self, extra_args=None):
         if sys.platform == 'win32':
-            args = [find_exe('ipengine')]
+            # This logic is needed because the ipcontroller script doesn't
+            # always get installed in the same way or in the same location.
+            from IPython.kernel.scripts import ipengine
+            script_location = ipengine.__file__.replace('.pyc', '.py')
+            # The -u option here turns on unbuffered output, which is required
+            # on Win32 to prevent wierd conflict and problems with Twisted
+            args = [find_exe('python'), '-u', script_location]
         else:
             args = ['ipengine']
         self.extra_args = extra_args
@@ -314,13 +328,27 @@ class PBSEngineSet(BatchEngineSet):
 # The main functions should then just parse the command line arguments, create
 # the appropriate class and call a 'start' method.
 
-def main_local(args):
-    cont_args = []
-    cont_args.append('--logfile=%s' % pjoin(args.logdir,'ipcontroller'))
+def check_security(args, cont_args):
+    if (not args.x or not args.y) and not have_crypto:
+        log.err("""
+OpenSSL/pyOpenSSL is not available, so we can't run in secure mode.
+Try running ipcluster with the -xy flags:  ipcluster local -xy -n 4""")
+        reactor.stop()
+        return False
     if args.x:
         cont_args.append('-x')
     if args.y:
         cont_args.append('-y')
+    return True
+
+def main_local(args):
+    cont_args = []
+    cont_args.append('--logfile=%s' % pjoin(args.logdir,'ipcontroller'))
+
+    # Check security settings before proceeding
+    keep_going = check_security(args, cont_args)
+    if not keep_going: return
+
     cl = ControllerLauncher(extra_args=cont_args)
     dstart = cl.start()
     def start_engines(cont_pid):
@@ -349,10 +377,11 @@ def main_local(args):
 def main_mpirun(args):
     cont_args = []
     cont_args.append('--logfile=%s' % pjoin(args.logdir,'ipcontroller'))
-    if args.x:
-        cont_args.append('-x')
-    if args.y:
-        cont_args.append('-y')
+
+    # Check security settings before proceeding
+    keep_going = check_security(args, cont_args)
+    if not keep_going: return
+
     cl = ControllerLauncher(extra_args=cont_args)
     dstart = cl.start()
     def start_engines(cont_pid):
@@ -385,10 +414,11 @@ def main_mpirun(args):
 def main_pbs(args):
     cont_args = []
     cont_args.append('--logfile=%s' % pjoin(args.logdir,'ipcontroller'))
-    if args.x:
-	cont_args.append('-x')
-    if args.y:
-	cont_args.append('-y')
+
+    # Check security settings before proceeding
+    keep_going = check_security(args, cont_args)
+    if not keep_going: return
+
     cl = ControllerLauncher(extra_args=cont_args)
     dstart = cl.start()
     def start_engines(r):
