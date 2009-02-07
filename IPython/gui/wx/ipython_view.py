@@ -633,8 +633,6 @@ class IPShellWidget(wx.Panel):
         self.setCurrentState('WAIT_END_OF_EXECUTION')
         
     def evtStateExecuteDone(self,evt):
-        if(self.text_ctrl.getCursorPos()!=0):
-                self.text_ctrl.removeCurrentLine()
         self.doc = self.IP.get_doc_text()
         self.help = self.IP.get_help_text()
         if self.doc:
@@ -648,6 +646,8 @@ class IPShellWidget(wx.Panel):
             self.setCurrentState('SHOW_DOC')
             self.pager(self.help)                
         else:
+            if(self.text_ctrl.getCursorPos()!=0):
+                self.text_ctrl.removeCurrentLine()
             self.stateShowPrompt()
 
     def stateShowPrompt(self):

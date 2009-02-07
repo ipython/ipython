@@ -171,7 +171,8 @@ class NonBlockingIPShell(object):
         #we replace the ipython default pager by our pager
         self._IP.set_hook('show_in_pager', self._pager)
         
-        #we replace the ipython default shell command caller by our shell handler
+        #we replace the ipython default shell command caller 
+        #by our shell handler
         self._IP.set_hook('shell_hook', self._shell)
         
         #we replace the ipython default input command caller by our method
@@ -210,7 +211,7 @@ class NonBlockingIPShell(object):
 
         sys.excepthook = excepthook
 
-    #----------------------- Thread management section ----------------------    
+    #----------------------- Thread management section ----------------------   
     def do_execute(self, line):
         """
         Tell the thread to process the 'line' command
@@ -219,8 +220,9 @@ class NonBlockingIPShell(object):
         self._line_to_execute = line
 
         if self._threading:
-            #we launch the ipython line execution in a thread to make it interruptible
-            #with include it in self namespace to be able to call ce.raise_exc(KeyboardInterrupt)
+            #we launch the ipython line execution in a thread to make it 
+            #interruptible with include it in self namespace to be able 
+            #to call  ce.raise_exc(KeyboardInterrupt)
             self.ce = _CodeExecutor(self)
             self.ce.start()
         else:
@@ -234,7 +236,7 @@ class NonBlockingIPShell(object):
             except KeyboardInterrupt:
                 pass
 
-    #----------------------- IPython management section ----------------------    
+    #----------------------- IPython management section ----------------------
     def get_threading(self):
         """
         Returns threading status, is set to True, then each command sent to
@@ -501,7 +503,8 @@ class NonBlockingIPShell(object):
         else:
             self._IP.write(str(self._IP.outputcache.prompt_out).strip())
             self._iter_more = self._IP.push(line)
-            if (self._IP.SyntaxTB.last_syntax_error and self._IP.rc.autoedit_syntax):
+            if (self._IP.SyntaxTB.last_syntax_error and \
+                                                            self._IP.rc.autoedit_syntax):
                 self._IP.edit_syntax_error()
         if self._iter_more:
             self._prompt = str(self._IP.outputcache.prompt2).strip()
@@ -524,7 +527,8 @@ class NonBlockingIPShell(object):
         @type cmd: string
         '''
         stdin, stdout = os.popen4(cmd)
-        result = stdout.read().decode('cp437').encode(locale.getpreferredencoding())
+        result = stdout.read().decode('cp437').\
+                                            encode(locale.getpreferredencoding())
         #we use print command because the shell command is called
         #inside IPython instance and thus is redirected to thread cout
         #"\x01\x1b[1;36m\x02" <-- add colour to the text...
