@@ -73,7 +73,7 @@ class _CodeExecutor(ThreadEx):
             self.instance._help_text = None
             self.instance._execute()
             # used for uper class to generate event after execution
-            self.instance._afterExecute() 
+            self.instance._after_execute() 
             
         except KeyboardInterrupt:
             pass
@@ -113,7 +113,7 @@ class NonBlockingIPShell(object):
         '''
         #ipython0 initialisation
         self._IP = None
-        self.initIpython0(argv, user_ns, user_global_ns,
+        self.init_ipython0(argv, user_ns, user_global_ns,
                           cin, cout, cerr,
                           ask_exit_handler)
         
@@ -133,7 +133,7 @@ class NonBlockingIPShell(object):
         self._help_text = None
         self._add_button = None
 
-    def initIpython0(self, argv=[], user_ns={}, user_global_ns=None,
+    def init_ipython0(self, argv=[], user_ns={}, user_global_ns=None,
                      cin=None, cout=None, cerr=None,
                      ask_exit_handler=None):
         ''' Initialize an ipython0 instance '''
@@ -184,11 +184,11 @@ class NonBlockingIPShell(object):
         #we disable cpase magic... until we found a way to use it properly.
         #import IPython.ipapi
         ip = IPython.ipapi.get()
-        def bypassMagic(self, arg):
+        def bypass_magic(self, arg):
             print '%this magic is currently disabled.'
-        ip.expose_magic('cpaste', bypassMagic)
+        ip.expose_magic('cpaste', bypass_magic)
 
-        def resetMagic(self, arg):
+        def reset_magic(self, arg):
             """Resets the namespace by removing all names defined by the user.
 
             Input/Output history are left around in case you need them."""
@@ -206,12 +206,12 @@ class NonBlockingIPShell(object):
             # execution protection
             self.shell._user_main_modules[:] = []
             
-        ip.expose_magic('reset', resetMagic)
+        ip.expose_magic('reset', reset_magic)
 
         sys.excepthook = excepthook
 
     #----------------------- Thread management section ----------------------    
-    def doExecute(self, line):
+    def do_execute(self, line):
         """
         Tell the thread to process the 'line' command
         """
@@ -229,13 +229,13 @@ class NonBlockingIPShell(object):
                 self._help_text = None
                 self._execute()
                 # used for uper class to generate event after execution
-                self._afterExecute() 
+                self._after_execute() 
             
             except KeyboardInterrupt:
                 pass
 
     #----------------------- IPython management section ----------------------    
-    def getThreading(self):
+    def get_threading(self):
         """
         Returns threading status, is set to True, then each command sent to
         the interpreter will be executed in a separated thread allowing,
@@ -248,7 +248,7 @@ class NonBlockingIPShell(object):
         """
         return self._threading
     
-    def setThreading(self, state):
+    def set_threading(self, state):
         """
         Sets threading state, if set to True, then each command sent to
         the interpreter will be executed in a separated thread allowing,
@@ -261,7 +261,7 @@ class NonBlockingIPShell(object):
         """
         self._threading = state
 
-    def getDocText(self):
+    def get_doc_text(self):
         """
         Returns the output of the processing that need to be paged (if any)
 
@@ -270,7 +270,7 @@ class NonBlockingIPShell(object):
         """
         return self._doc_text
         
-    def getHelpText(self):
+    def get_help_text(self):
         """
         Returns the output of the processing that need to be paged via help pager(if any)
 
@@ -279,7 +279,7 @@ class NonBlockingIPShell(object):
         """
         return self._help_text
 
-    def getBanner(self):
+    def get_banner(self):
         """
         Returns the IPython banner for useful info on IPython instance
 
@@ -288,7 +288,7 @@ class NonBlockingIPShell(object):
         """
         return self._IP.BANNER
     
-    def getPromptCount(self):
+    def get_prompt_count(self):
         """
         Returns the prompt number.
         Each time a user execute a line in the IPython shell the prompt count is increased
@@ -298,7 +298,7 @@ class NonBlockingIPShell(object):
         """
         return self._IP.outputcache.prompt_count
 
-    def getPrompt(self):
+    def get_prompt(self):
         """
         Returns current prompt inside IPython instance
         (Can be In [...]: ot ...:)
@@ -308,7 +308,7 @@ class NonBlockingIPShell(object):
         """
         return self._prompt
 
-    def getIndentation(self):
+    def get_indentation(self):
         """
         Returns the current indentation level
         Usefull to put the caret at the good start position if we want to do autoindentation.
@@ -318,7 +318,7 @@ class NonBlockingIPShell(object):
         """
         return self._IP.indent_current_nsp
         
-    def updateNamespace(self, ns_dict):
+    def update_namespace(self, ns_dict):
         '''
         Add the current dictionary to the shell namespace.
 
@@ -342,7 +342,7 @@ class NonBlockingIPShell(object):
         possibilities = self._IP.complete(split_line[-1])
         if possibilities:
 
-            def _commonPrefix(str1, str2):
+            def _common_prefix(str1, str2):
                 '''
                 Reduction function. returns common prefix of two given strings.
 
@@ -358,13 +358,13 @@ class NonBlockingIPShell(object):
                     if not str2.startswith(str1[:i+1]):
                         return str1[:i]
                 return str1
-            common_prefix = reduce(_commonPrefix, possibilities)
+            common_prefix = reduce(_common_prefix, possibilities)
             completed = line[:-len(split_line[-1])]+common_prefix
         else:
             completed = line
         return completed, possibilities
 
-    def historyBack(self):
+    def history_back(self):
         '''
         Provides one history command back.
 
@@ -376,10 +376,10 @@ class NonBlockingIPShell(object):
         while((history == '' or history == '\n') and self._history_level >0):
             if self._history_level >= 1:
                 self._history_level -= 1
-            history = self._getHistory()            
+            history = self._get_history()            
         return history
 
-    def historyForward(self):
+    def history_forward(self):
         '''
         Provides one history command forward.
 
@@ -389,38 +389,38 @@ class NonBlockingIPShell(object):
         history = ''
         #the below while loop is used to suppress empty history lines
         while((history == '' or history == '\n') \
-        and self._history_level <= self._getHistoryMaxIndex()):
-            if self._history_level < self._getHistoryMaxIndex():
+        and self._history_level <= self._get_history_max_index()):
+            if self._history_level < self._get_history_max_index():
                 self._history_level += 1
-                history = self._getHistory()
+                history = self._get_history()
             else:
-                if self._history_level == self._getHistoryMaxIndex():
-                    history = self._getHistory()
+                if self._history_level == self._get_history_max_index():
+                    history = self._get_history()
                     self._history_level += 1
                 else:
                     history = ''
         return history
 
-    def initHistoryIndex(self):
+    def init_history_index(self):
         '''
         set history to last command entered
         '''
-        self._history_level = self._getHistoryMaxIndex()+1
+        self._history_level = self._get_history_max_index()+1
 
     #----------------------- IPython PRIVATE management section --------------
-    def _afterExecute(self):
+    def _after_execute(self):
         '''
         Can be redefined to generate post event after excution is done
         '''
         pass
 
-    #def _askExit(self):
+    #def _ask_exit(self):
     #    '''
     #    Can be redefined to generate post event to exit the Ipython shell
     #    '''
     #    pass
 
-    def _getHistoryMaxIndex(self):
+    def _get_history_max_index(self):
         '''
         returns the max length of the history buffer
 
@@ -429,7 +429,7 @@ class NonBlockingIPShell(object):
         '''
         return len(self._IP.input_hist_raw)-1
         
-    def _getHistory(self):
+    def _get_history(self):
         '''
         Get's the command string of the current history level.
 
@@ -444,7 +444,7 @@ class NonBlockingIPShell(object):
         This function is used as a callback replacment to IPython help pager function
 
         It puts the 'text' value inside the self._help_text string that can be retrived via
-        getHelpText function.
+        get_help_text function.
         '''
         if self._help_text == None:
             self._help_text = text
@@ -456,7 +456,7 @@ class NonBlockingIPShell(object):
         This function is used as a callback replacment to IPython pager function
 
         It puts the 'text' value inside the self._doc_text string that can be retrived via
-        getDocText function.
+        get_doc_text function.
         '''
         self._doc_text = text
     

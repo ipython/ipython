@@ -63,17 +63,17 @@ class WxNonBlockingIPShell(NonBlockingIPShell):
         self.parent = parent
 
         self.ask_exit_callback = ask_exit_handler
-        self._IP.exit = self._askExit
+        self._IP.exit = self._ask_exit
 
     def addGUIShortcut(self, text, func):
         wx.CallAfter(self.parent.add_button_handler, 
                 button_info={   'text':text, 
                                 'func':self.parent.doExecuteLine(func)})
 
-    def _askExit(self):
+    def _ask_exit(self):
         wx.CallAfter(self.ask_exit_callback, ())
 
-    def _afterExecute(self):
+    def _after_execute(self):
         wx.CallAfter(self.parent.evtStateExecuteDone, ())
 
                 
@@ -547,14 +547,14 @@ class IPShellWidget(wx.Panel):
         #with intro=''
         if intro is None:
             welcome_text = "Welcome to WxIPython Shell.\n\n"
-            welcome_text+= self.IP.getBanner()
+            welcome_text+= self.IP.get_banner()
             welcome_text+= "!command  -> Execute command in shell\n"
             welcome_text+= "TAB       -> Autocompletion\n"
         else:
             welcome_text = intro
 
         self.text_ctrl = WxConsoleView(self,
-                                       self.IP.getPrompt(),
+                                       self.IP.get_prompt(),
                                        intro=welcome_text,
                                        background_color=background_color)
 
@@ -580,7 +580,7 @@ class IPShellWidget(wx.Panel):
                                           'setfunc':self.text_ctrl.setBackgroundColor},
                       'threading':{'value':'True',
                                    'checkbox':self.threading_option,'True':True,'False':False,
-                                   'setfunc':self.IP.setThreading},
+                                   'setfunc':self.IP.set_threading},
                      }
 
         #self.cout.write dEfault option is asynchroneous because default sate is threading ON
@@ -628,15 +628,15 @@ class IPShellWidget(wx.Panel):
         self.text_ctrl.write('\n')
         lines_to_execute = lines.replace('\t',' '*4)
         lines_to_execute = lines_to_execute.replace('\r','')
-        self.IP.doExecute(lines_to_execute.encode(ENCODING))
+        self.IP.do_execute(lines_to_execute.encode(ENCODING))
         self.updateHistoryTracker(lines)
-        if(self.text_ctrl.getCursorPos()!=0):
-            self.text_ctrl.removeCurrentLine()
         self.setCurrentState('WAIT_END_OF_EXECUTION')
         
     def evtStateExecuteDone(self,evt):
-        self.doc = self.IP.getDocText()
-        self.help = self.IP.getHelpText()
+        if(self.text_ctrl.getCursorPos()!=0):
+                self.text_ctrl.removeCurrentLine()
+        self.doc = self.IP.get_doc_text()
+        self.help = self.IP.get_help_text()
         if self.doc:
             self.pager_lines = self.doc[7:].split('\n')
             self.pager_state = 'INIT'
@@ -652,11 +652,11 @@ class IPShellWidget(wx.Panel):
 
     def stateShowPrompt(self):
         self.setCurrentState('SHOW_PROMPT')
-        self.text_ctrl.setPrompt(self.IP.getPrompt())
-        self.text_ctrl.setIndentation(self.IP.getIndentation())
-        self.text_ctrl.setPromptCount(self.IP.getPromptCount())
+        self.text_ctrl.setPrompt(self.IP.get_prompt())
+        self.text_ctrl.setIndentation(self.IP.get_indentation())
+        self.text_ctrl.setPromptCount(self.IP.get_prompt_count())
         self.text_ctrl.showPrompt()
-        self.IP.initHistoryIndex()
+        self.IP.init_history_index()
         self.setCurrentState('IDLE')
 
     def setCurrentState(self, state):
@@ -762,11 +762,11 @@ class IPShellWidget(wx.Panel):
             
         if self.cur_state == 'IDLE':
             if event.KeyCode == wx.WXK_UP:
-                history = self.IP.historyBack()
+                history = self.IP.history_back()
                 self.text_ctrl.writeHistory(history)
                 return
             if event.KeyCode == wx.WXK_DOWN:
-                history = self.IP.historyForward()
+                history = self.IP.history_forward()
                 self.text_ctrl.writeHistory(history)
                 return
             if event.KeyCode == wx.WXK_TAB:
@@ -817,11 +817,11 @@ class IPShellWidget(wx.Panel):
     def evtCheckOptionThreading(self, event):
         if event.IsChecked():
             self.options['threading']['value']='True'
-            self.IP.setThreading(True)
+            self.IP.set_threading(True)
             self.cout.write = self.text_ctrl.asyncWrite
         else:
             self.options['threading']['value']='False'
-            self.IP.setThreading(False)
+            self.IP.set_threading(False)
             self.cout.write = self.text_ctrl.write
         self.updateOptionTracker('threading',
                                  self.options['threading']['value'])
@@ -838,10 +838,10 @@ class IPShellWidget(wx.Panel):
             self.options[key]['setfunc'](value)
         
         if self.options['threading']['value']=='True':
-            self.IP.setThreading(True)
+            self.IP.set_threading(True)
             self.cout.write = self.text_ctrl.asyncWrite
         else:
-            self.IP.setThreading(False)
+            self.IP.set_threading(False)
             self.cout.write = self.text_ctrl.write
             
     #------------------------ Hook Section -----------------------------------
