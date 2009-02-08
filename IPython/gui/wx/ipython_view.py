@@ -33,6 +33,8 @@ from StringIO import StringIO
 import sys
 import codecs
 import locale
+import time
+
 for enc in (locale.getpreferredencoding(),
             sys.getfilesystemencoding(),
             sys.getdefaultencoding()):
@@ -77,6 +79,7 @@ class WxNonBlockingIPShell(NonBlockingIPShell):
         wx.CallAfter(self._yesNoBox,  prompt)
         while self.answer is None:
             wx.Yield()
+            time.sleep(.1)
         return self.answer
         
     def _yesNoBox(self, prompt):
