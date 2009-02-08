@@ -176,7 +176,7 @@ class NonBlockingIPShell(object):
         self._IP.set_hook('shell_hook', self._shell)
         
         #we replace the ipython default input command caller by our method
-        IPython.iplib.raw_input_original = self._raw_input
+        IPython.iplib.raw_input_original = self._raw_input_original
         #we replace the ipython default exit command by our method
         self._IP.exit = ask_exit_handler
         #we replace the help command
@@ -189,26 +189,9 @@ class NonBlockingIPShell(object):
             print '%this magic is currently disabled.'
         ip.expose_magic('cpaste', bypass_magic)
 
-        def reset_magic(self, arg):
-            """Resets the namespace by removing all names defined by the user.
-
-            Input/Output history are left around in case you need them."""
-
-            ans = True ##todo find away to ask the user...
-                       ##seems hard to do it cleanly...
-            if not ans:
-                print 'Nothing done.'
-                return
-            user_ns = self.shell.user_ns
-            for i in self.magic_who_ls():
-                del(user_ns[i])
-                
-            # Also flush the private list of module references kept for script
-            # execution protection
-            self.shell._user_main_modules[:] = []
-            
-        ip.expose_magic('reset', reset_magic)
-
+        import __builtin__
+        __builtin__.raw_input = self._raw_input
+        
         sys.excepthook = excepthook
 
     #----------------------- Thread management section ----------------------   
@@ -416,11 +399,11 @@ class NonBlockingIPShell(object):
         '''
         pass
 
-    #def _ask_exit(self):
-    #    '''
-    #    Can be redefined to generate post event to exit the Ipython shell
-    #    '''
-    #    pass
+    def _ask_exit(self):
+        '''
+        Can be redefined to generate post event to exit the Ipython shell
+        '''
+        pass
 
     def _get_history_max_index(self):
         '''
@@ -462,7 +445,7 @@ class NonBlockingIPShell(object):
         '''
         self._doc_text = text
     
-    def _raw_input(self, prompt=''):
+    def _raw_input_original(self, prompt=''):
         '''
         Custom raw_input() replacement. Get's current line from console buffer.
 
@@ -474,6 +457,11 @@ class NonBlockingIPShell(object):
         '''
         return self._line_to_execute
 
+    def _raw_input(self, prompt=''):
+        """ A replacement from python's raw_input.
+        """
+        raise NotImplementedError
+    
     def _execute(self):
         '''
         Executes the current line provided by the shell object.

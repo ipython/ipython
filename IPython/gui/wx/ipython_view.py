@@ -70,6 +70,29 @@ class WxNonBlockingIPShell(NonBlockingIPShell):
                 button_info={   'text':text, 
                                 'func':self.parent.doExecuteLine(func)})
 
+    def _raw_input(self, prompt=''):
+        """ A replacement from python's raw_input.
+        """
+        self.answer = None
+        wx.CallAfter(self._yesNoBox,  prompt)
+        while self.answer is None:
+            wx.Yield()
+        return self.answer
+        
+    def _yesNoBox(self, prompt):
+        """ yes/no box managed with wx.CallAfter jsut in case caler is executed in a thread"""
+        dlg = wx.TextEntryDialog(
+                self.parent, prompt,
+                'Input requested', 'Python')
+        dlg.SetValue("")
+
+        answer = ''
+        if dlg.ShowModal() == wx.ID_OK:
+            answer = dlg.GetValue()
+        
+        dlg.Destroy()
+        self.answer = answer
+        
     def _ask_exit(self):
         wx.CallAfter(self.ask_exit_callback, ())
 
@@ -432,7 +455,6 @@ class WxConsoleView(stc.StyledTextCtrl):
         @return: Return True if event as been catched.
         @rtype: boolean
         '''
-
         if not self.AutoCompActive():
             if event.GetKeyCode() == wx.WXK_HOME:
                 if event.Modifiers == wx.MOD_NONE:
