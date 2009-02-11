@@ -76,10 +76,12 @@ class WxNonBlockingIPShell(NonBlockingIPShell):
         """ A replacement from python's raw_input.
         """
         self.answer = None
-        wx.CallAfter(self._yesNoBox,  prompt)
-        while self.answer is None:
-            wx.Yield()
-            time.sleep(.1)
+        if(self._threading == True):			
+			wx.CallAfter(self._yesNoBox,  prompt)
+			while self.answer is None:
+				time.sleep(.1)
+        else:
+			self._yesNoBox(prompt)
         return self.answer
         
     def _yesNoBox(self, prompt):
@@ -655,6 +657,8 @@ class IPShellWidget(wx.Panel):
         lines_to_execute = lines_to_execute.replace('\r','')
         self.IP.do_execute(lines_to_execute.encode(ENCODING))
         self.updateHistoryTracker(lines)
+        if(self.text_ctrl.getCursorPos()!=0):
+            self.text_ctrl.removeCurrentLine()
         self.setCurrentState('WAIT_END_OF_EXECUTION')
         
     def evtStateExecuteDone(self,evt):
@@ -936,5 +940,5 @@ if __name__ == '__main__':
     shell = frame.shell
 
     app.MainLoop()
-
+	
 
