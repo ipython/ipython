@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Release data for the IPython project.
-
-$Id: Release.py 3002 2008-02-01 07:17:00Z fperez $"""
+"""Release data for the IPython project."""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2006 Fernando Perez <fperez@colorado.edu>
@@ -23,9 +21,9 @@ name = 'ipython'
 # bdist_deb does not accept underscores (a Debian convention).
 
 development = False    # change this to False to do a release
-version_base = '0.9.beta'
+version_base = '0.9.1'
 branch = 'ipython'
-revision = '1099'
+revision = '1143'
 
 if development:
     if branch == 'ipython':
@@ -36,45 +34,69 @@ else:
     version = version_base
 
 
-description = "Tools for interactive development in Python."
+description = "An interactive computing environment for Python"
 
 long_description = \
 """
-IPython provides a replacement for the interactive Python interpreter with
-extra functionality.
+The goal of IPython is to create a comprehensive environment for
+interactive and exploratory computing.  To support this goal, IPython
+has two main components:
 
-Main features:
+* An enhanced interactive Python shell.
 
- * Comprehensive object introspection.
+* An architecture for interactive parallel computing.
 
- * Input history, persistent across sessions.
+The enhanced interactive Python shell has the following main features:
 
- * Caching of output results during a session with automatically generated
-   references.
+* Comprehensive object introspection.
 
- * Readline based name completion.
+* Input history, persistent across sessions.
 
- * Extensible system of 'magic' commands for controlling the environment and
-   performing many tasks related either to IPython or the operating system.
+* Caching of output results during a session with automatically generated
+  references.
 
- * Configuration system with easy switching between different setups (simpler
-   than changing $PYTHONSTARTUP environment variables every time).
+* Readline based name completion.
 
- * Session logging and reloading.
+* Extensible system of 'magic' commands for controlling the environment and
+  performing many tasks related either to IPython or the operating system.
 
- * Extensible syntax processing for special purpose situations.
+* Configuration system with easy switching between different setups (simpler
+  than changing $PYTHONSTARTUP environment variables every time).
 
- * Access to the system shell with user-extensible alias system.
+* Session logging and reloading.
 
- * Easily embeddable in other Python programs.
+* Extensible syntax processing for special purpose situations.
 
- * Integrated access to the pdb debugger and the Python profiler. 
+* Access to the system shell with user-extensible alias system.
 
- The latest development version is always available at the IPython subversion
- repository_.
+* Easily embeddable in other Python programs and wxPython GUIs.
 
-.. _repository: http://ipython.scipy.org/svn/ipython/ipython/trunk#egg=ipython-dev
- """
+* Integrated access to the pdb debugger and the Python profiler. 
+
+The parallel computing architecture has the following main features:
+
+* Quickly parallelize Python code from an interactive Python/IPython session.
+
+* A flexible and dynamic process model that be deployed on anything from 
+  multicore workstations to supercomputers.
+
+* An architecture that supports many different styles of parallelism, from
+  message passing to task farming.
+
+* Both blocking and fully asynchronous interfaces.
+
+* High level APIs that enable many things to be parallelized in a few lines
+  of code.
+
+* Share live parallel jobs with other users securely.  
+
+* Dynamically load balanced task farming system.
+
+* Robust error handling in parallel code.
+
+The latest development version is always available from IPython's `Launchpad 
+site <http://launchpad.net/ipython>`_.
+"""
 
 license = 'BSD'
 

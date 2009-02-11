@@ -23,32 +23,34 @@ try:
     from IPython.kernel.tests.multienginetest import (IMultiEngineTestCase,
         ISynchronousMultiEngineTestCase)
 except ImportError:
-    pass
-else:    
-    class BasicMultiEngineTestCase(DeferredTestCase, IMultiEngineTestCase):
+    import nose
+    raise nose.SkipTest("This test requires zope.interface, Twisted and Foolscap")
+
+ 
+class BasicMultiEngineTestCase(DeferredTestCase, IMultiEngineTestCase):
+
+    def setUp(self):
+        self.controller = ControllerService()
+        self.controller.startService()
+        self.multiengine = me.IMultiEngine(self.controller)
+        self.engines = []
     
-        def setUp(self):
-            self.controller = ControllerService()
-            self.controller.startService()
-            self.multiengine = me.IMultiEngine(self.controller)
-            self.engines = []
-        
-        def tearDown(self):
-            self.controller.stopService()
-            for e in self.engines:
-                e.stopService()
+    def tearDown(self):
+        self.controller.stopService()
+        for e in self.engines:
+            e.stopService()
 
 
-    class SynchronousMultiEngineTestCase(DeferredTestCase, ISynchronousMultiEngineTestCase):
+class SynchronousMultiEngineTestCase(DeferredTestCase, ISynchronousMultiEngineTestCase):
+
+    def setUp(self):
+        self.controller = ControllerService()
+        self.controller.startService()
+        self.multiengine = me.ISynchronousMultiEngine(me.IMultiEngine(self.controller))
+        self.engines = []
     
-        def setUp(self):
-            self.controller = ControllerService()
-            self.controller.startService()
-            self.multiengine = me.ISynchronousMultiEngine(me.IMultiEngine(self.controller))
-            self.engines = []
-        
-        def tearDown(self):
-            self.controller.stopService()
-            for e in self.engines:
-                e.stopService()
+    def tearDown(self):
+        self.controller.stopService()
+        for e in self.engines:
+            e.stopService()
 

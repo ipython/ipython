@@ -2,11 +2,15 @@
 IPython Documentation
 =====================
 
-Contents
-========
+.. htmlonly::
+
+   :Release: |release|
+   :Date: |today|
+
+   Contents:
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
 
    overview.txt
    install/index.txt
@@ -20,9 +24,7 @@ Contents
    license_and_copyright.txt
    credits.txt
 
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+.. htmlonly::
+   * :ref:`genindex`
+   * :ref:`modindex`
+   * :ref:`search`

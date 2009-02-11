@@ -23,6 +23,7 @@ import wx
 import wx.stc  as  stc
 
 from wx.py import editwindow
+import time
 import sys
 LINESEP = '\n'
 if sys.platform == 'win32':
@@ -35,7 +36,7 @@ import re
 
 _DEFAULT_SIZE = 10
 if sys.platform == 'darwin':
-    _DEFAULT_STYLE = 12
+    _DEFAULT_SIZE = 12
 
 _DEFAULT_STYLE = {
     'stdout'      : 'fore:#0000FF',
@@ -115,12 +116,15 @@ class ConsoleWidget(editwindow.EditWindow):
     # The color of the carret (call _apply_style() after setting)
     carret_color = 'BLACK'
     
+    # Store the last time a refresh was done
+    _last_refresh_time = 0
+
     #--------------------------------------------------------------------------
     # Public API
     #--------------------------------------------------------------------------
     
     def __init__(self, parent, id=wx.ID_ANY, pos=wx.DefaultPosition, 
-                        size=wx.DefaultSize, style=0, ):
+                        size=wx.DefaultSize, style=wx.WANTS_CHARS, ):
         editwindow.EditWindow.__init__(self, parent, id, pos, size, style)
         self._configure_scintilla()
 
@@ -168,9 +172,14 @@ class ConsoleWidget(editwindow.EditWindow):
                 
         self.GotoPos(self.GetLength())
         if refresh:
-            # Maybe this is faster than wx.Yield()
-            self.ProcessEvent(wx.PaintEvent())
-            #wx.Yield()
+            current_time = time.time()
+            if current_time - self._last_refresh_time > 0.03:
+                if sys.platform == 'win32':
+                    wx.SafeYield()
+                else:
+                    wx.Yield()
+                #    self.ProcessEvent(wx.PaintEvent())
+                self._last_refresh_time = current_time 
 
    
     def new_prompt(self, prompt):
@@ -183,7 +192,6 @@ class ConsoleWidget(editwindow.EditWindow):
         # now we update our cursor giving end of prompt
         self.current_prompt_pos = self.GetLength()
         self.current_prompt_line = self.GetCurrentLine()
-        wx.Yield()
         self.EnsureCaretVisible()
 
 

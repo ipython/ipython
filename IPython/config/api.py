@@ -16,13 +16,11 @@ __docformat__ = "restructuredtext en"
 #-------------------------------------------------------------------------------
 
 import os
-from IPython.config.cutils import get_home_dir, get_ipython_dir
+from os.path import join as pjoin
+
+from IPython.genutils import get_home_dir, get_ipython_dir
 from IPython.external.configobj import ConfigObj
 
-# Traitlets config imports
-from IPython.config import traitlets
-from IPython.config.config import *
-from traitlets import *
 
 class ConfigObjManager(object):
     
@@ -53,7 +51,7 @@ class ConfigObjManager(object):
 
     def write_default_config_file(self):
         ipdir = get_ipython_dir()
-        fname = ipdir + '/' + self.filename
+        fname = pjoin(ipdir, self.filename)
         if not os.path.isfile(fname):
             print "Writing the configuration file to: " + fname
             self.write_config_obj_to_file(fname)
@@ -87,11 +85,11 @@ class ConfigObjManager(object):
 
         # In ipythondir if it is set
         if ipythondir is not None:
-            trythis = ipythondir + '/' + filename
+            trythis = pjoin(ipythondir, filename)
             if os.path.isfile(trythis):
                 return trythis        
 
-        trythis = get_ipython_dir() + '/' + filename
+        trythis = pjoin(get_ipython_dir(), filename)
         if os.path.isfile(trythis):
             return trythis
 

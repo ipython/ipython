@@ -1,14 +1,8 @@
-.. IPython documentation master file, created by sphinx-quickstart.py on Mon Mar 24 17:01:34 2008.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root 'toctree' directive.
-
 =================
 IPython reference
 =================
 
-.. contents::
-
-.. _Command line options:
+.. _command_line_options:
 
 Command-line usage
 ==================
@@ -288,12 +282,13 @@ All options with a [no] prepended can be specified in negated form
 	recursive inclusions.
 
     -prompt_in1, pi1 <string>
-	Specify the string used for input prompts. Note that if you
-	are using numbered prompts, the number is represented with a
-	'\#' in the string. Don't forget to quote strings with spaces
-	embedded in them. Default: 'In [\#]:'.  Sec. Prompts_
-	discusses in detail all the available escapes to customize
-	your prompts.
+
+        Specify the string used for input prompts. Note that if you are using
+	numbered prompts, the number is represented with a '\#' in the
+	string. Don't forget to quote strings with spaces embedded in
+	them. Default: 'In [\#]:'.  The :ref:`prompts section <prompts>`
+	discusses in detail all the available escapes to customize your
+	prompts.
 
     -prompt_in2, pi2 <string>
 	Similar to the previous option, but used for the continuation
@@ -2077,13 +2072,14 @@ customizations.
 Access to the standard Python help
 ----------------------------------
 
-As of Python 2.1, a help system is available with access to object
-docstrings and the Python manuals. Simply type 'help' (no quotes) to
-access it. You can also type help(object) to obtain information about a
-given object, and help('keyword') for information on a keyword. As noted
-in sec. `accessing help`_, you need to properly configure
-your environment variable PYTHONDOCS for this feature to work correctly.
+As of Python 2.1, a help system is available with access to object docstrings
+and the Python manuals. Simply type 'help' (no quotes) to access it. You can
+also type help(object) to obtain information about a given object, and
+help('keyword') for information on a keyword. As noted :ref:`here
+<accessing_help>`, you need to properly configure your environment variable
+PYTHONDOCS for this feature to work correctly.
 
+.. _dynamic_object_info:
 
 Dynamic object information
 --------------------------
@@ -2126,7 +2122,7 @@ are not really defined as separate identifiers. Try for example typing
 {}.get? or after doing import os, type os.path.abspath??.
 
 
-.. _Readline:
+.. _readline:
 
 Readline-based features
 -----------------------
@@ -2240,10 +2236,9 @@ explanation in your ipythonrc file.
 Session logging and restoring
 -----------------------------
 
-You can log all input from a session either by starting IPython with
-the command line switches -log or -logfile (see sec. `command line
-options`_) or by activating the logging at any moment with the magic
-function %logstart.
+You can log all input from a session either by starting IPython with the
+command line switches -log or -logfile (see :ref:`here <command_line_options>`)
+or by activating the logging at any moment with the magic function %logstart.
 
 Log files can later be reloaded with the -logplay option and IPython
 will attempt to 'replay' the log by executing all the lines in it, thus
@@ -2278,6 +2273,8 @@ The %logoff and %logon functions allow you to temporarily stop and
 resume logging to a file which had previously been started with
 %logstart. They will fail (with an explanation) if you try to use them
 before logging has been started.
+
+.. _system_shell_access:
 
 System shell access
 -------------------
@@ -2389,14 +2386,16 @@ These features are basically a terminal version of Ka-Ping Yee's cgitb
 module, now part of the standard Python library.
 
 
-.. _Input caching:
+.. _input_caching:
 
 Input caching system
 --------------------
 
-IPython offers numbered prompts (In/Out) with input and output caching.
-All input is saved and can be retrieved as variables (besides the usual
-arrow key recall).
+IPython offers numbered prompts (In/Out) with input and output caching
+(also referred to as 'input history'). All input is saved and can be 
+retrieved as variables (besides the usual arrow key recall), in 
+addition to the %rep magic command that brings a history entry
+up for editing on the next  command line.
 
 The following GLOBAL variables always exist (so don't overwrite them!):
 _i: stores previous input. _ii: next previous. _iii: next-next previous.
@@ -2429,7 +2428,43 @@ sec. 6.2 <#sec:magic> for more details on the macro system.
 A history function %hist allows you to see any part of your input
 history by printing a range of the _i variables.
 
-.. _Output caching:
+You can also search ('grep') through your history by typing 
+'%hist -g somestring'. This also searches through the so called *shadow history*,
+which remembers all the commands (apart from multiline code blocks)
+you have ever entered. Handy for searching for svn/bzr URL's, IP adrresses
+etc. You can bring shadow history entries listed by '%hist -g' up for editing 
+(or re-execution by just pressing ENTER) with %rep command. Shadow history 
+entries are not available as _iNUMBER variables, and they are identified by 
+the '0' prefix in %hist -g output. That is, history entry 12 is a normal 
+history entry, but 0231 is a shadow history entry.
+
+Shadow history was added because the readline history is inherently very
+unsafe - if you have multiple IPython sessions open, the last session 
+to close will overwrite the history of previountly closed session. Likewise,
+if a crash occurs, history is never saved, whereas shadow history entries
+are added after entering every command (so a command executed 
+in another IPython session is immediately available in other IPython 
+sessions that are open).
+
+To conserve space, a command can exist in shadow history only once - it doesn't 
+make sense to store a common line like "cd .." a thousand times. The idea is 
+mainly to provide a reliable place where valuable, hard-to-remember commands can 
+always be retrieved, as opposed to providing an exact sequence of commands
+you have entered in actual order.
+
+Because shadow history has all the commands you have ever executed,
+time taken by %hist -g will increase oven time. If it ever starts to take
+too long (or it ends up containing sensitive information like passwords), 
+clear the shadow history by `%clear shadow_nuke`.
+
+Time taken to add entries to shadow history should be negligible, but 
+in any case, if you start noticing performance degradation after using 
+IPython for a long time (or running a script that floods the shadow history!), 
+you can 'compress' the shadow history by executing 
+`%clear shadow_compress`. In practice, this should never be necessary
+in normal use.
+
+.. _output_caching:
 
 Output caching system
 ---------------------
@@ -2472,7 +2507,7 @@ Directory history
 
 Your history of visited directories is kept in the global list _dh, and
 the magic %cd command can be used to go to any entry in that list. The
-%dhist command allows you to view this history. do ``cd -<TAB`` to
+%dhist command allows you to view this history. Do ``cd -<TAB`` to
 conventiently view the directory history.
 
 
@@ -3034,7 +3069,7 @@ which is being shared by the interactive IPython loop and your GUI
 thread, you should really handle it with thread locking and
 syncrhonization properties. The Python documentation discusses these.
 
-.. _Interactive demos:
+.. _interactive_demos:
 
 Interactive demos with IPython
 ==============================
@@ -3143,21 +3178,17 @@ toolkits, including Tk, GTK and WXPython. It also provides a number of
 commands useful for scientific computing, all with a syntax compatible
 with that of the popular Matlab program.
 
-IPython accepts the special option -pylab (Sec. `Command line
-options`_). This configures it to support matplotlib, honoring the
-settings in the .matplotlibrc file. IPython will detect the user's
-choice of matplotlib GUI backend, and automatically select the proper
-threading model to prevent blocking. It also sets matplotlib in
-interactive mode and modifies %run slightly, so that any
-matplotlib-based script can be executed using %run and the final
-show() command does not block the interactive shell.
+IPython accepts the special option -pylab (see :ref:`here
+<command_line_options>`). This configures it to support matplotlib, honoring
+the settings in the .matplotlibrc file. IPython will detect the user's choice
+of matplotlib GUI backend, and automatically select the proper threading model
+to prevent blocking. It also sets matplotlib in interactive mode and modifies
+%run slightly, so that any matplotlib-based script can be executed using %run
+and the final show() command does not block the interactive shell.
 
-The -pylab option must be given first in order for IPython to
-configure its threading mode. However, you can still issue other
-options afterwards. This allows you to have a matplotlib-based
-environment customized with additional modules using the standard
-IPython profile mechanism (Sec. Profiles_): ''ipython -pylab -p
-myprofile'' will load the profile defined in ipythonrc-myprofile after
-configuring matplotlib.
-
-
+The -pylab option must be given first in order for IPython to configure its
+threading mode. However, you can still issue other options afterwards. This
+allows you to have a matplotlib-based environment customized with additional
+modules using the standard IPython profile mechanism (see :ref:`here
+<profiles>`): ``ipython -pylab -p myprofile`` will load the profile defined in
+ipythonrc-myprofile after configuring matplotlib.

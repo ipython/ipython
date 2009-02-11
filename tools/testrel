@@ -2,8 +2,7 @@
 
 # release test
 
-ipdir=~/ipython/ipython
-ipbackupdir=~/ipython/backup
+ipdir=$PWD/..
 
 cd $ipdir
 
@@ -11,18 +10,13 @@ cd $ipdir
 rm -rf $ipdir/build/*
 rm -rf $ipdir/dist/*
 
-# Perform local backup
-cd $ipdir/tools
-./make_tarball.py
-mv ipython-*.tgz $ipbackupdir
-
 # build source distros
 cd $ipdir
 ./setup.py sdist --formats=gztar
 
 # Build rpms
-#python2.4 ./setup.py bdist_rpm --binary-only --release=py24 --python=/usr/bin/python2.4
-#python2.5 ./setup.py bdist_rpm --binary-only --release=py25 --python=/usr/bin/python2.5
+python2.4 ./setup.py bdist_rpm --binary-only --release=py24 --python=/usr/bin/python2.4
+python2.5 ./setup.py bdist_rpm --binary-only --release=py25 --python=/usr/bin/python2.5
 
 # Build eggs
 python2.4 ./setup_bdist_egg.py

@@ -17,6 +17,8 @@ from time import sleep
 import sys
 
 from IPython.frontend._process import PipedProcess
+from IPython.testing import decorators as testdec
+
 
 def test_capture_out():
     """ A simple test to see if we can execute a process and get the output.
@@ -25,7 +27,8 @@ def test_capture_out():
     p = PipedProcess('echo 1', out_callback=s.write, )
     p.start()
     p.join()
-    assert s.getvalue() == '1\n'
+    result = s.getvalue().rstrip()
+    assert result == '1'
 
 
 def test_io():
@@ -40,7 +43,8 @@ def test_io():
         sleep(0.1)
     p.process.stdin.write(test_string)
     p.join()
-    assert s.getvalue() == test_string
+    result = s.getvalue()
+    assert result == test_string
 
 
 def test_kill():

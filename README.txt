@@ -1,11 +1,11 @@
-===============
-IPython1 README
-===============
- 
-.. contents::
+==============
+IPython README
+==============
 
 Overview
 ========
 
-Welcome to IPython.  New users should consult our documentation, which can be found
-in the docs/source subdirectory.
+Welcome to IPython. Our documentation can be found in the docs/source
+subdirectory. We also have ``.html`` and ``.pdf`` versions of this
+documentation available on the IPython `website <http://ipython.scipy.org>`_.
+

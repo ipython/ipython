@@ -50,7 +50,6 @@ import subprocess
 from subprocess import PIPE
 import sys
 import os
-import time
 import types
 
 try:
@@ -69,8 +68,16 @@ except ImportError:
 
 mswindows = (sys.platform == "win32")
 
+skip = False
+
 if mswindows:
-    import winprocess
+    import platform
+    if platform.uname()[3] == '' or platform.uname()[3] > '6.0.6000':
+        # Killable process does not work under vista when starting for
+        # something else than cmd.
+        skip = True
+    else:
+        import winprocess
 else:
     import signal
 
@@ -78,7 +85,11 @@ if not mswindows:
     def DoNothing(*args):
         pass
 
-class Popen(subprocess.Popen):
+
+if skip:
+ Popen = subprocess.Popen
+else:
+ class Popen(subprocess.Popen):
     if not mswindows:
         # Override __init__ to set a preexec_fn
         def __init__(self, *args, **kwargs):

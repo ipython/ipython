@@ -14,30 +14,14 @@ __docformat__ = "restructuredtext en"
 #-------------------------------------------------------------------------------
 # Imports
 #-------------------------------------------------------------------------------
-import uuid
+from IPython.external import guid
 
-try:
-    from zope.interface import Interface, Attribute, implements, classProvides
-except ImportError, e:
-    e.message = """%s
-________________________________________________________________________________
-zope.interface is required to run asynchronous frontends.""" % e.message
-    e.args = (e.message, ) + e.args[1:]
 
-from frontendbase import FrontEndBase, IFrontEnd, IFrontEndFactory
-
-from IPython.kernel.engineservice import IEngineCore
+from zope.interface import Interface, Attribute, implements, classProvides
+from twisted.python.failure import Failure
+from IPython.frontend.frontendbase import FrontEndBase, IFrontEnd, IFrontEndFactory
 from IPython.kernel.core.history import FrontEndHistory
-
-try:
-    from twisted.python.failure import Failure
-except ImportError, e:
-    e.message = """%s
-________________________________________________________________________________
-twisted is required to run asynchronous frontends.""" % e.message
-    e.args = (e.message, ) + e.args[1:]
-
-
+from IPython.kernel.engineservice import IEngineCore
 
 
 class AsyncFrontEndBase(FrontEndBase):
@@ -75,7 +59,7 @@ class AsyncFrontEndBase(FrontEndBase):
             return Failure(Exception("Block is not compilable"))
         
         if(blockID == None):
-            blockID = uuid.uuid4() #random UUID
+            blockID = guid.generate() 
         
         d = self.engine.execute(block)
         d.addCallback(self._add_history, block=block)

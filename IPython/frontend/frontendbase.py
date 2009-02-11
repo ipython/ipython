@@ -21,14 +21,16 @@ __docformat__ = "restructuredtext en"
 # Imports
 #-------------------------------------------------------------------------------
 import string
-import uuid
-import _ast
+import codeop
+from IPython.external import guid
 
-from zopeinterface import Interface, Attribute, implements, classProvides
 
+from IPython.frontend.zopeinterface import (
+    Interface, 
+    Attribute, 
+)
 from IPython.kernel.core.history import FrontEndHistory
 from IPython.kernel.core.util import Bunch
-from IPython.kernel.engineservice import IEngineCore
 
 ##############################################################################
 # TEMPORARY!!! fake configuration, while we decide whether to use tconfig or
@@ -131,11 +133,7 @@ class IFrontEnd(Interface):
         
         pass
     
-    def compile_ast(block):
-        """Compiles block to an _ast.AST"""
-        
-        pass
-    
+   
     def get_history_previous(current_block):
         """Returns the block previous in  the history. Saves currentBlock if
         the history_cursor is currently at the end of the input history"""
@@ -217,28 +215,14 @@ class FrontEndBase(object):
         """
         
         try:
-            ast = self.compile_ast(block)
+            is_complete = codeop.compile_command(block.rstrip() + '\n\n',
+                            "<string>", "exec") 
         except:
             return False
         
         lines = block.split('\n')
-        return (len(lines)==1 or str(lines[-1])=='')
-    
-    
-    def compile_ast(self, block):
-        """Compile block to an AST
-        
-        Parameters:
-            block : str
-        
-        Result:
-            AST
-        
-        Throws:
-            Exception if block cannot be compiled
-        """
-        
-        return compile(block, "<string>", "exec", _ast.PyCF_ONLY_AST)
+        return ((is_complete is not None) 
+                    and (len(lines)==1 or str(lines[-1])==''))
     
     
     def execute(self, block, blockID=None):
@@ -258,7 +242,7 @@ class FrontEndBase(object):
             raise Exception("Block is not compilable")
         
         if(blockID == None):
-            blockID = uuid.uuid4() #random UUID
+            blockID = guid.generate()
         
         try:
             result = self.shell.execute(block)

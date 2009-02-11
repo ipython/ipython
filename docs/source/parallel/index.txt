@@ -1,17 +1,16 @@
 .. _parallel_index:
 
 ====================================
-Using IPython for Parallel computing
+Using IPython for parallel computing
 ====================================
-
-User Documentation
-==================
 
 .. toctree::
    :maxdepth: 2
 
    parallel_intro.txt
+   parallel_process.txt
    parallel_multiengine.txt
    parallel_task.txt
    parallel_mpi.txt
+   parallel_security.txt
 

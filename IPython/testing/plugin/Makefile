@@ -1,6 +1,5 @@
 # Set this prefix to where you want to install the plugin
-PREFIX=~/usr/local
-PREFIX=~/tmp/local
+PREFIX=/usr/local
 
 NOSE0=nosetests -vs --with-doctest --doctest-tests --detailed-errors
 NOSE=nosetests -vvs --with-ipdoctest --doctest-tests --doctest-extension=txt \

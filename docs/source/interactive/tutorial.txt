@@ -4,8 +4,6 @@
 Quick IPython tutorial
 ======================
 
-.. contents::
-
 IPython can be used as an improved replacement for the Python prompt,
 and for that you don't really need to read any more of this manual. But
 in this section we'll try to summarize a few tips on how to make the
@@ -24,11 +22,11 @@ Tab completion
 --------------
 
 TAB-completion, especially for attributes, is a convenient way to explore the
-structure of any object you're dealing with. Simply type object_name.<TAB>
-and a list of the object's attributes will be printed (see readline_ for
-more). Tab completion also works on file and directory names, which combined
-with IPython's alias system allows you to do from within IPython many of the
-things you normally would need the system shell for.
+structure of any object you're dealing with. Simply type object_name.<TAB> and
+a list of the object's attributes will be printed (see :ref:`the readline
+section <readline>` for more). Tab completion also works on file and directory
+names, which combined with IPython's alias system allows you to do from within
+IPython many of the things you normally would need the system shell for.
 
 Explore your objects
 --------------------
@@ -39,18 +37,18 @@ constructor details for classes. The magic commands %pdoc, %pdef, %psource
 and %pfile will respectively print the docstring, function definition line,
 full source code and the complete file for any object (when they can be
 found). If automagic is on (it is by default), you don't need to type the '%'
-explicitly. See sec. `dynamic object information`_ for more.
+explicitly. See :ref:`this section <dynamic_object_info>` for more.
 
 The `%run` magic command
 ------------------------
 
-The %run magic command allows you to run any python script and load all of
-its data directly into the interactive namespace. Since the file is re-read
-from disk each time, changes you make to it are reflected immediately (in
-contrast to the behavior of import). I rarely use import for code I am
-testing, relying on %run instead. See magic_ section for more on this and
-other magic commands, or type the name of any magic command and ? to get
-details on it. See also sec. dreload_ for a recursive reload command. %run
+The %run magic command allows you to run any python script and load all of its
+data directly into the interactive namespace. Since the file is re-read from
+disk each time, changes you make to it are reflected immediately (in contrast
+to the behavior of import). I rarely use import for code I am testing, relying
+on %run instead. See :ref:`this section <magic>` for more on this and other
+magic commands, or type the name of any magic command and ? to get details on
+it. See also :ref:`this section <dreload>` for a recursive reload command. %run
 also has special flags for timing the execution of your scripts (-t) and for
 executing them under the control of either Python's pdb debugger (-d) or
 profiler (-p). With all of these, %run can be used as the main tool for
@@ -60,21 +58,21 @@ choice.
 Debug a Python script
 ---------------------
 
-Use the Python debugger, pdb. The %pdb command allows you to toggle on and
-off the automatic invocation of an IPython-enhanced pdb debugger (with
-coloring, tab completion and more) at any uncaught exception. The advantage
-of this is that pdb starts inside the function where the exception occurred,
-with all data still available. You can print variables, see code, execute
-statements and even walk up and down the call stack to track down the true
-source of the problem (which often is many layers in the stack above where
-the exception gets triggered). Running programs with %run and pdb active can
-be an efficient to develop and debug code, in many cases eliminating the need
-for print statements or external debugging tools. I often simply put a 1/0 in
-a place where I want to take a look so that pdb gets called, quickly view
-whatever variables I need to or test various pieces of code and then remove
-the 1/0. Note also that '%run -d' activates pdb and automatically sets
-initial breakpoints for you to step through your code, watch variables, etc.
-See Sec. `Output caching`_ for details.
+Use the Python debugger, pdb. The %pdb command allows you to toggle on and off
+the automatic invocation of an IPython-enhanced pdb debugger (with coloring,
+tab completion and more) at any uncaught exception. The advantage of this is
+that pdb starts inside the function where the exception occurred, with all data
+still available. You can print variables, see code, execute statements and even
+walk up and down the call stack to track down the true source of the problem
+(which often is many layers in the stack above where the exception gets
+triggered). Running programs with %run and pdb active can be an efficient to
+develop and debug code, in many cases eliminating the need for print statements
+or external debugging tools. I often simply put a 1/0 in a place where I want
+to take a look so that pdb gets called, quickly view whatever variables I need
+to or test various pieces of code and then remove the 1/0. Note also that '%run
+-d' activates pdb and automatically sets initial breakpoints for you to step
+through your code, watch variables, etc.  The :ref:`output caching section
+<output_caching>` has more details.
 
 Use the output cache
 --------------------
@@ -84,7 +82,8 @@ and variables named _1, _2, etc. alias them. For example, the result of input
 line 4 is available either as Out[4] or as _4. Additionally, three variables
 named _, __ and ___ are always kept updated with the for the last three
 results. This allows you to recall any previous result and further use it for
-new calculations. See Sec. `Output caching`_ for more.
+new calculations. See :ref:`the output caching section <output_caching>` for
+more.
 
 Suppress output
 ---------------
@@ -102,7 +101,7 @@ A similar system exists for caching input. All input is stored in a global
 list called In , so you can re-execute lines 22 through 28 plus line 34 by
 typing 'exec In[22:29]+In[34]' (using Python slicing notation). If you need
 to execute the same set of lines often, you can assign them to a macro with
-the %macro function. See sec. `Input caching`_ for more.
+the %macro function. See :ref:`here <input_caching>` for more.
 
 Use your input history
 ----------------------
@@ -134,17 +133,18 @@ into Python variables.
 Use Python variables when calling the shell
 -------------------------------------------
 
-Expand python variables when calling the shell (either via '!' and '!!' or
-via aliases) by prepending a $ in front of them. You can also expand complete
-python expressions. See `System shell access`_ for more.
+Expand python variables when calling the shell (either via '!' and '!!' or via
+aliases) by prepending a $ in front of them. You can also expand complete
+python expressions. See :ref:`our shell section <system_shell_access>` for
+more details.
 
 Use profiles
 ------------
 
 Use profiles to maintain different configurations (modules to load, function
 definitions, option settings) for particular tasks. You can then have
-customized versions of IPython for specific purposes. See sec. profiles_ for
-more.
+customized versions of IPython for specific purposes. :ref:`This section
+<profiles>` has more details.
 
 
 Embed IPython in your programs
@@ -152,7 +152,7 @@ Embed IPython in your programs
 
 A few lines of code are enough to load a complete IPython inside your own
 programs, giving you the ability to work with your data interactively after
-automatic processing has been completed. See sec. embedding_ for more.
+automatic processing has been completed. See :ref:`here <embedding>` for more.
 
 Use the Python profiler
 -----------------------
@@ -166,8 +166,8 @@ Use IPython to present interactive demos
 ----------------------------------------
 
 Use the IPython.demo.Demo class to load any Python script as an interactive
-demo. With a minimal amount of simple markup, you can control the execution
-of the script, stopping as needed. See sec. `interactive demos`_ for more.
+demo. With a minimal amount of simple markup, you can control the execution of
+the script, stopping as needed. See :ref:`here <interactive_demos>` for more.
 
 Run doctests
 ------------

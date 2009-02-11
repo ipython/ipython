@@ -3,7 +3,7 @@ Configuration and customization
 ===============================
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
 
    initial_config.txt
    customization.txt

@@ -24,6 +24,7 @@ __docformat__ = "restructuredtext en"
 import sys
 
 from linefrontendbase import LineFrontEndBase, common_prefix
+from frontendbase import FrontEndBase
 
 from IPython.ipmaker import make_IPython
 from IPython.ipapi import IPApi
@@ -34,6 +35,7 @@ from IPython.kernel.core.sync_traceback_trap import SyncTracebackTrap
 from IPython.genutils import Term
 import pydoc
 import os
+import sys
 
 
 def mk_system_call(system_call_function, command):
@@ -57,6 +59,8 @@ class PrefilterFrontEnd(LineFrontEndBase):
     to execute the statements and the ipython0 used for code
     completion...
     """
+
+    debug = False
     
     def __init__(self, ipython0=None, *args, **kwargs):
         """ Parameters:
@@ -65,12 +69,24 @@ class PrefilterFrontEnd(LineFrontEndBase):
             ipython0: an optional ipython0 instance to use for command
             prefiltering and completion.
         """
+        LineFrontEndBase.__init__(self, *args, **kwargs)
+        self.shell.output_trap = RedirectorOutputTrap(
+                            out_callback=self.write,
+                            err_callback=self.write,
+                                            )
+        self.shell.traceback_trap = SyncTracebackTrap(
+                        formatters=self.shell.traceback_trap.formatters,
+                            )
+
+        # Start the ipython0 instance:
         self.save_output_hooks()
         if ipython0 is None:
             # Instanciate an IPython0 interpreter to be able to use the
             # prefiltering.
             # XXX: argv=[] is a bit bold.
-            ipython0 = make_IPython(argv=[])
+            ipython0 = make_IPython(argv=[], 
+                                    user_ns=self.shell.user_ns,
+                                    user_global_ns=self.shell.user_global_ns)
         self.ipython0 = ipython0
         # Set the pager:
         self.ipython0.set_hook('show_in_pager', 
@@ -86,24 +102,13 @@ class PrefilterFrontEnd(LineFrontEndBase):
                                                             'ls -CF')
         # And now clean up the mess created by ipython0
         self.release_output()
+
+
         if not 'banner' in kwargs and self.banner is None:
-            kwargs['banner'] = self.ipython0.BANNER + """
+            self.banner = self.ipython0.BANNER + """
 This is the wx frontend, by Gael Varoquaux. This is EXPERIMENTAL code."""
 
-        LineFrontEndBase.__init__(self, *args, **kwargs)
-        # XXX: Hack: mix the two namespaces
-        self.shell.user_ns.update(self.ipython0.user_ns)
-        self.ipython0.user_ns = self.shell.user_ns 
-        self.shell.user_global_ns.update(self.ipython0.user_global_ns)
-        self.ipython0.user_global_ns = self.shell.user_global_ns
-
-        self.shell.output_trap = RedirectorOutputTrap(
-                            out_callback=self.write,
-                            err_callback=self.write,
-                                            )
-        self.shell.traceback_trap = SyncTracebackTrap(
-                        formatters=self.shell.traceback_trap.formatters,
-                            )
+        self.start()
 
     #--------------------------------------------------------------------------
     # FrontEndBase interface 
@@ -113,7 +118,7 @@ This is the wx frontend, by Gael Varoquaux. This is EXPERIMENTAL code."""
         """ Use ipython0 to capture the last traceback and display it.
         """
         self.capture_output()
-        self.ipython0.showtraceback()
+        self.ipython0.showtraceback(tb_offset=-1)
         self.release_output()
 
 
@@ -164,6 +169,8 @@ This is the wx frontend, by Gael Varoquaux. This is EXPERIMENTAL code."""
 
 
     def complete(self, line):
+        # FIXME: This should be factored out in the linefrontendbase
+        # method.
         word = line.split('\n')[-1].split(' ')[-1]
         completions = self.ipython0.complete(word)
         # FIXME: The proper sort should be done in the complete method.
@@ -189,16 +196,32 @@ This is the wx frontend, by Gael Varoquaux. This is EXPERIMENTAL code."""
         # capture it.
         self.capture_output()
         self.last_result = dict(number=self.prompt_number)
+        
+        ## try:
+        ##     for line in input_string.split('\n'):
+        ##         filtered_lines.append(
+        ##                 self.ipython0.prefilter(line, False).rstrip())
+        ## except:
+        ##     # XXX: probably not the right thing to do.
+        ##     self.ipython0.showsyntaxerror()
+        ##     self.after_execute()
+        ## finally:
+        ##     self.release_output()
+
+
         try:
-            for line in input_string.split('\n'):
-                filtered_lines.append(
-                        self.ipython0.prefilter(line, False).rstrip())
-        except:
-            # XXX: probably not the right thing to do.
-            self.ipython0.showsyntaxerror()
-            self.after_execute()
+            try:
+                for line in input_string.split('\n'):
+                    filtered_lines.append(
+                            self.ipython0.prefilter(line, False).rstrip())
+            except:
+                # XXX: probably not the right thing to do.
+                self.ipython0.showsyntaxerror()
+                self.after_execute()
         finally:
             self.release_output()
+
+
 
         # Clean up the trailing whitespace, to avoid indentation errors
         filtered_string = '\n'.join(filtered_lines)

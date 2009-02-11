@@ -20,7 +20,6 @@ from twisted.internet import defer
 from IPython.kernel import engineservice as es
 from IPython.kernel import multiengine as me
 from IPython.kernel import newserialized
-from IPython.kernel.error import NotDefined
 from IPython.testing import util
 from IPython.testing.parametric import parametric, Parametric
 from IPython.kernel import newserialized

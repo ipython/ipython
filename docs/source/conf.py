@@ -1,7 +1,11 @@
 # -*- coding: utf-8 -*-
 #
-# IPython documentation build configuration file, created by
-# sphinx-quickstart on Thu May  8 16:45:02 2008.
+# IPython documentation build configuration file.
+
+# NOTE: This file has been edited manually from the auto-generated one from
+# sphinx.  Do NOT delete and re-generate.  If any changes from sphinx are
+# needed, generate a scratch one and merge by hand any new fields needed.
+
 #
 # This file is execfile()d with the current directory set to its containing dir.
 #
@@ -16,14 +20,26 @@ import sys, os
 # If your extensions are in another directory, add it here. If the directory
 # is relative to the documentation root, use os.path.abspath to make it
 # absolute, like shown here.
-#sys.path.append(os.path.abspath('some/directory'))
+sys.path.append(os.path.abspath('../sphinxext'))
+
+# Import support for ipython console session syntax highlighting (lives
+# in the sphinxext directory defined above)
+import ipython_console_highlighting
+
+# We load the ipython release info into a dict by explicit execution
+iprelease = {}
+execfile('../../IPython/Release.py',iprelease)
 
 # General configuration
 # ---------------------
 
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
-#extensions = []
+extensions = ['sphinx.ext.autodoc',
+              'inheritance_diagram', 'only_directives',
+              'ipython_console_highlighting', 
+              # 'plot_directive', # disabled for now, needs matplotlib
+              ]
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -41,10 +57,11 @@ copyright = '2008, The IPython Development Team'
 # The default replacements for |version| and |release|, also used in various
 # other places throughout the built documents.
 #
-# The short X.Y version.
-version = '0.9'
 # The full version, including alpha/beta/rc tags.
-release = '0.9.beta1'
+release = iprelease['version']
+# The short X.Y version.
+version = '.'.join(release.split('.',2)[:2])
+
 
 # There are two options for replacing |today|: either, you set today to some
 # non-false value, then it is used:
@@ -57,7 +74,7 @@ today_fmt = '%B %d, %Y'
 
 # List of directories, relative to source directories, that shouldn't be searched
 # for source files.
-#exclude_dirs = []
+exclude_dirs = ['attic']
 
 # If true, '()' will be appended to :func: etc. cross-reference text.
 #add_function_parentheses = True
@@ -125,7 +142,7 @@ html_last_updated_fmt = '%b %d, %Y'
 #html_file_suffix = ''
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'IPythondoc'
+htmlhelp_basename = 'ipythondoc'
 
 
 # Options for LaTeX output
@@ -140,11 +157,8 @@ latex_font_size = '11pt'
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, document class [howto/manual]).
 
-latex_documents = [ ('index', 'IPython.tex', 'IPython Documentation',
-                     ur"""Brian Granger, Fernando Pérez and Ville Vainio\\
-                     \ \\
-                     With contributions from:\\
-                     Benjamin Ragan-Kelley.""",
+latex_documents = [ ('index', 'ipython.tex', 'IPython Documentation',
+                     ur"""The IPython Development Team""",
                      'manual'),
                     ]
 
@@ -164,3 +178,10 @@ latex_documents = [ ('index', 'IPython.tex', 'IPython Documentation',
 
 # If false, no module index is generated.
 #latex_use_modindex = True
+
+
+# Cleanup
+# -------
+# delete release info to avoid pickling errors from sphinx
+
+del iprelease

@@ -115,6 +115,8 @@ def find_packages():
     add_package(packages, 'kernel', config=True, tests=True, scripts=True)
     add_package(packages, 'kernel.core', config=True, tests=True)
     add_package(packages, 'testing', tests=True)
+    add_package(packages, 'tests')
+    add_package(packages, 'testing.plugin', tests=False)
     add_package(packages, 'tools', tests=True)
     add_package(packages, 'UserConfig')
     return packages
@@ -220,11 +222,13 @@ def find_scripts():
     """
     scripts = ['IPython/kernel/scripts/ipengine',
                'IPython/kernel/scripts/ipcontroller',
-                'IPython/kernel/scripts/ipcluster',
+               'IPython/kernel/scripts/ipcluster',
                'scripts/ipython',
                'scripts/ipythonx',
+               'scripts/ipython-wx',
                'scripts/pycolor',
                'scripts/irunner',
+               'scripts/iptest',
                ]
     
     # Script to be run by the windows binary installer after the default setup
