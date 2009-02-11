@@ -422,7 +422,11 @@ python-profiler package from non-free.""")
                 else:
                     fndoc = 'No documentation'
             else:
-                fndoc = fn.__doc__.rstrip()
+                if fn.__doc__:
+                    fndoc = fn.__doc__.rstrip()       
+                else:
+                    fndoc = 'No documentation'
+                
                 
             if mode == 'rest':
                 rest_docs.append('**%s%s**::\n\n\t%s\n\n' %(self.shell.ESC_MAGIC,
@@ -2328,7 +2332,17 @@ Currently the magic system has the following functions:\n"""
         # do actual editing here
         print 'Editing...',
         sys.stdout.flush()
-        self.shell.hooks.editor(filename,lineno)
+        try:
+            self.shell.hooks.editor(filename,lineno)
+        except IPython.ipapi.TryNext:
+            warn('Could not open editor')
+            return
+        
+        # XXX TODO: should this be generalized for all string vars?
+        # For now, this is special-cased to blocks created by cpaste
+        if args.strip() == 'pasted_block':
+            self.shell.user_ns['pasted_block'] = file_read(filename)
+        
         if opts.has_key('x'):  # -x prevents actual execution
             print
         else:
@@ -2338,6 +2352,8 @@ Currently the magic system has the following functions:\n"""
             else:
                 self.shell.safe_execfile(filename,self.shell.user_ns,
                                          self.shell.user_ns)
+        
+                                                     
         if use_temp:
             try:
                 return open(filename).read()
@@ -2647,8 +2663,10 @@ Defaulting color scheme to 'NoColor'"""
                         if isexec(ff) and ff not in self.shell.no_alias:
                             # each entry in the alias table must be (N,name),
                             # where N is the number of positional arguments of the
-                            # alias.
-                            alias_table[ff] = (0,ff)
+                            # alias.                            
+                            # Dots will be removed from alias names, since ipython
+                            # assumes names with dots to be python code
+                            alias_table[ff.replace('.','')] = (0,ff)
                             syscmdlist.append(ff)
             else:
                 for pdir in path:
@@ -2658,7 +2676,7 @@ Defaulting color scheme to 'NoColor'"""
                         if isexec(ff) and base.lower() not in self.shell.no_alias:
                             if ext.lower() == '.exe':
                                 ff = base
-                            alias_table[base.lower()] = (0,ff)
+                            alias_table[base.lower().replace('.','')] = (0,ff)
                             syscmdlist.append(ff)
             # Make sure the alias table doesn't contain keywords or builtins
             self.shell.alias_table_validate()
@@ -3210,14 +3228,24 @@ Defaulting color scheme to 'NoColor'"""
         This assigns the pasted block to variable 'foo' as string, without 
         dedenting or executing it (preceding >>> and + is still stripped)
         
+        '%cpaste -r' re-executes the block previously entered by cpaste.
+        
         Do not be alarmed by garbled output on Windows (it's a readline bug). 
         Just press enter and type -- (and press enter again) and the block 
         will be what was just pasted.
         
         IPython statements (magics, shell escapes) are not supported (yet).
         """
-        opts,args = self.parse_options(parameter_s,'s:',mode='string')
+        opts,args = self.parse_options(parameter_s,'rs:',mode='string')
         par = args.strip()
+        if opts.has_key('r'):
+            b = self.user_ns.get('pasted_block', None)
+            if b is None:
+                raise UsageError('No previous pasted block available')
+            print "Re-executing '%s...' (%d chars)"% (b.split('\n',1)[0], len(b))
+            exec b in self.user_ns
+            return
+        
         sentinel = opts.get('s','--')
 
         # Regular expressions that declare text we strip from the input:
@@ -3245,8 +3273,8 @@ Defaulting color scheme to 'NoColor'"""
         #print "block:\n",block
         if not par:
             b = textwrap.dedent(block)
-            exec b in self.user_ns            
             self.user_ns['pasted_block'] = b
+            exec b in self.user_ns
         else:
             self.user_ns[par] = SList(block.splitlines())
             print "Block assigned to '%s'" % par

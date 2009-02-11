@@ -91,7 +91,7 @@ def start_engine():
         try:
             engine_service.execute(shell_import_statement)
         except:
-            log.msg("Error running import_statement: %s" % sis)
+            log.msg("Error running import_statement: %s" % shell_import_statement)
     
     # Create the service hierarchy
     main_service = service.MultiService()
@@ -107,7 +107,11 @@ def start_engine():
     furl_file = kernel_config['engine']['furl_file']
     log.msg("Using furl file: %s" % furl_file)
     d = engine_connector.connect_to_controller(engine_service, furl_file)
-    d.addErrback(lambda _: reactor.stop())
+    def handle_error(f):
+        log.err(f)
+        if reactor.running:
+            reactor.stop()
+    d.addErrback(handle_error)
     
     reactor.run()
 

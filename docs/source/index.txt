@@ -4,7 +4,7 @@ IPython Documentation
 
 .. htmlonly::
 
-   :Release: |version|
+   :Release: |release|
    :Date: |today|
 
    Contents:
@@ -24,9 +24,7 @@ IPython Documentation
    license_and_copyright.txt
    credits.txt
 
-
 .. htmlonly::
-
-  * :ref:`genindex`
-  * :ref:`modindex`
-  * :ref:`search`
+   * :ref:`genindex`
+   * :ref:`modindex`
+   * :ref:`search`

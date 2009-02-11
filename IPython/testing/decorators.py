@@ -8,6 +8,10 @@ the decorator, in order to preserve metadata such as function name,
 setup and teardown functions and so on - see nose.tools for more
 information.
 
+This module provides a set of useful decorators meant to be ready to use in
+your own tests.  See the bottom of the file for the ready-made ones, and if you
+find yourself writing a new one that may be of generic use, add it here.
+
 NOTE: This file contains IPython-specific decorators and imports the
 numpy.testing.decorators file, which we've copied verbatim.  Any of our own
 code will be added at the bottom if we end up extending this.
@@ -15,6 +19,7 @@ code will be added at the bottom if we end up extending this.
 
 # Stdlib imports
 import inspect
+import sys
 
 # Third-party imports
 
@@ -123,6 +128,9 @@ skip_doctest = make_label_dec('skip_doctest',
 def skip(msg=''):
     """Decorator - mark a test function for skipping from test suite.
 
+    This function *is* already a decorator, it is not a factory like
+    make_label_dec or some of those in decorators_numpy.
+
     :Parameters:
 
       func : function
@@ -145,3 +153,8 @@ def skip(msg=''):
         return apply_wrapper(wrapper,func)
 
     return inner
+
+# Decorators to skip certain tests on specific platforms.
+skip_win32 = skipif(sys.platform=='win32',"This test does not run under Windows")
+skip_linux = skipif(sys.platform=='linux2',"This test does not run under Linux")
+skip_osx = skipif(sys.platform=='darwin',"This test does not run under OSX")
