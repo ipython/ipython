@@ -101,6 +101,7 @@ with_enivronment = with_setup(setup_environment, teardown_environment)
 # Tests for get_home_dir
 #
 
+@skip_if_not_win32
 @with_enivronment
 def test_get_home_dir_1():
     """Testcase for py2exe logic, un-compressed lib
@@ -141,6 +142,7 @@ def test_get_home_dir_4():
     if 'HOME' in env: del env['HOME']
     nt.assert_raises(genutils.HomeDirError, genutils.get_home_dir)
         
+@skip_if_not_win32
 @with_enivronment
 def test_get_home_dir_5():
     """Testcase $HOME is not set, os=='nt' 
@@ -153,6 +155,7 @@ def test_get_home_dir_5():
     home_dir = genutils.get_home_dir()
     nt.assert_equal(home_dir, abspath(join(test_file_path, "home_test_dir")))
 
+@skip_if_not_win32
 @with_enivronment
 def test_get_home_dir_6():
     """Testcase $HOME is not set, os=='nt' 
