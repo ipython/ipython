@@ -255,11 +255,11 @@ class MyApp(wx.PySimpleApp):
 #-----------------------------------------
 #Main loop
 #----------------------------------------- 
-def main(sync_ok):
-    app = MyApp(sync_ok)
+def main():
+    app = MyApp(is_sync_frontend_ok)
     app.SetTopWindow(app.frame)
     app.MainLoop()
 
 #if launched as main program run this
 if __name__ == '__main__':
-    main(is_sync_frontend_ok)
+    main()
