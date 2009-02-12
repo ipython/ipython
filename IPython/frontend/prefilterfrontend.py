@@ -119,7 +119,10 @@ This is the wx frontend, by Gael Varoquaux. This is EXPERIMENTAL code."""
     def show_traceback(self):
         """ Use ipython0 to capture the last traceback and display it.
         """
-        self.capture_output()
+        # Don't do the capture; the except_hook has already done some
+        # modifications to the IO streams, if we store them, we'll be
+        # storing the wrong ones.
+        #self.capture_output()
         self.ipython0.showtraceback(tb_offset=-1)
         self.release_output()
 
