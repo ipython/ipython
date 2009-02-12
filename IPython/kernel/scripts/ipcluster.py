@@ -22,17 +22,19 @@ pjoin = os.path.join
 
 from twisted.internet import reactor, defer
 from twisted.internet.protocol import ProcessProtocol
-from twisted.python import failure, log
 from twisted.internet.error import ProcessDone, ProcessTerminated
 from twisted.internet.utils import getProcessOutput
+from twisted.python import failure, log
 
 from IPython.external import argparse
 from IPython.external import Itpl
-from IPython.kernel.twistedutil import gatherBoth
-from IPython.kernel.util import printer
 from IPython.genutils import get_ipython_dir, num_cpus
 from IPython.kernel.fcutil import have_crypto
 from IPython.kernel.error import SecurityError
+from IPython.kernel.fcutil import have_crypto
+from IPython.kernel.twistedutil import gatherBoth
+from IPython.kernel.util import printer
+
 
 #-----------------------------------------------------------------------------
 # General process handling code
@@ -44,10 +46,10 @@ def find_exe(cmd):
     except ImportError:
         raise ImportError('you need to have pywin32 installed for this to work')
     else:
-		try:
-			(path, offest) = win32api.SearchPath(os.environ['PATH'],cmd + '.exe')
-		except:
-			(path, offset) = win32api.SearchPath(os.environ['PATH'],cmd + '.bat')
+        try:
+            (path, offest) = win32api.SearchPath(os.environ['PATH'],cmd + '.exe')
+        except:
+            (path, offset) = win32api.SearchPath(os.environ['PATH'],cmd + '.bat')
     return path
 
 class ProcessStateError(Exception):
@@ -290,7 +292,7 @@ class BatchEngineSet(object):
         f = open(self.batch_file,'w')
         f.write(script_as_string)
         f.close()
-
+    
     def handle_error(self, f):
         f.printTraceback()
         f.raiseException()
@@ -302,7 +304,7 @@ class BatchEngineSet(object):
         d.addCallback(self.parse_job_id)
         d.addErrback(self.handle_error)
         return d
-        
+    
     def kill(self):
         d = getProcessOutput(self.delete_command,
             [self.job_id],env=os.environ)
@@ -346,8 +348,8 @@ def main_local(args):
     cont_args.append('--logfile=%s' % pjoin(args.logdir,'ipcontroller'))
 
     # Check security settings before proceeding
-    keep_going = check_security(args, cont_args)
-    if not keep_going: return
+    if not check_security(args, cont_args):
+        return
 
     cl = ControllerLauncher(extra_args=cont_args)
     dstart = cl.start()
@@ -379,8 +381,8 @@ def main_mpirun(args):
     cont_args.append('--logfile=%s' % pjoin(args.logdir,'ipcontroller'))
 
     # Check security settings before proceeding
-    keep_going = check_security(args, cont_args)
-    if not keep_going: return
+    if not check_security(args, cont_args):
+        return
 
     cl = ControllerLauncher(extra_args=cont_args)
     dstart = cl.start()
@@ -416,8 +418,8 @@ def main_pbs(args):
     cont_args.append('--logfile=%s' % pjoin(args.logdir,'ipcontroller'))
 
     # Check security settings before proceeding
-    keep_going = check_security(args, cont_args)
-    if not keep_going: return
+    if not check_security(args, cont_args):
+        return
 
     cl = ControllerLauncher(extra_args=cont_args)
     dstart = cl.start()
