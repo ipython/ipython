@@ -53,6 +53,8 @@ The :command:`ipcluster` command provides a simple way of starting a controller 
 2. When engines are started using the :command:`mpirun` command that comes 
    with most MPI [MPI]_ implementations
 3. When engines are started using the PBS [PBS]_ batch system.
+4. When the controller is started on localhost and the engines are started on 
+   remote nodes using :command:`ssh`.
 
 .. note::
 
@@ -66,7 +68,8 @@ The :command:`ipcluster` command provides a simple way of starting a controller 
     :file:`~/.ipython/security` directory live on a shared filesystem that is
     seen by both the controller and engines. If you don't have a shared file
     system you will need to use :command:`ipcontroller` and
-    :command:`ipengine` directly.
+    :command:`ipengine` directly.  This constraint can be relaxed if you are 
+    using the :command:`ssh` method to start the cluster.
 
 Underneath the hood, :command:`ipcluster` just uses :command:`ipcontroller`
 and :command:`ipengine` to perform the steps described above.
@@ -159,6 +162,77 @@ Additional command line options for this mode can be found by doing::
 
     $ ipcluster pbs -h
 
+Using :command:`ipcluster` in SSH mode
+--------------------------------------
+
+The SSH mode uses :command:`ssh` to execute :command:`ipengine` on remote
+nodes and the :command:`ipcontroller` on localhost.
+
+When using using this mode it highly recommended that you have set up SSH keys and are using ssh-agent [SSH]_ for password-less logins.
+
+To use this mode you need a python file describing the cluster, here is an example of such a "clusterfile":
+
+.. sourcecode:: python
+    
+    send_furl = True
+    engines = { 'host1.example.com' : 2,
+                'host2.example.com' : 5,
+                'host3.example.com' : 1,
+                'host4.example.com' : 8 }
+
+Since this is a regular python file usual python syntax applies. Things to note:
+
+* The `engines` dict, where the keys is the host we want to run engines on and
+  the value is the number of engines to run on that host.
+* send_furl can either be `True` or `False`, if `True` it will copy over the
+  furl needed for :command:`ipengine` to each host.
+
+The ``--clusterfile`` command line option lets you specify the file to use for
+the cluster definition. Once you have your cluster file and you can
+:command:`ssh` into the remote hosts with out an password you are ready to
+start your cluster like so:
+
+.. sourcecode:: bash 
+
+   $ ipcluster ssh --clusterfile /path/to/my/clusterfile.py
+
+
+Two helper shell scripts are used to start and stop :command:`ipengine` on remote hosts:
+
+* sshx.sh 
+* engine_killer.sh
+
+Both are provided in the :dir:`IPython.kernel.scripts`. They are copied to a
+temp directory on the remote host and executed from there, on most Unix, Linux
+and OS X systems this is /tmp.
+
+The sshx.sh is as simple as:
+
+.. sourcecode:: bash
+
+   #!/bin/sh
+   "$@" &> /dev/null &
+   echo $!
+
+If you want to use a custom sshx.sh script you need to use the ``--sshx``
+option and specify the file to use. Using a custom sshx.sh file could be
+helpful when you need to setup the environment on the remote host before
+executing :command:`ipengine`.
+
+For a detailed options list:
+
+.. sourcecode:: bash
+
+   $ ipcluster ssh -h
+
+Current limitations of the SSH mode of :command:`ipcluster` are:
+
+* Untested on Windows. Would require a working :command:`ssh` on Windows.
+  Also, we are using shell scripts to setup and execute commands on remote
+  hosts.
+* :command:`ipcontroller` is started on localhost, with no option to start it
+  on a remote node also.
+
 Using the :command:`ipcontroller` and :command:`ipengine` commands
 ==================================================================
 
@@ -249,3 +323,4 @@ the log files to us will often help us to debug any problems.
 
 
 .. [PBS] Portable Batch System.  http://www.openpbs.org/
+.. [SSH] SSH-Agent http://en.wikipedia.org/wiki/Ssh-agent
