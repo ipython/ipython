@@ -552,7 +552,6 @@ class SynchronousMultiEngine(PendingDeferredManager):
     # Decorated pending deferred methods
     #---------------------------------------------------------------------------
     
-    @profile
     @two_phase
     def execute(self, lines, targets='all'):
         d = self.multiengine.execute(lines, targets)

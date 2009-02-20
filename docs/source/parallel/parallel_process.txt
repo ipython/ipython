@@ -202,11 +202,9 @@ Two helper shell scripts are used to start and stop :command:`ipengine` on remot
 * sshx.sh 
 * engine_killer.sh
 
-Both are provided in the :dir:`IPython.kernel.scripts`. They are copied to a
-temp directory on the remote host and executed from there, on most Unix, Linux
-and OS X systems this is /tmp.
+Defaults for both of these are contained in the source code for :command:`ipcluster`. The default scripts are written to a local file in a tmep directory and then copied to a temp directory on the remote host and executed from there.  On most Unix, Linux and OS X systems this is /tmp.
 
-The sshx.sh is as simple as:
+The default sshx.sh is the following:
 
 .. sourcecode:: bash
 
@@ -231,7 +229,7 @@ Current limitations of the SSH mode of :command:`ipcluster` are:
   Also, we are using shell scripts to setup and execute commands on remote
   hosts.
 * :command:`ipcontroller` is started on localhost, with no option to start it
-  on a remote node also.
+  on a remote node.
 
 Using the :command:`ipcontroller` and :command:`ipengine` commands
 ==================================================================

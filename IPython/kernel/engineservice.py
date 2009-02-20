@@ -400,7 +400,6 @@ class EngineService(object, service.Service):
     
     # The IEngine methods.  See the interface for documentation.
     
-    @profile
     def execute(self, lines):
         msg = {'engineid':self.id,
                'method':'execute',
