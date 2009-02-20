@@ -131,7 +131,7 @@ class FCSynchronousMultiEngineFromMultiEngine(Referenceable):
     def _addDeferredIDCallback(self, did, callback, *args, **kwargs):
         self._deferredIDCallbacks[did] = (callback, args, kwargs)
         return did
-        
+    
     #---------------------------------------------------------------------------
     # IEngineMultiplexer related methods
     #---------------------------------------------------------------------------
@@ -346,7 +346,7 @@ class FCFullSynchronousMultiEngineClient(object):
     #---------------------------------------------------------------------------
     # IEngineMultiplexer related methods
     #---------------------------------------------------------------------------
-        
+    
     def execute(self, lines, targets='all', block=True):
         d = self.remote_reference.callRemote('execute', lines, targets, block)
         d.addCallback(self.unpackage)
