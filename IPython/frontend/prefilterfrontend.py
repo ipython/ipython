@@ -107,8 +107,7 @@ class PrefilterFrontEnd(LineFrontEndBase):
 
 
         if not 'banner' in kwargs and self.banner is None:
-            self.banner = self.ipython0.BANNER + """
-This is the wx frontend, by Gael Varoquaux. This is EXPERIMENTAL code."""
+            self.banner = self.ipython0.BANNER
 
         self.start()
 

@@ -41,19 +41,9 @@ from IPython.frontend.prefilterfrontend import PrefilterFrontEnd
 # Constants 
 #-------------------------------------------------------------------------------
 
-_COMPLETE_BUFFER_BG = '#FAFAF1' # Nice green
-_INPUT_BUFFER_BG = '#FDFFD3' # Nice yellow
-_ERROR_BG = '#FFF1F1' # Nice red
-
 _COMPLETE_BUFFER_MARKER = 31
 _ERROR_MARKER = 30
 _INPUT_MARKER = 29
-
-prompt_in1 = \
-        '\n\x01\x1b[0;34m\x02In [\x01\x1b[1;34m\x02$number\x01\x1b[0;34m\x02]: \x01\x1b[0m\x02'
-
-prompt_out = \
-    '\x01\x1b[0;31m\x02Out[\x01\x1b[1;31m\x02$number\x01\x1b[0;31m\x02]: \x01\x1b[0m\x02'
 
 #-------------------------------------------------------------------------------
 # Classes to implement the Wx frontend
@@ -65,10 +55,11 @@ class WxController(ConsoleWidget, PrefilterFrontEnd):
     This class inherits from ConsoleWidget, that provides a console-like
     widget to provide a text-rendering widget suitable for a terminal.
     """
+    prompt_in1 = \
+        '\n\x01\x1b[0;34m\x02In [\x01\x1b[1;34m\x02$number\x01\x1b[0;34m\x02]: \x01\x1b[0m\x02'
 
-    output_prompt_template = string.Template(prompt_out)
-
-    input_prompt_template = string.Template(prompt_in1)
+    prompt_out = \
+        '\x01\x1b[0;31m\x02Out[\x01\x1b[1;31m\x02$number\x01\x1b[0;31m\x02]: \x01\x1b[0m\x02'
 
     # Print debug info on what is happening to the console.
     debug = False
@@ -140,21 +131,13 @@ class WxController(ConsoleWidget, PrefilterFrontEnd):
                  *args, **kwds):
         """ Create Shell instance.
         """
+        self.load_prompt()
+
         ConsoleWidget.__init__(self, parent, id, pos, size, style)
         PrefilterFrontEnd.__init__(self, **kwds)
         
         # Stick in our own raw_input:
         self.ipython0.raw_input = self.raw_input
-
-        # Marker for complete buffer.
-        self.MarkerDefine(_COMPLETE_BUFFER_MARKER, stc.STC_MARK_BACKGROUND,
-                                background=_COMPLETE_BUFFER_BG)
-        # Marker for current input buffer.
-        self.MarkerDefine(_INPUT_MARKER, stc.STC_MARK_BACKGROUND,
-                                background=_INPUT_BUFFER_BG)
-        # Marker for tracebacks.
-        self.MarkerDefine(_ERROR_MARKER, stc.STC_MARK_BACKGROUND,
-                                background=_ERROR_BG)
 
         # A time for flushing the write buffer
         BUFFER_FLUSH_TIMER_ID = 100
@@ -171,7 +154,12 @@ class WxController(ConsoleWidget, PrefilterFrontEnd):
         # Inject our own raw_input in namespace
         self.shell.user_ns['raw_input'] = self.raw_input
 
+    def load_prompt(self): 
+        self.output_prompt_template = string.Template(self.prompt_out)
 
+        self.input_prompt_template = string.Template(self.prompt_in1)
+
+        
     def raw_input(self, prompt=''):
         """ A replacement from python's raw_input.
         """
