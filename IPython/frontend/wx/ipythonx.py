@@ -128,6 +128,10 @@ Simple graphical frontend to IPython, using WxWidgets."""
 
     if options.colorset == 'black':
         style = {
+                #advanced options
+                'antialiasing' : True,
+                
+                #background + carret color
                 'carret_color' : 'WHITE',
                 'background_color' : 'BLACK',
         

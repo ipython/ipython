@@ -316,7 +316,12 @@ class ConsoleWidget(editwindow.EditWindow):
         self.SetWrapMode(stc.STC_WRAP_CHAR)
         self.SetWrapMode(stc.STC_WRAP_WORD)
         self.SetBufferedDraw(True)
-        self.SetUseAntiAliasing(True)
+
+        if 'antialiasing' in p:
+            self.SetUseAntiAliasing(p['antialiasing'])            
+        else:        
+            self.SetUseAntiAliasing(True)
+
         self.SetLayoutCache(stc.STC_CACHE_PAGE)
         self.SetUndoCollection(False)
         self.SetUseTabs(True)
