@@ -55,12 +55,7 @@ class WxController(ConsoleWidget, PrefilterFrontEnd):
     This class inherits from ConsoleWidget, that provides a console-like
     widget to provide a text-rendering widget suitable for a terminal.
     """
-    prompt_in1 = \
-        '\n\x01\x1b[0;34m\x02In [\x01\x1b[1;34m\x02$number\x01\x1b[0;34m\x02]: \x01\x1b[0m\x02'
-
-    prompt_out = \
-        '\x01\x1b[0;31m\x02Out[\x01\x1b[1;31m\x02$number\x01\x1b[0;31m\x02]: \x01\x1b[0m\x02'
-
+    
     # Print debug info on what is happening to the console.
     debug = False
 
@@ -131,8 +126,6 @@ class WxController(ConsoleWidget, PrefilterFrontEnd):
                  *args, **kwds):
         """ Create Shell instance.
         """
-        self.load_prompt()
-
         ConsoleWidget.__init__(self, parent, id, pos, size, style)
         PrefilterFrontEnd.__init__(self, **kwds)
         
@@ -153,12 +146,6 @@ class WxController(ConsoleWidget, PrefilterFrontEnd):
             self.shell.user_ns['self'] = self
         # Inject our own raw_input in namespace
         self.shell.user_ns['raw_input'] = self.raw_input
-
-    def load_prompt(self): 
-        self.output_prompt_template = string.Template(self.prompt_out)
-
-        self.input_prompt_template = string.Template(self.prompt_in1)
-
         
     def raw_input(self, prompt=''):
         """ A replacement from python's raw_input.

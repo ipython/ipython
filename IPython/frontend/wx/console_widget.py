@@ -25,6 +25,8 @@ import wx.stc  as  stc
 from wx.py import editwindow
 import time
 import sys
+import string
+
 LINESEP = '\n'
 if sys.platform == 'win32':
     LINESEP = '\n\r'
@@ -45,6 +47,7 @@ if sys.platform == 'darwin':
     _DEFAULT_SIZE = 12
 
 _DEFAULT_STYLE = {
+    #background definition
     'stdout'      : 'fore:#0000FF',
     'stderr'      : 'fore:#007f00',
     'trace'       : 'fore:#FF0000',
@@ -118,15 +121,6 @@ class ConsoleWidget(editwindow.EditWindow):
                    '1;34': [12, 'LIGHT BLUE'],      '1;35': [13, 'MEDIUM VIOLET RED'],
                    '1;36': [14, 'LIGHT STEEL BLUE'], '1;37': [15, 'YELLOW']}
 
-    # The color of the carret (call _apply_style() after setting)
-    carret_color = 'BLACK'
-    
-    _COMPLETE_BUFFER_BG = '#FAFAF1' # Nice green
-    _INPUT_BUFFER_BG = '#FDFFD3' # Nice yellow
-    _ERROR_BG = '#FFF1F1' # Nice red
-
-    background_color = 'WHITE'
-    
     #we define platform specific fonts
     if wx.Platform == '__WXMSW__':
         faces = { 'times': 'Times New Roman',
@@ -163,7 +157,7 @@ class ConsoleWidget(editwindow.EditWindow):
     def __init__(self, parent, id=wx.ID_ANY, pos=wx.DefaultPosition, 
                         size=wx.DefaultSize, style=wx.WANTS_CHARS, ):
         editwindow.EditWindow.__init__(self, parent, id, pos, size, style)
-        self._configure_scintilla()
+        self.configure_scintilla()
         self.enter_catched = False #this var track if 'enter' key as ever been processed
                                    #thus it will only be reallowed until key goes up
         self.current_prompt_pos = 0
@@ -270,24 +264,36 @@ class ConsoleWidget(editwindow.EditWindow):
     # Styling API
     #--------------------------------------------------------------------------
 
-    def set_new_style(self):
-        """ call this method with new style and ansi_style to change colors of the console """
-        self._configure_scintilla()
-        
-    #--------------------------------------------------------------------------
-    # Private API
-    #--------------------------------------------------------------------------
-   
-    def _configure_scintilla(self):
+    def configure_scintilla(self):
+
+        p = self.style
+
+        #First we define the special background colors        
+        if '_COMPLETE_BUFFER_BG' in p:
+            _COMPLETE_BUFFER_BG = p['_COMPLETE_BUFFER_BG']
+        else:
+            _COMPLETE_BUFFER_BG = '#FAFAF1' # Nice green
+
+        if '_INPUT_BUFFER_BG' in p:
+            _INPUT_BUFFER_BG = p['_INPUT_BUFFER_BG']
+        else:
+            _INPUT_BUFFER_BG = '#FDFFD3' # Nice yellow
+
+        if '_ERROR_BG' in p:
+            _ERROR_BG = p['_ERROR_BG']
+        else:
+            _ERROR_BG = '#FFF1F1' # Nice red
+
         # Marker for complete buffer.
         self.MarkerDefine(_COMPLETE_BUFFER_MARKER, stc.STC_MARK_BACKGROUND,
-                                background = self._COMPLETE_BUFFER_BG)
+                                background = _COMPLETE_BUFFER_BG)
+
         # Marker for current input buffer.
         self.MarkerDefine(_INPUT_MARKER, stc.STC_MARK_BACKGROUND,
-                                background = self._INPUT_BUFFER_BG)
+                                background = _INPUT_BUFFER_BG)
         # Marker for tracebacks.
         self.MarkerDefine(_ERROR_MARKER, stc.STC_MARK_BACKGROUND,
-                                background = self._ERROR_BG)
+                                background = _ERROR_BG)
 
         self.SetEOLMode(stc.STC_EOL_LF)
 
@@ -331,25 +337,34 @@ class ConsoleWidget(editwindow.EditWindow):
         self.SetMarginWidth(1, 0)
         self.SetMarginWidth(2, 0)
 
-        #self._apply_style()        
-        self.SetCaretForeground(self.carret_color)
-        
         # Xterm escape sequences
         self.color_pat = re.compile('\x01?\x1b\[(.*?)m\x02?')
         self.title_pat = re.compile('\x1b]0;(.*?)\x07')
 
-        #self.SetEdgeMode(stc.STC_EDGE_LINE)
-        #self.SetEdgeColumn(80)
-
-                     
         # styles
-        p = self.style
         
+        if 'carret_color' in p:
+            self.SetCaretForeground(p['carret_color'])
+        else:
+            self.SetCaretForeground('BLACK')
+        
+        if 'background_color' in p:
+            background_color = p['background_color']
+        else:
+            background_color = 'WHITE'            
+            
         if 'default' in p:
+            if 'back' not in p['default']:
+                p['default']+=',back:%s' % background_color
+            if 'size' not in p['default']:
+                p['default']+=',size:%s' % self.faces['size']
+            if 'face' not in p['default']:
+                p['default']+=',face:%s' % self.faces['mono']
+            
             self.StyleSetSpec(stc.STC_STYLE_DEFAULT, p['default'])
         else:
             self.StyleSetSpec(stc.STC_STYLE_DEFAULT, "fore:%s,back:%s,size:%d,face:%s" 
-                              % (self.ANSI_STYLES['0;30'][1], self.background_color,
+                              % (self.ANSI_STYLES['0;30'][1], background_color,
                                  self.faces['size'], self.faces['mono']))
         
         #all styles = default one        
@@ -358,6 +373,22 @@ class ConsoleWidget(editwindow.EditWindow):
         # XXX: two lines below are usefull if not using the lexer        
         #for style in self.ANSI_STYLES.values():
         #    self.StyleSetSpec(style[0], "bold,fore:%s" % style[1])        
+
+        #prompt definition
+        if 'prompt_in1' in p:
+            self.prompt_in1 = p['prompt_in1']
+        else:
+            self.prompt_in1 = \
+            '\n\x01\x1b[0;34m\x02In [\x01\x1b[1;34m\x02$number\x01\x1b[0;34m\x02]: \x01\x1b[0m\x02'
+
+        if 'prompt_out' in p:
+            self.prompt_out = p['prompt_out']
+        else:
+            self.prompt_out = \
+            '\x01\x1b[0;31m\x02Out[\x01\x1b[1;31m\x02$number\x01\x1b[0;31m\x02]: \x01\x1b[0m\x02'
+
+        self.output_prompt_template = string.Template(self.prompt_out)
+        self.input_prompt_template = string.Template(self.prompt_in1)
 
         if 'stdout' in p:
             self.StyleSetSpec(_STDOUT_STYLE, p['stdout'])
@@ -394,6 +425,10 @@ class ConsoleWidget(editwindow.EditWindow):
         if 'comment' in p:
             self.StyleSetSpec(stc.STC_P_COMMENTBLOCK, p['comment'])
         
+    #--------------------------------------------------------------------------
+    # Private API
+    #--------------------------------------------------------------------------
+   
     def _on_key_down(self, event, skip=True):
         """ Key press callback used for correcting behavior for 
             console-like interfaces: the cursor is constraint to be after
@@ -432,7 +467,7 @@ class ConsoleWidget(editwindow.EditWindow):
             if event.KeyCode in (13, wx.WXK_NUMPAD_ENTER) and \
                         event.Modifiers in (wx.MOD_NONE, wx.MOD_WIN):
                 catched = True
-                if(not self.enter_catched):
+                if not self.enter_catched:
                     self.CallTipCancel()
                     self.write('\n', refresh=False)
                     # Under windows scintilla seems to be doing funny stuff to the 
