@@ -48,10 +48,6 @@ if sys.platform == 'darwin':
 
 _DEFAULT_STYLE = {
     #background definition
-    'stdout'      : 'fore:#0000FF',
-    'stderr'      : 'fore:#007f00',
-    'trace'       : 'fore:#FF0000',
-
     'default'     : 'size:%d' % _DEFAULT_SIZE,
     'bracegood'   : 'fore:#00AA00,back:#000000,bold',
     'bracebad'    : 'fore:#FF0000,back:#000000,bold',
@@ -267,20 +263,20 @@ class ConsoleWidget(editwindow.EditWindow):
     def configure_scintilla(self):
 
         p = self.style
-
+        
         #First we define the special background colors        
-        if '_COMPLETE_BUFFER_BG' in p:
-            _COMPLETE_BUFFER_BG = p['_COMPLETE_BUFFER_BG']
+        if 'trace' in p:
+            _COMPLETE_BUFFER_BG = p['trace']
         else:
             _COMPLETE_BUFFER_BG = '#FAFAF1' # Nice green
 
-        if '_INPUT_BUFFER_BG' in p:
-            _INPUT_BUFFER_BG = p['_INPUT_BUFFER_BG']
+        if 'stdout' in p:
+            _INPUT_BUFFER_BG = p['stdout']
         else:
             _INPUT_BUFFER_BG = '#FDFFD3' # Nice yellow
 
-        if '_ERROR_BG' in p:
-            _ERROR_BG = p['_ERROR_BG']
+        if 'stderr' in p:
+            _ERROR_BG = p['stderr']
         else:
             _ERROR_BG = '#FFF1F1' # Nice red
 

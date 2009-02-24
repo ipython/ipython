@@ -143,16 +143,12 @@ Simple graphical frontend to IPython, using WxWidgets."""
                     '\x01\x1b[0;31m\x02Out[\x01\x1b[1;31m\x02$number\x01\x1b[0;31m\x02]: \x01\x1b[0m\x02',
 
                 #we define the background of old inputs
-                '_COMPLETE_BUFFER_BG' : '#000000', # RRGGBB: Black
+                'trace' : '#000000', # RRGGBB: Black
                 #we define the background of current input
-                '_INPUT_BUFFER_BG'    : '#444444', # RRGGBB: Light black
+                'stdout'    : '#444444', # RRGGBB: Light black
                 #we define the background when an error is reported
-                '_ERROR_BG'           : '#800000', # RRGGBB: Light Red
+                'stderr'           : '#800000', # RRGGBB: Light Red
                 
-                #'stdout'      : '',#fore:#0000FF',
-                #'stderr'      : '',#fore:#007f00',
-                #'trace'       : '',#fore:#FF0000',
-
                 #'bracegood'   : 'fore:#0000FF,back:#0000FF,bold',
                 #'bracebad'    : 'fore:#FF0000,back:#0000FF,bold',
                 'default'       : "fore:%s,bold" % ("#EEEEEE"),
