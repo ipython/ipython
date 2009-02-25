@@ -11,7 +11,8 @@ from IPython.gui.wx.ipython_view import IPShellWidget
 from IPython.gui.wx.ipython_history import IPythonHistoryPanel
 
 #used to invoke ipython1 wx implementation
-is_sync_frontend_ok = True
+### FIXME ### temporary disabled due to interference with 'show_in_pager' hook
+is_sync_frontend_ok = False
 try:
     from IPython.frontend.wx.ipythonx import IPythonXController
 except ImportError:
