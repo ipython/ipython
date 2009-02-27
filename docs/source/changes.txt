@@ -27,6 +27,9 @@ Release dev
 New features
 ------------
 
+* The new ipcluster now has a fully working ssh mode that should work on
+  Linux, Unix and OS X.  Thanks to Vishal Vatsa for implementing this!
+
 * The wonderful TextMate editor can now be used with %edit on OS X.  Thanks
   to Matt Foster for this patch.
 
@@ -58,6 +61,8 @@ New features
 
 Bug fixes
 ---------
+
+* Numerous bugs on Windows with the new ipcluster have been fixed.
 
 * The ipengine and ipcontroller scripts now handle missing furl files
   more gracefully by giving better error messages.
