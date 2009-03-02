@@ -22,9 +22,9 @@ __docformat__ = "restructuredtext en"
 # Imports
 #-------------------------------------------------------------------------------
 import sys
-
-from linefrontendbase import LineFrontEndBase, common_prefix
-from frontendbase import FrontEndBase
+import pydoc
+import os
+import __builtin__
 
 from IPython.ipmaker import make_IPython
 from IPython.ipapi import IPApi
@@ -33,9 +33,8 @@ from IPython.kernel.core.redirector_output_trap import RedirectorOutputTrap
 from IPython.kernel.core.sync_traceback_trap import SyncTracebackTrap
 
 from IPython.genutils import Term
-import pydoc
-import os
-import sys
+
+from linefrontendbase import LineFrontEndBase, common_prefix
 
 
 def mk_system_call(system_call_function, command):
@@ -85,10 +84,16 @@ class PrefilterFrontEnd(LineFrontEndBase):
         if ipython0 is None:
             # Instanciate an IPython0 interpreter to be able to use the
             # prefiltering.
+            # Suppress all key input, to avoid waiting
+            def my_rawinput(x=None):
+                return '\n'
+            old_rawinput = __builtin__.raw_input
+            __builtin__.raw_input = my_rawinput
             # XXX: argv=[] is a bit bold.
             ipython0 = make_IPython(argv=[], 
                                     user_ns=self.shell.user_ns,
                                     user_global_ns=self.shell.user_global_ns)
+            __builtin__.raw_input = old_rawinput
         self.ipython0 = ipython0
         # Set the pager:
         self.ipython0.set_hook('show_in_pager', 
@@ -100,8 +105,9 @@ class PrefilterFrontEnd(LineFrontEndBase):
         self._ip.system = self.system_call
         # XXX: Muck around with magics so that they work better
         # in our environment
-        self.ipython0.magic_ls = mk_system_call(self.system_call, 
-                                                            'ls -CF')
+        if not sys.platform.startswith('win'):
+            self.ipython0.magic_ls = mk_system_call(self.system_call, 
+                                                                'ls -CF')
         # And now clean up the mess created by ipython0
         self.release_output()
 
