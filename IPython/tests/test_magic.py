@@ -1,9 +1,20 @@
-""" Tests for various magic functions
+"""Tests for various magic functions.
 
-Needs to be run by nose (to make ipython session available)
+Needs to be run by nose (to make ipython session available).
 """
 
+# Standard library imports
+import os
+import sys
+
+# Third-party imports
+import nose.tools as nt
+
+# From our own code
 from IPython.testing import decorators as dec
+
+#-----------------------------------------------------------------------------
+# Test functions begin
 
 def test_rehashx():
     # clear up everything
@@ -58,14 +69,12 @@ def doctest_hist_r():
 
 
 def test_shist():
-    # Simple tests of ShadowHist class
+    # Simple tests of ShadowHist class - test generator.
     import os, shutil, tempfile
-    import nose.tools as nt
 
     from IPython.Extensions import pickleshare
     from IPython.history import ShadowHist
     
-
     tfile = tempfile.mktemp('','tmp-ipython-')
     
     db = pickleshare.PickleShareDB(tfile)
@@ -82,11 +91,25 @@ def test_shist():
     
     shutil.rmtree(tfile)
     
+@dec.skipif_not_numpy
+def test_numpy_clear_array_undec():
+    _ip.ex('import numpy as np')
+    _ip.ex('a = np.empty(2)')
+    
+    yield nt.assert_true,'a' in _ip.user_ns
+    _ip.magic('clear array')
+    yield nt.assert_false,'a' in _ip.user_ns
+    
 
-@dec.skip_numpy_not_avail
-def doctest_clear_array():
-    """Check that array clearing works.
+@dec.skip()
+def test_fail_dec(*a,**k):
+    yield nt.assert_true, False
 
-    >>> 1/0
-    """
-    pass # doctest only
+@dec.skip('This one shouldn not run')
+def test_fail_dec2(*a,**k):
+    yield nt.assert_true, False
+
+@dec.skipknownfailure
+def test_fail_dec3(*a,**k):
+    yield nt.assert_true, False
+

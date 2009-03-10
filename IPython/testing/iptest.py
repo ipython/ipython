@@ -30,13 +30,16 @@ def main():
                         '--exe',
                         ]
 
-    has_ip = False
+    # Detect if any tests were required by explicitly calling an IPython
+    # submodule or giving a specific path
+    has_tests = False
     for arg in sys.argv:
-        if 'IPython' in arg:
-            has_ip = True
+        if 'IPython' in arg or arg.endswith('.py') or \
+           (':' in arg and  '.py' in arg):
+            has_tests = True
             break
-
-    if not has_ip:
+    # If nothing was specifically requested, test full IPython
+    if not has_tests:
         argv.append('IPython')
 
     # construct list of plugins, omitting the existing doctest plugin
@@ -48,6 +51,5 @@ def main():
 
         #print '*** adding plugin:',plug.name  # dbg
         plugins.append(plug)
-
 
     TestProgram(argv=argv,plugins=plugins)
