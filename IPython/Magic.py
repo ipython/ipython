@@ -1422,7 +1422,8 @@ Currently the magic system has the following functions:\n"""
             return None
 
     @testdec.skip_doctest
-    def magic_run(self, parameter_s ='',runner=None):
+    def magic_run(self, parameter_s ='',runner=None,
+                  file_finder=get_py_filename):
         """Run the named file inside IPython as a program.
 
         Usage:\\
@@ -1537,7 +1538,7 @@ Currently the magic system has the following functions:\n"""
                                           mode='list',list_all=1)
 
         try:
-            filename = get_py_filename(arg_lst[0])
+            filename = file_finder(arg_lst[0])
         except IndexError:
             warn('you must provide at least a filename.')
             print '\n%run:\n',OInspect.getdoc(self.magic_run)
@@ -1573,10 +1574,28 @@ Currently the magic system has the following functions:\n"""
             main_mod = FakeModule()
             prog_ns = main_mod.__dict__
             prog_ns['__name__'] = name
+            
             # The shell MUST hold a reference to main_mod so after %run exits,
             # the python deletion mechanism doesn't zero it out (leaving
             # dangling references)
+            
+            # XXX - the note above was written without further detail, but this
+            # code actually causes problems.  By holding references to the
+            # namespace where every script is executed, we effectively disable
+            # just about all possible variable cleanup.  In particular,
+            # generator expressions and other variables that point to open
+            # files are kept alive, and as a user session lives on, it may run
+            # out of available file descriptors.  Such a bug has already been
+            # reported by JD Hunter.  I'm disabling this for now, but we need
+            # to clarify exactly (and add tests) what from main_mod needs to be
+            # kept alive and what is save to remove...  In fact, see note
+            # below, where we append main_mod to sys.modules and then delete it
+            # again.  The final cleanup is rendered moot by this reference kept
+            # in _user_main_modules(), so we really need to look into this.
+            
             self.shell._user_main_modules.append(main_mod)
+
+            # /XXX
 
         # Since '%run foo' emulates 'python foo.py' at the cmd line, we must
         # set the __file__ global in the script's namespace
