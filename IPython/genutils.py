@@ -942,7 +942,11 @@ def get_home_dir():
         if not isdir(homedir):
             # in case a user stuck some string which does NOT resolve to a
             # valid path, it's as good as if we hadn't foud it
-            raise KeyError
+
+            #raise KeyError  # dbg
+            # dbg - figuring out what's going on here
+            pp = os.listdir(homedir+'/..')
+            raise ValueError('Wrong dir: %s\n%s' % (homedir,pp))  # dbg
         return homedir
     except KeyError:
         if os.name == 'posix':
