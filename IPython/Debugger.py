@@ -39,7 +39,7 @@ import sys
 
 from IPython import PyColorize, ColorANSI, ipapi
 from IPython.genutils import Term
-from IPython.excolors import ExceptionColors
+from IPython.excolors import exception_colors
 
 # See if we can use pydb.
 has_pydb = False
@@ -210,7 +210,7 @@ class Pdb(OldPdb):
 
             # Create color table: we copy the default one from the traceback
             # module and add a few attributes needed for debugging
-            self.color_scheme_table = ExceptionColors.copy()
+            self.color_scheme_table = exception_colors()
 
             # shorthands 
             C = ColorANSI.TermColors
@@ -257,8 +257,7 @@ class Pdb(OldPdb):
 
             # Create color table: we copy the default one from the traceback
             # module and add a few attributes needed for debugging
-            ExceptionColors.set_active_scheme(color_scheme)
-            self.color_scheme_table = ExceptionColors.copy()
+            self.color_scheme_table = exception_colors()
 
             # shorthands 
             C = ColorANSI.TermColors

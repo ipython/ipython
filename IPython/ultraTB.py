@@ -98,7 +98,7 @@ from inspect import getsourcefile, getfile, getmodule,\
 # Modified pdb which doesn't damage IPython's readline handling
 from IPython import Debugger, PyColorize
 from IPython.ipstruct import Struct
-from IPython.excolors import ExceptionColors
+from IPython.excolors import exception_colors
 from IPython.genutils import Term,uniq_stable,error,info
 
 # Globals
@@ -320,7 +320,7 @@ class TBTools:
         self.call_pdb = call_pdb
 
         # Create color table
-        self.color_scheme_table = ExceptionColors 
+        self.color_scheme_table = exception_colors()
 
         self.set_colors(color_scheme)
         self.old_scheme = color_scheme  # save initial value for toggles

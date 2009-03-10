@@ -1,5 +1,4 @@
-# encoding: utf-8
-
+# -*- coding: utf-8 -*-
 """
 ultraTB.py -- Spice up your tracebacks!
 
@@ -61,20 +60,15 @@ You can implement other color schemes easily, the syntax is fairly
 self-explanatory. Please send back new schemes you develop to the author for
 possible inclusion in future releases.
 
-$Id: ultraTB.py 2480 2007-07-06 19:33:43Z fperez $"""
+$Id: ultraTB.py 2908 2007-12-30 21:07:46Z vivainio $"""
 
-__docformat__ = "restructuredtext en"
-
-#-------------------------------------------------------------------------------
-#  Copyright (C) 2008  The IPython Development Team
+#*****************************************************************************
+#       Copyright (C) 2001 Nathaniel Gray <n8gray@caltech.edu>
+#       Copyright (C) 2001-2004 Fernando Perez <fperez@colorado.edu>
 #
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
-#-------------------------------------------------------------------------------
-
-#-------------------------------------------------------------------------------
-# Imports
-#-------------------------------------------------------------------------------
+#*****************************************************************************
 
 from IPython import Release
 __author__  = '%s <%s>\n%s <%s>' % (Release.authors['Nathan']+
@@ -104,7 +98,7 @@ from inspect import getsourcefile, getfile, getmodule,\
 # Modified pdb which doesn't damage IPython's readline handling
 from IPython import Debugger, PyColorize
 from IPython.ipstruct import Struct
-from IPython.excolors import ExceptionColors
+from IPython.excolors import exception_colors
 from IPython.genutils import Term,uniq_stable,error,info
 
 # Globals
@@ -141,11 +135,18 @@ def findsource(object):
     FIXED version with which we monkeypatch the stdlib to work around a bug."""
 
     file = getsourcefile(object) or getfile(object)
-    module = getmodule(object, file)
-    if module:
-        lines = linecache.getlines(file, module.__dict__)
+    # If the object is a frame, then trying to get the globals dict from its
+    # module won't work. Instead, the frame object itself has the globals
+    # dictionary.
+    globals_dict = None
+    if inspect.isframe(object):
+        # XXX: can this ever be false?
+        globals_dict = object.f_globals
     else:
-        lines = linecache.getlines(file)
+        module = getmodule(object, file)
+        if module:
+            globals_dict = module.__dict__
+    lines = linecache.getlines(file, globals_dict)
     if not lines:
         raise IOError('could not get source code')
 
@@ -202,11 +203,31 @@ def findsource(object):
 if sys.version_info[:2] >= (2,5):
     inspect.findsource = findsource
 
+def fix_frame_records_filenames(records):
+    """Try to fix the filenames in each record from inspect.getinnerframes().
+
+    Particularly, modules loaded from within zip files have useless filenames
+    attached to their code object, and inspect.getinnerframes() just uses it.
+    """
+    fixed_records = []
+    for frame, filename, line_no, func_name, lines, index in records:
+        # Look inside the frame's globals dictionary for __file__, which should
+        # be better.
+        better_fn = frame.f_globals.get('__file__', None)
+        if isinstance(better_fn, str):
+            # Check the type just in case someone did something weird with
+            # __file__. It might also be None if the error occurred during
+            # import.
+            filename = better_fn
+        fixed_records.append((frame, filename, line_no, func_name, lines, index))
+    return fixed_records
+
+
 def _fixed_getinnerframes(etb, context=1,tb_offset=0):
     import linecache
     LNUM_POS, LINES_POS, INDEX_POS =  2, 4, 5
 
-    records  = inspect.getinnerframes(etb, context)
+    records  = fix_frame_records_filenames(inspect.getinnerframes(etb, context))
 
     # If the error is at the console, don't build any context, since it would
     # otherwise produce 5 blank lines printed out (there is no file at the
@@ -299,7 +320,7 @@ class TBTools:
         self.call_pdb = call_pdb
 
         # Create color table
-        self.color_scheme_table = ExceptionColors 
+        self.color_scheme_table = exception_colors()
 
         self.set_colors(color_scheme)
         self.old_scheme = color_scheme  # save initial value for toggles
@@ -356,8 +377,8 @@ class ListTB(TBTools):
         
     def __call__(self, etype, value, elist):
         Term.cout.flush()
-        Term.cerr.flush()
         print >> Term.cerr, self.text(etype,value,elist)
+        Term.cerr.flush()
 
     def text(self,etype, value, elist,context=5):
         """Return a color formatted string with the traceback info."""
@@ -424,7 +445,8 @@ class ListTB(TBTools):
         
         Also lifted nearly verbatim from traceback.py
         """
-        
+
+        have_filedata = False
         Colors = self.Colors
         list = []
         try:
@@ -438,8 +460,9 @@ class ListTB(TBTools):
                 try:
                     msg, (filename, lineno, offset, line) = value
                 except:
-                    pass
+                    have_filedata = False
                 else:
+                    have_filedata = True
                     #print 'filename is',filename  # dbg
                     if not filename: filename = "<string>"
                     list.append('%s  File %s"%s"%s, line %s%d%s\n' % \
@@ -469,6 +492,12 @@ class ListTB(TBTools):
                                               Colors.Normal, s))
             else:
                 list.append('%s\n' % str(stype))
+
+        # vds:>>
+        if have_filedata:
+            __IPYTHON__.hooks.synchronize_with_editor(filename, lineno, 0)
+        # vds:<<
+
         return list
 
     def _some_str(self, value):
@@ -780,6 +809,15 @@ class VerboseTB(TBTools):
             for name in names:
                 value = text_repr(getattr(evalue, name))
                 exception.append('\n%s%s = %s' % (indent, name, value))
+
+        # vds: >>
+        if records:
+             filepath, lnum = records[-1][1:3]
+             #print "file:", str(file), "linenb", str(lnum) # dbg
+             filepath = os.path.abspath(filepath)
+             __IPYTHON__.hooks.synchronize_with_editor(filepath, lnum, 0)
+        # vds: <<
+                
         # return all our info assembled as a single string
         return '%s\n\n%s\n%s' % (head,'\n'.join(frames),''.join(exception[0]) )
 
@@ -834,8 +872,8 @@ class VerboseTB(TBTools):
         (etype, evalue, etb) = info or sys.exc_info()
         self.tb = etb
         Term.cout.flush()
-        Term.cerr.flush()
         print >> Term.cerr, self.text(etype, evalue, etb)
+        Term.cerr.flush()
 
     # Changed so an instance can just be called as VerboseTB_inst() and print
     # out the right info on its own.
@@ -845,7 +883,10 @@ class VerboseTB(TBTools):
             self.handler()
         else:
             self.handler((etype, evalue, etb))
-        self.debugger()
+        try:
+            self.debugger()
+        except KeyboardInterrupt:
+            print "\nKeyboardInterrupt"
 
 #----------------------------------------------------------------------------
 class FormattedTB(VerboseTB,ListTB):
@@ -953,14 +994,17 @@ class AutoFormattedTB(FormattedTB):
         if out is None:
             out = Term.cerr
         Term.cout.flush()
-        out.flush()
         if tb_offset is not None:
             tb_offset, self.tb_offset = self.tb_offset, tb_offset
             print >> out, self.text(etype, evalue, etb)
             self.tb_offset = tb_offset
         else:
             print >> out, self.text(etype, evalue, etb)
-        self.debugger()
+        out.flush()
+        try:
+            self.debugger()
+        except KeyboardInterrupt:
+            print "\nKeyboardInterrupt"
 
     def text(self,etype=None,value=None,tb=None,context=5,mode=None):
         if etype is None:

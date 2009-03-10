@@ -20,90 +20,124 @@ __version__ = Release.version
 # Required modules
 from IPython.ColorANSI import ColorSchemeTable, TermColors, ColorScheme
 
-ExceptionColors = ColorSchemeTable()
+def exception_colors():
+    """Return a color table with fields for exception reporting.
 
-# Populate it with color schemes
-C = TermColors # shorthand and local lookup
-ExceptionColors.add_scheme(ColorScheme(
-    'NoColor',
-    # The color to be used for the top line
-    topline = C.NoColor,
+    The table is an instance of ColorSchemeTable with schemes added for
+    'Linux', 'LightBG' and 'NoColor' and fields for exception handling filled
+    in.
 
-    # The colors to be used in the traceback
-    filename = C.NoColor,
-    lineno = C.NoColor,
-    name = C.NoColor,
-    vName = C.NoColor,
-    val = C.NoColor,
-    em = C.NoColor,
+    Examples:
+
+    >>> ec = exception_colors()
+    >>> ec.active_scheme_name
+    ''
+    >>> print ec.active_colors
+    None
+
+    Now we activate a color scheme:    
+    >>> ec.set_active_scheme('NoColor')
+    >>> ec.active_scheme_name
+    'NoColor'
+    >>> ec.active_colors.keys()
+    ['em', 'caret', '__allownew', 'name', 'val', 'vName', 'Normal', 'normalEm',
+    'filename', 'linenoEm', 'excName', 'lineno', 'valEm', 'filenameEm',
+    'nameEm', 'line', 'topline']
+    """
     
-    # Emphasized colors for the last frame of the traceback
-    normalEm = C.NoColor,
-    filenameEm = C.NoColor,
-    linenoEm = C.NoColor,
-    nameEm = C.NoColor,
-    valEm = C.NoColor,
-    
-    # Colors for printing the exception
-    excName = C.NoColor,
-    line = C.NoColor,
-    caret = C.NoColor,
-    Normal = C.NoColor
-    ))
+    ex_colors = ColorSchemeTable()
 
-# make some schemes as instances so we can copy them for modification easily
-ExceptionColors.add_scheme(ColorScheme(
-    'Linux',
-    # The color to be used for the top line
-    topline = C.LightRed,
+    # Populate it with color schemes
+    C = TermColors # shorthand and local lookup
+    ex_colors.add_scheme(ColorScheme(
+        'NoColor',
+        # The color to be used for the top line
+        topline = C.NoColor,
 
-    # The colors to be used in the traceback
-    filename = C.Green,
-    lineno = C.Green,
-    name = C.Purple,
-    vName = C.Cyan,
-    val = C.Green,
-    em = C.LightCyan,
+        # The colors to be used in the traceback
+        filename = C.NoColor,
+        lineno = C.NoColor,
+        name = C.NoColor,
+        vName = C.NoColor,
+        val = C.NoColor,
+        em = C.NoColor,
 
-    # Emphasized colors for the last frame of the traceback
-    normalEm = C.LightCyan,
-    filenameEm = C.LightGreen,
-    linenoEm = C.LightGreen,
-    nameEm = C.LightPurple,
-    valEm = C.LightBlue,
+        # Emphasized colors for the last frame of the traceback
+        normalEm = C.NoColor,
+        filenameEm = C.NoColor,
+        linenoEm = C.NoColor,
+        nameEm = C.NoColor,
+        valEm = C.NoColor,
 
-    # Colors for printing the exception
-    excName = C.LightRed,
-    line = C.Yellow,
-    caret = C.White,
-    Normal = C.Normal
-    ))
+        # Colors for printing the exception
+        excName = C.NoColor,
+        line = C.NoColor,
+        caret = C.NoColor,
+        Normal = C.NoColor
+        ))
 
-# For light backgrounds, swap dark/light colors
-ExceptionColors.add_scheme(ColorScheme(
-    'LightBG',
-    # The color to be used for the top line
-    topline = C.Red,
-    
-    # The colors to be used in the traceback
-    filename = C.LightGreen,
-    lineno = C.LightGreen,
-    name = C.LightPurple,
-    vName = C.Cyan,
-    val = C.LightGreen,
-    em = C.Cyan,
+    # make some schemes as instances so we can copy them for modification easily
+    ex_colors.add_scheme(ColorScheme(
+        'Linux',
+        # The color to be used for the top line
+        topline = C.LightRed,
 
-    # Emphasized colors for the last frame of the traceback
-    normalEm = C.Cyan,
-    filenameEm = C.Green,
-    linenoEm = C.Green,
-    nameEm = C.Purple,
-    valEm = C.Blue,
+        # The colors to be used in the traceback
+        filename = C.Green,
+        lineno = C.Green,
+        name = C.Purple,
+        vName = C.Cyan,
+        val = C.Green,
+        em = C.LightCyan,
 
-    # Colors for printing the exception
-    excName = C.Red,
-    #line = C.Brown,  # brown often is displayed as yellow
-    line = C.Red,
-    caret = C.Normal,
-    Normal = C.Normal
-    ))
+        # Emphasized colors for the last frame of the traceback
+        normalEm = C.LightCyan,
+        filenameEm = C.LightGreen,
+        linenoEm = C.LightGreen,
+        nameEm = C.LightPurple,
+        valEm = C.LightBlue,
+
+        # Colors for printing the exception
+        excName = C.LightRed,
+        line = C.Yellow,
+        caret = C.White,
+        Normal = C.Normal
+        ))
+
+    # For light backgrounds, swap dark/light colors
+    ex_colors.add_scheme(ColorScheme(
+        'LightBG',
+        # The color to be used for the top line
+        topline = C.Red,
+
+        # The colors to be used in the traceback
+        filename = C.LightGreen,
+        lineno = C.LightGreen,
+        name = C.LightPurple,
+        vName = C.Cyan,
+        val = C.LightGreen,
+        em = C.Cyan,
+
+        # Emphasized colors for the last frame of the traceback
+        normalEm = C.Cyan,
+        filenameEm = C.Green,
+        linenoEm = C.Green,
+        nameEm = C.Purple,
+        valEm = C.Blue,
+
+        # Colors for printing the exception
+        excName = C.Red,
+        #line = C.Brown,  # brown often is displayed as yellow
+        line = C.Red,
+        caret = C.Normal,
+        Normal = C.Normal
+        ))
+
+    return ex_colors
+
+
+# For backwards compatibility, keep around a single global object.  Note that
+# this should NOT be used, the factory function should be used instead, since
+# these objects are stateful and it's very easy to get strange bugs if any code
+# modifies the module-level object's state.
+ExceptionColors = exception_colors()
