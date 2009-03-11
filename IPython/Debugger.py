@@ -13,9 +13,7 @@ The code in this file is mainly lifted out of cmd.py in Python 2.2, with minor
 changes. Licensing should therefore be under the standard Python terms.  For
 details on the PSF (Python Software Foundation) standard license, see:
 
-http://www.python.org/2.2.3/license.html
-
-$Id: Debugger.py 2913 2007-12-31 12:42:14Z vivainio $"""
+http://www.python.org/2.2.3/license.html"""
 
 #*****************************************************************************
 #
@@ -26,10 +24,6 @@ $Id: Debugger.py 2913 2007-12-31 12:42:14Z vivainio $"""
 #
 #
 #*****************************************************************************
-
-from IPython import Release
-__author__  = '%s <%s>' % Release.authors['Fernando']
-__license__ = 'Python'
 
 import bdb
 import cmd

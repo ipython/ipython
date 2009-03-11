@@ -47,8 +47,7 @@ can be downloaded from:
 http://gnuplot-py.sourceforge.net/
 
 Inspired by a suggestion/request from Arnd Baecker.
-
-$Id: GnuplotRuntime.py 389 2004-10-09 07:59:30Z fperez $"""
+"""
 
 __all__ = ['Gnuplot','gp','gp_new','Data','File','Func','GridData',
            'pm3d_config','eps_fix_bbox']

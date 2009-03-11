@@ -17,8 +17,6 @@ http://folk.uio.no/hpl/scripting
 
 (although ultimately no code from this text was used, as IPython's system is a
 separate implementation).
-
-$Id: background_jobs.py 994 2006-01-08 08:29:44Z fperez $
 """
 
 #*****************************************************************************
@@ -27,10 +25,6 @@ $Id: background_jobs.py 994 2006-01-08 08:29:44Z fperez $
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
 #*****************************************************************************
-
-from IPython import Release
-__author__  = '%s <%s>' % Release.authors['Fernando']
-__license__ = Release.license
 
 # Code begins
 import sys

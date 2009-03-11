@@ -3,8 +3,7 @@
 
 All the matplotlib support code was co-developed with John Hunter,
 matplotlib's author.
-
-$Id: Shell.py 3024 2008-02-07 15:34:42Z darren.dale $"""
+"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2006 Fernando Perez <fperez@colorado.edu>
@@ -12,10 +11,6 @@ $Id: Shell.py 3024 2008-02-07 15:34:42Z darren.dale $"""
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
 #*****************************************************************************
-
-from IPython import Release
-__author__  = '%s <%s>' % Release.authors['Fernando']
-__license__ = Release.license
 
 # Code begins
 # Stdlib imports

@@ -2,10 +2,9 @@
 """
 IPython -- An enhanced Interactive Python
 
-Requires Python 2.3 or newer.
+Requires Python 2.4 or newer.
 
 This file contains all the classes and helper functions specific to IPython.
-
 """
 
 #*****************************************************************************
@@ -26,12 +25,6 @@ This file contains all the classes and helper functions specific to IPython.
 
 #****************************************************************************
 # Modules and globals
-
-from IPython import Release
-__author__  = '%s <%s>\n%s <%s>' % \
-              ( Release.authors['Janko'] + Release.authors['Fernando'] )
-__license__ = Release.license
-__version__ = Release.version
 
 # Python standard modules
 import __main__

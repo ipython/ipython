@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 """sys.excepthook for IPython itself, leaves a detailed report on disk.
-
-$Id: CrashHandler.py 2908 2007-12-30 21:07:46Z vivainio $"""
+"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2006 Fernando Perez. <fperez@colorado.edu>

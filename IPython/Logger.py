@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 """
 Logger class for IPython's logging facilities.
-
-$Id: Logger.py 2875 2007-11-26 08:37:39Z fperez $
 """
 
 #*****************************************************************************
@@ -15,11 +13,6 @@ $Id: Logger.py 2875 2007-11-26 08:37:39Z fperez $
 
 #****************************************************************************
 # Modules and globals
-
-from IPython import Release
-__author__  = '%s <%s>\n%s <%s>' % \
-              ( Release.authors['Janko'] + Release.authors['Fernando'] )
-__license__ = Release.license
 
 # Python standard modules
 import glob

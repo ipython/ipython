@@ -4,8 +4,7 @@ A set of convenient utilities for numerical work.
 
 Most of this module requires Numerical Python or is meant to be used with it.
 See http://www.pfdubois.com/numpy for details.
-
-$Id: numutils.py 958 2005-12-27 23:17:51Z fperez $"""
+"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2005 Fernando Perez <fperez@colorado.edu>
@@ -13,10 +12,6 @@ $Id: numutils.py 958 2005-12-27 23:17:51Z fperez $"""
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
 #*****************************************************************************
-
-from IPython import Release
-__author__  = '%s <%s>' % Release.authors['Fernando']
-__license__ = Release.license
 
 __all__ = ['sum_flat','mean_flat','rms_flat','base_repr','binary_repr',
            'amin','amax','amap','zeros_like','empty_like',

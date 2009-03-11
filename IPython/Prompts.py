@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 Classes for handling input/output prompts.
-
-$Id: Prompts.py 3026 2008-02-07 16:03:16Z vivainio $"""
+"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2006 Fernando Perez <fperez@colorado.edu>

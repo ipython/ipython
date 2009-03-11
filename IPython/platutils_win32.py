@@ -12,7 +12,6 @@ to use these functions in platform agnostic fashion.
 #  the file COPYING, distributed as part of this software.
 #*****************************************************************************
 
-
 import os
 
 ignore_termtitle = True

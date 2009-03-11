@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 """DPyGetOpt -- Demiurge Python GetOptions Module
 
- $Id: DPyGetOpt.py 2872 2007-11-25 17:58:05Z fperez $
-
 This module is modeled after perl's Getopt::Long module-- which
 is, in turn, modeled after GNU's extended getopt() function.
 
@@ -32,8 +30,7 @@ characters;  ie-- 'foo|bar|baz=f@' specifies that all -foo, -bar,
 and -baz options that appear on within the parsed argument list
 must have a real number argument and that the accumulated list
 of values will be available under the name 'foo'
-
-$Id: DPyGetOpt.py 2872 2007-11-25 17:58:05Z fperez $"""
+"""
 
 #*****************************************************************************
 #

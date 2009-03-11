@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 Color schemes for exception handling code in IPython.
-
-$Id: Prompts.py 638 2005-07-18 03:01:41Z fperez $"""
+"""
 
 #*****************************************************************************
 #       Copyright (C) 2005-2006 Fernando Perez <fperez@colorado.edu>
@@ -10,11 +9,6 @@ $Id: Prompts.py 638 2005-07-18 03:01:41Z fperez $"""
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
 #*****************************************************************************
-
-from IPython import Release
-__author__  = '%s <%s>' % Release.authors['Fernando']
-__license__ = Release.license
-__version__ = Release.version
 
 #****************************************************************************
 # Required modules

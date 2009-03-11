@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 """Support for wildcard pattern matching in object inspection.
-
-$Id: OInspect.py 608 2005-07-06 17:52:32Z fperez $
 """
 
 #*****************************************************************************

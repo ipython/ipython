@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 """Magic functions for InteractiveShell.
-
-$Id: Magic.py 2996 2008-01-30 06:31:39Z fperez $"""
+"""
 
 #*****************************************************************************
 #       Copyright (C) 2001 Janko Hauser <jhauser@zscout.de> and

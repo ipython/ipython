@@ -5,8 +5,7 @@ IPython -- An enhanced Interactive Python
 Requires Python 2.1 or better.
 
 This file contains the main make_IPython() starter function.
-
-$Id: ipmaker.py 2930 2008-01-11 07:03:11Z vivainio $"""
+"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2006 Fernando Perez. <fperez@colorado.edu>

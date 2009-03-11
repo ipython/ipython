@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 """Mimic C structs with lots of extra functionality.
-
-$Id: ipstruct.py 1950 2006-11-28 19:15:35Z vivainio $"""
+"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2004 Fernando Perez <fperez@colorado.edu>
@@ -9,10 +8,6 @@ $Id: ipstruct.py 1950 2006-11-28 19:15:35Z vivainio $"""
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
 #*****************************************************************************
-
-from IPython import Release
-__author__  = '%s <%s>' % Release.authors['Fernando']
-__license__ = Release.license
 
 __all__ = ['Struct']
 
