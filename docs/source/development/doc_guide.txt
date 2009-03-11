@@ -31,7 +31,7 @@ nicely spelled out in their guide.  What follows is thus a lightly adapted
 version of the matplotlib documentation guide, taken with permission from the
 MPL team.
 
-.. __: http://matplotlib.sourceforge.net/doc/html/devel/documenting_mpl.html
+.. __: http://matplotlib.sourceforge.net/devel/documenting_mpl.html
 
 
 A bit of Python code::
@@ -68,25 +68,36 @@ A bit of shell code:
     echo "My home directory is: $HOME"
     ls
 
-
   
 Docstring format
 ================
 
-Good docstrings are very important. All new code will use `Epydoc`_ for
-generating API docs, so we will follow the `Epydoc`_ conventions. More
-specifically, we will use `reStructuredText`_ for markup and formatting, since
-it is understood by a wide variety of tools. This means that if in the future
-we have any reason to change from `Epydoc`_ to something else, we'll have fewer
-transition pains.
+Good docstrings are very important.  Unfortunately, Python itself only provides
+a rather loose standard for docstrings (`PEP 257`_), and there is no universally
+accepted convention for all the different parts of a complete docstring.
+However, the NumPy project has established a very reasonable standard, and has
+developed some tools to support the smooth inclusion of such docstrings in
+Sphinx-generated manuals.  Rather than inventing yet another pseudo-standard,
+IPython will be henceforth documented using the NumPy conventions; we carry
+copies of some of the NumPy support tools to remain self-contained, but share
+back upstream with NumPy any improvements or fixes we may make to the tools.
 
-Details about using `reStructuredText`_ for docstrings can be found `here
-<http://epydoc.sourceforge.net/manual-othermarkup.html>`_.
+The `NumPy documentation guidelines`_ contain detailed information on this
+standard, and for a quick overview, the NumPy `example docstring`_ is a useful
+read. 
 
-.. _Epydoc: http://epydoc.sourceforge.net/
+As in the past IPython used epydoc, currently many docstrings still use epydoc
+conventions.  We will update them as we go, but all new code should be fully
+documented using the NumPy standard.
 
-Additional PEPs of interest regarding documentation of code:
+.. _PEP 257: http://www.python.org/peps/pep-0257.html
+.. _NumPy documentation guidelines: http://projects.scipy.org/numpy/wiki/CodingStyleGuidelines
 
-- `Docstring Conventions <http://www.python.org/peps/pep-0257.html>`_
+.. _example docstring: http://projects.scipy.org/numpy/browser/trunk/doc/EXAMPLE_DOCSTRING.txt
+
+Additional PEPs of interest regarding documentation of code.  While both of
+these were rejected, the ideas therein form much of the basis of docutils (the
+machinery to process reStructuredText):
+
 - `Docstring Processing System Framework <http://www.python.org/peps/pep-0256.html>`_
 - `Docutils Design Specification <http://www.python.org/peps/pep-0258.html>`_
