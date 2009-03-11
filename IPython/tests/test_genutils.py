@@ -15,17 +15,26 @@ __docformat__ = "restructuredtext en"
 # Imports
 #-----------------------------------------------------------------------------
 
-from IPython import genutils
-from IPython.testing.decorators import skipif, skip_if_not_win32
+# stdlib
+import os
+import shutil
+import sys
+import tempfile
+
+from os.path import join, abspath, split
+
+# third-party
+import nose.tools as nt
+
 from nose import with_setup
 from nose.tools import raises
 
-from os.path import join, abspath, split
-import os, sys, IPython
-import nose.tools as nt
+# Our own
+import IPython
+from IPython import genutils
+from IPython.testing.decorators import skipif, skip_if_not_win32
 
-env = os.environ
-
+# Platform-dependent imports
 try:
     import _winreg as wreg
 except ImportError:
@@ -36,32 +45,36 @@ except ImportError:
     #Add entries that needs to be stubbed by the testing code
     (wreg.OpenKey, wreg.QueryValueEx,) = (None, None)
 
-test_file_path = split(abspath(__file__))[0]
-
+#-----------------------------------------------------------------------------
+# Globals
+#-----------------------------------------------------------------------------
+env = os.environ
+TEST_FILE_PATH = split(abspath(__file__))[0]
+TMP_TEST_DIR = tempfile.mkdtemp()
+HOME_TEST_DIR = join(TMP_TEST_DIR, "home_test_dir")
+IP_TEST_DIR = join(HOME_TEST_DIR,'_ipython')
 #
 # Setup/teardown functions/decorators
 #
-
 
 def setup():
     """Setup testenvironment for the module:
     
             - Adds dummy home dir tree
     """
-    try:
-        os.makedirs("home_test_dir/_ipython")
-    except WindowsError:
-        pass #Or should we complain that the test directory already exists??
+    # Do not mask exceptions here.  In particular, catching WindowsError is a
+    # problem because that exception is only defined on Windows...
+    os.makedirs(IP_TEST_DIR)
 
 def teardown():
     """Teardown testenvironment for the module:
     
             - Remove dummy home dir tree
     """
-    try:
-        os.removedirs("home_test_dir/_ipython")
-    except WindowsError:
-        pass #Or should we complain that the test directory already exists??
+    # Note: we remove the parent test dir, which is the root of all test
+    # subdirs we may have created.  Use shutil instead of os.removedirs, so
+    # that non-empty directories are all recursively removed.
+    shutil.rmtree(TMP_TEST_DIR)
 
     
 def setup_environment():
@@ -109,10 +122,10 @@ def test_get_home_dir_1():
     sys.frozen = True
     
     #fake filename for IPython.__init__
-    IPython.__file__ = abspath(join(test_file_path, "home_test_dir/Lib/IPython/__init__.py"))
+    IPython.__file__ = abspath(join(HOME_TEST_DIR, "Lib/IPython/__init__.py"))
     
     home_dir = genutils.get_home_dir()
-    nt.assert_equal(home_dir, abspath(join(test_file_path, "home_test_dir")))
+    nt.assert_equal(home_dir, abspath(HOME_TEST_DIR))
     
 @skip_if_not_win32
 @with_enivronment
@@ -121,15 +134,15 @@ def test_get_home_dir_2():
     """
     sys.frozen = True
     #fake filename for IPython.__init__
-    IPython.__file__ = abspath(join(test_file_path, "home_test_dir/Library.zip/IPython/__init__.py")).lower()
+    IPython.__file__ = abspath(join(HOME_TEST_DIR, "Library.zip/IPython/__init__.py")).lower()
     
     home_dir = genutils.get_home_dir()
-    nt.assert_equal(home_dir, abspath(join(test_file_path, "home_test_dir")).lower())
+    nt.assert_equal(home_dir, abspath(HOME_TEST_DIR).lower())
 
 @with_enivronment
 def test_get_home_dir_3():
     """Testcase $HOME is set, then use its value as home directory."""
-    env["HOME"] = join(test_file_path, "home_test_dir")
+    env["HOME"] = HOME_TEST_DIR
     home_dir = genutils.get_home_dir()
     nt.assert_equal(home_dir, env["HOME"])
 
@@ -150,10 +163,10 @@ def test_get_home_dir_5():
 
     os.name = 'nt'
     if 'HOME' in env: del env['HOME']
-    env['HOMEDRIVE'], env['HOMEPATH'] = os.path.abspath(test_file_path), "home_test_dir"
+    env['HOMEDRIVE'], env['HOMEPATH'] = os.path.splitdrive(HOME_TEST_DIR)
 
     home_dir = genutils.get_home_dir()
-    nt.assert_equal(home_dir, abspath(join(test_file_path, "home_test_dir")))
+    nt.assert_equal(home_dir, abspath(HOME_TEST_DIR))
 
 @skip_if_not_win32
 @with_enivronment
@@ -165,11 +178,11 @@ def test_get_home_dir_6():
 
     os.name = 'nt'
     if 'HOME' in env: del env['HOME']
-    env['HOMEDRIVE'], env['HOMEPATH'] = os.path.abspath(test_file_path), "DOES NOT EXIST"
-    env["USERPROFILE"] = abspath(join(test_file_path, "home_test_dir"))
+    env['HOMEDRIVE'], env['HOMEPATH'] = os.path.abspath(TEST_FILE_PATH), "DOES NOT EXIST"
+    env["USERPROFILE"] = abspath(HOME_TEST_DIR)
 
     home_dir = genutils.get_home_dir()
-    nt.assert_equal(home_dir, abspath(join(test_file_path, "home_test_dir")))
+    nt.assert_equal(home_dir, abspath(HOME_TEST_DIR))
 
 # Should we stub wreg fully so we can run the test on all platforms?
 @skip_if_not_win32
@@ -189,13 +202,13 @@ def test_get_home_dir_7():
                 pass
         return key()
     def QueryValueEx(x, y):
-        return [abspath(join(test_file_path, "home_test_dir"))]
+        return [abspath(HOME_TEST_DIR)]
 
     wreg.OpenKey = OpenKey
     wreg.QueryValueEx = QueryValueEx
 
     home_dir = genutils.get_home_dir()
-    nt.assert_equal(home_dir, abspath(join(test_file_path, "home_test_dir")))
+    nt.assert_equal(home_dir, abspath(HOME_TEST_DIR))
 
 
 #
