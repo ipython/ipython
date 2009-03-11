@@ -17,10 +17,11 @@ IPython Documentation
    interactive/index.txt
    parallel/index.txt
    config/index.txt
-   changes.txt
-   development/index.txt
    faq.txt
    history.txt
+   changes.txt
+   development/index.txt
+   api/index.txt
    license_and_copyright.txt
    credits.txt
 

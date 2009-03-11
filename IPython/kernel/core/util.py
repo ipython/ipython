@@ -70,8 +70,8 @@ def esc_quotes(strng):
 def make_quoted_expr(s):
     """Return string s in appropriate quotes, using raw string if possible.
     
-    Effectively this turns string: cd \ao\ao\
-    to: r"cd \ao\ao\_"[:-1]
+    XXX - example removed because it caused encoding errors in documentation
+    generation.  We need a new example that doesn't contain invalid chars.
     
     Note the use of raw string and padding at the end to allow trailing
     backslash.

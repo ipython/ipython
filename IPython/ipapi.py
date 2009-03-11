@@ -24,7 +24,6 @@ That way the module is imported at startup and you can have all your
 personal configuration (as opposed to boilerplate ipythonrc-PROFILENAME 
 stuff) in there. 
 
------------------------------------------------
 import IPython.ipapi
 ip = IPython.ipapi.get()
 
