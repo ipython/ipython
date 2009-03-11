@@ -677,6 +677,22 @@ class ExtensionDoctest(doctests.Doctest):
     name = 'extdoctest'   # call nosetests with --with-extdoctest
     enabled = True
 
+    def __init__(self,exclude_patterns=None):
+        """Create a new ExtensionDoctest plugin.
+
+        Parameters
+        ----------
+
+        exclude_patterns : sequence of strings, optional
+          These patterns are compiled as regular expressions, subsequently used
+          to exclude any filename which matches them from inclusion in the test
+          suite (using pattern.search(), NOT pattern.match() ).
+        """
+        if exclude_patterns is None:
+            exclude_patterns = []
+        self.exclude_patterns = map(re.compile,exclude_patterns)
+        doctests.Doctest.__init__(self)
+
     def options(self, parser, env=os.environ):
         Plugin.options(self, parser, env)
         parser.add_option('--doctest-tests', action='store_true',
@@ -783,20 +799,8 @@ class ExtensionDoctest(doctests.Doctest):
         """
         #print '*** ipdoctest- wantFile:',filename  # dbg
 
-        # XXX - temporarily hardcoded list, will move to driver later
-        exclude = ['IPython/external/',
-                   'IPython/platutils_win32',
-                   'IPython/frontend/cocoa',
-                   'IPython_doctest_plugin',
-                   'IPython/Gnuplot',
-                   'IPython/Extensions/ipy_',
-                   'IPython/Extensions/PhysicalQIn',
-                   'IPython/Extensions/scitedirector',
-                   'IPython/testing/plugin',
-                   ]
-
-        for fex in exclude:
-            if fex in filename:  # substring
+        for pat in self.exclude_patterns:
+            if pat.search(filename):
                 #print '###>>> SKIP:',filename  # dbg
                 return False
 

@@ -1,14 +1,52 @@
 # -*- coding: utf-8 -*-
 """IPython Test Suite Runner.
+
+This module provides a main entry point to a user script to test IPython itself
+from the command line.  The main() routine can be used in a similar manner to
+the ``nosetests`` script, and it takes similar arguments, but if no arguments
+are given it defaults to testing all of IPython.  This should be preferred to
+using plain ``nosetests`` because a number of nose plugins necessary to test
+IPython correctly are automatically configured by this code.
 """
 
+#-----------------------------------------------------------------------------
+# Module imports
+#-----------------------------------------------------------------------------
+
+# stdlib
 import sys
 import warnings
 
-from nose.core import TestProgram
+# third-party
 import nose.plugins.builtin
+from nose.core import TestProgram
 
+# Our own imports
 from IPython.testing.plugin.ipdoctest import IPythonDoctest
+
+#-----------------------------------------------------------------------------
+# Constants and globals
+#-----------------------------------------------------------------------------
+
+# For the IPythonDoctest plugin, we need to exclude certain patterns that cause
+# testing problems.  We should strive to minimize the number of skipped
+# modules, since this means untested code.  As the testing machinery
+# solidifies, this list should eventually become empty.
+EXCLUDE = ['IPython/external/',
+           'IPython/platutils_win32',
+           'IPython/frontend/cocoa',
+           'IPython_doctest_plugin',
+           'IPython/Gnuplot',
+           'IPython/Extensions/ipy_',
+           'IPython/Extensions/clearcmd',
+           'IPython/Extensions/PhysicalQIn',
+           'IPython/Extensions/scitedirector',
+           'IPython/testing/plugin',
+           ]
+
+#-----------------------------------------------------------------------------
+# Functions and classes
+#-----------------------------------------------------------------------------
 
 def main():
     """Run the IPython test suite.
@@ -42,8 +80,8 @@ def main():
     if not has_tests:
         argv.append('IPython')
 
-    # construct list of plugins, omitting the existing doctest plugin
-    plugins = [IPythonDoctest()]
+    # Construct list of plugins, omitting the existing doctest plugin.
+    plugins = [IPythonDoctest(EXCLUDE)]
     for p in nose.plugins.builtin.plugins:
         plug = p()
         if plug.name == 'doctest':
