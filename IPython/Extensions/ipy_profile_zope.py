@@ -12,7 +12,6 @@
 
 __author__ = """Stefan Eletzhofer <stefan.eletzhofer@inquant.de>"""
 __docformat__ = 'plaintext'
-__revision__ = "$Revision$"
 
 from IPython import ipapi
 from IPython import Release

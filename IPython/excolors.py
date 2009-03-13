@@ -124,7 +124,7 @@ def exception_colors():
         #line = C.Brown,  # brown often is displayed as yellow
         line = C.Red,
         caret = C.Normal,
-        Normal = C.Normal
+        Normal = C.Normal,
         ))
 
     return ex_colors
