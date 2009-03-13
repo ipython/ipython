@@ -37,11 +37,23 @@ def test_rehashx():
 def doctest_run_ns():
     """Classes declared %run scripts must be instantiable afterwards.
 
+    In [11]: run tclass
+
+    In [12]: isinstance(f(),foo)
+    Out[12]: True
+    """
+
+    
+def doctest_run_ns2():
+    """Classes declared %run scripts must be instantiable afterwards.
+
     In [3]: run tclass.py
 
-    In [4]: f()
+    In [4]: run tclass first_pass
+
+    In [5]: run tclass second_pass
+    Deleting object: first_pass
     """
-    pass # doctest only
 
 
 def doctest_hist_f():

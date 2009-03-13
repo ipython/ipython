@@ -335,15 +335,19 @@ class InteractiveShell(object,Magic):
         # code ran is deleted.  Now that this object is a true module (needed
         # so docetst and other tools work correctly), the Python module
         # teardown mechanism runs over it, and sets to None every variable
-        # present in that module.  This means that later calls to functions
-        # defined in the script (which have become interactively visible after
-        # script exit) fail, because they hold references to objects that have
-        # become overwritten into None.  The only solution I see right now is
-        # to protect every FakeModule used by %run by holding an internal
-        # reference to it.  This private list will be used for that.  The
-        # %reset command will flush it as well.
-        self._user_main_modules = []
-
+        # present in that module.  Top-level references to objects from the
+        # script survive, because the user_ns is updated with them.  However,
+        # calling functions defined in the script that use other things from
+        # the script will fail, because the function's closure had references
+        # to the original objects, which are now all None.  So we must protect
+        # these modules from deletion by keeping a cache.  To avoid keeping
+        # stale modules around (we only need the one from the last run), we use
+        # a dict keyed with the full path to the script, so only the last
+        # version of the module is held in the cache.  The %reset command will
+        # flush this cache.  See the cache_main_mod() and clear_main_mod_cache()
+        # methods for details on use.
+        self._user_main_modules = {}
+        
         # List of input with multi-line handling.
         # Fill its zero entry, user counter starts at 1
         self.input_hist = InputList(['\n'])
@@ -594,10 +598,6 @@ class InteractiveShell(object,Magic):
         
         #TODO: remove this, redundant
         self.add_builtins()
-
-        
-        
-
     # end __init__
 
     def var_expand(self,cmd,depth=0):
@@ -626,16 +626,15 @@ class InteractiveShell(object,Magic):
         """
         rc = self.rc
         try:
-            self.db = pickleshare.PickleShareDB(rc.ipythondir + "/db")            
+            self.db = pickleshare.PickleShareDB(rc.ipythondir + "/db")
         except exceptions.UnicodeDecodeError:
             print "Your ipythondir can't be decoded to unicode!"
             print "Please set HOME environment variable to something that"
             print r"only has ASCII characters, e.g. c:\home"
             print "Now it is",rc.ipythondir
             sys.exit()
-        self.shadowhist = IPython.history.ShadowHist(self.db)            
-            
-    
+        self.shadowhist = IPython.history.ShadowHist(self.db)
+
     def post_config_initialization(self):
         """Post configuration init method
 
@@ -902,7 +901,6 @@ class InteractiveShell(object,Magic):
     call_pdb = property(_get_call_pdb,_set_call_pdb,None,
                         'Control auto-activation of pdb at exceptions')
  
-
     # These special functions get installed in the builtin namespace, to
     # provide programmatic (pure python) access to magics, aliases and system
     # calls.  This is important for logging, user scripting, and more.
@@ -1132,7 +1130,8 @@ IPython will create a minimal default configuration for you.
                 inif = 'ipythonrc.ini'
             else:
                 inif = 'ipythonrc'
-            minimal_setup = {'ipy_user_conf.py' : 'import ipy_defaults', inif : '# intentionally left blank' }    
+            minimal_setup = {'ipy_user_conf.py' : 'import ipy_defaults',
+                             inif : '# intentionally left blank' }
             os.makedirs(ipythondir, mode = 0777)
             for f, cont in minimal_setup.items():
                 open(ipythondir + '/' + f,'w').write(cont)
@@ -1291,7 +1290,6 @@ want to merge them back into the new files.""" % locals()
             finally:
                 readline.read_history_file(self.histfile)
         return wrapper
-                
             
     def pre_readline(self):
         """readline hook to be used at the start of each line.
@@ -1389,7 +1387,59 @@ want to merge them back into the new files.""" % locals()
         if self.rc.quiet:
             return True
         return ask_yes_no(prompt,default)
-    
+
+    def cache_main_mod(self,mod):
+        """Cache a main module.
+
+        When scripts are executed via %run, we must keep a reference to their
+        __main__ module (a FakeModule instance) around so that Python doesn't
+        clear it, rendering objects defined therein useless.
+
+        This method keeps said reference in a private dict, keyed by the
+        absolute path of the module object (which corresponds to the script
+        path).  This way, for multiple executions of the same script we only
+        keep one copy of __main__ (the last one), thus preventing memory leaks
+        from old references while allowing the objects from the last execution
+        to be accessible.
+
+        Parameters
+        ----------
+          mod : a module object
+
+        Examples
+        --------
+
+        In [10]: import IPython
+
+        In [11]: _ip.IP.cache_main_mod(IPython)
+
+        In [12]: IPython.__file__ in _ip.IP._user_main_modules
+        Out[12]: True
+        """
+        self._user_main_modules[os.path.abspath(mod.__file__) ] = mod
+
+    def clear_main_mod_cache(self):
+        """Clear the cache of main modules.
+
+        Mainly for use by utilities like %reset.
+
+        Examples
+        --------
+
+        In [15]: import IPython
+
+        In [16]: _ip.IP.cache_main_mod(IPython)
+
+        In [17]: len(_ip.IP._user_main_modules) > 0
+        Out[17]: True
+
+        In [18]: _ip.IP.clear_main_mod_cache()
+
+        In [19]: len(_ip.IP._user_main_modules) == 0
+        Out[19]: True
+        """
+        self._user_main_modules.clear()
+
     def _should_recompile(self,e):
         """Utility routine for edit_syntax_error"""
 
@@ -1545,8 +1595,6 @@ want to merge them back into the new files.""" % locals()
                         self.set_completer()
         except KeyboardInterrupt:
             self.write("\nKeyboardInterrupt\n")
-            
-        
 
     def mainloop(self,banner=None):
         """Creates the local namespace and starts the mainloop.
@@ -1569,7 +1617,9 @@ want to merge them back into the new files.""" % locals()
             try:
                 self.interact(banner)
                 #self.interact_with_readline()                
-                # XXX for testing of a readline-decoupled repl loop, call interact_with_readline above
+
+                # XXX for testing of a readline-decoupled repl loop, call
+                # interact_with_readline above
 
                 break
             except KeyboardInterrupt:

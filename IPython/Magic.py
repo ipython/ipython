@@ -13,11 +13,6 @@
 #****************************************************************************
 # Modules and globals
 
-from IPython import Release
-__author__  = '%s <%s>\n%s <%s>' % \
-              ( Release.authors['Janko'] + Release.authors['Fernando'] )
-__license__ = Release.license
-
 # Python standard modules
 import __builtin__
 import bdb
@@ -1049,10 +1044,33 @@ Currently the magic system has the following functions:\n"""
     def magic_reset(self, parameter_s=''):
         """Resets the namespace by removing all names defined by the user.
 
-        Input/Output history are left around in case you need them."""
+        Input/Output history are left around in case you need them.
 
-        ans = self.shell.ask_yes_no(
-          "Once deleted, variables cannot be recovered. Proceed (y/[n])? ")
+        Parameters
+        ----------
+          -y : force reset without asking for confirmation.
+
+        Examples
+        --------
+        In [6]: a = 1
+
+        In [7]: a
+        Out[7]: 1
+
+        In [8]: 'a' in _ip.user_ns
+        Out[8]: True
+
+        In [9]: %reset -f
+
+        In [10]: 'a' in _ip.user_ns
+        Out[10]: False
+        """
+
+        if parameter_s == '-f':
+            ans = True
+        else:
+            ans = self.shell.ask_yes_no(
+                "Once deleted, variables cannot be recovered. Proceed (y/[n])? ")
         if not ans:
             print 'Nothing done.'
             return
@@ -1062,7 +1080,7 @@ Currently the magic system has the following functions:\n"""
             
         # Also flush the private list of module references kept for script
         # execution protection
-        self.shell._user_main_modules[:] = []
+        self.shell.clear_main_mod_cache()
 
     def magic_logstart(self,parameter_s=''):
         """Start logging anywhere in a session.
@@ -1576,25 +1594,10 @@ Currently the magic system has the following functions:\n"""
             
             # The shell MUST hold a reference to main_mod so after %run exits,
             # the python deletion mechanism doesn't zero it out (leaving
-            # dangling references)
-            
-            # XXX - the note above was written without further detail, but this
-            # code actually causes problems.  By holding references to the
-            # namespace where every script is executed, we effectively disable
-            # just about all possible variable cleanup.  In particular,
-            # generator expressions and other variables that point to open
-            # files are kept alive, and as a user session lives on, it may run
-            # out of available file descriptors.  Such a bug has already been
-            # reported by JD Hunter.  I'm disabling this for now, but we need
-            # to clarify exactly (and add tests) what from main_mod needs to be
-            # kept alive and what is save to remove...  In fact, see note
-            # below, where we append main_mod to sys.modules and then delete it
-            # again.  The final cleanup is rendered moot by this reference kept
-            # in _user_main_modules(), so we really need to look into this.
-            
-            self.shell._user_main_modules.append(main_mod)
-
-            # /XXX
+            # dangling references).  However, we should drop old versions of
+            # main_mod.  There is now a proper API to manage this caching in
+            # the main shell object, we use that.            
+            self.shell.cache_main_mod(main_mod)
 
         # Since '%run foo' emulates 'python foo.py' at the cmd line, we must
         # set the __file__ global in the script's namespace
