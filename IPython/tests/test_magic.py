@@ -80,6 +80,14 @@ def doctest_hist_r():
     """
 
 
+def test_obj_del():
+    """Test that object's __del__ methods are called on exit."""
+    test_dir = os.path.dirname(__file__)
+    del_file = os.path.join(test_dir,'obj_del.py')
+    out = _ip.IP.getoutput('ipython %s' % del_file)
+    nt.assert_equals(out,'object A deleted')
+
+
 def test_shist():
     # Simple tests of ShadowHist class - test generator.
     import os, shutil, tempfile

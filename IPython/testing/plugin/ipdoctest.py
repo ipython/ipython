@@ -72,7 +72,7 @@ class py_file_finder(object):
     def __call__(self,name):
         from IPython.genutils import get_py_filename
         try:
-            get_py_filename(name)
+            return get_py_filename(name)
         except IOError:
             test_dir = os.path.dirname(self.test_filename)
             new_path = os.path.join(test_dir,name)
