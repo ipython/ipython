@@ -29,7 +29,6 @@ import textwrap
 from cStringIO import StringIO
 from getopt import getopt,GetoptError
 from pprint import pprint, pformat
-from sets import Set
 
 # cProfile was added in Python2.5
 try:
@@ -69,7 +68,7 @@ def compress_dhist(dh):
     head, tail = dh[:-10], dh[-10:]
 
     newhead = []
-    done = Set()
+    done = set()
     for h in head:
         if h in done:
             continue
@@ -143,7 +142,7 @@ python-profiler package from non-free.""")
                  filter(inst_magic,self.__dict__.keys()) + \
                  filter(inst_bound_magic,self.__class__.__dict__.keys())
         out = []
-        for fn in Set(magics):
+        for fn in set(magics):
             out.append(fn.replace('magic_','',1))
         out.sort()
         return out

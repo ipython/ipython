@@ -47,9 +47,6 @@ import sys
 import tempfile
 import traceback
 import types
-import warnings
-warnings.filterwarnings('ignore', r'.*sets module*')
-from sets import Set
 from pprint import pprint, pformat
 
 # IPython's own modules
@@ -1955,7 +1952,7 @@ want to merge them back into the new files.""" % locals()
         """
         line = fn + " " + rest
         
-        done = Set()
+        done = set()
         while 1:
             pre,fn,rest = prefilter.splitUserInput(line,
                                                    prefilter.shell_line_split)
