@@ -293,8 +293,14 @@ def _get_mro(obj_class):
     """
     if not hasattr(obj_class, '__mro__'):
         # Old-style class. Mix in object to make a fake new-style class.
-        obj_class = type(obj_class.__name__, (obj_class, object), {})
-        mro = obj_class.__mro__[1:-1]
+        try:
+            obj_class = type(obj_class.__name__, (obj_class, object), {})
+        except TypeError:
+            # Old-style extension type that does not descend from object.
+            # FIXME: try to construct a more thorough MRO.
+            mro = [obj_class]
+        else:
+            mro = obj_class.__mro__[1:-1]
     else:
         mro = obj_class.__mro__
     return mro
