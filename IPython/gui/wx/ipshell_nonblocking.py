@@ -62,11 +62,10 @@ class _Helper(object):
 ##############################################################################
 class _CodeExecutor(ThreadEx):
     ''' Thread that execute ipython code '''
-    def __init__(self, instance, after):
+    def __init__(self, instance):
         ThreadEx.__init__(self)
         self.instance = instance
-        self._afterExecute = after
-
+        
     def run(self):
         '''Thread main loop'''
         try:
@@ -74,7 +73,7 @@ class _CodeExecutor(ThreadEx):
             self.instance._help_text = None
             self.instance._execute()
             # used for uper class to generate event after execution
-            self._afterExecute() 
+            self.instance._after_execute() 
             
         except KeyboardInterrupt:
             pass
@@ -114,8 +113,7 @@ class NonBlockingIPShell(object):
         '''
         #ipython0 initialisation
         self._IP = None
-        self._term = None
-        self.initIpython0(argv, user_ns, user_global_ns,
+        self.init_ipython0(argv, user_ns, user_global_ns,
                           cin, cout, cerr,
                           ask_exit_handler)
         
@@ -127,33 +125,32 @@ class NonBlockingIPShell(object):
 
         #thread working vars
         self._line_to_execute = ''
-
+        self._threading = True
+        
         #vars that will be checked by GUI loop to handle thread states...
         #will be replaced later by PostEvent GUI funtions...
         self._doc_text = None
         self._help_text = None
         self._add_button = None
 
-    def initIpython0(self, argv=[], user_ns={}, user_global_ns=None,
+    def init_ipython0(self, argv=[], user_ns={}, user_global_ns=None,
                      cin=None, cout=None, cerr=None,
                      ask_exit_handler=None):
-        ''' Initialize an ithon0 instance '''
+        ''' Initialize an ipython0 instance '''
         
-        #first we redefine in/out/error functions of IPython 
+        #first we redefine in/out/error functions of IPython
+        #BUG: we've got a limitation form ipython0 there
+        #only one instance can be instanciated else tehre will be
+        #cin/cout/cerr clash...
         if cin:
-            IPython.Shell.Term.cin = cin
+            IPython.genutils.Term.cin = cin
         if cout:
-            IPython.Shell.Term.cout = cout
+            IPython.genutils.Term.cout = cout
         if cerr:
-            IPython.Shell.Term.cerr = cerr
+            IPython.genutils.Term.cerr = cerr
         
-        # This is to get rid of the blockage that accurs during
-        # IPython.Shell.InteractiveShell.user_setup()
-        IPython.iplib.raw_input = lambda x: None
-
-        self._term = IPython.genutils.IOTerm(cin=cin, cout=cout, cerr=cerr)
-
         excepthook = sys.excepthook
+
         #Hack to save sys.displayhook, because ipython seems to overwrite it...
         self.sys_displayhook_ori = sys.displayhook
         
@@ -163,7 +160,8 @@ class NonBlockingIPShell(object):
                                     embedded=True,
                                     shell_class=IPython.Shell.InteractiveShell)
 
-        #we restore sys.displayhook
+        #we save ipython0 displayhook and we restore sys.displayhook
+        self.displayhook = sys.displayhook
         sys.displayhook = self.sys_displayhook_ori
 
         #we replace IPython default encoding by wx locale encoding
@@ -173,11 +171,12 @@ class NonBlockingIPShell(object):
         #we replace the ipython default pager by our pager
         self._IP.set_hook('show_in_pager', self._pager)
         
-        #we replace the ipython default shell command caller by our shell handler
+        #we replace the ipython default shell command caller 
+        #by our shell handler
         self._IP.set_hook('shell_hook', self._shell)
         
         #we replace the ipython default input command caller by our method
-        IPython.iplib.raw_input_original = self._raw_input
+        IPython.iplib.raw_input_original = self._raw_input_original
         #we replace the ipython default exit command by our method
         self._IP.exit = ask_exit_handler
         #we replace the help command
@@ -186,26 +185,68 @@ class NonBlockingIPShell(object):
         #we disable cpase magic... until we found a way to use it properly.
         #import IPython.ipapi
         ip = IPython.ipapi.get()
-        def bypassMagic(self, arg):
+        def bypass_magic(self, arg):
             print '%this magic is currently disabled.'
-        ip.expose_magic('cpaste', bypassMagic)
+        ip.expose_magic('cpaste', bypass_magic)
+
+        import __builtin__
+        __builtin__.raw_input = self._raw_input
         
         sys.excepthook = excepthook
 
-    #----------------------- Thread management section ----------------------    
-    def doExecute(self, line):
+    #----------------------- Thread management section ----------------------   
+    def do_execute(self, line):
         """
         Tell the thread to process the 'line' command
         """
 
         self._line_to_execute = line
-        #we launch the ipython line execution in a thread to make it interruptible
-        #with include it in self namespace to be able to call ce.raise_exc(KeyboardInterrupt)
-        self.ce = _CodeExecutor(self, self._afterExecute)
-        self.ce.start()
-        
-    #----------------------- IPython management section ----------------------    
-    def getDocText(self):
+
+        if self._threading:
+            #we launch the ipython line execution in a thread to make it 
+            #interruptible with include it in self namespace to be able 
+            #to call  ce.raise_exc(KeyboardInterrupt)
+            self.ce = _CodeExecutor(self)
+            self.ce.start()
+        else:
+            try:
+                self._doc_text = None
+                self._help_text = None
+                self._execute()
+                # used for uper class to generate event after execution
+                self._after_execute() 
+            
+            except KeyboardInterrupt:
+                pass
+
+    #----------------------- IPython management section ----------------------
+    def get_threading(self):
+        """
+        Returns threading status, is set to True, then each command sent to
+        the interpreter will be executed in a separated thread allowing,
+        for example, breaking a long running commands.
+        Disallowing it, permits better compatibilty with instance that is embedding
+        IPython instance.
+
+        @return: Execution method
+        @rtype: bool
+        """
+        return self._threading
+    
+    def set_threading(self, state):
+        """
+        Sets threading state, if set to True, then each command sent to
+        the interpreter will be executed in a separated thread allowing,
+        for example, breaking a long running commands.
+        Disallowing it, permits better compatibilty with instance that is embedding
+        IPython instance.
+
+        @param state: Sets threading state
+        @type bool
+        """
+        self._threading = state
+
+    def get_doc_text(self):
         """
         Returns the output of the processing that need to be paged (if any)
 
@@ -214,7 +255,7 @@ class NonBlockingIPShell(object):
         """
         return self._doc_text
         
-    def getHelpText(self):
+    def get_help_text(self):
         """
         Returns the output of the processing that need to be paged via help pager(if any)
 
@@ -223,7 +264,7 @@ class NonBlockingIPShell(object):
         """
         return self._help_text
 
-    def getBanner(self):
+    def get_banner(self):
         """
         Returns the IPython banner for useful info on IPython instance
 
@@ -232,7 +273,7 @@ class NonBlockingIPShell(object):
         """
         return self._IP.BANNER
     
-    def getPromptCount(self):
+    def get_prompt_count(self):
         """
         Returns the prompt number.
         Each time a user execute a line in the IPython shell the prompt count is increased
@@ -242,7 +283,7 @@ class NonBlockingIPShell(object):
         """
         return self._IP.outputcache.prompt_count
 
-    def getPrompt(self):
+    def get_prompt(self):
         """
         Returns current prompt inside IPython instance
         (Can be In [...]: ot ...:)
@@ -252,7 +293,7 @@ class NonBlockingIPShell(object):
         """
         return self._prompt
 
-    def getIndentation(self):
+    def get_indentation(self):
         """
         Returns the current indentation level
         Usefull to put the caret at the good start position if we want to do autoindentation.
@@ -262,7 +303,7 @@ class NonBlockingIPShell(object):
         """
         return self._IP.indent_current_nsp
         
-    def updateNamespace(self, ns_dict):
+    def update_namespace(self, ns_dict):
         '''
         Add the current dictionary to the shell namespace.
 
@@ -286,7 +327,7 @@ class NonBlockingIPShell(object):
         possibilities = self._IP.complete(split_line[-1])
         if possibilities:
 
-            def _commonPrefix(str1, str2):
+            def _common_prefix(str1, str2):
                 '''
                 Reduction function. returns common prefix of two given strings.
 
@@ -302,13 +343,13 @@ class NonBlockingIPShell(object):
                     if not str2.startswith(str1[:i+1]):
                         return str1[:i]
                 return str1
-            common_prefix = reduce(_commonPrefix, possibilities)
+            common_prefix = reduce(_common_prefix, possibilities)
             completed = line[:-len(split_line[-1])]+common_prefix
         else:
             completed = line
         return completed, possibilities
 
-    def historyBack(self):
+    def history_back(self):
         '''
         Provides one history command back.
 
@@ -320,10 +361,10 @@ class NonBlockingIPShell(object):
         while((history == '' or history == '\n') and self._history_level >0):
             if self._history_level >= 1:
                 self._history_level -= 1
-            history = self._getHistory()            
+            history = self._get_history()            
         return history
 
-    def historyForward(self):
+    def history_forward(self):
         '''
         Provides one history command forward.
 
@@ -333,38 +374,38 @@ class NonBlockingIPShell(object):
         history = ''
         #the below while loop is used to suppress empty history lines
         while((history == '' or history == '\n') \
-        and self._history_level <= self._getHistoryMaxIndex()):
-            if self._history_level < self._getHistoryMaxIndex():
+        and self._history_level <= self._get_history_max_index()):
+            if self._history_level < self._get_history_max_index():
                 self._history_level += 1
-                history = self._getHistory()
+                history = self._get_history()
             else:
-                if self._history_level == self._getHistoryMaxIndex():
-                    history = self._getHistory()
+                if self._history_level == self._get_history_max_index():
+                    history = self._get_history()
                     self._history_level += 1
                 else:
                     history = ''
         return history
 
-    def initHistoryIndex(self):
+    def init_history_index(self):
         '''
         set history to last command entered
         '''
-        self._history_level = self._getHistoryMaxIndex()+1
+        self._history_level = self._get_history_max_index()+1
 
     #----------------------- IPython PRIVATE management section --------------
-    def _afterExecute(self):
+    def _after_execute(self):
         '''
         Can be redefined to generate post event after excution is done
         '''
         pass
 
-    #def _askExit(self):
-    #    '''
-    #    Can be redefined to generate post event to exit the Ipython shell
-    #    '''
-    #    pass
+    def _ask_exit(self):
+        '''
+        Can be redefined to generate post event to exit the Ipython shell
+        '''
+        pass
 
-    def _getHistoryMaxIndex(self):
+    def _get_history_max_index(self):
         '''
         returns the max length of the history buffer
 
@@ -373,7 +414,7 @@ class NonBlockingIPShell(object):
         '''
         return len(self._IP.input_hist_raw)-1
         
-    def _getHistory(self):
+    def _get_history(self):
         '''
         Get's the command string of the current history level.
 
@@ -388,7 +429,7 @@ class NonBlockingIPShell(object):
         This function is used as a callback replacment to IPython help pager function
 
         It puts the 'text' value inside the self._help_text string that can be retrived via
-        getHelpText function.
+        get_help_text function.
         '''
         if self._help_text == None:
             self._help_text = text
@@ -400,11 +441,11 @@ class NonBlockingIPShell(object):
         This function is used as a callback replacment to IPython pager function
 
         It puts the 'text' value inside the self._doc_text string that can be retrived via
-        getDocText function.
+        get_doc_text function.
         '''
         self._doc_text = text
     
-    def _raw_input(self, prompt=''):
+    def _raw_input_original(self, prompt=''):
         '''
         Custom raw_input() replacement. Get's current line from console buffer.
 
@@ -416,13 +457,21 @@ class NonBlockingIPShell(object):
         '''
         return self._line_to_execute
 
+    def _raw_input(self, prompt=''):
+        """ A replacement from python's raw_input.
+        """
+        raise NotImplementedError
+    
     def _execute(self):
         '''
         Executes the current line provided by the shell object.
         '''
+
         orig_stdout = sys.stdout
         sys.stdout = IPython.Shell.Term.cout
-                
+        #self.sys_displayhook_ori = sys.displayhook
+        #sys.displayhook = self.displayhook
+        
         try:
             line = self._IP.raw_input(None, self._iter_more)
             if self._IP.autoindent:
@@ -440,8 +489,10 @@ class NonBlockingIPShell(object):
         except:
             self._IP.showtraceback()
         else:
+            self._IP.write(str(self._IP.outputcache.prompt_out).strip())
             self._iter_more = self._IP.push(line)
-            if (self._IP.SyntaxTB.last_syntax_error and self._IP.rc.autoedit_syntax):
+            if (self._IP.SyntaxTB.last_syntax_error and \
+                                                            self._IP.rc.autoedit_syntax):
                 self._IP.edit_syntax_error()
         if self._iter_more:
             self._prompt = str(self._IP.outputcache.prompt2).strip()
@@ -450,8 +501,10 @@ class NonBlockingIPShell(object):
         else:
             self._prompt = str(self._IP.outputcache.prompt1).strip()
             self._IP.indent_current_nsp = 0 #we set indentation to 0
+
         sys.stdout = orig_stdout
-    
+        #sys.displayhook = self.sys_displayhook_ori
+                
     def _shell(self, ip, cmd):
         '''
         Replacement method to allow shell commands without them blocking.
@@ -462,7 +515,8 @@ class NonBlockingIPShell(object):
         @type cmd: string
         '''
         stdin, stdout = os.popen4(cmd)
-        result = stdout.read().decode('cp437').encode(locale.getpreferredencoding())
+        result = stdout.read().decode('cp437').\
+                                            encode(locale.getpreferredencoding())
         #we use print command because the shell command is called
         #inside IPython instance and thus is redirected to thread cout
         #"\x01\x1b[1;36m\x02" <-- add colour to the text...
