@@ -1,5 +1,5 @@
 #!/usr/bin/python
-# -*- coding: iso-8859-15 -*-
+# -*- coding: utf-8 -*-
 '''
 Provides IPython WX console widgets.
 
@@ -940,5 +940,3 @@ if __name__ == '__main__':
     shell = frame.shell
 
     app.MainLoop()
-	
-
