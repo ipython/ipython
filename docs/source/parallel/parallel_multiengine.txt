@@ -4,8 +4,6 @@
 IPython's multiengine interface
 ===============================
 
-.. contents::
-
 The multiengine interface represents one possible way of working with a set of
 IPython engines. The basic idea behind the multiengine interface is that the
 capabilities of each engine are directly and explicitly exposed to the user.
@@ -21,7 +19,7 @@ To follow along with this tutorial, you will need to start the IPython
 controller and four IPython engines. The simplest way of doing this is to use
 the :command:`ipcluster` command::
 
-	$ ipcluster -n 4
+	$ ipcluster local -n 4
 	
 For more detailed information about starting the controller and engines, see
 our :ref:`introduction <ip1par>` to using IPython for parallel computing.
@@ -30,7 +28,9 @@ Creating a ``MultiEngineClient`` instance
 =========================================
 
 The first step is to import the IPython :mod:`IPython.kernel.client` module
-and then create a :class:`MultiEngineClient` instance::
+and then create a :class:`MultiEngineClient` instance:
+
+.. sourcecode:: ipython
 
 	In [1]: from IPython.kernel import client
 	
@@ -38,13 +38,17 @@ and then create a :class:`MultiEngineClient` instance::
 
 This form assumes that the :file:`ipcontroller-mec.furl` is in the
 :file:`~./ipython/security` directory on the client's host. If not, the
-location of the ``.furl`` file must be given as an argument to the
-constructor::
+location of the FURL file must be given as an argument to the
+constructor:
 
-    In[2]: mec = client.MultiEngineClient('/path/to/my/ipcontroller-mec.furl')
+.. sourcecode:: ipython
+
+    In [2]: mec = client.MultiEngineClient('/path/to/my/ipcontroller-mec.furl')
 
 To make sure there are engines connected to the controller, use can get a list
-of engine ids::
+of engine ids:
+
+.. sourcecode:: ipython
 
 	In [3]: mec.get_ids()
 	Out[3]: [0, 1, 2, 3]
@@ -62,7 +66,9 @@ Parallel map
 Python's builtin :func:`map` functions allows a function to be applied to a
 sequence element-by-element. This type of code is typically trivial to
 parallelize. In fact, the multiengine interface in IPython already has a
-parallel version of :meth:`map` that works just like its serial counterpart::
+parallel version of :meth:`map` that works just like its serial counterpart:
+
+.. sourcecode:: ipython
 
 	In [63]: serial_result = map(lambda x:x**10, range(32))
 
@@ -84,7 +90,9 @@ parallel version of :meth:`map` that works just like its serial counterpart::
 Parallel function decorator
 ---------------------------
 
-Parallel functions are just like normal function, but they can be called on sequences and *in parallel*.  The multiengine interface provides a decorator that turns any Python function into a parallel function::
+Parallel functions are just like normal function, but they can be called on sequences and *in parallel*.  The multiengine interface provides a decorator that turns any Python function into a parallel function:
+
+.. sourcecode:: ipython
 
     In [10]: @mec.parallel()
        ....: def f(x):
@@ -110,7 +118,9 @@ Blocking execution
 In blocking mode, the :class:`MultiEngineClient` object (called ``mec`` in
 these examples) submits the command to the controller, which places the
 command in the engines' queues for execution. The :meth:`execute` call then
-blocks until the engines are done executing the command::
+blocks until the engines are done executing the command:
+
+.. sourcecode:: ipython
 
 	# The default is to run on all engines
 	In [4]: mec.execute('a=5')
@@ -130,7 +140,9 @@ blocks until the engines are done executing the command::
 	[3] In [2]: b=10
 
 Python commands can be executed on specific engines by calling execute using
-the ``targets`` keyword argument::
+the ``targets`` keyword argument:
+
+.. sourcecode:: ipython
 
 	In [6]: mec.execute('c=a+b',targets=[0,2])
 	Out[6]: 
@@ -163,7 +175,9 @@ the ``targets`` keyword argument::
 
 This example also shows one of the most important things about the IPython
 engines: they have a persistent user namespaces. The :meth:`execute` method
-returns a Python ``dict`` that contains useful information::
+returns a Python ``dict`` that contains useful information:
+
+.. sourcecode:: ipython
 
 	In [9]: result_dict = mec.execute('d=10; print d')
 
@@ -184,7 +198,9 @@ then returns a :class:`PendingResult` object immediately. The
 :class:`PendingResult` object gives you a way of getting a result at a later
 time through its :meth:`get_result` method or :attr:`r` attribute. This allows
 you to quickly submit long running commands without blocking your local
-Python/IPython session::
+Python/IPython session:
+
+.. sourcecode:: ipython
 
 	# In blocking mode
 	In [6]: mec.execute('import time')
@@ -225,7 +241,9 @@ Python/IPython session::
 Often, it is desirable to wait until a set of :class:`PendingResult` objects
 are done. For this, there is a the method :meth:`barrier`. This method takes a
 tuple of :class:`PendingResult` objects and blocks until all of the associated
-results are ready::
+results are ready:
+
+.. sourcecode:: ipython
 
 	In [72]: mec.block=False
 
@@ -259,7 +277,9 @@ and :attr:`targets`:
 * If no keyword argument is provided, the instance attributes are used.
 * Keyword argument, if provided override the instance attributes.
 
-The following examples demonstrate how to use the instance attributes::
+The following examples demonstrate how to use the instance attributes:
+
+.. sourcecode:: ipython
 
 	In [16]: mec.targets = [0,2]
 
@@ -305,7 +325,9 @@ that make it more pleasant to execute Python commands on the engines
 interactively. These are simply shortcuts to :meth:`execute` and
 :meth:`get_result`. The ``%px`` magic executes a single Python command on the
 engines specified by the :attr:`targets` attribute of the
-:class:`MultiEngineClient` instance (by default this is ``'all'``)::
+:class:`MultiEngineClient` instance (by default this is ``'all'``):
+
+.. sourcecode:: ipython
 
 	# Make this MultiEngineClient active for parallel magic commands
 	In [23]: mec.activate()
@@ -352,7 +374,9 @@ engines specified by the :attr:`targets` attribute of the
 
 The ``%result`` magic gets and prints the stdin/stdout/stderr of the last
 command executed on each engine. It is simply a shortcut to the
-:meth:`get_result` method::
+:meth:`get_result` method:
+
+.. sourcecode:: ipython
 
 	In [29]: %result
 	Out[29]:
@@ -370,7 +394,9 @@ command executed on each engine. It is simply a shortcut to the
 	[3] Out[9]: [ 0.83664764 -0.25602658]
 
 The ``%autopx`` magic switches to a mode where everything you type is executed
-on the engines given by the :attr:`targets` attribute::
+on the engines given by the :attr:`targets` attribute:
+
+.. sourcecode:: ipython
 
 	In [30]: mec.block=False
 
@@ -423,7 +449,9 @@ are called :meth:`push` (sending an object to the engines) and :meth:`pull`
 Basic push and pull
 -------------------
 
-Here are some examples of how you use :meth:`push` and :meth:`pull`::
+Here are some examples of how you use :meth:`push` and :meth:`pull`:
+
+.. sourcecode:: ipython
 
 	In [38]: mec.push(dict(a=1.03234,b=3453))
 	Out[38]: [None, None, None, None]
@@ -460,7 +488,9 @@ Here are some examples of how you use :meth:`push` and :meth:`pull`::
 	[3] Out[13]: speed
 
 In non-blocking mode :meth:`push` and :meth:`pull` also return
-:class:`PendingResult` objects::
+:class:`PendingResult` objects:
+
+.. sourcecode:: ipython
 
 	In [47]: mec.block=False
 
@@ -474,8 +504,9 @@ Push and pull for functions
 ---------------------------
 
 Functions can also be pushed and pulled using :meth:`push_function` and
-:meth:`pull_function`::
+:meth:`pull_function`:
 
+.. sourcecode:: ipython
 
     In [52]: mec.block=True
 
@@ -518,7 +549,9 @@ Dictionary interface
 As a shorthand to :meth:`push` and :meth:`pull`, the
 :class:`MultiEngineClient` class implements some of the Python dictionary
 interface. This make the remote namespaces of the engines appear as a local
-dictionary. Underneath, this uses :meth:`push` and :meth:`pull`::
+dictionary. Underneath, this uses :meth:`push` and :meth:`pull`:
+
+.. sourcecode:: ipython
 
 	In [50]: mec.block=True
 
@@ -536,7 +569,9 @@ follow that terminology. However, it is important to remember that in
 IPython's :class:`MultiEngineClient` class, :meth:`scatter` is from the
 interactive IPython session to the engines and :meth:`gather` is from the
 engines back to the interactive IPython session. For scatter/gather operations
-between engines, MPI should be used::
+between engines, MPI should be used:
+
+.. sourcecode:: ipython
 
 	In [58]: mec.scatter('a',range(16))
 	Out[58]: [None, None, None, None]
@@ -569,7 +604,9 @@ How to do parallel list comprehensions
 
 In many cases list comprehensions are nicer than using the map function. While
 we don't have fully parallel list comprehensions, it is simple to get the
-basic effect using :meth:`scatter` and :meth:`gather`::
+basic effect using :meth:`scatter` and :meth:`gather`:
+
+.. sourcecode:: ipython
 
 	In [66]: mec.scatter('x',range(64))
 	Out[66]: [None, None, None, None]
@@ -598,7 +635,9 @@ parallel command can actually raise multiple exceptions (one for each engine
 the command was run on). To express this idea, the MultiEngine interface has a
 :exc:`CompositeError` exception class that will be raised in most cases. The
 :exc:`CompositeError` class is a special type of exception that wraps one or
-more other types of exceptions. Here is how it works::
+more other types of exceptions. Here is how it works:
+
+.. sourcecode:: ipython
 
 	In [76]: mec.block=True
 
@@ -628,7 +667,9 @@ more other types of exceptions. Here is how it works::
 	[2:execute]: ZeroDivisionError: integer division or modulo by zero
 	[3:execute]: ZeroDivisionError: integer division or modulo by zero
 
-Notice how the error message printed when :exc:`CompositeError` is raised has information about the individual exceptions that were raised on each engine.  If you want, you can even raise one of these original exceptions::
+Notice how the error message printed when :exc:`CompositeError` is raised has information about the individual exceptions that were raised on each engine.  If you want, you can even raise one of these original exceptions:
+
+.. sourcecode:: ipython
 
 	In [80]: try:
 	   ....:     mec.execute('1/0')
@@ -652,7 +693,9 @@ Notice how the error message printed when :exc:`CompositeError` is raised has in
 
 If you are working in IPython, you can simple type ``%debug`` after one of
 these :exc:`CompositeError` exceptions is raised, and inspect the exception
-instance::
+instance:
+
+.. sourcecode:: ipython
 
 	In [81]: mec.execute('1/0')
 	---------------------------------------------------------------------------
@@ -734,7 +777,9 @@ instance::
     The above example appears to be broken right now because of a change in 
     how we are using Twisted.
 
-All of this same error handling magic even works in non-blocking mode::
+All of this same error handling magic even works in non-blocking mode:
+
+.. sourcecode:: ipython
 
 	In [83]: mec.block=False
 

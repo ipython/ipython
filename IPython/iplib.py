@@ -1514,8 +1514,12 @@ want to merge them back into the new files.""" % locals()
             except TypeError:
                 return 0
         # always pass integer line and offset values to editor hook
-        self.hooks.fix_error_editor(e.filename,
-            int0(e.lineno),int0(e.offset),e.msg)
+        try:
+            self.hooks.fix_error_editor(e.filename,
+                int0(e.lineno),int0(e.offset),e.msg)
+        except IPython.ipapi.TryNext:
+            warn('Could not open editor')
+            return False
         return True
         
     def edit_syntax_error(self):
@@ -1664,6 +1668,11 @@ want to merge them back into the new files.""" % locals()
                 banner = self.rc.banner
             else:                
                 banner = self.BANNER+self.banner2
+
+        # if you run stuff with -c <cmd>, raw hist is not updated
+        # ensure that it's in sync
+        if len(self.input_hist) != len (self.input_hist_raw):
+            self.input_hist_raw = InputList(self.input_hist)
 
         while 1:
             try:

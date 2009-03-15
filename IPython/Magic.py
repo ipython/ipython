@@ -415,7 +415,11 @@ python-profiler package from non-free.""")
                 else:
                     fndoc = 'No documentation'
             else:
-                fndoc = fn.__doc__.rstrip()
+                if fn.__doc__:
+                    fndoc = fn.__doc__.rstrip()       
+                else:
+                    fndoc = 'No documentation'
+                
                 
             if mode == 'rest':
                 rest_docs.append('**%s%s**::\n\n\t%s\n\n' %(self.shell.ESC_MAGIC,
@@ -2348,7 +2352,11 @@ Currently the magic system has the following functions:\n"""
         # do actual editing here
         print 'Editing...',
         sys.stdout.flush()
-        self.shell.hooks.editor(filename,lineno)
+        try:
+            self.shell.hooks.editor(filename,lineno)
+        except IPython.ipapi.TryNext:
+            warn('Could not open editor')
+            return
         
         # XXX TODO: should this be generalized for all string vars?
         # For now, this is special-cased to blocks created by cpaste

@@ -1,0 +1,363 @@
+.. _parallelsecurity:
+
+===========================
+Security details of IPython
+===========================
+
+IPython's :mod:`IPython.kernel` package exposes the full power of the Python
+interpreter over a TCP/IP network for the purposes of parallel computing. This
+feature brings up the important question of IPython's security model. This
+document gives details about this model and how it is implemented in IPython's
+architecture.
+
+Processs and network topology
+=============================
+
+To enable parallel computing, IPython has a number of different processes that
+run. These processes are discussed at length in the IPython documentation and
+are summarized here:
+
+* The IPython *engine*.  This process is a full blown Python
+  interpreter in which user code is executed.  Multiple
+  engines are started to make parallel computing possible.
+* The IPython *controller*.  This process manages a set of 
+  engines, maintaining a queue for each and presenting
+  an asynchronous interface to the set of engines.
+* The IPython *client*.  This process is typically an
+  interactive Python process that is used to coordinate the
+  engines to get a parallel computation done.
+
+Collectively, these three processes are called the IPython *kernel*.
+
+These three processes communicate over TCP/IP connections with a well defined
+topology. The IPython controller is the only process that listens on TCP/IP
+sockets. Upon starting, an engine connects to a controller and registers
+itself with the controller. These engine/controller TCP/IP connections persist
+for the lifetime of each engine.
+
+The IPython client also connects to the controller using one or more TCP/IP
+connections. These connections persist for the lifetime of the client only.
+
+A given IPython controller and set of engines typically has a relatively short
+lifetime. Typically this lifetime corresponds to the duration of a single
+parallel simulation performed by a single user. Finally, the controller,
+engines and client processes typically execute with the permissions of that
+same user. More specifically, the controller and engines are *not* executed as
+root or with any other superuser permissions.
+
+Application logic
+=================
+
+When running the IPython kernel to perform a parallel computation, a user
+utilizes the IPython client to send Python commands and data through the
+IPython controller to the IPython engines, where those commands are executed
+and the data processed. The design of IPython ensures that the client is the
+only access point for the capabilities of the engines.  That is, the only way of addressing the engines is through a client.
+
+A user can utilize the client to instruct the IPython engines to execute
+arbitrary Python commands. These Python commands can include calls to the
+system shell, access the filesystem, etc., as required by the user's
+application code. From this perspective, when a user runs an IPython engine on
+a host, that engine has the same capabilities and permissions as the user
+themselves (as if they were logged onto the engine's host with a terminal).
+
+Secure network connections
+==========================
+
+Overview
+--------
+
+All TCP/IP connections between the client and controller as well as the
+engines and controller are fully encrypted and authenticated. This section
+describes the details of the encryption and authentication approached used
+within IPython.
+
+IPython uses the Foolscap network protocol [Foolscap]_ for all communications
+between processes. Thus, the details of IPython's security model are directly
+related to those of Foolscap. Thus, much of the following discussion is
+actually just a discussion of the security that is built in to Foolscap.
+
+Encryption
+----------
+
+For encryption purposes, IPython and Foolscap use the well known Secure Socket
+Layer (SSL) protocol [RFC5246]_. We use the implementation of this protocol
+provided by the OpenSSL project through the pyOpenSSL [pyOpenSSL]_ Python
+bindings to OpenSSL.
+
+Authentication
+--------------
+
+IPython clients and engines must also authenticate themselves with the
+controller. This is handled in a capabilities based security model
+[Capability]_. In this model, the controller creates a strong cryptographic
+key or token that represents each set of capability that the controller
+offers. Any party who has this key and presents it to the controller has full
+access to the corresponding capabilities of the controller. This model is
+analogous to using a physical key to gain access to physical items
+(capabilities) behind a locked door.
+
+For a capabilities based authentication system to prevent unauthorized access,
+two things must be ensured:
+
+* The keys must be cryptographically strong.  Otherwise attackers could gain 
+  access by a simple brute force key guessing attack.
+* The actual keys must be distributed only to authorized parties.
+
+The keys in Foolscap are called Foolscap URL's or FURLs. The following section
+gives details about how these FURLs are created in Foolscap. The IPython
+controller creates a number of FURLs for different purposes:
+
+* One FURL that grants IPython engines access to the controller.  Also
+  implicit in this access is permission to execute code sent by an
+  authenticated IPython client.
+* Two or more FURLs that grant IPython clients access to the controller.
+  Implicit in this access is permission to give the controller's engine code 
+  to execute.
+
+Upon starting, the controller creates these different FURLS and writes them
+files in the user-read-only directory :file:`$HOME/.ipython/security`. Thus, only the
+user who starts the controller has access to the FURLs.
+
+For an IPython client or engine to authenticate with a controller, it must
+present the appropriate FURL to the controller upon connecting. If the
+FURL matches what the controller expects for a given capability, access is
+granted. If not, access is denied. The exchange of FURLs is done after
+encrypted communications channels have been established to prevent attackers
+from capturing them.
+
+.. note::
+
+    The FURL is similar to an unsigned private key in SSH.
+
+Details of the Foolscap handshake
+---------------------------------
+
+In this section we detail the precise security handshake that takes place at
+the beginning of any network connection in IPython. For the purposes of this
+discussion, the SERVER is the IPython controller process and the CLIENT is the
+IPython engine or client process.
+
+Upon starting, all IPython processes do the following:
+
+1. Create a public key x509 certificate (ISO/IEC 9594).
+2. Create a hash of the contents of the certificate using the SHA-1 algorithm.
+   The base-32 encoded version of this hash is saved by the process as its 
+   process id (actually in Foolscap, this is the Tub id, but here refer to
+   it as the process id).
+
+Upon starting, the IPython controller also does the following:
+
+1. Save the x509 certificate to disk in a secure location. The CLIENT
+   certificate is never saved to disk.
+2. Create a FURL for each capability that the controller has.  There are
+   separate capabilities the controller offers for clients and engines.  The
+   FURL is created using:  a) the process id of the SERVER, b) the IP 
+   address and port the SERVER is listening on and c) a 160 bit,    
+   cryptographically secure string that represents the capability (the
+   "capability id").
+3. The FURLs are saved to disk in a secure location on the SERVER's host.
+
+For a CLIENT to be able to connect to the SERVER and access a capability of
+that SERVER, the CLIENT must have knowledge of the FURL for that SERVER's
+capability. This typically requires that the file containing the FURL be
+moved from the SERVER's host to the CLIENT's host. This is done by the end
+user who started the SERVER and wishes to have a CLIENT connect to the SERVER.
+
+When a CLIENT connects to the SERVER, the following handshake protocol takes
+place:
+
+1. The CLIENT tells the SERVER what process (or Tub) id it expects the SERVER
+   to have.
+2. If the SERVER has that process id, it notifies the CLIENT that it will now 
+   enter encrypted mode.  If the SERVER has a different id, the SERVER aborts.
+3. Both CLIENT and SERVER initiate the SSL handshake protocol.
+4. Both CLIENT and SERVER request the certificate of their peer and verify
+   that certificate.  If this succeeds, all further communications are 
+   encrypted.
+5. Both CLIENT and SERVER send a hello block containing connection parameters
+   and their process id.
+6. The CLIENT and SERVER check that their peer's stated process id matches the
+   hash of the x509 certificate the peer presented.  If not, the connection is
+   aborted.
+7. The CLIENT verifies that the SERVER's stated id matches the id of the
+   SERVER the CLIENT is intending to connect to.  If not, the connection is 
+   aborted.
+8. The CLIENT and SERVER elect a master who decides on the final connection
+   parameters.
+
+The public/private key pair associated with each process's x509 certificate
+are completely hidden from this handshake protocol. There are however, used
+internally by OpenSSL as part of the SSL handshake protocol. Each process
+keeps their own private key hidden and sends its peer only the public key
+(embedded in the certificate).
+
+Finally, when the CLIENT requests access to a particular SERVER capability,
+the following happens:
+
+1. The CLIENT asks the SERVER for access to a capability by presenting that 
+   capabilities id.
+2. If the SERVER has a capability with that id, access is granted. If not,
+   access is not granted.
+3. Once access has been gained, the CLIENT can use the capability.
+
+Specific security vulnerabilities
+=================================
+
+There are a number of potential security vulnerabilities present in IPython's
+architecture. In this section we discuss those vulnerabilities and detail how
+the security architecture described above prevents them from being exploited.
+
+Unauthorized clients
+--------------------
+
+The IPython client can instruct the IPython engines to execute arbitrary
+Python code with the permissions of the user who started the engines. If an
+attacker were able to connect their own hostile IPython client to the IPython
+controller, they could instruct the engines to execute code.
+
+This attack is prevented by the capabilities based client authentication
+performed after the encrypted channel has been established. The relevant
+authentication information is encoded into the FURL that clients must
+present to gain access to the IPython controller. By limiting the distribution
+of those FURLs, a user can grant access to only authorized persons.
+
+It is highly unlikely that a client FURL could be guessed by an attacker
+in a brute force guessing attack. A given instance of the IPython controller
+only runs for a relatively short amount of time (on the order of hours). Thus
+an attacker would have only a limited amount of time to test a search space of
+size 2**320. Furthermore, even if a controller were to run for a longer amount
+of time, this search space is quite large (larger for instance than that of
+typical username/password pair).
+
+Unauthorized engines
+--------------------
+
+If an attacker were able to connect a hostile engine to a user's controller,
+the user might unknowingly send sensitive code or data to the hostile engine.
+This attacker's engine would then have full access to that code and data.
+
+This type of attack is prevented in the same way as the unauthorized client
+attack, through the usage of the capabilities based authentication scheme.
+
+Unauthorized controllers
+------------------------
+
+It is also possible that an attacker could try to convince a user's IPython
+client or engine to connect to a hostile IPython controller. That controller
+would then have full access to the code and data sent between the IPython
+client and the IPython engines.
+
+Again, this attack is prevented through the FURLs, which ensure that a
+client or engine connects to the correct controller. It is also important to
+note that the FURLs also encode the IP address and port that the
+controller is listening on, so there is little chance of mistakenly connecting
+to a controller running on a different IP address and port.
+
+When starting an engine or client, a user must specify which FURL to use
+for that connection. Thus, in order to introduce a hostile controller, the
+attacker must convince the user to use the FURLs associated with the
+hostile controller. As long as a user is diligent in only using FURLs from
+trusted sources, this attack is not possible.
+
+Other security measures
+=======================
+
+A number of other measures are taken to further limit the security risks
+involved in running the IPython kernel.
+
+First, by default, the IPython controller listens on random port numbers.
+While this can be overridden by the user, in the default configuration, an
+attacker would have to do a port scan to even find a controller to attack.
+When coupled with the relatively short running time of a typical controller
+(on the order of hours), an attacker would have to work extremely hard and
+extremely *fast* to even find a running controller to attack.
+
+Second, much of the time, especially when run on supercomputers or clusters,
+the controller is running behind a firewall. Thus, for engines or client to
+connect to the controller:
+
+* The different processes have to all be behind the firewall.
+
+or:
+
+* The user has to use SSH port forwarding to tunnel the
+  connections through the firewall.
+   
+In either case, an attacker is presented with addition barriers that prevent
+attacking or even probing the system.
+
+Summary
+=======
+
+IPython's architecture has been carefully designed with security in mind. The
+capabilities based authentication model, in conjunction with the encrypted
+TCP/IP channels, address the core potential vulnerabilities in the system,
+while still enabling user's to use the system in open networks.
+
+Other questions
+===============
+
+About keys
+----------
+
+Can you clarify the roles of the certificate and its keys versus the FURL,
+which is also called a key?
+
+The certificate created by IPython processes is a standard public key x509
+certificate, that is used by the SSL handshake protocol to setup encrypted
+channel between the controller and the IPython engine or client. This public
+and private key associated with this certificate are used only by the SSL
+handshake protocol in setting up this encrypted channel.
+
+The FURL serves a completely different and independent purpose from the
+key pair associated with the certificate. When we refer to a FURL as a
+key, we are using the word "key" in the capabilities based security model
+sense. This has nothing to do with "key" in the public/private key sense used
+in the SSL protocol.
+
+With that said the FURL is used as an cryptographic key, to grant
+IPython engines and clients access to particular capabilities that the
+controller offers.
+
+Self signed certificates
+------------------------
+
+Is the controller creating a self-signed certificate? Is this created for per
+instance/session, one-time-setup or each-time the controller is started?
+
+The Foolscap network protocol, which handles the SSL protocol details, creates
+a self-signed x509 certificate using OpenSSL for each IPython process. The
+lifetime of the certificate is handled differently for the IPython controller
+and the engines/client.
+
+For the IPython engines and client, the certificate is only held in memory for
+the lifetime of its process. It is never written to disk.
+
+For the controller, the certificate can be created anew each time the
+controller starts or it can be created once and reused each time the
+controller starts. If at any point, the certificate is deleted, a new one is
+created the next time the controller starts.
+
+SSL private key
+---------------
+
+How the private key (associated with the certificate) is distributed?
+
+In the usual implementation of the SSL protocol, the private key is never
+distributed. We follow this standard always.
+
+SSL versus Foolscap authentication
+----------------------------------
+
+Many SSL connections only perform one sided authentication (the server to the
+client). How is the client authentication in IPython's system related to SSL
+authentication?
+
+We perform a two way SSL handshake in which both parties request and verify
+the certificate of their peer. This mutual authentication is handled by the
+SSL handshake and is separate and independent from the additional
+authentication steps that the CLIENT and SERVER perform after an encrypted
+channel is established.
+
+.. [RFC5246] <http://tools.ietf.org/html/rfc5246>

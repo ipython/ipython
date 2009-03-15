@@ -380,7 +380,7 @@ class MTInteractiveShell(InteractiveShell):
 
         Modified version of code.py's runsource(), to handle threading issues.
         See the original for full docstring details."""
-        
+                
         global KBINT
         
         # If Ctrl-C was typed, we reset the flag and return right away
@@ -410,7 +410,7 @@ class MTInteractiveShell(InteractiveShell):
         if (self.worker_ident is None
             or self.worker_ident == thread.get_ident() ):
             InteractiveShell.runcode(self,code)
-            return
+            return False
 
         # Case 3
         # Store code in queue, so the execution thread can handle it.
@@ -771,6 +771,17 @@ class IPShellGTK(IPThread):
                  debug=1,shell_class=MTInteractiveShell):
 
         import gtk
+        # Check for set_interactive, coming up in new pygtk.
+        # Disable it so that this code works, but notify 
+        # the user that he has a better option as well.
+        # XXX TODO better support when set_interactive is released
+        try:
+            gtk.set_interactive(False)
+            print "Your PyGtk has set_interactive(), so you can use the"
+            print "more stable single-threaded Gtk mode."
+            print "See https://bugs.launchpad.net/ipython/+bug/270856"
+        except AttributeError:
+            pass
         
         self.gtk = gtk
         self.gtk_mainloop = hijack_gtk()

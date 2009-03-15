@@ -1,312 +1,289 @@
-.. This file has a lot of bash but little python, set default role
-
-.. highlight:: bash
-
 .. _development:
 
 ==============================
- IPython development overview
+IPython development guidelines
 ==============================
 
-Currently, IPython's development tree contains all of the code that used to be
-part of IPython since the project's inception in 2001, plus all of the effort
-that was known for a while (roughly 2004-2008) as ``IPython1``.  The IPyhton1
-development was meant to be an effort to:
 
-1. Clean up the existing codebase and write lots of tests.
+Overview
+========
 
-2. Separate the core functionality of IPython from the terminal to enable
-   IPython to be used from within a variety of GUI applications.
-   
-3. Implement a system for interactive parallel computing.
+This document describes IPython from the perspective of developers. Most
+importantly, it gives information for people who want to contribute to the
+development of IPython. So if you want to help out, read on!
 
-While the third goal may seem a bit unrelated to the main focus of IPython, it
-turns out that the technologies required for this goal are nearly identical
-with those required for goal two. This is the main reason the interactive
-parallel computing capabilities are being put into IPython proper.
+How to contribute to IPython
+============================
 
-In the summer of 2008, the IPython1 code was merged back into the mainline, and
-now there is a unified codebase.  While the above goals aren't completely
-implemented for the older code, we do have a proper :ref:`testing system
-<devel-testing>` in place (though this is still evolving), unified
-documentation and partial implementations of the more separated components.
+IPython development is done using Bazaar [Bazaar]_ and Launchpad [Launchpad]_.
+This makes it easy for people to contribute to the development of IPython.
+Here is a sketch of how to get going.
 
-This document describes IPython from the perspective of developers.  
+Install Bazaar and create a Launchpad account
+---------------------------------------------
 
+First make sure you have installed Bazaar (see their `website
+<http://bazaar-vcs.org/>`_). To see that Bazaar is installed and knows about
+you, try the following::
 
-Project organization
-====================
+    $ bzr whoami
+    Joe Coder <jcoder@gmail.com>
 
-Subpackages
------------
+This should display your name and email. Next, you will want to create an
+account on the `Launchpad website <http://www.launchpad.net>`_ and setup your
+ssh keys. For more information of setting up your ssh keys, see `this link
+<https://help.launchpad.net/YourAccount/CreatingAnSSHKeyPair>`_.
 
-IPython is organized into semi self-contained subpackages.  Each of the
-subpackages will have its own:
+Get the main IPython branch from Launchpad
+------------------------------------------
 
-- **Dependencies**.  One of the most important things to keep in mind in
-  partitioning code amongst subpackages, is that they should be used to cleanly
-  encapsulate dependencies.
-  
-- **Tests**.  Each subpackage shoud have its own ``tests`` subdirectory that
-  contains all of the tests for that package.  For information about writing
-  tests for IPython, see the :ref:`Testing System <devel-testing>` section of
-  this document.
-  
-- **Configuration**.  Each subpackage should have its own ``config``
-  subdirectory that contains the configuration information for the components
-  of the subpackage.  For information about how the IPython configuration
-  system works, see the :ref:`Configuration System <devel-config>` section of
-  this document.
-  
-- **Scripts**.  Each subpackage should have its own ``scripts`` subdirectory
-  that contains all of the command line scripts associated with the subpackage.
+Now, you can get a copy of the main IPython development branch (we call this
+the "trunk")::
 
-  
-Installation and dependencies
------------------------------
-   
-IPython will not use `setuptools`_ for installation. Instead, we will use
-standard ``setup.py`` scripts that use `distutils`_. While there are a number a
-extremely nice features that `setuptools`_ has (like namespace packages), the
-current implementation of `setuptools`_ has performance problems, particularly
-on shared file systems. In particular, when Python packages are installed on
-NSF file systems, import times become much too long (up towards 10 seconds).
+    $ bzr branch lp:ipython
 
-Because IPython is being used extensively in the context of high performance
-computing, where performance is critical but shared file systems are common, we
-feel these performance hits are not acceptable. Thus, until the performance
-problems associated with `setuptools`_ are addressed, we will stick with plain
-`distutils`_. We are hopeful that these problems will be addressed and that we
-will eventually begin using `setuptools`_. Because of this, we are trying to
-organize IPython in a way that will make the eventual transition to
-`setuptools`_ as painless as possible.
+Create a working branch
+-----------------------
 
-Because we will be using `distutils`_, there will be no method for
-automatically installing dependencies.  Instead, we are following the approach
-of `Matplotlib`_ which can be summarized as follows:
+When working on IPython, you won't actually make edits directly to the
+:file:`lp:ipython` branch. Instead, you will create a separate branch for your
+changes. For now, let's assume you want to do your work in a branch named
+"ipython-mybranch". Create this branch by doing::
 
-- Distinguish between required and optional dependencies.  However, the required
-  dependencies for IPython should be only the Python standard library.
-  
-- Upon installation check to see which optional dependencies are present and
-  tell the user which parts of IPython need which optional dependencies.
+    $ bzr branch ipython ipython-mybranch
 
-It is absolutely critical that each subpackage of IPython has a clearly
-specified set of dependencies and that dependencies are not carelessly
-inherited from other IPython subpackages. Furthermore, tests that have certain
-dependencies should not fail if those dependencies are not present. Instead
-they should be skipped and print a message.
+When you actually create a branch, you will want to give it a name that
+reflects the nature of the work that you will be doing in it, like
+"install-docs-update".
 
-.. _setuptools: http://peak.telecommunity.com/DevCenter/setuptools
-.. _distutils: http://docs.python.org/lib/module-distutils.html
-.. _Matplotlib: http://matplotlib.sourceforge.net/
+Make edits in your working branch
+---------------------------------
 
-Specific subpackages
---------------------
+Now you are ready to actually make edits in your :file:`ipython-mybranch`
+branch. Before doing this, it is helpful to install this branch so you can
+test your changes as you work. This is easiest if you have setuptools
+installed. Then, just do::
 
-``core``
-    This is the core functionality of IPython that is independent of the
-    terminal, network and GUIs.  Most of the code that is in the current
-    IPython trunk will be refactored, cleaned up and moved here.
+    $ cd ipython-mybranch
+    $ python setupegg.py develop
 
-``kernel``
-    The enables the IPython core to be expose to a the network.  This is
-    also where all of the parallel computing capabilities are to be found.
-    
-``config``
-    The configuration package used by IPython.
+Now, make some changes. After a while, you will want to commit your changes.
+This let's Bazaar know that you like the changes you have made and gives you
+an opportunity to keep a nice record of what you have done. This looks like
+this::
 
-``frontends``
-    The various frontends for IPython.  A frontend is the end-user application
-    that exposes the capabilities of IPython to the user.  The most basic
-    frontend will simply be a terminal based application that looks just like
-    today 's IPython.  Other frontends will likely be more powerful and based
-    on GUI toolkits.
-
-``tools``
-    This is where general utilities go.
-
-
-Version control workflow
-========================
-
-All IPython development today is done using the `Bazaar`__ system for
-distributed version control and the `Launchpad`__ site for code hosting and bug
-tracking.  This makes it very easy for anyone to contribute code to IPython.
-
-.. __: http://bazaar-vcs.org
-.. __: http://launchpad.net/ipython
-
-If you are interested in contributing to IPython, you should familiarize a bit
-with how to use bazaar, but this document gives you a concise set of steps to
-get started.  If you are going to become heavily involved with creating code
-for IPython you'll eventually want to have a Launchpad account (free) so you
-can publish your own code on the site for review and merging, but small
-contributions can be simply sent via email to the IPython list as patches.
-
-Start by creating what Bazaar calls a `shared repository`_::
-
-    # You can choose any name you want instead of "ipython-repo"
-    bzr init-repo ipython-repo
-
-.. _shared repository: http://bazaar-vcs.org/SharedRepositoryTutorial
-
-This creates an empty repository where a lot of related branches can be kept,
-and they all reuse common storage.  This way, many operations are very fast and
-take up less space.  Now, go to the newly created repository and make a local
-branch of the public trunk::
-
-    cd ipython-repo
-    # This makes a local copy of the public trunk called "trunk-lp"
-    bzr branch lp:ipython trunk-lp
-
-The ``trunk-lp`` branch is meant to always be a pristine copy of the public
-trunk.  From here, make a personal development copy of the public trunk, where
-you'll make your changes::
-
-    bzr branch trunk-lp trunk-dev
-
-Now, your working area looks like this::
-    
-    maqroll[ipython-repo]> ls -a
-    ./  ../  .bzr/  trunk-dev/  trunk-lp/
-
-The ``.bzr`` directory is the Bazaar storage area, and you now have both the
-reference copy of the public trunk and one working copy for your own
-development.  You can later make further branches as needed (a common workflow
-is to make branches to contain specific feature implementations until they are
-ready to be merged).
-    
-The typical work cycle will be to make changes in ``trunk-dev`` and then commit
-those changes as often as needed::
-
-    cd trunk-dev
-    # ... implement cool new feature...
-    bzr commit -m "Commit message goes here."
+    $ ...do work in ipython-mybranch...
+    $ bzr commit -m "the commit message goes here"
 
 Please note that since we now don't use an old-style linear ChangeLog (that
 tends to cause problems with distributed version control systems), you should
-ensure that your log messages are reasonably detailed.  For non-trivial
-changes, use a docstring-like approach in the commit messages (including the
-second line being left *blank*).  Type ``bzr commit`` *without* the ``-m``
-switch, and Bazaar will open an editor where you can type a more detailed
-message::
+ensure that your log messages are reasonably detailed.  Use a docstring-like
+approach in the commit messages (including the second line being left
+*blank*)::
 
-    Single line summary of changes being committed.
+  Single line summary of  changes being committed.
 
-    - more details when warranted ...
-    - including crediting outside contributors if they sent the
-      code/bug/idea!
+  * more details when warranted ...
+  * including crediting outside contributors if they sent the
+    code/bug/idea!
 
-If we couple this with a policy of making single commits for each reasonably
-atomic change, the bzr log should give an excellent view of the project, and
-the ``--short`` log option becomes a nice summary.
+As you work, you will repeat this edit/commit cycle many times. If you work on
+your branch for a long time, you will also want to get the latest changes from
+the :file:`lp:ipython` branch. This can be done with the following sequence of
+commands::
 
-As you work on the branch, it's a good idea to frequently keep your copy of the
-trunk updated with respect to Launchpad.  This is done via::
-
-    cd trunk-lp
-    bzr pull
-
-Bazaar can then merge any changes that were done to the public trunk into your
-local branch via::
-
-    cd trunk-dev
-    bzr merge ../trunk-lp
-    bzr commit -m"Merged upstream changes"
-
-This workflow ensures that a local copy stays in sync with the public trunk,
-while allowing for local development to be pushed back for public review.
-
-Once your changes are ready for review, you can push them to Launchpad where
-the IPython team can review them and give you feedback.  The first time, use::
-
-    bzr push --remember \
-    bzr+ssh://<you>@bazaar.launchpad.net/~<you>/ipython/trunk-dev
-
-where ``<you>`` is your Launchpad user name. This will make this branch
-publicly visible to all.  In subsequent uses you can simply run in the branch::
-
-    bzr push
-
-.. note::
-
-    Before you can push your code to Launchpad, you need to configure your SSH
-    keys.  You can do this by clicking on ``Change details`` for your profile
-    and then clicking on the ``SSH Keys`` tab.  This should take you to a URL
-    of the form ``https://launchpad.net/~<you>/+editsshkeys`` with instructions
-    on how to upload your keys.
+    $ ls
+    ipython
+    ipython-mybranch
     
-Once the branch is publicly visible, using the launchpad interface it can be
-marked for merging with the link marked *"Propose for merging into another
-branch"*, leaving the default choice of trunk as its target.  This way,
-Launchpad tracks what changes of this branch are new with respect to the trunk,
-others in the team can review it, and merge the changes into the trunk.
+    $ cd ipython
+    $ bzr pull
+    $ cd ../ipython-mybranch
+    $ bzr merge ../ipython
+    $ bzr commit -m "Merging changes from trunk"
 
-The IPython team has a policy of reviewing all code (both from core members of
-the team and from external contributors) before merging it.  Code should be
-clearly documented (as explained further in this guide), clear and well tested.
-We will be happy to provide you with feedback for your code to be a great
-contribution to the project, and we've found that peer review of code is an
-excellent way to improve the quality of everyone's work.
+Along the way, you should also run the IPython test suite.  You can do this using the :command:`iptest` command::
+
+    $ cd
+    $ iptest
+
+The :command:`iptest` command will also pick up and run any tests you have written.
+
+Post your branch and request a code review
+------------------------------------------
+
+Once you are done with your edits, you should post your branch on Launchpad so
+that other IPython developers can review the changes and help you merge your
+changes into the main development branch. To post your branch on Launchpad,
+do::
+
+    $ cd ipython-mybranch
+    $ bzr push lp:~yourusername/ipython/ipython-mybranch
+
+Then, go to the `IPython Launchpad site <www.launchpad.net/ipython>`_, and you
+should see your branch under the "Code" tab. If you click on your branch, you
+can provide a short description of the branch as well as mark its status. Most
+importantly, you should click the link that reads "Propose for merging into
+another branch". What does this do?
+
+This let's the other IPython developers know that your branch is ready to be
+reviewed and merged into the main development branch. During this review
+process, other developers will give you feedback and help you get your code
+ready to be merged. What types of things will we be looking for:
+
+* All code is documented.
+* All code has tests.
+* The entire IPython test suite passes.
+
+Once your changes have been reviewed and approved, someone will merge them
+into the main development branch.
+
+Documentation
+=============
+
+Standalone documentation
+------------------------
+
+All standalone documentation should be written in plain text (``.txt``) files
+using reStructuredText [reStructuredText]_ for markup and formatting. All such
+documentation should be placed in directory :file:`docs/source` of the IPython
+source tree. The documentation in this location will serve as the main source
+for IPython documentation and all existing documentation should be converted
+to this format.
+
+To build the final documentation, we use Sphinx [Sphinx]_.  Once you have Sphinx installed, you can build the html docs yourself by doing::
+
+    $ cd ipython-mybranch/docs
+    $ make html
+
+Docstring format
+----------------
+
+Good docstrings are very important. All new code should have docstrings that
+are formatted using reStructuredText for markup and formatting, since it is
+understood by a wide variety of tools. Details about using reStructuredText
+for docstrings can be found `here
+<http://epydoc.sourceforge.net/manual-othermarkup.html>`_.
+
+Additional PEPs of interest regarding documentation of code:
+
+* `Docstring Conventions <http://www.python.org/peps/pep-0257.html>`_
+* `Docstring Processing System Framework <http://www.python.org/peps/pep-0256.html>`_
+* `Docutils Design Specification <http://www.python.org/peps/pep-0258.html>`_
 
 
-Installation and testing scenarios
-==================================
+Coding conventions
+==================
 
-This section outlines the various scenarios that we need to test before we
-release an IPython version.  These scenarios represent different ways of
-installing IPython and its dependencies.
+General
+-------
 
+In general, we'll try to follow the standard Python style conventions as
+described here:
 
-Installation scenarios under Linux and OS X
--------------------------------------------
-
-1.  Install from tarball using ``python setup.py install``.
-
-  * With only readline+nose dependencies installed.
-
-  * With all dependencies installed (readline, zope.interface, Twisted,
-    foolscap, Sphinx, nose, pyOpenSSL).
-
-2.  Install using easy_install.
-
-  * With only readline+nose dependencies installed.
-    
-    * Default dependencies: ``easy_install ipython-0.9.beta3-py2.5.egg``
-
-    * Optional dependency sets:
-      ``easy_install -f ipython-0.9.beta3-py2.5.egg IPython[kernel,doc,test,security]``
-
-  * With all dependencies already installed.
-	
-
-Installation scenarios under Win32
-----------------------------------
-
-#. Install everything from .exe installers
-#. easy_install?
+* `Style Guide for Python Code  <http://www.python.org/peps/pep-0008.html>`_  
 
 
-Tests to run for these scenarios
---------------------------------
+Other comments:
 
-#. Run the full test suite.
+* In a large file, top level classes and functions should be 
+  separated by 2-3 lines to make it easier to separate them visually.
+* Use 4 spaces for indentation.
+* Keep the ordering of methods the same in classes that have the same 
+  methods.  This is particularly true for classes that implement an interface.
 
-#. Start a controller and engines and try a few things by hand.
+Naming conventions
+------------------
 
-   * Using ipcluster.
-   * Using ipcontroller/ipengine by hand.
+In terms of naming conventions, we'll follow the guidelines from the `Style
+Guide for Python Code`_.
 
-#. Run a few of the parallel examples.
+For all new IPython code (and much existing code is being refactored), we'll
+use:
 
-#. Try the kernel with and without security with and without PyOpenSSL
-   installed.
+* All ``lowercase`` module names.
 
-#. Beat on the IPython terminal a bunch.
+* ``CamelCase`` for class names.
 
-#. Make sure that furl files are being put in proper locations.
+* ``lowercase_with_underscores`` for methods, functions, variables and
+  attributes.
 
+There are, however, some important exceptions to these rules. In some cases,
+IPython code will interface with packages (Twisted, Wx, Qt) that use other
+conventions. At some level this makes it impossible to adhere to our own
+standards at all times. In particular, when subclassing classes that use other
+naming conventions, you must follow their naming conventions. To deal with
+cases like this, we propose the following policy:
+
+* If you are subclassing a class that uses different conventions, use its
+  naming conventions throughout your subclass.  Thus, if you are creating a
+  Twisted Protocol class, used Twisted's
+  ``namingSchemeForMethodsAndAttributes.``
+
+* All IPython's official interfaces should use our conventions.  In some cases
+  this will mean that you need to provide shadow names (first implement
+  ``fooBar`` and then ``foo_bar = fooBar``).  We want to avoid this at all
+  costs, but it will probably be necessary at times.  But, please use this
+  sparingly!
+
+Implementation-specific *private* methods will use
+``_single_underscore_prefix``. Names with a leading double underscore will
+*only* be used in special cases, as they makes subclassing difficult (such
+names are not easily seen by child classes).
+
+Occasionally some run-in lowercase names are used, but mostly for very short
+names or where we are implementing methods very similar to existing ones in a
+base class (like ``runlines()`` where ``runsource()`` and ``runcode()`` had
+established precedent).
+
+The old IPython codebase has a big mix of classes and modules prefixed with an
+explicit ``IP``. In Python this is mostly unnecessary, redundant and frowned
+upon, as namespaces offer cleaner prefixing. The only case where this approach
+is justified is for classes which are expected to be imported into external
+namespaces and a very generic name (like Shell) is too likely to clash with
+something else. We'll need to revisit this issue as we clean up and refactor
+the code, but in general we should remove as many unnecessary ``IP``/``ip``
+prefixes as possible. However, if a prefix seems absolutely necessary the more
+specific ``IPY`` or ``ipy`` are preferred.
+
+.. _devel_testing:
+
+Testing system
+==============
+
+It is extremely important that all code contributed to IPython has tests.
+Tests should be written as unittests, doctests or as entities that the Nose
+[Nose]_ testing package will find. Regardless of how the tests are written, we
+will use Nose for discovering and running the tests. Nose will be required to
+run the IPython test suite, but will not be required to simply use IPython.
+
+Tests of Twisted using code need to follow two additional guidelines:
+
+1. Twisted using tests should be written by subclassing the :class:`TestCase`
+   class that comes with :mod:`twisted.trial.unittest`. 
+
+2. All :class:`Deferred` instances that are created in the test must be
+   properly chained and the final one *must* be the return value of the test
+   method.
+
+When these two things are done, Nose will be able to run the tests and the
+twisted reactor will be handled correctly.
+
+Each subpackage in IPython should have its own :file:`tests` directory that
+contains all of the tests for that subpackage. This allows each subpackage to
+be self-contained. If a subpackage has any dependencies beyond the Python
+standard library, the tests for that subpackage should be skipped if the
+dependencies are not found. This is very important so users don't get tests
+failing simply because they don't have dependencies.
+
+To run the IPython test suite, use the :command:`iptest` command that is
+installed with IPython::
+
+    $ iptest
+
+This command runs Nose with the proper options and extensions.
+
+.. _devel_config:
 
 Release checklist
 =================
@@ -317,9 +294,9 @@ Most of the release process is automated by the :file:`release` script in the
 #. Run the release script, which makes the tar.gz, eggs and Win32 .exe
    installer.  It posts them to the site and registers the release with PyPI.
 
-#. Updating the website with announcements and links to the updated changes.txt
-   in html form.  Remember to put a short note both on the news page of the site
-   and on launcphad.
+#. Updating the website with announcements and links to the updated
+   changes.txt in html form. Remember to put a short note both on the news
+   page of the site and on Launcphad.
 
 #. Drafting a short release announcement with i) highlights and ii) a link to
    the html changes.txt.
@@ -327,3 +304,9 @@ Most of the release process is automated by the :file:`release` script in the
 #. Make sure that the released version of the docs is live on the site.
 
 #. Celebrate!
+
+.. [Bazaar] Bazaar. http://bazaar-vcs.org/
+.. [Launchpad] Launchpad. http://www.launchpad.net/ipython
+.. [reStructuredText] reStructuredText.  http://docutils.sourceforge.net/rst.html
+.. [Sphinx] Sphinx. http://sphinx.pocoo.org/
+.. [Nose] Nose: a discovery based unittest extension. http://code.google.com/p/python-nose/

@@ -28,7 +28,8 @@ def install_editor(run_template, wait = False):
             line = 0
         cmd = itplns(run_template, locals())
         print ">",cmd
-        os.system(cmd)
+        if os.system(cmd) != 0:
+            raise IPython.ipapi.TryNext()
         if wait:
             raw_input("Press Enter when done editing:")
 
@@ -64,7 +65,10 @@ def idle(exe = None):
         p = os.path.dirname(idlelib.__file__)
         exe = p + '/idle.py'
     install_editor(exe + ' "$file"')
-        
+
+def mate(exe = 'mate'):
+    """ TextMate, the missing editor"""
+    install_editor(exe + ' -w -l $line "$file"')
 
 # these are untested, report any problems
 

@@ -25,9 +25,7 @@ IPython Documentation
    license_and_copyright.txt
    credits.txt
 
-
 .. htmlonly::
-
-  * :ref:`genindex`
-  * :ref:`modindex`
-  * :ref:`search`
+   * :ref:`genindex`
+   * :ref:`modindex`
+   * :ref:`search`

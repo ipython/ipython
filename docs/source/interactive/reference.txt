@@ -1,12 +1,6 @@
-.. IPython documentation master file, created by sphinx-quickstart.py on Mon Mar 24 17:01:34 2008.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root 'toctree' directive.
-
 =================
 IPython reference
 =================
-
-.. contents::
 
 .. _command_line_options:
 
@@ -834,9 +828,11 @@ module, now part of the standard Python library.
 Input caching system
 --------------------
 
-IPython offers numbered prompts (In/Out) with input and output caching.
-All input is saved and can be retrieved as variables (besides the usual
-arrow key recall).
+IPython offers numbered prompts (In/Out) with input and output caching
+(also referred to as 'input history'). All input is saved and can be 
+retrieved as variables (besides the usual arrow key recall), in 
+addition to the %rep magic command that brings a history entry
+up for editing on the next  command line.
 
 The following GLOBAL variables always exist (so don't overwrite them!):
 _i: stores previous input. _ii: next previous. _iii: next-next previous.
@@ -868,6 +864,42 @@ sec. 6.2 <#sec:magic> for more details on the macro system.
 
 A history function %hist allows you to see any part of your input
 history by printing a range of the _i variables.
+
+You can also search ('grep') through your history by typing 
+'%hist -g somestring'. This also searches through the so called *shadow history*,
+which remembers all the commands (apart from multiline code blocks)
+you have ever entered. Handy for searching for svn/bzr URL's, IP adrresses
+etc. You can bring shadow history entries listed by '%hist -g' up for editing 
+(or re-execution by just pressing ENTER) with %rep command. Shadow history 
+entries are not available as _iNUMBER variables, and they are identified by 
+the '0' prefix in %hist -g output. That is, history entry 12 is a normal 
+history entry, but 0231 is a shadow history entry.
+
+Shadow history was added because the readline history is inherently very
+unsafe - if you have multiple IPython sessions open, the last session 
+to close will overwrite the history of previountly closed session. Likewise,
+if a crash occurs, history is never saved, whereas shadow history entries
+are added after entering every command (so a command executed 
+in another IPython session is immediately available in other IPython 
+sessions that are open).
+
+To conserve space, a command can exist in shadow history only once - it doesn't 
+make sense to store a common line like "cd .." a thousand times. The idea is 
+mainly to provide a reliable place where valuable, hard-to-remember commands can 
+always be retrieved, as opposed to providing an exact sequence of commands
+you have entered in actual order.
+
+Because shadow history has all the commands you have ever executed,
+time taken by %hist -g will increase oven time. If it ever starts to take
+too long (or it ends up containing sensitive information like passwords), 
+clear the shadow history by `%clear shadow_nuke`.
+
+Time taken to add entries to shadow history should be negligible, but 
+in any case, if you start noticing performance degradation after using 
+IPython for a long time (or running a script that floods the shadow history!), 
+you can 'compress' the shadow history by executing 
+`%clear shadow_compress`. In practice, this should never be necessary
+in normal use.
 
 .. _output_caching:
 
@@ -912,7 +944,7 @@ Directory history
 
 Your history of visited directories is kept in the global list _dh, and
 the magic %cd command can be used to go to any entry in that list. The
-%dhist command allows you to view this history. do ``cd -<TAB`` to
+%dhist command allows you to view this history. Do ``cd -<TAB`` to
 conventiently view the directory history.
 
 
