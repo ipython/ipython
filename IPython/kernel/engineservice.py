@@ -693,7 +693,7 @@ class QueuedEngine(object):
     @queue
     def execute(self, lines):
         pass
-
+    
     @queue
     def push(self, namespace):
         pass      

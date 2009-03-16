@@ -8,7 +8,9 @@ Using IPython for parallel computing
    :maxdepth: 2
 
    parallel_intro.txt
+   parallel_process.txt
    parallel_multiengine.txt
    parallel_task.txt
    parallel_mpi.txt
+   parallel_security.txt
 

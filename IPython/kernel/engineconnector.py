@@ -18,7 +18,8 @@ __docformat__ = "restructuredtext en"
 import os
 import cPickle as pickle
 
-from twisted.python import log
+from twisted.python import log, failure
+from twisted.internet import defer
 
 from IPython.kernel.fcutil import find_furl
 from IPython.kernel.enginefc import IFCEngine
@@ -62,13 +63,17 @@ class EngineConnector(object):
             self.tub.startService()
         self.engine_service = engine_service
         self.engine_reference = IFCEngine(self.engine_service)
-        self.furl = find_furl(furl_or_file)
+        try:
+            self.furl = find_furl(furl_or_file)
+        except ValueError:
+            return defer.fail(failure.Failure())
+            # return defer.fail(failure.Failure(ValueError('not a valid furl or furl file: %r' % furl_or_file)))
         d = self.tub.getReference(self.furl)
         d.addCallbacks(self._register, self._log_failure)
         return d
     
     def _log_failure(self, reason):
-        log.err('engine registration failed:')
+        log.err('EngineConnector: engine registration failed:')
         log.err(reason)
         return reason
 
