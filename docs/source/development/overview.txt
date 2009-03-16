@@ -283,6 +283,39 @@ installed with IPython::
 
 This command runs Nose with the proper options and extensions.
 
+A few tips for writing tests:
+
+* You can use IPython examples in your docstrings, including all IPython
+  prompts.  Rather than repeating it all here, see the files
+  :file:`dtexample.py` and :file:`test_ipdoctest.py` in the
+  :mod:`IPython.testing.plugin` module for examples of how you can use plain
+  Python or IPython prompts, and what to do with examples whose output could be
+  partly or completely random.
+
+* Use the decorators shipped in the :mod:`IPython.testing` package to tag tests
+  that may be platform-specific or otherwise may have restrictions.
+
+* If a test isn't safe to run inside the main nose process (e.g. because it
+  loads a GUI toolkit), consider running it in a subprocess and capturing its
+  output for evaluation and test decision later.  Here is an example of how to
+  do it, by relying on the builtin ``_ip`` object that contains the public
+  IPython api as defined in :mod:`IPython.ipapi`::
+
+   def test_obj_del():
+       """Test that object's __del__ methods are called on exit."""
+       test_dir = os.path.dirname(__file__)
+       del_file = os.path.join(test_dir,'obj_del.py')
+       out = _ip.IP.getoutput('ipython %s' % del_file)
+       nt.assert_equals(out,'object A deleted')
+
+
+* In a file named ``test_X``, functions whose only test is their docstring (as
+  a doctest) and which have no test functionality of their own, should be
+  called *doctest_foo* instead of *test_foo*, otherwise they get double-counted
+  (the empty function call is counted as a test, which just inflates tests
+  numbers artificially).  This restriction does not apply to functions in files
+  with other names, due to how Nose discovers tests.
+
 .. _devel_config:
 
 Release checklist

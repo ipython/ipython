@@ -41,7 +41,6 @@ EXCLUDE = ['IPython/external/',
            'IPython/Extensions/clearcmd',
            'IPython/Extensions/PhysicalQIn',
            'IPython/Extensions/scitedirector',
-           'IPython/testing/plugin',
            ]
 
 #-----------------------------------------------------------------------------

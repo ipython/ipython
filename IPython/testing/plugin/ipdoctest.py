@@ -392,7 +392,6 @@ class DocTestCase(doctests.DocTestCase):
             self._dt_test.globs = _ip.IP.user_ns
 
         doctests.DocTestCase.setUp(self)
-    
 
 
 # A simple subclassing of the original with a different class name, so we can
@@ -464,7 +463,11 @@ class IPDocTestParser(doctest.DocTestParser):
         """Convert input IPython source into valid Python."""
         out = []
         newline = out.append
-        for lnum,line in enumerate(source.splitlines()):
+        #print 'IPSRC:\n',source,'\n###'  # dbg
+        # The input source must be first stripped of all bracketing whitespace
+        # and turned into lines, so it looks to the parser like regular user
+        # input
+        for lnum,line in enumerate(source.strip().splitlines()):
             newline(_ip.IP.prefilter(line,lnum>0))
         newline('')  # ensure a closing newline, needed by doctest
         #print "PYSRC:", '\n'.join(out)  # dbg

@@ -3,6 +3,7 @@
 
 import nose.tools as nt
 
+
 def test_reset():
     """reset must clear most namespaces."""
     ip = _ip.IP
