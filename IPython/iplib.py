@@ -1371,6 +1371,7 @@ want to merge them back into the new files.""" % locals()
             # not run as the syntax for libedit is different.
             if not readline.uses_libedit:
                 for rlcommand in self.rc.readline_parse_and_bind:
+                    #print "loading rl:",rlcommand  # dbg
                     readline.parse_and_bind(rlcommand)
 
             # remove some chars from the delimiters list
