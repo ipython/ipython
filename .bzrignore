@@ -1,0 +1,4 @@
+# IPython-specific files and pattersn that bzr should ignore
+docs/dist
+docs/build/*
+docs/source/api/generated
