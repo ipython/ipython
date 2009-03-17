@@ -8,28 +8,25 @@ This file contains the main make_IPython() starter function.
 """
 
 #*****************************************************************************
-#       Copyright (C) 2001-2006 Fernando Perez. <fperez@colorado.edu>
+#       Copyright (C) 2008-2009 The IPython Development Team
+#       Copyright (C) 2001-2007 Fernando Perez. <fperez@colorado.edu>
 #
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
 #*****************************************************************************
 
-from IPython import Release
-__author__  = '%s <%s>' % Release.authors['Fernando']
-__license__ = Release.license
-__version__ = Release.version
-
 try:
     credits._Printer__data = """
     Python: %s
 
-    IPython: Fernando Perez, Janko Hauser, Nathan Gray, and many users.
+    IPython: The IPython Development Team.
     See http://ipython.scipy.org for more information.""" \
     % credits._Printer__data
 
     copyright._Printer__data += """
 
-    Copyright (c) 2001-2004 Fernando Perez, Janko Hauser, Nathan Gray.
+    Copyright (c) 2008-2009 The IPython Development Team.
+    Copyright (c) 2001-2007 Fernando Perez, Janko Hauser, Nathan Gray.
     All Rights Reserved."""
 except NameError:
     # Can happen if ipython was started with 'python -S', so that site.py is
@@ -50,6 +47,7 @@ from pprint import pprint,pformat
 
 # Our own
 from IPython import DPyGetOpt
+from IPython import Release
 from IPython.ipstruct import Struct
 from IPython.OutputTrap import OutputTrap
 from IPython.ConfigLoader import ConfigLoader
@@ -118,7 +116,7 @@ def make_IPython(argv=None,user_ns=None,user_global_ns=None,debug=1,
                          'for more information.\n'
                          % (sys.version.split('\n')[0],),
                          "IPython %s -- An enhanced Interactive Python."
-                         % (__version__,),
+                         % (Release.version,),
 """\
 ?         -> Introduction and overview of IPython's features.
 %quickref -> Quick reference.
@@ -327,7 +325,7 @@ object?   -> Details about 'object'. ?object also works, ?? prints more.
         sys.exit()
 
     if opts_all.Version:
-        print __version__
+        print Release.version
         sys.exit()
 
     if opts_all.magic_docstrings:

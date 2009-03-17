@@ -1,5 +1,9 @@
 # -*- coding: utf-8 -*-
 """Support for wildcard pattern matching in object inspection.
+
+Authors
+-------
+- Jörgen Stenarson <jorgen.stenarson@bostream.nu>
 """
 
 #*****************************************************************************
@@ -8,10 +12,6 @@
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
 #*****************************************************************************
-
-from IPython import Release
-__author__  = "Jörgen Stenarson <jorgen.stenarson@bostream.nu>"
-__license__ = Release.license
 
 import __builtin__
 import exceptions

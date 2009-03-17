@@ -4,16 +4,12 @@ Classes for handling input/output prompts.
 """
 
 #*****************************************************************************
-#       Copyright (C) 2001-2006 Fernando Perez <fperez@colorado.edu>
+#       Copyright (C) 2008-2009 The IPython Development Team
+#       Copyright (C) 2001-2007 Fernando Perez <fperez@colorado.edu>
 #
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
 #*****************************************************************************
-
-from IPython import Release
-__author__  = '%s <%s>' % Release.authors['Fernando']
-__license__ = Release.license
-__version__ = Release.version
 
 #****************************************************************************
 # Required modules
@@ -25,11 +21,13 @@ import time
 
 # IPython's own
 from IPython import ColorANSI
-from IPython.Itpl import ItplNS
+from IPython import Release
+from IPython.external.Itpl import ItplNS
+from IPython.ipapi import TryNext
 from IPython.ipstruct import Struct
 from IPython.macro import Macro
+
 from IPython.genutils import *
-from IPython.ipapi import TryNext
 
 #****************************************************************************
 #Color schemes for Prompts.
@@ -167,7 +165,7 @@ prompt_specials_color = {
     # Carriage return
     r'\r': '\r',
     # Release version
-    r'\v': __version__,
+    r'\v': Release.version,
     # Root symbol ($ or #)
     r'\$': ROOT_SYMBOL,
     }

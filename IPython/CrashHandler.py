@@ -1,18 +1,19 @@
 # -*- coding: utf-8 -*-
 """sys.excepthook for IPython itself, leaves a detailed report on disk.
+
+
+Authors
+-------
+- Fernando Perez <Fernando.Perez@berkeley.edu>
 """
 
 #*****************************************************************************
-#       Copyright (C) 2001-2006 Fernando Perez. <fperez@colorado.edu>
+#       Copyright (C) 2008-2009 The IPython Development Team
+#       Copyright (C) 2001-2007 Fernando Perez. <fperez@colorado.edu>
 #
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
 #*****************************************************************************
-
-from IPython import Release
-__author__   = '%s <%s>' % Release.authors['Fernando']
-__license__  = Release.license
-__version__  = Release.version
 
 #****************************************************************************
 # Required modules
@@ -22,10 +23,12 @@ import os
 import sys
 from pprint import pprint,pformat
 
-# Homebrewed
-from IPython.Itpl import Itpl,itpl,printpl
-from IPython.ColorANSI import ColorScheme,ColorSchemeTable  # too long names
+# Our own
+from IPython import Release
 from IPython import ultraTB
+from IPython.ColorANSI import ColorScheme,ColorSchemeTable  # too long names
+from IPython.Itpl import Itpl,itpl,printpl
+
 from IPython.genutils import *
 
 #****************************************************************************
