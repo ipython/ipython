@@ -6,7 +6,6 @@ upstream and were accepted as of Python 2.3, but we need a lot more
 functionality specific to IPython, so this module will continue to live as an
 IPython-specific utility.
 
----------------------------------------------------------------------------
 Original rlcompleter documentation:
 
 This requires the latest extension to the readline module (the

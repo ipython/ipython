@@ -6,9 +6,6 @@ Provides
 var = %magic blah blah
 
 var = !ls
-
-$Id: genutils.py 1077 2006-01-24 18:15:27Z vivainio $
-
 """
 
 import IPython.ipapi

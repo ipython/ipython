@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 """Class to trap stdout and stderr and log them separately.
-
-$Id: OutputTrap.py 958 2005-12-27 23:17:51Z fperez $"""
+"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2004 Fernando Perez <fperez@colorado.edu>
@@ -9,10 +8,6 @@ $Id: OutputTrap.py 958 2005-12-27 23:17:51Z fperez $"""
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
 #*****************************************************************************
-
-from IPython import Release
-__author__  = '%s <%s>' % Release.authors['Fernando']
-__license__ = Release.license
 
 import exceptions
 import sys

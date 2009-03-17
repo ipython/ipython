@@ -6,13 +6,6 @@
 #  the file COPYING, distributed as part of this software.
 #*****************************************************************************
 
-# $Id: usage.py 2723 2007-09-07 07:44:16Z fperez $
-
-from IPython import Release
-__author__  = '%s <%s>' % Release.authors['Fernando']
-__license__ = Release.license
-__version__ = Release.version
-
 __doc__ = """
 IPython -- An enhanced Interactive Python
 =========================================
@@ -650,5 +643,3 @@ or python names.
 The following magic functions are currently available:
 
 """
-
-

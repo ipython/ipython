@@ -1,3 +1,7 @@
+"""Twisted shell support.
+
+XXX - This module is missing proper docs.
+"""
 import sys
 
 from twisted.internet import reactor, threads

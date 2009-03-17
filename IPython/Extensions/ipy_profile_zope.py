@@ -1,18 +1,21 @@
 # -*- coding: utf-8 -*-
-#
+""" An ipython profile for zope and plone.
+
+Some ideas stolen from http://www.tomster.org.
+
+
+Authors
+-------
+- Stefan Eletzhofer <stefan.eletzhofer@inquant.de>
+"""
+
 # File: ipy_profile_zope.py
 #
 # Copyright (c) InQuant GmbH
 #
-# An ipython profile for zope and plone. Some ideas
-# stolen from http://www.tomster.org.
 #
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
-
-__author__ = """Stefan Eletzhofer <stefan.eletzhofer@inquant.de>"""
-__docformat__ = 'plaintext'
-__revision__ = "$Revision$"
 
 from IPython import ipapi
 from IPython import Release

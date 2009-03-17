@@ -1,11 +1,9 @@
 # -*- coding: utf-8 -*-
-"""
-General purpose utilities.
+"""General purpose utilities.
 
 This is a grab-bag of stuff I find useful in most programs I write. Some of
 these things are also convenient when working at the command line.
-
-$Id: genutils.py 2998 2008-01-31 10:06:04Z vivainio $"""
+"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2006 Fernando Perez. <fperez@colorado.edu>
@@ -13,10 +11,6 @@ $Id: genutils.py 2998 2008-01-31 10:06:04Z vivainio $"""
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
 #*****************************************************************************
-
-from IPython import Release
-__author__  = '%s <%s>' % Release.authors['Fernando']
-__license__ = Release.license
 
 #****************************************************************************
 # required modules from the Python standard library
@@ -1237,11 +1231,11 @@ def esc_quotes(strng):
 def make_quoted_expr(s):
     """Return string s in appropriate quotes, using raw string if possible.
 
-    Effectively this turns string: cd \ao\ao\
-    to: r"cd \ao\ao\_"[:-1]
+    XXX - example removed because it caused encoding errors in documentation
+    generation.  We need a new example that doesn't contain invalid chars.
 
-    Note the use of raw string and padding at the end to allow trailing backslash.
-
+    Note the use of raw string and padding at the end to allow trailing
+    backslash.
     """
 
     tail = ''

@@ -6,18 +6,20 @@ special method syntax. This just means moving them out to the global
 namespace.
 
 This module should always be loaded *after* math or Numeric, so it can
-overwrite math functions with the versions that handle units."""
+overwrite math functions with the versions that handle units.
+
+Authors
+-------
+- Fernando Perez <Fernando.Perez@berkeley.edu>
+"""
 
 #*****************************************************************************
-#       Copyright (C) 2001-2004 Fernando Perez <fperez@colorado.edu>
+#       Copyright (C) 2008-2009 The IPython Development Team
+#       Copyright (C) 2001-2007 Fernando Perez <fperez@colorado.edu>
 #
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
 #*****************************************************************************
-
-from IPython import Release
-__author__  = '%s <%s>' % Release.authors['Fernando']
-__license__ = Release.license
 
 from Scientific.Physics.PhysicalQuantities import PhysicalQuantity
 

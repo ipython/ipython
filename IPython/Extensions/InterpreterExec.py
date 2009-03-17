@@ -4,8 +4,7 @@
 We define a special input line filter to allow typing lines which begin with
 '~', '/' or '.'. If one of those strings is encountered, it is automatically
 executed.
-
-$Id: InterpreterExec.py 2724 2007-09-07 08:05:38Z fperez $"""
+"""
 
 #*****************************************************************************
 #       Copyright (C) 2004 W.J. van der Laan <gnufnork@hetdigitalegat.nl>
@@ -14,11 +13,6 @@ $Id: InterpreterExec.py 2724 2007-09-07 08:05:38Z fperez $"""
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
 #*****************************************************************************
-
-from IPython import Release
-__author__ = 'W.J. van der Laan <gnufnork@hetdigitalegat.nl>, '\
-             '%s <%s>' %  Release.authors['Fernando']
-__license__ = Release.license
 
 # TODO: deprecated
 def prefilter_shell(self,line,continuation):

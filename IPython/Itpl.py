@@ -27,7 +27,7 @@ how to do interpolation:
     import Itpl
     sys.stdout = Itpl.filter()
     f = "fancy"
-    print "Isn't this $f?"
+    print "Is this not $f?"
     print "Standard output has been replaced with a $sys.stdout object."
     sys.stdout = Itpl.unfilter()
     print "Okay, back $to $normal."
@@ -43,9 +43,7 @@ each time the instance is evaluated with str(instance).  For example:
     print str(s)
     foo = "bar"
     print str(s)
-
-$Id: Itpl.py 2918 2007-12-31 14:34:47Z vivainio $
-"""                   # ' -> close an open quote for stupid emacs
+"""
 
 #*****************************************************************************
 #

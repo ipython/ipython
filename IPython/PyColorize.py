@@ -1,34 +1,33 @@
 # -*- coding: utf-8 -*-
 """
-    Class and program to colorize python source code for ANSI terminals.
+Class and program to colorize python source code for ANSI terminals.
 
-    Based on an HTML code highlighter by Jurgen Hermann found at:
-    http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/52298
+Based on an HTML code highlighter by Jurgen Hermann found at:
+http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/52298
 
-    Modifications by Fernando Perez (fperez@colorado.edu).
+Modifications by Fernando Perez (fperez@colorado.edu).
 
-    Information on the original HTML highlighter follows:
-    
-    MoinMoin - Python Source Parser
+Information on the original HTML highlighter follows:
 
-    Title: Colorize Python source using the built-in tokenizer
-           
-    Submitter: Jurgen Hermann
-    Last Updated:2001/04/06
-           
-    Version no:1.2
+MoinMoin - Python Source Parser
 
-    Description:
+Title: Colorize Python source using the built-in tokenizer
 
-    This code is part of MoinMoin (http://moin.sourceforge.net/) and converts
-    Python source code to HTML markup, rendering comments, keywords,
-    operators, numeric and string literals in different colors.
+Submitter: Jurgen Hermann
+Last Updated:2001/04/06
 
-    It shows how to use the built-in keyword, token and tokenize modules to
-    scan Python source code and re-emit it with no changes to its original
-    formatting (which is the hard part).
+Version no:1.2
 
-    $Id: PyColorize.py 2586 2007-08-06 19:30:09Z vivainio $"""
+Description:
+
+This code is part of MoinMoin (http://moin.sourceforge.net/) and converts
+Python source code to HTML markup, rendering comments, keywords,
+operators, numeric and string literals in different colors.
+
+It shows how to use the built-in keyword, token and tokenize modules to
+scan Python source code and re-emit it with no changes to its original
+formatting (which is the hard part).
+"""
 
 __all__ = ['ANSICodeColors','Parser']
 
