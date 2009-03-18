@@ -513,7 +513,8 @@ def main_local(args):
     dstart.addErrback(lambda f: f.raiseException())
 
 
-def main_mpirun(args):
+def main_mpi(args):
+    print vars(args)
     cont_args = []
     cont_args.append('--logfile=%s' % pjoin(args.logdir,'ipcontroller'))
 
@@ -524,7 +525,7 @@ def main_mpirun(args):
     cl = ControllerLauncher(extra_args=cont_args)
     dstart = cl.start()
     def start_engines(cont_pid):
-        raw_args = ['mpirun']
+        raw_args = [args.cmd]
         raw_args.extend(['-n',str(args.n)])
         raw_args.append('ipengine')
         raw_args.append('-l')
@@ -665,7 +666,7 @@ def get_args():
     
     parser_mpirun = subparsers.add_parser(
         'mpirun',
-        help='run a cluster using mpirun',
+        help='run a cluster using mpirun (mpiexec also works)',
         parents=[base_parser]
     )
     parser_mpirun.add_argument(
@@ -674,7 +675,20 @@ def get_args():
         dest="mpi", # Don't put a default here to allow no MPI support
         help="how to call MPI_Init (default=mpi4py)"
     )
-    parser_mpirun.set_defaults(func=main_mpirun)
+    parser_mpirun.set_defaults(func=main_mpi, cmd='mpirun')
+
+    parser_mpiexec = subparsers.add_parser(
+        'mpiexec',
+        help='run a cluster using mpiexec (mpirun also works)',
+        parents=[base_parser]
+    )
+    parser_mpiexec.add_argument(
+        "--mpi",
+        type=str,
+        dest="mpi", # Don't put a default here to allow no MPI support
+        help="how to call MPI_Init (default=mpi4py)"
+    )
+    parser_mpiexec.set_defaults(func=main_mpi, cmd='mpiexec')
     
     parser_pbs = subparsers.add_parser(
         'pbs', 
