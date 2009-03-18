@@ -478,15 +478,31 @@ Try running ipcluster with the -xy flags:  ipcluster local -xy -n 4""")
         cont_args.append('-y')
     return True
 
+def check_reuse(args, cont_args):
+    if args.r:
+        cont_args.append('-r')
+        if args.client_port == 0 or args.engine_port == 0:
+            log.err("""
+To reuse FURL files, you must also set the client and engine ports using
+the --client-port and --engine-port options.""")
+            reactor.stop()
+            return False
+        cont_args.append('--client-port=%i' % args.client_port)
+        cont_args.append('--engine-port=%i' % args.engine_port)
+    return True
 
 def main_local(args):
     cont_args = []
     cont_args.append('--logfile=%s' % pjoin(args.logdir,'ipcontroller'))
-
+    
     # Check security settings before proceeding
     if not check_security(args, cont_args):
         return
-
+    
+    # See if we are reusing FURL files
+    if not check_reuse(args, cont_args):
+        return
+    
     cl = ControllerLauncher(extra_args=cont_args)
     dstart = cl.start()
     def start_engines(cont_pid):
@@ -514,14 +530,17 @@ def main_local(args):
 
 
 def main_mpi(args):
-    print vars(args)
     cont_args = []
     cont_args.append('--logfile=%s' % pjoin(args.logdir,'ipcontroller'))
-
+    
     # Check security settings before proceeding
     if not check_security(args, cont_args):
         return
-
+    
+    # See if we are reusing FURL files
+    if not check_reuse(args, cont_args):
+        return
+    
     cl = ControllerLauncher(extra_args=cont_args)
     dstart = cl.start()
     def start_engines(cont_pid):
@@ -555,11 +574,15 @@ def main_mpi(args):
 def main_pbs(args):
     cont_args = []
     cont_args.append('--logfile=%s' % pjoin(args.logdir,'ipcontroller'))
-
+    
     # Check security settings before proceeding
     if not check_security(args, cont_args):
         return
-
+    
+    # See if we are reusing FURL files
+    if not check_reuse(args, cont_args):
+        return
+    
     cl = ControllerLauncher(extra_args=cont_args)
     dstart = cl.start()
     def start_engines(r):
@@ -599,6 +622,10 @@ def main_ssh(args):
     if not check_security(args, cont_args):
         return
     
+    # See if we are reusing FURL files
+    if not check_reuse(args, cont_args):
+        return
+    
     cl = ControllerLauncher(extra_args=cont_args)
     dstart = cl.start()
     def start_engines(cont_pid):
@@ -620,6 +647,26 @@ def main_ssh(args):
 
 def get_args():
     base_parser = argparse.ArgumentParser(add_help=False)
+    base_parser.add_argument(
+        '-r',
+        action='store_true',
+        dest='r',
+        help='try to reuse FURL files.  Use with --client-port and --engine-port'
+    )
+    base_parser.add_argument(
+        '--client-port',
+        type=int,
+        dest='client_port',
+        help='the port the controller will listen on for client connections',
+        default=0
+    )
+    base_parser.add_argument(
+        '--engine-port',
+        type=int,
+        dest='engine_port',
+        help='the port the controller will listen on for engine connections',
+        default=0
+    )
     base_parser.add_argument(
         '-x',
         action='store_true',

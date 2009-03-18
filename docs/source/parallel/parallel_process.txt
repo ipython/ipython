@@ -308,6 +308,11 @@ This is possible.  The only thing you have to do is decide what ports the contro
 
     $ ipcontroller -r --client-port=10101 --engine-port=10102
 
+These options also work with all of the various modes of 
+:command:`ipcluster`::
+
+    $ ipcluster local -n 2 -r --client-port=10101 --engine-port=10102
+
 Then, just copy the furl files over the first time and you are set.  You can start and stop the controller and engines any many times as you want in the future, just make sure to tell the controller to use the *same* ports.
 
 .. note::
