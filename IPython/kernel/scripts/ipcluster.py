@@ -605,7 +605,6 @@ def main_ssh(args):
         ssh_set = SSHEngineSet(clusterfile['engines'], sshx=args.sshx)
         def shutdown(signum, frame):
             d = ssh_set.kill()
-            # d.addErrback(log.err)
             cl.interrupt_then_kill(1.0)
             reactor.callLater(2.0, reactor.stop)
         signal.signal(signal.SIGINT,shutdown)
