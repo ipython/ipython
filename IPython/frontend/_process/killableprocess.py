@@ -151,7 +151,10 @@ else:
             self._thread = ht
             self.pid = pid
 
-            winprocess.AssignProcessToJobObject(self._job, hp)
+            try:
+                winprocess.AssignProcessToJobObject(self._job, hp)
+            except WindowsError:
+                pass
             winprocess.ResumeThread(ht)
 
             if p2cread is not None:
