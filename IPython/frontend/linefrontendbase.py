@@ -295,6 +295,17 @@ class LineFrontEndBase(FrontEndBase):
         self.write(prompt)
 
 
+    def continuation_prompt(self):
+        """Returns the current continuation prompt.
+        Overridden to generate a continuation prompt matching the length of the
+        current prompt."""
+        
+        # FIXME: This is a bad hack.. I need to find a way to use the 'Prompt2'
+        # class in IPython/kernel/prompts.py. Basically, I am trying to get the
+        # length of the current prompt ("In ['number']").
+        return ("."*(5+len(str(self.last_result['number']))) + ':')
+ 
+
     def execute_command(self, command, hidden=False):
         """ Execute a command, not only in the model, but also in the
             view, if any.
@@ -310,14 +321,19 @@ class LineFrontEndBase(FrontEndBase):
             buffer.
         """
         current_buffer = self.input_buffer
-        cleaned_buffer = self.prefilter_input(current_buffer)
+        # XXX: This string replace is ugly, but there should be no way it
+        # fails.
+        prompt_less_buffer = re.sub('^' + self.continuation_prompt(),
+                '', current_buffer).replace('\n' + self.continuation_prompt(),
+                                            '\n')
+        cleaned_buffer = self.prefilter_input(prompt_less_buffer)
         if self.is_complete(cleaned_buffer):
             self.execute(cleaned_buffer, raw_string=current_buffer)
         else:
-            self.input_buffer += self._get_indent_string(
-                                                current_buffer[:-1])
+            self.input_buffer += self.continuation_prompt() + \
+                  self._get_indent_string(prompt_less_buffer[:-1])
             if len(current_buffer.split('\n')) == 2:
-                self.input_buffer += '\t\t'
+                self.input_buffer += '\t'
             if current_buffer[:-1].split('\n')[-1].rstrip().endswith(':'):
                 self.input_buffer += '\t'
 

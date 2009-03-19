@@ -24,6 +24,7 @@ __docformat__ = "restructuredtext en"
 import sys
 import pydoc
 import os
+import re
 import __builtin__
 
 from IPython.ipmaker import make_IPython
@@ -113,9 +114,9 @@ class PrefilterFrontEnd(LineFrontEndBase):
 
 
         if not 'banner' in kwargs and self.banner is None:
-            self.banner = self.ipython0.BANNER + """
-This is the wx frontend, by Gael Varoquaux. This is EXPERIMENTAL code."""
+            self.banner = self.ipython0.BANNER
 
+        # FIXME: __init__ and start should be two different steps
         self.start()
 
     #--------------------------------------------------------------------------
@@ -182,7 +183,9 @@ This is the wx frontend, by Gael Varoquaux. This is EXPERIMENTAL code."""
     def complete(self, line):
         # FIXME: This should be factored out in the linefrontendbase
         # method.
+        word = self._get_completion_text(line)
         word = line.split('\n')[-1].split(' ')[-1]
+        print 'Completion', word
         completions = self.ipython0.complete(word)
         # FIXME: The proper sort should be done in the complete method.
         key = lambda x: x.replace('_', '')
@@ -254,4 +257,19 @@ This is the wx frontend, by Gael Varoquaux. This is EXPERIMENTAL code."""
         """ Exit the shell, cleanup and save the history.
         """
         self.ipython0.atexit_operations()
+
+
+    def _get_completion_text(self, line):
+        """ Returns the text to be completed by breaking the line at specified
+        delimiters.
+        """
+        # Break at: spaces, '=', all parentheses (except if balanced).
+        # FIXME2: In the future, we need to make the implementation similar to
+        # that in the 'pyreadline' module (modes/basemode.py) where we break at
+        # each delimiter and try to complete the residual line, until we get a
+        # successful list of completions.
+        expression = '\s|=|,|:|\((?!.*\))|\[(?!.*\])|\{(?!.*\})' 
+        complete_sep = re.compile(expression)
+        text = complete_sep.split(line)[-1]
+        return text
 

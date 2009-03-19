@@ -485,6 +485,12 @@ class WxController(ConsoleWidget, PrefilterFrontEnd):
             wx.CallAfter(self._popup_completion, create=True)
         else:
             ConsoleWidget._on_key_up(self, event, skip=skip)
+        if (self.input_buffer.split('\n')[-1] == self.continuation_prompt()
+                        and self._input_state == 'readline'):
+            # Make sure the continuation_prompt is followed by a whitespace
+            position = self.GetCurrentPos()
+            self.input_buffer += ' '
+            self.GotoPos(position)
 
 
     def _on_enter(self):

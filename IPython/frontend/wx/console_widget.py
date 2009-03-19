@@ -216,6 +216,16 @@ class ConsoleWidget(editwindow.EditWindow):
         """
         return self.GetSize()[0]/self.GetCharWidth()
 
+
+    def clear_screen(self):
+        """ Empty completely the widget.
+        """
+        self.ClearAll()
+        self.new_prompt(self.input_prompt_template.substitute(
+                                number=(self.last_result['number'] + 1)))
+
+
+
     #--------------------------------------------------------------------------
     # EditWindow API
     #--------------------------------------------------------------------------
@@ -391,15 +401,16 @@ class ConsoleWidget(editwindow.EditWindow):
                 catched = True
 
             elif event.KeyCode in (wx.WXK_LEFT, wx.WXK_BACK):
-                if self.GetCurrentPos() > self.current_prompt_pos:
+                if not self._keep_cursor_in_buffer():
                     event.Skip()
                 catched = True
 
             if skip and not catched:
                 # Put the cursor back in the edit region
-                if self.GetCurrentPos() < self.current_prompt_pos:
-                    self.GotoPos(self.current_prompt_pos)
-                else:
+                if not self._keep_cursor_in_buffer():
+                    if (self.GetCurrentPos() == self.GetLength()
+                                and event.KeyCode == wx.WXK_DELETE):
+                        pass
                     event.Skip()
 
         return catched
@@ -408,9 +419,44 @@ class ConsoleWidget(editwindow.EditWindow):
     def _on_key_up(self, event, skip=True):
         """ If cursor is outside the editing region, put it back.
         """
-        event.Skip()
-        if self.GetCurrentPos() < self.current_prompt_pos:
+        if skip:
+            event.Skip()
+        self._keep_cursor_in_buffer()
+
+
+    def _keep_cursor_in_buffer(self):
+        """ Checks if the cursor is where it is allowed to be. If not,
+            put it back.
+
+            Returns
+            -------
+            cursor_moved: Boolean
+                whether or not the cursor was moved by this routine.
+
+            Notes
+            ------
+                WARNING: This does proper checks only for horizontal
+                movements.
+        """
+        current_pos  = self.GetCurrentPos()
+        if  current_pos < self.current_prompt_pos:
             self.GotoPos(self.current_prompt_pos)
+            return True
+        line, line_pos = self.GetCurLine()
+        # Jump the continuation prompt
+        continuation_prompt = self.continuation_prompt()
+        if ( line.startswith(continuation_prompt)
+                     and line_pos < len(continuation_prompt)+1):
+            if line_pos < 2:
+                # We are at the beginning of the line, trying to move
+                # forward: jump forward.
+                self.GotoPos(current_pos + 1 +
+                                    len(continuation_prompt) - line_pos)
+            else:
+                # Jump back up
+                self.GotoPos(self.GetLineEndPosition(self.GetCurrentLine()-1))
+            return True
+        return False
 
 
 
