@@ -71,6 +71,13 @@ class PrefilterFrontEnd(LineFrontEndBase):
             ipython0: an optional ipython0 instance to use for command
             prefiltering and completion.
         """
+        # This is a hack to avoid the IPython exception hook to trigger
+        # on exceptions (https://bugs.launchpad.net/bugs/337105)
+        # XXX: This is horrible: module-leve monkey patching -> side
+        # effects.
+        from IPython import iplib
+        iplib.InteractiveShell.isthreaded = True
+
         LineFrontEndBase.__init__(self, *args, **kwargs)
         self.shell.output_trap = RedirectorOutputTrap(
                             out_callback=self.write,
@@ -184,7 +191,6 @@ class PrefilterFrontEnd(LineFrontEndBase):
         # FIXME: This should be factored out in the linefrontendbase
         # method.
         word = self._get_completion_text(line)
-        word = line.split('\n')[-1].split(' ')[-1]
         print 'Completion', word
         completions = self.ipython0.complete(word)
         # FIXME: The proper sort should be done in the complete method.

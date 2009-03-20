@@ -149,8 +149,12 @@ class LineFrontEndBase(FrontEndBase):
             self.capture_output()
             try:
                 # Add line returns here, to make sure that the statement is
-                # complete.
-                is_complete = codeop.compile_command(string.rstrip() + '\n\n',
+                # complete (except if '\' was used).
+                # This should probably be done in a different place (like
+                # maybe 'prefilter_input' method? For now, this works.
+                clean_string = string.rstrip('\n')
+                if not clean_string.endswith('\\'): clean_string +='\n\n' 
+                is_complete = codeop.compile_command(clean_string,
                             "<string>", "exec")
                 self.release_output()
             except Exception, e:
@@ -270,15 +274,15 @@ class LineFrontEndBase(FrontEndBase):
         symbols_per_line = max(1, chars_per_line/max_len)
 
         pos = 1
-        buf = []
+        completion_string = []
         for symbol in possibilities:
             if pos < symbols_per_line:
-                buf.append(symbol.ljust(max_len))
+                completion_string.append(symbol.ljust(max_len))
                 pos += 1
             else:
-                buf.append(symbol.rstrip() + '\n')
+                completion_string.append(symbol.rstrip() + '\n')
                 pos = 1
-        self.write(''.join(buf))
+        self.write(''.join(completion_string))
         self.new_prompt(self.input_prompt_template.substitute(
                             number=self.last_result['number'] + 1))
         self.input_buffer = new_line

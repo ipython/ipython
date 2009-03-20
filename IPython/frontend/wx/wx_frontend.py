@@ -250,11 +250,8 @@ class WxController(ConsoleWidget, PrefilterFrontEnd):
         if (self.AutoCompActive() and line and not line[-1] == '.') \
                     or create==True:
             suggestion, completions = self.complete(line)
-            offset=0
             if completions:
-                complete_sep =  re.compile('[\s\{\}\[\]\(\)\= ,:]')
-                residual = complete_sep.split(line)[-1]
-                offset = len(residual)
+                offset = len(self._get_completion_text(line))
                 self.pop_completion(completions, offset=offset)
                 if self.debug:
                     print >>sys.__stdout__, completions 
