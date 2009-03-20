@@ -401,17 +401,28 @@ class ConsoleWidget(editwindow.EditWindow):
                 catched = True
 
             elif event.KeyCode in (wx.WXK_LEFT, wx.WXK_BACK):
-                if not self._keep_cursor_in_buffer():
+                if not self._keep_cursor_in_buffer(self.GetCurrentPos() - 1):
+                    event.Skip()
+                catched = True
+
+            elif event.KeyCode == wx.WXK_RIGHT:
+                if not self._keep_cursor_in_buffer(self.GetCurrentPos() + 1):
+                    event.Skip()
+                catched = True
+
+
+            elif event.KeyCode == wx.WXK_DELETE:
+                if not self._keep_cursor_in_buffer(self.GetCurrentPos() - 1):
                     event.Skip()
                 catched = True
 
             if skip and not catched:
                 # Put the cursor back in the edit region
                 if not self._keep_cursor_in_buffer():
-                    if (self.GetCurrentPos() == self.GetLength()
+                    if not (self.GetCurrentPos() == self.GetLength()
                                 and event.KeyCode == wx.WXK_DELETE):
-                        pass
-                    event.Skip()
+                        event.Skip()
+                    catched = True
 
         return catched
 
@@ -424,7 +435,7 @@ class ConsoleWidget(editwindow.EditWindow):
         self._keep_cursor_in_buffer()
 
 
-    def _keep_cursor_in_buffer(self):
+    def _keep_cursor_in_buffer(self, pos=None):
         """ Checks if the cursor is where it is allowed to be. If not,
             put it back.
 
@@ -438,11 +449,19 @@ class ConsoleWidget(editwindow.EditWindow):
                 WARNING: This does proper checks only for horizontal
                 movements.
         """
-        current_pos  = self.GetCurrentPos()
+        if pos is None:
+            current_pos = self.GetCurrentPos()
+        else:
+            current_pos = pos
         if  current_pos < self.current_prompt_pos:
             self.GotoPos(self.current_prompt_pos)
             return True
-        line, line_pos = self.GetCurLine()
+        line_num = self.LineFromPosition(current_pos)
+        if not current_pos > self.GetLength():
+            line_pos = self.GetColumn(current_pos)
+        else:
+            line_pos = self.GetColumn(self.GetLength())
+        line = self.GetLine(line_num)
         # Jump the continuation prompt
         continuation_prompt = self.continuation_prompt()
         if ( line.startswith(continuation_prompt)
@@ -454,7 +473,13 @@ class ConsoleWidget(editwindow.EditWindow):
                                     len(continuation_prompt) - line_pos)
             else:
                 # Jump back up
-                self.GotoPos(self.GetLineEndPosition(self.GetCurrentLine()-1))
+                self.GotoPos(self.GetLineEndPosition(line_num-1))
+            return True
+        elif ( current_pos > self.GetLineEndPosition(line_num) 
+                        and not current_pos == self.GetLength()): 
+            # Jump to next line
+            self.GotoPos(current_pos + 1 +
+                                    len(continuation_prompt))
             return True
         return False
 
