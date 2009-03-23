@@ -3,8 +3,6 @@
 %store magic for lightweight persistence.
 
 Stores variables, aliases etc. in PickleShare database.
-
-$Id: iplib.py 1107 2006-01-30 19:02:20Z vivainio $
 """
 
 import IPython.ipapi

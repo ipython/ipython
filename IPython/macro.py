@@ -9,7 +9,6 @@
 
 import IPython.ipapi 
 
-
 from IPython.genutils import Term
 from IPython.ipapi import IPyAutocall
 

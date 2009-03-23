@@ -5,8 +5,6 @@ Uses syntax highlighting for presenting the various information elements.
 
 Similar in spirit to the inspect module, but all calls take a name argument to
 reference the name under which an object is being read.
-
-$Id: OInspect.py 2843 2007-10-15 21:22:32Z fperez $
 """
 
 #*****************************************************************************
@@ -15,10 +13,6 @@ $Id: OInspect.py 2843 2007-10-15 21:22:32Z fperez $
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
 #*****************************************************************************
-
-from IPython import Release
-__author__  = '%s <%s>' % Release.authors['Fernando']
-__license__ = Release.license
 
 __all__ = ['Inspector','InspectColors']
 

@@ -65,13 +65,28 @@ log = logging.getLogger(__name__)
 # test globals.  Once we move over to a clean magic system, this will be done
 # with much less ugliness.
 
+class py_file_finder(object):
+    def __init__(self,test_filename):
+        self.test_filename = test_filename
+        
+    def __call__(self,name):
+        from IPython.genutils import get_py_filename
+        try:
+            return get_py_filename(name)
+        except IOError:
+            test_dir = os.path.dirname(self.test_filename)
+            new_path = os.path.join(test_dir,name)
+            return get_py_filename(new_path)
+    
+
 def _run_ns_sync(self,arg_s,runner=None):
     """Modified version of %run that syncs testing namespaces.
 
     This is strictly needed for running doctests that call %run.
     """
 
-    out = _ip.IP.magic_run_ori(arg_s,runner)
+    finder = py_file_finder(_run_ns_sync.test_filename)
+    out = _ip.IP.magic_run_ori(arg_s,runner,finder)
     _run_ns_sync.test_globs.update(_ip.user_ns)
     return out
 
@@ -129,8 +144,7 @@ def start_ipython():
 
     # Start IPython instance.  We customize it to start with minimal frills.
     user_ns,global_ns = IPython.ipapi.make_user_namespaces(ipnsdict(),dict())
-    
-    IPython.Shell.IPShell(['--classic','--noterm_title'],
+    IPython.Shell.IPShell(['--colors=NoColor','--noterm_title'],
                           user_ns,global_ns)
 
     # Deactivate the various python system hooks added by ipython for
@@ -172,13 +186,19 @@ def is_extension_module(filename):
     return os.path.splitext(filename)[1].lower() in ('.so','.pyd')
 
 
-class nodoc(object):
+class DocTestSkip(object):
+    """Object wrapper for doctests to be skipped."""
+    
+    ds_skip = """Doctest to skip.
+    >>> 1 #doctest: +SKIP
+    """
+
     def __init__(self,obj):
         self.obj = obj
 
     def __getattribute__(self,key):
         if key == '__doc__':
-            return None
+            return DocTestSkip.ds_skip
         else:
             return getattr(object.__getattribute__(self,'obj'),key)
 
@@ -222,7 +242,7 @@ class DocTestFinder(doctest.DocTestFinder):
 
         if hasattr(obj,"skip_doctest"):
             #print 'SKIPPING DOCTEST FOR:',obj  # dbg
-            obj = nodoc(obj)
+            obj = DocTestSkip(obj)
 
         doctest.DocTestFinder._find(self,tests, obj, name, module,
                                     source_lines, globs, seen)
@@ -372,7 +392,6 @@ class DocTestCase(doctests.DocTestCase):
             self._dt_test.globs = _ip.IP.user_ns
 
         doctests.DocTestCase.setUp(self)
-    
 
 
 # A simple subclassing of the original with a different class name, so we can
@@ -444,7 +463,11 @@ class IPDocTestParser(doctest.DocTestParser):
         """Convert input IPython source into valid Python."""
         out = []
         newline = out.append
-        for lnum,line in enumerate(source.splitlines()):
+        #print 'IPSRC:\n',source,'\n###'  # dbg
+        # The input source must be first stripped of all bracketing whitespace
+        # and turned into lines, so it looks to the parser like regular user
+        # input
+        for lnum,line in enumerate(source.strip().splitlines()):
             newline(_ip.IP.prefilter(line,lnum>0))
         newline('')  # ensure a closing newline, needed by doctest
         #print "PYSRC:", '\n'.join(out)  # dbg
@@ -638,7 +661,8 @@ class IPDocTestRunner(doctest.DocTestRunner,object):
         # when called (rather than unconconditionally updating test.globs here
         # for all examples, most of which won't be calling %run anyway).
         _run_ns_sync.test_globs = test.globs
-
+        _run_ns_sync.test_filename = test.filename
+        
         return super(IPDocTestRunner,self).run(test,
                                                compileflags,out,clear_globs)
 
@@ -655,6 +679,22 @@ class ExtensionDoctest(doctests.Doctest):
     """
     name = 'extdoctest'   # call nosetests with --with-extdoctest
     enabled = True
+
+    def __init__(self,exclude_patterns=None):
+        """Create a new ExtensionDoctest plugin.
+
+        Parameters
+        ----------
+
+        exclude_patterns : sequence of strings, optional
+          These patterns are compiled as regular expressions, subsequently used
+          to exclude any filename which matches them from inclusion in the test
+          suite (using pattern.search(), NOT pattern.match() ).
+        """
+        if exclude_patterns is None:
+            exclude_patterns = []
+        self.exclude_patterns = map(re.compile,exclude_patterns)
+        doctests.Doctest.__init__(self)
 
     def options(self, parser, env=os.environ):
         Plugin.options(self, parser, env)
@@ -688,6 +728,7 @@ class ExtensionDoctest(doctests.Doctest):
         self.globs = None
         self.extraglobs = None
 
+
     def loadTestsFromExtensionModule(self,filename):
         bpath,mod = os.path.split(filename)
         modname = os.path.splitext(mod)[0]
@@ -703,8 +744,8 @@ class ExtensionDoctest(doctests.Doctest):
     # a  few modifications to control output checking.
 
     def loadTestsFromModule(self, module):
-        #print 'lTM',module  # dbg
-
+        #print '*** ipdoctest - lTM',module  # dbg
+        
         if not self.matches(module.__name__):
             log.debug("Doctest doesn't want module %s", module)
             return
@@ -733,8 +774,6 @@ class ExtensionDoctest(doctests.Doctest):
 
 
     def loadTestsFromFile(self, filename):
-        #print 'lTF',filename  # dbg
-
         if is_extension_module(filename):
             for t in self.loadTestsFromExtensionModule(filename):
                 yield t
@@ -761,22 +800,10 @@ class ExtensionDoctest(doctests.Doctest):
         Modified version that accepts extension modules as valid containers for
         doctests.
         """
-        print 'Filename:',filename  # dbg
+        #print '*** ipdoctest- wantFile:',filename  # dbg
 
-        # XXX - temporarily hardcoded list, will move to driver later
-        exclude = ['IPython/external/',
-                   'IPython/platutils_win32',
-                   'IPython/frontend/cocoa',
-                   'IPython_doctest_plugin',
-                   'IPython/Gnuplot',
-                   'IPython/Extensions/ipy_',
-                   'IPython/Extensions/PhysicalQIn',
-                   'IPython/Extensions/scitedirector',
-                   'IPython/testing/plugin',
-                   ]
-
-        for fex in exclude:
-            if fex in filename:  # substring
+        for pat in self.exclude_patterns:
+            if pat.search(filename):
                 #print '###>>> SKIP:',filename  # dbg
                 return False
 
@@ -791,6 +818,23 @@ class IPythonDoctest(ExtensionDoctest):
     """
     name = 'ipdoctest'   # call nosetests with --with-ipdoctest
     enabled = True
+    
+    def makeTest(self, obj, parent):
+        """Look for doctests in the given object, which will be a
+        function, method or class.
+        """
+        # always use whitespace and ellipsis options
+        optionflags = doctest.NORMALIZE_WHITESPACE | doctest.ELLIPSIS
+
+        doctests = self.finder.find(obj, module=getmodule(parent))
+        if doctests:
+            for test in doctests:
+                if len(test.examples) == 0:
+                    continue
+
+                yield DocTestCase(test, obj=obj,
+                                  optionflags=optionflags,
+                                  checker=self.checker)
 
     def configure(self, options, config):
 

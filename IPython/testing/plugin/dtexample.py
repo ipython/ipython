@@ -29,9 +29,6 @@ def ipfunc():
 
     In [1]: import os
 
-    In [2]: cd /
-    /
-
     In [3]: 2+3
     Out[3]: 5
 

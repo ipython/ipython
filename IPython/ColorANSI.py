@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 """Tools for coloring text in ANSI terminals.
-
-$Id: ColorANSI.py 2167 2007-03-21 06:57:50Z fperez $"""
+"""
 
 #*****************************************************************************
 #       Copyright (C) 2002-2006 Fernando Perez. <fperez@colorado.edu>
@@ -9,10 +8,6 @@ $Id: ColorANSI.py 2167 2007-03-21 06:57:50Z fperez $"""
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
 #*****************************************************************************
-
-from IPython import Release
-__author__  = '%s <%s>' % Release.authors['Fernando']
-__license__ = Release.license
 
 __all__ = ['TermColors','InputTermColors','ColorScheme','ColorSchemeTable']
 

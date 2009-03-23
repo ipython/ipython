@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-
 """ History related magics and functionality """
 
 # Stdlib imports
@@ -7,7 +6,7 @@ import fnmatch
 import os
 
 # IPython imports
-from IPython.genutils import Term, ask_yes_no
+from IPython.genutils import Term, ask_yes_no, warn
 import IPython.ipapi
 
 def magic_history(self, parameter_s = ''):
@@ -47,8 +46,6 @@ def magic_history(self, parameter_s = ''):
       -f FILENAME: instead of printing the output to the screen, redirect it to
        the given file.  The file is always overwritten, though IPython asks for
        confirmation first if it already exists.
-      
-
     """
 
     ip = self.api
@@ -62,31 +59,28 @@ def magic_history(self, parameter_s = ''):
     try:
         outfname = opts['f']
     except KeyError:
-        outfile = Term.cout
+        outfile = Term.cout  # default
         # We don't want to close stdout at the end!
         close_at_end = False
     else:
         if os.path.exists(outfname):
-            ans = ask_yes_no("File %r exists. Overwrite?" % outfname)
-            if not ans:
+            if not ask_yes_no("File %r exists. Overwrite?" % outfname): 
                 print 'Aborting.'
                 return
-            else:
-                outfile = open(outfname,'w')
-                close_at_end = True
-                
 
-    if opts.has_key('t'):
+        outfile = open(outfname,'w')
+        close_at_end = True
+
+    if 't' in opts:
         input_hist = shell.input_hist
-    elif opts.has_key('r'):
+    elif 'r' in opts:
         input_hist = shell.input_hist_raw
     else:
         input_hist = shell.input_hist
-        
-    
+            
     default_length = 40
     pattern = None
-    if opts.has_key('g'):
+    if 'g' in opts:
         init = 1
         final = len(input_hist)
         parts = parameter_s.split(None,1)
@@ -138,11 +132,9 @@ def magic_history(self, parameter_s = ''):
         outfile.close()
 
 
-
 def magic_hist(self, parameter_s=''):
     """Alternate name for %history."""
     return self.magic_history(parameter_s)
-
 
 
 def rep_f(self, arg):
@@ -173,10 +165,8 @@ def rep_f(self, arg):
     %rep foo
     
     Place the most recent line that has the substring "foo" to next input.
-    (e.g. 'svn ci -m foobar').
-    
+    (e.g. 'svn ci -m foobar').    
     """
-    
     
     opts,args = self.parse_options(arg,'',mode='list')
     ip = self.api    
@@ -206,7 +196,6 @@ def rep_f(self, arg):
                 ip.set_next_input(str(h).rstrip())
                 return
         
-
     try:
         lines = self.extract_input_slices(args, True)
         print "lines",lines
@@ -214,7 +203,6 @@ def rep_f(self, arg):
     except ValueError:
         print "Not found in recent history:", args
         
-
 
 _sentinel = object()
 
@@ -259,23 +247,12 @@ class ShadowHist:
             if k == idx:
                 return v
 
-def test_shist():
-    from IPython.Extensions import pickleshare
-    db = pickleshare.PickleShareDB('~/shist')
-    s = ShadowHist(db)
-    s.add('hello')
-    s.add('world')
-    s.add('hello')
-    s.add('hello')
-    s.add('karhu')
-    print "all",s.all()
-    print s.get(2)
 
 def init_ipython(ip):
+    import ipy_completers
+
     ip.expose_magic("rep",rep_f)        
     ip.expose_magic("hist",magic_hist)            
     ip.expose_magic("history",magic_history)
 
-    import ipy_completers
     ipy_completers.quick_completer('%hist' ,'-g -t -r -n')
-#test_shist()

@@ -12,8 +12,7 @@ This module is meant to be used as a drop-in replacement to the original
 Gnuplot, so it should be safe to do:
 
 import IPython.Gnuplot2 as Gnuplot
-
-$Id: Gnuplot2.py 1210 2006-03-13 01:19:31Z fperez $"""
+"""
 
 import cStringIO
 import os
