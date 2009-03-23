@@ -12,14 +12,10 @@ to use these functions in platform agnostic fashion.
 #  the file COPYING, distributed as part of this software.
 #*****************************************************************************
 
-from IPython import Release
-__author__  = '%s <%s>' % Release.authors['Ville']
-__license__ = Release.license
-
 import sys
 import os
 
-ignore_termtitle = False
+ignore_termtitle = True
 
 def _dummy_op(*a, **b):
     """ A no-op function """
@@ -27,7 +23,7 @@ def _dummy_op(*a, **b):
 def _set_term_title_xterm(title):
     """ Change virtual terminal title in xterm-workalikes """
 
-    sys.stdout.write('\033]%d;%s\007' % (0,title))
+    sys.stdout.write('\033]0;%s\007' % title)
 
 
 if os.environ.get('TERM','') == 'xterm':

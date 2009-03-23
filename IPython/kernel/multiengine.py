@@ -335,7 +335,7 @@ class MultiEngine(ControllerAdapterBase):
     #---------------------------------------------------------------------------
     # IEngineMultiplexer methods
     #---------------------------------------------------------------------------
-        
+    
     def execute(self, lines, targets='all'):
         return self._performOnEnginesAndGatherBoth('execute', lines, targets=targets)
     

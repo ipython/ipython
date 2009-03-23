@@ -3,18 +3,19 @@
 
 This has empty implementation of the platutils functions, used for 
 unsupported operating systems.
+
+Authors
+-------
+- Ville Vainio <vivainio@gmail.com>
 """
 
 #*****************************************************************************
-#       Copyright (C) 2001-2006 Fernando Perez <fperez@colorado.edu>
+#       Copyright (C) 2008-2009 The IPython Development Team
+#       Copyright (C) 2001-2007 Fernando Perez <fperez@colorado.edu>
 #
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
 #*****************************************************************************
-
-from IPython import Release
-__author__  = '%s <%s>' % Release.authors['Ville']
-__license__ = Release.license
 
 # This variable is part of the expected API of the module:
 ignore_termtitle = True

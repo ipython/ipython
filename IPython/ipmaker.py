@@ -5,32 +5,28 @@ IPython -- An enhanced Interactive Python
 Requires Python 2.1 or better.
 
 This file contains the main make_IPython() starter function.
-
-$Id: ipmaker.py 2930 2008-01-11 07:03:11Z vivainio $"""
+"""
 
 #*****************************************************************************
-#       Copyright (C) 2001-2006 Fernando Perez. <fperez@colorado.edu>
+#       Copyright (C) 2008-2009 The IPython Development Team
+#       Copyright (C) 2001-2007 Fernando Perez. <fperez@colorado.edu>
 #
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
 #*****************************************************************************
 
-from IPython import Release
-__author__  = '%s <%s>' % Release.authors['Fernando']
-__license__ = Release.license
-__version__ = Release.version
-
 try:
     credits._Printer__data = """
     Python: %s
 
-    IPython: Fernando Perez, Janko Hauser, Nathan Gray, and many users.
+    IPython: The IPython Development Team.
     See http://ipython.scipy.org for more information.""" \
     % credits._Printer__data
 
     copyright._Printer__data += """
 
-    Copyright (c) 2001-2004 Fernando Perez, Janko Hauser, Nathan Gray.
+    Copyright (c) 2008-2009 The IPython Development Team.
+    Copyright (c) 2001-2007 Fernando Perez, Janko Hauser, Nathan Gray.
     All Rights Reserved."""
 except NameError:
     # Can happen if ipython was started with 'python -S', so that site.py is
@@ -51,6 +47,7 @@ from pprint import pprint,pformat
 
 # Our own
 from IPython import DPyGetOpt
+from IPython import Release
 from IPython.ipstruct import Struct
 from IPython.OutputTrap import OutputTrap
 from IPython.ConfigLoader import ConfigLoader
@@ -108,8 +105,6 @@ def make_IPython(argv=None,user_ns=None,user_global_ns=None,debug=1,
         IP.user_ns['help'] = _Helper()
     except ImportError:
         warn('help() not available - check site.py')
-    IP.user_config_ns = {}
-
 
     if DEVDEBUG:
         # For developer debugging only (global flag)
@@ -121,7 +116,7 @@ def make_IPython(argv=None,user_ns=None,user_global_ns=None,debug=1,
                          'for more information.\n'
                          % (sys.version.split('\n')[0],),
                          "IPython %s -- An enhanced Interactive Python."
-                         % (__version__,),
+                         % (Release.version,),
 """\
 ?         -> Introduction and overview of IPython's features.
 %quickref -> Quick reference.
@@ -131,20 +126,15 @@ object?   -> Details about 'object'. ?object also works, ?? prints more.
 
     IP.usage = interactive_usage
 
-    # Platform-dependent suffix and directory names.  We use _ipython instead
-    # of .ipython under win32 b/c there's software that breaks with .named
-    # directories on that platform.
+    # Platform-dependent suffix.
     if os.name == 'posix':
         rc_suffix = ''
-        ipdir_def = '.ipython'
     else:
         rc_suffix = '.ini'
-        ipdir_def = '_ipython'
 
     # default directory for configuration
-    ipythondir_def = os.path.abspath(os.environ.get('IPYTHONDIR',
-                                 os.path.join(IP.home_dir,ipdir_def)))
-
+    ipythondir_def = get_ipython_dir() 
+    
     sys.path.insert(0, '') # add . to sys.path. Fix from Prabhu Ramachandran
 
     # we need the directory where IPython itself is installed
@@ -335,7 +325,7 @@ object?   -> Details about 'object'. ?object also works, ?? prints more.
         sys.exit()
 
     if opts_all.Version:
-        print __version__
+        print Release.version
         sys.exit()
 
     if opts_all.magic_docstrings:

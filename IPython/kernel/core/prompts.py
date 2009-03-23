@@ -1,6 +1,10 @@
 # encoding: utf-8
+"""Classes for handling input/output prompts.
 
-"""Classes for handling input/output prompts."""
+Authors
+-------
+- Fernando Perez <Fernando.Perez@berkeley.edu>
+"""
 
 __docformat__ = "restructuredtext en"
 
@@ -15,12 +19,6 @@ __docformat__ = "restructuredtext en"
 # Imports
 #-------------------------------------------------------------------------------
 
-from IPython import Release
-__author__  = '%s <%s>' % Release.authors['Fernando']
-__license__ = Release.license
-__version__ = Release.version
-
-#****************************************************************************
 # Required modules
 import __builtin__
 import os
@@ -32,12 +30,11 @@ import time
 from IPython.external.Itpl import ItplNS
 from macro import Macro
 
-# Temporarily use this until it is ported to ipython1
-
 from IPython import ColorANSI
+from IPython import Release
+from IPython.ipapi import TryNext
 from IPython.ipstruct import Struct
 from IPython.genutils import *
-from IPython.ipapi import TryNext
 
 #****************************************************************************
 #Color schemes for Prompts.
@@ -159,7 +156,7 @@ prompt_specials_color = {
     # Carriage return
     r'\r': '\r',
     # Release version
-    r'\v': __version__,
+    r'\v': Release.version,
     # Root symbol ($ or #)
     r'\$': ROOT_SYMBOL,
     }

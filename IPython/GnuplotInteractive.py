@@ -9,8 +9,7 @@ http://gnuplot-py.sourceforge.net/
 See gphelp() below for details on the services offered by this module.
 
 Inspired by a suggestion/request from Arnd Baecker.
-
-$Id: GnuplotInteractive.py 389 2004-10-09 07:59:30Z fperez $"""
+"""
 
 __all__ = ['Gnuplot','gp','gp_new','plot','plot2','splot','replot',
            'hardcopy','gpdata','gpfile','gpstring','gpfunc','gpgrid',

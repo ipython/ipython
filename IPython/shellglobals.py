@@ -1,6 +1,13 @@
-from IPython.genutils import Term,warn,error,flag_calls, ask_yes_no
+"""Some globals used by the main Shell classes.
+"""
 
-import thread,inspect
+#-----------------------------------------------------------------------------
+# Module imports
+#-----------------------------------------------------------------------------
+
+# stdlib
+import inspect
+import thread
 
 try:
     import ctypes
@@ -8,8 +15,12 @@ try:
 except ImportError:
     HAS_CTYPES = False
 
+# our own
+from IPython.genutils import Term,warn,error,flag_calls, ask_yes_no
 
+#-----------------------------------------------------------------------------
 # Globals
+#-----------------------------------------------------------------------------
 # global flag to pass around information about Ctrl-C without exceptions
 KBINT = False
 
@@ -22,12 +33,10 @@ MAIN_THREAD_ID = thread.get_ident()
 # Tag when runcode() is active, for exception handling
 CODE_RUN = None
 
-
 #-----------------------------------------------------------------------------
 # This class is trivial now, but I want to have it in to publish a clean
 # interface. Later when the internals are reorganized, code that uses this
 # shouldn't have to change.
-
 
 if HAS_CTYPES:
     #  Add async exception support.  Trick taken from:
@@ -81,16 +90,12 @@ else:
         # Set global flag so that runsource can know that Ctrl-C was hit
         KBINT = True
 
+
 def run_in_frontend(src):
-    """ Check if source snippet can be run in the REPL thread, as opposed to GUI mainloop
-    
-    (to prevent unnecessary hanging of mainloop).  
-    
+    """ Check if source snippet can be run in the REPL thread, as opposed to
+    GUI mainloop (to prevent unnecessary hanging of mainloop).
     """
     
     if src.startswith('_ip.system(') and not '\n' in src:
         return True
     return False
-    
-    
-    

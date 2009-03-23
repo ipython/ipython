@@ -5,8 +5,7 @@ Readline is used throughout IPython as 'import IPython.rlineimpl as readline'.
 
 In addition to normal readline stuff, this module provides have_readline
 boolean and _outputfile variable used in genutils.
-
-$Id: Magic.py 1096 2006-01-28 20:08:02Z vivainio $"""
+"""
 
 import sys
 

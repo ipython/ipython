@@ -91,10 +91,10 @@ Main features of the interactive shell
   IPython has an internal job manager called jobs, and a
   convenience backgrounding magic function called :samp:`%bg`.
 
-* The ability to expand python variables when calling the system
-  shell. In a shell command, any python variable prefixed with :samp:`$` is
-  expanded. A double :samp:`$$` allows passing a literal :samp:`$` to the shell (for
-  access to shell and environment variables like :envvar:`PATH`).
+* The ability to expand python variables when calling the system shell. In a
+  shell command, any python variable prefixed with :samp:`$` is expanded. A
+  double :samp:`$$` allows passing a literal :samp:`$` to the shell (for access
+  to shell and environment variables like :envvar:`PATH`).
 
 * Filesystem navigation, via a magic :samp:`%cd` command, along with a
   persistent bookmark system (using :samp:`%bookmark`) for fast access to
@@ -150,17 +150,16 @@ Main features of the interactive shell
   about the local namespaces (very useful in debugging and data
   analysis situations).
 
-* Easy debugger access. You can set IPython to call up an enhanced
-  version of the Python debugger (pdb) every time there is an
-  uncaught exception. This drops you inside the code which triggered
-  the exception with all the data live and it is possible to
-  navigate the stack to rapidly isolate the source of a bug. The
-  :samp:`%run` magic command (with the :samp:`-d` option) can run any script under
-  pdb's control, automatically setting initial breakpoints for you.
-  This version of pdb has IPython-specific improvements, including
-  tab-completion and traceback coloring support. For even easier
-  debugger access, try :samp:`%debug` after seeing an exception. winpdb is 
-  also supported, see ipy_winpdb extension.
+* Easy debugger access. You can set IPython to call up an enhanced version of
+  the Python debugger (pdb) every time there is an uncaught exception. This
+  drops you inside the code which triggered the exception with all the data
+  live and it is possible to navigate the stack to rapidly isolate the source
+  of a bug. The :samp:`%run` magic command (with the :samp:`-d` option) can run
+  any script under pdb's control, automatically setting initial breakpoints for
+  you.  This version of pdb has IPython-specific improvements, including
+  tab-completion and traceback coloring support. For even easier debugger
+  access, try :samp:`%debug` after seeing an exception. winpdb is also
+  supported, see ipy_winpdb extension.
 
 * Profiler support. You can run single statements (similar to
   :samp:`profile.run()`) or complete programs under the profiler's control.
@@ -176,10 +175,11 @@ Main features of the interactive shell
 Interactive parallel computing
 ==============================
 
-Increasingly, parallel computer hardware, such as multicore CPUs, clusters and supercomputers, is becoming ubiquitous. Over the last 3 years, we have developed an
-architecture within IPython that allows such hardware to be used quickly and easily
-from Python. Moreover, this architecture is designed to support interactive and
-collaborative parallel computing.
+Increasingly, parallel computer hardware, such as multicore CPUs, clusters and
+supercomputers, is becoming ubiquitous. Over the last 3 years, we have
+developed an architecture within IPython that allows such hardware to be used
+quickly and easily from Python. Moreover, this architecture is designed to
+support interactive and collaborative parallel computing.
 
 The main features of this system are:
 
@@ -204,16 +204,16 @@ The main features of this system are:
 
 * Capabilities based security model with full encryption of network connections.
 
-* Share live parallel jobs with other users securely.  We call this collaborative
-  parallel computing.
+* Share live parallel jobs with other users securely.  We call this
+  collaborative parallel computing.
 
 * Dynamically load balanced task farming system.
 
 * Robust error handling.  Python exceptions raised in parallel execution are
   gathered and presented to the top-level code.
 
-For more information, see our :ref:`overview <parallel_index>` of using IPython for
-parallel computing.
+For more information, see our :ref:`overview <parallel_index>` of using IPython
+for parallel computing.
 
 Portability and Python requirements
 -----------------------------------
@@ -225,8 +225,7 @@ work with some minor changes.
 IPython is known to work on the following operating systems:
 
 	* Linux
-	* AIX
-	* Most other Unix-like OSs (Solaris, BSD, etc.)
+	* Most other Unix-like OSs (AIX, Solaris, BSD, etc.)
 	* Mac OS X
 	* Windows (CygWin, XP, Vista, etc.)
 

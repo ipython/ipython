@@ -24,7 +24,6 @@ That way the module is imported at startup and you can have all your
 personal configuration (as opposed to boilerplate ipythonrc-PROFILENAME 
 stuff) in there. 
 
------------------------------------------------
 import IPython.ipapi
 ip = IPython.ipapi.get()
 
@@ -187,7 +186,6 @@ class IPApi(object):
         self.set_custom_exc = ip.set_custom_exc
 
         self.user_ns = ip.user_ns
-        self.user_ns['_ip'] = self
 
         self.set_crash_handler = ip.set_crash_handler
 

@@ -1,11 +1,9 @@
 # -*- coding: utf-8 -*-
-"""
-General purpose utilities.
+"""General purpose utilities.
 
 This is a grab-bag of stuff I find useful in most programs I write. Some of
 these things are also convenient when working at the command line.
-
-$Id: genutils.py 2998 2008-01-31 10:06:04Z vivainio $"""
+"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2006 Fernando Perez. <fperez@colorado.edu>
@@ -13,10 +11,6 @@ $Id: genutils.py 2998 2008-01-31 10:06:04Z vivainio $"""
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
 #*****************************************************************************
-
-from IPython import Release
-__author__  = '%s <%s>' % Release.authors['Fernando']
-__license__ = Release.license
 
 #****************************************************************************
 # required modules from the Python standard library
@@ -928,12 +922,15 @@ def get_home_dir():
     # first, check py2exe distribution root directory for _ipython.
     # This overrides all. Normally does not exist.
 
-    if '\\library.zip\\' in IPython.__file__.lower():
-        root, rest = IPython.__file__.lower().split('library.zip')
-        if isdir(root + '_ipython'):
-            os.environ["IPYKITROOT"] = root.rstrip('\\')
-            return root
-
+    if hasattr(sys, "frozen"): #Is frozen by py2exe
+        if '\\library.zip\\' in IPython.__file__.lower():#libraries compressed to zip-file
+            root, rest = IPython.__file__.lower().split('library.zip')
+        else: 
+            root=os.path.join(os.path.split(IPython.__file__)[0],"../../")
+        root=os.path.abspath(root).rstrip('\\')
+        if isdir(os.path.join(root, '_ipython')):
+            os.environ["IPYKITROOT"] = root
+        return root
     try:
         homedir = env['HOME']
         if not isdir(homedir):
@@ -953,7 +950,7 @@ def get_home_dir():
                     if not isdir(homedir):
                         raise HomeDirError
                 return homedir
-            except:
+            except KeyError:
                 try:
                     # Use the registry to get the 'My Documents' folder.
                     import _winreg as wreg
@@ -992,8 +989,8 @@ def get_ipython_dir():
          ipdir_def = '_ipython'
     home_dir = get_home_dir()
     ipdir = os.path.abspath(os.environ.get('IPYTHONDIR',
-                                           os.path.join(home_dir,ipdir_def)))
-    return ipdir
+                                           os.path.join(home_dir, ipdir_def)))
+    return ipdir.decode(sys.getfilesystemencoding())
 
 def get_security_dir():
     """Get the IPython security directory.
@@ -1234,11 +1231,11 @@ def esc_quotes(strng):
 def make_quoted_expr(s):
     """Return string s in appropriate quotes, using raw string if possible.
 
-    Effectively this turns string: cd \ao\ao\
-    to: r"cd \ao\ao\_"[:-1]
+    XXX - example removed because it caused encoding errors in documentation
+    generation.  We need a new example that doesn't contain invalid chars.
 
-    Note the use of raw string and padding at the end to allow trailing backslash.
-
+    Note the use of raw string and padding at the end to allow trailing
+    backslash.
     """
 
     tail = ''

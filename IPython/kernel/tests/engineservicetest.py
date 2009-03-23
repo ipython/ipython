@@ -49,8 +49,8 @@ validCommands = ['a=5',
 time.sleep(0.1)""",
                 """from math import cos;
 x = 1.0*cos(0.5)""", # Semicolons lead to Discard ast nodes that should be discarded
-                """from sets import Set
-s = Set()
+                """s = 1
+s = set()
    """, # Trailing whitespace should be allowed.
                 """import math
 math.cos(1.0)""", # Test a method call with a discarded return value

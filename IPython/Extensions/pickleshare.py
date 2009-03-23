@@ -40,8 +40,6 @@ import UserDict
 import warnings
 import glob
 
-from sets import Set as set
-
 def gethashfile(key):
     return ("%02x" % abs(hash(key) % 256))[-2:]
 

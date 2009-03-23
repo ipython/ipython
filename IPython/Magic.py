@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 """Magic functions for InteractiveShell.
-
-$Id: Magic.py 2996 2008-01-30 06:31:39Z fperez $"""
+"""
 
 #*****************************************************************************
 #       Copyright (C) 2001 Janko Hauser <jhauser@zscout.de> and
@@ -13,11 +12,6 @@ $Id: Magic.py 2996 2008-01-30 06:31:39Z fperez $"""
 
 #****************************************************************************
 # Modules and globals
-
-from IPython import Release
-__author__  = '%s <%s>\n%s <%s>' % \
-              ( Release.authors['Janko'] + Release.authors['Fernando'] )
-__license__ = Release.license
 
 # Python standard modules
 import __builtin__
@@ -35,7 +29,6 @@ import textwrap
 from cStringIO import StringIO
 from getopt import getopt,GetoptError
 from pprint import pprint, pformat
-from sets import Set
 
 # cProfile was added in Python2.5
 try:
@@ -75,7 +68,7 @@ def compress_dhist(dh):
     head, tail = dh[:-10], dh[-10:]
 
     newhead = []
-    done = Set()
+    done = set()
     for h in head:
         if h in done:
             continue
@@ -149,7 +142,7 @@ python-profiler package from non-free.""")
                  filter(inst_magic,self.__dict__.keys()) + \
                  filter(inst_bound_magic,self.__class__.__dict__.keys())
         out = []
-        for fn in Set(magics):
+        for fn in set(magics):
             out.append(fn.replace('magic_','',1))
         out.sort()
         return out
@@ -1054,10 +1047,33 @@ Currently the magic system has the following functions:\n"""
     def magic_reset(self, parameter_s=''):
         """Resets the namespace by removing all names defined by the user.
 
-        Input/Output history are left around in case you need them."""
+        Input/Output history are left around in case you need them.
 
-        ans = self.shell.ask_yes_no(
-          "Once deleted, variables cannot be recovered. Proceed (y/[n])? ")
+        Parameters
+        ----------
+          -y : force reset without asking for confirmation.
+
+        Examples
+        --------
+        In [6]: a = 1
+
+        In [7]: a
+        Out[7]: 1
+
+        In [8]: 'a' in _ip.user_ns
+        Out[8]: True
+
+        In [9]: %reset -f
+
+        In [10]: 'a' in _ip.user_ns
+        Out[10]: False
+        """
+
+        if parameter_s == '-f':
+            ans = True
+        else:
+            ans = self.shell.ask_yes_no(
+                "Once deleted, variables cannot be recovered. Proceed (y/[n])? ")
         if not ans:
             print 'Nothing done.'
             return
@@ -1067,7 +1083,7 @@ Currently the magic system has the following functions:\n"""
             
         # Also flush the private list of module references kept for script
         # execution protection
-        self.shell._user_main_modules[:] = []
+        self.shell.clear_main_mod_cache()
 
     def magic_logstart(self,parameter_s=''):
         """Start logging anywhere in a session.
@@ -1426,7 +1442,8 @@ Currently the magic system has the following functions:\n"""
             return None
 
     @testdec.skip_doctest
-    def magic_run(self, parameter_s ='',runner=None):
+    def magic_run(self, parameter_s ='',runner=None,
+                  file_finder=get_py_filename):
         """Run the named file inside IPython as a program.
 
         Usage:\\
@@ -1541,7 +1558,7 @@ Currently the magic system has the following functions:\n"""
                                           mode='list',list_all=1)
 
         try:
-            filename = get_py_filename(arg_lst[0])
+            filename = file_finder(arg_lst[0])
         except IndexError:
             warn('you must provide at least a filename.')
             print '\n%run:\n',OInspect.getdoc(self.magic_run)
@@ -1577,10 +1594,13 @@ Currently the magic system has the following functions:\n"""
             main_mod = FakeModule()
             prog_ns = main_mod.__dict__
             prog_ns['__name__'] = name
+            
             # The shell MUST hold a reference to main_mod so after %run exits,
             # the python deletion mechanism doesn't zero it out (leaving
-            # dangling references)
-            self.shell._user_main_modules.append(main_mod)
+            # dangling references).  However, we should drop old versions of
+            # main_mod.  There is now a proper API to manage this caching in
+            # the main shell object, we use that.            
+            self.shell.cache_main_mod(main_mod)
 
         # Since '%run foo' emulates 'python foo.py' at the cmd line, we must
         # set the __file__ global in the script's namespace

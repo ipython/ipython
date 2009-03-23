@@ -36,8 +36,8 @@ deco:
 magic: plugin
 	$(NOSE) IPython.Magic
 
-ipipe: plugin
-	$(NOSE) IPython.Extensions.ipipe
+excolors: plugin
+	$(NOSE) IPython.excolors
 
 iplib: plugin
 	$(NOSE)  IPython.iplib

@@ -73,8 +73,6 @@ __version__ = "0.2"
 
 
 import os,glob,fnmatch,sys,re
-from sets import Set as set
-
                 
 def expand(flist,exp_dirs = False):
     """ Expand the glob(s) in flist.

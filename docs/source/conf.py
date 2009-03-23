@@ -36,9 +36,13 @@ execfile('../../IPython/Release.py',iprelease)
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
 extensions = ['sphinx.ext.autodoc',
-              'inheritance_diagram', 'only_directives',
+              'sphinx.ext.doctest',
+              
+              'only_directives',
+              'inheritance_diagram',
               'ipython_console_highlighting', 
               # 'plot_directive', # disabled for now, needs matplotlib
+              'numpydoc',  # to preprocess docstrings
               ]
 
 # Add any paths that contain templates here, relative to this directory.

@@ -4,8 +4,7 @@ Class which mimics a module.
 
 Needed to allow pickle to correctly resolve namespaces during IPython
 sessions.
-
-$Id: FakeModule.py 2754 2007-09-09 10:16:59Z fperez $"""
+"""
 
 #*****************************************************************************
 #       Copyright (C) 2002-2004 Fernando Perez. <fperez@colorado.edu>

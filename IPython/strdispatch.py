@@ -8,7 +8,6 @@ import re
 from IPython.hooks import CommandChainDispatcher
 import IPython.hooks
 
-
 # Code begins
 class StrDispatch(object):
     """Dispatch (lookup) a set of strings / regexps for match.
