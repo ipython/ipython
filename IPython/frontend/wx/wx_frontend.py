@@ -27,33 +27,15 @@ import re
 import __builtin__
 import sys
 from threading import Lock
-import string
 
 import wx
 from wx import stc
 
 # Ipython-specific imports.
 from IPython.frontend._process import PipedProcess
-from console_widget import ConsoleWidget
+from console_widget import ConsoleWidget, _COMPLETE_BUFFER_MARKER, \
+    _ERROR_MARKER, _INPUT_MARKER
 from IPython.frontend.prefilterfrontend import PrefilterFrontEnd
-
-#-------------------------------------------------------------------------------
-# Constants 
-#-------------------------------------------------------------------------------
-
-_COMPLETE_BUFFER_BG = '#FAFAF1' # Nice green
-_INPUT_BUFFER_BG = '#FDFFD3' # Nice yellow
-_ERROR_BG = '#FFF1F1' # Nice red
-
-_COMPLETE_BUFFER_MARKER = 31
-_ERROR_MARKER = 30
-_INPUT_MARKER = 29
-
-prompt_in1 = \
-        '\n\x01\x1b[0;34m\x02In [\x01\x1b[1;34m\x02$number\x01\x1b[0;34m\x02]: \x01\x1b[0m\x02'
-
-prompt_out = \
-    '\x01\x1b[0;31m\x02Out[\x01\x1b[1;31m\x02$number\x01\x1b[0;31m\x02]: \x01\x1b[0m\x02'
 
 #-------------------------------------------------------------------------------
 # Classes to implement the Wx frontend
@@ -65,11 +47,7 @@ class WxController(ConsoleWidget, PrefilterFrontEnd):
     This class inherits from ConsoleWidget, that provides a console-like
     widget to provide a text-rendering widget suitable for a terminal.
     """
-
-    output_prompt_template = string.Template(prompt_out)
-
-    input_prompt_template = string.Template(prompt_in1)
-
+    
     # Print debug info on what is happening to the console.
     debug = False
 
@@ -137,24 +115,23 @@ class WxController(ConsoleWidget, PrefilterFrontEnd):
     def __init__(self, parent, id=wx.ID_ANY, pos=wx.DefaultPosition,
                  size=wx.DefaultSize,
                  style=wx.CLIP_CHILDREN|wx.WANTS_CHARS,
+                 styledef=None,
                  *args, **kwds):
         """ Create Shell instance.
+
+            Parameters
+            -----------
+            styledef : dict, optional
+                styledef is the dictionary of options used to define the
+                style.
         """
+        if styledef is not None:
+            self.style = styledef
         ConsoleWidget.__init__(self, parent, id, pos, size, style)
         PrefilterFrontEnd.__init__(self, **kwds)
         
         # Stick in our own raw_input:
         self.ipython0.raw_input = self.raw_input
-
-        # Marker for complete buffer.
-        self.MarkerDefine(_COMPLETE_BUFFER_MARKER, stc.STC_MARK_BACKGROUND,
-                                background=_COMPLETE_BUFFER_BG)
-        # Marker for current input buffer.
-        self.MarkerDefine(_INPUT_MARKER, stc.STC_MARK_BACKGROUND,
-                                background=_INPUT_BUFFER_BG)
-        # Marker for tracebacks.
-        self.MarkerDefine(_ERROR_MARKER, stc.STC_MARK_BACKGROUND,
-                                background=_ERROR_BG)
 
         # A time for flushing the write buffer
         BUFFER_FLUSH_TIMER_ID = 100
@@ -170,8 +147,7 @@ class WxController(ConsoleWidget, PrefilterFrontEnd):
             self.shell.user_ns['self'] = self
         # Inject our own raw_input in namespace
         self.shell.user_ns['raw_input'] = self.raw_input
-
-
+        
     def raw_input(self, prompt=''):
         """ A replacement from python's raw_input.
         """
@@ -270,6 +246,14 @@ class WxController(ConsoleWidget, PrefilterFrontEnd):
         if not self._buffer_flush_timer.IsRunning():
             wx.CallAfter(self._buffer_flush_timer.Start, 
                                         milliseconds=100, oneShot=True)
+
+
+    def clear_screen(self):
+        """ Empty completely the widget.
+        """
+        self.ClearAll()
+        self.new_prompt(self.input_prompt_template.substitute(
+                                number=(self.last_result['number'] + 1)))
 
 
     #--------------------------------------------------------------------------
@@ -385,10 +369,16 @@ class WxController(ConsoleWidget, PrefilterFrontEnd):
         self._markers[i] = self.MarkerAdd(i, _INPUT_MARKER)
 
 
+    def continuation_prompt(self, *args, **kwargs):
+        # Avoid multiple inheritence, be explicit about which
+        # parent method class gets called
+        return ConsoleWidget.continuation_prompt(self, *args, **kwargs)
+
+
     def write(self, *args, **kwargs):
         # Avoid multiple inheritence, be explicit about which
         # parent method class gets called
-        ConsoleWidget.write(self, *args, **kwargs)
+        return ConsoleWidget.write(self, *args, **kwargs)
 
 
     def _on_key_down(self, event, skip=True):

@@ -25,6 +25,8 @@ import wx.stc  as  stc
 from wx.py import editwindow
 import time
 import sys
+import string
+
 LINESEP = '\n'
 if sys.platform == 'win32':
     LINESEP = '\n\r'
@@ -33,19 +35,25 @@ import re
 
 # FIXME: Need to provide an API for non user-generated display on the
 # screen: this should not be editable by the user.
+#-------------------------------------------------------------------------------
+# Constants 
+#-------------------------------------------------------------------------------
+_COMPLETE_BUFFER_MARKER = 31
+_ERROR_MARKER = 30
+_INPUT_MARKER = 29
 
 _DEFAULT_SIZE = 10
 if sys.platform == 'darwin':
     _DEFAULT_SIZE = 12
 
 _DEFAULT_STYLE = {
-    'stdout'      : 'fore:#0000FF',
-    'stderr'      : 'fore:#007f00',
-    'trace'       : 'fore:#FF0000',
-
+    #background definition
     'default'     : 'size:%d' % _DEFAULT_SIZE,
     'bracegood'   : 'fore:#00AA00,back:#000000,bold',
     'bracebad'    : 'fore:#FF0000,back:#000000,bold',
+
+    # Edge column: a number of None
+    'edge_column' : -1,
 
     # properties for the various Python lexer styles
     'comment'       : 'fore:#007F00',
@@ -69,6 +77,44 @@ _TRACE_STYLE  = 17
 # system colors
 #SYS_COLOUR_BACKGROUND = wx.SystemSettings.GetColour(wx.SYS_COLOUR_BACKGROUND)
 
+# Translation table from ANSI escape sequences to color. 
+ANSI_STYLES = {'0;30': [0, 'BLACK'],            '0;31': [1, 'RED'],
+               '0;32': [2, 'GREEN'],           '0;33': [3, 'BROWN'],
+               '0;34': [4, 'BLUE'],            '0;35': [5, 'PURPLE'],
+               '0;36': [6, 'CYAN'],            '0;37': [7, 'LIGHT GREY'],
+               '1;30': [8, 'DARK GREY'],       '1;31': [9, 'RED'],
+               '1;32': [10, 'SEA GREEN'],      '1;33': [11, 'YELLOW'],
+               '1;34': [12, 'LIGHT BLUE'],     '1;35': 
+                                                 [13, 'MEDIUM VIOLET RED'],
+               '1;36': [14, 'LIGHT STEEL BLUE'], '1;37': [15, 'YELLOW']}
+
+#we define platform specific fonts
+if wx.Platform == '__WXMSW__':
+    FACES = { 'times': 'Times New Roman',
+                'mono' : 'Courier New',
+                'helv' : 'Arial',
+                'other': 'Comic Sans MS',
+                'size' : 10,
+                'size2': 8,
+                }
+elif wx.Platform == '__WXMAC__':
+    FACES = { 'times': 'Times New Roman',
+                'mono' : 'Monaco',
+                'helv' : 'Arial',
+                'other': 'Comic Sans MS',
+                'size' : 10,
+                'size2': 8,
+                }
+else:
+    FACES = { 'times': 'Times',
+                'mono' : 'Courier',
+                'helv' : 'Helvetica',
+                'other': 'new century schoolbook',
+                'size' : 10,
+                'size2': 8,
+                }
+ 
+
 #-------------------------------------------------------------------------------
 # The console widget class
 #-------------------------------------------------------------------------------
@@ -82,6 +128,9 @@ class ConsoleWidget(editwindow.EditWindow):
     # This is where the title captured from the ANSI escape sequences are
     # stored.
     title = 'Console'
+
+    # Last prompt printed
+    last_prompt = ''
 
     # The buffer being edited.
     def _set_input_buffer(self, string):
@@ -103,19 +152,11 @@ class ConsoleWidget(editwindow.EditWindow):
 
     # Translation table from ANSI escape sequences to color. Override
     # this to specify your colors.
-    ANSI_STYLES = {'0;30': [0, 'BLACK'],            '0;31': [1, 'RED'],
-                   '0;32': [2, 'GREEN'],            '0;33': [3, 'BROWN'],
-                   '0;34': [4, 'BLUE'],             '0;35': [5, 'PURPLE'],
-                   '0;36': [6, 'CYAN'],             '0;37': [7, 'LIGHT GREY'],
-                   '1;30': [8, 'DARK GREY'],        '1;31': [9, 'RED'],
-                   '1;32': [10, 'SEA GREEN'],       '1;33': [11, 'YELLOW'],
-                   '1;34': [12, 'LIGHT BLUE'],      '1;35':
-                                                     [13, 'MEDIUM VIOLET RED'],
-                   '1;36': [14, 'LIGHT STEEL BLUE'], '1;37': [15, 'YELLOW']}
-
-    # The color of the carret (call _apply_style() after setting)
-    carret_color = 'BLACK'
+    ANSI_STYLES = ANSI_STYLES.copy()
     
+    # Font faces
+    faces = FACES.copy()
+                 
     # Store the last time a refresh was done
     _last_refresh_time = 0
 
@@ -126,7 +167,11 @@ class ConsoleWidget(editwindow.EditWindow):
     def __init__(self, parent, id=wx.ID_ANY, pos=wx.DefaultPosition, 
                         size=wx.DefaultSize, style=wx.WANTS_CHARS, ):
         editwindow.EditWindow.__init__(self, parent, id, pos, size, style)
-        self._configure_scintilla()
+        self.configure_scintilla()
+        # Track if 'enter' key as ever been processed
+        # This variable will only be reallowed until key goes up
+        self.enter_catched = False 
+        self.current_prompt_pos = 0
 
         self.Bind(wx.EVT_KEY_DOWN, self._on_key_down)
         self.Bind(wx.EVT_KEY_UP, self._on_key_up)
@@ -193,7 +238,16 @@ class ConsoleWidget(editwindow.EditWindow):
         self.current_prompt_pos = self.GetLength()
         self.current_prompt_line = self.GetCurrentLine()
         self.EnsureCaretVisible()
+        self.last_prompt = prompt
 
+
+    def continuation_prompt(self):
+        """Returns the current continuation prompt.
+        """
+        # ASCII-less prompt
+        ascii_less = ''.join(self.color_pat.split(self.last_prompt)[2::2])
+        return "."*(len(ascii_less)-2) + ': '
+ 
 
     def scroll_to_bottom(self):
         maxrange = self.GetScrollRange(wx.VERTICAL)
@@ -217,14 +271,6 @@ class ConsoleWidget(editwindow.EditWindow):
         return self.GetSize()[0]/self.GetCharWidth()
 
 
-    def clear_screen(self):
-        """ Empty completely the widget.
-        """
-        self.ClearAll()
-        self.new_prompt(self.input_prompt_template.substitute(
-                                number=(self.last_result['number'] + 1)))
-
-
 
     #--------------------------------------------------------------------------
     # EditWindow API
@@ -237,26 +283,40 @@ class ConsoleWidget(editwindow.EditWindow):
         """
 
     #--------------------------------------------------------------------------
-    # Private API
+    # Styling API
     #--------------------------------------------------------------------------
-    
-    def _apply_style(self):
-        """ Applies the colors for the different text elements and the
-            carret.
-        """
-        self.SetCaretForeground(self.carret_color)
 
-        #self.StyleClearAll()
-        self.StyleSetSpec(stc.STC_STYLE_BRACELIGHT,  
-                          "fore:#FF0000,back:#0000FF,bold")
-        self.StyleSetSpec(stc.STC_STYLE_BRACEBAD,
-                          "fore:#000000,back:#FF0000,bold")
+    def configure_scintilla(self):
 
-        for style in self.ANSI_STYLES.values():
-            self.StyleSetSpec(style[0], "bold,fore:%s" % style[1])
+        p = self.style
+        
+        #First we define the special background colors        
+        if 'trace' in p:
+            _COMPLETE_BUFFER_BG = p['trace']
+        else:
+            _COMPLETE_BUFFER_BG = '#FAFAF1' # Nice green
 
-   
-    def _configure_scintilla(self):
+        if 'stdout' in p:
+            _INPUT_BUFFER_BG = p['stdout']
+        else:
+            _INPUT_BUFFER_BG = '#FDFFD3' # Nice yellow
+
+        if 'stderr' in p:
+            _ERROR_BG = p['stderr']
+        else:
+            _ERROR_BG = '#FFF1F1' # Nice red
+
+        # Marker for complete buffer.
+        self.MarkerDefine(_COMPLETE_BUFFER_MARKER, stc.STC_MARK_BACKGROUND,
+                                background = _COMPLETE_BUFFER_BG)
+
+        # Marker for current input buffer.
+        self.MarkerDefine(_INPUT_MARKER, stc.STC_MARK_BACKGROUND,
+                                background = _INPUT_BUFFER_BG)
+        # Marker for tracebacks.
+        self.MarkerDefine(_ERROR_MARKER, stc.STC_MARK_BACKGROUND,
+                                background = _ERROR_BG)
+
         self.SetEOLMode(stc.STC_EOL_LF)
 
         # Ctrl"+" or Ctrl "-" can be used to zoomin/zoomout the text inside 
@@ -278,7 +338,12 @@ class ConsoleWidget(editwindow.EditWindow):
         self.SetWrapMode(stc.STC_WRAP_CHAR)
         self.SetWrapMode(stc.STC_WRAP_WORD)
         self.SetBufferedDraw(True)
-        self.SetUseAntiAliasing(True)
+
+        if 'antialiasing' in p:
+            self.SetUseAntiAliasing(p['antialiasing'])            
+        else:        
+            self.SetUseAntiAliasing(True)
+
         self.SetLayoutCache(stc.STC_CACHE_PAGE)
         self.SetUndoCollection(False)
         self.SetUseTabs(True)
@@ -299,38 +364,108 @@ class ConsoleWidget(editwindow.EditWindow):
         self.SetMarginWidth(1, 0)
         self.SetMarginWidth(2, 0)
 
-        self._apply_style()
-
         # Xterm escape sequences
         self.color_pat = re.compile('\x01?\x1b\[(.*?)m\x02?')
         self.title_pat = re.compile('\x1b]0;(.*?)\x07')
 
-        #self.SetEdgeMode(stc.STC_EDGE_LINE)
-        #self.SetEdgeColumn(80)
-
         # styles
-        p = self.style
-        self.StyleSetSpec(stc.STC_STYLE_DEFAULT, p['default'])
+        
+        if 'carret_color' in p:
+            self.SetCaretForeground(p['carret_color'])
+        else:
+            self.SetCaretForeground('BLACK')
+        
+        if 'background_color' in p:
+            background_color = p['background_color']
+        else:
+            background_color = 'WHITE'            
+            
+        if 'default' in p:
+            if 'back' not in p['default']:
+                p['default'] += ',back:%s' % background_color
+            if 'size' not in p['default']:
+                p['default'] += ',size:%s' % self.faces['size']
+            if 'face' not in p['default']:
+                p['default'] += ',face:%s' % self.faces['mono']
+            
+            self.StyleSetSpec(stc.STC_STYLE_DEFAULT, p['default'])
+        else:
+            self.StyleSetSpec(stc.STC_STYLE_DEFAULT, 
+                            "fore:%s,back:%s,size:%d,face:%s" 
+                            % (self.ANSI_STYLES['0;30'][1], 
+                               background_color,
+                               self.faces['size'], self.faces['mono']))
+        
+        #all styles = default one        
         self.StyleClearAll()
-        self.StyleSetSpec(_STDOUT_STYLE, p['stdout'])
-        self.StyleSetSpec(_STDERR_STYLE, p['stderr'])
-        self.StyleSetSpec(_TRACE_STYLE, p['trace'])
+        
+        # XXX: two lines below are usefull if not using the lexer        
+        #for style in self.ANSI_STYLES.values():
+        #    self.StyleSetSpec(style[0], "bold,fore:%s" % style[1])        
 
-        self.StyleSetSpec(stc.STC_STYLE_BRACELIGHT, p['bracegood'])
-        self.StyleSetSpec(stc.STC_STYLE_BRACEBAD, p['bracebad'])
-        self.StyleSetSpec(stc.STC_P_COMMENTLINE, p['comment'])
-        self.StyleSetSpec(stc.STC_P_NUMBER, p['number'])
-        self.StyleSetSpec(stc.STC_P_STRING, p['string'])
-        self.StyleSetSpec(stc.STC_P_CHARACTER, p['char'])
-        self.StyleSetSpec(stc.STC_P_WORD, p['keyword'])
-        self.StyleSetSpec(stc.STC_P_WORD2, p['keyword'])
-        self.StyleSetSpec(stc.STC_P_TRIPLE, p['triple'])
-        self.StyleSetSpec(stc.STC_P_TRIPLEDOUBLE, p['tripledouble'])
-        self.StyleSetSpec(stc.STC_P_CLASSNAME, p['class'])
-        self.StyleSetSpec(stc.STC_P_DEFNAME, p['def'])
-        self.StyleSetSpec(stc.STC_P_OPERATOR, p['operator'])
-        self.StyleSetSpec(stc.STC_P_COMMENTBLOCK, p['comment'])
+        #prompt definition
+        if 'prompt_in1' in p:
+            self.prompt_in1 = p['prompt_in1']
+        else:
+            self.prompt_in1 = \
+            '\n\x01\x1b[0;34m\x02In [\x01\x1b[1;34m\x02$number\x01\x1b[0;34m\x02]: \x01\x1b[0m\x02'
 
+        if 'prompt_out' in p:
+            self.prompt_out = p['prompt_out']
+        else:
+            self.prompt_out = \
+            '\x01\x1b[0;31m\x02Out[\x01\x1b[1;31m\x02$number\x01\x1b[0;31m\x02]: \x01\x1b[0m\x02'
+
+        self.output_prompt_template = string.Template(self.prompt_out)
+        self.input_prompt_template = string.Template(self.prompt_in1)
+
+        if 'stdout' in p:
+            self.StyleSetSpec(_STDOUT_STYLE, p['stdout'])
+        if 'stderr' in p:
+            self.StyleSetSpec(_STDERR_STYLE, p['stderr'])
+        if 'trace' in p:
+            self.StyleSetSpec(_TRACE_STYLE, p['trace'])
+        if 'bracegood' in p:
+            self.StyleSetSpec(stc.STC_STYLE_BRACELIGHT, p['bracegood'])
+        if 'bracebad' in p:
+            self.StyleSetSpec(stc.STC_STYLE_BRACEBAD, p['bracebad'])
+        if 'comment' in p:
+            self.StyleSetSpec(stc.STC_P_COMMENTLINE, p['comment'])
+        if 'number' in p:
+            self.StyleSetSpec(stc.STC_P_NUMBER, p['number'])
+        if 'string' in p:
+            self.StyleSetSpec(stc.STC_P_STRING, p['string'])
+        if 'char' in p:
+            self.StyleSetSpec(stc.STC_P_CHARACTER, p['char'])
+        if 'keyword' in p:
+            self.StyleSetSpec(stc.STC_P_WORD, p['keyword'])
+        if 'keyword' in p:
+            self.StyleSetSpec(stc.STC_P_WORD2, p['keyword'])
+        if 'triple' in p:
+            self.StyleSetSpec(stc.STC_P_TRIPLE, p['triple'])
+        if 'tripledouble' in p:
+            self.StyleSetSpec(stc.STC_P_TRIPLEDOUBLE, p['tripledouble'])
+        if 'class' in p:
+            self.StyleSetSpec(stc.STC_P_CLASSNAME, p['class'])
+        if 'def' in p:
+            self.StyleSetSpec(stc.STC_P_DEFNAME, p['def'])
+        if 'operator' in p:
+            self.StyleSetSpec(stc.STC_P_OPERATOR, p['operator'])
+        if 'comment' in p:
+            self.StyleSetSpec(stc.STC_P_COMMENTBLOCK, p['comment'])
+
+        if 'edge_column' in p:
+            edge_column = p['edge_column']
+            if edge_column is not None and edge_column > 0:
+                #we add a vertical line to console widget
+                self.SetEdgeMode(stc.STC_EDGE_LINE)
+                self.SetEdgeColumn(88)
+ 
+        
+    #--------------------------------------------------------------------------
+    # Private API
+    #--------------------------------------------------------------------------
+   
     def _on_key_down(self, event, skip=True):
         """ Key press callback used for correcting behavior for 
             console-like interfaces: the cursor is constraint to be after
@@ -369,14 +504,16 @@ class ConsoleWidget(editwindow.EditWindow):
             if event.KeyCode in (13, wx.WXK_NUMPAD_ENTER) and \
                         event.Modifiers in (wx.MOD_NONE, wx.MOD_WIN):
                 catched = True
-                self.CallTipCancel()
-                self.write('\n', refresh=False)
-                # Under windows scintilla seems to be doing funny stuff to the 
-                # line returns here, but the getter for input_buffer filters 
-                # this out.
-                if sys.platform == 'win32':
-                    self.input_buffer = self.input_buffer
-                self._on_enter()
+                if not self.enter_catched:
+                    self.CallTipCancel()
+                    self.write('\n', refresh=False)
+                    # Under windows scintilla seems to be doing funny
+                    # stuff to the line returns here, but the getter for
+                    # input_buffer filters this out.
+                    if sys.platform == 'win32':
+                        self.input_buffer = self.input_buffer
+                    self._on_enter()
+                    self.enter_catched = True
 
             elif event.KeyCode == wx.WXK_HOME:
                 if event.Modifiers in (wx.MOD_NONE, wx.MOD_WIN):
@@ -481,15 +618,16 @@ class ConsoleWidget(editwindow.EditWindow):
             self.GotoPos(current_pos + 1 +
                                     len(continuation_prompt))
             return True
-        return False
 
+        self.enter_catched = False #we re-allow enter event processing
+        return False
 
 
 if __name__ == '__main__':
     # Some simple code to test the console widget.
     class MainWindow(wx.Frame):
         def __init__(self, parent, id, title):
-            wx.Frame.__init__(self, parent, id, title, size=(300,250))
+            wx.Frame.__init__(self, parent, id, title, size=(300, 250))
             self._sizer = wx.BoxSizer(wx.VERTICAL)
             self.console_widget = ConsoleWidget(self)
             self._sizer.Add(self.console_widget, 1, wx.EXPAND)

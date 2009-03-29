@@ -56,6 +56,9 @@ class LineFrontEndBase(FrontEndBase):
     # programatic control of the frontend. 
     last_result = dict(number=0)
 
+    # The last prompt displayed. Useful for continuation prompts.
+    last_prompt = ''
+
     # The input buffer being edited
     input_buffer = ''
 
@@ -301,13 +304,8 @@ class LineFrontEndBase(FrontEndBase):
 
     def continuation_prompt(self):
         """Returns the current continuation prompt.
-        Overridden to generate a continuation prompt matching the length of the
-        current prompt."""
-        
-        # FIXME: This is a bad hack.. I need to find a way to use the 'Prompt2'
-        # class in IPython/kernel/prompts.py. Basically, I am trying to get the
-        # length of the current prompt ("In ['number']").
-        return ("."*(5+len(str(self.last_result['number']))) + ':')
+        """
+        return ("."*(len(self.last_prompt)-2) + ': ')
  
 
     def execute_command(self, command, hidden=False):
