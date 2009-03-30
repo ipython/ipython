@@ -708,6 +708,12 @@ class Interpreter(object):
         # the end even though we don't have a line number for it. Fortunately,
         # None does the job nicely.
         linenos.append(None)
+
+        # Same problem at the other end: sometimes the ast tree has its
+        # first complete statement not starting on line 0. In this case
+        # we might miss part of it
+        linenos[0] = 0
+
         lines = python.splitlines()
 
         # Create a list of atomic commands.
