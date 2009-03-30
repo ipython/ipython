@@ -188,16 +188,6 @@ class LineFrontEndBase(FrontEndBase):
         # Create a false result, in case there is an exception
         self.last_result = dict(number=self.prompt_number)
 
-        ## try:
-        ##     self.history.input_cache[-1] = raw_string.rstrip()
-        ##     result = self.shell.execute(python_string)
-        ##     self.last_result = result
-        ##     self.render_result(result)
-        ## except:
-        ##     self.show_traceback()
-        ## finally:
-        ##     self.after_execute()
-
         try:
             try:
                 self.history.input_cache[-1] = raw_string.rstrip()
@@ -318,9 +308,20 @@ class LineFrontEndBase(FrontEndBase):
     # Private API
     #--------------------------------------------------------------------------
  
-    def _on_enter(self):
+    def _on_enter(self, new_line_pos=0):
         """ Called when the return key is pressed in a line editing
             buffer.
+
+            Parameters
+            ----------
+            new_line_pos : integer, optional
+                Position of the new line to add, starting from the
+                end (0 adds a new line after the last line, -1 before
+                the last line...)
+
+            Returns
+            -------
+            True if execution is triggered
         """
         current_buffer = self.input_buffer
         # XXX: This string replace is ugly, but there should be no way it
@@ -331,14 +332,25 @@ class LineFrontEndBase(FrontEndBase):
         cleaned_buffer = self.prefilter_input(prompt_less_buffer)
         if self.is_complete(cleaned_buffer):
             self.execute(cleaned_buffer, raw_string=current_buffer)
+            return True
         else:
-            self.input_buffer += self.continuation_prompt() + \
-                  self._get_indent_string(prompt_less_buffer[:-1])
-            if len(current_buffer.split('\n')) == 2:
-                self.input_buffer += '\t'
+            new_line_pos = -new_line_pos
+            lines = current_buffer.split('\n')[:-1]
+            prompt_less_lines = prompt_less_buffer.split('\n')
+            new_line = self.continuation_prompt() + \
+                  self._get_indent_string('\n'.join(
+                                    prompt_less_lines[:new_line_pos-1]))
+            if len(lines) == 2:
+                new_line += '\t'
             if current_buffer[:-1].split('\n')[-1].rstrip().endswith(':'):
-                self.input_buffer += '\t'
+                new_line += '\t'
 
+            if new_line_pos == 0:
+                lines.append(new_line)
+            else:
+                lines.insert(new_line_pos, new_line)
+            self.input_buffer = '\n'.join(lines)
+            
 
     def _get_indent_string(self, string):
         """ Return the string of whitespace that prefixes a line. Used to

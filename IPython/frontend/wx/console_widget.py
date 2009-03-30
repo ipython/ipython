@@ -472,6 +472,11 @@ class ConsoleWidget(editwindow.EditWindow):
             Return True if event as been catched.
         """
         catched = True
+        # XXX: Would the right way to do this be to have a
+        #  dictionary at the instance level associating keys with
+        #  callbacks? How would we deal with inheritance? And Do the
+        #  different callbacks share local variables?
+
         # Intercept some specific keys.
         if event.KeyCode == ord('L') and event.ControlDown() :
             self.scroll_to_bottom()
@@ -489,6 +494,10 @@ class ConsoleWidget(editwindow.EditWindow):
             self.ScrollPages(-1)
         elif event.KeyCode == wx.WXK_PAGEDOWN:
             self.ScrollPages(1)
+        elif event.KeyCode == wx.WXK_HOME:
+            self.GotoPos(self.GetLength())
+        elif event.KeyCode == wx.WXK_END:
+            self.GotoPos(self.GetLength())
         elif event.KeyCode == wx.WXK_UP and event.ShiftDown():
             self.ScrollLines(-1)
         elif event.KeyCode == wx.WXK_DOWN and event.ShiftDown():
@@ -500,17 +509,19 @@ class ConsoleWidget(editwindow.EditWindow):
             event.Skip()
         else:
             if event.KeyCode in (13, wx.WXK_NUMPAD_ENTER) and \
-                        event.Modifiers in (wx.MOD_NONE, wx.MOD_WIN):
+                                event.Modifiers in (wx.MOD_NONE, wx.MOD_WIN,
+                                                    wx.MOD_SHIFT):
                 catched = True
                 if not self.enter_catched:
                     self.CallTipCancel()
-                    self.write('\n', refresh=False)
-                    # Under windows scintilla seems to be doing funny
-                    # stuff to the line returns here, but the getter for
-                    # input_buffer filters this out.
-                    if sys.platform == 'win32':
-                        self.input_buffer = self.input_buffer
-                    self._on_enter()
+                    if event.Modifiers == wx.MOD_SHIFT:
+                        # Try to force execution
+                        self.GotoPos(self.GetLength())
+                        self.write('\n' + self.continuation_prompt(), 
+                                        refresh=False)
+                        self._on_enter()
+                    else:
+                        self._on_enter()
                     self.enter_catched = True
 
             elif event.KeyCode == wx.WXK_HOME:

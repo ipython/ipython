@@ -284,6 +284,8 @@ class WxController(ConsoleWidget, PrefilterFrontEnd):
         """ Execute a command, not only in the model, but also in the
             view.
         """
+        # XXX: This method needs to be integrated in the base fronted
+        # interface
         if hidden:
             return self.shell.execute(command)
         else:
@@ -386,7 +388,7 @@ class WxController(ConsoleWidget, PrefilterFrontEnd):
             widget handle them, and put our logic afterward.
         """
         # FIXME: This method needs to be broken down in smaller ones.
-        current_line_number = self.GetCurrentLine()
+        current_line_num = self.GetCurrentLine()
         if event.KeyCode in (ord('c'), ord('C')) and event.ControlDown():
             # Capture Control-C
             if self._input_state == 'subprocess':
@@ -432,7 +434,7 @@ class WxController(ConsoleWidget, PrefilterFrontEnd):
         else:
             # Up history
             if event.KeyCode == wx.WXK_UP and (
-                    ( current_line_number == self.current_prompt_line and
+                    ( current_line_num == self.current_prompt_line and
                         event.Modifiers in (wx.MOD_NONE, wx.MOD_WIN) ) 
                     or event.ControlDown() ):
                 new_buffer = self.get_history_previous(
@@ -444,7 +446,7 @@ class WxController(ConsoleWidget, PrefilterFrontEnd):
                         self.GotoPos(self.current_prompt_pos)
             # Down history
             elif event.KeyCode == wx.WXK_DOWN and (
-                    ( current_line_number == self.LineCount -1 and
+                    ( current_line_num == self.LineCount -1 and
                         event.Modifiers in (wx.MOD_NONE, wx.MOD_WIN) ) 
                     or event.ControlDown() ):
                 new_buffer = self.get_history_next()
@@ -452,7 +454,7 @@ class WxController(ConsoleWidget, PrefilterFrontEnd):
                     self.input_buffer = new_buffer
             # Tab-completion
             elif event.KeyCode == ord('\t'):
-                current_line, current_line_number = self.CurLine
+                current_line, current_line_num = self.CurLine
                 if not re.match(r'^\s*$', current_line):
                     self.complete_current_input()
                     if self.AutoCompActive():
@@ -467,16 +469,16 @@ class WxController(ConsoleWidget, PrefilterFrontEnd):
                 # independant of IPython
                 current_line, _ = self.CurLine
                 current_pos = self.GetCurrentPos()
-                current_line_number = self.LineFromPosition(current_pos)
+                current_line_num = self.LineFromPosition(current_pos)
                 current_col = self.GetColumn(current_pos)
                 len_prompt = len(self.continuation_prompt())
                 if ( current_line.startswith(self.continuation_prompt())
-                        and current_col == len_prompt):
+                                            and current_col == len_prompt):
                     new_lines = []
                     for line_num, line in enumerate(
                                     self.input_buffer.split('\n')):
                         if (line_num + self.current_prompt_line ==
-                                            current_line_number):
+                                            current_line_num):
                             new_lines.append(line[len_prompt:])
                         else:
                             new_lines.append('\n'+line)
@@ -515,9 +517,22 @@ class WxController(ConsoleWidget, PrefilterFrontEnd):
     def _on_enter(self):
         """ Called on return key down, in readline input_state.
         """
+        last_line_num = self.LineFromPosition(self.GetLength())
+        current_line_num = self.LineFromPosition(self.GetCurrentPos())
+        new_line_pos = (last_line_num - current_line_num)
         if self.debug:
             print >>sys.__stdout__, repr(self.input_buffer)
-        PrefilterFrontEnd._on_enter(self)
+        self.write('\n', refresh=False)
+        # Under windows scintilla seems to be doing funny
+        # stuff to the line returns here, but the getter for
+        # input_buffer filters this out.
+        if sys.platform == 'win32':
+            self.input_buffer = self.input_buffer
+        has_executed = PrefilterFrontEnd._on_enter(self, 
+                                            new_line_pos=new_line_pos)
+        if not has_executed:
+            self.GotoPos(self.GetLineEndPosition(current_line_num + 1))
+        return has_executed
 
 
     #--------------------------------------------------------------------------
