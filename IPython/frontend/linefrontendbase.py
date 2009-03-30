@@ -340,9 +340,9 @@ class LineFrontEndBase(FrontEndBase):
             new_line = self.continuation_prompt() + \
                   self._get_indent_string('\n'.join(
                                     prompt_less_lines[:new_line_pos-1]))
-            if len(lines) == 2:
+            if len(lines) == 1:
                 new_line += '\t'
-            if current_buffer[:-1].split('\n')[-1].rstrip().endswith(':'):
+            elif current_buffer[:-1].split('\n')[-1].rstrip().endswith(':'):
                 new_line += '\t'
 
             if new_line_pos == 0:
