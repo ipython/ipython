@@ -191,7 +191,6 @@ class PrefilterFrontEnd(LineFrontEndBase):
         # FIXME: This should be factored out in the linefrontendbase
         # method.
         word = self._get_completion_text(line)
-        print 'Completion', word
         completions = self.ipython0.complete(word)
         # FIXME: The proper sort should be done in the complete method.
         key = lambda x: x.replace('_', '')
