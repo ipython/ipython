@@ -7,6 +7,16 @@ Usage:
     
 %wdb pass
     Change the password (e.g. if you have forgotten the old one)
+
+
+Notes
+-----
+
+**WARNING**: As of March 2009 (IPython 0.10), WinPdb has a known bug, which
+causes PyTables to become impossible to import if winpdb is loaded.  Therefore,
+if you need PyTables, do *not* use this extension.
+
+For more details: https://bugs.launchpad.net/ipython/+bug/249036
 """
 
 import os

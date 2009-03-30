@@ -13,9 +13,7 @@ The code in this file is mainly lifted out of cmd.py in Python 2.2, with minor
 changes. Licensing should therefore be under the standard Python terms.  For
 details on the PSF (Python Software Foundation) standard license, see:
 
-http://www.python.org/2.2.3/license.html
-
-$Id: Debugger.py 2913 2007-12-31 12:42:14Z vivainio $"""
+http://www.python.org/2.2.3/license.html"""
 
 #*****************************************************************************
 #
@@ -27,10 +25,6 @@ $Id: Debugger.py 2913 2007-12-31 12:42:14Z vivainio $"""
 #
 #*****************************************************************************
 
-from IPython import Release
-__author__  = '%s <%s>' % Release.authors['Fernando']
-__license__ = 'Python'
-
 import bdb
 import cmd
 import linecache
@@ -39,7 +33,7 @@ import sys
 
 from IPython import PyColorize, ColorANSI, ipapi
 from IPython.genutils import Term
-from IPython.excolors import ExceptionColors
+from IPython.excolors import exception_colors
 
 # See if we can use pydb.
 has_pydb = False
@@ -210,7 +204,7 @@ class Pdb(OldPdb):
 
             # Create color table: we copy the default one from the traceback
             # module and add a few attributes needed for debugging
-            self.color_scheme_table = ExceptionColors.copy()
+            self.color_scheme_table = exception_colors()
 
             # shorthands 
             C = ColorANSI.TermColors
@@ -257,8 +251,7 @@ class Pdb(OldPdb):
 
             # Create color table: we copy the default one from the traceback
             # module and add a few attributes needed for debugging
-            ExceptionColors.set_active_scheme(color_scheme)
-            self.color_scheme_table = ExceptionColors.copy()
+            self.color_scheme_table = exception_colors()
 
             # shorthands 
             C = ColorANSI.TermColors

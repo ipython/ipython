@@ -12,13 +12,9 @@ to use these functions in platform agnostic fashion.
 #  the file COPYING, distributed as part of this software.
 #*****************************************************************************
 
-from IPython import Release
-__author__  = '%s <%s>' % Release.authors['Ville']
-__license__ = Release.license
-
 import os
 
-ignore_termtitle = False
+ignore_termtitle = True
 
 try:
     import ctypes

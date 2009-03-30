@@ -1,12 +1,10 @@
 """Decorators for labeling test objects.
 
-Decorators that merely return a modified version of the original
-function object are straightforward.  Decorators that return a new
-function object need to use
-nose.tools.make_decorator(original_function)(decorator) in returning
-the decorator, in order to preserve metadata such as function name,
-setup and teardown functions and so on - see nose.tools for more
-information.
+Decorators that merely return a modified version of the original function
+object are straightforward.  Decorators that return a new function object need
+to use nose.tools.make_decorator(original_function)(decorator) in returning the
+decorator, in order to preserve metadata such as function name, setup and
+teardown functions and so on - see nose.tools for more information.
 
 This module provides a set of useful decorators meant to be ready to use in
 your own tests.  See the bottom of the file for the ready-made ones, and if you
@@ -115,6 +113,115 @@ def make_label_dec(label,ds=None):
     
     return decor
 
+
+# Inspired by numpy's skipif, but uses the full apply_wrapper utility to
+# preserve function metadata better and allows the skip condition to be a
+# callable.
+def skipif(skip_condition, msg=None):
+    ''' Make function raise SkipTest exception if skip_condition is true
+
+    Parameters
+    ----------
+    skip_condition : bool or callable. 
+ 	Flag to determine whether to skip test.  If the condition is a 
+ 	callable, it is used at runtime to dynamically make the decision.  This 
+ 	is useful for tests that may require costly imports, to delay the cost 
+ 	until the test suite is actually executed.        
+    msg : string
+        Message to give on raising a SkipTest exception
+
+   Returns
+   -------
+   decorator : function
+       Decorator, which, when applied to a function, causes SkipTest
+       to be raised when the skip_condition was True, and the function
+       to be called normally otherwise.
+
+    Notes
+    -----
+    You will see from the code that we had to further decorate the
+    decorator with the nose.tools.make_decorator function in order to
+    transmit function name, and various other metadata.
+    '''
+
+    def skip_decorator(f):
+        # Local import to avoid a hard nose dependency and only incur the 
+        # import time overhead at actual test-time. 
+        import nose
+
+        # Allow for both boolean or callable skip conditions.
+        if callable(skip_condition):
+            skip_val = lambda : skip_condition()
+        else:
+            skip_val = lambda : skip_condition
+
+        def get_msg(func,msg=None):
+            """Skip message with information about function being skipped."""
+            if msg is None: out = 'Test skipped due to test condition.'
+            else: out = msg
+            return "Skipping test: %s. %s" % (func.__name__,out)
+
+        # We need to define *two* skippers because Python doesn't allow both
+        # return with value and yield inside the same function.
+        def skipper_func(*args, **kwargs):
+            """Skipper for normal test functions."""
+            if skip_val():
+                raise nose.SkipTest(get_msg(f,msg))
+            else:
+                return f(*args, **kwargs) 
+
+        def skipper_gen(*args, **kwargs):
+            """Skipper for test generators."""
+            if skip_val():
+                raise nose.SkipTest(get_msg(f,msg))
+            else:
+                for x in f(*args, **kwargs):
+                    yield x
+
+        # Choose the right skipper to use when building the actual generator.
+        if nose.util.isgenerator(f):
+            skipper = skipper_gen
+        else:
+            skipper = skipper_func
+            
+        return nose.tools.make_decorator(f)(skipper)
+
+    return skip_decorator
+
+# A version with the condition set to true, common case just to attacha message
+# to a skip decorator
+def skip(msg=None):
+    """Decorator factory - mark a test function for skipping from test suite.
+
+    :Parameters:
+      msg : string
+        Optional message to be added.
+
+    :Returns:
+       decorator : function
+         Decorator, which, when applied to a function, causes SkipTest
+         to be raised, with the optional message added.
+      """
+
+    return skipif(True,msg)
+
+
+#-----------------------------------------------------------------------------
+# Utility functions for decorators
+def numpy_not_available():
+    """Can numpy be imported?  Returns true if numpy does NOT import.
+
+    This is used to make a decorator to skip tests that require numpy to be
+    available, but delay the 'import numpy' to test execution time.
+    """
+    try:
+        import numpy
+        np_not_avail = False
+    except ImportError:
+        np_not_avail = True
+
+    return np_not_avail
+
 #-----------------------------------------------------------------------------
 # Decorators for public use
 
@@ -125,36 +232,23 @@ skip_doctest = make_label_dec('skip_doctest',
     omit from testing, while preserving the docstring for introspection, help,
     etc.""")                              
 
-def skip(msg=''):
-    """Decorator - mark a test function for skipping from test suite.
-
-    This function *is* already a decorator, it is not a factory like
-    make_label_dec or some of those in decorators_numpy.
-
-    :Parameters:
-
-      func : function
-        Test function to be skipped
-
-      msg : string
-        Optional message to be added.
-      """
-
-    import nose
-
-    def inner(func):
-
-        def wrapper(*a,**k):
-            if msg: out = '\n'+msg
-            else: out = ''
-            raise nose.SkipTest("Skipping test for function: %s%s" %
-                                (func.__name__,out))
-
-        return apply_wrapper(wrapper,func)
-
-    return inner
-
 # Decorators to skip certain tests on specific platforms.
-skip_win32 = skipif(sys.platform=='win32',"This test does not run under Windows")
-skip_linux = skipif(sys.platform=='linux2',"This test does not run under Linux")
-skip_osx = skipif(sys.platform=='darwin',"This test does not run under OSX")
+skip_win32 = skipif(sys.platform == 'win32',
+                    "This test does not run under Windows")
+skip_linux = skipif(sys.platform == 'linux2',
+                    "This test does not run under Linux")
+skip_osx = skipif(sys.platform == 'darwin',"This test does not run under OS X")
+
+
+# Decorators to skip tests if not on specific platforms.
+skip_if_not_win32 = skipif(sys.platform != 'win32',
+                           "This test only runs under Windows")
+skip_if_not_linux = skipif(sys.platform != 'linux2',
+                           "This test only runs under Linux")
+skip_if_not_osx = skipif(sys.platform != 'darwin',
+                         "This test only runs under OSX")
+
+# Other skip decorators
+skipif_not_numpy = skipif(numpy_not_available,"This test requires numpy")
+
+skipknownfailure = skip('This test is known to fail')

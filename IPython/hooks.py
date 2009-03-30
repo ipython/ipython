@@ -32,8 +32,7 @@ ip.set_hook('editor', calljed)
 
 You can then enable the functionality by doing 'import myiphooks'
 somewhere in your configuration files or ipython command line.
-
-$Id: hooks.py 2998 2008-01-31 10:06:04Z vivainio $"""
+"""
 
 #*****************************************************************************
 #       Copyright (C) 2005 Fernando Perez. <fperez@colorado.edu>
@@ -42,11 +41,7 @@ $Id: hooks.py 2998 2008-01-31 10:06:04Z vivainio $"""
 #  the file COPYING, distributed as part of this software.
 #*****************************************************************************
 
-from IPython import Release
 from IPython import ipapi
-__author__  = '%s <%s>' % Release.authors['Fernando']
-__license__ = Release.license
-__version__ = Release.version
 
 import os,bisect
 from genutils import Term,shell

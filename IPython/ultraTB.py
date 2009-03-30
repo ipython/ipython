@@ -59,8 +59,7 @@ ColorSchemeTable class. Currently the following exist:
 You can implement other color schemes easily, the syntax is fairly
 self-explanatory. Please send back new schemes you develop to the author for
 possible inclusion in future releases.
-
-$Id: ultraTB.py 2908 2007-12-30 21:07:46Z vivainio $"""
+"""
 
 #*****************************************************************************
 #       Copyright (C) 2001 Nathaniel Gray <n8gray@caltech.edu>
@@ -69,11 +68,6 @@ $Id: ultraTB.py 2908 2007-12-30 21:07:46Z vivainio $"""
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
 #*****************************************************************************
-
-from IPython import Release
-__author__  = '%s <%s>\n%s <%s>' % (Release.authors['Nathan']+
-                                    Release.authors['Fernando'])
-__license__ = Release.license
 
 # Required modules
 import inspect
@@ -98,7 +92,7 @@ from inspect import getsourcefile, getfile, getmodule,\
 # Modified pdb which doesn't damage IPython's readline handling
 from IPython import Debugger, PyColorize
 from IPython.ipstruct import Struct
-from IPython.excolors import ExceptionColors
+from IPython.excolors import exception_colors
 from IPython.genutils import Term,uniq_stable,error,info
 
 # Globals
@@ -320,7 +314,7 @@ class TBTools:
         self.call_pdb = call_pdb
 
         # Create color table
-        self.color_scheme_table = ExceptionColors 
+        self.color_scheme_table = exception_colors()
 
         self.set_colors(color_scheme)
         self.old_scheme = color_scheme  # save initial value for toggles

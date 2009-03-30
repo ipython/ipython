@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 """Mimic C structs with lots of extra functionality.
-
-$Id: ipstruct.py 1950 2006-11-28 19:15:35Z vivainio $"""
+"""
 
 #*****************************************************************************
 #       Copyright (C) 2001-2004 Fernando Perez <fperez@colorado.edu>
@@ -9,10 +8,6 @@ $Id: ipstruct.py 1950 2006-11-28 19:15:35Z vivainio $"""
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
 #*****************************************************************************
-
-from IPython import Release
-__author__  = '%s <%s>' % Release.authors['Fernando']
-__license__ = Release.license
 
 __all__ = ['Struct']
 
@@ -163,8 +158,22 @@ class Struct:
         return self.__dict__[key]
 
     def __contains__(self,key):
-        """Allows use of the 'in' operator."""
-        return self.__dict__.has_key(key)
+        """Allows use of the 'in' operator.
+
+        Examples:
+        >>> s = Struct(x=1)
+        >>> 'x' in s
+        True
+        >>> 'y' in s
+        False
+        >>> s[4] = None
+        >>> 4 in s
+        True
+        >>> s.z = None
+        >>> 'z' in s
+        True
+        """
+        return key in self.__dict__
 
     def __iadd__(self,other):
         """S += S2 is a shorthand for S.merge(S2)."""
@@ -246,12 +255,13 @@ class Struct:
         Optionally, one or more key=value pairs can be given at the end for
         direct update."""
 
-        # The funny name __loc_data__ is to prevent a common variable name which
-        # could be a fieled of a Struct to collide with this parameter. The problem
-        # would arise if the function is called with a keyword with this same name
-        # that a user means to add as a Struct field.
+        # The funny name __loc_data__ is to prevent a common variable name
+        # which could be a fieled of a Struct to collide with this
+        # parameter. The problem would arise if the function is called with a
+        # keyword with this same name that a user means to add as a Struct
+        # field.
         newdict = Struct.__make_dict(self,__loc_data__,**kw)
-        for k,v in newdict.items():
+        for k,v in newdict.iteritems():
             self[k] = v
 
     def merge(self,__loc_data__=None,__conflict_solve=None,**kw):

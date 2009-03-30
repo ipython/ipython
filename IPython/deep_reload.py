@@ -12,8 +12,7 @@ Alternatively, you can add a dreload builtin alongside normal reload with:
     >>> __builtin__.dreload = deep_reload.reload
     
 This code is almost entirely based on knee.py from the standard library.
-
-$Id: deep_reload.py 958 2005-12-27 23:17:51Z fperez $"""
+"""
 
 #*****************************************************************************
 #       Copyright (C) 2001 Nathaniel Gray <n8gray@caltech.edu>
@@ -21,12 +20,6 @@ $Id: deep_reload.py 958 2005-12-27 23:17:51Z fperez $"""
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
 #*****************************************************************************
-
-from IPython import Release # do it explicitly so pydoc can see it - pydoc bug
-__author__  = '%s <%s>' %  Release.authors['Nathan']
-__license__ = Release.license
-__version__ = "0.5"
-__date__    = "21 August 2001"
 
 import __builtin__
 import imp
