@@ -463,6 +463,8 @@ class WxController(ConsoleWidget, PrefilterFrontEnd):
                 # If characters where erased, check if we have to
                 # remove a line.
                 # XXX: What about DEL?
+                # FIXME: This logics should be in ConsoleWidget, as it is
+                # independant of IPython
                 current_line, _ = self.CurLine
                 current_pos = self.GetCurrentPos()
                 current_line_number = self.LineFromPosition(current_pos)
@@ -470,8 +472,6 @@ class WxController(ConsoleWidget, PrefilterFrontEnd):
                 len_prompt = len(self.continuation_prompt())
                 if ( current_line.startswith(self.continuation_prompt())
                         and current_col == len_prompt):
-                    print 'BACK', current_line, self.current_prompt_line, \
-                            current_line_number
                     new_lines = []
                     for line_num, line in enumerate(
                                     self.input_buffer.split('\n')):
