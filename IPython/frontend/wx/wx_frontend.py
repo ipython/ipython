@@ -459,8 +459,36 @@ class WxController(ConsoleWidget, PrefilterFrontEnd):
                         wx.CallAfter(self._popup_completion, create=True)
                 else:
                     event.Skip()
+            elif event.KeyCode == wx.WXK_BACK:
+                # If characters where erased, check if we have to
+                # remove a line.
+                # XXX: What about DEL?
+                current_line, _ = self.CurLine
+                current_pos = self.GetCurrentPos()
+                current_line_number = self.LineFromPosition(current_pos)
+                current_col = self.GetColumn(current_pos)
+                len_prompt = len(self.continuation_prompt())
+                if ( current_line.startswith(self.continuation_prompt())
+                        and current_col == len_prompt):
+                    print 'BACK', current_line, self.current_prompt_line, \
+                            current_line_number
+                    new_lines = []
+                    for line_num, line in enumerate(
+                                    self.input_buffer.split('\n')):
+                        if (line_num + self.current_prompt_line ==
+                                            current_line_number):
+                            new_lines.append(line[len_prompt:])
+                        else:
+                            new_lines.append('\n'+line)
+                    # The first character is '\n', due to the above
+                    # code:
+                    self.input_buffer = ''.join(new_lines)[1:]
+                    self.GotoPos(current_pos - 1 - len_prompt)
+                else:
+                    ConsoleWidget._on_key_down(self, event, skip=skip)
             else:
                 ConsoleWidget._on_key_down(self, event, skip=skip)
+                        
 
 
     def _on_key_up(self, event, skip=True):
@@ -472,11 +500,15 @@ class WxController(ConsoleWidget, PrefilterFrontEnd):
             wx.CallAfter(self._popup_completion, create=True)
         else:
             ConsoleWidget._on_key_up(self, event, skip=skip)
-        if (self.input_buffer.split('\n')[-1] == self.continuation_prompt()
-                        and self._input_state == 'readline'):
-            # Make sure the continuation_prompt is followed by a whitespace
+        # Make sure the continuation_prompts are always followed by a 
+        # whitespace
+        new_lines = []
+        if self._input_state == 'readline':
             position = self.GetCurrentPos()
-            self.input_buffer += ' '
+            for line in self.input_buffer.split('\n'):
+                if not line == self.continuation_prompt()[:-1]:
+                    new_lines.append(line)
+            self.input_buffer = '\n'.join(new_lines)
             self.GotoPos(position)
 
 

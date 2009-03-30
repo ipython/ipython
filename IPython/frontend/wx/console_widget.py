@@ -242,7 +242,9 @@ class ConsoleWidget(editwindow.EditWindow):
 
 
     def continuation_prompt(self):
-        """Returns the current continuation prompt.
+        """ Returns the current continuation prompt.
+            We need to implement this method here to deal with the
+            ascii escape sequences cleaning up.
         """
         # ASCII-less prompt
         ascii_less = ''.join(self.color_pat.split(self.last_prompt)[2::2])
@@ -270,21 +272,6 @@ class ConsoleWidget(editwindow.EditWindow):
         """
         return self.GetSize()[0]/self.GetCharWidth()
 
-
-
-    #--------------------------------------------------------------------------
-    # EditWindow API
-    #--------------------------------------------------------------------------
-
-    def OnUpdateUI(self, event):
-        """ Override the OnUpdateUI of the EditWindow class, to prevent 
-            syntax highlighting both for faster redraw, and for more
-            consistent look and feel.
-        """
-
-    #--------------------------------------------------------------------------
-    # Styling API
-    #--------------------------------------------------------------------------
 
     def configure_scintilla(self):
 
@@ -461,7 +448,18 @@ class ConsoleWidget(editwindow.EditWindow):
                 self.SetEdgeMode(stc.STC_EDGE_LINE)
                 self.SetEdgeColumn(88)
  
-        
+ 
+    #--------------------------------------------------------------------------
+    # EditWindow API
+    #--------------------------------------------------------------------------
+
+    def OnUpdateUI(self, event):
+        """ Override the OnUpdateUI of the EditWindow class, to prevent 
+            syntax highlighting both for faster redraw, and for more
+            consistent look and feel.
+        """
+
+       
     #--------------------------------------------------------------------------
     # Private API
     #--------------------------------------------------------------------------
@@ -572,6 +570,7 @@ class ConsoleWidget(editwindow.EditWindow):
         self._keep_cursor_in_buffer()
 
 
+    # XXX:  I need to avoid the problem of having an empty glass;
     def _keep_cursor_in_buffer(self, pos=None):
         """ Checks if the cursor is where it is allowed to be. If not,
             put it back.
@@ -602,7 +601,7 @@ class ConsoleWidget(editwindow.EditWindow):
         # Jump the continuation prompt
         continuation_prompt = self.continuation_prompt()
         if ( line.startswith(continuation_prompt)
-                     and line_pos < len(continuation_prompt)+1):
+                     and line_pos < len(continuation_prompt)):
             if line_pos < 2:
                 # We are at the beginning of the line, trying to move
                 # forward: jump forward.
