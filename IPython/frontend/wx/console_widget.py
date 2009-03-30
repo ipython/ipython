@@ -629,7 +629,8 @@ class ConsoleWidget(editwindow.EditWindow):
                                     len(continuation_prompt))
             return True
 
-        self.enter_catched = False #we re-allow enter event processing
+        # We re-allow enter event processing
+        self.enter_catched = False 
         return False
 
 
