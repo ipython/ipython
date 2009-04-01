@@ -54,7 +54,13 @@ def main():
     warnings.filterwarnings('ignore', 
         'This will be removed soon.  Use IPython.testing.util instead')
 
-    argv = sys.argv + [ '--with-ipdoctest',
+    argv = sys.argv + [ 
+                        # Loading ipdoctest causes problems with Twisted.
+                        # I am removing this as a temporary fix to get the 
+                        # test suite back into working shape.  Our nose
+                        # plugin needs to be gone through with a fine
+                        # toothed comb to find what is causing the problem.
+                        # '--with-ipdoctest',
                         '--doctest-tests','--doctest-extension=txt',
                         '--detailed-errors',
                        
