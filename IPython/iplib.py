@@ -1125,6 +1125,11 @@ class InteractiveShell(object,Magic):
                 print >> Term.cout
             print '*'*70
 
+        # Install mode should be re-entrant: if the install dir already exists,
+        # bail out cleanly
+        if mode == 'install' and os.path.isdir(ipythondir):
+            return
+
         cwd = os.getcwd()  # remember where we started
         glb = glob.glob
         print '*'*70
