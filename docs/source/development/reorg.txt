@@ -2,7 +2,10 @@
 IPython module reorganization
 =============================
 
-Currently, IPython has many top-level modules that serve many different purposes.  The lack of organization make it very difficult for developers to work on IPython and understand its design.  This document contains notes about how we will reorganize the modules into sub-packages.
+Currently, IPython has many top-level modules that serve many different purposes.
+The lack of organization make it very difficult for developers to work on IPython
+and understand its design. This document contains notes about how we will reorganize
+the modules into sub-packages.
 
 .. warning::
 
@@ -68,7 +71,8 @@ We propose to create the following new sub-packages:
 Where things will be moved
 ==========================
 
-* :file:`ColorANSI.py`.  Move to :file:`IPython/core/coloransi.py`.
+* :file:`ColorANSI.py`.  Move to :file:`IPython/core/coloransi.py`.  Maybe move to
+  :mod:`IPython.lib` or :mod:`IPython.python`?
 
 * :file:`ConfigLoader.py`.  Move to :file:`IPython/config/configloader.py`.
 
@@ -102,7 +106,9 @@ Where things will be moved
 * :file:`Prompts.py`.  Move to :file:`IPython/core/prompts.py` or
   :file:`IPython/frontend/prompts.py`.
 
-* :file:`PyColorize.py`.  Replace with pygments?  If not, move to :file:`IPython/core/pycolorize.py`.
+* :file:`PyColorize.py`. Replace with pygments? If not, move to
+  :file:`IPython/core/pycolorize.py`. Maybe move to :mod:`IPython.lib` or
+  :mod:`IPython.python`?
 
 * :file:`Release.py`.  Move to ??? or remove?
 
@@ -125,6 +131,7 @@ Where things will be moved
   :file:`IPython.lib`.
 
 * :file:`excolors.py`.  Move to :file:`IPython.core` or :file:`IPython.config`.
+  Maybe move to :mod:`IPython.lib` or :mod:`IPython.python`?
 
 * :file:`external`.  Good where it is!
 
