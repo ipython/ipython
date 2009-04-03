@@ -14,6 +14,7 @@ Currently, IPython has many top-level modules that serve many different purposes
     This effort will result in the removal from IPython of certain modules
     that are not used anymore, don't currently work, are unmaintained, etc.
 
+
 Current subpackges
 ==================
 
@@ -48,146 +49,151 @@ We propose to create the following new sub-packages:
   interpreter, but none of its extended capabilities.
 
 * :mod:`IPython.lib`. IPython has many extended capabilities that are not part
-  of the IPython core. These things go here and sit on top of the IPython
-  core.
+  of the IPython core. These things will go here.  Any better names than 
+  :mod:`IPython.lib`?
 
 * :mod:`IPython.python`. This sub-package will contain anything that might
-  eventually be found in the Python standard library. These things should only
-  depend on Python and the standard library.  Each sub-module in this
-  sub-package should contain functions and objects that serve a single
-  purpose. Similar in purpose to :mod:`twisted.python`. Could also call this
-  :mod:`IPython.tools` or something similar.
+  eventually be found in the Python standard library, like things in
+  :mod:`genutils`. Each sub-module in this sub-package should contain functions 
+  and classes that serve a single purpose. Similar in purpose to
+  :mod:`twisted.python`. Could also call this :mod:`IPython.tools`,
+  :mod:`IPython.utils` or something similar.
 
 * :mod:`IPython.sandbox`. This is for code that is untested and/or rotting and
   needs to be removed from IPython. Eventually all this code will either i) be
-  revived with tests and docs and re-included into IPython or 2) be put into a
-  separate top-level (not IPython) package that we keep around.
+  revived with tests and docs and re-included into IPython or 2) be removed from
+  IPython proper, but put into a separate top-level (not IPython) package that we
+  keep around.
 
 Where things will be moved
 ==========================
 
-* :mod:`ColorANSI.py`.  Move to :mod:`IPython.core`.
+* :file:`ColorANSI.py`.  Move to :file:`IPython/core/coloransi.py`.
 
-* :mod:`ConfigLoader.py`.  Move to :mod:`IPython.config`.
+* :file:`ConfigLoader.py`.  Move to :file:`IPython/config/configloader.py`.
 
-* :mod:`CrashHandler.py`.  Move to :mod:`IPython.core`.
+* :file:`CrashHandler.py`.  Move to :file:`IPython/core/crashhandler`.
 
-* :mod:`DPyGetOpt.py`.  Move the :mod:`IPython.sandbox` and replace with newer options parser.
+* :file:`DPyGetOpt.py`.  Move to :mod:`IPython.sandbox` and replace with newer options parser.
 
-* :mod:`Debugger.py`.  Move to :mod:`IPython.core`.
+* :file:`Debugger.py`.  Move to :file:`IPython/core/debugger.py`.
 
-* :mod:`Extensions`. This needs to be gone through separately. By default
-  everything here should simply be put into :mod:`IPython.core`. Of course, as
-  we do this, we will realize that some things belong in places like
-  :mod:`IPython.core`, :mod:`IPython.lib` and :mod:`IPython.python`.
+* :file:`Extensions`. This needs to be gone through separately.  Minimally,
+  the package should be renamed to :file:`extensions`.
 
-* :mod:`FakeModule.py`.  Move to :mod:`IPython.core`.
+* :file:`FakeModule.py`.  Move to :file:`IPython/core/fakemodule.py`.
 
-* :mod:`Gnuplot2.py`.  Move to :mod:`IPython.sandbox`.
+* :file:`Gnuplot2.py`.  Move to :file:`IPython.sandbox`.
 
-* :mod:`GnuplotInteractive.py`.  Move to :mod:`IPython.sandbox`.
+* :file:`GnuplotInteractive.py`.  Move to :file:`IPython.sandbox`.
 
-* :mod:`GnuplotRuntime.py`.  Move to :mod:`IPython.sandbox`.
+* :file:`GnuplotRuntime.py`.  Move to :file:`IPython.sandbox`.
 
-* :mod:`Itpl.py`.  Remove.  Version already in :mod:`IPython.external`.
+* :file:`Itpl.py`.  Remove.  Version already in :file:`IPython.external`.
 
-* :mod:`Logger.py`.  Move to :mod:`IPython.core`.
+* :file:`Logger.py`.  Move to :file:`IPython/core/logger.py`.
 
-* :mod:`Magic.py`.  Move to :mod:`IPython.core`.
+* :file:`Magic.py`.  Move to :file:`IPython/core/magic.py`.
 
-* :mod:`OInspect.py`.  Move to :mod:`IPython.core`.
+* :file:`OInspect.py`.  Move to :file:`IPython/core/oinspect.py`.
 
-* :mod:`OutputTrap.py`.  Move to :mod:`IPython.core`.
+* :file:`OutputTrap.py`.  Move to :file:`IPython/core/outputtrap.py`.
 
-* :mod:`Prompts.py`.  Move to :mod:`IPython.core` or :mod:`IPython.frontend`.
+* :file:`Prompts.py`.  Move to :file:`IPython/core/prompts.py` or
+  :file:`IPython/frontend/prompts.py`.
 
-* :mod:`PyColorize.py`.  Replace with pygments?  If not, move to :mod:`IPython.core`.
+* :file:`PyColorize.py`.  Replace with pygments?  If not, move to :file:`IPython/core/pycolorize.py`.
 
-* :mod:`Release.py`.  Move to ???.
+* :file:`Release.py`.  Move to ??? or remove?
 
-* :mod:`Shell.py`.  Move to :mod:`IPython.core` or :mod:`IPython.frontend`.
+* :file:`Shell.py`.  Move to :file:`IPython.core.shell.py` or
+  :file:`IPython/frontend/shell.py`.
 
-* :mod:`UserConfig`.  Move to a subdirectory of :mod:`IPython.config`.
+* :file:`UserConfig`.  Move to a subdirectory of :file:`IPython.config`.
 
-* :mod:`background_jobs.py`.  Move to :mod:`IPython.lib`.
+* :file:`background_jobs.py`.  Move to :file:`IPython/lib/backgroundjobs.py`.
 
-* :mod:`completer.py`.  Move to :mod:`IPython.core`.
+* :file:`completer.py`.  Move to :file:`IPython/core/completer.py`.
 
-* :mod:`config`.  Good where it is!
+* :file:`config`.  Good where it is!
 
-* :mod:`deep_reload.py`.  Move to :mod:`IPython.lib`.
+* :file:`deep_reload.py`.  Move to :file:`IPython/lib/deepreload.py`.
 
-* :mod:`demo.py`.  Move to :mod:`IPython.lib`.
+* :file:`demo.py`.  Move to :file:`IPython/lib/demo.py`.
 
-* :mod:`dtutils.py`.  Move to :mod:`IPython.testing` or :mod:`IPython.lib`.
+* :file:`dtutils.py`.  Remove or move to :file:`IPython.testing` or
+  :file:`IPython.lib`.
 
-* :mod:`excolors.py`.  Move to :mod:`IPython.core` or :mod:`IPython.config`.
+* :file:`excolors.py`.  Move to :file:`IPython.core` or :file:`IPython.config`.
 
-* :mod:`external`.  Good where it is!
+* :file:`external`.  Good where it is!
 
-* :mod:`frontend`.  Good where it is!
+* :file:`frontend`.  Good where it is!
 
-* :mod:`generics.py`.  Move to :mod:`IPython.python`.
+* :file:`generics.py`.  Move to :file:`IPython.python`.
 
-* :mod:`genutils.py`.  Move to :mod:`IPython.python` and break up into different modules.
+* :file:`genutils.py`.  Move to :file:`IPython.python` and break up into different
+  modules.
 
-* :mod:`gui`.  Eventually this should be moved to a subdir of :mod:`IPython.python`
+* :file:`gui`.  Eventually this should be moved to a subdir of   
+  :file:`IPython.frontend`.
 
-* :mod:`history.py`.  Move to :mod:`IPython.core`.
+* :file:`history.py`.  Move to :file:`IPython.core`.
 
-* :mod:`hooks.py`.  Move to :mod:`IPython.core`.
+* :file:`hooks.py`.  Move to :file:`IPython.core`.
 
-* :mod:`ipapi.py`.  Move to :mod:`IPython.core`.
+* :file:`ipapi.py`.  Move to :file:`IPython.core`.
 
-* :mod:`iplib.py`.  Move to :mod:`IPython.core`.
+* :file:`iplib.py`.  Move to :file:`IPython.core`.
 
-* :mod:`ipmaker.py`:  Move to :mod:`IPython.core`.
+* :file:`ipmaker.py`:  Move to :file:`IPython.core`.
 
-* :mod:`ipstruct.py`.  Move to :mod:`IPython.python`.
+* :file:`ipstruct.py`.  Move to :file:`IPython.python`.
 
-* :mod:`irunner.py`.  Move to :mod:`IPython.scripts`.
+* :file:`irunner.py`.  Move to :file:`IPython.scripts`.
 
-* :mod:`kernel`.  Good where it is.
+* :file:`kernel`.  Good where it is.
 
-* :mod:`macro.py`.  Move to :mod:`IPython.core`.
+* :file:`macro.py`.  Move to :file:`IPython.core`.
 
-* :mod:`numutils.py`.  Move to :mod:`IPython.sandbox`.
+* :file:`numutils.py`.  Move to :file:`IPython.sandbox`.
 
-* :mod:`platutils.py`.  Move to :mod:`IPython.python`.
+* :file:`platutils.py`.  Move to :file:`IPython.python`.
 
-* :mod:`platutils_dummy.py`.  Move to :mod:`IPython.python`.
+* :file:`platutils_dummy.py`.  Move to :file:`IPython.python`.
 
-* :mod:`platutils_posix.py`.  Move to :mod:`IPython.python`.
+* :file:`platutils_posix.py`.  Move to :file:`IPython.python`.
 
-* :mod:`platutils_win32.py`.  Move to :mod:`IPython.python`.
+* :file:`platutils_win32.py`.  Move to :file:`IPython.python`.
 
-* :mod:`prefilter.py`:  Move to :mod:`IPython.core`.
+* :file:`prefilter.py`:  Move to :file:`IPython.core`.
 
-* :mod:`rlineimpl.py`.  Move to :mod:`IPython.core`.
+* :file:`rlineimpl.py`.  Move to :file:`IPython.core`.
 
-* :mod:`shadowns.py`.  Move to :mod:`IPython.core`.
+* :file:`shadowns.py`.  Move to :file:`IPython.core`.
 
-* :mod:`shellglobals.py`.  Move to :mod:`IPython.core`.
+* :file:`shellglobals.py`.  Move to :file:`IPython.core`.
 
-* :mod:`strdispatch.py`.  Move to :mod:`IPython.python`.
+* :file:`strdispatch.py`.  Move to :file:`IPython.python`.
 
-* :mod:`testing`.  Good where it is.
+* :file:`testing`.  Good where it is.
 
-* :mod:`tests`.  Good where it is.
+* :file:`tests`.  Good where it is.
 
-* :mod:`tools`.  Things in here need to be looked at and moved elsewhere.
+* :file:`tools`.  Things in here need to be looked at and moved elsewhere like
+  :file:`IPython.python`.
 
-* :mod:`twshell.py`.  Move to :mod:`IPython.sandbox`.
+* :file:`twshell.py`.  Move to :file:`IPython.sandbox`.
 
-* :mod:`ultraTB.py`.  Move to :mod:`IPython.core`.
+* :file:`ultraTB.py`.  Move to :file:`IPython/core/ultratb.py`.
 
-* :mod:`upgrade_dir.py`.  Move to :mod:`IPython.python`.
+* :file:`upgrade_dir.py`.  Move to :file:`IPython/python/upgradedir.py`.
 
-* :mod:`usage.py`.  Move to :mod:`IPython.core`.
+* :file:`usage.py`.  Move to :file:`IPython.core`.
 
-* :mod:`wildcard.py`.  Move to :mod:`IPython.python` or :mod:`IPython.core`.
+* :file:`wildcard.py`.  Move to :file:`IPython.python` or :file:`IPython.core`.
 
-* :mod:`winconsole.py`.  Move to :mod:`IPython.lib`.
+* :file:`winconsole.py`.  Move to :file:`IPython.lib`.
 
 Other things
 ============
@@ -199,10 +205,12 @@ When these files are moved around, a number of other things will happen at the s
    test of the module reorganization. These tests will be put into new
    :file:`tests` subdirectories that each package will have.
 
-2. Modules will be renamed to comply with PEP 8 naming conventions:  all
+2. PyFlakes and other code checkers will be run to look for problems.
+
+3. Modules will be renamed to comply with PEP 8 naming conventions:  all
    lowercase and no special characters like ``-`` or ``_``.
 
-3. Existing tests will be moved to the appropriate :file:`tests`
+4. Existing tests will be moved to the appropriate :file:`tests`
    subdirectories.
 
 
