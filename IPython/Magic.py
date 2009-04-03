@@ -1800,7 +1800,24 @@ Currently the magic system has the following functions:\n"""
         import timeit
         import math
 
-        units = [u"s", u"ms", u"\xb5s", u"ns"]
+        # XXX: Unfortunately the unicode 'micro' symbol can cause problems in
+        # certain terminals.  Until we figure out a robust way of
+        # auto-detecting if the terminal can deal with it, use plain 'us' for
+        # microseconds.  Note: using
+        #
+        # s = u'\xb5'
+        # s.encode(sys.getdefaultencoding())
+        #
+        # is not sufficient, as I've seen terminals where that fails but
+        # print s
+        #
+        # succeeds
+        #
+        # See bug: https://bugs.launchpad.net/ipython/+bug/348466
+        
+        #units = [u"s", u"ms",u'\xb5',"ns"]
+        units = [u"s", u"ms",u'us',"ns"]
+        
         scaling = [1, 1e3, 1e6, 1e9]
 
         opts, stmt = self.parse_options(parameter_s,'n:r:tcp:',
