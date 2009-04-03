@@ -15,7 +15,6 @@ Limitations:
   won't even have these special _NN variables set at all.
 """
 
-
 #-----------------------------------------------------------------------------
 # Module imports
 
@@ -854,7 +853,7 @@ class IPythonDoctest(ExtensionDoctest):
                           "have either doctests or non-doctest tests, "
                           "not both. [NOSE_IPDOCTEST_TESTS]")
         parser.add_option('--ipdoctest-extension', action="append",
-                          dest="ipdoctestExtension",
+                          dest="ipdoctest_extension",
                           help="Also look for doctests in files with "
                           "this extension [NOSE_IPDOCTEST_EXTENSION]")
         # Set the default as a list, if given in env; otherwise
@@ -862,16 +861,15 @@ class IPythonDoctest(ExtensionDoctest):
         # an error.
         env_setting = env.get('NOSE_IPDOCTEST_EXTENSION')
         if env_setting is not None:
-            parser.set_defaults(ipdoctestExtension=tolist(env_setting))
+            parser.set_defaults(ipdoctest_extension=tolist(env_setting))
 
     def configure(self, options, config):
         Plugin.configure(self, options, config)
         self.doctest_tests = options.ipdoctest_tests
-        self.extension = tolist(options.ipdoctestExtension)
+        self.extension = tolist(options.ipdoctest_extension)
 
         self.parser = IPDocTestParser()
         self.finder = DocTestFinder(parser=self.parser)
         self.checker = IPDoctestOutputChecker()
         self.globs = None
         self.extraglobs = None
-
