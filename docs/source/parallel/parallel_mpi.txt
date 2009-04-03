@@ -32,34 +32,34 @@ Starting the engines with MPI enabled
 To use code that calls MPI, there are typically two things that MPI requires.
 
 1. The process that wants to call MPI must be started using
-   :command:`mpirun` or a batch system (like PBS) that has MPI support.
+   :command:`mpiexec` or a batch system (like PBS) that has MPI support.
 2. Once the process starts, it must call :func:`MPI_Init`.
 
 There are a couple of ways that you can start the IPython engines and get these things to happen.
 
-Automatic starting using :command:`mpirun` and :command:`ipcluster`
+Automatic starting using :command:`mpiexec` and :command:`ipcluster`
 -------------------------------------------------------------------
 
-The easiest approach is to use the `mpirun` mode of :command:`ipcluster`, which will first start a controller and then a set of engines using :command:`mpirun`::
+The easiest approach is to use the `mpiexec` mode of :command:`ipcluster`, which will first start a controller and then a set of engines using :command:`mpiexec`::
 
-    $ ipcluster mpirun -n 4
+    $ ipcluster mpiexec -n 4
 
 This approach is best as interrupting :command:`ipcluster` will automatically
 stop and clean up the controller and engines.
 
-Manual starting using :command:`mpirun`
+Manual starting using :command:`mpiexec`
 ---------------------------------------
 
-If you want to start the IPython engines using the :command:`mpirun`, just do::
+If you want to start the IPython engines using the :command:`mpiexec`, just do::
 
-    $ mpirun -n 4 ipengine --mpi=mpi4py
+    $ mpiexec -n 4 ipengine --mpi=mpi4py
 
 This requires that you already have a controller running and that the FURL
 files for the engines are in place. We also have built in support for
 PyTrilinos [PyTrilinos]_, which can be used (assuming is installed) by
 starting the engines with::
 
-    	mpirun -n 4 ipengine --mpi=pytrilinos
+    	mpiexec -n 4 ipengine --mpi=pytrilinos
 
 Automatic starting using PBS and :command:`ipcluster`
 -----------------------------------------------------
@@ -84,7 +84,7 @@ First, lets define a simply function that uses MPI to calculate the sum of a dis
 
 Now, start an IPython cluster in the same directory as :file:`psum.py`::
 
-    $ ipcluster mpirun -n 4
+    $ ipcluster mpiexec -n 4
 
 Finally, connect to the cluster and use this function interactively.  In this case, we create a random array on each engine and sum up all the random arrays using our :func:`psum` function:
 
