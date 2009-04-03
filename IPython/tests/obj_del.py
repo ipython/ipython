@@ -26,7 +26,7 @@ import sys
 
 class A(object):
     def __del__(self):
-      print 'object A deleted'
+      print 'obj_del.py: object A deleted'
 
 a = A()
 
