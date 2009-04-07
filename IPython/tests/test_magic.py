@@ -136,6 +136,8 @@ def doctest_refbug():
     """Very nasty problem with references held by multiple runs of a script.
     See: https://bugs.launchpad.net/ipython/+bug/269966
 
+    In [1]: _ip.IP.clear_main_mod_cache()
+    
     In [2]: run refbug
 
     In [3]: call_f()

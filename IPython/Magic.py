@@ -1584,23 +1584,22 @@ Currently the magic system has the following functions:\n"""
             prog_ns = self.shell.user_ns
             __name__save = self.shell.user_ns['__name__']
             prog_ns['__name__'] = '__main__'
-            main_mod = FakeModule(prog_ns)
+
+            ##main_mod = FakeModule(prog_ns)
+            main_mod = self.shell.new_main_mod(prog_ns)
+            
         else:
             # Run in a fresh, empty namespace
             if opts.has_key('n'):
                 name = os.path.splitext(os.path.basename(filename))[0]
             else:
                 name = '__main__'
-            main_mod = FakeModule()
+
+            main_mod = self.shell.new_main_mod()
+            
             prog_ns = main_mod.__dict__
             prog_ns['__name__'] = name
             
-            # The shell MUST hold a reference to main_mod so after %run exits,
-            # the python deletion mechanism doesn't zero it out (leaving
-            # dangling references).  However, we should drop old versions of
-            # main_mod.  There is now a proper API to manage this caching in
-            # the main shell object, we use that.            
-            self.shell.cache_main_mod(main_mod)
 
         # Since '%run foo' emulates 'python foo.py' at the cmd line, we must
         # set the __file__ global in the script's namespace
@@ -1703,9 +1702,14 @@ Currently the magic system has the following functions:\n"""
                     else:
                         # regular execution
                         runner(filename,prog_ns,prog_ns,exit_ignore=exit_ignore)
+
                 if opts.has_key('i'):
                     self.shell.user_ns['__name__'] = __name__save
                 else:
+                    # The shell MUST hold a reference to prog_ns so after %run
+                    # exits, the python deletion mechanism doesn't zero it out
+                    # (leaving dangling references).
+                    self.shell.cache_main_mod(prog_ns,filename)
                     # update IPython interactive namespace
                     del prog_ns['__name__']
                     self.shell.user_ns.update(prog_ns)
@@ -1719,6 +1723,7 @@ Currently the magic system has the following functions:\n"""
                 # added.  Otherwise it will trap references to objects
                 # contained therein.
                 del sys.modules[main_mod_name]
+
             self.shell.reloadhist()
                 
         return stats

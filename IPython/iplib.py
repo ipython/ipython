@@ -54,7 +54,7 @@ from pprint import pprint, pformat
 from IPython import Debugger,OInspect,PyColorize,ultraTB
 from IPython.ColorANSI import ColorScheme,ColorSchemeTable  # too long names
 from IPython.Extensions import pickleshare
-from IPython.FakeModule import FakeModule
+from IPython.FakeModule import FakeModule, init_fakemod_dict
 from IPython.Itpl import Itpl,itpl,printpl,ItplNS,itplns
 from IPython.Logger import Logger
 from IPython.Magic import Magic
@@ -499,13 +499,24 @@ class InteractiveShell(object,Magic):
         # calling functions defined in the script that use other things from
         # the script will fail, because the function's closure had references
         # to the original objects, which are now all None.  So we must protect
-        # these modules from deletion by keeping a cache.  To avoid keeping
-        # stale modules around (we only need the one from the last run), we use
-        # a dict keyed with the full path to the script, so only the last
-        # version of the module is held in the cache.  The %reset command will
-        # flush this cache.  See the cache_main_mod() and clear_main_mod_cache()
-        # methods for details on use.
-        self._user_main_modules = {}
+        # these modules from deletion by keeping a cache.
+        # 
+        # To avoid keeping stale modules around (we only need the one from the
+        # last run), we use a dict keyed with the full path to the script, so
+        # only the last version of the module is held in the cache.  Note,
+        # however, that we must cache the module *namespace contents* (their
+        # __dict__).  Because if we try to cache the actual modules, old ones
+        # (uncached) could be destroyed while still holding references (such as
+        # those held by GUI objects that tend to be long-lived)>
+        # 
+        # The %reset command will flush this cache.  See the cache_main_mod()
+        # and clear_main_mod_cache() methods for details on use.
+
+        # This is the cache used for 'main' namespaces
+        self._main_ns_cache = {}
+        # And this is the single instance of FakeModule whose __dict__ we keep
+        # copying and clearing for reuse on each %run
+        self._user_main_module = FakeModule()
 
         # A table holding all the namespaces IPython deals with, so that
         # introspection facilities can search easily.
@@ -521,7 +532,7 @@ class InteractiveShell(object,Magic):
         # a simple list.
         self.ns_refs_table = [ user_ns, user_global_ns, self.user_config_ns,
                                self.alias_table, self.internal_ns,
-                               self._user_main_modules ]
+                               self._main_ns_cache ]
         
         # We need to insert into sys.modules something that looks like a
         # module but which accesses the IPython namespace, for shelve and
@@ -1487,38 +1498,53 @@ class InteractiveShell(object,Magic):
             return True
         return ask_yes_no(prompt,default)
 
-    def cache_main_mod(self,mod,fname=None):
-        """Cache a main module.
+    def new_main_mod(self,ns=None):
+        """Return a new 'main' module object for user code execution.
+        """
+        main_mod = self._user_main_module
+        init_fakemod_dict(main_mod,ns)
+        return main_mod
 
-        When scripts are executed via %run, we must keep a reference to their
-        __main__ module (a FakeModule instance) around so that Python doesn't
-        clear it, rendering objects defined therein useless.
+    def cache_main_mod(self,ns,fname):
+        """Cache a main module's namespace.
+
+        When scripts are executed via %run, we must keep a reference to the
+        namespace of their __main__ module (a FakeModule instance) around so
+        that Python doesn't clear it, rendering objects defined therein
+        useless.
 
         This method keeps said reference in a private dict, keyed by the
         absolute path of the module object (which corresponds to the script
         path).  This way, for multiple executions of the same script we only
-        keep one copy of __main__ (the last one), thus preventing memory leaks
-        from old references while allowing the objects from the last execution
-        to be accessible.
+        keep one copy of the namespace (the last one), thus preventing memory
+        leaks from old references while allowing the objects from the last
+        execution to be accessible.
 
+        Note: we can not allow the actual FakeModule instances to be deleted,
+        because of how Python tears down modules (it hard-sets all their
+        references to None without regard for reference counts).  This method
+        must therefore make a *copy* of the given namespace, to allow the
+        original module's __dict__ to be cleared and reused.
+
+        
         Parameters
         ----------
-          mod : a module object
+          ns : a namespace (a dict, typically)
+
+          fname : str
+            Filename associated with the namespace.
 
         Examples
         --------
 
         In [10]: import IPython
 
-        In [11]: _ip.IP.cache_main_mod(IPython)
+        In [11]: _ip.IP.cache_main_mod(IPython.__dict__,IPython.__file__)
 
-        In [12]: IPython.__file__ in _ip.IP._user_main_modules
+        In [12]: IPython.__file__ in _ip.IP._main_ns_cache
         Out[12]: True
         """
-        if fname is None:
-            fname = mod.__file__
-        #print >> sys.stderr, 'CFNAME  :', os.path.abspath(fname)  # dbg
-        self._user_main_modules[os.path.abspath(fname)] = mod
+        self._main_ns_cache[os.path.abspath(fname)] = ns.copy()
 
     def clear_main_mod_cache(self):
         """Clear the cache of main modules.
@@ -1530,17 +1556,17 @@ class InteractiveShell(object,Magic):
 
         In [15]: import IPython
 
-        In [16]: _ip.IP.cache_main_mod(IPython)
+        In [16]: _ip.IP.cache_main_mod(IPython.__dict__,IPython.__file__)
 
-        In [17]: len(_ip.IP._user_main_modules) > 0
+        In [17]: len(_ip.IP._main_ns_cache) > 0
         Out[17]: True
 
         In [18]: _ip.IP.clear_main_mod_cache()
 
-        In [19]: len(_ip.IP._user_main_modules) == 0
+        In [19]: len(_ip.IP._main_ns_cache) == 0
         Out[19]: True
         """
-        self._user_main_modules.clear()
+        self._main_ns_cache.clear()
 
     def _should_recompile(self,e):
         """Utility routine for edit_syntax_error"""
