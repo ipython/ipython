@@ -131,3 +131,19 @@ def test_fail_dec2(*a,**k):
 def test_fail_dec3(*a,**k):
     yield nt.assert_true, False
 
+
+def doctest_refbug():
+    """Very nasty problem with references held by multiple runs of a script.
+    See: https://bugs.launchpad.net/ipython/+bug/269966
+
+    In [2]: run refbug
+
+    In [3]: call_f()
+    lowercased: hello
+
+    In [4]: run refbug
+
+    In [5]: call_f()
+    lowercased: hello
+    lowercased: hello
+    """

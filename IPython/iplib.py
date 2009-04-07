@@ -1487,7 +1487,7 @@ class InteractiveShell(object,Magic):
             return True
         return ask_yes_no(prompt,default)
 
-    def cache_main_mod(self,mod):
+    def cache_main_mod(self,mod,fname=None):
         """Cache a main module.
 
         When scripts are executed via %run, we must keep a reference to their
@@ -1515,7 +1515,10 @@ class InteractiveShell(object,Magic):
         In [12]: IPython.__file__ in _ip.IP._user_main_modules
         Out[12]: True
         """
-        self._user_main_modules[os.path.abspath(mod.__file__) ] = mod
+        if fname is None:
+            fname = mod.__file__
+        #print >> sys.stderr, 'CFNAME  :', os.path.abspath(fname)  # dbg
+        self._user_main_modules[os.path.abspath(fname)] = mod
 
     def clear_main_mod_cache(self):
         """Clear the cache of main modules.
