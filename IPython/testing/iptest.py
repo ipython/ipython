@@ -61,7 +61,7 @@ def main():
                         # plugin needs to be gone through with a fine
                         # toothed comb to find what is causing the problem.
                         # '--with-ipdoctest',
-                        '--doctest-tests','--doctest-extension=txt',
+                        '--ipdoctest-tests','--ipdoctest-extension=txt',
                         '--detailed-errors',
                        
                         # We add --exe because of setuptools' imbecility (it
@@ -81,11 +81,13 @@ def main():
            (':' in arg and  '.py' in arg):
             has_tests = True
             break
+        
     # If nothing was specifically requested, test full IPython
     if not has_tests:
         argv.append('IPython')
 
-    # Construct list of plugins, omitting the existing doctest plugin.
+    # Construct list of plugins, omitting the existing doctest plugin, which
+    # ours replaces (and extends).
     plugins = [IPythonDoctest(EXCLUDE)]
     for p in nose.plugins.builtin.plugins:
         plug = p()

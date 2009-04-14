@@ -15,6 +15,37 @@ sessions.
 
 import types
 
+def init_fakemod_dict(fm,adict=None):
+    """Initialize a FakeModule instance __dict__.
+
+    Kept as a standalone function and not a method so the FakeModule API can
+    remain basically empty.
+
+    This should be considered for private IPython use, used in managing
+    namespaces for %run.
+
+    Parameters
+    ----------
+
+    fm : FakeModule instance
+
+    adict : dict, optional
+    """
+
+    dct = {}
+    # It seems pydoc (and perhaps others) needs any module instance to
+    # implement a __nonzero__ method, so we add it if missing:
+    dct.setdefault('__nonzero__',lambda : True)
+    dct.setdefault('__file__',__file__)
+
+    if adict is not None:
+        dct.update(adict)
+
+    # Hard assignment of the object's __dict__.  This is nasty but deliberate.
+    fm.__dict__.clear()
+    fm.__dict__.update(dct)
+
+
 class FakeModule(types.ModuleType):
     """Simple class with attribute access to fake a module.
 
@@ -29,14 +60,7 @@ class FakeModule(types.ModuleType):
         
         # tmp to force __dict__ instance creation, else self.__dict__ fails
         self.__iptmp = None
-        
-        # It seems pydoc (and perhaps others) needs any module instance to
-        # implement a __nonzero__ method, so we add it if missing:
-        self.__dict__.setdefault('__nonzero__',lambda : True)
-        self.__dict__.setdefault('__file__',__file__)
-
         # cleanup our temp trick
         del self.__iptmp
-
-        if adict is not None:
-            self.__dict__.update(adict)
+        # Now, initialize the actual data in the instance dict.
+        init_fakemod_dict(self,adict)
