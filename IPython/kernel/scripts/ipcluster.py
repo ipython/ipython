@@ -478,15 +478,31 @@ Try running ipcluster with the -xy flags:  ipcluster local -xy -n 4""")
         cont_args.append('-y')
     return True
 
+def check_reuse(args, cont_args):
+    if args.r:
+        cont_args.append('-r')
+        if args.client_port == 0 or args.engine_port == 0:
+            log.err("""
+To reuse FURL files, you must also set the client and engine ports using
+the --client-port and --engine-port options.""")
+            reactor.stop()
+            return False
+        cont_args.append('--client-port=%i' % args.client_port)
+        cont_args.append('--engine-port=%i' % args.engine_port)
+    return True
 
 def main_local(args):
     cont_args = []
     cont_args.append('--logfile=%s' % pjoin(args.logdir,'ipcontroller'))
-
+    
     # Check security settings before proceeding
     if not check_security(args, cont_args):
         return
-
+    
+    # See if we are reusing FURL files
+    if not check_reuse(args, cont_args):
+        return
+    
     cl = ControllerLauncher(extra_args=cont_args)
     dstart = cl.start()
     def start_engines(cont_pid):
@@ -513,18 +529,22 @@ def main_local(args):
     dstart.addErrback(lambda f: f.raiseException())
 
 
-def main_mpirun(args):
+def main_mpi(args):
     cont_args = []
     cont_args.append('--logfile=%s' % pjoin(args.logdir,'ipcontroller'))
-
+    
     # Check security settings before proceeding
     if not check_security(args, cont_args):
         return
-
+    
+    # See if we are reusing FURL files
+    if not check_reuse(args, cont_args):
+        return
+    
     cl = ControllerLauncher(extra_args=cont_args)
     dstart = cl.start()
     def start_engines(cont_pid):
-        raw_args = ['mpirun']
+        raw_args = [args.cmd]
         raw_args.extend(['-n',str(args.n)])
         raw_args.append('ipengine')
         raw_args.append('-l')
@@ -554,11 +574,15 @@ def main_mpirun(args):
 def main_pbs(args):
     cont_args = []
     cont_args.append('--logfile=%s' % pjoin(args.logdir,'ipcontroller'))
-
+    
     # Check security settings before proceeding
     if not check_security(args, cont_args):
         return
-
+    
+    # See if we are reusing FURL files
+    if not check_reuse(args, cont_args):
+        return
+    
     cl = ControllerLauncher(extra_args=cont_args)
     dstart = cl.start()
     def start_engines(r):
@@ -598,13 +622,16 @@ def main_ssh(args):
     if not check_security(args, cont_args):
         return
     
+    # See if we are reusing FURL files
+    if not check_reuse(args, cont_args):
+        return
+    
     cl = ControllerLauncher(extra_args=cont_args)
     dstart = cl.start()
     def start_engines(cont_pid):
         ssh_set = SSHEngineSet(clusterfile['engines'], sshx=args.sshx)
         def shutdown(signum, frame):
             d = ssh_set.kill()
-            # d.addErrback(log.err)
             cl.interrupt_then_kill(1.0)
             reactor.callLater(2.0, reactor.stop)
         signal.signal(signal.SIGINT,shutdown)
@@ -620,6 +647,26 @@ def main_ssh(args):
 
 def get_args():
     base_parser = argparse.ArgumentParser(add_help=False)
+    base_parser.add_argument(
+        '-r',
+        action='store_true',
+        dest='r',
+        help='try to reuse FURL files.  Use with --client-port and --engine-port'
+    )
+    base_parser.add_argument(
+        '--client-port',
+        type=int,
+        dest='client_port',
+        help='the port the controller will listen on for client connections',
+        default=0
+    )
+    base_parser.add_argument(
+        '--engine-port',
+        type=int,
+        dest='engine_port',
+        help='the port the controller will listen on for engine connections',
+        default=0
+    )
     base_parser.add_argument(
         '-x',
         action='store_true',
@@ -665,7 +712,7 @@ def get_args():
     
     parser_mpirun = subparsers.add_parser(
         'mpirun',
-        help='run a cluster using mpirun',
+        help='run a cluster using mpirun (mpiexec also works)',
         parents=[base_parser]
     )
     parser_mpirun.add_argument(
@@ -674,7 +721,20 @@ def get_args():
         dest="mpi", # Don't put a default here to allow no MPI support
         help="how to call MPI_Init (default=mpi4py)"
     )
-    parser_mpirun.set_defaults(func=main_mpirun)
+    parser_mpirun.set_defaults(func=main_mpi, cmd='mpirun')
+
+    parser_mpiexec = subparsers.add_parser(
+        'mpiexec',
+        help='run a cluster using mpiexec (mpirun also works)',
+        parents=[base_parser]
+    )
+    parser_mpiexec.add_argument(
+        "--mpi",
+        type=str,
+        dest="mpi", # Don't put a default here to allow no MPI support
+        help="how to call MPI_Init (default=mpi4py)"
+    )
+    parser_mpiexec.set_defaults(func=main_mpi, cmd='mpiexec')
     
     parser_pbs = subparsers.add_parser(
         'pbs', 

@@ -885,7 +885,62 @@ class FullBlockingMultiEngineClient(InteractiveMultiEngineClient):
         targets, block = self._findTargetsAndBlock(targets, block)
         return self._blockFromThread(self.smultiengine.run, filename,
             targets=targets, block=block)
+    
+    def benchmark(self, push_size=10000):
+        """
+        Run performance benchmarks for the current IPython cluster.
+        
+        This method tests both the latency of sending command and data to the
+        engines as well as the throughput of sending large objects to the
+        engines using push.  The latency is measured by having one or more
+        engines execute the command 'pass'.  The throughput is measure by 
+        sending an NumPy array of size `push_size` to one or more engines.
+        
+        These benchmarks will vary widely on different hardware and networks
+        and thus can be used to get an idea of the performance characteristics
+        of a particular configuration of an IPython controller and engines.
+        
+        This function is not testable within our current testing framework.
+        """
+        import timeit, __builtin__
+        __builtin__._mec_self = self
+        benchmarks = {}
+        repeat = 3
+        count = 10
 
+        timer = timeit.Timer('_mec_self.execute("pass",0)')
+        result = 1000*min(timer.repeat(repeat,count))/count
+        benchmarks['single_engine_latency'] = (result,'msec')
+
+        timer = timeit.Timer('_mec_self.execute("pass")')
+        result = 1000*min(timer.repeat(repeat,count))/count
+        benchmarks['all_engine_latency'] = (result,'msec')
+
+        try:
+            import numpy as np
+        except:
+            pass
+        else:
+            timer = timeit.Timer(
+                "_mec_self.push(d)",
+                "import numpy as np; d = dict(a=np.zeros(%r,dtype='float64'))" % push_size
+            )
+            result = min(timer.repeat(repeat,count))/count
+            benchmarks['all_engine_push'] = (1e-6*push_size*8/result, 'MB/sec')
+
+        try:
+            import numpy as np
+        except:
+            pass
+        else:
+            timer = timeit.Timer(
+                "_mec_self.push(d,0)",
+                "import numpy as np; d = dict(a=np.zeros(%r,dtype='float64'))" % push_size
+            )
+            result = min(timer.repeat(repeat,count))/count
+            benchmarks['single_engine_push'] = (1e-6*push_size*8/result, 'MB/sec')
+
+        return benchmarks
 
 
 components.registerAdapter(FullBlockingMultiEngineClient,
