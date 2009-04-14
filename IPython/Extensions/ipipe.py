@@ -114,6 +114,11 @@ except NameError:
             items.reverse()
         return items
 
+try: # Python 2.4 compatibility
+    GeneratorExit
+except NameError:
+    GeneratorExit = SystemExit
+
 try:
     import pwd
 except ImportError:
@@ -666,7 +671,7 @@ def xrepr(item, mode="default"):
         try:
             for x in func(mode):
                 yield x
-        except (KeyboardInterrupt, SystemExit):
+        except (KeyboardInterrupt, SystemExit, GeneratorExit):
             raise
         except Exception:
             yield (astyle.style_default, repr(item))
@@ -840,20 +845,20 @@ def upgradexattr(attr):
     """
     Convert an attribute descriptor string to a real descriptor object.
 
-    If attr already is a descriptor object return if unmodified. A
+    If attr already is a descriptor object return it unmodified. A
     ``SelfDescriptor`` will be returned if ``attr`` is ``None``. ``"foo"``
     returns an ``AttributeDescriptor`` for the attribute named ``"foo"``.
     ``"foo()"`` returns a ``MethodDescriptor`` for the method named ``"foo"``.
     ``"-foo"`` will return an ``IterAttributeDescriptor`` for the attribute
     named ``"foo"`` and ``"-foo()"`` will return an ``IterMethodDescriptor``
-    for the method named ``"foo"``. Furthermore integer will return the appropriate
+    for the method named ``"foo"``. Furthermore integers will return the appropriate
     ``IndexDescriptor`` and callables will return a ``FunctionDescriptor``.
     """
     if attr is None:
         return selfdescriptor
     elif isinstance(attr, Descriptor):
         return attr
-    elif isinstance(attr, str):
+    elif isinstance(attr, basestring):
         if attr.endswith("()"):
             if attr.startswith("-"):
                 return IterMethodDescriptor(attr[1:-2])
