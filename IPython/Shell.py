@@ -299,12 +299,12 @@ if HAS_CTYPES:
         if res == 0:
             raise ValueError("invalid thread id")
         elif res != 1:
-            # """if it returns a number greater than one, you're in trouble, 
-            # and you should call it again with exc=NULL to revert the effect"""
+            # If it returns a number greater than one, you're in trouble, 
+            # and you should call it again with exc=NULL to revert the effect
             ctypes.pythonapi.PyThreadState_SetAsyncExc(tid, 0)
             raise SystemError("PyThreadState_SetAsyncExc failed")
 
-    def sigint_handler (signum,stack_frame):
+    def sigint_handler(signum,stack_frame):
         """Sigint handler for threaded apps.
 
         This is a horrible hack to pass information about SIGINT _without_
@@ -323,7 +323,7 @@ if HAS_CTYPES:
             Term.cout.flush()
 
 else:
-    def sigint_handler (signum,stack_frame):
+    def sigint_handler(signum,stack_frame):
         """Sigint handler for threaded apps.
 
         This is a horrible hack to pass information about SIGINT _without_
