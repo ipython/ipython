@@ -1584,10 +1584,7 @@ Currently the magic system has the following functions:\n"""
             prog_ns = self.shell.user_ns
             __name__save = self.shell.user_ns['__name__']
             prog_ns['__name__'] = '__main__'
-
-            ##main_mod = FakeModule(prog_ns)
             main_mod = self.shell.new_main_mod(prog_ns)
-            
         else:
             # Run in a fresh, empty namespace
             if opts.has_key('n'):
@@ -1596,10 +1593,8 @@ Currently the magic system has the following functions:\n"""
                 name = '__main__'
 
             main_mod = self.shell.new_main_mod()
-            
             prog_ns = main_mod.__dict__
             prog_ns['__name__'] = name
-            
 
         # Since '%run foo' emulates 'python foo.py' at the cmd line, we must
         # set the __file__ global in the script's namespace

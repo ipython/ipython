@@ -51,18 +51,18 @@ def test_reset():
 def test_user_setup():
     # use a lambda to pass kwargs to the generator
     user_setup = lambda a,k: iplib.user_setup(*a,**k)
-    kw = dict(mode='install',interactive=False)
+    kw = dict(mode='install', interactive=False)
 
     # Call the user setup and verify that the directory exists
-    yield user_setup, (ip.options.ipythondir,''),kw
-    yield os.path.isdir,ip.options.ipythondir
+    yield user_setup, (ip.options.ipythondir,''), kw
+    yield os.path.isdir, ip.options.ipythondir
 
     # Now repeat the operation with a non-existent directory. Check both that
     # the call succeeds and that the directory is created.
     tmpdir = tempfile.mktemp(prefix='ipython-test-')
     try:
-        yield user_setup, (tmpdir,''),kw
-        yield os.path.isdir,tmpdir
+        yield user_setup, (tmpdir,''), kw
+        yield os.path.isdir, tmpdir
     finally:
         # In this case, clean up the temp dir once done
         shutil.rmtree(tmpdir)
