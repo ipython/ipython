@@ -1865,9 +1865,9 @@ Currently the magic system has the following functions:\n"""
             # determine number so that 0.2 <= total time < 2.0
             number = 1
             for i in range(1, 10):
-                number *= 10
                 if timer.timeit(number) >= 0.2:
                     break
+                number *= 10
         
         best = min(timer.repeat(repeat, number)) / number
 
