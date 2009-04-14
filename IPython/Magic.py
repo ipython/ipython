@@ -1675,7 +1675,7 @@ Currently the magic system has the following functions:\n"""
                                    exit_ignore=exit_ignore)
                             t1 = clock2()
                             t_usr = t1[0]-t0[0]
-                            t_sys = t1[1]-t1[1]
+                            t_sys = t1[1]-t0[1]
                             print "\nIPython CPU timings (estimated):"
                             print "  User  : %10s s." % t_usr
                             print "  System: %10s s." % t_sys
@@ -1687,7 +1687,7 @@ Currently the magic system has the following functions:\n"""
                                        exit_ignore=exit_ignore)
                             t1 = clock2()
                             t_usr = t1[0]-t0[0]
-                            t_sys = t1[1]-t1[1]
+                            t_sys = t1[1]-t0[1]
                             print "\nIPython CPU timings (estimated):"
                             print "Total runs performed:",nruns
                             print "  Times : %10s    %10s" % ('Total','Per run')
