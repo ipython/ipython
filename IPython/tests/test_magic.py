@@ -37,7 +37,7 @@ def test_rehashx():
 def doctest_run_ns():
     """Classes declared %run scripts must be instantiable afterwards.
 
-    In [11]: run tclass
+    In [11]: run tclass foo
 
     In [12]: isinstance(f(),foo)
     Out[12]: True
@@ -47,12 +47,10 @@ def doctest_run_ns():
 def doctest_run_ns2():
     """Classes declared %run scripts must be instantiable afterwards.
 
-    In [3]: run tclass.py
+    In [4]: run tclass C-first_pass
 
-    In [4]: run tclass first_pass
-
-    In [5]: run tclass second_pass
-    Deleting object: first_pass
+    In [5]: run tclass C-second_pass
+    tclass.py: deleting object: C-first_pass
     """
 
 
@@ -85,7 +83,7 @@ def test_obj_del():
     test_dir = os.path.dirname(__file__)
     del_file = os.path.join(test_dir,'obj_del.py')
     out = _ip.IP.getoutput('ipython %s' % del_file)
-    nt.assert_equals(out,'object A deleted')
+    nt.assert_equals(out,'obj_del.py: object A deleted')
 
 
 def test_shist():
@@ -133,3 +131,21 @@ def test_fail_dec2(*a,**k):
 def test_fail_dec3(*a,**k):
     yield nt.assert_true, False
 
+
+def doctest_refbug():
+    """Very nasty problem with references held by multiple runs of a script.
+    See: https://bugs.launchpad.net/ipython/+bug/269966
+
+    In [1]: _ip.IP.clear_main_mod_cache()
+    
+    In [2]: run refbug
+
+    In [3]: call_f()
+    lowercased: hello
+
+    In [4]: run refbug
+
+    In [5]: call_f()
+    lowercased: hello
+    lowercased: hello
+    """

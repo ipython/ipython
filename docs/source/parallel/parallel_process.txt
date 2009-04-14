@@ -85,33 +85,40 @@ To see other command line options for the local mode, do::
 
     $ ipcluster local -h
 
-Using :command:`ipcluster` in mpirun mode
------------------------------------------
+Using :command:`ipcluster` in mpiexec/mpirun mode
+-------------------------------------------------
 
-The mpirun mode is useful if you:
+The mpiexec/mpirun mode is useful if you:
 
 1. Have MPI installed.
-2. Your systems are configured to use the :command:`mpirun` command to start 
-   processes.
+2. Your systems are configured to use the :command:`mpiexec` or
+   :command:`mpirun` commands to start MPI processes.
+
+.. note::
+
+    The preferred command to use is :command:`mpiexec`.  However, we also 
+    support :command:`mpirun` for backwards compatibility.  The underlying
+    logic used is exactly the same, the only difference being the name of the 
+    command line program that is called.
 
 If these are satisfied, you can start an IPython cluster using::
 
-    $ ipcluster mpirun -n 4
+    $ ipcluster mpiexec -n 4
 
 This does the following:
 
 1. Starts the IPython controller on current host.
-2. Uses :command:`mpirun` to start 4 engines.
+2. Uses :command:`mpiexec` to start 4 engines.
 
 On newer MPI implementations (such as OpenMPI), this will work even if you don't make any calls to MPI or call :func:`MPI_Init`.  However, older MPI implementations actually require each process to call :func:`MPI_Init` upon starting.  The easiest way of having this done is to install the mpi4py [mpi4py]_ package and then call ipcluster with the ``--mpi`` option::
 
-    $ ipcluster mpirun -n 4 --mpi=mpi4py
+    $ ipcluster mpiexec -n 4 --mpi=mpi4py
 
 Unfortunately, even this won't work for some MPI implementations.  If you are having problems with this, you will likely have to use a custom Python executable that itself calls :func:`MPI_Init` at the appropriate time.  Fortunately, mpi4py comes with such a custom Python executable that is easy to install and use.  However, this custom Python executable approach will not work with :command:`ipcluster` currently.
 
 Additional command line options for this mode can be found by doing::
 
-    $ ipcluster mpirun -h
+    $ ipcluster mpiexec -h
 
 More details on using MPI with IPython can be found :ref:`here <parallelmpi>`.
 
@@ -300,6 +307,11 @@ At fist glance it may seem that that managing the FURL files is a bit annoying. 
 This is possible.  The only thing you have to do is decide what ports the controller will listen on for the engines and clients.  This is done as follows::
 
     $ ipcontroller -r --client-port=10101 --engine-port=10102
+
+These options also work with all of the various modes of 
+:command:`ipcluster`::
+
+    $ ipcluster local -n 2 -r --client-port=10101 --engine-port=10102
 
 Then, just copy the furl files over the first time and you are set.  You can start and stop the controller and engines any many times as you want in the future, just make sure to tell the controller to use the *same* ports.
 

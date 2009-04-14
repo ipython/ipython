@@ -54,7 +54,7 @@ from pprint import pprint, pformat
 from IPython import Debugger,OInspect,PyColorize,ultraTB
 from IPython.ColorANSI import ColorScheme,ColorSchemeTable  # too long names
 from IPython.Extensions import pickleshare
-from IPython.FakeModule import FakeModule
+from IPython.FakeModule import FakeModule, init_fakemod_dict
 from IPython.Itpl import Itpl,itpl,printpl,ItplNS,itplns
 from IPython.Logger import Logger
 from IPython.Magic import Magic
@@ -107,6 +107,197 @@ def softspace(file, newvalue):
         pass
     return oldvalue
 
+
+def user_setup(ipythondir,rc_suffix,mode='install',interactive=True):
+    """Install or upgrade the user configuration directory.
+
+    Can be called when running for the first time or to upgrade the user's
+    .ipython/ directory.
+
+    Parameters
+    ----------
+      ipythondir : path
+        The directory to be used for installation/upgrade.  In 'install' mode,
+        if this path already exists, the function exits immediately.
+
+      rc_suffix : str
+        Extension for the config files.  On *nix platforms it is typically the
+        empty string, while Windows normally uses '.ini'.
+
+      mode : str, optional
+        Valid modes are 'install' and 'upgrade'.
+
+      interactive : bool, optional
+        If False, do not wait for user input on any errors.  Normally after
+        printing its status information, this function waits for the user to
+        hit Return before proceeding.  This is because the default use case is
+        when first installing the IPython configuration, so we want the user to
+        acknowledge the initial message, which contains some useful
+        information.
+        """
+
+    # For automatic use, deactivate all i/o
+    if interactive:
+        def wait():
+            try:
+                raw_input("Please press <RETURN> to start IPython.")
+            except EOFError:
+                print >> Term.cout
+            print '*'*70
+
+        def printf(s):
+            print s
+    else:
+        wait = lambda : None
+        printf = lambda s : None
+
+    # Install mode should be re-entrant: if the install dir already exists,
+    # bail out cleanly
+    if mode == 'install' and os.path.isdir(ipythondir):
+        return
+
+    cwd = os.getcwd()  # remember where we started
+    glb = glob.glob
+
+    printf('*'*70)
+    if mode == 'install':
+        printf(
+"""Welcome to IPython. I will try to create a personal configuration directory
+where you can customize many aspects of IPython's functionality in:\n""")
+    else:
+        printf('I am going to upgrade your configuration in:')
+
+    printf(ipythondir)
+
+    rcdirend = os.path.join('IPython','UserConfig')
+    cfg = lambda d: os.path.join(d,rcdirend)
+    try:
+        rcdir = filter(os.path.isdir,map(cfg,sys.path))[0]
+        printf("Initializing from configuration: %s" % rcdir)
+    except IndexError:
+        warning = """
+Installation error. IPython's directory was not found.
+
+Check the following:
+
+The ipython/IPython directory should be in a directory belonging to your
+PYTHONPATH environment variable (that is, it should be in a directory
+belonging to sys.path). You can copy it explicitly there or just link to it.
+
+IPython will create a minimal default configuration for you.
+
+"""
+        warn(warning)
+        wait()
+
+        if sys.platform =='win32':
+            inif = 'ipythonrc.ini'
+        else:
+            inif = 'ipythonrc'
+        minimal_setup = {'ipy_user_conf.py' : 'import ipy_defaults',
+                         inif : '# intentionally left blank' }
+        os.makedirs(ipythondir, mode = 0777)
+        for f, cont in minimal_setup.items():
+            # In 2.5, this can be more cleanly done using 'with'
+            fobj = file(ipythondir + '/' + f,'w')
+            fobj.write(cont)
+            fobj.close()
+
+        return
+
+    if mode == 'install':
+        try:
+            shutil.copytree(rcdir,ipythondir)
+            os.chdir(ipythondir)
+            rc_files = glb("ipythonrc*")
+            for rc_file in rc_files:
+                os.rename(rc_file,rc_file+rc_suffix)
+        except:
+            warning = """
+
+There was a problem with the installation:
+%s
+Try to correct it or contact the developers if you think it's a bug.
+IPython will proceed with builtin defaults.""" % sys.exc_info()[1]
+            warn(warning)
+            wait()
+            return
+
+    elif mode == 'upgrade':
+        try:
+            os.chdir(ipythondir)
+        except:
+            printf("""
+Can not upgrade: changing to directory %s failed. Details:
+%s
+""" % (ipythondir,sys.exc_info()[1]) )
+            wait()
+            return
+        else:
+            sources = glb(os.path.join(rcdir,'[A-Za-z]*'))
+            for new_full_path in sources:
+                new_filename = os.path.basename(new_full_path)
+                if new_filename.startswith('ipythonrc'):
+                    new_filename = new_filename + rc_suffix
+                # The config directory should only contain files, skip any
+                # directories which may be there (like CVS)
+                if os.path.isdir(new_full_path):
+                    continue
+                if os.path.exists(new_filename):
+                    old_file = new_filename+'.old'
+                    if os.path.exists(old_file):
+                        os.remove(old_file)
+                    os.rename(new_filename,old_file)
+                shutil.copy(new_full_path,new_filename)
+    else:
+        raise ValueError('unrecognized mode for install: %r' % mode)
+
+    # Fix line-endings to those native to each platform in the config
+    # directory.
+    try:
+        os.chdir(ipythondir)
+    except:
+        printf("""
+Problem: changing to directory %s failed.
+Details:
+%s
+
+Some configuration files may have incorrect line endings.  This should not
+cause any problems during execution.  """ % (ipythondir,sys.exc_info()[1]) )
+        wait()
+    else:
+        for fname in glb('ipythonrc*'):
+            try:
+                native_line_ends(fname,backup=0)
+            except IOError:
+                pass
+
+    if mode == 'install':
+        printf("""
+Successful installation!
+
+Please read the sections 'Initial Configuration' and 'Quick Tips' in the
+IPython manual (there are both HTML and PDF versions supplied with the
+distribution) to make sure that your system environment is properly configured
+to take advantage of IPython's features.
+
+Important note: the configuration system has changed! The old system is
+still in place, but its setting may be partly overridden by the settings in 
+"~/.ipython/ipy_user_conf.py" config file. Please take a look at the file 
+if some of the new settings bother you. 
+
+""")
+    else:
+        printf("""
+Successful upgrade!
+
+All files in your directory:
+%(ipythondir)s
+which would have been overwritten by the upgrade were backed up with a .old
+extension.  If you had made particular customizations in those files you may
+want to merge them back into the new files.""" % locals() )
+    wait()
+    os.chdir(cwd)
 
 #****************************************************************************
 # Local use exceptions
@@ -308,13 +499,24 @@ class InteractiveShell(object,Magic):
         # calling functions defined in the script that use other things from
         # the script will fail, because the function's closure had references
         # to the original objects, which are now all None.  So we must protect
-        # these modules from deletion by keeping a cache.  To avoid keeping
-        # stale modules around (we only need the one from the last run), we use
-        # a dict keyed with the full path to the script, so only the last
-        # version of the module is held in the cache.  The %reset command will
-        # flush this cache.  See the cache_main_mod() and clear_main_mod_cache()
-        # methods for details on use.
-        self._user_main_modules = {}
+        # these modules from deletion by keeping a cache.
+        # 
+        # To avoid keeping stale modules around (we only need the one from the
+        # last run), we use a dict keyed with the full path to the script, so
+        # only the last version of the module is held in the cache.  Note,
+        # however, that we must cache the module *namespace contents* (their
+        # __dict__).  Because if we try to cache the actual modules, old ones
+        # (uncached) could be destroyed while still holding references (such as
+        # those held by GUI objects that tend to be long-lived)>
+        # 
+        # The %reset command will flush this cache.  See the cache_main_mod()
+        # and clear_main_mod_cache() methods for details on use.
+
+        # This is the cache used for 'main' namespaces
+        self._main_ns_cache = {}
+        # And this is the single instance of FakeModule whose __dict__ we keep
+        # copying and clearing for reuse on each %run
+        self._user_main_module = FakeModule()
 
         # A table holding all the namespaces IPython deals with, so that
         # introspection facilities can search easily.
@@ -330,7 +532,7 @@ class InteractiveShell(object,Magic):
         # a simple list.
         self.ns_refs_table = [ user_ns, user_global_ns, self.user_config_ns,
                                self.alias_table, self.internal_ns,
-                               self._user_main_modules ]
+                               self._main_ns_cache ]
         
         # We need to insert into sys.modules something that looks like a
         # module but which accesses the IPython namespace, for shelve and
@@ -1114,156 +1316,11 @@ class InteractiveShell(object,Magic):
     def user_setup(self,ipythondir,rc_suffix,mode='install'):
         """Install the user configuration directory.
 
-        Can be called when running for the first time or to upgrade the user's
-        .ipython/ directory with the mode parameter. Valid modes are 'install'
-        and 'upgrade'."""
-
-        def wait():
-            try:
-                raw_input("Please press <RETURN> to start IPython.")
-            except EOFError:
-                print >> Term.cout
-            print '*'*70
-
-        cwd = os.getcwd()  # remember where we started
-        glb = glob.glob
-        print '*'*70
-        if mode == 'install':
-            print \
-"""Welcome to IPython. I will try to create a personal configuration directory
-where you can customize many aspects of IPython's functionality in:\n"""
-        else:
-            print 'I am going to upgrade your configuration in:'
-
-        print ipythondir
-
-        rcdirend = os.path.join('IPython','UserConfig')
-        cfg = lambda d: os.path.join(d,rcdirend)
-        try:
-            rcdir = filter(os.path.isdir,map(cfg,sys.path))[0]
-            print "Initializing from configuration",rcdir
-        except IndexError:
-            warning = """
-Installation error. IPython's directory was not found.
-
-Check the following:
-
-The ipython/IPython directory should be in a directory belonging to your
-PYTHONPATH environment variable (that is, it should be in a directory
-belonging to sys.path). You can copy it explicitly there or just link to it.
-
-IPython will create a minimal default configuration for you.
-
-"""
-            warn(warning)
-            wait()
-            
-            if sys.platform =='win32':
-                inif = 'ipythonrc.ini'
-            else:
-                inif = 'ipythonrc'
-            minimal_setup = {'ipy_user_conf.py' : 'import ipy_defaults',
-                             inif : '# intentionally left blank' }
-            os.makedirs(ipythondir, mode = 0777)
-            for f, cont in minimal_setup.items():
-                open(ipythondir + '/' + f,'w').write(cont)
-                             
-            return
-
-        if mode == 'install':
-            try:
-                shutil.copytree(rcdir,ipythondir)
-                os.chdir(ipythondir)
-                rc_files = glb("ipythonrc*")
-                for rc_file in rc_files:
-                    os.rename(rc_file,rc_file+rc_suffix)
-            except:
-                warning = """
-
-There was a problem with the installation:
-%s
-Try to correct it or contact the developers if you think it's a bug.
-IPython will proceed with builtin defaults.""" % sys.exc_info()[1]
-                warn(warning)
-                wait()
-                return
-
-        elif mode == 'upgrade':
-            try:
-                os.chdir(ipythondir)
-            except:
-                print """
-Can not upgrade: changing to directory %s failed. Details:
-%s
-""" % (ipythondir,sys.exc_info()[1])
-                wait()
-                return
-            else:
-                sources = glb(os.path.join(rcdir,'[A-Za-z]*'))
-                for new_full_path in sources:
-                    new_filename = os.path.basename(new_full_path)
-                    if new_filename.startswith('ipythonrc'):
-                        new_filename = new_filename + rc_suffix
-                    # The config directory should only contain files, skip any
-                    # directories which may be there (like CVS)
-                    if os.path.isdir(new_full_path):
-                        continue
-                    if os.path.exists(new_filename):
-                        old_file = new_filename+'.old'
-                        if os.path.exists(old_file):
-                            os.remove(old_file)
-                        os.rename(new_filename,old_file)
-                    shutil.copy(new_full_path,new_filename)
-        else:
-            raise ValueError,'unrecognized mode for install:',`mode`
-
-        # Fix line-endings to those native to each platform in the config
-        # directory.
-        try:
-            os.chdir(ipythondir)
-        except:
-            print """
-Problem: changing to directory %s failed.
-Details:
-%s
-
-Some configuration files may have incorrect line endings.  This should not
-cause any problems during execution.  """ % (ipythondir,sys.exc_info()[1])
-            wait()
-        else:
-            for fname in glb('ipythonrc*'):
-                try:
-                    native_line_ends(fname,backup=0)
-                except IOError:
-                    pass
-
-        if mode == 'install':
-            print """
-Successful installation!
-
-Please read the sections 'Initial Configuration' and 'Quick Tips' in the
-IPython manual (there are both HTML and PDF versions supplied with the
-distribution) to make sure that your system environment is properly configured
-to take advantage of IPython's features.
-
-Important note: the configuration system has changed! The old system is
-still in place, but its setting may be partly overridden by the settings in 
-"~/.ipython/ipy_user_conf.py" config file. Please take a look at the file 
-if some of the new settings bother you. 
-
-"""
-        else:
-            print """
-Successful upgrade!
-
-All files in your directory:
-%(ipythondir)s
-which would have been overwritten by the upgrade were backed up with a .old
-extension.  If you had made particular customizations in those files you may
-want to merge them back into the new files.""" % locals()
-        wait()
-        os.chdir(cwd)
-        # end user_setup()
+        Note
+        ----
+        DEPRECATED: use the top-level user_setup() function instead.
+        """
+        return user_setup(ipythondir,rc_suffix,mode)
 
     def atexit_operations(self):
         """This will be executed at the time of exit.
@@ -1441,35 +1498,53 @@ want to merge them back into the new files.""" % locals()
             return True
         return ask_yes_no(prompt,default)
 
-    def cache_main_mod(self,mod):
-        """Cache a main module.
+    def new_main_mod(self,ns=None):
+        """Return a new 'main' module object for user code execution.
+        """
+        main_mod = self._user_main_module
+        init_fakemod_dict(main_mod,ns)
+        return main_mod
 
-        When scripts are executed via %run, we must keep a reference to their
-        __main__ module (a FakeModule instance) around so that Python doesn't
-        clear it, rendering objects defined therein useless.
+    def cache_main_mod(self,ns,fname):
+        """Cache a main module's namespace.
+
+        When scripts are executed via %run, we must keep a reference to the
+        namespace of their __main__ module (a FakeModule instance) around so
+        that Python doesn't clear it, rendering objects defined therein
+        useless.
 
         This method keeps said reference in a private dict, keyed by the
         absolute path of the module object (which corresponds to the script
         path).  This way, for multiple executions of the same script we only
-        keep one copy of __main__ (the last one), thus preventing memory leaks
-        from old references while allowing the objects from the last execution
-        to be accessible.
+        keep one copy of the namespace (the last one), thus preventing memory
+        leaks from old references while allowing the objects from the last
+        execution to be accessible.
 
+        Note: we can not allow the actual FakeModule instances to be deleted,
+        because of how Python tears down modules (it hard-sets all their
+        references to None without regard for reference counts).  This method
+        must therefore make a *copy* of the given namespace, to allow the
+        original module's __dict__ to be cleared and reused.
+
+        
         Parameters
         ----------
-          mod : a module object
+          ns : a namespace (a dict, typically)
+
+          fname : str
+            Filename associated with the namespace.
 
         Examples
         --------
 
         In [10]: import IPython
 
-        In [11]: _ip.IP.cache_main_mod(IPython)
+        In [11]: _ip.IP.cache_main_mod(IPython.__dict__,IPython.__file__)
 
-        In [12]: IPython.__file__ in _ip.IP._user_main_modules
+        In [12]: IPython.__file__ in _ip.IP._main_ns_cache
         Out[12]: True
         """
-        self._user_main_modules[os.path.abspath(mod.__file__) ] = mod
+        self._main_ns_cache[os.path.abspath(fname)] = ns.copy()
 
     def clear_main_mod_cache(self):
         """Clear the cache of main modules.
@@ -1481,17 +1556,17 @@ want to merge them back into the new files.""" % locals()
 
         In [15]: import IPython
 
-        In [16]: _ip.IP.cache_main_mod(IPython)
+        In [16]: _ip.IP.cache_main_mod(IPython.__dict__,IPython.__file__)
 
-        In [17]: len(_ip.IP._user_main_modules) > 0
+        In [17]: len(_ip.IP._main_ns_cache) > 0
         Out[17]: True
 
         In [18]: _ip.IP.clear_main_mod_cache()
 
-        In [19]: len(_ip.IP._user_main_modules) == 0
+        In [19]: len(_ip.IP._main_ns_cache) == 0
         Out[19]: True
         """
-        self._user_main_modules.clear()
+        self._main_ns_cache.clear()
 
     def _should_recompile(self,e):
         """Utility routine for edit_syntax_error"""

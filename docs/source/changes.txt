@@ -75,6 +75,9 @@ Bug fixes
   The block is assigned to pasted_block even if code
   raises exception.
 
+* Bug #274067 'The code in get_home_dir is broken for py2exe' was
+  fixed.
+
 Backwards incompatible changes
 ------------------------------
 

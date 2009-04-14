@@ -128,7 +128,7 @@ prompt_specials_color = {
     r'\N': '${self.cache.prompt_count}',
     # Prompt/history count, with the actual digits replaced by dots.  Used
     # mainly in continuation prompts (prompt_in2)
-    r'\D': '${"."*len(str(self.cache.prompt_count))}',
+    r'\D': '${"."*__builtins__.len(__builtins__.str(self.cache.prompt_count))}',
     # Current working directory
     r'\w': '${os.getcwd()}',
     # Current time
