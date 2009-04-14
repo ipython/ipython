@@ -1808,7 +1808,11 @@ Currently the magic system has the following functions:\n"""
         # XXX: Unfortunately the unicode 'micro' symbol can cause problems in
         # certain terminals.  Until we figure out a robust way of
         # auto-detecting if the terminal can deal with it, use plain 'us' for
-        # microseconds.  Note: using
+        # microseconds.  I am really NOT happy about disabling the proper
+        # 'micro' prefix, but crashing is worse... If anyone knows what the
+        # right solution for this is, I'm all ears...
+        #
+        # Note: using
         #
         # s = u'\xb5'
         # s.encode(sys.getdefaultencoding())
