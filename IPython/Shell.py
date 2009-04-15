@@ -292,17 +292,19 @@ if HAS_CTYPES:
         """raises the exception, performs cleanup if needed"""
         if not inspect.isclass(exctype):
             raise TypeError("Only types can be raised (not instances)")
-        res = ctypes.pythonapi.PyThreadState_SetAsyncExc(tid,
+        # Explicit cast to c_long is necessary for 64-bit support:
+        # See https://bugs.launchpad.net/ipython/+bug/237073
+        res = ctypes.pythonapi.PyThreadState_SetAsyncExc(ctypes.c_long(tid),
                                                          ctypes.py_object(exctype))
         if res == 0:
             raise ValueError("invalid thread id")
         elif res != 1:
-            # """if it returns a number greater than one, you're in trouble, 
-            # and you should call it again with exc=NULL to revert the effect"""
+            # If it returns a number greater than one, you're in trouble, 
+            # and you should call it again with exc=NULL to revert the effect
             ctypes.pythonapi.PyThreadState_SetAsyncExc(tid, 0)
             raise SystemError("PyThreadState_SetAsyncExc failed")
 
-    def sigint_handler (signum,stack_frame):
+    def sigint_handler(signum,stack_frame):
         """Sigint handler for threaded apps.
 
         This is a horrible hack to pass information about SIGINT _without_
@@ -321,7 +323,7 @@ if HAS_CTYPES:
             Term.cout.flush()
 
 else:
-    def sigint_handler (signum,stack_frame):
+    def sigint_handler(signum,stack_frame):
         """Sigint handler for threaded apps.
 
         This is a horrible hack to pass information about SIGINT _without_
