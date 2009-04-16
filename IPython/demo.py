@@ -111,10 +111,10 @@ has a few useful methods for navigation, like again(), edit(), jump(), seek()
 and back().  It can be reset for a new run via reset() or reloaded from disk
 (in case you've edited the source) via reload().  See their docstrings below.
 
-Note: To make this simpler to explore, a file called "demoExercizer.py" has
+Note: To make this simpler to explore, a file called "demo-exercizer.py" has
 been added to the \ipython\docs\examples\core.  Just cd to this directory in
 an IPython session, and type:
-run demoExercizer.py
+run demo-exercizer.py
 and then follow the directions.
 Example
 =======
