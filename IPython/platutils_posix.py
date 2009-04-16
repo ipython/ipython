@@ -30,3 +30,5 @@ if os.environ.get('TERM','') == 'xterm':
     set_term_title = _set_term_title_xterm
 else:
     set_term_title = _dummy_op
+def term_clear():
+    os.system('clear')

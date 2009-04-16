@@ -41,3 +41,7 @@ except ImportError:
         if ret:
             # non-zero return code signals error, don't try again
             ignore_termtitle = True
+
+def term_clear():
+    os.system('cls')
+
