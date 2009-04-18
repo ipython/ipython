@@ -31,9 +31,10 @@ from IPython.external import argparse
 from IPython.external import Itpl
 from IPython.genutils import get_ipython_dir, num_cpus
 from IPython.kernel.fcutil import have_crypto
-from IPython.kernel.error import SecurityError
+from IPython.kernel.config import config_manager as kernel_config_manager
+from IPython.kernel.error import SecurityError, FileTimeoutError
 from IPython.kernel.fcutil import have_crypto
-from IPython.kernel.twistedutil import gatherBoth
+from IPython.kernel.twistedutil import gatherBoth, wait_for_file
 from IPython.kernel.util import printer
 
 
@@ -469,6 +470,7 @@ class SSHEngineSet(object):
 # The main functions should then just parse the command line arguments, create
 # the appropriate class and call a 'start' method.
 
+
 def check_security(args, cont_args):
     if (not args.x or not args.y) and not have_crypto:
         log.err("""
@@ -482,6 +484,7 @@ Try running ipcluster with the -xy flags:  ipcluster local -xy -n 4""")
         cont_args.append('-y')
     return True
 
+
 def check_reuse(args, cont_args):
     if args.r:
         cont_args.append('-r')
@@ -494,6 +497,23 @@ the --client-port and --engine-port options.""")
         cont_args.append('--client-port=%i' % args.client_port)
         cont_args.append('--engine-port=%i' % args.engine_port)
     return True
+
+
+def _err_and_stop(f):
+    log.err(f)
+    reactor.stop()
+
+
+def _delay_start(cont_pid, start_engines, furl_file, reuse):
+    if not reuse:
+        if os.path.isfile(furl_file):
+            os.unlink(furl_file)
+    log.msg('Waiting for controller to finish starting...')
+    d = wait_for_file(furl_file, delay=0.2, max_tries=50)
+    d.addCallback(lambda _: log.msg('Controller started'))
+    d.addCallback(lambda _: start_engines(cont_pid))
+    return d
+
 
 def main_local(args):
     cont_args = []
@@ -524,13 +544,10 @@ def main_local(args):
         signal.signal(signal.SIGINT,shutdown)
         d = eset.start(args.n)
         return d
-    def delay_start(cont_pid):
-        # This is needed because the controller doesn't start listening
-        # right when it starts and the controller needs to write
-        # furl files for the engine to pick up
-        reactor.callLater(1.0, start_engines, cont_pid)
-    dstart.addCallback(delay_start)
-    dstart.addErrback(lambda f: f.raiseException())
+    config = kernel_config_manager.get_config_obj()
+    furl_file = config['controller']['engine_furl_file']
+    dstart.addCallback(_delay_start, start_engines, furl_file, args.r)
+    dstart.addErrback(_err_and_stop)
 
 
 def main_mpi(args):
@@ -566,13 +583,10 @@ def main_mpi(args):
         signal.signal(signal.SIGINT,shutdown)
         d = eset.start()
         return d
-    def delay_start(cont_pid):
-        # This is needed because the controller doesn't start listening
-        # right when it starts and the controller needs to write
-        # furl files for the engine to pick up
-        reactor.callLater(1.0, start_engines, cont_pid)
-    dstart.addCallback(delay_start)
-    dstart.addErrback(lambda f: f.raiseException())
+    config = kernel_config_manager.get_config_obj()
+    furl_file = config['controller']['engine_furl_file']
+    dstart.addCallback(_delay_start, start_engines, furl_file, args.r)
+    dstart.addErrback(_err_and_stop)
 
 
 def main_pbs(args):
@@ -599,8 +613,10 @@ def main_pbs(args):
         signal.signal(signal.SIGINT,shutdown)
         d = pbs_set.start(args.n)
         return d
-    dstart.addCallback(start_engines)
-    dstart.addErrback(lambda f: f.raiseException())
+    config = kernel_config_manager.get_config_obj()
+    furl_file = config['controller']['engine_furl_file']
+    dstart.addCallback(_delay_start, start_engines, furl_file, args.r)
+    dstart.addErrback(_err_and_stop)
 
 
 def main_ssh(args):
@@ -641,12 +657,10 @@ def main_ssh(args):
         signal.signal(signal.SIGINT,shutdown)
         d = ssh_set.start(clusterfile['send_furl'])
         return d
-    
-    def delay_start(cont_pid):
-        reactor.callLater(1.0, start_engines, cont_pid)
-        
-    dstart.addCallback(delay_start)
-    dstart.addErrback(lambda f: f.raiseException())
+    config = kernel_config_manager.get_config_obj()
+    furl_file = config['controller']['engine_furl_file']
+    dstart.addCallback(_delay_start, start_engines, furl_file, args.r)
+    dstart.addErrback(_err_and_stop)
 
 
 def get_args():

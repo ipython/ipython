@@ -22,6 +22,7 @@ import sys
 sys.path.insert(0, '')
 
 import sys, time, os
+import tempfile
 from optparse import OptionParser
 
 from twisted.application import internet, service
@@ -44,6 +45,10 @@ from IPython.config.cutils import import_item
 #-------------------------------------------------------------------------------
 # Code
 #-------------------------------------------------------------------------------
+
+def get_temp_furlfile(filename):
+    return tempfile.mktemp(dir=os.path.dirname(filename),
+                           prefix=os.path.basename(filename))
 
 def make_tub(ip, port, secure, cert_file):
     """
@@ -107,13 +112,19 @@ def make_client_service(controller_service, config):
         """Set the location for the tub and return a deferred."""
 
         def register(empty, ref, furl_file):
-            client_tub.registerReference(ref, furlFile=furl_file)
+            # We create and then move to make sure that when the file
+            # appears to other processes, the buffer has the flushed
+            # and the file has been closed
+            temp_furl_file = get_temp_furlfile(furl_file)
+            log.msg(temp_furl_file)
+            client_tub.registerReference(ref, furlFile=temp_furl_file)
+            os.rename(temp_furl_file, furl_file)
         
         if location == '':
             d = client_tub.setLocationAutomatically()
         else:
             d = defer.maybeDeferred(client_tub.setLocation, "%s:%i" % (location, client_listener.getPortnum()))
-            
+        
         for ciname, ci in config['controller']['controller_interfaces'].iteritems():
             log.msg("Adapting Controller to interface: %s" % ciname)
             furl_file = ci['furl_file']
@@ -154,7 +165,13 @@ def make_engine_service(controller_service, config):
         """Set the location for the tub and return a deferred."""
 
         def register(empty, ref, furl_file):
-            engine_tub.registerReference(ref, furlFile=furl_file)
+            # We create and then move to make sure that when the file
+            # appears to other processes, the buffer has the flushed
+            # and the file has been closed
+            temp_furl_file = get_temp_furlfile(furl_file)
+            log.msg(temp_furl_file)
+            engine_tub.registerReference(ref, furlFile=temp_furl_file)
+            os.rename(temp_furl_file, furl_file)
         
         if location == '':
             d = engine_tub.setLocationAutomatically()

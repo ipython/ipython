@@ -104,6 +104,9 @@ class StopLocalExecution(KernelError):
 class SecurityError(KernelError):
     pass
 
+class FileTimeoutError(KernelError):
+    pass
+
 class CompositeError(KernelError):
     def __init__(self, message, elist):
         Exception.__init__(self, *(message, elist))

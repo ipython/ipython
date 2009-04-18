@@ -67,10 +67,10 @@ class EngineConnector(object):
             self.furl = find_furl(furl_or_file)
         except ValueError:
             return defer.fail(failure.Failure())
-            # return defer.fail(failure.Failure(ValueError('not a valid furl or furl file: %r' % furl_or_file)))
-        d = self.tub.getReference(self.furl)
-        d.addCallbacks(self._register, self._log_failure)
-        return d
+        else:
+            d = self.tub.getReference(self.furl)
+            d.addCallbacks(self._register, self._log_failure)
+            return d
     
     def _log_failure(self, reason):
         log.err('EngineConnector: engine registration failed:')

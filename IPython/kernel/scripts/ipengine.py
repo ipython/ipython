@@ -106,13 +106,19 @@ def start_engine():
     engine_connector = EngineConnector(tub_service)
     furl_file = kernel_config['engine']['furl_file']
     log.msg("Using furl file: %s" % furl_file)
-    d = engine_connector.connect_to_controller(engine_service, furl_file)
-    def handle_error(f):
-        log.err(f)
-        if reactor.running:
-            reactor.stop()
-    d.addErrback(handle_error)
     
+    def call_connect(engine_service, furl_file):
+        d = engine_connector.connect_to_controller(engine_service, furl_file)
+        def handle_error(f):
+            # If this print statement is replaced by a log.err(f) I get
+            # an unhandled error, which makes no sense.  I shouldn't have
+            # to use a print statement here.  My only thought is that
+            # at the beginning of the process the logging is still starting up
+            print "error connecting to controller:", f.getErrorMessage()
+            reactor.callLater(0.1, reactor.stop)
+        d.addErrback(handle_error)
+    
+    reactor.callWhenRunning(call_connect, engine_service, furl_file)
     reactor.run()
 
 

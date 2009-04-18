@@ -302,18 +302,33 @@ The ``--furl-file`` flag works like this::
 Make FURL files persistent
 ---------------------------
 
-At fist glance it may seem that that managing the FURL files is a bit annoying.  Going back to the house and key analogy, copying the FURL around each time you start the controller is like having to make a new key every time you want to unlock the door and enter your house.  As with your house, you want to be able to create the key (or FURL file) once, and then simply use it at any point in the future.
+At fist glance it may seem that that managing the FURL files is a bit
+annoying. Going back to the house and key analogy, copying the FURL around
+each time you start the controller is like having to make a new key every time
+you want to unlock the door and enter your house. As with your house, you want
+to be able to create the key (or FURL file) once, and then simply use it at
+any point in the future.
 
-This is possible.  The only thing you have to do is decide what ports the controller will listen on for the engines and clients.  This is done as follows::
+This is possible. but before you do this, you **must** remove any old FURL
+files in the :file:`~/.ipython/security` directory.
+
+.. warning::
+
+    You **must** remove old FURL files before using persistent FURL files.
+
+Then, The only thing you have to do is decide what ports the controller will
+listen on for the engines and clients. This is done as follows::
 
     $ ipcontroller -r --client-port=10101 --engine-port=10102
 
-These options also work with all of the various modes of 
+These options also work with all of the various modes of
 :command:`ipcluster`::
 
     $ ipcluster local -n 2 -r --client-port=10101 --engine-port=10102
 
-Then, just copy the furl files over the first time and you are set.  You can start and stop the controller and engines any many times as you want in the future, just make sure to tell the controller to use the *same* ports.
+Then, just copy the furl files over the first time and you are set. You can
+start and stop the controller and engines any many times as you want in the
+future, just make sure to tell the controller to use the *same* ports.
 
 .. note::
 

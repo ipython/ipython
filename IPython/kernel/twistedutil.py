@@ -16,11 +16,14 @@ __docformat__ = "restructuredtext en"
 # Imports
 #-------------------------------------------------------------------------------
 
+import os, sys
 import threading, Queue, atexit
-import twisted
 
+import twisted
 from twisted.internet import defer, reactor
 from twisted.python import log, failure
+
+from IPython.kernel.error import FileTimeoutError
 
 #-------------------------------------------------------------------------------
 # Classes related to twisted and threads
@@ -204,3 +207,43 @@ class DeferredList(defer.Deferred):
             result = None
 
         return result
+
+
+def wait_for_file(filename, delay=0.1, max_tries=10):
+    """Wait (poll) for a file to be created.
+    
+    This method returns a Deferred that will fire when a file exists. It
+    works by polling os.path.isfile in time intervals specified by the
+    delay argument.  If `max_tries` is reached, it will errback with a 
+    `FileTimeoutError`.
+    
+    Parameters
+    ----------
+    filename : str
+        The name of the file to wait for.
+    delay : float
+        The time to wait between polls.
+    max_tries : int
+        The max number of attempts before raising `FileTimeoutError`
+    
+    Returns
+    -------
+    d : Deferred
+        A Deferred instance that will fire when the file exists.
+    """
+    
+    d = defer.Deferred()
+    
+    def _test_for_file(filename, attempt=0):
+        if attempt >= max_tries:
+            d.errback(FileTimeoutError(
+                'timeout waiting for file to be created: %s' % filename
+            ))
+        else:
+            if os.path.isfile(filename):
+                d.callback(True)
+            else:
+                reactor.callLater(delay, _test_for_file, filename, attempt+1)
+    
+    _test_for_file(filename)
+    return d
