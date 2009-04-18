@@ -38,6 +38,18 @@ from IPython.kernel.error import SecurityError
 from IPython.kernel import controllerservice
 from IPython.kernel.fcutil import check_furl_file_security
 
+# Create various ipython directories if they don't exist.
+# This must be done before IPython.kernel.config is imported.
+from IPython.iplib import user_setup
+from IPython.genutils import get_ipython_dir, get_log_dir, get_security_dir
+if os.name == 'posix':
+    rc_suffix = ''
+else:
+    rc_suffix = '.ini'
+user_setup(get_ipython_dir(), rc_suffix, mode='install', interactive=False)
+get_log_dir()
+get_security_dir()
+
 from IPython.kernel.config import config_manager as kernel_config_manager
 from IPython.config.cutils import import_item
 
@@ -116,7 +128,6 @@ def make_client_service(controller_service, config):
             # appears to other processes, the buffer has the flushed
             # and the file has been closed
             temp_furl_file = get_temp_furlfile(furl_file)
-            log.msg(temp_furl_file)
             client_tub.registerReference(ref, furlFile=temp_furl_file)
             os.rename(temp_furl_file, furl_file)
         
@@ -169,7 +180,6 @@ def make_engine_service(controller_service, config):
             # appears to other processes, the buffer has the flushed
             # and the file has been closed
             temp_furl_file = get_temp_furlfile(furl_file)
-            log.msg(temp_furl_file)
             engine_tub.registerReference(ref, furlFile=temp_furl_file)
             os.rename(temp_furl_file, furl_file)
         
@@ -342,12 +352,6 @@ def init_config():
         help="log file name (default is stdout)"
     )
     parser.add_option(
-        "--ipythondir",
-        type="string",
-        dest="ipythondir",
-        help="look for config files and profiles in this directory"
-    )
-    parser.add_option(
         "-r",
         action="store_true",
         dest="reuse_furls",
@@ -356,7 +360,6 @@ def init_config():
     
     (options, args) = parser.parse_args()
     
-    kernel_config_manager.update_config_obj_from_default_file(options.ipythondir)
     config = kernel_config_manager.get_config_obj()
     
     # Update with command line options

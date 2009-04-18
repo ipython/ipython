@@ -15,6 +15,7 @@ __docformat__ = "restructuredtext en"
 # Imports
 #-------------------------------------------------------------------------------
 
+import os, sys
 from os.path import join as pjoin
 
 from IPython.external.configobj import ConfigObj
@@ -23,6 +24,7 @@ from IPython.genutils import get_ipython_dir, get_security_dir
 
 default_kernel_config = ConfigObj()
 
+# This will raise OSError if ipythondir doesn't exist.
 security_dir = get_security_dir()
 
 #-------------------------------------------------------------------------------
