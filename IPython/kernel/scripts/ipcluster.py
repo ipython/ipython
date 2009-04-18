@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+ #!/usr/bin/env python
 # encoding: utf-8
 
 """Start an IPython cluster = (controller + engines)."""
@@ -184,8 +184,10 @@ class ControllerLauncher(ProcessLauncher):
             from IPython.kernel.scripts import ipcontroller
             script_location = ipcontroller.__file__.replace('.pyc', '.py')
             # The -u option here turns on unbuffered output, which is required
-            # on Win32 to prevent wierd conflict and problems with Twisted
-            args = [find_exe('python'), '-u', script_location]
+            # on Win32 to prevent wierd conflict and problems with Twisted.
+            # Also, use sys.executable to make sure we are picking up the 
+            # right python exe.
+            args = [sys.executable, '-u', script_location]
         else:
             args = ['ipcontroller']
         self.extra_args = extra_args
@@ -204,8 +206,10 @@ class EngineLauncher(ProcessLauncher):
             from IPython.kernel.scripts import ipengine
             script_location = ipengine.__file__.replace('.pyc', '.py')
             # The -u option here turns on unbuffered output, which is required
-            # on Win32 to prevent wierd conflict and problems with Twisted
-            args = [find_exe('python'), '-u', script_location]
+            # on Win32 to prevent wierd conflict and problems with Twisted.
+            # Also, use sys.executable to make sure we are picking up the 
+            # right python exe.
+            args = [sys.executable, '-u', script_location]
         else:
             args = ['ipengine']
         self.extra_args = extra_args
