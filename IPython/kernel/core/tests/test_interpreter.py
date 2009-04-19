@@ -15,12 +15,22 @@ __docformat__ = "restructuredtext en"
 # Imports                                                                     
 #-----------------------------------------------------------------------------
 
+import unittest
 from IPython.kernel.core.interpreter import Interpreter
 
-def test_unicode():
-    """ Test unicode handling with the interpreter.
-    """
-    i = Interpreter()
-    i.execute_python(u'print "ù"')
-    i.execute_python('print "ù"')
+class TestInterpreter(unittest.TestCase):
+    
+    def test_unicode(self):
+        """ Test unicode handling with the interpreter.
+        """
+        i = Interpreter()
+        i.execute_python(u'print "ù"')
+        i.execute_python('print "ù"')
+    
+    def test_ticket266993_1(self):
+        i = Interpreter()
+        i.execute('str("""a\nb""")')
 
+    def test_ticket266993_2(self):
+        i = Interpreter()
+        i.execute('str("a\nb")')
