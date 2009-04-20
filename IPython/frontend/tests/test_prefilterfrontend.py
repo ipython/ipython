@@ -111,20 +111,20 @@ def test_multiline():
     f.input_buffer += 'print 1'
     f._on_enter()
     out_value = f.out.getvalue()
-    assert_equal(out_value, '')
+    yield assert_equal, out_value, ''
     f._on_enter()
     out_value = f.out.getvalue()
-    assert_equal(out_value, '1\n')
+    yield assert_equal, out_value, '1\n'
     f = TestPrefilterFrontEnd()
     f.input_buffer='(1 +'
     f._on_enter()
     f.input_buffer += '0)'
     f._on_enter()
     out_value = f.out.getvalue()
-    assert_equal(out_value, '')
+    yield assert_equal, out_value, ''
     f._on_enter()
     out_value = f.out.getvalue()
-    assert_equal(out_value, '1\n')
+    yield assert_equal, out_value, '1\n'
 
 
 @isolate_ipython0
@@ -137,13 +137,13 @@ def test_capture():
             'import os; out=os.fdopen(1, "w"); out.write("1") ; out.flush()'
     f._on_enter()
     out_value = f.out.getvalue()
-    assert_equal(out_value, '1')
+    yield assert_equal, out_value, '1'
     f = TestPrefilterFrontEnd()
     f.input_buffer = \
             'import os; out=os.fdopen(2, "w"); out.write("1") ; out.flush()'
     f._on_enter()
     out_value = f.out.getvalue()
-    assert_equal(out_value, '1')
+    yield assert_equal, out_value, '1'
 
      
 @isolate_ipython0
@@ -191,8 +191,8 @@ def test_completion_simple():
     f.input_buffer = 'zz'
     f.complete_current_input()
     out_value = f.out.getvalue()
-    assert_equal(out_value, '\nzzza zzzb ')
-    assert_equal(f.input_buffer, 'zzz')
+    yield assert_equal, out_value, '\nzzza zzzb '
+    yield assert_equal, f.input_buffer, 'zzz'
 
 
 @isolate_ipython0
@@ -207,8 +207,8 @@ def test_completion_parenthesis():
     f.input_buffer = 'map(zz'
     f.complete_current_input()
     out_value = f.out.getvalue()
-    assert_equal(out_value, '\nzzza zzzb ')
-    assert_equal(f.input_buffer, 'map(zzz')
+    yield assert_equal, out_value, '\nzzza zzzb '
+    yield assert_equal, f.input_buffer, 'map(zzz'
 
 
 @isolate_ipython0

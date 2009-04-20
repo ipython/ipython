@@ -32,7 +32,7 @@ import wx
 from wx import stc
 
 # Ipython-specific imports.
-from IPython.frontend._process import PipedProcess
+from IPython.frontend.process import PipedProcess
 from console_widget import ConsoleWidget, _COMPLETE_BUFFER_MARKER, \
     _ERROR_MARKER, _INPUT_MARKER
 from IPython.frontend.prefilterfrontend import PrefilterFrontEnd
@@ -507,8 +507,9 @@ class WxController(ConsoleWidget, PrefilterFrontEnd):
         new_lines = []
         if self._input_state == 'readline':
             position = self.GetCurrentPos()
+            continuation_prompt = self.continuation_prompt()[:-1]
             for line in self.input_buffer.split('\n'):
-                if not line == self.continuation_prompt()[:-1]:
+                if not line == continuation_prompt:
                     new_lines.append(line)
             self.input_buffer = '\n'.join(new_lines)
             self.GotoPos(position)
@@ -528,9 +529,11 @@ class WxController(ConsoleWidget, PrefilterFrontEnd):
         # input_buffer filters this out.
         if sys.platform == 'win32':
             self.input_buffer = self.input_buffer
+        old_prompt_num = self.current_prompt_pos
         has_executed = PrefilterFrontEnd._on_enter(self, 
                                             new_line_pos=new_line_pos)
-        if not has_executed:
+        if old_prompt_num == self.current_prompt_pos:
+            # No execution has happened 
             self.GotoPos(self.GetLineEndPosition(current_line_num + 1))
         return has_executed
 

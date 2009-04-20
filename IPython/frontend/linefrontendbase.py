@@ -334,15 +334,20 @@ class LineFrontEndBase(FrontEndBase):
             self.execute(cleaned_buffer, raw_string=current_buffer)
             return True
         else:
+            # Start a new line.
             new_line_pos = -new_line_pos
             lines = current_buffer.split('\n')[:-1]
             prompt_less_lines = prompt_less_buffer.split('\n')
+            # Create the new line, with the continuation prompt, and the 
+            # same amount of indent than the line above it.
             new_line = self.continuation_prompt() + \
                   self._get_indent_string('\n'.join(
                                     prompt_less_lines[:new_line_pos-1]))
             if len(lines) == 1:
+                # We are starting a first continuation line. Indent it.
                 new_line += '\t'
             elif current_buffer[:-1].split('\n')[-1].rstrip().endswith(':'):
+                # The last line ends with ":", autoindent the new line.
                 new_line += '\t'
 
             if new_line_pos == 0:

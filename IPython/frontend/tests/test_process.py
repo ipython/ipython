@@ -16,7 +16,7 @@ from cStringIO import StringIO
 from time import sleep
 import sys
 
-from IPython.frontend._process import PipedProcess
+from IPython.frontend.process import PipedProcess
 from IPython.testing import decorators as testdec
 
 

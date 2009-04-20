@@ -65,7 +65,24 @@ _DEFAULT_STYLE = {
     'tripledouble'  : 'fore:#7F0000',
     'class'         : 'fore:#0000FF,bold,underline',
     'def'           : 'fore:#007F7F,bold',
-    'operator'      : 'bold'
+    'operator'      : 'bold',
+
+    # Default colors
+    'trace'         : '#FAFAF1', # Nice green
+    'stdout'        : '#FDFFD3', # Nice yellow
+    'stderr'        : '#FFF1F1', # Nice red
+
+    # Default scintilla settings
+    'antialiasing'  : True,
+    'carret_color'  : 'BLACK',
+    'background_color' :'WHITE', 
+
+    #prompt definition
+    'prompt_in1'    : \
+        '\n\x01\x1b[0;34m\x02In [\x01\x1b[1;34m\x02$number\x01\x1b[0;34m\x02]: \x01\x1b[0m\x02',
+
+    'prompt_out': \
+        '\x01\x1b[0;31m\x02Out[\x01\x1b[1;31m\x02$number\x01\x1b[0;31m\x02]: \x01\x1b[0m\x02',
     }
 
 # new style numbers
@@ -87,6 +104,9 @@ ANSI_STYLES = {'0;30': [0, 'BLACK'],            '0;31': [1, 'RED'],
                '1;34': [12, 'LIGHT BLUE'],     '1;35': 
                                                  [13, 'MEDIUM VIOLET RED'],
                '1;36': [14, 'LIGHT STEEL BLUE'], '1;37': [15, 'YELLOW']}
+
+# XXX: Maybe one day we should factor this code with ColorANSI. Right now
+# ColorANSI is hard to reuse and makes our code more complex.
 
 #we define platform specific fonts
 if wx.Platform == '__WXMSW__':
@@ -274,35 +294,21 @@ class ConsoleWidget(editwindow.EditWindow):
 
 
     def configure_scintilla(self):
-
-        p = self.style
+        """ Set up all the styling option of the embedded scintilla
+            widget.
+        """
+        p = self.style.copy()
         
-        #First we define the special background colors        
-        if 'trace' in p:
-            _COMPLETE_BUFFER_BG = p['trace']
-        else:
-            _COMPLETE_BUFFER_BG = '#FAFAF1' # Nice green
-
-        if 'stdout' in p:
-            _INPUT_BUFFER_BG = p['stdout']
-        else:
-            _INPUT_BUFFER_BG = '#FDFFD3' # Nice yellow
-
-        if 'stderr' in p:
-            _ERROR_BG = p['stderr']
-        else:
-            _ERROR_BG = '#FFF1F1' # Nice red
-
         # Marker for complete buffer.
         self.MarkerDefine(_COMPLETE_BUFFER_MARKER, stc.STC_MARK_BACKGROUND,
-                                background = _COMPLETE_BUFFER_BG)
+                                background=p['trace'])
 
         # Marker for current input buffer.
         self.MarkerDefine(_INPUT_MARKER, stc.STC_MARK_BACKGROUND,
-                                background = _INPUT_BUFFER_BG)
+                                background=p['stdout'])
         # Marker for tracebacks.
         self.MarkerDefine(_ERROR_MARKER, stc.STC_MARK_BACKGROUND,
-                                background = _ERROR_BG)
+                                background=p['stderr'])
 
         self.SetEOLMode(stc.STC_EOL_LF)
 
@@ -326,10 +332,7 @@ class ConsoleWidget(editwindow.EditWindow):
         self.SetWrapMode(stc.STC_WRAP_WORD)
         self.SetBufferedDraw(True)
 
-        if 'antialiasing' in p:
-            self.SetUseAntiAliasing(p['antialiasing'])            
-        else:        
-            self.SetUseAntiAliasing(True)
+        self.SetUseAntiAliasing(p['antialiasing'])
 
         self.SetLayoutCache(stc.STC_CACHE_PAGE)
         self.SetUndoCollection(False)
@@ -357,15 +360,9 @@ class ConsoleWidget(editwindow.EditWindow):
 
         # styles
         
-        if 'carret_color' in p:
-            self.SetCaretForeground(p['carret_color'])
-        else:
-            self.SetCaretForeground('BLACK')
+        self.SetCaretForeground(p['carret_color'])
         
-        if 'background_color' in p:
-            background_color = p['background_color']
-        else:
-            background_color = 'WHITE'            
+        background_color = p['background_color']
             
         if 'default' in p:
             if 'back' not in p['default']:
@@ -383,70 +380,42 @@ class ConsoleWidget(editwindow.EditWindow):
                                background_color,
                                self.faces['size'], self.faces['mono']))
         
-        #all styles = default one        
         self.StyleClearAll()
         
         # XXX: two lines below are usefull if not using the lexer        
         #for style in self.ANSI_STYLES.values():
         #    self.StyleSetSpec(style[0], "bold,fore:%s" % style[1])        
 
-        #prompt definition
-        if 'prompt_in1' in p:
-            self.prompt_in1 = p['prompt_in1']
-        else:
-            self.prompt_in1 = \
-            '\n\x01\x1b[0;34m\x02In [\x01\x1b[1;34m\x02$number\x01\x1b[0;34m\x02]: \x01\x1b[0m\x02'
-
-        if 'prompt_out' in p:
-            self.prompt_out = p['prompt_out']
-        else:
-            self.prompt_out = \
-            '\x01\x1b[0;31m\x02Out[\x01\x1b[1;31m\x02$number\x01\x1b[0;31m\x02]: \x01\x1b[0m\x02'
+        # prompt definition
+        self.prompt_in1 = p['prompt_in1']
+        self.prompt_out = p['prompt_out']
 
         self.output_prompt_template = string.Template(self.prompt_out)
         self.input_prompt_template = string.Template(self.prompt_in1)
 
-        if 'stdout' in p:
-            self.StyleSetSpec(_STDOUT_STYLE, p['stdout'])
-        if 'stderr' in p:
-            self.StyleSetSpec(_STDERR_STYLE, p['stderr'])
-        if 'trace' in p:
-            self.StyleSetSpec(_TRACE_STYLE, p['trace'])
-        if 'bracegood' in p:
-            self.StyleSetSpec(stc.STC_STYLE_BRACELIGHT, p['bracegood'])
-        if 'bracebad' in p:
-            self.StyleSetSpec(stc.STC_STYLE_BRACEBAD, p['bracebad'])
-        if 'comment' in p:
-            self.StyleSetSpec(stc.STC_P_COMMENTLINE, p['comment'])
-        if 'number' in p:
-            self.StyleSetSpec(stc.STC_P_NUMBER, p['number'])
-        if 'string' in p:
-            self.StyleSetSpec(stc.STC_P_STRING, p['string'])
-        if 'char' in p:
-            self.StyleSetSpec(stc.STC_P_CHARACTER, p['char'])
-        if 'keyword' in p:
-            self.StyleSetSpec(stc.STC_P_WORD, p['keyword'])
-        if 'keyword' in p:
-            self.StyleSetSpec(stc.STC_P_WORD2, p['keyword'])
-        if 'triple' in p:
-            self.StyleSetSpec(stc.STC_P_TRIPLE, p['triple'])
-        if 'tripledouble' in p:
-            self.StyleSetSpec(stc.STC_P_TRIPLEDOUBLE, p['tripledouble'])
-        if 'class' in p:
-            self.StyleSetSpec(stc.STC_P_CLASSNAME, p['class'])
-        if 'def' in p:
-            self.StyleSetSpec(stc.STC_P_DEFNAME, p['def'])
-        if 'operator' in p:
-            self.StyleSetSpec(stc.STC_P_OPERATOR, p['operator'])
-        if 'comment' in p:
-            self.StyleSetSpec(stc.STC_P_COMMENTBLOCK, p['comment'])
+        self.StyleSetSpec(_STDOUT_STYLE, p['stdout'])
+        self.StyleSetSpec(_STDERR_STYLE, p['stderr'])
+        self.StyleSetSpec(_TRACE_STYLE, p['trace'])
+        self.StyleSetSpec(stc.STC_STYLE_BRACELIGHT, p['bracegood'])
+        self.StyleSetSpec(stc.STC_STYLE_BRACEBAD, p['bracebad'])
+        self.StyleSetSpec(stc.STC_P_COMMENTLINE, p['comment'])
+        self.StyleSetSpec(stc.STC_P_NUMBER, p['number'])
+        self.StyleSetSpec(stc.STC_P_STRING, p['string'])
+        self.StyleSetSpec(stc.STC_P_CHARACTER, p['char'])
+        self.StyleSetSpec(stc.STC_P_WORD, p['keyword'])
+        self.StyleSetSpec(stc.STC_P_WORD2, p['keyword'])
+        self.StyleSetSpec(stc.STC_P_TRIPLE, p['triple'])
+        self.StyleSetSpec(stc.STC_P_TRIPLEDOUBLE, p['tripledouble'])
+        self.StyleSetSpec(stc.STC_P_CLASSNAME, p['class'])
+        self.StyleSetSpec(stc.STC_P_DEFNAME, p['def'])
+        self.StyleSetSpec(stc.STC_P_OPERATOR, p['operator'])
+        self.StyleSetSpec(stc.STC_P_COMMENTBLOCK, p['comment'])
 
-        if 'edge_column' in p:
-            edge_column = p['edge_column']
-            if edge_column is not None and edge_column > 0:
-                #we add a vertical line to console widget
-                self.SetEdgeMode(stc.STC_EDGE_LINE)
-                self.SetEdgeColumn(88)
+        edge_column = p['edge_column']
+        if edge_column is not None and edge_column > 0:
+            #we add a vertical line to console widget
+            self.SetEdgeMode(stc.STC_EDGE_LINE)
+            self.SetEdgeColumn(edge_column)
  
  
     #--------------------------------------------------------------------------

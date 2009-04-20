@@ -14,6 +14,7 @@ __docformat__ = "restructuredtext en"
 
 from IPython.frontend.linefrontendbase import LineFrontEndBase
 from copy import deepcopy
+import nose.tools as nt
 
 class ConcreteLineFrontEnd(LineFrontEndBase):
     """ A concrete class to test the LineFrontEndBase.
@@ -29,10 +30,8 @@ def test_is_complete():
     """ Tests line completion heuristic.
     """
     frontend = ConcreteLineFrontEnd()
-    assert not frontend.is_complete('for x in \\')
-    assert not frontend.is_complete('for x in (1, ):')
-    assert frontend.is_complete('for x in (1, ):\n  pass')
+    yield nt.assert_true, not frontend.is_complete('for x in \\')
+    yield nt.assert_true, not frontend.is_complete('for x in (1, ):')
+    yield nt.assert_true, frontend.is_complete('for x in (1, ):\n  pass')
 
 
-if __name__ == '__main__':
-    test_is_complete()
