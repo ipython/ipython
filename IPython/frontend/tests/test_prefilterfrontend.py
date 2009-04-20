@@ -15,9 +15,27 @@ __docformat__ = "restructuredtext en"
 from cStringIO import StringIO
 import string
 
+from nose.tools import assert_equal
+
 from IPython.ipapi import get as get_ipython0
 from IPython.frontend.prefilterfrontend import PrefilterFrontEnd
-from copy import deepcopy
+from copy import copy, deepcopy
+
+def safe_deepcopy(d):
+    """ Deep copy every key of the given dict, when possible. Elsewhere
+        do a copy.
+    """
+    copied_d = dict()
+    for key, value in d.iteritems():
+        try:
+            copied_d[key] = deepcopy(value)
+        except:
+            try:
+                copied_d[key] = copy(value)
+            except:
+                copied_d[key] = value
+    return copied_d
+
 
 class TestPrefilterFrontEnd(PrefilterFrontEnd):
     
@@ -26,16 +44,8 @@ class TestPrefilterFrontEnd(PrefilterFrontEnd):
     banner = ''
 
     def __init__(self):
-        ipython0 = get_ipython0().IP
         self.out = StringIO()
-        PrefilterFrontEnd.__init__(self, ipython0=ipython0)
-        # Clean up the namespace for isolation between tests
-        user_ns = self.ipython0.user_ns
-        # We need to keep references to things so that they don't
-        # get garbage collected (this stinks).
-        self.shadow_ns = dict()
-        for i in self.ipython0.magic_who_ls():
-            self.shadow_ns[i] = user_ns.pop(i)
+        PrefilterFrontEnd.__init__(self)
         # Some more code for isolation (yeah, crazy)
         self._on_enter()
         self.out.flush()
@@ -52,17 +62,31 @@ class TestPrefilterFrontEnd(PrefilterFrontEnd):
 
 def isolate_ipython0(func):
     """ Decorator to isolate execution that involves an iptyhon0.
+
+        Notes
+        ------
+
+        Apply only to functions with no arguments. Nose skips functions
+        with arguments.
     """
-    def my_func(*args, **kwargs):
-        ipython0 = get_ipython0().IP
-        user_ns = deepcopy(ipython0.user_ns)
-        global_ns = deepcopy(ipython0.global_ns)
+    def my_func():
+        iplib = get_ipython0()
+        if iplib is None:
+            return func()
+        ipython0 = iplib.IP
+        global_ns = safe_deepcopy(ipython0.user_global_ns)
+        user_ns = safe_deepcopy(ipython0.user_ns)
         try:
-            func(*args, **kwargs)
+            out = func()
         finally:
             ipython0.user_ns = user_ns
-            ipython0.global_ns = global_ns
+            ipython0.user_global_ns = global_ns
+        # Undo the hack at creation of PrefilterFrontEnd
+        from IPython import iplib
+        iplib.InteractiveShell.isthreaded = False
+        return out
 
+    my_func.__name__ = func.__name__
     return my_func
 
 
@@ -74,7 +98,7 @@ def test_execution():
     f.input_buffer = 'print 1'
     f._on_enter()
     out_value = f.out.getvalue()
-    assert out_value  == '1\n'
+    assert_equal(out_value, '1\n')
 
 
 @isolate_ipython0
@@ -87,20 +111,20 @@ def test_multiline():
     f.input_buffer += 'print 1'
     f._on_enter()
     out_value = f.out.getvalue()
-    assert out_value == ''
+    yield assert_equal, out_value, ''
     f._on_enter()
     out_value = f.out.getvalue()
-    assert out_value == '1\n'
+    yield assert_equal, out_value, '1\n'
     f = TestPrefilterFrontEnd()
     f.input_buffer='(1 +'
     f._on_enter()
     f.input_buffer += '0)'
     f._on_enter()
     out_value = f.out.getvalue()
-    assert out_value == ''
+    yield assert_equal, out_value, ''
     f._on_enter()
     out_value = f.out.getvalue()
-    assert out_value == '1\n'
+    yield assert_equal, out_value, '1\n'
 
 
 @isolate_ipython0
@@ -113,13 +137,13 @@ def test_capture():
             'import os; out=os.fdopen(1, "w"); out.write("1") ; out.flush()'
     f._on_enter()
     out_value = f.out.getvalue()
-    assert out_value == '1'
+    yield assert_equal, out_value, '1'
     f = TestPrefilterFrontEnd()
     f.input_buffer = \
             'import os; out=os.fdopen(2, "w"); out.write("1") ; out.flush()'
     f._on_enter()
     out_value = f.out.getvalue()
-    assert out_value == '1'
+    yield assert_equal, out_value, '1'
 
      
 @isolate_ipython0
@@ -132,7 +156,7 @@ def test_magic():
     f.input_buffer += '%who'
     f._on_enter()
     out_value = f.out.getvalue()
-    assert out_value == 'Interactive namespace is empty.\n'
+    assert_equal(out_value, 'Interactive namespace is empty.\n')
 
 
 @isolate_ipython0
@@ -156,8 +180,8 @@ def test_help():
 
 
 @isolate_ipython0
-def test_completion():
-    """ Test command-line completion.
+def test_completion_simple():
+    """ Test command-line completion on trivial examples.
     """
     f = TestPrefilterFrontEnd()
     f.input_buffer = 'zzza = 1'
@@ -167,8 +191,47 @@ def test_completion():
     f.input_buffer = 'zz'
     f.complete_current_input()
     out_value = f.out.getvalue()
-    assert out_value == '\nzzza zzzb '
-    assert f.input_buffer == 'zzz'
+    yield assert_equal, out_value, '\nzzza zzzb '
+    yield assert_equal, f.input_buffer, 'zzz'
+
+
+@isolate_ipython0
+def test_completion_parenthesis():
+    """ Test command-line completion when a parenthesis is open.
+    """
+    f = TestPrefilterFrontEnd()
+    f.input_buffer = 'zzza = 1'
+    f._on_enter()
+    f.input_buffer = 'zzzb = 2'
+    f._on_enter()
+    f.input_buffer = 'map(zz'
+    f.complete_current_input()
+    out_value = f.out.getvalue()
+    yield assert_equal, out_value, '\nzzza zzzb '
+    yield assert_equal, f.input_buffer, 'map(zzz'
+
+
+@isolate_ipython0
+def test_completion_indexing():
+    """ Test command-line completion when indexing on objects.
+    """
+    f = TestPrefilterFrontEnd()
+    f.input_buffer = 'a = [0]'
+    f._on_enter()
+    f.input_buffer = 'a[0].'
+    f.complete_current_input()
+    assert_equal(f.input_buffer, 'a[0].__')
+
+
+@isolate_ipython0
+def test_completion_equal():
+    """ Test command-line completion when the delimiter is "=", not " ".
+    """
+    f = TestPrefilterFrontEnd()
+    f.input_buffer = 'a=1.'
+    f.complete_current_input()
+    assert_equal(f.input_buffer, 'a=1.__')
+
 
 
 if __name__ == '__main__':
@@ -177,4 +240,5 @@ if __name__ == '__main__':
     test_execution()
     test_multiline()
     test_capture()
-    test_completion()
+    test_completion_simple()
+    test_completion_complex()
