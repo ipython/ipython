@@ -30,7 +30,7 @@ class TestInterpreter(unittest.TestCase):
         i.execute_python(u'print "ù"')
         i.execute_python('print "ù"')
 
-    def test_ticket266993_1(self):
+    def test_ticket266993(self):
         """ Test for ticket 266993."""
         i = Interpreter()
         i.execute('str("""a\nb""")')
@@ -38,7 +38,7 @@ class TestInterpreter(unittest.TestCase):
     def test_ticket364347(self):
         """Test for ticket 364347."""
         i = Interpreter()
-        i.split_commands('str("a\nb")')
+        i.split_commands('str("a\\nb")')
 
     def test_split_commands(self):
         """ Test that commands are indeed individually split."""
