@@ -2,6 +2,10 @@
  IPython/Vision Beam Pattern Demo
 ==================================
 
+.. note::
+
+    This page has not been updated to reflect the recent work on ipcluster.
+    This work makes it much easier to use IPython on a cluster.
 
 Installing and testing IPython at OSC systems
 =============================================
