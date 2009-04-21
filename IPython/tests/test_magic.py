@@ -12,7 +12,6 @@ import nose.tools as nt
 
 # From our own code
 from IPython.testing import decorators as dec
-
 #-----------------------------------------------------------------------------
 # Test functions begin
 
@@ -64,6 +63,59 @@ def doctest_hist_f():
     In [11]: %history -n -f $tfile 3
     """
 
+def doctest_run_builtins():
+    """Check that %run doesn't damage __builtins__ via a doctest.
+
+    This is similar to the test_run_builtins, but I want *both* forms of the
+    test to catch any possible glitches in our testing machinery, since that
+    modifies %run somewhat.  So for this, we have both a normal test (below)
+    and a doctest (this one).
+
+    In [1]: import tempfile
+
+    In [2]: bid1 = id(__builtins__)
+
+    In [3]: f = tempfile.NamedTemporaryFile()
+
+    In [4]: f.write('pass\\n')
+
+    In [5]: f.flush()
+
+    In [6]: print 'B1:',type(__builtins__)
+    B1: <type 'module'>
+
+    In [7]: %run $f.name
+
+    In [8]: bid2 = id(__builtins__)
+
+    In [9]: print 'B2:',type(__builtins__)
+    B2: <type 'module'>
+
+    In [10]: bid1 == bid2
+    Out[10]: True
+    """
+
+def test_run_builtins():
+    """Check that %run doesn't damage __builtins__ """
+    import sys
+    import tempfile
+    import types
+
+    # Make an empty file and put 'pass' in it
+    f = tempfile.NamedTemporaryFile()
+    f.write('pass\n')
+    f.flush()
+
+    # Our first test is that the id of __builtins__ is not modified by %run
+    bid1 = id(__builtins__)
+    _ip.magic('run %s' % f.name)
+    bid2 = id(__builtins__)
+    yield nt.assert_equals,bid1,bid2
+    # However, the above could pass if __builtins__ was already modified to be
+    # a dict (it should be a module) by a previous use of %run.  So we also
+    # check explicitly that it really is a module:
+    yield nt.assert_equals,type(__builtins__),type(sys)
+    
 
 def doctest_hist_r():
     """Test %hist -r

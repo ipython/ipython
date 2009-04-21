@@ -84,9 +84,19 @@ def _run_ns_sync(self,arg_s,runner=None):
     This is strictly needed for running doctests that call %run.
     """
 
-    finder = py_file_finder(_run_ns_sync.test_filename)
+    # When tests call %run directly (not via doctest) these function attributes
+    # are not set
+    try:
+        fname = _run_ns_sync.test_filename
+    except AttributeError:
+        fname = arg_s
+
+    finder = py_file_finder(fname)
     out = _ip.IP.magic_run_ori(arg_s,runner,finder)
-    _run_ns_sync.test_globs.update(_ip.user_ns)
+    
+    # Simliarly, there is no test_globs when a test is NOT a doctest
+    if hasattr(_run_ns_sync,'test_globs'):
+        _run_ns_sync.test_globs.update(_ip.user_ns)
     return out
 
 
