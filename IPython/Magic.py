@@ -1709,6 +1709,16 @@ Currently the magic system has the following functions:\n"""
                     del prog_ns['__name__']
                     self.shell.user_ns.update(prog_ns)
         finally:
+            # It's a bit of a mystery why, but __builtins__ can change from
+            # being a module to becoming a dict missing some key data after
+            # %run.  As best I can see, this is NOT something IPython is doing
+            # at all, and similar problems have been reported before:
+            # http://coding.derkeiler.com/Archive/Python/comp.lang.python/2004-10/0188.html
+            # Since this seems to be done by the interpreter itself, the best
+            # we can do is to at least restore __builtins__ for the user on
+            # exit.
+            self.shell.user_ns['__builtins__'] = __builtin__
+            
             # Ensure key global structures are restored
             sys.argv = save_argv
             if restore_main:
