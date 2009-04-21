@@ -1474,8 +1474,9 @@ class InteractiveShell(object,Magic):
                     #print "loading rl:",rlcommand  # dbg
                     readline.parse_and_bind(rlcommand)
 
-            # remove some chars from the delimiters list
-            delims = readline.get_completer_delims()
+            # Remove some chars from the delimiters list.  If we encounter
+            # unicode chars, discard them.
+            delims = readline.get_completer_delims().encode("ascii", "ignore")
             delims = delims.translate(string._idmap,
                                       self.rc.readline_remove_delims)
             readline.set_completer_delims(delims)
