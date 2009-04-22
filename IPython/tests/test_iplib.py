@@ -13,7 +13,7 @@ import tempfile
 import nose.tools as nt
 
 # our own packages
-from IPython import iplib
+from IPython import ipapi, iplib
 
 #-----------------------------------------------------------------------------
 # Globals
@@ -28,7 +28,15 @@ from IPython import iplib
 # ipapi instance should be read from there, but we also will often need to use
 # the actual IPython one.
 
-ip = _ip    # This is the ipapi instance
+# Get the public instance of IPython, and if it's None, make one so we can use
+# it for testing
+ip = ipapi.get()
+if ip is None:
+    # IPython not running yet,  make one from the testing machinery for
+    # consistency when the test suite is being run via iptest
+    from IPython.testing.plugin import ipdoctest
+    ip = ipapi.get()
+    
 IP = ip.IP  # This is the actual IPython shell 'raw' object.
 
 #-----------------------------------------------------------------------------
