@@ -140,7 +140,14 @@ def init_config():
     Initialize the configuration using default and command line options.
     """
     
-    parser = OptionParser()
+    parser = OptionParser("""ipengine [options]
+
+Start an IPython engine.
+
+Use the IPYTHONDIR environment variable to change your IPython directory 
+from the default of .ipython or _ipython.  The log and security 
+subdirectories of your IPython directory will be used by this script 
+for log files and security files.""")
     
     parser.add_option(
         "--furl-file",

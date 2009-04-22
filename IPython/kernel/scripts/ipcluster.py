@@ -736,8 +736,11 @@ def get_args():
     
     parser = argparse.ArgumentParser(
         description='IPython cluster startup.  This starts a controller and\
-        engines using various approaches.  THIS IS A TECHNOLOGY PREVIEW AND\
-        THE API WILL CHANGE SIGNIFICANTLY BEFORE THE FINAL RELEASE.'
+        engines using various approaches.  Use the IPYTHONDIR environment\
+        variable to change your IPython directory from the default of\
+        .ipython or _ipython.  The log and security subdirectories of your\
+        IPython directory will be used by this script for log files and\
+        security files.'
     )
     subparsers = parser.add_subparsers(
         help='available cluster types.  For help, do "ipcluster TYPE --help"')
