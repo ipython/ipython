@@ -12,12 +12,12 @@ __docformat__ = "restructuredtext en"
 #  in the file COPYING, distributed as part of this software.
 #-------------------------------------------------------------------------------
 
+# Tell nose to skip this module
+__test__ = {}
 
-# Stdlib imports
 import os
 from cStringIO import StringIO
 
-# Our own imports
 from IPython.testing import decorators as dec
 
 #-----------------------------------------------------------------------------

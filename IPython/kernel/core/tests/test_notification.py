@@ -15,6 +15,9 @@ __docformat__ = "restructuredtext en"
 # Imports                                                                     
 #-----------------------------------------------------------------------------
 
+# Tell nose to skip this module
+__test__ = {}
+
 import unittest
 import IPython.kernel.core.notification as notification
 from nose.tools import timed

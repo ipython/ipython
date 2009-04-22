@@ -15,19 +15,19 @@ __docformat__ = "restructuredtext en"
 # Imports
 #-------------------------------------------------------------------------------
 
-try:
-    import time
+# Tell nose to skip this module
+__test__ = {}
 
-    from twisted.internet import defer
-    from twisted.trial import unittest
+import time
 
-    from IPython.kernel import task, controllerservice as cs, engineservice as es
-    from IPython.kernel.multiengine import IMultiEngine
-    from IPython.testing.util import DeferredTestCase
-    from IPython.kernel.tests.tasktest import ITaskControllerTestCase
-except ImportError:
-    import nose
-    raise nose.SkipTest("This test requires zope.interface, Twisted and Foolscap")
+from twisted.internet import defer
+from twisted.trial import unittest
+
+from IPython.kernel import task, controllerservice as cs, engineservice as es
+from IPython.kernel.multiengine import IMultiEngine
+from IPython.testing.util import DeferredTestCase
+from IPython.kernel.tests.tasktest import ITaskControllerTestCase
+
 
 #-------------------------------------------------------------------------------
 # Tests

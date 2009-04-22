@@ -12,6 +12,9 @@
 # Imports
 #-----------------------------------------------------------------------------
 
+# Tell nose to skip this module
+__test__ = {}
+
 import tempfile
 import os, sys
 
