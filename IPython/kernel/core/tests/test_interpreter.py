@@ -22,6 +22,9 @@ from IPython.kernel.core.interpreter import Interpreter
 # Tests 
 #-----------------------------------------------------------------------------
 
+# Tell nose to skip this module
+__test__ = {}
+
 class TestInterpreter(unittest.TestCase):
 
     def test_unicode(self):

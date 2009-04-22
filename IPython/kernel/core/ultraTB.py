@@ -268,6 +268,8 @@ def _formatTracebackLines(lnum, index, lines, Colors, lvals=None,scheme=None):
     # This lets us get fully syntax-highlighted tracebacks.
     if scheme is None:
         try:
+            # Again, reference to a global __IPYTHON__ that doesn't exist.
+            # XXX
             scheme = __IPYTHON__.rc.colors
         except:
             scheme = DEFAULT_SCHEME
@@ -489,7 +491,7 @@ class ListTB(TBTools):
 
         # This is being commented out for now as the __IPYTHON__ variable
         # referenced here is not resolved and causes massive test failures
-        # and errors. B. Granger, 04/2009.
+        # and errors. B. Granger, 04/2009. XXX
         # See https://bugs.launchpad.net/bugs/362137
         # # vds:>>
         # if have_filedata:
@@ -810,7 +812,7 @@ class VerboseTB(TBTools):
 
         # This is being commented out for now as the __IPYTHON__ variable
         # referenced here is not resolved and causes massive test failures
-        # and errors. B. Granger, 04/2009.
+        # and errors. B. Granger, 04/2009. XXX
         # See https://bugs.launchpad.net/bugs/362137
         # # vds: >>
         # if records:

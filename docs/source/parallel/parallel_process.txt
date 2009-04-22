@@ -309,7 +309,7 @@ you want to unlock the door and enter your house. As with your house, you want
 to be able to create the key (or FURL file) once, and then simply use it at
 any point in the future.
 
-This is possible. but before you do this, you **must** remove any old FURL
+This is possible, but before you do this, you **must** remove any old FURL
 files in the :file:`~/.ipython/security` directory.
 
 .. warning::

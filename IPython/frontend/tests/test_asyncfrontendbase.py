@@ -15,16 +15,14 @@ __docformat__ = "restructuredtext en"
 # Imports                                                                   
 #---------------------------------------------------------------------------
 
+# Tell nose to skip this module
+__test__ = {}
 
-try:
-    from twisted.trial import unittest
-    from IPython.frontend.asyncfrontendbase import AsyncFrontEndBase
-    from IPython.frontend import frontendbase 
-    from IPython.kernel.engineservice import EngineService
-    from IPython.testing.parametric import Parametric, parametric
-except ImportError:
-    import nose
-    raise nose.SkipTest("This test requires zope.interface, Twisted and Foolscap")
+from twisted.trial import unittest
+from IPython.frontend.asyncfrontendbase import AsyncFrontEndBase
+from IPython.frontend import frontendbase 
+from IPython.kernel.engineservice import EngineService
+from IPython.testing.parametric import Parametric, parametric
 
 
 class FrontEndCallbackChecker(AsyncFrontEndBase):

@@ -21,9 +21,10 @@ __docformat__ = "restructuredtext en"
 import sys
 sys.path.insert(0, '')
 
-import sys, time, os
-import tempfile
 from optparse import OptionParser
+import os
+import time
+import tempfile
 
 from twisted.application import internet, service
 from twisted.internet import reactor, error, defer
@@ -263,7 +264,14 @@ def init_config():
     Initialize the configuration using default and command line options.
     """
     
-    parser = OptionParser()
+    parser = OptionParser("""ipcontroller [options]
+
+Start an IPython controller.
+
+Use the IPYTHONDIR environment variable to change your IPython directory 
+from the default of .ipython or _ipython.  The log and security 
+subdirectories of your IPython directory will be used by this script 
+for log files and security files.""")
     
     # Client related options
     parser.add_option(
