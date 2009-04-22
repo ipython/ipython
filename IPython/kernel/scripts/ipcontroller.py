@@ -21,9 +21,10 @@ __docformat__ = "restructuredtext en"
 import sys
 sys.path.insert(0, '')
 
-import sys, time, os
-import tempfile
 from optparse import OptionParser
+import os
+import time
+import tempfile
 
 from twisted.application import internet, service
 from twisted.internet import reactor, error, defer

@@ -21,8 +21,8 @@ __docformat__ = "restructuredtext en"
 import sys
 sys.path.insert(0, '')
 
-import sys, os
 from optparse import OptionParser
+import os
 
 from twisted.application import service
 from twisted.internet import reactor

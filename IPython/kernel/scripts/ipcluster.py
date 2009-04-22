@@ -29,8 +29,12 @@ from twisted.python import failure, log
 
 from IPython.external import argparse
 from IPython.external import Itpl
-from IPython.genutils import get_ipython_dir, get_log_dir, get_security_dir
-from IPython.genutils import num_cpus
+from IPython.genutils import (
+    get_ipython_dir, 
+    get_log_dir, 
+    get_security_dir, 
+    num_cpus
+)
 from IPython.kernel.fcutil import have_crypto
 
 # Create various ipython directories if they don't exist.
@@ -485,6 +489,7 @@ class SSHEngineSet(object):
 
 
 def check_security(args, cont_args):
+    """Check to see if we should run with SSL support."""
     if (not args.x or not args.y) and not have_crypto:
         log.err("""
 OpenSSL/pyOpenSSL is not available, so we can't run in secure mode.
@@ -499,6 +504,7 @@ Try running ipcluster with the -xy flags:  ipcluster local -xy -n 4""")
 
 
 def check_reuse(args, cont_args):
+    """Check to see if we should try to resuse FURL files."""
     if args.r:
         cont_args.append('-r')
         if args.client_port == 0 or args.engine_port == 0:
@@ -513,11 +519,13 @@ the --client-port and --engine-port options.""")
 
 
 def _err_and_stop(f):
+    """Errback to log a failure and halt the reactor on a fatal error."""
     log.err(f)
     reactor.stop()
 
 
 def _delay_start(cont_pid, start_engines, furl_file, reuse):
+    """Wait for controller to create FURL files and the start the engines."""
     if not reuse:
         if os.path.isfile(furl_file):
             os.unlink(furl_file)

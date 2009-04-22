@@ -15,6 +15,7 @@ __docformat__ = "restructuredtext en"
 # Imports                                                                   
 #---------------------------------------------------------------------------
 
+
 try:
     from IPython.kernel.core.interpreter import Interpreter
     import IPython.kernel.engineservice as es
@@ -22,7 +23,7 @@ try:
     from twisted.internet.defer import succeed
     from IPython.frontend.cocoa.cocoa_frontend import IPythonCocoaController                                                    
     from Foundation import NSMakeRect
-    from AppKit import NSTextView, NSScrollView                                                
+    from AppKit import NSTextView, NSScrollView
 except ImportError:
     import nose
     raise nose.SkipTest("This test requires zope.interface, Twisted, Foolscap and PyObjC")
