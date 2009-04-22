@@ -35,12 +35,15 @@ from IPython.testing.plugin.ipdoctest import IPythonDoctest
 EXCLUDE = ['IPython/external/',
            'IPython/platutils_win32',
            'IPython/frontend/cocoa',
+           'IPython/frontend/process/winprocess.py',
            'IPython_doctest_plugin',
            'IPython/Gnuplot',
            'IPython/Extensions/ipy_',
            'IPython/Extensions/clearcmd',
            'IPython/Extensions/PhysicalQIn',
            'IPython/Extensions/scitedirector',
+           'IPython/Extensions/numeric_formats',
+           'IPython/testing/attic',
            ]
 
 #-----------------------------------------------------------------------------
