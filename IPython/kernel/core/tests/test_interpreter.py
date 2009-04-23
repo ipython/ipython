@@ -2,28 +2,26 @@
 
 """This file contains unittests for the interpreter.py module."""
 
-__docformat__ = "restructuredtext en"
-
 #-----------------------------------------------------------------------------
-#  Copyright (C) 2008-2009  The IPython Development Team                           
-#                                                                             
-#  Distributed under the terms of the BSD License.  The full license is in    
-#  the file COPYING, distributed as part of this software.                    
+#  Copyright (C) 2008-2009  The IPython Development Team
+#
+#  Distributed under the terms of the BSD License.  The full license is
+#  in the file COPYING, distributed as part of this software.
 #-----------------------------------------------------------------------------
 
 #-----------------------------------------------------------------------------
-# Imports                                                                     
-#-----------------------------------------------------------------------------
-
-import unittest
-from IPython.kernel.core.interpreter import Interpreter
-
-#-----------------------------------------------------------------------------
-# Tests 
+# Imports
 #-----------------------------------------------------------------------------
 
 # Tell nose to skip this module
 __test__ = {}
+
+from twisted.trial import unittest
+from IPython.kernel.core.interpreter import Interpreter
+
+#-----------------------------------------------------------------------------
+# Tests
+#-----------------------------------------------------------------------------
 
 class TestInterpreter(unittest.TestCase):
 
