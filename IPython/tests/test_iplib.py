@@ -68,9 +68,13 @@ def test_user_setup():
     # Now repeat the operation with a non-existent directory. Check both that
     # the call succeeds and that the directory is created.
     tmpdir = tempfile.mktemp(prefix='ipython-test-')
+    # Use a try with an empty except because try/finally doesn't work with a 
+    # yield in Python 2.4.
     try:
         yield user_setup, (tmpdir,''), kw
         yield os.path.isdir, tmpdir
-    finally:
-        # In this case, clean up the temp dir once done
-        shutil.rmtree(tmpdir)
+    except:
+        pass
+    # Clean up the temp dir once done
+    shutil.rmtree(tmpdir)
+    
