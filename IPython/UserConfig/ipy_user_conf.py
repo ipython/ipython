@@ -100,9 +100,7 @@ def main():
     #readline.parse_and_bind('set completion-query-items 1000')
     #readline.parse_and_bind('set page-completions no')
     
-    
-    
-    
+        
 # some config helper functions you can use 
 def import_all(modules):
     """ Usage: import_all("os sys") """ 

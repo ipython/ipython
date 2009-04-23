@@ -295,3 +295,12 @@ def test_popkey_3():
     nt.assert_equal(dct, dict(c=3))
     nt.assert_equal(genutils.popkey(dct, "c"), 3)
     nt.assert_equal(dct, dict())
+
+
+def test_filefind():
+    """Various tests for filefind"""
+    f = tempfile.NamedTemporaryFile()
+    print 'fname:',f.name
+    alt_dirs = genutils.get_ipython_dir()
+    t = genutils.filefind(f.name,alt_dirs)
+    print 'found:',t
