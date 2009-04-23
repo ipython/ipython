@@ -63,7 +63,7 @@ def main():
                         # test suite back into working shape.  Our nose
                         # plugin needs to be gone through with a fine
                         # toothed comb to find what is causing the problem.
-                        # '--with-ipdoctest',
+                        '--with-ipdoctest',
                         '--ipdoctest-tests','--ipdoctest-extension=txt',
                         '--detailed-errors',
                        
