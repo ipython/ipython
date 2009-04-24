@@ -41,3 +41,16 @@ except ImportError:
         if ret:
             # non-zero return code signals error, don't try again
             ignore_termtitle = True
+
+def find_cmd(cmd):
+    """Find the full path to a .bat or .exe using the win32api module."""
+    try:
+        import win32api
+    except ImportError:
+        raise ImportError('you need to have pywin32 installed for this to work')
+    else:
+        try:
+            (path, offest) = win32api.SearchPath(os.environ['PATH'],cmd + '.exe')
+        except:
+            (path, offset) = win32api.SearchPath(os.environ['PATH'],cmd + '.bat')
+    return path

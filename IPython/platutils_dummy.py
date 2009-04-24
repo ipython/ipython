@@ -23,3 +23,7 @@ ignore_termtitle = True
 def set_term_title(*args,**kw):
     """Dummy no-op."""
     pass
+
+def find_cmd(cmd):
+    """Find the full path to a command using which."""
+    return os.popen('which %s' % cmd).read().strip()

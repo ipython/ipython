@@ -54,22 +54,10 @@ from IPython.kernel.fcutil import have_crypto
 from IPython.kernel.twistedutil import gatherBoth, wait_for_file
 from IPython.kernel.util import printer
 
-
 #-----------------------------------------------------------------------------
 # General process handling code
 #-----------------------------------------------------------------------------
 
-def find_exe(cmd):
-    try:
-        import win32api
-    except ImportError:
-        raise ImportError('you need to have pywin32 installed for this to work')
-    else:
-        try:
-            (path, offest) = win32api.SearchPath(os.environ['PATH'],cmd + '.exe')
-        except:
-            (path, offset) = win32api.SearchPath(os.environ['PATH'],cmd + '.bat')
-    return path
 
 class ProcessStateError(Exception):
     pass

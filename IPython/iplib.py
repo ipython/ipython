@@ -152,7 +152,11 @@ def user_setup(ipythondir,rc_suffix,mode='install',interactive=True):
         printf = lambda s : None
 
     # Install mode should be re-entrant: if the install dir already exists,
-    # bail out cleanly
+    # bail out cleanly.
+    # XXX.  This is too hasty to return.  We need to check to make sure that
+    # all the expected config files and directories are actually there. We
+    # currently have a failure mode if someone deletes a needed config file
+    # but still has the ipythondir.
     if mode == 'install' and os.path.isdir(ipythondir):
         return
 

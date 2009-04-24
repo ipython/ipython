@@ -30,3 +30,7 @@ if os.environ.get('TERM','') == 'xterm':
     set_term_title = _set_term_title_xterm
 else:
     set_term_title = _dummy_op
+
+def find_cmd(cmd):
+    """Find the full path to a command using which."""
+    return os.popen('which %s' % cmd).read().strip()
