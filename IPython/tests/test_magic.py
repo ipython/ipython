@@ -60,7 +60,9 @@ def doctest_hist_r():
     hist -n -r 2  # random
     """
 
-
+# This is skipped for now because getoutput doesn't find the ipython
+# executable.  See ticket https://bugs.launchpad.net/bugs/366334
+@dec.skip_win32
 def test_obj_del():
     """Test that object's __del__ methods are called on exit."""
     test_dir = os.path.dirname(__file__)
@@ -159,6 +161,7 @@ def doctest_run_ns2():
     tclass.py: deleting object: C-first_pass
     """
 
+@dec.skip_win32
 def doctest_run_builtins():
     """Check that %run doesn't damage __builtins__ via a doctest.
 
@@ -206,6 +209,13 @@ class TestMagicRun(object):
     def run_tmpfile(self):
         _ip.magic('run %s' % self.tmpfile.name)
 
+    # See https://bugs.launchpad.net/bugs/366353
+    @dec.skip_if_not_win32
+    def test_run_tempfile_path(self):
+        # self.run_tmpfile() # This is what triggers the error!
+        tt.assert_equals(True,False,"%run doesn't work with tempfile paths on win32.")
+
+    @dec.skip_win32
     def test_builtins_id(self):
         """Check that %run doesn't damage __builtins__ """
 
@@ -215,6 +225,7 @@ class TestMagicRun(object):
         bid2 = id(_ip.user_ns['__builtins__'])
         tt.assert_equals(bid1, bid2)
 
+    @dec.skip_win32
     def test_builtins_type(self):
         """Check that the type of __builtins__ doesn't change with %run.
         
@@ -225,6 +236,7 @@ class TestMagicRun(object):
         self.run_tmpfile()
         tt.assert_equals(type(_ip.user_ns['__builtins__']),type(sys))
 
+    @dec.skip_win32
     def test_prompts(self):
         """Test that prompts correctly generate after %run"""
         self.run_tmpfile()
