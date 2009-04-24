@@ -97,9 +97,19 @@ def _run_ns_sync(self,arg_s,runner=None):
     This is strictly needed for running doctests that call %run.
     """
 
-    finder = py_file_finder(_run_ns_sync.test_filename)
+    # When tests call %run directly (not via doctest) these function attributes
+    # are not set
+    try:
+        fname = _run_ns_sync.test_filename
+    except AttributeError:
+        fname = arg_s
+
+    finder = py_file_finder(fname)
     out = _ip.IP.magic_run_ori(arg_s,runner,finder)
-    _run_ns_sync.test_globs.update(_ip.user_ns)
+    
+    # Simliarly, there is no test_globs when a test is NOT a doctest
+    if hasattr(_run_ns_sync,'test_globs'):
+        _run_ns_sync.test_globs.update(_ip.user_ns)
     return out
 
 
@@ -126,10 +136,19 @@ class ipnsdict(dict):
     def update(self,other):
         self._checkpoint()
         dict.update(self,other)
+
         # If '_' is in the namespace, python won't set it when executing code,
         # and we have examples that test it.  So we ensure that the namespace
         # is always 'clean' of it before it's used for test code execution.
         self.pop('_',None)
+
+        # The builtins namespace must *always* be the real __builtin__ module,
+        # else weird stuff happens.  The main ipython code does have provisions
+        # to ensure this after %run, but since in this class we do some
+        # aggressive low-level cleaning of the execution namespace, we need to
+        # correct for that ourselves, to ensure consitency with the 'real'
+        # ipython.
+        self['__builtins__'] = __builtin__
         
 
 def start_ipython():

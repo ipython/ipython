@@ -34,6 +34,9 @@ __docformat__ = "restructuredtext en"
 # Imports
 #-------------------------------------------------------------------------------
 
+# Tell nose to skip the testing of this module
+__test__ = {}
+
 import os, sys, copy
 import cPickle as pickle
 from new import instancemethod

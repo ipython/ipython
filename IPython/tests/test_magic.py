@@ -6,12 +6,15 @@ Needs to be run by nose (to make ipython session available).
 # Standard library imports
 import os
 import sys
+import tempfile
+import types
 
 # Third-party imports
 import nose.tools as nt
 
 # From our own code
 from IPython.testing import decorators as dec
+from IPython.testing import tools as tt
 
 #-----------------------------------------------------------------------------
 # Test functions begin
@@ -32,26 +35,6 @@ def test_rehashx():
     # rehashx must fill up syscmdlist
     scoms = _ip.db['syscmdlist']
     assert len(scoms) > 10
-
-
-def doctest_run_ns():
-    """Classes declared %run scripts must be instantiable afterwards.
-
-    In [11]: run tclass foo
-
-    In [12]: isinstance(f(),foo)
-    Out[12]: True
-    """
-
-    
-def doctest_run_ns2():
-    """Classes declared %run scripts must be instantiable afterwards.
-
-    In [4]: run tclass C-first_pass
-
-    In [5]: run tclass C-second_pass
-    tclass.py: deleting object: C-first_pass
-    """
 
 
 def doctest_hist_f():
@@ -149,3 +132,104 @@ def doctest_refbug():
     lowercased: hello
     lowercased: hello
     """
+
+#-----------------------------------------------------------------------------
+# Tests for %run
+#-----------------------------------------------------------------------------
+
+# %run is critical enough that it's a good idea to have a solid collection of
+# tests for it, some as doctests and some as normal tests.
+
+def doctest_run_ns():
+    """Classes declared %run scripts must be instantiable afterwards.
+
+    In [11]: run tclass foo
+
+    In [12]: isinstance(f(),foo)
+    Out[12]: True
+    """
+
+    
+def doctest_run_ns2():
+    """Classes declared %run scripts must be instantiable afterwards.
+
+    In [4]: run tclass C-first_pass
+
+    In [5]: run tclass C-second_pass
+    tclass.py: deleting object: C-first_pass
+    """
+
+def doctest_run_builtins():
+    """Check that %run doesn't damage __builtins__ via a doctest.
+
+    This is similar to the test_run_builtins, but I want *both* forms of the
+    test to catch any possible glitches in our testing machinery, since that
+    modifies %run somewhat.  So for this, we have both a normal test (below)
+    and a doctest (this one).
+
+    In [1]: import tempfile
+
+    In [2]: bid1 = id(__builtins__)
+
+    In [3]: f = tempfile.NamedTemporaryFile()
+
+    In [4]: f.write('pass\\n')
+
+    In [5]: f.flush()
+
+    In [6]: print 'B1:',type(__builtins__)
+    B1: <type 'module'>
+
+    In [7]: %run $f.name
+
+    In [8]: bid2 = id(__builtins__)
+
+    In [9]: print 'B2:',type(__builtins__)
+    B2: <type 'module'>
+
+    In [10]: bid1 == bid2
+    Out[10]: True
+    """
+
+# For some tests, it will be handy to organize them in a class with a common
+# setup that makes a temp file
+
+class TestMagicRun(object):
+
+    def setup(self):
+        """Make a valid python temp file."""
+        f = tempfile.NamedTemporaryFile()
+        f.write('pass\n')
+        f.flush()
+        self.tmpfile = f
+
+    def run_tmpfile(self):
+        _ip.magic('run %s' % self.tmpfile.name)
+
+    def test_builtins_id(self):
+        """Check that %run doesn't damage __builtins__ """
+
+        # Test that the id of __builtins__ is not modified by %run
+        bid1 = id(_ip.user_ns['__builtins__'])
+        self.run_tmpfile()
+        bid2 = id(_ip.user_ns['__builtins__'])
+        tt.assert_equals(bid1, bid2)
+
+    def test_builtins_type(self):
+        """Check that the type of __builtins__ doesn't change with %run.
+        
+        However, the above could pass if __builtins__ was already modified to
+        be a dict (it should be a module) by a previous use of %run.  So we
+        also check explicitly that it really is a module:
+        """
+        self.run_tmpfile()
+        tt.assert_equals(type(_ip.user_ns['__builtins__']),type(sys))
+
+    def test_prompts(self):
+        """Test that prompts correctly generate after %run"""
+        self.run_tmpfile()
+        p2 = str(_ip.IP.outputcache.prompt2).strip()
+        nt.assert_equals(p2[:3], '...')
+
+    def teardown(self):
+        self.tmpfile.close()

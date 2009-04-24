@@ -167,7 +167,8 @@ def make_runners():
     else:
         top_mod.append('platutils_dummy.py')
 
-    top_pack = ['config','Extensions','frontend','gui','kernel',
+    # These are tested by nose, so skip IPython.kernel
+    top_pack = ['config','Extensions','frontend','gui',
                 'testing','tests','tools','UserConfig']
 
     modules  = ['IPython.%s' % m[:-3] for m in top_mod ]
@@ -176,6 +177,7 @@ def make_runners():
     # Make runners
     runners = dict(zip(top_pack, [IPTester(params=v) for v in packages]))
 
+    # Test IPython.kernel using trial if twisted is installed
     try:
         import zope.interface
         import twisted
