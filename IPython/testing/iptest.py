@@ -176,7 +176,7 @@ def make_runners():
 
     # Make runners
     runners = dict(zip(top_pack, [IPTester(params=v) for v in packages]))
-
+    
     # Test IPython.kernel using trial if twisted is installed
     try:
         import zope.interface
@@ -187,8 +187,7 @@ def make_runners():
     else:
         runners['trial'] = IPTester('trial',['IPython'])
 
-    for m in modules:
-        runners[m] = IPTester(params=m)
+    runners['modules'] = IPTester(params=modules)
 
     return runners
 
