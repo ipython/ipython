@@ -3,16 +3,14 @@
 Needs to be run by nose (to make ipython session available).
 """
 
-# Standard library imports
 import os
 import sys
 import tempfile
 import types
 
-# Third-party imports
 import nose.tools as nt
 
-# From our own code
+from IPython.platutils import find_cmd
 from IPython.testing import decorators as dec
 from IPython.testing import tools as tt
 
@@ -67,7 +65,8 @@ def test_obj_del():
     """Test that object's __del__ methods are called on exit."""
     test_dir = os.path.dirname(__file__)
     del_file = os.path.join(test_dir,'obj_del.py')
-    out = _ip.IP.getoutput('ipython %s' % del_file)
+    ipython_cmd = find_cmd('ipython')
+    out = _ip.IP.getoutput('%s %s' % (ipython_cmd, del_file))
     nt.assert_equals(out,'obj_del.py: object A deleted')
 
 
