@@ -55,9 +55,9 @@ from IPython.iplib import InteractiveShell
 from IPython.usage import cmd_line_usage,interactive_usage
 from IPython.genutils import *
 
-def force_import(modname):
-    if modname in sys.modules:
-        print "reload",modname
+def force_import(modname,force_reload=False):
+    if modname in sys.modules and force_reload:
+        info("reloading: %s" % modname)
         reload(sys.modules[modname])
     else:
         __import__(modname)
@@ -625,25 +625,25 @@ object?   -> Details about 'object'. ?object also works, ?? prints more.
     except:
         IP.InteractiveTB()
         import_fail_info('ipy_system_conf')
-        
+
     # only import prof module if ipythonrc-PROF was not found
     if opts_all.profile and not profile_handled_by_legacy:
         profmodname = 'ipy_profile_' + opts_all.profile
         try:
-            
             force_import(profmodname)
         except:
             IP.InteractiveTB()
-            print "Error importing",profmodname,"- perhaps you should run %upgrade?"
+            print "Error importing",profmodname,\
+                  "- perhaps you should run %upgrade?"
             import_fail_info(profmodname)
         else:
             opts.profile = opts_all.profile
     else:
         force_import('ipy_profile_none')
+    # XXX - this is wrong: ipy_user_conf should not be loaded unconditionally,
+    # since the user could have specified a config file path by hand.
     try:
-            
         force_import('ipy_user_conf')
-        
     except:
         conf = opts_all.ipythondir + "/ipy_user_conf.py"
         IP.InteractiveTB()

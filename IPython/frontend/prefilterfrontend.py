@@ -64,13 +64,18 @@ class PrefilterFrontEnd(LineFrontEndBase):
 
     debug = False
     
-    def __init__(self, ipython0=None, *args, **kwargs):
+    def __init__(self, ipython0=None, argv=None, *args, **kwargs):
         """ Parameters:
             -----------
 
             ipython0: an optional ipython0 instance to use for command
             prefiltering and completion.
+
+            argv : list, optional
+              Used as the instance's argv value.  If not given, [] is used.
         """
+        if argv is None:
+            argv = []
         # This is a hack to avoid the IPython exception hook to trigger
         # on exceptions (https://bugs.launchpad.net/bugs/337105)
         # XXX: This is horrible: module-leve monkey patching -> side
@@ -98,7 +103,7 @@ class PrefilterFrontEnd(LineFrontEndBase):
             old_rawinput = __builtin__.raw_input
             __builtin__.raw_input = my_rawinput
             # XXX: argv=[] is a bit bold.
-            ipython0 = make_IPython(argv=[], 
+            ipython0 = make_IPython(argv=argv, 
                                     user_ns=self.shell.user_ns,
                                     user_global_ns=self.shell.user_global_ns)
             __builtin__.raw_input = old_rawinput

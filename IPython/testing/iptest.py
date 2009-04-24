@@ -35,12 +35,15 @@ from IPython.testing.plugin.ipdoctest import IPythonDoctest
 EXCLUDE = ['IPython/external/',
            'IPython/platutils_win32',
            'IPython/frontend/cocoa',
+           'IPython/frontend/process/winprocess.py',
            'IPython_doctest_plugin',
            'IPython/Gnuplot',
            'IPython/Extensions/ipy_',
            'IPython/Extensions/clearcmd',
            'IPython/Extensions/PhysicalQIn',
            'IPython/Extensions/scitedirector',
+           'IPython/Extensions/numeric_formats',
+           'IPython/testing/attic',
            ]
 
 #-----------------------------------------------------------------------------
@@ -60,7 +63,7 @@ def main():
                         # test suite back into working shape.  Our nose
                         # plugin needs to be gone through with a fine
                         # toothed comb to find what is causing the problem.
-                        # '--with-ipdoctest',
+                        '--with-ipdoctest',
                         '--ipdoctest-tests','--ipdoctest-extension=txt',
                         '--detailed-errors',
                        

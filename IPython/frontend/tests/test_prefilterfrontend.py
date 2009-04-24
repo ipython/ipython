@@ -12,14 +12,16 @@ __docformat__ = "restructuredtext en"
 #  in the file COPYING, distributed as part of this software.
 #-------------------------------------------------------------------------------
 
+from copy import copy, deepcopy
 from cStringIO import StringIO
 import string
 
 from nose.tools import assert_equal
 
-from IPython.ipapi import get as get_ipython0
 from IPython.frontend.prefilterfrontend import PrefilterFrontEnd
-from copy import copy, deepcopy
+from IPython.ipapi import get as get_ipython0
+from IPython.testing.plugin.ipdoctest import default_argv
+
 
 def safe_deepcopy(d):
     """ Deep copy every key of the given dict, when possible. Elsewhere
@@ -45,7 +47,7 @@ class TestPrefilterFrontEnd(PrefilterFrontEnd):
 
     def __init__(self):
         self.out = StringIO()
-        PrefilterFrontEnd.__init__(self)
+        PrefilterFrontEnd.__init__(self,argv=default_argv())
         # Some more code for isolation (yeah, crazy)
         self._on_enter()
         self.out.flush()
@@ -64,7 +66,7 @@ def isolate_ipython0(func):
     """ Decorator to isolate execution that involves an iptyhon0.
 
         Notes
-        ------
+        -----
 
         Apply only to functions with no arguments. Nose skips functions
         with arguments.
@@ -153,6 +155,12 @@ def test_magic():
         This test is fairly fragile and will break when magics change.
     """
     f = TestPrefilterFrontEnd()
+    # Before checking the interactive namespace, make sure it's clear (it can
+    # otherwise pick up things stored in the user's local db)
+    f.input_buffer += '%reset -f'
+    f._on_enter()
+    f.complete_current_input()
+    # Now, run the %who magic and check output
     f.input_buffer += '%who'
     f._on_enter()
     out_value = f.out.getvalue()
