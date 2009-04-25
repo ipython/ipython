@@ -58,9 +58,8 @@ def doctest_hist_r():
     hist -n -r 2  # random
     """
 
-# This is skipped for now because getoutput doesn't find the ipython
-# executable.  See ticket https://bugs.launchpad.net/bugs/366334
-@dec.skip_win32
+# This test is known to fail on win32.
+# See ticket https://bugs.launchpad.net/bugs/366334
 def test_obj_del():
     """Test that object's __del__ methods are called on exit."""
     test_dir = os.path.dirname(__file__)
