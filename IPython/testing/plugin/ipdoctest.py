@@ -840,11 +840,11 @@ class ExtensionDoctest(doctests.Doctest):
         Modified version that accepts extension modules as valid containers for
         doctests.
         """
-        #print '*** ipdoctest- wantFile:',filename  # dbg
+        # print '*** ipdoctest- wantFile:',filename  # dbg
 
         for pat in self.exclude_patterns:
             if pat.search(filename):
-                #print '###>>> SKIP:',filename  # dbg
+                # print '###>>> SKIP:',filename  # dbg
                 return False
 
         if is_extension_module(filename):

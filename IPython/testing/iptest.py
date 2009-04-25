@@ -36,17 +36,31 @@ from IPython.testing.plugin.ipdoctest import IPythonDoctest
 pjoin = path.join
 
 #-----------------------------------------------------------------------------
-# Globals and constants
+# Logic for skipping doctests
 #-----------------------------------------------------------------------------
+
+def test_for(mod):
+    """Test to see if mod is importable."""
+    try:
+        __import__(mod)
+    except ImportError:
+        return False
+    else:
+        return True
+
+have_curses = test_for('_curses')
+have_wx = test_for('wx')
+have_zi = test_for('zope.interface')
+have_twisted = test_for('twisted')
+have_foolscap = test_for('foolscap')
+have_objc = test_for('objc')
+have_pexpect = test_for('pexpect')
 
 # For the IPythonDoctest plugin, we need to exclude certain patterns that cause
 # testing problems.  We should strive to minimize the number of skipped
 # modules, since this means untested code.  As the testing machinery
 # solidifies, this list should eventually become empty.
 EXCLUDE = [pjoin('IPython', 'external'),
-            # This skip is duplicated below XXX
-           pjoin('IPython', 'platutils_win32'),
-           pjoin('IPython', 'frontend', 'cocoa'),
            pjoin('IPython', 'frontend', 'process', 'winprocess.py'),
            pjoin('IPython_doctest_plugin'),
            pjoin('IPython', 'Gnuplot'),
@@ -56,18 +70,28 @@ EXCLUDE = [pjoin('IPython', 'external'),
            pjoin('IPython', 'Extensions', 'scitedirector'),
            pjoin('IPython', 'Extensions', 'numeric_formats'),
            pjoin('IPython', 'testing', 'attic'),
+           pjoin('IPython', 'testing', 'tutils')
            ]
 
-try:
-    import wx
-except ImportError:
+if not have_wx:
     EXCLUDE.append(pjoin('IPython', 'Extensions', 'igrid'))
+    EXCLUDE.append(pjoin('IPython', 'gui'))
+    EXCLUDE.append(pjoin('IPython', 'frontend', 'wx'))
 
-try:
-    import _curses
-except ImportError:
+if not have_objc:
+    EXCLUDE.append(pjoin('IPython', 'frontend', 'cocoa'))
+
+if not have_curses:
     EXCLUDE.append(pjoin('IPython', 'Extensions', 'ibrowse'))
 
+if not sys.platform == 'win32':
+    EXCLUDE.append(pjoin('IPython', 'platutils_win32'))
+
+if not os.name == 'posix':
+    EXCLUDE.append(pjoin('IPython', 'platutils_posix'))
+
+if not have_pexpect:
+    EXCLUDE.append(pjoin('IPython', 'irunner'))
 
 # This is needed for the reg-exp to match on win32 in the ipdoctest plugin.
 if sys.platform == 'win32':
@@ -170,7 +194,7 @@ def make_runners():
        'CrashHandler.py', 'Debugger.py', 'deep_reload.py', 'demo.py',
        'DPyGetOpt.py', 'dtutils.py', 'excolors.py', 'FakeModule.py',
        'generics.py', 'genutils.py', 'history.py', 'hooks.py', 'ipapi.py',
-       'iplib.py', 'ipmaker.py', 'ipstruct.py', 'irunner.py', 'Itpl.py',
+       'iplib.py', 'ipmaker.py', 'ipstruct.py', 'Itpl.py',
        'Logger.py', 'macro.py', 'Magic.py', 'OInspect.py',
        'OutputTrap.py', 'platutils.py', 'prefilter.py', 'Prompts.py',
        'PyColorize.py', 'Release.py', 'rlineimpl.py', 'shadowns.py',
@@ -180,16 +204,15 @@ def make_runners():
        # 'Shell.py',
        'winconsole.py']
 
-    if os.name == 'posix':
-        top_mod.append('platutils_posix.py')
-    elif sys.platform == 'win32':
-        top_mod.append('platutils_win32.py')
-    else:
-        top_mod.append('platutils_dummy.py')
+    if have_pexpect:
+        top_mod.append('irunner.py')
 
     # These are tested by nose, so skip IPython.kernel
-    top_pack = ['config','Extensions','frontend','gui',
+    top_pack = ['config','Extensions','frontend',
                 'testing','tests','tools','UserConfig']
+
+    if have_wx:
+        top_pack.append('gui')
 
     modules  = ['IPython.%s' % m[:-3] for m in top_mod ]
     packages = ['IPython.%s' % m for m in top_pack ]
@@ -198,13 +221,7 @@ def make_runners():
     runners = dict(zip(top_pack, [IPTester(params=v) for v in packages]))
     
     # Test IPython.kernel using trial if twisted is installed
-    try:
-        import zope.interface
-        import twisted
-        import foolscap
-    except ImportError:
-        pass
-    else:
+    if have_zi and have_twisted and have_foolscap:
         runners['trial'] = IPTester('trial',['IPython'])
 
     runners['modules'] = IPTester(params=modules)
