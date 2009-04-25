@@ -88,6 +88,14 @@ def find_cmd(cmd):
         raise FindCmdError('command could not be found: %s' % cmd)
     return path
 
+def get_long_path_name(path):
+    """Expand a path into its long form.
+
+    On Windows this expands any ~ in the paths. On other platforms, it is
+    a null operation.
+    """
+    return _platutils.get_long_path_name(path)
+
 #-----------------------------------------------------------------------------
 # Deprecated functions
 #-----------------------------------------------------------------------------

@@ -213,6 +213,13 @@ def make_runners():
     if have_pexpect:
         top_mod.append('irunner.py')
 
+    if sys.platform == 'win32':
+        top_mod.append('platutils_win32.py')
+    elif os.name == 'posix':
+        top_mod.append('platutils_posix.py')
+    else:
+        top_mod.append('platutils_dummy.py')
+
     # These are tested by nose, so skip IPython.kernel
     top_pack = ['config','Extensions','frontend',
                 'testing','tests','tools','UserConfig']

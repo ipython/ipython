@@ -34,3 +34,7 @@ else:
 def find_cmd(cmd):
     """Find the full path to a command using which."""
     return os.popen('which %s' % cmd).read().strip()
+
+def get_long_path_name(path):
+    """Dummy no-op."""
+    return path
