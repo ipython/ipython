@@ -89,6 +89,8 @@ if not have_curses:
 if not sys.platform == 'win32':
     EXCLUDE.append(pjoin('IPython', 'platutils_win32'))
 
+# These have to be skipped on win32 because the use echo, rm, cd, etc.
+# See ticket https://bugs.launchpad.net/bugs/366982
 if sys.platform == 'win32':
     EXCLUDE.append(pjoin('IPython', 'testing', 'plugin', 'test_exampleip'))
     EXCLUDE.append(pjoin('IPython', 'testing', 'plugin', 'dtexample'))
