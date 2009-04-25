@@ -30,6 +30,7 @@ import warnings
 import nose.plugins.builtin
 from nose.core import TestProgram
 
+from IPython.platutils import find_cmd
 from IPython.testing.plugin.ipdoctest import IPythonDoctest
 
 pjoin = path.join
@@ -43,6 +44,7 @@ pjoin = path.join
 # modules, since this means untested code.  As the testing machinery
 # solidifies, this list should eventually become empty.
 EXCLUDE = [pjoin('IPython', 'external'),
+            # This skip is duplicated below XXX
            pjoin('IPython', 'platutils_win32'),
            pjoin('IPython', 'frontend', 'cocoa'),
            pjoin('IPython', 'frontend', 'process', 'winprocess.py'),
@@ -50,11 +52,27 @@ EXCLUDE = [pjoin('IPython', 'external'),
            pjoin('IPython', 'Gnuplot'),
            pjoin('IPython', 'Extensions', 'ipy_'),
            pjoin('IPython', 'Extensions', 'clearcmd'),
-           pjoin('IPython', 'Extensions', 'PhysicalQIn'),
+           pjoin('IPython', 'Extensions', 'PhysicalQInteractive'),
            pjoin('IPython', 'Extensions', 'scitedirector'),
            pjoin('IPython', 'Extensions', 'numeric_formats'),
            pjoin('IPython', 'testing', 'attic'),
            ]
+
+try:
+    import wx
+except ImportError:
+    EXCLUDE.append(pjoin('IPython', 'Extensions', 'igrid'))
+
+try:
+    import _curses
+except ImportError:
+    EXCLUDE.append(pjoin('IPython', 'Extensions', 'ibrowse'))
+
+
+# This is needed for the reg-exp to match on win32 in the ipdoctest plugin.
+if sys.platform == 'win32':
+    EXCLUDE = [s.replace('\\','\\\\') for s in EXCLUDE]
+
 
 #-----------------------------------------------------------------------------
 # Functions and classes
@@ -125,7 +143,7 @@ class IPTester(object):
         if runner == 'iptest':
             self.runner = ['iptest','-v']
         else:
-            self.runner = ['trial']
+            self.runner = [find_cmd('trial')]
         if params is None:
             params = []
         if isinstance(params,str):
