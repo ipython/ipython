@@ -32,6 +32,8 @@ from nose.core import TestProgram
 
 from IPython.testing.plugin.ipdoctest import IPythonDoctest
 
+pjoin = path.join
+
 #-----------------------------------------------------------------------------
 # Globals and constants
 #-----------------------------------------------------------------------------
@@ -40,18 +42,18 @@ from IPython.testing.plugin.ipdoctest import IPythonDoctest
 # testing problems.  We should strive to minimize the number of skipped
 # modules, since this means untested code.  As the testing machinery
 # solidifies, this list should eventually become empty.
-EXCLUDE = ['IPython/external/',
-           'IPython/platutils_win32',
-           'IPython/frontend/cocoa',
-           'IPython/frontend/process/winprocess.py',
-           'IPython_doctest_plugin',
-           'IPython/Gnuplot',
-           'IPython/Extensions/ipy_',
-           'IPython/Extensions/clearcmd',
-           'IPython/Extensions/PhysicalQIn',
-           'IPython/Extensions/scitedirector',
-           'IPython/Extensions/numeric_formats',
-           'IPython/testing/attic',
+EXCLUDE = [pjoin('IPython', 'external'),
+           pjoin('IPython', 'platutils_win32'),
+           pjoin('IPython', 'frontend', 'cocoa'),
+           pjoin('IPython', 'frontend', 'process', 'winprocess.py'),
+           pjoin('IPython_doctest_plugin'),
+           pjoin('IPython', 'Gnuplot'),
+           pjoin('IPython', 'Extensions', 'ipy_'),
+           pjoin('IPython', 'Extensions', 'clearcmd'),
+           pjoin('IPython', 'Extensions', 'PhysicalQIn'),
+           pjoin('IPython', 'Extensions', 'scitedirector'),
+           pjoin('IPython', 'Extensions', 'numeric_formats'),
+           pjoin('IPython', 'testing', 'attic'),
            ]
 
 #-----------------------------------------------------------------------------
