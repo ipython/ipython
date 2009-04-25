@@ -26,15 +26,13 @@ Authors
 # Required modules and packages
 #-----------------------------------------------------------------------------
 
-# Standard Python lib
 import os
 import sys
 
-# Third-party
 import nose.tools as nt
 
-# From this project
 from IPython.tools import utils
+from IPython.testing import decorators as dec
 
 #-----------------------------------------------------------------------------
 # Globals
@@ -54,6 +52,7 @@ for _x in [a for a in dir(nt) if a.startswith('assert')]:
 #-----------------------------------------------------------------------------
 # Functions and classes
 #-----------------------------------------------------------------------------
+
 
 def full_path(startPath,files):
     """Make full paths for all the listed files, based on startPath.

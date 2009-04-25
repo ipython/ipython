@@ -70,7 +70,8 @@ EXCLUDE = [pjoin('IPython', 'external'),
            pjoin('IPython', 'Extensions', 'scitedirector'),
            pjoin('IPython', 'Extensions', 'numeric_formats'),
            pjoin('IPython', 'testing', 'attic'),
-           pjoin('IPython', 'testing', 'tutils')
+           pjoin('IPython', 'testing', 'tutils'),
+           pjoin('IPython', 'testing', 'tools')
            ]
 
 if not have_wx:
