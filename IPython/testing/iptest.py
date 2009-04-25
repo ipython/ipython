@@ -71,7 +71,8 @@ EXCLUDE = [pjoin('IPython', 'external'),
            pjoin('IPython', 'Extensions', 'numeric_formats'),
            pjoin('IPython', 'testing', 'attic'),
            pjoin('IPython', 'testing', 'tutils'),
-           pjoin('IPython', 'testing', 'tools')
+           pjoin('IPython', 'testing', 'tools'),
+           pjoin('IPython', 'testing', 'mkdoctests')
            ]
 
 if not have_wx:
@@ -87,6 +88,10 @@ if not have_curses:
 
 if not sys.platform == 'win32':
     EXCLUDE.append(pjoin('IPython', 'platutils_win32'))
+
+if sys.platform == 'win32':
+    EXCLUDE.append(pjoin('IPython', 'testing', 'plugin', 'test_exampleip'))
+    EXCLUDE.append(pjoin('IPython', 'testing', 'plugin', 'dtexample'))
 
 if not os.name == 'posix':
     EXCLUDE.append(pjoin('IPython', 'platutils_posix'))
