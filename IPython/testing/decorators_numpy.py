@@ -29,13 +29,6 @@ def setastest(tf=True):
     tf : bool
         If True specifies this is a test, not a test otherwise
 
-    e.g
-    >>> from numpy.testing.decorators import setastest
-    >>> @setastest(False)
-    ... def func_with_test_in_name(arg1, arg2): pass
-    ...
-    >>>
-
     This decorator cannot use the nose namespace, because it can be
     called from a non-test module. See also istest and nottest in
     nose.tools

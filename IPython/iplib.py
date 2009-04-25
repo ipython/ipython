@@ -152,7 +152,11 @@ def user_setup(ipythondir,rc_suffix,mode='install',interactive=True):
         printf = lambda s : None
 
     # Install mode should be re-entrant: if the install dir already exists,
-    # bail out cleanly
+    # bail out cleanly.
+    # XXX.  This is too hasty to return.  We need to check to make sure that
+    # all the expected config files and directories are actually there. We
+    # currently have a failure mode if someone deletes a needed config file
+    # but still has the ipythondir.
     if mode == 'install' and os.path.isdir(ipythondir):
         return
 
@@ -1474,8 +1478,9 @@ class InteractiveShell(object,Magic):
                     #print "loading rl:",rlcommand  # dbg
                     readline.parse_and_bind(rlcommand)
 
-            # remove some chars from the delimiters list
-            delims = readline.get_completer_delims()
+            # Remove some chars from the delimiters list.  If we encounter
+            # unicode chars, discard them.
+            delims = readline.get_completer_delims().encode("ascii", "ignore")
             delims = delims.translate(string._idmap,
                                       self.rc.readline_remove_delims)
             readline.set_completer_delims(delims)

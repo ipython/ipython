@@ -59,6 +59,19 @@ log = logging.getLogger(__name__)
 # machinery into a fit.  This code should be considered a gross hack, but it
 # gets the job done.
 
+def default_argv():
+    """Return a valid default argv for creating testing instances of ipython"""
+
+    # Get the install directory for the user configuration and tell ipython to
+    # use the default profile from there.
+    from IPython import UserConfig
+    ipcdir = os.path.dirname(UserConfig.__file__)
+    #ipconf = os.path.join(ipcdir,'ipy_user_conf.py')
+    ipconf = os.path.join(ipcdir,'ipythonrc')
+    #print 'conf:',ipconf # dbg
+    
+    return ['--colors=NoColor','--noterm_title','-rcfile=%s' % ipconf]
+
 
 # Hack to modify the %run command so we can sync the user's namespace with the
 # test globals.  Once we move over to a clean magic system, this will be done
@@ -84,9 +97,19 @@ def _run_ns_sync(self,arg_s,runner=None):
     This is strictly needed for running doctests that call %run.
     """
 
-    finder = py_file_finder(_run_ns_sync.test_filename)
+    # When tests call %run directly (not via doctest) these function attributes
+    # are not set
+    try:
+        fname = _run_ns_sync.test_filename
+    except AttributeError:
+        fname = arg_s
+
+    finder = py_file_finder(fname)
     out = _ip.IP.magic_run_ori(arg_s,runner,finder)
-    _run_ns_sync.test_globs.update(_ip.user_ns)
+    
+    # Simliarly, there is no test_globs when a test is NOT a doctest
+    if hasattr(_run_ns_sync,'test_globs'):
+        _run_ns_sync.test_globs.update(_ip.user_ns)
     return out
 
 
@@ -113,10 +136,19 @@ class ipnsdict(dict):
     def update(self,other):
         self._checkpoint()
         dict.update(self,other)
+
         # If '_' is in the namespace, python won't set it when executing code,
         # and we have examples that test it.  So we ensure that the namespace
         # is always 'clean' of it before it's used for test code execution.
         self.pop('_',None)
+
+        # The builtins namespace must *always* be the real __builtin__ module,
+        # else weird stuff happens.  The main ipython code does have provisions
+        # to ensure this after %run, but since in this class we do some
+        # aggressive low-level cleaning of the execution namespace, we need to
+        # correct for that ourselves, to ensure consitency with the 'real'
+        # ipython.
+        self['__builtins__'] = __builtin__
         
 
 def start_ipython():
@@ -148,10 +180,11 @@ def start_ipython():
     _excepthook = sys.excepthook
     _main = sys.modules.get('__main__')
 
+    argv = default_argv()
+    
     # Start IPython instance.  We customize it to start with minimal frills.
     user_ns,global_ns = IPython.ipapi.make_user_namespaces(ipnsdict(),dict())
-    IPython.Shell.IPShell(['--colors=NoColor','--noterm_title'],
-                          user_ns,global_ns)
+    IPython.Shell.IPShell(argv,user_ns,global_ns)
 
     # Deactivate the various python system hooks added by ipython for
     # interactive convenience so we don't confuse the doctest system
@@ -807,11 +840,11 @@ class ExtensionDoctest(doctests.Doctest):
         Modified version that accepts extension modules as valid containers for
         doctests.
         """
-        #print '*** ipdoctest- wantFile:',filename  # dbg
+        # print '*** ipdoctest- wantFile:',filename  # dbg
 
         for pat in self.exclude_patterns:
             if pat.search(filename):
-                #print '###>>> SKIP:',filename  # dbg
+                # print '###>>> SKIP:',filename  # dbg
                 return False
 
         if is_extension_module(filename):

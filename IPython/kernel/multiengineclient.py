@@ -20,6 +20,7 @@ import sys
 import cPickle as pickle
 from types import FunctionType
 import linecache
+import warnings
 
 from twisted.internet import reactor
 from twisted.python import components, log
@@ -389,6 +390,14 @@ def strip_whitespace(source):
 #-------------------------------------------------------------------------------
 
 
+_prop_warn = """\
+
+We are currently refactoring the task dependency system.  This might
+involve the removal of this method and other methods related to engine
+properties.  Please see the docstrings for IPython.kernel.TaskRejectError 
+for more information."""
+
+
 class IFullBlockingMultiEngineClient(Interface):
     pass
 
@@ -730,22 +739,27 @@ class FullBlockingMultiEngineClient(InteractiveMultiEngineClient):
         return self._blockFromThread(self.smultiengine.queue_status, targets=targets, block=block)
     
     def set_properties(self, properties, targets=None, block=None):
+        warnings.warn(_prop_warn)
         targets, block = self._findTargetsAndBlock(targets, block)
         return self._blockFromThread(self.smultiengine.set_properties, properties, targets=targets, block=block)
     
     def get_properties(self, keys=None, targets=None, block=None):
+        warnings.warn(_prop_warn)
         targets, block = self._findTargetsAndBlock(targets, block)
         return self._blockFromThread(self.smultiengine.get_properties, keys, targets=targets, block=block)
     
     def has_properties(self, keys, targets=None, block=None):
+        warnings.warn(_prop_warn)
         targets, block = self._findTargetsAndBlock(targets, block)
         return self._blockFromThread(self.smultiengine.has_properties, keys, targets=targets, block=block)
     
     def del_properties(self, keys, targets=None, block=None):
+        warnings.warn(_prop_warn)
         targets, block = self._findTargetsAndBlock(targets, block)
         return self._blockFromThread(self.smultiengine.del_properties, keys, targets=targets, block=block)
     
     def clear_properties(self, targets=None, block=None):
+        warnings.warn(_prop_warn)
         targets, block = self._findTargetsAndBlock(targets, block)
         return self._blockFromThread(self.smultiengine.clear_properties, targets=targets, block=block)
     

@@ -4,36 +4,36 @@
 
 __docformat__ = "restructuredtext en"
 
-#-------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------
 #  Copyright (C) 2008  The IPython Development Team
 #
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
-#-------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------
 
-#-------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------
 # Imports
-#-------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------
 
-try:
-    import zope.interface as zi
-    from twisted.trial import unittest
-    from IPython.testing.util import DeferredTestCase
+# Tell nose to skip this module
+__test__ = {}
 
-    from IPython.kernel.newserialized import \
-        ISerialized, \
-        IUnSerialized, \
-        Serialized, \
-        UnSerialized, \
-        SerializeIt, \
-        UnSerializeIt
-except ImportError:
-    import nose
-    raise nose.SkipTest("This test requires zope.interface, Twisted and Foolscap")
+import zope.interface as zi
+from twisted.trial import unittest
+from IPython.testing.util import DeferredTestCase
 
-#-------------------------------------------------------------------------------
+from IPython.kernel.newserialized import \
+    ISerialized, \
+    IUnSerialized, \
+    Serialized, \
+    UnSerialized, \
+    SerializeIt, \
+    UnSerializeIt
+
+
+#-----------------------------------------------------------------------------
 # Tests
-#-------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------
 
 class SerializedTestCase(unittest.TestCase):
 

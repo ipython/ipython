@@ -23,20 +23,19 @@ __docformat__ = "restructuredtext en"
 # Imports
 #-------------------------------------------------------------------------------
 
-try:
-    from twisted.internet import defer
-    from twisted.application.service import IService
-    
-    from IPython.kernel import engineservice as es
-    from IPython.testing.util import DeferredTestCase
-    from IPython.kernel.tests.engineservicetest import \
-        IEngineCoreTestCase, \
-        IEngineSerializedTestCase, \
-        IEngineQueuedTestCase, \
-        IEnginePropertiesTestCase
-except ImportError:
-    import nose
-    raise nose.SkipTest("This test requires zope.interface, Twisted and Foolscap")    
+# Tell nose to skip this module
+__test__ = {}
+
+from twisted.internet import defer
+from twisted.application.service import IService
+
+from IPython.kernel import engineservice as es
+from IPython.testing.util import DeferredTestCase
+from IPython.kernel.tests.engineservicetest import \
+    IEngineCoreTestCase, \
+    IEngineSerializedTestCase, \
+    IEngineQueuedTestCase, \
+    IEnginePropertiesTestCase
 
 
 class BasicEngineServiceTest(DeferredTestCase,

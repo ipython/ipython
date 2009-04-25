@@ -21,8 +21,10 @@ __docformat__ = "restructuredtext en"
 import sys
 sys.path.insert(0, '')
 
-import sys, time, os
 from optparse import OptionParser
+import os
+import time
+import tempfile
 
 from twisted.application import internet, service
 from twisted.internet import reactor, error, defer
@@ -37,6 +39,18 @@ from IPython.kernel.error import SecurityError
 from IPython.kernel import controllerservice
 from IPython.kernel.fcutil import check_furl_file_security
 
+# Create various ipython directories if they don't exist.
+# This must be done before IPython.kernel.config is imported.
+from IPython.iplib import user_setup
+from IPython.genutils import get_ipython_dir, get_log_dir, get_security_dir
+if os.name == 'posix':
+    rc_suffix = ''
+else:
+    rc_suffix = '.ini'
+user_setup(get_ipython_dir(), rc_suffix, mode='install', interactive=False)
+get_log_dir()
+get_security_dir()
+
 from IPython.kernel.config import config_manager as kernel_config_manager
 from IPython.config.cutils import import_item
 
@@ -44,6 +58,10 @@ from IPython.config.cutils import import_item
 #-------------------------------------------------------------------------------
 # Code
 #-------------------------------------------------------------------------------
+
+def get_temp_furlfile(filename):
+    return tempfile.mktemp(dir=os.path.dirname(filename),
+                           prefix=os.path.basename(filename))
 
 def make_tub(ip, port, secure, cert_file):
     """
@@ -107,13 +125,18 @@ def make_client_service(controller_service, config):
         """Set the location for the tub and return a deferred."""
 
         def register(empty, ref, furl_file):
-            client_tub.registerReference(ref, furlFile=furl_file)
+            # We create and then move to make sure that when the file
+            # appears to other processes, the buffer has the flushed
+            # and the file has been closed
+            temp_furl_file = get_temp_furlfile(furl_file)
+            client_tub.registerReference(ref, furlFile=temp_furl_file)
+            os.rename(temp_furl_file, furl_file)
         
         if location == '':
             d = client_tub.setLocationAutomatically()
         else:
             d = defer.maybeDeferred(client_tub.setLocation, "%s:%i" % (location, client_listener.getPortnum()))
-            
+        
         for ciname, ci in config['controller']['controller_interfaces'].iteritems():
             log.msg("Adapting Controller to interface: %s" % ciname)
             furl_file = ci['furl_file']
@@ -154,7 +177,12 @@ def make_engine_service(controller_service, config):
         """Set the location for the tub and return a deferred."""
 
         def register(empty, ref, furl_file):
-            engine_tub.registerReference(ref, furlFile=furl_file)
+            # We create and then move to make sure that when the file
+            # appears to other processes, the buffer has the flushed
+            # and the file has been closed
+            temp_furl_file = get_temp_furlfile(furl_file)
+            engine_tub.registerReference(ref, furlFile=temp_furl_file)
+            os.rename(temp_furl_file, furl_file)
         
         if location == '':
             d = engine_tub.setLocationAutomatically()
@@ -236,7 +264,14 @@ def init_config():
     Initialize the configuration using default and command line options.
     """
     
-    parser = OptionParser()
+    parser = OptionParser("""ipcontroller [options]
+
+Start an IPython controller.
+
+Use the IPYTHONDIR environment variable to change your IPython directory 
+from the default of .ipython or _ipython.  The log and security 
+subdirectories of your IPython directory will be used by this script 
+for log files and security files.""")
     
     # Client related options
     parser.add_option(
@@ -325,12 +360,6 @@ def init_config():
         help="log file name (default is stdout)"
     )
     parser.add_option(
-        "--ipythondir",
-        type="string",
-        dest="ipythondir",
-        help="look for config files and profiles in this directory"
-    )
-    parser.add_option(
         "-r",
         action="store_true",
         dest="reuse_furls",
@@ -339,7 +368,6 @@ def init_config():
     
     (options, args) = parser.parse_args()
     
-    kernel_config_manager.update_config_obj_from_default_file(options.ipythondir)
     config = kernel_config_manager.get_config_obj()
     
     # Update with command line options

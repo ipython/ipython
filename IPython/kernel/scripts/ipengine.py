@@ -21,8 +21,8 @@ __docformat__ = "restructuredtext en"
 import sys
 sys.path.insert(0, '')
 
-import sys, os
 from optparse import OptionParser
+import os
 
 from twisted.application import service
 from twisted.internet import reactor
@@ -33,6 +33,19 @@ from IPython.kernel.fcutil import Tub, UnauthenticatedTub
 from IPython.kernel.core.config import config_manager as core_config_manager
 from IPython.config.cutils import import_item
 from IPython.kernel.engineservice import EngineService
+
+# Create various ipython directories if they don't exist.
+# This must be done before IPython.kernel.config is imported.
+from IPython.iplib import user_setup
+from IPython.genutils import get_ipython_dir, get_log_dir, get_security_dir
+if os.name == 'posix':
+    rc_suffix = ''
+else:
+    rc_suffix = '.ini'
+user_setup(get_ipython_dir(), rc_suffix, mode='install', interactive=False)
+get_log_dir()
+get_security_dir()
+
 from IPython.kernel.config import config_manager as kernel_config_manager
 from IPython.kernel.engineconnector import EngineConnector
 
@@ -106,13 +119,19 @@ def start_engine():
     engine_connector = EngineConnector(tub_service)
     furl_file = kernel_config['engine']['furl_file']
     log.msg("Using furl file: %s" % furl_file)
-    d = engine_connector.connect_to_controller(engine_service, furl_file)
-    def handle_error(f):
-        log.err(f)
-        if reactor.running:
-            reactor.stop()
-    d.addErrback(handle_error)
     
+    def call_connect(engine_service, furl_file):
+        d = engine_connector.connect_to_controller(engine_service, furl_file)
+        def handle_error(f):
+            # If this print statement is replaced by a log.err(f) I get
+            # an unhandled error, which makes no sense.  I shouldn't have
+            # to use a print statement here.  My only thought is that
+            # at the beginning of the process the logging is still starting up
+            print "error connecting to controller:", f.getErrorMessage()
+            reactor.callLater(0.1, reactor.stop)
+        d.addErrback(handle_error)
+    
+    reactor.callWhenRunning(call_connect, engine_service, furl_file)
     reactor.run()
 
 
@@ -121,7 +140,14 @@ def init_config():
     Initialize the configuration using default and command line options.
     """
     
-    parser = OptionParser()
+    parser = OptionParser("""ipengine [options]
+
+Start an IPython engine.
+
+Use the IPYTHONDIR environment variable to change your IPython directory 
+from the default of .ipython or _ipython.  The log and security 
+subdirectories of your IPython directory will be used by this script 
+for log files and security files.""")
     
     parser.add_option(
         "--furl-file",
@@ -142,17 +168,8 @@ def init_config():
         dest="logfile",
         help="log file name (default is stdout)"
     )
-    parser.add_option(
-        "--ipythondir",
-        type="string",
-        dest="ipythondir",
-        help="look for config files and profiles in this directory"
-    )
     
     (options, args) = parser.parse_args()
-    
-    kernel_config_manager.update_config_obj_from_default_file(options.ipythondir)
-    core_config_manager.update_config_obj_from_default_file(options.ipythondir)
     
     kernel_config = kernel_config_manager.get_config_obj()
     # Now override with command line options

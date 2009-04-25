@@ -22,9 +22,10 @@ __docformat__ = "restructuredtext en"
 # Imports
 #-------------------------------------------------------------------------------
 import sys
-
-from linefrontendbase import LineFrontEndBase, common_prefix
-from frontendbase import FrontEndBase
+import pydoc
+import os
+import re
+import __builtin__
 
 from IPython.ipmaker import make_IPython
 from IPython.ipapi import IPApi
@@ -33,9 +34,8 @@ from IPython.kernel.core.redirector_output_trap import RedirectorOutputTrap
 from IPython.kernel.core.sync_traceback_trap import SyncTracebackTrap
 
 from IPython.genutils import Term
-import pydoc
-import os
-import sys
+
+from linefrontendbase import LineFrontEndBase, common_prefix
 
 
 def mk_system_call(system_call_function, command):
@@ -45,6 +45,8 @@ def mk_system_call(system_call_function, command):
     """
     def my_system_call(args):
         system_call_function("%s %s" % (command, args))
+
+    my_system_call.__doc__ = "Calls %s" % command
     return my_system_call
 
 #-------------------------------------------------------------------------------
@@ -62,13 +64,25 @@ class PrefilterFrontEnd(LineFrontEndBase):
 
     debug = False
     
-    def __init__(self, ipython0=None, *args, **kwargs):
+    def __init__(self, ipython0=None, argv=None, *args, **kwargs):
         """ Parameters:
             -----------
 
             ipython0: an optional ipython0 instance to use for command
             prefiltering and completion.
+
+            argv : list, optional
+              Used as the instance's argv value.  If not given, [] is used.
         """
+        if argv is None:
+            argv = []
+        # This is a hack to avoid the IPython exception hook to trigger
+        # on exceptions (https://bugs.launchpad.net/bugs/337105)
+        # XXX: This is horrible: module-leve monkey patching -> side
+        # effects.
+        from IPython import iplib
+        iplib.InteractiveShell.isthreaded = True
+
         LineFrontEndBase.__init__(self, *args, **kwargs)
         self.shell.output_trap = RedirectorOutputTrap(
                             out_callback=self.write,
@@ -83,10 +97,16 @@ class PrefilterFrontEnd(LineFrontEndBase):
         if ipython0 is None:
             # Instanciate an IPython0 interpreter to be able to use the
             # prefiltering.
+            # Suppress all key input, to avoid waiting
+            def my_rawinput(x=None):
+                return '\n'
+            old_rawinput = __builtin__.raw_input
+            __builtin__.raw_input = my_rawinput
             # XXX: argv=[] is a bit bold.
-            ipython0 = make_IPython(argv=[], 
+            ipython0 = make_IPython(argv=argv, 
                                     user_ns=self.shell.user_ns,
                                     user_global_ns=self.shell.user_global_ns)
+            __builtin__.raw_input = old_rawinput
         self.ipython0 = ipython0
         # Set the pager:
         self.ipython0.set_hook('show_in_pager', 
@@ -98,16 +118,17 @@ class PrefilterFrontEnd(LineFrontEndBase):
         self._ip.system = self.system_call
         # XXX: Muck around with magics so that they work better
         # in our environment
-        self.ipython0.magic_ls = mk_system_call(self.system_call, 
-                                                            'ls -CF')
+        if not sys.platform.startswith('win'):
+            self.ipython0.magic_ls = mk_system_call(self.system_call, 
+                                                                'ls -CF')
         # And now clean up the mess created by ipython0
         self.release_output()
 
 
         if not 'banner' in kwargs and self.banner is None:
-            self.banner = self.ipython0.BANNER + """
-This is the wx frontend, by Gael Varoquaux. This is EXPERIMENTAL code."""
+            self.banner = self.ipython0.BANNER
 
+        # FIXME: __init__ and start should be two different steps
         self.start()
 
     #--------------------------------------------------------------------------
@@ -117,7 +138,10 @@ This is the wx frontend, by Gael Varoquaux. This is EXPERIMENTAL code."""
     def show_traceback(self):
         """ Use ipython0 to capture the last traceback and display it.
         """
-        self.capture_output()
+        # Don't do the capture; the except_hook has already done some
+        # modifications to the IO streams, if we store them, we'll be
+        # storing the wrong ones.
+        #self.capture_output()
         self.ipython0.showtraceback(tb_offset=-1)
         self.release_output()
 
@@ -171,7 +195,7 @@ This is the wx frontend, by Gael Varoquaux. This is EXPERIMENTAL code."""
     def complete(self, line):
         # FIXME: This should be factored out in the linefrontendbase
         # method.
-        word = line.split('\n')[-1].split(' ')[-1]
+        word = self._get_completion_text(line)
         completions = self.ipython0.complete(word)
         # FIXME: The proper sort should be done in the complete method.
         key = lambda x: x.replace('_', '')
@@ -243,4 +267,19 @@ This is the wx frontend, by Gael Varoquaux. This is EXPERIMENTAL code."""
         """ Exit the shell, cleanup and save the history.
         """
         self.ipython0.atexit_operations()
+
+
+    def _get_completion_text(self, line):
+        """ Returns the text to be completed by breaking the line at specified
+        delimiters.
+        """
+        # Break at: spaces, '=', all parentheses (except if balanced).
+        # FIXME2: In the future, we need to make the implementation similar to
+        # that in the 'pyreadline' module (modes/basemode.py) where we break at
+        # each delimiter and try to complete the residual line, until we get a
+        # successful list of completions.
+        expression = '\s|=|,|:|\((?!.*\))|\[(?!.*\])|\{(?!.*\})' 
+        complete_sep = re.compile(expression)
+        text = complete_sep.split(line)[-1]
+        return text
 

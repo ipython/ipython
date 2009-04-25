@@ -2,26 +2,26 @@
 
 """This file contains unittests for the notification.py module."""
 
-__docformat__ = "restructuredtext en"
-
 #-----------------------------------------------------------------------------
-#  Copyright (C) 2008  The IPython Development Team                           
-#                                                                             
-#  Distributed under the terms of the BSD License.  The full license is in    
-#  the file COPYING, distributed as part of this software.                    
-#-----------------------------------------------------------------------------
-                                                                              
-#-----------------------------------------------------------------------------
-# Imports                                                                     
+#  Copyright (C) 2008-2009  The IPython Development Team
+#
+#  Distributed under the terms of the BSD License.  The full license is
+#  in the file COPYING, distributed as part of this software.
 #-----------------------------------------------------------------------------
 
-import unittest
+#-----------------------------------------------------------------------------
+# Imports
+#-----------------------------------------------------------------------------
+
+# Tell nose to skip this module
+__test__ = {}
+
+from twisted.trial import unittest
 import IPython.kernel.core.notification as notification
-from nose.tools import timed
 
-#
-# Supporting test classes
-#
+#-----------------------------------------------------------------------------
+# Support Classes
+#-----------------------------------------------------------------------------
 
 class Observer(object):
     """docstring for Observer"""
@@ -36,7 +36,6 @@ class Observer(object):
                             self.expectedType, 
                             self.expectedSender)
     
-    
     def callback(self, theType, sender, args={}):
         """callback"""
         
@@ -47,7 +46,6 @@ class Observer(object):
         assert(args == self.expectedKwArgs)
         self.recieved = True
     
-    
     def verify(self):
         """verify"""
         
@@ -57,7 +55,6 @@ class Observer(object):
         """reset"""
         
         self.recieved = False
-    
 
 
 class Notifier(object):
@@ -72,11 +69,10 @@ class Notifier(object):
         
         center.post_notification(self.theType, self,
             **self.kwargs)
-    
 
-#
-# Test Cases
-#
+#-----------------------------------------------------------------------------
+# Tests
+#-----------------------------------------------------------------------------
 
 class NotificationTests(unittest.TestCase):
     """docstring for NotificationTests"""
@@ -94,7 +90,6 @@ class NotificationTests(unittest.TestCase):
         
         observer.verify()
     
-    
     def test_type_specificity(self):
         """Test that observers are registered by type"""
         
@@ -109,7 +104,6 @@ class NotificationTests(unittest.TestCase):
     
         observer.verify()
     
-    
     def test_sender_specificity(self):
         """Test that observers are registered by sender"""
         
@@ -123,7 +117,6 @@ class NotificationTests(unittest.TestCase):
         
         observer.verify()
     
-    
     def test_remove_all_observers(self):
         """White-box test for remove_all_observers"""
         
@@ -136,8 +129,7 @@ class NotificationTests(unittest.TestCase):
         notification.sharedCenter.remove_all_observers()
         
         self.assert_(len(notification.sharedCenter.observers) == 0, "observers removed")
-    
-    
+
     def test_any_sender(self):
         """test_any_sender"""
         
@@ -153,9 +145,7 @@ class NotificationTests(unittest.TestCase):
         observer.reset()
         sender2.post()
         observer.verify()
-        
-    
-    @timed(.01)
+
     def test_post_performance(self):
         """Test that post_notification, even with many registered irrelevant
         observers is fast"""
@@ -168,4 +158,4 @@ class NotificationTests(unittest.TestCase):
         notification.sharedCenter.post_notification('EXPECTED_TYPE', self)
         
         o.verify()
-    
+
