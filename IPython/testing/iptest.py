@@ -287,10 +287,13 @@ def run_iptestall():
 
 
 def main():
-    if sys.argv[1] == 'all':
+    if len(sys.argv) == 1:
         run_iptestall()
     else:
-        run_iptest()
+        if sys.argv[1] == 'all':
+            run_iptestall()
+        else:
+            run_iptest()
 
 
 if __name__ == '__main__':
