@@ -455,7 +455,8 @@ class WxController(ConsoleWidget, PrefilterFrontEnd):
             # Tab-completion
             elif event.KeyCode == ord('\t'):
                 current_line, current_line_num = self.CurLine
-                if not re.match(r'^\s*$', current_line):
+                if not re.match(r'^%s\s*$' % self.continuation_prompt(), 
+                                                            current_line):
                     self.complete_current_input()
                     if self.AutoCompActive():
                         wx.CallAfter(self._popup_completion, create=True)
