@@ -269,8 +269,8 @@ class StrictDict(dict):
             pickle.dumps(key, 2)
             pickle.dumps(value, 2)
             newvalue = copy.deepcopy(value)
-        except:
-            raise error.InvalidProperty(value)
+        except Exception, e:
+            raise error.InvalidProperty("can't be a value: %r" % value)
         dict.__setitem__(self, key, newvalue)
         self.modified = True
     
