@@ -25,6 +25,7 @@ if __name__ == '__main__':
                                         r'\.cocoa',
                                         r'\.ipdoctest',
                                         r'\.Gnuplot',
+                                        r'\.frontend.process.winprocess',
                                         ]
     docwriter.write_api_docs(outdir)
     docwriter.write_index(outdir, 'gen',

@@ -26,15 +26,13 @@ Authors
 # Required modules and packages
 #-----------------------------------------------------------------------------
 
-# Standard Python lib
 import os
 import sys
 
-# Third-party
 import nose.tools as nt
 
-# From this project
 from IPython.tools import utils
+from IPython.testing import decorators as dec
 
 #-----------------------------------------------------------------------------
 # Globals
@@ -55,6 +53,7 @@ for _x in [a for a in dir(nt) if a.startswith('assert')]:
 # Functions and classes
 #-----------------------------------------------------------------------------
 
+
 def full_path(startPath,files):
     """Make full paths for all the listed files, based on startPath.
 
@@ -62,7 +61,8 @@ def full_path(startPath,files):
     used with a script's __file__ variable as startPath.  The base of startPath
     is then prepended to all the listed files, forming the output list.
 
-    :Parameters:
+    Parameters
+    ----------
       startPath : string
         Initial path to use as the base for the results.  This path is split
       using os.path.split() and only its first component is kept.
@@ -70,7 +70,8 @@ def full_path(startPath,files):
       files : string or list
         One or more files.
 
-    :Examples:
+    Examples
+    --------
 
     >>> full_path('/foo/bar.py',['a.txt','b.txt'])
     ['/foo/a.txt', '/foo/b.txt']

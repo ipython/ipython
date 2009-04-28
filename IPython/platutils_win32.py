@@ -41,3 +41,42 @@ except ImportError:
         if ret:
             # non-zero return code signals error, don't try again
             ignore_termtitle = True
+
+def find_cmd(cmd):
+    """Find the full path to a .bat or .exe using the win32api module."""
+    try:
+        import win32api
+    except ImportError:
+        raise ImportError('you need to have pywin32 installed for this to work')
+    else:
+        try:
+            (path, offest) = win32api.SearchPath(os.environ['PATH'],cmd + '.exe')
+        except:
+            (path, offset) = win32api.SearchPath(os.environ['PATH'],cmd + '.bat')
+    return path
+
+
+def get_long_path_name(path):
+    """Get a long path name (expand ~) on Windows using ctypes.
+
+    Examples
+    --------
+
+    >>> get_long_path_name('c:\\docume~1')
+    u'c:\\\\Documents and Settings'
+
+    """
+    try:
+        import ctypes
+    except ImportError:
+        raise ImportError('you need to have ctypes installed for this to work')
+    _GetLongPathName = ctypes.windll.kernel32.GetLongPathNameW
+    _GetLongPathName.argtypes = [ctypes.c_wchar_p, ctypes.c_wchar_p,
+        ctypes.c_uint ]
+
+    buf = ctypes.create_unicode_buffer(260)
+    rv = _GetLongPathName(path, buf, 260)
+    if rv == 0 or rv > 260:
+        return path
+    else:
+        return buf.value

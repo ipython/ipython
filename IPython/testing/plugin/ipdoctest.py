@@ -59,6 +59,19 @@ log = logging.getLogger(__name__)
 # machinery into a fit.  This code should be considered a gross hack, but it
 # gets the job done.
 
+def default_argv():
+    """Return a valid default argv for creating testing instances of ipython"""
+
+    # Get the install directory for the user configuration and tell ipython to
+    # use the default profile from there.
+    from IPython import UserConfig
+    ipcdir = os.path.dirname(UserConfig.__file__)
+    #ipconf = os.path.join(ipcdir,'ipy_user_conf.py')
+    ipconf = os.path.join(ipcdir,'ipythonrc')
+    #print 'conf:',ipconf # dbg
+    
+    return ['--colors=NoColor','--noterm_title','-rcfile=%s' % ipconf]
+
 
 # Hack to modify the %run command so we can sync the user's namespace with the
 # test globals.  Once we move over to a clean magic system, this will be done
@@ -167,10 +180,11 @@ def start_ipython():
     _excepthook = sys.excepthook
     _main = sys.modules.get('__main__')
 
+    argv = default_argv()
+    
     # Start IPython instance.  We customize it to start with minimal frills.
     user_ns,global_ns = IPython.ipapi.make_user_namespaces(ipnsdict(),dict())
-    IPython.Shell.IPShell(['--colors=NoColor','--noterm_title'],
-                          user_ns,global_ns)
+    IPython.Shell.IPShell(argv,user_ns,global_ns)
 
     # Deactivate the various python system hooks added by ipython for
     # interactive convenience so we don't confuse the doctest system
@@ -826,11 +840,11 @@ class ExtensionDoctest(doctests.Doctest):
         Modified version that accepts extension modules as valid containers for
         doctests.
         """
-        #print '*** ipdoctest- wantFile:',filename  # dbg
+        # print '*** ipdoctest- wantFile:',filename  # dbg
 
         for pat in self.exclude_patterns:
             if pat.search(filename):
-                #print '###>>> SKIP:',filename  # dbg
+                # print '###>>> SKIP:',filename  # dbg
                 return False
 
         if is_extension_module(filename):

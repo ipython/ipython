@@ -49,7 +49,7 @@ class BlockingTaskClient(object):
     """
     
     implements(
-        IBlockingTaskClient, 
+        IBlockingTaskClient,
         ITaskMapperFactory,
         IMapper,
         ITaskParallelDecorator
@@ -62,7 +62,7 @@ class BlockingTaskClient(object):
     def run(self, task, block=False):
         """Run a task on the `TaskController`.
         
-        See the documentation of the `MapTask` and `StringTask` classes for 
+        See the documentation of the `MapTask` and `StringTask` classes for
         details on how to build a task of different types.
         
         :Parameters:

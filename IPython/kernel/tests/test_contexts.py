@@ -1,3 +1,6 @@
+# Tell nose to skip this module
+__test__ = {}
+
 #from __future__ import with_statement
 
 # XXX This file is currently disabled to preserve 2.4 compatibility.

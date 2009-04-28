@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+ #!/usr/bin/env python
 # encoding: utf-8
 
 """Start an IPython cluster = (controller + engines)."""
@@ -29,29 +29,35 @@ from twisted.python import failure, log
 
 from IPython.external import argparse
 from IPython.external import Itpl
-from IPython.genutils import get_ipython_dir, num_cpus
+from IPython.genutils import (
+    get_ipython_dir, 
+    get_log_dir, 
+    get_security_dir, 
+    num_cpus
+)
 from IPython.kernel.fcutil import have_crypto
-from IPython.kernel.error import SecurityError
-from IPython.kernel.fcutil import have_crypto
-from IPython.kernel.twistedutil import gatherBoth
-from IPython.kernel.util import printer
 
+# Create various ipython directories if they don't exist.
+# This must be done before IPython.kernel.config is imported.
+from IPython.iplib import user_setup
+if os.name == 'posix':
+    rc_suffix = ''
+else:
+    rc_suffix = '.ini'
+user_setup(get_ipython_dir(), rc_suffix, mode='install', interactive=False)
+get_log_dir()
+get_security_dir()
+
+from IPython.kernel.config import config_manager as kernel_config_manager
+from IPython.kernel.error import SecurityError, FileTimeoutError
+from IPython.kernel.fcutil import have_crypto
+from IPython.kernel.twistedutil import gatherBoth, wait_for_file
+from IPython.kernel.util import printer
 
 #-----------------------------------------------------------------------------
 # General process handling code
 #-----------------------------------------------------------------------------
 
-def find_exe(cmd):
-    try:
-        import win32api
-    except ImportError:
-        raise ImportError('you need to have pywin32 installed for this to work')
-    else:
-        try:
-            (path, offest) = win32api.SearchPath(os.environ['PATH'],cmd + '.exe')
-        except:
-            (path, offset) = win32api.SearchPath(os.environ['PATH'],cmd + '.bat')
-    return path
 
 class ProcessStateError(Exception):
     pass
@@ -184,8 +190,10 @@ class ControllerLauncher(ProcessLauncher):
             from IPython.kernel.scripts import ipcontroller
             script_location = ipcontroller.__file__.replace('.pyc', '.py')
             # The -u option here turns on unbuffered output, which is required
-            # on Win32 to prevent wierd conflict and problems with Twisted
-            args = [find_exe('python'), '-u', script_location]
+            # on Win32 to prevent wierd conflict and problems with Twisted.
+            # Also, use sys.executable to make sure we are picking up the 
+            # right python exe.
+            args = [sys.executable, '-u', script_location]
         else:
             args = ['ipcontroller']
         self.extra_args = extra_args
@@ -204,8 +212,10 @@ class EngineLauncher(ProcessLauncher):
             from IPython.kernel.scripts import ipengine
             script_location = ipengine.__file__.replace('.pyc', '.py')
             # The -u option here turns on unbuffered output, which is required
-            # on Win32 to prevent wierd conflict and problems with Twisted
-            args = [find_exe('python'), '-u', script_location]
+            # on Win32 to prevent wierd conflict and problems with Twisted.
+            # Also, use sys.executable to make sure we are picking up the 
+            # right python exe.
+            args = [sys.executable, '-u', script_location]
         else:
             args = ['ipengine']
         self.extra_args = extra_args
@@ -465,7 +475,9 @@ class SSHEngineSet(object):
 # The main functions should then just parse the command line arguments, create
 # the appropriate class and call a 'start' method.
 
+
 def check_security(args, cont_args):
+    """Check to see if we should run with SSL support."""
     if (not args.x or not args.y) and not have_crypto:
         log.err("""
 OpenSSL/pyOpenSSL is not available, so we can't run in secure mode.
@@ -478,7 +490,9 @@ Try running ipcluster with the -xy flags:  ipcluster local -xy -n 4""")
         cont_args.append('-y')
     return True
 
+
 def check_reuse(args, cont_args):
+    """Check to see if we should try to resuse FURL files."""
     if args.r:
         cont_args.append('-r')
         if args.client_port == 0 or args.engine_port == 0:
@@ -490,6 +504,25 @@ the --client-port and --engine-port options.""")
         cont_args.append('--client-port=%i' % args.client_port)
         cont_args.append('--engine-port=%i' % args.engine_port)
     return True
+
+
+def _err_and_stop(f):
+    """Errback to log a failure and halt the reactor on a fatal error."""
+    log.err(f)
+    reactor.stop()
+
+
+def _delay_start(cont_pid, start_engines, furl_file, reuse):
+    """Wait for controller to create FURL files and the start the engines."""
+    if not reuse:
+        if os.path.isfile(furl_file):
+            os.unlink(furl_file)
+    log.msg('Waiting for controller to finish starting...')
+    d = wait_for_file(furl_file, delay=0.2, max_tries=50)
+    d.addCallback(lambda _: log.msg('Controller started'))
+    d.addCallback(lambda _: start_engines(cont_pid))
+    return d
+
 
 def main_local(args):
     cont_args = []
@@ -520,13 +553,10 @@ def main_local(args):
         signal.signal(signal.SIGINT,shutdown)
         d = eset.start(args.n)
         return d
-    def delay_start(cont_pid):
-        # This is needed because the controller doesn't start listening
-        # right when it starts and the controller needs to write
-        # furl files for the engine to pick up
-        reactor.callLater(1.0, start_engines, cont_pid)
-    dstart.addCallback(delay_start)
-    dstart.addErrback(lambda f: f.raiseException())
+    config = kernel_config_manager.get_config_obj()
+    furl_file = config['controller']['engine_furl_file']
+    dstart.addCallback(_delay_start, start_engines, furl_file, args.r)
+    dstart.addErrback(_err_and_stop)
 
 
 def main_mpi(args):
@@ -562,13 +592,10 @@ def main_mpi(args):
         signal.signal(signal.SIGINT,shutdown)
         d = eset.start()
         return d
-    def delay_start(cont_pid):
-        # This is needed because the controller doesn't start listening
-        # right when it starts and the controller needs to write
-        # furl files for the engine to pick up
-        reactor.callLater(1.0, start_engines, cont_pid)
-    dstart.addCallback(delay_start)
-    dstart.addErrback(lambda f: f.raiseException())
+    config = kernel_config_manager.get_config_obj()
+    furl_file = config['controller']['engine_furl_file']
+    dstart.addCallback(_delay_start, start_engines, furl_file, args.r)
+    dstart.addErrback(_err_and_stop)
 
 
 def main_pbs(args):
@@ -595,8 +622,10 @@ def main_pbs(args):
         signal.signal(signal.SIGINT,shutdown)
         d = pbs_set.start(args.n)
         return d
-    dstart.addCallback(start_engines)
-    dstart.addErrback(lambda f: f.raiseException())
+    config = kernel_config_manager.get_config_obj()
+    furl_file = config['controller']['engine_furl_file']
+    dstart.addCallback(_delay_start, start_engines, furl_file, args.r)
+    dstart.addErrback(_err_and_stop)
 
 
 def main_ssh(args):
@@ -637,12 +666,10 @@ def main_ssh(args):
         signal.signal(signal.SIGINT,shutdown)
         d = ssh_set.start(clusterfile['send_furl'])
         return d
-    
-    def delay_start(cont_pid):
-        reactor.callLater(1.0, start_engines, cont_pid)
-        
-    dstart.addCallback(delay_start)
-    dstart.addErrback(lambda f: f.raiseException())
+    config = kernel_config_manager.get_config_obj()
+    furl_file = config['controller']['engine_furl_file']
+    dstart.addCallback(_delay_start, start_engines, furl_file, args.r)
+    dstart.addErrback(_err_and_stop)
 
 
 def get_args():
@@ -697,8 +724,11 @@ def get_args():
     
     parser = argparse.ArgumentParser(
         description='IPython cluster startup.  This starts a controller and\
-        engines using various approaches.  THIS IS A TECHNOLOGY PREVIEW AND\
-        THE API WILL CHANGE SIGNIFICANTLY BEFORE THE FINAL RELEASE.'
+        engines using various approaches.  Use the IPYTHONDIR environment\
+        variable to change your IPython directory from the default of\
+        .ipython or _ipython.  The log and security subdirectories of your\
+        IPython directory will be used by this script for log files and\
+        security files.'
     )
     subparsers = parser.add_subparsers(
         help='available cluster types.  For help, do "ipcluster TYPE --help"')

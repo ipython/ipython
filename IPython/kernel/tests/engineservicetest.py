@@ -363,7 +363,8 @@ class IEnginePropertiesTestCase(object):
 p = get_engine(%s).properties"""%self.engine.id
         d = self.engine.execute(s)
         d.addCallback(lambda r: self.engine.execute("p['a'] = lambda _:None"))
-        d = self.assertDeferredRaises(d, error.InvalidProperty)
+        d.addErrback(lambda f: self.assertRaises(error.InvalidProperty,
+            f.raiseException))
         d.addCallback(lambda r: self.engine.execute("p['a'] = range(5)"))
         d.addCallback(lambda r: self.engine.execute("p['a'].append(5)"))
         d.addCallback(lambda r: self.engine.get_properties('a'))

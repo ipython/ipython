@@ -61,6 +61,41 @@ def set_term_title(title):
     _platutils.set_term_title(title)
 
 
+class FindCmdError(Exception):
+    pass
+
+def find_cmd(cmd):
+    """Find full path to executable cmd in a cross platform manner.
+    
+    This function tries to determine the full path to a command line program
+    using `which` on Unix/Linux/OS X and `win32api` on Windows.  Most of the
+    time it will use the version that is first on the users `PATH`.  If
+    cmd is `python` return `sys.executable`.
+
+    Parameters
+    ----------
+    cmd : str
+        The command line program to look for.
+    """
+    if cmd == 'python':
+        return sys.executable
+    try:
+        path = _platutils.find_cmd(cmd)
+    except:
+        raise FindCmdError('command could not be found: %s' % cmd)
+    # which returns empty if not found
+    if path == '':
+        raise FindCmdError('command could not be found: %s' % cmd)
+    return path
+
+def get_long_path_name(path):
+    """Expand a path into its long form.
+
+    On Windows this expands any ~ in the paths. On other platforms, it is
+    a null operation.
+    """
+    return _platutils.get_long_path_name(path)
+
 #-----------------------------------------------------------------------------
 # Deprecated functions
 #-----------------------------------------------------------------------------

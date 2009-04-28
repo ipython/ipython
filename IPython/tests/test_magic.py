@@ -3,16 +3,14 @@
 Needs to be run by nose (to make ipython session available).
 """
 
-# Standard library imports
 import os
 import sys
 import tempfile
 import types
 
-# Third-party imports
 import nose.tools as nt
 
-# From our own code
+from IPython.platutils import find_cmd, get_long_path_name
 from IPython.testing import decorators as dec
 from IPython.testing import tools as tt
 
@@ -60,12 +58,14 @@ def doctest_hist_r():
     hist -n -r 2  # random
     """
 
-
+# This test is known to fail on win32.
+# See ticket https://bugs.launchpad.net/bugs/366334
 def test_obj_del():
     """Test that object's __del__ methods are called on exit."""
     test_dir = os.path.dirname(__file__)
     del_file = os.path.join(test_dir,'obj_del.py')
-    out = _ip.IP.getoutput('ipython %s' % del_file)
+    ipython_cmd = find_cmd('ipython')
+    out = _ip.IP.getoutput('%s %s' % (ipython_cmd, del_file))
     nt.assert_equals(out,'obj_del.py: object A deleted')
 
 
@@ -159,6 +159,7 @@ def doctest_run_ns2():
     tclass.py: deleting object: C-first_pass
     """
 
+@dec.skip_win32
 def doctest_run_builtins():
     """Check that %run doesn't damage __builtins__ via a doctest.
 
@@ -204,8 +205,17 @@ class TestMagicRun(object):
         self.tmpfile = f
 
     def run_tmpfile(self):
+        # This fails on Windows if self.tmpfile.name has spaces or "~" in it.
+        # See below and ticket https://bugs.launchpad.net/bugs/366353
         _ip.magic('run %s' % self.tmpfile.name)
 
+    # See https://bugs.launchpad.net/bugs/366353
+    @dec.skip_if_not_win32
+    def test_run_tempfile_path(self):
+        tt.assert_equals(True,False,"%run doesn't work with tempfile paths on win32.")
+
+    # See https://bugs.launchpad.net/bugs/366353
+    @dec.skip_win32
     def test_builtins_id(self):
         """Check that %run doesn't damage __builtins__ """
 
@@ -215,6 +225,8 @@ class TestMagicRun(object):
         bid2 = id(_ip.user_ns['__builtins__'])
         tt.assert_equals(bid1, bid2)
 
+    # See https://bugs.launchpad.net/bugs/366353
+    @dec.skip_win32
     def test_builtins_type(self):
         """Check that the type of __builtins__ doesn't change with %run.
         
@@ -225,6 +237,8 @@ class TestMagicRun(object):
         self.run_tmpfile()
         tt.assert_equals(type(_ip.user_ns['__builtins__']),type(sys))
 
+    # See https://bugs.launchpad.net/bugs/366353
+    @dec.skip_win32
     def test_prompts(self):
         """Test that prompts correctly generate after %run"""
         self.run_tmpfile()
