@@ -14,6 +14,7 @@ for your operation system, from platutils_PLATFORMNAME module.
 
 import os
 import sys
+import warnings
 
 # Import the platform-specific implementations
 if os.name == 'posix':
