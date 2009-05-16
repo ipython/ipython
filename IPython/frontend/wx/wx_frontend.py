@@ -389,7 +389,8 @@ class WxController(ConsoleWidget, PrefilterFrontEnd):
         """
         # FIXME: This method needs to be broken down in smaller ones.
         current_line_num = self.GetCurrentLine()
-        if event.KeyCode in (ord('c'), ord('C')) and event.ControlDown():
+        key_code = event.GetKeyCode()
+        if key_code in (ord('c'), ord('C')) and event.ControlDown():
             # Capture Control-C
             if self._input_state == 'subprocess':
                 if self.debug:
@@ -403,40 +404,39 @@ class WxController(ConsoleWidget, PrefilterFrontEnd):
                 # XXX: We need to make really sure we
                 # get back to a prompt.
         elif self._input_state == 'subprocess' and (
-                ( event.KeyCode<256 and
-                        not event.ControlDown() )
+                ( key_code <256 and not event.ControlDown() )
                     or 
-                ( event.KeyCode in (ord('d'), ord('D')) and
+                ( key_code in (ord('d'), ord('D')) and
                   event.ControlDown())):
             #  We are running a process, we redirect keys.
             ConsoleWidget._on_key_down(self, event, skip=skip)
-            char = chr(event.KeyCode)
+            char = chr(key_code)
             # Deal with some inconsistency in wx keycodes:
             if char == '\r':
                 char = '\n'
             elif not event.ShiftDown():
                 char = char.lower()
-            if event.ControlDown() and event.KeyCode in (ord('d'), ord('D')):
+            if event.ControlDown() and key_code in (ord('d'), ord('D')):
                 char = '\04'
             self._running_process.process.stdin.write(char)
             self._running_process.process.stdin.flush()
-        elif event.KeyCode in (ord('('), 57, 53):
+        elif key_code in (ord('('), 57, 53):
             # Calltips
             event.Skip()
             self.do_calltip()
-        elif self.AutoCompActive() and not event.KeyCode == ord('\t'):
+        elif self.AutoCompActive() and not key_code == ord('\t'):
             event.Skip()
-            if event.KeyCode in (wx.WXK_BACK, wx.WXK_DELETE): 
+            if key_code in (wx.WXK_BACK, wx.WXK_DELETE): 
                 wx.CallAfter(self._popup_completion, create=True)
-            elif not event.KeyCode in (wx.WXK_UP, wx.WXK_DOWN, wx.WXK_LEFT,
+            elif not key_code in (wx.WXK_UP, wx.WXK_DOWN, wx.WXK_LEFT,
                             wx.WXK_RIGHT, wx.WXK_ESCAPE):
                 wx.CallAfter(self._popup_completion)
         else:
             # Up history
-            if event.KeyCode == wx.WXK_UP and (
-                    ( current_line_num == self.current_prompt_line and
-                        event.Modifiers in (wx.MOD_NONE, wx.MOD_WIN) ) 
-                    or event.ControlDown() ):
+            if key_code == wx.WXK_UP and (
+                            event.ControlDown() or
+                            current_line_num == self.current_prompt_line
+                    ):
                 new_buffer = self.get_history_previous(
                                             self.input_buffer)
                 if new_buffer is not None:
@@ -446,9 +446,9 @@ class WxController(ConsoleWidget, PrefilterFrontEnd):
                         self.GotoPos(self.current_prompt_pos)
             # Down history
             elif event.KeyCode == wx.WXK_DOWN and (
-                    ( current_line_num == self.LineCount -1 and
-                        event.Modifiers in (wx.MOD_NONE, wx.MOD_WIN) ) 
-                    or event.ControlDown() ):
+                            event.ControlDown() or
+                            current_line_num == self.LineCount -1
+                    ):
                 new_buffer = self.get_history_next()
                 if new_buffer is not None:
                     self.input_buffer = new_buffer
