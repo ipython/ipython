@@ -328,9 +328,12 @@ def aimport_f(self, parameter_s=''):
         try: del reloader.skip_modules[modname]
         except KeyError: pass
         reloader.modules[modname] = True
-
-        mod = __import__(modname)
-        ip.to_user_ns({modname: mod})
+        
+        # Inject module to user namespace; handle also submodules properly
+        __import__(modname)
+        basename = modname.split('.')[0]
+        mod = sys.modules[basename]
+        ip.to_user_ns({basename: mod})
 
 def init():
     ip.expose_magic('autoreload', autoreload_f)
