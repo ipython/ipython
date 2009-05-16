@@ -445,7 +445,7 @@ class WxController(ConsoleWidget, PrefilterFrontEnd):
                         # Go to first line, for seemless history up.
                         self.GotoPos(self.current_prompt_pos)
             # Down history
-            elif event.KeyCode == wx.WXK_DOWN and (
+            elif key_code == wx.WXK_DOWN and (
                             event.ControlDown() or
                             current_line_num == self.LineCount -1
                     ):
@@ -453,7 +453,7 @@ class WxController(ConsoleWidget, PrefilterFrontEnd):
                 if new_buffer is not None:
                     self.input_buffer = new_buffer
             # Tab-completion
-            elif event.KeyCode == ord('\t'):
+            elif key_code == ord('\t'):
                 current_line, current_line_num = self.CurLine
                 if not re.match(r'^%s\s*$' % self.continuation_prompt(), 
                                                             current_line):
@@ -462,7 +462,7 @@ class WxController(ConsoleWidget, PrefilterFrontEnd):
                         wx.CallAfter(self._popup_completion, create=True)
                 else:
                     event.Skip()
-            elif event.KeyCode == wx.WXK_BACK:
+            elif key_code == wx.WXK_BACK:
                 # If characters where erased, check if we have to
                 # remove a line.
                 # XXX: What about DEL?
@@ -497,7 +497,7 @@ class WxController(ConsoleWidget, PrefilterFrontEnd):
     def _on_key_up(self, event, skip=True):
         """ Called when any key is released.
         """
-        if event.KeyCode in (59, ord('.')):
+        if event.GetKeyCode() in (59, ord('.')):
             # Intercepting '.'
             event.Skip()
             wx.CallAfter(self._popup_completion, create=True)
