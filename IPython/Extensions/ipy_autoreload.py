@@ -1,7 +1,7 @@
 """
 IPython extension: autoreload modules before executing the next line
 
-Try:: 
+Try::
 
     %autoreload?
 
@@ -32,7 +32,7 @@ PY_COMPILED_EXT = _get_compiled_ext()
 class ModuleReloader(object):
     failed = {}
     """Modules that failed to reload: {module: mtime-on-failed-reload, ...}"""
-    
+
     modules = {}
     """Modules specially marked as autoreloadable."""
 
@@ -44,39 +44,39 @@ class ModuleReloader(object):
 
     old_objects = {}
     """(module-name, name) -> weakref, for replacing old code objects"""
-    
+
     def check(self, check_all=False):
         """Check whether some modules need to be reloaded."""
-        
+
         if check_all or self.check_all:
             modules = sys.modules.keys()
         else:
             modules = self.modules.keys()
-        
+
         for modname in modules:
             m = sys.modules.get(modname, None)
 
             if modname in self.skip_modules:
                 continue
-            
+
             if not hasattr(m, '__file__'):
                 continue
-            
+
             if m.__name__ == '__main__':
                 # we cannot reload(__main__)
                 continue
-            
+
             filename = m.__file__
             dirname = os.path.dirname(filename)
             path, ext = os.path.splitext(filename)
-            
+
             if ext.lower() == '.py':
                 ext = PY_COMPILED_EXT
                 filename = os.path.join(dirname, path + PY_COMPILED_EXT)
-            
+
             if ext != PY_COMPILED_EXT:
                 continue
-            
+
             try:
                 pymtime = os.stat(filename[:-1]).st_mtime
                 if pymtime <= os.stat(filename).st_mtime:
@@ -85,7 +85,7 @@ class ModuleReloader(object):
                     continue
             except OSError:
                 continue
-            
+
             try:
                 superreload(m, reload, self.old_objects)
                 if filename[:-1] in self.failed:
@@ -118,12 +118,12 @@ def update_class(old, new):
             new_obj = getattr(new, key)
         except AttributeError:
             # obsolete attribute: remove it
-            try: 
+            try:
                 delattr(old, key)
             except (AttributeError, TypeError):
                 pass
             continue
-        
+
         if update_generic(old_obj, new_obj): continue
 
         try:
@@ -146,9 +146,9 @@ UPDATE_RULES = [
     (lambda a, b: isinstance2(a, b, types.TypeType),
      update_class),
     (lambda a, b: isinstance2(a, b, types.FunctionType),
-     update_function), 
+     update_function),
     (lambda a, b: isinstance2(a, b, property),
-     update_property), 
+     update_property),
     (lambda a, b: isinstance2(a, b, types.MethodType),
      lambda a, b: update_function(a.im_func, b.im_func)),
 ]
@@ -168,15 +168,15 @@ class StrongRef(object):
 
 def superreload(module, reload=reload, old_objects={}):
     """Enhanced version of the builtin reload function.
-   
+
     superreload remembers objects previously in the module, and
 
     - upgrades the class dictionary of every old class in the module
     - upgrades the code object of every old function and method
     - clears the module's namespace before reloading
-    
+
     """
-    
+
     # collect old objects in the module
     for name, obj in module.__dict__.items():
         if not hasattr(obj, '__module__') or obj.__module__ != module.__name__:
@@ -199,7 +199,7 @@ def superreload(module, reload=reload, old_objects={}):
     except (TypeError, AttributeError, KeyError):
         pass
     module = reload(module)
-    
+
     # iterate over all objects and update functions & classes
     for name, new_obj in module.__dict__.items():
         key = (module.__name__, name)
@@ -248,40 +248,46 @@ def disable_autoreload():
 
 def autoreload_f(self, parameter_s=''):
     r""" %autoreload => Reload modules automatically
-    
+
     %autoreload
     Reload all modules (except those excluded by %aimport) automatically now.
-    
+
+    %autoreload 0
+    Disable automatic reloading.
+
     %autoreload 1
     Reload all modules imported with %aimport every time before executing
     the Python code typed.
-    
+
     %autoreload 2
     Reload all modules (except those excluded by %aimport) every time
     before executing the Python code typed.
-    
-    Reloading Python modules in a reliable way is in general difficult,
-    and unexpected things may occur. %autoreload tries to work
-    around common pitfalls by replacing code objects of functions
-    previously in the module with new versions. This makes the following
-    things to work:
+
+    Reloading Python modules in a reliable way is in general
+    difficult, and unexpected things may occur. %autoreload tries to
+    work around common pitfalls by replacing function code objects and
+    parts of classes previously in the module with new versions. This
+    makes the following things to work:
 
     - Functions and classes imported via 'from xxx import foo' are upgraded
       to new versions when 'xxx' is reloaded.
+
     - Methods and properties of classes are upgraded on reload, so that
       calling 'c.foo()' on an object 'c' created before the reload causes
       the new code for 'foo' to be executed.
-    
+
     Some of the known remaining caveats are:
-    
+
     - Replacing code objects does not always succeed: changing a @property
       in a class to an ordinary method or a method to a member variable
       can cause problems (but in old objects only).
+
     - Functions that are removed (eg. via monkey-patching) from a module
       before it is reloaded are not upgraded.
+
     - C extension modules cannot be reloaded, and so cannot be
       autoreloaded.
-    
+
     """
     if parameter_s == '':
         reloader.check(True)
@@ -307,7 +313,7 @@ def aimport_f(self, parameter_s=''):
     Mark module 'foo' to not be autoreloaded for %autoreload 1
 
     """
-    
+
     modname = parameter_s
     if not modname:
         to_reload = reloader.modules.keys()
@@ -328,7 +334,7 @@ def aimport_f(self, parameter_s=''):
         try: del reloader.skip_modules[modname]
         except KeyError: pass
         reloader.modules[modname] = True
-        
+
         # Inject module to user namespace; handle also submodules properly
         __import__(modname)
         basename = modname.split('.')[0]
@@ -339,5 +345,5 @@ def init():
     ip.expose_magic('autoreload', autoreload_f)
     ip.expose_magic('aimport', aimport_f)
     ip.set_hook('pre_runcode_hook', runcode_hook)
-    
+
 init()
