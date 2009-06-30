@@ -66,7 +66,8 @@ We propose to create the following new sub-packages:
   needs to be removed from IPython. Eventually all this code will either i) be
   revived by someone willing to maintain it with tests and docs and
   re-included into IPython or 2) be removed from IPython proper, but put into
-  a separate top-level (not IPython) package that we keep around.
+  a separate top-level (not IPython) package that we keep around.  No new code
+  will be allowed here, so maybe "sandbox" is not the best name.
 
 Where things will be moved
 ==========================
