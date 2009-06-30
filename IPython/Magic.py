@@ -1584,23 +1584,17 @@ Currently the magic system has the following functions:\n"""
             prog_ns = self.shell.user_ns
             __name__save = self.shell.user_ns['__name__']
             prog_ns['__name__'] = '__main__'
-            main_mod = FakeModule(prog_ns)
+            main_mod = self.shell.new_main_mod(prog_ns)
         else:
             # Run in a fresh, empty namespace
             if opts.has_key('n'):
                 name = os.path.splitext(os.path.basename(filename))[0]
             else:
                 name = '__main__'
-            main_mod = FakeModule()
+
+            main_mod = self.shell.new_main_mod()
             prog_ns = main_mod.__dict__
             prog_ns['__name__'] = name
-            
-            # The shell MUST hold a reference to main_mod so after %run exits,
-            # the python deletion mechanism doesn't zero it out (leaving
-            # dangling references).  However, we should drop old versions of
-            # main_mod.  There is now a proper API to manage this caching in
-            # the main shell object, we use that.            
-            self.shell.cache_main_mod(main_mod)
 
         # Since '%run foo' emulates 'python foo.py' at the cmd line, we must
         # set the __file__ global in the script's namespace
@@ -1681,7 +1675,7 @@ Currently the magic system has the following functions:\n"""
                                    exit_ignore=exit_ignore)
                             t1 = clock2()
                             t_usr = t1[0]-t0[0]
-                            t_sys = t1[1]-t1[1]
+                            t_sys = t1[1]-t0[1]
                             print "\nIPython CPU timings (estimated):"
                             print "  User  : %10s s." % t_usr
                             print "  System: %10s s." % t_sys
@@ -1693,7 +1687,7 @@ Currently the magic system has the following functions:\n"""
                                        exit_ignore=exit_ignore)
                             t1 = clock2()
                             t_usr = t1[0]-t0[0]
-                            t_sys = t1[1]-t1[1]
+                            t_sys = t1[1]-t0[1]
                             print "\nIPython CPU timings (estimated):"
                             print "Total runs performed:",nruns
                             print "  Times : %10s    %10s" % ('Total','Per run')
@@ -1703,13 +1697,28 @@ Currently the magic system has the following functions:\n"""
                     else:
                         # regular execution
                         runner(filename,prog_ns,prog_ns,exit_ignore=exit_ignore)
+
                 if opts.has_key('i'):
                     self.shell.user_ns['__name__'] = __name__save
                 else:
+                    # The shell MUST hold a reference to prog_ns so after %run
+                    # exits, the python deletion mechanism doesn't zero it out
+                    # (leaving dangling references).
+                    self.shell.cache_main_mod(prog_ns,filename)
                     # update IPython interactive namespace
                     del prog_ns['__name__']
                     self.shell.user_ns.update(prog_ns)
         finally:
+            # It's a bit of a mystery why, but __builtins__ can change from
+            # being a module to becoming a dict missing some key data after
+            # %run.  As best I can see, this is NOT something IPython is doing
+            # at all, and similar problems have been reported before:
+            # http://coding.derkeiler.com/Archive/Python/comp.lang.python/2004-10/0188.html
+            # Since this seems to be done by the interpreter itself, the best
+            # we can do is to at least restore __builtins__ for the user on
+            # exit.
+            self.shell.user_ns['__builtins__'] = __builtin__
+            
             # Ensure key global structures are restored
             sys.argv = save_argv
             if restore_main:
@@ -1719,6 +1728,7 @@ Currently the magic system has the following functions:\n"""
                 # added.  Otherwise it will trap references to objects
                 # contained therein.
                 del sys.modules[main_mod_name]
+
             self.shell.reloadhist()
                 
         return stats
@@ -1800,7 +1810,28 @@ Currently the magic system has the following functions:\n"""
         import timeit
         import math
 
-        units = [u"s", u"ms", u"\xb5s", u"ns"]
+        # XXX: Unfortunately the unicode 'micro' symbol can cause problems in
+        # certain terminals.  Until we figure out a robust way of
+        # auto-detecting if the terminal can deal with it, use plain 'us' for
+        # microseconds.  I am really NOT happy about disabling the proper
+        # 'micro' prefix, but crashing is worse... If anyone knows what the
+        # right solution for this is, I'm all ears...
+        #
+        # Note: using
+        #
+        # s = u'\xb5'
+        # s.encode(sys.getdefaultencoding())
+        #
+        # is not sufficient, as I've seen terminals where that fails but
+        # print s
+        #
+        # succeeds
+        #
+        # See bug: https://bugs.launchpad.net/ipython/+bug/348466
+        
+        #units = [u"s", u"ms",u'\xb5',"ns"]
+        units = [u"s", u"ms",u'us',"ns"]
+        
         scaling = [1, 1e3, 1e6, 1e9]
 
         opts, stmt = self.parse_options(parameter_s,'n:r:tcp:',
@@ -1839,9 +1870,9 @@ Currently the magic system has the following functions:\n"""
             # determine number so that 0.2 <= total time < 2.0
             number = 1
             for i in range(1, 10):
-                number *= 10
                 if timer.timeit(number) >= 0.2:
                     break
+                number *= 10
         
         best = min(timer.repeat(repeat, number)) / number
 

@@ -1007,7 +1007,17 @@ def get_security_dir():
     else:
         os.chmod(security_dir, 0700)
     return security_dir
-        
+
+def get_log_dir():
+    """Get the IPython log directory.
+    
+    If the log directory does not exist, it is created.
+    """
+    log_dir = os.path.join(get_ipython_dir(), 'log')
+    if not os.path.isdir(log_dir):
+        os.mkdir(log_dir, 0777)
+    return log_dir
+
 #****************************************************************************
 # strings and text
 

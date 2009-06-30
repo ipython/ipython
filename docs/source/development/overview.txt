@@ -345,6 +345,37 @@ nosetests option.  For example, you can use ``--pdb`` or ``--pdb-failures`` to
 automatically activate the interactive Pdb debugger on errors or failures.  See
 the nosetests documentation for further details.
 
+.. warning::
+
+   Note that right now we have a nasty interaction between ipdoctest and
+   twisted.  Until we figure this out, please use the following instructions to
+   ensure that at least you run all the tests.
+
+Right now, if you now run::
+
+    $ iptest [any options] [any submodules]
+
+it will NOT load ipdoctest but won't cause any Twisted problems.
+
+Once you're happy that you didn't break Twisted, run::
+
+    $ iptest --with-ipdoctest [any options] [any submodules]
+
+This MAY give a Twisted AlreadyCalledError exception at the end, but it will
+also correctly load up all of the ipython-specific tests and doctests.
+
+The above can be made easier with a trivial shell alias::
+
+    $ alias iptest2='iptest --with-ipdoctest'
+
+So that you can run::
+
+    $ iptest ...
+    # Twisted happy
+    # iptest2 ...
+    # ignore possible Twisted error, this checks all the rest.
+
+
 A few tips for writing tests
 ----------------------------
 

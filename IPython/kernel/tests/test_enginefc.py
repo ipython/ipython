@@ -15,30 +15,29 @@ __docformat__ = "restructuredtext en"
 # Imports
 #-------------------------------------------------------------------------------
 
-try:
-    from twisted.python import components
-    from twisted.internet import reactor, defer
-    from twisted.spread import pb
-    from twisted.internet.base import DelayedCall
-    DelayedCall.debug = True
+# Tell nose to skip this module
+__test__ = {}
 
-    import zope.interface as zi
+from twisted.python import components
+from twisted.internet import reactor, defer
+from twisted.spread import pb
+from twisted.internet.base import DelayedCall
+DelayedCall.debug = True
 
-    from IPython.kernel.fcutil import Tub, UnauthenticatedTub
-    from IPython.kernel import engineservice as es
-    from IPython.testing.util import DeferredTestCase
-    from IPython.kernel.controllerservice import IControllerBase
-    from IPython.kernel.enginefc import FCRemoteEngineRefFromService, IEngineBase
-    from IPython.kernel.engineservice import IEngineQueued
-    from IPython.kernel.engineconnector import EngineConnector
-    
-    from IPython.kernel.tests.engineservicetest import \
-        IEngineCoreTestCase, \
-        IEngineSerializedTestCase, \
-        IEngineQueuedTestCase
-except ImportError:
-    import nose
-    raise nose.SkipTest("This test requires zope.interface, Twisted and Foolscap")
+import zope.interface as zi
+
+from IPython.kernel.fcutil import Tub, UnauthenticatedTub
+from IPython.kernel import engineservice as es
+from IPython.testing.util import DeferredTestCase
+from IPython.kernel.controllerservice import IControllerBase
+from IPython.kernel.enginefc import FCRemoteEngineRefFromService, IEngineBase
+from IPython.kernel.engineservice import IEngineQueued
+from IPython.kernel.engineconnector import EngineConnector
+
+from IPython.kernel.tests.engineservicetest import \
+    IEngineCoreTestCase, \
+    IEngineSerializedTestCase, \
+    IEngineQueuedTestCase
 
 
 class EngineFCTest(DeferredTestCase, 

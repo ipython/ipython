@@ -15,6 +15,8 @@ __docformat__ = "restructuredtext en"
 #  the file COPYING, distributed as part of this software.                    
 #-----------------------------------------------------------------------------
 
+# Tell nose to skip the testing of this module
+__test__ = {}
 
 class NotificationCenter(object):
     """Synchronous notification center

@@ -34,6 +34,9 @@ __docformat__ = "restructuredtext en"
 # Imports
 #-------------------------------------------------------------------------------
 
+# Tell nose to skip the testing of this module
+__test__ = {}
+
 import os, sys, copy
 import cPickle as pickle
 from new import instancemethod
@@ -266,8 +269,8 @@ class StrictDict(dict):
             pickle.dumps(key, 2)
             pickle.dumps(value, 2)
             newvalue = copy.deepcopy(value)
-        except:
-            raise error.InvalidProperty(value)
+        except Exception, e:
+            raise error.InvalidProperty("can't be a value: %r" % value)
         dict.__setitem__(self, key, newvalue)
         self.modified = True
     

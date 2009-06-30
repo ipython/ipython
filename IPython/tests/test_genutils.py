@@ -210,7 +210,6 @@ def test_get_home_dir_7():
     home_dir = genutils.get_home_dir()
     nt.assert_equal(home_dir, abspath(HOME_TEST_DIR))
 
-
 #
 # Tests for get_ipython_dir
 #
@@ -239,7 +238,6 @@ def test_get_ipython_dir_3():
     ipdir = genutils.get_ipython_dir()
     nt.assert_equal(ipdir, os.path.abspath(os.path.join("someplace", "_ipython")))
 
-
 #
 # Tests for get_security_dir
 #
@@ -249,6 +247,14 @@ def test_get_security_dir():
     """Testcase to see if we can call get_security_dir without Exceptions."""
     sdir = genutils.get_security_dir()
 
+#
+# Tests for get_log_dir
+#
+
+@with_enivronment
+def test_get_log_dir():
+    """Testcase to see if we can call get_log_dir without Exceptions."""
+    sdir = genutils.get_log_dir()
 
 #
 # Tests for popkey
@@ -289,3 +295,12 @@ def test_popkey_3():
     nt.assert_equal(dct, dict(c=3))
     nt.assert_equal(genutils.popkey(dct, "c"), 3)
     nt.assert_equal(dct, dict())
+
+
+def test_filefind():
+    """Various tests for filefind"""
+    f = tempfile.NamedTemporaryFile()
+    print 'fname:',f.name
+    alt_dirs = genutils.get_ipython_dir()
+    t = genutils.filefind(f.name,alt_dirs)
+    print 'found:',t

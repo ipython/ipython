@@ -248,7 +248,7 @@ class BackgroundJobManager:
         self._update_status()
         new_comp = self._group_report(self._comp_report,'Completed')
         new_dead = self._group_report(self._dead_report,
-                                      'Dead, call job.traceback() for details')
+                                      'Dead, call jobs.traceback() for details')
         self._comp_report[:] = []
         self._dead_report[:] = []
         return new_comp or new_dead
@@ -340,7 +340,7 @@ class BackgroundJobBase(threading.Thread):
     stat_created   = 'Created'; stat_created_c = 0
     stat_running   = 'Running'; stat_running_c = 1
     stat_completed = 'Completed'; stat_completed_c = 2
-    stat_dead      = 'Dead (Exception), call job.traceback() for details'
+    stat_dead      = 'Dead (Exception), call jobs.traceback() for details'
     stat_dead_c = -1
 
     def __init__(self):
@@ -391,7 +391,7 @@ class BackgroundJobBase(threading.Thread):
             self.status    = BackgroundJobBase.stat_dead
             self.stat_code = BackgroundJobBase.stat_dead_c
             self.finished  = None
-            self.result    = ('<BackgroundJob died, call job.traceback() for details>')
+            self.result    = ('<BackgroundJob died, call jobs.traceback() for details>')
             self._tb       = self._make_tb()
         else:
             self.status    = BackgroundJobBase.stat_completed

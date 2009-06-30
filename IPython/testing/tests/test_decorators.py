@@ -46,7 +46,7 @@ def test_deliberately_broken():
     """A deliberately broken test - we want to skip this one."""
     1/0
 
-@dec.skip('foo')
+@dec.skip('Testing the skip decorator')
 def test_deliberately_broken2():
     """Another deliberately broken test - we want to skip this one."""
     1/0

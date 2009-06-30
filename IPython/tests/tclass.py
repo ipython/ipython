@@ -16,11 +16,12 @@ class C(object):
         self.name = name
         
     def __del__(self):
-        print 'Deleting object:',self.name
+        print 'tclass.py: deleting object:',self.name
 
 try:
     name = sys.argv[1]
 except IndexError:
     pass
 else:
-    c = C(name)
+    if name.startswith('C'):
+        c = C(name)

@@ -104,6 +104,23 @@ class StopLocalExecution(KernelError):
 class SecurityError(KernelError):
     pass
 
+class FileTimeoutError(KernelError):
+    pass
+
+class TaskRejectError(KernelError):
+    """Exception to raise when a task should be rejected by an engine.
+    
+    This exception can be used to allow a task running on an engine to test
+    if the engine (or the user's namespace on the engine) has the needed
+    task dependencies.  If not, the task should raise this exception.  For
+    the task to be retried on another engine, the task should be created
+    with the `retries` argument > 1.
+    
+    The advantage of this approach over our older properties system is that
+    tasks have full access to the user's namespace on the engines and the
+    properties don't have to be managed or tested by the controller.
+    """
+
 class CompositeError(KernelError):
     def __init__(self, message, elist):
         Exception.__init__(self, *(message, elist))

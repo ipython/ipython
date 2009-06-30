@@ -109,7 +109,7 @@ def find_packages():
     add_package(packages, 'gui')
     add_package(packages, 'gui.wx')
     add_package(packages, 'frontend', tests=True)
-    add_package(packages, 'frontend._process')
+    add_package(packages, 'frontend.process')
     add_package(packages, 'frontend.wx')
     add_package(packages, 'frontend.cocoa', tests=True)
     add_package(packages, 'kernel', config=True, tests=True, scripts=True)

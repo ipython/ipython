@@ -679,21 +679,22 @@ class Interpreter(object):
         # to exec will fail however.  There seems to be some inconsistency in
         # how trailing whitespace is handled, but this seems to work.
         python = python.strip()
-
+        
         # The compiler module does not like unicode. We need to convert
         # it encode it:
         if isinstance(python, unicode):
             # Use the utf-8-sig BOM so the compiler detects this a UTF-8
             # encode string.
             python = '\xef\xbb\xbf' + python.encode('utf-8')
-
+        
         # The compiler module will parse the code into an abstract syntax tree.
+        # This has a bug with str("a\nb"), but not str("""a\nb""")!!!
         ast = compiler.parse(python)
-
+        
         # Uncomment to help debug the ast tree
         # for n in ast.node:
         #     print n.lineno,'->',n
-                
+        
         # Each separate command is available by iterating over ast.node. The
         # lineno attribute is the line number (1-indexed) beginning the commands
         # suite.
@@ -703,20 +704,26 @@ class Interpreter(object):
         # We might eventually discover other cases where lineno is None and have
         # to put in a more sophisticated test.
         linenos = [x.lineno-1 for x in ast.node if x.lineno is not None]
-
+        
         # When we finally get the slices, we will need to slice all the way to
         # the end even though we don't have a line number for it. Fortunately,
         # None does the job nicely.
         linenos.append(None)
+        
+        # Same problem at the other end: sometimes the ast tree has its
+        # first complete statement not starting on line 0. In this case
+        # we might miss part of it.  This fixes ticket 266993.  Thanks Gael!
+        linenos[0] = 0
+        
         lines = python.splitlines()
-
+        
         # Create a list of atomic commands.
         cmds = []
         for i, j in zip(linenos[:-1], linenos[1:]):
             cmd = lines[i:j]
             if cmd:
                 cmds.append('\n'.join(cmd)+'\n')
-
+        
         return cmds
 
     def error(self, text):

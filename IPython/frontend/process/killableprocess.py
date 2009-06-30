@@ -151,7 +151,12 @@ else:
             self._thread = ht
             self.pid = pid
 
-            winprocess.AssignProcessToJobObject(self._job, hp)
+            # XXX: A try/except to fix UAC-related problems under
+            # Windows Vista, when reparenting jobs.
+            try:
+                winprocess.AssignProcessToJobObject(self._job, hp)
+            except WindowsError:
+                pass
             winprocess.ResumeThread(ht)
 
             if p2cread is not None:

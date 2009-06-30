@@ -14,12 +14,13 @@ __docformat__ = "restructuredtext en"
 #-------------------------------------------------------------------------------
 # Imports
 #-------------------------------------------------------------------------------
-from IPython.external import guid
 
+from IPython.external import guid
 
 from zope.interface import Interface, Attribute, implements, classProvides
 from twisted.python.failure import Failure
-from IPython.frontend.frontendbase import FrontEndBase, IFrontEnd, IFrontEndFactory
+from IPython.frontend.frontendbase import (
+    FrontEndBase, IFrontEnd, IFrontEndFactory)
 from IPython.kernel.core.history import FrontEndHistory
 from IPython.kernel.engineservice import IEngineCore
 

@@ -268,6 +268,8 @@ def _formatTracebackLines(lnum, index, lines, Colors, lvals=None,scheme=None):
     # This lets us get fully syntax-highlighted tracebacks.
     if scheme is None:
         try:
+            # Again, reference to a global __IPYTHON__ that doesn't exist.
+            # XXX
             scheme = __IPYTHON__.rc.colors
         except:
             scheme = DEFAULT_SCHEME
@@ -487,10 +489,14 @@ class ListTB(TBTools):
             else:
                 list.append('%s\n' % str(stype))
 
-        # vds:>>
-        if have_filedata:
-            __IPYTHON__.hooks.synchronize_with_editor(filename, lineno, 0)
-        # vds:<<
+        # This is being commented out for now as the __IPYTHON__ variable
+        # referenced here is not resolved and causes massive test failures
+        # and errors. B. Granger, 04/2009. XXX
+        # See https://bugs.launchpad.net/bugs/362137
+        # # vds:>>
+        # if have_filedata:
+        #     __IPYTHON__.hooks.synchronize_with_editor(filename, lineno, 0)
+        # # vds:<<
 
         return list
 
@@ -804,13 +810,17 @@ class VerboseTB(TBTools):
                 value = text_repr(getattr(evalue, name))
                 exception.append('\n%s%s = %s' % (indent, name, value))
 
-        # vds: >>
-        if records:
-             filepath, lnum = records[-1][1:3]
-             #print "file:", str(file), "linenb", str(lnum) # dbg
-             filepath = os.path.abspath(filepath)
-             __IPYTHON__.hooks.synchronize_with_editor(filepath, lnum, 0)
-        # vds: <<
+        # This is being commented out for now as the __IPYTHON__ variable
+        # referenced here is not resolved and causes massive test failures
+        # and errors. B. Granger, 04/2009. XXX
+        # See https://bugs.launchpad.net/bugs/362137
+        # # vds: >>
+        # if records:
+        #      filepath, lnum = records[-1][1:3]
+        #      #print "file:", str(file), "linenb", str(lnum) # dbg
+        #      filepath = os.path.abspath(filepath)
+        #      __IPYTHON__.hooks.synchronize_with_editor(filepath, lnum, 0)
+        # # vds: <<
                 
         # return all our info assembled as a single string
         return '%s\n\n%s\n%s' % (head,'\n'.join(frames),''.join(exception[0]) )

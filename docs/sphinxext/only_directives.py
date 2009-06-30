@@ -5,8 +5,14 @@
 
 from docutils.nodes import Body, Element
 from docutils.writers.html4css1 import HTMLTranslator
-from sphinx.latexwriter import LaTeXTranslator
 from docutils.parsers.rst import directives
+
+# The sphinx API has changed, so we try both the old and new import forms
+try:
+    from sphinx.latexwriter import LaTeXTranslator
+except ImportError:
+    from sphinx.writers.latex import LaTeXTranslator
+
 
 class html_only(Body, Element):
     pass

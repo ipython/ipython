@@ -6,8 +6,9 @@ This is used by a companion test case.
 import gc
 
 class C(object):
-  def __del__(self):
-      print 'deleting object...'
+   def __del__(self):
+      pass
+      #print 'deleting object...'  # dbg
 
 c = C()
 

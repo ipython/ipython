@@ -80,6 +80,15 @@ class IPythonX(wx.Frame):
         self.SetSizer(self._sizer)
         self.SetAutoLayout(1)
         self.Show(True)
+        wx.EVT_CLOSE(self, self.on_close)
+
+        
+    def on_close(self, event):
+        """ Called on closing the windows. 
+            
+            Stops the event loop, to close all the child windows.
+        """
+        wx.CallAfter(wx.Exit)
 
 
 def main():
