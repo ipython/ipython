@@ -105,6 +105,11 @@ Where things will be moved
 
 * :file:`DPyGetOpt.py`.  Move to :mod:`IPython.utils` and replace with newer options parser.
 
+* :file:`dtutils.py`.  Remove or move to :file:`IPython.testing` or
+  :file:`IPython.lib`.
+
+
+
 * :file:`Extensions`. This needs to be gone through separately.  Minimally,
   the package should be renamed to :file:`extensions`.
 
@@ -147,8 +152,6 @@ Where things will be moved
 
 
 
-* :file:`dtutils.py`.  Remove or move to :file:`IPython.testing` or
-  :file:`IPython.lib`.
 
 * :file:`excolors.py`.  Move to :file:`IPython.core` or :file:`IPython.config`.
   Maybe move to :mod:`IPython.lib` or :mod:`IPython.python`?
