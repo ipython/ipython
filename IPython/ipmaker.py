@@ -549,12 +549,12 @@ object?   -> Details about 'object'. ?object also works, ?? prints more.
 
     # Recursive reload
     try:
-        from IPython import deep_reload
+        from IPython.lib import deepreload
         if IP_rc.deep_reload:
-            __builtin__.reload = deep_reload.reload
+            __builtin__.reload = deepreload.reload
         else:
-            __builtin__.dreload = deep_reload.reload
-        del deep_reload
+            __builtin__.dreload = deepreload.reload
+        del deepreload
     except ImportError:
         pass
 

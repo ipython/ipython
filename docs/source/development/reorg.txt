@@ -82,6 +82,8 @@ Prodecure
 Need to modify iptests to properly skip modules that are no longer top
 level modules.
 
+Need to update the top level IPython/__init__.py file.
+
 Where things will be moved
 ==========================
 
@@ -91,14 +93,17 @@ Where things will be moved
 
 * :file:`completer.py`.  Move to :file:`IPython/core/completer.py`.
 
-
 * :file:`ConfigLoader.py`.  Move to :file:`IPython/config/configloader.py`.
 
 * :file:`CrashHandler.py`.  Move to :file:`IPython/core/crashhandler`.
 
-* :file:`DPyGetOpt.py`.  Move to :mod:`IPython.sandbox` and replace with newer options parser.
-
 * :file:`Debugger.py`.  Move to :file:`IPython/core/debugger.py`.
+
+* :file:`deep_reload.py`.  Move to :file:`IPython/lib/deepreload.py`.
+
+
+
+* :file:`DPyGetOpt.py`.  Move to :mod:`IPython.sandbox` and replace with newer options parser.
 
 * :file:`Extensions`. This needs to be gone through separately.  Minimally,
   the package should be renamed to :file:`extensions`.
@@ -140,7 +145,6 @@ Where things will be moved
 
 * :file:`config`.  Good where it is!
 
-* :file:`deep_reload.py`.  Move to :file:`IPython/lib/deepreload.py`.
 
 * :file:`demo.py`.  Move to :file:`IPython/lib/demo.py`.
 
