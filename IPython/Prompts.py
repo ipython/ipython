@@ -20,7 +20,7 @@ import sys
 import time
 
 # IPython's own
-from IPython import ColorANSI
+from IPython.utils import coloransi
 from IPython import Release
 from IPython.external.Itpl import ItplNS
 from IPython.ipapi import TryNext
@@ -32,11 +32,11 @@ from IPython.genutils import *
 #****************************************************************************
 #Color schemes for Prompts.
 
-PromptColors = ColorANSI.ColorSchemeTable()
-InputColors = ColorANSI.InputTermColors  # just a shorthand
-Colors = ColorANSI.TermColors  # just a shorthand
+PromptColors = coloransi.ColorSchemeTable()
+InputColors = coloransi.InputTermColors  # just a shorthand
+Colors = coloransi.TermColors  # just a shorthand
 
-PromptColors.add_scheme(ColorANSI.ColorScheme(
+PromptColors.add_scheme(coloransi.ColorScheme(
     'NoColor',
     in_prompt  = InputColors.NoColor,  # Input prompt
     in_number  = InputColors.NoColor,  # Input prompt number
@@ -50,7 +50,7 @@ PromptColors.add_scheme(ColorANSI.ColorScheme(
     ))
 
 # make some schemes as instances so we can copy them for modification easily:
-__PColLinux =  ColorANSI.ColorScheme(
+__PColLinux =  coloransi.ColorScheme(
     'Linux',
     in_prompt  = InputColors.Green,
     in_number  = InputColors.LightGreen,
@@ -185,7 +185,7 @@ prompt_specials_nocolor[r'\#'] = '${self.cache.prompt_count}'
 # with a color name which may begin with a letter used by any other of the
 # allowed specials.  This of course means that \\C will never be allowed for
 # anything else.
-input_colors = ColorANSI.InputTermColors
+input_colors = coloransi.InputTermColors
 for _color in dir(input_colors):
     if _color[0] != '_':
         c_name = r'\C_'+_color

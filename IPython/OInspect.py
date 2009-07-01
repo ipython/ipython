@@ -31,7 +31,7 @@ from IPython import PyColorize
 from IPython.genutils import page,indent,Term
 from IPython.Itpl import itpl
 from IPython.wildcard import list_namespace
-from IPython.ColorANSI import *
+from IPython.utils.coloransi import *
 
 #****************************************************************************
 # HACK!!! This is a crude fix for bugs in python 2.3's inspect module.  We

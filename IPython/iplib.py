@@ -31,37 +31,29 @@ import __main__
 import __builtin__
 import StringIO
 import bdb
-import cPickle as pickle
 import codeop
 import exceptions
 import glob
-import inspect
 import keyword
 import new
 import os
-import pydoc
 import re
 import shutil
 import string
 import sys
 import tempfile
-import traceback
-import types
-from pprint import pprint, pformat
 
 # IPython's own modules
 #import IPython
 from IPython import Debugger,OInspect,PyColorize,ultraTB
-from IPython.ColorANSI import ColorScheme,ColorSchemeTable  # too long names
 from IPython.Extensions import pickleshare
 from IPython.FakeModule import FakeModule, init_fakemod_dict
-from IPython.Itpl import Itpl,itpl,printpl,ItplNS,itplns
+from IPython.Itpl import ItplNS
 from IPython.Logger import Logger
 from IPython.Magic import Magic
 from IPython.Prompts import CachedOutput
 from IPython.ipstruct import Struct
 from IPython.background_jobs import BackgroundJobManager
-from IPython.usage import cmd_line_usage,interactive_usage
 from IPython.genutils import *
 from IPython.strdispatch import StrDispatch
 import IPython.ipapi

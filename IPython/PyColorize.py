@@ -38,12 +38,11 @@ import cStringIO
 import keyword
 import os
 import optparse
-import string
 import sys
 import token
 import tokenize
 
-from IPython.ColorANSI import *
+from IPython.utils.coloransi import *
 
 #############################################################################
 ### Python Source Parser (does Hilighting)

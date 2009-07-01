@@ -31,7 +31,8 @@ import linecache
 import os
 import sys
 
-from IPython import PyColorize, ColorANSI, ipapi
+from IPython import PyColorize, ipapi
+from IPython.utils import coloransi
 from IPython.genutils import Term
 from IPython.excolors import exception_colors
 
@@ -114,7 +115,7 @@ class Tracer(object):
             def_colors = 'NoColor'
             try:
                 # Limited tab completion support
-                import rlcompleter,readline
+                import readline
                 readline.parse_and_bind('tab: complete')
             except ImportError:
                 pass
@@ -207,7 +208,7 @@ class Pdb(OldPdb):
             self.color_scheme_table = exception_colors()
 
             # shorthands 
-            C = ColorANSI.TermColors
+            C = coloransi.TermColors
             cst = self.color_scheme_table
 
             cst['NoColor'].colors.breakpoint_enabled = C.NoColor
@@ -254,7 +255,7 @@ class Pdb(OldPdb):
             self.color_scheme_table = exception_colors()
 
             # shorthands 
-            C = ColorANSI.TermColors
+            C = coloransi.TermColors
             cst = self.color_scheme_table
 
             cst['NoColor'].colors.breakpoint_enabled = C.NoColor

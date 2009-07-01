@@ -71,6 +71,17 @@ We propose to create the following new sub-packages:
   standards, but that we plan on keeping.  To be moved out of this sub-package
   a module needs to have a maintainer, tests and documentation.
 
+Prodecure
+=========
+
+1. Move the file to its new location with its new name.
+2. Rename all import statements to reflect the change.
+3. Run PyFlakes on each changes module.
+3. Add tests/test_imports.py to test it.
+
+Need to modify iptests to properly skip modules that are no longer top
+level modules.
+
 Where things will be moved
 ==========================
 

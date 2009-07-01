@@ -21,13 +21,12 @@ Authors
 # From the standard library
 import os
 import sys
-from pprint import pprint,pformat
+from pprint import pformat
 
 # Our own
 from IPython import Release
 from IPython import ultraTB
-from IPython.ColorANSI import ColorScheme,ColorSchemeTable  # too long names
-from IPython.Itpl import Itpl,itpl,printpl
+from IPython.Itpl import itpl
 
 from IPython.genutils import *
 

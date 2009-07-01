@@ -198,7 +198,7 @@ def make_runners():
     # XXX: Shell.py is also ommited because of a bug in the skip_doctest
     # decorator.  See ticket https://bugs.launchpad.net/bugs/366209
     top_mod = \
-      ['background_jobs.py', 'ColorANSI.py', 'completer.py', 'ConfigLoader.py',
+      ['background_jobs.py', 'coloransi.py', 'completer.py', 'ConfigLoader.py',
        'CrashHandler.py', 'Debugger.py', 'deep_reload.py', 'demo.py',
        'DPyGetOpt.py', 'dtutils.py', 'excolors.py', 'FakeModule.py',
        'generics.py', 'genutils.py', 'history.py', 'hooks.py', 'ipapi.py',
