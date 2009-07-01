@@ -40,17 +40,15 @@ except NameError:
 import __main__
 import __builtin__
 import os
-import re
 import sys
-import types
-from pprint import pprint,pformat
+from pprint import pprint
 
 # Our own
 from IPython import DPyGetOpt
 from IPython import Release
 from IPython.ipstruct import Struct
 from IPython.OutputTrap import OutputTrap
-from IPython.ConfigLoader import ConfigLoader
+from IPython.config.configloader import ConfigLoader
 from IPython.iplib import InteractiveShell
 from IPython.usage import cmd_line_usage,interactive_usage
 from IPython.genutils import *
