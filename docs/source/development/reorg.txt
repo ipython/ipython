@@ -55,19 +55,21 @@ We propose to create the following new sub-packages:
   of the IPython core. These things will go here.  Any better names than 
   :mod:`IPython.lib`?
 
-* :mod:`IPython.python`. This sub-package will contain anything that might
+* :mod:`IPython.utils`. This sub-package will contain anything that might
   eventually be found in the Python standard library, like things in
   :mod:`genutils`. Each sub-module in this sub-package should contain functions 
-  and classes that serve a single purpose. Similar in purpose to
-  :mod:`twisted.python`. Could also call this :mod:`IPython.tools`,
-  :mod:`IPython.utils` or something similar.
+  and classes that serve a single purpose.
 
-* :mod:`IPython.sandbox`. This is for code that is untested and/or rotting and
-  needs to be removed from IPython. Eventually all this code will either i) be
-  revived by someone willing to maintain it with tests and docs and
+* :mod:`IPython.deathrow`. This is for code that is untested and/or rotting
+  and needs to be removed from IPython. Eventually all this code will either
+  i) be revived by someone willing to maintain it with tests and docs and
   re-included into IPython or 2) be removed from IPython proper, but put into
-  a separate top-level (not IPython) package that we keep around.  No new code
-  will be allowed here, so maybe "sandbox" is not the best name.
+  a separate top-level (not IPython) package that we keep around. No new code
+  will be allowed here.
+
+* :mod:`IPython.quarantine`.  This is for code that doesn't meet IPython's 
+  standards, but that we plan on keeping.  To be moved out of this sub-package
+  a module needs to have a maintainer, tests and documentation.
 
 Where things will be moved
 ==========================
