@@ -724,8 +724,8 @@ class InteractiveShell(object,Magic):
         if self.isthreaded:
             ipCrashHandler = ultraTB.FormattedTB()
         else:
-            from IPython import CrashHandler
-            ipCrashHandler = CrashHandler.IPythonCrashHandler(self)
+            from IPython.core import crashhandler
+            ipCrashHandler = crashhandler.IPythonCrashHandler(self)
         self.set_crash_handler(ipCrashHandler)
 
         # and add any custom exception handlers the user may have specified

@@ -199,7 +199,7 @@ def make_runners():
     # decorator.  See ticket https://bugs.launchpad.net/bugs/366209
     top_mod = \
       ['backgroundjobs.py', 'coloransi.py', 'completer.py', 'configloader.py',
-       'CrashHandler.py', 'Debugger.py', 'deep_reload.py', 'demo.py',
+       'crashhandler.py', 'Debugger.py', 'deep_reload.py', 'demo.py',
        'DPyGetOpt.py', 'dtutils.py', 'excolors.py', 'FakeModule.py',
        'generics.py', 'genutils.py', 'history.py', 'hooks.py', 'ipapi.py',
        'iplib.py', 'ipmaker.py', 'ipstruct.py', 'Itpl.py',
