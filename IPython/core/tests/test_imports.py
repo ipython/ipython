@@ -6,3 +6,6 @@ def test_import_completer():
 
 def test_import_crashhandler():
     from IPython.core import crashhandler
+
+def test_import_debugger():
+    from IPython.core import debugger

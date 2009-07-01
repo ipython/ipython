@@ -278,7 +278,8 @@ class ZopeDebug(object):
 zope_debug = None
 
 def ipy_set_trace():
-    import IPython; IPython.Debugger.Pdb().set_trace()
+    from IPython.core import debugger
+    debugger.Pdb().set_trace()
 
 def main():
     global zope_debug

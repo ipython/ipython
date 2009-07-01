@@ -45,7 +45,8 @@ import tempfile
 
 # IPython's own modules
 #import IPython
-from IPython import Debugger,OInspect,PyColorize,ultraTB
+from IPython import OInspect,PyColorize,ultraTB
+from IPython.core import debugger
 from IPython.Extensions import pickleshare
 from IPython.FakeModule import FakeModule, init_fakemod_dict
 from IPython.Itpl import ItplNS
@@ -1673,7 +1674,7 @@ class InteractiveShell(object,Magic):
             return
 
         # use pydb if available
-        if Debugger.has_pydb:
+        if debugger.has_pydb:
             from pydb import pm
         else:
             # fallback to our internal debugger

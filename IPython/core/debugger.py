@@ -94,7 +94,7 @@ class Tracer(object):
 
         Usage example:
 
-        from IPython.Debugger import Tracer; debug_here = Tracer()
+        from IPython.core.debugger import Tracer; debug_here = Tracer()
 
         ... later in your code
         debug_here()  # -> will open up the debugger at that point.

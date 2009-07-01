@@ -3,7 +3,7 @@ import IPython.ipapi
 from IPython.genutils import arg_split
 ip = IPython.ipapi.get()
 
-from IPython import Debugger
+from IPython.core import debugger
 
 def call_pydb(self, args):
     """Invoke pydb with the supplied parameters."""
@@ -18,7 +18,7 @@ def call_pydb(self, args):
     argl = arg_split(args)
     # print argl # dbg
     if len(inspect.getargspec(pydb.runv)[0]) == 2:
-        pdb = Debugger.Pdb(color_scheme=self.rc.colors)
+        pdb = debugger.Pdb(color_scheme=self.rc.colors)
         ip.IP.history_saving_wrapper( lambda : pydb.runv(argl, pdb) )()
     else:
         ip.IP.history_saving_wrapper( lambda : pydb.runv(argl) )()

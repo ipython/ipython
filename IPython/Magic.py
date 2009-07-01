@@ -43,7 +43,8 @@ except ImportError:
 
 # Homebrewed
 import IPython
-from IPython import Debugger, OInspect, wildcard
+from IPython import OInspect, wildcard
+from IPython.core import debugger
 from IPython.FakeModule import FakeModule
 from IPython.Itpl import Itpl, itpl, printpl,itplns
 from IPython.PyColorize import Parser
@@ -1621,7 +1622,7 @@ Currently the magic system has the following functions:\n"""
                 stats = self.magic_prun('',0,opts,arg_lst,prog_ns)
             else:
                 if opts.has_key('d'):
-                    deb = Debugger.Pdb(self.shell.rc.colors)
+                    deb = debugger.Pdb(self.shell.rc.colors)
                     # reset Breakpoint state, which is moronically kept
                     # in a class
                     bdb.Breakpoint.next = 1

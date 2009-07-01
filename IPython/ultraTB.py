@@ -90,7 +90,8 @@ from inspect import getsourcefile, getfile, getmodule,\
 
 # IPython's own modules
 # Modified pdb which doesn't damage IPython's readline handling
-from IPython import Debugger, PyColorize
+from IPython import PyColorize
+from IPython.core import debugger
 from IPython.ipstruct import Struct
 from IPython.excolors import exception_colors
 from IPython.genutils import Term,uniq_stable,error,info
@@ -320,7 +321,7 @@ class TBTools:
         self.old_scheme = color_scheme  # save initial value for toggles
 
         if call_pdb:
-            self.pdb = Debugger.Pdb(self.color_scheme_table.active_scheme_name)
+            self.pdb = debugger.Pdb(self.color_scheme_table.active_scheme_name)
         else:
             self.pdb = None
 
@@ -837,7 +838,7 @@ class VerboseTB(TBTools):
 
         if force or self.call_pdb:
             if self.pdb is None:
-                self.pdb = Debugger.Pdb(
+                self.pdb = debugger.Pdb(
                     self.color_scheme_table.active_scheme_name)
             # the system displayhook may have changed, restore the original
             # for pdb
