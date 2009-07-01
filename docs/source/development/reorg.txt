@@ -85,7 +85,12 @@ level modules.
 Where things will be moved
 ==========================
 
+* :file:`background_jobs.py`.  Move to :file:`IPython/lib/backgroundjobs.py`.
+
 * :file:`ColorANSI.py`.  Move to :file:`IPython/utils/coloransi.py`.
+
+* :file:`completer.py`.  Move to :file:`IPython/core/completer.py`.
+
 
 * :file:`ConfigLoader.py`.  Move to :file:`IPython/config/configloader.py`.
 
@@ -130,9 +135,8 @@ Where things will be moved
 
 * :file:`UserConfig`.  Move to a subdirectory of :file:`IPython.config`.
 
-* :file:`background_jobs.py`.  Move to :file:`IPython/lib/backgroundjobs.py`.
 
-* :file:`completer.py`.  Move to :file:`IPython/core/completer.py`.
+
 
 * :file:`config`.  Good where it is!
 

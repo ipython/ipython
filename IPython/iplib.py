@@ -1423,7 +1423,7 @@ class InteractiveShell(object,Magic):
         else:
             sys.modules['readline'] = readline
             import atexit
-            from IPython.completer import IPCompleter
+            from IPython.core.completer import IPCompleter
             self.Completer = IPCompleter(self,
                                             self.user_ns,
                                             self.user_global_ns,
