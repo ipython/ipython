@@ -101,6 +101,7 @@ Where things will be moved
 
 * :file:`deep_reload.py`.  Move to :file:`IPython/lib/deepreload.py`.
 
+* :file:`demo.py`.  Move to :file:`IPython/lib/demo.py`.
 
 
 * :file:`DPyGetOpt.py`.  Move to :mod:`IPython.sandbox` and replace with newer options parser.
@@ -146,7 +147,6 @@ Where things will be moved
 * :file:`config`.  Good where it is!
 
 
-* :file:`demo.py`.  Move to :file:`IPython/lib/demo.py`.
 
 * :file:`dtutils.py`.  Remove or move to :file:`IPython.testing` or
   :file:`IPython.lib`.
