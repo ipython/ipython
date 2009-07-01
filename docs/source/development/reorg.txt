@@ -103,8 +103,7 @@ Where things will be moved
 
 * :file:`demo.py`.  Move to :file:`IPython/lib/demo.py`.
 
-
-* :file:`DPyGetOpt.py`.  Move to :mod:`IPython.sandbox` and replace with newer options parser.
+* :file:`DPyGetOpt.py`.  Move to :mod:`IPython.utils` and replace with newer options parser.
 
 * :file:`Extensions`. This needs to be gone through separately.  Minimally,
   the package should be renamed to :file:`extensions`.

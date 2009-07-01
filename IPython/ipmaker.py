@@ -44,7 +44,7 @@ import sys
 from pprint import pprint
 
 # Our own
-from IPython import DPyGetOpt
+from IPython.utils import DPyGetOpt
 from IPython import Release
 from IPython.ipstruct import Struct
 from IPython.OutputTrap import OutputTrap
