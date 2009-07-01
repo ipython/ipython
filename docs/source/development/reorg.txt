@@ -85,8 +85,7 @@ level modules.
 Where things will be moved
 ==========================
 
-* :file:`ColorANSI.py`.  Move to :file:`IPython/core/coloransi.py`.  Maybe move to
-  :mod:`IPython.lib` or :mod:`IPython.python`?
+* :file:`ColorANSI.py`.  Move to :file:`IPython/utils/coloransi.py`.
 
 * :file:`ConfigLoader.py`.  Move to :file:`IPython/config/configloader.py`.
 

@@ -53,7 +53,7 @@ from IPython.Logger import Logger
 from IPython.Magic import Magic
 from IPython.Prompts import CachedOutput
 from IPython.ipstruct import Struct
-from IPython.background_jobs import BackgroundJobManager
+from IPython.lib.backgroundjobs import BackgroundJobManager
 from IPython.genutils import *
 from IPython.strdispatch import StrDispatch
 import IPython.ipapi
