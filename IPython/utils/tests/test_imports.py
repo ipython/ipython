@@ -27,3 +27,6 @@ def test_import_rlineimpl():
 
 def test_import_strdispatch():
     from IPython.utils import strdispatch
+
+def test_import_upgradedir():
+    from IPython.utils import upgradedir

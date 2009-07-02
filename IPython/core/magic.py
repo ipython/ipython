@@ -3351,7 +3351,7 @@ Defaulting color scheme to 'NoColor'"""
         """
         ip = self.getapi()
         ipinstallation = path(IPython.__file__).dirname()
-        upgrade_script = '%s "%s"' % (sys.executable,ipinstallation / 'upgrade_dir.py')
+        upgrade_script = '%s "%s"' % (sys.executable,ipinstallation / 'utils' / 'upgradedir.py')
         src_config = ipinstallation / 'UserConfig'
         userdir = path(ip.options.ipythondir)
         cmd = '%s "%s" "%s"' % (upgrade_script, src_config, userdir)
