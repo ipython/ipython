@@ -12,7 +12,7 @@ from IPython.utils.ipstruct import Struct
 import Queue,thread,threading,signal
 from signal import signal, SIGINT
 from IPython.utils.genutils import Term,warn,error,flag_calls, ask_yes_no
-import shellglobals
+from IPython.core import shellglobals
 
 def install_gtk2():
     """ Install gtk2 reactor, needs to be called bef """
