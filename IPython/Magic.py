@@ -48,7 +48,7 @@ from IPython.core import debugger
 from IPython.core.fakemodule import FakeModule
 from IPython.Itpl import Itpl, itpl, printpl,itplns
 from IPython.PyColorize import Parser
-from IPython.ipstruct import Struct
+from IPython.utils.ipstruct import Struct
 from IPython.macro import Macro
 from IPython.utils.genutils import *
 from IPython import platutils
@@ -3388,7 +3388,7 @@ Defaulting color scheme to 'NoColor'"""
 
         # XXX - Fix this to have cleaner activate/deactivate calls.
         from IPython.Extensions import InterpreterPasteInput as ipaste
-        from IPython.ipstruct import Struct
+        from IPython.utils.ipstruct import Struct
 
         # Shorthands
         shell = self.shell

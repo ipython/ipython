@@ -13,5 +13,7 @@ def test_import_generics():
 def test_import_genutils():
     from IPython.utils import genutils
 
+def test_import_ipstruct():
+    from IPython.utils import ipstruct
 
 

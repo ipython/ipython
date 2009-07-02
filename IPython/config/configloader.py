@@ -14,7 +14,7 @@ import os
 from pprint import pprint
 
 from IPython import ultraTB
-from IPython.ipstruct import Struct
+from IPython.utils.ipstruct import Struct
 from IPython.utils.genutils import *
 
 class ConfigLoaderError(exceptions.Exception):

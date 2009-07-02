@@ -24,7 +24,7 @@ from IPython.utils import coloransi
 from IPython import Release
 from IPython.external.Itpl import ItplNS
 from IPython.core.ipapi import TryNext
-from IPython.ipstruct import Struct
+from IPython.utils.ipstruct import Struct
 from IPython.macro import Macro
 import IPython.utils.generics
 

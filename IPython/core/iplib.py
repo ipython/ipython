@@ -53,7 +53,7 @@ from IPython.Itpl import ItplNS
 from IPython.Logger import Logger
 from IPython.Magic import Magic
 from IPython.Prompts import CachedOutput
-from IPython.ipstruct import Struct
+from IPython.utils.ipstruct import Struct
 from IPython.lib.backgroundjobs import BackgroundJobManager
 from IPython.utils.genutils import *
 from IPython.strdispatch import StrDispatch

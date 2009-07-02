@@ -72,7 +72,7 @@ import shlex
 import sys
 import IPython.rlineimpl as readline    
 import itertools
-from IPython.ipstruct import Struct
+from IPython.utils.ipstruct import Struct
 from IPython.core import ipapi
 from IPython.utils import generics
 import types
