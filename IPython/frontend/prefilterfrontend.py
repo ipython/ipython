@@ -27,7 +27,7 @@ import os
 import re
 import __builtin__
 
-from IPython.ipmaker import make_IPython
+from IPython.core.ipmaker import make_IPython
 from IPython.core.ipapi import IPApi
 from IPython.kernel.core.redirector_output_trap import RedirectorOutputTrap
 

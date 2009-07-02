@@ -28,6 +28,8 @@ def test_import_ipapi():
 def test_imort_iplib():
     from IPython.core import iplib
 
+def test_imort_ipmaker():
+    from IPython.core import ipmaker
 
 
 
