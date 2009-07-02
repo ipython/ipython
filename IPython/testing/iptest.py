@@ -203,7 +203,7 @@ def make_runners():
        'DPyGetOpt.py', 'dtutils.py', 'excolors.py', 'fakemodule.py',
        'generics.py', 'genutils.py', 'history.py', 'hooks.py', 'ipapi.py',
        'iplib.py', 'ipmaker.py', 'ipstruct.py', 'Itpl.py',
-       'Logger.py', 'macro.py', 'Magic.py', 'OInspect.py',
+       'logger.py', 'macro.py', 'Magic.py', 'OInspect.py',
        'OutputTrap.py', 'platutils.py', 'prefilter.py', 'Prompts.py',
        'PyColorize.py', 'Release.py', 'rlineimpl.py', 'shadowns.py',
        'shellglobals.py', 'strdispatch.py', 'twshell.py',

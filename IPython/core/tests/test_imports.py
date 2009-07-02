@@ -25,11 +25,14 @@ def test_import_hooks():
 def test_import_ipapi():
     from IPython.core import ipapi
 
-def test_imort_iplib():
+def test_import_iplib():
     from IPython.core import iplib
 
-def test_imort_ipmaker():
+def test_import_ipmaker():
     from IPython.core import ipmaker
+
+def test_import_logger():
+    from IPython.core import logger
 
 
 

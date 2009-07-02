@@ -50,7 +50,7 @@ from IPython.core import debugger
 from IPython.Extensions import pickleshare
 from IPython.core.fakemodule import FakeModule, init_fakemod_dict
 from IPython.external.Itpl import ItplNS
-from IPython.Logger import Logger
+from IPython.core.logger import Logger
 from IPython.Magic import Magic
 from IPython.Prompts import CachedOutput
 from IPython.utils.ipstruct import Struct
