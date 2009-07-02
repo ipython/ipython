@@ -57,7 +57,7 @@ from IPython.ipstruct import Struct
 from IPython.lib.backgroundjobs import BackgroundJobManager
 from IPython.utils.genutils import *
 from IPython.strdispatch import StrDispatch
-import IPython.ipapi
+from IPython.core import ipapi
 import IPython.core.history
 import IPython.prefilter as prefilter
 import IPython.shadowns
@@ -463,7 +463,7 @@ class InteractiveShell(object,Magic):
         # These routines return properly built dicts as needed by the rest of
         # the code, and can also be used by extension writers to generate
         # properly initialized namespaces.
-        user_ns, user_global_ns = IPython.ipapi.make_user_namespaces(user_ns,
+        user_ns, user_global_ns = ipapi.make_user_namespaces(user_ns,
             user_global_ns)
 
         # Assign namespaces
@@ -783,7 +783,7 @@ class InteractiveShell(object,Magic):
         self.auto_alias = [s.split(None,1) for s in auto_alias]
         
         # Produce a public API instance
-        self.api = IPython.ipapi.IPApi(self)
+        self.api = ipapi.IPApi(self)
 
         # Initialize all user-visible namespaces
         self.init_namespaces()
@@ -1592,7 +1592,7 @@ class InteractiveShell(object,Magic):
         try:
             self.hooks.fix_error_editor(e.filename,
                 int0(e.lineno),int0(e.offset),e.msg)
-        except IPython.ipapi.TryNext:
+        except ipapi.TryNext:
             warn('Could not open editor')
             return False
         return True
@@ -1706,7 +1706,7 @@ class InteractiveShell(object,Magic):
     
             if etype is SyntaxError:
                 self.showsyntaxerror(filename)
-            elif etype is IPython.ipapi.UsageError:
+            elif etype is ipapi.UsageError:
                 print "UsageError:", value
             else:
                 # WARNING: these variables are somewhat deprecated and not
@@ -2548,7 +2548,7 @@ class InteractiveShell(object,Magic):
             self.log(line,line,continue_prompt)
             return line
 
-        force_auto = isinstance(obj, IPython.ipapi.IPyAutocall)
+        force_auto = isinstance(obj, ipapi.IPyAutocall)
         auto_rewrite = True
         
         if pre == self.ESC_QUOTE:

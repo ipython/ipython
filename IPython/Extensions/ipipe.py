@@ -139,7 +139,7 @@ except ImportError:
     genutils = None
     generics = None
 
-from IPython import ipapi
+from IPython.core import ipapi
 
 
 __all__ = [

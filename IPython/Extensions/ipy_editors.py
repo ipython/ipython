@@ -5,8 +5,8 @@ They should honor the line number argument, at least.
 Contributions are *very* welcome.
 """
 
-import IPython.ipapi
-ip = IPython.ipapi.get()
+from IPython.core import ipapi
+ip = ipapi.get()
 
 from IPython.Itpl import itplns
 import os
@@ -29,7 +29,7 @@ def install_editor(run_template, wait = False):
         cmd = itplns(run_template, locals())
         print ">",cmd
         if os.system(cmd) != 0:
-            raise IPython.ipapi.TryNext()
+            raise ipapi.TryNext()
         if wait:
             raw_input("Press Enter when done editing:")
 

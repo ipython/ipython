@@ -5,11 +5,11 @@ This profile loads the math/cmath modules as well as all of numpy.
 It exposes numpy via the 'np' shorthand as well for convenience.
 """
 
-import IPython.ipapi
+from IPython.core import ipapi
 import ipy_defaults
 
 def main():
-    ip = IPython.ipapi.get()
+    ip = ipapi.get()
 
     try:
         ip.ex("import math,cmath")

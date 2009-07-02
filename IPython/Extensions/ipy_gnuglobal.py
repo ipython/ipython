@@ -8,8 +8,8 @@ http://www.gnu.org/software/global/
 
 """
 
-import IPython.ipapi
-ip = IPython.ipapi.get()
+from IPython.core import ipapi
+ip = ipapi.get()
 import os
 
 # alter to your liking

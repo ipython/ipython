@@ -7,8 +7,8 @@ to.
 # for the purposes of this module, every module that has the name 'ip' globally
 # installed as below is an IPython extension
 
-import IPython.ipapi
-ip = IPython.ipapi.get()
+from IPython.core import ipapi
+ip = ipapi.get()
 
 import sys,textwrap,inspect
 
@@ -34,7 +34,7 @@ class ExtUtil:
         act = []
         for mname,m in sys.modules.items():
             o = getattr(m, 'ip', None)
-            if isinstance(o, IPython.ipapi.IPApi):
+            if isinstance(o, ipapi.IPApi):
                 act.append((mname,m))
         act.sort()                
         return act

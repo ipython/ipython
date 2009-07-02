@@ -24,8 +24,8 @@ That way the module is imported at startup and you can have all your
 personal configuration (as opposed to boilerplate ipythonrc-PROFILENAME 
 stuff) in there. 
 
-import IPython.ipapi
-ip = IPython.ipapi.get()
+from IPython.core import ipapi
+ip = ipapi.get()
 
 def ankka_f(self, arg):
     print 'Ankka',self,'says uppercase:',arg.upper()
@@ -331,8 +331,8 @@ class IPApi(object):
         To use this, you first must obtain a handle on the ipython object as
         indicated above, via:
 
-        import IPython.ipapi
-        ip = IPython.ipapi.get()
+        from IPython.core import ipapi
+        ip = ipapi.get()
 
         Once this is done, inside a routine foo() where you want to expose
         variables x and y, you do the following:

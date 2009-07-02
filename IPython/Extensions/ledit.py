@@ -43,9 +43,9 @@ l.__class__        l.__hash__         l.__repr__         l.expandtabs       l.lj
 ... (completions for string variable shown ) ...
 
 """
-import IPython.ipapi
+from IPython.core import ipapi
 import pprint
-ip = IPython.ipapi.get()
+ip = ipapi.get()
 
 curdata = []
 

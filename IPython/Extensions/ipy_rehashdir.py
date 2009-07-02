@@ -15,8 +15,8 @@ extensions are allowed to do that).
 
 """
 
-import IPython.ipapi
-ip = IPython.ipapi.get()
+from IPython.core import ipapi
+ip = ipapi.get()
 
 
 import os,re,fnmatch,sys

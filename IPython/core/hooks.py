@@ -19,8 +19,8 @@ For example, suppose that you have a module called 'myiphooks' in your
 PYTHONPATH, which contains the following definition:
 
 import os
-import IPython.ipapi
-ip = IPython.ipapi.get()
+from IPython.core import ipapi
+ip = ipapi.get()
 
 def calljed(self,filename, linenum):
     "My editor hook calls the jed editor directly."
@@ -41,7 +41,7 @@ somewhere in your configuration files or ipython command line.
 #  the file COPYING, distributed as part of this software.
 #*****************************************************************************
 
-from IPython import ipapi
+from IPython.core import ipapi
 
 import os,bisect
 from IPython.utils.genutils import Term,shell

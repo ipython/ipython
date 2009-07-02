@@ -52,7 +52,7 @@ Notes
 from enthought.traits import api as T
 
 # IPython imports
-from IPython.ipapi import TryNext, get as ipget
+from IPython.core.ipapi import TryNext, get as ipget
 from IPython.utils.genutils import dir2
 try:
     set

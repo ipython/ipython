@@ -201,8 +201,8 @@ def _lookfor_generate_cache(module, import_modules, regenerate):
 # IPython connectivity
 #------------------------------------------------------------------------------
 
-import IPython.ipapi
-ip = IPython.ipapi.get()
+from IPython.core import ipapi
+ip = ipapi.get()
 
 _lookfor_modules = ['numpy', 'scipy']
 

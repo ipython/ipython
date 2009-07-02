@@ -3,8 +3,8 @@
 Add %p4 magic for pythonic p4 (Perforce) usage.
 """
 
-import IPython.ipapi
-ip = IPython.ipapi.get()
+from IPython.core import ipapi
+ip = ipapi.get()
 
 import os,sys,marshal
 

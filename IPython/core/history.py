@@ -6,7 +6,7 @@ import fnmatch
 import os
 
 from IPython.utils.genutils import Term, ask_yes_no, warn
-import IPython.ipapi
+from IPython.core import ipapi
 
 def magic_history(self, parameter_s = ''):
     """Print input history (_i<n> variables), with most recent last.
@@ -228,7 +228,7 @@ class ShadowHist:
             #print "new",newidx # dbg
             self.db.hset('shadowhist',ent, newidx)
         except:
-            IPython.ipapi.get().IP.showtraceback()
+            ipapi.get().IP.showtraceback()
             print "WARNING: disabling shadow history"
             self.disabled = True
     

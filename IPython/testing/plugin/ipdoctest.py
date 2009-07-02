@@ -164,7 +164,8 @@ def start_ipython():
     import new
 
     import IPython
-
+    from IPython.core import ipapi
+    
     def xsys(cmd):
         """Execute a command and print its output.
 
@@ -183,7 +184,7 @@ def start_ipython():
     argv = default_argv()
     
     # Start IPython instance.  We customize it to start with minimal frills.
-    user_ns,global_ns = IPython.ipapi.make_user_namespaces(ipnsdict(),dict())
+    user_ns,global_ns = ipapi.make_user_namespaces(ipnsdict(),dict())
     IPython.Shell.IPShell(argv,user_ns,global_ns)
 
     # Deactivate the various python system hooks added by ipython for

@@ -13,8 +13,8 @@ This is a bit like 'M-x server-start" or gnuserv in the emacs world.
 
 """
 
-import IPython.ipapi
-ip = IPython.ipapi.get()
+from IPython.core import ipapi
+ip = ipapi.get()
 
 import SocketServer
 

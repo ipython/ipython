@@ -7,7 +7,7 @@ shell mode and is recommended for users who don't care about pysh-mode
 compatibility)
 """
 
-from IPython import ipapi
+from IPython.core import ipapi
 import os,re,textwrap
 
 # The import below effectively obsoletes your old-style ipythonrc[.ini],

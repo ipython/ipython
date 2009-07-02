@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 """ IPython extension: add %clear magic """
 
-import IPython.ipapi
+from IPython.core import ipapi
 import gc
-ip = IPython.ipapi.get()
+ip = ipapi.get()
 
 def clear_f(self,arg):
     """ Clear various data (e.g. stored history data)

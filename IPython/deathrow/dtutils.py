@@ -10,8 +10,8 @@ See the idoctest docstring below for usage details.
 import doctest
 import sys
 
-import IPython.ipapi
-ip = IPython.ipapi.get()
+from IPython.core import ipapi
+ip = ipapi.get()
 
 def rundoctest(text,ns=None,eraise=False):
     """Run a the input source as a doctest, in the caller's namespace.

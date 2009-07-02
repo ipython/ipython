@@ -7,12 +7,12 @@ but the basic idea is to do:
 ip.set_hook('complete_command', svn_completer, str_key = 'svn')
 
 """
-import IPython.ipapi
+import IPython.core import ipapi
 import glob,os,shlex,sys
 import inspect
 from time import time
 from zipimport import zipimporter
-ip = IPython.ipapi.get()
+ip = ipapi.get()
 
 try:
     set
@@ -329,7 +329,7 @@ def cd_completer(self, event):
         if ' ' in d:
             # we don't want to deal with any of that, complex code
             # for this is elsewhere
-            raise IPython.ipapi.TryNext
+            raise ipapi.TryNext
         found.append( d )
 
     if not found:
@@ -341,7 +341,7 @@ def cd_completer(self, event):
         if bkmatches:
             return bkmatches
         
-        raise IPython.ipapi.TryNext
+        raise ipapi.TryNext
 
 
     def single_dir_expand(matches):

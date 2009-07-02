@@ -1,11 +1,11 @@
-import IPython.ipapi
-ip = IPython.ipapi.get()
+from IPython.core import ipapi
+ip = ipapi.get()
 
 import os,pprint
 
 def export(filename = None):
 
-    lines = ['import IPython.ipapi', 'ip = IPython.ipapi.get()','']
+    lines = ['import IPython.core.ipapi', 'ip = IPython.core.ipapi.get()','']
 
     vars = ip.db.keys('autorestore/*')
     vars.sort()

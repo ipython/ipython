@@ -224,15 +224,15 @@ reloader = ModuleReloader()
 #------------------------------------------------------------------------------
 # IPython connectivity
 #------------------------------------------------------------------------------
-import IPython.ipapi
+from IPython.core import ipapi
 
-ip = IPython.ipapi.get()
+ip = ipapi.get()
 
 autoreload_enabled = False
 
 def runcode_hook(self):
     if not autoreload_enabled:
-        raise IPython.ipapi.TryNext
+        raise ipapi.TryNext
     try:
         reloader.check()
     except:

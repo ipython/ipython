@@ -62,8 +62,8 @@ import unittest
 
 from doctest import *
 
-# Our own imports
 from IPython.tools import utils
+from IPython.core import ipapi
 
 ###########################################################################
 #
@@ -85,7 +85,7 @@ sys.displayhook = sys.__displayhook__
 sys.excepthook = sys.__excepthook__
 
 # So that ipython magics and aliases can be doctested
-__builtin__._ip = IPython.ipapi.get()
+__builtin__._ip = ipapi.get()
 
 # for debugging only!!!
 #from IPython.Shell import IPShellEmbed;ipshell=IPShellEmbed(['--noterm_title']) # dbg

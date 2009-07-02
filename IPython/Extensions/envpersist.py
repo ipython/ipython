@@ -2,8 +2,8 @@
 """ %env magic command for storing environment variables persistently
 """
 
-import IPython.ipapi
-ip = IPython.ipapi.get()
+from IPython.core import ipapi
+ip = ipapi.get()
 
 import os,sys
 
@@ -16,7 +16,7 @@ def restore_env(self):
         os.environ[k] = os.environ.get(k,"") + v
     for k,v in env['pre']:
         os.environ[k] = v + os.environ.get(k,"")
-    raise IPython.ipapi.TryNext
+    raise ipapi.TryNext
   
 ip.set_hook('late_startup_hook', restore_env)
 

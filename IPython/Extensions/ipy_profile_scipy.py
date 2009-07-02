@@ -6,11 +6,11 @@ It exposes numpy and scipy via the 'np' and 'sp' shorthands as well for
 convenience.
 """
 
-import IPython.ipapi
+from IPython.core import ipapi
 import ipy_defaults
 
 def main():
-    ip = IPython.ipapi.get()
+    ip = ipapi.get()
 
     try:
         ip.ex("import math,cmath")

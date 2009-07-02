@@ -18,7 +18,7 @@ test_magic.py calls it.
 #-----------------------------------------------------------------------------
 import sys
 
-from IPython import ipapi
+from IPython.core import ipapi
 
 #-----------------------------------------------------------------------------
 # Globals

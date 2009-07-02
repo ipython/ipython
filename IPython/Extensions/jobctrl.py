@@ -47,7 +47,7 @@ import threading,Queue
 
 from IPython.utils import genutils
 
-import IPython.ipapi
+from IPython.core import ipapi
 
 if os.name == 'nt':
     def kill_process(pid):
@@ -128,7 +128,7 @@ def jobctrl_prefilter_f(self,line):
             return '_ip.startjob(%s)' % genutils.make_quoted_expr(line)
         return '_ip.jobq(%s)' % genutils.make_quoted_expr(line)
 
-    raise IPython.ipapi.TryNext
+    raise ipapi.TryNext
 
 def jobq_output_hook(self):
     if not _jobq:
@@ -230,7 +230,7 @@ def jobctrl_shellcmd(ip,cmd):
 
 def install():
     global ip
-    ip = IPython.ipapi.get()
+    ip = ipapi.get()
     # needed to make startjob visible as _ip.startjob('blah')
     ip.startjob = startjob
     ip.set_hook('input_prefilter', jobctrl_prefilter_f)

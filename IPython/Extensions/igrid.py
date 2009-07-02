@@ -1,7 +1,7 @@
 # -*- coding: iso-8859-1 -*-
 
 import ipipe, os, webbrowser, urllib
-from IPython import ipapi
+from IPython.core import ipapi
 import wx
 import wx.grid, wx.html
 

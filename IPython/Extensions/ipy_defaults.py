@@ -13,8 +13,8 @@ ipy_profile_PROFILENAME etc.
 """
 
 import IPython.rlineimpl as readline
-import IPython.ipapi
-ip = IPython.ipapi.get()
+from IPython.core import ipapi
+ip = ipapi.get()
 
 o = ip.options
 

@@ -5,9 +5,9 @@ IPython extension that installs the completers related to external apps.
 The actual implementations are in Extensions/ipy_completers.py
 
 """
-import IPython.ipapi
+from IPython.core import ipapi
 
-ip = IPython.ipapi.get()
+ip = ipapi.get()
 
 from ipy_completers import *
 

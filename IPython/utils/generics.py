@@ -15,7 +15,7 @@ Here is an example from genutils.py:
 can use the niftier decorator syntax introduced in Python 2.4).
 '''
 
-from IPython.ipapi import TryNext
+from IPython.core.ipapi import TryNext
 from IPython.external.simplegeneric import generic
 
 def result_display(result):

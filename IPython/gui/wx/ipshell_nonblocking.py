@@ -184,8 +184,8 @@ class NonBlockingIPShell(object):
         self._IP.user_ns['help'] = _Helper(self._pager_help)
 
         #we disable cpase magic... until we found a way to use it properly.
-        #import IPython.ipapi
-        ip = IPython.ipapi.get()
+        from IPython.core import ipapi
+        ip = ipapi.get()
         def bypass_magic(self, arg):
             print '%this magic is currently disabled.'
         ip.expose_magic('cpaste', bypass_magic)

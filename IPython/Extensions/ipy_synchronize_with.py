@@ -1,5 +1,5 @@
-import IPython.ipapi
-ip = IPython.ipapi.get()
+from IPython.core import ipapi
+ip = ipapi.get()
 
 import win32api
 import win32ui

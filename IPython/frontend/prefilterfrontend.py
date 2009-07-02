@@ -28,7 +28,7 @@ import re
 import __builtin__
 
 from IPython.ipmaker import make_IPython
-from IPython.ipapi import IPApi
+from IPython.core.ipapi import IPApi
 from IPython.kernel.core.redirector_output_trap import RedirectorOutputTrap
 
 from IPython.kernel.core.sync_traceback_trap import SyncTracebackTrap

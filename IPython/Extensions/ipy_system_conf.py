@@ -7,8 +7,8 @@ should reside there.
 
  """
 
-import IPython.ipapi
-ip = IPython.ipapi.get()
+from IPython.core import ipapi
+ip = ipapi.get()
 
 # add system wide configuration information, import extensions etc. here.
 # nothing here is essential 

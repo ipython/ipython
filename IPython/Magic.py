@@ -53,8 +53,8 @@ from IPython.macro import Macro
 from IPython.utils.genutils import *
 from IPython import platutils
 import IPython.utils.generics
-import IPython.ipapi
-from IPython.ipapi import UsageError
+from IPython.core import ipapi
+from IPython.core.ipapi import UsageError
 from IPython.testing import decorators as testdec
 
 #***************************************************************************
@@ -720,7 +720,7 @@ Currently the magic system has the following functions:\n"""
             try:
                 IPython.utils.generics.inspect_object(info.obj)
                 return
-            except IPython.ipapi.TryNext:
+            except ipapi.TryNext:
                 pass
             # Get the docstring of the class property if it exists.
             path = oname.split('.')
@@ -2386,7 +2386,7 @@ Currently the magic system has the following functions:\n"""
         sys.stdout.flush()
         try:
             self.shell.hooks.editor(filename,lineno)
-        except IPython.ipapi.TryNext:
+        except ipapi.TryNext:
             warn('Could not open editor')
             return
         

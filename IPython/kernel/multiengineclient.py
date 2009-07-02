@@ -312,7 +312,7 @@ class InteractiveMultiEngineClient(object):
         return strip_whitespace(wsource)
 
     def findsource_ipython(self,f):
-        from IPython import ipapi
+        from IPython.core import ipapi
         self.ip = ipapi.get()
         wsource = [l+'\n' for l in
                    self.ip.IP.input_hist_raw[-1].splitlines()[1:]] 

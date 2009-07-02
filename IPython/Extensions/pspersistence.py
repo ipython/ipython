@@ -5,9 +5,9 @@
 Stores variables, aliases etc. in PickleShare database.
 """
 
-import IPython.ipapi
-from IPython.ipapi import UsageError
-ip = IPython.ipapi.get()
+from IPython.core import ipapi
+from IPython.core.ipapi import UsageError
+ip = ipapi.get()
 
 import pickleshare
 
@@ -47,7 +47,7 @@ def restore_data(self):
     refresh_variables(ip)
     restore_aliases(self)
     restore_dhist(self)
-    raise IPython.ipapi.TryNext
+    raise ipapi.TryNext
     
 ip.set_hook('late_startup_hook', restore_data)
 

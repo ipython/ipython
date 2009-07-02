@@ -31,7 +31,8 @@ import linecache
 import os
 import sys
 
-from IPython import PyColorize, ipapi
+from IPython import PyColorize
+from IPython.core import ipapi
 from IPython.utils import coloransi
 from IPython.utils.genutils import Term
 from IPython.core.excolors import exception_colors

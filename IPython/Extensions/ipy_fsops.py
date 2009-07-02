@@ -15,13 +15,13 @@ do some useful tricks on their own, though (like use 'mglob' patterns).
 Not to be confused with ipipe commands (ils etc.) that also start with i.
 """
 
-import IPython.ipapi
-ip = IPython.ipapi.get()
+from IPython.core import ipapi
+ip = ipapi.get()
 
 import shutil,os,shlex
 from IPython.external import mglob
 from IPython.external.path import path
-from IPython.ipapi import UsageError
+from IPython.core.ipapi import UsageError
 import IPython.utils.generics
 
 def parse_args(args):
@@ -229,7 +229,7 @@ def complete_pathobj(obj, prev_completions):
         if res:
             return res
     # just return normal attributes of 'path' object if the dir is empty
-    raise IPython.ipapi.TryNext
+    raise ipapi.TryNext
 
 complete_pathobj = IPython.utils.generics.complete_object.when_type(PathObj)(complete_pathobj)
 

@@ -7,10 +7,10 @@
 #  the file COPYING, distributed as part of this software.
 #*****************************************************************************
 
-import IPython.ipapi 
+from IPython.core import ipapi 
 
 from IPython.utils.genutils import Term
-from IPython.ipapi import IPyAutocall
+from IPython.core.ipapi import IPyAutocall
 
 class Macro(IPyAutocall):
     """Simple class to store the value of macros as strings.

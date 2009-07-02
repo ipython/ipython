@@ -8,8 +8,8 @@ Stores variables in Struct with some notes in PicleShare database
 """
 
 from datetime import datetime 
-import IPython.ipapi
-ip = IPython.ipapi.get()
+from IPython.core import ipapi
+ip = ipapi.get()
 
 import pickleshare
 

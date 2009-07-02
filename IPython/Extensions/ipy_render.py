@@ -2,9 +2,9 @@
 
 """ IPython extension: Render templates from variables and paste to clipbard """
 
-import IPython.ipapi
+from IPython.core import ipapi
 
-ip = IPython.ipapi.get()
+ip = ipapi.get()
 
 from string import Template
 import sys,os

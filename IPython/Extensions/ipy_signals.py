@@ -10,10 +10,10 @@ If _ip.options.verbose is true, show exit status if nonzero
 """
 
 import signal,os,sys
-import IPython.ipapi
+from IPython.core import ipapi
 import subprocess
 
-ip = IPython.ipapi.get()
+ip = ipapi.get()
 
 def new_ipsystem_posix(cmd):
     """ ctrl+c ignoring replacement for system() command in iplib.

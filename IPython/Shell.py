@@ -34,7 +34,8 @@ except ImportError:
 
 # IPython imports
 import IPython
-from IPython import ultraTB, ipapi
+from IPython import ultraTB
+from IPython.core import ipapi
 from IPython.Magic import Magic
 from IPython.utils.genutils import Term,warn,error,flag_calls, ask_yes_no
 from IPython.iplib import InteractiveShell
@@ -562,7 +563,7 @@ class MatplotlibShellBase:
         self.pylab.draw_if_interactive = flag_calls(self.pylab.draw_if_interactive)
 
         # Build a user namespace initialized with matplotlib/matlab features.
-        user_ns, user_global_ns = IPython.ipapi.make_user_namespaces(user_ns,
+        user_ns, user_global_ns = ipapi.make_user_namespaces(user_ns,
             user_global_ns)
 
         # Import numpy as np/pyplot as plt are conventions we're trying to
@@ -1088,7 +1089,7 @@ def _load_pylab(user_ns):
     This little utility must be called AFTER the actual ipython instance is
     running, since only then will the options file have been fully parsed."""
     
-    ip = IPython.ipapi.get()
+    ip = ipapi.get()
     if ip.options.pylab_import_all:
         ip.ex("from matplotlib.pylab import *")
         ip.IP.user_config_ns.update(ip.user_ns)

@@ -67,15 +67,15 @@ something. Instead of edit, use the vim magic.  Thats it!
 
 """
 
-import IPython.ipapi
-#import ipythonhooks
+from IPython.core import ipapi
+
 import socket, select
 import os, threading, subprocess
 import re
 
 ERRCONDS = select.POLLHUP|select.POLLERR
 SERVER = None
-ip = IPython.ipapi.get()
+ip = ipapi.get()
 
 # this listens to a unix domain socket in a separate thread, so that comms
 # between a vim instance and ipython can happen in a fun and productive way
@@ -161,7 +161,7 @@ def shutdown_server(self):
     if SERVER:
         SERVER.stop()
         SERVER.join(3)
-    raise IPython.ipapi.TryNext
+    raise ipapi.TryNext
 
 ip.set_hook('shutdown_hook', shutdown_server, 10)
 

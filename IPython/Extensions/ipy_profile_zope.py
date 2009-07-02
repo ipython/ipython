@@ -17,7 +17,7 @@ Authors
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
 
-from IPython import ipapi
+from IPython.core import ipapi
 from IPython import Release
 from types import StringType
 import sys

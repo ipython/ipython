@@ -9,8 +9,8 @@ Stuff that is considered obsolete / redundant is gradually moved here.
 
 """
 
-import IPython.ipapi
-ip = IPython.ipapi.get()
+from IPython.core import ipapi
+ip = ipapi.get()
 
 import os,sys
 

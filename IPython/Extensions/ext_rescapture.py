@@ -8,10 +8,10 @@ var = %magic blah blah
 var = !ls
 """
 
-import IPython.ipapi
+from IPython.core import ipapi
 from IPython.utils.genutils import *
 
-ip = IPython.ipapi.get()
+ip = ipapi.get()
 
 import re
 
@@ -58,6 +58,6 @@ def regex_prefilter_f(self,line):
         if mo:
             return handler(line,mo)
     
-    raise IPython.ipapi.TryNext
+    raise ipapi.TryNext
 
 ip.set_hook('input_prefilter', regex_prefilter_f)     

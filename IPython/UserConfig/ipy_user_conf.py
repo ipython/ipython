@@ -18,8 +18,8 @@ description on what you could do here.
 
 # Most of your config files and extensions will probably start with this import
 
-import IPython.ipapi
-ip = IPython.ipapi.get()
+from IPython.core import ipapi
+ip = ipapi.get()
 
 # You probably want to uncomment this if you did %upgrade -nolegacy
 # import ipy_defaults    

@@ -50,7 +50,7 @@ from IPython.Itpl import Itpl,itpl,printpl
 from IPython import platutils
 from IPython.utils import DPyGetOpt
 from IPython.utils.generics import result_display
-import IPython.ipapi
+from IPython.core import ipapi
 from IPython.external.path import path
 if os.name == "nt":
     from IPython.winconsole import get_console_size
@@ -1625,12 +1625,12 @@ def page(strng,start=0,screen_lines=0,pager_cmd = None):
     start = max(0,start)
 
     # first, try the hook
-    ip = IPython.ipapi.get()
+    ip = ipapi.get()
     if ip:
         try:
             ip.IP.hooks.show_in_pager(strng)
             return
-        except IPython.ipapi.TryNext:
+        except ipapi.TryNext:
             pass
 
     # Ugly kludge, but calling curses.initscr() flat out crashes in emacs

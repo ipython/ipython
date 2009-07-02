@@ -16,12 +16,12 @@ for numpy dtype objects, add the following to your ipy_user_conf.py::
     ipy_pretty.for_type_by_name('numpy', 'dtype', ipy_pretty.dtype_pprinter)
 """
 
-import IPython.ipapi
+from IPython.core import ipapi
 from IPython.utils.genutils import Term
 
 from IPython.external import pretty
 
-ip = IPython.ipapi.get()
+ip = ipapi.get()
 
 
 #### Implementation ############################################################

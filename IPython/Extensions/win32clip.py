@@ -1,6 +1,6 @@
-import IPython.ipapi
+from IPython.core import ipapi
 
-ip = IPython.ipapi.get()
+ip = ipapi.get()
 
 def clip_f( self, parameter_s = '' ):
     """Save a set of lines to the clipboard.

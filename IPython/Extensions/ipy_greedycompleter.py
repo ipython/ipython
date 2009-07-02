@@ -9,7 +9,7 @@ only whitespace as completer delimiter. If this works well, we will
 do the same in default completer.
 
 """
-from IPython import ipapi
+from IPython.core import ipapi
 from IPython.utils import generics
 from IPython.utils.genutils import dir2
 

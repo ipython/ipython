@@ -14,7 +14,7 @@ similar as possible to the default Python ones, for inclusion in doctests."""
 # get various stuff that are there for historical / familiarity reasons
 import ipy_legacy
 
-from  IPython import ipapi
+from IPython.core import ipapi
 
 from IPython.Extensions import InterpreterPasteInput
 

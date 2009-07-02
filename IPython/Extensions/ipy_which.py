@@ -4,8 +4,8 @@ r""" %which magic command
 
 """
 
-import IPython.ipapi
-ip = IPython.ipapi.get()
+from IPython.core import ipapi
+ip = ipapi.get()
 
 import os,sys
 from fnmatch import fnmatch
