@@ -53,7 +53,7 @@ from IPython.utils.generics import result_display
 from IPython.core import ipapi
 from IPython.external.path import path
 if os.name == "nt":
-    from IPython.winconsole import get_console_size
+    from IPython.utils.winconsole import get_console_size
 
 try:
     set

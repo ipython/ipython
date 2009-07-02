@@ -33,3 +33,6 @@ def test_import_upgradedir():
 
 def test_import_wildcard():
     from IPython.utils import wildcard
+
+def test_import_winconsole():
+    from IPython.utils import winconsole
