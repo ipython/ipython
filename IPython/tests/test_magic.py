@@ -10,7 +10,7 @@ import types
 
 import nose.tools as nt
 
-from IPython.platutils import find_cmd, get_long_path_name
+from IPython.utils.platutils import find_cmd, get_long_path_name
 from IPython.testing import decorators as dec
 from IPython.testing import tools as tt
 

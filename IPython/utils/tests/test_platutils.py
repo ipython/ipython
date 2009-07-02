@@ -20,7 +20,7 @@ import sys
 
 import nose.tools as nt
 
-from IPython.platutils import find_cmd, FindCmdError, get_long_path_name
+from IPython.utils.platutils import find_cmd, FindCmdError, get_long_path_name
 from IPython.testing import decorators as dec
 
 #-----------------------------------------------------------------------------

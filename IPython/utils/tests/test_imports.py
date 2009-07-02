@@ -16,4 +16,6 @@ def test_import_genutils():
 def test_import_ipstruct():
     from IPython.utils import ipstruct
 
+def test_import_platutils():
+    from IPython.utils import platutils
 

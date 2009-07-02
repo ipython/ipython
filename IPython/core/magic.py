@@ -51,7 +51,7 @@ from IPython.PyColorize import Parser
 from IPython.utils.ipstruct import Struct
 from IPython.core.macro import Macro
 from IPython.utils.genutils import *
-from IPython import platutils
+from IPython.utils import platutils
 import IPython.utils.generics
 from IPython.core import ipapi
 from IPython.core.ipapi import UsageError

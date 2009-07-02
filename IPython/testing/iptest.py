@@ -30,7 +30,7 @@ import warnings
 import nose.plugins.builtin
 from nose.core import TestProgram
 
-from IPython.platutils import find_cmd
+from IPython.utils.platutils import find_cmd
 from IPython.testing.plugin.ipdoctest import IPythonDoctest
 
 pjoin = path.join
