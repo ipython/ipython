@@ -30,7 +30,7 @@ separate implementation).
 import sys
 import threading
 
-from IPython.ultraTB import AutoFormattedTB
+from IPython.core.ultratb import AutoFormattedTB
 from IPython.utils.genutils import warn,error
 
 class BackgroundJobManager:

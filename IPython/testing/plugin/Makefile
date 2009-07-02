@@ -43,7 +43,7 @@ iplib: plugin
 	$(NOSE)  IPython.core.iplib
 
 strd: plugin
-	$(NOSE) IPython.strdispatch
+	$(NOSE) IPython.core.strdispatch
 
 engine: plugin
 	$(NOSE) IPython.kernel

@@ -25,7 +25,7 @@ from pprint import pformat
 
 # Our own
 from IPython.core import release
-from IPython import ultraTB
+from IPython.core import ultratb
 from IPython.external.Itpl import itpl
 
 from IPython.utils.genutils import *
@@ -133,7 +133,7 @@ $self.bug_tracker
         # write the report filename into the instance dict so it can get
         # properly expanded out in the user message template
         self.crash_report_fname = report_name
-        TBhandler = ultraTB.VerboseTB(color_scheme=color_scheme,
+        TBhandler = ultratb.VerboseTB(color_scheme=color_scheme,
                                            long_header=1)
         traceback = TBhandler.text(etype,evalue,etb,context=31)
 

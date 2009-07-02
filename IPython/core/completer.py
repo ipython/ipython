@@ -632,7 +632,7 @@ class IPCompleter(Completer):
             except IndexError:
                 return None
         except:
-            #from IPython.ultraTB import AutoFormattedTB; # dbg
+            #from IPython.core.ultratb import AutoFormattedTB; # dbg
             #tb=AutoFormattedTB('Verbose');tb() #dbg
             
             # If completion fails, don't annoy the user.

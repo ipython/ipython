@@ -13,7 +13,7 @@ import exceptions
 import os
 from pprint import pprint
 
-from IPython import ultraTB
+from IPython.core import ultratb
 from IPython.utils.ipstruct import Struct
 from IPython.utils.genutils import *
 
@@ -68,7 +68,7 @@ class ConfigLoader:
         # avoid including the same file more than once
         if fname in self.included:
             return data
-        Xinfo = ultraTB.AutoFormattedTB(color_scheme='NoColor')
+        Xinfo = ultratb.AutoFormattedTB(color_scheme='NoColor')
         if convert==None and recurse_key : convert = {qwflat:recurse_key}
         # for production, change warn to 0:
         data.merge(read_dict(fname,convert,fs=self.field_sep,strip=1,

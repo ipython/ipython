@@ -45,7 +45,7 @@ import tempfile
 
 # IPython's own modules
 #import IPython
-from IPython import ultraTB
+from IPython.core import ultratb
 from IPython.utils import PyColorize
 from IPython.core import debugger, oinspect
 from IPython.Extensions import pickleshare
@@ -57,7 +57,7 @@ from IPython.core.prompts import CachedOutput
 from IPython.utils.ipstruct import Struct
 from IPython.lib.backgroundjobs import BackgroundJobManager
 from IPython.utils.genutils import *
-from IPython.strdispatch import StrDispatch
+from IPython.utils.strdispatch import StrDispatch
 from IPython.core import ipapi
 import IPython.core.history
 import IPython.core.prefilter as prefilter
@@ -340,16 +340,16 @@ class InputList(list):
     def __getslice__(self,i,j):
         return ''.join(list.__getslice__(self,i,j))
 
-class SyntaxTB(ultraTB.ListTB):
+class SyntaxTB(ultratb.ListTB):
     """Extension which holds some state: the last exception value"""
 
     def __init__(self,color_scheme = 'NoColor'):
-        ultraTB.ListTB.__init__(self,color_scheme)
+        ultratb.ListTB.__init__(self,color_scheme)
         self.last_syntax_error = None
 
     def __call__(self, etype, value, elist):
         self.last_syntax_error = value
-        ultraTB.ListTB.__call__(self,etype,value,elist)
+        ultratb.ListTB.__call__(self,etype,value,elist)
 
     def clear_err_state(self):
         """Return the current error state and clear it"""
@@ -714,7 +714,7 @@ class InteractiveShell(object,Magic):
         # The interactive one is initialized with an offset, meaning we always
         # want to remove the topmost item in the traceback, which is our own
         # internal code. Valid modes: ['Plain','Context','Verbose']
-        self.InteractiveTB = ultraTB.AutoFormattedTB(mode = 'Plain',
+        self.InteractiveTB = ultratb.AutoFormattedTB(mode = 'Plain',
                                                      color_scheme='NoColor',
                                                      tb_offset = 1)
 
@@ -725,7 +725,7 @@ class InteractiveShell(object,Magic):
         # thread (such as in GUI code) propagate directly to sys.excepthook,
         # and there's no point in printing crash dumps for every user exception.
         if self.isthreaded:
-            ipCrashHandler = ultraTB.FormattedTB()
+            ipCrashHandler = ultratb.FormattedTB()
         else:
             from IPython.core import crashhandler
             ipCrashHandler = crashhandler.IPythonCrashHandler(self)

@@ -135,17 +135,36 @@ Where things will be moved
 
 * :file:`ipapi.py`.  Move to :file:`IPython.core`.
 
+* :file:`iplib.py`.  Move to :file:`IPython.core`.
 
+* :file:`ipmaker.py`:  Move to :file:`IPython.core`.
 
-* :file:`Itpl.py`.  Remove.  Version already in :file:`IPython.external`.
+* :file:`ipstruct.py`.  Move to :file:`IPython.python`.
+
+* :file:`irunner.py`.  Move to :file:`IPython.scripts`. ???
+
+* :file:`Itpl.py`. Move to :file:`deathrow/Itpl.py`. Copy already in
+  :file:`IPython.external`.
 
 * :file:`Logger.py`.  Move to :file:`IPython/core/logger.py`.
+
+* :file:`macro.py`.  Move to :file:`IPython.core`.
 
 * :file:`Magic.py`.  Move to :file:`IPython/core/magic.py`.
 
 * :file:`OInspect.py`.  Move to :file:`IPython/core/oinspect.py`.
 
 * :file:`OutputTrap.py`.  Move to :file:`IPython/core/outputtrap.py`.
+
+* :file:`platutils.py`.  Move to :file:`IPython.python`.
+
+* :file:`platutils_dummy.py`.  Move to :file:`IPython.python`.
+
+* :file:`platutils_posix.py`.  Move to :file:`IPython.python`.
+
+* :file:`platutils_win32.py`.  Move to :file:`IPython.python`.
+
+* :file:`prefilter.py`:  Move to :file:`IPython.core`.
 
 * :file:`Prompts.py`.  Move to :file:`IPython/core/prompts.py` or
   :file:`IPython/frontend/prompts.py`.
@@ -156,8 +175,23 @@ Where things will be moved
 
 * :file:`Release.py`.  Move to ??? or remove?
 
+* :file:`rlineimpl.py`.  Move to :file:`IPython.core`.
+
+* :file:`shadowns.py`.  Move to :file:`IPython.core`.
+
 * :file:`Shell.py`.  Move to :file:`IPython.core.shell.py` or
   :file:`IPython/frontend/shell.py`.
+
+* :file:`shellglobals.py`.  Move to :file:`IPython.core`.
+
+* :file:`strdispatch.py`.  Move to :file:`IPython.python`.
+
+* :file:`testing`.  Good where it is.
+
+* :file:`tests`.  Good where it is.
+
+* :file:`tools`.  Things in here need to be looked at and moved elsewhere like
+    :file:`IPython.python`.
 
 * :file:`UserConfig`.  Move to a subdirectory of :file:`IPython.config`.
 
@@ -181,44 +215,25 @@ Where things will be moved
 
 
 
-* :file:`iplib.py`.  Move to :file:`IPython.core`.
 
-* :file:`ipmaker.py`:  Move to :file:`IPython.core`.
 
-* :file:`ipstruct.py`.  Move to :file:`IPython.python`.
 
-* :file:`irunner.py`.  Move to :file:`IPython.scripts`.
 
 * :file:`kernel`.  Good where it is.
 
-* :file:`macro.py`.  Move to :file:`IPython.core`.
 
 
 
-* :file:`platutils.py`.  Move to :file:`IPython.python`.
 
-* :file:`platutils_dummy.py`.  Move to :file:`IPython.python`.
 
-* :file:`platutils_posix.py`.  Move to :file:`IPython.python`.
 
-* :file:`platutils_win32.py`.  Move to :file:`IPython.python`.
 
-* :file:`prefilter.py`:  Move to :file:`IPython.core`.
 
-* :file:`rlineimpl.py`.  Move to :file:`IPython.core`.
 
-* :file:`shadowns.py`.  Move to :file:`IPython.core`.
 
-* :file:`shellglobals.py`.  Move to :file:`IPython.core`.
 
-* :file:`strdispatch.py`.  Move to :file:`IPython.python`.
 
-* :file:`testing`.  Good where it is.
 
-* :file:`tests`.  Good where it is.
-
-* :file:`tools`.  Things in here need to be looked at and moved elsewhere like
-  :file:`IPython.python`.
 
 * :file:`twshell.py`.  Move to :file:`IPython.sandbox`.
 

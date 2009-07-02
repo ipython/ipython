@@ -207,7 +207,7 @@ def make_runners():
        'outputtrap.py', 'platutils.py', 'prefilter.py', 'prompts.py',
        'PyColorize.py', 'release.py', 'rlineimpl.py', 'shadowns.py',
        'shellglobals.py', 'strdispatch.py', 'twshell.py',
-       'ultraTB.py', 'upgrade_dir.py', 'usage.py', 'wildcard.py',
+       'ultratb.py', 'upgrade_dir.py', 'usage.py', 'wildcard.py',
        # See note above for why this is skipped
        # 'shell.py',
        'winconsole.py']

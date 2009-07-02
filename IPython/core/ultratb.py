@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-ultraTB.py -- Spice up your tracebacks!
+ultratb.py -- Spice up your tracebacks!
 
 * ColorTB
 I've always found it a bit hard to visually parse tracebacks in Python.  The
@@ -9,8 +9,8 @@ traceback in a manner similar to what you would expect from a syntax-highlightin
 text editor.
 
 Installation instructions for ColorTB:
-    import sys,ultraTB
-    sys.excepthook = ultraTB.ColorTB()
+    import sys,ultratb
+    sys.excepthook = ultratb.ColorTB()
 
 * VerboseTB  
 I've also included a port of Ka-Ping Yee's "cgitb.py" that produces all kinds
@@ -37,8 +37,8 @@ Note:
   
 
 Installation instructions for ColorTB:
-    import sys,ultraTB
-    sys.excepthook = ultraTB.VerboseTB()
+    import sys,ultratb
+    sys.excepthook = ultratb.VerboseTB()
 
 Note:  Much of the code in this module was lifted verbatim from the standard
 library module 'traceback.py' and Ka-Ping Yee's 'cgitb.py'.
@@ -103,7 +103,7 @@ INDENT_SIZE = 8
 # Default color scheme.  This is used, for example, by the traceback
 # formatter.  When running in an actual IPython instance, the user's rc.colors
 # value is used, but havinga module global makes this functionality available
-# to users of ultraTB who are NOT running inside ipython.
+# to users of ultratb who are NOT running inside ipython.
 DEFAULT_SCHEME = 'NoColor'
 
 #---------------------------------------------------------------------------

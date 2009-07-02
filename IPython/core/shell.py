@@ -34,7 +34,7 @@ except ImportError:
 
 # IPython imports
 import IPython
-from IPython import ultraTB
+from IPython.core import ultratb
 from IPython.core import ipapi
 from IPython.core.magic import Magic
 from IPython.utils.genutils import Term,warn,error,flag_calls, ask_yes_no
@@ -178,7 +178,7 @@ class IPShellEmbed:
         sys.displayhook = self.sys_displayhook_ori
         # don't use the ipython crash handler so that user exceptions aren't
         # trapped
-        sys.excepthook = ultraTB.FormattedTB(color_scheme = self.IP.rc.colors,
+        sys.excepthook = ultratb.FormattedTB(color_scheme = self.IP.rc.colors,
                                              mode = self.IP.rc.xmode,
                                              call_pdb = self.IP.rc.pdb)
         self.restore_system_completer()

@@ -106,8 +106,8 @@ def make_IPython(argv=None,user_ns=None,user_global_ns=None,debug=1,
 
     if DEVDEBUG:
         # For developer debugging only (global flag)
-        from IPython import ultraTB
-        sys.excepthook = ultraTB.VerboseTB(call_pdb=1)
+        from IPython.core import ultratb
+        sys.excepthook = ultratb.VerboseTB(call_pdb=1)
 
     IP.BANNER_PARTS = ['Python %s\n'
                          'Type "copyright", "credits" or "license" '
