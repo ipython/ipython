@@ -21,3 +21,6 @@ def test_import_platutils():
 
 def test_import_PyColorize():
     from IPython.utils import PyColorize
+
+def test_import_rlineimpl():
+    from IPython.utils import rlineimpl

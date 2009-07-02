@@ -1416,7 +1416,7 @@ class InteractiveShell(object,Magic):
         """Command history completion/saving/reloading."""
 
 
-        import IPython.rlineimpl as readline
+        import IPython.utils.rlineimpl as readline
                   
         if not readline.have_readline:
             self.has_readline = 0

@@ -112,7 +112,7 @@ class IOTerm:
 # Global variable to be used for all I/O
 Term = IOTerm()
 
-import IPython.rlineimpl as readline
+import IPython.utils.rlineimpl as readline
 # Remake Term to use the readline i/o facilities
 if sys.platform == 'win32' and readline.have_readline:
 

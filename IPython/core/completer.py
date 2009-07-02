@@ -70,7 +70,7 @@ import os
 import re
 import shlex
 import sys
-import IPython.rlineimpl as readline    
+import IPython.utils.rlineimpl as readline    
 import itertools
 from IPython.utils.ipstruct import Struct
 from IPython.core import ipapi

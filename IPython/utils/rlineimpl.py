@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """ Imports and provides the 'correct' version of readline for the platform.
 
-Readline is used throughout IPython as 'import IPython.rlineimpl as readline'.
+Readline is used throughout IPython as 'import IPython.utils.rlineimpl as readline'.
 
 In addition to normal readline stuff, this module provides have_readline
 boolean and _outputfile variable used in genutils.

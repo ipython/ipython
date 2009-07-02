@@ -2462,7 +2462,7 @@ Currently the magic system has the following functions:\n"""
         # local shortcut
         shell = self.shell
 
-        import IPython.rlineimpl as readline
+        import IPython.utils.rlineimpl as readline
 
         if not readline.have_readline and sys.platform == "win32":
             msg = """\

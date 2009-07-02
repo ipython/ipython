@@ -12,7 +12,7 @@ ipy_profile_PROFILENAME etc.
 
 """
 
-import IPython.rlineimpl as readline
+import IPython.utils.rlineimpl as readline
 from IPython.core import ipapi
 ip = ipapi.get()
 

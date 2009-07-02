@@ -67,7 +67,7 @@ def attr_matches(self, text):
     return res
 
 def main():
-    import IPython.rlineimpl as readline
+    import IPython.utils.rlineimpl as readline
     readline.set_completer_delims(" \n\t")
     # monkeypatch - the code will be folded to normal completer later on
     import IPython.core.completer
