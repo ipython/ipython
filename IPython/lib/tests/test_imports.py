@@ -9,3 +9,6 @@ def test_import_deepreload():
 
 def test_import_demo():
     from IPython.lib import demo
+
+def test_import_irunner():
+    from IPython.lib import demo

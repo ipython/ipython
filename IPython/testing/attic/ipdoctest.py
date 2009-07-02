@@ -92,7 +92,7 @@ __builtin__._ip = ipapi.get()
 
 
 # runner
-from IPython.irunner import IPythonRunner
+from IPython.lib.irunner import IPythonRunner
 iprunner = IPythonRunner(echo=False)
 
 ###########################################################################

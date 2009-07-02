@@ -99,7 +99,7 @@ if not os.name == 'posix':
     EXCLUDE.append(pjoin('IPython', 'platutils_posix'))
 
 if not have_pexpect:
-    EXCLUDE.append(pjoin('IPython', 'irunner'))
+    EXCLUDE.append(pjoin('IPython', 'lib', 'irunner'))
 
 # This is needed for the reg-exp to match on win32 in the ipdoctest plugin.
 if sys.platform == 'win32':

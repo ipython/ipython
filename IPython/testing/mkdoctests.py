@@ -37,7 +37,7 @@ import sys
 import tempfile
 
 # IPython-specific libraries
-from IPython import irunner
+from IPython.lib import irunner
 from IPython.utils.genutils import fatal
 
 class IndentOut(object):
