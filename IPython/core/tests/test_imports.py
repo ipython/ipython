@@ -37,4 +37,6 @@ def test_import_logger():
 def test_import_macro():
     from IPython.core import macro
 
+def test_import_magic():
+    from IPython.core import magic
 

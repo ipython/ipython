@@ -34,7 +34,7 @@ deco:
 	$(NOSE0) IPython.testing.decorators
 
 magic: plugin
-	$(NOSE) IPython.Magic
+	$(NOSE) IPython.core.magic
 
 excolors: plugin
 	$(NOSE) IPython.core.excolors
