@@ -40,3 +40,7 @@ def test_import_macro():
 def test_import_magic():
     from IPython.core import magic
 
+def test_import_oinspect():
+    from IPython.core import oinspect
+
+

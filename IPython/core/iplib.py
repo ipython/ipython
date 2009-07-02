@@ -45,8 +45,8 @@ import tempfile
 
 # IPython's own modules
 #import IPython
-from IPython import OInspect,PyColorize,ultraTB
-from IPython.core import debugger
+from IPython import PyColorize,ultraTB
+from IPython.core import debugger, oinspect
 from IPython.Extensions import pickleshare
 from IPython.core.fakemodule import FakeModule, init_fakemod_dict
 from IPython.external.Itpl import ItplNS
@@ -844,7 +844,7 @@ class InteractiveShell(object,Magic):
         rc = self.rc
 
         # Object inspector
-        self.inspector = OInspect.Inspector(OInspect.InspectColors,
+        self.inspector = oinspect.Inspector(oinspect.InspectColors,
                                             PyColorize.ANSICodeColors,
                                             'NoColor',
                                             rc.object_info_string_level)

@@ -43,8 +43,8 @@ except ImportError:
 
 # Homebrewed
 import IPython
-from IPython import OInspect, wildcard
-from IPython.core import debugger
+from IPython import wildcard
+from IPython.core import debugger, oinspect
 from IPython.core.fakemodule import FakeModule
 from IPython.external.Itpl import Itpl, itpl, printpl,itplns
 from IPython.PyColorize import Parser
@@ -1562,7 +1562,7 @@ Currently the magic system has the following functions:\n"""
             filename = file_finder(arg_lst[0])
         except IndexError:
             warn('you must provide at least a filename.')
-            print '\n%run:\n',OInspect.getdoc(self.magic_run)
+            print '\n%run:\n',oinspect.getdoc(self.magic_run)
             return
         except IOError,msg:
             error(msg)
@@ -2641,7 +2641,7 @@ Defaulting color scheme to 'NoColor'"""
         try:
             alias,cmd = par.split(None,1)
         except:
-            print OInspect.getdoc(self.magic_alias)
+            print oinspect.getdoc(self.magic_alias)
         else:
             nargs = cmd.count('%s')
             if nargs>0 and cmd.find('%l')>=0:
