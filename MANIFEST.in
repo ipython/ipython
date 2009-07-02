@@ -4,6 +4,7 @@ include setupegg.py
 
 graft setupext
 
+graft scripts
 graft IPython/kernel
 graft IPython/config
 graft IPython/core

@@ -15,9 +15,9 @@ ver = verinfo()
 
 pprint.pprint(ver)
 
-rfile = open('../IPython/Release.py','rb').read()
+rfile = open('../IPython/core/release.py','rb').read()
 newcont = re.sub(r'revision\s*=.*', "revision = '%s'" % ver['revno'], rfile)
 
 newcont = re.sub(r'^branch\s*=[^=].*', "branch = '%s'"  % ver['branch-nick'], newcont )
 
-open('../IPython/Release.py','wb').write(newcont)
+open('../IPython/core/release.py','wb').write(newcont)

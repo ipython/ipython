@@ -256,7 +256,7 @@ def find_scripts():
         if len(sys.argv) > 2 and ('sdist' in sys.argv or 'bdist_rpm' in sys.argv):
             print >> sys.stderr,"ERROR: bdist_wininst must be run alone. Exiting."
             sys.exit(1)
-        scripts.append(pjoin(main_scripts,'ipython_win_post_install.py'))
+        scripts.append(pjoin('scripts','ipython_win_post_install.py'))
     
     return scripts
 
