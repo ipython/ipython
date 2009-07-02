@@ -48,7 +48,7 @@ import os
 sys.path.append(os.path.dirname(__file__) + "/Extensions")
 
 # Define what gets imported with a 'from IPython import *'
-__all__ = ['ipapi','generics','ipstruct','Release','Shell']
+__all__ = ['IPython.core.ipapi','utils.generics','utils.ipstruct','Release','Shell']
 
 # Load __all__ in IPython namespace so that a simple 'import IPython' gives
 # access to them via IPython.<name>

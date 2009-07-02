@@ -30,7 +30,7 @@ if os.path.exists('MANIFEST'): os.remove('MANIFEST')
 from distutils.core import setup
 
 # Local imports
-from IPython.genutils import target_update
+from IPython.utils.genutils import target_update
 
 from setupbase import (
     setup_args, 
@@ -143,7 +143,7 @@ if 'setuptools' in sys.modules:
     setuptools_extra_args['zip_safe'] = False
     setuptools_extra_args['entry_points'] = {
         'console_scripts': [
-            'ipython = IPython.ipapi:launch_new_instance',
+            'ipython = IPython.core.ipapi:launch_new_instance',
             'pycolor = IPython.PyColorize:main',
             'ipcontroller = IPython.kernel.scripts.ipcontroller:main',
             'ipengine = IPython.kernel.scripts.ipengine:main',
