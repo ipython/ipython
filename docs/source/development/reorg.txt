@@ -204,20 +204,18 @@ Top-level sub-packages:
 
 * :file:`testing`.  Good where it is.
 
-* :file:`tests`.  Good where it is.
+* :file:`tests`.  Remove.
 
 * :file:`tools`.  Things in here need to be looked at and moved elsewhere like
     :file:`IPython.utils`.
 
-* :file:`UserConfig`.  Move to a subdirectory of :file:`IPython.config`.
+* :file:`UserConfig`.  Move to :file:`IPython.config.userconfig`.
 
 * :file:`config`.  Good where it is!
 
 * :file:`external`.  Good where it is!
 
 * :file:`frontend`.  Good where it is!
-
-
 
 * :file:`gui`.  Eventually this should be moved to a subdir of   
   :file:`IPython.frontend`.

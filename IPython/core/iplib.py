@@ -167,7 +167,7 @@ where you can customize many aspects of IPython's functionality in:\n""")
 
     printf(ipythondir)
 
-    rcdirend = os.path.join('IPython','UserConfig')
+    rcdirend = os.path.join('IPython','config','userconfig')
     cfg = lambda d: os.path.join(d,rcdirend)
     try:
         rcdir = filter(os.path.isdir,map(cfg,sys.path))[0]

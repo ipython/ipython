@@ -64,8 +64,8 @@ def default_argv():
 
     # Get the install directory for the user configuration and tell ipython to
     # use the default profile from there.
-    from IPython import UserConfig
-    ipcdir = os.path.dirname(UserConfig.__file__)
+    from IPython.config import userconfig
+    ipcdir = os.path.dirname(userconfig.__file__)
     #ipconf = os.path.join(ipcdir,'ipy_user_conf.py')
     ipconf = os.path.join(ipcdir,'ipythonrc')
     #print 'conf:',ipconf # dbg

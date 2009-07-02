@@ -224,7 +224,7 @@ def make_runners():
 
     # These are tested by nose, so skip IPython.kernel
     top_pack = ['config','Extensions','frontend',
-                'testing','tests','tools','UserConfig']
+                'testing','tests','tools','userconfig']
 
     if have_wx:
         top_pack.append('gui')
