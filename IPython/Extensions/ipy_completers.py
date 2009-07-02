@@ -7,7 +7,7 @@ but the basic idea is to do:
 ip.set_hook('complete_command', svn_completer, str_key = 'svn')
 
 """
-import IPython.core import ipapi
+from IPython.core import ipapi
 import glob,os,shlex,sys
 import inspect
 from time import time
