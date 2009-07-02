@@ -93,7 +93,7 @@ from inspect import getsourcefile, getfile, getmodule,\
 from IPython import PyColorize
 from IPython.core import debugger
 from IPython.ipstruct import Struct
-from IPython.excolors import exception_colors
+from IPython.core.excolors import exception_colors
 from IPython.genutils import Term,uniq_stable,error,info
 
 # Globals

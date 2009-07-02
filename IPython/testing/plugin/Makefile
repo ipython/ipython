@@ -37,7 +37,7 @@ magic: plugin
 	$(NOSE) IPython.Magic
 
 excolors: plugin
-	$(NOSE) IPython.excolors
+	$(NOSE) IPython.core.excolors
 
 iplib: plugin
 	$(NOSE)  IPython.iplib

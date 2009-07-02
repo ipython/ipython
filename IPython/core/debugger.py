@@ -34,7 +34,7 @@ import sys
 from IPython import PyColorize, ipapi
 from IPython.utils import coloransi
 from IPython.genutils import Term
-from IPython.excolors import exception_colors
+from IPython.core.excolors import exception_colors
 
 # See if we can use pydb.
 has_pydb = False
