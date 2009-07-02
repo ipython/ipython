@@ -3333,8 +3333,8 @@ Defaulting color scheme to 'NoColor'"""
             
     def magic_quickref(self,arg):
         """ Show a quick reference sheet """
-        import IPython.usage
-        qr = IPython.usage.quick_reference + self.magic_magic('-brief')
+        import IPython.core.usage
+        qr = IPython.core.usage.quick_reference + self.magic_magic('-brief')
         
         page(qr)
         

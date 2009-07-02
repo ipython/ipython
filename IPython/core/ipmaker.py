@@ -50,7 +50,7 @@ from IPython.utils.ipstruct import Struct
 from IPython.core.outputtrap import OutputTrap
 from IPython.config.configloader import ConfigLoader
 from IPython.core.iplib import InteractiveShell
-from IPython.usage import cmd_line_usage,interactive_usage
+from IPython.core.usage import cmd_line_usage, interactive_usage
 from IPython.utils.genutils import *
 
 def force_import(modname,force_reload=False):

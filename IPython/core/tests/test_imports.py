@@ -66,3 +66,6 @@ def test_import_shellglobals():
 
 def test_import_ultratb():
     from IPython.core import ultratb
+
+def test_import_usage():
+    from IPython.core import usage
