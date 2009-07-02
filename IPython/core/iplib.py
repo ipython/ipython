@@ -61,7 +61,7 @@ from IPython.strdispatch import StrDispatch
 from IPython.core import ipapi
 import IPython.core.history
 import IPython.core.prefilter as prefilter
-import IPython.shadowns
+from IPython.core import shadowns
 # Globals
 
 # store the builtin raw_input globally, and use this always, in case user code
@@ -948,7 +948,7 @@ class InteractiveShell(object,Magic):
         self.user_ns['In']  = self.input_hist
         self.user_ns['Out'] = self.output_hist
 
-        self.user_ns['_sh'] = IPython.shadowns
+        self.user_ns['_sh'] = shadowns
 
         # Fill the history zero entry, user counter starts at 1
         self.input_hist.append('\n')

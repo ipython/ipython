@@ -431,8 +431,8 @@ class IPApi(object):
 
         if callable(cmd):
             self.IP.alias_table[name] = cmd
-            import IPython.shadowns
-            setattr(IPython.shadowns, name,cmd)
+            from IPython.core import shadowns
+            setattr(shadowns, name,cmd)
             return
             
         if isinstance(cmd,basestring):
