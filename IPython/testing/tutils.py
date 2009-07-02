@@ -23,7 +23,7 @@ import os
 import sys
 
 # From this project
-from IPython.tools import utils
+from IPython.utils import genutils
 
 # path to our own installation, so we can find source files under this.
 TEST_PATH = os.path.dirname(os.path.abspath(__file__))
@@ -82,6 +82,6 @@ def fullPath(startPath,files):
     ['/a.txt']
     """
 
-    files = utils.list_strings(files)
+    files = genutils.list_strings(files)
     base = os.path.split(startPath)[0]
     return [ os.path.join(base,f) for f in files ]

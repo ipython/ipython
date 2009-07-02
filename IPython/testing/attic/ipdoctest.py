@@ -62,7 +62,7 @@ import unittest
 
 from doctest import *
 
-from IPython.tools import utils
+from IPython.utils import genutils
 from IPython.core import ipapi
 
 ###########################################################################
@@ -481,8 +481,8 @@ class IPDocTestLoader(unittest.TestLoader):
 
         if dt_files is None: dt_files = []
         if dt_modules is None: dt_modules = []
-        self.dt_files = utils.list_strings(dt_files)
-        self.dt_modules = utils.list_strings(dt_modules)
+        self.dt_files = genutils.list_strings(dt_files)
+        self.dt_modules = genutils.list_strings(dt_modules)
         if test_finder is None:
             test_finder = doctest.DocTestFinder(parser=IPDocTestParser())
         self.test_finder = test_finder
