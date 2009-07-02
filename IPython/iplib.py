@@ -58,7 +58,7 @@ from IPython.lib.backgroundjobs import BackgroundJobManager
 from IPython.utils.genutils import *
 from IPython.strdispatch import StrDispatch
 import IPython.ipapi
-import IPython.history
+import IPython.core.history
 import IPython.prefilter as prefilter
 import IPython.shadowns
 # Globals
@@ -832,7 +832,7 @@ class InteractiveShell(object,Magic):
             print r"only has ASCII characters, e.g. c:\home"
             print "Now it is",rc.ipythondir
             sys.exit()
-        self.shadowhist = IPython.history.ShadowHist(self.db)
+        self.shadowhist = IPython.core.history.ShadowHist(self.db)
 
     def post_config_initialization(self):
         """Post configuration init method

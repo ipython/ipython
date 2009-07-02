@@ -116,15 +116,21 @@ Where things will be moved
 
 * :file:`genutils.py`.  Move to :file:`IPython.utils`.
 
-* :file:`Extensions`. This needs to be gone through separately.  Minimally,
-  the package should be renamed to :file:`extensions`.
-
-
 * :file:`Gnuplot2.py`.  Move to :file:`IPython.sandbox`.
 
 * :file:`GnuplotInteractive.py`.  Move to :file:`IPython.sandbox`.
 
 * :file:`GnuplotRuntime.py`.  Move to :file:`IPython.sandbox`.
+
+* :file:`numutils.py`.  Move to :file:`IPython.sandbox`.
+
+* :file:`twshell.py`.  Move to :file:`IPython.sandbox`.
+
+* :file:`Extensions`. This needs to be gone through separately.  Minimally,
+  the package should be renamed to :file:`extensions`.
+
+* :file:`history.py`.  Move to :file:`IPython.core`.
+
 
 * :file:`Itpl.py`.  Remove.  Version already in :file:`IPython.external`.
 
@@ -164,7 +170,7 @@ Where things will be moved
 * :file:`gui`.  Eventually this should be moved to a subdir of   
   :file:`IPython.frontend`.
 
-* :file:`history.py`.  Move to :file:`IPython.core`.
+
 
 * :file:`hooks.py`.  Move to :file:`IPython.core`.
 
@@ -182,7 +188,7 @@ Where things will be moved
 
 * :file:`macro.py`.  Move to :file:`IPython.core`.
 
-* :file:`numutils.py`.  Move to :file:`IPython.sandbox`.
+
 
 * :file:`platutils.py`.  Move to :file:`IPython.python`.
 

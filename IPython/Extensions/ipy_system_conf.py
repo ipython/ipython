@@ -21,4 +21,4 @@ import clearcmd # %clear
 
 import ipy_stock_completers
 
-ip.load('IPython.history')
+ip.load('IPython.core.history')
