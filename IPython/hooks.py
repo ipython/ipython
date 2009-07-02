@@ -44,7 +44,7 @@ somewhere in your configuration files or ipython command line.
 from IPython import ipapi
 
 import os,bisect
-from genutils import Term,shell
+from IPython.utils.genutils import Term,shell
 from pprint import PrettyPrinter
 
 # List here all the default hooks.  For now it's just the editor functions

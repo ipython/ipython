@@ -14,7 +14,7 @@ __all__ = ['Struct']
 import types
 import pprint
 
-from IPython.genutils import list2dict2
+from IPython.utils.genutils import list2dict2
 
 class Struct:
     """Class to mimic C structs but also provide convenient dictionary-like

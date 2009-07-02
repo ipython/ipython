@@ -156,9 +156,9 @@ def slash_prefilter_f(self,line):
     
     Removes the need for doing !./foo, !~/foo or !/bin/foo
     """
-    import IPython.genutils
+    from IPython.utils import genutils
     if re.match('(?:[.~]|/[a-zA-Z_0-9]+)/', line):
-        return "_ip.system(" + IPython.genutils.make_quoted_expr(line)+")"
+        return "_ip.system(" + genutils.make_quoted_expr(line)+")"
     raise ipapi.TryNext
 
 # XXX You do not need to understand the next function!

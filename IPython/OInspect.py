@@ -28,7 +28,7 @@ import types
 
 # IPython's own
 from IPython import PyColorize
-from IPython.genutils import page,indent,Term
+from IPython.utils.genutils import page,indent,Term
 from IPython.Itpl import itpl
 from IPython.wildcard import list_namespace
 from IPython.utils.coloransi import *

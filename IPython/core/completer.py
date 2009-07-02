@@ -83,7 +83,7 @@ try:
 except NameError:
     from sets import Set as set
 
-from IPython.genutils import debugx, dir2
+from IPython.utils.genutils import debugx, dir2
 
 __all__ = ['Completer','IPCompleter']
 

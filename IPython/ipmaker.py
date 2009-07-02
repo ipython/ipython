@@ -51,7 +51,7 @@ from IPython.OutputTrap import OutputTrap
 from IPython.config.configloader import ConfigLoader
 from IPython.iplib import InteractiveShell
 from IPython.usage import cmd_line_usage,interactive_usage
-from IPython.genutils import *
+from IPython.utils.genutils import *
 
 def force_import(modname,force_reload=False):
     if modname in sys.modules and force_reload:

@@ -42,7 +42,7 @@ from IPython.kernel.fcutil import check_furl_file_security
 # Create various ipython directories if they don't exist.
 # This must be done before IPython.kernel.config is imported.
 from IPython.iplib import user_setup
-from IPython.genutils import get_ipython_dir, get_log_dir, get_security_dir
+from IPython.utils.genutils import get_ipython_dir, get_log_dir, get_security_dir
 if os.name == 'posix':
     rc_suffix = ''
 else:

@@ -25,7 +25,7 @@ import types
 import Gnuplot as Gnuplot_ori
 import Numeric
 
-from IPython.genutils import popkey,xsys
+from IPython.utils.genutils import popkey,xsys
 
 # needed by hardcopy():
 gp = Gnuplot_ori.gp

@@ -45,7 +45,7 @@ from subprocess import *
 import os,shlex,sys,time
 import threading,Queue
 
-from IPython import genutils
+from IPython.utils import genutils
 
 import IPython.ipapi
 

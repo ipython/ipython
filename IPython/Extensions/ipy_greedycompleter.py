@@ -11,7 +11,7 @@ do the same in default completer.
 """
 from IPython import ipapi
 from IPython.utils import generics
-from IPython.genutils import dir2
+from IPython.utils.genutils import dir2
 
 def attr_matches(self, text):
     """Compute matches when text contains a dot.

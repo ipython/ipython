@@ -20,7 +20,7 @@ from os.path import join as pjoin
 
 from IPython.external.configobj import ConfigObj
 from IPython.config.api import ConfigObjManager
-from IPython.genutils import get_ipython_dir, get_security_dir
+from IPython.utils.genutils import get_ipython_dir, get_security_dir
 
 default_kernel_config = ConfigObj()
 

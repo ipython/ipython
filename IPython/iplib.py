@@ -55,7 +55,7 @@ from IPython.Magic import Magic
 from IPython.Prompts import CachedOutput
 from IPython.ipstruct import Struct
 from IPython.lib.backgroundjobs import BackgroundJobManager
-from IPython.genutils import *
+from IPython.utils.genutils import *
 from IPython.strdispatch import StrDispatch
 import IPython.ipapi
 import IPython.history

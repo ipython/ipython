@@ -504,9 +504,9 @@ import_mod
 
 # Example:
 
-# import_some IPython.genutils timing timings
+# import_some IPython.utils.genutils timing timings
 # will produce internally the statement
-# from IPython.genutils import timing, timings
+# from IPython.utils.genutils import timing, timings
 
 # timing() and timings() are two IPython utilities for timing the execution of
 # your own functions, which you may find useful.  Just commment out the above

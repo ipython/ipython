@@ -82,7 +82,7 @@ class py_file_finder(object):
         self.test_filename = test_filename
         
     def __call__(self,name):
-        from IPython.genutils import get_py_filename
+        from IPython.utils.genutils import get_py_filename
         try:
             return get_py_filename(name)
         except IOError:

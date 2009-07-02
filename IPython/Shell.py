@@ -36,7 +36,7 @@ except ImportError:
 import IPython
 from IPython import ultraTB, ipapi
 from IPython.Magic import Magic
-from IPython.genutils import Term,warn,error,flag_calls, ask_yes_no
+from IPython.utils.genutils import Term,warn,error,flag_calls, ask_yes_no
 from IPython.iplib import InteractiveShell
 from IPython.ipmaker import make_IPython
 from IPython.ipstruct import Struct

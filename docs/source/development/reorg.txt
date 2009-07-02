@@ -114,6 +114,8 @@ Where things will be moved
 
 * :file:`generics.py`.  Move to :file:`IPython.python`.
 
+* :file:`genutils.py`.  Move to :file:`IPython.utils`.
+
 * :file:`Extensions`. This needs to be gone through separately.  Minimally,
   the package should be renamed to :file:`extensions`.
 
@@ -158,8 +160,6 @@ Where things will be moved
 * :file:`frontend`.  Good where it is!
 
 
-* :file:`genutils.py`.  Move to :file:`IPython.python` and break up into different
-  modules.
 
 * :file:`gui`.  Eventually this should be moved to a subdir of   
   :file:`IPython.frontend`.

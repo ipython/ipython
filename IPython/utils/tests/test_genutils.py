@@ -31,7 +31,7 @@ from nose.tools import raises
 
 # Our own
 import IPython
-from IPython import genutils
+from IPython.utils import genutils
 from IPython.testing.decorators import skipif, skip_if_not_win32
 
 # Platform-dependent imports

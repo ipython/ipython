@@ -28,7 +28,7 @@ from IPython.ipstruct import Struct
 from IPython.macro import Macro
 import IPython.utils.generics
 
-from IPython.genutils import *
+from IPython.utils.genutils import *
 
 #****************************************************************************
 #Color schemes for Prompts.

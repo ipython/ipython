@@ -50,7 +50,7 @@ from IPython.Itpl import Itpl, itpl, printpl,itplns
 from IPython.PyColorize import Parser
 from IPython.ipstruct import Struct
 from IPython.macro import Macro
-from IPython.genutils import *
+from IPython.utils.genutils import *
 from IPython import platutils
 import IPython.utils.generics
 import IPython.ipapi

@@ -28,7 +28,7 @@ from IPython import Release
 from IPython import ultraTB
 from IPython.Itpl import itpl
 
-from IPython.genutils import *
+from IPython.utils.genutils import *
 
 #****************************************************************************
 class CrashHandler:

@@ -10,3 +10,8 @@ def test_import_DPyGetOpt():
 def test_import_generics():
     from IPython.utils import generics
 
+def test_import_genutils():
+    from IPython.utils import genutils
+
+
+

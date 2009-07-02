@@ -25,6 +25,7 @@ from thread_ex import ThreadEx
 
 try:
     import IPython
+    from IPython.utils import genutils
 except Exception,e:
     print "Error importing IPython (%s)" % str(e)
     raise Exception, e
@@ -143,11 +144,11 @@ class NonBlockingIPShell(object):
         #only one instance can be instanciated else tehre will be
         #cin/cout/cerr clash...
         if cin:
-            IPython.genutils.Term.cin = cin
+            genutils.Term.cin = cin
         if cout:
-            IPython.genutils.Term.cout = cout
+            genutils.Term.cout = cout
         if cerr:
-            IPython.genutils.Term.cerr = cerr
+            genutils.Term.cerr = cerr
         
         excepthook = sys.excepthook
 

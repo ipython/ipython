@@ -16,7 +16,7 @@ except ImportError:
     HAS_CTYPES = False
 
 # our own
-from IPython.genutils import Term,warn,error,flag_calls, ask_yes_no
+from IPython.utils.genutils import Term,warn,error,flag_calls, ask_yes_no
 
 #-----------------------------------------------------------------------------
 # Globals

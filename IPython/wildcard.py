@@ -20,7 +20,7 @@ import pprint
 import re
 import types
 
-from IPython.genutils import dir2
+from IPython.utils.genutils import dir2
 
 def create_typestr2type_dicts(dont_include_in_type2type2str=["lambda"]):
     """Return dictionaries mapping lower case typename to type objects, from

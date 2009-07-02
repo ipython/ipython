@@ -169,7 +169,7 @@ import shlex
 import sys
 
 from IPython.PyColorize import Parser
-from IPython.genutils import marquee, file_read, file_readlines
+from IPython.utils.genutils import marquee, file_read, file_readlines
 
 __all__ = ['Demo','IPythonDemo','LineDemo','IPythonLineDemo','DemoError']
 

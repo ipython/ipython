@@ -94,7 +94,7 @@ from IPython import PyColorize
 from IPython.core import debugger
 from IPython.ipstruct import Struct
 from IPython.core.excolors import exception_colors
-from IPython.genutils import Term,uniq_stable,error,info
+from IPython.utils.genutils import Term,uniq_stable,error,info
 
 # Globals
 # amount of space to put line numbers before verbose tracebacks

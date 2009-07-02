@@ -9,7 +9,7 @@ var = !ls
 """
 
 import IPython.ipapi
-from IPython.genutils import *
+from IPython.utils.genutils import *
 
 ip = IPython.ipapi.get()
 

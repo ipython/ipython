@@ -9,7 +9,7 @@
 
 import IPython.ipapi 
 
-from IPython.genutils import Term
+from IPython.utils.genutils import Term
 from IPython.ipapi import IPyAutocall
 
 class Macro(IPyAutocall):

@@ -29,7 +29,7 @@ from twisted.python import failure, log
 
 from IPython.external import argparse
 from IPython.external import Itpl
-from IPython.genutils import (
+from IPython.utils.genutils import (
     get_ipython_dir, 
     get_log_dir, 
     get_security_dir, 

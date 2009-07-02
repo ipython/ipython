@@ -14,7 +14,7 @@ ip = IPython.ipapi.get()
 
 import os,sys
 
-from IPython.genutils import *
+from IPython.utils.genutils import *
 
 # use rehashx
 
