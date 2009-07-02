@@ -156,11 +156,11 @@ class NonBlockingIPShell(object):
         #Hack to save sys.displayhook, because ipython seems to overwrite it...
         self.sys_displayhook_ori = sys.displayhook
         
-        self._IP = IPython.Shell.make_IPython(
+        self._IP = IPython.shell.make_IPython(
                                     argv,user_ns=user_ns,
                                     user_global_ns=user_global_ns,
                                     embedded=True,
-                                    shell_class=IPython.Shell.InteractiveShell)
+                                    shell_class=IPython.shell.InteractiveShell)
 
         #we save ipython0 displayhook and we restore sys.displayhook
         self.displayhook = sys.displayhook
@@ -470,7 +470,7 @@ class NonBlockingIPShell(object):
         '''
 
         orig_stdout = sys.stdout
-        sys.stdout = IPython.Shell.Term.cout
+        sys.stdout = IPython.shell.Term.cout
         #self.sys_displayhook_ori = sys.displayhook
         #sys.displayhook = self.displayhook
         

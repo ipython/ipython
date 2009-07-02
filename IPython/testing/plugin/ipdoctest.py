@@ -185,7 +185,7 @@ def start_ipython():
     
     # Start IPython instance.  We customize it to start with minimal frills.
     user_ns,global_ns = ipapi.make_user_namespaces(ipnsdict(),dict())
-    IPython.Shell.IPShell(argv,user_ns,global_ns)
+    IPython.shell.IPShell(argv,user_ns,global_ns)
 
     # Deactivate the various python system hooks added by ipython for
     # interactive convenience so we don't confuse the doctest system

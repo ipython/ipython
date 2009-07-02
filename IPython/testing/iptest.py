@@ -195,7 +195,7 @@ def make_runners():
     """
     
     # This omits additional top-level modules that should not be doctested.
-    # XXX: Shell.py is also ommited because of a bug in the skip_doctest
+    # XXX: shell.py is also ommited because of a bug in the skip_doctest
     # decorator.  See ticket https://bugs.launchpad.net/bugs/366209
     top_mod = \
       ['backgroundjobs.py', 'coloransi.py', 'completer.py', 'configloader.py',
@@ -209,7 +209,7 @@ def make_runners():
        'shellglobals.py', 'strdispatch.py', 'twshell.py',
        'ultraTB.py', 'upgrade_dir.py', 'usage.py', 'wildcard.py',
        # See note above for why this is skipped
-       # 'Shell.py',
+       # 'shell.py',
        'winconsole.py']
 
     if have_pexpect:

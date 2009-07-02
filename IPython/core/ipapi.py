@@ -679,7 +679,7 @@ def make_session(user_ns = None, shellclass = None):
     
     WARNING: This should *not* be run when a session exists already."""
 
-    import IPython.Shell
+    import IPython.core.shell
     if shellclass is None:
-        return IPython.Shell.start(user_ns)
+        return IPython.core.shell.start(user_ns)
     return shellclass(user_ns = user_ns)

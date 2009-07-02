@@ -49,7 +49,7 @@ sys.path.append(os.path.dirname(__file__) + "/Extensions")
 
 # Define what gets imported with a 'from IPython import *'
 __all__ = ['IPython.core.ipapi','utils.generics','utils.ipstruct',
-    'core.release','Shell']
+    'core.release','core.shell']
 
 # Load __all__ in IPython namespace so that a simple 'import IPython' gives
 # access to them via IPython.<name>
@@ -58,7 +58,7 @@ for name in __all__:
     #print 'Importing: ',name # dbg
     __import__(name,glob,loc,[])
 
-import Shell
+from IPython.core import shell
 
 # Release data
 from IPython.core import release # do it explicitly so pydoc can see it - pydoc bug

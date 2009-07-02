@@ -113,7 +113,7 @@ A WARNING ABOUT SIGNALS AND THREADS
        interpreter itself, and it comes from the difficulty of writing
        portable signal/threaded code.  If any user is an expert on this topic
        and can suggest a better solution, I would love to hear about it.  In
-       the IPython sources, look at the Shell.py module, and in particular at
+       the IPython sources, look at the shell.py module, and in particular at
        the runcode() method.
 
 REGULAR OPTIONS
