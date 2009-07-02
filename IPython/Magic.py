@@ -2253,7 +2253,7 @@ Currently the magic system has the following functions:\n"""
 
         If you wish to write your own editor hook, you can put it in a
         configuration file which you load at startup time.  The default hook
-        is defined in the IPython.hooks module, and you can use that as a
+        is defined in the IPython.core.hooks module, and you can use that as a
         starting example for further modifications.  That file also has
         general instructions on how to set a new hook for use once you've
         defined it."""

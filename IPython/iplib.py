@@ -626,7 +626,8 @@ class InteractiveShell(object,Magic):
         self.strdispatchers = {}
         
         # Set all default hooks, defined in the IPython.hooks module.
-        hooks = IPython.hooks
+        import IPython.core.hooks
+        hooks = IPython.core.hooks
         for hook_name in hooks.__all__:
             # default hooks have priority 100, i.e. low; user hooks should have
             # 0-100 priority
@@ -1019,10 +1020,10 @@ class InteractiveShell(object,Magic):
             return
             
         dp = getattr(self.hooks, name, None)
-        if name not in IPython.hooks.__all__:
-            print "Warning! Hook '%s' is not one of %s" % (name, IPython.hooks.__all__ )
+        if name not in IPython.core.hooks.__all__:
+            print "Warning! Hook '%s' is not one of %s" % (name, IPython.core.hooks.__all__ )
         if not dp:
-            dp = IPython.hooks.CommandChainDispatcher()
+            dp = IPython.core.hooks.CommandChainDispatcher()
         
         try:
             dp.add(f,priority)

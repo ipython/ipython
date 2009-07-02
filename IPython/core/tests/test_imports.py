@@ -16,3 +16,11 @@ def test_import_fakemodule():
 def test_import_excolors():
     from IPython.core import excolors
 
+def test_import_history():
+    from IPython.core import history
+
+def test_import_hooks():
+    from IPython.core import hooks
+
+
+

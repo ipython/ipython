@@ -5,8 +5,7 @@
 import re
 
 # Our own modules
-from IPython.hooks import CommandChainDispatcher
-import IPython.hooks
+from IPython.core.hooks import CommandChainDispatcher
 
 # Code begins
 class StrDispatch(object):

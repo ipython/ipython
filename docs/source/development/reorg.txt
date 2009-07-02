@@ -131,6 +131,8 @@ Where things will be moved
 
 * :file:`history.py`.  Move to :file:`IPython.core`.
 
+* :file:`hooks.py`.  Move to :file:`IPython.core`.
+
 
 * :file:`Itpl.py`.  Remove.  Version already in :file:`IPython.external`.
 
@@ -172,7 +174,7 @@ Where things will be moved
 
 
 
-* :file:`hooks.py`.  Move to :file:`IPython.core`.
+
 
 * :file:`ipapi.py`.  Move to :file:`IPython.core`.
 
