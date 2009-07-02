@@ -52,14 +52,14 @@ from IPython.core.fakemodule import FakeModule, init_fakemod_dict
 from IPython.external.Itpl import ItplNS
 from IPython.core.logger import Logger
 from IPython.core.magic import Magic
-from IPython.Prompts import CachedOutput
+from IPython.core.prompts import CachedOutput
 from IPython.utils.ipstruct import Struct
 from IPython.lib.backgroundjobs import BackgroundJobManager
 from IPython.utils.genutils import *
 from IPython.strdispatch import StrDispatch
 from IPython.core import ipapi
 import IPython.core.history
-import IPython.prefilter as prefilter
+import IPython.core.prefilter as prefilter
 import IPython.shadowns
 # Globals
 

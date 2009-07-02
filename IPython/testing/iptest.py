@@ -204,7 +204,7 @@ def make_runners():
        'generics.py', 'genutils.py', 'history.py', 'hooks.py', 'ipapi.py',
        'iplib.py', 'ipmaker.py', 'ipstruct.py', 'Itpl.py',
        'logger.py', 'macro.py', 'magic.py', 'oinspect.py',
-       'outputtrap.py', 'platutils.py', 'prefilter.py', 'Prompts.py',
+       'outputtrap.py', 'platutils.py', 'prefilter.py', 'prompts.py',
        'PyColorize.py', 'Release.py', 'rlineimpl.py', 'shadowns.py',
        'shellglobals.py', 'strdispatch.py', 'twshell.py',
        'ultraTB.py', 'upgrade_dir.py', 'usage.py', 'wildcard.py',

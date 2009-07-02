@@ -46,3 +46,8 @@ def test_import_oinspect():
 def test_import_outputtrap():
     from IPython.core import outputtrap
 
+def test_import_prefilter():
+    from IPython.core import prefilter
+
+def test_import_prompts():
+    from IPython.core import prompts
