@@ -48,7 +48,7 @@ import tempfile
 from IPython import OInspect,PyColorize,ultraTB
 from IPython.core import debugger
 from IPython.Extensions import pickleshare
-from IPython.FakeModule import FakeModule, init_fakemod_dict
+from IPython.core.fakemodule import FakeModule, init_fakemod_dict
 from IPython.Itpl import ItplNS
 from IPython.Logger import Logger
 from IPython.Magic import Magic

@@ -3,7 +3,7 @@
 
 import nose.tools as nt
 
-from IPython.FakeModule import FakeModule, init_fakemod_dict
+from IPython.core.fakemodule import FakeModule, init_fakemod_dict
 
 # Make a fakemod and check a few properties
 def test_mk_fakemod():

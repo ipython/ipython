@@ -45,7 +45,7 @@ except ImportError:
 import IPython
 from IPython import OInspect, wildcard
 from IPython.core import debugger
-from IPython.FakeModule import FakeModule
+from IPython.core.fakemodule import FakeModule
 from IPython.Itpl import Itpl, itpl, printpl,itplns
 from IPython.PyColorize import Parser
 from IPython.ipstruct import Struct

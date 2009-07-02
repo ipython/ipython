@@ -105,15 +105,14 @@ Where things will be moved
 
 * :file:`DPyGetOpt.py`.  Move to :mod:`IPython.utils` and replace with newer options parser.
 
-* :file:`dtutils.py`.  Remove or move to :file:`IPython.testing` or
-  :file:`IPython.lib`.
+* :file:`dtutils.py`.  Move to :file:`IPython.deathrow`.
 
+* :file:`FakeModule.py`.  Move to :file:`IPython/core/fakemodule.py`.
 
 
 * :file:`Extensions`. This needs to be gone through separately.  Minimally,
   the package should be renamed to :file:`extensions`.
 
-* :file:`FakeModule.py`.  Move to :file:`IPython/core/fakemodule.py`.
 
 * :file:`Gnuplot2.py`.  Move to :file:`IPython.sandbox`.
 

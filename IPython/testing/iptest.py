@@ -200,7 +200,7 @@ def make_runners():
     top_mod = \
       ['backgroundjobs.py', 'coloransi.py', 'completer.py', 'configloader.py',
        'crashhandler.py', 'debugger.py', 'deepreload.py', 'demo.py',
-       'DPyGetOpt.py', 'dtutils.py', 'excolors.py', 'FakeModule.py',
+       'DPyGetOpt.py', 'dtutils.py', 'excolors.py', 'fakemodule.py',
        'generics.py', 'genutils.py', 'history.py', 'hooks.py', 'ipapi.py',
        'iplib.py', 'ipmaker.py', 'ipstruct.py', 'Itpl.py',
        'Logger.py', 'macro.py', 'Magic.py', 'OInspect.py',

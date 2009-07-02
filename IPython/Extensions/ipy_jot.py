@@ -14,7 +14,7 @@ ip = IPython.ipapi.get()
 import pickleshare
 
 import inspect,pickle,os,sys,textwrap
-from IPython.FakeModule import FakeModule
+from IPython.core.fakemodule import FakeModule
 from IPython.ipstruct import Struct 
 
 
