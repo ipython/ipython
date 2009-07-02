@@ -74,7 +74,7 @@ def test_shist():
     import os, shutil, tempfile
 
     from IPython.Extensions import pickleshare
-    from IPython.history import ShadowHist
+    from IPython.core.history import ShadowHist
     
     tfile = tempfile.mktemp('','tmp-ipython-')
     

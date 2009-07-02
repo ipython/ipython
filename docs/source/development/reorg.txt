@@ -87,6 +87,8 @@ Need to update the top level IPython/__init__.py file.
 Where things will be moved
 ==========================
 
+Top-level modules:
+
 * :file:`background_jobs.py`.  Move to :file:`IPython/lib/backgroundjobs.py`.
 
 * :file:`ColorANSI.py`.  Move to :file:`IPython/utils/coloransi.py`.
@@ -186,17 +188,28 @@ Where things will be moved
 
 * :file:`strdispatch.py`.  Move to :file:`IPython.python`.
 
+* :file:`twshell.py`.  Move to :file:`IPython.sandbox`.
+
+* :file:`ultraTB.py`.  Move to :file:`IPython/core/ultratb.py`.
+
+* :file:`upgrade_dir.py`.  Move to :file:`IPython/utils/upgradedir.py`.
+
+* :file:`usage.py`.  Move to :file:`IPython.core`.
+
+* :file:`wildcard.py`.  Move to :file:`IPython.utils`.
+
+* :file:`winconsole.py`.  Move to :file:`IPython.utils`.
+
+Top-level sub-packages:
+
 * :file:`testing`.  Good where it is.
 
 * :file:`tests`.  Good where it is.
 
 * :file:`tools`.  Things in here need to be looked at and moved elsewhere like
-    :file:`IPython.python`.
+    :file:`IPython.utils`.
 
 * :file:`UserConfig`.  Move to a subdirectory of :file:`IPython.config`.
-
-
-
 
 * :file:`config`.  Good where it is!
 
@@ -208,16 +221,6 @@ Where things will be moved
 
 * :file:`gui`.  Eventually this should be moved to a subdir of   
   :file:`IPython.frontend`.
-
-
-
-
-
-
-
-
-
-
 
 * :file:`kernel`.  Good where it is.
 
@@ -235,17 +238,7 @@ Where things will be moved
 
 
 
-* :file:`twshell.py`.  Move to :file:`IPython.sandbox`.
 
-* :file:`ultraTB.py`.  Move to :file:`IPython/core/ultratb.py`.
-
-* :file:`upgrade_dir.py`.  Move to :file:`IPython/utils/upgradedir.py`.
-
-* :file:`usage.py`.  Move to :file:`IPython.core`.
-
-* :file:`wildcard.py`.  Move to :file:`IPython.utils`.
-
-* :file:`winconsole.py`.  Move to :file:`IPython.lib`.
 
 Other things
 ============
