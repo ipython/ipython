@@ -19,3 +19,5 @@ def test_import_ipstruct():
 def test_import_platutils():
     from IPython.utils import platutils
 
+def test_import_PyColorize():
+    from IPython.utils import PyColorize

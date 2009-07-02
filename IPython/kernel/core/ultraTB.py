@@ -90,7 +90,7 @@ from inspect import getsourcefile, getfile, getmodule,\
 
 # IPython's own modules
 # Modified pdb which doesn't damage IPython's readline handling
-from IPython import PyColorize
+from IPython.utils import PyColorize
 from IPython.core import debugger
 from IPython.utils.ipstruct import Struct
 from IPython.core.excolors import exception_colors

@@ -45,7 +45,8 @@ import tempfile
 
 # IPython's own modules
 #import IPython
-from IPython import PyColorize,ultraTB
+from IPython import ultraTB
+from IPython.utils import PyColorize
 from IPython.core import debugger, oinspect
 from IPython.Extensions import pickleshare
 from IPython.core.fakemodule import FakeModule, init_fakemod_dict

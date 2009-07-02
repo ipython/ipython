@@ -31,7 +31,7 @@ import linecache
 import os
 import sys
 
-from IPython import PyColorize
+from IPython.utils import PyColorize
 from IPython.core import ipapi
 from IPython.utils import coloransi
 from IPython.utils.genutils import Term
