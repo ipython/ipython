@@ -43,7 +43,7 @@ except ImportError:
 
 # Homebrewed
 import IPython
-from IPython import wildcard
+from IPython.utils import wildcard
 from IPython.core import debugger, oinspect
 from IPython.core.fakemodule import FakeModule
 from IPython.external.Itpl import Itpl, itpl, printpl,itplns

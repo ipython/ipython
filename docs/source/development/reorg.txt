@@ -239,11 +239,11 @@ Where things will be moved
 
 * :file:`ultraTB.py`.  Move to :file:`IPython/core/ultratb.py`.
 
-* :file:`upgrade_dir.py`.  Move to :file:`IPython/python/upgradedir.py`.
+* :file:`upgrade_dir.py`.  Move to :file:`IPython/utils/upgradedir.py`.
 
 * :file:`usage.py`.  Move to :file:`IPython.core`.
 
-* :file:`wildcard.py`.  Move to :file:`IPython.python` or :file:`IPython.core`.
+* :file:`wildcard.py`.  Move to :file:`IPython.utils`.
 
 * :file:`winconsole.py`.  Move to :file:`IPython.lib`.
 

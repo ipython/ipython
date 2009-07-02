@@ -30,7 +30,7 @@ import types
 from IPython.utils import PyColorize
 from IPython.utils.genutils import page,indent,Term
 from IPython.external.Itpl import itpl
-from IPython.wildcard import list_namespace
+from IPython.utils.wildcard import list_namespace
 from IPython.utils.coloransi import *
 
 #****************************************************************************
