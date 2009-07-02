@@ -173,8 +173,8 @@ def extend_shell_behavior(ip):
     # mark the IPSHELL with this signature
     ip.IP.user_ns['__builtins__'].__dict__['__sig__'] = ip.IP.__sig__
 
-    from IPython.Itpl import ItplNS
-    from IPython.genutils import shell
+    from IPython.external.Itpl import ItplNS
+    from IPython.utils.genutils import shell
     # utility to expand user variables via Itpl
     # xxx do something sensible with depth?
     ip.IP.var_expand = lambda cmd, lvars=None, depth=2: \

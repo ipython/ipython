@@ -46,7 +46,7 @@ else:
 
 # Other IPython utilities
 import IPython
-from IPython.Itpl import Itpl,itpl,printpl
+from IPython.external.Itpl import Itpl,itpl,printpl
 from IPython import platutils
 from IPython.utils import DPyGetOpt
 from IPython.utils.generics import result_display

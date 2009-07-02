@@ -46,7 +46,7 @@ import IPython
 from IPython import OInspect, wildcard
 from IPython.core import debugger
 from IPython.core.fakemodule import FakeModule
-from IPython.Itpl import Itpl, itpl, printpl,itplns
+from IPython.external.Itpl import Itpl, itpl, printpl,itplns
 from IPython.PyColorize import Parser
 from IPython.utils.ipstruct import Struct
 from IPython.macro import Macro

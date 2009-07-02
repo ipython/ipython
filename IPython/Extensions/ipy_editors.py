@@ -8,7 +8,7 @@ Contributions are *very* welcome.
 from IPython.core import ipapi
 ip = ipapi.get()
 
-from IPython.Itpl import itplns
+from IPython.external.Itpl import itplns
 import os
 
 def install_editor(run_template, wait = False):

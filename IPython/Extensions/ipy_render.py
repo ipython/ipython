@@ -9,7 +9,7 @@ ip = ipapi.get()
 from string import Template
 import sys,os
 
-from IPython.Itpl import itplns
+from IPython.external.Itpl import itplns
 
 def toclip_w32(s):
     """ Places contents of s to clipboard
