@@ -47,7 +47,7 @@ from pprint import pprint
 from IPython.utils import DPyGetOpt
 from IPython import Release
 from IPython.utils.ipstruct import Struct
-from IPython.OutputTrap import OutputTrap
+from IPython.core.outputtrap import OutputTrap
 from IPython.config.configloader import ConfigLoader
 from IPython.core.iplib import InteractiveShell
 from IPython.usage import cmd_line_usage,interactive_usage
