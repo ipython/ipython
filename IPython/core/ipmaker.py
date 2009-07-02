@@ -45,7 +45,7 @@ from pprint import pprint
 
 # Our own
 from IPython.utils import DPyGetOpt
-from IPython import Release
+from IPython.core import release
 from IPython.utils.ipstruct import Struct
 from IPython.core.outputtrap import OutputTrap
 from IPython.config.configloader import ConfigLoader
@@ -114,7 +114,7 @@ def make_IPython(argv=None,user_ns=None,user_global_ns=None,debug=1,
                          'for more information.\n'
                          % (sys.version.split('\n')[0],),
                          "IPython %s -- An enhanced Interactive Python."
-                         % (Release.version,),
+                         % (release.version,),
 """\
 ?         -> Introduction and overview of IPython's features.
 %quickref -> Quick reference.
@@ -323,7 +323,7 @@ object?   -> Details about 'object'. ?object also works, ?? prints more.
         sys.exit()
 
     if opts_all.Version:
-        print Release.version
+        print release.version
         sys.exit()
 
     if opts_all.magic_docstrings:

@@ -18,7 +18,7 @@ Authors
 #  the file COPYING, distributed as part of this software.
 
 from IPython.core import ipapi
-from IPython import Release
+from IPython.core import release
 from types import StringType
 import sys
 import os
@@ -299,7 +299,7 @@ def main():
     # </HACK ALERT>
 
     # I like my banner minimal.
-    o.banner = "ZOPE Py %s IPy %s\n" % (sys.version.split('\n')[0],Release.version)
+    o.banner = "ZOPE Py %s IPy %s\n" % (sys.version.split('\n')[0],release.version)
 
     print textwrap.dedent("""\
         ZOPE mode iPython shell.

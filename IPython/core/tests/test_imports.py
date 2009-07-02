@@ -51,3 +51,6 @@ def test_import_prefilter():
 
 def test_import_prompts():
     from IPython.core import prompts
+
+def test_import_release():
+    from IPython.core import release

@@ -62,11 +62,11 @@ def main():
     o.prompt_in2= r'\C_Green|\C_LightGreen\D\C_Green> '
     o.prompt_out= '<\#> '
     
-    from IPython import Release
+    from IPython.core import release
 
     import sys
     # Non-chatty banner
-    o.banner = "IPython %s   [on Py %s]\n" % (Release.version,sys.version.split(None,1)[0])
+    o.banner = "IPython %s   [on Py %s]\n" % (release.version,sys.version.split(None,1)[0])
     
     
     ip.IP.default_option('cd','-q')

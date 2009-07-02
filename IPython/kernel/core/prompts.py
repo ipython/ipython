@@ -28,7 +28,7 @@ import sys
 from IPython.external.Itpl import ItplNS
 
 from IPython.utils import coloransi
-from IPython import Release
+from IPython.core import release
 from IPython.core.ipapi import TryNext
 from IPython.utils.genutils import *
 import IPython.utils.generics
@@ -153,7 +153,7 @@ prompt_specials_color = {
     # Carriage return
     r'\r': '\r',
     # Release version
-    r'\v': Release.version,
+    r'\v': release.version,
     # Root symbol ($ or #)
     r'\$': ROOT_SYMBOL,
     }

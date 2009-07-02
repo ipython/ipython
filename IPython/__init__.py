@@ -48,7 +48,8 @@ import os
 sys.path.append(os.path.dirname(__file__) + "/Extensions")
 
 # Define what gets imported with a 'from IPython import *'
-__all__ = ['IPython.core.ipapi','utils.generics','utils.ipstruct','Release','Shell']
+__all__ = ['IPython.core.ipapi','utils.generics','utils.ipstruct',
+    'core.release','Shell']
 
 # Load __all__ in IPython namespace so that a simple 'import IPython' gives
 # access to them via IPython.<name>
@@ -60,13 +61,13 @@ for name in __all__:
 import Shell
 
 # Release data
-from IPython import Release # do it explicitly so pydoc can see it - pydoc bug
+from IPython.core import release # do it explicitly so pydoc can see it - pydoc bug
 __author__   = '%s <%s>\n%s <%s>\n%s <%s>' % \
-               ( Release.authors['Fernando'] + Release.authors['Janko'] + \
-                 Release.authors['Nathan'] )
-__license__  = Release.license
-__version__  = Release.version
-__revision__ = Release.revision
+               ( release.authors['Fernando'] + release.authors['Janko'] + \
+                 release.authors['Nathan'] )
+__license__  = release.license
+__version__  = release.version
+__revision__ = release.revision
 
 # Namespace cleanup
 del name,glob,loc
