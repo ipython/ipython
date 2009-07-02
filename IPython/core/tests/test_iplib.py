@@ -13,7 +13,7 @@ import tempfile
 import nose.tools as nt
 
 # our own packages
-from IPython import iplib
+from IPython.core import iplib
 from IPython.core import ipapi
 
 #-----------------------------------------------------------------------------

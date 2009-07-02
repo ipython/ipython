@@ -140,7 +140,7 @@ else:
     print """*** Type `gphelp` for help on the Gnuplot integration features."""
 
     # Add the new magic functions to the class dict
-    from IPython.iplib import InteractiveShell
+    from IPython.core.iplib import InteractiveShell
     InteractiveShell.magic_gpc = magic_gpc
     InteractiveShell.magic_gp_set_default = magic_gp_set_default
 

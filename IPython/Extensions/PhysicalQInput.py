@@ -52,7 +52,7 @@ def prefilter_PQ(self,line,continuation):
     imported."""
 
     from re import match
-    from IPython.iplib import InteractiveShell
+    from IPython.core.iplib import InteractiveShell
 
     # This regexp is what does the real work
     unit_split = match(r'\s*(\w+)\s*=\s*(-?\d*\.?\d*[eE]?-?\d*)\s+([a-zA-Z].*)',
@@ -74,7 +74,7 @@ def prefilter_PQ(self,line,continuation):
     return InteractiveShell._prefilter(self,line,continuation)
 
 # Rebind this to be the new IPython prefilter:
-from IPython.iplib import InteractiveShell
+from IPython.core.iplib import InteractiveShell
 InteractiveShell.prefilter = prefilter_PQ
 
 # Clean up the namespace.

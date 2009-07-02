@@ -49,7 +49,7 @@ from IPython import Release
 from IPython.ipstruct import Struct
 from IPython.OutputTrap import OutputTrap
 from IPython.config.configloader import ConfigLoader
-from IPython.iplib import InteractiveShell
+from IPython.core.iplib import InteractiveShell
 from IPython.usage import cmd_line_usage,interactive_usage
 from IPython.utils.genutils import *
 

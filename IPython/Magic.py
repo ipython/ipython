@@ -3309,7 +3309,7 @@ Defaulting color scheme to 'NoColor'"""
 
         strip_from_start = map(re.compile,strip_re)
         
-        from IPython import iplib
+        from IPython.core import iplib
         lines = []
         print "Pasting code; enter '%s' alone on the line to stop." % sentinel
         while 1:

@@ -80,7 +80,7 @@ class PrefilterFrontEnd(LineFrontEndBase):
         # on exceptions (https://bugs.launchpad.net/bugs/337105)
         # XXX: This is horrible: module-leve monkey patching -> side
         # effects.
-        from IPython import iplib
+        from IPython.core import iplib
         iplib.InteractiveShell.isthreaded = True
 
         LineFrontEndBase.__init__(self, *args, **kwargs)

@@ -7,7 +7,7 @@ import sys
 from twisted.internet import reactor, threads
 
 from IPython.ipmaker import make_IPython
-from IPython.iplib import InteractiveShell 
+from IPython.core.iplib import InteractiveShell 
 from IPython.ipstruct import Struct
 import Queue,thread,threading,signal
 from signal import signal, SIGINT

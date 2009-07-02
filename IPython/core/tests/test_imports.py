@@ -25,5 +25,9 @@ def test_import_hooks():
 def test_import_ipapi():
     from IPython.core import ipapi
 
+def test_imort_iplib():
+    from IPython.core import iplib
+
+
 
 

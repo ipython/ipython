@@ -593,8 +593,8 @@ execfile
 
 # execfile example-magic.py
 
-# Look at the examples in IPython/iplib.py for more details on how these magic
-# functions need to process their arguments.
+# Look at the examples in IPython/core/iplib.py for more details on how 
+# these magic functions need to process their arguments.
 
 #---------------------------------------------------------------------------
 # Section: aliases for system shell commands

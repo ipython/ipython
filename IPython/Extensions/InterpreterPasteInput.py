@@ -85,7 +85,7 @@ Authors
 
 import re
 
-from IPython.iplib import InteractiveShell
+from IPython.core.iplib import InteractiveShell
 
 PROMPT_RE = re.compile(r'(^[ \t]*>>> |^[ \t]*\.\.\. )')
 

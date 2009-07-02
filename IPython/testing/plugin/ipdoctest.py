@@ -195,7 +195,7 @@ def start_ipython():
 
     # So that ipython magics and aliases can be doctested (they work by making
     # a call into a global _ip object)
-    _ip = IPython.ipapi.get()
+    _ip = ipapi.get()
     __builtin__._ip = _ip
 
     # Modify the IPython system call with one that uses getoutput, so that we

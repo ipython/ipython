@@ -26,6 +26,7 @@ from thread_ex import ThreadEx
 try:
     import IPython
     from IPython.utils import genutils
+    from IPython.core import iplib
 except Exception,e:
     print "Error importing IPython (%s)" % str(e)
     raise Exception, e
@@ -177,7 +178,7 @@ class NonBlockingIPShell(object):
         self._IP.set_hook('shell_hook', self._shell)
         
         #we replace the ipython default input command caller by our method
-        IPython.iplib.raw_input_original = self._raw_input_original
+        iplib.raw_input_original = self._raw_input_original
         #we replace the ipython default exit command by our method
         self._IP.exit = ask_exit_handler
         #we replace the help command

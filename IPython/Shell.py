@@ -38,7 +38,7 @@ from IPython import ultraTB
 from IPython.core import ipapi
 from IPython.Magic import Magic
 from IPython.utils.genutils import Term,warn,error,flag_calls, ask_yes_no
-from IPython.iplib import InteractiveShell
+from IPython.core.iplib import InteractiveShell
 from IPython.ipmaker import make_IPython
 from IPython.ipstruct import Struct
 from IPython.testing import decorators as testdec

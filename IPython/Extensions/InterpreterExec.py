@@ -43,7 +43,7 @@ def prefilter_shell(self,line,continuation):
         return self._prefilter(line,continuation)
 
 # Rebind this to be the new IPython prefilter:
-from IPython.iplib import InteractiveShell
+from IPython.core.iplib import InteractiveShell
 InteractiveShell.prefilter = prefilter_shell
 # Clean up the namespace.
 del InteractiveShell,prefilter_shell

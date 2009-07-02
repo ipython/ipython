@@ -40,7 +40,7 @@ excolors: plugin
 	$(NOSE) IPython.core.excolors
 
 iplib: plugin
-	$(NOSE)  IPython.iplib
+	$(NOSE)  IPython.core.iplib
 
 strd: plugin
 	$(NOSE) IPython.strdispatch
