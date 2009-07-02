@@ -107,8 +107,12 @@ Where things will be moved
 
 * :file:`dtutils.py`.  Move to :file:`IPython.deathrow`.
 
+* :file:`excolors.py`.  Move to :file:`IPython.core` or :file:`IPython.config`.
+  Maybe move to :mod:`IPython.lib` or :mod:`IPython.python`?
+
 * :file:`FakeModule.py`.  Move to :file:`IPython/core/fakemodule.py`.
 
+* :file:`generics.py`.  Move to :file:`IPython.python`.
 
 * :file:`Extensions`. This needs to be gone through separately.  Minimally,
   the package should be renamed to :file:`extensions`.
@@ -149,17 +153,10 @@ Where things will be moved
 
 * :file:`config`.  Good where it is!
 
-
-
-
-* :file:`excolors.py`.  Move to :file:`IPython.core` or :file:`IPython.config`.
-  Maybe move to :mod:`IPython.lib` or :mod:`IPython.python`?
-
 * :file:`external`.  Good where it is!
 
 * :file:`frontend`.  Good where it is!
 
-* :file:`generics.py`.  Move to :file:`IPython.python`.
 
 * :file:`genutils.py`.  Move to :file:`IPython.python` and break up into different
   modules.

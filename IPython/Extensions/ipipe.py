@@ -133,7 +133,8 @@ from IPython.external import simplegeneric
 from IPython.external import path
 
 try:
-    from IPython import genutils, generics
+    from IPython import genutils
+    from IPython.utils import generics
 except ImportError:
     genutils = None
     generics = None

@@ -74,7 +74,7 @@ import IPython.rlineimpl as readline
 import itertools
 from IPython.ipstruct import Struct
 from IPython import ipapi
-from IPython import generics
+from IPython.utils import generics
 import types
 
 # Python 2.4 offers sets as a builtin

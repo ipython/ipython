@@ -26,6 +26,7 @@ from IPython.external.Itpl import ItplNS
 from IPython.ipapi import TryNext
 from IPython.ipstruct import Struct
 from IPython.macro import Macro
+import IPython.utils.generics
 
 from IPython.genutils import *
 
@@ -573,7 +574,7 @@ class CachedOutput:
         display, e.g. when your own objects need special formatting.
         """
         try:
-            return IPython.generics.result_display(arg)
+            return IPython.utils.generics.result_display(arg)
         except TryNext:            
             return self.shell.hooks.result_display(arg)
 

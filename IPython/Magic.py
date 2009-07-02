@@ -52,7 +52,7 @@ from IPython.ipstruct import Struct
 from IPython.macro import Macro
 from IPython.genutils import *
 from IPython import platutils
-import IPython.generics
+import IPython.utils.generics
 import IPython.ipapi
 from IPython.ipapi import UsageError
 from IPython.testing import decorators as testdec
@@ -718,7 +718,7 @@ Currently the magic system has the following functions:\n"""
         
         if info.found:
             try:
-                IPython.generics.inspect_object(info.obj)
+                IPython.utils.generics.inspect_object(info.obj)
                 return
             except IPython.ipapi.TryNext:
                 pass

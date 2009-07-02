@@ -9,7 +9,8 @@ only whitespace as completer delimiter. If this works well, we will
 do the same in default completer.
 
 """
-from IPython import generics,ipapi
+from IPython import ipapi
+from IPython.utils import generics
 from IPython.genutils import dir2
 
 def attr_matches(self, text):

@@ -7,3 +7,6 @@ def test_import_coloransi():
 def test_import_DPyGetOpt():
     from IPython.utils import DPyGetOpt
 
+def test_import_generics():
+    from IPython.utils import generics
+

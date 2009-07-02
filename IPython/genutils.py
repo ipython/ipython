@@ -49,7 +49,7 @@ import IPython
 from IPython.Itpl import Itpl,itpl,printpl
 from IPython import platutils
 from IPython.utils import DPyGetOpt
-from IPython.generics import result_display
+from IPython.utils.generics import result_display
 import IPython.ipapi
 from IPython.external.path import path
 if os.name == "nt":

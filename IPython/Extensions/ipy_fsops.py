@@ -22,6 +22,7 @@ import shutil,os,shlex
 from IPython.external import mglob
 from IPython.external.path import path
 from IPython.ipapi import UsageError
+import IPython.utils.generics
 
 def parse_args(args):
     """ Given arg string 'CMD files... target', return ([files], target) """
@@ -230,7 +231,7 @@ def complete_pathobj(obj, prev_completions):
     # just return normal attributes of 'path' object if the dir is empty
     raise IPython.ipapi.TryNext
 
-complete_pathobj = IPython.generics.complete_object.when_type(PathObj)(complete_pathobj)
+complete_pathobj = IPython.utils.generics.complete_object.when_type(PathObj)(complete_pathobj)
 
 def test_pathobj():
     #p = PathObj('c:/prj')
