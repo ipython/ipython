@@ -4,6 +4,6 @@
 
 Run with --help for details, or see the irunner source."""
 
-from IPython import irunner
+from IPython.lib import irunner
 
 irunner.main()

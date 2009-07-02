@@ -84,7 +84,7 @@ def isolate_ipython0(func):
             ipython0.user_ns = user_ns
             ipython0.user_global_ns = global_ns
         # Undo the hack at creation of PrefilterFrontEnd
-        from IPythoncore. import iplib
+        from IPython.core import iplib
         iplib.InteractiveShell.isthreaded = False
         return out
 

@@ -84,6 +84,11 @@ level modules.
 
 Need to update the top level IPython/__init__.py file.
 
+Need to get installation working correctly.
+
+When running python setup.py sdist, the Sphinx API docs fail to build because
+of something going on with IPython.core.fakemodule
+
 Where things will be moved
 ==========================
 

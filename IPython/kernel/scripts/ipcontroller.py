@@ -32,7 +32,7 @@ from twisted.python import log
 
 from IPython.kernel.fcutil import Tub, UnauthenticatedTub, have_crypto
 
-# from IPython.tools import growl
+# from IPython.utils import growl
 # growl.start("IPython1 Controller")
 
 from IPython.kernel.error import SecurityError

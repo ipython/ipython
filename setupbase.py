@@ -58,7 +58,7 @@ def file_doesnt_endwith(test,endings):
 #---------------------------------------------------------------------------
 
 # Release.py contains version, authors, license, url, keywords, etc.
-execfile(pjoin('IPython','Release.py'))
+execfile(pjoin('IPython','core','release.py'))
 
 # Create a dict with the basic information
 # This dict is eventually passed to setup after additional keys are added.
@@ -104,21 +104,30 @@ def find_packages():
     """
     packages = ['IPython']
     add_package(packages, 'config', tests=True)
+    add_package(packages, 'config.userconfig')
+    add_package(packages, 'core', tests=True)
+    add_package(packages, 'deathrow', tests=True)
     add_package(packages , 'Extensions')
     add_package(packages, 'external')
-    add_package(packages, 'gui')
-    add_package(packages, 'gui.wx')
     add_package(packages, 'frontend', tests=True)
+    # Don't include the cocoa frontend for now as it is not stable
+    if sys.platform == 'darwin' and False:
+        add_package(packages, 'frontend.cocoa', tests=True, others=['plugin'])
+        add_package(packages, 'frontend.cocoa.examples')
+        add_package(packages, 'frontend.cocoa.examples.IPython1Sandbox')
+        add_package(packages, 'frontend.cocoa.examples.IPython1Sandbox.English.lproj')
     add_package(packages, 'frontend.process')
     add_package(packages, 'frontend.wx')
-    add_package(packages, 'frontend.cocoa', tests=True)
+    add_package(packages, 'gui')
+    add_package(packages, 'gui.wx')
     add_package(packages, 'kernel', config=True, tests=True, scripts=True)
     add_package(packages, 'kernel.core', config=True, tests=True)
+    add_package(packages, 'lib', tests=True)
+    add_package(packages, 'quarantine', tests=True)
+    add_package(packages, 'scripts')
     add_package(packages, 'testing', tests=True)
-    add_package(packages, 'tests')
     add_package(packages, 'testing.plugin', tests=False)
-    add_package(packages, 'tools', tests=True)
-    add_package(packages, 'UserConfig')
+    add_package(packages, 'utils', tests=True)
     return packages
 
 #---------------------------------------------------------------------------
@@ -132,8 +141,7 @@ def find_package_data():
     # This is not enough for these things to appear in an sdist.
     # We need to muck with the MANIFEST to get this to work
     package_data = {
-        'IPython.UserConfig' : ['*'],
-        'IPython.tools.tests' : ['*.txt'],
+        'IPython.config.userconfig' : ['*'],
         'IPython.testing' : ['*.txt']
     }
     return package_data
@@ -187,17 +195,24 @@ def find_data_files():
     Most of these are docs.
     """
     
-    docdirbase  = 'share/doc/ipython'
-    manpagebase = 'share/man/man1'
-
+    docdirbase  = pjoin('share', 'doc', 'ipython')
+    manpagebase = pjoin('share', 'man', 'man1')
+    
     # Simple file lists can be made by hand
-    manpages  = filter(isfile, glob('docs/man/*.1.gz'))
-    igridhelpfiles = filter(isfile, glob('IPython/Extensions/igrid_help.*'))
+    manpages  = filter(isfile, glob(pjoin('docs','man','*.1.gz')))
+    igridhelpfiles = filter(isfile, glob(pjoin('IPython','Extensions','igrid_help.*')))
 
     # For nested structures, use the utility above
-    example_files = make_dir_struct('data','docs/examples',
-                                    pjoin(docdirbase,'examples'))
-    manual_files = make_dir_struct('data','docs/dist',pjoin(docdirbase,'manual'))
+    example_files = make_dir_struct(
+        'data',
+        pjoin('docs','examples'),
+        pjoin(docdirbase,'examples')
+    )
+    manual_files = make_dir_struct(
+        'data',
+        pjoin('docs','dist'),
+        pjoin(docdirbase,'manual')
+    )
 
     # And assemble the entire output list
     data_files = [ ('data',manpagebase, manpages),
@@ -220,16 +235,18 @@ def find_scripts():
     """
     Find IPython's scripts.
     """
-    scripts = ['IPython/kernel/scripts/ipengine',
-               'IPython/kernel/scripts/ipcontroller',
-               'IPython/kernel/scripts/ipcluster',
-               'scripts/ipython',
-               'scripts/ipythonx',
-               'scripts/ipython-wx',
-               'scripts/pycolor',
-               'scripts/irunner',
-               'scripts/iptest',
-               ]
+    kernel_scripts = pjoin('IPython','kernel','scripts')
+    main_scripts = pjoin('IPython','scripts')
+    scripts = [pjoin(kernel_scripts, 'ipengine'),
+               pjoin(kernel_scripts, 'ipcontroller'),
+               pjoin(kernel_scripts, 'ipcluster'),
+               pjoin(main_scripts, 'ipython'),
+               pjoin(main_scripts, 'ipythonx'),
+               pjoin(main_scripts, 'ipython-wx'),
+               pjoin(main_scripts, 'pycolor'),
+               pjoin(main_scripts, 'irunner'),
+               pjoin(main_scripts, 'iptest')
+              ]
     
     # Script to be run by the windows binary installer after the default setup
     # routine, to add shortcuts and similar windows-only things.  Windows
@@ -239,7 +256,7 @@ def find_scripts():
         if len(sys.argv) > 2 and ('sdist' in sys.argv or 'bdist_rpm' in sys.argv):
             print >> sys.stderr,"ERROR: bdist_wininst must be run alone. Exiting."
             sys.exit(1)
-        scripts.append('scripts/ipython_win_post_install.py')
+        scripts.append(pjoin(main_scripts,'ipython_win_post_install.py'))
     
     return scripts
 

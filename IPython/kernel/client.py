@@ -30,7 +30,7 @@ __docformat__ = "restructuredtext en"
 
 import sys
 
-# from IPython.tools import growl
+# from IPython.utils import growl
 # growl.start("IPython1 Client")
 
 

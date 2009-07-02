@@ -35,7 +35,7 @@ from twisted.internet import defer, reactor
 from twisted.python import log, components, failure
 from zope.interface import Interface, implements, Attribute
 
-from IPython.tools import growl
+from IPython.utils import growl
 from IPython.kernel.util import printer
 from IPython.kernel.twistedutil import gatherBoth
 from IPython.kernel import map as Map

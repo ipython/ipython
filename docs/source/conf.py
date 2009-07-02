@@ -28,7 +28,7 @@ import ipython_console_highlighting
 
 # We load the ipython release info into a dict by explicit execution
 iprelease = {}
-execfile('../../IPython/Release.py',iprelease)
+execfile('../../IPython/core/release.py',iprelease)
 
 # General configuration
 # ---------------------

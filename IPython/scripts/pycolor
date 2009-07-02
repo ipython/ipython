@@ -2,5 +2,5 @@
 # -*- coding: utf-8 -*-
 """Simple wrapper around PyColorize, which colorizes python sources."""
 
-import IPython.PyColorize
-IPython.PyColorize.main()
+import IPython.utils.PyColorize
+IPython.utils.PyColorize.main()
