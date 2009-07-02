@@ -49,7 +49,7 @@ from IPython.core.fakemodule import FakeModule
 from IPython.external.Itpl import Itpl, itpl, printpl,itplns
 from IPython.PyColorize import Parser
 from IPython.utils.ipstruct import Struct
-from IPython.macro import Macro
+from IPython.core.macro import Macro
 from IPython.utils.genutils import *
 from IPython import platutils
 import IPython.utils.generics
@@ -973,7 +973,7 @@ Currently the magic system has the following functions:\n"""
             return self.shell.user_ns[i]
         
         # some types are well known and can be shorter
-        abbrevs = {'IPython.macro.Macro' : 'Macro'}
+        abbrevs = {'IPython.core.macro.Macro' : 'Macro'}
         def type_name(v):
             tn = type(v).__name__
             return abbrevs.get(tn,tn)

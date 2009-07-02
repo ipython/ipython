@@ -34,5 +34,7 @@ def test_import_ipmaker():
 def test_import_logger():
     from IPython.core import logger
 
+def test_import_macro():
+    from IPython.core import macro
 
 

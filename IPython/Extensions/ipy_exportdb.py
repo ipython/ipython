@@ -1,4 +1,5 @@
 from IPython.core import ipapi
+from IPython.core import macro
 ip = ipapi.get()
 
 import os,pprint
@@ -21,7 +22,7 @@ def export(filename = None):
 
         if k.startswith('_'):
             continue
-        if isinstance(v, IPython.macro.Macro):
+        if isinstance(v, macro.Macro):
             macros.append((k,v))
         if type(v) in [int, str, float]:
             variables.append((k,v))

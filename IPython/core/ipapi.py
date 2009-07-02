@@ -461,12 +461,12 @@ class IPApi(object):
         (creates a macro named 'build' in user namespace)
         """
         
-        import IPython.macro
+        from IPython.core import macro
         
         if len(args) == 1:
-            return IPython.macro.Macro(args[0])
+            return macro.Macro(args[0])
         elif len(args) == 2:
-            self.user_ns[args[0]] = IPython.macro.Macro(args[1])
+            self.user_ns[args[0]] = macro.Macro(args[1])
         else:
             return Exception("_ip.defmacro must be called with 1 or 2 arguments")
         
