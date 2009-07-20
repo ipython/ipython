@@ -1,11 +1,11 @@
 =============================
 IPython module reorganization
-=============================
+============================='
 
-Currently, IPython has many top-level modules that serve many different purposes.
-The lack of organization make it very difficult for developers to work on IPython
-and understand its design. This document contains notes about how we will reorganize
-the modules into sub-packages.
+Currently, IPython has many top-level modules that serve many different
+purposes. The lack of organization make it very difficult for developers to
+work on IPython and understand its design. This document contains notes about
+how we will reorganize the modules into sub-packages.
 
 .. warning::
 
@@ -71,7 +71,7 @@ We propose to create the following new sub-packages:
   standards, but that we plan on keeping.  To be moved out of this sub-package
   a module needs to have a maintainer, tests and documentation.
 
-Prodecure
+Prodedure
 =========
 
 1. Move the file to its new location with its new name.
@@ -79,18 +79,30 @@ Prodecure
 3. Run PyFlakes on each changes module.
 3. Add tests/test_imports.py to test it.
 
-Need to modify iptests to properly skip modules that are no longer top
-level modules.
+Status
+======
 
-Need to update the top level IPython/__init__.py file.
+The new subpackages have been created and the top-level modules have been
+moved and renamed. Import tests have been created for all of the moved and
+renamed modules. The build infrastructure (setup.py and friends) have been
+updated and tested on Mac and Windows. Finally, a compatibility layer has been
+added for iplib, ipapi and Shell. The follow things still need to be done::
 
-Need to get installation working correctly.
+* I need to modify iptests to properly skip modules that are no longer top
+  level modules.
 
-When running python setup.py sdist, the Sphinx API docs fail to build because
-of something going on with IPython.core.fakemodule
+* I Need to update the top level IPython/__init__.py file.  We need to make   
+  sure that as we change how this is setup, that all modules still import.
 
-Where things will be moved
-==========================
+* When running python setup.py sdist, the Sphinx API docs fail to build
+  because of something going on with IPython.core.fakemodule
+
+* :file:`Extensions`. This needs to be gone through separately.  Minimally,
+  the package should be renamed to :file:`extensions` and the PYTHONPATH
+  setting in __init__.py needs to be updated.
+
+Where things have been moved
+============================
 
 Top-level modules:
 
@@ -133,9 +145,6 @@ Top-level modules:
 
 * :file:`twshell.py`.  Move to :file:`IPython.sandbox`.
 
-* :file:`Extensions`. This needs to be gone through separately.  Minimally,
-  the package should be renamed to :file:`extensions`.
-
 * :file:`history.py`.  Move to :file:`IPython.core`.
 
 * :file:`hooks.py`.  Move to :file:`IPython.core`.
@@ -148,7 +157,7 @@ Top-level modules:
 
 * :file:`ipstruct.py`.  Move to :file:`IPython.python`.
 
-* :file:`irunner.py`.  Move to :file:`IPython.scripts`. ???
+* :file:`irunner.py`.  Move to :file:`IPython.scripts`.
 
 * :file:`Itpl.py`. Move to :file:`deathrow/Itpl.py`. Copy already in
   :file:`IPython.external`.
@@ -176,9 +185,8 @@ Top-level modules:
 * :file:`Prompts.py`.  Move to :file:`IPython/core/prompts.py` or
   :file:`IPython/frontend/prompts.py`.
 
-* :file:`PyColorize.py`. Replace with pygments? If not, move to
-  :file:`IPython/core/pycolorize.py`. Maybe move to :mod:`IPython.lib` or
-  :mod:`IPython.python`?
+* :file:`PyColorize.py`. Move to :file:`IPython/utils/pycolorize.py`. Explore
+  replacing with pygments.
 
 * :file:`Release.py`.  Move to ??? or remove?
 
