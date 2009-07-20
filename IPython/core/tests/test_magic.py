@@ -73,7 +73,7 @@ def test_shist():
     # Simple tests of ShadowHist class - test generator.
     import os, shutil, tempfile
 
-    from IPython.Extensions import pickleshare
+    from IPython.extensions import pickleshare
     from IPython.core.history import ShadowHist
     
     tfile = tempfile.mktemp('','tmp-ipython-')

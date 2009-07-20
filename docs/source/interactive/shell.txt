@@ -251,12 +251,12 @@ First, capture output of "hg status"::
 
     [Q:/ipython]|28> out = !hg status
      ==
-    ['M IPython\\Extensions\\ipy_kitcfg.py',
-     'M IPython\\Extensions\\ipy_rehashdir.py',
+    ['M IPython\\extensions\\ipy_kitcfg.py',
+     'M IPython\\extensions\\ipy_rehashdir.py',
     ...
      '? build\\lib\\IPython\\Debugger.py',
-     '? build\\lib\\IPython\\Extensions\\InterpreterExec.py',
-     '? build\\lib\\IPython\\Extensions\\InterpreterPasteInput.py',
+     '? build\\lib\\IPython\\extensions\\InterpreterExec.py',
+     '? build\\lib\\IPython\\extensions\\InterpreterPasteInput.py',
     ...
 
 (lines starting with ? are not under version control).

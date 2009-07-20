@@ -25,7 +25,7 @@ IPython currently has the following sub-packages:
 
 * :mod:`IPython.config`
 
-* :mod:`IPython.Extensions`
+* :mod:`IPython.extensions`
 
 * :mod:`IPython.external`
 
@@ -97,7 +97,7 @@ added for iplib, ipapi and Shell. The follow things still need to be done::
 * When running python setup.py sdist, the Sphinx API docs fail to build
   because of something going on with IPython.core.fakemodule
 
-* :file:`Extensions`. This needs to be gone through separately.  Minimally,
+* :file:`extensions`. This needs to be gone through separately.  Minimally,
   the package should be renamed to :file:`extensions` and the PYTHONPATH
   setting in __init__.py needs to be updated.
 

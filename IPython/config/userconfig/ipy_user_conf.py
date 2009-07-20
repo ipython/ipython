@@ -4,7 +4,7 @@ This is a more flexible and safe way to configure ipython than *rc files
 (ipythonrc, ipythonrc-pysh etc.)
 
 This file is always imported on ipython startup. You can import the
-ipython extensions you need here (see IPython/Extensions directory).
+ipython extensions you need here (see IPython/extensions directory).
 
 Feel free to edit this file to customize your ipython experience.
 

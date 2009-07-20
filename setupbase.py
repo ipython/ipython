@@ -107,7 +107,7 @@ def find_packages():
     add_package(packages, 'config.userconfig')
     add_package(packages, 'core', tests=True)
     add_package(packages, 'deathrow', tests=True)
-    add_package(packages , 'Extensions')
+    add_package(packages , 'extensions')
     add_package(packages, 'external')
     add_package(packages, 'frontend', tests=True)
     # Don't include the cocoa frontend for now as it is not stable
@@ -200,7 +200,7 @@ def find_data_files():
     
     # Simple file lists can be made by hand
     manpages  = filter(isfile, glob(pjoin('docs','man','*.1.gz')))
-    igridhelpfiles = filter(isfile, glob(pjoin('IPython','Extensions','igrid_help.*')))
+    igridhelpfiles = filter(isfile, glob(pjoin('IPython','extensions','igrid_help.*')))
 
     # For nested structures, use the utility above
     example_files = make_dir_struct(

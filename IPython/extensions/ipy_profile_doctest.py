@@ -16,7 +16,7 @@ import ipy_legacy
 
 from IPython.core import ipapi
 
-from IPython.Extensions import InterpreterPasteInput
+from IPython.extensions import InterpreterPasteInput
 
 def main():    
     ip = ipapi.get()

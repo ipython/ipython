@@ -1,7 +1,7 @@
 
 """ Implementations for various useful completers
 
-See Extensions/ipy_stock_completers.py on examples of how to enable a completer,
+See extensions/ipy_stock_completers.py on examples of how to enable a completer,
 but the basic idea is to do:
 
 ip.set_hook('complete_command', svn_completer, str_key = 'svn')

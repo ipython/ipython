@@ -2,7 +2,7 @@
 
 IPython extension that installs the completers related to external apps.
 
-The actual implementations are in Extensions/ipy_completers.py
+The actual implementations are in extensions/ipy_completers.py
 
 """
 from IPython.core import ipapi

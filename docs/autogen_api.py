@@ -17,7 +17,7 @@ if __name__ == '__main__':
     docwriter = ApiDocWriter(package,rst_extension='.txt')
     docwriter.package_skip_patterns += [r'\.fixes$',
                                         r'\.externals$',
-                                        r'\.Extensions',
+                                        r'\.extensions',
                                         r'\.kernel.config',
                                         r'\.attic',
                                         ]

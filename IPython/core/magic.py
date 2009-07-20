@@ -3387,7 +3387,7 @@ Defaulting color scheme to 'NoColor'"""
         """
 
         # XXX - Fix this to have cleaner activate/deactivate calls.
-        from IPython.Extensions import InterpreterPasteInput as ipaste
+        from IPython.extensions import InterpreterPasteInput as ipaste
         from IPython.utils.ipstruct import Struct
 
         # Shorthands

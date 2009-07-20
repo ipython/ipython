@@ -1351,7 +1351,7 @@ In a nutshell, you can redefine the way IPython processes the user input
 line to accept new, special extensions to the syntax without needing to
 change any of IPython's own code.
 
-In the IPython/Extensions directory you will find some examples
+In the IPython/extensions directory you will find some examples
 supplied, which we will briefly describe now. These can be used 'as is'
 (and both provide very useful functionality), or you can use them as a
 starting point for writing your own extensions.
@@ -1369,14 +1369,14 @@ copying, carefully removing the leading extraneous characters.
 This extension identifies those starting characters and removes them
 from the input automatically, so that one can paste multi-line examples
 directly into IPython, saving a lot of time. Please look at the file
-InterpreterPasteInput.py in the IPython/Extensions directory for details
+InterpreterPasteInput.py in the IPython/extensions directory for details
 on how this is done.
 
 IPython comes with a special profile enabling this feature, called
 tutorial. Simply start IPython via 'ipython -p tutorial' and the feature
 will be available. In a normal IPython session you can activate the
 feature by importing the corresponding module with:
-In [1]: import IPython.Extensions.InterpreterPasteInput
+In [1]: import IPython.extensions.InterpreterPasteInput
 
 The following is a 'screenshot' of how things work when this extension
 is on, copying an example from the standard tutorial::
@@ -1431,8 +1431,8 @@ The physics profile supplied with IPython (enabled via 'ipython -p
 physics') uses these extensions, which you can also activate with:
 
 from math import * # math MUST be imported BEFORE PhysicalQInteractive 
-from IPython.Extensions.PhysicalQInteractive import * 
-import IPython.Extensions.PhysicalQInput
+from IPython.extensions.PhysicalQInteractive import * 
+import IPython.extensions.PhysicalQInput
 
 
 Threading support

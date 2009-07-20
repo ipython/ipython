@@ -64,7 +64,7 @@ egg_extra_kwds = {}
 setup(name             = name,
     options   = {
     'py2exe': {
-        'packages' : ['IPython', 'IPython.Extensions', 'IPython.external',
+        'packages' : ['IPython', 'IPython.extensions', 'IPython.external',
                       'pyreadline'],
         'excludes' : ["Tkconstants","Tkinter","tcl",'IPython.igrid','wx',
                       'wxPython','igrid', 'PyQt4', 'zope', 'Zope', 'Zope2',

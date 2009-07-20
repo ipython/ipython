@@ -1217,11 +1217,11 @@ class ils(Table):
     Examples::
 
         >>> ils
-        <class 'IPython.Extensions.ipipe.ils'>
+        <class 'IPython.extensions.ipipe.ils'>
         >>> ils("/usr/local/lib/python2.4")
-        IPython.Extensions.ipipe.ils('/usr/local/lib/python2.4')
+        IPython.extensions.ipipe.ils('/usr/local/lib/python2.4')
         >>> ils("~")
-        IPython.Extensions.ipipe.ils('/home/fperez')
+        IPython.extensions.ipipe.ils('/home/fperez')
         # all-random
     """
     def __init__(self, base=os.curdir, dirs=True, files=True):
@@ -1259,7 +1259,7 @@ class iglob(Table):
     Examples::
 
         >>> iglob("*.py")
-        IPython.Extensions.ipipe.iglob('*.py')
+        IPython.extensions.ipipe.iglob('*.py')
     """
     def __init__(self, glob):
         self.glob = glob
@@ -1285,11 +1285,11 @@ class iwalk(Table):
     List all files and directories in a directory and it's subdirectory::
 
         >>> iwalk
-        <class 'IPython.Extensions.ipipe.iwalk'>
+        <class 'IPython.extensions.ipipe.iwalk'>
         >>> iwalk("/usr/lib")
-        IPython.Extensions.ipipe.iwalk('/usr/lib')
+        IPython.extensions.ipipe.iwalk('/usr/lib')
         >>> iwalk("~")
-        IPython.Extensions.ipipe.iwalk('/home/fperez')  # random
+        IPython.extensions.ipipe.iwalk('/home/fperez')  # random
         
     """
     def __init__(self, base=os.curdir, dirs=True, files=True):
@@ -1394,7 +1394,7 @@ class ipwd(Table):
     Example::
 
         >>> ipwd | isort("uid")
-        <IPython.Extensions.ipipe.isort key='uid' reverse=False at 0x849efec>
+        <IPython.extensions.ipipe.isort key='uid' reverse=False at 0x849efec>
         # random
     """
     def __iter__(self):
@@ -1580,7 +1580,7 @@ class ienv(Table):
     Example::
 
         >>> ienv
-        <class 'IPython.Extensions.ipipe.ienv'>
+        <class 'IPython.extensions.ipipe.ienv'>
     """
 
     def __iter__(self):
@@ -1602,9 +1602,9 @@ class ihist(Table):
     Example::
 
         >>> ihist
-        <class 'IPython.Extensions.ipipe.ihist'>
+        <class 'IPython.extensions.ipipe.ihist'>
         >>> ihist(True) # raw mode
-        <IPython.Extensions.ipipe.ihist object at 0x849602c>  # random
+        <IPython.extensions.ipipe.ihist object at 0x849602c>  # random
     """
     def __init__(self, raw=True):
         self.raw = raw
@@ -1639,7 +1639,7 @@ class ialias(Table):
     Example::
 
         >>> ialias
-        <class 'IPython.Extensions.ipipe.ialias'>
+        <class 'IPython.extensions.ipipe.ialias'>
     """
     def __iter__(self):
         api = ipapi.get()
@@ -1702,10 +1702,10 @@ class ix(Table):
     Examples::
 
         >>> ix("ps x")
-        IPython.Extensions.ipipe.ix('ps x')
+        IPython.extensions.ipipe.ix('ps x')
 
         >>> ix("find .") | ifile
-        <IPython.Extensions.ipipe.ieval expr=<class 'IPython.Extensions.ipipe.ifile'> at 0x8509d2c>
+        <IPython.extensions.ipipe.ieval expr=<class 'IPython.extensions.ipipe.ifile'> at 0x8509d2c>
         # random
     """
     def __init__(self, cmd):
@@ -1928,9 +1928,9 @@ class isort(Pipe):
     Examples::
 
         >>> ils | isort("size")
-        <IPython.Extensions.ipipe.isort key='size' reverse=False at 0x849ec2c>
+        <IPython.extensions.ipipe.isort key='size' reverse=False at 0x849ec2c>
         >>> ils | isort("_.isdir(), _.lower()", reverse=True)
-        <IPython.Extensions.ipipe.isort key='_.isdir(), _.lower()' reverse=True at 0x849eacc>
+        <IPython.extensions.ipipe.isort key='_.isdir(), _.lower()' reverse=True at 0x849eacc>
         # all-random
     """
 

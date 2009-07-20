@@ -15,7 +15,7 @@ Website: physics.nist.gov/constants
 # inspired by maxima's physconst.mac by Cliff Yapp
 
 #from math import * # math MUST be imported BEFORE PhysicalQInteractive 
-from IPython.Extensions.PhysicalQInteractive import PhysicalQuantityInteractive
+from IPython.extensions.PhysicalQInteractive import PhysicalQuantityInteractive
 
 # Math constants:
 

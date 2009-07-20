@@ -64,11 +64,11 @@ EXCLUDE = [pjoin('IPython', 'external'),
            pjoin('IPython', 'frontend', 'process', 'winprocess.py'),
            pjoin('IPython_doctest_plugin'),
            pjoin('IPython', 'Gnuplot'),
-           pjoin('IPython', 'Extensions', 'ipy_'),
-           pjoin('IPython', 'Extensions', 'clearcmd'),
-           pjoin('IPython', 'Extensions', 'PhysicalQInteractive'),
-           pjoin('IPython', 'Extensions', 'scitedirector'),
-           pjoin('IPython', 'Extensions', 'numeric_formats'),
+           pjoin('IPython', 'extensions', 'ipy_'),
+           pjoin('IPython', 'extensions', 'clearcmd'),
+           pjoin('IPython', 'extensions', 'PhysicalQInteractive'),
+           pjoin('IPython', 'extensions', 'scitedirector'),
+           pjoin('IPython', 'extensions', 'numeric_formats'),
            pjoin('IPython', 'testing', 'attic'),
            pjoin('IPython', 'testing', 'tutils'),
            pjoin('IPython', 'testing', 'tools'),
@@ -76,7 +76,7 @@ EXCLUDE = [pjoin('IPython', 'external'),
            ]
 
 if not have_wx:
-    EXCLUDE.append(pjoin('IPython', 'Extensions', 'igrid'))
+    EXCLUDE.append(pjoin('IPython', 'extensions', 'igrid'))
     EXCLUDE.append(pjoin('IPython', 'gui'))
     EXCLUDE.append(pjoin('IPython', 'frontend', 'wx'))
 
@@ -84,7 +84,7 @@ if not have_objc:
     EXCLUDE.append(pjoin('IPython', 'frontend', 'cocoa'))
 
 if not have_curses:
-    EXCLUDE.append(pjoin('IPython', 'Extensions', 'ibrowse'))
+    EXCLUDE.append(pjoin('IPython', 'extensions', 'ibrowse'))
 
 if not sys.platform == 'win32':
     EXCLUDE.append(pjoin('IPython', 'platutils_win32'))
@@ -223,7 +223,7 @@ def make_runners():
         top_mod.append('platutils_dummy.py')
 
     # These are tested by nose, so skip IPython.kernel
-    top_pack = ['config','Extensions','frontend',
+    top_pack = ['config','extensions','frontend',
                 'testing','tests','tools','userconfig']
 
     if have_wx:

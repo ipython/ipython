@@ -22,7 +22,7 @@ include ipythonrc
 
 # import ...
 # Module with alternate input syntax for pasting python input
-import_mod IPython.Extensions.InterpreterPasteInput
+import_mod IPython.extensions.InterpreterPasteInput
 
 # from ... import *
 import_all

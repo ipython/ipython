@@ -6,7 +6,7 @@ PhysicalQ_Input for an example of how to do this).
 
 Any file located here can be called with an 'execfile =' option as
 
-  execfile = Extensions/filename.py
+  execfile = extensions/filename.py
 
 since the IPython directory itself is already part of the search path for
 files listed as 'execfile ='.

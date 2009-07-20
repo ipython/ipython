@@ -43,9 +43,9 @@ if sys.version[0:3] < '2.4':
     raise ImportError('Python Version 2.4 or above is required for IPython.')
 
 # Make it easy to import extensions - they are always directly on pythonpath.
-# Therefore, non-IPython modules can be added to Extensions directory
+# Therefore, non-IPython modules can be added to extensions directory
 import os
-sys.path.append(os.path.dirname(__file__) + "/Extensions")
+sys.path.append(os.path.join(os.path.dirname(__file__), "extensions"))
 
 # Define what gets imported with a 'from IPython import *'
 __all__ = ['IPython.core.ipapi','utils.generics','utils.ipstruct',

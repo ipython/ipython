@@ -21,12 +21,12 @@ include ipythonrc
 
 # import ...
 # Module with alternate input syntax for PhysicalQuantity objects.
-import_mod IPython.Extensions.PhysicalQInput
+import_mod IPython.extensions.PhysicalQInput
 
 # from ... import *
 # math CANNOT be imported after PhysicalQInteractive. It will override the
 # functions defined there.
-import_all math IPython.Extensions.PhysicalQInteractive
+import_all math IPython.extensions.PhysicalQInteractive
 
 # from ... import ...
 import_some  

@@ -4,7 +4,7 @@ Register pretty-printers for types using ipy_pretty.for_type() or
 ipy_pretty.for_type_by_name(). For example, to use the example pretty-printer
 for numpy dtype objects, add the following to your ipy_user_conf.py::
 
-    from IPython.Extensions import ipy_pretty
+    from IPython.extensions import ipy_pretty
 
     ipy_pretty.activate()
 
@@ -82,7 +82,7 @@ def dtype_pprinter(obj, p, cycle):
 
 def test_pretty():
     """
-    In [1]: from IPython.Extensions import ipy_pretty
+    In [1]: from IPython.extensions import ipy_pretty
 
     In [2]: ipy_pretty.activate()
 
