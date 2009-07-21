@@ -23,6 +23,7 @@ import ctypes
 
 
 class InputHookManager(object):
+    """Manage PyOS_InputHook for different GUI toolkits."""
     
     def __init__(self):
         self.PYFUNC = ctypes.PYFUNCTYPE(ctypes.c_int)
@@ -34,12 +35,16 @@ class InputHookManager(object):
         self._installed = False
 
     def get_pyos_inputhook(self):
+        """Return the current PyOS_InputHook as a ctypes.c_void_p.
+        """
         return ctypes.c_void_p.in_dll(ctypes.pythonapi,"PyOS_InputHook")
 
     def get_pyos_inputhook_as_func(self):
+        """Return the current PyOS_InputHook as a ctypes.PYFUNCYPE.
+        """
         return self.PYFUNC.in_dll(ctypes.pythonapi,"PyOS_InputHook")
 
-    def set_inputhook(callback):
+    def set_inputhook(self, callback):
         """Set PyOS_InputHook to callback and return the previous one.
         """
         self._callback = callback
@@ -52,7 +57,8 @@ class InputHookManager(object):
         return original
 
     def clear_inputhook(self):
-        """Set PyOS_InputHook to NULL and return the previous one."""
+        """Set PyOS_InputHook to NULL and return the previous one.
+        """
         pyos_inputhook_ptr = self.get_pyos_inputhook()
         original = self.get_pyos_inputhook_as_func()
         pyos_inputhook_ptr.value = ctypes.c_void_p(None).value
@@ -60,13 +66,44 @@ class InputHookManager(object):
         return original
 
     def enable_wx(self):
+        """Enable event loop integration with wxPython.
+        
+        This methods sets the PyOS_InputHook for wxPython, which allows
+        the wxPython to integrate with terminal based applications like
+        IPython.
+        
+        Once this has been called, you can use wx interactively by doing::
+        
+            >>> import wx
+            >>> app = wx.App(redirect=False, clearSigInt=False)
+        
+        Both options this constructor are important for things to work
+        properly in an interactive context.
+        
+        But, *don't start the event loop*.  That is handled automatically by
+        PyOS_InputHook.
+        """
         from IPython.lib.inputhookwx import inputhook_wx
         self.set_inputhook(inputhook_wx)
 
     def disable_wx(self):
+        """Disable event loop integration with wxPython.
+        
+        This merely sets PyOS_InputHook to NULL.
+        """
         self.clear_inputhook()
 
     def enable_qt4(self):
+        """Enable event loop integration with PyQt4.
+        
+        This methods sets the PyOS_InputHook for wxPython, which allows
+        the PyQt4 to integrate with terminal based applications like
+        IPython.
+        
+        Once this has been called, you can simply create a QApplication and
+        use it.  But, *don't start the event loop*.  That is handled
+        automatically by PyOS_InputHook.
+        """
         from PyQt4 import QtCore
         # PyQt4 has had this since 4.3.1.  In version 4.2, PyOS_InputHook
         # was set when QtCore was imported, but if it ever got removed,
@@ -78,9 +115,23 @@ class InputHookManager(object):
             pass
 
     def disable_qt4(self):
+        """Disable event loop integration with PyQt4.
+        
+        This merely sets PyOS_InputHook to NULL.
+        """
         self.clear_inputhook()
 
     def enable_gtk(self):
+        """Enable event loop integration with PyGTK.
+        
+        This methods sets the PyOS_InputHook for PyGTK, which allows
+        the PyGTK to integrate with terminal based applications like
+        IPython.
+        
+        Once this has been called, you can simple create PyGTK objects and
+        use them.  But, *don't start the event loop*.  That is handled
+        automatically by PyOS_InputHook.
+        """
         import gtk
         try:
             gtk.set_interactive(True)
@@ -90,6 +141,10 @@ class InputHookManager(object):
             add_inputhook(inputhook_gtk)
 
     def disable_gtk(self):
+        """Disable event loop integration with PyGTK.
+        
+        This merely sets PyOS_InputHook to NULL.
+        """
         self.clear_inputhook()
 
     def enable_tk(self):
@@ -97,6 +152,10 @@ class InputHookManager(object):
         pass
 
     def disable_tk(self):
+        """Disable event loop integration with Tkinter.
+        
+        This merely sets PyOS_InputHook to NULL.
+        """
         self.clear_inputhook()
 
 inputhook_manager = InputHookManager()
@@ -109,3 +168,5 @@ enable_gtk = inputhook_manager.enable_gtk
 disable_gtk = inputhook_manager.disable_gtk
 enable_tk = inputhook_manager.enable_tk
 disable_tk = inputhook_manager.disable_tk
+clear_inputhook = inputhook_manager.clear_inputhook
+set_inputhook = inputhook_manager.set_inputhook

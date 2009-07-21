@@ -19,7 +19,8 @@ from IPython.lib.inputhook import (
     enable_wx, disable_wx,
     enable_gtk, disable_gtk,
     enable_qt4, disable_qt4,
-    enable_tk, disable_tk
+    enable_tk, disable_tk,
+    set_inputhook, clear_inputhook
 )
 
 #-----------------------------------------------------------------------------
