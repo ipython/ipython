@@ -60,7 +60,7 @@ class InputHookManager(object):
         return original
 
     def enable_wx(self):
-        from IPython.lib.guiloop.inputhookwx import inputhook_wx
+        from IPython.lib.inputhookwx import inputhook_wx
         self.set_inputhook(inputhook_wx)
 
     def disable_wx(self):
@@ -86,7 +86,7 @@ class InputHookManager(object):
             gtk.set_interactive(True)
         except AttributeError:
             # For older versions of gtk, use our own ctypes version
-            from IPython.lib.guiloop.inputhookgtk import inputhook_gtk
+            from IPython.lib.inputhookgtk import inputhook_gtk
             add_inputhook(inputhook_gtk)
 
     def disable_gtk(self):
@@ -107,3 +107,5 @@ enable_qt4 = inputhook_manager.enable_qt4
 disable_qt4 = inputhook_manager.disable_qt4
 enable_gtk = inputhook_manager.enable_gtk
 disable_gtk = inputhook_manager.disable_gtk
+enable_tk = inputhook_manager.enable_tk
+disable_tk = inputhook_manager.disable_tk
