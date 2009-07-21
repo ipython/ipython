@@ -39,83 +39,6 @@ USAGE
        In the rest of this text, we will refer to this directory as
        IPYTHONDIR.
 
-
-SPECIAL THREADING OPTIONS
-       The following special options are ONLY valid at the  beginning  of  the
-       command line, and not later.  This is because they control the initial-
-       ization of ipython itself, before the normal option-handling  mechanism
-       is active.
-
-       -gthread, -qthread, -q4thread, -wthread, -pylab
-
-              Only ONE of these can be given, and it can only be given as the
-              first option passed to IPython (it will have no effect in any
-              other position).  They provide threading support for the GTK, QT
-              and WXWidgets toolkits, and for the matplotlib library.
-
-              With any of the first four options, IPython starts running a
-              separate thread for the graphical toolkit's operation, so that
-              you can open and control graphical elements from within an
-              IPython command line, without blocking.  All four provide
-              essentially the same functionality, respectively for GTK, QT3,
-              QT4 and WXWidgets (via their Python interfaces).
-
-              Note that with -wthread, you can additionally use the -wxversion
-              option to request a specific version of wx to be used.  This
-              requires that you have the 'wxversion' Python module installed,
-              which is part of recent wxPython distributions.
-
-              If -pylab is given, IPython loads special support for the mat-
-              plotlib library (http://matplotlib.sourceforge.net), allowing
-              interactive usage of any of its backends as defined in the
-              user's .matplotlibrc file.  It automatically activates GTK, QT
-              or WX threading for IPyhton if the choice of matplotlib backend
-              requires it.  It also modifies the %run command to correctly
-              execute (without blocking) any matplotlib-based script which
-              calls show() at the end.
-
-       -tk    The -g/q/q4/wthread options, and -pylab (if matplotlib is
-              configured to use GTK, QT or WX), will normally block Tk
-              graphical interfaces.  This means that when GTK, QT or WX
-              threading is active, any attempt to open a Tk GUI will result in
-              a dead window, and possibly cause the Python interpreter to
-              crash.  An extra option, -tk, is available to address this
-              issue.  It can ONLY be given as a SECOND option after any of the
-              above (-gthread, -qthread, q4thread, -wthread or -pylab).
-
-              If -tk is given, IPython will try to coordinate Tk threading
-              with GTK, QT or WX.  This is however potentially unreliable, and
-              you will have to test on your platform and Python configuration
-              to determine whether it works for you.  Debian users have
-              reported success, apparently due to the fact that Debian builds
-              all of Tcl, Tk, Tkinter and Python with pthreads support.  Under
-              other Linux environments (such as Fedora Core 2/3), this option
-              has caused random crashes and lockups of the Python interpreter.
-              Under other operating systems (Mac OSX and Windows), you'll need
-              to try it to find out, since currently no user reports are
-              available.
-
-              There is unfortunately no way for IPython to determine  at  run-
-              time  whether -tk will work reliably or not, so you will need to
-              do some experiments before relying on it for regular work.
-
-A WARNING ABOUT SIGNALS AND THREADS
-
-       When any of the thread systems (GTK, QT or WX) are active, either
-       directly or via -pylab with a threaded backend, it is impossible to
-       interrupt long-running Python code via Ctrl-C.  IPython can not pass
-       the KeyboardInterrupt exception (or the underlying SIGINT) across
-       threads, so any long-running process started from IPython will run to
-       completion, or will have to be killed via an external (OS-based)
-       mechanism.
-
-       To the best of my knowledge, this limitation is imposed by the Python
-       interpreter itself, and it comes from the difficulty of writing
-       portable signal/threaded code.  If any user is an expert on this topic
-       and can suggest a better solution, I would love to hear about it.  In
-       the IPython sources, look at the shell.py module, and in particular at
-       the runcode() method.
-
 REGULAR OPTIONS
        After the above threading options have been given, regular options  can
        follow  in any order.  All options can be abbreviated to their shortest
@@ -131,16 +54,6 @@ REGULAR OPTIONS
 
        -h, --help
               Show summary of options.
-
-       -pylab This can only be given as the first option passed to IPython (it
-              will have no effect in any other position). It adds special sup-
-              port   for  the  matplotlib  library  (http://matplotlib.source-
-              forge.net), allowing interactive usage of any of its backends as
-              defined  in  the  user's  .matplotlibrc  file.  It automatically
-              activates GTK or WX threading for IPyhton if the choice of  mat-
-              plotlib  backend requires it.  It also modifies the @run command
-              to correctly execute  (without  blocking)  any  matplotlib-based
-              script which calls show() at the end.
 
        -autocall <val>
               Make IPython automatically call any callable object even if you
