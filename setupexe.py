@@ -9,7 +9,7 @@ r"""Setup script for exe distribution of IPython (does not require python).
 svn co http://ipython.scipy.org/svn/ipython/pyreadline/branches/maintenance_1.3/pyreadline/  
 wget http://ipython.scipy.org/svn/ipython/pyreadline/branches/maintenance_1.3/readline.py
 
-OR (if you want the latest trunk):  
+OR (if you want the latest trunk):
   
 svn co http://ipython.scipy.org/svn/ipython/pyreadline/trunk/pyreadline
 
@@ -43,7 +43,7 @@ import py2exe
 
 # update the manuals when building a source dist
 # Release.py contains version, authors, license, url, keywords, etc.
-execfile(pjoin('IPython','Release.py'))
+execfile(pjoin('IPython','core','release.py'))
 
 # A little utility we'll need below, since glob() does NOT allow you to do
 # exclusion on multiple endings!
@@ -65,7 +65,8 @@ setup(name             = name,
     options   = {
     'py2exe': {
         'packages' : ['IPython', 'IPython.extensions', 'IPython.external',
-                      'pyreadline'],
+                      'pyreadline','config','core','deathrow','lib',
+                      'scripts','testing','utils'],
         'excludes' : ["Tkconstants","Tkinter","tcl",'IPython.igrid','wx',
                       'wxPython','igrid', 'PyQt4', 'zope', 'Zope', 'Zope2',
                       '_curses','enthought.traits','gtk','qt', 'pydb','idlelib',                      
