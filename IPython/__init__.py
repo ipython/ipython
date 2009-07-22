@@ -59,6 +59,9 @@ for name in __all__:
     __import__(name,glob,loc,[])
 
 from IPython.core import shell
+Shell = shell
+from IPython.core import ipapi
+from IPython.core import iplib
 
 # Release data
 from IPython.core import release # do it explicitly so pydoc can see it - pydoc bug
