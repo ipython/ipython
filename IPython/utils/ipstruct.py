@@ -11,12 +11,13 @@
 
 __all__ = ['Struct']
 
+import inspect
 import types
 import pprint
 
 from IPython.utils.genutils import list2dict2
 
-class Struct:
+class Struct(object):
     """Class to mimic C structs but also provide convenient dictionary-like
     functionality.
 
@@ -105,222 +106,224 @@ class Struct:
                    'merge popitem setdefault update values '
                    '__make_dict __dict_invert ').split()
 
-    def __init__(self,dict=None,**kw):
-        """Initialize with a dictionary, another Struct, or by giving
-        explicitly the list of attributes.
+    def __init__(self,data=None,**kw):
+        """Initialize with a dictionary, another Struct, or data.
 
-        Both can be used, but the dictionary must come first:
-        Struct(dict), Struct(k1=v1,k2=v2) or Struct(dict,k1=v1,k2=v2).
+        Parameters
+        ----------
+        data : dict, Struct
+            Initialize with this data.
+        kw : dict
+            Initialize with key, value pairs.
+
+        Examples
+        --------
+        
         """
-        self.__dict__['__allownew'] = True
-        if dict is None:
-            dict = {}
-        if isinstance(dict,Struct):
-            dict = dict.dict()
-        elif dict and  type(dict) is not types.DictType:
-            raise TypeError,\
-                  'Initialize with a dictionary or key=val pairs.'
-        dict.update(kw)
+        object.__setattr__(self, '_allownew', True)
+        object.__setattr__(self, '_data',{})
+        if data is None:
+            data = {}
+        if isinstance(data, Struct):
+            data = data.dict()
+        elif data and not isinstance(data, dict):
+            raise TypeError('initialize with a dict, Struct or key=val pairs')
+        data.update(kw)
         # do the updating by hand to guarantee that we go through the
         # safety-checked __setitem__
-        for k,v in dict.items():
+        for k, v in data.items():
             self[k] = v
-        
 
-    def __setitem__(self,key,value):
+    def __setitem__(self, key, value):
         """Used when struct[key] = val calls are made."""
-        if key in Struct.__protected:
-            raise KeyError,'Key '+`key`+' is a protected key of class Struct.'
-        if not self['__allownew'] and key not in self.__dict__:
+        if isinstance(key, str):
+            # I can't simply call hasattr here because it calls getattr, which
+            # calls self.__getattr__, which returns True for keys in 
+            # self._data.  But I only want keys in the class and in
+            # self.__dict__
+            if key in self.__dict__ or hasattr(Struct, key):
+                raise KeyError(
+                    'key %s is a protected key of class Struct.' % key
+                )
+        if not self._allownew and key not in self._data:
             raise KeyError(
-            "Can't create unknown attribute %s - Check for typos, or use allow_new_attr to create new attributes!" %
-            key)
-            
-        self.__dict__[key] = value
+                "can't create unknown attribute %s. Check for typos, or use allow_new_attr" % key)
+        self._data[key] = value
 
     def __setattr__(self, key, value):
-        """Used when struct.key = val calls are made."""
-        self.__setitem__(key,value)
+        self.__setitem__(key, value)
+
+    def __getattr__(self, key):
+        try:
+            result = self._data[key]
+        except KeyError:
+            raise AttributeError(key)
+        else:
+            return result
+
+    def __getitem__(self, key):
+        return self._data[key]
 
     def __str__(self):
-        """Gets called by print."""
-        
-        return 'Struct('+ pprint.pformat(self.__dict__)+')'
+        return 'Struct('+ pprint.pformat(self._data)+')'
 
     def __repr__(self):
-        """Gets called by repr.
-        
-        A Struct can be recreated with S_new=eval(repr(S_old))."""
         return self.__str__()
 
-    def __getitem__(self,key):
-        """Allows struct[key] access."""
-        return self.__dict__[key]
+    def __contains__(self, key):
+        return key in self._data
 
-    def __contains__(self,key):
-        """Allows use of the 'in' operator.
-
-        Examples:
-        >>> s = Struct(x=1)
-        >>> 'x' in s
-        True
-        >>> 'y' in s
-        False
-        >>> s[4] = None
-        >>> 4 in s
-        True
-        >>> s.z = None
-        >>> 'z' in s
-        True
-        """
-        return key in self.__dict__
-
-    def __iadd__(self,other):
+    def __iadd__(self, other):
         """S += S2 is a shorthand for S.merge(S2)."""
         self.merge(other)
         return self
 
     def __add__(self,other):
-        """S + S2 -> New Struct made form S and S.merge(S2)"""
+        """S + S2 -> New Struct made from S.merge(S2)"""
         Sout = self.copy()
         Sout.merge(other)
         return Sout
 
     def __sub__(self,other):
-        """Return S1-S2, where all keys in S2 have been deleted (if present)
-        from S1."""
+        """Out of place remove keys from self that are in other."""
         Sout = self.copy()
         Sout -= other
         return Sout
 
     def __isub__(self,other):
-        """Do in place S = S - S2, meaning all keys in S2 have been deleted
-        (if present) from S1."""
-
+        """Inplace remove keys from self that are in other."""
         for k in other.keys():
             if self.has_key(k):
-                del self.__dict__[k]
+                del self._data[k]
 
     def __make_dict(self,__loc_data__,**kw):
-        "Helper function for update and merge. Return a dict from data."
-
+        """Helper function for update and merge. Return a dict from data.
+        """
         if __loc_data__ == None:
-            dict = {}
-        elif type(__loc_data__) is types.DictType:
-            dict = __loc_data__
-        elif isinstance(__loc_data__,Struct):
-            dict = __loc_data__.__dict__
+            data = {}
+        elif isinstance(__loc_data__, dict):
+            data = __loc_data__
+        elif isinstance(__loc_data__, Struct):
+            data = __loc_data__._data
         else:
-            raise TypeError, 'Update with a dict, a Struct or key=val pairs.'
+            raise TypeError('update with a dict, Struct or key=val pairs')
         if kw:
-            dict.update(kw)
-        return dict
-
-    def __dict_invert(self,dict):
-        """Helper function for merge. Takes a dictionary whose values are
-        lists and returns a dict. with the elements of each list as keys and
-        the original keys as values."""
-
+            data.update(kw)
+        return data
+    
+    def __dict_invert(self, data):
+        """Helper function for merge. 
+        
+        Takes a dictionary whose values are lists and returns a dict with 
+        the elements of each list as keys and the original keys as values.
+        """
         outdict = {}
-        for k,lst in dict.items():
-            if type(lst) is types.StringType:
+        for k,lst in data.items():
+            if isinstance(lst, str):
                 lst = lst.split()
             for entry in lst:
                 outdict[entry] = k
         return outdict
-
+    
     def clear(self):
         """Clear all attributes."""
-        self.__dict__.clear()
-
+        self._data.clear()
+    
     def copy(self):
         """Return a (shallow) copy of a Struct."""
-        return Struct(self.__dict__.copy())
-
+        return Struct(self._data.copy())
+    
     def dict(self):
         """Return the Struct's dictionary."""
-        return self.__dict__
-
+        return self._data
+    
     def dictcopy(self):
         """Return a (shallow) copy of the Struct's dictionary."""
-        return self.__dict__.copy()
+        return self._data.copy()
 
     def popitem(self):
-        """S.popitem() -> (k, v), remove and return some (key, value) pair as
-        a 2-tuple; but raise KeyError if S is empty."""
-        return self.__dict__.popitem()
-
+        """Return (key, value) tuple and remove from Struct.
+        
+        If key is not present raise KeyError.
+        """
+        return self._data.popitem()
+    
     def update(self,__loc_data__=None,**kw):
-        """Update (merge) with data from another Struct or from a dictionary.
-        Optionally, one or more key=value pairs can be given at the end for
-        direct update."""
-
+        """Update (merge) with data from another Struct or dict.
+        
+        Parameters
+        ----------
+        __loc_data : dict, Struct
+            The new data to add to self.
+        kw : dict
+            Key, value pairs to add to self.
+        """
         # The funny name __loc_data__ is to prevent a common variable name
         # which could be a fieled of a Struct to collide with this
         # parameter. The problem would arise if the function is called with a
         # keyword with this same name that a user means to add as a Struct
         # field.
-        newdict = Struct.__make_dict(self,__loc_data__,**kw)
-        for k,v in newdict.iteritems():
+        newdict = self.__make_dict(__loc_data__, **kw)
+        for k, v in newdict.iteritems():
             self[k] = v
-
-    def merge(self,__loc_data__=None,__conflict_solve=None,**kw):
+    
+    def merge(self, __loc_data__=None, __conflict_solve=None, **kw):
         """S.merge(data,conflict,k=v1,k=v2,...) -> merge data and k=v into S.
-
+    
         This is similar to update(), but much more flexible.  First, a dict is
         made from data+key=value pairs. When merging this dict with the Struct
         S, the optional dictionary 'conflict' is used to decide what to do.
-
+    
         If conflict is not given, the default behavior is to preserve any keys
         with their current value (the opposite of the update method's
         behavior).
-
+    
         conflict is a dictionary of binary functions which will be used to
         solve key conflicts. It must have the following structure:
-
+    
           conflict == { fn1 : [Skey1,Skey2,...], fn2 : [Skey3], etc }
-
+    
         Values must be lists or whitespace separated strings which are
         automatically converted to lists of strings by calling string.split().
-
+    
         Each key of conflict is a function which defines a policy for
         resolving conflicts when merging with the input data. Each fn must be
         a binary function which returns the desired outcome for a key
         conflict. These functions will be called as fn(old,new).
-
+    
         An example is probably in order. Suppose you are merging the struct S
         with a dict D and the following conflict policy dict:
-
+    
             S.merge(D,{fn1:['a','b',4], fn2:'key_c key_d'})
-
+    
         If the key 'a' is found in both S and D, the merge method will call:
-
+    
             S['a'] = fn1(S['a'],D['a'])
-
+    
         As a convenience, merge() provides five (the most commonly needed)
         pre-defined policies: preserve, update, add, add_flip and add_s. The
         easiest explanation is their implementation:
-
+    
           preserve = lambda old,new: old
           update   = lambda old,new: new
           add      = lambda old,new: old + new
           add_flip = lambda old,new: new + old  # note change of order!
           add_s    = lambda old,new: old + ' ' + new  # only works for strings!
-
+    
         You can use those four words (as strings) as keys in conflict instead
         of defining them as functions, and the merge method will substitute
         the appropriate functions for you. That is, the call
-
+    
           S.merge(D,{'preserve':'a b c','add':[4,5,'d'],my_function:[6]})
-
+    
         will automatically substitute the functions preserve and add for the
         names 'preserve' and 'add' before making any function calls.
-
+    
         For more complicated conflict resolution policies, you still need to
         construct your own functions. """
-
-        data_dict = Struct.__make_dict(self,__loc_data__,**kw)
-
+    
+        data_dict = self.__make_dict(__loc_data__,**kw)
+    
         # policies for conflict resolution: two argument functions which return
         # the value that will go in the new struct
         preserve = lambda old,new: old
@@ -328,10 +331,10 @@ class Struct:
         add      = lambda old,new: old + new
         add_flip = lambda old,new: new + old  # note change of order!
         add_s    = lambda old,new: old + ' ' + new
-
+    
         # default policy is to keep current keys when there's a conflict
-        conflict_solve = list2dict2(self.keys(),default = preserve)
-
+        conflict_solve = list2dict2(self.keys(), default = preserve)
+    
         # the conflict_solve dictionary is given by the user 'inverted': we
         # need a name-function mapping, it comes as a function -> names
         # dict. Make a local copy (b/c we'll make changes), replace user
@@ -344,7 +347,7 @@ class Struct:
                 if name in inv_conflict_solve_user.keys():
                     inv_conflict_solve_user[func] = inv_conflict_solve_user[name]
                     del inv_conflict_solve_user[name]
-            conflict_solve.update(Struct.__dict_invert(self,inv_conflict_solve_user))
+            conflict_solve.update(self.__dict_invert(inv_conflict_solve_user))
         #print 'merge. conflict_solve: '; pprint(conflict_solve) # dbg
         #print '*'*50,'in merger. conflict_solver:';  pprint(conflict_solve)
         for key in data_dict:
@@ -352,64 +355,62 @@ class Struct:
                 self[key] = data_dict[key]
             else:
                 self[key] = conflict_solve[key](self[key],data_dict[key])
-
+    
     def has_key(self,key):
         """Like has_key() dictionary method."""
-        return self.__dict__.has_key(key)
-
+        return self._data.has_key(key)
+    
     def hasattr(self,key):
         """hasattr function available as a method.
-
+    
         Implemented like has_key, to make sure that all available keys in the
         internal dictionary of the Struct appear also as attributes (even
         numeric keys)."""
-        return self.__dict__.has_key(key)
-
+        return self._data.has_key(key)
+    
     def items(self):
-        """Return the items in the Struct's dictionary, in the same format
-        as a call to {}.items()."""
-        return self.__dict__.items()
-
+        """Return the items in the Struct's dictionary as (key, value)'s."""
+        return self._data.items()
+    
     def keys(self):
-        """Return the keys in the Struct's dictionary, in the same format
-        as a call to {}.keys()."""
-        return self.__dict__.keys()
-
-    def values(self,keys=None):
-        """Return the values in the Struct's dictionary, in the same format
-        as a call to {}.values().
-
+        """Return the keys in the Struct's dictionary.."""
+        return self._data.keys()
+    
+    def values(self, keys=None):
+        """Return the values in the Struct's dictionary.
+    
         Can be called with an optional argument keys, which must be a list or
         tuple of keys. In this case it returns only the values corresponding
-        to those keys (allowing a form of 'slicing' for Structs)."""
+        to those keys (allowing a form of 'slicing' for Structs).
+        """
         if not keys:
-            return self.__dict__.values()
+            return self._data.values()
         else:
-            ret=[]
+            result=[]
             for k in keys:
-                ret.append(self[k])
-            return ret
-
-    def get(self,attr,val=None):
+                result.append(self[k])
+            return result
+    
+    def get(self, attr, val=None):
         """S.get(k[,d]) -> S[k] if k in S, else d.  d defaults to None."""
         try:
             return self[attr]
         except KeyError:
             return val
-
-    def setdefault(self,attr,val=None):
+    
+    def setdefault(self, attr, val=None):
         """S.setdefault(k[,d]) -> S.get(k,d), also set S[k]=d if k not in S"""
-        if not self.has_key(attr):
+        if not self._data.has_key(attr):
             self[attr] = val
-        return self.get(attr,val)
+        return self.get(attr, val)
     
     def allow_new_attr(self, allow = True):
-        """ Set whether new attributes can be created inside struct
+        """Set whether new attributes can be created in this Struct.
         
         This can be used to catch typos by verifying that the attribute user
         tries to change already exists in this Struct.
         """
-        self['__allownew'] = allow
+        object.__setattr__(self, '_allownew', allow)
         
         
 # end class Struct

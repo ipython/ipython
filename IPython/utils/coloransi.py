@@ -111,7 +111,7 @@ class ColorScheme:
         """Return a full copy of the object, optionally renaming it."""
         if name is None:
             name = self.name
-        return ColorScheme(name,self.colors.__dict__)
+        return ColorScheme(name, self.colors.dict())
         
 class ColorSchemeTable(dict):
     """General class to handle tables of color schemes.
