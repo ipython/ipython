@@ -483,10 +483,10 @@ object?   -> Details about 'object'. ?object also works, ?? prints more.
     
     IP_rc.update(opts_def)
     if rcfiledata:
-        # now we can update 
         IP_rc.update(rcfiledata)
     IP_rc.update(opts)
-    IP_rc.update(rc_override)
+    if rc_override is not None:
+        IP_rc.update(rc_override)
 
     # Store the original cmd line for reference:
     IP_rc.opts = opts
