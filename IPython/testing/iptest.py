@@ -55,6 +55,8 @@ have_twisted = test_for('twisted')
 have_foolscap = test_for('foolscap')
 have_objc = test_for('objc')
 have_pexpect = test_for('pexpect')
+have_gtk = test_for('gtk')
+have_gobject = test_for('gobject')
 
 
 def make_exclude():
@@ -73,13 +75,18 @@ def make_exclude():
                pjoin('IPython', 'extensions', 'numeric_formats'),
                pjoin('IPython', 'testing', 'attic'),
                pjoin('IPython', 'testing', 'tools'),
-               pjoin('IPython', 'testing', 'mkdoctests')
+               pjoin('IPython', 'testing', 'mkdoctests'),
+               pjoin('IPython', 'lib', 'inputhook')
                ]
 
     if not have_wx:
         EXCLUDE.append(pjoin('IPython', 'extensions', 'igrid'))
         EXCLUDE.append(pjoin('IPython', 'gui'))
         EXCLUDE.append(pjoin('IPython', 'frontend', 'wx'))
+        EXCLUDE.append(pjoin('IPython', 'lib', 'inputhookwx'))
+
+    if not have_gtk or not have_gobject:
+        EXCLUDE.append(pjoin('IPython', 'lib', 'inputhookgtk'))
 
     if not have_objc:
         EXCLUDE.append(pjoin('IPython', 'frontend', 'cocoa'))
