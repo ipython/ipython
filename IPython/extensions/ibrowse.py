@@ -2,7 +2,7 @@
 
 import curses, fcntl, signal, struct, tty, textwrap, inspect
 
-from IPython.coreZ import ipapi
+from IPython.core import ipapi
 
 import astyle, ipipe
 
