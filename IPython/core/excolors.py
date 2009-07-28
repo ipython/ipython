@@ -34,9 +34,9 @@ def exception_colors():
     >>> ec.active_scheme_name
     'NoColor'
     >>> ec.active_colors.keys()
-    ['em', 'caret', '__allownew', 'name', 'val', 'vName', 'Normal', 'normalEm',
-    'filename', 'linenoEm', 'excName', 'lineno', 'valEm', 'filenameEm',
-    'nameEm', 'line', 'topline']
+    ['em', 'filenameEm', 'excName', 'valEm', 'nameEm', 'line', 'topline', 
+    'name', 'caret', 'val', 'vName', 'Normal', 'filename', 'linenoEm', 
+    'lineno', 'normalEm']
     """
     
     ex_colors = ColorSchemeTable()
