@@ -90,7 +90,7 @@ from inspect import getsourcefile, getfile, getmodule,\
 
 # IPython's own modules
 # Modified pdb which doesn't damage IPython's readline handling
-from IPython import Debugger, PyColorize
+from IPython import Debugger, PyColorize, ipapi
 from IPython.ipstruct import Struct
 from IPython.excolors import exception_colors
 from IPython.genutils import Term,uniq_stable,error,info
@@ -268,9 +268,7 @@ def _formatTracebackLines(lnum, index, lines, Colors, lvals=None,scheme=None):
     # This lets us get fully syntax-highlighted tracebacks.
     if scheme is None:
         try:
-            # Again, reference to a global __IPYTHON__ that doesn't exist.
-            # XXX
-            scheme = __IPYTHON__.rc.colors
+            scheme = ipapi.get().IP.rc.colors
         except:
             scheme = DEFAULT_SCHEME
     _line_format = _parser.format2
@@ -489,14 +487,10 @@ class ListTB(TBTools):
             else:
                 list.append('%s\n' % str(stype))
 
-        # This is being commented out for now as the __IPYTHON__ variable
-        # referenced here is not resolved and causes massive test failures
-        # and errors. B. Granger, 04/2009. XXX
-        # See https://bugs.launchpad.net/bugs/362137
-        # # vds:>>
-        # if have_filedata:
-        #     __IPYTHON__.hooks.synchronize_with_editor(filename, lineno, 0)
-        # # vds:<<
+        # vds:>>
+        if have_filedata:
+            ipapi.get().IP.hooks.synchronize_with_editor(filename, lineno, 0)
+        # vds:<<
 
         return list
 
@@ -810,17 +804,13 @@ class VerboseTB(TBTools):
                 value = text_repr(getattr(evalue, name))
                 exception.append('\n%s%s = %s' % (indent, name, value))
 
-        # This is being commented out for now as the __IPYTHON__ variable
-        # referenced here is not resolved and causes massive test failures
-        # and errors. B. Granger, 04/2009. XXX
-        # See https://bugs.launchpad.net/bugs/362137
-        # # vds: >>
-        # if records:
-        #      filepath, lnum = records[-1][1:3]
-        #      #print "file:", str(file), "linenb", str(lnum) # dbg
-        #      filepath = os.path.abspath(filepath)
-        #      __IPYTHON__.hooks.synchronize_with_editor(filepath, lnum, 0)
-        # # vds: <<
+        # vds: >>
+        if records:
+             filepath, lnum = records[-1][1:3]
+             #print "file:", str(file), "linenb", str(lnum) # dbg
+             filepath = os.path.abspath(filepath)
+             ipapi.get().IP.hooks.synchronize_with_editor(filepath, lnum, 0)
+        # vds: <<
                 
         # return all our info assembled as a single string
         return '%s\n\n%s\n%s' % (head,'\n'.join(frames),''.join(exception[0]) )
