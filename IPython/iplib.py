@@ -2209,7 +2209,7 @@ class InteractiveShell(object,Magic):
 
         try:
             code = self.compile(source,filename,symbol)
-        except (OverflowError, SyntaxError, ValueError, TypeError):
+        except (OverflowError, SyntaxError, ValueError, TypeError, MemoryError):
             # Case 1
             self.showsyntaxerror(filename)
             return None
