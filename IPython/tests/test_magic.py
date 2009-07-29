@@ -35,13 +35,6 @@ def test_rehashx():
     yield (nt.assert_true, len(scoms) > 10)
 
 
-## def doctest_lsmagic():
-##     """
-##     In [15]: %lsmagic
-##     Available magic functions:
-##     %Exit
-## """
-
 def doctest_hist_f():
     """Test %hist -f with temporary filename.
 
