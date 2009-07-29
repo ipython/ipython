@@ -25,15 +25,22 @@ def test_rehashx():
     _ip.magic('rehashx')
     # Practically ALL ipython development systems will have more than 10 aliases
 
-    assert len(_ip.IP.alias_table) > 10
+    yield (nt.assert_true, len(_ip.IP.alias_table) > 10)
     for key, val in _ip.IP.alias_table.items():
         # we must strip dots from alias names
-        assert '.' not in key
+        nt.assert_true('.' not in key)
 
     # rehashx must fill up syscmdlist
     scoms = _ip.db['syscmdlist']
-    assert len(scoms) > 10
+    yield (nt.assert_true, len(scoms) > 10)
 
+
+## def doctest_lsmagic():
+##     """
+##     In [15]: %lsmagic
+##     Available magic functions:
+##     %Exit
+## """
 
 def doctest_hist_f():
     """Test %hist -f with temporary filename.
@@ -42,7 +49,8 @@ def doctest_hist_f():
 
     In [10]: tfile = tempfile.mktemp('.py','tmp-ipython-')
 
-    In [11]: %history -n -f $tfile 3
+    In [11]: %hist -n -f $tfile 3
+
     """
 
 
@@ -51,9 +59,12 @@ def doctest_hist_r():
 
     XXX - This test is not recording the output correctly.  Not sure why...
 
+    In [20]: 'hist' in _ip.IP.lsmagic()
+    Out[20]: True
+
     In [6]: x=1
 
-    In [7]: hist -n -r 2
+    In [7]: %hist -n -r 2
     x=1  # random
     hist -n -r 2  # random
     """
@@ -94,12 +105,13 @@ def test_shist():
     
 @dec.skipif_not_numpy
 def test_numpy_clear_array_undec():
+    from IPython.Extensions import clearcmd
+
     _ip.ex('import numpy as np')
     _ip.ex('a = np.empty(2)')
-    
-    yield nt.assert_true,'a' in _ip.user_ns
+    yield (nt.assert_true, 'a' in _ip.user_ns)
     _ip.magic('clear array')
-    yield nt.assert_false,'a' in _ip.user_ns
+    yield (nt.assert_false, 'a' in _ip.user_ns)
     
 
 @dec.skip()

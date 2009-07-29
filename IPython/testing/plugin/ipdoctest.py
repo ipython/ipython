@@ -207,6 +207,15 @@ def start_ipython():
     _ip.IP.magic_run_ori = _ip.IP.magic_run
     _ip.IP.magic_run = im
 
+    # XXX - For some very bizarre reason, the loading of %history by default is
+    # failing.  This needs to be fixed later, but for now at least this ensures
+    # that tests that use %hist run to completion.
+    from IPython import history
+    history.init_ipython(_ip)
+    if not hasattr(_ip.IP,'magic_history'):
+        raise RuntimeError("Can't load magics, aborting")
+
+
 # The start call MUST be made here.  I'm not sure yet why it doesn't work if
 # it is made later, at plugin initialization time, but in all my tests, that's
 # the case.
