@@ -447,29 +447,30 @@ class ConsoleWidget(editwindow.EditWindow):
         #  different callbacks share local variables?
 
         # Intercept some specific keys.
-        if event.KeyCode == ord('L') and event.ControlDown() :
+        key_code = event.GetKeyCode()
+        if key_code == ord('L') and event.ControlDown() :
             self.scroll_to_bottom()
-        elif event.KeyCode == ord('K') and event.ControlDown() :
+        elif key_code == ord('K') and event.ControlDown() :
             self.input_buffer = ''
-        elif event.KeyCode == ord('A') and event.ControlDown() :
+        elif key_code == ord('A') and event.ControlDown() :
             self.GotoPos(self.GetLength())
             self.SetSelectionStart(self.current_prompt_pos)
             self.SetSelectionEnd(self.GetCurrentPos())
             catched = True
-        elif event.KeyCode == ord('E') and event.ControlDown() :
+        elif key_code == ord('E') and event.ControlDown() :
             self.GotoPos(self.GetLength())
             catched = True
-        elif event.KeyCode == wx.WXK_PAGEUP:
+        elif key_code == wx.WXK_PAGEUP:
             self.ScrollPages(-1)
-        elif event.KeyCode == wx.WXK_PAGEDOWN:
+        elif key_code == wx.WXK_PAGEDOWN:
             self.ScrollPages(1)
-        elif event.KeyCode == wx.WXK_HOME:
+        elif key_code == wx.WXK_HOME:
             self.GotoPos(self.GetLength())
-        elif event.KeyCode == wx.WXK_END:
+        elif key_code == wx.WXK_END:
             self.GotoPos(self.GetLength())
-        elif event.KeyCode == wx.WXK_UP and event.ShiftDown():
+        elif key_code == wx.WXK_UP and event.ShiftDown():
             self.ScrollLines(-1)
-        elif event.KeyCode == wx.WXK_DOWN and event.ShiftDown():
+        elif key_code == wx.WXK_DOWN and event.ShiftDown():
             self.ScrollLines(1)
         else:
             catched = False
@@ -477,13 +478,12 @@ class ConsoleWidget(editwindow.EditWindow):
         if self.AutoCompActive():
             event.Skip()
         else:
-            if event.KeyCode in (13, wx.WXK_NUMPAD_ENTER) and \
-                                event.Modifiers in (wx.MOD_NONE, wx.MOD_WIN,
-                                                    wx.MOD_SHIFT):
+            if key_code in (13, wx.WXK_NUMPAD_ENTER):
+                # XXX: not catching modifiers, to be wx2.6-compatible
                 catched = True
                 if not self.enter_catched:
                     self.CallTipCancel()
-                    if event.Modifiers == wx.MOD_SHIFT:
+                    if event.ShiftDown():
                         # Try to force execution
                         self.GotoPos(self.GetLength())
                         self.write('\n' + self.continuation_prompt(), 
@@ -493,19 +493,18 @@ class ConsoleWidget(editwindow.EditWindow):
                         self._on_enter()
                     self.enter_catched = True
 
-            elif event.KeyCode == wx.WXK_HOME:
-                if event.Modifiers in (wx.MOD_NONE, wx.MOD_WIN):
+            elif key_code == wx.WXK_HOME:
+                if not event.ShiftDown():
                     self.GotoPos(self.current_prompt_pos)
                     catched = True
-
-                elif event.Modifiers == wx.MOD_SHIFT:
+                else:
                     # FIXME: This behavior is not ideal: if the selection
                     # is already started, it will jump.
                     self.SetSelectionStart(self.current_prompt_pos) 
                     self.SetSelectionEnd(self.GetCurrentPos())
                     catched = True
 
-            elif event.KeyCode == wx.WXK_UP:
+            elif key_code == wx.WXK_UP:
                 if self.GetCurrentLine() > self.current_prompt_line:
                     if self.GetCurrentLine() == self.current_prompt_line + 1 \
                             and self.GetColumn(self.GetCurrentPos()) < \
@@ -515,18 +514,18 @@ class ConsoleWidget(editwindow.EditWindow):
                         event.Skip()
                 catched = True
 
-            elif event.KeyCode in (wx.WXK_LEFT, wx.WXK_BACK):
+            elif key_code in (wx.WXK_LEFT, wx.WXK_BACK):
                 if not self._keep_cursor_in_buffer(self.GetCurrentPos() - 1):
                     event.Skip()
                 catched = True
 
-            elif event.KeyCode == wx.WXK_RIGHT:
+            elif key_code == wx.WXK_RIGHT:
                 if not self._keep_cursor_in_buffer(self.GetCurrentPos() + 1):
                     event.Skip()
                 catched = True
 
 
-            elif event.KeyCode == wx.WXK_DELETE:
+            elif key_code == wx.WXK_DELETE:
                 if not self._keep_cursor_in_buffer(self.GetCurrentPos() - 1):
                     event.Skip()
                 catched = True
@@ -535,7 +534,7 @@ class ConsoleWidget(editwindow.EditWindow):
                 # Put the cursor back in the edit region
                 if not self._keep_cursor_in_buffer():
                     if not (self.GetCurrentPos() == self.GetLength()
-                                and event.KeyCode == wx.WXK_DELETE):
+                                and key_code == wx.WXK_DELETE):
                         event.Skip()
                     catched = True
 
