@@ -90,7 +90,7 @@ from inspect import getsourcefile, getfile, getmodule,\
 
 # IPython's own modules
 # Modified pdb which doesn't damage IPython's readline handling
-from IPython import Debugger, PyColorize
+from IPython import Debugger, PyColorize, ipapi
 from IPython.ipstruct import Struct
 from IPython.excolors import exception_colors
 from IPython.genutils import Term,uniq_stable,error,info
@@ -268,7 +268,7 @@ def _formatTracebackLines(lnum, index, lines, Colors, lvals=None,scheme=None):
     # This lets us get fully syntax-highlighted tracebacks.
     if scheme is None:
         try:
-            scheme = __IPYTHON__.rc.colors
+            scheme = ipapi.get().IP.rc.colors
         except:
             scheme = DEFAULT_SCHEME
     _line_format = _parser.format2
@@ -489,7 +489,7 @@ class ListTB(TBTools):
 
         # vds:>>
         if have_filedata:
-            __IPYTHON__.hooks.synchronize_with_editor(filename, lineno, 0)
+            ipapi.get().IP.hooks.synchronize_with_editor(filename, lineno, 0)
         # vds:<<
 
         return list
@@ -809,7 +809,7 @@ class VerboseTB(TBTools):
              filepath, lnum = records[-1][1:3]
              #print "file:", str(file), "linenb", str(lnum) # dbg
              filepath = os.path.abspath(filepath)
-             __IPYTHON__.hooks.synchronize_with_editor(filepath, lnum, 0)
+             ipapi.get().IP.hooks.synchronize_with_editor(filepath, lnum, 0)
         # vds: <<
                 
         # return all our info assembled as a single string
