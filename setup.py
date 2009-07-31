@@ -78,14 +78,38 @@ if len(sys.argv) >= 2 and sys.argv[1] in ('sdist','bdist_rpm'):
                   #('docs/magic.tex',
                   #['IPython/Magic.py'],
                   #"cd doc && ./update_magic.sh" ),
-                 
+
+                 ('docs/man/ipcluster.1.gz',
+                  ['docs/man/ipcluster.1'],
+                  'cd docs/man && gzip -9c ipcluster.1 > ipcluster.1.gz'),
+
+                 ('docs/man/ipcontroller.1.gz',
+                  ['docs/man/ipcontroller.1'],
+                  'cd docs/man && gzip -9c ipcontroller.1 > ipcontroller.1.gz'),
+
+                 ('docs/man/ipengine.1.gz',
+                  ['docs/man/ipengine.1'],
+                  'cd docs/man && gzip -9c ipengine.1 > ipengine.1.gz'),
+
                  ('docs/man/ipython.1.gz',
                   ['docs/man/ipython.1'],
-                  "cd docs/man && gzip -9c ipython.1 > ipython.1.gz"),
+                  'cd docs/man && gzip -9c ipython.1 > ipython.1.gz'),
+
+                 ('docs/man/ipython-wx.1.gz',
+                  ['docs/man/ipython-wx.1'],
+                  'cd docs/man && gzip -9c ipython-wx.1 > ipython-wx.1.gz'),
+
+                 ('docs/man/ipythonx.1.gz',
+                  ['docs/man/ipythonx.1'],
+                  'cd docs/man && gzip -9c ipythonx.1 > ipythonx.1.gz'),
+
+                 ('docs/man/irunner.1.gz',
+                  ['docs/man/irunner.1'],
+                  'cd docs/man && gzip -9c irunner.1 > irunner.1.gz'),
 
                  ('docs/man/pycolor.1.gz',
                   ['docs/man/pycolor.1'],
-                  "cd docs/man && gzip -9c pycolor.1 > pycolor.1.gz"),
+                  'cd docs/man && gzip -9c pycolor.1 > pycolor.1.gz'),
                  ]
 
     # Only build the docs if sphinx is present
