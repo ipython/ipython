@@ -111,6 +111,13 @@ has a few useful methods for navigation, like again(), edit(), jump(), seek()
 and back().  It can be reset for a new run via reset() or reloaded from disk
 (in case you've edited the source) via reload().  See their docstrings below.
 
+Note: To make this simpler to explore, a file called "demo-exercizer.py" has
+been added to the "docs/examples/core" directory.  Just cd to this directory in
+an IPython session, and type::
+
+  %run demo-exercizer.py
+  
+and then follow the directions.
 
 Example
 =======
@@ -125,7 +132,7 @@ print 'Hello, welcome to an interactive IPython demo.'
 # The mark below defines a block boundary, which is a point where IPython will
 # stop execution and return to the interactive prompt. The dashes are actually
 # optional and used only as a visual aid to clearly separate blocks while
-editing the demo code.
+# editing the demo code.
 # <demo> stop
 
 x = 1
@@ -169,7 +176,7 @@ import shlex
 import sys
 
 from IPython.PyColorize import Parser
-from IPython.genutils import marquee, file_read, file_readlines
+from IPython.genutils import marquee, file_read, file_readlines, Term
 
 __all__ = ['Demo','IPythonDemo','LineDemo','IPythonLineDemo','DemoError']
 
@@ -185,7 +192,7 @@ class Demo(object):
     re_auto     = re_mark('auto')
     re_auto_all = re_mark('auto_all')
 
-    def __init__(self,fname,arg_str='',auto_all=None):
+    def __init__(self,src,title='',arg_str='',auto_all=None):
         """Make a new demo object.  To run the demo, simply call the object.
 
         See the module docstring for full details and an example (you can use
@@ -193,9 +200,14 @@ class Demo(object):
 
         Inputs:
         
-          - fname = filename.
+          - src is either a file, or file-like object, or a
+              string that can be resolved to a filename.
 
         Optional inputs:
+        
+          - title: a string to use as the demo name.  Of most use when the demo
+          you are making comes from an object that has no filename, or if you 
+          want an alternate denotation distinct from the filename.
 
           - arg_str(''): a string of arguments, internally converted to a list
           just like sys.argv, so the demo script can see a similar
@@ -207,9 +219,24 @@ class Demo(object):
           can be changed at runtime simply by reassigning it to a boolean
           value.
           """
-        
-        self.fname    = fname
-        self.sys_argv = [fname] + shlex.split(arg_str)
+        if hasattr(src, "read"):
+             # It seems to be a file or a file-like object
+            self.fobj = src
+            self.fname = "from a file-like object"
+            if title == '':
+                self.title = "from a file-like object"
+            else:
+                self.title = title
+        else:
+             # Assume it's a string or something that can be converted to one
+            self.fobj = open(src)
+            self.fname = src
+            if title == '':
+                (filepath, filename) = os.path.split(src)
+                self.title = filename
+            else:
+                self.title = title
+        self.sys_argv = [src] + shlex.split(arg_str)
         self.auto_all = auto_all
         
         # get a few things from ipython.  While it's a bit ugly design-wise,
@@ -228,7 +255,7 @@ class Demo(object):
     def reload(self):
         """Reload source from disk and initialize state."""
         # read data and parse into blocks
-        self.src     = file_read(self.fname)
+        self.src     = self.fobj.read()
         src_b        = [b.strip() for b in self.re_stop.split(self.src) if b]
         self._silent = [bool(self.re_silent.findall(b)) for b in src_b]
         self._auto   = [bool(self.re_auto.findall(b)) for b in src_b]
@@ -277,7 +304,7 @@ class Demo(object):
         
         if index is None:
             if self.finished:
-                print 'Demo finished.  Use reset() if you want to rerun it.'
+                print >>Term.cout, 'Demo finished.  Use <demo_name>.reset() if you want to rerun it.'
                 return None
             index = self.block_index
         else:
@@ -346,26 +373,27 @@ class Demo(object):
         if index is None:
             return
 
-        print self.marquee('<%s> block # %s (%s remaining)' %
-                           (self.fname,index,self.nblocks-index-1))
-        sys.stdout.write(self.src_blocks_colored[index])
+        print >>Term.cout, self.marquee('<%s> block # %s (%s remaining)' %
+                           (self.title,index,self.nblocks-index-1))
+        print >>Term.cout,(self.src_blocks_colored[index])
         sys.stdout.flush()
 
     def show_all(self):
         """Show entire demo on screen, block by block"""
 
-        fname = self.fname
+        fname = self.title
+        title = self.title
         nblocks = self.nblocks
         silent = self._silent
         marquee = self.marquee
         for index,block in enumerate(self.src_blocks_colored):
             if silent[index]:
-                print marquee('<%s> SILENT block # %s (%s remaining)' %
-                              (fname,index,nblocks-index-1))
+                print >>Term.cout, marquee('<%s> SILENT block # %s (%s remaining)' %
+                              (title,index,nblocks-index-1))
             else:
-                print marquee('<%s> block # %s (%s remaining)' %
-                              (fname,index,nblocks-index-1))
-            print block,
+                print >>Term.cout, marquee('<%s> block # %s (%s remaining)' %
+                              (title,index,nblocks-index-1))
+            print >>Term.cout, block,
         sys.stdout.flush()
 
     def runlines(self,source):
@@ -390,18 +418,18 @@ class Demo(object):
             next_block = self.src_blocks[index]
             self.block_index += 1
             if self._silent[index]:
-                print marquee('Executing silent block # %s (%s remaining)' %
+                print >>Term.cout, marquee('Executing silent block # %s (%s remaining)' %
                               (index,self.nblocks-index-1))
             else:
                 self.pre_cmd()
                 self.show(index)
                 if self.auto_all or self._auto[index]:
-                    print marquee('output:')
+                    print >>Term.cout, marquee('output:')
                 else:
-                    print marquee('Press <q> to quit, <Enter> to execute...'),
+                    print >>Term.cout, marquee('Press <q> to quit, <Enter> to execute...'),
                     ans = raw_input().strip()
                     if ans:
-                        print marquee('Block NOT executed')
+                        print >>Term.cout, marquee('Block NOT executed')
                         return
             try:
                 save_argv = sys.argv
@@ -419,10 +447,10 @@ class Demo(object):
         if self.block_index == self.nblocks:
             mq1 = self.marquee('END OF DEMO')
             if mq1:
-                # avoid spurious prints if empty marquees are used
-                print
-                print mq1
-                print self.marquee('Use reset() if you want to rerun it.')
+                # avoid spurious print >>Term.cout,s if empty marquees are used
+                print >>Term.cout
+                print >>Term.cout, mq1
+                print >>Term.cout, self.marquee('Use <demo_name>.reset() if you want to rerun it.')
             self.finished = True
 
     # These methods are meant to be overridden by subclasses who may wish to
@@ -471,9 +499,9 @@ class LineDemo(Demo):
     def reload(self):
         """Reload source from disk and initialize state."""
         # read data and parse into blocks
-        src_b           = [l for l in file_readlines(self.fname) if l.strip()]
+        src_b           = [l for l in self.fobj.readline() if l.strip()]
         nblocks         = len(src_b)
-        self.src        = os.linesep.join(file_readlines(self.fname))
+        self.src        = os.linesep.join(self.fobj.readlines())
         self._silent    = [False]*nblocks
         self._auto      = [True]*nblocks
         self.auto_all   = True
@@ -494,29 +522,29 @@ class IPythonLineDemo(IPythonDemo,LineDemo):
 
 class ClearMixin(object):
     """Use this mixin to make Demo classes with less visual clutter.
-
+    
     Demos using this mixin will clear the screen before every block and use
     blank marquees.
-
+    
     Note that in order for the methods defined here to actually override those
     of the classes it's mixed with, it must go /first/ in the inheritance
     tree.  For example:
-
+    
         class ClearIPDemo(ClearMixin,IPythonDemo): pass
-
+    
     will provide an IPythonDemo class with the mixin's features.
     """
     
     def marquee(self,txt='',width=78,mark='*'):
         """Blank marquee that returns '' no matter what the input."""
         return ''
-
+    
     def pre_cmd(self):
         """Method called before executing each block.
-
+        
         This one simply clears the screen."""
-        os.system('clear')
-
+        import IPython.platutils
+        IPython.platutils.term_clear()
 
 class ClearDemo(ClearMixin,Demo):
     pass
