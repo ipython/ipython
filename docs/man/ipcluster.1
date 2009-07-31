@@ -4,48 +4,38 @@
 .SH SYNOPSIS
 .nf
 .fam C
-\fBipcluster\fP [\fIoptions\fP]
+\fBipcluster\fP {\fmpiexec,local,mpirun,pbs,ssh\fP} [\fIoptions\fP]
 .fam T
 .fi
 .SH DESCRIPTION
 ipcluster is a control tool for IPython's parallel computing functions.
+
+IPython cluster startup. This starts a controller and engines using various
+approaches. Use the IPYTHONDIR environment variable to change your IPython
+directory from the default of .ipython or _ipython. The log and security
+subdirectories of your IPython directory will be used by this script for log
+files and security files.
+.SH POSITIONAL ARGUMENTS
+
+The first positional argument should be one of: {mpiexec, local, mpirun, pbs,
+ssh}, which are the available cluster types.
+
+For detailed help on each, type "ipcluster TYPE --help". Briefly:
+
+  local         run a local cluster
+  mpirun        run a cluster using mpirun (mpiexec also works)
+  mpiexec       run a cluster using mpiexec (mpirun also works)
+  pbs           run a pbs cluster
+  ssh           run a cluster using ssh, should have ssh-keys setup
 .SH OPTIONS
 .TP
 .B
 \-h, \-\-help
-show this help message and exit
-.TP
-.B
-\-\-controller\-port=CONTROLLERPORT
-the TCP port the controller is listening on
-.TP
-.B
-\-\-controller\-ip=CONTROLLERIP
-the TCP IP address of the controller
-.TP
-.B
-\-n, \-\-num=N
-the number of engines to start
-.TP
-.B
-\-\-engine\-port=ENGINEPORT
-the TCP port the controller will listen on for engine connections
-.TP
-.B
-\-\-mpi=MPI
-use mpi with package: for instance --mpi=mpi4py
-.TP
-.B
-\-l LOGFILE, \-\-logfile=LOGFILE
-log file name
-.TP
-.B
-\-f CLUSTERFILE, \-\-cluster\-file=CLUSTERFILE
-file describing a remote cluster
+show help message and exit
 .SH EXAMPLE
-ipcluster -n 4
+ipcluster local -n 4
 
-This command will start 4 IPython engines.
+This command will start 4 IPython engines on the local computer.
 .SH SEE ALSO
 .BR ipython(1), ipcontroller(1), ipengine(1)
 .br
@@ -54,4 +44,5 @@ This command will start 4 IPython engines.
 the IPython Development Team.
 .PP
 This manual page was written by Stephan Peijnik <debian@sp.or.at>,
-for the Debian project (but may be used by others).
+for the Debian project (but may be used by others).  Modified by Fernando Perez
+<Fernando.Perez@berkeley.edu> for inclusion in IPython.
