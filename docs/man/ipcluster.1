@@ -1,0 +1,57 @@
+.TH IPCLUSTER 1 "October 28, 2008" "" ""
+.SH NAME
+\fBipcluster \- IPython parallel computing cluster control tool
+.SH SYNOPSIS
+.nf
+.fam C
+\fBipcluster\fP [\fIoptions\fP]
+.fam T
+.fi
+.SH DESCRIPTION
+ipcluster is a control tool for IPython's parallel computing functions.
+.SH OPTIONS
+.TP
+.B
+\-h, \-\-help
+show this help message and exit
+.TP
+.B
+\-\-controller\-port=CONTROLLERPORT
+the TCP port the controller is listening on
+.TP
+.B
+\-\-controller\-ip=CONTROLLERIP
+the TCP IP address of the controller
+.TP
+.B
+\-n, \-\-num=N
+the number of engines to start
+.TP
+.B
+\-\-engine\-port=ENGINEPORT
+the TCP port the controller will listen on for engine connections
+.TP
+.B
+\-\-mpi=MPI
+use mpi with package: for instance --mpi=mpi4py
+.TP
+.B
+\-l LOGFILE, \-\-logfile=LOGFILE
+log file name
+.TP
+.B
+\-f CLUSTERFILE, \-\-cluster\-file=CLUSTERFILE
+file describing a remote cluster
+.SH EXAMPLE
+ipcluster -n 4
+
+This command will start 4 IPython engines.
+.SH SEE ALSO
+.BR ipython(1), ipcontroller(1), ipengine(1)
+.br
+.SH AUTHOR
+\fBipcluster\fP is a tool that ships with IPython, created by
+the IPython Development Team.
+.PP
+This manual page was written by Stephan Peijnik <debian@sp.or.at>,
+for the Debian project (but may be used by others).

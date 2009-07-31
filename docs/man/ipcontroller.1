@@ -1,0 +1,86 @@
+.TH IPCONTROLLER 1 "October 29, 2008" "" ""
+.SH NAME
+\fBipcontroller \- IPython parallel computing controller control tool
+.SH SYNOPSIS
+.nf
+.fam C
+\fBipengine\fP [\fIoptions\fP]
+.fam T
+.fi
+.SH DESCRIPTION
+ipcontroller is a control tool for IPython's parallel computing functions.
+.SH OPTIONS
+.TP
+.B
+\-h, \-\-help
+show this help message and exit
+.TP
+.B
+\-\-client\-ip=CLIENT_IP
+the IP address or hostname the controller will listen on for
+client connections
+.TP
+.B
+\-\-client\-port=CLIENT_PORT
+the port the controller will listen on for client connections
+.TP
+.B
+\-\-client\-location=CLIENT_LOCATION
+hostname or ip for clients to connect to
+.TP
+.B
+\-x
+turn off all client security
+.TP
+.B
+\-\-client\-cert\-file=CLIENT_CERT_FILE
+file to store the client SSL certificate
+.TP
+.B
+\-\-task\-furl\-file=TASK_FURL_FILE
+file to store the FURL for task clients to connect with
+.TP
+.B
+\-\-multiengine\-furl\-file=MULTIENGINE_FURL_FILE
+file to store the FURL for multiengine clients to connect with
+.TP
+.B
+\-\-engine\-ip=ENGINE_IP
+the IP address or hostname the controller will listen on for engine connections
+.TP
+.B
+\-\-engine\-port=ENGINE_PORT
+the port the controller will listen on for engine connections
+.TP
+.B
+\-\-engine\-location=ENGINE_LOCATION
+the IP address or hostname for engine to connect to
+.TP
+.B
+\-y
+turn off all engine security
+.TP
+.B
+\-\-engine\-cert\-file=ENGINE_CERT_FILE
+file to store the engine SSL certificate
+.TP
+.B
+\-\-engine\-furl\-file=ENGINE_FURL_FILE
+file to store the FURL for engines to connect with
+.TP
+.B
+\-l LOGFILE, \-\-logfile=LOGFILE
+log file name (default is stdout)
+.TP
+.B
+\-\-ipythondir=IPYTHONDIR
+look for config files and profiles in this directory
+.SH SEE ALSO
+.BR ipython(1), ipcluster(1), ipengine(1)
+.br
+.SH AUTHOR
+\fBipcontroller\fP is a tool that ships with IPython, created by
+the IPython Development Team.
+.PP
+This manual page was written by Stephan Peijnik <debian@sp.or.at>,
+for the Debian project (but may be used by others).
