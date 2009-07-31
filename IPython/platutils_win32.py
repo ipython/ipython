@@ -42,6 +42,7 @@ except ImportError:
             # non-zero return code signals error, don't try again
             ignore_termtitle = True
 
+
 def find_cmd(cmd):
     """Find the full path to a .bat or .exe using the win32api module."""
     try:
@@ -80,3 +81,7 @@ def get_long_path_name(path):
         return path
     else:
         return buf.value
+
+
+def term_clear():
+    os.system('cls')

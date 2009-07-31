@@ -20,6 +20,7 @@ ignore_termtitle = True
 def _dummy_op(*a, **b):
     """ A no-op function """
 
+
 def _set_term_title_xterm(title):
     """ Change virtual terminal title in xterm-workalikes """
 
@@ -31,10 +32,16 @@ if os.environ.get('TERM','') == 'xterm':
 else:
     set_term_title = _dummy_op
 
+
 def find_cmd(cmd):
     """Find the full path to a command using which."""
     return os.popen('which %s' % cmd).read().strip()
 
+
 def get_long_path_name(path):
     """Dummy no-op."""
     return path
+
+
+def term_clear():
+    os.system('clear')

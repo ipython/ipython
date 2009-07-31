@@ -36,6 +36,9 @@ else:
 # there is a public, cross-platform way of toggling the term title control on
 # and off.  We should make this a stateful object later on so that each user
 # can have its own instance if needed.
+def term_clear():
+    _platutils.term_clear()
+
 def toggle_set_term_title(val):
     """Control whether set_term_title is active or not.
 
@@ -101,6 +104,6 @@ def get_long_path_name(path):
 # Deprecated functions
 #-----------------------------------------------------------------------------
 def freeze_term_title():
+    import warnings
     warnings.warn("This function is deprecated, use toggle_set_term_title()")
     _platutils.ignore_termtitle = True
-
