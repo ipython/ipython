@@ -252,3 +252,39 @@ class TestMagicRun(object):
 
     def teardown(self):
         self.tmpfile.close()
+
+# Multiple tests for clipboard pasting
+def test_paste():
+
+    def paste(txt):
+        hooks.clipboard_get = lambda : txt
+        _ip.magic('paste')
+
+    # Inject fake clipboard hook but save original so we can restore it later
+    hooks = _ip.IP.hooks
+    user_ns = _ip.user_ns
+    original_clip = hooks.clipboard_get
+
+    try:
+        # Run tests with fake clipboard function
+        user_ns.pop('x', None)
+        paste('x=1')
+        yield (nt.assert_equal, user_ns['x'], 1)
+
+        user_ns.pop('x', None)
+        paste('>>> x=2')
+        yield (nt.assert_equal, user_ns['x'], 2)
+
+        paste("""
+        >>> x = [1,2,3]
+        >>> y = []
+        >>> for i in x:
+        ...     y.append(i**2)
+        ...
+        """)
+        yield (nt.assert_equal, user_ns['x'], [1,2,3])
+        yield (nt.assert_equal, user_ns['y'], [1,4,9])
+
+    finally:
+        # Restore original hook
+        hooks.clipboard_get = original_clip
