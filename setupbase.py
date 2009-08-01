@@ -212,6 +212,31 @@ def find_data_files():
     
     return data_files
 
+
+def make_man_update_target(manpage):
+    """Return a target_update-compliant tuple for the given manpage.
+
+    Parameters
+    ----------
+    manpage : string
+      Name of the manpage, must include the section number (trailing number).
+
+    Example
+    -------
+
+    >>> make_man_update_target('ipython.1') #doctest: +NORMALIZE_WHITESPACE
+    ('docs/man/ipython.1.gz',
+     ['docs/man/ipython.1'],
+     'cd docs/man && gzip -9c ipython.1 > ipython.1.gz')
+    """
+    man_dir = pjoin('docs', 'man')
+    manpage_gz = manpage + '.gz'
+    manpath = pjoin(man_dir, manpage)
+    manpath_gz = pjoin(man_dir, manpage_gz)
+    gz_cmd = ( "cd %(man_dir)s && gzip -9c %(manpage)s > %(manpage_gz)s" %
+               locals() )
+    return (manpath_gz, [manpath], gz_cmd)
+    
 #---------------------------------------------------------------------------
 # Find scripts
 #---------------------------------------------------------------------------
