@@ -932,8 +932,8 @@ class InteractiveShell(object,Magic):
         Certain history lists are also initialized here, as they effectively
         act as user namespaces.
 
-        Note
-        ----
+        Notes
+        -----
         All data structures here are only filled in, they are NOT reset by this
         method.  If they were not empty before, data will simply be added to
         therm.
@@ -1320,8 +1320,8 @@ class InteractiveShell(object,Magic):
     def user_setup(self,ipythondir,rc_suffix,mode='install'):
         """Install the user configuration directory.
 
-        Note
-        ----
+        Notes
+        -----
         DEPRECATED: use the top-level user_setup() function instead.
         """
         return user_setup(ipythondir,rc_suffix,mode)

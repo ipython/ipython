@@ -3344,7 +3344,7 @@ Defaulting color scheme to 'NoColor'"""
 
         See also
         --------
-        %paste: automatically pull code from clipboard.
+        paste: automatically pull code from clipboard.
         """
         
         opts,args = self.parse_options(parameter_s,'rs:',mode='string')
@@ -3383,7 +3383,7 @@ Defaulting color scheme to 'NoColor'"""
 
         See also
         --------
-        %cpaste: manually paste code into terminal until you mark its end.
+        cpaste: manually paste code into terminal until you mark its end.
         """
         opts,args = self.parse_options(parameter_s,'r:',mode='string')
         par = args.strip()

@@ -91,14 +91,13 @@ class PendingResult(object):
     
     A user should not create a `PendingResult` instance by hand.
     
-    Methods
-    =======
+    Methods:
     
     * `get_result`
     * `add_callback`
     
-    Properties
-    ==========
+    Properties:
+    
     * `r`
     """
     

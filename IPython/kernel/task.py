@@ -414,7 +414,7 @@ class ResultNS(object):
     This can be a bad idea, as it may corrupt standard behavior of the
     ns object.
     
-    Example
+    Examples
     --------
     
     >>> ns = ResultNS({'a':17,'foo':range(3)})
