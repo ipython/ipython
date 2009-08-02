@@ -24,6 +24,7 @@ import os
 import os.path as path
 import sys
 import subprocess
+import tempfile
 import time
 import warnings
 
@@ -190,9 +191,29 @@ class IPTester(object):
         # Assemble call
         self.call_args = self.runner+self.params
 
-    def run(self):
-        """Run the stored commands"""
-        return subprocess.call(self.call_args)
+    if sys.platform == 'win32':
+        def run(self):
+            """Run the stored commands"""
+            # On Windows, cd to temporary directory to run tests.  Otherwise,
+            # Twisted's trial may not be able to execute 'trial IPython', since
+            # it will confuse the IPython module name with the ipython
+            # execution scripts, because the windows file system isn't case
+            # sensitive.
+            # We also use os.system instead of subprocess.call, because I was
+            # having problems with subprocess and I just don't know enough
+            # about win32 to debug this reliably.  Os.system may be the 'old
+            # fashioned' way to do it, but it works just fine.  If someone
+            # later can clean this up that's fine, as long as the tests run
+            # reliably in win32.
+            curdir = os.getcwd()
+            os.chdir(tempfile.gettempdir())
+            stat = os.system(' '.join(self.call_args))
+            os.chdir(curdir)
+            return stat
+    else:
+        def run(self):
+            """Run the stored commands"""
+            return subprocess.call(self.call_args)
 
 
 def make_runners():
