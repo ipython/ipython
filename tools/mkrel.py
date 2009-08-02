@@ -30,8 +30,8 @@ c("python2.6 ./setup.py bdist_rpm --binary-only --release=py26 "
   "--python=/usr/bin/python2.6")
 
 # Build eggs
-c('python2.5 ./eggsetup.py bdist_egg')
-c('python2.6 ./eggsetup.py bdist_egg')
+c('python2.5 ./setupegg.py bdist_egg')
+c('python2.6 ./setupegg.py bdist_egg')
 
 # Call the windows build separately, so that the extra Windows scripts don't
 # get pulled into Unix builds (setup.py has code which checks for

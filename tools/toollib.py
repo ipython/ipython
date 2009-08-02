@@ -14,8 +14,8 @@ cd = os.chdir
 def c(cmd):
     """Run system command, raise SystemExit if it returns an error."""
     print "$",cmd
-    #stat = os.system(cmd)
-    stat = 0  # Uncomment this and comment previous to run in debug mode
+    stat = os.system(cmd)
+    #stat = 0  # Uncomment this and comment previous to run in debug mode
     if stat:
         raise SystemExit("Command %s failed with code: %s" % (cmd, stat))
 
