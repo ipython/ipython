@@ -76,12 +76,12 @@ class WxNonBlockingIPShell(NonBlockingIPShell):
         """ A replacement from python's raw_input.
         """
         self.answer = None
-        if(self._threading == True):			
-			wx.CallAfter(self._yesNoBox,  prompt)
-			while self.answer is None:
-				time.sleep(.1)
+        if(self._threading == True):                    
+                        wx.CallAfter(self._yesNoBox,  prompt)
+                        while self.answer is None:
+                                time.sleep(.1)
         else:
-			self._yesNoBox(prompt)
+                        self._yesNoBox(prompt)
         return self.answer
         
     def _yesNoBox(self, prompt):
