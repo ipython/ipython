@@ -1706,7 +1706,12 @@ Currently the magic system has the following functions:\n"""
                     # (leaving dangling references).
                     self.shell.cache_main_mod(prog_ns,filename)
                     # update IPython interactive namespace
-                    del prog_ns['__name__']
+
+                    # Some forms of read errors on the file may mean the
+                    # __name__ key was never set; using pop we don't have to
+                    # worry about a possible KeyError.
+                    prog_ns.pop('__name__', None)
+
                     self.shell.user_ns.update(prog_ns)
         finally:
             # It's a bit of a mystery why, but __builtins__ can change from
