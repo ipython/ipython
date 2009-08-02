@@ -1,26 +1,30 @@
-#!/bin/sh
+#!/bin/bash
 
-# release test
+# Build the release files.  Kept as a separate script so we can easily do local
+# dry runs without uploading anything externally.
 
-ipdir=$PWD/..
+ipdir=${1-..}
 
 cd $ipdir
 
 # Clean up build/dist directories
-rm -rf $ipdir/build/*
-rm -rf $ipdir/dist/*
+rm -rf build/*
+rm -rf dist/*
+rm -rf docs/build/*
+rm -rf docs/dist/*
 
-# build source distros
-cd $ipdir
+# Build source and binary distros
 ./setup.py sdist --formats=gztar
 
-# Build rpms
-python2.4 ./setup.py bdist_rpm --binary-only --release=py24 --python=/usr/bin/python2.4
+# Build version-specific RPMs, where we must use the --python option to ensure
+# that the resulting RPM is really built with the requested python version (so
+# things go to lib/python2.X/...)
 python2.5 ./setup.py bdist_rpm --binary-only --release=py25 --python=/usr/bin/python2.5
+python2.6 ./setup.py bdist_rpm --binary-only --release=py26 --python=/usr/bin/python2.6
 
 # Build eggs
-python2.4 ./setup_bdist_egg.py
 python2.5 ./setup_bdist_egg.py
+python2.6 ./setup_bdist_egg.py
 
 # Call the windows build separately, so that the extra Windows scripts don't
 # get pulled into Unix builds (setup.py has code which checks for
@@ -28,4 +32,4 @@ python2.5 ./setup_bdist_egg.py
 ./setup.py bdist_wininst --install-script=ipython_win_post_install.py
 
 # Change name so retarded Vista runs the installer correctly
-rename 's/win32/win32-setup/' $ipdir/dist/*.exe
+rename 's/win32/win32-setup/' dist/*.exe
