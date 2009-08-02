@@ -23,11 +23,6 @@ elif sys.platform == 'win32':
     import platutils_win32 as _platutils
 else:
     import platutils_dummy as _platutils
-    import warnings
-    warnings.warn("Platutils not available for platform '%s', some features may be missing" %
-        os.name)
-    del warnings
-
 
 # Functionality that's logically common to all platforms goes here, each
 # platform-specific module only provides the bits that are OS-dependent.
@@ -104,6 +99,5 @@ def get_long_path_name(path):
 # Deprecated functions
 #-----------------------------------------------------------------------------
 def freeze_term_title():
-    import warnings
     warnings.warn("This function is deprecated, use toggle_set_term_title()")
     _platutils.ignore_termtitle = True
