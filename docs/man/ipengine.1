@@ -1,0 +1,38 @@
+.TH IPENGINE 1 "October 28, 2008" "" ""
+.SH NAME
+\fBipengine \- IPython parallel computing engine control tool
+.SH SYNOPSIS
+.nf
+.fam C
+\fBipengine\fP [\fIoptions\fP]
+.fam T
+.fi
+.SH DESCRIPTION
+ipengine is a control tool for IPython's parallel computing functions.
+.SH OPTIONS
+.TP
+.B
+\-h, \-\-help
+show this help message and exit
+.TP
+.B
+\-\-furl\-file=FURL_FILE
+The filename containing the FURL of the controller
+.TP
+.B
+\-\-mpi=MPI
+How to enable MPI (mpi4py, pytrilions, or empty string to disable)
+.TP
+.B
+\-l LOGFILE, \-\-logfile=LOGFILE
+log file name (defaults to stdout)
+.SH SEE ALSO
+.BR ipython(1), ipcluster(1), ipcontroller(1)
+.br
+.SH AUTHOR
+\fBipengine\fP is a tool that ships with IPython, created by
+the IPython Development Team.
+.PP
+This manual page was written by Stephan Peijnik <debian@sp.or.at>,
+for the Debian project (but may be used by others).  Modified by Fernando Perez
+<Fernando.Perez@berkeley.edu> for inclusion in IPython.
