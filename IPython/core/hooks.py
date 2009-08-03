@@ -43,8 +43,9 @@ somewhere in your configuration files or ipython command line.
 
 from IPython.core import ipapi
 
-import os,bisect
-from IPython.utils.genutils import Term,shell
+import os, bisect
+import sys
+from IPython.utils.genutils import Term, shell
 from pprint import PrettyPrinter
 
 # List here all the default hooks.  For now it's just the editor functions
@@ -53,7 +54,8 @@ from pprint import PrettyPrinter
 __all__ = ['editor', 'fix_error_editor', 'synchronize_with_editor', 'result_display',
            'input_prefilter', 'shutdown_hook', 'late_startup_hook',
            'generate_prompt', 'generate_output_prompt','shell_hook',
-           'show_in_pager','pre_prompt_hook', 'pre_runcode_hook']
+           'show_in_pager','pre_prompt_hook', 'pre_runcode_hook',
+           'clipboard_get']
 # vds: <<
 
 pformat = PrettyPrinter().pformat
@@ -243,5 +245,22 @@ def pre_prompt_hook(self):
 def pre_runcode_hook(self):
     """ Executed before running the (prefiltered) code in IPython """
     return None
-    
 
+def clipboard_get(self):
+    """ Get text from the clipboard.
+    """
+    from IPython.lib.clipboard import (
+        osx_clipboard_get, tkinter_clipboard_get, 
+        win32_clipboard_get
+    )
+    if sys.platform == 'win32':
+        chain = [win32_clipboard_get, tkinter_clipboard_get]
+    elif sys.platform == 'darwin':
+        chain = [osx_clipboard_get, tkinter_clipboard_get]
+    else:
+        chain = [tkinter_clipboard_get]
+    dispatcher = CommandChainDispatcher()
+    for func in chain:
+        dispatcher.add(func)
+    text = dispatcher()
+    return text

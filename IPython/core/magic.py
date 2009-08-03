@@ -3262,6 +3262,61 @@ Defaulting color scheme to 'NoColor'"""
         page(self.shell.pycolorize(cont),
              screen_lines=self.shell.rc.screen_length)
 
+    def _rerun_pasted(self):
+        """ Rerun a previously pasted command.
+        """
+        b = self.user_ns.get('pasted_block', None)
+        if b is None:
+            raise UsageError('No previous pasted block available')
+        print "Re-executing '%s...' (%d chars)"% (b.split('\n',1)[0], len(b))
+        exec b in self.user_ns
+
+    def _get_pasted_lines(self, sentinel):
+        """ Yield pasted lines until the user enters the given sentinel value.
+        """
+        from IPython.core import iplib
+        print "Pasting code; enter '%s' alone on the line to stop." % sentinel
+        while True:
+            l = iplib.raw_input_original(':')
+            if l == sentinel:
+                return
+            else:
+                yield l
+
+    def _strip_pasted_lines_for_code(self, raw_lines):
+        """ Strip non-code parts of a sequence of lines to return a block of
+        code.
+        """
+        # Regular expressions that declare text we strip from the input:
+        strip_re =  [r'^\s*In \[\d+\]:', # IPython input prompt
+                     r'^\s*(\s?>)+', # Python input prompt
+                     r'^\s*\.{3,}', # Continuation prompts
+                     r'^\++',
+                     ]
+
+        strip_from_start = map(re.compile,strip_re)
+        
+        lines = []
+        for l in raw_lines:
+            for pat in strip_from_start: 
+                l = pat.sub('',l)
+            lines.append(l)
+                         
+        block = "\n".join(lines) + '\n'
+        #print "block:\n",block
+        return block
+
+    def _execute_block(self, block, par):
+        """ Execute a block, or store it in a variable, per the user's request.
+        """
+        if not par:
+            b = textwrap.dedent(block)
+            self.user_ns['pasted_block'] = b
+            exec b in self.user_ns
+        else:
+            self.user_ns[par] = SList(block.splitlines())
+            print "Block assigned to '%s'" % par
+
     def magic_cpaste(self, parameter_s=''):
         """Allows you to paste & execute a pre-formatted code block from clipboard.
         
@@ -3287,50 +3342,60 @@ Defaulting color scheme to 'NoColor'"""
         will be what was just pasted.
         
         IPython statements (magics, shell escapes) are not supported (yet).
+
+        See also
+        --------
+        %paste: automatically pull code from clipboard.
         """
+        
         opts,args = self.parse_options(parameter_s,'rs:',mode='string')
         par = args.strip()
         if opts.has_key('r'):
-            b = self.user_ns.get('pasted_block', None)
-            if b is None:
-                raise UsageError('No previous pasted block available')
-            print "Re-executing '%s...' (%d chars)"% (b.split('\n',1)[0], len(b))
-            exec b in self.user_ns
+            self._rerun_pasted()
             return
         
         sentinel = opts.get('s','--')
 
-        # Regular expressions that declare text we strip from the input:
-        strip_re =  [r'^\s*In \[\d+\]:', # IPython input prompt
-                     r'^\s*(\s?>)+', # Python input prompt
-                     r'^\s*\.{3,}', # Continuation prompts
-                     r'^\++',
-                     ]
+        block = self._strip_pasted_lines_for_code(
+            self._get_pasted_lines(sentinel))
 
-        strip_from_start = map(re.compile,strip_re)
+        self._execute_block(block, par)
+
+    def magic_paste(self, parameter_s=''):
+        """Allows you to paste & execute a pre-formatted code block from clipboard.
         
-        from IPython.core import iplib
-        lines = []
-        print "Pasting code; enter '%s' alone on the line to stop." % sentinel
-        while 1:
-            l = iplib.raw_input_original(':')
-            if l ==sentinel:
-                break
-            
-            for pat in strip_from_start: 
-                l = pat.sub('',l)
-            lines.append(l)
-                         
-        block = "\n".join(lines) + '\n'
-        #print "block:\n",block
-        if not par:
-            b = textwrap.dedent(block)
-            self.user_ns['pasted_block'] = b
-            exec b in self.user_ns
-        else:
-            self.user_ns[par] = SList(block.splitlines())
-            print "Block assigned to '%s'" % par
-            
+        The text is pulled directly from the clipboard without user
+        intervention.
+
+        The block is dedented prior to execution to enable execution of method
+        definitions. '>' and '+' characters at the beginning of a line are
+        ignored, to allow pasting directly from e-mails, diff files and
+        doctests (the '...' continuation prompt is also stripped).  The
+        executed block is also assigned to variable named 'pasted_block' for
+        later editing with '%edit pasted_block'.
+        
+        You can also pass a variable name as an argument, e.g. '%paste foo'.
+        This assigns the pasted block to variable 'foo' as string, without 
+        dedenting or executing it (preceding >>> and + is still stripped)
+        
+        '%paste -r' re-executes the block previously entered by cpaste.
+        
+        IPython statements (magics, shell escapes) are not supported (yet).
+
+        See also
+        --------
+        %cpaste: manually paste code into terminal until you mark its end.
+        """
+        opts,args = self.parse_options(parameter_s,'r:',mode='string')
+        par = args.strip()
+        if opts.has_key('r'):
+            self._rerun_pasted()
+            return
+
+        text = self.shell.hooks.clipboard_get()
+        block = self._strip_pasted_lines_for_code(text.splitlines())
+        self._execute_block(block, par)
+
     def magic_quickref(self,arg):
         """ Show a quick reference sheet """
         import IPython.core.usage
