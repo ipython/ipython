@@ -29,7 +29,7 @@ import sys
 import traceback
 
 # Local imports.
-from IPython.kernel.core import ultraTB
+from IPython.core import ultratb
 from IPython.kernel.core.display_trap import DisplayTrap
 from IPython.kernel.core.macro import Macro
 from IPython.kernel.core.prompts import CachedOutput
@@ -167,9 +167,9 @@ class Interpreter(object):
             formatters=self.traceback_formatters)
 
         # This is used temporarily for reformating exceptions in certain
-        # cases.  It will go away once the ultraTB stuff is ported
+        # cases.  It will go away once the ultratb stuff is ported
         # to ipython1
-        self.tbHandler = ultraTB.FormattedTB(color_scheme='NoColor',
+        self.tbHandler = ultratb.FormattedTB(color_scheme='NoColor',
                                                  mode='Context',
                                                  tb_offset=2)
 

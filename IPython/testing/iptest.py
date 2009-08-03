@@ -50,6 +50,7 @@ def test_for(mod):
 
 have_curses = test_for('_curses')
 have_wx = test_for('wx')
+have_wx_aui = test_for('wx.aui')
 have_zi = test_for('zope.interface')
 have_twisted = test_for('twisted')
 have_foolscap = test_for('foolscap')
@@ -67,8 +68,9 @@ def make_exclude():
                pjoin('IPython', 'frontend', 'process', 'winprocess.py'),
                pjoin('IPython_doctest_plugin'),
                pjoin('IPython', 'extensions', 'ipy_'),
-               pjoin('IPython', 'extensions', 'clearcmd'),
+               pjoin('IPython', 'extensions', 'PhysicalQInput'),
                pjoin('IPython', 'extensions', 'PhysicalQInteractive'),
+               pjoin('IPython', 'extensions', 'InterpreterPasteInput'),
                pjoin('IPython', 'extensions', 'scitedirector'),
                pjoin('IPython', 'extensions', 'numeric_formats'),
                pjoin('IPython', 'testing', 'attic'),
@@ -80,6 +82,9 @@ def make_exclude():
         EXCLUDE.append(pjoin('IPython', 'extensions', 'igrid'))
         EXCLUDE.append(pjoin('IPython', 'gui'))
         EXCLUDE.append(pjoin('IPython', 'frontend', 'wx'))
+
+    if not have_wx_aui:
+        EXCLUDE.append(pjoin('IPython', 'gui', 'wx', 'wxIPython'))
 
     if not have_objc:
         EXCLUDE.append(pjoin('IPython', 'frontend', 'cocoa'))
@@ -110,6 +115,7 @@ def make_exclude():
         EXCLUDE = [s.replace('\\','\\\\') for s in EXCLUDE]
 
     return EXCLUDE
+
 
 #-----------------------------------------------------------------------------
 # Functions and classes
@@ -237,7 +243,7 @@ def run_iptestall():
     t_start = time.time()
     for name,runner in runners.iteritems():
         print '*'*77
-        print 'IPython test set:', name
+        print 'IPython test group:',name
         res = runner.run()
         if res:
             failed[name] = res
@@ -248,14 +254,14 @@ def run_iptestall():
     # summarize results
     print
     print '*'*77
-    print 'Ran %s test sets in %.3fs' % (nrunners, t_tests)
+    print 'Ran %s test groups in %.3fs' % (nrunners, t_tests)
     print
     if not failed:
         print 'OK'
     else:
         # If anything went wrong, point out what command to rerun manually to
         # see the actual errors and individual summary
-        print 'ERROR - %s out of %s test sets failed.' % (nfail, nrunners)
+        print 'ERROR - %s out of %s test groups failed.' % (nfail, nrunners)
         for name in failed:
             failed_runner = runners[name]
             print '-'*40
