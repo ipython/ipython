@@ -4,7 +4,7 @@
 import subprocess
 import sys
 
-from IPython.ipapi import TryNext
+from IPython.core.ipapi import TryNext
 
 
 def win32_clipboard_get():
