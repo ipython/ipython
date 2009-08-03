@@ -729,8 +729,8 @@ class Interpreter(object):
     def error(self, text):
         """ Pass an error message back to the shell.
 
-        Preconditions
-        -------------
+        Notes
+        -----
         This should only be called when self.message is set. In other words,
         when code is being executed.
 

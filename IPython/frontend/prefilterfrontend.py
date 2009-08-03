@@ -65,8 +65,8 @@ class PrefilterFrontEnd(LineFrontEndBase):
     debug = False
     
     def __init__(self, ipython0=None, argv=None, *args, **kwargs):
-        """ Parameters:
-            -----------
+        """ Parameters
+            ----------
 
             ipython0: an optional ipython0 instance to use for command
             prefiltering and completion.

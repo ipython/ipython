@@ -892,8 +892,8 @@ def doctest_reload():
       hard monkeypatch seems like a reasonable solution rather than asking
       users to manually use a different doctest runner when under IPython.
 
-    Note
-    ----
+    Notes
+    -----
 
     This function *used to* reload doctest, but this has been disabled because
     reloading doctest unconditionally can cause massive breakage of other

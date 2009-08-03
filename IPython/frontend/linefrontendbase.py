@@ -97,8 +97,8 @@ class LineFrontEndBase(FrontEndBase):
         ----------
         line : string
         
-        Result
-        ------
+        Returns
+        -------
         The replacement for the line and the list of possible completions.
         """
         completions = self.shell.complete(line)

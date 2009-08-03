@@ -106,6 +106,9 @@ def make_quoted_expr(s):
 def system_shell(cmd, verbose=False, debug=False, header=''):
     """ Execute a command in the system shell; always return None.
 
+    This returns None so it can be conveniently used in interactive loops
+    without getting the return value (typically 0) printed many times.
+
     Parameters
     ----------
     cmd : str
@@ -117,11 +120,6 @@ def system_shell(cmd, verbose=False, debug=False, header=''):
     header : str
         Header to print to screen prior to the executed command. No extra
         newlines are added.
-
-    Description
-    -----------
-    This returns None so it can be conveniently used in interactive loops
-    without getting the return value (typically 0) printed many times.
     """
 
     if verbose or debug: 

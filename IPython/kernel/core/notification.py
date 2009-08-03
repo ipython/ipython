@@ -21,8 +21,8 @@ __test__ = {}
 class NotificationCenter(object):
     """Synchronous notification center
     
-    Example
-    -------
+    Examples
+    --------
     >>> import IPython.kernel.core.notification as notification
     >>> def callback(theType, theSender, args={}):
     ...     print theType,theSender,args
@@ -47,10 +47,10 @@ class NotificationCenter(object):
     
     def post_notification(self, theType, sender, **kwargs):
         """Post notification (type,sender,**kwargs) to all registered
-        observers. 
-        
-        Implementation
-        --------------
+        observers.
+
+        Implementation notes:
+
         * If no registered observers, performance is O(1).
         * Notificaiton order is undefined.
         * Notifications are posted synchronously.
