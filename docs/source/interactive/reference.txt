@@ -1329,8 +1329,9 @@ For stand-alone use of the feature in your programs which do not use
 IPython at all, put the following lines toward the top of your 'main'
 routine::
 
-    import sys,IPython.ultraTB  
-    sys.excepthook = IPython.ultraTB.FormattedTB(mode='Verbose',
+    import sys
+    from IPython.core import ultratb
+    sys.excepthook = ultratb.FormattedTB(mode='Verbose',
     color_scheme='Linux', call_pdb=1)
 
 The mode keyword can be either 'Verbose' or 'Plain', giving either very

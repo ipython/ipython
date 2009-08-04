@@ -1,3 +1,11 @@
+.. Developers should add in this file, during each release cycle, information
+.. about important changes they've made, in a summary format that's meant for
+.. end users.  For each release we normally have three sections: features,  bug
+.. fixes and api breakage.
+.. Please remember to credit the authors of the contributions by name,
+.. especially when they are new users or developers who do not regularly
+.. participate  in IPython's development.
+
 .. _changes:
 
 ==========
@@ -6,19 +14,27 @@ What's new
 
 .. contents::
 ..
-    1  Release 0.9.1
-    2  Release 0.9
+    1  Release dev
+      1.1  New features
+      1.2  Bug fixes
+      1.3  Backwards incompatible changes
+    2  Release 0.10
       2.1  New features
       2.2  Bug fixes
       2.3  Backwards incompatible changes
-      2.4  Changes merged in from IPython1
-        2.4.1  New features
-        2.4.2  Bug fixes
-        2.4.3  Backwards incompatible changes
-    3  Release 0.8.4
-    4  Release 0.8.3
-    5  Release 0.8.2
-    6  Older releases
+    3  Release 0.9.1
+    4  Release 0.9
+      4.1  New features
+      4.2  Bug fixes
+      4.3  Backwards incompatible changes
+      4.4  Changes merged in from IPython1
+        4.4.1  New features
+        4.4.2  Bug fixes
+        4.4.3  Backwards incompatible changes
+    5  Release 0.8.4
+    6  Release 0.8.3
+    7  Release 0.8.2
+    8  Older releases
 ..
 
 Release dev
@@ -27,25 +43,139 @@ Release dev
 New features
 ------------
 
+Bug fixes
+---------
+
+Backwards incompatible changes
+------------------------------
+
+
+Release 0.10
+============
+
+This release brings months of slow but steady development, and will be the last
+before a major restructuring and cleanup of IPython's internals that is already
+under way.  For this reason, we hope that 0.10 will be a stable and robust
+release so that while users adapt to some of the API changes that will come
+with the refactoring that will become IPython 0.11, they can safely use 0.10 in
+all existing projects with minimal changes (if any).
+
+IPython 0.10 is now a medium-sized project, with roughly (as reported by David
+Wheeler's :command:`sloccount` utility) 40750 lines of Python code, and a diff
+between 0.9.1 and this release that contains almost 28000 lines of code and
+documentation.  Our documentation, in PDF format, is a 495-page long PDF
+document (also available in HTML format, both generated from the same sources).
+
+Many users and developers contributed code, features, bug reports and ideas to
+this release.  Please do not hesitate in contacting us if we've failed to
+acknowledge your contribution here.  In particular, for this release we have
+contribution from the following people, a mix of new and regular names (in
+alphabetical order by first name):
+
+* Alexander Clausen: fix #341726.
+* Brian Granger: lots of work everywhere (features, bug fixes, etc).
+* Daniel Ashbrook: bug report on MemoryError during compilation, now fixed.
+* Darren Dale: improvements to documentation build system, feedback, design
+  ideas.
+* Fernando Perez: various places.
+* Gaël Varoquaux: core code, ipythonx GUI, design discussions, etc. Lots...
+* John Hunter: suggestions, bug fixes, feedback.
+* Jorgen Stenarson: work on many fronts, tests, fixes, win32 support, etc.
+* Laurent Dufréchou: many improvements to ipython-wx standalone app.
+* Lukasz Pankowski: prefilter, `%edit`, demo improvements.
+* Matt Foster: TextMate support in `%edit`.
+* Nathaniel Smith: fix #237073.
+* Pauli Virtanen: fixes and improvements to extensions, documentation.
+* Prabhu Ramachandran: improvements to `%timeit`.
+* Robert Kern: several extensions.
+* Sameer D'Costa: help on critical bug #269966.
+* Stephan Peijnik: feedback on Debian compliance and many man pages.
+* Tom Fetherston: many improvements to :mod:`IPython.demo` module.
+* Ville Vainio: lots of work everywhere (features, bug fixes, etc).
+* Vishal Vasta: ssh support in ipcluster.
+* Walter Doerwald: work on the :mod:`IPython.ipipe` system.
+
+Below we give an overview of new features, bug fixes and backwards-incompatible
+changes.  For a detailed account of every change made, feel free to view the
+project log with :command:`bzr log`.
+
+New features
+------------
+
+* New `%paste` magic automatically extracts current contents of clipboard and
+  pastes it directly, while correctly handling code that is indented or
+  prepended with `>>>` or `...` python prompt markers.  A very useful new
+  feature contributed by Robert Kern.
+
+* IPython 'demos', created with the :mod:`IPython.demo` module, can now be
+  created from files on disk or strings in memory.  Other fixes and
+  improvements to the demo system, by Tom Fetherston.
+
+* Added :func:`find_cmd` function to :mod:`IPython.platutils` module, to find
+  commands in a cross-platform manner.
+
+* Many improvements and fixes to Gaël Varoquaux's :command:`ipythonx`, a
+  WX-based lightweight IPython instance that can be easily embedded in other WX
+  applications.  These improvements have made it possible to now have an
+  embedded IPython in Mayavi and other tools.
+
+* :class:`MultiengineClient` objects now have a :meth:`benchmark` method.
+
+* The manual now includes a full set of auto-generated API documents from the
+  code sources, using Sphinx and some of our own support code.  We are now
+  using the `Numpy Documentation Standard`_  for all docstrings, and we have
+  tried to update as many existing ones as possible to this format.
+
+.. _Numpy Documentation Standard: http://projects.scipy.org/numpy/wiki/CodingStyleGuidelines#docstring-standard
+
+* The new :mod:`IPython.Extensions.ipy_pretty` extension by Robert Kern
+  provides configurable pretty-printing.
+
+* Many improvements to the :command:`ipython-wx` standalone WX-based IPython
+  application by Laurent Dufréchou.  It can optionally run in a thread, and
+  this can be toggled at runtime (allowing the loading of Matplotlib in a
+  running session without ill effects).
+
+* IPython includes a copy of Steven Bethard's argparse_ in the
+  :mod:`IPython.external` package, so we can use it internally and it is also
+  available to any IPython user.  By installing it in this manner, we ensure
+  zero conflicts with any system-wide installation you may already have while
+  minimizing external dependencies for new users.
+
+* An improved and much more robust test suite, that runs groups of tests in
+  separate subprocesses using either Nose or Twisted's :command:`trial` runner
+  to ensure proper management of Twisted-using code.  The test suite degrades
+  gracefully if optional dependencies are not available, so that the
+  :command:`iptest` command can be run with only Nose installed and nothing
+  else.  We also have more and cleaner test decorators to better select tests
+  depending on runtime conditions, do setup/teardown, etc.
+
 * The new ipcluster now has a fully working ssh mode that should work on
   Linux, Unix and OS X.  Thanks to Vishal Vatsa for implementing this!
 
 * The wonderful TextMate editor can now be used with %edit on OS X.  Thanks
   to Matt Foster for this patch.
 
+* The documentation regarding parallel uses of IPython, including MPI and PBS,
+  has been significantly updated and improved.
+
+* The developer guidelines in the documentation have been updated to explain
+  our workflow using :command:`bzr` and Launchpad.
+  
 * Fully refactored :command:`ipcluster` command line program for starting
   IPython clusters.  This new version is a complete rewrite and 1) is fully
   cross platform (we now use Twisted's process management), 2) has much
-  improved performance, 3) uses subcommands for different types of clusters, 
-  4) uses argparse for parsing command line options, 5) has better support
-  for starting clusters using :command:`mpirun`, 6) has experimental support
-  for starting engines using PBS.  However, this new version of ipcluster
-  should be considered a technology preview.  We plan on changing the API
-  in significant ways before it is final.
+  improved performance, 3) uses subcommands for different types of clusters, 4)
+  uses argparse for parsing command line options, 5) has better support for
+  starting clusters using :command:`mpirun`, 6) has experimental support for
+  starting engines using PBS.  It can also reuse FURL files, by appropriately
+  passing options to its subcommands.  However, this new version of ipcluster
+  should be considered a technology preview.  We plan on changing the API in
+  significant ways before it is final.
 
 * The :mod:`argparse` module has been added to :mod:`IPython.external`.
 
-* Fully description of the security model added to the docs.
+* Full description of the security model added to the docs.
 
 * cd completer: show bookmarks if no other completions are available.
 
@@ -55,12 +185,44 @@ New features
         [~]|1> _prompt_title = 'sudo!'
         sudo![~]|2>
 
-* %edit: If you do '%edit pasted_block', pasted_block
-  variable gets updated with new data (so repeated 
-  editing makes sense)
+* %edit: If you do '%edit pasted_block', pasted_block variable gets updated
+  with new data (so repeated editing makes sense)
 
 Bug fixes
 ---------
+
+* Fix #368719, removed top-level debian/ directory to make the job of Debian
+  packagers easier.
+  
+* Fix #291143 by including man pages contributed by Stephan Peijnik from the
+  Debian project.
+
+* Fix #358202, effectively a race condition, by properly synchronizing file
+  creation at cluster startup time.
+
+* `%timeit` now handles correctly functions that take a long time to execute
+  even the first time, by not repeating them.
+
+* Fix #239054, releasing of references after exiting.
+
+* Fix #341726, thanks to Alexander Clausen.
+
+* Fix #269966.  This long-standing and very difficult bug (which is actually a
+  problem in Python itself) meant long-running sessions would inevitably grow
+  in memory size, often with catastrophic consequences if users had large
+  objects in their scripts.  Now, using `%run` repeatedly should not cause any
+  memory leaks.  Special thanks to John Hunter and Sameer D'Costa for their
+  help with this bug.
+
+* Fix #295371, bug in `%history`.
+
+* Improved support for py2exe.
+
+* Fix #270856: IPython hangs with PyGTK
+
+* Fix #270998: A magic with no docstring breaks the '%magic magic'
+
+* fix #271684: -c startup commands screw up raw vs. native history
 
 * Numerous bugs on Windows with the new ipcluster have been fixed.
 
@@ -81,12 +243,26 @@ Bug fixes
 Backwards incompatible changes
 ------------------------------
 
+* `ipykit` and related files were unmaintained and have been removed.
+
+* The :func:`IPython.genutils.doctest_reload` does not actually call
+  `reload(doctest)` anymore, as this was causing many problems with the test
+  suite.  It still resets `doctest.master` to None.
+
+* While we have not deliberately broken Python 2.4 compatibility, only minor
+  testing was done with Python 2.4, while 2.5 and 2.6 were fully tested.  But
+  if you encounter problems with 2.4, please do report them as bugs.
+
+* The :command:`ipcluster` now requires a mode argument; for example to start a
+  cluster on the local machine with 4 engines, you must now type::
+
+    $ ipcluster local -n 4
+
 * The controller now has a ``-r`` flag that needs to be used if you want to
   reuse existing furl files.  Otherwise they are deleted (the default).
 
-* Remove ipy_leo.py. "easy_install ipython-extension" to get it.
-  (done to decouple it from ipython release cycle)
-
+* Remove ipy_leo.py. You can use :command:`easy_install ipython-extension` to
+  get it.  (done to decouple it from ipython release cycle)
 
 
 Release 0.9.1

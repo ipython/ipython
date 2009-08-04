@@ -25,14 +25,14 @@ def test_rehashx():
     _ip.magic('rehashx')
     # Practically ALL ipython development systems will have more than 10 aliases
 
-    assert len(_ip.IP.alias_table) > 10
+    yield (nt.assert_true, len(_ip.IP.alias_table) > 10)
     for key, val in _ip.IP.alias_table.items():
         # we must strip dots from alias names
-        assert '.' not in key
+        nt.assert_true('.' not in key)
 
     # rehashx must fill up syscmdlist
     scoms = _ip.db['syscmdlist']
-    assert len(scoms) > 10
+    yield (nt.assert_true, len(scoms) > 10)
 
 
 def doctest_hist_f():
@@ -42,7 +42,7 @@ def doctest_hist_f():
 
     In [10]: tfile = tempfile.mktemp('.py','tmp-ipython-')
 
-    In [11]: %history -n -f $tfile 3
+    In [11]: %hist -n -f $tfile 3
     """
 
 
@@ -51,9 +51,12 @@ def doctest_hist_r():
 
     XXX - This test is not recording the output correctly.  Not sure why...
 
+    In [20]: 'hist' in _ip.IP.lsmagic()
+    Out[20]: True
+
     In [6]: x=1
 
-    In [7]: hist -n -r 2
+    In [7]: %hist -n -r 2
     x=1  # random
     hist -n -r 2  # random
     """
@@ -94,12 +97,13 @@ def test_shist():
     
 @dec.skipif_not_numpy
 def test_numpy_clear_array_undec():
+    from IPython.extensions import clearcmd
+
     _ip.ex('import numpy as np')
     _ip.ex('a = np.empty(2)')
-    
-    yield nt.assert_true,'a' in _ip.user_ns
+    yield (nt.assert_true, 'a' in _ip.user_ns)
     _ip.magic('clear array')
-    yield nt.assert_false,'a' in _ip.user_ns
+    yield (nt.assert_false, 'a' in _ip.user_ns)
     
 
 @dec.skip()
@@ -159,7 +163,6 @@ def doctest_run_ns2():
     tclass.py: deleting object: C-first_pass
     """
 
-@dec.skip_win32
 def doctest_run_builtins():
     """Check that %run doesn't damage __builtins__ via a doctest.
 
@@ -172,24 +175,34 @@ def doctest_run_builtins():
 
     In [2]: bid1 = id(__builtins__)
 
-    In [3]: f = tempfile.NamedTemporaryFile()
+    In [3]: fname = tempfile.mkstemp()[1]
+
+    In [3]: f = open(fname,'w')
 
     In [4]: f.write('pass\\n')
 
     In [5]: f.flush()
 
-    In [6]: print 'B1:',type(__builtins__)
-    B1: <type 'module'>
+    In [6]: print type(__builtins__)
+    <type 'module'>
 
-    In [7]: %run $f.name
+    In [7]: %run "$fname"
+
+    In [7]: f.close()
 
     In [8]: bid2 = id(__builtins__)
 
-    In [9]: print 'B2:',type(__builtins__)
-    B2: <type 'module'>
+    In [9]: print type(__builtins__)
+    <type 'module'>
 
     In [10]: bid1 == bid2
     Out[10]: True
+
+    In [12]: try:
+       ....:     os.unlink(fname)
+       ....: except:
+       ....:     pass
+       ....: 
     """
 
 # For some tests, it will be handy to organize them in a class with a common
@@ -199,23 +212,18 @@ class TestMagicRun(object):
 
     def setup(self):
         """Make a valid python temp file."""
-        f = tempfile.NamedTemporaryFile()
+        fname = tempfile.mkstemp()[1]
+        f = open(fname,'w')
         f.write('pass\n')
         f.flush()
         self.tmpfile = f
+        self.fname = fname
 
     def run_tmpfile(self):
         # This fails on Windows if self.tmpfile.name has spaces or "~" in it.
         # See below and ticket https://bugs.launchpad.net/bugs/366353
-        _ip.magic('run %s' % self.tmpfile.name)
+        _ip.magic('run "%s"' % self.fname)
 
-    # See https://bugs.launchpad.net/bugs/366353
-    @dec.skip_if_not_win32
-    def test_run_tempfile_path(self):
-        tt.assert_equals(True,False,"%run doesn't work with tempfile paths on win32.")
-
-    # See https://bugs.launchpad.net/bugs/366353
-    @dec.skip_win32
     def test_builtins_id(self):
         """Check that %run doesn't damage __builtins__ """
 
@@ -225,8 +233,6 @@ class TestMagicRun(object):
         bid2 = id(_ip.user_ns['__builtins__'])
         tt.assert_equals(bid1, bid2)
 
-    # See https://bugs.launchpad.net/bugs/366353
-    @dec.skip_win32
     def test_builtins_type(self):
         """Check that the type of __builtins__ doesn't change with %run.
         
@@ -237,8 +243,6 @@ class TestMagicRun(object):
         self.run_tmpfile()
         tt.assert_equals(type(_ip.user_ns['__builtins__']),type(sys))
 
-    # See https://bugs.launchpad.net/bugs/366353
-    @dec.skip_win32
     def test_prompts(self):
         """Test that prompts correctly generate after %run"""
         self.run_tmpfile()
@@ -247,3 +251,52 @@ class TestMagicRun(object):
 
     def teardown(self):
         self.tmpfile.close()
+        try:
+            os.unlink(self.fname)
+        except:
+            # On Windows, even though we close the file, we still can't delete
+            # it.  I have no clue why
+            pass
+
+# Multiple tests for clipboard pasting
+def test_paste():
+
+    def paste(txt):
+        hooks.clipboard_get = lambda : txt
+        _ip.magic('paste')
+
+    # Inject fake clipboard hook but save original so we can restore it later
+    hooks = _ip.IP.hooks
+    user_ns = _ip.user_ns
+    original_clip = hooks.clipboard_get
+
+    try:
+        # This try/except with an emtpy except clause is here only because
+        # try/yield/finally is invalid syntax in Python 2.4.  This will be
+        # removed when we drop 2.4-compatibility, and the emtpy except below
+        # will be changed to a finally.
+
+        # Run tests with fake clipboard function
+        user_ns.pop('x', None)
+        paste('x=1')
+        yield (nt.assert_equal, user_ns['x'], 1)
+
+        user_ns.pop('x', None)
+        paste('>>> x=2')
+        yield (nt.assert_equal, user_ns['x'], 2)
+
+        paste("""
+        >>> x = [1,2,3]
+        >>> y = []
+        >>> for i in x:
+        ...     y.append(i**2)
+        ...
+        """)
+        yield (nt.assert_equal, user_ns['x'], [1,2,3])
+        yield (nt.assert_equal, user_ns['y'], [1,4,9])
+    except:
+        pass
+
+    # This should be in a finally clause, instead of the bare except above.
+    # Restore original hook
+    hooks.clipboard_get = original_clip

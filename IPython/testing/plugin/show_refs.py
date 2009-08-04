@@ -10,9 +10,10 @@ class C(object):
       pass
       #print 'deleting object...'  # dbg
 
-c = C()
+if __name__ == '__main__':
+   c = C()
 
-c_refs = gc.get_referrers(c)
-ref_ids = map(id,c_refs)
+   c_refs = gc.get_referrers(c)
+   ref_ids = map(id,c_refs)
 
-print 'c referrers:',map(type,c_refs)
+   print 'c referrers:',map(type,c_refs)

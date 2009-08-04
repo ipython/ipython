@@ -24,6 +24,7 @@ import os
 import os.path as path
 import sys
 import subprocess
+import tempfile
 import time
 import warnings
 
@@ -50,6 +51,7 @@ def test_for(mod):
 
 have_curses = test_for('_curses')
 have_wx = test_for('wx')
+have_wx_aui = test_for('wx.aui')
 have_zi = test_for('zope.interface')
 have_twisted = test_for('twisted')
 have_foolscap = test_for('foolscap')
@@ -69,8 +71,9 @@ def make_exclude():
                pjoin('IPython', 'frontend', 'process', 'winprocess.py'),
                pjoin('IPython_doctest_plugin'),
                pjoin('IPython', 'extensions', 'ipy_'),
-               pjoin('IPython', 'extensions', 'clearcmd'),
+               pjoin('IPython', 'extensions', 'PhysicalQInput'),
                pjoin('IPython', 'extensions', 'PhysicalQInteractive'),
+               pjoin('IPython', 'extensions', 'InterpreterPasteInput'),
                pjoin('IPython', 'extensions', 'scitedirector'),
                pjoin('IPython', 'extensions', 'numeric_formats'),
                pjoin('IPython', 'testing', 'attic'),
@@ -87,6 +90,9 @@ def make_exclude():
 
     if not have_gtk or not have_gobject:
         EXCLUDE.append(pjoin('IPython', 'lib', 'inputhookgtk'))
+
+    if not have_wx_aui:
+        EXCLUDE.append(pjoin('IPython', 'gui', 'wx', 'wxIPython'))
 
     if not have_objc:
         EXCLUDE.append(pjoin('IPython', 'frontend', 'cocoa'))
@@ -109,6 +115,27 @@ def make_exclude():
     if not have_pexpect:
         EXCLUDE.append(pjoin('IPython', 'scripts', 'irunner'))
 
+    # This is scary.  We still have things in frontend and testing that
+    # are being tested by nose that use twisted.  We need to rethink
+    # how we are isolating dependencies in testing.
+    if not (have_twisted and have_zi and have_foolscap):
+        EXCLUDE.append(pjoin('IPython', 'frontend', 'asyncfrontendbase'))
+        EXCLUDE.append(pjoin('IPython', 'frontend', 'prefilterfrontend'))
+        EXCLUDE.append(pjoin('IPython', 'frontend', 'frontendbase'))
+        EXCLUDE.append(pjoin('IPython', 'frontend', 'linefrontendbase'))
+        EXCLUDE.append(pjoin('IPython', 'frontend', 'tests',
+                             'test_linefrontend'))
+        EXCLUDE.append(pjoin('IPython', 'frontend', 'tests', 
+                             'test_frontendbase'))
+        EXCLUDE.append(pjoin('IPython', 'frontend', 'tests',
+                             'test_prefilterfrontend'))
+        EXCLUDE.append(pjoin('IPython', 'frontend', 'tests',
+                             'test_asyncfrontendbase')),
+        EXCLUDE.append(pjoin('IPython', 'testing', 'parametric'))
+        EXCLUDE.append(pjoin('IPython', 'testing', 'util'))
+        EXCLUDE.append(pjoin('IPython', 'testing', 'tests', 
+                             'test_decorators_trial'))
+
     # Skip shell always because of a bug in FakeModule.
     EXCLUDE.append(pjoin('IPython', 'core', 'shell'))
 
@@ -117,6 +144,7 @@ def make_exclude():
         EXCLUDE = [s.replace('\\','\\\\') for s in EXCLUDE]
 
     return EXCLUDE
+
 
 #-----------------------------------------------------------------------------
 # Functions and classes
@@ -196,9 +224,29 @@ class IPTester(object):
         # Assemble call
         self.call_args = self.runner+self.params
 
-    def run(self):
-        """Run the stored commands"""
-        return subprocess.call(self.call_args)
+    if sys.platform == 'win32':
+        def run(self):
+            """Run the stored commands"""
+            # On Windows, cd to temporary directory to run tests.  Otherwise,
+            # Twisted's trial may not be able to execute 'trial IPython', since
+            # it will confuse the IPython module name with the ipython
+            # execution scripts, because the windows file system isn't case
+            # sensitive.
+            # We also use os.system instead of subprocess.call, because I was
+            # having problems with subprocess and I just don't know enough
+            # about win32 to debug this reliably.  Os.system may be the 'old
+            # fashioned' way to do it, but it works just fine.  If someone
+            # later can clean this up that's fine, as long as the tests run
+            # reliably in win32.
+            curdir = os.getcwd()
+            os.chdir(tempfile.gettempdir())
+            stat = os.system(' '.join(self.call_args))
+            os.chdir(curdir)
+            return stat
+    else:
+        def run(self):
+            """Run the stored commands"""
+            return subprocess.call(self.call_args)
 
 
 def make_runners():
@@ -244,7 +292,7 @@ def run_iptestall():
     t_start = time.time()
     for name,runner in runners.iteritems():
         print '*'*77
-        print 'IPython test set:', name
+        print 'IPython test group:',name
         res = runner.run()
         if res:
             failed[name] = res
@@ -255,14 +303,14 @@ def run_iptestall():
     # summarize results
     print
     print '*'*77
-    print 'Ran %s test sets in %.3fs' % (nrunners, t_tests)
+    print 'Ran %s test groups in %.3fs' % (nrunners, t_tests)
     print
     if not failed:
         print 'OK'
     else:
         # If anything went wrong, point out what command to rerun manually to
         # see the actual errors and individual summary
-        print 'ERROR - %s out of %s test sets failed.' % (nfail, nrunners)
+        print 'ERROR - %s out of %s test groups failed.' % (nfail, nrunners)
         for name in failed:
             failed_runner = runners[name]
             print '-'*40

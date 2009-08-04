@@ -38,7 +38,7 @@ To use code that calls MPI, there are typically two things that MPI requires.
 There are a couple of ways that you can start the IPython engines and get these things to happen.
 
 Automatic starting using :command:`mpiexec` and :command:`ipcluster`
--------------------------------------------------------------------
+--------------------------------------------------------------------
 
 The easiest approach is to use the `mpiexec` mode of :command:`ipcluster`, which will first start a controller and then a set of engines using :command:`mpiexec`::
 
@@ -48,7 +48,7 @@ This approach is best as interrupting :command:`ipcluster` will automatically
 stop and clean up the controller and engines.
 
 Manual starting using :command:`mpiexec`
----------------------------------------
+----------------------------------------
 
 If you want to start the IPython engines using the :command:`mpiexec`, just do::
 

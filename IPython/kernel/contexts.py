@@ -26,7 +26,7 @@ import sys
 
 from twisted.internet.error import ConnectionRefusedError
 
-from IPython.ultraTB import _fixed_getinnerframes, findsource
+from IPython.core.ultratb import _fixed_getinnerframes, findsource
 from IPython.core import ipapi
 
 from IPython.kernel import error

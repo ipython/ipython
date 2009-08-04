@@ -476,8 +476,17 @@ if we want to have a codebase that works directly on both 2.x and 3.x.
 
 	1. The syntax for exceptions changed (PEP 3110). The old 
 	   `except exc, var` changed to `except exc as var`. At last
-	   count there was 78 occurences of this usage in the codebase
-	   
+	   count there was 78 occurences of this usage in the codebase.  This
+	   is  a particularly problematic issue, because it's not easy to
+	   implement it in a 2.5-compatible way.
+
+Because it is quite difficult to support simultaneously Python 2.5 and 3.x, we
+will likely at some point put out a release that requires strictly 2.6 and
+abandons 2.5 compatibility.  This will then allow us to port the code to using
+:func:`print` as a function, `except exc as var` syntax, etc.  But as of
+version 0.11 at least, we will retain Python 2.5 compatibility.
+
+
 .. [Bazaar] Bazaar. http://bazaar-vcs.org/
 .. [Launchpad] Launchpad. http://www.launchpad.net/ipython
 .. [reStructuredText] reStructuredText.  http://docutils.sourceforge.net/rst.html

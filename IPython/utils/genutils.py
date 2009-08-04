@@ -881,7 +881,7 @@ def doctest_reload():
 
     This routine:
 
-      - reloads doctest
+      - imports doctest but does NOT reload it (see below).
 
       - resets its global 'master' attribute to None, so that multiple uses of
       the module interactively don't produce cumulative reports.
@@ -890,20 +890,20 @@ def doctest_reload():
       modified displayhook.  Doctest expects the default displayhook behavior
       deep down, so our modification breaks it completely.  For this reason, a
       hard monkeypatch seems like a reasonable solution rather than asking
-      users to manually use a different doctest runner when under IPython."""
+      users to manually use a different doctest runner when under IPython.
+
+    Notes
+    -----
+
+    This function *used to* reload doctest, but this has been disabled because
+    reloading doctest unconditionally can cause massive breakage of other
+    doctest-dependent modules already in memory, such as those for IPython's
+    own testing system.  The name wasn't changed to avoid breaking people's
+    code, but the reload call isn't actually made anymore."""
 
     import doctest
-    reload(doctest)
-    doctest.master=None
-
-    try:
-        doctest.DocTestRunner
-    except AttributeError:
-        # This is only for python 2.3 compatibility, remove once we move to
-        # 2.4 only.
-        pass
-    else:
-        doctest.DocTestRunner.run = dhook_wrap(doctest.DocTestRunner.run)
+    doctest.master = None
+    doctest.DocTestRunner.run = dhook_wrap(doctest.DocTestRunner.run)
 
 #----------------------------------------------------------------------------
 class HomeDirError(Error):

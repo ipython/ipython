@@ -208,6 +208,15 @@ def start_ipython():
     _ip.IP.magic_run_ori = _ip.IP.magic_run
     _ip.IP.magic_run = im
 
+    # XXX - For some very bizarre reason, the loading of %history by default is
+    # failing.  This needs to be fixed later, but for now at least this ensures
+    # that tests that use %hist run to completion.
+    from IPython.core import history
+    history.init_ipython(_ip)
+    if not hasattr(_ip.IP,'magic_history'):
+        raise RuntimeError("Can't load magics, aborting")
+
+
 # The start call MUST be made here.  I'm not sure yet why it doesn't work if
 # it is made later, at plugin initialization time, but in all my tests, that's
 # the case.
@@ -431,7 +440,29 @@ class DocTestCase(doctests.DocTestCase):
             _ip.IP.user_ns.update(self._dt_test.globs)
             self._dt_test.globs = _ip.IP.user_ns
 
-        doctests.DocTestCase.setUp(self)
+        super(DocTestCase, self).setUp()
+
+    def tearDown(self):
+        # XXX - fperez: I am not sure if this is truly a bug in nose 0.11, but
+        # it does look like one to me: its tearDown method tries to run
+        #
+        # delattr(__builtin__, self._result_var)
+        #
+        # without checking that the attribute really is there; it implicitly
+        # assumes it should have been set via displayhook.  But if the
+        # displayhook was never called, this doesn't necessarily happen.  I
+        # haven't been able to find a little self-contained example outside of
+        # ipython that would show the problem so I can report it to the nose
+        # team, but it does happen a lot in our code.
+        #
+        # So here, we just protect as narrowly as possible by trapping an
+        # attribute error whose message would be the name of self._result_var,
+        # and letting any other error propagate.
+        try:
+            super(DocTestCase, self).tearDown()
+        except AttributeError, exc:
+            if exc.args[0] != self._result_var:
+                raise
 
 
 # A simple subclassing of the original with a different class name, so we can
