@@ -271,6 +271,11 @@ def test_paste():
     original_clip = hooks.clipboard_get
 
     try:
+        # This try/except with an emtpy except clause is here only because
+        # try/yield/finally is invalid syntax in Python 2.4.  This will be
+        # removed when we drop 2.4-compatibility, and the emtpy except below
+        # will be changed to a finally.
+
         # Run tests with fake clipboard function
         user_ns.pop('x', None)
         paste('x=1')
@@ -289,7 +294,9 @@ def test_paste():
         """)
         yield (nt.assert_equal, user_ns['x'], [1,2,3])
         yield (nt.assert_equal, user_ns['y'], [1,4,9])
+    except:
+        pass
 
-    finally:
-        # Restore original hook
-        hooks.clipboard_get = original_clip
+    # This should be in a finally clause, instead of the bare except above.
+    # Restore original hook
+    hooks.clipboard_get = original_clip
