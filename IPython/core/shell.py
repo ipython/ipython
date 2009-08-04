@@ -1,4 +1,5 @@
-# -*- coding: utf-8 -*-
+#!/usr/bin/env python
+# encoding: utf-8
 """IPython Shell classes.
 
 Originally, this module was horribly complicated because of the need to
