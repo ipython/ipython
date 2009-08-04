@@ -3,6 +3,9 @@
 """This file contains unittests for the asyncfrontendbase module."""
 
 __docformat__ = "restructuredtext en"
+                                                                            
+# Tell nose to skip this module
+__test__ = {}
 
 #---------------------------------------------------------------------------
 #  Copyright (C) 2008  The IPython Development Team                         
@@ -10,20 +13,21 @@ __docformat__ = "restructuredtext en"
 #  Distributed under the terms of the BSD License.  The full license is in  
 #  the file COPYING, distributed as part of this software.                  
 #---------------------------------------------------------------------------
-                                                                            
+
 #---------------------------------------------------------------------------
 # Imports                                                                   
 #---------------------------------------------------------------------------
 
-# Tell nose to skip this module
-__test__ = {}
-
 from twisted.trial import unittest
+    
 from IPython.frontend.asyncfrontendbase import AsyncFrontEndBase
 from IPython.frontend import frontendbase 
 from IPython.kernel.engineservice import EngineService
 from IPython.testing.parametric import Parametric, parametric
 
+#-----------------------------------------------------------------------------
+# Classes and functions
+#-----------------------------------------------------------------------------
 
 class FrontEndCallbackChecker(AsyncFrontEndBase):
     """FrontEndBase subclass for checking callbacks"""
@@ -106,4 +110,3 @@ class TestAsyncFrontendBase(unittest.TestCase):
     def test_history_returns_none_at_startup(self):        
         self.assert_(self.fb.get_history_previous("")==None)
         self.assert_(self.fb.get_history_next()==None)
-

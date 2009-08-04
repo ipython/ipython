@@ -108,6 +108,27 @@ def make_exclude():
     if not have_pexpect:
         EXCLUDE.append(pjoin('IPython', 'scripts', 'irunner'))
 
+    # This is scary.  We still have things in frontend and testing that
+    # are being tested by nose that use twisted.  We need to rethink
+    # how we are isolating dependencies in testing.
+    if not (have_twisted and have_zi and have_foolscap):
+        EXCLUDE.append(pjoin('IPython', 'frontend', 'asyncfrontendbase'))
+        EXCLUDE.append(pjoin('IPython', 'frontend', 'prefilterfrontend'))
+        EXCLUDE.append(pjoin('IPython', 'frontend', 'frontendbase'))
+        EXCLUDE.append(pjoin('IPython', 'frontend', 'linefrontendbase'))
+        EXCLUDE.append(pjoin('IPython', 'frontend', 'tests',
+                             'test_linefrontend'))
+        EXCLUDE.append(pjoin('IPython', 'frontend', 'tests', 
+                             'test_frontendbase'))
+        EXCLUDE.append(pjoin('IPython', 'frontend', 'tests',
+                             'test_prefilterfrontend'))
+        EXCLUDE.append(pjoin('IPython', 'frontend', 'tests',
+                             'test_asyncfrontendbase')),
+        EXCLUDE.append(pjoin('IPython', 'testing', 'parametric'))
+        EXCLUDE.append(pjoin('IPython', 'testing', 'util'))
+        EXCLUDE.append(pjoin('IPython', 'testing', 'tests', 
+                             'test_decorators_trial'))
+
     # Skip shell always because of a bug in FakeModule.
     EXCLUDE.append(pjoin('IPython', 'core', 'shell'))
 

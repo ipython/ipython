@@ -43,7 +43,6 @@ def doctest_hist_f():
     In [10]: tfile = tempfile.mktemp('.py','tmp-ipython-')
 
     In [11]: %hist -n -f $tfile 3
-
     """
 
 
