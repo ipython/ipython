@@ -2,6 +2,9 @@
 
 XXX - This module is missing proper docs.
 """
+# Tell nose to skip this module
+__test__ = {}
+
 import sys
 
 from twisted.internet import reactor, threads

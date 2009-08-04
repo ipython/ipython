@@ -107,6 +107,23 @@ if not os.name == 'posix':
 if not have_pexpect:
     EXCLUDE.append(pjoin('IPython', 'irunner'))
 
+if not have_twisted:
+    EXCLUDE.append(pjoin('IPython', 'frontend', 'asyncfrontendbase'))
+    EXCLUDE.append(pjoin('IPython', 'frontend', 'prefilterfrontend'))
+    EXCLUDE.append(pjoin('IPython', 'frontend', 'frontendbase'))
+    EXCLUDE.append(pjoin('IPython', 'frontend', 'linefrontendbase'))
+    EXCLUDE.append(pjoin('IPython', 'frontend', 'tests', 'test_linefrontend'))
+    EXCLUDE.append(pjoin('IPython', 'frontend', 'tests', 'test_frontendbase'))
+    EXCLUDE.append(pjoin('IPython', 'frontend', 'tests',
+                         'test_prefilterfrontend'))
+    EXCLUDE.append(pjoin('IPython', 'frontend', 'tests',
+                         'test_asyncfrontendbase'))
+    EXCLUDE.append(pjoin('IPython', 'kernel', 'error'))
+    EXCLUDE.append(pjoin('IPython', 'testing', 'parametric'))
+    EXCLUDE.append(pjoin('IPython', 'testing', 'util'))
+    EXCLUDE.append(pjoin('IPython', 'testing', 'tests', 'test_decorators_trial'))
+
+
 # This is needed for the reg-exp to match on win32 in the ipdoctest plugin.
 if sys.platform == 'win32':
     EXCLUDE = [s.replace('\\','\\\\') for s in EXCLUDE]
@@ -232,11 +249,14 @@ def make_runners():
        'Logger.py', 'macro.py', 'Magic.py', 'OInspect.py',
        'OutputTrap.py', 'platutils.py', 'prefilter.py', 'Prompts.py',
        'PyColorize.py', 'Release.py', 'rlineimpl.py', 'shadowns.py',
-       'shellglobals.py', 'strdispatch.py', 'twshell.py',
+       'shellglobals.py', 'strdispatch.py', 
        'ultraTB.py', 'upgrade_dir.py', 'usage.py', 'wildcard.py',
        # See note above for why this is skipped
        # 'Shell.py',
        'winconsole.py']
+
+    if have_twisted:
+        top_mod.append('twshell.py')
 
     if have_pexpect:
         top_mod.append('irunner.py')
