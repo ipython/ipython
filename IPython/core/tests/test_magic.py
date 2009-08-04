@@ -164,7 +164,6 @@ def doctest_run_ns2():
     tclass.py: deleting object: C-first_pass
     """
 
-@dec.skip_win32
 def doctest_run_builtins():
     """Check that %run doesn't damage __builtins__ via a doctest.
 
@@ -177,24 +176,34 @@ def doctest_run_builtins():
 
     In [2]: bid1 = id(__builtins__)
 
-    In [3]: f = tempfile.NamedTemporaryFile()
+    In [3]: fname = tempfile.mkstemp()[1]
+
+    In [3]: f = open(fname,'w')
 
     In [4]: f.write('pass\\n')
 
     In [5]: f.flush()
 
-    In [6]: print 'B1:',type(__builtins__)
-    B1: <type 'module'>
+    In [6]: print type(__builtins__)
+    <type 'module'>
 
-    In [7]: %run $f.name
+    In [7]: %run "$fname"
+
+    In [7]: f.close()
 
     In [8]: bid2 = id(__builtins__)
 
-    In [9]: print 'B2:',type(__builtins__)
-    B2: <type 'module'>
+    In [9]: print type(__builtins__)
+    <type 'module'>
 
     In [10]: bid1 == bid2
     Out[10]: True
+
+    In [12]: try:
+       ....:     os.unlink(fname)
+       ....: except:
+       ....:     pass
+       ....: 
     """
 
 # For some tests, it will be handy to organize them in a class with a common
@@ -204,23 +213,18 @@ class TestMagicRun(object):
 
     def setup(self):
         """Make a valid python temp file."""
-        f = tempfile.NamedTemporaryFile()
+        fname = tempfile.mkstemp()[1]
+        f = open(fname,'w')
         f.write('pass\n')
         f.flush()
         self.tmpfile = f
+        self.fname = fname
 
     def run_tmpfile(self):
         # This fails on Windows if self.tmpfile.name has spaces or "~" in it.
         # See below and ticket https://bugs.launchpad.net/bugs/366353
-        _ip.magic('run %s' % self.tmpfile.name)
+        _ip.magic('run "%s"' % self.fname)
 
-    # See https://bugs.launchpad.net/bugs/366353
-    @dec.skip_if_not_win32
-    def test_run_tempfile_path(self):
-        tt.assert_equals(True,False,"%run doesn't work with tempfile paths on win32.")
-
-    # See https://bugs.launchpad.net/bugs/366353
-    @dec.skip_win32
     def test_builtins_id(self):
         """Check that %run doesn't damage __builtins__ """
 
@@ -230,8 +234,6 @@ class TestMagicRun(object):
         bid2 = id(_ip.user_ns['__builtins__'])
         tt.assert_equals(bid1, bid2)
 
-    # See https://bugs.launchpad.net/bugs/366353
-    @dec.skip_win32
     def test_builtins_type(self):
         """Check that the type of __builtins__ doesn't change with %run.
         
@@ -242,8 +244,6 @@ class TestMagicRun(object):
         self.run_tmpfile()
         tt.assert_equals(type(_ip.user_ns['__builtins__']),type(sys))
 
-    # See https://bugs.launchpad.net/bugs/366353
-    @dec.skip_win32
     def test_prompts(self):
         """Test that prompts correctly generate after %run"""
         self.run_tmpfile()
@@ -252,6 +252,12 @@ class TestMagicRun(object):
 
     def teardown(self):
         self.tmpfile.close()
+        try:
+            os.unlink(self.fname)
+        except:
+            # On Windows, even though we close the file, we still can't delete
+            # it.  I have no clue why
+            pass
 
 # Multiple tests for clipboard pasting
 def test_paste():
