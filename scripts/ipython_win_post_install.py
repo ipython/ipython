@@ -69,11 +69,7 @@ def install():
     link = pjoin(ip_start_menu, 'scipy.lnk')
     cmd = '"%s" -pylab -p scipy' % ipybase
     mkshortcut(python,'IPython (scipy profile)',link,cmd)
-    
-    link = pjoin(ip_start_menu, 'IPython test suite.lnk')
-    cmd = '"%s" -vv' % pjoin(scripts, 'iptest')
-    mkshortcut(python,'Run the IPython test suite',link,cmd)
-    
+        
     link = pjoin(ip_start_menu, 'ipcontroller.lnk')
     cmd = '"%s" -xy' % pjoin(scripts, 'ipcontroller')
     mkshortcut(python,'IPython controller',link,cmd)
