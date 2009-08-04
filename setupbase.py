@@ -57,7 +57,7 @@ def file_doesnt_endwith(test,endings):
 # Basic project information
 #---------------------------------------------------------------------------
 
-# Release.py contains version, authors, license, url, keywords, etc.
+# release.py contains version, authors, license, url, keywords, etc.
 execfile(pjoin('IPython','core','release.py'))
 
 # Create a dict with the basic information

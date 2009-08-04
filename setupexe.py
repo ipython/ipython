@@ -42,7 +42,7 @@ from distutils import dir_util
 import py2exe
 
 # update the manuals when building a source dist
-# Release.py contains version, authors, license, url, keywords, etc.
+# release.py contains version, authors, license, url, keywords, etc.
 execfile(pjoin('IPython','core','release.py'))
 
 # A little utility we'll need below, since glob() does NOT allow you to do

@@ -1,35 +1,43 @@
-#!/bin/bash
-# IPython release script
+#!/usr/bin/env python
+"""IPython release script.
 
-PYVER=`python -V 2>&1 | awk '{print $2}' | awk -F '.' '{print $1$2}' `
-version=`ipython -Version`
-ipdir=~/ipython/ipython
-ipbackupdir=~/ipython/backup
+This should only be run at real release time.
+"""
 
-echo
-echo "Releasing IPython version $version"
-echo "=================================="
+from toollib import *
+
+# Get main ipython dir, this will raise if it doesn't pass some checks
+ipdir = get_ipdir()
+cd(ipdir)
+
+# Load release info
+execfile(pjoin('IPython','core','release.py'))
+
+# Where I keep static backups of each release
+ipbackupdir = os.path.expanduser('~/ipython/backup')
+
+print
+print "Releasing IPython version $version"
+print "=================================="
 
 # Perform local backup
-cd $ipdir/tools
-./make_tarball.py
-mv ipython-*.tgz $ipbackupdir
+c('./make_tarball.py')
+c('mv ipython-*.tgz %s' % ipbackupdir)
 
 # Build release files
-./testrel $ipdir
+c('./mkrel.py %s' % ipdir)
 
 # Register with the Python Package Index (PyPI)
-echo "Registering with PyPI..."
-cd $ipdir
-./setup.py register
+print "Registering with PyPI..."
+c('./setup.py register')
 
 # Upload all files
-cd $ipdir/dist
-echo "Uploading distribution files..."
-scp * ipython@ipython.scipy.org:www/dist/
+cd('dist')
+print "Uploading distribution files..."
+c('scp * ipython@ipython.scipy.org:www/dist/')
 
-echo "Uploading backup files..."
-cd $ipbackupdir
-scp `ls -1tr *tgz | tail -1` ipython@ipython.scipy.org:www/backup/
+print "Uploading backup files..."
+cd(ipbackupdir)
+c('scp `ls -1tr *tgz | tail -1` ipython@ipython.scipy.org:www/backup/')
 
-echo "Done!"
+print "Done!"

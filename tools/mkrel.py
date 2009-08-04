@@ -1,48 +1,42 @@
 #!/usr/bin/env python
-"""IPython release script
-
-Create ipykit and exe installer
-
-requires py2exe
+"""IPython release build script.
 """
+from toollib import *
 
-import os
-import distutils.dir_util
-import sys
+# Get main ipython dir, this will raise if it doesn't pass some checks
+ipdir = get_ipdir()
+cd(ipdir)
 
-execfile('../IPython/Release.py')
+# Load release info
+execfile(pjoin('IPython','core','release.py'))
 
-def c(cmd):
-    print ">",cmd
-    os.system(cmd)
+# Check that everything compiles
+compile_tree()
 
-ipykit_name = "ipykit-%s" % version
-
-os.chdir('..')
-if os.path.isdir('dist'):
-    distutils.dir_util.remove_tree('dist')
-if os.path.isdir(ipykit_name):
-    distutils.dir_util.remove_tree(ipykit_name)
-
-if sys.platform == 'win32':
-    c("python exesetup.py py2exe")
-
-    os.rename('dist',ipykit_name)
-
-    c("zip -r %s.zip %s" % (ipykit_name, ipykit_name))
+# Cleanup
+for d in ['build','dist',pjoin('docs','build'),pjoin('docs','dist')]:
+    if os.path.isdir(d):
+        remove_tree(d)
 
 # Build source and binary distros
 c('./setup.py sdist --formats=gztar')
 
-c("python2.4 ./setup.py bdist_rpm --binary-only --release=py24 --python=/usr/bin/python2.4")
-c("python2.5 ./setup.py bdist_rpm --binary-only --release=py25 --python=/usr/bin/python2.5")
+# Build version-specific RPMs, where we must use the --python option to ensure
+# that the resulting RPM is really built with the requested python version (so
+# things go to lib/python2.X/...)
+c("python2.5 ./setup.py bdist_rpm --binary-only --release=py25 "
+  "--python=/usr/bin/python2.5")
+c("python2.6 ./setup.py bdist_rpm --binary-only --release=py26 "
+  "--python=/usr/bin/python2.6")
 
 # Build eggs
-c('python2.4 ./eggsetup.py bdist_egg')
 c('python2.5 ./eggsetup.py bdist_egg')
+c('python2.6 ./eggsetup.py bdist_egg')
 
+# Call the windows build separately, so that the extra Windows scripts don't
+# get pulled into Unix builds (setup.py has code which checks for
+# bdist_wininst)
 c("python setup.py bdist_wininst --install-script=ipython_win_post_install.py")
 
-os.chdir('tools')
-c('python make_tarball.py')
-
+# Change name so retarded Vista runs the installer correctly
+c("rename 's/win32/win32-setup/' dist/*.exe")
