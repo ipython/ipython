@@ -2,35 +2,22 @@
 """Simple script to create a tarball with proper bzr version info.
 """
 
-import os,sys,shutil
+import os
+import sys
+import shutil
 
-basever = '0.9.0'
+from  toollib import *
 
-def oscmd(c):
-    print ">",c
-    s = os.system(c)
-    if s:
-        print "Error",s
-        sys.exit(s)
+c('python update_revnum.py')
 
-def verinfo():
-    
-    out = os.popen('bzr version-info')
-    pairs = (l.split(':',1) for l in out)
-    d = dict(((k,v.strip()) for (k,v) in pairs)) 
-    return d
+execfile('../IPython/core/release.py')  # defines version_base
 
-basename = 'ipython'
-
-#tarname = '%s.r%s.tgz' % (basename, ver)
-oscmd('python update_revnum.py')
-
-ver = verinfo()
+ver = version_info()
 
 if ver['branch-nick'] == 'ipython':
-    tarname = 'ipython-%s.bzr.r%s.tgz' % (basever, ver['revno'])
+    tarname = 'ipython-%s.bzr.r%s.tgz' % (version_base, ver['revno'])
 else:
-    tarname = 'ipython-%s.bzr.r%s.%s.tgz' % (basever, ver['revno'],
+    tarname = 'ipython-%s.bzr.r%s.%s.tgz' % (version_base, ver['revno'],
                                              ver['branch-nick'])
     
-oscmd('bzr export ' + tarname)
+c('bzr export ' + tarname)

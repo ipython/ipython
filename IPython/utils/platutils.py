@@ -23,11 +23,6 @@ elif sys.platform == 'win32':
     import platutils_win32 as _platutils
 else:
     import platutils_dummy as _platutils
-    import warnings
-    warnings.warn("Platutils not available for platform '%s', some features may be missing" %
-        os.name)
-    del warnings
-
 
 # Functionality that's logically common to all platforms goes here, each
 # platform-specific module only provides the bits that are OS-dependent.
@@ -36,6 +31,9 @@ else:
 # there is a public, cross-platform way of toggling the term title control on
 # and off.  We should make this a stateful object later on so that each user
 # can have its own instance if needed.
+def term_clear():
+    _platutils.term_clear()
+
 def toggle_set_term_title(val):
     """Control whether set_term_title is active or not.
 
@@ -103,4 +101,3 @@ def get_long_path_name(path):
 def freeze_term_title():
     warnings.warn("This function is deprecated, use toggle_set_term_title()")
     _platutils.ignore_termtitle = True
-

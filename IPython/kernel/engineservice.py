@@ -23,6 +23,10 @@ method that automatically added methods to engines.
 
 __docformat__ = "restructuredtext en"
 
+# Tell nose to skip this module.  I don't think we need this as nose
+# shouldn't ever be run on this!
+__test__ = {}
+
 #-------------------------------------------------------------------------------
 #  Copyright (C) 2008  The IPython Development Team
 #
@@ -34,12 +38,9 @@ __docformat__ = "restructuredtext en"
 # Imports
 #-------------------------------------------------------------------------------
 
-# Tell nose to skip the testing of this module
-__test__ = {}
-
-import os, sys, copy
+import copy
+import sys
 import cPickle as pickle
-from new import instancemethod
 
 from twisted.application import service
 from twisted.internet import defer, reactor
@@ -47,11 +48,7 @@ from twisted.python import log, failure, components
 import zope.interface as zi
 
 from IPython.kernel.core.interpreter import Interpreter
-from IPython.kernel import newserialized, error, util
-from IPython.kernel.util import printer
-from IPython.kernel.twistedutil import gatherBoth, DeferredList
-from IPython.kernel import codeutil
-
+from IPython.kernel import newserialized, error
 
 #-------------------------------------------------------------------------------
 # Interface specification for the Engine

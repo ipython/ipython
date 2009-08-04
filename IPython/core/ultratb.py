@@ -91,7 +91,7 @@ from inspect import getsourcefile, getfile, getmodule,\
 # IPython's own modules
 # Modified pdb which doesn't damage IPython's readline handling
 from IPython.utils import PyColorize
-from IPython.core import debugger
+from IPython.core import debugger, ipapi
 from IPython.utils.ipstruct import Struct
 from IPython.core.excolors import exception_colors
 from IPython.utils.genutils import Term,uniq_stable,error,info
@@ -268,10 +268,12 @@ def _formatTracebackLines(lnum, index, lines, Colors, lvals=None,scheme=None):
 
     # This lets us get fully syntax-highlighted tracebacks.
     if scheme is None:
-        try:
-            scheme = __IPYTHON__.rc.colors
-        except:
+        ipinst = ipapi.get()
+        if ipinst is not None:
+            scheme = ipinst.IP.rc.colors
+        else:
             scheme = DEFAULT_SCHEME
+
     _line_format = _parser.format2
 
     for line in lines:
@@ -490,7 +492,9 @@ class ListTB(TBTools):
 
         # vds:>>
         if have_filedata:
-            __IPYTHON__.hooks.synchronize_with_editor(filename, lineno, 0)
+            ipinst = ipapi.get()
+            if ipinst is not None:
+                ipinst.IP.hooks.synchronize_with_editor(filename, lineno, 0)
         # vds:<<
 
         return list
@@ -810,7 +814,9 @@ class VerboseTB(TBTools):
              filepath, lnum = records[-1][1:3]
              #print "file:", str(file), "linenb", str(lnum) # dbg
              filepath = os.path.abspath(filepath)
-             __IPYTHON__.hooks.synchronize_with_editor(filepath, lnum, 0)
+             ipinst = ipapi.get()
+             if ipinst is not None:
+                 ipinst.IP.hooks.synchronize_with_editor(filepath, lnum, 0)
         # vds: <<
                 
         # return all our info assembled as a single string

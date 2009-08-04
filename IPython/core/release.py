@@ -2,8 +2,8 @@
 """Release data for the IPython project."""
 
 #*****************************************************************************
-#       Copyright (C) 2001-2006 Fernando Perez <fperez@colorado.edu>
-#
+#       Copyright (C) 2008-2009  The IPython Development Team
+#       Copyright (C) 2001-2008 Fernando Perez <fperez@colorado.edu>
 #       Copyright (c) 2001 Janko Hauser <jhauser@zscout.de> and Nathaniel Gray
 #       <n8gray@caltech.edu>
 #
@@ -20,10 +20,10 @@ name = 'ipython'
 # because bdist_rpm does not accept dashes (an RPM) convention, and
 # bdist_deb does not accept underscores (a Debian convention).
 
-development = True    # change this to False to do a release
+development = False    # change this to False to do a release
 version_base = '0.10'
 branch = 'ipython'
-revision = '1163'
+revision = '1188'
 
 if development:
     if branch == 'ipython':
@@ -100,7 +100,7 @@ site <http://launchpad.net/ipython>`_.
 
 license = 'BSD'
 
-authors = {'Fernando' : ('Fernando Perez','fperez@colorado.edu'),
+authors = {'Fernando' : ('Fernando Perez','fperez.net@gmail.com'),
            'Janko'    : ('Janko Hauser','jhauser@zscout.de'),
            'Nathan'   : ('Nathaniel Gray','n8gray@caltech.edu'),
            'Ville'    : ('Ville Vainio','vivainio@gmail.com'),

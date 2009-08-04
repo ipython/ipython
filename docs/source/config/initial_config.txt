@@ -175,11 +175,16 @@ In order to configure less as your default pager, do the following:
       properly interpret control sequences, which is how color
       information is given to your terminal.
 
+For the bash shell, add to your ~/.bashrc file the lines::
+
+    export PAGER=less
+    export LESS=-r
+
 For the csh or tcsh shells, add to your ~/.cshrc file the lines::
 
     setenv PAGER less
     setenv LESS -r
-
+    
 There is similar syntax for other Unix shells, look at your system
 documentation for details.
 

@@ -1,20 +1,19 @@
 #!/usr/bin/env python
-"""Call the compile script to check that all code we ship compiles correctly.
+"""Script to check that all code in a directory compiles correctly.
+
+Usage:
+
+  compile.py
+
+This script verifies that all Python files in the directory where run, and all
+of its subdirectories, compile correctly.
+
+Before a release, call this script from the top-level directory.
 """
 
-import os
 import sys
 
+from toollib import compile_tree
 
-vstr = '.'.join(map(str,sys.version_info[:2]))
-
-stat = os.system('python %s/lib/python%s/compileall.py .' % (sys.prefix,vstr))
-
-print
-if stat:
-    print '*** THERE WAS AN ERROR! ***'
-    print 'See messages above for the actual file that produced it.'
-else:
-    print 'OK'
-
-sys.exit(stat)
+if __name__ == '__main__':
+    compile_tree()

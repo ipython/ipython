@@ -15,28 +15,13 @@ __docformat__ = "restructuredtext en"
 from copy import copy, deepcopy
 from cStringIO import StringIO
 import string
+import sys
 
 from nose.tools import assert_equal
 
 from IPython.frontend.prefilterfrontend import PrefilterFrontEnd
 from IPython.core.ipapi import get as get_ipython0
 from IPython.testing.plugin.ipdoctest import default_argv
-
-
-def safe_deepcopy(d):
-    """ Deep copy every key of the given dict, when possible. Elsewhere
-        do a copy.
-    """
-    copied_d = dict()
-    for key, value in d.iteritems():
-        try:
-            copied_d[key] = deepcopy(value)
-        except:
-            try:
-                copied_d[key] = copy(value)
-            except:
-                copied_d[key] = value
-    return copied_d
 
 
 class TestPrefilterFrontEnd(PrefilterFrontEnd):
@@ -72,17 +57,34 @@ def isolate_ipython0(func):
         with arguments.
     """
     def my_func():
-        iplib = get_ipython0()
-        if iplib is None:
+        ip0 = get_ipython0()
+        if ip0 is None:
             return func()
-        ipython0 = iplib.IP
-        global_ns = safe_deepcopy(ipython0.user_global_ns)
-        user_ns = safe_deepcopy(ipython0.user_ns)
+        # We have a real ipython running...
+        user_ns = ip0.IP.user_ns
+        user_global_ns = ip0.IP.user_global_ns
+
+        # Previously the isolation was attempted with a deep copy of the user
+        # dicts, but we found cases where this didn't work correctly. I'm not
+        # quite sure why, but basically it did damage the user namespace, such
+        # that later tests stopped working correctly.  Instead we use a simpler
+        # approach, just computing the list of added keys to the namespace and
+        # eliminating those afterwards.  Existing keys that may have been
+        # modified remain modified.  So far this has proven to be robust.
+
+        # Compute set of old local/global keys
+        old_locals = set(user_ns.keys())
+        old_globals = set(user_global_ns.keys())
         try:
             out = func()
         finally:
-            ipython0.user_ns = user_ns
-            ipython0.user_global_ns = global_ns
+            # Find new keys, and if any, remove them
+            new_locals = set(user_ns.keys()) - old_locals
+            new_globals = set(user_global_ns.keys()) - old_globals
+            for k in new_locals:
+                del user_ns[k]
+            for k in new_globals:
+                del user_global_ns[k]
         # Undo the hack at creation of PrefilterFrontEnd
         from IPython.core import iplib
         iplib.InteractiveShell.isthreaded = False
@@ -97,7 +99,7 @@ def test_execution():
     """ Test execution of a command.
     """
     f = TestPrefilterFrontEnd()
-    f.input_buffer = 'print 1'
+    f.input_buffer = 'print(1)'
     f._on_enter()
     out_value = f.out.getvalue()
     assert_equal(out_value, '1\n')
@@ -228,7 +230,14 @@ def test_completion_indexing():
     f._on_enter()
     f.input_buffer = 'a[0].'
     f.complete_current_input()
-    assert_equal(f.input_buffer, 'a[0].__')
+
+    if sys.version_info[:2] >= (2,6):
+        # In Python 2.6, ints picked up a few non __ methods, so now there are
+        # no completions.
+        assert_equal(f.input_buffer, 'a[0].')
+    else:
+        # Right answer for 2.4/2.5
+        assert_equal(f.input_buffer, 'a[0].__')
 
 
 @isolate_ipython0
@@ -238,8 +247,13 @@ def test_completion_equal():
     f = TestPrefilterFrontEnd()
     f.input_buffer = 'a=1.'
     f.complete_current_input()
-    assert_equal(f.input_buffer, 'a=1.__')
-
+    if sys.version_info[:2] >= (2,6):
+        # In Python 2.6, ints picked up a few non __ methods, so now there are
+        # no completions.
+        assert_equal(f.input_buffer, 'a=1.')
+    else:
+        # Right answer for 2.4/2.5
+        assert_equal(f.input_buffer, 'a=1.__')
 
 
 if __name__ == '__main__':

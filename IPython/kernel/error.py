@@ -4,6 +4,9 @@
 
 __docformat__ = "restructuredtext en"
 
+# Tell nose to skip this module
+__test__ = {}
+
 #-------------------------------------------------------------------------------
 #  Copyright (C) 2008  The IPython Development Team
 #
@@ -14,9 +17,9 @@ __docformat__ = "restructuredtext en"
 #-------------------------------------------------------------------------------
 # Imports
 #-------------------------------------------------------------------------------
+from twisted.python import failure
 
 from IPython.kernel.core import error
-from twisted.python import failure
 
 #-------------------------------------------------------------------------------
 # Error classes
