@@ -460,7 +460,7 @@ class DocTestCase(doctests.DocTestCase):
         try:
             super(DocTestCase, self).tearDown()
         except AttributeError, exc:
-            if exc.message != self._result_var:
+            if exc.args[0] != self._result_var:
                 raise
 
 
