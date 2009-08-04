@@ -191,7 +191,7 @@ class IPythonCrashHandler(CrashHandler):
     def __init__(self,IP):
 
         # Set here which of the IPython authors should be listed as contact
-        AUTHOR_CONTACT = 'Ville'
+        AUTHOR_CONTACT = 'Fernando'
         
         # Set argument defaults
         app_name = 'IPython'
