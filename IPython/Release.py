@@ -23,7 +23,7 @@ name = 'ipython'
 development = False    # change this to False to do a release
 version_base = '0.10'
 branch = 'ipython'
-revision = '1188'
+revision = '1204'
 
 if development:
     if branch == 'ipython':
