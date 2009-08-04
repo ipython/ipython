@@ -111,7 +111,7 @@ def fix_error_editor(self,filename,linenum,column,msg):
 
 # vds: >>
 def synchronize_with_editor(self, filename, linenum, column):
-	pass
+        pass
 # vds: <<
 
 class CommandChainDispatcher:
