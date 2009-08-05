@@ -29,7 +29,7 @@ import sys
 import traceback
 
 # Local imports.
-from IPython.kernel.core import ultraTB
+from IPython import ultraTB
 from IPython.kernel.core.display_trap import DisplayTrap
 from IPython.kernel.core.macro import Macro
 from IPython.kernel.core.prompts import CachedOutput
