@@ -164,6 +164,45 @@ ready to be merged. What types of things will we be looking for:
 Once your changes have been reviewed and approved, someone will merge them
 into the main development branch.
 
+
+Some notes for core developers when merging third-party contributions
+=====================================================================
+
+Core developers, who ultimately merge any approved branch (from themselves,
+another developer, or any third-party contribution) will typically use
+:command:`bzr merge` to merge the branch into the trunk and push it to the main
+Launcphad site.  This is a short list of things to keep in mind when doing this
+process, so that the project history is easy to understand in the long run, and
+that generating release notes is as painless and accurate as possible.
+
+- When you merge any non-trivial functionality (from one small bug fix to a big
+  feature branch), please remember to always edit the changes_ file
+  accordingly.  This file has one main section for each release, and if you
+  edit it as you go, noting what new features, bug fixes or API changes you
+  have made, the release notes will be almost finished when they are needed
+  later.  This is much easier if done when you merge the work, rather than
+  weeks or months later by re-reading a massive Bazaar log.
+
+- When big merges are done, the practice of putting a summary commit message in
+  the merge is *extremely* useful.  It makes this kind of job much nicer,
+  because that summary log message can be almost copy/pasted without changes,
+  if it was well written, rather than dissecting the next-level messages from
+  the individual commits.
+
+- It's important that we remember to always credit who gave us something if
+  it's not the committer.  In general, we have been fairly good on this front,
+  this is just a reminder to keep things up.  As a note, if you are ever
+  committing something that is completely (or almost so) a third-party
+  contribution, do the commit as::
+
+    $ bzr commit --author="Someone Else"
+
+  This way it will show that name separately in the log, which makes it even
+  easier to spot.  Obviously we often rework third party contributions
+  extensively, but this is still good to keep in mind for cases when we don't
+  touch the code too much.
+
+
 Documentation
 =============
 
@@ -317,12 +356,18 @@ it, you can find this script in the :file:`scripts` directory)::
 
     $ iptest
 
-This command runs Nose with the proper options and extensions.  By default,
-:command:`iptest` runs the entire IPython test suite (skipping tests that may
-be platform-specific or which depend on tools you may not have).  But you can
-also use it to run only one specific test file, or a specific test function.
-For example, this will run only the :file:`test_magic` file from the test
-suite::
+This command colects all IPython tests into separate groups, and then calls
+either Nose with the proper options and extensions, or Twisted's
+:command:`trial`.  This ensures that tests that need the Twisted reactor
+management facilities execute separate of Nose.  If any individual test group
+fails, :command:`iptest` will print what you need to type so you can rerun that
+particular test group alone for debugging.
+
+By default, :command:`iptest` runs the entire IPython test
+suite (skipping tests that may be platform-specific or which depend on tools
+you may not have).  But you can also use it to run only one specific test file,
+or a specific test function.  For example, this will run only the
+:file:`test_magic` file from the test suite::
 
     $ iptest IPython.tests.test_magic
     ----------------------------------------------------------------------
@@ -344,36 +389,6 @@ Since :command:`iptest` is based on nosetests, you can pass it any regular
 nosetests option.  For example, you can use ``--pdb`` or ``--pdb-failures`` to
 automatically activate the interactive Pdb debugger on errors or failures.  See
 the nosetests documentation for further details.
-
-.. warning::
-
-   Note that right now we have a nasty interaction between ipdoctest and
-   twisted.  Until we figure this out, please use the following instructions to
-   ensure that at least you run all the tests.
-
-Right now, if you now run::
-
-    $ iptest [any options] [any submodules]
-
-it will NOT load ipdoctest but won't cause any Twisted problems.
-
-Once you're happy that you didn't break Twisted, run::
-
-    $ iptest --with-ipdoctest [any options] [any submodules]
-
-This MAY give a Twisted AlreadyCalledError exception at the end, but it will
-also correctly load up all of the ipython-specific tests and doctests.
-
-The above can be made easier with a trivial shell alias::
-
-    $ alias iptest2='iptest --with-ipdoctest'
-
-So that you can run::
-
-    $ iptest ...
-    # Twisted happy
-    # iptest2 ...
-    # ignore possible Twisted error, this checks all the rest.
 
 
 A few tips for writing tests
@@ -449,6 +464,12 @@ Release checklist
 
 Most of the release process is automated by the :file:`release` script in the
 :file:`tools` directory.  This is just a handy reminder for the release manager.
+
+#. First, run :file:`build_release`, which does all the file checking and
+   building that the real release script will do.  This will let you do test
+   installations, check that the build procedure runs OK, etc.  You may want to
+   disable a few things like multi-version RPM building while testing, because
+   otherwise the build takes really long.
 
 #. Run the release script, which makes the tar.gz, eggs and Win32 .exe
    installer.  It posts them to the site and registers the release with PyPI.
