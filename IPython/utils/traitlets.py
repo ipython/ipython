@@ -3,6 +3,26 @@
 """
 A lightweight Traits like module.
 
+This is designed to provide a lightweight, simple, pure Python version of
+many of the capabilities of enthought.traits.  This includes:
+
+* Validation
+* Type specification with defaults
+* Static and dynamic notification
+* Basic predefined types
+* An API that is similar to enthought.traits
+
+We don't support:
+
+* Delegation
+* Automatic GUI generation
+* A full set of trait types
+* API compatibility with enthought.traits
+
+We choose to create this module because we need these capabilities, but
+we need them to be pure Python so they work in all Python implementations,
+including Jython and IronPython.
+
 Authors:
 
 * Brian Granger
@@ -82,6 +102,18 @@ def repr_type(obj):
 
 
 def parse_notifier_name(name):
+    """Convert the name argument to a list of names.
+    
+    Examples
+    --------
+    
+    >>> parse_notifier_name('a')
+    ['a']
+    >>> parse_notifier_name(['a','b'])
+    ['a', 'b']
+    >>> parse_notifier_name(None)
+    ['anytraitlet']
+    """
     if isinstance(name, str):
         return [name]
     elif name is None:
@@ -103,8 +135,6 @@ class TraitletType(object):
     default_value = None
     info_text = 'any value'
 
-    # def __init__(self, name, default_value=NoDefaultSpecified, **metadata):
-    #     self.name = name
     def __init__(self, default_value=NoDefaultSpecified, **metadata):
         if default_value is not NoDefaultSpecified:
             self.default_value = default_value
@@ -121,7 +151,7 @@ class TraitletType(object):
         old_value = self.__get__(inst)
         if old_value != new_value:
             inst._traitlet_values[self.name] = new_value
-            inst._notify(self.name, old_value, value)
+            inst._notify(self.name, old_value, new_value)
 
     def _validate(self, inst, value):
         if hasattr(self, 'validate'):
@@ -181,28 +211,64 @@ class HasTraitlets(object):
 
     def __init__(self):
         self._traitlet_values = {}
-        self._notifiers = {}
+        self._traitlet_notifiers = {}
 
     def _notify(self, name, old_value, new_value):
-        callables = self._notifiers.get(name,[])
-        more_callables = self._notifiers.get('anytraitlet',[])
+
+        # First dynamic ones
+        callables = self._traitlet_notifiers.get(name,[])
+        more_callables = self._traitlet_notifiers.get('anytraitlet',[])
         callables.extend(more_callables)
+
+        # Now static ones
+        try:
+            cb = getattr(self, '_%s_changed' % name)
+        except:
+            pass
+        else:
+            callables.append(cb)
+
+        # Call them all now
         for c in callables:
             # Traits catches and logs errors here.  I allow them to raise
-            c(name, old_value, new_value)
+            if callable(c):
+                argspec = inspect.getargspec(c)
+                nargs = len(argspec[0])
+                # Bound methods have an additional 'self' argument
+                # I don't know how to treat unbound methods, but they
+                # can't really be used for callbacks.
+                if isinstance(c, types.MethodType):
+                    offset = -1
+                else:
+                    offset = 0
+                if nargs + offset == 0:
+                    c()
+                elif nargs + offset == 1:
+                    c(name)
+                elif nargs + offset == 2:
+                    c(name, new_value)
+                elif nargs + offset == 3:
+                    c(name, old_value, new_value)
+                else:
+                    raise TraitletError('a traitlet changed callback '
+                                        'must have 0-3 arguments.')
+            else:
+                raise TraitletError('a traitlet changed callback '
+                                    'must be callable.')
+                
 
     def _add_notifiers(self, handler, name):
-        if not self._notifiers.has_key(name):
+        if not self._traitlet_notifiers.has_key(name):
             nlist = []
-            self._notifiers[name] = nlist
+            self._traitlet_notifiers[name] = nlist
         else:
-            nlist = self._notifiers[name]
+            nlist = self._traitlet_notifiers[name]
         if handler not in nlist:
             nlist.append(handler)
 
     def _remove_notifiers(self, handler, name):
-        if self._notifiers.has_key(name):
-            nlist = self._notifiers[name]
+        if self._traitlet_notifiers.has_key(name):
+            nlist = self._traitlet_notifiers[name]
             try:
                 index = nlist.index(handler)
             except ValueError:
@@ -211,6 +277,30 @@ class HasTraitlets(object):
                 del nlist[index]
 
     def on_traitlet_change(self, handler, name=None, remove=False):
+        """Setup a handler to be called when a traitlet changes.
+
+        This is used to setup dynamic notifications of traitlet changes.
+        
+        Static handlers can be created by creating methods on a HasTraitlets
+        subclass with the naming convention '_[traitletname]_changed'.  Thus,
+        to create static handler for the traitlet 'a', create the method
+        _a_changed(self, name, old, new) (fewer arguments can be used, see
+        below).
+        
+        Parameters
+        ----------
+            handler : callable
+                A callable that is called when a traitlet changes.  Its 
+                signature can be handler(), handler(name), handler(name, new)
+                or handler(name, old, new).
+            name : list, str, None
+                If None, the handler will apply to all traitlets.  If a list
+                of str, handler will apply to all names in the list.  If a
+                str, the handler will apply just to that name.
+            remove : bool
+                If False (the default), then install the handler.  If True
+                then unintall it.
+        """
         if remove:
             names = parse_notifier_name(name)
             for n in names:
@@ -220,6 +310,28 @@ class HasTraitlets(object):
             for n in names:
                 self._add_notifiers(handler, n)
 
+    def _add_class_traitlet(self, name, traitlet):
+        """Add a class-level traitlet.
+
+        This create a new traitlet attached to all instances of this class.
+        But, the value can be different on each instance.  But, this behavior
+        is likely to trip up many folks as they would expect the traitlet
+        type to be different on each instance.
+
+        Parameters
+        ----------
+        name : str
+            The name of the traitlet.
+        traitlet : TraitletType or an instance of one
+            The traitlet to assign to the name.
+        """
+        if inspect.isclass(traitlet):
+            inst = traitlet()
+        else:
+            inst = traitlet
+        assert isinstance(inst, TraitletType)
+        inst.name = name
+        setattr(self.__class__, name, inst)
 
 #-----------------------------------------------------------------------------
 # Actual TraitletTypes implementations/subclasses
