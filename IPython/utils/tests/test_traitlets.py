@@ -31,7 +31,7 @@ from unittest import TestCase
 from IPython.utils.traitlets import (
     HasTraitlets, MetaHasTraitlets, TraitletType, Any,
     Int, Long, Float, Complex, Str, Unicode, Bool, TraitletError,
-    Undefined, Type, Instance
+    Undefined, Type, Instance, This
 )
 
 
@@ -439,6 +439,44 @@ class TestInstance(TestCase):
             inst = Instance(Foo(), allow_none=False)
         b = B()
         self.assertRaises(TraitletError, getattr, b, 'inst')
+
+
+class TestThis(TestCase):
+
+    def test_this_class(self):
+        class Foo(HasTraitlets):
+            this = This
+
+        f = Foo()
+        self.assertEquals(f.this, None)
+        g = Foo()
+        f.this = g
+        self.assertEquals(f.this, g)
+        self.assertRaises(TraitletError, setattr, f, 'this', 10)
+
+    def test_this_inst(self):
+        class Foo(HasTraitlets):
+            this = This()
+        
+        f = Foo()
+        f.this = Foo()
+        self.assert_(isinstance(f.this, Foo))
+
+    def test_allow_none(self):
+        class Foo(HasTraitlets):
+            this = This(allow_none=False)
+
+        f = Foo()
+        g = Foo()
+        f.this = g
+        self.assertEquals(f.this, g)
+
+        f = Foo()
+        self.assertRaises(TraitletError, getattr, f, 'this')
+
+        f = Foo()
+        self.assertRaises(TraitletError, setattr, f, 'this', None)
+
 
 class TraitletTestBase(TestCase):
     """A best testing class for basic traitlet types."""

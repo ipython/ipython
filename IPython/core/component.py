@@ -23,19 +23,15 @@ Authors:
 
 from weakref import WeakValueDictionary
 
+from IPython.utils.ipstruct import Struct
 from IPython.utils.traitlets import (
-    HasTraitlets, TraitletError, MetaHasTraitlets,
-    Int, Float, Str, Bool, Unicode
+    HasTraitlets, TraitletError, MetaHasTraitlets, Instance, This
 )
 
 
 #-----------------------------------------------------------------------------
 # Helper classes for Components
 #-----------------------------------------------------------------------------
-
-
-class Config(object):
-    pass
 
 
 class MetaComponentTracker(type):
@@ -47,9 +43,9 @@ class MetaComponentTracker(type):
         cls.__numcreated = 0
 
     def __call__(cls, *args, **kw):
-        """Called when class is called (instantiated)!!!
+        """Called when *class* is called (instantiated)!!!
         
-        Then a Component or subclass is instantiated, this is called and
+        When a Component or subclass is instantiated, this is called and
         the instance is saved in a WeakValueDictionary for tracking.
         """
 
@@ -60,32 +56,34 @@ class MetaComponentTracker(type):
                 c.__instance_refs[c.__numcreated] = instance
         return instance
 
-    def get_instances(cls):
-        """Get all instances of cls and its subclasses."""
-        return cls.__instance_refs.values()
+    def get_instances(cls, name=None, klass=None, root=None):
+        """Get all instances of cls and its subclasses.
 
-    def get_instances_by_name(cls, name):
-        """Get all instances of cls and its subclasses by name."""
-        return [i for i in cls.get_instances() if i.name == name]
-
-    def get_instances_by_subclass(cls, thisclass):
-        """Get all instances of cls that are instances of thisclass.
-        
-        This includes all instances of subclasses of thisclass.
+        Parameters
+        ----------
+        name : str
+            Limit to components with this name.
+        klass : class
+            Limit to components having isinstance(component, klass)
+        root : Component or subclass
+            Limit to components having this root.
         """
-        return [i for i in cls.get_instances() if isinstance(i, thisclass)]
+        instances = cls.__instance_refs.values()
+        if name is not None:
+            instances = [i for i in instances if i.name == name]
+        if klass is not None:
+            instances = [i for i in instances if isinstance(i, klass)]
+        if root is not None:
+            instances = [i for i in instances if i.root == root]
+        return instances
 
-    def get_instances_by_class(cls, thisclass):
-        """Get all instances of cls that are instances of thisclass.
-        
-        This exclused instances of thisclass subclasses.
+    def get_instances_by_condition(cls, call, name=None, klass=None, root=None):
+        """Get all instances of cls, i such that call(i)==True.
+
+        This also takes the ``name``, ``klass`` and ``root`` arguments of
+        :meth:`get_instance`
         """
-
-        return [i for i in cls.get_instances() if type(i) is thisclass]
-
-    def get_instances_by_condition(cls, call):
-        """Get all instances of cls, i such that call(i)==True."""
-        return [i for i in cls.get_instances() if call(i)]
+        return [i for i in cls.get_instances(name,klass,root) if call(i)]
 
 
 class ComponentNameGenerator(object):
@@ -117,7 +115,10 @@ class Component(HasTraitlets):
 
     __metaclass__ = MetaComponent
 
-    config = Config()
+    # Traitlets are fun!
+    config = Instance(Struct)
+    parent = This(allow_none=True)
+    root = This(allow_none=True)
 
     def __init__(self, parent, name=None, config=None):
         """Create a component given a parent.
@@ -140,11 +141,13 @@ class Component(HasTraitlets):
             to this argument.  We might think about changing this behavior.
         """
         super(Component, self).__init__()
+        self._children = []
         if name is None:
-            self._name = ComponentNameGenerator()
+            self.name = ComponentNameGenerator()
         else:
-            self._name = name
-        self.parent = parent # this uses the property and handles None
+            self.name = name
+        self.root = self # This is the default, it is set when parent is set
+        self.parent = parent
         if config is not None:
             self.config = config
         else:
@@ -152,33 +155,35 @@ class Component(HasTraitlets):
                 self.config = self.parent.config
 
     #-------------------------------------------------------------------------
-    # Properties
+    # Static traitlet notifiations
     #-------------------------------------------------------------------------
 
-    def _set_name(self, name):
-        # This should use the ComponentNameGenerator to test for uniqueness
-        self._name = name
+    def _parent_changed(self, name, old, new):
+        if old is not None:
+            old._remove_child(self)
+        if new is not None:
+            new._add_child(self)
 
-    def _get_name(self):
-        return self._name
-
-    name = property(_get_name, _set_name)
-
-    def _set_parent(self, parent):
-        if parent is None:
-            self._parent = None
-            self._root = self
+        if new is None:
+            self.root = self
         else:
-            assert isinstance(parent, Component), 'parent must be a component'
-            self._parent = parent
-            self._root = parent.root
-
-    def _get_parent(self):
-        return self._parent
-
-    parent = property(_get_parent, _set_parent)
+            self.root = new.root
 
     @property
-    def root(self):
-        return self._root
+    def children(self):
+        """A list of all my child components."""
+        return self._children
 
+    def _remove_child(self, child):
+        """A private method for removing children componenets."""
+        if child in self._children:
+            index = self._children.index(child)
+            del self._children[index]
+
+    def _add_child(self, child):
+        """A private method for adding children componenets."""
+        if child not in self._children:
+            self._children.append(child)
+
+    def __repr__(self):
+        return "<Component('%s')>" % self.name

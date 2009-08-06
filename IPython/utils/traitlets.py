@@ -167,19 +167,24 @@ class TraitletType(object):
         dv = self.default_value
         return dv
 
-    def __get__(self, obj, cls=None):
+    def __get__(self, obj, cls=None, skipset=False):
         """Get the value of the traitlet by self.name for the instance.
-        
+
         The creation of default values is deferred until this is called the
         first time.  This is done so instances of the parent HasTraitlets
         will have their own default value instances.
+
+        A default value is not validated until it is requested.  Thus, if
+        you use an invalid default value, but never request it, you are fine.
         """
         if obj is None:
             return self
         else:
             if not obj._traitlet_values.has_key(self.name):
                 dv = self.get_default_value()
-                self.__set__(obj, dv, first=True)
+                # Call __set__ with first=True so we don't get a recursion
+                if not skipset:
+                    self.__set__(obj, dv, first=True)
                 return dv
             else:
                 return obj._traitlet_values[self.name]
@@ -187,7 +192,8 @@ class TraitletType(object):
     def __set__(self, obj, value, first=False):
         new_value = self._validate(obj, value)
         if not first:
-            old_value = self.__get__(obj)
+            # Call __get__ with skipset=True so we don't get a recursion
+            old_value = self.__get__(obj, skipset=True)
             if old_value != new_value:
                 obj._traitlet_values[self.name] = new_value
                 obj._notify_traitlet(self.name, old_value, new_value)
@@ -657,6 +663,40 @@ class Instance(BaseClassResolver):
             return klass(*args, **kw)
         else:
             return dv
+
+
+class This(TraitletType):
+    """A traitlet for instances of the class containing this trait."""
+
+    info_text = 'an instance of the same type as the receiver'
+
+    def __init__(self, default_value=None, allow_none=True, **metadata):
+        if default_value is not None:
+            raise TraitletError("The default value of 'This' can only be None.")
+        super(This, self).__init__(default_value, **metadata)
+        self._allow_none = allow_none
+        if allow_none:
+            self.info_text = self.info_text + ' or None'
+
+    def validate(self, obj, value):
+        if value is None:
+            if self._allow_none:
+                return value
+            self.validate_failed(obj, value)
+
+        if isinstance(value, obj.__class__):
+            return value
+        else:
+            self.validate_failed(obj, value)
+
+    def validate_failed (self, obj, value):
+        kind = type(value)
+        if kind is InstanceType:
+            msg = 'class %s' % value.__class__.__name__
+        else:
+            msg = '%s (i.e. %s)' % ( str( kind )[1:-1], repr( value ) )
+
+        self.error(obj, msg)
 
 
 #-----------------------------------------------------------------------------
