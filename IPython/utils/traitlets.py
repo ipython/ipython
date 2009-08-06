@@ -660,6 +660,7 @@ class Any(TraitletType):
 
 
 class Int(TraitletType):
+    """A integer traitlet."""
 
     evaluate = int
     default_value = 0
@@ -670,8 +671,18 @@ class Int(TraitletType):
             return value
         self.error(obj, value)
 
+class CInt(Int):
+    """A casting version of the int traitlet."""
+
+    def validate(self, obj, value):
+        try:
+            return int(value)
+        except:
+            self.error(obj, value)
+
 
 class Long(TraitletType):
+    """A long integer traitlet."""
 
     evaluate = long
     default_value = 0L
@@ -685,7 +696,18 @@ class Long(TraitletType):
         self.error(obj, value)
 
 
+class CLong(Long):
+    """A casting version of the long integer traitlet."""
+
+    def validate(self, obj, value):
+        try:
+            return long(value)
+        except:
+            self.error(obj, value)
+
+
 class Float(TraitletType):
+    """A float traitlet."""
 
     evaluate = float
     default_value = 0.0
@@ -699,7 +721,17 @@ class Float(TraitletType):
         self.error(obj, value)
 
 
+class CFloat(Float):
+    """A casting version of the float traitlet."""
+
+    def validate(self, obj, value):
+        try:
+            return float(value)
+        except:
+            self.error(obj, value)
+
 class Complex(TraitletType):
+    """A traitlet for complex numbers."""
 
     evaluate = complex
     default_value = 0.0 + 0.0j
@@ -713,7 +745,18 @@ class Complex(TraitletType):
         self.error(obj, value)
 
 
+class CComplex(Complex):
+    """A casting version of the complex number traitlet."""
+
+    def validate (self, obj, value):
+        try:
+            return complex(value)
+        except:
+            self.error(obj, value)
+
+
 class Str(TraitletType):
+    """A traitlet for strings."""
 
     evaluate = lambda x: x
     default_value = ''
@@ -725,7 +768,21 @@ class Str(TraitletType):
         self.error(obj, value)
 
 
+class CStr(Str):
+    """A casting version of the string traitlet."""
+
+    def validate(self, obj, value):
+        try:
+            return str(value)
+        except:
+            try:
+                return unicode(value)
+            except:
+                self.error(obj, value)
+
+
 class Unicode(TraitletType):
+    """A traitlet for unicode strings."""
 
     evaluate = unicode
     default_value = u''
@@ -739,8 +796,18 @@ class Unicode(TraitletType):
         self.error(obj, value)
 
 
-class Bool(TraitletType):
+class CUnicode(Unicode):
+    """A casting version of the unicode traitlet."""
 
+    def validate(self, obj, value):
+        try:
+            return unicode(value)
+        except:
+            self.error(obj, value)
+
+
+class Bool(TraitletType):
+    """A boolean (True, False) traitlet."""
     evaluate = bool
     default_value = False
     info_text = 'a boolean'
@@ -750,3 +817,12 @@ class Bool(TraitletType):
             return value
         self.error(obj, value)
 
+
+class CBool(Bool):
+    """A casting version of the boolean traitlet."""
+
+    def validate(self, obj, value):
+        try:
+            return bool(value)
+        except:
+            self.error(obj, value)
