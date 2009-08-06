@@ -30,7 +30,8 @@ from unittest import TestCase
 
 from IPython.utils.traitlets import (
     HasTraitlets, MetaHasTraitlets, TraitletType, Any,
-    Int, Long, Float, Complex, Str, Unicode, Bool, TraitletError
+    Int, Long, Float, Complex, Str, Unicode, Bool, TraitletError,
+    Undefined, Type, Instance
 )
 
 
@@ -65,15 +66,15 @@ class TestTraitletType(TestCase):
         self.tt.name = self.name
         self.hast = HasTraitletsStub() 
 
-    def test_get(self):
+    def test_get_undefined(self):
         value = self.tt.__get__(self.hast)
-        self.assertEquals(value, None)
+        self.assertEquals(value, Undefined)
 
     def test_set(self):
         self.tt.__set__(self.hast, 10)
         self.assertEquals(self.hast._traitlet_values[self.name],10)
         self.assertEquals(self.hast._notify_name,self.name)
-        self.assertEquals(self.hast._notify_old,None)
+        self.assertEquals(self.hast._notify_old,Undefined)
         self.assertEquals(self.hast._notify_new,10)
 
     def test_validate(self):
@@ -85,6 +86,20 @@ class TestTraitletType(TestCase):
         tt.__set__(self.hast, 10)
         self.assertEquals(tt.__get__(self.hast),-1)
 
+    def test_default_validate(self):
+        class MyIntTT(TraitletType):
+            def validate(self, obj, value):
+                if isinstance(value, int):
+                    return value
+                self.error(obj, value)
+        tt = MyIntTT(10)
+        tt.name = 'a'
+        self.assertEquals(tt.__get__(self.hast), 10)
+        tt = MyIntTT('bad default')
+        tt.name = 'b' # different name from 'a' as we want an unset dv
+        self.assertRaises(TraitletError, tt.__get__, self.hast)
+            
+
     def test_is_valid_for(self):
         class MyTT(TraitletType):
             def is_valid_for(self, value):
@@ -92,7 +107,7 @@ class TestTraitletType(TestCase):
         tt = MyTT()
         tt.name = self.name
         tt.__set__(self.hast, 10)
-        self.assertEquals(tt.__get__(self.hast),10)
+        self.assertEquals(tt.__get__(self.hast), 10)
 
     def test_value_for(self):
         class MyTT(TraitletType):
@@ -101,10 +116,10 @@ class TestTraitletType(TestCase):
         tt = MyTT()
         tt.name = self.name
         tt.__set__(self.hast, 10)
-        self.assertEquals(tt.__get__(self.hast),20)
+        self.assertEquals(tt.__get__(self.hast), 20)
 
     def test_info(self):
-        self.assertEquals(self.tt.info(),'any value')
+        self.assertEquals(self.tt.info(), 'any value')
 
     def test_error(self):
         self.assertRaises(TraitletError, self.tt.error, self.hast, 10)
@@ -311,7 +326,113 @@ class TestAddTraitlet(TestCase):
 # Tests for specific traitlet types
 #-----------------------------------------------------------------------------
 
+
+class TestType(TestCase):
+
+    def test_default(self):
+
+        class B(object): pass
+        class A(HasTraitlets):
+            klass = Type
+
+        a = A()
+        self.assertEquals(a.klass, None)
+        a.klass = B
+        self.assertEquals(a.klass, B)
+        self.assertRaises(TraitletError, setattr, a, 'klass', 10)
+
+    def test_value(self):
+
+        class B(object): pass
+        class C(object): pass
+        class A(HasTraitlets):
+            klass = Type(B)
+        
+        a = A()
+        self.assertEquals(a.klass, B)
+        self.assertRaises(TraitletError, setattr, a, 'klass', C)
+        self.assertRaises(TraitletError, setattr, a, 'klass', object)
+        a.klass = B
+
+    def test_allow_none(self):
+
+        class B(object): pass
+        class C(B): pass
+        class A(HasTraitlets):
+            klass = Type(B, allow_none=False)
+
+        a = A()
+        self.assertEquals(a.klass, B)
+        self.assertRaises(TraitletError, setattr, a, 'klass', None)
+        a.klass = C
+        self.assertEquals(a.klass, C)
+
+
+class TestInstance(TestCase):
+
+    def test_basic(self):
+        class Foo(object): pass
+        class Bar(Foo): pass
+        class Bah(object): pass
+        
+        class A(HasTraitlets):
+            inst = Instance(Foo)
+
+        a = A()
+        self.assert_(isinstance(a.inst, Foo))
+        a.inst = Foo()
+        self.assert_(isinstance(a.inst, Foo))
+        a.inst = Bar()
+        self.assert_(isinstance(a.inst, Foo))
+        self.assertRaises(TraitletError, setattr, a, 'inst', Foo)
+        self.assertRaises(TraitletError, setattr, a, 'inst', Bar)
+        self.assertRaises(TraitletError, setattr, a, 'inst', Bah())
+
+    def test_unique_default_value(self):
+        class Foo(object): pass        
+        class A(HasTraitlets):
+            inst = Instance(Foo)
+
+        a = A()
+        b = A()
+        self.assert_(a.inst is not b.inst)
+
+    def test_args_kw(self):
+        class Foo(object):
+            def __init__(self, c): self.c = c
+
+        class A(HasTraitlets):
+            inst = Instance(Foo, args=(10,))
+
+        a = A()
+        self.assertEquals(a.inst.c, 10)
+
+        class Bar(object):
+            def __init__(self, c, d):
+                self.c = c; self.d = d
+
+        class B(HasTraitlets):
+            inst = Instance(Bar, args=(10,),kw=dict(d=20))
+        b = B()
+        self.assertEquals(b.inst.c, 10)
+        self.assertEquals(b.inst.d, 20)
+
+    def test_instance(self):
+        # Does passing an instance yield a default value of None?
+        class Foo(object): pass
+
+        class A(HasTraitlets):
+            inst = Instance(Foo())
+        a = A()
+        self.assertEquals(a.inst, None)
+        
+        class B(HasTraitlets):
+            inst = Instance(Foo(), allow_none=False)
+        b = B()
+        self.assertRaises(TraitletError, getattr, b, 'inst')
+
 class TraitletTestBase(TestCase):
+    """A best testing class for basic traitlet types."""
 
     def assign(self, value):
         self.obj.value = value
