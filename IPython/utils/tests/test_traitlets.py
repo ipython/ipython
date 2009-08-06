@@ -46,7 +46,7 @@ class HasTraitletsStub(object):
         self._traitlet_values = {}
         self._traitlet_notifiers = {}
 
-    def _notify(self, name, old, new):
+    def _notify_traitlet(self, name, old, new):
         self._notify_name = name
         self._notify_old = old
         self._notify_new = new
@@ -320,6 +320,15 @@ class TestAddTraitlet(TestCase):
         a.b = 10.0
         self.assertEquals(a.b,10.0)
         self.assertRaises(TraitletError, setattr, a, 'b', 'bad value')
+
+class TestTraitletKeys(TestCase):
+
+    def test_keys(self):
+        class A(HasTraitlets):
+            a = Int
+            b = Float
+        a = A()
+        self.assertEquals(a.traitlet_keys(),['a','b'])
 
 
 #-----------------------------------------------------------------------------

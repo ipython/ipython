@@ -16,8 +16,14 @@ We don't support:
 
 * Delegation
 * Automatic GUI generation
-* A full set of trait types
+* A full set of trait types.  Most importantly, we don't provide container
+  traitlets (list, dict, tuple) that can trigger notifications if their
+  contents change.
 * API compatibility with enthought.traits
+
+There are also some important difference in our design:
+
+* enthought.traits does not validate default values.  We do.
 
 We choose to create this module because we need these capabilities, but
 we need them to be pure Python so they work in all Python implementations,
@@ -184,7 +190,7 @@ class TraitletType(object):
             old_value = self.__get__(obj)
             if old_value != new_value:
                 obj._traitlet_values[self.name] = new_value
-                obj._notify(self.name, old_value, new_value)
+                obj._notify_traitlet(self.name, old_value, new_value)
         else:
             obj._traitlet_values[self.name] = new_value
 
@@ -248,7 +254,7 @@ class HasTraitlets(object):
         self._traitlet_values = {}
         self._traitlet_notifiers = {}
 
-    def _notify(self, name, old_value, new_value):
+    def _notify_traitlet(self, name, old_value, new_value):
 
         # First dynamic ones
         callables = self._traitlet_notifiers.get(name,[])
@@ -367,6 +373,10 @@ class HasTraitlets(object):
         assert isinstance(inst, TraitletType)
         inst.name = name
         setattr(self.__class__, name, inst)
+
+    def traitlet_keys(self):
+        """Get a list of all the names of this classes traitlets."""
+        return [memb[0] for memb in inspect.getmembers(self.__class__) if isinstance(memb[1], TraitletType)]
 
 
 #-----------------------------------------------------------------------------
