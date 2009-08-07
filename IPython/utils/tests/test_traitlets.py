@@ -31,7 +31,7 @@ from unittest import TestCase
 from IPython.utils.traitlets import (
     HasTraitlets, MetaHasTraitlets, TraitletType, Any,
     Int, Long, Float, Complex, Str, Unicode, Bool, TraitletError,
-    Undefined, Type, Instance, This
+    Undefined, Type, This, Instance
 )
 
 
@@ -40,11 +40,7 @@ from IPython.utils.traitlets import (
 #-----------------------------------------------------------------------------
 
 
-class HasTraitletsStub(object):
-
-    def __init__(self):
-        self._traitlet_values = {}
-        self._traitlet_notifiers = {}
+class HasTraitletsStub(HasTraitlets):
 
     def _notify_traitlet(self, name, old, new):
         self._notify_name = name
@@ -59,32 +55,33 @@ class HasTraitletsStub(object):
 
 class TestTraitletType(TestCase):
 
-    name = 'a'
-
-    def setUp(self):
-        self.tt = TraitletType()
-        self.tt.name = self.name
-        self.hast = HasTraitletsStub() 
-
     def test_get_undefined(self):
-        value = self.tt.__get__(self.hast)
-        self.assertEquals(value, Undefined)
+        class A(HasTraitlets):
+            a = TraitletType
+        a = A()
+        self.assertEquals(a.a, Undefined)
 
     def test_set(self):
-        self.tt.__set__(self.hast, 10)
-        self.assertEquals(self.hast._traitlet_values[self.name],10)
-        self.assertEquals(self.hast._notify_name,self.name)
-        self.assertEquals(self.hast._notify_old,Undefined)
-        self.assertEquals(self.hast._notify_new,10)
+        class A(HasTraitletsStub):
+            a = TraitletType
+
+        a = A()
+        a.a = 10
+        self.assertEquals(a.a, 10)
+        self.assertEquals(a._notify_name, 'a')
+        self.assertEquals(a._notify_old, Undefined)
+        self.assertEquals(a._notify_new, 10)
 
     def test_validate(self):
         class MyTT(TraitletType):
             def validate(self, inst, value):
                 return -1
-        tt = MyTT()
-        tt.name = self.name
-        tt.__set__(self.hast, 10)
-        self.assertEquals(tt.__get__(self.hast),-1)
+        class A(HasTraitletsStub):
+            tt = MyTT
+        
+        a = A()
+        a.tt = 10
+        self.assertEquals(a.tt, -1)
 
     def test_default_validate(self):
         class MyIntTT(TraitletType):
@@ -92,37 +89,49 @@ class TestTraitletType(TestCase):
                 if isinstance(value, int):
                     return value
                 self.error(obj, value)
-        tt = MyIntTT(10)
-        tt.name = 'a'
-        self.assertEquals(tt.__get__(self.hast), 10)
-        tt = MyIntTT('bad default')
-        tt.name = 'b' # different name from 'a' as we want an unset dv
-        self.assertRaises(TraitletError, tt.__get__, self.hast)
-            
+        class A(HasTraitlets):
+            tt = MyIntTT(10)
+        a = A()
+        self.assertEquals(a.tt, 10)
+
+        # Defaults are validated when the HasTraitlets is instantiated
+        class B(HasTraitlets):
+            tt = MyIntTT('bad default')
+        self.assertRaises(TraitletError, B)
 
     def test_is_valid_for(self):
         class MyTT(TraitletType):
             def is_valid_for(self, value):
                 return True
-        tt = MyTT()
-        tt.name = self.name
-        tt.__set__(self.hast, 10)
-        self.assertEquals(tt.__get__(self.hast), 10)
+        class A(HasTraitlets):
+            tt = MyTT
+
+        a = A()
+        a.tt = 10
+        self.assertEquals(a.tt, 10)
 
     def test_value_for(self):
         class MyTT(TraitletType):
             def value_for(self, value):
                 return 20
-        tt = MyTT()
-        tt.name = self.name
-        tt.__set__(self.hast, 10)
-        self.assertEquals(tt.__get__(self.hast), 20)
+        class A(HasTraitlets):
+            tt = MyTT
+
+        a = A()
+        a.tt = 10
+        self.assertEquals(a.tt, 20)
 
     def test_info(self):
-        self.assertEquals(self.tt.info(), 'any value')
+        class A(HasTraitlets):
+            tt = TraitletType
+        a = A()
+        self.assertEquals(A.tt.info(), 'any value')
 
     def test_error(self):
-        self.assertRaises(TraitletError, self.tt.error, self.hast, 10)
+        class A(HasTraitlets):
+            tt = TraitletType
+        a = A()
+        self.assertRaises(TraitletError, A.tt.error, a, 10)
 
 
 class TestHasTraitletsMeta(TestCase):
@@ -252,6 +261,7 @@ class TestHasTraitletsNotify(TestCase):
 
         a = A()
         a.a = 0
+        # This is broken!!!
         self.assertEquals(len(a._notify1),0)
         a.a = 10
         self.assert_(('a',0,10) in a._notify1)
@@ -305,21 +315,6 @@ class TestHasTraitletsNotify(TestCase):
 
         self.assertEquals(len(a._traitlet_notifiers['a']),0)
 
-
-class TestAddTraitlet(TestCase):
-
-    def test_add_float(self):
-
-        class A(HasTraitlets):
-            a = Int
-        
-        a = A()
-        a.a = 10
-        a._add_class_traitlet('b',Float)
-        self.assertEquals(a.b,0.0)
-        a.b = 10.0
-        self.assertEquals(a.b,10.0)
-        self.assertRaises(TraitletError, setattr, a, 'b', 'bad value')
 
 class TestTraitletKeys(TestCase):
 
@@ -376,6 +371,26 @@ class TestType(TestCase):
         a.klass = C
         self.assertEquals(a.klass, C)
 
+    def test_validate_klass(self):
+
+        def inner():
+            class A(HasTraitlets):
+                klass = Type('no strings allowed')
+
+        self.assertRaises(TraitletError, inner)
+
+    def test_validate_default(self):
+
+        class B(object): pass
+        class A(HasTraitlets):
+            klass = Type('bad default', B)
+
+        self.assertRaises(TraitletError, A)
+
+        class C(HasTraitlets):
+            klass = Type(None, B, allow_none=False)
+
+        self.assertRaises(TraitletError, C)
 
 class TestInstance(TestCase):
 
@@ -388,7 +403,7 @@ class TestInstance(TestCase):
             inst = Instance(Foo)
 
         a = A()
-        self.assert_(isinstance(a.inst, Foo))
+        self.assert_(a.inst is None)
         a.inst = Foo()
         self.assert_(isinstance(a.inst, Foo))
         a.inst = Bar()
@@ -400,7 +415,7 @@ class TestInstance(TestCase):
     def test_unique_default_value(self):
         class Foo(object): pass        
         class A(HasTraitlets):
-            inst = Instance(Foo)
+            inst = Instance(Foo,(),{})
 
         a = A()
         b = A()
@@ -409,36 +424,43 @@ class TestInstance(TestCase):
     def test_args_kw(self):
         class Foo(object):
             def __init__(self, c): self.c = c
-
-        class A(HasTraitlets):
-            inst = Instance(Foo, args=(10,))
-
-        a = A()
-        self.assertEquals(a.inst.c, 10)
-
-        class Bar(object):
+        class Bar(object): pass
+        class Bah(object):
             def __init__(self, c, d):
                 self.c = c; self.d = d
 
+        class A(HasTraitlets):
+            inst = Instance(Foo, (10,))
+        a = A()
+        self.assertEquals(a.inst.c, 10)
+
         class B(HasTraitlets):
-            inst = Instance(Bar, args=(10,),kw=dict(d=20))
+            inst = Instance(Bah, args=(10,), kw=dict(d=20))
         b = B()
         self.assertEquals(b.inst.c, 10)
         self.assertEquals(b.inst.d, 20)
 
-    def test_instance(self):
-        # Does passing an instance yield a default value of None?
+        class C(HasTraitlets):
+            inst = Instance(Foo)
+        c = C()
+        self.assert_(c.inst is None)
+
+    def test_bad_default(self):
         class Foo(object): pass
 
         class A(HasTraitlets):
-            inst = Instance(Foo())
-        a = A()
-        self.assertEquals(a.inst, None)
+            inst = Instance(Foo, allow_none=False)
         
-        class B(HasTraitlets):
-            inst = Instance(Foo(), allow_none=False)
-        b = B()
-        self.assertRaises(TraitletError, getattr, b, 'inst')
+        self.assertRaises(TraitletError, A)
+
+    def test_instance(self):
+        class Foo(object): pass
+
+        def inner():
+            class A(HasTraitlets):
+                inst = Instance(Foo())
+        
+        self.assertRaises(TraitletError, inner)
 
 
 class TestThis(TestCase):
@@ -461,21 +483,6 @@ class TestThis(TestCase):
         f = Foo()
         f.this = Foo()
         self.assert_(isinstance(f.this, Foo))
-
-    def test_allow_none(self):
-        class Foo(HasTraitlets):
-            this = This(allow_none=False)
-
-        f = Foo()
-        g = Foo()
-        f.this = g
-        self.assertEquals(f.this, g)
-
-        f = Foo()
-        self.assertRaises(TraitletError, getattr, f, 'this')
-
-        f = Foo()
-        self.assertRaises(TraitletError, setattr, f, 'this', None)
 
 
 class TraitletTestBase(TestCase):
