@@ -52,7 +52,7 @@ Authors:
 import inspect
 import sys
 import types
-from types import InstanceType, ClassType
+from types import InstanceType, ClassType, FunctionType
 
 ClassTypes = (ClassType, type)
 
@@ -133,6 +133,18 @@ def parse_notifier_name(name):
             assert isinstance(n, str), "names must be strings"
         return name
 
+
+class _SimpleTest:
+    def __init__ ( self, value ): self.value = value
+    def __call__ ( self, test  ):
+        print test, self.value 
+        return test == self.value
+    def __repr__(self):
+        return "<SimpleTest(%r)" % self.value
+    def __str__(self):
+        return self.__repr__()
+
+
 #-----------------------------------------------------------------------------
 # Base TraitletType for all traitlets
 #-----------------------------------------------------------------------------
@@ -166,7 +178,16 @@ class TraitletType(object):
         """
         if default_value is not NoDefaultSpecified:
             self.default_value = default_value
-        self.metadata.update(metadata)
+
+        if len(metadata) > 0:
+            if len(self.metadata) > 0:
+                self._metadata = self.metadata.copy()
+                self._metadata.update(metadata)
+            else:
+                self._metadata = metadata
+        else:
+            self._metadata = self.metadata
+
         self.init()
 
     def init(self):
@@ -238,6 +259,12 @@ class TraitletType(object):
                 % (self.name, self.info(), repr_type(value))            
         raise TraitletError(e)
 
+    def get_metadata(self, key):
+        return getattr(self, '_metadata', {}).get(key, None)
+
+    def set_metadata(self, key, value):
+        getattr(self, '_metadata', {})[key] = value
+
 
 #-----------------------------------------------------------------------------
 # The HasTraitlets implementation
@@ -303,7 +330,6 @@ class HasTraitlets(object):
         for key in dir(cls):
             value = getattr(cls, key)
             if isinstance(value, TraitletType):
-                # print 'value: ', value
                 value.set_default_value(inst)
         return inst
 
@@ -408,10 +434,44 @@ class HasTraitlets(object):
             for n in names:
                 self._add_notifiers(handler, n)
 
-    def traitlet_names(self):
+    def traitlet_names(self, **metadata):
         """Get a list of all the names of this classes traitlets."""
-        return [memb[0] for memb in inspect.getmembers(self.__class__) if isinstance(memb[1], TraitletType)]
+        return self.traitlets(**metadata).keys()
 
+    def traitlets(self, **metadata):
+        """Get a list of all the traitlets of this class.
+
+        The TraitletTypes returned don't know anything about the values
+        that the various HasTraitlet's instances are holding.
+        """
+        traitlets = dict([memb for memb in inspect.getmembers(self.__class__) if \
+                     isinstance(memb[1], TraitletType)])
+        if len(metadata) == 0:
+            return traitlets
+
+        for meta_name, meta_eval in metadata.items():
+            if type(meta_eval) is not FunctionType:
+                metadata[meta_name] = _SimpleTest(meta_eval)
+
+        result = {}
+        for name, traitlet in traitlets.items():
+            for meta_name, meta_eval in metadata.items():
+                if not meta_eval(traitlet.get_metadata(meta_name)):
+                    break
+            else:
+                result[name] = traitlet
+
+        return result
+
+    def traitlet_metadata(self, traitletname, key):
+        """Get metadata values for traitlet by key."""
+        try:
+            traitlet = getattr(self.__class__, traitletname)
+        except AttributeError:
+            raise TraitletError("Class %s does not have a traitlet named %s" %
+                                (self.__class__.__name__, traitletname))
+        else:
+            return traitlet.get_metadata(key)
 
 #-----------------------------------------------------------------------------
 # Actual TraitletTypes implementations/subclasses

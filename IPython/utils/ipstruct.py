@@ -42,7 +42,7 @@ class Struct(dict):
     * Intelligent merging.
     * Overloaded operators.
     """
-
+    _allownew = True
     def __init__(self, *args, **kw):
         """Initialize with a dictionary, another Struct, or data.
 

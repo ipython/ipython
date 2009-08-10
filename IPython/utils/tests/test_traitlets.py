@@ -327,15 +327,37 @@ class TestHasTraitletsNotify(TestCase):
         self.assertEquals(len(a._traitlet_notifiers['a']),0)
 
 
-class TestTraitletKeys(TestCase):
+class TestHasTraitlets(TestCase):
 
-    def test_keys(self):
+    def test_traitlet_names(self):
         class A(HasTraitlets):
-            a = Int
-            b = Float
+            i = Int
+            f = Float
         a = A()
-        self.assertEquals(a.traitlet_names(),['a','b'])
+        self.assertEquals(a.traitlet_names(),['i','f'])
 
+    def test_traitlet_metadata(self):
+        class A(HasTraitlets):
+            i = Int(config_key='MY_VALUE')
+        a = A()
+        self.assertEquals(a.traitlet_metadata('i','config_key'), 'MY_VALUE')
+
+    def test_traitlets(self):
+        class A(HasTraitlets):
+            i = Int
+            f = Float
+        a = A()
+        self.assertEquals(a.traitlets(), dict(i=A.i, f=A.f))
+
+    def test_traitlets_metadata(self):
+        class A(HasTraitlets):
+            i = Int(config_key='VALUE1', other_thing='VALUE2')
+            f = Float(config_key='VALUE3', other_thing='VALUE2')
+        a = A()
+        # traitlets = a.traitlets(config_key=lambda v: True)
+        # self.assertEquals(traitlets, dict(i=A.i, f=A.f))
+        traitlets = a.traitlets(config_key='VALUE1', other_thing='VALUE2')
+        self.assertEquals(traitlets, dict(i=A.i))
 
 #-----------------------------------------------------------------------------
 # Tests for specific traitlet types

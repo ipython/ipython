@@ -24,7 +24,7 @@ from unittest import TestCase
 
 from IPython.core.component import Component, ComponentError
 from IPython.utils.traitlets import (
-    TraitletError
+    TraitletError, Int, Float, Str
 )
 from IPython.utils.ipstruct import Struct
 
@@ -147,6 +147,30 @@ class TestComponentConfig(TestCase):
         self.assertEquals(c1.config, config)
         self.assertEquals(c2.config, config)
         self.assertEquals(c3.config, config)
+        # Test that we always make copies
+        self.assert_(c1.config is not config)
+        self.assert_(c2.config is not config)
+        self.assert_(c3.config is not config)
+        self.assert_(c1.config is not c2.config)
+        self.assert_(c2.config is not c3.config)
+        
+    def test_inheritance(self):
+        class MyComponent(Component):
+            a = Int(1, config_key='A')
+            b = Float(1.0, config_key='B')
+            c = Str('no config')
+        config = Struct()
+        config.A = 2
+        config.B = 2.0
+        c1 = MyComponent(None, config=config)
+        c2 = MyComponent(c1)
+        self.assertEquals(c1.a, config.A)
+        self.assertEquals(c1.b, config.B)
+        self.assertEquals(c2.a, config.A)
+        self.assertEquals(c2.b, config.B)
+        c4 = MyComponent(c2, config=Struct())
+        self.assertEquals(c4.a, 1)
+        self.assertEquals(c4.b, 1.0)
 
 class TestComponentName(TestCase):
 
