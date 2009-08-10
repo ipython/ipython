@@ -139,6 +139,23 @@ def parse_notifier_name(name):
 
 
 class TraitletType(object):
+    """A base class for all traitlet descriptors.
+
+    Notes
+    -----
+    Our implementation of traitlets is based on Python's descriptor
+    prototol.  This class is the base class for all such descriptors.  The
+    only magic we use is a custom metaclass for the main :class:`HasTraitlets`
+    class that does the following:
+
+    1. Sets the :attr:`name` attribute of every :class:`TraitletType`
+       instance in the class dict to the name of the attribute.
+    2. Sets the :attr:`this_class` attribute of every :class:`TraitletType`
+       instance in the class dict to the *class* that declared the traitlet.
+       This is used by the :class:`This` traitlet to allow subclasses to
+       accept superclasses for :class:`This` values.
+    """
+    
 
     metadata = {}
     default_value = Undefined
@@ -235,6 +252,17 @@ class MetaHasTraitlets(type):
     """
     
     def __new__(mcls, name, bases, classdict):
+        """Create the HasTraitlets class.
+        
+        This instantiates all TraitletTypes in the class dict and sets their
+        :attr:`name` attribute.
+        """
+        # print "========================="
+        # print "MetaHasTraitlets.__new__"
+        # print "mcls, ", mcls
+        # print "name, ", name
+        # print "bases, ", bases
+        # print "classdict, ", classdict
         for k,v in classdict.iteritems():
             if isinstance(v, TraitletType):
                 v.name = k
@@ -245,6 +273,22 @@ class MetaHasTraitlets(type):
                     classdict[k] = vinst
         return super(MetaHasTraitlets, mcls).__new__(mcls, name, bases, classdict)
 
+    def __init__(cls, name, bases, classdict):
+        """Finish initializing the HasTraitlets class.
+        
+        This sets the :attr:`this_class` attribute of each TraitletType in the
+        class dict to the newly created class ``cls``.
+        """
+        # print "========================="
+        # print "MetaHasTraitlets.__init__"
+        # print "cls, ", cls
+        # print "name, ", name
+        # print "bases, ", bases
+        # print "classdict, ", classdict
+        for k, v in classdict.iteritems():
+            if isinstance(v, TraitletType):
+                v.this_class = cls
+        super(MetaHasTraitlets, cls).__init__(name, bases, classdict)
 
 class HasTraitlets(object):
 
@@ -364,7 +408,7 @@ class HasTraitlets(object):
             for n in names:
                 self._add_notifiers(handler, n)
 
-    def traitlet_keys(self):
+    def traitlet_names(self):
         """Get a list of all the names of this classes traitlets."""
         return [memb[0] for memb in inspect.getmembers(self.__class__) if isinstance(memb[1], TraitletType)]
 
@@ -566,7 +610,10 @@ class This(ClassBasedTraitletType):
         super(This, self).__init__(None, **metadata)
 
     def validate(self, obj, value):
-        if isinstance(value, obj.__class__) or (value is None):
+        # What if value is a superclass of obj.__class__?  This is
+        # complicated if it was the superclass that defined the This
+        # traitlet.
+        if isinstance(value, self.this_class) or (value is None):
             return value
         else:
             self.error(obj, value)

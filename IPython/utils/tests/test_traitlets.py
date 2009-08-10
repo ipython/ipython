@@ -164,6 +164,17 @@ class TestHasTraitletsMeta(TestCase):
         c.c = 10
         self.assertEquals(c.c,10)
 
+    def test_this_class(self):
+        class A(HasTraitlets):
+            t = This()
+            tt = This()
+        class B(A):
+            tt = This()
+            ttt = This()
+        self.assertEquals(A.t.this_class, A)
+        self.assertEquals(B.t.this_class, A)
+        self.assertEquals(B.tt.this_class, B)
+        self.assertEquals(B.ttt.this_class, B)
 
 class TestHasTraitletsNotify(TestCase):
 
@@ -323,7 +334,7 @@ class TestTraitletKeys(TestCase):
             a = Int
             b = Float
         a = A()
-        self.assertEquals(a.traitlet_keys(),['a','b'])
+        self.assertEquals(a.traitlet_names(),['a','b'])
 
 
 #-----------------------------------------------------------------------------
@@ -484,6 +495,28 @@ class TestThis(TestCase):
         f.this = Foo()
         self.assert_(isinstance(f.this, Foo))
 
+    def test_subclass(self):
+        class Foo(HasTraitlets):
+            t = This()
+        class Bar(Foo):
+            pass
+        f = Foo()
+        b = Bar()
+        f.t = b
+        b.t = f
+        self.assertEquals(f.t, b)
+        self.assertEquals(b.t, f)
+
+    def test_subclass_override(self):
+        class Foo(HasTraitlets):
+            t = This()
+        class Bar(Foo):
+            t = This()
+        f = Foo()
+        b = Bar()
+        f.t = b
+        self.assertEquals(f.t, b)
+        self.assertRaises(TraitletError, setattr, b, 't', f)
 
 class TraitletTestBase(TestCase):
     """A best testing class for basic traitlet types."""
