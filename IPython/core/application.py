@@ -30,17 +30,19 @@ There are number of ways in which these directories are used:
 
 Questions:
 
-1. Can we limit ourselves to 1 config file or do we want to have a sequence
-   of them like IPYTHONDIR->RUNTIMEDIR->CWD?
-2. Do we need a debug mode that has custom exception handling and can drop
-   into pdb upno startup?
-3. Do we need to use an OutputTrap to capture output and then present it
-   to a user if startup fails?
-4. Do we want the location of the config file(s) to be independent of the
-   ipython/runtime dir or coupled to it.  In other words, can the user select
-   a config file that is outside their runtime/ipython dir.  One model is 
-   that we could have a very strict model of IPYTHONDIR=runtimed dir=
-   dir used for all config.
+
+* Can we limit ourselves to 1 config file or do we want to have a sequence
+  of them like IPYTHONDIR->RUNTIMEDIR->CWD?
+* Do we need a debug mode that has custom exception handling and can drop
+  into pdb upno startup?
+* Do we need to use an OutputTrap to capture output and then present it
+  to a user if startup fails?
+* Do we want the location of the config file(s) to be independent of the
+  ipython/runtime dir or coupled to it.  In other words, can the user select
+  a config file that is outside their runtime/ipython dir.  One model is 
+  that we could have a very strict model of IPYTHONDIR=runtimed dir=
+  dir used for all config.
+* Do we install default config files or not?
 """
 
 #-----------------------------------------------------------------------------
@@ -78,7 +80,27 @@ class Application(object):
     def __init__(self):
         pass
 
-    def find_runtime_dir(self):
+    def start(self):
+        """Start the application."""
+        self.attempt(self.create_command_line_config)
+        self.attempt(self.find_runtime_dirs)
+        self.attempt(self.create_runtime_dirs)
+        self.attempt(self.find_config_files)
+        self.attempt(self.create_file_configs)
+        self.attempt(self.merge_configs)
+        self.attempt(self.construct)
+        self.attempt(self.start_logging)
+        self.attempt(self.start_app)
+
+    #-------------------------------------------------------------------------
+    # Various stages of Application creation
+    #-------------------------------------------------------------------------
+
+    def create_command_line_config(self):
+        """Read the command line args and return its config object."""
+        self.command_line_config = Struct()
+
+    def find_runtime_dirs(self):
         """Find the runtime directory for this application.
 
         This should set self.runtime_dir.
@@ -86,63 +108,22 @@ class Application(object):
         pass
 
     def create_runtime_dirs(self):
-        """Create the runtime dirs if they dont exist."""
+        """Create the runtime dirs if they don't exist."""
         pass
 
-    def find_config_file(self):
+    def find_config_files(self):
         """Find the config file for this application."""
         pass
 
-    def create_config(self):
-        self.config = deepcopy(self.default_config)
+    def create_file_configs(self):
+        self.file_configs = [Struct()]
 
-        self.pre_file_config()
-        self.file_config = self.create_file_config()
-        self.post_file_config()
-
-        self.pre_command_line_config()
-        self.command_line_config = create_command_line_config()
-        self.post_command_line_config()
-
-        master_config = self.merge_configs(config, file_config, cl_config)
-        self.master_config = master_config
-        return master_config
-
-    def pre_file_config(self):
-        pass
-
-    def create_file_config(self):
-        """Read the config file and return its config object."""
-        return Struct()
-
-    def post_file_config(self):
-        pass
-
-    def pre_command_line_config(self):
-        pass
-
-    def create_command_line_config(self):
-        """Read the command line args and return its config object."""
-        return Struct()
-
-    def post_command_line_config(self):
-        pass
-
-    def merge_configs(self, config, file_config, cl_config):
-        config.update(file_config)
-        config.update(cl_config)
-        return config
-
-    def start(self):
-        """Start the application."""
-        self.attempt(self.find_runtime_dir)
-        self.attempt(self.find_runtime_dir)
-        self.attempt(self.create_runtime_dirs)
-        self.attempt(self.find_config_file)
-        self.attempt(self.create_config)
-        self.attempt(self.construct)
-        self.attempt(self.start_logging)
-        self.attempt(self.start_app)
+    def merge_configs(self):
+        config = Struct()
+        all_configs = self.file_configs + self.command_line_config
+        for c in all_configs:
+            config.update(c)
+        self.master_config = config
 
     def construct(self, config):
         """Construct the main components that make up this app."""
@@ -155,6 +136,10 @@ class Application(object):
     def start_app(self):
         """Actually start the app."""
         pass
+
+    #-------------------------------------------------------------------------
+    # Utility methods
+    #-------------------------------------------------------------------------
 
     def abort(self):
         """Abort the starting of the application."""
