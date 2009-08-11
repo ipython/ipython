@@ -110,13 +110,16 @@ class PyFileConfigLoader(FileConfigLoader):
 
     def _find_file(self):
         """Try to find the file by searching the paths."""
+        if os.path.isfile(os.path.expanduser(self.filename)):
+            self.full_filename = os.path.expanduser(self.filename)
+            return
         if self.path == '.':
             self.path = [os.getcwd()]
         if not isinstance(path, (list, tuple)):
             raise TypeError("path must be a list or tuple, got: %r" % self.path)
         for p in self.path:
             if p == '.': p = os.getcwd()
-            full_filename = os.path.join(p, self.filename)
+            full_filename = os.path.expanduser(os.path.join(p, self.filename))
             if os.path.isfile(full_filename):
                 self.full_filename = full_filename
                 return
@@ -175,8 +178,8 @@ class ArgParseConfigLoader(CommandLineConfigLoader):
 
     def _add_arguments(self):
         for argument in self.arguments:
-            argument[1]['default'] = NoDefault
-            print argument
+            if not argument[1].has_key('default'):
+                argument[1]['default'] = NoDefault
             self.parser.add_argument(*argument[0],**argument[1])
 
     def _parse_args(self, args=None):
