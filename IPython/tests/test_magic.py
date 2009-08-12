@@ -262,7 +262,8 @@ class TestMagicRun(object):
 # Multiple tests for clipboard pasting
 def test_paste():
 
-    def paste(txt, flags=''):
+    def paste(txt, flags='-q'):
+        """Paste input text, by default in quiet mode"""
         hooks.clipboard_get = lambda : txt
         _ip.magic('paste '+flags)
 
@@ -302,7 +303,7 @@ def test_paste():
         _ip.magic('paste -r')
         yield (nt.assert_equal, user_ns['x'], [1,2,3])
 
-        # Also test paste -e, by temporarily faking the writer
+        # Also test paste echoing, by temporarily faking the writer
         w = StringIO()
         writer = _ip.IP.write
         _ip.IP.write = w.write
@@ -310,7 +311,7 @@ def test_paste():
         a = 100
         b = 200"""
         try:
-            paste(code,'-e')
+            paste(code,'')
             out = w.getvalue()
         finally:
             _ip.IP.write = writer
