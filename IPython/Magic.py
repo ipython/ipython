@@ -3381,8 +3381,13 @@ Defaulting color scheme to 'NoColor'"""
         You can also pass a variable name as an argument, e.g. '%paste foo'.
         This assigns the pasted block to variable 'foo' as string, without 
         dedenting or executing it (preceding >>> and + is still stripped)
+
+        Options
+        -------
         
-        '%paste -r' re-executes the block previously entered by cpaste.
+          -r: re-executes the block previously entered by cpaste.
+
+          -e: echo the pasted text back to the terminal.
         
         IPython statements (magics, shell escapes) are not supported (yet).
 
@@ -3390,7 +3395,7 @@ Defaulting color scheme to 'NoColor'"""
         --------
         cpaste: manually paste code into terminal until you mark its end.
         """
-        opts,args = self.parse_options(parameter_s,'r:',mode='string')
+        opts,args = self.parse_options(parameter_s,'re',mode='string')
         par = args.strip()
         if opts.has_key('r'):
             self._rerun_pasted()
@@ -3398,6 +3403,15 @@ Defaulting color scheme to 'NoColor'"""
 
         text = self.shell.hooks.clipboard_get()
         block = self._strip_pasted_lines_for_code(text.splitlines())
+
+        if opts.has_key('e'):
+            # Echo back to terminal.
+            write = self.shell.write
+            write(block)
+            if not block.endswith('\n'):
+                write('\n')
+            write("## -- End pasted text --\n")
+            
         self._execute_block(block, par)
 
     def magic_quickref(self,arg):
