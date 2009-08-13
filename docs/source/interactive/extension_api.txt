@@ -15,7 +15,7 @@ and get richer functionality - for example, you can import an
 extension and call functions in it to configure it for your purposes.
 
 For an example extension (the 'sh' profile), see
-IPython/Extensions/ipy_profile_sh.py.
+IPython/extensions/ipy_profile_sh.py.
 
 For the last word on what's available, see the source code of
 IPython/ipapi.py.
@@ -202,7 +202,7 @@ Provided extensions
 
 You can see the list of available extensions (and profiles) by doing
 ``import ipy_<TAB>``. Some extensions don't have the ``ipy_`` prefix in
-module name, so you may need to see the contents of IPython/Extensions
+module name, so you may need to see the contents of IPython/extensions
 folder to see what's available.
 
 You can see a brief documentation of an extension by looking at the

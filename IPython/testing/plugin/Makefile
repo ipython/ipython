@@ -34,16 +34,16 @@ deco:
 	$(NOSE0) IPython.testing.decorators
 
 magic: plugin
-	$(NOSE) IPython.Magic
+	$(NOSE) IPython.core.magic
 
 excolors: plugin
-	$(NOSE) IPython.excolors
+	$(NOSE) IPython.core.excolors
 
 iplib: plugin
-	$(NOSE)  IPython.iplib
+	$(NOSE)  IPython.core.iplib
 
 strd: plugin
-	$(NOSE) IPython.strdispatch
+	$(NOSE) IPython.core.strdispatch
 
 engine: plugin
 	$(NOSE) IPython.kernel

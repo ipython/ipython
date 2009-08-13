@@ -18,7 +18,7 @@ __docformat__ = "restructuredtext en"
 import os
 from os.path import join as pjoin
 
-from IPython.genutils import get_home_dir, get_ipython_dir
+from IPython.utils.genutils import get_home_dir, get_ipython_dir
 from IPython.external.configobj import ConfigObj
 
 

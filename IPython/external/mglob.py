@@ -213,7 +213,7 @@ def main():
     print "\n".join(expand(sys.argv[1:])),
 
 def mglob_f(self, arg):
-    from IPython.genutils import SList
+    from IPython.utils.genutils import SList
     if arg.strip():
         return SList(expand(arg))
     print "Please specify pattern!"

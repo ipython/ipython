@@ -1,7 +1,7 @@
 #!/usr/bin/env python
-"""Change the revision number in Release.py
+"""Change the revision number in release.py
 
-This edits in-place Release.py to update the revision number from bzr info. 
+This edits in-place release.py to update the revision number from bzr info. 
 
 Usage:
 
@@ -18,7 +18,7 @@ if __name__ == '__main__':
 
     pprint.pprint(ver)
 
-    rfile = open('../IPython/Release.py','rb').read()
+    rfile = open('../IPython/core/release.py','rb').read()
     newcont = re.sub(r'revision\s*=.*',
                      "revision = '%s'" % ver['revno'],
                      rfile)
@@ -27,6 +27,6 @@ if __name__ == '__main__':
                      "branch = '%s'"  % ver['branch-nick'],
                      newcont)
 
-    f = open('../IPython/Release.py','wb')
+    f = open('../IPython/core/release.py','wb')
     f.write(newcont)
     f.close()

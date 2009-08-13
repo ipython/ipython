@@ -11,7 +11,7 @@ ipdir = get_ipdir()
 cd(ipdir)
 
 # Load release info
-execfile(pjoin('IPython','Release.py'))
+execfile(pjoin('IPython','core','release.py'))
 
 # Where I keep static backups of each release
 ipbackupdir = os.path.expanduser('~/ipython/backup')

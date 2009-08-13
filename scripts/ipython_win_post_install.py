@@ -13,7 +13,7 @@ def mkshortcut(target,description,link_file,*args,**kw):
 def install():
     """Routine to be run by the win32 installer with the -install switch."""
     
-    from IPython.Release import version
+    from IPython.core.release import version
     
     # Get some system constants
     prefix = sys.prefix

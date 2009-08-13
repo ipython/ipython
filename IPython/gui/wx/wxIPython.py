@@ -19,7 +19,7 @@ except ImportError:
     is_sync_frontend_ok = False
 
 #used to create options.conf file in user directory
-from IPython.ipapi import get
+from IPython.core.ipapi import get
 
 __version__ = 0.91
 __author__  = "Laurent Dufrechou"

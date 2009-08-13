@@ -20,7 +20,7 @@ import sys
 from nose.tools import assert_equal
 
 from IPython.frontend.prefilterfrontend import PrefilterFrontEnd
-from IPython.ipapi import get as get_ipython0
+from IPython.core.ipapi import get as get_ipython0
 from IPython.testing.plugin.ipdoctest import default_argv
 
 
@@ -86,7 +86,7 @@ def isolate_ipython0(func):
             for k in new_globals:
                 del user_global_ns[k]
         # Undo the hack at creation of PrefilterFrontEnd
-        from IPython import iplib
+        from IPython.core import iplib
         iplib.InteractiveShell.isthreaded = False
         return out
 
