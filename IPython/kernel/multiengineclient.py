@@ -17,17 +17,14 @@ __docformat__ = "restructuredtext en"
 #-------------------------------------------------------------------------------
 
 import sys
-import cPickle as pickle
-from types import FunctionType
 import linecache
 import warnings
 
-from twisted.internet import reactor
-from twisted.python import components, log
+from twisted.python import components
 from twisted.python.failure import Failure
 from zope.interface import Interface, implements, Attribute
 
-from IPython.ColorANSI import TermColors
+from IPython.utils.coloransi import TermColors
 
 from IPython.kernel.twistedutil import blockingCallFromThread
 from IPython.kernel import error
@@ -37,10 +34,8 @@ from IPython.kernel.mapper import (
     IMultiEngineMapperFactory,
     IMapper
 )
-from IPython.kernel import map as Map
-from IPython.kernel import multiengine as me
-from IPython.kernel.multiengine import (IFullMultiEngine,
-    IFullSynchronousMultiEngine)
+
+from IPython.kernel.multiengine import IFullSynchronousMultiEngine
 
 
 #-------------------------------------------------------------------------------
@@ -310,13 +305,13 @@ class InteractiveMultiEngineClient(object):
     
     def findsource_file(self,f):
         linecache.checkcache()
-        s = findsource(f.f_code)
+        s = findsource(f.f_code) # findsource is not defined!
         lnum = f.f_lineno
         wsource = s[0][f.f_lineno:]
         return strip_whitespace(wsource)
 
     def findsource_ipython(self,f):
-        from IPython import ipapi
+        from IPython.core import ipapi
         self.ip = ipapi.get()
         wsource = [l+'\n' for l in
                    self.ip.IP.input_hist_raw[-1].splitlines()[1:]] 

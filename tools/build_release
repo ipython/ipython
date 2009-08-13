@@ -8,7 +8,7 @@ ipdir = get_ipdir()
 cd(ipdir)
 
 # Load release info
-execfile(pjoin('IPython','Release.py'))
+execfile(pjoin('IPython','core','release.py'))
 
 # Check that everything compiles
 compile_tree()

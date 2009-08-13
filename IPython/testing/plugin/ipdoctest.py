@@ -64,8 +64,8 @@ def default_argv():
 
     # Get the install directory for the user configuration and tell ipython to
     # use the default profile from there.
-    from IPython import UserConfig
-    ipcdir = os.path.dirname(UserConfig.__file__)
+    from IPython.config import userconfig
+    ipcdir = os.path.dirname(userconfig.__file__)
     #ipconf = os.path.join(ipcdir,'ipy_user_conf.py')
     ipconf = os.path.join(ipcdir,'ipythonrc')
     #print 'conf:',ipconf # dbg
@@ -82,7 +82,7 @@ class py_file_finder(object):
         self.test_filename = test_filename
         
     def __call__(self,name):
-        from IPython.genutils import get_py_filename
+        from IPython.utils.genutils import get_py_filename
         try:
             return get_py_filename(name)
         except IOError:
@@ -164,7 +164,8 @@ def start_ipython():
     import new
 
     import IPython
-
+    from IPython.core import ipapi
+    
     def xsys(cmd):
         """Execute a command and print its output.
 
@@ -183,8 +184,8 @@ def start_ipython():
     argv = default_argv()
     
     # Start IPython instance.  We customize it to start with minimal frills.
-    user_ns,global_ns = IPython.ipapi.make_user_namespaces(ipnsdict(),dict())
-    IPython.Shell.IPShell(argv,user_ns,global_ns)
+    user_ns,global_ns = ipapi.make_user_namespaces(ipnsdict(),dict())
+    IPython.shell.IPShell(argv,user_ns,global_ns)
 
     # Deactivate the various python system hooks added by ipython for
     # interactive convenience so we don't confuse the doctest system
@@ -194,7 +195,7 @@ def start_ipython():
 
     # So that ipython magics and aliases can be doctested (they work by making
     # a call into a global _ip object)
-    _ip = IPython.ipapi.get()
+    _ip = ipapi.get()
     __builtin__._ip = _ip
 
     # Modify the IPython system call with one that uses getoutput, so that we
@@ -210,7 +211,7 @@ def start_ipython():
     # XXX - For some very bizarre reason, the loading of %history by default is
     # failing.  This needs to be fixed later, but for now at least this ensures
     # that tests that use %hist run to completion.
-    from IPython import history
+    from IPython.core import history
     history.init_ipython(_ip)
     if not hasattr(_ip.IP,'magic_history'):
         raise RuntimeError("Can't load magics, aborting")

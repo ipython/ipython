@@ -7,5 +7,5 @@ in './scripts' directory. This file is here (ipython source root directory)
 to facilitate non-root 'zero-installation' (just copy the source tree
 somewhere and run ipython.py) and development. """
 
-import IPython.Shell
-IPython.Shell.start().mainloop()
+import IPython.core.shell
+IPython.core.shell.start().mainloop()

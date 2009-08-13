@@ -18,7 +18,7 @@ __docformat__ = "restructuredtext en"
 # Imports
 #-------------------------------------------------------------------------------
 from traceback_trap import TracebackTrap
-from IPython.ultraTB import ColorTB
+from IPython.core.ultratb import ColorTB
 
 class SyncTracebackTrap(TracebackTrap):
     """ TracebackTrap that displays immediatly the traceback in addition

@@ -27,13 +27,13 @@ import os
 import re
 import __builtin__
 
-from IPython.ipmaker import make_IPython
-from IPython.ipapi import IPApi
+from IPython.core.ipmaker import make_IPython
+from IPython.core.ipapi import IPApi
 from IPython.kernel.core.redirector_output_trap import RedirectorOutputTrap
 
 from IPython.kernel.core.sync_traceback_trap import SyncTracebackTrap
 
-from IPython.genutils import Term
+from IPython.utils.genutils import Term
 
 from linefrontendbase import LineFrontEndBase, common_prefix
 
@@ -80,7 +80,7 @@ class PrefilterFrontEnd(LineFrontEndBase):
         # on exceptions (https://bugs.launchpad.net/bugs/337105)
         # XXX: This is horrible: module-leve monkey patching -> side
         # effects.
-        from IPython import iplib
+        from IPython.core import iplib
         iplib.InteractiveShell.isthreaded = True
 
         LineFrontEndBase.__init__(self, *args, **kwargs)

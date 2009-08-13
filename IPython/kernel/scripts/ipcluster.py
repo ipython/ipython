@@ -29,7 +29,7 @@ from twisted.python import failure, log
 
 from IPython.external import argparse
 from IPython.external import Itpl
-from IPython.genutils import (
+from IPython.utils.genutils import (
     get_ipython_dir, 
     get_log_dir, 
     get_security_dir, 
@@ -39,7 +39,7 @@ from IPython.kernel.fcutil import have_crypto
 
 # Create various ipython directories if they don't exist.
 # This must be done before IPython.kernel.config is imported.
-from IPython.iplib import user_setup
+from IPython.core.iplib import user_setup
 if os.name == 'posix':
     rc_suffix = ''
 else:

@@ -31,7 +31,7 @@ import sys
 
 import nose.tools as nt
 
-from IPython.tools import utils
+from IPython.utils import genutils
 from IPython.testing import decorators as dec
 
 #-----------------------------------------------------------------------------
@@ -84,6 +84,6 @@ def full_path(startPath,files):
     ['/a.txt']
     """
 
-    files = utils.list_strings(files)
+    files = genutils.list_strings(files)
     base = os.path.split(startPath)[0]
     return [ os.path.join(base,f) for f in files ]

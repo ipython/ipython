@@ -26,8 +26,8 @@ import sys
 
 from twisted.internet.error import ConnectionRefusedError
 
-from IPython.ultraTB import _fixed_getinnerframes, findsource
-from IPython import ipapi
+from IPython.core.ultratb import _fixed_getinnerframes, findsource
+from IPython.core import ipapi
 
 from IPython.kernel import error
 
@@ -108,7 +108,7 @@ class RemoteContextBase(object):
         return strip_whitespace(wsource)
 
     def _findsource_ipython(self,f):
-        from IPython import ipapi
+        from IPython.core import ipapi
         self.ip = ipapi.get()
         buf = self.ip.IP.input_hist_raw[-1].splitlines()[1:]
         wsource = [l+'\n' for l in buf ]

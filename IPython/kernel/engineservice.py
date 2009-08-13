@@ -23,7 +23,8 @@ method that automatically added methods to engines.
 
 __docformat__ = "restructuredtext en"
 
-# Tell nose to skip this module
+# Tell nose to skip this module.  I don't think we need this as nose
+# shouldn't ever be run on this!
 __test__ = {}
 
 #-------------------------------------------------------------------------------

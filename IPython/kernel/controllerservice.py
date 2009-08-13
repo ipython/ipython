@@ -50,7 +50,7 @@ from IPython.kernel.engineservice import \
     IEngineSerialized, \
     IEngineQueued
     
-from IPython.genutils import get_ipython_dir
+from IPython.utils.genutils import get_ipython_dir
 from IPython.kernel import codeutil
 
 #-------------------------------------------------------------------------------

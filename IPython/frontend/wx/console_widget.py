@@ -105,8 +105,8 @@ ANSI_STYLES = {'0;30': [0, 'BLACK'],            '0;31': [1, 'RED'],
                                                  [13, 'MEDIUM VIOLET RED'],
                '1;36': [14, 'LIGHT STEEL BLUE'], '1;37': [15, 'YELLOW']}
 
-# XXX: Maybe one day we should factor this code with ColorANSI. Right now
-# ColorANSI is hard to reuse and makes our code more complex.
+# XXX: Maybe one day we should factor this code with coloransi. Right now
+# coloransi is hard to reuse and makes our code more complex.
 
 #we define platform specific fonts
 if wx.Platform == '__WXMSW__':

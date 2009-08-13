@@ -29,8 +29,7 @@ if os.path.exists('MANIFEST'): os.remove('MANIFEST')
 
 from distutils.core import setup
 
-# Local imports
-from IPython.genutils import target_update
+from IPython.utils.genutils import target_update
 
 from setupbase import (
     setup_args, 
@@ -42,6 +41,7 @@ from setupbase import (
 )
 
 isfile = os.path.isfile
+pjoin = os.path.join
 
 #-------------------------------------------------------------------------------
 # Handle OS specific things
@@ -123,7 +123,7 @@ if len(sys.argv) >= 2 and sys.argv[1] in ('sdist','bdist_rpm'):
 
         # First, compute all the dependencies that can force us to rebuild the
         # docs.  Start with the main release file that contains metadata
-        docdeps = ['IPython/Release.py']
+        docdeps = ['IPython/core/release.py']
         # Inculde all the reST sources
         pjoin = os.path.join
         for dirpath,dirnames,filenames in os.walk('docs/source'):
@@ -167,13 +167,14 @@ if 'setuptools' in sys.modules:
     setuptools_extra_args['zip_safe'] = False
     setuptools_extra_args['entry_points'] = {
         'console_scripts': [
-            'ipython = IPython.ipapi:launch_new_instance',
-            'pycolor = IPython.PyColorize:main',
+            'ipython = IPython.core.ipapi:launch_new_instance',
+            'pycolor = IPython.utils.PyColorize:main',
             'ipcontroller = IPython.kernel.scripts.ipcontroller:main',
             'ipengine = IPython.kernel.scripts.ipengine:main',
             'ipcluster = IPython.kernel.scripts.ipcluster:main',
             'ipythonx = IPython.frontend.wx.ipythonx:main',
             'iptest = IPython.testing.iptest:main',
+            'irunner = IPython.lib.irunner:main'
         ]
     }
     setup_args['extras_require'] = dict(
@@ -190,9 +191,9 @@ if 'setuptools' in sys.modules:
     scripts = []
 else:
     # package_data of setuptools was introduced to distutils in 2.4
-    cfgfiles = filter(isfile, glob('IPython/UserConfig/*'))
+    cfgfiles = filter(isfile, glob(pjoin('IPython','config','userconfig')))
     if sys.version_info < (2,4):
-        data_files.append(('lib', 'IPython/UserConfig', cfgfiles))
+        data_files.append(('lib', pjoin('IPython','config','userconfig'), cfgfiles))
     # If we are running without setuptools, call this function which will
     # check for dependencies an inform the user what is needed.  This is
     # just to make life easy for users.

@@ -21,7 +21,7 @@ __docformat__ = "restructuredtext en"
 
 import types
 
-from IPython.genutils import flatten as genutil_flatten
+from IPython.utils.genutils import flatten as genutil_flatten
 
 #-------------------------------------------------------------------------------
 # Figure out which array packages are present and their array types

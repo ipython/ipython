@@ -17,8 +17,8 @@ __docformat__ = "restructuredtext en"
 
 import new
 
-from IPython.iplib import InteractiveShell
-from IPython.Shell import MTInteractiveShell
+from IPython.core.iplib import InteractiveShell
+from IPython.core.shell import MTInteractiveShell
 
 from twisted.internet.defer import Deferred
 
