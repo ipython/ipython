@@ -3370,7 +3370,8 @@ Defaulting color scheme to 'NoColor'"""
         """Allows you to paste & execute a pre-formatted code block from clipboard.
         
         The text is pulled directly from the clipboard without user
-        intervention.
+        intervention and printed back on the screen before execution (unless
+        the -q flag is given to force quiet mode).
 
         The block is dedented prior to execution to enable execution of method
         definitions. '>' and '+' characters at the beginning of a line are
@@ -3382,8 +3383,13 @@ Defaulting color scheme to 'NoColor'"""
         You can also pass a variable name as an argument, e.g. '%paste foo'.
         This assigns the pasted block to variable 'foo' as string, without 
         dedenting or executing it (preceding >>> and + is still stripped)
+
+        Options
+        -------
         
-        '%paste -r' re-executes the block previously entered by cpaste.
+          -r: re-executes the block previously entered by cpaste.
+
+          -q: quiet mode: do not echo the pasted text back to the terminal.
         
         IPython statements (magics, shell escapes) are not supported (yet).
 
@@ -3391,7 +3397,7 @@ Defaulting color scheme to 'NoColor'"""
         --------
         cpaste: manually paste code into terminal until you mark its end.
         """
-        opts,args = self.parse_options(parameter_s,'r:',mode='string')
+        opts,args = self.parse_options(parameter_s,'rq',mode='string')
         par = args.strip()
         if opts.has_key('r'):
             self._rerun_pasted()
@@ -3399,6 +3405,15 @@ Defaulting color scheme to 'NoColor'"""
 
         text = self.shell.hooks.clipboard_get()
         block = self._strip_pasted_lines_for_code(text.splitlines())
+
+        # By default, echo back to terminal unless quiet mode is requested
+        if not opts.has_key('q'):
+            write = self.shell.write
+            write(block)
+            if not block.endswith('\n'):
+                write('\n')
+            write("## -- End pasted text --\n")
+            
         self._execute_block(block, par)
 
     def magic_quickref(self,arg):
