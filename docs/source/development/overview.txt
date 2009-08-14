@@ -132,7 +132,8 @@ using the :command:`iptest` command (which is basically a customized version of
     $ iptest
 
 The :command:`iptest` command will also pick up and run any tests you have
-written.  See :ref:`_devel_testing` for further details on the testing system.
+written. See :ref:`testing documentation <devel_testing>` for further details
+on the testing system.
 
 
 Post your branch and request a code review
@@ -170,35 +171,36 @@ Some notes for core developers when merging third-party contributions
 
 Core developers, who ultimately merge any approved branch (from themselves,
 another developer, or any third-party contribution) will typically use
-:command:`bzr merge` to merge the branch into the trunk and push it to the main
-Launcphad site.  This is a short list of things to keep in mind when doing this
-process, so that the project history is easy to understand in the long run, and
-that generating release notes is as painless and accurate as possible.
+:command:`bzr merge` to merge the branch into the trunk and push it to the
+main Launcphad site. This is a short list of things to keep in mind when doing
+this process, so that the project history is easy to understand in the long
+run, and that generating release notes is as painless and accurate as
+possible.
 
-- When you merge any non-trivial functionality (from one small bug fix to a big
-  feature branch), please remember to always edit the changes_ file
-  accordingly.  This file has one main section for each release, and if you
-  edit it as you go, noting what new features, bug fixes or API changes you
-  have made, the release notes will be almost finished when they are needed
-  later.  This is much easier if done when you merge the work, rather than
-  weeks or months later by re-reading a massive Bazaar log.
+- When you merge any non-trivial functionality (from one small bug fix to a
+  big feature branch), please remember to always edit the :file:`changes.txt`
+  file accordingly. This file has one main section for each release, and if
+  you edit it as you go, noting what new features, bug fixes or API changes
+  you have made, the release notes will be almost finished when they are
+  needed later. This is much easier if done when you merge the work, rather
+  than weeks or months later by re-reading a massive Bazaar log.
 
-- When big merges are done, the practice of putting a summary commit message in
-  the merge is *extremely* useful.  It makes this kind of job much nicer,
+- When big merges are done, the practice of putting a summary commit message
+  in the merge is *extremely* useful. It makes this kind of job much nicer,
   because that summary log message can be almost copy/pasted without changes,
   if it was well written, rather than dissecting the next-level messages from
   the individual commits.
 
 - It's important that we remember to always credit who gave us something if
-  it's not the committer.  In general, we have been fairly good on this front,
-  this is just a reminder to keep things up.  As a note, if you are ever
+  it's not the committer. In general, we have been fairly good on this front,
+  this is just a reminder to keep things up. As a note, if you are ever
   committing something that is completely (or almost so) a third-party
   contribution, do the commit as::
 
     $ bzr commit --author="Someone Else"
 
   This way it will show that name separately in the log, which makes it even
-  easier to spot.  Obviously we often rework third party contributions
+  easier to spot. Obviously we often rework third party contributions
   extensively, but this is still good to keep in mind for cases when we don't
   touch the code too much.
 

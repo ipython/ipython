@@ -3542,6 +3542,8 @@ Defaulting color scheme to 'NoColor'"""
     def magic_gui(self, parameter_s=''):
         """Enable or disable IPython GUI event loop integration.
 
+        %gui [-a] [GUINAME]
+
         This magic replaces IPython's threaded shells that were activated
         using the (pylab/wthread/etc.) command line flags.  GUI toolkits
         can now be enabled, disabled and swtiched at runtime and keyboard
