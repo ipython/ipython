@@ -20,8 +20,10 @@ if __name__ == '__main__':
                                         r'\.extensions',
                                         r'\.kernel.config',
                                         r'\.attic',
+                                        r'\.quarantine',
+                                        r'\.deathrow'
                                         ]
-    docwriter.module_skip_patterns += [ r'\.FakeModule',
+    docwriter.module_skip_patterns += [ r'\.core.fakemodule',
                                         r'\.cocoa',
                                         r'\.ipdoctest',
                                         r'\.Gnuplot',

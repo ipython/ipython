@@ -3370,7 +3370,8 @@ Defaulting color scheme to 'NoColor'"""
         """Allows you to paste & execute a pre-formatted code block from clipboard.
         
         The text is pulled directly from the clipboard without user
-        intervention.
+        intervention and printed back on the screen before execution (unless
+        the -q flag is given to force quiet mode).
 
         The block is dedented prior to execution to enable execution of method
         definitions. '>' and '+' characters at the beginning of a line are
@@ -3382,8 +3383,13 @@ Defaulting color scheme to 'NoColor'"""
         You can also pass a variable name as an argument, e.g. '%paste foo'.
         This assigns the pasted block to variable 'foo' as string, without 
         dedenting or executing it (preceding >>> and + is still stripped)
+
+        Options
+        -------
         
-        '%paste -r' re-executes the block previously entered by cpaste.
+          -r: re-executes the block previously entered by cpaste.
+
+          -q: quiet mode: do not echo the pasted text back to the terminal.
         
         IPython statements (magics, shell escapes) are not supported (yet).
 
@@ -3391,7 +3397,7 @@ Defaulting color scheme to 'NoColor'"""
         --------
         cpaste: manually paste code into terminal until you mark its end.
         """
-        opts,args = self.parse_options(parameter_s,'r:',mode='string')
+        opts,args = self.parse_options(parameter_s,'rq',mode='string')
         par = args.strip()
         if opts.has_key('r'):
             self._rerun_pasted()
@@ -3399,6 +3405,15 @@ Defaulting color scheme to 'NoColor'"""
 
         text = self.shell.hooks.clipboard_get()
         block = self._strip_pasted_lines_for_code(text.splitlines())
+
+        # By default, echo back to terminal unless quiet mode is requested
+        if not opts.has_key('q'):
+            write = self.shell.write
+            write(block)
+            if not block.endswith('\n'):
+                write('\n')
+            write("## -- End pasted text --\n")
+            
         self._execute_block(block, par)
 
     def magic_quickref(self,arg):
@@ -3523,5 +3538,50 @@ Defaulting color scheme to 'NoColor'"""
         dstore.mode = bool(1-int(mode))
         print 'Doctest mode is:',
         print ['OFF','ON'][dstore.mode]
+
+    def magic_gui(self, parameter_s=''):
+        """Enable or disable IPython GUI event loop integration.
+
+        %gui [-a] [GUINAME]
+
+        This magic replaces IPython's threaded shells that were activated
+        using the (pylab/wthread/etc.) command line flags.  GUI toolkits
+        can now be enabled, disabled and swtiched at runtime and keyboard
+        interrupts should work without any problems.  The following toolkits
+        are supports:  wxPython, PyQt4, PyGTK, and Tk::
+
+            %gui wx    # enable wxPython event loop integration
+            %gui qt4   # enable PyQt4 event loop integration
+            %gui gtk   # enable PyGTK event loop integration
+            %gui tk    # enable Tk event loop integration
+            %gui       # disable all event loop integration
+
+        WARNING:  after any of these has been called you can simply create
+        an application object, but DO NOT start the event loop yourself, as
+        we have already handled that.
+
+        If you want us to create an appropriate application object add the
+        "-a" flag to your command::
+
+            %gui -a wx
+
+        This is highly recommended for most users.
+        """
+        from IPython.lib import inputhook
+        if "-a" in parameter_s:
+            app = True
+        else:
+            app = False
+        if not parameter_s:
+            inputhook.clear_inputhook()
+        elif 'wx' in parameter_s:
+            return inputhook.enable_wx(app)
+        elif 'qt4' in parameter_s:
+            return inputhook.enable_qt4(app)
+        elif 'gtk' in parameter_s:
+            return inputhook.enable_gtk(app)
+        elif 'tk' in parameter_s:
+            return inputhook.enable_tk(app)
+
 
 # end Magic

@@ -42,6 +42,7 @@ import __builtin__
 import os
 import sys
 from pprint import pprint
+import warnings
 
 # Our own
 from IPython.utils import DPyGetOpt
@@ -53,13 +54,24 @@ from IPython.core.iplib import InteractiveShell
 from IPython.core.usage import cmd_line_usage, interactive_usage
 from IPython.utils.genutils import *
 
+
 def force_import(modname,force_reload=False):
     if modname in sys.modules and force_reload:
         info("reloading: %s" % modname)
         reload(sys.modules[modname])
     else:
         __import__(modname)
-        
+
+
+def threaded_shell_warning():
+    msg = """
+
+The IPython threaded shells and their associated command line
+arguments (pylab/wthread/gthread/qthread/q4thread) have been 
+deprecated.  See the %gui magic for information on the new interface.
+"""
+    warnings.warn(msg, category=DeprecationWarning, stacklevel=1)
+
 
 #-----------------------------------------------------------------------------
 def make_IPython(argv=None,user_ns=None,user_global_ns=None,debug=1,
@@ -329,6 +341,13 @@ object?   -> Details about 'object'. ?object also works, ?? prints more.
     if opts_all.magic_docstrings:
         IP.magic_magic('-latex')
         sys.exit()
+
+    # Display the deprecation warnings about threaded shells
+    if opts_all.pylab == 1: threaded_shell_warning()
+    if opts_all.wthread == 1: threaded_shell_warning()
+    if opts_all.qthread == 1: threaded_shell_warning()
+    if opts_all.q4thread == 1: threaded_shell_warning()
+    if opts_all.gthread == 1: threaded_shell_warning()
 
     # add personal ipythondir to sys.path so that users can put things in
     # there for customization

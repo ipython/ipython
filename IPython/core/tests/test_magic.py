@@ -7,6 +7,7 @@ import os
 import sys
 import tempfile
 import types
+from cStringIO import StringIO
 
 import nose.tools as nt
 
@@ -261,9 +262,10 @@ class TestMagicRun(object):
 # Multiple tests for clipboard pasting
 def test_paste():
 
-    def paste(txt):
+    def paste(txt, flags='-q'):
+        """Paste input text, by default in quiet mode"""
         hooks.clipboard_get = lambda : txt
-        _ip.magic('paste')
+        _ip.magic('paste '+flags)
 
     # Inject fake clipboard hook but save original so we can restore it later
     hooks = _ip.IP.hooks
@@ -294,9 +296,31 @@ def test_paste():
         """)
         yield (nt.assert_equal, user_ns['x'], [1,2,3])
         yield (nt.assert_equal, user_ns['y'], [1,4,9])
-    except:
-        pass
 
-    # This should be in a finally clause, instead of the bare except above.
-    # Restore original hook
-    hooks.clipboard_get = original_clip
+        # Now, test that paste -r works
+        user_ns.pop('x', None)
+        yield (nt.assert_false, 'x' in user_ns)
+        _ip.magic('paste -r')
+        yield (nt.assert_equal, user_ns['x'], [1,2,3])
+
+        # Also test paste echoing, by temporarily faking the writer
+        w = StringIO()
+        writer = _ip.IP.write
+        _ip.IP.write = w.write
+        code = """
+        a = 100
+        b = 200"""
+        try:
+            paste(code,'')
+            out = w.getvalue()
+        finally:
+            _ip.IP.write = writer
+        yield (nt.assert_equal, user_ns['a'], 100)
+        yield (nt.assert_equal, user_ns['b'], 200)
+        yield (nt.assert_equal, out, code+"\n## -- End pasted text --\n")
+        
+    finally:
+        # This should be in a finally clause, instead of the bare except above.
+        # Restore original hook
+        hooks.clipboard_get = original_clip
+

@@ -12,6 +12,29 @@
 What's new
 ==========
 
+Development
+===========
+
+New features
+------------
+
+Bug fixes
+---------
+
+Backwards incompatible changes
+------------------------------
+
+* New top-level sub-packages have been created: :mod:`IPython.core`, 
+  :mod:`IPython.lib`, :mod:`IPython.utils`, :mod:`IPython.deathrow`,
+  :mod:`IPython.quarantine`.  All existing top-level modules have been
+  moved to appropriate sub-packages.  All internal import statements
+  have been updated and tests have been added.  The build system (setup.py
+  and friends) have been updated.
+* Compatability modules have been created for :mod:`IPython.Shell`, 
+  :mod:`IPython.ipapi` and :mod:`IPython.iplib` that display warnings
+  and then load the actual implementation from :mod:`IPython.core`.
+* :mod:`Extensions` has been moved to :mod:`extensions`.
+
 Release 0.10
 ============
 

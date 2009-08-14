@@ -1,6 +1,6 @@
 =============================
 IPython module reorganization
-============================='
+=============================
 
 Currently, IPython has many top-level modules that serve many different
 purposes. The lack of organization make it very difficult for developers to
@@ -76,19 +76,9 @@ Procedure
 1. Move the file to its new location with its new name.
 2. Rename all import statements to reflect the change.
 3. Run PyFlakes on each changes module.
-3. Add tests/test_imports.py to test it.
+4. Add tests/test_imports.py to test it.
 
 Status
 ======
 
-The new subpackages have been created and the top-level modules have been
-moved and renamed. Import tests have been created for all of the moved and
-renamed modules. The build infrastructure (setup.py and friends) have been
-updated and tested on Mac and Windows. Finally, a compatibility layer has been
-added for iplib, ipapi and Shell. The follow things still need to be done::
-
-* I need to modify iptests to properly skip modules that are no longer top
-  level modules.
-
-* When running python setup.py sdist, the Sphinx API docs fail to build
-  because of something going on with IPython.core.fakemodule
+This branch was merged into trunk in early August of 2009.

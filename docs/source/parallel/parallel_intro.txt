@@ -90,13 +90,15 @@ asynchronous interface to a set of engines.
     Because the controller listens on a network port for engines to 
     connect to it, it must be started *before* any engines are started.  
 
-The controller also provides a single point of contact for users who wish
-to utilize the engines connected to the controller. There are different
-ways of working with a controller. In IPython these ways correspond to different interfaces that the controller is adapted to.  Currently we have two default interfaces to the controller: 
+The controller also provides a single point of contact for users who wish to
+utilize the engines connected to the controller. There are different ways of
+working with a controller. In IPython these ways correspond to different
+interfaces that the controller is adapted to. Currently we have two default
+interfaces to the controller:
 
 * The MultiEngine interface, which provides the simplest possible way of
   working with engines interactively.
-* The Task interface, which provides presents the engines as a load balanced
+* The Task interface, which presents the engines as a load balanced
   task farming system.
 
 Advanced users can easily add new custom interfaces to enable other
@@ -121,11 +123,30 @@ interface.  Here are the two default clients:
 Security
 --------
 
-By default (as long as `pyOpenSSL` is installed) all network connections between the controller and engines and the controller and clients are secure.  What does this mean?  First of all, all of the connections will be encrypted using SSL.  Second, the connections are authenticated.  We handle authentication in a capability based security model [Capability]_.  In this model,  a "capability (known in some systems as a key) is a communicable, unforgeable token of authority".  Put simply, a capability is like a key to your house.  If you have the key to your house, you can get in.  If not, you can't.  
+By default (as long as `pyOpenSSL` is installed) all network connections
+between the controller and engines and the controller and clients are secure.
+What does this mean? First of all, all of the connections will be encrypted
+using SSL. Second, the connections are authenticated. We handle authentication
+in a capability based security model [Capability]_. In this model, a
+"capability (known in some systems as a key) is a communicable, unforgeable
+token of authority". Put simply, a capability is like a key to your house. If
+you have the key to your house, you can get in. If not, you can't.
 
-In our architecture, the controller is the only process that listens on network ports, and is thus responsible to creating these keys.  In IPython, these keys are known as Foolscap URLs, or FURLs, because of the underlying network protocol we are using.  As a user, you don't need to know anything about the details of these FURLs, other than that when the controller starts, it saves a set of FURLs to files named :file:`something.furl`.  The default location of these files is the :file:`~./ipython/security` directory.
+In our architecture, the controller is the only process that listens on
+network ports, and is thus responsible to creating these keys. In IPython,
+these keys are known as Foolscap URLs, or FURLs, because of the underlying
+network protocol we are using. As a user, you don't need to know anything
+about the details of these FURLs, other than that when the controller starts,
+it saves a set of FURLs to files named :file:`something.furl`. The default
+location of these files is the :file:`~./ipython/security` directory.
 
-To connect and authenticate to the controller an engine or client simply needs to present an appropriate FURL (that was originally created by the controller) to the controller.  Thus, the FURL files need to be copied to a location where the clients and engines can find them.  Typically, this is the :file:`~./ipython/security` directory on the host where the client/engine is running (which could be a different host than the controller).  Once the FURL files are copied over, everything should work fine.
+To connect and authenticate to the controller an engine or client simply needs
+to present an appropriate FURL (that was originally created by the controller)
+to the controller. Thus, the FURL files need to be copied to a location where
+the clients and engines can find them. Typically, this is the
+:file:`~./ipython/security` directory on the host where the client/engine is
+running (which could be a different host than the controller). Once the FURL
+files are copied over, everything should work fine.
 
 Currently, there are three FURL files that the controller creates:
 
@@ -149,12 +170,16 @@ can be found :ref:`here <parallelsecurity>`.
 Getting Started
 ===============
 
-To use IPython for parallel computing, you need to start one instance of
-the controller and one or more instances of the engine. Initially, it is best to simply start a controller and engines on a single host using the :command:`ipcluster` command.  To start a controller and 4 engines on you localhost, just do::
+To use IPython for parallel computing, you need to start one instance of the
+controller and one or more instances of the engine. Initially, it is best to
+simply start a controller and engines on a single host using the
+:command:`ipcluster` command. To start a controller and 4 engines on your
+localhost, just do::
 
     $ ipcluster local -n 4
 
-More details about starting the IPython controller and engines can be found :ref:`here <parallel_process>`
+More details about starting the IPython controller and engines can be found
+:ref:`here <parallel_process>`
 
 Once you have started the IPython controller and one or more engines, you
 are ready to use the engines to do something useful. To make sure
@@ -184,7 +209,12 @@ everything is working correctly, try the following commands:
 	[3] In [1]: print "Hello World"
 	[3] Out[1]: Hello World
 
-Remember, a client also needs to present a FURL file to the controller.  How does this happen?  When a multiengine client is created with no arguments, the client tries to find the corresponding FURL file in the local :file:`~./ipython/security` directory.  If it finds it, you are set.  If you have put the FURL file in a different location or it has a different name, create the client like this::
+Remember, a client also needs to present a FURL file to the controller. How
+does this happen? When a multiengine client is created with no arguments, the
+client tries to find the corresponding FURL file in the local
+:file:`~./ipython/security` directory. If it finds it, you are set. If you
+have put the FURL file in a different location or it has a different name,
+create the client like this::
 
     mec = client.MultiEngineClient('/path/to/my/ipcontroller-mec.furl')
 
@@ -192,7 +222,9 @@ Same thing hold true of creating a task client::
 
     tc = client.TaskClient('/path/to/my/ipcontroller-tc.furl')
 
-You are now ready to learn more about the :ref:`MultiEngine <parallelmultiengine>` and :ref:`Task <paralleltask>` interfaces to the controller.
+You are now ready to learn more about the :ref:`MultiEngine
+<parallelmultiengine>` and :ref:`Task <paralleltask>` interfaces to the
+controller.
 
 .. note:: 
 
