@@ -1,6 +1,6 @@
 =============================
 IPython module reorganization
-============================='
+=============================
 
 Currently, IPython has many top-level modules that serve many different
 purposes. The lack of organization make it very difficult for developers to
