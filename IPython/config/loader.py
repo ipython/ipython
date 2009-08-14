@@ -153,7 +153,7 @@ NoDefault = NoDefault()
 class ArgParseConfigLoader(CommandLineConfigLoader):
     
     # arguments = [(('-f','--file'),dict(type=str,dest='file'))]
-    arguments = []
+    arguments = ()
 
     def __init__(self, *args, **kw):
         """Create a config loader for use with argparse.

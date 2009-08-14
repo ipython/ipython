@@ -32,17 +32,19 @@ Questions:
 
 
 * Can we limit ourselves to 1 config file or do we want to have a sequence
-  of them like IPYTHONDIR->RUNTIMEDIR->CWD?
+  of them like IPYTHONDIR->RUNTIMEDIR->CWD? [1]
 * Do we need a debug mode that has custom exception handling and can drop
-  into pdb upno startup?
+  into pdb upno startup? N
 * Do we need to use an OutputTrap to capture output and then present it
-  to a user if startup fails?
+  to a user if startup fails? N
 * Do we want the location of the config file(s) to be independent of the
   ipython/runtime dir or coupled to it.  In other words, can the user select
   a config file that is outside their runtime/ipython dir.  One model is 
   that we could have a very strict model of IPYTHONDIR=runtimed dir=
   dir used for all config.
-* Do we install default config files or not?
+* Do we install default config files or not? N
+
+* attempt needs to either clash or to die
 """
 
 #-----------------------------------------------------------------------------

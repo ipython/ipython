@@ -45,6 +45,7 @@ class TestPyFileCL(TestCase):
         f = os.fdopen(fd, 'w')
         f.write(pyfile)
         f.close()
+        # Unlink the file
         cl = PyFileConfigLoader(fname)
         config = cl.load_config()
         self.assertEquals(config.A, 10)
@@ -58,12 +59,12 @@ class TestArgParseCL(TestCase):
     def test_basic(self):
 
         class MyLoader(ArgParseConfigLoader):
-            arguments = [
+            arguments = (
                 (('-f','--foo'), dict(dest='FOO', type=str)),
                 (('-b',), dict(dest='BAR', type=int)),
                 (('-n',), dict(dest='N', action='store_true')),
                 (('BAM',), dict(type=str))
-            ]
+            )
 
         cl = MyLoader()
         config = cl.load_config('-f hi -b 10 -n wow'.split())
