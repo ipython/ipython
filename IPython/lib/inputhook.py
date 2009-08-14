@@ -16,6 +16,7 @@ Inputhook management for GUI event loop integration.
 #-----------------------------------------------------------------------------
 
 import ctypes
+import sys
 
 #-----------------------------------------------------------------------------
 # Code
@@ -65,7 +66,7 @@ class InputHookManager(object):
         self._reset()
         return original
 
-    def enable_wx(self):
+    def enable_wx(self, app=False):
         """Enable event loop integration with wxPython.
         
         This methods sets the PyOS_InputHook for wxPython, which allows
@@ -85,6 +86,10 @@ class InputHookManager(object):
         """
         from IPython.lib.inputhookwx import inputhook_wx
         self.set_inputhook(inputhook_wx)
+        if app:
+            import wx
+            app = wx.App(redirect=False, clearSigInt=False)
+            return app
 
     def disable_wx(self):
         """Disable event loop integration with wxPython.
@@ -93,7 +98,7 @@ class InputHookManager(object):
         """
         self.clear_inputhook()
 
-    def enable_qt4(self):
+    def enable_qt4(self, app=False):
         """Enable event loop integration with PyQt4.
         
         This methods sets the PyOS_InputHook for wxPython, which allows
@@ -113,6 +118,10 @@ class InputHookManager(object):
             QtCore.pyqtRestoreInputHook()
         except AttributeError:
             pass
+        if app:
+            from PyQt4 import QtGui
+            app = QtGui.QApplication(sys.argv)
+            return app
 
     def disable_qt4(self):
         """Disable event loop integration with PyQt4.
@@ -121,7 +130,7 @@ class InputHookManager(object):
         """
         self.clear_inputhook()
 
-    def enable_gtk(self):
+    def enable_gtk(self, app=False):
         """Enable event loop integration with PyGTK.
         
         This methods sets the PyOS_InputHook for PyGTK, which allows
@@ -147,7 +156,7 @@ class InputHookManager(object):
         """
         self.clear_inputhook()
 
-    def enable_tk(self):
+    def enable_tk(self, app=False):
         # Creating a Tkinter.Tk object sets PyOS_InputHook()
         pass
 
