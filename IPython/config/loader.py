@@ -19,6 +19,7 @@ import sys
 
 from IPython.external import argparse
 from IPython.utils.ipstruct import Struct
+from IPython.utils.genutils import filefind
 
 #-----------------------------------------------------------------------------
 # Code
@@ -84,7 +85,7 @@ class PyFileConfigLoader(FileConfigLoader):
     that are all caps.  These attribute are added to the config Struct.
     """
 
-    def __init__(self, filename, path='.'):
+    def __init__(self, filename, path=None):
         """Build a config loader for a filename and path.
 
         Parameters
@@ -110,22 +111,7 @@ class PyFileConfigLoader(FileConfigLoader):
 
     def _find_file(self):
         """Try to find the file by searching the paths."""
-        if os.path.isfile(os.path.expanduser(self.filename)):
-            self.full_filename = os.path.expanduser(self.filename)
-            return
-        if self.path == '.':
-            self.path = [os.getcwd()]
-        if not isinstance(path, (list, tuple)):
-            raise TypeError("path must be a list or tuple, got: %r" % self.path)
-        for p in self.path:
-            if p == '.': p = os.getcwd()
-            full_filename = os.path.expanduser(os.path.join(p, self.filename))
-            if os.path.isfile(full_filename):
-                self.full_filename = full_filename
-                return
-        raise IOError("Config file does not exist in any "
-                      "of the search paths: %r, %r" % \
-                      (self.filename, self.path))
+        self.full_filename = filefind(self.filename, self.path)
 
     def _read_file_as_dict(self):
         self.data = {}
@@ -175,6 +161,10 @@ class ArgParseConfigLoader(CommandLineConfigLoader):
     def _create_parser(self):
         self.parser = argparse.ArgumentParser(*self.args, **self.kw)
         self._add_arguments()
+        self._add_other_arguments()
+
+    def _add_other_arguments():
+        pass
 
     def _add_arguments(self):
         for argument in self.arguments:
@@ -196,3 +186,15 @@ class ArgParseConfigLoader(CommandLineConfigLoader):
             if v is not NoDefault:
                 setattr(self.config, k, v)
 
+class IPythonArgParseConfigLoader(ArgParseConfigLoader):
+
+    def _add_other_arguments(self):
+        self.parser.add_argument('--ipythondir',dest='IPYTHONDIR',type=str,
+            help='set to override default location of IPYTHONDIR',
+            default=NoDefault)
+        self.parser.add_argument('-p','--p',dest='PROFILE_NAME',type=str,
+            help='the string name of the ipython profile to be used',
+            default=None)
+        self.parser.add_argument('--debug',dest="DEBUG",action='store_true',
+            help='debug the application startup process',
+            default=NoDefault)

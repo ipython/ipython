@@ -354,10 +354,13 @@ class TestHasTraitlets(TestCase):
             i = Int(config_key='VALUE1', other_thing='VALUE2')
             f = Float(config_key='VALUE3', other_thing='VALUE2')
         a = A()
-        # traitlets = a.traitlets(config_key=lambda v: True)
-        # self.assertEquals(traitlets, dict(i=A.i, f=A.f))
+        self.assertEquals(a.traitlets(), dict(i=A.i, f=A.f))
+        traitlets = a.traitlets(config_key=lambda v: True)
+        self.assertEquals(traitlets, dict(i=A.i, f=A.f))
         traitlets = a.traitlets(config_key='VALUE1', other_thing='VALUE2')
         self.assertEquals(traitlets, dict(i=A.i))
+        traitlets = a.traitlets('config_key')
+        self.assertEquals(traitlets, dict(i=A.i, f=A.f))
 
 #-----------------------------------------------------------------------------
 # Tests for specific traitlet types

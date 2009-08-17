@@ -196,7 +196,7 @@ class Component(HasTraitlets):
 
     def _config_changed(self, name, old, new):
         # Get all traitlets with a config_key metadata entry
-        traitlets = self.traitlets(config_key=lambda v: True)
+        traitlets = self.traitlets('config_key')
         for k, v in traitlets.items():
             try:
                 config_value = new[v.get_metadata('config_key')]

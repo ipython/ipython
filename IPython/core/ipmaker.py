@@ -93,7 +93,7 @@ def make_IPython(argv=None,user_ns=None,user_global_ns=None,debug=1,
     # Defaults and initialization
     
     # For developer debugging, deactivates crash handler and uses pdb.
-    DEVDEBUG = False
+    DEVDEBUG = True
 
     if argv is None:
         argv = sys.argv
@@ -445,6 +445,8 @@ object?   -> Details about 'object'. ?object also works, ?? prints more.
         if opts_all.debug:  IP.InteractiveTB()
         warn('Configuration file %s not found. Ignoring request.'
              % (opts_all.rcfile) )
+
+    print opts_all.rcfile, opts_all.ipythondir
 
     # 'profiles' are a shorthand notation for config filenames
     profile_handled_by_legacy = False

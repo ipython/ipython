@@ -528,32 +528,55 @@ def get_py_filename(name):
         raise IOError,'File `%s` not found.' % name
 
 #-----------------------------------------------------------------------------
-def filefind(fname,alt_dirs = None):
-    """Return the given filename either in the current directory, if it
-    exists, or in a specified list of directories.
 
-    ~ expansion is done on all file and directory names.
 
-    Upon an unsuccessful search, raise an IOError exception."""
+def filefind(filename, path_dirs=None):
+    """Find a file by looking through a sequence of paths.
 
-    if alt_dirs is None:
-        try:
-            alt_dirs = get_home_dir()
-        except HomeDirError:
-            alt_dirs = os.getcwd()
-    search = [fname] + list_strings(alt_dirs)
-    search = map(os.path.expanduser,search)
-    #print 'search list for',fname,'list:',search  # dbg
-    fname = search[0]
-    if os.path.isfile(fname):
-        return fname
-    for direc in search[1:]:
-        testname = os.path.join(direc,fname)
-        #print 'testname',testname  # dbg
+    This iterates through a sequence of paths looking for a file and returns
+    the full, absolute path of the first occurence of the file.  If no set of
+    path dirs is given, the filename is tested as is, after running through
+    :func:`expandvars` and :func:`expanduser`.  Thus a simple call::
+
+        filefind('myfile.txt')
+
+    will find the file in the current working dir, but::
+
+        filefind('~/myfile.txt')
+
+    Will find the file in the users home directory.  This function does not
+    automatically try any paths, such as the cwd or the user's home directory.
+    
+    Parameters
+    ----------
+    filename : str
+        The filename to look for.
+    path_dirs : str, None or sequence of str
+        The sequence of paths to look for the file in.  If None, the filename
+        need to be absolute or be in the cwd.  If a string, the string is
+        put into a sequence and the searched.  If a sequence, walk through
+        each element and join with ``filename``, calling :func:`expandvars`
+        and :func:`expanduser` before testing for existence.
+        
+    Returns
+    -------
+    Raises :exc:`IOError` or returns absolute path to file.
+    """
+    if path_dirs is None:
+        path_dirs = ("",)
+    elif isinstance(path_dirs, basestring):
+        path_dirs = (path_dirs,)
+    for path in path_dirs:
+        if path == '.': path = os.getcwd()
+        testname = os.path.expandvars(
+                       os.path.expanduser(
+                           os.path.join(path, filename)))
         if os.path.isfile(testname):
-            return testname
-    raise IOError,'File' + `fname` + \
-          ' not found in current or supplied directories:' + `alt_dirs`
+            return os.path.abspath(testname)
+    raise IOError("File does not exist in any "
+                  "of the search paths: %r, %r" % \
+                  (filename, path_dirs))
+
 
 #----------------------------------------------------------------------------
 def file_read(filename):

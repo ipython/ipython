@@ -438,7 +438,7 @@ class HasTraitlets(object):
         """Get a list of all the names of this classes traitlets."""
         return self.traitlets(**metadata).keys()
 
-    def traitlets(self, **metadata):
+    def traitlets(self, *args, **metadata):
         """Get a list of all the traitlets of this class.
 
         The TraitletTypes returned don't know anything about the values
@@ -446,8 +446,11 @@ class HasTraitlets(object):
         """
         traitlets = dict([memb for memb in inspect.getmembers(self.__class__) if \
                      isinstance(memb[1], TraitletType)])
-        if len(metadata) == 0:
+        if len(metadata) == 0 and len(args) == 0:
             return traitlets
+
+        for meta_name in args:
+            metadata[meta_name] = lambda _: True
 
         for meta_name, meta_eval in metadata.items():
             if type(meta_eval) is not FunctionType:
