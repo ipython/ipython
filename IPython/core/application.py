@@ -124,6 +124,8 @@ class Application(object):
         except AttributeError:
             self.ipythondir = self.default_config.IPYTHONDIR
         sys.path.append(os.path.abspath(self.ipythondir))
+        if not os.path.isdir(self.ipythondir):
+            os.makedirs(self.ipythondir, mode = 0777)
         self.log("IPYTHONDIR set to: %s" % self.ipythondir)
 
     def find_config_file_name(self):
