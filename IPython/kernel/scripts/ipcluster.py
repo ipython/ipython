@@ -39,7 +39,7 @@ from IPython.kernel.fcutil import have_crypto
 
 # Create various ipython directories if they don't exist.
 # This must be done before IPython.kernel.config is imported.
-from IPython.core.iplib import user_setup
+from IPython.core.oldusersetup import user_setup
 if os.name == 'posix':
     rc_suffix = ''
 else:

@@ -219,8 +219,7 @@ class IPApi(object):
         # is in fact wanted (e.g. when exposing new options), do
         # allow_new_attr(True) for the received rc struct.
         
-        self.IP.rc.allow_new_attr(False)
-        return self.IP.rc
+        return self.IP
 
     options = property(get_options,None,None,get_options.__doc__)
     
@@ -609,7 +608,7 @@ _make_user_ns = make_user_ns
 _make_user_global_ns = make_user_global_ns
 
 
-def make_user_namespaces(user_ns = None,user_global_ns = None):
+def make_user_namespaces(user_ns = None, user_global_ns = None):
     """Return a valid local and global user interactive namespaces.
 
     This builds a dict with the minimal information needed to operate as a

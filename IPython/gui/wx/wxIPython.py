@@ -109,7 +109,7 @@ class MyFrame(wx.Frame):
 
     def optionSave(self, name, value):
         ip = get()
-        path = ip.IP.rc.ipythondir
+        path = ip.IP.config.IPYTHONDIR
         opt = open(path + '/options.conf','w')
 
         try:
@@ -126,7 +126,7 @@ class MyFrame(wx.Frame):
     def optionLoad(self):
         try:
             ip = get()
-            path = ip.IP.rc.ipythondir
+            path = ip.IP.config.IPYTHONDIR
             opt = open(path + '/options.conf','r')
             lines = opt.readlines()
             opt.close()

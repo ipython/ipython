@@ -159,9 +159,9 @@ class IPShellEmbed:
         sys.displayhook = self.sys_displayhook_ori
         # don't use the ipython crash handler so that user exceptions aren't
         # trapped
-        sys.excepthook = ultratb.FormattedTB(color_scheme = self.IP.rc.colors,
-                                             mode = self.IP.rc.xmode,
-                                             call_pdb = self.IP.rc.pdb)
+        sys.excepthook = ultratb.FormattedTB(color_scheme = self.IP.colors,
+                                             mode = self.IP.xmode,
+                                             call_pdb = self.IP.pdb)
         self.restore_system_completer()
 
     def restore_system_completer(self):

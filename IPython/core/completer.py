@@ -241,7 +241,7 @@ class IPCompleter(Completer):
         self.get_line_buffer = self.readline.get_line_buffer
         self.get_endidx = self.readline.get_endidx
         self.omit__names = omit__names
-        self.merge_completions = shell.rc.readline_merge_completions        
+        self.merge_completions = shell.readline_merge_completions        
         if alias_table is None:
             alias_table = {}
         self.alias_table = alias_table

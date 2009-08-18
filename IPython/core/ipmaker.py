@@ -47,6 +47,7 @@ import warnings
 # Our own
 from IPython.utils import DPyGetOpt
 from IPython.core import release
+from IPython.core.oldusersetup import user_setup
 from IPython.utils.ipstruct import Struct
 from IPython.core.outputtrap import OutputTrap
 from IPython.config.configloader import ConfigLoader
@@ -356,11 +357,11 @@ object?   -> Details about 'object'. ?object also works, ?? prints more.
     # Create user config directory if it doesn't exist. This must be done
     # *after* getting the cmd line options.
     if not os.path.isdir(opts_all.ipythondir):
-        IP.user_setup(opts_all.ipythondir,rc_suffix,'install')
+        user_setup(opts_all.ipythondir,rc_suffix,'install')
 
     # upgrade user config files while preserving a copy of the originals
     if opts_all.upgrade:
-        IP.user_setup(opts_all.ipythondir,rc_suffix,'upgrade')
+        user_setup(opts_all.ipythondir,rc_suffix,'upgrade')
 
     # check mutually exclusive options in the *original* command line
     mutex_opts(opts,[qw('log logfile'),qw('rcfile profile'),

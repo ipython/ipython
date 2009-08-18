@@ -191,7 +191,7 @@ def checkMultiLineMagic(l_info,ip):
     # iFun and *not* the preChar.  Also note that the below test matches
     # both ! and !!.    
     if l_info.continue_prompt \
-        and ip.rc.multi_line_specials:
+        and ip.multi_line_specials:
             if l_info.iFun.startswith(ip.ESC_MAGIC):
                 return ip.handle_magic
     else:
@@ -231,11 +231,11 @@ def checkAutomagic(l_info,ip):
     check_esc_chars. This just checks for automagic.  Also, before
     triggering the magic handler, make sure that there is nothing in the
     user namespace which could shadow it."""
-    if not ip.rc.automagic or not hasattr(ip,'magic_'+l_info.iFun):
+    if not ip.automagic or not hasattr(ip,'magic_'+l_info.iFun):
         return None
 
     # We have a likely magic method.  Make sure we should actually call it.
-    if l_info.continue_prompt and not ip.rc.multi_line_specials:
+    if l_info.continue_prompt and not ip.multi_line_specials:
         return None
 
     head = l_info.iFun.split('.',1)[0]
@@ -271,7 +271,7 @@ def checkPythonOps(l_info,ip):
 
 def checkAutocall(l_info,ip):
     "Check if the initial word/function is callable and autocall is on."
-    if not ip.rc.autocall:
+    if not ip.autocall:
         return None
 
     oinfo = l_info.ofind(ip) # This can mutate state via getattr

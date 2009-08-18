@@ -1,32 +1,21 @@
 # -*- coding: utf-8 -*-
 """
-IPython -- An enhanced Interactive Python
-
-Requires Python 2.4 or newer.
-
-This file contains all the classes and helper functions specific to IPython.
+Main IPython Component
 """
 
-#*****************************************************************************
-#       Copyright (C) 2001 Janko Hauser <jhauser@zscout.de> and
-#       Copyright (C) 2001-2006 Fernando Perez. <fperez@colorado.edu>
+#-----------------------------------------------------------------------------
+#  Copyright (C) 2001 Janko Hauser <jhauser@zscout.de>
+#  Copyright (C) 2001-2007 Fernando Perez. <fperez@colorado.edu>
+#  Copyright (C) 2008-2009  The IPython Development Team
 #
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
-#
-# Note: this code originally subclassed code.InteractiveConsole from the
-# Python standard library.  Over time, all of that class has been copied
-# verbatim here for modifications which could not be accomplished by
-# subclassing.  At this point, there are no dependencies at all on the code
-# module anymore (it is not even imported).  The Python License (sec. 2)
-# allows for this, but it's always nice to acknowledge credit where credit is
-# due.
-#*****************************************************************************
+#-----------------------------------------------------------------------------
 
-#****************************************************************************
-# Modules and globals
+#-----------------------------------------------------------------------------
+# Imports
+#-----------------------------------------------------------------------------
 
-# Python standard modules
 import __main__
 import __builtin__
 import StringIO
@@ -43,26 +32,36 @@ import string
 import sys
 import tempfile
 
-# IPython's own modules
-#import IPython
 from IPython.core import ultratb
-from IPython.utils import PyColorize
 from IPython.core import debugger, oinspect
-from IPython.extensions import pickleshare
+from IPython.core import ipapi
+from IPython.core import shadowns
+from IPython.core import history as ipcorehist
+from IPython.core import prefilter
 from IPython.core.fakemodule import FakeModule, init_fakemod_dict
-from IPython.external.Itpl import ItplNS
 from IPython.core.logger import Logger
 from IPython.core.magic import Magic
 from IPython.core.prompts import CachedOutput
-from IPython.utils.ipstruct import Struct
+from IPython.core.component import Component
+from IPython.core.oldusersetup import user_setup
+from IPython.core.usage import interactive_usage, banner_parts
+
+from IPython.extensions import pickleshare
+from IPython.external.Itpl import ItplNS
 from IPython.lib.backgroundjobs import BackgroundJobManager
+from IPython.utils.ipstruct import Struct
+from IPython.utils import PyColorize
 from IPython.utils.genutils import *
 from IPython.utils.strdispatch import StrDispatch
-from IPython.core import ipapi
-import IPython.core.history
-import IPython.core.prefilter as prefilter
-from IPython.core import shadowns
+
+from IPython.utils.traitlets import (
+    Int, Float, Str, Bool
+)
+
+#-----------------------------------------------------------------------------
 # Globals
+#-----------------------------------------------------------------------------
+
 
 # store the builtin raw_input globally, and use this always, in case user code
 # overwrites it (like wx.py.PyShell does)
@@ -72,10 +71,13 @@ raw_input_original = raw_input
 dedent_re = re.compile(r'^\s+raise|^\s+return|^\s+pass')
 
 
-#****************************************************************************
-# Some utility function definitions
+#-----------------------------------------------------------------------------
+# Utilities
+#-----------------------------------------------------------------------------
+
 
 ini_spaces_re = re.compile(r'^(\s+)')
+
 
 def num_ini_spaces(strng):
     """Return the number of initial spaces in a string"""
@@ -85,6 +87,7 @@ def num_ini_spaces(strng):
         return ini_spaces.end()
     else:
         return 0
+
 
 def softspace(file, newvalue):
     """Copied from code.py, to remove the dependency"""
@@ -102,208 +105,8 @@ def softspace(file, newvalue):
     return oldvalue
 
 
-def user_setup(ipythondir,rc_suffix,mode='install',interactive=True):
-    """Install or upgrade the user configuration directory.
-
-    Can be called when running for the first time or to upgrade the user's
-    .ipython/ directory.
-
-    Parameters
-    ----------
-      ipythondir : path
-        The directory to be used for installation/upgrade.  In 'install' mode,
-        if this path already exists, the function exits immediately.
-
-      rc_suffix : str
-        Extension for the config files.  On *nix platforms it is typically the
-        empty string, while Windows normally uses '.ini'.
-
-      mode : str, optional
-        Valid modes are 'install' and 'upgrade'.
-
-      interactive : bool, optional
-        If False, do not wait for user input on any errors.  Normally after
-        printing its status information, this function waits for the user to
-        hit Return before proceeding.  This is because the default use case is
-        when first installing the IPython configuration, so we want the user to
-        acknowledge the initial message, which contains some useful
-        information.
-        """
-
-    # For automatic use, deactivate all i/o
-    if interactive:
-        def wait():
-            try:
-                raw_input("Please press <RETURN> to start IPython.")
-            except EOFError:
-                print >> Term.cout
-            print '*'*70
-
-        def printf(s):
-            print s
-    else:
-        wait = lambda : None
-        printf = lambda s : None
-
-    # Install mode should be re-entrant: if the install dir already exists,
-    # bail out cleanly.
-    # XXX.  This is too hasty to return.  We need to check to make sure that
-    # all the expected config files and directories are actually there. We
-    # currently have a failure mode if someone deletes a needed config file
-    # but still has the ipythondir.
-    if mode == 'install' and os.path.isdir(ipythondir):
-        return
-
-    cwd = os.getcwd()  # remember where we started
-    glb = glob.glob
-
-    printf('*'*70)
-    if mode == 'install':
-        printf(
-"""Welcome to IPython. I will try to create a personal configuration directory
-where you can customize many aspects of IPython's functionality in:\n""")
-    else:
-        printf('I am going to upgrade your configuration in:')
-
-    printf(ipythondir)
-
-    rcdirend = os.path.join('IPython','config','userconfig')
-    cfg = lambda d: os.path.join(d,rcdirend)
-    try:
-        rcdir = filter(os.path.isdir,map(cfg,sys.path))[0]
-        printf("Initializing from configuration: %s" % rcdir)
-    except IndexError:
-        warning = """
-Installation error. IPython's directory was not found.
-
-Check the following:
-
-The ipython/IPython directory should be in a directory belonging to your
-PYTHONPATH environment variable (that is, it should be in a directory
-belonging to sys.path). You can copy it explicitly there or just link to it.
-
-IPython will create a minimal default configuration for you.
-
-"""
-        warn(warning)
-        wait()
-
-        if sys.platform =='win32':
-            inif = 'ipythonrc.ini'
-        else:
-            inif = 'ipythonrc'
-        minimal_setup = {'ipy_user_conf.py' : 'import ipy_defaults',
-                         inif : '# intentionally left blank' }
-        os.makedirs(ipythondir, mode = 0777)
-        for f, cont in minimal_setup.items():
-            # In 2.5, this can be more cleanly done using 'with'
-            fobj = file(ipythondir + '/' + f,'w')
-            fobj.write(cont)
-            fobj.close()
-
-        return
-
-    if mode == 'install':
-        try:
-            shutil.copytree(rcdir,ipythondir)
-            os.chdir(ipythondir)
-            rc_files = glb("ipythonrc*")
-            for rc_file in rc_files:
-                os.rename(rc_file,rc_file+rc_suffix)
-        except:
-            warning = """
-
-There was a problem with the installation:
-%s
-Try to correct it or contact the developers if you think it's a bug.
-IPython will proceed with builtin defaults.""" % sys.exc_info()[1]
-            warn(warning)
-            wait()
-            return
-
-    elif mode == 'upgrade':
-        try:
-            os.chdir(ipythondir)
-        except:
-            printf("""
-Can not upgrade: changing to directory %s failed. Details:
-%s
-""" % (ipythondir,sys.exc_info()[1]) )
-            wait()
-            return
-        else:
-            sources = glb(os.path.join(rcdir,'[A-Za-z]*'))
-            for new_full_path in sources:
-                new_filename = os.path.basename(new_full_path)
-                if new_filename.startswith('ipythonrc'):
-                    new_filename = new_filename + rc_suffix
-                # The config directory should only contain files, skip any
-                # directories which may be there (like CVS)
-                if os.path.isdir(new_full_path):
-                    continue
-                if os.path.exists(new_filename):
-                    old_file = new_filename+'.old'
-                    if os.path.exists(old_file):
-                        os.remove(old_file)
-                    os.rename(new_filename,old_file)
-                shutil.copy(new_full_path,new_filename)
-    else:
-        raise ValueError('unrecognized mode for install: %r' % mode)
-
-    # Fix line-endings to those native to each platform in the config
-    # directory.
-    try:
-        os.chdir(ipythondir)
-    except:
-        printf("""
-Problem: changing to directory %s failed.
-Details:
-%s
-
-Some configuration files may have incorrect line endings.  This should not
-cause any problems during execution.  """ % (ipythondir,sys.exc_info()[1]) )
-        wait()
-    else:
-        for fname in glb('ipythonrc*'):
-            try:
-                native_line_ends(fname,backup=0)
-            except IOError:
-                pass
-
-    if mode == 'install':
-        printf("""
-Successful installation!
-
-Please read the sections 'Initial Configuration' and 'Quick Tips' in the
-IPython manual (there are both HTML and PDF versions supplied with the
-distribution) to make sure that your system environment is properly configured
-to take advantage of IPython's features.
-
-Important note: the configuration system has changed! The old system is
-still in place, but its setting may be partly overridden by the settings in 
-"~/.ipython/ipy_user_conf.py" config file. Please take a look at the file 
-if some of the new settings bother you. 
-
-""")
-    else:
-        printf("""
-Successful upgrade!
-
-All files in your directory:
-%(ipythondir)s
-which would have been overwritten by the upgrade were backed up with a .old
-extension.  If you had made particular customizations in those files you may
-want to merge them back into the new files.""" % locals() )
-    wait()
-    os.chdir(cwd)
-
-#****************************************************************************
-# Local use exceptions
 class SpaceInInput(exceptions.Exception): pass
 
-
-#****************************************************************************
-# Local use classes
 class Bunch: pass
 
 class Undefined: pass
@@ -357,8 +160,10 @@ class SyntaxTB(ultratb.ListTB):
         self.last_syntax_error = None
         return e
 
-#****************************************************************************
+
+#-----------------------------------------------------------------------------
 # Main IPython class
+#-----------------------------------------------------------------------------
 
 # FIXME: the Magic class is a mixin for now, and will unfortunately remain so
 # until a full rewrite is made.  I've cleaned all cross-class uses of
@@ -378,27 +183,175 @@ class SyntaxTB(ultratb.ListTB):
 #  'self.magic_', 'self.options_table', 'self.parse', 'self.shell',
 #  'self.value']
 
-class InteractiveShell(object,Magic):
+class InteractiveShell(Component, Magic):
     """An enhanced console for Python."""
+
+    alias = []
+    autocall = Bool(True)
+    autoedit_syntax = Bool(False)
+    autoindent = Bool(False)
+    automagic = Bool(True)
+    autoexec = []
+    display_banner = Bool(True)
+    banner = Str('')
+    c = Str('')
+    cache_size = Int(1000)
+    classic = Bool(False)
+    color_info = Int(0)
+    colors = Str('LightBG')
+    confirm_exit = Bool(True)
+    debug = Bool(False)
+    deep_reload = Bool(False)
+    embedded = Bool(False)
+    editor = Str('0')
+    filename = Str("<ipython console>")
+    help = Bool(False)
+    interactive = Bool(False)
+    logstart = Bool(False, config_key='LOGSTART')
+    logfile = Str('')
+    logplay = Str('')
+    messages = Bool(True)
+    multi_line_specials = Bool(True)
+    nosep = Bool(False)
+    object_info_string_level = Int(0)
+    pager = Str('less')
+    pdb = Bool(False)
+    pprint = Bool(True)
+    profile = Str('')
+    prompt_in1 = Str('In [\\#]: ')
+    prompt_in2 = Str('   .\\D.: ')
+    prompt_out = Str('Out[\\#]: ')
+    prompts_pad_left = Bool(True)
+    pydb = Bool(False)
+    quick = Bool(False)
+    quiet = Bool(False)
+
+    readline_use = Bool(True)
+    readline_merge_completions = Bool(True)
+    readline_omit__names = Int(0)
+    readline_remove_delims = '-/~'
+    readline_parse_and_bind = [
+        'tab: complete',
+        '"\C-l": possible-completions',
+        'set show-all-if-ambiguous on',
+        '"\C-o": tab-insert',
+        '"\M-i": "    "',
+        '"\M-o": "\d\d\d\d"',
+        '"\M-I": "\d\d\d\d"',
+        '"\C-r": reverse-search-history',
+        '"\C-s": forward-search-history',
+        '"\C-p": history-search-backward',
+        '"\C-n": history-search-forward',
+        '"\e[A": history-search-backward',
+        '"\e[B": history-search-forward',
+        '"\C-k": kill-line',
+        '"\C-u": unix-line-discard',
+    ]
+
+    screen_length = Int(0)
+    separate_in = Str('\n')
+    separate_out = Str('')
+    separate_out2 = Str('')
+    system_header = Str('IPython system call: ')
+    system_verbose = Bool(False)
+    term_title = Bool(True)
+    wildcards_case_sensitive = Bool(True)
+    xmode = Str('Context')
+    magic_docstrings = Bool(False)
 
     # class attribute to indicate whether the class supports threads or not.
     # Subclasses with thread support should override this as needed.
     isthreaded = False
 
-    def __init__(self,name,usage=None,rc=Struct(opts=None,args=None),
-                 user_ns=None,user_global_ns=None,banner2='',
-                 custom_exceptions=((),None),embedded=False):
+    def __init__(self, name, parent=None, config=None, usage=None,
+                 user_ns=None, user_global_ns=None, banner2='',
+                 custom_exceptions=((),None), embedded=False):
 
-        # log system
-        self.logger = Logger(self,logfname='ipython_log.py',logmode='rotate')
-            
-        # Job manager (for jobs run as background threads)
+        super(InteractiveShell, self).__init__(parent, config=config, name=name)
+
+        self.init_instance_attrs()
+        self.init_usage(usage)
+        self.init_banner(banner2)
+        self.init_embedded(embedded)
+        self.init_create_namespaces(user_ns, user_global_ns)
+        self.init_history()
+        self.init_encoding()
+        self.init_handlers()
+
+        Magic.__init__(self, self)
+
+        self.init_syntax_highlighting()
+        self.init_hooks()
+        self.init_pushd_popd_magic()
+        self.init_traceback_handlers(custom_exceptions)
+
+        # Produce a public API instance
+        self.api = ipapi.IPApi(self)
+
+        self.init_namespaces()
+        self.init_logger()
+        self.init_aliases()
+        self.init_builtins()
+        self.init_shadow_hist()
+        self.init_logstart()
+        self.post_config_initialization()
+
+    def init_instance_attrs(self):
         self.jobs = BackgroundJobManager()
-
-        # Store the actual shell's name
-        self.name = name
         self.more = False
 
+        # command compiler
+        self.compile = codeop.CommandCompiler()
+
+        # User input buffer
+        self.buffer = []
+
+        # Make an empty namespace, which extension writers can rely on both
+        # existing and NEVER being used by ipython itself.  This gives them a
+        # convenient location for storing additional information and state
+        # their extensions may require, without fear of collisions with other
+        # ipython names that may develop later.
+        self.meta = Struct()
+
+        # Object variable to store code object waiting execution.  This is
+        # used mainly by the multithreaded shells, but it can come in handy in
+        # other situations.  No need to use a Queue here, since it's a single
+        # item which gets cleared once run.
+        self.code_to_run = None
+
+        # Flag to mark unconditional exit
+        self.exit_now = False
+
+        # Temporary files used for various purposes.  Deleted at exit.
+        self.tempfiles = []
+
+        # Keep track of readline usage (later set by init_readline)
+        self.has_readline = False
+
+        # keep track of where we started running (mainly for crash post-mortem)
+        # This is not being used anywhere currently.
+        self.starting_dir = os.getcwd()
+
+        # Indentation management
+        self.indent_current_nsp = 0
+
+    def init_usage(self, usage=None):
+        if usage is None:
+            self.usage = interactive_usage
+        else:
+            self.usage = usage
+
+    def init_banner(self, banner2):
+        if self.c:  # regular python doesn't print the banner with -c
+            self.display_banner = False
+        bp = banner_parts
+        if self.profile:
+            bp.append('IPython profile: %s\n' % self.profile)
+        if banner2 is not None:
+            bp.append(banner2)
+        self.banner = '\n'.join(bp)
+
+    def init_embedded(self, embedded):
         # We need to know whether the instance is meant for embedding, since
         # global/local namespaces need to be handled differently in that case
         self.embedded = embedded
@@ -407,27 +360,7 @@ class InteractiveShell(object,Magic):
             # permanently deactivate it.
             self.embedded_active = True
 
-        # command compiler
-        self.compile = codeop.CommandCompiler()
-
-        # User input buffer
-        self.buffer = []
-
-        # Default name given in compilation of code
-        self.filename = '<ipython console>'
-
-        # Install our own quitter instead of the builtins.  For python2.3-2.4,
-        # this brings in behavior like 2.5, and for 2.5 it's identical.
-        __builtin__.exit = Quitter(self,'exit')
-        __builtin__.quit = Quitter(self,'quit')
-        
-        # Make an empty namespace, which extension writers can rely on both
-        # existing and NEVER being used by ipython itself.  This gives them a
-        # convenient location for storing additional information and state
-        # their extensions may require, without fear of collisions with other
-        # ipython names that may develop later.
-        self.meta = Struct()
-
+    def init_create_namespaces(self, user_ns=None, user_global_ns=None):
         # Create the namespace where the user will operate.  user_ns is
         # normally the only one used, and it is passed to the exec calls as
         # the locals argument.  But we do carry a user_global_ns namespace
@@ -547,16 +480,15 @@ class InteractiveShell(object,Magic):
         # shouldn't overtake the execution environment of the script they're
         # embedded in).
 
-        if not embedded:
+        if not self.embedded:
             try:
                 main_name = self.user_ns['__name__']
             except KeyError:
                 raise KeyError,'user_ns dictionary MUST have a "__name__" key'
             else:
-                #print "pickle hack in place"  # dbg
-                #print 'main_name:',main_name # dbg
                 sys.modules[main_name] = FakeModule(self.user_ns)
-        
+
+    def init_history(self):
         # List of input with multi-line handling.
         self.input_hist = InputList()
         # This one will hold the 'raw' input history, without any
@@ -573,6 +505,14 @@ class InteractiveShell(object,Magic):
         # dict of output history
         self.output_hist = {}
 
+        # Now the history file
+        try:
+            histfname = 'history-%s' % self.config.PROFILE
+        except AttributeError:
+            histfname = 'history'
+        self.histfile = os.path.join(self.config.IPYTHONDIR, histfname)
+
+    def init_encoding(self):
         # Get system encoding at startup time.  Certain terminals (like Emacs
         # under Win32 have it set to None, and we need to have a known valid
         # encoding to use in the raw_input() method
@@ -581,20 +521,7 @@ class InteractiveShell(object,Magic):
         except AttributeError:
             self.stdin_encoding = 'ascii'
 
-        # dict of things NOT to alias (keywords, builtins and some magics)
-        no_alias = {}
-        no_alias_magics = ['cd','popd','pushd','dhist','alias','unalias']
-        for key in keyword.kwlist + no_alias_magics:
-            no_alias[key] = 1
-        no_alias.update(__builtin__.__dict__)
-        self.no_alias = no_alias
-
-        # Object variable to store code object waiting execution.  This is
-        # used mainly by the multithreaded shells, but it can come in handy in
-        # other situations.  No need to use a Queue here, since it's a single
-        # item which gets cleared once run.
-        self.code_to_run = None
-        
+    def init_handlers(self):
         # escapes for automatic behavior on the command line
         self.ESC_SHELL  = '!'
         self.ESC_SH_CAP = '!!'
@@ -614,13 +541,12 @@ class InteractiveShell(object,Magic):
                              self.ESC_SH_CAP : self.handle_shell_escape,
                              }
 
-        # class initializations
-        Magic.__init__(self,self)
-
+    def init_syntax_highlighting(self):
         # Python source parser/formatter for syntax highlighting
         pyformat = PyColorize.Parser().format
-        self.pycolorize = lambda src: pyformat(src,'str',self.rc['colors'])
+        self.pycolorize = lambda src: pyformat(src,'str',self.colors)
 
+    def init_hooks(self):
         # hooks holds pointers used for user-side customizations
         self.hooks = Struct()
         
@@ -633,81 +559,17 @@ class InteractiveShell(object,Magic):
             # default hooks have priority 100, i.e. low; user hooks should have
             # 0-100 priority
             self.set_hook(hook_name,getattr(hooks,hook_name), 100)
-            #print "bound hook",hook_name
 
-        # Flag to mark unconditional exit
-        self.exit_now = False
-
-        self.usage_min =  """\
-        An enhanced console for Python.
-        Some of its features are:
-        - Readline support if the readline library is present.
-        - Tab completion in the local namespace.
-        - Logging of input, see command-line options.
-        - System shell escape via ! , eg !ls.
-        - Magic commands, starting with a % (like %ls, %pwd, %cd, etc.)
-        - Keeps track of locally defined variables via %who, %whos.
-        - Show object information with a ? eg ?x or x? (use ?? for more info).
-        """
-        if usage: self.usage = usage
-        else: self.usage = self.usage_min
-
-        # Storage
-        self.rc = rc   # This will hold all configuration information
-        self.pager = 'less'
-        # temporary files used for various purposes.  Deleted at exit.
-        self.tempfiles = []
-
-        # Keep track of readline usage (later set by init_readline)
-        self.has_readline = False
-
-        # template for logfile headers.  It gets resolved at runtime by the
-        # logstart method.
-        self.loghead_tpl = \
-"""#log# Automatic Logger file. *** THIS MUST BE THE FIRST LINE ***
-#log# DO NOT CHANGE THIS LINE OR THE TWO BELOW
-#log# opts = %s
-#log# args = %s
-#log# It is safe to make manual edits below here.
-#log#-----------------------------------------------------------------------
-"""
+    def init_pushd_popd_magic(self):
         # for pushd/popd management
         try:
             self.home_dir = get_home_dir()
-        except HomeDirError,msg:
+        except HomeDirError, msg:
             fatal(msg)
 
         self.dir_stack = []
 
-        # Functions to call the underlying shell.
-
-        # The first is similar to os.system, but it doesn't return a value,
-        # and it allows interpolation of variables in the user's namespace.
-        self.system = lambda cmd: \
-                      self.hooks.shell_hook(self.var_expand(cmd,depth=2))
-
-        # These are for getoutput and getoutputerror:
-        self.getoutput = lambda cmd: \
-                         getoutput(self.var_expand(cmd,depth=2),
-                                   header=self.rc.system_header,
-                                   verbose=self.rc.system_verbose)
-
-        self.getoutputerror = lambda cmd: \
-                              getoutputerror(self.var_expand(cmd,depth=2),
-                                             header=self.rc.system_header,
-                                             verbose=self.rc.system_verbose)
- 
-
-        # keep track of where we started running (mainly for crash post-mortem)
-        self.starting_dir = os.getcwd()
-
-        # Various switches which can be set
-        self.CACHELENGTH = 5000  # this is cheap, it's just text
-        self.BANNER = "Python %(version)s on %(platform)s\n" % sys.__dict__
-        self.banner2 = banner2
-
-        # TraceBack handlers:
-
+    def init_traceback_handlers(self, custom_exceptions):
         # Syntax error handler.
         self.SyntaxTB = SyntaxTB(color_scheme='NoColor')
         
@@ -734,9 +596,37 @@ class InteractiveShell(object,Magic):
         # and add any custom exception handlers the user may have specified
         self.set_custom_exc(*custom_exceptions)
 
-        # indentation management
-        self.autoindent = False
-        self.indent_current_nsp = 0
+    def init_logger(self):
+        self.logger = Logger(self, logfname='ipython_log.py', logmode='rotate')
+        # local shortcut, this is used a LOT
+        self.log = self.logger.log
+        # template for logfile headers.  It gets resolved at runtime by the
+        # logstart method.
+        self.loghead_tpl = \
+"""#log# Automatic Logger file. *** THIS MUST BE THE FIRST LINE ***
+#log# DO NOT CHANGE THIS LINE OR THE TWO BELOW
+#log# opts = %s
+#log# args = %s
+#log# It is safe to make manual edits below here.
+#log#-----------------------------------------------------------------------
+"""
+
+    def init_logstart(self):
+        if self.logplay:
+            IP.magic_logstart(self.logplay + ' append')
+        elif  self.logfile:
+            IP.magic_logstart(self.logfile)
+        elif self.logstart:
+            self.magic_logstart()
+
+    def init_aliases(self):
+        # dict of things NOT to alias (keywords, builtins and some magics)
+        no_alias = {}
+        no_alias_magics = ['cd','popd','pushd','dhist','alias','unalias']
+        for key in keyword.kwlist + no_alias_magics:
+            no_alias[key] = 1
+        no_alias.update(__builtin__.__dict__)
+        self.no_alias = no_alias
 
         # Make some aliases automatically
         # Prepare list of shell aliases to auto-define
@@ -783,15 +673,15 @@ class InteractiveShell(object,Magic):
             auto_alias = ()
         self.auto_alias = [s.split(None,1) for s in auto_alias]
         
-        # Produce a public API instance
-        self.api = ipapi.IPApi(self)
+        # Load default aliases
+        for alias, cmd in self.auto_alias:
+            self.define_alias(alias,cmd)
 
-        # Initialize all user-visible namespaces
-        self.init_namespaces()
-        
-        # Call the actual (public) initializer
-        self.init_auto_alias()
+        # Load user aliases
+        for alias in self.alias:
+            self.magic_alias(alias)
 
+    def init_builtins(self):
         # track which builtins we add, so we can clean up later
         self.builtins_added = {}
         # This method will add the necessary builtins for operation, but
@@ -799,42 +689,17 @@ class InteractiveShell(object,Magic):
         
         #TODO: remove this, redundant
         self.add_builtins()
-    # end __init__
 
-    def var_expand(self,cmd,depth=0):
-        """Expand python variables in a string.
-
-        The depth argument indicates how many frames above the caller should
-        be walked to look for the local namespace where to expand variables.
-
-        The global namespace for expansion is always the user's interactive
-        namespace.
-        """
-
-        return str(ItplNS(cmd,
-                          self.user_ns,  # globals
-                          # Skip our own frame in searching for locals:
-                          sys._getframe(depth+1).f_locals # locals
-                          ))
-
-    def pre_config_initialization(self):
-        """Pre-configuration init method
-
-        This is called before the configuration files are processed to
-        prepare the services the config files might need.
-        
-        self.rc already has reasonable default values at this point.
-        """
-        rc = self.rc
+    def init_shadow_hist(self):
         try:
-            self.db = pickleshare.PickleShareDB(rc.ipythondir + "/db")
+            self.db = pickleshare.PickleShareDB(self.config.IPYTHONDIR + "/db")
         except exceptions.UnicodeDecodeError:
             print "Your ipythondir can't be decoded to unicode!"
             print "Please set HOME environment variable to something that"
             print r"only has ASCII characters, e.g. c:\home"
-            print "Now it is",rc.ipythondir
+            print "Now it is", self.config.IPYTHONDIR
             sys.exit()
-        self.shadowhist = IPython.core.history.ShadowHist(self.db)
+        self.shadowhist = ipcorehist.ShadowHist(self.db)
 
     def post_config_initialization(self):
         """Post configuration init method
@@ -842,34 +707,29 @@ class InteractiveShell(object,Magic):
         This is called after the configuration files have been processed to
         'finalize' the initialization."""
 
-        rc = self.rc
-
         # Object inspector
         self.inspector = oinspect.Inspector(oinspect.InspectColors,
                                             PyColorize.ANSICodeColors,
                                             'NoColor',
-                                            rc.object_info_string_level)
+                                            self.object_info_string_level)
         
         self.rl_next_input = None
         self.rl_do_indent = False
         # Load readline proper
-        if rc.readline:
+        if self.readline_use:
             self.init_readline()
-        
-        # local shortcut, this is used a LOT
-        self.log = self.logger.log
 
         # Initialize cache, set in/out prompts and printing system
         self.outputcache = CachedOutput(self,
-                                        rc.cache_size,
-                                        rc.pprint,
-                                        input_sep = rc.separate_in,
-                                        output_sep = rc.separate_out,
-                                        output_sep2 = rc.separate_out2,
-                                        ps1 = rc.prompt_in1,
-                                        ps2 = rc.prompt_in2,
-                                        ps_out = rc.prompt_out,
-                                        pad_left = rc.prompts_pad_left)
+                                        self.cache_size,
+                                        self.pprint,
+                                        input_sep = self.separate_in,
+                                        output_sep = self.separate_out,
+                                        output_sep2 = self.separate_out2,
+                                        ps1 = self.prompt_in1,
+                                        ps2 = self.prompt_in2,
+                                        ps_out = self.prompt_out,
+                                        pad_left = self.prompts_pad_left)
 
         # user may have over-ridden the default print hook:
         try:
@@ -894,31 +754,30 @@ class InteractiveShell(object,Magic):
         
         # Set user colors (don't do it in the constructor above so that it
         # doesn't crash if colors option is invalid)
-        self.magic_colors(rc.colors)
+        self.magic_colors(self.colors)
 
         # Set calling of pdb on exceptions
-        self.call_pdb = rc.pdb
+        self.call_pdb = self.pdb
 
-        # Load user aliases
-        for alias in rc.alias:
-            self.magic_alias(alias)
+
         
         self.hooks.late_startup_hook()
         
-        for cmd in self.rc.autoexec:
+        for cmd in self.autoexec:
             #print "autoexec>",cmd #dbg
             self.api.runlines(cmd)
             
         batchrun = False
-        for batchfile in [path(arg) for arg in self.rc.args 
-            if arg.lower().endswith('.ipy')]:
-            if not batchfile.isfile():
-                print "No such batch file:", batchfile
-                continue
-            self.api.runlines(batchfile.text())
-            batchrun = True
+        if self.config.has_key('EXECFILE'):
+            for batchfile in [path(arg) for arg in self.config.EXECFILE
+                if arg.lower().endswith('.ipy')]:
+                if not batchfile.isfile():
+                    print "No such batch file:", batchfile
+                    continue
+                self.api.runlines(batchfile.text())
+                batchrun = True
         # without -i option, exit after running the batch file
-        if batchrun and not self.rc.interact:
+        if batchrun and not self.interactive:
             self.ask_exit()            
 
     def init_namespaces(self):
@@ -960,7 +819,14 @@ class InteractiveShell(object,Magic):
         Some parts of ipython operate via builtins injected here, which hold a
         reference to IPython itself."""
 
-        # TODO: deprecate all of these, they are unsafe
+        # Install our own quitter instead of the builtins.
+        # This used to be in the __init__ method, but this is a better
+        # place for it.  These can be incorporated to the logic below
+        # when it is refactored.
+        __builtin__.exit = Quitter(self,'exit')
+        __builtin__.quit = Quitter(self,'quit')
+        
+        # TODO: deprecate all of these, they are unsafe.  Why though?
         builtins_new  = dict(__IPYTHON__ = self,
              ip_set_hook = self.set_hook, 
              jobs = self.jobs,
@@ -1176,6 +1042,26 @@ class InteractiveShell(object,Magic):
             magic_args = self.var_expand(magic_args,1)
             return fn(magic_args)
 
+    def define_alias(self, name, cmd):
+        """ Define a new alias."""
+
+        if callable(cmd):
+            self.alias_table[name] = cmd
+            from IPython.core import shadowns
+            setattr(shadowns, name, cmd)
+            return
+
+        if isinstance(cmd, basestring):
+            nargs = cmd.count('%s')
+            if nargs>0 and cmd.find('%l')>=0:
+                raise Exception('The %s and %l specifiers are mutually '
+                                'exclusive in alias definitions.')
+                  
+            self.alias_table[name] = (nargs,cmd)
+            return
+        
+        self.alias_table[name] = cmd
+
     def ipalias(self,arg_s):
         """Call an alias by name.
 
@@ -1205,10 +1091,21 @@ class InteractiveShell(object,Magic):
         else:
             error("Alias `%s` not found." % alias_name)
 
-    def ipsystem(self,arg_s):
+    def system(self, cmd):
         """Make a system call, using IPython."""
+        return self.hooks.shell_hook(self.var_expand(cmd, depth=2))
 
-        self.system(arg_s)
+    ipsystem = system
+
+    def getoutput(self, cmd):
+        return getoutput(self.var_expand(cmd,depth=2),
+                         header=self.system_header,
+                         verbose=self.system_verbose)
+
+    def getoutputerror(self, cmd):
+        return getoutputerror(self.var_expand(cmd,depth=2),
+                              header=self.system_header,
+                              verbose=self.system_verbose)
 
     def complete(self,text):
         """Return a sorted list of all possible completions on text.
@@ -1298,28 +1195,6 @@ class InteractiveShell(object,Magic):
             self.autoindent = not self.autoindent
         else:
             self.autoindent = value
-
-    def rc_set_toggle(self,rc_field,value=None):
-        """Set or toggle a field in IPython's rc config. structure.
-
-        If called with no arguments, it acts as a toggle.
-
-        If called with a non-existent field, the resulting AttributeError
-        exception will propagate out."""
-
-        rc_val = getattr(self.rc,rc_field)
-        if value is None:
-            value = not rc_val
-        setattr(self.rc,rc_field,value)
-
-    def user_setup(self,ipythondir,rc_suffix,mode='install'):
-        """Install the user configuration directory.
-
-        Notes
-        -----
-        DEPRECATED: use the top-level user_setup() function instead.
-        """
-        return user_setup(ipythondir,rc_suffix,mode)
 
     def atexit_operations(self):
         """This will be executed at the time of exit.
@@ -1430,7 +1305,7 @@ class InteractiveShell(object,Magic):
             self.Completer = IPCompleter(self,
                                             self.user_ns,
                                             self.user_global_ns,
-                                            self.rc.readline_omit__names,
+                                            self.readline_omit__names,
                                             self.alias_table)
             sdisp = self.strdispatchers.get('complete_command', StrDispatch())
             self.strdispatchers['complete_command'] = sdisp
@@ -1469,7 +1344,7 @@ class InteractiveShell(object,Magic):
             # is being used (as on Leopard) the readline config is
             # not run as the syntax for libedit is different.
             if not readline.uses_libedit:
-                for rlcommand in self.rc.readline_parse_and_bind:
+                for rlcommand in self.readline_parse_and_bind:
                     #print "loading rl:",rlcommand  # dbg
                     readline.parse_and_bind(rlcommand)
 
@@ -1477,7 +1352,7 @@ class InteractiveShell(object,Magic):
             # unicode chars, discard them.
             delims = readline.get_completer_delims().encode("ascii", "ignore")
             delims = delims.translate(string._idmap,
-                                      self.rc.readline_remove_delims)
+                                      self.readline_remove_delims)
             readline.set_completer_delims(delims)
             # otherwise we end up with a monster history after a while:
             readline.set_history_length(1000)
@@ -1491,10 +1366,10 @@ class InteractiveShell(object,Magic):
             del atexit
 
         # Configure auto-indent for all platforms
-        self.set_autoindent(self.rc.autoindent)
+        self.set_autoindent(self.autoindent)
 
     def ask_yes_no(self,prompt,default=True):
-        if self.rc.quiet:
+        if self.quiet:
             return True
         return ask_yes_no(prompt,default)
 
@@ -1577,7 +1452,7 @@ class InteractiveShell(object,Magic):
                               
             return False
         try:
-            if (self.rc.autoedit_syntax and 
+            if (self.autoedit_syntax and 
                 not self.ask_yes_no('Return to editor to correct syntax error? '
                               '[Y/n] ','y')):
                 return False
@@ -1728,22 +1603,18 @@ class InteractiveShell(object,Magic):
         except KeyboardInterrupt:
             self.write("\nKeyboardInterrupt\n")
 
-    def mainloop(self,banner=None):
-        """Creates the local namespace and starts the mainloop.
+    def mainloop(self, banner=None):
+        """Start the mainloop.
 
         If an optional banner argument is given, it will override the
-        internally created default banner."""
-
-        if self.rc.c:  # Emulate Python's -c option
+        internally created default banner.
+        """
+        if self.c:  # Emulate Python's -c option
             self.exec_init_cmd()
-        if banner is None:
-            if not self.rc.banner:
-                banner = ''
-            # banner is string? Use it directly!
-            elif isinstance(self.rc.banner,basestring):
-                banner = self.rc.banner
-            else:                
-                banner = self.BANNER+self.banner2
+
+        if self.display_banner:
+            if banner is None:
+                banner = self.banner
 
         # if you run stuff with -c <cmd>, raw hist is not updated
         # ensure that it's in sync
@@ -1752,12 +1623,10 @@ class InteractiveShell(object,Magic):
 
         while 1:
             try:
-                self.interact(banner)
+                self.interact()
                 #self.interact_with_readline()                
-
                 # XXX for testing of a readline-decoupled repl loop, call
                 # interact_with_readline above
-
                 break
             except KeyboardInterrupt:
                 # this should not be necessary, but KeyboardInterrupt
@@ -1770,8 +1639,8 @@ class InteractiveShell(object,Magic):
         This emulates Python's -c option."""
 
         #sys.argv = ['-c']
-        self.push(self.prefilter(self.rc.c, False))
-        if not self.rc.interact:
+        self.push(self.prefilter(self.c, False))
+        if not self.interactive:
             self.ask_exit()
 
     def embed_mainloop(self,header='',local_ns=None,global_ns=None,stack_depth=0):
@@ -1885,7 +1754,7 @@ class InteractiveShell(object,Magic):
         
         self.more = self.push(lineout)
         if (self.SyntaxTB.last_syntax_error and
-            self.rc.autoedit_syntax):
+            self.autoedit_syntax):
             self.edit_syntax_error()
 
     def interact_with_readline(self):
@@ -1904,28 +1773,16 @@ class InteractiveShell(object,Magic):
             line = raw_input_original().decode(self.stdin_encoding)
             self.interact_handle_input(line)
 
-        
     def interact(self, banner=None):
-        """Closely emulate the interactive Python console.
+        """Closely emulate the interactive Python console."""
 
-        The optional banner argument specify the banner to print
-        before the first interaction; by default it prints a banner
-        similar to the one printed by the real Python interpreter,
-        followed by the current class name in parentheses (so as not
-        to confuse this with the real interpreter -- since it's so
-        close!).
-
-        """
-        
+        # batch run -> do not interact        
         if self.exit_now:
-            # batch run -> do not interact
             return
-        cprt = 'Type "copyright", "credits" or "license" for more information.'
-        if banner is None:
-            self.write("Python %s on %s\n%s\n(%s)\n" %
-                       (sys.version, sys.platform, cprt,
-                        self.__class__.__name__))
-        else:
+
+        if self.display_banner:
+            if banner is None:
+                banner = self.banner
             self.write(banner)
 
         more = 0
@@ -1954,7 +1811,7 @@ class InteractiveShell(object,Magic):
                 except:
                     self.showtraceback()
             try:
-                line = self.raw_input(prompt,more)
+                line = self.raw_input(prompt, more)
                 if self.exit_now:
                     # quick exit on sys.std[in|out] close
                     break
@@ -1992,7 +1849,7 @@ class InteractiveShell(object,Magic):
             else:
                 more = self.push(line)
                 if (self.SyntaxTB.last_syntax_error and
-                    self.rc.autoedit_syntax):
+                    self.autoedit_syntax):
                     self.edit_syntax_error()
             
         # We are off again...
@@ -2419,7 +2276,7 @@ class InteractiveShell(object,Magic):
 
         # print '***cont',continue_prompt  # dbg
         # special handlers are only allowed for single line statements
-        if continue_prompt and not self.rc.multi_line_specials:
+        if continue_prompt and not self.multi_line_specials:
             return self.handle_normal(line_info)
 
 
@@ -2565,7 +2422,7 @@ class InteractiveShell(object,Magic):
             # We only apply it to argument-less calls if the autocall
             # parameter is set to 2.  We only need to check that autocall is <
             # 2, since this function isn't called unless it's at least 1.
-            if not theRest and (self.rc.autocall < 2) and not force_auto:
+            if not theRest and (self.autocall < 2) and not force_auto:
                 newcmd = '%s %s' % (iFun,theRest)
                 auto_rewrite = False
             else:
@@ -2623,7 +2480,7 @@ class InteractiveShell(object,Magic):
                 #print 'line:<%r>' % line  # dbg
                 self.magic_pinfo(line)
             else:
-                page(self.usage,screen_lines=self.rc.screen_length)
+                page(self.usage,screen_lines=self.screen_length)
             return '' # Empty string is needed here!
         except:
             # Pass any other exceptions through to the normal handler
@@ -2653,6 +2510,21 @@ class InteractiveShell(object,Magic):
         # The input cache shouldn't be updated
         return line_info.line
     
+    def var_expand(self,cmd,depth=0):
+        """Expand python variables in a string.
+
+        The depth argument indicates how many frames above the caller should
+        be walked to look for the local namespace where to expand variables.
+
+        The global namespace for expansion is always the user's interactive
+        namespace.
+        """
+
+        return str(ItplNS(cmd,
+                          self.user_ns,  # globals
+                          # Skip our own frame in searching for locals:
+                          sys._getframe(depth+1).f_locals # locals
+                          ))
 
     def mktempfile(self,data=None):
         """Make a new tempfile and return its filename.
@@ -2690,8 +2562,8 @@ class InteractiveShell(object,Magic):
         """Handle interactive exit.
 
         This method calls the ask_exit callback."""
-
-        if self.rc.confirm_exit:
+        print "IN self.exit", self.confirm_exit
+        if self.confirm_exit:
             if self.ask_yes_no('Do you really want to exit ([y]/n)?','y'):
                 self.ask_exit()
         else:

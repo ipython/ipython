@@ -6,6 +6,9 @@
 #  the file COPYING, distributed as part of this software.
 #*****************************************************************************
 
+import sys
+from IPython.core import release
+
 __doc__ = """
 IPython -- An enhanced Interactive Python
 =========================================
@@ -504,6 +507,18 @@ MAIN FEATURES
             >>> x = ,my_function /home/me    # syntax error
 """
 
+interactive_usage_min =  """\
+An enhanced console for Python.
+Some of its features are:
+- Readline support if the readline library is present.
+- Tab completion in the local namespace.
+- Logging of input, see command-line options.
+- System shell escape via ! , eg !ls.
+- Magic commands, starting with a % (like %ls, %pwd, %cd, etc.)
+- Keeps track of locally defined variables via %who, %whos.
+- Show object information with a ? eg ?x or x? (use ?? for more info).
+"""
+
 quick_reference = r"""
 IPython -- An enhanced Interactive Python - Quick Reference Card
 ================================================================
@@ -556,3 +571,16 @@ or python names.
 The following magic functions are currently available:
 
 """
+
+quick_guide = """\
+?         -> Introduction and overview of IPython's features.
+%quickref -> Quick reference.
+help      -> Python's own help system.
+object?   -> Details about 'object'. ?object also works, ?? prints more."""
+
+banner_parts = [
+    'Python %s' % (sys.version.split('\n')[0],),
+    'Type "copyright", "credits" or "license" for more information.\n',
+    'IPython %s -- An enhanced Interactive Python.' % (release.version,),
+    quick_guide
+]

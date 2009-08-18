@@ -15,6 +15,7 @@ import nose.tools as nt
 # our own packages
 from IPython.core import iplib
 from IPython.core import ipapi
+from IPython.core.oldusersetup import user_setup
 
 #-----------------------------------------------------------------------------
 # Globals
@@ -59,12 +60,12 @@ def test_reset():
 # make sure that user_setup can be run re-entrantly in 'install' mode.
 def test_user_setup():
     # use a lambda to pass kwargs to the generator
-    user_setup = lambda a,k: iplib.user_setup(*a,**k)
+    user_setup = lambda a,k: user_setup(*a,**k)
     kw = dict(mode='install', interactive=False)
 
     # Call the user setup and verify that the directory exists
-    yield user_setup, (ip.options.ipythondir,''), kw
-    yield os.path.isdir, ip.options.ipythondir
+    yield user_setup, (ip.options.IPYTHONDIR,''), kw
+    yield os.path.isdir, ip.options.IPYTHONDIR
 
     # Now repeat the operation with a non-existent directory. Check both that
     # the call succeeds and that the directory is created.

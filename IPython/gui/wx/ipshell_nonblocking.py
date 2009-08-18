@@ -494,7 +494,7 @@ class NonBlockingIPShell(object):
             self._IP.write(str(self._IP.outputcache.prompt_out).strip())
             self._iter_more = self._IP.push(line)
             if (self._IP.SyntaxTB.last_syntax_error and \
-                                                            self._IP.rc.autoedit_syntax):
+                                                            self._IP.autoedit_syntax):
                 self._IP.edit_syntax_error()
         if self._iter_more:
             self._prompt = str(self._IP.outputcache.prompt2).strip()

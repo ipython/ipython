@@ -163,7 +163,7 @@ class ArgParseConfigLoader(CommandLineConfigLoader):
         self._add_arguments()
         self._add_other_arguments()
 
-    def _add_other_arguments():
+    def _add_other_arguments(self):
         pass
 
     def _add_arguments(self):

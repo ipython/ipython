@@ -18,7 +18,7 @@ def call_pydb(self, args):
     argl = arg_split(args)
     # print argl # dbg
     if len(inspect.getargspec(pydb.runv)[0]) == 2:
-        pdb = debugger.Pdb(color_scheme=self.rc.colors)
+        pdb = debugger.Pdb(color_scheme=self.colors)
         ip.IP.history_saving_wrapper( lambda : pydb.runv(argl, pdb) )()
     else:
         ip.IP.history_saving_wrapper( lambda : pydb.runv(argl) )()

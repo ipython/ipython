@@ -270,7 +270,7 @@ def _formatTracebackLines(lnum, index, lines, Colors, lvals=None,scheme=None):
     if scheme is None:
         ipinst = ipapi.get()
         if ipinst is not None:
-            scheme = ipinst.IP.rc.colors
+            scheme = ipinst.IP.colors
         else:
             scheme = DEFAULT_SCHEME
 

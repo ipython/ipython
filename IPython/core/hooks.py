@@ -69,7 +69,7 @@ def editor(self,filename, linenum=None):
 
     # IPython configures a default editor at startup by reading $EDITOR from
     # the environment, and falling back on vi (unix) or notepad (win32).
-    editor = self.rc.editor
+    editor = self.editor
     
     # marker for at which line to open the file (for existing objects)
     if linenum is None or editor=='notepad':
@@ -99,7 +99,7 @@ def fix_error_editor(self,filename,linenum,column,msg):
         t.write('%s:%d:%d:%s\n' % (filename,linenum,column,msg))
         t.flush()
         return t
-    if os.path.basename(self.rc.editor) != 'vim':
+    if os.path.basename(self.editor) != 'vim':
         self.hooks.editor(filename,linenum)
         return
     t = vim_quickfix_file()
@@ -167,7 +167,7 @@ def result_display(self,arg):
     Called for displaying the result to the user.
     """
     
-    if self.rc.pprint:
+    if self.pprint:
         out = pformat(arg)
         if '\n' in out:
             # So that multi-line strings line up with the left column of
@@ -226,7 +226,7 @@ def generate_output_prompt(self):
 def shell_hook(self,cmd):
     """ Run system/shell command a'la os.system() """
 
-    shell(cmd, header=self.rc.system_header, verbose=self.rc.system_verbose)
+    shell(cmd, header=self.system_header, verbose=self.system_verbose)
 
 def show_in_pager(self,s):
     """ Run a string through pager """
