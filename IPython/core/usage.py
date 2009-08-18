@@ -578,9 +578,11 @@ quick_guide = """\
 help      -> Python's own help system.
 object?   -> Details about 'object'. ?object also works, ?? prints more."""
 
-banner_parts = [
+default_banner_parts = [
     'Python %s' % (sys.version.split('\n')[0],),
     'Type "copyright", "credits" or "license" for more information.\n',
     'IPython %s -- An enhanced Interactive Python.' % (release.version,),
     quick_guide
 ]
+
+default_banner = '\n'.join(default_banner_parts)

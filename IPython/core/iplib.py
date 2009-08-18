@@ -44,7 +44,7 @@ from IPython.core.magic import Magic
 from IPython.core.prompts import CachedOutput
 from IPython.core.component import Component
 from IPython.core.oldusersetup import user_setup
-from IPython.core.usage import interactive_usage, banner_parts
+from IPython.core.usage import interactive_usage, default_banner
 
 from IPython.extensions import pickleshare
 from IPython.external.Itpl import ItplNS
@@ -55,7 +55,7 @@ from IPython.utils.genutils import *
 from IPython.utils.strdispatch import StrDispatch
 
 from IPython.utils.traitlets import (
-    Int, Float, Str, Bool
+    Int, Float, Str, CBool, CaselessStrEnum, Enum
 )
 
 #-----------------------------------------------------------------------------
@@ -160,6 +160,15 @@ class SyntaxTB(ultratb.ListTB):
         self.last_syntax_error = None
         return e
 
+def get_default_editor():
+    try:
+        ed = os.environ['EDITOR']
+    except KeyError:
+        if os.name == 'posix':
+            ed = 'vi'  # the only one guaranteed to be there!
+        else:
+            ed = 'notepad' # same in Windows!
+    return ed
 
 #-----------------------------------------------------------------------------
 # Main IPython class
@@ -187,47 +196,47 @@ class InteractiveShell(Component, Magic):
     """An enhanced console for Python."""
 
     alias = []
-    autocall = Bool(True)
-    autoedit_syntax = Bool(False)
-    autoindent = Bool(False)
-    automagic = Bool(True)
+    autocall = Enum((0,1,2), config_key='AUTOCALL')
+    autoedit_syntax = CBool(False, config_key='AUTOEDIT_SYNTAX')
+    autoindent = CBool(True, config_key='AUTOINDENT')
+    automagic = CBool(True, config_key='AUTOMAGIC')
     autoexec = []
-    display_banner = Bool(True)
+    display_banner = CBool(True, config_key='DISPLAY_BANNER')
     banner = Str('')
-    c = Str('')
-    cache_size = Int(1000)
-    classic = Bool(False)
-    color_info = Int(0)
-    colors = Str('LightBG')
-    confirm_exit = Bool(True)
-    debug = Bool(False)
-    deep_reload = Bool(False)
-    embedded = Bool(False)
-    editor = Str('0')
+    banner1 = Str(default_banner, config_key='BANNER1')
+    banner2 = Str('', config_key='BANNER2')
+    c = Str('', config_key='C')
+    cache_size = Int(1000, config_key='CACHE_SIZE')
+    classic = CBool(False, config_key='CLASSIC')
+    color_info = CBool(True, config_key='COLOR_INFO')
+    colors = CaselessStrEnum(('NoColor','LightBG','Linux'), 
+                             default_value='LightBG', config_key='COLORS')
+    confirm_exit = CBool(True, config_key='CONFIRM_EXIT')
+    debug = CBool(False)
+    deep_reload = CBool(False, config_key='DEEP_RELOAD')
+    embedded = CBool(False)
+    editor = Str(get_default_editor(), config_key='EDITOR')
     filename = Str("<ipython console>")
-    help = Bool(False)
-    interactive = Bool(False)
-    logstart = Bool(False, config_key='LOGSTART')
-    logfile = Str('')
-    logplay = Str('')
-    messages = Bool(True)
-    multi_line_specials = Bool(True)
-    nosep = Bool(False)
+    help = CBool(False)
+    interactive = CBool(False)
+    logstart = CBool(False, config_key='LOGSTART')
+    logfile = Str('', config_key='LOGFILE')
+    logplay = Str('', config_key='LOGPLAY')
+    multi_line_specials = CBool(True)
     object_info_string_level = Int(0)
     pager = Str('less')
-    pdb = Bool(False)
-    pprint = Bool(True)
-    profile = Str('')
-    prompt_in1 = Str('In [\\#]: ')
-    prompt_in2 = Str('   .\\D.: ')
-    prompt_out = Str('Out[\\#]: ')
-    prompts_pad_left = Bool(True)
-    pydb = Bool(False)
-    quick = Bool(False)
-    quiet = Bool(False)
+    pdb = CBool(False, config_key='PDB')
+    pprint = CBool(True, config_key='PPRINT')
+    profile = Str('', config_key='PROFILE')
+    prompt_in1 = Str('In [\\#]: ', config_key='PROMPT_IN1')
+    prompt_in2 = Str('   .\\D.: ', config_key='PROMPT_IN2')
+    prompt_out = Str('Out[\\#]: ', config_key='PROMPT_OUT1')
+    prompts_pad_left = CBool(True)
+    pydb = CBool(False)
+    quiet = CBool(False)
 
-    readline_use = Bool(True)
-    readline_merge_completions = Bool(True)
+    readline_use = CBool(True, config_key='READLINE_USE')
+    readline_merge_completions = CBool(True)
     readline_omit__names = Int(0)
     readline_remove_delims = '-/~'
     readline_parse_and_bind = [
@@ -248,30 +257,36 @@ class InteractiveShell(Component, Magic):
         '"\C-u": unix-line-discard',
     ]
 
-    screen_length = Int(0)
-    separate_in = Str('\n')
-    separate_out = Str('')
-    separate_out2 = Str('')
+    screen_length = Int(0, config_key='SCREEN_LENGTH')
+    separate_in = Str('\n', config_key='SEPARATE_IN')
+    separate_out = Str('', config_key='SEPARATE_OUT')
+    separate_out2 = Str('', config_key='SEPARATE_OUT2')
     system_header = Str('IPython system call: ')
-    system_verbose = Bool(False)
-    term_title = Bool(True)
-    wildcards_case_sensitive = Bool(True)
-    xmode = Str('Context')
-    magic_docstrings = Bool(False)
+    system_verbose = CBool(False)
+    term_title = CBool(True)
+    wildcards_case_sensitive = CBool(True)
+    xmode = CaselessStrEnum(('Context','Plain', 'Verbose'), 
+                            default_value='Context', config_key='XMODE')
+    magic_docstrings = CBool(False)
 
     # class attribute to indicate whether the class supports threads or not.
     # Subclasses with thread support should override this as needed.
     isthreaded = False
 
     def __init__(self, name, parent=None, config=None, usage=None,
-                 user_ns=None, user_global_ns=None, banner2='',
+                 user_ns=None, user_global_ns=None, 
+                 banner1='', banner2='',
                  custom_exceptions=((),None), embedded=False):
 
+        # This is where traitlets with a config_key argument are updated
+        # from the values on config.
+        # Ideally, from here on out, the config should only be used when
+        # passing it to children components.
         super(InteractiveShell, self).__init__(parent, config=config, name=name)
 
         self.init_instance_attrs()
         self.init_usage(usage)
-        self.init_banner(banner2)
+        self.init_banner(banner1, banner2)
         self.init_embedded(embedded)
         self.init_create_namespaces(user_ns, user_global_ns)
         self.init_history()
@@ -292,9 +307,45 @@ class InteractiveShell(Component, Magic):
         self.init_logger()
         self.init_aliases()
         self.init_builtins()
+        
+        # pre_config_initialization
         self.init_shadow_hist()
+
+        # The next section should contain averything that was in ipmaker.
         self.init_logstart()
-        self.post_config_initialization()
+
+        # The following was in post_config_initialization
+        self.init_inspector()
+        self.init_readline()
+        self.init_prompts()
+        self.init_displayhook()
+        self.init_reload_doctest()
+        self.init_magics()
+        self.init_pdb()
+        self.hooks.late_startup_hook()
+        self.init_exec_commands()
+
+    #-------------------------------------------------------------------------
+    # Traitlet changed handlers
+    #-------------------------------------------------------------------------
+
+    def _banner1_changed(self):
+        self.compute_banner()
+
+    def _banner2_changed(self):
+        self.compute_banner()
+
+    @property
+    def usable_screen_length(self):
+        if self.screen_length == 0:
+            return 0
+        else:
+            num_lines_bot = self.separate_in.count('\n')+1
+            return self.screen_length - num_lines_bot
+
+    #-------------------------------------------------------------------------
+    # init_* methods called by __init__
+    #-------------------------------------------------------------------------
 
     def init_instance_attrs(self):
         self.jobs = BackgroundJobManager()
@@ -341,15 +392,21 @@ class InteractiveShell(Component, Magic):
         else:
             self.usage = usage
 
-    def init_banner(self, banner2):
+    def init_banner(self, banner1, banner2):
         if self.c:  # regular python doesn't print the banner with -c
             self.display_banner = False
-        bp = banner_parts
+        if banner1:
+            self.banner1 = banner1
+        if banner2:
+            self.banner2 = banner2
+        self.compute_banner()
+
+    def compute_banner(self):
+        self.banner = self.banner1 + '\n'
         if self.profile:
-            bp.append('IPython profile: %s\n' % self.profile)
-        if banner2 is not None:
-            bp.append(banner2)
-        self.banner = '\n'.join(bp)
+            self.banner += '\nIPython profile: %s\n' % self.profile
+        if self.banner2:
+            self.banner += '\n' + self.banner2 + '\n'        
 
     def init_embedded(self, embedded):
         # We need to know whether the instance is meant for embedding, since
@@ -512,6 +569,10 @@ class InteractiveShell(Component, Magic):
             histfname = 'history'
         self.histfile = os.path.join(self.config.IPYTHONDIR, histfname)
 
+        # Fill the history zero entry, user counter starts at 1
+        self.input_hist.append('\n')
+        self.input_hist_raw.append('\n')
+
     def init_encoding(self):
         # Get system encoding at startup time.  Certain terminals (like Emacs
         # under Win32 have it set to None, and we need to have a known valid
@@ -613,9 +674,9 @@ class InteractiveShell(Component, Magic):
 
     def init_logstart(self):
         if self.logplay:
-            IP.magic_logstart(self.logplay + ' append')
+            self.magic_logstart(self.logplay + ' append')
         elif  self.logfile:
-            IP.magic_logstart(self.logfile)
+            self.magic_logstart(self.logfile)
         elif self.logstart:
             self.magic_logstart()
 
@@ -687,7 +748,8 @@ class InteractiveShell(Component, Magic):
         # This method will add the necessary builtins for operation, but
         # tracking what it did via the builtins_added dict.
         
-        #TODO: remove this, redundant
+        #TODO: remove this, redundant.  I don't understand why this is 
+        # redundant?
         self.add_builtins()
 
     def init_shadow_hist(self):
@@ -701,24 +763,100 @@ class InteractiveShell(Component, Magic):
             sys.exit()
         self.shadowhist = ipcorehist.ShadowHist(self.db)
 
-    def post_config_initialization(self):
-        """Post configuration init method
-
-        This is called after the configuration files have been processed to
-        'finalize' the initialization."""
-
+    def init_inspector(self):
         # Object inspector
         self.inspector = oinspect.Inspector(oinspect.InspectColors,
                                             PyColorize.ANSICodeColors,
                                             'NoColor',
                                             self.object_info_string_level)
-        
+
+    def init_readline(self):
+        """Command history completion/saving/reloading."""
+
         self.rl_next_input = None
         self.rl_do_indent = False
-        # Load readline proper
-        if self.readline_use:
-            self.init_readline()
 
+        if not self.readline_use:
+            return
+
+        import IPython.utils.rlineimpl as readline
+                  
+        if not readline.have_readline:
+            self.has_readline = 0
+            self.readline = None
+            # no point in bugging windows users with this every time:
+            warn('Readline services not available on this platform.')
+        else:
+            sys.modules['readline'] = readline
+            import atexit
+            from IPython.core.completer import IPCompleter
+            self.Completer = IPCompleter(self,
+                                            self.user_ns,
+                                            self.user_global_ns,
+                                            self.readline_omit__names,
+                                            self.alias_table)
+            sdisp = self.strdispatchers.get('complete_command', StrDispatch())
+            self.strdispatchers['complete_command'] = sdisp
+            self.Completer.custom_completers = sdisp
+            # Platform-specific configuration
+            if os.name == 'nt':
+                self.readline_startup_hook = readline.set_pre_input_hook
+            else:
+                self.readline_startup_hook = readline.set_startup_hook
+
+            # Load user's initrc file (readline config)
+            # Or if libedit is used, load editrc.
+            inputrc_name = os.environ.get('INPUTRC')
+            if inputrc_name is None:
+                home_dir = get_home_dir()
+                if home_dir is not None:
+                    inputrc_name = '.inputrc'
+                    if readline.uses_libedit:
+                        inputrc_name = '.editrc'
+                    inputrc_name = os.path.join(home_dir, inputrc_name)
+            if os.path.isfile(inputrc_name):
+                try:
+                    readline.read_init_file(inputrc_name)
+                except:
+                    warn('Problems reading readline initialization file <%s>'
+                         % inputrc_name)
+            
+            self.has_readline = 1
+            self.readline = readline
+            # save this in sys so embedded copies can restore it properly
+            sys.ipcompleter = self.Completer.complete
+            self.set_completer()
+
+            # Configure readline according to user's prefs
+            # This is only done if GNU readline is being used.  If libedit
+            # is being used (as on Leopard) the readline config is
+            # not run as the syntax for libedit is different.
+            if not readline.uses_libedit:
+                for rlcommand in self.readline_parse_and_bind:
+                    #print "loading rl:",rlcommand  # dbg
+                    readline.parse_and_bind(rlcommand)
+
+            # Remove some chars from the delimiters list.  If we encounter
+            # unicode chars, discard them.
+            delims = readline.get_completer_delims().encode("ascii", "ignore")
+            delims = delims.translate(string._idmap,
+                                      self.readline_remove_delims)
+            readline.set_completer_delims(delims)
+            # otherwise we end up with a monster history after a while:
+            readline.set_history_length(1000)
+            try:
+                #print '*** Reading readline history'  # dbg
+                readline.read_history_file(self.histfile)
+            except IOError:
+                pass  # It doesn't exist yet.
+
+            atexit.register(self.atexit_operations)
+            del atexit
+
+        # Configure auto-indent for all platforms
+        self.set_autoindent(self.autoindent)
+
+    def init_prompts(self):
         # Initialize cache, set in/out prompts and printing system
         self.outputcache = CachedOutput(self,
                                         self.cache_size,
@@ -737,6 +875,7 @@ class InteractiveShell(Component, Magic):
         except AttributeError:
             pass
 
+    def init_displayhook(self):
         # I don't like assigning globally to sys, because it means when
         # embedding instances, each embedded instance overrides the previous
         # choice. But sys.displayhook seems to be called internally by exec,
@@ -745,24 +884,25 @@ class InteractiveShell(Component, Magic):
         self.sys_displayhook = sys.displayhook
         sys.displayhook = self.outputcache
 
+    def init_reload_doctest(self):
         # Do a proper resetting of doctest, including the necessary displayhook
         # monkeypatching
         try:
             doctest_reload()
         except ImportError:
             warn("doctest module does not exist.")
-        
+
+    def init_magics(self):
         # Set user colors (don't do it in the constructor above so that it
         # doesn't crash if colors option is invalid)
         self.magic_colors(self.colors)
 
+    def init_pdb(self):
         # Set calling of pdb on exceptions
+        # self.call_pdb is a property
         self.call_pdb = self.pdb
 
-
-        
-        self.hooks.late_startup_hook()
-        
+    def init_exec_commands(self):
         for cmd in self.autoexec:
             #print "autoexec>",cmd #dbg
             self.api.runlines(cmd)
@@ -809,9 +949,12 @@ class InteractiveShell(Component, Magic):
 
         self.user_ns['_sh'] = shadowns
 
-        # Fill the history zero entry, user counter starts at 1
-        self.input_hist.append('\n')
-        self.input_hist_raw.append('\n')
+        # Put 'help' in the user namespace
+        try:
+            from site import _Helper
+            self.user_ns['help'] = _Helper()
+        except ImportError:
+            warn('help() not available - check site.py')
 
     def add_builtins(self):
         """Store ipython references into the builtin namespace.
@@ -825,6 +968,17 @@ class InteractiveShell(Component, Magic):
         # when it is refactored.
         __builtin__.exit = Quitter(self,'exit')
         __builtin__.quit = Quitter(self,'quit')
+
+        # Recursive reload
+        try:
+            from IPython.lib import deepreload
+            if self.deep_reload:
+                __builtin__.reload = deepreload.reload
+            else:
+                __builtin__.dreload = deepreload.reload
+            del deepreload
+        except ImportError:
+            pass
         
         # TODO: deprecate all of these, they are unsafe.  Why though?
         builtins_new  = dict(__IPYTHON__ = self,
@@ -1286,87 +1440,6 @@ class InteractiveShell(Component, Magic):
         if self.rl_next_input is not None:
             self.readline.insert_text(self.rl_next_input)
             self.rl_next_input = None
-
-    def init_readline(self):
-        """Command history completion/saving/reloading."""
-
-
-        import IPython.utils.rlineimpl as readline
-                  
-        if not readline.have_readline:
-            self.has_readline = 0
-            self.readline = None
-            # no point in bugging windows users with this every time:
-            warn('Readline services not available on this platform.')
-        else:
-            sys.modules['readline'] = readline
-            import atexit
-            from IPython.core.completer import IPCompleter
-            self.Completer = IPCompleter(self,
-                                            self.user_ns,
-                                            self.user_global_ns,
-                                            self.readline_omit__names,
-                                            self.alias_table)
-            sdisp = self.strdispatchers.get('complete_command', StrDispatch())
-            self.strdispatchers['complete_command'] = sdisp
-            self.Completer.custom_completers = sdisp
-            # Platform-specific configuration
-            if os.name == 'nt':
-                self.readline_startup_hook = readline.set_pre_input_hook
-            else:
-                self.readline_startup_hook = readline.set_startup_hook
-
-            # Load user's initrc file (readline config)
-            # Or if libedit is used, load editrc.
-            inputrc_name = os.environ.get('INPUTRC')
-            if inputrc_name is None:
-                home_dir = get_home_dir()
-                if home_dir is not None:
-                    inputrc_name = '.inputrc'
-                    if readline.uses_libedit:
-                        inputrc_name = '.editrc'
-                    inputrc_name = os.path.join(home_dir, inputrc_name)
-            if os.path.isfile(inputrc_name):
-                try:
-                    readline.read_init_file(inputrc_name)
-                except:
-                    warn('Problems reading readline initialization file <%s>'
-                         % inputrc_name)
-            
-            self.has_readline = 1
-            self.readline = readline
-            # save this in sys so embedded copies can restore it properly
-            sys.ipcompleter = self.Completer.complete
-            self.set_completer()
-
-            # Configure readline according to user's prefs
-            # This is only done if GNU readline is being used.  If libedit
-            # is being used (as on Leopard) the readline config is
-            # not run as the syntax for libedit is different.
-            if not readline.uses_libedit:
-                for rlcommand in self.readline_parse_and_bind:
-                    #print "loading rl:",rlcommand  # dbg
-                    readline.parse_and_bind(rlcommand)
-
-            # Remove some chars from the delimiters list.  If we encounter
-            # unicode chars, discard them.
-            delims = readline.get_completer_delims().encode("ascii", "ignore")
-            delims = delims.translate(string._idmap,
-                                      self.readline_remove_delims)
-            readline.set_completer_delims(delims)
-            # otherwise we end up with a monster history after a while:
-            readline.set_history_length(1000)
-            try:
-                #print '*** Reading readline history'  # dbg
-                readline.read_history_file(self.histfile)
-            except IOError:
-                pass  # It doesn't exist yet.
-
-            atexit.register(self.atexit_operations)
-            del atexit
-
-        # Configure auto-indent for all platforms
-        self.set_autoindent(self.autoindent)
 
     def ask_yes_no(self,prompt,default=True):
         if self.quiet:
@@ -2480,7 +2553,7 @@ class InteractiveShell(Component, Magic):
                 #print 'line:<%r>' % line  # dbg
                 self.magic_pinfo(line)
             else:
-                page(self.usage,screen_lines=self.screen_length)
+                page(self.usage,screen_lines=self.usable_screen_length)
             return '' # Empty string is needed here!
         except:
             # Pass any other exceptions through to the normal handler
@@ -2562,7 +2635,6 @@ class InteractiveShell(Component, Magic):
         """Handle interactive exit.
 
         This method calls the ask_exit callback."""
-        print "IN self.exit", self.confirm_exit
         if self.confirm_exit:
             if self.ask_yes_no('Do you really want to exit ([y]/n)?','y'):
                 self.ask_exit()

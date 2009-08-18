@@ -59,7 +59,7 @@ class Application(object):
         """Start the application."""
         self.attempt(self.create_default_config)
         self.attempt(self.pre_load_command_line_config)
-        self.attempt(self.load_command_line_config, action='exit')
+        self.attempt(self.load_command_line_config, action='abort')
         self.attempt(self.post_load_command_line_config)
         self.attempt(self.find_ipythondir)
         self.attempt(self.find_config_file_name)
@@ -137,11 +137,18 @@ class Application(object):
         loader where they are resolved to an absolute path.
         """
 
-        if self.command_line_config.PROFILE_NAME is not None:
-            self.profile_name = self.command_line_config.PROFILE_NAME
+        try:
+            self.config_file_name = self.command_line_config.CONFIG_FILE
+        except AttributeError:
+            pass
+
+        try:
+            self.profile_name = self.command_line_config.PROFILE
             name_parts = self.config_file_name.split('.')
             name_parts.insert(1, '_' + self.profile_name + '.')
             self.config_file_name = ''.join(name_parts)
+        except AttributeError:
+            pass
 
     def find_config_file_paths(self):
         """Set the search paths for resolving the config file."""
@@ -168,7 +175,8 @@ class Application(object):
                      self.config_file_name)
             self.file_config = Struct()
         else:
-            self.log("Config file loaded: %s" % loader.full_filename)
+            self.log("Config file loaded: %s" % loader.full_filename,
+                     self.file_config)
 
     def post_load_file_config(self):
         """Do actions after the config file is loaded."""
@@ -178,8 +186,8 @@ class Application(object):
         """Merge the default, command line and file config objects."""
         config = Struct()
         config.update(self.default_config)
-        config.update(self.command_line_config)
         config.update(self.file_config)
+        config.update(self.command_line_config)
         self.master_config = config
         self.log("Master config created:", self.master_config)
 

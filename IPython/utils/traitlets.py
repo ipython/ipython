@@ -859,3 +859,41 @@ class CBool(Bool):
             return bool(value)
         except:
             self.error(obj, value)
+
+class Enum(TraitletType):
+
+    def __init__(self, values, default_value=None, allow_none=True, **metadata):
+        self.values = values
+        self._allow_none = allow_none
+        super(Enum, self).__init__(default_value, **metadata)
+
+    def validate(self, obj, value):
+        if value is None:
+            if self._allow_none:
+                return value
+
+        if value in self.values:
+                return value
+        self.error(obj, value)
+
+    def info(self):
+        """ Returns a description of the trait."""
+        result = 'any of ' + repr(self.values)
+        if self._allow_none:
+            return result + ' or None'
+        return result
+
+class CaselessStrEnum(Enum):
+
+    def validate(self, obj, value):
+        if value is None:
+            if self._allow_none:
+                return value
+
+        if not isinstance(value, str):
+            self.error(obj, value)
+
+        for v in self.values:
+            if v.lower() == value.lower():
+                return v
+        self.error(obj, value)

@@ -485,7 +485,7 @@ Currently the magic system has the following functions:\n"""
                                      ('  '+mesc).join(self.lsmagic()),
                                      Magic.auto_status[self.shell.automagic] ) )
 
-        page(outmsg,screen_lines=self.shell.screen_length)
+        page(outmsg,screen_lines=self.shell.usable_screen_length)
   
 
     def magic_autoindent(self, parameter_s = ''):
@@ -1423,7 +1423,7 @@ Currently the magic system has the following functions:\n"""
         output = stdout_trap.getvalue()
         output = output.rstrip()
 
-        page(output,screen_lines=self.shell.screen_length)
+        page(output,screen_lines=self.shell.usable_screen_length)
         print sys_exit,
 
         dump_file = opts.D[0]
@@ -2530,10 +2530,10 @@ Defaulting color scheme to 'NoColor'"""
         than more) in your system, using colored object information displays
         will not work properly. Test it and see."""
         
-        self.shell.color_info = 1 - self.shell.color_info
+        self.shell.color_info = not self.shell.color_info
         self.magic_colors(self.shell.colors)
         print 'Object introspection functions have now coloring:',
-        print ['OFF','ON'][self.shell.color_info]
+        print ['OFF','ON'][int(self.shell.color_info)]
 
     def magic_Pprint(self, parameter_s=''):
         """Toggle pretty printing on/off."""
@@ -3267,7 +3267,7 @@ Defaulting color scheme to 'NoColor'"""
             return
             
         page(self.shell.pycolorize(cont),
-             screen_lines=self.shell.screen_length)
+             screen_lines=self.shell.usable_screen_length)
 
     def _rerun_pasted(self):
         """ Rerun a previously pasted command.
