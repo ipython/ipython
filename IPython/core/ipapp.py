@@ -213,9 +213,22 @@ cl_args = (
         action='store_true', dest='NOSEP', default=NoDefault,
         help="Eliminate all spacing between prompts.")
     ),
+    (('-term_title',), dict(
+        action='store_true', dest='TERM_TITLE', default=NoDefault,
+        help="Enable auto setting the terminal title.")
+    ),
+    (('-noterm_title',), dict(
+        action='store_false', dest='TERM_TITLE', default=NoDefault,
+        help="Disable auto setting the terminal title.")
+    ),
     (('-xmode',), dict(
         type=str, dest='XMODE', default=NoDefault,
         help="Exception mode ('Plain','Context','Verbose')")
+    ),
+    # These are only here to get the proper deprecation warnings
+    (('-pylab','-wthread','-qthread','-q4thread','-gthread'), dict(
+        action='store_true', dest='THREADED_SHELL', default=NoDefault,
+        help="These command line flags are deprecated, see the 'gui' magic.")
     ),
 )
 
@@ -244,11 +257,9 @@ class IPythonApp(Application):
             if clc.CLASSIC: clc.QUICK = 1
 
         # Display the deprecation warnings about threaded shells
-        # if opts_all.pylab == 1: threaded_shell_warning()
-        # if opts_all.wthread == 1: threaded_shell_warning()
-        # if opts_all.qthread == 1: threaded_shell_warning()
-        # if opts_all.q4thread == 1: threaded_shell_warning()
-        # if opts_all.gthread == 1: threaded_shell_warning()
+        if hasattr(clc, 'THREADED_SHELL'):
+            threaded_shell_warning()
+            del clc['THREADED_SHELL']
 
     def load_file_config(self):
         if hasattr(self.command_line_config, 'QUICK'):
@@ -276,21 +287,12 @@ class IPythonApp(Application):
                 config.XMODE = 'Plain'
 
         # All this should be moved to traitlet handlers in InteractiveShell
+        # But, currently InteractiveShell doesn't have support for changing
+        # these values at runtime.  Once we support that, this should
+        # be moved there!!!
         if hasattr(config, 'NOSEP'):
             if config.NOSEP:
                 config.SEPARATE_IN = config.SEPARATE_OUT = config.SEPARATE_OUT2 = '0'
-
-        if hasattr(config, 'SEPARATE_IN'):
-            if config.SEPARATE_IN == '0': config.SEPARATE_IN = ''
-            config.SEPARATE_IN = config.SEPARATE_IN.replace('\\n','\n')
-
-        if hasattr(config, 'SEPARATE_OUT'):
-            if config.SEPARATE_OUT == '0': config.SEPARATE_OUT = ''
-            config.SEPARATE_OUT = config.SEPARATE_OUT.replace('\\n','\n')
-
-        if hasattr(config, 'SEPARATE_OUT'):
-            if config.SEPARATE_OUT2 == '0': config.SEPARATE_OUT2 = ''
-            config.SEPARATE_OUT2 = config.SEPARATE_OUT2.replace('\\n','\n')
 
     def construct(self):
         # I am a little hesitant to put these into InteractiveShell itself.

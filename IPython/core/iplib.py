@@ -53,9 +53,10 @@ from IPython.utils.ipstruct import Struct
 from IPython.utils import PyColorize
 from IPython.utils.genutils import *
 from IPython.utils.strdispatch import StrDispatch
+from IPython.utils.platutils import toggle_set_term_title, set_term_title
 
 from IPython.utils.traitlets import (
-    Int, Float, Str, CBool, CaselessStrEnum, Enum
+    Int, Float, Str, CBool, CaselessStrEnum, Enum, List
 )
 
 #-----------------------------------------------------------------------------
@@ -170,6 +171,19 @@ def get_default_editor():
             ed = 'notepad' # same in Windows!
     return ed
 
+
+class SeparateStr(Str):
+    """A Str subclass to validate separate_in, separate_out, etc.
+
+    This is a Str based traitlet that converts '0'->'' and '\\n'->'\n'.
+    """
+
+    def validate(self, obj, value):
+        if value == '0': value = ''
+        value = value.replace('\\n','\n')
+        return super(SeparateStr, self).validate(obj, value)
+
+
 #-----------------------------------------------------------------------------
 # Main IPython class
 #-----------------------------------------------------------------------------
@@ -195,12 +209,10 @@ def get_default_editor():
 class InteractiveShell(Component, Magic):
     """An enhanced console for Python."""
 
-    alias = []
     autocall = Enum((0,1,2), config_key='AUTOCALL')
     autoedit_syntax = CBool(False, config_key='AUTOEDIT_SYNTAX')
     autoindent = CBool(True, config_key='AUTOINDENT')
     automagic = CBool(True, config_key='AUTOMAGIC')
-    autoexec = []
     display_banner = CBool(True, config_key='DISPLAY_BANNER')
     banner = Str('')
     banner1 = Str(default_banner, config_key='BANNER1')
@@ -212,69 +224,76 @@ class InteractiveShell(Component, Magic):
     colors = CaselessStrEnum(('NoColor','LightBG','Linux'), 
                              default_value='LightBG', config_key='COLORS')
     confirm_exit = CBool(True, config_key='CONFIRM_EXIT')
-    debug = CBool(False)
+    debug = CBool(False, config_key='DEBUG')
     deep_reload = CBool(False, config_key='DEEP_RELOAD')
     embedded = CBool(False)
     editor = Str(get_default_editor(), config_key='EDITOR')
     filename = Str("<ipython console>")
-    help = CBool(False)
-    interactive = CBool(False)
+    interactive = CBool(False, config_key='INTERACTIVE')
     logstart = CBool(False, config_key='LOGSTART')
     logfile = Str('', config_key='LOGFILE')
     logplay = Str('', config_key='LOGPLAY')
-    multi_line_specials = CBool(True)
-    object_info_string_level = Int(0)
-    pager = Str('less')
+    multi_line_specials = CBool(True, config_key='MULTI_LINE_SPECIALS')
+    object_info_string_level = Enum((0,1,2), default_value=0,
+                                    config_keys='OBJECT_INFO_STRING_LEVEL')
+    pager = Str('less', config_key='PAGER')
     pdb = CBool(False, config_key='PDB')
     pprint = CBool(True, config_key='PPRINT')
     profile = Str('', config_key='PROFILE')
     prompt_in1 = Str('In [\\#]: ', config_key='PROMPT_IN1')
     prompt_in2 = Str('   .\\D.: ', config_key='PROMPT_IN2')
     prompt_out = Str('Out[\\#]: ', config_key='PROMPT_OUT1')
-    prompts_pad_left = CBool(True)
-    pydb = CBool(False)
-    quiet = CBool(False)
+    prompts_pad_left = CBool(True, config_key='PROMPTS_PAD_LEFT')
+    quiet = CBool(False, config_key='QUIET')
 
     readline_use = CBool(True, config_key='READLINE_USE')
-    readline_merge_completions = CBool(True)
-    readline_omit__names = Int(0)
-    readline_remove_delims = '-/~'
-    readline_parse_and_bind = [
-        'tab: complete',
-        '"\C-l": possible-completions',
-        'set show-all-if-ambiguous on',
-        '"\C-o": tab-insert',
-        '"\M-i": "    "',
-        '"\M-o": "\d\d\d\d"',
-        '"\M-I": "\d\d\d\d"',
-        '"\C-r": reverse-search-history',
-        '"\C-s": forward-search-history',
-        '"\C-p": history-search-backward',
-        '"\C-n": history-search-forward',
-        '"\e[A": history-search-backward',
-        '"\e[B": history-search-forward',
-        '"\C-k": kill-line',
-        '"\C-u": unix-line-discard',
-    ]
+    readline_merge_completions = CBool(True, 
+                                       config_key='READLINE_MERGE_COMPLETIONS')
+    readline_omit__names = Enum((0,1,2), default_value=0, 
+                                config_key='READLINE_OMIT_NAMES')
+    readline_remove_delims = Str('-/~', config_key='READLINE_REMOVE_DELIMS')
+    readline_parse_and_bind = List([
+            'tab: complete',
+            '"\C-l": possible-completions',
+            'set show-all-if-ambiguous on',
+            '"\C-o": tab-insert',
+            '"\M-i": "    "',
+            '"\M-o": "\d\d\d\d"',
+            '"\M-I": "\d\d\d\d"',
+            '"\C-r": reverse-search-history',
+            '"\C-s": forward-search-history',
+            '"\C-p": history-search-backward',
+            '"\C-n": history-search-forward',
+            '"\e[A": history-search-backward',
+            '"\e[B": history-search-forward',
+            '"\C-k": kill-line',
+            '"\C-u": unix-line-discard',
+        ], allow_none=False, config_key='READLINE_PARSE_AND_BIND'
+    )
 
     screen_length = Int(0, config_key='SCREEN_LENGTH')
-    separate_in = Str('\n', config_key='SEPARATE_IN')
-    separate_out = Str('', config_key='SEPARATE_OUT')
-    separate_out2 = Str('', config_key='SEPARATE_OUT2')
-    system_header = Str('IPython system call: ')
-    system_verbose = CBool(False)
-    term_title = CBool(True)
-    wildcards_case_sensitive = CBool(True)
+    
+    # Use custom TraitletTypes that convert '0'->'' and '\\n'->'\n'
+    separate_in = SeparateStr('\n', config_key='SEPARATE_IN')
+    separate_out = SeparateStr('', config_key='SEPARATE_OUT')
+    separate_out2 = SeparateStr('', config_key='SEPARATE_OUT2')
+
+    system_header = Str('IPython system call: ', config_key='SYSTEM_HEADER')
+    system_verbose = CBool(False, config_key='SYSTEM_VERBOSE')
+    term_title = CBool(False, config_key='TERM_TITLE')
+    wildcards_case_sensitive = CBool(True, config_key='WILDCARDS_CASE_SENSITIVE')
     xmode = CaselessStrEnum(('Context','Plain', 'Verbose'), 
                             default_value='Context', config_key='XMODE')
-    magic_docstrings = CBool(False)
+
+    alias = List(allow_none=False, config_key='ALIAS')
+    autoexec = List(allow_none=False)
 
     # class attribute to indicate whether the class supports threads or not.
     # Subclasses with thread support should override this as needed.
     isthreaded = False
 
     def __init__(self, name, parent=None, config=None, usage=None,
-                 user_ns=None, user_global_ns=None, 
+                 user_ns=None, user_global_ns=None,
                  banner1='', banner2='',
                  custom_exceptions=((),None), embedded=False):
 
@@ -285,6 +304,7 @@ class InteractiveShell(Component, Magic):
         super(InteractiveShell, self).__init__(parent, config=config, name=name)
 
         self.init_instance_attrs()
+        self.init_term_title()
         self.init_usage(usage)
         self.init_banner(banner1, banner2)
         self.init_embedded(embedded)
@@ -343,6 +363,9 @@ class InteractiveShell(Component, Magic):
             num_lines_bot = self.separate_in.count('\n')+1
             return self.screen_length - num_lines_bot
 
+    def _term_title_changed(self, name, new_value):
+        self.init_term_title()
+
     #-------------------------------------------------------------------------
     # init_* methods called by __init__
     #-------------------------------------------------------------------------
@@ -385,6 +408,14 @@ class InteractiveShell(Component, Magic):
 
         # Indentation management
         self.indent_current_nsp = 0
+
+    def init_term_title(self):
+        # Enable or disable the terminal title.
+        if self.term_title:
+            toggle_set_term_title(True)
+            set_term_title('IPython: ' + abbrev_cwd())
+        else:
+            toggle_set_term_title(False)
 
     def init_usage(self, usage=None):
         if usage is None:
@@ -564,7 +595,7 @@ class InteractiveShell(Component, Magic):
 
         # Now the history file
         try:
-            histfname = 'history-%s' % self.config.PROFILE
+            histfname = 'history-%s' % self.profile
         except AttributeError:
             histfname = 'history'
         self.histfile = os.path.join(self.config.IPYTHONDIR, histfname)
@@ -903,8 +934,8 @@ class InteractiveShell(Component, Magic):
         self.call_pdb = self.pdb
 
     def init_exec_commands(self):
-        for cmd in self.autoexec:
-            #print "autoexec>",cmd #dbg
+        for cmd in self.config.EXECUTE:
+            print "execute:", cmd
             self.api.runlines(cmd)
             
         batchrun = False

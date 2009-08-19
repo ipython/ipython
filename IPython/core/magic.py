@@ -2856,8 +2856,7 @@ Defaulting color scheme to 'NoColor'"""
             try:                
                 os.chdir(os.path.expanduser(ps))
                 if self.shell.term_title:
-                    #print 'set term title:',self.shell.term_title  # dbg
-                    platutils.set_term_title('IPy ' + abbrev_cwd())
+                    platutils.set_term_title('IPython: ' + abbrev_cwd())
             except OSError:
                 print sys.exc_info()[1]
             else:
@@ -2870,7 +2869,7 @@ Defaulting color scheme to 'NoColor'"""
         else:
             os.chdir(self.shell.home_dir)
             if self.shell.term_title:
-                platutils.set_term_title("IPy ~")
+                platutils.set_term_title('IPython: ' + '~')
             cwd = os.getcwd()
             dhist = self.shell.user_ns['_dh']
             
