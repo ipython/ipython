@@ -9,6 +9,7 @@ var = !ls
 """
 
 from IPython.core import ipapi
+from IPython.core.error import TryNext
 from IPython.utils.genutils import *
 
 ip = ipapi.get()
@@ -17,9 +18,6 @@ import re
 
 def hnd_magic(line,mo):
     """ Handle a = %mymagic blah blah """
-    #cmd = genutils.make_quoted_expr(mo.group('syscmd'))
-    #mag = 'ipmagic
-    #return "%s = %s"
     var = mo.group('varname')
     cmd = mo.group('cmd')
     expr = make_quoted_expr(cmd)
@@ -27,9 +25,6 @@ def hnd_magic(line,mo):
 
 def hnd_syscmd(line,mo):
     """ Handle a = !ls """
-    #cmd = genutils.make_quoted_expr(mo.group('syscmd'))
-    #mag = 'ipmagic
-    #return "%s = %s"
     var = mo.group('varname')
     cmd = mo.group('cmd')
     expr = make_quoted_expr(itpl("sc -l =$cmd"))
@@ -58,6 +53,6 @@ def regex_prefilter_f(self,line):
         if mo:
             return handler(line,mo)
     
-    raise ipapi.TryNext
+    raise TryNext
 
 ip.set_hook('input_prefilter', regex_prefilter_f)     

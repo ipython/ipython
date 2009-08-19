@@ -16,12 +16,13 @@ Not to be confused with ipipe commands (ils etc.) that also start with i.
 """
 
 from IPython.core import ipapi
+from IPython.core.error import TryNext
 ip = ipapi.get()
 
 import shutil,os,shlex
 from IPython.external import mglob
 from IPython.external.path import path
-from IPython.core.ipapi import UsageError
+from IPython.core.error import UsageError
 import IPython.utils.generics
 
 def parse_args(args):
@@ -59,7 +60,7 @@ def icp(ip,arg):
         else:
             shutil.copy2(f,targetdir)
     return fs
-ip.defalias("icp",icp)
+ip.define_alias("icp",icp)
 
 def imv(ip,arg):
     """ imv src tgt
@@ -73,7 +74,7 @@ def imv(ip,arg):
     for f in fs:        
         shutil.move(f, target)
     return fs
-ip.defalias("imv",imv)        
+ip.define_alias("imv",imv)        
 
 def irm(ip,arg):
     """ irm path[s]...
@@ -92,7 +93,7 @@ def irm(ip,arg):
         else:
             os.remove(p)
 
-ip.defalias("irm",irm)
+ip.define_alias("irm",irm)
 
 def imkdir(ip,arg):
     """ imkdir path
@@ -103,7 +104,7 @@ def imkdir(ip,arg):
     targetdir = arg.split(None,1)[1]
     distutils.dir_util.mkpath(targetdir,verbose =1)    
 
-ip.defalias("imkdir",imkdir)    
+ip.define_alias("imkdir",imkdir)    
 
 def igrep(ip,arg):
     """ igrep PAT files...
@@ -129,7 +130,7 @@ def igrep(ip,arg):
                 print l.rstrip()
     return res
 
-ip.defalias("igrep",igrep)    
+ip.define_alias("igrep",igrep)    
 
 def collect(ip,arg):
     """ collect foo/a.txt rec:bar=*.py
@@ -159,7 +160,7 @@ def collect(ip,arg):
         print f,"=>",trg
         shutil.copy2(f,trg)
 
-ip.defalias("collect",collect)            
+ip.define_alias("collect",collect)            
 
 def inote(ip,arg):
     """ inote Hello world
@@ -175,9 +176,9 @@ def inote(ip,arg):
         entry = " === " + time.asctime() + ': ===\n' + arg.split(None,1)[1] + '\n'
         f= open(fname, 'a').write(entry)    
     except IndexError:
-        ip.IP.hooks.editor(fname)        
+        ip.hooks.editor(fname)        
 
-ip.defalias("inote",inote)
+ip.define_alias("inote",inote)
 
 def pathobj_mangle(p):
     return p.replace(' ', '__').replace('.','DOT')
@@ -229,7 +230,7 @@ def complete_pathobj(obj, prev_completions):
         if res:
             return res
     # just return normal attributes of 'path' object if the dir is empty
-    raise ipapi.TryNext
+    raise TryNext
 
 complete_pathobj = IPython.utils.generics.complete_object.when_type(PathObj)(complete_pathobj)
 
@@ -240,6 +241,6 @@ def test_pathobj():
     rootdir = PathObj("/")
     startmenu = PathObj("d:/Documents and Settings/All Users/Start Menu/Programs")
     cwd = PathObj('.')
-    ip.to_user_ns("rootdir startmenu cwd")
+    ip.push("rootdir startmenu cwd")
     
 #test_pathobj()

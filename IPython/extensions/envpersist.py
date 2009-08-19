@@ -3,6 +3,8 @@
 """
 
 from IPython.core import ipapi
+from IPython.core.error import TryNext
+
 ip = ipapi.get()
 
 import os,sys
@@ -16,7 +18,7 @@ def restore_env(self):
         os.environ[k] = os.environ.get(k,"") + v
     for k,v in env['pre']:
         os.environ[k] = v + os.environ.get(k,"")
-    raise ipapi.TryNext
+    raise TryNext
   
 ip.set_hook('late_startup_hook', restore_env)
 
@@ -85,6 +87,6 @@ def env_completer(self,event):
     """ Custom completer that lists all env vars """
     return os.environ.keys()
 
-ip.expose_magic('env', persist_env)
+ip.define_magic('env', persist_env)
 ip.set_hook('complete_command',env_completer, str_key = '%env')
 

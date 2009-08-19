@@ -41,6 +41,6 @@ def main():
     o.xmode = 'plain'
 
     # Store the activity flag in the metadata bag from the running shell
-    ip.IP.meta.doctest_mode = True
+    ip.meta.doctest_mode = True
 
 main()

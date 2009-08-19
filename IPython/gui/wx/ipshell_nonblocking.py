@@ -189,7 +189,7 @@ class NonBlockingIPShell(object):
         ip = ipapi.get()
         def bypass_magic(self, arg):
             print '%this magic is currently disabled.'
-        ip.expose_magic('cpaste', bypass_magic)
+        ip.define_magic('cpaste', bypass_magic)
 
         import __builtin__
         __builtin__.raw_input = self._raw_input
@@ -492,7 +492,7 @@ class NonBlockingIPShell(object):
             self._IP.showtraceback()
         else:
             self._IP.write(str(self._IP.outputcache.prompt_out).strip())
-            self._iter_more = self._IP.push(line)
+            self._iter_more = self._IP.push_line(line)
             if (self._IP.SyntaxTB.last_syntax_error and \
                                                             self._IP.autoedit_syntax):
                 self._IP.edit_syntax_error()

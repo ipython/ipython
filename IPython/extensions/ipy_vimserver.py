@@ -68,6 +68,7 @@ something. Instead of edit, use the vim magic.  Thats it!
 """
 
 from IPython.core import ipapi
+from IPython.core.error import TryNext
 
 import socket, select
 import os, threading, subprocess
@@ -161,7 +162,7 @@ def shutdown_server(self):
     if SERVER:
         SERVER.stop()
         SERVER.join(3)
-    raise ipapi.TryNext
+    raise TryNext
 
 ip.set_hook('shutdown_hook', shutdown_server, 10)
 
@@ -235,5 +236,5 @@ def vim(self, argstr):
     argstr = 'edit -x ' + argstr
     ip.magic(argstr)
 
-ip.expose_magic('vim', vim)
+ip.define_magic('vim', vim)
 

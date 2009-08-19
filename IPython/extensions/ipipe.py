@@ -1612,10 +1612,10 @@ class ihist(Table):
     def __iter__(self):
         api = ipapi.get()
         if self.raw:
-            for line in api.IP.input_hist_raw:
+            for line in api.input_hist_raw:
                 yield line.rstrip("\n")
         else:
-            for line in api.IP.input_hist:
+            for line in api.input_hist:
                 yield line.rstrip("\n")
 
 
@@ -1644,7 +1644,7 @@ class ialias(Table):
     def __iter__(self):
         api = ipapi.get()
 
-        for (name, (args, command)) in api.IP.alias_table.iteritems():
+        for (name, (args, command)) in api.alias_table.iteritems():
             yield Alias(name, args, command)
 
 

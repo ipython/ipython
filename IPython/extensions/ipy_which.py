@@ -23,7 +23,7 @@ def which(fname):
     return
 
 def which_alias(fname):
-    for al, tgt in ip.IP.alias_table.items():
+    for al, tgt in ip.alias_table.items():
         if not (al == fname or fnmatch(al, fname)):
             continue
         if callable(tgt):
@@ -72,5 +72,5 @@ def which_f(self, arg):
     for e in which(arg):
         print e
     
-ip.expose_magic("which",which_f)        
+ip.define_magic("which",which_f)        
         

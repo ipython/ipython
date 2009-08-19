@@ -42,7 +42,7 @@ class PyLauncher:
     """ Invoke selflanucher on the specified script
     
     This is mostly useful for associating with scripts using::
-        _ip.defalias('foo',PyLauncher('foo_script.py'))
+        _ip.define_alias('foo',PyLauncher('foo_script.py'))
     
     """
     def __init__(self,script):
@@ -137,4 +137,4 @@ def rehashdir_f(self,arg):
         os.chdir(savedir)
     return created
 
-ip.expose_magic("rehashdir",rehashdir_f)
+ip.define_magic("rehashdir",rehashdir_f)

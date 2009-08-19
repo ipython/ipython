@@ -55,7 +55,7 @@ def init():
         o.allow_new_attr (True )
         o.verbose = 0
         
-    ip.IP.system = (sys.platform == 'win32' and new_ipsystem_win32 or 
+    ip.system = (sys.platform == 'win32' and new_ipsystem_win32 or 
                     new_ipsystem_posix)
     
 init()

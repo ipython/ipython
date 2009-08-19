@@ -8,7 +8,8 @@ transforming work.
 __docformat__ = "restructuredtext en"
 
 import re
-from IPython.core import ipapi
+from IPython.core.autocall import IPyAutocall
+
 
 class LineInfo(object):
     """A single line of input and associated info.
@@ -178,8 +179,8 @@ def checkEmacs(l_info,ip):
 def checkIPyAutocall(l_info,ip):
     "Instances of IPyAutocall in user_ns get autocalled immediately"
     obj = ip.user_ns.get(l_info.iFun, None)
-    if isinstance(obj, ipapi.IPyAutocall):
-        obj.set_ip(ip.api)
+    if isinstance(obj, IPyAutocall):
+        obj.set_ip(ip)
         return ip.handle_auto
     else:
         return None

@@ -45,16 +45,17 @@ except ImportError:
 import IPython
 from IPython.utils import wildcard
 from IPython.core import debugger, oinspect
+from IPython.core.error import TryNext
 from IPython.core.fakemodule import FakeModule
 from IPython.external.Itpl import Itpl, itpl, printpl,itplns
 from IPython.utils.PyColorize import Parser
 from IPython.utils.ipstruct import Struct
 from IPython.core.macro import Macro
 from IPython.utils.genutils import *
+from IPython.core.page import page
 from IPython.utils import platutils
 import IPython.utils.generics
-from IPython.core import ipapi
-from IPython.core.ipapi import UsageError
+from IPython.core.error import UsageError
 from IPython.testing import decorators as testdec
 
 #***************************************************************************
@@ -470,8 +471,8 @@ ipythonrc file, placing a line like:
 
 will define %pf as a new name for %profile.
 
-You can also call magics in code using the ipmagic() function, which IPython
-automatically adds to the builtin namespace.  Type 'ipmagic?' for details.
+You can also call magics in code using the magic() function, which IPython
+automatically adds to the builtin namespace.  Type 'magic?' for details.
 
 For a list of the available magic functions, use %lsmagic. For a description
 of any of them, type %magic_name?, e.g. '%cd?'.
@@ -720,7 +721,7 @@ Currently the magic system has the following functions:\n"""
             try:
                 IPython.utils.generics.inspect_object(info.obj)
                 return
-            except ipapi.TryNext:
+            except TryNext:
                 pass
             # Get the docstring of the class property if it exists.
             path = oname.split('.')
@@ -1571,7 +1572,7 @@ Currently the magic system has the following functions:\n"""
             return
 
         if filename.lower().endswith('.ipy'):
-            self.api.runlines(open(filename).read())
+            self.runlines(open(filename).read(), clean=True)
             return
         
         # Control the response to exit() calls made by the script being run
@@ -2063,7 +2064,7 @@ Currently the magic system has the following functions:\n"""
         #print 'rng',ranges  # dbg
         lines = self.extract_input_slices(ranges,opts.has_key('r'))
         macro = Macro(lines)
-        self.shell.user_ns.update({name:macro})
+        self.shell.define_macro(name, macro)
         print 'Macro `%s` created. To execute, type its name (without quotes).' % name
         print 'Macro contents:'
         print macro,
@@ -2393,7 +2394,7 @@ Currently the magic system has the following functions:\n"""
         sys.stdout.flush()
         try:
             self.shell.hooks.editor(filename,lineno)
-        except ipapi.TryNext:
+        except TryNext:
             warn('Could not open editor')
             return
         
@@ -2685,12 +2686,9 @@ Defaulting color scheme to 'NoColor'"""
         This function also resets the root module cache of module completer,
         used on slow filesystems.
         """
-        
-        
-        ip = self.api
 
         # for the benefit of module completer in ipy_completers.py
-        del ip.db['rootmodules']
+        del self.db['rootmodules']
         
         path = [os.path.abspath(os.path.expanduser(p)) for p in 
             os.environ.get('PATH','').split(os.pathsep)]
@@ -2745,7 +2743,7 @@ Defaulting color scheme to 'NoColor'"""
             # no, we don't want them. if %rehashx clobbers them, good,
             # we'll probably get better versions
             # self.shell.init_auto_alias()
-            db = ip.db
+            db = self.db
             db['syscmdlist'] = syscmdlist
         finally:
             os.chdir(savedir)
@@ -3439,7 +3437,7 @@ Defaulting color scheme to 'NoColor'"""
         ipinstallation = path(IPython.__file__).dirname()
         upgrade_script = '%s "%s"' % (sys.executable,ipinstallation / 'utils' / 'upgradedir.py')
         src_config = ipinstallation / 'config' / 'userconfig'
-        userdir = path(ip.options.IPYTHONDIR)
+        userdir = path(ip.config.IPYTHONDIR)
         cmd = '%s "%s" "%s"' % (upgrade_script, src_config, userdir)
         print ">",cmd
         shell(cmd)

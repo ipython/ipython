@@ -81,7 +81,7 @@ def clear_f(self,arg):
     gc.collect()        
 
 # Activate the extension
-ip.expose_magic("clear",clear_f)
+ip.define_magic("clear",clear_f)
 import ipy_completers
 ipy_completers.quick_completer(
     '%clear','in out shadow_nuke shadow_compress dhist')

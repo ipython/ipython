@@ -34,17 +34,19 @@ import tempfile
 
 from IPython.core import ultratb
 from IPython.core import debugger, oinspect
-from IPython.core import ipapi
 from IPython.core import shadowns
 from IPython.core import history as ipcorehist
 from IPython.core import prefilter
+from IPython.core.autocall import IPyAutocall
 from IPython.core.fakemodule import FakeModule, init_fakemod_dict
 from IPython.core.logger import Logger
 from IPython.core.magic import Magic
 from IPython.core.prompts import CachedOutput
+from IPython.core.page import page
 from IPython.core.component import Component
 from IPython.core.oldusersetup import user_setup
 from IPython.core.usage import interactive_usage, default_banner
+from IPython.core.error import TryNext, UsageError
 
 from IPython.extensions import pickleshare
 from IPython.external.Itpl import ItplNS
@@ -319,10 +321,6 @@ class InteractiveShell(Component, Magic):
         self.init_hooks()
         self.init_pushd_popd_magic()
         self.init_traceback_handlers(custom_exceptions)
-
-        # Produce a public API instance
-        self.api = ipapi.IPApi(self)
-
         self.init_namespaces()
         self.init_logger()
         self.init_aliases()
@@ -343,7 +341,6 @@ class InteractiveShell(Component, Magic):
         self.init_magics()
         self.init_pdb()
         self.hooks.late_startup_hook()
-        self.init_exec_commands()
 
     #-------------------------------------------------------------------------
     # Traitlet changed handlers
@@ -485,7 +482,7 @@ class InteractiveShell(Component, Magic):
         # These routines return properly built dicts as needed by the rest of
         # the code, and can also be used by extension writers to generate
         # properly initialized namespaces.
-        user_ns, user_global_ns = ipapi.make_user_namespaces(user_ns,
+        user_ns, user_global_ns = self.make_user_namespaces(user_ns,
             user_global_ns)
 
         # Assign namespaces
@@ -575,6 +572,55 @@ class InteractiveShell(Component, Magic):
                 raise KeyError,'user_ns dictionary MUST have a "__name__" key'
             else:
                 sys.modules[main_name] = FakeModule(self.user_ns)
+
+    def make_user_namespaces(self, user_ns=None, user_global_ns=None):
+        """Return a valid local and global user interactive namespaces.
+
+        This builds a dict with the minimal information needed to operate as a
+        valid IPython user namespace, which you can pass to the various
+        embedding classes in ipython. The default implementation returns the
+        same dict for both the locals and the globals to allow functions to
+        refer to variables in the namespace. Customized implementations can
+        return different dicts. The locals dictionary can actually be anything
+        following the basic mapping protocol of a dict, but the globals dict
+        must be a true dict, not even a subclass. It is recommended that any
+        custom object for the locals namespace synchronize with the globals
+        dict somehow.
+
+        Raises TypeError if the provided globals namespace is not a true dict.
+
+        :Parameters:
+            user_ns : dict-like, optional
+                The current user namespace. The items in this namespace should
+                be included in the output. If None, an appropriate blank
+                namespace should be created.
+            user_global_ns : dict, optional
+                The current user global namespace. The items in this namespace
+                should be included in the output. If None, an appropriate
+                blank namespace should be created.
+
+        :Returns:
+            A tuple pair of dictionary-like object to be used as the local namespace
+            of the interpreter and a dict to be used as the global namespace.
+        """
+
+        if user_ns is None:
+            # Set __name__ to __main__ to better match the behavior of the
+            # normal interpreter.
+            user_ns = {'__name__'     :'__main__',
+                       '__builtins__' : __builtin__,
+                      }
+        else:
+            user_ns.setdefault('__name__','__main__')
+            user_ns.setdefault('__builtins__',__builtin__)
+
+        if user_global_ns is None:
+            user_global_ns = user_ns
+        if type(user_global_ns) is not dict:
+            raise TypeError("user_global_ns must be a true dict; got %r"
+                % type(user_global_ns))
+
+        return user_ns, user_global_ns
 
     def init_history(self):
         # List of input with multi-line handling.
@@ -933,23 +979,55 @@ class InteractiveShell(Component, Magic):
         # self.call_pdb is a property
         self.call_pdb = self.pdb
 
-    def init_exec_commands(self):
-        for cmd in self.config.EXECUTE:
-            print "execute:", cmd
-            self.api.runlines(cmd)
-            
-        batchrun = False
-        if self.config.has_key('EXECFILE'):
-            for batchfile in [path(arg) for arg in self.config.EXECFILE
-                if arg.lower().endswith('.ipy')]:
-                if not batchfile.isfile():
-                    print "No such batch file:", batchfile
-                    continue
-                self.api.runlines(batchfile.text())
-                batchrun = True
-        # without -i option, exit after running the batch file
-        if batchrun and not self.interactive:
-            self.ask_exit()            
+    # def init_exec_commands(self):
+    #     for cmd in self.config.EXECUTE:
+    #         print "execute:", cmd
+    #         self.api.runlines(cmd)
+    #         
+    #     batchrun = False
+    #     if self.config.has_key('EXECFILE'):
+    #         for batchfile in [path(arg) for arg in self.config.EXECFILE
+    #             if arg.lower().endswith('.ipy')]:
+    #             if not batchfile.isfile():
+    #                 print "No such batch file:", batchfile
+    #                 continue
+    #             self.api.runlines(batchfile.text())
+    #             batchrun = True
+    #     # without -i option, exit after running the batch file
+    #     if batchrun and not self.interactive:
+    #         self.ask_exit()            
+
+    # def load(self, mod):
+    #     """ Load an extension.
+    #     
+    #     Some modules should (or must) be 'load()':ed, rather than just imported.
+    #     
+    #     Loading will do:
+    #     
+    #     - run init_ipython(ip)
+    #     - run ipython_firstrun(ip)
+    #     """
+    # 
+    #     if mod in self.extensions:
+    #         # just to make sure we don't init it twice
+    #         # note that if you 'load' a module that has already been
+    #         # imported, init_ipython gets run anyway
+    #         
+    #         return self.extensions[mod]
+    #     __import__(mod)
+    #     m = sys.modules[mod]
+    #     if hasattr(m,'init_ipython'):
+    #         m.init_ipython(self)
+    #         
+    #     if hasattr(m,'ipython_firstrun'):
+    #         already_loaded = self.db.get('firstrun_done', set())
+    #         if mod not in already_loaded:
+    #             m.ipython_firstrun(self)
+    #             already_loaded.add(mod)
+    #             self.db['firstrun_done'] = already_loaded
+    #         
+    #     self.extensions[mod] = m
+    #     return m
 
     def init_namespaces(self):
         """Initialize all user-visible namespaces to their minimum defaults.
@@ -966,8 +1044,8 @@ class InteractiveShell(Component, Magic):
         # The user namespace MUST have a pointer to the shell itself.
         self.user_ns[self.name] = self
 
-        # Store the public api instance
-        self.user_ns['_ip'] = self.api
+        # Store myself as the public api!!!
+        self.user_ns['_ip'] = self
 
         # make global variables for user access to the histories
         self.user_ns['_ih'] = self.input_hist
@@ -1015,10 +1093,9 @@ class InteractiveShell(Component, Magic):
         builtins_new  = dict(__IPYTHON__ = self,
              ip_set_hook = self.set_hook, 
              jobs = self.jobs,
-             ipmagic = wrap_deprecated(self.ipmagic,'_ip.magic()'),  
+             # magic = self.magic,
              ipalias = wrap_deprecated(self.ipalias),  
-             ipsystem = wrap_deprecated(self.ipsystem,'_ip.system()'),
-             #_ip = self.api
+             # ipsystem = wrap_deprecated(self.ipsystem,'_ip.system()'),
              )
         for biname,bival in builtins_new.items():
             try:
@@ -1184,33 +1261,24 @@ class InteractiveShell(Component, Magic):
 
     call_pdb = property(_get_call_pdb,_set_call_pdb,None,
                         'Control auto-activation of pdb at exceptions')
- 
-    # These special functions get installed in the builtin namespace, to
-    # provide programmatic (pure python) access to magics, aliases and system
-    # calls.  This is important for logging, user scripting, and more.
 
-    # We are basically exposing, via normal python functions, the three
-    # mechanisms in which ipython offers special call modes (magics for
-    # internal control, aliases for direct system access via pre-selected
-    # names, and !cmd for calling arbitrary system commands).
-
-    def ipmagic(self,arg_s):
+    def magic(self,arg_s):
         """Call a magic function by name.
 
         Input: a string containing the name of the magic function to call and any
         additional arguments to be passed to the magic.
 
-        ipmagic('name -opt foo bar') is equivalent to typing at the ipython
+        magic('name -opt foo bar') is equivalent to typing at the ipython
         prompt:
 
         In[1]: %name -opt foo bar
 
-        To call a magic without arguments, simply use ipmagic('name').
+        To call a magic without arguments, simply use magic('name').
 
         This provides a proper Python function to call IPython's magics in any
         valid Python code you can type at the interpreter, including loops and
-        compound statements.  It is added by IPython to the Python builtin
-        namespace upon initialization."""
+        compound statements.
+        """
 
         args = arg_s.split(' ',1)
         magic_name = args[0]
@@ -1226,6 +1294,44 @@ class InteractiveShell(Component, Magic):
         else:
             magic_args = self.var_expand(magic_args,1)
             return fn(magic_args)
+
+    def define_magic(self, magicname, func):
+        """Expose own function as magic function for ipython 
+    
+        def foo_impl(self,parameter_s=''):
+            'My very own magic!. (Use docstrings, IPython reads them).'
+            print 'Magic function. Passed parameter is between < >:'
+            print '<%s>' % parameter_s
+            print 'The self object is:',self
+    
+        self.define_magic('foo',foo_impl)
+        """
+        
+        import new
+        im = new.instancemethod(func,self, self.__class__)
+        old = getattr(self, "magic_" + magicname, None)
+        setattr(self, "magic_" + magicname, im)
+        return old
+
+    def define_macro(self, name, themacro):
+        """Define a new macro
+
+        Parameters
+        ----------
+        name : str
+            The name of the macro.
+        themacro : str or Macro
+            The action to do upon invoking the macro.  If a string, a new 
+            Macro object is created by passing the string to it.
+        """
+        
+        from IPython.core import macro
+
+        if isinstance(themacro, basestring):
+            themacro = macro.Macro(themacro)
+        if not isinstance(themacro, macro.Macro):
+            raise ValueError('A macro must be a string or a Macro instance.')
+        self.user_ns[name] = themacro
 
     def define_alias(self, name, cmd):
         """ Define a new alias."""
@@ -1280,7 +1386,16 @@ class InteractiveShell(Component, Magic):
         """Make a system call, using IPython."""
         return self.hooks.shell_hook(self.var_expand(cmd, depth=2))
 
-    ipsystem = system
+    def ex(self, cmd):
+        """Execute a normal python statement in user namespace."""
+        exec cmd in self.user_ns
+
+    def ev(self, expr):
+        """Evaluate python expression expr in user namespace.
+
+        Returns the result of evaluation
+        """
+        return eval(expr,self.user_ns)
 
     def getoutput(self, cmd):
         return getoutput(self.var_expand(cmd,depth=2),
@@ -1314,7 +1429,7 @@ class InteractiveShell(Component, Magic):
         In [9]: print x
         hello
 
-        In [10]: _ip.IP.complete('x.l')
+        In [10]: _ip.complete('x.l')
         Out[10]: ['x.ljust', 'x.lower', 'x.lstrip']
         """
         
@@ -1350,8 +1465,7 @@ class InteractiveShell(Component, Magic):
         These are ALL parameter-less aliases"""
 
         for alias,cmd in self.auto_alias:
-            self.getapi().defalias(alias,cmd)
-            
+            self.define_alias(alias,cmd)
 
     def alias_table_validate(self,verbose=0):
         """Update information about the alias table.
@@ -1365,7 +1479,20 @@ class InteractiveShell(Component, Magic):
                 if verbose:
                     print ("Deleting alias <%s>, it's a Python "
                            "keyword or builtin." % k)
-    
+
+    def set_next_input(self, s):
+        """ Sets the 'default' input string for the next command line.
+        
+        Requires readline.
+        
+        Example:
+        
+        [D:\ipython]|1> _ip.set_next_input("Hello Word")
+        [D:\ipython]|2> Hello Word_  # cursor is here        
+        """
+
+        self.rl_next_input = s
+
     def set_autoindent(self,value=None):
         """Set the autoindent flag, checking for readline support.
 
@@ -1518,9 +1645,9 @@ class InteractiveShell(Component, Magic):
 
         In [10]: import IPython
 
-        In [11]: _ip.IP.cache_main_mod(IPython.__dict__,IPython.__file__)
+        In [11]: _ip.cache_main_mod(IPython.__dict__,IPython.__file__)
 
-        In [12]: IPython.__file__ in _ip.IP._main_ns_cache
+        In [12]: IPython.__file__ in _ip._main_ns_cache
         Out[12]: True
         """
         self._main_ns_cache[os.path.abspath(fname)] = ns.copy()
@@ -1535,14 +1662,14 @@ class InteractiveShell(Component, Magic):
 
         In [15]: import IPython
 
-        In [16]: _ip.IP.cache_main_mod(IPython.__dict__,IPython.__file__)
+        In [16]: _ip.cache_main_mod(IPython.__dict__,IPython.__file__)
 
-        In [17]: len(_ip.IP._main_ns_cache) > 0
+        In [17]: len(_ip._main_ns_cache) > 0
         Out[17]: True
 
-        In [18]: _ip.IP.clear_main_mod_cache()
+        In [18]: _ip.clear_main_mod_cache()
 
-        In [19]: len(_ip.IP._main_ns_cache) == 0
+        In [19]: len(_ip._main_ns_cache) == 0
         Out[19]: True
         """
         self._main_ns_cache.clear()
@@ -1572,7 +1699,7 @@ class InteractiveShell(Component, Magic):
         try:
             self.hooks.fix_error_editor(e.filename,
                 int0(e.lineno),int0(e.offset),e.msg)
-        except ipapi.TryNext:
+        except TryNext:
             warn('Could not open editor')
             return False
         return True
@@ -1686,7 +1813,7 @@ class InteractiveShell(Component, Magic):
     
             if etype is SyntaxError:
                 self.showsyntaxerror(filename)
-            elif etype is ipapi.UsageError:
+            elif etype is UsageError:
                 print "UsageError:", value
             else:
                 # WARNING: these variables are somewhat deprecated and not
@@ -1743,7 +1870,7 @@ class InteractiveShell(Component, Magic):
         This emulates Python's -c option."""
 
         #sys.argv = ['-c']
-        self.push(self.prefilter(self.c, False))
+        self.push_line(self.prefilter(self.c, False))
         if not self.interactive:
             self.ask_exit()
 
@@ -1856,7 +1983,7 @@ class InteractiveShell(Component, Magic):
                 self.input_hist_raw.append('%s\n' % line)                
 
         
-        self.more = self.push(lineout)
+        self.more = self.push_line(lineout)
         if (self.SyntaxTB.last_syntax_error and
             self.autoedit_syntax):
             self.edit_syntax_error()
@@ -1951,7 +2078,7 @@ class InteractiveShell(Component, Magic):
                 # asynchronously by signal handlers, for example.
                 self.showtraceback()
             else:
-                more = self.push(line)
+                more = self.push_line(line)
                 if (self.SyntaxTB.last_syntax_error and
                     self.autoedit_syntax):
                     self.edit_syntax_error()
@@ -1983,8 +2110,22 @@ class InteractiveShell(Component, Magic):
       """
       self.showtraceback((etype,value,tb),tb_offset=0)
 
-    def expand_aliases(self,fn,rest):
-        """ Expand multiple levels of aliases:
+    def expand_alias(self, line):
+        """ Expand an alias in the command line 
+        
+        Returns the provided command line, possibly with the first word 
+        (command) translated according to alias expansion rules.
+        
+        [ipython]|16> _ip.expand_aliases("np myfile.txt")
+                 <16> 'q:/opt/np/notepad++.exe myfile.txt'
+        """
+        
+        pre,fn,rest = self.split_user_input(line)
+        res = pre + self.expand_aliases(fn, rest)
+        return res
+
+    def expand_aliases(self, fn, rest):
+        """Expand multiple levels of aliases:
         
         if:
         
@@ -2091,18 +2232,114 @@ class InteractiveShell(Component, Magic):
             else:
                 self.indent_current_nsp = 0
 
-    def runlines(self,lines):
+    def push(self, variables, interactive=True):
+        """Inject a group of variables into the IPython user namespace.
+
+        Parameters
+        ----------
+        variables : dict, str or list/tuple of str
+            The variables to inject into the user's namespace.  If a dict,
+            a simple update is done.  If a str, the string is assumed to 
+            have variable names separated by spaces.  A list/tuple of str
+            can also be used to give the variable names.  If just the variable
+            names are give (list/tuple/str) then the variable values looked
+            up in the callers frame.
+        interactive : bool
+            If True (default), the variables will be listed with the ``who``
+            magic.
+        """
+        vdict = None
+
+        # We need a dict of name/value pairs to do namespace updates.
+        if isinstance(variables, dict):
+            vdict = variables
+        elif isinstance(variables, (basestring, list, tuple)):
+            if isinstance(variables, basestring):
+                vlist = variables.split()
+            else:
+                vlist = variables
+            vdict = {}
+            cf = sys._getframe(1)
+            for name in vlist:
+                try:
+                    vdict[name] = eval(name, cf.f_globals, cf.f_locals)
+                except:
+                    print ('Could not get variable %s from %s' %
+                           (name,cf.f_code.co_name))
+        else:
+            raise ValueError('variables must be a dict/str/list/tuple')
+            
+        # Propagate variables to user namespace
+        self.user_ns.update(vdict)
+
+        # And configure interactive visibility
+        config_ns = self.user_config_ns
+        if interactive:
+            for name, val in vdict.iteritems():
+                config_ns.pop(name, None)
+        else:
+            for name,val in vdict.iteritems():
+                config_ns[name] = val
+
+    def cleanup_ipy_script(self, script):
+        """Make a script safe for self.runlines()
+
+        Notes
+        -----
+        This was copied over from the old ipapi and probably can be done
+        away with once we move to block based interpreter.
+        
+        - Removes empty lines Suffixes all indented blocks that end with
+        - unindented lines with empty lines
+        """
+        
+        res = []
+        lines = script.splitlines()
+
+        level = 0
+        for l in lines:
+            lstripped = l.lstrip()
+            stripped = l.strip()                
+            if not stripped:
+                continue
+            newlevel = len(l) - len(lstripped)
+            def is_secondary_block_start(s):
+                if not s.endswith(':'):
+                    return False
+                if (s.startswith('elif') or 
+                    s.startswith('else') or 
+                    s.startswith('except') or
+                    s.startswith('finally')):
+                    return True
+                    
+            if level > 0 and newlevel == 0 and \
+                   not is_secondary_block_start(stripped): 
+                # add empty line
+                res.append('')
+                
+            res.append(l)
+            level = newlevel
+        return '\n'.join(res) + '\n'
+
+    def runlines(self, lines, clean=False):
         """Run a string of one or more lines of source.
 
         This method is capable of running a string containing multiple source
         lines, as if they had been entered at the IPython prompt.  Since it
         exposes IPython's processing machinery, the given strings can contain
-        magic calls (%magic), special shell access (!cmd), etc."""
+        magic calls (%magic), special shell access (!cmd), etc.
+        """
+
+        if isinstance(lines, (list, tuple)):
+            lines = '\n'.join(lines)
+
+        if clean:
+            lines = self.cleanup_ipy_script(lines)
 
         # We must start with a clean buffer, in case this is run from an
         # interactive IPython session (via a magic, for example).
         self.resetbuffer()
-        lines = lines.split('\n')
+        lines = lines.splitlines()
         more = 0
     
         for line in lines:
@@ -2113,7 +2350,7 @@ class InteractiveShell(Component, Magic):
             if line or more:
                 # push to raw history, so hist line numbers stay in sync
                 self.input_hist_raw.append("# " + line + "\n")
-                more = self.push(self.prefilter(line,more))
+                more = self.push_line(self.prefilter(line,more))
                 # IPython's runsource returns None if there was an error
                 # compiling the code.  This allows us to stop processing right
                 # away, so the user gets the error message at the right place.
@@ -2124,7 +2361,7 @@ class InteractiveShell(Component, Magic):
         # final newline in case the input didn't have it, so that the code
         # actually does get executed
         if more:
-            self.push('\n')
+            self.push_line('\n')
 
     def runsource(self, source, filename='<input>', symbol='single'):
         """Compile and run some source in the interpreter.
@@ -2232,7 +2469,7 @@ class InteractiveShell(Component, Magic):
         self.code_to_run = None
         return outflag
         
-    def push(self, line):
+    def push_line(self, line):
         """Push a line to the interpreter.
 
         The line should not have a trailing newline; it may have
@@ -2442,7 +2679,7 @@ class InteractiveShell(Component, Magic):
         # print "=>",tgt #dbg
         if callable(tgt):
             if '$' in line_info.line:
-                call_meth = '(_ip, _ip.itpl(%s))'
+                call_meth = '(_ip, _ip.var_expand(%s))'
             else:
                 call_meth = '(_ip,%s)'
             line_out = ("%s_sh.%s" + call_meth) % (line_info.preWhitespace,
@@ -2510,7 +2747,7 @@ class InteractiveShell(Component, Magic):
             self.log(line,line,continue_prompt)
             return line
 
-        force_auto = isinstance(obj, ipapi.IPyAutocall)
+        force_auto = isinstance(obj, IPyAutocall)
         auto_rewrite = True
         
         if pre == self.ESC_QUOTE:
@@ -2592,18 +2829,6 @@ class InteractiveShell(Component, Magic):
         else:
             # If the code compiles ok, we should handle it normally
             return self.handle_normal(line_info)
-
-    def getapi(self):
-        """ Get an IPApi object for this shell instance
-        
-        Getting an IPApi object is always preferable to accessing the shell
-        directly, but this holds true especially for extensions.
-        
-        It should always be possible to implement an extension with IPApi
-        alone. If not, contact maintainer to request an addition.
-        
-        """
-        return self.api
 
     def handle_emacs(self, line_info):
         """Handle input lines marked by python-mode."""

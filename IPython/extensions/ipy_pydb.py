@@ -19,12 +19,12 @@ def call_pydb(self, args):
     # print argl # dbg
     if len(inspect.getargspec(pydb.runv)[0]) == 2:
         pdb = debugger.Pdb(color_scheme=self.colors)
-        ip.IP.history_saving_wrapper( lambda : pydb.runv(argl, pdb) )()
+        ip.history_saving_wrapper( lambda : pydb.runv(argl, pdb) )()
     else:
-        ip.IP.history_saving_wrapper( lambda : pydb.runv(argl) )()
+        ip.history_saving_wrapper( lambda : pydb.runv(argl) )()
 
     
-ip.expose_magic("pydb",call_pydb)    
+ip.define_magic("pydb",call_pydb)    
 
     
     

@@ -70,12 +70,13 @@ import os
 import re
 import shlex
 import sys
-import IPython.utils.rlineimpl as readline    
 import itertools
-from IPython.utils.ipstruct import Struct
-from IPython.core import ipapi
-from IPython.utils import generics
 import types
+
+from IPython.core.error import TryNext
+import IPython.utils.rlineimpl as readline    
+from IPython.utils.ipstruct import Struct
+from IPython.utils import generics
 
 # Python 2.4 offers sets as a builtin
 try:
@@ -195,7 +196,7 @@ class Completer:
         
         try:
             words = generics.complete_object(obj, words)
-        except ipapi.TryNext:
+        except TryNext:
             pass
         # Build match list to return
         n = len(attr)
@@ -553,7 +554,7 @@ class IPCompleter(Completer):
                     return withcase
                 # if none, then case insensitive ones are ok too
                 return [r for r in res if r.lower().startswith(text.lower())]
-            except ipapi.TryNext:
+            except TryNext:
                 pass
             
         return None

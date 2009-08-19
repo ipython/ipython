@@ -64,5 +64,5 @@ def render(tmpl):
     toclip(res)
     return res
 
-ip.to_user_ns('render')
+ip.push('render')
     

@@ -26,7 +26,7 @@ def calljed(self,filename, linenum):
     "My editor hook calls the jed editor directly."
     print "Calling my own editor, jed ..."
     if os.system('jed +%d %s' % (linenum,filename)) != 0:
-        raise ipapi.TryNext()
+        raise TryNext()
 
 ip.set_hook('editor', calljed)
 
@@ -41,12 +41,12 @@ somewhere in your configuration files or ipython command line.
 #  the file COPYING, distributed as part of this software.
 #*****************************************************************************
 
-from IPython.core import ipapi
-
 import os, bisect
 import sys
 from IPython.utils.genutils import Term, shell
 from pprint import PrettyPrinter
+
+from IPython.core.error import TryNext
 
 # List here all the default hooks.  For now it's just the editor functions
 # but over time we'll move here all the public API for user-accessible things.
@@ -83,7 +83,7 @@ def editor(self,filename, linenum=None):
         
     # Call the actual editor
     if os.system('%s %s %s' % (editor,linemark,filename)) != 0:
-        raise ipapi.TryNext()
+        raise TryNext()
 
 import tempfile
 def fix_error_editor(self,filename,linenum,column,msg):
@@ -105,7 +105,7 @@ def fix_error_editor(self,filename,linenum,column,msg):
     t = vim_quickfix_file()
     try:
         if os.system('vim --cmd "set errorformat=%f:%l:%c:%m" -q ' + t.name):
-            raise ipapi.TryNext()
+            raise TryNext()
     finally:
         t.close()
 
@@ -140,12 +140,12 @@ class CommandChainDispatcher:
             try:
                 ret = cmd(*args, **kw)
                 return ret
-            except ipapi.TryNext, exc:
+            except TryNext, exc:
                 if exc.args or exc.kwargs:
                     args = exc.args
                     kw = exc.kwargs
         # if no function will accept it, raise TryNext up to the caller
-        raise ipapi.TryNext
+        raise TryNext
                 
     def __str__(self):
         return str(self.chain)
@@ -214,14 +214,12 @@ def late_startup_hook(self):
 
 def generate_prompt(self, is_continuation):
     """ calculate and return a string with the prompt to display """
-    ip = self.api
     if is_continuation:
-        return str(ip.IP.outputcache.prompt2)
-    return str(ip.IP.outputcache.prompt1)
+        return str(self.outputcache.prompt2)
+    return str(self.outputcache.prompt1)
 
 def generate_output_prompt(self):
-    ip = self.api
-    return str(ip.IP.outputcache.prompt_out)
+    return str(self.outputcache.prompt_out)
 
 def shell_hook(self,cmd):
     """ Run system/shell command a'la os.system() """
@@ -231,7 +229,7 @@ def shell_hook(self,cmd):
 def show_in_pager(self,s):
     """ Run a string through pager """
     # raising TryNext here will use the default paging functionality
-    raise ipapi.TryNext
+    raise TryNext
 
 def pre_prompt_hook(self):
     """ Run before displaying the next prompt

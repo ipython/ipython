@@ -21,6 +21,7 @@ Authors:
 #-----------------------------------------------------------------------------
 
 from copy import deepcopy
+import datetime
 from weakref import WeakValueDictionary
 
 from IPython.utils.ipstruct import Struct
@@ -122,6 +123,7 @@ class Component(HasTraitlets):
     config = Instance(Struct,(),{})
     parent = This()
     root = This()
+    created = None
 
     def __init__(self, parent, name=None, config=None):
         """Create a component given a parent and possibly and name and config.
@@ -169,6 +171,8 @@ class Component(HasTraitlets):
         else:
             if self.parent is not None:
                 self.config = deepcopy(self.parent.config)
+
+        self.created = datetime.datetime.now()
 
     #-------------------------------------------------------------------------
     # Static traitlet notifiations

@@ -38,8 +38,6 @@ if ip is None:
     # consistency when the test suite is being run via iptest
     from IPython.testing.plugin import ipdoctest
     ip = ipapi.get()
-    
-IP = ip.IP  # This is the actual IPython shell 'raw' object.
 
 #-----------------------------------------------------------------------------
 # Test functions
@@ -47,10 +45,10 @@ IP = ip.IP  # This is the actual IPython shell 'raw' object.
 
 def test_reset():
     """reset must clear most namespaces."""
-    IP.reset()  # first, it should run without error
+    ip.reset()  # first, it should run without error
     # Then, check that most namespaces end up empty
-    for ns in IP.ns_refs_table:
-        if ns is IP.user_ns:
+    for ns in ip.ns_refs_table:
+        if ns is ip.user_ns:
             # The user namespace is reset with some data, so we can't check for
             # it being empty
             continue
@@ -64,8 +62,8 @@ def test_user_setup():
     kw = dict(mode='install', interactive=False)
 
     # Call the user setup and verify that the directory exists
-    yield user_setup, (ip.options.IPYTHONDIR,''), kw
-    yield os.path.isdir, ip.options.IPYTHONDIR
+    yield user_setup, (ip.config.IPYTHONDIR,''), kw
+    yield os.path.isdir, ip.config.IPYTHONDIR
 
     # Now repeat the operation with a non-existent directory. Check both that
     # the call succeeds and that the directory is created.

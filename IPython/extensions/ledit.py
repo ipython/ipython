@@ -95,4 +95,4 @@ def line_edit_complete_f(self,event):
 
 ip.set_hook('complete_command', line_edit_complete_f , str_key = '%led')
         
-ip.expose_magic('led', line_edit_f)
+ip.define_magic('led', line_edit_f)

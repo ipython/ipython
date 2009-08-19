@@ -17,6 +17,7 @@ for numpy dtype objects, add the following to your ipy_user_conf.py::
 """
 
 from IPython.core import ipapi
+from IPython.core.error import TryNext
 from IPython.utils.genutils import Term
 
 from IPython.external import pretty

@@ -150,8 +150,8 @@ class IPShellEmbed:
                                embedded=True,
                                user_ns=user_ns)
 
-        ip = ipapi.IPApi(self.IP)
-        ip.expose_magic("kill_embedded",kill_embedded)
+        ip = self.IP
+        ip.define_magic("kill_embedded",kill_embedded)
 
         # copy our own displayhook also
         self.sys_displayhook_embed = sys.displayhook

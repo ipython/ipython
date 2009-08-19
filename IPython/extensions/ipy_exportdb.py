@@ -43,7 +43,7 @@ def export(filename = None):
             varstomove.append(k)
             lines.append('%s = %s' % (k,repr(v)))
                 
-        lines.append('ip.to_user_ns("%s")' % (' '.join(varstomove)))
+        lines.append('ip.push("%s")' % (' '.join(varstomove)))
     
     bkms = ip.db.get('bookmarks',{})
     
@@ -57,7 +57,7 @@ def export(filename = None):
         lines.extend(['','# === Alias definitions ===',''])
         for k,v in aliases.items():
             try:
-                lines.append("ip.defalias('%s', %s)" % (k, repr(v[1])))
+                lines.append("ip.define_alias('%s', %s)" % (k, repr(v[1])))
             except (AttributeError, TypeError):
                 pass
 
