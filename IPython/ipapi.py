@@ -25,5 +25,5 @@ to use the new IPython.core.ipapi module"""
 
 warn(msg, category=DeprecationWarning, stacklevel=1)
 
-from IPython.core.ipapi import get
+from IPython.core.ipapi import get, launch_new_instance
 

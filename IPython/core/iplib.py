@@ -294,16 +294,16 @@ class InteractiveShell(Component, Magic):
     # Subclasses with thread support should override this as needed.
     isthreaded = False
 
-    def __init__(self, name, parent=None, config=None, usage=None,
+    def __init__(self, parent=None, config=None, usage=None,
                  user_ns=None, user_global_ns=None,
-                 banner1='', banner2='',
+                 banner1=None, banner2=None,
                  custom_exceptions=((),None), embedded=False):
 
         # This is where traitlets with a config_key argument are updated
         # from the values on config.
         # Ideally, from here on out, the config should only be used when
         # passing it to children components.
-        super(InteractiveShell, self).__init__(parent, config=config, name=name)
+        super(InteractiveShell, self).__init__(parent, config=config, name='__IP')
 
         self.init_instance_attrs()
         self.init_term_title()
@@ -423,9 +423,9 @@ class InteractiveShell(Component, Magic):
     def init_banner(self, banner1, banner2):
         if self.c:  # regular python doesn't print the banner with -c
             self.display_banner = False
-        if banner1:
+        if banner1 is not None:
             self.banner1 = banner1
-        if banner2:
+        if banner2 is not None:
             self.banner2 = banner2
         self.compute_banner()
 
@@ -1066,10 +1066,10 @@ class InteractiveShell(Component, Magic):
             warn('help() not available - check site.py')
 
     def add_builtins(self):
-        """Store ipython references into the builtin namespace.
+        """Store ipython references into the __builtin__ namespace.
 
-        Some parts of ipython operate via builtins injected here, which hold a
-        reference to IPython itself."""
+        We strive to modify the __builtin__ namespace as little as possible.
+        """
 
         # Install our own quitter instead of the builtins.
         # This used to be in the __init__ method, but this is a better
@@ -1088,25 +1088,7 @@ class InteractiveShell(Component, Magic):
             del deepreload
         except ImportError:
             pass
-        
-        # TODO: deprecate all of these, they are unsafe.  Why though?
-        builtins_new  = dict(__IPYTHON__ = self,
-             ip_set_hook = self.set_hook, 
-             jobs = self.jobs,
-             # magic = self.magic,
-             ipalias = wrap_deprecated(self.ipalias),  
-             # ipsystem = wrap_deprecated(self.ipsystem,'_ip.system()'),
-             )
-        for biname,bival in builtins_new.items():
-            try:
-                # store the orignal value so we can restore it
-                self.builtins_added[biname] =  __builtin__.__dict__[biname]
-            except KeyError:
-                # or mark that it wasn't defined, and we'll just delete it at
-                # cleanup
-                self.builtins_added[biname] = Undefined
-            __builtin__.__dict__[biname] = bival
-            
+
         # Keep in the builtins a flag for when IPython is active.  We set it
         # with setdefault so that multiple nested IPythons don't clobber one
         # another.  Each will increase its value by one upon being activated,

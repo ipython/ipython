@@ -304,7 +304,6 @@ class IPythonApp(Application):
         
         # Create an InteractiveShell instance
         self.shell = InteractiveShell(
-            name='__IP',
             parent=None,
             config=self.master_config
         )

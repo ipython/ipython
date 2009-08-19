@@ -19,11 +19,24 @@ the new code in IPython.core.shell.
 from warnings import warn
 
 msg = """
-This module (IPython.Shell) has been moved to a new location
-(IPython.core.shell) and is being refactored.  Please update your code
-to use the new IPython.core.shell module"""
+This module (IPython.Shell) is deprecated.  The classes that were in this
+module have been replaced by:
+
+IPShell->IPython.core.iplib.InteractiveShell
+IPShellEmbed->IPython.core.embed.InteractiveShellEmbed
+
+Please migrate your code to use these classes instead.
+"""
 
 warn(msg, category=DeprecationWarning, stacklevel=1)
 
-from IPython.core.shell import start, IPShell, IPShellEmbed
+from IPython.core.iplib import InteractiveShell as IPShell
+from IPython.core.embed import InteractiveShellEmbed as IPShellEmbed
+
+def start(user_ns=None, embedded=False):
+    """Return an instance of :class:`InteractiveShell`."""
+    if embedded:
+        return InteractiveShellEmbed(user_ns=user_ns)
+    else:
+        return InteractiveShell(user_ns=user_ns)
 

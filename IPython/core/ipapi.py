@@ -29,19 +29,10 @@ Authors:
 
 from IPython.core.error import TryNext, UsageError
 from IPython.core.component import Component
-from warnings import warn
 
 #-----------------------------------------------------------------------------
 # Classes and functions
 #-----------------------------------------------------------------------------
-
-msg = """
-This module (IPython.core.ipapi) is being deprecated.  For now, all we
-offer here is the ``get`` function for getting the most recently created
-InteractiveShell instance."""
-
-warn(msg, category=DeprecationWarning, stacklevel=1)
-
 
 def get():
     """Get the most recently created InteractiveShell instance."""
@@ -50,7 +41,13 @@ def get():
     for inst in insts[1:]:
         if inst.created > most_recent.created:
             most_recent = inst
-    return most_recent.getapi()
+    return most_recent
+
+def launch_new_instance():
+    """Create a run a full blown IPython instance"""
+    from IPython.core.ipapp import IPythonApp
+    app = IPythonApp()
+    app.start()
 
 
 

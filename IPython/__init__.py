@@ -34,9 +34,6 @@ if sys.version[0:3] < '2.4':
 # Therefore, non-IPython modules can be added to extensions directory
 sys.path.append(os.path.join(os.path.dirname(__file__), "extensions"))
 
-
-# from IPython.core import shell
-# Shell = shell
 from IPython.core import iplib
 
 
