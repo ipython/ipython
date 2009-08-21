@@ -102,6 +102,12 @@ class InputHookManager(object):
         if app:
             import wx
             app = wx.App(redirect=False, clearSigInt=False)
+            # The import of wx on Linux sets the handler for signal.SIGINT
+            # to 0.  This is a bug in wx or gtk.  We fix by just setting it
+            # back to the Python default.
+            import signal
+            if not callable(signal.getsignal(signal.SIGINT)):
+                signal.signal(signal.SIGINT, signal.default_int_handler)
             return app
 
     def disable_wx(self):
@@ -176,7 +182,8 @@ class InputHookManager(object):
         except AttributeError:
             # For older versions of gtk, use our own ctypes version
             from IPython.lib.inputhookgtk import inputhook_gtk
-            add_inputhook(inputhook_gtk)
+            self.set_inputhook(inputhook_gtk)
+            self._current_gui = 'gtk'
 
     def disable_gtk(self):
         """Disable event loop integration with PyGTK.
