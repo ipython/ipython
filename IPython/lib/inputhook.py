@@ -22,20 +22,35 @@ import sys
 # Code
 #-----------------------------------------------------------------------------
 
-def _dummy_mainloop(*args, **kw):
-    pass
+class _DummyMainloop(object):
+    """A special manager to hijack GUI mainloops that is mostly a no-op.
+
+    This does have, however, special logic.
+    """
+    def __init__(self, ml, ihm, gui_type):
+        self.ml = ml
+        self.ihm = ihm
+        self.gui_type = gui_type
+        
+        
+    def __call__(self, *args, **kw):
+        if self.ihm.current_gui() == self.gui_type:
+            pass
+        else:
+            self.ml(*args, **kw)
 
 
 def spin_qt4():
     from PyQt4 import QtCore, QtGui
 
-    app = QtCore.QCoreApplication.instance()
-    if app is not None and app.thread == QtCore.QThread.currentThread():
+    app = QtCore.QCoreApplication.instance()    
+    if (app is not None) and (app.thread() == QtCore.QThread.currentThread()):
         timer = QtCore.QTimer()
         QtCore.QObject.connect(timer,
                                QtCore.SIGNAL('timeout()'),
+                               app, 
                                QtCore.SLOT('quit()'))
-        self.timer.start(100)
+        timer.start(100)
         QtCore.QCoreApplication.exec_()
         timer.stop()
 
@@ -76,31 +91,32 @@ class InputHookManager(object):
         elif hasattr(wx, '_core'): core = getattr(wx, '_core')
         else: raise AttributeError('Could not find wx core module')
         orig_mainloop = core.PyApp_MainLoop
-        core.PyApp_MainLoop = _dummy_mainloop
+        core.PyApp_MainLoop = _DummyMainloop
         return orig_mainloop
 
     def _hijack_qt4(self):
         """Hijack the qt4 mainloop so a user calling it won't cause badness."""
         from PyQt4 import QtGui, QtCore
         orig_mainloop = QtGui.qApp.exec_
-        QtGui.qApp.exec_ = _dummy_mainloop
-        QtGui.QApplication.exec_ = _dummy_mainloop
-        QtCore.QCoreApplication.exec_ = _dummy_mainloop
+        dumb_ml = _DummyMainloop(orig_mainloop, self, 'qt4')
+        QtGui.qApp.exec_ = dumb_ml
+        QtGui.QApplication.exec_ = dumb_ml
+        QtCore.QCoreApplication.exec_ = dumb_ml
         return orig_mainloop
 
     def _hijack_gtk(self):
         """Hijack the gtk mainloop so a user calling it won't cause badness."""
         import gtk
         orig_mainloop = gtk.main
-        gtk.mainloop = _dummy_mainloop
-        gtk.main = _dummy_mainloop
+        gtk.mainloop = _DummyMainloop
+        gtk.main = _DummyMainloop
         return orig_mainloop
 
     def _hijack_tk(self):
         """Hijack the tk mainloop so a user calling it won't cause badness."""
         import Tkinter
-        Tkinter.Misc.mainloop = _dummy_mainloop
-        Tkinter.mainloop = _dummy_mainloop
+        Tkinter.Misc.mainloop = _DummyMainloop
+        Tkinter.mainloop = _DummyMainloop
 
     def get_pyos_inputhook(self):
         """Return the current PyOS_InputHook as a ctypes.c_void_p."""
