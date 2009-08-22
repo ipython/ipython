@@ -26,6 +26,31 @@ def _dummy_mainloop(*args, **kw):
     pass
 
 
+def spin_qt4():
+    from PyQt4 import QtCore, QtGui
+
+    app = QtCore.QCoreApplication.instance()
+    if app is not None and app.thread == QtCore.QThread.currentThread():
+        timer = QtCore.QTimer()
+        QtCore.QObject.connect(timer,
+                               QtCore.SIGNAL('timeout()'),
+                               QtCore.SLOT('quit()'))
+        self.timer.start(100)
+        QtCore.QCoreApplication.exec_()
+        timer.stop()
+
+
+def spin_wx():
+    app = wx.GetApp()
+    if app is not None and wx.Thread_IsMain():
+        evtloop = wx.EventLoop()
+        ea = wx.EventLoopActivator(evtloop)
+        while evtloop.Pending():
+            evtloop.Dispatch()
+        app.ProcessIdle()
+        del ea
+
+
 class InputHookManager(object):
     """Manage PyOS_InputHook for different GUI toolkits.
 
@@ -203,7 +228,7 @@ class InputHookManager(object):
         self._hijack_qt4()
         if app:
             from PyQt4 import QtGui
-            app = QtGui.QApplication.instance()
+            app = QtCore.QCoreApplication.instance()
             if app is None:
                 app = QtGui.QApplication(sys.argv)
                 self._apps['qt4'] = app
