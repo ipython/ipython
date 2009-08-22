@@ -45,6 +45,7 @@ class InputHookManager(object):
         self._current_gui = None
 
     def _hijack_wx(self):
+        """Hijack the wx mainloop so a user calling it won't cause badness."""
         import wx
         if hasattr(wx, '_core_'): core = getattr(wx, '_core_')
         elif hasattr(wx, '_core'): core = getattr(wx, '_core')
@@ -54,6 +55,7 @@ class InputHookManager(object):
         return orig_mainloop
 
     def _hijack_qt4(self):
+        """Hijack the qt4 mainloop so a user calling it won't cause badness."""
         from PyQt4 import QtGui, QtCore
         orig_mainloop = QtGui.qApp.exec_
         QtGui.qApp.exec_ = _dummy_mainloop
@@ -62,6 +64,7 @@ class InputHookManager(object):
         return orig_mainloop
 
     def _hijack_gtk(self):
+        """Hijack the gtk mainloop so a user calling it won't cause badness."""
         import gtk
         orig_mainloop = gtk.main
         gtk.mainloop = _dummy_mainloop
@@ -69,23 +72,21 @@ class InputHookManager(object):
         return orig_mainloop
 
     def _hijack_tk(self):
+        """Hijack the tk mainloop so a user calling it won't cause badness."""
         import Tkinter
         Tkinter.Misc.mainloop = _dummy_mainloop
         Tkinter.mainloop = _dummy_mainloop
 
     def get_pyos_inputhook(self):
-        """Return the current PyOS_InputHook as a ctypes.c_void_p.
-        """
+        """Return the current PyOS_InputHook as a ctypes.c_void_p."""
         return ctypes.c_void_p.in_dll(ctypes.pythonapi,"PyOS_InputHook")
 
     def get_pyos_inputhook_as_func(self):
-        """Return the current PyOS_InputHook as a ctypes.PYFUNCYPE.
-        """
+        """Return the current PyOS_InputHook as a ctypes.PYFUNCYPE."""
         return self.PYFUNC.in_dll(ctypes.pythonapi,"PyOS_InputHook")
 
     def set_inputhook(self, callback):
-        """Set PyOS_InputHook to callback and return the previous one.
-        """
+        """Set PyOS_InputHook to callback and return the previous one."""
         self._callback = callback
         self._callback_pyfunctype = self.PYFUNC(callback)
         pyos_inputhook_ptr = self.get_pyos_inputhook()
@@ -96,8 +97,7 @@ class InputHookManager(object):
         return original
 
     def clear_inputhook(self):
-        """Set PyOS_InputHook to NULL and return the previous one.
-        """
+        """Set PyOS_InputHook to NULL and return the previous one."""
         pyos_inputhook_ptr = self.get_pyos_inputhook()
         original = self.get_pyos_inputhook_as_func()
         pyos_inputhook_ptr.value = ctypes.c_void_p(None).value
@@ -106,6 +106,11 @@ class InputHookManager(object):
 
     def clear_app_refs(self, gui=None):
         """Clear IPython's internal reference to an application instance.
+
+        Whenever we create an app for a user on qt4 or wx, we hold a
+        reference to the app.  This is needed because in some cases bad things
+        can happen if a user doesn't hold a reference themselves.  This
+        method is provided to clear the references we are holding.
 
         Parameters
         ----------
@@ -129,20 +134,20 @@ class InputHookManager(object):
 
         Notes
         -----
-        This methods sets the PyOS_InputHook for wxPython, which allows
+        This methods sets the ``PyOS_InputHook`` for wxPython, which allows
         the wxPython to integrate with terminal based applications like
         IPython.
-        
-        Once this has been called, you can use wx interactively by doing::
-        
-            >>> import wx
-            >>> app = wx.App(redirect=False, clearSigInt=False)
-        
+
+        If ``app`` is True, we create an :class:`wx.App` as follows::
+
+            import wx
+            app = wx.App(redirect=False, clearSigInt=False)
+
         Both options this constructor are important for things to work
         properly in an interactive context.
-        
-        But, *don't start the event loop*.  That is handled automatically by
-        PyOS_InputHook.
+
+        But, we first check to see if an application has already been 
+        created.  If so, we simply return that instance.
         """
         from IPython.lib.inputhookwx import inputhook_wx
         self.set_inputhook(inputhook_wx)
@@ -158,7 +163,7 @@ class InputHookManager(object):
 
     def disable_wx(self):
         """Disable event loop integration with wxPython.
-        
+
         This merely sets PyOS_InputHook to NULL.
         """
         self.clear_inputhook()
@@ -173,13 +178,17 @@ class InputHookManager(object):
 
         Notes
         -----
-        This methods sets the PyOS_InputHook for wxPython, which allows
+        This methods sets the PyOS_InputHook for PyQt4, which allows
         the PyQt4 to integrate with terminal based applications like
         IPython.
-        
-        Once this has been called, you can simply create a QApplication and
-        use it.  But, *don't start the event loop*.  That is handled
-        automatically by PyOS_InputHook.
+
+        If ``app`` is True, we create an :class:`QApplication` as follows::
+
+            from PyQt4 import QtCore
+            app = QtGui.QApplication(sys.argv)
+
+        But, we first check to see if an application has already been 
+        created.  If so, we simply return that instance.
         """
         from PyQt4 import QtCore
         # PyQt4 has had this since 4.3.1.  In version 4.2, PyOS_InputHook
@@ -202,7 +211,7 @@ class InputHookManager(object):
 
     def disable_qt4(self):
         """Disable event loop integration with PyQt4.
-        
+
         This merely sets PyOS_InputHook to NULL.
         """
         self.clear_inputhook()
@@ -213,17 +222,14 @@ class InputHookManager(object):
         Parameters
         ----------
         app : bool
-            Create a running application object or not.
+            Create a running application object or not.  Because gtk does't
+            have an app class, this does nothing.
 
         Notes
         -----
         This methods sets the PyOS_InputHook for PyGTK, which allows
         the PyGTK to integrate with terminal based applications like
         IPython.
-        
-        Once this has been called, you can simple create PyGTK objects and
-        use them.  But, *don't start the event loop*.  That is handled
-        automatically by PyOS_InputHook.
         """
         import gtk
         try:
