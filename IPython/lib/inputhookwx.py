@@ -19,6 +19,7 @@ Authors:  Robin Dunn, Brian Granger, Ondrej Certik
 #-----------------------------------------------------------------------------
 
 import os
+import signal
 import sys
 import time
 from timeit import default_timer as clock
@@ -122,6 +123,12 @@ def inputhook_wx3():
     if app is not None:
         assert wx.Thread_IsMain()
 
+        # The import of wx on Linux sets the handler for signal.SIGINT
+        # to 0.  This is a bug in wx or gtk.  We fix by just setting it
+        # back to the Python default.
+        if not callable(signal.getsignal(signal.SIGINT)):
+            signal.signal(signal.SIGINT, signal.default_int_handler)
+
         evtloop = wx.EventLoop()
         ea = wx.EventLoopActivator(evtloop)
         t = clock()
@@ -139,7 +146,9 @@ def inputhook_wx3():
             # 0.001   13%
             # 0.005   3%
             # 0.01    1.5%
-            # 0.05    0.5%            
+            # 0.05    0.5%
+            if clock()-t > 1.0:
+                time.sleep(1.0)
             if clock()-t > 0.1:
                 # Few GUI events coming in, so we can sleep longer
                 time.sleep(0.05)

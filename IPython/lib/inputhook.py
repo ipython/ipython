@@ -22,6 +22,9 @@ import sys
 # Code
 #-----------------------------------------------------------------------------
 
+def _dummy_mainloop(*args, **kw):
+    pass
+
 
 class InputHookManager(object):
     """Manage PyOS_InputHook for different GUI toolkits.
@@ -32,6 +35,7 @@ class InputHookManager(object):
     
     def __init__(self):
         self.PYFUNC = ctypes.PYFUNCTYPE(ctypes.c_int)
+        self._apps = {}
         self._reset()
 
     def _reset(self):
@@ -39,6 +43,35 @@ class InputHookManager(object):
         self._callback = None
         self._installed = False
         self._current_gui = None
+
+    def _hijack_wx(self):
+        import wx
+        if hasattr(wx, '_core_'): core = getattr(wx, '_core_')
+        elif hasattr(wx, '_core'): core = getattr(wx, '_core')
+        else: raise AttributeError('Could not find wx core module')
+        orig_mainloop = core.PyApp_MainLoop
+        core.PyApp_MainLoop = _dummy_mainloop
+        return orig_mainloop
+
+    def _hijack_qt4(self):
+        from PyQt4 import QtGui, QtCore
+        orig_mainloop = QtGui.qApp.exec_
+        QtGui.qApp.exec_ = _dummy_mainloop
+        QtGui.QApplication.exec_ = _dummy_mainloop
+        QtCore.QCoreApplication.exec_ = _dummy_mainloop
+        return orig_mainloop
+
+    def _hijack_gtk(self):
+        import gtk
+        orig_mainloop = gtk.main
+        gtk.mainloop = _dummy_mainloop
+        gtk.main = _dummy_mainloop
+        return orig_mainloop
+
+    def _hijack_tk(self):
+        import Tkinter
+        Tkinter.Misc.mainloop = _dummy_mainloop
+        Tkinter.mainloop = _dummy_mainloop
 
     def get_pyos_inputhook(self):
         """Return the current PyOS_InputHook as a ctypes.c_void_p.
@@ -71,6 +104,21 @@ class InputHookManager(object):
         self._reset()
         return original
 
+    def clear_app_refs(self, gui=None):
+        """Clear IPython's internal reference to an application instance.
+
+        Parameters
+        ----------
+        gui : None or str
+            If None, clear all app references.  If ('wx', 'qt4') clear
+            the app for that toolkit.  References are not held for gtk or tk
+            as those toolkits don't have the notion of an app.
+        """
+        if gui is None:
+            self._apps = {}
+        elif self._apps.has_key(gui):
+            del self._apps[gui]
+
     def enable_wx(self, app=False):
         """Enable event loop integration with wxPython.
 
@@ -99,15 +147,13 @@ class InputHookManager(object):
         from IPython.lib.inputhookwx import inputhook_wx
         self.set_inputhook(inputhook_wx)
         self._current_gui = 'wx'
+        self._hijack_wx()
         if app:
             import wx
-            app = wx.App(redirect=False, clearSigInt=False)
-            # The import of wx on Linux sets the handler for signal.SIGINT
-            # to 0.  This is a bug in wx or gtk.  We fix by just setting it
-            # back to the Python default.
-            import signal
-            if not callable(signal.getsignal(signal.SIGINT)):
-                signal.signal(signal.SIGINT, signal.default_int_handler)
+            app = wx.GetApp()
+            if app is None:
+                app = wx.App(redirect=False, clearSigInt=False)
+                self._apps['wx'] = app
             return app
 
     def disable_wx(self):
@@ -145,9 +191,13 @@ class InputHookManager(object):
         except AttributeError:
             pass
         self._current_gui = 'qt4'
+        self._hijack_qt4()
         if app:
             from PyQt4 import QtGui
-            app = QtGui.QApplication(sys.argv)
+            app = QtGui.QApplication.instance()
+            if app is None:
+                app = QtGui.QApplication(sys.argv)
+                self._apps['qt4'] = app
             return app
 
     def disable_qt4(self):
@@ -184,6 +234,7 @@ class InputHookManager(object):
             from IPython.lib.inputhookgtk import inputhook_gtk
             self.set_inputhook(inputhook_gtk)
             self._current_gui = 'gtk'
+        self._hijack_gtk()
 
     def disable_gtk(self):
         """Disable event loop integration with PyGTK.
@@ -206,6 +257,7 @@ class InputHookManager(object):
         sets ``PyOS_InputHook``.
         """
         self._current_gui = 'tk'
+        self._hijack_tk()
 
     def disable_tk(self):
         """Disable event loop integration with Tkinter.
@@ -231,3 +283,4 @@ disable_tk = inputhook_manager.disable_tk
 clear_inputhook = inputhook_manager.clear_inputhook
 set_inputhook = inputhook_manager.set_inputhook
 current_gui = inputhook_manager.current_gui
+clear_app_refs = inputhook_manager.clear_app_refs
