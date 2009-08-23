@@ -34,4 +34,9 @@ if __name__ == '__main__':
     sw = SimpleWindow()
     sw.show()
 
-    app.exec_()
+    try:
+        import IPython.lib.inputhook as i; i.appstart_qt4()
+    except ImportError:
+        app.exec_()
+    
+    #import time; time.sleep(10)

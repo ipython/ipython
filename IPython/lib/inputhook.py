@@ -22,6 +22,18 @@ import sys
 # Code
 #-----------------------------------------------------------------------------
 
+def appstart_qt4():
+    from PyQt4 import QtCore, QtGui
+    
+    app = QtCore.QCoreApplication.instance()
+    print 'qtapp:', app
+    if app is not None:
+        if current_gui() == 'qt4':
+            pass
+        else:
+            app.exec_()
+    
+
 class _DummyMainloop(object):
     """A special manager to hijack GUI mainloops that is mostly a no-op.
 
@@ -34,6 +46,12 @@ class _DummyMainloop(object):
         
         
     def __call__(self, *args, **kw):
+        force = kw.pop('force', False)
+        force = False
+        if force:
+            #print 'forced spin'  # dbg
+            self.ml(*args, **kw)
+            
         if self.ihm.current_gui() == self.gui_type:
             pass
         else:
@@ -45,14 +63,15 @@ def spin_qt4():
 
     app = QtCore.QCoreApplication.instance()    
     if (app is not None) and (app.thread() == QtCore.QThread.currentThread()):
-        timer = QtCore.QTimer()
-        QtCore.QObject.connect(timer,
-                               QtCore.SIGNAL('timeout()'),
-                               app, 
-                               QtCore.SLOT('quit()'))
-        timer.start(100)
-        QtCore.QCoreApplication.exec_()
-        timer.stop()
+        ## timer = QtCore.QTimer()
+        ## QtCore.QObject.connect(timer,
+        ##                        QtCore.SIGNAL('timeout()'),
+        ##                        app, 
+        ##                        QtCore.SLOT('quit()'))
+        ## timer.start(100)
+        #QtCore.QCoreApplication.exec_(force=True)
+        QtCore.QCoreApplication.processEvents(QtCore.QEventLoop.AllEvents)
+        ##timer.stop()
 
 
 def spin_wx():
@@ -241,7 +260,7 @@ class InputHookManager(object):
         except AttributeError:
             pass
         self._current_gui = 'qt4'
-        self._hijack_qt4()
+        #self._hijack_qt4()
         if app:
             from PyQt4 import QtGui
             app = QtCore.QCoreApplication.instance()
