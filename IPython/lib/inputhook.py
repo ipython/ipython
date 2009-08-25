@@ -114,6 +114,56 @@ def appstart_wx(app):
             app.MainLoop()
 
 
+def appstart_tk(app):
+    """Start the tk event loop in a way that plays with IPython.
+
+    When a tk app is run interactively in IPython, the event loop should
+    not be started.  This function checks to see if IPython's tk integration
+    is activated and if so, it passes.  If not, it will call the 
+    :meth:`mainloop` method of the tk object passed to this method.
+
+    This function should be used by users who want their tk scripts to work
+    both at the command line and in IPython.  These users should put the 
+    following logic at the bottom on their script, after they create a
+    :class:`Tk` instance (called ``app`` here)::
+
+    try:
+        from IPython.lib.inputhook import appstart_tk
+        appstart_tk(app)
+    except ImportError:
+        app.mainloop()
+    """
+    if app is not None:
+        if current_gui() == GUI_TK:
+            pass
+        else:
+            app.mainloop()
+
+def appstart_gtk():
+    """Start the gtk event loop in a way that plays with IPython.
+
+    When a gtk app is run interactively in IPython, the event loop should
+    not be started.  This function checks to see if IPython's gtk integration
+    is activated and if so, it passes.  If not, it will call 
+    :func:`gtk.main`.  Unlike the other appstart implementations, this does
+    not take an ``app`` argument.
+
+    This function should be used by users who want their gtk scripts to work
+    both at the command line and in IPython.  These users should put the 
+    following logic at the bottom on their script::
+
+    try:
+        from IPython.lib.inputhook import appstart_gtk
+        appstart_gtk()
+    except ImportError:
+        gtk.main()
+    """
+    import gtk
+    if current_gui() == GUI_GTK:
+        pass
+    else:
+        gtk.main()
+
 #-----------------------------------------------------------------------------
 # Main InputHookManager class
 #-----------------------------------------------------------------------------
@@ -229,7 +279,12 @@ class InputHookManager(object):
         This is for internal IPython use only and user code should not call this.
         Instead, they should issue the raw GUI calls themselves.
         """
-        pass
+        import gtk
+        gtk.gdk.threads_enter()
+        while gtk.events_pending():
+            gtk.main_iteration(False)
+        gtk.gdk.flush()
+        gtk.gdk.threads_leave()
 
     def _spin_tk(self):
         """Process all pending events in the tk event loop.

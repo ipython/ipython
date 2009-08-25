@@ -22,7 +22,8 @@ from IPython.lib.inputhook import (
     enable_tk, disable_tk,
     set_inputhook, clear_inputhook,
     current_gui, spin,
-    appstart_qt4, appstart_wx
+    appstart_qt4, appstart_wx,
+    appstart_gtk, appstart_tk
 )
 
 #-----------------------------------------------------------------------------
