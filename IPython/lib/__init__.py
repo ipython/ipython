@@ -20,7 +20,9 @@ from IPython.lib.inputhook import (
     enable_gtk, disable_gtk,
     enable_qt4, disable_qt4,
     enable_tk, disable_tk,
-    set_inputhook, clear_inputhook
+    set_inputhook, clear_inputhook,
+    current_gui, spin,
+    appstart_qt4, appstart_wx
 )
 
 #-----------------------------------------------------------------------------

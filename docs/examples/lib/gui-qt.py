@@ -35,8 +35,6 @@ if __name__ == '__main__':
     sw.show()
 
     try:
-        import IPython.lib.inputhook as i; i.appstart_qt4()
+        from IPython import appstart_qt4; appstart_qt4(app)
     except ImportError:
         app.exec_()
-    
-    #import time; time.sleep(10)
