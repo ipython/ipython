@@ -211,13 +211,13 @@ class Component(HasTraitlets):
         return self._children
 
     def _remove_child(self, child):
-        """A private method for removing children componenets."""
+        """A private method for removing children components."""
         if child in self._children:
             index = self._children.index(child)
             del self._children[index]
 
     def _add_child(self, child):
-        """A private method for adding children componenets."""
+        """A private method for adding children components."""
         if child not in self._children:
             self._children.append(child)
 
