@@ -165,7 +165,7 @@ class Component(HasTraitlets):
         else:
             self.name = name
         self.root = self # This is the default, it is set when parent is set
-        self.parent = parent
+        self.parent = parent     
         if config is not None:
             self.config = deepcopy(config)
         else:

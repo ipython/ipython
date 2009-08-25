@@ -58,7 +58,7 @@ from IPython.utils.strdispatch import StrDispatch
 from IPython.utils.platutils import toggle_set_term_title, set_term_title
 
 from IPython.utils.traitlets import (
-    Int, Float, Str, CBool, CaselessStrEnum, Enum, List
+    Int, Float, Str, CBool, CaselessStrEnum, Enum, List, Unicode
 )
 
 #-----------------------------------------------------------------------------
@@ -232,6 +232,7 @@ class InteractiveShell(Component, Magic):
     editor = Str(get_default_editor(), config_key='EDITOR')
     filename = Str("<ipython console>")
     interactive = CBool(False, config_key='INTERACTIVE')
+    ipythondir= Unicode('', config_key='IPYTHONDIR') # Set to os.getcwd() in __init__
     logstart = CBool(False, config_key='LOGSTART')
     logfile = Str('', config_key='LOGFILE')
     logplay = Str('', config_key='LOGPLAY')
@@ -294,7 +295,7 @@ class InteractiveShell(Component, Magic):
     # Subclasses with thread support should override this as needed.
     isthreaded = False
 
-    def __init__(self, parent=None, config=None, usage=None,
+    def __init__(self, parent=None, ipythondir=None, config=None, usage=None,
                  user_ns=None, user_global_ns=None,
                  banner1=None, banner2=None,
                  custom_exceptions=((),None), embedded=False):
@@ -305,6 +306,7 @@ class InteractiveShell(Component, Magic):
         # passing it to children components.
         super(InteractiveShell, self).__init__(parent, config=config, name='__IP')
 
+        self.init_ipythondir(ipythondir)
         self.init_instance_attrs()
         self.init_term_title()
         self.init_usage(usage)
@@ -366,6 +368,16 @@ class InteractiveShell(Component, Magic):
     #-------------------------------------------------------------------------
     # init_* methods called by __init__
     #-------------------------------------------------------------------------
+
+    def init_ipythondir(self, ipythondir):
+        if ipythondir is not None:
+            self.ipythondir = ipythondir
+            return
+
+        if not hasattr(self.config, 'IPYTHONDIR'):
+            # cdw is always defined
+            self.ipythondir = os.getcwd()
+            return
 
     def init_instance_attrs(self):
         self.jobs = BackgroundJobManager()
