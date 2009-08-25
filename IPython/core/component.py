@@ -191,6 +191,14 @@ class Component(HasTraitlets):
                                      "root != parent.root")
 
     def _config_changed(self, name, old, new):
+        """Update all the class traits having a config_key with the config.
+
+        For any class traitlet with a ``config_key`` metadata attribute, we
+        update the traitlet with the value of the corresponding config entry.
+
+        In the future, we might want to do a pop here so stale config info
+        is not passed onto children.
+        """
         # Get all traitlets with a config_key metadata entry
         traitlets = self.traitlets('config_key')
         for k, v in traitlets.items():
