@@ -1412,6 +1412,9 @@ the form of a library, the capabilities are exposed in library form
 in the :mod:`IPython.lib.inputhook`.  Interested developers should see the
 module docstrings for more information.
 
+In addition, we also have a number of examples in our source directory
+:file:`docs/examples/lib` that demonstrate these capabilities.
+
 .. _matplotlib_support:
 
 Plotting with matplotlib
