@@ -59,34 +59,30 @@ class MetaComponentTracker(type):
                 c.__instance_refs[c.__numcreated] = instance
         return instance
 
-    def get_instances(cls, name=None, klass=None, root=None):
+    def get_instances(cls, name=None, root=None):
         """Get all instances of cls and its subclasses.
 
         Parameters
         ----------
         name : str
             Limit to components with this name.
-        klass : class
-            Limit to components having isinstance(component, klass)
         root : Component or subclass
             Limit to components having this root.
         """
         instances = cls.__instance_refs.values()
         if name is not None:
             instances = [i for i in instances if i.name == name]
-        if klass is not None:
-            instances = [i for i in instances if isinstance(i, klass)]
         if root is not None:
             instances = [i for i in instances if i.root == root]
         return instances
 
-    def get_instances_by_condition(cls, call, name=None, klass=None, root=None):
+    def get_instances_by_condition(cls, call, name=None, root=None):
         """Get all instances of cls, i such that call(i)==True.
 
-        This also takes the ``name``, ``klass`` and ``root`` arguments of
+        This also takes the ``name`` and ``root`` arguments of
         :meth:`get_instance`
         """
-        return [i for i in cls.get_instances(name,klass,root) if call(i)]
+        return [i for i in cls.get_instances(name, root) if call(i)]
 
 
 class ComponentNameGenerator(object):

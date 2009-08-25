@@ -52,7 +52,7 @@ class TestComponentMeta(TestCase):
         c2 = MyOtherComponent(c1)
         c3 = MyOtherComponent(c2)
         self.assertEquals(MyComponent.get_instances(), [c1, c2, c3])
-        self.assertEquals(MyComponent.get_instances(klass=MyOtherComponent), [c2, c3])
+        self.assertEquals(MyOtherComponent.get_instances(), [c2, c3])
 
     def test_get_instances_root(self):
         class MyComponent(Component):
