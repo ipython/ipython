@@ -60,34 +60,30 @@ class MetaComponentTracker(type):
                 c.__instance_refs[c.__numcreated] = instance
         return instance
 
-    def get_instances(cls, name=None, klass=None, root=None):
+    def get_instances(cls, name=None, root=None):
         """Get all instances of cls and its subclasses.
 
         Parameters
         ----------
         name : str
             Limit to components with this name.
-        klass : class
-            Limit to components having isinstance(component, klass)
         root : Component or subclass
             Limit to components having this root.
         """
         instances = cls.__instance_refs.values()
         if name is not None:
             instances = [i for i in instances if i.name == name]
-        if klass is not None:
-            instances = [i for i in instances if isinstance(i, klass)]
         if root is not None:
             instances = [i for i in instances if i.root == root]
         return instances
 
-    def get_instances_by_condition(cls, call, name=None, klass=None, root=None):
+    def get_instances_by_condition(cls, call, name=None, root=None):
         """Get all instances of cls, i such that call(i)==True.
 
-        This also takes the ``name``, ``klass`` and ``root`` arguments of
+        This also takes the ``name`` and ``root`` arguments of
         :meth:`get_instance`
         """
-        return [i for i in cls.get_instances(name,klass,root) if call(i)]
+        return [i for i in cls.get_instances(name, root) if call(i)]
 
 
 class ComponentNameGenerator(object):
@@ -199,6 +195,14 @@ class Component(HasTraitlets):
                                      "root != parent.root")
 
     def _config_changed(self, name, old, new):
+        """Update all the class traits having a config_key with the config.
+
+        For any class traitlet with a ``config_key`` metadata attribute, we
+        update the traitlet with the value of the corresponding config entry.
+
+        In the future, we might want to do a pop here so stale config info
+        is not passed onto children.
+        """
         # Get all traitlets with a config_key metadata entry
         traitlets = self.traitlets('config_key')
         for k, v in traitlets.items():
@@ -215,13 +219,13 @@ class Component(HasTraitlets):
         return self._children
 
     def _remove_child(self, child):
-        """A private method for removing children componenets."""
+        """A private method for removing children components."""
         if child in self._children:
             index = self._children.index(child)
             del self._children[index]
 
     def _add_child(self, child):
-        """A private method for adding children componenets."""
+        """A private method for adding children components."""
         if child not in self._children:
             self._children.append(child)
 

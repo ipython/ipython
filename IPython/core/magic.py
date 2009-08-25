@@ -3548,11 +3548,11 @@ Defaulting color scheme to 'NoColor'"""
         interrupts should work without any problems.  The following toolkits
         are supports:  wxPython, PyQt4, PyGTK, and Tk::
 
-            %gui wx    # enable wxPython event loop integration
-            %gui qt4   # enable PyQt4 event loop integration
-            %gui gtk   # enable PyGTK event loop integration
-            %gui tk    # enable Tk event loop integration
-            %gui       # disable all event loop integration
+            %gui wx      # enable wxPython event loop integration
+            %gui qt4|qt  # enable PyQt4 event loop integration
+            %gui gtk     # enable PyGTK event loop integration
+            %gui tk      # enable Tk event loop integration
+            %gui         # disable all event loop integration
 
         WARNING:  after any of these has been called you can simply create
         an application object, but DO NOT start the event loop yourself, as
@@ -3574,7 +3574,7 @@ Defaulting color scheme to 'NoColor'"""
             inputhook.clear_inputhook()
         elif 'wx' in parameter_s:
             return inputhook.enable_wx(app)
-        elif 'qt4' in parameter_s:
+        elif ('qt4' in parameter_s) or ('qt' in parameter_s):
             return inputhook.enable_qt4(app)
         elif 'gtk' in parameter_s:
             return inputhook.enable_gtk(app)

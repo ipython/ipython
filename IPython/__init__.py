@@ -34,8 +34,23 @@ if sys.version[0:3] < '2.4':
 # Therefore, non-IPython modules can be added to extensions directory
 sys.path.append(os.path.join(os.path.dirname(__file__), "extensions"))
 
-from IPython.core import iplib
+#-----------------------------------------------------------------------------
+# Setup the top level names
+#-----------------------------------------------------------------------------
 
+from IPython.core.iplib import InteractiveShell
+from IPython.core.error import TryNext
+
+from IPython.lib import (
+    enable_wx, disable_wx,
+    enable_gtk, disable_gtk,
+    enable_qt4, disable_qt4,
+    enable_tk, disable_tk,
+    set_inputhook, clear_inputhook,
+    current_gui, spin,
+    appstart_qt4, appstart_wx,
+    appstart_gtk, appstart_tk
+)
 
 # Release data
 __author__ = ''
