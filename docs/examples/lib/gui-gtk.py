@@ -21,7 +21,7 @@ window = gtk.Window(gtk.WINDOW_TOPLEVEL)
 button = gtk.Button("Hello World")
 button.connect("clicked", hello_world, None)
 
-window.add(self.button)
+window.add(button)
 button.show()
 window.show()
 
