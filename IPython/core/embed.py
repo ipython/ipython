@@ -28,7 +28,7 @@ import sys
 from IPython.core import ultratb
 from IPython.core.iplib import InteractiveShell
 
-from IPython.utils.traitlets import Bool, Str
+from IPython.utils.traitlets import Bool, Str, CBool
 from IPython.utils.genutils import ask_yes_no
 
 #-----------------------------------------------------------------------------
@@ -57,11 +57,13 @@ class InteractiveShellEmbed(InteractiveShell):
 
     dummy_mode = Bool(False)
     exit_msg = Str('')
+    embedded = CBool(True)
+    embedded_active = CBool(True)
 
-    def __init__(self, parent=None, config=None, usage=None,
+    def __init__(self, parent=None, config=None, ipythondir=None, usage=None,
                  user_ns=None, user_global_ns=None,
-                 banner1='', banner2='',
-                 custom_exceptions=((),None), exit_msg=''):
+                 banner1=None, banner2=None,
+                 custom_exceptions=((),None), exit_msg=None):
 
         # First we need to save the state of sys.displayhook and
         # sys.ipcompleter so we can restore it when we are done.
@@ -69,10 +71,10 @@ class InteractiveShellEmbed(InteractiveShell):
         self.save_sys_ipcompleter()
 
         super(InteractiveShellEmbed,self).__init__(
-            parent=parent, config=config, usage=usage, 
+            parent=parent, config=config, ipythondir=ipythondir, usage=usage, 
             user_ns=user_ns, user_global_ns=user_global_ns,
             banner1=banner1, banner2=banner2, 
-            custom_exceptions=custom_exceptions, embedded=True)
+            custom_exceptions=custom_exceptions)
 
         self.save_sys_displayhook_embed()
         self.exit_msg = exit_msg
@@ -80,12 +82,15 @@ class InteractiveShellEmbed(InteractiveShell):
 
         # don't use the ipython crash handler so that user exceptions aren't
         # trapped
-        sys.excepthook = ultratb.FormattedTB(color_scheme = self.colors,
-                                             mode = self.xmode,
-                                             call_pdb = self.pdb)
+        sys.excepthook = ultratb.FormattedTB(color_scheme=self.colors,
+                                             mode=self.xmode,
+                                             call_pdb=self.pdb)
 
         self.restore_sys_displayhook()
         self.restore_sys_ipcompleter()
+
+    def init_sys_modules(self):
+        pass
 
     def save_sys_displayhook(self):
         # sys.displayhook is a global, we need to save the user's original
@@ -121,7 +126,8 @@ class InteractiveShellEmbed(InteractiveShell):
     def restore_sys_displayhook_embed(self):
         sys.displayhook = self.sys_displayhook_embed
 
-    def __call__(self, header='', local_ns=None, global_ns=None, dummy=None):
+    def __call__(self, header='', local_ns=None, global_ns=None, dummy=None,
+                 stack_depth=1):
         """Activate the interactive interpreter.
 
         __call__(self,header='',local_ns=None,global_ns,dummy=None) -> Start
@@ -166,11 +172,44 @@ class InteractiveShellEmbed(InteractiveShell):
 
         # Call the embedding code with a stack depth of 1 so it can skip over
         # our call and get the original caller's namespaces.
-        self.embed_mainloop(banner, local_ns, global_ns, stack_depth=1)
+        self.embed_mainloop(banner, local_ns, global_ns, 
+                            stack_depth=stack_depth)
 
-        if self.exit_msg:
+        if self.exit_msg is not None:
             print self.exit_msg
             
         # Restore global systems (display, completion)
         self.restore_sys_displayhook()
         self.restore_sys_ipcompleter()
+
+
+_embedded_shell = None
+
+
+def embed(header='', config=None, usage=None, banner1=None, banner2=None,
+          exit_msg=''):
+    """Call this to embed IPython at the current point in your program.
+
+    The first invocation of this will create an :class:`InteractiveShellEmbed`
+    instance and then call it.  Consecutive calls just call the already
+    created instance.
+
+    Here is a simple example::
+
+        from IPython import embed
+        a = 10
+        b = 20
+        embed('First time')
+        c = 30
+        d = 40
+        embed
+
+    Full customization can be done by passing a :class:`Struct` in as the 
+    config argument.
+    """
+    global _embedded_shell
+    if _embedded_shell is None:
+        _embedded_shell = InteractiveShellEmbed(config=config,
+        usage=usage, banner1=banner1, banner2=banner2, exit_msg=exit_msg)
+    _embedded_shell(header=header, stack_depth=2)
+

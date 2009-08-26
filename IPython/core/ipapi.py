@@ -28,8 +28,6 @@ Authors:
 #-----------------------------------------------------------------------------
 
 from IPython.core.error import TryNext, UsageError
-from IPython.core.component import Component
-from IPython.core.iplib import InteractiveShell
 
 #-----------------------------------------------------------------------------
 # Classes and functions
@@ -37,6 +35,7 @@ from IPython.core.iplib import InteractiveShell
 
 def get():
     """Get the most recently created InteractiveShell instance."""
+    from IPython.core.iplib import InteractiveShell
     insts = InteractiveShell.get_instances()
     most_recent = insts[0]
     for inst in insts[1:]:

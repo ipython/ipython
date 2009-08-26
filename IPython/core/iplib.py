@@ -112,7 +112,9 @@ class SpaceInInput(exceptions.Exception): pass
 
 class Bunch: pass
 
-class Undefined: pass
+class BuiltinUndefined: pass
+BuiltinUndefined = BuiltinUndefined()
+
 
 class Quitter(object):
     """Simple class to handle exit, similar to Python 2.5's.
@@ -120,7 +122,7 @@ class Quitter(object):
     It handles exiting in an ipython-safe manner, which the one in Python 2.5
     doesn't do (obviously, since it doesn't know about ipython)."""
     
-    def __init__(self,shell,name):
+    def __init__(self, shell, name):
         self.shell = shell
         self.name = name
         
@@ -130,6 +132,7 @@ class Quitter(object):
 
     def __call__(self):
         self.shell.exit()
+
 
 class InputList(list):
     """Class to store user input.
@@ -145,6 +148,7 @@ class InputList(list):
 
     def __getslice__(self,i,j):
         return ''.join(list.__getslice__(self,i,j))
+
 
 class SyntaxTB(ultratb.ListTB):
     """Extension which holds some state: the last exception value"""
@@ -162,6 +166,7 @@ class SyntaxTB(ultratb.ListTB):
         e = self.last_syntax_error
         self.last_syntax_error = None
         return e
+
 
 def get_default_editor():
     try:
@@ -190,26 +195,9 @@ class SeparateStr(Str):
 # Main IPython class
 #-----------------------------------------------------------------------------
 
-# FIXME: the Magic class is a mixin for now, and will unfortunately remain so
-# until a full rewrite is made.  I've cleaned all cross-class uses of
-# attributes and methods, but too much user code out there relies on the
-# equlity %foo == __IP.magic_foo, so I can't actually remove the mixin usage.
-#
-# But at least now, all the pieces have been separated and we could, in
-# principle, stop using the mixin.  This will ease the transition to the
-# chainsaw branch.
-
-# For reference, the following is the list of 'self.foo' uses in the Magic
-# class as of 2005-12-28.  These are names we CAN'T use in the main ipython
-# class, to prevent clashes.
-
-# ['self.__class__', 'self.__dict__', 'self._inspect', 'self._ofind',
-#  'self.arg_err', 'self.extract_input', 'self.format_', 'self.lsmagic',
-#  'self.magic_', 'self.options_table', 'self.parse', 'self.shell',
-#  'self.value']
 
 class InteractiveShell(Component, Magic):
-    """An enhanced console for Python."""
+    """An enhanced, interactive shell for Python."""
 
     autocall = Enum((0,1,2), config_key='AUTOCALL')
     autoedit_syntax = CBool(False, config_key='AUTOEDIT_SYNTAX')
@@ -229,6 +217,7 @@ class InteractiveShell(Component, Magic):
     debug = CBool(False, config_key='DEBUG')
     deep_reload = CBool(False, config_key='DEEP_RELOAD')
     embedded = CBool(False)
+    embedded_active = CBool(False)
     editor = Str(get_default_editor(), config_key='EDITOR')
     filename = Str("<ipython console>")
     interactive = CBool(False, config_key='INTERACTIVE')
@@ -295,24 +284,30 @@ class InteractiveShell(Component, Magic):
     # Subclasses with thread support should override this as needed.
     isthreaded = False
 
-    def __init__(self, parent=None, ipythondir=None, config=None, usage=None,
+    def __init__(self, parent=None, config=None, ipythondir=None, usage=None,
                  user_ns=None, user_global_ns=None,
                  banner1=None, banner2=None,
-                 custom_exceptions=((),None), embedded=False):
+                 custom_exceptions=((),None)):
 
         # This is where traitlets with a config_key argument are updated
         # from the values on config.
-        # Ideally, from here on out, the config should only be used when
-        # passing it to children components.
         super(InteractiveShell, self).__init__(parent, config=config, name='__IP')
 
+        # These are relatively independent and stateless
         self.init_ipythondir(ipythondir)
         self.init_instance_attrs()
         self.init_term_title()
         self.init_usage(usage)
         self.init_banner(banner1, banner2)
-        self.init_embedded(embedded)
+
+        # Create namespaces (user_ns, user_global_ns, alias_table, etc.)
         self.init_create_namespaces(user_ns, user_global_ns)
+        # This has to be done after init_create_namespaces because it uses
+        # something in self.user_ns, but before init_sys_modules, which
+        # is the first thing to modify sys.
+        self.save_sys_module_state()
+        self.init_sys_modules()
+
         self.init_history()
         self.init_encoding()
         self.init_handlers()
@@ -323,7 +318,7 @@ class InteractiveShell(Component, Magic):
         self.init_hooks()
         self.init_pushd_popd_magic()
         self.init_traceback_handlers(custom_exceptions)
-        self.init_namespaces()
+        self.init_user_ns()
         self.init_logger()
         self.init_aliases()
         self.init_builtins()
@@ -343,6 +338,10 @@ class InteractiveShell(Component, Magic):
         self.init_magics()
         self.init_pdb()
         self.hooks.late_startup_hook()
+
+    def cleanup(self):
+        self.remove_builtins()
+        self.restore_sys_module_state()
 
     #-------------------------------------------------------------------------
     # Traitlet changed handlers
@@ -372,12 +371,22 @@ class InteractiveShell(Component, Magic):
     def init_ipythondir(self, ipythondir):
         if ipythondir is not None:
             self.ipythondir = ipythondir
+            self.config.IPYTHONDIR = self.ipythondir
             return
 
+        if hasattr(self.config, 'IPYTHONDIR'):
+            self.ipythondir = self.config.IPYTHONDIR
         if not hasattr(self.config, 'IPYTHONDIR'):
             # cdw is always defined
             self.ipythondir = os.getcwd()
-            return
+
+        # The caller must make sure that ipythondir exists.  We should
+        # probably handle this using a Dir traitlet.
+        if not os.path.isdir(self.ipythondir):
+            raise IOError('IPython dir does not exist: %s' % self.ipythondir)
+
+        # All children can just read this
+        self.config.IPYTHONDIR = self.ipythondir
 
     def init_instance_attrs(self):
         self.jobs = BackgroundJobManager()
@@ -447,15 +456,6 @@ class InteractiveShell(Component, Magic):
             self.banner += '\nIPython profile: %s\n' % self.profile
         if self.banner2:
             self.banner += '\n' + self.banner2 + '\n'        
-
-    def init_embedded(self, embedded):
-        # We need to know whether the instance is meant for embedding, since
-        # global/local namespaces need to be handled differently in that case
-        self.embedded = embedded
-        if embedded:
-            # Control variable so users can, from within the embedded instance,
-            # permanently deactivate it.
-            self.embedded_active = True
 
     def init_create_namespaces(self, user_ns=None, user_global_ns=None):
         # Create the namespace where the user will operate.  user_ns is
@@ -562,6 +562,7 @@ class InteractiveShell(Component, Magic):
                                self.alias_table, self.internal_ns,
                                self._main_ns_cache ]
         
+    def init_sys_modules(self):
         # We need to insert into sys.modules something that looks like a
         # module but which accesses the IPython namespace, for shelve and
         # pickle to work interactively. Normally they rely on getting
@@ -577,13 +578,14 @@ class InteractiveShell(Component, Magic):
         # shouldn't overtake the execution environment of the script they're
         # embedded in).
 
-        if not self.embedded:
-            try:
-                main_name = self.user_ns['__name__']
-            except KeyError:
-                raise KeyError,'user_ns dictionary MUST have a "__name__" key'
-            else:
-                sys.modules[main_name] = FakeModule(self.user_ns)
+        # This is overridden in the InteractiveShellEmbed subclass to a no-op.
+
+        try:
+            main_name = self.user_ns['__name__']
+        except KeyError:
+            raise KeyError('user_ns dictionary MUST have a "__name__" key')
+        else:
+            sys.modules[main_name] = FakeModule(self.user_ns)
 
     def make_user_namespaces(self, user_ns=None, user_global_ns=None):
         """Return a valid local and global user interactive namespaces.
@@ -833,12 +835,8 @@ class InteractiveShell(Component, Magic):
 
     def init_builtins(self):
         # track which builtins we add, so we can clean up later
-        self.builtins_added = {}
-        # This method will add the necessary builtins for operation, but
-        # tracking what it did via the builtins_added dict.
-        
-        #TODO: remove this, redundant.  I don't understand why this is 
-        # redundant?
+        self._orig_builtins = {}
+        self._builtins_added = False
         self.add_builtins()
 
     def init_shadow_hist(self):
@@ -1041,7 +1039,7 @@ class InteractiveShell(Component, Magic):
     #     self.extensions[mod] = m
     #     return m
 
-    def init_namespaces(self):
+    def init_user_ns(self):
         """Initialize all user-visible namespaces to their minimum defaults.
 
         Certain history lists are also initialized here, as they effectively
@@ -1077,46 +1075,93 @@ class InteractiveShell(Component, Magic):
         except ImportError:
             warn('help() not available - check site.py')
 
+    def add_builtin(self, key, value):
+        """Add a builtin and save the original."""
+        orig = __builtin__.__dict__.get(key, BuiltinUndefined)
+        self._orig_builtins[key] = orig
+        __builtin__.__dict__[key] = value
+
+    def remove_builtin(self, key):
+        """Remove an added builtin and re-set the original."""
+        try:
+            orig = self._orig_builtins.pop(key)
+        except KeyError:
+            pass
+        else:
+            if orig is BuiltinUndefined:
+                del __builtin__.__dict__[key]
+            else:
+                __builtin__.__dict__[key] = orig
+
     def add_builtins(self):
         """Store ipython references into the __builtin__ namespace.
 
         We strive to modify the __builtin__ namespace as little as possible.
         """
+        if not self._builtins_added:
+            self.add_builtin('exit', Quitter(self,'exit'))
+            self.add_builtin('quit', Quitter(self,'quit'))
 
-        # Install our own quitter instead of the builtins.
-        # This used to be in the __init__ method, but this is a better
-        # place for it.  These can be incorporated to the logic below
-        # when it is refactored.
-        __builtin__.exit = Quitter(self,'exit')
-        __builtin__.quit = Quitter(self,'quit')
+            # Recursive reload function
+            try:
+                from IPython.lib import deepreload
+                if self.deep_reload:
+                    self.add_builtin('reload', deepreload.reload)
+                else:
+                    self.add_builtin('dreload', deepreload.reload)
+                del deepreload
+            except ImportError:
+                pass
 
-        # Recursive reload
-        try:
-            from IPython.lib import deepreload
-            if self.deep_reload:
-                __builtin__.reload = deepreload.reload
-            else:
-                __builtin__.dreload = deepreload.reload
-            del deepreload
-        except ImportError:
-            pass
+            # Keep in the builtins a flag for when IPython is active.  We set it
+            # with setdefault so that multiple nested IPythons don't clobber one
+            # another.  Each will increase its value by one upon being activated,
+            # which also gives us a way to determine the nesting level.
+            __builtin__.__dict__.setdefault('__IPYTHON__active',0)
+            self._builtins_added = True
 
-        # Keep in the builtins a flag for when IPython is active.  We set it
-        # with setdefault so that multiple nested IPythons don't clobber one
-        # another.  Each will increase its value by one upon being activated,
-        # which also gives us a way to determine the nesting level.
-        __builtin__.__dict__.setdefault('__IPYTHON__active',0)
-
-    def clean_builtins(self):
+    def remove_builtins(self):
         """Remove any builtins which might have been added by add_builtins, or
         restore overwritten ones to their previous values."""
-        for biname,bival in self.builtins_added.items():
-            if bival is Undefined:
-                del __builtin__.__dict__[biname]
-            else:
-                __builtin__.__dict__[biname] = bival
-        self.builtins_added.clear()
-    
+        if self._builtins_added:
+            for key in self._orig_builtins.keys():
+                self.remove_builtin(key)
+            self._orig_builtins.clear()
+            self._builtins_added = False
+
+    def save_sys_module_state(self):
+        """Save the state of hooks in the sys module.
+
+        This has to be called after self.user_ns is created.
+        """
+        self._orig_sys_module_state = {}
+        self._orig_sys_module_state['stdin'] = sys.stdin
+        self._orig_sys_module_state['stdout'] = sys.stdout
+        self._orig_sys_module_state['stderr'] = sys.stderr
+        self._orig_sys_module_state['displayhook'] = sys.displayhook
+        self._orig_sys_module_state['excepthook'] = sys.excepthook
+        try:
+            self._orig_sys_modules_main_name = self.user_ns['__name__']
+        except KeyError:
+            pass
+
+    def restore_sys_module_state(self):
+        """Restore the state of the sys module."""
+        try:
+            for k, v in self._orig_sys_module_state.items():
+                setattr(sys, k, v)
+        except AttributeError:
+            pass
+        try:
+            delattr(sys, 'ipcompleter')
+        except AttributeError:
+            pass
+        # Reset what what done in self.init_sys_modules
+        try:
+            sys.modules[self.user_ns['__name__']] = self._orig_sys_modules_main_name
+        except (AttributeError, KeyError):
+            pass
+
     def set_hook(self,name,hook, priority = 50, str_key = None, re_key = None):
         """set_hook(name,hook) -> sets an internal IPython hook.
 
@@ -1155,11 +1200,8 @@ class InteractiveShell(Component, Magic):
             dp = f
 
         setattr(self.hooks,name, dp)
-        
-        
-        #setattr(self.hooks,name,new.instancemethod(hook,self,self.__class__))
 
-    def set_crash_handler(self,crashHandler):
+    def set_crash_handler(self, crashHandler):
         """Set the IPython crash handler.
 
         This must be a callable with a signature suitable for use as
@@ -1173,7 +1215,6 @@ class InteractiveShell(Component, Magic):
         # read-eval loop, it gets temporarily overwritten (to deal with GUI
         # frameworks).
         self.sys_excepthook = sys.excepthook
-
 
     def set_custom_exc(self,exc_tuple,handler):
         """set_custom_exc(exc_tuple,handler)
@@ -1382,14 +1423,14 @@ class InteractiveShell(Component, Magic):
 
     def ex(self, cmd):
         """Execute a normal python statement in user namespace."""
-        exec cmd in self.user_ns
+        exec cmd in self.user_global_ns, self.user_ns
 
     def ev(self, expr):
         """Evaluate python expression expr in user namespace.
 
         Returns the result of evaluation
         """
-        return eval(expr,self.user_ns)
+        return eval(expr, self.user_global_ns, self.user_ns)
 
     def getoutput(self, cmd):
         return getoutput(self.var_expand(cmd,depth=2),
@@ -1401,7 +1442,7 @@ class InteractiveShell(Component, Magic):
                               header=self.system_header,
                               verbose=self.system_verbose)
 
-    def complete(self,text):
+    def complete(self, text):
         """Return a sorted list of all possible completions on text.
 
         Inputs:
@@ -1538,7 +1579,7 @@ class InteractiveShell(Component, Magic):
         self.input_hist_raw[:] = []
         self.output_hist.clear()
         # Restore the user namespaces to minimal usability
-        self.init_namespaces()
+        self.init_user_ns()
         
     def savehist(self):
         """Save input history to a file (via readline library)."""
@@ -1937,7 +1978,7 @@ class InteractiveShell(Component, Magic):
         for var in local_varnames:
             delvar(var,None)
         # and clean builtins we may have overridden
-        self.clean_builtins()
+        self.remove_builtins()
 
     def interact_prompt(self):
         """ Print the prompt (in read-eval-print loop) 

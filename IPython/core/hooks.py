@@ -50,13 +50,12 @@ from IPython.core.error import TryNext
 
 # List here all the default hooks.  For now it's just the editor functions
 # but over time we'll move here all the public API for user-accessible things.
-# vds: >>
+
 __all__ = ['editor', 'fix_error_editor', 'synchronize_with_editor', 'result_display',
            'input_prefilter', 'shutdown_hook', 'late_startup_hook',
            'generate_prompt', 'generate_output_prompt','shell_hook',
            'show_in_pager','pre_prompt_hook', 'pre_runcode_hook',
            'clipboard_get']
-# vds: <<
 
 pformat = PrettyPrinter().pformat
 
@@ -109,10 +108,10 @@ def fix_error_editor(self,filename,linenum,column,msg):
     finally:
         t.close()
 
-# vds: >>
+
 def synchronize_with_editor(self, filename, linenum, column):
         pass
-# vds: <<
+
 
 class CommandChainDispatcher:
     """ Dispatch calls to a chain of commands until some func can handle it
@@ -160,7 +159,8 @@ class CommandChainDispatcher:
         Handy if the objects are not callable.
         """
         return iter(self.chain)
-    
+
+
 def result_display(self,arg):
     """ Default display hook.
     
@@ -183,6 +183,7 @@ def result_display(self,arg):
     # the default display hook doesn't manipulate the value to put in history
     return None 
 
+
 def input_prefilter(self,line):     
     """ Default input prefilter
     
@@ -197,6 +198,7 @@ def input_prefilter(self,line):
     #print "attempt to rewrite",line #dbg
     return line
 
+
 def shutdown_hook(self):
     """ default shutdown hook
     
@@ -206,11 +208,13 @@ def shutdown_hook(self):
     #print "default shutdown hook ok" # dbg
     return
 
+
 def late_startup_hook(self):
     """ Executed after ipython has been constructed and configured 
     
     """
     #print "default startup hook ok" # dbg
+
 
 def generate_prompt(self, is_continuation):
     """ calculate and return a string with the prompt to display """
@@ -218,18 +222,22 @@ def generate_prompt(self, is_continuation):
         return str(self.outputcache.prompt2)
     return str(self.outputcache.prompt1)
 
+
 def generate_output_prompt(self):
     return str(self.outputcache.prompt_out)
+
 
 def shell_hook(self,cmd):
     """ Run system/shell command a'la os.system() """
 
     shell(cmd, header=self.system_header, verbose=self.system_verbose)
 
+
 def show_in_pager(self,s):
     """ Run a string through pager """
     # raising TryNext here will use the default paging functionality
     raise TryNext
+
 
 def pre_prompt_hook(self):
     """ Run before displaying the next prompt
@@ -240,9 +248,11 @@ def pre_prompt_hook(self):
     
     return None
 
+
 def pre_runcode_hook(self):
     """ Executed before running the (prefiltered) code in IPython """
     return None
+
 
 def clipboard_get(self):
     """ Get text from the clipboard.

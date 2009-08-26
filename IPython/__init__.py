@@ -38,7 +38,9 @@ sys.path.append(os.path.join(os.path.dirname(__file__), "extensions"))
 # Setup the top level names
 #-----------------------------------------------------------------------------
 
+# In some cases, these are causing circular imports.
 from IPython.core.iplib import InteractiveShell
+from IPython.core.embed import embed
 from IPython.core.error import TryNext
 
 from IPython.lib import (
