@@ -33,6 +33,7 @@ import shutil
 import string
 import sys
 import tempfile
+from contextlib import nested
 
 from IPython.core import ultratb
 from IPython.core import debugger, oinspect
@@ -41,6 +42,7 @@ from IPython.core import history as ipcorehist
 from IPython.core import prefilter
 from IPython.core.autocall import IPyAutocall
 from IPython.core.builtin_trap import BuiltinTrap
+from IPython.core.display_trap import DisplayTrap
 from IPython.core.fakemodule import FakeModule, init_fakemod_dict
 from IPython.core.logger import Logger
 from IPython.core.magic import Magic
@@ -940,13 +942,7 @@ class InteractiveShell(Component, Magic):
             pass
 
     def init_displayhook(self):
-        # I don't like assigning globally to sys, because it means when
-        # embedding instances, each embedded instance overrides the previous
-        # choice. But sys.displayhook seems to be called internally by exec,
-        # so I don't see a way around it.  We first save the original and then
-        # overwrite it.
-        self.sys_displayhook = sys.displayhook
-        sys.displayhook = self.outputcache
+        self.display_trap = DisplayTrap(self, self.outputcache)
 
     def init_reload_doctest(self):
         # Do a proper resetting of doctest, including the necessary displayhook
@@ -1061,7 +1057,6 @@ class InteractiveShell(Component, Magic):
         self._orig_sys_module_state['stdin'] = sys.stdin
         self._orig_sys_module_state['stdout'] = sys.stdout
         self._orig_sys_module_state['stderr'] = sys.stderr
-        self._orig_sys_module_state['displayhook'] = sys.displayhook
         self._orig_sys_module_state['excepthook'] = sys.excepthook
         try:
             self._orig_sys_modules_main_name = self.user_ns['__name__']
@@ -1251,7 +1246,7 @@ class InteractiveShell(Component, Magic):
             error("Magic function `%s` not found." % magic_name)
         else:
             magic_args = self.var_expand(magic_args,1)
-            with self.builtin_trap:
+            with nested(self.builtin_trap, self.display_trap):
                 return fn(magic_args)
             # return result
 
@@ -1348,7 +1343,7 @@ class InteractiveShell(Component, Magic):
 
     def ex(self, cmd):
         """Execute a normal python statement in user namespace."""
-        with self.builtin_trap:
+        with nested(self.builtin_trap, self.display_trap):
             exec cmd in self.user_global_ns, self.user_ns
 
     def ev(self, expr):
@@ -1356,7 +1351,7 @@ class InteractiveShell(Component, Magic):
 
         Returns the result of evaluation
         """
-        with self.builtin_trap:
+        with nested(self.builtin_trap, self.display_trap):
             return eval(expr, self.user_global_ns, self.user_ns)
 
     def getoutput(self, cmd):
@@ -1688,6 +1683,8 @@ class InteractiveShell(Component, Magic):
                 try:
                     f = file(err.filename)
                     try:
+                        # This should be inside a display_trap block and I 
+                        # think it is.
                         sys.displayhook(f.read())
                     finally:
                         f.close()
@@ -1805,7 +1802,7 @@ class InteractiveShell(Component, Magic):
         internally created default banner.
         """
         
-        with self.builtin_trap:
+        with nested(self.builtin_trap, self.display_trap):
             if self.c:  # Emulate Python's -c option
                 self.exec_init_cmd()
 
@@ -2237,7 +2234,7 @@ class InteractiveShell(Component, Magic):
         lines = lines.splitlines()
         more = 0
 
-        with self.builtin_trap:
+        with nested(self.builtin_trap, self.display_trap):
             for line in lines:
                 # skip blank lines so we don't mess up the prompt counter, but do
                 # NOT skip even a blank line if we are in a code block (more is

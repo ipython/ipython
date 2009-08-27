@@ -26,6 +26,7 @@ Notes
 from __future__ import with_statement
 
 import sys
+from contextlib import nested
 
 from IPython.core import ultratb
 from IPython.core.iplib import InteractiveShell
@@ -67,18 +68,14 @@ class InteractiveShellEmbed(InteractiveShell):
                  banner1=None, banner2=None,
                  custom_exceptions=((),None), exit_msg=''):
 
-        # First we need to save the state of sys.displayhook and
-        # sys.ipcompleter so we can restore it when we are done.
-        self.save_sys_displayhook()
         self.save_sys_ipcompleter()
 
         super(InteractiveShellEmbed,self).__init__(
             parent=parent, config=config, ipythondir=ipythondir, usage=usage, 
             user_ns=user_ns, user_global_ns=user_global_ns,
-            banner1=banner1, banner2=banner2, 
+            banner1=banner1, banner2=banner2,
             custom_exceptions=custom_exceptions)
 
-        self.save_sys_displayhook_embed()
         self.exit_msg = exit_msg
         self.define_magic("kill_embedded", kill_embedded)
 
@@ -88,16 +85,10 @@ class InteractiveShellEmbed(InteractiveShell):
                                              mode=self.xmode,
                                              call_pdb=self.pdb)
 
-        self.restore_sys_displayhook()
         self.restore_sys_ipcompleter()
 
     def init_sys_modules(self):
         pass
-
-    def save_sys_displayhook(self):
-        # sys.displayhook is a global, we need to save the user's original
-        # Don't rely on __displayhook__, as the user may have changed that.
-        self.sys_displayhook_orig = sys.displayhook
 
     def save_sys_ipcompleter(self):
         """Save readline completer status."""
@@ -106,9 +97,6 @@ class InteractiveShellEmbed(InteractiveShell):
             self.sys_ipcompleter_orig = sys.ipcompleter
         except:
             pass # not nested with IPython        
-
-    def restore_sys_displayhook(self):
-        sys.displayhook = self.sys_displayhook_orig
 
     def restore_sys_ipcompleter(self):
         """Restores the readline completer which was in place.
@@ -121,12 +109,6 @@ class InteractiveShellEmbed(InteractiveShell):
             sys.ipcompleter = self.sys_ipcompleter_orig
         except:
             pass
-
-    def save_sys_displayhook_embed(self):
-        self.sys_displayhook_embed = sys.displayhook
-
-    def restore_sys_displayhook_embed(self):
-        sys.displayhook = self.sys_displayhook_embed
 
     def __call__(self, header='', local_ns=None, global_ns=None, dummy=None,
                  stack_depth=1):
@@ -161,8 +143,6 @@ class InteractiveShellEmbed(InteractiveShell):
         if dummy or (dummy != 0 and self.dummy_mode):
             return
 
-        self.restore_sys_displayhook_embed()
-
         if self.has_readline:
             self.set_completer()
 
@@ -174,14 +154,12 @@ class InteractiveShellEmbed(InteractiveShell):
 
         # Call the embedding code with a stack depth of 1 so it can skip over
         # our call and get the original caller's namespaces.
-        self.mainloop(banner, local_ns, global_ns, 
+        self.mainloop(banner, local_ns, global_ns,
                             stack_depth=stack_depth)
 
         if self.exit_msg is not None:
             print self.exit_msg
-            
-        # Restore global systems (display, completion)
-        self.restore_sys_displayhook()
+
         self.restore_sys_ipcompleter()
 
     def mainloop(self,header='',local_ns=None,global_ns=None,stack_depth=0):
@@ -240,7 +218,7 @@ class InteractiveShellEmbed(InteractiveShell):
         # actually completes using the frame's locals/globals
         self.set_completer_frame()
 
-        with self.builtin_trap:
+        with nested(self.builtin_trap, self.display_trap):
             self.interact(header)
         
             # now, purge out the user namespace from anything we might have added
