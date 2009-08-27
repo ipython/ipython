@@ -24,6 +24,8 @@ import __builtin__
 from IPython.core.component import Component
 from IPython.core.quitter import Quitter
 
+from IPython.utils.traitlets import Instance
+
 #-----------------------------------------------------------------------------
 # Classes and functions
 #-----------------------------------------------------------------------------
@@ -34,12 +36,13 @@ BuiltinUndefined = BuiltinUndefined()
 
 
 class BuiltinTrap(Component):
+    shell = Instance('IPython.core.iplib.InteractiveShell')
 
     def __init__(self, parent, name=None, config=None):
         super(BuiltinTrap, self).__init__(parent, name, config)
         # Don't just grab parent!!!
-        from IPython.core.iplib import InteractiveShell
-        self.shell = InteractiveShell.get_instances(root=self.root)[0]
+        self.shell = Component.get_instances(root=self.root,
+            klass='IPython.core.iplib.InteractiveShell')[0]
         self._orig_builtins = {}
 
     def __enter__(self):

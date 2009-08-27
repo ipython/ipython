@@ -31,7 +31,7 @@ from twisted.python import log
 from IPython.kernel.fcutil import Tub, UnauthenticatedTub
 
 from IPython.kernel.core.config import config_manager as core_config_manager
-from IPython.config.cutils import import_item
+from IPython.utils.importstring import import_item
 from IPython.kernel.engineservice import EngineService
 
 # Create various ipython directories if they don't exist.

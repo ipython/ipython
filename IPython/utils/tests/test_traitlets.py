@@ -377,6 +377,7 @@ class TestType(TestCase):
 
         a = A()
         self.assertEquals(a.klass, None)
+
         a.klass = B
         self.assertEquals(a.klass, B)
         self.assertRaises(TraitletError, setattr, a, 'klass', 10)
@@ -409,11 +410,15 @@ class TestType(TestCase):
 
     def test_validate_klass(self):
 
-        def inner():
-            class A(HasTraitlets):
-                klass = Type('no strings allowed')
+        class A(HasTraitlets):
+            klass = Type('no strings allowed')
 
-        self.assertRaises(TraitletError, inner)
+        self.assertRaises(ImportError, A)
+
+        class A(HasTraitlets):
+            klass = Type('rub.adub.Duck')
+
+        self.assertRaises(ImportError, A)
 
     def test_validate_default(self):
 
@@ -421,12 +426,24 @@ class TestType(TestCase):
         class A(HasTraitlets):
             klass = Type('bad default', B)
 
-        self.assertRaises(TraitletError, A)
+        self.assertRaises(ImportError, A)
 
         class C(HasTraitlets):
             klass = Type(None, B, allow_none=False)
 
         self.assertRaises(TraitletError, C)
+
+    def test_str_klass(self):
+
+        class A(HasTraitlets):
+            klass = Type('IPython.utils.ipstruct.Struct')
+
+        from IPython.utils.ipstruct import Struct
+        a = A()
+        a.klass = Struct
+        self.assertEquals(a.klass, Struct)
+        
+        self.assertRaises(TraitletError, setattr, a, 'klass', 10)
 
 class TestInstance(TestCase):
 
@@ -449,7 +466,7 @@ class TestInstance(TestCase):
         self.assertRaises(TraitletError, setattr, a, 'inst', Bah())
 
     def test_unique_default_value(self):
-        class Foo(object): pass        
+        class Foo(object): pass
         class A(HasTraitlets):
             inst = Instance(Foo,(),{})
 

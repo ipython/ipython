@@ -1252,8 +1252,8 @@ class InteractiveShell(Component, Magic):
         else:
             magic_args = self.var_expand(magic_args,1)
             with self.builtin_trap:
-                result = fn(magic_args)
-            return result
+                return fn(magic_args)
+            # return result
 
     def define_magic(self, magicname, func):
         """Expose own function as magic function for ipython 
@@ -1357,8 +1357,7 @@ class InteractiveShell(Component, Magic):
         Returns the result of evaluation
         """
         with self.builtin_trap:
-            result = eval(expr, self.user_global_ns, self.user_ns)
-        return result
+            return eval(expr, self.user_global_ns, self.user_ns)
 
     def getoutput(self, cmd):
         return getoutput(self.var_expand(cmd,depth=2),
@@ -1414,7 +1413,7 @@ class InteractiveShell(Component, Magic):
             outcomps.sort()
             #print "T:",text,"OC:",outcomps  # dbg
             #print "vars:",self.user_ns.keys()
-        return outcomps
+            return outcomps
         
     def set_completer_frame(self, frame=None):
         if frame:

@@ -57,6 +57,8 @@ from types import (
     ListType, TupleType
 )
 
+from IPython.utils.importstring import import_item
+
 ClassTypes = (ClassType, type)
 
 SequenceTypes = (ListType, TupleType)
@@ -142,7 +144,6 @@ def parse_notifier_name(name):
 class _SimpleTest:
     def __init__ ( self, value ): self.value = value
     def __call__ ( self, test  ):
-        print test, self.value 
         return test == self.value
     def __repr__(self):
         return "<SimpleTest(%r)" % self.value
@@ -203,11 +204,37 @@ class TraitletType(object):
         dv = self.default_value
         return dv
 
+    def instance_init(self, obj):
+        """This is called by :meth:`HasTraitlets.__new__` to finish init'ing.
+
+        Some stages of initialization must be delayed until the parent
+        :class:`HasTraitlets` instance has been created.  This method is
+        called in :meth:`HasTraitlets.__new__` after the instance has been
+        created.
+
+        This method trigger the creation and validation of default values
+        and also things like the resolution of str given class names in 
+        :class:`Type` and :class`Instance`.
+
+        Parameters
+        ----------
+        obj : :class:`HasTraitlets` instance
+            The parent :class:`HasTraitlets` instance that has just been
+            created.
+        """
+        self.set_default_value(obj)
+
     def set_default_value(self, obj):
+        """Set the default value on a per instance basis.
+
+        This method is called by :meth:`instance_init` to create and
+        validate the default value.  The creation and validation of 
+        default values must be delayed until the parent :class:`HasTraitlets`
+        class has been instantiated.
+        """
         dv = self.get_default_value()
         newdv = self._validate(obj, dv)
         obj._traitlet_values[self.name] = newdv
-        
 
     def __get__(self, obj, cls=None):
         """Get the value of the traitlet by self.name for the instance.
@@ -289,12 +316,6 @@ class MetaHasTraitlets(type):
         This instantiates all TraitletTypes in the class dict and sets their
         :attr:`name` attribute.
         """
-        # print "========================="
-        # print "MetaHasTraitlets.__new__"
-        # print "mcls, ", mcls
-        # print "name, ", name
-        # print "bases, ", bases
-        # print "classdict, ", classdict
         for k,v in classdict.iteritems():
             if isinstance(v, TraitletType):
                 v.name = k
@@ -311,12 +332,6 @@ class MetaHasTraitlets(type):
         This sets the :attr:`this_class` attribute of each TraitletType in the
         class dict to the newly created class ``cls``.
         """
-        # print "========================="
-        # print "MetaHasTraitlets.__init__"
-        # print "cls, ", cls
-        # print "name, ", name
-        # print "bases, ", bases
-        # print "classdict, ", classdict
         for k, v in classdict.iteritems():
             if isinstance(v, TraitletType):
                 v.this_class = cls
@@ -335,7 +350,7 @@ class HasTraitlets(object):
         for key in dir(cls):
             value = getattr(cls, key)
             if isinstance(value, TraitletType):
-                value.set_default_value(inst)
+                value.instance_init(inst)
         return inst
 
     # def __init__(self):
@@ -512,13 +527,21 @@ class Type(ClassBasedTraitletType):
         A Type traitlet specifies that its values must be subclasses of
         a particular class.
 
+        If only ``default_value`` is given, it is used for the ``klass`` as
+        well.
+
         Parameters
         ----------
-        default_value : class
-            The default value must be a subclass of klass.
+        default_value : class, str or None
+            The default value must be a subclass of klass.  If an str,
+            the str must be a fully specified class name, like 'foo.bar.Bah'.
+            The string is resolved into real class, when the parent 
+            :class:`HasTraitlets` class is instantiated.
         klass : class, str, None
             Values of this traitlet must be a subclass of klass.  The klass
             may be specified in a string like: 'foo.bar.MyClass'.
+            The string is resolved into real class, when the parent 
+            :class:`HasTraitlets` class is instantiated.
         allow_none : boolean
             Indicates whether None is allowed as an assignable value. Even if
             ``False``, the default value may be ``None``.
@@ -529,7 +552,7 @@ class Type(ClassBasedTraitletType):
         elif klass is None:
             klass = default_value
 
-        if not inspect.isclass(klass):
+        if not (inspect.isclass(klass) or isinstance(klass, basestring)):
             raise TraitletError("A Type traitlet must specify a class.")
 
         self.klass       = klass
@@ -550,23 +573,38 @@ class Type(ClassBasedTraitletType):
 
     def info(self):
         """ Returns a description of the trait."""
-        klass = self.klass.__name__
+        if isinstance(self.klass, basestring):
+            klass = self.klass
+        else:
+            klass = self.klass.__name__
         result = 'a subclass of ' + klass
         if self._allow_none:
             return result + ' or None'
         return result
 
+    def instance_init(self, obj):
+        self._resolve_classes()
+        super(Type, self).instance_init(obj)
+
+    def _resolve_classes(self):
+        if isinstance(self.klass, basestring):
+            self.klass = import_item(self.klass)
+        if isinstance(self.default_value, basestring):
+            self.default_value = import_item(self.default_value)
+
+    def get_default_value(self):
+        return self.default_value
+
 
 class DefaultValueGenerator(object):
     """A class for generating new default value instances."""
 
-    def __init__(self, klass, *args, **kw):
-        self.klass = klass
+    def __init__(self, *args, **kw):
         self.args = args
         self.kw = kw
 
-    def generate(self):
-        return self.klass(*self.args, **self.kw)
+    def generate(self, klass):
+        return klass(*self.args, **self.kw)
 
 
 class Instance(ClassBasedTraitletType):
@@ -586,9 +624,9 @@ class Instance(ClassBasedTraitletType):
 
         Parameters
         ----------
-        klass : class
-            The class that forms the basis for the traitlet.  Instances
-            and strings are not allowed.
+        klass : class, str
+            The class that forms the basis for the traitlet.  Class names
+            can also be specified as strings, like 'foo.bar.Bar'.
         args : tuple
             Positional arguments for generating the default value.
         kw : dict
@@ -606,7 +644,7 @@ class Instance(ClassBasedTraitletType):
 
         self._allow_none = allow_none
 
-        if (klass is None) or (not inspect.isclass(klass)):
+        if (klass is None) or (not (inspect.isclass(klass) or isinstance(klass, basestring))):
             raise TraitletError('The klass argument must be a class'
                                 ' you gave: %r' % klass)
         self.klass = klass
@@ -627,7 +665,7 @@ class Instance(ClassBasedTraitletType):
             if not isinstance(args, tuple):
                 raise TraitletError("The 'args' argument must be a tuple or None.")
             
-            default_value = DefaultValueGenerator(self.klass, *args, **kw)
+            default_value = DefaultValueGenerator(*args, **kw)
 
         super(Instance, self).__init__(default_value, **metadata)
 
@@ -643,12 +681,23 @@ class Instance(ClassBasedTraitletType):
             self.error(obj, value)
 
     def info(self):
-        klass = self.klass.__name__
+        if isinstance(self.klass, basestring):
+            klass = self.klass
+        else:
+            klass = self.klass.__name__
         result = class_of(klass)
         if self._allow_none:
             return result + ' or None'
 
         return result
+
+    def instance_init(self, obj):
+        self._resolve_classes()
+        super(Instance, self).instance_init(obj)
+
+    def _resolve_classes(self):
+        if isinstance(self.klass, basestring):
+            self.klass = import_item(self.klass)
 
     def get_default_value(self):
         """Instantiate a default value instance.
@@ -659,7 +708,7 @@ class Instance(ClassBasedTraitletType):
         """
         dv  = self.default_value
         if isinstance(dv, DefaultValueGenerator):
-            return dv.generate()
+            return dv.generate(self.klass)
         else:
             return dv
 

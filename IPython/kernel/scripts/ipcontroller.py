@@ -52,7 +52,7 @@ get_log_dir()
 get_security_dir()
 
 from IPython.kernel.config import config_manager as kernel_config_manager
-from IPython.config.cutils import import_item
+from IPython.utils.importstring import import_item
 
 
 #-------------------------------------------------------------------------------
