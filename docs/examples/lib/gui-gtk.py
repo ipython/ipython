@@ -24,8 +24,8 @@ def destroy(widget, data=None):
     gtk.main_quit()
 
 window = gtk.Window(gtk.WINDOW_TOPLEVEL)
-self.window.connect("delete_event", delete_event)
-self.window.connect("destroy", destroy)
+window.connect("delete_event", delete_event)
+window.connect("destroy", destroy)
 button = gtk.Button("Hello World")
 button.connect("clicked", hello_world, None)
 
