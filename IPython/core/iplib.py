@@ -16,6 +16,8 @@ Main IPython Component
 # Imports
 #-----------------------------------------------------------------------------
 
+from __future__ import with_statement
+
 import __main__
 import __builtin__
 import StringIO
@@ -38,6 +40,7 @@ from IPython.core import shadowns
 from IPython.core import history as ipcorehist
 from IPython.core import prefilter
 from IPython.core.autocall import IPyAutocall
+from IPython.core.builtin_trap import BuiltinTrap
 from IPython.core.fakemodule import FakeModule, init_fakemod_dict
 from IPython.core.logger import Logger
 from IPython.core.magic import Magic
@@ -111,28 +114,6 @@ def softspace(file, newvalue):
 class SpaceInInput(exceptions.Exception): pass
 
 class Bunch: pass
-
-class BuiltinUndefined: pass
-BuiltinUndefined = BuiltinUndefined()
-
-
-class Quitter(object):
-    """Simple class to handle exit, similar to Python 2.5's.
-
-    It handles exiting in an ipython-safe manner, which the one in Python 2.5
-    doesn't do (obviously, since it doesn't know about ipython)."""
-    
-    def __init__(self, shell, name):
-        self.shell = shell
-        self.name = name
-        
-    def __repr__(self):
-        return 'Type %s() to exit.' % self.name
-    __str__ = __repr__
-
-    def __call__(self):
-        self.shell.exit()
-
 
 class InputList(list):
     """Class to store user input.
@@ -340,7 +321,6 @@ class InteractiveShell(Component, Magic):
         self.hooks.late_startup_hook()
 
     def cleanup(self):
-        self.remove_builtins()
         self.restore_sys_module_state()
 
     #-------------------------------------------------------------------------
@@ -834,10 +814,7 @@ class InteractiveShell(Component, Magic):
             self.magic_alias(alias)
 
     def init_builtins(self):
-        # track which builtins we add, so we can clean up later
-        self._orig_builtins = {}
-        self._builtins_added = False
-        self.add_builtins()
+        self.builtin_trap = BuiltinTrap(self)
 
     def init_shadow_hist(self):
         try:
@@ -1075,60 +1052,6 @@ class InteractiveShell(Component, Magic):
         except ImportError:
             warn('help() not available - check site.py')
 
-    def add_builtin(self, key, value):
-        """Add a builtin and save the original."""
-        orig = __builtin__.__dict__.get(key, BuiltinUndefined)
-        self._orig_builtins[key] = orig
-        __builtin__.__dict__[key] = value
-
-    def remove_builtin(self, key):
-        """Remove an added builtin and re-set the original."""
-        try:
-            orig = self._orig_builtins.pop(key)
-        except KeyError:
-            pass
-        else:
-            if orig is BuiltinUndefined:
-                del __builtin__.__dict__[key]
-            else:
-                __builtin__.__dict__[key] = orig
-
-    def add_builtins(self):
-        """Store ipython references into the __builtin__ namespace.
-
-        We strive to modify the __builtin__ namespace as little as possible.
-        """
-        if not self._builtins_added:
-            self.add_builtin('exit', Quitter(self,'exit'))
-            self.add_builtin('quit', Quitter(self,'quit'))
-
-            # Recursive reload function
-            try:
-                from IPython.lib import deepreload
-                if self.deep_reload:
-                    self.add_builtin('reload', deepreload.reload)
-                else:
-                    self.add_builtin('dreload', deepreload.reload)
-                del deepreload
-            except ImportError:
-                pass
-
-            # Keep in the builtins a flag for when IPython is active.  We set it
-            # with setdefault so that multiple nested IPythons don't clobber one
-            # another.  Each will increase its value by one upon being activated,
-            # which also gives us a way to determine the nesting level.
-            __builtin__.__dict__.setdefault('__IPYTHON__active',0)
-            self._builtins_added = True
-
-    def remove_builtins(self):
-        """Remove any builtins which might have been added by add_builtins, or
-        restore overwritten ones to their previous values."""
-        if self._builtins_added:
-            for key in self._orig_builtins.keys():
-                self.remove_builtin(key)
-            self._orig_builtins.clear()
-            self._builtins_added = False
-
     def save_sys_module_state(self):
         """Save the state of hooks in the sys module.
 
@@ -1328,7 +1251,9 @@ class InteractiveShell(Component, Magic):
             error("Magic function `%s` not found." % magic_name)
         else:
             magic_args = self.var_expand(magic_args,1)
-            return fn(magic_args)
+            with self.builtin_trap:
+                result = fn(magic_args)
+            return result
 
     def define_magic(self, magicname, func):
         """Expose own function as magic function for ipython 
@@ -1423,14 +1348,17 @@ class InteractiveShell(Component, Magic):
 
     def ex(self, cmd):
         """Execute a normal python statement in user namespace."""
-        exec cmd in self.user_global_ns, self.user_ns
+        with self.builtin_trap:
+            exec cmd in self.user_global_ns, self.user_ns
 
     def ev(self, expr):
         """Evaluate python expression expr in user namespace.
 
         Returns the result of evaluation
         """
-        return eval(expr, self.user_global_ns, self.user_ns)
+        with self.builtin_trap:
+            result = eval(expr, self.user_global_ns, self.user_ns)
+        return result
 
     def getoutput(self, cmd):
         return getoutput(self.var_expand(cmd,depth=2),
@@ -1467,23 +1395,25 @@ class InteractiveShell(Component, Magic):
         In [10]: _ip.complete('x.l')
         Out[10]: ['x.ljust', 'x.lower', 'x.lstrip']
         """
-        
-        complete = self.Completer.complete
-        state = 0
-        # use a dict so we get unique keys, since ipyhton's multiple
-        # completers can return duplicates.  When we make 2.4 a requirement,
-        # start using sets instead, which are faster.
-        comps = {}
-        while True:
-            newcomp = complete(text,state,line_buffer=text)
-            if newcomp is None:
-                break
-            comps[newcomp] = 1
-            state += 1
-        outcomps = comps.keys()
-        outcomps.sort()
-        #print "T:",text,"OC:",outcomps  # dbg
-        #print "vars:",self.user_ns.keys()
+
+        # Inject names into __builtin__ so we can complete on the added names.
+        with self.builtin_trap:
+            complete = self.Completer.complete
+            state = 0
+            # use a dict so we get unique keys, since ipyhton's multiple
+            # completers can return duplicates.  When we make 2.4 a requirement,
+            # start using sets instead, which are faster.
+            comps = {}
+            while True:
+                newcomp = complete(text,state,line_buffer=text)
+                if newcomp is None:
+                    break
+                comps[newcomp] = 1
+                state += 1
+            outcomps = comps.keys()
+            outcomps.sort()
+            #print "T:",text,"OC:",outcomps  # dbg
+            #print "vars:",self.user_ns.keys()
         return outcomps
         
     def set_completer_frame(self, frame=None):
@@ -1875,29 +1805,31 @@ class InteractiveShell(Component, Magic):
         If an optional banner argument is given, it will override the
         internally created default banner.
         """
-        if self.c:  # Emulate Python's -c option
-            self.exec_init_cmd()
+        
+        with self.builtin_trap:
+            if self.c:  # Emulate Python's -c option
+                self.exec_init_cmd()
 
-        if self.display_banner:
-            if banner is None:
-                banner = self.banner
+            if self.display_banner:
+                if banner is None:
+                    banner = self.banner
 
-        # if you run stuff with -c <cmd>, raw hist is not updated
-        # ensure that it's in sync
-        if len(self.input_hist) != len (self.input_hist_raw):
-            self.input_hist_raw = InputList(self.input_hist)
+            # if you run stuff with -c <cmd>, raw hist is not updated
+            # ensure that it's in sync
+            if len(self.input_hist) != len (self.input_hist_raw):
+                self.input_hist_raw = InputList(self.input_hist)
 
-        while 1:
-            try:
-                self.interact()
-                #self.interact_with_readline()                
-                # XXX for testing of a readline-decoupled repl loop, call
-                # interact_with_readline above
-                break
-            except KeyboardInterrupt:
-                # this should not be necessary, but KeyboardInterrupt
-                # handling seems rather unpredictable...
-                self.write("\nKeyboardInterrupt in interact()\n")
+            while 1:
+                try:
+                    self.interact()
+                    #self.interact_with_readline()                
+                    # XXX for testing of a readline-decoupled repl loop, call
+                    # interact_with_readline above
+                    break
+                except KeyboardInterrupt:
+                    # this should not be necessary, but KeyboardInterrupt
+                    # handling seems rather unpredictable...
+                    self.write("\nKeyboardInterrupt in interact()\n")
 
     def exec_init_cmd(self):
         """Execute a command given at the command line.
@@ -1908,77 +1840,6 @@ class InteractiveShell(Component, Magic):
         self.push_line(self.prefilter(self.c, False))
         if not self.interactive:
             self.ask_exit()
-
-    def embed_mainloop(self,header='',local_ns=None,global_ns=None,stack_depth=0):
-        """Embeds IPython into a running python program.
-
-        Input:
-
-          - header: An optional header message can be specified.
-
-          - local_ns, global_ns: working namespaces. If given as None, the
-          IPython-initialized one is updated with __main__.__dict__, so that
-          program variables become visible but user-specific configuration
-          remains possible.
-
-          - stack_depth: specifies how many levels in the stack to go to
-          looking for namespaces (when local_ns and global_ns are None).  This
-          allows an intermediate caller to make sure that this function gets
-          the namespace from the intended level in the stack.  By default (0)
-          it will get its locals and globals from the immediate caller.
-
-        Warning: it's possible to use this in a program which is being run by
-        IPython itself (via %run), but some funny things will happen (a few
-        globals get overwritten). In the future this will be cleaned up, as
-        there is no fundamental reason why it can't work perfectly."""
-
-        # Get locals and globals from caller
-        if local_ns is None or global_ns is None:
-            call_frame = sys._getframe(stack_depth).f_back
-
-            if local_ns is None:
-                local_ns = call_frame.f_locals
-            if global_ns is None:
-                global_ns = call_frame.f_globals
-
-        # Update namespaces and fire up interpreter
-
-        # The global one is easy, we can just throw it in
-        self.user_global_ns = global_ns
-
-        # but the user/local one is tricky: ipython needs it to store internal
-        # data, but we also need the locals.  We'll copy locals in the user
-        # one, but will track what got copied so we can delete them at exit.
-        # This is so that a later embedded call doesn't see locals from a
-        # previous call (which most likely existed in a separate scope).
-        local_varnames = local_ns.keys()
-        self.user_ns.update(local_ns)
-        #self.user_ns['local_ns'] = local_ns  # dbg
-
-        # Patch for global embedding to make sure that things don't overwrite
-        # user globals accidentally. Thanks to Richard <rxe@renre-europe.com>
-        # FIXME. Test this a bit more carefully (the if.. is new)
-        if local_ns is None and global_ns is None:
-            self.user_global_ns.update(__main__.__dict__)
-
-        # make sure the tab-completer has the correct frame information, so it
-        # actually completes using the frame's locals/globals
-        self.set_completer_frame()
-
-        # before activating the interactive mode, we need to make sure that
-        # all names in the builtin namespace needed by ipython point to
-        # ourselves, and not to other instances.
-        self.add_builtins()
-
-        self.interact(header)
-        
-        # now, purge out the user namespace from anything we might have added
-        # from the caller's local namespace
-        delvar = self.user_ns.pop
-        for var in local_varnames:
-            delvar(var,None)
-        # and clean builtins we may have overridden
-        self.remove_builtins()
 
     def interact_prompt(self):
         """ Print the prompt (in read-eval-print loop) 
@@ -2376,27 +2237,28 @@ class InteractiveShell(Component, Magic):
         self.resetbuffer()
         lines = lines.splitlines()
         more = 0
-    
-        for line in lines:
-            # skip blank lines so we don't mess up the prompt counter, but do
-            # NOT skip even a blank line if we are in a code block (more is
-            # true)
+
+        with self.builtin_trap:
+            for line in lines:
+                # skip blank lines so we don't mess up the prompt counter, but do
+                # NOT skip even a blank line if we are in a code block (more is
+                # true)
             
-            if line or more:
-                # push to raw history, so hist line numbers stay in sync
-                self.input_hist_raw.append("# " + line + "\n")
-                more = self.push_line(self.prefilter(line,more))
-                # IPython's runsource returns None if there was an error
-                # compiling the code.  This allows us to stop processing right
-                # away, so the user gets the error message at the right place.
-                if more is None:
-                    break
-            else:
-                self.input_hist_raw.append("\n")
-        # final newline in case the input didn't have it, so that the code
-        # actually does get executed
-        if more:
-            self.push_line('\n')
+                if line or more:
+                    # push to raw history, so hist line numbers stay in sync
+                    self.input_hist_raw.append("# " + line + "\n")
+                    more = self.push_line(self.prefilter(line,more))
+                    # IPython's runsource returns None if there was an error
+                    # compiling the code.  This allows us to stop processing right
+                    # away, so the user gets the error message at the right place.
+                    if more is None:
+                        break
+                else:
+                    self.input_hist_raw.append("\n")
+            # final newline in case the input didn't have it, so that the code
+            # actually does get executed
+            if more:
+                self.push_line('\n')
 
     def runsource(self, source, filename='<input>', symbol='single'):
         """Compile and run some source in the interpreter.

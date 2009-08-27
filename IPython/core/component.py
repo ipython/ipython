@@ -52,15 +52,19 @@ class MetaComponentTracker(type):
         When a Component or subclass is instantiated, this is called and
         the instance is saved in a WeakValueDictionary for tracking.
         """
-
-        instance = super(MetaComponentTracker, cls).__call__(*args, **kw)
+        instance = cls.__new__(cls, *args, **kw)
+        # Do this before __init__ is called so get_instances works inside
+        # __init__ methods!
         for c in cls.__mro__:
             if issubclass(cls, c) and issubclass(c, Component):
                 c.__numcreated += 1
                 c.__instance_refs[c.__numcreated] = instance
+        if isinstance(instance, cls):
+            cls.__init__(instance, *args, **kw)
+
         return instance
 
-    def get_instances(cls, name=None, root=None):
+    def get_instances(cls, name=None, root=None, classname=None):
         """Get all instances of cls and its subclasses.
 
         Parameters
@@ -69,21 +73,26 @@ class MetaComponentTracker(type):
             Limit to components with this name.
         root : Component or subclass
             Limit to components having this root.
+        classname : str
+            The string name of a class to match exactly.
         """
         instances = cls.__instance_refs.values()
         if name is not None:
             instances = [i for i in instances if i.name == name]
+        if classname is not None:
+            instances = [i for i in instances if i.__class__.__name__ == classname]
         if root is not None:
             instances = [i for i in instances if i.root == root]
         return instances
 
-    def get_instances_by_condition(cls, call, name=None, root=None):
+    def get_instances_by_condition(cls, call, name=None, root=None,
+                                   classname=None):
         """Get all instances of cls, i such that call(i)==True.
 
-        This also takes the ``name`` and ``root`` arguments of
-        :meth:`get_instance`
+        This also takes the ``name`` and ``root`` and ``classname`` 
+        arguments of :meth:`get_instance`
         """
-        return [i for i in cls.get_instances(name, root) if call(i)]
+        return [i for i in cls.get_instances(name, root, classname) if call(i)]
 
 
 class ComponentNameGenerator(object):

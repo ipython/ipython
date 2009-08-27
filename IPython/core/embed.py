@@ -23,6 +23,8 @@ Notes
 # Imports
 #-----------------------------------------------------------------------------
 
+from __future__ import with_statement
+
 import sys
 
 from IPython.core import ultratb
@@ -63,7 +65,7 @@ class InteractiveShellEmbed(InteractiveShell):
     def __init__(self, parent=None, config=None, ipythondir=None, usage=None,
                  user_ns=None, user_global_ns=None,
                  banner1=None, banner2=None,
-                 custom_exceptions=((),None), exit_msg=None):
+                 custom_exceptions=((),None), exit_msg=''):
 
         # First we need to save the state of sys.displayhook and
         # sys.ipcompleter so we can restore it when we are done.
@@ -172,7 +174,7 @@ class InteractiveShellEmbed(InteractiveShell):
 
         # Call the embedding code with a stack depth of 1 so it can skip over
         # our call and get the original caller's namespaces.
-        self.embed_mainloop(banner, local_ns, global_ns, 
+        self.mainloop(banner, local_ns, global_ns, 
                             stack_depth=stack_depth)
 
         if self.exit_msg is not None:
@@ -181,6 +183,71 @@ class InteractiveShellEmbed(InteractiveShell):
         # Restore global systems (display, completion)
         self.restore_sys_displayhook()
         self.restore_sys_ipcompleter()
+
+    def mainloop(self,header='',local_ns=None,global_ns=None,stack_depth=0):
+        """Embeds IPython into a running python program.
+
+        Input:
+
+          - header: An optional header message can be specified.
+
+          - local_ns, global_ns: working namespaces. If given as None, the
+          IPython-initialized one is updated with __main__.__dict__, so that
+          program variables become visible but user-specific configuration
+          remains possible.
+
+          - stack_depth: specifies how many levels in the stack to go to
+          looking for namespaces (when local_ns and global_ns are None).  This
+          allows an intermediate caller to make sure that this function gets
+          the namespace from the intended level in the stack.  By default (0)
+          it will get its locals and globals from the immediate caller.
+
+        Warning: it's possible to use this in a program which is being run by
+        IPython itself (via %run), but some funny things will happen (a few
+        globals get overwritten). In the future this will be cleaned up, as
+        there is no fundamental reason why it can't work perfectly."""
+
+        # Get locals and globals from caller
+        if local_ns is None or global_ns is None:
+            call_frame = sys._getframe(stack_depth).f_back
+
+            if local_ns is None:
+                local_ns = call_frame.f_locals
+            if global_ns is None:
+                global_ns = call_frame.f_globals
+
+        # Update namespaces and fire up interpreter
+
+        # The global one is easy, we can just throw it in
+        self.user_global_ns = global_ns
+
+        # but the user/local one is tricky: ipython needs it to store internal
+        # data, but we also need the locals.  We'll copy locals in the user
+        # one, but will track what got copied so we can delete them at exit.
+        # This is so that a later embedded call doesn't see locals from a
+        # previous call (which most likely existed in a separate scope).
+        local_varnames = local_ns.keys()
+        self.user_ns.update(local_ns)
+        #self.user_ns['local_ns'] = local_ns  # dbg
+
+        # Patch for global embedding to make sure that things don't overwrite
+        # user globals accidentally. Thanks to Richard <rxe@renre-europe.com>
+        # FIXME. Test this a bit more carefully (the if.. is new)
+        if local_ns is None and global_ns is None:
+            self.user_global_ns.update(__main__.__dict__)
+
+        # make sure the tab-completer has the correct frame information, so it
+        # actually completes using the frame's locals/globals
+        self.set_completer_frame()
+
+        with self.builtin_trap:
+            self.interact(header)
+        
+            # now, purge out the user namespace from anything we might have added
+            # from the caller's local namespace
+            delvar = self.user_ns.pop
+            for var in local_varnames:
+                delvar(var,None)
 
 
 _embedded_shell = None
