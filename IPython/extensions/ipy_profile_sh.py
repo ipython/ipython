@@ -8,6 +8,7 @@ compatibility)
 """
 
 from IPython.core import ipapi
+from IPython.core.error import TryNext
 import os,re,textwrap
 
 # The import below effectively obsoletes your old-style ipythonrc[.ini],
@@ -69,10 +70,10 @@ def main():
     o.banner = "IPython %s   [on Py %s]\n" % (release.version,sys.version.split(None,1)[0])
     
     
-    ip.IP.default_option('cd','-q')
-    ip.IP.default_option('macro', '-r')
+    ip.default_option('cd','-q')
+    ip.default_option('macro', '-r')
     # If you only rarely want to execute the things you %edit...  
-    #ip.IP.default_option('edit','-x')
+    #ip.default_option('edit','-x')
     
 
     o.prompts_pad_left="1"
@@ -108,11 +109,11 @@ def main():
             cmd = noext
         
         key = mapper(cmd)
-        if key not in ip.IP.alias_table:
+        if key not in ip.alias_table:
             # Dots will be removed from alias names, since ipython
             # assumes names with dots to be python code
             
-            ip.defalias(key.replace('.',''), cmd)
+            ip.define_alias(key.replace('.',''), cmd)
 
     # mglob combines 'find', recursion, exclusion... '%mglob?' to learn more
     ip.load("IPython.external.mglob")    
@@ -121,13 +122,13 @@ def main():
     if sys.platform == 'win32':
         if 'cygwin' in os.environ['PATH'].lower():          
             # use the colors of cygwin ls (recommended)
-            ip.defalias('d', 'ls -F --color=auto')
+            ip.define_alias('d', 'ls -F --color=auto')
         else:
             # get icp, imv, imkdir, igrep, irm,...
             ip.load('ipy_fsops')
             
             # and the next best thing to real 'ls -F'
-            ip.defalias('d','dir /w /og /on')
+            ip.define_alias('d','dir /w /og /on')
     
     ip.set_hook('input_prefilter', slash_prefilter_f)
     extend_shell_behavior(ip)
@@ -141,10 +142,10 @@ class LastArgFinder:
         ip = ipapi.get()
         if hist_idx is None:
             return str(self)
-        return ip.IP.input_hist_raw[hist_idx].strip().split()[-1]
+        return ip.input_hist_raw[hist_idx].strip().split()[-1]
     def __str__(self):
         ip = ipapi.get()        
-        for cmd in reversed(ip.IP.input_hist_raw):
+        for cmd in reversed(ip.input_hist_raw):
             parts = cmd.strip().split()
             if len(parts) < 2 or parts[-1] in ['$LA', 'LA()']:
                 continue
@@ -159,7 +160,7 @@ def slash_prefilter_f(self,line):
     from IPython.utils import genutils
     if re.match('(?:[.~]|/[a-zA-Z_0-9]+)/', line):
         return "_ip.system(" + genutils.make_quoted_expr(line)+")"
-    raise ipapi.TryNext
+    raise TryNext
 
 # XXX You do not need to understand the next function!
 # This should probably be moved out of profile
@@ -169,16 +170,16 @@ def extend_shell_behavior(ip):
     # Instead of making signature a global variable tie it to IPSHELL.
     # In future if it is required to distinguish between different
     # shells we can assign a signature per shell basis
-    ip.IP.__sig__ = 0xa005
+    ip.__sig__ = 0xa005
     # mark the IPSHELL with this signature
-    ip.IP.user_ns['__builtins__'].__dict__['__sig__'] = ip.IP.__sig__
+    ip.user_ns['__builtins__'].__dict__['__sig__'] = ip.__sig__
 
     from IPython.external.Itpl import ItplNS
     from IPython.utils.genutils import shell
     # utility to expand user variables via Itpl
     # xxx do something sensible with depth?
-    ip.IP.var_expand = lambda cmd, lvars=None, depth=2: \
-        str(ItplNS(cmd, ip.IP.user_ns, get_locals()))
+    ip.var_expand = lambda cmd, lvars=None, depth=2: \
+        str(ItplNS(cmd, ip.user_ns, get_locals()))
 
     def get_locals():
         """ Substituting a variable through Itpl deep inside the IPSHELL stack
@@ -194,7 +195,7 @@ def extend_shell_behavior(ip):
         getlvars = lambda fno: sys._getframe(fno+1).f_locals
         # trackback until we enter the IPSHELL
         frame_no = 1
-        sig = ip.IP.__sig__
+        sig = ip.__sig__
         fsig = ~sig
         while fsig != sig :
             try:
@@ -230,7 +231,7 @@ def extend_shell_behavior(ip):
 
         # We must start with a clean buffer, in case this is run from an
         # interactive IPython session (via a magic, for example).
-        ip.IP.resetbuffer()
+        ip.resetbuffer()
         lines = lines.split('\n')
         more = 0
         command = ''
@@ -251,9 +252,9 @@ def extend_shell_behavior(ip):
                 command += line
                 if command or more:
                     # push to raw history, so hist line numbers stay in sync
-                    ip.IP.input_hist_raw.append("# " + command + "\n")
+                    ip.input_hist_raw.append("# " + command + "\n")
                     
-                    more = ip.IP.push(ip.IP.prefilter(command,more))
+                    more = ip.push_line(ip.prefilter(command,more))
                     command = ''
                     # IPython's runsource returns None if there was an error
                     # compiling the code.  This allows us to stop processing right
@@ -263,8 +264,8 @@ def extend_shell_behavior(ip):
         # final newline in case the input didn't have it, so that the code
         # actually does get executed
         if more:
-            ip.IP.push('\n')
+            ip.push_line('\n')
 
-    ip.IP.runlines = _runlines
+    ip.runlines = _runlines
 
 main()

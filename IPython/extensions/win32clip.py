@@ -42,4 +42,4 @@ def clip_f( self, parameter_s = '' ):
     print 'The following text was written to the clipboard'
     print val
     
-ip.expose_magic( "clip", clip_f )
+ip.define_magic( "clip", clip_f )

@@ -8,6 +8,8 @@ ip.set_hook('complete_command', svn_completer, str_key = 'svn')
 
 """
 from IPython.core import ipapi
+from IPython.core.error import TryNext
+
 import glob,os,shlex,sys
 import inspect
 from time import time
@@ -169,7 +171,7 @@ def vcs_completer(commands, event):
     if len(cmd_param) == 2 or 'help' in cmd_param:
         return commands.split()
 
-    return ip.IP.Completer.file_matches(event.symbol)
+    return ip.Completer.file_matches(event.symbol)
 
 
 pkg_cache = None
@@ -245,7 +247,7 @@ def bzr_completer(self,event):
             return []
         else:
             # the rest are probably file names
-            return ip.IP.Completer.file_matches(event.symbol)
+            return ip.Completer.file_matches(event.symbol)
 
     return bzr_commands()
 
@@ -329,7 +331,7 @@ def cd_completer(self, event):
         if ' ' in d:
             # we don't want to deal with any of that, complex code
             # for this is elsewhere
-            raise ipapi.TryNext
+            raise TryNext
         found.append( d )
 
     if not found:
@@ -341,7 +343,7 @@ def cd_completer(self, event):
         if bkmatches:
             return bkmatches
         
-        raise ipapi.TryNext
+        raise TryNext
 
 
     def single_dir_expand(matches):

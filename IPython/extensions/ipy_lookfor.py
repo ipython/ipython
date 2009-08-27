@@ -229,6 +229,6 @@ def lookfor_modules_f(self, arg=''):
     else:
         _lookfor_modules = arg.split()
 
-ip.expose_magic('lookfor', lookfor_f)
-ip.expose_magic('lookfor_modules', lookfor_modules_f)
+ip.define_magic('lookfor', lookfor_f)
+ip.define_magic('lookfor_modules', lookfor_modules_f)
 

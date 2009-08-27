@@ -43,7 +43,7 @@ def magic_rehash(self, parameter_s = ''):
     # aliases since %rehash will probably clobber them
     self.shell.init_auto_alias()
 
-ip.expose_magic("rehash", magic_rehash)
+ip.define_magic("rehash", magic_rehash)
 
 # Exit
 def magic_Quit(self, parameter_s=''):
@@ -51,7 +51,7 @@ def magic_Quit(self, parameter_s=''):
 
     self.shell.ask_exit()
 
-ip.expose_magic("Quit", magic_Quit)
+ip.define_magic("Quit", magic_Quit)
 
 
 # make it autocallable fn if you really need it
@@ -59,4 +59,4 @@ def magic_p(self, parameter_s=''):
     """Just a short alias for Python's 'print'."""
     exec 'print ' + parameter_s in self.shell.user_ns
 
-ip.expose_magic("p", magic_p)
+ip.define_magic("p", magic_p)

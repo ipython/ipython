@@ -28,9 +28,6 @@ def test_import_ipapi():
 def test_import_iplib():
     from IPython.core import iplib
 
-def test_import_ipmaker():
-    from IPython.core import ipmaker
-
 def test_import_logger():
     from IPython.core import logger
 

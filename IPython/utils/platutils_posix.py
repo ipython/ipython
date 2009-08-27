@@ -17,17 +17,18 @@ import os
 
 ignore_termtitle = True
 
+
 def _dummy_op(*a, **b):
     """ A no-op function """
 
 
 def _set_term_title_xterm(title):
     """ Change virtual terminal title in xterm-workalikes """
-
     sys.stdout.write('\033]0;%s\007' % title)
 
+TERM = os.environ.get('TERM','')
 
-if os.environ.get('TERM','') == 'xterm':
+if (TERM == 'xterm') or (TERM == 'xterm-color'):
     set_term_title = _set_term_title_xterm
 else:
     set_term_title = _dummy_op

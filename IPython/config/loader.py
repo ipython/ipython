@@ -163,7 +163,7 @@ class ArgParseConfigLoader(CommandLineConfigLoader):
         self._add_arguments()
         self._add_other_arguments()
 
-    def _add_other_arguments():
+    def _add_other_arguments(self):
         pass
 
     def _add_arguments(self):
@@ -189,12 +189,15 @@ class ArgParseConfigLoader(CommandLineConfigLoader):
 class IPythonArgParseConfigLoader(ArgParseConfigLoader):
 
     def _add_other_arguments(self):
-        self.parser.add_argument('--ipythondir',dest='IPYTHONDIR',type=str,
-            help='set to override default location of IPYTHONDIR',
+        self.parser.add_argument('-ipythondir',dest='IPYTHONDIR',type=str,
+            help='Set to override default location of IPYTHONDIR.',
             default=NoDefault)
-        self.parser.add_argument('-p','--p',dest='PROFILE_NAME',type=str,
-            help='the string name of the ipython profile to be used',
-            default=None)
-        self.parser.add_argument('--debug',dest="DEBUG",action='store_true',
-            help='debug the application startup process',
+        self.parser.add_argument('-p','-profile',dest='PROFILE',type=str,
+            help='The string name of the ipython profile to be used.',
+            default=NoDefault)
+        self.parser.add_argument('-debug',dest="DEBUG",action='store_true',
+            help='Debug the application startup process.',
+            default=NoDefault)
+        self.parser.add_argument('-config_file',dest='CONFIG_FILE',type=str,
+            help='Set the config file name to override default.',
             default=NoDefault)

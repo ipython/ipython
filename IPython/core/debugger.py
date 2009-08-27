@@ -110,7 +110,7 @@ class Tracer(object):
             __IPYTHON__
         except NameError:
             # Outside of ipython, we set our own exception hook manually
-            __IPYTHON__ = ipapi.get(True,False)
+            __IPYTHON__ = ipapi.get()
             BdbQuit_excepthook.excepthook_ori = sys.excepthook
             sys.excepthook = BdbQuit_excepthook
             def_colors = 'NoColor'
@@ -123,7 +123,7 @@ class Tracer(object):
         else:
             # In ipython, we use its custom exception handler mechanism
             ip = ipapi.get()
-            def_colors = ip.options.colors
+            def_colors = ip.colors
             ip.set_custom_exc((bdb.BdbQuit,),BdbQuit_IPython_excepthook)
 
         if colors is None:

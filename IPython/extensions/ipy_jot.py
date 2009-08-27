@@ -116,14 +116,14 @@ def jot_obj(self, obj, name, comment=''):
     uname = 'jot/'+name+suffix
 
     # which one works better? 
-    #all = ip.IP.shadowhist.all()
-    all = ip.IP.shell.input_hist
+    #all = ip.shadowhist.all()
+    all = ip.shell.input_hist
 
     # We may actually want to make snapshot of files that are run-ned.
 
     # get the comment 
     try:
-        comment = ip.IP.magic_edit('-x').strip()
+        comment = ip.magic_edit('-x').strip()
     except:
         print "No comment is recorded."
         comment = ''
@@ -307,5 +307,5 @@ def magic_read(self, parameter_s=''):
         return read_variables(ip, toret)
 
 
-ip.expose_magic('jot',magic_jot)
-ip.expose_magic('read',magic_read)
+ip.define_magic('jot',magic_jot)
+ip.define_magic('read',magic_read)

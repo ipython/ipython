@@ -23,7 +23,7 @@ import time
 from IPython.utils import coloransi
 from IPython.core import release
 from IPython.external.Itpl import ItplNS
-from IPython.core.ipapi import TryNext
+from IPython.core.error import TryNext
 from IPython.utils.ipstruct import Struct
 from IPython.core.macro import Macro
 import IPython.utils.generics

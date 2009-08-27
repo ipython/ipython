@@ -61,8 +61,8 @@ def isolate_ipython0(func):
         if ip0 is None:
             return func()
         # We have a real ipython running...
-        user_ns = ip0.IP.user_ns
-        user_global_ns = ip0.IP.user_global_ns
+        user_ns = ip0.user_ns
+        user_global_ns = ip0.user_global_ns
 
         # Previously the isolation was attempted with a deep copy of the user
         # dicts, but we found cases where this didn't work correctly. I'm not

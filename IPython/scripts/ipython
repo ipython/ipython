@@ -23,6 +23,6 @@ this mode, there is no way to pass IPython any command-line options, as those
 are trapped first by Python itself.
 """
 
-import IPython.core.shell
+import IPython.core.ipapi import launch_new_instance
 
-IPython.core.shell.start().mainloop()
+launch_new_instance()

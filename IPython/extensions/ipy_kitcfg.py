@@ -16,7 +16,7 @@ def pylaunchers():
     for f in fs:
         l = PyLauncher(f)
         n = os.path.splitext(f)[0]
-        ip.defalias(n, l)
+        ip.define_alias(n, l)
         ip.magic('store '+n)
 
 
@@ -39,7 +39,7 @@ def main():
         return
         
     os.environ["PATH"] = os.environ["PATH"] + ";" + kitroot() + "\\bin;"
-    ip.to_user_ns("pylaunchers")
+    ip.push("pylaunchers")
     cmds = ip.db.get('syscmdlist', None)
     if cmds is None:
         ip.magic('rehashx')
@@ -63,8 +63,8 @@ def ipython_firstrun(ip):
 
     print "First run of ipykit - configuring"
 
-    ip.defalias('py',selflaunch)
-    ip.defalias('d','dir /w /og /on')
+    ip.define_alias('py',selflaunch)
+    ip.define_alias('d','dir /w /og /on')
     ip.magic('store py')
     ip.magic('store d')
     

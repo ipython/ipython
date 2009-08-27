@@ -22,6 +22,7 @@ For more details: https://bugs.launchpad.net/ipython/+bug/249036
 import os
 
 from IPython.core import ipapi
+from IPython.core.error import UsageError
 import rpdb2
 
 ip = ipapi.get()
@@ -58,7 +59,7 @@ def wdb_f(self, arg):
     
     path = os.path.abspath(arg)
     if not os.path.isfile(path):
-        raise ipapi.UsageError("%%wdb: file %s does not exist" % path)
+        raise UsageError("%%wdb: file %s does not exist" % path)
     if not rpdb_started:
         passwd = ip.db.get('winpdb_pass', None)
         if passwd is None:
@@ -80,4 +81,4 @@ def wdb_f(self, arg):
     ip.magic('%run ' + arg)
     
 
-ip.expose_magic('wdb', wdb_f)
+ip.define_magic('wdb', wdb_f)

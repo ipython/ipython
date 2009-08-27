@@ -28,7 +28,7 @@ def global_f(self,cmdline):
         lines = ['%s [%s]\n%s' % (p[2].rjust(70),p[1],p[3].rstrip()) for p in parts]
     print "\n".join(lines)
 
-ip.expose_magic('global', global_f)
+ip.define_magic('global', global_f)
 
 def global_completer(self,event):
     compl = [l.rstrip() for l in os.popen(global_bin + ' -c ' + event.symbol).readlines()]

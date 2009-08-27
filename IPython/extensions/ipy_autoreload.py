@@ -225,6 +225,7 @@ reloader = ModuleReloader()
 # IPython connectivity
 #------------------------------------------------------------------------------
 from IPython.core import ipapi
+from IPython.core.error import TryNext
 
 ip = ipapi.get()
 
@@ -232,7 +233,7 @@ autoreload_enabled = False
 
 def runcode_hook(self):
     if not autoreload_enabled:
-        raise ipapi.TryNext
+        raise TryNext
     try:
         reloader.check()
     except:
@@ -339,11 +340,11 @@ def aimport_f(self, parameter_s=''):
         __import__(modname)
         basename = modname.split('.')[0]
         mod = sys.modules[basename]
-        ip.to_user_ns({basename: mod})
+        ip.push({basename: mod})
 
 def init():
-    ip.expose_magic('autoreload', autoreload_f)
-    ip.expose_magic('aimport', aimport_f)
+    ip.define_magic('autoreload', autoreload_f)
+    ip.define_magic('aimport', aimport_f)
     ip.set_hook('pre_runcode_hook', runcode_hook)
 
 init()

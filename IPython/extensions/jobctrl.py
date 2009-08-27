@@ -48,6 +48,7 @@ import threading,Queue
 from IPython.utils import genutils
 
 from IPython.core import ipapi
+from IPython.core.error import TryNext
 
 if os.name == 'nt':
     def kill_process(pid):
@@ -123,12 +124,12 @@ def jobctrl_prefilter_f(self,line):
     if line.startswith('&'):
         pre,fn,rest = self.split_user_input(line[1:])
         
-        line = ip.IP.expand_aliases(fn,rest)
+        line = ip.expand_aliases(fn,rest)
         if not _jobq:
             return '_ip.startjob(%s)' % genutils.make_quoted_expr(line)
         return '_ip.jobq(%s)' % genutils.make_quoted_expr(line)
 
-    raise ipapi.TryNext
+    raise TryNext
 
 def jobq_output_hook(self):
     if not _jobq:
@@ -235,8 +236,8 @@ def install():
     ip.startjob = startjob
     ip.set_hook('input_prefilter', jobctrl_prefilter_f)
     ip.set_hook('shell_hook', jobctrl_shellcmd)
-    ip.expose_magic('kill',magic_kill)
-    ip.expose_magic('tasks',magic_tasks)
-    ip.expose_magic('jobqueue',jobqueue_f)
+    ip.define_magic('kill',magic_kill)
+    ip.define_magic('tasks',magic_tasks)
+    ip.define_magic('jobqueue',jobqueue_f)
     ip.set_hook('pre_prompt_hook', jobq_output_hook) 
 install()

@@ -6,6 +6,7 @@ Contributions are *very* welcome.
 """
 
 from IPython.core import ipapi
+from IPython.core.error import TryNext
 ip = ipapi.get()
 
 from IPython.external.Itpl import itplns
@@ -29,7 +30,7 @@ def install_editor(run_template, wait = False):
         cmd = itplns(run_template, locals())
         print ">",cmd
         if os.system(cmd) != 0:
-            raise ipapi.TryNext()
+            raise TryNext()
         if wait:
             raw_input("Press Enter when done editing:")
 

@@ -10,6 +10,7 @@ do the same in default completer.
 
 """
 from IPython.core import ipapi
+from IPython.core.error import TryNext
 from IPython.utils import generics
 from IPython.utils.genutils import dir2
 
@@ -59,7 +60,7 @@ def attr_matches(self, text):
     
     try:
         words = generics.complete_object(obj, words)
-    except ipapi.TryNext:
+    except TryNext:
         pass
     # Build match list to return
     n = len(attr)

@@ -54,7 +54,6 @@ def toggle_set_term_title(val):
 
 def set_term_title(title):
     """Set terminal title using the necessary platform-dependent calls."""
-
     if _platutils.ignore_termtitle:
         return
     _platutils.set_term_title(title)

@@ -45,16 +45,17 @@ except ImportError:
 import IPython
 from IPython.utils import wildcard
 from IPython.core import debugger, oinspect
+from IPython.core.error import TryNext
 from IPython.core.fakemodule import FakeModule
 from IPython.external.Itpl import Itpl, itpl, printpl,itplns
 from IPython.utils.PyColorize import Parser
 from IPython.utils.ipstruct import Struct
 from IPython.core.macro import Macro
 from IPython.utils.genutils import *
+from IPython.core.page import page
 from IPython.utils import platutils
 import IPython.utils.generics
-from IPython.core import ipapi
-from IPython.core.ipapi import UsageError
+from IPython.core.error import UsageError
 from IPython.testing import decorators as testdec
 
 #***************************************************************************
@@ -378,7 +379,7 @@ python-profiler package from non-free.""")
         mesc = self.shell.ESC_MAGIC
         print 'Available magic functions:\n'+mesc+\
               ('  '+mesc).join(self.lsmagic())
-        print '\n' + Magic.auto_status[self.shell.rc.automagic]
+        print '\n' + Magic.auto_status[self.shell.automagic]
         return None
         
     def magic_magic(self, parameter_s = ''):
@@ -470,8 +471,8 @@ ipythonrc file, placing a line like:
 
 will define %pf as a new name for %profile.
 
-You can also call magics in code using the ipmagic() function, which IPython
-automatically adds to the builtin namespace.  Type 'ipmagic?' for details.
+You can also call magics in code using the magic() function, which IPython
+automatically adds to the builtin namespace.  Type 'magic?' for details.
 
 For a list of the available magic functions, use %lsmagic. For a description
 of any of them, type %magic_name?, e.g. '%cd?'.
@@ -483,9 +484,9 @@ Currently the magic system has the following functions:\n"""
                   "\n\n%s%s\n\n%s" % (outmsg,
                                      magic_docs,mesc,mesc,
                                      ('  '+mesc).join(self.lsmagic()),
-                                     Magic.auto_status[self.shell.rc.automagic] ) )
+                                     Magic.auto_status[self.shell.automagic] ) )
 
-        page(outmsg,screen_lines=self.shell.rc.screen_length)
+        page(outmsg,screen_lines=self.shell.usable_screen_length)
   
 
     def magic_autoindent(self, parameter_s = ''):
@@ -512,15 +513,14 @@ Currently the magic system has the following functions:\n"""
         delete the variable (del var), the previously shadowed magic function
         becomes visible to automagic again."""
 
-        rc = self.shell.rc
         arg = parameter_s.lower()
         if parameter_s in ('on','1','true'):
-            rc.automagic = True
+            self.shell.automagic = True
         elif parameter_s in ('off','0','false'):
-            rc.automagic = False
+            self.shell.automagic = False
         else:
-            rc.automagic = not rc.automagic
-        print '\n' + Magic.auto_status[rc.automagic]
+            self.shell.automagic = not self.shell.automagic
+        print '\n' + Magic.auto_status[self.shell.automagic]
 
     @testdec.skip_doctest
     def magic_autocall(self, parameter_s = ''):
@@ -566,8 +566,6 @@ Currently the magic system has the following functions:\n"""
         # all-random (note for auto-testing)
         """
 
-        rc = self.shell.rc
-
         if parameter_s:
             arg = int(parameter_s)
         else:
@@ -578,18 +576,18 @@ Currently the magic system has the following functions:\n"""
             return
 
         if arg in (0,1,2):
-            rc.autocall = arg
+            self.shell.autocall = arg
         else: # toggle
-            if rc.autocall:
-                self._magic_state.autocall_save = rc.autocall
-                rc.autocall = 0
+            if self.shell.autocall:
+                self._magic_state.autocall_save = self.shell.autocall
+                self.shell.autocall = 0
             else:
                 try:
-                    rc.autocall = self._magic_state.autocall_save
+                    self.shell.autocall = self._magic_state.autocall_save
                 except AttributeError:
-                    rc.autocall = self._magic_state.autocall_save = 1
+                    self.shell.autocall = self._magic_state.autocall_save = 1
 
-        print "Automatic calling is:",['OFF','Smart','Full'][rc.autocall]
+        print "Automatic calling is:",['OFF','Smart','Full'][self.shell.autocall]
 
     def magic_system_verbose(self, parameter_s = ''):
         """Set verbose printing of system calls.
@@ -600,10 +598,13 @@ Currently the magic system has the following functions:\n"""
             val = bool(eval(parameter_s))
         else:
             val = None
-            
-        self.shell.rc_set_toggle('system_verbose',val)
+
+        if self.shell.system_verbose:
+            self.shell.system_verbose = False
+        else:
+            self.shell.system_verbose = True
         print "System verbose printing is:",\
-              ['OFF','ON'][self.shell.rc.system_verbose]
+              ['OFF','ON'][self.shell.system_verbose]
 
 
     def magic_page(self, parameter_s=''):
@@ -633,8 +634,8 @@ Currently the magic system has the following functions:\n"""
 
     def magic_profile(self, parameter_s=''):
         """Print your currently active IPyhton profile."""
-        if self.shell.rc.profile:
-            printpl('Current IPython profile: $self.shell.rc.profile.')
+        if self.shell.profile:
+            printpl('Current IPython profile: $self.shell.profile.')
         else:
             print 'No profile active.'
 
@@ -720,7 +721,7 @@ Currently the magic system has the following functions:\n"""
             try:
                 IPython.utils.generics.inspect_object(info.obj)
                 return
-            except ipapi.TryNext:
+            except TryNext:
                 pass
             # Get the docstring of the class property if it exists.
             path = oname.split('.')
@@ -848,7 +849,7 @@ Currently the magic system has the following functions:\n"""
         elif opts.has_key('c'):
             ignore_case = False
         else:
-            ignore_case = not shell.rc.wildcards_case_sensitive
+            ignore_case = not shell.wildcards_case_sensitive
 
         # Build list of namespaces to search from user options
         def_search.extend(opt('s',[]))
@@ -1132,7 +1133,6 @@ Currently the magic system has the following functions:\n"""
         log_raw_input = 'r' in opts
         timestamp = 't' in opts
 
-        rc = self.shell.rc
         logger = self.shell.logger
 
         # if no args are given, the defaults set in the logger constructor by
@@ -1149,11 +1149,14 @@ Currently the magic system has the following functions:\n"""
         # put logfname into rc struct as if it had been called on the command
         # line, so it ends up saved in the log header Save it in case we need
         # to restore it...
-        old_logfile = rc.opts.get('logfile','')  
+        old_logfile = self.shell.logfile
         if logfname:
             logfname = os.path.expanduser(logfname)
-        rc.opts.logfile = logfname
-        loghead = self.shell.loghead_tpl % (rc.opts,rc.args)
+        self.shell.logfile = logfname
+        # TODO: we need to re-think how logs with args/opts are replayed
+        # and tracked.
+        # loghead = self.shell.loghead_tpl % (rc.opts,rc.args)
+        loghead = self.shell.loghead_tpl % ('','')
         try:
             started  = logger.logstart(logfname,loghead,logmode,
                                        log_output,timestamp,log_raw_input)
@@ -1421,7 +1424,7 @@ Currently the magic system has the following functions:\n"""
         output = stdout_trap.getvalue()
         output = output.rstrip()
 
-        page(output,screen_lines=self.shell.rc.screen_length)
+        page(output,screen_lines=self.shell.usable_screen_length)
         print sys_exit,
 
         dump_file = opts.D[0]
@@ -1569,7 +1572,7 @@ Currently the magic system has the following functions:\n"""
             return
 
         if filename.lower().endswith('.ipy'):
-            self.api.runlines(open(filename).read())
+            self.runlines(open(filename).read(), clean=True)
             return
         
         # Control the response to exit() calls made by the script being run
@@ -1622,7 +1625,7 @@ Currently the magic system has the following functions:\n"""
                 stats = self.magic_prun('',0,opts,arg_lst,prog_ns)
             else:
                 if opts.has_key('d'):
-                    deb = debugger.Pdb(self.shell.rc.colors)
+                    deb = debugger.Pdb(self.shell.colors)
                     # reset Breakpoint state, which is moronically kept
                     # in a class
                     bdb.Breakpoint.next = 1
@@ -2061,7 +2064,7 @@ Currently the magic system has the following functions:\n"""
         #print 'rng',ranges  # dbg
         lines = self.extract_input_slices(ranges,opts.has_key('r'))
         macro = Macro(lines)
-        self.shell.user_ns.update({name:macro})
+        self.shell.define_macro(name, macro)
         print 'Macro `%s` created. To execute, type its name (without quotes).' % name
         print 'Macro contents:'
         print macro,
@@ -2391,7 +2394,7 @@ Currently the magic system has the following functions:\n"""
         sys.stdout.flush()
         try:
             self.shell.hooks.editor(filename,lineno)
-        except ipapi.TryNext:
+        except TryNext:
             warn('Could not open editor')
             return
         
@@ -2492,7 +2495,7 @@ Defaulting color scheme to 'NoColor'"""
         except:
             color_switch_err('prompt')
         else:
-            shell.rc.colors = \
+            shell.colors = \
                        shell.outputcache.color_table.active_scheme_name
         # Set exception colors
         try:
@@ -2509,7 +2512,7 @@ Defaulting color scheme to 'NoColor'"""
                 color_switch_err('system exception handler')
         
         # Set info (for 'object?') colors
-        if shell.rc.color_info:
+        if shell.color_info:
             try:
                 shell.inspector.set_active_scheme(new_scheme)
             except:
@@ -2528,17 +2531,17 @@ Defaulting color scheme to 'NoColor'"""
         than more) in your system, using colored object information displays
         will not work properly. Test it and see."""
         
-        self.shell.rc.color_info = 1 - self.shell.rc.color_info
-        self.magic_colors(self.shell.rc.colors)
+        self.shell.color_info = not self.shell.color_info
+        self.magic_colors(self.shell.colors)
         print 'Object introspection functions have now coloring:',
-        print ['OFF','ON'][self.shell.rc.color_info]
+        print ['OFF','ON'][int(self.shell.color_info)]
 
     def magic_Pprint(self, parameter_s=''):
         """Toggle pretty printing on/off."""
         
-        self.shell.rc.pprint = 1 - self.shell.rc.pprint
+        self.shell.pprint = 1 - self.shell.pprint
         print 'Pretty printing has been turned', \
-              ['OFF','ON'][self.shell.rc.pprint]
+              ['OFF','ON'][self.shell.pprint]
         
     def magic_exit(self, parameter_s=''):
         """Exit IPython, confirming if configured to do so.
@@ -2683,12 +2686,9 @@ Defaulting color scheme to 'NoColor'"""
         This function also resets the root module cache of module completer,
         used on slow filesystems.
         """
-        
-        
-        ip = self.api
 
         # for the benefit of module completer in ipy_completers.py
-        del ip.db['rootmodules']
+        del self.db['rootmodules']
         
         path = [os.path.abspath(os.path.expanduser(p)) for p in 
             os.environ.get('PATH','').split(os.pathsep)]
@@ -2743,7 +2743,7 @@ Defaulting color scheme to 'NoColor'"""
             # no, we don't want them. if %rehashx clobbers them, good,
             # we'll probably get better versions
             # self.shell.init_auto_alias()
-            db = ip.db
+            db = self.db
             db['syscmdlist'] = syscmdlist
         finally:
             os.chdir(savedir)
@@ -2853,9 +2853,8 @@ Defaulting color scheme to 'NoColor'"""
         if ps:
             try:                
                 os.chdir(os.path.expanduser(ps))
-                if self.shell.rc.term_title:
-                    #print 'set term title:',self.shell.rc.term_title  # dbg
-                    platutils.set_term_title('IPy ' + abbrev_cwd())
+                if self.shell.term_title:
+                    platutils.set_term_title('IPython: ' + abbrev_cwd())
             except OSError:
                 print sys.exc_info()[1]
             else:
@@ -2867,8 +2866,8 @@ Defaulting color scheme to 'NoColor'"""
                 
         else:
             os.chdir(self.shell.home_dir)
-            if self.shell.rc.term_title:
-                platutils.set_term_title("IPy ~")
+            if self.shell.term_title:
+                platutils.set_term_title('IPython: ' + '~')
             cwd = os.getcwd()
             dhist = self.shell.user_ns['_dh']
             
@@ -3171,7 +3170,7 @@ Defaulting color scheme to 'NoColor'"""
         esc_magic = self.shell.ESC_MAGIC
         # Identify magic commands even if automagic is on (which means
         # the in-memory version is different from that typed by the user).
-        if self.shell.rc.automagic:
+        if self.shell.automagic:
             start_magic = esc_magic+start
         else:
             start_magic = start
@@ -3265,7 +3264,7 @@ Defaulting color scheme to 'NoColor'"""
             return
             
         page(self.shell.pycolorize(cont),
-             screen_lines=self.shell.rc.screen_length)
+             screen_lines=self.shell.usable_screen_length)
 
     def _rerun_pasted(self):
         """ Rerun a previously pasted command.
@@ -3438,7 +3437,7 @@ Defaulting color scheme to 'NoColor'"""
         ipinstallation = path(IPython.__file__).dirname()
         upgrade_script = '%s "%s"' % (sys.executable,ipinstallation / 'utils' / 'upgradedir.py')
         src_config = ipinstallation / 'config' / 'userconfig'
-        userdir = path(ip.options.ipythondir)
+        userdir = path(ip.config.IPYTHONDIR)
         cmd = '%s "%s" "%s"' % (upgrade_script, src_config, userdir)
         print ">",cmd
         shell(cmd)
@@ -3478,7 +3477,6 @@ Defaulting color scheme to 'NoColor'"""
         # Shorthands
         shell = self.shell
         oc = shell.outputcache
-        rc = shell.rc
         meta = shell.meta
         # dstore is a data store kept in the instance metadata bag to track any
         # changes we make, so we can undo them later.
@@ -3487,12 +3485,12 @@ Defaulting color scheme to 'NoColor'"""
 
         # save a few values we'll need to recover later
         mode = save_dstore('mode',False)
-        save_dstore('rc_pprint',rc.pprint)
+        save_dstore('rc_pprint',shell.pprint)
         save_dstore('xmode',shell.InteractiveTB.mode)
-        save_dstore('rc_separate_out',rc.separate_out)
-        save_dstore('rc_separate_out2',rc.separate_out2)
-        save_dstore('rc_prompts_pad_left',rc.prompts_pad_left)
-        save_dstore('rc_separate_in',rc.separate_in)
+        save_dstore('rc_separate_out',shell.separate_out)
+        save_dstore('rc_separate_out2',shell.separate_out2)
+        save_dstore('rc_prompts_pad_left',shell.prompts_pad_left)
+        save_dstore('rc_separate_in',shell.separate_in)
 
         if mode == False:
             # turn on
@@ -3510,7 +3508,7 @@ Defaulting color scheme to 'NoColor'"""
             oc.prompt1.pad_left = oc.prompt2.pad_left = \
                                   oc.prompt_out.pad_left = False
 
-            rc.pprint = False
+            shell.pprint = False
 
             shell.magic_xmode('Plain')
 
@@ -3518,9 +3516,9 @@ Defaulting color scheme to 'NoColor'"""
             # turn off
             ipaste.deactivate_prefilter()
 
-            oc.prompt1.p_template = rc.prompt_in1
-            oc.prompt2.p_template = rc.prompt_in2
-            oc.prompt_out.p_template = rc.prompt_out
+            oc.prompt1.p_template = shell.prompt_in1
+            oc.prompt2.p_template = shell.prompt_in2
+            oc.prompt_out.p_template = shell.prompt_out
 
             oc.input_sep = oc.prompt1.sep = dstore.rc_separate_in
 

@@ -26,6 +26,7 @@ try:
         """Set terminal title using ctypes to access the Win32 APIs."""
         SetConsoleTitleW(title)
 
+
 except ImportError:
     def set_term_title(title):
         """Set terminal title using the 'title' command."""

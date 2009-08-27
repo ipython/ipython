@@ -110,7 +110,7 @@ class RemoteContextBase(object):
     def _findsource_ipython(self,f):
         from IPython.core import ipapi
         self.ip = ipapi.get()
-        buf = self.ip.IP.input_hist_raw[-1].splitlines()[1:]
+        buf = self.ip.input_hist_raw[-1].splitlines()[1:]
         wsource = [l+'\n' for l in buf ]
 
         return strip_whitespace(wsource)

@@ -52,9 +52,14 @@ Authors:
 import inspect
 import sys
 import types
-from types import InstanceType, ClassType, FunctionType
+from types import (
+    InstanceType, ClassType, FunctionType,
+    ListType, TupleType
+)
 
 ClassTypes = (ClassType, type)
+
+SequenceTypes = (ListType, TupleType)
 
 #-----------------------------------------------------------------------------
 # Basic classes
@@ -859,3 +864,62 @@ class CBool(Bool):
             return bool(value)
         except:
             self.error(obj, value)
+
+
+class Enum(TraitletType):
+    """An enum that whose value must be in a given sequence."""
+
+    def __init__(self, values, default_value=None, allow_none=True, **metadata):
+        self.values = values
+        self._allow_none = allow_none
+        super(Enum, self).__init__(default_value, **metadata)
+
+    def validate(self, obj, value):
+        if value is None:
+            if self._allow_none:
+                return value
+
+        if value in self.values:
+                return value
+        self.error(obj, value)
+
+    def info(self):
+        """ Returns a description of the trait."""
+        result = 'any of ' + repr(self.values)
+        if self._allow_none:
+            return result + ' or None'
+        return result
+
+class CaselessStrEnum(Enum):
+    """An enum of strings that are caseless in validate."""
+
+    def validate(self, obj, value):
+        if value is None:
+            if self._allow_none:
+                return value
+
+        if not isinstance(value, str):
+            self.error(obj, value)
+
+        for v in self.values:
+            if v.lower() == value.lower():
+                return v
+        self.error(obj, value)
+
+
+class List(Instance):
+    """An instance of a Python list."""
+
+    def __init__(self, default_value=None, allow_none=True, **metadata):
+        """Create a list traitlet type from a list or tuple.
+
+        The default value is created by doing ``list(default_value)``, 
+        which creates a copy of the ``default_value``.
+        """
+        if default_value is None:
+            args = ((),)
+        elif isinstance(default_value, SequenceTypes):
+            args = (default_value,)
+
+        super(List,self).__init__(klass=list, args=args, 
+                                  allow_none=allow_none, **metadata)

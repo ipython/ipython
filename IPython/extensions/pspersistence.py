@@ -6,7 +6,7 @@ Stores variables, aliases etc. in PickleShare database.
 """
 
 from IPython.core import ipapi
-from IPython.core.ipapi import UsageError
+from IPython.core.error import TryNext, UsageError
 ip = ipapi.get()
 
 import pickleshare
@@ -20,7 +20,7 @@ def restore_aliases(self):
     for k,v in staliases.items():
         #print "restore alias",k,v # dbg
         #self.alias_table[k] = v
-        ip.defalias(k,v)
+        ip.define_alias(k,v)
 
 
 def refresh_variables(ip):
@@ -47,7 +47,7 @@ def restore_data(self):
     refresh_variables(ip)
     restore_aliases(self)
     restore_dhist(self)
-    raise ipapi.TryNext
+    raise TryNext
     
 ip.set_hook('late_startup_hook', restore_data)
 
@@ -179,4 +179,4 @@ def magic_store(self, parameter_s=''):
             self.db[ 'autorestore/' + args[0] ] = obj
             print "Stored '%s' (%s)" % (args[0], obj.__class__.__name__)
 
-ip.expose_magic('store',magic_store)
+ip.define_magic('store',magic_store)

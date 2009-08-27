@@ -28,7 +28,6 @@ import re
 import __builtin__
 
 from IPython.core.ipmaker import make_IPython
-from IPython.core.ipapi import IPApi
 from IPython.kernel.core.redirector_output_trap import RedirectorOutputTrap
 
 from IPython.kernel.core.sync_traceback_trap import SyncTracebackTrap
@@ -112,7 +111,7 @@ class PrefilterFrontEnd(LineFrontEndBase):
         self.ipython0.set_hook('show_in_pager', 
                     lambda s, string: self.write("\n" + string))
         self.ipython0.write = self.write
-        self._ip = _ip = IPApi(self.ipython0)
+        self._ip = _ip = self.ipython0
         # Make sure the raw system call doesn't get called, as we don't
         # have a stdin accessible.
         self._ip.system = self.system_call

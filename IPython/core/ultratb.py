@@ -270,7 +270,7 @@ def _formatTracebackLines(lnum, index, lines, Colors, lvals=None,scheme=None):
     if scheme is None:
         ipinst = ipapi.get()
         if ipinst is not None:
-            scheme = ipinst.IP.rc.colors
+            scheme = ipinst.colors
         else:
             scheme = DEFAULT_SCHEME
 
@@ -494,7 +494,7 @@ class ListTB(TBTools):
         if have_filedata:
             ipinst = ipapi.get()
             if ipinst is not None:
-                ipinst.IP.hooks.synchronize_with_editor(filename, lineno, 0)
+                ipinst.hooks.synchronize_with_editor(filename, lineno, 0)
         # vds:<<
 
         return list
@@ -816,7 +816,7 @@ class VerboseTB(TBTools):
              filepath = os.path.abspath(filepath)
              ipinst = ipapi.get()
              if ipinst is not None:
-                 ipinst.IP.hooks.synchronize_with_editor(filepath, lnum, 0)
+                 ipinst.hooks.synchronize_with_editor(filepath, lnum, 0)
         # vds: <<
                 
         # return all our info assembled as a single string

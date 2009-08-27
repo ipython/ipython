@@ -29,7 +29,7 @@ from IPython.external.Itpl import ItplNS
 
 from IPython.utils import coloransi
 from IPython.core import release
-from IPython.core.ipapi import TryNext
+from IPython.core.error import TryNext
 from IPython.utils.genutils import *
 import IPython.utils.generics
 

@@ -31,4 +31,4 @@ class A(object):
 a = A()
 
 # Now, we force an exit, the caller will check that the del printout was given
-_ip.IP.ask_exit()
+_ip.ask_exit()

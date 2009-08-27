@@ -40,4 +40,4 @@ def workdir_f(ip,line):
         finally:
             os.chdir(olddir)
 
-ip.defalias("workdir",workdir_f)
+ip.define_alias("workdir",workdir_f)

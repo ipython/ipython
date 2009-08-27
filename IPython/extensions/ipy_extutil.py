@@ -9,6 +9,7 @@ to.
 
 from IPython.core import ipapi
 ip = ipapi.get()
+from IPython.core.iplib import InteractiveShell
 
 import sys,textwrap,inspect
 
@@ -34,10 +35,10 @@ class ExtUtil:
         act = []
         for mname,m in sys.modules.items():
             o = getattr(m, 'ip', None)
-            if isinstance(o, ipapi.IPApi):
+            if isinstance(o, InteractiveShell):
                 act.append((mname,m))
         act.sort()                
         return act
 
 extutil = ExtUtil()                
-ip.to_user_ns('extutil')
+ip.push('extutil')

@@ -124,7 +124,7 @@ $self.bug_tracker
         #color_scheme = 'Linux'   # dbg
         
         try:
-            rptdir = self.IP.rc.ipythondir
+            rptdir = self.IP.config.IPYTHONDIR
         except:
             rptdir = os.getcwd()
         if not os.path.isdir(rptdir):
@@ -171,7 +171,7 @@ $self.bug_tracker
         rpt_add('Platform info  : os.name -> %s, sys.platform -> %s' %
                      (os.name,sys.platform) )
         rpt_add(sec_sep+'Current user configuration structure:\n\n')
-        rpt_add(pformat(self.IP.rc.dict()))
+        rpt_add(pformat(self.IP.dict()))
         rpt_add(sec_sep+'Crash traceback:\n\n' + traceback)
         try:
             rpt_add(sec_sep+"History of session input:")
@@ -215,7 +215,7 @@ class IPythonCrashHandler(CrashHandler):
         rpt_add('Platform info  : os.name -> %s, sys.platform -> %s' %
                      (os.name,sys.platform) )
         rpt_add(sec_sep+'Current user configuration structure:\n\n')
-        rpt_add(pformat(self.IP.rc.dict()))
+        # rpt_add(pformat(self.IP.dict()))
         rpt_add(sec_sep+'Crash traceback:\n\n' + traceback)
         try:
             rpt_add(sec_sep+"History of session input:")
