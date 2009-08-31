@@ -58,7 +58,10 @@ Here we see that there are four engines ready to do work for us.
 Quick and easy parallelism
 ==========================
 
-In many cases, you simply want to apply a Python function to a sequence of objects, but *in parallel*.  The multiengine interface provides two simple ways of accomplishing this:  a parallel version of :func:`map` and ``@parallel`` function decorator.
+In many cases, you simply want to apply a Python function to a sequence of
+objects, but *in parallel*. The multiengine interface provides two simple ways
+of accomplishing this: a parallel version of :func:`map` and ``@parallel``
+function decorator.
 
 Parallel map
 ------------
@@ -90,7 +93,9 @@ parallel version of :meth:`map` that works just like its serial counterpart:
 Parallel function decorator
 ---------------------------
 
-Parallel functions are just like normal function, but they can be called on sequences and *in parallel*.  The multiengine interface provides a decorator that turns any Python function into a parallel function:
+Parallel functions are just like normal function, but they can be called on
+sequences and *in parallel*. The multiengine interface provides a decorator
+that turns any Python function into a parallel function:
 
 .. sourcecode:: ipython
 
@@ -667,7 +672,9 @@ more other types of exceptions. Here is how it works:
 	[2:execute]: ZeroDivisionError: integer division or modulo by zero
 	[3:execute]: ZeroDivisionError: integer division or modulo by zero
 
-Notice how the error message printed when :exc:`CompositeError` is raised has information about the individual exceptions that were raised on each engine.  If you want, you can even raise one of these original exceptions:
+Notice how the error message printed when :exc:`CompositeError` is raised has
+information about the individual exceptions that were raised on each engine.
+If you want, you can even raise one of these original exceptions:
 
 .. sourcecode:: ipython
 

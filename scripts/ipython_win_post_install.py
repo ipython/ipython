@@ -62,12 +62,8 @@ def install():
     cmd = '"%s" -p sh' % ipybase
     mkshortcut(python,'IPython (command prompt mode)',link,cmd)
     
-    link = pjoin(ip_start_menu, 'pylab.lnk')
-    cmd = '"%s" -pylab' % ipybase
-    mkshortcut(python,'IPython (PyLab mode)',link,cmd)
-    
     link = pjoin(ip_start_menu, 'scipy.lnk')
-    cmd = '"%s" -pylab -p scipy' % ipybase
+    cmd = '"%s" -p scipy' % ipybase
     mkshortcut(python,'IPython (scipy profile)',link,cmd)
         
     link = pjoin(ip_start_menu, 'ipcontroller.lnk')

@@ -25,5 +25,5 @@ to use the new IPython.core.shell module"""
 
 warn(msg, category=DeprecationWarning, stacklevel=1)
 
-from IPython.core.shell import *
+from IPython.core.shell import start, IPShell, IPShellEmbed
 

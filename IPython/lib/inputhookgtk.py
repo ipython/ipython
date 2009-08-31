@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 # encoding: utf-8
 """
-Extra capabilities for IPython
+Enable pygtk to be used interacive by setting PyOS_InputHook.
+
+Authors: Brian Granger
 """
 
 #-----------------------------------------------------------------------------
@@ -15,17 +17,20 @@ Extra capabilities for IPython
 # Imports
 #-----------------------------------------------------------------------------
 
-from IPython.lib.inputhook import (
-    enable_wx, disable_wx,
-    enable_gtk, disable_gtk,
-    enable_qt4, disable_qt4,
-    enable_tk, disable_tk,
-    set_inputhook, clear_inputhook,
-    current_gui, spin,
-    appstart_qt4, appstart_wx,
-    appstart_gtk, appstart_tk
-)
+import sys
+import gtk, gobject
 
 #-----------------------------------------------------------------------------
 # Code
 #-----------------------------------------------------------------------------
+
+
+def _main_quit(*args, **kwargs):
+    gtk.main_quit()
+    return False
+
+def inputhook_gtk():
+    gobject.io_add_watch(sys.stdin, gobject.IO_IN, _main_quit)
+    gtk.main()
+    return 0
+

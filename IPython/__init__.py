@@ -63,6 +63,17 @@ Shell = shell
 from IPython.core import ipapi
 from IPython.core import iplib
 
+from IPython.lib import (
+    enable_wx, disable_wx,
+    enable_gtk, disable_gtk,
+    enable_qt4, disable_qt4,
+    enable_tk, disable_tk,
+    set_inputhook, clear_inputhook,
+    current_gui, spin,
+    appstart_qt4, appstart_wx,
+    appstart_gtk, appstart_tk
+)
+
 # Release data
 from IPython.core import release # do it explicitly so pydoc can see it - pydoc bug
 __author__   = '%s <%s>\n%s <%s>\n%s <%s>' % \

@@ -3539,4 +3539,49 @@ Defaulting color scheme to 'NoColor'"""
         print 'Doctest mode is:',
         print ['OFF','ON'][dstore.mode]
 
+    def magic_gui(self, parameter_s=''):
+        """Enable or disable IPython GUI event loop integration.
+
+        %gui [-a] [GUINAME]
+
+        This magic replaces IPython's threaded shells that were activated
+        using the (pylab/wthread/etc.) command line flags.  GUI toolkits
+        can now be enabled, disabled and swtiched at runtime and keyboard
+        interrupts should work without any problems.  The following toolkits
+        are supports:  wxPython, PyQt4, PyGTK, and Tk::
+
+            %gui wx      # enable wxPython event loop integration
+            %gui qt4|qt  # enable PyQt4 event loop integration
+            %gui gtk     # enable PyGTK event loop integration
+            %gui tk      # enable Tk event loop integration
+            %gui         # disable all event loop integration
+
+        WARNING:  after any of these has been called you can simply create
+        an application object, but DO NOT start the event loop yourself, as
+        we have already handled that.
+
+        If you want us to create an appropriate application object add the
+        "-a" flag to your command::
+
+            %gui -a wx
+
+        This is highly recommended for most users.
+        """
+        from IPython.lib import inputhook
+        if "-a" in parameter_s:
+            app = True
+        else:
+            app = False
+        if not parameter_s:
+            inputhook.clear_inputhook()
+        elif 'wx' in parameter_s:
+            return inputhook.enable_wx(app)
+        elif ('qt4' in parameter_s) or ('qt' in parameter_s):
+            return inputhook.enable_qt4(app)
+        elif 'gtk' in parameter_s:
+            return inputhook.enable_gtk(app)
+        elif 'tk' in parameter_s:
+            return inputhook.enable_tk(app)
+
+
 # end Magic
