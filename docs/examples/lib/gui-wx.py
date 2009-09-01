@@ -8,7 +8,9 @@ In [6]: %run gui-wx.py
 
 Ref: Modified from wxPython source code wxPython/samples/simple/simple.py
 
-This example can only be run once in a given IPython session.
+This example can only be run once in a given IPython session because when 
+the frame is closed, wx goes through its shutdown sequence, killing further
+attempts.  I am sure someone who knows wx can fix this issue.
 """
 
 import wx

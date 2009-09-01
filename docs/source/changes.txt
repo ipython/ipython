@@ -18,12 +18,34 @@ Development
 New features
 ------------
 
+* Added a new module :mod:`IPython.lib.inputhook` to manage the integration
+  with GUI event loops using `PyOS_InputHook`.  See the docstrings in this
+  module or the main IPython docs for details.
+* For users, GUI event loop integration is now handled through the new
+  :command:`%gui` magic command.  Type ``%gui?`` at an IPython prompt for
+  documentation.
+* For developers :mod:`IPython.lib.inputhook` provides a simple interface
+  for managing the event loops in their interactive GUI applications.
+  Examples can be found in our :dir:`docs/examples/lib` directory.
+
 Bug fixes
 ---------
+
+* Keyboard interrupts now work with GUI support enabled across all platforms
+  and all GUI toolkits reliably.
 
 Backwards incompatible changes
 ------------------------------
 
+* Support for ``qt3`` has been dropped.  User's who need this should use
+  previous versions of IPython.
+* Removed :mod:`shellglobals` as it was obsolete. 
+* Removed all the threaded shells in :mod:`IPython.core.shell`. These are no
+  longer needed because of the new capabilities in
+  :mod:`IPython.lib.inputhook`.
+* The old threading command line flags (pylab/wthread/etc.) have been
+  deprecated.  Use :mod:`IPython.inputhook` or the new :command:`%gui` magic
+  command instead.
 * New top-level sub-packages have been created: :mod:`IPython.core`, 
   :mod:`IPython.lib`, :mod:`IPython.utils`, :mod:`IPython.deathrow`,
   :mod:`IPython.quarantine`.  All existing top-level modules have been
