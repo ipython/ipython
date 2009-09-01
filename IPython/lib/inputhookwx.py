@@ -147,10 +147,16 @@ def inputhook_wx3():
             # 0.005   3%
             # 0.01    1.5%
             # 0.05    0.5%
-            if clock()-t > 1.0:
+            used_time = clock() - t
+            if used_time > 5*60.0:
+                # print 'Sleep for 5 s'  # dbg
+                time.sleep(5.0)
+            elif used_time > 10.0:
+                # print 'Sleep for 1 s'  # dbg
                 time.sleep(1.0)
-            if clock()-t > 0.1:
+            elif used_time > 0.1:
                 # Few GUI events coming in, so we can sleep longer
+                # print 'Sleep for 0.05 s'  # dbg
                 time.sleep(0.05)
             else:
                 # Many GUI events coming in, so sleep only very little
