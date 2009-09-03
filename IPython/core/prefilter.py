@@ -251,8 +251,8 @@ def checkAlias(l_info,ip):
     # Note: aliases can not contain '.'
     head = l_info.iFun.split('.',1)[0]
     
-    if l_info.iFun not in ip.alias_table \
-           or head not in ip.alias_table \
+    if l_info.iFun not in ip.alias_manager \
+           or head not in ip.alias_manager \
            or isShadowed(head,ip): 
         return None
 

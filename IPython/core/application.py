@@ -228,6 +228,7 @@ class Application(object):
                 self.print_traceback()
                 self.abort()
             elif action == 'exit':
+                self.print_traceback()
                 self.exit()
 
     def print_traceback(self):

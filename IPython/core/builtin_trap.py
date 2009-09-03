@@ -36,13 +36,14 @@ BuiltinUndefined = BuiltinUndefined()
 
 
 class BuiltinTrap(Component):
-    shell = Instance('IPython.core.iplib.InteractiveShell')
 
     def __init__(self, parent):
         super(BuiltinTrap, self).__init__(parent, None, None)
         # Don't just grab parent!!!
-        self.shell = Component.get_instances(root=self.root,
-            klass='IPython.core.iplib.InteractiveShell')[0]
+        self.shell = Component.get_instances(
+            root=self.root,
+            klass='IPython.core.iplib.InteractiveShell'
+        )[0]
         self._orig_builtins = {}
 
     def __enter__(self):

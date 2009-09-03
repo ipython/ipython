@@ -307,7 +307,8 @@ class IPythonApp(Application):
             parent=None,
             config=self.master_config
         )
-
+        print self.shell
+    
     def start_app(self):
         self.shell.mainloop()
 

@@ -48,22 +48,55 @@ class MetaComponentTracker(type):
         cls.__numcreated = 0
 
     def __call__(cls, *args, **kw):
-        """Called when *class* is called (instantiated)!!!
+        """Called when a class is called (instantiated)!!!
         
         When a Component or subclass is instantiated, this is called and
         the instance is saved in a WeakValueDictionary for tracking.
         """
         instance = cls.__new__(cls, *args, **kw)
-        # Do this before __init__ is called so get_instances works inside
-        # __init__ methods!
+
+        # Register the instance before __init__ is called so get_instances 
+        # works inside __init__ methods!
+        indices = cls.register_instance(instance)
+
+        # This is in a try/except because of the __init__ method fails, the
+        # instance is discarded and shouldn't be tracked.
+        try:
+            if isinstance(instance, cls):
+                cls.__init__(instance, *args, **kw)
+        except:
+            # Unregister the instance because __init__ failed!
+            cls.unregister_instances(indices)
+            raise
+        else:
+            return instance
+
+    def register_instance(cls, instance):
+        """Register instance with cls and its subclasses."""
+        # indices is a list of the keys used to register the instance
+        # with.  This list is needed if the instance needs to be unregistered.
+        indices = []
         for c in cls.__mro__:
             if issubclass(cls, c) and issubclass(c, Component):
                 c.__numcreated += 1
+                indices.append(c.__numcreated)
                 c.__instance_refs[c.__numcreated] = instance
-        if isinstance(instance, cls):
-            cls.__init__(instance, *args, **kw)
+            else:
+                break
+        return indices
 
-        return instance
+    def unregister_instances(cls, indices):
+        """Unregister instance with cls and its subclasses."""
+        for c, index in zip(cls.__mro__, indices):
+            try:
+                del c.__instance_refs[index]
+            except KeyError:
+                pass
+
+    def clear_instances(cls):
+        """Clear all instances tracked by cls."""
+        cls.__instance_refs.clear()
+        cls.__numcreated = 0
 
     def get_instances(cls, name=None, root=None, klass=None):
         """Get all instances of cls and its subclasses.
@@ -82,6 +115,9 @@ class MetaComponentTracker(type):
         if klass is not None:
             if isinstance(klass, basestring):
                 klass = import_item(klass)
+            # Limit search to instances of klass for performance
+            if issubclass(klass, Component):
+                return klass.get_instances(name=name, root=root)
         instances = cls.__instance_refs.values()
         if name is not None:
             instances = [i for i in instances if i.name == name]
@@ -99,6 +135,26 @@ class MetaComponentTracker(type):
         arguments of :meth:`get_instance`
         """
         return [i for i in cls.get_instances(name, root, klass) if call(i)]
+
+
+def masquerade_as(instance, cls):
+    """Let instance masquerade as an instance of cls.
+
+    Sometimes, such as in testing code, it is useful to let a class
+    masquerade as another.  Python, being duck typed, allows this by 
+    default.  But, instances of components are tracked by their class type.
+
+    After calling this, cls.get_instances() will return ``instance``.  This
+    does not, however, cause isinstance(instance, cls) to return ``True``.
+
+    Parameters
+    ----------
+    instance : an instance of a Component or Component subclass
+        The instance that will pretend to be a cls.
+    cls : subclass of Component
+        The Component subclass that instance will pretend to be.
+    """
+    cls.register_instance(instance)
 
 
 class ComponentNameGenerator(object):
@@ -245,4 +301,5 @@ class Component(HasTraitlets):
             self._children.append(child)
 
     def __repr__(self):
-        return "<Component('%s')>" % self.name
+        return "<%s('%s')>" % (self.__class__.__name__, "DummyName")
+        # return "<Component('%s')>" % self.name

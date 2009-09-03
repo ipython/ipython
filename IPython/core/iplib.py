@@ -40,6 +40,7 @@ from IPython.core import debugger, oinspect
 from IPython.core import shadowns
 from IPython.core import history as ipcorehist
 from IPython.core import prefilter
+from IPython.core.alias import AliasManager
 from IPython.core.autocall import IPyAutocall
 from IPython.core.builtin_trap import BuiltinTrap
 from IPython.core.display_trap import DisplayTrap
@@ -61,6 +62,9 @@ from IPython.utils import PyColorize
 from IPython.utils.genutils import *
 from IPython.utils.strdispatch import StrDispatch
 from IPython.utils.platutils import toggle_set_term_title, set_term_title
+
+from IPython.utils import growl
+growl.start("IPython")
 
 from IPython.utils.traitlets import (
     Int, Float, Str, CBool, CaselessStrEnum, Enum, List, Unicode
@@ -303,7 +307,7 @@ class InteractiveShell(Component, Magic):
         self.init_traceback_handlers(custom_exceptions)
         self.init_user_ns()
         self.init_logger()
-        self.init_aliases()
+        self.init_alias()
         self.init_builtins()
         
         # pre_config_initialization
@@ -1660,129 +1664,8 @@ class InteractiveShell(Component, Magic):
     # Things related to aliases
     #-------------------------------------------------------------------------
 
-    def init_aliases(self):
-        # dict of things NOT to alias (keywords, builtins and some magics)
-        no_alias = {}
-        no_alias_magics = ['cd','popd','pushd','dhist','alias','unalias']
-        for key in keyword.kwlist + no_alias_magics:
-            no_alias[key] = 1
-        no_alias.update(__builtin__.__dict__)
-        self.no_alias = no_alias
-
-        # Make some aliases automatically
-        # Prepare list of shell aliases to auto-define
-        if os.name == 'posix':
-            auto_alias = ('mkdir mkdir', 'rmdir rmdir',
-                          'mv mv -i','rm rm -i','cp cp -i',
-                          'cat cat','less less','clear clear',
-                          # a better ls
-                          'ls ls -F',
-                          # long ls
-                          'll ls -lF')
-            # Extra ls aliases with color, which need special treatment on BSD
-            # variants
-            ls_extra = ( # color ls
-                         'lc ls -F -o --color',
-                         # ls normal files only
-                         'lf ls -F -o --color %l | grep ^-',
-                         # ls symbolic links
-                         'lk ls -F -o --color %l | grep ^l',
-                         # directories or links to directories,
-                         'ldir ls -F -o --color %l | grep /$',
-                         # things which are executable
-                         'lx ls -F -o --color %l | grep ^-..x',
-                         )
-            # The BSDs don't ship GNU ls, so they don't understand the
-            # --color switch out of the box
-            if 'bsd' in sys.platform:
-                ls_extra = ( # ls normal files only
-                             'lf ls -lF | grep ^-',
-                             # ls symbolic links
-                             'lk ls -lF | grep ^l',
-                             # directories or links to directories,
-                             'ldir ls -lF | grep /$',
-                             # things which are executable
-                             'lx ls -lF | grep ^-..x',
-                             )
-            auto_alias = auto_alias + ls_extra
-        elif os.name in ['nt','dos']:
-            auto_alias = ('ls dir /on',
-                          'ddir dir /ad /on', 'ldir dir /ad /on',
-                          'mkdir mkdir','rmdir rmdir','echo echo',
-                          'ren ren','cls cls','copy copy')
-        else:
-            auto_alias = ()
-        self.auto_alias = [s.split(None,1) for s in auto_alias]
-        
-        # Load default aliases
-        for alias, cmd in self.auto_alias:
-            self.define_alias(alias,cmd)
-
-        # Load user aliases
-        for alias in self.alias:
-            self.magic_alias(alias)
-
-    def call_alias(self,alias,rest=''):
-        """Call an alias given its name and the rest of the line.
-
-        This is only used to provide backwards compatibility for users of
-        ipalias(), use of which is not recommended for anymore."""
-
-        # Now call the macro, evaluating in the user's namespace
-        cmd = self.transform_alias(alias, rest)
-        try:
-            self.system(cmd)
-        except:
-            self.showtraceback()
-
-    def define_alias(self, name, cmd):
-        """ Define a new alias."""
-
-        if callable(cmd):
-            self.alias_table[name] = cmd
-            from IPython.core import shadowns
-            setattr(shadowns, name, cmd)
-            return
-
-        if isinstance(cmd, basestring):
-            nargs = cmd.count('%s')
-            if nargs>0 and cmd.find('%l')>=0:
-                raise Exception('The %s and %l specifiers are mutually '
-                                'exclusive in alias definitions.')
-                  
-            self.alias_table[name] = (nargs,cmd)
-            return
-        
-        self.alias_table[name] = cmd
-
-    def ipalias(self,arg_s):
-        """Call an alias by name.
-
-        Input: a string containing the name of the alias to call and any
-        additional arguments to be passed to the magic.
-
-        ipalias('name -opt foo bar') is equivalent to typing at the ipython
-        prompt:
-
-        In[1]: name -opt foo bar
-
-        To call an alias without arguments, simply use ipalias('name').
-
-        This provides a proper Python function to call IPython's aliases in any
-        valid Python code you can type at the interpreter, including loops and
-        compound statements.  It is added by IPython to the Python builtin
-        namespace upon initialization."""
-
-        args = arg_s.split(' ',1)
-        alias_name = args[0]
-        try:
-            alias_args = args[1]
-        except IndexError:
-            alias_args = ''
-        if alias_name in self.alias_table:
-            self.call_alias(alias_name,alias_args)
-        else:
-            error("Alias `%s` not found." % alias_name)
+    def init_alias(self):
+        self.alias_manager = AliasManager(self, config=self.config)
 
     def expand_alias(self, line):
         """ Expand an alias in the command line 
@@ -1817,80 +1700,24 @@ class InteractiveShell(Component, Magic):
         while 1:
             pre,fn,rest = prefilter.splitUserInput(line,
                                                    prefilter.shell_line_split)
-            if fn in self.alias_table:
+            if fn in self.alias_manager.alias_table:
                 if fn in done:
                     warn("Cyclic alias definition, repeated '%s'" % fn)
                     return ""
                 done.add(fn)
 
-                l2 = self.transform_alias(fn,rest)
-                # dir -> dir 
-                # print "alias",line, "->",l2  #dbg
+                l2 = self.alias_manager.transform_alias(fn, rest)
                 if l2 == line:
                     break
                 # ls -> ls -F should not recurse forever
                 if l2.split(None,1)[0] == line.split(None,1)[0]:
                     line = l2
                     break
-                
                 line=l2
-                
-                
-                # print "al expand to",line #dbg
             else:
                 break
                 
         return line
-
-    def transform_alias(self, alias,rest=''):
-        """ Transform alias to system command string.
-        """
-        trg = self.alias_table[alias]
-
-        nargs,cmd = trg
-        # print trg #dbg
-        if ' ' in cmd and os.path.isfile(cmd):
-            cmd = '"%s"' % cmd
-
-        # Expand the %l special to be the user's input line
-        if cmd.find('%l') >= 0:
-            cmd = cmd.replace('%l',rest)
-            rest = ''
-        if nargs==0:
-            # Simple, argument-less aliases
-            cmd = '%s %s' % (cmd,rest)
-        else:
-            # Handle aliases with positional arguments
-            args = rest.split(None,nargs)
-            if len(args)< nargs:
-                error('Alias <%s> requires %s arguments, %s given.' %
-                      (alias,nargs,len(args)))
-                return None
-            cmd = '%s %s' % (cmd % tuple(args[:nargs]),' '.join(args[nargs:]))
-        # Now call the macro, evaluating in the user's namespace
-        #print 'new command: <%r>' % cmd  # dbg
-        return cmd
-
-    def init_auto_alias(self):
-        """Define some aliases automatically.
-
-        These are ALL parameter-less aliases"""
-
-        for alias,cmd in self.auto_alias:
-            self.define_alias(alias,cmd)
-
-    def alias_table_validate(self,verbose=0):
-        """Update information about the alias table.
-
-        In particular, make sure no Python keywords/builtins are in it."""
-
-        no_alias = self.no_alias
-        for k in self.alias_table.keys():
-            if k in no_alias:
-                del self.alias_table[k]
-                if verbose:
-                    print ("Deleting alias <%s>, it's a Python "
-                           "keyword or builtin." % k)
 
     #-------------------------------------------------------------------------
     # Things related to the running of code
@@ -2513,9 +2340,10 @@ class InteractiveShell(Component, Magic):
           - continue_prompt(False): whether this line is the first one or a
           continuation in a sequence of inputs.
         """
-
+        growl.notify("raw_input: ", "prompt = %r\ncontinue_prompt = %s" % (prompt, continue_prompt))
         # Code run by the user may have modified the readline completer state.
         # We must ensure that our completer is back in place.
+
         if self.has_readline:
             self.set_completer()
         
@@ -2659,6 +2487,8 @@ class InteractiveShell(Component, Magic):
 
         # save the line away in case we crash, so the post-mortem handler can
         # record it
+        growl.notify("_prefilter: ", "line = %s\ncontinue_prompt = %s" % (line, continue_prompt))
+        
         self._last_input_line = line
 
         #print '***line: <%s>' % line # dbg
@@ -2715,15 +2545,17 @@ class InteractiveShell(Component, Magic):
         entry and presses enter.
         
         """
+        growl.notify("multiline_prefilter: ", "%s\n%s" % (line, continue_prompt))
         out = []
         for l in line.rstrip('\n').split('\n'):
             out.append(self._prefilter(l, continue_prompt))
+        growl.notify("multiline_prefilter return: ", '\n'.join(out))
         return '\n'.join(out)
     
     # Set the default prefilter() function (this can be user-overridden)
     prefilter = multiline_prefilter
 
-    def handle_normal(self,line_info):
+    def handle_normal(self, line_info):
         """Handle normal input lines. Use as a template for handlers."""
 
         # With autoindent on, we need some way to exit the input loop, and I
@@ -2742,10 +2574,9 @@ class InteractiveShell(Component, Magic):
         self.log(line,line,continue_prompt)
         return line
 
-    def handle_alias(self,line_info):
+    def handle_alias(self, line_info):
         """Handle alias input lines. """
-        tgt = self.alias_table[line_info.iFun]
-        # print "=>",tgt #dbg
+        tgt = self.alias_manager.alias_table[line_info.iFun]
         if callable(tgt):
             if '$' in line_info.line:
                 call_meth = '(_ip, _ip.var_expand(%s))'
