@@ -74,7 +74,9 @@ import itertools
 import types
 
 from IPython.core.error import TryNext
-import IPython.utils.rlineimpl as readline    
+from IPython.core.prefilter import ESC_MAGIC
+
+import IPython.utils.rlineimpl as readline
 from IPython.utils.ipstruct import Struct
 from IPython.utils import generics
 
@@ -234,7 +236,7 @@ class IPCompleter(Completer):
 
         Completer.__init__(self,namespace,global_namespace)
         self.magic_prefix = shell.name+'.magic_'
-        self.magic_escape = shell.ESC_MAGIC
+        self.magic_escape = ESC_MAGIC
         self.readline = readline
         delims = self.readline.get_completer_delims()
         delims = delims.replace(self.magic_escape,'')

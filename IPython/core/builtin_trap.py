@@ -24,7 +24,7 @@ import __builtin__
 from IPython.core.component import Component
 from IPython.core.quitter import Quitter
 
-from IPython.utils.traitlets import Instance
+from IPython.utils.autoattr import auto_attr
 
 #-----------------------------------------------------------------------------
 # Classes and functions
@@ -39,12 +39,15 @@ class BuiltinTrap(Component):
 
     def __init__(self, parent):
         super(BuiltinTrap, self).__init__(parent, None, None)
-        # Don't just grab parent!!!
-        self.shell = Component.get_instances(
+        self._orig_builtins = {}
+
+    @auto_attr
+    def shell(self):
+        shell = Component.get_instances(
             root=self.root,
             klass='IPython.core.iplib.InteractiveShell'
         )[0]
-        self._orig_builtins = {}
+        return shell
 
     def __enter__(self):
         self.set()

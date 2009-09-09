@@ -301,5 +301,4 @@ class Component(HasTraitlets):
             self._children.append(child)
 
     def __repr__(self):
-        return "<%s('%s')>" % (self.__class__.__name__, "DummyName")
-        # return "<Component('%s')>" % self.name
+        return "<%s('%s')>" % (self.__class__.__name__, self.name)

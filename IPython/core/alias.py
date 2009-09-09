@@ -22,16 +22,22 @@ Authors:
 import __builtin__
 import keyword
 import os
+import re
 import sys
 
 from IPython.core.component import Component
+from IPython.core.splitinput import split_user_input
 
 from IPython.utils.traitlets import CBool, List, Instance
 from IPython.utils.genutils import error
+from IPython.utils.autoattr import auto_attr
 
 #-----------------------------------------------------------------------------
-# Functions and classes
+# Utilities
 #-----------------------------------------------------------------------------
+
+# This is used as the pattern for calls to split_user_input.
+shell_line_split = re.compile(r'^(\s*)(\S*\s*)(.*$)')
 
 def default_aliases():
     # Make some aliases automatically
@@ -88,6 +94,11 @@ class InvalidAliasError(AliasError):
     pass
 
 
+#-----------------------------------------------------------------------------
+# Main AliasManager class
+#-----------------------------------------------------------------------------
+
+
 class AliasManager(Component):
 
     auto_alias = List(default_aliases())
@@ -95,13 +106,17 @@ class AliasManager(Component):
 
     def __init__(self, parent, config=None):
         super(AliasManager, self).__init__(parent, config=config)
-        self.shell = Component.get_instances(
-            root=self.root,
-            klass='IPython.core.iplib.InteractiveShell'
-        )[0]
         self.alias_table = {}
         self.exclude_aliases()
         self.init_aliases()
+
+    @auto_attr
+    def shell(self):
+        shell = Component.get_instances(
+            root=self.root,
+            klass='IPython.core.iplib.InteractiveShell'
+        )[0]
+        return shell
 
     def __contains__(self, name):
         if name in self.alias_table:
@@ -189,3 +204,54 @@ class AliasManager(Component):
                       (alias, nargs, len(args)))
             cmd = '%s %s' % (cmd % tuple(args[:nargs]),' '.join(args[nargs:]))
         return cmd
+
+    def expand_alias(self, line):
+        """ Expand an alias in the command line 
+        
+        Returns the provided command line, possibly with the first word 
+        (command) translated according to alias expansion rules.
+        
+        [ipython]|16> _ip.expand_aliases("np myfile.txt")
+                 <16> 'q:/opt/np/notepad++.exe myfile.txt'
+        """
+        
+        pre,fn,rest = split_user_input(line)
+        res = pre + self.expand_aliases(fn, rest)
+        return res
+
+    def expand_aliases(self, fn, rest):
+        """Expand multiple levels of aliases:
+        
+        if:
+        
+        alias foo bar /tmp
+        alias baz foo
+        
+        then:
+        
+        baz huhhahhei -> bar /tmp huhhahhei
+        
+        """
+        line = fn + " " + rest
+        
+        done = set()
+        while 1:
+            pre,fn,rest = split_user_input(line, shell_line_split)
+            if fn in self.alias_table:
+                if fn in done:
+                    warn("Cyclic alias definition, repeated '%s'" % fn)
+                    return ""
+                done.add(fn)
+
+                l2 = self.transform_alias(fn, rest)
+                if l2 == line:
+                    break
+                # ls -> ls -F should not recurse forever
+                if l2.split(None,1)[0] == line.split(None,1)[0]:
+                    line = l2
+                    break
+                line=l2
+            else:
+                break
+                
+        return line

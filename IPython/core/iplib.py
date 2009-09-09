@@ -49,10 +49,12 @@ from IPython.core.logger import Logger
 from IPython.core.magic import Magic
 from IPython.core.prompts import CachedOutput
 from IPython.core.page import page
+from IPython.core.prefilter import PrefilterManager
 from IPython.core.component import Component
 from IPython.core.oldusersetup import user_setup
 from IPython.core.usage import interactive_usage, default_banner
 from IPython.core.error import TryNext, UsageError
+from IPython.core.splitinput import split_user_input
 
 from IPython.extensions import pickleshare
 from IPython.external.Itpl import ItplNS
@@ -63,8 +65,8 @@ from IPython.utils.genutils import *
 from IPython.utils.strdispatch import StrDispatch
 from IPython.utils.platutils import toggle_set_term_title, set_term_title
 
-from IPython.utils import growl
-growl.start("IPython")
+# from IPython.utils import growl
+# growl.start("IPython")
 
 from IPython.utils.traitlets import (
     Int, Float, Str, CBool, CaselessStrEnum, Enum, List, Unicode
@@ -212,7 +214,6 @@ class InteractiveShell(Component, Magic):
     logstart = CBool(False, config_key='LOGSTART')
     logfile = Str('', config_key='LOGFILE')
     logplay = Str('', config_key='LOGPLAY')
-    multi_line_specials = CBool(True, config_key='MULTI_LINE_SPECIALS')
     object_info_string_level = Enum((0,1,2), default_value=0,
                                     config_keys='OBJECT_INFO_STRING_LEVEL')
     pager = Str('less', config_key='PAGER')
@@ -297,7 +298,7 @@ class InteractiveShell(Component, Magic):
 
         self.init_history()
         self.init_encoding()
-        self.init_handlers()
+        self.init_prefilter()
 
         Magic.__init__(self, self)
 
@@ -1595,7 +1596,7 @@ class InteractiveShell(Component, Magic):
 
         args = arg_s.split(' ',1)
         magic_name = args[0]
-        magic_name = magic_name.lstrip(self.ESC_MAGIC)
+        magic_name = magic_name.lstrip(prefilter.ESC_MAGIC)
 
         try:
             magic_args = args[1]
@@ -1608,7 +1609,6 @@ class InteractiveShell(Component, Magic):
             magic_args = self.var_expand(magic_args,1)
             with nested(self.builtin_trap, self.display_trap):
                 return fn(magic_args)
-            # return result
 
     def define_magic(self, magicname, func):
         """Expose own function as magic function for ipython 
@@ -1667,58 +1667,6 @@ class InteractiveShell(Component, Magic):
     def init_alias(self):
         self.alias_manager = AliasManager(self, config=self.config)
 
-    def expand_alias(self, line):
-        """ Expand an alias in the command line 
-        
-        Returns the provided command line, possibly with the first word 
-        (command) translated according to alias expansion rules.
-        
-        [ipython]|16> _ip.expand_aliases("np myfile.txt")
-                 <16> 'q:/opt/np/notepad++.exe myfile.txt'
-        """
-        
-        pre,fn,rest = self.split_user_input(line)
-        res = pre + self.expand_aliases(fn, rest)
-        return res
-
-    def expand_aliases(self, fn, rest):
-        """Expand multiple levels of aliases:
-        
-        if:
-        
-        alias foo bar /tmp
-        alias baz foo
-        
-        then:
-        
-        baz huhhahhei -> bar /tmp huhhahhei
-        
-        """
-        line = fn + " " + rest
-        
-        done = set()
-        while 1:
-            pre,fn,rest = prefilter.splitUserInput(line,
-                                                   prefilter.shell_line_split)
-            if fn in self.alias_manager.alias_table:
-                if fn in done:
-                    warn("Cyclic alias definition, repeated '%s'" % fn)
-                    return ""
-                done.add(fn)
-
-                l2 = self.alias_manager.transform_alias(fn, rest)
-                if l2 == line:
-                    break
-                # ls -> ls -F should not recurse forever
-                if l2.split(None,1)[0] == line.split(None,1)[0]:
-                    line = l2
-                    break
-                line=l2
-            else:
-                break
-                
-        return line
-
     #-------------------------------------------------------------------------
     # Things related to the running of code
     #-------------------------------------------------------------------------
@@ -1774,7 +1722,7 @@ class InteractiveShell(Component, Magic):
         This emulates Python's -c option."""
 
         #sys.argv = ['-c']
-        self.push_line(self.prefilter(self.c, False))
+        self.push_line(self.prefilter_manager.prefilter_lines(self.c, False))
         if not self.interactive:
             self.ask_exit()
 
@@ -1807,7 +1755,7 @@ class InteractiveShell(Component, Magic):
         """
         if line.lstrip() == line:
             self.shadowhist.add(line.strip())
-        lineout = self.prefilter(line,self.more)
+        lineout = self.prefilter_manager.prefilter_lines(line,self.more)
 
         if line.strip():
             if self.more:
@@ -2154,7 +2102,7 @@ class InteractiveShell(Component, Magic):
                 if line or more:
                     # push to raw history, so hist line numbers stay in sync
                     self.input_hist_raw.append("# " + line + "\n")
-                    more = self.push_line(self.prefilter(line,more))
+                    more = self.push_line(self.prefilter_manager.prefilter_lines(line,more))
                     # IPython's runsource returns None if there was an error
                     # compiling the code.  This allows us to stop processing right
                     # away, so the user gets the error message at the right place.
@@ -2319,10 +2267,6 @@ class InteractiveShell(Component, Magic):
             else:
                 self.indent_current_nsp = 0
 
-    def split_user_input(self, line):
-        # This is really a hold-over to support ipapi and some extensions
-        return prefilter.splitUserInput(line)
-
     def resetbuffer(self):
         """Reset the input buffer."""
         self.buffer[:] = []
@@ -2340,7 +2284,8 @@ class InteractiveShell(Component, Magic):
           - continue_prompt(False): whether this line is the first one or a
           continuation in a sequence of inputs.
         """
-        growl.notify("raw_input: ", "prompt = %r\ncontinue_prompt = %s" % (prompt, continue_prompt))
+        # growl.notify("raw_input: ", "prompt = %r\ncontinue_prompt = %s" % (prompt, continue_prompt))
+
         # Code run by the user may have modified the readline completer state.
         # We must ensure that our completer is back in place.
 
@@ -2388,7 +2333,7 @@ class InteractiveShell(Component, Magic):
         elif not continue_prompt:
             self.input_hist_raw.append('\n')
         try:
-            lineout = self.prefilter(line,continue_prompt)
+            lineout = self.prefilter_manager.prefilter_lines(line,continue_prompt)
         except:
             # blanket except, in case a user-defined prefilter crashes, so it
             # can't take all of ipython with it.
@@ -2451,293 +2396,8 @@ class InteractiveShell(Component, Magic):
     # Things related to the prefilter
     #-------------------------------------------------------------------------
 
-    def init_handlers(self):
-        # escapes for automatic behavior on the command line
-        self.ESC_SHELL  = '!'
-        self.ESC_SH_CAP = '!!'
-        self.ESC_HELP   = '?'
-        self.ESC_MAGIC  = '%'
-        self.ESC_QUOTE  = ','
-        self.ESC_QUOTE2 = ';'
-        self.ESC_PAREN  = '/'
-
-        # And their associated handlers
-        self.esc_handlers = {self.ESC_PAREN  : self.handle_auto,
-                             self.ESC_QUOTE  : self.handle_auto,
-                             self.ESC_QUOTE2 : self.handle_auto,
-                             self.ESC_MAGIC  : self.handle_magic,
-                             self.ESC_HELP   : self.handle_help,
-                             self.ESC_SHELL  : self.handle_shell_escape,
-                             self.ESC_SH_CAP : self.handle_shell_escape,
-                             }
-
-    def _prefilter(self, line, continue_prompt):
-        """Calls different preprocessors, depending on the form of line."""
-
-        # All handlers *must* return a value, even if it's blank ('').
-
-        # Lines are NOT logged here. Handlers should process the line as
-        # needed, update the cache AND log it (so that the input cache array
-        # stays synced).
-
-        #.....................................................................
-        # Code begins
-
-        #if line.startswith('%crash'): raise RuntimeError,'Crash now!'  # dbg
-
-        # save the line away in case we crash, so the post-mortem handler can
-        # record it
-        growl.notify("_prefilter: ", "line = %s\ncontinue_prompt = %s" % (line, continue_prompt))
-        
-        self._last_input_line = line
-
-        #print '***line: <%s>' % line # dbg
-
-        if not line:
-            # Return immediately on purely empty lines, so that if the user
-            # previously typed some whitespace that started a continuation
-            # prompt, he can break out of that loop with just an empty line.
-            # This is how the default python prompt works.
-
-            # Only return if the accumulated input buffer was just whitespace!
-            if ''.join(self.buffer).isspace():
-                self.buffer[:] = []
-            return ''
-        
-        line_info = prefilter.LineInfo(line, continue_prompt)
-        
-        # the input history needs to track even empty lines
-        stripped = line.strip()
-        
-        if not stripped:
-            if not continue_prompt:
-                self.outputcache.prompt_count -= 1
-            return self.handle_normal(line_info)
-
-        # print '***cont',continue_prompt  # dbg
-        # special handlers are only allowed for single line statements
-        if continue_prompt and not self.multi_line_specials:
-            return self.handle_normal(line_info)
-
-
-        # See whether any pre-existing handler can take care of it  
-        rewritten = self.hooks.input_prefilter(stripped)
-        if rewritten != stripped: # ok, some prefilter did something
-            rewritten = line_info.pre + rewritten  # add indentation
-            return self.handle_normal(prefilter.LineInfo(rewritten,
-                                                         continue_prompt))
-            
-        #print 'pre <%s> iFun <%s> rest <%s>' % (pre,iFun,theRest)  # dbg
-        
-        return prefilter.prefilter(line_info, self)
-
-
-    def _prefilter_dumb(self, line, continue_prompt):
-        """simple prefilter function, for debugging"""
-        return self.handle_normal(line,continue_prompt)
-
-    
-    def multiline_prefilter(self, line, continue_prompt):
-        """ Run _prefilter for each line of input
-        
-        Covers cases where there are multiple lines in the user entry,
-        which is the case when the user goes back to a multiline history
-        entry and presses enter.
-        
-        """
-        growl.notify("multiline_prefilter: ", "%s\n%s" % (line, continue_prompt))
-        out = []
-        for l in line.rstrip('\n').split('\n'):
-            out.append(self._prefilter(l, continue_prompt))
-        growl.notify("multiline_prefilter return: ", '\n'.join(out))
-        return '\n'.join(out)
-    
-    # Set the default prefilter() function (this can be user-overridden)
-    prefilter = multiline_prefilter
-
-    def handle_normal(self, line_info):
-        """Handle normal input lines. Use as a template for handlers."""
-
-        # With autoindent on, we need some way to exit the input loop, and I
-        # don't want to force the user to have to backspace all the way to
-        # clear the line.  The rule will be in this case, that either two
-        # lines of pure whitespace in a row, or a line of pure whitespace but
-        # of a size different to the indent level, will exit the input loop.
-        line = line_info.line
-        continue_prompt = line_info.continue_prompt
-        
-        if (continue_prompt and self.autoindent and line.isspace() and
-            (0 < abs(len(line) - self.indent_current_nsp) <= 2 or
-             (self.buffer[-1]).isspace() )):
-            line = ''
-
-        self.log(line,line,continue_prompt)
-        return line
-
-    def handle_alias(self, line_info):
-        """Handle alias input lines. """
-        tgt = self.alias_manager.alias_table[line_info.iFun]
-        if callable(tgt):
-            if '$' in line_info.line:
-                call_meth = '(_ip, _ip.var_expand(%s))'
-            else:
-                call_meth = '(_ip,%s)'
-            line_out = ("%s_sh.%s" + call_meth) % (line_info.preWhitespace,
-                                         line_info.iFun, 
-            make_quoted_expr(line_info.line))
-        else:
-            transformed = self.expand_aliases(line_info.iFun,line_info.theRest)
-
-            # pre is needed, because it carries the leading whitespace.  Otherwise
-            # aliases won't work in indented sections.
-            line_out = '%s_ip.system(%s)' % (line_info.preWhitespace,
-                                             make_quoted_expr( transformed ))
-        
-        self.log(line_info.line,line_out,line_info.continue_prompt)
-        #print 'line out:',line_out # dbg
-        return line_out
-
-    def handle_shell_escape(self, line_info):
-        """Execute the line in a shell, empty return value"""
-        #print 'line in :', `line` # dbg
-        line = line_info.line
-        if line.lstrip().startswith('!!'):
-            # rewrite LineInfo's line, iFun and theRest to properly hold the
-            # call to %sx and the actual command to be executed, so
-            # handle_magic can work correctly.  Note that this works even if
-            # the line is indented, so it handles multi_line_specials
-            # properly.
-            new_rest = line.lstrip()[2:]
-            line_info.line = '%ssx %s' % (self.ESC_MAGIC,new_rest)
-            line_info.iFun = 'sx'
-            line_info.theRest = new_rest
-            return self.handle_magic(line_info)
-        else:
-            cmd = line.lstrip().lstrip('!')
-            line_out = '%s_ip.system(%s)' % (line_info.preWhitespace,
-                                             make_quoted_expr(cmd))
-        # update cache/log and return
-        self.log(line,line_out,line_info.continue_prompt)
-        return line_out
-
-    def handle_magic(self, line_info):
-        """Execute magic functions."""
-        iFun    = line_info.iFun
-        theRest = line_info.theRest
-        cmd = '%s_ip.magic(%s)' % (line_info.preWhitespace,
-                                   make_quoted_expr(iFun + " " + theRest))
-        self.log(line_info.line,cmd,line_info.continue_prompt)
-        #print 'in handle_magic, cmd=<%s>' % cmd  # dbg
-        return cmd
-
-    def handle_auto(self, line_info):
-        """Hande lines which can be auto-executed, quoting if requested."""
-
-        line    = line_info.line
-        iFun    = line_info.iFun
-        theRest = line_info.theRest
-        pre     = line_info.pre
-        continue_prompt = line_info.continue_prompt
-        obj = line_info.ofind(self)['obj']
-
-        #print 'pre <%s> iFun <%s> rest <%s>' % (pre,iFun,theRest)  # dbg
-
-        # This should only be active for single-line input!
-        if continue_prompt:
-            self.log(line,line,continue_prompt)
-            return line
-
-        force_auto = isinstance(obj, IPyAutocall)
-        auto_rewrite = True
-        
-        if pre == self.ESC_QUOTE:
-            # Auto-quote splitting on whitespace
-            newcmd = '%s("%s")' % (iFun,'", "'.join(theRest.split()) )
-        elif pre == self.ESC_QUOTE2:
-            # Auto-quote whole string
-            newcmd = '%s("%s")' % (iFun,theRest)
-        elif pre == self.ESC_PAREN:
-            newcmd = '%s(%s)' % (iFun,",".join(theRest.split()))
-        else:
-            # Auto-paren.
-            # We only apply it to argument-less calls if the autocall
-            # parameter is set to 2.  We only need to check that autocall is <
-            # 2, since this function isn't called unless it's at least 1.
-            if not theRest and (self.autocall < 2) and not force_auto:
-                newcmd = '%s %s' % (iFun,theRest)
-                auto_rewrite = False
-            else:
-                if not force_auto and theRest.startswith('['):
-                    if hasattr(obj,'__getitem__'):
-                        # Don't autocall in this case: item access for an object
-                        # which is BOTH callable and implements __getitem__.
-                        newcmd = '%s %s' % (iFun,theRest)
-                        auto_rewrite = False
-                    else:
-                        # if the object doesn't support [] access, go ahead and
-                        # autocall
-                        newcmd = '%s(%s)' % (iFun.rstrip(),theRest)
-                elif theRest.endswith(';'):
-                    newcmd = '%s(%s);' % (iFun.rstrip(),theRest[:-1])
-                else:
-                    newcmd = '%s(%s)' % (iFun.rstrip(), theRest)
-
-        if auto_rewrite:
-            rw = self.outputcache.prompt1.auto_rewrite() + newcmd
-            
-            try:
-                # plain ascii works better w/ pyreadline, on some machines, so
-                # we use it and only print uncolored rewrite if we have unicode
-                rw = str(rw)
-                print >>Term.cout, rw
-            except UnicodeEncodeError:
-                print "-------------->" + newcmd
-            
-        # log what is now valid Python, not the actual user input (without the
-        # final newline)
-        self.log(line,newcmd,continue_prompt)
-        return newcmd
-
-    def handle_help(self, line_info):
-        """Try to get some help for the object.
-
-        obj? or ?obj   -> basic information.
-        obj?? or ??obj -> more details.
-        """
-        
-        line = line_info.line
-        # We need to make sure that we don't process lines which would be
-        # otherwise valid python, such as "x=1 # what?"
-        try:
-            codeop.compile_command(line)
-        except SyntaxError:
-            # We should only handle as help stuff which is NOT valid syntax
-            if line[0]==self.ESC_HELP:
-                line = line[1:]
-            elif line[-1]==self.ESC_HELP:
-                line = line[:-1]
-            self.log(line,'#?'+line,line_info.continue_prompt)
-            if line:
-                #print 'line:<%r>' % line  # dbg
-                self.magic_pinfo(line)
-            else:
-                page(self.usage,screen_lines=self.usable_screen_length)
-            return '' # Empty string is needed here!
-        except:
-            # Pass any other exceptions through to the normal handler
-            return self.handle_normal(line_info)
-        else:
-            # If the code compiles ok, we should handle it normally
-            return self.handle_normal(line_info)
-
-    def handle_emacs(self, line_info):
-        """Handle input lines marked by python-mode."""
-
-        # Currently, nothing is done.  Later more functionality can be added
-        # here if needed.
-
-        # The input cache shouldn't be updated
-        return line_info.line
+    def init_prefilter(self):
+        self.prefilter_manager = PrefilterManager(self, config=self.config)
 
     #-------------------------------------------------------------------------
     # Utilities
@@ -2842,8 +2502,5 @@ class InteractiveShell(Component, Magic):
 
     def cleanup(self):
         self.restore_sys_module_state()
-
-
-
 
 

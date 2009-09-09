@@ -24,6 +24,8 @@ import sys
 
 from IPython.core.component import Component
 
+from IPython.utils.autoattr import auto_attr
+
 #-----------------------------------------------------------------------------
 # Classes and functions
 #-----------------------------------------------------------------------------
@@ -41,6 +43,14 @@ class DisplayTrap(Component):
 
         self.hook = hook
         self.old_hook = None
+
+    @auto_attr
+    def shell(self):
+        shell = Component.get_instances(
+            root=self.root,
+            klass='IPython.core.iplib.InteractiveShell'
+        )[0]
+        return shell
 
     def __enter__(self):
         self.set()
