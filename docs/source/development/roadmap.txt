@@ -17,20 +17,23 @@ Work targeted to particular releases
 Release 0.11
 ------------
 
-* [DONE] Full module and package reorganization.
+* Full module and package reorganization (done).
 
-* [DONE] Removal of the threaded shells and new implementation of GUI support
-  based on ``PyOSInputHook``.
+* Removal of the threaded shells and new implementation of GUI support
+  based on ``PyOSInputHook`` (done).
 
-* Refactor the configuration system.
+* Refactor the configuration system (done).
 
 * Prepare to refactor IPython's core by creating a new component and 
-  application system.
+  application system (done).
 
+* Start to refactor IPython's core by turning everything into components
+  (started).
 
 Release 0.12
 ------------
 
+* Continue to refactor IPython's core by turning everything into components.
 
 
 Major areas of work
@@ -39,22 +42,42 @@ Major areas of work
 Refactoring the main IPython core
 ---------------------------------
 
+During the summer of 2009, we began refactoring IPython's core.  The main
+thrust in this work was make the IPython core into a set of loosely coupled
+components.  The base component class for this is 
+:class:`IPython.core.component.Component`.  This section outlines the status
+of this work.
+
+Parts of the IPython core that have been turned into components:
+
+* The main :class:`InteractiveShell` class.
+* The aliases (:mod:`IPython.core.aliases`).
+* The display and builtin traps (:mod:`IPython.core.display_trap` and
+  :mod:`IPython.core.builtin_trap`).
+* The prefilter machinery (:mod:`IPython.core.prefilter`).
+
+Parts of the IPythoncore that need to be turned into components:
+
+* Magics.
+* Input and output history management.
+* Prompts.
+* Completers.
+* Logging.
+* Exception handling.
+* Anything else.
+
 Process management for :mod:`IPython.kernel`
 --------------------------------------------
-
-Configuration system
---------------------
 
 Performance problems
 --------------------
 
-Currently, we have a number of performance issues that are waiting to bite users:
+Currently, we have a number of performance issues in :mod:`IPython.kernel`:
 
 * The controller stores a large amount of state in Python dictionaries. Under
   heavy usage, these dicts with get very large, causing memory usage problems.
-  We need to develop more scalable solutions to this problem, such as using a
-  sqlite database to store this state. This will also help the controller to
-  be more fault tolerant.
+  We need to develop more scalable solutions to this problem. This will also
+  help the controller to be more fault tolerant.
 
 * We currently don't have a good way of handling large objects in the
   controller. The biggest problem is that because we don't have any way of

@@ -1057,9 +1057,9 @@ class InteractiveShell(Component, Magic):
         self.output_hist = {}
 
         # Now the history file
-        try:
+        if self.profile:
             histfname = 'history-%s' % self.profile
-        except AttributeError:
+        else:
             histfname = 'history'
         self.histfile = os.path.join(self.ipythondir, histfname)
 
