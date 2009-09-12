@@ -174,7 +174,7 @@ class PrefilterManager(Component):
     to transform the input line.
     """
 
-    multi_line_specials = CBool(True, config_key='MULTI_LINE_SPECIALS')
+    multi_line_specials = CBool(True, config=True)
 
     def __init__(self, parent, config=None):
         super(PrefilterManager, self).__init__(parent, config=config)
@@ -274,16 +274,16 @@ class PrefilterManager(Component):
         # the input history needs to track even empty lines
         stripped = line.strip()
 
-        handle_normal = self.get_handler_by_name('normal')        
+        normal_handler = self.get_handler_by_name('normal')        
         if not stripped:
             if not continue_prompt:
                 self.shell.outputcache.prompt_count -= 1
 
-            return handle_normal(line_info)
+            return normal_handler.handle(line_info)
 
         # special handlers are only allowed for single line statements
         if continue_prompt and not self.multi_line_specials:
-            return handle_normal(line_info)
+            return normal_handler.handle(line_info)
 
         return self.prefilter_line_info(line_info)
 
@@ -310,7 +310,7 @@ class PrefilterManager(Component):
 class PrefilterChecker(Component):
     """Inspect an input line and return a handler for that line."""
 
-    priority = Int(100)
+    priority = Int(100, config=True)
     shell = Any
     prefilter_manager = Any
 
@@ -336,7 +336,7 @@ class PrefilterChecker(Component):
 
 class EmacsChecker(PrefilterChecker):
 
-    priority = Int(100)
+    priority = Int(100, config=True)
 
     def check(self, line_info):
         "Emacs ipython-mode tags certain input lines."
@@ -348,7 +348,7 @@ class EmacsChecker(PrefilterChecker):
 
 class ShellEscapeChecker(PrefilterChecker):
 
-    priority = Int(200)
+    priority = Int(200, config=True)
 
     def check(self, line_info):
         if line_info.line.lstrip().startswith(ESC_SHELL):
@@ -357,7 +357,7 @@ class ShellEscapeChecker(PrefilterChecker):
 
 class IPyAutocallChecker(PrefilterChecker):
 
-    priority = Int(300)
+    priority = Int(300, config=True)
 
     def check(self, line_info):
         "Instances of IPyAutocall in user_ns get autocalled immediately"
@@ -371,7 +371,7 @@ class IPyAutocallChecker(PrefilterChecker):
 
 class MultiLineMagicChecker(PrefilterChecker):
 
-    priority = Int(400)
+    priority = Int(400, config=True)
 
     def check(self, line_info):
         "Allow ! and !! in multi-line statements if multi_line_specials is on"
@@ -388,7 +388,7 @@ class MultiLineMagicChecker(PrefilterChecker):
 
 class EscCharsChecker(PrefilterChecker):
 
-    priority = Int(500)
+    priority = Int(500, config=True)
 
     def check(self, line_info):
         """Check for escape character and return either a handler to handle it,
@@ -406,7 +406,7 @@ class EscCharsChecker(PrefilterChecker):
 
 class AssignmentChecker(PrefilterChecker):
 
-    priority = Int(600)
+    priority = Int(600, config=True)
 
     def check(self, line_info):
         """Check to see if user is assigning to a var for the first time, in
@@ -423,7 +423,7 @@ class AssignmentChecker(PrefilterChecker):
 
 class AutoMagicChecker(PrefilterChecker):
 
-    priority = Int(700)
+    priority = Int(700, config=True)
 
     def check(self, line_info):
         """If the ifun is magic, and automagic is on, run it.  Note: normal,
@@ -447,7 +447,7 @@ class AutoMagicChecker(PrefilterChecker):
 
 class AliasChecker(PrefilterChecker):
 
-    priority = Int(800)
+    priority = Int(800, config=True)
 
     @auto_attr
     def alias_manager(self):
@@ -467,7 +467,7 @@ class AliasChecker(PrefilterChecker):
 
 class PythonOpsChecker(PrefilterChecker):
 
-    priority = Int(900)
+    priority = Int(900, config=True)
 
     def check(self, line_info):
         """If the 'rest' of the line begins with a function call or pretty much
@@ -482,7 +482,7 @@ class PythonOpsChecker(PrefilterChecker):
 
 class AutocallChecker(PrefilterChecker):
 
-    priority = Int(1000)
+    priority = Int(1000, config=True)
 
     def check(self, line_info):
         "Check if the initial word/function is callable and autocall is on."
@@ -567,7 +567,7 @@ class AliasHandler(PrefilterHandler):
         transformed = self.alias_manager.expand_aliases(line_info.ifun,line_info.the_rest)
         # pre is needed, because it carries the leading whitespace.  Otherwise
         # aliases won't work in indented sections.
-        line_out = '%s_ip.system(%s)' % (line_info.pre_whitespace,
+        line_out = '%sget_ipython().system(%s)' % (line_info.pre_whitespace,
                                          make_quoted_expr(transformed))
         
         self.shell.log(line_info.line, line_out, line_info.continue_prompt)
@@ -597,7 +597,7 @@ class ShellEscapeHandler(PrefilterHandler):
             return magic_handler.handle(line_info)
         else:
             cmd = line.lstrip().lstrip(ESC_SHELL)
-            line_out = '%s_ip.system(%s)' % (line_info.pre_whitespace,
+            line_out = '%sget_ipython().system(%s)' % (line_info.pre_whitespace,
                                              make_quoted_expr(cmd))
         # update cache/log and return
         self.shell.log(line, line_out, line_info.continue_prompt)
@@ -607,13 +607,13 @@ class ShellEscapeHandler(PrefilterHandler):
 class MagicHandler(PrefilterHandler):
 
     handler_name = Str('magic')
-    esc_strings = List(['%'])
+    esc_strings = List([ESC_MAGIC])
 
     def handle(self, line_info):
         """Execute magic functions."""
         ifun    = line_info.ifun
         the_rest = line_info.the_rest
-        cmd = '%s_ip.magic(%s)' % (line_info.pre_whitespace,
+        cmd = '%sget_ipython().magic(%s)' % (line_info.pre_whitespace,
                                    make_quoted_expr(ifun + " " + the_rest))
         self.shell.log(line_info.line, cmd, line_info.continue_prompt)
         return cmd
@@ -656,7 +656,7 @@ class AutoHandler(PrefilterHandler):
             # We only apply it to argument-less calls if the autocall
             # parameter is set to 2.  We only need to check that autocall is <
             # 2, since this function isn't called unless it's at least 1.
-            if not the_rest and (self.autocall < 2) and not force_auto:
+            if not the_rest and (self.shell.autocall < 2) and not force_auto:
                 newcmd = '%s %s' % (ifun,the_rest)
                 auto_rewrite = False
             else:

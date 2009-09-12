@@ -21,14 +21,14 @@ def hnd_magic(line,mo):
     var = mo.group('varname')
     cmd = mo.group('cmd')
     expr = make_quoted_expr(cmd)
-    return itpl('$var = _ip.magic($expr)')
+    return itpl('$var = get_ipython().magic($expr)')
 
 def hnd_syscmd(line,mo):
     """ Handle a = !ls """
     var = mo.group('varname')
     cmd = mo.group('cmd')
     expr = make_quoted_expr(itpl("sc -l =$cmd"))
-    return itpl('$var = _ip.magic($expr)')
+    return itpl('$var = get_ipython().magic($expr)')
 
 def install_re_handler(pat, hnd):
     ip.meta.re_prefilters.append((re.compile(pat), hnd))

@@ -47,6 +47,7 @@ from IPython.utils import wildcard
 from IPython.core import debugger, oinspect
 from IPython.core.error import TryNext
 from IPython.core.fakemodule import FakeModule
+from IPython.core.prefilter import ESC_MAGIC
 from IPython.external.Itpl import Itpl, itpl, printpl,itplns
 from IPython.utils.PyColorize import Parser
 from IPython.utils.ipstruct import Struct
@@ -205,9 +206,9 @@ python-profiler package from non-free.""")
             namespaces = [ ('Interactive', self.shell.user_ns),
                            ('IPython internal', self.shell.internal_ns),
                            ('Python builtin', __builtin__.__dict__),
-                           ('Alias', self.shell.alias_table),
+                           ('Alias', self.shell.alias_manager.alias_table),
                            ]
-            alias_ns = self.shell.alias_table
+            alias_ns = self.shell.alias_manager.alias_table
 
         # initialize results to 'null'
         found = 0; obj = None;  ospace = None;  ds = None;
@@ -244,7 +245,7 @@ python-profiler package from non-free.""")
 
         # Try to see if it's magic
         if not found:
-            if oname.startswith(self.shell.ESC_MAGIC):
+            if oname.startswith(ESC_MAGIC):
                 oname = oname[1:]
             obj = getattr(self,'magic_'+oname,None)
             if obj is not None:
@@ -272,10 +273,10 @@ python-profiler package from non-free.""")
         # Characters that need to be escaped for latex:
         escape_re = re.compile(r'(%|_|\$|#|&)',re.MULTILINE)
         # Magic command names as headers:
-        cmd_name_re = re.compile(r'^(%s.*?):' % self.shell.ESC_MAGIC,
+        cmd_name_re = re.compile(r'^(%s.*?):' % ESC_MAGIC,
                                  re.MULTILINE)
         # Magic commands 
-        cmd_re = re.compile(r'(?P<cmd>%s.+?\b)(?!\}\}:)' % self.shell.ESC_MAGIC,
+        cmd_re = re.compile(r'(?P<cmd>%s.+?\b)(?!\}\}:)' % ESC_MAGIC,
                             re.MULTILINE)
         # Paragraph continue
         par_re = re.compile(r'\\$',re.MULTILINE)
@@ -376,7 +377,7 @@ python-profiler package from non-free.""")
     # Functions for IPython shell work (vars,funcs, config, etc)
     def magic_lsmagic(self, parameter_s = ''):
         """List currently available magic functions."""
-        mesc = self.shell.ESC_MAGIC
+        mesc = ESC_MAGIC
         print 'Available magic functions:\n'+mesc+\
               ('  '+mesc).join(self.lsmagic())
         print '\n' + Magic.auto_status[self.shell.automagic]
@@ -424,11 +425,11 @@ python-profiler package from non-free.""")
                 
                 
             if mode == 'rest':
-                rest_docs.append('**%s%s**::\n\n\t%s\n\n' %(self.shell.ESC_MAGIC,
+                rest_docs.append('**%s%s**::\n\n\t%s\n\n' %(ESC_MAGIC,
                                                     fname,fndoc))
                 
             else:
-                magic_docs.append('%s%s:\n\t%s\n' %(self.shell.ESC_MAGIC,
+                magic_docs.append('%s%s:\n\t%s\n' %(ESC_MAGIC,
                                                     fname,fndoc))
                 
         magic_docs = ''.join(magic_docs)
@@ -479,7 +480,7 @@ of any of them, type %magic_name?, e.g. '%cd?'.
 
 Currently the magic system has the following functions:\n"""
 
-        mesc = self.shell.ESC_MAGIC
+        mesc = ESC_MAGIC
         outmsg = ("%s\n%s\n\nSummary of magic functions (from %slsmagic):"
                   "\n\n%s%s\n\n%s" % (outmsg,
                                      magic_docs,mesc,mesc,
@@ -2620,52 +2621,27 @@ Defaulting color scheme to 'NoColor'"""
         par = parameter_s.strip()
         if not par:
             stored = self.db.get('stored_aliases', {} )
-            atab = self.shell.alias_table
-            aliases = atab.keys()
-            aliases.sort()
-            res = []
-            showlast = []
-            for alias in aliases:
-                special = False
-                try:
-                    tgt = atab[alias][1]
-                except (TypeError, AttributeError):
-                    # unsubscriptable? probably a callable
-                    tgt = atab[alias]
-                    special = True
-                # 'interesting' aliases
-                if (alias in stored or
-                    special or 
-                    alias.lower() != os.path.splitext(tgt)[0].lower() or
-                    ' ' in tgt):
-                    showlast.append((alias, tgt))
-                else:
-                    res.append((alias, tgt ))                
-            
-            # show most interesting aliases last
-            res.extend(showlast)
-            print "Total number of aliases:",len(aliases)
-            return res
+            aliases = sorted(self.shell.alias_manager.aliases)
+            # for k, v in stored:
+            #     atab.append(k, v[0])
+
+            print "Total number of aliases:", len(aliases)
+            return aliases
+        
+        # Now try to define a new one
         try:
-            alias,cmd = par.split(None,1)
+            alias,cmd = par.split(None, 1)
         except:
             print oinspect.getdoc(self.magic_alias)
         else:
-            nargs = cmd.count('%s')
-            if nargs>0 and cmd.find('%l')>=0:
-                error('The %s and %l specifiers are mutually exclusive '
-                      'in alias definitions.')
-            else:  # all looks OK
-                self.shell.alias_table[alias] = (nargs,cmd)
-                self.shell.alias_table_validate(verbose=0)
+            self.shell.alias_manager.soft_define_alias(alias, cmd)
     # end magic_alias
 
     def magic_unalias(self, parameter_s = ''):
         """Remove an alias"""
 
         aname = parameter_s.strip()
-        if aname in self.shell.alias_table:
-            del self.shell.alias_table[aname]
+        self.shell.alias_manager.undefine_alias(aname)
         stored = self.db.get('stored_aliases', {} )
         if aname in stored:
             print "Removing %stored alias",aname
@@ -2686,6 +2662,7 @@ Defaulting color scheme to 'NoColor'"""
         This function also resets the root module cache of module completer,
         used on slow filesystems.
         """
+        from IPython.core.alias import InvalidAliasError
 
         # for the benefit of module completer in ipy_completers.py
         del self.db['rootmodules']
@@ -2693,14 +2670,13 @@ Defaulting color scheme to 'NoColor'"""
         path = [os.path.abspath(os.path.expanduser(p)) for p in 
             os.environ.get('PATH','').split(os.pathsep)]
         path = filter(os.path.isdir,path)
-        
-        alias_table = self.shell.alias_table
+
         syscmdlist = []
+        # Now define isexec in a cross platform manner.
         if os.name == 'posix':
             isexec = lambda fname:os.path.isfile(fname) and \
                      os.access(fname,os.X_OK)
         else:
-
             try:
                 winext = os.environ['pathext'].replace(';','|').replace('.','')
             except KeyError:
@@ -2710,6 +2686,8 @@ Defaulting color scheme to 'NoColor'"""
             execre = re.compile(r'(.*)\.(%s)$' % winext,re.IGNORECASE)
             isexec = lambda fname:os.path.isfile(fname) and execre.match(fname)
         savedir = os.getcwd()
+
+        # Now walk the paths looking for executables to alias.
         try:
             # write the whole loop for posix/Windows so we don't have an if in
             # the innermost part
@@ -2717,14 +2695,16 @@ Defaulting color scheme to 'NoColor'"""
                 for pdir in path:
                     os.chdir(pdir)
                     for ff in os.listdir(pdir):
-                        if isexec(ff) and ff not in self.shell.no_alias:
-                            # each entry in the alias table must be (N,name),
-                            # where N is the number of positional arguments of the
-                            # alias.                            
-                            # Dots will be removed from alias names, since ipython
-                            # assumes names with dots to be python code
-                            alias_table[ff.replace('.','')] = (0,ff)
-                            syscmdlist.append(ff)
+                        if isexec(ff):
+                            try:
+                                # Removes dots from the name since ipython
+                                # will assume names with dots to be python.
+                                self.shell.alias_manager.define_alias(
+                                    ff.replace('.',''), ff)
+                            except InvalidAliasError:
+                                pass
+                            else:
+                                syscmdlist.append(ff)
             else:
                 for pdir in path:
                     os.chdir(pdir)
@@ -2733,16 +2713,14 @@ Defaulting color scheme to 'NoColor'"""
                         if isexec(ff) and base.lower() not in self.shell.no_alias:
                             if ext.lower() == '.exe':
                                 ff = base
-                            alias_table[base.lower().replace('.','')] = (0,ff)
-                            syscmdlist.append(ff)
-            # Make sure the alias table doesn't contain keywords or builtins
-            self.shell.alias_table_validate()
-            # Call again init_auto_alias() so we get 'rm -i' and other
-            # modified aliases since %rehashx will probably clobber them
-            
-            # no, we don't want them. if %rehashx clobbers them, good,
-            # we'll probably get better versions
-            # self.shell.init_auto_alias()
+                                try:
+                                    # Removes dots from the name since ipython
+                                    # will assume names with dots to be python.
+                                    self.shell.alias_manager.define_alias(
+                                        base.lower().replace('.',''), ff)
+                                except InvalidAliasError:
+                                    pass
+                                syscmdlist.append(ff)
             db = self.db
             db['syscmdlist'] = syscmdlist
         finally:
@@ -3167,7 +3145,7 @@ Defaulting color scheme to 'NoColor'"""
         """
 
         start = parameter_s.strip()
-        esc_magic = self.shell.ESC_MAGIC
+        esc_magic = ESC_MAGIC
         # Identify magic commands even if automagic is on (which means
         # the in-memory version is different from that typed by the user).
         if self.shell.automagic:

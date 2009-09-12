@@ -1,81 +1,66 @@
 #-----------------------------------------------------------------------------
-# IPython Shell Configuration Defaults
+# Global options
 #-----------------------------------------------------------------------------
 
-#-----------------------------------------------------------------------------
-# Startup
-#-----------------------------------------------------------------------------
-
-AUTOCALL = True
-
-AUTOEDIT_SYNTAX = False
-
-AUTOINDENT = True
-
-AUTOMAGIC = True
-
-CACHE_SIZE = 1000
-
-CLASSIC = False
-
-COLORS = 'Linux'
-
-COLOR_INFO = True
-
-CONFIRM_EXIT = True
-
-DEEP_RELOAD = False
-
-EDITOR = 0
-
-LOG = True
-
-LOGFILE = ''
-
-BANNER = True
-
-MESSAGES = True
-
-PDB = False
-
-PPRINT = True
-
-PROMPT_IN1 = 'In [\#]: '
-
-PROMPT_IN2 = '   .\D.: '
-
-PROMPT_OUT = 'Out[\#]: '
-
-PROMPTS_PAD_LEFT = True
-
-QUICK = False
-
-SCREEN_LENGTH = 0
-
-SEPARATE_IN = '\n'
-SEPARATE_OUT = ''
-SEPARATE_OUT2 = ''
-NOSEP = False
-
-WILDCARDS_CASE_SENSITIVE = True
-
-OBJECT_INFO_STRING_LEVEL = 0
-
-XMODE = 'Context'
-
-MULTI_LINE_SPECIALS = True
-
-SYSTEM_HEADER = "IPython system call: "
-
-SYSTEM_VERBOSE = True
+Global.classic = False
+Global.nosep = False
 
 #-----------------------------------------------------------------------------
-# Readline
+# InteractiveShell options
 #-----------------------------------------------------------------------------
 
-READLINE = True
 
-READLINE_PARSE_AND_BIND = [
+InteractiveShell.autocall = 1
+
+InteractiveShell.autoedit_syntax = False
+
+InteractiveShell.autoindent = True
+
+InteractiveShell.automagic = False
+
+InteractiveShell.banner1 = 'This if for overriding the default IPython banner'
+ 
+InteractiveShell.banner2 = "This is for extra banner text"
+
+InteractiveShell.cache_size = 1000
+
+InteractiveShell.colors = 'LightBG'
+
+InteractiveShell.color_info = True
+
+InteractiveShell.confirm_exit = True
+
+InteractiveShell.deep_reload = False
+
+InteractiveShell.display_banner = True
+
+InteractiveShell.editor = 'nano'
+
+InteractiveShell.logstart = True
+
+InteractiveShell.logfile = 'ipython_log.py'
+
+InteractiveShell.logplay = 'mylog.py'
+
+InteractiveShell.object_info_string_level = 0
+
+InteractiveShell.pager = 'less'
+
+InteractiveShell.pdb = False
+
+InteractiveShell.pprint = True
+
+InteractiveShell.prompt_in1 = 'In [\#]: '
+InteractiveShell.prompt_in2 = '   .\D.: '
+InteractiveShell.prompt_out = 'Out[\#]: '
+InteractiveShell.prompts_pad_left = True
+
+InteractiveShell.quiet = False
+
+# Readline 
+InteractiveShell.readline_use = False
+
+InteractiveShell.readline_parse_and_bind = [
     'tab: complete',
     '"\C-l": possible-completions',
     'set show-all-if-ambiguous on',
@@ -92,29 +77,39 @@ READLINE_PARSE_AND_BIND = [
     '"\C-k": kill-line',
     '"\C-u": unix-line-discard',
 ]
+InteractiveShell.readline_remove_delims = '-/~'
+InteractiveShell.readline_merge_completions = True
+InteractiveShell.readline_omit_names = 0
 
-READLINE_REMOVE_DELIMS = '-/~'
+InteractiveShell.screen_length = 0
 
-READLINE_MERGE_COMPLETIONS = True
+InteractiveShell.separate_in = '\n'
+InteractiveShell.separate_out = ''
+InteractiveShell.separate_out2 = ''
 
-READLINE_OMIT_NAMES = 0
+InteractiveShell.system_header = "IPython system call: "
+
+InteractiveShell.system_verbose = True
+
+InteractiveShell.term_title = False
+
+InteractiveShell.wildcards_case_sensitive = True
+
+InteractiveShell.xmode = 'Context'
 
 #-----------------------------------------------------------------------------
-# Code to execute
+# PrefilterManager options
 #-----------------------------------------------------------------------------
 
-EXECUTE = [
-    'import numpy as np',
-    'import sympy',
-    'a = 10'
-]
-
-EXECFILE = []
+PrefilterManager.multi_line_specials = True
 
 #-----------------------------------------------------------------------------
-# Alias
+# AliasManager options
 #-----------------------------------------------------------------------------
 
-ALIAS = [
-    ('myls', 'ls -la')
+# Do this to enable all defaults
+# AliasManager.default_aliases = []
+
+AliasManger.user_aliases = [
+    ('foo', 'echo Hi')
 ]

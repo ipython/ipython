@@ -62,6 +62,7 @@ from IPython.lib.backgroundjobs import BackgroundJobManager
 from IPython.utils.ipstruct import Struct
 from IPython.utils import PyColorize
 from IPython.utils.genutils import *
+from IPython.utils.genutils import get_ipython_dir
 from IPython.utils.strdispatch import StrDispatch
 from IPython.utils.platutils import toggle_set_term_title, set_term_title
 
@@ -188,50 +189,47 @@ class SeparateStr(Str):
 class InteractiveShell(Component, Magic):
     """An enhanced, interactive shell for Python."""
 
-    autocall = Enum((0,1,2), config_key='AUTOCALL')
-    autoedit_syntax = CBool(False, config_key='AUTOEDIT_SYNTAX')
-    autoindent = CBool(True, config_key='AUTOINDENT')
-    automagic = CBool(True, config_key='AUTOMAGIC')
-    display_banner = CBool(True, config_key='DISPLAY_BANNER')
+    autocall = Enum((0,1,2), config=True)
+    autoedit_syntax = CBool(False, config=True)
+    autoindent = CBool(True, config=True)
+    automagic = CBool(True, config=True)
+    display_banner = CBool(True, config=True)
     banner = Str('')
-    banner1 = Str(default_banner, config_key='BANNER1')
-    banner2 = Str('', config_key='BANNER2')
-    c = Str('', config_key='C')
-    cache_size = Int(1000, config_key='CACHE_SIZE')
-    classic = CBool(False, config_key='CLASSIC')
-    color_info = CBool(True, config_key='COLOR_INFO')
+    banner1 = Str(default_banner, config=True)
+    banner2 = Str('', config=True)
+    c = Str('', config=True)
+    cache_size = Int(1000, config=True)
+    color_info = CBool(True, config=True)
     colors = CaselessStrEnum(('NoColor','LightBG','Linux'), 
-                             default_value='LightBG', config_key='COLORS')
-    confirm_exit = CBool(True, config_key='CONFIRM_EXIT')
-    debug = CBool(False, config_key='DEBUG')
-    deep_reload = CBool(False, config_key='DEEP_RELOAD')
+                             default_value='LightBG', config=True)
+    confirm_exit = CBool(True, config=True)
+    debug = CBool(False, config=True)
+    deep_reload = CBool(False, config=True)
     embedded = CBool(False)
     embedded_active = CBool(False)
-    editor = Str(get_default_editor(), config_key='EDITOR')
+    editor = Str(get_default_editor(), config=True)
     filename = Str("<ipython console>")
-    interactive = CBool(False, config_key='INTERACTIVE')
-    ipythondir= Unicode('', config_key='IPYTHONDIR') # Set to os.getcwd() in __init__
-    logstart = CBool(False, config_key='LOGSTART')
-    logfile = Str('', config_key='LOGFILE')
-    logplay = Str('', config_key='LOGPLAY')
+    interactive = CBool(False, config=True)
+    ipythondir= Unicode('', config=True) # Set to get_ipython_dir() in __init__
+    logstart = CBool(False, config=True)
+    logfile = Str('', config=True)
+    logplay = Str('', config=True)
     object_info_string_level = Enum((0,1,2), default_value=0,
-                                    config_keys='OBJECT_INFO_STRING_LEVEL')
-    pager = Str('less', config_key='PAGER')
-    pdb = CBool(False, config_key='PDB')
-    pprint = CBool(True, config_key='PPRINT')
-    profile = Str('', config_key='PROFILE')
-    prompt_in1 = Str('In [\\#]: ', config_key='PROMPT_IN1')
-    prompt_in2 = Str('   .\\D.: ', config_key='PROMPT_IN2')
-    prompt_out = Str('Out[\\#]: ', config_key='PROMPT_OUT1')
-    prompts_pad_left = CBool(True, config_key='PROMPTS_PAD_LEFT')
-    quiet = CBool(False, config_key='QUIET')
+                                    config=True)
+    pager = Str('less', config=True)
+    pdb = CBool(False, config=True)
+    pprint = CBool(True, config=True)
+    profile = Str('', config=True)
+    prompt_in1 = Str('In [\\#]: ', config=True)
+    prompt_in2 = Str('   .\\D.: ', config=True)
+    prompt_out = Str('Out[\\#]: ', config=True)
+    prompts_pad_left = CBool(True, config=True)
+    quiet = CBool(False, config=True)
 
-    readline_use = CBool(True, config_key='READLINE_USE')
-    readline_merge_completions = CBool(True, 
-                                       config_key='READLINE_MERGE_COMPLETIONS')
-    readline_omit__names = Enum((0,1,2), default_value=0, 
-                                config_key='READLINE_OMIT_NAMES')
-    readline_remove_delims = Str('-/~', config_key='READLINE_REMOVE_DELIMS')
+    readline_use = CBool(True, config=True)
+    readline_merge_completions = CBool(True, config=True)
+    readline_omit__names = Enum((0,1,2), default_value=0, config=True)
+    readline_remove_delims = Str('-/~', config=True)
     readline_parse_and_bind = List([
             'tab: complete',
             '"\C-l": possible-completions',
@@ -248,24 +246,22 @@ class InteractiveShell(Component, Magic):
             '"\e[B": history-search-forward',
             '"\C-k": kill-line',
             '"\C-u": unix-line-discard',
-        ], allow_none=False, config_key='READLINE_PARSE_AND_BIND'
-    )
+        ], allow_none=False, config=True)
 
-    screen_length = Int(0, config_key='SCREEN_LENGTH')
+    screen_length = Int(0, config=True)
     
     # Use custom TraitletTypes that convert '0'->'' and '\\n'->'\n'
-    separate_in = SeparateStr('\n', config_key='SEPARATE_IN')
-    separate_out = SeparateStr('', config_key='SEPARATE_OUT')
-    separate_out2 = SeparateStr('', config_key='SEPARATE_OUT2')
+    separate_in = SeparateStr('\n', config=True)
+    separate_out = SeparateStr('', config=True)
+    separate_out2 = SeparateStr('', config=True)
 
-    system_header = Str('IPython system call: ', config_key='SYSTEM_HEADER')
-    system_verbose = CBool(False, config_key='SYSTEM_VERBOSE')
-    term_title = CBool(False, config_key='TERM_TITLE')
-    wildcards_case_sensitive = CBool(True, config_key='WILDCARDS_CASE_SENSITIVE')
+    system_header = Str('IPython system call: ', config=True)
+    system_verbose = CBool(False, config=True)
+    term_title = CBool(False, config=True)
+    wildcards_case_sensitive = CBool(True, config=True)
     xmode = CaselessStrEnum(('Context','Plain', 'Verbose'), 
-                            default_value='Context', config_key='XMODE')
+                            default_value='Context', config=True)
 
-    alias = List(allow_none=False, config_key='ALIAS')
     autoexec = List(allow_none=False)
 
     # class attribute to indicate whether the class supports threads or not.
@@ -279,7 +275,7 @@ class InteractiveShell(Component, Magic):
 
         # This is where traitlets with a config_key argument are updated
         # from the values on config.
-        super(InteractiveShell, self).__init__(parent, config=config, name='__IP')
+        super(InteractiveShell, self).__init__(parent, config=config)
 
         # These are relatively independent and stateless
         self.init_ipythondir(ipythondir)
@@ -288,7 +284,7 @@ class InteractiveShell(Component, Magic):
         self.init_usage(usage)
         self.init_banner(banner1, banner2)
 
-        # Create namespaces (user_ns, user_global_ns, alias_table, etc.)
+        # Create namespaces (user_ns, user_global_ns, etc.)
         self.init_create_namespaces(user_ns, user_global_ns)
         # This has to be done after init_create_namespaces because it uses
         # something in self.user_ns, but before init_sys_modules, which
@@ -327,6 +323,9 @@ class InteractiveShell(Component, Magic):
         self.init_pdb()
         self.hooks.late_startup_hook()
 
+    def get_ipython(self):
+        return self
+
     #-------------------------------------------------------------------------
     # Traitlet changed handlers
     #-------------------------------------------------------------------------
@@ -336,6 +335,10 @@ class InteractiveShell(Component, Magic):
 
     def _banner2_changed(self):
         self.compute_banner()
+
+    def _ipythondir_changed(self, name, new):
+        if not os.path.isdir(new):
+            os.makedirs(new, mode = 0777)
 
     @property
     def usable_screen_length(self):
@@ -370,22 +373,16 @@ class InteractiveShell(Component, Magic):
     def init_ipythondir(self, ipythondir):
         if ipythondir is not None:
             self.ipythondir = ipythondir
-            self.config.IPYTHONDIR = self.ipythondir
+            self.config.Global.ipythondir = self.ipythondir
             return
 
-        if hasattr(self.config, 'IPYTHONDIR'):
-            self.ipythondir = self.config.IPYTHONDIR
-        if not hasattr(self.config, 'IPYTHONDIR'):
-            # cdw is always defined
-            self.ipythondir = os.getcwd()
-
-        # The caller must make sure that ipythondir exists.  We should
-        # probably handle this using a Dir traitlet.
-        if not os.path.isdir(self.ipythondir):
-            raise IOError('IPython dir does not exist: %s' % self.ipythondir)
+        if hasattr(self.config.Global, 'ipythondir'):
+            self.ipythondir = self.config.Global.ipythondir
+        else:
+            self.ipythondir = get_ipython_dir()
 
         # All children can just read this
-        self.config.IPYTHONDIR = self.ipythondir
+        self.config.Global.ipythondir = self.ipythondir
 
     def init_instance_attrs(self):
         self.jobs = BackgroundJobManager()
@@ -825,11 +822,6 @@ class InteractiveShell(Component, Magic):
         # them from cluttering user-visible stuff.  Will be updated later
         self.internal_ns = {}
 
-        # Namespace of system aliases.  Each entry in the alias
-        # table must be a 2-tuple of the form (N,name), where N is the number
-        # of positional arguments of the alias.
-        self.alias_table = {}
-
         # Now that FakeModule produces a real module, we've run into a nasty
         # problem: after script execution (via %run), the module where the user
         # code ran is deleted.  Now that this object is a true module (needed
@@ -863,7 +855,6 @@ class InteractiveShell(Component, Magic):
         # introspection facilities can search easily.
         self.ns_table = {'user':user_ns,
                          'user_global':user_global_ns,
-                         'alias':self.alias_table,
                          'internal':self.internal_ns,
                          'builtin':__builtin__.__dict__
                          }
@@ -872,8 +863,7 @@ class InteractiveShell(Component, Magic):
         # we can safely clear (so it can NOT include builtin).  This one can be
         # a simple list.
         self.ns_refs_table = [ user_ns, user_global_ns, self.user_config_ns,
-                               self.alias_table, self.internal_ns,
-                               self._main_ns_cache ]
+                               self.internal_ns, self._main_ns_cache ]
 
     def init_sys_modules(self):
         # We need to insert into sys.modules something that looks like a
@@ -961,11 +951,8 @@ class InteractiveShell(Component, Magic):
         method.  If they were not empty before, data will simply be added to
         therm.
         """
-        # The user namespace MUST have a pointer to the shell itself.
-        self.user_ns[self.name] = self
-
         # Store myself as the public api!!!
-        self.user_ns['_ip'] = self
+        self.user_ns['get_ipython'] = self.get_ipython
 
         # make global variables for user access to the histories
         self.user_ns['_ih'] = self.input_hist
@@ -994,12 +981,18 @@ class InteractiveShell(Component, Magic):
         for ns in self.ns_refs_table:
             ns.clear()
 
+        self.alias_manager.clear_aliases()
+
         # Clear input and output histories
         self.input_hist[:] = []
         self.input_hist_raw[:] = []
         self.output_hist.clear()
+
         # Restore the user namespaces to minimal usability
         self.init_user_ns()
+
+        # Restore the default and user aliases
+        self.alias_manager.init_aliases()
 
     def push(self, variables, interactive=True):
         """Inject a group of variables into the IPython user namespace.
@@ -1076,7 +1069,7 @@ class InteractiveShell(Component, Magic):
             histfname = 'history-%s' % self.profile
         except AttributeError:
             histfname = 'history'
-        self.histfile = os.path.join(self.config.IPYTHONDIR, histfname)
+        self.histfile = os.path.join(self.ipythondir, histfname)
 
         # Fill the history zero entry, user counter starts at 1
         self.input_hist.append('\n')
@@ -1084,12 +1077,12 @@ class InteractiveShell(Component, Magic):
 
     def init_shadow_hist(self):
         try:
-            self.db = pickleshare.PickleShareDB(self.config.IPYTHONDIR + "/db")
+            self.db = pickleshare.PickleShareDB(self.ipythondir + "/db")
         except exceptions.UnicodeDecodeError:
             print "Your ipythondir can't be decoded to unicode!"
             print "Please set HOME environment variable to something that"
             print r"only has ASCII characters, e.g. c:\home"
-            print "Now it is", self.config.IPYTHONDIR
+            print "Now it is", self.ipythondir
             sys.exit()
         self.shadowhist = ipcorehist.ShadowHist(self.db)
 
@@ -1472,10 +1465,10 @@ class InteractiveShell(Component, Magic):
             import atexit
             from IPython.core.completer import IPCompleter
             self.Completer = IPCompleter(self,
-                                            self.user_ns,
-                                            self.user_global_ns,
-                                            self.readline_omit__names,
-                                            self.alias_table)
+                                         self.user_ns,
+                                         self.user_global_ns,
+                                         self.readline_omit__names,
+                                         self.alias_manager.alias_table)
             sdisp = self.strdispatchers.get('complete_command', StrDispatch())
             self.strdispatchers['complete_command'] = sdisp
             self.Completer.custom_completers = sdisp
@@ -1607,8 +1600,11 @@ class InteractiveShell(Component, Magic):
             error("Magic function `%s` not found." % magic_name)
         else:
             magic_args = self.var_expand(magic_args,1)
-            with nested(self.builtin_trap, self.display_trap):
-                return fn(magic_args)
+            with nested(self.builtin_trap,):
+                result = fn(magic_args)
+            # Unfortunately, the return statement is what will trigger
+            # the displayhook, but it is no longer set!
+            return result
 
     def define_magic(self, magicname, func):
         """Expose own function as magic function for ipython 
@@ -1666,6 +1662,7 @@ class InteractiveShell(Component, Magic):
 
     def init_alias(self):
         self.alias_manager = AliasManager(self, config=self.config)
+        self.ns_table['alias'] = self.alias_manager.alias_table,
 
     #-------------------------------------------------------------------------
     # Things related to the running of code
@@ -1673,7 +1670,7 @@ class InteractiveShell(Component, Magic):
 
     def ex(self, cmd):
         """Execute a normal python statement in user namespace."""
-        with nested(self.builtin_trap, self.display_trap):
+        with nested(self.builtin_trap,):
             exec cmd in self.user_global_ns, self.user_ns
 
     def ev(self, expr):
@@ -1681,7 +1678,7 @@ class InteractiveShell(Component, Magic):
 
         Returns the result of evaluation
         """
-        with nested(self.builtin_trap, self.display_trap):
+        with nested(self.builtin_trap,):
             return eval(expr, self.user_global_ns, self.user_ns)
 
     def mainloop(self, banner=None):

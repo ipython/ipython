@@ -26,18 +26,40 @@ Notes
 import os
 import sys
 import traceback
-
 from copy import deepcopy
-from IPython.utils.ipstruct import Struct
+
 from IPython.utils.genutils import get_ipython_dir, filefind
 from IPython.config.loader import (
-    IPythonArgParseConfigLoader,
-    PyFileConfigLoader
+    PyFileConfigLoader,
+    ArgParseConfigLoader,
+    Config,
+    NoConfigDefault
 )
 
 #-----------------------------------------------------------------------------
 # Classes and functions
 #-----------------------------------------------------------------------------
+
+
+class IPythonArgParseConfigLoader(ArgParseConfigLoader):
+    """Default command line options for IPython based applications."""
+
+    def _add_other_arguments(self):
+        self.parser.add_argument('-ipythondir',dest='Global.ipythondir',type=str,
+            help='Set to override default location of Global.ipythondir.',
+            default=NoConfigDefault,
+            metavar='Global.ipythondir')
+        self.parser.add_argument('-p','-profile',dest='Global.profile',type=str,
+            help='The string name of the ipython profile to be used.',
+            default=NoConfigDefault,
+            metavar='Global.profile')
+        self.parser.add_argument('-debug',dest="Global.debug",action='store_true',
+            help='Debug the application startup process.',
+            default=NoConfigDefault)
+        self.parser.add_argument('-config_file',dest='Global.config_file',type=str,
+            help='Set the config file name to override default.',
+            default=NoConfigDefault,
+            metavar='Global.config_file')
 
 
 class ApplicationError(Exception):
@@ -79,8 +101,8 @@ class Application(object):
 
     def create_default_config(self):
         """Create defaults that can't be set elsewhere."""
-        self.default_config = Struct()
-        self.default_config.IPYTHONDIR = get_ipython_dir()
+        self.default_config = Config()
+        self.default_config.Global.ipythondir = get_ipython_dir()
 
     def create_command_line_config(self):
         """Create and return a command line config loader."""
@@ -99,7 +121,7 @@ class Application(object):
         loader = self.create_command_line_config()
         self.command_line_config = loader.load_config()
         try:
-            self.debug = self.command_line_config.DEBUG
+            self.debug = self.command_line_config.Global.debug
         except AttributeError:
             pass # use class default
         self.log("Default config loaded:", self.default_config)
@@ -120,9 +142,9 @@ class Application(object):
         """
 
         try:
-            self.ipythondir = self.command_line_config.IPYTHONDIR
+            self.ipythondir = self.command_line_config.Global.ipythondir
         except AttributeError:
-            self.ipythondir = self.default_config.IPYTHONDIR
+            self.ipythondir = self.default_config.Global.ipythondir
         sys.path.append(os.path.abspath(self.ipythondir))
         if not os.path.isdir(self.ipythondir):
             os.makedirs(self.ipythondir, mode = 0777)
@@ -138,12 +160,12 @@ class Application(object):
         """
 
         try:
-            self.config_file_name = self.command_line_config.CONFIG_FILE
+            self.config_file_name = self.command_line_config.Global.config_file
         except AttributeError:
             pass
 
         try:
-            self.profile_name = self.command_line_config.PROFILE
+            self.profile_name = self.command_line_config.Global.profile
             name_parts = self.config_file_name.split('.')
             name_parts.insert(1, '_' + self.profile_name + '.')
             self.config_file_name = ''.join(name_parts)
@@ -165,15 +187,15 @@ class Application(object):
         ``CONFIG_FILE`` config variable is set to the resolved config file
         location.  If not successful, an empty config is used.
         """
-        loader = PyFileConfigLoader(self.config_file_name, 
-                                    self.config_file_paths)
+        loader = PyFileConfigLoader(self.config_file_name,
+                                    path=self.config_file_paths)
         try:
             self.file_config = loader.load_config()
-            self.file_config.CONFIG_FILE = loader.full_filename
+            self.file_config.Global.config_file = loader.full_filename
         except IOError:
             self.log("Config file not found, skipping: %s" % \
                      self.config_file_name)
-            self.file_config = Struct()
+            self.file_config = Config()
         else:
             self.log("Config file loaded: %s" % loader.full_filename,
                      self.file_config)
@@ -184,10 +206,10 @@ class Application(object):
 
     def merge_configs(self):
         """Merge the default, command line and file config objects."""
-        config = Struct()
-        config.update(self.default_config)
-        config.update(self.file_config)
-        config.update(self.command_line_config)
+        config = Config()
+        config._merge(self.default_config)
+        config._merge(self.file_config)
+        config._merge(self.command_line_config)
         self.master_config = config
         self.log("Master config created:", self.master_config)
 
@@ -223,12 +245,13 @@ class Application(object):
     def attempt(self, func, action='abort'):
         try:
             func()
+        except SystemExit:
+            self.exit()
         except:
             if action == 'abort':
                 self.print_traceback()
                 self.abort()
             elif action == 'exit':
-                self.print_traceback()
                 self.exit()
 
     def print_traceback(self):

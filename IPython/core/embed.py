@@ -30,9 +30,11 @@ from contextlib import nested
 
 from IPython.core import ultratb
 from IPython.core.iplib import InteractiveShell
+from IPython.core.ipapp import load_default_config
 
 from IPython.utils.traitlets import Bool, Str, CBool
 from IPython.utils.genutils import ask_yes_no
+
 
 #-----------------------------------------------------------------------------
 # Classes and functions
@@ -260,6 +262,8 @@ def embed(header='', config=None, usage=None, banner1=None, banner2=None,
     Full customization can be done by passing a :class:`Struct` in as the 
     config argument.
     """
+    if config is None:
+        config = load_default_config()
     global _embedded_shell
     if _embedded_shell is None:
         _embedded_shell = InteractiveShellEmbed(config=config,

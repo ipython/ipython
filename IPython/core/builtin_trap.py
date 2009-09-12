@@ -40,6 +40,9 @@ class BuiltinTrap(Component):
     def __init__(self, parent):
         super(BuiltinTrap, self).__init__(parent, None, None)
         self._orig_builtins = {}
+        # We define this to track if a single BuiltinTrap is nested.
+        # Only turn off the trap when the outermost call to __exit__ is made.
+        self._nested_level = 0
 
     @auto_attr
     def shell(self):
@@ -50,12 +53,16 @@ class BuiltinTrap(Component):
         return shell
 
     def __enter__(self):
-        self.set()
+        if self._nested_level == 0:
+            self.set()
+        self._nested_level += 1
         # I return self, so callers can use add_builtin in a with clause.
         return self
 
     def __exit__(self, type, value, traceback):
-        self.unset()
+        if self._nested_level == 1:
+            self.unset()
+        self._nested_level -= 1
         return True
 
     def add_builtin(self, key, value):

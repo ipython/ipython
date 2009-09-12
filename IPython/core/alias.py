@@ -43,7 +43,7 @@ def default_aliases():
     # Make some aliases automatically
     # Prepare list of shell aliases to auto-define
     if os.name == 'posix':
-        auto_alias = ('mkdir mkdir', 'rmdir rmdir',
+        default_aliases = ('mkdir mkdir', 'rmdir rmdir',
                       'mv mv -i','rm rm -i','cp cp -i',
                       'cat cat','less less','clear clear',
                       # a better ls
@@ -75,15 +75,15 @@ def default_aliases():
                          # things which are executable
                          'lx ls -lF | grep ^-..x',
                          )
-        auto_alias = auto_alias + ls_extra
+        default_aliases = default_aliases + ls_extra
     elif os.name in ['nt','dos']:
-        auto_alias = ('ls dir /on',
+        default_aliases = ('ls dir /on',
                       'ddir dir /ad /on', 'ldir dir /ad /on',
                       'mkdir mkdir','rmdir rmdir','echo echo',
                       'ren ren','cls cls','copy copy')
     else:
-        auto_alias = ()
-    return [s.split(None,1) for s in auto_alias]
+        default_aliases = ()
+    return [s.split(None,1) for s in default_aliases]
 
 
 class AliasError(Exception):
@@ -101,8 +101,8 @@ class InvalidAliasError(AliasError):
 
 class AliasManager(Component):
 
-    auto_alias = List(default_aliases())
-    user_alias = List(default_value=[], config_key='USER_ALIAS')
+    default_aliases = List(default_aliases(), config=True)
+    user_aliases = List(default_value=[], config=True)
 
     def __init__(self, parent, config=None):
         super(AliasManager, self).__init__(parent, config=config)
@@ -137,12 +137,15 @@ class AliasManager(Component):
 
     def init_aliases(self):
         # Load default aliases
-        for name, cmd in self.auto_alias:
+        for name, cmd in self.default_aliases:
             self.soft_define_alias(name, cmd)
 
         # Load user aliases
-        for name, cmd in self.user_alias:
+        for name, cmd in self.user_aliases:
             self.soft_define_alias(name, cmd)
+
+    def clear_aliases(self):
+        self.alias_table.clear()
 
     def soft_define_alias(self, name, cmd):
         """Define an alias, but don't raise on an AliasError."""
@@ -159,6 +162,10 @@ class AliasManager(Component):
         """
         nargs = self.validate_alias(name, cmd)
         self.alias_table[name] = (nargs, cmd)
+
+    def undefine_alias(self, name):
+        if self.alias_table.has_key(name):
+            del self.alias_table[name]
 
     def validate_alias(self, name, cmd):
         """Validate an alias and return the its number of arguments."""

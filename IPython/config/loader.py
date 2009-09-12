@@ -1,6 +1,10 @@
 #!/usr/bin/env python
 # encoding: utf-8
-"""A factory for creating configuration objects.
+"""A simple configuration system.
+
+Authors:
+
+* Brian Granger
 """
 
 #-----------------------------------------------------------------------------
@@ -14,20 +18,136 @@
 # Imports
 #-----------------------------------------------------------------------------
 
+import __builtin__
 import os
 import sys
 
 from IPython.external import argparse
-from IPython.utils.ipstruct import Struct
 from IPython.utils.genutils import filefind
 
 #-----------------------------------------------------------------------------
-# Code
+# Exceptions
 #-----------------------------------------------------------------------------
 
 
-class ConfigLoaderError(Exception):
+class ConfigError(Exception):
     pass
+
+
+class ConfigLoaderError(ConfigError):
+    pass
+
+
+#-----------------------------------------------------------------------------
+# Config class for holding config information
+#-----------------------------------------------------------------------------
+
+
+class Config(dict):
+    """An attribute based dict that can do smart merges."""
+
+    def __init__(self, *args, **kwds):
+        dict.__init__(self, *args, **kwds)
+        # This sets self.__dict__ = self, but it has to be done this way
+        # because we are also overriding __setattr__.
+        dict.__setattr__(self, '__dict__', self)
+
+    def _merge(self, other):
+        to_update = {}
+        for k, v in other.items():
+            if not self.has_key(k):
+                to_update[k] = v
+            else: # I have this key
+                if isinstance(v, Config):
+                    # Recursively merge common sub Configs
+                    self[k]._merge(v)
+                else:
+                    # Plain updates for non-Configs
+                    to_update[k] = v
+
+        self.update(to_update)
+
+    def _is_section_key(self, key):
+        if key[0].upper()==key[0] and not key.startswith('_'):
+            return True
+        else:
+            return False
+
+    def has_key(self, key):
+        if self._is_section_key(key):
+            return True
+        else:
+            return dict.has_key(self, key)
+
+    def _has_section(self, key):
+        if self._is_section_key(key):
+            if dict.has_key(self, key):
+                return True
+        return False
+
+    def copy(self):
+        return type(self)(dict.copy(self))
+
+    def __copy__(self):
+        return self.copy()
+
+    def __deepcopy__(self, memo):
+        import copy
+        return type(self)(copy.deepcopy(self.items()))
+
+    def __getitem__(self, key):
+        # Because we use this for an exec namespace, we need to delegate
+        # the lookup of names in __builtin__ to itself.  This means
+        # that you can't have section or attribute names that are 
+        # builtins.
+        try:
+            return getattr(__builtin__, key)
+        except AttributeError:
+            pass
+        if self._is_section_key(key):
+            try:
+                return dict.__getitem__(self, key)
+            except KeyError:
+                c = Config()
+                dict.__setitem__(self, key, c)
+                return c
+        else:
+            return dict.__getitem__(self, key)
+
+    def __setitem__(self, key, value):
+        # Don't allow names in __builtin__ to be modified.
+        if hasattr(__builtin__, key):
+            raise ConfigError('Config variable names cannot have the same name '
+                              'as a Python builtin: %s' % key)
+        if self._is_section_key(key):
+            if not isinstance(value, Config):
+                raise ValueError('values whose keys begin with an uppercase '
+                                 'char must be Config instances: %r, %r' % (key, value))
+        else:
+            dict.__setitem__(self, key, value)
+
+    def __getattr__(self, key):
+        try:
+            return self.__getitem__(key)
+        except KeyError, e:
+            raise AttributeError(e)
+
+    def __setattr__(self, key, value):
+        try:
+            self.__setitem__(key, value)
+        except KeyError, e:
+            raise AttributeError(e)
+
+    def __delattr__(self, key):
+        try:
+            dict.__delitem__(self, key)
+        except KeyError, e:
+            raise AttributeError(e)
+
+
+#-----------------------------------------------------------------------------
+# Config loading classes
+#-----------------------------------------------------------------------------
 
 
 class ConfigLoader(object):
@@ -59,7 +179,7 @@ class ConfigLoader(object):
         self.clear()
 
     def clear(self):
-        self.config = Struct()
+        self.config = Config()
 
     def load_config(self):
         """Load a config from somewhere, return a Struct.
@@ -106,7 +226,7 @@ class PyFileConfigLoader(FileConfigLoader):
         """Load the config from a file and return it as a Struct."""
         self._find_file()
         self._read_file_as_dict()
-        self._convert_to_struct()
+        self._convert_to_config()
         return self.config
 
     def _find_file(self):
@@ -114,15 +234,12 @@ class PyFileConfigLoader(FileConfigLoader):
         self.full_filename = filefind(self.filename, self.path)
 
     def _read_file_as_dict(self):
-        self.data = {}
-        execfile(self.full_filename, self.data)
+        execfile(self.full_filename, self.config)
 
-    def _convert_to_struct(self):
+    def _convert_to_config(self):
         if self.data is None:
             ConfigLoaderError('self.data does not exist')
-        for k, v in self.data.iteritems():
-            if k == k.upper():
-                self.config[k] = v
+        del self.config['__builtins__']
 
 
 class CommandLineConfigLoader(ConfigLoader):
@@ -133,8 +250,8 @@ class CommandLineConfigLoader(ConfigLoader):
     """
 
 
-class NoDefault(object): pass
-NoDefault = NoDefault()
+class NoConfigDefault(object): pass
+NoConfigDefault = NoConfigDefault()
 
 class ArgParseConfigLoader(CommandLineConfigLoader):
     
@@ -155,7 +272,7 @@ class ArgParseConfigLoader(CommandLineConfigLoader):
         """Parse command line arguments and return as a Struct."""
         self._create_parser()
         self._parse_args(args)
-        self._convert_to_struct()
+        self._convert_to_config()
         return self.config
 
     def _create_parser(self):
@@ -169,7 +286,7 @@ class ArgParseConfigLoader(CommandLineConfigLoader):
     def _add_arguments(self):
         for argument in self.arguments:
             if not argument[1].has_key('default'):
-                argument[1]['default'] = NoDefault
+                argument[1]['default'] = NoConfigDefault
             self.parser.add_argument(*argument[0],**argument[1])
 
     def _parse_args(self, args=None):
@@ -179,25 +296,10 @@ class ArgParseConfigLoader(CommandLineConfigLoader):
         else:
             self.parsed_data = self.parser.parse_args(args)
 
-    def _convert_to_struct(self):
+    def _convert_to_config(self):
         """self.parsed_data->self.config"""
-        self.config = Struct()
         for k, v in vars(self.parsed_data).items():
-            if v is not NoDefault:
-                setattr(self.config, k, v)
+            if v is not NoConfigDefault:
+                exec_str = 'self.config.' + k + '= v'
+                exec exec_str in locals(), globals()
 
-class IPythonArgParseConfigLoader(ArgParseConfigLoader):
-
-    def _add_other_arguments(self):
-        self.parser.add_argument('-ipythondir',dest='IPYTHONDIR',type=str,
-            help='Set to override default location of IPYTHONDIR.',
-            default=NoDefault)
-        self.parser.add_argument('-p','-profile',dest='PROFILE',type=str,
-            help='The string name of the ipython profile to be used.',
-            default=NoDefault)
-        self.parser.add_argument('-debug',dest="DEBUG",action='store_true',
-            help='Debug the application startup process.',
-            default=NoDefault)
-        self.parser.add_argument('-config_file',dest='CONFIG_FILE',type=str,
-            help='Set the config file name to override default.',
-            default=NoDefault)

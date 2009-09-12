@@ -99,7 +99,7 @@ def pxrunsource(self, source, filename="<input>", symbol="single"):
     # Case 3
     # Because autopx is enabled, we now call executeAll or disable autopx if
     # %autopx or autopx has been called
-    if '_ip.magic("%autopx' in source or '_ip.magic("autopx' in source:
+    if 'get_ipython().magic("%autopx' in source or 'get_ipython().magic("autopx' in source:
         _disable_autopx(self)
         return False
     else:

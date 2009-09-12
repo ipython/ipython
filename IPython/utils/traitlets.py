@@ -458,19 +458,22 @@ class HasTraitlets(object):
         """Get a list of all the names of this classes traitlets."""
         return self.traitlets(**metadata).keys()
 
-    def traitlets(self, *args, **metadata):
+    def traitlets(self, **metadata):
         """Get a list of all the traitlets of this class.
 
         The TraitletTypes returned don't know anything about the values
         that the various HasTraitlet's instances are holding.
+
+        This follows the same algorithm as traits does and does not allow
+        for any simple way of specifying merely that a metadata name
+        exists, but has any value.  This is because get_metadata returns
+        None if a metadata key doesn't exist.
         """
         traitlets = dict([memb for memb in inspect.getmembers(self.__class__) if \
                      isinstance(memb[1], TraitletType)])
-        if len(metadata) == 0 and len(args) == 0:
-            return traitlets
 
-        for meta_name in args:
-            metadata[meta_name] = lambda _: True
+        if len(metadata) == 0:
+            return traitlets
 
         for meta_name, meta_eval in metadata.items():
             if type(meta_eval) is not FunctionType:

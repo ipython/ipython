@@ -157,6 +157,7 @@ def magic_store(self, parameter_s=''):
             obj = ip.user_ns[args[0]]
         except KeyError:
             # it might be an alias
+            # This needs to be refactored to use the new AliasManager stuff.
             if args[0] in self.alias_table:
                 staliases = db.get('stored_aliases',{})
                 staliases[ args[0] ] = self.alias_table[ args[0] ]

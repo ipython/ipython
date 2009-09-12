@@ -109,7 +109,7 @@ def main():
             cmd = noext
         
         key = mapper(cmd)
-        if key not in ip.alias_table:
+        if key not in ip.alias_manager.alias_table:
             # Dots will be removed from alias names, since ipython
             # assumes names with dots to be python code
             
@@ -159,7 +159,7 @@ def slash_prefilter_f(self,line):
     """
     from IPython.utils import genutils
     if re.match('(?:[.~]|/[a-zA-Z_0-9]+)/', line):
-        return "_ip.system(" + genutils.make_quoted_expr(line)+")"
+        return "get_ipython().system(" + genutils.make_quoted_expr(line)+")"
     raise TryNext
 
 # XXX You do not need to understand the next function!

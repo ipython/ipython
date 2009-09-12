@@ -546,8 +546,11 @@ class CachedOutput:
             # don't use print, puts an extra space
             cout_write(self.output_sep)
             outprompt = self.shell.hooks.generate_output_prompt()
+            # print "Got prompt: ", outprompt
             if self.do_full_cache:
                 cout_write(outprompt)
+            else:
+                print "self.do_full_cache = False"
 
             # and now call a possibly user-defined print mechanism
             manipulated_val = self.display(arg)

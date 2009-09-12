@@ -126,8 +126,8 @@ def jobctrl_prefilter_f(self,line):
         
         line = ip.expand_aliases(fn,rest)
         if not _jobq:
-            return '_ip.startjob(%s)' % genutils.make_quoted_expr(line)
-        return '_ip.jobq(%s)' % genutils.make_quoted_expr(line)
+            return 'get_ipython().startjob(%s)' % genutils.make_quoted_expr(line)
+        return 'get_ipython().jobq(%s)' % genutils.make_quoted_expr(line)
 
     raise TryNext
 

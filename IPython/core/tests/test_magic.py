@@ -20,14 +20,15 @@ from IPython.testing import tools as tt
 
 def test_rehashx():
     # clear up everything
-    _ip.alias_table.clear()
+    _ip = get_ipython()
+    _ip.alias_manager.alias_table.clear()
     del _ip.db['syscmdlist']
     
     _ip.magic('rehashx')
     # Practically ALL ipython development systems will have more than 10 aliases
 
-    yield (nt.assert_true, len(_ip.alias_table) > 10)
-    for key, val in _ip.alias_table.items():
+    yield (nt.assert_true, len(_ip.alias_manager.alias_table) > 10)
+    for key, val in _ip.alias_manager.alias_table.items():
         # we must strip dots from alias names
         nt.assert_true('.' not in key)
 
@@ -65,6 +66,7 @@ def doctest_hist_r():
 # This test is known to fail on win32.
 # See ticket https://bugs.launchpad.net/bugs/366334
 def test_obj_del():
+    _ip = get_ipython()
     """Test that object's __del__ methods are called on exit."""
     test_dir = os.path.dirname(__file__)
     del_file = os.path.join(test_dir,'obj_del.py')
@@ -221,13 +223,14 @@ class TestMagicRun(object):
         self.fname = fname
 
     def run_tmpfile(self):
+        _ip = get_ipython()
         # This fails on Windows if self.tmpfile.name has spaces or "~" in it.
         # See below and ticket https://bugs.launchpad.net/bugs/366353
         _ip.magic('run "%s"' % self.fname)
 
     def test_builtins_id(self):
         """Check that %run doesn't damage __builtins__ """
-
+        _ip = get_ipython()
         # Test that the id of __builtins__ is not modified by %run
         bid1 = id(_ip.user_ns['__builtins__'])
         self.run_tmpfile()
@@ -241,12 +244,14 @@ class TestMagicRun(object):
         be a dict (it should be a module) by a previous use of %run.  So we
         also check explicitly that it really is a module:
         """
+        _ip = get_ipython()
         self.run_tmpfile()
         tt.assert_equals(type(_ip.user_ns['__builtins__']),type(sys))
 
     def test_prompts(self):
         """Test that prompts correctly generate after %run"""
         self.run_tmpfile()
+        _ip = get_ipython()
         p2 = str(_ip.outputcache.prompt2).strip()
         nt.assert_equals(p2[:3], '...')
 
@@ -261,7 +266,7 @@ class TestMagicRun(object):
 
 # Multiple tests for clipboard pasting
 def test_paste():
-
+    _ip = get_ipython()
     def paste(txt, flags='-q'):
         """Paste input text, by default in quiet mode"""
         hooks.clipboard_get = lambda : txt

@@ -1644,7 +1644,7 @@ class ialias(Table):
     def __iter__(self):
         api = ipapi.get()
 
-        for (name, (args, command)) in api.alias_table.iteritems():
+        for (name, (args, command)) in api.alias_manager.alias_table.iteritems():
             yield Alias(name, args, command)
 
 

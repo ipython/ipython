@@ -88,7 +88,7 @@ def rehashdir_f(self,arg):
     if not arg:
         arg = '.'
     path = map(os.path.abspath,arg.split(';'))
-    alias_table = self.shell.alias_table
+    alias_table = self.shell.alias_manager.alias_table
         
     if os.name == 'posix':
         isexec = lambda fname:os.path.isfile(fname) and \

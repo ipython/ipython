@@ -353,14 +353,17 @@ class TestHasTraitlets(TestCase):
         class A(HasTraitlets):
             i = Int(config_key='VALUE1', other_thing='VALUE2')
             f = Float(config_key='VALUE3', other_thing='VALUE2')
+            j = Int(0)
         a = A()
-        self.assertEquals(a.traitlets(), dict(i=A.i, f=A.f))
-        traitlets = a.traitlets(config_key=lambda v: True)
-        self.assertEquals(traitlets, dict(i=A.i, f=A.f))
+        self.assertEquals(a.traitlets(), dict(i=A.i, f=A.f, j=A.j))
         traitlets = a.traitlets(config_key='VALUE1', other_thing='VALUE2')
         self.assertEquals(traitlets, dict(i=A.i))
-        traitlets = a.traitlets('config_key')
-        self.assertEquals(traitlets, dict(i=A.i, f=A.f))
+
+        # This passes, but it shouldn't because I am replicating a bug in 
+        # traits.
+        traitlets = a.traitlets(config_key=lambda v: True)
+        self.assertEquals(traitlets, dict(i=A.i, f=A.f, j=A.j))
+
 
 #-----------------------------------------------------------------------------
 # Tests for specific traitlet types
