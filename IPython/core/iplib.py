@@ -18,18 +18,14 @@ Main IPython Component
 
 from __future__ import with_statement
 
-import __main__
 import __builtin__
 import StringIO
 import bdb
 import codeop
 import exceptions
-import glob
-import keyword
 import new
 import os
 import re
-import shutil
 import string
 import sys
 import tempfile
@@ -41,20 +37,16 @@ from IPython.core import shadowns
 from IPython.core import history as ipcorehist
 from IPython.core import prefilter
 from IPython.core.alias import AliasManager
-from IPython.core.autocall import IPyAutocall
 from IPython.core.builtin_trap import BuiltinTrap
 from IPython.core.display_trap import DisplayTrap
 from IPython.core.fakemodule import FakeModule, init_fakemod_dict
 from IPython.core.logger import Logger
 from IPython.core.magic import Magic
 from IPython.core.prompts import CachedOutput
-from IPython.core.page import page
 from IPython.core.prefilter import PrefilterManager
 from IPython.core.component import Component
-from IPython.core.oldusersetup import user_setup
 from IPython.core.usage import interactive_usage, default_banner
 from IPython.core.error import TryNext, UsageError
-from IPython.core.splitinput import split_user_input
 
 from IPython.extensions import pickleshare
 from IPython.external.Itpl import ItplNS
@@ -70,7 +62,7 @@ from IPython.utils.platutils import toggle_set_term_title, set_term_title
 # growl.start("IPython")
 
 from IPython.utils.traitlets import (
-    Int, Float, Str, CBool, CaselessStrEnum, Enum, List, Unicode
+    Int, Str, CBool, CaselessStrEnum, Enum, List, Unicode
 )
 
 #-----------------------------------------------------------------------------
