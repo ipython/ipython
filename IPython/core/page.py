@@ -34,7 +34,7 @@ import sys
 from IPython.core import ipapi
 from IPython.core.error import TryNext
 from IPython.utils.genutils import (
-    chop, Term
+    chop, Term, USE_CURSES
 )
 
 if os.name == "nt":

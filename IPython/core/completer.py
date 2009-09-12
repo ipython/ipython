@@ -65,12 +65,12 @@ used, and this module (and the readline module) are silently inactive.
 import __builtin__
 import __main__
 import glob
+import itertools
 import keyword
 import os
 import re
 import shlex
 import sys
-import itertools
 import types
 
 from IPython.core.error import TryNext
