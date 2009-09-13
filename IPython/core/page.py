@@ -127,12 +127,14 @@ def page(strng,start=0,screen_lines=0,pager_cmd = None):
 
     # auto-determine screen size
     if screen_lines <= 0:
-        if TERM=='xterm':
+        if TERM=='xterm' or TERM=='xterm-color':
             use_curses = USE_CURSES
         else:
             # curses causes problems on many terminals other than xterm.
             use_curses = False
         if use_curses:
+            import termios
+            import curses
             # There is a bug in curses, where *sometimes* it fails to properly
             # initialize, and then after the endwin() call is made, the
             # terminal is left in an unusable state.  Rather than trying to

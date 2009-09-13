@@ -32,6 +32,7 @@ from IPython.core.alias import AliasManager
 from IPython.core.autocall import IPyAutocall
 from IPython.core.component import Component
 from IPython.core.splitinput import split_user_input
+from IPython.core.page import page
 
 from IPython.utils.traitlets import List, Int, Any, Str, CBool
 from IPython.utils.genutils import make_quoted_expr
@@ -183,11 +184,9 @@ class PrefilterManager(Component):
 
     @auto_attr
     def shell(self):
-        shell = Component.get_instances(
+        return Component.get_instances(
             root=self.root,
-            klass='IPython.core.iplib.InteractiveShell'
-        )[0]
-        return shell
+            klass='IPython.core.iplib.InteractiveShell')[0]
 
     def init_checkers(self):
         self._checkers = []
@@ -319,11 +318,9 @@ class PrefilterChecker(Component):
 
     @auto_attr
     def shell(self):
-        shell = Component.get_instances(
+        return Component.get_instances(
             root=self.root,
-            klass='IPython.core.iplib.InteractiveShell'
-        )[0]
-        return shell
+            klass='IPython.core.iplib.InteractiveShell')[0]
 
     @auto_attr
     def prefilter_manager(self):
@@ -523,11 +520,9 @@ class PrefilterHandler(Component):
 
     @auto_attr
     def shell(self):
-        shell = Component.get_instances(
+        return Component.get_instances(
             root=self.root,
-            klass='IPython.core.iplib.InteractiveShell'
-        )[0]
-        return shell
+            klass='IPython.core.iplib.InteractiveShell')[0]
 
     @auto_attr
     def prefilter_manager(self):

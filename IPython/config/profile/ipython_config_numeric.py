@@ -1,6 +1,6 @@
 from ipython_config import *
 
-EXECUTE.extend([
+Global.exec_lines.extend([
     'import numpy',
     'import scipy',
     'import numpy as np',

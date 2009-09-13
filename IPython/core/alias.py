@@ -112,11 +112,9 @@ class AliasManager(Component):
 
     @auto_attr
     def shell(self):
-        shell = Component.get_instances(
+        return Component.get_instances(
             root=self.root,
-            klass='IPython.core.iplib.InteractiveShell'
-        )[0]
-        return shell
+            klass='IPython.core.iplib.InteractiveShell')[0]
 
     def __contains__(self, name):
         if name in self.alias_table:

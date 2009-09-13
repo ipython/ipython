@@ -1,7 +1,8 @@
 from ipython_config_numeric import *
 
-EXECUTE.extend([
-
-
+Global.exec_lines.extend([
+    'import matplotlib',
+    'from matplotlib import pyplot as plt',
+    'from matplotlib.pyplot import *'
 ])
 

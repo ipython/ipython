@@ -23,6 +23,7 @@ Notes
 # Imports
 #-----------------------------------------------------------------------------
 
+import logging
 import os
 import sys
 import warnings
@@ -33,11 +34,12 @@ from IPython.core.iplib import InteractiveShell
 from IPython.config.loader import (
     NoConfigDefault, 
     Config,
+    ConfigError,
     PyFileConfigLoader
 )
 
 from IPython.utils.ipstruct import Struct
-from IPython.utils.genutils import get_ipython_dir
+from IPython.utils.genutils import filefind, get_ipython_dir
 
 #-----------------------------------------------------------------------------
 # Utilities and helpers
@@ -95,11 +97,11 @@ cl_args = (
         help='Turn off auto editing of files with syntax errors.')
     ),
     (('-banner',), dict(
-        action='store_true', dest='InteractiveShell.display_banner', default=NoConfigDefault,
+        action='store_true', dest='Global.display_banner', default=NoConfigDefault,
         help='Display a banner upon starting IPython.')
     ),
     (('-nobanner',), dict(
-        action='store_false', dest='InteractiveShell.display_banner', default=NoConfigDefault,
+        action='store_false', dest='Global.display_banner', default=NoConfigDefault,
         help="Don't display a banner upon starting IPython.")
     ),
     (('-c',), dict(
@@ -244,6 +246,11 @@ cl_args = (
         help="Exception mode ('Plain','Context','Verbose')",
         metavar='InteractiveShell.xmode')
     ),
+    (('-ext',), dict(
+        type=str, dest='Global.extra_extension', default=NoConfigDefault,
+        help="The dotted module name of an IPython extension to load.",
+        metavar='Global.extra_extension')
+    ),
     # These are only here to get the proper deprecation warnings
     (('-pylab','-wthread','-qthread','-q4thread','-gthread'), dict(
         action='store_true', dest='Global.threaded_shell', default=NoConfigDefault,
@@ -262,6 +269,14 @@ _default_config_file_name = 'ipython_config.py'
 class IPythonApp(Application):
     name = 'ipython'
     config_file_name = _default_config_file_name
+
+    def create_default_config(self):
+        super(IPythonApp, self).create_default_config()
+        self.default_config.Global.display_banner=True
+        # Let the parent class set the default, but each time log_level
+        # changes from config, we need to update self.log_level as that is
+        # what updates the actual log level in self.log.
+        self.default_config.Global.log_level = self.log_level
 
     def create_command_line_config(self):
         """Create and return a command line config loader."""
@@ -286,7 +301,12 @@ class IPythonApp(Application):
         super(IPythonApp, self).load_file_config()
 
     def post_load_file_config(self):
-        """Logic goes here."""
+        if hasattr(self.command_line_config.Global, 'extra_extension'):
+            if not hasattr(self.file_config.Global, 'extensions'):
+                self.file_config.Global.extensions = []
+            self.file_config.Global.extensions.append(
+                self.command_line_config.Global.extra_extension)
+            del self.command_line_config.Global.extra_extension
 
     def pre_construct(self):
         config = self.master_config
@@ -318,17 +338,90 @@ class IPythonApp(Application):
         # I am a little hesitant to put these into InteractiveShell itself.
         # But that might be the place for them
         sys.path.insert(0, '')
-        # add personal ipythondir to sys.path so that users can put things in
-        # there for customization
-        sys.path.append(os.path.abspath(self.ipythondir))
-        
+
         # Create an InteractiveShell instance
         self.shell = InteractiveShell(
             parent=None,
             config=self.master_config
         )
-    
+
+    def post_construct(self):
+        """Do actions after construct, but before starting the app."""
+        # shell.display_banner should always be False for the terminal 
+        # based app, because we call shell.show_banner() by hand below
+        # so the banner shows *before* all extension loading stuff.
+        self.shell.display_banner = False
+
+        if self.master_config.Global.display_banner:
+            self.shell.show_banner()
+
+        # Make sure there is a space below the banner.
+        if self.log_level <= logging.INFO: print
+
+        self._load_extensions()
+        self._run_exec_lines()
+        self._run_exec_files()
+
+    def _load_extensions(self):
+        """Load all IPython extensions in Global.extensions.
+
+        This uses the :meth:`InteractiveShell.load_extensions` to load all
+        the extensions listed in ``self.master_config.Global.extensions``.
+        """
+        try:
+            if hasattr(self.master_config.Global, 'extensions'):
+                self.log.debug("Loading IPython extensions...")
+                extensions = self.master_config.Global.extensions
+                for ext in extensions:
+                    try:
+                        self.log.info("Loading IPython extension: %s" % ext)                        
+                        self.shell.load_extension(ext)
+                    except:
+                        self.log.warn("Error in loading extension: %s" % ext)
+                        self.shell.showtraceback()
+        except:
+            self.log.warn("Unknown error in loading extensions:")
+            self.shell.showtraceback()
+
+    def _run_exec_lines(self):
+        """Run lines of code in Global.exec_lines in the user's namespace."""
+        try:
+            if hasattr(self.master_config.Global, 'exec_lines'):
+                self.log.debug("Running code from Global.exec_lines...")
+                exec_lines = self.master_config.Global.exec_lines
+                for line in exec_lines:
+                    try:
+                        self.log.info("Running code in user namespace: %s" % line)
+                        self.shell.runlines(line)
+                    except:
+                        self.log.warn("Error in executing line in user namespace: %s" % line)
+                        self.shell.showtraceback()
+        except:
+            self.log.warn("Unknown error in handling Global.exec_lines:")
+            self.shell.showtraceback()
+
+    def _run_exec_files(self):
+        try:
+            if hasattr(self.master_config.Global, 'exec_files'):
+                self.log.debug("Running files in Global.exec_files...")
+                exec_files = self.master_config.Global.exec_files
+                for fname in exec_files:
+                    full_filename = filefind(fname, ['.', self.ipythondir])
+                    if os.path.isfile(full_filename):
+                        if full_filename.endswith('.py'):
+                            self.log.info("Running file in user namespace: %s" % full_filename)
+                            self.shell.safe_execfile(full_filename, self.shell.user_ns)
+                        elif full_filename.endswith('.ipy'):
+                            self.log.info("Running file in user namespace: %s" % full_filename)
+                            self.shell.safe_execfile_ipy(full_filename)
+                        else:
+                            self.log.warn("File does not have a .py or .ipy extension: <%s>" % full_filename)
+        except:
+            self.log.warn("Unknown error in handling Global.exec_files:")
+            self.shell.showtraceback()
+
     def start_app(self):
+        self.log.debug("Starting IPython's mainloop...")
         self.shell.mainloop()
 
 

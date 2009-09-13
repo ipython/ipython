@@ -55,8 +55,9 @@ from IPython.utils.ipstruct import Struct
 from IPython.utils import PyColorize
 from IPython.utils.genutils import *
 from IPython.utils.genutils import get_ipython_dir
-from IPython.utils.strdispatch import StrDispatch
 from IPython.utils.platutils import toggle_set_term_title, set_term_title
+from IPython.utils.strdispatch import StrDispatch
+from IPython.utils.syspathcontext import prepended_to_syspath
 
 # from IPython.utils import growl
 # growl.start("IPython")
@@ -185,7 +186,6 @@ class InteractiveShell(Component, Magic):
     autoedit_syntax = CBool(False, config=True)
     autoindent = CBool(True, config=True)
     automagic = CBool(True, config=True)
-    display_banner = CBool(True, config=True)
     banner = Str('')
     banner1 = Str(default_banner, config=True)
     banner2 = Str('', config=True)
@@ -197,6 +197,12 @@ class InteractiveShell(Component, Magic):
     confirm_exit = CBool(True, config=True)
     debug = CBool(False, config=True)
     deep_reload = CBool(False, config=True)
+    # This display_banner only controls whether or not self.show_banner()
+    # is called when mainloop/interact are called.  The default is False
+    # because for the terminal based application, the banner behavior
+    # is controlled by Global.display_banner, which IPythonApp looks at
+    # to determine if *it* should call show_banner() by hand or not.
+    display_banner = CBool(False) # This isn't configurable!
     embedded = CBool(False)
     embedded_active = CBool(False)
     editor = Str(get_default_editor(), config=True)
@@ -262,7 +268,7 @@ class InteractiveShell(Component, Magic):
 
     def __init__(self, parent=None, config=None, ipythondir=None, usage=None,
                  user_ns=None, user_global_ns=None,
-                 banner1=None, banner2=None,
+                 banner1=None, banner2=None, display_banner=None,
                  custom_exceptions=((),None)):
 
         # This is where traitlets with a config_key argument are updated
@@ -274,7 +280,7 @@ class InteractiveShell(Component, Magic):
         self.init_instance_attrs()
         self.init_term_title()
         self.init_usage(usage)
-        self.init_banner(banner1, banner2)
+        self.init_banner(banner1, banner2, display_banner)
 
         # Create namespaces (user_ns, user_global_ns, etc.)
         self.init_create_namespaces(user_ns, user_global_ns)
@@ -331,6 +337,12 @@ class InteractiveShell(Component, Magic):
     def _ipythondir_changed(self, name, new):
         if not os.path.isdir(new):
             os.makedirs(new, mode = 0777)
+        if not os.path.isdir(self.ipython_extension_dir):
+            os.makedirs(self.ipython_extension_dir, mode = 0777)
+
+    @property
+    def ipython_extension_dir(self):
+        return os.path.join(self.ipythondir, 'extensions')
 
     @property
     def usable_screen_length(self):
@@ -429,22 +441,6 @@ class InteractiveShell(Component, Magic):
         else:
             self.usage = usage
 
-    def init_banner(self, banner1, banner2):
-        if self.c:  # regular python doesn't print the banner with -c
-            self.display_banner = False
-        if banner1 is not None:
-            self.banner1 = banner1
-        if banner2 is not None:
-            self.banner2 = banner2
-        self.compute_banner()
-
-    def compute_banner(self):
-        self.banner = self.banner1 + '\n'
-        if self.profile:
-            self.banner += '\nIPython profile: %s\n' % self.profile
-        if self.banner2:
-            self.banner += '\n' + self.banner2 + '\n'
-
     def init_encoding(self):
         # Get system encoding at startup time.  Certain terminals (like Emacs
         # under Win32 have it set to None, and we need to have a known valid
@@ -486,7 +482,7 @@ class InteractiveShell(Component, Magic):
     def init_logstart(self):
         if self.logplay:
             self.magic_logstart(self.logplay + ' append')
-        elif  self.logfile:
+        elif self.logfile:
             self.magic_logstart(self.logfile)
         elif self.logstart:
             self.magic_logstart()
@@ -530,6 +526,31 @@ class InteractiveShell(Component, Magic):
             doctest_reload()
         except ImportError:
             warn("doctest module does not exist.")
+
+    #-------------------------------------------------------------------------
+    # Things related to the banner
+    #-------------------------------------------------------------------------
+
+    def init_banner(self, banner1, banner2, display_banner):
+        if banner1 is not None:
+            self.banner1 = banner1
+        if banner2 is not None:
+            self.banner2 = banner2
+        if display_banner is not None:
+            self.display_banner = display_banner
+        self.compute_banner()
+
+    def show_banner(self, banner=None):
+        if banner is None:
+            banner = self.banner
+        self.write(banner)
+
+    def compute_banner(self):
+        self.banner = self.banner1 + '\n'
+        if self.profile:
+            self.banner += '\nIPython profile: %s\n' % self.profile
+        if self.banner2:
+            self.banner += '\n' + self.banner2 + '\n'
 
     #-------------------------------------------------------------------------
     # Things related to injections into the sys module
@@ -1673,7 +1694,7 @@ class InteractiveShell(Component, Magic):
         with nested(self.builtin_trap,):
             return eval(expr, self.user_global_ns, self.user_ns)
 
-    def mainloop(self, banner=None):
+    def mainloop(self, display_banner=None):
         """Start the mainloop.
 
         If an optional banner argument is given, it will override the
@@ -1684,10 +1705,6 @@ class InteractiveShell(Component, Magic):
             if self.c:  # Emulate Python's -c option
                 self.exec_init_cmd()
 
-            if self.display_banner:
-                if banner is None:
-                    banner = self.banner
-
             # if you run stuff with -c <cmd>, raw hist is not updated
             # ensure that it's in sync
             if len(self.input_hist) != len (self.input_hist_raw):
@@ -1695,7 +1712,7 @@ class InteractiveShell(Component, Magic):
 
             while 1:
                 try:
-                    self.interact()
+                    self.interact(display_banner=display_banner)
                     #self.interact_with_readline()                
                     # XXX for testing of a readline-decoupled repl loop, call
                     # interact_with_readline above
@@ -1774,17 +1791,17 @@ class InteractiveShell(Component, Magic):
             line = raw_input_original().decode(self.stdin_encoding)
             self.interact_handle_input(line)
 
-    def interact(self, banner=None):
+    def interact(self, display_banner=None):
         """Closely emulate the interactive Python console."""
 
         # batch run -> do not interact        
         if self.exit_now:
             return
 
-        if self.display_banner:
-            if banner is None:
-                banner = self.banner
-            self.write(banner)
+        if display_banner is None:
+            display_banner = self.display_banner
+        if display_banner:
+            self.show_banner()
 
         more = 0
         
@@ -1856,128 +1873,45 @@ class InteractiveShell(Component, Magic):
         # We are off again...
         __builtin__.__dict__['__IPYTHON__active'] -= 1
 
-    def safe_execfile(self,fname,*where,**kw):
+    def safe_execfile(self, fname, *where, **kw):
         """A safe version of the builtin execfile().
 
-        This version will never throw an exception, and knows how to handle
-        ipython logs as well.
+        This version will never throw an exception, but instead print
+        helpful error messages to the screen.  This only works on pure
+        Python files with the .py extension.
 
-        :Parameters:
-          fname : string
-            Name of the file to be executed.
-            
-          where : tuple
+        Parameters
+        ----------
+        fname : string
+            The name of the file to be executed.
+        where : tuple
             One or two namespaces, passed to execfile() as (globals,locals).
             If only one is given, it is passed as both.
+        exit_ignore : bool (False)
+            If True, then don't print errors for non-zero exit statuses.
+        """
+        kw.setdefault('exit_ignore', False)
 
-        :Keywords:
-          islog : boolean (False)
+        fname = os.path.abspath(os.path.expanduser(fname))
 
-          quiet : boolean (True)
+        # Make sure we have a .py file
+        if not fname.endswith('.py'):
+            warn('File must end with .py to be run using execfile: <%s>' % fname)
 
-          exit_ignore : boolean (False)
-          """
-
-        def syspath_cleanup():
-            """Internal cleanup routine for sys.path."""
-            if add_dname:
-                try:
-                    sys.path.remove(dname)
-                except ValueError:
-                    # For some reason the user has already removed it, ignore.
-                    pass
-        
-        fname = os.path.expanduser(fname)
+        # Make sure we can open the file
+        try:
+            with open(fname) as thefile:
+                pass
+        except:
+            warn('Could not open file <%s> for safe execution.' % fname)
+            return
 
         # Find things also in current directory.  This is needed to mimic the
         # behavior of running a script from the system command line, where
         # Python inserts the script's directory into sys.path
-        dname = os.path.dirname(os.path.abspath(fname))
-        add_dname = False
-        if dname not in sys.path:
-            sys.path.insert(0,dname)
-            add_dname = True
+        dname = os.path.dirname(fname)
 
-        try:
-            xfile = open(fname)
-        except:
-            print >> Term.cerr, \
-                  'Could not open file <%s> for safe execution.' % fname
-            syspath_cleanup()
-            return None
-
-        kw.setdefault('islog',0)
-        kw.setdefault('quiet',1)
-        kw.setdefault('exit_ignore',0)
-        
-        first = xfile.readline()
-        loghead = str(self.loghead_tpl).split('\n',1)[0].strip()
-        xfile.close()
-        # line by line execution
-        if first.startswith(loghead) or kw['islog']:
-            print 'Loading log file <%s> one line at a time...' % fname
-            if kw['quiet']:
-                stdout_save = sys.stdout
-                sys.stdout = StringIO.StringIO()
-            try:
-                globs,locs = where[0:2]
-            except:
-                try:
-                    globs = locs = where[0]
-                except:
-                    globs = locs = globals()
-            badblocks = []
-
-            # we also need to identify indented blocks of code when replaying
-            # logs and put them together before passing them to an exec
-            # statement. This takes a bit of regexp and look-ahead work in the
-            # file. It's easiest if we swallow the whole thing in memory
-            # first, and manually walk through the lines list moving the
-            # counter ourselves.
-            indent_re = re.compile('\s+\S')
-            xfile = open(fname)
-            filelines = xfile.readlines()
-            xfile.close()
-            nlines = len(filelines)
-            lnum = 0
-            while lnum < nlines:
-                line = filelines[lnum]
-                lnum += 1
-                # don't re-insert logger status info into cache
-                if line.startswith('#log#'):
-                    continue
-                else:
-                    # build a block of code (maybe a single line) for execution
-                    block = line
-                    try:
-                        next = filelines[lnum] # lnum has already incremented
-                    except:
-                        next = None
-                    while next and indent_re.match(next):
-                        block += next
-                        lnum += 1
-                        try:
-                            next = filelines[lnum]
-                        except:
-                            next = None
-                    # now execute the block of one or more lines
-                    try:
-                        exec block in globs,locs
-                    except SystemExit:
-                        pass
-                    except:
-                        badblocks.append(block.rstrip())
-            if kw['quiet']:  # restore stdout
-                sys.stdout.close()
-                sys.stdout = stdout_save
-            print 'Finished replaying log file <%s>' % fname
-            if badblocks:
-                print >> sys.stderr, ('\nThe following lines/blocks in file '
-                                      '<%s> reported errors:' % fname)
-                    
-                for badline in badblocks:
-                    print >> sys.stderr, badline
-        else:  # regular file execution
+        with prepended_to_syspath(dname):
             try:
                 if sys.platform == 'win32' and sys.version_info < (2,5,1):
                     # Work around a bug in Python for Windows.  The bug was
@@ -1997,7 +1931,7 @@ class InteractiveShell(Component, Magic):
             except SyntaxError:
                 self.showsyntaxerror()
                 warn('Failure executing file: <%s>' % fname)
-            except SystemExit,status:
+            except SystemExit, status:
                 # Code that correctly sets the exit status flag to success (0)
                 # shouldn't be bothered with a traceback.  Note that a plain
                 # sys.exit() does NOT set the message to 0 (it's empty) so that
@@ -2005,13 +1939,8 @@ class InteractiveShell(Component, Magic):
                 # SystemExit exception changed between Python 2.4 and 2.5, so
                 # the checks must be done in a version-dependent way.
                 show = False
-
-                if sys.version_info[:2] > (2,5):
-                    if status.message!=0 and not kw['exit_ignore']:
-                        show = True
-                else:
-                    if status.code and not kw['exit_ignore']:
-                        show = True
+                if status.message!=0 and not kw['exit_ignore']:
+                    show = True
                 if show:
                     self.showtraceback()
                     warn('Failure executing file: <%s>' % fname)
@@ -2019,46 +1948,82 @@ class InteractiveShell(Component, Magic):
                 self.showtraceback()
                 warn('Failure executing file: <%s>' % fname)
 
-        syspath_cleanup()
+    def safe_execfile_ipy(self, fname):
+        """Like safe_execfile, but for .ipy files with IPython syntax.
+
+        Parameters
+        ----------
+        fname : str
+            The name of the file to execute.  The filename must have a
+            .ipy extension.
+        """
+        fname = os.path.abspath(os.path.expanduser(fname))
+
+        # Make sure we have a .py file
+        if not fname.endswith('.ipy'):
+            warn('File must end with .py to be run using execfile: <%s>' % fname)
+
+        # Make sure we can open the file
+        try:
+            with open(fname) as thefile:
+                pass
+        except:
+            warn('Could not open file <%s> for safe execution.' % fname)
+            return
+
+        # Find things also in current directory.  This is needed to mimic the
+        # behavior of running a script from the system command line, where
+        # Python inserts the script's directory into sys.path
+        dname = os.path.dirname(fname)
+
+        with prepended_to_syspath(dname):
+            try:
+                with open(fname) as thefile:
+                    script = thefile.read()
+                    # self.runlines currently captures all exceptions
+                    # raise in user code.  It would be nice if there were
+                    # versions of runlines, execfile that did raise, so
+                    # we could catch the errors.
+                    self.runlines(script, clean=True)
+            except:
+                self.showtraceback()
+                warn('Unknown failure executing file: <%s>' % fname)
+                
+    def _is_secondary_block_start(self, s):
+        if not s.endswith(':'):
+            return False
+        if (s.startswith('elif') or 
+            s.startswith('else') or 
+            s.startswith('except') or
+            s.startswith('finally')):
+            return True
 
     def cleanup_ipy_script(self, script):
         """Make a script safe for self.runlines()
 
-        Notes
-        -----
-        This was copied over from the old ipapi and probably can be done
-        away with once we move to block based interpreter.
-        
-        - Removes empty lines Suffixes all indented blocks that end with
-        - unindented lines with empty lines
+        Currently, IPython is lines based, with blocks being detected by
+        empty lines.  This is a problem for block based scripts that may
+        not have empty lines after blocks.  This script adds those empty
+        lines to make scripts safe for running in the current line based
+        IPython.
         """
-        
         res = []
         lines = script.splitlines()
-
         level = 0
+
         for l in lines:
             lstripped = l.lstrip()
             stripped = l.strip()                
             if not stripped:
                 continue
-            newlevel = len(l) - len(lstripped)
-            def is_secondary_block_start(s):
-                if not s.endswith(':'):
-                    return False
-                if (s.startswith('elif') or 
-                    s.startswith('else') or 
-                    s.startswith('except') or
-                    s.startswith('finally')):
-                    return True
-                    
+            newlevel = len(l) - len(lstripped)                    
             if level > 0 and newlevel == 0 and \
-                   not is_secondary_block_start(stripped): 
+                   not self._is_secondary_block_start(stripped): 
                 # add empty line
                 res.append('')
-                
             res.append(l)
             level = newlevel
+
         return '\n'.join(res) + '\n'
 
     def runlines(self, lines, clean=False):
@@ -2091,7 +2056,8 @@ class InteractiveShell(Component, Magic):
                 if line or more:
                     # push to raw history, so hist line numbers stay in sync
                     self.input_hist_raw.append("# " + line + "\n")
-                    more = self.push_line(self.prefilter_manager.prefilter_lines(line,more))
+                    prefiltered = self.prefilter_manager.prefilter_lines(line,more)
+                    more = self.push_line(prefiltered)
                     # IPython's runsource returns None if there was an error
                     # compiling the code.  This allows us to stop processing right
                     # away, so the user gets the error message at the right place.
@@ -2304,7 +2270,7 @@ class InteractiveShell(Component, Magic):
         if line.strip():
             if continue_prompt:
                 self.input_hist_raw[-1] += '%s\n' % line
-                if self.has_readline: # and some config option is set?
+                if self.has_readline and self.readline_use:
                     try:
                         histlen = self.readline.get_current_history_length()
                         if histlen > 1:
@@ -2349,37 +2315,56 @@ class InteractiveShell(Component, Magic):
     #     if batchrun and not self.interactive:
     #         self.ask_exit()            
 
-    # def load(self, mod):
-    #     """ Load an extension.
-    #     
-    #     Some modules should (or must) be 'load()':ed, rather than just imported.
-    #     
-    #     Loading will do:
-    #     
-    #     - run init_ipython(ip)
-    #     - run ipython_firstrun(ip)
-    #     """
-    # 
-    #     if mod in self.extensions:
-    #         # just to make sure we don't init it twice
-    #         # note that if you 'load' a module that has already been
-    #         # imported, init_ipython gets run anyway
-    #         
-    #         return self.extensions[mod]
-    #     __import__(mod)
-    #     m = sys.modules[mod]
-    #     if hasattr(m,'init_ipython'):
-    #         m.init_ipython(self)
-    #         
-    #     if hasattr(m,'ipython_firstrun'):
-    #         already_loaded = self.db.get('firstrun_done', set())
-    #         if mod not in already_loaded:
-    #             m.ipython_firstrun(self)
-    #             already_loaded.add(mod)
-    #             self.db['firstrun_done'] = already_loaded
-    #         
-    #     self.extensions[mod] = m
-    #     return m
+    #-------------------------------------------------------------------------
+    # IPython extensions
+    #-------------------------------------------------------------------------
+
+    def load_extension(self, module_str):
+        """Load an IPython extension.
+
+        An IPython extension is an importable Python module that has
+        a function with the signature::
+
+            def load_in_ipython(ipython):
+                # Do things with ipython
+
+        This function is called after your extension is imported and the 
+        currently active :class:`InteractiveShell` instance is passed as
+        the only argument.  You can do anything you want with IPython at
+        that point, including defining new magic and aliases, adding new
+        components, etc.
+
+        You can put your extension modules anywhere you want, as long as
+        they can be imported by Python's standard import mechanism.  However,
+        to make it easy to write extensions, you can also put your extensions
+        in ``os.path.join(self.ipythondir, 'extensions')``.  This directory
+        is added to ``sys.path`` automatically.
+        """
+        from IPython.utils.syspathcontext import prepended_to_syspath
+
+        if module_str in sys.modules:
+            return
+
+        with prepended_to_syspath(self.ipython_extension_dir):
+            __import__(module_str)
+            mod = sys.modules[module_str]
+            self._call_load_in_ipython(mod)
+
+    def reload_extension(self, module_str):
+        """Reload an IPython extension by doing reload."""
+        from IPython.utils.syspathcontext import prepended_to_syspath
+
+        with prepended_to_syspath(self.ipython_extension_dir):
+            if module_str in sys.modules:
+                mod = sys.modules[module_str]
+                reload(mod)
+                self._call_load_in_ipython(mod)
+            else:
+                self.load_extension(self, module_str)
+
+    def _call_load_in_ipython(self, mod):
+        if hasattr(mod, 'load_in_ipython'):
+            mod.load_in_ipython(self)
 
     #-------------------------------------------------------------------------
     # Things related to the prefilter

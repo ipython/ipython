@@ -64,10 +64,13 @@ class InteractiveShellEmbed(InteractiveShell):
     exit_msg = Str('')
     embedded = CBool(True)
     embedded_active = CBool(True)
+    # Like the base class display_banner is not configurable, but here it
+    # is True by default.
+    display_banner = CBool(True)
 
     def __init__(self, parent=None, config=None, ipythondir=None, usage=None,
                  user_ns=None, user_global_ns=None,
-                 banner1=None, banner2=None,
+                 banner1=None, banner2=None, display_banner=None,
                  custom_exceptions=((),None), exit_msg=''):
 
         self.save_sys_ipcompleter()
@@ -75,7 +78,7 @@ class InteractiveShellEmbed(InteractiveShell):
         super(InteractiveShellEmbed,self).__init__(
             parent=parent, config=config, ipythondir=ipythondir, usage=usage, 
             user_ns=user_ns, user_global_ns=user_global_ns,
-            banner1=banner1, banner2=banner2,
+            banner1=banner1, banner2=banner2, display_banner=display_banner,
             custom_exceptions=custom_exceptions)
 
         self.exit_msg = exit_msg
@@ -148,23 +151,24 @@ class InteractiveShellEmbed(InteractiveShell):
         if self.has_readline:
             self.set_completer()
 
-        if self.banner and header:
-            format = '%s\n%s\n'
-        else:
-            format = '%s%s\n'
-        banner =  format % (self.banner,header)
+        # self.banner is auto computed
+        if header:
+            self.old_banner2 = self.banner2
+            self.banner2 = self.banner2 + '\n' + header + '\n'
 
         # Call the embedding code with a stack depth of 1 so it can skip over
         # our call and get the original caller's namespaces.
-        self.mainloop(banner, local_ns, global_ns,
-                            stack_depth=stack_depth)
+        self.mainloop(local_ns, global_ns, stack_depth=stack_depth)
+
+        self.banner2 = self.old_banner2
 
         if self.exit_msg is not None:
             print self.exit_msg
 
         self.restore_sys_ipcompleter()
 
-    def mainloop(self,header='',local_ns=None,global_ns=None,stack_depth=0):
+    def mainloop(self, local_ns=None, global_ns=None, stack_depth=0,
+                 display_banner=None):
         """Embeds IPython into a running python program.
 
         Input:
@@ -221,7 +225,7 @@ class InteractiveShellEmbed(InteractiveShell):
         self.set_completer_frame()
 
         with nested(self.builtin_trap, self.display_trap):
-            self.interact(header)
+            self.interact(display_banner=display_banner)
         
             # now, purge out the user namespace from anything we might have added
             # from the caller's local namespace
@@ -242,7 +246,7 @@ _embedded_shell = None
 
 
 def embed(header='', config=None, usage=None, banner1=None, banner2=None,
-          exit_msg=''):
+          display_banner=True, exit_msg=''):
     """Call this to embed IPython at the current point in your program.
 
     The first invocation of this will create an :class:`InteractiveShellEmbed`
@@ -264,9 +268,13 @@ def embed(header='', config=None, usage=None, banner1=None, banner2=None,
     """
     if config is None:
         config = load_default_config()
+        config.InteractiveShellEmbed = config.InteractiveShell
     global _embedded_shell
     if _embedded_shell is None:
-        _embedded_shell = InteractiveShellEmbed(config=config,
-        usage=usage, banner1=banner1, banner2=banner2, exit_msg=exit_msg)
+        _embedded_shell = InteractiveShellEmbed(
+            config=config, usage=usage, 
+            banner1=banner1, banner2=banner2, 
+            display_banner=display_banner, exit_msg=exit_msg
+        )
     _embedded_shell(header=header, stack_depth=2)
 

@@ -1573,7 +1573,7 @@ Currently the magic system has the following functions:\n"""
             return
 
         if filename.lower().endswith('.ipy'):
-            self.runlines(open(filename).read(), clean=True)
+            self.safe_execfile_ipy(filename)
             return
         
         # Control the response to exit() calls made by the script being run
@@ -1742,25 +1742,6 @@ Currently the magic system has the following functions:\n"""
             self.shell.reloadhist()
                 
         return stats
-
-    def magic_runlog(self, parameter_s =''):
-        """Run files as logs.
-
-        Usage:\\
-          %runlog file1 file2 ...
-
-        Run the named files (treating them as log files) in sequence inside
-        the interpreter, and return to the prompt.  This is much slower than
-        %run because each line is executed in a try/except block, but it
-        allows running files with syntax errors in them.
-
-        Normally IPython will guess when a file is one of its own logfiles, so
-        you can typically use %run even for logs. This shorthand allows you to
-        force any file to be treated as a log file."""
-
-        for f in parameter_s.split():
-            self.shell.safe_execfile(f,self.shell.user_ns,
-                                     self.shell.user_ns,islog=1)
 
     @testdec.skip_doctest
     def magic_timeit(self, parameter_s =''):

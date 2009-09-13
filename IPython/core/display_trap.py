@@ -48,11 +48,9 @@ class DisplayTrap(Component):
 
     @auto_attr
     def shell(self):
-        shell = Component.get_instances(
+        return Component.get_instances(
             root=self.root,
-            klass='IPython.core.iplib.InteractiveShell'
-        )[0]
-        return shell
+            klass='IPython.core.iplib.InteractiveShell')[0]
 
     def __enter__(self):
         if self._nested_level == 0:
