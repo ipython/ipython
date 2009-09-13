@@ -1,8 +1,13 @@
 #!/usr/bin/python
 # -*- coding: iso-8859-15 -*-
 
-import wx.aui
 import sys
+try:
+    import wx.aui
+except ImportError:
+    print "Can't laod wx.aui module, please check that you have installed wxpython > 2.8 and taht it is your default install"
+    sys.exit(1)
+
 #used for about dialog
 from wx.lib.wordwrap import wordwrap
 
