@@ -26,7 +26,8 @@ except ImportError:
 #used to create options.conf file in user directory
 from IPython.ipapi import get
 
-__version__ = 0.91
+__version__     = 0.10
+__version_str__ = "0.10"
 __author__  = "Laurent Dufrechou"
 __email__   = "laurent.dufrechou _at_ gmail.com"
 __license__ = "BSD"
@@ -183,7 +184,7 @@ class MyFrame(wx.Frame):
         statusbar = self.CreateStatusBar(2, wx.ST_SIZEGRIP)
         statusbar.SetStatusWidths([-2, -3])
         statusbar.SetStatusText("Ready", 0)
-        statusbar.SetStatusText("WxIPython "+str(__version__), 1)
+        statusbar.SetStatusText("WxIPython "+str(__version_str__), 1)
         return statusbar
 
     def updateStatus(self,text):
