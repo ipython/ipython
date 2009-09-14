@@ -189,7 +189,6 @@ class InteractiveShell(Component, Magic):
     banner = Str('')
     banner1 = Str(default_banner, config=True)
     banner2 = Str('', config=True)
-    c = Str('', config=True)
     cache_size = Int(1000, config=True)
     color_info = CBool(True, config=True)
     colors = CaselessStrEnum(('NoColor','LightBG','Linux'), 
@@ -207,7 +206,6 @@ class InteractiveShell(Component, Magic):
     embedded_active = CBool(False)
     editor = Str(get_default_editor(), config=True)
     filename = Str("<ipython console>")
-    interactive = CBool(False, config=True)
     ipythondir= Unicode('', config=True) # Set to get_ipython_dir() in __init__
     logstart = CBool(False, config=True)
     logfile = Str('', config=True)
@@ -1702,8 +1700,6 @@ class InteractiveShell(Component, Magic):
         """
         
         with nested(self.builtin_trap, self.display_trap):
-            if self.c:  # Emulate Python's -c option
-                self.exec_init_cmd()
 
             # if you run stuff with -c <cmd>, raw hist is not updated
             # ensure that it's in sync
@@ -1721,16 +1717,6 @@ class InteractiveShell(Component, Magic):
                     # this should not be necessary, but KeyboardInterrupt
                     # handling seems rather unpredictable...
                     self.write("\nKeyboardInterrupt in interact()\n")
-
-    def exec_init_cmd(self):
-        """Execute a command given at the command line.
-
-        This emulates Python's -c option."""
-
-        #sys.argv = ['-c']
-        self.push_line(self.prefilter_manager.prefilter_lines(self.c, False))
-        if not self.interactive:
-            self.ask_exit()
 
     def interact_prompt(self):
         """ Print the prompt (in read-eval-print loop) 
@@ -2296,24 +2282,6 @@ class InteractiveShell(Component, Magic):
             return ''
         else:
             return lineout
-
-    # def init_exec_commands(self):
-    #     for cmd in self.config.EXECUTE:
-    #         print "execute:", cmd
-    #         self.api.runlines(cmd)
-    #         
-    #     batchrun = False
-    #     if self.config.has_key('EXECFILE'):
-    #         for batchfile in [path(arg) for arg in self.config.EXECFILE
-    #             if arg.lower().endswith('.ipy')]:
-    #             if not batchfile.isfile():
-    #                 print "No such batch file:", batchfile
-    #                 continue
-    #             self.api.runlines(batchfile.text())
-    #             batchrun = True
-    #     # without -i option, exit after running the batch file
-    #     if batchrun and not self.interactive:
-    #         self.ask_exit()            
 
     #-------------------------------------------------------------------------
     # IPython extensions

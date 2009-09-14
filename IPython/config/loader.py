@@ -275,6 +275,12 @@ class ArgParseConfigLoader(CommandLineConfigLoader):
         self._convert_to_config()
         return self.config
 
+    def get_extra_args(self):
+        if hasattr(self, 'extra_args'):
+            return self.extra_args
+        else:
+            return []
+
     def _create_parser(self):
         self.parser = argparse.ArgumentParser(*self.args, **self.kw)
         self._add_arguments()
@@ -292,9 +298,9 @@ class ArgParseConfigLoader(CommandLineConfigLoader):
     def _parse_args(self, args=None):
         """self.parser->self.parsed_data"""
         if args is None:
-            self.parsed_data = self.parser.parse_args()
+            self.parsed_data, self.extra_args = self.parser.parse_known_args()
         else:
-            self.parsed_data = self.parser.parse_args(args)
+            self.parsed_data, self.extra_args = self.parser.parse_known_args(args)
 
     def _convert_to_config(self):
         """self.parsed_data->self.config"""

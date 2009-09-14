@@ -117,7 +117,14 @@ class Application(object):
     #-------------------------------------------------------------------------
 
     def create_default_config(self):
-        """Create defaults that can't be set elsewhere."""
+        """Create defaults that can't be set elsewhere.
+
+        For the most part, we try to set default in the class attributes
+        of Components.  But, defaults the top-level Application (which is
+        not a HasTraitlets or Component) are not set in this way.  Instead
+        we set them here.  The Global section is for variables like this that
+        don't belong to a particular component.
+        """
         self.default_config = Config()
         self.default_config.Global.ipythondir = get_ipython_dir()
         self.log.debug('Default config loaded:')
@@ -139,6 +146,7 @@ class Application(object):
 
         loader = self.create_command_line_config()
         self.command_line_config = loader.load_config()
+        self.extra_args = loader.get_extra_args()
 
         try:
             self.log_level = self.command_line_config.Global.log_level
