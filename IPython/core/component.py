@@ -266,28 +266,36 @@ class Component(HasTraitlets):
                                      "root != parent.root")
 
     def _config_changed(self, name, old, new):
-        """Update all the class traits having a config_key with the config.
+        """Update all the class traits having ``config=True`` as metadata.
 
-        For any class traitlet with a ``config_key`` metadata attribute, we
-        update the traitlet with the value of the corresponding config entry.
-
-        In the future, we might want to do a pop here so stale config info
-        is not passed onto children.
+        For any class traitlet with a ``config`` metadata attribute that is
+        ``True``, we update the traitlet with the value of the corresponding
+        config entry.
         """
         # Get all traitlets with a config metadata entry that is True
         traitlets = self.traitlets(config=True)
 
-        # Don't do a blind getattr as that would cause the config to 
-        # dynamically create the section with name self.__class__.__name__.
-        if new._has_section(self.__class__.__name__):
-            my_config = new[self.__class__.__name__]
-            for k, v in traitlets.items():
-                try:
-                    config_value = my_config[k]
-                except KeyError:
-                    pass
-                else:
-                    setattr(self, k, config_value)
+        # We auto-load config section for this class as well as any parent
+        # classes that are Component subclasses.  This starts with Component
+        # and works down the mro loading the config for each section.
+        section_names = [cls.__name__ for cls in \
+            reversed(self.__class__.__mro__) if 
+            issubclass(cls, Component) and issubclass(self.__class__, cls)]
+
+        for sname in section_names:
+            # Don't do a blind getattr as that would cause the config to 
+            # dynamically create the section with name self.__class__.__name__.
+            if new._has_section(sname):
+                my_config = new[sname]
+                for k, v in traitlets.items():
+                    try:
+                        config_value = my_config[k]
+                    except KeyError:
+                        pass
+                    else:
+                        # print "Setting %s.%s from %s.%s=%r" % \
+                        #     (self.__class__.__name__,k,sname,k,config_value)
+                        setattr(self, k, config_value)
 
     @property
     def children(self):
