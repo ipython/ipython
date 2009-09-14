@@ -234,12 +234,29 @@ class PyFileConfigLoader(FileConfigLoader):
         self.full_filename = filefind(self.filename, self.path)
 
     def _read_file_as_dict(self):
-        execfile(self.full_filename, self.config)
+        """Load the config file into self.config, with recursive loading."""
+        # This closure is made available in the namespace that is used
+        # to exec the config file.  This allows users to call
+        # load_subconfig('myconfig.py') to load config files recursively.
+        # It needs to be a closure because it has references to self.path
+        # and self.config.  The sub-config is loaded with the same path
+        # as the parent, but it uses an empty config which is then merged
+        # with the parents.
+        def load_subconfig(fname):
+            loader = PyFileConfigLoader(fname, self.path)
+            sub_config = loader.load_config()
+            self.config._merge(sub_config)
+
+        self.config.load_subconfig = load_subconfig
+        try:
+            execfile(self.full_filename, self.config)
+        finally:
+            del self.config.load_subconfig
+            del self.config['__builtins__']
 
     def _convert_to_config(self):
         if self.data is None:
             ConfigLoaderError('self.data does not exist')
-        del self.config['__builtins__']
 
 
 class CommandLineConfigLoader(ConfigLoader):

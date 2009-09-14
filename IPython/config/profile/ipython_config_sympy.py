@@ -1,9 +1,19 @@
-from ipython_config import *
+# This can be used at any point in a config file to load a sub config
+# and merge it into the current one.
+load_subconfig('ipython_config.py')
 
-Global.exec_lines.extend([
-    "from __future__ import division"
-    "from sympy import *"
-    "x, y, z = symbols('xyz')"
-    "k, m, n = symbols('kmn', integer=True)"
-    "f, g, h = map(Function, 'fgh')"
-])
+lines = """
+from __future__ import division
+from sympy import *
+x, y, z = symbols('xyz')
+k, m, n = symbols('kmn', integer=True)
+f, g, h = map(Function, 'fgh')
+"""
+
+# You have to make sure that attributes that are containers already
+# exist before using them.  Simple assigning a new list will override
+# all previous values.
+if hasattr(Global, 'exec_lines'):
+    Global.exec_lines.append(lines)
+else:
+    Global.exec_lines = [lines]
