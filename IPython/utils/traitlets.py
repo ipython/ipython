@@ -342,7 +342,13 @@ class HasTraitlets(object):
     __metaclass__ = MetaHasTraitlets
 
     def __new__(cls, *args, **kw):
-        inst = super(HasTraitlets, cls).__new__(cls, *args, **kw)
+        # This is needed because in Python 2.6 object.__new__ only accepts
+        # the cls argument.
+        new_meth = super(HasTraitlets, cls).__new__
+        if new_meth is object.__new__:
+            inst = new_meth(cls)
+        else:
+            inst = new_meth(cls, *args, **kw)
         inst._traitlet_values = {}
         inst._traitlet_notifiers = {}
         # Here we tell all the TraitletType instances to set their default
