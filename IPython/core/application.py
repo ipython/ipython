@@ -76,6 +76,7 @@ class Application(object):
 
     def __init__(self):
         self.init_logger()
+        self.default_config_file_name = self.config_file_name
 
     def init_logger(self):
         self.log = logging.getLogger(self.__class__.__name__)
@@ -223,8 +224,10 @@ class Application(object):
             self.file_config = loader.load_config()
             self.file_config.Global.config_file = loader.full_filename
         except IOError:
-            self.log.warn("Config file not found, skipping: <%s>" % \
-                           self.config_file_name, exc_info=True)
+            # Only warn if the default config file was NOT being used.
+            if not self.config_file_name==self.default_config_file_name:
+                self.log.warn("Config file not found, skipping: <%s>" % \
+                               self.config_file_name, exc_info=True)
             self.file_config = Config()
         except:
             self.log.warn("Error loading config file: <%s>" % \
