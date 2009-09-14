@@ -42,7 +42,8 @@ from IPython.utils.autoattr import auto_attr
 # Global utilities, errors and constants
 #-----------------------------------------------------------------------------
 
-
+# Warning, these cannot be changed unless various regular expressions
+# are updated in a number of places.  Not great, but at least we told you.
 ESC_SHELL  = '!'
 ESC_SH_CAP = '!!'
 ESC_HELP   = '?'
@@ -231,6 +232,7 @@ class PrefilterManager(Component):
 
     def prefilter_line_info(self, line_info):
         """Prefilter a line that has been converted to a LineInfo object."""
+        # print "prefilter_line_info: ", line_info
         handler = self.find_handler(line_info)
         return handler.handle(line_info)
 
@@ -239,12 +241,15 @@ class PrefilterManager(Component):
         for checker in self.sorted_checkers:
             handler = checker.check(line_info)
             if handler:
+                # print "Used checker: ", checker
+                # print "Using handler: ", handler
                 return handler
         return self.get_handler_by_name('normal')
 
     def prefilter_line(self, line, continue_prompt):
         """Prefilter a single input line as text."""
 
+        # print "prefilter_line: ", line, continue_prompt
         # All handlers *must* return a value, even if it's blank ('').
 
         # Lines are NOT logged here. Handlers should process the line as
@@ -254,7 +259,7 @@ class PrefilterManager(Component):
         # growl.notify("_prefilter: ", "line = %s\ncontinue_prompt = %s" % (line, continue_prompt))
 
         # save the line away in case we crash, so the post-mortem handler can
-        # record it        
+        # record it
         self.shell._last_input_line = line
 
         if not line:
@@ -284,7 +289,9 @@ class PrefilterManager(Component):
         if continue_prompt and not self.multi_line_specials:
             return normal_handler.handle(line_info)
 
-        return self.prefilter_line_info(line_info)
+        prefiltered = self.prefilter_line_info(line_info)
+        # print "prefiltered line: %r" % prefiltered
+        return prefiltered
 
     def prefilter_lines(self, lines, continue_prompt):
         """Prefilter multiple input lines of text.
@@ -330,6 +337,8 @@ class PrefilterChecker(Component):
         """Inspect line_info and return a handler or None."""
         return None
 
+    def __str__(self):
+        return "<%s(priority=%i)>" % (self.__class__.__name__, self.priority)
 
 class EmacsChecker(PrefilterChecker):
 
@@ -401,6 +410,10 @@ class EscCharsChecker(PrefilterChecker):
             return self.prefilter_manager.get_handler_by_esc(line_info.pre_char)
 
 
+_assign_system_re = re.compile('\s*=\s*!(?P<cmd>.*)')
+_assign_magic_re = re.compile('\s*=\s*%(?P<cmd>.*)')
+
+
 class AssignmentChecker(PrefilterChecker):
 
     priority = Int(600, config=True)
@@ -412,8 +425,15 @@ class AssignmentChecker(PrefilterChecker):
         This allows users to assign to either alias or magic names true python
         variables (the magic/alias systems always take second seat to true
         python code).  E.g. ls='hi', or ls,that=1,2"""
-        if line_info.the_rest and line_info.the_rest[0] in '=,':
-            return self.prefilter_manager.get_handler_by_name('normal')
+        if line_info.the_rest:
+            if line_info.the_rest[0] in '=,':
+                # m = _assign_system_re.match(line_info.the_rest)
+                # if m is not None:
+                #     return self.prefilter_manager.get_handler_by_name('assign_system')
+                # m = _assign_magic_re.match(line_info.the_rest)
+                # if m is not None:
+                #     return self.prefilter_manager.get_handler_by_name('assign_magic')
+                return self.prefilter_manager.get_handler_by_name('normal')
         else:
             return None
 
@@ -529,6 +549,7 @@ class PrefilterHandler(Component):
         return PrefilterManager.get_instances(root=self.root)[0]
 
     def handle(self, line_info):
+        # print "normal: ", line_info
         """Handle normal input lines. Use as a template for handlers."""
 
         # With autoindent on, we need some way to exit the input loop, and I
@@ -547,11 +568,52 @@ class PrefilterHandler(Component):
         self.shell.log(line, line, continue_prompt)
         return line
 
+    def __str__(self):
+        return "<%s(name=%s)>" % (self.__class__.__name__, self.handler_name)
+
+class AssignSystemHandler(PrefilterHandler):
+
+    handler_name = Str('assign_system')
+
+    @auto_attr
+    def normal_handler(self):
+        return self.prefilter_manager.get_handler_by_name('normal')
+
+    def handle(self, line_info):
+        new_line = line_info.line
+        m = _assign_system_re.match(line_info.the_rest)
+        if m is not None:
+            cmd = m.group('cmd')
+            expr = make_quoted_expr("sc -l =%s" % cmd)
+            new_line = '%s%s = get_ipython().magic(%s)' % (line_info.pre_whitespace,
+                line_info.ifun, expr)
+        self.shell.log(line_info.line, new_line, line_info.continue_prompt)
+        return new_line
+
+
+class AssignMagicHandler(PrefilterHandler):
+
+    handler_name = Str('assign_magic')
+
+    @auto_attr
+    def normal_handler(self):
+        return self.prefilter_manager.get_handler_by_name('normal')
+
+    def handle(self, line_info):
+        new_line = line_info.line
+        m = _assign_magic_re.match(line_info.the_rest)
+        if m is not None:
+            cmd = m.group('cmd')
+            expr = make_quoted_expr(cmd)
+            new_line = '%s%s = get_ipython().magic(%s)' % (line_info.pre_whitespace,
+                line_info.ifun, expr)
+        self.shell.log(line_info.line, new_line, line_info.continue_prompt)
+        return new_line
+
 
 class AliasHandler(PrefilterHandler):
 
     handler_name = Str('alias')
-    esc_strings = List([])
 
     @auto_attr
     def alias_manager(self):
@@ -768,5 +830,7 @@ _default_handlers = [
     AutoHandler,
     HelpHandler,
     EmacsHandler
+    # AssignSystemHandler,
+    # AssignMagicHandler
 ]
 

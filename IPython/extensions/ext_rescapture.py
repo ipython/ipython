@@ -47,7 +47,7 @@ def init_handlers():
 
 init_handlers()
 
-def regex_prefilter_f(self,line):    
+def regex_prefilter_f(self,line):
     for pat, handler in ip.meta.re_prefilters:
         mo = pat.match(line)
         if mo:

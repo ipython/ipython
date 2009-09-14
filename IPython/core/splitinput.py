@@ -46,19 +46,25 @@ line_split = re.compile(r'^([,;/%?]|!!?|\s*)'
                         r'\s*([\w\.]+)'
                         r'(\s+.*$|$)')
 
+# r'[\w\.]+'
+# r'\s*=\s*%.*'
 
 def split_user_input(line, pattern=None):
-    """Split user input into pre-char/whitespace, function part and rest."""
+    """Split user input into pre-char/whitespace, function part and rest.
+
+    This is currently handles lines with '=' in them in a very inconsistent
+    manner.
+    """
 
     if pattern is None:
         pattern = line_split
     match = pattern.match(line)
     if not match:
-        #print "match failed for line '%s'" % line
+        # print "match failed for line '%s'" % line
         try:
             ifun, the_rest = line.split(None,1)
         except ValueError:
-            #print "split failed for line '%s'" % line
+            # print "split failed for line '%s'" % line
             ifun, the_rest = line,''
         pre = re.match('^(\s*)(.*)',line).groups()[0]
     else:
