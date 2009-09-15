@@ -1,29 +1,32 @@
+# Get the config being loaded so we can set attributes on it
+c = get_config()
+
 #-----------------------------------------------------------------------------
 # Global options
 #-----------------------------------------------------------------------------
 
-# Global.display_banner = True
+# c.Global.display_banner = True
 
-# Global.classic = False
+# c.Global.classic = False
 
-# Global.nosep = True
+# c.Global.nosep = True
 
 # Set this to determine the detail of what is logged at startup.
 # The default is 30 and possible values are 0,10,20,30,40,50.
-# Global.log_level = 30
+c.Global.log_level = 20
 
 # This should be a list of importable Python modules that have an
 # load_in_ipython(ip) method.  This method gets called when the extension
 # is loaded.  You can put your extensions anywhere they can be imported
 # but we add the extensions subdir of the ipython directory to sys.path
 # during extension loading, so you can put them there as well.
-# Global.extensions = [
+# c.Global.extensions = [
 #     'myextension'
 # ]
 
 # These lines are run in IPython in the user's namespace after extensions 
 # are loaded.  They can contain full IPython syntax with magics etc.
-# Global.exec_lines = [
+# c.Global.exec_lines = [
 #     'import numpy',
 #     'a = 10; b = 20',
 #     '1/0'
@@ -33,7 +36,7 @@
 # extension need to be pure Python.  Files with a .ipy extension can have
 # custom IPython syntax (like magics, etc.).  
 # These files need to be in the cwd, the ipythondir or be absolute paths.
-# Global.exec_files = [
+# c.Global.exec_files = [
 #     'mycode.py',
 #     'fancy.ipy'
 # ]
@@ -42,56 +45,55 @@
 # InteractiveShell options
 #-----------------------------------------------------------------------------
 
+# c.InteractiveShell.autocall = 1
 
-# InteractiveShell.autocall = 1
+# c.InteractiveShell.autoedit_syntax = False
 
-# InteractiveShell.autoedit_syntax = False
+# c.InteractiveShell.autoindent = True
 
-# InteractiveShell.autoindent = True
+# c.InteractiveShell.automagic = False
 
-# InteractiveShell.automagic = False
-
-# InteractiveShell.banner1 = 'This if for overriding the default IPython banner'
+# c.InteractiveShell.banner1 = 'This if for overriding the default IPython banner'
  
-# InteractiveShell.banner2 = "This is for extra banner text"
+# c.InteractiveShell.banner2 = "This is for extra banner text"
 
-# InteractiveShell.cache_size = 1000
+# c.InteractiveShell.cache_size = 1000
 
-# InteractiveShell.colors = 'LightBG'
+# c.InteractiveShell.colors = 'LightBG'
 
-# InteractiveShell.color_info = True
+# c.InteractiveShell.color_info = True
 
-# InteractiveShell.confirm_exit = True
+# c.InteractiveShell.confirm_exit = True
 
-# InteractiveShell.deep_reload = False
+# c.InteractiveShell.deep_reload = False
 
-# InteractiveShell.editor = 'nano'
+# c.InteractiveShell.editor = 'nano'
 
-# InteractiveShell.logstart = True
+# c.InteractiveShell.logstart = True
 
-# InteractiveShell.logfile = 'ipython_log.py'
+# c.InteractiveShell.logfile = 'ipython_log.py'
 
-# InteractiveShell.logplay = 'mylog.py'
+# c.InteractiveShell.logplay = 'mylog.py'
 
-# InteractiveShell.object_info_string_level = 0
+# c.InteractiveShell.object_info_string_level = 0
 
-# InteractiveShell.pager = 'less'
+# c.InteractiveShell.pager = 'less'
 
-# InteractiveShell.pdb = False
+# c.InteractiveShell.pdb = False
 
-# InteractiveShell.pprint = True
+# c.InteractiveShell.pprint = True
 
-# InteractiveShell.prompt_in1 = 'In [\#]: '
-# InteractiveShell.prompt_in2 = '   .\D.: '
-# InteractiveShell.prompt_out = 'Out[\#]: '
-# InteractiveShell.prompts_pad_left = True
+# c.InteractiveShell.prompt_in1 = 'In [\#]: '
+# c.InteractiveShell.prompt_in2 = '   .\D.: '
+# c.InteractiveShell.prompt_out = 'Out[\#]: '
+# c.InteractiveShell.prompts_pad_left = True
 
-# InteractiveShell.quiet = False
+# c.InteractiveShell.quiet = False
 
 # Readline 
-# InteractiveShell.readline_use = True
+# c.InteractiveShell.readline_use = True
 
-# InteractiveShell.readline_parse_and_bind = [
+# c.InteractiveShell.readline_parse_and_bind = [
 #     'tab: complete',
 #     '"\C-l": possible-completions',
 #     'set show-all-if-ambiguous on',
@@ -108,39 +110,39 @@
 #     '"\C-k": kill-line',
 #     '"\C-u": unix-line-discard',
 # ]
-# InteractiveShell.readline_remove_delims = '-/~'
-# InteractiveShell.readline_merge_completions = True
-# InteractiveShell.readline_omit_names = 0
+# c.InteractiveShell.readline_remove_delims = '-/~'
+# c.InteractiveShell.readline_merge_completions = True
+# c.InteractiveShell.readline_omit_names = 0
 
-# InteractiveShell.screen_length = 0
+# c.InteractiveShell.screen_length = 0
 
-# InteractiveShell.separate_in = '\n'
-# InteractiveShell.separate_out = ''
-# InteractiveShell.separate_out2 = ''
+# c.InteractiveShell.separate_in = '\n'
+# c.InteractiveShell.separate_out = ''
+# c.InteractiveShell.separate_out2 = ''
 
-# InteractiveShell.system_header = "IPython system call: "
+# c.InteractiveShell.system_header = "IPython system call: "
 
-# InteractiveShell.system_verbose = True
+# c.InteractiveShell.system_verbose = True
 
-# InteractiveShell.term_title = False
+# c.InteractiveShell.term_title = False
 
-# InteractiveShell.wildcards_case_sensitive = True
+# c.InteractiveShell.wildcards_case_sensitive = True
 
-# InteractiveShell.xmode = 'Context'
+# c.InteractiveShell.xmode = 'Context'
 
 #-----------------------------------------------------------------------------
 # PrefilterManager options
 #-----------------------------------------------------------------------------
 
-# PrefilterManager.multi_line_specials = True
+# c.PrefilterManager.multi_line_specials = True
 
 #-----------------------------------------------------------------------------
 # AliasManager options
 #-----------------------------------------------------------------------------
 
 # Do this to enable all defaults
-# AliasManager.default_aliases = []
+# c.AliasManager.default_aliases = []
 
-# AliasManager.user_aliases = [
-    # ('foo', 'echo Hi')
+# c.AliasManager.user_aliases = [
+#     ('foo', 'echo Hi')
 # ]

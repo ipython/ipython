@@ -247,12 +247,13 @@ class PyFileConfigLoader(FileConfigLoader):
             sub_config = loader.load_config()
             self.config._merge(sub_config)
 
-        self.config.load_subconfig = load_subconfig
-        try:
-            execfile(self.full_filename, self.config)
-        finally:
-            del self.config.load_subconfig
-            del self.config['__builtins__']
+        # Again, this needs to be a closure and should be used in config
+        # files to get the config being loaded.
+        def get_config():
+            return self.config
+
+        namespace = dict(load_subconfig=load_subconfig, get_config=get_config)
+        execfile(self.full_filename, namespace)
 
     def _convert_to_config(self):
         if self.data is None:
