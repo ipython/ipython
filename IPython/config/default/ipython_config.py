@@ -141,6 +141,6 @@
 # Do this to enable all defaults
 # AliasManager.default_aliases = []
 
-# AliasManger.user_aliases = [
+# AliasManager.user_aliases = [
     # ('foo', 'echo Hi')
 # ]
