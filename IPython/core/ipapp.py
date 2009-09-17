@@ -38,6 +38,8 @@ from IPython.config.loader import (
     PyFileConfigLoader
 )
 
+from IPython.lib import inputhook
+
 from IPython.utils.ipstruct import Struct
 from IPython.utils.genutils import filefind, get_ipython_dir
 
@@ -52,12 +54,23 @@ introspection, easier configuration, command completion, access to the system
 shell and more.
 """
 
-def threaded_shell_warning():
+def pylab_warning():
     msg = """
 
-The IPython threaded shells and their associated command line
-arguments (pylab/wthread/gthread/qthread/q4thread) have been 
-deprecated.  See the %gui magic for information on the new interface.
+IPython's -pylab mode has been disabled until matplotlib supports this version
+of IPython.  This version of IPython has greatly improved GUI integration that 
+matplotlib will soon be able to take advantage of.  This will eventually
+result in greater stability and a richer API for matplotlib under IPython.
+However during this transition, you will either need to use an older version
+of IPython, or do the following to use matplotlib interactively::
+
+    import matplotlib
+    matplotlib.interactive(True)
+    matplotlib.use('wxagg')  # adjust for your backend
+    %gui -a wx               # adjust for your GUI
+    from matplotlib import pyplot as plt
+
+See the %gui magic for information on the new interface.
 """
     warnings.warn(msg, category=DeprecationWarning, stacklevel=1)
 
@@ -255,11 +268,23 @@ cl_args = (
         action='store_true', dest='Global.force_interact', default=NoConfigDefault,
         help="If running code from the command line, become interactive afterwards.")
     ),
-    # These are only here to get the proper deprecation warnings
-    (('-pylab','-wthread','-qthread','-q4thread','-gthread'), dict(
-        action='store_true', dest='Global.threaded_shell', default=NoConfigDefault,
-        help="These command line flags are deprecated, see the 'gui' magic.")
+    (('-wthread',), dict(
+        action='store_true', dest='Global.wthread', default=NoConfigDefault,
+        help="Enable wxPython event loop integration.")
     ),
+    (('-q4thread','-qthread'), dict(
+        action='store_true', dest='Global.q4thread', default=NoConfigDefault,
+        help="Enable Qt4 event loop integration. Qt3 is no longer supported.")
+    ),
+    (('-gthread',), dict(
+        action='store_true', dest='Global.gthread', default=NoConfigDefault,
+        help="Enable GTK event loop integration.")
+    ),
+    # # These are only here to get the proper deprecation warnings
+    (('-pylab',), dict(
+        action='store_true', dest='Global.pylab', default=NoConfigDefault,
+        help="Disabled.  Pylab has been disabled until matplotlib supports this version of IPython.")
+    )
 )
 
 
@@ -284,12 +309,19 @@ class IPythonApp(Application):
         # this and interact.  It is also set by the -i cmd line flag, just
         # like Python.
         self.default_config.Global.force_interact = False
+
         # By default always interact by starting the IPython mainloop.
         self.default_config.Global.interact = True
+
         # Let the parent class set the default, but each time log_level
         # changes from config, we need to update self.log_level as that is
         # what updates the actual log level in self.log.
         self.default_config.Global.log_level = self.log_level
+
+        # No GUI integration by default
+        self.default_config.Global.wthread = False
+        self.default_config.Global.q4thread = False
+        self.default_config.Global.gthread = False
 
     def create_command_line_config(self):
         """Create and return a command line config loader."""
@@ -302,9 +334,9 @@ class IPythonApp(Application):
         clc = self.command_line_config
 
         # Display the deprecation warnings about threaded shells
-        if hasattr(clc.Global, 'threaded_shell'):
-            threaded_shell_warning()
-            del clc.Global['threaded_shell']
+        if hasattr(clc.Global, 'pylab'):
+            pylab_warning()
+            del clc.Global['pylab']
 
     def load_file_config(self):
         if hasattr(self.command_line_config.Global, 'quick'):
@@ -367,22 +399,43 @@ class IPythonApp(Application):
 
     def post_construct(self):
         """Do actions after construct, but before starting the app."""
+        config = self.master_config
+        
         # shell.display_banner should always be False for the terminal 
         # based app, because we call shell.show_banner() by hand below
         # so the banner shows *before* all extension loading stuff.
         self.shell.display_banner = False
 
-        if self.master_config.Global.display_banner and \
-            self.master_config.Global.interact:
+        if config.Global.display_banner and \
+            config.Global.interact:
             self.shell.show_banner()
 
         # Make sure there is a space below the banner.
         if self.log_level <= logging.INFO: print
 
+        self._enable_gui()
         self._load_extensions()
         self._run_exec_lines()
         self._run_exec_files()
         self._run_cmd_line_code()
+
+    def _enable_gui(self):
+        """Enable GUI event loop integration."""
+        config = self.master_config
+        try:
+            # Enable GUI integration
+            if config.Global.wthread:
+                self.log.info("Enabling wx GUI event loop integration")
+                inputhook.enable_wx(app=True)
+            elif config.Global.q4thread:
+                self.log.info("Enabling Qt4 GUI event loop integration")
+                inputhook.enable_qt4(app=True)
+            elif config.Global.gthread:
+                self.log.info("Enabling GTK GUI event loop integration")
+                inputhook.enable_gtk(app=True)
+        except:
+            self.log.warn("Error in enabling GUI event loop integration:")
+            self.shell.showtraceback()
 
     def _load_extensions(self):
         """Load all IPython extensions in Global.extensions.
