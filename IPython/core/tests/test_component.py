@@ -172,6 +172,26 @@ class TestComponentConfig(TestCase):
         self.assertEquals(c4.a, 1)
         self.assertEquals(c4.b, 1.0)
 
+    def test_parent(self):
+        class Foo(Component):
+            a = Int(0, config=True)
+            b = Str('nope', config=True)
+        class Bar(Foo):
+            b = Str('gotit', config=False)
+            c = Float(config=True)
+        config = Config()
+        config.Foo.a = 10
+        config.Foo.b = "wow"
+        config.Bar.b = 'later'
+        config.Bar.c = 100.0
+        f = Foo(None, config=config)
+        b = Bar(f)
+        self.assertEquals(f.a, 10)
+        self.assertEquals(f.b, 'wow')
+        self.assertEquals(b.b, 'gotit')
+        self.assertEquals(b.c, 100.0)
+
+
 class TestComponentName(TestCase):
 
     def test_default(self):
