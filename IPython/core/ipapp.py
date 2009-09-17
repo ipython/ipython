@@ -166,13 +166,13 @@ cl_args = (
     ),
     (('-logfile','-lf'), dict(
         type=str, dest='InteractiveShell.logfile', default=NoConfigDefault,
-        help="Specify the name of your logfile.",
+        help="Start logging to logfile.",
         metavar='InteractiveShell.logfile')
     ),
-    (('-logplay','-lp'), dict(
-        type=str, dest='InteractiveShell.logplay', default=NoConfigDefault,
-        help="Re-play a log file and then append to it.",
-        metavar='InteractiveShell.logplay')
+    (('-logappend','-la'), dict(
+        type=str, dest='InteractiveShell.logappend', default=NoConfigDefault,
+        help="Start logging to logappend in append mode.",
+        metavar='InteractiveShell.logfile')
     ),
     (('-pdb',), dict(
         action='store_true', dest='InteractiveShell.pdb', default=NoConfigDefault,

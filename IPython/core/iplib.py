@@ -209,7 +209,7 @@ class InteractiveShell(Component, Magic):
     ipythondir= Unicode('', config=True) # Set to get_ipython_dir() in __init__
     logstart = CBool(False, config=True)
     logfile = Str('', config=True)
-    logplay = Str('', config=True)
+    logappend = Str('', config=True)
     object_info_string_level = Enum((0,1,2), default_value=0,
                                     config=True)
     pager = Str('less', config=True)
@@ -466,20 +466,10 @@ class InteractiveShell(Component, Magic):
         self.logger = Logger(self, logfname='ipython_log.py', logmode='rotate')
         # local shortcut, this is used a LOT
         self.log = self.logger.log
-        # template for logfile headers.  It gets resolved at runtime by the
-        # logstart method.
-        self.loghead_tpl = \
-"""#log# Automatic Logger file. *** THIS MUST BE THE FIRST LINE ***
-#log# DO NOT CHANGE THIS LINE OR THE TWO BELOW
-#log# opts = %s
-#log# args = %s
-#log# It is safe to make manual edits below here.
-#log#-----------------------------------------------------------------------
-"""
 
     def init_logstart(self):
-        if self.logplay:
-            self.magic_logstart(self.logplay + ' append')
+        if self.logappend:
+            self.magic_logstart(self.logappend + ' append')
         elif self.logfile:
             self.magic_logstart(self.logfile)
         elif self.logstart:

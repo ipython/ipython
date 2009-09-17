@@ -1154,10 +1154,8 @@ Currently the magic system has the following functions:\n"""
         if logfname:
             logfname = os.path.expanduser(logfname)
         self.shell.logfile = logfname
-        # TODO: we need to re-think how logs with args/opts are replayed
-        # and tracked.
-        # loghead = self.shell.loghead_tpl % (rc.opts,rc.args)
-        loghead = self.shell.loghead_tpl % ('','')
+
+        loghead = '# IPython log file\n\n'
         try:
             started  = logger.logstart(logfname,loghead,logmode,
                                        log_output,timestamp,log_raw_input)

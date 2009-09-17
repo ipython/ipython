@@ -73,7 +73,7 @@ c.Global.log_level = 20
 
 # c.InteractiveShell.logfile = 'ipython_log.py'
 
-# c.InteractiveShell.logplay = 'mylog.py'
+# c.InteractiveShell.logappend = 'mylog.py'
 
 # c.InteractiveShell.object_info_string_level = 0
 
