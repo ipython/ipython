@@ -55,9 +55,6 @@ def test_import_release():
 def test_import_shadowns():
     from IPython.core import shadowns
 
-def test_import_shell():
-    from IPython.core import shell
-
 def test_import_ultratb():
     from IPython.core import ultratb
 

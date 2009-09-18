@@ -32,7 +32,7 @@ import nose.plugins.builtin
 from nose.core import TestProgram
 
 from IPython.utils.platutils import find_cmd
-from IPython.testing.plugin.ipdoctest import IPythonDoctest
+# from IPython.testing.plugin.ipdoctest import IPythonDoctest
 
 pjoin = path.join
 
@@ -70,12 +70,8 @@ def make_exclude():
     EXCLUDE = [pjoin('IPython', 'external'),
                pjoin('IPython', 'frontend', 'process', 'winprocess.py'),
                pjoin('IPython_doctest_plugin'),
-               pjoin('IPython', 'extensions', 'ipy_'),
-               pjoin('IPython', 'extensions', 'PhysicalQInput'),
-               pjoin('IPython', 'extensions', 'PhysicalQInteractive'),
-               pjoin('IPython', 'extensions', 'InterpreterPasteInput'),
-               pjoin('IPython', 'extensions', 'scitedirector'),
-               pjoin('IPython', 'extensions', 'numeric_formats'),
+               pjoin('IPython', 'quarantine'),
+               pjoin('IPython', 'deathrow'),
                pjoin('IPython', 'testing', 'attic'),
                pjoin('IPython', 'testing', 'tools'),
                pjoin('IPython', 'testing', 'mkdoctests'),
@@ -83,7 +79,6 @@ def make_exclude():
                ]
 
     if not have_wx:
-        EXCLUDE.append(pjoin('IPython', 'extensions', 'igrid'))
         EXCLUDE.append(pjoin('IPython', 'gui'))
         EXCLUDE.append(pjoin('IPython', 'frontend', 'wx'))
         EXCLUDE.append(pjoin('IPython', 'lib', 'inputhookwx'))
@@ -96,9 +91,6 @@ def make_exclude():
 
     if not have_objc:
         EXCLUDE.append(pjoin('IPython', 'frontend', 'cocoa'))
-
-    if not have_curses:
-        EXCLUDE.append(pjoin('IPython', 'extensions', 'ibrowse'))
 
     if not sys.platform == 'win32':
         EXCLUDE.append(pjoin('IPython', 'utils', 'platutils_win32'))
@@ -136,9 +128,6 @@ def make_exclude():
         EXCLUDE.append(pjoin('IPython', 'testing', 'tests', 
                              'test_decorators_trial'))
 
-    # Skip shell always because of a bug in FakeModule.
-    EXCLUDE.append(pjoin('IPython', 'core', 'shell'))
-
     # This is needed for the reg-exp to match on win32 in the ipdoctest plugin.
     if sys.platform == 'win32':
         EXCLUDE = [s.replace('\\','\\\\') for s in EXCLUDE]
@@ -167,9 +156,9 @@ def run_iptest():
                         # test suite back into working shape.  Our nose
                         # plugin needs to be gone through with a fine
                         # toothed comb to find what is causing the problem.
-                        '--with-ipdoctest',
-                        '--ipdoctest-tests','--ipdoctest-extension=txt',
-                        '--detailed-errors',
+                        # '--with-ipdoctest',
+                        # '--ipdoctest-tests','--ipdoctest-extension=txt',
+                        # '--detailed-errors',
                        
                         # We add --exe because of setuptools' imbecility (it
                         # blindly does chmod +x on ALL files).  Nose does the
@@ -196,7 +185,8 @@ def run_iptest():
     # Construct list of plugins, omitting the existing doctest plugin, which
     # ours replaces (and extends).
     EXCLUDE = make_exclude()
-    plugins = [IPythonDoctest(EXCLUDE)]
+    plugins = []
+    # plugins = [IPythonDoctest(EXCLUDE)]
     for p in nose.plugins.builtin.plugins:
         plug = p()
         if plug.name == 'doctest':
@@ -254,7 +244,7 @@ def make_runners():
     """
 
     nose_packages = ['config', 'core', 'extensions',
-                     'frontend', 'lib', 'quarantine',
+                     'frontend', 'lib',
                      'scripts', 'testing', 'utils']
     trial_packages = ['kernel']
 
