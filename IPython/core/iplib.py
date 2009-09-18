@@ -48,7 +48,7 @@ from IPython.core.component import Component
 from IPython.core.usage import interactive_usage, default_banner
 from IPython.core.error import TryNext, UsageError
 
-from IPython.extensions import pickleshare
+from IPython.utils import pickleshare
 from IPython.external.Itpl import ItplNS
 from IPython.lib.backgroundjobs import BackgroundJobManager
 from IPython.utils.ipstruct import Struct
