@@ -153,7 +153,6 @@ class Application(object):
             self.log_level = self.command_line_config.Global.log_level
         except AttributeError:
             pass # Use existing value which is set in Application.init_logger.
-
         self.log.debug("Command line config loaded:")
         self.log.debug(repr(self.command_line_config))
 
@@ -236,11 +235,14 @@ class Application(object):
         else:
             self.log.debug("Config file loaded: <%s>" % loader.full_filename)
             self.log.debug(repr(self.file_config))
-        # We need to keeep self.log_level updated.
-        try:
-            self.log_level = self.file_config.Global.log_level
-        except AttributeError:
-            pass # Use existing value
+        # We need to keeep self.log_level updated.  But we only use the value
+        # of the file_config if a value was not specified at the command
+        # line.
+        if not hasattr(self.command_line_config.Global, 'log_level'):
+            try:
+                self.log_level = self.file_config.Global.log_level
+            except AttributeError:
+                pass # Use existing value
 
     def post_load_file_config(self):
         """Do actions after the config file is loaded."""

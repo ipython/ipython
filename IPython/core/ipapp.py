@@ -413,6 +413,7 @@ class IPythonApp(Application):
         # Make sure there is a space below the banner.
         if self.log_level <= logging.INFO: print
 
+        # Now a variety of things that happen after the banner is printed.
         self._enable_gui()
         self._load_extensions()
         self._run_exec_lines()
