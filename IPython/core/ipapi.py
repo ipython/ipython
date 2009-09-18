@@ -1,19 +1,10 @@
 #!/usr/bin/env python
 # encoding: utf-8
 """
-Oh my @#*%, where did ipapi go?
-
-Originally, this module was designed to be a public api for IPython.  It is
-now deprecated and replaced by :class:`IPython.core.Interactive` shell.
-Almost all of the methods that were here are now there, but possibly renamed.
-
-During our transition, we will keep this simple module with its :func:`get`
-function.  It too will eventually go away when the new component querying
-interface is fully used.
-
-Authors:
-
-* Brian Granger
+This module is *completely* deprecated and should no longer be used for
+any purpose.  Currently, we have a few parts of the core that have
+not been componentized and thus, still rely on this module.  When everything
+has been made into a component, this module will be sent to deathrow.
 """
 
 #-----------------------------------------------------------------------------
@@ -42,17 +33,3 @@ def get():
         if inst.created > most_recent.created:
             most_recent = inst
     return most_recent
-
-def launch_new_instance():
-    """Create a run a full blown IPython instance"""
-    from IPython.core.ipapp import IPythonApp
-    app = IPythonApp()
-    app.start()
-
-
-
-
-
-
-
-

@@ -538,6 +538,8 @@ def load_default_config(ipythondir=None):
     return config
 
 
-if __name__ == '__main__':
+def launch_new_instance():
+    """Create a run a full blown IPython instance"""
     app = IPythonApp()
     app.start()
+

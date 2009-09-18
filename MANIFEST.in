@@ -18,7 +18,6 @@ graft IPython/scripts
 graft IPython/testing
 graft IPython/utils
 
-recursive-include IPython/extensions igrid_help*
 
 graft docs
 exclude docs/\#*

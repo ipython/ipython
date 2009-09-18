@@ -167,7 +167,7 @@ if 'setuptools' in sys.modules:
     setuptools_extra_args['zip_safe'] = False
     setuptools_extra_args['entry_points'] = {
         'console_scripts': [
-            'ipython = IPython.core.ipapi:launch_new_instance',
+            'ipython = IPython.core.ipapp:launch_new_instance',
             'pycolor = IPython.utils.PyColorize:main',
             'ipcontroller = IPython.kernel.scripts.ipcontroller:main',
             'ipengine = IPython.kernel.scripts.ipengine:main',
@@ -190,10 +190,6 @@ if 'setuptools' in sys.modules:
     # Allow setuptools to handle the scripts
     scripts = []
 else:
-    # package_data of setuptools was introduced to distutils in 2.4
-    cfgfiles = filter(isfile, glob(pjoin('IPython','config','userconfig')))
-    if sys.version_info < (2,4):
-        data_files.append(('lib', pjoin('IPython','config','userconfig'), cfgfiles))
     # If we are running without setuptools, call this function which will
     # check for dependencies an inform the user what is needed.  This is
     # just to make life easy for users.

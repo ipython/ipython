@@ -103,7 +103,7 @@ def find_packages():
     Find all of IPython's packages.
     """
     packages = ['IPython']
-    add_package(packages, 'config', tests=True)
+    add_package(packages, 'config', tests=True, others=['default','profile'])
     add_package(packages, 'core', tests=True)
     add_package(packages, 'deathrow', tests=True)
     add_package(packages , 'extensions')
