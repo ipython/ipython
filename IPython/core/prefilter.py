@@ -3,11 +3,15 @@
 """
 Prefiltering components.
 
+Prefilters transform user input before it is exec'd by Python.  These
+transforms are used to implement additional syntax such as !ls and %magic.
+
 Authors:
 
 * Brian Granger
 * Fernando Perez
 * Dan Milstein
+* Ville Vainio
 """
 
 #-----------------------------------------------------------------------------
@@ -34,7 +38,7 @@ from IPython.core.component import Component
 from IPython.core.splitinput import split_user_input
 from IPython.core.page import page
 
-from IPython.utils.traitlets import List, Int, Any, Str, CBool
+from IPython.utils.traitlets import List, Int, Any, Str, CBool, Bool
 from IPython.utils.genutils import make_quoted_expr
 from IPython.utils.autoattr import auto_attr
 
@@ -171,15 +175,46 @@ class PrefilterManager(Component):
 
     The IPython prefilter is run on all user input before it is run.  The
     prefilter consumes lines of input and produces transformed lines of 
-    input.  The implementation consists of checkers and handlers.  The 
-    checkers inspect the input line and select which handler will be used
-    to transform the input line.
+    input.
+
+    The iplementation consists of two phases:
+
+    1. Transformers
+    2. Checkers and handlers
+
+    Over time, we plan on deprecating the checkers and handlers and doing
+    everything in the transformers.
+
+    The transformers are instances of :class:`PrefilterTransformer` and have
+    a single method :meth:`transform` that takes a line and returns a
+    transformed line.  The transformation can be accomplished using any
+    tool, but our current ones use regular expressions for speed.  We also
+    ship :mod:`pyparsing` in :mod:`IPython.external` for use in transformers.
+
+    After all the transformers have been run, the line is fed to the checkers,
+    which are instances of :class:`PrefilterChecker`.  The line is passed to
+    the :meth:`check` method, which either returns `None` or a 
+    :class:`PrefilterHandler` instance.  If `None` is returned, the other
+    checkers are tried.  If an :class:`PrefilterHandler` instance is returned,
+    the line is passed to the :meth:`handle` method of the returned
+    handler and no further checkers are tried.
+    
+    Both transformers and checkers have a `priority` attribute, that determines
+    the order in which they are called.  Smaller priorities are tried first.
+
+    Both transformers and checkers also have `enabled` attribute, which is
+    a boolean that determines if the instance is used.
+
+    Users or developers can change the priority or enabled attribute of
+    transformers or checkers, but they must call the :meth:`sort_checkers`
+    or :meth`sort_transformers` method after changing the priority.
     """
 
     multi_line_specials = CBool(True, config=True)
 
     def __init__(self, parent, config=None):
         super(PrefilterManager, self).__init__(parent, config=config)
+        self.init_transformers()
         self.init_handlers()
         self.init_checkers()
 
@@ -189,21 +224,89 @@ class PrefilterManager(Component):
             root=self.root,
             klass='IPython.core.iplib.InteractiveShell')[0]
 
+    #-------------------------------------------------------------------------
+    # API for managing transformers
+    #-------------------------------------------------------------------------
+
+    def init_transformers(self):
+        """Create the default transformers."""
+        self._transformers = []
+        for transformer_cls in _default_transformers:
+            transformer_cls(self, config=self.config)
+
+    def sort_transformers(self):
+        """Sort the transformers by priority.
+
+        This must be called after the priority of a transformer is changed.
+        The :meth:`register_transformer` method calls this automatically.
+        """
+        self._transformers.sort(cmp=lambda x,y: x.priority-y.priority)
+
+    @property
+    def transformers(self):
+        """Return a list of checkers, sorted by priority."""
+        return self._transformers
+
+    def register_transformer(self, transformer):
+        """Register a transformer instance."""
+        if transformer not in self._transformers:
+            self._transformers.append(transformer)
+            self.sort_transformers()
+
+    def unregister_transformer(self, transformer):
+        """Unregister a transformer instance."""
+        if transformer in self._transformers:
+            self._transformers.remove(transformer)
+
+    #-------------------------------------------------------------------------
+    # API for managing checkers
+    #-------------------------------------------------------------------------
+
     def init_checkers(self):
+        """Create the default checkers."""
         self._checkers = []
         for checker in _default_checkers:
-            self._checkers.append(checker(self, config=self.config))
+            checker(self, config=self.config)
+
+    def sort_checkers(self):
+        """Sort the checkers by priority.
+
+        This must be called after the priority of a checker is changed.
+        The :meth:`register_checker` method calls this automatically.
+        """
+        self._checkers.sort(cmp=lambda x,y: x.priority-y.priority)
+
+    @property
+    def checkers(self):
+        """Return a list of checkers, sorted by priority."""
+        return self._checkers
+
+    def register_checker(self, checker):
+        """Register a checker instance."""
+        if checker not in self._checkers:
+            self._checkers.append(checker)
+            self.sort_checkers()
+
+    def unregister_checker(self, checker):
+        """Unregister a checker instance."""
+        if checker in self._checkers:
+            self._checkers.remove(checker)
+
+    #-------------------------------------------------------------------------
+    # API for managing checkers
+    #-------------------------------------------------------------------------
 
     def init_handlers(self):
+        """Create the default handlers."""
         self._handlers = {}
         self._esc_handlers = {}
         for handler in _default_handlers:
             handler(self, config=self.config)
 
     @property
-    def sorted_checkers(self):
-        """Return a list of checkers, sorted by priority."""
-        return sorted(self._checkers, cmp=lambda x,y: x.priority-y.priority)
+    def handlers(self):
+        """Return a dict of all the handlers."""
+        return self._handlers
 
     def register_handler(self, name, handler, esc_strings):
         """Register a handler instance by name with esc_strings."""
@@ -230,24 +333,41 @@ class PrefilterManager(Component):
         """Get a handler by its escape string."""
         return self._esc_handlers.get(esc_str)
 
+    #-------------------------------------------------------------------------
+    # Main prefiltering API
+    #-------------------------------------------------------------------------
+
     def prefilter_line_info(self, line_info):
-        """Prefilter a line that has been converted to a LineInfo object."""
+        """Prefilter a line that has been converted to a LineInfo object.
+
+        This implements the checker/handler part of the prefilter pipe.
+        """
         # print "prefilter_line_info: ", line_info
         handler = self.find_handler(line_info)
         return handler.handle(line_info)
 
     def find_handler(self, line_info):
         """Find a handler for the line_info by trying checkers."""
-        for checker in self.sorted_checkers:
-            handler = checker.check(line_info)
-            if handler:
-                # print "Used checker: ", checker
-                # print "Using handler: ", handler
-                return handler
+        for checker in self.checkers:
+            if checker.enabled:
+                handler = checker.check(line_info)
+                if handler:
+                    return handler
         return self.get_handler_by_name('normal')
 
+    def transform_line(self, line, continue_prompt):
+        """Calls the enabled transformers in order of increasing priority."""
+        for transformer in self.transformers:
+            if transformer.enabled:
+                line = transformer.transform(line, continue_prompt)
+        return line
+
     def prefilter_line(self, line, continue_prompt):
-        """Prefilter a single input line as text."""
+        """Prefilter a single input line as text.
+
+        This method prefilters a single line of text by calling the
+        transformers and then the checkers/handlers.
+        """
 
         # print "prefilter_line: ", line, continue_prompt
         # All handlers *must* return a value, even if it's blank ('').
@@ -255,8 +375,6 @@ class PrefilterManager(Component):
         # Lines are NOT logged here. Handlers should process the line as
         # needed, update the cache AND log it (so that the input cache array
         # stays synced).
-
-        # growl.notify("_prefilter: ", "line = %s\ncontinue_prompt = %s" % (line, continue_prompt))
 
         # save the line away in case we crash, so the post-mortem handler can
         # record it
@@ -272,13 +390,18 @@ class PrefilterManager(Component):
             if ''.join(self.shell.buffer).isspace():
                 self.shell.buffer[:] = []
             return ''
-        
+
+        # At this point, we invoke our transformers.
+        if not continue_prompt or (continue_prompt and self.multi_line_specials):
+            line = self.transform_line(line, continue_prompt)
+
+        # Now we compute line_info for the checkers and handlers
         line_info = LineInfo(line, continue_prompt)
         
         # the input history needs to track even empty lines
         stripped = line.strip()
 
-        normal_handler = self.get_handler_by_name('normal')        
+        normal_handler = self.get_handler_by_name('normal')
         if not stripped:
             if not continue_prompt:
                 self.shell.outputcache.prompt_count -= 1
@@ -296,16 +419,93 @@ class PrefilterManager(Component):
     def prefilter_lines(self, lines, continue_prompt):
         """Prefilter multiple input lines of text.
 
-        Covers cases where there are multiple lines in the user entry,
+        This is the main entry point for prefiltering multiple lines of
+        input.  This simply calls :meth:`prefilter_line` for each line of
+        input.
+
+        This covers cases where there are multiple lines in the user entry,
         which is the case when the user goes back to a multiline history
         entry and presses enter.
         """
-        # growl.notify("multiline_prefilter: ", "%s\n%s" % (line, continue_prompt))
         out = []
         for line in lines.rstrip('\n').split('\n'):
             out.append(self.prefilter_line(line, continue_prompt))
-        # growl.notify("multiline_prefilter return: ", '\n'.join(out))
         return '\n'.join(out)
+
+
+#-----------------------------------------------------------------------------
+# Prefilter transformers
+#-----------------------------------------------------------------------------
+
+
+class PrefilterTransformer(Component):
+    """Transform a line of user input."""
+
+    priority = Int(100, config=True)
+    shell = Any
+    prefilter_manager = Any
+    enabled = Bool(True, config=True)
+
+    def __init__(self, parent, config=None):
+        super(PrefilterTransformer, self).__init__(parent, config=config)
+        self.prefilter_manager.register_transformer(self)
+
+    @auto_attr
+    def shell(self):
+        return Component.get_instances(
+            root=self.root,
+            klass='IPython.core.iplib.InteractiveShell')[0]
+
+    @auto_attr
+    def prefilter_manager(self):
+        return PrefilterManager.get_instances(root=self.root)[0]
+
+    def transform(self, line, continue_prompt):
+        """Transform a line, returning the new one."""
+        return None
+
+    def __repr__(self):
+        return "<%s(priority=%r, enabled=%r)>" % (
+            self.__class__.__name__, self.priority, self.enabled)
+
+
+_assign_system_re = re.compile(r'(?P<lhs>(\s*)([\w\.]+)((\s*,\s*[\w\.]+)*))'
+                               r'\s*=\s*!(?P<cmd>.*)')
+
+
+class AssignSystemTransformer(PrefilterTransformer):
+    """Handle the `files = !ls` syntax."""
+
+    priority = Int(100, config=True)
+
+    def transform(self, line, continue_prompt):
+        m = _assign_system_re.match(line)
+        if m is not None:
+            cmd = m.group('cmd')
+            lhs = m.group('lhs')
+            expr = make_quoted_expr("sc -l =%s" % cmd)
+            new_line = '%s = get_ipython().magic(%s)' % (lhs, expr)
+            return new_line
+        return line
+
+
+_assign_magic_re = re.compile(r'(?P<lhs>(\s*)([\w\.]+)((\s*,\s*[\w\.]+)*))'
+                               r'\s*=\s*%(?P<cmd>.*)')
+
+class AssignMagicTransformer(PrefilterTransformer):
+    """Handle the `a = %who` syntax."""
+
+    priority = Int(200, config=True)
+
+    def transform(self, line, continue_prompt):
+        m = _assign_magic_re.match(line)
+        if m is not None:
+            cmd = m.group('cmd')
+            lhs = m.group('lhs')
+            expr = make_quoted_expr(cmd)
+            new_line = '%s = get_ipython().magic(%s)' % (lhs, expr)
+            return new_line
+        return line
 
 
 #-----------------------------------------------------------------------------
@@ -319,9 +519,11 @@ class PrefilterChecker(Component):
     priority = Int(100, config=True)
     shell = Any
     prefilter_manager = Any
+    enabled = Bool(True, config=True)
 
     def __init__(self, parent, config=None):
         super(PrefilterChecker, self).__init__(parent, config=config)
+        self.prefilter_manager.register_checker(self)
 
     @auto_attr
     def shell(self):
@@ -334,15 +536,18 @@ class PrefilterChecker(Component):
         return PrefilterManager.get_instances(root=self.root)[0]
 
     def check(self, line_info):
-        """Inspect line_info and return a handler or None."""
+        """Inspect line_info and return a handler instance or None."""
         return None
 
-    def __str__(self):
-        return "<%s(priority=%i)>" % (self.__class__.__name__, self.priority)
+    def __repr__(self):
+        return "<%s(priority=%r, enabled=%r)>" % (
+            self.__class__.__name__, self.priority, self.enabled)
+
 
 class EmacsChecker(PrefilterChecker):
 
     priority = Int(100, config=True)
+    enabled = Bool(False, config=True)
 
     def check(self, line_info):
         "Emacs ipython-mode tags certain input lines."
@@ -410,10 +615,6 @@ class EscCharsChecker(PrefilterChecker):
             return self.prefilter_manager.get_handler_by_esc(line_info.pre_char)
 
 
-_assign_system_re = re.compile('\s*=\s*!(?P<cmd>.*)')
-_assign_magic_re = re.compile('\s*=\s*%(?P<cmd>.*)')
-
-
 class AssignmentChecker(PrefilterChecker):
 
     priority = Int(600, config=True)
@@ -427,12 +628,6 @@ class AssignmentChecker(PrefilterChecker):
         python code).  E.g. ls='hi', or ls,that=1,2"""
         if line_info.the_rest:
             if line_info.the_rest[0] in '=,':
-                # m = _assign_system_re.match(line_info.the_rest)
-                # if m is not None:
-                #     return self.prefilter_manager.get_handler_by_name('assign_system')
-                # m = _assign_magic_re.match(line_info.the_rest)
-                # if m is not None:
-                #     return self.prefilter_manager.get_handler_by_name('assign_magic')
                 return self.prefilter_manager.get_handler_by_name('normal')
         else:
             return None
@@ -570,45 +765,6 @@ class PrefilterHandler(Component):
 
     def __str__(self):
         return "<%s(name=%s)>" % (self.__class__.__name__, self.handler_name)
-
-class AssignSystemHandler(PrefilterHandler):
-
-    handler_name = Str('assign_system')
-
-    @auto_attr
-    def normal_handler(self):
-        return self.prefilter_manager.get_handler_by_name('normal')
-
-    def handle(self, line_info):
-        new_line = line_info.line
-        m = _assign_system_re.match(line_info.the_rest)
-        if m is not None:
-            cmd = m.group('cmd')
-            expr = make_quoted_expr("sc -l =%s" % cmd)
-            new_line = '%s%s = get_ipython().magic(%s)' % (line_info.pre_whitespace,
-                line_info.ifun, expr)
-        self.shell.log(line_info.line, new_line, line_info.continue_prompt)
-        return new_line
-
-
-class AssignMagicHandler(PrefilterHandler):
-
-    handler_name = Str('assign_magic')
-
-    @auto_attr
-    def normal_handler(self):
-        return self.prefilter_manager.get_handler_by_name('normal')
-
-    def handle(self, line_info):
-        new_line = line_info.line
-        m = _assign_magic_re.match(line_info.the_rest)
-        if m is not None:
-            cmd = m.group('cmd')
-            expr = make_quoted_expr(cmd)
-            new_line = '%s%s = get_ipython().magic(%s)' % (line_info.pre_whitespace,
-                line_info.ifun, expr)
-        self.shell.log(line_info.line, new_line, line_info.continue_prompt)
-        return new_line
 
 
 class AliasHandler(PrefilterHandler):
@@ -809,6 +965,11 @@ class EmacsHandler(PrefilterHandler):
 #-----------------------------------------------------------------------------
 
 
+_default_transformers = [
+    AssignSystemTransformer,
+    AssignMagicTransformer
+]
+
 _default_checkers = [
     EmacsChecker,
     ShellEscapeChecker,
@@ -830,7 +991,5 @@ _default_handlers = [
     AutoHandler,
     HelpHandler,
     EmacsHandler
-    # AssignSystemHandler,
-    # AssignMagicHandler
 ]
 
