@@ -147,12 +147,12 @@ class TestComponentConfig(TestCase):
         self.assertEquals(c1.config, config)
         self.assertEquals(c2.config, config)
         self.assertEquals(c3.config, config)
-        # Test that we always make copies
-        self.assert_(c1.config is not config)
-        self.assert_(c2.config is not config)
-        self.assert_(c3.config is not config)
-        self.assert_(c1.config is not c2.config)
-        self.assert_(c2.config is not c3.config)
+        # Test that copies are not made
+        self.assert_(c1.config is config)
+        self.assert_(c2.config is config)
+        self.assert_(c3.config is config)
+        self.assert_(c1.config is c2.config)
+        self.assert_(c2.config is c3.config)
         
     def test_inheritance(self):
         class MyComponent(Component):

@@ -234,10 +234,18 @@ class Component(HasTraitlets):
         self.root = self # This is the default, it is set when parent is set
         self.parent = parent
         if config is not None:
-            self.config = deepcopy(config)
+            self.config = config
+            # We used to deepcopy, but for now we are trying to just save
+            # by reference.  This *could* have side effects as all components
+            # will share config.
+            # self.config = deepcopy(config)
         else:
             if self.parent is not None:
-                self.config = deepcopy(self.parent.config)
+                self.config = self.parent.config
+                # We used to deepcopy, but for now we are trying to just save
+                # by reference.  This *could* have side effects as all components
+                # will share config.
+                # self.config = deepcopy(self.parent.config)
 
         self.created = datetime.datetime.now()
 
