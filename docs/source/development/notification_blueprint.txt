@@ -78,6 +78,31 @@ Like magic, Dwight's frontend is able to provide output, even during
 long-running calculations. Now if Jim could just convince Dwight to use
 Twisted...
 
-    2. Boss Hog is writing a frontend for the IPython project. Because Boss Hog is stuck in the stone age, his frontend will be written in a new Fortran-like dialect of python and will run only from the command line. Because he doesn't need any fancy notification system and is used to worrying about every cycle on his rat-wheel powered mini, Boss Hog is adamant that the new notification system not produce any performance penalty. As they say in Hazard county, there's no such thing as a free lunch. If he wanted zero overhead, he should have kept using IPython 0.8. Instead, those tricky Duke boys slide in a suped-up bridge-out jumpin' awkwardly confederate-lovin' notification module that imparts only a constant (and small) performance penalty when the Interpreter (or any other object) fires an event for which there are no registered observers. Of course, the same notificaiton-enabled Interpreter can then be used in frontends that require notifications, thus saving the IPython project from a nasty civil war.
+2. Boss Hog is writing a frontend for the IPython project. Because Boss Hog is
+stuck in the stone age, his frontend will be written in a new Fortran-like
+dialect of python and will run only from the command line. Because he doesn't
+need any fancy notification system and is used to worrying about every cycle
+on his rat-wheel powered mini, Boss Hog is adamant that the new notification
+system not produce any performance penalty. As they say in Hazard county,
+there's no such thing as a free lunch. If he wanted zero overhead, he should
+have kept using IPython 0.8. Instead, those tricky Duke boys slide in a
+suped-up bridge-out jumpin' awkwardly confederate-lovin' notification module
+that imparts only a constant (and small) performance penalty when the
+Interpreter (or any other object) fires an event for which there are no
+registered observers. Of course, the same notificaiton-enabled Interpreter can
+then be used in frontends that require notifications, thus saving the IPython
+project from a nasty civil war.
     
-    3. Barry is wrting a frontend for the IPython project. Because Barry's front end is the *new hotness*, it uses an asynchronous event model to communicate with a Twisted :mod:`~IPython.kernel.engineservice` that communicates with the IPython :class:`~IPython.kernel.core.interpreter.Interpreter`. Using the :mod:`IPython.kernel.notification` module, an asynchronous wrapper on the :mod:`IPython.kernel.core.notification` module, Barry's frontend can register for notifications from the interpreter that are delivered asynchronously. Even if Barry's frontend is running on a separate process or even host from the Interpreter, the notifications are delivered, as if by dark and twisted magic. Just like Dwight's frontend, Barry's frontend can now recieve notifications of e.g. writing to stdout/stderr, opening/closing an external file, an exception in the executing code, etc.
+3. Barry is wrting a frontend for the IPython project. Because Barry's front
+end is the *new hotness*, it uses an asynchronous event model to communicate
+with a Twisted :mod:`~IPython.kernel.engineservice` that communicates with the
+IPython :class:`~IPython.kernel.core.interpreter.Interpreter`. Using the
+:mod:`IPython.kernel.notification` module, an asynchronous wrapper on the
+:mod:`IPython.kernel.core.notification` module, Barry's frontend can register
+for notifications from the interpreter that are delivered asynchronously. Even
+if Barry's frontend is running on a separate process or even host from the
+Interpreter, the notifications are delivered, as if by dark and twisted magic.
+Just like Dwight's frontend, Barry's frontend can now recieve notifications of
+e.g. writing to stdout/stderr, opening/closing an external file, an exception
+in the executing code, etc.
+

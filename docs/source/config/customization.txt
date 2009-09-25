@@ -284,3 +284,4 @@ change such as your color preferences, for example), any profile can
 include another configuration file. The most common way to use profiles
 is then to have each one include your basic ipythonrc file as a starting
 point, and then add further customizations.
+

@@ -89,3 +89,4 @@ its author/authors have decided to publish the code.
 Versions of IPython up to and including 0.6.3 were released under the GNU
 Lesser General Public License (LGPL), available at
 http://www.gnu.org/copyleft/lesser.html.
+

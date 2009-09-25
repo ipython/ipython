@@ -1,0 +1,23 @@
+.. Developers should add in this file, during each release cycle, information
+.. about important changes they've made, in a summary format that's meant for
+.. end users.  For each release we normally have three sections: features,  bug
+.. fixes and api breakage.
+.. Please remember to credit the authors of the contributions by name,
+.. especially when they are new users or developers who do not regularly
+.. participate  in IPython's development.
+
+.. _whatsnew_index:
+
+=====================
+What's new in IPython
+=====================
+
+.. toctree::
+   :maxdepth: 1
+
+   development
+   version0.10
+   version0.9
+   version0.8
+
+

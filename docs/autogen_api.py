@@ -15,19 +15,25 @@ if __name__ == '__main__':
     package = 'IPython'
     outdir = pjoin('source','api','generated')
     docwriter = ApiDocWriter(package,rst_extension='.txt')
+    # You have to escape the . here because . is a special char for regexps.
+    # You must do make clean if you change this!
     docwriter.package_skip_patterns += [r'\.fixes$',
-                                        r'\.externals$',
+                                        r'\.external$',
                                         r'\.extensions',
-                                        r'\.kernel.config',
+                                        r'\.kernel\.config',
                                         r'\.attic',
                                         r'\.quarantine',
-                                        r'\.deathrow'
+                                        r'\.deathrow',
+                                        r'\.config\.default',
+                                        r'\.config\.profile',
+                                        r'\.frontend',
+                                        r'\.gui'
                                         ]
-    docwriter.module_skip_patterns += [ r'\.core.fakemodule',
+    docwriter.module_skip_patterns += [ r'\.core\.fakemodule',
                                         r'\.cocoa',
                                         r'\.ipdoctest',
                                         r'\.Gnuplot',
-                                        r'\.frontend.process.winprocess',
+                                        r'\.frontend\.process\.winprocess',
                                         ]
     docwriter.write_api_docs(outdir)
     docwriter.write_index(outdir, 'gen',

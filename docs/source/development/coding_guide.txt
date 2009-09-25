@@ -139,3 +139,4 @@ are interested in working on this part of IPython. The current prototype of
 .. _.ini: http://docs.python.org/lib/module-ConfigParser.html
 .. _ConfigObj: http://www.voidspace.org.uk/python/configobj.html
 .. _Traits: http://code.enthought.com/traits/
+

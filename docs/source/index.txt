@@ -7,25 +7,28 @@ IPython Documentation
    :Release: |release|
    :Date: |today|
 
-   Contents:
+Welcome to the official IPython documentation.  This document describes the
+various parts of IPython that are relevant to both users and developers.
+
+Contents
+========
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
 
    overview.txt
+   whatsnew/index.txt
    install/index.txt
    interactive/index.txt
    parallel/index.txt
    config/index.txt
-   faq.txt
-   history.txt
-   changes.txt
    development/index.txt
    api/index.txt
-   license_and_copyright.txt
-   credits.txt
+   faq.txt
+   about/index.txt
 
 .. htmlonly::
    * :ref:`genindex`
    * :ref:`modindex`
    * :ref:`search`
+

@@ -291,3 +291,4 @@ binary installer is available on the `wxPython website
 .. [ZopeInterface] http://pypi.python.org/pypi/zope.interface
 .. [Foolscap] Foolscap network protocol.  http://foolscap.lothar.com/trac
 .. [pyOpenSSL] pyOpenSSL.  http://pyopenssl.sourceforge.net
+

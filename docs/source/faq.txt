@@ -94,12 +94,3 @@ handling the data movement. Here are some ideas:
 Isn't Python slow to be used for high-performance parallel computing?
 ---------------------------------------------------------------------
 
-
-
-
- 
-
-
-
-
-

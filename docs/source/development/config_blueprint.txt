@@ -31,3 +31,4 @@ There are a number of things that complicate this:
   different host.  Ahhhh!
 * Our configurations are not singletons.  A given user will likely have
   many different configurations for different clusters.
+

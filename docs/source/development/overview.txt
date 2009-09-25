@@ -515,3 +515,4 @@ version 0.11 at least, we will retain Python 2.5 compatibility.
 .. [reStructuredText] reStructuredText.  http://docutils.sourceforge.net/rst.html
 .. [Sphinx] Sphinx. http://sphinx.pocoo.org/
 .. [Nose] Nose: a discovery based unittest extension. http://code.google.com/p/python-nose/
+

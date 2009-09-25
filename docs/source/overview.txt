@@ -218,9 +218,10 @@ for parallel computing.
 Portability and Python requirements
 -----------------------------------
 
-As of the 0.9 release, IPython requires Python 2.4 or greater.  We have
-not begun to test IPython on Python 2.6 or 3.0, but we expect it will
-work with some minor changes.
+As of the 0.11 release, IPython works with either Python 2.5 or 2.6.  
+Versions 0.9 and 0.10 worked with Python 2.4 as well.  We have not begun
+the test and port IPython to 3.0.  Our plan is to gradually drop Python 2.5
+support and then begin the transition to strict 2.6 and 3.0.
 
 IPython is known to work on the following operating systems:
 
@@ -230,3 +231,4 @@ IPython is known to work on the following operating systems:
 	* Windows (CygWin, XP, Vista, etc.)
 
 See :ref:`here <install_index>` for instructions on how to install IPython.
+

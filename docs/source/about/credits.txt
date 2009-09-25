@@ -205,3 +205,4 @@ know if we have ommitted your name by accident:
   Sphinx system used by Python, Matplotlib and many more projects.
 
 * [Stefan van der Walt] <stefan-AT-sun.ac.za>: support for the new config system.
+

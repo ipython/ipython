@@ -247,3 +247,4 @@ Notes:
     * Be aware that if you customize py-python-command previously, this
       value will override what ipython.el does (because loading the
       customization variables comes later).
+

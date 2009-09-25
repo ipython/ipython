@@ -282,3 +282,4 @@ property return one string where the lines are separated by '\n'
 (i.e. the original output of the function). If the items in string
 list are file names, '.p' can be used to get a list of "path" objects
 for convenient file manipulation.
+

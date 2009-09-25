@@ -92,5 +92,3 @@ Currently, we have a number of performance issues in :mod:`IPython.kernel`:
   separate the controller itself into multiple processes, one for the core
   controller and one each for the controller interfaces.
 
-
-
