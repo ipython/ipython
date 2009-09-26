@@ -102,3 +102,40 @@ machinery to process reStructuredText):
 - `Docstring Processing System Framework <http://www.python.org/peps/pep-0256.html>`_
 - `Docutils Design Specification <http://www.python.org/peps/pep-0258.html>`_
 
+Older material
+==============
+
+Documentation
+=============
+
+Standalone documentation
+------------------------
+
+All standalone documentation should be written in plain text (``.txt``) files
+using reStructuredText [reStructuredText]_ for markup and formatting. All such
+documentation should be placed in directory :file:`docs/source` of the IPython
+source tree. The documentation in this location will serve as the main source
+for IPython documentation and all existing documentation should be converted
+to this format.
+
+To build the final documentation, we use Sphinx [Sphinx]_.  Once you have
+Sphinx installed, you can build the html docs yourself by doing::
+
+    $ cd ipython-mybranch/docs
+    $ make html
+
+Docstring format
+----------------
+
+Good docstrings are very important. All new code should have docstrings that
+are formatted using reStructuredText for markup and formatting, since it is
+understood by a wide variety of tools. Details about using reStructuredText
+for docstrings can be found `here
+<http://epydoc.sourceforge.net/manual-othermarkup.html>`_.
+
+Additional PEPs of interest regarding documentation of code:
+
+* `Docstring Conventions <http://www.python.org/peps/pep-0257.html>`_
+* `Docstring Processing System Framework <http://www.python.org/peps/pep-0256.html>`_
+* `Docutils Design Specification <http://www.python.org/peps/pep-0258.html>`_
+

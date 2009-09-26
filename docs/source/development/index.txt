@@ -1,16 +1,25 @@
-===========================
- IPython Developer's Guide
-===========================
+.. _developer_guide:
+
+=========================
+IPython developer's guide
+=========================
 
 .. toctree::
    :maxdepth: 2
 
-   overview.txt
+   contributing.txt
    coding_guide.txt
    doc_guide.txt
+   testing.txt
+   release.txt
    roadmap.txt
 
    notification_blueprint.txt
-   config_blueprint.txt
    reorg.txt
 
+
+.. [Bazaar] Bazaar. http://bazaar-vcs.org/
+.. [Launchpad] Launchpad. http://www.launchpad.net/ipython
+.. [reStructuredText] reStructuredText.  http://docutils.sourceforge.net/rst.html
+.. [Sphinx] Sphinx. http://sphinx.pocoo.org/
+.. [Nose] Nose: a discovery based unittest extension. http://code.google.com/p/python-nose/

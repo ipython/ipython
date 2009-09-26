@@ -91,6 +91,3 @@ handling the data movement. Here are some ideas:
 
 5. See if you can pass data directly between engines using MPI.
 
-Isn't Python slow to be used for high-performance parallel computing?
----------------------------------------------------------------------
-

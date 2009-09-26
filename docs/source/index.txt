@@ -7,8 +7,7 @@ IPython Documentation
    :Release: |release|
    :Date: |today|
 
-Welcome to the official IPython documentation.  This document describes the
-various parts of IPython that are relevant to both users and developers.
+Welcome to the official IPython documentation.
 
 Contents
 ========

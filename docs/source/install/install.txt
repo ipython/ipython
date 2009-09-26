@@ -34,16 +34,20 @@ Quickstart
 
 If you have :mod:`setuptools` installed and you are on OS X or Linux (not
 Windows), the following will download and install IPython *and* the main
-optional dependencies::
+optional dependencies:
 
-    $ easy_install ipython[kernel,security,test]
+.. code-block:: bash
+
+    easy_install ipython[kernel,security,test]
 
 This will get Twisted, zope.interface and Foolscap, which are needed for
 IPython's parallel computing features as well as the nose package, which will
 enable you to run IPython's test suite.  To run IPython's test suite, use the
-:command:`iptest` command::
+:command:`iptest` command:
 
-    $ iptest
+.. code-block:: bash
+
+    iptest
 
 Read on for more specific details and instructions for Windows.
 
@@ -62,9 +66,11 @@ Installation using easy_install
 -------------------------------
 
 If you have :mod:`setuptools` installed, the easiest way of getting IPython is
-to simple use :command:`easy_install`::
+to simple use :command:`easy_install`:
 
-	$ easy_install ipython
+.. code-block:: bash
+
+    easy_install ipython
 
 That's it.
 
@@ -73,11 +79,13 @@ Installation from source
 
 If you don't want to use :command:`easy_install`, or don't have it installed,
 just grab the latest stable build of IPython from `here
-<http://ipython.scipy.org/dist/>`_.  Then do the following::
+<http://ipython.scipy.org/dist/>`_.  Then do the following:
 
-	$ tar -xzf ipython.tar.gz
-	$ cd ipython
-	$ python setup.py install
+.. code-block:: bash
+
+    tar -xzf ipython.tar.gz
+    cd ipython
+    python setup.py install
 
 If you are installing to a location (like ``/usr/local``) that requires higher
 permissions, you may need to run the last command with :command:`sudo`.
@@ -98,7 +106,7 @@ use any of the following alternatives:
 3. Install from source, but using :mod:`setuptools` (``python setupegg.py
    install``).
 
-IPython by default runs in a termninal window, but the normal terminal
+IPython by default runs in a terminal window, but the normal terminal
 application supplied by Microsoft Windows is very primitive.  You may want to
 download the excellent and free Console_ application instead, which is a far
 superior tool.  You can even configure Console to give you by default an
@@ -113,26 +121,32 @@ Installing the development version
 
 It is also possible to install the development version of IPython from our
 `Bazaar <http://bazaar-vcs.org/>`_ source code repository.  To do this you will
-need to have Bazaar installed on your system.  Then just do::
+need to have Bazaar installed on your system.  Then just do:
 
-	$ bzr branch lp:ipython
-	$ cd ipython
-	$ python setup.py install
+.. code-block:: bash
+
+    bzr branch lp:ipython
+    cd ipython
+    python setup.py install
 
 Again, this last step on Windows won't create ``.bat`` files or Start Menu
 shortcuts, so you will have to use one of the other approaches listed above.
 
 Some users want to be able to follow the development branch as it changes.  If
 you have :mod:`setuptools` installed, this is easy. Simply replace the last
-step by::
+step by:
 
-	$ python setupegg.py develop
+.. code-block:: bash
+
+    python setupegg.py develop
 
 This creates links in the right places and installs the command line script to
 the appropriate places.  Then, if you want to update your IPython at any time,
-just do::
+just do:
 
-	$ bzr pull
+.. code-block:: bash
+
+    bzr pull
 
 Basic optional dependencies
 ===========================
@@ -165,9 +179,11 @@ many of the issues related to the differences between readline and libedit have
 been resolved.  For many users, libedit may be sufficient.
 
 Most users on OS X will want to get the full :mod:`readline` module.  To get a
-working :mod:`readline` module, just do (with :mod:`setuptools` installed)::
+working :mod:`readline` module, just do (with :mod:`setuptools` installed):
 
-	$ easy_install readline
+.. code-block:: bash
+
+    easy_install readline
 
 .. note:
 
@@ -190,28 +206,35 @@ nose
 
 To run the IPython test suite you will need the :mod:`nose` package.  Nose
 provides a great way of sniffing out and running all of the IPython tests.  The
-simplest way of getting nose, is to use :command:`easy_install`::
+simplest way of getting nose, is to use :command:`easy_install`:
 
-	$ easy_install nose
+.. code-block:: bash
 
-Another way of getting this is to do::
+    easy_install nose
 
-    $ easy_install ipython[test]
+Another way of getting this is to do:
+
+.. code-block:: bash
+
+    easy_install ipython[test]
 
 For more installation options, see the `nose website
 <http://somethingaboutorange.com/mrl/projects/nose/>`_.  Once you have nose
-installed, you can run IPython's test suite using the iptest command::
+installed, you can run IPython's test suite using the iptest command:
 
-	$ iptest
+.. code-block:: bash
 
+    iptest
 
 pexpect
 -------
 
 The `pexpect <http://www.noah.org/wiki/Pexpect>`_ package is used in IPython's
-:command:`irunner` script.  On Unix platforms (including OS X), just do::
+:command:`irunner` script.  On Unix platforms (including OS X), just do:
 
-	$ easy_install pexpect
+.. code-block:: bash
+
+    easy_install pexpect
 
 Windows users are out of luck as pexpect does not run there.
 
@@ -227,36 +250,45 @@ features require a number of additional packages:
 * Foolscap (a nice, secure network protocol)
 * pyOpenSSL (security for network connections)
 
-On a Unix style platform (including OS X), if you want to use :mod:`setuptools`, you can just do::
+On a Unix style platform (including OS X), if you want to use
+:mod:`setuptools`, you can just do:
 
-    $ easy_install ipython[kernel]    # the first three
-    $ easy_install ipython[security]  # pyOpenSSL
+.. code-block:: bash
+
+    easy_install ipython[kernel]    # the first three
+    easy_install ipython[security]  # pyOpenSSL
 
 zope.interface and Twisted
 --------------------------
 
 Twisted [Twisted]_ and zope.interface [ZopeInterface]_ are used for networking
 related things. On Unix style platforms (including OS X), the simplest way of
-getting the these is to use :command:`easy_install`::
+getting the these is to use :command:`easy_install`:
 
-	$ easy_install zope.interface
-	$ easy_install Twisted
+.. code-block:: bash
 
-Of course, you can also download the source tarballs from the `Twisted website
-<twistedmatrix.org>`_ and the `zope.interface page at PyPI
+    easy_install zope.interface
+    easy_install Twisted
+
+Of course, you can also download the source tarballs from the Twisted website
+[Twisted]_ and the `zope.interface page at PyPI
 <http://pypi.python.org/pypi/zope.interface>`_ and do the usual ``python
 setup.py install`` if you prefer.
 
-Windows is a bit different.  For zope.interface and Twisted, simply get the latest binary ``.exe`` installer from the Twisted website.  This installer includes both zope.interface and Twisted and should just work.
+Windows is a bit different. For zope.interface and Twisted, simply get the
+latest binary ``.exe`` installer from the Twisted website. This installer
+includes both zope.interface and Twisted and should just work.
 
 Foolscap
 --------
 
 Foolscap [Foolscap]_ uses Twisted to provide a very nice secure RPC protocol that we use to implement our parallel computing features.
 
-On all platforms a simple::
+On all platforms a simple:
 
-    $ easy_install foolscap
+.. code-block:: bash
+
+    easy_install foolscap
 
 should work.  You can also download the source tarballs from the `Foolscap
 website <http://foolscap.lothar.com/trac>`_ and do ``python setup.py install``
@@ -265,14 +297,16 @@ if you prefer.
 pyOpenSSL
 ---------
 
-IPython requires an older version of pyOpenSSL [pyOpenSSL]_ (0.6 rather than
-the current 0.7).  There are a couple of options for getting this:
+IPython does not work with version 0.7 of pyOpenSSL [pyOpenSSL]_. It is known
+to work with version 0.6 and will likely work with the more recent 0.8 and 0.9
+versions. There are a couple of options for getting this:
 
-1.  Most Linux distributions have packages for pyOpenSSL.
-2.  The built-in Python 2.5 on OS X 10.5 already has it installed.
-3.  There are source tarballs on the pyOpenSSL website.  On Unix-like
-    platforms, these can be built using ``python seutp.py install``.
-4.  There is also a binary ``.exe`` Windows installer on the `pyOpenSSL website <http://pyopenssl.sourceforge.net/>`_.
+1. Most Linux distributions have packages for pyOpenSSL.
+2. The built-in Python 2.5 on OS X 10.5 already has it installed.
+3. There are source tarballs on the pyOpenSSL website.  On Unix-like
+   platforms, these can be built using ``python seutp.py install``.
+4. There is also a binary ``.exe`` Windows installer on the 
+   `pyOpenSSL website <http://pyopenssl.sourceforge.net/>`_.
 
 Dependencies for IPython.frontend (the IPython GUI)
 ===================================================
@@ -280,11 +314,11 @@ Dependencies for IPython.frontend (the IPython GUI)
 wxPython
 --------
 
-Starting with IPython 0.9, IPython has a new IPython.frontend package that has
-a nice wxPython based IPython GUI.  As you would expect, this GUI requires
-wxPython.  Most Linux distributions have wxPython packages available and the
-built-in Python on OS X comes with wxPython preinstalled.  For Windows, a
-binary installer is available on the `wxPython website
+Starting with IPython 0.9, IPython has a new :mod:`IPython.frontend` package
+that has a nice wxPython based IPython GUI. As you would expect, this GUI
+requires wxPython. Most Linux distributions have wxPython packages available
+and the built-in Python on OS X comes with wxPython preinstalled. For Windows,
+a binary installer is available on the `wxPython website
 <http://www.wxpython.org/>`_.
 
 .. [Twisted] Twisted matrix.  http://twistedmatrix.org

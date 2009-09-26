@@ -92,3 +92,23 @@ Currently, we have a number of performance issues in :mod:`IPython.kernel`:
   separate the controller itself into multiple processes, one for the core
   controller and one each for the controller interfaces.
 
+Porting to 3.0
+==============
+
+There are no definite plans for porting of IPython to Python 3. The major 
+issue is the dependency on Twisted framework for the networking/threading 
+stuff. It is possible that it the traditional IPython interactive console 
+could be ported more easily since it has no such dependency. Here are a few
+things that will need to be considered when doing such a port especially
+if we want to have a codebase that works directly on both 2.x and 3.x.
+
+1. The syntax for exceptions changed (PEP 3110). The old `except exc, var`
+changed to `except exc as var`. At last count there was 78 occurrences of this
+usage in the code base. This is a particularly problematic issue, because it's
+not easy to implement it in a 2.5-compatible way.
+
+Because it is quite difficult to support simultaneously Python 2.5 and 3.x, we
+will likely at some point put out a release that requires strictly 2.6 and
+abandons 2.5 compatibility.  This will then allow us to port the code to using
+:func:`print` as a function, `except exc as var` syntax, etc.  But as of
+version 0.11 at least, we will retain Python 2.5 compatibility.

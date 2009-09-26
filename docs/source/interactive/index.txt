@@ -8,5 +8,5 @@ Using IPython for interactive work
    tutorial.txt
    reference.txt
    shell.txt
-   extension_api.txt
+
 
