@@ -45,16 +45,18 @@ except ImportError:
 import IPython
 from IPython.utils import wildcard
 from IPython.core import debugger, oinspect
+from IPython.core.error import TryNext
 from IPython.core.fakemodule import FakeModule
+from IPython.core.prefilter import ESC_MAGIC
 from IPython.external.Itpl import Itpl, itpl, printpl,itplns
 from IPython.utils.PyColorize import Parser
 from IPython.utils.ipstruct import Struct
 from IPython.core.macro import Macro
 from IPython.utils.genutils import *
+from IPython.core.page import page
 from IPython.utils import platutils
 import IPython.utils.generics
-from IPython.core import ipapi
-from IPython.core.ipapi import UsageError
+from IPython.core.error import UsageError
 from IPython.testing import decorators as testdec
 
 #***************************************************************************
@@ -204,9 +206,9 @@ python-profiler package from non-free.""")
             namespaces = [ ('Interactive', self.shell.user_ns),
                            ('IPython internal', self.shell.internal_ns),
                            ('Python builtin', __builtin__.__dict__),
-                           ('Alias', self.shell.alias_table),
+                           ('Alias', self.shell.alias_manager.alias_table),
                            ]
-            alias_ns = self.shell.alias_table
+            alias_ns = self.shell.alias_manager.alias_table
 
         # initialize results to 'null'
         found = 0; obj = None;  ospace = None;  ds = None;
@@ -243,7 +245,7 @@ python-profiler package from non-free.""")
 
         # Try to see if it's magic
         if not found:
-            if oname.startswith(self.shell.ESC_MAGIC):
+            if oname.startswith(ESC_MAGIC):
                 oname = oname[1:]
             obj = getattr(self,'magic_'+oname,None)
             if obj is not None:
@@ -271,10 +273,10 @@ python-profiler package from non-free.""")
         # Characters that need to be escaped for latex:
         escape_re = re.compile(r'(%|_|\$|#|&)',re.MULTILINE)
         # Magic command names as headers:
-        cmd_name_re = re.compile(r'^(%s.*?):' % self.shell.ESC_MAGIC,
+        cmd_name_re = re.compile(r'^(%s.*?):' % ESC_MAGIC,
                                  re.MULTILINE)
         # Magic commands 
-        cmd_re = re.compile(r'(?P<cmd>%s.+?\b)(?!\}\}:)' % self.shell.ESC_MAGIC,
+        cmd_re = re.compile(r'(?P<cmd>%s.+?\b)(?!\}\}:)' % ESC_MAGIC,
                             re.MULTILINE)
         # Paragraph continue
         par_re = re.compile(r'\\$',re.MULTILINE)
@@ -375,10 +377,10 @@ python-profiler package from non-free.""")
     # Functions for IPython shell work (vars,funcs, config, etc)
     def magic_lsmagic(self, parameter_s = ''):
         """List currently available magic functions."""
-        mesc = self.shell.ESC_MAGIC
+        mesc = ESC_MAGIC
         print 'Available magic functions:\n'+mesc+\
               ('  '+mesc).join(self.lsmagic())
-        print '\n' + Magic.auto_status[self.shell.rc.automagic]
+        print '\n' + Magic.auto_status[self.shell.automagic]
         return None
         
     def magic_magic(self, parameter_s = ''):
@@ -423,11 +425,11 @@ python-profiler package from non-free.""")
                 
                 
             if mode == 'rest':
-                rest_docs.append('**%s%s**::\n\n\t%s\n\n' %(self.shell.ESC_MAGIC,
+                rest_docs.append('**%s%s**::\n\n\t%s\n\n' %(ESC_MAGIC,
                                                     fname,fndoc))
                 
             else:
-                magic_docs.append('%s%s:\n\t%s\n' %(self.shell.ESC_MAGIC,
+                magic_docs.append('%s%s:\n\t%s\n' %(ESC_MAGIC,
                                                     fname,fndoc))
                 
         magic_docs = ''.join(magic_docs)
@@ -470,22 +472,22 @@ ipythonrc file, placing a line like:
 
 will define %pf as a new name for %profile.
 
-You can also call magics in code using the ipmagic() function, which IPython
-automatically adds to the builtin namespace.  Type 'ipmagic?' for details.
+You can also call magics in code using the magic() function, which IPython
+automatically adds to the builtin namespace.  Type 'magic?' for details.
 
 For a list of the available magic functions, use %lsmagic. For a description
 of any of them, type %magic_name?, e.g. '%cd?'.
 
 Currently the magic system has the following functions:\n"""
 
-        mesc = self.shell.ESC_MAGIC
+        mesc = ESC_MAGIC
         outmsg = ("%s\n%s\n\nSummary of magic functions (from %slsmagic):"
                   "\n\n%s%s\n\n%s" % (outmsg,
                                      magic_docs,mesc,mesc,
                                      ('  '+mesc).join(self.lsmagic()),
-                                     Magic.auto_status[self.shell.rc.automagic] ) )
+                                     Magic.auto_status[self.shell.automagic] ) )
 
-        page(outmsg,screen_lines=self.shell.rc.screen_length)
+        page(outmsg,screen_lines=self.shell.usable_screen_length)
   
 
     def magic_autoindent(self, parameter_s = ''):
@@ -512,15 +514,14 @@ Currently the magic system has the following functions:\n"""
         delete the variable (del var), the previously shadowed magic function
         becomes visible to automagic again."""
 
-        rc = self.shell.rc
         arg = parameter_s.lower()
         if parameter_s in ('on','1','true'):
-            rc.automagic = True
+            self.shell.automagic = True
         elif parameter_s in ('off','0','false'):
-            rc.automagic = False
+            self.shell.automagic = False
         else:
-            rc.automagic = not rc.automagic
-        print '\n' + Magic.auto_status[rc.automagic]
+            self.shell.automagic = not self.shell.automagic
+        print '\n' + Magic.auto_status[self.shell.automagic]
 
     @testdec.skip_doctest
     def magic_autocall(self, parameter_s = ''):
@@ -566,8 +567,6 @@ Currently the magic system has the following functions:\n"""
         # all-random (note for auto-testing)
         """
 
-        rc = self.shell.rc
-
         if parameter_s:
             arg = int(parameter_s)
         else:
@@ -578,18 +577,18 @@ Currently the magic system has the following functions:\n"""
             return
 
         if arg in (0,1,2):
-            rc.autocall = arg
+            self.shell.autocall = arg
         else: # toggle
-            if rc.autocall:
-                self._magic_state.autocall_save = rc.autocall
-                rc.autocall = 0
+            if self.shell.autocall:
+                self._magic_state.autocall_save = self.shell.autocall
+                self.shell.autocall = 0
             else:
                 try:
-                    rc.autocall = self._magic_state.autocall_save
+                    self.shell.autocall = self._magic_state.autocall_save
                 except AttributeError:
-                    rc.autocall = self._magic_state.autocall_save = 1
+                    self.shell.autocall = self._magic_state.autocall_save = 1
 
-        print "Automatic calling is:",['OFF','Smart','Full'][rc.autocall]
+        print "Automatic calling is:",['OFF','Smart','Full'][self.shell.autocall]
 
     def magic_system_verbose(self, parameter_s = ''):
         """Set verbose printing of system calls.
@@ -600,10 +599,13 @@ Currently the magic system has the following functions:\n"""
             val = bool(eval(parameter_s))
         else:
             val = None
-            
-        self.shell.rc_set_toggle('system_verbose',val)
+
+        if self.shell.system_verbose:
+            self.shell.system_verbose = False
+        else:
+            self.shell.system_verbose = True
         print "System verbose printing is:",\
-              ['OFF','ON'][self.shell.rc.system_verbose]
+              ['OFF','ON'][self.shell.system_verbose]
 
 
     def magic_page(self, parameter_s=''):
@@ -633,8 +635,8 @@ Currently the magic system has the following functions:\n"""
 
     def magic_profile(self, parameter_s=''):
         """Print your currently active IPyhton profile."""
-        if self.shell.rc.profile:
-            printpl('Current IPython profile: $self.shell.rc.profile.')
+        if self.shell.profile:
+            printpl('Current IPython profile: $self.shell.profile.')
         else:
             print 'No profile active.'
 
@@ -720,7 +722,7 @@ Currently the magic system has the following functions:\n"""
             try:
                 IPython.utils.generics.inspect_object(info.obj)
                 return
-            except ipapi.TryNext:
+            except TryNext:
                 pass
             # Get the docstring of the class property if it exists.
             path = oname.split('.')
@@ -848,7 +850,7 @@ Currently the magic system has the following functions:\n"""
         elif opts.has_key('c'):
             ignore_case = False
         else:
-            ignore_case = not shell.rc.wildcards_case_sensitive
+            ignore_case = not shell.wildcards_case_sensitive
 
         # Build list of namespaces to search from user options
         def_search.extend(opt('s',[]))
@@ -1132,7 +1134,6 @@ Currently the magic system has the following functions:\n"""
         log_raw_input = 'r' in opts
         timestamp = 't' in opts
 
-        rc = self.shell.rc
         logger = self.shell.logger
 
         # if no args are given, the defaults set in the logger constructor by
@@ -1149,11 +1150,12 @@ Currently the magic system has the following functions:\n"""
         # put logfname into rc struct as if it had been called on the command
         # line, so it ends up saved in the log header Save it in case we need
         # to restore it...
-        old_logfile = rc.opts.get('logfile','')  
+        old_logfile = self.shell.logfile
         if logfname:
             logfname = os.path.expanduser(logfname)
-        rc.opts.logfile = logfname
-        loghead = self.shell.loghead_tpl % (rc.opts,rc.args)
+        self.shell.logfile = logfname
+
+        loghead = '# IPython log file\n\n'
         try:
             started  = logger.logstart(logfname,loghead,logmode,
                                        log_output,timestamp,log_raw_input)
@@ -1421,7 +1423,7 @@ Currently the magic system has the following functions:\n"""
         output = stdout_trap.getvalue()
         output = output.rstrip()
 
-        page(output,screen_lines=self.shell.rc.screen_length)
+        page(output,screen_lines=self.shell.usable_screen_length)
         print sys_exit,
 
         dump_file = opts.D[0]
@@ -1569,7 +1571,7 @@ Currently the magic system has the following functions:\n"""
             return
 
         if filename.lower().endswith('.ipy'):
-            self.api.runlines(open(filename).read())
+            self.safe_execfile_ipy(filename)
             return
         
         # Control the response to exit() calls made by the script being run
@@ -1622,7 +1624,7 @@ Currently the magic system has the following functions:\n"""
                 stats = self.magic_prun('',0,opts,arg_lst,prog_ns)
             else:
                 if opts.has_key('d'):
-                    deb = debugger.Pdb(self.shell.rc.colors)
+                    deb = debugger.Pdb(self.shell.colors)
                     # reset Breakpoint state, which is moronically kept
                     # in a class
                     bdb.Breakpoint.next = 1
@@ -1738,25 +1740,6 @@ Currently the magic system has the following functions:\n"""
             self.shell.reloadhist()
                 
         return stats
-
-    def magic_runlog(self, parameter_s =''):
-        """Run files as logs.
-
-        Usage:\\
-          %runlog file1 file2 ...
-
-        Run the named files (treating them as log files) in sequence inside
-        the interpreter, and return to the prompt.  This is much slower than
-        %run because each line is executed in a try/except block, but it
-        allows running files with syntax errors in them.
-
-        Normally IPython will guess when a file is one of its own logfiles, so
-        you can typically use %run even for logs. This shorthand allows you to
-        force any file to be treated as a log file."""
-
-        for f in parameter_s.split():
-            self.shell.safe_execfile(f,self.shell.user_ns,
-                                     self.shell.user_ns,islog=1)
 
     @testdec.skip_doctest
     def magic_timeit(self, parameter_s =''):
@@ -2061,7 +2044,7 @@ Currently the magic system has the following functions:\n"""
         #print 'rng',ranges  # dbg
         lines = self.extract_input_slices(ranges,opts.has_key('r'))
         macro = Macro(lines)
-        self.shell.user_ns.update({name:macro})
+        self.shell.define_macro(name, macro)
         print 'Macro `%s` created. To execute, type its name (without quotes).' % name
         print 'Macro contents:'
         print macro,
@@ -2391,7 +2374,7 @@ Currently the magic system has the following functions:\n"""
         sys.stdout.flush()
         try:
             self.shell.hooks.editor(filename,lineno)
-        except ipapi.TryNext:
+        except TryNext:
             warn('Could not open editor')
             return
         
@@ -2492,7 +2475,7 @@ Defaulting color scheme to 'NoColor'"""
         except:
             color_switch_err('prompt')
         else:
-            shell.rc.colors = \
+            shell.colors = \
                        shell.outputcache.color_table.active_scheme_name
         # Set exception colors
         try:
@@ -2509,7 +2492,7 @@ Defaulting color scheme to 'NoColor'"""
                 color_switch_err('system exception handler')
         
         # Set info (for 'object?') colors
-        if shell.rc.color_info:
+        if shell.color_info:
             try:
                 shell.inspector.set_active_scheme(new_scheme)
             except:
@@ -2528,17 +2511,17 @@ Defaulting color scheme to 'NoColor'"""
         than more) in your system, using colored object information displays
         will not work properly. Test it and see."""
         
-        self.shell.rc.color_info = 1 - self.shell.rc.color_info
-        self.magic_colors(self.shell.rc.colors)
+        self.shell.color_info = not self.shell.color_info
+        self.magic_colors(self.shell.colors)
         print 'Object introspection functions have now coloring:',
-        print ['OFF','ON'][self.shell.rc.color_info]
+        print ['OFF','ON'][int(self.shell.color_info)]
 
     def magic_Pprint(self, parameter_s=''):
         """Toggle pretty printing on/off."""
         
-        self.shell.rc.pprint = 1 - self.shell.rc.pprint
+        self.shell.pprint = 1 - self.shell.pprint
         print 'Pretty printing has been turned', \
-              ['OFF','ON'][self.shell.rc.pprint]
+              ['OFF','ON'][self.shell.pprint]
         
     def magic_exit(self, parameter_s=''):
         """Exit IPython, confirming if configured to do so.
@@ -2617,52 +2600,27 @@ Defaulting color scheme to 'NoColor'"""
         par = parameter_s.strip()
         if not par:
             stored = self.db.get('stored_aliases', {} )
-            atab = self.shell.alias_table
-            aliases = atab.keys()
-            aliases.sort()
-            res = []
-            showlast = []
-            for alias in aliases:
-                special = False
-                try:
-                    tgt = atab[alias][1]
-                except (TypeError, AttributeError):
-                    # unsubscriptable? probably a callable
-                    tgt = atab[alias]
-                    special = True
-                # 'interesting' aliases
-                if (alias in stored or
-                    special or 
-                    alias.lower() != os.path.splitext(tgt)[0].lower() or
-                    ' ' in tgt):
-                    showlast.append((alias, tgt))
-                else:
-                    res.append((alias, tgt ))                
-            
-            # show most interesting aliases last
-            res.extend(showlast)
-            print "Total number of aliases:",len(aliases)
-            return res
+            aliases = sorted(self.shell.alias_manager.aliases)
+            # for k, v in stored:
+            #     atab.append(k, v[0])
+
+            print "Total number of aliases:", len(aliases)
+            return aliases
+        
+        # Now try to define a new one
         try:
-            alias,cmd = par.split(None,1)
+            alias,cmd = par.split(None, 1)
         except:
             print oinspect.getdoc(self.magic_alias)
         else:
-            nargs = cmd.count('%s')
-            if nargs>0 and cmd.find('%l')>=0:
-                error('The %s and %l specifiers are mutually exclusive '
-                      'in alias definitions.')
-            else:  # all looks OK
-                self.shell.alias_table[alias] = (nargs,cmd)
-                self.shell.alias_table_validate(verbose=0)
+            self.shell.alias_manager.soft_define_alias(alias, cmd)
     # end magic_alias
 
     def magic_unalias(self, parameter_s = ''):
         """Remove an alias"""
 
         aname = parameter_s.strip()
-        if aname in self.shell.alias_table:
-            del self.shell.alias_table[aname]
+        self.shell.alias_manager.undefine_alias(aname)
         stored = self.db.get('stored_aliases', {} )
         if aname in stored:
             print "Removing %stored alias",aname
@@ -2683,24 +2641,21 @@ Defaulting color scheme to 'NoColor'"""
         This function also resets the root module cache of module completer,
         used on slow filesystems.
         """
-        
-        
-        ip = self.api
+        from IPython.core.alias import InvalidAliasError
 
         # for the benefit of module completer in ipy_completers.py
-        del ip.db['rootmodules']
+        del self.db['rootmodules']
         
         path = [os.path.abspath(os.path.expanduser(p)) for p in 
             os.environ.get('PATH','').split(os.pathsep)]
         path = filter(os.path.isdir,path)
-        
-        alias_table = self.shell.alias_table
+
         syscmdlist = []
+        # Now define isexec in a cross platform manner.
         if os.name == 'posix':
             isexec = lambda fname:os.path.isfile(fname) and \
                      os.access(fname,os.X_OK)
         else:
-
             try:
                 winext = os.environ['pathext'].replace(';','|').replace('.','')
             except KeyError:
@@ -2710,6 +2665,8 @@ Defaulting color scheme to 'NoColor'"""
             execre = re.compile(r'(.*)\.(%s)$' % winext,re.IGNORECASE)
             isexec = lambda fname:os.path.isfile(fname) and execre.match(fname)
         savedir = os.getcwd()
+
+        # Now walk the paths looking for executables to alias.
         try:
             # write the whole loop for posix/Windows so we don't have an if in
             # the innermost part
@@ -2717,14 +2674,16 @@ Defaulting color scheme to 'NoColor'"""
                 for pdir in path:
                     os.chdir(pdir)
                     for ff in os.listdir(pdir):
-                        if isexec(ff) and ff not in self.shell.no_alias:
-                            # each entry in the alias table must be (N,name),
-                            # where N is the number of positional arguments of the
-                            # alias.                            
-                            # Dots will be removed from alias names, since ipython
-                            # assumes names with dots to be python code
-                            alias_table[ff.replace('.','')] = (0,ff)
-                            syscmdlist.append(ff)
+                        if isexec(ff):
+                            try:
+                                # Removes dots from the name since ipython
+                                # will assume names with dots to be python.
+                                self.shell.alias_manager.define_alias(
+                                    ff.replace('.',''), ff)
+                            except InvalidAliasError:
+                                pass
+                            else:
+                                syscmdlist.append(ff)
             else:
                 for pdir in path:
                     os.chdir(pdir)
@@ -2733,17 +2692,15 @@ Defaulting color scheme to 'NoColor'"""
                         if isexec(ff) and base.lower() not in self.shell.no_alias:
                             if ext.lower() == '.exe':
                                 ff = base
-                            alias_table[base.lower().replace('.','')] = (0,ff)
-                            syscmdlist.append(ff)
-            # Make sure the alias table doesn't contain keywords or builtins
-            self.shell.alias_table_validate()
-            # Call again init_auto_alias() so we get 'rm -i' and other
-            # modified aliases since %rehashx will probably clobber them
-            
-            # no, we don't want them. if %rehashx clobbers them, good,
-            # we'll probably get better versions
-            # self.shell.init_auto_alias()
-            db = ip.db
+                                try:
+                                    # Removes dots from the name since ipython
+                                    # will assume names with dots to be python.
+                                    self.shell.alias_manager.define_alias(
+                                        base.lower().replace('.',''), ff)
+                                except InvalidAliasError:
+                                    pass
+                                syscmdlist.append(ff)
+            db = self.db
             db['syscmdlist'] = syscmdlist
         finally:
             os.chdir(savedir)
@@ -2853,9 +2810,8 @@ Defaulting color scheme to 'NoColor'"""
         if ps:
             try:                
                 os.chdir(os.path.expanduser(ps))
-                if self.shell.rc.term_title:
-                    #print 'set term title:',self.shell.rc.term_title  # dbg
-                    platutils.set_term_title('IPy ' + abbrev_cwd())
+                if self.shell.term_title:
+                    platutils.set_term_title('IPython: ' + abbrev_cwd())
             except OSError:
                 print sys.exc_info()[1]
             else:
@@ -2867,8 +2823,8 @@ Defaulting color scheme to 'NoColor'"""
                 
         else:
             os.chdir(self.shell.home_dir)
-            if self.shell.rc.term_title:
-                platutils.set_term_title("IPy ~")
+            if self.shell.term_title:
+                platutils.set_term_title('IPython: ' + '~')
             cwd = os.getcwd()
             dhist = self.shell.user_ns['_dh']
             
@@ -3168,10 +3124,10 @@ Defaulting color scheme to 'NoColor'"""
         """
 
         start = parameter_s.strip()
-        esc_magic = self.shell.ESC_MAGIC
+        esc_magic = ESC_MAGIC
         # Identify magic commands even if automagic is on (which means
         # the in-memory version is different from that typed by the user).
-        if self.shell.rc.automagic:
+        if self.shell.automagic:
             start_magic = esc_magic+start
         else:
             start_magic = start
@@ -3265,7 +3221,7 @@ Defaulting color scheme to 'NoColor'"""
             return
             
         page(self.shell.pycolorize(cont),
-             screen_lines=self.shell.rc.screen_length)
+             screen_lines=self.shell.usable_screen_length)
 
     def _rerun_pasted(self):
         """ Rerun a previously pasted command.
@@ -3438,7 +3394,7 @@ Defaulting color scheme to 'NoColor'"""
         ipinstallation = path(IPython.__file__).dirname()
         upgrade_script = '%s "%s"' % (sys.executable,ipinstallation / 'utils' / 'upgradedir.py')
         src_config = ipinstallation / 'config' / 'userconfig'
-        userdir = path(ip.options.ipythondir)
+        userdir = path(ip.config.IPYTHONDIR)
         cmd = '%s "%s" "%s"' % (upgrade_script, src_config, userdir)
         print ">",cmd
         shell(cmd)
@@ -3478,7 +3434,6 @@ Defaulting color scheme to 'NoColor'"""
         # Shorthands
         shell = self.shell
         oc = shell.outputcache
-        rc = shell.rc
         meta = shell.meta
         # dstore is a data store kept in the instance metadata bag to track any
         # changes we make, so we can undo them later.
@@ -3487,12 +3442,12 @@ Defaulting color scheme to 'NoColor'"""
 
         # save a few values we'll need to recover later
         mode = save_dstore('mode',False)
-        save_dstore('rc_pprint',rc.pprint)
+        save_dstore('rc_pprint',shell.pprint)
         save_dstore('xmode',shell.InteractiveTB.mode)
-        save_dstore('rc_separate_out',rc.separate_out)
-        save_dstore('rc_separate_out2',rc.separate_out2)
-        save_dstore('rc_prompts_pad_left',rc.prompts_pad_left)
-        save_dstore('rc_separate_in',rc.separate_in)
+        save_dstore('rc_separate_out',shell.separate_out)
+        save_dstore('rc_separate_out2',shell.separate_out2)
+        save_dstore('rc_prompts_pad_left',shell.prompts_pad_left)
+        save_dstore('rc_separate_in',shell.separate_in)
 
         if mode == False:
             # turn on
@@ -3510,7 +3465,7 @@ Defaulting color scheme to 'NoColor'"""
             oc.prompt1.pad_left = oc.prompt2.pad_left = \
                                   oc.prompt_out.pad_left = False
 
-            rc.pprint = False
+            shell.pprint = False
 
             shell.magic_xmode('Plain')
 
@@ -3518,9 +3473,9 @@ Defaulting color scheme to 'NoColor'"""
             # turn off
             ipaste.deactivate_prefilter()
 
-            oc.prompt1.p_template = rc.prompt_in1
-            oc.prompt2.p_template = rc.prompt_in2
-            oc.prompt_out.p_template = rc.prompt_out
+            oc.prompt1.p_template = shell.prompt_in1
+            oc.prompt2.p_template = shell.prompt_in2
+            oc.prompt_out.p_template = shell.prompt_out
 
             oc.input_sep = oc.prompt1.sep = dstore.rc_separate_in
 

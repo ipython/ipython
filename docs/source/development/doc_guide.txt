@@ -8,31 +8,30 @@ Standalone documentation
 ========================
 
 All standalone documentation should be written in plain text (``.txt``) files
-using `reStructuredText`_ for markup and formatting. All such documentation
-should be placed in the top level directory ``docs`` of the IPython source
-tree. Or, when appropriate, a suitably named subdirectory should be used. The
-documentation in this location will serve as the main source for IPython
-documentation and all existing documentation should be converted to this
-format.
+using reStructuredText [reStructuredText]_ for markup and formatting. All such
+documentation should be placed in the directory :file:`docs/source` of the
+IPython source tree. Or, when appropriate, a suitably named subdirectory
+should be used. The documentation in this location will serve as the main
+source for IPython documentation.
 
-The actual HTML and PDF docs are built using the Sphinx_ documentation
-generation tool.  Sphinx has been adopted as the default documentation tool for
-Python itself as of version 2.6, as well as by a number of projects that
-IPython is related with, such as numpy, scipy, matplotlib, sage and nipy.
+The actual HTML and PDF docs are built using the Sphinx [Sphinx]_
+documentation generation tool. Once you have Sphinx installed, you can build
+the html docs yourself by doing:
 
-.. _reStructuredText: http://docutils.sourceforge.net/rst.html
-.. _Sphinx: http://sphinx.pocoo.org/
+.. code-block:: bash
 
+    $ cd ipython-mybranch/docs
+    $ make html
 
-The rest of this document is mostly taken from the `matploblib
-documentation`__; we are using a number of Sphinx tools and extensions written
-by the matplotlib team and will mostly follow their conventions, which are
-nicely spelled out in their guide.  What follows is thus a lightly adapted
-version of the matplotlib documentation guide, taken with permission from the
-MPL team.
+Our usage of Sphinx follows that of matplotlib [Matplotlib]_ closely. We are
+using a number of Sphinx tools and extensions written by the matplotlib team
+and will mostly follow their conventions, which are nicely spelled out in
+their documentation guide [MatplotlibDocGuide]_. What follows is thus a
+abridged version of the matplotlib documentation guide, taken with permission
+from the matplotlib team.
 
-.. __: http://matplotlib.sourceforge.net/devel/documenting_mpl.html
-
+If you are reading this in a web browser, you can click on the "Show Source"
+link to see the original reStricturedText for the following examples.
 
 A bit of Python code::
 
@@ -45,7 +44,6 @@ An interactive Python session::
     >>> from IPython import genutils
     >>> genutils.get_ipython_dir()
     '/home/fperez/.ipython'
-
 
 An IPython session:
 
@@ -68,12 +66,11 @@ A bit of shell code:
     echo "My home directory is: $HOME"
     ls
 
-  
 Docstring format
 ================
 
 Good docstrings are very important.  Unfortunately, Python itself only provides
-a rather loose standard for docstrings (`PEP 257`_), and there is no universally
+a rather loose standard for docstrings [PEP257]_, and there is no universally
 accepted convention for all the different parts of a complete docstring.
 However, the NumPy project has established a very reasonable standard, and has
 developed some tools to support the smooth inclusion of such docstrings in
@@ -82,22 +79,26 @@ IPython will be henceforth documented using the NumPy conventions; we carry
 copies of some of the NumPy support tools to remain self-contained, but share
 back upstream with NumPy any improvements or fixes we may make to the tools.
 
-The `NumPy documentation guidelines`_ contain detailed information on this
-standard, and for a quick overview, the NumPy `example docstring`_ is a useful
-read. 
+The NumPy documentation guidelines [NumPyDocGuide]_ contain detailed
+information on this standard, and for a quick overview, the NumPy example
+docstring [NumPyExampleDocstring]_ is a useful read.
 
-As in the past IPython used epydoc, currently many docstrings still use epydoc
-conventions.  We will update them as we go, but all new code should be fully
+In the past IPython used epydoc so currently many docstrings still use epydoc
+conventions.  We will update them as we go, but all new code should be
 documented using the NumPy standard.
 
-.. _PEP 257: http://www.python.org/peps/pep-0257.html
-.. _NumPy documentation guidelines: http://projects.scipy.org/numpy/wiki/CodingStyleGuidelines
+Here are two additional PEPs of interest regarding documentation of code.
+While both of these were rejected, the ideas therein form much of the basis of
+docutils (the machinery to process reStructuredText):
 
-.. _example docstring: http://projects.scipy.org/numpy/browser/trunk/doc/EXAMPLE_DOCSTRING.txt
+* `Docstring Processing System Framework <http://www.python.org/peps/pep-0256.html>`_
+* `Docutils Design Specification <http://www.python.org/peps/pep-0258.html>`_
 
-Additional PEPs of interest regarding documentation of code.  While both of
-these were rejected, the ideas therein form much of the basis of docutils (the
-machinery to process reStructuredText):
 
-- `Docstring Processing System Framework <http://www.python.org/peps/pep-0256.html>`_
-- `Docutils Design Specification <http://www.python.org/peps/pep-0258.html>`_
+.. [reStructuredText] reStructuredText.  http://docutils.sourceforge.net/rst.html
+.. [Sphinx] Sphinx. http://sphinx.pocoo.org/
+.. [MatplotlibDocGuide] http://matplotlib.sourceforge.net/devel/documenting_mpl.html
+.. [PEP257] PEP 257.  http://www.python.org/peps/pep-0257.html
+.. [NumPyDocGuide] NumPy documentation guide.  http://projects.scipy.org/numpy/wiki/CodingStyleGuidelines
+.. [NumPyExampleDocstring] NumPy example docstring. http://projects.scipy.org/numpy/browser/trunk/doc/EXAMPLE_DOCSTRING.txt
+

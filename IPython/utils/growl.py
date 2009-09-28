@@ -18,7 +18,7 @@ class Notifier(object):
 
     def _notify(self, title, msg):
         if self.g_notifier is not None:
-            self.g_notifier.notify('kernel', title, msg)        
+            self.g_notifier.notify('core', title, msg)        
 
     def notify(self, title, msg):
         self._notify(title, msg)

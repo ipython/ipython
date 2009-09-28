@@ -47,9 +47,7 @@ def magic_history(self, parameter_s = ''):
        confirmation first if it already exists.
     """
 
-    ip = self.api
-    shell = self.shell
-    if not shell.outputcache.do_full_cache:
+    if not self.outputcache.do_full_cache:
         print 'This feature is only available if numbered prompts are in use.'
         return
     opts,args = self.parse_options(parameter_s,'gntsrf:',mode='list')
@@ -71,11 +69,11 @@ def magic_history(self, parameter_s = ''):
         close_at_end = True
 
     if 't' in opts:
-        input_hist = shell.input_hist
+        input_hist = self.input_hist
     elif 'r' in opts:
-        input_hist = shell.input_hist_raw
+        input_hist = self.input_hist_raw
     else:
-        input_hist = shell.input_hist
+        input_hist = self.input_hist
             
     default_length = 40
     pattern = None
@@ -105,7 +103,7 @@ def magic_history(self, parameter_s = ''):
     
     found = False
     if pattern is not None:
-        sh = ip.IP.shadowhist.all()
+        sh = self.shadowhist.all()
         for idx, s in sh:
             if fnmatch.fnmatch(s, pattern):
                 print "0%d: %s" %(idx, s)
@@ -168,9 +166,8 @@ def rep_f(self, arg):
     """
     
     opts,args = self.parse_options(arg,'',mode='list')
-    ip = self.api    
     if not args:
-        ip.set_next_input(str(ip.user_ns["_"]))
+        self.set_next_input(str(self.user_ns["_"]))
         return
 
     if len(args) == 1 and not '-' in args[0]:
@@ -179,33 +176,33 @@ def rep_f(self, arg):
             # get from shadow hist
             num = int(arg[1:])
             line = self.shadowhist.get(num)
-            ip.set_next_input(str(line))
+            self.set_next_input(str(line))
             return
         try:
             num = int(args[0])
-            ip.set_next_input(str(ip.IP.input_hist_raw[num]).rstrip())
+            self.set_next_input(str(self.input_hist_raw[num]).rstrip())
             return
         except ValueError:
             pass
         
-        for h in reversed(self.shell.input_hist_raw):
+        for h in reversed(self.input_hist_raw):
             if 'rep' in h:
                 continue
             if fnmatch.fnmatch(h,'*' + arg + '*'):
-                ip.set_next_input(str(h).rstrip())
+                self.set_next_input(str(h).rstrip())
                 return
         
     try:
         lines = self.extract_input_slices(args, True)
         print "lines",lines
-        ip.runlines(lines)
+        self.runlines(lines)
     except ValueError:
         print "Not found in recent history:", args
         
 
 _sentinel = object()
 
-class ShadowHist:
+class ShadowHist(object):
     def __init__(self,db):
         # cmd => idx mapping
         self.curidx = 0
@@ -228,7 +225,7 @@ class ShadowHist:
             #print "new",newidx # dbg
             self.db.hset('shadowhist',ent, newidx)
         except:
-            ipapi.get().IP.showtraceback()
+            ipapi.get().showtraceback()
             print "WARNING: disabling shadow history"
             self.disabled = True
     
@@ -250,8 +247,8 @@ class ShadowHist:
 def init_ipython(ip):
     import ipy_completers
 
-    ip.expose_magic("rep",rep_f)        
-    ip.expose_magic("hist",magic_hist)            
-    ip.expose_magic("history",magic_history)
+    ip.define_magic("rep",rep_f)        
+    ip.define_magic("hist",magic_hist)            
+    ip.define_magic("history",magic_history)
 
     ipy_completers.quick_completer('%hist' ,'-g -t -r -n')

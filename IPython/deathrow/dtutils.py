@@ -77,7 +77,7 @@ def idoctest(ns=None,eraise=False):
     if ns is None:
         ns = ip.user_ns
 
-    ip.IP.savehist()
+    ip.savehist()
     try:
         while True:
             line = raw_input()
@@ -96,7 +96,7 @@ def idoctest(ns=None,eraise=False):
         print "KeyboardInterrupt - Discarding input."
         run_test = False
     
-    ip.IP.reloadhist()
+    ip.reloadhist()
 
     if run_test:
         # Extra blank line at the end to ensure that the final docstring has a

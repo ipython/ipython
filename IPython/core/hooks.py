@@ -26,7 +26,7 @@ def calljed(self,filename, linenum):
     "My editor hook calls the jed editor directly."
     print "Calling my own editor, jed ..."
     if os.system('jed +%d %s' % (linenum,filename)) != 0:
-        raise ipapi.TryNext()
+        raise TryNext()
 
 ip.set_hook('editor', calljed)
 
@@ -41,22 +41,21 @@ somewhere in your configuration files or ipython command line.
 #  the file COPYING, distributed as part of this software.
 #*****************************************************************************
 
-from IPython.core import ipapi
-
 import os, bisect
 import sys
 from IPython.utils.genutils import Term, shell
 from pprint import PrettyPrinter
 
+from IPython.core.error import TryNext
+
 # List here all the default hooks.  For now it's just the editor functions
 # but over time we'll move here all the public API for user-accessible things.
-# vds: >>
+
 __all__ = ['editor', 'fix_error_editor', 'synchronize_with_editor', 'result_display',
            'input_prefilter', 'shutdown_hook', 'late_startup_hook',
            'generate_prompt', 'generate_output_prompt','shell_hook',
            'show_in_pager','pre_prompt_hook', 'pre_runcode_hook',
            'clipboard_get']
-# vds: <<
 
 pformat = PrettyPrinter().pformat
 
@@ -69,7 +68,7 @@ def editor(self,filename, linenum=None):
 
     # IPython configures a default editor at startup by reading $EDITOR from
     # the environment, and falling back on vi (unix) or notepad (win32).
-    editor = self.rc.editor
+    editor = self.editor
     
     # marker for at which line to open the file (for existing objects)
     if linenum is None or editor=='notepad':
@@ -83,7 +82,7 @@ def editor(self,filename, linenum=None):
         
     # Call the actual editor
     if os.system('%s %s %s' % (editor,linemark,filename)) != 0:
-        raise ipapi.TryNext()
+        raise TryNext()
 
 import tempfile
 def fix_error_editor(self,filename,linenum,column,msg):
@@ -99,20 +98,20 @@ def fix_error_editor(self,filename,linenum,column,msg):
         t.write('%s:%d:%d:%s\n' % (filename,linenum,column,msg))
         t.flush()
         return t
-    if os.path.basename(self.rc.editor) != 'vim':
+    if os.path.basename(self.editor) != 'vim':
         self.hooks.editor(filename,linenum)
         return
     t = vim_quickfix_file()
     try:
         if os.system('vim --cmd "set errorformat=%f:%l:%c:%m" -q ' + t.name):
-            raise ipapi.TryNext()
+            raise TryNext()
     finally:
         t.close()
 
-# vds: >>
+
 def synchronize_with_editor(self, filename, linenum, column):
         pass
-# vds: <<
+
 
 class CommandChainDispatcher:
     """ Dispatch calls to a chain of commands until some func can handle it
@@ -140,12 +139,12 @@ class CommandChainDispatcher:
             try:
                 ret = cmd(*args, **kw)
                 return ret
-            except ipapi.TryNext, exc:
+            except TryNext, exc:
                 if exc.args or exc.kwargs:
                     args = exc.args
                     kw = exc.kwargs
         # if no function will accept it, raise TryNext up to the caller
-        raise ipapi.TryNext
+        raise TryNext
                 
     def __str__(self):
         return str(self.chain)
@@ -160,14 +159,15 @@ class CommandChainDispatcher:
         Handy if the objects are not callable.
         """
         return iter(self.chain)
-    
+
+
 def result_display(self,arg):
     """ Default display hook.
     
     Called for displaying the result to the user.
     """
     
-    if self.rc.pprint:
+    if self.pprint:
         out = pformat(arg)
         if '\n' in out:
             # So that multi-line strings line up with the left column of
@@ -183,6 +183,7 @@ def result_display(self,arg):
     # the default display hook doesn't manipulate the value to put in history
     return None 
 
+
 def input_prefilter(self,line):     
     """ Default input prefilter
     
@@ -197,6 +198,7 @@ def input_prefilter(self,line):
     #print "attempt to rewrite",line #dbg
     return line
 
+
 def shutdown_hook(self):
     """ default shutdown hook
     
@@ -206,32 +208,36 @@ def shutdown_hook(self):
     #print "default shutdown hook ok" # dbg
     return
 
+
 def late_startup_hook(self):
     """ Executed after ipython has been constructed and configured 
     
     """
     #print "default startup hook ok" # dbg
 
+
 def generate_prompt(self, is_continuation):
     """ calculate and return a string with the prompt to display """
-    ip = self.api
     if is_continuation:
-        return str(ip.IP.outputcache.prompt2)
-    return str(ip.IP.outputcache.prompt1)
+        return str(self.outputcache.prompt2)
+    return str(self.outputcache.prompt1)
+
 
 def generate_output_prompt(self):
-    ip = self.api
-    return str(ip.IP.outputcache.prompt_out)
+    return str(self.outputcache.prompt_out)
+
 
 def shell_hook(self,cmd):
     """ Run system/shell command a'la os.system() """
 
-    shell(cmd, header=self.rc.system_header, verbose=self.rc.system_verbose)
+    shell(cmd, header=self.system_header, verbose=self.system_verbose)
+
 
 def show_in_pager(self,s):
     """ Run a string through pager """
     # raising TryNext here will use the default paging functionality
-    raise ipapi.TryNext
+    raise TryNext
+
 
 def pre_prompt_hook(self):
     """ Run before displaying the next prompt
@@ -242,9 +248,11 @@ def pre_prompt_hook(self):
     
     return None
 
+
 def pre_runcode_hook(self):
     """ Executed before running the (prefiltered) code in IPython """
     return None
+
 
 def clipboard_get(self):
     """ Get text from the clipboard.

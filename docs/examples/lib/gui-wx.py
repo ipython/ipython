@@ -11,6 +11,14 @@ Ref: Modified from wxPython source code wxPython/samples/simple/simple.py
 This example can only be run once in a given IPython session because when 
 the frame is closed, wx goes through its shutdown sequence, killing further
 attempts.  I am sure someone who knows wx can fix this issue.
+
+Furthermore, once this example is run, the Wx event loop is mostly dead, so
+even other new uses of Wx may not work correctly.  If you know how to better
+handle this, please contact the ipython developers and let us know.
+
+Note however that we will work with the Matplotlib and Enthought developers so
+that the main interactive uses of Wx we are aware of, namely these tools, will
+continue to work well with IPython interactively.
 """
 
 import wx

@@ -105,7 +105,7 @@ def _run_ns_sync(self,arg_s,runner=None):
         fname = arg_s
 
     finder = py_file_finder(fname)
-    out = _ip.IP.magic_run_ori(arg_s,runner,finder)
+    out = _ip.magic_run_ori(arg_s,runner,finder)
     
     # Simliarly, there is no test_globs when a test is NOT a doctest
     if hasattr(_run_ns_sync,'test_globs'):
@@ -172,7 +172,7 @@ def start_ipython():
         This is just a convenience function to replace the IPython system call
         with one that is more doctest-friendly.
         """
-        cmd = _ip.IP.var_expand(cmd,depth=1)
+        cmd = _ip.var_expand(cmd,depth=1)
         sys.stdout.write(commands.getoutput(cmd))
         sys.stdout.flush()
 
@@ -184,8 +184,7 @@ def start_ipython():
     argv = default_argv()
     
     # Start IPython instance.  We customize it to start with minimal frills.
-    user_ns,global_ns = ipapi.make_user_namespaces(ipnsdict(),dict())
-    IPython.shell.IPShell(argv,user_ns,global_ns)
+    IPython.shell.IPShell(argv,ipnsdict(),global_ns)
 
     # Deactivate the various python system hooks added by ipython for
     # interactive convenience so we don't confuse the doctest system
@@ -204,16 +203,16 @@ def start_ipython():
     _ip.system = xsys
 
     # Also patch our %run function in.
-    im = new.instancemethod(_run_ns_sync,_ip.IP, _ip.IP.__class__)
-    _ip.IP.magic_run_ori = _ip.IP.magic_run
-    _ip.IP.magic_run = im
+    im = new.instancemethod(_run_ns_sync,_ip, _ip.__class__)
+    _ip.magic_run_ori = _ip.magic_run
+    _ip.magic_run = im
 
     # XXX - For some very bizarre reason, the loading of %history by default is
     # failing.  This needs to be fixed later, but for now at least this ensures
     # that tests that use %hist run to completion.
     from IPython.core import history
     history.init_ipython(_ip)
-    if not hasattr(_ip.IP,'magic_history'):
+    if not hasattr(_ip,'magic_history'):
         raise RuntimeError("Can't load magics, aborting")
 
 
@@ -437,8 +436,8 @@ class DocTestCase(doctests.DocTestCase):
             # for IPython examples *only*, we swap the globals with the ipython
             # namespace, after updating it with the globals (which doctest
             # fills with the necessary info from the module being tested).
-            _ip.IP.user_ns.update(self._dt_test.globs)
-            self._dt_test.globs = _ip.IP.user_ns
+            _ip.user_ns.update(self._dt_test.globs)
+            self._dt_test.globs = _ip.user_ns
 
         super(DocTestCase, self).setUp()
 
@@ -539,7 +538,7 @@ class IPDocTestParser(doctest.DocTestParser):
         # and turned into lines, so it looks to the parser like regular user
         # input
         for lnum,line in enumerate(source.strip().splitlines()):
-            newline(_ip.IP.prefilter(line,lnum>0))
+            newline(_ip.prefilter(line,lnum>0))
         newline('')  # ensure a closing newline, needed by doctest
         #print "PYSRC:", '\n'.join(out)  # dbg
         return '\n'.join(out)

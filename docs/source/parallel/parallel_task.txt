@@ -118,3 +118,4 @@ We are in the process of developing more detailed information about the task
 interface. For now, the docstrings of the :class:`TaskClient`,
 :class:`StringTask` and :class:`MapTask` classes should be consulted.
 
+

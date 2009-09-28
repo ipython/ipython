@@ -222,7 +222,7 @@ class InteractiveRunner(object):
                 write(cmd)
                 continue
 
-            #write('AFTER: '+c.after)  # dbg
+            # write('AFTER: '+c.after)  # dbg
             write(c.after)
             c.send(cmd)
             try:

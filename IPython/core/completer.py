@@ -65,17 +65,20 @@ used, and this module (and the readline module) are silently inactive.
 import __builtin__
 import __main__
 import glob
+import itertools
 import keyword
 import os
 import re
 import shlex
 import sys
-import IPython.utils.rlineimpl as readline    
-import itertools
-from IPython.utils.ipstruct import Struct
-from IPython.core import ipapi
-from IPython.utils import generics
 import types
+
+from IPython.core.error import TryNext
+from IPython.core.prefilter import ESC_MAGIC
+
+import IPython.utils.rlineimpl as readline
+from IPython.utils.ipstruct import Struct
+from IPython.utils import generics
 
 # Python 2.4 offers sets as a builtin
 try:
@@ -195,7 +198,7 @@ class Completer:
         
         try:
             words = generics.complete_object(obj, words)
-        except ipapi.TryNext:
+        except TryNext:
             pass
         # Build match list to return
         n = len(attr)
@@ -233,7 +236,7 @@ class IPCompleter(Completer):
 
         Completer.__init__(self,namespace,global_namespace)
         self.magic_prefix = shell.name+'.magic_'
-        self.magic_escape = shell.ESC_MAGIC
+        self.magic_escape = ESC_MAGIC
         self.readline = readline
         delims = self.readline.get_completer_delims()
         delims = delims.replace(self.magic_escape,'')
@@ -241,7 +244,7 @@ class IPCompleter(Completer):
         self.get_line_buffer = self.readline.get_line_buffer
         self.get_endidx = self.readline.get_endidx
         self.omit__names = omit__names
-        self.merge_completions = shell.rc.readline_merge_completions        
+        self.merge_completions = shell.readline_merge_completions        
         if alias_table is None:
             alias_table = {}
         self.alias_table = alias_table
@@ -553,7 +556,7 @@ class IPCompleter(Completer):
                     return withcase
                 # if none, then case insensitive ones are ok too
                 return [r for r in res if r.lower().startswith(text.lower())]
-            except ipapi.TryNext:
+            except TryNext:
                 pass
             
         return None

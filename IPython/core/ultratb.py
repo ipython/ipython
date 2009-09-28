@@ -69,7 +69,8 @@ possible inclusion in future releases.
 #  the file COPYING, distributed as part of this software.
 #*****************************************************************************
 
-# Required modules
+from __future__ import with_statement
+
 import inspect
 import keyword
 import linecache
@@ -85,16 +86,17 @@ import types
 
 # For purposes of monkeypatching inspect to fix a bug in it.
 from inspect import getsourcefile, getfile, getmodule,\
-     ismodule,  isclass, ismethod, isfunction, istraceback, isframe, iscode
+     ismodule, isclass, ismethod, isfunction, istraceback, isframe, iscode
 
 
 # IPython's own modules
 # Modified pdb which doesn't damage IPython's readline handling
 from IPython.utils import PyColorize
 from IPython.core import debugger, ipapi
+from IPython.core.display_trap import DisplayTrap
 from IPython.utils.ipstruct import Struct
 from IPython.core.excolors import exception_colors
-from IPython.utils.genutils import Term,uniq_stable,error,info
+from IPython.utils.genutils import Term, uniq_stable, error, info
 
 # Globals
 # amount of space to put line numbers before verbose tracebacks
@@ -270,7 +272,7 @@ def _formatTracebackLines(lnum, index, lines, Colors, lvals=None,scheme=None):
     if scheme is None:
         ipinst = ipapi.get()
         if ipinst is not None:
-            scheme = ipinst.IP.rc.colors
+            scheme = ipinst.colors
         else:
             scheme = DEFAULT_SCHEME
 
@@ -494,7 +496,7 @@ class ListTB(TBTools):
         if have_filedata:
             ipinst = ipapi.get()
             if ipinst is not None:
-                ipinst.IP.hooks.synchronize_with_editor(filename, lineno, 0)
+                ipinst.hooks.synchronize_with_editor(filename, lineno, 0)
         # vds:<<
 
         return list
@@ -816,7 +818,7 @@ class VerboseTB(TBTools):
              filepath = os.path.abspath(filepath)
              ipinst = ipapi.get()
              if ipinst is not None:
-                 ipinst.IP.hooks.synchronize_with_editor(filepath, lnum, 0)
+                 ipinst.hooks.synchronize_with_editor(filepath, lnum, 0)
         # vds: <<
                 
         # return all our info assembled as a single string
@@ -848,24 +850,21 @@ class VerboseTB(TBTools):
                     self.color_scheme_table.active_scheme_name)
             # the system displayhook may have changed, restore the original
             # for pdb
-            dhook = sys.displayhook
-            sys.displayhook = sys.__displayhook__
-            self.pdb.reset()
-            # Find the right frame so we don't pop up inside ipython itself
-            if hasattr(self,'tb'):
-                etb = self.tb
-            else:
-                etb = self.tb = sys.last_traceback
-            while self.tb.tb_next is not None:
-                self.tb = self.tb.tb_next
-            try:
+            display_trap = DisplayTrap(None, sys.__displayhook__)
+            with display_trap:
+                self.pdb.reset()
+                # Find the right frame so we don't pop up inside ipython itself
+                if hasattr(self,'tb'):
+                    etb = self.tb
+                else:
+                    etb = self.tb = sys.last_traceback
+                while self.tb.tb_next is not None:
+                    self.tb = self.tb.tb_next
                 if etb and etb.tb_next:
                     etb = etb.tb_next
                 self.pdb.botframe = etb.tb_frame
                 self.pdb.interaction(self.tb.tb_frame, self.tb)
-            finally:
-                sys.displayhook = dhook
-            
+
         if hasattr(self,'tb'):
             del self.tb
 

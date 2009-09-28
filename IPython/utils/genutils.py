@@ -15,11 +15,7 @@ these things are also convenient when working at the command line.
 #****************************************************************************
 # required modules from the Python standard library
 import __main__
-import commands
-try:
-    import doctest
-except ImportError:
-    pass
+
 import os
 import platform
 import re
@@ -27,7 +23,6 @@ import shlex
 import shutil
 import subprocess
 import sys
-import tempfile
 import time
 import types
 import warnings
@@ -46,14 +41,10 @@ else:
 
 # Other IPython utilities
 import IPython
-from IPython.external.Itpl import Itpl,itpl,printpl
+from IPython.external.Itpl import itpl,printpl
 from IPython.utils import platutils
-from IPython.utils import DPyGetOpt
 from IPython.utils.generics import result_display
-from IPython.core import ipapi
 from IPython.external.path import path
-if os.name == "nt":
-    from IPython.utils.winconsole import get_console_size
 
 try:
     set
@@ -528,32 +519,55 @@ def get_py_filename(name):
         raise IOError,'File `%s` not found.' % name
 
 #-----------------------------------------------------------------------------
-def filefind(fname,alt_dirs = None):
-    """Return the given filename either in the current directory, if it
-    exists, or in a specified list of directories.
 
-    ~ expansion is done on all file and directory names.
 
-    Upon an unsuccessful search, raise an IOError exception."""
+def filefind(filename, path_dirs=None):
+    """Find a file by looking through a sequence of paths.
 
-    if alt_dirs is None:
-        try:
-            alt_dirs = get_home_dir()
-        except HomeDirError:
-            alt_dirs = os.getcwd()
-    search = [fname] + list_strings(alt_dirs)
-    search = map(os.path.expanduser,search)
-    #print 'search list for',fname,'list:',search  # dbg
-    fname = search[0]
-    if os.path.isfile(fname):
-        return fname
-    for direc in search[1:]:
-        testname = os.path.join(direc,fname)
-        #print 'testname',testname  # dbg
+    This iterates through a sequence of paths looking for a file and returns
+    the full, absolute path of the first occurence of the file.  If no set of
+    path dirs is given, the filename is tested as is, after running through
+    :func:`expandvars` and :func:`expanduser`.  Thus a simple call::
+
+        filefind('myfile.txt')
+
+    will find the file in the current working dir, but::
+
+        filefind('~/myfile.txt')
+
+    Will find the file in the users home directory.  This function does not
+    automatically try any paths, such as the cwd or the user's home directory.
+    
+    Parameters
+    ----------
+    filename : str
+        The filename to look for.
+    path_dirs : str, None or sequence of str
+        The sequence of paths to look for the file in.  If None, the filename
+        need to be absolute or be in the cwd.  If a string, the string is
+        put into a sequence and the searched.  If a sequence, walk through
+        each element and join with ``filename``, calling :func:`expandvars`
+        and :func:`expanduser` before testing for existence.
+        
+    Returns
+    -------
+    Raises :exc:`IOError` or returns absolute path to file.
+    """
+    if path_dirs is None:
+        path_dirs = ("",)
+    elif isinstance(path_dirs, basestring):
+        path_dirs = (path_dirs,)
+    for path in path_dirs:
+        if path == '.': path = os.getcwd()
+        testname = os.path.expandvars(
+                       os.path.expanduser(
+                           os.path.join(path, filename)))
         if os.path.isfile(testname):
-            return testname
-    raise IOError,'File' + `fname` + \
-          ' not found in current or supplied directories:' + `alt_dirs`
+            return os.path.abspath(testname)
+    raise IOError("File does not exist in any "
+                  "of the search paths: %r, %r" % \
+                  (filename, path_dirs))
+
 
 #----------------------------------------------------------------------------
 def file_read(filename):
@@ -617,215 +631,6 @@ def unquote_ends(istr):
         return istr[1:-1]
     else:
         return istr
-
-#----------------------------------------------------------------------------
-def process_cmdline(argv,names=[],defaults={},usage=''):
-    """ Process command-line options and arguments.
-
-    Arguments:
-
-    - argv: list of arguments, typically sys.argv.
-
-    - names: list of option names. See DPyGetOpt docs for details on options
-    syntax.
-
-    - defaults: dict of default values.
-
-    - usage: optional usage notice to print if a wrong argument is passed.
-
-    Return a dict of options and a list of free arguments."""
-
-    getopt = DPyGetOpt.DPyGetOpt()
-    getopt.setIgnoreCase(0)
-    getopt.parseConfiguration(names)
-
-    try:
-        getopt.processArguments(argv)
-    except DPyGetOpt.ArgumentError, exc:
-        print usage
-        warn('"%s"' % exc,level=4)
-
-    defaults.update(getopt.optionValues)
-    args = getopt.freeValues
-
-    return defaults,args
-
-#----------------------------------------------------------------------------
-def optstr2types(ostr):
-    """Convert a string of option names to a dict of type mappings.
-
-    optstr2types(str) -> {None:'string_opts',int:'int_opts',float:'float_opts'}
-
-    This is used to get the types of all the options in a string formatted
-    with the conventions of DPyGetOpt. The 'type' None is used for options
-    which are strings (they need no further conversion). This function's main
-    use is to get a typemap for use with read_dict().
-    """
-
-    typeconv = {None:'',int:'',float:''}
-    typemap = {'s':None,'i':int,'f':float}
-    opt_re = re.compile(r'([\w]*)([^:=]*:?=?)([sif]?)')
-
-    for w in ostr.split():
-        oname,alias,otype = opt_re.match(w).groups()
-        if otype == '' or alias == '!':   # simple switches are integers too
-            otype = 'i'
-        typeconv[typemap[otype]] += oname + ' '
-    return typeconv
-
-#----------------------------------------------------------------------------
-def read_dict(filename,type_conv=None,**opt):
-    r"""Read a dictionary of key=value pairs from an input file, optionally
-    performing conversions on the resulting values.
-
-    read_dict(filename,type_conv,**opt) -> dict
-
-    Only one value per line is accepted, the format should be
-     # optional comments are ignored
-     key value\n
-
-    Args:
-
-      - type_conv: A dictionary specifying which keys need to be converted to
-      which types. By default all keys are read as strings. This dictionary
-      should have as its keys valid conversion functions for strings
-      (int,long,float,complex, or your own).  The value for each key
-      (converter) should be a whitespace separated string containing the names
-      of all the entries in the file to be converted using that function. For
-      keys to be left alone, use None as the conversion function (only needed
-      with purge=1, see below).
-
-      - opt: dictionary with extra options as below (default in parens)
-
-        purge(0): if set to 1, all keys *not* listed in type_conv are purged out
-        of the dictionary to be returned. If purge is going to be used, the
-        set of keys to be left as strings also has to be explicitly specified
-        using the (non-existent) conversion function None.
-
-        fs(None): field separator. This is the key/value separator to be used
-        when parsing the file. The None default means any whitespace [behavior
-        of string.split()].
-
-        strip(0): if 1, strip string values of leading/trailinig whitespace.
-
-        warn(1): warning level if requested keys are not found in file.
-          - 0: silently ignore.
-          - 1: inform but proceed.
-          - 2: raise KeyError exception.
-
-        no_empty(0): if 1, remove keys with whitespace strings as a value.
-
-        unique([]): list of keys (or space separated string) which can't be
-        repeated. If one such key is found in the file, each new instance
-        overwrites the previous one. For keys not listed here, the behavior is
-        to make a list of all appearances.
-
-    Example:
-
-    If the input file test.ini contains (we put it in a string to keep the test
-    self-contained):
-
-    >>> test_ini = '''\
-    ... i 3
-    ... x 4.5
-    ... y 5.5
-    ... s hi ho'''
-
-    Then we can use it as follows:
-    >>> type_conv={int:'i',float:'x',None:'s'}
-
-    >>> d = read_dict(test_ini)
-
-    >>> sorted(d.items())
-    [('i', '3'), ('s', 'hi ho'), ('x', '4.5'), ('y', '5.5')]
-
-    >>> d = read_dict(test_ini,type_conv)
-
-    >>> sorted(d.items())
-    [('i', 3), ('s', 'hi ho'), ('x', 4.5), ('y', '5.5')]
-
-    >>> d = read_dict(test_ini,type_conv,purge=True)
-
-    >>> sorted(d.items())
-    [('i', 3), ('s', 'hi ho'), ('x', 4.5)]
-    """
-
-    # starting config
-    opt.setdefault('purge',0)
-    opt.setdefault('fs',None)  # field sep defaults to any whitespace
-    opt.setdefault('strip',0)
-    opt.setdefault('warn',1)
-    opt.setdefault('no_empty',0)
-    opt.setdefault('unique','')
-    if type(opt['unique']) in StringTypes:
-        unique_keys = qw(opt['unique'])
-    elif type(opt['unique']) in (types.TupleType,types.ListType):
-        unique_keys = opt['unique']
-    else:
-        raise ValueError, 'Unique keys must be given as a string, List or Tuple'
-
-    dict = {}
-
-    # first read in table of values as strings
-    if '\n' in filename:
-        lines = filename.splitlines()
-        file = None
-    else:
-        file = open(filename,'r')
-        lines = file.readlines()
-    for line in lines:
-        line = line.strip()
-        if len(line) and line[0]=='#': continue
-        if len(line)>0:
-            lsplit = line.split(opt['fs'],1)
-            try:
-                key,val = lsplit
-            except ValueError:
-                key,val = lsplit[0],''
-            key = key.strip()
-            if opt['strip']: val = val.strip()
-            if val == "''" or val == '""': val = ''
-            if opt['no_empty'] and (val=='' or val.isspace()):
-                continue
-            # if a key is found more than once in the file, build a list
-            # unless it's in the 'unique' list. In that case, last found in file
-            # takes precedence. User beware.
-            try:
-                if dict[key] and key in unique_keys:
-                    dict[key] = val
-                elif type(dict[key]) is types.ListType:
-                    dict[key].append(val)
-                else:
-                    dict[key] = [dict[key],val]
-            except KeyError:
-                dict[key] = val
-    # purge if requested
-    if opt['purge']:
-        accepted_keys = qwflat(type_conv.values())
-        for key in dict.keys():
-            if key in accepted_keys: continue
-            del(dict[key])
-    # now convert if requested
-    if type_conv==None: return dict
-    conversions = type_conv.keys()
-    try: conversions.remove(None)
-    except: pass
-    for convert in conversions:
-        for val in qw(type_conv[convert]):
-            try:
-                dict[val] = convert(dict[val])
-            except KeyError,e:
-                if opt['warn'] == 0:
-                    pass
-                elif opt['warn'] == 1:
-                    print >>sys.stderr, 'Warning: key',val,\
-                          'not found in file',filename
-                elif opt['warn'] == 2:
-                    raise KeyError,e
-                else:
-                    raise ValueError,'Warning level must be 0,1 or 2'
-
-    return dict
 
 #----------------------------------------------------------------------------
 def flag_calls(func):
@@ -1345,16 +1150,6 @@ def ask_yes_no(prompt,default=None):
     return answers[ans]
 
 #----------------------------------------------------------------------------
-def marquee(txt='',width=78,mark='*'):
-    """Return the input string centered in a 'marquee'."""
-    if not txt:
-        return (mark*width)[:width]
-    nmark = (width-len(txt)-2)/len(mark)/2
-    if nmark < 0: nmark =0
-    marks = mark*nmark
-    return '%s %s %s' % (marks,txt,marks)
-
-#----------------------------------------------------------------------------
 class EvalDict:
     """
     Emulate a dict which evaluates its contents in the caller's frame.
@@ -1506,267 +1301,6 @@ def native_line_ends(filename,backup=1):
             os.remove(bak_filename)
         except:
             pass
-
-#----------------------------------------------------------------------------
-def get_pager_cmd(pager_cmd = None):
-    """Return a pager command.
-
-    Makes some attempts at finding an OS-correct one."""
-
-    if os.name == 'posix':
-        default_pager_cmd = 'less -r'  # -r for color control sequences
-    elif os.name in ['nt','dos']:
-        default_pager_cmd = 'type'
-
-    if pager_cmd is None:
-        try:
-            pager_cmd = os.environ['PAGER']
-        except:
-            pager_cmd = default_pager_cmd
-    return pager_cmd
-
-#-----------------------------------------------------------------------------
-def get_pager_start(pager,start):
-    """Return the string for paging files with an offset.
-
-    This is the '+N' argument which less and more (under Unix) accept.
-    """
-
-    if pager in ['less','more']:
-        if start:
-            start_string = '+' + str(start)
-        else:
-            start_string = ''
-    else:
-        start_string = ''
-    return start_string
-
-#----------------------------------------------------------------------------
-# (X)emacs on W32 doesn't like to be bypassed with msvcrt.getch()
-if os.name == 'nt' and os.environ.get('TERM','dumb') != 'emacs':
-    import msvcrt
-    def page_more():
-        """ Smart pausing between pages
-
-        @return:    True if need print more lines, False if quit
-        """
-        Term.cout.write('---Return to continue, q to quit--- ')
-        ans = msvcrt.getch()
-        if ans in ("q", "Q"):
-            result = False
-        else:
-            result = True
-        Term.cout.write("\b"*37 + " "*37 + "\b"*37)
-        return result
-else:
-    def page_more():
-        ans = raw_input('---Return to continue, q to quit--- ')
-        if ans.lower().startswith('q'):
-            return False
-        else:
-            return True
-
-esc_re = re.compile(r"(\x1b[^m]+m)")
-
-def page_dumb(strng,start=0,screen_lines=25):
-    """Very dumb 'pager' in Python, for when nothing else works.
-
-    Only moves forward, same interface as page(), except for pager_cmd and
-    mode."""
-
-    out_ln  = strng.splitlines()[start:]
-    screens = chop(out_ln,screen_lines-1)
-    if len(screens) == 1:
-        print >>Term.cout, os.linesep.join(screens[0])
-    else:
-        last_escape = ""
-        for scr in screens[0:-1]:
-            hunk = os.linesep.join(scr)
-            print >>Term.cout, last_escape + hunk
-            if not page_more():
-                return
-            esc_list = esc_re.findall(hunk)
-            if len(esc_list) > 0:
-                last_escape = esc_list[-1]
-        print >>Term.cout, last_escape + os.linesep.join(screens[-1])
-
-#----------------------------------------------------------------------------
-def page(strng,start=0,screen_lines=0,pager_cmd = None):
-    """Print a string, piping through a pager after a certain length.
-
-    The screen_lines parameter specifies the number of *usable* lines of your
-    terminal screen (total lines minus lines you need to reserve to show other
-    information).
-
-    If you set screen_lines to a number <=0, page() will try to auto-determine
-    your screen size and will only use up to (screen_size+screen_lines) for
-    printing, paging after that. That is, if you want auto-detection but need
-    to reserve the bottom 3 lines of the screen, use screen_lines = -3, and for
-    auto-detection without any lines reserved simply use screen_lines = 0.
-
-    If a string won't fit in the allowed lines, it is sent through the
-    specified pager command. If none given, look for PAGER in the environment,
-    and ultimately default to less.
-
-    If no system pager works, the string is sent through a 'dumb pager'
-    written in python, very simplistic.
-    """
-
-    # Some routines may auto-compute start offsets incorrectly and pass a
-    # negative value.  Offset to 0 for robustness.
-    start = max(0,start)
-
-    # first, try the hook
-    ip = ipapi.get()
-    if ip:
-        try:
-            ip.IP.hooks.show_in_pager(strng)
-            return
-        except ipapi.TryNext:
-            pass
-
-    # Ugly kludge, but calling curses.initscr() flat out crashes in emacs
-    TERM = os.environ.get('TERM','dumb')
-    if TERM in ['dumb','emacs'] and os.name != 'nt':
-        print strng
-        return
-    # chop off the topmost part of the string we don't want to see
-    str_lines = strng.split(os.linesep)[start:]
-    str_toprint = os.linesep.join(str_lines)
-    num_newlines = len(str_lines)
-    len_str = len(str_toprint)
-
-    # Dumb heuristics to guesstimate number of on-screen lines the string
-    # takes.  Very basic, but good enough for docstrings in reasonable
-    # terminals. If someone later feels like refining it, it's not hard.
-    numlines = max(num_newlines,int(len_str/80)+1)
-
-    if os.name == "nt":
-        screen_lines_def = get_console_size(defaulty=25)[1]
-    else:
-        screen_lines_def = 25 # default value if we can't auto-determine
-
-    # auto-determine screen size
-    if screen_lines <= 0:
-        if TERM=='xterm':
-            use_curses = USE_CURSES
-        else:
-            # curses causes problems on many terminals other than xterm.
-            use_curses = False
-        if use_curses:
-            # There is a bug in curses, where *sometimes* it fails to properly
-            # initialize, and then after the endwin() call is made, the
-            # terminal is left in an unusable state.  Rather than trying to
-            # check everytime for this (by requesting and comparing termios
-            # flags each time), we just save the initial terminal state and
-            # unconditionally reset it every time.  It's cheaper than making
-            # the checks.
-            term_flags = termios.tcgetattr(sys.stdout)
-            scr = curses.initscr()
-            screen_lines_real,screen_cols = scr.getmaxyx()
-            curses.endwin()
-            # Restore terminal state in case endwin() didn't.
-            termios.tcsetattr(sys.stdout,termios.TCSANOW,term_flags)
-            # Now we have what we needed: the screen size in rows/columns
-            screen_lines += screen_lines_real
-            #print '***Screen size:',screen_lines_real,'lines x',\
-            #screen_cols,'columns.' # dbg
-        else:
-            screen_lines += screen_lines_def
-
-    #print 'numlines',numlines,'screenlines',screen_lines  # dbg
-    if numlines <= screen_lines :
-        #print '*** normal print'  # dbg
-        print >>Term.cout, str_toprint
-    else:
-        # Try to open pager and default to internal one if that fails.
-        # All failure modes are tagged as 'retval=1', to match the return
-        # value of a failed system command.  If any intermediate attempt
-        # sets retval to 1, at the end we resort to our own page_dumb() pager.
-        pager_cmd = get_pager_cmd(pager_cmd)
-        pager_cmd += ' ' + get_pager_start(pager_cmd,start)
-        if os.name == 'nt':
-            if pager_cmd.startswith('type'):
-                # The default WinXP 'type' command is failing on complex strings.
-                retval = 1
-            else:
-                tmpname = tempfile.mktemp('.txt')
-                tmpfile = file(tmpname,'wt')
-                tmpfile.write(strng)
-                tmpfile.close()
-                cmd = "%s < %s" % (pager_cmd,tmpname)
-                if os.system(cmd):
-                  retval = 1
-                else:
-                  retval = None
-                os.remove(tmpname)
-        else:
-            try:
-                retval = None
-                # if I use popen4, things hang. No idea why.
-                #pager,shell_out = os.popen4(pager_cmd)
-                pager = os.popen(pager_cmd,'w')
-                pager.write(strng)
-                pager.close()
-                retval = pager.close()  # success returns None
-            except IOError,msg:  # broken pipe when user quits
-                if msg.args == (32,'Broken pipe'):
-                    retval = None
-                else:
-                    retval = 1
-            except OSError:
-                # Other strange problems, sometimes seen in Win2k/cygwin
-                retval = 1
-        if retval is not None:
-            page_dumb(strng,screen_lines=screen_lines)
-
-#----------------------------------------------------------------------------
-def page_file(fname,start = 0, pager_cmd = None):
-    """Page a file, using an optional pager command and starting line.
-    """
-
-    pager_cmd = get_pager_cmd(pager_cmd)
-    pager_cmd += ' ' + get_pager_start(pager_cmd,start)
-
-    try:
-        if os.environ['TERM'] in ['emacs','dumb']:
-            raise EnvironmentError
-        xsys(pager_cmd + ' ' + fname)
-    except:
-        try:
-            if start > 0:
-                start -= 1
-            page(open(fname).read(),start)
-        except:
-            print 'Unable to show file',`fname`
-
-
-#----------------------------------------------------------------------------
-def snip_print(str,width = 75,print_full = 0,header = ''):
-    """Print a string snipping the midsection to fit in width.
-
-    print_full: mode control:
-      - 0: only snip long strings
-      - 1: send to page() directly.
-      - 2: snip long strings and ask for full length viewing with page()
-    Return 1 if snipping was necessary, 0 otherwise."""
-
-    if print_full == 1:
-        page(header+str)
-        return 0
-
-    print header,
-    if len(str) < width:
-        print str
-        snip = 0
-    else:
-        whalf = int((width -5)/2)
-        print str[:whalf] + ' <...> ' + str[-whalf:]
-        snip = 1
-    if snip and print_full == 2:
-        if raw_input(header+' Snipped. View (y/n)? [N]').lower() == 'y':
-            page(str)
-    return snip
 
 #****************************************************************************
 # lists, dicts and structures
@@ -2236,6 +1770,8 @@ def list_strings(arg):
     if isinstance(arg,basestring): return [arg]
     else: return arg
 
+
+#----------------------------------------------------------------------------
 def marquee(txt='',width=78,mark='*'):
     """Return the input string centered in a 'marquee'.
 

@@ -314,7 +314,7 @@ class InteractiveMultiEngineClient(object):
         from IPython.core import ipapi
         self.ip = ipapi.get()
         wsource = [l+'\n' for l in
-                   self.ip.IP.input_hist_raw[-1].splitlines()[1:]] 
+                   self.ip.input_hist_raw[-1].splitlines()[1:]] 
         return strip_whitespace(wsource)
         
     def __enter__(self):

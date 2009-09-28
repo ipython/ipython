@@ -20,14 +20,15 @@ from IPython.testing import tools as tt
 
 def test_rehashx():
     # clear up everything
-    _ip.IP.alias_table.clear()
+    _ip = get_ipython()
+    _ip.alias_manager.alias_table.clear()
     del _ip.db['syscmdlist']
     
     _ip.magic('rehashx')
     # Practically ALL ipython development systems will have more than 10 aliases
 
-    yield (nt.assert_true, len(_ip.IP.alias_table) > 10)
-    for key, val in _ip.IP.alias_table.items():
+    yield (nt.assert_true, len(_ip.alias_manager.alias_table) > 10)
+    for key, val in _ip.alias_manager.alias_table.items():
         # we must strip dots from alias names
         nt.assert_true('.' not in key)
 
@@ -52,7 +53,7 @@ def doctest_hist_r():
 
     XXX - This test is not recording the output correctly.  Not sure why...
 
-    In [20]: 'hist' in _ip.IP.lsmagic()
+    In [20]: 'hist' in _ip.lsmagic()
     Out[20]: True
 
     In [6]: x=1
@@ -65,11 +66,12 @@ def doctest_hist_r():
 # This test is known to fail on win32.
 # See ticket https://bugs.launchpad.net/bugs/366334
 def test_obj_del():
+    _ip = get_ipython()
     """Test that object's __del__ methods are called on exit."""
     test_dir = os.path.dirname(__file__)
     del_file = os.path.join(test_dir,'obj_del.py')
     ipython_cmd = find_cmd('ipython')
-    out = _ip.IP.getoutput('%s %s' % (ipython_cmd, del_file))
+    out = _ip.getoutput('%s %s' % (ipython_cmd, del_file))
     nt.assert_equals(out,'obj_del.py: object A deleted')
 
 
@@ -77,7 +79,7 @@ def test_shist():
     # Simple tests of ShadowHist class - test generator.
     import os, shutil, tempfile
 
-    from IPython.extensions import pickleshare
+    from IPython.utils import pickleshare
     from IPython.core.history import ShadowHist
     
     tfile = tempfile.mktemp('','tmp-ipython-')
@@ -124,7 +126,7 @@ def doctest_refbug():
     """Very nasty problem with references held by multiple runs of a script.
     See: https://bugs.launchpad.net/ipython/+bug/269966
 
-    In [1]: _ip.IP.clear_main_mod_cache()
+    In [1]: _ip.clear_main_mod_cache()
     
     In [2]: run refbug
 
@@ -221,13 +223,14 @@ class TestMagicRun(object):
         self.fname = fname
 
     def run_tmpfile(self):
+        _ip = get_ipython()
         # This fails on Windows if self.tmpfile.name has spaces or "~" in it.
         # See below and ticket https://bugs.launchpad.net/bugs/366353
         _ip.magic('run "%s"' % self.fname)
 
     def test_builtins_id(self):
         """Check that %run doesn't damage __builtins__ """
-
+        _ip = get_ipython()
         # Test that the id of __builtins__ is not modified by %run
         bid1 = id(_ip.user_ns['__builtins__'])
         self.run_tmpfile()
@@ -241,13 +244,15 @@ class TestMagicRun(object):
         be a dict (it should be a module) by a previous use of %run.  So we
         also check explicitly that it really is a module:
         """
+        _ip = get_ipython()
         self.run_tmpfile()
         tt.assert_equals(type(_ip.user_ns['__builtins__']),type(sys))
 
     def test_prompts(self):
         """Test that prompts correctly generate after %run"""
         self.run_tmpfile()
-        p2 = str(_ip.IP.outputcache.prompt2).strip()
+        _ip = get_ipython()
+        p2 = str(_ip.outputcache.prompt2).strip()
         nt.assert_equals(p2[:3], '...')
 
     def teardown(self):
@@ -261,14 +266,14 @@ class TestMagicRun(object):
 
 # Multiple tests for clipboard pasting
 def test_paste():
-
+    _ip = get_ipython()
     def paste(txt, flags='-q'):
         """Paste input text, by default in quiet mode"""
         hooks.clipboard_get = lambda : txt
         _ip.magic('paste '+flags)
 
     # Inject fake clipboard hook but save original so we can restore it later
-    hooks = _ip.IP.hooks
+    hooks = _ip.hooks
     user_ns = _ip.user_ns
     original_clip = hooks.clipboard_get
 
@@ -305,8 +310,8 @@ def test_paste():
 
         # Also test paste echoing, by temporarily faking the writer
         w = StringIO()
-        writer = _ip.IP.write
-        _ip.IP.write = w.write
+        writer = _ip.write
+        _ip.write = w.write
         code = """
         a = 100
         b = 200"""
@@ -314,7 +319,7 @@ def test_paste():
             paste(code,'')
             out = w.getvalue()
         finally:
-            _ip.IP.write = writer
+            _ip.write = writer
         yield (nt.assert_equal, user_ns['a'], 100)
         yield (nt.assert_equal, user_ns['b'], 200)
         yield (nt.assert_equal, out, code+"\n## -- End pasted text --\n")

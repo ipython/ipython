@@ -20,7 +20,7 @@ from twisted.internet import defer
 from IPython.kernel.fcutil import Tub, UnauthenticatedTub
 
 from IPython.kernel.config import config_manager as kernel_config_manager
-from IPython.config.cutils import import_item
+from IPython.utils.importstring import import_item
 from IPython.kernel.fcutil import find_furl
 
 co = kernel_config_manager.get_config_obj()

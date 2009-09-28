@@ -16,7 +16,8 @@ __all__ = ['Gnuplot','gp','gp_new','plot','plot2','splot','replot',
            'gphelp']
 
 import IPython.GnuplotRuntime as GRun
-from IPython.utils.genutils import page,warn
+from IPython.utils.genutils import warn
+from IPython.core.page import page
 
 # Set global names for interactive use
 Gnuplot  = GRun.Gnuplot
