@@ -1,8 +1,13 @@
 .. _initial config:
 
-=========================================
-Initial configuration of your environment
-=========================================
+=============================================================
+Outdated configuration information that might still be useful
+=============================================================
+
+.. warning::
+
+    All of the information in this file is outdated. Until the new
+    configuration system is better documented, this material is being kept.
 
 This section will help you set various things in your environment for
 your IPython sessions to be as efficient as possible. All of IPython's
@@ -20,69 +25,6 @@ ipythonrc (with a .ini extension under Windows), included for reference
 can change to suit your taste, you can find more details :ref:`here
 <customization>`. Here we discuss the basic things you will want to make sure
 things are working properly from the beginning.
-
-
-.. _accessing_help:
-
-Access to the Python help system
-================================
-
-This is true for Python in general (not just for IPython): you should have an
-environment variable called PYTHONDOCS pointing to the directory where your
-HTML Python documentation lives. In my system it's
-:file:`/usr/share/doc/python-doc/html`, check your local details or ask your
-systems administrator.
-
-This is the directory which holds the HTML version of the Python
-manuals. Unfortunately it seems that different Linux distributions
-package these files differently, so you may have to look around a bit.
-Below I show the contents of this directory on my system for reference::
-
-    [html]> ls
-    about.html  dist/  icons/      lib/           python2.5.devhelp.gz  whatsnew/
-    acks.html   doc/   index.html  mac/           ref/
-    api/        ext/   inst/       modindex.html  tut/
-
-You should really make sure this variable is correctly set so that
-Python's pydoc-based help system works. It is a powerful and convenient
-system with full access to the Python manuals and all modules accessible
-to you.
-
-Under Windows it seems that pydoc finds the documentation automatically,
-so no extra setup appears necessary.
-
-
-Editor
-======
-
-The %edit command (and its alias %ed) will invoke the editor set in your
-environment as EDITOR. If this variable is not set, it will default to
-vi under Linux/Unix and to notepad under Windows. You may want to set
-this variable properly and to a lightweight editor which doesn't take
-too long to start (that is, something other than a new instance of
-Emacs). This way you can edit multi-line code quickly and with the power
-of a real editor right inside IPython.
-
-If you are a dedicated Emacs user, you should set up the Emacs server so
-that new requests are handled by the original process. This means that
-almost no time is spent in handling the request (assuming an Emacs
-process is already running). For this to work, you need to set your
-EDITOR environment variable to 'emacsclient'. The code below, supplied
-by Francois Pinard, can then be used in your .emacs file to enable the
-server::
-
-    (defvar server-buffer-clients)
-    (when (and (fboundp 'server-start) (string-equal (getenv "TERM") 'xterm))
-      (server-start)
-      (defun fp-kill-server-with-buffer-routine ()
-        (and server-buffer-clients (server-done)))
-      (add-hook 'kill-buffer-hook 'fp-kill-server-with-buffer-routine))
-
-You can also set the value of this editor via the commmand-line option
-'-editor' or in your ipythonrc file. This is useful if you wish to use
-specifically for IPython an editor different from your typical default
-(and for Windows users who tend to use fewer environment variables).
-
 
 Color
 =====
@@ -132,7 +74,6 @@ Currently the following color schemes are available:
 IPython uses colors for two main groups of things: prompts and
 tracebacks which are directly printed to the terminal, and the object
 introspection system which passes large sets of data through a pager.
-
 
 Input/Output prompts and exception tracebacks
 =============================================
@@ -191,60 +132,99 @@ documentation for details.
 If you are on a system which lacks proper data pagers (such as Windows),
 IPython will use a very limited builtin pager.
 
-.. _emacs:
+.. _Prompts:
 
-(X)Emacs configuration
-======================
+Fine-tuning your prompt
+=======================
 
-Thanks to the work of Alexander Schmolck and Prabhu Ramachandran,
-currently (X)Emacs and IPython get along very well.
+IPython's prompts can be customized using a syntax similar to that of
+the bash shell. Many of bash's escapes are supported, as well as a few
+additional ones. We list them below::
 
-Important note: You will need to use a recent enough version of
-python-mode.el, along with the file ipython.el. You can check that the
-version you have of python-mode.el is new enough by either looking at
-the revision number in the file itself, or asking for it in (X)Emacs via
-M-x py-version. Versions 4.68 and newer contain the necessary fixes for
-proper IPython support.
+    \#
+        the prompt/history count number. This escape is automatically
+        wrapped in the coloring codes for the currently active color scheme. 
+    \N
+        the 'naked' prompt/history count number: this is just the number
+        itself, without any coloring applied to it. This lets you produce
+        numbered prompts with your own colors. 
+    \D
+        the prompt/history count, with the actual digits replaced by dots.
+        Used mainly in continuation prompts (prompt_in2) 
+    \w
+        the current working directory 
+    \W
+        the basename of current working directory 
+    \Xn
+        where $n=0\ldots5.$ The current working directory, with $HOME
+        replaced by ~, and filtered out to contain only $n$ path elements 
+    \Yn
+        Similar to \Xn, but with the $n+1$ element included if it is ~ (this
+        is similar to the behavior of the %cn escapes in tcsh) 
+    \u
+        the username of the current user 
+    \$
+        if the effective UID is 0, a #, otherwise a $ 
+    \h
+        the hostname up to the first '.' 
+    \H
+        the hostname 
+    \n
+        a newline 
+    \r
+        a carriage return 
+    \v
+        IPython version string 
 
-The file ipython.el is included with the IPython distribution, in the
-documentation directory (where this manual resides in PDF and HTML
-formats).
+In addition to these, ANSI color escapes can be insterted into the
+prompts, as \C_ColorName. The list of valid color names is: Black, Blue,
+Brown, Cyan, DarkGray, Green, LightBlue, LightCyan, LightGray,
+LightGreen, LightPurple, LightRed, NoColor, Normal, Purple, Red, White,
+Yellow.
 
-Once you put these files in your Emacs path, all you need in your .emacs
-file is::
+Finally, IPython supports the evaluation of arbitrary expressions in
+your prompt string. The prompt strings are evaluated through the syntax
+of PEP 215, but basically you can use $x.y to expand the value of x.y,
+and for more complicated expressions you can use braces: ${foo()+x} will
+call function foo and add to it the value of x, before putting the
+result into your prompt. For example, using
+prompt_in1 '${commands.getoutput("uptime")}\nIn [\#]: ' 
+will print the result of the uptime command on each prompt (assuming the
+commands module has been imported in your ipythonrc file).
 
-    (require 'ipython)
 
-This should give you full support for executing code snippets via
-IPython, opening IPython as your Python shell via ``C-c !``, etc.
+      Prompt examples
 
-You can customize the arguments passed to the IPython instance at startup by
-setting the ``py-python-command-args`` variable.  For example, to start always
-in ``pylab`` mode with hardcoded light-background colors, you can use::
+The following options in an ipythonrc file will give you IPython's
+default prompts::
 
-    (setq py-python-command-args '("-pylab" "-colors" "LightBG"))
+    prompt_in1 'In [\#]:' 
+    prompt_in2 '   .\D.:' 
+    prompt_out 'Out[\#]:'
 
-If you happen to get garbage instead of colored prompts as described in
-the previous section, you may need to set also in your .emacs file::
+which look like this::
 
-    (setq ansi-color-for-comint-mode t)
+    In [1]: 1+2 
+    Out[1]: 3
 
-Notes:
+    In [2]: for i in (1,2,3): 
+       ...:    print i, 
+       ...: 
+    1 2 3
 
-    * There is one caveat you should be aware of: you must start the
-      IPython shell before attempting to execute any code regions via
-      ``C-c |``. Simply type C-c ! to start IPython before passing any code
-      regions to the interpreter, and you shouldn't experience any
-      problems.
-      This is due to a bug in Python itself, which has been fixed for
-      Python 2.3, but exists as of Python 2.2.2 (reported as SF bug [
-      737947 ]).
-    * The (X)Emacs support is maintained by Alexander Schmolck, so all
-      comments/requests should be directed to him through the IPython
-      mailing lists.
-    * This code is still somewhat experimental so it's a bit rough
-      around the edges (although in practice, it works quite well).
-    * Be aware that if you customize py-python-command previously, this
-      value will override what ipython.el does (because loading the
-      customization variables comes later).
+These will give you a very colorful prompt with path information::
+
+    #prompt_in1 '\C_Red\u\C_Blue[\C_Cyan\Y1\C_Blue]\C_LightGreen\#>' 
+    prompt_in2 ' ..\D>' 
+    prompt_out '<\#>'
+
+which look like this::
+
+    fperez[~/ipython]1> 1+2 
+                    <1> 3 
+    fperez[~/ipython]2> for i in (1,2,3): 
+                   ...>     print i, 
+                   ...> 
+    1 2 3
+
 

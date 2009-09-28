@@ -42,32 +42,39 @@ Major areas of work
 Refactoring the main IPython core
 ---------------------------------
 
-During the summer of 2009, we began refactoring IPython's core.  The main
-thrust in this work was make the IPython core into a set of loosely coupled
-components.  The base component class for this is 
-:class:`IPython.core.component.Component`.  This section outlines the status
-of this work.
+During the summer of 2009, we began refactoring IPython's core. The main
+thrust in this work was to make the IPython core into a set of loosely coupled
+components. The base component class for this is
+:class:`IPython.core.component.Component`. This section outlines the status of
+this work.
 
 Parts of the IPython core that have been turned into components:
 
-* The main :class:`InteractiveShell` class.
-* The aliases (:mod:`IPython.core.aliases`).
+* The main :class:`~IPython.core.iplib.InteractiveShell` class.
+* The aliases (:mod:`IPython.core.alias`).
 * The display and builtin traps (:mod:`IPython.core.display_trap` and
   :mod:`IPython.core.builtin_trap`).
 * The prefilter machinery (:mod:`IPython.core.prefilter`).
 
-Parts of the IPythoncore that need to be turned into components:
+Parts of the IPythoncore that still need to be turned into components:
 
 * Magics.
 * Input and output history management.
 * Prompts.
-* Completers.
+* Tab completers.
 * Logging.
 * Exception handling.
 * Anything else.
 
 Process management for :mod:`IPython.kernel`
 --------------------------------------------
+
+A number of things need to be done to improve how processes are started
+up and managed for the parallel computing side of IPython:
+
+* All of the processes need to use the new configuration system, components
+  and application.
+* We need to add support for other batch systems.
 
 Performance problems
 --------------------
@@ -103,9 +110,9 @@ things that will need to be considered when doing such a port especially
 if we want to have a codebase that works directly on both 2.x and 3.x.
 
 1. The syntax for exceptions changed (PEP 3110). The old `except exc, var`
-changed to `except exc as var`. At last count there was 78 occurrences of this
-usage in the code base. This is a particularly problematic issue, because it's
-not easy to implement it in a 2.5-compatible way.
+   changed to `except exc as var`. At last count there was 78 occurrences of this
+   usage in the code base. This is a particularly problematic issue, because it's
+   not easy to implement it in a 2.5-compatible way.
 
 Because it is quite difficult to support simultaneously Python 2.5 and 3.x, we
 will likely at some point put out a release that requires strictly 2.6 and

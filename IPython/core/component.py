@@ -144,8 +144,8 @@ def masquerade_as(instance, cls):
     masquerade as another.  Python, being duck typed, allows this by 
     default.  But, instances of components are tracked by their class type.
 
-    After calling this, cls.get_instances() will return ``instance``.  This
-    does not, however, cause isinstance(instance, cls) to return ``True``.
+    After calling this, ``cls.get_instances()`` will return ``instance``. This
+    does not, however, cause ``isinstance(instance, cls)`` to return ``True``.
 
     Parameters
     ----------

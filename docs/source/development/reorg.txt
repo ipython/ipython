@@ -1,85 +1,64 @@
-=============================
-IPython module reorganization
-=============================
+.. _module_reorg:
 
-Currently, IPython has many top-level modules that serve many different
-purposes. The lack of organization make it very difficult for developers to
-work on IPython and understand its design. This document contains notes about
-how we will reorganize the modules into sub-packages.
+===========================
+IPython module organization
+===========================
 
-.. warning::
+As of the 0.11 release of IPython, the top-level packages and modules have
+been completely reorganized.  This section describes the purpose of the
+top-level IPython subpackages.
 
-    This effort will possibly break third party packages that use IPython as
-    a library or hack on the IPython internals.
+Subpackage descriptions
+=======================
 
-.. warning::
+* :mod:`IPython.config`.  This package contains the configuration system of 
+  IPython, as well as default configuration files for the different IPython
+  applications.
 
-    This effort will result in the removal from IPython of certain modules
-    that are not used anymore, don't currently work, are unmaintained, etc.
-
-
-Current subpackges
-==================
-
-IPython currently has the following sub-packages:
-
-* :mod:`IPython.config`
-
-* :mod:`IPython.Extensions`
-
-* :mod:`IPython.external`
-
-* :mod:`IPython.frontend`
-
-* :mod:`IPython.gui`
-
-* :mod:`IPython.kernel`
-
-* :mod:`IPython.testing`
-
-* :mod:`IPython.tests`
-
-* :mod:`IPython.tools`
-
-* :mod:`IPython.UserConfig`
-
-New Subpackages to be created
-=============================
-
-We propose to create the following new sub-packages:
-
-* :mod:`IPython.core`. This sub-package will contain the core of the IPython
+* :mod:`IPython.core`. This sub-package contains the core of the IPython
   interpreter, but none of its extended capabilities.
 
+* :mod:`IPython.deathrow`. This is for code that is outdated, untested,
+  rotting, or that belongs in a separate third party project. Eventually all
+  this code will either i) be revived by someone willing to maintain it with
+  tests and docs and re-included into IPython or 2) be removed from IPython
+  proper, but put into a separate third-party Python package. No new code will
+  be allowed here.
+
+* :mod:`IPython.extensions`.  This package contains fully supported IPython
+  extensions.  These extensions adhere to the official IPython extension API
+  and can be enabled by adding them to a field in the configuration file.
+
+* :mod:`IPython.external`. This package contains third party packages and
+  modules that IPython ships internally to reduce the number of dependencies.
+  Usually, these are short, single file modules.
+
+* :mod:`IPython.frontend`. This package contains the various IPython
+  frontends. Currently, the code in this subpackage is very experimental and
+  may be broken.
+
+* :mod:`IPython.gui`.  Another semi-experimental wxPython based IPython GUI.
+
+* :mod:`IPython.kernel`.  This contains IPython's parallel computing system.
+
 * :mod:`IPython.lib`. IPython has many extended capabilities that are not part
-  of the IPython core. These things will go here.
+  of the IPython core. These things will go here and in.  Modules in this
+  package are similar to extensions, but don't adhere to the official
+  IPython extension API.
+
+* :mod:`IPython.quarantine`. This is for code that doesn't meet IPython's
+  standards, but that we plan on keeping. To be moved out of this sub-package
+  a module needs to have approval of the core IPython developers, tests and
+  documentation.
+
+* :mod:`IPython.scripts`.  This package contains a variety of top-level
+  command line scripts.  Eventually, these should be moved to the 
+  :file:`scripts` subdirectory of the appropriate IPython subpackage.
 
 * :mod:`IPython.utils`. This sub-package will contain anything that might
   eventually be found in the Python standard library, like things in
   :mod:`genutils`. Each sub-module in this sub-package should contain
-  functions and classes that serve a single purpose.
+  functions and classes that serve a single purpose and that don't
+  depend on things in the rest of IPython.
 
-* :mod:`IPython.deathrow`. This is for code that is untested and/or rotting
-  and needs to be removed from IPython. Eventually all this code will either
-  i) be revived by someone willing to maintain it with tests and docs and
-  re-included into IPython or 2) be removed from IPython proper, but put into
-  a separate top-level (not IPython) package that we keep around. No new code
-  will be allowed here.
-
-* :mod:`IPython.quarantine`.  This is for code that doesn't meet IPython's 
-  standards, but that we plan on keeping.  To be moved out of this sub-package
-  a module needs to have a maintainer, tests and documentation.
-
-Procedure
-=========
-
-1. Move the file to its new location with its new name.
-2. Rename all import statements to reflect the change.
-3. Run PyFlakes on each changes module.
-4. Add tests/test_imports.py to test it.
-
-Status
-======
-
-This branch was merged into trunk in early August of 2009.
 

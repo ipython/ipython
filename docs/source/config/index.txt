@@ -5,7 +5,7 @@ Configuration and customization
 .. toctree::
    :maxdepth: 2
 
-   initial_config.txt
-   customization.txt
-   new_config.txt
-
+   overview.txt
+   ipython.txt
+   editors.txt
+   old.txt

@@ -439,17 +439,17 @@ class HasTraitlets(object):
         
         Parameters
         ----------
-            handler : callable
-                A callable that is called when a traitlet changes.  Its 
-                signature can be handler(), handler(name), handler(name, new)
-                or handler(name, old, new).
-            name : list, str, None
-                If None, the handler will apply to all traitlets.  If a list
-                of str, handler will apply to all names in the list.  If a
-                str, the handler will apply just to that name.
-            remove : bool
-                If False (the default), then install the handler.  If True
-                then unintall it.
+        handler : callable
+            A callable that is called when a traitlet changes.  Its 
+            signature can be handler(), handler(name), handler(name, new)
+            or handler(name, old, new).
+        name : list, str, None
+            If None, the handler will apply to all traitlets.  If a list
+            of str, handler will apply to all names in the list.  If a
+            str, the handler will apply just to that name.
+        remove : bool
+            If False (the default), then install the handler.  If True
+            then unintall it.
         """
         if remove:
             names = parse_notifier_name(name)

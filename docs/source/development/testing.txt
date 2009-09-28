@@ -28,13 +28,14 @@ Status
 Currently IPython's testing system is being reworked.  In the meantime,
 we recommend the following testing practices:
 
-* To run regular tests, use the :cmd:`nosetests` command on a per file basis:
+* To run regular tests, use the :command:`nosetests` command that Nose [Nose]_ 
+  provides on a per file basis:
 
 .. code-block:: bash
 
     nosetests -vvs IPython.core.tests.test_component
 
-* To run Twisted-using tests, use the :cmd:`trial` command on a per file 
+* To run Twisted-using tests, use the :command:`trial` command on a per file 
   basis:
 
 .. code-block:: bash
@@ -45,150 +46,9 @@ we recommend the following testing practices:
   unit tests.  They should be subclasses of :class:`unittest.TestCase`.
 
 * Tests of Twisted [Twisted]_ using code should be written by subclassing the
-  ``TestCase`` class that comes with ``twisted.trial.unittest``.
+  ``TestCase`` class that comes with ``twisted.trial.unittest``. Furthermore,
+  all :class:`Deferred` instances that are created in the test must be
+  properly chained and the final one *must* be the return value of the test
+  method.
 
-.. _devel_testing:
-
-Older material
-==============
-
-It is extremely important that all code contributed to IPython has tests.
-Tests should be written as unittests, doctests or as entities that the Nose
-[Nose]_ testing package will find. Regardless of how the tests are written, we
-will use Nose for discovering and running the tests. Nose will be required to
-run the IPython test suite, but will not be required to simply use IPython.
-
-Tests of Twisted using code need to follow two additional guidelines:
-
-1. Twisted using tests should be written by subclassing the :class:`TestCase`
-   class that comes with :mod:`twisted.trial.unittest`. 
-
-2. All :class:`Deferred` instances that are created in the test must be
-   properly chained and the final one *must* be the return value of the test
-   method.
-
-When these two things are done, Nose will be able to run the tests and the
-twisted reactor will be handled correctly.
-
-Each subpackage in IPython should have its own :file:`tests` directory that
-contains all of the tests for that subpackage. This allows each subpackage to
-be self-contained.  A good convention to follow is to have a file named
-:file:`test_foo.py` for each module :file:`foo.py` in the package.  This makes
-it easy to organize the tests, though like most conventions, it's OK to break
-it if logic and common sense dictate otherwise.
-
-If a subpackage has any dependencies beyond the Python standard library, the
-tests for that subpackage should be skipped if the dependencies are not
-found. This is very important so users don't get tests failing simply because
-they don't have dependencies.  We ship a set of decorators in the
-:mod:`IPython.testing` package to tag tests that may be platform-specific or
-otherwise may have restrictions; if the existing ones don't fit your needs, add
-a new decorator in that location so other tests can reuse it.
-
-To run the IPython test suite, use the :command:`iptest` command that is
-installed with IPython (if you are using IPython in-place, without installing
-it, you can find this script in the :file:`scripts` directory)::
-
-    $ iptest
-
-This command colects all IPython tests into separate groups, and then calls
-either Nose with the proper options and extensions, or Twisted's
-:command:`trial`.  This ensures that tests that need the Twisted reactor
-management facilities execute separate of Nose.  If any individual test group
-fails, :command:`iptest` will print what you need to type so you can rerun that
-particular test group alone for debugging.
-
-By default, :command:`iptest` runs the entire IPython test
-suite (skipping tests that may be platform-specific or which depend on tools
-you may not have).  But you can also use it to run only one specific test file,
-or a specific test function.  For example, this will run only the
-:file:`test_magic` file from the test suite::
-
-    $ iptest IPython.tests.test_magic
-    ----------------------------------------------------------------------
-    Ran 10 tests in 0.348s
-
-    OK (SKIP=3)
-    Deleting object: second_pass
-
-while the ``path:function`` syntax allows you to select a specific function in
-that file to run::
-
-    $ iptest IPython.tests.test_magic:test_obj_del
-    ----------------------------------------------------------------------
-    Ran 1 test in 0.204s
-
-    OK
-
-Since :command:`iptest` is based on nosetests, you can pass it any regular
-nosetests option.  For example, you can use ``--pdb`` or ``--pdb-failures`` to
-automatically activate the interactive Pdb debugger on errors or failures.  See
-the nosetests documentation for further details.
-
-
-A few tips for writing tests
-----------------------------
-
-You can write tests either as normal test files, using all the conventions that
-Nose recognizes, or as doctests.  Note that *all* IPython functions should have
-at least one example that serves as a doctest, whenever technically feasible.
-However, example doctests should only be in the main docstring if they are *a
-good example*, i.e. if they convey useful information about the function.  If
-you simply would like to write a test as a doctest, put it in a separate test
-file and write a no-op function whose only purpose is its docstring.
-
-Note, however, that in a file named :file:`test_X`, functions whose only test
-is their docstring (as a doctest) and which have no test functionality of their
-own, should be called *doctest_foo* instead of *test_foo*, otherwise they get
-double-counted (the empty function call is counted as a test, which just
-inflates tests numbers artificially).  This restriction does not apply to
-functions in files with other names, due to how Nose discovers tests.
-
-You can use IPython examples in your docstrings.  Those can make full use of
-IPython functionality (magics, variable substitution, etc), but be careful to
-keep them generic enough that they run identically on all Operating Systems.
-
-The prompts in your doctests can be either of the plain Python ``>>>`` variety
-or ``In [1]:`` IPython style.  Since this is the IPython system, after all, we
-encourage you to use IPython prompts throughout, unless you are illustrating a
-specific aspect of the normal prompts (such as the ``%doctest_mode`` magic).
-
-If a test isn't safe to run inside the main nose process (e.g. because it loads
-a GUI toolkit), consider running it in a subprocess and capturing its output
-for evaluation and test decision later.  Here is an example of how to do it, by
-relying on the builtin ``_ip`` object that contains the public IPython api as
-defined in :mod:`IPython.ipapi`::
-
-   def test_obj_del():
-       """Test that object's __del__ methods are called on exit."""
-       test_dir = os.path.dirname(__file__)
-       del_file = os.path.join(test_dir,'obj_del.py')
-       out = _ip.IP.getoutput('ipython %s' % del_file)
-       nt.assert_equals(out,'object A deleted')
-
-
-
-If a doctest contains input whose output you don't want to verify identically
-via doctest (random output, an object id, etc), you can mark a docstring with
-``#random``.  All of these test will have their code executed but no output
-checking will be done::
-
-       >>> 1+3
-       junk goes here...  # random
-
-       >>> 1+2
-       again,  anything goes #random
-       if multiline, the random mark is only needed once.
-
-       >>> 1+2
-       You can also put the random marker at the end:
-       # random
-
-       >>> 1+2
-       # random
-       .. or at the beginning.
-
-In a case where you want an *entire* docstring to be executed but not verified
-(this only serves to check that the code runs without crashing, so it should be
-used very sparingly), you can put ``# all-random`` in the docstring.
-
+.. [Nose] Nose: a discovery based unittest extension. http://code.google.com/p/python-nose/

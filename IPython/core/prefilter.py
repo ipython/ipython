@@ -207,7 +207,7 @@ class PrefilterManager(Component):
 
     Users or developers can change the priority or enabled attribute of
     transformers or checkers, but they must call the :meth:`sort_checkers`
-    or :meth`sort_transformers` method after changing the priority.
+    or :meth:`sort_transformers` method after changing the priority.
     """
 
     multi_line_specials = CBool(True, config=True)

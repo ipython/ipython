@@ -140,7 +140,7 @@ c.Global.log_level = 20
 # AliasManager options
 #-----------------------------------------------------------------------------
 
-# Do this to enable all defaults
+# Do this to disable all defaults
 # c.AliasManager.default_aliases = []
 
 # c.AliasManager.user_aliases = [

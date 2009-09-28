@@ -1,5 +1,11 @@
-Release checklist
+.. _releasing_ipython:
+
 =================
+Releasing IPython
+=================
+
+This section contains notes about the process that is used to release IPython.
+Our release process is currently not very formal and could be improved.
 
 Most of the release process is automated by the :file:`release` script in the
 :file:`tools` directory.  This is just a handy reminder for the release manager.
@@ -13,12 +19,13 @@ Most of the release process is automated by the :file:`release` script in the
 #. Run the release script, which makes the tar.gz, eggs and Win32 .exe
    installer.  It posts them to the site and registers the release with PyPI.
 
-#. Updating the website with announcements and links to the updated
-   changes.txt in html form. Remember to put a short note both on the news
-   page of the site and on Launcphad.
+#. Update the website with announcements and links to the updated changes.txt
+   in html form. Remember to put a short note both on the news page of the 
+   site and on Launcphad.
 
 #. Drafting a short release announcement with i) highlights and ii) a link to
-   the html changes.txt.
+   the html version of the :ref:`Whats new <whatsnew_index>` section of the 
+   documentation.
 
 #. Make sure that the released version of the docs is live on the site.
 

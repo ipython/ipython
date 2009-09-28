@@ -1,39 +1,36 @@
-==============
- Coding guide
-==============
+============
+Coding guide
+============
 
-
-Coding conventions
-==================
+General coding conventions
+==========================
 
 In general, we'll try to follow the standard Python style conventions as
-described in Python's `PEP 8`_, the official Python Style Guide.
+described in Python's PEP 8 [PEP8]_, the official Python Style Guide.
 
-.. _PEP 8: http://www.python.org/peps/pep-0008.html
+Other general comments:
 
-Other comments:
-
-- In a large file, top level classes and functions should be separated by 2-3
+* In a large file, top level classes and functions should be separated by 2
   lines to make it easier to separate them visually.
 
-- Use 4 spaces for indentation, *never* use hard tabs.
+* Use 4 spaces for indentation, **never** use hard tabs.
 
-- Keep the ordering of methods the same in classes that have the same methods.
+* Keep the ordering of methods the same in classes that have the same methods.
   This is particularly true for classes that implement similar interfaces and
   for interfaces that are similar.
 
 Naming conventions
-------------------
+==================
 
-In terms of naming conventions, we'll follow the guidelines of PEP 8.  Some of
-the existing code doesn't honor this perfectly, but for all new IPython code
-(and much existing code is being refactored), we'll use:
+In terms of naming conventions, we'll follow the guidelines of PEP 8 [PEP8]_.
+Some of the existing code doesn't honor this perfectly, but for all new
+IPython code (and much existing code is being refactored), we'll use:
 
-- All ``lowercase`` module names.
+* All ``lowercase`` module names.
 
-- ``CamelCase`` for class names.
+* ``CamelCase`` for class names.
 
-- ``lowercase_with_underscores`` for methods, functions, variables and
+* ``lowercase_with_underscores`` for methods, functions, variables and
   attributes.
 
 This may be confusing as some of the existing codebase uses a different
@@ -48,12 +45,12 @@ standards at all times.  In particular, when subclassing classes that use other
 naming conventions, you must follow their naming conventions.  To deal with
 cases like this, we propose the following policy:
 
-- If you are subclassing a class that uses different conventions, use its
+* If you are subclassing a class that uses different conventions, use its
   naming conventions throughout your subclass.  Thus, if you are creating a
   Twisted Protocol class, used Twisted's
   ``namingSchemeForMethodsAndAttributes.``
 
-- All IPython's official interfaces should use our conventions.  In some cases
+* All IPython's official interfaces should use our conventions.  In some cases
   this will mean that you need to provide shadow names (first implement
   ``fooBar`` and then ``foo_bar = fooBar``).  We want to avoid this at all
   costs, but it will probably be necessary at times.  But, please use this
@@ -74,83 +71,8 @@ explicit ``IP``. In Python this is mostly unnecessary, redundant and frowned
 upon, as namespaces offer cleaner prefixing. The only case where this approach
 is justified is for classes which are expected to be imported into external
 namespaces and a very generic name (like Shell) is too likely to clash with
-something else.  We'll need to revisit this issue as we clean up and refactor
-the code, but in general we should remove as many unnecessary ``IP``/``ip``
-prefixes as possible. However, if a prefix seems absolutely necessary the more
+something else.  However, if a prefix seems absolutely necessary the more
 specific ``IPY`` or ``ipy`` are preferred.
 
-Older material
-==============
-
-General
--------
-
-In general, we'll try to follow the standard Python style conventions as
-described here:
-
-* `Style Guide for Python Code  <http://www.python.org/peps/pep-0008.html>`_  
-
-
-Other comments:
-
-* In a large file, top level classes and functions should be 
-  separated by 2-3 lines to make it easier to separate them visually.
-* Use 4 spaces for indentation.
-* Keep the ordering of methods the same in classes that have the same 
-  methods.  This is particularly true for classes that implement an interface.
-
-Naming conventions
-------------------
-
-In terms of naming conventions, we'll follow the guidelines from the `Style
-Guide for Python Code`_.
-
-For all new IPython code (and much existing code is being refactored), we'll
-use:
-
-* All ``lowercase`` module names.
-
-* ``CamelCase`` for class names.
-
-* ``lowercase_with_underscores`` for methods, functions, variables and
-  attributes.
-
-There are, however, some important exceptions to these rules. In some cases,
-IPython code will interface with packages (Twisted, Wx, Qt) that use other
-conventions. At some level this makes it impossible to adhere to our own
-standards at all times. In particular, when subclassing classes that use other
-naming conventions, you must follow their naming conventions. To deal with
-cases like this, we propose the following policy:
-
-* If you are subclassing a class that uses different conventions, use its
-  naming conventions throughout your subclass.  Thus, if you are creating a
-  Twisted Protocol class, used Twisted's
-  ``namingSchemeForMethodsAndAttributes.``
-
-* All IPython's official interfaces should use our conventions.  In some cases
-  this will mean that you need to provide shadow names (first implement
-  ``fooBar`` and then ``foo_bar = fooBar``).  We want to avoid this at all
-  costs, but it will probably be necessary at times.  But, please use this
-  sparingly!
-
-Implementation-specific *private* methods will use
-``_single_underscore_prefix``. Names with a leading double underscore will
-*only* be used in special cases, as they makes subclassing difficult (such
-names are not easily seen by child classes).
-
-Occasionally some run-in lowercase names are used, but mostly for very short
-names or where we are implementing methods very similar to existing ones in a
-base class (like ``runlines()`` where ``runsource()`` and ``runcode()`` had
-established precedent).
-
-The old IPython codebase has a big mix of classes and modules prefixed with an
-explicit ``IP``. In Python this is mostly unnecessary, redundant and frowned
-upon, as namespaces offer cleaner prefixing. The only case where this approach
-is justified is for classes which are expected to be imported into external
-namespaces and a very generic name (like Shell) is too likely to clash with
-something else. We'll need to revisit this issue as we clean up and refactor
-the code, but in general we should remove as many unnecessary ``IP``/``ip``
-prefixes as possible. However, if a prefix seems absolutely necessary the more
-specific ``IPY`` or ``ipy`` are preferred.
-
+.. [PEP8] Python Enhancement Proposal 8.  http://www.python.org/peps/pep-0008.html
 

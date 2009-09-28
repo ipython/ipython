@@ -38,16 +38,23 @@ optional dependencies:
 
 .. code-block:: bash
 
-    easy_install ipython[kernel,security,test]
+    $ easy_install ipython[kernel,security,test]
 
 This will get Twisted, zope.interface and Foolscap, which are needed for
 IPython's parallel computing features as well as the nose package, which will
-enable you to run IPython's test suite.  To run IPython's test suite, use the
-:command:`iptest` command:
+enable you to run IPython's test suite.  
+
+.. warning::
+
+    IPython's test system is being refactored and currently the
+    :command:`iptest` shown below does not work. More details about the
+    testing situation can be found :ref:`here <testing>`
+
+To run IPython's test suite, use the :command:`iptest` command:
 
 .. code-block:: bash
 
-    iptest
+    $ iptest
 
 Read on for more specific details and instructions for Windows.
 
@@ -70,7 +77,7 @@ to simple use :command:`easy_install`:
 
 .. code-block:: bash
 
-    easy_install ipython
+    $ easy_install ipython
 
 That's it.
 
@@ -83,9 +90,9 @@ just grab the latest stable build of IPython from `here
 
 .. code-block:: bash
 
-    tar -xzf ipython.tar.gz
-    cd ipython
-    python setup.py install
+    $ tar -xzf ipython.tar.gz
+    $ cd ipython
+    $ python setup.py install
 
 If you are installing to a location (like ``/usr/local``) that requires higher
 permissions, you may need to run the last command with :command:`sudo`.
@@ -125,9 +132,9 @@ need to have Bazaar installed on your system.  Then just do:
 
 .. code-block:: bash
 
-    bzr branch lp:ipython
-    cd ipython
-    python setup.py install
+    $ bzr branch lp:ipython
+    $ cd ipython
+    $ python setup.py install
 
 Again, this last step on Windows won't create ``.bat`` files or Start Menu
 shortcuts, so you will have to use one of the other approaches listed above.
@@ -138,7 +145,7 @@ step by:
 
 .. code-block:: bash
 
-    python setupegg.py develop
+    $ python setupegg.py develop
 
 This creates links in the right places and installs the command line script to
 the appropriate places.  Then, if you want to update your IPython at any time,
@@ -146,7 +153,7 @@ just do:
 
 .. code-block:: bash
 
-    bzr pull
+    $ bzr pull
 
 Basic optional dependencies
 ===========================
@@ -183,9 +190,9 @@ working :mod:`readline` module, just do (with :mod:`setuptools` installed):
 
 .. code-block:: bash
 
-    easy_install readline
+    $ easy_install readline
 
-.. note:
+.. note::
 
     Other Python distributions on OS X (such as fink, MacPorts and the 
     official python.org binaries) already have readline installed so 
@@ -210,21 +217,27 @@ simplest way of getting nose, is to use :command:`easy_install`:
 
 .. code-block:: bash
 
-    easy_install nose
+    $ easy_install nose
 
 Another way of getting this is to do:
 
 .. code-block:: bash
 
-    easy_install ipython[test]
+    $ easy_install ipython[test]
 
 For more installation options, see the `nose website
-<http://somethingaboutorange.com/mrl/projects/nose/>`_.  Once you have nose
-installed, you can run IPython's test suite using the iptest command:
+<http://somethingaboutorange.com/mrl/projects/nose/>`_.  
+
+.. warning::
+
+    As described above, the :command:`iptest` command currently doesn't work.
+
+Once you have nose installed, you can run IPython's test suite using the
+iptest command:
 
 .. code-block:: bash
 
-    iptest
+    $ iptest
 
 pexpect
 -------
@@ -234,7 +247,7 @@ The `pexpect <http://www.noah.org/wiki/Pexpect>`_ package is used in IPython's
 
 .. code-block:: bash
 
-    easy_install pexpect
+    $ easy_install pexpect
 
 Windows users are out of luck as pexpect does not run there.
 
@@ -255,8 +268,8 @@ On a Unix style platform (including OS X), if you want to use
 
 .. code-block:: bash
 
-    easy_install ipython[kernel]    # the first three
-    easy_install ipython[security]  # pyOpenSSL
+    $ easy_install ipython[kernel]    # the first three
+    $ easy_install ipython[security]  # pyOpenSSL
 
 zope.interface and Twisted
 --------------------------
@@ -267,13 +280,13 @@ getting the these is to use :command:`easy_install`:
 
 .. code-block:: bash
 
-    easy_install zope.interface
-    easy_install Twisted
+    $ easy_install zope.interface
+    $ easy_install Twisted
 
 Of course, you can also download the source tarballs from the Twisted website
-[Twisted]_ and the `zope.interface page at PyPI
-<http://pypi.python.org/pypi/zope.interface>`_ and do the usual ``python
-setup.py install`` if you prefer.
+[Twisted]_ and the 
+`zope.interface page at PyPI <http://pypi.python.org/pypi/zope.interface>`_ 
+and do the usual ``python setup.py install`` if you prefer.
 
 Windows is a bit different. For zope.interface and Twisted, simply get the
 latest binary ``.exe`` installer from the Twisted website. This installer
@@ -288,7 +301,7 @@ On all platforms a simple:
 
 .. code-block:: bash
 
-    easy_install foolscap
+    $ easy_install foolscap
 
 should work.  You can also download the source tarballs from the `Foolscap
 website <http://foolscap.lothar.com/trac>`_ and do ``python setup.py install``
