@@ -54,15 +54,17 @@ the following attributes can be set in the ``Global`` section.
 :attr:`c.Global.extensions`
     A list of strings, each of which is an importable IPython extension. An
     IPython extension is a regular Python module or package that has a
-    :func:`load_in_ipython(ip)` method. This method gets called when the
-    extension is loaded with the currently running
+    :func:`load_ipython_extension(ip)` method. This method gets called when
+    the extension is loaded with the currently running
     :class:`~IPython.core.iplib.InteractiveShell` as its only argument. You
     can put your extensions anywhere they can be imported but we add the
     :file:`extensions` subdirectory of the ipython directory to ``sys.path``
-    during extension loading, so you can put them there as well.  Extensions
-    are not executed in the user's interactive namespace and they must
-    be pure Python code.  Extensions are the recommended way of customizing
-    :command:`ipython`.
+    during extension loading, so you can put them there as well. Extensions
+    are not executed in the user's interactive namespace and they must be pure
+    Python code. Extensions are the recommended way of customizing
+    :command:`ipython`. Extensions can provide an
+    :func:`unload_ipython_extension` that will be called when the extension is
+    unloaded.
 
 :attr:`c.Global.exec_lines`
     A list of strings, each of which is Python code that is run in the user's
