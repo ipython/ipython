@@ -4,8 +4,13 @@ To enable this extension in your configuration
 file, add the following to :file:`ipython_config.py`::
 
     c.Global.extensions = ['IPython.extensions.pretty']
+    def dict_pprinter(obj, p, cycle):
+        return p.text("<dict>")
     c.PrettyResultDisplay.verbose = True
-    c.PrettyResultDisplay.defaults = [
+    c.PrettyResultDisplay.defaults_for_type = [
+        (dict, dict_pprinter)
+    ]
+    c.PrettyResultDisplay.defaults_for_type_by_name = [
         ('numpy', 'dtype', 'IPython.extensions.pretty.dtype_pprinter')
     ]
 
@@ -42,28 +47,50 @@ from IPython.utils.importstring import import_item
 # Code
 #-----------------------------------------------------------------------------
 
+
 _loaded = False
 
 
 class PrettyResultDisplay(Component):
+    """A component for pretty printing on steroids."""
 
     verbose = Bool(False, config=True)
+
+    # A list of (type, func_name), like
+    # [(dict, 'my_dict_printer')]
+    # The final argument can also be a callable
+    defaults_for_type = List(default_value=[], config=True)
+
     # A list of (module_name, type_name, func_name), like
     # [('numpy', 'dtype', 'IPython.extensions.pretty.dtype_pprinter')]
-    defaults = List(default_value=[], config=True)
+    # The final argument can also be a callable
+    defaults_for_type_by_name = List(default_value=[], config=True)
 
     def __init__(self, parent, name=None, config=None):
         super(PrettyResultDisplay, self).__init__(parent, name=name, config=config)
-        self.setup_defaults()
+        self._setup_defaults()
 
-    def setup_defaults(self):
+    def _setup_defaults(self):
         """Initialize the default pretty printers."""
-        for type_module, type_name, func_name in self.defaults:
-            func = import_item(func_name)
+        for typ, func_name in self.defaults_for_type:
+            func = self._resolve_func_name(func_name)
+            self.for_type(typ, func)
+        for type_module, type_name, func_name in self.defaults_for_type_by_name:
+            func = self._resolve_func_name(func_name)
             self.for_type_by_name(type_module, type_name, func)
 
-    # Access other components like this rather than by regular attribute
-    # access.
+    def _resolve_func_name(self, func_name):
+        if callable(func_name):
+            return func_name
+        elif isinstance(func_name, basestring):
+            return import_item(func_name)
+        else:
+            raise TypeError('func_name must be a str or callable, got: %r' % func_name)
+
+    # Access other components like this rather than by a regular attribute.
+    # This won't lookup the InteractiveShell object until it is used and
+    # then it is cached.  This is both efficient and couples this class 
+    # more loosely to InteractiveShell.
     @auto_attr
     def shell(self):
         return Component.get_instances(
@@ -93,8 +120,7 @@ class PrettyResultDisplay(Component):
 
     def for_type_by_name(self, type_module, type_name, func):
         """Add a pretty printer for a type by its name and module name."""
-        print type_module, type_name, func
-        return pretty.for_type_by_name(type_name, type_name, func)
+        return pretty.for_type_by_name(type_module, type_name, func)
 
 
 #-----------------------------------------------------------------------------
@@ -103,6 +129,7 @@ class PrettyResultDisplay(Component):
 
 
 def load_ipython_extension(ip):
+    """Load the extension in IPython as a hook."""
     global _loaded
     if not _loaded:
         prd = PrettyResultDisplay(ip, name='pretty_result_display')
@@ -110,6 +137,7 @@ def load_ipython_extension(ip):
         _loaded = True
 
 def unload_ipython_extension(ip):
+    """Unload the extension."""
     # The hook system does not have a way to remove a hook so this is a pass
     pass
 
@@ -124,16 +152,17 @@ def dtype_pprinter(obj, p, cycle):
     """
     if cycle:
         return p.text('dtype(...)')
-    if obj.fields is None:
-        p.text(repr(obj))
-    else:
-        p.begin_group(7, 'dtype([')
-        for i, field in enumerate(obj.descr):
-            if i > 0:
-                p.text(',')
-                p.breakable()
-            p.pretty(field)
-        p.end_group(7, '])')
+    if hasattr(obj, 'fields'):
+        if obj.fields is None:
+            p.text(repr(obj))
+        else:
+            p.begin_group(7, 'dtype([')
+            for i, field in enumerate(obj.descr):
+                if i > 0:
+                    p.text(',')
+                    p.breakable()
+                p.pretty(field)
+            p.end_group(7, '])')
 
 
 #-----------------------------------------------------------------------------
