@@ -1602,10 +1602,10 @@ class InteractiveShell(Component, Magic):
         else:
             magic_args = self.var_expand(magic_args,1)
             with nested(self.builtin_trap,):
-                result = fn(magic_args)
+                return fn(magic_args)
             # Unfortunately, the return statement is what will trigger
             # the displayhook, but it is no longer set!
-            return result
+            # return result
 
     def define_magic(self, magicname, func):
         """Expose own function as magic function for ipython 

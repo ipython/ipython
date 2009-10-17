@@ -1268,7 +1268,6 @@ Currently the magic system has the following functions:\n"""
         If you want IPython to automatically do this on every exception, see
         the %pdb magic for more details.
         """
-        
         self.shell.debugger(force=True)
 
     @testdec.skip_doctest
