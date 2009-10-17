@@ -70,6 +70,7 @@ def BdbQuit_excepthook(et,ev,tb):
 def BdbQuit_IPython_excepthook(self,et,ev,tb):
     print 'Exiting Debugger.'
 
+
 class Tracer(object):
     """Class for local debugging, similar to pdb.set_trace.
 
@@ -105,12 +106,10 @@ class Tracer(object):
         from the Python standard library for usage details.
         """
 
-        global __IPYTHON__
         try:
-            __IPYTHON__
-        except NameError:
+            ip = ipapi.get()
+        except:
             # Outside of ipython, we set our own exception hook manually
-            __IPYTHON__ = ipapi.get()
             BdbQuit_excepthook.excepthook_ori = sys.excepthook
             sys.excepthook = BdbQuit_excepthook
             def_colors = 'NoColor'
@@ -122,9 +121,8 @@ class Tracer(object):
                 pass
         else:
             # In ipython, we use its custom exception handler mechanism
-            ip = ipapi.get()
             def_colors = ip.colors
-            ip.set_custom_exc((bdb.BdbQuit,),BdbQuit_IPython_excepthook)
+            ip.set_custom_exc((bdb.BdbQuit,), BdbQuit_IPython_excepthook)
 
         if colors is None:
             colors = def_colors
@@ -138,6 +136,7 @@ class Tracer(object):
         
         self.debugger.set_trace(sys._getframe().f_back)
 
+
 def decorate_fn_with_doc(new_fn, old_fn, additional_text=""):
     """Make new_fn have old_fn's doc string. This is particularly useful
     for the do_... commands that hook into the help system.
@@ -148,6 +147,7 @@ def decorate_fn_with_doc(new_fn, old_fn, additional_text=""):
     if old_fn.__doc__:
         wrapper.__doc__ = old_fn.__doc__ + additional_text
     return wrapper
+
 
 def _file_lines(fname):
     """Return the contents of a named file as a list of lines.
@@ -164,143 +164,98 @@ def _file_lines(fname):
         outfile.close()
         return out
 
+
 class Pdb(OldPdb):
     """Modified Pdb class, does not load readline."""
 
-    if sys.version[:3] >= '2.5' or has_pydb:
-        def __init__(self,color_scheme='NoColor',completekey=None,
-                     stdin=None, stdout=None):
+    def __init__(self,color_scheme='NoColor',completekey=None,
+                 stdin=None, stdout=None):
 
-            # Parent constructor:
-            if has_pydb and completekey is None:
-                OldPdb.__init__(self,stdin=stdin,stdout=Term.cout)
-            else:
-                OldPdb.__init__(self,completekey,stdin,stdout)
-                
-            self.prompt = prompt # The default prompt is '(Pdb)'
+        # Parent constructor:
+        if has_pydb and completekey is None:
+            OldPdb.__init__(self,stdin=stdin,stdout=Term.cout)
+        else:
+            OldPdb.__init__(self,completekey,stdin,stdout)
             
-            # IPython changes...
-            self.is_pydb = has_pydb
-
-            if self.is_pydb:
-
-                # iplib.py's ipalias seems to want pdb's checkline
-                # which located in pydb.fn
-                import pydb.fns
-                self.checkline = lambda filename, lineno: \
-                                 pydb.fns.checkline(self, filename, lineno)
-
-                self.curframe = None
-                self.do_restart = self.new_do_restart
-
-                self.old_all_completions = __IPYTHON__.Completer.all_completions
-                __IPYTHON__.Completer.all_completions=self.all_completions
-
-                self.do_list = decorate_fn_with_doc(self.list_command_pydb,
-                                                    OldPdb.do_list)
-                self.do_l     = self.do_list
-                self.do_frame = decorate_fn_with_doc(self.new_do_frame,
-                                                     OldPdb.do_frame)
-
-            self.aliases = {}
-
-            # Create color table: we copy the default one from the traceback
-            # module and add a few attributes needed for debugging
-            self.color_scheme_table = exception_colors()
-
-            # shorthands 
-            C = coloransi.TermColors
-            cst = self.color_scheme_table
-
-            cst['NoColor'].colors.breakpoint_enabled = C.NoColor
-            cst['NoColor'].colors.breakpoint_disabled = C.NoColor
-
-            cst['Linux'].colors.breakpoint_enabled = C.LightRed
-            cst['Linux'].colors.breakpoint_disabled = C.Red
-
-            cst['LightBG'].colors.breakpoint_enabled = C.LightRed
-            cst['LightBG'].colors.breakpoint_disabled = C.Red
-
-            self.set_colors(color_scheme)
-
-            # Add a python parser so we can syntax highlight source while
-            # debugging.
-            self.parser = PyColorize.Parser()
-
-
-    else:
-        # Ugly hack: for Python 2.3-2.4, we can't call the parent constructor,
-        # because it binds readline and breaks tab-completion.  This means we
-        # have to COPY the constructor here.
-        def __init__(self,color_scheme='NoColor'):
-            bdb.Bdb.__init__(self)
-            cmd.Cmd.__init__(self,completekey=None) # don't load readline
-            self.prompt = 'ipdb> ' # The default prompt is '(Pdb)'
-            self.aliases = {}
-
-            # These two lines are part of the py2.4 constructor, let's put them
-            # unconditionally here as they won't cause any problems in 2.3.
-            self.mainpyfile = ''
-            self._wait_for_mainpyfile = 0
-
-            # Read $HOME/.pdbrc and ./.pdbrc
-            try:
-                self.rcLines = _file_lines(os.path.join(os.environ['HOME'],
-                                                        ".pdbrc"))
-            except KeyError:
-                self.rcLines = []
-            self.rcLines.extend(_file_lines(".pdbrc"))
-
-            # Create color table: we copy the default one from the traceback
-            # module and add a few attributes needed for debugging
-            self.color_scheme_table = exception_colors()
-
-            # shorthands 
-            C = coloransi.TermColors
-            cst = self.color_scheme_table
-
-            cst['NoColor'].colors.breakpoint_enabled = C.NoColor
-            cst['NoColor'].colors.breakpoint_disabled = C.NoColor
-
-            cst['Linux'].colors.breakpoint_enabled = C.LightRed
-            cst['Linux'].colors.breakpoint_disabled = C.Red
-
-            cst['LightBG'].colors.breakpoint_enabled = C.LightRed
-            cst['LightBG'].colors.breakpoint_disabled = C.Red
-
-            self.set_colors(color_scheme)
-
-            # Add a python parser so we can syntax highlight source while
-            # debugging.
-            self.parser = PyColorize.Parser()
+        self.prompt = prompt # The default prompt is '(Pdb)'
         
+        # IPython changes...
+        self.is_pydb = has_pydb
+
+        self.shell = ipapi.get()
+
+        if self.is_pydb:
+
+            # iplib.py's ipalias seems to want pdb's checkline
+            # which located in pydb.fn
+            import pydb.fns
+            self.checkline = lambda filename, lineno: \
+                             pydb.fns.checkline(self, filename, lineno)
+
+            self.curframe = None
+            self.do_restart = self.new_do_restart
+
+            self.old_all_completions = self.shell.Completer.all_completions
+            self.shell.Completer.all_completions=self.all_completions
+
+            self.do_list = decorate_fn_with_doc(self.list_command_pydb,
+                                                OldPdb.do_list)
+            self.do_l     = self.do_list
+            self.do_frame = decorate_fn_with_doc(self.new_do_frame,
+                                                 OldPdb.do_frame)
+
+        self.aliases = {}
+
+        # Create color table: we copy the default one from the traceback
+        # module and add a few attributes needed for debugging
+        self.color_scheme_table = exception_colors()
+
+        # shorthands 
+        C = coloransi.TermColors
+        cst = self.color_scheme_table
+
+        cst['NoColor'].colors.breakpoint_enabled = C.NoColor
+        cst['NoColor'].colors.breakpoint_disabled = C.NoColor
+
+        cst['Linux'].colors.breakpoint_enabled = C.LightRed
+        cst['Linux'].colors.breakpoint_disabled = C.Red
+
+        cst['LightBG'].colors.breakpoint_enabled = C.LightRed
+        cst['LightBG'].colors.breakpoint_disabled = C.Red
+
+        self.set_colors(color_scheme)
+
+        # Add a python parser so we can syntax highlight source while
+        # debugging.
+        self.parser = PyColorize.Parser()
+
     def set_colors(self, scheme):
         """Shorthand access to the color table scheme selector method."""
         self.color_scheme_table.set_active_scheme(scheme)
 
     def interaction(self, frame, traceback):
-        __IPYTHON__.set_completer_frame(frame)
+        self.shell.set_completer_frame(frame)
         OldPdb.interaction(self, frame, traceback)
 
     def new_do_up(self, arg):
         OldPdb.do_up(self, arg)
-        __IPYTHON__.set_completer_frame(self.curframe)
+        self.shell.set_completer_frame(self.curframe)
     do_u = do_up = decorate_fn_with_doc(new_do_up, OldPdb.do_up)
 
     def new_do_down(self, arg):
         OldPdb.do_down(self, arg)
-        __IPYTHON__.set_completer_frame(self.curframe)
+        self.shell.set_completer_frame(self.curframe)
 
     do_d = do_down = decorate_fn_with_doc(new_do_down, OldPdb.do_down)
 
     def new_do_frame(self, arg):
         OldPdb.do_frame(self, arg)
-        __IPYTHON__.set_completer_frame(self.curframe)
+        self.shell.set_completer_frame(self.curframe)
 
     def new_do_quit(self, arg):
         
         if hasattr(self, 'old_all_completions'):
-            __IPYTHON__.Completer.all_completions=self.old_all_completions
+            self.shell.Completer.all_completions=self.old_all_completions
         
         
         return OldPdb.do_quit(self, arg)
@@ -314,7 +269,7 @@ class Pdb(OldPdb):
         return self.do_quit(arg)
 
     def postloop(self):
-        __IPYTHON__.set_completer_frame(None)
+        self.shell.set_completer_frame(None)
 
     def print_stack_trace(self):
         try:
@@ -331,7 +286,7 @@ class Pdb(OldPdb):
         # vds: >>
         frame, lineno = frame_lineno
         filename = frame.f_code.co_filename
-        __IPYTHON__.hooks.synchronize_with_editor(filename, lineno, 0)
+        self.shell.hooks.synchronize_with_editor(filename, lineno, 0)
         # vds: <<
 
     def format_stack_entry(self, frame_lineno, lprefix=': ', context = 3):
@@ -500,7 +455,7 @@ class Pdb(OldPdb):
         # vds: >>
         lineno = first
         filename = self.curframe.f_code.co_filename
-        __IPYTHON__.hooks.synchronize_with_editor(filename, lineno, 0)
+        self.shell.hooks.synchronize_with_editor(filename, lineno, 0)
         # vds: <<
 
     do_l = do_list
@@ -509,16 +464,16 @@ class Pdb(OldPdb):
         """The debugger interface to magic_pdef"""
         namespaces = [('Locals', self.curframe.f_locals),
                       ('Globals', self.curframe.f_globals)]
-        __IPYTHON__.magic_pdef(arg, namespaces=namespaces)
+        self.shell.magic_pdef(arg, namespaces=namespaces)
 
     def do_pdoc(self, arg):
         """The debugger interface to magic_pdoc"""
         namespaces = [('Locals', self.curframe.f_locals),
                       ('Globals', self.curframe.f_globals)]
-        __IPYTHON__.magic_pdoc(arg, namespaces=namespaces)
+        self.shell.magic_pdoc(arg, namespaces=namespaces)
 
     def do_pinfo(self, arg):
         """The debugger equivalant of ?obj"""
         namespaces = [('Locals', self.curframe.f_locals),
                       ('Globals', self.curframe.f_globals)]
-        __IPYTHON__.magic_pinfo("pinfo %s" % arg, namespaces=namespaces)
+        self.shell.magic_pinfo("pinfo %s" % arg, namespaces=namespaces)

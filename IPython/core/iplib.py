@@ -1426,9 +1426,7 @@ class InteractiveShell(Component, Magic):
             return outcomps
 
     def set_custom_completer(self,completer,pos=0):
-        """set_custom_completer(completer,pos=0)
-
-        Adds a new custom completer function.
+        """Adds a new custom completer function.
 
         The position argument (defaults to 0) is the index in the completers
         list where you want the completer to be inserted."""
@@ -1438,8 +1436,17 @@ class InteractiveShell(Component, Magic):
         self.Completer.matchers.insert(pos,newcomp)
 
     def set_completer(self):
-        """reset readline's completer to be our own."""
+        """Reset readline's completer to be our own."""
         self.readline.set_completer(self.Completer.complete)
+
+    def set_completer_frame(self, frame=None):
+        """Set the frame of the completer."""
+        if frame:
+            self.Completer.namespace = frame.f_locals
+            self.Completer.global_namespace = frame.f_globals
+        else:
+            self.Completer.namespace = self.user_ns
+            self.Completer.global_namespace = self.user_global_ns
 
     #-------------------------------------------------------------------------
     # Things related to readline
