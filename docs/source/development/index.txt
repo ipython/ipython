@@ -15,4 +15,5 @@ IPython developer's guide
    roadmap.txt
    reorg.txt
    notification_blueprint.txt
+   ipgraph.txt
 
