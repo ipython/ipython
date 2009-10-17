@@ -62,7 +62,8 @@ class DisplayTrap(Component):
         if self._nested_level == 1:
             self.unset()
         self._nested_level -= 1
-        return True
+        # Returning False will cause exceptions to propagate
+        return False
 
     def set(self):
         """Set the hook."""

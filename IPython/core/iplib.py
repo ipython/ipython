@@ -1602,10 +1602,8 @@ class InteractiveShell(Component, Magic):
         else:
             magic_args = self.var_expand(magic_args,1)
             with nested(self.builtin_trap,):
-                return fn(magic_args)
-            # Unfortunately, the return statement is what will trigger
-            # the displayhook, but it is no longer set!
-            # return result
+                result = fn(magic_args)
+                return result
 
     def define_magic(self, magicname, func):
         """Expose own function as magic function for ipython 
@@ -2274,16 +2272,28 @@ class InteractiveShell(Component, Magic):
             return lineout
 
     #-------------------------------------------------------------------------
+    # Working with components
+    #-------------------------------------------------------------------------
+
+    def get_component(self, name=None, klass=None):
+        """Fetch a component by name and klass in my tree."""
+        c = Component.get_instances(root=self, name=name, klass=klass)
+        if len(c) == 1:
+            return c[0]
+        else:
+            return c
+
+    #-------------------------------------------------------------------------
     # IPython extensions
     #-------------------------------------------------------------------------
 
     def load_extension(self, module_str):
-        """Load an IPython extension.
+        """Load an IPython extension by its module name.
 
         An IPython extension is an importable Python module that has
         a function with the signature::
 
-            def load_in_ipython(ipython):
+            def load_ipython_extension(ipython):
                 # Do things with ipython
 
         This function is called after your extension is imported and the 
@@ -2291,6 +2301,10 @@ class InteractiveShell(Component, Magic):
         the only argument.  You can do anything you want with IPython at
         that point, including defining new magic and aliases, adding new
         components, etc.
+
+        The :func:`load_ipython_extension` will be called again is you 
+        load or reload the extension again.  It is up to the extension
+        author to add code to manage that.
 
         You can put your extension modules anywhere you want, as long as
         they can be imported by Python's standard import mechanism.  However,
@@ -2300,29 +2314,47 @@ class InteractiveShell(Component, Magic):
         """
         from IPython.utils.syspathcontext import prepended_to_syspath
 
-        if module_str in sys.modules:
-            return
+        if module_str not in sys.modules:
+            with prepended_to_syspath(self.ipython_extension_dir):
+                __import__(module_str)
+        mod = sys.modules[module_str]
+        self._call_load_ipython_extension(mod)
 
-        with prepended_to_syspath(self.ipython_extension_dir):
-            __import__(module_str)
+    def unload_extension(self, module_str):
+        """Unload an IPython extension by its module name.
+
+        This function looks up the extension's name in ``sys.modules`` and
+        simply calls ``mod.unload_ipython_extension(self)``.
+        """
+        if module_str in sys.modules:
             mod = sys.modules[module_str]
-            self._call_load_in_ipython(mod)
+            self._call_unload_ipython_extension(mod)
 
     def reload_extension(self, module_str):
-        """Reload an IPython extension by doing reload."""
+        """Reload an IPython extension by calling reload.
+
+        If the module has not been loaded before,
+        :meth:`InteractiveShell.load_extension` is called. Otherwise
+        :func:`reload` is called and then the :func:`load_ipython_extension`
+        function of the module, if it exists is called.
+        """
         from IPython.utils.syspathcontext import prepended_to_syspath
 
         with prepended_to_syspath(self.ipython_extension_dir):
             if module_str in sys.modules:
                 mod = sys.modules[module_str]
                 reload(mod)
-                self._call_load_in_ipython(mod)
+                self._call_load_ipython_extension(mod)
             else:
-                self.load_extension(self, module_str)
+                self.load_extension(module_str)
 
-    def _call_load_in_ipython(self, mod):
-        if hasattr(mod, 'load_in_ipython'):
-            mod.load_in_ipython(self)
+    def _call_load_ipython_extension(self, mod):
+        if hasattr(mod, 'load_ipython_extension'):
+            mod.load_ipython_extension(self)
+
+    def _call_unload_ipython_extension(self, mod):
+        if hasattr(mod, 'unload_ipython_extension'):
+            mod.unload_ipython_extension(self)
 
     #-------------------------------------------------------------------------
     # Things related to the prefilter

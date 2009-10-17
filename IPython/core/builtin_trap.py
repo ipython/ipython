@@ -61,7 +61,8 @@ class BuiltinTrap(Component):
         if self._nested_level == 1:
             self.unset()
         self._nested_level -= 1
-        return True
+        # Returning False will cause exceptions to propagate
+        return False
 
     def add_builtin(self, key, value):
         """Add a builtin and save the original."""

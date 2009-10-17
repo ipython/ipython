@@ -3537,5 +3537,16 @@ Defaulting color scheme to 'NoColor'"""
         elif 'tk' in parameter_s:
             return inputhook.enable_tk(app)
 
+    def magic_load_ext(self, module_str):
+        """Load an IPython extension by its module name."""
+        self.load_extension(module_str)
+
+    def magic_unload_ext(self, module_str):
+        """Unload an IPython extension by its module name."""
+        self.unload_extension(module_str)
+
+    def magic_reload_ext(self, module_str):
+        """Reload an IPython extension by its module name."""
+        self.reload_extension(module_str)
 
 # end Magic
