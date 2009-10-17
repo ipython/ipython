@@ -164,7 +164,7 @@ latex_font_size = '11pt'
 
 latex_documents = [ ('index', 'ipython.tex', 'IPython Documentation',
                      ur"""The IPython Development Team""",
-                     'manual'),
+                     'manual', True),
                     ]
 
 # The name of an image file (relative to this directory) to place at the top of

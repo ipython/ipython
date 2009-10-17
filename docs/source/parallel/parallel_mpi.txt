@@ -85,7 +85,7 @@ Actually using MPI
 Once the engines are running with MPI enabled, you are ready to go. You can
 now call any code that uses MPI in the IPython engines. And, all of this can
 be done interactively. Here we show a simple example that uses mpi4py
-[mpi4py]_.
+[mpi4py]_ version 1.1.0 or later.
 
 First, lets define a simply function that uses MPI to calculate the sum of a
 distributed array. Save the following text in a file called :file:`psum.py`:
@@ -94,10 +94,14 @@ distributed array. Save the following text in a file called :file:`psum.py`:
 
     from mpi4py import MPI
     import numpy as np
-    
+
     def psum(a):
         s = np.sum(a)
-        return MPI.COMM_WORLD.Allreduce(s,MPI.SUM)
+        rcvBuf = np.array(0.0,'d')
+        MPI.COMM_WORLD.Allreduce([s, MPI.DOUBLE],
+            [rcvBuf, MPI.DOUBLE],
+            op=MPI.SUM)
+        return rcvBuf
 
 Now, start an IPython cluster in the same directory as :file:`psum.py`::
 

@@ -26,6 +26,12 @@ For more details, please consult the actual source.
 New features
 ------------
 
+* The :mod:`IPython.extensions.pretty` extension has been moved out of
+  quarantine and fully updated to the new extension API.
+
+* New magics for loading/unloading/reloading extensions have been added:
+  ``%load_ext``, ``%unload_ext`` and ``%reload_ext``.
+
 * The configuration system and configuration files are brand new. See the
   configuration system :ref:`documentation <config_index>` for more details.
 
@@ -133,11 +139,24 @@ New features
 Bug fixes
 ---------
 
+* Previously, the latex Sphinx docs were in a single chapter.  This has been
+  fixed by adding a sixth argument of True to the ``latex_documents``
+  attribute of :file:`conf.py`.
+
+* The ``psum`` example in the MPI documentation has been updated to mpi4py
+  version 1.1.0.  Thanks to J. Thomas for this fix.
+
+* The top-level, zero-install :file:`ipython.py` script has been updated to 
+  the new application launching API.
+
 * Keyboard interrupts now work with GUI support enabled across all platforms
   and all GUI toolkits reliably.
 
 Backwards incompatible changes
 ------------------------------
+
+* The extension loading functions have been renamed to
+  :func:`load_ipython_extension` and :func:`unload_ipython_extension`.
 
 * :class:`~IPython.core.iplib.InteractiveShell` no longer takes an
   ``embedded`` argument. Instead just use the
