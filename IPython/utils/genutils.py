@@ -787,12 +787,9 @@ def get_ipython_dir():
     """Get the IPython directory for this platform and user.
     
     This uses the logic in `get_home_dir` to find the home directory
-    and the adds either .ipython or _ipython to the end of the path.
+    and the adds .ipython to the end of the path.
     """
-    if os.name == 'posix':
-         ipdir_def = '.ipython'
-    else:
-         ipdir_def = '_ipython'
+    ipdir_def = '.ipython'
     home_dir = get_home_dir()
     ipdir = os.path.abspath(os.environ.get('IPYTHONDIR',
                                            os.path.join(home_dir, ipdir_def)))
