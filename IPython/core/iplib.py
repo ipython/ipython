@@ -1920,7 +1920,7 @@ class InteractiveShell(Component, Magic):
                 # SystemExit exception changed between Python 2.4 and 2.5, so
                 # the checks must be done in a version-dependent way.
                 show = False
-                if status.message!=0 and not kw['exit_ignore']:
+                if status.args[0]==0 and not kw['exit_ignore']:
                     show = True
                 if show:
                     self.showtraceback()
