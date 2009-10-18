@@ -169,7 +169,7 @@ if 'setuptools' in sys.modules:
         'console_scripts': [
             'ipython = IPython.core.ipapp:launch_new_instance',
             'pycolor = IPython.utils.PyColorize:main',
-            'ipcontroller = IPython.kernel.scripts.ipcontroller:main',
+            'ipcontroller = IPython.kernel.ipcontrollerapp:launch_new_instance',
             'ipengine = IPython.kernel.scripts.ipengine:main',
             'ipcluster = IPython.kernel.scripts.ipcluster:main',
             'ipythonx = IPython.frontend.wx.ipythonx:main',

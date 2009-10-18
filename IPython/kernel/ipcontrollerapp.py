@@ -26,7 +26,11 @@ from twisted.python import log
 
 from IPython.config.loader import Config, NoConfigDefault
 
-from IPython.core.application import Application, IPythonArgParseConfigLoader
+from IPython.core.application import (
+    ApplicationWithDir, 
+    BaseAppArgParseConfigLoader
+)
+
 from IPython.core import release
 
 from IPython.utils.traitlets import Int, Str, Bool, Instance
@@ -152,25 +156,22 @@ cl_args = (
     (('-r','--reuse-furls'), dict(
         action='store_true', dest='Global.reuse_furls', default=NoConfigDefault,
         help='Try to reuse all FURL files.')
-    ),
-    (('-cluster_dir', '--cluster-dir',), dict(
-        type=str, dest='Global.cluster_dir', default=NoConfigDefault,
-        help='Absolute or relative path to the cluster directory.',
-        metavar='Global.cluster_dir')
-    ),
+    )
 )
 
 
-class IPControllerAppCLConfigLoader(IPythonArgParseConfigLoader):
+class IPControllerAppCLConfigLoader(BaseAppArgParseConfigLoader):
 
     arguments = cl_args
 
 
 _default_config_file_name = 'ipcontroller_config.py'
 
-class IPControllerApp(Application):
+
+class IPControllerApp(ApplicationWithDir):
 
     name = 'ipcontroller'
+    description = 'Start the IPython controller for parallel computing.'
     config_file_name = _default_config_file_name
     default_log_level = logging.DEBUG
 
@@ -178,71 +179,16 @@ class IPControllerApp(Application):
         super(IPControllerApp, self).create_default_config()
         self.default_config.Global.reuse_furls = False
         self.default_config.Global.import_statements = []
-        self.default_config.Global.profile = 'default'
         self.default_config.Global.log_dir_name = 'log'
         self.default_config.Global.security_dir_name = 'security'
         self.default_config.Global.log_to_file = False
-        # Resolve the default cluster_dir using the default profile
-        self.default_config.Global.cluster_dir = ''
-
-    def create_command_line_config(self):
-        """Create and return a command line config loader."""
-
-        return IPControllerAppCLConfigLoader(
-            description="Start an IPython controller",
-            version=release.version)
-
-    def find_config_file_name(self):
-        """Find the config file name for this application."""
-        self.find_cluster_dir()
-        self.create_cluster_dir()
-
-    def find_cluster_dir(self):
-        """This resolves into full paths, the various cluster directories.
-
-        This method must set ``self.cluster_dir`` to the full paths of 
-        the directory.
-        """
-        # Ignore self.command_line_config.Global.config_file
-        # Instead, first look for an explicit cluster_dir
-        try:
-            self.cluster_dir = self.command_line_config.Global.cluster_dir
-        except AttributeError:
-            self.cluster_dir = self.default_config.Global.cluster_dir
-        self.cluster_dir = os.path.expandvars(os.path.expanduser(self.cluster_dir))
-        if not self.cluster_dir:
-            # Then look for a profile
-            try:
-                self.profile = self.command_line_config.Global.profile
-            except AttributeError:
-                self.profile = self.default_config.Global.profile
-            cluster_dir_name = 'cluster_' + self.profile
-            try_this = os.path.join(os.getcwd(), cluster_dir_name)
-            if os.path.isdir(try_this):
-                self.cluster_dir = try_this
-            else:
-                self.cluster_dir = os.path.join(self.ipythondir, cluster_dir_name)
-        # These have to be set because they could be different from the one
-        # that we just computed.  Because command line has the highest
-        # priority, this will always end up in the master_config.
-        self.default_config.Global.cluster_dir = self.cluster_dir
-        self.command_line_config.Global.cluster_dir = self.cluster_dir
-
-    def create_cluster_dir(self):
-        """Make sure that the cluster, security and log dirs exist."""
-        if not os.path.isdir(self.cluster_dir):
-            os.makedirs(self.cluster_dir, mode=0777)
-
-    def find_config_file_paths(self):
-        """Set the search paths for resolving the config file."""
-        self.config_file_paths = (self.cluster_dir,)
 
     def pre_construct(self):
         # Now set the security_dir and log_dir and create them.  We use
         # the names an construct the absolute paths.
-        security_dir = os.path.join(self.master_config.Global.cluster_dir,
+        security_dir = os.path.join(self.master_config.Global.app_dir,
                                     self.master_config.Global.security_dir_name)
-        log_dir = os.path.join(self.master_config.Global.cluster_dir, 
+        log_dir = os.path.join(self.master_config.Global.app_dir, 
                                self.master_config.Global.log_dir_name)
         if not os.path.isdir(security_dir):
             os.mkdir(security_dir, 0700)
@@ -255,7 +201,7 @@ class IPControllerApp(Application):
         self.log_dir = self.master_config.Global.log_dir = log_dir
 
         # Now setup reuse_furls
-        if hasattr(self.master_config.Global.reuse_furls):
+        if hasattr(self.master_config.Global, 'reuse_furls'):
             self.master_config.FCClientServiceFactory.reuse_furls = \
                 self.master_config.Global.reuse_furls
             self.master_config.FCEngineServiceFactory.reuse_furls = \
@@ -305,6 +251,8 @@ class IPControllerApp(Application):
         self.main_service.startService()
         reactor.run()
 
-if __name__ == '__main__':
+
+def launch_new_instance():
+    """Create and run the IPython controller"""
     app = IPControllerApp()
     app.start()

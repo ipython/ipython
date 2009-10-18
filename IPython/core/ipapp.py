@@ -28,7 +28,7 @@ import os
 import sys
 import warnings
 
-from IPython.core.application import Application, IPythonArgParseConfigLoader
+from IPython.core.application import Application, BaseAppArgParseConfigLoader
 from IPython.core import release
 from IPython.core.iplib import InteractiveShell
 from IPython.config.loader import (
@@ -283,20 +283,23 @@ cl_args = (
     # # These are only here to get the proper deprecation warnings
     (('-pylab',), dict(
         action='store_true', dest='Global.pylab', default=NoConfigDefault,
-        help="Disabled.  Pylab has been disabled until matplotlib supports this version of IPython.")
+        help="Disabled.  Pylab has been disabled until matplotlib "
+        "supports this version of IPython.")
     )
 )
 
 
-class IPythonAppCLConfigLoader(IPythonArgParseConfigLoader):
+class IPythonAppCLConfigLoader(BaseAppArgParseConfigLoader):
 
     arguments = cl_args
 
 
 _default_config_file_name = 'ipython_config.py'
 
+
 class IPythonApp(Application):
     name = 'ipython'
+    description = 'IPython: an enhanced interactive Python shell.'
     config_file_name = _default_config_file_name
 
     def create_default_config(self):
@@ -313,11 +316,6 @@ class IPythonApp(Application):
         # By default always interact by starting the IPython mainloop.
         self.default_config.Global.interact = True
 
-        # Let the parent class set the default, but each time log_level
-        # changes from config, we need to update self.log_level as that is
-        # what updates the actual log level in self.log.
-        self.default_config.Global.log_level = self.log_level
-
         # No GUI integration by default
         self.default_config.Global.wthread = False
         self.default_config.Global.q4thread = False
@@ -326,8 +324,9 @@ class IPythonApp(Application):
     def create_command_line_config(self):
         """Create and return a command line config loader."""
         return IPythonAppCLConfigLoader(
-            description=ipython_desc,
-            version=release.version)
+            description=self.description, 
+            version=release.version
+        )
 
     def post_load_command_line_config(self):
         """Do actions after loading cl config."""
@@ -540,7 +539,7 @@ def load_default_config(ipythondir=None):
 
 
 def launch_new_instance():
-    """Create a run a full blown IPython instance"""
+    """Create and run a full blown IPython instance"""
     app = IPythonApp()
     app.start()
 
