@@ -152,24 +152,42 @@ class FCServiceFactory(AdaptedConfiguredObjectFactory):
         keys: furl_file and interface_chain.
 
     The other attributes are the standard ones for Foolscap.
-"""
+    """
 
     ip = Str('', config=True)
     port = Int(0, config=True)
     secure = Bool(True, config=True)
     cert_file = Str('', config=True)
     location = Str('', config=True)
+    reuse_furls = Bool(False, config=True)
     Interfaces = Instance(klass=Config, kw={}, allow_none=False, config=True)
+
+    def __init__(self, config, adaptee):
+        super(FCServiceFactory, self).__init__(config, adaptee)
+        self._check_reuse_furls()
 
     def _ip_changed(self, name, old, new):
         if new == 'localhost' or new == '127.0.0.1':
             self.location = '127.0.0.1'
 
+    def _check_reuse_furls(self):
+        if not self.reuse_furls:
+            furl_files = [i.furl_file for i in self.Interfaces.values()]
+            for ff in furl_files:
+                fullfile = self._get_security_file(ff)
+                if os.path.isfile(fullfile):
+                    os.remove(fullfile)
+
+    def _get_security_file(self, filename):
+        return os.path.join(self.config.Global.security_dir, filename)
+
     def create(self):
         """Create and return the Foolscap tub with everything running."""
 
         self.tub, self.listener = make_tub(
-            self.ip, self.port, self.secure, self.cert_file)
+            self.ip, self.port, self.secure, self._get_security_file(self.cert_file))
+        log.msg("Created a tub and listener [%r]: %r, %r" % (self.__class__, self.tub, self.listener))
+        log.msg("Interfaces to register [%r]: %r" % (self.__class__, self.Interfaces))
         if not self.secure:
             log.msg("WARNING: running with no security: %s" % self.__class__.__name__)
         reactor.callWhenRunning(self.set_location_and_register)
@@ -189,13 +207,14 @@ class FCServiceFactory(AdaptedConfiguredObjectFactory):
         """Run through the interfaces, adapt and register."""
 
         for ifname, ifconfig in self.Interfaces.iteritems():
+            ff = self._get_security_file(ifconfig.furl_file)
             log.msg("Adapting %r to interface: %s" % (self.adaptee, ifname))
-            log.msg("Saving furl for interface [%s] to file: %s" % (ifname, ifconfig.furl_file))
-            check_furl_file_security(ifconfig.furl_file, self.secure)
+            log.msg("Saving furl for interface [%s] to file: %s" % (ifname, ff))
+            check_furl_file_security(ff, self.secure)
             adaptee = self.adaptee
             for i in ifconfig.interface_chain:
                 adaptee = import_item(i)(adaptee)
-            d.addCallback(self.register, adaptee, furl_file=ifconfig.furl_file)
+            d.addCallback(self.register, adaptee, furl_file=ff)
 
     def register(self, empty, ref, furl_file):
         """Register the reference with the FURL file.

@@ -41,7 +41,7 @@ from IPython.kernel.twistedutil import blockingCallFromThread
 
 # These enable various things 
 from IPython.kernel import codeutil
-import IPython.kernel.magic
+# import IPython.kernel.magic
 
 # Other things that the user will need
 from IPython.kernel.task import MapTask, StringTask

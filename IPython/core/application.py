@@ -46,7 +46,7 @@ class IPythonArgParseConfigLoader(ArgParseConfigLoader):
     """Default command line options for IPython based applications."""
 
     def _add_other_arguments(self):
-        self.parser.add_argument('-ipythondir', '--ipythondir', 
+        self.parser.add_argument('-ipythondir', '--ipython-dir', 
             dest='Global.ipythondir',type=str,
             help='Set to override default location of Global.ipythondir.',
             default=NoConfigDefault,
@@ -77,6 +77,8 @@ class Application(object):
 
     config_file_name = 'ipython_config.py'
     name = 'ipython'
+    default_log_level = logging.WARN
+    
 
     def __init__(self):
         self.init_logger()
@@ -85,7 +87,7 @@ class Application(object):
     def init_logger(self):
         self.log = logging.getLogger(self.__class__.__name__)
         # This is used as the default until the command line arguments are read.
-        self.log.setLevel(logging.WARN)
+        self.log.setLevel(self.default_log_level)
         self._log_handler = logging.StreamHandler()
         self._log_formatter = logging.Formatter("[%(name)s] %(message)s")
         self._log_handler.setFormatter(self._log_formatter)
@@ -102,16 +104,23 @@ class Application(object):
     def start(self):
         """Start the application."""
         self.attempt(self.create_default_config)
+        self.log_default_config()
+        self.set_default_config_log_level()
         self.attempt(self.pre_load_command_line_config)
         self.attempt(self.load_command_line_config, action='abort')
+        self.set_command_line_config_log_level()
         self.attempt(self.post_load_command_line_config)
+        self.log_command_line_config()
         self.attempt(self.find_ipythondir)
         self.attempt(self.find_config_file_name)
         self.attempt(self.find_config_file_paths)
         self.attempt(self.pre_load_file_config)
         self.attempt(self.load_file_config)
+        self.set_file_config_log_level()
         self.attempt(self.post_load_file_config)
+        self.log_file_config()
         self.attempt(self.merge_configs)
+        self.log_master_config()
         self.attempt(self.pre_construct)
         self.attempt(self.construct)
         self.attempt(self.post_construct)
@@ -132,8 +141,17 @@ class Application(object):
         """
         self.default_config = Config()
         self.default_config.Global.ipythondir = get_ipython_dir()
+
+    def log_default_config(self):
         self.log.debug('Default config loaded:')
         self.log.debug(repr(self.default_config))
+
+    def set_default_config_log_level(self):
+        try:
+            self.log_level = self.default_config.Global.log_level
+        except AttributeError:
+            # Fallback to the default_log_level class attribute
+            pass
 
     def create_command_line_config(self):
         """Create and return a command line config loader."""
@@ -144,25 +162,24 @@ class Application(object):
         pass
 
     def load_command_line_config(self):
-        """Load the command line config.
-
-        This method also sets ``self.debug``.
-        """
-
+        """Load the command line config."""
         loader = self.create_command_line_config()
         self.command_line_config = loader.load_config()
         self.extra_args = loader.get_extra_args()
 
+    def set_command_line_config_log_level(self):
         try:
             self.log_level = self.command_line_config.Global.log_level
         except AttributeError:
-            pass # Use existing value which is set in Application.init_logger.
-        self.log.debug("Command line config loaded:")
-        self.log.debug(repr(self.command_line_config))
+            pass
 
     def post_load_command_line_config(self):
         """Do actions just after loading the command line config."""
         pass
+
+    def log_command_line_config(self):
+        self.log.debug("Command line config loaded:")
+        self.log.debug(repr(self.command_line_config))
 
     def find_ipythondir(self):
         """Set the IPython directory.
@@ -180,16 +197,19 @@ class Application(object):
             self.ipythondir = self.default_config.Global.ipythondir
         sys.path.append(os.path.abspath(self.ipythondir))
         if not os.path.isdir(self.ipythondir):
-            os.makedirs(self.ipythondir, mode = 0777)
+            os.makedirs(self.ipythondir, mode=0777)
         self.log.debug("IPYTHONDIR set to: %s" % self.ipythondir)
 
     def find_config_file_name(self):
         """Find the config file name for this application.
 
+        This must set ``self.config_file_name`` to the filename of the
+        config file to use (just the filename). The search paths for the
+        config file are set in :meth:`find_config_file_paths` and then passed
+        to the config file loader where they are resolved to an absolute path.
+
         If a profile has been set at the command line, this will resolve
-        it.  The search paths for the config file are set in
-        :meth:`find_config_file_paths` and then passed to the config file
-        loader where they are resolved to an absolute path.
+        it.
         """
 
         try:
@@ -206,7 +226,11 @@ class Application(object):
             pass
 
     def find_config_file_paths(self):
-        """Set the search paths for resolving the config file."""
+        """Set the search paths for resolving the config file.
+
+        This must set ``self.config_file_paths`` to a sequence of search
+        paths to pass to the config file loader.
+        """
         self.config_file_paths = (os.getcwd(), self.ipythondir)
 
     def pre_load_file_config(self):
@@ -236,12 +260,11 @@ class Application(object):
             self.log.warn("Error loading config file: <%s>" % \
                            self.config_file_name, exc_info=True)
             self.file_config = Config()
-        else:
-            self.log.debug("Config file loaded: <%s>" % loader.full_filename)
-            self.log.debug(repr(self.file_config))
+
+    def set_file_config_log_level(self):
         # We need to keeep self.log_level updated.  But we only use the value
         # of the file_config if a value was not specified at the command
-        # line.
+        # line, because the command line overrides everything.
         if not hasattr(self.command_line_config.Global, 'log_level'):
             try:
                 self.log_level = self.file_config.Global.log_level
@@ -252,6 +275,11 @@ class Application(object):
         """Do actions after the config file is loaded."""
         pass
 
+    def log_file_config(self):
+        if hasattr(self.file_config.Global, 'config_file'):
+            self.log.debug("Config file loaded: <%s>" % self.file_config.Global.config_file)
+            self.log.debug(repr(self.file_config))
+
     def merge_configs(self):
         """Merge the default, command line and file config objects."""
         config = Config()
@@ -259,6 +287,8 @@ class Application(object):
         config._merge(self.file_config)
         config._merge(self.command_line_config)
         self.master_config = config
+
+    def log_master_config(self):
         self.log.debug("Master config created:")
         self.log.debug(repr(self.master_config))
 
