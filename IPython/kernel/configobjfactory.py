@@ -68,7 +68,11 @@ class AdaptedConfiguredObjectFactory(Component):
     # zi.implements(IAdaptedConfiguredObjectFactory)
 
     def __init__(self, config, adaptee):
+        # print
+        # print "config pre:", config
         super(AdaptedConfiguredObjectFactory, self).__init__(None, config=config)
+        # print
+        # print "config post:", config
         self.adaptee = adaptee
 
     def create(self):

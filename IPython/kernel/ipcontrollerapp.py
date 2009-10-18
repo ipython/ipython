@@ -28,7 +28,7 @@ from IPython.config.loader import Config, NoConfigDefault
 
 from IPython.core.application import (
     ApplicationWithDir, 
-    BaseAppArgParseConfigLoader
+    AppWithDirArgParseConfigLoader
 )
 
 from IPython.core import release
@@ -49,7 +49,7 @@ from IPython.kernel.fcutil import FCServiceFactory
 #-----------------------------------------------------------------------------
 
 
-# The default client interfaces for FCClientServiceFactory.Interfaces
+# The default client interfaces for FCClientServiceFactory.interfaces
 default_client_interfaces = Config()
 default_client_interfaces.Task.interface_chain = [
     'IPython.kernel.task.ITaskController',
@@ -57,6 +57,7 @@ default_client_interfaces.Task.interface_chain = [
 ]
 
 default_client_interfaces.Task.furl_file = 'ipcontroller-tc.furl'
+
 default_client_interfaces.MultiEngine.interface_chain = [
     'IPython.kernel.multiengine.IMultiEngine',
     'IPython.kernel.multienginefc.IFCSynchronousMultiEngine'
@@ -69,7 +70,7 @@ default_client_interfaces = dict(copy.deepcopy(default_client_interfaces.items()
 
 
 
-# The default engine interfaces for FCEngineServiceFactory.Interfaces
+# The default engine interfaces for FCEngineServiceFactory.interfaces
 default_engine_interfaces = Config()
 default_engine_interfaces.Default.interface_chain = [
     'IPython.kernel.enginefc.IFCControllerBase'
@@ -90,7 +91,7 @@ class FCClientServiceFactory(FCServiceFactory):
     """A Foolscap implementation of the client services."""
 
     cert_file = Str('ipcontroller-client.pem', config=True)
-    Interfaces = Instance(klass=Config, kw=default_client_interfaces,
+    interfaces = Instance(klass=Config, kw=default_client_interfaces,
                           allow_none=False, config=True)
 
 
@@ -98,7 +99,7 @@ class FCEngineServiceFactory(FCServiceFactory):
     """A Foolscap implementation of the engine services."""
 
     cert_file = Str('ipcontroller-engine.pem', config=True)
-    Interfaces = Instance(klass=dict, kw=default_engine_interfaces,
+    interfaces = Instance(klass=dict, kw=default_engine_interfaces,
                           allow_none=False, config=True)
 
 
@@ -124,10 +125,6 @@ cl_args = (
         help='The hostname or ip that clients should connect to.',
         metavar='FCClientServiceFactory.location')
     ),
-    (('-x',), dict(
-        action='store_false', dest='FCClientServiceFactory.secure', default=NoConfigDefault,
-        help='Turn off all client security.')
-    ),
     # Engine config
     (('--engine-ip',), dict(
         type=str, dest='FCEngineServiceFactory.ip', default=NoConfigDefault,
@@ -144,10 +141,6 @@ cl_args = (
         help='The hostname or ip that engines should connect to.',
         metavar='FCEngineServiceFactory.location')
     ),
-    (('-y',), dict(
-        action='store_false', dest='FCEngineServiceFactory.secure', default=NoConfigDefault,
-        help='Turn off all engine security.')
-    ),
     # Global config
     (('--log-to-file',), dict(
         action='store_true', dest='Global.log_to_file', default=NoConfigDefault,
@@ -156,32 +149,60 @@ cl_args = (
     (('-r','--reuse-furls'), dict(
         action='store_true', dest='Global.reuse_furls', default=NoConfigDefault,
         help='Try to reuse all FURL files.')
+    ),
+    (('-ns','--no-security'), dict(
+        action='store_false', dest='Global.secure', default=NoConfigDefault,
+        help='Turn off SSL encryption for all connections.')
     )
 )
 
 
-class IPControllerAppCLConfigLoader(BaseAppArgParseConfigLoader):
+class IPControllerAppCLConfigLoader(AppWithDirArgParseConfigLoader):
 
     arguments = cl_args
 
 
-_default_config_file_name = 'ipcontroller_config.py'
+default_config_file_name = 'ipcontroller_config.py'
 
 
 class IPControllerApp(ApplicationWithDir):
 
     name = 'ipcontroller'
+    app_dir_basename = 'cluster'
     description = 'Start the IPython controller for parallel computing.'
-    config_file_name = _default_config_file_name
-    default_log_level = logging.DEBUG
+    config_file_name = default_config_file_name
+    default_log_level = logging.WARN
 
     def create_default_config(self):
         super(IPControllerApp, self).create_default_config()
         self.default_config.Global.reuse_furls = False
+        self.default_config.Global.secure = True
         self.default_config.Global.import_statements = []
         self.default_config.Global.log_dir_name = 'log'
         self.default_config.Global.security_dir_name = 'security'
         self.default_config.Global.log_to_file = False
+
+    def create_command_line_config(self):
+        """Create and return a command line config loader."""
+        return IPControllerAppCLConfigLoader(
+            description=self.description, 
+            version=release.version
+        )
+
+    def post_load_command_line_config(self):
+        # Now setup reuse_furls
+        if hasattr(self.command_line_config.Global, 'reuse_furls'):
+            self.command_line_config.FCClientServiceFactory.reuse_furls = \
+                self.command_line_config.Global.reuse_furls
+            self.command_line_config.FCEngineServiceFactory.reuse_furls = \
+                self.command_line_config.Global.reuse_furls
+            del self.command_line_config.Global.reuse_furls
+        if hasattr(self.command_line_config.Global, 'secure'):
+            self.command_line_config.FCClientServiceFactory.secure = \
+                self.command_line_config.Global.secure
+            self.command_line_config.FCEngineServiceFactory.secure = \
+                self.command_line_config.Global.secure
+            del self.command_line_config.Global.secure
 
     def pre_construct(self):
         # Now set the security_dir and log_dir and create them.  We use
@@ -200,13 +221,6 @@ class IPControllerApp(ApplicationWithDir):
         self.security_dir = self.master_config.Global.security_dir = security_dir
         self.log_dir = self.master_config.Global.log_dir = log_dir
 
-        # Now setup reuse_furls
-        if hasattr(self.master_config.Global, 'reuse_furls'):
-            self.master_config.FCClientServiceFactory.reuse_furls = \
-                self.master_config.Global.reuse_furls
-            self.master_config.FCEngineServiceFactory.reuse_furls = \
-                self.master_config.Global.reuse_furls
-
     def construct(self):
         # I am a little hesitant to put these into InteractiveShell itself.
         # But that might be the place for them
@@ -214,7 +228,7 @@ class IPControllerApp(ApplicationWithDir):
 
         self.start_logging()
         self.import_statements()
-
+        
         # Create the service hierarchy
         self.main_service = service.MultiService()
         # The controller service
@@ -242,9 +256,10 @@ class IPControllerApp(ApplicationWithDir):
         statements = self.master_config.Global.import_statements
         for s in statements:
             try:
+                log.msg("Executing statement: '%s'" % s)
                 exec s in globals(), locals()
             except:
-                log.msg("Error running import statement: %s" % s)
+                log.msg("Error running statement: %s" % s)
 
     def start_app(self):
         # Start the controller service and set things running

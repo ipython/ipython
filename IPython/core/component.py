@@ -296,7 +296,19 @@ class Component(HasTraitlets):
             if new._has_section(sname):
                 my_config = new[sname]
                 for k, v in traitlets.items():
+                    # Don't allow traitlets with config=True to start with
+                    # uppercase.  Otherwise, they are confused with Config
+                    # subsections.  But, developers shouldn't have uppercase
+                    # attributes anyways! (PEP 6)
+                    if k[0].upper()==k[0] and not k.startswith('_'):
+                        raise ComponentError('Component traitlets with '
+                        'config=True must start with a lowercase so they are '
+                        'not confused with Config subsections: %s.%s' % \
+                        (self.__class__.__name__, k))
                     try:
+                        # Here we grab the value from the config
+                        # If k has the naming convention of a config
+                        # section, it will be auto created.
                         config_value = my_config[k]
                     except KeyError:
                         pass

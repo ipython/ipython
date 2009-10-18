@@ -77,9 +77,9 @@ class Application(object):
     """Load a config, construct an app and run it.
     """
 
-    config_file_name = 'ipython_config.py'
     name = 'ipython'
     description = 'IPython: an enhanced interactive Python shell.'
+    config_file_name = 'ipython_config.py'
     default_log_level = logging.WARN
     
 
@@ -351,7 +351,11 @@ class AppWithDirArgParseConfigLoader(ArgParseConfigLoader):
             metavar='Global.ipythondir')
         self.parser.add_argument('-p','-profile', '--profile',
             dest='Global.profile',type=str,
-            help='The string name of the ipython profile to be used.',
+            help='The string name of the profile to be used. This determines '
+            'the name of the application dir: basename_<profile>.  The basename is '
+            'determined by the particular application.  The default profile '
+            'is named "default".  This convention is used if the -app_dir '
+            'option is not used.',
             default=NoConfigDefault,
             metavar='Global.profile')
         self.parser.add_argument('-log_level', '--log-level',
@@ -360,22 +364,40 @@ class AppWithDirArgParseConfigLoader(ArgParseConfigLoader):
             default=NoConfigDefault)
         self.parser.add_argument('-app_dir', '--app-dir',
             dest='Global.app_dir',type=str,
-            help='Set the application directory where everything for this '
-            'application will be found (including the config file).',
+            help='Set the application dir where everything for this '
+            'application will be found (including the config file). This '
+            'overrides the logic used by the profile option.',
             default=NoConfigDefault,
             metavar='Global.app_dir')
 
 
 class ApplicationWithDir(Application):
+    """An application that puts everything into a application directory.
 
-    name = 'appname'
-    description = 'Application: foo and bar it.'
-    config_file_name = 'appname_config.py' 
-    default_log_level = logging.WARN
+    Instead of looking for things in the ipythondir, this type of application
+    will use its own private directory called the "application directory"
+    for things like config files, log files, etc.
+
+    The application directory is resolved as follows:
+
+    * If the ``--app-dir`` option is given, it is used.
+    * If ``--app-dir`` is not given, the application directory is resolve using
+      ``app_dir_basename`` and ``profile`` as ``<app_dir_basename>_<profile>``.
+      The search path for this directory is then i) cwd if it is found there
+      and ii) in ipythondir otherwise.
+
+    The config file for the application is to be put in the application
+    dir and named the value of the ``config_file_name`` class attribute.
+    """
+
+    # The basename used for the application dir: <app_dir_basename>_<profile>
+    app_dir_basename = 'cluster'
 
     def create_default_config(self):
         super(ApplicationWithDir, self).create_default_config()
         self.default_config.Global.profile = 'default'
+        # The application dir.  This is empty initially so the default is to
+        # try to resolve this using the profile.
         self.default_config.Global.app_dir = ''
 
     def create_command_line_config(self):
@@ -391,10 +413,10 @@ class ApplicationWithDir(Application):
         self.create_app_dir()
 
     def find_app_dir(self):
-        """This resolves into full paths, the app directory.
+        """This resolves the app directory.
 
-        This method must set ``self.app_dir`` to the full path of
-        the directory.
+        This method must set ``self.app_dir`` to the location of the app
+        dir.
         """
         # Instead, first look for an explicit app_dir
         try:
@@ -408,7 +430,7 @@ class ApplicationWithDir(Application):
                 self.profile = self.command_line_config.Global.profile
             except AttributeError:
                 self.profile = self.default_config.Global.profile
-            app_dir_name = 'cluster_' + self.profile
+            app_dir_name = self.app_dir_basename + '_' + self.profile
             try_this = os.path.join(os.getcwd(), app_dir_name)
             if os.path.isdir(try_this):
                 self.app_dir = try_this
@@ -421,7 +443,7 @@ class ApplicationWithDir(Application):
         self.command_line_config.Global.app_dir = self.app_dir
 
     def create_app_dir(self):
-        """Make sure that the cluster, security and log dirs exist."""
+        """Make sure that the app dir exists."""
         if not os.path.isdir(self.app_dir):
             os.makedirs(self.app_dir, mode=0777)
 

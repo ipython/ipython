@@ -294,13 +294,13 @@ class IPythonAppCLConfigLoader(BaseAppArgParseConfigLoader):
     arguments = cl_args
 
 
-_default_config_file_name = 'ipython_config.py'
+default_config_file_name = 'ipython_config.py'
 
 
 class IPythonApp(Application):
     name = 'ipython'
     description = 'IPython: an enhanced interactive Python shell.'
-    config_file_name = _default_config_file_name
+    config_file_name = default_config_file_name
 
     def create_default_config(self):
         super(IPythonApp, self).create_default_config()
@@ -533,7 +533,7 @@ def load_default_config(ipythondir=None):
     """
     if ipythondir is None:
         ipythondir = get_ipython_dir()
-    cl = PyFileConfigLoader(_default_config_file_name, ipythondir)
+    cl = PyFileConfigLoader(default_config_file_name, ipythondir)
     config = cl.load_config()
     return config
 
