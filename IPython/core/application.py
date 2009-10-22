@@ -61,7 +61,8 @@ class BaseAppArgParseConfigLoader(ArgParseConfigLoader):
         self.parser.add_argument('-log_level', '--log-level',
             dest="Global.log_level",type=int,
             help='Set the log level (0,10,20,30,40,50).  Default is 30.',
-            default=NoConfigDefault)
+            default=NoConfigDefault,
+            metavar='Global.log_level')
         self.parser.add_argument('-config_file', '--config-file',
             dest='Global.config_file',type=str,
             help='Set the config file name to override default.',
@@ -251,7 +252,7 @@ class Application(object):
         ``CONFIG_FILE`` config variable is set to the resolved config file
         location.  If not successful, an empty config is used.
         """
-        self.log.debug("Attempting to load config file: <%s>" % self.config_file_name)
+        self.log.debug("Attempting to load config file: %s" % self.config_file_name)
         loader = PyFileConfigLoader(self.config_file_name,
                                     path=self.config_file_paths)
         try:
@@ -260,11 +261,11 @@ class Application(object):
         except IOError:
             # Only warn if the default config file was NOT being used.
             if not self.config_file_name==self.default_config_file_name:
-                self.log.warn("Config file not found, skipping: <%s>" % \
+                self.log.warn("Config file not found, skipping: %s" % \
                                self.config_file_name, exc_info=True)
             self.file_config = Config()
         except:
-            self.log.warn("Error loading config file: <%s>" % \
+            self.log.warn("Error loading config file: %s" % \
                            self.config_file_name, exc_info=True)
             self.file_config = Config()
 
@@ -284,7 +285,7 @@ class Application(object):
 
     def log_file_config(self):
         if hasattr(self.file_config.Global, 'config_file'):
-            self.log.debug("Config file loaded: <%s>" % self.file_config.Global.config_file)
+            self.log.debug("Config file loaded: %s" % self.file_config.Global.config_file)
             self.log.debug(repr(self.file_config))
 
     def merge_configs(self):
@@ -441,6 +442,7 @@ class ApplicationWithDir(Application):
         # priority, this will always end up in the master_config.
         self.default_config.Global.app_dir = self.app_dir
         self.command_line_config.Global.app_dir = self.app_dir
+        self.log.info("Application directory set to: %s" % self.app_dir)
 
     def create_app_dir(self):
         """Make sure that the app dir exists."""

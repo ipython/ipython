@@ -170,7 +170,7 @@ if 'setuptools' in sys.modules:
             'ipython = IPython.core.ipapp:launch_new_instance',
             'pycolor = IPython.utils.PyColorize:main',
             'ipcontroller = IPython.kernel.ipcontrollerapp:launch_new_instance',
-            'ipengine = IPython.kernel.scripts.ipengine:main',
+            'ipengine = IPython.kernel.ipengineapp:launch_new_instance',
             'ipcluster = IPython.kernel.scripts.ipcluster:main',
             'ipythonx = IPython.frontend.wx.ipythonx:main',
             'iptest = IPython.testing.iptest:main',

@@ -171,7 +171,6 @@ class IPControllerApp(ApplicationWithDir):
     app_dir_basename = 'cluster'
     description = 'Start the IPython controller for parallel computing.'
     config_file_name = default_config_file_name
-    default_log_level = logging.WARN
 
     def create_default_config(self):
         super(IPControllerApp, self).create_default_config()
@@ -205,12 +204,13 @@ class IPControllerApp(ApplicationWithDir):
             del self.command_line_config.Global.secure
 
     def pre_construct(self):
+        config = self.master_config
         # Now set the security_dir and log_dir and create them.  We use
         # the names an construct the absolute paths.
-        security_dir = os.path.join(self.master_config.Global.app_dir,
-                                    self.master_config.Global.security_dir_name)
-        log_dir = os.path.join(self.master_config.Global.app_dir, 
-                               self.master_config.Global.log_dir_name)
+        security_dir = os.path.join(config.Global.app_dir,
+                                    config.Global.security_dir_name)
+        log_dir = os.path.join(config.Global.app_dir, 
+                               config.Global.log_dir_name)
         if not os.path.isdir(security_dir):
             os.mkdir(security_dir, 0700)
         else:
@@ -218,8 +218,10 @@ class IPControllerApp(ApplicationWithDir):
         if not os.path.isdir(log_dir):
             os.mkdir(log_dir, 0777)
 
-        self.security_dir = self.master_config.Global.security_dir = security_dir
-        self.log_dir = self.master_config.Global.log_dir = log_dir
+        self.security_dir = config.Global.security_dir = security_dir
+        self.log_dir = config.Global.log_dir = log_dir
+        self.log.info("Log directory set to: %s" % self.log_dir)
+        self.log.info("Security directory set to: %s" % self.security_dir)
 
     def construct(self):
         # I am a little hesitant to put these into InteractiveShell itself.
