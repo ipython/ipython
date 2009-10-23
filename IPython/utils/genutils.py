@@ -736,14 +736,14 @@ def get_home_dir():
         root=os.path.abspath(root).rstrip('\\')
         if isdir(os.path.join(root, '_ipython')):
             os.environ["IPYKITROOT"] = root
-        return root
+        return root.decode(sys.getfilesystemencoding())
     try:
         homedir = env['HOME']
         if not isdir(homedir):
             # in case a user stuck some string which does NOT resolve to a
             # valid path, it's as good as if we hadn't foud it
             raise KeyError
-        return homedir
+        return homedir.decode(sys.getfilesystemencoding())
     except KeyError:
         if os.name == 'posix':
             raise HomeDirError,'undefined $HOME, IPython can not proceed.'
@@ -755,7 +755,7 @@ def get_home_dir():
                     homedir = os.path.join(env['USERPROFILE'])
                     if not isdir(homedir):
                         raise HomeDirError
-                return homedir
+                return homedir.decode(sys.getfilesystemencoding())
             except KeyError:
                 try:
                     # Use the registry to get the 'My Documents' folder.
@@ -771,14 +771,14 @@ def get_home_dir():
                              'This is not a valid directory on your system.' %
                              homedir)
                         raise HomeDirError(e)
-                    return homedir
+                    return homedir.decode(sys.getfilesystemencoding())
                 except HomeDirError:
                     raise
                 except:
-                    return 'C:\\'
+                    return 'C:\\'.decode(sys.getfilesystemencoding())
         elif os.name == 'dos':
             # Desperate, may do absurd things in classic MacOS. May work under DOS.
-            return 'C:\\'
+            return 'C:\\'.decode(sys.getfilesystemencoding())
         else:
             raise HomeDirError,'support for your operating system not implemented.'
 
@@ -795,31 +795,6 @@ def get_ipython_dir():
                                            os.path.join(home_dir, ipdir_def)))
     return ipdir.decode(sys.getfilesystemencoding())
 
-def get_security_dir():
-    """Get the IPython security directory.
-    
-    This directory is the default location for all security related files,
-    including SSL/TLS certificates and FURL files.
-    
-    If the directory does not exist, it is created with 0700 permissions.
-    If it exists, permissions are set to 0700.
-    """
-    security_dir = os.path.join(get_ipython_dir(), 'security')
-    if not os.path.isdir(security_dir):
-        os.mkdir(security_dir, 0700)
-    else:
-        os.chmod(security_dir, 0700)
-    return security_dir
-
-def get_log_dir():
-    """Get the IPython log directory.
-    
-    If the log directory does not exist, it is created.
-    """
-    log_dir = os.path.join(get_ipython_dir(), 'log')
-    if not os.path.isdir(log_dir):
-        os.mkdir(log_dir, 0777)
-    return log_dir
 
 #****************************************************************************
 # strings and text

@@ -53,7 +53,7 @@ class ConfiguredObjectFactory(Component):
 class IAdaptedConfiguredObjectFactory(zi.Interface):
     """I am a component that adapts and configures an object.
 
-    This class is useful if you have the adapt a instance and configure it.
+    This class is useful if you have the adapt an instance and configure it.
     """
 
     def __init__(config, adaptee=None):

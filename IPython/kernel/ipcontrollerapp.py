@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # encoding: utf-8
 """
-The IPython controller application
+The IPython controller application.
 """
 
 #-----------------------------------------------------------------------------
@@ -16,31 +16,25 @@ The IPython controller application
 #-----------------------------------------------------------------------------
 
 import copy
-import logging
 import os
 import sys
 
 from twisted.application import service
-from twisted.internet import reactor, defer
+from twisted.internet import reactor
 from twisted.python import log
 
 from IPython.config.loader import Config, NoConfigDefault
 
-from IPython.core.application import (
-    ApplicationWithDir, 
-    AppWithDirArgParseConfigLoader
+from IPython.kernel.clusterdir import (
+    ApplicationWithClusterDir, 
+    AppWithClusterDirArgParseConfigLoader
 )
 
 from IPython.core import release
 
-from IPython.utils.traitlets import Int, Str, Bool, Instance
-from IPython.utils.importstring import import_item
+from IPython.utils.traitlets import Str, Instance
 
 from IPython.kernel import controllerservice
-from IPython.kernel.configobjfactory import (
-    ConfiguredObjectFactory,
-    AdaptedConfiguredObjectFactory
-)
 
 from IPython.kernel.fcutil import FCServiceFactory
 
@@ -112,33 +106,45 @@ cl_args = (
     # Client config
     (('--client-ip',), dict(
         type=str, dest='FCClientServiceFactory.ip', default=NoConfigDefault,
-        help='The IP address or hostname the controller will listen on for client connections.',
+        help='The IP address or hostname the controller will listen on for '
+        'client connections.',
         metavar='FCClientServiceFactory.ip')
     ),
     (('--client-port',), dict(
         type=int, dest='FCClientServiceFactory.port', default=NoConfigDefault,
-        help='The port the controller will listen on for client connections.',
+        help='The port the controller will listen on for client connections. '
+        'The default is to use 0, which will autoselect an open port.',
         metavar='FCClientServiceFactory.port')
     ),
     (('--client-location',), dict(
         type=str, dest='FCClientServiceFactory.location', default=NoConfigDefault,
-        help='The hostname or ip that clients should connect to.',
+        help='The hostname or IP that clients should connect to. This does '
+        'not control which interface the controller listens on. Instead, this '
+        'determines the hostname/IP that is listed in the FURL, which is how '
+        'clients know where to connect. Useful if the controller is listening '
+        'on multiple interfaces.',
         metavar='FCClientServiceFactory.location')
     ),
     # Engine config
     (('--engine-ip',), dict(
         type=str, dest='FCEngineServiceFactory.ip', default=NoConfigDefault,
-        help='The IP address or hostname the controller will listen on for engine connections.',
+        help='The IP address or hostname the controller will listen on for '
+        'engine connections.',
         metavar='FCEngineServiceFactory.ip')
     ),
     (('--engine-port',), dict(
         type=int, dest='FCEngineServiceFactory.port', default=NoConfigDefault,
-        help='The port the controller will listen on for engine connections.',
+        help='The port the controller will listen on for engine connections. '
+        'The default is to use 0, which will autoselect an open port.',
         metavar='FCEngineServiceFactory.port')
     ),
     (('--engine-location',), dict(
         type=str, dest='FCEngineServiceFactory.location', default=NoConfigDefault,
-        help='The hostname or ip that engines should connect to.',
+        help='The hostname or IP that engines should connect to. This does '
+        'not control which interface the controller listens on. Instead, this '
+        'determines the hostname/IP that is listed in the FURL, which is how '
+        'engines know where to connect. Useful if the controller is listening '
+        'on multiple interfaces.',
         metavar='FCEngineServiceFactory.location')
     ),
     # Global config
@@ -148,7 +154,9 @@ cl_args = (
     ),
     (('-r','--reuse-furls'), dict(
         action='store_true', dest='Global.reuse_furls', default=NoConfigDefault,
-        help='Try to reuse all FURL files.')
+        help='Try to reuse all FURL files. If this is not set all FURL files '
+        'are deleted before the controller starts. This must be set if '
+        'specific ports are specified by --engine-port or --client-port.')
     ),
     (('-ns','--no-security'), dict(
         action='store_false', dest='Global.secure', default=NoConfigDefault,
@@ -157,7 +165,7 @@ cl_args = (
 )
 
 
-class IPControllerAppCLConfigLoader(AppWithDirArgParseConfigLoader):
+class IPControllerAppCLConfigLoader(AppWithClusterDirArgParseConfigLoader):
 
     arguments = cl_args
 
@@ -165,10 +173,9 @@ class IPControllerAppCLConfigLoader(AppWithDirArgParseConfigLoader):
 default_config_file_name = 'ipcontroller_config.py'
 
 
-class IPControllerApp(ApplicationWithDir):
+class IPControllerApp(ApplicationWithClusterDir):
 
     name = 'ipcontroller'
-    app_dir_basename = 'cluster'
     description = 'Start the IPython controller for parallel computing.'
     config_file_name = default_config_file_name
 
@@ -177,8 +184,6 @@ class IPControllerApp(ApplicationWithDir):
         self.default_config.Global.reuse_furls = False
         self.default_config.Global.secure = True
         self.default_config.Global.import_statements = []
-        self.default_config.Global.log_dir_name = 'log'
-        self.default_config.Global.security_dir_name = 'security'
         self.default_config.Global.log_to_file = False
 
     def create_command_line_config(self):
@@ -190,36 +195,24 @@ class IPControllerApp(ApplicationWithDir):
 
     def post_load_command_line_config(self):
         # Now setup reuse_furls
-        if hasattr(self.command_line_config.Global, 'reuse_furls'):
-            self.command_line_config.FCClientServiceFactory.reuse_furls = \
-                self.command_line_config.Global.reuse_furls
-            self.command_line_config.FCEngineServiceFactory.reuse_furls = \
-                self.command_line_config.Global.reuse_furls
-            del self.command_line_config.Global.reuse_furls
-        if hasattr(self.command_line_config.Global, 'secure'):
-            self.command_line_config.FCClientServiceFactory.secure = \
-                self.command_line_config.Global.secure
-            self.command_line_config.FCEngineServiceFactory.secure = \
-                self.command_line_config.Global.secure
-            del self.command_line_config.Global.secure
+        c = self.command_line_config
+        if hasattr(c.Global, 'reuse_furls'):
+            c.FCClientServiceFactory.reuse_furls = c.Global.reuse_furls
+            c.FCEngineServiceFactory.reuse_furls = c.Global.reuse_furls
+            del c.Global.reuse_furls
+        if hasattr(c.Global, 'secure'):
+            c.FCClientServiceFactory.secure = c.Global.secure
+            c.FCEngineServiceFactory.secure = c.Global.secure
+            del c.Global.secure
 
     def pre_construct(self):
+        # The log and security dirs were set earlier, but here we put them
+        # into the config and log them.
         config = self.master_config
-        # Now set the security_dir and log_dir and create them.  We use
-        # the names an construct the absolute paths.
-        security_dir = os.path.join(config.Global.app_dir,
-                                    config.Global.security_dir_name)
-        log_dir = os.path.join(config.Global.app_dir, 
-                               config.Global.log_dir_name)
-        if not os.path.isdir(security_dir):
-            os.mkdir(security_dir, 0700)
-        else:
-            os.chmod(security_dir, 0700)
-        if not os.path.isdir(log_dir):
-            os.mkdir(log_dir, 0777)
-
-        self.security_dir = config.Global.security_dir = security_dir
-        self.log_dir = config.Global.log_dir = log_dir
+        sdir = self.cluster_dir_obj.security_dir
+        self.security_dir = config.Global.security_dir = sdir
+        ldir = self.cluster_dir_obj.log_dir
+        self.log_dir = config.Global.log_dir = ldir
         self.log.info("Log directory set to: %s" % self.log_dir)
         self.log.info("Security directory set to: %s" % self.security_dir)
 

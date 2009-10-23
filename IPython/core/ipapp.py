@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 # encoding: utf-8
 """
-The main IPython application object
+The :class:`~IPython.core.application.Application` object for the command
+line :command:`ipython` program.
 
 Authors:
 
@@ -34,13 +35,11 @@ from IPython.core.iplib import InteractiveShell
 from IPython.config.loader import (
     NoConfigDefault, 
     Config,
-    ConfigError,
     PyFileConfigLoader
 )
 
 from IPython.lib import inputhook
 
-from IPython.utils.ipstruct import Struct
 from IPython.utils.genutils import filefind, get_ipython_dir
 
 #-----------------------------------------------------------------------------

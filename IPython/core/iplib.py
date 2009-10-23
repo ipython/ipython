@@ -182,7 +182,7 @@ class SeparateStr(Str):
 class InteractiveShell(Component, Magic):
     """An enhanced, interactive shell for Python."""
 
-    autocall = Enum((0,1,2), config=True)
+    autocall = Enum((0,1,2), default_value=1, config=True)
     autoedit_syntax = CBool(False, config=True)
     autoindent = CBool(True, config=True)
     automagic = CBool(True, config=True)

@@ -24,9 +24,9 @@ from twisted.python import log
 
 from IPython.config.loader import NoConfigDefault
 
-from IPython.core.application import (
-    ApplicationWithDir, 
-    AppWithDirArgParseConfigLoader
+from IPython.kernel.clusterdir import (
+    ApplicationWithClusterDir, 
+    AppWithClusterDirArgParseConfigLoader
 )
 from IPython.core import release
 
@@ -65,7 +65,7 @@ cl_args = (
 )
 
 
-class IPEngineAppCLConfigLoader(AppWithDirArgParseConfigLoader):
+class IPEngineAppCLConfigLoader(AppWithClusterDirArgParseConfigLoader):
 
     arguments = cl_args
 
@@ -87,10 +87,9 @@ mpi.size = 0
 default_config_file_name = 'ipengine_config.py'
 
 
-class IPEngineApp(ApplicationWithDir):
+class IPEngineApp(ApplicationWithClusterDir):
 
     name = 'ipengine'
-    app_dir_basename = 'cluster'
     description = 'Start the IPython engine for parallel computing.'
     config_file_name = default_config_file_name
 
@@ -130,21 +129,10 @@ class IPEngineApp(ApplicationWithDir):
 
     def pre_construct(self):
         config = self.master_config
-        # Now set the security_dir and log_dir and create them.  We use
-        # the names an construct the absolute paths.
-        security_dir = os.path.join(config.Global.app_dir,
-                                    config.Global.security_dir_name)
-        log_dir = os.path.join(config.Global.app_dir,
-                               config.Global.log_dir_name)
-        if not os.path.isdir(security_dir):
-            os.mkdir(security_dir, 0700)
-        else:
-            os.chmod(security_dir, 0700)
-        if not os.path.isdir(log_dir):
-            os.mkdir(log_dir, 0777)
-
-        self.security_dir = config.Global.security_dir = security_dir
-        self.log_dir = config.Global.log_dir = log_dir
+        sdir = self.cluster_dir_obj.security_dir
+        self.security_dir = config.Global.security_dir = sdir
+        ldir = self.cluster_dir_obj.log_dir
+        self.log_dir = config.Global.log_dir = ldir
         self.log.info("Log directory set to: %s" % self.log_dir)
         self.log.info("Security directory set to: %s" % self.security_dir)
 
@@ -158,7 +146,7 @@ class IPEngineApp(ApplicationWithDir):
         else:
             # We should know what the app dir is
             try_this = os.path.join(
-                config.Global.app_dir, 
+                config.Global.cluster_dir, 
                 config.Global.security_dir,
                 config.Global.furl_file_name
             )

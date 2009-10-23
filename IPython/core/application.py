@@ -1,7 +1,13 @@
 #!/usr/bin/env python
 # encoding: utf-8
 """
-An application for IPython
+An application for IPython.
+
+All top-level applications should use the classes in this module for
+handling configuration and creating componenets.
+
+The job of an :class:`Application` is to create the master configuration 
+object and then create the components, passing the config to them.
 
 Authors:
 
@@ -25,13 +31,10 @@ Notes
 
 import logging
 import os
-
 import sys
-import traceback
-from copy import deepcopy
 
 from IPython.core import release
-from IPython.utils.genutils import get_ipython_dir, filefind
+from IPython.utils.genutils import get_ipython_dir
 from IPython.config.loader import (
     PyFileConfigLoader,
     ArgParseConfigLoader,
@@ -75,17 +78,17 @@ class ApplicationError(Exception):
 
 
 class Application(object):
-    """Load a config, construct an app and run it.
-    """
+    """Load a config, construct components and set them running."""
 
     name = 'ipython'
     description = 'IPython: an enhanced interactive Python shell.'
     config_file_name = 'ipython_config.py'
     default_log_level = logging.WARN
-    
 
     def __init__(self):
         self.init_logger()
+        # Track the default and actual separately because some messages are
+        # only printed if we aren't using the default.
         self.default_config_file_name = self.config_file_name
 
     def init_logger(self):
@@ -194,7 +197,7 @@ class Application(object):
 
         This sets ``self.ipythondir``, but the actual value that is passed
         to the application is kept in either ``self.default_config`` or
-        ``self.command_line_config``.  This also added ``self.ipythondir`` to
+        ``self.command_line_config``.  This also adds ``self.ipythondir`` to
         ``sys.path`` so config files there can be references by other config
         files.
         """
@@ -340,115 +343,3 @@ class Application(object):
             elif action == 'exit':
                 self.exit()
 
-
-class AppWithDirArgParseConfigLoader(ArgParseConfigLoader):
-    """Default command line options for IPython based applications."""
-
-    def _add_other_arguments(self):
-        self.parser.add_argument('-ipythondir', '--ipython-dir', 
-            dest='Global.ipythondir',type=str,
-            help='Set to override default location of Global.ipythondir.',
-            default=NoConfigDefault,
-            metavar='Global.ipythondir')
-        self.parser.add_argument('-p','-profile', '--profile',
-            dest='Global.profile',type=str,
-            help='The string name of the profile to be used. This determines '
-            'the name of the application dir: basename_<profile>.  The basename is '
-            'determined by the particular application.  The default profile '
-            'is named "default".  This convention is used if the -app_dir '
-            'option is not used.',
-            default=NoConfigDefault,
-            metavar='Global.profile')
-        self.parser.add_argument('-log_level', '--log-level',
-            dest="Global.log_level",type=int,
-            help='Set the log level (0,10,20,30,40,50).  Default is 30.',
-            default=NoConfigDefault)
-        self.parser.add_argument('-app_dir', '--app-dir',
-            dest='Global.app_dir',type=str,
-            help='Set the application dir where everything for this '
-            'application will be found (including the config file). This '
-            'overrides the logic used by the profile option.',
-            default=NoConfigDefault,
-            metavar='Global.app_dir')
-
-
-class ApplicationWithDir(Application):
-    """An application that puts everything into a application directory.
-
-    Instead of looking for things in the ipythondir, this type of application
-    will use its own private directory called the "application directory"
-    for things like config files, log files, etc.
-
-    The application directory is resolved as follows:
-
-    * If the ``--app-dir`` option is given, it is used.
-    * If ``--app-dir`` is not given, the application directory is resolve using
-      ``app_dir_basename`` and ``profile`` as ``<app_dir_basename>_<profile>``.
-      The search path for this directory is then i) cwd if it is found there
-      and ii) in ipythondir otherwise.
-
-    The config file for the application is to be put in the application
-    dir and named the value of the ``config_file_name`` class attribute.
-    """
-
-    # The basename used for the application dir: <app_dir_basename>_<profile>
-    app_dir_basename = 'cluster'
-
-    def create_default_config(self):
-        super(ApplicationWithDir, self).create_default_config()
-        self.default_config.Global.profile = 'default'
-        # The application dir.  This is empty initially so the default is to
-        # try to resolve this using the profile.
-        self.default_config.Global.app_dir = ''
-
-    def create_command_line_config(self):
-        """Create and return a command line config loader."""
-        return AppWithDirArgParseConfigLoader(
-            description=self.description, 
-            version=release.version
-        )
-
-    def find_config_file_name(self):
-        """Find the config file name for this application."""
-        self.find_app_dir()
-        self.create_app_dir()
-
-    def find_app_dir(self):
-        """This resolves the app directory.
-
-        This method must set ``self.app_dir`` to the location of the app
-        dir.
-        """
-        # Instead, first look for an explicit app_dir
-        try:
-            self.app_dir = self.command_line_config.Global.app_dir
-        except AttributeError:
-            self.app_dir = self.default_config.Global.app_dir
-        self.app_dir = os.path.expandvars(os.path.expanduser(self.app_dir))
-        if not self.app_dir:
-            # Then look for a profile
-            try:
-                self.profile = self.command_line_config.Global.profile
-            except AttributeError:
-                self.profile = self.default_config.Global.profile
-            app_dir_name = self.app_dir_basename + '_' + self.profile
-            try_this = os.path.join(os.getcwd(), app_dir_name)
-            if os.path.isdir(try_this):
-                self.app_dir = try_this
-            else:
-                self.app_dir = os.path.join(self.ipythondir, app_dir_name)
-        # These have to be set because they could be different from the one
-        # that we just computed.  Because command line has the highest
-        # priority, this will always end up in the master_config.
-        self.default_config.Global.app_dir = self.app_dir
-        self.command_line_config.Global.app_dir = self.app_dir
-        self.log.info("Application directory set to: %s" % self.app_dir)
-
-    def create_app_dir(self):
-        """Make sure that the app dir exists."""
-        if not os.path.isdir(self.app_dir):
-            os.makedirs(self.app_dir, mode=0777)
-
-    def find_config_file_paths(self):
-        """Set the search paths for resolving the config file."""
-        self.config_file_paths = (self.app_dir,)
