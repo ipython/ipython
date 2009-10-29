@@ -15,6 +15,8 @@ Foolscap related utilities.
 # Imports
 #-----------------------------------------------------------------------------
 
+from __future__ import with_statement
+
 import os
 import tempfile
 
@@ -85,10 +87,11 @@ def find_furl(furl_or_file):
         if is_valid(furl_or_file):
             return furl_or_file
     if os.path.isfile(furl_or_file):
-        furl = open(furl_or_file, 'r').read().strip()
+        with open(furl_or_file, 'r') as f:
+            furl = f.read().strip()
         if is_valid(furl):
             return furl
-    raise ValueError("not a FURL or a file containing a FURL: %s" % furl_or_file)
+    raise ValueError("Not a FURL or a file containing a FURL: %s" % furl_or_file)
 
 
 def get_temp_furlfile(filename):

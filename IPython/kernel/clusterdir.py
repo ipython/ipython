@@ -58,18 +58,29 @@ class ClusterDir(Component):
             os.chmod(new, 0777)
         self.security_dir = os.path.join(new, self.security_dir_name)
         self.log_dir = os.path.join(new, self.log_dir_name)
+        self.check_dirs()
 
     def _log_dir_changed(self, name, old, new):
-        if not os.path.isdir(new):
-            os.mkdir(new, 0777)
+        self.check_log_dir()
+
+    def check_log_dir(self):
+        if not os.path.isdir(self.log_dir):
+            os.mkdir(self.log_dir, 0777)
         else:
-            os.chmod(new, 0777)
+            os.chmod(self.log_dir, 0777)
 
     def _security_dir_changed(self, name, old, new):
-        if not os.path.isdir(new):
-            os.mkdir(new, 0700)
+        self.check_security_dir()
+
+    def check_security_dir(self):
+        if not os.path.isdir(self.security_dir):
+            os.mkdir(self.security_dir, 0700)
         else:
-            os.chmod(new, 0700)
+            os.chmod(self.security_dir, 0700)
+
+    def check_dirs(self):
+        self.check_security_dir()
+        self.check_log_dir()
 
     def load_config_file(self, filename):
         """Load a config file from the top level of the cluster dir.
@@ -83,7 +94,7 @@ class ClusterDir(Component):
         loader = PyFileConfigLoader(filename, self.location)
         return loader.load_config()
 
-    def copy_config_file(self, config_file, path=None):
+    def copy_config_file(self, config_file, path=None, overwrite=False):
         """Copy a default config file into the active cluster directory.
 
         Default configuration files are kept in :mod:`IPython.config.default`.
@@ -96,12 +107,14 @@ class ClusterDir(Component):
             path = os.path.sep.join(path)
         src = os.path.join(path, config_file)
         dst = os.path.join(self.location, config_file)
-        shutil.copy(src, dst)
+        if not os.path.isfile(dst) or overwrite:
+            shutil.copy(src, dst)
 
-    def copy_all_config_files(self):
+    def copy_all_config_files(self, path=None, overwrite=False):
         """Copy all config files into the active cluster directory."""
-        for f in ['ipcontroller_config.py', 'ipengine_config.py']:
-            self.copy_config_file(f)
+        for f in ['ipcontroller_config.py', 'ipengine_config.py',
+                  'ipcluster_config.py']:
+            self.copy_config_file(f, path=path, overwrite=overwrite)
 
     @classmethod
     def find_cluster_dir_by_profile(cls, path, profile='default'):
@@ -245,7 +258,6 @@ class ApplicationWithClusterDir(Application):
         # priority, this will always end up in the master_config.
         self.default_config.Global.cluster_dir = self.cluster_dir
         self.command_line_config.Global.cluster_dir = self.cluster_dir
-        self.log.info("Cluster directory set to: %s" % self.cluster_dir)
 
         # Set the search path to the cluster directory
         self.config_file_paths = (self.cluster_dir,)

@@ -133,29 +133,27 @@ class IPEngineApp(ApplicationWithClusterDir):
         self.security_dir = config.Global.security_dir = sdir
         ldir = self.cluster_dir_obj.log_dir
         self.log_dir = config.Global.log_dir = ldir
+        self.log.info("Cluster directory set to: %s" % self.cluster_dir)
         self.log.info("Log directory set to: %s" % self.log_dir)
         self.log.info("Security directory set to: %s" % self.security_dir)
 
         self.find_cont_furl_file()
 
     def find_cont_furl_file(self):
+        """Set the furl file.
+
+        Here we don't try to actually see if it exists for is valid as that
+        is hadled by the connection logic.
+        """
         config = self.master_config
         # Find the actual controller FURL file
-        if os.path.isfile(config.Global.furl_file):
-            return
-        else:
-            # We should know what the app dir is
+        if not config.Global.furl_file:
             try_this = os.path.join(
                 config.Global.cluster_dir, 
                 config.Global.security_dir,
                 config.Global.furl_file_name
             )
-            if os.path.isfile(try_this):
-                config.Global.furl_file = try_this
-                return
-            else:
-                self.log.critical("Could not find a valid controller FURL file.")
-                self.abort()
+            config.Global.furl_file = try_this
 
     def construct(self):
         # I am a little hesitant to put these into InteractiveShell itself.
@@ -194,11 +192,11 @@ class IPEngineApp(ApplicationWithClusterDir):
         )
 
         def handle_error(f):
-            # If this print statement is replaced by a log.err(f) I get
-            # an unhandled error, which makes no sense.  I shouldn't have
-            # to use a print statement here.  My only thought is that
-            # at the beginning of the process the logging is still starting up
-            print "Error connecting to controller:", f.getErrorMessage()
+            log.msg('Error connecting to controller. This usually means that '
+            'i) the controller was not started, ii) a firewall was blocking '
+            'the engine from connecting to the controller or iii) the engine '
+            ' was not pointed at the right FURL file:')
+            log.msg(f.getErrorMessage())
             reactor.callLater(0.1, reactor.stop)
 
         d.addErrback(handle_error)
@@ -243,3 +241,8 @@ def launch_new_instance():
     """Create and run the IPython controller"""
     app = IPEngineApp()
     app.start()
+
+
+if __name__ == '__main__':
+    launch_new_instance()
+

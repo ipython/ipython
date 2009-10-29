@@ -4,7 +4,7 @@
 """Start an IPython cluster = (controller + engines)."""
 
 #-----------------------------------------------------------------------------
-#  Copyright (C) 2008  The IPython Development Team
+#  Copyright (C) 2008-2009  The IPython Development Team
 #
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
@@ -25,7 +25,7 @@ from twisted.internet import reactor, defer
 from twisted.internet.protocol import ProcessProtocol
 from twisted.internet.error import ProcessDone, ProcessTerminated
 from twisted.internet.utils import getProcessOutput
-from twisted.python import failure, log
+from twisted.python import log
 
 from IPython.external import argparse
 from IPython.external import Itpl
@@ -49,10 +49,8 @@ get_log_dir()
 get_security_dir()
 
 from IPython.kernel.config import config_manager as kernel_config_manager
-from IPython.kernel.error import SecurityError, FileTimeoutError
-from IPython.kernel.fcutil import have_crypto
 from IPython.kernel.twistedutil import gatherBoth, wait_for_file
-from IPython.kernel.util import printer
+
 
 #-----------------------------------------------------------------------------
 # General process handling code
@@ -140,7 +138,7 @@ class ProcessLauncher(object):
             )
             return self.start_deferred
         else:
-            s = 'the process has already been started and has state: %r' % \
+            s = 'The process has already been started and has state: %r' % \
                 self.state
             return defer.fail(ProcessStateError(s))
     

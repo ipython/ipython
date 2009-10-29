@@ -213,6 +213,7 @@ class IPControllerApp(ApplicationWithClusterDir):
         self.security_dir = config.Global.security_dir = sdir
         ldir = self.cluster_dir_obj.log_dir
         self.log_dir = config.Global.log_dir = ldir
+        self.log.info("Cluster directory set to: %s" % self.cluster_dir)
         self.log.info("Log directory set to: %s" % self.log_dir)
         self.log.info("Security directory set to: %s" % self.security_dir)
 
@@ -266,3 +267,8 @@ def launch_new_instance():
     """Create and run the IPython controller"""
     app = IPControllerApp()
     app.start()
+
+
+if __name__ == '__main__':
+    launch_new_instance()
+

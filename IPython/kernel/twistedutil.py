@@ -247,3 +247,10 @@ def wait_for_file(filename, delay=0.1, max_tries=10):
     
     _test_for_file(filename)
     return d
+
+
+def sleep_deferred(seconds):
+    """Sleep without blocking the event loop."""
+    d = defer.Deferred()
+    reactor.callLater(seconds, d.callback, seconds)
+    return d
