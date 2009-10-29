@@ -178,6 +178,7 @@ class IPControllerApp(ApplicationWithClusterDir):
     name = 'ipcontroller'
     description = 'Start the IPython controller for parallel computing.'
     config_file_name = default_config_file_name
+    auto_create_cluster_dir = True
 
     def create_default_config(self):
         super(IPControllerApp, self).create_default_config()

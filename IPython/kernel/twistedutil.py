@@ -254,3 +254,12 @@ def sleep_deferred(seconds):
     d = defer.Deferred()
     reactor.callLater(seconds, d.callback, seconds)
     return d
+
+
+def make_deferred(func):
+    """A decorator that calls a function with :func`maybeDeferred`."""
+
+    def _wrapper(*args, **kwargs):
+        return defer.maybeDeferred(func, *args, **kwargs)
+
+    return _wrapper

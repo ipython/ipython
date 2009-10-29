@@ -92,6 +92,7 @@ class IPEngineApp(ApplicationWithClusterDir):
     name = 'ipengine'
     description = 'Start the IPython engine for parallel computing.'
     config_file_name = default_config_file_name
+    auto_create_cluster_dir = True
 
     def create_default_config(self):
         super(IPEngineApp, self).create_default_config()

@@ -23,11 +23,15 @@ from IPython.config.loader import PyFileConfigLoader
 from IPython.core.application import Application
 from IPython.core.component import Component
 from IPython.config.loader import ArgParseConfigLoader, NoConfigDefault
-from IPython.utils.traitlets import Unicode
+from IPython.utils.traitlets import Unicode, Bool
 
 #-----------------------------------------------------------------------------
 # Imports
 #-----------------------------------------------------------------------------
+
+
+class ClusterDirError(Exception):
+    pass
 
 
 class ClusterDir(Component):
@@ -117,28 +121,68 @@ class ClusterDir(Component):
             self.copy_config_file(f, path=path, overwrite=overwrite)
 
     @classmethod
-    def find_cluster_dir_by_profile(cls, path, profile='default'):
-        """Find/create a cluster dir by profile name and return its ClusterDir.
-
-        This will create the cluster directory if it doesn't exist.
+    def create_cluster_dir(csl, cluster_dir):
+        """Create a new cluster directory given a full path.
 
         Parameters
         ----------
-        path : unicode or str
-            The directory path to look for the cluster directory in.
+        cluster_dir : str
+            The full path to the cluster directory.  If it does exist, it will
+            be used.  If not, it will be created.
+        """
+        return ClusterDir(cluster_dir)
+
+    @classmethod
+    def create_cluster_dir_by_profile(cls, path, profile='default'):
+        """Create a cluster dir by profile name and path.
+
+        Parameters
+        ----------
+        path : str
+            The path (directory) to put the cluster directory in.
+        profile : str
+            The name of the profile.  The name of the cluster directory will
+            be "cluster_<profile>".
+        """
+        if not os.path.isdir(path):
+            raise ClusterDirError('Directory not found: %s' % path)
+        cluster_dir = os.path.join(path, 'cluster_' + profile)
+        return ClusterDir(cluster_dir)
+
+    @classmethod
+    def find_cluster_dir_by_profile(cls, ipythondir, profile='default'):
+        """Find an existing cluster dir by profile name, return its ClusterDir.
+
+        This searches through a sequence of paths for a cluster dir.  If it
+        is not found, a :class:`ClusterDirError` exception will be raised.
+
+        The search path algorithm is:
+        1. ``os.getcwd()``
+        2. ``ipythondir``
+        3. The directories found in the ":" separated 
+           :env:`IPCLUSTERDIR_PATH` environment variable.
+
+        Parameters
+        ----------
+        ipythondir : unicode or str
+            The IPython directory to use.
         profile : unicode or str
             The name of the profile.  The name of the cluster directory
             will be "cluster_<profile>".
         """
         dirname = 'cluster_' + profile
-        cluster_dir = os.path.join(os.getcwd(), dirname)
-        if os.path.isdir(cluster_dir):
-            return ClusterDir(cluster_dir)
+        cluster_dir_paths = os.environ.get('IPCLUSTERDIR_PATH','')
+        if cluster_dir_paths:
+            cluster_dir_paths = cluster_dir_paths.split(':')
         else:
-            if not os.path.isdir(path):
-                raise IOError("Directory doesn't exist: %s" % path)
-            cluster_dir = os.path.join(path, dirname)
-            return ClusterDir(cluster_dir)
+            cluster_dir_paths = []
+        paths = [os.getcwd(), ipythondir] + cluster_dir_paths
+        for p in paths:
+            cluster_dir = os.path.join(p, dirname)
+            if os.path.isdir(cluster_dir):
+                return ClusterDir(cluster_dir)
+        else:
+            raise ClusterDirError('Cluster directory not found in paths: %s' % dirname)
 
     @classmethod
     def find_cluster_dir(cls, cluster_dir):
@@ -153,6 +197,8 @@ class ClusterDir(Component):
             :func:`os.path.expandvars` and :func:`os.path.expanduser`.
         """
         cluster_dir = os.path.expandvars(os.path.expanduser(cluster_dir))
+        if not os.path.isdir(cluster_dir):
+            raise ClusterDirError('Cluster directory not found: %s' % cluster_dir)
         return ClusterDir(cluster_dir)
 
 
@@ -176,7 +222,8 @@ class AppWithClusterDirArgParseConfigLoader(ArgParseConfigLoader):
         self.parser.add_argument('-log_level', '--log-level',
             dest="Global.log_level",type=int,
             help='Set the log level (0,10,20,30,40,50).  Default is 30.',
-            default=NoConfigDefault)
+            default=NoConfigDefault,
+            metavar="Global.log_level")
         self.parser.add_argument('-cluster_dir', '--cluster-dir',
             dest='Global.cluster_dir',type=str,
             help='Set the cluster dir. This overrides the logic used by the '
@@ -204,6 +251,8 @@ class ApplicationWithClusterDir(Application):
     dir and named the value of the ``config_file_name`` class attribute.
     """
 
+    auto_create_cluster_dir = True
+
     def create_default_config(self):
         super(ApplicationWithClusterDir, self).create_default_config()
         self.default_config.Global.profile = 'default'
@@ -216,40 +265,68 @@ class ApplicationWithClusterDir(Application):
             version=release.version
         )
 
-    def find_config_file_name(self):
-        """Find the config file name for this application."""
-        # For this type of Application it should be set as a class attribute.
-        if not hasattr(self, 'config_file_name'):
-            self.log.critical("No config filename found")
+    def find_resources(self):
+        """This resolves the cluster directory.
 
-    def find_config_file_paths(self):
-        """This resolves the cluster directory and sets ``config_file_paths``.
-
-        This does the following:
-        * Create the :class:`ClusterDir` object for the application.
-        * Set the ``cluster_dir`` attribute of the application and config
+        This tries to find the cluster directory and if successful, it will
+        have done:
+        * Sets ``self.cluster_dir_obj`` to the :class:`ClusterDir` object for 
+          the application.
+        * Sets ``self.cluster_dir`` attribute of the application and config
           objects.
-        * Set ``config_file_paths`` to point to the cluster directory.
+
+        The algorithm used for this is as follows:
+        1. Try ``Global.cluster_dir``.
+        2. Try using ``Global.profile``.
+        3. If both of these fail and ``self.auto_create_cluster_dir`` is
+           ``True``, then create the new cluster dir in the IPython directory.
+        4. If all fails, then raise :class:`ClusterDirError`.
         """
 
-        # Create the ClusterDir object for managing everything
         try:
             cluster_dir = self.command_line_config.Global.cluster_dir
         except AttributeError:
             cluster_dir = self.default_config.Global.cluster_dir
         cluster_dir = os.path.expandvars(os.path.expanduser(cluster_dir))
-        if cluster_dir:
-            # Just use cluster_dir
+        try:
             self.cluster_dir_obj = ClusterDir.find_cluster_dir(cluster_dir)
+        except ClusterDirError:
+            pass
         else:
-            # Then look for a profile
-            try:
-                self.profile = self.command_line_config.Global.profile
-            except AttributeError:
-                self.profile = self.default_config.Global.profile
+            self.log.info('Using existing cluster dir: %s' % \
+                self.cluster_dir_obj.location
+            )
+            self.finish_cluster_dir()
+            return
+
+        try:
+            self.profile = self.command_line_config.Global.profile
+        except AttributeError:
+            self.profile = self.default_config.Global.profile
+        try:
             self.cluster_dir_obj = ClusterDir.find_cluster_dir_by_profile(
                 self.ipythondir, self.profile)
+        except ClusterDirError:
+            pass
+        else:
+            self.log.info('Using existing cluster dir: %s' % \
+                self.cluster_dir_obj.location
+            )
+            self.finish_cluster_dir()
+            return
 
+        if self.auto_create_cluster_dir:
+            self.cluster_dir_obj = ClusterDir.create_cluster_dir_by_profile(
+                self.ipythondir, self.profile
+            )
+            self.log.info('Creating new cluster dir: %s' % \
+                self.cluster_dir_obj.location
+            )
+            self.finish_cluster_dir()
+        else:
+            raise ClusterDirError('Could not find a valid cluster directory.')
+
+    def finish_cluster_dir(self):
         # Set the cluster directory
         self.cluster_dir = self.cluster_dir_obj.location
         
@@ -261,3 +338,15 @@ class ApplicationWithClusterDir(Application):
 
         # Set the search path to the cluster directory
         self.config_file_paths = (self.cluster_dir,)
+
+    def find_config_file_name(self):
+        """Find the config file name for this application."""
+        # For this type of Application it should be set as a class attribute.
+        if not hasattr(self, 'config_file_name'):
+            self.log.critical("No config filename found")
+
+    def find_config_file_paths(self):
+        # Set the search path to the cluster directory
+        self.config_file_paths = (self.cluster_dir,)
+
+

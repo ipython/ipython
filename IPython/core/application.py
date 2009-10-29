@@ -86,6 +86,7 @@ class Application(object):
     default_log_level = logging.WARN
 
     def __init__(self):
+        self._exiting = False
         self.init_logger()
         # Track the default and actual separately because some messages are
         # only printed if we aren't using the default.
@@ -119,6 +120,7 @@ class Application(object):
         self.attempt(self.post_load_command_line_config)
         self.log_command_line_config()
         self.attempt(self.find_ipythondir)
+        self.attempt(self.find_resources)
         self.attempt(self.find_config_file_name)
         self.attempt(self.find_config_file_paths)
         self.attempt(self.pre_load_file_config)
@@ -210,6 +212,15 @@ class Application(object):
         if not os.path.isdir(self.ipythondir):
             os.makedirs(self.ipythondir, mode=0777)
         self.log.debug("IPYTHONDIR set to: %s" % self.ipythondir)
+
+    def find_resources(self):
+        """Find other resources that need to be in place.
+
+        Things like cluster directories need to be in place to find the
+        config file.  These happen right after the IPython directory has
+        been set.
+        """
+        pass
 
     def find_config_file_name(self):
         """Find the config file name for this application.
@@ -325,18 +336,26 @@ class Application(object):
 
     def abort(self):
         """Abort the starting of the application."""
-        self.log.critical("Aborting application: %s" % self.name, exc_info=True)
-        sys.exit(1)
+        if self._exiting:
+            pass
+        else:
+            self.log.critical("Aborting application: %s" % self.name, exc_info=True)
+            self._exiting = True
+            sys.exit(1)
 
     def exit(self):
-        self.log.critical("Aborting application: %s" % self.name)
-        sys.exit(1)
+        if self._exiting:
+            pass
+        else:
+            self.log.debug("Exiting application: %s" % self.name)
+            self._exiting = True
+            sys.exit(1)
 
     def attempt(self, func, action='abort'):
         try:
             func()
         except SystemExit:
-            self.exit()
+            raise
         except:
             if action == 'abort':
                 self.abort()
