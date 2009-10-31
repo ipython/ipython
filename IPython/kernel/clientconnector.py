@@ -14,6 +14,7 @@
 # Imports
 #-----------------------------------------------------------------------------
 
+from __future__ import with_statement
 import os
 
 from IPython.kernel.fcutil import Tub, find_furl
@@ -474,6 +475,30 @@ class AsyncCluster(object):
             cluster_dir=self.cluster_dir_obj.location
         )
 
+    def get_ipengine_logs(self):
+        return self.get_logs_by_name('ipengine')
+
+    def get_ipcontroller_logs(self):
+        return self.get_logs_by_name('ipcontroller')
+
+    def get_ipcluster_logs(self):
+        return self.get_logs_by_name('ipcluster')
+
+    def get_logs_by_name(self, name='ipcluster'):
+        log_dir = self.cluster_dir_obj.log_dir
+        logs = {}
+        for log in os.listdir(log_dir):
+            if log.startswith(name + '-') and log.endswith('.log'):
+                with open(os.path.join(log_dir, log), 'r') as f:
+                    logs[log] = f.read()
+        return logs
+
+    def get_logs(self):
+        d = self.get_ipcluster_logs()
+        d.update(self.get_ipengine_logs())
+        d.update(self.get_ipcontroller_logs())
+        return d
+
     def _handle_start(self, r):
         self.state = 'running'
 
@@ -580,5 +605,51 @@ class Cluster(object):
             cluster_dir=self.cluster_dir_obj.location
         )
 
+    def __repr__(self):
+        s = "<Cluster(running=%r, location=%s)" % (self.running, self.location)
+        return s
 
+    def get_logs_by_name(self, name='ipcluter'):
+        """Get a dict of logs by process name (ipcluster, ipengine, etc.)"""
+        return self.async_cluster.get_logs_by_name(name)
+
+    def get_ipengine_logs(self):
+        """Get a dict of logs for all engines in this cluster."""
+        return self.async_cluster.get_ipengine_logs()
+
+    def get_ipcontroller_logs(self):
+        """Get a dict of logs for the controller in this cluster."""
+        return self.async_cluster.get_ipcontroller_logs()
+
+    def get_ipcluster_logs(self):
+        """Get a dict of the ipcluster logs for this cluster."""
+        return self.async_cluster.get_ipcluster_logs()
+
+    def get_logs(self):
+        """Get a dict of all logs for this cluster."""
+        return self.async_cluster.get_logs()
+
+    def _print_logs(self, logs):
+        for k, v in logs.iteritems():
+            print "==================================="
+            print "Logfile: %s" % k
+            print "==================================="
+            print v
+            print
+
+    def print_ipengine_logs(self):
+        """Print the ipengine logs for this cluster to stdout."""
+        self._print_logs(self.get_ipengine_logs())
+
+    def print_ipcontroller_logs(self):
+        """Print the ipcontroller logs for this cluster to stdout."""
+        self._print_logs(self.get_ipcontroller_logs())
+
+    def print_ipcluster_logs(self):
+        """Print the ipcluster logs for this cluster to stdout."""
+        self._print_logs(self.get_ipcluster_logs())
+
+    def print_logs(self):
+        """Print all the logs for this cluster to stdout."""
+        self._print_logs(self.get_logs())
 
