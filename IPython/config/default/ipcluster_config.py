@@ -16,6 +16,7 @@ c = get_config()
 # c.Global.log_to_file = False
 # c.Global.n = 2
 # c.Global.reset_config = False
+# c.Global.clean_logs = True
 
 # c.MPIExecLauncher.mpi_cmd = ['mpiexec']
 # c.MPIExecLauncher.mpi_args = []

@@ -475,7 +475,9 @@ def find_engine_cmd():
 class LocalEngineLauncher(LocalProcessLauncher):
 
     engine_cmd = List(find_engine_cmd())
-    engine_args = List(['--log-to-file','--log-level', '40'], config=True)
+    engine_args = List(
+        ['--log-to-file','--log-level', '40'], config=True
+    )
 
     def find_args(self):
         return self.engine_cmd + self.engine_args
@@ -490,7 +492,9 @@ class LocalEngineLauncher(LocalProcessLauncher):
 
 class LocalEngineSetLauncher(BaseLauncher):
 
-    engine_args = List(['--log-to-file','--log-level', '40'], config=True)
+    engine_args = List(
+        ['--log-to-file','--log-level', '40'], config=True
+    )
 
     def __init__(self, working_dir, parent=None, name=None, config=None):
         super(LocalEngineSetLauncher, self).__init__(
@@ -547,7 +551,9 @@ class LocalEngineSetLauncher(BaseLauncher):
 class MPIExecEngineSetLauncher(MPIExecLauncher):
 
     engine_cmd = List(find_engine_cmd(), config=False)
-    engine_args = List(['--log-to-file','--log-level', '40'], config=True)
+    engine_args = List(
+        ['--log-to-file','--log-level', '40'], config=True
+    )    
     n = Int(1, config=True)
 
     def start(self, n, profile=None, cluster_dir=None):
@@ -582,4 +588,41 @@ class SSHEngineSetLauncher(BaseLauncher):
     pass
 
 
+#-----------------------------------------------------------------------------
+# A launcher for ipcluster itself!
+#-----------------------------------------------------------------------------
+
+
+def find_ipcluster_cmd():
+    if sys.platform == 'win32':
+        # This logic is needed because the ipcluster script doesn't
+        # always get installed in the same way or in the same location.
+        from IPython.kernel import ipclusterapp
+        script_location = ipclusterapp.__file__.replace('.pyc', '.py')
+        # The -u option here turns on unbuffered output, which is required
+        # on Win32 to prevent wierd conflict and problems with Twisted.
+        # Also, use sys.executable to make sure we are picking up the 
+        # right python exe.
+        cmd = [sys.executable, '-u', script_location]
+    else:
+        # ipcontroller has to be on the PATH in this case.
+        cmd = ['ipcluster']
+    return cmd
+
+
+class IPClusterLauncher(LocalProcessLauncher):
+
+    ipcluster_cmd = List(find_ipcluster_cmd())
+    ipcluster_args = List(
+        ['--clean-logs', '--log-to-file', '--log-level', '40'], config=True)
+    ipcluster_subcommand = Str('start')
+    ipcluster_n = Int(2)
+
+    def find_args(self):
+        return self.ipcluster_cmd + [self.ipcluster_subcommand] + \
+            ['-n', repr(self.ipcluster_n)] + self.ipcluster_args
+
+    def start(self):
+        log.msg("Starting ipcluster: %r" % self.args)
+        return super(IPClusterLauncher, self).start()
 

@@ -122,7 +122,16 @@ class IPClusterCLLoader(ArgParseConfigLoader):
             help='The number of engines to start.',
             metavar='Global.n'
         )
-
+        parser_start.add_argument('-clean_logs', '--clean-logs',
+            dest='Global.clean_logs', action='store_true',
+            help='Delete old log flies before starting.',
+            default=NoConfigDefault
+        )
+        parser_start.add_argument('-noclean_logs', '--no-clean-logs',
+            dest='Global.clean_logs', action='store_false',
+            help="Don't delete old log flies before starting.",
+            default=NoConfigDefault
+        )
 
 default_config_file_name = 'ipcluster_config.py'
 
@@ -141,9 +150,9 @@ class IPClusterApp(ApplicationWithClusterDir):
             'IPython.kernel.launcher.LocalControllerLauncher'
         self.default_config.Global.engine_launcher = \
             'IPython.kernel.launcher.LocalEngineSetLauncher'
-        self.default_config.Global.log_to_file = False
         self.default_config.Global.n = 2
         self.default_config.Global.reset_config = False
+        self.default_config.Global.clean_logs = True
 
     def create_command_line_config(self):
         """Create and return a command line config loader."""
@@ -172,6 +181,7 @@ class IPClusterApp(ApplicationWithClusterDir):
                     "'ipcluster create -h' or 'ipcluster list -h' for more "
                     "information about creating and listing cluster dirs."
                 )
+
     def construct(self):
         config = self.master_config
         if config.Global.subcommand=='list':
@@ -184,15 +194,21 @@ class IPClusterApp(ApplicationWithClusterDir):
             self.start_logging()
             reactor.callWhenRunning(self.start_launchers)
 
-    def list_cluster_dirs(self):        
+    def list_cluster_dirs(self):
+        # Find the search paths
         cluster_dir_paths = os.environ.get('IPCLUSTERDIR_PATH','')
         if cluster_dir_paths:
             cluster_dir_paths = cluster_dir_paths.split(':')
         else:
             cluster_dir_paths = []
-        # We need to look both in default_config and command_line_config!!!
-        paths = [os.getcwd(), self.default_config.Global.ipythondir] + \
+        try:
+            ipythondir = self.command_line_config.Global.ipythondir
+        except AttributeError:
+            ipythondir = self.default_config.Global.ipythondir
+        paths = [os.getcwd(), ipythondir] + \
             cluster_dir_paths
+        paths = list(set(paths))
+
         self.log.info('Searching for cluster dirs in paths: %r' % paths)
         for path in paths:
             files = os.listdir(path)
@@ -202,15 +218,6 @@ class IPClusterApp(ApplicationWithClusterDir):
                     profile = full_path.split('_')[-1]
                     start_cmd = '"ipcluster start -n 4 -p %s"' % profile
                     print start_cmd + " ==> " + full_path
-
-    def start_logging(self):
-        if self.master_config.Global.log_to_file:
-            log_filename = self.name + '-' + str(os.getpid()) + '.log'
-            logfile = os.path.join(self.log_dir, log_filename)
-            open_log_file = open(logfile, 'w')
-        else:
-            open_log_file = sys.stdout
-        log.startLogging(open_log_file)
 
     def start_launchers(self):
         config = self.master_config
@@ -227,6 +234,7 @@ class IPClusterApp(ApplicationWithClusterDir):
 
         # Setup signals
         signal.signal(signal.SIGINT, self.stop_launchers)
+        # signal.signal(signal.SIGKILL, self.stop_launchers)
 
         # Setup the observing of stopping
         d1 = self.controller_launcher.observe_stop()
@@ -261,9 +269,23 @@ class IPClusterApp(ApplicationWithClusterDir):
     def stop_launchers(self, signum, frame):
         log.msg("Stopping cluster")
         d1 = self.engine_launcher.stop()
-        d1.addCallback(lambda _: self.controller_launcher.stop)
+        d2 = self.controller_launcher.stop()
+        # d1.addCallback(lambda _: self.controller_launcher.stop)
         d1.addErrback(self.err_and_stop)
+        d2.addErrback(self.err_and_stop)
         reactor.callLater(2.0, reactor.stop)
+
+    def start_logging(self):
+        # Remove old log files
+        if self.master_config.Global.clean_logs:
+            log_dir = self.master_config.Global.log_dir
+            for f in os.listdir(log_dir):
+                if f.startswith('ipengine' + '-') and f.endswith('.log'):
+                    os.remove(os.path.join(log_dir, f))
+            for f in os.listdir(log_dir):
+                if f.startswith('ipcontroller' + '-') and f.endswith('.log'):
+                    os.remove(os.path.join(log_dir, f))
+        super(IPClusterApp, self).start_logging()
 
     def start_app(self):
         config = self.master_config
@@ -281,3 +303,4 @@ def launch_new_instance():
 
 if __name__ == '__main__':
     launch_new_instance()
+

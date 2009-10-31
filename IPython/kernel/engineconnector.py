@@ -1,19 +1,18 @@
+#!/usr/bin/env python
 # encoding: utf-8
 
 """A class that manages the engines connection to the controller."""
 
-__docformat__ = "restructuredtext en"
-
-#-------------------------------------------------------------------------------
-#  Copyright (C) 2008  The IPython Development Team
+#-----------------------------------------------------------------------------
+#  Copyright (C) 2008-2009  The IPython Development Team
 #
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
-#-------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------
 
-#-------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------
 # Imports
-#-------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------
 
 import os
 import cPickle as pickle
@@ -26,9 +25,9 @@ from IPython.kernel.fcutil import find_furl
 from IPython.kernel.enginefc import IFCEngine
 from IPython.kernel.twistedutil import sleep_deferred
 
-#-------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------
 # The ClientConnector class
-#-------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------
 
 
 class EngineConnectorError(Exception):

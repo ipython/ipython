@@ -17,6 +17,9 @@ The IPython cluster directory
 
 import os
 import shutil
+import sys
+
+from twisted.python import log
 
 from IPython.core import release
 from IPython.config.loader import PyFileConfigLoader
@@ -210,7 +213,8 @@ class AppWithClusterDirArgParseConfigLoader(ArgParseConfigLoader):
             dest='Global.ipythondir',type=str,
             help='Set to override default location of Global.ipythondir.',
             default=NoConfigDefault,
-            metavar='Global.ipythondir')
+            metavar='Global.ipythondir'
+        )
         self.parser.add_argument('-p','-profile', '--profile',
             dest='Global.profile',type=str,
             help='The string name of the profile to be used. This determines '
@@ -218,19 +222,31 @@ class AppWithClusterDirArgParseConfigLoader(ArgParseConfigLoader):
             'is named "default".  The cluster directory is resolve this way '
             'if the --cluster-dir option is not used.',
             default=NoConfigDefault,
-            metavar='Global.profile')
+            metavar='Global.profile'
+        )
         self.parser.add_argument('-log_level', '--log-level',
             dest="Global.log_level",type=int,
             help='Set the log level (0,10,20,30,40,50).  Default is 30.',
             default=NoConfigDefault,
-            metavar="Global.log_level")
+            metavar="Global.log_level"
+        )
         self.parser.add_argument('-cluster_dir', '--cluster-dir',
             dest='Global.cluster_dir',type=str,
             help='Set the cluster dir. This overrides the logic used by the '
             '--profile option.',
             default=NoConfigDefault,
-            metavar='Global.cluster_dir')
-
+            metavar='Global.cluster_dir'
+        )
+        self.parser.add_argument('-clean_logs', '--clean-logs',
+            dest='Global.clean_logs', action='store_true',
+            help='Delete old log flies before starting.',
+            default=NoConfigDefault
+        )
+        self.parser.add_argument('-noclean_logs', '--no-clean-logs',
+            dest='Global.clean_logs', action='store_false',
+            help="Don't Delete old log flies before starting.",
+            default=NoConfigDefault
+        )
 
 class ApplicationWithClusterDir(Application):
     """An application that puts everything into a cluster directory.
@@ -257,6 +273,8 @@ class ApplicationWithClusterDir(Application):
         super(ApplicationWithClusterDir, self).create_default_config()
         self.default_config.Global.profile = 'default'
         self.default_config.Global.cluster_dir = ''
+        self.default_config.Global.log_to_file = False
+        self.default_config.Global.clean_logs = False
 
     def create_command_line_config(self):
         """Create and return a command line config loader."""
@@ -349,4 +367,28 @@ class ApplicationWithClusterDir(Application):
         # Set the search path to the cluster directory
         self.config_file_paths = (self.cluster_dir,)
 
+    def pre_construct(self):
+        # The log and security dirs were set earlier, but here we put them
+        # into the config and log them.
+        config = self.master_config
+        sdir = self.cluster_dir_obj.security_dir
+        self.security_dir = config.Global.security_dir = sdir
+        ldir = self.cluster_dir_obj.log_dir
+        self.log_dir = config.Global.log_dir = ldir
+        self.log.info("Cluster directory set to: %s" % self.cluster_dir)
 
+    def start_logging(self):
+        # Remove old log files
+        if self.master_config.Global.clean_logs:
+            log_dir = self.master_config.Global.log_dir
+            for f in os.listdir(log_dir):
+                if f.startswith(self.name + '-') and f.endswith('.log'):
+                    os.remove(os.path.join(log_dir, f))
+        # Start logging to the new log file
+        if self.master_config.Global.log_to_file:
+            log_filename = self.name + '-' + str(os.getpid()) + '.log'
+            logfile = os.path.join(self.log_dir, log_filename)
+            open_log_file = open(logfile, 'w')
+        else:
+            open_log_file = sys.stdout
+        log.startLogging(open_log_file)

@@ -185,7 +185,7 @@ class IPControllerApp(ApplicationWithClusterDir):
         self.default_config.Global.reuse_furls = False
         self.default_config.Global.secure = True
         self.default_config.Global.import_statements = []
-        self.default_config.Global.log_to_file = False
+        self.default_config.Global.clean_logs = True
 
     def create_command_line_config(self):
         """Create and return a command line config loader."""
@@ -205,18 +205,6 @@ class IPControllerApp(ApplicationWithClusterDir):
             c.FCClientServiceFactory.secure = c.Global.secure
             c.FCEngineServiceFactory.secure = c.Global.secure
             del c.Global.secure
-
-    def pre_construct(self):
-        # The log and security dirs were set earlier, but here we put them
-        # into the config and log them.
-        config = self.master_config
-        sdir = self.cluster_dir_obj.security_dir
-        self.security_dir = config.Global.security_dir = sdir
-        ldir = self.cluster_dir_obj.log_dir
-        self.log_dir = config.Global.log_dir = ldir
-        self.log.info("Cluster directory set to: %s" % self.cluster_dir)
-        self.log.info("Log directory set to: %s" % self.log_dir)
-        self.log.info("Security directory set to: %s" % self.security_dir)
 
     def construct(self):
         # I am a little hesitant to put these into InteractiveShell itself.
@@ -239,15 +227,6 @@ class IPControllerApp(ApplicationWithClusterDir):
         esfactory = FCEngineServiceFactory(self.master_config, controller_service)
         engine_service = esfactory.create()
         engine_service.setServiceParent(self.main_service)
-
-    def start_logging(self):
-        if self.master_config.Global.log_to_file:
-            log_filename = self.name + '-' + str(os.getpid()) + '.log'
-            logfile = os.path.join(self.log_dir, log_filename)
-            open_log_file = open(logfile, 'w')
-        else:
-            open_log_file = sys.stdout
-        log.startLogging(open_log_file)
 
     def import_statements(self):
         statements = self.master_config.Global.import_statements

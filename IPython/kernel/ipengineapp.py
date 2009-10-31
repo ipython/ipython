@@ -97,12 +97,12 @@ class IPEngineApp(ApplicationWithClusterDir):
     def create_default_config(self):
         super(IPEngineApp, self).create_default_config()
 
+        # The engine should not clean logs as we don't want to remove the
+        # active log files of other running engines.
+        self.default_config.Global.clean_logs = False
+
         # Global config attributes
-        self.default_config.Global.log_to_file = False
         self.default_config.Global.exec_lines = []
-        # The log and security dir names must match that of the controller
-        self.default_config.Global.log_dir_name = 'log'
-        self.default_config.Global.security_dir_name = 'security'
         self.default_config.Global.shell_class = 'IPython.kernel.core.interpreter.Interpreter'
 
         # Configuration related to the controller
@@ -112,6 +112,11 @@ class IPEngineApp(ApplicationWithClusterDir):
         # If given, this is the actual location of the controller's FURL file.
         # If not, this is computed using the profile, app_dir and furl_file_name
         self.default_config.Global.furl_file = ''
+
+        # The max number of connection attemps and the initial delay between
+        # those attemps.
+        self.default_config.Global.connect_delay = 0.1
+        self.default_config.Global.connect_max_tries = 15
 
         # MPI related config attributes
         self.default_config.MPI.use = ''
@@ -129,15 +134,7 @@ class IPEngineApp(ApplicationWithClusterDir):
         pass
 
     def pre_construct(self):
-        config = self.master_config
-        sdir = self.cluster_dir_obj.security_dir
-        self.security_dir = config.Global.security_dir = sdir
-        ldir = self.cluster_dir_obj.log_dir
-        self.log_dir = config.Global.log_dir = ldir
-        self.log.info("Cluster directory set to: %s" % self.cluster_dir)
-        self.log.info("Log directory set to: %s" % self.log_dir)
-        self.log.info("Security directory set to: %s" % self.security_dir)
-
+        super(IPEngineApp, self).pre_construct()
         self.find_cont_furl_file()
 
     def find_cont_furl_file(self):
@@ -189,7 +186,9 @@ class IPEngineApp(ApplicationWithClusterDir):
     def call_connect(self):
         d = self.engine_connector.connect_to_controller(
             self.engine_service, 
-            self.master_config.Global.furl_file
+            self.master_config.Global.furl_file,
+            self.master_config.Global.connect_delay,
+            self.master_config.Global.connect_max_tries
         )
 
         def handle_error(f):
@@ -215,15 +214,6 @@ class IPEngineApp(ApplicationWithClusterDir):
                 mpi = None
         else:
             mpi = None
-
-    def start_logging(self):
-        if self.master_config.Global.log_to_file:
-            log_filename = self.name + '-' + str(os.getpid()) + '.log'
-            logfile = os.path.join(self.log_dir, log_filename)
-            open_log_file = open(logfile, 'w')
-        else:
-            open_log_file = sys.stdout
-        log.startLogging(open_log_file)
 
     def exec_lines(self):
         for line in self.master_config.Global.exec_lines:

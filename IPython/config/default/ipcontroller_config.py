@@ -8,14 +8,10 @@ c = get_config()
 
 # Basic Global config attributes
 # c.Global.log_to_file = False
+# c.Global.clean_logs = True
 # c.Global.import_statements = ['import math']
 # c.Global.reuse_furls = True
 # c.Global.secure = True
-
-# You shouldn't have to modify these
-# c.Global.log_dir_name = 'log'
-# c.Global.security_dir_name = 'security'
-
 
 #-----------------------------------------------------------------------------
 # Configure the client services
