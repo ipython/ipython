@@ -64,7 +64,8 @@ get_task_client = _client_tub.get_task_client
 MultiEngineClient = get_multiengine_client
 TaskClient = get_task_client
 
-twisted_log = StringIO()
+# This isn't great.  I should probably set this up in the ReactorInThread
+# class below.  But, it does work for now.
 log.startLogging(sys.stdout, setStdout=0)
 
 # Now we start the reactor in a thread

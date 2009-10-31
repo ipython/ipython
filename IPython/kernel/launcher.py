@@ -245,7 +245,7 @@ class LocalProcessLauncher(BaseLauncher):
             self.process_transport.signalProcess(sig)
 
     @inlineCallbacks
-    def interrupt_then_kill(self, delay=1.0):
+    def interrupt_then_kill(self, delay=2.0):
         yield self.signal('INT')
         yield sleep_deferred(delay)
         yield self.signal('KILL')
