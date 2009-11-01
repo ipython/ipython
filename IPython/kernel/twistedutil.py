@@ -40,6 +40,15 @@ class ReactorInThread(threading.Thread):
     """
     
     def run(self):
+        """Run the twisted reactor in a thread.
+
+        This runs the reactor with installSignalHandlers=0, which prevents
+        twisted from installing any of its own signal handlers. This needs to
+        be disabled because signal.signal can't be called in a thread. The
+        only problem with this is that SIGCHLD events won't be detected so
+        spawnProcess won't detect that its processes have been killed by
+        an external factor.
+        """
         reactor.run(installSignalHandlers=0)
         # self.join()
         
@@ -261,3 +270,5 @@ def make_deferred(func):
         return defer.maybeDeferred(func, *args, **kwargs)
 
     return _wrapper
+
+

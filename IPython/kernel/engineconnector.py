@@ -21,9 +21,9 @@ from twisted.python import log, failure
 from twisted.internet import defer
 from twisted.internet.defer import inlineCallbacks, returnValue
 
-from IPython.kernel.fcutil import find_furl
+from IPython.kernel.fcutil import find_furl, validate_furl_or_file
 from IPython.kernel.enginefc import IFCEngine
-from IPython.kernel.twistedutil import sleep_deferred
+from IPython.kernel.twistedutil import sleep_deferred, make_deferred
 
 #-----------------------------------------------------------------------------
 # The ClientConnector class
@@ -45,6 +45,7 @@ class EngineConnector(object):
     def __init__(self, tub):
         self.tub = tub
 
+    @make_deferred
     def connect_to_controller(self, engine_service, furl_or_file,
                               delay=0.1, max_tries=10):
         """
@@ -74,13 +75,20 @@ class EngineConnector(object):
             attempts have increasing delays.
         max_tries : int
             The maximum number of connection attempts.
+
+        Returns
+        -------
+        A deferred to the registered client or a failure to an error
+        like :exc:`FURLError`.
         """
         if not self.tub.running:
             self.tub.startService()
         self.engine_service = engine_service
         self.engine_reference = IFCEngine(self.engine_service)
 
+        validate_furl_or_file(furl_or_file)
         d = self._try_to_connect(furl_or_file, delay, max_tries, attempt=0)
+        d.addCallback(self._register)
         return d
 
     @inlineCallbacks
@@ -101,12 +109,13 @@ class EngineConnector(object):
                     raise
                 else:
                     yield sleep_deferred(delay)
-                    yield self._try_to_connect(
+                    rr = yield self._try_to_connect(
                         furl_or_file, 1.5*delay, max_tries, attempt+1
                     )
+                    # rr becomes an int when there is a connection!!!
+                    returnValue(rr)
             else:
-                result = yield self._register(rr)
-                returnValue(result)
+                returnValue(rr)
         else:
             raise EngineConnectorError(
                 'Could not connect to controller, max_tries (%r) exceeded. '

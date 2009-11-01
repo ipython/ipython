@@ -51,6 +51,10 @@ else:
     have_crypto = True
 
 
+class FURLError(Exception):
+    pass
+
+
 def check_furl_file_security(furl_file, secure):
     """Remove the old furl_file if changing security modes."""
     if os.path.isfile(furl_file):
@@ -69,7 +73,7 @@ def is_secure(furl):
         elif furl.startswith("pbu://"):
             return False
     else:
-        raise ValueError("invalid FURL: %s" % furl)
+        raise FURLError("invalid FURL: %s" % furl)
 
 
 def is_valid(furl):
@@ -91,7 +95,30 @@ def find_furl(furl_or_file):
             furl = f.read().strip()
         if is_valid(furl):
             return furl
-    raise ValueError("Not a FURL or a file containing a FURL: %s" % furl_or_file)
+    raise FURLError("Not a valid FURL or FURL file: %s" % furl_or_file)
+
+
+def is_valid_furl_or_file(furl_or_file):
+    """Validate a FURL or a FURL file.
+
+    If ``furl_or_file`` looks like a file, we simply make sure its directory
+    exists and that it has a ``.furl`` file extension.  We don't try to see
+    if the FURL file exists or to read its contents. This is useful for
+    cases where auto re-connection is being used.
+    """
+    if isinstance(furl_or_file, str):
+        if is_valid(furl_or_file):
+            return True
+    if isinstance(furl_or_file, (str, unicode)):
+        path, furl_filename = os.path.split(furl_or_file)
+        if os.path.isdir(path) and furl_filename.endswith('.furl'):
+            return True
+    return False
+
+
+def validate_furl_or_file(furl_or_file):
+    if not is_valid_furl_or_file(furl_or_file):
+        raise FURLError('Not a valid FURL or FURL file: %r' % furl_or_file)
 
 
 def get_temp_furlfile(filename):
