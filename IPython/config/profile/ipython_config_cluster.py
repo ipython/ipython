@@ -15,3 +15,10 @@ if hasattr(c.Global, 'exec_lines'):
     c.Global.exec_lines.append(lines)
 else:
     c.Global.exec_lines = [lines]
+
+# Load the parallelmagic extension to enable %result, %px, %autopx magics.
+if hasattr(c.Global, 'extensions'):
+    c.Global.extensions.append('parallelmagic')
+else:
+    c.Global.extensions = ['parallelmagic']
+

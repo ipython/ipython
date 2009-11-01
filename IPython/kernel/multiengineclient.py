@@ -263,9 +263,13 @@ class InteractiveMultiEngineClient(object):
         """
         
         try:
-            __IPYTHON__.activeController = self
+            # This is injected into __builtins__.
+            ip = get_ipython()
         except NameError:
-            print "The IPython Controller magics only work within IPython."
+            print "The IPython parallel magics (%result, %px, %autopx) only work within IPython."
+        else:
+            pmagic = ip.get_component('parallel_magic')
+            pmagic.active_multiengine_client = self
                     
     def __setitem__(self, key, value):
         """Add a dictionary interface for pushing/pulling.
