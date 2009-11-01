@@ -20,13 +20,15 @@ import os
 import signal
 import sys
 
+from twisted.scripts._twistd_unix import daemonize
+
 from IPython.core import release
 from IPython.external import argparse
 from IPython.config.loader import ArgParseConfigLoader, NoConfigDefault
 from IPython.utils.importstring import import_item
 
 from IPython.kernel.clusterdir import (
-    ApplicationWithClusterDir, ClusterDirError
+    ApplicationWithClusterDir, ClusterDirError, PIDFileError
 )
 
 from twisted.internet import reactor, defer
@@ -132,6 +134,27 @@ class IPClusterCLLoader(ArgParseConfigLoader):
             help="Don't delete old log flies before starting.",
             default=NoConfigDefault
         )
+        parser_start.add_argument('--daemon', '-daemon',
+            dest='Global.daemonize', action='store_true',
+            help='Daemonize the ipcluster program. This implies --log-to-file',
+            default=NoConfigDefault
+        )
+        parser_start.add_argument('--nodaemon', '-nodaemon',
+            dest='Global.daemonize', action='store_false',
+            help="Dont't daemonize the ipcluster program.",
+            default=NoConfigDefault
+        )
+
+        parser_start = subparsers.add_parser(
+            'stop',
+            help='Stop a cluster.',
+            parents=[parent_parser1, parent_parser2]
+        )
+        parser_start.add_argument('-sig', '--sig',
+            dest='Global.stop_signal', type=int,
+            help="The signal number to use in stopping the cluster (default=2).",
+            default=NoConfigDefault
+        )
 
 default_config_file_name = 'ipcluster_config.py'
 
@@ -153,6 +176,8 @@ class IPClusterApp(ApplicationWithClusterDir):
         self.default_config.Global.n = 2
         self.default_config.Global.reset_config = False
         self.default_config.Global.clean_logs = True
+        self.default_config.Global.stop_signal = 2
+        self.default_config.Global.daemonize = False
 
     def create_command_line_config(self):
         """Create and return a command line config loader."""
@@ -170,7 +195,7 @@ class IPClusterApp(ApplicationWithClusterDir):
         elif subcommand=='create':
             self.auto_create_cluster_dir = True
             super(IPClusterApp, self).find_resources()
-        elif subcommand=='start':
+        elif subcommand=='start' or subcommand=='stop':
             self.auto_create_cluster_dir = False
             try:
                 super(IPClusterApp, self).find_resources()
@@ -181,6 +206,16 @@ class IPClusterApp(ApplicationWithClusterDir):
                     "'ipcluster create -h' or 'ipcluster list -h' for more "
                     "information about creating and listing cluster dirs."
                 )
+
+    def pre_construct(self):
+        super(IPClusterApp, self).pre_construct()
+        config = self.master_config
+        try:
+            daemon = config.Global.daemonize
+            if daemon:
+                config.Global.log_to_file = True
+        except AttributeError:
+            pass
 
     def construct(self):
         config = self.master_config
@@ -288,11 +323,48 @@ class IPClusterApp(ApplicationWithClusterDir):
         super(IPClusterApp, self).start_logging()
 
     def start_app(self):
+        """Start the application, depending on what subcommand is used."""
         config = self.master_config
-        if config.Global.subcommand=='create' or config.Global.subcommand=='list':
+        subcmd = config.Global.subcommand
+        if subcmd=='create' or subcmd=='list':
             return
-        elif config.Global.subcommand=='start':
+        elif subcmd=='start':
+            # First see if the cluster is already running
+            try:
+                pid = self.get_pid_from_file()
+            except:
+                pass
+            else:
+                self.log.critical(
+                    'Cluster is already running with [pid=%s]. '
+                    'use "ipcluster stop" to stop the cluster.' % pid
+                )
+                sys.exit(9)
+            # Now log and daemonize
+            self.log.info('Starting ipcluster with [daemon=%r]' % config.Global.daemonize)
+            if config.Global.daemonize:
+                if os.name=='posix':
+                    os.chdir(config.Global.cluster_dir)
+                    self.log_level = 40
+                    daemonize()
+
+            # Now write the new pid file after our new forked pid is active.
+            self.write_pid_file()
+            reactor.addSystemEventTrigger('during','shutdown', self.remove_pid_file)
             reactor.run()
+        elif subcmd=='stop':
+            try:
+                pid = self.get_pid_from_file()
+            except PIDFileError:
+                self.log.critical(
+                    'Problem reading pid file, cluster is probably not running.'
+                )
+                sys.exit(9)
+            sig = config.Global.stop_signal
+            self.log.info(
+                "Stopping cluster [pid=%r] with [signal=%r]" % (pid, sig)
+            )
+            os.kill(pid, sig)
 
 
 def launch_new_instance():

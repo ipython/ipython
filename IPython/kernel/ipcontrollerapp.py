@@ -15,6 +15,8 @@ The IPython controller application.
 # Imports
 #-----------------------------------------------------------------------------
 
+from __future__ import with_statement
+
 import copy
 import os
 import sys
@@ -213,7 +215,7 @@ class IPControllerApp(ApplicationWithClusterDir):
 
         self.start_logging()
         self.import_statements()
-        
+
         # Create the service hierarchy
         self.main_service = service.MultiService()
         # The controller service
@@ -240,6 +242,8 @@ class IPControllerApp(ApplicationWithClusterDir):
     def start_app(self):
         # Start the controller service and set things running
         self.main_service.startService()
+        self.write_pid_file()
+        reactor.addSystemEventTrigger('during','shutdown', self.remove_pid_file)
         reactor.run()
 
 

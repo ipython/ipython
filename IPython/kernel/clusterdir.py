@@ -15,6 +15,8 @@ The IPython cluster directory
 # Imports
 #-----------------------------------------------------------------------------
 
+from __future__ import with_statement
+
 import os
 import shutil
 import sys
@@ -37,6 +39,10 @@ class ClusterDirError(Exception):
     pass
 
 
+class PIDFileError(Exception):
+    pass
+
+
 class ClusterDir(Component):
     """An object to manage the cluster directory and its resources.
 
@@ -50,9 +56,11 @@ class ClusterDir(Component):
 
     security_dir_name = Unicode('security')
     log_dir_name = Unicode('log')
-    security_dir = Unicode()
-    log_dir = Unicode('')
-    location = Unicode('')
+    pid_dir_name = Unicode('pid')
+    security_dir = Unicode(u'')
+    log_dir = Unicode(u'')
+    pid_dir = Unicode(u'')
+    location = Unicode(u'')
 
     def __init__(self, location):
         super(ClusterDir, self).__init__(None)
@@ -65,6 +73,7 @@ class ClusterDir(Component):
             os.chmod(new, 0777)
         self.security_dir = os.path.join(new, self.security_dir_name)
         self.log_dir = os.path.join(new, self.log_dir_name)
+        self.pid_dir = os.path.join(new, self.pid_dir_name)
         self.check_dirs()
 
     def _log_dir_changed(self, name, old, new):
@@ -85,9 +94,19 @@ class ClusterDir(Component):
         else:
             os.chmod(self.security_dir, 0700)
 
+    def _pid_dir_changed(self, name, old, new):
+        self.check_pid_dir()
+
+    def check_pid_dir(self):
+        if not os.path.isdir(self.pid_dir):
+            os.mkdir(self.pid_dir, 0700)
+        else:
+            os.chmod(self.pid_dir, 0700)
+
     def check_dirs(self):
         self.check_security_dir()
         self.check_log_dir()
+        self.check_pid_dir()
 
     def load_config_file(self, filename):
         """Load a config file from the top level of the cluster dir.
@@ -375,6 +394,8 @@ class ApplicationWithClusterDir(Application):
         self.security_dir = config.Global.security_dir = sdir
         ldir = self.cluster_dir_obj.log_dir
         self.log_dir = config.Global.log_dir = ldir
+        pdir = self.cluster_dir_obj.pid_dir
+        self.pid_dir = config.Global.pid_dir = pdir
         self.log.info("Cluster directory set to: %s" % self.cluster_dir)
 
     def start_logging(self):
@@ -392,3 +413,46 @@ class ApplicationWithClusterDir(Application):
         else:
             open_log_file = sys.stdout
         log.startLogging(open_log_file)
+
+    def write_pid_file(self):
+        """Create a .pid file in the pid_dir with my pid.
+
+        This must be called after pre_construct, which sets `self.pid_dir`.
+        This raises :exc:`PIDFileError` if the pid file exists already.
+        """
+        pid_file = os.path.join(self.pid_dir, self.name + '.pid')
+        if os.path.isfile(pid_file):
+            pid = self.get_pid_from_file()
+            raise PIDFileError(
+                'The pid file [%s] already exists. \nThis could mean that this '
+                'server is already running with [pid=%s].' % (pid_file, pid))
+        with open(pid_file, 'w') as f:
+            self.log.info("Creating pid file: %s" % pid_file)
+            f.write(repr(os.getpid())+'\n')
+
+    def remove_pid_file(self):
+        """Remove the pid file.
+
+        This should be called at shutdown by registering a callback with
+        :func:`reactor.addSystemEventTrigger`.
+        """
+        pid_file = os.path.join(self.pid_dir, self.name + '.pid')
+        if os.path.isfile(pid_file):
+            try:
+                self.log.info("Removing pid file: %s" % pid_file)
+                os.remove(pid_file)
+            except:
+                pass
+
+    def get_pid_from_file(self):
+        """Get the pid from the pid file.
+
+        If the  pid file doesn't exist a :exc:`PIDFileError` is raised.
+        """
+        pid_file = os.path.join(self.pid_dir, self.name + '.pid')
+        if os.path.isfile(pid_file):
+            with open(pid_file, 'r') as f:
+                pid = int(f.read().strip())
+                return pid
+        else:
+            raise PIDFileError('pid file not found: %s' % pid_file)
