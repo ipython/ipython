@@ -52,6 +52,8 @@ class UnknownStatus(LauncherError):
 class BaseLauncher(Component):
     """An asbtraction for starting, stopping and signaling a process."""
 
+    # A directory for files related to the process. But, we don't cd to 
+    # this directory, 
     working_dir = Unicode(u'')
 
     def __init__(self, working_dir, parent=None, name=None, config=None):
@@ -64,11 +66,18 @@ class BaseLauncher(Component):
 
     @property
     def args(self):
-        """A list of cmd and args that will be used to start the process."""
+        """A list of cmd and args that will be used to start the process.
+
+        This is what is passed to :func:`spawnProcess` and the first element
+        will be the process name.
+        """
         return self.find_args()
 
     def find_args(self):
-        """The ``.args`` property calls this to find the args list."""
+        """The ``.args`` property calls this to find the args list.
+
+        Subcommand should implement this to construct the cmd and args.
+        """
         raise NotImplementedError('find_args must be implemented in a subclass')
 
     @property
@@ -78,6 +87,7 @@ class BaseLauncher(Component):
 
     @property
     def running(self):
+        """Am I running."""
         if self.state == 'running':
             return True
         else:
@@ -87,7 +97,7 @@ class BaseLauncher(Component):
         """Start the process.
 
         This must return a deferred that fires with information about the
-        process starting (like a pid, job id, etc.)
+        process starting (like a pid, job id, etc.).
         """
         return defer.fail(
             Failure(NotImplementedError(
@@ -96,12 +106,13 @@ class BaseLauncher(Component):
         )
 
     def stop(self):
-        """Stop the process and notify observers of ProcessStopped.
+        """Stop the process and notify observers of stopping.
 
-        This must return a deferred that fires with any errors that occur
-        while the process is attempting to be shut down.  This deferred
-        won't fire when the process actually stops.  These events are 
-        handled by calling :func:`observe_stop`.
+        This must return a deferred that fires with information about the
+        processing stopping, like errors that occur while the process is
+        attempting to be shut down. This deferred won't fire when the process
+        actually stops. To observe the actual process stopping, see
+        :func:`observe_stop`.
         """
         return defer.fail(
             Failure(NotImplementedError(
@@ -123,9 +134,9 @@ class BaseLauncher(Component):
             return d
 
     def notify_start(self, data):
-        """Call this to tigger startup actions.
+        """Call this to trigger startup actions.
 
-        This logs the process startup and sets the state to running.  It is
+        This logs the process startup and sets the state to 'running'.  It is
         a pass-through so it can be used as a callback.
         """
 
@@ -135,7 +146,10 @@ class BaseLauncher(Component):
         return data
 
     def notify_stop(self, data):
-        """Call this to trigger all the deferreds from :func:`observe_stop`."""
+        """Call this to trigger process stop actions.
+
+        This logs the process stopping and sets the state to 'after'. Call
+        this to trigger all the deferreds from :func:`observe_stop`."""
 
         log.msg('Process %r stopped: %r' % (self.args[0], data))
         self.stop_data = data
@@ -205,6 +219,8 @@ class LocalProcessLauncherProtocol(ProcessProtocol):
 class LocalProcessLauncher(BaseLauncher):
     """Start and stop an external process in an asynchronous manner."""
 
+    # This is used to to construct self.args, which is passed to 
+    # spawnProcess.
     cmd_and_args = List([])
 
     def __init__(self, working_dir, parent=None, name=None, config=None):
@@ -246,24 +262,33 @@ class LocalProcessLauncher(BaseLauncher):
 
     @inlineCallbacks
     def interrupt_then_kill(self, delay=2.0):
+        """Send INT, wait a delay and then send KILL."""
         yield self.signal('INT')
         yield sleep_deferred(delay)
         yield self.signal('KILL')
 
 
 class MPIExecLauncher(LocalProcessLauncher):
+    """Launch an external process using mpiexec."""
 
+    # The mpiexec command to use in starting the process.
     mpi_cmd = List(['mpiexec'], config=True)
+    # The command line arguments to pass to mpiexec.
     mpi_args = List([], config=True)
+    # The program to start using mpiexec.
     program = List(['date'], config=True)
+    # The command line argument to the program.
     program_args = List([], config=True)
+    # The number of instances of the program to start.
     n = Int(1, config=True)
 
     def find_args(self):
+        """Build self.args using all the fields."""
         return self.mpi_cmd + ['-n', self.n] + self.mpi_args + \
                self.program + self.program_args
 
     def start(self, n):
+        """Start n instances of the program using mpiexec."""
         self.n = n
         return super(MPIExecLauncher, self).start()
 
@@ -307,13 +332,32 @@ class WindowsHPCLauncher(BaseLauncher):
 
 
 class BatchSystemLauncher(BaseLauncher):
+    """Launch an external process using a batch system.
+
+    This class is designed to work with UNIX batch systems like PBS, LSF,
+    GridEngine, etc.  The overall model is that there are different commands
+    like qsub, qdel, etc. that handle the starting and stopping of the process.
+
+    This class also has the notion of a batch script. The ``batch_template``
+    attribute can be set to a string that is a template for the batch script.
+    This template is instantiated using Itpl. Thus the template can use
+    ${n} fot the number of instances. Subclasses can add additional variables
+    to the template dict.
+    """
 
     # Subclasses must fill these in.  See PBSEngineSet
+    # The name of the command line program used to submit jobs.
     submit_command = Str('', config=True)
+    # The name of the command line program used to delete jobs.
     delete_command = Str('', config=True)
+    # A regular expression used to get the job id from the output of the 
+    # submit_command.
     job_id_regexp = Str('', config=True)
+    # The string that is the batch script template itself.
     batch_template = Str('', config=True)
+    # The filename of the instantiated batch script.
     batch_file_name = Unicode(u'batch_script', config=True)
+    # The full path to the instantiated batch script.
     batch_file = Unicode(u'')
 
     def __init__(self, working_dir, parent=None, name=None, config=None):
@@ -324,6 +368,7 @@ class BatchSystemLauncher(BaseLauncher):
         self.context = {}
 
     def parse_job_id(self, output):
+        """Take the output of the submit command and return the job id."""
         m = re.match(self.job_id_regexp, output)
         if m is not None:
             job_id = m.group()
@@ -334,6 +379,7 @@ class BatchSystemLauncher(BaseLauncher):
         return job_id
 
     def write_batch_script(self, n):
+        """Instantiate and write the batch script to the working_dir."""
         self.context['n'] = n
         script_as_string = Itpl.itplns(self.batch_template, self.context)
         log.msg('Writing instantiated batch script: %s' % self.batch_file)
@@ -361,6 +407,7 @@ class BatchSystemLauncher(BaseLauncher):
 
 
 class PBSLauncher(BatchSystemLauncher):
+    """A BatchSystemLauncher subclass for PBS."""
 
     submit_command = Str('qsub', config=True)
     delete_command = Str('qdel', config=True)
@@ -375,6 +422,7 @@ class PBSLauncher(BatchSystemLauncher):
 #-----------------------------------------------------------------------------
 
 def find_controller_cmd():
+    """Find the command line ipcontroller program in a cross platform way."""
     if sys.platform == 'win32':
         # This logic is needed because the ipcontroller script doesn't
         # always get installed in the same way or in the same location.
@@ -392,14 +440,17 @@ def find_controller_cmd():
 
 
 class LocalControllerLauncher(LocalProcessLauncher):
+    """Launch a controller as a regular external process."""
 
     controller_cmd = List(find_controller_cmd())
+    # Command line arguments to ipcontroller.
     controller_args = List(['--log-to-file','--log-level', '40'], config=True)
 
     def find_args(self):
         return self.controller_cmd + self.controller_args
 
     def start(self, profile=None, cluster_dir=None):
+        """Start the controller by profile or cluster_dir."""
         if cluster_dir is not None:
             self.controller_args.extend(['--cluster-dir', cluster_dir])
         if profile is not None:
@@ -413,12 +464,15 @@ class WindowsHPCControllerLauncher(WindowsHPCLauncher):
 
 
 class MPIExecControllerLauncher(MPIExecLauncher):
+    """Launch a controller using mpiexec."""
 
     controller_cmd = List(find_controller_cmd(), config=False)
+    # Command line arguments to ipcontroller.
     controller_args = List(['--log-to-file','--log-level', '40'], config=True)
     n = Int(1, config=False)
 
     def start(self, profile=None, cluster_dir=None):
+        """Start the controller by profile or cluster_dir."""
         if cluster_dir is not None:
             self.controller_args.extend(['--cluster-dir', cluster_dir])
         if profile is not None:
@@ -426,15 +480,18 @@ class MPIExecControllerLauncher(MPIExecLauncher):
         log.msg("Starting MPIExecControllerLauncher: %r" % self.args)
         return super(MPIExecControllerLauncher, self).start(1)
 
-
     def find_args(self):
         return self.mpi_cmd + ['-n', self.n] + self.mpi_args + \
                self.controller_cmd + self.controller_args
 
 
 class PBSControllerLauncher(PBSLauncher):
+    """Launch a controller using PBS."""
+
+    batch_file_name = Unicode(u'pbs_batch_script_controller', config=True)
 
     def start(self, profile=None, cluster_dir=None):
+        """Start the controller by profile or cluster_dir."""
         # Here we save profile and cluster_dir in the context so they
         # can be used in the batch script template as ${profile} and
         # ${cluster_dir}
@@ -456,6 +513,7 @@ class SSHControllerLauncher(SSHLauncher):
 
 
 def find_engine_cmd():
+    """Find the command line ipengine program in a cross platform way."""
     if sys.platform == 'win32':
         # This logic is needed because the ipengine script doesn't
         # always get installed in the same way or in the same location.
@@ -473,8 +531,10 @@ def find_engine_cmd():
 
 
 class LocalEngineLauncher(LocalProcessLauncher):
+    """Launch a single engine as a regular externall process."""
 
     engine_cmd = List(find_engine_cmd())
+    # Command line arguments for ipengine.
     engine_args = List(
         ['--log-to-file','--log-level', '40'], config=True
     )
@@ -483,6 +543,7 @@ class LocalEngineLauncher(LocalProcessLauncher):
         return self.engine_cmd + self.engine_args
 
     def start(self, profile=None, cluster_dir=None):
+        """Start the engine by profile or cluster_dir."""
         if cluster_dir is not None:
             self.engine_args.extend(['--cluster-dir', cluster_dir])
         if profile is not None:
@@ -491,7 +552,9 @@ class LocalEngineLauncher(LocalProcessLauncher):
 
 
 class LocalEngineSetLauncher(BaseLauncher):
+    """Launch a set of engines as regular external processes."""
 
+    # Command line arguments for ipengine.
     engine_args = List(
         ['--log-to-file','--log-level', '40'], config=True
     )
@@ -503,6 +566,7 @@ class LocalEngineSetLauncher(BaseLauncher):
         self.launchers = []
 
     def start(self, n, profile=None, cluster_dir=None):
+        """Start n engines by profile or cluster_dir."""
         dlist = []
         for i in range(n):
             el = LocalEngineLauncher(self.working_dir, self)
@@ -551,12 +615,14 @@ class LocalEngineSetLauncher(BaseLauncher):
 class MPIExecEngineSetLauncher(MPIExecLauncher):
 
     engine_cmd = List(find_engine_cmd(), config=False)
+    # Command line arguments for ipengine.
     engine_args = List(
         ['--log-to-file','--log-level', '40'], config=True
     )    
     n = Int(1, config=True)
 
     def start(self, n, profile=None, cluster_dir=None):
+        """Start n engines by profile or cluster_dir."""
         if cluster_dir is not None:
             self.engine_args.extend(['--cluster-dir', cluster_dir])
         if profile is not None:
@@ -575,7 +641,10 @@ class WindowsHPCEngineSetLauncher(WindowsHPCLauncher):
 
 class PBSEngineSetLauncher(PBSLauncher):
 
+    batch_file_name = Unicode(u'pbs_batch_script_engines', config=True)
+
     def start(self, n, profile=None, cluster_dir=None):
+        """Start n engines by profile or cluster_dir."""
         if cluster_dir is not None:
             self.program_args.extend(['--cluster-dir', cluster_dir])
         if profile is not None:
@@ -594,6 +663,7 @@ class SSHEngineSetLauncher(BaseLauncher):
 
 
 def find_ipcluster_cmd():
+    """Find the command line ipcluster program in a cross platform way."""
     if sys.platform == 'win32':
         # This logic is needed because the ipcluster script doesn't
         # always get installed in the same way or in the same location.
@@ -611,8 +681,10 @@ def find_ipcluster_cmd():
 
 
 class IPClusterLauncher(LocalProcessLauncher):
+    """Launch the ipcluster program in an external process."""
 
     ipcluster_cmd = List(find_ipcluster_cmd())
+    # Command line arguments to pass to ipcluster.
     ipcluster_args = List(
         ['--clean-logs', '--log-to-file', '--log-level', '40'], config=True)
     ipcluster_subcommand = Str('start')

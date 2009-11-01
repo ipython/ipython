@@ -156,6 +156,11 @@ class AsyncClientConnector(object):
         ipythondir : str
             The location of the ipythondir if different from the default.
             This is used if the cluster directory is being found by profile.
+        delay : float
+            The initial delay between re-connection attempts. Susequent delays
+            get longer according to ``delay[i] = 1.5*delay[i-1]``.
+        max_tries : int
+            The max number of re-connection attempts.
 
         Returns
         -------
@@ -193,7 +198,12 @@ class AsyncClientConnector(object):
         ipythondir : str
             The location of the ipythondir if different from the default.
             This is used if the cluster directory is being found by profile.
-                
+        delay : float
+            The initial delay between re-connection attempts. Susequent delays
+            get longer according to ``delay[i] = 1.5*delay[i-1]``.
+        max_tries : int
+            The max number of re-connection attempts.
+
         Returns
         -------
         A deferred to the actual client class.
@@ -233,6 +243,11 @@ class AsyncClientConnector(object):
         ipythondir : str
             The location of the ipythondir if different from the default.
             This is used if the cluster directory is being found by profile.
+        delay : float
+            The initial delay between re-connection attempts. Susequent delays
+            get longer according to ``delay[i] = 1.5*delay[i-1]``.
+        max_tries : int
+            The max number of re-connection attempts.
 
         Returns
         -------
@@ -332,6 +347,11 @@ class ClientConnector(object):
         ipythondir : str
             The location of the ipythondir if different from the default.
             This is used if the cluster directory is being found by profile.
+        delay : float
+            The initial delay between re-connection attempts. Susequent delays
+            get longer according to ``delay[i] = 1.5*delay[i-1]``.
+        max_tries : int
+            The max number of re-connection attempts.
 
         Returns
         -------
@@ -368,6 +388,11 @@ class ClientConnector(object):
         ipythondir : str
             The location of the ipythondir if different from the default.
             This is used if the cluster directory is being found by profile.
+        delay : float
+            The initial delay between re-connection attempts. Susequent delays
+            get longer according to ``delay[i] = 1.5*delay[i-1]``.
+        max_tries : int
+            The max number of re-connection attempts.
 
         Returns
         -------
@@ -640,8 +665,22 @@ class Cluster(object):
     def get_multiengine_client(self, delay=DELAY, max_tries=MAX_TRIES):
         """Get the multiengine client for the running cluster.
 
-        If this fails, it means that the cluster has not finished starting.
-        Usually waiting a few seconds are re-trying will solve this.    
+        This will try to attempt to the controller multiple times. If this 
+        fails altogether, try looking at the following:
+        * Make sure the controller is starting properly by looking at its
+          log files.
+        * Make sure the controller is writing its FURL file in the location
+          expected by the client.
+        * Make sure a firewall on the controller's host is not blocking the
+          client from connecting.
+
+        Parameters
+        ----------
+        delay : float
+            The initial delay between re-connection attempts. Susequent delays
+            get longer according to ``delay[i] = 1.5*delay[i-1]``.
+        max_tries : int
+            The max number of re-connection attempts.
         """
         if self.client_connector is None:
             self.client_connector = ClientConnector()
@@ -653,8 +692,22 @@ class Cluster(object):
     def get_task_client(self, delay=DELAY, max_tries=MAX_TRIES):
         """Get the task client for the running cluster.
 
-        If this fails, it means that the cluster has not finished starting.
-        Usually waiting a few seconds are re-trying will solve this.    
+        This will try to attempt to the controller multiple times. If this 
+        fails altogether, try looking at the following:
+        * Make sure the controller is starting properly by looking at its
+          log files.
+        * Make sure the controller is writing its FURL file in the location
+          expected by the client.
+        * Make sure a firewall on the controller's host is not blocking the
+          client from connecting.
+
+        Parameters
+        ----------
+        delay : float
+            The initial delay between re-connection attempts. Susequent delays
+            get longer according to ``delay[i] = 1.5*delay[i-1]``.
+        max_tries : int
+            The max number of re-connection attempts.
         """
         if self.client_connector is None:
             self.client_connector = ClientConnector()
