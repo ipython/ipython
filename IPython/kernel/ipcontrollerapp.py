@@ -160,8 +160,12 @@ cl_args = (
         'are deleted before the controller starts. This must be set if '
         'specific ports are specified by --engine-port or --client-port.')
     ),
-    (('-ns','--no-security'), dict(
+    (('--no-secure',), dict(
         action='store_false', dest='Global.secure', default=NoConfigDefault,
+        help='Turn off SSL encryption for all connections.')
+    ),
+    (('--secure',), dict(
+        action='store_true', dest='Global.secure', default=NoConfigDefault,
         help='Turn off SSL encryption for all connections.')
     )
 )

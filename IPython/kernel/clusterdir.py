@@ -228,13 +228,13 @@ class AppWithClusterDirArgParseConfigLoader(ArgParseConfigLoader):
     """Default command line options for IPython cluster applications."""
 
     def _add_other_arguments(self):
-        self.parser.add_argument('-ipythondir', '--ipython-dir', 
+        self.parser.add_argument('--ipython-dir', 
             dest='Global.ipythondir',type=str,
             help='Set to override default location of Global.ipythondir.',
             default=NoConfigDefault,
             metavar='Global.ipythondir'
         )
-        self.parser.add_argument('-p','-profile', '--profile',
+        self.parser.add_argument('-p', '--profile',
             dest='Global.profile',type=str,
             help='The string name of the profile to be used. This determines '
             'the name of the cluster dir as: cluster_<profile>. The default profile '
@@ -243,25 +243,25 @@ class AppWithClusterDirArgParseConfigLoader(ArgParseConfigLoader):
             default=NoConfigDefault,
             metavar='Global.profile'
         )
-        self.parser.add_argument('-log_level', '--log-level',
+        self.parser.add_argument('--log-level',
             dest="Global.log_level",type=int,
             help='Set the log level (0,10,20,30,40,50).  Default is 30.',
             default=NoConfigDefault,
             metavar="Global.log_level"
         )
-        self.parser.add_argument('-cluster_dir', '--cluster-dir',
+        self.parser.add_argument('--cluster-dir',
             dest='Global.cluster_dir',type=str,
             help='Set the cluster dir. This overrides the logic used by the '
             '--profile option.',
             default=NoConfigDefault,
             metavar='Global.cluster_dir'
         )
-        self.parser.add_argument('-clean_logs', '--clean-logs',
+        self.parser.add_argument('--clean-logs',
             dest='Global.clean_logs', action='store_true',
             help='Delete old log flies before starting.',
             default=NoConfigDefault
         )
-        self.parser.add_argument('-noclean_logs', '--no-clean-logs',
+        self.parser.add_argument('--no-clean-logs',
             dest='Global.clean_logs', action='store_false',
             help="Don't Delete old log flies before starting.",
             default=NoConfigDefault
