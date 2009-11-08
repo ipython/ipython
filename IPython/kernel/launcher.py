@@ -442,7 +442,7 @@ def find_controller_cmd():
 class LocalControllerLauncher(LocalProcessLauncher):
     """Launch a controller as a regular external process."""
 
-    controller_cmd = List(find_controller_cmd())
+    controller_cmd = List(find_controller_cmd(), config=True)
     # Command line arguments to ipcontroller.
     controller_args = List(['--log-to-file','--log-level', '40'], config=True)
 
@@ -466,7 +466,7 @@ class WindowsHPCControllerLauncher(WindowsHPCLauncher):
 class MPIExecControllerLauncher(MPIExecLauncher):
     """Launch a controller using mpiexec."""
 
-    controller_cmd = List(find_controller_cmd(), config=False)
+    controller_cmd = List(find_controller_cmd(), config=True)
     # Command line arguments to ipcontroller.
     controller_args = List(['--log-to-file','--log-level', '40'], config=True)
     n = Int(1, config=False)
@@ -533,7 +533,7 @@ def find_engine_cmd():
 class LocalEngineLauncher(LocalProcessLauncher):
     """Launch a single engine as a regular externall process."""
 
-    engine_cmd = List(find_engine_cmd())
+    engine_cmd = List(find_engine_cmd(), config=True)
     # Command line arguments for ipengine.
     engine_args = List(
         ['--log-to-file','--log-level', '40'], config=True
@@ -614,7 +614,7 @@ class LocalEngineSetLauncher(BaseLauncher):
 
 class MPIExecEngineSetLauncher(MPIExecLauncher):
 
-    engine_cmd = List(find_engine_cmd(), config=False)
+    engine_cmd = List(find_engine_cmd(), config=True)
     # Command line arguments for ipengine.
     engine_args = List(
         ['--log-to-file','--log-level', '40'], config=True
@@ -683,7 +683,7 @@ def find_ipcluster_cmd():
 class IPClusterLauncher(LocalProcessLauncher):
     """Launch the ipcluster program in an external process."""
 
-    ipcluster_cmd = List(find_ipcluster_cmd())
+    ipcluster_cmd = List(find_ipcluster_cmd(), config=True)
     # Command line arguments to pass to ipcluster.
     ipcluster_args = List(
         ['--clean-logs', '--log-to-file', '--log-level', '40'], config=True)
