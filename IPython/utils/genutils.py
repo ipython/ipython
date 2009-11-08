@@ -717,10 +717,17 @@ class HomeDirError(Error):
 def get_home_dir():
     """Return the closest possible equivalent to a 'home' directory.
 
-    We first try $HOME.  Absent that, on NT it's $HOMEDRIVE\$HOMEPATH.
-
+    * On POSIX, we try $HOME.
+    * On Windows we try:
+      - %HOMESHARE%
+      - %HOMEDRIVE\%HOMEPATH%
+      - %USERPROFILE%
+      - Registry hack
+    * On Dos C:\
+ 
     Currently only Posix and NT are implemented, a HomeDirError exception is
-    raised for all other OSes. """
+    raised for all other OSes.
+    """
 
     isdir = os.path.isdir
     env = os.environ
@@ -737,50 +744,70 @@ def get_home_dir():
         if isdir(os.path.join(root, '_ipython')):
             os.environ["IPYKITROOT"] = root
         return root.decode(sys.getfilesystemencoding())
-    try:
-        homedir = env['HOME']
-        if not isdir(homedir):
-            # in case a user stuck some string which does NOT resolve to a
-            # valid path, it's as good as if we hadn't foud it
-            raise KeyError
-        return homedir.decode(sys.getfilesystemencoding())
-    except KeyError:
-        if os.name == 'posix':
-            raise HomeDirError,'undefined $HOME, IPython can not proceed.'
-        elif os.name == 'nt':
-            # For some strange reason, win9x returns 'nt' for os.name.
-            try:
-                homedir = os.path.join(env['HOMEDRIVE'],env['HOMEPATH'])
-                if not isdir(homedir):
-                    homedir = os.path.join(env['USERPROFILE'])
-                    if not isdir(homedir):
-                        raise HomeDirError
-                return homedir.decode(sys.getfilesystemencoding())
-            except KeyError:
-                try:
-                    # Use the registry to get the 'My Documents' folder.
-                    import _winreg as wreg
-                    key = wreg.OpenKey(wreg.HKEY_CURRENT_USER,
-                                       "Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders")
-                    homedir = wreg.QueryValueEx(key,'Personal')[0]
-                    key.Close()
-                    if not isdir(homedir):
-                        e = ('Invalid "Personal" folder registry key '
-                             'typically "My Documents".\n'
-                             'Value: %s\n'
-                             'This is not a valid directory on your system.' %
-                             homedir)
-                        raise HomeDirError(e)
-                    return homedir.decode(sys.getfilesystemencoding())
-                except HomeDirError:
-                    raise
-                except:
-                    return 'C:\\'.decode(sys.getfilesystemencoding())
-        elif os.name == 'dos':
-            # Desperate, may do absurd things in classic MacOS. May work under DOS.
-            return 'C:\\'.decode(sys.getfilesystemencoding())
+
+    if os.name == 'posix':
+        # Linux, Unix, AIX, OS X
+        try:
+            homedir = env['HOME']
+        except KeyError:
+            raise HomeDirError('Undefined $HOME, IPython cannot proceed.')
         else:
-            raise HomeDirError,'support for your operating system not implemented.'
+            return homedir.decode(sys.getfilesystemencoding())
+    elif os.name == 'nt':
+        # Now for win9x, XP, Vista, 7?
+        # For some strange reason all of these return 'nt' for os.name.
+        # First look for a network home directory. This will return the UNC
+        # path (\\server\\Users\%username%) not the mapped path (Z:\). This
+        # is needed when running IPython on cluster where all paths have to 
+        # be UNC.
+        try:
+            homedir = env['HOMESHARE']
+        except KeyError:
+            pass
+        else:
+            if isdir(homedir):
+                return homedir.decode(sys.getfilesystemencoding())
+
+        # Now look for a local home directory
+        try:
+            homedir = os.path.join(env['HOMEDRIVE'],env['HOMEPATH'])
+        except KeyError:
+            pass
+        else:
+            if isdir(homedir):
+                return homedir.decode(sys.getfilesystemencoding())
+
+        # Now the users profile directory
+        try:
+            homedir = os.path.join(env['USERPROFILE'])
+        except KeyError:
+            pass
+        else:
+            if isdir(homedir):
+                return homedir.decode(sys.getfilesystemencoding())
+
+        # Use the registry to get the 'My Documents' folder.
+        try:
+            import _winreg as wreg
+            key = wreg.OpenKey(
+                wreg.HKEY_CURRENT_USER,
+                "Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders"
+            )
+            homedir = wreg.QueryValueEx(key,'Personal')[0]
+            key.Close()
+        except:
+            pass
+        else:
+            if isdir(homedir):
+                return homedir.decode(sys.getfilesystemencoding())
+
+        # If all else fails, raise HomeDirError
+        raise HomeDirError('No valid home directory could be found')
+    elif os.name == 'dos':
+        # Desperate, may do absurd things in classic MacOS. May work under DOS.
+        return 'C:\\'.decode(sys.getfilesystemencoding())
+    else:
+        raise HomeDirError('No valid home directory could be found for your OS')
 
 
 def get_ipython_dir():

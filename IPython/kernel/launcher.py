@@ -306,7 +306,7 @@ class SSHLauncher(BaseLauncher):
     program = List(['date'], config=True)
     program_args = List([], config=True)
     hostname = Str('', config=True)
-    user = Str(os.environ['USER'], config=True)
+    user = Str('', config=True)
     location = Str('')
 
     def _hostname_changed(self, name, old, new):
