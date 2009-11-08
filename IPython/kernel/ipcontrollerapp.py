@@ -15,6 +15,8 @@ The IPython controller application.
 # Imports
 #-----------------------------------------------------------------------------
 
+from __future__ import with_statement
+
 import copy
 import os
 import sys
@@ -158,8 +160,12 @@ cl_args = (
         'are deleted before the controller starts. This must be set if '
         'specific ports are specified by --engine-port or --client-port.')
     ),
-    (('-ns','--no-security'), dict(
+    (('--no-secure',), dict(
         action='store_false', dest='Global.secure', default=NoConfigDefault,
+        help='Turn off SSL encryption for all connections.')
+    ),
+    (('--secure',), dict(
+        action='store_true', dest='Global.secure', default=NoConfigDefault,
         help='Turn off SSL encryption for all connections.')
     )
 )
@@ -213,7 +219,7 @@ class IPControllerApp(ApplicationWithClusterDir):
 
         self.start_logging()
         self.import_statements()
-        
+
         # Create the service hierarchy
         self.main_service = service.MultiService()
         # The controller service
@@ -240,6 +246,8 @@ class IPControllerApp(ApplicationWithClusterDir):
     def start_app(self):
         # Start the controller service and set things running
         self.main_service.startService()
+        self.write_pid_file()
+        reactor.addSystemEventTrigger('during','shutdown', self.remove_pid_file)
         reactor.run()
 
 
