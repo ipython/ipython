@@ -2294,6 +2294,8 @@ class InteractiveShell(Component, Magic):
     def get_component(self, name=None, klass=None):
         """Fetch a component by name and klass in my tree."""
         c = Component.get_instances(root=self, name=name, klass=klass)
+        if len(c) == 0:
+            return None
         if len(c) == 1:
             return c[0]
         else:

@@ -269,8 +269,12 @@ class InteractiveMultiEngineClient(object):
             print "The IPython parallel magics (%result, %px, %autopx) only work within IPython."
         else:
             pmagic = ip.get_component('parallel_magic')
-            pmagic.active_multiengine_client = self
-                    
+            if pmagic is not None:
+                pmagic.active_multiengine_client = self
+            else:
+                print "You must first load the parallelmagic extension " \
+                      "by doing '%load_ext parallelmagic'"
+
     def __setitem__(self, key, value):
         """Add a dictionary interface for pushing/pulling.
         
