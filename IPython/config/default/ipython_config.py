@@ -13,7 +13,7 @@ c = get_config()
 
 # Set this to determine the detail of what is logged at startup.
 # The default is 30 and possible values are 0,10,20,30,40,50.
-c.Global.log_level = 20
+# c.Global.log_level = 20
 
 # This should be a list of importable Python modules that have an
 # load_in_ipython(ip) method.  This method gets called when the extension
