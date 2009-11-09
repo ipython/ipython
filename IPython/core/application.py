@@ -343,13 +343,13 @@ class Application(object):
             self._exiting = True
             sys.exit(1)
 
-    def exit(self):
+    def exit(self, exit_status=0):
         if self._exiting:
             pass
         else:
             self.log.debug("Exiting application: %s" % self.name)
             self._exiting = True
-            sys.exit(1)
+            sys.exit(exit_status)
 
     def attempt(self, func, action='abort'):
         try:
@@ -360,5 +360,5 @@ class Application(object):
             if action == 'abort':
                 self.abort()
             elif action == 'exit':
-                self.exit()
+                self.exit(0)
 

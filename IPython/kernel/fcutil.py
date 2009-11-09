@@ -206,7 +206,14 @@ class FCServiceFactory(AdaptedConfiguredObjectFactory):
         for ff in furl_files:
             fullfile = self._get_security_file(ff)
             if self.reuse_furls:
-                log.msg("Reusing FURL file: %s" % fullfile)
+                if self.port==0:
+                    raise FURLError("You are trying to reuse the FURL file "
+                        "for this connection, but the port for this connection "
+                        "is set to 0 (autoselect). To reuse the FURL file "
+                        "you need to specify specific port to listen on."
+                    )
+                else:
+                    log.msg("Reusing FURL file: %s" % fullfile)
             else:
                 if os.path.isfile(fullfile):
                     log.msg("Removing old FURL file: %s" % fullfile)

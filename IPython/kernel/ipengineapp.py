@@ -224,7 +224,8 @@ class IPEngineApp(ApplicationWithClusterDir):
                 log.msg("Error executing statement: %s" % line)
 
     def start_app(self):
-        # Start the controller service and set things running
+        # cd to the cluster_dir as our working directory.
+        os.chdir(self.master_config.Global.cluster_dir)
         reactor.run()
 
 

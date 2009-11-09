@@ -244,9 +244,15 @@ class IPControllerApp(ApplicationWithClusterDir):
                 log.msg("Error running statement: %s" % s)
 
     def start_app(self):
-        # Start the controller service and set things running
+        # Start the controller service.
         self.main_service.startService()
+        # Write the .pid file overwriting old ones. This allow multiple
+        # controllers to clober each other. But Windows is not cleaning
+        # these up properly.
         self.write_pid_file(overwrite=True)
+        # cd to the cluster_dir as our working directory.
+        os.chdir(self.master_config.Global.cluster_dir)
+        # Add a trigger to delete the .pid file upon shutting down.
         reactor.addSystemEventTrigger('during','shutdown', self.remove_pid_file)
         reactor.run()
 

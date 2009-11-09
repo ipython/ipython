@@ -459,3 +459,5 @@ class ApplicationWithClusterDir(Application):
                 return pid
         else:
             raise PIDFileError('pid file not found: %s' % pid_file)
+
+
