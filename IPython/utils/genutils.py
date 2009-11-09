@@ -559,9 +559,7 @@ def filefind(filename, path_dirs=None):
         path_dirs = (path_dirs,)
     for path in path_dirs:
         if path == '.': path = os.getcwd()
-        testname = os.path.expandvars(
-                       os.path.expanduser(
-                           os.path.join(path, filename)))
+        testname = expand_path(os.path.join(path, filename))
         if os.path.isfile(testname):
             return os.path.abspath(testname)
     raise IOError("File does not exist in any "
@@ -1740,7 +1738,7 @@ def extract_vars_above(*names):
     callerNS = sys._getframe(2).f_locals
     return dict((k,callerNS[k]) for k in names)
 
-def shexp(s):
+def expand_path(s):
     """Expand $VARS and ~names in a string, like a shell
 
     :Examples:
@@ -1750,8 +1748,17 @@ def shexp(s):
        In [3]: shexp('variable FOO is $FOO')
        Out[3]: 'variable FOO is test'
     """
-    return os.path.expandvars(os.path.expanduser(s))
-    
+    # This is a pretty subtle hack. When expand user is given a UNC path
+    # on Windows (\\server\share$\%username%), os.path.expandvars, removes
+    # the $ to get (\\server\share\%username%). I think it considered $
+    # alone an empty var. But, we need the $ to remains there (it indicates
+    # a hidden share).
+    if os.name=='nt':
+        s.replace('$\\', 'IPYTHON_TEMP')
+    s2 = os.path.expandvars(os.path.expanduser(s))
+    if os.name=='nt':
+        s2.replace('IPYTHON_TEMP', '$\\')
+    return s2
 
 def list_strings(arg):
     """Always return a list of strings, given a string or list of strings

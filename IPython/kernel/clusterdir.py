@@ -29,6 +29,7 @@ from IPython.core.application import Application
 from IPython.core.component import Component
 from IPython.config.loader import ArgParseConfigLoader, NoConfigDefault
 from IPython.utils.traitlets import Unicode, Bool
+from IPython.utils import genutils
 
 #-----------------------------------------------------------------------------
 # Imports
@@ -216,9 +217,9 @@ class ClusterDir(Component):
         ----------
         cluster_dir : unicode or str
             The path of the cluster directory.  This is expanded using
-            :func:`os.path.expandvars` and :func:`os.path.expanduser`.
+            :func:`IPython.utils.genutils.expand_path`.
         """
-        cluster_dir = os.path.expandvars(os.path.expanduser(cluster_dir))
+        cluster_dir = genutils.expand_path(cluster_dir)
         if not os.path.isdir(cluster_dir):
             raise ClusterDirError('Cluster directory not found: %s' % cluster_dir)
         return ClusterDir(cluster_dir)
@@ -324,7 +325,7 @@ class ApplicationWithClusterDir(Application):
             cluster_dir = self.command_line_config.Global.cluster_dir
         except AttributeError:
             cluster_dir = self.default_config.Global.cluster_dir
-        cluster_dir = os.path.expandvars(os.path.expanduser(cluster_dir))
+        cluster_dir = genutils.expand_path(cluster_dir)
         try:
             self.cluster_dir_obj = ClusterDir.find_cluster_dir(cluster_dir)
         except ClusterDirError:
