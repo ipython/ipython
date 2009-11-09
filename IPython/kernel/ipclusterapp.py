@@ -20,7 +20,8 @@ import os
 import signal
 import sys
 
-from twisted.scripts._twistd_unix import daemonize
+if os.name=='posix':
+    from twisted.scripts._twistd_unix import daemonize
 
 from IPython.core import release
 from IPython.external import argparse

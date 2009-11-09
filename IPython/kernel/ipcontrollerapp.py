@@ -246,7 +246,7 @@ class IPControllerApp(ApplicationWithClusterDir):
     def start_app(self):
         # Start the controller service and set things running
         self.main_service.startService()
-        self.write_pid_file()
+        self.write_pid_file(overwrite=True)
         reactor.addSystemEventTrigger('during','shutdown', self.remove_pid_file)
         reactor.run()
 

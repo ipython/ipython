@@ -414,7 +414,7 @@ class ApplicationWithClusterDir(Application):
             open_log_file = sys.stdout
         log.startLogging(open_log_file)
 
-    def write_pid_file(self):
+    def write_pid_file(self, overwrite=False):
         """Create a .pid file in the pid_dir with my pid.
 
         This must be called after pre_construct, which sets `self.pid_dir`.
@@ -423,9 +423,11 @@ class ApplicationWithClusterDir(Application):
         pid_file = os.path.join(self.pid_dir, self.name + '.pid')
         if os.path.isfile(pid_file):
             pid = self.get_pid_from_file()
-            raise PIDFileError(
-                'The pid file [%s] already exists. \nThis could mean that this '
-                'server is already running with [pid=%s].' % (pid_file, pid))
+            if not overwrite:
+                raise PIDFileError(
+                    'The pid file [%s] already exists. \nThis could mean that this '
+                    'server is already running with [pid=%s].' % (pid_file, pid)
+                )
         with open(pid_file, 'w') as f:
             self.log.info("Creating pid file: %s" % pid_file)
             f.write(repr(os.getpid())+'\n')
@@ -442,7 +444,8 @@ class ApplicationWithClusterDir(Application):
                 self.log.info("Removing pid file: %s" % pid_file)
                 os.remove(pid_file)
             except:
-                pass
+                self.log.warn("Error removing the pid file: %s" % pid_file)
+                raise
 
     def get_pid_from_file(self):
         """Get the pid from the pid file.
