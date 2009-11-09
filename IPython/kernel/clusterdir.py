@@ -172,7 +172,7 @@ class ClusterDir(Component):
         return ClusterDir(cluster_dir)
 
     @classmethod
-    def find_cluster_dir_by_profile(cls, ipythondir, profile='default'):
+    def find_cluster_dir_by_profile(cls, ipython_dir, profile='default'):
         """Find an existing cluster dir by profile name, return its ClusterDir.
 
         This searches through a sequence of paths for a cluster dir.  If it
@@ -180,25 +180,25 @@ class ClusterDir(Component):
 
         The search path algorithm is:
         1. ``os.getcwd()``
-        2. ``ipythondir``
+        2. ``ipython_dir``
         3. The directories found in the ":" separated 
-           :env:`IPCLUSTERDIR_PATH` environment variable.
+           :env:`IPCLUSTER_DIR_PATH` environment variable.
 
         Parameters
         ----------
-        ipythondir : unicode or str
+        ipython_dir : unicode or str
             The IPython directory to use.
         profile : unicode or str
             The name of the profile.  The name of the cluster directory
             will be "cluster_<profile>".
         """
         dirname = 'cluster_' + profile
-        cluster_dir_paths = os.environ.get('IPCLUSTERDIR_PATH','')
+        cluster_dir_paths = os.environ.get('IPCLUSTER_DIR_PATH','')
         if cluster_dir_paths:
             cluster_dir_paths = cluster_dir_paths.split(':')
         else:
             cluster_dir_paths = []
-        paths = [os.getcwd(), ipythondir] + cluster_dir_paths
+        paths = [os.getcwd(), ipython_dir] + cluster_dir_paths
         for p in paths:
             cluster_dir = os.path.join(p, dirname)
             if os.path.isdir(cluster_dir):
@@ -229,10 +229,10 @@ class AppWithClusterDirArgParseConfigLoader(ArgParseConfigLoader):
 
     def _add_other_arguments(self):
         self.parser.add_argument('--ipython-dir', 
-            dest='Global.ipythondir',type=str,
-            help='Set to override default location of Global.ipythondir.',
+            dest='Global.ipython_dir',type=str,
+            help='Set to override default location of Global.ipython_dir.',
             default=NoConfigDefault,
-            metavar='Global.ipythondir'
+            metavar='Global.ipython_dir'
         )
         self.parser.add_argument('-p', '--profile',
             dest='Global.profile',type=str,
@@ -270,7 +270,7 @@ class AppWithClusterDirArgParseConfigLoader(ArgParseConfigLoader):
 class ApplicationWithClusterDir(Application):
     """An application that puts everything into a cluster directory.
 
-    Instead of looking for things in the ipythondir, this type of application
+    Instead of looking for things in the ipython_dir, this type of application
     will use its own private directory called the "cluster directory"
     for things like config files, log files, etc.
 
@@ -280,7 +280,7 @@ class ApplicationWithClusterDir(Application):
     * If ``--cluster-dir`` is not given, the application directory is 
       resolve using the profile name as ``cluster_<profile>``. The search 
       path for this directory is then i) cwd if it is found there
-      and ii) in ipythondir otherwise.
+      and ii) in ipython_dir otherwise.
 
     The config file for the application is to be put in the cluster
     dir and named the value of the ``config_file_name`` class attribute.
@@ -342,7 +342,7 @@ class ApplicationWithClusterDir(Application):
             self.profile = self.default_config.Global.profile
         try:
             self.cluster_dir_obj = ClusterDir.find_cluster_dir_by_profile(
-                self.ipythondir, self.profile)
+                self.ipython_dir, self.profile)
         except ClusterDirError:
             pass
         else:
@@ -354,7 +354,7 @@ class ApplicationWithClusterDir(Application):
 
         if self.auto_create_cluster_dir:
             self.cluster_dir_obj = ClusterDir.create_cluster_dir_by_profile(
-                self.ipythondir, self.profile
+                self.ipython_dir, self.profile
             )
             self.log.info('Creating new cluster dir: %s' % \
                 self.cluster_dir_obj.location

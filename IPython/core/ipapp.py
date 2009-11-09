@@ -79,181 +79,181 @@ See the %gui magic for information on the new interface.
 #-----------------------------------------------------------------------------
 
 cl_args = (
-    (('-autocall',), dict(
+    (('--autocall',), dict(
         type=int, dest='InteractiveShell.autocall', default=NoConfigDefault,
         help='Set the autocall value (0,1,2).',
         metavar='InteractiveShell.autocall')
     ),
-    (('-autoindent',), dict(
+    (('--autoindent',), dict(
         action='store_true', dest='InteractiveShell.autoindent', default=NoConfigDefault,
         help='Turn on autoindenting.')
     ),
-    (('-noautoindent',), dict(
+    (('--no-autoindent',), dict(
         action='store_false', dest='InteractiveShell.autoindent', default=NoConfigDefault,
         help='Turn off autoindenting.')
     ),
-    (('-automagic',), dict(
+    (('--automagic',), dict(
         action='store_true', dest='InteractiveShell.automagic', default=NoConfigDefault,
         help='Turn on the auto calling of magic commands.')
     ),
-    (('-noautomagic',), dict(
+    (('--no-automagic',), dict(
         action='store_false', dest='InteractiveShell.automagic', default=NoConfigDefault,
         help='Turn off the auto calling of magic commands.')
     ),
-    (('-autoedit_syntax',), dict(
+    (('--autoedit-syntax',), dict(
         action='store_true', dest='InteractiveShell.autoedit_syntax', default=NoConfigDefault,
         help='Turn on auto editing of files with syntax errors.')
     ),
-    (('-noautoedit_syntax',), dict(
+    (('--no-autoedit-syntax',), dict(
         action='store_false', dest='InteractiveShell.autoedit_syntax', default=NoConfigDefault,
         help='Turn off auto editing of files with syntax errors.')
     ),
-    (('-banner',), dict(
+    (('--banner',), dict(
         action='store_true', dest='Global.display_banner', default=NoConfigDefault,
         help='Display a banner upon starting IPython.')
     ),
-    (('-nobanner',), dict(
+    (('--no-banner',), dict(
         action='store_false', dest='Global.display_banner', default=NoConfigDefault,
         help="Don't display a banner upon starting IPython.")
     ),
-    (('-cache_size',), dict(
+    (('--cache-size',), dict(
         type=int, dest='InteractiveShell.cache_size', default=NoConfigDefault,
         help="Set the size of the output cache.",
         metavar='InteractiveShell.cache_size')
     ),
-    (('-classic',), dict(
+    (('--classic',), dict(
         action='store_true', dest='Global.classic', default=NoConfigDefault,
         help="Gives IPython a similar feel to the classic Python prompt.")
     ),
-    (('-colors',), dict(
+    (('--colors',), dict(
         type=str, dest='InteractiveShell.colors', default=NoConfigDefault,
         help="Set the color scheme (NoColor, Linux, and LightBG).",
         metavar='InteractiveShell.colors')
     ),
-    (('-color_info',), dict(
+    (('--color-info',), dict(
         action='store_true', dest='InteractiveShell.color_info', default=NoConfigDefault,
         help="Enable using colors for info related things.")
     ),
-    (('-nocolor_info',), dict(
+    (('--no-color-info',), dict(
         action='store_false', dest='InteractiveShell.color_info', default=NoConfigDefault,
         help="Disable using colors for info related things.")
     ),
-    (('-confirm_exit',), dict(
+    (('--confirm-exit',), dict(
         action='store_true', dest='InteractiveShell.confirm_exit', default=NoConfigDefault,
         help="Prompt the user when existing.")
     ),
-    (('-noconfirm_exit',), dict(
+    (('--no-confirm-exit',), dict(
         action='store_false', dest='InteractiveShell.confirm_exit', default=NoConfigDefault,
         help="Don't prompt the user when existing.")
     ),
-    (('-deep_reload',), dict(
+    (('--deep-reload',), dict(
         action='store_true', dest='InteractiveShell.deep_reload', default=NoConfigDefault,
         help="Enable deep (recursive) reloading by default.")
     ),
-    (('-nodeep_reload',), dict(
+    (('--no-deep-reload',), dict(
         action='store_false', dest='InteractiveShell.deep_reload', default=NoConfigDefault,
         help="Disable deep (recursive) reloading by default.")
     ),
-    (('-editor',), dict(
+    (('--editor',), dict(
         type=str, dest='InteractiveShell.editor', default=NoConfigDefault,
         help="Set the editor used by IPython (default to $EDITOR/vi/notepad).",
         metavar='InteractiveShell.editor')
     ),
-    (('-log','-l'), dict(
+    (('--log','-l'), dict(
         action='store_true', dest='InteractiveShell.logstart', default=NoConfigDefault,
         help="Start logging to the default file (./ipython_log.py).")
     ),
-    (('-logfile','-lf'), dict(
+    (('--logfile','-lf'), dict(
         type=str, dest='InteractiveShell.logfile', default=NoConfigDefault,
         help="Start logging to logfile.",
         metavar='InteractiveShell.logfile')
     ),
-    (('-logappend','-la'), dict(
+    (('--log-append','-la'), dict(
         type=str, dest='InteractiveShell.logappend', default=NoConfigDefault,
         help="Start logging to logappend in append mode.",
         metavar='InteractiveShell.logfile')
     ),
-    (('-pdb',), dict(
+    (('--pdb',), dict(
         action='store_true', dest='InteractiveShell.pdb', default=NoConfigDefault,
         help="Enable auto calling the pdb debugger after every exception.")
     ),
-    (('-nopdb',), dict(
+    (('--nopdb',), dict(
         action='store_false', dest='InteractiveShell.pdb', default=NoConfigDefault,
         help="Disable auto calling the pdb debugger after every exception.")
     ),
-    (('-pprint',), dict(
+    (('--pprint',), dict(
         action='store_true', dest='InteractiveShell.pprint', default=NoConfigDefault,
         help="Enable auto pretty printing of results.")
     ),
-    (('-nopprint',), dict(
+    (('--no-pprint',), dict(
         action='store_false', dest='InteractiveShell.pprint', default=NoConfigDefault,
         help="Disable auto auto pretty printing of results.")
     ),
-    (('-prompt_in1','-pi1'), dict(
+    (('--prompt-in1','-pi1'), dict(
         type=str, dest='InteractiveShell.prompt_in1', default=NoConfigDefault,
         help="Set the main input prompt ('In [\#]: ')",
         metavar='InteractiveShell.prompt_in1')
     ),
-    (('-prompt_in2','-pi2'), dict(
+    (('--prompt-in2','-pi2'), dict(
         type=str, dest='InteractiveShell.prompt_in2', default=NoConfigDefault,
         help="Set the secondary input prompt (' .\D.: ')",
         metavar='InteractiveShell.prompt_in2')
     ),
-    (('-prompt_out','-po'), dict(
+    (('--prompt-out','-po'), dict(
         type=str, dest='InteractiveShell.prompt_out', default=NoConfigDefault,
         help="Set the output prompt ('Out[\#]:')",
         metavar='InteractiveShell.prompt_out')
     ),
-    (('-quick',), dict(
+    (('--quick',), dict(
         action='store_true', dest='Global.quick', default=NoConfigDefault,
         help="Enable quick startup with no config files.")
     ),
-    (('-readline',), dict(
+    (('--readline',), dict(
         action='store_true', dest='InteractiveShell.readline_use', default=NoConfigDefault,
         help="Enable readline for command line usage.")
     ),
-    (('-noreadline',), dict(
+    (('--no-readline',), dict(
         action='store_false', dest='InteractiveShell.readline_use', default=NoConfigDefault,
         help="Disable readline for command line usage.")
     ),
-    (('-screen_length','-sl'), dict(
+    (('--screen-length','-sl'), dict(
         type=int, dest='InteractiveShell.screen_length', default=NoConfigDefault,
         help='Number of lines on screen, used to control printing of long strings.',
         metavar='InteractiveShell.screen_length')
     ),
-    (('-separate_in','-si'), dict(
+    (('--separate-in','-si'), dict(
         type=str, dest='InteractiveShell.separate_in', default=NoConfigDefault,
         help="Separator before input prompts.  Default '\n'.",
         metavar='InteractiveShell.separate_in')
     ),
-    (('-separate_out','-so'), dict(
+    (('--separate-out','-so'), dict(
         type=str, dest='InteractiveShell.separate_out', default=NoConfigDefault,
         help="Separator before output prompts.  Default 0 (nothing).",
         metavar='InteractiveShell.separate_out')
     ),
-    (('-separate_out2','-so2'), dict(
+    (('--separate-out2','-so2'), dict(
         type=str, dest='InteractiveShell.separate_out2', default=NoConfigDefault,
         help="Separator after output prompts.  Default 0 (nonight).",
         metavar='InteractiveShell.separate_out2')
     ),
-    (('-nosep',), dict(
+    (('-no-sep',), dict(
         action='store_true', dest='Global.nosep', default=NoConfigDefault,
         help="Eliminate all spacing between prompts.")
     ),
-    (('-term_title',), dict(
+    (('--term-title',), dict(
         action='store_true', dest='InteractiveShell.term_title', default=NoConfigDefault,
         help="Enable auto setting the terminal title.")
     ),
-    (('-noterm_title',), dict(
+    (('--no-term-title',), dict(
         action='store_false', dest='InteractiveShell.term_title', default=NoConfigDefault,
         help="Disable auto setting the terminal title.")
     ),
-    (('-xmode',), dict(
+    (('--xmode',), dict(
         type=str, dest='InteractiveShell.xmode', default=NoConfigDefault,
         help="Exception mode ('Plain','Context','Verbose')",
         metavar='InteractiveShell.xmode')
     ),
-    (('-ext',), dict(
+    (('--ext',), dict(
         type=str, dest='Global.extra_extension', default=NoConfigDefault,
         help="The dotted module name of an IPython extension to load.",
         metavar='Global.extra_extension')
@@ -267,20 +267,20 @@ cl_args = (
         action='store_true', dest='Global.force_interact', default=NoConfigDefault,
         help="If running code from the command line, become interactive afterwards.")
     ),
-    (('-wthread',), dict(
+    (('--wthread',), dict(
         action='store_true', dest='Global.wthread', default=NoConfigDefault,
         help="Enable wxPython event loop integration.")
     ),
-    (('-q4thread','-qthread'), dict(
+    (('--q4thread','--qthread'), dict(
         action='store_true', dest='Global.q4thread', default=NoConfigDefault,
         help="Enable Qt4 event loop integration. Qt3 is no longer supported.")
     ),
-    (('-gthread',), dict(
+    (('--gthread',), dict(
         action='store_true', dest='Global.gthread', default=NoConfigDefault,
         help="Enable GTK event loop integration.")
     ),
     # # These are only here to get the proper deprecation warnings
-    (('-pylab',), dict(
+    (('--pylab',), dict(
         action='store_true', dest='Global.pylab', default=NoConfigDefault,
         help="Disabled.  Pylab has been disabled until matplotlib "
         "supports this version of IPython.")
@@ -475,7 +475,7 @@ class IPythonApp(Application):
             self.shell.showtraceback()
 
     def _exec_file(self, fname):
-        full_filename = filefind(fname, ['.', self.ipythondir])
+        full_filename = filefind(fname, ['.', self.ipython_dir])
         if os.path.isfile(full_filename):
             if full_filename.endswith('.py'):
                 self.log.info("Running file in user namespace: %s" % full_filename)
@@ -525,14 +525,14 @@ class IPythonApp(Application):
             self.shell.mainloop()
 
 
-def load_default_config(ipythondir=None):
-    """Load the default config file from the default ipythondir.
+def load_default_config(ipython_dir=None):
+    """Load the default config file from the default ipython_dir.
 
     This is useful for embedded shells.
     """
-    if ipythondir is None:
-        ipythondir = get_ipython_dir()
-    cl = PyFileConfigLoader(default_config_file_name, ipythondir)
+    if ipython_dir is None:
+        ipython_dir = get_ipython_dir()
+    cl = PyFileConfigLoader(default_config_file_name, ipython_dir)
     config = cl.load_config()
     return config
 

@@ -65,8 +65,8 @@ class AsyncClientConnector(object):
 
     def _find_furl(self, profile='default', cluster_dir=None, 
                    furl_or_file=None, furl_file_name=None,
-                   ipythondir=None):
-        """Find a FURL file by profile+ipythondir or cluster dir.
+                   ipython_dir=None):
+        """Find a FURL file by profile+ipython_dir or cluster dir.
 
         This raises an :exc:`~IPython.kernel.fcutil.FURLError` exception 
         if a FURL file can't be found.
@@ -88,11 +88,11 @@ class AsyncClientConnector(object):
             return furl_file
 
         # Try by profile
-        if ipythondir is None:
-            ipythondir = get_ipython_dir()
+        if ipython_dir is None:
+            ipython_dir = get_ipython_dir()
         if profile is not None:
             cluster_dir_obj = ClusterDir.find_cluster_dir_by_profile(
-                ipythondir, profile)
+                ipython_dir, profile)
             sdir = cluster_dir_obj.security_dir
             furl_file = os.path.join(sdir, furl_file_name)
             validate_furl_or_file(furl_file)
@@ -131,7 +131,7 @@ class AsyncClientConnector(object):
         return ref
         
     def get_task_client(self, profile='default', cluster_dir=None,
-                        furl_or_file=None, ipythondir=None,
+                        furl_or_file=None, ipython_dir=None,
                         delay=DELAY, max_tries=MAX_TRIES):
         """Get the task controller client.
         
@@ -145,16 +145,16 @@ class AsyncClientConnector(object):
         profile : str
             The name of a cluster directory profile (default="default"). The
             cluster directory "cluster_<profile>" will be searched for
-            in ``os.getcwd()``, the ipythondir and then in the directories
-            listed in the :env:`IPCLUSTERDIR_PATH` environment variable.
+            in ``os.getcwd()``, the ipython_dir and then in the directories
+            listed in the :env:`IPCLUSTER_DIR_PATH` environment variable.
         cluster_dir : str
             The full path to a cluster directory.  This is useful if profiles
             are not being used.
         furl_or_file : str
             A furl or a filename containing a FURLK. This is useful if you 
             simply know the location of the FURL file.
-        ipythondir : str
-            The location of the ipythondir if different from the default.
+        ipython_dir : str
+            The location of the ipython_dir if different from the default.
             This is used if the cluster directory is being found by profile.
         delay : float
             The initial delay between re-connection attempts. Susequent delays
@@ -168,12 +168,12 @@ class AsyncClientConnector(object):
         """
         return self.get_client(
             profile, cluster_dir, furl_or_file, 
-            'ipcontroller-tc.furl', ipythondir,
+            'ipcontroller-tc.furl', ipython_dir,
             delay, max_tries
         )
 
     def get_multiengine_client(self, profile='default', cluster_dir=None,
-                               furl_or_file=None, ipythondir=None,
+                               furl_or_file=None, ipython_dir=None,
                                delay=DELAY, max_tries=MAX_TRIES):
         """Get the multiengine controller client.
         
@@ -187,16 +187,16 @@ class AsyncClientConnector(object):
         profile : str
             The name of a cluster directory profile (default="default"). The
             cluster directory "cluster_<profile>" will be searched for
-            in ``os.getcwd()``, the ipythondir and then in the directories
-            listed in the :env:`IPCLUSTERDIR_PATH` environment variable.
+            in ``os.getcwd()``, the ipython_dir and then in the directories
+            listed in the :env:`IPCLUSTER_DIR_PATH` environment variable.
         cluster_dir : str
             The full path to a cluster directory.  This is useful if profiles
             are not being used.
         furl_or_file : str
             A furl or a filename containing a FURLK. This is useful if you 
             simply know the location of the FURL file.
-        ipythondir : str
-            The location of the ipythondir if different from the default.
+        ipython_dir : str
+            The location of the ipython_dir if different from the default.
             This is used if the cluster directory is being found by profile.
         delay : float
             The initial delay between re-connection attempts. Susequent delays
@@ -210,12 +210,12 @@ class AsyncClientConnector(object):
         """
         return self.get_client(
             profile, cluster_dir, furl_or_file, 
-            'ipcontroller-mec.furl', ipythondir,
+            'ipcontroller-mec.furl', ipython_dir,
             delay, max_tries
         )
     
     def get_client(self, profile='default', cluster_dir=None,
-                   furl_or_file=None, furl_file_name=None, ipythondir=None,
+                   furl_or_file=None, furl_file_name=None, ipython_dir=None,
                    delay=DELAY, max_tries=MAX_TRIES):
         """Get a remote reference and wrap it in a client by furl.
 
@@ -229,8 +229,8 @@ class AsyncClientConnector(object):
         profile : str
             The name of a cluster directory profile (default="default"). The
             cluster directory "cluster_<profile>" will be searched for
-            in ``os.getcwd()``, the ipythondir and then in the directories
-            listed in the :env:`IPCLUSTERDIR_PATH` environment variable.
+            in ``os.getcwd()``, the ipython_dir and then in the directories
+            listed in the :env:`IPCLUSTER_DIR_PATH` environment variable.
         cluster_dir : str
             The full path to a cluster directory.  This is useful if profiles
             are not being used.
@@ -240,8 +240,8 @@ class AsyncClientConnector(object):
         furl_file_name : str
             The filename (not the full path) of the FURL. This must be
             provided if ``furl_or_file`` is not.
-        ipythondir : str
-            The location of the ipythondir if different from the default.
+        ipython_dir : str
+            The location of the ipython_dir if different from the default.
             This is used if the cluster directory is being found by profile.
         delay : float
             The initial delay between re-connection attempts. Susequent delays
@@ -257,7 +257,7 @@ class AsyncClientConnector(object):
         try:
             furl_file = self._find_furl(
                 profile, cluster_dir, furl_or_file,
-                furl_file_name, ipythondir
+                furl_file_name, ipython_dir
             )
         except FURLError:
             return defer.fail(failure.Failure())
@@ -323,7 +323,7 @@ class ClientConnector(object):
         self.async_cc = AsyncClientConnector()
 
     def get_task_client(self, profile='default', cluster_dir=None,
-                        furl_or_file=None, ipythondir=None,
+                        furl_or_file=None, ipython_dir=None,
                         delay=DELAY, max_tries=MAX_TRIES):
         """Get the task client.
         
@@ -336,16 +336,16 @@ class ClientConnector(object):
         profile : str
             The name of a cluster directory profile (default="default"). The
             cluster directory "cluster_<profile>" will be searched for
-            in ``os.getcwd()``, the ipythondir and then in the directories
-            listed in the :env:`IPCLUSTERDIR_PATH` environment variable.
+            in ``os.getcwd()``, the ipython_dir and then in the directories
+            listed in the :env:`IPCLUSTER_DIR_PATH` environment variable.
         cluster_dir : str
             The full path to a cluster directory.  This is useful if profiles
             are not being used.
         furl_or_file : str
             A furl or a filename containing a FURLK. This is useful if you 
             simply know the location of the FURL file.
-        ipythondir : str
-            The location of the ipythondir if different from the default.
+        ipython_dir : str
+            The location of the ipython_dir if different from the default.
             This is used if the cluster directory is being found by profile.
         delay : float
             The initial delay between re-connection attempts. Susequent delays
@@ -359,12 +359,12 @@ class ClientConnector(object):
         """
         client = blockingCallFromThread(
             self.async_cc.get_task_client, profile, cluster_dir,
-            furl_or_file, ipythondir, delay, max_tries
+            furl_or_file, ipython_dir, delay, max_tries
         )
         return client.adapt_to_blocking_client()
 
     def get_multiengine_client(self, profile='default', cluster_dir=None,
-                               furl_or_file=None, ipythondir=None,
+                               furl_or_file=None, ipython_dir=None,
                                delay=DELAY, max_tries=MAX_TRIES):
         """Get the multiengine client.
         
@@ -377,16 +377,16 @@ class ClientConnector(object):
         profile : str
             The name of a cluster directory profile (default="default"). The
             cluster directory "cluster_<profile>" will be searched for
-            in ``os.getcwd()``, the ipythondir and then in the directories
-            listed in the :env:`IPCLUSTERDIR_PATH` environment variable.
+            in ``os.getcwd()``, the ipython_dir and then in the directories
+            listed in the :env:`IPCLUSTER_DIR_PATH` environment variable.
         cluster_dir : str
             The full path to a cluster directory.  This is useful if profiles
             are not being used.
         furl_or_file : str
             A furl or a filename containing a FURLK. This is useful if you 
             simply know the location of the FURL file.
-        ipythondir : str
-            The location of the ipythondir if different from the default.
+        ipython_dir : str
+            The location of the ipython_dir if different from the default.
             This is used if the cluster directory is being found by profile.
         delay : float
             The initial delay between re-connection attempts. Susequent delays
@@ -400,16 +400,16 @@ class ClientConnector(object):
         """
         client = blockingCallFromThread(
             self.async_cc.get_multiengine_client, profile, cluster_dir,
-            furl_or_file, ipythondir, delay, max_tries
+            furl_or_file, ipython_dir, delay, max_tries
         )
         return client.adapt_to_blocking_client()
 
     def get_client(self, profile='default', cluster_dir=None,
-                   furl_or_file=None, ipythondir=None,
+                   furl_or_file=None, ipython_dir=None,
                    delay=DELAY, max_tries=MAX_TRIES):
         client = blockingCallFromThread(
             self.async_cc.get_client, profile, cluster_dir,
-            furl_or_file, ipythondir,
+            furl_or_file, ipython_dir,
             delay, max_tries
         )
         return client.adapt_to_blocking_client()
@@ -422,7 +422,7 @@ class ClusterStateError(Exception):
 class AsyncCluster(object):
     """An class that wraps the :command:`ipcluster` script."""
 
-    def __init__(self, profile='default', cluster_dir=None, ipythondir=None,
+    def __init__(self, profile='default', cluster_dir=None, ipython_dir=None,
                  auto_create=False, auto_stop=True):
         """Create a class to manage an IPython cluster.
 
@@ -437,13 +437,13 @@ class AsyncCluster(object):
         profile : str
             The name of a cluster directory profile (default="default"). The
             cluster directory "cluster_<profile>" will be searched for
-            in ``os.getcwd()``, the ipythondir and then in the directories
-            listed in the :env:`IPCLUSTERDIR_PATH` environment variable.
+            in ``os.getcwd()``, the ipython_dir and then in the directories
+            listed in the :env:`IPCLUSTER_DIR_PATH` environment variable.
         cluster_dir : str
             The full path to a cluster directory.  This is useful if profiles
             are not being used.
-        ipythondir : str
-            The location of the ipythondir if different from the default.
+        ipython_dir : str
+            The location of the ipython_dir if different from the default.
             This is used if the cluster directory is being found by profile.
         auto_create : bool
             Automatically create the cluster directory it is dones't exist.
@@ -455,7 +455,7 @@ class AsyncCluster(object):
             to live beyond your current process. There is also an instance
             attribute ``auto_stop`` to change this behavior.
         """
-        self._setup_cluster_dir(profile, cluster_dir, ipythondir, auto_create)
+        self._setup_cluster_dir(profile, cluster_dir, ipython_dir, auto_create)
         self.state = 'before'
         self.launcher = None
         self.client_connector = None
@@ -480,9 +480,9 @@ class AsyncCluster(object):
         else:
             return False
 
-    def _setup_cluster_dir(self, profile, cluster_dir, ipythondir, auto_create):
-        if ipythondir is None:
-            ipythondir = get_ipython_dir()
+    def _setup_cluster_dir(self, profile, cluster_dir, ipython_dir, auto_create):
+        if ipython_dir is None:
+            ipython_dir = get_ipython_dir()
         if cluster_dir is not None:
             try:
                 self.cluster_dir_obj = ClusterDir.find_cluster_dir(cluster_dir)
@@ -491,13 +491,13 @@ class AsyncCluster(object):
         if profile is not None:
             try:
                 self.cluster_dir_obj = ClusterDir.find_cluster_dir_by_profile(
-                    ipythondir, profile)
+                    ipython_dir, profile)
             except ClusterDirError:
                 pass
         if auto_create or profile=='default':
             # This should call 'ipcluster create --profile default
             self.cluster_dir_obj = ClusterDir.create_cluster_dir_by_profile(
-                ipythondir, profile)
+                ipython_dir, profile)
         else:
             raise ClusterDirError('Cluster dir not found.')
 
@@ -593,7 +593,7 @@ class AsyncCluster(object):
 class Cluster(object):
 
 
-    def __init__(self, profile='default', cluster_dir=None, ipythondir=None,
+    def __init__(self, profile='default', cluster_dir=None, ipython_dir=None,
                  auto_create=False, auto_stop=True):
         """Create a class to manage an IPython cluster.
 
@@ -608,13 +608,13 @@ class Cluster(object):
         profile : str
             The name of a cluster directory profile (default="default"). The
             cluster directory "cluster_<profile>" will be searched for
-            in ``os.getcwd()``, the ipythondir and then in the directories
-            listed in the :env:`IPCLUSTERDIR_PATH` environment variable.
+            in ``os.getcwd()``, the ipython_dir and then in the directories
+            listed in the :env:`IPCLUSTER_DIR_PATH` environment variable.
         cluster_dir : str
             The full path to a cluster directory.  This is useful if profiles
             are not being used.
-        ipythondir : str
-            The location of the ipythondir if different from the default.
+        ipython_dir : str
+            The location of the ipython_dir if different from the default.
             This is used if the cluster directory is being found by profile.
         auto_create : bool
             Automatically create the cluster directory it is dones't exist.
@@ -627,7 +627,7 @@ class Cluster(object):
             attribute ``auto_stop`` to change this behavior.
         """
         self.async_cluster = AsyncCluster(
-            profile, cluster_dir, ipythondir, auto_create, auto_stop
+            profile, cluster_dir, ipython_dir, auto_create, auto_stop
         )
         self.cluster_dir_obj = self.async_cluster.cluster_dir_obj
         self.client_connector = None

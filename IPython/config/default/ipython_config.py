@@ -35,7 +35,7 @@ c = get_config()
 # These files are run in IPython in the user's namespace.  Files with a .py
 # extension need to be pure Python.  Files with a .ipy extension can have
 # custom IPython syntax (like magics, etc.).  
-# These files need to be in the cwd, the ipythondir or be absolute paths.
+# These files need to be in the cwd, the ipython_dir or be absolute paths.
 # c.Global.exec_files = [
 #     'mycode.py',
 #     'fancy.ipy'

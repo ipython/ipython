@@ -215,7 +215,7 @@ class InteractiveShell(Component, Magic):
     embedded_active = CBool(False)
     editor = Str(get_default_editor(), config=True)
     filename = Str("<ipython console>")
-    ipythondir= Unicode('', config=True) # Set to get_ipython_dir() in __init__
+    ipython_dir= Unicode('', config=True) # Set to get_ipython_dir() in __init__
     logstart = CBool(False, config=True)
     logfile = Str('', config=True)
     logappend = Str('', config=True)
@@ -273,7 +273,7 @@ class InteractiveShell(Component, Magic):
     # Subclasses with thread support should override this as needed.
     isthreaded = False
 
-    def __init__(self, parent=None, config=None, ipythondir=None, usage=None,
+    def __init__(self, parent=None, config=None, ipython_dir=None, usage=None,
                  user_ns=None, user_global_ns=None,
                  banner1=None, banner2=None, display_banner=None,
                  custom_exceptions=((),None)):
@@ -283,7 +283,7 @@ class InteractiveShell(Component, Magic):
         super(InteractiveShell, self).__init__(parent, config=config)
 
         # These are relatively independent and stateless
-        self.init_ipythondir(ipythondir)
+        self.init_ipython_dir(ipython_dir)
         self.init_instance_attrs()
         self.init_term_title()
         self.init_usage(usage)
@@ -341,7 +341,7 @@ class InteractiveShell(Component, Magic):
     def _banner2_changed(self):
         self.compute_banner()
 
-    def _ipythondir_changed(self, name, new):
+    def _ipython_dir_changed(self, name, new):
         if not os.path.isdir(new):
             os.makedirs(new, mode = 0777)
         if not os.path.isdir(self.ipython_extension_dir):
@@ -349,7 +349,7 @@ class InteractiveShell(Component, Magic):
 
     @property
     def ipython_extension_dir(self):
-        return os.path.join(self.ipythondir, 'extensions')
+        return os.path.join(self.ipython_dir, 'extensions')
 
     @property
     def usable_screen_length(self):
@@ -381,19 +381,19 @@ class InteractiveShell(Component, Magic):
     # init_* methods called by __init__
     #-------------------------------------------------------------------------
 
-    def init_ipythondir(self, ipythondir):
-        if ipythondir is not None:
-            self.ipythondir = ipythondir
-            self.config.Global.ipythondir = self.ipythondir
+    def init_ipython_dir(self, ipython_dir):
+        if ipython_dir is not None:
+            self.ipython_dir = ipython_dir
+            self.config.Global.ipython_dir = self.ipython_dir
             return
 
-        if hasattr(self.config.Global, 'ipythondir'):
-            self.ipythondir = self.config.Global.ipythondir
+        if hasattr(self.config.Global, 'ipython_dir'):
+            self.ipython_dir = self.config.Global.ipython_dir
         else:
-            self.ipythondir = get_ipython_dir()
+            self.ipython_dir = get_ipython_dir()
 
         # All children can just read this
-        self.config.Global.ipythondir = self.ipythondir
+        self.config.Global.ipython_dir = self.ipython_dir
 
     def init_instance_attrs(self):
         self.jobs = BackgroundJobManager()
@@ -1079,7 +1079,7 @@ class InteractiveShell(Component, Magic):
             histfname = 'history-%s' % self.profile
         else:
             histfname = 'history'
-        self.histfile = os.path.join(self.ipythondir, histfname)
+        self.histfile = os.path.join(self.ipython_dir, histfname)
 
         # Fill the history zero entry, user counter starts at 1
         self.input_hist.append('\n')
@@ -1087,12 +1087,12 @@ class InteractiveShell(Component, Magic):
 
     def init_shadow_hist(self):
         try:
-            self.db = pickleshare.PickleShareDB(self.ipythondir + "/db")
+            self.db = pickleshare.PickleShareDB(self.ipython_dir + "/db")
         except exceptions.UnicodeDecodeError:
-            print "Your ipythondir can't be decoded to unicode!"
+            print "Your ipython_dir can't be decoded to unicode!"
             print "Please set HOME environment variable to something that"
             print r"only has ASCII characters, e.g. c:\home"
-            print "Now it is", self.ipythondir
+            print "Now it is", self.ipython_dir
             sys.exit()
         self.shadowhist = ipcorehist.ShadowHist(self.db)
 
@@ -2327,7 +2327,7 @@ class InteractiveShell(Component, Magic):
         You can put your extension modules anywhere you want, as long as
         they can be imported by Python's standard import mechanism.  However,
         to make it easy to write extensions, you can also put your extensions
-        in ``os.path.join(self.ipythondir, 'extensions')``.  This directory
+        in ``os.path.join(self.ipython_dir, 'extensions')``.  This directory
         is added to ``sys.path`` automatically.
         """
         from IPython.utils.syspathcontext import prepended_to_syspath

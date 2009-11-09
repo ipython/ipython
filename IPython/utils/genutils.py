@@ -818,8 +818,11 @@ def get_ipython_dir():
     """
     ipdir_def = '.ipython'
     home_dir = get_home_dir()
-    ipdir = os.path.abspath(os.environ.get('IPYTHONDIR',
-                                           os.path.join(home_dir, ipdir_def)))
+    ipdir = os.environ.get(
+        'IPYTHON_DIR', os.environ.get(
+            'IPYTHONDIR', os.path.join(home_dir, ipdir_def)
+        )
+    )
     return ipdir.decode(sys.getfilesystemencoding())
 
 

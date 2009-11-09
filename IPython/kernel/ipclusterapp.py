@@ -52,10 +52,10 @@ class IPClusterCLLoader(ArgParseConfigLoader):
         # This has all the common options that all subcommands use
         parent_parser1 = argparse.ArgumentParser(add_help=False)
         parent_parser1.add_argument('--ipython-dir', 
-            dest='Global.ipythondir',type=str,
-            help='Set to override default location of Global.ipythondir.',
+            dest='Global.ipython_dir',type=str,
+            help='Set to override default location of Global.ipython_dir.',
             default=NoConfigDefault,
-            metavar='Global.ipythondir')
+            metavar='Global.ipython_dir')
         parent_parser1.add_argument('--log-level',
             dest="Global.log_level",type=int,
             help='Set the log level (0,10,20,30,40,50).  Default is 30.',
@@ -96,7 +96,7 @@ class IPClusterCLLoader(ArgParseConfigLoader):
 
         parser_list = subparsers.add_parser(
             'list',
-            help='List all clusters in cwd and ipythondir.',
+            help='List all clusters in cwd and ipython_dir.',
             parents=[parent_parser1]
         )
 
@@ -140,7 +140,7 @@ class IPClusterCLLoader(ArgParseConfigLoader):
             help='Daemonize the ipcluster program. This implies --log-to-file',
             default=NoConfigDefault
         )
-        parser_start.add_argument('--nodaemon',
+        parser_start.add_argument('--no-daemon',
             dest='Global.daemonize', action='store_false',
             help="Dont't daemonize the ipcluster program.",
             default=NoConfigDefault
@@ -233,16 +233,16 @@ class IPClusterApp(ApplicationWithClusterDir):
 
     def list_cluster_dirs(self):
         # Find the search paths
-        cluster_dir_paths = os.environ.get('IPCLUSTERDIR_PATH','')
+        cluster_dir_paths = os.environ.get('IPCLUSTER_DIR_PATH','')
         if cluster_dir_paths:
             cluster_dir_paths = cluster_dir_paths.split(':')
         else:
             cluster_dir_paths = []
         try:
-            ipythondir = self.command_line_config.Global.ipythondir
+            ipython_dir = self.command_line_config.Global.ipython_dir
         except AttributeError:
-            ipythondir = self.default_config.Global.ipythondir
-        paths = [os.getcwd(), ipythondir] + \
+            ipython_dir = self.default_config.Global.ipython_dir
+        paths = [os.getcwd(), ipython_dir] + \
             cluster_dir_paths
         paths = list(set(paths))
 

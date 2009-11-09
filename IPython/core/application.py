@@ -51,22 +51,22 @@ class BaseAppArgParseConfigLoader(ArgParseConfigLoader):
     """Default command line options for IPython based applications."""
 
     def _add_other_arguments(self):
-        self.parser.add_argument('-ipythondir', '--ipython-dir', 
-            dest='Global.ipythondir',type=str,
-            help='Set to override default location of Global.ipythondir.',
+        self.parser.add_argument('--ipython-dir', 
+            dest='Global.ipython_dir',type=str,
+            help='Set to override default location of Global.ipython_dir.',
             default=NoConfigDefault,
-            metavar='Global.ipythondir')
-        self.parser.add_argument('-p','-profile', '--profile',
+            metavar='Global.ipython_dir')
+        self.parser.add_argument('-p', '--profile',
             dest='Global.profile',type=str,
             help='The string name of the ipython profile to be used.',
             default=NoConfigDefault,
             metavar='Global.profile')
-        self.parser.add_argument('-log_level', '--log-level',
+        self.parser.add_argument('--log-level',
             dest="Global.log_level",type=int,
             help='Set the log level (0,10,20,30,40,50).  Default is 30.',
             default=NoConfigDefault,
             metavar='Global.log_level')
-        self.parser.add_argument('-config_file', '--config-file',
+        self.parser.add_argument('--config-file',
             dest='Global.config_file',type=str,
             help='Set the config file name to override default.',
             default=NoConfigDefault,
@@ -119,7 +119,7 @@ class Application(object):
         self.set_command_line_config_log_level()
         self.attempt(self.post_load_command_line_config)
         self.log_command_line_config()
-        self.attempt(self.find_ipythondir)
+        self.attempt(self.find_ipython_dir)
         self.attempt(self.find_resources)
         self.attempt(self.find_config_file_name)
         self.attempt(self.find_config_file_paths)
@@ -149,7 +149,7 @@ class Application(object):
         don't belong to a particular component.
         """
         self.default_config = Config()
-        self.default_config.Global.ipythondir = get_ipython_dir()
+        self.default_config.Global.ipython_dir = get_ipython_dir()
         self.default_config.Global.log_level = self.log_level
 
     def log_default_config(self):
@@ -194,24 +194,24 @@ class Application(object):
         self.log.debug("Command line config loaded:")
         self.log.debug(repr(self.command_line_config))
 
-    def find_ipythondir(self):
+    def find_ipython_dir(self):
         """Set the IPython directory.
 
-        This sets ``self.ipythondir``, but the actual value that is passed
+        This sets ``self.ipython_dir``, but the actual value that is passed
         to the application is kept in either ``self.default_config`` or
-        ``self.command_line_config``.  This also adds ``self.ipythondir`` to
+        ``self.command_line_config``.  This also adds ``self.ipython_dir`` to
         ``sys.path`` so config files there can be references by other config
         files.
         """
 
         try:
-            self.ipythondir = self.command_line_config.Global.ipythondir
+            self.ipython_dir = self.command_line_config.Global.ipython_dir
         except AttributeError:
-            self.ipythondir = self.default_config.Global.ipythondir
-        sys.path.append(os.path.abspath(self.ipythondir))
-        if not os.path.isdir(self.ipythondir):
-            os.makedirs(self.ipythondir, mode=0777)
-        self.log.debug("IPYTHONDIR set to: %s" % self.ipythondir)
+            self.ipython_dir = self.default_config.Global.ipython_dir
+        sys.path.append(os.path.abspath(self.ipython_dir))
+        if not os.path.isdir(self.ipython_dir):
+            os.makedirs(self.ipython_dir, mode=0777)
+        self.log.debug("IPYTHON_DIR set to: %s" % self.ipython_dir)
 
     def find_resources(self):
         """Find other resources that need to be in place.
@@ -253,7 +253,7 @@ class Application(object):
         This must set ``self.config_file_paths`` to a sequence of search
         paths to pass to the config file loader.
         """
-        self.config_file_paths = (os.getcwd(), self.ipythondir)
+        self.config_file_paths = (os.getcwd(), self.ipython_dir)
 
     def pre_load_file_config(self):
         """Do actions before the config file is loaded."""
