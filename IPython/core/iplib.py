@@ -162,6 +162,15 @@ def get_default_editor():
     return ed
 
 
+def get_default_colors():
+    if sys.platform=='darwin':
+        return "LightBG"
+    elif os.name=='nt':
+        return 'Linux'
+    else:
+        return 'Linux'
+
+
 class SeparateStr(Str):
     """A Str subclass to validate separate_in, separate_out, etc.
 
@@ -192,7 +201,7 @@ class InteractiveShell(Component, Magic):
     cache_size = Int(1000, config=True)
     color_info = CBool(True, config=True)
     colors = CaselessStrEnum(('NoColor','LightBG','Linux'), 
-                             default_value='LightBG', config=True)
+                             default_value=get_default_colors(), config=True)
     confirm_exit = CBool(True, config=True)
     debug = CBool(False, config=True)
     deep_reload = CBool(False, config=True)
