@@ -1754,11 +1754,11 @@ def expand_path(s):
     # alone an empty var. But, we need the $ to remains there (it indicates
     # a hidden share).
     if os.name=='nt':
-        s.replace('$\\', 'IPYTHON_TEMP')
-    s2 = os.path.expandvars(os.path.expanduser(s))
+        s = s.replace('$\\', 'IPYTHON_TEMP')
+    s = os.path.expandvars(os.path.expanduser(s))
     if os.name=='nt':
-        s2.replace('IPYTHON_TEMP', '$\\')
-    return s2
+        s = s.replace('IPYTHON_TEMP', '$\\')
+    return s
 
 def list_strings(arg):
     """Always return a list of strings, given a string or list of strings
