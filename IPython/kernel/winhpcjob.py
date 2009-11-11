@@ -20,6 +20,7 @@ from __future__ import with_statement
 
 import os
 import re
+import uuid
 
 from xml.etree import ElementTree as ET
 from xml.dom import minidom
@@ -28,7 +29,7 @@ from IPython.core.component import Component
 from IPython.external import Itpl
 from IPython.utils.traitlets import (
     Str, Int, List, Unicode, Instance,
-    Enum, Bool
+    Enum, Bool, CStr
 )
 
 #-----------------------------------------------------------------------------
@@ -82,7 +83,6 @@ class WinHPCJob(Component):
     run_until_canceled = Bool(False, config=True)
     is_exclusive = Bool(False, config=True)
     username = Str(os.environ.get('USERNAME', ''), config=True)
-    owner = Str('', config=True)
     job_type = Str('Batch', config=True)
     priority = Enum(('Lowest','BelowNormal','Normal','AboveNormal','Highest'),
         default_value='Highest', config=True)
@@ -92,8 +92,9 @@ class WinHPCJob(Component):
     version = Str("2.000")
     tasks = List([])
 
-    def _username_changed(self, name, old, new):
-        self.owner = new
+    @property
+    def owner(self):
+        return self.username
 
     def _write_attr(self, root, attr, key):
         s = as_str(getattr(self, attr, ''))
@@ -169,13 +170,13 @@ class WinHPCTask(Component):
     min_nodes = Int(1, config=True)
     max_nodes = Int(1, config=True)
     unit_type = Str("Core", config=True)
-    command_line = Str('', config=True)
-    work_directory = Str('', config=True)
+    command_line = CStr('', config=True)
+    work_directory = CStr('', config=True)
     is_rerunnaable = Bool(True, config=True)
-    std_out_file_path = Str('', config=True)
-    std_err_file_path = Str('', config=True)
+    std_out_file_path = CStr('', config=True)
+    std_err_file_path = CStr('', config=True)
     is_parametric = Bool(False, config=True)
-    environment_variables = Instance(dict, args=())
+    environment_variables = Instance(dict, args=(), config=True)
 
     def _write_attr(self, root, attr, key):
         s = as_str(getattr(self, attr, ''))
@@ -211,6 +212,53 @@ class WinHPCTask(Component):
             value = ET.SubElement(variable, "Value")
             value.text = v
         return env_vars
+
+
+
+# By declaring these, we can configure the controller and engine separately!
+        
+class IPControllerTask(WinHPCTask):
+
+    task_name = Str('IPController', config=True)
+    controller_cmd = List(['ipcontroller.exe'], config=True)
+    controller_args = List(['--log-to-file', '--log-level', '40'], config=True)
+    # I don't want these to be configurable
+    std_out_file_path = CStr(os.path.join('log','ipcontroller-out.txt'), config=False)
+    std_err_file_path = CStr(os.path.join('log','ipcontroller-err.txt'), config=False)
+    min_cores = Int(1, config=False)
+    max_cores = Int(1, config=False)
+    min_sockets = Int(1, config=False)
+    max_sockets = Int(1, config=False)
+    min_nodes = Int(1, config=False)
+    max_nodes = Int(1, config=False)
+    unit_type = Str("Core", config=False)
+    work_directory = CStr('', config=False)
+
+    @property
+    def command_line(self):
+        return ' '.join(self.controller_cmd + self.controller_args)
+
+
+class IPEngineTask(WinHPCTask):
+
+    task_name = Str('IPEngine', config=True)
+    engine_cmd = List(['ipengine.exe'], config=True)
+    engine_args = List(['--log-to-file', '--log-level', '40'], config=True)
+    # I don't want these to be configurable
+    std_out_file_path = CStr(os.path.join('log','ipengine-out-%s.txt' % uuid.uuid1()), config=False)
+    std_err_file_path = CStr(os.path.join('log','ipengine-err-%s.txt' % uuid.uuid1()), config=False)
+    min_cores = Int(1, config=False)
+    max_cores = Int(1, config=False)
+    min_sockets = Int(1, config=False)
+    max_sockets = Int(1, config=False)
+    min_nodes = Int(1, config=False)
+    max_nodes = Int(1, config=False)
+    unit_type = Str("Core", config=False)
+    work_directory = CStr('', config=False)
+
+    @property
+    def command_line(self):
+        return ' '.join(self.engine_cmd + self.engine_args)
 
 
 # j = WinHPCJob(None)

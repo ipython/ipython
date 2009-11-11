@@ -21,8 +21,13 @@ import sys
 
 from IPython.core.component import Component
 from IPython.external import Itpl
-from IPython.utils.traitlets import Str, Int, List, Unicode
+from IPython.utils.traitlets import Str, Int, List, Unicode, Enum
+from IPython.utils.platutils import find_cmd
 from IPython.kernel.twistedutil import gatherBoth, make_deferred, sleep_deferred
+from IPython.kernel.winhpcjob import (
+    WinHPCJob, WinHPCTask,
+    IPControllerTask, IPEngineTask
+)
 
 from twisted.internet import reactor, defer
 from twisted.internet.defer import inlineCallbacks
@@ -328,8 +333,85 @@ class SSHLauncher(BaseLauncher):
 
 
 class WindowsHPCLauncher(BaseLauncher):
-    pass
 
+    # A regular expression used to get the job id from the output of the 
+    # submit_command.
+    job_id_regexp = Str('\d+', config=True)
+    # The filename of the instantiated job script.
+    job_file_name = Unicode(u'ipython_job.xml', config=True)
+    # The full path to the instantiated job script. This gets made dynamically
+    # by combining the working_dir with the job_file_name.
+    job_file = Unicode(u'')
+    # The hostname of the scheduler to submit the job to
+    scheduler = Str('HEADNODE', config=True)
+    username = Str(os.environ.get('USERNAME', ''), config=True)
+    priority = Enum(('Lowest','BelowNormal','Normal','AboveNormal','Highest'),
+        default_value='Highest', config=True)
+    requested_nodes = Str('', config=True)
+    project = Str('MyProject', config=True)
+    job_cmd = Str(find_cmd('job'), config=True)
+
+    def __init__(self, working_dir, parent=None, name=None, config=None):
+        super(WindowsHPCLauncher, self).__init__(
+            working_dir, parent, name, config
+        )
+        self.job_file = os.path.join(self.working_dir, self.job_file_name)
+
+    def write_job_file(self, n):
+        raise NotImplementedError("Implement write_job_file in a subclass.")
+
+    def find_args(self):
+        return ['job.exe']
+        
+    def parse_job_id(self, output):
+        """Take the output of the submit command and return the job id."""
+        m = re.search(self.job_id_regexp, output)
+        if m is not None:
+            job_id = m.group()
+        else:
+            raise LauncherError("Job id couldn't be determined: %s" % output)
+        self.job_id = job_id
+        log.msg('Job started with job id: %r' % job_id)
+        return job_id
+
+    @inlineCallbacks
+    def start(self, n):
+        """Start n copies of the process using the Win HPC job scheduler."""
+        self.write_job_file(n)
+        args = [
+            'submit',
+            '/jobfile:%s' % self.job_file,
+            '/scheduler:%s' % self.scheduler
+        ]
+        log.msg("Starting Win HPC Job: %s" % (self.job_cmd + ' ' + ' '.join(args),))
+        output = yield getProcessOutput(self.job_cmd,
+            args,
+            env=os.environ,
+            path=self.working_dir
+        )
+        job_id = self.parse_job_id(output)
+        self.notify_start(job_id)
+        defer.returnValue(job_id)
+
+    @inlineCallbacks
+    def stop(self):
+        args = [
+            'cancel',
+            self.job_id,
+            '/scheduler:%s' % self.scheduler
+        ]
+        log.msg("Stopping Win HPC Job: %s" % (self.job_cmd + ' ' + ' '.join(args),))
+        try:
+            output = yield getProcessOutput(self.job_cmd,
+                args,
+                env=os.environ,
+                path=self.working_dir
+            )
+        except:
+            output = 'The job already appears to be stoppped: %r' % self.job_id
+        self.notify_stop(output)  # Pass the output of the kill cmd
+        defer.returnValue(output)
+    
 
 class BatchSystemLauncher(BaseLauncher):
     """Launch an external process using a batch system.
@@ -460,7 +542,33 @@ class LocalControllerLauncher(LocalProcessLauncher):
 
 
 class WindowsHPCControllerLauncher(WindowsHPCLauncher):
-    pass
+
+    job_file_name = Unicode(u'ipcontroller_job.xml', config=True)
+    extra_args = List([],config=False)
+
+    def write_job_file(self, n):
+        job = WinHPCJob(self)
+        job.job_name = "IPController"
+        job.username = self.username
+        job.priority = self.priority
+        job.requested_nodes = self.requested_nodes
+        job.project = self.project
+
+        t = IPControllerTask(self)
+        t.work_directory = self.working_dir
+        # Add the --profile and --cluster-dir args from start.
+        t.controller_args.extend(self.extra_args)
+        job.add_task(t)
+        log.msg("Writing job description file: %s" % self.job_file)
+        job.write(self.job_file)
+
+    def start(self, profile=None, cluster_dir=None):
+        """Start the controller by profile or cluster_dir."""
+        if cluster_dir is not None:
+            self.extra_args = ['--cluster-dir', cluster_dir]
+        if profile is not None:
+            self.extra_args = ['--profile', profile]
+        return super(WindowsHPCControllerLauncher, self).start(1)
 
 
 class MPIExecControllerLauncher(MPIExecLauncher):

@@ -16,7 +16,7 @@ c = get_config()
 # The selected launchers can be configured below.
 
 # Options are (LocalControllerLauncher, MPIExecControllerLauncher,
-# PBSControllerLauncher)
+# PBSControllerLauncher, WindowsHPCControllerLauncher)
 # c.Global.controller_launcher = 'IPython.kernel.launcher.LocalControllerLauncher'
 
 # Options are (LocalEngineSetLauncher, MPIExecEngineSetLauncher,
@@ -77,6 +77,45 @@ c = get_config()
 # The name of the instantiated batch script that will actually be used to
 # submit the job. This will be written to the cluster directory.
 # c.PBSControllerLauncher.batch_file_name = u'pbs_batch_script_controller'
+
+#-----------------------------------------------------------------------------
+# Windows HPC Server 2008 launcher configuration
+#-----------------------------------------------------------------------------
+
+# c.WinHPCJob.username = 'DOMAIN\\user'
+# c.WinHPCJob.priority = 'Highest'
+# c.WinHPCJob.requested_nodes = ''
+# c.WinHPCJob.project = ''
+# c.WinHPCJob.is_exclusive = False
+
+# c.WinHPCTask.environment_variables = {}
+# c.WinHPCTask.work_directory = ''
+# c.WinHPCTask.is_rerunnable = True
+
+# c.IPControllerTask.task_name = 'IPController'
+# c.IPControllerTask.controller_cmd = ['ipcontroller.exe']
+# c.IPControllerTask.controller_args = ['--log-to-file', '--log-level', '40']
+# c.IPControllerTask.environment_variables = {}
+
+# c.IPEngineTask.task_name = 'IPController'
+# c.IPEngineTask.engine_cmd = ['ipengine.exe']
+# c.IPEngineTask.engine_args = ['--log-to-file', '--log-level', '40']
+# c.IPEngineTask.environment_variables = {}
+
+# c.WindowsHPCLauncher.scheduler = 'HEADNODE'
+# c.WindowsHPCLauncher.username = '\\DOMAIN\USERNAME'
+# c.WindowsHPCLauncher.priority = 'Highest'
+# c.WindowsHPCLauncher.requested_nodes = ''
+# c.WindowsHPCLauncher.job_file_name = u'ipython_job.xml'
+# c.WindowsHPCLauncher.project = 'MyProject'
+
+# c.WindowsHPCControllerLauncher.scheduler = 'HEADNODE'
+# c.WindowsHPCControllerLauncher.username = '\\DOMAIN\USERNAME'
+# c.WindowsHPCControllerLauncher.priority = 'Highest'
+# c.WindowsHPCControllerLauncher.requested_nodes = ''
+# c.WindowsHPCControllerLauncher.job_file_name = u'ipcontroller_job.xml'
+# c.WindowsHPCControllerLauncher.project = 'MyProject'
+
 
 #-----------------------------------------------------------------------------
 # Engine launcher configuration
