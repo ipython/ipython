@@ -395,7 +395,7 @@ class IPClusterApp(ApplicationWithClusterDir):
                     "Stopping cluster [pid=%r] with [signal=%r]" % (pid, sig)
                 )
                 os.kill(pid, sig)
-            elif os.name='nt':
+            elif os.name=='nt':
                 # As of right now, we don't support daemonize on Windows, so
                 # stop will not do anything. Minimally, it should clean up the
                 # old .pid files.
