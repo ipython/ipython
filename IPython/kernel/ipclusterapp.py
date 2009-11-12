@@ -294,7 +294,7 @@ class IPClusterApp(ApplicationWithClusterDir):
         
         # Start the controller and engines
         d = self.controller_launcher.start(
-            profile=None, cluster_dir=config.Global.cluster_dir
+            cluster_dir=config.Global.cluster_dir
         )
         d.addCallback(lambda _: self.start_engines())
         d.addErrback(self.err_and_stop)
@@ -311,7 +311,7 @@ class IPClusterApp(ApplicationWithClusterDir):
         config = self.master_config
         d = self.engine_launcher.start(
             config.Global.n,
-            profile=None, cluster_dir=config.Global.cluster_dir
+            cluster_dir=config.Global.cluster_dir
         )
         return d
 

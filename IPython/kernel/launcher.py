@@ -569,13 +569,12 @@ class WindowsHPCLauncher(BaseLauncher):
     job_file = Unicode(u'')
     # The hostname of the scheduler to submit the job to
     scheduler = Str('', config=True)
-    job_cmd = Str(find_job_cmd, config=True)
+    job_cmd = Str(find_job_cmd(), config=True)
 
     def __init__(self, working_dir, parent=None, name=None, config=None):
         super(WindowsHPCLauncher, self).__init__(
             working_dir, parent, name, config
         )
-        self.job_file = os.path.join(self.working_dir, self.job_file_name)
 
     @property
     def job_file(self):
@@ -608,9 +607,10 @@ class WindowsHPCLauncher(BaseLauncher):
             '/scheduler:%s' % self.scheduler
         ]
         log.msg("Starting Win HPC Job: %s" % (self.job_cmd + ' ' + ' '.join(args),))
-        output = yield getProcessOutput(self.job_cmd,
-            args,
-            env=os.environ,
+        # Twisted will raise DeprecationWarnings if we try to pass unicode to this
+        output = yield getProcessOutput(str(self.job_cmd),
+            [str(a) for a in args],
+            env=dict((str(k),str(v)) for k,v in os.environ.items()),
             path=self.working_dir
         )
         job_id = self.parse_job_id(output)
@@ -626,9 +626,10 @@ class WindowsHPCLauncher(BaseLauncher):
         ]
         log.msg("Stopping Win HPC Job: %s" % (self.job_cmd + ' ' + ' '.join(args),))
         try:
-            output = yield getProcessOutput(self.job_cmd,
-                args,
-                env=os.environ,
+            # Twisted will raise DeprecationWarnings if we try to pass unicode to this
+            output = yield getProcessOutput(str(self.job_cmd),
+                [str(a) for a in args],
+                env=dict((str(k),str(v)) for k,v in os.environ.items()),
                 path=self.working_dir
             )
         except:
@@ -676,7 +677,7 @@ class WindowsHPCEngineSetLauncher(WindowsHPCLauncher):
     extra_args = List([], config=False)
 
     def write_job_file(self, n):
-        job = IPControllerJob(self)
+        job = IPEngineSetJob(self)
 
         for i in range(n):
             t = IPEngineTask(self)
@@ -695,13 +696,13 @@ class WindowsHPCEngineSetLauncher(WindowsHPCLauncher):
     def job_file(self):
         return os.path.join(self.cluster_dir, self.job_file_name)
 
-    def start(self, cluster_dir):
+    def start(self, n, cluster_dir):
         """Start the controller by cluster_dir."""
         self.extra_args = [
             '--cluster-dir', cluster_dir, '--working-dir', self.working_dir
         ]
         self.cluster_dir = unicode(cluster_dir)
-        return super(WindowsHPCControllerLauncher, self).start(n)
+        return super(WindowsHPCEngineSetLauncher, self).start(n)
 
 
 #-----------------------------------------------------------------------------
