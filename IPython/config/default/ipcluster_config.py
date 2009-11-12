@@ -93,12 +93,12 @@ c = get_config()
 # c.WinHPCTask.is_rerunnable = True
 
 # c.IPControllerTask.task_name = 'IPController'
-# c.IPControllerTask.controller_cmd = ['ipcontroller.exe']
+# c.IPControllerTask.controller_cmd = [u'ipcontroller.exe']
 # c.IPControllerTask.controller_args = ['--log-to-file', '--log-level', '40']
 # c.IPControllerTask.environment_variables = {}
 
 # c.IPEngineTask.task_name = 'IPController'
-# c.IPEngineTask.engine_cmd = ['ipengine.exe']
+# c.IPEngineTask.engine_cmd = [u'ipengine.exe']
 # c.IPEngineTask.engine_args = ['--log-to-file', '--log-level', '40']
 # c.IPEngineTask.environment_variables = {}
 

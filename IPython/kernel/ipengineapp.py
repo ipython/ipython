@@ -44,7 +44,7 @@ from IPython.kernel.engineconnector import EngineConnector
 cl_args = (
     # Controller config
     (('--furl-file',), dict(
-        type=str, dest='Global.furl_file', default=NoConfigDefault,
+        type=unicode, dest='Global.furl_file', default=NoConfigDefault,
         help='The full location of the file containing the FURL of the '
         'controller. If this is not given, the FURL file must be in the '
         'security directory of the cluster directory.  This location is '
@@ -84,12 +84,12 @@ mpi.size = 0
 """
 
 
-default_config_file_name = 'ipengine_config.py'
+default_config_file_name = u'ipengine_config.py'
 
 
 class IPEngineApp(ApplicationWithClusterDir):
 
-    name = 'ipengine'
+    name = u'ipengine'
     description = 'Start the IPython engine for parallel computing.'
     config_file_name = default_config_file_name
     auto_create_cluster_dir = True
@@ -108,10 +108,10 @@ class IPEngineApp(ApplicationWithClusterDir):
         # Configuration related to the controller
         # This must match the filename (path not included) that the controller
         # used for the FURL file.
-        self.default_config.Global.furl_file_name = 'ipcontroller-engine.furl'
+        self.default_config.Global.furl_file_name = u'ipcontroller-engine.furl'
         # If given, this is the actual location of the controller's FURL file.
         # If not, this is computed using the profile, app_dir and furl_file_name
-        self.default_config.Global.furl_file = ''
+        self.default_config.Global.furl_file = u''
 
         # The max number of connection attemps and the initial delay between
         # those attemps.

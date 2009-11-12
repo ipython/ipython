@@ -71,9 +71,9 @@ c = get_config()
 
 # c.InteractiveShell.logstart = True
 
-# c.InteractiveShell.logfile = 'ipython_log.py'
+# c.InteractiveShell.logfile = u'ipython_log.py'
 
-# c.InteractiveShell.logappend = 'mylog.py'
+# c.InteractiveShell.logappend = u'mylog.py'
 
 # c.InteractiveShell.object_info_string_level = 0
 

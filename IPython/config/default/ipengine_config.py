@@ -32,7 +32,7 @@ c = get_config()
 # By default, the engine will look for the controller's FURL file in its own
 # cluster directory. Sometimes, the FURL file will be elsewhere and this 
 # attribute can be set to the full path of the FURL file.
-# c.Global.furl_file = ''
+# c.Global.furl_file = u''
 
 #-----------------------------------------------------------------------------
 # MPI configuration
@@ -76,7 +76,7 @@ c = get_config()
 
 # c.Global.shell_class = 'IPython.kernel.core.interpreter.Interpreter'
 
-# c.Global.furl_file_name = 'ipcontroller-engine.furl'
+# c.Global.furl_file_name = u'ipcontroller-engine.furl'
 
 
 

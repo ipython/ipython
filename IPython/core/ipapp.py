@@ -164,20 +164,20 @@ cl_args = (
         help="Start logging to the default file (./ipython_log.py).")
     ),
     (('--logfile','-lf'), dict(
-        type=str, dest='InteractiveShell.logfile', default=NoConfigDefault,
+        type=unicode, dest='InteractiveShell.logfile', default=NoConfigDefault,
         help="Start logging to logfile.",
         metavar='InteractiveShell.logfile')
     ),
     (('--log-append','-la'), dict(
-        type=str, dest='InteractiveShell.logappend', default=NoConfigDefault,
-        help="Start logging to logappend in append mode.",
+        type=unicode, dest='InteractiveShell.logappend', default=NoConfigDefault,
+        help="Start logging to the give file in append mode.",
         metavar='InteractiveShell.logfile')
     ),
     (('--pdb',), dict(
         action='store_true', dest='InteractiveShell.pdb', default=NoConfigDefault,
         help="Enable auto calling the pdb debugger after every exception.")
     ),
-    (('--nopdb',), dict(
+    (('--no-pdb',), dict(
         action='store_false', dest='InteractiveShell.pdb', default=NoConfigDefault,
         help="Disable auto calling the pdb debugger after every exception.")
     ),
@@ -293,11 +293,11 @@ class IPythonAppCLConfigLoader(BaseAppArgParseConfigLoader):
     arguments = cl_args
 
 
-default_config_file_name = 'ipython_config.py'
+default_config_file_name = u'ipython_config.py'
 
 
 class IPythonApp(Application):
-    name = 'ipython'
+    name = u'ipython'
     description = 'IPython: an enhanced interactive Python shell.'
     config_file_name = default_config_file_name
 
@@ -475,9 +475,9 @@ class IPythonApp(Application):
             self.shell.showtraceback()
 
     def _exec_file(self, fname):
-        full_filename = filefind(fname, ['.', self.ipython_dir])
+        full_filename = filefind(fname, [u'.', self.ipython_dir])
         if os.path.isfile(full_filename):
-            if full_filename.endswith('.py'):
+            if full_filename.endswith(u'.py'):
                 self.log.info("Running file in user namespace: %s" % full_filename)
                 self.shell.safe_execfile(full_filename, self.shell.user_ns)
             elif full_filename.endswith('.ipy'):

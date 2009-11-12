@@ -101,7 +101,7 @@ c = get_config()
 # are more for developers who want to change the behavior of the controller
 # at a fundamental level.
 
-# c.FCClientServiceFactory.cert_file = 'ipcontroller-client.pem'
+# c.FCClientServiceFactory.cert_file = u'ipcontroller-client.pem'
 
 # default_client_interfaces = Config()
 # default_client_interfaces.Task.interface_chain = [
@@ -109,24 +109,24 @@ c = get_config()
 #     'IPython.kernel.taskfc.IFCTaskController'
 # ]
 # 
-# default_client_interfaces.Task.furl_file = 'ipcontroller-tc.furl'
+# default_client_interfaces.Task.furl_file = u'ipcontroller-tc.furl'
 # 
 # default_client_interfaces.MultiEngine.interface_chain = [
 #     'IPython.kernel.multiengine.IMultiEngine',
 #     'IPython.kernel.multienginefc.IFCSynchronousMultiEngine'
 # ]
 # 
-# default_client_interfaces.MultiEngine.furl_file = 'ipcontroller-mec.furl'
+# default_client_interfaces.MultiEngine.furl_file = u'ipcontroller-mec.furl'
 # 
 # c.FCEngineServiceFactory.interfaces = default_client_interfaces
 
-# c.FCEngineServiceFactory.cert_file = 'ipcontroller-engine.pem'
+# c.FCEngineServiceFactory.cert_file = u'ipcontroller-engine.pem'
 
 # default_engine_interfaces = Config()
 # default_engine_interfaces.Default.interface_chain = [
 #     'IPython.kernel.enginefc.IFCControllerBase'
 # ]
 # 
-# default_engine_interfaces.Default.furl_file = 'ipcontroller-engine.furl'
+# default_engine_interfaces.Default.furl_file = u'ipcontroller-engine.furl'
 # 
 # c.FCEngineServiceFactory.interfaces = default_engine_interfaces

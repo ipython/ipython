@@ -52,12 +52,12 @@ class BaseAppArgParseConfigLoader(ArgParseConfigLoader):
 
     def _add_other_arguments(self):
         self.parser.add_argument('--ipython-dir', 
-            dest='Global.ipython_dir',type=str,
+            dest='Global.ipython_dir',type=unicode,
             help='Set to override default location of Global.ipython_dir.',
             default=NoConfigDefault,
             metavar='Global.ipython_dir')
         self.parser.add_argument('-p', '--profile',
-            dest='Global.profile',type=str,
+            dest='Global.profile',type=unicode,
             help='The string name of the ipython profile to be used.',
             default=NoConfigDefault,
             metavar='Global.profile')
@@ -67,7 +67,7 @@ class BaseAppArgParseConfigLoader(ArgParseConfigLoader):
             default=NoConfigDefault,
             metavar='Global.log_level')
         self.parser.add_argument('--config-file',
-            dest='Global.config_file',type=str,
+            dest='Global.config_file',type=unicode,
             help='Set the config file name to override default.',
             default=NoConfigDefault,
             metavar='Global.config_file')
@@ -80,9 +80,9 @@ class ApplicationError(Exception):
 class Application(object):
     """Load a config, construct components and set them running."""
 
-    name = 'ipython'
+    name = u'ipython'
     description = 'IPython: an enhanced interactive Python shell.'
-    config_file_name = 'ipython_config.py'
+    config_file_name = u'ipython_config.py'
     default_log_level = logging.WARN
 
     def __init__(self):
@@ -242,7 +242,7 @@ class Application(object):
         try:
             self.profile_name = self.command_line_config.Global.profile
             name_parts = self.config_file_name.split('.')
-            name_parts.insert(1, '_' + self.profile_name + '.')
+            name_parts.insert(1, u'_' + self.profile_name + u'.')
             self.config_file_name = ''.join(name_parts)
         except AttributeError:
             pass
@@ -280,7 +280,7 @@ class Application(object):
             self.file_config = Config()
         except:
             self.log.warn("Error loading config file: %s" % \
-                           self.config_file_name, exc_info=True)
+                          self.config_file_name, exc_info=True)
             self.file_config = Config()
 
     def set_file_config_log_level(self):

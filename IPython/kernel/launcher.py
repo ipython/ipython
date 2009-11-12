@@ -244,8 +244,8 @@ class LocalProcessLauncher(BaseLauncher):
             self.start_deferred = defer.Deferred()
             self.process_transport = reactor.spawnProcess(
                 self.process_protocol,
-                str(self.args[0]),
-                [str(a) for a in self.args],
+                str(self.args[0]),  # twisted expects these to be str, not unicode
+                [str(a) for a in self.args],  # str expected, not unicode
                 env=os.environ
             )
             return self.start_deferred

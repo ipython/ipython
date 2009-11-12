@@ -58,7 +58,7 @@ class IPClusterCLLoader(ArgParseConfigLoader):
         # This has all the common options that all subcommands use
         parent_parser1 = argparse.ArgumentParser(add_help=False)
         parent_parser1.add_argument('--ipython-dir', 
-            dest='Global.ipython_dir',type=str,
+            dest='Global.ipython_dir',type=unicode,
             help='Set to override default location of Global.ipython_dir.',
             default=NoConfigDefault,
             metavar='Global.ipython_dir')
@@ -71,7 +71,7 @@ class IPClusterCLLoader(ArgParseConfigLoader):
         # This has all the common options that other subcommands use
         parent_parser2 = argparse.ArgumentParser(add_help=False)
         parent_parser2.add_argument('-p','--profile',
-            dest='Global.profile',type=str,
+            dest='Global.profile',type=unicode,
             default=NoConfigDefault,
             help='The string name of the profile to be used. This determines '
             'the name of the cluster dir as: cluster_<profile>. The default profile '
@@ -80,7 +80,7 @@ class IPClusterCLLoader(ArgParseConfigLoader):
             default=NoConfigDefault,
             metavar='Global.profile')
         parent_parser2.add_argument('--cluster-dir',
-            dest='Global.cluster_dir',type=str,
+            dest='Global.cluster_dir',type=unicode,
             default=NoConfigDefault,
             help='Set the cluster dir. This overrides the logic used by the '
             '--profile option.',
@@ -165,12 +165,12 @@ class IPClusterCLLoader(ArgParseConfigLoader):
         )
 
 
-default_config_file_name = 'ipcluster_config.py'
+default_config_file_name = u'ipcluster_config.py'
 
 
 class IPClusterApp(ApplicationWithClusterDir):
 
-    name = 'ipcluster'
+    name = u'ipcluster'
     description = 'Start an IPython cluster (controller and engines).'
     config_file_name = default_config_file_name
     default_log_level = logging.INFO
@@ -278,7 +278,6 @@ class IPClusterApp(ApplicationWithClusterDir):
 
         # Setup signals
         signal.signal(signal.SIGINT, self.stop_launchers)
-        # signal.signal(signal.SIGKILL, self.stop_launchers)
 
         # Setup the observing of stopping
         d1 = self.controller_launcher.observe_stop()
