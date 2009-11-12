@@ -454,7 +454,8 @@ class ApplicationWithClusterDir(Application):
         """Remove the pid file.
 
         This should be called at shutdown by registering a callback with
-        :func:`reactor.addSystemEventTrigger`.
+        :func:`reactor.addSystemEventTrigger`. This needs to return
+        ``None``.
         """
         pid_file = os.path.join(self.pid_dir, self.name + u'.pid')
         if os.path.isfile(pid_file):
@@ -463,7 +464,6 @@ class ApplicationWithClusterDir(Application):
                 os.remove(pid_file)
             except:
                 self.log.warn("Error removing the pid file: %s" % pid_file)
-                raise
 
     def get_pid_from_file(self):
         """Get the pid from the pid file.

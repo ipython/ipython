@@ -252,8 +252,8 @@ class IPControllerTask(WinHPCTask):
     controller_cmd = List(['ipcontroller.exe'], config=True)
     controller_args = List(['--log-to-file', '--log-level', '40'], config=True)
     # I don't want these to be configurable
-    std_out_file_path = CStr(os.path.join('log','ipcontroller-out.txt'), config=False)
-    std_err_file_path = CStr(os.path.join('log','ipcontroller-err.txt'), config=False)
+    std_out_file_path = CStr('', config=False)
+    std_err_file_path = CStr('', config=False)
     min_cores = Int(1, config=False)
     max_cores = Int(1, config=False)
     min_sockets = Int(1, config=False)
@@ -262,6 +262,12 @@ class IPControllerTask(WinHPCTask):
     max_nodes = Int(1, config=False)
     unit_type = Str("Core", config=False)
     work_directory = CStr('', config=False)
+
+    def __init__(self, parent, name=None, config=None):
+        super(IPControllerTask, self).__init__(parent, name, config)
+        the_uuid = uuid.uuid1()
+        self.std_out_file_path = os.path.join('log','ipcontroller-%s.out' % the_uuid)
+        self.std_err_file_path = os.path.join('log','ipcontroller-%s.err' % the_uuid)
 
     @property
     def command_line(self):
@@ -274,8 +280,8 @@ class IPEngineTask(WinHPCTask):
     engine_cmd = List(['ipengine.exe'], config=True)
     engine_args = List(['--log-to-file', '--log-level', '40'], config=True)
     # I don't want these to be configurable
-    std_out_file_path = CStr(os.path.join('log','ipengine-out-%s.txt' % uuid.uuid1()), config=False)
-    std_err_file_path = CStr(os.path.join('log','ipengine-err-%s.txt' % uuid.uuid1()), config=False)
+    std_out_file_path = CStr('', config=False)
+    std_err_file_path = CStr('', config=False)
     min_cores = Int(1, config=False)
     max_cores = Int(1, config=False)
     min_sockets = Int(1, config=False)
@@ -285,6 +291,12 @@ class IPEngineTask(WinHPCTask):
     unit_type = Str("Core", config=False)
     work_directory = CStr('', config=False)
 
+    def __init__(self, parent, name=None, config=None):
+        super(IPEngineTask,self).__init__(parent, name, config)
+        the_uuid = uuid.uuid1()
+        self.std_out_file_path = os.path.join('log','ipengine-%s.out' % the_uuid)
+        self.std_err_file_path = os.path.join('log','ipengine-%s.err' % the_uuid)
+    
     @property
     def command_line(self):
         return ' '.join(self.engine_cmd + self.engine_args)
