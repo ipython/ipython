@@ -388,12 +388,18 @@ class IPClusterApp(ApplicationWithClusterDir):
             # Here I exit with a unusual exit status that other processes
             # can watch for to learn how I existed.
             self.exit(ALREADY_STOPPED)
-        sig = config.Global.signal
-        self.log.info(
-            "Stopping cluster [pid=%r] with [signal=%r]" % (pid, sig)
-        )
-        os.kill(pid, sig)
-
+        else:
+            if os.name=='posix':
+                sig = config.Global.signal
+                self.log.info(
+                    "Stopping cluster [pid=%r] with [signal=%r]" % (pid, sig)
+                )
+                os.kill(pid, sig)
+            elif os.name='nt':
+                # As of right now, we don't support daemonize on Windows, so
+                # stop will not do anything. Minimally, it should clean up the
+                # old .pid files.
+                self.remove_pid_file()
 
 def launch_new_instance():
     """Create and run the IPython cluster."""
