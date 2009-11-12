@@ -36,7 +36,7 @@ c = get_config()
 
 # The working directory for the process. The application will use os.chdir
 # to change to this directory before starting.
-# c.Global.working_dir = os.getcwd()
+# c.Global.work_dir = os.getcwd()
 
 #-----------------------------------------------------------------------------
 # MPI configuration

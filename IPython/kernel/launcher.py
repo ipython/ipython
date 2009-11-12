@@ -99,11 +99,18 @@ class UnknownStatus(LauncherError):
 class BaseLauncher(Component):
     """An asbtraction for starting, stopping and signaling a process."""
 
-    working_dir = Unicode(u'')
+    # In all of the launchers, the work_dir is where child processes will be
+    # run. This will usually be the cluster_dir, but may not be. any work_dir
+    # passed into the __init__ method will override the config value.
+    # This should not be used to set the work_dir for the actual engine
+    # and controller. Instead, use their own config files or the
+    # controller_args, engine_args attributes of the launchers to add
+    # the --work-dir option.
+    work_dir = Unicode(u'')
 
-    def __init__(self, working_dir, parent=None, name=None, config=None):
+    def __init__(self, work_dir, parent=None, name=None, config=None):
         super(BaseLauncher, self).__init__(parent, name, config)
-        self.working_dir = working_dir
+        self.work_dir = work_dir
         self.state = 'before' # can be before, running, after
         self.stop_deferreds = []
         self.start_data = None
@@ -270,16 +277,16 @@ class LocalProcessLauncher(BaseLauncher):
     """Start and stop an external process in an asynchronous manner.
 
     This will launch the external process with a working directory of
-    ``self.working_dir``.
+    ``self.work_dir``.
     """
 
     # This is used to to construct self.args, which is passed to 
     # spawnProcess.
     cmd_and_args = List([])
 
-    def __init__(self, working_dir, parent=None, name=None, config=None):
+    def __init__(self, work_dir, parent=None, name=None, config=None):
         super(LocalProcessLauncher, self).__init__(
-            working_dir, parent, name, config
+            work_dir, parent, name, config
         )
         self.process_protocol = None
         self.start_deferred = None
@@ -296,7 +303,7 @@ class LocalProcessLauncher(BaseLauncher):
                 str(self.args[0]),  # twisted expects these to be str, not unicode
                 [str(a) for a in self.args],  # str expected, not unicode
                 env=os.environ,
-                path=self.working_dir  # start in the working_dir
+                path=self.work_dir  # start in the work_dir
             )
             return self.start_deferred
         else:
@@ -331,8 +338,7 @@ class LocalControllerLauncher(LocalProcessLauncher):
     controller_args = List(['--log-to-file','--log-level', '40'], config=True)
 
     def find_args(self):
-        return self.controller_cmd + self.controller_args + \
-            ['--working-dir', self.working_dir]
+        return self.controller_cmd + self.controller_args
 
     def start(self, cluster_dir):
         """Start the controller by cluster_dir."""
@@ -352,8 +358,7 @@ class LocalEngineLauncher(LocalProcessLauncher):
     )
 
     def find_args(self):
-        return self.engine_cmd + self.engine_args + \
-            ['--working-dir', self.working_dir]
+        return self.engine_cmd + self.engine_args
 
     def start(self, cluster_dir):
         """Start the engine by cluster_dir."""
@@ -370,9 +375,9 @@ class LocalEngineSetLauncher(BaseLauncher):
         ['--log-to-file','--log-level', '40'], config=True
     )
 
-    def __init__(self, working_dir, parent=None, name=None, config=None):
+    def __init__(self, work_dir, parent=None, name=None, config=None):
         super(LocalEngineSetLauncher, self).__init__(
-            working_dir, parent, name, config
+            work_dir, parent, name, config
         )
         self.launchers = []
 
@@ -381,7 +386,7 @@ class LocalEngineSetLauncher(BaseLauncher):
         self.cluster_dir = unicode(cluster_dir)
         dlist = []
         for i in range(n):
-            el = LocalEngineLauncher(self.working_dir, self)
+            el = LocalEngineLauncher(self.work_dir, self)
             # Copy the engine args over to each engine launcher.
             import copy
             el.engine_args = copy.deepcopy(self.engine_args)
@@ -471,8 +476,7 @@ class MPIExecControllerLauncher(MPIExecLauncher):
 
     def find_args(self):
         return self.mpi_cmd + ['-n', self.n] + self.mpi_args + \
-               self.controller_cmd + self.controller_args + \
-               ['--working-dir', self.working_dir]
+               self.controller_cmd + self.controller_args
 
 
 class MPIExecEngineSetLauncher(MPIExecLauncher):
@@ -481,20 +485,20 @@ class MPIExecEngineSetLauncher(MPIExecLauncher):
     # Command line arguments for ipengine.
     engine_args = List(
         ['--log-to-file','--log-level', '40'], config=True
-    )    
+    )
     n = Int(1, config=True)
 
     def start(self, n, cluster_dir):
         """Start n engines by profile or cluster_dir."""
         self.engine_args.extend(['--cluster-dir', cluster_dir])
         self.cluster_dir = unicode(cluster_dir)
+        self.n = n
         log.msg('Starting MPIExecEngineSetLauncher: %r' % self.args)
         return super(MPIExecEngineSetLauncher, self).start(n)
 
     def find_args(self):
         return self.mpi_cmd + ['-n', self.n] + self.mpi_args + \
-               self.engine_cmd + self.engine_args + \
-               ['--working-dir', self.working_dir]
+               self.engine_cmd + self.engine_args
 
 
 #-----------------------------------------------------------------------------
@@ -565,20 +569,20 @@ class WindowsHPCLauncher(BaseLauncher):
     # The filename of the instantiated job script.
     job_file_name = Unicode(u'ipython_job.xml', config=True)
     # The full path to the instantiated job script. This gets made dynamically
-    # by combining the working_dir with the job_file_name.
+    # by combining the work_dir with the job_file_name.
     job_file = Unicode(u'')
     # The hostname of the scheduler to submit the job to
     scheduler = Str('', config=True)
     job_cmd = Str(find_job_cmd(), config=True)
 
-    def __init__(self, working_dir, parent=None, name=None, config=None):
+    def __init__(self, work_dir, parent=None, name=None, config=None):
         super(WindowsHPCLauncher, self).__init__(
-            working_dir, parent, name, config
+            work_dir, parent, name, config
         )
 
     @property
     def job_file(self):
-        return os.path.join(self.working_dir, self.job_file_name)
+        return os.path.join(self.work_dir, self.job_file_name)
 
     def write_job_file(self, n):
         raise NotImplementedError("Implement write_job_file in a subclass.")
@@ -611,7 +615,7 @@ class WindowsHPCLauncher(BaseLauncher):
         output = yield getProcessOutput(str(self.job_cmd),
             [str(a) for a in args],
             env=dict((str(k),str(v)) for k,v in os.environ.items()),
-            path=self.working_dir
+            path=self.work_dir
         )
         job_id = self.parse_job_id(output)
         self.notify_start(job_id)
@@ -630,7 +634,7 @@ class WindowsHPCLauncher(BaseLauncher):
             output = yield getProcessOutput(str(self.job_cmd),
                 [str(a) for a in args],
                 env=dict((str(k),str(v)) for k,v in os.environ.items()),
-                path=self.working_dir
+                path=self.work_dir
             )
         except:
             output = 'The job already appears to be stoppped: %r' % self.job_id
@@ -651,7 +655,7 @@ class WindowsHPCControllerLauncher(WindowsHPCLauncher):
         # the controller. It is used as the base path for the stdout/stderr
         # files that the scheduler redirects to.
         t.work_directory = self.cluster_dir
-        # Add the --cluster-dir and --working-dir from self.start().
+        # Add the --cluster-dir and from self.start().
         t.controller_args.extend(self.extra_args)
         job.add_task(t)
 
@@ -664,9 +668,7 @@ class WindowsHPCControllerLauncher(WindowsHPCLauncher):
 
     def start(self, cluster_dir):
         """Start the controller by cluster_dir."""
-        self.extra_args = [
-            '--cluster-dir', cluster_dir, '--working-dir', self.working_dir
-        ]
+        self.extra_args = ['--cluster-dir', cluster_dir]
         self.cluster_dir = unicode(cluster_dir)
         return super(WindowsHPCControllerLauncher, self).start(1)
 
@@ -685,7 +687,7 @@ class WindowsHPCEngineSetLauncher(WindowsHPCLauncher):
             # the engine. It is used as the base path for the stdout/stderr
             # files that the scheduler redirects to.
             t.work_directory = self.cluster_dir
-            # Add the --cluster-dir and --working-dir from self.start().
+            # Add the --cluster-dir and from self.start().
             t.engine_args.extend(self.extra_args)
             job.add_task(t)
 
@@ -698,9 +700,7 @@ class WindowsHPCEngineSetLauncher(WindowsHPCLauncher):
 
     def start(self, n, cluster_dir):
         """Start the controller by cluster_dir."""
-        self.extra_args = [
-            '--cluster-dir', cluster_dir, '--working-dir', self.working_dir
-        ]
+        self.extra_args = ['--cluster-dir', cluster_dir]
         self.cluster_dir = unicode(cluster_dir)
         return super(WindowsHPCEngineSetLauncher, self).start(n)
 
@@ -739,11 +739,11 @@ class BatchSystemLauncher(BaseLauncher):
     # The full path to the instantiated batch script.
     batch_file = Unicode(u'')
 
-    def __init__(self, working_dir, parent=None, name=None, config=None):
+    def __init__(self, work_dir, parent=None, name=None, config=None):
         super(BatchSystemLauncher, self).__init__(
-            working_dir, parent, name, config
+            work_dir, parent, name, config
         )
-        self.batch_file = os.path.join(self.working_dir, self.batch_file_name)
+        self.batch_file = os.path.join(self.work_dir, self.batch_file_name)
         self.context = {}
 
     def parse_job_id(self, output):
@@ -758,7 +758,7 @@ class BatchSystemLauncher(BaseLauncher):
         return job_id
 
     def write_batch_script(self, n):
-        """Instantiate and write the batch script to the working_dir."""
+        """Instantiate and write the batch script to the work_dir."""
         self.context['n'] = n
         script_as_string = Itpl.itplns(self.batch_template, self.context)
         log.msg('Writing instantiated batch script: %s' % self.batch_file)

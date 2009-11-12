@@ -86,11 +86,11 @@ class IPClusterCLLoader(ArgParseConfigLoader):
             '--profile option.',
             default=NoConfigDefault,
             metavar='Global.cluster_dir'),
-        parent_parser2.add_argument('--working-dir',
-            dest='Global.working_dir',type=unicode,
+        parent_parser2.add_argument('--work-dir',
+            dest='Global.work_dir',type=unicode,
             help='Set the working dir for the process.',
             default=NoConfigDefault,
-            metavar='Global.working_dir')
+            metavar='Global.work_dir')
         parent_parser2.add_argument('--log-to-file',
             action='store_true', dest='Global.log_to_file', 
             default=NoConfigDefault,
@@ -247,7 +247,7 @@ class IPClusterApp(ApplicationWithClusterDir):
                     print start_cmd + " ==> " + full_path
 
     def pre_construct(self):
-        # This is where we cd to the working directory.
+        # IPClusterApp.pre_construct() is where we cd to the working directory.
         super(IPClusterApp, self).pre_construct()
         config = self.master_config
         try:
@@ -272,14 +272,17 @@ class IPClusterApp(ApplicationWithClusterDir):
     def start_launchers(self):
         config = self.master_config
 
-        # Create the launchers
+        # Create the launchers. In both bases, we set the work_dir of
+        # the launcher to the cluster_dir. This is where the launcher's
+        # subprocesses will be launched. It is not where the controller
+        # and engine will be launched.
         el_class = import_item(config.Global.engine_launcher)
         self.engine_launcher = el_class(
-            self.cluster_dir, config=config
+            work_dir=self.cluster_dir, config=config
         )
         cl_class = import_item(config.Global.controller_launcher)
         self.controller_launcher = cl_class(
-            self.cluster_dir, config=config
+            work_dir=self.cluster_dir, config=config
         )
 
         # Setup signals

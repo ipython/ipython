@@ -47,22 +47,19 @@ c = get_config()
 
 # The working directory for the process. The application will use os.chdir
 # to change to this directory before starting.
-# c.Global.working_dir = os.getcwd()
+# c.Global.work_dir = os.getcwd()
 
 
 #-----------------------------------------------------------------------------
 # Local process launchers
 #-----------------------------------------------------------------------------
 
-# The working directory for the controller
-# c.LocalControllerLauncher.working_dir = u''
-
 # The command line arguments to call the controller with.
 # c.LocalControllerLauncher.controller_args = \
 #    ['--log-to-file','--log-level', '40']
 
 # The working directory for the controller
-# c.LocalEngineSetLauncher.working_dir = u''
+# c.LocalEngineSetLauncher.work_dir = u''
 
 # Command line argument passed to the engines.
 # c.LocalEngineSetLauncher.engine_args = ['--log-to-file','--log-level', '40']
@@ -70,9 +67,6 @@ c = get_config()
 #-----------------------------------------------------------------------------
 # MPIExec launchers
 #-----------------------------------------------------------------------------
-
-# The working directory for the controller
-# c.MPIExecControllerLauncher.working_dir = u''
 
 # The mpiexec/mpirun command to use in started the controller.
 # c.MPIExecControllerLauncher.mpi_cmd = ['mpiexec']
@@ -84,9 +78,6 @@ c = get_config()
 # c.MPIExecControllerLauncher.controller_args = \
 #     ['--log-to-file','--log-level', '40']
 
-
-# The working directory for the controller
-# c.MPIExecEngineSetLauncher.working_dir = u''
 
 # The mpiexec/mpirun command to use in started the controller.
 # c.MPIExecEngineSetLauncher.mpi_cmd = ['mpiexec']
@@ -111,9 +102,6 @@ c = get_config()
 # Unix batch (PBS) schedulers launchers
 #-----------------------------------------------------------------------------
 
-# The working directory for the controller
-# c.PBSControllerLauncher.working_dir = u''
-
 # The command line program to use to submit a PBS job.
 # c.PBSControllerLauncher.submit_command = 'qsub'
 
@@ -125,17 +113,14 @@ c = get_config()
 
 # The batch submission script used to start the controller. This is where
 # environment variables would be setup, etc. This string is interpolated using
-# the Itpl module in IPython.external. Basically, you can use ${profile} for 
-# the controller profile or ${cluster_dir} for the cluster_dir.
+# the Itpl module in IPython.external. Basically, you can use ${n} for the
+# number of engine and ${cluster_dir} for the cluster_dir.
 # c.PBSControllerLauncher.batch_template = """"""
 
 # The name of the instantiated batch script that will actually be used to
 # submit the job. This will be written to the cluster directory.
 # c.PBSControllerLauncher.batch_file_name = u'pbs_batch_script_controller'
 
-
-# The working directory for the controller
-# c.PBSEngineSetLauncher.working_dir = u''
 
 # The command line program to use to submit a PBS job.
 # c.PBSEngineSetLauncher.submit_command = 'qsub'
@@ -149,8 +134,7 @@ c = get_config()
 # The batch submission script used to start the engines. This is where
 # environment variables would be setup, etc. This string is interpolated using
 # the Itpl module in IPython.external. Basically, you can use ${n} for the
-# number of engine, ${profile} or the engine profile and ${cluster_dir} 
-# for the cluster_dir.
+# number of engine and ${cluster_dir} for the cluster_dir.
 # c.PBSEngineSetLauncher.batch_template = """"""
 
 # The name of the instantiated batch script that will actually be used to
@@ -173,7 +157,6 @@ c = get_config()
 # c.IPControllerTask.controller_args = ['--log-to-file', '--log-level', '40']
 # c.IPControllerTask.environment_variables = {}
 
-# c.WindowsHPCControllerLauncher.working_dir = u''
 # c.WindowsHPCControllerLauncher.scheduler = 'HEADNODE'
 # c.WindowsHPCControllerLauncher.job_file_name = u'ipcontroller_job.xml'
 
@@ -190,7 +173,6 @@ c = get_config()
 # c.IPEngineTask.engine_args = ['--log-to-file', '--log-level', '40']
 # c.IPEngineTask.environment_variables = {}
 
-# c.WindowsHPCEngineSetLauncher.working_dir = u''
 # c.WindowsHPCEngineSetLauncher.scheduler = 'HEADNODE'
 # c.WindowsHPCEngineSetLauncher.job_file_name = u'ipengineset_job.xml'
 
