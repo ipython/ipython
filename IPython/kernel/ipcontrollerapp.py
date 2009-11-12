@@ -34,7 +34,7 @@ from IPython.kernel.clusterdir import (
 
 from IPython.core import release
 
-from IPython.utils.traitlets import Str, Instance
+from IPython.utils.traitlets import Str, Instance, Unicode
 
 from IPython.kernel import controllerservice
 

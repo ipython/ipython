@@ -332,6 +332,13 @@ class SSHLauncher(BaseLauncher):
         return super(SSHLauncher, self).start()
 
 
+# This is only used on Windows.
+if os.name=='nt':
+    job_cmd = find_cmd('job')
+else:
+    job_cmd = 'job'
+
+
 class WindowsHPCLauncher(BaseLauncher):
 
     # A regular expression used to get the job id from the output of the 
@@ -349,7 +356,7 @@ class WindowsHPCLauncher(BaseLauncher):
         default_value='Highest', config=True)
     requested_nodes = Str('', config=True)
     project = Str('MyProject', config=True)
-    job_cmd = Str(find_cmd('job'), config=True)
+    job_cmd = Str(job_cmd, config=True)
 
     def __init__(self, working_dir, parent=None, name=None, config=None):
         super(WindowsHPCLauncher, self).__init__(
