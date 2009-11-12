@@ -8,26 +8,34 @@ c = get_config()
 
 # This allows you to control what method is used to start the controller
 # and engines.  The following methods are currently supported:
-# * Start as a regular process on localhost.
-# * Start using mpiexec.
-# * Start using PBS
-# * Start using SSH (currently broken)
+# - Start as a regular process on localhost.
+# - Start using mpiexec.
+# - Start using the Windows HPC Server 2008 scheduler
+# - Start using PBS
+# - Start using SSH (currently broken)
+
 
 # The selected launchers can be configured below.
 
-# Options are (LocalControllerLauncher, MPIExecControllerLauncher,
-# PBSControllerLauncher, WindowsHPCControllerLauncher)
+# Options are:
+# - LocalControllerLauncher
+# - MPIExecControllerLauncher
+# - PBSControllerLauncher
+# - WindowsHPCControllerLauncher
 # c.Global.controller_launcher = 'IPython.kernel.launcher.LocalControllerLauncher'
 
-# Options are (LocalEngineSetLauncher, MPIExecEngineSetLauncher,
-# PBSEngineSetLauncher)
+# Options are:
+# - LocalEngineSetLauncher
+# - MPIExecEngineSetLauncher
+# - PBSEngineSetLauncher
+# - WindowsHPCEngineSetLauncher
 # c.Global.engine_launcher = 'IPython.kernel.launcher.LocalEngineSetLauncher'
 
 #-----------------------------------------------------------------------------
 # Global configuration
 #-----------------------------------------------------------------------------
 
-# The default number of engine that will be started. This is overridden by
+# The default number of engines that will be started. This is overridden by
 # the -n command line option: "ipcluster start -n 4"
 # c.Global.n = 2
 
@@ -41,17 +49,30 @@ c = get_config()
 # to change to this directory before starting.
 # c.Global.working_dir = os.getcwd()
 
+
 #-----------------------------------------------------------------------------
-# Controller launcher configuration
+# Local process launchers
 #-----------------------------------------------------------------------------
 
-# Configure how the controller is started. The configuration of the controller
-# can also bet setup by editing the controller config file: 
-# ipcontroller_config.py
+# The working directory for the controller
+# c.LocalControllerLauncher.working_dir = u''
 
 # The command line arguments to call the controller with.
 # c.LocalControllerLauncher.controller_args = \
 #    ['--log-to-file','--log-level', '40']
+
+# The working directory for the controller
+# c.LocalEngineSetLauncher.working_dir = u''
+
+# Command line argument passed to the engines.
+# c.LocalEngineSetLauncher.engine_args = ['--log-to-file','--log-level', '40']
+
+#-----------------------------------------------------------------------------
+# MPIExec launchers
+#-----------------------------------------------------------------------------
+
+# The working directory for the controller
+# c.MPIExecControllerLauncher.working_dir = u''
 
 # The mpiexec/mpirun command to use in started the controller.
 # c.MPIExecControllerLauncher.mpi_cmd = ['mpiexec']
@@ -62,6 +83,36 @@ c = get_config()
 # The command line argument to call the controller with.
 # c.MPIExecControllerLauncher.controller_args = \
 #     ['--log-to-file','--log-level', '40']
+
+
+# The working directory for the controller
+# c.MPIExecEngineSetLauncher.working_dir = u''
+
+# The mpiexec/mpirun command to use in started the controller.
+# c.MPIExecEngineSetLauncher.mpi_cmd = ['mpiexec']
+
+# Additional arguments to pass to the actual mpiexec command.
+# c.MPIExecEngineSetLauncher.mpi_args = []
+
+# Command line argument passed to the engines.
+# c.MPIExecEngineSetLauncher.engine_args = ['--log-to-file','--log-level', '40']
+
+# The default number of engines to start if not given elsewhere.
+# c.MPIExecEngineSetLauncher.n = 1
+
+#-----------------------------------------------------------------------------
+# SSH launchers
+#-----------------------------------------------------------------------------
+
+# Todo
+
+
+#-----------------------------------------------------------------------------
+# Unix batch (PBS) schedulers launchers
+#-----------------------------------------------------------------------------
+
+# The working directory for the controller
+# c.PBSControllerLauncher.working_dir = u''
 
 # The command line program to use to submit a PBS job.
 # c.PBSControllerLauncher.submit_command = 'qsub'
@@ -82,63 +133,9 @@ c = get_config()
 # submit the job. This will be written to the cluster directory.
 # c.PBSControllerLauncher.batch_file_name = u'pbs_batch_script_controller'
 
-#-----------------------------------------------------------------------------
-# Windows HPC Server 2008 launcher configuration
-#-----------------------------------------------------------------------------
 
-# c.WinHPCJob.username = 'DOMAIN\\user'
-# c.WinHPCJob.priority = 'Highest'
-# c.WinHPCJob.requested_nodes = ''
-# c.WinHPCJob.project = ''
-# c.WinHPCJob.is_exclusive = False
-
-# c.WinHPCTask.environment_variables = {}
-# c.WinHPCTask.work_directory = ''
-# c.WinHPCTask.is_rerunnable = True
-
-# c.IPControllerTask.task_name = 'IPController'
-# c.IPControllerTask.controller_cmd = [u'ipcontroller.exe']
-# c.IPControllerTask.controller_args = ['--log-to-file', '--log-level', '40']
-# c.IPControllerTask.environment_variables = {}
-
-# c.IPEngineTask.task_name = 'IPController'
-# c.IPEngineTask.engine_cmd = [u'ipengine.exe']
-# c.IPEngineTask.engine_args = ['--log-to-file', '--log-level', '40']
-# c.IPEngineTask.environment_variables = {}
-
-# c.WindowsHPCLauncher.scheduler = 'HEADNODE'
-# c.WindowsHPCLauncher.username = '\\DOMAIN\USERNAME'
-# c.WindowsHPCLauncher.priority = 'Highest'
-# c.WindowsHPCLauncher.requested_nodes = ''
-# c.WindowsHPCLauncher.job_file_name = u'ipython_job.xml'
-# c.WindowsHPCLauncher.project = 'MyProject'
-
-# c.WindowsHPCControllerLauncher.scheduler = 'HEADNODE'
-# c.WindowsHPCControllerLauncher.username = '\\DOMAIN\USERNAME'
-# c.WindowsHPCControllerLauncher.priority = 'Highest'
-# c.WindowsHPCControllerLauncher.requested_nodes = ''
-# c.WindowsHPCControllerLauncher.job_file_name = u'ipcontroller_job.xml'
-# c.WindowsHPCControllerLauncher.project = 'MyProject'
-
-
-#-----------------------------------------------------------------------------
-# Engine launcher configuration
-#-----------------------------------------------------------------------------
-
-# Command line argument passed to the engines.
-# c.LocalEngineSetLauncher.engine_args = ['--log-to-file','--log-level', '40']
-
-# The mpiexec/mpirun command to use in started the controller.
-# c.MPIExecEngineSetLauncher.mpi_cmd = ['mpiexec']
-
-# Additional arguments to pass to the actual mpiexec command.
-# c.MPIExecEngineSetLauncher.mpi_args = []
-
-# Command line argument passed to the engines.
-# c.MPIExecEngineSetLauncher.engine_args = ['--log-to-file','--log-level', '40']
-
-# The default number of engines to start if not given elsewhere.
-# c.MPIExecEngineSetLauncher.n = 1
+# The working directory for the controller
+# c.PBSEngineSetLauncher.working_dir = u''
 
 # The command line program to use to submit a PBS job.
 # c.PBSEngineSetLauncher.submit_command = 'qsub'
@@ -161,37 +158,44 @@ c = get_config()
 # c.PBSEngineSetLauncher.batch_file_name = u'pbs_batch_script_engines'
 
 #-----------------------------------------------------------------------------
-# Base launcher configuration
+# Windows HPC Server 2008 launcher configuration
 #-----------------------------------------------------------------------------
 
-# The various launchers are organized into an inheritance hierarchy. 
-# The configurations can also be iherited and the following attributes 
-# allow you to configure the base classes.
+# c.IPControllerJob.job_name = 'IPController'
+# c.IPControllerJob.is_exclusive = False
+# c.IPControllerJob.username = 'USERDOMAIN\\USERNAME'
+# c.IPControllerJob.priority = 'Highest'
+# c.IPControllerJob.requested_nodes = ''
+# c.IPControllerJob.project = 'MyProject'
 
-# c.MPIExecLauncher.mpi_cmd = ['mpiexec']
-# c.MPIExecLauncher.mpi_args = []
-# c.MPIExecLauncher.program = []
-# c.MPIExecLauncher.program_args = []
-# c.MPIExecLauncher.n = 1
+# c.IPControllerTask.task_name = 'IPController'
+# c.IPControllerTask.controller_cmd = [u'ipcontroller.exe']
+# c.IPControllerTask.controller_args = ['--log-to-file', '--log-level', '40']
+# c.IPControllerTask.environment_variables = {}
 
-# c.SSHLauncher.ssh_cmd = ['ssh']
-# c.SSHLauncher.ssh_args = []
-# c.SSHLauncher.program = []
-# s.SSHLauncher.program_args = []
-# c.SSHLauncher.hostname = ''
-# c.SSHLauncher.user = os.environ['USER']
+# c.WindowsHPCControllerLauncher.working_dir = u''
+# c.WindowsHPCControllerLauncher.scheduler = 'HEADNODE'
+# c.WindowsHPCControllerLauncher.job_file_name = u'ipcontroller_job.xml'
 
-# c.BatchSystemLauncher.submit_command
-# c.BatchSystemLauncher.delete_command
-# c.BatchSystemLauncher.job_id_regexp
-# c.BatchSystemLauncher.batch_template
-# c.BatchSystemLauncher.batch_file_name
 
-# c.PBSLauncher.submit_command = 'qsub'
-# c.PBSLauncher.delete_command = 'qdel'
-# c.PBSLauncher.job_id_regexp = '\d+'
-# c.PBSLauncher.batch_template = """"""
-# c.PBSLauncher.batch_file_name = u'pbs_batch_script'
+# c.IPEngineSetJob.job_name = 'IPEngineSet'
+# c.IPEngineSetJob.is_exclusive = False
+# c.IPEngineSetJob.username = 'USERDOMAIN\\USERNAME'
+# c.IPEngineSetJob.priority = 'Highest'
+# c.IPEngineSetJob.requested_nodes = ''
+# c.IPEngineSetJob.project = 'MyProject'
+
+# c.IPEngineTask.task_name = 'IPEngine'
+# c.IPEngineTask.engine_cmd = [u'ipengine.exe']
+# c.IPEngineTask.engine_args = ['--log-to-file', '--log-level', '40']
+# c.IPEngineTask.environment_variables = {}
+
+# c.WindowsHPCEngineSetLauncher.working_dir = u''
+# c.WindowsHPCEngineSetLauncher.scheduler = 'HEADNODE'
+# c.WindowsHPCEngineSetLauncher.job_file_name = u'ipengineset_job.xml'
+
+
+
 
 
 

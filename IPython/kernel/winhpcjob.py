@@ -67,6 +67,15 @@ def indent(elem, level=0):
             elem.tail = i
 
 
+def find_username():
+    domain = os.environ.get('USERDOMAIN')
+    username = os.environ.get('USERNAME','')
+    if domain is None:
+        return username
+    else:
+        return '%s\\%s' % (domain, username)
+
+
 class WinHPCJob(Component):
 
     job_id = Str('')
@@ -82,7 +91,7 @@ class WinHPCJob(Component):
     auto_calculate_max = Bool(True, config=True)
     run_until_canceled = Bool(False, config=True)
     is_exclusive = Bool(False, config=True)
-    username = Str(os.environ.get('USERNAME', ''), config=True)
+    username = Str(find_username(), config=True)
     job_type = Str('Batch', config=True)
     priority = Enum(('Lowest','BelowNormal','Normal','AboveNormal','Highest'),
         default_value='Highest', config=True)
@@ -216,7 +225,27 @@ class WinHPCTask(Component):
 
 
 # By declaring these, we can configure the controller and engine separately!
-        
+
+class IPControllerJob(WinHPCJob):
+    job_name = Str('IPController', config=False)
+    is_exclusive = Bool(False, config=True)
+    username = Str(find_username(), config=True)
+    priority = Enum(('Lowest','BelowNormal','Normal','AboveNormal','Highest'),
+        default_value='Highest', config=True)
+    requested_nodes = Str('', config=True)
+    project = Str('IPython', config=True)
+
+
+class IPEngineSetJob(WinHPCJob):
+    job_name = Str('IPEngineSet', config=False)
+    is_exclusive = Bool(False, config=True)
+    username = Str(find_username(), config=True)
+    priority = Enum(('Lowest','BelowNormal','Normal','AboveNormal','Highest'),
+        default_value='Highest', config=True)
+    requested_nodes = Str('', config=True)
+    project = Str('IPython', config=True)
+
+
 class IPControllerTask(WinHPCTask):
 
     task_name = Str('IPController', config=True)
