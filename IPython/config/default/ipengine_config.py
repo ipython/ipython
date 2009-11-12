@@ -34,6 +34,10 @@ c = get_config()
 # attribute can be set to the full path of the FURL file.
 # c.Global.furl_file = u''
 
+# The working directory for the process. The application will use os.chdir
+# to change to this directory before starting.
+# c.Global.working_dir = os.getcwd()
+
 #-----------------------------------------------------------------------------
 # MPI configuration
 #-----------------------------------------------------------------------------

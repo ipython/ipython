@@ -154,8 +154,7 @@ class IPEngineApp(ApplicationWithClusterDir):
             config.Global.furl_file = try_this
 
     def construct(self):
-        # I am a little hesitant to put these into InteractiveShell itself.
-        # But that might be the place for them
+        # This is the working dir by now.
         sys.path.insert(0, '')
 
         self.start_mpi()
@@ -224,8 +223,6 @@ class IPEngineApp(ApplicationWithClusterDir):
                 log.msg("Error executing statement: %s" % line)
 
     def start_app(self):
-        # cd to the cluster_dir as our working directory.
-        os.chdir(self.master_config.Global.cluster_dir)
         reactor.run()
 
 

@@ -37,6 +37,10 @@ c = get_config()
 # Remove old logs from cluster_dir/log before starting.
 # c.Global.clean_logs = True
 
+# The working directory for the process. The application will use os.chdir
+# to change to this directory before starting.
+# c.Global.working_dir = os.getcwd()
+
 #-----------------------------------------------------------------------------
 # Controller launcher configuration
 #-----------------------------------------------------------------------------

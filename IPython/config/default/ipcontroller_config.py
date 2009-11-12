@@ -35,6 +35,10 @@ c = get_config()
 # will override the values set for the client and engine connections below.
 # c.Global.secure = True
 
+# The working directory for the process. The application will use os.chdir
+# to change to this directory before starting.
+# c.Global.working_dir = os.getcwd()
+
 #-----------------------------------------------------------------------------
 # Configure the client services
 #-----------------------------------------------------------------------------

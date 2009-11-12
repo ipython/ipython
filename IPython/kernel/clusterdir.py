@@ -256,6 +256,12 @@ class AppWithClusterDirArgParseConfigLoader(ArgParseConfigLoader):
             '--profile option.',
             default=NoConfigDefault,
             metavar='Global.cluster_dir'
+        ),
+        self.parser.add_argument('--working-dir',
+            dest='Global.working_dir',type=unicode,
+            help='Set the working dir for the process.',
+            default=NoConfigDefault,
+            metavar='Global.working_dir'
         )
         self.parser.add_argument('--clean-logs',
             dest='Global.clean_logs', action='store_true',
@@ -293,6 +299,7 @@ class ApplicationWithClusterDir(Application):
         super(ApplicationWithClusterDir, self).create_default_config()
         self.default_config.Global.profile = u'default'
         self.default_config.Global.cluster_dir = u''
+        self.default_config.Global.working_dir = os.getcwd()
         self.default_config.Global.log_to_file = False
         self.default_config.Global.clean_logs = False
 
@@ -398,6 +405,16 @@ class ApplicationWithClusterDir(Application):
         pdir = self.cluster_dir_obj.pid_dir
         self.pid_dir = config.Global.pid_dir = pdir
         self.log.info("Cluster directory set to: %s" % self.cluster_dir)
+        config.Global.working_dir = unicode(genutils.expand_path(config.Global.working_dir))
+        # Change to the working directory. We do this just before construct
+        # is called so all the components there have the right working dir.
+        self.to_working_dir()
+
+    def to_working_dir(self):
+        wd = self.master_config.Global.working_dir
+        if unicode(wd) != unicode(os.getcwd()):
+            os.chdir(wd)
+            self.log.info("Changing to working dir: %s" % wd)
 
     def start_logging(self):
         # Remove old log files

@@ -85,7 +85,12 @@ class IPClusterCLLoader(ArgParseConfigLoader):
             help='Set the cluster dir. This overrides the logic used by the '
             '--profile option.',
             default=NoConfigDefault,
-            metavar='Global.cluster_dir')
+            metavar='Global.cluster_dir'),
+        parent_parser2.add_argument('--working-dir',
+            dest='Global.working_dir',type=unicode,
+            help='Set the working dir for the process.',
+            default=NoConfigDefault,
+            metavar='Global.working_dir')
         parent_parser2.add_argument('--log-to-file',
             action='store_true', dest='Global.log_to_file', 
             default=NoConfigDefault,
@@ -242,6 +247,7 @@ class IPClusterApp(ApplicationWithClusterDir):
                     print start_cmd + " ==> " + full_path
 
     def pre_construct(self):
+        # This is where we cd to the working directory.
         super(IPClusterApp, self).pre_construct()
         config = self.master_config
         try:
@@ -367,8 +373,6 @@ class IPClusterApp(ApplicationWithClusterDir):
 
         # Now write the new pid file AFTER our new forked pid is active.
         self.write_pid_file()
-        # cd to the cluster_dir as our working directory.
-        os.chdir(config.Global.cluster_dir)
         reactor.addSystemEventTrigger('during','shutdown', self.remove_pid_file)
         reactor.run()
 

@@ -222,7 +222,11 @@ class LocalProcessLauncherProtocol(ProcessProtocol):
 
 
 class LocalProcessLauncher(BaseLauncher):
-    """Start and stop an external process in an asynchronous manner."""
+    """Start and stop an external process in an asynchronous manner.
+
+    This will launch the external process with a working directory of
+    ``self.working_dir``.
+    """
 
     # This is used to to construct self.args, which is passed to 
     # spawnProcess.
@@ -246,7 +250,8 @@ class LocalProcessLauncher(BaseLauncher):
                 self.process_protocol,
                 str(self.args[0]),  # twisted expects these to be str, not unicode
                 [str(a) for a in self.args],  # str expected, not unicode
-                env=os.environ
+                env=os.environ,
+                path=self.working_dir  # start in the working_dir
             )
             return self.start_deferred
         else:

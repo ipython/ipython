@@ -213,8 +213,7 @@ class IPControllerApp(ApplicationWithClusterDir):
             del c.Global.secure
 
     def construct(self):
-        # I am a little hesitant to put these into InteractiveShell itself.
-        # But that might be the place for them
+        # This is the working dir by now.
         sys.path.insert(0, '')
 
         self.start_logging()
@@ -250,8 +249,6 @@ class IPControllerApp(ApplicationWithClusterDir):
         # controllers to clober each other. But Windows is not cleaning
         # these up properly.
         self.write_pid_file(overwrite=True)
-        # cd to the cluster_dir as our working directory.
-        os.chdir(self.master_config.Global.cluster_dir)
         # Add a trigger to delete the .pid file upon shutting down.
         reactor.addSystemEventTrigger('during','shutdown', self.remove_pid_file)
         reactor.run()
