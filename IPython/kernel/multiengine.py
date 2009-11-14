@@ -262,9 +262,8 @@ class MultiEngine(ControllerAdapterBase):
         elif targets == 'all':
             eList = self.engines.values()
             if len(eList) == 0:
-                msg = """There are no engines registered.
-                     Check the logs in ~/.ipython/log if you think there should have been."""
-                raise error.NoEnginesRegistered(msg)
+                raise error.NoEnginesRegistered("There are no engines registered. "
+                    "Check the logs if you think there should have been.")
             else:
                 return eList
         else:

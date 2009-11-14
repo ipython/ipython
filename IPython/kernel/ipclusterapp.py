@@ -243,7 +243,7 @@ class IPClusterApp(ApplicationWithClusterDir):
                 full_path = os.path.join(path, f)
                 if os.path.isdir(full_path) and f.startswith('cluster_'):
                     profile = full_path.split('_')[-1]
-                    start_cmd = '"ipcluster start -n 4 -p %s"' % profile
+                    start_cmd = 'ipcluster start -p %s -n 4' % profile
                     print start_cmd + " ==> " + full_path
 
     def pre_construct(self):
@@ -362,7 +362,7 @@ class IPClusterApp(ApplicationWithClusterDir):
             d= self.stop_engines()
             d2 = self.stop_controller()
             # Wait a few seconds to let things shut down.
-            reactor.callLater(3.0, reactor.stop)
+            reactor.callLater(4.0, reactor.stop)
 
     def sigint_handler(self, signum, frame):
         self.stop_launchers()

@@ -275,19 +275,26 @@ class AsyncClientConnector(object):
 
         d = self._try_to_connect(furl_file, delay, max_tries, attempt=0)
         d.addCallback(_wrap_remote_reference)
+        d.addErrback(self._handle_error, furl_file)
         return d
+
+    def _handle_error(self, f, furl_file):
+        raise ClientConnectorError('Could not connect to the controller '
+            'using the FURL file. This usually means that i) the controller '
+            'was not started or ii) a firewall was blocking the client from '
+            'connecting to the controller: %s' % furl_file)
 
     @inlineCallbacks
     def _try_to_connect(self, furl_or_file, delay, max_tries, attempt):
         """Try to connect to the controller with retry logic."""
         if attempt < max_tries:
-            log.msg("Connecting to controller [%r]: %s" % \
-                (attempt, furl_or_file))
+            log.msg("Connecting [%r]" % attempt)
             try:
                 self.furl = find_furl(furl_or_file)
                 # Uncomment this to see the FURL being tried.
                 # log.msg("FURL: %s" % self.furl)
                 rr = yield self.get_reference(self.furl)
+                log.msg("Connected: %s" % furl_or_file)
             except:
                 if attempt==max_tries-1:
                     # This will propagate the exception all the way to the top
