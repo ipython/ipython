@@ -237,14 +237,20 @@ class Component(HasTraitlets):
             self.config = config
             # We used to deepcopy, but for now we are trying to just save
             # by reference.  This *could* have side effects as all components
-            # will share config.
+            # will share config. In fact, I did find such a side effect in
+            # _config_changed below. If a config attribute value was a mutable type
+            # all instances of a component were getting the same copy, effectively
+            # making that a class attribute.
             # self.config = deepcopy(config)
         else:
             if self.parent is not None:
                 self.config = self.parent.config
                 # We used to deepcopy, but for now we are trying to just save
                 # by reference.  This *could* have side effects as all components
-                # will share config.
+                # will share config. In fact, I did find such a side effect in
+                # _config_changed below. If a config attribute value was a mutable type
+                # all instances of a component were getting the same copy, effectively
+                # making that a class attribute.
                 # self.config = deepcopy(self.parent.config)
 
         self.created = datetime.datetime.now()
@@ -315,7 +321,10 @@ class Component(HasTraitlets):
                     else:
                         # print "Setting %s.%s from %s.%s=%r" % \
                         #     (self.__class__.__name__,k,sname,k,config_value)
-                        setattr(self, k, config_value)
+                        # We have to do a deepcopy here if we don't deepcopy the entire
+                        # config object. If we don't, a mutable config_value will be
+                        # shared by all instances, effectively making it a class attribute.
+                        setattr(self, k, deepcopy(config_value))
 
     @property
     def children(self):

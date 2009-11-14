@@ -25,7 +25,7 @@ def print_wordfreq(freqs, n=10):
         print word, count
 
 
-def wordfreq_to_weightsize(worddict, minsize=10, maxsize=50, minalpha=0.4, maxalpha=1.0):
+def wordfreq_to_weightsize(worddict, minsize=25, maxsize=50, minalpha=0.5, maxalpha=1.0):
     mincount = min(worddict.itervalues())
     maxcount = max(worddict.itervalues())
     weights = {}
@@ -37,7 +37,7 @@ def wordfreq_to_weightsize(worddict, minsize=10, maxsize=50, minalpha=0.4, maxal
     return weights
 
 
-def tagcloud(worddict, n=10, minsize=10, maxsize=50, minalpha=0.4, maxalpha=1.0):
+def tagcloud(worddict, n=10, minsize=25, maxsize=50, minalpha=0.5, maxalpha=1.0):
     from matplotlib import pyplot as plt
     import random
 
@@ -55,10 +55,10 @@ def tagcloud(worddict, n=10, minsize=10, maxsize=50, minalpha=0.4, maxalpha=1.0)
     items = zip(alphas, sizes, words)
     items.sort(reverse=True)
     for alpha, size, word in items[:n]:
-        xpos = random.normalvariate(0.5, 0.3)
-        ypos = random.normalvariate(0.5, 0.3)
-        # xpos = random.uniform(0.0,1.0)
-        # ypos = random.uniform(0.0,1.0)
+        # xpos = random.normalvariate(0.5, 0.3)
+        # ypos = random.normalvariate(0.5, 0.3)
+        xpos = random.uniform(0.0,1.0)
+        ypos = random.uniform(0.0,1.0)
         ax.text(xpos, ypos, word.lower(), alpha=alpha, fontsize=size)
     ax.autoscale_view()
     return ax
