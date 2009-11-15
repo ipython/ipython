@@ -39,7 +39,7 @@ from IPython.core.splitinput import split_user_input
 from IPython.core.page import page
 
 from IPython.utils.traitlets import List, Int, Any, Str, CBool, Bool
-from IPython.utils.genutils import make_quoted_expr
+from IPython.utils.genutils import make_quoted_expr, Term
 from IPython.utils.autoattr import auto_attr
 
 #-----------------------------------------------------------------------------

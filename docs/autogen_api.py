@@ -34,6 +34,7 @@ if __name__ == '__main__':
                                         r'\.ipdoctest',
                                         r'\.Gnuplot',
                                         r'\.frontend\.process\.winprocess',
+                                        r'\.Shell',
                                         ]
     docwriter.write_api_docs(outdir)
     docwriter.write_index(outdir, 'gen',
