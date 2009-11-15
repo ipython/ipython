@@ -176,13 +176,23 @@ class IPControllerAppCLConfigLoader(AppWithClusterDirArgParseConfigLoader):
     arguments = cl_args
 
 
+_description = """Start the IPython controller for parallel computing.
+
+The IPython controller provides a gateway between the IPython engines and
+clients. The controller needs to be started before the engines and can be
+configured using command line options or using a cluster directory. Cluster
+directories contain config, log and security files and are usually located in
+your .ipython directory and named as "cluster_<profile>". See the --profile
+and --cluster-dir options for details.
+"""
+
 default_config_file_name = u'ipcontroller_config.py'
 
 
 class IPControllerApp(ApplicationWithClusterDir):
 
     name = u'ipcontroller'
-    description = 'Start the IPython controller for parallel computing.'
+    description = _description
     config_file_name = default_config_file_name
     auto_create_cluster_dir = True
 

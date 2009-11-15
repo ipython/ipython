@@ -87,10 +87,21 @@ mpi.size = 0
 default_config_file_name = u'ipengine_config.py'
 
 
+_description = """Start an IPython engine for parallel computing.\n\n
+
+IPython engines run in parallel and perform computations on behalf of a client
+and controller. A controller needs to be started before the engines. The
+engine can be configured using command line options or using a cluster
+directory. Cluster directories contain config, log and security files and are
+usually located in your .ipython directory and named as "cluster_<profile>".
+See the --profile and --cluster-dir options for details.
+"""
+
+
 class IPEngineApp(ApplicationWithClusterDir):
 
     name = u'ipengine'
-    description = 'Start the IPython engine for parallel computing.'
+    description = _description
     config_file_name = default_config_file_name
     auto_create_cluster_dir = True
 

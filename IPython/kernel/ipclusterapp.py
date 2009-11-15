@@ -171,10 +171,22 @@ class IPClusterCLLoader(ArgParseConfigLoader):
 default_config_file_name = u'ipcluster_config.py'
 
 
+_description = """Start an IPython cluster for parallel computing.\n\n
+
+An IPython cluster consists of 1 controller and 1 or more engines.
+This command automates the startup of these processes using a wide
+range of startup methods (SSH, local processes, PBS, mpiexec,
+Windows HPC Server 2008). To start a cluster with 4 engines on your
+local host simply do "ipcluster start -n 4". For more complex usage 
+you will typically do "ipcluster create -p mycluster", then edit
+configuration files, followed by "ipcluster start -p mycluster -n 4".
+"""
+
+
 class IPClusterApp(ApplicationWithClusterDir):
 
     name = u'ipcluster'
-    description = 'Start an IPython cluster (controller and engines).'
+    description = _description
     config_file_name = default_config_file_name
     default_log_level = logging.INFO
     auto_create_cluster_dir = False
