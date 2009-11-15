@@ -72,7 +72,6 @@ class IPClusterCLLoader(ArgParseConfigLoader):
         parent_parser2 = argparse.ArgumentParser(add_help=False)
         parent_parser2.add_argument('-p','--profile',
             dest='Global.profile',type=unicode,
-            default=NoConfigDefault,
             help='The string name of the profile to be used. This determines '
             'the name of the cluster dir as: cluster_<profile>. The default profile '
             'is named "default".  The cluster directory is resolve this way '
@@ -81,7 +80,6 @@ class IPClusterCLLoader(ArgParseConfigLoader):
             metavar='Global.profile')
         parent_parser2.add_argument('--cluster-dir',
             dest='Global.cluster_dir',type=unicode,
-            default=NoConfigDefault,
             help='Set the cluster dir. This overrides the logic used by the '
             '--profile option.',
             default=NoConfigDefault,
