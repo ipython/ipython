@@ -69,9 +69,7 @@ class ClusterDir(Component):
 
     def _location_changed(self, name, old, new):
         if not os.path.isdir(new):
-            os.makedirs(new, mode=0777)
-        else:
-            os.chmod(new, 0777)
+            os.makedirs(new)
         self.security_dir = os.path.join(new, self.security_dir_name)
         self.log_dir = os.path.join(new, self.log_dir_name)
         self.pid_dir = os.path.join(new, self.pid_dir_name)
@@ -82,9 +80,7 @@ class ClusterDir(Component):
 
     def check_log_dir(self):
         if not os.path.isdir(self.log_dir):
-            os.mkdir(self.log_dir, 0777)
-        else:
-            os.chmod(self.log_dir, 0777)
+            os.mkdir(self.log_dir)
 
     def _security_dir_changed(self, name, old, new):
         self.check_security_dir()
@@ -92,8 +88,7 @@ class ClusterDir(Component):
     def check_security_dir(self):
         if not os.path.isdir(self.security_dir):
             os.mkdir(self.security_dir, 0700)
-        else:
-            os.chmod(self.security_dir, 0700)
+        os.chmod(self.security_dir, 0700)
 
     def _pid_dir_changed(self, name, old, new):
         self.check_pid_dir()
@@ -101,8 +96,7 @@ class ClusterDir(Component):
     def check_pid_dir(self):
         if not os.path.isdir(self.pid_dir):
             os.mkdir(self.pid_dir, 0700)
-        else:
-            os.chmod(self.pid_dir, 0700)
+        os.chmod(self.pid_dir, 0700)
 
     def check_dirs(self):
         self.check_security_dir()

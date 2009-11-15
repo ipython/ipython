@@ -109,7 +109,7 @@ c = get_config()
 # c.PBSControllerLauncher.delete_command = 'qdel'
 
 # A regular expression that takes the output of qsub and find the job id.
-# c.PBSControllerLauncher.job_id_regexp = '\d+'
+# c.PBSControllerLauncher.job_id_regexp = r'\d+'
 
 # The batch submission script used to start the controller. This is where
 # environment variables would be setup, etc. This string is interpolated using
@@ -129,7 +129,7 @@ c = get_config()
 # c.PBSEngineSetLauncher.delete_command = 'qdel'
 
 # A regular expression that takes the output of qsub and find the job id.
-# c.PBSEngineSetLauncher.job_id_regexp = '\d+'
+# c.PBSEngineSetLauncher.job_id_regexp = r'\d+'
 
 # The batch submission script used to start the engines. This is where
 # environment variables would be setup, etc. This string is interpolated using
@@ -147,7 +147,7 @@ c = get_config()
 
 # c.IPControllerJob.job_name = 'IPController'
 # c.IPControllerJob.is_exclusive = False
-# c.IPControllerJob.username = 'USERDOMAIN\\USERNAME'
+# c.IPControllerJob.username = r'USERDOMAIN\USERNAME'
 # c.IPControllerJob.priority = 'Highest'
 # c.IPControllerJob.requested_nodes = ''
 # c.IPControllerJob.project = 'MyProject'
@@ -163,7 +163,7 @@ c = get_config()
 
 # c.IPEngineSetJob.job_name = 'IPEngineSet'
 # c.IPEngineSetJob.is_exclusive = False
-# c.IPEngineSetJob.username = 'USERDOMAIN\\USERNAME'
+# c.IPEngineSetJob.username = r'USERDOMAIN\USERNAME'
 # c.IPEngineSetJob.priority = 'Highest'
 # c.IPEngineSetJob.requested_nodes = ''
 # c.IPEngineSetJob.project = 'MyProject'

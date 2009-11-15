@@ -505,6 +505,7 @@ class MPIExecEngineSetLauncher(MPIExecLauncher):
 # SSH launchers
 #-----------------------------------------------------------------------------
 
+# TODO: Get SSH Launcher working again.
 
 class SSHLauncher(BaseLauncher):
     """A minimal launcher for ssh.
@@ -565,7 +566,7 @@ class WindowsHPCLauncher(BaseLauncher):
 
     # A regular expression used to get the job id from the output of the 
     # submit_command.
-    job_id_regexp = Str('\d+', config=True)
+    job_id_regexp = Str(r'\d+', config=True)
     # The filename of the instantiated job script.
     job_file_name = Unicode(u'ipython_job.xml', config=True)
     # The full path to the instantiated job script. This gets made dynamically
@@ -709,6 +710,7 @@ class WindowsHPCEngineSetLauncher(WindowsHPCLauncher):
 # Batch (PBS) system launchers
 #-----------------------------------------------------------------------------
 
+# TODO: Get PBS launcher working again.
 
 class BatchSystemLauncher(BaseLauncher):
     """Launch an external process using a batch system.
@@ -790,7 +792,7 @@ class PBSLauncher(BatchSystemLauncher):
 
     submit_command = Str('qsub', config=True)
     delete_command = Str('qdel', config=True)
-    job_id_regexp = Str('\d+', config=True)
+    job_id_regexp = Str(r'\d+', config=True)
     batch_template = Str('', config=True)
     batch_file_name = Unicode(u'pbs_batch_script', config=True)
     batch_file = Unicode(u'')

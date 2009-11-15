@@ -208,7 +208,7 @@ class IPClusterApp(ApplicationWithClusterDir):
             self.auto_create_cluster_dir = True
             super(IPClusterApp, self).find_resources()
         elif subcommand=='start' or subcommand=='stop':
-            self.auto_create_cluster_dir = False
+            self.auto_create_cluster_dir = True
             try:
                 super(IPClusterApp, self).find_resources()
             except ClusterDirError:
@@ -257,13 +257,16 @@ class IPClusterApp(ApplicationWithClusterDir):
 
     def construct(self):
         config = self.master_config
-        if config.Global.subcommand=='list':
-            pass
-        elif config.Global.subcommand=='create':
+        subcmd = config.Global.subcommand
+        reset = config.Global.reset_config
+        if subcmd == 'list':
+            return
+        if subcmd == 'create':
             self.log.info('Copying default config files to cluster directory '
-            '[overwrite=%r]' % (config.Global.reset_config,))
-            self.cluster_dir_obj.copy_all_config_files(overwrite=config.Global.reset_config)
-        elif config.Global.subcommand=='start':
+            '[overwrite=%r]' % (reset,))
+            self.cluster_dir_obj.copy_all_config_files(overwrite=reset)
+        if subcmd =='start':
+            self.cluster_dir_obj.copy_all_config_files(overwrite=False)
             self.start_logging()
             reactor.callWhenRunning(self.start_launchers)
 
@@ -410,6 +413,7 @@ class IPClusterApp(ApplicationWithClusterDir):
         self.log.info(
             'Starting ipcluster with [daemon=%r]' % config.Global.daemonize
         )
+        # TODO: Get daemonize working on Windows or as a Windows Server.
         if config.Global.daemonize:
             if os.name=='posix':
                 daemonize()
