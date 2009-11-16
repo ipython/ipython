@@ -1,0 +1,126 @@
+=================
+Parallel examples
+=================
+
+In this section we describe a few more involved examples of using an IPython
+cluster to perform a parallel computation.
+
+150 million digits of pi
+========================
+
+In this example we would like to study the distribution of digits in the
+number pi. More specifically, we are going to study how often each 2
+digits sequence occurs in the first 150 million digits of pi. If the digits
+0-9 occur with equal probability, we expect that each two digits sequence
+(00, 01, ..., 99) will occur 1% of the time.
+
+This examples uses precomputed digits of pi from the website of Professor
+Yasumasa Kanada at the University of Tokoyo (http://www.super-computing.org).
+These digits come in a set of ``.txt`` files
+(ftp://pi.super-computing.org/.2/pi200m/) that each have 10 million digits of
+pi. In the parallel computation, we will use the :meth:`MultiEngineClient.map`
+method to have each engine compute the desired statistics on a subset of these
+files. Before I started the parallel computation, I copied the data files
+to the compute nodes so the engine have fast access to them.
+
+Here are the Python functions for counting the frequencies of each two digit
+sequence in serial::
+
+    def compute_two_digit_freqs(filename):
+        """
+        Compute the two digit frequencies from a single file.
+        """
+        d = txt_file_to_digits(filename)
+        freqs = two_digit_freqs(d)
+        return freqs
+    
+    def txt_file_to_digits(filename, the_type=str):
+        """
+        Yield the digits of pi read from a .txt file.
+        """
+        with open(filename, 'r') as f:
+            for line in f.readlines():
+                for c in line:
+                    if c != '\n' and c!= ' ':
+                        yield the_type(c)
+
+    def two_digit_freqs(digits, normalize=False):
+        """
+        Consume digits of pi and compute 2 digits freq. counts.
+        """
+        freqs = np.zeros(100, dtype='i4')
+        last = digits.next()
+        this = digits.next()
+        for d in digits:
+            index = int(last + this)
+            freqs[index] += 1
+            last = this
+            this = d
+        if normalize:
+            freqs = freqs/freqs.sum()
+        return freqs
+
+These functions are defined in the file :file:`pidigits.py`. To perform the
+calculation in parallel, we use an additional file: :file:`parallelpi.py`::
+
+    from IPython.kernel import client
+    from matplotlib import pyplot as plt
+    import numpy as np
+    from pidigits import *
+    from timeit import default_timer as clock
+
+    # Files with digits of pi (10m digits each)
+    filestring = 'pi200m-ascii-%(i)02dof20.txt'
+    files = [filestring % {'i':i} for i in range(1,16)]
+
+    # A function for reducing the frequencies calculated
+    # by different engines.
+    def reduce_freqs(freqlist):
+        allfreqs = np.zeros_like(freqlist[0])
+        for f in freqlist:
+            allfreqs += f
+        return allfreqs
+
+    # Connect to the IPython cluster
+    mec = client.MultiEngineClient(profile='mycluster')
+    mec.run('pidigits.py')
+
+    # Run 10m digits on 1 engine
+    mapper = mec.mapper(targets=0)
+    t1 = clock()
+    freqs10m = mapper.map(compute_two_digit_freqs, files[:1])[0]
+    t2 = clock()
+    digits_per_second1 = 10.0e6/(t2-t1)
+    print "Digits per second (1 core, 10m digits):   ", digits_per_second1
+
+    # Run 150m digits on 15 engines (8 cores)
+    t1 = clock()
+    freqs_all = mec.map(compute_two_digit_freqs, files[:len(mec)])
+    freqs150m = reduce_freqs(freqs_all)
+    t2 = clock()
+    digits_per_second8 = 150.0e6/(t2-t1)
+    print "Digits per second (8 cores, 150m digits): ", digits_per_second8
+
+    print "Speedup: ", digits_per_second8/digits_per_second1
+
+    plot_two_digit_freqs(freqs150m)
+    plt.title("2 digit sequences in 150m digits of pi")
+
+To run this code on an IPython cluster:
+
+1. Start an IPython cluster with 15 engines: ``ipcluster start -p mycluster -n 15``
+2. Open IPython's interactive shell using the pylab profile
+   ``ipython -p pylab`` and type ``run parallelpi.py``.
+
+At this point, the parallel calculation will begin. On a small an 8 core
+cluster, we observe a speedup of 7.7x. The resulting plot of the two digit
+sequences is shown in the following screenshot.
+
+.. image:: parallel_pi.*
+
+
+Parallel option pricing
+=======================
+
+The example will be added at a later point.
+

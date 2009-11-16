@@ -162,10 +162,13 @@ latex_font_size = '11pt'
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, document class [howto/manual]).
 
-latex_documents = [ ('index', 'ipython.tex', 'IPython Documentation',
-                     ur"""The IPython Development Team""",
-                     'manual', True),
-                    ]
+latex_documents = [
+    ('index', 'ipython.tex', 'IPython Documentation',
+     ur"""The IPython Development Team""", 'manual', True),
+    ('parallel/winhpc_index', 'winhpc_whitepaper.tex',
+     'Using IPython on Windows HPC Server 2008',
+     ur"Brian E. Granger", 'manual', True)
+]
 
 # The name of an image file (relative to this directory) to place at the top of
 # the title page.
