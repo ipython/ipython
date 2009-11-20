@@ -7,11 +7,11 @@ from mcpricer import price_options
 
 # The MultiEngineClient is used to setup the calculation and works with all
 # engine.
-mec = client.MultiEngineClient(profile='default')
+mec = client.MultiEngineClient(profile='mycluster')
 
 # The TaskClient is an interface to the engines that provides dynamic load 
 # balancing at the expense of not knowing which engine will execute the code.
-tc = client.TaskClient(profile='default')
+tc = client.TaskClient(profile='mycluster')
 
 # Initialize the common code on the engines. This Python module has the
 # price_options function that prices the options.
@@ -28,10 +28,10 @@ def my_prices(K, sigma):
     return price_options(S, K, sigma, r, days, paths)
 
 # Create arrays of strike prices and volatilities
-nK = 5
-nsigma = 5
+nK = 10
+nsigma = 10
 K_vals = np.linspace(90.0, 100.0, nK)
-sigma_vals = np.linspace(0.0, 0.2, nsigma)
+sigma_vals = np.linspace(0.1, 0.4, nsigma)
 
 # Submit tasks to the TaskClient for each (K, sigma) pair as a MapTask.
 # The MapTask simply applies a function (my_prices) to the arguments:
@@ -42,7 +42,7 @@ for K in K_vals:
         t = client.MapTask(my_prices, args=(K, sigma))
         taskids.append(tc.run(t))
 
-print "Submitted tasks: ", taskids
+print "Submitted tasks: ", len(taskids)
 
 # Block until all tasks are completed.
 tc.barrier(taskids)
