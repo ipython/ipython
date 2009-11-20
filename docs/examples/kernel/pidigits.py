@@ -24,16 +24,34 @@ from matplotlib import pyplot as plt
 # Top-level functions
 
 def compute_one_digit_freqs(filename):
+    """
+    Read digits of pi from a file and compute the 1 digit frequencies.
+    """
     d = txt_file_to_digits(filename)
     freqs = one_digit_freqs(d)
     return freqs
 
 def compute_two_digit_freqs(filename):
+    """
+    Read digits of pi from a file and compute the 2 digit frequencies.
+    """
     d = txt_file_to_digits(filename)
     freqs = two_digit_freqs(d)
     return freqs
 
+def reduce_freqs(freqlist):
+    """
+    Add up a list of freq counts to get the total counts.
+    """
+    allfreqs = np.zeros_like(freqlist[0])
+    for f in freqlist:
+        allfreqs += f
+    return allfreqs
+
 def compute_n_digit_freqs(filename, n):
+    """
+    Read digits of pi from a file and compute the n digit frequencies.
+    """
     d = txt_file_to_digits(filename)
     freqs = n_digit_freqs(d, n)
     return freqs

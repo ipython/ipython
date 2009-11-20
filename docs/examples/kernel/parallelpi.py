@@ -25,15 +25,6 @@ filestring = 'pi200m-ascii-%(i)02dof20.txt'
 files = [filestring % {'i':i} for i in range(1,16)]
 
 
-# A function for reducing the frequencies calculated
-# by different engines.
-def reduce_freqs(freqlist):
-    allfreqs = np.zeros_like(freqlist[0])
-    for f in freqlist:
-        allfreqs += f
-    return allfreqs
-
-
 # Connect to the IPython cluster
 mec = client.MultiEngineClient(profile='mycluster')
 mec.run('pidigits.py')
@@ -42,9 +33,7 @@ mec.run('pidigits.py')
 # Run 10m digits on 1 engine
 mapper = mec.mapper(targets=0)
 t1 = clock()
-
 freqs10m = mapper.map(compute_two_digit_freqs, files[:1])[0]
-
 t2 = clock()
 digits_per_second1 = 10.0e6/(t2-t1)
 print "Digits per second (1 core, 10m digits):   ", digits_per_second1
@@ -52,10 +41,8 @@ print "Digits per second (1 core, 10m digits):   ", digits_per_second1
 
 # Run 150m digits on 15 engines (8 cores)
 t1 = clock()
-
 freqs_all = mec.map(compute_two_digit_freqs, files[:len(mec)])
 freqs150m = reduce_freqs(freqs_all)
-
 t2 = clock()
 digits_per_second8 = 150.0e6/(t2-t1)
 print "Digits per second (8 cores, 150m digits): ", digits_per_second8

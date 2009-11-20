@@ -2,125 +2,269 @@
 Parallel examples
 =================
 
-In this section we describe a few more involved examples of using an IPython
-cluster to perform a parallel computation.
+In this section we describe two more involved examples of using an IPython
+cluster to perform a parallel computation. In these examples, we will be using
+IPython's "pylab" mode, which enables interactive plotting using the
+Matplotlib package. IPython can be started in this mode by typing::
+
+    ipython -p pylab
+
+at the system command line. If this prints an error message, you will 
+need to install the default profiles from within IPython by doing,
+
+.. sourcecode:: ipython
+
+    In [1]: %install_profiles
+
+and then restarting IPython.
 
 150 million digits of pi
 ========================
 
 In this example we would like to study the distribution of digits in the
-number pi. More specifically, we are going to study how often each 2
-digits sequence occurs in the first 150 million digits of pi. If the digits
-0-9 occur with equal probability, we expect that each two digits sequence
-(00, 01, ..., 99) will occur 1% of the time.
+number pi (in base 10). While it is not known if pi is a normal number (a
+number is normal in base 10 if 0-9 occur with equal likelihood) numerical
+investigations suggest that it is. We will begin with a serial calculation on
+10,000 digits of pi and then perform a parallel calculation involving 150
+million digits.
 
-This examples uses precomputed digits of pi from the website of Professor
-Yasumasa Kanada at the University of Tokoyo (http://www.super-computing.org).
-These digits come in a set of ``.txt`` files
-(ftp://pi.super-computing.org/.2/pi200m/) that each have 10 million digits of
-pi. In the parallel computation, we will use the :meth:`MultiEngineClient.map`
-method to have each engine compute the desired statistics on a subset of these
-files. Before I started the parallel computation, I copied the data files
-to the compute nodes so the engine have fast access to them.
+In both the serial and parallel calculation we will be using functions defined
+in the :file:`pidigits.py` file, which is available in the
+:file:`docs/examples/kernel` directory of the IPython source distribution.
+These functions provide basic facilities for working with the digits of pi and
+can be loaded into IPython by putting :file:`pidigits.py` in your current
+working directory and then doing:
 
-Here are the Python functions for counting the frequencies of each two digit
-sequence in serial::
+.. sourcecode:: ipython
 
-    def compute_two_digit_freqs(filename):
-        """
-        Compute the two digit frequencies from a single file.
-        """
-        d = txt_file_to_digits(filename)
-        freqs = two_digit_freqs(d)
-        return freqs
-    
-    def txt_file_to_digits(filename, the_type=str):
-        """
-        Yield the digits of pi read from a .txt file.
-        """
-        with open(filename, 'r') as f:
-            for line in f.readlines():
-                for c in line:
-                    if c != '\n' and c!= ' ':
-                        yield the_type(c)
+    In [1]: run pidigits.py
 
-    def two_digit_freqs(digits, normalize=False):
-        """
-        Consume digits of pi and compute 2 digits freq. counts.
-        """
-        freqs = np.zeros(100, dtype='i4')
-        last = digits.next()
-        this = digits.next()
-        for d in digits:
-            index = int(last + this)
-            freqs[index] += 1
-            last = this
-            this = d
-        if normalize:
-            freqs = freqs/freqs.sum()
-        return freqs
+Serial calculation
+------------------
 
-These functions are defined in the file :file:`pidigits.py`. To perform the
-calculation in parallel, we use an additional file: :file:`parallelpi.py`::
+For the serial calculation, we will use SymPy (http://www.sympy.org) to
+calculate 10,000 digits of pi and then look at the frequencies of the digits
+0-9. Out of 10,000 digits, we expect each digit to occur 1,000 times. While
+SymPy is capable of calculating many more digits of pi, our purpose here is to
+set the stage for the much larger parallel calculation.
 
-    from IPython.kernel import client
-    from matplotlib import pyplot as plt
-    import numpy as np
-    from pidigits import *
-    from timeit import default_timer as clock
+In this example, we use two functions from :file:`pidigits.py`: 
+:func:`one_digit_freqs` (which calculates how many times each digit occurs)
+and :func:`plot_one_digit_freqs` (which uses Matplotlib to plot the result).
+Here is an interactive IPython session that uses these functions with
+SymPy:
 
-    # Files with digits of pi (10m digits each)
-    filestring = 'pi200m-ascii-%(i)02dof20.txt'
-    files = [filestring % {'i':i} for i in range(1,16)]
+.. sourcecode:: ipython
 
-    # A function for reducing the frequencies calculated
-    # by different engines.
-    def reduce_freqs(freqlist):
-        allfreqs = np.zeros_like(freqlist[0])
-        for f in freqlist:
-            allfreqs += f
-        return allfreqs
+    In [7]: import sympy
 
-    # Connect to the IPython cluster
-    mec = client.MultiEngineClient(profile='mycluster')
-    mec.run('pidigits.py')
+    In [8]: pi = sympy.pi.evalf(40)
 
-    # Run 10m digits on 1 engine
-    mapper = mec.mapper(targets=0)
-    t1 = clock()
-    freqs10m = mapper.map(compute_two_digit_freqs, files[:1])[0]
-    t2 = clock()
-    digits_per_second1 = 10.0e6/(t2-t1)
-    print "Digits per second (1 core, 10m digits):   ", digits_per_second1
+    In [9]: pi
+    Out[9]: 3.141592653589793238462643383279502884197
 
-    # Run 150m digits on 15 engines (8 cores)
-    t1 = clock()
-    freqs_all = mec.map(compute_two_digit_freqs, files[:len(mec)])
-    freqs150m = reduce_freqs(freqs_all)
-    t2 = clock()
-    digits_per_second8 = 150.0e6/(t2-t1)
-    print "Digits per second (8 cores, 150m digits): ", digits_per_second8
+    In [10]: pi = sympy.pi.evalf(10000)
 
-    print "Speedup: ", digits_per_second8/digits_per_second1
+    In [11]: digits = (d for d in str(pi)[2:])  # create a sequence of digits
 
-    plot_two_digit_freqs(freqs150m)
-    plt.title("2 digit sequences in 150m digits of pi")
+    In [12]: run pidigits.py  # load one_digit_freqs/plot_one_digit_freqs
 
-To run this code on an IPython cluster:
+    In [13]: freqs = one_digit_freqs(digits)
 
-1. Start an IPython cluster with 15 engines: ``ipcluster start -p mycluster -n 15``
-2. Open IPython's interactive shell using the pylab profile
-   ``ipython -p pylab`` and type ``run parallelpi.py``.
+    In [14]: plot_one_digit_freqs(freqs)
+    Out[14]: [<matplotlib.lines.Line2D object at 0x18a55290>]
 
-At this point, the parallel calculation will begin. On a small an 8 core
-cluster, we observe a speedup of 7.7x. The resulting plot of the two digit
-sequences is shown in the following screenshot.
+The resulting plot of the single digit counts shows that each digit occurs
+approximately 1,000 times, but that with only 10,000 digits the
+statistical fluctuations are still rather large:
 
-.. image:: parallel_pi.*
+.. image:: single_digits.*
+
+It is clear that to reduce the relative fluctuations in the counts, we need
+to look at many more digits of pi. That brings us to the parallel calculation.
+
+Parallel calculation
+--------------------
+
+Calculating many digits of pi is a challenging computational problem in itself. 
+Because we want to focus on the distribution of digits in this example, we
+will use pre-computed digit of pi from the website of Professor Yasumasa
+Kanada at the University of Tokoyo (http://www.super-computing.org). These
+digits come in a set of text files (ftp://pi.super-computing.org/.2/pi200m/)
+that each have 10 million digits of pi.
+
+For the parallel calculation, we have copied these files to the local hard
+drives of the compute nodes. A total of 15 of these files will be used, for a
+total of 150 million digits of pi. To make things a little more interesting we
+will calculate the frequencies of all 2 digits sequences (00-99) and then plot
+the result using a 2D matrix in Matplotlib.
+
+The overall idea of the calculation is simple: each IPython engine will
+compute the two digit counts for the digits in a single file. Then in a final
+step the counts from each engine will be added up. To perform this
+calculation, we will need two top-level functions from :file:`pidigits.py`:
+
+.. literalinclude:: ../../examples/kernel/pidigits.py
+   :language: python
+   :lines: 34-49
+
+We will also use the :func:`plot_two_digit_freqs` function to plot the
+results. The code to run this calculation in parallel is contained in
+:file:`docs/examples/kernel/parallelpi.py`. This code can be run in parallel
+using IPython by following these steps:
+
+1. Copy the text files with the digits of pi 
+   (ftp://pi.super-computing.org/.2/pi200m/) to the working directory of the
+   engines on the compute nodes.
+2. Use :command:`ipcluster` to start 15 engines. We used an 8 core cluster
+   with hyperthreading enabled which makes the 8 cores looks like 16 (1
+   controller + 15 engines) in the OS. However, the maximum speedup we can
+   observe is still only 8x.
+3. With the file :file:`parallelpi.py` in your current working directory, open
+   up IPython in pylab mode and type ``run parallelpi.py``.
+
+When run on our 8 core cluster, we observe a speedup of 7.7x. This is slightly
+less than linear scaling (8x) because the controller is also running on one of
+the cores.
+
+To emphasize the interactive nature of IPython, we now show how the
+calculation can also be run by simply typing the commands from
+:file:`parallelpi.py` interactively into IPython:
+
+.. sourcecode:: ipython
+
+    In [1]: from IPython.kernel import client
+    2009-11-19 11:32:38-0800 [-] Log opened.
+
+    # The MultiEngineClient allows us to use the engines interactively
+    In [2]: mec = client.MultiEngineClient(profile='mycluster')
+    2009-11-19 11:32:44-0800 [-] Connecting [0]
+    2009-11-19 11:32:44-0800 [Negotiation,client] Connected: ./ipcontroller-mec.furl
+
+    In [3]: mec.get_ids()
+    Out[3]: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
+
+    In [4]: run pidigits.py
+
+    In [5]: filestring = 'pi200m-ascii-%(i)02dof20.txt'
+
+    In [6]: files = [filestring % {'i':i} for i in range(1,16)]
+
+    In [7]: files
+    Out[7]: 
+    ['pi200m-ascii-01of20.txt',
+     'pi200m-ascii-02of20.txt',
+     'pi200m-ascii-03of20.txt',
+     'pi200m-ascii-04of20.txt',
+     'pi200m-ascii-05of20.txt',
+     'pi200m-ascii-06of20.txt',
+     'pi200m-ascii-07of20.txt',
+     'pi200m-ascii-08of20.txt',
+     'pi200m-ascii-09of20.txt',
+     'pi200m-ascii-10of20.txt',
+     'pi200m-ascii-11of20.txt',
+     'pi200m-ascii-12of20.txt',
+     'pi200m-ascii-13of20.txt',
+     'pi200m-ascii-14of20.txt',
+     'pi200m-ascii-15of20.txt']
+
+    # This is the parallel calculation using the MultiEngineClient.map method 
+    # which applies compute_two_digit_freqs to each file in files in parallel.
+    In [8]: freqs_all = mec.map(compute_two_digit_freqs, files)
+
+    # Add up the frequencies from each engine.
+    In [8]: freqs = reduce_freqs(freqs_all)
+
+    In [9]: plot_two_digit_freqs(freqs)
+    Out[9]: <matplotlib.image.AxesImage object at 0x18beb110>
+
+    In [10]: plt.title('2 digit counts of 150m digits of pi')
+    Out[10]: <matplotlib.text.Text object at 0x18d1f9b0>
+
+The resulting plot generated by Matplotlib is shown below. The colors indicate
+which two digit sequences are more (red) or less (blue) likely to occur in the
+first 150 million digits of pi. We clearly see that the sequence "41" is 
+most likely and that "06" and "07" are least likely. Further analysis would
+show that the relative size of the statistical fluctuations have decreased
+compared to the 10,000 digit calculation.
+
+.. image:: two_digit_counts.*
+
+To conclude this example, we summarize the key features of IPython's parallel
+architecture that this example demonstrates:
+
+* Serial code can be parallelized often with only a few extra lines of code.
+  In this case we have used :meth:`MultiEngineClient.map`; the
+  :class:`MultiEngineClient` class has a number of other methods that provide
+  more fine grained control of the IPython cluster.
+* The resulting parallel code can be run without ever leaving the IPython's
+  interactive shell.
+* Any data computed in parallel can be explored interactively through 
+  visualization or further numerical calculations.
 
 
-Parallel option pricing
-=======================
+Parallel options pricing
+========================
 
-The example will be added at a later point.
+An option is a financial contract that gives the buyer of the contract the
+right to buy (a "call") or sell (a "put") a secondary asset (a stock for
+example) at a particular date in the future (the expiration date) for a
+pre-agreed upon price (the strike price). For this right, the buyer pays the
+seller a premium (the option price). There are a wide variety of flavors of
+options (American, European, Asian, etc.) that are useful for different
+purposes: hedging against risk, speculation, etc.
 
+Much of modern finance is driven by the need to price these contracts
+accurately based on what is known about the properties (such as volatility) of
+the underlying asset. One method of pricing options is to use a Monte Carlo
+simulation of the underlying assets. In this example we use this approach to
+price both European and Asian (path dependent) options for various strike
+prices and volatilities.
+
+The code for this example can be found in the :file:`docs/examples/kernel`
+directory of the IPython source.
+
+The function :func:`price_options`, calculates the option prices for a single
+option (:file:`mcpricer.py`):
+
+.. literalinclude:: ../../examples/kernel/mcpricer.py
+   :language: python
+
+To run this code in parallel, we will use IPython's :class:`TaskClient`, which
+distributes work to the engines using dynamic load balancing. This client
+can be used along side the :class:`MultiEngineClient` shown in the previous
+example.
+
+Here is the code that calls :func:`price_options` for a number of different
+volatilities and strike prices in parallel:
+
+.. literalinclude:: ../../examples/kernel/mcdriver.py
+   :language: python
+
+To run this code in parallel, start an IPython cluster using
+:command:`ipcluster`, open IPython in the pylab mode with the file
+:file:`mcdriver.py` in your current working directory and then type:
+
+.. sourcecode:: ipython
+
+    In [7]: run mcdriver.py
+    Submitted tasks:  [0, 1, 2, ...]
+
+Once all the tasks have finished, the results can be plotted using the
+:func:`plot_options` function. Here we make contour plots of the Asian
+call and Asian put as function of the volatility and strike price:
+
+.. sourcecode:: ipython
+
+    In [8]: plot_options(sigma_vals, K_vals, prices['acall'])
+
+    In [9]: plt.figure()
+    Out[9]: <matplotlib.figure.Figure object at 0x18c178d0>
+
+    In [10]: plot_options(sigma_vals, K_vals, prices['aput'])
+
+The plots generated by Matplotlib will look like this:
+
+.. image:: asian_call.*
+
+.. image:: asian_put.*

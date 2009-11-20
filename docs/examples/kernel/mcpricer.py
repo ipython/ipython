@@ -4,7 +4,26 @@ from math import *
 
 def price_options(S=100.0, K=100.0, sigma=0.25, r=0.05, days=260, paths=10000):
     """
-    Price vanilla and asian options using a Monte Carlo method.
+    Price European and Asian options using a Monte Carlo method.
+
+    Parameters
+    ----------
+    S : float
+        The initial price of the stock.
+    K : float
+        The strike price of the option.
+    sigma : float
+        The volatility of the stock.
+    r : float
+        The risk free interest rate.
+    days : int
+        The number of days until the option expires.
+    paths : int
+        The number of Monte Carlo paths used to price the option.
+
+    Returns
+    -------
+    A tuple of (E. call, E. put, A. call, A. put) option prices.
     """
     h = 1.0/days
     const1 = exp((r-0.5*sigma**2)*h)
@@ -18,16 +37,9 @@ def price_options(S=100.0, K=100.0, sigma=0.25, r=0.05, days=260, paths=10000):
     stock_price_avg = stock_price_sum/days
     zeros = np.zeros(paths, dtype='float64')
     r_factor = exp(-r*h*days)
-    vanilla_put = r_factor*np.mean(np.maximum(zeros, K-stock_price))
+    euro_put = r_factor*np.mean(np.maximum(zeros, K-stock_price))
     asian_put = r_factor*np.mean(np.maximum(zeros, K-stock_price_avg))
-    vanilla_call = r_factor*np.mean(np.maximum(zeros, stock_price-K))
+    euro_call = r_factor*np.mean(np.maximum(zeros, stock_price-K))
     asian_call = r_factor*np.mean(np.maximum(zeros, stock_price_avg-K))
-    return (vanilla_call, vanilla_put, asian_call, asian_put)
+    return (euro_call, euro_put, asian_call, asian_put)
 
-
-if __name__ == '__main__':
-    (vc, vp, ac, ap) = price_options()
-    print "Vanilla Put Price = ", vp
-    print "Asian Put Price = ", ap
-    print "Vanilla Call Price = ", vc
-    print "Asian Call Price = ", ac

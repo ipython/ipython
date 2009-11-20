@@ -5,18 +5,38 @@ Getting started
 Introduction
 ============
 
-IPython is an open source project focused on interactive and exploratory
-computing in the Python programming language. It consists of two
-main componenents:
+The Python programming language is increasingly popular language for numerical
+computing. This is due to a unique combination of factors. First, Python is a
+high-level and *interactive* language that is well matched for interactive
+numerical work. Second, it is easy (often times trivial) to integrate legacy
+C/C++/Fortran code into Python. Third, a large number of high-quality open
+source projects provide all the needed building blocks for numerical
+computing: numerical arrays (NumPy), algorithms (SciPy), 2D/3D Visualization
+(Matplotlib, Mayavi, Chaco), Symbolic Mathematics (Sage, Sympy) and others.
+
+The IPython project is a core part of this open-source toolchain and is
+focused on creating a comprehensive environment for interactive and
+exploratory computing in the Python programming language. It enables all of
+the above tools to be used interactively and consists of two main components:
 
 * An enhanced interactive Python shell with support for interactive plotting
   and visualization.
 * An architecture for interactive parallel computing.
 
 With these components, it is possible to perform all aspects of a parallel
-computation interactively. This document describes how to get started with
-IPython on Window HPC Server 2008. A more complete desription of IPython's
-parallel computing capabilities can be found in IPython's online documentation
+computation interactively. This type of workflow is particularly relevant in
+scientific and numerical computing where algorithms, code and data are
+continually evolving as the user/developer explores a problem. The broad
+treads in computing (commodity clusters, multicore, cloud computing, etc.)
+make these capabilities of IPython particularly relevant.
+
+While IPython is a cross platform tool, it has particularly strong support for
+Windows based compute clusters running Windows HPC Server 2008. This document
+describes how to get started with IPython on Windows HPC Server 2008. The
+content and emphasis here is practical: installing IPython, configuring
+IPython to use the Windows job scheduler and running example parallel programs
+interactively. A more complete description of IPython's parallel computing
+capabilities can be found in IPython's online documentation
 (http://ipython.scipy.org/moin/Documentation).
 
 Setting up your Windows cluster
@@ -38,7 +58,7 @@ such a cluster:
 
 More details about installing and configuring Windows HPC Server 2008 can be
 found on the Windows HPC Home Page (http://www.microsoft.com/hpc). Regardless
-of what steps you go through to set up your cluster, the remainder of this
+of what steps you follow to set up your cluster, the remainder of this
 document will assume that:
 
 * There are domain users that can log on to the AD domain and submit jobs
@@ -63,8 +83,8 @@ IPython on Windows:
 * pyOpenSSL (https://launchpad.net/pyopenssl)
 * IPython (http://ipython.scipy.org)
 
-In addition, the following dependencies are needed to run the demos
-described in this document.
+In addition, the following dependencies are needed to run the demos described
+in this document.
 
 * NumPy and SciPy (http://www.scipy.org)
 * wxPython (http://www.wxpython.org)
@@ -94,7 +114,7 @@ need to follow:
 Further details about installing IPython or its dependencies can be found in
 the online IPython documentation (http://ipython.scipy.org/moin/Documentation)
 Once you are finished with the installation, you can try IPython out by
-opening a Windows Command Prompt and typing :command:`ipython`. This will
+opening a Windows Command Prompt and typing ``ipython``. This will
 start IPython's interactive shell and you should see something like the
 following screenshot:
 
@@ -114,14 +134,15 @@ IPython controller
     command.
 
 IPython engine
-    IPython engines run your Python code in parallel on the compute nodes. 
+    IPython engines run a user's Python code in parallel on the compute nodes. 
     Engines are starting using the :command:`ipengine` command.
 
 Once these processes are started, a user can run Python code interactively and
-in parallel on the engines from within the IPython shell. This includes the
-ability to interact with, plot and visualize data from the engines.
+in parallel on the engines from within the IPython shell using an appropriate
+client. This includes the ability to interact with, plot and visualize data
+from the engines.
 
-IPython has a command line program called :command:`ipcluster` that handles
+IPython has a command line program called :command:`ipcluster` that automates
 all aspects of starting the controller and engines on the compute nodes.
 :command:`ipcluster` has full support for the Windows HPC job scheduler,
 meaning that :command:`ipcluster` can use this job scheduler to start the
@@ -142,38 +163,44 @@ Command Prompt and type the following command::
     ipcluster start -n 2
 
 You should see a number of messages printed to the screen, ending with 
-"IPython cluster: started". A screenshot of this follows.
-
+"IPython cluster: started". The result should look something like the following
+screenshot:
 
 .. image:: ipcluster_start.*
 
 At this point, the controller and two engines are running on your local host.
-This configuration is useful for testing and for situations where you
-have multiple cores on your local computer. 
+This configuration is useful for testing and for situations where you want to
+take advantage of multiple cores on your local computer. 
 
 Now that we have confirmed that :command:`ipcluster` is working properly, we
-describe how to configure and run an IPython cluster on an actual cluster
-running Windows HPC Server 2008. Here is an outline of the needed steps:
+describe how to configure and run an IPython cluster on an actual compute
+cluster running Windows HPC Server 2008. Here is an outline of the needed
+steps:
 
-1. Create a cluster profile:  ``ipcluster create -p mycluster``
+1. Create a cluster profile using: ``ipcluster create -p mycluster``
 
-2. Edit confguration files in :file:`.ipython\\cluster_mycluster`.
+2. Edit configuration files in the directory :file:`.ipython\\cluster_mycluster`
 
-3. Start the cluster:  ``ipcluser start -p mycluster -n 32``
+3. Start the cluster using: ``ipcluser start -p mycluster -n 32``
 
 Creating a cluster profile
 --------------------------
 
-In most cases, you will have to create and configure a cluster profile to use
-IPython on a cluster. A cluster profile is a specially named directory
-(typically located in the :file:`.ipython` subdirectory of your home
-directory) that contains the configuration files for a particular IPython
-cluster, as well as log files and security keys. The naming convention
-for cluster directories is: "cluster_<profile name>". Thus, the cluster
-directory for a profile named "foo" would be :file:`.ipython\\cluster_foo`.
+In most cases, you will have to create a cluster profile to use IPython on a
+cluster. A cluster profile is a name (like "mycluster") that is associated
+with a particular cluster configuration. The profile name is used by
+:command:`ipcluster` when working with the cluster.
 
-To create a new cluster profile (named "mycluster"), type the following
-command at the Windows Command Prompt::
+Associated with each cluster profile is a cluster directory. This cluster
+directory is a specially named directory (typically located in the
+:file:`.ipython` subdirectory of your home directory) that contains the
+configuration files for a particular cluster profile, as well as log files and
+security keys. The naming convention for cluster directories is:
+:file:`cluster_<profile name>`. Thus, the cluster directory for a profile named
+"foo" would be :file:`.ipython\\cluster_foo`.
+
+To create a new cluster profile (named "mycluster") and the associated cluster
+directory, type the following command at the Windows Command Prompt::
 
     ipcluster create -p mycluster
 
@@ -181,9 +208,7 @@ The output of this command is shown in the screenshot below. Notice how
 :command:`ipcluster` prints out the location of the newly created cluster
 directory.
 
-
 .. image:: ipcluster_create.*
-
 
 Configuring a cluster profile
 -----------------------------
@@ -221,18 +246,19 @@ in most cases these will be sufficient to get you started.
     If any of your configuration attributes involve specifying the location
     of shared directories or files, you must make sure that you use UNC paths
     like :file:`\\\\host\\share`. It is also important that you specify
-    these paths using raw Python strings: ``r'\\host\share'``.
+    these paths using raw Python strings: ``r'\\host\share'`` to make sure
+    that the backslashes are properly escaped.
 
 Starting the cluster profile
 ----------------------------
 
 Once a cluster profile has been configured, starting an IPython cluster using
-the profile is simple:
+the profile is simple::
 
     ipcluster start -p mycluster -n 32
 
-The ``-n 32`` option tells :command:`ipcluster` how many engines to start.
-Stopping the cluster is as simple as typing Control-C. 
+The ``-n`` option tells :command:`ipcluster` how many engines to start (in
+this case 32). Stopping the cluster is as simple as typing Control-C.
 
 Using the HPC Job Manager
 -------------------------
@@ -247,10 +273,9 @@ Once these files have been created, they can be imported into the HPC Job
 Manager application. Then, the controller and engines for that profile can be
 started using the HPC Job Manager directly, without using :command:`ipcluster`.
 However, anytime the cluster profile is re-configured, ``ipcluster start``
-has to be run again to regenerate the XML job description files. The
+must be run again to regenerate the XML job description files. The
 following screenshot shows what the HPC Job Manager interface looks like
 with a running IPython cluster.
-
 
 .. image:: hpc_job_manager.*
 
@@ -258,21 +283,46 @@ Performing a simple interactive parallel computation
 ====================================================
 
 Once you have started your IPython cluster, you can start to use it. To do
-this, start up IPython's interactive shell by typing::
+this, open up a new Windows Command Prompt and start up IPython's interactive
+shell by typing::
 
     ipython
 
-at the Windows Command Prompt. Then you can create a :class:`MultiEngineClient`
-instance for your profile and use the resulting instance to
-have the cluster do a simple interactive parallel computation. In the 
-screenshot that follows, we take a simple Python function::
+Then you can create a :class:`MultiEngineClient` instance for your profile and
+use the resulting instance to do a simple interactive parallel computation. In
+the code and screenshot that follows, we take a simple Python function and
+apply it to each element of an array of integers in parallel using the
+:meth:`MultiEngineClient.map` method:
 
-    def f(x): return x**10
+.. sourcecode:: ipython
 
-and apply it to each element of an array of integers in
-parallel using the :meth:`MultiEngineClient.map` method::
+    In [1]: from IPython.kernel.client import *
 
-    mec.map(f, range(15))
+    In [2]: mec = MultiEngineClient(profile='mycluster')
+
+    In [3]: mec.get_ids()
+    Out[3]: [0, 1, 2, 3, 4, 5, 67, 8, 9, 10, 11, 12, 13, 14]
+
+    In [4]: def f(x):
+       ...:     return x**10
+
+    In [5]: mec.map(f, range(15))  # f is applied in parallel
+    Out[5]:
+    [0,
+     1,
+     1024,
+     59049,
+     1048576,
+     9765625,
+     60466176,
+     282475249,
+     1073741824,
+     3486784401L,
+     10000000000L,
+     25937424601L,
+     61917364224L,
+     137858491849L,
+     289254654976L]
 
 The :meth:`map` method has the same signature as Python's builtin :func:`map`
 function, but runs the calculation in parallel. More involved examples of using
