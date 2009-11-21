@@ -1,18 +1,19 @@
-========================================
-Getting started
-========================================
+============================================
+Getting started with Windows HPC Server 2008
+============================================
 
 Introduction
 ============
 
-The Python programming language is increasingly popular language for numerical
-computing. This is due to a unique combination of factors. First, Python is a
-high-level and *interactive* language that is well matched for interactive
-numerical work. Second, it is easy (often times trivial) to integrate legacy
-C/C++/Fortran code into Python. Third, a large number of high-quality open
-source projects provide all the needed building blocks for numerical
-computing: numerical arrays (NumPy), algorithms (SciPy), 2D/3D Visualization
-(Matplotlib, Mayavi, Chaco), Symbolic Mathematics (Sage, Sympy) and others.
+The Python programming language is an increasingly popular language for
+numerical computing. This is due to a unique combination of factors. First,
+Python is a high-level and *interactive* language that is well matched to
+interactive numerical work. Second, it is easy (often times trivial) to
+integrate legacy C/C++/Fortran code into Python. Third, a large number of
+high-quality open source projects provide all the needed building blocks for
+numerical computing: numerical arrays (NumPy), algorithms (SciPy), 2D/3D
+Visualization (Matplotlib, Mayavi, Chaco), Symbolic Mathematics (Sage, Sympy)
+and others.
 
 The IPython project is a core part of this open-source toolchain and is
 focused on creating a comprehensive environment for interactive and

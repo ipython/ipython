@@ -13,5 +13,7 @@ Using IPython for parallel computing
    parallel_task.txt
    parallel_mpi.txt
    parallel_security.txt
+   parallel_winhpc.txt
+   parallel_demos.txt
 
 

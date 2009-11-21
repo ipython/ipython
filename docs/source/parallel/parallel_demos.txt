@@ -116,10 +116,10 @@ using IPython by following these steps:
 1. Copy the text files with the digits of pi 
    (ftp://pi.super-computing.org/.2/pi200m/) to the working directory of the
    engines on the compute nodes.
-2. Use :command:`ipcluster` to start 15 engines. We used an 8 core cluster
-   with hyperthreading enabled which makes the 8 cores looks like 16 (1
-   controller + 15 engines) in the OS. However, the maximum speedup we can
-   observe is still only 8x.
+2. Use :command:`ipcluster` to start 15 engines. We used an 8 core (2 quad 
+   core CPUs) cluster with hyperthreading enabled which makes the 8 cores 
+   looks like 16 (1 controller + 15 engines) in the OS. However, the maximum
+   speedup we can observe is still only 8x.
 3. With the file :file:`parallelpi.py` in your current working directory, open
    up IPython in pylab mode and type ``run parallelpi.py``.
 
@@ -136,7 +136,9 @@ calculation can also be run by simply typing the commands from
     In [1]: from IPython.kernel import client
     2009-11-19 11:32:38-0800 [-] Log opened.
 
-    # The MultiEngineClient allows us to use the engines interactively
+    # The MultiEngineClient allows us to use the engines interactively.
+    # We simply pass MultiEngineClient the name of the cluster profile we
+    # are using.
     In [2]: mec = client.MultiEngineClient(profile='mycluster')
     2009-11-19 11:32:44-0800 [-] Connecting [0]
     2009-11-19 11:32:44-0800 [Negotiation,client] Connected: ./ipcontroller-mec.furl
@@ -148,6 +150,7 @@ calculation can also be run by simply typing the commands from
 
     In [5]: filestring = 'pi200m-ascii-%(i)02dof20.txt'
 
+    # Create the list of files to process.
     In [6]: files = [filestring % {'i':i} for i in range(1,16)]
 
     In [7]: files
@@ -190,18 +193,6 @@ compared to the 10,000 digit calculation.
 
 .. image:: two_digit_counts.*
 
-To conclude this example, we summarize the key features of IPython's parallel
-architecture that this example demonstrates:
-
-* Serial code can be parallelized often with only a few extra lines of code.
-  In this case we have used :meth:`MultiEngineClient.map`; the
-  :class:`MultiEngineClient` class has a number of other methods that provide
-  more fine grained control of the IPython cluster.
-* The resulting parallel code can be run without ever leaving the IPython's
-  interactive shell.
-* Any data computed in parallel can be explored interactively through 
-  visualization or further numerical calculations.
-
 
 Parallel options pricing
 ========================
@@ -217,33 +208,34 @@ purposes: hedging against risk, speculation, etc.
 Much of modern finance is driven by the need to price these contracts
 accurately based on what is known about the properties (such as volatility) of
 the underlying asset. One method of pricing options is to use a Monte Carlo
-simulation of the underlying assets. In this example we use this approach to
-price both European and Asian (path dependent) options for various strike
+simulation of the underlying asset price. In this example we use this approach
+to price both European and Asian (path dependent) options for various strike
 prices and volatilities.
 
 The code for this example can be found in the :file:`docs/examples/kernel`
-directory of the IPython source.
-
-The function :func:`price_options`, calculates the option prices for a single
-option (:file:`mcpricer.py`):
+directory of the IPython source. The function :func:`price_options` in
+:file:`mcpricer.py` implements the basic Monte Carlo pricing algorithm using
+the NumPy package and is shown here:
 
 .. literalinclude:: ../../examples/kernel/mcpricer.py
    :language: python
 
-To run this code in parallel, we will use IPython's :class:`TaskClient`, which
-distributes work to the engines using dynamic load balancing. This client
-can be used along side the :class:`MultiEngineClient` shown in the previous
-example.
-
-Here is the code that calls :func:`price_options` for a number of different
-volatilities and strike prices in parallel:
+To run this code in parallel, we will use IPython's :class:`TaskClient` class,
+which distributes work to the engines using dynamic load balancing. This
+client can be used along side the :class:`MultiEngineClient` class shown in
+the previous example. The parallel calculation using :class:`TaskClient` can
+be found in the file :file:`mcpricer.py`. The code in this file creates a
+:class:`TaskClient` instance and then submits a set of tasks using
+:meth:`TaskClient.run` that calculate the option prices for different
+volatilities and strike prices. The results are then plotted as a 2D contour
+plot using Matplotlib.
 
 .. literalinclude:: ../../examples/kernel/mcdriver.py
    :language: python
 
-To run this code in parallel, start an IPython cluster using
-:command:`ipcluster`, open IPython in the pylab mode with the file
-:file:`mcdriver.py` in your current working directory and then type:
+To use this code, start an IPython cluster using :command:`ipcluster`, open
+IPython in the pylab mode with the file :file:`mcdriver.py` in your current
+working directory and then type:
 
 .. sourcecode:: ipython
 
@@ -252,7 +244,7 @@ To run this code in parallel, start an IPython cluster using
 
 Once all the tasks have finished, the results can be plotted using the
 :func:`plot_options` function. Here we make contour plots of the Asian
-call and Asian put as function of the volatility and strike price:
+call and Asian put options as function of the volatility and strike price:
 
 .. sourcecode:: ipython
 
@@ -263,8 +255,28 @@ call and Asian put as function of the volatility and strike price:
 
     In [10]: plot_options(sigma_vals, K_vals, prices['aput'])
 
-The plots generated by Matplotlib will look like this:
+These results are shown in the two figures below. On a 8 core cluster the
+entire calculation (10 strike prices, 10 volatilities, 100,000 paths for each)
+took 30 seconds in parallel, giving a speedup of 7.7x, which is comparable
+to the speedup observed in our previous example.
 
 .. image:: asian_call.*
 
 .. image:: asian_put.*
+
+Conclusion
+==========
+
+To conclude these examples, we summarize the key features of IPython's
+parallel architecture that have been demonstrated:
+
+* Serial code can be parallelized often with only a few extra lines of code.
+  We have used the :class:`MultiEngineClient` and :class:`TaskClient` classes
+  for this purpose.
+* The resulting parallel code can be run without ever leaving the IPython's
+  interactive shell.
+* Any data computed in parallel can be explored interactively through 
+  visualization or further numerical calculations.
+* We have run these examples on a cluster running Windows HPC Server 2008.
+  IPython's built in support for the Windows HPC job scheduler makes it
+  easy to get started with IPython's parallel capabilities.
