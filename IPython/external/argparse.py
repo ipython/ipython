@@ -2,17 +2,25 @@
 
 # Copyright © 2006-2009 Steven J. Bethard <steven.bethard@gmail.com>.
 #
-# Licensed under the Apache License, Version 2.0 (the "License"); you may not
-# use this file except in compliance with the License. You may obtain a copy
-# of the License at
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+#  * Redistributions of source code must retain the above copyright notice, this
+#    list of conditions and the following disclaimer.
+#  * Redistributions in binary form must reproduce the above copyright notice,
+#    this list of conditions and the following disclaimer in the documentation
+#    and/or other materials provided with the distribution.
 #
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
-# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
-# License for the specific language governing permissions and limitations
-# under the License.
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+# FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+# DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+# SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+# CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+# OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 """Command-line parsing library
 
@@ -75,7 +83,7 @@ considered public as object names -- the API of the formatter objects is
 still considered an implementation detail.)
 """
 
-__version__ = '1.0'
+__version__ = '1.0.1'
 __all__ = [
     'ArgumentParser',
     'ArgumentError',
@@ -117,6 +125,15 @@ except NameError:
         if reverse:
             result.reverse()
         return result
+
+# silence Python 2.6 buggy warnings about Exception.message
+if _sys.version_info[:2] == (2, 6):
+    import warnings
+    warnings.filterwarnings(
+        action='ignore',
+        message='BaseException.message has been deprecated as of Python 2.6',
+        category=DeprecationWarning,
+        module='argparse')
 
 
 SUPPRESS = '==SUPPRESS=='
@@ -297,7 +314,7 @@ class HelpFormatter(object):
     # Help-formatting methods
     # =======================
     def format_help(self):
-        help = self._root_section.format_help() % dict(prog=self._prog)
+        help = self._root_section.format_help()
         if help:
             help = self._long_break_matcher.sub('\n\n', help)
             help = help.strip('\n') + '\n'
@@ -312,13 +329,17 @@ class HelpFormatter(object):
         if prefix is None:
             prefix = _('usage: ')
 
+        # if usage is specified, use that
+        if usage is not None:
+            usage = usage % dict(prog=self._prog)
+
         # if no optionals or positionals are available, usage is just prog
-        if usage is None and not actions:
-            usage = '%(prog)s'
+        elif usage is None and not actions:
+            usage = '%(prog)s' % dict(prog=self._prog)
 
         # if optionals and positionals are available, calculate usage
         elif usage is None:
-            usage = '%(prog)s' % dict(prog=self._prog)
+            prog = '%(prog)s' % dict(prog=self._prog)
 
             # split optionals from positionals
             optionals = []
@@ -329,44 +350,69 @@ class HelpFormatter(object):
                 else:
                     positionals.append(action)
 
-            # determine width of "usage: PROG" and width of text
-            prefix_width = len(prefix) + len(usage) + 1
-            prefix_indent = self._current_indent + prefix_width
-            text_width = self._width - self._current_indent
-
-            # put them on one line if they're short enough
+            # build full usage string
             format = self._format_actions_usage
             action_usage = format(optionals + positionals, groups)
-            if prefix_width + len(action_usage) + 1 < text_width:
-                usage = '%s %s' % (usage, action_usage)
+            usage = ' '.join([s for s in [prog, action_usage] if s])
 
-            # if they're long, wrap optionals and positionals individually
-            else:
-                optional_usage = format(optionals, groups)
-                positional_usage = format(positionals, groups)
-                indent = ' ' * prefix_indent
+            # wrap the usage parts if it's too long
+            text_width = self._width - self._current_indent
+            if len(prefix) + len(usage) > text_width:
 
-                # usage is made of PROG, optionals and positionals
-                parts = [usage, ' ']
+                # break usage into wrappable parts
+                part_regexp = r'\(.*?\)+|\[.*?\]+|\S+'
+                opt_usage = format(optionals, groups)
+                pos_usage = format(positionals, groups)
+                opt_parts = _re.findall(part_regexp, opt_usage)
+                pos_parts = _re.findall(part_regexp, pos_usage)
+                assert ' '.join(opt_parts) == opt_usage
+                assert ' '.join(pos_parts) == pos_usage
 
-                # options always get added right after PROG
-                if optional_usage:
-                    parts.append(_textwrap.fill(
-                        optional_usage, text_width,
-                        initial_indent=indent,
-                        subsequent_indent=indent).lstrip())
+                # helper for wrapping lines
+                def get_lines(parts, indent, prefix=None):
+                    lines = []
+                    line = []
+                    if prefix is not None:
+                        line_len = len(prefix) - 1
+                    else:
+                        line_len = len(indent) - 1
+                    for part in parts:
+                        if line_len + 1 + len(part) > text_width:
+                            lines.append(indent + ' '.join(line))
+                            line = []
+                            line_len = len(indent) - 1
+                        line.append(part)
+                        line_len += len(part) + 1
+                    if line:
+                        lines.append(indent + ' '.join(line))
+                    if prefix is not None:
+                        lines[0] = lines[0][len(indent):]
+                    return lines
 
-                # if there were options, put arguments on the next line
-                # otherwise, start them right after PROG
-                if positional_usage:
-                    part = _textwrap.fill(
-                        positional_usage, text_width,
-                        initial_indent=indent,
-                        subsequent_indent=indent).lstrip()
-                    if optional_usage:
-                        part = '\n' + indent + part
-                    parts.append(part)
-                usage = ''.join(parts)
+                # if prog is short, follow it with optionals or positionals
+                if len(prefix) + len(prog) <= 0.75 * text_width:
+                    indent = ' ' * (len(prefix) + len(prog) + 1)
+                    if opt_parts:
+                        lines = get_lines([prog] + opt_parts, indent, prefix)
+                        lines.extend(get_lines(pos_parts, indent))
+                    elif pos_parts:
+                        lines = get_lines([prog] + pos_parts, indent, prefix)
+                    else:
+                        lines = [prog]
+
+                # if prog is long, put it on its own line
+                else:
+                    indent = ' ' * len(prefix)
+                    parts = opt_parts + pos_parts
+                    lines = get_lines(parts, indent)
+                    if len(lines) > 1:
+                        lines = []
+                        lines.extend(get_lines(opt_parts, indent))
+                        lines.extend(get_lines(pos_parts, indent))
+                    lines = [prog] + lines
+
+                # join lines into usage
+                usage = '\n'.join(lines)
 
         # prefix with 'usage:'
         return '%s%s\n\n' % (prefix, usage)
@@ -787,7 +833,9 @@ class _StoreAction(Action):
                  help=None,
                  metavar=None):
         if nargs == 0:
-            raise ValueError('nargs must be > 0')
+            raise ValueError('nargs for store actions must be > 0; if you '
+                             'have nothing to store, actions such as store '
+                             'true or store const may be more appropriate')
         if const is not None and nargs != OPTIONAL:
             raise ValueError('nargs must be %r to supply const' % OPTIONAL)
         super(_StoreAction, self).__init__(
@@ -877,7 +925,9 @@ class _AppendAction(Action):
                  help=None,
                  metavar=None):
         if nargs == 0:
-            raise ValueError('nargs must be > 0')
+            raise ValueError('nargs for append actions must be > 0; if arg '
+                             'strings are not supplying the value to append, '
+                             'the append const action may be more appropriate')
         if const is not None and nargs != OPTIONAL:
             raise ValueError('nargs must be %r to supply const' % OPTIONAL)
         super(_AppendAction, self).__init__(
@@ -1280,6 +1330,17 @@ class _ActionsContainer(object):
             # map the actions to their new group
             for action in group._group_actions:
                 group_map[action] = title_group_map[group.title]
+
+        # add container's mutually exclusive groups
+        # NOTE: if add_mutually_exclusive_group ever gains title= and
+        # description= then this code will need to be expanded as above
+        for group in container._mutually_exclusive_groups:
+            mutex_group = self.add_mutually_exclusive_group(
+                required=group.required)
+
+            # map the actions to their new mutex group
+            for action in group._group_actions:
+                group_map[action] = mutex_group
 
         # add all actions to this container or their group
         for action in container._actions:
@@ -2114,8 +2175,9 @@ class ArgumentParser(_AttributeHolder, _ActionsContainer):
     def _get_value(self, action, arg_string):
         type_func = self._registry_get('type', action.type, action.type)
         if not hasattr(type_func, '__call__'):
-            msg = _('%r is not callable')
-            raise ArgumentError(action, msg % type_func)
+            if not hasattr(type_func, '__bases__'): # classic classes
+                msg = _('%r is not callable')
+                raise ArgumentError(action, msg % type_func)
 
         # convert the value to the appropriate type
         try:
