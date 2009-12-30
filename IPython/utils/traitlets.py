@@ -151,6 +151,26 @@ class _SimpleTest:
         return self.__repr__()
 
 
+def getmembers(object, predicate=None):
+    """A safe version of inspect.getmembers that handles missing attributes.
+
+    This is useful when there are descriptor based attributes that for 
+    some reason raise AttributeError even though they exist.  This happens
+    in zope.inteface with the __provides__ attribute.
+    """
+    results = []
+    for key in dir(object):
+        try:
+            value = getattr(object, key)
+        except AttributeError:
+            pass
+        else:
+            if not predicate or predicate(value):
+                results.append((key, value))
+    results.sort()
+    return results
+
+
 #-----------------------------------------------------------------------------
 # Base TraitletType for all traitlets
 #-----------------------------------------------------------------------------
@@ -316,6 +336,9 @@ class MetaHasTraitlets(type):
         This instantiates all TraitletTypes in the class dict and sets their
         :attr:`name` attribute.
         """
+        # print "MetaHasTraitlets (mcls, name): ", mcls, name
+        # print "MetaHasTraitlets (bases): ", bases
+        # print "MetaHasTraitlets (classdict): ", classdict
         for k,v in classdict.iteritems():
             if isinstance(v, TraitletType):
                 v.name = k
@@ -354,9 +377,16 @@ class HasTraitlets(object):
         # Here we tell all the TraitletType instances to set their default
         # values on the instance. 
         for key in dir(cls):
-            value = getattr(cls, key)
-            if isinstance(value, TraitletType):
-                value.instance_init(inst)
+            # Some descriptors raise AttributeError like zope.interface's
+            # __provides__ attributes even though they exist.  This causes
+            # AttributeErrors even though they are listed in dir(cls).
+            try:
+                value = getattr(cls, key)
+            except AttributeError:
+                pass
+            else:
+                if isinstance(value, TraitletType):
+                    value.instance_init(inst)
         return inst
 
     # def __init__(self):
@@ -475,7 +505,7 @@ class HasTraitlets(object):
         exists, but has any value.  This is because get_metadata returns
         None if a metadata key doesn't exist.
         """
-        traitlets = dict([memb for memb in inspect.getmembers(self.__class__) if \
+        traitlets = dict([memb for memb in getmembers(self.__class__) if \
                      isinstance(memb[1], TraitletType)])
 
         if len(metadata) == 0:

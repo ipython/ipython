@@ -21,6 +21,7 @@ import os
 import pdb
 import pydoc
 import sys
+import shutil
 import re
 import tempfile
 import time
@@ -1268,7 +1269,6 @@ Currently the magic system has the following functions:\n"""
         If you want IPython to automatically do this on every exception, see
         the %pdb magic for more details.
         """
-        
         self.shell.debugger(force=True)
 
     @testdec.skip_doctest
@@ -3378,34 +3378,6 @@ Defaulting color scheme to 'NoColor'"""
         qr = IPython.core.usage.quick_reference + self.magic_magic('-brief')
         
         page(qr)
-        
-    def magic_upgrade(self,arg):
-        """ Upgrade your IPython installation
-        
-        This will copy the config files that don't yet exist in your 
-        ipython dir from the system config dir. Use this after upgrading 
-        IPython if you don't wish to delete your .ipython dir.
-
-        Call with -nolegacy to get rid of ipythonrc* files (recommended for
-        new users)
-
-        """
-        ip = self.getapi()
-        ipinstallation = path(IPython.__file__).dirname()
-        upgrade_script = '%s "%s"' % (sys.executable,ipinstallation / 'utils' / 'upgradedir.py')
-        src_config = ipinstallation / 'config' / 'userconfig'
-        userdir = path(ip.config.IPYTHONDIR)
-        cmd = '%s "%s" "%s"' % (upgrade_script, src_config, userdir)
-        print ">",cmd
-        shell(cmd)
-        if arg == '-nolegacy':
-            legacy = userdir.files('ipythonrc*')
-            print "Nuking legacy files:",legacy
-            
-            [p.remove() for p in legacy]
-            suffix = (sys.platform == 'win32' and '.ini' or '')
-            (userdir / ('ipythonrc' + suffix)).write_text('# Empty, see ipy_user_conf.py\n')
-
 
     def magic_doctest_mode(self,parameter_s=''):
         """Toggle doctest mode on and off.
@@ -3549,5 +3521,60 @@ Defaulting color scheme to 'NoColor'"""
     def magic_reload_ext(self, module_str):
         """Reload an IPython extension by its module name."""
         self.reload_extension(module_str)
+
+    def magic_install_profiles(self, s):
+        """Install the default IPython profiles into the .ipython dir.
+
+        If the default profiles have already been installed, they will not
+        be overwritten. You can force overwriting them by using the ``-o``
+        option::
+
+            In [1]: %install_profiles -o
+        """
+        if '-o' in s:
+            overwrite = True
+        else:
+            overwrite = False
+        from IPython.config import profile
+        profile_dir = os.path.split(profile.__file__)[0]
+        ipython_dir = self.ipython_dir
+        files = os.listdir(profile_dir)
+
+        to_install = []
+        for f in files:
+            if f.startswith('ipython_config'):
+                src = os.path.join(profile_dir, f)
+                dst = os.path.join(ipython_dir, f)
+                if (not os.path.isfile(dst)) or overwrite:
+                    to_install.append((f, src, dst))
+        if len(to_install)>0:
+            print "Installing profiles to: ", ipython_dir
+            for (f, src, dst) in to_install:
+                shutil.copy(src, dst)
+                print "    %s" % f
+
+    def magic_install_default_config(self, s):
+        """Install IPython's default config file into the .ipython dir.
+
+        If the default config file (:file:`ipython_config.py`) is already
+        installed, it will not be overwritten. You can force overwriting
+        by using the ``-o`` option::
+
+            In [1]: %install_default_config
+        """
+        if '-o' in s:
+            overwrite = True
+        else:
+            overwrite = False
+        from IPython.config import default
+        config_dir = os.path.split(default.__file__)[0]
+        ipython_dir = self.ipython_dir
+        default_config_file_name = 'ipython_config.py'
+        src = os.path.join(config_dir, default_config_file_name)
+        dst = os.path.join(ipython_dir, default_config_file_name)
+        if (not os.path.isfile(dst)) or overwrite:
+            shutil.copy(src, dst)
+            print "Installing default config file: %s" % dst
+
 
 # end Magic

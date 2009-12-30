@@ -243,15 +243,15 @@ So where should you put your configuration files?  By default, all IPython
 applications look in the so called "IPython directory".  The location of
 this directory is determined by the following algorithm:
 
-* If the ``-ipythondir`` command line flag is given, its value is used.
+* If the ``--ipython-dir`` command line flag is given, its value is used.
 
 * If not, the value returned by :func:`IPython.utils.genutils.get_ipython_dir`
-  is used. This function will first look at the :envvar:`IPYTHONDIR`
+  is used. This function will first look at the :envvar:`IPYTHON_DIR`
   environment variable and then default to the directory
-  :file:`$HOME/.ipythondir`.
+  :file:`$HOME/.ipython`.
 
 For most users, the default value will simply be something like 
-:file:`$HOME/.ipythondir`.
+:file:`$HOME/.ipython`.
 
 Once the location of the IPython directory has been determined, you need to
 know what filename to use for the configuration file. The basic idea is that

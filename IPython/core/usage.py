@@ -40,7 +40,7 @@ USAGE
        in directories.
 
        In the rest of this text, we will refer to this directory as
-       IPYTHONDIR.
+       IPYTHON_DIR.
 
 REGULAR OPTIONS
        After the above threading options have been given, regular options  can
@@ -150,9 +150,9 @@ REGULAR OPTIONS
               here (in case your default EDITOR is something like Emacs).
 
        -ipythondir <name>
-              The  name  of  your  IPython configuration directory IPYTHONDIR.
+              The  name  of  your  IPython configuration directory IPYTHON_DIR.
               This can also be  specified  through  the  environment  variable
-              IPYTHONDIR.
+              IPYTHON_DIR.
 
        -log|l Generate  a log file of all input. The file is named
               ipython_log.py in your current directory (which prevents logs
@@ -201,10 +201,10 @@ REGULAR OPTIONS
 
        -profile|p <name>
               Assume that your config file is ipythonrc-<name> (looks in  cur-
-              rent dir first, then in IPYTHONDIR). This is a quick way to keep
+              rent dir first, then in IPYTHON_DIR). This is a quick way to keep
               and load multiple config files for different  tasks,  especially
               if  you  use  the include option of config files. You can keep a
-              basic IPYTHONDIR/ipythonrc file and then have  other  'profiles'
+              basic IPYTHON_DIR/ipythonrc file and then have  other  'profiles'
               which  include  this  one  and  load extra things for particular
               tasks. For example:
 
@@ -245,7 +245,7 @@ REGULAR OPTIONS
        -rcfile <name>
               Name of your  IPython  resource  configuration  file.   normally
               IPython    loads   ipythonrc   (from   current   directory)   or
-              IPYTHONDIR/ipythonrc.  If the loading of your config file fails,
+              IPYTHON_DIR/ipythonrc.  If the loading of your config file fails,
               IPython  starts  with  a  bare  bones  configuration (no modules
               loaded at all).
 
@@ -284,7 +284,7 @@ REGULAR OPTIONS
               Simply removes all input/output separators.
 
        -upgrade
-              Allows you to upgrade your  IPYTHONDIR  configuration  when  you
+              Allows you to upgrade your  IPYTHON_DIR  configuration  when  you
               install  a  new  version  of  IPython.   Since  new versions may
               include new command lines options or example files, this  copies
               updated ipythonrc-type files.  However, it backs up (with a .old

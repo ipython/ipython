@@ -244,8 +244,14 @@ class PyFileConfigLoader(FileConfigLoader):
         # with the parents.
         def load_subconfig(fname):
             loader = PyFileConfigLoader(fname, self.path)
-            sub_config = loader.load_config()
-            self.config._merge(sub_config)
+            try:
+                sub_config = loader.load_config()
+            except IOError:
+                # Pass silently if the sub config is not there. This happens
+                # when a user us using a profile, but not the default config.
+                pass
+            else:
+                self.config._merge(sub_config)
 
         # Again, this needs to be a closure and should be used in config
         # files to get the config being loaded.
@@ -270,6 +276,7 @@ class CommandLineConfigLoader(ConfigLoader):
 
 class NoConfigDefault(object): pass
 NoConfigDefault = NoConfigDefault()
+
 
 class ArgParseConfigLoader(CommandLineConfigLoader):
     

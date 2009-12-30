@@ -141,7 +141,7 @@ def collect(ip,arg):
     Without args, try to open ~/_ipython/collect dir (in win32 at least).
     """
     from IPython.external.path import path
-    basedir = path(ip.options.IPYTHONDIR + '/collect')
+    basedir = path(ip.ipython_dir + '/collect')
     try:    
         fs = mglob.expand(arg.split(None,1)[1])
     except IndexError:
@@ -170,7 +170,7 @@ def inote(ip,arg):
     Without args, opens notes.txt for editing.
     """
     import time
-    fname = ip.options.IPYTHONDIR + '/notes.txt'
+    fname = ip.ipython_dir + '/notes.txt'
     
     try:
         entry = " === " + time.asctime() + ': ===\n' + arg.split(None,1)[1] + '\n'

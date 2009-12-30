@@ -237,14 +237,20 @@ class Component(HasTraitlets):
             self.config = config
             # We used to deepcopy, but for now we are trying to just save
             # by reference.  This *could* have side effects as all components
-            # will share config.
+            # will share config. In fact, I did find such a side effect in
+            # _config_changed below. If a config attribute value was a mutable type
+            # all instances of a component were getting the same copy, effectively
+            # making that a class attribute.
             # self.config = deepcopy(config)
         else:
             if self.parent is not None:
                 self.config = self.parent.config
                 # We used to deepcopy, but for now we are trying to just save
                 # by reference.  This *could* have side effects as all components
-                # will share config.
+                # will share config. In fact, I did find such a side effect in
+                # _config_changed below. If a config attribute value was a mutable type
+                # all instances of a component were getting the same copy, effectively
+                # making that a class attribute.
                 # self.config = deepcopy(self.parent.config)
 
         self.created = datetime.datetime.now()
@@ -296,14 +302,29 @@ class Component(HasTraitlets):
             if new._has_section(sname):
                 my_config = new[sname]
                 for k, v in traitlets.items():
+                    # Don't allow traitlets with config=True to start with
+                    # uppercase.  Otherwise, they are confused with Config
+                    # subsections.  But, developers shouldn't have uppercase
+                    # attributes anyways! (PEP 6)
+                    if k[0].upper()==k[0] and not k.startswith('_'):
+                        raise ComponentError('Component traitlets with '
+                        'config=True must start with a lowercase so they are '
+                        'not confused with Config subsections: %s.%s' % \
+                        (self.__class__.__name__, k))
                     try:
+                        # Here we grab the value from the config
+                        # If k has the naming convention of a config
+                        # section, it will be auto created.
                         config_value = my_config[k]
                     except KeyError:
                         pass
                     else:
                         # print "Setting %s.%s from %s.%s=%r" % \
                         #     (self.__class__.__name__,k,sname,k,config_value)
-                        setattr(self, k, config_value)
+                        # We have to do a deepcopy here if we don't deepcopy the entire
+                        # config object. If we don't, a mutable config_value will be
+                        # shared by all instances, effectively making it a class attribute.
+                        setattr(self, k, deepcopy(config_value))
 
     @property
     def children(self):

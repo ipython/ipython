@@ -124,7 +124,7 @@ $self.bug_tracker
         #color_scheme = 'Linux'   # dbg
         
         try:
-            rptdir = self.IP.config.IPYTHONDIR
+            rptdir = self.IP.ipython_dir
         except:
             rptdir = os.getcwd()
         if not os.path.isdir(rptdir):

@@ -559,9 +559,7 @@ def filefind(filename, path_dirs=None):
         path_dirs = (path_dirs,)
     for path in path_dirs:
         if path == '.': path = os.getcwd()
-        testname = os.path.expandvars(
-                       os.path.expanduser(
-                           os.path.join(path, filename)))
+        testname = expand_path(os.path.join(path, filename))
         if os.path.isfile(testname):
             return os.path.abspath(testname)
     raise IOError("File does not exist in any "
@@ -717,10 +715,17 @@ class HomeDirError(Error):
 def get_home_dir():
     """Return the closest possible equivalent to a 'home' directory.
 
-    We first try $HOME.  Absent that, on NT it's $HOMEDRIVE\$HOMEPATH.
-
+    * On POSIX, we try $HOME.
+    * On Windows we try:
+      - %HOMESHARE%
+      - %HOMEDRIVE\%HOMEPATH%
+      - %USERPROFILE%
+      - Registry hack
+    * On Dos C:\
+ 
     Currently only Posix and NT are implemented, a HomeDirError exception is
-    raised for all other OSes. """
+    raised for all other OSes.
+    """
 
     isdir = os.path.isdir
     env = os.environ
@@ -736,93 +741,88 @@ def get_home_dir():
         root=os.path.abspath(root).rstrip('\\')
         if isdir(os.path.join(root, '_ipython')):
             os.environ["IPYKITROOT"] = root
-        return root
-    try:
-        homedir = env['HOME']
-        if not isdir(homedir):
-            # in case a user stuck some string which does NOT resolve to a
-            # valid path, it's as good as if we hadn't foud it
-            raise KeyError
-        return homedir
-    except KeyError:
-        if os.name == 'posix':
-            raise HomeDirError,'undefined $HOME, IPython can not proceed.'
-        elif os.name == 'nt':
-            # For some strange reason, win9x returns 'nt' for os.name.
-            try:
-                homedir = os.path.join(env['HOMEDRIVE'],env['HOMEPATH'])
-                if not isdir(homedir):
-                    homedir = os.path.join(env['USERPROFILE'])
-                    if not isdir(homedir):
-                        raise HomeDirError
-                return homedir
-            except KeyError:
-                try:
-                    # Use the registry to get the 'My Documents' folder.
-                    import _winreg as wreg
-                    key = wreg.OpenKey(wreg.HKEY_CURRENT_USER,
-                                       "Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders")
-                    homedir = wreg.QueryValueEx(key,'Personal')[0]
-                    key.Close()
-                    if not isdir(homedir):
-                        e = ('Invalid "Personal" folder registry key '
-                             'typically "My Documents".\n'
-                             'Value: %s\n'
-                             'This is not a valid directory on your system.' %
-                             homedir)
-                        raise HomeDirError(e)
-                    return homedir
-                except HomeDirError:
-                    raise
-                except:
-                    return 'C:\\'
-        elif os.name == 'dos':
-            # Desperate, may do absurd things in classic MacOS. May work under DOS.
-            return 'C:\\'
+        return root.decode(sys.getfilesystemencoding())
+
+    if os.name == 'posix':
+        # Linux, Unix, AIX, OS X
+        try:
+            homedir = env['HOME']
+        except KeyError:
+            raise HomeDirError('Undefined $HOME, IPython cannot proceed.')
         else:
-            raise HomeDirError,'support for your operating system not implemented.'
+            return homedir.decode(sys.getfilesystemencoding())
+    elif os.name == 'nt':
+        # Now for win9x, XP, Vista, 7?
+        # For some strange reason all of these return 'nt' for os.name.
+        # First look for a network home directory. This will return the UNC
+        # path (\\server\\Users\%username%) not the mapped path (Z:\). This
+        # is needed when running IPython on cluster where all paths have to 
+        # be UNC.
+        try:
+            homedir = env['HOMESHARE']
+        except KeyError:
+            pass
+        else:
+            if isdir(homedir):
+                return homedir.decode(sys.getfilesystemencoding())
+
+        # Now look for a local home directory
+        try:
+            homedir = os.path.join(env['HOMEDRIVE'],env['HOMEPATH'])
+        except KeyError:
+            pass
+        else:
+            if isdir(homedir):
+                return homedir.decode(sys.getfilesystemencoding())
+
+        # Now the users profile directory
+        try:
+            homedir = os.path.join(env['USERPROFILE'])
+        except KeyError:
+            pass
+        else:
+            if isdir(homedir):
+                return homedir.decode(sys.getfilesystemencoding())
+
+        # Use the registry to get the 'My Documents' folder.
+        try:
+            import _winreg as wreg
+            key = wreg.OpenKey(
+                wreg.HKEY_CURRENT_USER,
+                "Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders"
+            )
+            homedir = wreg.QueryValueEx(key,'Personal')[0]
+            key.Close()
+        except:
+            pass
+        else:
+            if isdir(homedir):
+                return homedir.decode(sys.getfilesystemencoding())
+
+        # If all else fails, raise HomeDirError
+        raise HomeDirError('No valid home directory could be found')
+    elif os.name == 'dos':
+        # Desperate, may do absurd things in classic MacOS. May work under DOS.
+        return 'C:\\'.decode(sys.getfilesystemencoding())
+    else:
+        raise HomeDirError('No valid home directory could be found for your OS')
 
 
 def get_ipython_dir():
     """Get the IPython directory for this platform and user.
     
     This uses the logic in `get_home_dir` to find the home directory
-    and the adds either .ipython or _ipython to the end of the path.
+    and the adds .ipython to the end of the path.
     """
-    if os.name == 'posix':
-         ipdir_def = '.ipython'
-    else:
-         ipdir_def = '_ipython'
+    ipdir_def = '.ipython'
     home_dir = get_home_dir()
-    ipdir = os.path.abspath(os.environ.get('IPYTHONDIR',
-                                           os.path.join(home_dir, ipdir_def)))
+    ipdir = os.environ.get(
+        'IPYTHON_DIR', os.environ.get(
+            'IPYTHONDIR', os.path.join(home_dir, ipdir_def)
+        )
+    )
     return ipdir.decode(sys.getfilesystemencoding())
 
-def get_security_dir():
-    """Get the IPython security directory.
-    
-    This directory is the default location for all security related files,
-    including SSL/TLS certificates and FURL files.
-    
-    If the directory does not exist, it is created with 0700 permissions.
-    If it exists, permissions are set to 0700.
-    """
-    security_dir = os.path.join(get_ipython_dir(), 'security')
-    if not os.path.isdir(security_dir):
-        os.mkdir(security_dir, 0700)
-    else:
-        os.chmod(security_dir, 0700)
-    return security_dir
-
-def get_log_dir():
-    """Get the IPython log directory.
-    
-    If the log directory does not exist, it is created.
-    """
-    log_dir = os.path.join(get_ipython_dir(), 'log')
-    if not os.path.isdir(log_dir):
-        os.mkdir(log_dir, 0777)
-    return log_dir
 
 #****************************************************************************
 # strings and text
@@ -1738,7 +1738,7 @@ def extract_vars_above(*names):
     callerNS = sys._getframe(2).f_locals
     return dict((k,callerNS[k]) for k in names)
 
-def shexp(s):
+def expand_path(s):
     """Expand $VARS and ~names in a string, like a shell
 
     :Examples:
@@ -1748,8 +1748,17 @@ def shexp(s):
        In [3]: shexp('variable FOO is $FOO')
        Out[3]: 'variable FOO is test'
     """
-    return os.path.expandvars(os.path.expanduser(s))
-    
+    # This is a pretty subtle hack. When expand user is given a UNC path
+    # on Windows (\\server\share$\%username%), os.path.expandvars, removes
+    # the $ to get (\\server\share\%username%). I think it considered $
+    # alone an empty var. But, we need the $ to remains there (it indicates
+    # a hidden share).
+    if os.name=='nt':
+        s = s.replace('$\\', 'IPYTHON_TEMP')
+    s = os.path.expandvars(os.path.expanduser(s))
+    if os.name=='nt':
+        s = s.replace('IPYTHON_TEMP', '$\\')
+    return s
 
 def list_strings(arg):
     """Always return a list of strings, given a string or list of strings

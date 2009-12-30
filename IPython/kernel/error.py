@@ -127,9 +127,11 @@ class TaskRejectError(KernelError):
 class CompositeError(KernelError):
     def __init__(self, message, elist):
         Exception.__init__(self, *(message, elist))
-        self.message = message
+        # Don't use pack_exception because it will conflict with the .message
+        # attribute that is being deprecated in 2.6 and beyond.
+        self.msg = message
         self.elist = elist
-  
+
     def _get_engine_str(self, ev):
         try:
             ei = ev._ipython_engine_info
@@ -137,7 +139,7 @@ class CompositeError(KernelError):
             return '[Engine Exception]'
         else:
             return '[%i:%s]: ' % (ei['engineid'], ei['method'])
-    
+
     def _get_traceback(self, ev):
         try:
             tb = ev._ipython_traceback_text
@@ -145,14 +147,14 @@ class CompositeError(KernelError):
             return 'No traceback available'
         else:
             return tb
-  
+
     def __str__(self):
-        s = str(self.message)
+        s = str(self.msg)
         for et, ev, etb in self.elist:
             engine_str = self._get_engine_str(ev)
             s = s + '\n' + engine_str + str(et.__name__) + ': ' + str(ev)
         return s
-    
+
     def print_tracebacks(self, excid=None):
         if excid is None:
             for (et,ev,etb) in self.elist:
