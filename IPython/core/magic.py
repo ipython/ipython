@@ -3365,7 +3365,7 @@ Defaulting color scheme to 'NoColor'"""
         # By default, echo back to terminal unless quiet mode is requested
         if not opts.has_key('q'):
             write = self.shell.write
-            write(block)
+            write(self.shell.pycolorize(block))
             if not block.endswith('\n'):
                 write('\n')
             write("## -- End pasted text --\n")
