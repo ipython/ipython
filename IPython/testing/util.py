@@ -21,7 +21,7 @@ from twisted.internet import defer
 class DeferredTestCase(unittest.TestCase):
     
     def assertDeferredEquals(self, deferred, expectedResult,
-	                              chainDeferred=None):
+                                      chainDeferred=None):
         """Calls assertEquals on the result of the deferred and expectedResult.
         
         chainDeferred can be used to pass in previous Deferred objects that
@@ -32,7 +32,7 @@ class DeferredTestCase(unittest.TestCase):
         
         if chainDeferred is None:
             chainDeferred = defer.succeed(None)
-	       
+               
         def gotResult(actualResult):
             self.assertEquals(actualResult, expectedResult)
         
@@ -41,7 +41,7 @@ class DeferredTestCase(unittest.TestCase):
         return chainDeferred.addCallback(lambda _: deferred)
     
     def assertDeferredRaises(self, deferred, expectedException,
-	                              chainDeferred=None):
+                                      chainDeferred=None):
         """Calls assertRaises on the Failure of the deferred and expectedException.
         
         chainDeferred can be used to pass in previous Deferred objects that

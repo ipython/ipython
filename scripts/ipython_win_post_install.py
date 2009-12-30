@@ -13,7 +13,7 @@ def mkshortcut(target,description,link_file,*args,**kw):
 def install():
     """Routine to be run by the win32 installer with the -install switch."""
     
-    from IPython.Release import version
+    from IPython.core.release import version
     
     # Get some system constants
     prefix = sys.prefix
@@ -62,18 +62,10 @@ def install():
     cmd = '"%s" -p sh' % ipybase
     mkshortcut(python,'IPython (command prompt mode)',link,cmd)
     
-    link = pjoin(ip_start_menu, 'pylab.lnk')
-    cmd = '"%s" -pylab' % ipybase
-    mkshortcut(python,'IPython (PyLab mode)',link,cmd)
-    
     link = pjoin(ip_start_menu, 'scipy.lnk')
-    cmd = '"%s" -pylab -p scipy' % ipybase
+    cmd = '"%s" -p scipy' % ipybase
     mkshortcut(python,'IPython (scipy profile)',link,cmd)
-    
-    link = pjoin(ip_start_menu, 'IPython test suite.lnk')
-    cmd = '"%s" -vv' % pjoin(scripts, 'iptest')
-    mkshortcut(python,'Run the IPython test suite',link,cmd)
-    
+        
     link = pjoin(ip_start_menu, 'ipcontroller.lnk')
     cmd = '"%s" -xy' % pjoin(scripts, 'ipcontroller')
     mkshortcut(python,'IPython controller',link,cmd)

@@ -24,14 +24,15 @@ import os
 import os.path as path
 import sys
 import subprocess
+import tempfile
 import time
 import warnings
 
 import nose.plugins.builtin
 from nose.core import TestProgram
 
-from IPython.platutils import find_cmd
-from IPython.testing.plugin.ipdoctest import IPythonDoctest
+from IPython.utils.platutils import find_cmd
+# from IPython.testing.plugin.ipdoctest import IPythonDoctest
 
 pjoin = path.join
 
@@ -56,59 +57,82 @@ have_twisted = test_for('twisted')
 have_foolscap = test_for('foolscap')
 have_objc = test_for('objc')
 have_pexpect = test_for('pexpect')
+have_gtk = test_for('gtk')
+have_gobject = test_for('gobject')
 
-# For the IPythonDoctest plugin, we need to exclude certain patterns that cause
-# testing problems.  We should strive to minimize the number of skipped
-# modules, since this means untested code.  As the testing machinery
-# solidifies, this list should eventually become empty.
-EXCLUDE = [pjoin('IPython', 'external'),
-           pjoin('IPython', 'frontend', 'process', 'winprocess.py'),
-           pjoin('IPython_doctest_plugin'),
-           pjoin('IPython', 'Gnuplot'),
-           pjoin('IPython', 'Extensions', 'ipy_'),
-           pjoin('IPython', 'Extensions', 'PhysicalQInput'),
-           pjoin('IPython', 'Extensions', 'PhysicalQInteractive'),
-           pjoin('IPython', 'Extensions', 'InterpreterPasteInput'),
-           pjoin('IPython', 'Extensions', 'scitedirector'),
-           pjoin('IPython', 'Extensions', 'numeric_formats'),
-           pjoin('IPython', 'testing', 'attic'),
-           pjoin('IPython', 'testing', 'tutils'),
-           pjoin('IPython', 'testing', 'tools'),
-           pjoin('IPython', 'testing', 'mkdoctests'),
-           ]
 
-if not have_wx:
-    EXCLUDE.append(pjoin('IPython', 'Extensions', 'igrid'))
-    EXCLUDE.append(pjoin('IPython', 'gui'))
-    EXCLUDE.append(pjoin('IPython', 'frontend', 'wx'))
+def make_exclude():
 
-if not have_wx_aui:
-    EXCLUDE.append(pjoin('IPython', 'gui', 'wx', 'wxIPython'))
+    # For the IPythonDoctest plugin, we need to exclude certain patterns that cause
+    # testing problems.  We should strive to minimize the number of skipped
+    # modules, since this means untested code.  As the testing machinery
+    # solidifies, this list should eventually become empty.
+    EXCLUDE = [pjoin('IPython', 'external'),
+               pjoin('IPython', 'frontend', 'process', 'winprocess.py'),
+               pjoin('IPython_doctest_plugin'),
+               pjoin('IPython', 'quarantine'),
+               pjoin('IPython', 'deathrow'),
+               pjoin('IPython', 'testing', 'attic'),
+               pjoin('IPython', 'testing', 'tools'),
+               pjoin('IPython', 'testing', 'mkdoctests'),
+               pjoin('IPython', 'lib', 'inputhook')
+               ]
 
-if not have_objc:
-    EXCLUDE.append(pjoin('IPython', 'frontend', 'cocoa'))
+    if not have_wx:
+        EXCLUDE.append(pjoin('IPython', 'gui'))
+        EXCLUDE.append(pjoin('IPython', 'frontend', 'wx'))
+        EXCLUDE.append(pjoin('IPython', 'lib', 'inputhookwx'))
 
-if not have_curses:
-    EXCLUDE.append(pjoin('IPython', 'Extensions', 'ibrowse'))
+    if not have_gtk or not have_gobject:
+        EXCLUDE.append(pjoin('IPython', 'lib', 'inputhookgtk'))
 
-if not sys.platform == 'win32':
-    EXCLUDE.append(pjoin('IPython', 'platutils_win32'))
+    if not have_wx_aui:
+        EXCLUDE.append(pjoin('IPython', 'gui', 'wx', 'wxIPython'))
 
-# These have to be skipped on win32 because the use echo, rm, cd, etc.
-# See ticket https://bugs.launchpad.net/bugs/366982
-if sys.platform == 'win32':
-    EXCLUDE.append(pjoin('IPython', 'testing', 'plugin', 'test_exampleip'))
-    EXCLUDE.append(pjoin('IPython', 'testing', 'plugin', 'dtexample'))
+    if not have_objc:
+        EXCLUDE.append(pjoin('IPython', 'frontend', 'cocoa'))
 
-if not os.name == 'posix':
-    EXCLUDE.append(pjoin('IPython', 'platutils_posix'))
+    if not sys.platform == 'win32':
+        EXCLUDE.append(pjoin('IPython', 'utils', 'platutils_win32'))
 
-if not have_pexpect:
-    EXCLUDE.append(pjoin('IPython', 'irunner'))
+    # These have to be skipped on win32 because the use echo, rm, cd, etc.
+    # See ticket https://bugs.launchpad.net/bugs/366982
+    if sys.platform == 'win32':
+        EXCLUDE.append(pjoin('IPython', 'testing', 'plugin', 'test_exampleip'))
+        EXCLUDE.append(pjoin('IPython', 'testing', 'plugin', 'dtexample'))
 
-# This is needed for the reg-exp to match on win32 in the ipdoctest plugin.
-if sys.platform == 'win32':
-    EXCLUDE = [s.replace('\\','\\\\') for s in EXCLUDE]
+    if not os.name == 'posix':
+        EXCLUDE.append(pjoin('IPython', 'utils', 'platutils_posix'))
+
+    if not have_pexpect:
+        EXCLUDE.append(pjoin('IPython', 'scripts', 'irunner'))
+
+    # This is scary.  We still have things in frontend and testing that
+    # are being tested by nose that use twisted.  We need to rethink
+    # how we are isolating dependencies in testing.
+    if not (have_twisted and have_zi and have_foolscap):
+        EXCLUDE.append(pjoin('IPython', 'frontend', 'asyncfrontendbase'))
+        EXCLUDE.append(pjoin('IPython', 'frontend', 'prefilterfrontend'))
+        EXCLUDE.append(pjoin('IPython', 'frontend', 'frontendbase'))
+        EXCLUDE.append(pjoin('IPython', 'frontend', 'linefrontendbase'))
+        EXCLUDE.append(pjoin('IPython', 'frontend', 'tests',
+                             'test_linefrontend'))
+        EXCLUDE.append(pjoin('IPython', 'frontend', 'tests', 
+                             'test_frontendbase'))
+        EXCLUDE.append(pjoin('IPython', 'frontend', 'tests',
+                             'test_prefilterfrontend'))
+        EXCLUDE.append(pjoin('IPython', 'frontend', 'tests',
+                             'test_asyncfrontendbase')),
+        EXCLUDE.append(pjoin('IPython', 'testing', 'parametric'))
+        EXCLUDE.append(pjoin('IPython', 'testing', 'util'))
+        EXCLUDE.append(pjoin('IPython', 'testing', 'tests', 
+                             'test_decorators_trial'))
+
+    # This is needed for the reg-exp to match on win32 in the ipdoctest plugin.
+    if sys.platform == 'win32':
+        EXCLUDE = [s.replace('\\','\\\\') for s in EXCLUDE]
+
+    return EXCLUDE
 
 
 #-----------------------------------------------------------------------------
@@ -132,9 +156,9 @@ def run_iptest():
                         # test suite back into working shape.  Our nose
                         # plugin needs to be gone through with a fine
                         # toothed comb to find what is causing the problem.
-                        '--with-ipdoctest',
-                        '--ipdoctest-tests','--ipdoctest-extension=txt',
-                        '--detailed-errors',
+                        # '--with-ipdoctest',
+                        # '--ipdoctest-tests','--ipdoctest-extension=txt',
+                        # '--detailed-errors',
                        
                         # We add --exe because of setuptools' imbecility (it
                         # blindly does chmod +x on ALL files).  Nose does the
@@ -160,13 +184,13 @@ def run_iptest():
 
     # Construct list of plugins, omitting the existing doctest plugin, which
     # ours replaces (and extends).
-    plugins = [IPythonDoctest(EXCLUDE)]
+    EXCLUDE = make_exclude()
+    plugins = []
+    # plugins = [IPythonDoctest(EXCLUDE)]
     for p in nose.plugins.builtin.plugins:
         plug = p()
         if plug.name == 'doctest':
             continue
-
-        #print '*** adding plugin:',plug.name  # dbg
         plugins.append(plug)
 
     TestProgram(argv=argv,plugins=plugins)
@@ -190,61 +214,54 @@ class IPTester(object):
         # Assemble call
         self.call_args = self.runner+self.params
 
-    def run(self):
-        """Run the stored commands"""
-        return subprocess.call(self.call_args)
+    if sys.platform == 'win32':
+        def run(self):
+            """Run the stored commands"""
+            # On Windows, cd to temporary directory to run tests.  Otherwise,
+            # Twisted's trial may not be able to execute 'trial IPython', since
+            # it will confuse the IPython module name with the ipython
+            # execution scripts, because the windows file system isn't case
+            # sensitive.
+            # We also use os.system instead of subprocess.call, because I was
+            # having problems with subprocess and I just don't know enough
+            # about win32 to debug this reliably.  Os.system may be the 'old
+            # fashioned' way to do it, but it works just fine.  If someone
+            # later can clean this up that's fine, as long as the tests run
+            # reliably in win32.
+            curdir = os.getcwd()
+            os.chdir(tempfile.gettempdir())
+            stat = os.system(' '.join(self.call_args))
+            os.chdir(curdir)
+            return stat
+    else:
+        def run(self):
+            """Run the stored commands"""
+            return subprocess.call(self.call_args)
 
 
 def make_runners():
-    """Define the modules and packages that need to be tested.
+    """Define the top-level packages that need to be tested.
     """
-    
-    # This omits additional top-level modules that should not be doctested.
-    # XXX: Shell.py is also ommited because of a bug in the skip_doctest
-    # decorator.  See ticket https://bugs.launchpad.net/bugs/366209
-    top_mod = \
-      ['background_jobs.py', 'ColorANSI.py', 'completer.py', 'ConfigLoader.py',
-       'CrashHandler.py', 'Debugger.py', 'deep_reload.py', 'demo.py',
-       'DPyGetOpt.py', 'dtutils.py', 'excolors.py', 'FakeModule.py',
-       'generics.py', 'genutils.py', 'history.py', 'hooks.py', 'ipapi.py',
-       'iplib.py', 'ipmaker.py', 'ipstruct.py', 'Itpl.py',
-       'Logger.py', 'macro.py', 'Magic.py', 'OInspect.py',
-       'OutputTrap.py', 'platutils.py', 'prefilter.py', 'Prompts.py',
-       'PyColorize.py', 'Release.py', 'rlineimpl.py', 'shadowns.py',
-       'shellglobals.py', 'strdispatch.py', 'twshell.py',
-       'ultraTB.py', 'upgrade_dir.py', 'usage.py', 'wildcard.py',
-       # See note above for why this is skipped
-       # 'Shell.py',
-       'winconsole.py']
 
-    if have_pexpect:
-        top_mod.append('irunner.py')
-
-    if sys.platform == 'win32':
-        top_mod.append('platutils_win32.py')
-    elif os.name == 'posix':
-        top_mod.append('platutils_posix.py')
-    else:
-        top_mod.append('platutils_dummy.py')
-
-    # These are tested by nose, so skip IPython.kernel
-    top_pack = ['config','Extensions','frontend',
-                'testing','tests','tools','UserConfig']
+    nose_packages = ['config', 'core', 'extensions',
+                     'frontend', 'lib',
+                     'scripts', 'testing', 'utils']
+    trial_packages = ['kernel']
 
     if have_wx:
-        top_pack.append('gui')
+        nose_packages.append('gui')
 
-    modules  = ['IPython.%s' % m[:-3] for m in top_mod ]
-    packages = ['IPython.%s' % m for m in top_pack ]
+    nose_packages = ['IPython.%s' % m for m in nose_packages ]
+    trial_packages = ['IPython.%s' % m for m in trial_packages ]
 
     # Make runners
-    runners = dict(zip(top_pack, [IPTester(params=v) for v in packages]))
+    runners = dict()
     
-    # Test IPython.kernel using trial if twisted is installed
+    nose_runners = dict(zip(nose_packages, [IPTester(params=v) for v in nose_packages]))
     if have_zi and have_twisted and have_foolscap:
-        runners['trial'] = IPTester('trial',['IPython'])
-
-    runners['modules'] = IPTester(params=modules)
+        trial_runners = dict(zip(trial_packages, [IPTester('trial',params=v) for v in trial_packages]))
+    runners.update(nose_runners)
+    runners.update(trial_runners)
 
     return runners
 
@@ -257,7 +274,9 @@ def run_iptestall():
     and packages of IPython to be tested each in their own subprocess using
     nose or twisted.trial appropriately.
     """
+
     runners = make_runners()
+
     # Run all test runners, tracking execution time
     failed = {}
     t_start = time.time()

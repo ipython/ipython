@@ -1,0 +1,54 @@
+.. _testing:
+
+=========================
+Writing and running tests
+=========================
+
+Overview
+========
+
+It is extremely important that all code contributed to IPython has tests.
+Tests should be written as unittests, doctests or other entities that the
+IPython test system can detect.  See below for more details on this.
+
+Each subpackage in IPython should have its own :file:`tests` directory that
+contains all of the tests for that subpackage. All of the files in the
+:file:`tests` directory should have the word "tests" in them to enable
+the testing framework to find them.  
+
+If a subpackage has any dependencies beyond the Python standard library, the
+tests for that subpackage should be skipped if the dependencies are not found.
+This is very important so users don't get tests failing simply because they
+don't have dependencies.  We are still figuring out the best way for this
+to be handled.
+
+Status
+======
+
+Currently IPython's testing system is being reworked.  In the meantime,
+we recommend the following testing practices:
+
+* To run regular tests, use the :command:`nosetests` command that Nose [Nose]_ 
+  provides on a per file basis:
+
+.. code-block:: bash
+
+    nosetests -vvs IPython.core.tests.test_component
+
+* To run Twisted-using tests, use the :command:`trial` command on a per file 
+  basis:
+
+.. code-block:: bash
+
+    trial IPython.kernel
+
+* For now, regular tests (of non-Twisted using code) should be written as
+  unit tests.  They should be subclasses of :class:`unittest.TestCase`.
+
+* Tests of Twisted [Twisted]_ using code should be written by subclassing the
+  ``TestCase`` class that comes with ``twisted.trial.unittest``. Furthermore,
+  all :class:`Deferred` instances that are created in the test must be
+  properly chained and the final one *must* be the return value of the test
+  method.
+
+.. [Nose] Nose: a discovery based unittest extension. http://code.google.com/p/python-nose/

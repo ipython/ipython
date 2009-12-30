@@ -64,8 +64,8 @@ def default_argv():
 
     # Get the install directory for the user configuration and tell ipython to
     # use the default profile from there.
-    from IPython import UserConfig
-    ipcdir = os.path.dirname(UserConfig.__file__)
+    from IPython.config import userconfig
+    ipcdir = os.path.dirname(userconfig.__file__)
     #ipconf = os.path.join(ipcdir,'ipy_user_conf.py')
     ipconf = os.path.join(ipcdir,'ipythonrc')
     #print 'conf:',ipconf # dbg
@@ -82,7 +82,7 @@ class py_file_finder(object):
         self.test_filename = test_filename
         
     def __call__(self,name):
-        from IPython.genutils import get_py_filename
+        from IPython.utils.genutils import get_py_filename
         try:
             return get_py_filename(name)
         except IOError:
@@ -105,7 +105,7 @@ def _run_ns_sync(self,arg_s,runner=None):
         fname = arg_s
 
     finder = py_file_finder(fname)
-    out = _ip.IP.magic_run_ori(arg_s,runner,finder)
+    out = _ip.magic_run_ori(arg_s,runner,finder)
     
     # Simliarly, there is no test_globs when a test is NOT a doctest
     if hasattr(_run_ns_sync,'test_globs'):
@@ -164,14 +164,15 @@ def start_ipython():
     import new
 
     import IPython
-
+    from IPython.core import ipapi
+    
     def xsys(cmd):
         """Execute a command and print its output.
 
         This is just a convenience function to replace the IPython system call
         with one that is more doctest-friendly.
         """
-        cmd = _ip.IP.var_expand(cmd,depth=1)
+        cmd = _ip.var_expand(cmd,depth=1)
         sys.stdout.write(commands.getoutput(cmd))
         sys.stdout.flush()
 
@@ -183,8 +184,7 @@ def start_ipython():
     argv = default_argv()
     
     # Start IPython instance.  We customize it to start with minimal frills.
-    user_ns,global_ns = IPython.ipapi.make_user_namespaces(ipnsdict(),dict())
-    IPython.Shell.IPShell(argv,user_ns,global_ns)
+    IPython.shell.IPShell(argv,ipnsdict(),global_ns)
 
     # Deactivate the various python system hooks added by ipython for
     # interactive convenience so we don't confuse the doctest system
@@ -194,7 +194,7 @@ def start_ipython():
 
     # So that ipython magics and aliases can be doctested (they work by making
     # a call into a global _ip object)
-    _ip = IPython.ipapi.get()
+    _ip = ipapi.get()
     __builtin__._ip = _ip
 
     # Modify the IPython system call with one that uses getoutput, so that we
@@ -203,16 +203,16 @@ def start_ipython():
     _ip.system = xsys
 
     # Also patch our %run function in.
-    im = new.instancemethod(_run_ns_sync,_ip.IP, _ip.IP.__class__)
-    _ip.IP.magic_run_ori = _ip.IP.magic_run
-    _ip.IP.magic_run = im
+    im = new.instancemethod(_run_ns_sync,_ip, _ip.__class__)
+    _ip.magic_run_ori = _ip.magic_run
+    _ip.magic_run = im
 
     # XXX - For some very bizarre reason, the loading of %history by default is
     # failing.  This needs to be fixed later, but for now at least this ensures
     # that tests that use %hist run to completion.
-    from IPython import history
+    from IPython.core import history
     history.init_ipython(_ip)
-    if not hasattr(_ip.IP,'magic_history'):
+    if not hasattr(_ip,'magic_history'):
         raise RuntimeError("Can't load magics, aborting")
 
 
@@ -436,10 +436,32 @@ class DocTestCase(doctests.DocTestCase):
             # for IPython examples *only*, we swap the globals with the ipython
             # namespace, after updating it with the globals (which doctest
             # fills with the necessary info from the module being tested).
-            _ip.IP.user_ns.update(self._dt_test.globs)
-            self._dt_test.globs = _ip.IP.user_ns
+            _ip.user_ns.update(self._dt_test.globs)
+            self._dt_test.globs = _ip.user_ns
 
-        doctests.DocTestCase.setUp(self)
+        super(DocTestCase, self).setUp()
+
+    def tearDown(self):
+        # XXX - fperez: I am not sure if this is truly a bug in nose 0.11, but
+        # it does look like one to me: its tearDown method tries to run
+        #
+        # delattr(__builtin__, self._result_var)
+        #
+        # without checking that the attribute really is there; it implicitly
+        # assumes it should have been set via displayhook.  But if the
+        # displayhook was never called, this doesn't necessarily happen.  I
+        # haven't been able to find a little self-contained example outside of
+        # ipython that would show the problem so I can report it to the nose
+        # team, but it does happen a lot in our code.
+        #
+        # So here, we just protect as narrowly as possible by trapping an
+        # attribute error whose message would be the name of self._result_var,
+        # and letting any other error propagate.
+        try:
+            super(DocTestCase, self).tearDown()
+        except AttributeError, exc:
+            if exc.args[0] != self._result_var:
+                raise
 
 
 # A simple subclassing of the original with a different class name, so we can
@@ -516,7 +538,7 @@ class IPDocTestParser(doctest.DocTestParser):
         # and turned into lines, so it looks to the parser like regular user
         # input
         for lnum,line in enumerate(source.strip().splitlines()):
-            newline(_ip.IP.prefilter(line,lnum>0))
+            newline(_ip.prefilter(line,lnum>0))
         newline('')  # ensure a closing newline, needed by doctest
         #print "PYSRC:", '\n'.join(out)  # dbg
         return '\n'.join(out)

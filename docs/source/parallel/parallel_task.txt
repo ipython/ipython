@@ -4,9 +4,17 @@
 The IPython task interface
 ==========================
 
-The task interface to the controller presents the engines as a fault tolerant, dynamic load-balanced system or workers. Unlike the multiengine interface, in the task interface, the user have no direct access to individual engines. In some ways, this interface is simpler, but in other ways it is more powerful.
+The task interface to the controller presents the engines as a fault tolerant,
+dynamic load-balanced system or workers. Unlike the multiengine interface, in
+the task interface, the user have no direct access to individual engines. In
+some ways, this interface is simpler, but in other ways it is more powerful.
 
-Best of all the user can use both of these interfaces running at the same time to take advantage or both of their strengths.  When the user can break up the user's work into segments that do not depend on previous execution, the task interface is ideal.  But it also has more power and flexibility, allowing the user to guide the distribution of jobs, without having to assign tasks to engines explicitly.
+Best of all the user can use both of these interfaces running at the same time
+to take advantage or both of their strengths. When the user can break up the
+user's work into segments that do not depend on previous execution, the task
+interface is ideal. But it also has more power and flexibility, allowing the
+user to guide the distribution of jobs, without having to assign tasks to
+engines explicitly.
 
 Starting the IPython controller and engines
 ===========================================
@@ -44,12 +52,19 @@ constructor:
 Quick and easy parallelism
 ==========================
 
-In many cases, you simply want to apply a Python function to a sequence of objects, but *in parallel*.  Like the multiengine interface, the task interface provides two simple ways of accomplishing this:  a parallel version of :func:`map` and ``@parallel`` function decorator.  However, the verions in the task interface have one important difference:  they are dynamically load balanced.  Thus, if the execution time per item varies significantly, you should use the versions in the task interface.
+In many cases, you simply want to apply a Python function to a sequence of
+objects, but *in parallel*. Like the multiengine interface, the task interface
+provides two simple ways of accomplishing this: a parallel version of
+:func:`map` and ``@parallel`` function decorator. However, the verions in the
+task interface have one important difference: they are dynamically load
+balanced. Thus, if the execution time per item varies significantly, you
+should use the versions in the task interface.
 
 Parallel map
 ------------
 
-The parallel :meth:`map` in the task interface is similar to that in the multiengine interface:
+The parallel :meth:`map` in the task interface is similar to that in the
+multiengine interface:
 
 .. sourcecode:: ipython
 
@@ -63,7 +78,9 @@ The parallel :meth:`map` in the task interface is similar to that in the multien
 Parallel function decorator
 ---------------------------
 
-Parallel functions are just like normal function, but they can be called on sequences and *in parallel*.  The multiengine interface provides a decorator that turns any Python function into a parallel function:
+Parallel functions are just like normal function, but they can be called on
+sequences and *in parallel*. The multiengine interface provides a decorator
+that turns any Python function into a parallel function:
 
 .. sourcecode:: ipython
 
@@ -79,7 +96,9 @@ Parallel functions are just like normal function, but they can be called on sequ
 More details
 ============
 
-The :class:`TaskClient` has many more powerful features that allow quite a bit of flexibility in how tasks are defined and run.  The next places to look are in the following classes:
+The :class:`TaskClient` has many more powerful features that allow quite a bit
+of flexibility in how tasks are defined and run. The next places to look are
+in the following classes:
 
 * :class:`IPython.kernel.client.TaskClient`
 * :class:`IPython.kernel.client.StringTask`
@@ -95,5 +114,8 @@ The following is an overview of how to use these classes together:
 4. Use :meth:`TaskClient.get_task_result` to get the results of the
    tasks.
 
-We are in the process of developing more detailed information about the task interface.  For now, the docstrings of the :class:`TaskClient`, :class:`StringTask` and :class:`MapTask` classes should be consulted.
+We are in the process of developing more detailed information about the task
+interface. For now, the docstrings of the :class:`TaskClient`,
+:class:`StringTask` and :class:`MapTask` classes should be consulted.
+
 

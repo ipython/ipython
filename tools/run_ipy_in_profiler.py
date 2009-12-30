@@ -1,3 +1,9 @@
+"""XXX - What exactly is the use of this script?
+
+I (fperez) tried it quickly and it doesn't work in its current form.  Either it
+needs to be fixed and documented or removed.
+"""
+
 import cProfile as profile
 import sys
 #import profile

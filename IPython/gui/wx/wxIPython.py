@@ -19,7 +19,7 @@ except ImportError:
     is_sync_frontend_ok = False
 
 #used to create options.conf file in user directory
-from IPython.ipapi import get
+from IPython.core.ipapi import get
 
 __version__ = 0.91
 __author__  = "Laurent Dufrechou"
@@ -109,7 +109,7 @@ class MyFrame(wx.Frame):
 
     def optionSave(self, name, value):
         ip = get()
-        path = ip.IP.rc.ipythondir
+        path = ip.ipython_dir
         opt = open(path + '/options.conf','w')
 
         try:
@@ -126,7 +126,7 @@ class MyFrame(wx.Frame):
     def optionLoad(self):
         try:
             ip = get()
-            path = ip.IP.rc.ipythondir
+            path = ip.ipython_dir
             opt = open(path + '/options.conf','r')
             lines = opt.readlines()
             opt.close()

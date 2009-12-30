@@ -6,11 +6,10 @@ ipython.
 try:
     import wx
 except ImportError, e:
-    e.message = """%s
+    e.args[0] = """%s
 ________________________________________________________________________________
 You need wxPython to run this application.
-""" % e.message
-    e.args = (e.message, ) + e.args[1:]
+""" % e.args[0]
     raise e
 
 from wx_frontend import WxController

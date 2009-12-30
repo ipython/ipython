@@ -25,6 +25,8 @@ from thread_ex import ThreadEx
 
 try:
     import IPython
+    from IPython.utils import genutils
+    from IPython.core import iplib
 except Exception,e:
     print "Error importing IPython (%s)" % str(e)
     raise Exception, e
@@ -44,7 +46,7 @@ class _Helper(object):
     
     def __call__(self, *args, **kwds):
         class DummyWriter(object):
-            '''Dumy class to handle help output'''	
+            '''Dumy class to handle help output'''      
             def __init__(self, pager):
                 self._pager = pager
                 
@@ -143,22 +145,22 @@ class NonBlockingIPShell(object):
         #only one instance can be instanciated else tehre will be
         #cin/cout/cerr clash...
         if cin:
-            IPython.genutils.Term.cin = cin
+            genutils.Term.cin = cin
         if cout:
-            IPython.genutils.Term.cout = cout
+            genutils.Term.cout = cout
         if cerr:
-            IPython.genutils.Term.cerr = cerr
+            genutils.Term.cerr = cerr
         
         excepthook = sys.excepthook
 
         #Hack to save sys.displayhook, because ipython seems to overwrite it...
         self.sys_displayhook_ori = sys.displayhook
         
-        self._IP = IPython.Shell.make_IPython(
+        self._IP = IPython.shell.make_IPython(
                                     argv,user_ns=user_ns,
                                     user_global_ns=user_global_ns,
                                     embedded=True,
-                                    shell_class=IPython.Shell.InteractiveShell)
+                                    shell_class=IPython.shell.InteractiveShell)
 
         #we save ipython0 displayhook and we restore sys.displayhook
         self.displayhook = sys.displayhook
@@ -176,18 +178,18 @@ class NonBlockingIPShell(object):
         self._IP.set_hook('shell_hook', self._shell)
         
         #we replace the ipython default input command caller by our method
-        IPython.iplib.raw_input_original = self._raw_input_original
+        iplib.raw_input_original = self._raw_input_original
         #we replace the ipython default exit command by our method
         self._IP.exit = ask_exit_handler
         #we replace the help command
         self._IP.user_ns['help'] = _Helper(self._pager_help)
 
         #we disable cpase magic... until we found a way to use it properly.
-        #import IPython.ipapi
-        ip = IPython.ipapi.get()
+        from IPython.core import ipapi
+        ip = ipapi.get()
         def bypass_magic(self, arg):
             print '%this magic is currently disabled.'
-        ip.expose_magic('cpaste', bypass_magic)
+        ip.define_magic('cpaste', bypass_magic)
 
         import __builtin__
         __builtin__.raw_input = self._raw_input
@@ -468,7 +470,7 @@ class NonBlockingIPShell(object):
         '''
 
         orig_stdout = sys.stdout
-        sys.stdout = IPython.Shell.Term.cout
+        sys.stdout = IPython.shell.Term.cout
         #self.sys_displayhook_ori = sys.displayhook
         #sys.displayhook = self.displayhook
         
@@ -490,9 +492,9 @@ class NonBlockingIPShell(object):
             self._IP.showtraceback()
         else:
             self._IP.write(str(self._IP.outputcache.prompt_out).strip())
-            self._iter_more = self._IP.push(line)
+            self._iter_more = self._IP.push_line(line)
             if (self._IP.SyntaxTB.last_syntax_error and \
-                                                            self._IP.rc.autoedit_syntax):
+                                                            self._IP.autoedit_syntax):
                 self._IP.edit_syntax_error()
         if self._iter_more:
             self._prompt = str(self._IP.outputcache.prompt2).strip()

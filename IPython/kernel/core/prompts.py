@@ -21,30 +21,27 @@ __docformat__ = "restructuredtext en"
 
 # Required modules
 import __builtin__
-import os
 import socket
 import sys
-import time
 
 # IPython's own
 from IPython.external.Itpl import ItplNS
-from macro import Macro
 
-from IPython import ColorANSI
-from IPython import Release
-from IPython.ipapi import TryNext
-from IPython.ipstruct import Struct
-from IPython.genutils import *
+from IPython.utils import coloransi
+from IPython.core import release
+from IPython.core.error import TryNext
+from IPython.utils.genutils import *
+import IPython.utils.generics
 
 #****************************************************************************
 #Color schemes for Prompts.
 
-PromptColors = ColorANSI.ColorSchemeTable()
-InputColors = ColorANSI.InputTermColors  # just a shorthand
-Colors = ColorANSI.TermColors  # just a shorthand
+PromptColors = coloransi.ColorSchemeTable()
+InputColors = coloransi.InputTermColors  # just a shorthand
+Colors = coloransi.TermColors  # just a shorthand
 
 
-__PColNoColor = ColorANSI.ColorScheme(
+__PColNoColor = coloransi.ColorScheme(
     'NoColor',
     in_prompt  = InputColors.NoColor,  # Input prompt
     in_number  = InputColors.NoColor,  # Input prompt number
@@ -156,7 +153,7 @@ prompt_specials_color = {
     # Carriage return
     r'\r': '\r',
     # Release version
-    r'\v': Release.version,
+    r'\v': release.version,
     # Root symbol ($ or #)
     r'\$': ROOT_SYMBOL,
     }
@@ -172,7 +169,7 @@ prompt_specials_nocolor[r'\#'] = '${self.cache.prompt_count}'
 # with a color name which may begin with a letter used by any other of the
 # allowed specials.  This of course means that \\C will never be allowed for
 # anything else.
-input_colors = ColorANSI.InputTermColors
+input_colors = coloransi.InputTermColors
 for _color in dir(input_colors):
     if _color[0] != '_':
         c_name = r'\C_'+_color
@@ -535,7 +532,7 @@ class CachedOutput:
         display, e.g. when your own objects need special formatting.
         """
         try:
-            return IPython.generics.result_display(arg)
+            return IPython.utils.generics.result_display(arg)
         except TryNext:            
             return self.shell.hooks.result_display(arg)
 

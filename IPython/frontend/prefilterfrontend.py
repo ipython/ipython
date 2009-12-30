@@ -27,13 +27,12 @@ import os
 import re
 import __builtin__
 
-from IPython.ipmaker import make_IPython
-from IPython.ipapi import IPApi
+from IPython.core.ipmaker import make_IPython
 from IPython.kernel.core.redirector_output_trap import RedirectorOutputTrap
 
 from IPython.kernel.core.sync_traceback_trap import SyncTracebackTrap
 
-from IPython.genutils import Term
+from IPython.utils.genutils import Term
 
 from linefrontendbase import LineFrontEndBase, common_prefix
 
@@ -65,8 +64,8 @@ class PrefilterFrontEnd(LineFrontEndBase):
     debug = False
     
     def __init__(self, ipython0=None, argv=None, *args, **kwargs):
-        """ Parameters:
-            -----------
+        """ Parameters
+            ----------
 
             ipython0: an optional ipython0 instance to use for command
             prefiltering and completion.
@@ -80,7 +79,7 @@ class PrefilterFrontEnd(LineFrontEndBase):
         # on exceptions (https://bugs.launchpad.net/bugs/337105)
         # XXX: This is horrible: module-leve monkey patching -> side
         # effects.
-        from IPython import iplib
+        from IPython.core import iplib
         iplib.InteractiveShell.isthreaded = True
 
         LineFrontEndBase.__init__(self, *args, **kwargs)
@@ -112,7 +111,7 @@ class PrefilterFrontEnd(LineFrontEndBase):
         self.ipython0.set_hook('show_in_pager', 
                     lambda s, string: self.write("\n" + string))
         self.ipython0.write = self.write
-        self._ip = _ip = IPApi(self.ipython0)
+        self._ip = _ip = self.ipython0
         # Make sure the raw system call doesn't get called, as we don't
         # have a stdin accessible.
         self._ip.system = self.system_call

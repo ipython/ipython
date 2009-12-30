@@ -1,5 +1,5 @@
 #!/bin/sh
-
+# Simple upload script to push up into the testing directory a local build
 ipdir=$PWD/..
 
 cd $ipdir/dist

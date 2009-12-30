@@ -35,7 +35,7 @@ from twisted.internet import defer, reactor
 from twisted.python import log, components, failure
 from zope.interface import Interface, implements, Attribute
 
-from IPython.tools import growl
+from IPython.utils import growl
 from IPython.kernel.util import printer
 from IPython.kernel.twistedutil import gatherBoth
 from IPython.kernel import map as Map
@@ -262,9 +262,8 @@ class MultiEngine(ControllerAdapterBase):
         elif targets == 'all':
             eList = self.engines.values()
             if len(eList) == 0:
-                msg = """There are no engines registered.
-                     Check the logs in ~/.ipython/log if you think there should have been."""
-                raise error.NoEnginesRegistered(msg)
+                raise error.NoEnginesRegistered("There are no engines registered. "
+                    "Check the logs if you think there should have been.")
             else:
                 return eList
         else:

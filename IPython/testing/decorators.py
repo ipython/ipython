@@ -22,7 +22,7 @@ import sys
 # Third-party imports
 
 # This is Michele Simionato's decorator module, also kept verbatim.
-from decorator_msim import decorator, update_wrapper
+from IPython.external.decorator import decorator, update_wrapper
 
 # Grab the numpy-specific decorators which we keep in a file that we
 # occasionally update from upstream: decorators_numpy.py is an IDENTICAL copy

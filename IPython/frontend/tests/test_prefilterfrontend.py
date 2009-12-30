@@ -20,7 +20,7 @@ import sys
 from nose.tools import assert_equal
 
 from IPython.frontend.prefilterfrontend import PrefilterFrontEnd
-from IPython.ipapi import get as get_ipython0
+from IPython.core.ipapi import get as get_ipython0
 from IPython.testing.plugin.ipdoctest import default_argv
 
 
@@ -61,8 +61,8 @@ def isolate_ipython0(func):
         if ip0 is None:
             return func()
         # We have a real ipython running...
-        user_ns = ip0.IP.user_ns
-        user_global_ns = ip0.IP.user_global_ns
+        user_ns = ip0.user_ns
+        user_global_ns = ip0.user_global_ns
 
         # Previously the isolation was attempted with a deep copy of the user
         # dicts, but we found cases where this didn't work correctly. I'm not
@@ -86,7 +86,7 @@ def isolate_ipython0(func):
             for k in new_globals:
                 del user_global_ns[k]
         # Undo the hack at creation of PrefilterFrontEnd
-        from IPython import iplib
+        from IPython.core import iplib
         iplib.InteractiveShell.isthreaded = False
         return out
 
