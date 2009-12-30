@@ -21,12 +21,11 @@ import sys
 import nose.tools as nt
 
 from IPython.testing import decorators as dec
-from IPython.testing.tools import full_path
+from IPython.testing.tools import full_path, parse_test_output
 
 #-----------------------------------------------------------------------------
 # Tests
 #-----------------------------------------------------------------------------
-
 
 @dec.skip_win32
 def test_full_path_posix():
@@ -50,3 +49,13 @@ def test_full_path_win32():
     nt.assert_equal(result, ['c:\\a.txt', 'c:\\b.txt'])
     result = full_path(spath,'a.txt')
     nt.assert_equal(result, ['c:\\a.txt'])
+
+
+def test_parser():
+    err = ("FAILED (errors=1)", 1, 0)
+    fail = ("FAILED (failures=1)", 0, 1)
+    both = ("FAILED (errors=1, failures=1)", 1, 1)
+    for txt, nerr, nfail in [err, fail, both]:
+        nerr1, nfail1 = parse_test_output(txt)
+        yield (nt.assert_equal, nerr, nerr1)
+        yield (nt.assert_equal, nfail, nfail1)

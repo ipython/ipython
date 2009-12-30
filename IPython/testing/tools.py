@@ -27,6 +27,7 @@ Authors
 #-----------------------------------------------------------------------------
 
 import os
+import re
 import sys
 
 import nose.tools as nt
@@ -87,3 +88,46 @@ def full_path(startPath,files):
     files = utils.list_strings(files)
     base = os.path.split(startPath)[0]
     return [ os.path.join(base,f) for f in files ]
+
+
+def parse_test_output(txt):
+    """Parse the output of a test run and return errors, failures.
+
+    Parameters
+    ----------
+    txt : str
+      Text output of a test run, assumed to contain a line of one of the
+      following forms::
+        'FAILED (errors=1)'
+        'FAILED (failures=1)'
+        'FAILED (errors=1, failures=1)'
+
+    Returns
+    -------
+    nerr, nfail: number of errors and failures.
+    """
+
+    err_m = re.search(r'^FAILED \(errors=(\d+)\)', txt, re.MULTILINE)
+    if err_m:
+        nerr = int(err_m.group(1))
+        nfail = 0
+        return  nerr, nfail
+    
+    fail_m = re.search(r'^FAILED \(failures=(\d+)\)', txt, re.MULTILINE)
+    if fail_m:
+        nerr = 0
+        nfail = int(fail_m.group(1))
+        return  nerr, nfail
+
+    both_m = re.search(r'^FAILED \(errors=(\d+), failures=(\d+)\)', txt,
+                       re.MULTILINE)
+    if both_m:
+        nerr = int(both_m.group(1))
+        nfail = int(both_m.group(2))
+        return  nerr, nfail
+    
+    # If the input didn't match any of these forms, assume no error/failures
+    return 0, 0
+
+# So nose doesn't think this is a test
+parse_test_output.__test__ = False
