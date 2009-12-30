@@ -34,7 +34,7 @@ import os
 import sys
 
 from IPython.core import release
-from IPython.utils.genutils import get_ipython_dir
+from IPython.utils.genutils import get_ipython_dir, get_ipython_package_dir
 from IPython.config.loader import (
     PyFileConfigLoader,
     ArgParseConfigLoader,
@@ -82,15 +82,22 @@ class Application(object):
 
     name = u'ipython'
     description = 'IPython: an enhanced interactive Python shell.'
+
     config_file_name = u'ipython_config.py'
+    # Track the default and actual separately because some messages are
+    # only printed if we aren't using the default.
+    default_config_file_name = config_file_name
     default_log_level = logging.WARN
+    # Set by --profile option
+    profile_name = None
+    # User's ipython directory, typically ~/.ipython/
+    ipython_dir = None
+
+    # Private attributes
+    _exiting = False
 
     def __init__(self):
-        self._exiting = False
         self.init_logger()
-        # Track the default and actual separately because some messages are
-        # only printed if we aren't using the default.
-        self.default_config_file_name = self.config_file_name
 
     def init_logger(self):
         self.log = logging.getLogger(self.__class__.__name__)
@@ -197,10 +204,10 @@ class Application(object):
     def find_ipython_dir(self):
         """Set the IPython directory.
 
-        This sets ``self.ipython_dir``, but the actual value that is passed
-        to the application is kept in either ``self.default_config`` or
+        This sets ``self.ipython_dir``, but the actual value that is passed to
+        the application is kept in either ``self.default_config`` or
         ``self.command_line_config``.  This also adds ``self.ipython_dir`` to
-        ``sys.path`` so config files there can be references by other config
+        ``sys.path`` so config files there can be referenced by other config
         files.
         """
 
@@ -230,8 +237,7 @@ class Application(object):
         config file are set in :meth:`find_config_file_paths` and then passed
         to the config file loader where they are resolved to an absolute path.
 
-        If a profile has been set at the command line, this will resolve
-        it.
+        If a profile has been set at the command line, this will resolve it.
         """
 
         try:
@@ -241,11 +247,12 @@ class Application(object):
 
         try:
             self.profile_name = self.command_line_config.Global.profile
+        except AttributeError:
+            pass
+        else:
             name_parts = self.config_file_name.split('.')
             name_parts.insert(1, u'_' + self.profile_name + u'.')
             self.config_file_name = ''.join(name_parts)
-        except AttributeError:
-            pass
 
     def find_config_file_paths(self):
         """Set the search paths for resolving the config file.
@@ -253,7 +260,11 @@ class Application(object):
         This must set ``self.config_file_paths`` to a sequence of search
         paths to pass to the config file loader.
         """
-        self.config_file_paths = (os.getcwd(), self.ipython_dir)
+        # Include our own profiles directory last, so that users can still find
+        # our shipped copies of builtin profiles even if they don't have them
+        # in their local ipython directory.
+        prof_dir = os.path.join(get_ipython_package_dir(), 'config', 'profile')
+        self.config_file_paths = (os.getcwd(), self.ipython_dir,prof_dir)
 
     def pre_load_file_config(self):
         """Do actions before the config file is loaded."""
@@ -266,7 +277,8 @@ class Application(object):
         ``CONFIG_FILE`` config variable is set to the resolved config file
         location.  If not successful, an empty config is used.
         """
-        self.log.debug("Attempting to load config file: %s" % self.config_file_name)
+        self.log.debug("Attempting to load config file: %s" %
+                       self.config_file_name)
         loader = PyFileConfigLoader(self.config_file_name,
                                     path=self.config_file_paths)
         try:
@@ -275,11 +287,11 @@ class Application(object):
         except IOError:
             # Only warn if the default config file was NOT being used.
             if not self.config_file_name==self.default_config_file_name:
-                self.log.warn("Config file not found, skipping: %s" % \
+                self.log.warn("Config file not found, skipping: %s" %
                                self.config_file_name, exc_info=True)
             self.file_config = Config()
         except:
-            self.log.warn("Error loading config file: %s" % \
+            self.log.warn("Error loading config file: %s" %
                           self.config_file_name, exc_info=True)
             self.file_config = Config()
 
@@ -299,7 +311,8 @@ class Application(object):
 
     def log_file_config(self):
         if hasattr(self.file_config.Global, 'config_file'):
-            self.log.debug("Config file loaded: %s" % self.file_config.Global.config_file)
+            self.log.debug("Config file loaded: %s" %
+                           self.file_config.Global.config_file)
             self.log.debug(repr(self.file_config))
 
     def merge_configs(self):

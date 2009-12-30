@@ -304,3 +304,8 @@ def test_filefind():
     alt_dirs = genutils.get_ipython_dir()
     t = genutils.filefind(f.name,alt_dirs)
     print 'found:',t
+
+
+def test_get_ipython_package_dir():
+    ipdir = genutils.get_ipython_package_dir()
+    nt.assert_true(os.path.isdir(ipdir))

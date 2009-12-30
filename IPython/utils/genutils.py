@@ -46,11 +46,6 @@ from IPython.utils import platutils
 from IPython.utils.generics import result_display
 from IPython.external.path import path
 
-try:
-    set
-except:
-    from sets import Set as set
-
 
 #****************************************************************************
 # Exceptions
@@ -821,6 +816,12 @@ def get_ipython_dir():
             'IPYTHONDIR', os.path.join(home_dir, ipdir_def)
         )
     )
+    return ipdir.decode(sys.getfilesystemencoding())
+
+
+def get_ipython_package_dir():
+    """Get the base directory where IPython itself is installed."""
+    ipdir = os.path.dirname(IPython.__file__)
     return ipdir.decode(sys.getfilesystemencoding())
 
 

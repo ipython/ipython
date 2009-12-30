@@ -292,6 +292,24 @@ class IPythonAppCLConfigLoader(BaseAppArgParseConfigLoader):
 
     arguments = cl_args
 
+    def load_config(self):
+        """Do actions just before loading the command line config."""
+
+        # Special hack: there are countless uses of 'ipython -pylab' (with one
+        # dash) in the wild, including in printed books.  Since argparse does
+        # will interpret -pylab as '-p ylab', sending us in a search for a
+        # profile named 'ylab', instead we special-case here -pylab as the
+        # first or second option only (this is how old ipython used to work)
+        # and convert this use to --pylab.  Ugly, but needed for this one
+        # very widely used case.
+        firstargs = sys.argv[:3]
+        try:
+            idx = firstargs.index('-pylab')
+        except ValueError:
+            pass
+        else:
+            sys.argv[idx] = '--pylab'
+        return super(IPythonAppCLConfigLoader, self).load_config()
 
 default_config_file_name = u'ipython_config.py'
 
@@ -303,22 +321,25 @@ class IPythonApp(Application):
 
     def create_default_config(self):
         super(IPythonApp, self).create_default_config()
-        self.default_config.Global.display_banner = True
+        # Eliminate multiple lookups
+        Global = self.default_config.Global
+        # Set all default values
+        Global.display_banner = True
         
         # If the -c flag is given or a file is given to run at the cmd line
         # like "ipython foo.py", normally we exit without starting the main
         # loop.  The force_interact config variable allows a user to override
         # this and interact.  It is also set by the -i cmd line flag, just
         # like Python.
-        self.default_config.Global.force_interact = False
+        Global.force_interact = False
 
         # By default always interact by starting the IPython mainloop.
-        self.default_config.Global.interact = True
+        Global.interact = True
 
         # No GUI integration by default
-        self.default_config.Global.wthread = False
-        self.default_config.Global.q4thread = False
-        self.default_config.Global.gthread = False
+        Global.wthread = False
+        Global.q4thread = False
+        Global.gthread = False
 
     def create_command_line_config(self):
         """Create and return a command line config loader."""
