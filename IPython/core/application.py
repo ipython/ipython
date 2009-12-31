@@ -264,7 +264,7 @@ class Application(object):
         # our shipped copies of builtin profiles even if they don't have them
         # in their local ipython directory.
         prof_dir = os.path.join(get_ipython_package_dir(), 'config', 'profile')
-        self.config_file_paths = (os.getcwd(), self.ipython_dir,prof_dir)
+        self.config_file_paths = (os.getcwd(), self.ipython_dir, prof_dir)
 
     def pre_load_file_config(self):
         """Do actions before the config file is loaded."""

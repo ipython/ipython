@@ -80,10 +80,97 @@ def compress_dhist(dh):
         done.add(h)
 
     return newhead + tail        
-        
+
+
+def pylab_activate(user_ns, gui=None, import_all=True):
+    """...."""
+
+    # Initialize matplotlib to interactive mode always
+    import matplotlib
+
+    # If user specifies a GUI, that dictates the backend, otherwise we read the
+    # user's mpl default from the mpl rc structure
+    g2b = {'tk': 'TkAgg',
+           'gtk': 'GTKAgg',
+           'wx': 'WXAgg',
+           'qt': 'Qt4Agg', # qt3 not supported
+           'qt4': 'Qt4Agg' }
+
+    if gui:
+        # select backend based on requested gui
+        backend = g2b[gui]
+    else:
+        backend = matplotlib.rcParams['backend']
+        # In this case, we need to find what the appropriate gui selection call
+        # should be for IPython, so we can activate inputhook accordingly
+        b2g = dict(zip(g2b.values(),g2b.keys()))
+        gui = b2g[backend]
+
+    matplotlib.use(backend)
+    
+    # This must be imported last in the matplotlib series, after
+    # backend/interactivity choices have been made
+    import matplotlib.pylab as pylab
+
+    pylab.show._needmain = False
+    # We need to detect at runtime whether show() is called by the user.
+    # For this, we wrap it into a decorator which adds a 'called' flag.
+    pylab.draw_if_interactive = flag_calls(pylab.draw_if_interactive)
+
+    # Import numpy as np/pyplot as plt are conventions we're trying to
+    # somewhat standardize on.  Making them available to users by default
+    # will greatly help this. 
+    exec ("import numpy\n"
+          "import numpy as np\n"
+          "import matplotlib\n"
+          "from matplotlib import pylab, mlab, pyplot as plt\n"
+          ) in user_ns
+
+    if import_all:
+        exec("from matplotlib.pylab import *\n"
+             "from numpy import *\n") in user_ns
+
+    matplotlib.interactive(True)
+
+    #  matplotlib info banner
+    print """
+Welcome to pylab, a matplotlib-based Python environment.
+Backend in use: %s
+For more information, type 'help(pylab)'.\n""" % backend
+    return gui
+
+def mpl_runner(safe_execfile):
+    def mplot_exec(fname,*where,**kw):
+        """Execute a matplotlib script.
+
+        This is a call to execfile(), but wrapped in safeties to properly
+        handle interactive rendering and backend switching."""
+
+        import matplotlib
+        import matplotlib.pylab as pylab
+
+        #print '*** Matplotlib runner ***' # dbg
+        # turn off rendering until end of script
+        isInteractive = matplotlib.rcParams['interactive']
+        matplotlib.interactive(False)
+        safe_execfile(fname,*where,**kw)
+        matplotlib.interactive(isInteractive)
+        # make rendering call now, if the user tried to do it
+        if pylab.draw_if_interactive.called:
+            pylab.draw()
+            pylab.draw_if_interactive.called = False
+
+    return mplot_exec
+
 
 #***************************************************************************
 # Main class implementing Magic functionality
+
+# XXX - for some odd reason, if Magic is made a new-style class, we get errors
+# on construction of the main InteractiveShell object.  Something odd is going
+# on with super() calls, Component and the MRO... For now leave it as-is, but
+# eventually this needs to be clarified.
+
 class Magic:
     """Magic functions for InteractiveShell.
 
@@ -1571,7 +1658,7 @@ Currently the magic system has the following functions:\n"""
             return
 
         if filename.lower().endswith('.ipy'):
-            self.safe_execfile_ipy(filename)
+            self.shell.safe_execfile_ipy(filename)
             return
         
         # Control the response to exit() calls made by the script being run
@@ -3495,20 +3582,25 @@ Defaulting color scheme to 'NoColor'"""
         This is highly recommended for most users.
         """
         from IPython.lib import inputhook
-        if "-a" in parameter_s:
-            app = True
-        else:
-            app = False
-        if not parameter_s:
+
+        opts, arg = self.parse_options(parameter_s,'a')
+        if not arg:
             inputhook.clear_inputhook()
-        elif 'wx' in parameter_s:
-            return inputhook.enable_wx(app)
-        elif ('qt4' in parameter_s) or ('qt' in parameter_s):
-            return inputhook.enable_qt4(app)
-        elif 'gtk' in parameter_s:
-            return inputhook.enable_gtk(app)
-        elif 'tk' in parameter_s:
-            return inputhook.enable_tk(app)
+            return
+        
+        guis = {'tk': inputhook.enable_tk,
+                'gtk':inputhook.enable_gtk,
+                'wx': inputhook.enable_wx,
+                'qt': inputhook.enable_qt4, # qt3 not supported
+                'qt4': inputhook.enable_qt4 }
+        try:
+            gui = guis[arg]
+        except KeyError:
+            e="Invalid GUI request %r, valid ones are:%s" % (arg, guis.keys())
+            raise UsageError(e)
+        
+        #print 'Switching IPython gui support to:', arg, 'a' in opts # dbg
+        return gui('a' in opts)
 
     def magic_load_ext(self, module_str):
         """Load an IPython extension by its module name."""
@@ -3576,5 +3668,21 @@ Defaulting color scheme to 'NoColor'"""
             shutil.copy(src, dst)
             print "Installing default config file: %s" % dst
 
+    # Pylab support: simple wrappers that activate pylab, load gui input
+    # handling and modify slightly %run
+
+    @testdec.skip_doctest
+    def _pylab_magic_run(self, parameter_s=''):
+        Magic.magic_run(self, parameter_s,
+                        runner=mpl_runner(self.shell.safe_execfile))
+
+    _pylab_magic_run.__doc__ = magic_run.__doc__
+
+    def magic_pylab(self, s):
+        """Load pylab, optionally with gui of choice"""
+
+        gui = pylab_activate(self.shell.user_ns, s)
+        self.shell.magic_gui('-a %s' % gui)
+        self.shell.magic_run = self._pylab_magic_run
 
 # end Magic
