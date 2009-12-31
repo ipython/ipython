@@ -155,9 +155,10 @@ class Application(object):
         we set them here.  The Global section is for variables like this that
         don't belong to a particular component.
         """
-        self.default_config = Config()
-        self.default_config.Global.ipython_dir = get_ipython_dir()
-        self.default_config.Global.log_level = self.log_level
+        c = Config()
+        c.Global.ipython_dir = get_ipython_dir()
+        c.Global.log_level = self.log_level
+        self.default_config = c
 
     def log_default_config(self):
         self.log.debug('Default config loaded:')
