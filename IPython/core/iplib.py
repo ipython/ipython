@@ -31,33 +31,36 @@ import sys
 import tempfile
 from contextlib import nested
 
-from IPython.core import ultratb
 from IPython.core import debugger, oinspect
-from IPython.core import shadowns
 from IPython.core import history as ipcorehist
 from IPython.core import prefilter
+from IPython.core import shadowns
+from IPython.core import ultratb
 from IPython.core.alias import AliasManager
 from IPython.core.builtin_trap import BuiltinTrap
+from IPython.core.component import Component
 from IPython.core.display_trap import DisplayTrap
+from IPython.core.error import TryNext, UsageError
 from IPython.core.fakemodule import FakeModule, init_fakemod_dict
 from IPython.core.logger import Logger
 from IPython.core.magic import Magic
-from IPython.core.prompts import CachedOutput
 from IPython.core.prefilter import PrefilterManager
-from IPython.core.component import Component
+from IPython.core.prompts import CachedOutput
+from IPython.core.pylabtools import pylab_activate
 from IPython.core.usage import interactive_usage, default_banner
-from IPython.core.error import TryNext, UsageError
-
-from IPython.utils import pickleshare
 from IPython.external.Itpl import ItplNS
+from IPython.lib.inputhook import enable_gui
 from IPython.lib.backgroundjobs import BackgroundJobManager
-from IPython.utils.ipstruct import Struct
 from IPython.utils import PyColorize
-from IPython.utils.genutils import *
+from IPython.utils import pickleshare
 from IPython.utils.genutils import get_ipython_dir
+from IPython.utils.ipstruct import Struct
 from IPython.utils.platutils import toggle_set_term_title, set_term_title
 from IPython.utils.strdispatch import StrDispatch
 from IPython.utils.syspathcontext import prepended_to_syspath
+
+# XXX - need to clean up this import * line
+from IPython.utils.genutils import *
 
 # from IPython.utils import growl
 # growl.start("IPython")
@@ -70,7 +73,6 @@ from IPython.utils.traitlets import (
 # Globals
 #-----------------------------------------------------------------------------
 
-
 # store the builtin raw_input globally, and use this always, in case user code
 # overwrites it (like wx.py.PyShell does)
 raw_input_original = raw_input
@@ -78,11 +80,9 @@ raw_input_original = raw_input
 # compiled regexps for autoindent management
 dedent_re = re.compile(r'^\s+raise|^\s+return|^\s+pass')
 
-
 #-----------------------------------------------------------------------------
 # Utilities
 #-----------------------------------------------------------------------------
-
 
 ini_spaces_re = re.compile(r'^(\s+)')
 
@@ -2443,6 +2443,18 @@ class InteractiveShell(Component, Magic):
         if self.quiet:
             return True
         return ask_yes_no(prompt,default)
+
+    #-------------------------------------------------------------------------
+    # Things related to GUI support and pylab
+    #-------------------------------------------------------------------------
+
+    def enable_pylab(self, gui=None):
+        """
+        """
+        gui = pylab_activate(self.user_ns, gui)
+        enable_gui(gui)
+        self.magic_run = self._pylab_magic_run
+
 
     #-------------------------------------------------------------------------
     # Things related to IPython exiting

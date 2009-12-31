@@ -27,52 +27,29 @@ Notes
 import logging
 import os
 import sys
-import warnings
 
-from IPython.core.application import Application, BaseAppArgParseConfigLoader
 from IPython.core import release
+from IPython.core.application import Application, BaseAppArgParseConfigLoader
+from IPython.core.error import UsageError
 from IPython.core.iplib import InteractiveShell
+from IPython.core.pylabtools import pylab_activate
 from IPython.config.loader import (
     NoConfigDefault, 
     Config,
     PyFileConfigLoader
 )
-
 from IPython.lib import inputhook
-
 from IPython.utils.genutils import filefind, get_ipython_dir
 
 #-----------------------------------------------------------------------------
 # Utilities and helpers
 #-----------------------------------------------------------------------------
 
-
 ipython_desc = """
 A Python shell with automatic history (input and output), dynamic object
 introspection, easier configuration, command completion, access to the system
 shell and more.
 """
-
-def pylab_warning():
-    msg = """
-
-IPython's -pylab mode has been disabled until matplotlib supports this version
-of IPython.  This version of IPython has greatly improved GUI integration that 
-matplotlib will soon be able to take advantage of.  This will eventually
-result in greater stability and a richer API for matplotlib under IPython.
-However during this transition, you will either need to use an older version
-of IPython, or do the following to use matplotlib interactively::
-
-    import matplotlib
-    matplotlib.interactive(True)
-    matplotlib.use('wxagg')  # adjust for your backend
-    %gui -a wx               # adjust for your GUI
-    from matplotlib import pyplot as plt
-
-See the %gui magic for information on the new interface.
-"""
-    warnings.warn(msg, category=DeprecationWarning, stacklevel=1)
-
 
 #-----------------------------------------------------------------------------
 # Main classes and functions
@@ -267,23 +244,21 @@ cl_args = (
         action='store_true', dest='Global.force_interact', default=NoConfigDefault,
         help="If running code from the command line, become interactive afterwards.")
     ),
-    (('--wthread',), dict(
+    (('--wthread','-wthread'), dict(
         action='store_true', dest='Global.wthread', default=NoConfigDefault,
         help="Enable wxPython event loop integration.")
     ),
-    (('--q4thread','--qthread'), dict(
+    (('--q4thread','--qthread','-q4thread','-qthread'), dict(
         action='store_true', dest='Global.q4thread', default=NoConfigDefault,
         help="Enable Qt4 event loop integration. Qt3 is no longer supported.")
     ),
-    (('--gthread',), dict(
+    (('--gthread','-gthread'), dict(
         action='store_true', dest='Global.gthread', default=NoConfigDefault,
         help="Enable GTK event loop integration.")
     ),
-    # # These are only here to get the proper deprecation warnings
     (('--pylab',), dict(
         action='store_true', dest='Global.pylab', default=NoConfigDefault,
-        help="Disabled.  Pylab has been disabled until matplotlib "
-        "supports this version of IPython.")
+        help="Pre-load matplotlib and numpy for interactive use.")
     )
 )
 
@@ -341,6 +316,9 @@ class IPythonApp(Application):
         Global.q4thread = False
         Global.gthread = False
 
+        # Pylab off by default
+        Global.pylab = False
+
     def create_command_line_config(self):
         """Create and return a command line config loader."""
         return IPythonAppCLConfigLoader(
@@ -348,14 +326,6 @@ class IPythonApp(Application):
             version=release.version
         )
 
-    def post_load_command_line_config(self):
-        """Do actions after loading cl config."""
-        clc = self.command_line_config
-
-        # Display the deprecation warnings about threaded shells
-        if hasattr(clc.Global, 'pylab'):
-            pylab_warning()
-            del clc.Global['pylab']
 
     def load_file_config(self):
         if hasattr(self.command_line_config.Global, 'quick'):
@@ -433,29 +403,43 @@ class IPythonApp(Application):
         if self.log_level <= logging.INFO: print
 
         # Now a variety of things that happen after the banner is printed.
-        self._enable_gui()
+        self._enable_gui_pylab()
         self._load_extensions()
         self._run_exec_lines()
         self._run_exec_files()
         self._run_cmd_line_code()
+        self._configure_xmode()
 
-    def _enable_gui(self):
-        """Enable GUI event loop integration."""
-        config = self.master_config
-        try:
-            # Enable GUI integration
-            if config.Global.wthread:
-                self.log.info("Enabling wx GUI event loop integration")
-                inputhook.enable_wx(app=True)
-            elif config.Global.q4thread:
-                self.log.info("Enabling Qt4 GUI event loop integration")
-                inputhook.enable_qt4(app=True)
-            elif config.Global.gthread:
-                self.log.info("Enabling GTK GUI event loop integration")
-                inputhook.enable_gtk(app=True)
-        except:
-            self.log.warn("Error in enabling GUI event loop integration:")
-            self.shell.showtraceback()
+    def _enable_gui_pylab(self):
+        """Enable GUI event loop integration, taking pylab into account."""
+        Global = self.master_config.Global
+
+        # Select which gui to use
+        if Global.wthread:
+            gui = inputhook.GUI_WX
+        elif Global.q4thread:
+            gui = inputhook.GUI_QT
+        elif Global.gthread:
+            gui = inputhook.GUI_GTK
+        else:
+            gui = None
+
+        if Global.pylab:
+            activate = self.shell.enable_pylab
+        else:
+            # Enable only GUI integration, no pylab
+            activate = inputhook.enable_gui
+
+        if gui or Global.pylab:
+            try:
+                m = "Enabling GUI event loop integration, toolkit=%s, pylab=%s"\
+                    % (gui, Global.pylab)
+                self.log.info(m)
+                activate(gui)
+            except:
+                self.log.warn("Error in enabling GUI event loop integration:")
+                self.shell.showtraceback()
+
 
     def _load_extensions(self):
         """Load all IPython extensions in Global.extensions.
@@ -540,10 +524,16 @@ class IPythonApp(Application):
                 self.log.warn("Error in executing file in user namespace: %s" % fname)
                 self.shell.showtraceback()
 
+    def _configure_xmode(self):
+        # XXX - shouldn't this be read from the config?  I'm still a little
+        # lost with all the details of handling the new config guys...
+        self.shell.InteractiveTB.set_mode(mode=self.shell.xmode)
+        
     def start_app(self):
         if self.master_config.Global.interact:
             self.log.debug("Starting IPython's mainloop...")
             self.shell.mainloop()
+
 
 
 def load_default_config(ipython_dir=None):
