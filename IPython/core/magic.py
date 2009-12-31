@@ -83,7 +83,26 @@ def compress_dhist(dh):
 
 
 def pylab_activate(user_ns, gui=None, import_all=True):
-    """...."""
+    """Activate pylab mode in the user's namespace.
+
+    Loads and initializes numpy, matplotlib and friends for interactive use.
+
+    Parameters
+    ----------
+    user_ns : dict
+      Namespace where the imports will occur.
+
+    gui : optional, string
+      A valid gui name following the conventions of the %gui magic.
+
+    import_all : optional, boolean
+      If true, an 'import *' is done from numpy and pylab.
+
+    Returns
+    -------
+    The actual gui used (if not given as input, it was obtained from matplotlib
+    itself, and will be needed next to configure IPython's gui integration.
+    """
 
     # Initialize matplotlib to interactive mode always
     import matplotlib
@@ -106,11 +125,17 @@ def pylab_activate(user_ns, gui=None, import_all=True):
         b2g = dict(zip(g2b.values(),g2b.keys()))
         gui = b2g[backend]
 
+    # We must set the desired backend before importing pylab
     matplotlib.use(backend)
     
     # This must be imported last in the matplotlib series, after
     # backend/interactivity choices have been made
     import matplotlib.pylab as pylab
+
+    # XXX For now leave this commented out, but depending on discussions with
+    # mpl-dev, we may be able to allow interactive switching...
+    #import matplotlib.pyplot
+    #matplotlib.pyplot.switch_backend(backend)
 
     pylab.show._needmain = False
     # We need to detect at runtime whether show() is called by the user.
@@ -132,35 +157,53 @@ def pylab_activate(user_ns, gui=None, import_all=True):
 
     matplotlib.interactive(True)
 
-    #  matplotlib info banner
     print """
 Welcome to pylab, a matplotlib-based Python environment.
 Backend in use: %s
-For more information, type 'help(pylab)'.\n""" % backend
+For more information, type 'help(pylab)'.""" % backend
+    
     return gui
 
+# We need a little factory function here to create the closure where
+# safe_execfile can live.
 def mpl_runner(safe_execfile):
-    def mplot_exec(fname,*where,**kw):
-        """Execute a matplotlib script.
+    """Factory to return a matplotlib-enabled runner for %run.
 
-        This is a call to execfile(), but wrapped in safeties to properly
-        handle interactive rendering and backend switching."""
+    Parameters
+    ----------
+    safe_execfile : function
+      This must be a function with the same interface as the
+      :meth:`safe_execfile` method of IPython.
+
+    Returns
+    -------
+    A function suitable for use as the ``runner`` argument of the %run magic
+    function.
+    """
+    
+    def mpl_execfile(fname,*where,**kw):
+        """matplotlib-aware wrapper around safe_execfile.
+
+        Its interface is identical to that of the :func:`execfile` builtin.
+
+        This is ultimately a call to execfile(), but wrapped in safeties to
+        properly handle interactive rendering."""
 
         import matplotlib
         import matplotlib.pylab as pylab
 
         #print '*** Matplotlib runner ***' # dbg
         # turn off rendering until end of script
-        isInteractive = matplotlib.rcParams['interactive']
+        is_interactive = matplotlib.rcParams['interactive']
         matplotlib.interactive(False)
         safe_execfile(fname,*where,**kw)
-        matplotlib.interactive(isInteractive)
+        matplotlib.interactive(is_interactive)
         # make rendering call now, if the user tried to do it
         if pylab.draw_if_interactive.called:
             pylab.draw()
             pylab.draw_if_interactive.called = False
 
-    return mplot_exec
+    return mpl_execfile
 
 
 #***************************************************************************
@@ -3562,7 +3605,7 @@ Defaulting color scheme to 'NoColor'"""
         using the (pylab/wthread/etc.) command line flags.  GUI toolkits
         can now be enabled, disabled and swtiched at runtime and keyboard
         interrupts should work without any problems.  The following toolkits
-        are supports:  wxPython, PyQt4, PyGTK, and Tk::
+        are supported:  wxPython, PyQt4, PyGTK, and Tk::
 
             %gui wx      # enable wxPython event loop integration
             %gui qt4|qt  # enable PyQt4 event loop integration
@@ -3678,8 +3721,42 @@ Defaulting color scheme to 'NoColor'"""
 
     _pylab_magic_run.__doc__ = magic_run.__doc__
 
+    @testdec.skip_doctest
     def magic_pylab(self, s):
-        """Load pylab, optionally with gui of choice"""
+        """Load numpy and matplotlib to work interactively.
+
+        %pylab [GUINAME]
+
+        This function lets you activate pylab (matplotlib, numpy and
+        interactive support) at any point during an IPython session.
+
+        It will import at the top level numpy as np, pyplot as plt, matplotlib,
+        pylab and mlab, as well as all names from numpy and pylab.
+
+        Parameters
+        ----------
+        guiname : optional
+          One of the valid arguments to the %gui magic ('qt', 'wx', 'gtk' or
+          'tk').  If given, the corresponding Matplotlib backend is used,
+          otherwise matplotlib's default (which you can override in your
+          matplotlib config file) is used.
+
+        Examples
+        --------
+        In this case, where the MPL default is TkAgg:
+        In [2]: %pylab
+
+        Welcome to pylab, a matplotlib-based Python environment.
+        Backend in use: TkAgg
+        For more information, type 'help(pylab)'.
+
+        But you can explicitly request a different backend:
+        In [3]: %pylab qt
+
+        Welcome to pylab, a matplotlib-based Python environment.
+        Backend in use: Qt4Agg
+        For more information, type 'help(pylab)'.
+        """
 
         gui = pylab_activate(self.shell.user_ns, s)
         self.shell.magic_gui('-a %s' % gui)
