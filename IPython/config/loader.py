@@ -1,10 +1,10 @@
-#!/usr/bin/env python
-# encoding: utf-8
+# coding: utf-8
 """A simple configuration system.
 
-Authors:
-
+Authors
+-------
 * Brian Granger
+* Fernando Perez
 """
 
 #-----------------------------------------------------------------------------
@@ -37,7 +37,25 @@ class ConfigError(Exception):
 class ConfigLoaderError(ConfigError):
     pass
 
+#-----------------------------------------------------------------------------
+# Argparse fix
+#-----------------------------------------------------------------------------
+# Unfortunately argparse by default prints help messages to stderr instead of
+# stdout.  This makes it annoying to capture long help screens at the command
+# line, since one must know how to pipe stderr, which many users don't know how
+# to do.  So we override the print_help method with one that defaults to
+# stdout and use our class instead.
 
+class ArgumentParser(argparse.ArgumentParser):
+    """Simple argparse subclass that prints help to stdout by default."""
+    
+    def print_help(self, file=None):
+        if file is None:
+            file = sys.stdout
+        return super(ArgumentParser, self).print_help(file)
+    
+    print_help.__doc__ = argparse.ArgumentParser.print_help.__doc__
+    
 #-----------------------------------------------------------------------------
 # Config class for holding config information
 #-----------------------------------------------------------------------------
@@ -307,7 +325,7 @@ class ArgParseConfigLoader(CommandLineConfigLoader):
             return []
 
     def _create_parser(self):
-        self.parser = argparse.ArgumentParser(*self.args, **self.kw)
+        self.parser = ArgumentParser(*self.args, **self.kw)
         self._add_arguments()
         self._add_other_arguments()
 
@@ -333,4 +351,3 @@ class ArgParseConfigLoader(CommandLineConfigLoader):
             if v is not NoConfigDefault:
                 exec_str = 'self.config.' + k + '= v'
                 exec exec_str in locals(), globals()
-
