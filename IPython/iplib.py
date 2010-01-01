@@ -1260,6 +1260,8 @@ class InteractiveShell(object,Magic):
         return outcomps
         
     def set_completer_frame(self, frame=None):
+        if not self.has_readline:
+            return
         if frame:
             self.Completer.namespace = frame.f_locals
             self.Completer.global_namespace = frame.f_globals
@@ -1982,7 +1984,8 @@ class InteractiveShell(object,Magic):
             except EOFError:
                 if self.autoindent:
                     self.rl_do_indent = False
-                    self.readline_startup_hook(None)
+                    if self.has_readline:
+                        self.readline_startup_hook(None)
                 self.write('\n')
                 self.exit()
             except bdb.BdbQuit:
