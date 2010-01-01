@@ -158,7 +158,7 @@ class LineInfo(object):
         without worrying about *further* damaging state.
         """
         if not self._oinfo:
-            self._oinfo = ip._ofind(self.ifun)
+            self._oinfo = ip.shell._ofind(self.ifun)
         return self._oinfo
 
     def __str__(self):                                                         
