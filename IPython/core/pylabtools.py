@@ -98,8 +98,7 @@ def pylab_activate(user_ns, gui=None, import_all=True):
     matplotlib.interactive(True)
 
     print """
-Welcome to pylab, a matplotlib-based Python environment.
-Backend in use: %s
+Welcome to pylab, a matplotlib-based Python environment [backend: %s].
 For more information, type 'help(pylab)'.""" % backend
     
     return gui
