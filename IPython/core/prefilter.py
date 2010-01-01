@@ -850,7 +850,11 @@ class AutoHandler(PrefilterHandler):
 
         # This should only be active for single-line input!
         if continue_prompt:
-            self.log(line,line,continue_prompt)
+            # XXX - Ugly hack!  We are breaking on multiline input and I'm out
+            # of time tonight to disentangle the component hirerarchy issue
+            # here... Fix this more cleanly later.
+            self.parent.parent.log(line,line,continue_prompt)
+            
             return line
 
         force_auto = isinstance(obj, IPyAutocall)
