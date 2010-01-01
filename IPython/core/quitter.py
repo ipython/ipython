@@ -36,5 +36,6 @@ class Quitter(object):
 
     def __call__(self):
         self.shell.ask_exit()
+        return 'Bye.'
 
     __repr__ = __call__

@@ -533,20 +533,6 @@ class CachedOutput:
             except KeyError:
                 pass
         if arg is not None:
-
-            # and now call a possibly user-defined print mechanism
-            try:
-                manipulated_val = self.display(arg)
-            except TypeError:
-                # If the user's display hook didn't return a string we can
-                # print, we're done.  Happens commonly if they return None
-                return
-            
-            # user display hooks can change the variable to be stored in
-            # output history
-            if manipulated_val is not None:
-                arg = manipulated_val
-                
             cout_write = Term.cout.write # fast lookup
             # first handle the cache and counters
 
@@ -565,6 +551,22 @@ class CachedOutput:
                 cout_write(outprompt)
             else:
                 print "self.do_full_cache = False"
+
+            # and now call a possibly user-defined print mechanism. Note that
+            # self.display typically prints as a side-effect, we don't do any
+            # printing to stdout here.
+            try:
+                manipulated_val = self.display(arg)
+            except TypeError:
+                # If the user's display hook didn't return a string we can
+                # print, we're done.  Happens commonly if they return None
+                cout_write('\n')
+                return
+            
+            # user display hooks can change the variable to be stored in
+            # output history
+            if manipulated_val is not None:
+                arg = manipulated_val
 
             # avoid recursive reference when displaying _oh/Out
             if arg is not self.user_ns['_oh']:
