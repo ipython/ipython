@@ -36,6 +36,8 @@ class Quitter(object):
 
     def __call__(self):
         self.shell.ask_exit()
-        return 'Bye.'
 
-    __repr__ = __call__
+    # Repr MUST return a string, else display like pprint hooks get confused
+    def __repr__(self):
+        self.shell.ask_exit()
+        return 'Bye.'
