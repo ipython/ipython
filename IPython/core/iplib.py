@@ -2461,7 +2461,7 @@ class InteractiveShell(Component, Magic):
     #-------------------------------------------------------------------------
 
     def ask_exit(self):
-        """ Call for exiting. Can be overiden and used as a callback. """
+        """ Ask the shell to exit. Can be overiden and used as a callback. """
         self.exit_now = True
 
     def exit(self):

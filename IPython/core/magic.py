@@ -2533,20 +2533,7 @@ Defaulting color scheme to 'NoColor'"""
         self.shell.pprint = 1 - self.shell.pprint
         print 'Pretty printing has been turned', \
               ['OFF','ON'][self.shell.pprint]
-        
-    def magic_exit(self, parameter_s=''):
-        """Exit IPython, confirming if configured to do so.
-
-        You can configure whether IPython asks for confirmation upon exit by
-        setting the confirm_exit flag in the ipythonrc file."""
-
-        self.shell.exit()
-
-    def magic_quit(self, parameter_s=''):
-        """Exit IPython, confirming if configured to do so (like %exit)"""
-
-        self.shell.exit()
-        
+                
     def magic_Exit(self, parameter_s=''):
         """Exit IPython without confirmation."""
 
