@@ -33,7 +33,6 @@ import sys
 import nose.tools as nt
 
 from IPython.utils import genutils
-from IPython.testing import decorators as dec
 
 #-----------------------------------------------------------------------------
 # Globals

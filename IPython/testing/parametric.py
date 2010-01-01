@@ -1,5 +1,8 @@
 """Parametric testing on top of twisted.trial.unittest.
 
+XXX - It may be possbile to deprecate this in favor of the new, cleaner
+parametric code.  We just need to double-check that the new code doesn't clash
+with Twisted (we know it works with nose and unittest).
 """
 
 __all__ = ['parametric','Parametric']

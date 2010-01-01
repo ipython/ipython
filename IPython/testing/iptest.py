@@ -125,8 +125,6 @@ def make_exclude():
                              'test_asyncfrontendbase')),
         EXCLUDE.append(pjoin('IPython', 'testing', 'parametric'))
         EXCLUDE.append(pjoin('IPython', 'testing', 'util'))
-        EXCLUDE.append(pjoin('IPython', 'testing', 'tests', 
-                             'test_decorators_trial'))
 
     # This is needed for the reg-exp to match on win32 in the ipdoctest plugin.
     if sys.platform == 'win32':

@@ -21,12 +21,11 @@ import os
 
 from twisted.trial import unittest
 
-from IPython.testing import decorators_trial as dec
+from IPython.testing import decorators as dec
 
 #-----------------------------------------------------------------------------
 # Tests
 #-----------------------------------------------------------------------------
-
 
 class TestRedirector(unittest.TestCase):
 
