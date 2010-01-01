@@ -113,6 +113,8 @@ def softspace(file, newvalue):
     return oldvalue
 
 
+def no_op(*a, **kw): pass
+
 class SpaceInInput(exceptions.Exception): pass
 
 class Bunch: pass
@@ -1099,9 +1101,6 @@ class InteractiveShell(Component, Magic):
     def savehist(self):
         """Save input history to a file (via readline library)."""
 
-        if not self.has_readline:
-            return
-        
         try:
             self.readline.write_history_file(self.histfile)
         except:
@@ -1111,12 +1110,11 @@ class InteractiveShell(Component, Magic):
     def reloadhist(self):
         """Reload the input history from disk file."""
 
-        if self.has_readline:
-            try:
-                self.readline.clear_history()
-                self.readline.read_history_file(self.shell.histfile)
-            except AttributeError:
-                pass
+        try:
+            self.readline.clear_history()
+            self.readline.read_history_file(self.shell.histfile)
+        except AttributeError:
+            pass
 
     def history_saving_wrapper(self, func):
         """ Wrap func for readline history saving
@@ -1287,7 +1285,7 @@ class InteractiveShell(Component, Magic):
                     self.CustomTB(etype,value,tb)
                 else:
                     self.InteractiveTB(etype,value,tb,tb_offset=tb_offset)
-                    if self.InteractiveTB.call_pdb and self.has_readline:
+                    if self.InteractiveTB.call_pdb:
                         # pdb mucks up readline, fix it back
                         self.set_completer()
         except KeyboardInterrupt:
@@ -1450,8 +1448,6 @@ class InteractiveShell(Component, Magic):
 
     def set_completer_frame(self, frame=None):
         """Set the frame of the completer."""
-        if not self.has_readline:
-            return
         if frame:
             self.Completer.namespace = frame.f_locals
             self.Completer.global_namespace = frame.f_globals
@@ -1466,20 +1462,25 @@ class InteractiveShell(Component, Magic):
     def init_readline(self):
         """Command history completion/saving/reloading."""
 
+        if self.readline_use:
+            import IPython.utils.rlineimpl as readline
+                  
         self.rl_next_input = None
         self.rl_do_indent = False
 
-        if not self.readline_use:
-            return
-
-        import IPython.utils.rlineimpl as readline
-                  
-        if not readline.have_readline:
-            self.has_readline = 0
+        if not self.readline_use or not readline.have_readline:
+            self.has_readline = False
             self.readline = None
-            # no point in bugging windows users with this every time:
-            warn('Readline services not available on this platform.')
+            # Set a number of methods that depend on readline to be no-op
+            self.savehist = no_op
+            self.reloadhist = no_op
+            self.set_completer = no_op
+            self.set_custom_completer = no_op
+            self.set_completer_frame = no_op
+            warn('Readline services not available or not loaded.')
         else:
+            self.has_readline = True
+            self.readline = readline
             sys.modules['readline'] = readline
             import atexit
             from IPython.core.completer import IPCompleter
@@ -1514,8 +1515,6 @@ class InteractiveShell(Component, Magic):
                     warn('Problems reading readline initialization file <%s>'
                          % inputrc_name)
             
-            self.has_readline = 1
-            self.readline = readline
             # save this in sys so embedded copies can restore it properly
             sys.ipcompleter = self.Completer.complete
             self.set_completer()
