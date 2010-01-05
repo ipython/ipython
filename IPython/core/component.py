@@ -27,7 +27,7 @@ from weakref import WeakValueDictionary
 from IPython.utils.importstring import import_item
 from IPython.config.loader import Config
 from IPython.utils.traitlets import (
-    HasTraits, TraitletError, MetaHasTraits, Instance, This
+    HasTraits, TraitError, MetaHasTraits, Instance, This
 )
 
 
@@ -186,7 +186,7 @@ class Component(HasTraits):
 
     __metaclass__ = MetaComponent
 
-    # Traitlets are fun!
+    # Traits are fun!
     config = Instance(Config,(),{})
     parent = This()
     root = This()
@@ -250,7 +250,7 @@ class Component(HasTraits):
         self.created = datetime.datetime.now()
 
     #-------------------------------------------------------------------------
-    # Static traitlet notifiations
+    # Static trait notifiations
     #-------------------------------------------------------------------------
 
     def _parent_changed(self, name, old, new):
@@ -276,12 +276,12 @@ class Component(HasTraits):
     def _config_changed(self, name, old, new):
         """Update all the class traits having ``config=True`` as metadata.
 
-        For any class traitlet with a ``config`` metadata attribute that is
-        ``True``, we update the traitlet with the value of the corresponding
+        For any class trait with a ``config`` metadata attribute that is
+        ``True``, we update the trait with the value of the corresponding
         config entry.
         """
-        # Get all traitlets with a config metadata entry that is True
-        traitlets = self.traits(config=True)
+        # Get all traits with a config metadata entry that is True
+        traits = self.traits(config=True)
 
         # We auto-load config section for this class as well as any parent
         # classes that are Component subclasses.  This starts with Component
@@ -295,7 +295,7 @@ class Component(HasTraits):
             # dynamically create the section with name self.__class__.__name__.
             if new._has_section(sname):
                 my_config = new[sname]
-                for k, v in traitlets.items():
+                for k, v in traits.items():
                     try:
                         config_value = my_config[k]
                     except KeyError:

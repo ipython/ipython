@@ -17,7 +17,7 @@ We don't support:
 * Delegation
 * Automatic GUI generation
 * A full set of trait types.  Most importantly, we don't provide container
-  traitlets (list, dict, tuple) that can trigger notifications if their
+  traits (list, dict, tuple) that can trigger notifications if their
   contents change.
 * API compatibility with enthought.traits
 
@@ -86,15 +86,8 @@ NoDefaultSpecified = NoDefaultSpecified()
 class Undefined ( object ): pass
 Undefined = Undefined()
 
-# The following allows us to test specifically for a TraitletError, or more
-# generally for a TraitError if we are going for compatability with Enthought
-# Traits
 class TraitError(Exception):
     pass
-
-class TraitletError(TraitError):
-    pass
-
 
 #-----------------------------------------------------------------------------
 # Utilities
@@ -168,25 +161,25 @@ class _SimpleTest:
 
 
 #-----------------------------------------------------------------------------
-# Base TraitletType for all traitlets
+# Base TraitType for all traits
 #-----------------------------------------------------------------------------
 
 
-class TraitletType(object):
-    """A base class for all traitlet descriptors.
+class TraitType(object):
+    """A base class for all trait descriptors.
 
     Notes
     -----
-    Our implementation of traitlets is based on Python's descriptor
+    Our implementation of traits is based on Python's descriptor
     prototol.  This class is the base class for all such descriptors.  The
     only magic we use is a custom metaclass for the main :class:`HasTraits`
     class that does the following:
 
-    1. Sets the :attr:`name` attribute of every :class:`TraitletType`
+    1. Sets the :attr:`name` attribute of every :class:`TraitType`
        instance in the class dict to the name of the attribute.
-    2. Sets the :attr:`this_class` attribute of every :class:`TraitletType`
-       instance in the class dict to the *class* that declared the traitlet.
-       This is used by the :class:`This` traitlet to allow subclasses to
+    2. Sets the :attr:`this_class` attribute of every :class:`TraitType`
+       instance in the class dict to the *class* that declared the trait.
+       This is used by the :class:`This` trait to allow subclasses to
        accept superclasses for :class:`This` values.
     """
     
@@ -196,7 +189,7 @@ class TraitletType(object):
     info_text = 'any value'
 
     def __init__(self, default_value=NoDefaultSpecified, **metadata):
-        """Create a TraitletType.
+        """Create a TraitType.
         """
         if default_value is not NoDefaultSpecified:
             self.default_value = default_value
@@ -250,10 +243,10 @@ class TraitletType(object):
         """
         dv = self.get_default_value()
         newdv = self._validate(obj, dv)
-        obj._traitlet_values[self.name] = newdv
+        obj._trait_values[self.name] = newdv
 
     def __get__(self, obj, cls=None):
-        """Get the value of the traitlet by self.name for the instance.
+        """Get the value of the trait by self.name for the instance.
 
         Default values are instantiated when :meth:`HasTraits.__new__`
         is called.  Thus by the time this method gets called either the 
@@ -264,11 +257,11 @@ class TraitletType(object):
             return self
         else:
             try:
-                value = obj._traitlet_values[self.name]
+                value = obj._trait_values[self.name]
             except:
                 # HasTraits should call set_default_value to populate
                 # this.  So this should never be reached.
-                raise TraitletError('Unexpected error in TraitletType: '
+                raise TraitError('Unexpected error in TraitType: '
                                     'default value not set properly')
             else:
                 return value
@@ -277,8 +270,8 @@ class TraitletType(object):
         new_value = self._validate(obj, value)
         old_value = self.__get__(obj)
         if old_value != new_value:
-            obj._traitlet_values[self.name] = new_value
-            obj._notify_traitlet(self.name, old_value, new_value)
+            obj._trait_values[self.name] = new_value
+            obj._notify_trait(self.name, old_value, new_value)
 
     def _validate(self, obj, value):
         if hasattr(self, 'validate'):
@@ -288,7 +281,7 @@ class TraitletType(object):
             if valid:
                 return value
             else:
-                raise TraitletError('invalid value for type: %r' % value)
+                raise TraitError('invalid value for type: %r' % value)
         elif hasattr(self, 'value_for'):
             return self.value_for(value)
         else:
@@ -299,13 +292,13 @@ class TraitletType(object):
 
     def error(self, obj, value):
         if obj is not None:
-            e = "The '%s' traitlet of %s instance must be %s, but a value of %s was specified." \
+            e = "The '%s' trait of %s instance must be %s, but a value of %s was specified." \
                 % (self.name, class_of(obj),
                    self.info(), repr_type(value))
         else:
-            e = "The '%s' traitlet must be %s, but a value of %r was specified." \
+            e = "The '%s' trait must be %s, but a value of %r was specified." \
                 % (self.name, self.info(), repr_type(value))            
-        raise TraitletError(e)
+        raise TraitError(e)
 
     def get_metadata(self, key):
         return getattr(self, '_metadata', {}).get(key, None)
@@ -322,21 +315,21 @@ class TraitletType(object):
 class MetaHasTraits(type):
     """A metaclass for HasTraits.
     
-    This metaclass makes sure that any TraitletType class attributes are
+    This metaclass makes sure that any TraitType class attributes are
     instantiated and sets their name attribute.
     """
     
     def __new__(mcls, name, bases, classdict):
         """Create the HasTraits class.
         
-        This instantiates all TraitletTypes in the class dict and sets their
+        This instantiates all TraitTypes in the class dict and sets their
         :attr:`name` attribute.
         """
         for k,v in classdict.iteritems():
-            if isinstance(v, TraitletType):
+            if isinstance(v, TraitType):
                 v.name = k
             elif inspect.isclass(v):
-                if issubclass(v, TraitletType):
+                if issubclass(v, TraitType):
                     vinst = v()
                     vinst.name = k
                     classdict[k] = vinst
@@ -345,11 +338,11 @@ class MetaHasTraits(type):
     def __init__(cls, name, bases, classdict):
         """Finish initializing the HasTraits class.
         
-        This sets the :attr:`this_class` attribute of each TraitletType in the
+        This sets the :attr:`this_class` attribute of each TraitType in the
         class dict to the newly created class ``cls``.
         """
         for k, v in classdict.iteritems():
-            if isinstance(v, TraitletType):
+            if isinstance(v, TraitType):
                 v.this_class = cls
         super(MetaHasTraits, cls).__init__(name, bases, classdict)
 
@@ -365,25 +358,25 @@ class HasTraits(object):
             inst = new_meth(cls)
         else:
             inst = new_meth(cls, *args, **kw)
-        inst._traitlet_values = {}
-        inst._traitlet_notifiers = {}
-        # Here we tell all the TraitletType instances to set their default
+        inst._trait_values = {}
+        inst._trait_notifiers = {}
+        # Here we tell all the TraitType instances to set their default
         # values on the instance. 
         for key in dir(cls):
             value = getattr(cls, key)
-            if isinstance(value, TraitletType):
+            if isinstance(value, TraitType):
                 value.instance_init(inst)
         return inst
 
     # def __init__(self):
-    #     self._traitlet_values = {}
-    #     self._traitlet_notifiers = {}
+    #     self._trait_values = {}
+    #     self._trait_notifiers = {}
 
-    def _notify_traitlet(self, name, old_value, new_value):
+    def _notify_trait(self, name, old_value, new_value):
 
         # First dynamic ones
-        callables = self._traitlet_notifiers.get(name,[])
-        more_callables = self._traitlet_notifiers.get('anytrait',[])
+        callables = self._trait_notifiers.get(name,[])
+        more_callables = self._trait_notifiers.get('anytrait',[])
         callables.extend(more_callables)
 
         # Now static ones
@@ -416,25 +409,25 @@ class HasTraits(object):
                 elif nargs + offset == 3:
                     c(name, old_value, new_value)
                 else:
-                    raise TraitletError('a traitlet changed callback '
+                    raise TraitError('a trait changed callback '
                                         'must have 0-3 arguments.')
             else:
-                raise TraitletError('a traitlet changed callback '
+                raise TraitError('a trait changed callback '
                                     'must be callable.')
                 
 
     def _add_notifiers(self, handler, name):
-        if not self._traitlet_notifiers.has_key(name):
+        if not self._trait_notifiers.has_key(name):
             nlist = []
-            self._traitlet_notifiers[name] = nlist
+            self._trait_notifiers[name] = nlist
         else:
-            nlist = self._traitlet_notifiers[name]
+            nlist = self._trait_notifiers[name]
         if handler not in nlist:
             nlist.append(handler)
 
     def _remove_notifiers(self, handler, name):
-        if self._traitlet_notifiers.has_key(name):
-            nlist = self._traitlet_notifiers[name]
+        if self._trait_notifiers.has_key(name):
+            nlist = self._trait_notifiers[name]
             try:
                 index = nlist.index(handler)
             except ValueError:
@@ -443,24 +436,24 @@ class HasTraits(object):
                 del nlist[index]
 
     def on_trait_change(self, handler, name=None, remove=False):
-        """Setup a handler to be called when a traitlet changes.
+        """Setup a handler to be called when a trait changes.
 
-        This is used to setup dynamic notifications of traitlet changes.
+        This is used to setup dynamic notifications of trait changes.
         
         Static handlers can be created by creating methods on a HasTraits
-        subclass with the naming convention '_[traitletname]_changed'.  Thus,
-        to create static handler for the traitlet 'a', create the method
+        subclass with the naming convention '_[traitname]_changed'.  Thus,
+        to create static handler for the trait 'a', create the method
         _a_changed(self, name, old, new) (fewer arguments can be used, see
         below).
         
         Parameters
         ----------
         handler : callable
-            A callable that is called when a traitlet changes.  Its 
+            A callable that is called when a trait changes.  Its 
             signature can be handler(), handler(name), handler(name, new)
             or handler(name, old, new).
         name : list, str, None
-            If None, the handler will apply to all traitlets.  If a list
+            If None, the handler will apply to all traits.  If a list
             of str, handler will apply to all names in the list.  If a
             str, the handler will apply just to that name.
         remove : bool
@@ -477,61 +470,61 @@ class HasTraits(object):
                 self._add_notifiers(handler, n)
 
     def trait_names(self, **metadata):
-        """Get a list of all the names of this classes traitlets."""
+        """Get a list of all the names of this classes traits."""
         return self.traits(**metadata).keys()
 
     def traits(self, **metadata):
-        """Get a list of all the traitlets of this class.
+        """Get a list of all the traits of this class.
 
-        The TraitletTypes returned don't know anything about the values
-        that the various HasTraitlet's instances are holding.
+        The TraitTypes returned don't know anything about the values
+        that the various HasTrait's instances are holding.
 
         This follows the same algorithm as traits does and does not allow
         for any simple way of specifying merely that a metadata name
         exists, but has any value.  This is because get_metadata returns
         None if a metadata key doesn't exist.
         """
-        traitlets = dict([memb for memb in inspect.getmembers(self.__class__) if \
-                     isinstance(memb[1], TraitletType)])
+        traits = dict([memb for memb in inspect.getmembers(self.__class__) if \
+                     isinstance(memb[1], TraitType)])
 
         if len(metadata) == 0:
-            return traitlets
+            return traits
 
         for meta_name, meta_eval in metadata.items():
             if type(meta_eval) is not FunctionType:
                 metadata[meta_name] = _SimpleTest(meta_eval)
 
         result = {}
-        for name, traitlet in traitlets.items():
+        for name, trait in traits.items():
             for meta_name, meta_eval in metadata.items():
-                if not meta_eval(traitlet.get_metadata(meta_name)):
+                if not meta_eval(trait.get_metadata(meta_name)):
                     break
             else:
-                result[name] = traitlet
+                result[name] = trait
 
         return result
 
-    def trait_metadata(self, traitletname, key):
-        """Get metadata values for traitlet by key."""
+    def trait_metadata(self, traitname, key):
+        """Get metadata values for trait by key."""
         try:
-            traitlet = getattr(self.__class__, traitletname)
+            trait = getattr(self.__class__, traitname)
         except AttributeError:
-            raise TraitletError("Class %s does not have a traitlet named %s" %
-                                (self.__class__.__name__, traitletname))
+            raise TraitError("Class %s does not have a trait named %s" %
+                                (self.__class__.__name__, traitname))
         else:
-            return traitlet.get_metadata(key)
+            return trait.get_metadata(key)
 
 #-----------------------------------------------------------------------------
-# Actual TraitletTypes implementations/subclasses
+# Actual TraitTypes implementations/subclasses
 #-----------------------------------------------------------------------------
 
 #-----------------------------------------------------------------------------
-# TraitletTypes subclasses for handling classes and instances of classes
+# TraitTypes subclasses for handling classes and instances of classes
 #-----------------------------------------------------------------------------
 
 
-class ClassBasedTraitletType(TraitletType):
-    """A traitlet with error reporting for Type, Instance and This."""
+class ClassBasedTraitType(TraitType):
+    """A trait with error reporting for Type, Instance and This."""
 
     def error(self, obj, value):
         kind = type(value)
@@ -540,16 +533,16 @@ class ClassBasedTraitletType(TraitletType):
         else:
             msg = '%s (i.e. %s)' % ( str( kind )[1:-1], repr( value ) )
 
-        super(ClassBasedTraitletType, self).error(obj, msg)
+        super(ClassBasedTraitType, self).error(obj, msg)
 
 
-class Type(ClassBasedTraitletType):
-    """A traitlet whose value must be a subclass of a specified class."""
+class Type(ClassBasedTraitType):
+    """A trait whose value must be a subclass of a specified class."""
 
     def __init__ (self, default_value=None, klass=None, allow_none=True, **metadata ):
-        """Construct a Type traitlet
+        """Construct a Type trait
 
-        A Type traitlet specifies that its values must be subclasses of
+        A Type trait specifies that its values must be subclasses of
         a particular class.
 
         If only ``default_value`` is given, it is used for the ``klass`` as
@@ -563,7 +556,7 @@ class Type(ClassBasedTraitletType):
             The string is resolved into real class, when the parent 
             :class:`HasTraits` class is instantiated.
         klass : class, str, None
-            Values of this traitlet must be a subclass of klass.  The klass
+            Values of this trait must be a subclass of klass.  The klass
             may be specified in a string like: 'foo.bar.MyClass'.
             The string is resolved into real class, when the parent 
             :class:`HasTraits` class is instantiated.
@@ -578,7 +571,7 @@ class Type(ClassBasedTraitletType):
             klass = default_value
 
         if not (inspect.isclass(klass) or isinstance(klass, basestring)):
-            raise TraitletError("A Type traitlet must specify a class.")
+            raise TraitError("A Type trait must specify a class.")
 
         self.klass       = klass
         self._allow_none = allow_none
@@ -632,7 +625,7 @@ class DefaultValueGenerator(object):
         return klass(*self.args, **self.kw)
 
 
-class Instance(ClassBasedTraitletType):
+class Instance(ClassBasedTraitType):
     """A trait whose value must be an instance of a specified class.
     
     The value can also be an instance of a subclass of the specified class.
@@ -640,9 +633,9 @@ class Instance(ClassBasedTraitletType):
 
     def __init__(self, klass=None, args=None, kw=None, 
                  allow_none=True, **metadata ):
-        """Construct an Instance traitlet.
+        """Construct an Instance trait.
 
-        This traitlet allows values that are instances of a particular
+        This trait allows values that are instances of a particular
         class or its sublclasses.  Our implementation is quite different
         from that of enthough.traits as we don't allow instances to be used
         for klass and we handle the ``args`` and ``kw`` arguments differently.
@@ -650,7 +643,7 @@ class Instance(ClassBasedTraitletType):
         Parameters
         ----------
         klass : class, str
-            The class that forms the basis for the traitlet.  Class names
+            The class that forms the basis for the trait.  Class names
             can also be specified as strings, like 'foo.bar.Bar'.
         args : tuple
             Positional arguments for generating the default value.
@@ -670,7 +663,7 @@ class Instance(ClassBasedTraitletType):
         self._allow_none = allow_none
 
         if (klass is None) or (not (inspect.isclass(klass) or isinstance(klass, basestring))):
-            raise TraitletError('The klass argument must be a class'
+            raise TraitError('The klass argument must be a class'
                                 ' you gave: %r' % klass)
         self.klass = klass
         
@@ -686,9 +679,9 @@ class Instance(ClassBasedTraitletType):
                 kw = {}
         
             if not isinstance(kw, dict):
-                raise TraitletError("The 'kw' argument must be a dict or None.")
+                raise TraitError("The 'kw' argument must be a dict or None.")
             if not isinstance(args, tuple):
-                raise TraitletError("The 'args' argument must be a tuple or None.")
+                raise TraitError("The 'args' argument must be a tuple or None.")
             
             default_value = DefaultValueGenerator(*args, **kw)
 
@@ -738,11 +731,11 @@ class Instance(ClassBasedTraitletType):
             return dv
 
 
-class This(ClassBasedTraitletType):
-    """A traitlet for instances of the class containing this trait.
+class This(ClassBasedTraitType):
+    """A trait for instances of the class containing this trait.
 
     Because how how and when class bodies are executed, the ``This``
-    traitlet can only have a default value of None.  This, and because we 
+    trait can only have a default value of None.  This, and because we 
     always validate default values, ``allow_none`` is *always* true.
     """
 
@@ -754,7 +747,7 @@ class This(ClassBasedTraitletType):
     def validate(self, obj, value):
         # What if value is a superclass of obj.__class__?  This is
         # complicated if it was the superclass that defined the This
-        # traitlet.
+        # trait.
         if isinstance(value, self.this_class) or (value is None):
             return value
         else:
@@ -762,17 +755,17 @@ class This(ClassBasedTraitletType):
 
 
 #-----------------------------------------------------------------------------
-# Basic TraitletTypes implementations/subclasses
+# Basic TraitTypes implementations/subclasses
 #-----------------------------------------------------------------------------
 
 
-class Any(TraitletType):
+class Any(TraitType):
     default_value = None
     info_text = 'any value'
 
 
-class Int(TraitletType):
-    """A integer traitlet."""
+class Int(TraitType):
+    """A integer trait."""
 
     evaluate = int
     default_value = 0
@@ -784,7 +777,7 @@ class Int(TraitletType):
         self.error(obj, value)
 
 class CInt(Int):
-    """A casting version of the int traitlet."""
+    """A casting version of the int trait."""
 
     def validate(self, obj, value):
         try:
@@ -793,8 +786,8 @@ class CInt(Int):
             self.error(obj, value)
 
 
-class Long(TraitletType):
-    """A long integer traitlet."""
+class Long(TraitType):
+    """A long integer trait."""
 
     evaluate = long
     default_value = 0L
@@ -809,7 +802,7 @@ class Long(TraitletType):
 
 
 class CLong(Long):
-    """A casting version of the long integer traitlet."""
+    """A casting version of the long integer trait."""
 
     def validate(self, obj, value):
         try:
@@ -818,8 +811,8 @@ class CLong(Long):
             self.error(obj, value)
 
 
-class Float(TraitletType):
-    """A float traitlet."""
+class Float(TraitType):
+    """A float trait."""
 
     evaluate = float
     default_value = 0.0
@@ -834,7 +827,7 @@ class Float(TraitletType):
 
 
 class CFloat(Float):
-    """A casting version of the float traitlet."""
+    """A casting version of the float trait."""
 
     def validate(self, obj, value):
         try:
@@ -842,8 +835,8 @@ class CFloat(Float):
         except:
             self.error(obj, value)
 
-class Complex(TraitletType):
-    """A traitlet for complex numbers."""
+class Complex(TraitType):
+    """A trait for complex numbers."""
 
     evaluate = complex
     default_value = 0.0 + 0.0j
@@ -858,7 +851,7 @@ class Complex(TraitletType):
 
 
 class CComplex(Complex):
-    """A casting version of the complex number traitlet."""
+    """A casting version of the complex number trait."""
 
     def validate (self, obj, value):
         try:
@@ -867,8 +860,8 @@ class CComplex(Complex):
             self.error(obj, value)
 
 
-class Str(TraitletType):
-    """A traitlet for strings."""
+class Str(TraitType):
+    """A trait for strings."""
 
     evaluate = lambda x: x
     default_value = ''
@@ -881,7 +874,7 @@ class Str(TraitletType):
 
 
 class CStr(Str):
-    """A casting version of the string traitlet."""
+    """A casting version of the string trait."""
 
     def validate(self, obj, value):
         try:
@@ -893,8 +886,8 @@ class CStr(Str):
                 self.error(obj, value)
 
 
-class Unicode(TraitletType):
-    """A traitlet for unicode strings."""
+class Unicode(TraitType):
+    """A trait for unicode strings."""
 
     evaluate = unicode
     default_value = u''
@@ -909,7 +902,7 @@ class Unicode(TraitletType):
 
 
 class CUnicode(Unicode):
-    """A casting version of the unicode traitlet."""
+    """A casting version of the unicode trait."""
 
     def validate(self, obj, value):
         try:
@@ -918,8 +911,8 @@ class CUnicode(Unicode):
             self.error(obj, value)
 
 
-class Bool(TraitletType):
-    """A boolean (True, False) traitlet."""
+class Bool(TraitType):
+    """A boolean (True, False) trait."""
     evaluate = bool
     default_value = False
     info_text = 'a boolean'
@@ -931,7 +924,7 @@ class Bool(TraitletType):
 
 
 class CBool(Bool):
-    """A casting version of the boolean traitlet."""
+    """A casting version of the boolean trait."""
 
     def validate(self, obj, value):
         try:
@@ -940,7 +933,7 @@ class CBool(Bool):
             self.error(obj, value)
 
 
-class Enum(TraitletType):
+class Enum(TraitType):
     """An enum that whose value must be in a given sequence."""
 
     def __init__(self, values, default_value=None, allow_none=True, **metadata):
@@ -985,7 +978,7 @@ class List(Instance):
     """An instance of a Python list."""
 
     def __init__(self, default_value=None, allow_none=True, **metadata):
-        """Create a list traitlet type from a list or tuple.
+        """Create a list trait type from a list or tuple.
 
         The default value is created by doing ``list(default_value)``, 
         which creates a copy of the ``default_value``.

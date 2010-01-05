@@ -29,8 +29,8 @@ import os
 from unittest import TestCase
 
 from IPython.utils.traitlets import (
-    HasTraits, MetaHasTraits, TraitletType, Any,
-    Int, Long, Float, Complex, Str, Unicode, Bool, TraitletError,
+    HasTraits, MetaHasTraits, TraitType, Any,
+    Int, Long, Float, Complex, Str, Unicode, Bool, TraitError,
     Undefined, Type, This, Instance
 )
 
@@ -40,9 +40,9 @@ from IPython.utils.traitlets import (
 #-----------------------------------------------------------------------------
 
 
-class HasTraitletsStub(HasTraits):
+class HasTraitsStub(HasTraits):
 
-    def _notify_traitlet(self, name, old, new):
+    def _notify_trait(self, name, old, new):
         self._notify_name = name
         self._notify_old = old
         self._notify_new = new
@@ -53,17 +53,17 @@ class HasTraitletsStub(HasTraits):
 #-----------------------------------------------------------------------------
 
 
-class TestTraitletType(TestCase):
+class TestTraitType(TestCase):
 
     def test_get_undefined(self):
         class A(HasTraits):
-            a = TraitletType
+            a = TraitType
         a = A()
         self.assertEquals(a.a, Undefined)
 
     def test_set(self):
-        class A(HasTraitletsStub):
-            a = TraitletType
+        class A(HasTraitsStub):
+            a = TraitType
 
         a = A()
         a.a = 10
@@ -73,10 +73,10 @@ class TestTraitletType(TestCase):
         self.assertEquals(a._notify_new, 10)
 
     def test_validate(self):
-        class MyTT(TraitletType):
+        class MyTT(TraitType):
             def validate(self, inst, value):
                 return -1
-        class A(HasTraitletsStub):
+        class A(HasTraitsStub):
             tt = MyTT
         
         a = A()
@@ -84,7 +84,7 @@ class TestTraitletType(TestCase):
         self.assertEquals(a.tt, -1)
 
     def test_default_validate(self):
-        class MyIntTT(TraitletType):
+        class MyIntTT(TraitType):
             def validate(self, obj, value):
                 if isinstance(value, int):
                     return value
@@ -97,10 +97,10 @@ class TestTraitletType(TestCase):
         # Defaults are validated when the HasTraits is instantiated
         class B(HasTraits):
             tt = MyIntTT('bad default')
-        self.assertRaises(TraitletError, B)
+        self.assertRaises(TraitError, B)
 
     def test_is_valid_for(self):
-        class MyTT(TraitletType):
+        class MyTT(TraitType):
             def is_valid_for(self, value):
                 return True
         class A(HasTraits):
@@ -111,7 +111,7 @@ class TestTraitletType(TestCase):
         self.assertEquals(a.tt, 10)
 
     def test_value_for(self):
-        class MyTT(TraitletType):
+        class MyTT(TraitType):
             def value_for(self, value):
                 return 20
         class A(HasTraits):
@@ -123,15 +123,15 @@ class TestTraitletType(TestCase):
 
     def test_info(self):
         class A(HasTraits):
-            tt = TraitletType
+            tt = TraitType
         a = A()
         self.assertEquals(A.tt.info(), 'any value')
 
     def test_error(self):
         class A(HasTraits):
-            tt = TraitletType
+            tt = TraitType
         a = A()
-        self.assertRaises(TraitletError, A.tt.error, a, 10)
+        self.assertRaises(TraitError, A.tt.error, a, 10)
 
 
 class TestHasTraitsMeta(TestCase):
@@ -204,8 +204,8 @@ class TestHasTraitsNotify(TestCase):
         self.assert_(('a',0,10) in self._notify1)
         a.b = 10.0
         self.assert_(('b',0.0,10.0) in self._notify1)
-        self.assertRaises(TraitletError,setattr,a,'a','bad string')
-        self.assertRaises(TraitletError,setattr,a,'b','bad string')
+        self.assertRaises(TraitError,setattr,a,'a','bad string')
+        self.assertRaises(TraitError,setattr,a,'b','bad string')
         self._notify1 = []
         a.on_trait_change(self.notify1,remove=True)
         a.a = 20
@@ -224,7 +224,7 @@ class TestHasTraitsNotify(TestCase):
         self.assertEquals(len(self._notify1),0)
         a.a = 10
         self.assert_(('a',0,10) in self._notify1)
-        self.assertRaises(TraitletError,setattr,a,'a','bad string')
+        self.assertRaises(TraitError,setattr,a,'a','bad string')
 
     def test_subclass(self):
 
@@ -324,7 +324,7 @@ class TestHasTraitsNotify(TestCase):
         self.assertEquals(self.cb,('a',1000,10000))
         a.on_trait_change(callback3, 'a', remove=True)
 
-        self.assertEquals(len(a._traitlet_notifiers['a']),0)
+        self.assertEquals(len(a._trait_notifiers['a']),0)
 
 
 class TestHasTraits(TestCase):
@@ -356,17 +356,17 @@ class TestHasTraits(TestCase):
             j = Int(0)
         a = A()
         self.assertEquals(a.traits(), dict(i=A.i, f=A.f, j=A.j))
-        traitlets = a.traits(config_key='VALUE1', other_thing='VALUE2')
-        self.assertEquals(traitlets, dict(i=A.i))
+        traits = a.traits(config_key='VALUE1', other_thing='VALUE2')
+        self.assertEquals(traits, dict(i=A.i))
 
         # This passes, but it shouldn't because I am replicating a bug in 
         # traits.
-        traitlets = a.traits(config_key=lambda v: True)
-        self.assertEquals(traitlets, dict(i=A.i, f=A.f, j=A.j))
+        traits = a.traits(config_key=lambda v: True)
+        self.assertEquals(traits, dict(i=A.i, f=A.f, j=A.j))
 
 
 #-----------------------------------------------------------------------------
-# Tests for specific traitlet types
+# Tests for specific trait types
 #-----------------------------------------------------------------------------
 
 
@@ -383,7 +383,7 @@ class TestType(TestCase):
 
         a.klass = B
         self.assertEquals(a.klass, B)
-        self.assertRaises(TraitletError, setattr, a, 'klass', 10)
+        self.assertRaises(TraitError, setattr, a, 'klass', 10)
 
     def test_value(self):
 
@@ -394,8 +394,8 @@ class TestType(TestCase):
         
         a = A()
         self.assertEquals(a.klass, B)
-        self.assertRaises(TraitletError, setattr, a, 'klass', C)
-        self.assertRaises(TraitletError, setattr, a, 'klass', object)
+        self.assertRaises(TraitError, setattr, a, 'klass', C)
+        self.assertRaises(TraitError, setattr, a, 'klass', object)
         a.klass = B
 
     def test_allow_none(self):
@@ -407,7 +407,7 @@ class TestType(TestCase):
 
         a = A()
         self.assertEquals(a.klass, B)
-        self.assertRaises(TraitletError, setattr, a, 'klass', None)
+        self.assertRaises(TraitError, setattr, a, 'klass', None)
         a.klass = C
         self.assertEquals(a.klass, C)
 
@@ -434,7 +434,7 @@ class TestType(TestCase):
         class C(HasTraits):
             klass = Type(None, B, allow_none=False)
 
-        self.assertRaises(TraitletError, C)
+        self.assertRaises(TraitError, C)
 
     def test_str_klass(self):
 
@@ -446,7 +446,7 @@ class TestType(TestCase):
         a.klass = Struct
         self.assertEquals(a.klass, Struct)
         
-        self.assertRaises(TraitletError, setattr, a, 'klass', 10)
+        self.assertRaises(TraitError, setattr, a, 'klass', 10)
 
 class TestInstance(TestCase):
 
@@ -464,9 +464,9 @@ class TestInstance(TestCase):
         self.assert_(isinstance(a.inst, Foo))
         a.inst = Bar()
         self.assert_(isinstance(a.inst, Foo))
-        self.assertRaises(TraitletError, setattr, a, 'inst', Foo)
-        self.assertRaises(TraitletError, setattr, a, 'inst', Bar)
-        self.assertRaises(TraitletError, setattr, a, 'inst', Bah())
+        self.assertRaises(TraitError, setattr, a, 'inst', Foo)
+        self.assertRaises(TraitError, setattr, a, 'inst', Bar)
+        self.assertRaises(TraitError, setattr, a, 'inst', Bah())
 
     def test_unique_default_value(self):
         class Foo(object): pass
@@ -507,7 +507,7 @@ class TestInstance(TestCase):
         class A(HasTraits):
             inst = Instance(Foo, allow_none=False)
         
-        self.assertRaises(TraitletError, A)
+        self.assertRaises(TraitError, A)
 
     def test_instance(self):
         class Foo(object): pass
@@ -516,7 +516,7 @@ class TestInstance(TestCase):
             class A(HasTraits):
                 inst = Instance(Foo())
         
-        self.assertRaises(TraitletError, inner)
+        self.assertRaises(TraitError, inner)
 
 
 class TestThis(TestCase):
@@ -530,7 +530,7 @@ class TestThis(TestCase):
         g = Foo()
         f.this = g
         self.assertEquals(f.this, g)
-        self.assertRaises(TraitletError, setattr, f, 'this', 10)
+        self.assertRaises(TraitError, setattr, f, 'this', 10)
 
     def test_this_inst(self):
         class Foo(HasTraits):
@@ -561,10 +561,10 @@ class TestThis(TestCase):
         b = Bar()
         f.t = b
         self.assertEquals(f.t, b)
-        self.assertRaises(TraitletError, setattr, b, 't', f)
+        self.assertRaises(TraitError, setattr, b, 't', f)
 
-class TraitletTestBase(TestCase):
-    """A best testing class for basic traitlet types."""
+class TraitTestBase(TestCase):
+    """A best testing class for basic trait types."""
 
     def assign(self, value):
         self.obj.value = value
@@ -581,33 +581,33 @@ class TraitletTestBase(TestCase):
     def test_bad_values(self):
         if hasattr(self, '_bad_values'):
             for value in self._bad_values:
-                self.assertRaises(TraitletError, self.assign, value)
+                self.assertRaises(TraitError, self.assign, value)
 
     def test_default_value(self):
         if hasattr(self, '_default_value'):
             self.assertEquals(self._default_value, self.obj.value)
 
 
-class AnyTraitlet(HasTraits):
+class AnyTrait(HasTraits):
 
     value = Any
 
-class AnyTraitTest(TraitletTestBase):
+class AnyTraitTest(TraitTestBase):
 
-    obj = AnyTraitlet()
+    obj = AnyTrait()
 
     _default_value = None
     _good_values   = [10.0, 'ten', u'ten', [10], {'ten': 10},(10,), None, 1j]
     _bad_values    = []
 
 
-class IntTraitlet(HasTraits):
+class IntTrait(HasTraits):
 
     value = Int(99)
 
-class TestInt(TraitletTestBase):
+class TestInt(TraitTestBase):
 
-    obj = IntTraitlet()
+    obj = IntTrait()
     _default_value = 99
     _good_values   = [10, -10]
     _bad_values    = ['ten', u'ten', [10], {'ten': 10},(10,), None, 1j, 10L,
@@ -615,13 +615,13 @@ class TestInt(TraitletTestBase):
                       u'-10L', u'10.1', u'-10.1',  '10', '-10', u'10', u'-10']
 
 
-class LongTraitlet(HasTraits):
+class LongTrait(HasTraits):
 
     value = Long(99L)
 
-class TestLong(TraitletTestBase):
+class TestLong(TraitTestBase):
 
-    obj = LongTraitlet()
+    obj = LongTrait()
 
     _default_value = 99L
     _good_values   = [10, -10, 10L, -10L]
@@ -631,13 +631,13 @@ class TestLong(TraitletTestBase):
                       u'-10.1']
 
 
-class FloatTraitlet(HasTraits):
+class FloatTrait(HasTraits):
 
     value = Float(99.0)
 
-class TestFloat(TraitletTestBase):
+class TestFloat(TraitTestBase):
 
-    obj = FloatTraitlet()
+    obj = FloatTrait()
 
     _default_value = 99.0
     _good_values   = [10, -10, 10.1, -10.1]
@@ -646,13 +646,13 @@ class TestFloat(TraitletTestBase):
                       u'-10', u'10L', u'-10L', u'10.1', u'-10.1']
 
 
-class ComplexTraitlet(HasTraits):
+class ComplexTrait(HasTraits):
 
     value = Complex(99.0-99.0j)
 
-class TestComplex(TraitletTestBase):
+class TestComplex(TraitTestBase):
 
-    obj = ComplexTraitlet()
+    obj = ComplexTrait()
 
     _default_value = 99.0-99.0j
     _good_values   = [10, -10, 10.1, -10.1, 10j, 10+10j, 10-10j, 
@@ -660,13 +660,13 @@ class TestComplex(TraitletTestBase):
     _bad_values    = [10L, -10L, u'10L', u'-10L', 'ten', [10], {'ten': 10},(10,), None]
 
 
-class StringTraitlet(HasTraits):
+class StringTrait(HasTraits):
 
     value = Str('string')
 
-class TestString(TraitletTestBase):
+class TestString(TraitTestBase):
 
-    obj = StringTraitlet()
+    obj = StringTrait()
 
     _default_value = 'string'
     _good_values   = ['10', '-10', '10L',
@@ -675,13 +675,13 @@ class TestString(TraitletTestBase):
                       ['ten'],{'ten': 10},(10,), None,  u'string']
 
 
-class UnicodeTraitlet(HasTraits):
+class UnicodeTrait(HasTraits):
 
     value = Unicode(u'unicode')
 
-class TestUnicode(TraitletTestBase):
+class TestUnicode(TraitTestBase):
 
-    obj = UnicodeTraitlet()
+    obj = UnicodeTrait()
 
     _default_value = u'unicode'
     _good_values   = ['10', '-10', '10L', '-10L', '10.1', 

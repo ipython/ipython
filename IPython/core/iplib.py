@@ -165,7 +165,7 @@ def get_default_editor():
 class SeparateStr(Str):
     """A Str subclass to validate separate_in, separate_out, etc.
 
-    This is a Str based traitlet that converts '0'->'' and '\\n'->'\n'.
+    This is a Str based trait that converts '0'->'' and '\\n'->'\n'.
     """
 
     def validate(self, obj, value):
@@ -246,7 +246,7 @@ class InteractiveShell(Component, Magic):
 
     screen_length = Int(0, config=True)
     
-    # Use custom TraitletTypes that convert '0'->'' and '\\n'->'\n'
+    # Use custom TraitTypes that convert '0'->'' and '\\n'->'\n'
     separate_in = SeparateStr('\n', config=True)
     separate_out = SeparateStr('', config=True)
     separate_out2 = SeparateStr('', config=True)
@@ -269,7 +269,7 @@ class InteractiveShell(Component, Magic):
                  banner1=None, banner2=None, display_banner=None,
                  custom_exceptions=((),None)):
 
-        # This is where traitlets with a config_key argument are updated
+        # This is where traits with a config_key argument are updated
         # from the values on config.
         super(InteractiveShell, self).__init__(parent, config=config)
 
@@ -323,7 +323,7 @@ class InteractiveShell(Component, Magic):
         return self
 
     #-------------------------------------------------------------------------
-    # Traitlet changed handlers
+    # Trait changed handlers
     #-------------------------------------------------------------------------
 
     def _banner1_changed(self):
