@@ -2,25 +2,17 @@
 
 # Copyright © 2006-2009 Steven J. Bethard <steven.bethard@gmail.com>.
 #
-# Redistribution and use in source and binary forms, with or without
-# modification, are permitted provided that the following conditions are met:
+# Licensed under the Apache License, Version 2.0 (the "License"); you may not
+# use this file except in compliance with the License. You may obtain a copy
+# of the License at
 #
-#  * Redistributions of source code must retain the above copyright notice, this
-#    list of conditions and the following disclaimer.
-#  * Redistributions in binary form must reproduce the above copyright notice,
-#    this list of conditions and the following disclaimer in the documentation
-#    and/or other materials provided with the distribution.
+#     http://www.apache.org/licenses/LICENSE-2.0
 #
-# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
-# FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-# DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-# SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-# CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
-# OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
 
 """Command-line parsing library
 
@@ -83,7 +75,7 @@ considered public as object names -- the API of the formatter objects is
 still considered an implementation detail.)
 """
 
-__version__ = '1.0.1'
+__version__ = '1.1a1'
 __all__ = [
     'ArgumentParser',
     'ArgumentError',
@@ -92,7 +84,7 @@ __all__ = [
     'FileType',
     'HelpFormatter',
     'RawDescriptionHelpFormatter',
-    'RawTextHelpFormatter'
+    'RawTextHelpFormatter',
     'ArgumentDefaultsHelpFormatter',
 ]
 
@@ -126,6 +118,10 @@ except NameError:
             result.reverse()
         return result
 
+
+def _callable(obj):
+    return hasattr(obj, '__call__') or hasattr(obj, '__bases__')
+
 # silence Python 2.6 buggy warnings about Exception.message
 if _sys.version_info[:2] == (2, 6):
     import warnings
@@ -141,7 +137,8 @@ SUPPRESS = '==SUPPRESS=='
 OPTIONAL = '?'
 ZERO_OR_MORE = '*'
 ONE_OR_MORE = '+'
-PARSER = '==PARSER=='
+PARSER = 'A...'
+REMAINDER = '...'
 
 # =============================
 # Utility functions and classes
@@ -508,6 +505,8 @@ class HelpFormatter(object):
         return text
 
     def _format_text(self, text):
+        if '%(prog)' in text:
+            text = text % dict(prog=self._prog)
         text_width = self._width - self._current_indent
         indent = ' ' * self._current_indent
         return self._fill_text(text, text_width, indent) + '\n\n'
@@ -608,7 +607,9 @@ class HelpFormatter(object):
             result = '[%s [%s ...]]' % get_metavar(2)
         elif action.nargs == ONE_OR_MORE:
             result = '%s [%s ...]' % get_metavar(2)
-        elif action.nargs is PARSER:
+        elif action.nargs == REMAINDER:
+            result = '...'
+        elif action.nargs == PARSER:
             result = '%s ...' % get_metavar(1)
         else:
             formats = ['%s' for _ in range(action.nargs)]
@@ -723,6 +724,12 @@ class ArgumentError(Exception):
             format = 'argument %(argument_name)s: %(message)s'
         return format % dict(message=self.message,
                              argument_name=self.argument_name)
+
+
+class ArgumentTypeError(Exception):
+    """An error from trying to convert a command line string to a type."""
+    pass
+
 
 # ==============
 # Action classes
@@ -1018,6 +1025,7 @@ class _VersionAction(Action):
 
     def __init__(self,
                  option_strings,
+                 version=None,
                  dest=SUPPRESS,
                  default=SUPPRESS,
                  help=None):
@@ -1027,10 +1035,15 @@ class _VersionAction(Action):
             default=default,
             nargs=0,
             help=help)
+        self.version = version
 
     def __call__(self, parser, namespace, values, option_string=None):
-        parser.print_version()
-        parser.exit()
+        version = self.version
+        if version is None:
+            version = parser.version
+        formatter = parser._get_formatter()
+        formatter.add_text(version)
+        parser.exit(message=formatter.format_help())
 
 
 class _SubParsersAction(Action):
@@ -1211,7 +1224,7 @@ class _ActionsContainer(object):
         self._defaults = {}
 
         # determines whether an "option" looks like a negative number
-        self._negative_number_matcher = _re.compile(r'^-\d+|-\d*.\d+$')
+        self._negative_number_matcher = _re.compile(r'^-\d+$|^-\d*\.\d+$')
 
         # whether or not there are any optionals that look like negative
         # numbers -- uses a list so it can be shared and edited
@@ -1228,7 +1241,7 @@ class _ActionsContainer(object):
         return self._registries[registry_name].get(value, default)
 
     # ==================================
-    # Namespace default settings methods
+    # Namespace default accessor methods
     # ==================================
     def set_defaults(self, **kwargs):
         self._defaults.update(kwargs)
@@ -1238,6 +1251,13 @@ class _ActionsContainer(object):
         for action in self._actions:
             if action.dest in kwargs:
                 action.default = kwargs[action.dest]
+
+    def get_default(self, dest):
+        for action in self._actions:
+            if action.dest == dest and action.default is not None:
+                return action.default
+        return self._defaults.get(dest, None)
+
 
     # =======================
     # Adding argument actions
@@ -1253,6 +1273,8 @@ class _ActionsContainer(object):
         # argument
         chars = self.prefix_chars
         if not args or len(args) == 1 and args[0][0] not in chars:
+            if args and 'dest' in kwargs:
+                raise ValueError('dest supplied twice for positional argument')
             kwargs = self._get_positional_kwargs(*args, **kwargs)
 
         # otherwise, we're adding an optional argument
@@ -1269,6 +1291,8 @@ class _ActionsContainer(object):
 
         # create the action object, and add it to the parser
         action_class = self._pop_action_class(kwargs)
+        if not _callable(action_class):
+            raise ValueError('unknown action "%s"' % action_class)
         action = action_class(**kwargs)
         return self._add_action(action)
 
@@ -1578,6 +1602,7 @@ class ArgumentParser(_AttributeHolder, _ActionsContainer):
         if self.version:
             self.add_argument(
                 '-v', '--version', action='version', default=SUPPRESS,
+                version=self.version,
                 help=_("show program's version number and exit"))
 
         # add parent arguments and defaults
@@ -2011,6 +2036,13 @@ class ArgumentParser(_AttributeHolder, _ActionsContainer):
             action = self._option_string_actions[arg_string]
             return action, arg_string, None
 
+        # if the option string before the "=" is present, return the action
+        if '=' in arg_string:
+            option_string, explicit_arg = arg_string.split('=', 1)
+            if option_string in self._option_string_actions:
+                action = self._option_string_actions[option_string]
+                return action, option_string, explicit_arg
+
         # search through all possible prefixes of the option string
         # and all actions in the parser for possible interpretations
         option_tuples = self._get_option_tuples(arg_string)
@@ -2108,8 +2140,12 @@ class ArgumentParser(_AttributeHolder, _ActionsContainer):
         elif nargs == ONE_OR_MORE:
             nargs_pattern = '(-*A[A-]*)'
 
+        # allow any number of options or arguments
+        elif nargs == REMAINDER:
+            nargs_pattern = '([-AO]*)'
+
         # allow one argument followed by any number of options or arguments
-        elif nargs is PARSER:
+        elif nargs == PARSER:
             nargs_pattern = '(-*A[-AO]*)'
 
         # all others should be integers
@@ -2129,7 +2165,7 @@ class ArgumentParser(_AttributeHolder, _ActionsContainer):
     # ========================
     def _get_values(self, action, arg_strings):
         # for everything but PARSER args, strip out '--'
-        if action.nargs is not PARSER:
+        if action.nargs not in [PARSER, REMAINDER]:
             arg_strings = [s for s in arg_strings if s != '--']
 
         # optional argument produces a default when not present
@@ -2158,8 +2194,12 @@ class ArgumentParser(_AttributeHolder, _ActionsContainer):
             value = self._get_value(action, arg_string)
             self._check_value(action, value)
 
+        # REMAINDER arguments convert all values, checking none
+        elif action.nargs == REMAINDER:
+            value = [self._get_value(action, v) for v in arg_strings]
+
         # PARSER arguments convert all values, but check only the first
-        elif action.nargs is PARSER:
+        elif action.nargs == PARSER:
             value = [self._get_value(action, v) for v in arg_strings]
             self._check_value(action, value[0])
 
@@ -2174,16 +2214,21 @@ class ArgumentParser(_AttributeHolder, _ActionsContainer):
 
     def _get_value(self, action, arg_string):
         type_func = self._registry_get('type', action.type, action.type)
-        if not hasattr(type_func, '__call__'):
-            if not hasattr(type_func, '__bases__'): # classic classes
-                msg = _('%r is not callable')
-                raise ArgumentError(action, msg % type_func)
+        if not _callable(type_func):
+            msg = _('%r is not callable')
+            raise ArgumentError(action, msg % type_func)
 
         # convert the value to the appropriate type
         try:
             result = type_func(arg_string)
 
-        # TypeErrors or ValueErrors indicate errors
+        # ArgumentTypeErrors indicate errors
+        except ArgumentTypeError:
+            name = getattr(action.type, '__name__', repr(action.type))
+            msg = str(_sys.exc_info()[1])
+            raise ArgumentError(action, msg)
+
+        # TypeErrors or ValueErrors also indicate errors
         except (TypeError, ValueError):
             name = getattr(action.type, '__name__', repr(action.type))
             msg = _('invalid %s value: %r')
@@ -2262,7 +2307,7 @@ class ArgumentParser(_AttributeHolder, _ActionsContainer):
     # ===============
     def exit(self, status=0, message=None):
         if message:
-            _sys.stderr.write(message)
+            self._print_message(message, _sys.stderr)
         _sys.exit(status)
 
     def error(self, message):
