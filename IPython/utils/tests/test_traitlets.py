@@ -29,7 +29,7 @@ import os
 from unittest import TestCase
 
 from IPython.utils.traitlets import (
-    HasTraitlets, MetaHasTraitlets, TraitletType, Any,
+    HasTraits, MetaHasTraits, TraitletType, Any,
     Int, Long, Float, Complex, Str, Unicode, Bool, TraitletError,
     Undefined, Type, This, Instance
 )
@@ -40,7 +40,7 @@ from IPython.utils.traitlets import (
 #-----------------------------------------------------------------------------
 
 
-class HasTraitletsStub(HasTraitlets):
+class HasTraitletsStub(HasTraits):
 
     def _notify_traitlet(self, name, old, new):
         self._notify_name = name
@@ -56,7 +56,7 @@ class HasTraitletsStub(HasTraitlets):
 class TestTraitletType(TestCase):
 
     def test_get_undefined(self):
-        class A(HasTraitlets):
+        class A(HasTraits):
             a = TraitletType
         a = A()
         self.assertEquals(a.a, Undefined)
@@ -89,13 +89,13 @@ class TestTraitletType(TestCase):
                 if isinstance(value, int):
                     return value
                 self.error(obj, value)
-        class A(HasTraitlets):
+        class A(HasTraits):
             tt = MyIntTT(10)
         a = A()
         self.assertEquals(a.tt, 10)
 
-        # Defaults are validated when the HasTraitlets is instantiated
-        class B(HasTraitlets):
+        # Defaults are validated when the HasTraits is instantiated
+        class B(HasTraits):
             tt = MyIntTT('bad default')
         self.assertRaises(TraitletError, B)
 
@@ -103,7 +103,7 @@ class TestTraitletType(TestCase):
         class MyTT(TraitletType):
             def is_valid_for(self, value):
                 return True
-        class A(HasTraitlets):
+        class A(HasTraits):
             tt = MyTT
 
         a = A()
@@ -114,7 +114,7 @@ class TestTraitletType(TestCase):
         class MyTT(TraitletType):
             def value_for(self, value):
                 return 20
-        class A(HasTraitlets):
+        class A(HasTraits):
             tt = MyTT
 
         a = A()
@@ -122,33 +122,33 @@ class TestTraitletType(TestCase):
         self.assertEquals(a.tt, 20)
 
     def test_info(self):
-        class A(HasTraitlets):
+        class A(HasTraits):
             tt = TraitletType
         a = A()
         self.assertEquals(A.tt.info(), 'any value')
 
     def test_error(self):
-        class A(HasTraitlets):
+        class A(HasTraits):
             tt = TraitletType
         a = A()
         self.assertRaises(TraitletError, A.tt.error, a, 10)
 
 
-class TestHasTraitletsMeta(TestCase):
+class TestHasTraitsMeta(TestCase):
 
     def test_metaclass(self):
-        self.assertEquals(type(HasTraitlets), MetaHasTraitlets)
+        self.assertEquals(type(HasTraits), MetaHasTraits)
 
-        class A(HasTraitlets):
+        class A(HasTraits):
             a = Int
 
         a = A()
-        self.assertEquals(type(a.__class__), MetaHasTraitlets)
+        self.assertEquals(type(a.__class__), MetaHasTraits)
         self.assertEquals(a.a,0)
         a.a = 10
         self.assertEquals(a.a,10)
 
-        class B(HasTraitlets):
+        class B(HasTraits):
             b = Int()
 
         b = B()
@@ -156,7 +156,7 @@ class TestHasTraitletsMeta(TestCase):
         b.b = 10
         self.assertEquals(b.b,10)
 
-        class C(HasTraitlets):
+        class C(HasTraits):
             c = Int(30)
 
         c = C()
@@ -165,7 +165,7 @@ class TestHasTraitletsMeta(TestCase):
         self.assertEquals(c.c,10)
 
     def test_this_class(self):
-        class A(HasTraitlets):
+        class A(HasTraits):
             t = This()
             tt = This()
         class B(A):
@@ -176,7 +176,7 @@ class TestHasTraitletsMeta(TestCase):
         self.assertEquals(B.tt.this_class, B)
         self.assertEquals(B.ttt.this_class, B)
 
-class TestHasTraitletsNotify(TestCase):
+class TestHasTraitsNotify(TestCase):
 
     def setUp(self):
         self._notify1 = []
@@ -190,12 +190,12 @@ class TestHasTraitletsNotify(TestCase):
 
     def test_notify_all(self):
 
-        class A(HasTraitlets):
+        class A(HasTraits):
             a = Int
             b = Float
 
         a = A()
-        a.on_traitlet_change(self.notify1)
+        a.on_trait_change(self.notify1)
         a.a = 0
         self.assertEquals(len(self._notify1),0)
         a.b = 0.0
@@ -207,19 +207,19 @@ class TestHasTraitletsNotify(TestCase):
         self.assertRaises(TraitletError,setattr,a,'a','bad string')
         self.assertRaises(TraitletError,setattr,a,'b','bad string')
         self._notify1 = []
-        a.on_traitlet_change(self.notify1,remove=True)
+        a.on_trait_change(self.notify1,remove=True)
         a.a = 20
         a.b = 20.0
         self.assertEquals(len(self._notify1),0)
 
     def test_notify_one(self):
 
-        class A(HasTraitlets):
+        class A(HasTraits):
             a = Int
             b = Float
 
         a = A()
-        a.on_traitlet_change(self.notify1, 'a')
+        a.on_trait_change(self.notify1, 'a')
         a.a = 0
         self.assertEquals(len(self._notify1),0)
         a.a = 10
@@ -228,7 +228,7 @@ class TestHasTraitletsNotify(TestCase):
 
     def test_subclass(self):
 
-        class A(HasTraitlets):
+        class A(HasTraits):
             a = Int
 
         class B(A):
@@ -244,15 +244,15 @@ class TestHasTraitletsNotify(TestCase):
 
     def test_notify_subclass(self):
 
-        class A(HasTraitlets):
+        class A(HasTraits):
             a = Int
 
         class B(A):
             b = Float
 
         b = B()
-        b.on_traitlet_change(self.notify1, 'a')
-        b.on_traitlet_change(self.notify2, 'b')
+        b.on_trait_change(self.notify1, 'a')
+        b.on_trait_change(self.notify2, 'b')
         b.a = 0
         b.b = 0.0
         self.assertEquals(len(self._notify1),0)
@@ -264,7 +264,7 @@ class TestHasTraitletsNotify(TestCase):
 
     def test_static_notify(self):
 
-        class A(HasTraitlets):
+        class A(HasTraits):
             a = Int
             _notify1 = []
             def _a_changed(self, name, old, new):
@@ -300,68 +300,68 @@ class TestHasTraitletsNotify(TestCase):
         def callback3(name, old, new):
             self.cb = (name, old, new)
 
-        class A(HasTraitlets):
+        class A(HasTraits):
             a = Int
 
         a = A()
-        a.on_traitlet_change(callback0, 'a')
+        a.on_trait_change(callback0, 'a')
         a.a = 10
         self.assertEquals(self.cb,())
-        a.on_traitlet_change(callback0, 'a', remove=True)
+        a.on_trait_change(callback0, 'a', remove=True)
 
-        a.on_traitlet_change(callback1, 'a')
+        a.on_trait_change(callback1, 'a')
         a.a = 100
         self.assertEquals(self.cb,('a',))
-        a.on_traitlet_change(callback1, 'a', remove=True)
+        a.on_trait_change(callback1, 'a', remove=True)
 
-        a.on_traitlet_change(callback2, 'a')
+        a.on_trait_change(callback2, 'a')
         a.a = 1000
         self.assertEquals(self.cb,('a',1000))
-        a.on_traitlet_change(callback2, 'a', remove=True)
+        a.on_trait_change(callback2, 'a', remove=True)
 
-        a.on_traitlet_change(callback3, 'a')
+        a.on_trait_change(callback3, 'a')
         a.a = 10000
         self.assertEquals(self.cb,('a',1000,10000))
-        a.on_traitlet_change(callback3, 'a', remove=True)
+        a.on_trait_change(callback3, 'a', remove=True)
 
         self.assertEquals(len(a._traitlet_notifiers['a']),0)
 
 
-class TestHasTraitlets(TestCase):
+class TestHasTraits(TestCase):
 
-    def test_traitlet_names(self):
-        class A(HasTraitlets):
+    def test_trait_names(self):
+        class A(HasTraits):
             i = Int
             f = Float
         a = A()
-        self.assertEquals(a.traitlet_names(),['i','f'])
+        self.assertEquals(a.trait_names(),['i','f'])
 
-    def test_traitlet_metadata(self):
-        class A(HasTraitlets):
+    def test_trait_metadata(self):
+        class A(HasTraits):
             i = Int(config_key='MY_VALUE')
         a = A()
-        self.assertEquals(a.traitlet_metadata('i','config_key'), 'MY_VALUE')
+        self.assertEquals(a.trait_metadata('i','config_key'), 'MY_VALUE')
 
-    def test_traitlets(self):
-        class A(HasTraitlets):
+    def test_traits(self):
+        class A(HasTraits):
             i = Int
             f = Float
         a = A()
-        self.assertEquals(a.traitlets(), dict(i=A.i, f=A.f))
+        self.assertEquals(a.traits(), dict(i=A.i, f=A.f))
 
-    def test_traitlets_metadata(self):
-        class A(HasTraitlets):
+    def test_traits_metadata(self):
+        class A(HasTraits):
             i = Int(config_key='VALUE1', other_thing='VALUE2')
             f = Float(config_key='VALUE3', other_thing='VALUE2')
             j = Int(0)
         a = A()
-        self.assertEquals(a.traitlets(), dict(i=A.i, f=A.f, j=A.j))
-        traitlets = a.traitlets(config_key='VALUE1', other_thing='VALUE2')
+        self.assertEquals(a.traits(), dict(i=A.i, f=A.f, j=A.j))
+        traitlets = a.traits(config_key='VALUE1', other_thing='VALUE2')
         self.assertEquals(traitlets, dict(i=A.i))
 
         # This passes, but it shouldn't because I am replicating a bug in 
         # traits.
-        traitlets = a.traitlets(config_key=lambda v: True)
+        traitlets = a.traits(config_key=lambda v: True)
         self.assertEquals(traitlets, dict(i=A.i, f=A.f, j=A.j))
 
 
@@ -375,7 +375,7 @@ class TestType(TestCase):
     def test_default(self):
 
         class B(object): pass
-        class A(HasTraitlets):
+        class A(HasTraits):
             klass = Type
 
         a = A()
@@ -389,7 +389,7 @@ class TestType(TestCase):
 
         class B(object): pass
         class C(object): pass
-        class A(HasTraitlets):
+        class A(HasTraits):
             klass = Type(B)
         
         a = A()
@@ -402,7 +402,7 @@ class TestType(TestCase):
 
         class B(object): pass
         class C(B): pass
-        class A(HasTraitlets):
+        class A(HasTraits):
             klass = Type(B, allow_none=False)
 
         a = A()
@@ -413,12 +413,12 @@ class TestType(TestCase):
 
     def test_validate_klass(self):
 
-        class A(HasTraitlets):
+        class A(HasTraits):
             klass = Type('no strings allowed')
 
         self.assertRaises(ImportError, A)
 
-        class A(HasTraitlets):
+        class A(HasTraits):
             klass = Type('rub.adub.Duck')
 
         self.assertRaises(ImportError, A)
@@ -426,19 +426,19 @@ class TestType(TestCase):
     def test_validate_default(self):
 
         class B(object): pass
-        class A(HasTraitlets):
+        class A(HasTraits):
             klass = Type('bad default', B)
 
         self.assertRaises(ImportError, A)
 
-        class C(HasTraitlets):
+        class C(HasTraits):
             klass = Type(None, B, allow_none=False)
 
         self.assertRaises(TraitletError, C)
 
     def test_str_klass(self):
 
-        class A(HasTraitlets):
+        class A(HasTraits):
             klass = Type('IPython.utils.ipstruct.Struct')
 
         from IPython.utils.ipstruct import Struct
@@ -455,7 +455,7 @@ class TestInstance(TestCase):
         class Bar(Foo): pass
         class Bah(object): pass
         
-        class A(HasTraitlets):
+        class A(HasTraits):
             inst = Instance(Foo)
 
         a = A()
@@ -470,7 +470,7 @@ class TestInstance(TestCase):
 
     def test_unique_default_value(self):
         class Foo(object): pass
-        class A(HasTraitlets):
+        class A(HasTraits):
             inst = Instance(Foo,(),{})
 
         a = A()
@@ -485,18 +485,18 @@ class TestInstance(TestCase):
             def __init__(self, c, d):
                 self.c = c; self.d = d
 
-        class A(HasTraitlets):
+        class A(HasTraits):
             inst = Instance(Foo, (10,))
         a = A()
         self.assertEquals(a.inst.c, 10)
 
-        class B(HasTraitlets):
+        class B(HasTraits):
             inst = Instance(Bah, args=(10,), kw=dict(d=20))
         b = B()
         self.assertEquals(b.inst.c, 10)
         self.assertEquals(b.inst.d, 20)
 
-        class C(HasTraitlets):
+        class C(HasTraits):
             inst = Instance(Foo)
         c = C()
         self.assert_(c.inst is None)
@@ -504,7 +504,7 @@ class TestInstance(TestCase):
     def test_bad_default(self):
         class Foo(object): pass
 
-        class A(HasTraitlets):
+        class A(HasTraits):
             inst = Instance(Foo, allow_none=False)
         
         self.assertRaises(TraitletError, A)
@@ -513,7 +513,7 @@ class TestInstance(TestCase):
         class Foo(object): pass
 
         def inner():
-            class A(HasTraitlets):
+            class A(HasTraits):
                 inst = Instance(Foo())
         
         self.assertRaises(TraitletError, inner)
@@ -522,7 +522,7 @@ class TestInstance(TestCase):
 class TestThis(TestCase):
 
     def test_this_class(self):
-        class Foo(HasTraitlets):
+        class Foo(HasTraits):
             this = This
 
         f = Foo()
@@ -533,7 +533,7 @@ class TestThis(TestCase):
         self.assertRaises(TraitletError, setattr, f, 'this', 10)
 
     def test_this_inst(self):
-        class Foo(HasTraitlets):
+        class Foo(HasTraits):
             this = This()
         
         f = Foo()
@@ -541,7 +541,7 @@ class TestThis(TestCase):
         self.assert_(isinstance(f.this, Foo))
 
     def test_subclass(self):
-        class Foo(HasTraitlets):
+        class Foo(HasTraits):
             t = This()
         class Bar(Foo):
             pass
@@ -553,7 +553,7 @@ class TestThis(TestCase):
         self.assertEquals(b.t, f)
 
     def test_subclass_override(self):
-        class Foo(HasTraitlets):
+        class Foo(HasTraits):
             t = This()
         class Bar(Foo):
             t = This()
@@ -588,7 +588,7 @@ class TraitletTestBase(TestCase):
             self.assertEquals(self._default_value, self.obj.value)
 
 
-class AnyTraitlet(HasTraitlets):
+class AnyTraitlet(HasTraits):
 
     value = Any
 
@@ -601,7 +601,7 @@ class AnyTraitTest(TraitletTestBase):
     _bad_values    = []
 
 
-class IntTraitlet(HasTraitlets):
+class IntTraitlet(HasTraits):
 
     value = Int(99)
 
@@ -615,7 +615,7 @@ class TestInt(TraitletTestBase):
                       u'-10L', u'10.1', u'-10.1',  '10', '-10', u'10', u'-10']
 
 
-class LongTraitlet(HasTraitlets):
+class LongTraitlet(HasTraits):
 
     value = Long(99L)
 
@@ -631,7 +631,7 @@ class TestLong(TraitletTestBase):
                       u'-10.1']
 
 
-class FloatTraitlet(HasTraitlets):
+class FloatTraitlet(HasTraits):
 
     value = Float(99.0)
 
@@ -646,7 +646,7 @@ class TestFloat(TraitletTestBase):
                       u'-10', u'10L', u'-10L', u'10.1', u'-10.1']
 
 
-class ComplexTraitlet(HasTraitlets):
+class ComplexTraitlet(HasTraits):
 
     value = Complex(99.0-99.0j)
 
@@ -660,7 +660,7 @@ class TestComplex(TraitletTestBase):
     _bad_values    = [10L, -10L, u'10L', u'-10L', 'ten', [10], {'ten': 10},(10,), None]
 
 
-class StringTraitlet(HasTraitlets):
+class StringTraitlet(HasTraits):
 
     value = Str('string')
 
@@ -675,7 +675,7 @@ class TestString(TraitletTestBase):
                       ['ten'],{'ten': 10},(10,), None,  u'string']
 
 
-class UnicodeTraitlet(HasTraitlets):
+class UnicodeTraitlet(HasTraits):
 
     value = Unicode(u'unicode')
 

@@ -57,7 +57,18 @@ from types import (
     ListType, TupleType
 )
 
-from IPython.utils.importstring import import_item
+def import_item(name):
+    """Import and return bar given the string foo.bar."""
+    package = '.'.join(name.split('.')[0:-1])
+    obj = name.split('.')[-1]
+    execString = 'from %s import %s' % (package, obj)
+    try:
+        exec execString
+    except SyntaxError:
+        raise ImportError("Invalid class specification: %s" % name)
+    exec 'temp = %s' % obj
+    return temp
+
 
 ClassTypes = (ClassType, type)
 
@@ -75,8 +86,13 @@ NoDefaultSpecified = NoDefaultSpecified()
 class Undefined ( object ): pass
 Undefined = Undefined()
 
+# The following allows us to test specifically for a TraitletError, or more
+# generally for a TraitError if we are going for compatability with Enthought
+# Traits
+class TraitError(Exception):
+    pass
 
-class TraitletError(Exception):
+class TraitletError(TraitError):
     pass
 
 
@@ -129,12 +145,12 @@ def parse_notifier_name(name):
     >>> parse_notifier_name(['a','b'])
     ['a', 'b']
     >>> parse_notifier_name(None)
-    ['anytraitlet']
+    ['anytrait']
     """
     if isinstance(name, str):
         return [name]
     elif name is None:
-        return ['anytraitlet']
+        return ['anytrait']
     elif isinstance(name, (list, tuple)):
         for n in name:
             assert isinstance(n, str), "names must be strings"
@@ -163,7 +179,7 @@ class TraitletType(object):
     -----
     Our implementation of traitlets is based on Python's descriptor
     prototol.  This class is the base class for all such descriptors.  The
-    only magic we use is a custom metaclass for the main :class:`HasTraitlets`
+    only magic we use is a custom metaclass for the main :class:`HasTraits`
     class that does the following:
 
     1. Sets the :attr:`name` attribute of every :class:`TraitletType`
@@ -205,11 +221,11 @@ class TraitletType(object):
         return dv
 
     def instance_init(self, obj):
-        """This is called by :meth:`HasTraitlets.__new__` to finish init'ing.
+        """This is called by :meth:`HasTraits.__new__` to finish init'ing.
 
         Some stages of initialization must be delayed until the parent
-        :class:`HasTraitlets` instance has been created.  This method is
-        called in :meth:`HasTraitlets.__new__` after the instance has been
+        :class:`HasTraits` instance has been created.  This method is
+        called in :meth:`HasTraits.__new__` after the instance has been
         created.
 
         This method trigger the creation and validation of default values
@@ -218,8 +234,8 @@ class TraitletType(object):
 
         Parameters
         ----------
-        obj : :class:`HasTraitlets` instance
-            The parent :class:`HasTraitlets` instance that has just been
+        obj : :class:`HasTraits` instance
+            The parent :class:`HasTraits` instance that has just been
             created.
         """
         self.set_default_value(obj)
@@ -229,7 +245,7 @@ class TraitletType(object):
 
         This method is called by :meth:`instance_init` to create and
         validate the default value.  The creation and validation of 
-        default values must be delayed until the parent :class:`HasTraitlets`
+        default values must be delayed until the parent :class:`HasTraits`
         class has been instantiated.
         """
         dv = self.get_default_value()
@@ -239,10 +255,10 @@ class TraitletType(object):
     def __get__(self, obj, cls=None):
         """Get the value of the traitlet by self.name for the instance.
 
-        Default values are instantiated when :meth:`HasTraitlets.__new__`
+        Default values are instantiated when :meth:`HasTraits.__new__`
         is called.  Thus by the time this method gets called either the 
         default value or a user defined value (they called :meth:`__set__`)
-        is in the :class:`HasTraitlets` instance.
+        is in the :class:`HasTraits` instance.
         """
         if obj is None:
             return self
@@ -250,7 +266,7 @@ class TraitletType(object):
             try:
                 value = obj._traitlet_values[self.name]
             except:
-                # HasTraitlets should call set_default_value to populate
+                # HasTraits should call set_default_value to populate
                 # this.  So this should never be reached.
                 raise TraitletError('Unexpected error in TraitletType: '
                                     'default value not set properly')
@@ -299,19 +315,19 @@ class TraitletType(object):
 
 
 #-----------------------------------------------------------------------------
-# The HasTraitlets implementation
+# The HasTraits implementation
 #-----------------------------------------------------------------------------
 
 
-class MetaHasTraitlets(type):
-    """A metaclass for HasTraitlets.
+class MetaHasTraits(type):
+    """A metaclass for HasTraits.
     
     This metaclass makes sure that any TraitletType class attributes are
     instantiated and sets their name attribute.
     """
     
     def __new__(mcls, name, bases, classdict):
-        """Create the HasTraitlets class.
+        """Create the HasTraits class.
         
         This instantiates all TraitletTypes in the class dict and sets their
         :attr:`name` attribute.
@@ -324,10 +340,10 @@ class MetaHasTraitlets(type):
                     vinst = v()
                     vinst.name = k
                     classdict[k] = vinst
-        return super(MetaHasTraitlets, mcls).__new__(mcls, name, bases, classdict)
+        return super(MetaHasTraits, mcls).__new__(mcls, name, bases, classdict)
 
     def __init__(cls, name, bases, classdict):
-        """Finish initializing the HasTraitlets class.
+        """Finish initializing the HasTraits class.
         
         This sets the :attr:`this_class` attribute of each TraitletType in the
         class dict to the newly created class ``cls``.
@@ -335,16 +351,16 @@ class MetaHasTraitlets(type):
         for k, v in classdict.iteritems():
             if isinstance(v, TraitletType):
                 v.this_class = cls
-        super(MetaHasTraitlets, cls).__init__(name, bases, classdict)
+        super(MetaHasTraits, cls).__init__(name, bases, classdict)
 
-class HasTraitlets(object):
+class HasTraits(object):
 
-    __metaclass__ = MetaHasTraitlets
+    __metaclass__ = MetaHasTraits
 
     def __new__(cls, *args, **kw):
         # This is needed because in Python 2.6 object.__new__ only accepts
         # the cls argument.
-        new_meth = super(HasTraitlets, cls).__new__
+        new_meth = super(HasTraits, cls).__new__
         if new_meth is object.__new__:
             inst = new_meth(cls)
         else:
@@ -367,7 +383,7 @@ class HasTraitlets(object):
 
         # First dynamic ones
         callables = self._traitlet_notifiers.get(name,[])
-        more_callables = self._traitlet_notifiers.get('anytraitlet',[])
+        more_callables = self._traitlet_notifiers.get('anytrait',[])
         callables.extend(more_callables)
 
         # Now static ones
@@ -426,12 +442,12 @@ class HasTraitlets(object):
             else:
                 del nlist[index]
 
-    def on_traitlet_change(self, handler, name=None, remove=False):
+    def on_trait_change(self, handler, name=None, remove=False):
         """Setup a handler to be called when a traitlet changes.
 
         This is used to setup dynamic notifications of traitlet changes.
         
-        Static handlers can be created by creating methods on a HasTraitlets
+        Static handlers can be created by creating methods on a HasTraits
         subclass with the naming convention '_[traitletname]_changed'.  Thus,
         to create static handler for the traitlet 'a', create the method
         _a_changed(self, name, old, new) (fewer arguments can be used, see
@@ -460,11 +476,11 @@ class HasTraitlets(object):
             for n in names:
                 self._add_notifiers(handler, n)
 
-    def traitlet_names(self, **metadata):
+    def trait_names(self, **metadata):
         """Get a list of all the names of this classes traitlets."""
-        return self.traitlets(**metadata).keys()
+        return self.traits(**metadata).keys()
 
-    def traitlets(self, **metadata):
+    def traits(self, **metadata):
         """Get a list of all the traitlets of this class.
 
         The TraitletTypes returned don't know anything about the values
@@ -495,7 +511,7 @@ class HasTraitlets(object):
 
         return result
 
-    def traitlet_metadata(self, traitletname, key):
+    def trait_metadata(self, traitletname, key):
         """Get metadata values for traitlet by key."""
         try:
             traitlet = getattr(self.__class__, traitletname)
@@ -545,12 +561,12 @@ class Type(ClassBasedTraitletType):
             The default value must be a subclass of klass.  If an str,
             the str must be a fully specified class name, like 'foo.bar.Bah'.
             The string is resolved into real class, when the parent 
-            :class:`HasTraitlets` class is instantiated.
+            :class:`HasTraits` class is instantiated.
         klass : class, str, None
             Values of this traitlet must be a subclass of klass.  The klass
             may be specified in a string like: 'foo.bar.MyClass'.
             The string is resolved into real class, when the parent 
-            :class:`HasTraitlets` class is instantiated.
+            :class:`HasTraits` class is instantiated.
         allow_none : boolean
             Indicates whether None is allowed as an assignable value. Even if
             ``False``, the default value may be ``None``.
@@ -711,9 +727,9 @@ class Instance(ClassBasedTraitletType):
     def get_default_value(self):
         """Instantiate a default value instance.
         
-        This is called when the containing HasTraitlets classes'
+        This is called when the containing HasTraits classes'
         :meth:`__new__` method is called to ensure that a unique instance
-        is created for each HasTraitlets instance.
+        is created for each HasTraits instance.
         """
         dv  = self.default_value
         if isinstance(dv, DefaultValueGenerator):

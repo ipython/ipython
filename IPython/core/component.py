@@ -27,7 +27,7 @@ from weakref import WeakValueDictionary
 from IPython.utils.importstring import import_item
 from IPython.config.loader import Config
 from IPython.utils.traitlets import (
-    HasTraitlets, TraitletError, MetaHasTraitlets, Instance, This
+    HasTraits, TraitletError, MetaHasTraits, Instance, This
 )
 
 
@@ -173,7 +173,7 @@ class ComponentNameGenerator(object):
 ComponentNameGenerator = ComponentNameGenerator('ipython.component')
 
 
-class MetaComponent(MetaHasTraitlets, MetaComponentTracker):
+class MetaComponent(MetaHasTraits, MetaComponentTracker):
     pass
 
 
@@ -182,7 +182,7 @@ class MetaComponent(MetaHasTraitlets, MetaComponentTracker):
 #-----------------------------------------------------------------------------
 
 
-class Component(HasTraitlets):
+class Component(HasTraits):
 
     __metaclass__ = MetaComponent
 
@@ -281,7 +281,7 @@ class Component(HasTraitlets):
         config entry.
         """
         # Get all traitlets with a config metadata entry that is True
-        traitlets = self.traitlets(config=True)
+        traitlets = self.traits(config=True)
 
         # We auto-load config section for this class as well as any parent
         # classes that are Component subclasses.  This starts with Component
