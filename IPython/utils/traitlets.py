@@ -978,6 +978,8 @@ class List(Instance):
             args = ((),)
         elif isinstance(default_value, SequenceTypes):
             args = (default_value,)
+        else:
+            raise TypeError('default value of List was %s' % default_value)
 
         super(List,self).__init__(klass=list, args=args, 
                                   allow_none=allow_none, **metadata)
