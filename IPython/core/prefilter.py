@@ -853,7 +853,7 @@ class AutoHandler(PrefilterHandler):
             # XXX - Ugly hack!  We are breaking on multiline input and I'm out
             # of time tonight to disentangle the component hirerarchy issue
             # here... Fix this more cleanly later.
-            self.parent.parent.log(line,line,continue_prompt)
+            self.shell.log(line,line,continue_prompt)
             
             return line
 
