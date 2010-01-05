@@ -1169,14 +1169,16 @@ class Namespace(_AttributeHolder):
     """
 
     def __init__(self, **kwargs):
-        for name in kwargs:
-            setattr(self, name, kwargs[name])
+        self.__dict__.update(**kwargs)
 
     def __eq__(self, other):
         return vars(self) == vars(other)
 
     def __ne__(self, other):
         return not (self == other)
+
+    def __contains__(self, key):
+        return key in self.__dict__
 
 
 class _ActionsContainer(object):
@@ -2288,9 +2290,13 @@ class ArgumentParser(_AttributeHolder, _ActionsContainer):
     # Help-printing methods
     # =====================
     def print_usage(self, file=None):
+        if file is None:
+            file = _sys.stdout
         self._print_message(self.format_usage(), file)
 
     def print_help(self, file=None):
+        if file is None:
+            file = _sys.stdout
         self._print_message(self.format_help(), file)
 
     def print_version(self, file=None):
