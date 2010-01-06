@@ -875,7 +875,7 @@ Currently the magic system has the following functions:\n"""
                     show_all=opt('a'),ignore_case=ignore_case)
         except:
             shell.showtraceback()
-
+        
     def magic_who_ls(self, parameter_s=''):
         """Return a sorted list of all interactive variables.
 
@@ -885,17 +885,15 @@ Currently the magic system has the following functions:\n"""
         user_ns = self.shell.user_ns
         internal_ns = self.shell.internal_ns
         user_config_ns = self.shell.user_config_ns
-        out = []
-        typelist = parameter_s.split()
+        out = [ i for i in user_ns
+                if not i.startswith('_') \
+                and not (i in internal_ns or i in user_config_ns) ]
 
-        for i in user_ns:
-            if not (i.startswith('_') or i.startswith('_i')) \
-                   and not (i in internal_ns or i in user_config_ns):
-                if typelist:
-                    if type(user_ns[i]).__name__ in typelist:
-                        out.append(i)
-                else:
-                    out.append(i)
+        typelist = parameter_s.split()
+        if typelist:
+            typeset = set(typelist)
+            out = [i for i in out if type(i).__name__ in typeset]
+
         out.sort()
         return out
         
