@@ -219,7 +219,7 @@ def test_get_ipython_dir_1():
     """test_get_ipython_dir_1, Testcase to see if we can call get_ipython_dir without Exceptions."""
     env['IPYTHONDIR'] = "someplace/.ipython"
     ipdir = genutils.get_ipython_dir()
-    nt.assert_equal(ipdir, os.path.abspath("someplace/.ipython"))
+    nt.assert_equal(ipdir, "someplace/.ipython")
 
 
 @with_enivronment
@@ -228,15 +228,8 @@ def test_get_ipython_dir_2():
     genutils.get_home_dir = lambda : "someplace"
     os.name = "posix"
     ipdir = genutils.get_ipython_dir()
-    nt.assert_equal(ipdir, os.path.abspath(os.path.join("someplace", ".ipython")))
+    nt.assert_equal(ipdir, os.path.join("someplace", ".ipython"))
 
-@with_enivronment
-def test_get_ipython_dir_3():
-    """test_get_ipython_dir_3, Testcase to see if we can call get_ipython_dir without Exceptions."""
-    genutils.get_home_dir = lambda : "someplace"
-    os.name = "nt"
-    ipdir = genutils.get_ipython_dir()
-    nt.assert_equal(ipdir, os.path.abspath(os.path.join("someplace", "_ipython")))
 
 #
 # Tests for get_security_dir

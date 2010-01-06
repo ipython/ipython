@@ -252,7 +252,7 @@ cl_args = (
         metavar='gui-mode')
     ),
 
-    (('--pylab',), dict(
+    (('--pylab','-pylab'), dict(
         type=str, dest='Global.pylab', default=NoConfigDefault,
         nargs='?', const='auto', metavar='gui-mode',
         help="Pre-load matplotlib and numpy for interactive use. "+
@@ -284,24 +284,6 @@ class IPythonAppCLConfigLoader(BaseAppArgParseConfigLoader):
 
     arguments = cl_args
 
-    def load_config(self):
-        """Do actions just before loading the command line config."""
-
-        # Special hack: there are countless uses of 'ipython -pylab' (with one
-        # dash) in the wild, including in printed books.  Since argparse does
-        # will interpret -pylab as '-p ylab', sending us in a search for a
-        # profile named 'ylab', instead we special-case here -pylab as the
-        # first or second option only (this is how old ipython used to work)
-        # and convert this use to --pylab.  Ugly, but needed for this one
-        # very widely used case.
-        firstargs = sys.argv[:3]
-        try:
-            idx = firstargs.index('-pylab')
-        except ValueError:
-            pass
-        else:
-            sys.argv[idx] = '--pylab'
-        return super(IPythonAppCLConfigLoader, self).load_config()
 
 default_config_file_name = u'ipython_config.py'
 
@@ -310,6 +292,22 @@ class IPythonApp(Application):
     name = u'ipython'
     description = 'IPython: an enhanced interactive Python shell.'
     config_file_name = default_config_file_name
+
+    def __init__(self, argv=None, **shell_params):
+        """Create a new IPythonApp.
+
+        Parameters
+        ----------
+        argv : optional, list
+          If given, used as the command-line argv environment to read arguments
+          from.
+
+        shell_params : optional, dict
+          All other keywords are passed to the :class:`iplib.InteractiveShell`
+          constructor. 
+        """
+        super(IPythonApp, self).__init__(argv)
+        self.shell_params = shell_params
 
     def create_default_config(self):
         super(IPythonApp, self).create_default_config()
@@ -348,7 +346,6 @@ class IPythonApp(Application):
             description=self.description, 
             version=release.version
         )
-
 
     def load_file_config(self):
         if hasattr(self.command_line_config.Global, 'quick'):
@@ -404,10 +401,8 @@ class IPythonApp(Application):
         sys.path.insert(0, '')
 
         # Create an InteractiveShell instance
-        self.shell = InteractiveShell(
-            parent=None,
-            config=self.master_config
-        )
+        self.shell = InteractiveShell(None, self.master_config,
+                                      **self.shell_params )
 
     def post_construct(self):
         """Do actions after construct, but before starting the app."""

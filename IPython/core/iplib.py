@@ -185,6 +185,57 @@ class SeparateStr(Str):
         return super(SeparateStr, self).validate(obj, value)
 
 
+def make_user_namespaces(user_ns=None, user_global_ns=None):
+    """Return a valid local and global user interactive namespaces.
+
+    This builds a dict with the minimal information needed to operate as a
+    valid IPython user namespace, which you can pass to the various
+    embedding classes in ipython. The default implementation returns the
+    same dict for both the locals and the globals to allow functions to
+    refer to variables in the namespace. Customized implementations can
+    return different dicts. The locals dictionary can actually be anything
+    following the basic mapping protocol of a dict, but the globals dict
+    must be a true dict, not even a subclass. It is recommended that any
+    custom object for the locals namespace synchronize with the globals
+    dict somehow.
+
+    Raises TypeError if the provided globals namespace is not a true dict.
+
+    Parameters
+    ----------
+    user_ns : dict-like, optional
+        The current user namespace. The items in this namespace should
+        be included in the output. If None, an appropriate blank
+        namespace should be created.
+    user_global_ns : dict, optional
+        The current user global namespace. The items in this namespace
+        should be included in the output. If None, an appropriate
+        blank namespace should be created.
+
+    Returns
+    -------
+        A pair of dictionary-like object to be used as the local namespace
+        of the interpreter and a dict to be used as the global namespace.
+    """
+
+    if user_ns is None:
+        # Set __name__ to __main__ to better match the behavior of the
+        # normal interpreter.
+        user_ns = {'__name__'     :'__main__',
+                   '__builtins__' : __builtin__,
+                  }
+    else:
+        user_ns.setdefault('__name__','__main__')
+        user_ns.setdefault('__builtins__',__builtin__)
+
+    if user_global_ns is None:
+        user_global_ns = user_ns
+    if type(user_global_ns) is not dict:
+        raise TypeError("user_global_ns must be a true dict; got %r"
+            % type(user_global_ns))
+
+    return user_ns, user_global_ns
+
 #-----------------------------------------------------------------------------
 # Main IPython class
 #-----------------------------------------------------------------------------
@@ -816,8 +867,7 @@ class InteractiveShell(Component, Magic):
         # These routines return properly built dicts as needed by the rest of
         # the code, and can also be used by extension writers to generate
         # properly initialized namespaces.
-        user_ns, user_global_ns = self.make_user_namespaces(user_ns,
-            user_global_ns)
+        user_ns, user_global_ns = make_user_namespaces(user_ns, user_global_ns)
 
         # Assign namespaces
         # This is the namespace where all normal user variables live
@@ -901,55 +951,6 @@ class InteractiveShell(Component, Magic):
             raise KeyError('user_ns dictionary MUST have a "__name__" key')
         else:
             sys.modules[main_name] = FakeModule(self.user_ns)
-
-    def make_user_namespaces(self, user_ns=None, user_global_ns=None):
-        """Return a valid local and global user interactive namespaces.
-
-        This builds a dict with the minimal information needed to operate as a
-        valid IPython user namespace, which you can pass to the various
-        embedding classes in ipython. The default implementation returns the
-        same dict for both the locals and the globals to allow functions to
-        refer to variables in the namespace. Customized implementations can
-        return different dicts. The locals dictionary can actually be anything
-        following the basic mapping protocol of a dict, but the globals dict
-        must be a true dict, not even a subclass. It is recommended that any
-        custom object for the locals namespace synchronize with the globals
-        dict somehow.
-
-        Raises TypeError if the provided globals namespace is not a true dict.
-
-        :Parameters:
-            user_ns : dict-like, optional
-                The current user namespace. The items in this namespace should
-                be included in the output. If None, an appropriate blank
-                namespace should be created.
-            user_global_ns : dict, optional
-                The current user global namespace. The items in this namespace
-                should be included in the output. If None, an appropriate
-                blank namespace should be created.
-
-        :Returns:
-            A tuple pair of dictionary-like object to be used as the local namespace
-            of the interpreter and a dict to be used as the global namespace.
-        """
-
-        if user_ns is None:
-            # Set __name__ to __main__ to better match the behavior of the
-            # normal interpreter.
-            user_ns = {'__name__'     :'__main__',
-                       '__builtins__' : __builtin__,
-                      }
-        else:
-            user_ns.setdefault('__name__','__main__')
-            user_ns.setdefault('__builtins__',__builtin__)
-
-        if user_global_ns is None:
-            user_global_ns = user_ns
-        if type(user_global_ns) is not dict:
-            raise TypeError("user_global_ns must be a true dict; got %r"
-                % type(user_global_ns))
-
-        return user_ns, user_global_ns
 
     def init_user_ns(self):
         """Initialize all user-visible namespaces to their minimum defaults.

@@ -47,7 +47,7 @@ D.C.value = 'hi there'
 class TestPyFileCL(TestCase):
 
     def test_basic(self):
-        fd, fname = mkstemp()
+        fd, fname = mkstemp('.py')
         f = os.fdopen(fd, 'w')
         f.write(pyfile)
         f.close()

@@ -64,13 +64,11 @@ def default_argv():
 
     # Get the install directory for the user configuration and tell ipython to
     # use the default profile from there.
-    from IPython.config import userconfig
-    ipcdir = os.path.dirname(userconfig.__file__)
-    #ipconf = os.path.join(ipcdir,'ipy_user_conf.py')
-    ipconf = os.path.join(ipcdir,'ipythonrc')
+    from IPython.config import default
+    ipcdir = os.path.dirname(default.__file__)
+    ipconf = os.path.join(ipcdir,'ipython_config.py')
     #print 'conf:',ipconf # dbg
-    
-    return ['--colors=NoColor','--noterm_title','-rcfile=%s' % ipconf]
+    return ['--colors=NoColor','--no-term-title','--config-file=%s' % ipconf]
 
 
 # Hack to modify the %run command so we can sync the user's namespace with the
@@ -164,7 +162,7 @@ def start_ipython():
     import new
 
     import IPython
-    from IPython.core import ipapi
+    from IPython.core import ipapp, iplib
     
     def xsys(cmd):
         """Execute a command and print its output.
@@ -184,7 +182,10 @@ def start_ipython():
     argv = default_argv()
     
     # Start IPython instance.  We customize it to start with minimal frills.
-    IPython.shell.IPShell(argv,ipnsdict(),global_ns)
+    user_ns,global_ns = iplib.make_user_namespaces(ipnsdict(),{})
+    ip = ipapp.IPythonApp(argv, user_ns=user_ns, user_global_ns=global_ns)
+    ip.initialize()
+    ip.shell.builtin_trap.set()
 
     # Deactivate the various python system hooks added by ipython for
     # interactive convenience so we don't confuse the doctest system
@@ -194,25 +195,24 @@ def start_ipython():
 
     # So that ipython magics and aliases can be doctested (they work by making
     # a call into a global _ip object)
-    _ip = ipapi.get()
-    __builtin__._ip = _ip
+    __builtin__._ip = ip.shell
 
     # Modify the IPython system call with one that uses getoutput, so that we
     # can capture subcommands and print them to Python's stdout, otherwise the
     # doctest machinery would miss them.
-    _ip.system = xsys
+    ip.shell.system = xsys
 
     # Also patch our %run function in.
     im = new.instancemethod(_run_ns_sync,_ip, _ip.__class__)
-    _ip.magic_run_ori = _ip.magic_run
-    _ip.magic_run = im
+    ip.shell.magic_run_ori = _ip.magic_run
+    ip.shell.magic_run = im
 
     # XXX - For some very bizarre reason, the loading of %history by default is
     # failing.  This needs to be fixed later, but for now at least this ensures
     # that tests that use %hist run to completion.
     from IPython.core import history
-    history.init_ipython(_ip)
-    if not hasattr(_ip,'magic_history'):
+    history.init_ipython(ip.shell)
+    if not hasattr(ip.shell,'magic_history'):
         raise RuntimeError("Can't load magics, aborting")
 
 

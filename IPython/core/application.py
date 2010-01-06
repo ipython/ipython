@@ -97,6 +97,7 @@ class Application(object):
 
     # Private attributes
     _exiting = False
+    _initialized = False
 
     def __init__(self, argv=None):
         self.argv = sys.argv[1:] if argv is None else argv
@@ -119,8 +120,12 @@ class Application(object):
 
     log_level = property(_get_log_level, _set_log_level)
 
-    def start(self):
+    def initialize(self):
         """Start the application."""
+        
+        if self._initialized:
+            return
+        
         self.attempt(self.create_default_config)
         self.log_default_config()
         self.set_default_config_log_level()
@@ -143,6 +148,10 @@ class Application(object):
         self.attempt(self.pre_construct)
         self.attempt(self.construct)
         self.attempt(self.post_construct)
+        self._initialized = True
+
+    def start(self):
+        self.initialize()
         self.attempt(self.start_app)
 
     #-------------------------------------------------------------------------

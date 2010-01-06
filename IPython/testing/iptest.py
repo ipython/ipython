@@ -234,7 +234,12 @@ class IPTester(object):
     else:
         def run(self):
             """Run the stored commands"""
-            return subprocess.call(self.call_args)
+            try:
+                return subprocess.call(self.call_args)
+            except:
+                import traceback
+                traceback.print_exc()
+                return 1  # signal failure
 
 
 def make_runners():

@@ -245,10 +245,11 @@ class ShadowHist(object):
 
 
 def init_ipython(ip):
-    import ipy_completers
+    # XXX - ipy_completers are in quarantine, need to be updated to new apis
+    #import ipy_completers
 
     ip.define_magic("rep",rep_f)        
     ip.define_magic("hist",magic_hist)            
     ip.define_magic("history",magic_history)
 
-    ipy_completers.quick_completer('%hist' ,'-g -t -r -n')
+    #ipy_completers.quick_completer('%hist' ,'-g -t -r -n')
