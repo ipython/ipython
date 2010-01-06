@@ -90,7 +90,7 @@ class Application(object):
     default_log_level = logging.WARN
     # Set by --profile option
     profile_name = None
-    # User's ipython directory, typically ~/.ipython/
+    #: User's ipython directory, typically ~/.ipython/
     ipython_dir = None
 
     # Private attributes
