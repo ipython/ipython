@@ -334,8 +334,7 @@ class ArgParseConfigLoader(CommandLineConfigLoader):
 
     def _add_arguments(self):
         for argument in self.arguments:
-            if not argument[1].has_key('default'):
-                argument[1]['default'] = NoConfigDefault
+            argument[1].setdefault('default', NoConfigDefault)
             self.parser.add_argument(*argument[0],**argument[1])
 
     def _parse_args(self, args=None):
