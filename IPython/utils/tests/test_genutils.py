@@ -230,25 +230,6 @@ def test_get_ipython_dir_2():
     ipdir = genutils.get_ipython_dir()
     nt.assert_equal(ipdir, os.path.join("someplace", ".ipython"))
 
-
-#
-# Tests for get_security_dir
-#
-
-@with_enivronment
-def test_get_security_dir():
-    """Testcase to see if we can call get_security_dir without Exceptions."""
-    sdir = genutils.get_security_dir()
-
-#
-# Tests for get_log_dir
-#
-
-@with_enivronment
-def test_get_log_dir():
-    """Testcase to see if we can call get_log_dir without Exceptions."""
-    sdir = genutils.get_log_dir()
-
 #
 # Tests for popkey
 #
