@@ -301,18 +301,39 @@ class ArgParseConfigLoader(CommandLineConfigLoader):
     # arguments = [(('-f','--file'),dict(type=str,dest='file'))]
     arguments = ()
 
-    def __init__(self, *args, **kw):
+    def __init__(self, argv=None, *args, **kw):
         """Create a config loader for use with argparse.
 
-        The args and kwargs arguments here are passed onto the constructor
-        of :class:`argparse.ArgumentParser`.
+        With the exception of argv, other args and kwargs arguments here are
+        passed onto the constructor of :class:`argparse.ArgumentParser`.
+
+        Parameters
+        ----------
+
+        argv : optional, list
+          If given, used to read command-line arguments from, otherwise
+          sys.argv[1:] is used.
         """
         super(CommandLineConfigLoader, self).__init__()
+        if argv == None:
+            argv = sys.argv[1:]
+        self.argv = argv
         self.args = args
         self.kw = kw
 
     def load_config(self, args=None):
-        """Parse command line arguments and return as a Struct."""
+        """Parse command line arguments and return as a Struct.
+
+        Parameters
+        ----------
+
+        args : optional, list
+          If given, a list with the structure of sys.argv[1:] to parse arguments
+          from.  If not given, the instance's self.argv attribute (given at
+          construction time) is used."""
+        
+        if args is None:
+            args = self.argv
         self._create_parser()
         self._parse_args(args)
         self._convert_to_config()
@@ -337,12 +358,9 @@ class ArgParseConfigLoader(CommandLineConfigLoader):
             argument[1].setdefault('default', NoConfigDefault)
             self.parser.add_argument(*argument[0],**argument[1])
 
-    def _parse_args(self, args=None):
-        """self.parser->self.parsed_data"""
-        if args is None:
-            self.parsed_data, self.extra_args = self.parser.parse_known_args()
-        else:
-            self.parsed_data, self.extra_args = self.parser.parse_known_args(args)
+    def _parse_args(self, args):
+        """self.parser->self.parsed_data""" 
+        self.parsed_data, self.extra_args = self.parser.parse_known_args(args)
 
     def _convert_to_config(self):
         """self.parsed_data->self.config"""

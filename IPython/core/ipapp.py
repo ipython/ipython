@@ -344,7 +344,7 @@ class IPythonApp(Application):
 
     def create_command_line_config(self):
         """Create and return a command line config loader."""
-        return IPythonAppCLConfigLoader(
+        return IPythonAppCLConfigLoader(self.argv,
             description=self.description, 
             version=release.version
         )
@@ -565,7 +565,8 @@ class IPythonApp(Application):
         if self.master_config.Global.interact:
             self.log.debug("Starting IPython's mainloop...")
             self.shell.mainloop()
-
+        else:
+            self.log.debug("IPython not interactive, start_app is no-op...")
 
 
 def load_default_config(ipython_dir=None):
@@ -584,4 +585,3 @@ def launch_new_instance():
     """Create and run a full blown IPython instance"""
     app = IPythonApp()
     app.start()
-

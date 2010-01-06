@@ -92,11 +92,14 @@ class Application(object):
     profile_name = None
     #: User's ipython directory, typically ~/.ipython/
     ipython_dir = None
+    #: A reference to the argv to be used (typically ends up being sys.argv[1:])
+    argv = None
 
     # Private attributes
     _exiting = False
 
-    def __init__(self):
+    def __init__(self, argv=None):
+        self.argv = sys.argv[1:] if argv is None else argv
         self.init_logger()
 
     def init_logger(self):
@@ -173,7 +176,7 @@ class Application(object):
 
     def create_command_line_config(self):
         """Create and return a command line config loader."""
-        return BaseAppArgParseConfigLoader(
+        return BaseAppArgParseConfigLoader(self.argv,
             description=self.description, 
             version=release.version
         )
