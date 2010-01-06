@@ -492,7 +492,7 @@ class Interpreter(object):
             # somehow.  In the meantime, we'll just stop if there are two lines
             # of pure whitespace at the end.
             last_two = source.rsplit('\n',2)[-2:]
-            print 'last two:',last_two  # dbg
+            #print 'last two:',last_two  # dbg
             if len(last_two)==2 and all(s.isspace() for s in last_two):
                 return COMPLETE_INPUT,False
             else:
