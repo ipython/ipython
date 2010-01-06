@@ -827,7 +827,7 @@ class InteractiveShell(Component, Magic):
         # An auxiliary namespace that checks what parts of the user_ns were
         # loaded at startup, so we can list later only variables defined in
         # actual interactive use.  Since it is always a subset of user_ns, it
-        # doesn't need to be seaparately tracked in the ns_table
+        # doesn't need to be separately tracked in the ns_table.
         self.user_config_ns = {}
 
         # A namespace to keep track of internal data structures to prevent
@@ -2451,12 +2451,35 @@ class InteractiveShell(Component, Magic):
     #-------------------------------------------------------------------------
 
     def enable_pylab(self, gui=None):
+        """Activate pylab support at runtime.
+
+        This turns on support for matplotlib, preloads into the interactive
+        namespace all of numpy and pylab, and configures IPython to correcdtly
+        interact with the GUI event loop.  The GUI backend to be used can be
+        optionally selected with the optional :param:`gui` argument.
+
+        Parameters
+        ----------
+        gui : optional, string
+
+          If given, dictates the choice of matplotlib GUI backend to use
+          (should be one of IPython's supported backends, 'tk', 'qt', 'wx' or
+          'gtk'), otherwise we use the default chosen by matplotlib (as
+          dictated by the matplotlib build-time options plus the user's
+          matplotlibrc configuration file).
         """
-        """
-        gui = pylab_activate(self.user_ns, gui)
+        # We want to prevent the loading of pylab to pollute the user's
+        # namespace as shown by the %who* magics, so we execute the activation
+        # code in an empty namespace, and we update *both* user_ns and
+        # user_config_ns with this information.
+        ns = {}
+        gui = pylab_activate(ns, gui)
+        self.user_ns.update(ns)
+        self.user_config_ns.update(ns)
+        # Now we must activate the gui pylab wants to use, and fix %run to take
+        # plot updates into account
         enable_gui(gui)
         self.magic_run = self._pylab_magic_run
-
 
     #-------------------------------------------------------------------------
     # Things related to IPython exiting

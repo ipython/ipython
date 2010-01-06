@@ -244,22 +244,39 @@ cl_args = (
         action='store_true', dest='Global.force_interact', default=NoConfigDefault,
         help="If running code from the command line, become interactive afterwards.")
     ),
+
+    # Options to start with GUI control enabled from the beginning
+    (('--gui',), dict(
+        type=str, dest='Global.gui', default=NoConfigDefault,
+        help="Enable GUI event loop integration ('qt', 'wx', 'gtk').",
+        metavar='gui-mode')
+    ),
+
+    (('--pylab',), dict(
+        type=str, dest='Global.pylab', default=NoConfigDefault,
+        nargs='?', const='auto', metavar='gui-mode',
+        help="Pre-load matplotlib and numpy for interactive use. "+
+        "If no value is given, the gui backend is matplotlib's, else use "+
+        "one of:  ['tk', 'qt', 'wx', 'gtk'].")
+    ),
+    
+    # Legacy GUI options.  Leave them in for backwards compatibility, but the
+    # 'thread' names are really a misnomer now.
     (('--wthread','-wthread'), dict(
         action='store_true', dest='Global.wthread', default=NoConfigDefault,
-        help="Enable wxPython event loop integration.")
+        help="Enable wxPython event loop integration "+
+             "(DEPRECATED, use --gui wx)")
     ),
     (('--q4thread','--qthread','-q4thread','-qthread'), dict(
         action='store_true', dest='Global.q4thread', default=NoConfigDefault,
-        help="Enable Qt4 event loop integration. Qt3 is no longer supported.")
+        help="Enable Qt4 event loop integration. Qt3 is no longer supported. "+
+             "(DEPRECATED, use --gui qt)")
     ),
     (('--gthread','-gthread'), dict(
         action='store_true', dest='Global.gthread', default=NoConfigDefault,
-        help="Enable GTK event loop integration.")
+        help="Enable GTK event loop integration. "+
+             "(DEPRECATED, use --gui gtk)")
     ),
-    (('--pylab',), dict(
-        action='store_true', dest='Global.pylab', default=NoConfigDefault,
-        help="Pre-load matplotlib and numpy for interactive use.")
-    )
 )
 
 
@@ -298,6 +315,7 @@ class IPythonApp(Application):
         super(IPythonApp, self).create_default_config()
         # Eliminate multiple lookups
         Global = self.default_config.Global
+
         # Set all default values
         Global.display_banner = True
         
@@ -312,12 +330,17 @@ class IPythonApp(Application):
         Global.interact = True
 
         # No GUI integration by default
-        Global.wthread = False
-        Global.q4thread = False
-        Global.gthread = False
-
+        Global.gui = False
         # Pylab off by default
         Global.pylab = False
+
+        # Deprecated versions of gui support that used threading, we support
+        # them just for bacwards compatibility as an alternate spelling for
+        # '--gui X'
+        Global.qthread = False
+        Global.q4thread = False
+        Global.wthread = False
+        Global.gthread = False
 
     def create_command_line_config(self):
         """Create and return a command line config loader."""
@@ -415,31 +438,40 @@ class IPythonApp(Application):
         Global = self.master_config.Global
 
         # Select which gui to use
-        if Global.wthread:
+        if Global.gui:
+            gui = Global.gui
+        # The following are deprecated, but there's likely to be a lot of use
+        # of this form out there, so we might as well support it for now.  But
+        # the --gui option above takes precedence.
+        elif Global.wthread:
             gui = inputhook.GUI_WX
-        elif Global.q4thread:
+        elif Global.qthread:
             gui = inputhook.GUI_QT
         elif Global.gthread:
             gui = inputhook.GUI_GTK
         else:
             gui = None
 
+        # Using --pylab will also require gui activation, though which toolkit
+        # to use may be chosen automatically based on mpl configuration.
         if Global.pylab:
             activate = self.shell.enable_pylab
+            if Global.pylab == 'auto':
+                gui = None
+            else:
+                gui = Global.pylab
         else:
             # Enable only GUI integration, no pylab
             activate = inputhook.enable_gui
 
         if gui or Global.pylab:
             try:
-                m = "Enabling GUI event loop integration, toolkit=%s, pylab=%s"\
-                    % (gui, Global.pylab)
-                self.log.info(m)
+                self.log.info("Enabling GUI event loop integration, "
+                              "toolkit=%s, pylab=%s" % (gui, Global.pylab) )
                 activate(gui)
             except:
                 self.log.warn("Error in enabling GUI event loop integration:")
                 self.shell.showtraceback()
-
 
     def _load_extensions(self):
         """Load all IPython extensions in Global.extensions.
