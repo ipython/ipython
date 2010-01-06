@@ -42,7 +42,7 @@ def pretty_result_display(self, arg):
             Term.cout.write('\n')
         print >>Term.cout, out
     else:
-        raise TryNext
+        raise IPython.ipapi.TryNext
 
 
 #### API #######################################################################
