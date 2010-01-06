@@ -37,11 +37,12 @@ from IPython.config.loader import (
 
 
 pyfile = """
-a = 10
-b = 20
-Foo.Bar.value = 10
-Foo.Bam.value = range(10)
-D.C.value = 'hi there'
+c = get_config()
+c.a = 10
+c.b = 20
+c.Foo.Bar.value = 10
+c.Foo.Bam.value = range(10)
+c.D.C.value = 'hi there'
 """
 
 class TestPyFileCL(TestCase):
