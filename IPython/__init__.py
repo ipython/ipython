@@ -42,6 +42,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), "extensions"))
 from IPython.core.iplib import InteractiveShell
 from IPython.core.embed import embed
 from IPython.core.error import TryNext
+from IPython.testing import test
 
 from IPython.lib import (
     enable_wx, disable_wx,
@@ -61,4 +62,3 @@ for author, email in release.authors.values():
 __license__  = release.license
 __version__  = release.version
 __revision__ = release.revision
-
