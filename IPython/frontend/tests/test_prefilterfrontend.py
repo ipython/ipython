@@ -23,6 +23,9 @@ from IPython.frontend.prefilterfrontend import PrefilterFrontEnd
 from IPython.core.ipapi import get as get_ipython0
 from IPython.testing.plugin.ipdoctest import default_argv
 
+#-----------------------------------------------------------------------------
+# Support utilities
+#-----------------------------------------------------------------------------
 
 class TestPrefilterFrontEnd(PrefilterFrontEnd):
     
@@ -93,6 +96,9 @@ def isolate_ipython0(func):
     my_func.__name__ = func.__name__
     return my_func
 
+#-----------------------------------------------------------------------------
+# Tests
+#-----------------------------------------------------------------------------
 
 @isolate_ipython0
 def test_execution():
@@ -166,7 +172,7 @@ def test_magic():
     f.input_buffer += '%who'
     f._on_enter()
     out_value = f.out.getvalue()
-    assert_equal(out_value, 'Interactive namespace is empty.\n')
+    assert_equal(out_value, 'In\tOut\tget_ipython\t\n')
 
 
 @isolate_ipython0

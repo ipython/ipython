@@ -15,7 +15,7 @@ import nose.tools as nt
 # our own packages
 from IPython.core import iplib
 from IPython.core import ipapi
-
+from IPython.testing import decorators as dec
 
 #-----------------------------------------------------------------------------
 # Globals
@@ -43,15 +43,33 @@ if ip is None:
 # Test functions
 #-----------------------------------------------------------------------------
 
+@dec.parametric
 def test_reset():
     """reset must clear most namespaces."""
-    ip.reset()  # first, it should run without error
-    # Then, check that most namespaces end up empty
+    # The number of variables in the private user_config_ns is not zero, but it
+    # should be constant regardless of what we do
+    nvars_config_ns = len(ip.user_config_ns)
+
+    # Check that reset runs without error
+    ip.reset()
+
+    # Once we've reset it (to clear of any junk that might have been there from
+    # other tests, we can count how many variables are in the user's namespace
+    nvars_user_ns = len(ip.user_ns)
+
+    # Now add a few variables to user_ns, and check that reset clears them
+    ip.user_ns['x'] = 1
+    ip.user_ns['y'] = 1
+    ip.reset()
+    
+    # Finally, check that all namespaces have only as many variables as we
+    # expect to find in them:
     for ns in ip.ns_refs_table:
         if ns is ip.user_ns:
-            # The user namespace is reset with some data, so we can't check for
-            # it being empty
-            continue
-        nt.assert_equals(len(ns),0)
-
-    
+            nvars_expected = nvars_user_ns
+        elif ns is ip.user_config_ns:
+            nvars_expected = nvars_config_ns
+        else:
+            nvars_expected = 0
+            
+        yield nt.assert_equals(len(ns), nvars_expected)

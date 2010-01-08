@@ -68,7 +68,8 @@ def default_argv():
     ipcdir = os.path.dirname(default.__file__)
     ipconf = os.path.join(ipcdir,'ipython_config.py')
     #print 'conf:',ipconf # dbg
-    return ['--colors=NoColor','--no-term-title','--config-file=%s' % ipconf]
+    return ['--colors=NoColor', '--no-term-title','--no-banner',
+            '--config-file=%s' % ipconf]
 
 
 # Hack to modify the %run command so we can sync the user's namespace with the

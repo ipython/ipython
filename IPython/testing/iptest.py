@@ -31,10 +31,18 @@ import warnings
 import nose.plugins.builtin
 from nose.core import TestProgram
 
-from IPython.utils.platutils import find_cmd
-# from IPython.testing.plugin.ipdoctest import IPythonDoctest
+from IPython.utils import genutils
+from IPython.utils.platutils import find_cmd, FindCmdError
 
 pjoin = path.join
+
+#-----------------------------------------------------------------------------
+# Warnings control
+#-----------------------------------------------------------------------------
+# Twisted generates annoying warnings with Python 2.6, as will do other code
+# that imports 'sets' as of today
+warnings.filterwarnings('ignore', 'the sets module is deprecated',
+                        DeprecationWarning )
 
 #-----------------------------------------------------------------------------
 # Logic for skipping doctests
@@ -63,10 +71,10 @@ have_gobject = test_for('gobject')
 
 def make_exclude():
 
-    # For the IPythonDoctest plugin, we need to exclude certain patterns that cause
-    # testing problems.  We should strive to minimize the number of skipped
-    # modules, since this means untested code.  As the testing machinery
-    # solidifies, this list should eventually become empty.
+    # For the IPythonDoctest plugin, we need to exclude certain patterns that
+    # cause testing problems.  We should strive to minimize the number of
+    # skipped modules, since this means untested code.  As the testing
+    # machinery solidifies, this list should eventually become empty.
     EXCLUDE = [pjoin('IPython', 'external'),
                pjoin('IPython', 'frontend', 'process', 'winprocess.py'),
                pjoin('IPython_doctest_plugin'),
@@ -137,6 +145,82 @@ def make_exclude():
 # Functions and classes
 #-----------------------------------------------------------------------------
 
+class IPTester(object):
+    """Call that calls iptest or trial in a subprocess.
+    """
+    def __init__(self,runner='iptest',params=None):
+        """ """
+        if runner == 'iptest':
+            # Find our own 'iptest' script OS-level entry point
+            try:
+                iptest_path = find_cmd('iptest')
+            except FindCmdError:
+                # Script not installed (may be the case for testing situations
+                # that are running from a source tree only), pull from internal
+                # path:
+                iptest_path = pjoin(genutils.get_ipython_package_dir(),
+                                    'scripts','iptest')
+            self.runner = [iptest_path,'-v']
+        else:
+            self.runner = [find_cmd('trial')]
+        if params is None:
+            params = []
+        if isinstance(params,str):
+            params = [params]
+        self.params = params
+
+        # Assemble call
+        self.call_args = self.runner+self.params
+
+    if sys.platform == 'win32':
+        def _run_cmd(self):
+            # On Windows, use os.system instead of subprocess.call, because I
+            # was having problems with subprocess and I just don't know enough
+            # about win32 to debug this reliably.  Os.system may be the 'old
+            # fashioned' way to do it, but it works just fine.  If someone
+            # later can clean this up that's fine, as long as the tests run
+            # reliably in win32.
+            return os.system(' '.join(self.call_args))
+    else:
+        def _run_cmd(self):
+            return subprocess.call(self.call_args)
+        
+    def run(self):
+        """Run the stored commands"""
+        try:
+            return self._run_cmd()
+        except:
+            import traceback
+            traceback.print_exc()
+            return 1  # signal failure
+
+
+def make_runners():
+    """Define the top-level packages that need to be tested.
+    """
+
+    nose_packages = ['config', 'core', 'extensions', 'frontend', 'lib',
+                     'scripts', 'testing', 'utils']
+    trial_packages = ['kernel']
+    #trial_packages = []  # dbg 
+
+    if have_wx:
+        nose_packages.append('gui')
+
+    nose_packages = ['IPython.%s' % m for m in nose_packages ]
+    trial_packages = ['IPython.%s' % m for m in trial_packages ]
+
+    # Make runners, most with nose
+    nose_testers = [IPTester(params=v) for v in nose_packages]
+    runners = dict(zip(nose_packages, nose_testers))
+    # And add twisted ones if conditions are met
+    if have_zi and have_twisted and have_foolscap:
+        trial_testers = [IPTester('trial',params=v) for v in trial_packages]
+        runners.update(dict(zip(trial_packages,trial_testers)))
+                                 
+    return runners
+
+
 def run_iptest():
     """Run the IPython test suite using nose.
     
@@ -194,81 +278,6 @@ def run_iptest():
     TestProgram(argv=argv,plugins=plugins)
 
 
-class IPTester(object):
-    """Call that calls iptest or trial in a subprocess.
-    """
-    def __init__(self,runner='iptest',params=None):
-        """ """
-        if runner == 'iptest':
-            self.runner = ['iptest','-v']
-        else:
-            self.runner = [find_cmd('trial')]
-        if params is None:
-            params = []
-        if isinstance(params,str):
-            params = [params]
-        self.params = params
-
-        # Assemble call
-        self.call_args = self.runner+self.params
-
-    if sys.platform == 'win32':
-        def run(self):
-            """Run the stored commands"""
-            # On Windows, cd to temporary directory to run tests.  Otherwise,
-            # Twisted's trial may not be able to execute 'trial IPython', since
-            # it will confuse the IPython module name with the ipython
-            # execution scripts, because the windows file system isn't case
-            # sensitive.
-            # We also use os.system instead of subprocess.call, because I was
-            # having problems with subprocess and I just don't know enough
-            # about win32 to debug this reliably.  Os.system may be the 'old
-            # fashioned' way to do it, but it works just fine.  If someone
-            # later can clean this up that's fine, as long as the tests run
-            # reliably in win32.
-            curdir = os.getcwd()
-            os.chdir(tempfile.gettempdir())
-            stat = os.system(' '.join(self.call_args))
-            os.chdir(curdir)
-            return stat
-    else:
-        def run(self):
-            """Run the stored commands"""
-            try:
-                return subprocess.call(self.call_args)
-            except:
-                import traceback
-                traceback.print_exc()
-                return 1  # signal failure
-
-
-def make_runners():
-    """Define the top-level packages that need to be tested.
-    """
-
-    nose_packages = ['config', 'core', 'extensions',
-                     'frontend', 'lib',
-                     'scripts', 'testing', 'utils']
-    trial_packages = ['kernel']
-
-    if have_wx:
-        nose_packages.append('gui')
-
-    nose_packages = ['IPython.%s' % m for m in nose_packages ]
-    trial_packages = ['IPython.%s' % m for m in trial_packages ]
-
-    # Make runners
-    runners = dict()
-    
-    nose_runners = dict(zip(nose_packages, [IPTester(params=v) for v in nose_packages]))
-    if have_zi and have_twisted and have_foolscap:
-        trial_runners = dict(zip(trial_packages, [IPTester('trial',params=v) for v in trial_packages]))
-    runners.update(nose_runners)
-    runners.update(trial_runners)
-
-    return runners
-
-
 def run_iptestall():
     """Run the entire IPython test suite by calling nose and trial.
     
@@ -280,15 +289,26 @@ def run_iptestall():
 
     runners = make_runners()
 
+    # Run the test runners in a temporary dir so we can nuke it when finished
+    # to clean up any junk files left over by accident.  This also makes it
+    # robust against being run in non-writeable directories by mistake, as the
+    # temp dir will always be user-writeable.
+    curdir = os.getcwd()
+    testdir = tempfile.gettempdir()
+    os.chdir(testdir)
+
     # Run all test runners, tracking execution time
     failed = {}
     t_start = time.time()
-    for name,runner in runners.iteritems():
-        print '*'*77
-        print 'IPython test group:',name
-        res = runner.run()
-        if res:
-            failed[name] = res
+    try:
+        for name,runner in runners.iteritems():
+            print '*'*77
+            print 'IPython test group:',name
+            res = runner.run()
+            if res:
+                failed[name] = res
+    finally:
+        os.chdir(curdir)
     t_end = time.time()
     t_tests = t_end - t_start
     nrunners = len(runners)

@@ -9,7 +9,6 @@ functionnality is abstracted out of ipython0 in reusable functions and
 is added on the interpreter. This class can be a used to guide this
 refactoring.
 """
-__docformat__ = "restructuredtext en"
 
 #-------------------------------------------------------------------------------
 #  Copyright (C) 2008  The IPython Development Team
@@ -27,7 +26,7 @@ import os
 import re
 import __builtin__
 
-from IPython.core.ipmaker import make_IPython
+from IPython.core.ipapp import IPythonApp
 from IPython.kernel.core.redirector_output_trap import RedirectorOutputTrap
 
 from IPython.kernel.core.sync_traceback_trap import SyncTracebackTrap
@@ -36,6 +35,9 @@ from IPython.utils.genutils import Term
 
 from linefrontendbase import LineFrontEndBase, common_prefix
 
+#-----------------------------------------------------------------------------
+# Utility functions
+#-----------------------------------------------------------------------------
 
 def mk_system_call(system_call_function, command):
     """ given a os.system replacement, and a leading string command,
@@ -74,7 +76,7 @@ class PrefilterFrontEnd(LineFrontEndBase):
               Used as the instance's argv value.  If not given, [] is used.
         """
         if argv is None:
-            argv = []
+            argv = ['--no-banner']
         # This is a hack to avoid the IPython exception hook to trigger
         # on exceptions (https://bugs.launchpad.net/bugs/337105)
         # XXX: This is horrible: module-leve monkey patching -> side
@@ -101,12 +103,15 @@ class PrefilterFrontEnd(LineFrontEndBase):
                 return '\n'
             old_rawinput = __builtin__.raw_input
             __builtin__.raw_input = my_rawinput
-            # XXX: argv=[] is a bit bold.
-            ipython0 = make_IPython(argv=argv, 
-                                    user_ns=self.shell.user_ns,
-                                    user_global_ns=self.shell.user_global_ns)
+            ipython0 = IPythonApp(argv=argv, 
+                                  user_ns=self.shell.user_ns,
+                                  user_global_ns=self.shell.user_global_ns)
+            ipython0.initialize()
             __builtin__.raw_input = old_rawinput
-        self.ipython0 = ipython0
+        # XXX This will need to be updated as we refactor things, but for now,
+        # the .shell attribute of the ipythonapp instance conforms to the old
+        # api.
+        self.ipython0 = ipython0.shell
         # Set the pager:
         self.ipython0.set_hook('show_in_pager', 
                     lambda s, string: self.write("\n" + string))
@@ -202,8 +207,7 @@ class PrefilterFrontEnd(LineFrontEndBase):
         if completions:
             prefix = common_prefix(completions) 
             line = line[:-len(word)] + prefix
-        return line, completions 
- 
+        return line, completions
     
     #--------------------------------------------------------------------------
     # LineFrontEndBase interface 
@@ -220,23 +224,11 @@ class PrefilterFrontEnd(LineFrontEndBase):
         self.capture_output()
         self.last_result = dict(number=self.prompt_number)
         
-        ## try:
-        ##     for line in input_string.split('\n'):
-        ##         filtered_lines.append(
-        ##                 self.ipython0.prefilter(line, False).rstrip())
-        ## except:
-        ##     # XXX: probably not the right thing to do.
-        ##     self.ipython0.showsyntaxerror()
-        ##     self.after_execute()
-        ## finally:
-        ##     self.release_output()
-
-
         try:
             try:
                 for line in input_string.split('\n'):
-                    filtered_lines.append(
-                            self.ipython0.prefilter(line, False).rstrip())
+                    pf = self.ipython0.prefilter_manager.prefilter_lines
+                    filtered_lines.append(pf(line, False).rstrip())
             except:
                 # XXX: probably not the right thing to do.
                 self.ipython0.showsyntaxerror()
@@ -244,12 +236,9 @@ class PrefilterFrontEnd(LineFrontEndBase):
         finally:
             self.release_output()
 
-
-
         # Clean up the trailing whitespace, to avoid indentation errors
         filtered_string = '\n'.join(filtered_lines)
         return filtered_string
-
 
     #--------------------------------------------------------------------------
     # PrefilterFrontEnd interface 
@@ -261,12 +250,10 @@ class PrefilterFrontEnd(LineFrontEndBase):
         """
         return os.system(command_string)
 
-
     def do_exit(self):
         """ Exit the shell, cleanup and save the history.
         """
         self.ipython0.atexit_operations()
-
 
     def _get_completion_text(self, line):
         """ Returns the text to be completed by breaking the line at specified
@@ -281,4 +268,3 @@ class PrefilterFrontEnd(LineFrontEndBase):
         complete_sep = re.compile(expression)
         text = complete_sep.split(line)[-1]
         return text
-
