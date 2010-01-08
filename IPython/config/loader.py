@@ -274,8 +274,8 @@ class CommandLineConfigLoader(ConfigLoader):
     """
 
 
-class NoConfigDefault(object): pass
-NoConfigDefault = NoConfigDefault()
+class __NoConfigDefault(object): pass
+NoConfigDefault = __NoConfigDefault()
 
 
 class ArgParseConfigLoader(CommandLineConfigLoader):

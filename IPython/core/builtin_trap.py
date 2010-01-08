@@ -31,8 +31,8 @@ from IPython.utils.autoattr import auto_attr
 #-----------------------------------------------------------------------------
 
 
-class BuiltinUndefined(object): pass
-BuiltinUndefined = BuiltinUndefined()
+class __BuiltinUndefined(object): pass
+BuiltinUndefined = __BuiltinUndefined()
 
 
 class BuiltinTrap(Component):

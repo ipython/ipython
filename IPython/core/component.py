@@ -157,7 +157,7 @@ def masquerade_as(instance, cls):
     cls.register_instance(instance)
 
 
-class ComponentNameGenerator(object):
+class __ComponentNameGenerator(object):
     """A Singleton to generate unique component names."""
 
     def __init__(self, prefix):
@@ -170,7 +170,7 @@ class ComponentNameGenerator(object):
         return "%s%s" % (self.prefix, count)
 
 
-ComponentNameGenerator = ComponentNameGenerator('ipython.component')
+ComponentNameGenerator = __ComponentNameGenerator('ipython.component')
 
 
 class MetaComponent(MetaHasTraitlets, MetaComponentTracker):
