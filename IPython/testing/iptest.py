@@ -228,9 +228,8 @@ class IPTester(object):
             except OSError:
                 # This is just a best effort, if we fail or the process was
                 # really gone, ignore it.
-                pass
-            
-        
+                pass     
+
 
 def make_runners():
     """Define the top-level packages that need to be tested.

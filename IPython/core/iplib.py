@@ -382,6 +382,7 @@ class InteractiveShell(Component, Magic):
         self.hooks.late_startup_hook()
 
     def get_ipython(self):
+        """Return the currently running IPython instance."""
         return self
 
     #-------------------------------------------------------------------------

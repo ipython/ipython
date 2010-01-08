@@ -130,7 +130,7 @@ class PrefilterFrontEnd(LineFrontEndBase):
 
 
         if not 'banner' in kwargs and self.banner is None:
-            self.banner = self.ipython0.BANNER
+            self.banner = self.ipython0.banner
 
         # FIXME: __init__ and start should be two different steps
         self.start()

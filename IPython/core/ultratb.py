@@ -263,7 +263,7 @@ def _fixed_getinnerframes(etb, context=1,tb_offset=0):
 
 _parser = PyColorize.Parser()
     
-def _formatTracebackLines(lnum, index, lines, Colors, lvals=None,scheme=None):
+def _format_traceback_lines(lnum, index, lines, Colors, lvals=None,scheme=None):
     numbers_width = INDENT_SIZE - 1
     res = []
     i = lnum - index
@@ -781,8 +781,8 @@ class VerboseTB(TBTools):
                 frames.append(level)
             else:
                 frames.append('%s%s' % (level,''.join(
-                    _formatTracebackLines(lnum,index,lines,Colors,lvals,
-                                          col_scheme))))
+                    _format_traceback_lines(lnum,index,lines,Colors,lvals,
+                                            col_scheme))))
 
         # Get (safely) a string form of the exception info
         try:

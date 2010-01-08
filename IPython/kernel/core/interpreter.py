@@ -211,7 +211,7 @@ class Interpreter(object):
 
     #### Public 'Interpreter' interface ########################################
 
-    def formatTraceback(self, et, ev, tb, message=''):
+    def format_traceback(self, et, ev, tb, message=''):
         """Put a formatted version of the traceback into value and reraise.
         
         When exceptions have to be sent over the network, the traceback 
@@ -375,7 +375,6 @@ class Interpreter(object):
             exec code in self.user_ns
             outflag = 0
         except SystemExit:
-            self.resetbuffer()
             self.traceback_trap.args = sys.exc_info()
         except:
             self.traceback_trap.args = sys.exc_info()
@@ -395,7 +394,7 @@ class Interpreter(object):
             python = self.translator(python)
         self.execute_python(python)
 
-    def getCommand(self, i=None):
+    def get_command(self, i=None):
         """Gets the ith message in the message_cache.
         
         This is implemented here for compatibility with the old ipython1 shell
