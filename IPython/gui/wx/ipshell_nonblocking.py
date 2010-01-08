@@ -23,13 +23,9 @@ import os
 import locale
 from thread_ex import ThreadEx
 
-try:
-    import IPython
-    from IPython.utils import genutils
-    from IPython.core import iplib
-except Exception,e:
-    print "Error importing IPython (%s)" % str(e)
-    raise Exception, e
+import IPython
+from IPython.core import iplib, ipapp
+from IPython.utils import genutils
 
 ##############################################################################
 class _Helper(object):
@@ -155,12 +151,17 @@ class NonBlockingIPShell(object):
 
         #Hack to save sys.displayhook, because ipython seems to overwrite it...
         self.sys_displayhook_ori = sys.displayhook
+
+        ipython0 = ipapp.IPythonApp(argv,user_ns=user_ns,
+                                    user_global_ns=user_global_ns)
+        ipython0.initialize()
+        self._IP = ipython0.shell
         
-        self._IP = IPython.shell.make_IPython(
-                                    argv,user_ns=user_ns,
-                                    user_global_ns=user_global_ns,
-                                    embedded=True,
-                                    shell_class=IPython.shell.InteractiveShell)
+        ## self._IP = IPython.shell.make_IPython(
+        ##                             argv,user_ns=user_ns,
+        ##                             user_global_ns=user_global_ns,
+        ##                             embedded=True,
+        ##                             shell_class=IPython.shell.InteractiveShell)
 
         #we save ipython0 displayhook and we restore sys.displayhook
         self.displayhook = sys.displayhook
@@ -273,7 +274,7 @@ class NonBlockingIPShell(object):
         @return: The banner string.
         @rtype: string
         """
-        return self._IP.BANNER
+        return self._IP.banner
     
     def get_prompt_count(self):
         """
@@ -470,7 +471,7 @@ class NonBlockingIPShell(object):
         '''
 
         orig_stdout = sys.stdout
-        sys.stdout = IPython.shell.Term.cout
+        sys.stdout = genutils.Term.cout
         #self.sys_displayhook_ori = sys.displayhook
         #sys.displayhook = self.displayhook
         
