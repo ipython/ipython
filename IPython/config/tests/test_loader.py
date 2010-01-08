@@ -66,15 +66,13 @@ class TestArgParseCL(TestCase):
 
     def test_basic(self):
 
-        class MyLoader(ArgParseConfigLoader):
-            arguments = (
+        arguments = (
                 (('-f','--foo'), dict(dest='Global.foo', type=str)),
                 (('-b',), dict(dest='MyClass.bar', type=int)),
                 (('-n',), dict(dest='n', action='store_true')),
                 (('Global.bam',), dict(type=str))
             )
-
-        cl = MyLoader()
+        cl = ArgParseConfigLoader(arguments=arguments)
         config = cl.load_config('-f hi -b 10 -n wow'.split())
         self.assertEquals(config.Global.foo, 'hi')
         self.assertEquals(config.MyClass.bar, 10)

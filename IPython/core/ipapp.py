@@ -28,6 +28,7 @@ import logging
 import os
 import sys
 
+from IPython.core import crashhandler
 from IPython.core import release
 from IPython.core.application import Application, BaseAppArgParseConfigLoader
 from IPython.core.error import UsageError
@@ -280,19 +281,18 @@ cl_args = (
 )
 
 
-class IPythonAppCLConfigLoader(BaseAppArgParseConfigLoader):
-
-    arguments = cl_args
-
-
 default_config_file_name = u'ipython_config.py'
-
 
 class IPythonApp(Application):
     name = u'ipython'
     description = 'IPython: an enhanced interactive Python shell.'
     config_file_name = default_config_file_name
 
+    cl_arguments = Application.cl_arguments + cl_args
+
+    # Private and configuration attributes
+    _CrashHandler = crashhandler.IPythonCrashHandler
+    
     def __init__(self, argv=None, **shell_params):
         """Create a new IPythonApp.
 
@@ -308,6 +308,7 @@ class IPythonApp(Application):
         """
         super(IPythonApp, self).__init__(argv)
         self.shell_params = shell_params
+
 
     def create_default_config(self):
         super(IPythonApp, self).create_default_config()
@@ -339,13 +340,6 @@ class IPythonApp(Application):
         Global.q4thread = False
         Global.wthread = False
         Global.gthread = False
-
-    def create_command_line_config(self):
-        """Create and return a command line config loader."""
-        return IPythonAppCLConfigLoader(self.argv,
-            description=self.description, 
-            version=release.version
-        )
 
     def load_file_config(self):
         if hasattr(self.command_line_config.Global, 'quick'):

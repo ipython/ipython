@@ -1167,36 +1167,13 @@ class InteractiveShell(Component, Magic):
                                                      color_scheme='NoColor',
                                                      tb_offset = 1)
 
-        # IPython itself shouldn't crash. This will produce a detailed
-        # post-mortem if it does.  But we only install the crash handler for
-        # non-threaded shells, the threaded ones use a normal verbose reporter
-        # and lose the crash handler.  This is because exceptions in the main
-        # thread (such as in GUI code) propagate directly to sys.excepthook,
-        # and there's no point in printing crash dumps for every user exception.
-        if self.isthreaded:
-            ipCrashHandler = ultratb.FormattedTB()
-        else:
-            from IPython.core import crashhandler
-            ipCrashHandler = crashhandler.IPythonCrashHandler(self)
-        self.set_crash_handler(ipCrashHandler)
+        # The instance will store a pointer to the system-wide exception hook,
+        # so that runtime code (such as magics) can access it.  This is because
+        # during the read-eval loop, it may get temporarily overwritten.
+        self.sys_excepthook = sys.excepthook
 
         # and add any custom exception handlers the user may have specified
         self.set_custom_exc(*custom_exceptions)
-
-    def set_crash_handler(self, crashHandler):
-        """Set the IPython crash handler.
-
-        This must be a callable with a signature suitable for use as
-        sys.excepthook."""
-
-        # Install the given crash handler as the Python exception hook
-        sys.excepthook = crashHandler
-        
-        # The instance will store a pointer to this, so that runtime code
-        # (such as magics) can access it.  This is because during the
-        # read-eval loop, it gets temporarily overwritten (to deal with GUI
-        # frameworks).
-        self.sys_excepthook = sys.excepthook
 
     def set_custom_exc(self,exc_tuple,handler):
         """set_custom_exc(exc_tuple,handler)
@@ -1880,7 +1857,7 @@ class InteractiveShell(Component, Magic):
                 if (self.SyntaxTB.last_syntax_error and
                     self.autoedit_syntax):
                     self.edit_syntax_error()
-            
+
         # We are off again...
         __builtin__.__dict__['__IPYTHON__active'] -= 1
 

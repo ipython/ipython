@@ -77,12 +77,6 @@ class PrefilterFrontEnd(LineFrontEndBase):
         """
         if argv is None:
             argv = ['--no-banner']
-        # This is a hack to avoid the IPython exception hook to trigger
-        # on exceptions (https://bugs.launchpad.net/bugs/337105)
-        # XXX: This is horrible: module-leve monkey patching -> side
-        # effects.
-        from IPython.core import iplib
-        iplib.InteractiveShell.isthreaded = True
 
         LineFrontEndBase.__init__(self, *args, **kwargs)
         self.shell.output_trap = RedirectorOutputTrap(

@@ -298,14 +298,12 @@ NoConfigDefault = NoConfigDefault()
 
 class ArgParseConfigLoader(CommandLineConfigLoader):
     
-    # arguments = [(('-f','--file'),dict(type=str,dest='file'))]
-    arguments = ()
-
-    def __init__(self, argv=None, *args, **kw):
+    def __init__(self, argv=None, arguments=(), *args, **kw):
         """Create a config loader for use with argparse.
 
-        With the exception of argv, other args and kwargs arguments here are
-        passed onto the constructor of :class:`argparse.ArgumentParser`.
+        With the exception of ``argv`` and ``arguments``, other args and kwargs
+        arguments here are passed onto the constructor of
+        :class:`argparse.ArgumentParser`.
 
         Parameters
         ----------
@@ -313,11 +311,16 @@ class ArgParseConfigLoader(CommandLineConfigLoader):
         argv : optional, list
           If given, used to read command-line arguments from, otherwise
           sys.argv[1:] is used.
+
+        arguments : optional, tuple
+          Description of valid command-line arguments, to be called in sequence
+          with parser.add_argument() to configure the parser.
         """
         super(CommandLineConfigLoader, self).__init__()
         if argv == None:
             argv = sys.argv[1:]
         self.argv = argv
+        self.arguments = arguments
         self.args = args
         self.kw = kw
 

@@ -33,7 +33,7 @@ import logging
 import os
 import sys
 
-from IPython.core import release
+from IPython.core import release, crashhandler
 from IPython.utils.genutils import get_ipython_dir, get_ipython_package_dir
 from IPython.config.loader import (
     PyFileConfigLoader,
@@ -77,6 +77,29 @@ class ApplicationError(Exception):
     pass
 
 
+app_cl_args = (
+        (('--ipython-dir', ), dict(
+            dest='Global.ipython_dir',type=unicode,
+            help='Set to override default location of Global.ipython_dir.',
+            default=NoConfigDefault,
+            metavar='Global.ipython_dir') ),
+        (('-p', '--profile',), dict(
+            dest='Global.profile',type=unicode,
+            help='The string name of the ipython profile to be used.',
+            default=NoConfigDefault,
+            metavar='Global.profile') ),
+        (('--log-level',), dict(
+            dest="Global.log_level",type=int,
+            help='Set the log level (0,10,20,30,40,50).  Default is 30.',
+            default=NoConfigDefault,
+            metavar='Global.log_level')),
+        (('--config-file',), dict(
+            dest='Global.config_file',type=unicode,
+            help='Set the config file name to override default.',
+            default=NoConfigDefault,
+            metavar='Global.config_file')),
+    )
+
 class Application(object):
     """Load a config, construct components and set them running."""
 
@@ -94,10 +117,16 @@ class Application(object):
     ipython_dir = None
     #: A reference to the argv to be used (typically ends up being sys.argv[1:])
     argv = None
+    #: Default command line arguments.  Subclasses should create a new tuple
+    #: that *includes* these.
+    cl_arguments = app_cl_args
 
     # Private attributes
     _exiting = False
     _initialized = False
+
+    # Class choices for things that will be instantiated at runtime.
+    _CrashHandler = crashhandler.CrashHandler
 
     def __init__(self, argv=None):
         self.argv = sys.argv[1:] if argv is None else argv
@@ -125,38 +154,48 @@ class Application(object):
         
         if self._initialized:
             return
-        
-        self.attempt(self.create_default_config)
+
+        # The first part is protected with an 'attempt' wrapper, that will log
+        # failures with the basic system traceback machinery.  Once our crash
+        # handler is in place, we can let any subsequent exception propagate,
+        # as our handler will log it with much better detail than the default.
+        self.attempt(self.create_crash_handler)
+        self.create_default_config()
         self.log_default_config()
         self.set_default_config_log_level()
-        self.attempt(self.pre_load_command_line_config)
-        self.attempt(self.load_command_line_config, action='abort')
+        self.pre_load_command_line_config()
+        self.load_command_line_config()
         self.set_command_line_config_log_level()
-        self.attempt(self.post_load_command_line_config)
+        self.post_load_command_line_config()
         self.log_command_line_config()
-        self.attempt(self.find_ipython_dir)
-        self.attempt(self.find_resources)
-        self.attempt(self.find_config_file_name)
-        self.attempt(self.find_config_file_paths)
-        self.attempt(self.pre_load_file_config)
-        self.attempt(self.load_file_config)
+        self.find_ipython_dir()
+        self.find_resources()
+        self.find_config_file_name()
+        self.find_config_file_paths()
+        self.pre_load_file_config()
+        self.load_file_config()
         self.set_file_config_log_level()
-        self.attempt(self.post_load_file_config)
+        self.post_load_file_config()
         self.log_file_config()
-        self.attempt(self.merge_configs)
+        self.merge_configs()
         self.log_master_config()
-        self.attempt(self.pre_construct)
-        self.attempt(self.construct)
-        self.attempt(self.post_construct)
+        self.pre_construct()
+        self.construct()
+        self.post_construct()
         self._initialized = True
 
     def start(self):
         self.initialize()
-        self.attempt(self.start_app)
+        self.start_app()
 
     #-------------------------------------------------------------------------
     # Various stages of Application creation
     #-------------------------------------------------------------------------
+
+    def create_crash_handler(self):
+        """Create a crash handler, typically setting sys.excepthook to it."""
+        self.crash_handler = self._CrashHandler(self, self.name)
+        sys.excepthook = self.crash_handler
 
     def create_default_config(self):
         """Create defaults that can't be set elsewhere.
@@ -185,10 +224,9 @@ class Application(object):
 
     def create_command_line_config(self):
         """Create and return a command line config loader."""
-        return BaseAppArgParseConfigLoader(self.argv,
-            description=self.description, 
-            version=release.version
-        )
+        return ArgParseConfigLoader(self.argv, self.cl_arguments,
+                                    description=self.description, 
+                                    version=release.version)
 
     def pre_load_command_line_config(self):
         """Do actions just before loading the command line config."""
@@ -384,7 +422,10 @@ class Application(object):
             raise
         except:
             if action == 'abort':
+                self.log.critical("Aborting application: %s" % self.name,
+                                  exc_info=True)
                 self.abort()
+                raise
             elif action == 'exit':
                 self.exit(0)
 

@@ -28,10 +28,8 @@ from IPython.core import release
 from IPython.core import ultratb
 from IPython.external.Itpl import itpl
 
-from IPython.utils.genutils import *
-
 #****************************************************************************
-class CrashHandler:
+class CrashHandler(object):
     """Customizable crash handlers for IPython-based systems.
 
     Instances of this class provide a __call__ method which can be used as a
@@ -41,15 +39,15 @@ class CrashHandler:
 
     """
 
-    def __init__(self,IP,app_name,contact_name,contact_email,
-                 bug_tracker,crash_report_fname,
+    def __init__(self,app, app_name, contact_name=None, contact_email=None, 
+                 bug_tracker=None, crash_report_fname='CrashReport.txt', 
                  show_crash_traceback=True):
         """New crash handler.
 
         Inputs:
 
-        - IP: a running IPython instance, which will be queried at crash time
-        for internal information.
+        - app: a running application instance, which will be queried at crash
+        time for internal information.
 
         - app_name: a string containing the name of your application.
 
@@ -77,13 +75,14 @@ class CrashHandler:
         """
 
         # apply args into instance
-        self.IP = IP  # IPython instance
+        self.app = app
         self.app_name = app_name
         self.contact_name = contact_name
         self.contact_email = contact_email
         self.bug_tracker = bug_tracker
         self.crash_report_fname = crash_report_fname
         self.show_crash_traceback = show_crash_traceback
+        self.section_sep = '\n\n'+'*'*75+'\n\n'
         
         # Hardcoded defaults, which can be overridden either by subclasses or
         # at runtime for the instance.
@@ -124,7 +123,7 @@ $self.bug_tracker
         #color_scheme = 'Linux'   # dbg
         
         try:
-            rptdir = self.IP.ipython_dir
+            rptdir = self.app.ipython_dir
         except:
             rptdir = os.getcwd()
         if not os.path.isdir(rptdir):
@@ -134,7 +133,7 @@ $self.bug_tracker
         # properly expanded out in the user message template
         self.crash_report_fname = report_name
         TBhandler = ultratb.VerboseTB(color_scheme=color_scheme,
-                                           long_header=1)
+                                      long_header=1)
         traceback = TBhandler.text(etype,evalue,etb,context=31)
 
         # print traceback to screen
@@ -159,70 +158,62 @@ $self.bug_tracker
 
     def make_report(self,traceback):
         """Return a string containing a crash report."""
-
-        sec_sep = '\n\n'+'*'*75+'\n\n'
-
+        import platform
+        
+        sec_sep = self.section_sep
+        
         report = []
         rpt_add = report.append
         
         rpt_add('*'*75+'\n\n'+'IPython post-mortem report\n\n')
-        rpt_add('IPython version: %s \n\n' % release.version)
-        rpt_add('BZR revision   : %s \n\n' % release.revision)
-        rpt_add('Platform info  : os.name -> %s, sys.platform -> %s' %
+        rpt_add('IPython version: %s \n' % release.version)
+        rpt_add('BZR revision   : %s \n' % release.revision)
+        rpt_add('Platform info  : os.name -> %s, sys.platform -> %s\n' %
                      (os.name,sys.platform) )
-        rpt_add(sec_sep+'Current user configuration structure:\n\n')
-        rpt_add(pformat(self.IP.dict()))
-        rpt_add(sec_sep+'Crash traceback:\n\n' + traceback)
+        rpt_add('               : %s\n' % platform.platform())
+        rpt_add('Python info    : %s\n' % sys.version)	     
+
         try:
-            rpt_add(sec_sep+"History of session input:")
-            for line in self.IP.user_ns['_ih']:
-                rpt_add(line)
-            rpt_add('\n*** Last line of input (may not be in above history):\n')
-            rpt_add(self.IP._last_input_line+'\n')
+            config = pformat(self.app.config)
+            rpt_add(sec_sep+'Current user configuration structure:\n\n')
+            rpt_add(config)
         except:
             pass
+        rpt_add(sec_sep+'Crash traceback:\n\n' + traceback)
 
         return ''.join(report)
+
 
 class IPythonCrashHandler(CrashHandler):
     """sys.excepthook for IPython itself, leaves a detailed report on disk."""
     
-    def __init__(self,IP):
+    def __init__(self, app, app_name='IPython'):
 
         # Set here which of the IPython authors should be listed as contact
         AUTHOR_CONTACT = 'Fernando'
         
         # Set argument defaults
-        app_name = 'IPython'
         bug_tracker = 'https://bugs.launchpad.net/ipython/+filebug'
         contact_name,contact_email = release.authors[AUTHOR_CONTACT][:2]
         crash_report_fname = 'IPython_crash_report.txt'
         # Call parent constructor
-        CrashHandler.__init__(self,IP,app_name,contact_name,contact_email,
+        CrashHandler.__init__(self,app,app_name,contact_name,contact_email,
                               bug_tracker,crash_report_fname)
 
     def make_report(self,traceback):
         """Return a string containing a crash report."""
 
-        sec_sep = '\n\n'+'*'*75+'\n\n'
-
-        report = []
+        sec_sep = self.section_sep
+        # Start with parent report
+        report = [super(IPythonCrashHandler, self).make_report(traceback)]
+        # Add interactive-specific info we may have
         rpt_add = report.append
-        
-        rpt_add('*'*75+'\n\n'+'IPython post-mortem report\n\n')
-        rpt_add('IPython version: %s \n\n' % release.version)
-        rpt_add('BZR revision   : %s \n\n' % release.revision)
-        rpt_add('Platform info  : os.name -> %s, sys.platform -> %s' %
-                     (os.name,sys.platform) )
-        rpt_add(sec_sep+'Current user configuration structure:\n\n')
-        # rpt_add(pformat(self.IP.dict()))
-        rpt_add(sec_sep+'Crash traceback:\n\n' + traceback)
         try:
             rpt_add(sec_sep+"History of session input:")
-            for line in self.IP.user_ns['_ih']:
+            for line in self.app.shell.user_ns['_ih']:
                 rpt_add(line)
             rpt_add('\n*** Last line of input (may not be in above history):\n')
-            rpt_add(self.IP._last_input_line+'\n')
+            rpt_add(self.app.shell._last_input_line+'\n')
         except:
             pass
 
