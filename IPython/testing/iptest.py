@@ -22,6 +22,7 @@ will change in the future.
 
 import os
 import os.path as path
+import signal
 import sys
 import subprocess
 import tempfile
@@ -148,8 +149,17 @@ def make_exclude():
 class IPTester(object):
     """Call that calls iptest or trial in a subprocess.
     """
+    #: string, name of test runner that will be called
+    runner = None
+    #: list, parameters for test runner
+    params = None
+    #: list, arguments of system call to be made to call test runner
+    call_args = None
+    #: list, process ids of subprocesses we start (for cleanup)
+    pids = None
+    
     def __init__(self,runner='iptest',params=None):
-        """ """
+        """Create new test runner."""
         if runner == 'iptest':
             # Find our own 'iptest' script OS-level entry point
             try:
@@ -172,6 +182,10 @@ class IPTester(object):
         # Assemble call
         self.call_args = self.runner+self.params
 
+        # Store pids of anything we start to clean up on deletion, if possible
+        # (on posix only, since win32 has no os.kill)
+        self.pids = []
+
     if sys.platform == 'win32':
         def _run_cmd(self):
             # On Windows, use os.system instead of subprocess.call, because I
@@ -183,7 +197,14 @@ class IPTester(object):
             return os.system(' '.join(self.call_args))
     else:
         def _run_cmd(self):
-            return subprocess.call(self.call_args)
+            subp = subprocess.Popen(self.call_args)
+            self.pids.append(subp.pid)
+            # If this fails, the pid will be left in self.pids and cleaned up
+            # later, but if the wait call succeeds, then we can clear the
+            # stored pid.
+            retcode = subp.wait()
+            self.pids.pop()
+            return retcode
         
     def run(self):
         """Run the stored commands"""
@@ -194,6 +215,22 @@ class IPTester(object):
             traceback.print_exc()
             return 1  # signal failure
 
+    def __del__(self):
+        """Cleanup on exit by killing any leftover processes."""
+
+        if not hasattr(os, 'kill'):
+            return
+        
+        for pid in self.pids:
+            try:
+                print 'Cleaning stale PID:', pid
+                os.kill(pid, signal.SIGKILL)
+            except OSError:
+                # This is just a best effort, if we fail or the process was
+                # really gone, ignore it.
+                pass
+            
+        
 
 def make_runners():
     """Define the top-level packages that need to be tested.
