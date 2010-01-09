@@ -11,7 +11,6 @@ from cStringIO import StringIO
 
 import nose.tools as nt
 
-#from IPython.core.iplib import get_ipython
 from IPython.utils.platutils import find_cmd, get_long_path_name
 from IPython.testing import decorators as dec
 from IPython.testing import tools as tt
@@ -270,6 +269,7 @@ class TestMagicRun(object):
             pass
 
 # Multiple tests for clipboard pasting
+@dec.parametric
 def test_paste():
     _ip = get_ipython()
     def paste(txt, flags='-q'):
@@ -291,11 +291,11 @@ def test_paste():
         # Run tests with fake clipboard function
         user_ns.pop('x', None)
         paste('x=1')
-        yield (nt.assert_equal, user_ns['x'], 1)
+        yield nt.assert_equal(user_ns['x'], 1)
 
         user_ns.pop('x', None)
         paste('>>> x=2')
-        yield (nt.assert_equal, user_ns['x'], 2)
+        yield nt.assert_equal(user_ns['x'], 2)
 
         paste("""
         >>> x = [1,2,3]
@@ -304,14 +304,14 @@ def test_paste():
         ...     y.append(i**2)
         ...
         """)
-        yield (nt.assert_equal, user_ns['x'], [1,2,3])
-        yield (nt.assert_equal, user_ns['y'], [1,4,9])
+        yield nt.assert_equal(user_ns['x'], [1,2,3])
+        yield nt.assert_equal(user_ns['y'], [1,4,9])
 
         # Now, test that paste -r works
         user_ns.pop('x', None)
-        yield (nt.assert_false, 'x' in user_ns)
+        yield nt.assert_false('x' in user_ns)
         _ip.magic('paste -r')
-        yield (nt.assert_equal, user_ns['x'], [1,2,3])
+        yield nt.assert_equal(user_ns['x'], [1,2,3])
 
         # Also test paste echoing, by temporarily faking the writer
         w = StringIO()
@@ -325,12 +325,23 @@ def test_paste():
             out = w.getvalue()
         finally:
             _ip.write = writer
-        yield (nt.assert_equal, user_ns['a'], 100)
-        yield (nt.assert_equal, user_ns['b'], 200)
-        yield (nt.assert_equal, out, code+"\n## -- End pasted text --\n")
+        yield nt.assert_equal(user_ns['a'], 100)
+        yield nt.assert_equal(user_ns['b'], 200)
+        yield nt.assert_equal(out, code+"\n## -- End pasted text --\n")
         
     finally:
         # This should be in a finally clause, instead of the bare except above.
         # Restore original hook
         hooks.clipboard_get = original_clip
 
+
+def test_time():
+    _ip.magic('time None')
+
+
+def doctest_time():
+    """
+    In [10]: %time None
+    CPU times: user 0.00 s, sys: 0.00 s, total: 0.00 s
+    Wall time: 0.00 s
+    """

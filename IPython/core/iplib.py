@@ -2378,6 +2378,10 @@ class InteractiveShell(Component, Magic):
 
     def init_prefilter(self):
         self.prefilter_manager = PrefilterManager(self, config=self.config)
+        # Ultimately this will be refactored in the new interpreter code, but
+        # for now, we should expose the main prefilter method (there's legacy
+        # code out there that may rely on this).
+        self.prefilter = self.prefilter_manager.prefilter_lines
 
     #-------------------------------------------------------------------------
     # Utilities
