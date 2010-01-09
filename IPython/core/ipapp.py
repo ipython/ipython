@@ -30,7 +30,7 @@ import sys
 
 from IPython.core import crashhandler
 from IPython.core import release
-from IPython.core.application import Application, BaseAppArgParseConfigLoader
+from IPython.core.application import Application
 from IPython.core.error import UsageError
 from IPython.core.iplib import InteractiveShell
 from IPython.core.pylabtools import pylab_activate

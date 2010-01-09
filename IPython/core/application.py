@@ -46,33 +46,6 @@ from IPython.config.loader import (
 # Classes and functions
 #-----------------------------------------------------------------------------
 
-
-class BaseAppArgParseConfigLoader(ArgParseConfigLoader):
-    """Default command line options for IPython based applications."""
-
-    def _add_other_arguments(self):
-        self.parser.add_argument('--ipython-dir', 
-            dest='Global.ipython_dir',type=unicode,
-            help='Set to override default location of Global.ipython_dir.',
-            default=NoConfigDefault,
-            metavar='Global.ipython_dir')
-        self.parser.add_argument('-p', '--profile',
-            dest='Global.profile',type=unicode,
-            help='The string name of the ipython profile to be used.',
-            default=NoConfigDefault,
-            metavar='Global.profile')
-        self.parser.add_argument('--log-level',
-            dest="Global.log_level",type=int,
-            help='Set the log level (0,10,20,30,40,50).  Default is 30.',
-            default=NoConfigDefault,
-            metavar='Global.log_level')
-        self.parser.add_argument('--config-file',
-            dest='Global.config_file',type=unicode,
-            help='Set the config file name to override default.',
-            default=NoConfigDefault,
-            metavar='Global.config_file')
-
-
 class ApplicationError(Exception):
     pass
 
