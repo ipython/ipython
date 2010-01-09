@@ -16,8 +16,17 @@ function name, setup and teardown functions and so on - see
 import warnings
 import sys
 
-from numpy.testing.utils import \
-        WarningManager, WarningMessage
+# IPython changes: make this work if numpy not available
+# Original code:
+#from numpy.testing.utils import \
+#        WarningManager, WarningMessage
+# Our version:
+try:
+    from numpy.testing.utils import WarningManager, WarningMessage
+except ImportError:
+    from _numpy_testing_utils import WarningManager, WarningMessage
+    
+# End IPython changes
 
 def slow(t):
     """
