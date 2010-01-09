@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 """Wrapper to run setup.py using setuptools."""
 
+import os
 import sys
 
 # now, import setuptools and call the actual setup
@@ -9,4 +10,4 @@ execfile('setup.py')
 
 # clean up the junk left around by setuptools
 if "develop" not in sys.argv:
-    os.system('rm -rf ipython.egg-info build')
+    os.unlink('ipython.egg-info')
