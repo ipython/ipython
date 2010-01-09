@@ -395,7 +395,8 @@ def getoutput(cmd,verbose=0,debug=0,header='',split=0):
 
     if verbose or debug: print header+cmd
     if not debug:
-        output = os.popen(cmd).read()
+        pipe = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE).stdout
+        output = pipe.read()
         # stipping last \n is here for backwards compat.
         if output.endswith('\n'):
             output = output[:-1]
@@ -422,7 +423,13 @@ def getoutputerror(cmd,verbose=0,debug=0,header='',split=0):
         else:
             return '',''
     if not debug:
-        pin,pout,perr = os.popen3(cmd)
+        p = subprocess.Popen(cmd, shell=True,
+                             stdin=subprocess.PIPE,
+                             stdout=subprocess.PIPE,
+                             stderr=subprocess.PIPE,
+                             close_fds=True)
+        pin, pout, perr = (p.stdin, p.stdout, p.stderr)
+
         tout = pout.read().rstrip()
         terr = perr.read().rstrip()
         pin.close()
