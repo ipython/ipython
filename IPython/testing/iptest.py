@@ -16,6 +16,8 @@ For now, this script requires that both nose and twisted are installed.  This
 will change in the future.
 """
 
+from __future__ import absolute_import
+
 #-----------------------------------------------------------------------------
 # Module imports
 #-----------------------------------------------------------------------------
@@ -34,6 +36,8 @@ from nose.core import TestProgram
 
 from IPython.utils import genutils
 from IPython.utils.platutils import find_cmd, FindCmdError
+from . import globalipapp
+from .plugin.ipdoctest import IPythonDoctest
 
 pjoin = path.join
 
@@ -76,7 +80,11 @@ def make_exclude():
     # cause testing problems.  We should strive to minimize the number of
     # skipped modules, since this means untested code.  As the testing
     # machinery solidifies, this list should eventually become empty.
-    EXCLUDE = [pjoin('IPython', 'external'),
+
+    # Note that these exclusions only mean that the docstrings are not analyzed
+    # for examples to be run as tests, if there are other test functions in
+    # those modules, they do get run.
+    exclusions = [pjoin('IPython', 'external'),
                pjoin('IPython', 'frontend', 'process', 'winprocess.py'),
                pjoin('IPython_doctest_plugin'),
                pjoin('IPython', 'quarantine'),
@@ -88,58 +96,58 @@ def make_exclude():
                ]
 
     if not have_wx:
-        EXCLUDE.append(pjoin('IPython', 'gui'))
-        EXCLUDE.append(pjoin('IPython', 'frontend', 'wx'))
-        EXCLUDE.append(pjoin('IPython', 'lib', 'inputhookwx'))
+        exclusions.append(pjoin('IPython', 'gui'))
+        exclusions.append(pjoin('IPython', 'frontend', 'wx'))
+        exclusions.append(pjoin('IPython', 'lib', 'inputhookwx'))
 
     if not have_gtk or not have_gobject:
-        EXCLUDE.append(pjoin('IPython', 'lib', 'inputhookgtk'))
+        exclusions.append(pjoin('IPython', 'lib', 'inputhookgtk'))
 
     if not have_wx_aui:
-        EXCLUDE.append(pjoin('IPython', 'gui', 'wx', 'wxIPython'))
+        exclusions.append(pjoin('IPython', 'gui', 'wx', 'wxIPython'))
 
     if not have_objc:
-        EXCLUDE.append(pjoin('IPython', 'frontend', 'cocoa'))
+        exclusions.append(pjoin('IPython', 'frontend', 'cocoa'))
 
     if not sys.platform == 'win32':
-        EXCLUDE.append(pjoin('IPython', 'utils', 'platutils_win32'))
+        exclusions.append(pjoin('IPython', 'utils', 'platutils_win32'))
 
     # These have to be skipped on win32 because the use echo, rm, cd, etc.
     # See ticket https://bugs.launchpad.net/bugs/366982
     if sys.platform == 'win32':
-        EXCLUDE.append(pjoin('IPython', 'testing', 'plugin', 'test_exampleip'))
-        EXCLUDE.append(pjoin('IPython', 'testing', 'plugin', 'dtexample'))
+        exclusions.append(pjoin('IPython', 'testing', 'plugin', 'test_exampleip'))
+        exclusions.append(pjoin('IPython', 'testing', 'plugin', 'dtexample'))
 
     if not os.name == 'posix':
-        EXCLUDE.append(pjoin('IPython', 'utils', 'platutils_posix'))
+        exclusions.append(pjoin('IPython', 'utils', 'platutils_posix'))
 
     if not have_pexpect:
-        EXCLUDE.append(pjoin('IPython', 'scripts', 'irunner'))
+        exclusions.append(pjoin('IPython', 'scripts', 'irunner'))
 
     # This is scary.  We still have things in frontend and testing that
     # are being tested by nose that use twisted.  We need to rethink
     # how we are isolating dependencies in testing.
     if not (have_twisted and have_zi and have_foolscap):
-        EXCLUDE.append(pjoin('IPython', 'frontend', 'asyncfrontendbase'))
-        EXCLUDE.append(pjoin('IPython', 'frontend', 'prefilterfrontend'))
-        EXCLUDE.append(pjoin('IPython', 'frontend', 'frontendbase'))
-        EXCLUDE.append(pjoin('IPython', 'frontend', 'linefrontendbase'))
-        EXCLUDE.append(pjoin('IPython', 'frontend', 'tests',
+        exclusions.append(pjoin('IPython', 'frontend', 'asyncfrontendbase'))
+        exclusions.append(pjoin('IPython', 'frontend', 'prefilterfrontend'))
+        exclusions.append(pjoin('IPython', 'frontend', 'frontendbase'))
+        exclusions.append(pjoin('IPython', 'frontend', 'linefrontendbase'))
+        exclusions.append(pjoin('IPython', 'frontend', 'tests',
                              'test_linefrontend'))
-        EXCLUDE.append(pjoin('IPython', 'frontend', 'tests', 
+        exclusions.append(pjoin('IPython', 'frontend', 'tests', 
                              'test_frontendbase'))
-        EXCLUDE.append(pjoin('IPython', 'frontend', 'tests',
+        exclusions.append(pjoin('IPython', 'frontend', 'tests',
                              'test_prefilterfrontend'))
-        EXCLUDE.append(pjoin('IPython', 'frontend', 'tests',
+        exclusions.append(pjoin('IPython', 'frontend', 'tests',
                              'test_asyncfrontendbase')),
-        EXCLUDE.append(pjoin('IPython', 'testing', 'parametric'))
-        EXCLUDE.append(pjoin('IPython', 'testing', 'util'))
+        exclusions.append(pjoin('IPython', 'testing', 'parametric'))
+        exclusions.append(pjoin('IPython', 'testing', 'util'))
 
     # This is needed for the reg-exp to match on win32 in the ipdoctest plugin.
     if sys.platform == 'win32':
-        EXCLUDE = [s.replace('\\','\\\\') for s in EXCLUDE]
+        exclusions = [s.replace('\\','\\\\') for s in exclusions]
 
-    return EXCLUDE
+    return exclusions
 
 
 #-----------------------------------------------------------------------------
@@ -163,16 +171,16 @@ class IPTester(object):
         if runner == 'iptest':
             # Find our own 'iptest' script OS-level entry point
             try:
-                iptest_path = find_cmd('iptest')
+                iptest_path = os.path.abspath(find_cmd('iptest'))
             except FindCmdError:
                 # Script not installed (may be the case for testing situations
                 # that are running from a source tree only), pull from internal
                 # path:
                 iptest_path = pjoin(genutils.get_ipython_package_dir(),
                                     'scripts','iptest')
-            self.runner = [iptest_path,'-v']
+            self.runner = ['python', iptest_path, '-v']
         else:
-            self.runner = [find_cmd('trial')]
+            self.runner = ['python', os.path.abspath(find_cmd('trial'))]
         if params is None:
             params = []
         if isinstance(params,str):
@@ -238,10 +246,12 @@ def make_runners():
     nose_packages = ['config', 'core', 'extensions', 'frontend', 'lib',
                      'scripts', 'testing', 'utils']
     trial_packages = ['kernel']
-    #trial_packages = []  # dbg 
 
     if have_wx:
         nose_packages.append('gui')
+
+    #nose_packages = ['core']  # dbg
+    #trial_packages = []  # dbg 
 
     nose_packages = ['IPython.%s' % m for m in nose_packages ]
     trial_packages = ['IPython.%s' % m for m in trial_packages ]
@@ -268,16 +278,15 @@ def run_iptest():
     warnings.filterwarnings('ignore', 
         'This will be removed soon.  Use IPython.testing.util instead')
 
-    argv = sys.argv + [ 
-                        # Loading ipdoctest causes problems with Twisted.
-                        # I am removing this as a temporary fix to get the 
-                        # test suite back into working shape.  Our nose
-                        # plugin needs to be gone through with a fine
-                        # toothed comb to find what is causing the problem.
-                        # '--with-ipdoctest',
-                        # '--ipdoctest-tests','--ipdoctest-extension=txt',
-                        # '--detailed-errors',
-                       
+    argv = sys.argv + [ '--detailed-errors',
+                        # Loading ipdoctest causes problems with Twisted, but
+                        # our test suite runner now separates things and runs
+                        # all Twisted tests with trial.
+                        '--with-ipdoctest',
+                        '--ipdoctest-tests','--ipdoctest-extension=txt',
+                        
+                        #'-x','-s',  # dbg
+                        
                         # We add --exe because of setuptools' imbecility (it
                         # blindly does chmod +x on ALL files).  Nose does the
                         # right thing and it tries to avoid executables,
@@ -300,17 +309,18 @@ def run_iptest():
     if not has_tests:
         argv.append('IPython')
 
-    # Construct list of plugins, omitting the existing doctest plugin, which
-    # ours replaces (and extends).
-    EXCLUDE = make_exclude()
-    plugins = []
-    # plugins = [IPythonDoctest(EXCLUDE)]
+    ## # Construct list of plugins, omitting the existing doctest plugin, which
+    ## # ours replaces (and extends).
+    plugins = [IPythonDoctest(make_exclude())]
     for p in nose.plugins.builtin.plugins:
         plug = p()
         if plug.name == 'doctest':
             continue
         plugins.append(plug)
 
+    # We need a global ipython running in this process
+    globalipapp.start_ipython()
+    # Now nose can run
     TestProgram(argv=argv,plugins=plugins)
 
 

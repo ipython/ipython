@@ -64,6 +64,9 @@ if sys.version[0]=='2':
 else:
     from _paramtestpy3 import parametric
 
+# Expose the unittest-driven decorators
+from ipunittest import ipdoctest, ipdocstring
+
 # Grab the numpy-specific decorators which we keep in a file that we
 # occasionally update from upstream: decorators.py is a copy of
 # numpy.testing.decorators, we expose all of it here.

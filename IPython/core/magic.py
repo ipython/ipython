@@ -3506,6 +3506,7 @@ Defaulting color scheme to 'NoColor'"""
         """Reload an IPython extension by its module name."""
         self.reload_extension(module_str)
 
+    @testdec.skip_doctest
     def magic_install_profiles(self, s):
         """Install the default IPython profiles into the .ipython dir.
 

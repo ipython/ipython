@@ -416,7 +416,7 @@ class PrefilterManager(Component):
         # print "prefiltered line: %r" % prefiltered
         return prefiltered
 
-    def prefilter_lines(self, lines, continue_prompt):
+    def prefilter_lines(self, lines, continue_prompt=False):
         """Prefilter multiple input lines of text.
 
         This is the main entry point for prefiltering multiple lines of

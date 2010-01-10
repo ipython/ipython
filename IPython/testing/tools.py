@@ -29,10 +29,11 @@ Authors
 import os
 import re
 import sys
+import tempfile
 
 import nose.tools as nt
 
-from IPython.utils import genutils
+from IPython.utils import genutils, platutils
 
 #-----------------------------------------------------------------------------
 # Globals
@@ -128,5 +129,93 @@ def parse_test_output(txt):
     # If the input didn't match any of these forms, assume no error/failures
     return 0, 0
 
+
 # So nose doesn't think this is a test
 parse_test_output.__test__ = False
+
+
+def temp_pyfile(src, ext='.py'):
+    """Make a temporary python file, return filename and filehandle.
+
+    Parameters
+    ----------
+    src : string or list of strings (no need for ending newlines if list)
+      Source code to be written to the file.
+
+    ext : optional, string
+      Extension for the generated file.
+
+    Returns
+    -------
+    (filename, open filehandle)
+      It is the caller's responsibility to close the open file and unlink it.
+    """
+    fname = tempfile.mkstemp(ext)[1]
+    f = open(fname,'w')
+    f.write(src)
+    f.flush()
+    return fname, f
+
+
+def default_argv():
+    """Return a valid default argv for creating testing instances of ipython"""
+
+    # Get the install directory for the user configuration and tell ipython to
+    # use the default profile from there.
+    from IPython.config import default
+    ipcdir = os.path.dirname(default.__file__)
+    ipconf = os.path.join(ipcdir,'ipython_config.py')
+    #print 'conf:',ipconf # dbg
+    return ['--colors=NoColor', '--no-term-title','--no-banner',
+            '--config-file=%s' % ipconf, '--autocall=0', '--quick']
+    
+
+def ipexec(fname):
+    """Utility to call 'ipython filename'.
+
+    Starts IPython witha minimal and safe configuration to make startup as fast
+    as possible.
+
+    Note that this starts IPython in a subprocess!
+
+    Parameters
+    ----------
+    fname : str
+      Name of file to be executed (should have .py or .ipy extension).
+
+    Returns
+    -------
+    (stdout, stderr) of ipython subprocess.
+    """  
+    _ip = get_ipython()
+    test_dir = os.path.dirname(__file__)
+    full_fname = os.path.join(test_dir, fname)
+    ipython_cmd = platutils.find_cmd('ipython')
+    cmdargs = ' '.join(default_argv())
+    return genutils.getoutputerror('%s %s' % (ipython_cmd, full_fname))
+
+
+def ipexec_validate(fname, expected_out, expected_err=None):
+    """Utility to call 'ipython filename' and validate output/error.
+
+    This function raises an AssertionError if the validation fails.
+
+    Note that this starts IPython in a subprocess!
+
+    Parameters
+    ----------
+    fname : str
+      Name of the file to be executed (should have .py or .ipy extension).
+
+    expected_out : str
+      Expected stdout of the process.
+
+    Returns
+    -------
+    None
+    """
+
+    out, err = ipexec(fname)
+    nt.assert_equals(out.strip(), expected_out.strip())
+    if expected_err:
+        nt.assert_equals(err.strip(), expected_err.strip())

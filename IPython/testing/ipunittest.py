@@ -22,6 +22,8 @@ Authors
 - Fernando Perez <Fernando.Perez@berkeley.edu>
 """
 
+from __future__ import absolute_import
+
 #-----------------------------------------------------------------------------
 #  Copyright (C) 2009  The IPython Development Team
 #
@@ -40,14 +42,16 @@ import sys
 import unittest
 from doctest import DocTestFinder, DocTestRunner, TestResults
 
-# Our own
-import nosepatch
+# Our own, a nose monkeypatch
+from . import nosepatch
 
 # We already have python3-compliant code for parametric tests
 if sys.version[0]=='2':
-    from _paramtestpy2 import ParametricTestCase
+    from ._paramtestpy2 import ParametricTestCase
 else:
-    from _paramtestpy3 import ParametricTestCase
+    from ._paramtestpy3 import ParametricTestCase
+
+from . import globalipapp
 
 #-----------------------------------------------------------------------------
 # Classes and functions
@@ -68,9 +72,13 @@ class IPython2PythonConverter(object):
     implementation, but for now it only does prompt convertion."""
     
     def __init__(self):
-        self.ps1 = re.compile(r'In\ \[\d+\]: ')
-        self.ps2 = re.compile(r'\ \ \ \.\.\.+: ')
-        self.out = re.compile(r'Out\[\d+\]: \s*?\n?')
+        self.rps1 = re.compile(r'In\ \[\d+\]: ')
+        self.rps2 = re.compile(r'\ \ \ \.\.\.+: ')
+        self.rout = re.compile(r'Out\[\d+\]: \s*?\n?')
+        self.pyps1 = '>>> '
+        self.pyps2 = '... '
+        self.rpyps1 = re.compile ('(\s*%s)(.*)$' % self.pyps1)
+        self.rpyps2 = re.compile ('(\s*%s)(.*)$' % self.pyps2)
 
     def __call__(self, ds):
         """Convert IPython prompts to python ones in a string."""
@@ -79,10 +87,34 @@ class IPython2PythonConverter(object):
         pyout = ''
 
         dnew = ds
-        dnew = self.ps1.sub(pyps1, dnew)
-        dnew = self.ps2.sub(pyps2, dnew)
-        dnew = self.out.sub(pyout, dnew)
-        return dnew
+        dnew = self.rps1.sub(pyps1, dnew)
+        dnew = self.rps2.sub(pyps2, dnew)
+        dnew = self.rout.sub(pyout, dnew)
+        ip = globalipapp.get_ipython()
+
+        # Convert input IPython source into valid Python.
+        out = []
+        newline = out.append
+        for line in dnew.splitlines():
+
+            mps1 = self.rpyps1.match(line)
+            if mps1 is not None:
+                prompt, text = mps1.groups()
+                newline(prompt+ip.prefilter(text, False))
+                continue
+
+            mps2 = self.rpyps2.match(line)
+            if mps2 is not None:
+                prompt, text = mps2.groups()
+                newline(prompt+ip.prefilter(text, True))
+                continue
+            
+            newline(line)
+        newline('')  # ensure a closing newline, needed by doctest
+        #print "PYSRC:", '\n'.join(out)  # dbg
+        return '\n'.join(out)
+
+    #return dnew
 
 
 class Doc2UnitTester(object):
