@@ -21,7 +21,7 @@ from nose.tools import assert_equal
 
 from IPython.frontend.prefilterfrontend import PrefilterFrontEnd
 from IPython.core.ipapi import get as get_ipython0
-from IPython.testing.plugin.ipdoctest import default_argv
+from IPython.testing.tools import default_argv
 
 #-----------------------------------------------------------------------------
 # Support utilities
