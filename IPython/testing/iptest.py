@@ -80,20 +80,20 @@ def make_exclude():
     # cause testing problems.  We should strive to minimize the number of
     # skipped modules, since this means untested code.  As the testing
     # machinery solidifies, this list should eventually become empty.
-
-    # Note that these exclusions only mean that the docstrings are not analyzed
-    # for examples to be run as tests, if there are other test functions in
-    # those modules, they do get run.
+    # These modules and packages will NOT get scanned by nose at all for tests
     exclusions = [pjoin('IPython', 'external'),
-               pjoin('IPython', 'frontend', 'process', 'winprocess.py'),
-               pjoin('IPython_doctest_plugin'),
-               pjoin('IPython', 'quarantine'),
-               pjoin('IPython', 'deathrow'),
-               pjoin('IPython', 'testing', 'attic'),
-               pjoin('IPython', 'testing', 'tools'),
-               pjoin('IPython', 'testing', 'mkdoctests'),
-               pjoin('IPython', 'lib', 'inputhook')
-               ]
+                  pjoin('IPython', 'frontend', 'process', 'winprocess.py'),
+                  pjoin('IPython_doctest_plugin'),
+                  pjoin('IPython', 'quarantine'),
+                  pjoin('IPython', 'deathrow'),
+                  pjoin('IPython', 'testing', 'attic'),
+                  pjoin('IPython', 'testing', 'tools'),
+                  pjoin('IPython', 'testing', 'mkdoctests'),
+                  pjoin('IPython', 'lib', 'inputhook'),
+                  # Config files aren't really importable stand-alone
+                  pjoin('IPython', 'config', 'default'),
+                  pjoin('IPython', 'config', 'profile'),
+                  ]
 
     if not have_wx:
         exclusions.append(pjoin('IPython', 'gui'))
