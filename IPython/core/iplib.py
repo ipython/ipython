@@ -17,6 +17,7 @@ Main IPython Component
 #-----------------------------------------------------------------------------
 
 from __future__ import with_statement
+from __future__ import absolute_import
 
 import __builtin__
 import StringIO
@@ -1582,6 +1583,9 @@ class InteractiveShell(Component, Magic):
         # Set user colors (don't do it in the constructor above so that it
         # doesn't crash if colors option is invalid)
         self.magic_colors(self.colors)
+        # History was moved to a separate module
+        from . import history
+        history.init_ipython(self)
 
     def magic(self,arg_s):
         """Call a magic function by name.
