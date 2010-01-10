@@ -1753,7 +1753,7 @@ def expand_path(s):
     
        In [2]: os.environ['FOO']='test'
 
-       In [3]: shexp('variable FOO is $FOO')
+       In [3]: expand_path('variable FOO is $FOO')
        Out[3]: 'variable FOO is test'
     """
     # This is a pretty subtle hack. When expand user is given a UNC path
