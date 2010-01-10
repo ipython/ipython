@@ -773,17 +773,17 @@ class IPShellGTK(IPThread):
                  debug=1,shell_class=MTInteractiveShell):
 
         import gtk
-        # Check for set_interactive, coming up in new pygtk.
-        # Disable it so that this code works, but notify 
-        # the user that he has a better option as well.
-        # XXX TODO better support when set_interactive is released
-        try:
-            gtk.set_interactive(False)
-            print "Your PyGtk has set_interactive(), so you can use the"
-            print "more stable single-threaded Gtk mode."
-            print "See https://bugs.launchpad.net/ipython/+bug/270856"
-        except AttributeError:
-            pass
+        ## # Check for set_interactive, coming up in new pygtk.
+        ## # Disable it so that this code works, but notify 
+        ## # the user that he has a better option as well.
+        ## # XXX TODO better support when set_interactive is released
+        ## try:
+        ##     gtk.set_interactive(False)
+        ##     print "Your PyGtk has set_interactive(), so you can use the"
+        ##     print "more stable single-threaded Gtk mode."
+        ##     print "See https://bugs.launchpad.net/ipython/+bug/270856"
+        ## except AttributeError:
+        ##     pass
         
         self.gtk = gtk
         self.gtk_mainloop = hijack_gtk()
@@ -1149,6 +1149,15 @@ class IPShellMatplotlibQt4(IPShellQt4):
 #-----------------------------------------------------------------------------
 # Factory functions to actually start the proper thread-aware shell
 
+def check_gtk(mode):
+    import gtk
+    if hasattr(gtk,'set_interactive'):
+        gtk.set_interactive(False)
+        return 'tkthread'
+    else:
+        return mode
+
+
 def _select_shell(argv):
     """Select a shell from the given argv vector.
 
@@ -1218,6 +1227,9 @@ def _select_shell(argv):
             else:
                 # Any other backend, use plain Tk
                 th_mode = 'tkthread'
+
+            # New versions of pygtk don't need the brittle threaded support.
+            th_mode = check_gtk(th_mode)
                 
         return mpl_shell[th_mode]
     else:
@@ -1226,6 +1238,9 @@ def _select_shell(argv):
             th_mode = special_opts.pop()
         except KeyError:
             th_mode = 'tkthread'
+
+        # New versions of pygtk don't need the brittle threaded support.
+        th_mode = check_gtk(th_mode)
         return th_shell[th_mode]
 
 
