@@ -19,7 +19,7 @@ for d in ['build','dist',pjoin('docs','build'),pjoin('docs','dist')]:
         remove_tree(d)
 
 # Build source and binary distros
-c('./setup.py sdist --formats=gztar')
+c('./setup.py sdist --formats=gztar,zip')
 
 # Build version-specific RPMs, where we must use the --python option to ensure
 # that the resulting RPM is really built with the requested python version (so
