@@ -159,6 +159,14 @@ data_files = find_data_files()
 # Handle dependencies and setuptools specific things
 #---------------------------------------------------------------------------
 
+# For some commands, use setuptools.  Note that we do NOT list install here!
+# If you want a setuptools-enhanced install, just run 'setupegg.py install'
+if len(set(('develop', 'sdist', 'release', 'bdist_egg', 'bdist_rpm',
+           'bdist', 'bdist_dumb', 'bdist_wininst', 'install_egg_info',
+           'build_sphinx', 'egg_info', 'easy_install', 'upload',
+            )).intersection(sys.argv)) > 0:
+    import setuptools
+
 # This dict is used for passing extra arguments that are setuptools 
 # specific to setup
 setuptools_extra_args = {}
