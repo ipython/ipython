@@ -103,7 +103,7 @@ class Foo(object):
     def ipdt_method(self):
         """
         In [20]: print 1
-        2
+        1
 
         In [26]: for i in range(10):
            ....:     print i,

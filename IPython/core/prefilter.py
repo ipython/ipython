@@ -755,9 +755,17 @@ class PrefilterHandler(Component):
         line = line_info.line
         continue_prompt = line_info.continue_prompt
 
-        if (continue_prompt and self.shell.autoindent and line.isspace() and
-            (0 < abs(len(line) - self.shell.indent_current_nsp) <= 2 or
-             (self.shell.buffer[-1]).isspace() )):
+        if (continue_prompt and
+            self.shell.autoindent and
+            line.isspace() and
+            
+            (0 < abs(len(line) - self.shell.indent_current_nsp) <= 2
+             or
+             not self.shell.buffer
+             or
+             (self.shell.buffer[-1]).isspace()
+             )
+            ):
             line = ''
 
         self.shell.log(line, line, continue_prompt)
