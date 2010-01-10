@@ -297,6 +297,8 @@ NoConfigDefault = __NoConfigDefault()
 
 
 class ArgParseConfigLoader(CommandLineConfigLoader):
+    #: Global default for arguments (see argparse docs for details)
+    argument_default = NoConfigDefault
     
     def __init__(self, argv=None, arguments=(), *args, **kw):
         """Create a config loader for use with argparse.
@@ -322,7 +324,9 @@ class ArgParseConfigLoader(CommandLineConfigLoader):
         self.argv = argv
         self.arguments = arguments
         self.args = args
-        self.kw = kw
+        kwargs = dict(argument_default=self.argument_default)
+        kwargs.update(kw)
+        self.kw = kwargs
 
     def load_config(self, args=None):
         """Parse command line arguments and return as a Struct.
@@ -353,13 +357,12 @@ class ArgParseConfigLoader(CommandLineConfigLoader):
         self._add_arguments()
         self._add_other_arguments()
 
-    def _add_other_arguments(self):
-        pass
-
     def _add_arguments(self):
         for argument in self.arguments:
-            argument[1].setdefault('default', NoConfigDefault)
             self.parser.add_argument(*argument[0],**argument[1])
+
+    def _add_other_arguments(self):
+        pass
 
     def _parse_args(self, args):
         """self.parser->self.parsed_data""" 

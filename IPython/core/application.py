@@ -39,7 +39,6 @@ from IPython.config.loader import (
     PyFileConfigLoader,
     ArgParseConfigLoader,
     Config,
-    NoConfigDefault
 )
 
 #-----------------------------------------------------------------------------
@@ -57,7 +56,6 @@ app_cl_args = (
         """Set to override default location of the IPython directory
         IPYTHON_DIR, stored as Global.ipython_dir.  This can also be specified
         through the environment variable IPYTHON_DIR.""",
-        default=NoConfigDefault,
         metavar='Global.ipython_dir') ),
     (('-p', '--profile',), dict(
         dest='Global.profile',type=unicode,
@@ -69,12 +67,10 @@ app_cl_args = (
         in your more specialized ones.  You can keep a basic
         IPYTHON_DIR/ipython_config.py file and then have other 'profiles' which
         include this one and load extra things for particular tasks.""",
-        default=NoConfigDefault,
         metavar='Global.profile') ),
     (('--log-level',), dict(
         dest="Global.log_level",type=int,
         help='Set the log level (0,10,20,30,40,50).  Default is 30.',
-        default=NoConfigDefault,
         metavar='Global.log_level')),
     (('--config-file',), dict(
         dest='Global.config_file',type=unicode,
@@ -84,7 +80,6 @@ app_cl_args = (
         IPYTHON_DIR/ipython_config.py.  If the loading of your config file
         fails, IPython starts with a bare bones configuration (no modules
         loaded at all).""",
-        default=NoConfigDefault,
         metavar='Global.config_file')),
     )
 
