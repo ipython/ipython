@@ -51,26 +51,41 @@ class ApplicationError(Exception):
 
 
 app_cl_args = (
-        (('--ipython-dir', ), dict(
-            dest='Global.ipython_dir',type=unicode,
-            help='Set to override default location of Global.ipython_dir.',
-            default=NoConfigDefault,
-            metavar='Global.ipython_dir') ),
-        (('-p', '--profile',), dict(
-            dest='Global.profile',type=unicode,
-            help='The string name of the ipython profile to be used.',
-            default=NoConfigDefault,
-            metavar='Global.profile') ),
-        (('--log-level',), dict(
-            dest="Global.log_level",type=int,
-            help='Set the log level (0,10,20,30,40,50).  Default is 30.',
-            default=NoConfigDefault,
-            metavar='Global.log_level')),
-        (('--config-file',), dict(
-            dest='Global.config_file',type=unicode,
-            help='Set the config file name to override default.',
-            default=NoConfigDefault,
-            metavar='Global.config_file')),
+    (('--ipython-dir', ), dict(
+        dest='Global.ipython_dir',type=unicode,
+        help=
+        """Set to override default location of the IPython directory
+        IPYTHON_DIR, stored as Global.ipython_dir.  This can also be specified
+        through the environment variable IPYTHON_DIR.""",
+        default=NoConfigDefault,
+        metavar='Global.ipython_dir') ),
+    (('-p', '--profile',), dict(
+        dest='Global.profile',type=unicode,
+        help=
+        """The string name of the ipython profile to be used.  Assume that your
+        config file is ipython_config-<name>.py (looks in current dir first,
+        then in IPYTHON_DIR). This is a quick way to keep and load multiple
+        config files for different tasks, especially if include your basic one
+        in your more specialized ones.  You can keep a basic
+        IPYTHON_DIR/ipython_config.py file and then have other 'profiles' which
+        include this one and load extra things for particular tasks.""",
+        default=NoConfigDefault,
+        metavar='Global.profile') ),
+    (('--log-level',), dict(
+        dest="Global.log_level",type=int,
+        help='Set the log level (0,10,20,30,40,50).  Default is 30.',
+        default=NoConfigDefault,
+        metavar='Global.log_level')),
+    (('--config-file',), dict(
+        dest='Global.config_file',type=unicode,
+        help=
+        """Set the config file name to override default.  Normally IPython
+        loads ipython_config.py (from current directory) or
+        IPYTHON_DIR/ipython_config.py.  If the loading of your config file
+        fails, IPython starts with a bare bones configuration (no modules
+        loaded at all).""",
+        default=NoConfigDefault,
+        metavar='Global.config_file')),
     )
 
 class Application(object):
@@ -78,7 +93,8 @@ class Application(object):
 
     name = u'ipython'
     description = 'IPython: an enhanced interactive Python shell.'
-
+    #: usage message printed by argparse. If None, auto-generate
+    usage = None
     config_file_name = u'ipython_config.py'
     # Track the default and actual separately because some messages are
     # only printed if we aren't using the default.
@@ -199,7 +215,9 @@ class Application(object):
         """Create and return a command line config loader."""
         return ArgParseConfigLoader(self.argv, self.cl_arguments,
                                     description=self.description, 
-                                    version=release.version)
+                                    version=release.version,
+                                    usage=self.usage,
+                                    )
 
     def pre_load_command_line_config(self):
         """Do actions just before loading the command line config."""
