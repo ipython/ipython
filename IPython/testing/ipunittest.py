@@ -40,7 +40,11 @@ from __future__ import absolute_import
 import re
 import sys
 import unittest
-from doctest import DocTestFinder, DocTestRunner, TestResults
+from doctest import DocTestFinder, DocTestRunner
+try:
+    from doctest import TestResults
+except:
+    from ._doctest26 import TestResults
 
 # Our own, a nose monkeypatch
 from . import nosepatch
