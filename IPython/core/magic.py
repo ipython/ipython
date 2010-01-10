@@ -3395,8 +3395,6 @@ Defaulting color scheme to 'NoColor'"""
         your existing IPython session.
         """
 
-        # XXX - Fix this to have cleaner activate/deactivate calls.
-        from IPython.extensions import InterpreterPasteInput as ipaste
         from IPython.utils.ipstruct import Struct
 
         # Shorthands
@@ -3419,8 +3417,6 @@ Defaulting color scheme to 'NoColor'"""
 
         if mode == False:
             # turn on
-            ipaste.activate_prefilter()
-
             oc.prompt1.p_template = '>>> '
             oc.prompt2.p_template = '... '
             oc.prompt_out.p_template = ''
@@ -3439,8 +3435,6 @@ Defaulting color scheme to 'NoColor'"""
 
         else:
             # turn off
-            ipaste.deactivate_prefilter()
-
             oc.prompt1.p_template = shell.prompt_in1
             oc.prompt2.p_template = shell.prompt_in2
             oc.prompt_out.p_template = shell.prompt_out
@@ -3453,7 +3447,7 @@ Defaulting color scheme to 'NoColor'"""
             oc.prompt1.pad_left = oc.prompt2.pad_left = \
                          oc.prompt_out.pad_left = dstore.rc_prompts_pad_left
 
-            rc.pprint = dstore.rc_pprint
+            shell.pprint = dstore.rc_pprint
 
             shell.magic_xmode(dstore.xmode)
 

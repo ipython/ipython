@@ -27,7 +27,6 @@ from IPython.testing import tools as tt
 #-----------------------------------------------------------------------------
 # Test functions begin
 #-----------------------------------------------------------------------------
-
 def test_rehashx():
     # clear up everything
     _ip = get_ipython()
@@ -189,3 +188,9 @@ def doctest_time():
     CPU times: user 0.00 s, sys: 0.00 s, total: 0.00 s
     Wall time: 0.00 s
     """
+
+def test_doctest_mode():
+    "Toggle doctest_mode twice, it should be a no-op and run without error"
+    _ip.magic('doctest_mode')
+    _ip.magic('doctest_mode')
+    

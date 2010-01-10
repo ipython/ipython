@@ -362,7 +362,7 @@ class PrefilterManager(Component):
                 line = transformer.transform(line, continue_prompt)
         return line
 
-    def prefilter_line(self, line, continue_prompt):
+    def prefilter_line(self, line, continue_prompt=False):
         """Prefilter a single input line as text.
 
         This method prefilters a single line of text by calling the
@@ -507,6 +507,47 @@ class AssignMagicTransformer(PrefilterTransformer):
             return new_line
         return line
 
+
+_classic_prompt_re = re.compile(r'(^[ \t]*>>> |^[ \t]*\.\.\. )')
+
+class PyPromptTransformer(PrefilterTransformer):
+    """Handle inputs that start with '>>> ' syntax."""
+
+    priority = Int(50, config=True)
+
+    def transform(self, line, continue_prompt):
+
+        if not line or line.isspace() or line.strip() == '...':
+            # This allows us to recognize multiple input prompts separated by
+            # blank lines and pasted in a single chunk, very common when
+            # pasting doctests or long tutorial passages.
+            return ''
+        m = _classic_prompt_re.match(line)
+        if m:
+            return line[len(m.group(0)):]
+        else:
+            return line
+
+
+_ipy_prompt_re = re.compile(r'(^[ \t]*In \[\d+\]: |^[ \t]*\ \ \ \.\.\.+: )')
+
+class IPyPromptTransformer(PrefilterTransformer):
+    """Handle inputs that start classic IPython prompt syntax."""
+
+    priority = Int(50, config=True)
+
+    def transform(self, line, continue_prompt):
+
+        if not line or line.isspace() or line.strip() == '...':
+            # This allows us to recognize multiple input prompts separated by
+            # blank lines and pasted in a single chunk, very common when
+            # pasting doctests or long tutorial passages.
+            return ''
+        m = _ipy_prompt_re.match(line)
+        if m:
+            return line[len(m.group(0)):]
+        else:
+            return line
 
 #-----------------------------------------------------------------------------
 # Prefilter checkers
@@ -974,7 +1015,9 @@ class EmacsHandler(PrefilterHandler):
 
 _default_transformers = [
     AssignSystemTransformer,
-    AssignMagicTransformer
+    AssignMagicTransformer,
+    PyPromptTransformer,
+    IPyPromptTransformer,
 ]
 
 _default_checkers = [
@@ -999,4 +1042,3 @@ _default_handlers = [
     HelpHandler,
     EmacsHandler
 ]
-
