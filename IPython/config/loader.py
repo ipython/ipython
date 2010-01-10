@@ -362,6 +362,7 @@ class ArgParseConfigLoader(CommandLineConfigLoader):
             self.parser.add_argument(*argument[0],**argument[1])
 
     def _add_other_arguments(self):
+        """Meant for subclasses to add their own arguments."""
         pass
 
     def _parse_args(self, args):

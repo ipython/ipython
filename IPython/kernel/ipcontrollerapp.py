@@ -26,24 +26,16 @@ from twisted.internet import reactor
 from twisted.python import log
 
 from IPython.config.loader import Config, NoConfigDefault
-
-from IPython.kernel.clusterdir import (
-    ApplicationWithClusterDir, 
-    AppWithClusterDirArgParseConfigLoader
-)
-
 from IPython.core import release
-
-from IPython.utils.traitlets import Str, Instance, Unicode
-
+from IPython.core.application import Application
 from IPython.kernel import controllerservice
-
+from IPython.kernel.clusterdir import ApplicationWithClusterDir
 from IPython.kernel.fcutil import FCServiceFactory
+from IPython.utils.traitlets import Str, Instance, Unicode
 
 #-----------------------------------------------------------------------------
 # Default interfaces
 #-----------------------------------------------------------------------------
-
 
 # The default client interfaces for FCClientServiceFactory.interfaces
 default_client_interfaces = Config()
@@ -107,19 +99,19 @@ class FCEngineServiceFactory(FCServiceFactory):
 cl_args = (
     # Client config
     (('--client-ip',), dict(
-        type=str, dest='FCClientServiceFactory.ip', default=NoConfigDefault,
+        type=str, dest='FCClientServiceFactory.ip', 
         help='The IP address or hostname the controller will listen on for '
         'client connections.',
         metavar='FCClientServiceFactory.ip')
     ),
     (('--client-port',), dict(
-        type=int, dest='FCClientServiceFactory.port', default=NoConfigDefault,
+        type=int, dest='FCClientServiceFactory.port', 
         help='The port the controller will listen on for client connections. '
         'The default is to use 0, which will autoselect an open port.',
         metavar='FCClientServiceFactory.port')
     ),
     (('--client-location',), dict(
-        type=str, dest='FCClientServiceFactory.location', default=NoConfigDefault,
+        type=str, dest='FCClientServiceFactory.location',
         help='The hostname or IP that clients should connect to. This does '
         'not control which interface the controller listens on. Instead, this '
         'determines the hostname/IP that is listed in the FURL, which is how '
@@ -129,19 +121,19 @@ cl_args = (
     ),
     # Engine config
     (('--engine-ip',), dict(
-        type=str, dest='FCEngineServiceFactory.ip', default=NoConfigDefault,
+        type=str, dest='FCEngineServiceFactory.ip', 
         help='The IP address or hostname the controller will listen on for '
         'engine connections.',
         metavar='FCEngineServiceFactory.ip')
     ),
     (('--engine-port',), dict(
-        type=int, dest='FCEngineServiceFactory.port', default=NoConfigDefault,
+        type=int, dest='FCEngineServiceFactory.port',
         help='The port the controller will listen on for engine connections. '
         'The default is to use 0, which will autoselect an open port.',
         metavar='FCEngineServiceFactory.port')
     ),
     (('--engine-location',), dict(
-        type=str, dest='FCEngineServiceFactory.location', default=NoConfigDefault,
+        type=str, dest='FCEngineServiceFactory.location',
         help='The hostname or IP that engines should connect to. This does '
         'not control which interface the controller listens on. Instead, this '
         'determines the hostname/IP that is listed in the FURL, which is how '
@@ -151,29 +143,24 @@ cl_args = (
     ),
     # Global config
     (('--log-to-file',), dict(
-        action='store_true', dest='Global.log_to_file', default=NoConfigDefault,
+        action='store_true', dest='Global.log_to_file',
         help='Log to a file in the log directory (default is stdout)')
     ),
     (('-r','--reuse-furls'), dict(
-        action='store_true', dest='Global.reuse_furls', default=NoConfigDefault,
+        action='store_true', dest='Global.reuse_furls',
         help='Try to reuse all FURL files. If this is not set all FURL files '
         'are deleted before the controller starts. This must be set if '
         'specific ports are specified by --engine-port or --client-port.')
     ),
     (('--no-secure',), dict(
-        action='store_false', dest='Global.secure', default=NoConfigDefault,
+        action='store_false', dest='Global.secure',
         help='Turn off SSL encryption for all connections.')
     ),
     (('--secure',), dict(
-        action='store_true', dest='Global.secure', default=NoConfigDefault,
+        action='store_true', dest='Global.secure',
         help='Turn off SSL encryption for all connections.')
     )
 )
-
-
-class IPControllerAppCLConfigLoader(AppWithClusterDirArgParseConfigLoader):
-
-    arguments = cl_args
 
 
 _description = """Start the IPython controller for parallel computing.
@@ -195,6 +182,7 @@ class IPControllerApp(ApplicationWithClusterDir):
     description = _description
     config_file_name = default_config_file_name
     auto_create_cluster_dir = True
+    cl_arguments = Application.cl_arguments + cl_args
 
     def create_default_config(self):
         super(IPControllerApp, self).create_default_config()
@@ -202,13 +190,6 @@ class IPControllerApp(ApplicationWithClusterDir):
         self.default_config.Global.secure = True
         self.default_config.Global.import_statements = []
         self.default_config.Global.clean_logs = True
-
-    def create_command_line_config(self):
-        """Create and return a command line config loader."""
-        return IPControllerAppCLConfigLoader(
-            description=self.description, 
-            version=release.version
-        )
 
     def post_load_command_line_config(self):
         # Now setup reuse_furls
@@ -272,4 +253,3 @@ def launch_new_instance():
 
 if __name__ == '__main__':
     launch_new_instance()
-

@@ -18,13 +18,12 @@ The ipcluster application.
 import logging
 import os
 import signal
-import sys
 
 if os.name=='posix':
     from twisted.scripts._twistd_unix import daemonize
 
 from IPython.core import release
-from IPython.external import argparse
+from IPython.external.argparse import ArgumentParser
 from IPython.config.loader import ArgParseConfigLoader, NoConfigDefault
 from IPython.utils.importstring import import_item
 
@@ -54,44 +53,40 @@ ALREADY_STOPPED = 11
 
 class IPClusterCLLoader(ArgParseConfigLoader):
 
-    def _add_arguments(self):
+    def _add_other_arguments(self):
         # This has all the common options that all subcommands use
-        parent_parser1 = argparse.ArgumentParser(add_help=False)
+        parent_parser1 = ArgumentParser(add_help=False,
+                                        argument_default=NoConfigDefault)
         parent_parser1.add_argument('--ipython-dir', 
             dest='Global.ipython_dir',type=unicode,
             help='Set to override default location of Global.ipython_dir.',
-            default=NoConfigDefault,
             metavar='Global.ipython_dir')
         parent_parser1.add_argument('--log-level',
             dest="Global.log_level",type=int,
             help='Set the log level (0,10,20,30,40,50).  Default is 30.',
-            default=NoConfigDefault,
             metavar='Global.log_level')
 
         # This has all the common options that other subcommands use
-        parent_parser2 = argparse.ArgumentParser(add_help=False)
+        parent_parser2 = ArgumentParser(add_help=False,
+                                        argument_default=NoConfigDefault)
         parent_parser2.add_argument('-p','--profile',
             dest='Global.profile',type=unicode,
             help='The string name of the profile to be used. This determines '
             'the name of the cluster dir as: cluster_<profile>. The default profile '
             'is named "default".  The cluster directory is resolve this way '
             'if the --cluster-dir option is not used.',
-            default=NoConfigDefault,
             metavar='Global.profile')
         parent_parser2.add_argument('--cluster-dir',
             dest='Global.cluster_dir',type=unicode,
             help='Set the cluster dir. This overrides the logic used by the '
             '--profile option.',
-            default=NoConfigDefault,
             metavar='Global.cluster_dir'),
         parent_parser2.add_argument('--work-dir',
             dest='Global.work_dir',type=unicode,
             help='Set the working dir for the process.',
-            default=NoConfigDefault,
             metavar='Global.work_dir')
         parent_parser2.add_argument('--log-to-file',
             action='store_true', dest='Global.log_to_file', 
-            default=NoConfigDefault,
             help='Log to a file in the log directory (default is stdout)'
         )
 
@@ -130,29 +125,24 @@ class IPClusterCLLoader(ArgParseConfigLoader):
         parser_start.add_argument(
             '-n', '--number',
             type=int, dest='Global.n',
-            default=NoConfigDefault,
             help='The number of engines to start.',
             metavar='Global.n'
         )
         parser_start.add_argument('--clean-logs',
             dest='Global.clean_logs', action='store_true',
             help='Delete old log flies before starting.',
-            default=NoConfigDefault
         )
         parser_start.add_argument('--no-clean-logs',
             dest='Global.clean_logs', action='store_false',
             help="Don't delete old log flies before starting.",
-            default=NoConfigDefault
         )
         parser_start.add_argument('--daemon',
             dest='Global.daemonize', action='store_true',
             help='Daemonize the ipcluster program. This implies --log-to-file',
-            default=NoConfigDefault
         )
         parser_start.add_argument('--no-daemon',
             dest='Global.daemonize', action='store_false',
             help="Dont't daemonize the ipcluster program.",
-            default=NoConfigDefault
         )
 
         parser_start = subparsers.add_parser(
@@ -164,7 +154,6 @@ class IPClusterCLLoader(ArgParseConfigLoader):
             dest='Global.signal', type=int,
             help="The signal number to use in stopping the cluster (default=2).",
             metavar="Global.signal",
-            default=NoConfigDefault
         )
 
 
@@ -372,8 +361,8 @@ class IPClusterApp(ApplicationWithClusterDir):
                 log.msg('Unexpected error in ipcluster:')
                 log.msg(r.getTraceback())
             log.msg("IPython cluster: stopping")
-            d= self.stop_engines()
-            d2 = self.stop_controller()
+            self.stop_engines()
+            self.stop_controller()
             # Wait a few seconds to let things shut down.
             reactor.callLater(4.0, reactor.stop)
 

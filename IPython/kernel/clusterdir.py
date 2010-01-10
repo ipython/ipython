@@ -27,7 +27,6 @@ from IPython.core import release
 from IPython.config.loader import PyFileConfigLoader
 from IPython.core.application import Application
 from IPython.core.component import Component
-from IPython.config.loader import ArgParseConfigLoader, NoConfigDefault
 from IPython.utils.traitlets import Unicode, Bool
 from IPython.utils import genutils
 
@@ -219,54 +218,37 @@ class ClusterDir(Component):
         return ClusterDir(cluster_dir)
 
 
-class AppWithClusterDirArgParseConfigLoader(ArgParseConfigLoader):
-    """Default command line options for IPython cluster applications."""
+# Default command line options for IPython cluster applications.
+cl_args = (
+    (('--ipython-dir',), dict(
+        dest='Global.ipython_dir',type=unicode,
+        help='Set to override default location of Global.ipython_dir.',
+        metavar='Global.ipython_dir') ),
+    (('-p', '--profile',), dict(
+        dest='Global.profile',type=unicode,
+        help=
+        """The string name of the profile to be used. This determines the name
+        of the cluster dir as: cluster_<profile>. The default profile is named
+        'default'.  The cluster directory is resolve this way if the
+        --cluster-dir option is not used.""",
+        metavar='Global.profile') ),
+    (('--cluster-dir',), dict(
+        dest='Global.cluster_dir',type=unicode,
+        help="""Set the cluster dir. This overrides the logic used by the
+        --profile option.""",
+        metavar='Global.cluster_dir') ),
+    (('--work-dir',), dict(
+      dest='Global.work_dir',type=unicode,
+      help='Set the working dir for the process.',
+      metavar='Global.work_dir') ),
+    (('--clean-logs',), dict(
+      dest='Global.clean_logs', action='store_true',
+      help='Delete old log flies before starting.') ),
+    (('--no-clean-logs',), dict(
+      dest='Global.clean_logs', action='store_false',
+      help="Don't Delete old log flies before starting.") ),
+    )
 
-    def _add_other_arguments(self):
-        self.parser.add_argument('--ipython-dir', 
-            dest='Global.ipython_dir',type=unicode,
-            help='Set to override default location of Global.ipython_dir.',
-            default=NoConfigDefault,
-            metavar='Global.ipython_dir'
-        )
-        self.parser.add_argument('-p', '--profile',
-            dest='Global.profile',type=unicode,
-            help='The string name of the profile to be used. This determines '
-            'the name of the cluster dir as: cluster_<profile>. The default profile '
-            'is named "default".  The cluster directory is resolve this way '
-            'if the --cluster-dir option is not used.',
-            default=NoConfigDefault,
-            metavar='Global.profile'
-        )
-        self.parser.add_argument('--log-level',
-            dest="Global.log_level",type=int,
-            help='Set the log level (0,10,20,30,40,50).  Default is 30.',
-            default=NoConfigDefault,
-            metavar="Global.log_level"
-        )
-        self.parser.add_argument('--cluster-dir',
-            dest='Global.cluster_dir',type=unicode,
-            help='Set the cluster dir. This overrides the logic used by the '
-            '--profile option.',
-            default=NoConfigDefault,
-            metavar='Global.cluster_dir'
-        ),
-        self.parser.add_argument('--work-dir',
-            dest='Global.work_dir',type=unicode,
-            help='Set the working dir for the process.',
-            default=NoConfigDefault,
-            metavar='Global.work_dir'
-        )
-        self.parser.add_argument('--clean-logs',
-            dest='Global.clean_logs', action='store_true',
-            help='Delete old log flies before starting.',
-            default=NoConfigDefault
-        )
-        self.parser.add_argument('--no-clean-logs',
-            dest='Global.clean_logs', action='store_false',
-            help="Don't Delete old log flies before starting.",
-            default=NoConfigDefault
-        )
 
 class ApplicationWithClusterDir(Application):
     """An application that puts everything into a cluster directory.
@@ -289,6 +271,8 @@ class ApplicationWithClusterDir(Application):
 
     auto_create_cluster_dir = True
 
+    cl_arguments = Application.cl_arguments + cl_args
+
     def create_default_config(self):
         super(ApplicationWithClusterDir, self).create_default_config()
         self.default_config.Global.profile = u'default'
@@ -296,13 +280,6 @@ class ApplicationWithClusterDir(Application):
         self.default_config.Global.work_dir = os.getcwd()
         self.default_config.Global.log_to_file = False
         self.default_config.Global.clean_logs = False
-
-    def create_command_line_config(self):
-        """Create and return a command line config loader."""
-        return AppWithClusterDirArgParseConfigLoader(
-            description=self.description, 
-            version=release.version
-        )
 
     def find_resources(self):
         """This resolves the cluster directory.
@@ -471,5 +448,3 @@ class ApplicationWithClusterDir(Application):
                 return pid
         else:
             raise PIDFileError('pid file not found: %s' % pid_file)
-
-

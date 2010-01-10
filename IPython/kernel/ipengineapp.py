@@ -22,29 +22,21 @@ from twisted.application import service
 from twisted.internet import reactor
 from twisted.python import log
 
-from IPython.config.loader import NoConfigDefault
-
-from IPython.kernel.clusterdir import (
-    ApplicationWithClusterDir, 
-    AppWithClusterDirArgParseConfigLoader
-)
-from IPython.core import release
-
-from IPython.utils.importstring import import_item
-
+from IPython.core.application import Application
+from IPython.kernel.clusterdir import ApplicationWithClusterDir
+from IPython.kernel.engineconnector import EngineConnector
 from IPython.kernel.engineservice import EngineService
 from IPython.kernel.fcutil import Tub
-from IPython.kernel.engineconnector import EngineConnector
+from IPython.utils.importstring import import_item
 
 #-----------------------------------------------------------------------------
 # The main application
 #-----------------------------------------------------------------------------
 
-
 cl_args = (
     # Controller config
     (('--furl-file',), dict(
-        type=unicode, dest='Global.furl_file', default=NoConfigDefault,
+        type=unicode, dest='Global.furl_file',
         help='The full location of the file containing the FURL of the '
         'controller. If this is not given, the FURL file must be in the '
         'security directory of the cluster directory.  This location is '
@@ -53,21 +45,16 @@ cl_args = (
     ),
     # MPI
     (('--mpi',), dict(
-        type=str, dest='MPI.use', default=NoConfigDefault,
+        type=str, dest='MPI.use',
         help='How to enable MPI (mpi4py, pytrilinos, or empty string to disable).',
         metavar='MPI.use')
     ),
     # Global config
     (('--log-to-file',), dict(
-        action='store_true', dest='Global.log_to_file', default=NoConfigDefault,
+        action='store_true', dest='Global.log_to_file',
         help='Log to a file in the log directory (default is stdout)')
     )
 )
-
-
-class IPEngineAppCLConfigLoader(AppWithClusterDirArgParseConfigLoader):
-
-    arguments = cl_args
 
 
 mpi4py_init = """from mpi4py import MPI as mpi
@@ -104,6 +91,7 @@ class IPEngineApp(ApplicationWithClusterDir):
     description = _description
     config_file_name = default_config_file_name
     auto_create_cluster_dir = True
+    cl_arguments = Application.cl_arguments + cl_args
 
     def create_default_config(self):
         super(IPEngineApp, self).create_default_config()
@@ -133,13 +121,6 @@ class IPEngineApp(ApplicationWithClusterDir):
         self.default_config.MPI.use = ''
         self.default_config.MPI.mpi4py = mpi4py_init
         self.default_config.MPI.pytrilinos = pytrilinos_init
-
-    def create_command_line_config(self):
-        """Create and return a command line config loader."""
-        return IPEngineAppCLConfigLoader(
-            description=self.description, 
-            version=release.version
-        )
 
     def post_load_command_line_config(self):
         pass
