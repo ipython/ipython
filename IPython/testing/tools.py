@@ -165,12 +165,12 @@ def default_argv():
     from IPython.config import default
     ipcdir = os.path.dirname(default.__file__)
     ipconf = os.path.join(ipcdir,'ipython_config.py')
-    #print 'conf:',ipconf # dbg
     return ['--colors=NoColor', '--no-term-title','--no-banner',
-            '--config-file=%s' % ipconf, '--autocall=0', '--quick']
+            '--config-file=%s' % ipconf, '--autocall=0',
+            '--prompt-out=""']
     
 
-def ipexec(fname):
+def ipexec(fname, options=None):
     """Utility to call 'ipython filename'.
 
     Starts IPython witha minimal and safe configuration to make startup as fast
@@ -183,19 +183,26 @@ def ipexec(fname):
     fname : str
       Name of file to be executed (should have .py or .ipy extension).
 
+    options : optional, list
+      Extra command-line flags to be passed to IPython.
+
     Returns
     -------
     (stdout, stderr) of ipython subprocess.
-    """  
+    """
+    if options is None: options = []
+    cmdargs = ' '.join(default_argv() + options)
+    
     _ip = get_ipython()
     test_dir = os.path.dirname(__file__)
     full_fname = os.path.join(test_dir, fname)
     ipython_cmd = platutils.find_cmd('ipython')
-    cmdargs = ' '.join(default_argv())
-    return genutils.getoutputerror('%s %s' % (ipython_cmd, full_fname))
+    full_cmd = '%s %s %s' % (ipython_cmd, cmdargs, full_fname)
+    return genutils.getoutputerror(full_cmd)
 
 
-def ipexec_validate(fname, expected_out, expected_err=None):
+def ipexec_validate(fname, expected_out, expected_err=None,
+                    options=None):
     """Utility to call 'ipython filename' and validate output/error.
 
     This function raises an AssertionError if the validation fails.
@@ -210,6 +217,12 @@ def ipexec_validate(fname, expected_out, expected_err=None):
     expected_out : str
       Expected stdout of the process.
 
+    expected_err : optional, str
+      Expected stderr of the process.
+
+    options : optional, list
+      Extra command-line flags to be passed to IPython.
+
     Returns
     -------
     None
@@ -219,3 +232,25 @@ def ipexec_validate(fname, expected_out, expected_err=None):
     nt.assert_equals(out.strip(), expected_out.strip())
     if expected_err:
         nt.assert_equals(err.strip(), expected_err.strip())
+
+
+class TempFileMixin(object):
+    """Utility class to create temporary Python/IPython files.
+
+    Meant as a mixin class for test cases."""
+    
+    def mktmp(self, src, ext='.py'):
+        """Make a valid python temp file."""
+        fname, f = temp_pyfile(src, ext)
+        self.tmpfile = f
+        self.fname = fname
+
+    def teardown(self):
+        self.tmpfile.close()
+        try:
+            os.unlink(self.fname)
+        except:
+            # On Windows, even though we close the file, we still can't delete
+            # it.  I have no clue why
+            pass
+

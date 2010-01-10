@@ -24,6 +24,7 @@ else:
         c = C(name)
 
 #print >> sys.stderr, "ARGV:", sys.argv  # dbg
-# This print statement is NOT debugging, we're making the check on a completely
-# separate process so we verify by capturing stdout.
+
+# This next print statement is NOT debugging, we're making the check on a
+# completely separate process so we verify by capturing stdout:
 print 'ARGV 1-:', sys.argv[1:]

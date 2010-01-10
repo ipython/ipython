@@ -3496,7 +3496,7 @@ Defaulting color scheme to 'NoColor'"""
 
     def magic_load_ext(self, module_str):
         """Load an IPython extension by its module name."""
-        self.load_extension(module_str)
+        return self.load_extension(module_str)
 
     def magic_unload_ext(self, module_str):
         """Unload an IPython extension by its module name."""

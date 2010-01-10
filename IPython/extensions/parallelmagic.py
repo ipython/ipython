@@ -19,6 +19,7 @@ import new
 from IPython.core.component import Component
 from IPython.utils.traitlets import Bool, Any
 from IPython.utils.autoattr import auto_attr
+from IPython.testing import decorators as testdec
 
 #-----------------------------------------------------------------------------
 # Definitions of magic functions for use with IPython
@@ -58,6 +59,7 @@ class ParalleMagicComponent(Component):
         self.shell.define_magic('px', self.magic_px)
         self.shell.define_magic('autopx', self.magic_autopx)
 
+    @testdec.skip_doctest
     def magic_result(self, ipself, parameter_s=''):
         """Print the result of command i on all engines..
 
@@ -89,6 +91,7 @@ class ParalleMagicComponent(Component):
         result = self.active_multiengine_client.get_result(index)
         return result
 
+    @testdec.skip_doctest
     def magic_px(self, ipself, parameter_s=''):
         """Executes the given python command in parallel.
 
@@ -112,6 +115,7 @@ class ParalleMagicComponent(Component):
         result = self.active_multiengine_client.execute(parameter_s)
         return result
 
+    @testdec.skip_doctest
     def magic_autopx(self, ipself, parameter_s=''):
         """Toggles auto parallel mode.
 

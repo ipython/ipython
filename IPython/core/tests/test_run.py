@@ -91,24 +91,7 @@ def doctest_run_builtins():
 # For some tests, it will be handy to organize them in a class with a common
 # setup that makes a temp file
 
-class TempFileMixin(object):
-    def mktmp(self, src, ext='.py'):
-        """Make a valid python temp file."""
-        fname, f = tt.temp_pyfile(src, ext)
-        self.tmpfile = f
-        self.fname = fname
-
-    def teardown(self):
-        self.tmpfile.close()
-        try:
-            os.unlink(self.fname)
-        except:
-            # On Windows, even though we close the file, we still can't delete
-            # it.  I have no clue why
-            pass
-
-
-class TestMagicRunPass(TempFileMixin):
+class TestMagicRunPass(tt.TempFileMixin):
 
     def setup(self):
         """Make a valid python temp file."""
@@ -148,7 +131,7 @@ class TestMagicRunPass(TempFileMixin):
         nt.assert_equals(p2[:3], '...')
 
 
-class TestMagicRunSimple(TempFileMixin):
+class TestMagicRunSimple(tt.TempFileMixin):
 
     def test_simpledef(self):
         """Test that simple class definitions work."""

@@ -2334,7 +2334,7 @@ class InteractiveShell(Component, Magic):
             with prepended_to_syspath(self.ipython_extension_dir):
                 __import__(module_str)
         mod = sys.modules[module_str]
-        self._call_load_ipython_extension(mod)
+        return self._call_load_ipython_extension(mod)
 
     def unload_extension(self, module_str):
         """Unload an IPython extension by its module name.
@@ -2366,11 +2366,11 @@ class InteractiveShell(Component, Magic):
 
     def _call_load_ipython_extension(self, mod):
         if hasattr(mod, 'load_ipython_extension'):
-            mod.load_ipython_extension(self)
+            return mod.load_ipython_extension(self)
 
     def _call_unload_ipython_extension(self, mod):
         if hasattr(mod, 'unload_ipython_extension'):
-            mod.unload_ipython_extension(self)
+            return mod.unload_ipython_extension(self)
 
     #-------------------------------------------------------------------------
     # Things related to the prefilter
