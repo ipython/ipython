@@ -60,9 +60,9 @@ import nosepatch  # monkeypatch nose
 
 # We already have python3-compliant code for parametric tests
 if sys.version[0]=='2':
-    from _paramtestpy2 import parametric
+    from _paramtestpy2 import parametric, ParametricTestCase
 else:
-    from _paramtestpy3 import parametric
+    from _paramtestpy3 import parametric, ParametricTestCase
 
 # Expose the unittest-driven decorators
 from ipunittest import ipdoctest, ipdocstring

@@ -20,7 +20,9 @@ import os
 import shutil
 import sys
 import tempfile
+import unittest
 
+from cStringIO import StringIO
 from os.path import join, abspath, split
 
 # third-party
@@ -32,6 +34,7 @@ from nose.tools import raises
 # Our own
 import IPython
 from IPython.utils import genutils
+from IPython.testing import decorators as dec
 from IPython.testing.decorators import skipif, skip_if_not_win32
 
 # Platform-dependent imports
@@ -107,7 +110,7 @@ def teardown_environment():
         (wreg.OpenKey, wreg.QueryValueEx,) = platformstuff
 
 # Build decorator that uses the setup_environment/setup_environment
-with_enivronment = with_setup(setup_environment, teardown_environment)
+with_environment = with_setup(setup_environment, teardown_environment)
 
 
 #
@@ -115,7 +118,7 @@ with_enivronment = with_setup(setup_environment, teardown_environment)
 #
 
 @skip_if_not_win32
-@with_enivronment
+@with_environment
 def test_get_home_dir_1():
     """Testcase for py2exe logic, un-compressed lib
     """
@@ -128,7 +131,7 @@ def test_get_home_dir_1():
     nt.assert_equal(home_dir, abspath(HOME_TEST_DIR))
     
 @skip_if_not_win32
-@with_enivronment
+@with_environment
 def test_get_home_dir_2():
     """Testcase for py2exe logic, compressed lib
     """
@@ -139,14 +142,14 @@ def test_get_home_dir_2():
     home_dir = genutils.get_home_dir()
     nt.assert_equal(home_dir, abspath(HOME_TEST_DIR).lower())
 
-@with_enivronment
+@with_environment
 def test_get_home_dir_3():
     """Testcase $HOME is set, then use its value as home directory."""
     env["HOME"] = HOME_TEST_DIR
     home_dir = genutils.get_home_dir()
     nt.assert_equal(home_dir, env["HOME"])
 
-@with_enivronment
+@with_environment
 def test_get_home_dir_4():
     """Testcase $HOME is not set, os=='poix'. 
     This should fail with HomeDirError"""
@@ -156,7 +159,7 @@ def test_get_home_dir_4():
     nt.assert_raises(genutils.HomeDirError, genutils.get_home_dir)
         
 @skip_if_not_win32
-@with_enivronment
+@with_environment
 def test_get_home_dir_5():
     """Testcase $HOME is not set, os=='nt' 
     env['HOMEDRIVE'],env['HOMEPATH'] points to path."""
@@ -169,7 +172,7 @@ def test_get_home_dir_5():
     nt.assert_equal(home_dir, abspath(HOME_TEST_DIR))
 
 @skip_if_not_win32
-@with_enivronment
+@with_environment
 def test_get_home_dir_6():
     """Testcase $HOME is not set, os=='nt' 
     env['HOMEDRIVE'],env['HOMEPATH'] do not point to path.
@@ -186,7 +189,7 @@ def test_get_home_dir_6():
 
 # Should we stub wreg fully so we can run the test on all platforms?
 @skip_if_not_win32
-@with_enivronment
+@with_environment
 def test_get_home_dir_7():
     """Testcase $HOME is not set, os=='nt' 
     env['HOMEDRIVE'],env['HOMEPATH'], env['USERPROFILE'] missing
@@ -214,7 +217,7 @@ def test_get_home_dir_7():
 # Tests for get_ipython_dir
 #
 
-@with_enivronment
+@with_environment
 def test_get_ipython_dir_1():
     """test_get_ipython_dir_1, Testcase to see if we can call get_ipython_dir without Exceptions."""
     env['IPYTHONDIR'] = "someplace/.ipython"
@@ -222,7 +225,7 @@ def test_get_ipython_dir_1():
     nt.assert_equal(ipdir, "someplace/.ipython")
 
 
-@with_enivronment
+@with_environment
 def test_get_ipython_dir_2():
     """test_get_ipython_dir_2, Testcase to see if we can call get_ipython_dir without Exceptions."""
     genutils.get_home_dir = lambda : "someplace"
@@ -283,3 +286,38 @@ def test_filefind():
 def test_get_ipython_package_dir():
     ipdir = genutils.get_ipython_package_dir()
     nt.assert_true(os.path.isdir(ipdir))
+
+
+def test_tee_simple():
+    "Very simple check with stdout only"
+    chan = StringIO()
+    text = 'Hello'
+    tee = genutils.Tee(chan, channel='stdout')
+    print >> chan, text,
+    nt.assert_equal(chan.getvalue(), text)
+
+
+class TeeTestCase(dec.ParametricTestCase):
+
+    def tchan(self, channel, check='close'):
+        trap = StringIO()
+        chan = StringIO()
+        text = 'Hello'
+        
+        std_ori = getattr(sys, channel)
+        setattr(sys, channel, trap)
+
+        tee = genutils.Tee(chan, channel=channel)
+        print >> chan, text,
+        setattr(sys, channel, std_ori)
+        trap_val = trap.getvalue()
+        nt.assert_equals(chan.getvalue(), text)
+        if check=='close':
+            tee.close()
+        else:
+            del tee
+
+    def test(self):
+        for chan in ['stdout', 'stderr']:
+            for check in ['close', 'del']:
+                yield self.tchan(chan, check)

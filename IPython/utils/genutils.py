@@ -105,6 +105,65 @@ if sys.platform == 'win32' and readline.have_readline:
     Term = IOTerm(cout=readline._outputfile,cerr=readline._outputfile)
 
 
+class Tee(object):
+    """A class to duplicate an output stream to stdout/err.
+
+    This works in a manner very similar to the Unix 'tee' command.
+
+    When the object is closed or deleted, it closes the original file given to
+    it for duplication.
+    """
+    # Inspired by:
+    # http://mail.python.org/pipermail/python-list/2007-May/442737.html
+
+    def __init__(self, file, mode=None, channel='stdout'):
+        """Construct a new Tee object.
+
+        Parameters
+        ----------
+        file : filename or open filehandle (writable)
+          File that will be duplicated
+
+        mode : optional, valid mode for open().
+          If a filename was give, open with this mode.
+
+        channel : str, one of ['stdout', 'stderr']  
+        """
+        if channel not in ['stdout', 'stderr']:
+            raise ValueError('Invalid channel spec %s' % channel)
+        
+        if hasattr(file, 'write') and hasattr(file, 'seek'):
+            self.file = file
+        else:
+            self.file = open(name, mode)
+        self.channel = channel
+        self.ostream = getattr(sys, channel)
+        setattr(sys, channel, self)
+        self._closed = False
+
+    def close(self):
+        """Close the file and restore the channel."""
+        self.flush()
+        setattr(sys, self.channel, self.ostream)
+        self.file.close()
+        self._closed = True
+
+    def write(self, data):
+        """Write data to both channels."""
+        self.file.write(data)
+        self.ostream.write(data)
+        self.ostream.flush()
+
+    def flush(self):
+        """Flush both channels."""
+        self.file.flush()
+        self.ostream.flush()
+
+    def __del__(self):
+        if not self._closed:
+            self.close()
+        
+
 #****************************************************************************
 # Generic warning/error printer, used by everything else
 def warn(msg,level=2,exit_val=1):
