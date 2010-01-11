@@ -854,11 +854,11 @@ class VerboseTB(TBTools):
             with display_trap:
                 self.pdb.reset()
                 # Find the right frame so we don't pop up inside ipython itself
-                if hasattr(self,'tb'):
+                if hasattr(self,'tb') and self.tb is not None:
                     etb = self.tb
                 else:
                     etb = self.tb = sys.last_traceback
-                while self.tb.tb_next is not None:
+                while self.tb is not None and self.tb.tb_next is not None:
                     self.tb = self.tb.tb_next
                 if etb and etb.tb_next:
                     etb = etb.tb_next
