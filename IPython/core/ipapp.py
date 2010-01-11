@@ -361,8 +361,12 @@ class IPythonApp(Application):
     # Private and configuration attributes
     _CrashHandler = crashhandler.IPythonCrashHandler
     
-    def __init__(self, argv=None, **shell_params):
+    def __init__(self, argv=None,
+                 constructor_config=None, override_config=None,
+                 **shell_params):
         """Create a new IPythonApp.
+
+        See the parent class for details on how configuration is handled.
 
         Parameters
         ----------
@@ -370,11 +374,20 @@ class IPythonApp(Application):
           If given, used as the command-line argv environment to read arguments
           from.
 
+        constructor_config : optional, Config
+          If given, additional config that is merged last, after internal
+          defaults, command-line and file-based configs.
+
+        override_config : optional, Config
+          If given, config that overrides all others unconditionally (except
+          for internal defaults, which ensure that all parameters exist).
+
         shell_params : optional, dict
           All other keywords are passed to the :class:`iplib.InteractiveShell`
           constructor. 
         """
-        super(IPythonApp, self).__init__(argv)
+        super(IPythonApp, self).__init__(argv, constructor_config,
+                                         override_config)
         self.shell_params = shell_params
 
     def create_default_config(self):
@@ -449,8 +462,7 @@ class IPythonApp(Application):
         # unless the -i flag (Global.force_interact) is true.
         code_to_run = config.Global.get('code_to_run','')
         file_to_run = False
-        if len(self.extra_args)>=1:
-            if self.extra_args[0]:
+        if self.extra_args and self.extra_args[0]:
                 file_to_run = True
         if file_to_run or code_to_run:
             if not config.Global.force_interact:

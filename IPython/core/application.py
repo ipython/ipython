@@ -84,26 +84,61 @@ app_cl_args = (
     )
 
 class Application(object):
-    """Load a config, construct components and set them running."""
+    """Load a config, construct components and set them running.
+
+    The configuration of an application can be done via four different Config
+    objects, which are loaded and ultimately merged into a single one used from
+    that point on by the app.  These are:
+
+    1. default_config: internal defaults, implemented in code.
+    2. file_config: read from the filesystem.
+    3. command_line_config: read from the system's command line flags.
+    4. constructor_config: passed parametrically to the constructor.
+
+    During initialization, 3 is actually read before 2, since at the
+    command-line one may override the location of the file to be read.  But the
+    above is the order in which the merge is made.
+
+    There is a final config object can be created and passed to the
+    constructor: override_config.  If it exists, this completely overrides the
+    configs 2-4 above (the default is still used to ensure that all needed
+    fields at least are created).  This makes it easier to create
+    parametrically (e.g. in testing or sphinx plugins) objects with a known
+    configuration, that are unaffected by whatever arguments may be present in
+    sys.argv or files in the user's various directories.
+    """
 
     name = u'ipython'
     description = 'IPython: an enhanced interactive Python shell.'
     #: usage message printed by argparse. If None, auto-generate
     usage = None
     config_file_name = u'ipython_config.py'
-    # Track the default and actual separately because some messages are
-    # only printed if we aren't using the default.
+    #: Track the default and actual separately because some messages are
+    #: only printed if we aren't using the default.
     default_config_file_name = config_file_name
     default_log_level = logging.WARN
-    # Set by --profile option
+    #: Set by --profile option
     profile_name = None
     #: User's ipython directory, typically ~/.ipython/
     ipython_dir = None
+    #: internal defaults, implemented in code.
+    default_config = None
+    #: read from the filesystem
+    file_config = None
+    #: read from the system's command line flags
+    command_line_config = None
+    #: passed parametrically to the constructor.
+    constructor_config = None
+    #: final override, if given supercedes file/command/constructor configs
+    override_config = None
     #: A reference to the argv to be used (typically ends up being sys.argv[1:])
     argv = None
     #: Default command line arguments.  Subclasses should create a new tuple
     #: that *includes* these.
     cl_arguments = app_cl_args
+
+    #: extra arguments computed by the command-line loader
+    extra_args = None
 
     # Private attributes
     _exiting = False
@@ -112,8 +147,10 @@ class Application(object):
     # Class choices for things that will be instantiated at runtime.
     _CrashHandler = crashhandler.CrashHandler
 
-    def __init__(self, argv=None):
+    def __init__(self, argv=None, constructor_config=None, override_config=None):
         self.argv = sys.argv[1:] if argv is None else argv
+        self.constructor_config = constructor_config
+        self.override_config = override_config
         self.init_logger()
 
     def init_logger(self):
@@ -134,7 +171,14 @@ class Application(object):
     log_level = property(_get_log_level, _set_log_level)
 
     def initialize(self):
-        """Start the application."""
+        """Initialize the application.
+
+        Loads all configuration information and sets all application state, but
+        does not start any relevant processing (typically some kind of event
+        loop).
+
+        Once this method has been called, the application is flagged as
+        initialized and the method becomes a no-op."""
         
         if self._initialized:
             return
@@ -144,31 +188,50 @@ class Application(object):
         # handler is in place, we can let any subsequent exception propagate,
         # as our handler will log it with much better detail than the default.
         self.attempt(self.create_crash_handler)
+
+        # Configuration phase
+        # Default config (internally hardwired in application code)
         self.create_default_config()
         self.log_default_config()
         self.set_default_config_log_level()
-        self.pre_load_command_line_config()
-        self.load_command_line_config()
-        self.set_command_line_config_log_level()
-        self.post_load_command_line_config()
-        self.log_command_line_config()
+
+        if self.override_config is None:
+            # Command-line config
+            self.pre_load_command_line_config()
+            self.load_command_line_config()
+            self.set_command_line_config_log_level()
+            self.post_load_command_line_config()
+            self.log_command_line_config()
+
+        # Find resources needed for filesystem access, using information from
+        # the above two
         self.find_ipython_dir()
         self.find_resources()
         self.find_config_file_name()
         self.find_config_file_paths()
-        self.pre_load_file_config()
-        self.load_file_config()
-        self.set_file_config_log_level()
-        self.post_load_file_config()
-        self.log_file_config()
+
+        if self.override_config is None:
+            # File-based config
+            self.pre_load_file_config()
+            self.load_file_config()
+            self.set_file_config_log_level()
+            self.post_load_file_config()
+            self.log_file_config()
+
+        # Merge all config objects into a single one the app can then use
         self.merge_configs()
         self.log_master_config()
+
+        # Construction phase
         self.pre_construct()
         self.construct()
         self.post_construct()
+
+        # Done, flag as such and
         self._initialized = True
 
     def start(self):
+        """Start the application."""
         self.initialize()
         self.start_app()
 
@@ -356,9 +419,19 @@ class Application(object):
         """Merge the default, command line and file config objects."""
         config = Config()
         config._merge(self.default_config)
-        config._merge(self.file_config)
-        config._merge(self.command_line_config)
+        if self.override_config is None:
+            config._merge(self.file_config)
+            config._merge(self.command_line_config)
+            if self.constructor_config is not None:
+                config._merge(self.constructor_config)
+        else:
+            config._merge(self.override_config)
+        # XXX fperez - propose to Brian we rename master_config to simply
+        # config, I think this is going to be heavily used in examples and
+        # application code and the name is shorter/easier to find/remember.
+        # For now, just alias it...
         self.master_config = config
+        self.config = config
 
     def log_master_config(self):
         self.log.debug("Master config created:")

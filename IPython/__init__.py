@@ -16,10 +16,10 @@ IPython is a set of tools for interactive and exploratory computing in Python.
 #-----------------------------------------------------------------------------
 # Imports
 #-----------------------------------------------------------------------------
+from __future__ import absolute_import
 
 import os
 import sys
-from IPython.core import release
 
 #-----------------------------------------------------------------------------
 # Setup everything
@@ -38,12 +38,16 @@ sys.path.append(os.path.join(os.path.dirname(__file__), "extensions"))
 #-----------------------------------------------------------------------------
 
 # In some cases, these are causing circular imports.
-from IPython.core.iplib import InteractiveShell
-from IPython.core.embed import embed
-from IPython.core.error import TryNext
-from IPython.testing import test
+from .config.loader import Config
+from .core import release
+from .core.application import Application
+from .core.ipapp import IPythonApp
+from .core.embed import embed
+from .core.error import TryNext
+from .core.iplib import InteractiveShell
+from .testing import test
 
-from IPython.lib import (
+from .lib import (
     enable_wx, disable_wx,
     enable_gtk, disable_gtk,
     enable_qt4, disable_qt4,
