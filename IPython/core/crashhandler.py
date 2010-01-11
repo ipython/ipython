@@ -41,7 +41,7 @@ class CrashHandler(object):
 
     def __init__(self,app, app_name, contact_name=None, contact_email=None, 
                  bug_tracker=None, crash_report_fname='CrashReport.txt', 
-                 show_crash_traceback=True):
+                 show_crash_traceback=True, call_pdb=False):
         """New crash handler.
 
         Inputs:
@@ -83,6 +83,8 @@ class CrashHandler(object):
         self.crash_report_fname = crash_report_fname
         self.show_crash_traceback = show_crash_traceback
         self.section_sep = '\n\n'+'*'*75+'\n\n'
+        self.call_pdb = call_pdb
+        #self.call_pdb = True # dbg
         
         # Hardcoded defaults, which can be overridden either by subclasses or
         # at runtime for the instance.
@@ -133,8 +135,14 @@ $self.bug_tracker
         # properly expanded out in the user message template
         self.crash_report_fname = report_name
         TBhandler = ultratb.VerboseTB(color_scheme=color_scheme,
-                                      long_header=1)
-        traceback = TBhandler.text(etype,evalue,etb,context=31)
+                                      long_header=1,
+                                      call_pdb=self.call_pdb,
+                                      )
+        if self.call_pdb:
+            TBhandler(etype,evalue,etb)
+            return
+        else:
+            traceback = TBhandler.text(etype,evalue,etb,context=31)
 
         # print traceback to screen
         if self.show_crash_traceback:
