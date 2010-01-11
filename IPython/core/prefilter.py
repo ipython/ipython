@@ -427,11 +427,19 @@ class PrefilterManager(Component):
         which is the case when the user goes back to a multiline history
         entry and presses enter.
         """
-        out = []
-        for line in lines.rstrip('\n').split('\n'):
-            out.append(self.prefilter_line(line, continue_prompt))
-        return '\n'.join(out)
-
+        llines = lines.rstrip('\n').split('\n')
+        # We can get multiple lines in one shot, where multiline input 'blends'
+        # into one line, in cases like recalling from the readline history
+        # buffer.  We need to make sure that in such cases, we correctly
+        # communicate downstream which line is first and which are continuation
+        # ones.
+        if len(llines) > 1:
+            out = '\n'.join([self.prefilter_line(line, lnum>0)
+                             for lnum, line in enumerate(llines) ])
+        else:
+            out = self.prefilter_line(llines[0], continue_prompt)
+            
+        return out
 
 #-----------------------------------------------------------------------------
 # Prefilter transformers
