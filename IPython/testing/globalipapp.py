@@ -72,7 +72,7 @@ class ipnsdict(dict):
     def clear(self):
         dict.clear(self)
         self.update(self._savedict)
-
+        
     def _checkpoint(self):
         self._savedict.clear()
         self._savedict.update(self)
@@ -127,16 +127,29 @@ def start_ipython():
     _excepthook = sys.excepthook
     _main = sys.modules.get('__main__')
 
+    # Create custom argv and namespaces for our IPython to be test-friendly
     argv = tools.default_argv()
+    user_ns, global_ns = iplib.make_user_namespaces(ipnsdict(), {})
     
-    # Start IPython instance.  We customize it to start with minimal frills.
-    user_ns,global_ns = iplib.make_user_namespaces(ipnsdict(),{})
+    # Create and initialize our test-friendly IPython instance.
     ip = ipapp.IPythonApp(argv, user_ns=user_ns, user_global_ns=global_ns)
     ip.initialize()
+
+    # A few more tweaks needed for playing nicely with doctests...
+    
+    # These traps are normally only active for interactive use, set them
+    # permanently since we'll be mocking interactive sessions.
     ip.shell.builtin_trap.set()
 
     # Set error printing to stdout so nose can doctest exceptions
     ip.shell.InteractiveTB.out_stream = 'stdout'
+    
+    # Modify the IPython system call with one that uses getoutput, so that we
+    # can capture subcommands and print them to Python's stdout, otherwise the
+    # doctest machinery would miss them.
+    ip.shell.system = xsys
+
+    # IPython is ready, now clean up some global state...
     
     # Deactivate the various python system hooks added by ipython for
     # interactive convenience so we don't confuse the doctest system
@@ -146,15 +159,10 @@ def start_ipython():
 
     # So that ipython magics and aliases can be doctested (they work by making
     # a call into a global _ip object).  Also make the top-level get_ipython
-    # now return this without calling here again
+    # now return this without recursively calling here again.
     _ip = ip.shell
     get_ipython = _ip.get_ipython
     __builtin__._ip = _ip
     __builtin__.get_ipython = get_ipython
-
-    # Modify the IPython system call with one that uses getoutput, so that we
-    # can capture subcommands and print them to Python's stdout, otherwise the
-    # doctest machinery would miss them.
-    ip.shell.system = xsys
 
     return _ip
