@@ -55,7 +55,7 @@ env = os.environ
 TEST_FILE_PATH = split(abspath(__file__))[0]
 TMP_TEST_DIR = tempfile.mkdtemp()
 HOME_TEST_DIR = join(TMP_TEST_DIR, "home_test_dir")
-IP_TEST_DIR = join(HOME_TEST_DIR,'_ipython')
+IP_TEST_DIR = join(HOME_TEST_DIR,'.ipython')
 #
 # Setup/teardown functions/decorators
 #
@@ -88,19 +88,17 @@ def setup_environment():
     each testfunction needs a pristine environment.
     """
     global oldstuff, platformstuff
-    oldstuff = (env.copy(), os.name, genutils.get_home_dir, IPython.__file__,)
+    oldstuff = (env.copy(), os.name, genutils.get_home_dir, IPython.__file__)
 
     if os.name == 'nt':
         platformstuff = (wreg.OpenKey, wreg.QueryValueEx,)
 
-    # Remove both spellings of env variables if present
-    env.pop('IPYTHON_DIR', None)
-    env.pop('IPYTHONDIR', None)
-
+ 
 def teardown_environment():
     """Restore things that were remebered by the setup_environment function
     """
     (oldenv, os.name, genutils.get_home_dir, IPython.__file__,) = oldstuff
+        
     for key in env.keys():
         if key not in oldenv:
             del env[key]
@@ -233,6 +231,8 @@ def test_get_ipython_dir_2():
     """test_get_ipython_dir_2, Testcase to see if we can call get_ipython_dir without Exceptions."""
     genutils.get_home_dir = lambda : "someplace"
     os.name = "posix"
+    env.pop('IPYTHON_DIR', None)
+    env.pop('IPYTHONDIR', None)
     ipdir = genutils.get_ipython_dir()
     nt.assert_equal(ipdir, os.path.join("someplace", ".ipython"))
 

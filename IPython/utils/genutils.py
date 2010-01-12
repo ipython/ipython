@@ -614,10 +614,18 @@ def filefind(filename, path_dirs=None):
     -------
     Raises :exc:`IOError` or returns absolute path to file.
     """
+    
+    # If paths are quoted, abspath gets confused, strip them...
+    filename = filename.strip('"').strip("'")
+    # If the input is an absolute path, just check it exists
+    if os.path.isabs(filename) and os.path.isfile(filename):
+        return filename
+        
     if path_dirs is None:
         path_dirs = ("",)
     elif isinstance(path_dirs, basestring):
         path_dirs = (path_dirs,)
+        
     for path in path_dirs:
         if path == '.': path = os.getcwd()
         testname = expand_path(os.path.join(path, filename))
@@ -883,6 +891,7 @@ def get_ipython_dir():
     """
     ipdir_def = '.ipython'
     home_dir = get_home_dir()
+    #import pdb; pdb.set_trace()  # dbg
     ipdir = os.environ.get(
         'IPYTHON_DIR', os.environ.get(
             'IPYTHONDIR', os.path.join(home_dir, ipdir_def)
