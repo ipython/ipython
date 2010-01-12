@@ -1619,7 +1619,6 @@ class InteractiveShell(Component, Magic):
         valid Python code you can type at the interpreter, including loops and
         compound statements.
         """
-
         args = arg_s.split(' ',1)
         magic_name = args[0]
         magic_name = magic_name.lstrip(prefilter.ESC_MAGIC)

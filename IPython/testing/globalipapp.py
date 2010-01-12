@@ -134,12 +134,9 @@ def start_ipython():
     ip = ipapp.IPythonApp(argv, user_ns=user_ns, user_global_ns=global_ns)
     ip.initialize()
     ip.shell.builtin_trap.set()
-    # Set stderr to stdout so nose can doctest exceptions
-    ## Term.cerr = sys.stdout
-    ## sys.stderr = sys.stdout
+
+    # Set error printing to stdout so nose can doctest exceptions
     ip.shell.InteractiveTB.out_stream = 'stdout'
-    # Butcher the logger
-    ip.shell.log = lambda *a,**k: None
     
     # Deactivate the various python system hooks added by ipython for
     # interactive convenience so we don't confuse the doctest system
@@ -159,13 +156,5 @@ def start_ipython():
     # can capture subcommands and print them to Python's stdout, otherwise the
     # doctest machinery would miss them.
     ip.shell.system = xsys
-
-    # XXX - For some very bizarre reason, the loading of %history by default is
-    # failing.  This needs to be fixed later, but for now at least this ensures
-    # that tests that use %hist run to completion.
-    from IPython.core import history
-    history.init_ipython(ip.shell)
-    if not hasattr(ip.shell,'magic_history'):
-        raise RuntimeError("Can't load magics, aborting")
 
     return _ip
