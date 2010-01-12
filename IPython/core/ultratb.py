@@ -312,6 +312,11 @@ def _format_traceback_lines(lnum, index, lines, Colors, lvals=None,scheme=None):
 # Module classes
 class TBTools:
     """Basic tools used by all traceback printer classes."""
+    #: Default output stream, can be overridden at call time.  A special value
+    #: of 'stdout' *as a string* can be given to force extraction of sys.stdout
+    #: at runtime.  This allows testing exception printing with doctests, that
+    #: swap sys.stdout just at execution time.
+    out_stream = sys.stderr
 
     def __init__(self,color_scheme = 'NoColor',call_pdb=False):
         # Whether to call the interactive pdb debugger after printing
@@ -379,13 +384,29 @@ class ListTB(TBTools):
         print >> Term.cerr, self.text(etype,value,elist)
         Term.cerr.flush()
 
-    def text(self,etype, value, elist,context=5):
-        """Return a color formatted string with the traceback info."""
+    def text(self, etype, value, elist, context=5):
+        """Return a color formatted string with the traceback info.
+
+        Parameters
+        ----------
+        etype : exception type
+          Type of the exception raised.
+
+        value : object
+          Data stored in the exception
+
+        elist : list
+          List of frames, see class docstring for details.
+
+        Returns
+        -------
+        String with formatted exception.
+        """
 
         Colors = self.Colors
-        out_string = ['%s%s%s\n' % (Colors.topline,'-'*60,Colors.Normal)]
+        out_string = []
         if elist:
-            out_string.append('Traceback %s(most recent call last)%s:' % \
+            out_string.append('Traceback %s(most recent call last)%s:' %
                                 (Colors.normalEm, Colors.Normal) + '\n')
             out_string.extend(self._format_list(elist))
         lines = self._format_exception_only(etype, value)
@@ -492,14 +513,28 @@ class ListTB(TBTools):
             else:
                 list.append('%s\n' % str(stype))
 
-        # vds:>>
+        # sync with user hooks
         if have_filedata:
             ipinst = ipapi.get()
             if ipinst is not None:
                 ipinst.hooks.synchronize_with_editor(filename, lineno, 0)
-        # vds:<<
 
         return list
+
+    def show_exception_only(self, etype, value):
+        """Only print the exception type and message, without a traceback.
+        
+        Parameters
+        ----------
+        etype : exception type
+        value : exception value
+        """
+        # This method needs to use __call__ from *this* class, not the one from
+        # a subclass whose signature or behavior may be different
+        Term.cout.flush()
+        ostream = sys.stdout if self.out_stream == 'stdout' else Term.cerr
+        print >> ostream, ListTB.text(self, etype, value, []),
+        ostream.flush()        
 
     def _some_str(self, value):
         # Lifted from traceback.py
@@ -980,6 +1015,7 @@ class AutoFormattedTB(FormattedTB):
     except:
       AutoTB()  # or AutoTB(out=logfile) where logfile is an open file object
     """
+    
     def __call__(self,etype=None,evalue=None,etb=None,
                  out=None,tb_offset=None):
         """Print out a formatted exception traceback.
@@ -990,9 +1026,9 @@ class AutoFormattedTB(FormattedTB):
           - tb_offset: the number of frames to skip over in the stack, on a
           per-call basis (this overrides temporarily the instance's tb_offset
           given at initialization time.  """
-        
+
         if out is None:
-            out = Term.cerr
+            out = sys.stdout if self.out_stream=='stdout' else self.out_stream
         Term.cout.flush()
         if tb_offset is not None:
             tb_offset, self.tb_offset = self.tb_offset, tb_offset

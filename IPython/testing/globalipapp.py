@@ -20,6 +20,7 @@ import os
 import sys
 
 from . import tools
+from IPython.utils.genutils import Term
 
 #-----------------------------------------------------------------------------
 # Functions
@@ -96,7 +97,7 @@ class ipnsdict(dict):
 
 def get_ipython():
     # This will get replaced by the real thing once we start IPython below
-    return None
+    return start_ipython()
 
 def start_ipython():
     """Start a global IPython shell, which we need for IPython-specific syntax.
@@ -133,6 +134,10 @@ def start_ipython():
     ip = ipapp.IPythonApp(argv, user_ns=user_ns, user_global_ns=global_ns)
     ip.initialize()
     ip.shell.builtin_trap.set()
+    # Set stderr to stdout so nose can doctest exceptions
+    ## Term.cerr = sys.stdout
+    ## sys.stderr = sys.stdout
+    ip.shell.InteractiveTB.out_stream = 'stdout'
     # Butcher the logger
     ip.shell.log = lambda *a,**k: None
     
@@ -143,8 +148,8 @@ def start_ipython():
     sys.excepthook = _excepthook
 
     # So that ipython magics and aliases can be doctested (they work by making
-    # a call into a global _ip object)
-
+    # a call into a global _ip object).  Also make the top-level get_ipython
+    # now return this without calling here again
     _ip = ip.shell
     get_ipython = _ip.get_ipython
     __builtin__._ip = _ip
@@ -155,11 +160,6 @@ def start_ipython():
     # doctest machinery would miss them.
     ip.shell.system = xsys
 
-    # Also patch our %run function in.
-    ## im = new.instancemethod(_run_ns_sync,_ip, _ip.__class__)
-    ## ip.shell.magic_run_ori = _ip.magic_run
-    ## ip.shell.magic_run = im
-
     # XXX - For some very bizarre reason, the loading of %history by default is
     # failing.  This needs to be fixed later, but for now at least this ensures
     # that tests that use %hist run to completion.
@@ -167,3 +167,5 @@ def start_ipython():
     history.init_ipython(ip.shell)
     if not hasattr(ip.shell,'magic_history'):
         raise RuntimeError("Can't load magics, aborting")
+
+    return _ip

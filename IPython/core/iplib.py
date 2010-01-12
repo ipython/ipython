@@ -1243,7 +1243,8 @@ class InteractiveShell(Component, Magic):
       """
       self.showtraceback((etype,value,tb),tb_offset=0)
 
-    def showtraceback(self,exc_tuple = None,filename=None,tb_offset=None):
+    def showtraceback(self,exc_tuple = None,filename=None,tb_offset=None,
+                      exception_only=False):
         """Display the exception that just occurred.
 
         If nothing is known about the exception, this is the method which
@@ -1254,18 +1255,24 @@ class InteractiveShell(Component, Magic):
         care of calling it if needed, so unless you are explicitly catching a
         SyntaxError exception, don't try to analyze the stack manually and
         simply call this method."""
-
-        
-        # Though this won't be called by syntax errors in the input line,
-        # there may be SyntaxError cases whith imported code.
         
         try:
             if exc_tuple is None:
                 etype, value, tb = sys.exc_info()
             else:
                 etype, value, tb = exc_tuple
+
+            if etype is None:
+                if hasattr(sys, 'last_type'):
+                    etype, value, tb = sys.last_type, sys.last_value, \
+                                       sys.last_traceback
+                else:
+                    self.write('No traceback available to show.\n')
+                    return
     
             if etype is SyntaxError:
+                # Though this won't be called by syntax errors in the input
+                # line, there may be SyntaxError cases whith imported code.
                 self.showsyntaxerror(filename)
             elif etype is UsageError:
                 print "UsageError:", value
@@ -1281,12 +1288,20 @@ class InteractiveShell(Component, Magic):
                 if etype in self.custom_exceptions:
                     self.CustomTB(etype,value,tb)
                 else:
-                    self.InteractiveTB(etype,value,tb,tb_offset=tb_offset)
-                    if self.InteractiveTB.call_pdb:
-                        # pdb mucks up readline, fix it back
-                        self.set_completer()
+                    if exception_only:
+                        m = ('An exception has occurred, use %tb to see the '
+                             'full traceback.')
+                        print m
+                        self.InteractiveTB.show_exception_only(etype, value)
+                    else:
+                        self.InteractiveTB(etype,value,tb,tb_offset=tb_offset)
+                        if self.InteractiveTB.call_pdb:
+                            # pdb mucks up readline, fix it back
+                            self.set_completer()
+                        
         except KeyboardInterrupt:
-            self.write("\nKeyboardInterrupt\n")
+            self.write("\nKeyboardInterrupt\n")        
+        
 
     def showsyntaxerror(self, filename=None):
         """Display the syntax error that just occurred.
@@ -1299,7 +1314,7 @@ class InteractiveShell(Component, Magic):
         """
         etype, value, last_traceback = sys.exc_info()
 
-        # See note about these variables in showtraceback() below
+        # See note about these variables in showtraceback() above
         sys.last_type = etype
         sys.last_value = value
         sys.last_traceback = last_traceback
@@ -1865,6 +1880,9 @@ class InteractiveShell(Component, Magic):
         # We are off again...
         __builtin__.__dict__['__IPYTHON__active'] -= 1
 
+        # Turn off the exit flag, so the mainloop can be restarted if desired
+        self.exit_now = False
+
     def safe_execfile(self, fname, *where, **kw):
         """A safe version of the builtin execfile().
 
@@ -1880,7 +1898,8 @@ class InteractiveShell(Component, Magic):
             One or two namespaces, passed to execfile() as (globals,locals).
             If only one is given, it is passed as both.
         exit_ignore : bool (False)
-            If True, then don't print errors for non-zero exit statuses.
+            If True, then silence SystemExit for non-zero status (it is always
+            silenced for zero status, as it is so common).
         """
         kw.setdefault('exit_ignore', False)
 
@@ -1905,40 +1924,21 @@ class InteractiveShell(Component, Magic):
 
         with prepended_to_syspath(dname):
             try:
-                if sys.platform == 'win32' and sys.version_info < (2,5,1):
-                    # Work around a bug in Python for Windows.  The bug was
-                    # fixed in in Python 2.5 r54159 and 54158, but that's still
-                    # SVN Python as of March/07.  For details, see:
-                    # http://projects.scipy.org/ipython/ipython/ticket/123
-                    try:
-                        globs,locs = where[0:2]
-                    except:
-                        try:
-                            globs = locs = where[0]
-                        except:
-                            globs = locs = globals()
-                    exec file(fname) in globs,locs
-                else:
-                    execfile(fname,*where)
-            except SyntaxError:
-                self.showsyntaxerror()
-                warn('Failure executing file: <%s>' % fname)
+                execfile(fname,*where)
             except SystemExit, status:
-                # Code that correctly sets the exit status flag to success (0)
-                # shouldn't be bothered with a traceback.  Note that a plain
-                # sys.exit() does NOT set the message to 0 (it's empty) so that
-                # will still get a traceback.  Note that the structure of the
-                # SystemExit exception changed between Python 2.4 and 2.5, so
-                # the checks must be done in a version-dependent way.
-                show = False
-                if status.args[0]==0 and not kw['exit_ignore']:
-                    show = True
-                if show:
-                    self.showtraceback()
-                    warn('Failure executing file: <%s>' % fname)
+                # If the call was made with 0 or None exit status (sys.exit(0)
+                # or sys.exit() ), don't bother showing a traceback, as both of
+                # these are considered normal by the OS:
+                # > python -c'import sys;sys.exit(0)'; echo $?
+                # 0
+                # > python -c'import sys;sys.exit()'; echo $?
+                # 0
+                # For other exit status, we show the exception unless
+                # explicitly silenced, but only in short form.
+                if status.code not in (0, None) and not kw['exit_ignore']:
+                    self.showtraceback(exception_only=True)
             except:
                 self.showtraceback()
-                warn('Failure executing file: <%s>' % fname)
 
     def safe_execfile_ipy(self, fname):
         """Like safe_execfile, but for .ipy files with IPython syntax.
@@ -2152,9 +2152,8 @@ class InteractiveShell(Component, Magic):
                 sys.excepthook = old_excepthook
         except SystemExit:
             self.resetbuffer()
-            self.showtraceback()
-            warn("Type %exit or %quit to exit IPython "
-                 "(%Exit or %Quit do so unconditionally).",level=1)
+            self.showtraceback(exception_only=True)
+            warn("To exit: use any of 'exit', 'quit', %Exit or Ctrl-D.", level=1)
         except self.custom_exceptions:
             etype,value,tb = sys.exc_info()
             self.CustomTB(etype,value,tb)

@@ -3603,4 +3603,10 @@ Defaulting color scheme to 'NoColor'"""
         """
         self.shell.enable_pylab(s)
 
+    def magic_tb(self, s):
+        """Print the last traceback with the currently active exception mode.
+
+        See %xmode for changing exception reporting modes."""
+        self.shell.showtraceback()
+
 # end Magic

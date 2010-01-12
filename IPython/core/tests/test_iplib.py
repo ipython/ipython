@@ -13,31 +13,15 @@ import tempfile
 import nose.tools as nt
 
 # our own packages
-from IPython.core import iplib
-from IPython.core import ipapi
 from IPython.testing import decorators as dec
+from IPython.testing.globalipapp import get_ipython
 
 #-----------------------------------------------------------------------------
 # Globals
 #-----------------------------------------------------------------------------
 
-# Useful global ipapi object and main IPython one.  Unfortunately we have a
-# long precedent of carrying the 'ipapi' global object which is injected into
-# the system namespace as _ip, but that keeps a pointer to the actual IPython
-# InteractiveShell instance, which is named IP.  Since in testing we do need
-# access to the real thing (we want to probe beyond what ipapi exposes), make
-# here a global reference to each.  In general, things that are exposed by the
-# ipapi instance should be read from there, but we also will often need to use
-# the actual IPython one.
-
-# Get the public instance of IPython, and if it's None, make one so we can use
-# it for testing
-ip = ipapi.get()
-if ip is None:
-    # IPython not running yet,  make one from the testing machinery for
-    # consistency when the test suite is being run via iptest
-    from IPython.testing.plugin import ipdoctest
-    ip = ipapi.get()
+# Get the public instance of IPython
+ip = get_ipython()
 
 #-----------------------------------------------------------------------------
 # Test functions
@@ -73,3 +57,189 @@ def test_reset():
             nvars_expected = 0
             
         yield nt.assert_equals(len(ns), nvars_expected)
+
+
+# Tests for reporting of exceptions in various modes, handling of SystemExit,
+# and %tb functionality.  This is really a mix of testing ultraTB and iplib.
+
+def doctest_tb_plain():
+    """
+In [18]: xmode plain
+Exception reporting mode: Plain
+
+In [19]: run simpleerr.py
+Traceback (most recent call last):
+  ...line 32, in <module>
+    bar(mode)
+  ...line 16, in bar
+    div0()
+  ...line 8, in div0
+    x/y
+ZeroDivisionError: integer division or modulo by zero
+    """
+
+
+def doctest_tb_context():
+    """
+In [3]: xmode context
+Exception reporting mode: Context
+
+In [4]: run simpleerr.py
+---------------------------------------------------------------------------
+ZeroDivisionError                         Traceback (most recent call last)
+<BLANKLINE>
+... in <module>()
+     30         mode = 'div'
+     31 
+---> 32     bar(mode)
+     33 
+     34 
+<BLANKLINE>
+... in bar(mode)
+     14     "bar"
+     15     if mode=='div':
+---> 16         div0()
+     17     elif mode=='exit':
+     18         try:
+<BLANKLINE>
+... in div0()
+      6     x = 1
+      7     y = 0
+----> 8     x/y
+      9 
+     10 def sysexit(stat, mode):
+<BLANKLINE>
+ZeroDivisionError: integer division or modulo by zero
+"""
+
+
+def doctest_tb_verbose():
+    """
+In [5]: xmode verbose
+Exception reporting mode: Verbose
+
+In [6]: run simpleerr.py
+---------------------------------------------------------------------------
+ZeroDivisionError                         Traceback (most recent call last)
+<BLANKLINE>
+... in <module>()
+     30         mode = 'div'
+     31 
+---> 32     bar(mode)
+        global bar = <function bar at ...>
+        global mode = 'div'
+     33 
+     34 
+<BLANKLINE>
+... in bar(mode='div')
+     14     "bar"
+     15     if mode=='div':
+---> 16         div0()
+        global div0 = <function div0 at ...>
+     17     elif mode=='exit':
+     18         try:
+<BLANKLINE>
+... in div0()
+      6     x = 1
+      7     y = 0
+----> 8     x/y
+        x = 1
+        y = 0
+      9 
+     10 def sysexit(stat, mode):
+<BLANKLINE>
+ZeroDivisionError: integer division or modulo by zero
+      """
+
+
+def doctest_tb_sysexit():
+    """
+In [17]: %xmode plain
+Exception reporting mode: Plain
+
+In [18]: %run simpleerr.py exit
+An exception has occurred, use %tb to see the full traceback.
+SystemExit: (1, 'Mode = exit')
+
+In [19]: %run simpleerr.py exit 2
+An exception has occurred, use %tb to see the full traceback.
+SystemExit: (2, 'Mode = exit')
+
+In [20]: %tb
+Traceback (most recent call last):
+  File ... in <module>
+    bar(mode)
+  File ... line 22, in bar
+    sysexit(stat, mode)
+  File ... line 11, in sysexit
+    raise SystemExit(stat, 'Mode = %s' % mode)
+SystemExit: (2, 'Mode = exit')
+
+In [21]: %xmode context
+Exception reporting mode: Context
+
+In [22]: %tb
+---------------------------------------------------------------------------
+SystemExit                                Traceback (most recent call last)
+<BLANKLINE>
+...<module>()
+     30         mode = 'div'
+     31 
+---> 32     bar(mode)
+     33 
+     34 
+<BLANKLINE>
+...bar(mode)
+     20         except:
+     21             stat = 1
+---> 22         sysexit(stat, mode)
+     23     else:
+     24         raise ValueError('Unknown mode')
+<BLANKLINE>
+...sysexit(stat, mode)
+      9 
+     10 def sysexit(stat, mode):
+---> 11     raise SystemExit(stat, 'Mode = %s' % mode)
+     12 
+     13 def bar(mode):
+<BLANKLINE>
+SystemExit: (2, 'Mode = exit')
+
+In [23]: %xmode verbose
+Exception reporting mode: Verbose
+
+In [24]: %tb
+---------------------------------------------------------------------------
+SystemExit                                Traceback (most recent call last)
+<BLANKLINE>
+... in <module>()
+     30         mode = 'div'
+     31 
+---> 32     bar(mode)
+        global bar = <function bar at ...>
+        global mode = 'exit'
+     33 
+     34 
+<BLANKLINE>
+... in bar(mode='exit')
+     20         except:
+     21             stat = 1
+---> 22         sysexit(stat, mode)
+        global sysexit = <function sysexit at ...>
+        stat = 2
+        mode = 'exit'
+     23     else:
+     24         raise ValueError('Unknown mode')
+<BLANKLINE>
+... in sysexit(stat=2, mode='exit')
+      9 
+     10 def sysexit(stat, mode):
+---> 11     raise SystemExit(stat, 'Mode = %s' % mode)
+        global SystemExit = undefined
+        stat = 2
+        mode = 'exit'
+     12 
+     13 def bar(mode):
+<BLANKLINE>
+SystemExit: (2, 'Mode = exit')
+    """
