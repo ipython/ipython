@@ -2681,11 +2681,12 @@ Defaulting color scheme to 'NoColor'"""
                             else:
                                 syscmdlist.append(ff)
             else:
+                no_alias = self.shell.alias_manager.no_alias
                 for pdir in path:
                     os.chdir(pdir)
                     for ff in os.listdir(pdir):
                         base, ext = os.path.splitext(ff)
-                        if isexec(ff) and base.lower() not in self.shell.no_alias:
+                        if isexec(ff) and base.lower() not in no_alias:
                             if ext.lower() == '.exe':
                                 ff = base
                                 try:
