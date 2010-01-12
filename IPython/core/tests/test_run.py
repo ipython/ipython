@@ -141,7 +141,12 @@ class TestMagicRunSimple(tt.TempFileMixin):
         _ip.magic('run "%s"' % self.fname)
         _ip.runlines('t = isinstance(f(), foo)')
         nt.assert_true(_ip.user_ns['t'])
-        
+
+    # We have to skip these in win32 because genutils.getoutputerr() crashes,
+    # due to the fact that subprocess does not support close_fds when
+    # redirecting stdout/err.  So unless someone who knows more tells us how to
+    # implement genutils.getoutputerr() in win32, we're stuck avoiding these.
+    @dec.skip_win32
     def test_obj_del(self):
         """Test that object's __del__ methods are called on exit."""
         
@@ -154,6 +159,7 @@ class TestMagicRunSimple(tt.TempFileMixin):
         self.mktmp(src)
         tt.ipexec_validate(self.fname, 'object A deleted')
 
+    @dec.skip_win32
     def test_tclass(self):
         mydir = os.path.dirname(__file__)
         tc = os.path.join(mydir, 'tclass')

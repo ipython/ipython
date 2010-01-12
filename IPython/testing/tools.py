@@ -174,7 +174,7 @@ def default_argv():
     ipcdir = os.path.dirname(default.__file__)
     ipconf = os.path.join(ipcdir,'ipython_config.py')
     return ['--colors=NoColor', '--no-term-title','--no-banner',
-            '--config-file=%s' % ipconf, '--autocall=0',
+            '--config-file="%s"' % ipconf, '--autocall=0',
             '--prompt-out=""']
     
 
@@ -203,9 +203,14 @@ def ipexec(fname, options=None):
     
     _ip = get_ipython()
     test_dir = os.path.dirname(__file__)
+    # Find the ipython script from the package we're using, so that the test
+    # suite can be run from the source tree without an installed IPython
+    ipython_package_dir = genutils.get_ipython_package_dir()
+    ipython_script = os.path.join(ipython_package_dir,'scripts','ipython')
+    ipython_cmd = 'python "%s"' % ipython_script
+    # Absolute path for filename
     full_fname = os.path.join(test_dir, fname)
-    ipython_cmd = platutils.find_cmd('ipython')
-    full_cmd = '%s %s %s' % (ipython_cmd, cmdargs, full_fname)
+    full_cmd = '%s %s "%s"' % (ipython_cmd, cmdargs, full_fname)
     return genutils.getoutputerror(full_cmd)
 
 
@@ -256,11 +261,14 @@ class TempFileMixin(object):
         self.fname = fname
 
     def teardown(self):
-        self.tmpfile.close()
-        try:
-            os.unlink(self.fname)
-        except:
-            # On Windows, even though we close the file, we still can't delete
-            # it.  I have no clue why
-            pass
+        if hasattr(self, 'tmpfile'):
+            # If the tmpfile wasn't made because of skipped tests, like in
+            # win32, there's nothing to cleanup.
+            self.tmpfile.close()
+            try:
+                os.unlink(self.fname)
+            except:
+                # On Windows, even though we close the file, we still can't
+                # delete it.  I have no clue why
+                pass
 
