@@ -93,8 +93,9 @@ def setup_environment():
     if os.name == 'nt':
         platformstuff = (wreg.OpenKey, wreg.QueryValueEx,)
 
-    if 'IPYTHONDIR' in env:
-        del env['IPYTHONDIR']
+    # Remove both spellings of env variables if present
+    env.pop('IPYTHON_DIR', None)
+    env.pop('IPYTHONDIR', None)
 
 def teardown_environment():
     """Restore things that were remebered by the setup_environment function
@@ -191,12 +192,14 @@ def test_get_home_dir_6():
 @skip_if_not_win32
 @with_environment
 def test_get_home_dir_7():
-    """Testcase $HOME is not set, os=='nt' 
-    env['HOMEDRIVE'],env['HOMEPATH'], env['USERPROFILE'] missing
+    """Testcase $HOME is not set, os=='nt'
+    
+    env['HOMEDRIVE'],env['HOMEPATH'], env['USERPROFILE'] and others missing
     """
     os.name = 'nt'
-    if 'HOME' in env: del env['HOME']
-    if 'HOMEDRIVE' in env: del env['HOMEDRIVE']
+    # Remove from stub environment all keys that may be set
+    for key in ['HOME', 'HOMESHARE', 'HOMEDRIVE', 'HOMEPATH', 'USERPROFILE']:
+        env.pop(key, None)
 
     #Stub windows registry functions
     def OpenKey(x, y):
@@ -220,7 +223,7 @@ def test_get_home_dir_7():
 @with_environment
 def test_get_ipython_dir_1():
     """test_get_ipython_dir_1, Testcase to see if we can call get_ipython_dir without Exceptions."""
-    env['IPYTHONDIR'] = "someplace/.ipython"
+    env['IPYTHON_DIR'] = "someplace/.ipython"
     ipdir = genutils.get_ipython_dir()
     nt.assert_equal(ipdir, "someplace/.ipython")
 

@@ -778,6 +778,7 @@ def get_home_dir():
 
     * On POSIX, we try $HOME.
     * On Windows we try:
+      - %HOME%: rare, but some people with unix-like setups may have defined it
       - %HOMESHARE%
       - %HOMEDRIVE\%HOMEPATH%
       - %USERPROFILE%
@@ -820,7 +821,12 @@ def get_home_dir():
         # is needed when running IPython on cluster where all paths have to 
         # be UNC.
         try:
-            homedir = env['HOMESHARE']
+            # A user with a lot of unix tools in win32 may have defined $HOME,
+            # honor it if it exists, but otherwise let the more typical
+            # %HOMESHARE% variable be used.
+            homedir = env.get('HOME')
+            if homedir is None:
+                homedir = env['HOMESHARE']
         except KeyError:
             pass
         else:
