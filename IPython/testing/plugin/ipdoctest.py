@@ -218,6 +218,7 @@ class DocTestCase(doctests.DocTestCase):
         self._dt_optionflags = optionflags
         self._dt_checker = checker
         self._dt_test = test
+        self._dt_test_globs_ori = test.globs
         self._dt_setUp = setUp
         self._dt_tearDown = tearDown
 
@@ -276,6 +277,12 @@ class DocTestCase(doctests.DocTestCase):
         super(DocTestCase, self).setUp()
 
     def tearDown(self):
+
+        # Undo the test.globs reassignment we made, so that the parent class
+        # teardown doesn't destroy the ipython namespace
+        if isinstance(self._dt_test.examples[0],IPExample):
+            self._dt_test.globs = self._dt_test_globs_ori
+            
         # XXX - fperez: I am not sure if this is truly a bug in nose 0.11, but
         # it does look like one to me: its tearDown method tries to run
         #
