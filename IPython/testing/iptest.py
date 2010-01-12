@@ -22,6 +22,7 @@ from __future__ import absolute_import
 # Module imports
 #-----------------------------------------------------------------------------
 
+# Stdlib
 import os
 import os.path as path
 import signal
@@ -31,9 +32,16 @@ import tempfile
 import time
 import warnings
 
+# Note: monkeypatch!
+# We need to monkeypatch a small problem in nose itself first, before importing
+# it for actual use.  This should get into nose upstream, but its release cycle
+# is slow and we need it for our parametric tests to work correctly.
+from . import nosepatch
+# Now, proceed to import nose itself
 import nose.plugins.builtin
 from nose.core import TestProgram
 
+# Our own imports
 from IPython.utils import genutils
 from IPython.utils.platutils import find_cmd, FindCmdError
 from . import globalipapp

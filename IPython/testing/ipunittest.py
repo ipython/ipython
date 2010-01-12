@@ -46,9 +46,6 @@ try:
 except:
     from ._doctest26 import TestResults
 
-# Our own, a nose monkeypatch
-from . import nosepatch
-
 # We already have python3-compliant code for parametric tests
 if sys.version[0]=='2':
     from ._paramtestpy2 import ParametricTestCase

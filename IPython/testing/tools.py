@@ -31,7 +31,14 @@ import re
 import sys
 import tempfile
 
-import nose.tools as nt
+try:
+    # These tools are used by parts of the runtime, so we make the nose
+    # dependency optional at this point.  Nose is a hard dependency to run the
+    # test suite, but NOT to use ipython itself.
+    import nose.tools as nt
+    has_nose = True
+except ImportError:
+    has_nose = False
 
 from IPython.utils import genutils, platutils
 
@@ -47,8 +54,9 @@ def %(name)s(*a,**kw):
     return nt.%(name)s(*a,**kw)
 """
 
-for _x in [a for a in dir(nt) if a.startswith('assert')]:
-    exec _tpl % dict(name=_x)
+if has_nose:
+    for _x in [a for a in dir(nt) if a.startswith('assert')]:
+        exec _tpl % dict(name=_x)
 
 #-----------------------------------------------------------------------------
 # Functions and classes
@@ -228,6 +236,8 @@ def ipexec_validate(fname, expected_out, expected_err=None,
     None
     """
 
+    import nose.tools as nt
+    
     out, err = ipexec(fname)
     nt.assert_equals(out.strip(), expected_out.strip())
     if expected_err:

@@ -55,9 +55,6 @@ import unittest
 # This is Michele Simionato's decorator module, kept verbatim.
 from IPython.external.decorator import decorator, update_wrapper
 
-# Our own modules
-import nosepatch  # monkeypatch nose
-
 # We already have python3-compliant code for parametric tests
 if sys.version[0]=='2':
     from _paramtestpy2 import parametric, ParametricTestCase
