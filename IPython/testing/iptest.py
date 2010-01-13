@@ -70,6 +70,7 @@ def test_for(mod):
     else:
         return True
 
+    
 have_curses = test_for('_curses')
 have_wx = test_for('wx')
 have_wx_aui = test_for('wx.aui')
@@ -136,7 +137,8 @@ def make_exclude():
         exclusions.append(ipjoin('utils', 'platutils_posix'))
 
     if not have_pexpect:
-        exclusions.append(ipjoin('scripts', 'irunner'))
+        exclusions.extend([ipjoin('scripts', 'irunner'),
+                           ipjoin('lib', 'irunner')])
 
     # This is scary.  We still have things in frontend and testing that
     # are being tested by nose that use twisted.  We need to rethink
