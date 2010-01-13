@@ -549,8 +549,6 @@ class CachedOutput:
             # print "Got prompt: ", outprompt
             if self.do_full_cache:
                 cout_write(outprompt)
-            else:
-                print "self.do_full_cache = False"
 
             # and now call a possibly user-defined print mechanism. Note that
             # self.display typically prints as a side-effect, we don't do any
