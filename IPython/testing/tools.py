@@ -25,6 +25,7 @@ Authors
 #-----------------------------------------------------------------------------
 # Required modules and packages
 #-----------------------------------------------------------------------------
+from __future__ import absolute_import
 
 import os
 import re
@@ -41,6 +42,8 @@ except ImportError:
     has_nose = False
 
 from IPython.utils import genutils, platutils
+
+from . import decorators as dec
 
 #-----------------------------------------------------------------------------
 # Globals
@@ -62,7 +65,11 @@ if has_nose:
 # Functions and classes
 #-----------------------------------------------------------------------------
 
+# The docstring for full_path doctests differently on win32 (different path
+# separator) so just skip the doctest there.  The example remains informative.
+doctest_deco = dec.skip_doctest if sys.platform == 'win32' else dec.null_deco
 
+@doctest_deco
 def full_path(startPath,files):
     """Make full paths for all the listed files, based on startPath.
 
@@ -141,6 +148,40 @@ def parse_test_output(txt):
 # So nose doesn't think this is a test
 parse_test_output.__test__ = False
 
+
+def cmd2argv(cmd):
+    r"""Take the path of a command and return a list (argv-style).
+
+    For a given path ``cmd``, this returns [cmd] if cmd's extension is .exe,
+    .com or .bat, and ['python', cmd] otherwise.
+
+    This is mostly a Windows utility, to deal with the fact that the scripts in
+    Windows get wrapped in .exe entry points, so we have to call them
+    differently.
+
+    Parameters
+    ----------
+    cmd : string
+      The path of the command.
+
+    Returns
+    -------
+    argv-style list.
+
+    Examples
+    --------
+    In [2]: cmd2argv('/usr/bin/ipython')
+    Out[2]: ['python', '/usr/bin/ipython']
+
+    In [3]: cmd2argv(r'C:\Python26\Scripts\ipython.exe')
+    Out[3]: ['C:\\Python26\\Scripts\\ipython.exe']
+    """
+    ext = os.path.splitext(cmd)[1]
+    if ext in ['.exe', '.com', '.bat']:
+        return [cmd]
+    else:
+        return ['python', cmd]
+    
 
 def temp_pyfile(src, ext='.py'):
     """Make a temporary python file, return filename and filehandle.

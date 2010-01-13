@@ -52,8 +52,6 @@ if sys.version[0]=='2':
 else:
     from ._paramtestpy3 import ParametricTestCase
 
-from . import globalipapp
-
 #-----------------------------------------------------------------------------
 # Classes and functions
 #-----------------------------------------------------------------------------
@@ -83,6 +81,8 @@ class IPython2PythonConverter(object):
 
     def __call__(self, ds):
         """Convert IPython prompts to python ones in a string."""
+        from . import globalipapp
+
         pyps1 = '>>> '
         pyps2 = '... '
         pyout = ''

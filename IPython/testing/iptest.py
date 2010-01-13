@@ -45,6 +45,7 @@ from nose.core import TestProgram
 from IPython.utils import genutils
 from IPython.utils.platutils import find_cmd, FindCmdError
 from . import globalipapp
+from . import tools
 from .plugin.ipdoctest import IPythonDoctest
 
 pjoin = path.join
@@ -56,6 +57,10 @@ pjoin = path.join
 # that imports 'sets' as of today
 warnings.filterwarnings('ignore', 'the sets module is deprecated',
                         DeprecationWarning )
+
+# This one also comes from Twisted
+warnings.filterwarnings('ignore', 'the sha module is deprecated',
+                        DeprecationWarning)
 
 #-----------------------------------------------------------------------------
 # Logic for skipping doctests
@@ -102,8 +107,11 @@ def make_exclude():
                   ipjoin('quarantine'),
                   ipjoin('deathrow'),
                   ipjoin('testing', 'attic'),
-                  ipjoin('testing', 'tools'),
+                  # This guy is probably attic material
                   ipjoin('testing', 'mkdoctests'),
+                  # Testing inputhook will need a lot of thought, to figure out
+                  # how to have tests that don't lock up with the gui event
+                  # loops in the picture
                   ipjoin('lib', 'inputhook'),
                   # Config files aren't really importable stand-alone
                   ipjoin('config', 'default'),
@@ -193,9 +201,9 @@ class IPTester(object):
                 # path:
                 iptest_path = pjoin(genutils.get_ipython_package_dir(),
                                     'scripts','iptest')
-            self.runner = ['python', iptest_path, '-v']
+            self.runner = tools.cmd2argv(iptest_path) + ['-v']
         else:
-            self.runner = ['python', os.path.abspath(find_cmd('trial'))]
+            self.runner = tools.cmd2argv(os.path.abspath(find_cmd('trial')))
         if params is None:
             params = []
         if isinstance(params,str):
