@@ -21,13 +21,13 @@ from IPython.core.component import Component, masquerade_as
 from IPython.core.iplib import InteractiveShell
 from IPython.extensions import pretty as pretty_ext
 from IPython.external import pretty
+from IPython.testing import decorators as dec
 from IPython.testing import tools as tt
 from IPython.utils.traitlets import Bool
 
 #-----------------------------------------------------------------------------
 # Tests
 #-----------------------------------------------------------------------------
-
 
 class InteractiveShellStub(Component):
     pprint = Bool(True)
@@ -92,6 +92,10 @@ B()
 """
 
 class TestPrettyInteractively(tt.TempFileMixin):
+    
+    # XXX Unfortunately, ipexec_validate fails under win32.  If someone helps
+    # us write a win32-compatible version, we can reactivate this test.
+    @dec.skip_win32
     def test_printers(self):
         self.mktmp(ipy_src, '.ipy')
         tt.ipexec_validate(self.fname, ipy_out)
