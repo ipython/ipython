@@ -47,7 +47,7 @@ class FullSynchronousMultiEngineTestCase(DeferredTestCase, IFullSynchronousMulti
     # how to fix it.  I hope Brian can have a stab at it, but at least by doing
     # this we can run the entire suite to completion.
     # Once the problem is cleared, remove this skip method.
-    def skip(self): pass
+    skip = True
     # END XXX
     
     def setUp(self):
