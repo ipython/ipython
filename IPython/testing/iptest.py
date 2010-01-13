@@ -83,73 +83,78 @@ have_gobject = test_for('gobject')
 
 
 def make_exclude():
-
-    # For the IPythonDoctest plugin, we need to exclude certain patterns that
-    # cause testing problems.  We should strive to minimize the number of
-    # skipped modules, since this means untested code.  As the testing
-    # machinery solidifies, this list should eventually become empty.
-    # These modules and packages will NOT get scanned by nose at all for tests
-    exclusions = [pjoin('IPython', 'external'),
-                  pjoin('IPython', 'frontend', 'process', 'winprocess.py'),
+    """Make patterns of modules and packages to exclude from testing.
+    
+    For the IPythonDoctest plugin, we need to exclude certain patterns that
+    cause testing problems.  We should strive to minimize the number of
+    skipped modules, since this means untested code.  As the testing
+    machinery solidifies, this list should eventually become empty.
+    These modules and packages will NOT get scanned by nose at all for tests.
+    """
+    # Simple utility to make IPython paths more readably, we need a lot of
+    # these below
+    ipjoin = lambda *paths: pjoin('IPython', *paths)
+    
+    exclusions = [ipjoin('external'),
+                  ipjoin('frontend', 'process', 'winprocess.py'),
                   pjoin('IPython_doctest_plugin'),
-                  pjoin('IPython', 'quarantine'),
-                  pjoin('IPython', 'deathrow'),
-                  pjoin('IPython', 'testing', 'attic'),
-                  pjoin('IPython', 'testing', 'tools'),
-                  pjoin('IPython', 'testing', 'mkdoctests'),
-                  pjoin('IPython', 'lib', 'inputhook'),
+                  ipjoin('quarantine'),
+                  ipjoin('deathrow'),
+                  ipjoin('testing', 'attic'),
+                  ipjoin('testing', 'tools'),
+                  ipjoin('testing', 'mkdoctests'),
+                  ipjoin('lib', 'inputhook'),
                   # Config files aren't really importable stand-alone
-                  pjoin('IPython', 'config', 'default'),
-                  pjoin('IPython', 'config', 'profile'),
+                  ipjoin('config', 'default'),
+                  ipjoin('config', 'profile'),
                   ]
 
     if not have_wx:
-        exclusions.append(pjoin('IPython', 'gui'))
-        exclusions.append(pjoin('IPython', 'frontend', 'wx'))
-        exclusions.append(pjoin('IPython', 'lib', 'inputhookwx'))
+        exclusions.append(ipjoin('gui'))
+        exclusions.append(ipjoin('frontend', 'wx'))
+        exclusions.append(ipjoin('lib', 'inputhookwx'))
 
     if not have_gtk or not have_gobject:
-        exclusions.append(pjoin('IPython', 'lib', 'inputhookgtk'))
+        exclusions.append(ipjoin('lib', 'inputhookgtk'))
 
     if not have_wx_aui:
-        exclusions.append(pjoin('IPython', 'gui', 'wx', 'wxIPython'))
+        exclusions.append(ipjoin('gui', 'wx', 'wxIPython'))
 
     if not have_objc:
-        exclusions.append(pjoin('IPython', 'frontend', 'cocoa'))
+        exclusions.append(ipjoin('frontend', 'cocoa'))
 
     if not sys.platform == 'win32':
-        exclusions.append(pjoin('IPython', 'utils', 'platutils_win32'))
+        exclusions.append(ipjoin('utils', 'platutils_win32'))
 
     # These have to be skipped on win32 because the use echo, rm, cd, etc.
     # See ticket https://bugs.launchpad.net/bugs/366982
     if sys.platform == 'win32':
-        exclusions.append(pjoin('IPython', 'testing', 'plugin', 'test_exampleip'))
-        exclusions.append(pjoin('IPython', 'testing', 'plugin', 'dtexample'))
+        exclusions.append(ipjoin('testing', 'plugin', 'test_exampleip'))
+        exclusions.append(ipjoin('testing', 'plugin', 'dtexample'))
 
     if not os.name == 'posix':
-        exclusions.append(pjoin('IPython', 'utils', 'platutils_posix'))
+        exclusions.append(ipjoin('utils', 'platutils_posix'))
 
     if not have_pexpect:
-        exclusions.append(pjoin('IPython', 'scripts', 'irunner'))
+        exclusions.append(ipjoin('scripts', 'irunner'))
 
     # This is scary.  We still have things in frontend and testing that
     # are being tested by nose that use twisted.  We need to rethink
     # how we are isolating dependencies in testing.
     if not (have_twisted and have_zi and have_foolscap):
-        exclusions.append(pjoin('IPython', 'frontend', 'asyncfrontendbase'))
-        exclusions.append(pjoin('IPython', 'frontend', 'prefilterfrontend'))
-        exclusions.append(pjoin('IPython', 'frontend', 'frontendbase'))
-        exclusions.append(pjoin('IPython', 'frontend', 'linefrontendbase'))
-        exclusions.append(pjoin('IPython', 'frontend', 'tests',
-                             'test_linefrontend'))
-        exclusions.append(pjoin('IPython', 'frontend', 'tests', 
-                             'test_frontendbase'))
-        exclusions.append(pjoin('IPython', 'frontend', 'tests',
-                             'test_prefilterfrontend'))
-        exclusions.append(pjoin('IPython', 'frontend', 'tests',
-                             'test_asyncfrontendbase')),
-        exclusions.append(pjoin('IPython', 'testing', 'parametric'))
-        exclusions.append(pjoin('IPython', 'testing', 'util'))
+        exclusions.extend(
+            [ipjoin('frontend', 'asyncfrontendbase'),
+             ipjoin('frontend', 'prefilterfrontend'),
+             ipjoin('frontend', 'frontendbase'),
+             ipjoin('frontend', 'linefrontendbase'),
+             ipjoin('frontend', 'tests', 'test_linefrontend'),
+             ipjoin('frontend', 'tests', 'test_frontendbase'),
+             ipjoin('frontend', 'tests', 'test_prefilterfrontend'),
+             ipjoin('frontend', 'tests', 'test_asyncfrontendbase'),
+             ipjoin('testing', 'parametric'),
+             ipjoin('testing', 'util'),
+             ipjoin('testing', 'tests', 'test_decorators_trial'),
+             ] )
 
     # This is needed for the reg-exp to match on win32 in the ipdoctest plugin.
     if sys.platform == 'win32':
