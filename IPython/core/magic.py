@@ -346,7 +346,7 @@ python-profiler package from non-free.""")
             raise ValueError,'incorrect mode given: %s' % mode
         # Get options
         list_all = kw.get('list_all',0)
-        posix = kw.get('posix',True)
+        posix = kw.get('posix', os.name == 'posix')
 
         # Check if we have more than one argument to warrant extra processing:
         odict = {}  # Dictionary with options

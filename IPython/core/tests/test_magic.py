@@ -46,6 +46,19 @@ def test_rehashx():
     yield (nt.assert_true, len(scoms) > 10)
 
 
+def test_magic_parse_options():
+    """Test that we don't mangle paths when parsing magic options."""
+    ip = get_ipython()
+    path = 'c:\\x'
+    opts = ip.parse_options('-f %s' % path,'f:')[0]
+    # argv splitting is os-dependent
+    if os.name == 'posix':
+        expected = 'c:x'
+    else:
+        expected = path
+    nt.assert_equals(opts['f'], expected)
+
+    
 def doctest_hist_f():
     """Test %hist -f with temporary filename.
 
@@ -54,6 +67,8 @@ def doctest_hist_f():
     In [10]: tfile = tempfile.mktemp('.py','tmp-ipython-')
 
     In [11]: %hist -n -f $tfile 3
+
+    In [13]: import os; os.unlink(tfile)
     """
 
 
