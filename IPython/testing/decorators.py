@@ -205,7 +205,7 @@ def skipif(skip_condition, msg=None):
 
         # Allow for both boolean or callable skip conditions.
         if callable(skip_condition):
-            skip_val = lambda : skip_condition()
+            skip_val = skip_condition
         else:
             skip_val = lambda : skip_condition
 
@@ -261,6 +261,16 @@ def skip(msg=None):
 
     return skipif(True,msg)
 
+
+def onlyif(condition, msg):
+    """The reverse from skipif, see skipif for details."""
+
+    if callable(condition):
+        skip_condition = lambda : not condition()
+    else:
+        skip_condition = lambda : not condition
+
+    return skipif(skip_condition, msg)
 
 #-----------------------------------------------------------------------------
 # Utility functions for decorators
