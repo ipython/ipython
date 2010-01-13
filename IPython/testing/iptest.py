@@ -199,8 +199,8 @@ class IPTester(object):
                 # Script not installed (may be the case for testing situations
                 # that are running from a source tree only), pull from internal
                 # path:
-                iptest_path = pjoin(genutils.get_ipython_package_dir(),
-                                    'scripts','iptest')
+                pak_dir = os.path.abspath(genutils.get_ipython_package_dir())
+                iptest_path = pjoin(pak_dir, 'scripts', 'iptest')
             self.runner = tools.cmd2argv(iptest_path) + ['-v']
         else:
             self.runner = tools.cmd2argv(os.path.abspath(find_cmd('trial')))
