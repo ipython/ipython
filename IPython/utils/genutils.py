@@ -76,6 +76,10 @@ class IOStream:
                 print >> sys.stderr, \
                       'ERROR - failed to write data to stream:', self.stream
 
+    def writeln(self, data):
+        self.write(data)
+        self.write('\n')        
+                
     def close(self):
         pass
 
