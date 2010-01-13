@@ -138,7 +138,7 @@ class TestMagicRunSimple(tt.TempFileMixin):
         src = ("class foo: pass\n"
                "def f(): return foo()")
         self.mktmp(src)
-        _ip.magic('run "%s"' % self.fname)
+        _ip.magic('run %s' % self.fname)
         _ip.runlines('t = isinstance(f(), foo)')
         nt.assert_true(_ip.user_ns['t'])
 
