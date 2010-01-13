@@ -19,6 +19,7 @@ requires utilities which are not available under Windows."""
 
 # Stdlib imports
 import os
+import shutil
 import sys
 
 from glob import glob
@@ -42,6 +43,21 @@ from setupbase import (
 
 isfile = os.path.isfile
 pjoin = os.path.join
+
+#-----------------------------------------------------------------------------
+# Function definitions
+#-----------------------------------------------------------------------------
+
+def cleanup():
+    """Clean up the junk left around by the build process"""
+    if "develop" not in sys.argv:
+        try:
+            shutil.rmtree('ipython.egg-info')
+        except:
+            try:
+                os.unlink('ipython.egg-info')
+            except:
+                pass
 
 #-------------------------------------------------------------------------------
 # Handle OS specific things
@@ -144,7 +160,6 @@ if len(sys.argv) >= 2 and sys.argv[1] in ('sdist','bdist_rpm'):
             )
         
     [ target_update(*t) for t in to_update ]
-
     
 #---------------------------------------------------------------------------
 # Find all the packages, package data, scripts and data_files
@@ -203,7 +218,6 @@ else:
     # just to make life easy for users.
     check_for_dependencies()
 
-
 #---------------------------------------------------------------------------
 # Do the actual setup now
 #---------------------------------------------------------------------------
@@ -214,5 +228,7 @@ setup_args['scripts'] = scripts
 setup_args['data_files'] = data_files
 setup_args.update(setuptools_extra_args)
 
+
 if __name__ == '__main__':
     setup(**setup_args)
+    cleanup()
