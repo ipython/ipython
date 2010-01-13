@@ -267,7 +267,11 @@ def make_runners():
     """
 
     nose_packages = ['config', 'core', 'extensions', 'frontend', 'lib',
-                     'scripts', 'testing', 'utils']
+                     'scripts', 'testing', 'utils',
+                     # Note that we list the kernel here, though the bulk of it
+                     # is twisted-based, because nose picks up doctests that
+                     # twisted doesn't.
+                     'kernel']
     trial_packages = ['kernel']
 
     if have_wx:
