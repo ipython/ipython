@@ -970,7 +970,7 @@ class InteractiveShell(Component, Magic):
         # user_ns, and we sync that contents into user_config_ns so that these
         # initial variables aren't shown by %who.  After the sync, we add the
         # rest of what we *do* want the user to see with %who even on a new
-        # session.
+        # session (probably nothing, so they really only see their own stuff)
         ns = {}
         
         # Put 'help' in the user namespace
@@ -987,20 +987,23 @@ class InteractiveShell(Component, Magic):
 
         ns['_sh'] = shadowns
 
-        # Sync what we've added so far to user_config_ns so these aren't seen
-        # by %who
-        self.user_config_ns.update(ns)
-
-        # Now, continue adding more contents
-
-        # user aliases to input and output histories
+        # user aliases to input and output histories.  These shouldn't show up
+        # in %who, as they can have very large reprs.
         ns['In']  = self.input_hist
         ns['Out'] = self.output_hist
 
         # Store myself as the public api!!!
         ns['get_ipython'] = self.get_ipython
+
+        # Sync what we've added so far to user_config_ns so these aren't seen
+        # by %who
+        self.user_config_ns.update(ns)
+
+        # Anything put into ns now would show up in %who.  Think twice before
+        # putting anything here, as we really want %who to show the user their
+        # stuff, not our variables.
         
-        # And update the real user's namespace
+        # Finally, update the real user's namespace
         self.user_ns.update(ns)
 
 
