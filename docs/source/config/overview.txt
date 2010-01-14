@@ -134,7 +134,7 @@ traitlets for a number of other types.
 .. note::
 
     Underneath the hood, the :class:`Component` base class is a subclass of
-    :class:`IPython.utils.traitlets.HasTraitlets`. The
+    :class:`IPython.utils.traitlets.HasTraits`. The
     :mod:`IPython.utils.traitlets` module is a lightweight version of
     :mod:`enthought.traits`. Our implementation is a pure Python subset
     (mostly API compatible) of :mod:`enthought.traits` that does not have any
