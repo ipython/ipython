@@ -14,7 +14,7 @@ executed.
 #  the file COPYING, distributed as part of this software.
 #*****************************************************************************
 
-# TODO: deprecated
+
 def prefilter_shell(self,line,continuation):
     """Alternate prefilter, modified for shell-like functionality.
 

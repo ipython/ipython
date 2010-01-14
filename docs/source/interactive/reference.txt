@@ -31,7 +31,7 @@ your ipythonrc configuration file for details on those. This file
 typically installed in the $HOME/.ipython directory. For Windows users,
 $HOME resolves to C:\\Documents and Settings\\YourUserName in most
 instances. In the rest of this text, we will refer to this directory as
-IPYTHONDIR.
+IPYTHON_DIR.
 
 
 
@@ -150,9 +150,9 @@ All options with a [no] prepended can be specified in negated form
 	something like Emacs).
 
     -ipythondir <name> 
-	name of your IPython configuration directory IPYTHONDIR. This
+	name of your IPython configuration directory IPYTHON_DIR. This
 	can also be specified through the environment variable
-	IPYTHONDIR.
+	IPYTHON_DIR.
 
     -log, l 
 	generate a log file of all input. The file is named
@@ -211,10 +211,10 @@ All options with a [no] prepended can be specified in negated form
 
 	assume that your config file is ipythonrc-<name> or
 	ipy_profile_<name>.py (looks in current dir first, then in
-	IPYTHONDIR).  This is a quick way to keep and load multiple
+	IPYTHON_DIR).  This is a quick way to keep and load multiple
 	config files for different tasks, especially if you use the
 	include option of config files. You can keep a basic
-	IPYTHONDIR/ipythonrc file and then have other 'profiles' which
+	IPYTHON_DIR/ipythonrc file and then have other 'profiles' which
 	include this one and load extra things for particular
 	tasks. For example:
 
@@ -252,7 +252,7 @@ All options with a [no] prepended can be specified in negated form
     -rcfile <name>   
 	name of your IPython resource configuration file. Normally
 	IPython loads ipythonrc (from current directory) or
-	IPYTHONDIR/ipythonrc.
+	IPYTHON_DIR/ipythonrc.
 
 	If the loading of your config file fails, IPython starts with
 	a bare bones configuration (no modules loaded at all).
@@ -299,7 +299,7 @@ All options with a [no] prepended can be specified in negated form
 	0'. Simply removes all input/output separators.
 
     -upgrade 
-	allows you to upgrade your IPYTHONDIR configuration when you
+	allows you to upgrade your IPYTHON_DIR configuration when you
 	install a new version of IPython. Since new versions may
 	include new command line options or example files, this copies
 	updated ipythonrc-type files. However, it backs up (with a
@@ -542,7 +542,7 @@ Persistent command history across sessions
 
 IPython will save your input history when it leaves and reload it next
 time you restart it. By default, the history file is named
-$IPYTHONDIR/history, but if you've loaded a named profile,
+$IPYTHON_DIR/history, but if you've loaded a named profile,
 '-PROFILE_NAME' is appended to the name. This allows you to keep
 separate histories related to various tasks: commands related to
 numerical work will not be clobbered by a system shell history, for
@@ -636,7 +636,7 @@ follows:
 %logstart [log_name [log_mode]]
 
 If no name is given, it defaults to a file named 'log' in your
-IPYTHONDIR directory, in 'rotate' mode (see below).
+IPYTHON_DIR directory, in 'rotate' mode (see below).
 
 '%logstart name' saves to file 'name' in 'backup' mode. It saves your
 history up to that point and then continues logging.

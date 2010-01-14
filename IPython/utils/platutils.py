@@ -79,7 +79,7 @@ def find_cmd(cmd):
         return sys.executable
     try:
         path = _platutils.find_cmd(cmd)
-    except:
+    except OSError:
         raise FindCmdError('command could not be found: %s' % cmd)
     # which returns empty if not found
     if path == '':

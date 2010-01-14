@@ -31,8 +31,8 @@ from IPython.utils.autoattr import auto_attr
 #-----------------------------------------------------------------------------
 
 
-class BuiltinUndefined(object): pass
-BuiltinUndefined = BuiltinUndefined()
+class __BuiltinUndefined(object): pass
+BuiltinUndefined = __BuiltinUndefined()
 
 
 class BuiltinTrap(Component):
@@ -86,6 +86,7 @@ class BuiltinTrap(Component):
         """Store ipython references in the __builtin__ namespace."""
         self.add_builtin('exit', Quitter(self.shell, 'exit'))
         self.add_builtin('quit', Quitter(self.shell, 'quit'))
+        self.add_builtin('get_ipython', self.shell.get_ipython)
 
         # Recursive reload function
         try:

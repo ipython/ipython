@@ -37,17 +37,18 @@ from IPython.config.loader import (
 
 
 pyfile = """
-a = 10
-b = 20
-Foo.Bar.value = 10
-Foo.Bam.value = range(10)
-D.C.value = 'hi there'
+c = get_config()
+c.a = 10
+c.b = 20
+c.Foo.Bar.value = 10
+c.Foo.Bam.value = range(10)
+c.D.C.value = 'hi there'
 """
 
 class TestPyFileCL(TestCase):
 
     def test_basic(self):
-        fd, fname = mkstemp()
+        fd, fname = mkstemp('.py')
         f = os.fdopen(fd, 'w')
         f.write(pyfile)
         f.close()
@@ -65,15 +66,13 @@ class TestArgParseCL(TestCase):
 
     def test_basic(self):
 
-        class MyLoader(ArgParseConfigLoader):
-            arguments = (
+        arguments = (
                 (('-f','--foo'), dict(dest='Global.foo', type=str)),
                 (('-b',), dict(dest='MyClass.bar', type=int)),
                 (('-n',), dict(dest='n', action='store_true')),
                 (('Global.bam',), dict(type=str))
             )
-
-        cl = MyLoader()
+        cl = ArgParseConfigLoader(arguments=arguments)
         config = cl.load_config('-f hi -b 10 -n wow'.split())
         self.assertEquals(config.Global.foo, 'hi')
         self.assertEquals(config.MyClass.bar, 10)

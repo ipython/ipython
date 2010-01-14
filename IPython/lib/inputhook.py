@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# encoding: utf-8
+# coding: utf-8
 """
 Inputhook management for GUI event loop integration.
 """
@@ -24,6 +24,7 @@ import sys
 
 # Constants for identifying the GUI toolkits.
 GUI_WX = 'wx'
+GUI_QT = 'qt'
 GUI_QT4 = 'qt4'
 GUI_GTK = 'gtk'
 GUI_TK = 'tk'
@@ -326,8 +327,17 @@ class InputHookManager(object):
         self._installed = True
         return original
 
-    def clear_inputhook(self):
-        """Set PyOS_InputHook to NULL and return the previous one."""
+    def clear_inputhook(self, app=None):
+        """Set PyOS_InputHook to NULL and return the previous one.
+
+        Parameters
+        ----------
+        app : optional, ignored
+          This parameter is allowed only so that clear_inputhook() can be
+          called with a similar interface as all the ``enable_*`` methods.  But
+          the actual value of the parameter is ignored.  This uniform interface
+          makes it easier to have user-level entry points in the main IPython
+          app like :meth:`enable_gui`."""
         pyos_inputhook_ptr = self.get_pyos_inputhook()
         original = self.get_pyos_inputhook_as_func()
         pyos_inputhook_ptr.value = ctypes.c_void_p(None).value
@@ -523,3 +533,39 @@ set_inputhook = inputhook_manager.set_inputhook
 current_gui = inputhook_manager.current_gui
 clear_app_refs = inputhook_manager.clear_app_refs
 spin = inputhook_manager.spin
+
+
+# Convenience function to switch amongst them
+def enable_gui(gui=None, app=True):
+    """Switch amongst GUI input hooks by name.
+
+    This is just a utility wrapper around the methods of the InputHookManager
+    object.
+
+    Parameters
+    ----------
+    gui : optional, string or None
+      If None, clears input hook, otherwise it must be one of the recognized
+      GUI names (see ``GUI_*`` constants in module).
+
+    app : optional, bool
+      If true, create an app object and return it.
+
+    Returns
+    -------
+    The output of the underlying gui switch routine, typically the actual
+    PyOS_InputHook wrapper object or the GUI toolkit app created, if there was
+    one.
+    """
+    guis = {None: clear_inputhook,
+            GUI_TK: enable_tk,
+            GUI_GTK: enable_gtk,
+            GUI_WX: enable_wx,
+            GUI_QT: enable_qt4, # qt3 not supported
+            GUI_QT4: enable_qt4 }
+    try:
+        gui_hook = guis[gui]
+    except KeyError:
+        e="Invalid GUI request %r, valid ones are:%s" % (gui, guis.keys())
+        raise ValueError(e)
+    return gui_hook(app)

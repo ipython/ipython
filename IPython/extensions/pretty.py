@@ -128,13 +128,15 @@ class PrettyResultDisplay(Component):
 #-----------------------------------------------------------------------------
 
 
-def load_ipython_extension(ip):
+def load_ipython_extension(ip=None):
     """Load the extension in IPython as a hook."""
+    if ip is None: ip = get_ipython()
     global _loaded
     if not _loaded:
         prd = PrettyResultDisplay(ip, name='pretty_result_display')
         ip.set_hook('result_display', prd, priority=99)
         _loaded = True
+        return prd
 
 def unload_ipython_extension(ip):
     """Unload the extension."""
@@ -163,60 +165,3 @@ def dtype_pprinter(obj, p, cycle):
                     p.breakable()
                 p.pretty(field)
             p.end_group(7, '])')
-
-
-#-----------------------------------------------------------------------------
-# Tests
-#-----------------------------------------------------------------------------
-
-
-def test_pretty():
-    """
-    In [1]: from IPython.extensions import ipy_pretty
-
-    In [2]: ipy_pretty.activate()
-
-    In [3]: class A(object):
-       ...:     def __repr__(self):
-       ...:         return 'A()'
-       ...:     
-       ...:     
-
-    In [4]: a = A()
-
-    In [5]: a
-    Out[5]: A()
-
-    In [6]: def a_pretty_printer(obj, p, cycle):
-       ...:     p.text('<A>')
-       ...:     
-       ...:     
-
-    In [7]: ipy_pretty.for_type(A, a_pretty_printer)
-
-    In [8]: a
-    Out[8]: <A>
-
-    In [9]: class B(object):
-       ...:     def __repr__(self):
-       ...:         return 'B()'
-       ...:     
-       ...:     
-
-    In [10]: B.__module__, B.__name__
-    Out[10]: ('__main__', 'B')
-
-    In [11]: def b_pretty_printer(obj, p, cycle):
-       ....:     p.text('<B>')
-       ....:     
-       ....:     
-
-    In [12]: ipy_pretty.for_type_by_name('__main__', 'B', b_pretty_printer)
-
-    In [13]: b = B()
-
-    In [14]: b
-    Out[14]: <B>
-    """
-    assert False, "This should only be doctested, not run."
-

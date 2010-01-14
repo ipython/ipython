@@ -18,19 +18,19 @@ __test__ = {}
 
 from cStringIO import StringIO
 import os
+import sys
 
 from twisted.trial import unittest
-
-from IPython.testing import decorators_trial as dec
 
 #-----------------------------------------------------------------------------
 # Tests
 #-----------------------------------------------------------------------------
 
-
 class TestRedirector(unittest.TestCase):
 
-    @dec.skip_win32
+    if sys.platform == 'win32':
+        skip = True
+    
     def test_redirector(self):
         """Checks that the redirector can be used to do synchronous capture.
         """
@@ -51,7 +51,6 @@ class TestRedirector(unittest.TestCase):
         result2 = "".join("%ic\n%i\n" %(i, i) for i in range(10))
         self.assertEquals(result1, result2)
 
-    @dec.skip_win32
     def test_redirector_output_trap(self):
         """Check the greedy trapping behavior of the traps.
         
@@ -59,7 +58,8 @@ class TestRedirector(unittest.TestCase):
         trap the output, but also that it does it in a gready way, that
         is by calling the callback ASAP.
         """
-        from IPython.kernel.core.redirector_output_trap import RedirectorOutputTrap
+        from IPython.kernel.core.redirector_output_trap import \
+            RedirectorOutputTrap
         out = StringIO()
         trap = RedirectorOutputTrap(out.write, out.write)
         try:

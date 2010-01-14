@@ -46,11 +46,11 @@ class DisplayTrap(Component):
         # Only turn off the trap when the outermost call to __exit__ is made.
         self._nested_level = 0
 
-    @auto_attr
-    def shell(self):
-        return Component.get_instances(
-            root=self.root,
-            klass='IPython.core.iplib.InteractiveShell')[0]
+    # @auto_attr
+    # def shell(self):
+    #     return Component.get_instances(
+    #         root=self.root,
+    #         klass='IPython.core.iplib.InteractiveShell')[0]
 
     def __enter__(self):
         if self._nested_level == 0:

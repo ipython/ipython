@@ -88,7 +88,6 @@ import types
 from inspect import getsourcefile, getfile, getmodule,\
      ismodule, isclass, ismethod, isfunction, istraceback, isframe, iscode
 
-
 # IPython's own modules
 # Modified pdb which doesn't damage IPython's readline handling
 from IPython.utils import PyColorize
@@ -263,7 +262,7 @@ def _fixed_getinnerframes(etb, context=1,tb_offset=0):
 
 _parser = PyColorize.Parser()
     
-def _formatTracebackLines(lnum, index, lines, Colors, lvals=None,scheme=None):
+def _format_traceback_lines(lnum, index, lines, Colors, lvals=None,scheme=None):
     numbers_width = INDENT_SIZE - 1
     res = []
     i = lnum - index
@@ -312,6 +311,15 @@ def _formatTracebackLines(lnum, index, lines, Colors, lvals=None,scheme=None):
 # Module classes
 class TBTools:
     """Basic tools used by all traceback printer classes."""
+
+    #: Default output stream, can be overridden at call time.  A special value
+    #: of 'stdout' *as a string* can be given to force extraction of sys.stdout
+    #: at runtime.  This allows testing exception printing with doctests, that
+    #: swap sys.stdout just at execution time.
+    #: Warning: be VERY careful to set this to one of the Term streams, NEVER
+    #: directly to sys.stdout/err, because under win32 the Term streams come from
+    #: pyreadline and know how to handle color correctly, whie stdout/err don't.
+    out_stream = Term.cerr
 
     def __init__(self,color_scheme = 'NoColor',call_pdb=False):
         # Whether to call the interactive pdb debugger after printing
@@ -376,16 +384,31 @@ class ListTB(TBTools):
         
     def __call__(self, etype, value, elist):
         Term.cout.flush()
-        print >> Term.cerr, self.text(etype,value,elist)
-        Term.cerr.flush()
+        Term.cerr.writeln(self.text(etype,value,elist))
 
-    def text(self,etype, value, elist,context=5):
-        """Return a color formatted string with the traceback info."""
+    def text(self, etype, value, elist, context=5):
+        """Return a color formatted string with the traceback info.
+
+        Parameters
+        ----------
+        etype : exception type
+          Type of the exception raised.
+
+        value : object
+          Data stored in the exception
+
+        elist : list
+          List of frames, see class docstring for details.
+
+        Returns
+        -------
+        String with formatted exception.
+        """
 
         Colors = self.Colors
-        out_string = ['%s%s%s\n' % (Colors.topline,'-'*60,Colors.Normal)]
+        out_string = []
         if elist:
-            out_string.append('Traceback %s(most recent call last)%s:' % \
+            out_string.append('Traceback %s(most recent call last)%s:' %
                                 (Colors.normalEm, Colors.Normal) + '\n')
             out_string.extend(self._format_list(elist))
         lines = self._format_exception_only(etype, value)
@@ -492,14 +515,28 @@ class ListTB(TBTools):
             else:
                 list.append('%s\n' % str(stype))
 
-        # vds:>>
+        # sync with user hooks
         if have_filedata:
             ipinst = ipapi.get()
             if ipinst is not None:
                 ipinst.hooks.synchronize_with_editor(filename, lineno, 0)
-        # vds:<<
 
         return list
+
+    def show_exception_only(self, etype, value):
+        """Only print the exception type and message, without a traceback.
+        
+        Parameters
+        ----------
+        etype : exception type
+        value : exception value
+        """
+        # This method needs to use __call__ from *this* class, not the one from
+        # a subclass whose signature or behavior may be different
+        Term.cout.flush()
+        ostream = sys.stdout if self.out_stream == 'stdout' else Term.cerr
+        ostream.write(ListTB.text(self, etype, value, []))
+        ostream.flush()        
 
     def _some_str(self, value):
         # Lifted from traceback.py
@@ -781,8 +818,8 @@ class VerboseTB(TBTools):
                 frames.append(level)
             else:
                 frames.append('%s%s' % (level,''.join(
-                    _formatTracebackLines(lnum,index,lines,Colors,lvals,
-                                          col_scheme))))
+                    _format_traceback_lines(lnum,index,lines,Colors,lvals,
+                                            col_scheme))))
 
         # Get (safely) a string form of the exception info
         try:
@@ -854,11 +891,11 @@ class VerboseTB(TBTools):
             with display_trap:
                 self.pdb.reset()
                 # Find the right frame so we don't pop up inside ipython itself
-                if hasattr(self,'tb'):
+                if hasattr(self,'tb') and self.tb is not None:
                     etb = self.tb
                 else:
                     etb = self.tb = sys.last_traceback
-                while self.tb.tb_next is not None:
+                while self.tb is not None and self.tb.tb_next is not None:
                     self.tb = self.tb.tb_next
                 if etb and etb.tb_next:
                     etb = etb.tb_next
@@ -872,8 +909,7 @@ class VerboseTB(TBTools):
         (etype, evalue, etb) = info or sys.exc_info()
         self.tb = etb
         Term.cout.flush()
-        print >> Term.cerr, self.text(etype, evalue, etb)
-        Term.cerr.flush()
+        Term.cerr.writeln(self.text(etype, evalue, etb))
 
     # Changed so an instance can just be called as VerboseTB_inst() and print
     # out the right info on its own.
@@ -980,6 +1016,7 @@ class AutoFormattedTB(FormattedTB):
     except:
       AutoTB()  # or AutoTB(out=logfile) where logfile is an open file object
     """
+    
     def __call__(self,etype=None,evalue=None,etb=None,
                  out=None,tb_offset=None):
         """Print out a formatted exception traceback.
@@ -990,16 +1027,18 @@ class AutoFormattedTB(FormattedTB):
           - tb_offset: the number of frames to skip over in the stack, on a
           per-call basis (this overrides temporarily the instance's tb_offset
           given at initialization time.  """
-        
+
         if out is None:
-            out = Term.cerr
+            out = sys.stdout if self.out_stream=='stdout' else self.out_stream
         Term.cout.flush()
         if tb_offset is not None:
             tb_offset, self.tb_offset = self.tb_offset, tb_offset
-            print >> out, self.text(etype, evalue, etb)
+            out.write(self.text(etype, evalue, etb))
+            out.write('\n')
             self.tb_offset = tb_offset
         else:
-            print >> out, self.text(etype, evalue, etb)
+            out.write(self.text(etype, evalue, etb))
+            out.write('\n')
         out.flush()
         try:
             self.debugger()

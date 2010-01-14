@@ -1,10 +1,10 @@
-#!/usr/bin/env python
-# encoding: utf-8
+# coding: utf-8
 """A simple configuration system.
 
-Authors:
-
+Authors
+-------
 * Brian Granger
+* Fernando Perez
 """
 
 #-----------------------------------------------------------------------------
@@ -37,7 +37,25 @@ class ConfigError(Exception):
 class ConfigLoaderError(ConfigError):
     pass
 
+#-----------------------------------------------------------------------------
+# Argparse fix
+#-----------------------------------------------------------------------------
+# Unfortunately argparse by default prints help messages to stderr instead of
+# stdout.  This makes it annoying to capture long help screens at the command
+# line, since one must know how to pipe stderr, which many users don't know how
+# to do.  So we override the print_help method with one that defaults to
+# stdout and use our class instead.
 
+class ArgumentParser(argparse.ArgumentParser):
+    """Simple argparse subclass that prints help to stdout by default."""
+    
+    def print_help(self, file=None):
+        if file is None:
+            file = sys.stdout
+        return super(ArgumentParser, self).print_help(file)
+    
+    print_help.__doc__ = argparse.ArgumentParser.print_help.__doc__
+    
 #-----------------------------------------------------------------------------
 # Config class for holding config information
 #-----------------------------------------------------------------------------
@@ -244,8 +262,14 @@ class PyFileConfigLoader(FileConfigLoader):
         # with the parents.
         def load_subconfig(fname):
             loader = PyFileConfigLoader(fname, self.path)
-            sub_config = loader.load_config()
-            self.config._merge(sub_config)
+            try:
+                sub_config = loader.load_config()
+            except IOError:
+                # Pass silently if the sub config is not there. This happens
+                # when a user us using a profile, but not the default config.
+                pass
+            else:
+                self.config._merge(sub_config)
 
         # Again, this needs to be a closure and should be used in config
         # files to get the config being loaded.
@@ -268,26 +292,55 @@ class CommandLineConfigLoader(ConfigLoader):
     """
 
 
-class NoConfigDefault(object): pass
-NoConfigDefault = NoConfigDefault()
+class __NoConfigDefault(object): pass
+NoConfigDefault = __NoConfigDefault()
+
 
 class ArgParseConfigLoader(CommandLineConfigLoader):
+    #: Global default for arguments (see argparse docs for details)
+    argument_default = NoConfigDefault
     
-    # arguments = [(('-f','--file'),dict(type=str,dest='file'))]
-    arguments = ()
-
-    def __init__(self, *args, **kw):
+    def __init__(self, argv=None, arguments=(), *args, **kw):
         """Create a config loader for use with argparse.
 
-        The args and kwargs arguments here are passed onto the constructor
-        of :class:`argparse.ArgumentParser`.
+        With the exception of ``argv`` and ``arguments``, other args and kwargs
+        arguments here are passed onto the constructor of
+        :class:`argparse.ArgumentParser`.
+
+        Parameters
+        ----------
+
+        argv : optional, list
+          If given, used to read command-line arguments from, otherwise
+          sys.argv[1:] is used.
+
+        arguments : optional, tuple
+          Description of valid command-line arguments, to be called in sequence
+          with parser.add_argument() to configure the parser.
         """
         super(CommandLineConfigLoader, self).__init__()
+        if argv == None:
+            argv = sys.argv[1:]
+        self.argv = argv
+        self.arguments = arguments
         self.args = args
-        self.kw = kw
+        kwargs = dict(argument_default=self.argument_default)
+        kwargs.update(kw)
+        self.kw = kwargs
 
     def load_config(self, args=None):
-        """Parse command line arguments and return as a Struct."""
+        """Parse command line arguments and return as a Struct.
+
+        Parameters
+        ----------
+
+        args : optional, list
+          If given, a list with the structure of sys.argv[1:] to parse arguments
+          from.  If not given, the instance's self.argv attribute (given at
+          construction time) is used."""
+        
+        if args is None:
+            args = self.argv
         self._create_parser()
         self._parse_args(args)
         self._convert_to_config()
@@ -300,25 +353,21 @@ class ArgParseConfigLoader(CommandLineConfigLoader):
             return []
 
     def _create_parser(self):
-        self.parser = argparse.ArgumentParser(*self.args, **self.kw)
+        self.parser = ArgumentParser(*self.args, **self.kw)
         self._add_arguments()
         self._add_other_arguments()
 
-    def _add_other_arguments(self):
-        pass
-
     def _add_arguments(self):
         for argument in self.arguments:
-            if not argument[1].has_key('default'):
-                argument[1]['default'] = NoConfigDefault
             self.parser.add_argument(*argument[0],**argument[1])
 
-    def _parse_args(self, args=None):
-        """self.parser->self.parsed_data"""
-        if args is None:
-            self.parsed_data, self.extra_args = self.parser.parse_known_args()
-        else:
-            self.parsed_data, self.extra_args = self.parser.parse_known_args(args)
+    def _add_other_arguments(self):
+        """Meant for subclasses to add their own arguments."""
+        pass
+
+    def _parse_args(self, args):
+        """self.parser->self.parsed_data""" 
+        self.parsed_data, self.extra_args = self.parser.parse_known_args(args)
 
     def _convert_to_config(self):
         """self.parsed_data->self.config"""
@@ -326,4 +375,3 @@ class ArgParseConfigLoader(CommandLineConfigLoader):
             if v is not NoConfigDefault:
                 exec_str = 'self.config.' + k + '= v'
                 exec exec_str in locals(), globals()
-

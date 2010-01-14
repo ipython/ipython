@@ -29,11 +29,34 @@ if __name__ == '__main__':
                                         r'\.frontend',
                                         r'\.gui'
                                         ]
+
     docwriter.module_skip_patterns += [ r'\.core\.fakemodule',
+                                        
+                                        # XXX These need fixing, disabling for
+                                        # now but we need to figure out why
+                                        # they are breaking.  Error from sphinx
+                                        # for each group copied below
+                                        
+                                        # AttributeError: __abstractmethods__
+                                        r'\.core\.component',
+                                        r'\.utils\.traitlets',
+        
+                                        # AttributeError: __provides__
+                                        r'\.kernel\.clusterdir',
+                                        r'\.kernel\.configobjfactory',
+                                        r'\.kernel\.fcutil',
+                                        r'\.kernel\.ipcontrollerapp',
+                                        r'\.kernel\.launcher',
+                                        r'\.kernel\.task',
+                                        r'\.kernel\.winhpcjob',
+                                        r'\.testing\.util',
+    
+                                        # Keeping these disabled is OK
                                         r'\.cocoa',
                                         r'\.ipdoctest',
                                         r'\.Gnuplot',
                                         r'\.frontend\.process\.winprocess',
+                                        r'\.Shell',
                                         ]
     docwriter.write_api_docs(outdir)
     docwriter.write_index(outdir, 'gen',

@@ -3,18 +3,16 @@
 
 """Things directly related to all of twisted."""
 
-__docformat__ = "restructuredtext en"
-
-#-------------------------------------------------------------------------------
-#  Copyright (C) 2008  The IPython Development Team
+#-----------------------------------------------------------------------------
+#  Copyright (C) 2008-2009  The IPython Development Team
 #
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
-#-------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------
 
-#-------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------
 # Imports
-#-------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------
 
 import os, sys
 import threading, Queue, atexit
@@ -25,9 +23,9 @@ from twisted.python import log, failure
 
 from IPython.kernel.error import FileTimeoutError
 
-#-------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------
 # Classes related to twisted and threads
-#-------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------
 
 
 class ReactorInThread(threading.Thread):
@@ -42,6 +40,15 @@ class ReactorInThread(threading.Thread):
     """
     
     def run(self):
+        """Run the twisted reactor in a thread.
+
+        This runs the reactor with installSignalHandlers=0, which prevents
+        twisted from installing any of its own signal handlers. This needs to
+        be disabled because signal.signal can't be called in a thread. The
+        only problem with this is that SIGCHLD events won't be detected so
+        spawnProcess won't detect that its processes have been killed by
+        an external factor.
+        """
         reactor.run(installSignalHandlers=0)
         # self.join()
         
@@ -247,3 +254,21 @@ def wait_for_file(filename, delay=0.1, max_tries=10):
     
     _test_for_file(filename)
     return d
+
+
+def sleep_deferred(seconds):
+    """Sleep without blocking the event loop."""
+    d = defer.Deferred()
+    reactor.callLater(seconds, d.callback, seconds)
+    return d
+
+
+def make_deferred(func):
+    """A decorator that calls a function with :func`maybeDeferred`."""
+
+    def _wrapper(*args, **kwargs):
+        return defer.maybeDeferred(func, *args, **kwargs)
+
+    return _wrapper
+
+

@@ -1,6 +1,6 @@
 # encoding: utf-8
 """
-Tests for decorators_trial.py
+Tests for decorators.py compatibility with Twisted.trial
 """
 
 #-----------------------------------------------------------------------------
@@ -14,18 +14,23 @@ Tests for decorators_trial.py
 # Imports
 #-----------------------------------------------------------------------------
 
-# Tell nose to skip this module
+# Tell nose to skip this module, since this is for twisted only
 __test__ = {}
 
 import os
 import sys
 
 from twisted.trial import unittest
-import IPython.testing.decorators_trial as dec
+import IPython.testing.decorators as dec
 
 #-----------------------------------------------------------------------------
 # Tests
 #-----------------------------------------------------------------------------
+
+# Note: this code is identical to that in test_decorators, but that one uses
+# stdlib unittest, not the one from twisted, which we are using here. While
+# somewhat redundant, we want to check both with the stdlib and with twisted,
+# so the duplication is OK.
 
 class TestDecoratorsTrial(unittest.TestCase):
     

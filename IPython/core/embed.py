@@ -68,7 +68,7 @@ class InteractiveShellEmbed(InteractiveShell):
     # is True by default.
     display_banner = CBool(True)
 
-    def __init__(self, parent=None, config=None, ipythondir=None, usage=None,
+    def __init__(self, parent=None, config=None, ipython_dir=None, usage=None,
                  user_ns=None, user_global_ns=None,
                  banner1=None, banner2=None, display_banner=None,
                  custom_exceptions=((),None), exit_msg=''):
@@ -76,7 +76,7 @@ class InteractiveShellEmbed(InteractiveShell):
         self.save_sys_ipcompleter()
 
         super(InteractiveShellEmbed,self).__init__(
-            parent=parent, config=config, ipythondir=ipythondir, usage=usage, 
+            parent=parent, config=config, ipython_dir=ipython_dir, usage=usage, 
             user_ns=user_ns, user_global_ns=user_global_ns,
             banner1=banner1, banner2=banner2, display_banner=display_banner,
             custom_exceptions=custom_exceptions)
@@ -232,14 +232,6 @@ class InteractiveShellEmbed(InteractiveShell):
             delvar = self.user_ns.pop
             for var in local_varnames:
                 delvar(var,None)
-
-    def set_completer_frame(self, frame=None):
-        if frame:
-            self.Completer.namespace = frame.f_locals
-            self.Completer.global_namespace = frame.f_globals
-        else:
-            self.Completer.namespace = self.user_ns
-            self.Completer.global_namespace = self.user_global_ns
 
 
 _embedded_shell = None

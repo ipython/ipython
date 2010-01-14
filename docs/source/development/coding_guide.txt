@@ -76,3 +76,37 @@ specific ``IPY`` or ``ipy`` are preferred.
 
 .. [PEP8] Python Enhancement Proposal 8.  http://www.python.org/peps/pep-0008.html
 
+Attribute declarations for objects
+==================================
+
+In general, objects should declare in their *class* all attributes the object
+is meant to hold throughout its life.  While Python allows you to add an
+attribute to an instance at any point in time, this makes the code harder to
+read and requires methods to constantly use checks with hasattr() or try/except
+calls.  By declaring all attributes of the object in the class header, there is
+a single place one can refer to for understanding the object's data interface,
+where comments can explain the role of each variable and when possible,
+sensible deafaults can be assigned.
+
+.. Warning::
+    
+    If an attribute is meant to contain a mutable object, it should be set to
+    ``None`` in the class and its mutable value should be set in the object's
+    constructor.  Since class attributes are shared by all instances, failure
+    to do this can lead to difficult to track bugs.  But you should still set
+    it in the class declaration so the interface specification is complete and
+    documdented in one place.
+
+A simple example::
+
+    class foo:
+        # X does..., sensible default given:
+        x = 1
+        # y does..., default will be set by constructor
+        y = None
+        # z starts as an empty list, must be set in constructor
+        z = None
+        
+        def __init__(self, y):
+            self.y = y
+            self.z = []

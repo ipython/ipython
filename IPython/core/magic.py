@@ -21,6 +21,7 @@ import os
 import pdb
 import pydoc
 import sys
+import shutil
 import re
 import tempfile
 import time
@@ -43,21 +44,26 @@ except ImportError:
 
 # Homebrewed
 import IPython
-from IPython.utils import wildcard
+import IPython.utils.generics
+
 from IPython.core import debugger, oinspect
 from IPython.core.error import TryNext
+from IPython.core.error import UsageError
 from IPython.core.fakemodule import FakeModule
+from IPython.core.macro import Macro
+from IPython.core.page import page
 from IPython.core.prefilter import ESC_MAGIC
+from IPython.core.pylabtools import mpl_runner
+from IPython.lib.inputhook import enable_gui
 from IPython.external.Itpl import Itpl, itpl, printpl,itplns
+from IPython.testing import decorators as testdec
+from IPython.utils import platutils
+from IPython.utils import wildcard
 from IPython.utils.PyColorize import Parser
 from IPython.utils.ipstruct import Struct
-from IPython.core.macro import Macro
+
+# XXX - We need to switch to explicit imports here with genutils
 from IPython.utils.genutils import *
-from IPython.core.page import page
-from IPython.utils import platutils
-import IPython.utils.generics
-from IPython.core.error import UsageError
-from IPython.testing import decorators as testdec
 
 #***************************************************************************
 # Utility functions
@@ -79,10 +85,16 @@ def compress_dhist(dh):
         done.add(h)
 
     return newhead + tail        
-        
+
 
 #***************************************************************************
 # Main class implementing Magic functionality
+
+# XXX - for some odd reason, if Magic is made a new-style class, we get errors
+# on construction of the main InteractiveShell object.  Something odd is going
+# on with super() calls, Component and the MRO... For now leave it as-is, but
+# eventually this needs to be clarified.
+
 class Magic:
     """Magic functions for InteractiveShell.
 
@@ -334,7 +346,7 @@ python-profiler package from non-free.""")
             raise ValueError,'incorrect mode given: %s' % mode
         # Get options
         list_all = kw.get('list_all',0)
-        posix = kw.get('posix',True)
+        posix = kw.get('posix', os.name == 'posix')
 
         # Check if we have more than one argument to warrant extra processing:
         odict = {}  # Dictionary with options
@@ -863,7 +875,7 @@ Currently the magic system has the following functions:\n"""
                     show_all=opt('a'),ignore_case=ignore_case)
         except:
             shell.showtraceback()
-
+        
     def magic_who_ls(self, parameter_s=''):
         """Return a sorted list of all interactive variables.
 
@@ -873,17 +885,15 @@ Currently the magic system has the following functions:\n"""
         user_ns = self.shell.user_ns
         internal_ns = self.shell.internal_ns
         user_config_ns = self.shell.user_config_ns
-        out = []
-        typelist = parameter_s.split()
+        out = [ i for i in user_ns
+                if not i.startswith('_') \
+                and not (i in internal_ns or i in user_config_ns) ]
 
-        for i in user_ns:
-            if not (i.startswith('_') or i.startswith('_i')) \
-                   and not (i in internal_ns or i in user_config_ns):
-                if typelist:
-                    if type(user_ns[i]).__name__ in typelist:
-                        out.append(i)
-                else:
-                    out.append(i)
+        typelist = parameter_s.split()
+        if typelist:
+            typeset = set(typelist)
+            out = [i for i in out if type(i).__name__ in typeset]
+
         out.sort()
         return out
         
@@ -1268,7 +1278,6 @@ Currently the magic system has the following functions:\n"""
         If you want IPython to automatically do this on every exception, see
         the %pdb magic for more details.
         """
-        
         self.shell.debugger(force=True)
 
     @testdec.skip_doctest
@@ -1571,7 +1580,7 @@ Currently the magic system has the following functions:\n"""
             return
 
         if filename.lower().endswith('.ipy'):
-            self.safe_execfile_ipy(filename)
+            self.shell.safe_execfile_ipy(filename)
             return
         
         # Control the response to exit() calls made by the script being run
@@ -2522,20 +2531,7 @@ Defaulting color scheme to 'NoColor'"""
         self.shell.pprint = 1 - self.shell.pprint
         print 'Pretty printing has been turned', \
               ['OFF','ON'][self.shell.pprint]
-        
-    def magic_exit(self, parameter_s=''):
-        """Exit IPython, confirming if configured to do so.
-
-        You can configure whether IPython asks for confirmation upon exit by
-        setting the confirm_exit flag in the ipythonrc file."""
-
-        self.shell.exit()
-
-    def magic_quit(self, parameter_s=''):
-        """Exit IPython, confirming if configured to do so (like %exit)"""
-
-        self.shell.exit()
-        
+                
     def magic_Exit(self, parameter_s=''):
         """Exit IPython without confirmation."""
 
@@ -2685,11 +2681,12 @@ Defaulting color scheme to 'NoColor'"""
                             else:
                                 syscmdlist.append(ff)
             else:
+                no_alias = self.shell.alias_manager.no_alias
                 for pdir in path:
                     os.chdir(pdir)
                     for ff in os.listdir(pdir):
                         base, ext = os.path.splitext(ff)
-                        if isexec(ff) and base.lower() not in self.shell.no_alias:
+                        if isexec(ff) and base.lower() not in no_alias:
                             if ext.lower() == '.exe':
                                 ff = base
                                 try:
@@ -3365,7 +3362,7 @@ Defaulting color scheme to 'NoColor'"""
         # By default, echo back to terminal unless quiet mode is requested
         if not opts.has_key('q'):
             write = self.shell.write
-            write(block)
+            write(self.shell.pycolorize(block))
             if not block.endswith('\n'):
                 write('\n')
             write("## -- End pasted text --\n")
@@ -3378,34 +3375,6 @@ Defaulting color scheme to 'NoColor'"""
         qr = IPython.core.usage.quick_reference + self.magic_magic('-brief')
         
         page(qr)
-        
-    def magic_upgrade(self,arg):
-        """ Upgrade your IPython installation
-        
-        This will copy the config files that don't yet exist in your 
-        ipython dir from the system config dir. Use this after upgrading 
-        IPython if you don't wish to delete your .ipython dir.
-
-        Call with -nolegacy to get rid of ipythonrc* files (recommended for
-        new users)
-
-        """
-        ip = self.getapi()
-        ipinstallation = path(IPython.__file__).dirname()
-        upgrade_script = '%s "%s"' % (sys.executable,ipinstallation / 'utils' / 'upgradedir.py')
-        src_config = ipinstallation / 'config' / 'userconfig'
-        userdir = path(ip.config.IPYTHONDIR)
-        cmd = '%s "%s" "%s"' % (upgrade_script, src_config, userdir)
-        print ">",cmd
-        shell(cmd)
-        if arg == '-nolegacy':
-            legacy = userdir.files('ipythonrc*')
-            print "Nuking legacy files:",legacy
-            
-            [p.remove() for p in legacy]
-            suffix = (sys.platform == 'win32' and '.ini' or '')
-            (userdir / ('ipythonrc' + suffix)).write_text('# Empty, see ipy_user_conf.py\n')
-
 
     def magic_doctest_mode(self,parameter_s=''):
         """Toggle doctest mode on and off.
@@ -3427,8 +3396,6 @@ Defaulting color scheme to 'NoColor'"""
         your existing IPython session.
         """
 
-        # XXX - Fix this to have cleaner activate/deactivate calls.
-        from IPython.extensions import InterpreterPasteInput as ipaste
         from IPython.utils.ipstruct import Struct
 
         # Shorthands
@@ -3451,8 +3418,6 @@ Defaulting color scheme to 'NoColor'"""
 
         if mode == False:
             # turn on
-            ipaste.activate_prefilter()
-
             oc.prompt1.p_template = '>>> '
             oc.prompt2.p_template = '... '
             oc.prompt_out.p_template = ''
@@ -3466,13 +3431,11 @@ Defaulting color scheme to 'NoColor'"""
                                   oc.prompt_out.pad_left = False
 
             shell.pprint = False
-
+            
             shell.magic_xmode('Plain')
 
         else:
             # turn off
-            ipaste.deactivate_prefilter()
-
             oc.prompt1.p_template = shell.prompt_in1
             oc.prompt2.p_template = shell.prompt_in2
             oc.prompt_out.p_template = shell.prompt_out
@@ -3485,7 +3448,7 @@ Defaulting color scheme to 'NoColor'"""
             oc.prompt1.pad_left = oc.prompt2.pad_left = \
                          oc.prompt_out.pad_left = dstore.rc_prompts_pad_left
 
-            rc.pprint = dstore.rc_pprint
+            shell.pprint = dstore.rc_pprint
 
             shell.magic_xmode(dstore.xmode)
 
@@ -3503,7 +3466,7 @@ Defaulting color scheme to 'NoColor'"""
         using the (pylab/wthread/etc.) command line flags.  GUI toolkits
         can now be enabled, disabled and swtiched at runtime and keyboard
         interrupts should work without any problems.  The following toolkits
-        are supports:  wxPython, PyQt4, PyGTK, and Tk::
+        are supported:  wxPython, PyQt4, PyGTK, and Tk::
 
             %gui wx      # enable wxPython event loop integration
             %gui qt4|qt  # enable PyQt4 event loop integration
@@ -3522,25 +3485,13 @@ Defaulting color scheme to 'NoColor'"""
 
         This is highly recommended for most users.
         """
-        from IPython.lib import inputhook
-        if "-a" in parameter_s:
-            app = True
-        else:
-            app = False
-        if not parameter_s:
-            inputhook.clear_inputhook()
-        elif 'wx' in parameter_s:
-            return inputhook.enable_wx(app)
-        elif ('qt4' in parameter_s) or ('qt' in parameter_s):
-            return inputhook.enable_qt4(app)
-        elif 'gtk' in parameter_s:
-            return inputhook.enable_gtk(app)
-        elif 'tk' in parameter_s:
-            return inputhook.enable_tk(app)
+        opts, arg = self.parse_options(parameter_s,'a')
+        if arg=='': arg = None
+        return enable_gui(arg, 'a' in opts)
 
     def magic_load_ext(self, module_str):
         """Load an IPython extension by its module name."""
-        self.load_extension(module_str)
+        return self.load_extension(module_str)
 
     def magic_unload_ext(self, module_str):
         """Unload an IPython extension by its module name."""
@@ -3549,5 +3500,114 @@ Defaulting color scheme to 'NoColor'"""
     def magic_reload_ext(self, module_str):
         """Reload an IPython extension by its module name."""
         self.reload_extension(module_str)
+
+    @testdec.skip_doctest
+    def magic_install_profiles(self, s):
+        """Install the default IPython profiles into the .ipython dir.
+
+        If the default profiles have already been installed, they will not
+        be overwritten. You can force overwriting them by using the ``-o``
+        option::
+
+            In [1]: %install_profiles -o
+        """
+        if '-o' in s:
+            overwrite = True
+        else:
+            overwrite = False
+        from IPython.config import profile
+        profile_dir = os.path.split(profile.__file__)[0]
+        ipython_dir = self.ipython_dir
+        files = os.listdir(profile_dir)
+
+        to_install = []
+        for f in files:
+            if f.startswith('ipython_config'):
+                src = os.path.join(profile_dir, f)
+                dst = os.path.join(ipython_dir, f)
+                if (not os.path.isfile(dst)) or overwrite:
+                    to_install.append((f, src, dst))
+        if len(to_install)>0:
+            print "Installing profiles to: ", ipython_dir
+            for (f, src, dst) in to_install:
+                shutil.copy(src, dst)
+                print "    %s" % f
+
+    def magic_install_default_config(self, s):
+        """Install IPython's default config file into the .ipython dir.
+
+        If the default config file (:file:`ipython_config.py`) is already
+        installed, it will not be overwritten. You can force overwriting
+        by using the ``-o`` option::
+
+            In [1]: %install_default_config
+        """
+        if '-o' in s:
+            overwrite = True
+        else:
+            overwrite = False
+        from IPython.config import default
+        config_dir = os.path.split(default.__file__)[0]
+        ipython_dir = self.ipython_dir
+        default_config_file_name = 'ipython_config.py'
+        src = os.path.join(config_dir, default_config_file_name)
+        dst = os.path.join(ipython_dir, default_config_file_name)
+        if (not os.path.isfile(dst)) or overwrite:
+            shutil.copy(src, dst)
+            print "Installing default config file: %s" % dst
+
+    # Pylab support: simple wrappers that activate pylab, load gui input
+    # handling and modify slightly %run
+
+    @testdec.skip_doctest
+    def _pylab_magic_run(self, parameter_s=''):
+        Magic.magic_run(self, parameter_s,
+                        runner=mpl_runner(self.shell.safe_execfile))
+
+    _pylab_magic_run.__doc__ = magic_run.__doc__
+
+    @testdec.skip_doctest
+    def magic_pylab(self, s):
+        """Load numpy and matplotlib to work interactively.
+
+        %pylab [GUINAME]
+
+        This function lets you activate pylab (matplotlib, numpy and
+        interactive support) at any point during an IPython session.
+
+        It will import at the top level numpy as np, pyplot as plt, matplotlib,
+        pylab and mlab, as well as all names from numpy and pylab.
+
+        Parameters
+        ----------
+        guiname : optional
+          One of the valid arguments to the %gui magic ('qt', 'wx', 'gtk' or
+          'tk').  If given, the corresponding Matplotlib backend is used,
+          otherwise matplotlib's default (which you can override in your
+          matplotlib config file) is used.
+
+        Examples
+        --------
+        In this case, where the MPL default is TkAgg:
+        In [2]: %pylab
+
+        Welcome to pylab, a matplotlib-based Python environment.
+        Backend in use: TkAgg
+        For more information, type 'help(pylab)'.
+
+        But you can explicitly request a different backend:
+        In [3]: %pylab qt
+
+        Welcome to pylab, a matplotlib-based Python environment.
+        Backend in use: Qt4Agg
+        For more information, type 'help(pylab)'.
+        """
+        self.shell.enable_pylab(s)
+
+    def magic_tb(self, s):
+        """Print the last traceback with the currently active exception mode.
+
+        See %xmode for changing exception reporting modes."""
+        self.shell.showtraceback()
 
 # end Magic

@@ -19,6 +19,7 @@ requires utilities which are not available under Windows."""
 
 # Stdlib imports
 import os
+import shutil
 import sys
 
 from glob import glob
@@ -42,6 +43,21 @@ from setupbase import (
 
 isfile = os.path.isfile
 pjoin = os.path.join
+
+#-----------------------------------------------------------------------------
+# Function definitions
+#-----------------------------------------------------------------------------
+
+def cleanup():
+    """Clean up the junk left around by the build process"""
+    if "develop" not in sys.argv:
+        try:
+            shutil.rmtree('ipython.egg-info')
+        except:
+            try:
+                os.unlink('ipython.egg-info')
+            except:
+                pass
 
 #-------------------------------------------------------------------------------
 # Handle OS specific things
@@ -144,7 +160,6 @@ if len(sys.argv) >= 2 and sys.argv[1] in ('sdist','bdist_rpm'):
             )
         
     [ target_update(*t) for t in to_update ]
-
     
 #---------------------------------------------------------------------------
 # Find all the packages, package data, scripts and data_files
@@ -159,6 +174,14 @@ data_files = find_data_files()
 # Handle dependencies and setuptools specific things
 #---------------------------------------------------------------------------
 
+# For some commands, use setuptools.  Note that we do NOT list install here!
+# If you want a setuptools-enhanced install, just run 'setupegg.py install'
+if len(set(('develop', 'sdist', 'release', 'bdist_egg', 'bdist_rpm',
+           'bdist', 'bdist_dumb', 'bdist_wininst', 'install_egg_info',
+           'build_sphinx', 'egg_info', 'easy_install', 'upload',
+            )).intersection(sys.argv)) > 0:
+    import setuptools
+
 # This dict is used for passing extra arguments that are setuptools 
 # specific to setup
 setuptools_extra_args = {}
@@ -169,9 +192,9 @@ if 'setuptools' in sys.modules:
         'console_scripts': [
             'ipython = IPython.core.ipapp:launch_new_instance',
             'pycolor = IPython.utils.PyColorize:main',
-            'ipcontroller = IPython.kernel.scripts.ipcontroller:main',
-            'ipengine = IPython.kernel.scripts.ipengine:main',
-            'ipcluster = IPython.kernel.scripts.ipcluster:main',
+            'ipcontroller = IPython.kernel.ipcontrollerapp:launch_new_instance',
+            'ipengine = IPython.kernel.ipengineapp:launch_new_instance',
+            'ipcluster = IPython.kernel.ipclusterapp:launch_new_instance',
             'ipythonx = IPython.frontend.wx.ipythonx:main',
             'iptest = IPython.testing.iptest:main',
             'irunner = IPython.lib.irunner:main'
@@ -195,7 +218,6 @@ else:
     # just to make life easy for users.
     check_for_dependencies()
 
-
 #---------------------------------------------------------------------------
 # Do the actual setup now
 #---------------------------------------------------------------------------
@@ -206,5 +228,7 @@ setup_args['scripts'] = scripts
 setup_args['data_files'] = data_files
 setup_args.update(setuptools_extra_args)
 
+
 if __name__ == '__main__':
     setup(**setup_args)
+    cleanup()

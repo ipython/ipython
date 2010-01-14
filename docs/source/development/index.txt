@@ -14,5 +14,7 @@ IPython developer's guide
    release.txt
    roadmap.txt
    reorg.txt
+   magic_blueprint.txt
    notification_blueprint.txt
+   ipgraph.txt
 

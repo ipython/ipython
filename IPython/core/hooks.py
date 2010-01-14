@@ -137,8 +137,7 @@ class CommandChainDispatcher:
         for prio,cmd in self.chain:
             #print "prio",prio,"cmd",cmd #dbg
             try:
-                ret = cmd(*args, **kw)
-                return ret
+                return cmd(*args, **kw)
             except TryNext, exc:
                 if exc.args or exc.kwargs:
                     args = exc.args
