@@ -30,6 +30,17 @@ import tempfile
 import time
 import warnings
 
+
+# Ugly,  but necessary hack to ensure the test suite finds our version of
+# IPython and not a possibly different one that may exist system-wide.
+# Note that this must be done here, so the imports that come next work
+# correctly even if IPython isn't installed yet.
+p = os.path
+ippath = p.abspath(p.join(p.dirname(__file__),'..','..'))
+sys.path.insert(0, ippath)
+#print 'ipp:',  ippath  # dbg
+#import IPython; print 'IP file:', IPython.__file__  # dbg
+
 # Note: monkeypatch!
 # We need to monkeypatch a small problem in nose itself first, before importing
 # it for actual use.  This should get into nose upstream, but its release cycle
@@ -101,6 +112,10 @@ def make_exclude():
     
     exclusions = [ipjoin('external'),
                   ipjoin('frontend', 'process', 'winprocess.py'),
+                  # Deprecated old Shell and iplib modules, skip to avoid
+                  # warnings
+                  ipjoin('Shell'),
+                  ipjoin('iplib'),
                   pjoin('IPython_doctest_plugin'),
                   ipjoin('quarantine'),
                   ipjoin('deathrow'),
@@ -193,7 +208,8 @@ class IPTester(object):
             # Find our own 'iptest' script OS-level entry point.  Don't look
             # system-wide, so we are sure we pick up *this one*.  And pass
             # through to subprocess call our own sys.argv
-            self.runner = tools.cmd2argv(__file__) + sys.argv[1:]
+            self.runner = tools.cmd2argv(os.path.abspath(__file__)) + \
+                          sys.argv[1:]
         else:
             self.runner = tools.cmd2argv(os.path.abspath(find_cmd('trial')))
         if params is None:
@@ -388,8 +404,10 @@ def run_iptestall():
 def main():
     for arg in sys.argv[1:]:
         if arg.startswith('IPython'):
+            # This is in-process
             run_iptest()
     else:
+        # This starts subprocesses
         run_iptestall()
 
 

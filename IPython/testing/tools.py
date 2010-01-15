@@ -244,13 +244,15 @@ def ipexec(fname, options=None):
     
     _ip = get_ipython()
     test_dir = os.path.dirname(__file__)
+
     # Find the ipython script from the package we're using, so that the test
     # suite can be run from the source tree without an installed IPython
-    ipython_package_dir = genutils.get_ipython_package_dir()
-    ipython_script = os.path.join(ipython_package_dir,'scripts','ipython')
+    p = os.path
+    ippath = p.abspath(p.join(p.dirname(__file__),'..','..'))
+    ipython_script = p.join(ippath, 'ipython.py')
     ipython_cmd = 'python "%s"' % ipython_script
     # Absolute path for filename
-    full_fname = os.path.join(test_dir, fname)
+    full_fname = p.join(test_dir, fname)
     full_cmd = '%s %s "%s"' % (ipython_cmd, cmdargs, full_fname)
     return genutils.getoutputerror(full_cmd)
 

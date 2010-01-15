@@ -42,7 +42,22 @@ manages the Twisted reactor correctly.
 For the impatient: running the tests
 ====================================
 
-The simplest way to test IPython is to type at the command line:
+You can run IPython from the source download directory without even installing
+it system-wide or having configure anything, by typing at the terminal:
+
+.. code-block:: bash
+
+   python ipython.py
+
+and similarly, you can execute the built-in test suite with:
+   
+.. code-block:: bash
+
+   python iptest.py
+
+
+Once you have either installed it or at least configured your system to be
+able to import IPython, you can run the tests with:
 
 .. code-block:: bash
 
@@ -50,7 +65,9 @@ The simplest way to test IPython is to type at the command line:
 
 This should work as long as IPython can be imported, even if you haven't fully
 installed the user-facing scripts yet (common in a development environment).
-After a lot of output, you should see something like:
+
+
+Regardless of how you run things, you should eventually see something like:
 
 .. code-block:: bash
   
