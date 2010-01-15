@@ -635,9 +635,9 @@ def filefind(filename, path_dirs=None):
         testname = expand_path(os.path.join(path, filename))
         if os.path.isfile(testname):
             return os.path.abspath(testname)
-    raise IOError("File does not exist in any "
-                  "of the search paths: %r, %r" % \
-                  (filename, path_dirs))
+        
+    raise IOError("File %r does not exist in any of the search paths: %r" % 
+                  (filename, path_dirs) )
 
 
 #----------------------------------------------------------------------------
