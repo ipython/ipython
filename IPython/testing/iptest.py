@@ -71,6 +71,10 @@ warnings.filterwarnings('ignore', 'the sets module is deprecated',
 warnings.filterwarnings('ignore', 'the sha module is deprecated',
                         DeprecationWarning)
 
+# Wx on Fedora11 spits these out
+warnings.filterwarnings('ignore', 'wxPython/wxWidgets release number mismatch',
+                        UserWarning)
+
 #-----------------------------------------------------------------------------
 # Logic for skipping doctests
 #-----------------------------------------------------------------------------
@@ -274,33 +278,34 @@ def make_runners():
     """Define the top-level packages that need to be tested.
     """
 
-    nose_packages = ['config', 'core', 'extensions', 'frontend', 'lib',
-                     'scripts', 'testing', 'utils',
-                     # Note that we list the kernel here, though the bulk of it
-                     # is twisted-based, because nose picks up doctests that
-                     # twisted doesn't.
-                     'kernel']
+    # Packages to be tested via nose, that only depend on the stdlib
+    nose_pkg_names = ['config', 'core', 'extensions', 'frontend', 'lib',
+                     'scripts', 'testing', 'utils' ]
     # The machinery in kernel needs twisted for real testing
-    trial_packages = ['kernel']
+    trial_pkg_names = []
 
     if have_wx:
-        nose_packages.append('gui')
+        nose_pkg_names.append('gui')
 
-    #nose_packages = ['config', 'utils']  # dbg
-    #trial_packages = []  # dbg 
-
-    nose_packages = ['IPython.%s' % m for m in nose_packages ]
-    trial_packages = ['IPython.%s' % m for m in trial_packages ]
-
-    # Make runners, most with nose
-    nose_testers = [IPTester(params=v) for v in nose_packages]
-    runners = zip(nose_packages, nose_testers)
-    
     # And add twisted ones if conditions are met
     if have_zi and have_twisted and have_foolscap:
-        trial_testers = [IPTester('trial', params=v) for v in trial_packages]
-        runners.extend(zip(trial_packages, trial_testers))
-                                 
+        # Note that we list the kernel here, though the bulk of it is
+        # twisted-based, because nose picks up doctests that twisted doesn't.
+        nose_pkg_names.append('kernel')
+        trial_pkg_names.append('kernel')
+
+    # For debugging this code, only load quick stuff
+    #nose_pkg_names = ['config', 'utils']  # dbg
+    #trial_pkg_names = []  # dbg 
+
+    # Make fully qualified package names prepending 'IPython.' to our name lists
+    nose_packages = ['IPython.%s' % m for m in nose_pkg_names ]
+    trial_packages = ['IPython.%s' % m for m in trial_pkg_names ]
+
+    # Make runners
+    runners = [ (v, IPTester('iptest', params=v)) for v in nose_packages ]
+    runners.extend([ (v, IPTester('trial', params=v)) for v in trial_packages ])
+    
     return runners
 
 
