@@ -169,7 +169,7 @@ def test_magic():
     f.input_buffer += '%who'
     f._on_enter()
     out_value = f.out.getvalue()
-    assert_equal(out_value, 'In\tOut\tget_ipython\t\n')
+    assert_equal(out_value, 'Interactive namespace is empty.\n')
 
 
 @isolate_ipython0
