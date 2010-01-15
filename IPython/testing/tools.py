@@ -209,14 +209,10 @@ def temp_pyfile(src, ext='.py'):
 def default_argv():
     """Return a valid default argv for creating testing instances of ipython"""
 
-    # Get the install directory for the user configuration and tell ipython to
-    # use the default profile from there.
-    from IPython.config import default
-    ipcdir = os.path.dirname(default.__file__)
-    ipconf = os.path.join(ipcdir,'ipython_config.py')
-    return ['--colors=NoColor', '--no-term-title','--no-banner',
-            '--config-file="%s"' % ipconf, '--autocall=0',
-            '--prompt-out=""']
+    return ['--quick', # so no config file is loaded
+            # Other defaults to minimize side effects on stdout
+            '--colors=NoColor', '--no-term-title','--no-banner',
+            '--autocall=0']
     
 
 def ipexec(fname, options=None):
@@ -240,7 +236,11 @@ def ipexec(fname, options=None):
     (stdout, stderr) of ipython subprocess.
     """
     if options is None: options = []
-    cmdargs = ' '.join(default_argv() + options)
+    
+    # For these subprocess calls, eliminate all prompt printing so we only see
+    # output from script execution
+    prompt_opts = ['--prompt-in1=""', '--prompt-in2=""', '--prompt-out=""']
+    cmdargs = ' '.join(default_argv() + prompt_opts + options)
     
     _ip = get_ipython()
     test_dir = os.path.dirname(__file__)
