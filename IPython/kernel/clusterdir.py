@@ -20,6 +20,7 @@ from __future__ import with_statement
 import os
 import shutil
 import sys
+import warnings
 
 from twisted.python import log
 
@@ -27,13 +28,25 @@ from IPython.core import release
 from IPython.config.loader import PyFileConfigLoader
 from IPython.core.application import Application
 from IPython.core.component import Component
+from IPython.utils.genutils import get_ipython_dir, get_ipython_package_dir
 from IPython.utils.traitlets import Unicode, Bool
 from IPython.utils import genutils
 
 #-----------------------------------------------------------------------------
-# Imports
+# Warnings control
 #-----------------------------------------------------------------------------
+# Twisted generates annoying warnings with Python 2.6, as will do other code
+# that imports 'sets' as of today
+warnings.filterwarnings('ignore', 'the sets module is deprecated',
+                        DeprecationWarning )
 
+# This one also comes from Twisted
+warnings.filterwarnings('ignore', 'the sha module is deprecated',
+                        DeprecationWarning)
+
+#-----------------------------------------------------------------------------
+# Classes and functions
+#-----------------------------------------------------------------------------
 
 class ClusterDirError(Exception):
     pass
@@ -352,9 +365,6 @@ class ApplicationWithClusterDir(Application):
         self.default_config.Global.cluster_dir = self.cluster_dir
         self.command_line_config.Global.cluster_dir = self.cluster_dir
 
-        # Set the search path to the cluster directory
-        self.config_file_paths = (self.cluster_dir,)
-
     def find_config_file_name(self):
         """Find the config file name for this application."""
         # For this type of Application it should be set as a class attribute.
@@ -362,8 +372,11 @@ class ApplicationWithClusterDir(Application):
             self.log.critical("No config filename found")
 
     def find_config_file_paths(self):
-        # Set the search path to the cluster directory
-        self.config_file_paths = (self.cluster_dir,)
+        # Include our own config directory last, so that users can still find
+        # our shipped copies of builtin config files even if they don't have
+        # them in their ipython cluster directory.
+        conf_dir = os.path.join(get_ipython_package_dir(), 'config', 'default')
+        self.config_file_paths = (self.cluster_dir, conf_dir)
 
     def pre_construct(self):
         # The log and security dirs were set earlier, but here we put them
