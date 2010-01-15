@@ -153,7 +153,6 @@ def doctest_hist_op():
     >>> ss
     <...s instance at ...>
     >>> 
-    >>> get_ipython().magic("hist -op")
     """
 
 def test_shist():
