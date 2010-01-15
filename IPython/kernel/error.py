@@ -17,8 +17,6 @@ __test__ = {}
 #-------------------------------------------------------------------------------
 # Imports
 #-------------------------------------------------------------------------------
-from twisted.python import failure
-
 from IPython.kernel.core import error
 
 #-------------------------------------------------------------------------------
@@ -179,6 +177,8 @@ class CompositeError(KernelError):
             raise et, ev, etb
 
 def collect_exceptions(rlist, method):
+    from twisted.python import failure
+
     elist = []
     for r in rlist:
         if isinstance(r, failure.Failure):
