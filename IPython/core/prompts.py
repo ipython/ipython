@@ -221,7 +221,7 @@ def str_safe(arg):
             out = '<ERROR: %s>' % msg
     except Exception,msg:
         out = '<ERROR: %s>' % msg
-        raise  # dbg
+        #raise  # dbg
     return out
 
 class BasePrompt(object):
