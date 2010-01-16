@@ -219,14 +219,21 @@ def make_user_namespaces(user_ns=None, user_global_ns=None):
         of the interpreter and a dict to be used as the global namespace.
     """
 
+
+    # We must ensure that __builtin__ (without the final 's') is always
+    # available and pointing to the __builtin__ *module*.  For more details:
+    # http://mail.python.org/pipermail/python-dev/2001-April/014068.html
+
     if user_ns is None:
         # Set __name__ to __main__ to better match the behavior of the
         # normal interpreter.
         user_ns = {'__name__'     :'__main__',
+                   '__builtin__' : __builtin__,
                    '__builtins__' : __builtin__,
                   }
     else:
         user_ns.setdefault('__name__','__main__')
+        user_ns.setdefault('__builtin__',__builtin__)
         user_ns.setdefault('__builtins__',__builtin__)
 
     if user_global_ns is None:
@@ -970,8 +977,20 @@ class InteractiveShell(Component, Magic):
         # user_ns, and we sync that contents into user_config_ns so that these
         # initial variables aren't shown by %who.  After the sync, we add the
         # rest of what we *do* want the user to see with %who even on a new
-        # session (probably nothing, so they really only see their own stuff)
-        ns = {}
+        # session (probably nothing, so theye really only see their own stuff)
+
+        # The user dict must *always* have a __builtin__ reference to the
+        # Python standard __builtin__ namespace,  which must be imported.
+        # This is so that certain operations in prompt evaluation can be
+        # reliably executed with builtins.  Note that we can NOT use
+        # __builtins__ (note the 's'),  because that can either be a dict or a
+        # module, and can even mutate at runtime, depending on the context
+        # (Python makes no guarantees on it).  In contrast, __builtin__ is
+        # always a module object, though it must be explicitly imported.
+        
+        # For more details:
+        # http://mail.python.org/pipermail/python-dev/2001-April/014068.html
+        ns = dict(__builtin__ = __builtin__)
         
         # Put 'help' in the user namespace
         try:
