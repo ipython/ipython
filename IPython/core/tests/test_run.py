@@ -67,7 +67,7 @@ def doctest_run_builtins():
 
     In [6]: t1 = type(__builtins__)
 
-    In [7]: %run "$fname"
+    In [7]: %run $fname
 
     In [7]: f.close()
 
@@ -101,7 +101,7 @@ class TestMagicRunPass(tt.TempFileMixin):
         _ip = get_ipython()
         # This fails on Windows if self.tmpfile.name has spaces or "~" in it.
         # See below and ticket https://bugs.launchpad.net/bugs/366353
-        _ip.magic('run "%s"' % self.fname)
+        _ip.magic('run %s' % self.fname)
 
     def test_builtins_id(self):
         """Check that %run doesn't damage __builtins__ """
