@@ -81,7 +81,9 @@ def test_for(mod):
     """Test to see if mod is importable."""
     try:
         __import__(mod)
-    except ImportError:
+    except (ImportError, RuntimeError):
+        # GTK reports Runtime error if it can't be initialized even if  it's
+        # importable.
         return False
     else:
         return True
