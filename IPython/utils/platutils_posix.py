@@ -49,7 +49,7 @@ else:
 
 def find_cmd(cmd):
     """Find the full path to a command using which."""
-    return getoutputerror('which %s' % cmd)[0]
+    return getoutputerror('/usr/bin/env which %s' % cmd)[0]
 
 
 def get_long_path_name(path):

@@ -38,8 +38,6 @@ import warnings
 p = os.path
 ippath = p.abspath(p.join(p.dirname(__file__),'..','..'))
 sys.path.insert(0, ippath)
-#print 'ipp:',  ippath  # dbg
-#import IPython; print 'IP file:', IPython.__file__  # dbg
 
 # Note: monkeypatch!
 # We need to monkeypatch a small problem in nose itself first, before importing
@@ -240,6 +238,7 @@ class IPTester(object):
             return os.system(' '.join(self.call_args))
     else:
         def _run_cmd(self):
+            #print >> sys.stderr, '*** CMD:', ' '.join(self.call_args) # dbg
             subp = subprocess.Popen(self.call_args)
             self.pids.append(subp.pid)
             # If this fails, the pid will be left in self.pids and cleaned up
@@ -295,7 +294,7 @@ def make_runners():
         trial_pkg_names.append('kernel')
 
     # For debugging this code, only load quick stuff
-    #nose_pkg_names = ['config', 'utils']  # dbg
+    #nose_pkg_names = ['core']  # dbg
     #trial_pkg_names = []  # dbg 
 
     # Make fully qualified package names prepending 'IPython.' to our name lists
@@ -320,7 +319,20 @@ def run_iptest():
     warnings.filterwarnings('ignore', 
         'This will be removed soon.  Use IPython.testing.util instead')
 
-    argv = sys.argv + [ '--detailed-errors',
+    argv = sys.argv + [ '--detailed-errors',  # extra info in tracebacks
+                        
+                        # I don't fully understand why we need this one, but
+                        # depending on what directory the test suite is run
+                        # from, if we don't give it, 0 tests get run.
+                        # Specifically, if the test suite is run from the
+                        # source dir with an argument (like 'iptest.py
+                        # IPython.core', 0 tests are run, even if the same call
+                        # done in this directory works fine).  It appears that
+                        # if  the requested package is in the current dir,
+                        # nose bails early by default.  Since it's otherwise
+                        # harmless, leave it in by default. 
+                        '--traverse-namespace',
+                        
                         # Loading ipdoctest causes problems with Twisted, but
                         # our test suite runner now separates things and runs
                         # all Twisted tests with trial.
