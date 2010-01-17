@@ -13,7 +13,7 @@ class C(object):
         
     def __del__(self):
         print 'tclass.py: deleting object:',self.name
-
+        sys.stdout.flush()
 
 try:
     name = sys.argv[1]
@@ -28,3 +28,4 @@ else:
 # This next print statement is NOT debugging, we're making the check on a
 # completely separate process so we verify by capturing stdout:
 print 'ARGV 1-:', sys.argv[1:]
+sys.stdout.flush()

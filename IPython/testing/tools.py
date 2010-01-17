@@ -49,6 +49,13 @@ from . import decorators as dec
 # Globals
 #-----------------------------------------------------------------------------
 
+# By default, we assume IPython has been installed.  But if the test suite is
+# being run from a source tree that has NOT been installed yet, this flag can
+# be set to False by the entry point scripts, to let us know that we must call
+# the source tree versions of the scripts which manipulate sys.path instead of
+# assuming that things exist system-wide.
+INSTALLED = True
+
 # Make a bunch of nose.tools assert wrappers that can be used in test
 # generators.  This will expose an assert* function for each one in nose.tools.
 
@@ -248,16 +255,20 @@ def ipexec(fname, options=None):
     # Find the ipython script from the package we're using, so that the test
     # suite can be run from the source tree without an installed IPython
     p = os.path
-    ippath = p.abspath(p.join(p.dirname(__file__),'..','..'))
-    ipython_script = p.join(ippath, 'ipython.py')
-    ipython_cmd = 'python "%s"' % ipython_script
+    if INSTALLED:
+        ipython_cmd = platutils.find_cmd('ipython')
+    else:
+        ippath = p.abspath(p.join(p.dirname(__file__),'..','..'))
+        ipython_script = p.join(ippath, 'ipython.py')
+        ipython_cmd = 'python "%s"' % ipython_script
     # Absolute path for filename
     full_fname = p.join(test_dir, fname)
-    full_cmd = '%s %s "%s"' % (ipython_cmd, cmdargs, full_fname)
+    full_cmd = '%s %s %s' % (ipython_cmd, cmdargs, full_fname)
+    #print >> sys.stderr, 'FULL CMD:', full_cmd # dbg
     return genutils.getoutputerror(full_cmd)
 
 
-def ipexec_validate(fname, expected_out, expected_err=None,
+def ipexec_validate(fname, expected_out, expected_err='',
                     options=None):
     """Utility to call 'ipython filename' and validate output/error.
 
@@ -287,9 +298,18 @@ def ipexec_validate(fname, expected_out, expected_err=None,
     import nose.tools as nt
     
     out, err = ipexec(fname)
+    #print 'OUT', out  # dbg
+    #print 'ERR', err  # dbg
+    # If there are any errors, we must check those befor stdout, as they may be
+    # more informative than simply having an empty stdout.
+    if err:
+        if expected_err:
+            nt.assert_equals(err.strip(), expected_err.strip())
+        else:
+            raise ValueError('Running file %r produced error: %r' %
+                             (fname, err))
+    # If no errors or output on stderr was expected, match stdout
     nt.assert_equals(out.strip(), expected_out.strip())
-    if expected_err:
-        nt.assert_equals(err.strip(), expected_err.strip())
 
 
 class TempFileMixin(object):

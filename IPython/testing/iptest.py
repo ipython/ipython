@@ -57,6 +57,18 @@ from IPython.testing.plugin.ipdoctest import IPythonDoctest
 
 pjoin = path.join
 
+
+#-----------------------------------------------------------------------------
+# Globals
+#-----------------------------------------------------------------------------
+
+# By default, we assume IPython has been installed.  But if the test suite is
+# being run from a source tree that has NOT been installed yet, this flag can
+# be set to False by the entry point scripts, to let us know that we must call
+# the source tree versions of the scripts which manipulate sys.path instead of
+# assuming that things exist system-wide.
+INSTALLED = True
+
 #-----------------------------------------------------------------------------
 # Warnings control
 #-----------------------------------------------------------------------------
@@ -88,7 +100,6 @@ def test_for(mod):
     else:
         return True
 
-    
 have_curses = test_for('_curses')
 have_wx = test_for('wx')
 have_wx_aui = test_for('wx.aui')
@@ -100,6 +111,9 @@ have_pexpect = test_for('pexpect')
 have_gtk = test_for('gtk')
 have_gobject = test_for('gobject')
 
+#-----------------------------------------------------------------------------
+# Functions and classes
+#-----------------------------------------------------------------------------
 
 def make_exclude():
     """Make patterns of modules and packages to exclude from testing.
@@ -190,10 +204,6 @@ def make_exclude():
     return exclusions
 
 
-#-----------------------------------------------------------------------------
-# Functions and classes
-#-----------------------------------------------------------------------------
-
 class IPTester(object):
     """Call that calls iptest or trial in a subprocess.
     """
@@ -208,14 +218,22 @@ class IPTester(object):
     
     def __init__(self, runner='iptest', params=None):
         """Create new test runner."""
+        p = os.path
         if runner == 'iptest':
-            # Find our own 'iptest' script OS-level entry point.  Don't look
-            # system-wide, so we are sure we pick up *this one*.  And pass
-            # through to subprocess call our own sys.argv
-            self.runner = tools.cmd2argv(os.path.abspath(__file__)) + \
-                          sys.argv[1:]
+            if INSTALLED:
+                self.runner = tools.cmd2argv(
+                    p.abspath(find_cmd('iptest'))) + sys.argv[1:]
+            else:
+                # Find our own 'iptest' script OS-level entry point.  Don't
+                # look system-wide, so we are sure we pick up *this one*.  And
+                # pass through to subprocess call our own sys.argv
+                ippath = p.abspath(p.join(p.dirname(__file__),'..','..'))
+                script = p.join(ippath, 'iptest.py')
+                self.runner = tools.cmd2argv(script) + sys.argv[1:]
+                
         else:
-            self.runner = tools.cmd2argv(os.path.abspath(find_cmd('trial')))
+            # For trial, it needs to be installed system-wide
+            self.runner = tools.cmd2argv(p.abspath(find_cmd('trial')))
         if params is None:
             params = []
         if isinstance(params, str):
@@ -296,7 +314,7 @@ def make_runners():
         trial_pkg_names.append('kernel')
 
     # For debugging this code, only load quick stuff
-    #nose_pkg_names = ['core']  # dbg
+    #nose_pkg_names = ['core', 'extensions']  # dbg
     #trial_pkg_names = []  # dbg 
 
     # Make fully qualified package names prepending 'IPython.' to our name lists
@@ -322,19 +340,7 @@ def run_iptest():
         'This will be removed soon.  Use IPython.testing.util instead')
 
     argv = sys.argv + [ '--detailed-errors',  # extra info in tracebacks
-                        
-                        # I don't fully understand why we need this one, but
-                        # depending on what directory the test suite is run
-                        # from, if we don't give it, 0 tests get run.
-                        # Specifically, if the test suite is run from the
-                        # source dir with an argument (like 'iptest.py
-                        # IPython.core', 0 tests are run, even if the same call
-                        # done in this directory works fine).  It appears that
-                        # if  the requested package is in the current dir,
-                        # nose bails early by default.  Since it's otherwise
-                        # harmless, leave it in by default. 
-                        '--traverse-namespace',
-                        
+                                                
                         # Loading ipdoctest causes problems with Twisted, but
                         # our test suite runner now separates things and runs
                         # all Twisted tests with trial.
@@ -350,6 +356,16 @@ def run_iptest():
                         '--exe',
                         ]
 
+    if nose.__version__ >= '0.11':
+        # I don't fully understand why we need this one, but depending on what
+        # directory the test suite is run from, if we don't give it, 0 tests
+        # get run.  Specifically, if the test suite is run from the source dir
+        # with an argument (like 'iptest.py IPython.core', 0 tests are run,
+        # even if the same call done in this directory works fine).  It appears
+        # that if the requested package is in the current dir, nose bails early
+        # by default.  Since it's otherwise harmless, leave it in by default
+        # for nose >= 0.11, though unfortunately nose 0.10 doesn't support it.
+        argv.append('--traverse-namespace')
 
     # Construct list of plugins, omitting the existing doctest plugin, which
     # ours replaces (and extends).

@@ -17,5 +17,10 @@ import os, sys
 this_dir = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, this_dir)
 
+import IPython.testing.tools as t
+import IPython.testing.iptest as ipt
+t.INSTALLED = False
+ipt.INSTALLED = False
+
 # Now proceed with execution
 execfile(os.path.join(this_dir, 'IPython', 'scripts', 'iptest'))
