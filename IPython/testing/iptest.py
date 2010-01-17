@@ -23,6 +23,7 @@ will change in the future.
 # Stdlib
 import os
 import os.path as path
+import platform
 import signal
 import sys
 import subprocess
@@ -49,6 +50,7 @@ import nose.plugins.builtin
 from nose.core import TestProgram
 
 # Our own imports
+from IPython.core import release
 from IPython.utils import genutils
 from IPython.utils.platutils import find_cmd, FindCmdError
 from IPython.testing import globalipapp
@@ -100,20 +102,53 @@ def test_for(mod):
     else:
         return True
 
-have_curses = test_for('_curses')
-have_wx = test_for('wx')
-have_wx_aui = test_for('wx.aui')
-have_zi = test_for('zope.interface')
-have_twisted = test_for('twisted')
-have_foolscap = test_for('foolscap')
-have_objc = test_for('objc')
-have_pexpect = test_for('pexpect')
-have_gtk = test_for('gtk')
-have_gobject = test_for('gobject')
+# Global dict where we can store information on what we have and what we don't
+# have available at test run time
+have = {}
+
+have['curses'] = test_for('_curses')
+have['wx'] = test_for('wx')
+have['wx.aui'] = test_for('wx.aui')
+have['zope.interface'] = test_for('zope.interface')
+have['twisted'] = test_for('twisted')
+have['foolscap'] = test_for('foolscap')
+have['objc'] = test_for('objc')
+have['pexpect'] = test_for('pexpect')
+have['gtk'] = test_for('gtk')
+have['gobject'] = test_for('gobject')
 
 #-----------------------------------------------------------------------------
 # Functions and classes
 #-----------------------------------------------------------------------------
+
+def report():
+    """Return a string with a summary report of test-related variables."""
+
+    out = [ genutils.sys_info() ]
+
+    out.append('\nRunning from an installed IPython: %s\n' % INSTALLED)
+
+    avail = []
+    not_avail = []
+    
+    for k, is_avail in have.items():
+        if is_avail:
+            avail.append(k)
+        else:
+            not_avail.append(k)
+
+    if avail:
+        out.append('\nTools and libraries available at test time:\n')
+        avail.sort()
+        out.append('   ' + ' '.join(avail)+'\n')
+
+    if not_avail:
+        out.append('\nTools and libraries NOT available at test time:\n')
+        not_avail.sort()
+        out.append('   ' + ' '.join(not_avail)+'\n')
+        
+    return ''.join(out)
+
 
 def make_exclude():
     """Make patterns of modules and packages to exclude from testing.
@@ -149,18 +184,18 @@ def make_exclude():
                   ipjoin('config', 'profile'),
                   ]
 
-    if not have_wx:
+    if not have['wx']:
         exclusions.append(ipjoin('gui'))
         exclusions.append(ipjoin('frontend', 'wx'))
         exclusions.append(ipjoin('lib', 'inputhookwx'))
 
-    if not have_gtk or not have_gobject:
+    if not have['gtk'] or not have['gobject']:
         exclusions.append(ipjoin('lib', 'inputhookgtk'))
 
-    if not have_wx_aui:
+    if not have['wx.aui']:
         exclusions.append(ipjoin('gui', 'wx', 'wxIPython'))
 
-    if not have_objc:
+    if not have['objc']:
         exclusions.append(ipjoin('frontend', 'cocoa'))
 
     if not sys.platform == 'win32':
@@ -175,14 +210,14 @@ def make_exclude():
     if not os.name == 'posix':
         exclusions.append(ipjoin('utils', 'platutils_posix'))
 
-    if not have_pexpect:
+    if not have['pexpect']:
         exclusions.extend([ipjoin('scripts', 'irunner'),
                            ipjoin('lib', 'irunner')])
 
     # This is scary.  We still have things in frontend and testing that
     # are being tested by nose that use twisted.  We need to rethink
     # how we are isolating dependencies in testing.
-    if not (have_twisted and have_zi and have_foolscap):
+    if not (have['twisted'] and have['zope.interface'] and have['foolscap']):
         exclusions.extend(
             [ipjoin('frontend', 'asyncfrontendbase'),
              ipjoin('frontend', 'prefilterfrontend'),
@@ -303,11 +338,11 @@ def make_runners():
     # The machinery in kernel needs twisted for real testing
     trial_pkg_names = []
 
-    if have_wx:
+    if have['wx']:
         nose_pkg_names.append('gui')
 
     # And add twisted ones if conditions are met
-    if have_zi and have_twisted and have_foolscap:
+    if have['zope.interface'] and have['twisted'] and have['foolscap']:
         # Note that we list the kernel here, though the bulk of it is
         # twisted-based, because nose picks up doctests that twisted doesn't.
         nose_pkg_names.append('kernel')
@@ -420,8 +455,11 @@ def run_iptestall():
     # summarize results
     print
     print '*'*70
+    print 'Test suite completed for system with the following information:'
+    print report()
     print 'Ran %s test groups in %.3fs' % (nrunners, t_tests)
     print
+    print 'Status:'
     if not failed:
         print 'OK'
     else:

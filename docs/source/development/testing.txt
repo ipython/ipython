@@ -82,10 +82,26 @@ Regardless of how you run things, you should eventually see something like:
 .. code-block:: bash
 
    **********************************************************************
-   Ran 11 test groups in 64.117s
+   Test suite completed for system with the following information:
+   IPython version: 0.11.bzr.r1340
+   BZR revision   : 1340
+   Platform info  : os.name -> posix, sys.platform -> linux2
+		  : Linux-2.6.31-17-generic-i686-with-Ubuntu-9.10-karmic
+   Python info    : 2.6.4 (r264:75706, Dec  7 2009, 18:45:15) 
+   [GCC 4.4.1]
 
+   Running from an installed IPython: True
+
+   Tools and libraries available at test time:
+      curses foolscap gobject gtk pexpect twisted wx wx.aui zope.interface
+
+   Tools and libraries NOT available at test time:
+      objc
+
+   Ran 11 test groups in 36.244s
+
+   Status:
    OK
-
 
 If not, there will be a message indicating which test group failed and how to
 rerun that group individually.  For example, this tests the
