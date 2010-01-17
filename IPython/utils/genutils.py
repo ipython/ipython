@@ -42,6 +42,7 @@ else:
 
 # Other IPython utilities
 import IPython
+from IPython.core import release
 from IPython.external.Itpl import itpl,printpl
 from IPython.utils import platutils
 from IPython.utils.generics import result_display
@@ -212,6 +213,31 @@ def fatal(msg,exit_val=1):
     """Equivalent to warn(msg,exit_val=exit_val,level=4)."""
 
     warn(msg,exit_val=exit_val,level=4)
+
+def sys_info():
+    """Return useful information about IPython and the system, as a string.
+
+    Examples
+    --------
+    In [1]: print(sys_info())
+    IPython version: 0.11.bzr.r1340   # random
+    BZR revision   : 1340
+    Platform info  : os.name -> posix, sys.platform -> linux2
+                   : Linux-2.6.31-17-generic-i686-with-Ubuntu-9.10-karmic
+    Python info    : 2.6.4 (r264:75706, Dec  7 2009, 18:45:15) 
+    [GCC 4.4.1]
+    """
+    import platform
+    out = []
+    out.append('IPython version: %s' % release.version)
+    out.append('BZR revision   : %s' % release.revision)
+    out.append('Platform info  : os.name -> %s, sys.platform -> %s' %
+               (os.name,sys.platform) )
+    out.append('               : %s' % platform.platform())
+    out.append('Python info    : %s' % sys.version)
+    out.append('')  # ensure closing newline
+    return '\n'.join(out)
+    
 
 #---------------------------------------------------------------------------
 # Debugging routines
