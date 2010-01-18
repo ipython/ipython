@@ -20,7 +20,7 @@ import sys
 from nose.tools import assert_equal
 
 from IPython.frontend.prefilterfrontend import PrefilterFrontEnd
-from IPython.core.ipapi import get as get_ipython0
+from IPython.testing.globalipapp import get_ipython
 from IPython.testing.tools import default_argv
 
 #-----------------------------------------------------------------------------
@@ -60,7 +60,7 @@ def isolate_ipython0(func):
         with arguments.
     """
     def my_func():
-        ip0 = get_ipython0()
+        ip0 = get_ipython()
         if ip0 is None:
             return func()
         # We have a real ipython running...
@@ -169,7 +169,7 @@ def test_magic():
     f.input_buffer += '%who'
     f._on_enter()
     out_value = f.out.getvalue()
-    assert_equal(out_value, 'In\tOut\tget_ipython\t\n')
+    assert_equal(out_value, 'Interactive namespace is empty.\n')
 
 
 @isolate_ipython0

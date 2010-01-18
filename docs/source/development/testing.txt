@@ -42,7 +42,25 @@ manages the Twisted reactor correctly.
 For the impatient: running the tests
 ====================================
 
-The simplest way to test IPython is to type at the command line:
+You can run IPython from the source download directory without even installing
+it system-wide or having configure anything, by typing at the terminal:
+
+.. code-block:: bash
+
+   python ipython.py
+
+and similarly, you can execute the built-in test suite with:
+   
+.. code-block:: bash
+
+   python iptest.py
+
+
+This script manages intelligently both nose and trial, choosing the correct
+test system for each of IPython's components.
+
+Once you have either installed it or at least configured your system to be
+able to import IPython, you can run the tests with:
 
 .. code-block:: bash
 
@@ -50,57 +68,72 @@ The simplest way to test IPython is to type at the command line:
 
 This should work as long as IPython can be imported, even if you haven't fully
 installed the user-facing scripts yet (common in a development environment).
-After a lot of output, you should see something like:
+Once you have installed IPython, you will have available system-wide a script
+called :file:`iptest` that does the exact same as the :file:`iptest.py` script
+in the source directory, so you can then test simply with:
 
 .. code-block:: bash
-  
-    ************************************************************************
-    Ran 10 test groups in 35.228s
 
-    OK
+   iptest  [args]
+
+
+Regardless of how you run things, you should eventually see something like:
+
+.. code-block:: bash
+
+   **********************************************************************
+   Test suite completed for system with the following information:
+   IPython version: 0.11.bzr.r1340
+   BZR revision   : 1340
+   Platform info  : os.name -> posix, sys.platform -> linux2
+		  : Linux-2.6.31-17-generic-i686-with-Ubuntu-9.10-karmic
+   Python info    : 2.6.4 (r264:75706, Dec  7 2009, 18:45:15) 
+   [GCC 4.4.1]
+
+   Running from an installed IPython: True
+
+   Tools and libraries available at test time:
+      curses foolscap gobject gtk pexpect twisted wx wx.aui zope.interface
+
+   Tools and libraries NOT available at test time:
+      objc
+
+   Ran 11 test groups in 36.244s
+
+   Status:
+   OK
 
 If not, there will be a message indicating which test group failed and how to
-rerun that group individually.
-
-But IPython ships with an entry point script called :file:`iptest` that offers
-fine-grain control over the test process and is particularly useful for
-developers; this script also manages intelligently both nose and trial,
-choosing the correct test system for each of IPython's components.  Running
-:file:`iptest` without arguments gives output identical to that above, but with
-it, you can also run specific tests with fine control.  The :file:`iptest`
-script is installed with IPython, but if you are running from a source tree,
-you can find it in the :file:`IPython/scripts` directory and you can run
-directly from there.
-
-For example, this tests the :mod:`IPython.utils` subpackage, the :option:`-v`
-option shows progress indicators:
+rerun that group individually.  For example, this tests the
+:mod:`IPython.utils` subpackage, the :option:`-v` option shows progress
+indicators:
 
 .. code-block:: bash
 
-    maqroll[ipython]> cd IPython/scripts/
-    maqroll[scripts]> ./iptest -v IPython.utils
-    ..........................SS..SSS............................S.S.........
-    ...................................................
-    ----------------------------------------------------------------------
-    Ran 125 tests in 0.070s
+   $ python iptest.py -v IPython.utils
+   ..........................SS..SSS............................S.S...
+   .........................................................
+   ----------------------------------------------------------------------
+   Ran 125 tests in 0.119s
 
-    OK (SKIP=7)
+   OK (SKIP=7)
 
-Because :file:`iptest` is based on nose, you can use all nose options and
-syntax, typing ``iptest -h`` shows all available options.  For example, this
-lets you run the specific test :func:`test_rehashx` inside the
+
+Because the IPython test machinery is based on nose, you can use all nose
+options and syntax, typing ``iptest -h`` shows all available options.  For
+example, this lets you run the specific test :func:`test_rehashx` inside the
 :mod:`test_magic` module:
 
 .. code-block:: bash
 
-    maqroll[scripts]> ./iptest -vv IPython.core.tests.test_magic:test_rehashx
-    IPython.core.tests.test_magic.test_rehashx(True,) ... ok
-    IPython.core.tests.test_magic.test_rehashx(True,) ... ok
+   $ python iptest.py -vv IPython.core.tests.test_magic:test_rehashx
+   IPython.core.tests.test_magic.test_rehashx(True,) ... ok
+   IPython.core.tests.test_magic.test_rehashx(True,) ... ok
 
-    ----------------------------------------------------------------------
-    Ran 2 tests in 0.101s
+   ----------------------------------------------------------------------
+   Ran 2 tests in 0.100s
 
-    OK
+   OK
 
 When developing, the :option:`--pdb` and :option:`--pdb-failures` of nose are
 particularly useful, these drop you into an interactive pdb session at the

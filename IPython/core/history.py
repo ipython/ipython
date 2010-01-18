@@ -85,22 +85,22 @@ def magic_history(self, parameter_s = ''):
     if 'g' in opts:
         init = 1
         final = len(input_hist)
-        parts = parameter_s.split(None,1)
+        parts = parameter_s.split(None, 1)
         if len(parts) == 1:
             parts += '*'
         head, pattern = parts
         pattern = "*" + pattern + "*"
     elif len(args) == 0:
-        final = len(input_hist)
+        final = len(input_hist)-1
         init = max(1,final-default_length)
     elif len(args) == 1:
         final = len(input_hist)
-        init = max(1,final-int(args[0]))
+        init = max(1, final-int(args[0]))
     elif len(args) == 2:
-        init,final = map(int,args)
+        init, final = map(int, args)
     else:
         warn('%hist takes 0, 1 or 2 arguments separated by spaces.')
-        print self.magic_hist.__doc__
+        print >> Term.cout, self.magic_hist.__doc__
         return
     
     width = len(str(final))
@@ -114,13 +114,14 @@ def magic_history(self, parameter_s = ''):
         sh = self.shadowhist.all()
         for idx, s in sh:
             if fnmatch.fnmatch(s, pattern):
-                print "0%d: %s" %(idx, s)
+                print >> outfile, "0%d: %s" %(idx, s)
                 found = True
     
     if found:
-        print "==="
-        print "shadow history ends, fetch by %rep <number> (must start with 0)"
-        print "=== start of normal history ==="
+        print >> outfile, "==="
+        print >> outfile, \
+              "shadow history ends, fetch by %rep <number> (must start with 0)"
+        print >> outfile, "=== start of normal history ==="
         
     for in_num in range(init,final):        
         inline = input_hist[in_num]
@@ -130,7 +131,7 @@ def magic_history(self, parameter_s = ''):
         multiline = int(inline.count('\n') > 1)
         if print_nums:
             print >> outfile, \
-                  '%s:%s' % (str(in_num).ljust(width),line_sep[multiline]),
+                  '%s:%s' % (str(in_num).ljust(width), line_sep[multiline]),
         if pyprompts:
             print >> outfile, '>>>',
             if multiline:
@@ -141,9 +142,10 @@ def magic_history(self, parameter_s = ''):
                 print >> outfile, inline,
         else:
             print >> outfile, inline,
-        output = self.shell.user_ns['Out'].get(in_num)
-        if output is not None:
-            print repr(output)
+        if print_outputs:
+            output = self.shell.user_ns['Out'].get(in_num)
+            if output is not None:
+                print >> outfile, repr(output)
 
     if close_at_end:
         outfile.close()

@@ -11,6 +11,7 @@ these things are also convenient when working at the command line.
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
 #*****************************************************************************
+from __future__ import absolute_import
 
 #****************************************************************************
 # required modules from the Python standard library
@@ -41,11 +42,12 @@ else:
 
 # Other IPython utilities
 import IPython
+from IPython.core import release
 from IPython.external.Itpl import itpl,printpl
 from IPython.utils import platutils
 from IPython.utils.generics import result_display
 from IPython.external.path import path
-
+from .baseutils import getoutputerror
 
 #****************************************************************************
 # Exceptions
@@ -194,20 +196,48 @@ def warn(msg,level=2,exit_val=1):
             print >> Term.cerr,'Exiting.\n'
             sys.exit(exit_val)
 
+            
 def info(msg):
     """Equivalent to warn(msg,level=1)."""
 
     warn(msg,level=1)
 
+    
 def error(msg):
     """Equivalent to warn(msg,level=3)."""
 
     warn(msg,level=3)
 
+    
 def fatal(msg,exit_val=1):
     """Equivalent to warn(msg,exit_val=exit_val,level=4)."""
 
     warn(msg,exit_val=exit_val,level=4)
+
+def sys_info():
+    """Return useful information about IPython and the system, as a string.
+
+    Examples
+    --------
+    In [1]: print(sys_info())
+    IPython version: 0.11.bzr.r1340   # random
+    BZR revision   : 1340
+    Platform info  : os.name -> posix, sys.platform -> linux2
+                   : Linux-2.6.31-17-generic-i686-with-Ubuntu-9.10-karmic
+    Python info    : 2.6.4 (r264:75706, Dec  7 2009, 18:45:15) 
+    [GCC 4.4.1]
+    """
+    import platform
+    out = []
+    out.append('IPython version: %s' % release.version)
+    out.append('BZR revision   : %s' % release.revision)
+    out.append('Platform info  : os.name -> %s, sys.platform -> %s' %
+               (os.name,sys.platform) )
+    out.append('               : %s' % platform.platform())
+    out.append('Python info    : %s' % sys.version)
+    out.append('')  # ensure closing newline
+    return '\n'.join(out)
+    
 
 #---------------------------------------------------------------------------
 # Debugging routines
@@ -282,6 +312,7 @@ except ImportError:
         This just returns clock() and zero."""
         return time.clock(),0.0
 
+    
 def timings_out(reps,func,*args,**kw):
     """timings_out(reps,func,*args,**kw) -> (t_total,t_per_call,output)
 
@@ -310,6 +341,7 @@ def timings_out(reps,func,*args,**kw):
     av_time = tot_time / reps
     return tot_time,av_time,out
 
+
 def timings(reps,func,*args,**kw):
     """timings(reps,func,*args,**kw) -> (t_total,t_per_call)
 
@@ -318,6 +350,7 @@ def timings(reps,func,*args,**kw):
     in timings_out()."""
 
     return timings_out(reps,func,*args,**kw)[0:2]
+
 
 def timing(func,*args,**kw):
     """timing(func,*args,**kw) -> t_total
@@ -348,6 +381,7 @@ def arg_split(s,posix=False):
     lex.whitespace_split = True
     return list(lex)
 
+
 def system(cmd,verbose=0,debug=0,header=''):
     """Execute a system command, return its exit status.
 
@@ -368,6 +402,7 @@ def system(cmd,verbose=0,debug=0,header=''):
     sys.stdout.flush()
     if not debug: stat = os.system(cmd)
     return stat
+
 
 def abbrev_cwd():
     """ Return abbreviated version of cwd, e.g. d:mydir """
@@ -439,6 +474,7 @@ if os.name in ('nt','dos'):
 
     shell.__doc__ = shell_ori.__doc__
 
+    
 def getoutput(cmd,verbose=0,debug=0,header='',split=0):
     """Dummy substitute for perl's backquotes.
 
@@ -468,44 +504,10 @@ def getoutput(cmd,verbose=0,debug=0,header='',split=0):
         else:
             return output
 
-def getoutputerror(cmd,verbose=0,debug=0,header='',split=0):
-    """Return (standard output,standard error) of executing cmd in a shell.
-
-    Accepts the same arguments as system(), plus:
-
-    - split(0): if true, each of stdout/err is returned as a list split on
-    newlines.
-
-    Note: a stateful version of this function is available through the
-    SystemExec class."""
-
-    if verbose or debug: print header+cmd
-    if not cmd:
-        if split:
-            return [],[]
-        else:
-            return '',''
-    if not debug:
-        p = subprocess.Popen(cmd, shell=True,
-                             stdin=subprocess.PIPE,
-                             stdout=subprocess.PIPE,
-                             stderr=subprocess.PIPE,
-                             close_fds=True)
-        pin, pout, perr = (p.stdin, p.stdout, p.stderr)
-
-        tout = pout.read().rstrip()
-        terr = perr.read().rstrip()
-        pin.close()
-        pout.close()
-        perr.close()
-        if split:
-            return tout.split('\n'),terr.split('\n')
-        else:
-            return tout,terr
-
 # for compatibility with older naming conventions
 xsys = system
 bq = getoutput
+
 
 class SystemExec:
     """Access the system and getoutput functions through a stateful interface.
@@ -635,9 +637,9 @@ def filefind(filename, path_dirs=None):
         testname = expand_path(os.path.join(path, filename))
         if os.path.isfile(testname):
             return os.path.abspath(testname)
-    raise IOError("File does not exist in any "
-                  "of the search paths: %r, %r" % \
-                  (filename, path_dirs))
+        
+    raise IOError("File %r does not exist in any of the search paths: %r" % 
+                  (filename, path_dirs) )
 
 
 #----------------------------------------------------------------------------

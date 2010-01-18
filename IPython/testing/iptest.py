@@ -16,8 +16,6 @@ For now, this script requires that both nose and twisted are installed.  This
 will change in the future.
 """
 
-from __future__ import absolute_import
-
 #-----------------------------------------------------------------------------
 # Module imports
 #-----------------------------------------------------------------------------
@@ -25,6 +23,7 @@ from __future__ import absolute_import
 # Stdlib
 import os
 import os.path as path
+import platform
 import signal
 import sys
 import subprocess
@@ -32,23 +31,45 @@ import tempfile
 import time
 import warnings
 
+
+# Ugly,  but necessary hack to ensure the test suite finds our version of
+# IPython and not a possibly different one that may exist system-wide.
+# Note that this must be done here, so the imports that come next work
+# correctly even if IPython isn't installed yet.
+p = os.path
+ippath = p.abspath(p.join(p.dirname(__file__),'..','..'))
+sys.path.insert(0, ippath)
+
 # Note: monkeypatch!
 # We need to monkeypatch a small problem in nose itself first, before importing
 # it for actual use.  This should get into nose upstream, but its release cycle
 # is slow and we need it for our parametric tests to work correctly.
-from . import nosepatch
+from IPython.testing import nosepatch
 # Now, proceed to import nose itself
 import nose.plugins.builtin
 from nose.core import TestProgram
 
 # Our own imports
+from IPython.core import release
 from IPython.utils import genutils
 from IPython.utils.platutils import find_cmd, FindCmdError
-from . import globalipapp
-from . import tools
-from .plugin.ipdoctest import IPythonDoctest
+from IPython.testing import globalipapp
+from IPython.testing import tools
+from IPython.testing.plugin.ipdoctest import IPythonDoctest
 
 pjoin = path.join
+
+
+#-----------------------------------------------------------------------------
+# Globals
+#-----------------------------------------------------------------------------
+
+# By default, we assume IPython has been installed.  But if the test suite is
+# being run from a source tree that has NOT been installed yet, this flag can
+# be set to False by the entry point scripts, to let us know that we must call
+# the source tree versions of the scripts which manipulate sys.path instead of
+# assuming that things exist system-wide.
+INSTALLED = True
 
 #-----------------------------------------------------------------------------
 # Warnings control
@@ -62,6 +83,10 @@ warnings.filterwarnings('ignore', 'the sets module is deprecated',
 warnings.filterwarnings('ignore', 'the sha module is deprecated',
                         DeprecationWarning)
 
+# Wx on Fedora11 spits these out
+warnings.filterwarnings('ignore', 'wxPython/wxWidgets release number mismatch',
+                        UserWarning)
+
 #-----------------------------------------------------------------------------
 # Logic for skipping doctests
 #-----------------------------------------------------------------------------
@@ -70,22 +95,59 @@ def test_for(mod):
     """Test to see if mod is importable."""
     try:
         __import__(mod)
-    except ImportError:
+    except (ImportError, RuntimeError):
+        # GTK reports Runtime error if it can't be initialized even if  it's
+        # importable.
         return False
     else:
         return True
 
+# Global dict where we can store information on what we have and what we don't
+# have available at test run time
+have = {}
+
+have['curses'] = test_for('_curses')
+have['wx'] = test_for('wx')
+have['wx.aui'] = test_for('wx.aui')
+have['zope.interface'] = test_for('zope.interface')
+have['twisted'] = test_for('twisted')
+have['foolscap'] = test_for('foolscap')
+have['objc'] = test_for('objc')
+have['pexpect'] = test_for('pexpect')
+have['gtk'] = test_for('gtk')
+have['gobject'] = test_for('gobject')
+
+#-----------------------------------------------------------------------------
+# Functions and classes
+#-----------------------------------------------------------------------------
+
+def report():
+    """Return a string with a summary report of test-related variables."""
+
+    out = [ genutils.sys_info() ]
+
+    out.append('\nRunning from an installed IPython: %s\n' % INSTALLED)
+
+    avail = []
+    not_avail = []
     
-have_curses = test_for('_curses')
-have_wx = test_for('wx')
-have_wx_aui = test_for('wx.aui')
-have_zi = test_for('zope.interface')
-have_twisted = test_for('twisted')
-have_foolscap = test_for('foolscap')
-have_objc = test_for('objc')
-have_pexpect = test_for('pexpect')
-have_gtk = test_for('gtk')
-have_gobject = test_for('gobject')
+    for k, is_avail in have.items():
+        if is_avail:
+            avail.append(k)
+        else:
+            not_avail.append(k)
+
+    if avail:
+        out.append('\nTools and libraries available at test time:\n')
+        avail.sort()
+        out.append('   ' + ' '.join(avail)+'\n')
+
+    if not_avail:
+        out.append('\nTools and libraries NOT available at test time:\n')
+        not_avail.sort()
+        out.append('   ' + ' '.join(not_avail)+'\n')
+        
+    return ''.join(out)
 
 
 def make_exclude():
@@ -103,6 +165,10 @@ def make_exclude():
     
     exclusions = [ipjoin('external'),
                   ipjoin('frontend', 'process', 'winprocess.py'),
+                  # Deprecated old Shell and iplib modules, skip to avoid
+                  # warnings
+                  ipjoin('Shell'),
+                  ipjoin('iplib'),
                   pjoin('IPython_doctest_plugin'),
                   ipjoin('quarantine'),
                   ipjoin('deathrow'),
@@ -118,18 +184,18 @@ def make_exclude():
                   ipjoin('config', 'profile'),
                   ]
 
-    if not have_wx:
+    if not have['wx']:
         exclusions.append(ipjoin('gui'))
         exclusions.append(ipjoin('frontend', 'wx'))
         exclusions.append(ipjoin('lib', 'inputhookwx'))
 
-    if not have_gtk or not have_gobject:
+    if not have['gtk'] or not have['gobject']:
         exclusions.append(ipjoin('lib', 'inputhookgtk'))
 
-    if not have_wx_aui:
+    if not have['wx.aui']:
         exclusions.append(ipjoin('gui', 'wx', 'wxIPython'))
 
-    if not have_objc:
+    if not have['objc']:
         exclusions.append(ipjoin('frontend', 'cocoa'))
 
     if not sys.platform == 'win32':
@@ -144,14 +210,14 @@ def make_exclude():
     if not os.name == 'posix':
         exclusions.append(ipjoin('utils', 'platutils_posix'))
 
-    if not have_pexpect:
+    if not have['pexpect']:
         exclusions.extend([ipjoin('scripts', 'irunner'),
                            ipjoin('lib', 'irunner')])
 
     # This is scary.  We still have things in frontend and testing that
     # are being tested by nose that use twisted.  We need to rethink
     # how we are isolating dependencies in testing.
-    if not (have_twisted and have_zi and have_foolscap):
+    if not (have['twisted'] and have['zope.interface'] and have['foolscap']):
         exclusions.extend(
             [ipjoin('frontend', 'asyncfrontendbase'),
              ipjoin('frontend', 'prefilterfrontend'),
@@ -173,10 +239,6 @@ def make_exclude():
     return exclusions
 
 
-#-----------------------------------------------------------------------------
-# Functions and classes
-#-----------------------------------------------------------------------------
-
 class IPTester(object):
     """Call that calls iptest or trial in a subprocess.
     """
@@ -189,24 +251,27 @@ class IPTester(object):
     #: list, process ids of subprocesses we start (for cleanup)
     pids = None
     
-    def __init__(self,runner='iptest',params=None):
+    def __init__(self, runner='iptest', params=None):
         """Create new test runner."""
+        p = os.path
         if runner == 'iptest':
-            # Find our own 'iptest' script OS-level entry point
-            try:
-                iptest_path = os.path.abspath(find_cmd('iptest'))
-            except FindCmdError:
-                # Script not installed (may be the case for testing situations
-                # that are running from a source tree only), pull from internal
-                # path:
-                pak_dir = os.path.abspath(genutils.get_ipython_package_dir())
-                iptest_path = pjoin(pak_dir, 'scripts', 'iptest')
-            self.runner = tools.cmd2argv(iptest_path) + ['-v']
+            if INSTALLED:
+                self.runner = tools.cmd2argv(
+                    p.abspath(find_cmd('iptest'))) + sys.argv[1:]
+            else:
+                # Find our own 'iptest' script OS-level entry point.  Don't
+                # look system-wide, so we are sure we pick up *this one*.  And
+                # pass through to subprocess call our own sys.argv
+                ippath = p.abspath(p.join(p.dirname(__file__),'..','..'))
+                script = p.join(ippath, 'iptest.py')
+                self.runner = tools.cmd2argv(script) + sys.argv[1:]
+                
         else:
-            self.runner = tools.cmd2argv(os.path.abspath(find_cmd('trial')))
+            # For trial, it needs to be installed system-wide
+            self.runner = tools.cmd2argv(p.abspath(find_cmd('trial')))
         if params is None:
             params = []
-        if isinstance(params,str):
+        if isinstance(params, str):
             params = [params]
         self.params = params
 
@@ -228,6 +293,7 @@ class IPTester(object):
             return os.system(' '.join(self.call_args))
     else:
         def _run_cmd(self):
+            #print >> sys.stderr, '*** CMD:', ' '.join(self.call_args) # dbg
             subp = subprocess.Popen(self.call_args)
             self.pids.append(subp.pid)
             # If this fails, the pid will be left in self.pids and cleaned up
@@ -266,31 +332,34 @@ def make_runners():
     """Define the top-level packages that need to be tested.
     """
 
-    nose_packages = ['config', 'core', 'extensions', 'frontend', 'lib',
-                     'scripts', 'testing', 'utils',
-                     # Note that we list the kernel here, though the bulk of it
-                     # is twisted-based, because nose picks up doctests that
-                     # twisted doesn't.
-                     'kernel']
-    trial_packages = ['kernel']
+    # Packages to be tested via nose, that only depend on the stdlib
+    nose_pkg_names = ['config', 'core', 'extensions', 'frontend', 'lib',
+                     'scripts', 'testing', 'utils' ]
+    # The machinery in kernel needs twisted for real testing
+    trial_pkg_names = []
 
-    if have_wx:
-        nose_packages.append('gui')
+    if have['wx']:
+        nose_pkg_names.append('gui')
 
-    #nose_packages = ['core']  # dbg
-    #trial_packages = []  # dbg 
-
-    nose_packages = ['IPython.%s' % m for m in nose_packages ]
-    trial_packages = ['IPython.%s' % m for m in trial_packages ]
-
-    # Make runners, most with nose
-    nose_testers = [IPTester(params=v) for v in nose_packages]
-    runners = dict(zip(nose_packages, nose_testers))
     # And add twisted ones if conditions are met
-    if have_zi and have_twisted and have_foolscap:
-        trial_testers = [IPTester('trial',params=v) for v in trial_packages]
-        runners.update(dict(zip(trial_packages,trial_testers)))
-                                 
+    if have['zope.interface'] and have['twisted'] and have['foolscap']:
+        # Note that we list the kernel here, though the bulk of it is
+        # twisted-based, because nose picks up doctests that twisted doesn't.
+        nose_pkg_names.append('kernel')
+        trial_pkg_names.append('kernel')
+
+    # For debugging this code, only load quick stuff
+    #nose_pkg_names = ['core', 'extensions']  # dbg
+    #trial_pkg_names = []  # dbg 
+
+    # Make fully qualified package names prepending 'IPython.' to our name lists
+    nose_packages = ['IPython.%s' % m for m in nose_pkg_names ]
+    trial_packages = ['IPython.%s' % m for m in trial_pkg_names ]
+
+    # Make runners
+    runners = [ (v, IPTester('iptest', params=v)) for v in nose_packages ]
+    runners.extend([ (v, IPTester('trial', params=v)) for v in trial_packages ])
+    
     return runners
 
 
@@ -305,14 +374,13 @@ def run_iptest():
     warnings.filterwarnings('ignore', 
         'This will be removed soon.  Use IPython.testing.util instead')
 
-    argv = sys.argv + [ '--detailed-errors',
+    argv = sys.argv + [ '--detailed-errors',  # extra info in tracebacks
+                                                
                         # Loading ipdoctest causes problems with Twisted, but
                         # our test suite runner now separates things and runs
                         # all Twisted tests with trial.
                         '--with-ipdoctest',
                         '--ipdoctest-tests','--ipdoctest-extension=txt',
-                        
-                        #'-x','-s',  # dbg
                         
                         # We add --exe because of setuptools' imbecility (it
                         # blindly does chmod +x on ALL files).  Nose does the
@@ -323,21 +391,19 @@ def run_iptest():
                         '--exe',
                         ]
 
-    # Detect if any tests were required by explicitly calling an IPython
-    # submodule or giving a specific path
-    has_tests = False
-    for arg in sys.argv:
-        if 'IPython' in arg or arg.endswith('.py') or \
-           (':' in arg and  '.py' in arg):
-            has_tests = True
-            break
-        
-    # If nothing was specifically requested, test full IPython
-    if not has_tests:
-        argv.append('IPython')
+    if nose.__version__ >= '0.11':
+        # I don't fully understand why we need this one, but depending on what
+        # directory the test suite is run from, if we don't give it, 0 tests
+        # get run.  Specifically, if the test suite is run from the source dir
+        # with an argument (like 'iptest.py IPython.core', 0 tests are run,
+        # even if the same call done in this directory works fine).  It appears
+        # that if the requested package is in the current dir, nose bails early
+        # by default.  Since it's otherwise harmless, leave it in by default
+        # for nose >= 0.11, though unfortunately nose 0.10 doesn't support it.
+        argv.append('--traverse-namespace')
 
-    ## # Construct list of plugins, omitting the existing doctest plugin, which
-    ## # ours replaces (and extends).
+    # Construct list of plugins, omitting the existing doctest plugin, which
+    # ours replaces (and extends).
     plugins = [IPythonDoctest(make_exclude())]
     for p in nose.plugins.builtin.plugins:
         plug = p()
@@ -348,7 +414,7 @@ def run_iptest():
     # We need a global ipython running in this process
     globalipapp.start_ipython()
     # Now nose can run
-    TestProgram(argv=argv,plugins=plugins)
+    TestProgram(argv=argv, plugins=plugins)
 
 
 def run_iptestall():
@@ -371,15 +437,15 @@ def run_iptestall():
     os.chdir(testdir)
 
     # Run all test runners, tracking execution time
-    failed = {}
+    failed = []
     t_start = time.time()
     try:
-        for name,runner in runners.iteritems():
-            print '*'*77
+        for (name, runner) in runners:
+            print '*'*70
             print 'IPython test group:',name
             res = runner.run()
             if res:
-                failed[name] = res
+                failed.append( (name, runner) )
     finally:
         os.chdir(curdir)
     t_end = time.time()
@@ -388,17 +454,19 @@ def run_iptestall():
     nfail = len(failed)
     # summarize results
     print
-    print '*'*77
+    print '*'*70
+    print 'Test suite completed for system with the following information:'
+    print report()
     print 'Ran %s test groups in %.3fs' % (nrunners, t_tests)
     print
+    print 'Status:'
     if not failed:
         print 'OK'
     else:
         # If anything went wrong, point out what command to rerun manually to
         # see the actual errors and individual summary
         print 'ERROR - %s out of %s test groups failed.' % (nfail, nrunners)
-        for name in failed:
-            failed_runner = runners[name]
+        for name, failed_runner in failed:
             print '-'*40
             print 'Runner failed:',name
             print 'You may wish to rerun this one individually, with:'
@@ -407,13 +475,13 @@ def run_iptestall():
 
 
 def main():
-    if len(sys.argv) == 1:
-        run_iptestall()
-    else:
-        if sys.argv[1] == 'all':
-            run_iptestall()
-        else:
+    for arg in sys.argv[1:]:
+        if arg.startswith('IPython'):
+            # This is in-process
             run_iptest()
+    else:
+        # This starts subprocesses
+        run_iptestall()
 
 
 if __name__ == '__main__':

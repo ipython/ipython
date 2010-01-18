@@ -49,6 +49,13 @@ from . import decorators as dec
 # Globals
 #-----------------------------------------------------------------------------
 
+# By default, we assume IPython has been installed.  But if the test suite is
+# being run from a source tree that has NOT been installed yet, this flag can
+# be set to False by the entry point scripts, to let us know that we must call
+# the source tree versions of the scripts which manipulate sys.path instead of
+# assuming that things exist system-wide.
+INSTALLED = True
+
 # Make a bunch of nose.tools assert wrappers that can be used in test
 # generators.  This will expose an assert* function for each one in nose.tools.
 
@@ -209,14 +216,10 @@ def temp_pyfile(src, ext='.py'):
 def default_argv():
     """Return a valid default argv for creating testing instances of ipython"""
 
-    # Get the install directory for the user configuration and tell ipython to
-    # use the default profile from there.
-    from IPython.config import default
-    ipcdir = os.path.dirname(default.__file__)
-    ipconf = os.path.join(ipcdir,'ipython_config.py')
-    return ['--colors=NoColor', '--no-term-title','--no-banner',
-            '--config-file="%s"' % ipconf, '--autocall=0',
-            '--prompt-out=""']
+    return ['--quick', # so no config file is loaded
+            # Other defaults to minimize side effects on stdout
+            '--colors=NoColor', '--no-term-title','--no-banner',
+            '--autocall=0']
     
 
 def ipexec(fname, options=None):
@@ -240,22 +243,32 @@ def ipexec(fname, options=None):
     (stdout, stderr) of ipython subprocess.
     """
     if options is None: options = []
-    cmdargs = ' '.join(default_argv() + options)
+    
+    # For these subprocess calls, eliminate all prompt printing so we only see
+    # output from script execution
+    prompt_opts = ['--prompt-in1=""', '--prompt-in2=""', '--prompt-out=""']
+    cmdargs = ' '.join(default_argv() + prompt_opts + options)
     
     _ip = get_ipython()
     test_dir = os.path.dirname(__file__)
+
     # Find the ipython script from the package we're using, so that the test
     # suite can be run from the source tree without an installed IPython
-    ipython_package_dir = genutils.get_ipython_package_dir()
-    ipython_script = os.path.join(ipython_package_dir,'scripts','ipython')
-    ipython_cmd = 'python "%s"' % ipython_script
+    p = os.path
+    if INSTALLED:
+        ipython_cmd = platutils.find_cmd('ipython')
+    else:
+        ippath = p.abspath(p.join(p.dirname(__file__),'..','..'))
+        ipython_script = p.join(ippath, 'ipython.py')
+        ipython_cmd = 'python "%s"' % ipython_script
     # Absolute path for filename
-    full_fname = os.path.join(test_dir, fname)
-    full_cmd = '%s %s "%s"' % (ipython_cmd, cmdargs, full_fname)
+    full_fname = p.join(test_dir, fname)
+    full_cmd = '%s %s %s' % (ipython_cmd, cmdargs, full_fname)
+    #print >> sys.stderr, 'FULL CMD:', full_cmd # dbg
     return genutils.getoutputerror(full_cmd)
 
 
-def ipexec_validate(fname, expected_out, expected_err=None,
+def ipexec_validate(fname, expected_out, expected_err='',
                     options=None):
     """Utility to call 'ipython filename' and validate output/error.
 
@@ -285,9 +298,18 @@ def ipexec_validate(fname, expected_out, expected_err=None,
     import nose.tools as nt
     
     out, err = ipexec(fname)
+    #print 'OUT', out  # dbg
+    #print 'ERR', err  # dbg
+    # If there are any errors, we must check those befor stdout, as they may be
+    # more informative than simply having an empty stdout.
+    if err:
+        if expected_err:
+            nt.assert_equals(err.strip(), expected_err.strip())
+        else:
+            raise ValueError('Running file %r produced error: %r' %
+                             (fname, err))
+    # If no errors or output on stderr was expected, match stdout
     nt.assert_equals(out.strip(), expected_out.strip())
-    if expected_err:
-        nt.assert_equals(err.strip(), expected_err.strip())
 
 
 class TempFileMixin(object):

@@ -26,9 +26,12 @@ from pprint import pformat
 # Our own
 from IPython.core import release
 from IPython.core import ultratb
+from IPython.utils.genutils import sys_info
+
 from IPython.external.Itpl import itpl
 
 #****************************************************************************
+
 class CrashHandler(object):
     """Customizable crash handlers for IPython-based systems.
 
@@ -166,21 +169,13 @@ $self.bug_tracker
 
     def make_report(self,traceback):
         """Return a string containing a crash report."""
-        import platform
         
         sec_sep = self.section_sep
         
-        report = []
+        report = ['*'*75+'\n\n'+'IPython post-mortem report\n\n']
         rpt_add = report.append
+        rpt_add(sys_info())
         
-        rpt_add('*'*75+'\n\n'+'IPython post-mortem report\n\n')
-        rpt_add('IPython version: %s \n' % release.version)
-        rpt_add('BZR revision   : %s \n' % release.revision)
-        rpt_add('Platform info  : os.name -> %s, sys.platform -> %s\n' %
-                     (os.name,sys.platform) )
-        rpt_add('               : %s\n' % platform.platform())
-        rpt_add('Python info    : %s\n' % sys.version)	     
-
         try:
             config = pformat(self.app.config)
             rpt_add(sec_sep+'Current user configuration structure:\n\n')

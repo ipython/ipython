@@ -13,6 +13,23 @@ requires utilities which are not available under Windows."""
 #  the file COPYING, distributed as part of this software.
 #-------------------------------------------------------------------------------
 
+#-----------------------------------------------------------------------------
+# Minimal Python version sanity check
+#-----------------------------------------------------------------------------
+
+import sys
+
+# This check is also made in IPython/__init__, don't forget to update both when
+# changing Python version requirements.
+if sys.version[0:3] < '2.5':
+    error = """\
+ERROR: 'IPython requires Python Version 2.5 or above.'
+Exiting."""
+    print >> sys.stderr, error
+    sys.exit(1)
+
+# At least we're on Python 2.5 or newer, move on.
+
 #-------------------------------------------------------------------------------
 # Imports
 #-------------------------------------------------------------------------------
@@ -20,7 +37,6 @@ requires utilities which are not available under Windows."""
 # Stdlib imports
 import os
 import shutil
-import sys
 
 from glob import glob
 
@@ -30,6 +46,7 @@ if os.path.exists('MANIFEST'): os.remove('MANIFEST')
 
 from distutils.core import setup
 
+# Our own imports
 from IPython.utils.genutils import target_update
 
 from setupbase import (

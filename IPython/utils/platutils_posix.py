@@ -11,12 +11,25 @@ to use these functions in platform agnostic fashion.
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
 #*****************************************************************************
+#-----------------------------------------------------------------------------
+# Imports
+#-----------------------------------------------------------------------------
+from __future__ import absolute_import
 
 import sys
 import os
 
+from .baseutils import getoutputerror
+
+#-----------------------------------------------------------------------------
+# Globals
+#-----------------------------------------------------------------------------
+
 ignore_termtitle = True
 
+#-----------------------------------------------------------------------------
+# Functions
+#-----------------------------------------------------------------------------
 
 def _dummy_op(*a, **b):
     """ A no-op function """
@@ -36,7 +49,7 @@ else:
 
 def find_cmd(cmd):
     """Find the full path to a command using which."""
-    return os.popen('which %s' % cmd).read().strip()
+    return getoutputerror('/usr/bin/env which %s' % cmd)[0]
 
 
 def get_long_path_name(path):

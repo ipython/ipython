@@ -114,11 +114,12 @@ def test_skip_dt_decorator():
     # Fetch the docstring from doctest_bad after decoration.
     val = doctest_bad.__doc__
     
-    assert check==val,"doctest_bad docstrings don't match"
+    nt.assert_equal(check,val,"doctest_bad docstrings don't match")
+
 
 # Doctest skipping should work for class methods too
-class foo(object):
-    """Foo
+class FooClass(object):
+    """FooClass
 
     Example:
 
@@ -128,22 +129,22 @@ class foo(object):
 
     @dec.skip_doctest
     def __init__(self,x):
-        """Make a foo.
+        """Make a FooClass.
 
         Example:
 
-        >>> f = foo(3)
+        >>> f = FooClass(3)
         junk
         """
-        print 'Making a foo.'
+        print 'Making a FooClass.'
         self.x = x
         
     @dec.skip_doctest
     def bar(self,y):
         """Example:
 
-        >>> f = foo(3)
-        >>> f.bar(0)
+        >>> ff = FooClass(3)
+        >>> ff.bar(0)
         boom!
         >>> 1/0
         bam!
@@ -153,13 +154,12 @@ class foo(object):
     def baz(self,y):
         """Example:
 
-        >>> f = foo(3)
-        Making a foo.
-        >>> f.baz(3)
+        >>> ff2 = FooClass(3)
+        Making a FooClass.
+        >>> ff2.baz(3)
         True
         """
         return self.x==y
-
 
 
 def test_skip_dt_decorator2():
