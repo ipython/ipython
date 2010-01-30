@@ -249,9 +249,7 @@ def get_ipython_dir():
     and the adds .ipython to the end of the path.
     """
     ipdir_def = '.ipython'
-    print get_home_dir
     home_dir = get_home_dir()
-    print home_dir
     #import pdb; pdb.set_trace()  # dbg
     ipdir = os.environ.get(
         'IPYTHON_DIR', os.environ.get(

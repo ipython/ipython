@@ -361,8 +361,11 @@ class IPClusterApp(ApplicationWithClusterDir):
                 log.msg('Unexpected error in ipcluster:')
                 log.msg(r.getTraceback())
             log.msg("IPython cluster: stopping")
-            self.stop_engines()
-            self.stop_controller()
+            # These return deferreds. We are not doing anything with them
+            # but we are holding refs to them as a reminder that they 
+            # do return deferreds.
+            d1 = self.stop_engines()
+            d2 = self.stop_controller()
             # Wait a few seconds to let things shut down.
             reactor.callLater(4.0, reactor.stop)
 

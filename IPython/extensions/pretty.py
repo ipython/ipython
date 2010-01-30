@@ -128,9 +128,8 @@ class PrettyResultDisplay(Component):
 #-----------------------------------------------------------------------------
 
 
-def load_ipython_extension(ip=None):
+def load_ipython_extension(ip):
     """Load the extension in IPython as a hook."""
-    if ip is None: ip = get_ipython()
     global _loaded
     if not _loaded:
         prd = PrettyResultDisplay(ip, name='pretty_result_display')

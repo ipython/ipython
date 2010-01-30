@@ -244,7 +244,7 @@ and an example of ``# all-random``::
 
 When writing docstrings, you can use the ``@skip_doctest`` decorator to
 indicate that a docstring should *not* be treated as a doctest at all.  The
-difference betwee ``# all-random`` and ``@skip_doctest`` is that the former
+difference between ``# all-random`` and ``@skip_doctest`` is that the former
 executes the example but ignores output, while the latter doesn't execute any
 code.  ``@skip_doctest`` should be used for docstrings whose examples are
 purely informational.

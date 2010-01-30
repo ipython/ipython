@@ -21,7 +21,6 @@ from nose.tools import assert_equal
 
 from IPython.frontend.prefilterfrontend import PrefilterFrontEnd
 from IPython.testing.globalipapp import get_ipython
-from IPython.testing.tools import default_argv
 
 #-----------------------------------------------------------------------------
 # Support utilities
@@ -35,7 +34,7 @@ class TestPrefilterFrontEnd(PrefilterFrontEnd):
 
     def __init__(self):
         self.out = StringIO()
-        PrefilterFrontEnd.__init__(self,argv=default_argv())
+        PrefilterFrontEnd.__init__(self)
         # Some more code for isolation (yeah, crazy)
         self._on_enter()
         self.out.flush()

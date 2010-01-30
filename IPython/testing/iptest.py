@@ -343,9 +343,9 @@ def make_runners():
 
     # And add twisted ones if conditions are met
     if have['zope.interface'] and have['twisted'] and have['foolscap']:
-        # Note that we list the kernel here, though the bulk of it is
-        # twisted-based, because nose picks up doctests that twisted doesn't.
-        nose_pkg_names.append('kernel')
+        # We only list IPython.kernel for testing using twisted.trial as
+        # nose and twisted.trial have conflicts that make the testing system
+        # unstable.
         trial_pkg_names.append('kernel')
 
     # For debugging this code, only load quick stuff

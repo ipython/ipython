@@ -11,6 +11,7 @@ __author__  = "Laurent Dufrechou"
 __email__   = "laurent.dufrechou _at_ gmail.com"
 __license__ = "BSD"
 #-----------------------------------------
+
 class IPythonHistoryPanel(wx.Panel):
 
     def __init__(self, parent,flt_empty=True,

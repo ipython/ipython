@@ -41,6 +41,7 @@ try:
 except ImportError:
     has_nose = False
 
+from IPython.config.loader import Config
 from IPython.utils.process import find_cmd, getoutputerror
 from IPython.utils.text import list_strings
 from IPython.utils.io import temp_pyfile
@@ -165,7 +166,16 @@ def default_argv():
             # Other defaults to minimize side effects on stdout
             '--colors=NoColor', '--no-term-title','--no-banner',
             '--autocall=0']
-    
+
+
+def default_config():
+    """Return a config object with good defaults for testing."""
+    config = Config()
+    config.InteractiveShell.colors = 'NoColor'
+    config.InteractiveShell.term_title = False,
+    config.InteractiveShell.autocall = 0
+    return config
+
 
 def ipexec(fname, options=None):
     """Utility to call 'ipython filename'.

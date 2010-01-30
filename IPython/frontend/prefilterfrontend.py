@@ -26,7 +26,7 @@ import os
 import re
 import __builtin__
 
-from IPython.core.ipapp import IPythonApp
+from IPython.core.iplib import InteractiveShell
 from IPython.kernel.core.redirector_output_trap import RedirectorOutputTrap
 
 from IPython.kernel.core.sync_traceback_trap import SyncTracebackTrap
@@ -50,9 +50,10 @@ def mk_system_call(system_call_function, command):
     my_system_call.__doc__ = "Calls %s" % command
     return my_system_call
 
-#-------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------
 # Frontend class using ipython0 to do the prefiltering. 
-#-------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------
+
 class PrefilterFrontEnd(LineFrontEndBase):
     """ Class that uses ipython0 to do prefilter the input, do the
     completion and the magics.
@@ -65,19 +66,13 @@ class PrefilterFrontEnd(LineFrontEndBase):
 
     debug = False
     
-    def __init__(self, ipython0=None, argv=None, *args, **kwargs):
+    def __init__(self, ipython0=None, *args, **kwargs):
         """ Parameters
             ----------
 
             ipython0: an optional ipython0 instance to use for command
             prefiltering and completion.
-
-            argv : list, optional
-              Used as the instance's argv value.  If not given, [] is used.
         """
-        if argv is None:
-            argv = ['--no-banner']
-
         LineFrontEndBase.__init__(self, *args, **kwargs)
         self.shell.output_trap = RedirectorOutputTrap(
                             out_callback=self.write,
@@ -90,22 +85,19 @@ class PrefilterFrontEnd(LineFrontEndBase):
         # Start the ipython0 instance:
         self.save_output_hooks()
         if ipython0 is None:
-            # Instanciate an IPython0 interpreter to be able to use the
+            # Instanciate an IPython0 InteractiveShell to be able to use the
             # prefiltering.
             # Suppress all key input, to avoid waiting
             def my_rawinput(x=None):
                 return '\n'
             old_rawinput = __builtin__.raw_input
             __builtin__.raw_input = my_rawinput
-            ipython0 = IPythonApp(argv=argv, 
-                                  user_ns=self.shell.user_ns,
-                                  user_global_ns=self.shell.user_global_ns)
-            ipython0.initialize()
+            ipython0 = InteractiveShell(
+                parent=None, user_ns=self.shell.user_ns,
+                user_global_ns=self.shell.user_global_ns
+            )
             __builtin__.raw_input = old_rawinput
-        # XXX This will need to be updated as we refactor things, but for now,
-        # the .shell attribute of the ipythonapp instance conforms to the old
-        # api.
-        self.ipython0 = ipython0.shell
+        self.ipython0 = ipython0
         # Set the pager:
         self.ipython0.set_hook('show_in_pager', 
                     lambda s, string: self.write("\n" + string))
