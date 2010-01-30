@@ -22,144 +22,28 @@ import signal
 if os.name=='posix':
     from twisted.scripts._twistd_unix import daemonize
 
-from IPython.core import release
-from IPython.external.argparse import ArgumentParser, SUPPRESS
-from IPython.config.loader import ArgParseConfigLoader
-from IPython.utils.importstring import import_item
-
-from IPython.kernel.clusterdir import (
-    ApplicationWithClusterDir, ClusterDirError, PIDFileError
-)
-
 from twisted.internet import reactor, defer
 from twisted.python import log, failure
 
 
+from IPython.external.argparse import ArgumentParser, SUPPRESS
+from IPython.utils.importstring import import_item
+from IPython.kernel.clusterdir import (
+    ApplicationWithClusterDir, ClusterDirConfigLoader,
+    ClusterDirError, PIDFileError
+)
+
+
 #-----------------------------------------------------------------------------
-# The ipcluster application
+# Module level variables
 #-----------------------------------------------------------------------------
-
-
-# Exit codes for ipcluster
-
-# This will be the exit code if the ipcluster appears to be running because
-# a .pid file exists
-ALREADY_STARTED = 10
-
-# This will be the exit code if ipcluster stop is run, but there is not .pid
-# file to be found.
-ALREADY_STOPPED = 11
-
-
-class IPClusterCLLoader(ArgParseConfigLoader):
-
-    def _add_other_arguments(self):
-        # This has all the common options that all subcommands use
-        parent_parser1 = ArgumentParser(add_help=False,
-                                        argument_default=SUPPRESS)
-        parent_parser1.add_argument('--ipython-dir', 
-            dest='Global.ipython_dir',type=unicode,
-            help='Set to override default location of Global.ipython_dir.',
-            metavar='Global.ipython_dir')
-        parent_parser1.add_argument('--log-level',
-            dest="Global.log_level",type=int,
-            help='Set the log level (0,10,20,30,40,50).  Default is 30.',
-            metavar='Global.log_level')
-
-        # This has all the common options that other subcommands use
-        parent_parser2 = ArgumentParser(add_help=False,
-                                        argument_default=SUPPRESS)
-        parent_parser2.add_argument('-p','--profile',
-            dest='Global.profile',type=unicode,
-            help='The string name of the profile to be used. This determines '
-            'the name of the cluster dir as: cluster_<profile>. The default profile '
-            'is named "default".  The cluster directory is resolve this way '
-            'if the --cluster-dir option is not used.',
-            metavar='Global.profile')
-        parent_parser2.add_argument('--cluster-dir',
-            dest='Global.cluster_dir',type=unicode,
-            help='Set the cluster dir. This overrides the logic used by the '
-            '--profile option.',
-            metavar='Global.cluster_dir'),
-        parent_parser2.add_argument('--work-dir',
-            dest='Global.work_dir',type=unicode,
-            help='Set the working dir for the process.',
-            metavar='Global.work_dir')
-        parent_parser2.add_argument('--log-to-file',
-            action='store_true', dest='Global.log_to_file', 
-            help='Log to a file in the log directory (default is stdout)'
-        )
-
-        subparsers = self.parser.add_subparsers(
-            dest='Global.subcommand',
-            title='ipcluster subcommands',
-            description='ipcluster has a variety of subcommands. '
-            'The general way of running ipcluster is "ipcluster <cmd> '
-            ' [options]""',
-            help='For more help, type "ipcluster <cmd> -h"')
-
-        parser_list = subparsers.add_parser(
-            'list',
-            help='List all clusters in cwd and ipython_dir.',
-            parents=[parent_parser1]
-        )
-
-        parser_create = subparsers.add_parser(
-            'create',
-            help='Create a new cluster directory.',
-            parents=[parent_parser1, parent_parser2] 
-        )
-        parser_create.add_argument(
-            '--reset-config',
-            dest='Global.reset_config', action='store_true',
-            help='Recopy the default config files to the cluster directory. '
-            'You will loose any modifications you have made to these files.'
-        )
-
-        parser_start = subparsers.add_parser(
-            'start',
-            help='Start a cluster.',
-            parents=[parent_parser1, parent_parser2]
-        )
-        parser_start.add_argument(
-            '-n', '--number',
-            type=int, dest='Global.n',
-            help='The number of engines to start.',
-            metavar='Global.n'
-        )
-        parser_start.add_argument('--clean-logs',
-            dest='Global.clean_logs', action='store_true',
-            help='Delete old log flies before starting.',
-        )
-        parser_start.add_argument('--no-clean-logs',
-            dest='Global.clean_logs', action='store_false',
-            help="Don't delete old log flies before starting.",
-        )
-        parser_start.add_argument('--daemon',
-            dest='Global.daemonize', action='store_true',
-            help='Daemonize the ipcluster program. This implies --log-to-file',
-        )
-        parser_start.add_argument('--no-daemon',
-            dest='Global.daemonize', action='store_false',
-            help="Dont't daemonize the ipcluster program.",
-        )
-
-        parser_start = subparsers.add_parser(
-            'stop',
-            help='Stop a cluster.',
-            parents=[parent_parser1, parent_parser2]
-        )
-        parser_start.add_argument('--signal',
-            dest='Global.signal', type=int,
-            help="The signal number to use in stopping the cluster (default=2).",
-            metavar="Global.signal",
-        )
 
 
 default_config_file_name = u'ipcluster_config.py'
 
 
-_description = """Start an IPython cluster for parallel computing.\n\n
+_description = """\
+Start an IPython cluster for parallel computing.\n\n
 
 An IPython cluster consists of 1 controller and 1 or more engines.
 This command automates the startup of these processes using a wide
@@ -171,10 +55,129 @@ configuration files, followed by "ipcluster start -p mycluster -n 4".
 """
 
 
+# Exit codes for ipcluster
+
+# This will be the exit code if the ipcluster appears to be running because
+# a .pid file exists
+ALREADY_STARTED = 10
+
+
+# This will be the exit code if ipcluster stop is run, but there is not .pid
+# file to be found.
+ALREADY_STOPPED = 11
+
+
+#-----------------------------------------------------------------------------
+# Command line options
+#-----------------------------------------------------------------------------
+
+
+class IPClusterAppConfigLoader(ClusterDirConfigLoader):
+
+    def _add_arguments(self):
+        # Don't call ClusterDirConfigLoader._add_arguments as we don't want
+        # its defaults on self.parser. Instead, we will put those on
+        # default options on our subparsers.
+        
+        # This has all the common options that all subcommands use
+        parent_parser1 = ArgumentParser(
+            add_help=False,
+            argument_default=SUPPRESS
+        )
+        self._add_ipython_dir(parent_parser1)
+        self._add_log_level(parent_parser1)
+
+        # This has all the common options that other subcommands use
+        parent_parser2 = ArgumentParser(
+            add_help=False,
+            argument_default=SUPPRESS
+        )
+        self._add_cluster_profile(parent_parser2)
+        self._add_cluster_dir(parent_parser2)
+        self._add_work_dir(parent_parser2)
+        paa = parent_parser2.add_argument
+        paa('--log-to-file',
+            action='store_true', dest='Global.log_to_file', 
+            help='Log to a file in the log directory (default is stdout)')
+
+        # Create the object used to create the subparsers.
+        subparsers = self.parser.add_subparsers(
+            dest='Global.subcommand',
+            title='ipcluster subcommands',
+            description=
+            """ipcluster has a variety of subcommands. The general way of 
+            running ipcluster is 'ipcluster <cmd> [options]'""",
+            help="For more help, type 'ipcluster <cmd> -h'"
+        )
+
+        # The "list" subcommand parser
+        parser_list = subparsers.add_parser(
+            'list',
+            help='List all clusters in cwd and ipython_dir.',
+            parents=[parent_parser1]
+        )
+
+        # The "create" subcommand parser
+        parser_create = subparsers.add_parser(
+            'create',
+            help='Create a new cluster directory.',
+            parents=[parent_parser1, parent_parser2] 
+        )
+        paa = parser_create.add_argument
+        paa('--reset-config',
+            dest='Global.reset_config', action='store_true',
+            help=
+            """Recopy the default config files to the cluster directory.
+            You will loose any modifications you have made to these files.""")
+
+        # The "start" subcommand parser
+        parser_start = subparsers.add_parser(
+            'start',
+            help='Start a cluster.',
+            parents=[parent_parser1, parent_parser2]
+        )
+        paa = parser_start.add_argument
+        paa('-n', '--number',
+            type=int, dest='Global.n',
+            help='The number of engines to start.',
+            metavar='Global.n')
+        paa('--clean-logs',
+            dest='Global.clean_logs', action='store_true',
+            help='Delete old log flies before starting.')
+        paa('--no-clean-logs',
+            dest='Global.clean_logs', action='store_false',
+            help="Don't delete old log flies before starting.")
+        paa('--daemon',
+            dest='Global.daemonize', action='store_true',
+            help='Daemonize the ipcluster program. This implies --log-to-file')
+        paa('--no-daemon',
+            dest='Global.daemonize', action='store_false',
+            help="Dont't daemonize the ipcluster program.")
+
+        # The "stop" subcommand parser
+        parser_stop = subparsers.add_parser(
+            'stop',
+            help='Stop a cluster.',
+            parents=[parent_parser1, parent_parser2]
+        )
+        paa = parser_stop.add_argument
+        paa('--signal',
+            dest='Global.signal', type=int,
+            help="The signal number to use in stopping the cluster (default=2).",
+            metavar="Global.signal")
+
+
+#-----------------------------------------------------------------------------
+# Main application
+#-----------------------------------------------------------------------------
+
+
 class IPClusterApp(ApplicationWithClusterDir):
 
     name = u'ipcluster'
     description = _description
+    usage = None
+    command_line_loader = IPClusterAppConfigLoader
     config_file_name = default_config_file_name
     default_log_level = logging.INFO
     auto_create_cluster_dir = False
@@ -190,13 +193,6 @@ class IPClusterApp(ApplicationWithClusterDir):
         self.default_config.Global.clean_logs = True
         self.default_config.Global.signal = 2
         self.default_config.Global.daemonize = False
-
-    def create_command_line_config(self):
-        """Create and return a command line config loader."""
-        return IPClusterCLLoader(
-            description=self.description, 
-            version=release.version
-        )
 
     def find_resources(self):
         subcommand = self.command_line_config.Global.subcommand
@@ -450,6 +446,7 @@ class IPClusterApp(ApplicationWithClusterDir):
                 # stop will not do anything. Minimally, it should clean up the
                 # old .pid files.
                 self.remove_pid_file()
+
 
 def launch_new_instance():
     """Create and run the IPython cluster."""

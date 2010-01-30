@@ -221,3 +221,4 @@ class IPythonCrashHandler(CrashHandler):
             pass
 
         return ''.join(report)
+

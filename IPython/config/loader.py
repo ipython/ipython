@@ -299,7 +299,7 @@ class CommandLineConfigLoader(ConfigLoader):
 
 class ArgParseConfigLoader(CommandLineConfigLoader):
 
-    def __init__(self, argv=None, arguments=(), *parser_args, **parser_kw):
+    def __init__(self, argv=None, *parser_args, **parser_kw):
         """Create a config loader for use with argparse.
 
         Parameters
@@ -308,11 +308,6 @@ class ArgParseConfigLoader(CommandLineConfigLoader):
         argv : optional, list
           If given, used to read command-line arguments from, otherwise
           sys.argv[1:] is used.
-
-        arguments : optional, tuple
-          A tuple of two element tuples each having the form (args, kwargs).
-          Each such pair is passed to parser.add_argument(*args, **kwargs)
-          in sequence to configure the parser.
 
         parser_args : tuple
           A tuple of positional arguments that will be passed to the
@@ -326,7 +321,6 @@ class ArgParseConfigLoader(CommandLineConfigLoader):
         if argv == None:
             argv = sys.argv[1:]
         self.argv = argv
-        self.arguments = arguments
         self.parser_args = parser_args
         kwargs = dict(argument_default=argparse.SUPPRESS)
         kwargs.update(parser_kw)
@@ -359,19 +353,9 @@ class ArgParseConfigLoader(CommandLineConfigLoader):
     def _create_parser(self):
         self.parser = ArgumentParser(*self.parser_args, **self.parser_kw)
         self._add_arguments()
-        self._add_other_arguments()
 
     def _add_arguments(self):
-        for argument in self.arguments:
-            # Remove any defaults in case people add them. We can't have 
-            # command line default because all default are determined by
-            # traited class attributes.
-            argument[1].pop('default', None)
-            self.parser.add_argument(*argument[0], **argument[1])
-
-    def _add_other_arguments(self):
-        """Meant for subclasses to add their own arguments."""
-        pass
+        raise NotImplementedError("subclasses must implement _add_arguments")
 
     def _parse_args(self, args):
         """self.parser->self.parsed_data""" 
