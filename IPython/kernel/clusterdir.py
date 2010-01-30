@@ -401,11 +401,11 @@ class ApplicationWithClusterDir(Application):
             self.log.critical("No config filename found")
 
     def find_config_file_paths(self):
-        # Include our own config directory last, so that users can still find
-        # our shipped copies of builtin config files even if they don't have
-        # them in their ipython cluster directory.
+        # Set the search path to to the cluster directory. We should NOT
+        # include IPython.config.default here as the default config files
+        # are ALWAYS automatically moved to the cluster directory.
         conf_dir = os.path.join(get_ipython_package_dir(), 'config', 'default')
-        self.config_file_paths = (self.cluster_dir, conf_dir)
+        self.config_file_paths = (self.cluster_dir,)
 
     def pre_construct(self):
         # The log and security dirs were set earlier, but here we put them
