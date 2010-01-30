@@ -114,14 +114,16 @@ class IPClusterAppConfigLoader(ClusterDirConfigLoader):
         parser_list = subparsers.add_parser(
             'list',
             help='List all clusters in cwd and ipython_dir.',
-            parents=[parent_parser1]
+            parents=[parent_parser1],
+            argument_default=SUPPRESS
         )
 
         # The "create" subcommand parser
         parser_create = subparsers.add_parser(
             'create',
             help='Create a new cluster directory.',
-            parents=[parent_parser1, parent_parser2] 
+            parents=[parent_parser1, parent_parser2],
+            argument_default=SUPPRESS
         )
         paa = parser_create.add_argument
         paa('--reset-config',
@@ -134,7 +136,8 @@ class IPClusterAppConfigLoader(ClusterDirConfigLoader):
         parser_start = subparsers.add_parser(
             'start',
             help='Start a cluster.',
-            parents=[parent_parser1, parent_parser2]
+            parents=[parent_parser1, parent_parser2],
+            argument_default=SUPPRESS
         )
         paa = parser_start.add_argument
         paa('-n', '--number',
@@ -158,7 +161,8 @@ class IPClusterAppConfigLoader(ClusterDirConfigLoader):
         parser_stop = subparsers.add_parser(
             'stop',
             help='Stop a cluster.',
-            parents=[parent_parser1, parent_parser2]
+            parents=[parent_parser1, parent_parser2],
+            argument_default=SUPPRESS
         )
         paa = parser_stop.add_argument
         paa('--signal',
