@@ -47,10 +47,10 @@ class IOStream:
                 print >> sys.stderr, \
                       'ERROR - failed to write data to stream:', self.stream
 
-    def writeln(self, data):
-        self.write(data)
-        self.write('\n')        
-                
+    # This class used to have a writeln method, but regular files and streams
+    # in Python don't have this method. We need to keep this completely
+    # compatible so we removed it.
+
     def close(self):
         pass
 

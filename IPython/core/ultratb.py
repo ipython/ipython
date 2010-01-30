@@ -385,7 +385,8 @@ class ListTB(TBTools):
         
     def __call__(self, etype, value, elist):
         Term.cout.flush()
-        Term.cerr.writeln(self.text(etype,value,elist))
+        Term.cerr.write(self.text(etype,value,elist))
+        Term.cerr.write('\n')
 
     def text(self, etype, value, elist, context=5):
         """Return a color formatted string with the traceback info.
@@ -910,7 +911,8 @@ class VerboseTB(TBTools):
         (etype, evalue, etb) = info or sys.exc_info()
         self.tb = etb
         Term.cout.flush()
-        Term.cerr.writeln(self.text(etype, evalue, etb))
+        Term.cerr.write(self.text(etype, evalue, etb))
+        Term.cerr.write('\n')
 
     # Changed so an instance can just be called as VerboseTB_inst() and print
     # out the right info on its own.
