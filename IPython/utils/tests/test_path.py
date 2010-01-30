@@ -26,15 +26,7 @@ from nose import with_setup
 import IPython
 from IPython.testing import decorators as dec
 from IPython.testing.decorators import skip_if_not_win32
-from IPython.utils.path import (
-    get_home_dir,
-    HomeDirError,
-    get_ipython_dir,
-    get_ipython_package_dir,
-    get_ipython_module_path,
-    filefind,
-    get_long_path_name
-)
+from IPython.utils import path
 
 # Platform-dependent imports
 try:
@@ -68,6 +60,7 @@ def setup():
     # problem because that exception is only defined on Windows...
     os.makedirs(IP_TEST_DIR)
 
+
 def teardown():
     """Teardown testenvironment for the module:
     
@@ -78,7 +71,7 @@ def teardown():
     # that non-empty directories are all recursively removed.
     shutil.rmtree(TMP_TEST_DIR)
 
-    
+
 def setup_environment():
     """Setup testenvironment for some functions that are tested 
     in this module. In particular this functions stores attributes
@@ -87,12 +80,12 @@ def setup_environment():
     each testfunction needs a pristine environment.
     """
     global oldstuff, platformstuff
-    oldstuff = (env.copy(), os.name, get_home_dir, IPython.__file__)
+    oldstuff = (env.copy(), os.name, path.get_home_dir, IPython.__file__)
 
     if os.name == 'nt':
         platformstuff = (wreg.OpenKey, wreg.QueryValueEx,)
 
- 
+
 def teardown_environment():
     """Restore things that were remebered by the setup_environment function
     """
@@ -121,9 +114,10 @@ def test_get_home_dir_1():
     #fake filename for IPython.__init__
     IPython.__file__ = abspath(join(HOME_TEST_DIR, "Lib/IPython/__init__.py"))
     
-    home_dir = get_home_dir()
+    path.home_dir = get_home_dir()
     nt.assert_equal(home_dir, abspath(HOME_TEST_DIR))
-    
+
+
 @skip_if_not_win32
 @with_environment
 def test_get_home_dir_2():
@@ -133,25 +127,28 @@ def test_get_home_dir_2():
     #fake filename for IPython.__init__
     IPython.__file__ = abspath(join(HOME_TEST_DIR, "Library.zip/IPython/__init__.py")).lower()
     
-    home_dir = get_home_dir()
+    home_dir = path.get_home_dir()
     nt.assert_equal(home_dir, abspath(HOME_TEST_DIR).lower())
+
 
 @with_environment
 def test_get_home_dir_3():
     """Testcase $HOME is set, then use its value as home directory."""
     env["HOME"] = HOME_TEST_DIR
-    home_dir = get_home_dir()
+    home_dir = path.get_home_dir()
     nt.assert_equal(home_dir, env["HOME"])
+
 
 @with_environment
 def test_get_home_dir_4():
-    """Testcase $HOME is not set, os=='poix'. 
+    """Testcase $HOME is not set, os=='posix'. 
     This should fail with HomeDirError"""
     
     os.name = 'posix'
     if 'HOME' in env: del env['HOME']
-    nt.assert_raises(HomeDirError, get_home_dir)
-        
+    nt.assert_raises(path.HomeDirError, path.get_home_dir)
+
+
 @skip_if_not_win32
 @with_environment
 def test_get_home_dir_5():
@@ -162,8 +159,9 @@ def test_get_home_dir_5():
     if 'HOME' in env: del env['HOME']
     env['HOMEDRIVE'], env['HOMEPATH'] = os.path.splitdrive(HOME_TEST_DIR)
 
-    home_dir = get_home_dir()
+    home_dir = path.get_home_dir()
     nt.assert_equal(home_dir, abspath(HOME_TEST_DIR))
+
 
 @skip_if_not_win32
 @with_environment
@@ -178,8 +176,9 @@ def test_get_home_dir_6():
     env['HOMEDRIVE'], env['HOMEPATH'] = os.path.abspath(TEST_FILE_PATH), "DOES NOT EXIST"
     env["USERPROFILE"] = abspath(HOME_TEST_DIR)
 
-    home_dir = get_home_dir()
+    home_dir = path.get_home_dir()
     nt.assert_equal(home_dir, abspath(HOME_TEST_DIR))
+
 
 # Should we stub wreg fully so we can run the test on all platforms?
 @skip_if_not_win32
@@ -206,7 +205,7 @@ def test_get_home_dir_7():
     wreg.OpenKey = OpenKey
     wreg.QueryValueEx = QueryValueEx
 
-    home_dir = get_home_dir()
+    home_dir = path.get_home_dir()
     nt.assert_equal(home_dir, abspath(HOME_TEST_DIR))
 
 
@@ -214,47 +213,48 @@ def test_get_home_dir_7():
 def test_get_ipython_dir_1():
     """test_get_ipython_dir_1, Testcase to see if we can call get_ipython_dir without Exceptions."""
     env['IPYTHON_DIR'] = "someplace/.ipython"
-    ipdir = get_ipython_dir()
+    ipdir = path.get_ipython_dir()
     nt.assert_equal(ipdir, "someplace/.ipython")
 
 
 @with_environment
 def test_get_ipython_dir_2():
     """test_get_ipython_dir_2, Testcase to see if we can call get_ipython_dir without Exceptions."""
-    get_home_dir = lambda : "someplace"
+    path.get_home_dir = lambda : "someplace"
     os.name = "posix"
     env.pop('IPYTHON_DIR', None)
     env.pop('IPYTHONDIR', None)
-    ipdir = get_ipython_dir()
+    ipdir = path.get_ipython_dir()
     nt.assert_equal(ipdir, os.path.join("someplace", ".ipython"))
 
 
 def test_filefind():
     """Various tests for filefind"""
     f = tempfile.NamedTemporaryFile()
-    print 'fname:',f.name
-    alt_dirs = get_ipython_dir()
-    t = filefind(f.name, alt_dirs)
-    print 'found:',t
+    # print 'fname:',f.name
+    alt_dirs = path.get_ipython_dir()
+    t = path.filefind(f.name, alt_dirs)
+    # print 'found:',t
 
 
 def test_get_ipython_package_dir():
-    ipdir = get_ipython_package_dir()
+    ipdir = path.get_ipython_package_dir()
     nt.assert_true(os.path.isdir(ipdir))
 
+
 def test_get_ipython_module_path():
-    ipapp_path = get_ipython_module_path('IPython.core.ipapp')
+    ipapp_path = path.get_ipython_module_path('IPython.core.ipapp')
     nt.assert_true(os.path.isfile(ipapp_path))
+
 
 @dec.skip_if_not_win32
 def test_get_long_path_name_win32():
-    p = get_long_path_name('c:\\docume~1')
+    p = path.get_long_path_name('c:\\docume~1')
     nt.assert_equals(p,u'c:\\Documents and Settings') 
 
-    
+
 @dec.skip_win32
 def test_get_long_path_name():
-    p = get_long_path_name('/usr/local')
+    p = path.get_long_path_name('/usr/local')
     nt.assert_equals(p,'/usr/local')
-
 

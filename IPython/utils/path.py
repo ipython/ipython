@@ -250,7 +250,7 @@ def get_ipython_dir():
     """
     ipdir_def = '.ipython'
     home_dir = get_home_dir()
-    #import pdb; pdb.set_trace()  # dbg
+    # import pdb; pdb.set_trace()  # dbg
     ipdir = os.environ.get(
         'IPYTHON_DIR', os.environ.get(
             'IPYTHONDIR', os.path.join(home_dir, ipdir_def)
