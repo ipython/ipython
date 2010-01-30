@@ -62,21 +62,25 @@ class TestPyFileCL(TestCase):
         self.assertEquals(config.D.C.value, 'hi there')
 
 
+arguments = (
+        (('-f','--foo'), dict(dest='Global.foo', type=str)),
+        (('-b',), dict(dest='MyClass.bar', type=int)),
+        (('-n',), dict(dest='n', action='store_true')),
+        (('Global.bam',), dict(type=str))
+    )
+
 class TestArgParseCL(TestCase):
 
     def test_basic(self):
-
-        arguments = (
-                (('-f','--foo'), dict(dest='Global.foo', type=str)),
-                (('-b',), dict(dest='MyClass.bar', type=int)),
-                (('-n',), dict(dest='n', action='store_true')),
-                (('Global.bam',), dict(type=str))
-            )
         cl = ArgParseConfigLoader(arguments=arguments)
         config = cl.load_config('-f hi -b 10 -n wow'.split())
         self.assertEquals(config.Global.foo, 'hi')
         self.assertEquals(config.MyClass.bar, 10)
         self.assertEquals(config.n, True)
+        self.assertEquals(config.Global.bam, 'wow')
+        config = cl.load_config(['wow'])
+        self.assertEquals(config.keys(), ['Global'])
+        self.assertEquals(config.Global.keys(), ['bam'])
         self.assertEquals(config.Global.bam, 'wow')
 
     def test_add_arguments(self):
@@ -96,6 +100,18 @@ class TestArgParseCL(TestCase):
         config = cl.load_config('1 -x frobble'.split())
         self.assertEquals(config.subparser_name, '1')
         self.assertEquals(config.Global.x, 'frobble')
+
+    def test_argv(self):
+        cl = ArgParseConfigLoader(
+            argv='-f hi -b 10 -n wow'.split(), 
+            arguments=arguments
+        )
+        config = cl.load_config()
+        self.assertEquals(config.Global.foo, 'hi')
+        self.assertEquals(config.MyClass.bar, 10)
+        self.assertEquals(config.n, True)
+        self.assertEquals(config.Global.bam, 'wow')
+
 
 class TestConfig(TestCase):
 

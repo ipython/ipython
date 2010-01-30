@@ -23,8 +23,8 @@ if os.name=='posix':
     from twisted.scripts._twistd_unix import daemonize
 
 from IPython.core import release
-from IPython.external.argparse import ArgumentParser
-from IPython.config.loader import ArgParseConfigLoader, NoConfigDefault
+from IPython.external.argparse import ArgumentParser, SUPPRESS
+from IPython.config.loader import ArgParseConfigLoader
 from IPython.utils.importstring import import_item
 
 from IPython.kernel.clusterdir import (
@@ -56,7 +56,7 @@ class IPClusterCLLoader(ArgParseConfigLoader):
     def _add_other_arguments(self):
         # This has all the common options that all subcommands use
         parent_parser1 = ArgumentParser(add_help=False,
-                                        argument_default=NoConfigDefault)
+                                        argument_default=SUPPRESS)
         parent_parser1.add_argument('--ipython-dir', 
             dest='Global.ipython_dir',type=unicode,
             help='Set to override default location of Global.ipython_dir.',
@@ -68,7 +68,7 @@ class IPClusterCLLoader(ArgParseConfigLoader):
 
         # This has all the common options that other subcommands use
         parent_parser2 = ArgumentParser(add_help=False,
-                                        argument_default=NoConfigDefault)
+                                        argument_default=SUPPRESS)
         parent_parser2.add_argument('-p','--profile',
             dest='Global.profile',type=unicode,
             help='The string name of the profile to be used. This determines '
@@ -112,7 +112,6 @@ class IPClusterCLLoader(ArgParseConfigLoader):
         parser_create.add_argument(
             '--reset-config',
             dest='Global.reset_config', action='store_true',
-            default=NoConfigDefault,
             help='Recopy the default config files to the cluster directory. '
             'You will loose any modifications you have made to these files.'
         )

@@ -32,8 +32,7 @@ from IPython.core.application import Application
 from IPython.core.iplib import InteractiveShell
 from IPython.config.loader import (
     Config,
-    PyFileConfigLoader,
-#    NoConfigDefault,
+    PyFileConfigLoader
 )
 from IPython.lib import inputhook
 from IPython.utils.path import filefind, get_ipython_dir

@@ -40,6 +40,7 @@ class ConfigLoaderError(ConfigError):
 #-----------------------------------------------------------------------------
 # Argparse fix
 #-----------------------------------------------------------------------------
+
 # Unfortunately argparse by default prints help messages to stderr instead of
 # stdout.  This makes it annoying to capture long help screens at the command
 # line, since one must know how to pipe stderr, which many users don't know how
@@ -200,10 +201,13 @@ class ConfigLoader(object):
         self.config = Config()
 
     def load_config(self):
-        """Load a config from somewhere, return a Struct.
+        """Load a config from somewhere, return a :class:`Config` instance.
         
         Usually, this will cause self.config to be set and then returned.
+        However, in most cases, :meth:`ConfigLoader.clear` should be called
+        to erase any previous state.
         """
+        self.clear()
         return self.config
 
 
@@ -242,6 +246,7 @@ class PyFileConfigLoader(FileConfigLoader):
 
     def load_config(self):
         """Load the config from a file and return it as a Struct."""
+        self.clear()
         self._find_file()
         self._read_file_as_dict()
         self._convert_to_config()
@@ -292,20 +297,10 @@ class CommandLineConfigLoader(ConfigLoader):
     """
 
 
-class __NoConfigDefault(object): pass
-NoConfigDefault = __NoConfigDefault()
-
-
 class ArgParseConfigLoader(CommandLineConfigLoader):
-    #: Global default for arguments (see argparse docs for details)
-    argument_default = NoConfigDefault
-    
-    def __init__(self, argv=None, arguments=(), *args, **kw):
-        """Create a config loader for use with argparse.
 
-        With the exception of ``argv`` and ``arguments``, other args and kwargs
-        arguments here are passed onto the constructor of
-        :class:`argparse.ArgumentParser`.
+    def __init__(self, argv=None, arguments=(), *parser_args, **parser_kw):
+        """Create a config loader for use with argparse.
 
         Parameters
         ----------
@@ -315,18 +310,27 @@ class ArgParseConfigLoader(CommandLineConfigLoader):
           sys.argv[1:] is used.
 
         arguments : optional, tuple
-          Description of valid command-line arguments, to be called in sequence
-          with parser.add_argument() to configure the parser.
+          A tuple of two element tuples each having the form (args, kwargs).
+          Each such pair is passed to parser.add_argument(*args, **kwargs)
+          in sequence to configure the parser.
+
+        parser_args : tuple
+          A tuple of positional arguments that will be passed to the
+          constructor of :class:`argparse.ArgumentParser`.
+
+        parser_kw : dict
+          A tuple of keyword arguments that will be passed to the
+          constructor of :class:`argparse.ArgumentParser`.
         """
         super(CommandLineConfigLoader, self).__init__()
         if argv == None:
             argv = sys.argv[1:]
         self.argv = argv
         self.arguments = arguments
-        self.args = args
-        kwargs = dict(argument_default=self.argument_default)
-        kwargs.update(kw)
-        self.kw = kwargs
+        self.parser_args = parser_args
+        kwargs = dict(argument_default=argparse.SUPPRESS)
+        kwargs.update(parser_kw)
+        self.parser_kw = kwargs
 
     def load_config(self, args=None):
         """Parse command line arguments and return as a Struct.
@@ -335,10 +339,10 @@ class ArgParseConfigLoader(CommandLineConfigLoader):
         ----------
 
         args : optional, list
-          If given, a list with the structure of sys.argv[1:] to parse arguments
-          from.  If not given, the instance's self.argv attribute (given at
-          construction time) is used."""
-        
+          If given, a list with the structure of sys.argv[1:] to parse
+          arguments from. If not given, the instance's self.argv attribute
+          (given at construction time) is used."""
+        self.clear()
         if args is None:
             args = self.argv
         self._create_parser()
@@ -353,13 +357,17 @@ class ArgParseConfigLoader(CommandLineConfigLoader):
             return []
 
     def _create_parser(self):
-        self.parser = ArgumentParser(*self.args, **self.kw)
+        self.parser = ArgumentParser(*self.parser_args, **self.parser_kw)
         self._add_arguments()
         self._add_other_arguments()
 
     def _add_arguments(self):
         for argument in self.arguments:
-            self.parser.add_argument(*argument[0],**argument[1])
+            # Remove any defaults in case people add them. We can't have 
+            # command line default because all default are determined by
+            # traited class attributes.
+            argument[1].pop('default', None)
+            self.parser.add_argument(*argument[0], **argument[1])
 
     def _add_other_arguments(self):
         """Meant for subclasses to add their own arguments."""
@@ -372,6 +380,7 @@ class ArgParseConfigLoader(CommandLineConfigLoader):
     def _convert_to_config(self):
         """self.parsed_data->self.config"""
         for k, v in vars(self.parsed_data).items():
-            if v is not NoConfigDefault:
-                exec_str = 'self.config.' + k + '= v'
-                exec exec_str in locals(), globals()
+            exec_str = 'self.config.' + k + '= v'
+            exec exec_str in locals(), globals()
+
+
