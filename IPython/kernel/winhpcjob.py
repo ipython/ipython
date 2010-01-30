@@ -23,12 +23,10 @@ import re
 import uuid
 
 from xml.etree import ElementTree as ET
-from xml.dom import minidom
 
 from IPython.core.component import Component
-from IPython.external import Itpl
 from IPython.utils.traitlets import (
-    Str, Int, List, Unicode, Instance,
+    Str, Int, List, Instance,
     Enum, Bool, CStr
 )
 

@@ -33,7 +33,7 @@ import os
 import sys
 
 from IPython.core import release, crashhandler
-from IPython.utils.genutils import get_ipython_dir, get_ipython_package_dir
+from IPython.utils.path import get_ipython_dir, get_ipython_package_dir
 from IPython.config.loader import (
     PyFileConfigLoader,
     ArgParseConfigLoader,

@@ -166,7 +166,7 @@ ipy_user_conf.py.
 String lists
 ============
 
-String lists (IPython.genutils.SList) are handy way to process output
+String lists (IPython.utils.text.SList) are handy way to process output
 from system commands. They are produced by ``var = !cmd`` syntax.
 
 First, we acquire the output of 'ls -l'::

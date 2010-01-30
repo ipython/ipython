@@ -15,22 +15,22 @@ Authors
 - Fernando Perez <Fernando.Perez@berkeley.edu>
 """
 
-#*****************************************************************************
-#       Copyright (C) 2009 The IPython Development Team
+from __future__ import absolute_import
+
+#-----------------------------------------------------------------------------
+#  Copyright (C) 2009  The IPython Development Team
 #
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
-#*****************************************************************************
+#-----------------------------------------------------------------------------
 
 #-----------------------------------------------------------------------------
-# Required modules and packages
+# Imports
 #-----------------------------------------------------------------------------
-from __future__ import absolute_import
 
 import os
 import re
 import sys
-import tempfile
 
 try:
     # These tools are used by parts of the runtime, so we make the nose
@@ -41,7 +41,9 @@ try:
 except ImportError:
     has_nose = False
 
-from IPython.utils import genutils, platutils
+from IPython.utils.process import find_cmd, getoutputerror
+from IPython.utils.text import list_strings
+from IPython.utils.io import temp_pyfile
 
 from . import decorators as dec
 
@@ -107,7 +109,7 @@ def full_path(startPath,files):
     ['/a.txt']
     """
 
-    files = genutils.list_strings(files)
+    files = list_strings(files)
     base = os.path.split(startPath)[0]
     return [ os.path.join(base,f) for f in files ]
 
@@ -156,63 +158,6 @@ def parse_test_output(txt):
 parse_test_output.__test__ = False
 
 
-def cmd2argv(cmd):
-    r"""Take the path of a command and return a list (argv-style).
-
-    For a given path ``cmd``, this returns [cmd] if cmd's extension is .exe,
-    .com or .bat, and ['python', cmd] otherwise.
-
-    This is mostly a Windows utility, to deal with the fact that the scripts in
-    Windows get wrapped in .exe entry points, so we have to call them
-    differently.
-
-    Parameters
-    ----------
-    cmd : string
-      The path of the command.
-
-    Returns
-    -------
-    argv-style list.
-
-    Examples
-    --------
-    In [2]: cmd2argv('/usr/bin/ipython')
-    Out[2]: ['python', '/usr/bin/ipython']
-
-    In [3]: cmd2argv(r'C:\Python26\Scripts\ipython.exe')
-    Out[3]: ['C:\\Python26\\Scripts\\ipython.exe']
-    """
-    ext = os.path.splitext(cmd)[1]
-    if ext in ['.exe', '.com', '.bat']:
-        return [cmd]
-    else:
-        return ['python', cmd]
-    
-
-def temp_pyfile(src, ext='.py'):
-    """Make a temporary python file, return filename and filehandle.
-
-    Parameters
-    ----------
-    src : string or list of strings (no need for ending newlines if list)
-      Source code to be written to the file.
-
-    ext : optional, string
-      Extension for the generated file.
-
-    Returns
-    -------
-    (filename, open filehandle)
-      It is the caller's responsibility to close the open file and unlink it.
-    """
-    fname = tempfile.mkstemp(ext)[1]
-    f = open(fname,'w')
-    f.write(src)
-    f.flush()
-    return fname, f
-
-
 def default_argv():
     """Return a valid default argv for creating testing instances of ipython"""
 
@@ -256,7 +201,7 @@ def ipexec(fname, options=None):
     # suite can be run from the source tree without an installed IPython
     p = os.path
     if INSTALLED:
-        ipython_cmd = platutils.find_cmd('ipython')
+        ipython_cmd = find_cmd('ipython')
     else:
         ippath = p.abspath(p.join(p.dirname(__file__),'..','..'))
         ipython_script = p.join(ippath, 'ipython.py')
@@ -265,7 +210,7 @@ def ipexec(fname, options=None):
     full_fname = p.join(test_dir, fname)
     full_cmd = '%s %s %s' % (ipython_cmd, cmdargs, full_fname)
     #print >> sys.stderr, 'FULL CMD:', full_cmd # dbg
-    return genutils.getoutputerror(full_cmd)
+    return getoutputerror(full_cmd)
 
 
 def ipexec_validate(fname, expected_out, expected_err='',

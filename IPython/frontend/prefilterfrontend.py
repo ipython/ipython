@@ -31,7 +31,7 @@ from IPython.kernel.core.redirector_output_trap import RedirectorOutputTrap
 
 from IPython.kernel.core.sync_traceback_trap import SyncTracebackTrap
 
-from IPython.utils.genutils import Term
+from IPython.utils.io import Term
 
 from linefrontendbase import LineFrontEndBase, common_prefix
 

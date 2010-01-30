@@ -17,13 +17,19 @@ will change in the future.
 """
 
 #-----------------------------------------------------------------------------
-# Module imports
+#  Copyright (C) 2009  The IPython Development Team
+#
+#  Distributed under the terms of the BSD License.  The full license is in
+#  the file COPYING, distributed as part of this software.
+#-----------------------------------------------------------------------------
+
+#-----------------------------------------------------------------------------
+# Imports
 #-----------------------------------------------------------------------------
 
 # Stdlib
 import os
 import os.path as path
-import platform
 import signal
 import sys
 import subprocess
@@ -50,11 +56,11 @@ import nose.plugins.builtin
 from nose.core import TestProgram
 
 # Our own imports
-from IPython.core import release
-from IPython.utils import genutils
-from IPython.utils.platutils import find_cmd, FindCmdError
+from IPython.utils.path import get_ipython_module_path
+from IPython.utils.process import find_cmd, pycmd2argv
+from IPython.utils.sysinfo import sys_info
+
 from IPython.testing import globalipapp
-from IPython.testing import tools
 from IPython.testing.plugin.ipdoctest import IPythonDoctest
 
 pjoin = path.join
@@ -124,7 +130,7 @@ have['gobject'] = test_for('gobject')
 def report():
     """Return a string with a summary report of test-related variables."""
 
-    out = [ genutils.sys_info() ]
+    out = [ sys_info() ]
 
     out.append('\nRunning from an installed IPython: %s\n' % INSTALLED)
 
@@ -198,17 +204,11 @@ def make_exclude():
     if not have['objc']:
         exclusions.append(ipjoin('frontend', 'cocoa'))
 
-    if not sys.platform == 'win32':
-        exclusions.append(ipjoin('utils', 'platutils_win32'))
-
     # These have to be skipped on win32 because the use echo, rm, cd, etc.
     # See ticket https://bugs.launchpad.net/bugs/366982
     if sys.platform == 'win32':
         exclusions.append(ipjoin('testing', 'plugin', 'test_exampleip'))
         exclusions.append(ipjoin('testing', 'plugin', 'dtexample'))
-
-    if not os.name == 'posix':
-        exclusions.append(ipjoin('utils', 'platutils_posix'))
 
     if not have['pexpect']:
         exclusions.extend([ipjoin('scripts', 'irunner'),
@@ -256,19 +256,19 @@ class IPTester(object):
         p = os.path
         if runner == 'iptest':
             if INSTALLED:
-                self.runner = tools.cmd2argv(
-                    p.abspath(find_cmd('iptest'))) + sys.argv[1:]
+                iptest_app = get_ipython_module_path('IPython.testing.iptest')
+                self.runner = pycmd2argv(iptest_app) + sys.argv[1:]
             else:
                 # Find our own 'iptest' script OS-level entry point.  Don't
                 # look system-wide, so we are sure we pick up *this one*.  And
                 # pass through to subprocess call our own sys.argv
                 ippath = p.abspath(p.join(p.dirname(__file__),'..','..'))
                 script = p.join(ippath, 'iptest.py')
-                self.runner = tools.cmd2argv(script) + sys.argv[1:]
+                self.runner = pycmd2argv(script) + sys.argv[1:]
                 
         else:
             # For trial, it needs to be installed system-wide
-            self.runner = tools.cmd2argv(p.abspath(find_cmd('trial')))
+            self.runner = pycmd2argv(p.abspath(find_cmd('trial')))
         if params is None:
             params = []
         if isinstance(params, str):

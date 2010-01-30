@@ -8,19 +8,15 @@ from __future__ import absolute_import
 # Imports
 #-----------------------------------------------------------------------------
 
-# stdlib
 import os
 import sys
 import tempfile
 import types
 from cStringIO import StringIO
 
-# third-party
 import nose.tools as nt
 
-# our own
-from IPython.utils import genutils
-from IPython.utils.platutils import find_cmd, get_long_path_name
+from IPython.utils.path import get_long_path_name
 from IPython.testing import decorators as dec
 from IPython.testing import tools as tt
 

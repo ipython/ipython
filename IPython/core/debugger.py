@@ -26,15 +26,13 @@ http://www.python.org/2.2.3/license.html"""
 #*****************************************************************************
 
 import bdb
-import cmd
 import linecache
-import os
 import sys
 
 from IPython.utils import PyColorize
 from IPython.core import ipapi
 from IPython.utils import coloransi
-from IPython.utils.genutils import Term
+from IPython.utils.io import Term
 from IPython.core.excolors import exception_colors
 
 # See if we can use pydb.

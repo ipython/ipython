@@ -10,6 +10,7 @@ var = !ls
 
 from IPython.core import ipapi
 from IPython.core.error import TryNext
+from IPython.utils.text import make_quoted_expr
 from IPython.utils.genutils import *
 
 ip = ipapi.get()

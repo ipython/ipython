@@ -20,7 +20,6 @@ from __future__ import with_statement
 from __future__ import absolute_import
 
 import __builtin__
-import StringIO
 import bdb
 import codeop
 import exceptions
@@ -47,28 +46,34 @@ from IPython.core.logger import Logger
 from IPython.core.magic import Magic
 from IPython.core.prefilter import PrefilterManager
 from IPython.core.prompts import CachedOutput
-from IPython.core.pylabtools import pylab_activate
 from IPython.core.usage import interactive_usage, default_banner
+import IPython.core.hooks
 from IPython.external.Itpl import ItplNS
 from IPython.lib.inputhook import enable_gui
 from IPython.lib.backgroundjobs import BackgroundJobManager
+from IPython.lib.pylabtools import pylab_activate
 from IPython.utils import PyColorize
 from IPython.utils import pickleshare
-from IPython.utils.genutils import get_ipython_dir
+from IPython.utils.doctestreload import doctest_reload
 from IPython.utils.ipstruct import Struct
-from IPython.utils.platutils import toggle_set_term_title, set_term_title
+from IPython.utils.io import Term, ask_yes_no
+from IPython.utils.path import get_home_dir, get_ipython_dir, HomeDirError
+from IPython.utils.process import (
+    abbrev_cwd,
+    getoutput,
+    getoutputerror
+)
+# import IPython.utils.rlineimpl as readline
 from IPython.utils.strdispatch import StrDispatch
 from IPython.utils.syspathcontext import prepended_to_syspath
-
-# XXX - need to clean up this import * line
-from IPython.utils.genutils import *
-
-# from IPython.utils import growl
-# growl.start("IPython")
-
+from IPython.utils.terminal import toggle_set_term_title, set_term_title
+from IPython.utils.warn import warn, error, fatal
 from IPython.utils.traitlets import (
     Int, Str, CBool, CaselessStrEnum, Enum, List, Unicode
 )
+
+# from IPython.utils import growl
+# growl.start("IPython")
 
 #-----------------------------------------------------------------------------
 # Globals
@@ -658,7 +663,6 @@ class InteractiveShell(Component, Magic):
         self.strdispatchers = {}
 
         # Set all default hooks, defined in the IPython.hooks module.
-        import IPython.core.hooks
         hooks = IPython.core.hooks
         for hook_name in hooks.__all__:
             # default hooks have priority 100, i.e. low; user hooks should have
@@ -1164,7 +1168,9 @@ class InteractiveShell(Component, Magic):
         Convert func into callable that saves & restores
         history around the call """
 
-        if not self.has_readline:
+        if self.has_readline:
+            from IPython.utils import rlineimpl as readline
+        else:
             return func
 
         def wrapper():
@@ -1197,6 +1203,9 @@ class InteractiveShell(Component, Magic):
 
         # and add any custom exception handlers the user may have specified
         self.set_custom_exc(*custom_exceptions)
+
+        # Set the exception mode
+        self.InteractiveTB.set_mode(mode=self.xmode)
 
     def set_custom_exc(self,exc_tuple,handler):
         """set_custom_exc(exc_tuple,handler)

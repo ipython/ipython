@@ -39,7 +39,7 @@ from IPython.core.error import TryNext
 from IPython.external import pretty
 from IPython.core.component import Component
 from IPython.utils.traitlets import Bool, List
-from IPython.utils.genutils import Term
+from IPython.utils.io import Term
 from IPython.utils.autoattr import auto_attr
 from IPython.utils.importstring import import_item
 

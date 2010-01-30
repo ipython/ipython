@@ -11,7 +11,7 @@ try:
 except ImportError:
     from path import path
 
-import md5,pickle
+import md5, pickle
 
 def showdiff(old,new):
     import difflib

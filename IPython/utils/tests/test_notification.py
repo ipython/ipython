@@ -15,11 +15,7 @@
 
 import unittest
 
-from IPython.utils.notification import (
-    NotificationCenter,
-    NotificationError,
-    shared_center
-)
+from IPython.utils.notification import shared_center
 
 #-----------------------------------------------------------------------------
 # Support Classes

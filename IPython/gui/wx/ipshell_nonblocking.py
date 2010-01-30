@@ -25,7 +25,7 @@ from thread_ex import ThreadEx
 
 import IPython
 from IPython.core import iplib, ipapp
-from IPython.utils import genutils
+from IPython.utils.io import Term
 
 ##############################################################################
 class _Helper(object):
@@ -141,11 +141,11 @@ class NonBlockingIPShell(object):
         #only one instance can be instanciated else tehre will be
         #cin/cout/cerr clash...
         if cin:
-            genutils.Term.cin = cin
+            Term.cin = cin
         if cout:
-            genutils.Term.cout = cout
+            Term.cout = cout
         if cerr:
-            genutils.Term.cerr = cerr
+            Term.cerr = cerr
         
         excepthook = sys.excepthook
 
@@ -471,7 +471,7 @@ class NonBlockingIPShell(object):
         '''
 
         orig_stdout = sys.stdout
-        sys.stdout = genutils.Term.cout
+        sys.stdout = Term.cout
         #self.sys_displayhook_ori = sys.displayhook
         #sys.displayhook = self.displayhook
         

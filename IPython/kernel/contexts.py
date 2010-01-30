@@ -24,9 +24,7 @@ __docformat__ = "restructuredtext en"
 import linecache
 import sys
 
-from twisted.internet.error import ConnectionRefusedError
-
-from IPython.core.ultratb import _fixed_getinnerframes, findsource
+from IPython.core.ultratb import findsource
 from IPython.core import ipapi
 
 from IPython.kernel import error

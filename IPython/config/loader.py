@@ -23,7 +23,7 @@ import os
 import sys
 
 from IPython.external import argparse
-from IPython.utils.genutils import filefind
+from IPython.utils.path import filefind
 
 #-----------------------------------------------------------------------------
 # Exceptions

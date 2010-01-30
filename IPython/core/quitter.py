@@ -19,7 +19,11 @@ Authors
 # Imports
 #-----------------------------------------------------------------------------
 
-import sys
+
+#-----------------------------------------------------------------------------
+# Code
+#-----------------------------------------------------------------------------
+
 
 class Quitter(object):
     """Simple class to handle exit, similar to Python 2.5's.
@@ -40,4 +44,4 @@ class Quitter(object):
     # Repr MUST return a string, else display like pprint hooks get confused
     def __repr__(self):
         self.shell.ask_exit()
-        return 'Bye.'
+        return ''

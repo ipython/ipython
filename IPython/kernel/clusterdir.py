@@ -24,13 +24,14 @@ import warnings
 
 from twisted.python import log
 
-from IPython.core import release
 from IPython.config.loader import PyFileConfigLoader
 from IPython.core.application import Application
 from IPython.core.component import Component
-from IPython.utils.genutils import get_ipython_dir, get_ipython_package_dir
-from IPython.utils.traitlets import Unicode, Bool
-from IPython.utils import genutils
+from IPython.utils.path import (
+    get_ipython_package_dir,
+    expand_path
+)
+from IPython.utils.traitlets import Unicode
 
 #-----------------------------------------------------------------------------
 # Warnings control
@@ -225,7 +226,7 @@ class ClusterDir(Component):
             The path of the cluster directory.  This is expanded using
             :func:`IPython.utils.genutils.expand_path`.
         """
-        cluster_dir = genutils.expand_path(cluster_dir)
+        cluster_dir = expand_path(cluster_dir)
         if not os.path.isdir(cluster_dir):
             raise ClusterDirError('Cluster directory not found: %s' % cluster_dir)
         return ClusterDir(cluster_dir)
@@ -316,7 +317,7 @@ class ApplicationWithClusterDir(Application):
             cluster_dir = self.command_line_config.Global.cluster_dir
         except AttributeError:
             cluster_dir = self.default_config.Global.cluster_dir
-        cluster_dir = genutils.expand_path(cluster_dir)
+        cluster_dir = expand_path(cluster_dir)
         try:
             self.cluster_dir_obj = ClusterDir.find_cluster_dir(cluster_dir)
         except ClusterDirError:
@@ -389,7 +390,7 @@ class ApplicationWithClusterDir(Application):
         pdir = self.cluster_dir_obj.pid_dir
         self.pid_dir = config.Global.pid_dir = pdir
         self.log.info("Cluster directory set to: %s" % self.cluster_dir)
-        config.Global.work_dir = unicode(genutils.expand_path(config.Global.work_dir))
+        config.Global.work_dir = unicode(expand_path(config.Global.work_dir))
         # Change to the working directory. We do this just before construct
         # is called so all the components there have the right working dir.
         self.to_work_dir()

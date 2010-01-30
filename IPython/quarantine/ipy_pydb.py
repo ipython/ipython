@@ -1,6 +1,6 @@
 import inspect
 from IPython.core import ipapi
-from IPython.utils.genutils import arg_split
+from IPython.utils.process import arg_split
 ip = ipapi.get()
 
 from IPython.core import debugger

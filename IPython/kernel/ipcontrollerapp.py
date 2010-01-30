@@ -18,20 +18,18 @@ The IPython controller application.
 from __future__ import with_statement
 
 import copy
-import os
 import sys
 
 from twisted.application import service
 from twisted.internet import reactor
 from twisted.python import log
 
-from IPython.config.loader import Config, NoConfigDefault
-from IPython.core import release
+from IPython.config.loader import Config
 from IPython.core.application import Application
 from IPython.kernel import controllerservice
 from IPython.kernel.clusterdir import ApplicationWithClusterDir
 from IPython.kernel.fcutil import FCServiceFactory
-from IPython.utils.traitlets import Str, Instance, Unicode
+from IPython.utils.traitlets import Instance, Unicode
 
 #-----------------------------------------------------------------------------
 # Default interfaces

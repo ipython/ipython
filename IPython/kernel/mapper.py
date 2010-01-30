@@ -18,8 +18,7 @@ __docformat__ = "restructuredtext en"
 from types import FunctionType
 from zope.interface import Interface, implements
 from IPython.kernel.task import MapTask
-from IPython.kernel.twistedutil import DeferredList, gatherBoth
-from IPython.kernel.util import printer
+from IPython.kernel.twistedutil import gatherBoth
 from IPython.kernel.error import collect_exceptions
 
 #----------------------------------------------------------------------------

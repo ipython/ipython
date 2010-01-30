@@ -5,7 +5,8 @@
 import fnmatch
 import os
 
-from IPython.utils.genutils import Term, ask_yes_no, warn
+from IPython.utils.io import Term, ask_yes_no
+from IPython.utils.warn import warn
 from IPython.core import ipapi
 
 def magic_history(self, parameter_s = ''):

@@ -22,12 +22,11 @@ from types import FunctionType
 
 from zope.interface import Interface, implements
 from twisted.internet import defer
-from twisted.python import components, failure, log
+from twisted.python import components, failure
 
 from foolscap import Referenceable
 
 from IPython.kernel import error 
-from IPython.kernel.util import printer
 from IPython.kernel import map as Map
 from IPython.kernel.parallelfunction import ParallelFunction
 from IPython.kernel.mapper import (
@@ -36,14 +35,15 @@ from IPython.kernel.mapper import (
     IMapper
 )
 from IPython.kernel.twistedutil import gatherBoth
-from IPython.kernel.multiengine import (MultiEngine,
+from IPython.kernel.multiengine import (
     IMultiEngine,
     IFullSynchronousMultiEngine,
     ISynchronousMultiEngine)
-from IPython.kernel.multiengineclient import wrapResultList
 from IPython.kernel.pendingdeferred import PendingDeferredManager
-from IPython.kernel.pickleutil import (can, canDict,
-    canSequence, uncan, uncanDict, uncanSequence)
+from IPython.kernel.pickleutil import (
+    canDict,
+    canSequence, uncanDict, uncanSequence
+)
 
 from IPython.kernel.clientinterfaces import (
     IFCClientInterfaceProvider, 

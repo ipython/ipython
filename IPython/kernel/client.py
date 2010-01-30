@@ -27,7 +27,6 @@ The main classes in this module are:
 # Imports
 #-----------------------------------------------------------------------------
 
-from cStringIO import StringIO
 import sys
 import warnings
 

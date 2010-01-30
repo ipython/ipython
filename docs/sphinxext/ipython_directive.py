@@ -81,7 +81,7 @@ matplotlib.use('Agg')
 
 # Our own
 from IPython import Config, IPythonApp
-from IPython.utils.genutils import Term, Tee
+from IPython.utils.io import Term, Tee
 
 #-----------------------------------------------------------------------------
 # Globals
@@ -208,8 +208,9 @@ class EmbeddedSphinxShell(object):
         Term.cerr = self.cout
 
         # For debugging, so we can see normal output, use this:
-        #Term.cout = genutils.Tee(self.cout, channel='stdout') # dbg
-        #Term.cerr = genutils.Tee(self.cout, channel='stderr') # dbg
+        # from IPython.utils.io import Tee
+        #Term.cout = Tee(self.cout, channel='stdout') # dbg
+        #Term.cerr = Tee(self.cout, channel='stderr') # dbg
 
         # Create config object for IPython
         config = Config()

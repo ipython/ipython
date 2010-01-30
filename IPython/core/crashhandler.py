@@ -26,7 +26,7 @@ from pprint import pformat
 # Our own
 from IPython.core import release
 from IPython.core import ultratb
-from IPython.utils.genutils import sys_info
+from IPython.utils.sysinfo import sys_info
 
 from IPython.external.Itpl import itpl
 

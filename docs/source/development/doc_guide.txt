@@ -41,8 +41,8 @@ A bit of Python code::
 
 An interactive Python session::
 
-    >>> from IPython import genutils
-    >>> genutils.get_ipython_dir()
+    >>> from IPython.utils.path import get_ipython_dir
+    >>> get_ipython_dir()
     '/home/fperez/.ipython'
 
 An IPython session:

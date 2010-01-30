@@ -36,7 +36,7 @@ from IPython.config.loader import (
 #    NoConfigDefault,
 )
 from IPython.lib import inputhook
-from IPython.utils.genutils import filefind, get_ipython_dir
+from IPython.utils.path import filefind, get_ipython_dir
 from . import usage
 
 #-----------------------------------------------------------------------------
@@ -499,7 +499,6 @@ class IPythonApp(Application):
         self._run_exec_lines()
         self._run_exec_files()
         self._run_cmd_line_code()
-        self._configure_xmode()
 
     def _enable_gui_pylab(self):
         """Enable GUI event loop integration, taking pylab into account."""
@@ -624,11 +623,6 @@ class IPythonApp(Application):
                 self.log.warn("Error in executing file in user namespace: %s" % fname)
                 self.shell.showtraceback()
 
-    def _configure_xmode(self):
-        # XXX - shouldn't this be read from the config?  I'm still a little
-        # lost with all the details of handling the new config guys...
-        self.shell.InteractiveTB.set_mode(mode=self.shell.xmode)
-        
     def start_app(self):
         if self.master_config.Global.interact:
             self.log.debug("Starting IPython's mainloop...")

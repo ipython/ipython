@@ -16,6 +16,7 @@ import pickleshare
 import inspect,pickle,os,sys,textwrap
 from IPython.core.fakemodule import FakeModule
 from IPython.utils.ipstruct import Struct 
+from IPython.utils.warn import error
 
 
 def refresh_variables(ip, key=None):

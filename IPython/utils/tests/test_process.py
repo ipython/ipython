@@ -14,12 +14,11 @@ Tests for platutils.py
 # Imports
 #-----------------------------------------------------------------------------
 
-import os
 import sys
 
 import nose.tools as nt
 
-from IPython.utils.platutils import find_cmd, FindCmdError, get_long_path_name
+from IPython.utils.process import find_cmd, FindCmdError
 from IPython.testing import decorators as dec
 
 #-----------------------------------------------------------------------------
@@ -60,13 +59,4 @@ def test_find_cmd_fail():
     nt.assert_raises(FindCmdError,find_cmd,'asdfasdf')
 
     
-@dec.skip_if_not_win32
-def test_get_long_path_name_win32():
-    p = get_long_path_name('c:\\docume~1')
-    nt.assert_equals(p,u'c:\\Documents and Settings') 
 
-    
-@dec.skip_win32
-def test_get_long_path_name():
-    p = get_long_path_name('/usr/local')
-    nt.assert_equals(p,'/usr/local')

@@ -12,17 +12,12 @@ from __future__ import absolute_import
 # Imports
 #-----------------------------------------------------------------------------
 
-# stdlib
 import os
 import sys
 import tempfile
 
-# third-party
 import nose.tools as nt
 
-# our own
-from IPython.utils.platutils import find_cmd
-from IPython.utils import genutils
 from IPython.testing import decorators as dec
 from IPython.testing import tools as tt
 
@@ -142,10 +137,10 @@ class TestMagicRunSimple(tt.TempFileMixin):
         _ip.runlines('t = isinstance(f(), foo)')
         nt.assert_true(_ip.user_ns['t'])
 
-    # We have to skip these in win32 because genutils.getoutputerr() crashes,
+    # We have to skip these in win32 because getoutputerr() crashes,
     # due to the fact that subprocess does not support close_fds when
     # redirecting stdout/err.  So unless someone who knows more tells us how to
-    # implement genutils.getoutputerr() in win32, we're stuck avoiding these.
+    # implement getoutputerr() in win32, we're stuck avoiding these.
     @dec.skip_win32
     def test_obj_del(self):
         """Test that object's __del__ methods are called on exit."""

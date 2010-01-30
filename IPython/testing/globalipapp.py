@@ -9,18 +9,22 @@ done.
 from __future__ import absolute_import
 
 #-----------------------------------------------------------------------------
-# Module imports
+#  Copyright (C) 2009  The IPython Development Team
+#
+#  Distributed under the terms of the BSD License.  The full license is in
+#  the file COPYING, distributed as part of this software.
 #-----------------------------------------------------------------------------
 
-# From the standard library
+#-----------------------------------------------------------------------------
+# Imports
+#-----------------------------------------------------------------------------
+
 import __builtin__
 import commands
-import new
 import os
 import sys
 
 from . import tools
-from IPython.utils.genutils import Term
 
 #-----------------------------------------------------------------------------
 # Functions
@@ -35,7 +39,7 @@ class py_file_finder(object):
         self.test_filename = test_filename
         
     def __call__(self,name):
-        from IPython.utils.genutils import get_py_filename
+        from IPython.utils.path import get_py_filename
         try:
             return get_py_filename(name)
         except IOError:
