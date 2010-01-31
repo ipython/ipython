@@ -145,11 +145,11 @@ def get_home_dir():
 
     * On POSIX, we try $HOME.
     * On Windows we try:
-      - %HOME%: rare, but some people with unix-like setups may have defined it
       - %HOMESHARE%
       - %HOMEDRIVE\%HOMEPATH%
       - %USERPROFILE%
-      - Registry hack
+      - Registry hack for My Documents
+      - %HOME%: rare, but some people with unix-like setups may have defined it
     * On Dos C:\
  
     Currently only Posix and NT are implemented, a HomeDirError exception is
