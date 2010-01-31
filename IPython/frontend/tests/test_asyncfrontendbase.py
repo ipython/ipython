@@ -1,8 +1,5 @@
 # encoding: utf-8
 """This file contains unittests for the asyncfrontendbase module."""
-                                                                            
-# Tell nose to skip this module
-__test__ = {}
 
 #---------------------------------------------------------------------------
 #  Copyright (C) 2008-2009  The IPython Development Team                         
