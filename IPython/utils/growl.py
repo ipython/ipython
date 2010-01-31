@@ -1,6 +1,22 @@
-#!/usr/bin/env python
 # encoding: utf-8
+"""
+Utilities using Growl on OS X for notifications.
+"""
 
+#-----------------------------------------------------------------------------
+#  Copyright (C) 2008-2009  The IPython Development Team
+#
+#  Distributed under the terms of the BSD License.  The full license is in
+#  the file COPYING, distributed as part of this software.
+#-----------------------------------------------------------------------------
+
+#-----------------------------------------------------------------------------
+# Imports
+#-----------------------------------------------------------------------------
+
+#-----------------------------------------------------------------------------
+# Code
+#-----------------------------------------------------------------------------
 
 class IPythonGrowlError(Exception):
     pass

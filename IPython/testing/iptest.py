@@ -37,15 +37,6 @@ import tempfile
 import time
 import warnings
 
-
-# Ugly,  but necessary hack to ensure the test suite finds our version of
-# IPython and not a possibly different one that may exist system-wide.
-# Note that this must be done here, so the imports that come next work
-# correctly even if IPython isn't installed yet.
-p = os.path
-ippath = p.abspath(p.join(p.dirname(__file__),'..','..'))
-sys.path.insert(0, ippath)
-
 # Note: monkeypatch!
 # We need to monkeypatch a small problem in nose itself first, before importing
 # it for actual use.  This should get into nose upstream, but its release cycle
@@ -74,6 +65,7 @@ pjoin = path.join
 #-----------------------------------------------------------------------------
 # Warnings control
 #-----------------------------------------------------------------------------
+
 # Twisted generates annoying warnings with Python 2.6, as will do other code
 # that imports 'sets' as of today
 warnings.filterwarnings('ignore', 'the sets module is deprecated',
@@ -150,11 +142,11 @@ def report():
 
 def make_exclude():
     """Make patterns of modules and packages to exclude from testing.
-    
+
     For the IPythonDoctest plugin, we need to exclude certain patterns that
     cause testing problems.  We should strive to minimize the number of
-    skipped modules, since this means untested code.  As the testing
-    machinery solidifies, this list should eventually become empty.
+    skipped modules, since this means untested code.
+
     These modules and packages will NOT get scanned by nose at all for tests.
     """
     # Simple utility to make IPython paths more readably, we need a lot of
@@ -249,9 +241,11 @@ class IPTester(object):
         if runner == 'iptest':
             iptest_app = get_ipython_module_path('IPython.testing.iptest')
             self.runner = pycmd2argv(iptest_app) + sys.argv[1:]
-        else:
+        elif runner == 'trial':
             # For trial, it needs to be installed system-wide
             self.runner = pycmd2argv(p.abspath(find_cmd('trial')))
+        else:
+            raise Exception('Not a valid test runner: %s' % repr(runner))
         if params is None:
             params = []
         if isinstance(params, str):
@@ -273,6 +267,8 @@ class IPTester(object):
             # fashioned' way to do it, but it works just fine.  If someone
             # later can clean this up that's fine, as long as the tests run
             # reliably in win32.
+            # What types of problems are you having. They may be related to
+            # running Python in unboffered mode. BG.
             return os.system(' '.join(self.call_args))
     else:
         def _run_cmd(self):
