@@ -49,9 +49,9 @@ An IPython cluster consists of 1 controller and 1 or more engines.
 This command automates the startup of these processes using a wide
 range of startup methods (SSH, local processes, PBS, mpiexec,
 Windows HPC Server 2008). To start a cluster with 4 engines on your
-local host simply do "ipcluster start -n 4". For more complex usage 
-you will typically do "ipcluster create -p mycluster", then edit
-configuration files, followed by "ipcluster start -p mycluster -n 4".
+local host simply do 'ipcluster start -n 4'. For more complex usage 
+you will typically do 'ipcluster create -p mycluster', then edit
+configuration files, followed by 'ipcluster start -p mycluster -n 4'.
 """
 
 
@@ -106,24 +106,42 @@ class IPClusterAppConfigLoader(ClusterDirConfigLoader):
             title='ipcluster subcommands',
             description=
             """ipcluster has a variety of subcommands. The general way of 
-            running ipcluster is 'ipcluster <cmd> [options]'""",
-            help="For more help, type 'ipcluster <cmd> -h'"
+            running ipcluster is 'ipcluster <cmd> [options]'. To get help
+            on a particular subcommand do 'ipcluster <cmd> -h'."""
+            # help="For more help, type 'ipcluster <cmd> -h'",
         )
 
         # The "list" subcommand parser
         parser_list = subparsers.add_parser(
             'list',
-            help='List all clusters in cwd and ipython_dir.',
             parents=[parent_parser1],
-            argument_default=SUPPRESS
+            argument_default=SUPPRESS,
+            help="List all clusters in cwd and ipython_dir.",
+            description=
+            """List all available clusters, by cluster directory, that can
+            be found in the current working directly or in the ipython
+            directory. Cluster directories are named using the convention
+            'cluster_<profile>'."""
         )
 
         # The "create" subcommand parser
         parser_create = subparsers.add_parser(
             'create',
-            help='Create a new cluster directory.',
             parents=[parent_parser1, parent_parser2],
-            argument_default=SUPPRESS
+            argument_default=SUPPRESS,
+            help="Create a new cluster directory.",
+            description=
+            """Create an ipython cluster directory by its profile name or 
+            cluster directory path. Cluster directories contain 
+            configuration, log and security related files and are named 
+            using the convention 'cluster_<profile>'. By default they are
+            located in your ipython directory. Once created, you will
+            probably need to edit the configuration files in the cluster
+            directory to configure your cluster. Most users will create a
+            cluster directory by profile name, 
+            'ipcluster create -p mycluster', which will put the directory
+            in '<ipython_dir>/cluster_mycluster'. 
+            """
         )
         paa = parser_create.add_argument
         paa('--reset-config',
@@ -135,9 +153,19 @@ class IPClusterAppConfigLoader(ClusterDirConfigLoader):
         # The "start" subcommand parser
         parser_start = subparsers.add_parser(
             'start',
-            help='Start a cluster.',
             parents=[parent_parser1, parent_parser2],
-            argument_default=SUPPRESS
+            argument_default=SUPPRESS,
+            help="Start a cluster.",
+            description=
+            """Start an ipython cluster by its profile name or cluster 
+            directory. Cluster directories contain configuration, log and
+            security related files and are named using the convention
+            'cluster_<profile>' and should be creating using the 'start'
+            subcommand of 'ipcluster'. If your cluster directory is in 
+            the cwd or the ipython directory, you can simply refer to it
+            using its profile name, 'ipcluster start -n 4 -p <profile>`,
+            otherwise use the '--cluster-dir' option.
+            """
         )
         paa = parser_start.add_argument
         paa('-n', '--number',
@@ -160,9 +188,17 @@ class IPClusterAppConfigLoader(ClusterDirConfigLoader):
         # The "stop" subcommand parser
         parser_stop = subparsers.add_parser(
             'stop',
-            help='Stop a cluster.',
             parents=[parent_parser1, parent_parser2],
-            argument_default=SUPPRESS
+            argument_default=SUPPRESS,
+            help="Stop a running cluster.",
+            description=
+            """Stop a running ipython cluster by its profile name or cluster 
+            directory. Cluster directories are named using the convention
+            'cluster_<profile>'. If your cluster directory is in 
+            the cwd or the ipython directory, you can simply refer to it
+            using its profile name, 'ipcluster stop -p <profile>`, otherwise
+            use the '--cluster-dir' option.
+            """
         )
         paa = parser_stop.add_argument
         paa('--signal',

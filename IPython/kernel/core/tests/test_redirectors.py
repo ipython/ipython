@@ -22,15 +22,15 @@ import sys
 
 from twisted.trial import unittest
 
+from IPython.testing import decorators_trial as dec
+
 #-----------------------------------------------------------------------------
 # Tests
 #-----------------------------------------------------------------------------
 
 class TestRedirector(unittest.TestCase):
 
-    if sys.platform == 'win32':
-        skip = True
-    
+    @dec.skip_win32
     def test_redirector(self):
         """Checks that the redirector can be used to do synchronous capture.
         """
@@ -51,6 +51,7 @@ class TestRedirector(unittest.TestCase):
         result2 = "".join("%ic\n%i\n" %(i, i) for i in range(10))
         self.assertEquals(result1, result2)
 
+    @dec.skip_win32
     def test_redirector_output_trap(self):
         """Check the greedy trapping behavior of the traps.
         
