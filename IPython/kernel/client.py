@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # encoding: utf-8
 
 """This module contains blocking clients for the controller interfaces.
@@ -15,33 +16,35 @@ The main classes in this module are:
     * CompositeError
 """
 
-__docformat__ = "restructuredtext en"
-
-#-------------------------------------------------------------------------------
-#  Copyright (C) 2008  The IPython Development Team
+#-----------------------------------------------------------------------------
+#  Copyright (C) 2008-2009  The IPython Development Team
 #
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
-#-------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------
 
-#-------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------
 # Imports
-#-------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------
 
 import sys
+import warnings
 
-# from IPython.tools import growl
+# from IPython.utils import growl
 # growl.start("IPython1 Client")
 
 
 from twisted.internet import reactor
-from IPython.kernel.clientconnector import ClientConnector
+from twisted.internet.error import PotentialZombieWarning
+from twisted.python import log
+
+from IPython.kernel.clientconnector import ClientConnector, Cluster
 from IPython.kernel.twistedutil import ReactorInThread
 from IPython.kernel.twistedutil import blockingCallFromThread
 
 # These enable various things 
 from IPython.kernel import codeutil
-import IPython.kernel.magic
+# import IPython.kernel.magic
 
 # Other things that the user will need
 from IPython.kernel.task import MapTask, StringTask
@@ -51,46 +54,34 @@ from IPython.kernel.error import CompositeError
 # Code
 #-------------------------------------------------------------------------------
 
+warnings.simplefilter('ignore', PotentialZombieWarning)
+
 _client_tub = ClientConnector()
 
-
-def get_multiengine_client(furl_or_file=''):
-    """Get the blocking MultiEngine client.
-    
-    :Parameters:
-        furl_or_file : str
-            A furl or a filename containing a furl.  If empty, the
-            default furl_file will be used
-            
-    :Returns:
-        The connected MultiEngineClient instance
-    """
-    client = blockingCallFromThread(_client_tub.get_multiengine_client, 
-        furl_or_file)
-    return client.adapt_to_blocking_client()
-
-def get_task_client(furl_or_file=''):
-    """Get the blocking Task client.
-    
-    :Parameters:
-        furl_or_file : str
-            A furl or a filename containing a furl.  If empty, the
-            default furl_file will be used
-            
-    :Returns:
-        The connected TaskClient instance
-    """
-    client = blockingCallFromThread(_client_tub.get_task_client, 
-        furl_or_file)
-    return client.adapt_to_blocking_client()
-
-
+get_multiengine_client = _client_tub.get_multiengine_client
+get_task_client = _client_tub.get_task_client
 MultiEngineClient = get_multiengine_client
 TaskClient = get_task_client
 
-
+# This isn't great.  I should probably set this up in the ReactorInThread
+# class below.  But, it does work for now.
+log.startLogging(sys.stdout, setStdout=0)
 
 # Now we start the reactor in a thread
 rit = ReactorInThread()
 rit.setDaemon(True)
 rit.start()
+
+
+
+
+__all__ = [
+    'MapTask',
+    'StringTask',
+    'MultiEngineClient',
+    'TaskClient',
+    'CompositeError',
+    'get_task_client',
+    'get_multiengine_client',
+    'Cluster'
+]

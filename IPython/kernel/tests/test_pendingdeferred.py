@@ -16,18 +16,18 @@ __docformat__ = "restructuredtext en"
 # Imports
 #-------------------------------------------------------------------------------
 
-try:
-    from twisted.internet import defer
-    from twisted.python import failure
+# Tell nose to skip this module
+__test__ = {}
 
-    from IPython.testing.util import DeferredTestCase
-    import IPython.kernel.pendingdeferred as pd
-    from IPython.kernel import error
-    from IPython.kernel.util import printer
-except ImportError:
-    import nose
-    raise nose.SkipTest("This test requires zope.interface, Twisted and Foolscap")
-    
+from twisted.internet import defer
+from twisted.python import failure
+
+from IPython.testing.util import DeferredTestCase
+import IPython.kernel.pendingdeferred as pd
+from IPython.kernel import error
+from IPython.kernel.util import printer
+
+
 class Foo(object):
 
     def bar(self, bahz):

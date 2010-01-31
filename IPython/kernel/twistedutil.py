@@ -3,28 +3,29 @@
 
 """Things directly related to all of twisted."""
 
-__docformat__ = "restructuredtext en"
-
-#-------------------------------------------------------------------------------
-#  Copyright (C) 2008  The IPython Development Team
+#-----------------------------------------------------------------------------
+#  Copyright (C) 2008-2009  The IPython Development Team
 #
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
-#-------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------
 
-#-------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------
 # Imports
-#-------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------
 
-import threading, Queue, atexit
+import os, sys
+import threading, Queue
+
 import twisted
-
 from twisted.internet import defer, reactor
 from twisted.python import log, failure
 
-#-------------------------------------------------------------------------------
+from IPython.kernel.error import FileTimeoutError
+
+#-----------------------------------------------------------------------------
 # Classes related to twisted and threads
-#-------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------
 
 
 class ReactorInThread(threading.Thread):
@@ -39,6 +40,15 @@ class ReactorInThread(threading.Thread):
     """
     
     def run(self):
+        """Run the twisted reactor in a thread.
+
+        This runs the reactor with installSignalHandlers=0, which prevents
+        twisted from installing any of its own signal handlers. This needs to
+        be disabled because signal.signal can't be called in a thread. The
+        only problem with this is that SIGCHLD events won't be detected so
+        spawnProcess won't detect that its processes have been killed by
+        an external factor.
+        """
         reactor.run(installSignalHandlers=0)
         # self.join()
         
@@ -204,3 +214,61 @@ class DeferredList(defer.Deferred):
             result = None
 
         return result
+
+
+def wait_for_file(filename, delay=0.1, max_tries=10):
+    """Wait (poll) for a file to be created.
+    
+    This method returns a Deferred that will fire when a file exists. It
+    works by polling os.path.isfile in time intervals specified by the
+    delay argument.  If `max_tries` is reached, it will errback with a 
+    `FileTimeoutError`.
+    
+    Parameters
+    ----------
+    filename : str
+        The name of the file to wait for.
+    delay : float
+        The time to wait between polls.
+    max_tries : int
+        The max number of attempts before raising `FileTimeoutError`
+    
+    Returns
+    -------
+    d : Deferred
+        A Deferred instance that will fire when the file exists.
+    """
+    
+    d = defer.Deferred()
+    
+    def _test_for_file(filename, attempt=0):
+        if attempt >= max_tries:
+            d.errback(FileTimeoutError(
+                'timeout waiting for file to be created: %s' % filename
+            ))
+        else:
+            if os.path.isfile(filename):
+                d.callback(True)
+            else:
+                reactor.callLater(delay, _test_for_file, filename, attempt+1)
+    
+    _test_for_file(filename)
+    return d
+
+
+def sleep_deferred(seconds):
+    """Sleep without blocking the event loop."""
+    d = defer.Deferred()
+    reactor.callLater(seconds, d.callback, seconds)
+    return d
+
+
+def make_deferred(func):
+    """A decorator that calls a function with :func`maybeDeferred`."""
+
+    def _wrapper(*args, **kwargs):
+        return defer.maybeDeferred(func, *args, **kwargs)
+
+    return _wrapper
+
+

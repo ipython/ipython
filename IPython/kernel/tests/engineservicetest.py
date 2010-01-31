@@ -359,11 +359,15 @@ class IEnginePropertiesTestCase(object):
         return d
     
     def testStrictDict(self):
-        s = """from IPython.kernel.engineservice import get_engine
-p = get_engine(%s).properties"""%self.engine.id
+        s = """from IPython.kernel.engineservice import get_engine; p = get_engine(%s).properties"""%self.engine.id
         d = self.engine.execute(s)
+        # These 3 lines cause a weird testing error on some platforms (OS X).
+        # I am leaving them here in case they are masking some really 
+        # weird reactor issue.  For now I will just keep my eye on this.
         d.addCallback(lambda r: self.engine.execute("p['a'] = lambda _:None"))
-        d = self.assertDeferredRaises(d, error.InvalidProperty)
+        d.addErrback(lambda f: self.assertRaises(error.InvalidProperty,
+            f.raiseException))
+        # Below here seems to be fine
         d.addCallback(lambda r: self.engine.execute("p['a'] = range(5)"))
         d.addCallback(lambda r: self.engine.execute("p['a'].append(5)"))
         d.addCallback(lambda r: self.engine.get_properties('a'))

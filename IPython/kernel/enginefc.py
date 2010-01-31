@@ -19,14 +19,11 @@ __docformat__ = "restructuredtext en"
 # Imports
 #-------------------------------------------------------------------------------
 
-import os, time
 import cPickle as pickle
 
 from twisted.python import components, log, failure
-from twisted.python.failure import Failure
-from twisted.internet import defer, reactor, threads
-from twisted.internet.interfaces import IProtocolFactory
-from zope.interface import Interface, implements, Attribute
+from twisted.internet import defer, threads
+from zope.interface import Interface, implements
 
 from twisted.internet.base import DelayedCall
 DelayedCall.debug = True
@@ -35,24 +32,20 @@ from foolscap import Referenceable, DeadReferenceError
 from foolscap.referenceable import RemoteReference
 
 from IPython.kernel.pbutil import packageFailure, unpackageFailure
-from IPython.kernel.util import printer
-from IPython.kernel.twistedutil import gatherBoth
-from IPython.kernel import newserialized
-from IPython.kernel.error import  ProtocolError
-from IPython.kernel import controllerservice
 from IPython.kernel.controllerservice import IControllerBase
-from IPython.kernel.engineservice import \
-    IEngineBase, \
-    IEngineQueued, \
-    EngineService, \
+from IPython.kernel.engineservice import (
+    IEngineBase,
+    IEngineQueued,
     StrictDict
-from IPython.kernel.pickleutil import \
-    can, \
-    canDict, \
-    canSequence, \
-    uncan, \
-    uncanDict, \
+)
+from IPython.kernel.pickleutil import (
+    can,
+    canDict,
+    canSequence,
+    uncan,
+    uncanDict,
     uncanSequence
+)
 
 
 #-------------------------------------------------------------------------------

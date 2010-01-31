@@ -18,10 +18,8 @@ __docformat__ = "restructuredtext en"
 #-------------------------------------------------------------------------------
 import re
 
-import IPython
 import sys
 import codeop
-import traceback
 
 from frontendbase import FrontEndBase
 from IPython.kernel.core.interpreter import Interpreter
@@ -41,9 +39,10 @@ def common_prefix(strings):
 
     return prefix
 
-#-------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------
 # Base class for the line-oriented front ends
-#-------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------
+
 class LineFrontEndBase(FrontEndBase):
     """ Concrete implementation of the FrontEndBase class. This is meant
     to be the base class behind all the frontend that are line-oriented,
@@ -57,6 +56,9 @@ class LineFrontEndBase(FrontEndBase):
     # We keep a reference to the last result: it helps testing and
     # programatic control of the frontend. 
     last_result = dict(number=0)
+
+    # The last prompt displayed. Useful for continuation prompts.
+    last_prompt = ''
 
     # The input buffer being edited
     input_buffer = ''
@@ -96,8 +98,8 @@ class LineFrontEndBase(FrontEndBase):
         ----------
         line : string
         
-        Result
-        ------
+        Returns
+        -------
         The replacement for the line and the list of possible completions.
         """
         completions = self.shell.complete(line)
@@ -151,8 +153,12 @@ class LineFrontEndBase(FrontEndBase):
             self.capture_output()
             try:
                 # Add line returns here, to make sure that the statement is
-                # complete.
-                is_complete = codeop.compile_command(string.rstrip() + '\n\n',
+                # complete (except if '\' was used).
+                # This should probably be done in a different place (like
+                # maybe 'prefilter_input' method? For now, this works.
+                clean_string = string.rstrip('\n')
+                if not clean_string.endswith('\\'): clean_string +='\n\n' 
+                is_complete = codeop.compile_command(clean_string,
                             "<string>", "exec")
                 self.release_output()
             except Exception, e:
@@ -182,16 +188,6 @@ class LineFrontEndBase(FrontEndBase):
             raw_string = python_string
         # Create a false result, in case there is an exception
         self.last_result = dict(number=self.prompt_number)
-
-        ## try:
-        ##     self.history.input_cache[-1] = raw_string.rstrip()
-        ##     result = self.shell.execute(python_string)
-        ##     self.last_result = result
-        ##     self.render_result(result)
-        ## except:
-        ##     self.show_traceback()
-        ## finally:
-        ##     self.after_execute()
 
         try:
             try:
@@ -272,15 +268,15 @@ class LineFrontEndBase(FrontEndBase):
         symbols_per_line = max(1, chars_per_line/max_len)
 
         pos = 1
-        buf = []
+        completion_string = []
         for symbol in possibilities:
             if pos < symbols_per_line:
-                buf.append(symbol.ljust(max_len))
+                completion_string.append(symbol.ljust(max_len))
                 pos += 1
             else:
-                buf.append(symbol.rstrip() + '\n')
+                completion_string.append(symbol.rstrip() + '\n')
                 pos = 1
-        self.write(''.join(buf))
+        self.write(''.join(completion_string))
         self.new_prompt(self.input_prompt_template.substitute(
                             number=self.last_result['number'] + 1))
         self.input_buffer = new_line
@@ -297,26 +293,70 @@ class LineFrontEndBase(FrontEndBase):
         self.write(prompt)
 
 
+    def continuation_prompt(self):
+        """Returns the current continuation prompt.
+        """
+        return ("."*(len(self.last_prompt)-2) + ': ')
+ 
+
+    def execute_command(self, command, hidden=False):
+        """ Execute a command, not only in the model, but also in the
+            view, if any.
+        """
+        return self.shell.execute(command)
+
     #--------------------------------------------------------------------------
     # Private API
     #--------------------------------------------------------------------------
  
-    def _on_enter(self):
+    def _on_enter(self, new_line_pos=0):
         """ Called when the return key is pressed in a line editing
             buffer.
+
+            Parameters
+            ----------
+            new_line_pos : integer, optional
+                Position of the new line to add, starting from the
+                end (0 adds a new line after the last line, -1 before
+                the last line...)
+
+            Returns
+            -------
+            True if execution is triggered
         """
         current_buffer = self.input_buffer
-        cleaned_buffer = self.prefilter_input(current_buffer)
+        # XXX: This string replace is ugly, but there should be no way it
+        # fails.
+        prompt_less_buffer = re.sub('^' + self.continuation_prompt(),
+                '', current_buffer).replace('\n' + self.continuation_prompt(),
+                                            '\n')
+        cleaned_buffer = self.prefilter_input(prompt_less_buffer)
         if self.is_complete(cleaned_buffer):
             self.execute(cleaned_buffer, raw_string=current_buffer)
+            return True
         else:
-            self.input_buffer += self._get_indent_string(
-                                                current_buffer[:-1])
-            if len(current_buffer.split('\n')) == 2:
-                self.input_buffer += '\t\t'
-            if current_buffer[:-1].split('\n')[-1].rstrip().endswith(':'):
-                self.input_buffer += '\t'
+            # Start a new line.
+            new_line_pos = -new_line_pos
+            lines = current_buffer.split('\n')[:-1]
+            prompt_less_lines = prompt_less_buffer.split('\n')
+            # Create the new line, with the continuation prompt, and the 
+            # same amount of indent than the line above it.
+            new_line = self.continuation_prompt() + \
+                  self._get_indent_string('\n'.join(
+                                    prompt_less_lines[:new_line_pos-1]))
+            if len(lines) == 1:
+                # We are starting a first continuation line. Indent it.
+                new_line += '\t'
+            elif current_buffer[:-1].split('\n')[-1].rstrip().endswith(':'):
+                # The last line ends with ":", autoindent the new line.
+                new_line += '\t'
 
+            if new_line_pos == 0:
+                lines.append(new_line)
+            else:
+                lines.insert(new_line_pos, new_line)
+            self.input_buffer = '\n'.join(lines)
+            
 
     def _get_indent_string(self, string):
         """ Return the string of whitespace that prefixes a line. Used to

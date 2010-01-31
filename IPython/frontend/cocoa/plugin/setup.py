@@ -19,17 +19,17 @@ __docformat__ = "restructuredtext en"
 from setuptools import setup
 
 infoPlist = dict(
-	CFBundleDevelopmentRegion='English',
-	CFBundleIdentifier='org.scipy.ipython.cocoa_frontend',
-	NSPrincipalClass='IPythonCocoaController',
+        CFBundleDevelopmentRegion='English',
+        CFBundleIdentifier='org.scipy.ipython.cocoa_frontend',
+        NSPrincipalClass='IPythonCocoaController',
 )
 
 setup(
-	plugin=['IPythonCocoaFrontendLoader.py'],
+        plugin=['IPythonCocoaFrontendLoader.py'],
     setup_requires=['py2app'],
-	options=dict(py2app=dict(
-		plist=infoPlist,
-		site_packages=True,
-		excludes=['IPython','twisted','PyObjCTools']
-	)),
+        options=dict(py2app=dict(
+                plist=infoPlist,
+                site_packages=True,
+                excludes=['IPython','twisted','PyObjCTools']
+        )),
 )

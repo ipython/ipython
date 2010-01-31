@@ -29,7 +29,7 @@ import sys
 import traceback
 
 # Local imports.
-from IPython.kernel.core import ultraTB
+from IPython.core import ultratb
 from IPython.kernel.core.display_trap import DisplayTrap
 from IPython.kernel.core.macro import Macro
 from IPython.kernel.core.prompts import CachedOutput
@@ -167,9 +167,9 @@ class Interpreter(object):
             formatters=self.traceback_formatters)
 
         # This is used temporarily for reformating exceptions in certain
-        # cases.  It will go away once the ultraTB stuff is ported
+        # cases.  It will go away once the ultratb stuff is ported
         # to ipython1
-        self.tbHandler = ultraTB.FormattedTB(color_scheme='NoColor',
+        self.tbHandler = ultratb.FormattedTB(color_scheme='NoColor',
                                                  mode='Context',
                                                  tb_offset=2)
 
@@ -211,7 +211,7 @@ class Interpreter(object):
 
     #### Public 'Interpreter' interface ########################################
 
-    def formatTraceback(self, et, ev, tb, message=''):
+    def format_traceback(self, et, ev, tb, message=''):
         """Put a formatted version of the traceback into value and reraise.
         
         When exceptions have to be sent over the network, the traceback 
@@ -375,7 +375,6 @@ class Interpreter(object):
             exec code in self.user_ns
             outflag = 0
         except SystemExit:
-            self.resetbuffer()
             self.traceback_trap.args = sys.exc_info()
         except:
             self.traceback_trap.args = sys.exc_info()
@@ -395,7 +394,7 @@ class Interpreter(object):
             python = self.translator(python)
         self.execute_python(python)
 
-    def getCommand(self, i=None):
+    def get_command(self, i=None):
         """Gets the ith message in the message_cache.
         
         This is implemented here for compatibility with the old ipython1 shell
@@ -492,7 +491,7 @@ class Interpreter(object):
             # somehow.  In the meantime, we'll just stop if there are two lines
             # of pure whitespace at the end.
             last_two = source.rsplit('\n',2)[-2:]
-            print 'last two:',last_two  # dbg
+            #print 'last two:',last_two  # dbg
             if len(last_two)==2 and all(s.isspace() for s in last_two):
                 return COMPLETE_INPUT,False
             else:
@@ -679,21 +678,22 @@ class Interpreter(object):
         # to exec will fail however.  There seems to be some inconsistency in
         # how trailing whitespace is handled, but this seems to work.
         python = python.strip()
-
+        
         # The compiler module does not like unicode. We need to convert
         # it encode it:
         if isinstance(python, unicode):
             # Use the utf-8-sig BOM so the compiler detects this a UTF-8
             # encode string.
             python = '\xef\xbb\xbf' + python.encode('utf-8')
-
+        
         # The compiler module will parse the code into an abstract syntax tree.
+        # This has a bug with str("a\nb"), but not str("""a\nb""")!!!
         ast = compiler.parse(python)
-
+        
         # Uncomment to help debug the ast tree
         # for n in ast.node:
         #     print n.lineno,'->',n
-                
+        
         # Each separate command is available by iterating over ast.node. The
         # lineno attribute is the line number (1-indexed) beginning the commands
         # suite.
@@ -703,27 +703,33 @@ class Interpreter(object):
         # We might eventually discover other cases where lineno is None and have
         # to put in a more sophisticated test.
         linenos = [x.lineno-1 for x in ast.node if x.lineno is not None]
-
+        
         # When we finally get the slices, we will need to slice all the way to
         # the end even though we don't have a line number for it. Fortunately,
         # None does the job nicely.
         linenos.append(None)
+        
+        # Same problem at the other end: sometimes the ast tree has its
+        # first complete statement not starting on line 0. In this case
+        # we might miss part of it.  This fixes ticket 266993.  Thanks Gael!
+        linenos[0] = 0
+        
         lines = python.splitlines()
-
+        
         # Create a list of atomic commands.
         cmds = []
         for i, j in zip(linenos[:-1], linenos[1:]):
             cmd = lines[i:j]
             if cmd:
                 cmds.append('\n'.join(cmd)+'\n')
-
+        
         return cmds
 
     def error(self, text):
         """ Pass an error message back to the shell.
 
-        Preconditions
-        -------------
+        Notes
+        -----
         This should only be called when self.message is set. In other words,
         when code is being executed.
 

@@ -2,18 +2,22 @@ include ipython.py
 include setupbase.py
 include setupegg.py
 
-graft scripts
-
 graft setupext
 
-graft IPython/UserConfig
-
+graft scripts
 graft IPython/kernel
 graft IPython/config
+graft IPython/core
+# graft IPython/deathrow
+graft IPython/external
+graft IPython/frontend
+graft IPython/gui
+graft IPython/lib
+graft IPython/quarantine
+graft IPython/scripts
 graft IPython/testing
-graft IPython/tools
+graft IPython/utils
 
-recursive-include IPython/Extensions igrid_help*
 
 graft docs
 exclude docs/\#*

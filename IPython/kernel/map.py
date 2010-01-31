@@ -21,7 +21,7 @@ __docformat__ = "restructuredtext en"
 
 import types
 
-from IPython.genutils import flatten as genutil_flatten
+from IPython.utils.data import flatten as utils_flatten
 
 #-------------------------------------------------------------------------------
 # Figure out which array packages are present and their array types
@@ -87,7 +87,7 @@ class Map:
                 return m['module'].concatenate(listOfPartitions)
         # Next try for Python sequence types
         if isinstance(testObject, (types.ListType, types.TupleType)):
-            return genutil_flatten(listOfPartitions)
+            return utils_flatten(listOfPartitions)
         # If we have scalars, just return listOfPartitions
         return listOfPartitions
 

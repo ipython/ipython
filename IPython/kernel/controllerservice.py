@@ -37,20 +37,18 @@ __docformat__ = "restructuredtext en"
 # Imports
 #-------------------------------------------------------------------------------
 
-import os, sys
+import os
 
 from twisted.application import service
-from twisted.internet import defer, reactor
-from twisted.python import log, components
+from twisted.python import log
 from zope.interface import Interface, implements, Attribute
-import zope.interface as zi
 
 from IPython.kernel.engineservice import \
     IEngineCore, \
     IEngineSerialized, \
     IEngineQueued
     
-from IPython.genutils import get_ipython_dir
+from IPython.utils.path import get_ipython_dir
 from IPython.kernel import codeutil
 
 #-------------------------------------------------------------------------------

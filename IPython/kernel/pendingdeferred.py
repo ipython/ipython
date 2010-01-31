@@ -22,15 +22,11 @@ __docformat__ = "restructuredtext en"
 # Imports
 #-------------------------------------------------------------------------------
 
-from twisted.application import service
-from twisted.internet import defer, reactor
-from twisted.python import log, components, failure
-from zope.interface import Interface, implements, Attribute
+from twisted.internet import defer
+from twisted.python import failure
 
-from IPython.kernel.twistedutil import gatherBoth
 from IPython.kernel import error
 from IPython.external import guid
-from IPython.tools import growl
 
 class PendingDeferredManager(object):
     """A class to track pending deferreds.

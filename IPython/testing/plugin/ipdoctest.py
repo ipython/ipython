@@ -15,7 +15,6 @@ Limitations:
   won't even have these special _NN variables set at all.
 """
 
-
 #-----------------------------------------------------------------------------
 # Module imports
 
@@ -50,133 +49,14 @@ from nose.util import anyp, getpackage, test_address, resolve_name, tolist
 
 #-----------------------------------------------------------------------------
 # Module globals and other constants
+#-----------------------------------------------------------------------------
 
 log = logging.getLogger(__name__)
 
-###########################################################################
-# *** HACK ***
-# We must start our own ipython object and heavily muck with it so that all the
-# modifications IPython makes to system behavior don't send the doctest
-# machinery into a fit.  This code should be considered a gross hack, but it
-# gets the job done.
 
-
-# Hack to modify the %run command so we can sync the user's namespace with the
-# test globals.  Once we move over to a clean magic system, this will be done
-# with much less ugliness.
-
-class py_file_finder(object):
-    def __init__(self,test_filename):
-        self.test_filename = test_filename
-        
-    def __call__(self,name):
-        from IPython.genutils import get_py_filename
-        try:
-            return get_py_filename(name)
-        except IOError:
-            test_dir = os.path.dirname(self.test_filename)
-            new_path = os.path.join(test_dir,name)
-            return get_py_filename(new_path)
-    
-
-def _run_ns_sync(self,arg_s,runner=None):
-    """Modified version of %run that syncs testing namespaces.
-
-    This is strictly needed for running doctests that call %run.
-    """
-
-    finder = py_file_finder(_run_ns_sync.test_filename)
-    out = _ip.IP.magic_run_ori(arg_s,runner,finder)
-    _run_ns_sync.test_globs.update(_ip.user_ns)
-    return out
-
-
-class ipnsdict(dict):
-    """A special subclass of dict for use as an IPython namespace in doctests.
-
-    This subclass adds a simple checkpointing capability so that when testing
-    machinery clears it (we use it as the test execution context), it doesn't
-    get completely destroyed.
-    """
-    
-    def __init__(self,*a):
-        dict.__init__(self,*a)
-        self._savedict = {}
-        
-    def clear(self):
-        dict.clear(self)
-        self.update(self._savedict)
-
-    def _checkpoint(self):
-        self._savedict.clear()
-        self._savedict.update(self)
-
-    def update(self,other):
-        self._checkpoint()
-        dict.update(self,other)
-        # If '_' is in the namespace, python won't set it when executing code,
-        # and we have examples that test it.  So we ensure that the namespace
-        # is always 'clean' of it before it's used for test code execution.
-        self.pop('_',None)
-        
-
-def start_ipython():
-    """Start a global IPython shell, which we need for IPython-specific syntax.
-    """
-    import new
-
-    import IPython
-
-    def xsys(cmd):
-        """Execute a command and print its output.
-
-        This is just a convenience function to replace the IPython system call
-        with one that is more doctest-friendly.
-        """
-        cmd = _ip.IP.var_expand(cmd,depth=1)
-        sys.stdout.write(commands.getoutput(cmd))
-        sys.stdout.flush()
-
-    # Store certain global objects that IPython modifies
-    _displayhook = sys.displayhook
-    _excepthook = sys.excepthook
-    _main = sys.modules.get('__main__')
-
-    # Start IPython instance.  We customize it to start with minimal frills.
-    user_ns,global_ns = IPython.ipapi.make_user_namespaces(ipnsdict(),dict())
-    IPython.Shell.IPShell(['--colors=NoColor','--noterm_title'],
-                          user_ns,global_ns)
-
-    # Deactivate the various python system hooks added by ipython for
-    # interactive convenience so we don't confuse the doctest system
-    sys.modules['__main__'] = _main
-    sys.displayhook = _displayhook
-    sys.excepthook = _excepthook
-
-    # So that ipython magics and aliases can be doctested (they work by making
-    # a call into a global _ip object)
-    _ip = IPython.ipapi.get()
-    __builtin__._ip = _ip
-
-    # Modify the IPython system call with one that uses getoutput, so that we
-    # can capture subcommands and print them to Python's stdout, otherwise the
-    # doctest machinery would miss them.
-    _ip.system = xsys
-
-    # Also patch our %run function in.
-    im = new.instancemethod(_run_ns_sync,_ip.IP, _ip.IP.__class__)
-    _ip.IP.magic_run_ori = _ip.IP.magic_run
-    _ip.IP.magic_run = im
-
-# The start call MUST be made here.  I'm not sure yet why it doesn't work if
-# it is made later, at plugin initialization time, but in all my tests, that's
-# the case.
-start_ipython()
-
-# *** END HACK ***
-###########################################################################
-
+#-----------------------------------------------------------------------------
 # Classes and functions
+#-----------------------------------------------------------------------------
 
 def is_extension_module(filename):
     """Return whether the given filename is an extension module.
@@ -239,7 +119,7 @@ class DocTestFinder(doctest.DocTestFinder):
         Find tests for the given object and any contained objects, and
         add them to `tests`.
         """
-
+        #print '_find for:', obj, name, module  # dbg
         if hasattr(obj,"skip_doctest"):
             #print 'SKIPPING DOCTEST FOR:',obj  # dbg
             obj = DocTestSkip(obj)
@@ -338,6 +218,7 @@ class DocTestCase(doctests.DocTestCase):
         self._dt_optionflags = optionflags
         self._dt_checker = checker
         self._dt_test = test
+        self._dt_test_globs_ori = test.globs
         self._dt_setUp = setUp
         self._dt_tearDown = tearDown
 
@@ -347,8 +228,9 @@ class DocTestCase(doctests.DocTestCase):
         self._dt_runner = runner
 
 
-        # Each doctest should remember what directory it was loaded from...
-        self._ori_dir = os.getcwd()
+        # Each doctest should remember the directory it was loaded from, so
+        # things like %run work without too many contortions
+        self._ori_dir = os.path.dirname(test.filename)
 
     # Modified runTest from the default stdlib
     def runTest(self):
@@ -369,6 +251,7 @@ class DocTestCase(doctests.DocTestCase):
             # test was originally created, in case another doctest did a
             # directory change.  We'll restore this in the finally clause.
             curdir = os.getcwd()
+            #print 'runTest in dir:', self._ori_dir  # dbg
             os.chdir(self._ori_dir)
 
             runner.DIVIDER = "-"*70
@@ -383,15 +266,43 @@ class DocTestCase(doctests.DocTestCase):
 
     def setUp(self):
         """Modified test setup that syncs with ipython namespace"""
-        
+        #print "setUp test", self._dt_test.examples # dbg
         if isinstance(self._dt_test.examples[0],IPExample):
             # for IPython examples *only*, we swap the globals with the ipython
             # namespace, after updating it with the globals (which doctest
             # fills with the necessary info from the module being tested).
-            _ip.IP.user_ns.update(self._dt_test.globs)
-            self._dt_test.globs = _ip.IP.user_ns
+            _ip.user_ns.update(self._dt_test.globs)
+            self._dt_test.globs = _ip.user_ns
 
-        doctests.DocTestCase.setUp(self)
+        super(DocTestCase, self).setUp()
+
+    def tearDown(self):
+
+        # Undo the test.globs reassignment we made, so that the parent class
+        # teardown doesn't destroy the ipython namespace
+        if isinstance(self._dt_test.examples[0],IPExample):
+            self._dt_test.globs = self._dt_test_globs_ori
+            
+        # XXX - fperez: I am not sure if this is truly a bug in nose 0.11, but
+        # it does look like one to me: its tearDown method tries to run
+        #
+        # delattr(__builtin__, self._result_var)
+        #
+        # without checking that the attribute really is there; it implicitly
+        # assumes it should have been set via displayhook.  But if the
+        # displayhook was never called, this doesn't necessarily happen.  I
+        # haven't been able to find a little self-contained example outside of
+        # ipython that would show the problem so I can report it to the nose
+        # team, but it does happen a lot in our code.
+        #
+        # So here, we just protect as narrowly as possible by trapping an
+        # attribute error whose message would be the name of self._result_var,
+        # and letting any other error propagate.
+        try:
+            super(DocTestCase, self).tearDown()
+        except AttributeError, exc:
+            if exc.args[0] != self._result_var:
+                raise
 
 
 # A simple subclassing of the original with a different class name, so we can
@@ -468,7 +379,7 @@ class IPDocTestParser(doctest.DocTestParser):
         # and turned into lines, so it looks to the parser like regular user
         # input
         for lnum,line in enumerate(source.strip().splitlines()):
-            newline(_ip.IP.prefilter(line,lnum>0))
+            newline(_ip.prefilter(line,lnum>0))
         newline('')  # ensure a closing newline, needed by doctest
         #print "PYSRC:", '\n'.join(out)  # dbg
         return '\n'.join(out)
@@ -660,8 +571,10 @@ class IPDocTestRunner(doctest.DocTestRunner,object):
         # attribute.  Our new %run will then only make the namespace update
         # when called (rather than unconconditionally updating test.globs here
         # for all examples, most of which won't be calling %run anyway).
-        _run_ns_sync.test_globs = test.globs
-        _run_ns_sync.test_filename = test.filename
+        #_ip._ipdoctest_test_globs = test.globs
+        #_ip._ipdoctest_test_filename = test.filename
+
+        test.globs.update(_ip.user_ns)
         
         return super(IPDocTestRunner,self).run(test,
                                                compileflags,out,clear_globs)
@@ -691,6 +604,7 @@ class ExtensionDoctest(doctests.Doctest):
           to exclude any filename which matches them from inclusion in the test
           suite (using pattern.search(), NOT pattern.match() ).
         """
+
         if exclude_patterns is None:
             exclude_patterns = []
         self.exclude_patterns = map(re.compile,exclude_patterns)
@@ -774,6 +688,7 @@ class ExtensionDoctest(doctests.Doctest):
 
 
     def loadTestsFromFile(self, filename):
+        #print "ipdoctest - from file", filename # dbg
         if is_extension_module(filename):
             for t in self.loadTestsFromExtensionModule(filename):
                 yield t
@@ -804,7 +719,7 @@ class ExtensionDoctest(doctests.Doctest):
 
         for pat in self.exclude_patterns:
             if pat.search(filename):
-                #print '###>>> SKIP:',filename  # dbg
+                # print '###>>> SKIP:',filename  # dbg
                 return False
 
         if is_extension_module(filename):
@@ -818,11 +733,12 @@ class IPythonDoctest(ExtensionDoctest):
     """
     name = 'ipdoctest'   # call nosetests with --with-ipdoctest
     enabled = True
-    
+
     def makeTest(self, obj, parent):
         """Look for doctests in the given object, which will be a
         function, method or class.
         """
+        #print 'Plugin analyzing:', obj, parent  # dbg
         # always use whitespace and ellipsis options
         optionflags = doctest.NORMALIZE_WHITESPACE | doctest.ELLIPSIS
 
@@ -836,15 +752,35 @@ class IPythonDoctest(ExtensionDoctest):
                                   optionflags=optionflags,
                                   checker=self.checker)
 
-    def configure(self, options, config):
+    def options(self, parser, env=os.environ):
+        #print "Options for nose plugin:", self.name # dbg
+        Plugin.options(self, parser, env)
+        parser.add_option('--ipdoctest-tests', action='store_true',
+                          dest='ipdoctest_tests',
+                          default=env.get('NOSE_IPDOCTEST_TESTS',True),
+                          help="Also look for doctests in test modules. "
+                          "Note that classes, methods and functions should "
+                          "have either doctests or non-doctest tests, "
+                          "not both. [NOSE_IPDOCTEST_TESTS]")
+        parser.add_option('--ipdoctest-extension', action="append",
+                          dest="ipdoctest_extension",
+                          help="Also look for doctests in files with "
+                          "this extension [NOSE_IPDOCTEST_EXTENSION]")
+        # Set the default as a list, if given in env; otherwise
+        # an additional value set on the command line will cause
+        # an error.
+        env_setting = env.get('NOSE_IPDOCTEST_EXTENSION')
+        if env_setting is not None:
+            parser.set_defaults(ipdoctest_extension=tolist(env_setting))
 
+    def configure(self, options, config):
+        #print "Configuring nose plugin:", self.name # dbg
         Plugin.configure(self, options, config)
-        self.doctest_tests = options.doctest_tests
-        self.extension = tolist(options.doctestExtension)
+        self.doctest_tests = options.ipdoctest_tests
+        self.extension = tolist(options.ipdoctest_extension)
 
         self.parser = IPDocTestParser()
         self.finder = DocTestFinder(parser=self.parser)
         self.checker = IPDoctestOutputChecker()
         self.globs = None
         self.extraglobs = None
-

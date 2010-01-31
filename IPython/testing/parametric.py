@@ -1,10 +1,30 @@
 """Parametric testing on top of twisted.trial.unittest.
 
+XXX - It may be possbile to deprecate this in favor of the new, cleaner
+parametric code.  We just need to double-check that the new code doesn't clash
+with Twisted (we know it works with nose and unittest).
 """
+
+#-----------------------------------------------------------------------------
+#  Copyright (C) 2009  The IPython Development Team
+#
+#  Distributed under the terms of the BSD License.  The full license is in
+#  the file COPYING, distributed as part of this software.
+#-----------------------------------------------------------------------------
+
+#-----------------------------------------------------------------------------
+# Imports
+#-----------------------------------------------------------------------------
+
+
+from twisted.trial.unittest import TestCase
+
+#-----------------------------------------------------------------------------
+# Classes and functions
+#-----------------------------------------------------------------------------
 
 __all__ = ['parametric','Parametric']
 
-from twisted.trial.unittest import TestCase
 
 def partial(f, *partial_args, **partial_kwargs):
     """Generate a partial class method.
@@ -17,12 +37,14 @@ def partial(f, *partial_args, **partial_kwargs):
 
     return partial_func
 
+
 def parametric(f):
     """Mark f as a parametric test.
 
     """
     f._parametric = True
     return classmethod(f)
+
 
 def Parametric(cls):
     """Register parametric tests with a class.
@@ -53,3 +75,4 @@ def Parametric(cls):
 
         # rename test generator so it isn't called again by nose
         test_gen.im_func.func_name = '__done_' + test_name
+

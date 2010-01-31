@@ -15,14 +15,20 @@ Broadly speaking, there are two ways of going about starting a controller and en
 * In a more manual way using the :command:`ipcontroller` and 
   :command:`ipengine` commands.
 
-This document describes both of these methods.  We recommend that new users start with the :command:`ipcluster` command as it simplifies many common usage cases.
+This document describes both of these methods. We recommend that new users
+start with the :command:`ipcluster` command as it simplifies many common usage
+cases.
 
 General considerations
 ======================
 
-Before delving into the details about how you can start a controller and engines using the various methods, we outline some of the general issues that come up when starting the controller and engines.  These things come up no matter which method you use to start your IPython cluster.
+Before delving into the details about how you can start a controller and
+engines using the various methods, we outline some of the general issues that
+come up when starting the controller and engines. These things come up no
+matter which method you use to start your IPython cluster.
 
-Let's say that you want to start the controller on ``host0`` and engines on hosts ``host1``-``hostn``.  The following steps are then required:
+Let's say that you want to start the controller on ``host0`` and engines on
+hosts ``host1``-``hostn``. The following steps are then required:
 
 1. Start the controller on ``host0`` by running :command:`ipcontroller` on
    ``host0``.
@@ -41,12 +47,15 @@ at that location.
 The final step required required to actually use the running controller from a
 client is to move the FURL files :file:`ipcontroller-mec.furl` and
 :file:`ipcontroller-tc.furl` from ``host0`` to the host where the clients will
-be run.  If these file are put into the :file:`~/.ipython/security` directory of the client's host, they will be found automatically.  Otherwise, the full path to them has to be passed to the client's constructor.
+be run. If these file are put into the :file:`~/.ipython/security` directory
+of the client's host, they will be found automatically. Otherwise, the full
+path to them has to be passed to the client's constructor.
 
 Using :command:`ipcluster`
 ==========================
 
-The :command:`ipcluster` command provides a simple way of starting a controller and engines in the following situations:
+The :command:`ipcluster` command provides a simple way of starting a
+controller and engines in the following situations:
 
 1. When the controller and engines are all run on localhost. This is useful
    for testing or running on a multicore computer.
@@ -110,11 +119,20 @@ This does the following:
 1. Starts the IPython controller on current host.
 2. Uses :command:`mpiexec` to start 4 engines.
 
-On newer MPI implementations (such as OpenMPI), this will work even if you don't make any calls to MPI or call :func:`MPI_Init`.  However, older MPI implementations actually require each process to call :func:`MPI_Init` upon starting.  The easiest way of having this done is to install the mpi4py [mpi4py]_ package and then call ipcluster with the ``--mpi`` option::
+On newer MPI implementations (such as OpenMPI), this will work even if you
+don't make any calls to MPI or call :func:`MPI_Init`. However, older MPI
+implementations actually require each process to call :func:`MPI_Init` upon
+starting. The easiest way of having this done is to install the mpi4py
+[mpi4py]_ package and then call ipcluster with the ``--mpi`` option::
 
     $ ipcluster mpiexec -n 4 --mpi=mpi4py
 
-Unfortunately, even this won't work for some MPI implementations.  If you are having problems with this, you will likely have to use a custom Python executable that itself calls :func:`MPI_Init` at the appropriate time.  Fortunately, mpi4py comes with such a custom Python executable that is easy to install and use.  However, this custom Python executable approach will not work with :command:`ipcluster` currently.
+Unfortunately, even this won't work for some MPI implementations. If you are
+having problems with this, you will likely have to use a custom Python
+executable that itself calls :func:`MPI_Init` at the appropriate time.
+Fortunately, mpi4py comes with such a custom Python executable that is easy to
+install and use. However, this custom Python executable approach will not work
+with :command:`ipcluster` currently.
 
 Additional command line options for this mode can be found by doing::
 
@@ -126,7 +144,9 @@ More details on using MPI with IPython can be found :ref:`here <parallelmpi>`.
 Using :command:`ipcluster` in PBS mode
 --------------------------------------
 
-The PBS mode uses the Portable Batch System [PBS]_ to start the engines.  To use this mode, you first need to create a PBS script template that will be used to start the engines.  Here is a sample PBS script template:
+The PBS mode uses the Portable Batch System [PBS]_ to start the engines. To
+use this mode, you first need to create a PBS script template that will be
+used to start the engines. Here is a sample PBS script template:
 
 .. sourcecode:: bash
 
@@ -161,7 +181,8 @@ There are a few important points about this template:
 5. Depending on the configuration of you system, you may have to set 
    environment variables in the script template.
 
-Once you have created such a script, save it with a name like :file:`pbs.template`.  Now you are ready to start your job::
+Once you have created such a script, save it with a name like
+:file:`pbs.template`. Now you are ready to start your job::
 
     $ ipcluster pbs -n 128 --pbs-script=pbs.template
 
@@ -175,9 +196,11 @@ Using :command:`ipcluster` in SSH mode
 The SSH mode uses :command:`ssh` to execute :command:`ipengine` on remote
 nodes and the :command:`ipcontroller` on localhost.
 
-When using using this mode it highly recommended that you have set up SSH keys and are using ssh-agent [SSH]_ for password-less logins.
+When using using this mode it highly recommended that you have set up SSH keys
+and are using ssh-agent [SSH]_ for password-less logins.
 
-To use this mode you need a python file describing the cluster, here is an example of such a "clusterfile":
+To use this mode you need a python file describing the cluster, here is an
+example of such a "clusterfile":
 
 .. sourcecode:: python
     
@@ -187,7 +210,8 @@ To use this mode you need a python file describing the cluster, here is an examp
                 'host3.example.com' : 1,
                 'host4.example.com' : 8 }
 
-Since this is a regular python file usual python syntax applies. Things to note:
+Since this is a regular python file usual python syntax applies. Things to
+note:
 
 * The `engines` dict, where the keys is the host we want to run engines on and
   the value is the number of engines to run on that host.
@@ -204,12 +228,16 @@ start your cluster like so:
    $ ipcluster ssh --clusterfile /path/to/my/clusterfile.py
 
 
-Two helper shell scripts are used to start and stop :command:`ipengine` on remote hosts:
+Two helper shell scripts are used to start and stop :command:`ipengine` on
+remote hosts:
 
 * sshx.sh 
 * engine_killer.sh
 
-Defaults for both of these are contained in the source code for :command:`ipcluster`. The default scripts are written to a local file in a tmep directory and then copied to a temp directory on the remote host and executed from there.  On most Unix, Linux and OS X systems this is /tmp.
+Defaults for both of these are contained in the source code for
+:command:`ipcluster`. The default scripts are written to a local file in a
+tmep directory and then copied to a temp directory on the remote host and
+executed from there. On most Unix, Linux and OS X systems this is /tmp.
 
 The default sshx.sh is the following:
 
@@ -241,7 +269,9 @@ Current limitations of the SSH mode of :command:`ipcluster` are:
 Using the :command:`ipcontroller` and :command:`ipengine` commands
 ==================================================================
 
-It is also possible to use the :command:`ipcontroller` and :command:`ipengine` commands to start your controller and engines.  This approach gives you full control over all aspects of the startup process.
+It is also possible to use the :command:`ipcontroller` and :command:`ipengine`
+commands to start your controller and engines. This approach gives you full
+control over all aspects of the startup process.
 
 Starting the controller and engine on your local machine
 --------------------------------------------------------
@@ -253,11 +283,14 @@ First start the controller::
 
 	$ ipcontroller
 	
-Next, start however many instances of the engine you want using (repeatedly) the command::
+Next, start however many instances of the engine you want using (repeatedly)
+the command::
 
 	$ ipengine
 
-The engines should start and automatically connect to the controller using the FURL files in :file:`~./ipython/security`. You are now ready to use the controller and engines from IPython.
+The engines should start and automatically connect to the controller using the
+FURL files in :file:`~./ipython/security`. You are now ready to use the
+controller and engines from IPython.
 
 .. warning:: 
 	
@@ -279,10 +312,13 @@ When the controller and engines are running on different hosts, things are
 slightly more complicated, but the underlying ideas are the same:
 
 1. Start the controller on a host using :command:`ipcontroller`.
-2. Copy :file:`ipcontroller-engine.furl` from :file:`~./ipython/security` on the controller's host to the host where the engines will run.
+2. Copy :file:`ipcontroller-engine.furl` from :file:`~./ipython/security` on
+   the controller's host to the host where the engines will run.
 3. Use :command:`ipengine` on the engine's hosts to start the engines.
 
-The only thing you have to be careful of is to tell :command:`ipengine` where the :file:`ipcontroller-engine.furl` file is located.  There are two ways you can do this:
+The only thing you have to be careful of is to tell :command:`ipengine` where
+the :file:`ipcontroller-engine.furl` file is located. There are two ways you
+can do this:
 
 * Put :file:`ipcontroller-engine.furl` in the :file:`~./ipython/security`
   directory on the engine's host, where it will be found automatically.
@@ -302,18 +338,33 @@ The ``--furl-file`` flag works like this::
 Make FURL files persistent
 ---------------------------
 
-At fist glance it may seem that that managing the FURL files is a bit annoying.  Going back to the house and key analogy, copying the FURL around each time you start the controller is like having to make a new key every time you want to unlock the door and enter your house.  As with your house, you want to be able to create the key (or FURL file) once, and then simply use it at any point in the future.
+At fist glance it may seem that that managing the FURL files is a bit
+annoying. Going back to the house and key analogy, copying the FURL around
+each time you start the controller is like having to make a new key every time
+you want to unlock the door and enter your house. As with your house, you want
+to be able to create the key (or FURL file) once, and then simply use it at
+any point in the future.
 
-This is possible.  The only thing you have to do is decide what ports the controller will listen on for the engines and clients.  This is done as follows::
+This is possible, but before you do this, you **must** remove any old FURL
+files in the :file:`~/.ipython/security` directory.
+
+.. warning::
+
+    You **must** remove old FURL files before using persistent FURL files.
+
+Then, The only thing you have to do is decide what ports the controller will
+listen on for the engines and clients. This is done as follows::
 
     $ ipcontroller -r --client-port=10101 --engine-port=10102
 
-These options also work with all of the various modes of 
+These options also work with all of the various modes of
 :command:`ipcluster`::
 
     $ ipcluster local -n 2 -r --client-port=10101 --engine-port=10102
 
-Then, just copy the furl files over the first time and you are set.  You can start and stop the controller and engines any many times as you want in the future, just make sure to tell the controller to use the *same* ports.
+Then, just copy the furl files over the first time and you are set. You can
+start and stop the controller and engines any many times as you want in the
+future, just make sure to tell the controller to use the *same* ports.
 
 .. note::
 
@@ -334,3 +385,5 @@ the log files to us will often help us to debug any problems.
 
 .. [PBS] Portable Batch System.  http://www.openpbs.org/
 .. [SSH] SSH-Agent http://en.wikipedia.org/wiki/Ssh-agent
+
+

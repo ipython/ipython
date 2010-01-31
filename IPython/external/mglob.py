@@ -213,7 +213,7 @@ def main():
     print "\n".join(expand(sys.argv[1:])),
 
 def mglob_f(self, arg):
-    from IPython.genutils import SList
+    from IPython.utils.text import SList
     if arg.strip():
         return SList(expand(arg))
     print "Please specify pattern!"
@@ -222,7 +222,7 @@ def mglob_f(self, arg):
 def init_ipython(ip):
     """ register %mglob for IPython """
     mglob_f.__doc__ = globsyntax
-    ip.expose_magic("mglob",mglob_f)  
+    ip.define_magic("mglob",mglob_f)  
     
 # test()
 if __name__ == "__main__":

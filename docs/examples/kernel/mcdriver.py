@@ -1,71 +1,71 @@
 #!/usr/bin/env python
-# encoding: utf-8
 """Run a Monte-Carlo options pricer in parallel."""
 
 from IPython.kernel import client
-import numpy as N
-from mcpricer import MCOptionPricer
+import numpy as np
+from mcpricer import price_options
 
+# The MultiEngineClient is used to setup the calculation and works with all
+# engine.
+mec = client.MultiEngineClient(profile='mycluster')
 
-tc = client.TaskClient()
-rc = client.MultiEngineClient()
+# The TaskClient is an interface to the engines that provides dynamic load 
+# balancing at the expense of not knowing which engine will execute the code.
+tc = client.TaskClient(profile='mycluster')
 
-# Initialize the common code on the engines
-rc.run('mcpricer.py')
+# Initialize the common code on the engines. This Python module has the
+# price_options function that prices the options.
+mec.run('mcpricer.py')
 
-# Push the variables that won't change 
-#(stock print, interest rate, days and MC paths)
-rc.push(dict(S=100.0, r=0.05, days=260, paths=10000))
-
-task_string = """\
-op = MCOptionPricer(S,K,sigma,r,days,paths)
-op.run()
-vp, ap, vc, ac = op.vanilla_put, op.asian_put, op.vanilla_call, op.asian_call
-"""
+# Define the function that will make up our tasks. We basically want to
+# call the price_options function with all but two arguments (K, sigma)
+# fixed.
+def my_prices(K, sigma):
+    S = 100.0
+    r = 0.05
+    days = 260
+    paths = 100000
+    return price_options(S, K, sigma, r, days, paths)
 
 # Create arrays of strike prices and volatilities
-K_vals = N.linspace(90.0,100.0,5)
-sigma_vals = N.linspace(0.0, 0.2,5)
+nK = 10
+nsigma = 10
+K_vals = np.linspace(90.0, 100.0, nK)
+sigma_vals = np.linspace(0.1, 0.4, nsigma)
 
-# Submit tasks
+# Submit tasks to the TaskClient for each (K, sigma) pair as a MapTask.
+# The MapTask simply applies a function (my_prices) to the arguments:
+# my_prices(K, sigma) and returns the result.
 taskids = []
 for K in K_vals:
     for sigma in sigma_vals:
-        t = client.StringTask(task_string, 
-            push=dict(sigma=sigma,K=K),
-            pull=('vp','ap','vc','ac','sigma','K'))
+        t = client.MapTask(my_prices, args=(K, sigma))
         taskids.append(tc.run(t))
 
-print "Submitted tasks: ", taskids
+print "Submitted tasks: ", len(taskids)
 
-# Block until tasks are completed
+# Block until all tasks are completed.
 tc.barrier(taskids)
 
-# Get the results
+# Get the results using TaskClient.get_task_result.
 results = [tc.get_task_result(tid) for tid in taskids]
 
-# Assemble the result
-vc = N.empty(K_vals.shape[0]*sigma_vals.shape[0],dtype='float64')
-vp = N.empty(K_vals.shape[0]*sigma_vals.shape[0],dtype='float64')
-ac = N.empty(K_vals.shape[0]*sigma_vals.shape[0],dtype='float64')
-ap = N.empty(K_vals.shape[0]*sigma_vals.shape[0],dtype='float64')
-for i, tr in enumerate(results):
-    ns = tr.ns
-    vc[i] = ns.vc
-    vp[i] = ns.vp
-    ac[i] = ns.ac
-    ap[i] = ns.ap
-vc.shape = (K_vals.shape[0],sigma_vals.shape[0])
-vp.shape = (K_vals.shape[0],sigma_vals.shape[0])
-ac.shape = (K_vals.shape[0],sigma_vals.shape[0])
-ap.shape = (K_vals.shape[0],sigma_vals.shape[0])
+# Assemble the result into a structured NumPy array.
+prices = np.empty(nK*nsigma,
+    dtype=[('ecall',float),('eput',float),('acall',float),('aput',float)]
+)
+for i, price_tuple in enumerate(results):
+    prices[i] = price_tuple
+prices.shape = (nK, nsigma)
+K_vals, sigma_vals = np.meshgrid(K_vals, sigma_vals)
 
-
-def plot_options(K_vals, sigma_vals, prices):
-    """Make a contour plot of the option prices."""
-    import pylab
-    pylab.contourf(sigma_vals, K_vals, prices)
-    pylab.colorbar()
-    pylab.title("Option Price")
-    pylab.xlabel("Volatility")
-    pylab.ylabel("Strike Price")
+def plot_options(sigma_vals, K_vals, prices):
+    """
+    Make a contour plot of the option price in (sigma, K) space.
+    """
+    from matplotlib import pyplot as plt
+    plt.contourf(sigma_vals, K_vals, prices)
+    plt.colorbar()
+    plt.title("Option Price")
+    plt.xlabel("Volatility")
+    plt.ylabel("Strike Price")

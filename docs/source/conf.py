@@ -28,22 +28,23 @@ import ipython_console_highlighting
 
 # We load the ipython release info into a dict by explicit execution
 iprelease = {}
-execfile('../../IPython/Release.py',iprelease)
+execfile('../../IPython/core/release.py',iprelease)
 
 # General configuration
 # ---------------------
 
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
-extensions = ['sphinx.ext.autodoc',
-              'sphinx.ext.doctest',
-              
-              'only_directives',
-              'inheritance_diagram',
-              'ipython_console_highlighting', 
-              # 'plot_directive', # disabled for now, needs matplotlib
-              'numpydoc',  # to preprocess docstrings
-              ]
+extensions = [
+    # 'matplotlib.sphinxext.mathmpl',
+    'matplotlib.sphinxext.only_directives',
+    # 'matplotlib.sphinxext.plot_directive',
+    'sphinx.ext.autodoc',
+    'sphinx.ext.doctest',
+    'inheritance_diagram',
+    'ipython_console_highlighting', 
+    'numpydoc',  # to preprocess docstrings
+]
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -161,10 +162,13 @@ latex_font_size = '11pt'
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, document class [howto/manual]).
 
-latex_documents = [ ('index', 'ipython.tex', 'IPython Documentation',
-                     ur"""The IPython Development Team""",
-                     'manual'),
-                    ]
+latex_documents = [
+    ('index', 'ipython.tex', 'IPython Documentation',
+     ur"""The IPython Development Team""", 'manual', True),
+    ('parallel/winhpc_index', 'winhpc_whitepaper.tex',
+     'Using IPython on Windows HPC Server 2008',
+     ur"Brian E. Granger", 'manual', True)
+]
 
 # The name of an image file (relative to this directory) to place at the top of
 # the title page.
@@ -181,7 +185,7 @@ latex_documents = [ ('index', 'ipython.tex', 'IPython Documentation',
 #latex_appendices = []
 
 # If false, no module index is generated.
-#latex_use_modindex = True
+latex_use_modindex = True
 
 
 # Cleanup

@@ -1,0 +1,331 @@
+.. _config_overview:
+
+============================================
+Overview of the IPython configuration system
+============================================
+
+This section describes the IPython configuration system. Starting with version
+0.11, IPython has a completely new configuration system that is quite
+different from the older :file:`ipythonrc` or :file:`ipy_user_conf.py`
+approaches. The new configuration system was designed from scratch to address
+the particular configuration needs of IPython. While there are many
+other excellent configuration systems out there, we found that none of them
+met our requirements.
+
+.. warning::
+
+    If you are upgrading to version 0.11 of IPython, you will need to migrate
+    your old :file:`ipythonrc` or :file:`ipy_user_conf.py` configuration files
+    to the new system.  Read on for information on how to do this.
+
+The discussion that follows is focused on teaching user's how to configure
+IPython to their liking.  Developer's who want to know more about how they
+can enable their objects to take advantage of the configuration system
+should consult our :ref:`developer guide <developer_guide>`
+
+The main concepts
+=================
+
+There are a number of abstractions that the IPython configuration system uses.
+Each of these abstractions is represented by a Python class.
+
+Configuration object: :class:`~IPython.config.loader.Config`
+    A configuration object is a simple dictionary-like class that holds
+    configuration attributes and sub-configuration objects. These classes
+    support dotted attribute style access (``Foo.bar``) in addition to the
+    regular dictionary style access (``Foo['bar']``). Configuration objects
+    are smart. They know how to merge themselves with other configuration
+    objects and they automatically create sub-configuration objects.
+
+Application: :class:`~IPython.core.application.Application`
+    An application is a process that does a specific job. The most obvious
+    application is the :command:`ipython` command line program. Each
+    application reads a *single* configuration file and command line options
+    and then produces a master configuration object for the application. This
+    configuration object is then passed to the components that the application
+    creates. Components implement the actual logic of the application and know
+    how to configure themselves given the configuration object.
+
+Component: :class:`~IPython.core.component.Component`
+    A component is a regular Python class that serves as a base class for all
+    main classes in an application. The
+    :class:`~IPython.core.component.Component` base class is lightweight and
+    only does two main things.
+    
+    First, it keeps track of all instances of itself and provides an
+    interfaces for querying those instances. This enables components to get
+    references to other components, even though they are not "nearby" in the
+    runtime object graph.
+    
+    Second, it declares what class attributes are configurable and specifies
+    the default types and values of those attributes. This information is used
+    to automatically configure instances given the applications configuration
+    object.
+    
+    Developers create :class:`~IPython.core.component.Component` subclasses
+    that implement all of the logic in the application. Each of these
+    subclasses has its own configuration information that controls how
+    instances are created.
+
+Having described these main concepts, we can now state the main idea in our
+configuration system: *"configuration" allows the default values of class
+attributes to be controlled on a class by class basis*. Thus all instances of
+a given class are configured in the same way. Furthermore, if two instances
+need to be configured differently, they need to be instances of two different
+classes. While this model may seem a bit restrictive, we have found that it
+expresses most things that need to be configured extremely well.
+
+Now, we show what our configuration objects and files look like.
+
+Configuration objects and files
+===============================
+
+A configuration file is simply a pure Python file that sets the attributes
+of a global, pre-created configuration object.  This configuration object is a 
+:class:`~IPython.config.loader.Config` instance.  While in a configuration
+file, to get a reference to this object, simply call the :func:`get_config`
+function.  We inject this function into the global namespace that the 
+configuration file is executed in.
+
+Here is an example of a super simple configuration file that does nothing::
+
+    c = get_config()
+
+Once you get a reference to the configuration object, you simply set
+attributes on it.  All you have to know is:
+
+* The name of each attribute.
+* The type of each attribute.
+
+The answers to these two questions are provided by the various
+:class:`~IPython.core.component.Component` subclasses that an application
+uses.  Let's look at how this would work for a simple component subclass::
+
+    # Sample component that can be configured.
+    from IPython.core.component import Component
+    from IPython.utils.traitlets import Int, Float, Str, Bool
+    
+    class MyComponent(Component):
+        name = Str('defaultname', config=True)
+        ranking = Int(0, config=True)
+        value = Float(99.0)
+        # The rest of the class implementation would go here..
+
+In this example, we see that :class:`MyComponent` has three attributes, two
+of whom (``name``, ``ranking``) can be configured.  All of the attributes
+are given types and default values.  If a :class:`MyComponent` is instantiated,
+but not configured, these default values will be used.  But let's see how
+to configure this class in a configuration file::
+
+    # Sample config file
+    c = get_config()
+    
+    c.MyComponent.name = 'coolname'
+    c.MyComponent.ranking = 10
+
+After this configuration file is loaded, the values set in it will override
+the class defaults anytime a :class:`MyComponent` is created.  Furthermore,
+these attributes will be type checked and validated anytime they are set.
+This type checking is handled by the :mod:`IPython.utils.traitlets` module,
+which provides the :class:`Str`, :class:`Int` and :class:`Float` types.  In 
+addition to these traitlets, the :mod:`IPython.utils.traitlets` provides
+traitlets for a number of other types.
+
+.. note::
+
+    Underneath the hood, the :class:`Component` base class is a subclass of
+    :class:`IPython.utils.traitlets.HasTraitlets`. The
+    :mod:`IPython.utils.traitlets` module is a lightweight version of
+    :mod:`enthought.traits`. Our implementation is a pure Python subset
+    (mostly API compatible) of :mod:`enthought.traits` that does not have any
+    of the automatic GUI generation capabilities. Our plan is to achieve 100%
+    API compatibility to enable the actual :mod:`enthought.traits` to
+    eventually be used instead. Currently, we cannot use
+    :mod:`enthought.traits` as we are committed to the core of IPython being
+    pure Python.
+
+It should be very clear at this point what the naming convention is for 
+configuration attributes::
+
+    c.ClassName.attribute_name = attribute_value
+
+Here, ``ClassName`` is the name of the class whose configuration attribute you
+want to set, ``attribute_name`` is the name of the attribute you want to set
+and ``attribute_value`` the the value you want it to have. The ``ClassName``
+attribute of ``c`` is not the actual class, but instead is another
+:class:`~IPython.config.loader.Config` instance.
+
+.. note::
+
+    The careful reader may wonder how the ``ClassName`` (``MyComponent`` in
+    the above example) attribute of the configuration object ``c`` gets
+    created. These attributes are created on the fly by the
+    :class:`~IPython.config.loader.Config` instance, using a simple naming
+    convention. Any attribute of a :class:`~IPython.config.loader.Config`
+    instance whose name begins with an uppercase character is assumed to be a
+    sub-configuration and a new empty :class:`~IPython.config.loader.Config`
+    instance is dynamically created for that attribute. This allows deeply
+    hierarchical information created easily (``c.Foo.Bar.value``) on the 
+    fly.
+
+Configuration files inheritance
+===============================
+
+Let's say you want to have different configuration files for various purposes.
+Our configuration system makes it easy for one configuration file to inherit
+the information in another configuration file. The :func:`load_subconfig`
+command can be used in a configuration file for this purpose. Here is a simple
+example that loads all of the values from the file :file:`base_config.py`::
+
+    # base_config.py
+    c = get_config()
+    c.MyComponent.name = 'coolname'
+    c.MyComponent.ranking = 100
+
+into the configuration file :file:`main_config.py`::
+
+    # main_config.py
+    c = get_config()
+    
+    # Load everything from base_config.py
+    load_subconfig('base_config.py')
+    
+    # Now override one of the values
+    c.MyComponent.name = 'bettername'
+
+In a situation like this the :func:`load_subconfig` makes sure that the
+search path for sub-configuration files is inherited from that of the parent.
+Thus, you can typically put the two in the same directory and everything will
+just work.
+
+Class based configuration inheritance
+=====================================
+
+There is another aspect of configuration where inheritance comes into play.
+Sometimes, your classes will have an inheritance hierarchy that you want
+to be reflected in the configuration system.  Here is a simple example::
+
+    from IPython.core.component import Component
+    from IPython.utils.traitlets import Int, Float, Str, Bool
+    
+    class Foo(Component):
+        name = Str('fooname', config=True)
+        value = Float(100.0, config=True)
+    
+    class Bar(Foo):
+        name = Str('barname', config=True)
+        othervalue = Int(0, config=True)
+
+Now, we can create a configuration file to configure instances of :class:`Foo`
+and :class:`Bar`::
+
+    # config file
+    c = get_config()
+    
+    c.Foo.name = 'bestname'
+    c.Bar.othervalue = 10
+
+This class hierarchy and configuration file accomplishes the following:
+
+* The default value for :attr:`Foo.name` and :attr:`Bar.name` will be
+  'bestname'.  Because :class:`Bar` is a :class:`Foo` subclass it also
+  picks up the configuration information for :class:`Foo`.
+* The default value for :attr:`Foo.value` and :attr:`Bar.value` will be
+  ``100.0``, which is the value specified as the class default.
+* The default value for :attr:`Bar.othervalue` will be 10 as set in the
+  configuration file.  Because :class:`Foo` is the parent of :class:`Bar`
+  it doesn't know anything about the :attr:`othervalue` attribute.
+
+Configuration file location
+===========================
+
+So where should you put your configuration files?  By default, all IPython
+applications look in the so called "IPython directory".  The location of
+this directory is determined by the following algorithm:
+
+* If the ``--ipython-dir`` command line flag is given, its value is used.
+
+* If not, the value returned by :func:`IPython.utils.path.get_ipython_dir`
+  is used. This function will first look at the :envvar:`IPYTHON_DIR`
+  environment variable and then default to the directory
+  :file:`$HOME/.ipython`.
+
+For most users, the default value will simply be something like 
+:file:`$HOME/.ipython`.
+
+Once the location of the IPython directory has been determined, you need to
+know what filename to use for the configuration file. The basic idea is that
+each application has its own default configuration filename. The default named
+used by the :command:`ipython` command line program is
+:file:`ipython_config.py`.  This value can be overriden by the ``-config_file``
+command line flag.  A sample :file:`ipython_config.py` file can be found
+in :mod:`IPython.config.default.ipython_config.py`.  Simple copy it to your
+IPython directory to begin using it.
+
+.. _Profiles:
+
+Profiles
+========
+
+A profile is simply a configuration file that follows a simple naming
+convention and can be loaded using a simplified syntax.  The idea is
+that users often want to maintain a set of configuration files for different
+purposes:  one for doing numerical computing with NumPy and SciPy and
+another for doing symbolic computing with SymPy.  Profiles make it easy
+to keep a separate configuration file for each of these purposes.
+
+Let's start by showing how a profile is used:
+
+.. code-block:: bash
+
+    $ ipython -p sympy
+
+This tells the :command:`ipython` command line program to get its
+configuration from the "sympy" profile. The search path for profiles is the
+same as that of regular configuration files. The only difference is that
+profiles are named in a special way. In the case above, the "sympy" profile
+would need to have the name :file:`ipython_config_sympy.py`.
+
+The general pattern is this: simply add ``_profilename`` to the end of the
+normal configuration file name. Then load the profile by adding ``-p
+profilename`` to your command line options.
+
+IPython ships with some sample profiles in :mod:`IPython.config.profile`.
+Simply copy these to your IPython directory to begin using them.
+
+Design requirements
+===================
+
+Here are the main requirements we wanted our configuration system to have:
+
+* Support for hierarchical configuration information.
+
+* Full integration with command line option parsers.  Often, you want to read
+  a configuration file, but then override some of the values with command line
+  options.  Our configuration system automates this process and allows each
+  command line option to be linked to a particular attribute in the 
+  configuration hierarchy that it will override.
+
+* Configuration files that are themselves valid Python code. This accomplishes
+  many things. First, it becomes possible to put logic in your configuration
+  files that sets attributes based on your operating system, network setup,
+  Python version, etc. Second, Python has a super simple syntax for accessing
+  hierarchical data structures, namely regular attribute access
+  (``Foo.Bar.Bam.name``). Third, using Python makes it easy for users to
+  import configuration attributes from one configuration file to another.
+  Forth, even though Python is dynamically typed, it does have types that can
+  be checked at runtime. Thus, a ``1`` in a config file is the integer '1',
+  while a ``'1'`` is a string.
+
+* A fully automated method for getting the configuration information to the
+  classes that need it at runtime. Writing code that walks a configuration
+  hierarchy to extract a particular attribute is painful. When you have
+  complex configuration information with hundreds of attributes, this makes
+  you want to cry.
+
+* Type checking and validation that doesn't require the entire configuration
+  hierarchy to be specified statically before runtime. Python is a very
+  dynamic language and you don't always know everything that needs to be
+  configured when a program starts.
+
+

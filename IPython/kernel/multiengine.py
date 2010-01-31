@@ -27,24 +27,17 @@ __docformat__ = "restructuredtext en"
 # Imports
 #-------------------------------------------------------------------------------
 
-from new import instancemethod
-from types import FunctionType
-
-from twisted.application import service
 from twisted.internet import defer, reactor
 from twisted.python import log, components, failure
-from zope.interface import Interface, implements, Attribute
+from zope.interface import Interface, implements
 
-from IPython.tools import growl
-from IPython.kernel.util import printer
 from IPython.kernel.twistedutil import gatherBoth
-from IPython.kernel import map as Map
 from IPython.kernel import error
 from IPython.kernel.pendingdeferred import PendingDeferredManager, two_phase
-from IPython.kernel.controllerservice import \
-    ControllerAdapterBase, \
-    ControllerService, \
+from IPython.kernel.controllerservice import (
+    ControllerAdapterBase,
     IControllerBase
+)
 
 
 #-------------------------------------------------------------------------------
@@ -262,9 +255,8 @@ class MultiEngine(ControllerAdapterBase):
         elif targets == 'all':
             eList = self.engines.values()
             if len(eList) == 0:
-                msg = """There are no engines registered.
-                     Check the logs in ~/.ipython/log if you think there should have been."""
-                raise error.NoEnginesRegistered(msg)
+                raise error.NoEnginesRegistered("There are no engines registered. "
+                    "Check the logs if you think there should have been.")
             else:
                 return eList
         else:

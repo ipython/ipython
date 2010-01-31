@@ -1,0 +1,231 @@
+================================================
+Development version
+================================================
+
+Main `ipython` branch
+=====================
+
+As of the 0.11 version of IPython, a signifiant portion of the core has been
+refactored.  This refactoring is founded on a number of new abstractions.
+The main new classes that implement these abstractions are:
+
+* :class:`IPython.utils.traitlets.HasTraitlets`.
+* :class:`IPython.core.component.Component`.
+* :class:`IPython.core.application.Application`.
+* :class:`IPython.config.loader.ConfigLoader`.
+* :class:`IPython.config.loader.Config`
+
+We are still in the process of writing developer focused documentation about
+these classes, but for now our :ref:`configuration documentation
+<config_overview>` contains a high level overview of the concepts that these
+classes express.
+
+The changes listed here are a brief summary of the recent work on IPython.
+For more details, please consult the actual source.
+
+New features
+------------
+
+* The :mod:`IPython.extensions.pretty` extension has been moved out of
+  quarantine and fully updated to the new extension API.
+
+* New magics for loading/unloading/reloading extensions have been added:
+  ``%load_ext``, ``%unload_ext`` and ``%reload_ext``.
+
+* The configuration system and configuration files are brand new. See the
+  configuration system :ref:`documentation <config_index>` for more details.
+
+* The :class:`~IPython.core.iplib.InteractiveShell` class is now a
+  :class:`~IPython.core.component.Component` subclass and has traitlets that
+  determine the defaults and runtime environment. The ``__init__`` method has
+  also been refactored so this class can be instantiated and run without the
+  old :mod:`ipmaker` module.
+
+* The methods of :class:`~IPython.core.iplib.InteractiveShell` have
+  been organized into sections to make it easier to turn more sections
+  of functionality into componenets.
+
+* The embedded shell has been refactored into a truly standalone subclass of
+  :class:`InteractiveShell` called :class:`InteractiveShellEmbed`.  All
+  embedding logic has been taken out of the base class and put into the 
+  embedded subclass.
+
+* I have created methods of :class:`~IPython.core.iplib.InteractiveShell` to
+  help it cleanup after itself. The :meth:`cleanup` method controls this. We
+  couldn't do this in :meth:`__del__` because we have cycles in our object
+  graph that prevent it from being called.
+
+* Created a new module :mod:`IPython.utils.importstring` for resolving
+  strings like ``foo.bar.Bar`` to the actual class.
+
+* Completely refactored the :mod:`IPython.core.prefilter` module into
+  :class:`~IPython.core.component.Component` subclasses. Added a new layer
+  into the prefilter system, called "transformations" that all new prefilter
+  logic should use (rather than the older "checker/handler" approach).
+
+* Aliases are now components (:mod:`IPython.core.alias`).
+
+* We are now using an internally shipped version of
+  :mod:`~IPython.external.argparse` to parse command line options for
+  :command:`ipython`.
+
+* New top level :func:`~IPython.core.embed.embed` function that can be called
+  to embed IPython at any place in user's code. One the first call it will
+  create an :class:`~IPython.core.embed.InteractiveShellEmbed` instance and
+  call it. In later calls, it just calls the previously created
+  :class:`~IPython.core.embed.InteractiveShellEmbed`.
+
+* Created a component system (:mod:`IPython.core.component`) that is based on
+  :mod:`IPython.utils.traitlets`. Components are arranged into a runtime
+  containment tree (not inheritance) that i) automatically propagates
+  configuration information and ii) allows components to discover each other
+  in a loosely coupled manner. In the future all parts of IPython will be
+  subclasses of :class:`~IPython.core.component.Component`. All IPython
+  developers should become familiar with the component system.
+
+* Created a new :class:`~IPython.config.loader.Config` for holding
+  configuration information. This is a dict like class with a few extras: i)
+  it supports attribute style access, ii) it has a merge function that merges
+  two :class:`~IPython.config.loader.Config` instances recursively and iii) it
+  will automatically create sub-:class:`~IPython.config.loader.Config`
+  instances for attributes that start with an uppercase character.
+
+* Created new configuration loaders in :mod:`IPython.config.loader`. These
+  loaders provide a unified loading interface for all configuration
+  information including command line arguments and configuration files. We
+  have two default implementations based on :mod:`argparse` and plain python
+  files.  These are used to implement the new configuration system.
+
+* Created a top-level :class:`Application` class in
+  :mod:`IPython.core.application` that is designed to encapsulate the starting
+  of any IPython process. An application loads and merges all the
+  configuration objects, constructs the main application :class:`Component`
+  instances and then starts the application running. The default
+  :class:`Application` class has built-in logic for handling the IPython
+  directory as well as profiles.
+
+* The :class:`Type` and :class:`Instance` traitlets now handle classes given
+  as strings, like ``foo.bar.Bar``. This is needed for forward declarations.
+  But, this was implemented in a careful way so that string to class
+  resolution is done at a single point, when the parent
+  :class:`~IPython.utils.traitlets.HasTraitlets` is instantiated.
+
+* :mod:`IPython.utils.ipstruct` has been refactored to be a subclass of 
+  dict.  It also now has full docstrings and doctests.
+* Created a Trait's like implementation in :mod:`IPython.utils.traitlets`.
+  This is a pure Python, lightweight version of a library that is similar to
+  :mod:`enthought.traits`.  We are using this for validation, defaults and
+  notification in our new component system.  Although it is not API compatible
+  with :mod:`enthought.traits`, we plan on moving in this direction so that
+  eventually our implementation could be replaced by a (yet to exist) pure
+  Python version of :mod:`enthought.traits`.
+
+* Added a new module :mod:`IPython.lib.inputhook` to manage the integration
+  with GUI event loops using `PyOS_InputHook`.  See the docstrings in this
+  module or the main IPython docs for details.
+
+* For users, GUI event loop integration is now handled through the new
+  :command:`%gui` magic command.  Type ``%gui?`` at an IPython prompt for
+  documentation.
+
+* The command line options ``-wthread``, ``-qthread`` and
+  ``-gthread`` just call the appropriate :mod:`IPython.lib.inputhook`
+  functions.
+
+* For developers :mod:`IPython.lib.inputhook` provides a simple interface
+  for managing the event loops in their interactive GUI applications.
+  Examples can be found in our :file:`docs/examples/lib` directory.
+
+Bug fixes
+---------
+
+* Previously, the latex Sphinx docs were in a single chapter.  This has been
+  fixed by adding a sixth argument of True to the ``latex_documents``
+  attribute of :file:`conf.py`.
+
+* The ``psum`` example in the MPI documentation has been updated to mpi4py
+  version 1.1.0.  Thanks to J. Thomas for this fix.
+
+* The top-level, zero-install :file:`ipython.py` script has been updated to 
+  the new application launching API.
+
+* Keyboard interrupts now work with GUI support enabled across all platforms
+  and all GUI toolkits reliably.
+
+Backwards incompatible changes
+------------------------------
+
+* The extension loading functions have been renamed to
+  :func:`load_ipython_extension` and :func:`unload_ipython_extension`.
+
+* :class:`~IPython.core.iplib.InteractiveShell` no longer takes an
+  ``embedded`` argument. Instead just use the
+  :class:`~IPython.core.iplib.InteractiveShellEmbed` class.
+
+* ``__IPYTHON__`` is no longer injected into ``__builtin__``.
+
+* :meth:`Struct.__init__` no longer takes `None` as its first argument.  It
+  must be a :class:`dict` or :class:`Struct`.
+
+* :meth:`~IPython.core.iplib.InteractiveShell.ipmagic` has been renamed 
+  :meth:`~IPython.core.iplib.InteractiveShell.magic.`
+
+* The functions :func:`ipmagic` and :func:`ipalias` have been removed from
+  :mod:`__builtins__`.
+
+* The references to the global :class:`~IPython.core.iplib.InteractiveShell`
+  instance (``_ip``, and ``__IP``) have been removed from the user's
+  namespace. They are replaced by a new function called :func:`get_ipython`
+  that returns the current :class:`~IPython.core.iplib.InteractiveShell`
+  instance. This function is injected into the user's namespace and is now the
+  main way of accessing IPython's API.
+
+* Old style configuration files :file:`ipythonrc` and :file:`ipy_user_conf.py`
+  are no longer supported. Users should migrate there configuration files to
+  the new format described :ref:`here <config_overview>` and :ref:`here
+  <configuring_ipython>`.
+
+* The old IPython extension API that relied on :func:`ipapi` has been
+  completely removed. The new extension API is described :ref:`here
+  <configuring_ipython>`.
+
+* Support for ``qt3`` has been dropped.  User's who need this should use
+  previous versions of IPython.
+
+* Removed :mod:`shellglobals` as it was obsolete.
+
+* Removed all the threaded shells in :mod:`IPython.core.shell`. These are no
+  longer needed because of the new capabilities in
+  :mod:`IPython.lib.inputhook`.
+
+* The ``-pylab`` command line flag has been disabled until matplotlib adds
+  support for the new :mod:`IPython.lib.inputhook` approach.  The new stuff
+  does work with matplotlib, but you have to set everything up by hand.
+
+* New top-level sub-packages have been created: :mod:`IPython.core`, 
+  :mod:`IPython.lib`, :mod:`IPython.utils`, :mod:`IPython.deathrow`,
+  :mod:`IPython.quarantine`.  All existing top-level modules have been
+  moved to appropriate sub-packages.  All internal import statements
+  have been updated and tests have been added.  The build system (setup.py
+  and friends) have been updated.  See :ref:`this section <module_reorg>` of the
+  documentation for descriptions of these new sub-packages.
+
+* Compatability modules have been created for :mod:`IPython.Shell`, 
+  :mod:`IPython.ipapi` and :mod:`IPython.iplib` that display warnings
+  and then load the actual implementation from :mod:`IPython.core`.
+
+* :mod:`Extensions` has been moved to :mod:`extensions` and all existing
+  extensions have been moved to either :mod:`IPython.quarantine` or
+  :mod:`IPython.deathrow`. :mod:`IPython.quarantine` contains modules that we
+  plan on keeping but that need to be updated. :mod:`IPython.deathrow`
+  contains modules that are either dead or that should be maintained as third
+  party libraries. More details about this can be found :ref:`here
+  <module_reorg>`.
+
+* The IPython GUIs in :mod:`IPython.frontend` and :mod:`IPython.gui` are likely
+  broken because of the refactoring in the core.  With proper updates, these
+  should still work.  We probably want to get these so they are not using
+  :mod:`IPython.kernel.core` (which is being phased out).
+
+
+

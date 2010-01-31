@@ -1,0 +1,24 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+"""IPython Test Suite Runner.
+"""
+
+# The tests can't even run if nose isn't available, so might as well  give the
+# user a civilized error message in that case.
+
+try:
+    import nose
+except ImportError:
+    error = """\
+ERROR: The IPython test suite requires nose to run.
+
+Please install nose on your system first and try again.
+For information on installing nose, see:
+http://somethingaboutorange.com/mrl/projects/nose
+
+Exiting."""
+    import sys
+    print >> sys.stderr, error
+else:
+    from IPython.testing import iptest
+    iptest.main()

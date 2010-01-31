@@ -6,11 +6,10 @@ ipython.
 try:
     import wx
 except ImportError, e:
-    e.message = """%s
+    e.args[0] = """%s
 ________________________________________________________________________________
 You need wxPython to run this application.
-""" % e.message
-    e.args = (e.message, ) + e.args[1:]
+""" % e.args[0]
     raise e
 
 from wx_frontend import WxController
@@ -48,7 +47,7 @@ class IPythonXController(WxController):
         self._input_state = 'subprocess'
         self.write('\n', refresh=False)
         self.capture_output()
-        self.ipython0.shell.exit()
+        self.ipython0.exit()
         self.release_output()
         if not self.ipython0.exit_now:
             wx.CallAfter(self.new_prompt,
@@ -80,6 +79,15 @@ class IPythonX(wx.Frame):
         self.SetSizer(self._sizer)
         self.SetAutoLayout(1)
         self.Show(True)
+        wx.EVT_CLOSE(self, self.on_close)
+
+        
+    def on_close(self, event):
+        """ Called on closing the windows. 
+            
+            Stops the event loop, to close all the child windows.
+        """
+        wx.CallAfter(wx.Exit)
 
 
 def main():

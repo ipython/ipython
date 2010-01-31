@@ -52,7 +52,8 @@ When running the IPython kernel to perform a parallel computation, a user
 utilizes the IPython client to send Python commands and data through the
 IPython controller to the IPython engines, where those commands are executed
 and the data processed. The design of IPython ensures that the client is the
-only access point for the capabilities of the engines.  That is, the only way of addressing the engines is through a client.
+only access point for the capabilities of the engines. That is, the only way
+of addressing the engines is through a client.
 
 A user can utilize the client to instruct the IPython engines to execute
 arbitrary Python commands. These Python commands can include calls to the
@@ -116,8 +117,8 @@ controller creates a number of FURLs for different purposes:
   to execute.
 
 Upon starting, the controller creates these different FURLS and writes them
-files in the user-read-only directory :file:`$HOME/.ipython/security`. Thus, only the
-user who starts the controller has access to the FURLs.
+files in the user-read-only directory :file:`$HOME/.ipython/security`. Thus,
+only the user who starts the controller has access to the FURLs.
 
 For an IPython client or engine to authenticate with a controller, it must
 present the appropriate FURL to the controller upon connecting. If the
@@ -361,3 +362,5 @@ authentication steps that the CLIENT and SERVER perform after an encrypted
 channel is established.
 
 .. [RFC5246] <http://tools.ietf.org/html/rfc5246>
+
+

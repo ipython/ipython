@@ -4,6 +4,14 @@
 Quick IPython tutorial
 ======================
 
+.. warning::
+
+    As of the 0.11 version of IPython, some of the features and APIs
+    described in this section have been deprecated or are broken.  Our plan
+    is to continue to support these features, but they need to be updated
+    to take advantage of recent API changes.  Furthermore, this section
+    of the documentation need to be updated to reflect all of these changes.
+
 IPython can be used as an improved replacement for the Python prompt,
 and for that you don't really need to read any more of this manual. But
 in this section we'll try to summarize a few tips on how to make the
@@ -313,3 +321,5 @@ organized by project and date.
 Contribute your own: If you have your own favorite tip on using IPython
 efficiently for a certain task (especially things which can't be done in
 the normal Python interpreter), don't hesitate to send it!
+
+

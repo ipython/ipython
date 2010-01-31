@@ -5,6 +5,9 @@
 
 __docformat__ = "restructuredtext en"
 
+# Tell nose to skip this module
+__test__ = {}
+
 #-------------------------------------------------------------------------------
 #  Copyright (C) 2008  The IPython Development Team
 #
@@ -18,8 +21,8 @@ __docformat__ = "restructuredtext en"
 
 import cPickle as pickle
 
-from zope.interface import Interface, implements
 from twisted.python import components
+from zope.interface import Interface, implements
 
 try:
     import numpy
@@ -27,6 +30,10 @@ except ImportError:
     pass
 
 from IPython.kernel.error import SerializationError
+
+#-----------------------------------------------------------------------------
+# Classes and functions
+#-----------------------------------------------------------------------------
 
 class ISerialized(Interface):
     

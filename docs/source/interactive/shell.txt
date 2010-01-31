@@ -4,6 +4,14 @@
 IPython as a system shell
 =========================
 
+.. warning::
+
+    As of the 0.11 version of IPython, some of the features and APIs
+    described in this section have been deprecated or are broken.  Our plan
+    is to continue to support these features, but they need to be updated
+    to take advantage of recent API changes.  Furthermore, this section
+    of the documentation need to be updated to reflect all of these changes.
+
 Overview
 ========
 
@@ -158,7 +166,7 @@ ipy_user_conf.py.
 String lists
 ============
 
-String lists (IPython.genutils.SList) are handy way to process output
+String lists (IPython.utils.text.SList) are handy way to process output
 from system commands. They are produced by ``var = !cmd`` syntax.
 
 First, we acquire the output of 'ls -l'::
@@ -251,12 +259,12 @@ First, capture output of "hg status"::
 
     [Q:/ipython]|28> out = !hg status
      ==
-    ['M IPython\\Extensions\\ipy_kitcfg.py',
-     'M IPython\\Extensions\\ipy_rehashdir.py',
+    ['M IPython\\extensions\\ipy_kitcfg.py',
+     'M IPython\\extensions\\ipy_rehashdir.py',
     ...
      '? build\\lib\\IPython\\Debugger.py',
-     '? build\\lib\\IPython\\Extensions\\InterpreterExec.py',
-     '? build\\lib\\IPython\\Extensions\\InterpreterPasteInput.py',
+     '? build\\lib\\IPython\\extensions\\InterpreterExec.py',
+     '? build\\lib\\IPython\\extensions\\InterpreterPasteInput.py',
     ...
 
 (lines starting with ? are not under version control).
@@ -282,3 +290,4 @@ property return one string where the lines are separated by '\n'
 (i.e. the original output of the function). If the items in string
 list are file names, '.p' can be used to get a list of "path" objects
 for convenient file manipulation.
+

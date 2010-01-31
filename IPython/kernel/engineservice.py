@@ -23,6 +23,10 @@ method that automatically added methods to engines.
 
 __docformat__ = "restructuredtext en"
 
+# Tell nose to skip this module.  I don't think we need this as nose
+# shouldn't ever be run on this!
+__test__ = {}
+
 #-------------------------------------------------------------------------------
 #  Copyright (C) 2008  The IPython Development Team
 #
@@ -34,9 +38,9 @@ __docformat__ = "restructuredtext en"
 # Imports
 #-------------------------------------------------------------------------------
 
-import os, sys, copy
+import copy
+import sys
 import cPickle as pickle
-from new import instancemethod
 
 from twisted.application import service
 from twisted.internet import defer, reactor
@@ -44,11 +48,7 @@ from twisted.python import log, failure, components
 import zope.interface as zi
 
 from IPython.kernel.core.interpreter import Interpreter
-from IPython.kernel import newserialized, error, util
-from IPython.kernel.util import printer
-from IPython.kernel.twistedutil import gatherBoth, DeferredList
-from IPython.kernel import codeutil
-
+from IPython.kernel import newserialized, error
 
 #-------------------------------------------------------------------------------
 # Interface specification for the Engine
@@ -266,8 +266,8 @@ class StrictDict(dict):
             pickle.dumps(key, 2)
             pickle.dumps(value, 2)
             newvalue = copy.deepcopy(value)
-        except:
-            raise error.InvalidProperty(value)
+        except Exception, e:
+            raise error.InvalidProperty("can't be a value: %r" % value)
         dict.__setitem__(self, key, newvalue)
         self.modified = True
     
@@ -387,7 +387,7 @@ class EngineService(object, service.Service):
             # tb=traceback object
             et,ev,tb = sys.exc_info()
             # This call adds attributes to the exception value
-            et,ev,tb = self.shell.formatTraceback(et,ev,tb,msg)
+            et,ev,tb = self.shell.format_traceback(et,ev,tb,msg)
             # Add another attribute
             ev._ipython_engine_info = msg
             f = failure.Failure(ev,et,None)
@@ -444,7 +444,7 @@ class EngineService(object, service.Service):
         msg = {'engineid':self.id,
                'method':'get_result',
                'args':[repr(i)]}
-        d = self.executeAndRaise(msg, self.shell.getCommand, i)
+        d = self.executeAndRaise(msg, self.shell.get_command, i)
         d.addCallback(self.addIDToResult)
         return d
     
@@ -877,7 +877,7 @@ class ThreadedEngineService(EngineService):
             # tb=traceback object
             et,ev,tb = sys.exc_info()
             # This call adds attributes to the exception value
-            et,ev,tb = self.shell.formatTraceback(et,ev,tb,msg)
+            et,ev,tb = self.shell.format_traceback(et,ev,tb,msg)
             # Add another attribute
             
             # Create a new exception with the new attributes

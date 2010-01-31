@@ -6,12 +6,14 @@ This is used by a companion test case.
 import gc
 
 class C(object):
-  def __del__(self):
-      print 'deleting object...'
+   def __del__(self):
+      pass
+      #print 'deleting object...'  # dbg
 
-c = C()
+if __name__ == '__main__':
+   c = C()
 
-c_refs = gc.get_referrers(c)
-ref_ids = map(id,c_refs)
+   c_refs = gc.get_referrers(c)
+   ref_ids = map(id,c_refs)
 
-print 'c referrers:',map(type,c_refs)
+   print 'c referrers:',map(type,c_refs)

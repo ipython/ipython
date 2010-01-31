@@ -3,6 +3,9 @@ Base front end class for all async frontends.
 """
 __docformat__ = "restructuredtext en"
 
+# Tell nose to skip this module
+__test__ = {}
+
 #-------------------------------------------------------------------------------
 #  Copyright (C) 2008  The IPython Development Team
 #
@@ -10,19 +13,25 @@ __docformat__ = "restructuredtext en"
 #  the file COPYING, distributed as part of this software.
 #-------------------------------------------------------------------------------
 
-
 #-------------------------------------------------------------------------------
 # Imports
 #-------------------------------------------------------------------------------
+
+# Third-party
+from twisted.python.failure import Failure
+from zope.interface import implements, classProvides
+
+# From IPython
 from IPython.external import guid
 
-
-from zope.interface import Interface, Attribute, implements, classProvides
-from twisted.python.failure import Failure
-from IPython.frontend.frontendbase import FrontEndBase, IFrontEnd, IFrontEndFactory
+from IPython.frontend.frontendbase import (FrontEndBase, IFrontEnd,
+                                           IFrontEndFactory)
 from IPython.kernel.core.history import FrontEndHistory
 from IPython.kernel.engineservice import IEngineCore
 
+#-----------------------------------------------------------------------------
+# Classes and functions
+#-----------------------------------------------------------------------------
 
 class AsyncFrontEndBase(FrontEndBase):
     """
@@ -40,8 +49,7 @@ class AsyncFrontEndBase(FrontEndBase):
                 self.history = FrontEndHistory(input_cache=[''])
         else:
             self.history = history
-    
-    
+        
     def execute(self, block, blockID=None):
         """Execute the block and return the deferred result.
         
@@ -72,5 +80,3 @@ class AsyncFrontEndBase(FrontEndBase):
             errback=self.render_error)
         
         return d
-    
-

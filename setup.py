@@ -13,13 +13,30 @@ requires utilities which are not available under Windows."""
 #  the file COPYING, distributed as part of this software.
 #-------------------------------------------------------------------------------
 
+#-----------------------------------------------------------------------------
+# Minimal Python version sanity check
+#-----------------------------------------------------------------------------
+
+import sys
+
+# This check is also made in IPython/__init__, don't forget to update both when
+# changing Python version requirements.
+if sys.version[0:3] < '2.5':
+    error = """\
+ERROR: 'IPython requires Python Version 2.5 or above.'
+Exiting."""
+    print >> sys.stderr, error
+    sys.exit(1)
+
+# At least we're on Python 2.5 or newer, move on.
+
 #-------------------------------------------------------------------------------
 # Imports
 #-------------------------------------------------------------------------------
 
 # Stdlib imports
 import os
-import sys
+import shutil
 
 from glob import glob
 
@@ -29,8 +46,8 @@ if os.path.exists('MANIFEST'): os.remove('MANIFEST')
 
 from distutils.core import setup
 
-# Local imports
-from IPython.genutils import target_update
+# Our own imports
+from IPython.utils.path import target_update
 
 from setupbase import (
     setup_args, 
@@ -42,6 +59,22 @@ from setupbase import (
 )
 
 isfile = os.path.isfile
+pjoin = os.path.join
+
+#-----------------------------------------------------------------------------
+# Function definitions
+#-----------------------------------------------------------------------------
+
+def cleanup():
+    """Clean up the junk left around by the build process"""
+    if "develop" not in sys.argv:
+        try:
+            shutil.rmtree('ipython.egg-info')
+        except:
+            try:
+                os.unlink('ipython.egg-info')
+            except:
+                pass
 
 #-------------------------------------------------------------------------------
 # Handle OS specific things
@@ -78,14 +111,38 @@ if len(sys.argv) >= 2 and sys.argv[1] in ('sdist','bdist_rpm'):
                   #('docs/magic.tex',
                   #['IPython/Magic.py'],
                   #"cd doc && ./update_magic.sh" ),
-                 
+
+                 ('docs/man/ipcluster.1.gz',
+                  ['docs/man/ipcluster.1'],
+                  'cd docs/man && gzip -9c ipcluster.1 > ipcluster.1.gz'),
+
+                 ('docs/man/ipcontroller.1.gz',
+                  ['docs/man/ipcontroller.1'],
+                  'cd docs/man && gzip -9c ipcontroller.1 > ipcontroller.1.gz'),
+
+                 ('docs/man/ipengine.1.gz',
+                  ['docs/man/ipengine.1'],
+                  'cd docs/man && gzip -9c ipengine.1 > ipengine.1.gz'),
+
                  ('docs/man/ipython.1.gz',
                   ['docs/man/ipython.1'],
-                  "cd docs/man && gzip -9c ipython.1 > ipython.1.gz"),
+                  'cd docs/man && gzip -9c ipython.1 > ipython.1.gz'),
+
+                 ('docs/man/ipython-wx.1.gz',
+                  ['docs/man/ipython-wx.1'],
+                  'cd docs/man && gzip -9c ipython-wx.1 > ipython-wx.1.gz'),
+
+                 ('docs/man/ipythonx.1.gz',
+                  ['docs/man/ipythonx.1'],
+                  'cd docs/man && gzip -9c ipythonx.1 > ipythonx.1.gz'),
+
+                 ('docs/man/irunner.1.gz',
+                  ['docs/man/irunner.1'],
+                  'cd docs/man && gzip -9c irunner.1 > irunner.1.gz'),
 
                  ('docs/man/pycolor.1.gz',
                   ['docs/man/pycolor.1'],
-                  "cd docs/man && gzip -9c pycolor.1 > pycolor.1.gz"),
+                  'cd docs/man && gzip -9c pycolor.1 > pycolor.1.gz'),
                  ]
 
     # Only build the docs if sphinx is present
@@ -99,7 +156,7 @@ if len(sys.argv) >= 2 and sys.argv[1] in ('sdist','bdist_rpm'):
 
         # First, compute all the dependencies that can force us to rebuild the
         # docs.  Start with the main release file that contains metadata
-        docdeps = ['IPython/Release.py']
+        docdeps = ['IPython/core/release.py']
         # Inculde all the reST sources
         pjoin = os.path.join
         for dirpath,dirnames,filenames in os.walk('docs/source'):
@@ -120,7 +177,6 @@ if len(sys.argv) >= 2 and sys.argv[1] in ('sdist','bdist_rpm'):
             )
         
     [ target_update(*t) for t in to_update ]
-
     
 #---------------------------------------------------------------------------
 # Find all the packages, package data, scripts and data_files
@@ -135,6 +191,14 @@ data_files = find_data_files()
 # Handle dependencies and setuptools specific things
 #---------------------------------------------------------------------------
 
+# For some commands, use setuptools.  Note that we do NOT list install here!
+# If you want a setuptools-enhanced install, just run 'setupegg.py install'
+if len(set(('develop', 'sdist', 'release', 'bdist_egg', 'bdist_rpm',
+           'bdist', 'bdist_dumb', 'bdist_wininst', 'install_egg_info',
+           'build_sphinx', 'egg_info', 'easy_install', 'upload',
+            )).intersection(sys.argv)) > 0:
+    import setuptools
+
 # This dict is used for passing extra arguments that are setuptools 
 # specific to setup
 setuptools_extra_args = {}
@@ -143,13 +207,14 @@ if 'setuptools' in sys.modules:
     setuptools_extra_args['zip_safe'] = False
     setuptools_extra_args['entry_points'] = {
         'console_scripts': [
-            'ipython = IPython.ipapi:launch_new_instance',
-            'pycolor = IPython.PyColorize:main',
-            'ipcontroller = IPython.kernel.scripts.ipcontroller:main',
-            'ipengine = IPython.kernel.scripts.ipengine:main',
-            'ipcluster = IPython.kernel.scripts.ipcluster:main',
+            'ipython = IPython.core.ipapp:launch_new_instance',
+            'pycolor = IPython.utils.PyColorize:main',
+            'ipcontroller = IPython.kernel.ipcontrollerapp:launch_new_instance',
+            'ipengine = IPython.kernel.ipengineapp:launch_new_instance',
+            'ipcluster = IPython.kernel.ipclusterapp:launch_new_instance',
             'ipythonx = IPython.frontend.wx.ipythonx:main',
             'iptest = IPython.testing.iptest:main',
+            'irunner = IPython.lib.irunner:main'
         ]
     }
     setup_args['extras_require'] = dict(
@@ -165,15 +230,10 @@ if 'setuptools' in sys.modules:
     # Allow setuptools to handle the scripts
     scripts = []
 else:
-    # package_data of setuptools was introduced to distutils in 2.4
-    cfgfiles = filter(isfile, glob('IPython/UserConfig/*'))
-    if sys.version_info < (2,4):
-        data_files.append(('lib', 'IPython/UserConfig', cfgfiles))
     # If we are running without setuptools, call this function which will
     # check for dependencies an inform the user what is needed.  This is
     # just to make life easy for users.
     check_for_dependencies()
-
 
 #---------------------------------------------------------------------------
 # Do the actual setup now
@@ -185,5 +245,7 @@ setup_args['scripts'] = scripts
 setup_args['data_files'] = data_files
 setup_args.update(setuptools_extra_args)
 
+
 if __name__ == '__main__':
     setup(**setup_args)
+    cleanup()

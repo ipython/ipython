@@ -311,7 +311,7 @@ gets converted to:
         (replace-match "" t nil)))))
 
 (defvar ipython-completion-command-string
-  "print ';'.join(__IP.Completer.all_completions('%s')) #PYTHON-MODE SILENT\n"
+  "print(';'.join(__IP.Completer.all_completions('%s'))) #PYTHON-MODE SILENT\n"
   "The string send to ipython to query for all possible completions")
 
 

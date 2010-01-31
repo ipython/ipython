@@ -2,6 +2,14 @@
 IPython reference
 =================
 
+.. warning::
+
+    As of the 0.11 version of IPython, some of the features and APIs
+    described in this section have been deprecated or are broken.  Our plan
+    is to continue to support these features, but they need to be updated
+    to take advantage of recent API changes.  Furthermore, this section
+    of the documentation need to be updated to reflect all of these changes.
+
 .. _command_line_options:
 
 Command-line usage
@@ -23,73 +31,18 @@ your ipythonrc configuration file for details on those. This file
 typically installed in the $HOME/.ipython directory. For Windows users,
 $HOME resolves to C:\\Documents and Settings\\YourUserName in most
 instances. In the rest of this text, we will refer to this directory as
-IPYTHONDIR.
+IPYTHON_DIR.
 
-.. _Threading options:
 
 
 Special Threading Options
 -------------------------
 
-The following special options are ONLY valid at the beginning of the
-command line, and not later. This is because they control the initial-
-ization of ipython itself, before the normal option-handling mechanism
-is active.
-
-    -gthread, -qthread, -q4thread, -wthread, -pylab: 
-	Only one of these can be given, and it can only be given as
-	the first option passed to IPython (it will have no effect in
-	any other position).  They provide threading support for the
-	GTK, Qt (versions 3 and 4) and WXPython toolkits, and for the
-	matplotlib library.
-
-	With any of the first four options, IPython starts running a
-	separate thread for the graphical toolkit's operation, so that
-	you can open and control graphical elements from within an
-	IPython command line, without blocking. All four provide
-	essentially the same functionality, respectively for GTK, Qt3,
-	Qt4 and WXWidgets (via their Python interfaces).
-
-	Note that with -wthread, you can additionally use the
-	-wxversion option to request a specific version of wx to be
-	used.  This requires that you have the wxversion Python module
-	installed, which is part of recent wxPython distributions.
-
-	If -pylab is given, IPython loads special support for the mat
-	plotlib library (http://matplotlib.sourceforge.net), allowing
-	interactive usage of any of its backends as defined in the
-	user's ~/.matplotlib/matplotlibrc file. It automatically
-	activates GTK, Qt or WX threading for IPyhton if the choice of
-	matplotlib backend requires it. It also modifies the %run
-	command to correctly execute (without blocking) any
-	matplotlib-based script which calls show() at the end.
-
-    -tk
-	The -g/q/q4/wthread options, and -pylab (if matplotlib is
-	configured to use GTK, Qt3, Qt4 or WX), will normally block Tk
-	graphical interfaces. This means that when either GTK, Qt or WX
-	threading is active, any attempt to open a Tk GUI will result in a
-	dead window, and possibly cause the Python interpreter to crash.
-	An extra option, -tk, is available to address this issue. It can
-	only be given as a second option after any of the above (-gthread,
-	-wthread or -pylab).
-
-	If -tk is given, IPython will try to coordinate Tk threading
-	with GTK, Qt or WX. This is however potentially unreliable, and
-	you will have to test on your platform and Python configuration to
-	determine whether it works for you. Debian users have reported
-	success, apparently due to the fact that Debian builds all of Tcl,
-	Tk, Tkinter and Python with pthreads support. Under other Linux
-	environments (such as Fedora Core 2/3), this option has caused
-	random crashes and lockups of the Python interpreter. Under other
-	operating systems (Mac OSX and Windows), you'll need to try it to
-	find out, since currently no user reports are available.
-    
-	There is unfortunately no way for IPython to determine at run time
-	whether -tk will work reliably or not, so you will need to do some
-	experiments before relying on it for regular work.
-
-
+Previously IPython had command line options for controlling GUI event loop
+integration (-gthread, -qthread, -q4thread, -wthread, -pylab). As of IPython
+version 0.11, these have been deprecated. Please see the new ``%gui``
+magic command or :ref:`this section <gui_support>` for details on the new
+interface.
 
 Regular Options
 ---------------
@@ -109,16 +62,8 @@ All options with a [no] prepended can be specified in negated form
     -help  print a help message and exit.
 
     -pylab
-	this can only be given as the first option passed to IPython
-	(it will have no effect in any other position). It adds
-	special support for the matplotlib library
-	(http://matplotlib.sourceforge.ne), allowing interactive usage
-	of any of its backends as defined in the user's .matplotlibrc
-	file.  It automatically activates GTK or WX threading for
-	IPyhton if the choice of matplotlib backend requires it. It
-	also modifies the %run command to correctly execute (without
-	blocking) any matplotlib-based script which calls show() at
-	the end. See `Matplotlib support`_ for more details.
+    Deprecated.  See :ref:`Matplotlib support <matplotlib_support>`
+    for more details.
 
     -autocall <val>
 	Make IPython automatically call any callable object even if you
@@ -205,9 +150,9 @@ All options with a [no] prepended can be specified in negated form
 	something like Emacs).
 
     -ipythondir <name> 
-	name of your IPython configuration directory IPYTHONDIR. This
+	name of your IPython configuration directory IPYTHON_DIR. This
 	can also be specified through the environment variable
-	IPYTHONDIR.
+	IPYTHON_DIR.
 
     -log, l 
 	generate a log file of all input. The file is named
@@ -266,10 +211,10 @@ All options with a [no] prepended can be specified in negated form
 
 	assume that your config file is ipythonrc-<name> or
 	ipy_profile_<name>.py (looks in current dir first, then in
-	IPYTHONDIR).  This is a quick way to keep and load multiple
+	IPYTHON_DIR).  This is a quick way to keep and load multiple
 	config files for different tasks, especially if you use the
 	include option of config files. You can keep a basic
-	IPYTHONDIR/ipythonrc file and then have other 'profiles' which
+	IPYTHON_DIR/ipythonrc file and then have other 'profiles' which
 	include this one and load extra things for particular
 	tasks. For example:
 
@@ -307,7 +252,7 @@ All options with a [no] prepended can be specified in negated form
     -rcfile <name>   
 	name of your IPython resource configuration file. Normally
 	IPython loads ipythonrc (from current directory) or
-	IPYTHONDIR/ipythonrc.
+	IPYTHON_DIR/ipythonrc.
 
 	If the loading of your config file fails, IPython starts with
 	a bare bones configuration (no modules loaded at all).
@@ -354,7 +299,7 @@ All options with a [no] prepended can be specified in negated form
 	0'. Simply removes all input/output separators.
 
     -upgrade 
-	allows you to upgrade your IPYTHONDIR configuration when you
+	allows you to upgrade your IPYTHON_DIR configuration when you
 	install a new version of IPython. Since new versions may
 	include new command line options or example files, this copies
 	updated ipythonrc-type files. However, it backs up (with a
@@ -367,9 +312,7 @@ All options with a [no] prepended can be specified in negated form
     -Version    print version information and exit.
 
     -wxversion <string> 
-	Select a specific version of wxPython (used in conjunction
-	with -wthread). Requires the wxversion module, part of recent
-	wxPython distributions
+    Deprecated.
 
     -xmode <modename>
 
@@ -599,7 +542,7 @@ Persistent command history across sessions
 
 IPython will save your input history when it leaves and reload it next
 time you restart it. By default, the history file is named
-$IPYTHONDIR/history, but if you've loaded a named profile,
+$IPYTHON_DIR/history, but if you've loaded a named profile,
 '-PROFILE_NAME' is appended to the name. This allows you to keep
 separate histories related to various tasks: commands related to
 numerical work will not be clobbered by a system shell history, for
@@ -693,7 +636,7 @@ follows:
 %logstart [log_name [log_mode]]
 
 If no name is given, it defaults to a file named 'log' in your
-IPYTHONDIR directory, in 'rotate' mode (see below).
+IPYTHON_DIR directory, in 'rotate' mode (see below).
 
 '%logstart name' saves to file 'name' in 'backup' mode. It saves your
 history up to that point and then continues logging.
@@ -1329,8 +1272,9 @@ For stand-alone use of the feature in your programs which do not use
 IPython at all, put the following lines toward the top of your 'main'
 routine::
 
-    import sys,IPython.ultraTB  
-    sys.excepthook = IPython.ultraTB.FormattedTB(mode='Verbose',
+    import sys
+    from IPython.core import ultratb
+    sys.excepthook = ultratb.FormattedTB(mode='Verbose',
     color_scheme='Linux', call_pdb=1)
 
 The mode keyword can be either 'Verbose' or 'Plain', giving either very
@@ -1351,7 +1295,7 @@ In a nutshell, you can redefine the way IPython processes the user input
 line to accept new, special extensions to the syntax without needing to
 change any of IPython's own code.
 
-In the IPython/Extensions directory you will find some examples
+In the IPython/extensions directory you will find some examples
 supplied, which we will briefly describe now. These can be used 'as is'
 (and both provide very useful functionality), or you can use them as a
 starting point for writing your own extensions.
@@ -1369,14 +1313,14 @@ copying, carefully removing the leading extraneous characters.
 This extension identifies those starting characters and removes them
 from the input automatically, so that one can paste multi-line examples
 directly into IPython, saving a lot of time. Please look at the file
-InterpreterPasteInput.py in the IPython/Extensions directory for details
+InterpreterPasteInput.py in the IPython/extensions directory for details
 on how this is done.
 
 IPython comes with a special profile enabling this feature, called
 tutorial. Simply start IPython via 'ipython -p tutorial' and the feature
 will be available. In a normal IPython session you can activate the
 feature by importing the corresponding module with:
-In [1]: import IPython.Extensions.InterpreterPasteInput
+In [1]: import IPython.extensions.InterpreterPasteInput
 
 The following is a 'screenshot' of how things work when this extension
 is on, copying an example from the standard tutorial::
@@ -1431,80 +1375,107 @@ The physics profile supplied with IPython (enabled via 'ipython -p
 physics') uses these extensions, which you can also activate with:
 
 from math import * # math MUST be imported BEFORE PhysicalQInteractive 
-from IPython.Extensions.PhysicalQInteractive import * 
-import IPython.Extensions.PhysicalQInput
+from IPython.extensions.PhysicalQInteractive import * 
+import IPython.extensions.PhysicalQInput
+
+.. _gui_support:
+
+GUI event loop support support
+==============================
+
+.. versionadded:: 0.11
+    The ``%gui`` magic and :mod:`IPython.lib.inputhook`.
+
+IPython has excellent support for working interactively with Graphical User
+Interface (GUI) toolkits, such as wxPython, PyQt4, PyGTK and Tk. This is
+implemented using Python's builtin ``PyOSInputHook`` hook. This implementation
+is extremely robust compared to our previous threaded based version. The
+advantages of this are:
+
+* GUIs can be enabled and disabled dynamically at runtime.
+* The active GUI can be switched dynamically at runtime.
+* In some cases, multiple GUIs can run simultaneously with no problems.
+* There is a developer API in :mod:`IPython.lib.inputhook` for customizing 
+  all of these things.
+
+For users, enabling GUI event loop integration is simple.  You simple use the
+``%gui`` magic as follows::
+
+    %gui [-a] [GUINAME]
+
+With no arguments, ``%gui`` removes all GUI support.  Valid ``GUINAME``
+arguments are ``wx``, ``qt4``, ``gtk`` and ``tk``.  The ``-a`` option will
+create and return a running application object for the selected GUI toolkit.
+
+Thus, to use wxPython interactively and create a running :class:`wx.App`
+object, do::
+
+    %gui -a wx
+
+For information on IPython's Matplotlib integration (and the ``pylab`` mode)
+see :ref:`this section <matplotlib_support>`.
+
+For developers that want to use IPython's GUI event loop integration in
+the form of a library, these capabilities are exposed in library form
+in the :mod:`IPython.lib.inputhook`.  Interested developers should see the
+module docstrings for more information, but there are a few points that
+should be mentioned here.
+
+First, the ``PyOSInputHook`` approach only works in command line settings 
+where readline is activated.
+
+Second, when using the ``PyOSInputHook`` approach, a GUI application should
+*not* start its event loop. Instead all of this is handled by the
+``PyOSInputHook``. This means that applications that are meant to be used both
+in IPython and as standalone apps need to have special code to detects how the
+application is being run. We highly recommend using IPython's
+:func:`appstart_` functions for this. Here is a simple example that shows the
+recommended code that should be at the bottom of a wxPython using GUI
+application::
+
+  try:
+      from IPython import appstart_wx
+      appstart_wx(app)
+  except ImportError:
+      app.MainLoop()
+
+This pattern should be used instead of the simple ``app.MainLoop()`` code
+that a standalone wxPython application would have.
+
+Third, unlike previous versions of IPython, we no longer "hijack" (replace
+them with no-ops) the event loops. This is done to allow applications that
+actually need to run the real event loops to do so. This is often needed to
+process pending events at critical points.
+
+Finally, we also have a number of examples in our source directory
+:file:`docs/examples/lib` that demonstrate these capabilities.
+
+.. _matplotlib_support:
+
+Plotting with matplotlib
+========================
 
 
-Threading support
-=================
+`Matplotlib`_ provides high quality 2D and
+3D plotting for Python. Matplotlib can produce plots on screen using a variety
+of GUI toolkits, including Tk, PyGTK, PyQt4 and wxPython. It also provides a
+number of commands useful for scientific computing, all with a syntax
+compatible with that of the popular Matlab program.
 
-WARNING: The threading support is still somewhat experimental, and it
-has only seen reasonable testing under Linux. Threaded code is
-particularly tricky to debug, and it tends to show extremely
-platform-dependent behavior. Since I only have access to Linux machines,
-I will have to rely on user's experiences and assistance for this area
-of IPython to improve under other platforms.
+Many IPython users have come to rely on IPython's ``-pylab`` mode which
+automates the integration of Matplotlib with IPython. We are still in the
+process of working with the Matplotlib developers to finalize the new pylab
+API, but for now you can use Matplotlib interactively using the following
+commands::
 
-IPython, via the -gthread , -qthread, -q4thread and -wthread options
-(described in Sec. `Threading options`_), can run in
-multithreaded mode to support pyGTK, Qt3, Qt4 and WXPython applications
-respectively. These GUI toolkits need to control the python main loop of
-execution, so under a normal Python interpreter, starting a pyGTK, Qt3,
-Qt4 or WXPython application will immediately freeze the shell.
+    %gui -a wx
+    import matplotlib
+    matplotlib.use('wxagg')
+    from matplotlib import pylab
+    pylab.interactive(True)
 
-IPython, with one of these options (you can only use one at a time),
-separates the graphical loop and IPython's code execution run into
-different threads. This allows you to test interactively (with %run, for
-example) your GUI code without blocking.
-
-A nice mini-tutorial on using IPython along with the Qt Designer
-application is available at the SciPy wiki:
-http://www.scipy.org/Cookbook/Matplotlib/Qt_with_IPython_and_Designer.
-
-
-Tk issues
----------
-
-As indicated in Sec. `Threading options`_, a special -tk option is
-provided to try and allow Tk graphical applications to coexist
-interactively with WX, Qt or GTK ones. Whether this works at all,
-however, is very platform and configuration dependent. Please
-experiment with simple test cases before committing to using this
-combination of Tk and GTK/Qt/WX threading in a production environment.
-
-
-I/O pitfalls
-------------
-
-Be mindful that the Python interpreter switches between threads every
-$N$ bytecodes, where the default value as of Python 2.3 is $N=100.$ This
-value can be read by using the sys.getcheckinterval() function, and it
-can be reset via sys.setcheckinterval(N). This switching of threads can
-cause subtly confusing effects if one of your threads is doing file I/O.
-In text mode, most systems only flush file buffers when they encounter a
-'\n'. An instruction as simple as:: 
-
-  print >> filehandle, ''hello world''
-
-actually consists of several bytecodes, so it is possible that the
-newline does not reach your file before the next thread switch.
-Similarly, if you are writing to a file in binary mode, the file won't
-be flushed until the buffer fills, and your other thread may see
-apparently truncated files.
-
-For this reason, if you are using IPython's thread support and have (for
-example) a GUI application which will read data generated by files
-written to from the IPython thread, the safest approach is to open all
-of your files in unbuffered mode (the third argument to the file/open
-function is the buffering value)::
-
-  filehandle = open(filename,mode,0)
-
-This is obviously a brute force way of avoiding race conditions with the
-file buffering. If you want to do it cleanly, and you have a resource
-which is being shared by the interactive IPython loop and your GUI
-thread, you should really handle it with thread locking and
-syncrhonization properties. The Python documentation discusses these.
+All of this will soon be automated as Matplotlib beings to include
+new logic that uses our new GUI support.
 
 .. _interactive_demos:
 
@@ -1602,30 +1573,5 @@ divisions are allowed. If you want to be able to open an IPython
 instance at an arbitrary point in a program, you can use IPython's
 embedding facilities, described in detail in Sec. 9
 
+.. [Matplotlib] Matplotlib. http://matplotlib.sourceforge.net
 
-.. _Matplotlib support:
-
-Plotting with matplotlib
-========================
-
-The matplotlib library (http://matplotlib.sourceforge.net
-http://matplotlib.sourceforge.net) provides high quality 2D plotting for
-Python. Matplotlib can produce plots on screen using a variety of GUI
-toolkits, including Tk, GTK and WXPython. It also provides a number of
-commands useful for scientific computing, all with a syntax compatible
-with that of the popular Matlab program.
-
-IPython accepts the special option -pylab (see :ref:`here
-<command_line_options>`). This configures it to support matplotlib, honoring
-the settings in the .matplotlibrc file. IPython will detect the user's choice
-of matplotlib GUI backend, and automatically select the proper threading model
-to prevent blocking. It also sets matplotlib in interactive mode and modifies
-%run slightly, so that any matplotlib-based script can be executed using %run
-and the final show() command does not block the interactive shell.
-
-The -pylab option must be given first in order for IPython to configure its
-threading mode. However, you can still issue other options afterwards. This
-allows you to have a matplotlib-based environment customized with additional
-modules using the standard IPython profile mechanism (see :ref:`here
-<profiles>`): ``ipython -pylab -p myprofile`` will load the profile defined in
-ipythonrc-myprofile after configuring matplotlib.

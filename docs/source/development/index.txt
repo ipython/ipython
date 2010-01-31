@@ -1,14 +1,20 @@
-===========================
- IPython Developer's Guide
-===========================
+.. _developer_guide:
+
+=========================
+IPython developer's guide
+=========================
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
 
-   overview.txt
+   contributing.txt
    coding_guide.txt
    doc_guide.txt
+   testing.txt
+   release.txt
    roadmap.txt
-
+   reorg.txt
+   magic_blueprint.txt
    notification_blueprint.txt
-   config_blueprint.txt
+   ipgraph.txt
+

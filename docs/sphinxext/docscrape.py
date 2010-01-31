@@ -8,7 +8,7 @@ import re
 import pydoc
 from StringIO import StringIO
 from warnings import warn
-4
+
 class Reader(object):
     """A line-based string reader.
 

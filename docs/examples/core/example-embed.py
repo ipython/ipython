@@ -31,7 +31,7 @@ else:
             '-po','Out<\\#>: ','-nosep']
 
 # First import the embeddable shell class
-from IPython.Shell import IPShellEmbed
+from IPython.core.shell import IPShellEmbed
 
 # Now create an instance of the embeddable shell. The first argument is a
 # string with options exactly as you would type them if you were starting

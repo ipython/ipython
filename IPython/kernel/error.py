@@ -4,6 +4,9 @@
 
 __docformat__ = "restructuredtext en"
 
+# Tell nose to skip this module
+__test__ = {}
+
 #-------------------------------------------------------------------------------
 #  Copyright (C) 2008  The IPython Development Team
 #
@@ -15,8 +18,9 @@ __docformat__ = "restructuredtext en"
 # Imports
 #-------------------------------------------------------------------------------
 
-from IPython.kernel.core import error
 from twisted.python import failure
+
+from IPython.kernel.core import error
 
 #-------------------------------------------------------------------------------
 # Error classes
@@ -24,6 +28,7 @@ from twisted.python import failure
 
 class KernelError(error.IPythonError):
     pass
+
 
 class NotDefined(KernelError):
     def __init__(self, name):
@@ -35,81 +40,125 @@ class NotDefined(KernelError):
     
     __str__ = __repr__
 
+
 class QueueCleared(KernelError):
     pass
+
 
 class IdInUse(KernelError):
     pass
 
+
 class ProtocolError(KernelError):
     pass
+
 
 class ConnectionError(KernelError):
     pass
 
+
 class InvalidEngineID(KernelError):
     pass
-    
+
+
 class NoEnginesRegistered(KernelError):
     pass
-    
+
+
 class InvalidClientID(KernelError):
     pass
-    
+
+
 class InvalidDeferredID(KernelError):
     pass
-    
+
+
 class SerializationError(KernelError):
     pass
-    
+
+
 class MessageSizeError(KernelError):
     pass
-    
+
+
 class PBMessageSizeError(MessageSizeError):
     pass
-    
+
+
 class ResultNotCompleted(KernelError):
     pass
-    
+
+
 class ResultAlreadyRetrieved(KernelError):
     pass
-    
+
 class ClientError(KernelError):
     pass
+
 
 class TaskAborted(KernelError):
     pass
 
+
 class TaskTimeout(KernelError):
     pass
+
 
 class NotAPendingResult(KernelError):
     pass
 
+
 class UnpickleableException(KernelError):
     pass
+
 
 class AbortedPendingDeferredError(KernelError):
     pass
 
+
 class InvalidProperty(KernelError):
     pass
+
 
 class MissingBlockArgument(KernelError):
     pass
 
+
 class StopLocalExecution(KernelError):
     pass
+
 
 class SecurityError(KernelError):
     pass
 
+
+class FileTimeoutError(KernelError):
+    pass
+
+
+class TaskRejectError(KernelError):
+    """Exception to raise when a task should be rejected by an engine.
+    
+    This exception can be used to allow a task running on an engine to test
+    if the engine (or the user's namespace on the engine) has the needed
+    task dependencies.  If not, the task should raise this exception.  For
+    the task to be retried on another engine, the task should be created
+    with the `retries` argument > 1.
+    
+    The advantage of this approach over our older properties system is that
+    tasks have full access to the user's namespace on the engines and the
+    properties don't have to be managed or tested by the controller.
+    """
+
+
 class CompositeError(KernelError):
     def __init__(self, message, elist):
         Exception.__init__(self, *(message, elist))
-        self.message = message
+        # Don't use pack_exception because it will conflict with the .message
+        # attribute that is being deprecated in 2.6 and beyond.
+        self.msg = message
         self.elist = elist
-  
+
     def _get_engine_str(self, ev):
         try:
             ei = ev._ipython_engine_info
@@ -117,7 +166,7 @@ class CompositeError(KernelError):
             return '[Engine Exception]'
         else:
             return '[%i:%s]: ' % (ei['engineid'], ei['method'])
-    
+
     def _get_traceback(self, ev):
         try:
             tb = ev._ipython_traceback_text
@@ -125,14 +174,14 @@ class CompositeError(KernelError):
             return 'No traceback available'
         else:
             return tb
-  
+
     def __str__(self):
-        s = str(self.message)
+        s = str(self.msg)
         for et, ev, etb in self.elist:
             engine_str = self._get_engine_str(ev)
             s = s + '\n' + engine_str + str(et.__name__) + ': ' + str(ev)
         return s
-    
+
     def print_tracebacks(self, excid=None):
         if excid is None:
             for (et,ev,etb) in self.elist:
@@ -155,6 +204,7 @@ class CompositeError(KernelError):
             raise IndexError("an exception with index %i does not exist"%excid)
         else:
             raise et, ev, etb
+
 
 def collect_exceptions(rlist, method):
     elist = []
@@ -181,5 +231,4 @@ def collect_exceptions(rlist, method):
             raise CompositeError(msg, elist)
         except CompositeError, e:
             raise e
-            
 

@@ -17,16 +17,14 @@ __docformat__ = "restructuredtext en"
 #-------------------------------------------------------------------------------
 
 import sys
-import cPickle as pickle
-from types import FunctionType
 import linecache
+import warnings
 
-from twisted.internet import reactor
-from twisted.python import components, log
+from twisted.python import components
 from twisted.python.failure import Failure
 from zope.interface import Interface, implements, Attribute
 
-from IPython.ColorANSI import TermColors
+from IPython.utils.coloransi import TermColors
 
 from IPython.kernel.twistedutil import blockingCallFromThread
 from IPython.kernel import error
@@ -36,10 +34,8 @@ from IPython.kernel.mapper import (
     IMultiEngineMapperFactory,
     IMapper
 )
-from IPython.kernel import map as Map
-from IPython.kernel import multiengine as me
-from IPython.kernel.multiengine import (IFullMultiEngine,
-    IFullSynchronousMultiEngine)
+
+from IPython.kernel.multiengine import IFullSynchronousMultiEngine
 
 
 #-------------------------------------------------------------------------------
@@ -90,14 +86,13 @@ class PendingResult(object):
     
     A user should not create a `PendingResult` instance by hand.
     
-    Methods
-    =======
+    Methods:
     
     * `get_result`
     * `add_callback`
     
-    Properties
-    ==========
+    Properties:
+    
     * `r`
     """
     
@@ -268,10 +263,18 @@ class InteractiveMultiEngineClient(object):
         """
         
         try:
-            __IPYTHON__.activeController = self
+            # This is injected into __builtins__.
+            ip = get_ipython()
         except NameError:
-            print "The IPython Controller magics only work within IPython."
-                    
+            print "The IPython parallel magics (%result, %px, %autopx) only work within IPython."
+        else:
+            pmagic = ip.get_component('parallel_magic')
+            if pmagic is not None:
+                pmagic.active_multiengine_client = self
+            else:
+                print "You must first load the parallelmagic extension " \
+                      "by doing '%load_ext parallelmagic'"
+
     def __setitem__(self, key, value):
         """Add a dictionary interface for pushing/pulling.
         
@@ -310,16 +313,16 @@ class InteractiveMultiEngineClient(object):
     
     def findsource_file(self,f):
         linecache.checkcache()
-        s = findsource(f.f_code)
+        s = findsource(f.f_code) # findsource is not defined!
         lnum = f.f_lineno
         wsource = s[0][f.f_lineno:]
         return strip_whitespace(wsource)
 
     def findsource_ipython(self,f):
-        from IPython import ipapi
+        from IPython.core import ipapi
         self.ip = ipapi.get()
         wsource = [l+'\n' for l in
-                   self.ip.IP.input_hist_raw[-1].splitlines()[1:]] 
+                   self.ip.input_hist_raw[-1].splitlines()[1:]] 
         return strip_whitespace(wsource)
         
     def __enter__(self):
@@ -387,6 +390,14 @@ def strip_whitespace(source):
 #-------------------------------------------------------------------------------
 # The top-level MultiEngine client adaptor
 #-------------------------------------------------------------------------------
+
+
+_prop_warn = """\
+
+We are currently refactoring the task dependency system.  This might
+involve the removal of this method and other methods related to engine
+properties.  Please see the docstrings for IPython.kernel.TaskRejectError 
+for more information."""
 
 
 class IFullBlockingMultiEngineClient(Interface):
@@ -730,22 +741,27 @@ class FullBlockingMultiEngineClient(InteractiveMultiEngineClient):
         return self._blockFromThread(self.smultiengine.queue_status, targets=targets, block=block)
     
     def set_properties(self, properties, targets=None, block=None):
+        warnings.warn(_prop_warn)
         targets, block = self._findTargetsAndBlock(targets, block)
         return self._blockFromThread(self.smultiengine.set_properties, properties, targets=targets, block=block)
     
     def get_properties(self, keys=None, targets=None, block=None):
+        warnings.warn(_prop_warn)
         targets, block = self._findTargetsAndBlock(targets, block)
         return self._blockFromThread(self.smultiengine.get_properties, keys, targets=targets, block=block)
     
     def has_properties(self, keys, targets=None, block=None):
+        warnings.warn(_prop_warn)
         targets, block = self._findTargetsAndBlock(targets, block)
         return self._blockFromThread(self.smultiengine.has_properties, keys, targets=targets, block=block)
     
     def del_properties(self, keys, targets=None, block=None):
+        warnings.warn(_prop_warn)
         targets, block = self._findTargetsAndBlock(targets, block)
         return self._blockFromThread(self.smultiengine.del_properties, keys, targets=targets, block=block)
     
     def clear_properties(self, targets=None, block=None):
+        warnings.warn(_prop_warn)
         targets, block = self._findTargetsAndBlock(targets, block)
         return self._blockFromThread(self.smultiengine.clear_properties, targets=targets, block=block)
     
