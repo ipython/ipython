@@ -27,10 +27,7 @@ Authors:
 
 import __builtin__
 import codeop
-import keyword
-import os
 import re
-import sys
 
 from IPython.core.alias import AliasManager
 from IPython.core.autocall import IPyAutocall
@@ -39,7 +36,8 @@ from IPython.core.splitinput import split_user_input
 from IPython.core.page import page
 
 from IPython.utils.traitlets import List, Int, Any, Str, CBool, Bool
-from IPython.utils.genutils import make_quoted_expr, Term
+from IPython.utils.io import Term
+from IPython.utils.text import make_quoted_expr
 from IPython.utils.autoattr import auto_attr
 
 #-----------------------------------------------------------------------------
@@ -158,11 +156,12 @@ class LineInfo(object):
         without worrying about *further* damaging state.
         """
         if not self._oinfo:
-            self._oinfo = ip._ofind(self.ifun)
+            # ip.shell._ofind is actually on the Magic class!
+            self._oinfo = ip.shell._ofind(self.ifun)
         return self._oinfo
 
     def __str__(self):                                                         
-        return "Lineinfo [%s|%s|%s]" %(self.pre,self.ifun,self.the_rest) 
+        return "Lineinfo [%s|%s|%s]" %(self.pre, self.ifun, self.the_rest) 
 
 
 #-----------------------------------------------------------------------------
@@ -362,7 +361,7 @@ class PrefilterManager(Component):
                 line = transformer.transform(line, continue_prompt)
         return line
 
-    def prefilter_line(self, line, continue_prompt):
+    def prefilter_line(self, line, continue_prompt=False):
         """Prefilter a single input line as text.
 
         This method prefilters a single line of text by calling the
@@ -416,7 +415,7 @@ class PrefilterManager(Component):
         # print "prefiltered line: %r" % prefiltered
         return prefiltered
 
-    def prefilter_lines(self, lines, continue_prompt):
+    def prefilter_lines(self, lines, continue_prompt=False):
         """Prefilter multiple input lines of text.
 
         This is the main entry point for prefiltering multiple lines of
@@ -427,11 +426,19 @@ class PrefilterManager(Component):
         which is the case when the user goes back to a multiline history
         entry and presses enter.
         """
-        out = []
-        for line in lines.rstrip('\n').split('\n'):
-            out.append(self.prefilter_line(line, continue_prompt))
-        return '\n'.join(out)
-
+        llines = lines.rstrip('\n').split('\n')
+        # We can get multiple lines in one shot, where multiline input 'blends'
+        # into one line, in cases like recalling from the readline history
+        # buffer.  We need to make sure that in such cases, we correctly
+        # communicate downstream which line is first and which are continuation
+        # ones.
+        if len(llines) > 1:
+            out = '\n'.join([self.prefilter_line(line, lnum>0)
+                             for lnum, line in enumerate(llines) ])
+        else:
+            out = self.prefilter_line(llines[0], continue_prompt)
+            
+        return out
 
 #-----------------------------------------------------------------------------
 # Prefilter transformers
@@ -507,6 +514,47 @@ class AssignMagicTransformer(PrefilterTransformer):
             return new_line
         return line
 
+
+_classic_prompt_re = re.compile(r'(^[ \t]*>>> |^[ \t]*\.\.\. )')
+
+class PyPromptTransformer(PrefilterTransformer):
+    """Handle inputs that start with '>>> ' syntax."""
+
+    priority = Int(50, config=True)
+
+    def transform(self, line, continue_prompt):
+
+        if not line or line.isspace() or line.strip() == '...':
+            # This allows us to recognize multiple input prompts separated by
+            # blank lines and pasted in a single chunk, very common when
+            # pasting doctests or long tutorial passages.
+            return ''
+        m = _classic_prompt_re.match(line)
+        if m:
+            return line[len(m.group(0)):]
+        else:
+            return line
+
+
+_ipy_prompt_re = re.compile(r'(^[ \t]*In \[\d+\]: |^[ \t]*\ \ \ \.\.\.+: )')
+
+class IPyPromptTransformer(PrefilterTransformer):
+    """Handle inputs that start classic IPython prompt syntax."""
+
+    priority = Int(50, config=True)
+
+    def transform(self, line, continue_prompt):
+
+        if not line or line.isspace() or line.strip() == '...':
+            # This allows us to recognize multiple input prompts separated by
+            # blank lines and pasted in a single chunk, very common when
+            # pasting doctests or long tutorial passages.
+            return ''
+        m = _ipy_prompt_re.match(line)
+        if m:
+            return line[len(m.group(0)):]
+        else:
+            return line
 
 #-----------------------------------------------------------------------------
 # Prefilter checkers
@@ -755,9 +803,17 @@ class PrefilterHandler(Component):
         line = line_info.line
         continue_prompt = line_info.continue_prompt
 
-        if (continue_prompt and self.shell.autoindent and line.isspace() and
-            (0 < abs(len(line) - self.shell.indent_current_nsp) <= 2 or
-             (self.shell.buffer[-1]).isspace() )):
+        if (continue_prompt and
+            self.shell.autoindent and
+            line.isspace() and
+            
+            (0 < abs(len(line) - self.shell.indent_current_nsp) <= 2
+             or
+             not self.shell.buffer
+             or
+             (self.shell.buffer[-1]).isspace()
+             )
+            ):
             line = ''
 
         self.shell.log(line, line, continue_prompt)
@@ -845,12 +901,11 @@ class AutoHandler(PrefilterHandler):
         pre     = line_info.pre
         continue_prompt = line_info.continue_prompt
         obj = line_info.ofind(self)['obj']
-
         #print 'pre <%s> ifun <%s> rest <%s>' % (pre,ifun,the_rest)  # dbg
 
         # This should only be active for single-line input!
         if continue_prompt:
-            self.log(line,line,continue_prompt)
+            self.shell.log(line,line,continue_prompt)
             return line
 
         force_auto = isinstance(obj, IPyAutocall)
@@ -967,7 +1022,9 @@ class EmacsHandler(PrefilterHandler):
 
 _default_transformers = [
     AssignSystemTransformer,
-    AssignMagicTransformer
+    AssignMagicTransformer,
+    PyPromptTransformer,
+    IPyPromptTransformer,
 ]
 
 _default_checkers = [
@@ -992,4 +1049,3 @@ _default_handlers = [
     HelpHandler,
     EmacsHandler
 ]
-

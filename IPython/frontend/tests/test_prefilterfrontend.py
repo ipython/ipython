@@ -20,9 +20,11 @@ import sys
 from nose.tools import assert_equal
 
 from IPython.frontend.prefilterfrontend import PrefilterFrontEnd
-from IPython.core.ipapi import get as get_ipython0
-from IPython.testing.plugin.ipdoctest import default_argv
+from IPython.testing.globalipapp import get_ipython
 
+#-----------------------------------------------------------------------------
+# Support utilities
+#-----------------------------------------------------------------------------
 
 class TestPrefilterFrontEnd(PrefilterFrontEnd):
     
@@ -32,7 +34,7 @@ class TestPrefilterFrontEnd(PrefilterFrontEnd):
 
     def __init__(self):
         self.out = StringIO()
-        PrefilterFrontEnd.__init__(self,argv=default_argv())
+        PrefilterFrontEnd.__init__(self)
         # Some more code for isolation (yeah, crazy)
         self._on_enter()
         self.out.flush()
@@ -57,7 +59,7 @@ def isolate_ipython0(func):
         with arguments.
     """
     def my_func():
-        ip0 = get_ipython0()
+        ip0 = get_ipython()
         if ip0 is None:
             return func()
         # We have a real ipython running...
@@ -85,14 +87,14 @@ def isolate_ipython0(func):
                 del user_ns[k]
             for k in new_globals:
                 del user_global_ns[k]
-        # Undo the hack at creation of PrefilterFrontEnd
-        from IPython.core import iplib
-        iplib.InteractiveShell.isthreaded = False
         return out
 
     my_func.__name__ = func.__name__
     return my_func
 
+#-----------------------------------------------------------------------------
+# Tests
+#-----------------------------------------------------------------------------
 
 @isolate_ipython0
 def test_execution():

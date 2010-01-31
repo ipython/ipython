@@ -21,11 +21,15 @@ import sys
 
 from IPython.core.component import Component
 from IPython.external import Itpl
-from IPython.utils.traitlets import Str, Int, List, Unicode, Enum
-from IPython.utils.platutils import find_cmd
-from IPython.kernel.twistedutil import gatherBoth, make_deferred, sleep_deferred
+from IPython.utils.traitlets import Str, Int, List, Unicode
+from IPython.utils.path import get_ipython_module_path
+from IPython.utils.process import find_cmd, pycmd2argv
+from IPython.kernel.twistedutil import (
+    gatherBoth,
+    make_deferred,
+    sleep_deferred
+)
 from IPython.kernel.winhpcjob import (
-    WinHPCJob, WinHPCTask,
     IPControllerTask, IPEngineTask,
     IPControllerJob, IPEngineSetJob
 )
@@ -38,46 +42,23 @@ from twisted.internet.error import ProcessDone, ProcessTerminated
 from twisted.python import log
 from twisted.python.failure import Failure
 
+
 #-----------------------------------------------------------------------------
-# Utilities
+# Paths to the kernel apps
 #-----------------------------------------------------------------------------
 
 
-def find_controller_cmd():
-    """Find the command line ipcontroller program in a cross platform way."""
-    if sys.platform == 'win32':
-        # This logic is needed because the ipcontroller script doesn't
-        # always get installed in the same way or in the same location.
-        from IPython.kernel import ipcontrollerapp
-        script_location = ipcontrollerapp.__file__.replace('.pyc', '.py')
-        # The -u option here turns on unbuffered output, which is required
-        # on Win32 to prevent wierd conflict and problems with Twisted.
-        # Also, use sys.executable to make sure we are picking up the 
-        # right python exe.
-        cmd = [sys.executable, '-u', script_location]
-    else:
-        # ipcontroller has to be on the PATH in this case.
-        cmd = ['ipcontroller']
-    return cmd
+ipcluster_cmd_argv = pycmd2argv(get_ipython_module_path(
+    'IPython.kernel.ipclusterapp'
+))
 
+ipengine_cmd_argv = pycmd2argv(get_ipython_module_path(
+    'IPython.kernel.ipengineapp'
+))
 
-def find_engine_cmd():
-    """Find the command line ipengine program in a cross platform way."""
-    if sys.platform == 'win32':
-        # This logic is needed because the ipengine script doesn't
-        # always get installed in the same way or in the same location.
-        from IPython.kernel import ipengineapp
-        script_location = ipengineapp.__file__.replace('.pyc', '.py')
-        # The -u option here turns on unbuffered output, which is required
-        # on Win32 to prevent wierd conflict and problems with Twisted.
-        # Also, use sys.executable to make sure we are picking up the 
-        # right python exe.
-        cmd = [sys.executable, '-u', script_location]
-    else:
-        # ipcontroller has to be on the PATH in this case.
-        cmd = ['ipengine']
-    return cmd
-
+ipcontroller_cmd_argv = pycmd2argv(get_ipython_module_path(
+    'IPython.kernel.ipcontrollerapp'
+))
 
 #-----------------------------------------------------------------------------
 # Base launchers and errors
@@ -333,7 +314,7 @@ class LocalProcessLauncher(BaseLauncher):
 class LocalControllerLauncher(LocalProcessLauncher):
     """Launch a controller as a regular external process."""
 
-    controller_cmd = List(find_controller_cmd(), config=True)
+    controller_cmd = List(ipcontroller_cmd_argv, config=True)
     # Command line arguments to ipcontroller.
     controller_args = List(['--log-to-file','--log-level', '40'], config=True)
 
@@ -351,7 +332,7 @@ class LocalControllerLauncher(LocalProcessLauncher):
 class LocalEngineLauncher(LocalProcessLauncher):
     """Launch a single engine as a regular externall process."""
 
-    engine_cmd = List(find_engine_cmd(), config=True)
+    engine_cmd = List(ipengine_cmd_argv, config=True)
     # Command line arguments for ipengine.
     engine_args = List(
         ['--log-to-file','--log-level', '40'], config=True
@@ -462,7 +443,7 @@ class MPIExecLauncher(LocalProcessLauncher):
 class MPIExecControllerLauncher(MPIExecLauncher):
     """Launch a controller using mpiexec."""
 
-    controller_cmd = List(find_controller_cmd(), config=True)
+    controller_cmd = List(ipcontroller_cmd_argv, config=True)
     # Command line arguments to ipcontroller.
     controller_args = List(['--log-to-file','--log-level', '40'], config=True)
     n = Int(1, config=False)
@@ -481,7 +462,7 @@ class MPIExecControllerLauncher(MPIExecLauncher):
 
 class MPIExecEngineSetLauncher(MPIExecLauncher):
 
-    engine_cmd = List(find_engine_cmd(), config=True)
+    engine_cmd = List(ipengine_cmd_argv, config=True)
     # Command line arguments for ipengine.
     engine_args = List(
         ['--log-to-file','--log-level', '40'], config=True
@@ -831,28 +812,10 @@ class PBSEngineSetLauncher(PBSLauncher):
 #-----------------------------------------------------------------------------
 
 
-def find_ipcluster_cmd():
-    """Find the command line ipcluster program in a cross platform way."""
-    if sys.platform == 'win32':
-        # This logic is needed because the ipcluster script doesn't
-        # always get installed in the same way or in the same location.
-        from IPython.kernel import ipclusterapp
-        script_location = ipclusterapp.__file__.replace('.pyc', '.py')
-        # The -u option here turns on unbuffered output, which is required
-        # on Win32 to prevent wierd conflict and problems with Twisted.
-        # Also, use sys.executable to make sure we are picking up the 
-        # right python exe.
-        cmd = [sys.executable, '-u', script_location]
-    else:
-        # ipcontroller has to be on the PATH in this case.
-        cmd = ['ipcluster']
-    return cmd
-
-
 class IPClusterLauncher(LocalProcessLauncher):
     """Launch the ipcluster program in an external process."""
 
-    ipcluster_cmd = List(find_ipcluster_cmd(), config=True)
+    ipcluster_cmd = List(ipcluster_cmd_argv, config=True)
     # Command line arguments to pass to ipcluster.
     ipcluster_args = List(
         ['--clean-logs', '--log-to-file', '--log-level', '40'], config=True)

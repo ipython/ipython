@@ -5,13 +5,14 @@
 # Std lib
 import inspect
 import sys
+import unittest
 
 # Third party
 import nose.tools as nt
 
 # Our own
 from IPython.testing import decorators as dec
-
+from IPython.testing.ipunittest import ParametricTestCase
 
 #-----------------------------------------------------------------------------
 # Utilities
@@ -40,6 +41,30 @@ def getargspec(obj):
 
 #-----------------------------------------------------------------------------
 # Testing functions
+
+@dec.as_unittest
+def trivial():
+    """A trivial test"""
+    pass
+
+# Some examples of parametric tests.
+
+def is_smaller(i,j):
+    assert i<j,"%s !< %s" % (i,j)
+
+class Tester(ParametricTestCase):
+
+    def test_parametric(self):
+        yield is_smaller(3, 4)
+        x, y = 1, 2
+        yield is_smaller(x, y)
+
+@dec.parametric
+def test_par_standalone():
+    yield is_smaller(3, 4)
+    x, y = 1, 2
+    yield is_smaller(x, y)
+
 
 @dec.skip
 def test_deliberately_broken():
@@ -89,11 +114,12 @@ def test_skip_dt_decorator():
     # Fetch the docstring from doctest_bad after decoration.
     val = doctest_bad.__doc__
     
-    assert check==val,"doctest_bad docstrings don't match"
+    nt.assert_equal(check,val,"doctest_bad docstrings don't match")
+
 
 # Doctest skipping should work for class methods too
-class foo(object):
-    """Foo
+class FooClass(object):
+    """FooClass
 
     Example:
 
@@ -103,22 +129,22 @@ class foo(object):
 
     @dec.skip_doctest
     def __init__(self,x):
-        """Make a foo.
+        """Make a FooClass.
 
         Example:
 
-        >>> f = foo(3)
+        >>> f = FooClass(3)
         junk
         """
-        print 'Making a foo.'
+        print 'Making a FooClass.'
         self.x = x
         
     @dec.skip_doctest
     def bar(self,y):
         """Example:
 
-        >>> f = foo(3)
-        >>> f.bar(0)
+        >>> ff = FooClass(3)
+        >>> ff.bar(0)
         boom!
         >>> 1/0
         bam!
@@ -128,13 +154,12 @@ class foo(object):
     def baz(self,y):
         """Example:
 
-        >>> f = foo(3)
-        Making a foo.
-        >>> f.baz(3)
+        >>> ff2 = FooClass(3)
+        Making a FooClass.
+        >>> ff2.baz(3)
         True
         """
         return self.x==y
-
 
 
 def test_skip_dt_decorator2():
@@ -159,3 +184,36 @@ def test_win32():
 @dec.skip_osx
 def test_osx():
     nt.assert_not_equals(sys.platform,'darwin',"This test can't run under osx")
+
+
+# Verify that the same decorators work for methods.
+# Note: this code is identical to that in test_decorators_trial, but that one
+# uses twisted's unittest, not the one from the stdlib, which we are using
+# here. While somewhat redundant, we want to check both with the stdlib and
+# with twisted, so the duplication is OK.
+class TestDecoratorsTrial(unittest.TestCase):
+    
+    @dec.skip()
+    def test_deliberately_broken(self):
+        """A deliberately broken test - we want to skip this one."""
+        1/0
+
+    @dec.skip('Testing the skip decorator')
+    def test_deliberately_broken2(self):
+        """Another deliberately broken test - we want to skip this one."""
+        1/0
+
+    @dec.skip_linux
+    def test_linux(self):
+        self.assertNotEquals(sys.platform, 'linux2',
+                             "This test can't run under linux")
+
+    @dec.skip_win32
+    def test_win32(self):
+        self.assertNotEquals(sys.platform, 'win32',
+                             "This test can't run under windows")
+
+    @dec.skip_osx
+    def test_osx(self):
+        self.assertNotEquals(sys.platform, 'darwin',
+                             "This test can't run under osx")

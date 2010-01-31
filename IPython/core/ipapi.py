@@ -18,8 +18,6 @@ has been made into a component, this module will be sent to deathrow.
 # Imports
 #-----------------------------------------------------------------------------
 
-from IPython.core.error import TryNext, UsageError, IPythonCoreError
-
 #-----------------------------------------------------------------------------
 # Classes and functions
 #-----------------------------------------------------------------------------

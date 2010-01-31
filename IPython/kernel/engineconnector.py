@@ -17,8 +17,7 @@
 import os
 import cPickle as pickle
 
-from twisted.python import log, failure
-from twisted.internet import defer
+from twisted.python import log
 from twisted.internet.defer import inlineCallbacks, returnValue
 
 from IPython.kernel.fcutil import find_furl, validate_furl_or_file

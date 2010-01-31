@@ -12,23 +12,20 @@ Classes for handling input/output prompts.
 #*****************************************************************************
 
 #****************************************************************************
-# Required modules
+
 import __builtin__
 import os
+import re
 import socket
 import sys
-import time
 
-# IPython's own
-from IPython.utils import coloransi
 from IPython.core import release
 from IPython.external.Itpl import ItplNS
 from IPython.core.error import TryNext
-from IPython.utils.ipstruct import Struct
-from IPython.core.macro import Macro
+from IPython.utils import coloransi
 import IPython.utils.generics
-
-from IPython.utils.genutils import *
+from IPython.utils.warn import warn
+from IPython.utils.io import Term
 
 #****************************************************************************
 #Color schemes for Prompts.
@@ -131,8 +128,14 @@ prompt_specials_color = {
     # Prompt/history count, with the actual digits replaced by dots.  Used
     # mainly in continuation prompts (prompt_in2)
     #r'\D': '${"."*len(str(self.cache.prompt_count))}',
-    # More robust form of the above expression, that uses __builtins__
-    r'\D': '${"."*__builtins__.len(__builtins__.str(self.cache.prompt_count))}',
+
+    # More robust form of the above expression, that uses the __builtin__
+    # module.  Note that we can NOT use __builtins__ (note the 's'), because
+    # that can either be a dict or a module, and can even mutate at runtime,
+    # depending on the context (Python makes no guarantees on it).  In
+    # contrast, __builtin__ is always a module object, though it must be
+    # explicitly imported.
+    r'\D': '${"."*__builtin__.len(__builtin__.str(self.cache.prompt_count))}',
 
     # Current working directory
     r'\w': '${os.getcwd()}',
@@ -215,6 +218,7 @@ def str_safe(arg):
             out = '<ERROR: %s>' % msg
     except Exception,msg:
         out = '<ERROR: %s>' % msg
+        #raise  # dbg
     return out
 
 class BasePrompt(object):
@@ -549,18 +553,23 @@ class CachedOutput:
             # print "Got prompt: ", outprompt
             if self.do_full_cache:
                 cout_write(outprompt)
-            else:
-                print "self.do_full_cache = False"
 
-            # and now call a possibly user-defined print mechanism
-            manipulated_val = self.display(arg)
+            # and now call a possibly user-defined print mechanism. Note that
+            # self.display typically prints as a side-effect, we don't do any
+            # printing to stdout here.
+            try:
+                manipulated_val = self.display(arg)
+            except TypeError:
+                # If the user's display hook didn't return a string we can
+                # print, we're done.  Happens commonly if they return None
+                cout_write('\n')
+                return
             
             # user display hooks can change the variable to be stored in
             # output history
-            
             if manipulated_val is not None:
                 arg = manipulated_val
-                
+
             # avoid recursive reference when displaying _oh/Out
             if arg is not self.user_ns['_oh']:
                 self.update(arg)

@@ -28,9 +28,9 @@ import sys
 from IPython.core.component import Component
 from IPython.core.splitinput import split_user_input
 
-from IPython.utils.traitlets import CBool, List, Instance
-from IPython.utils.genutils import error
+from IPython.utils.traitlets import List
 from IPython.utils.autoattr import auto_attr
+from IPython.utils.warn import warn, error
 
 #-----------------------------------------------------------------------------
 # Utilities

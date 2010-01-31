@@ -30,15 +30,15 @@ rid of that dependency, we could move it there.
 import os
 import re
 import sys
+import tempfile
 
 from IPython.core import ipapi
 from IPython.core.error import TryNext
-from IPython.utils.genutils import (
-    chop, Term, USE_CURSES
-)
-
-if os.name == "nt":
-    from IPython.utils.winconsole import get_console_size
+from IPython.utils.cursesimport import use_curses
+from IPython.utils.data import chop
+from IPython.utils.io import Term
+from IPython.utils.process import xsys
+from IPython.utils.terminal import get_terminal_size
 
 
 #-----------------------------------------------------------------------------
@@ -47,7 +47,7 @@ if os.name == "nt":
 
 esc_re = re.compile(r"(\x1b[^m]+m)")
 
-def page_dumb(strng,start=0,screen_lines=25):
+def page_dumb(strng, start=0, screen_lines=25):
     """Very dumb 'pager' in Python, for when nothing else works.
 
     Only moves forward, same interface as page(), except for pager_cmd and
@@ -69,8 +69,8 @@ def page_dumb(strng,start=0,screen_lines=25):
                 last_escape = esc_list[-1]
         print >>Term.cout, last_escape + os.linesep.join(screens[-1])
 
-#----------------------------------------------------------------------------
-def page(strng,start=0,screen_lines=0,pager_cmd = None):
+
+def page(strng, start=0, screen_lines=0, pager_cmd=None):
     """Print a string, piping through a pager after a certain length.
 
     The screen_lines parameter specifies the number of *usable* lines of your
@@ -93,7 +93,7 @@ def page(strng,start=0,screen_lines=0,pager_cmd = None):
 
     # Some routines may auto-compute start offsets incorrectly and pass a
     # negative value.  Offset to 0 for robustness.
-    start = max(0,start)
+    start = max(0, start)
 
     # first, try the hook
     ip = ipapi.get()
@@ -120,19 +120,16 @@ def page(strng,start=0,screen_lines=0,pager_cmd = None):
     # terminals. If someone later feels like refining it, it's not hard.
     numlines = max(num_newlines,int(len_str/80)+1)
 
-    if os.name == "nt":
-        screen_lines_def = get_console_size(defaulty=25)[1]
-    else:
-        screen_lines_def = 25 # default value if we can't auto-determine
+    screen_lines_def = get_terminal_size()[1]
 
     # auto-determine screen size
     if screen_lines <= 0:
         if TERM=='xterm' or TERM=='xterm-color':
-            use_curses = USE_CURSES
+            local_use_curses = use_curses
         else:
             # curses causes problems on many terminals other than xterm.
-            use_curses = False
-        if use_curses:
+            local_use_curses = False
+        if local_use_curses:
             import termios
             import curses
             # There is a bug in curses, where *sometimes* it fails to properly
@@ -201,8 +198,8 @@ def page(strng,start=0,screen_lines=0,pager_cmd = None):
         if retval is not None:
             page_dumb(strng,screen_lines=screen_lines)
 
-#----------------------------------------------------------------------------
-def page_file(fname,start = 0, pager_cmd = None):
+
+def page_file(fname, start=0, pager_cmd=None):
     """Page a file, using an optional pager command and starting line.
     """
 
@@ -221,12 +218,12 @@ def page_file(fname,start = 0, pager_cmd = None):
         except:
             print 'Unable to show file',`fname`
 
-#----------------------------------------------------------------------------
-def get_pager_cmd(pager_cmd = None):
+
+def get_pager_cmd(pager_cmd=None):
     """Return a pager command.
 
-    Makes some attempts at finding an OS-correct one."""
-
+    Makes some attempts at finding an OS-correct one.
+    """
     if os.name == 'posix':
         default_pager_cmd = 'less -r'  # -r for color control sequences
     elif os.name in ['nt','dos']:
@@ -239,8 +236,8 @@ def get_pager_cmd(pager_cmd = None):
             pager_cmd = default_pager_cmd
     return pager_cmd
 
-#-----------------------------------------------------------------------------
-def get_pager_start(pager,start):
+
+def get_pager_start(pager, start):
     """Return the string for paging files with an offset.
 
     This is the '+N' argument which less and more (under Unix) accept.
@@ -255,8 +252,8 @@ def get_pager_start(pager,start):
         start_string = ''
     return start_string
 
-#----------------------------------------------------------------------------
-# (X)emacs on W32 doesn't like to be bypassed with msvcrt.getch()
+
+# (X)emacs on win32 doesn't like to be bypassed with msvcrt.getch()
 if os.name == 'nt' and os.environ.get('TERM','dumb') != 'emacs':
     import msvcrt
     def page_more():
@@ -280,7 +277,7 @@ else:
         else:
             return True
 
-#----------------------------------------------------------------------------
+
 def snip_print(str,width = 75,print_full = 0,header = ''):
     """Print a string snipping the midsection to fit in width.
 
@@ -306,3 +303,4 @@ def snip_print(str,width = 75,print_full = 0,header = ''):
         if raw_input(header+' Snipped. View (y/n)? [N]').lower() == 'y':
             page(str)
     return snip
+

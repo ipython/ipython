@@ -265,9 +265,13 @@ class FCServiceFactory(AdaptedConfiguredObjectFactory):
         """Register the reference with the FURL file.
 
         The FURL file is created and then moved to make sure that when the
-        file appears, the buffer has been flushed and the file closed.
+        file appears, the buffer has been flushed and the file closed. This
+        is not done if we are re-using FURLS however.
         """
-        temp_furl_file = get_temp_furlfile(furl_file)
-        self.tub.registerReference(ref, furlFile=temp_furl_file)
-        os.rename(temp_furl_file, furl_file)
+        if self.reuse_furls:
+            self.tub.registerReference(ref, furlFile=furl_file)
+        else:
+            temp_furl_file = get_temp_furlfile(furl_file)
+            self.tub.registerReference(ref, furlFile=temp_furl_file)
+            os.rename(temp_furl_file, furl_file)
 

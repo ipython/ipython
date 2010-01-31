@@ -17,6 +17,7 @@ __test__ = {}
 #-------------------------------------------------------------------------------
 # Imports
 #-------------------------------------------------------------------------------
+
 from twisted.python import failure
 
 from IPython.kernel.core import error
@@ -28,6 +29,7 @@ from IPython.kernel.core import error
 class KernelError(error.IPythonError):
     pass
 
+
 class NotDefined(KernelError):
     def __init__(self, name):
         self.name = name
@@ -38,77 +40,101 @@ class NotDefined(KernelError):
     
     __str__ = __repr__
 
+
 class QueueCleared(KernelError):
     pass
+
 
 class IdInUse(KernelError):
     pass
 
+
 class ProtocolError(KernelError):
     pass
+
 
 class ConnectionError(KernelError):
     pass
 
+
 class InvalidEngineID(KernelError):
     pass
-    
+
+
 class NoEnginesRegistered(KernelError):
     pass
-    
+
+
 class InvalidClientID(KernelError):
     pass
-    
+
+
 class InvalidDeferredID(KernelError):
     pass
-    
+
+
 class SerializationError(KernelError):
     pass
-    
+
+
 class MessageSizeError(KernelError):
     pass
-    
+
+
 class PBMessageSizeError(MessageSizeError):
     pass
-    
+
+
 class ResultNotCompleted(KernelError):
     pass
-    
+
+
 class ResultAlreadyRetrieved(KernelError):
     pass
-    
+
 class ClientError(KernelError):
     pass
+
 
 class TaskAborted(KernelError):
     pass
 
+
 class TaskTimeout(KernelError):
     pass
+
 
 class NotAPendingResult(KernelError):
     pass
 
+
 class UnpickleableException(KernelError):
     pass
+
 
 class AbortedPendingDeferredError(KernelError):
     pass
 
+
 class InvalidProperty(KernelError):
     pass
+
 
 class MissingBlockArgument(KernelError):
     pass
 
+
 class StopLocalExecution(KernelError):
     pass
+
 
 class SecurityError(KernelError):
     pass
 
+
 class FileTimeoutError(KernelError):
     pass
+
 
 class TaskRejectError(KernelError):
     """Exception to raise when a task should be rejected by an engine.
@@ -123,6 +149,7 @@ class TaskRejectError(KernelError):
     tasks have full access to the user's namespace on the engines and the
     properties don't have to be managed or tested by the controller.
     """
+
 
 class CompositeError(KernelError):
     def __init__(self, message, elist):
@@ -178,6 +205,7 @@ class CompositeError(KernelError):
         else:
             raise et, ev, etb
 
+
 def collect_exceptions(rlist, method):
     elist = []
     for r in rlist:
@@ -203,5 +231,4 @@ def collect_exceptions(rlist, method):
             raise CompositeError(msg, elist)
         except CompositeError, e:
             raise e
-            
 

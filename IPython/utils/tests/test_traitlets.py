@@ -22,15 +22,11 @@ Authors:
 # Imports
 #-----------------------------------------------------------------------------
 
-import sys
-import os
-
-
 from unittest import TestCase
 
 from IPython.utils.traitlets import (
     HasTraitlets, MetaHasTraitlets, TraitletType, Any,
-    Int, Long, Float, Complex, Str, Unicode, Bool, TraitletError,
+    Int, Long, Float, Complex, Str, Unicode, TraitletError,
     Undefined, Type, This, Instance
 )
 

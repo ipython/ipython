@@ -1,15 +1,18 @@
 # -*- coding: utf-8 -*-
 """
 A module to change reload() so that it acts recursively.
-To enable it type:
-    >>> import __builtin__, deepreload
-    >>> __builtin__.reload = deepreload.reload
+To enable it type::
 
-You can then disable it with:
-    >>> __builtin__.reload = deepreload.original_reload
+    import __builtin__, deepreload
+    __builtin__.reload = deepreload.reload
+
+You can then disable it with::
+
+    __builtin__.reload = deepreload.original_reload
     
-Alternatively, you can add a dreload builtin alongside normal reload with:
-    >>> __builtin__.dreload = deepreload.reload
+Alternatively, you can add a dreload builtin alongside normal reload with::
+
+    __builtin__.dreload = deepreload.reload
     
 This code is almost entirely based on knee.py from the standard library.
 """

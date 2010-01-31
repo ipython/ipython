@@ -387,7 +387,7 @@ class EngineService(object, service.Service):
             # tb=traceback object
             et,ev,tb = sys.exc_info()
             # This call adds attributes to the exception value
-            et,ev,tb = self.shell.formatTraceback(et,ev,tb,msg)
+            et,ev,tb = self.shell.format_traceback(et,ev,tb,msg)
             # Add another attribute
             ev._ipython_engine_info = msg
             f = failure.Failure(ev,et,None)
@@ -444,7 +444,7 @@ class EngineService(object, service.Service):
         msg = {'engineid':self.id,
                'method':'get_result',
                'args':[repr(i)]}
-        d = self.executeAndRaise(msg, self.shell.getCommand, i)
+        d = self.executeAndRaise(msg, self.shell.get_command, i)
         d.addCallback(self.addIDToResult)
         return d
     
@@ -877,7 +877,7 @@ class ThreadedEngineService(EngineService):
             # tb=traceback object
             et,ev,tb = sys.exc_info()
             # This call adds attributes to the exception value
-            et,ev,tb = self.shell.formatTraceback(et,ev,tb,msg)
+            et,ev,tb = self.shell.format_traceback(et,ev,tb,msg)
             # Add another attribute
             
             # Create a new exception with the new attributes

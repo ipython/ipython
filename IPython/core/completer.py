@@ -44,7 +44,6 @@ its input.
 
 - When the original stdin is not a tty device, GNU readline is never
 used, and this module (and the readline module) are silently inactive.
-
 """
 
 #*****************************************************************************
@@ -54,41 +53,81 @@ used, and this module (and the readline module) are silently inactive.
 # proper procedure is to maintain its copyright as belonging to the Python
 # Software Foundation (in addition to my own, for all new code).
 #
+#       Copyright (C) 2008-2010 IPython Development Team
+#       Copyright (C) 2001-2007 Fernando Perez. <fperez@colorado.edu>
 #       Copyright (C) 2001 Python Software Foundation, www.python.org
-#       Copyright (C) 2001-2006 Fernando Perez. <fperez@colorado.edu>
 #
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
 #
 #*****************************************************************************
 
+#-----------------------------------------------------------------------------
+# Imports
+#-----------------------------------------------------------------------------
+
 import __builtin__
 import __main__
 import glob
+import inspect
 import itertools
 import keyword
 import os
 import re
 import shlex
 import sys
-import types
 
 from IPython.core.error import TryNext
 from IPython.core.prefilter import ESC_MAGIC
-
-import IPython.utils.rlineimpl as readline
-from IPython.utils.ipstruct import Struct
 from IPython.utils import generics
+from IPython.utils.frame import debugx
+from IPython.utils.dir2 import dir2
+import IPython.utils.rlineimpl as readline
 
-# Python 2.4 offers sets as a builtin
-try:
-    set()
-except NameError:
-    from sets import Set as set
+#-----------------------------------------------------------------------------
+# Globals
+#-----------------------------------------------------------------------------
 
-from IPython.utils.genutils import debugx, dir2
-
+# Public API
 __all__ = ['Completer','IPCompleter']
+
+if sys.platform == 'win32':
+    PROTECTABLES = ' '
+else:
+    PROTECTABLES = ' ()'
+
+#-----------------------------------------------------------------------------
+# Main functions and classes
+#-----------------------------------------------------------------------------
+
+def protect_filename(s):
+    """Escape a string to protect certain characters."""
+    
+    return "".join([(ch in PROTECTABLES and '\\' + ch or ch)
+                    for ch in s])
+
+
+def single_dir_expand(matches):
+    "Recursively expand match lists containing a single dir."
+
+    if len(matches) == 1 and os.path.isdir(matches[0]):
+        # Takes care of links to directories also.  Use '/'
+        # explicitly, even under Windows, so that name completions
+        # don't end up escaped.
+        d = matches[0]
+        if d[-1] in ['/','\\']:
+            d = d[:-1]
+
+        subdirs = os.listdir(d)
+        if subdirs:
+            matches = [ (d + '/' + p) for p in subdirs]
+            return single_dir_expand(matches)
+        else:
+            return matches
+    else:
+        return matches
+
+class Bunch: pass
 
 class Completer:
     def __init__(self,namespace=None,global_namespace=None):
@@ -152,6 +191,7 @@ class Completer:
         defined in self.namespace or self.global_namespace that match.
 
         """
+        #print 'Completer->global_matches, txt=%r' % text # dbg
         matches = []
         match_append = matches.append
         n = len(text)
@@ -177,8 +217,8 @@ class Completer:
         with a __getattr__ hook is evaluated.
 
         """
-        import re
 
+        #print 'Completer->attr_matches, txt=%r' % text # dbg
         # Another option, seems to work great. Catches things like ''.<tab>
         m = re.match(r"(\S+(\.\w+)*)\.(\w*)$", text)
 
@@ -204,6 +244,7 @@ class Completer:
         n = len(attr)
         res = ["%s.%s" % (expr, w) for w in words if w[:n] == attr ]
         return res
+
 
 class IPCompleter(Completer):
     """Extension of the completer class with IPython-specific features"""
@@ -235,7 +276,7 @@ class IPCompleter(Completer):
         to complete. """
 
         Completer.__init__(self,namespace,global_namespace)
-        self.magic_prefix = shell.name+'.magic_'
+
         self.magic_escape = ESC_MAGIC
         self.readline = readline
         delims = self.readline.get_completer_delims()
@@ -244,7 +285,8 @@ class IPCompleter(Completer):
         self.get_line_buffer = self.readline.get_line_buffer
         self.get_endidx = self.readline.get_endidx
         self.omit__names = omit__names
-        self.merge_completions = shell.readline_merge_completions        
+        self.merge_completions = shell.readline_merge_completions
+        self.shell = shell.shell
         if alias_table is None:
             alias_table = {}
         self.alias_table = alias_table
@@ -263,11 +305,13 @@ class IPCompleter(Completer):
             self.clean_glob = self._clean_glob_win32
         else:
             self.clean_glob = self._clean_glob
+
+        # All active matcher routines for completion
         self.matchers = [self.python_matches,
                          self.file_matches,
+                         self.magic_matches,
                          self.alias_matches,
                          self.python_func_kw_matches]
-
     
     # Code contributed by Alex Schmolck, for ipython/emacs integration
     def all_completions(self, text):
@@ -278,9 +322,8 @@ class IPCompleter(Completer):
         try:
             for i in xrange(sys.maxint):
                 res = self.complete(text, i)
-
-                if not res: break
-
+                if not res:
+                    break
                 comp_append(res)
         #XXX workaround for ``notDefined.<tab>``
         except NameError:
@@ -316,41 +359,12 @@ class IPCompleter(Completer):
         # don't want to treat as delimiters in filename matching
         # when escaped with backslash
 
-        if sys.platform == 'win32':
-            protectables = ' '
-        else:
-            protectables = ' ()'
-
         if text.startswith('!'):
             text = text[1:]
             text_prefix = '!'
         else:
             text_prefix = ''
             
-        def protect_filename(s):
-            return "".join([(ch in protectables and '\\' + ch or ch)
-                            for ch in s])
-
-        def single_dir_expand(matches):
-            "Recursively expand match lists containing a single dir."
-            
-            if len(matches) == 1 and os.path.isdir(matches[0]):
-                # Takes care of links to directories also.  Use '/'
-                # explicitly, even under Windows, so that name completions
-                # don't end up escaped.
-                d = matches[0]
-                if d[-1] in ['/','\\']:
-                    d = d[:-1]
-
-                subdirs = os.listdir(d)
-                if subdirs:
-                    matches = [ (d + '/' + p) for p in subdirs]
-                    return single_dir_expand(matches)
-                else:
-                    return matches
-            else:
-                return matches
-        
         lbuf = self.lbuf
         open_quotes = 0  # track strings with open quotes
         try:
@@ -402,13 +416,24 @@ class IPCompleter(Completer):
         #print 'mm',matches  # dbg
         return single_dir_expand(matches)
 
+    def magic_matches(self, text):
+        """Match magics"""
+        #print 'Completer->magic_matches:',text,'lb',self.lbuf # dbg
+        # Get all shell magics now rather than statically, so magics loaded at
+        # runtime show up too
+        magics = self.shell.lsmagic()
+        pre = self.magic_escape
+        baretext = text.lstrip(pre)
+        return [ pre+m for m in magics if m.startswith(baretext)]
+
     def alias_matches(self, text):
         """Match internal system aliases"""        
         #print 'Completer->alias_matches:',text,'lb',self.lbuf # dbg
         
         # if we are not in the first 'item', alias matching 
         # doesn't make sense - unless we are starting with 'sudo' command.
-        if ' ' in self.lbuf.lstrip() and not self.lbuf.lstrip().startswith('sudo'):
+        if ' ' in self.lbuf.lstrip() and \
+               not self.lbuf.lstrip().startswith('sudo'):
             return []
         text = os.path.expanduser(text)
         aliases =  self.alias_table.keys()
@@ -420,7 +445,7 @@ class IPCompleter(Completer):
     def python_matches(self,text):
         """Match attributes or global python names"""
 
-        #print 'Completer->python_matches, txt=<%s>' % text # dbg
+        #print 'Completer->python_matches, txt=%r' % text # dbg
         if "." in text:
             try:
                 matches = self.attr_matches(text)
@@ -439,11 +464,7 @@ class IPCompleter(Completer):
                 matches = []
         else:
             matches = self.global_matches(text)
-            # this is so completion finds magics when automagic is on:
-            if (matches == [] and 
-                 not text.startswith(os.sep) and
-                 not ' ' in self.lbuf):
-                matches = self.attr_matches(self.magic_prefix+text)
+
         return matches
 
     def _default_arguments(self, obj):
@@ -514,9 +535,11 @@ class IPCompleter(Completer):
             callableMatches = self.attr_matches('.'.join(ids[::-1]))
         argMatches = []
         for callableMatch in callableMatches:
-            try: namedArgs = self._default_arguments(eval(callableMatch,
+            try:
+                namedArgs = self._default_arguments(eval(callableMatch,
                                                          self.namespace))
-            except: continue
+            except:
+                continue
             for namedArg in namedArgs:
                 if namedArg.startswith(text):
                     argMatches.append("%s=" %namedArg)
@@ -528,7 +551,7 @@ class IPCompleter(Completer):
         if not line.strip():
             return None
 
-        event = Struct()
+        event = Bunch()
         event.line = line
         event.symbol = text
         cmd = line.split(None,1)[0]
@@ -540,11 +563,9 @@ class IPCompleter(Completer):
             try_magic = self.custom_completers.s_matches(
               self.magic_escape + cmd)            
         else:
-            try_magic = []
+            try_magic = []        
         
-        
-        for c in itertools.chain(
-                                 self.custom_completers.s_matches(cmd),
+        for c in itertools.chain(self.custom_completers.s_matches(cmd),
                                  try_magic,
                                  self.custom_completers.flat_matches(self.lbuf)):
             #print "try",c # dbg
@@ -555,7 +576,8 @@ class IPCompleter(Completer):
                 if withcase:
                     return withcase
                 # if none, then case insensitive ones are ok too
-                return [r for r in res if r.lower().startswith(text.lower())]
+                text_low = text.lower()
+                return [r for r in res if r.lower().startswith(text_low)]
             except TryNext:
                 pass
             
@@ -598,14 +620,11 @@ class IPCompleter(Completer):
             return None
         
         magic_escape = self.magic_escape
-        magic_prefix = self.magic_prefix
 
         self.lbuf = self.full_lbuf[:self.get_endidx()]
 
         try:
-            if text.startswith(magic_escape):
-                text = text.replace(magic_escape,magic_prefix)
-            elif text.startswith('~'):
+            if text.startswith('~'):
                 text = os.path.expanduser(text)
             if state == 0:
                 custom_res = self.dispatch_custom_completer(text)
@@ -625,13 +644,10 @@ class IPCompleter(Completer):
                             self.matches = matcher(text)
                             if self.matches:
                                 break
-                    def uniq(alist):
-                        set = {}
-                        return [set.setdefault(e,e) for e in alist if e not in set]
-                    self.matches = uniq(self.matches)                
+                    self.matches = list(set(self.matches))
             try:
-                ret = self.matches[state].replace(magic_prefix,magic_escape)                
-                return ret
+                #print "MATCH: %r" % self.matches[state] # dbg
+                return self.matches[state]
             except IndexError:
                 return None
         except:

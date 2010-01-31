@@ -33,7 +33,7 @@ from IPython.kernel.twistedutil import (
     sleep_deferred
 )
 from IPython.utils.importstring import import_item
-from IPython.utils.genutils import get_ipython_dir
+from IPython.utils.path import get_ipython_dir
 
 from twisted.internet import defer
 from twisted.internet.defer import inlineCallbacks, returnValue

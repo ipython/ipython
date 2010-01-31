@@ -18,7 +18,7 @@ overhead of a single task is about 0.001-0.01 seconds.
 import random, sys
 from optparse import OptionParser
 
-from IPython.genutils import time
+from IPython.utils.timing import time
 from IPython.kernel import client
 
 def main():
@@ -51,7 +51,7 @@ def main():
     print tc.task_controller
     rc.block=True
     nengines = len(rc.get_ids())
-    rc.execute('from IPython.genutils import time')
+    rc.execute('from IPython.utils.timing import time')
 
     # the jobs should take a random time within a range
     times = [random.random()*(opts.tmax-opts.tmin)+opts.tmin for i in range(opts.n)]

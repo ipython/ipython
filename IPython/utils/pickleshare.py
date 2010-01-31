@@ -37,7 +37,6 @@ from IPython.external.path import path as Path
 import os,stat,time
 import cPickle as pickle
 import UserDict
-import warnings
 import glob
 
 def gethashfile(key):

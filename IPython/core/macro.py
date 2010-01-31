@@ -7,7 +7,7 @@
 #  the file COPYING, distributed as part of this software.
 #*****************************************************************************
 
-from IPython.utils.genutils import Term
+from IPython.utils.io import Term
 from IPython.core.autocall import IPyAutocall
 
 class Macro(IPyAutocall):

@@ -19,17 +19,14 @@ __docformat__ = "restructuredtext en"
 #-------------------------------------------------------------------------------
 
 import cPickle as pickle
-import xmlrpclib, copy
 
 from zope.interface import Interface, implements
 from twisted.internet import defer
-from twisted.python import components, failure
+from twisted.python import components
 
 from foolscap import Referenceable
 
-from IPython.kernel.twistedutil import blockingCallFromThread
-from IPython.kernel import error, task as taskmodule, taskclient
-from IPython.kernel.pickleutil import can, uncan
+from IPython.kernel import task as taskmodule
 from IPython.kernel.clientinterfaces import (
     IFCClientInterfaceProvider, 
     IBlockingClientAdaptor

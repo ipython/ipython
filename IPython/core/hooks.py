@@ -43,8 +43,11 @@ somewhere in your configuration files or ipython command line.
 
 import os, bisect
 import sys
-from IPython.utils.genutils import Term, shell
+
 from pprint import PrettyPrinter
+
+from IPython.utils.io import Term
+from IPython.utils.process import shell
 
 from IPython.core.error import TryNext
 
@@ -137,8 +140,7 @@ class CommandChainDispatcher:
         for prio,cmd in self.chain:
             #print "prio",prio,"cmd",cmd #dbg
             try:
-                ret = cmd(*args, **kw)
-                return ret
+                return cmd(*args, **kw)
             except TryNext, exc:
                 if exc.args or exc.kwargs:
                     args = exc.args

@@ -54,7 +54,7 @@ from enthought.traits import api as T
 # IPython imports
 from IPython.core.error import TryNext
 from IPython.core.ipapi import get as ipget
-from IPython.utils.genutils import dir2
+from IPython.utils.dir2 import dir2
 try:
     set
 except:

@@ -5,7 +5,8 @@
 import fnmatch
 import os
 
-from IPython.utils.genutils import Term, ask_yes_no, warn
+from IPython.utils.io import Term, ask_yes_no
+from IPython.utils.warn import warn
 from IPython.core import ipapi
 
 def magic_history(self, parameter_s = ''):
@@ -14,19 +15,24 @@ def magic_history(self, parameter_s = ''):
     %history       -> print at most 40 inputs (some may be multi-line)\\
     %history n     -> print at most n inputs\\
     %history n1 n2 -> print inputs between n1 and n2 (n2 not included)\\
-    
-    Each input's number <n> is shown, and is accessible as the
-    automatically generated variable _i<n>.  Multi-line statements are
-    printed starting at a new line for easy copy/paste.
-    
+
+    By default, input history is printed without line numbers so it can be
+    directly pasted into an editor.
+
+    With -n, each input's number <n> is shown, and is accessible as the
+    automatically generated variable _i<n> as well as In[<n>].  Multi-line
+    statements are printed starting at a new line for easy copy/paste.
 
     Options:
 
-      -n: do NOT print line numbers. This is useful if you want to get a
-      printout of many lines which can be directly pasted into a text
-      editor.
-
+      -n: print line numbers for each input.
       This feature is only available if numbered prompts are in use.
+
+      -o: also print outputs for each input.
+
+      -p: print classic '>>>' python prompts before each input.  This is useful
+       for making documentation, and in conjunction with -o, for producing
+       doctest-ready output.
 
       -t: (default) print the 'translated' history, as IPython understands it.
       IPython filters your input and converts it all into valid Python source
@@ -50,7 +56,7 @@ def magic_history(self, parameter_s = ''):
     if not self.outputcache.do_full_cache:
         print 'This feature is only available if numbered prompts are in use.'
         return
-    opts,args = self.parse_options(parameter_s,'gntsrf:',mode='list')
+    opts,args = self.parse_options(parameter_s,'gnoptsrf:',mode='list')
 
     # Check if output to specific file was requested.
     try:
@@ -80,39 +86,43 @@ def magic_history(self, parameter_s = ''):
     if 'g' in opts:
         init = 1
         final = len(input_hist)
-        parts = parameter_s.split(None,1)
+        parts = parameter_s.split(None, 1)
         if len(parts) == 1:
             parts += '*'
         head, pattern = parts
         pattern = "*" + pattern + "*"
     elif len(args) == 0:
-        final = len(input_hist)
+        final = len(input_hist)-1
         init = max(1,final-default_length)
     elif len(args) == 1:
         final = len(input_hist)
-        init = max(1,final-int(args[0]))
+        init = max(1, final-int(args[0]))
     elif len(args) == 2:
-        init,final = map(int,args)
+        init, final = map(int, args)
     else:
         warn('%hist takes 0, 1 or 2 arguments separated by spaces.')
-        print self.magic_hist.__doc__
+        print >> Term.cout, self.magic_hist.__doc__
         return
+    
     width = len(str(final))
     line_sep = ['','\n']
-    print_nums = not opts.has_key('n')
+    print_nums = 'n' in opts
+    print_outputs = 'o' in opts
+    pyprompts = 'p' in opts
     
     found = False
     if pattern is not None:
         sh = self.shadowhist.all()
         for idx, s in sh:
             if fnmatch.fnmatch(s, pattern):
-                print "0%d: %s" %(idx, s)
+                print >> outfile, "0%d: %s" %(idx, s)
                 found = True
     
     if found:
-        print "==="
-        print "shadow history ends, fetch by %rep <number> (must start with 0)"
-        print "=== start of normal history ==="
+        print >> outfile, "==="
+        print >> outfile, \
+              "shadow history ends, fetch by %rep <number> (must start with 0)"
+        print >> outfile, "=== start of normal history ==="
         
     for in_num in range(init,final):        
         inline = input_hist[in_num]
@@ -122,8 +132,21 @@ def magic_history(self, parameter_s = ''):
         multiline = int(inline.count('\n') > 1)
         if print_nums:
             print >> outfile, \
-                  '%s:%s' % (str(in_num).ljust(width),line_sep[multiline]),
-        print >> outfile, inline,
+                  '%s:%s' % (str(in_num).ljust(width), line_sep[multiline]),
+        if pyprompts:
+            print >> outfile, '>>>',
+            if multiline:
+                lines = inline.splitlines()
+                print >> outfile, '\n... '.join(lines)
+                print >> outfile, '... '
+            else:
+                print >> outfile, inline,
+        else:
+            print >> outfile, inline,
+        if print_outputs:
+            output = self.shell.user_ns['Out'].get(in_num)
+            if output is not None:
+                print >> outfile, repr(output)
 
     if close_at_end:
         outfile.close()
@@ -245,10 +268,10 @@ class ShadowHist(object):
 
 
 def init_ipython(ip):
-    import ipy_completers
-
     ip.define_magic("rep",rep_f)        
     ip.define_magic("hist",magic_hist)            
     ip.define_magic("history",magic_history)
 
-    ipy_completers.quick_completer('%hist' ,'-g -t -r -n')
+    # XXX - ipy_completers are in quarantine, need to be updated to new apis
+    #import ipy_completers
+    #ipy_completers.quick_completer('%hist' ,'-g -t -r -n')

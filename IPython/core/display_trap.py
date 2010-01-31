@@ -24,8 +24,6 @@ import sys
 
 from IPython.core.component import Component
 
-from IPython.utils.autoattr import auto_attr
-
 #-----------------------------------------------------------------------------
 # Classes and functions
 #-----------------------------------------------------------------------------

@@ -18,25 +18,6 @@ def doctest_simple():
     """
 
 
-def doctest_run_builtins():
-    """Check that %run doesn't damage __builtins__ via a doctest.
-
-    This is similar to the test_run_builtins, but I want *both* forms of the
-    test to catch any possible glitches in our testing machinery, since that
-    modifies %run somewhat.  So for this, we have both a normal test (below)
-    and a doctest (this one).
-
-    In [1]: import tempfile
-
-    In [3]: f = tempfile.NamedTemporaryFile()
-
-    In [4]: f.write('pass\\n')
-
-    In [5]: f.flush()
-
-    In [7]: %run $f.name
-    """
-
 def doctest_multiline1():
     """The ipdoctest machinery must handle multiline examples gracefully.
 

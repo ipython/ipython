@@ -26,15 +26,13 @@ http://www.python.org/2.2.3/license.html"""
 #*****************************************************************************
 
 import bdb
-import cmd
 import linecache
-import os
 import sys
 
 from IPython.utils import PyColorize
 from IPython.core import ipapi
 from IPython.utils import coloransi
-from IPython.utils.genutils import Term
+from IPython.utils.io import Term
 from IPython.core.excolors import exception_colors
 
 # See if we can use pydb.
@@ -477,3 +475,36 @@ class Pdb(OldPdb):
         namespaces = [('Locals', self.curframe.f_locals),
                       ('Globals', self.curframe.f_globals)]
         self.shell.magic_pinfo("pinfo %s" % arg, namespaces=namespaces)
+
+    def checkline(self, filename, lineno):
+        """Check whether specified line seems to be executable.
+
+        Return `lineno` if it is, 0 if not (e.g. a docstring, comment, blank
+        line or EOF). Warning: testing is not comprehensive.
+        """
+        #######################################################################
+        # XXX Hack!  Use python-2.5 compatible code for this call, because with
+        # all of our changes, we've drifted from the pdb api in 2.6.  For now,
+        # changing:
+        #
+        #line = linecache.getline(filename, lineno, self.curframe.f_globals)
+        # to:
+        #
+        line = linecache.getline(filename, lineno)
+        #
+        # does the trick.  But in reality, we need to fix this by reconciling
+        # our updates with the new Pdb APIs in Python 2.6.
+        #
+        # End hack.  The rest of this method is copied verbatim from 2.6 pdb.py
+        #######################################################################
+        
+        if not line:
+            print >>self.stdout, 'End of file'
+            return 0
+        line = line.strip()
+        # Don't allow setting breakpoint at a blank line
+        if (not line or (line[0] == '#') or
+             (line[:3] == '"""') or line[:3] == "'''"):
+            print >>self.stdout, '*** Blank or comment'
+            return 0
+        return lineno

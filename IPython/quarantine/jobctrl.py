@@ -45,10 +45,9 @@ from subprocess import *
 import os,shlex,sys,time
 import threading,Queue
 
-from IPython.utils import genutils
-
 from IPython.core import ipapi
 from IPython.core.error import TryNext
+from IPython.utils.text import make_quoted_expr
 
 if os.name == 'nt':
     def kill_process(pid):
@@ -126,8 +125,8 @@ def jobctrl_prefilter_f(self,line):
         
         line = ip.expand_aliases(fn,rest)
         if not _jobq:
-            return 'get_ipython().startjob(%s)' % genutils.make_quoted_expr(line)
-        return 'get_ipython().jobq(%s)' % genutils.make_quoted_expr(line)
+            return 'get_ipython().startjob(%s)' % make_quoted_expr(line)
+        return 'get_ipython().jobq(%s)' % make_quoted_expr(line)
 
     raise TryNext
 
