@@ -17,6 +17,7 @@ __test__ = {}
 #-------------------------------------------------------------------------------
 # Imports
 #-------------------------------------------------------------------------------
+
 from IPython.kernel.core import error
 
 #-------------------------------------------------------------------------------
@@ -203,5 +204,4 @@ def collect_exceptions(rlist, method):
             raise CompositeError(msg, elist)
         except CompositeError, e:
             raise e
-            
 

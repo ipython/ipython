@@ -52,13 +52,6 @@ from . import decorators as dec
 # Globals
 #-----------------------------------------------------------------------------
 
-# By default, we assume IPython has been installed.  But if the test suite is
-# being run from a source tree that has NOT been installed yet, this flag can
-# be set to False by the entry point scripts, to let us know that we must call
-# the source tree versions of the scripts which manipulate sys.path instead of
-# assuming that things exist system-wide.
-INSTALLED = True
-
 # Make a bunch of nose.tools assert wrappers that can be used in test
 # generators.  This will expose an assert* function for each one in nose.tools.
 
@@ -207,17 +200,9 @@ def ipexec(fname, options=None):
     _ip = get_ipython()
     test_dir = os.path.dirname(__file__)
 
-    # Find the ipython script from the package we're using, so that the test
-    # suite can be run from the source tree without an installed IPython
-    p = os.path
-    if INSTALLED:
-        ipython_cmd = find_cmd('ipython')
-    else:
-        ippath = p.abspath(p.join(p.dirname(__file__),'..','..'))
-        ipython_script = p.join(ippath, 'ipython.py')
-        ipython_cmd = 'python "%s"' % ipython_script
+    ipython_cmd = find_cmd('ipython')
     # Absolute path for filename
-    full_fname = p.join(test_dir, fname)
+    full_fname = os.path.join(test_dir, fname)
     full_cmd = '%s %s %s' % (ipython_cmd, cmdargs, full_fname)
     #print >> sys.stderr, 'FULL CMD:', full_cmd # dbg
     return getoutputerror(full_cmd)

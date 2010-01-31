@@ -70,12 +70,6 @@ pjoin = path.join
 # Globals
 #-----------------------------------------------------------------------------
 
-# By default, we assume IPython has been installed.  But if the test suite is
-# being run from a source tree that has NOT been installed yet, this flag can
-# be set to False by the entry point scripts, to let us know that we must call
-# the source tree versions of the scripts which manipulate sys.path instead of
-# assuming that things exist system-wide.
-INSTALLED = True
 
 #-----------------------------------------------------------------------------
 # Warnings control
@@ -131,8 +125,6 @@ def report():
     """Return a string with a summary report of test-related variables."""
 
     out = [ sys_info() ]
-
-    out.append('\nRunning from an installed IPython: %s\n' % INSTALLED)
 
     avail = []
     not_avail = []
@@ -255,17 +247,8 @@ class IPTester(object):
         """Create new test runner."""
         p = os.path
         if runner == 'iptest':
-            if INSTALLED:
-                iptest_app = get_ipython_module_path('IPython.testing.iptest')
-                self.runner = pycmd2argv(iptest_app) + sys.argv[1:]
-            else:
-                # Find our own 'iptest' script OS-level entry point.  Don't
-                # look system-wide, so we are sure we pick up *this one*.  And
-                # pass through to subprocess call our own sys.argv
-                ippath = p.abspath(p.join(p.dirname(__file__),'..','..'))
-                script = p.join(ippath, 'iptest.py')
-                self.runner = pycmd2argv(script) + sys.argv[1:]
-                
+            iptest_app = get_ipython_module_path('IPython.testing.iptest')
+            self.runner = pycmd2argv(iptest_app) + sys.argv[1:]
         else:
             # For trial, it needs to be installed system-wide
             self.runner = pycmd2argv(p.abspath(find_cmd('trial')))

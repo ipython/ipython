@@ -649,3 +649,6 @@ def launch_new_instance():
     app = IPythonApp()
     app.start()
 
+
+if __name__ == '__main__':
+    launch_new_instance()
