@@ -30,7 +30,7 @@ from IPython.kernel.clusterdir import (
     ApplicationWithClusterDir,
     ClusterDirConfigLoader
 )
-from IPython.kernel.fcutil import FCServiceFactory
+from IPython.kernel.fcutil import FCServiceFactory, FURLError
 from IPython.utils.traitlets import Instance, Unicode
 
 
@@ -186,19 +186,22 @@ class IPControllerApp(ApplicationWithClusterDir):
     name = u'ipcontroller'
     description = _description
     command_line_loader = IPControllerAppConfigLoader
-    config_file_name = default_config_file_name
+    default_config_file_name = default_config_file_name
     auto_create_cluster_dir = True
 
     def create_default_config(self):
         super(IPControllerApp, self).create_default_config()
-        self.default_config.Global.reuse_furls = False
-        self.default_config.Global.secure = True
+        # Don't set defaults for Global.secure or Global.reuse_furls
+        # as those are set in a component.
         self.default_config.Global.import_statements = []
         self.default_config.Global.clean_logs = True
 
-    def post_load_command_line_config(self):
-        # Now setup reuse_furls
-        c = self.command_line_config
+    def pre_construct(self):
+        super(IPControllerApp, self).pre_construct()
+        c = self.master_config
+        # The defaults for these are set in FCClientServiceFactory and
+        # FCEngineServiceFactory, so we only set them here if the global
+        # options have be set to override the class level defaults.
         if hasattr(c.Global, 'reuse_furls'):
             c.FCClientServiceFactory.reuse_furls = c.Global.reuse_furls
             c.FCEngineServiceFactory.reuse_furls = c.Global.reuse_furls
@@ -221,11 +224,19 @@ class IPControllerApp(ApplicationWithClusterDir):
         controller_service = controllerservice.ControllerService()
         controller_service.setServiceParent(self.main_service)
         # The client tub and all its refereceables
-        csfactory = FCClientServiceFactory(self.master_config, controller_service)
+        try:
+            csfactory = FCClientServiceFactory(self.master_config, controller_service)
+        except FURLError, e:
+            log.err(e)
+            self.exit(0)
         client_service = csfactory.create()
         client_service.setServiceParent(self.main_service)
         # The engine tub
-        esfactory = FCEngineServiceFactory(self.master_config, controller_service)
+        try:
+            esfactory = FCEngineServiceFactory(self.master_config, controller_service)
+        except FURLError, e:
+            log.err(e)
+            self.exit(0)
         engine_service = esfactory.create()
         engine_service.setServiceParent(self.main_service)
 

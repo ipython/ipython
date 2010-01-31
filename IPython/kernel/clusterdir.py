@@ -441,8 +441,10 @@ class ApplicationWithClusterDir(Application):
     def find_config_file_name(self):
         """Find the config file name for this application."""
         # For this type of Application it should be set as a class attribute.
-        if not hasattr(self, 'config_file_name'):
+        if not hasattr(self, 'default_config_file_name'):
             self.log.critical("No config filename found")
+        else:
+            self.config_file_name = self.default_config_file_name
 
     def find_config_file_paths(self):
         # Set the search path to to the cluster directory. We should NOT

@@ -97,11 +97,11 @@ class Application(object):
     usage = None
     #: The command line config loader.  Subclass of ArgParseConfigLoader.
     command_line_loader = BaseAppConfigLoader
-    #: The name of the config file to load.
-    config_file_name = u'ipython_config.py'
+    #: The name of the config file to load, determined at runtime
+    config_file_name = None
     #: The name of the default config file. Track separately from the actual
     #: name because some logic happens only if we aren't using the default.
-    default_config_file_name = config_file_name
+    default_config_file_name = u'ipython_config.py'
     default_log_level = logging.WARN
     #: Set by --profile option
     profile_name = None
@@ -315,18 +315,22 @@ class Application(object):
 
         If a profile has been set at the command line, this will resolve it.
         """
-
         try:
             self.config_file_name = self.command_line_config.Global.config_file
         except AttributeError:
             pass
+        else:
+            return
 
         try:
             self.profile_name = self.command_line_config.Global.profile
         except AttributeError:
-            pass
+            # Just use the default as there is no profile
+            self.config_file_name = self.default_config_file_name
         else:
-            name_parts = self.config_file_name.split('.')
+            # Use the default config file name and profile name if set
+            # to determine the used config file name.
+            name_parts = self.default_config_file_name.split('.')
             name_parts.insert(1, u'_' + self.profile_name + u'.')
             self.config_file_name = ''.join(name_parts)
 

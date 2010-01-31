@@ -103,7 +103,7 @@ class IPEngineApp(ApplicationWithClusterDir):
     name = u'ipengine'
     description = _description
     command_line_loader = IPEngineAppConfigLoader
-    config_file_name = default_config_file_name
+    default_config_file_name = default_config_file_name
     auto_create_cluster_dir = True
 
     def create_default_config(self):

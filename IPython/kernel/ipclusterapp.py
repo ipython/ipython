@@ -218,7 +218,7 @@ class IPClusterApp(ApplicationWithClusterDir):
     description = _description
     usage = None
     command_line_loader = IPClusterAppConfigLoader
-    config_file_name = default_config_file_name
+    default_config_file_name = default_config_file_name
     default_log_level = logging.INFO
     auto_create_cluster_dir = False
 

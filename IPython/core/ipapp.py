@@ -252,7 +252,7 @@ class IPAppConfigLoader(BaseAppConfigLoader):
             type=str, dest='InteractiveShell.separate_out2',
             help="Separator after output prompts.  Default 0 (nonight).",
             metavar='InteractiveShell.separate_out2')
-        paa('-no-sep',
+        paa('--no-sep',
             action='store_true', dest='Global.nosep',
             help="Eliminate all spacing between prompts.")
         paa('--term-title',
@@ -389,7 +389,7 @@ class IPythonApp(Application):
     description = None
     usage = usage.cl_usage
     command_line_loader = IPAppConfigLoader
-    config_file_name = default_config_file_name
+    default_config_file_name = default_config_file_name
     crash_handler_class = IPAppCrashHandler
 
     def create_default_config(self):
@@ -486,7 +486,6 @@ class IPythonApp(Application):
         # based app, because we call shell.show_banner() by hand below
         # so the banner shows *before* all extension loading stuff.
         self.shell.display_banner = False
-
         if config.Global.display_banner and \
             config.Global.interact:
             self.shell.show_banner()
