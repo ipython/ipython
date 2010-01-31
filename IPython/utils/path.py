@@ -188,12 +188,7 @@ def get_home_dir():
         # is needed when running IPython on cluster where all paths have to 
         # be UNC.
         try:
-            # A user with a lot of unix tools in win32 may have defined $HOME,
-            # honor it if it exists, but otherwise let the more typical
-            # %HOMESHARE% variable be used.
-            homedir = env.get('HOME')
-            if homedir is None:
-                homedir = env['HOMESHARE']
+            homedir = env['HOMESHARE']
         except KeyError:
             pass
         else:
@@ -228,6 +223,16 @@ def get_home_dir():
             homedir = wreg.QueryValueEx(key,'Personal')[0]
             key.Close()
         except:
+            pass
+        else:
+            if isdir(homedir):
+                return homedir.decode(sys.getfilesystemencoding())
+
+        # A user with a lot of unix tools in win32 may have defined $HOME.
+        # Try this as a last ditch option.
+        try:
+            homedir = env['HOME']
+        except KeyError:
             pass
         else:
             if isdir(homedir):

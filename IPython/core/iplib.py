@@ -833,7 +833,7 @@ class InteractiveShell(Component, Magic):
         # loaded at startup, so we can list later only variables defined in
         # actual interactive use.  Since it is always a subset of user_ns, it
         # doesn't need to be separately tracked in the ns_table.
-        self.user_config_ns = {}
+        self.user_ns_hidden = {}
 
         # A namespace to keep track of internal data structures to prevent
         # them from cluttering user-visible stuff.  Will be updated later
@@ -879,7 +879,7 @@ class InteractiveShell(Component, Magic):
         # Similarly, track all namespaces where references can be held and that
         # we can safely clear (so it can NOT include builtin).  This one can be
         # a simple list.
-        self.ns_refs_table = [ user_ns, user_global_ns, self.user_config_ns,
+        self.ns_refs_table = [ user_ns, user_global_ns, self.user_ns_hidden,
                                self.internal_ns, self._main_ns_cache ]
 
     def make_user_namespaces(self, user_ns=None, user_global_ns=None):
@@ -978,7 +978,7 @@ class InteractiveShell(Component, Magic):
         therm.
         """
         # This function works in two parts: first we put a few things in
-        # user_ns, and we sync that contents into user_config_ns so that these
+        # user_ns, and we sync that contents into user_ns_hidden so that these
         # initial variables aren't shown by %who.  After the sync, we add the
         # rest of what we *do* want the user to see with %who even on a new
         # session (probably nothing, so theye really only see their own stuff)
@@ -1018,9 +1018,9 @@ class InteractiveShell(Component, Magic):
         # Store myself as the public api!!!
         ns['get_ipython'] = self.get_ipython
 
-        # Sync what we've added so far to user_config_ns so these aren't seen
+        # Sync what we've added so far to user_ns_hidden so these aren't seen
         # by %who
-        self.user_config_ns.update(ns)
+        self.user_ns_hidden.update(ns)
 
         # Anything put into ns now would show up in %who.  Think twice before
         # putting anything here, as we really want %who to show the user their
@@ -1093,7 +1093,7 @@ class InteractiveShell(Component, Magic):
         self.user_ns.update(vdict)
 
         # And configure interactive visibility
-        config_ns = self.user_config_ns
+        config_ns = self.user_ns_hidden
         if interactive:
             for name, val in vdict.iteritems():
                 config_ns.pop(name, None)
@@ -2360,6 +2360,9 @@ class InteractiveShell(Component, Magic):
         to make it easy to write extensions, you can also put your extensions
         in ``os.path.join(self.ipython_dir, 'extensions')``.  This directory
         is added to ``sys.path`` automatically.
+
+        If :func:`load_ipython_extension` returns anything, this function
+        will return that object.
         """
         from IPython.utils.syspathcontext import prepended_to_syspath
 
@@ -2504,11 +2507,11 @@ class InteractiveShell(Component, Magic):
         # We want to prevent the loading of pylab to pollute the user's
         # namespace as shown by the %who* magics, so we execute the activation
         # code in an empty namespace, and we update *both* user_ns and
-        # user_config_ns with this information.
+        # user_ns_hidden with this information.
         ns = {}
         gui = pylab_activate(ns, gui)
         self.user_ns.update(ns)
-        self.user_config_ns.update(ns)
+        self.user_ns_hidden.update(ns)
         # Now we must activate the gui pylab wants to use, and fix %run to take
         # plot updates into account
         enable_gui(gui)

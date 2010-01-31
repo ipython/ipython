@@ -886,10 +886,10 @@ Currently the magic system has the following functions:\n"""
 
         user_ns = self.shell.user_ns
         internal_ns = self.shell.internal_ns
-        user_config_ns = self.shell.user_config_ns
+        user_ns_hidden = self.shell.user_ns_hidden
         out = [ i for i in user_ns
                 if not i.startswith('_') \
-                and not (i in internal_ns or i in user_config_ns) ]
+                and not (i in internal_ns or i in user_ns_hidden) ]
 
         typelist = parameter_s.split()
         if typelist:
