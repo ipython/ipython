@@ -21,13 +21,15 @@ Authors
 #-----------------------------------------------------------------------------
 # Imports
 #-----------------------------------------------------------------------------
+
 from __future__ import absolute_import
 
 import logging
 import os
 import sys
 
-from IPython.core import crashhandler
+from IPython.core import release
+from IPython.core.crashhandler import CrashHandler
 from IPython.core.application import Application, BaseAppConfigLoader
 from IPython.core.iplib import InteractiveShell
 from IPython.config.loader import (
@@ -317,6 +319,67 @@ class IPAppConfigLoader(BaseAppConfigLoader):
 
 
 #-----------------------------------------------------------------------------
+# Crash handler for this application
+#-----------------------------------------------------------------------------
+
+
+_message_template = """\
+Oops, $self.app_name crashed. We do our best to make it stable, but...
+
+A crash report was automatically generated with the following information:
+  - A verbatim copy of the crash traceback.
+  - A copy of your input history during this session.
+  - Data on your current $self.app_name configuration.
+
+It was left in the file named:
+\t'$self.crash_report_fname'
+If you can email this file to the developers, the information in it will help
+them in understanding and correcting the problem.
+
+You can mail it to: $self.contact_name at $self.contact_email
+with the subject '$self.app_name Crash Report'.
+
+If you want to do it now, the following command will work (under Unix):
+mail -s '$self.app_name Crash Report' $self.contact_email < $self.crash_report_fname
+
+To ensure accurate tracking of this issue, please file a report about it at:
+$self.bug_tracker
+"""
+
+class IPAppCrashHandler(CrashHandler):
+    """sys.excepthook for IPython itself, leaves a detailed report on disk."""
+
+    message_template = _message_template
+
+    def __init__(self, app):
+        contact_name = release.authors['Fernando'][0]
+        contact_email = release.authors['Fernando'][1]
+        bug_tracker = 'https://bugs.launchpad.net/ipython/+filebug'
+        super(IPAppCrashHandler,self).__init__(
+            app, contact_name, contact_email, bug_tracker
+        )
+
+    def make_report(self,traceback):
+        """Return a string containing a crash report."""
+
+        sec_sep = self.section_sep
+        # Start with parent report
+        report = [super(IPAppCrashHandler, self).make_report(traceback)]
+        # Add interactive-specific info we may have
+        rpt_add = report.append
+        try:
+            rpt_add(sec_sep+"History of session input:")
+            for line in self.app.shell.user_ns['_ih']:
+                rpt_add(line)
+            rpt_add('\n*** Last line of input (may not be in above history):\n')
+            rpt_add(self.app.shell._last_input_line+'\n')
+        except:
+            pass
+
+        return ''.join(report)
+
+
+#-----------------------------------------------------------------------------
 # Main classes and functions
 #-----------------------------------------------------------------------------
 
@@ -327,9 +390,7 @@ class IPythonApp(Application):
     usage = usage.cl_usage
     command_line_loader = IPAppConfigLoader
     config_file_name = default_config_file_name
-
-    # Private and configuration attributes
-    _CrashHandler = crashhandler.IPythonCrashHandler
+    crash_handler_class = IPAppCrashHandler
 
     def create_default_config(self):
         super(IPythonApp, self).create_default_config()

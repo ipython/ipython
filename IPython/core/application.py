@@ -119,13 +119,12 @@ class Application(object):
     argv = None
     #: extra arguments computed by the command-line loader
     extra_args = None
+    #: The class to use as the crash handler.
+    crash_handler_class = crashhandler.CrashHandler
 
     # Private attributes
     _exiting = False
     _initialized = False
-
-    # Class choices for things that will be instantiated at runtime.
-    _CrashHandler = crashhandler.CrashHandler
 
     def __init__(self, argv=None):
         self.argv = sys.argv[1:] if argv is None else argv
@@ -217,7 +216,7 @@ class Application(object):
 
     def create_crash_handler(self):
         """Create a crash handler, typically setting sys.excepthook to it."""
-        self.crash_handler = self._CrashHandler(self, self.name)
+        self.crash_handler = self.crash_handler_class(self)
         sys.excepthook = self.crash_handler
 
     def create_default_config(self):
@@ -430,15 +429,6 @@ class Application(object):
     # Utility methods
     #-------------------------------------------------------------------------
 
-    def abort(self):
-        """Abort the starting of the application."""
-        if self._exiting:
-            pass
-        else:
-            self.log.critical("Aborting application: %s" % self.name, exc_info=True)
-            self._exiting = True
-            sys.exit(1)
-
     def exit(self, exit_status=0):
         if self._exiting:
             pass
@@ -447,17 +437,13 @@ class Application(object):
             self._exiting = True
             sys.exit(exit_status)
 
-    def attempt(self, func, action='abort'):
+    def attempt(self, func):
         try:
             func()
         except SystemExit:
             raise
         except:
-            if action == 'abort':
-                self.log.critical("Aborting application: %s" % self.name,
-                                  exc_info=True)
-                self.abort()
-                raise
-            elif action == 'exit':
-                self.exit(0)
+            self.log.critical("Aborting application: %s" % self.name,
+                              exc_info=True)
+            self.exit(0)
 

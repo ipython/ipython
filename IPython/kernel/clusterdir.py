@@ -27,6 +27,8 @@ from twisted.python import log
 from IPython.config.loader import PyFileConfigLoader
 from IPython.core.application import Application, BaseAppConfigLoader
 from IPython.core.component import Component
+from IPython.core.crashhandler import CrashHandler
+from IPython.core import release
 from IPython.utils.path import (
     get_ipython_package_dir,
     expand_path
@@ -290,6 +292,47 @@ class ClusterDirConfigLoader(BaseAppConfigLoader):
 
 
 #-----------------------------------------------------------------------------
+# Crash handler for this application
+#-----------------------------------------------------------------------------
+
+
+_message_template = """\
+Oops, $self.app_name crashed. We do our best to make it stable, but...
+
+A crash report was automatically generated with the following information:
+  - A verbatim copy of the crash traceback.
+  - Data on your current $self.app_name configuration.
+
+It was left in the file named:
+\t'$self.crash_report_fname'
+If you can email this file to the developers, the information in it will help
+them in understanding and correcting the problem.
+
+You can mail it to: $self.contact_name at $self.contact_email
+with the subject '$self.app_name Crash Report'.
+
+If you want to do it now, the following command will work (under Unix):
+mail -s '$self.app_name Crash Report' $self.contact_email < $self.crash_report_fname
+
+To ensure accurate tracking of this issue, please file a report about it at:
+$self.bug_tracker
+"""
+
+class ClusterDirCrashHandler(CrashHandler):
+    """sys.excepthook for IPython itself, leaves a detailed report on disk."""
+
+    message_template = _message_template
+
+    def __init__(self, app):
+        contact_name = release.authors['Brian'][0]
+        contact_email = release.authors['Brian'][1]
+        bug_tracker = 'https://bugs.launchpad.net/ipython/+filebug'
+        super(ClusterDirCrashHandler,self).__init__(
+            app, contact_name, contact_email, bug_tracker
+        )
+
+
+#-----------------------------------------------------------------------------
 # Main application
 #-----------------------------------------------------------------------------
 
@@ -313,6 +356,7 @@ class ApplicationWithClusterDir(Application):
     """
 
     command_line_loader = ClusterDirConfigLoader
+    crash_handler_class = ClusterDirCrashHandler
     auto_create_cluster_dir = True
 
     def create_default_config(self):
