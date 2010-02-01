@@ -27,7 +27,7 @@ from IPython.kernel.multiengine import IMultiEngine
 from IPython.kernel.tests.multienginetest import IFullSynchronousMultiEngineTestCase
 from IPython.kernel.multienginefc import IFCSynchronousMultiEngine
 from IPython.kernel import multiengine as me
-from IPython.kernel.clientconnector import ClientConnector
+from IPython.kernel.clientconnector import AsyncClientConnector
 from IPython.kernel.parallelfunction import ParallelFunction
 from IPython.kernel.error import CompositeError
 from IPython.kernel.util import printer
@@ -40,37 +40,30 @@ def _raise_it(f):
         e.raise_exception()
 
 
-class FullSynchronousMultiEngineTestCase(DeferredTestCase, IFullSynchronousMultiEngineTestCase):
+class FullSynchronousMultiEngineTestCase(
+    DeferredTestCase, IFullSynchronousMultiEngineTestCase):
 
-    # XXX (fperez) this is awful: I'm fully disabling this entire test class.
-    # Right now it's blocking the tests from running at all, and I don't know
-    # how to fix it.  I hope Brian can have a stab at it, but at least by doing
-    # this we can run the entire suite to completion.
-    # Once the problem is cleared, remove this skip method.
-    skip = True
-    # END XXX
-    
     def setUp(self):
-    
+
         self.engines = []
-            
+
         self.controller = ControllerService()
         self.controller.startService()
         self.imultiengine = IMultiEngine(self.controller)
         self.mec_referenceable = IFCSynchronousMultiEngine(self.imultiengine)
 
         self.controller_tub = Tub()
-        self.controller_tub.listenOn('tcp:10105:interface=127.0.0.1')
-        self.controller_tub.setLocation('127.0.0.1:10105')
-    
+        self.controller_tub.listenOn('tcp:10111:interface=127.0.0.1')
+        self.controller_tub.setLocation('127.0.0.1:10111')
+
         furl = self.controller_tub.registerReference(self.mec_referenceable)
         self.controller_tub.startService()
-    
-        self.client_tub = ClientConnector()
-        d = self.client_tub.get_multiengine_client(furl)
+
+        self.client_tub = AsyncClientConnector()
+        d = self.client_tub.get_multiengine_client(furl_or_file=furl)
         d.addCallback(self.handle_got_client)
         return d
-    
+
     def handle_got_client(self, client):
         self.multiengine = client
 
@@ -95,7 +88,7 @@ class FullSynchronousMultiEngineTestCase(DeferredTestCase, IFullSynchronousMulti
         self.assertEquals(m.dist,'b')
         self.assertEquals(m.targets,'all')
         self.assertEquals(m.block,True)
-    
+
     def test_map_default(self):
         self.addEngine(4)
         m = self.multiengine.mapper()
@@ -104,7 +97,7 @@ class FullSynchronousMultiEngineTestCase(DeferredTestCase, IFullSynchronousMulti
         d.addCallback(lambda _: self.multiengine.map(lambda x: 2*x, range(10)))
         d.addCallback(lambda r: self.assertEquals(r,[2*x for x in range(10)]))
         return d
-    
+
     def test_map_noblock(self):
         self.addEngine(4)
         m = self.multiengine.mapper(block=False)
@@ -112,14 +105,14 @@ class FullSynchronousMultiEngineTestCase(DeferredTestCase, IFullSynchronousMulti
         d.addCallback(lambda did: self.multiengine.get_pending_deferred(did, True))
         d.addCallback(lambda r: self.assertEquals(r,[2*x for x in range(10)]))
         return d
-            
+
     def test_mapper_fail(self):
         self.addEngine(4)
         m = self.multiengine.mapper()
         d = m.map(lambda x: 1/0, range(10))
         d.addBoth(lambda f: self.assertRaises(ZeroDivisionError, _raise_it, f))
         return d
-    
+
     def test_parallel(self):
         self.addEngine(4)
         p = self.multiengine.parallel()
@@ -129,7 +122,7 @@ class FullSynchronousMultiEngineTestCase(DeferredTestCase, IFullSynchronousMulti
         d = f(range(10))
         d.addCallback(lambda r: self.assertEquals(r,[2*x for x in range(10)]))
         return d
-    
+
     def test_parallel_noblock(self):
         self.addEngine(1)
         p = self.multiengine.parallel(block=False)
@@ -140,7 +133,7 @@ class FullSynchronousMultiEngineTestCase(DeferredTestCase, IFullSynchronousMulti
         d.addCallback(lambda did: self.multiengine.get_pending_deferred(did, True))
         d.addCallback(lambda r: self.assertEquals(r,[2*x for x in range(10)]))
         return d
-    
+
     def test_parallel_fail(self):
         self.addEngine(4)
         p = self.multiengine.parallel()
@@ -150,3 +143,4 @@ class FullSynchronousMultiEngineTestCase(DeferredTestCase, IFullSynchronousMulti
         d = f(range(10))
         d.addBoth(lambda f: self.assertRaises(ZeroDivisionError, _raise_it, f))
         return d
+

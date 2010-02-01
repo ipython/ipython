@@ -1,6 +1,4 @@
-#!/usr/bin/env python
 # encoding: utf-8
-
 """Facilities for handling client connections to the controller."""
 
 #-----------------------------------------------------------------------------
@@ -20,6 +18,8 @@ import os
 from IPython.kernel.fcutil import (
     Tub,
     find_furl,
+    is_valid_furl,
+    is_valid_furl_file,
     is_valid_furl_or_file,
     validate_furl_or_file,
     FURLError
@@ -66,18 +66,30 @@ class AsyncClientConnector(object):
     def _find_furl(self, profile='default', cluster_dir=None, 
                    furl_or_file=None, furl_file_name=None,
                    ipython_dir=None):
-        """Find a FURL file by profile+ipython_dir or cluster dir.
+        """Find a FURL file.
+
+        If successful, this returns a FURL file that exists on the file
+        system. The contents of the file have not been checked though. This
+        is because we often have to deal with FURL file whose buffers have
+        not been flushed.
 
         This raises an :exc:`~IPython.kernel.fcutil.FURLError` exception 
         if a FURL file can't be found.
+
+        This tries the following:
+        
+        1. By the name ``furl_or_file``.
+        2. By ``cluster_dir`` and ``furl_file_name``.
+        3. By cluster profile with a default of ``default``. This uses
+           ``ipython_dir``.
         """
         # Try by furl_or_file
         if furl_or_file is not None:
-            validate_furl_or_file(furl_or_file)
-            return furl_or_file
+            if is_valid_furl_or_file(furl_or_file):
+                return furl_or_file
 
         if furl_file_name is None:
-            raise FURLError('A furl_file_name must be provided')
+            raise FURLError('A furl_file_name must be provided if furl_or_file is not')
 
         # Try by cluster_dir
         if cluster_dir is not None:
@@ -151,7 +163,7 @@ class AsyncClientConnector(object):
             The full path to a cluster directory.  This is useful if profiles
             are not being used.
         furl_or_file : str
-            A furl or a filename containing a FURLK. This is useful if you 
+            A furl or a filename containing a FURL. This is useful if you 
             simply know the location of the FURL file.
         ipython_dir : str
             The location of the ipython_dir if different from the default.
@@ -193,7 +205,7 @@ class AsyncClientConnector(object):
             The full path to a cluster directory.  This is useful if profiles
             are not being used.
         furl_or_file : str
-            A furl or a filename containing a FURLK. This is useful if you 
+            A furl or a filename containing a FURL. This is useful if you 
             simply know the location of the FURL file.
         ipython_dir : str
             The location of the ipython_dir if different from the default.
@@ -259,6 +271,9 @@ class AsyncClientConnector(object):
                 profile, cluster_dir, furl_or_file,
                 furl_file_name, ipython_dir
             )
+            # If this succeeds, we know the furl file exists and has a .furl
+            # extension, but it could still be empty. That is checked each
+            # connection attempt.
         except FURLError:
             return defer.fail(failure.Failure())
 
@@ -349,7 +364,7 @@ class ClientConnector(object):
             The full path to a cluster directory.  This is useful if profiles
             are not being used.
         furl_or_file : str
-            A furl or a filename containing a FURLK. This is useful if you 
+            A furl or a filename containing a FURL. This is useful if you 
             simply know the location of the FURL file.
         ipython_dir : str
             The location of the ipython_dir if different from the default.
@@ -390,7 +405,7 @@ class ClientConnector(object):
             The full path to a cluster directory.  This is useful if profiles
             are not being used.
         furl_or_file : str
-            A furl or a filename containing a FURLK. This is useful if you 
+            A furl or a filename containing a FURL. This is useful if you 
             simply know the location of the FURL file.
         ipython_dir : str
             The location of the ipython_dir if different from the default.
