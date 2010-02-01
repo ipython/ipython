@@ -53,8 +53,8 @@ class EngineFCTest(DeferredTestCase,
       # Start a server and append to self.servers
       self.controller_reference = FCRemoteEngineRefFromService(self)
       self.controller_tub = Tub()
-      self.controller_tub.listenOn('tcp:10105:interface=127.0.0.1')
-      self.controller_tub.setLocation('127.0.0.1:10105')
+      self.controller_tub.listenOn('tcp:10111:interface=127.0.0.1')
+      self.controller_tub.setLocation('127.0.0.1:10111')
      
       furl = self.controller_tub.registerReference(self.controller_reference)
       self.controller_tub.startService()
