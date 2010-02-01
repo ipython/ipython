@@ -23,7 +23,7 @@ from IPython.core.component import Component
 from IPython.external import Itpl
 from IPython.utils.traitlets import Str, Int, List, Unicode
 from IPython.utils.path import get_ipython_module_path
-from IPython.utils.process import find_cmd, pycmd2argv
+from IPython.utils.process import find_cmd, pycmd2argv, FindCmdError
 from IPython.kernel.twistedutil import (
     gatherBoth,
     make_deferred,
@@ -538,7 +538,10 @@ class SSHEngineSetLauncher(BaseLauncher):
 # This is only used on Windows.
 def find_job_cmd():
     if os.name=='nt':
-        return find_cmd('job')
+        try:
+            return find_cmd('job')
+        except FindCmdError:
+            return 'job'
     else:
         return 'job'
 
