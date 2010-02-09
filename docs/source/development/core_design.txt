@@ -2,9 +2,9 @@
  Design proposal for mod:`IPython.core`
 ========================================
 
-Currently mod:`IPython.core` is not well suited for use in GUI
-applications. The purpose of this document is to describe a design that will
-resolve this limitation.
+Currently mod:`IPython.core` is not well suited for use in GUI applications.
+The purpose of this document is to describe a design that will resolve this
+limitation.
 
 Process and thread model
 ========================
@@ -12,30 +12,30 @@ Process and thread model
 The design described here is based on a two process model. These two processes
 are:
 
-1. The IPython engine/kernel. This process contains the user's namespace and is
-   responsible for executing user code. If user code uses
+1. The IPython engine/kernel. This process contains the user's namespace and 
+   is responsible for executing user code. If user code uses
    :mod:`enthought.traits` or uses a GUI toolkit to perform plotting, the GUI
    event loop will run in this process.
 
 2. The GUI application. The user facing GUI application will run in a second
-   process that communicates directly with the IPython engine using a suitable
-   RPC mechanism. The GUI application will not execute any user code. The
-   canonical example of a GUI application that talks to the IPython engine,
-   would be a GUI based IPython terminal. However, the GUI application could
-   provide a more sophisticated interface such as a notebook.
+   process that communicates directly with the IPython engine using
+   asynchronous messaging. The GUI application will not execute any user code.
+   The canonical example of a GUI application that talks to the IPython 
+   engine, would be a GUI based IPython terminal. However, the GUI application 
+   could provide a more sophisticated interface such as a notebook.
 
-We now describe the treading model of the IPython engine.  Two threads will be
-used to implement the IPython engine: a main thread that executes user code and
-a networking thread that communicates with the outside world. This specific
-design is required by a number of different factors.
+We now describe the threading model of the IPython engine. Two threads will be
+used to implement the IPython engine: a main thread that executes user code
+and a networking thread that communicates with the outside world. This
+specific design is required by a number of different factors.
 
 First, The IPython engine must run the GUI event loop if the user wants to
 perform interactive plotting. Because of the design of most GUIs, this means
 that the user code (which will make GUI calls) must live in the main thread.
 
 Second, networking code in the engine (Twisted or otherwise) must be able to
-communicate with the outside world while user code runs. An example would be if
-user code does the following::
+communicate with the outside world while user code runs. An example would be
+if user code does the following::
 
     import time
     for i in range(10):
@@ -45,12 +45,12 @@ user code does the following::
 We would like to result of each ``print i`` to be seen by the GUI application
 before the entire code block completes. We call this asynchronous printing.
 For this to be possible, the networking code has to be able to be able to
-communicate the value of ``stdout`` to the GUI application while user code is
-run. Another example is using :mod:`IPython.kernel.client` in user code to
-perform a parallel computation by talking to an IPython controller and a set of
-engines (these engines are separate from the one we are discussing here). This
-module requires the Twisted event loop to be run in a different thread than
-user code.
+communicate the current value of ``sys.stdout`` to the GUI application while
+user code is run. Another example is using :mod:`IPython.kernel.client` in
+user code to perform a parallel computation by talking to an IPython
+controller and a set of engines (these engines are separate from the one we
+are discussing here). This module requires the Twisted event loop to be run in
+a different thread than user code.
 
 For the GUI application, threads are optional. However, the GUI application
 does need to be able to perform network communications asynchronously (without
@@ -66,44 +66,113 @@ blocking the GUI itself). With this in mind, there are two options:
 Thus, for the GUI application, there is a choice between non-blocking sockets
 (Twisted) or threads.
 
-Interprocess communication
-==========================
+Asynchronous messaging
+======================
 
-The GUI application will use interprocess communication (IPC) to communicate
-with the networking thread of the engine. Because this communication will
-typically happen over localhost, a simple, one way, non-secure protocol like
-XML-RPC or JSON-RPC can be used. These options will also make it easy to
-implement the required networking in the GUI application using the standard
-library. In applications where secure communications are required, Twisted and
-Foolscap will probably be the best way to go for now.
+The GUI application will use asynchronous message queues to communicate with
+the networking thread of the engine. Because this communication will typically
+happen over localhost, a simple, one way, network protocol like XML-RPC or
+JSON-RPC can be used to implement this messaging. These options will also make
+it easy to implement the required networking in the GUI application using the
+standard library. In applications where secure communications are required,
+Twisted and Foolscap will probably be the best way to go for now, but HTTP is
+also an option.
 
-Using this communication channel, the GUI application will be able to perform
-the following actions with the engine:
+There is some flexibility as to where the message queues are located. One
+option is that we could create a third process (like the IPython controller)
+that only manages the message queues. This is attractive, but does require
+an additional process.
+
+Using this communication channel, the GUI application and kernel/engine will
+be able to send messages back and forth. For the most part, these messages
+will have a request/reply form, but it will be possible for the kernel/engine
+to send multiple replies for a single request.
+
+The GUI application will use these messages to control the engine/kernel.
+Examples of the types of things that will be possible are:
 
 * Pass code (as a string) to be executed by the engine in the user's namespace
   as a string.
 
 * Get the current value of stdout and stderr.
 
+* Get the ``repr`` of an object returned (Out []:).
+
 * Pass a string to the engine to be completed when the GUI application
   receives a tab completion event.
 
 * Get a list of all variable names in the user's namespace.
 
-* Other similar actions.
+The in memory format of a message should be a Python dictionary, as this
+will be easy to serialize using virtually any network protocol. The 
+message dict should only contain basic types, such as strings, floats,
+ints, lists, tuples and other dicts.
+
+Each message will have a unique id and will probably be determined by the
+messaging system and returned when something is queued in the message
+system. This unique id will be used to pair replies with requests.
+
+Each message should have a header of key value pairs that can be introspected
+by the message system and a body, or payload, that is opaque. The queues
+themselves will be purpose agnostic, so the purpose of the message will have
+to be encoded in the message itself. While we are getting started, we
+probably don't need to distinguish between the header and body.
+
+Here are some examples::
+
+    m1 = dict(
+        method='execute',
+        id=24,  # added by the message system
+        parent=None # not a reply,
+        source_code='a=my_func()'
+    )
+
+This single message could generate a number of reply messages::
+    
+    m2 = dict(
+        method='stdout'
+        id=25,  # my id, added by the message system
+        parent_id=24,  # The message id of the request
+        value='This was printed by my_func()'
+    )
+
+    m3 = dict(
+        method='stdout'
+        id=26,  # my id, added by the message system
+        parent_id=24,  # The message id of the request
+        value='This too was printed by my_func() at a later time.'
+    )
+
+    m4 = dict(
+        method='execute_finished',
+        id=27,
+        parent_id=24
+        # not sure what else should come back with this message,
+        # but we will need a way for the GUI app to tell that an execute
+        # is done.
+    )
+
+We should probably use flags for the method and other purposes:
+
+EXECUTE='0'
+EXECUTE_REPLY='1'
+
+This will keep out network traffic down and enable us to easily change the
+actual value that is sent.
 
 Engine details
 ==============
 
-As discussed above, the engine will consist of two threads: a main thread and a
-networking thread. These two threads will communicate using a pair of queues:
-one for data and requests passing to the main thread (the main thread's "input
-queue") and another for data and requests passing out of the main thread (the
-main thread's "output queue"). Both threads will have an event loop that will
-enqueue elements on one queue and dequeue elements on the other queue.
+As discussed above, the engine will consist of two threads: a main thread and
+a networking thread. These two threads will communicate using a pair of
+queues: one for data and requests passing to the main thread (the main
+thread's "input queue") and another for data and requests passing out of the
+main thread (the main thread's "output queue"). Both threads will have an
+event loop that will enqueue elements on one queue and dequeue elements on the
+other queue.
 
-The event loop of the main thread will be of a different nature depending on if
-the user wants to perform interactive plotting. If they do want to perform
+The event loop of the main thread will be of a different nature depending on
+if the user wants to perform interactive plotting. If they do want to perform
 interactive plotting, the main threads event loop will simply be the GUI event
 loop. In that case, GUI timers will be used to monitor the main threads input
 queue. When elements appear on that queue, the main thread will respond
@@ -115,15 +184,15 @@ input queue. When something appears on that queue, the main thread will awake
 and handle the request.
 
 The event loop of the networking thread will typically be the Twisted event
-loop.  While it is possible to implement the engine's networking without using
+loop. While it is possible to implement the engine's networking without using
 Twisted, at this point, Twisted provides the best solution. Note that the GUI
 application does not need to use Twisted in this case. The Twisted event loop
-will contain an XML-RPC or JSON-RPC server that takes requests over the network
-and handles those requests by enqueing elements on the main thread's input
-queue or dequeing elements on the main thread's output queue.
+will contain an XML-RPC or JSON-RPC server that takes requests over the
+network and handles those requests by enqueing elements on the main thread's
+input queue or dequeing elements on the main thread's output queue.
 
-Because of the asynchronous nature of the network communication, a single input
-and output queue will be used to handle the interaction with the main
+Because of the asynchronous nature of the network communication, a single
+input and output queue will be used to handle the interaction with the main
 thread. It is also possible to use multiple queues to isolate the different
 types of requests, but our feeling is that this is more complicated than it
 needs to be.
@@ -131,16 +200,84 @@ needs to be.
 One of the main issues is how stdout/stderr will be handled. Our idea is to
 replace sys.stdout/sys.stderr by custom classes that will immediately write
 data to the main thread's output queue when user code writes to these streams
-(by doing print). Once on the main thread's output queue, the networking thread
-will make the data available to the GUI application over the network.
+(by doing print). Once on the main thread's output queue, the networking
+thread will make the data available to the GUI application over the network.
 
-One unavoidable limitation in this design is that if user code does a print and
-then enters non-GIL-releasing extension code, the networking thread will go
-silent until the GIL is again released. During this time, the networking thread
-will not be able to process the GUI application's requests of the engine. Thus,
-the values of stdout/stderr will be unavailable during this time. This goes
-beyond stdout/stderr, however.  Anytime the main thread is holding the GIL, the
-networking thread will go silent and be unable to handle requests.
+One unavoidable limitation in this design is that if user code does a print
+and then enters non-GIL-releasing extension code, the networking thread will
+go silent until the GIL is again released. During this time, the networking
+thread will not be able to process the GUI application's requests of the
+engine. Thus, the values of stdout/stderr will be unavailable during this
+time. This goes beyond stdout/stderr, however. Anytime the main thread is
+holding the GIL, the networking thread will go silent and be unable to handle
+requests.
+
+GUI Application details
+=======================
+
+The GUI application will also have two threads. While this is not a strict
+requirement, it probably makes sense and is a good place to start. The main
+thread will be the GUI tread. The other thread will be a networking thread and
+will handle the messages that are sent to and from the engine process.
+
+Like the engine, we will use two queues to control the flow of messages
+between the main thread and networking thread. One of these queues will be
+used for messages sent from the GUI application to the engine. When the GUI
+application needs to send a message to the engine, it will simply enque the
+appropriate message on this queue. The networking thread will watch this queue
+and forward messages to the engine using an appropriate network protocol.
+
+The other queue will be used for incoming messages from the engine. The
+networking thread will poll for incoming messages from the engine. When it
+receives any message, it will simply put that message on this other queue. The
+GUI application will periodically see if there are any messages on this queue
+and if there are it will handle them.
+
+The GUI application must be prepared to handle any incoming message at any
+time. Due to a variety of reasons, the one or more reply messages associated
+with a request, may appear at any time in the future and possible in different
+orders. It is also possible that a reply might not appear. An example of this
+would be a request for a tab completion event. If the engine is busy, it won't
+be possible to fulfill the request for a while. While the tab completion
+request will eventually be handled, the GUI application has to be prepared to
+abandon waiting for the reply if the user moves on or a certain timeout
+expires.
+
+Prototype details
+=================
+
+With this design, it should be possible to develop a relatively complete GUI
+application, while using a mock engine. This prototype should use the two
+process design described above, but instead of making actual network calls,
+the network thread of the GUI application should have an object that fakes the
+network traffic. This mock object will consume messages off of one queue,
+pause for a short while (to model network and other latencies) and then place
+reply messages on the other queue.
+
+This simple design will allow us to determine exactly what the message types
+and formats should be as well as how the GUI application should interact with
+the two message queues. Note, it is not required that the mock object actually
+be able to execute Python code or actually complete strings in the users
+namespace. All of these things can simply be faked. This will also help us to
+understand what the interface needs to look like that handles the network
+traffic. This will also help us to understand the design of the engine better.
+
+The GUI application should be developed using IPython's component, application
+and configuration system. It may take some work to see what the best way of
+integrating these things with PyQt are.
+
+After this stage is done, we can move onto creating a real IPython engine for
+the GUI application to communicate with. This will likely be more work that
+the GUI application itself, but having a working GUI application will make it
+*much* easier to design and implement the engine.
+
+We also might want to introduce a third process into the mix. Basically, this
+would be a central messaging hub that both the engine and GUI application
+would use to send and retrieve messages. This is not required, but it might be
+a really good idea.
+
+Also, I have some ideas on the best way to handle notebook saving and
+persistence.
 
 Refactoring of IPython.core
 ===========================

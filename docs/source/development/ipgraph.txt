@@ -57,3 +57,5 @@ methods in :class:`InteractiveShell` that manage code execution::
     nx.draw_spectral(g, node_size=100, alpha=0.6, node_color='r',
                      font_size=10, node_shape='o')
     plt.show()
+
+
