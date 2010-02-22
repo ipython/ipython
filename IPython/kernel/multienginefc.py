@@ -24,7 +24,10 @@ from zope.interface import Interface, implements
 from twisted.internet import defer
 from twisted.python import components, failure
 
-from foolscap import Referenceable
+try:
+    from foolscap.api import Referenceable
+except ImportError:
+    from foolscap import Referenceable
 
 from IPython.kernel import error 
 from IPython.kernel import map as Map

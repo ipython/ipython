@@ -22,7 +22,11 @@ import warnings
 from twisted.python import components
 from twisted.python.failure import Failure
 from zope.interface import Interface, implements, Attribute
-from foolscap import DeadReferenceError
+
+try:
+    from foolscap.api import DeadReferenceError
+except ImportError:
+    from foolscap import DeadReferenceError
 
 from IPython.utils.coloransi import TermColors
 
