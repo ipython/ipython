@@ -1,0 +1,52 @@
+===============================
+ IPython session storage notes
+===============================
+
+This document serves as a sample/template for ideas on how to store session
+data on disk.  This stems from discussions we had on various mailing lists.
+
+The frontend would store, for now, 5 types of data:
+
+#. Input: this is python/ipython code to be executed.
+
+#. Output (python): result of executing Inputs.
+
+#. Standard output: from subprocesses.
+
+#. Standard error: from subprocesses.
+
+#. Text: arbitrary text.  For now, we'll just store plain text and will defer
+   to the user on how to format it, though it should be valid reST if it is
+   later to be converted into html/pdf.
+
+The non-text cells would be stored on-disk as follows::
+
+    .. input-cell::
+      :id: 1
+
+      3+3
+
+    .. output-cell::
+       :id: 1
+
+       6
+
+    .. input-cell::
+       :id: 2
+
+       ls
+
+    .. stdout-cell::
+       :id: 2
+
+       a.py b.py
+
+    .. input-cell::
+       :id: 3
+
+      !askdfj
+
+    .. stderr-cell::
+       :id: 3
+
+       sh: askdfj: command not found
