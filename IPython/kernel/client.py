@@ -24,15 +24,25 @@ The main classes in this module are:
 #-----------------------------------------------------------------------------
 
 #-----------------------------------------------------------------------------
+# Warnings control
+#-----------------------------------------------------------------------------
+
+import warnings
+
+# Twisted generates annoying warnings with Python 2.6, as will do other code
+# that imports 'sets' as of today
+warnings.filterwarnings('ignore', 'the sets module is deprecated',
+                        DeprecationWarning )
+
+# This one also comes from Twisted
+warnings.filterwarnings('ignore', 'the sha module is deprecated',
+                        DeprecationWarning)
+
+#-----------------------------------------------------------------------------
 # Imports
 #-----------------------------------------------------------------------------
 
 import sys
-import warnings
-
-# from IPython.utils import growl
-# growl.start("IPython1 Client")
-
 
 from twisted.internet import reactor
 from twisted.internet.error import PotentialZombieWarning
@@ -71,8 +81,6 @@ log.startLogging(sys.stdout, setStdout=0)
 rit = ReactorInThread()
 rit.setDaemon(True)
 rit.start()
-
-
 
 
 __all__ = [
