@@ -20,7 +20,11 @@ __docformat__ = "restructuredtext en"
 
 from zope.interface import Interface, implements
 from twisted.python import components
-from foolscap import DeadReferenceError
+
+try:
+    from foolscap.api import DeadReferenceError
+except ImportError:
+    from foolscap import DeadReferenceError
 
 from IPython.kernel.twistedutil import blockingCallFromThread
 from IPython.kernel import task, error

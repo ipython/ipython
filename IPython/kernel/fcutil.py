@@ -24,7 +24,10 @@ from twisted.internet import reactor, defer
 from twisted.python import log
 
 import foolscap
-from foolscap import Tub, UnauthenticatedTub
+try:
+    from foolscap.api import Tub, UnauthenticatedTub
+except ImportError:
+    from foolscap import Tub, UnauthenticatedTub
 
 from IPython.config.loader import Config
 from IPython.kernel.configobjfactory import AdaptedConfiguredObjectFactory
