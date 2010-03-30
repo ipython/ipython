@@ -64,7 +64,7 @@ def pylab_activate(user_ns, gui=None, import_all=True):
         # In this case, we need to find what the appropriate gui selection call
         # should be for IPython, so we can activate inputhook accordingly
         b2g = dict(zip(g2b.values(),g2b.keys()))
-        gui = b2g[backend]
+        gui = b2g.get(backend, None)
 
     # We must set the desired backend before importing pylab
     matplotlib.use(backend)
