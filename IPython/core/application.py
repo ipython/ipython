@@ -33,7 +33,7 @@ import os
 import sys
 
 from IPython.core import release, crashhandler
-from IPython.utils.genutils import get_ipython_dir, get_ipython_package_dir
+from IPython.utils.path import get_ipython_dir, get_ipython_package_dir
 from IPython.config.loader import (
     PyFileConfigLoader,
     ArgParseConfigLoader,
@@ -48,108 +48,86 @@ class ApplicationError(Exception):
     pass
 
 
-app_cl_args = (
-    (('--ipython-dir', ), dict(
-        dest='Global.ipython_dir',type=unicode,
-        help=
-        """Set to override default location of the IPython directory
-        IPYTHON_DIR, stored as Global.ipython_dir.  This can also be specified
-        through the environment variable IPYTHON_DIR.""",
-        metavar='Global.ipython_dir') ),
-    (('-p', '--profile',), dict(
-        dest='Global.profile',type=unicode,
-        help=
-        """The string name of the ipython profile to be used.  Assume that your
-        config file is ipython_config-<name>.py (looks in current dir first,
-        then in IPYTHON_DIR). This is a quick way to keep and load multiple
-        config files for different tasks, especially if include your basic one
-        in your more specialized ones.  You can keep a basic
-        IPYTHON_DIR/ipython_config.py file and then have other 'profiles' which
-        include this one and load extra things for particular tasks.""",
-        metavar='Global.profile') ),
-    (('--log-level',), dict(
-        dest="Global.log_level",type=int,
-        help='Set the log level (0,10,20,30,40,50).  Default is 30.',
-        metavar='Global.log_level')),
-    (('--config-file',), dict(
-        dest='Global.config_file',type=unicode,
-        help=
-        """Set the config file name to override default.  Normally IPython
-        loads ipython_config.py (from current directory) or
-        IPYTHON_DIR/ipython_config.py.  If the loading of your config file
-        fails, IPython starts with a bare bones configuration (no modules
-        loaded at all).""",
-        metavar='Global.config_file')),
-    )
+class BaseAppConfigLoader(ArgParseConfigLoader):
+    """Default command line options for IPython based applications."""
+
+    def _add_ipython_dir(self, parser):
+        """Add the --ipython-dir option to the parser."""
+        paa = parser.add_argument
+        paa('--ipython-dir', 
+            dest='Global.ipython_dir',type=unicode,
+            help=
+            """Set to override default location of the IPython directory
+            IPYTHON_DIR, stored as Global.ipython_dir.  This can also be 
+            specified through the environment variable IPYTHON_DIR.""",
+            metavar='Global.ipython_dir')
+
+    def _add_log_level(self, parser):
+        """Add the --log-level option to the parser."""
+        paa = parser.add_argument
+        paa('--log-level',
+            dest="Global.log_level",type=int,
+            help='Set the log level (0,10,20,30,40,50).  Default is 30.',
+            metavar='Global.log_level')
+
+    def _add_arguments(self):
+        self._add_ipython_dir(self.parser)
+        self._add_log_level(self.parser)
+
 
 class Application(object):
     """Load a config, construct components and set them running.
 
-    The configuration of an application can be done via four different Config
-    objects, which are loaded and ultimately merged into a single one used from
-    that point on by the app.  These are:
+    The configuration of an application can be done via three different Config
+    objects, which are loaded and ultimately merged into a single one used
+    from that point on by the app. These are:
 
     1. default_config: internal defaults, implemented in code.
     2. file_config: read from the filesystem.
     3. command_line_config: read from the system's command line flags.
-    4. constructor_config: passed parametrically to the constructor.
 
     During initialization, 3 is actually read before 2, since at the
     command-line one may override the location of the file to be read.  But the
     above is the order in which the merge is made.
-
-    There is a final config object can be created and passed to the
-    constructor: override_config.  If it exists, this completely overrides the
-    configs 2-4 above (the default is still used to ensure that all needed
-    fields at least are created).  This makes it easier to create
-    parametrically (e.g. in testing or sphinx plugins) objects with a known
-    configuration, that are unaffected by whatever arguments may be present in
-    sys.argv or files in the user's various directories.
     """
 
     name = u'ipython'
     description = 'IPython: an enhanced interactive Python shell.'
-    #: usage message printed by argparse. If None, auto-generate
+    #: Usage message printed by argparse. If None, auto-generate
     usage = None
-    config_file_name = u'ipython_config.py'
-    #: Track the default and actual separately because some messages are
-    #: only printed if we aren't using the default.
-    default_config_file_name = config_file_name
+    #: The command line config loader.  Subclass of ArgParseConfigLoader.
+    command_line_loader = BaseAppConfigLoader
+    #: The name of the config file to load, determined at runtime
+    config_file_name = None
+    #: The name of the default config file. Track separately from the actual
+    #: name because some logic happens only if we aren't using the default.
+    default_config_file_name = u'ipython_config.py'
     default_log_level = logging.WARN
     #: Set by --profile option
     profile_name = None
     #: User's ipython directory, typically ~/.ipython/
     ipython_dir = None
-    #: internal defaults, implemented in code.
+    #: Internal defaults, implemented in code.
     default_config = None
-    #: read from the filesystem
+    #: Read from the filesystem.
     file_config = None
-    #: read from the system's command line flags
+    #: Read from the system's command line flags.
     command_line_config = None
-    #: passed parametrically to the constructor.
-    constructor_config = None
-    #: final override, if given supercedes file/command/constructor configs
-    override_config = None
+    #: The final config that will be passed to the component.
+    master_config = None
     #: A reference to the argv to be used (typically ends up being sys.argv[1:])
     argv = None
-    #: Default command line arguments.  Subclasses should create a new tuple
-    #: that *includes* these.
-    cl_arguments = app_cl_args
-
     #: extra arguments computed by the command-line loader
     extra_args = None
+    #: The class to use as the crash handler.
+    crash_handler_class = crashhandler.CrashHandler
 
     # Private attributes
     _exiting = False
     _initialized = False
 
-    # Class choices for things that will be instantiated at runtime.
-    _CrashHandler = crashhandler.CrashHandler
-
-    def __init__(self, argv=None, constructor_config=None, override_config=None):
+    def __init__(self, argv=None):
         self.argv = sys.argv[1:] if argv is None else argv
-        self.constructor_config = constructor_config
-        self.override_config = override_config
         self.init_logger()
 
     def init_logger(self):
@@ -194,13 +172,12 @@ class Application(object):
         self.log_default_config()
         self.set_default_config_log_level()
 
-        if self.override_config is None:
-            # Command-line config
-            self.pre_load_command_line_config()
-            self.load_command_line_config()
-            self.set_command_line_config_log_level()
-            self.post_load_command_line_config()
-            self.log_command_line_config()
+        # Command-line config
+        self.pre_load_command_line_config()
+        self.load_command_line_config()
+        self.set_command_line_config_log_level()
+        self.post_load_command_line_config()
+        self.log_command_line_config()
 
         # Find resources needed for filesystem access, using information from
         # the above two
@@ -209,13 +186,12 @@ class Application(object):
         self.find_config_file_name()
         self.find_config_file_paths()
 
-        if self.override_config is None:
-            # File-based config
-            self.pre_load_file_config()
-            self.load_file_config()
-            self.set_file_config_log_level()
-            self.post_load_file_config()
-            self.log_file_config()
+        # File-based config
+        self.pre_load_file_config()
+        self.load_file_config()
+        self.set_file_config_log_level()
+        self.post_load_file_config()
+        self.log_file_config()
 
         # Merge all config objects into a single one the app can then use
         self.merge_configs()
@@ -240,7 +216,7 @@ class Application(object):
 
     def create_crash_handler(self):
         """Create a crash handler, typically setting sys.excepthook to it."""
-        self.crash_handler = self._CrashHandler(self, self.name)
+        self.crash_handler = self.crash_handler_class(self)
         sys.excepthook = self.crash_handler
 
     def create_default_config(self):
@@ -270,11 +246,12 @@ class Application(object):
 
     def create_command_line_config(self):
         """Create and return a command line config loader."""
-        return ArgParseConfigLoader(self.argv, self.cl_arguments,
-                                    description=self.description, 
-                                    version=release.version,
-                                    usage=self.usage,
-                                    )
+        return self.command_line_loader(
+            self.argv,
+            description=self.description, 
+            version=release.version,
+            usage=self.usage
+        )
 
     def pre_load_command_line_config(self):
         """Do actions just before loading the command line config."""
@@ -338,18 +315,22 @@ class Application(object):
 
         If a profile has been set at the command line, this will resolve it.
         """
-
         try:
             self.config_file_name = self.command_line_config.Global.config_file
         except AttributeError:
             pass
+        else:
+            return
 
         try:
             self.profile_name = self.command_line_config.Global.profile
         except AttributeError:
-            pass
+            # Just use the default as there is no profile
+            self.config_file_name = self.default_config_file_name
         else:
-            name_parts = self.config_file_name.split('.')
+            # Use the default config file name and profile name if set
+            # to determine the used config file name.
+            name_parts = self.default_config_file_name.split('.')
             name_parts.insert(1, u'_' + self.profile_name + u'.')
             self.config_file_name = ''.join(name_parts)
 
@@ -418,13 +399,9 @@ class Application(object):
         """Merge the default, command line and file config objects."""
         config = Config()
         config._merge(self.default_config)
-        if self.override_config is None:
-            config._merge(self.file_config)
-            config._merge(self.command_line_config)
-            if self.constructor_config is not None:
-                config._merge(self.constructor_config)
-        else:
-            config._merge(self.override_config)
+        config._merge(self.file_config)
+        config._merge(self.command_line_config)
+
         # XXX fperez - propose to Brian we rename master_config to simply
         # config, I think this is going to be heavily used in examples and
         # application code and the name is shorter/easier to find/remember.
@@ -456,15 +433,6 @@ class Application(object):
     # Utility methods
     #-------------------------------------------------------------------------
 
-    def abort(self):
-        """Abort the starting of the application."""
-        if self._exiting:
-            pass
-        else:
-            self.log.critical("Aborting application: %s" % self.name, exc_info=True)
-            self._exiting = True
-            sys.exit(1)
-
     def exit(self, exit_status=0):
         if self._exiting:
             pass
@@ -473,17 +441,13 @@ class Application(object):
             self._exiting = True
             sys.exit(exit_status)
 
-    def attempt(self, func, action='abort'):
+    def attempt(self, func):
         try:
             func()
         except SystemExit:
             raise
         except:
-            if action == 'abort':
-                self.log.critical("Aborting application: %s" % self.name,
-                                  exc_info=True)
-                self.abort()
-                raise
-            elif action == 'exit':
-                self.exit(0)
+            self.log.critical("Aborting application: %s" % self.name,
+                              exc_info=True)
+            self.exit(0)
 

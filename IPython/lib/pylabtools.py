@@ -12,10 +12,12 @@ Fernando Perez.
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
 #-----------------------------------------------------------------------------
+
 #-----------------------------------------------------------------------------
 # Imports
 #-----------------------------------------------------------------------------
-from IPython.utils.genutils import flag_calls
+
+from IPython.utils.decorators import flag_calls
 
 #-----------------------------------------------------------------------------
 # Main classes and functions

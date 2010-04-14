@@ -10,8 +10,6 @@ Color schemes for exception handling code in IPython.
 #  the file COPYING, distributed as part of this software.
 #*****************************************************************************
 
-#****************************************************************************
-# Required modules
 from IPython.utils.coloransi import ColorSchemeTable, TermColors, ColorScheme
 
 def exception_colors():

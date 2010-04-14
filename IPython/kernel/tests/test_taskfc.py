@@ -31,7 +31,7 @@ from IPython.kernel.multienginefc import IFCSynchronousMultiEngine
 from IPython.kernel.taskfc import IFCTaskController
 from IPython.kernel.util import printer
 from IPython.kernel.tests.tasktest import ITaskControllerTestCase
-from IPython.kernel.clientconnector import ClientConnector
+from IPython.kernel.clientconnector import AsyncClientConnector
 from IPython.kernel.error import CompositeError
 from IPython.kernel.parallelfunction import ParallelFunction
 
@@ -48,42 +48,34 @@ def _raise_it(f):
 
 class TaskTest(DeferredTestCase, ITaskControllerTestCase):
 
-    # XXX (fperez) this is awful: I'm fully disabling this entire test class.
-    # Right now it's blocking the tests from running at all, and I don't know
-    # how to fix it.  I hope Brian can have a stab at it, but at least by doing
-    # this we can run the entire suite to completion.
-    # Once the problem is cleared, remove this skip method.
-    skip = True
-    # END XXX
- 
     def setUp(self):
-    
+
         self.engines = []
-            
+
         self.controller = cs.ControllerService()
         self.controller.startService()
         self.imultiengine = me.IMultiEngine(self.controller)
         self.itc = taskmodule.ITaskController(self.controller)
         self.itc.failurePenalty = 0
-    
+
         self.mec_referenceable = IFCSynchronousMultiEngine(self.imultiengine)
         self.tc_referenceable = IFCTaskController(self.itc)
-    
+
         self.controller_tub = Tub()
-        self.controller_tub.listenOn('tcp:10105:interface=127.0.0.1')
-        self.controller_tub.setLocation('127.0.0.1:10105')
-    
+        self.controller_tub.listenOn('tcp:10111:interface=127.0.0.1')
+        self.controller_tub.setLocation('127.0.0.1:10111')
+
         mec_furl = self.controller_tub.registerReference(self.mec_referenceable)
         tc_furl = self.controller_tub.registerReference(self.tc_referenceable)
         self.controller_tub.startService()
-    
-        self.client_tub = ClientConnector()
-        d = self.client_tub.get_multiengine_client(mec_furl)
+
+        self.client_tub = AsyncClientConnector()
+        d = self.client_tub.get_multiengine_client(furl_or_file=mec_furl)
         d.addCallback(self.handle_mec_client)
-        d.addCallback(lambda _: self.client_tub.get_task_client(tc_furl))
+        d.addCallback(lambda _: self.client_tub.get_task_client(furl_or_file=tc_furl))
         d.addCallback(self.handle_tc_client)
         return d
-    
+
     def handle_mec_client(self, client):
         self.multiengine = client
 
@@ -103,7 +95,7 @@ class TaskTest(DeferredTestCase, ITaskControllerTestCase):
         d.addBoth(lambda _: self.controller.stopService())
         dlist.append(d)
         return defer.DeferredList(dlist)
-    
+
     def test_mapper(self):
         self.addEngine(1)
         m = self.tc.mapper()
@@ -114,7 +106,7 @@ class TaskTest(DeferredTestCase, ITaskControllerTestCase):
         self.assertEquals(m.recovery_task,None)
         self.assertEquals(m.depend,None)
         self.assertEquals(m.block,True)
-    
+
     def test_map_default(self):
         self.addEngine(1)
         m = self.tc.mapper()
@@ -123,21 +115,21 @@ class TaskTest(DeferredTestCase, ITaskControllerTestCase):
         d.addCallback(lambda _: self.tc.map(lambda x: 2*x, range(10)))
         d.addCallback(lambda r: self.assertEquals(r,[2*x for x in range(10)]))
         return d
-    
+
     def test_map_noblock(self):
         self.addEngine(1)
         m = self.tc.mapper(block=False)
         d = m.map(lambda x: 2*x, range(10))
         d.addCallback(lambda r: self.assertEquals(r,[x for x in range(10)]))
         return d
-            
+
     def test_mapper_fail(self):
         self.addEngine(1)
         m = self.tc.mapper()
         d = m.map(lambda x: 1/0, range(10))
         d.addBoth(lambda f: self.assertRaises(ZeroDivisionError, _raise_it, f))
         return d
-    
+
     def test_parallel(self):
         self.addEngine(1)
         p = self.tc.parallel()
@@ -147,7 +139,7 @@ class TaskTest(DeferredTestCase, ITaskControllerTestCase):
         d = f(range(10))
         d.addCallback(lambda r: self.assertEquals(r,[2*x for x in range(10)]))
         return d
-    
+
     def test_parallel_noblock(self):
         self.addEngine(1)
         p = self.tc.parallel(block=False)
@@ -157,7 +149,7 @@ class TaskTest(DeferredTestCase, ITaskControllerTestCase):
         d = f(range(10))
         d.addCallback(lambda r: self.assertEquals(r,[x for x in range(10)]))
         return d
-    
+
     def test_parallel_fail(self):
         self.addEngine(1)
         p = self.tc.parallel()
@@ -167,3 +159,4 @@ class TaskTest(DeferredTestCase, ITaskControllerTestCase):
         d = f(range(10))
         d.addBoth(lambda f: self.assertRaises(ZeroDivisionError, _raise_it, f))
         return d
+

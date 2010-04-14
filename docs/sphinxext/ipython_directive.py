@@ -59,12 +59,9 @@ Authors
 
 # Stdlib
 import cStringIO
-import imp
 import os
 import re
-import shutil
 import sys
-import warnings
 
 # To keep compatibility with various python versions
 try:
@@ -80,8 +77,8 @@ from docutils.parsers.rst import directives
 matplotlib.use('Agg')
 
 # Our own
-from IPython import Config, IPythonApp
-from IPython.utils.genutils import Term, Tee
+from IPython import Config, InteractiveShell
+from IPython.utils.io import Term
 
 #-----------------------------------------------------------------------------
 # Globals
@@ -208,8 +205,9 @@ class EmbeddedSphinxShell(object):
         Term.cerr = self.cout
 
         # For debugging, so we can see normal output, use this:
-        #Term.cout = genutils.Tee(self.cout, channel='stdout') # dbg
-        #Term.cerr = genutils.Tee(self.cout, channel='stderr') # dbg
+        # from IPython.utils.io import Tee
+        #Term.cout = Tee(self.cout, channel='stdout') # dbg
+        #Term.cerr = Tee(self.cout, channel='stderr') # dbg
 
         # Create config object for IPython
         config = Config()
@@ -221,15 +219,11 @@ class EmbeddedSphinxShell(object):
         config.InteractiveShell.autoindent = False
         config.InteractiveShell.colors = 'NoColor'
 
-        # Merge global config which can be used to override.
-        config._merge(CONFIG)
-
         # Create and initialize ipython, but don't start its mainloop
-        IP = IPythonApp(override_config=config)
-        IP.initialize()
+        IP = InteractiveShell(parent=None, config=config)
 
         # Store a few parts of IPython we'll need.
-        self.IP = IP.shell
+        self.IP = IP
         self.user_ns = self.IP.user_ns
         self.user_global_ns = self.IP.user_global_ns
                                     

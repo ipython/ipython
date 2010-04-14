@@ -53,7 +53,7 @@ __all__ = ['Gnuplot','gp','gp_new','Data','File','Func','GridData',
            'pm3d_config','eps_fix_bbox']
 
 import os,tempfile,sys
-from IPython.utils.genutils import getoutput
+from IPython.utils.process import getoutput
 
 #---------------------------------------------------------------------------
 # Notes on mouse support for Gnuplot.py

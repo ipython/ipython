@@ -17,28 +17,25 @@ will change in the future.
 """
 
 #-----------------------------------------------------------------------------
-# Module imports
+#  Copyright (C) 2009  The IPython Development Team
+#
+#  Distributed under the terms of the BSD License.  The full license is in
+#  the file COPYING, distributed as part of this software.
+#-----------------------------------------------------------------------------
+
+#-----------------------------------------------------------------------------
+# Imports
 #-----------------------------------------------------------------------------
 
 # Stdlib
 import os
 import os.path as path
-import platform
 import signal
 import sys
 import subprocess
 import tempfile
 import time
 import warnings
-
-
-# Ugly,  but necessary hack to ensure the test suite finds our version of
-# IPython and not a possibly different one that may exist system-wide.
-# Note that this must be done here, so the imports that come next work
-# correctly even if IPython isn't installed yet.
-p = os.path
-ippath = p.abspath(p.join(p.dirname(__file__),'..','..'))
-sys.path.insert(0, ippath)
 
 # Note: monkeypatch!
 # We need to monkeypatch a small problem in nose itself first, before importing
@@ -50,11 +47,11 @@ import nose.plugins.builtin
 from nose.core import TestProgram
 
 # Our own imports
-from IPython.core import release
-from IPython.utils import genutils
-from IPython.utils.platutils import find_cmd, FindCmdError
+from IPython.utils.path import get_ipython_module_path
+from IPython.utils.process import find_cmd, pycmd2argv
+from IPython.utils.sysinfo import sys_info
+
 from IPython.testing import globalipapp
-from IPython.testing import tools
 from IPython.testing.plugin.ipdoctest import IPythonDoctest
 
 pjoin = path.join
@@ -64,16 +61,11 @@ pjoin = path.join
 # Globals
 #-----------------------------------------------------------------------------
 
-# By default, we assume IPython has been installed.  But if the test suite is
-# being run from a source tree that has NOT been installed yet, this flag can
-# be set to False by the entry point scripts, to let us know that we must call
-# the source tree versions of the scripts which manipulate sys.path instead of
-# assuming that things exist system-wide.
-INSTALLED = True
 
 #-----------------------------------------------------------------------------
 # Warnings control
 #-----------------------------------------------------------------------------
+
 # Twisted generates annoying warnings with Python 2.6, as will do other code
 # that imports 'sets' as of today
 warnings.filterwarnings('ignore', 'the sets module is deprecated',
@@ -124,9 +116,7 @@ have['gobject'] = test_for('gobject')
 def report():
     """Return a string with a summary report of test-related variables."""
 
-    out = [ genutils.sys_info() ]
-
-    out.append('\nRunning from an installed IPython: %s\n' % INSTALLED)
+    out = [ sys_info() ]
 
     avail = []
     not_avail = []
@@ -152,11 +142,11 @@ def report():
 
 def make_exclude():
     """Make patterns of modules and packages to exclude from testing.
-    
+
     For the IPythonDoctest plugin, we need to exclude certain patterns that
     cause testing problems.  We should strive to minimize the number of
-    skipped modules, since this means untested code.  As the testing
-    machinery solidifies, this list should eventually become empty.
+    skipped modules, since this means untested code.
+
     These modules and packages will NOT get scanned by nose at all for tests.
     """
     # Simple utility to make IPython paths more readably, we need a lot of
@@ -198,17 +188,11 @@ def make_exclude():
     if not have['objc']:
         exclusions.append(ipjoin('frontend', 'cocoa'))
 
-    if not sys.platform == 'win32':
-        exclusions.append(ipjoin('utils', 'platutils_win32'))
-
     # These have to be skipped on win32 because the use echo, rm, cd, etc.
     # See ticket https://bugs.launchpad.net/bugs/366982
     if sys.platform == 'win32':
         exclusions.append(ipjoin('testing', 'plugin', 'test_exampleip'))
         exclusions.append(ipjoin('testing', 'plugin', 'dtexample'))
-
-    if not os.name == 'posix':
-        exclusions.append(ipjoin('utils', 'platutils_posix'))
 
     if not have['pexpect']:
         exclusions.extend([ipjoin('scripts', 'irunner'),
@@ -255,20 +239,13 @@ class IPTester(object):
         """Create new test runner."""
         p = os.path
         if runner == 'iptest':
-            if INSTALLED:
-                self.runner = tools.cmd2argv(
-                    p.abspath(find_cmd('iptest'))) + sys.argv[1:]
-            else:
-                # Find our own 'iptest' script OS-level entry point.  Don't
-                # look system-wide, so we are sure we pick up *this one*.  And
-                # pass through to subprocess call our own sys.argv
-                ippath = p.abspath(p.join(p.dirname(__file__),'..','..'))
-                script = p.join(ippath, 'iptest.py')
-                self.runner = tools.cmd2argv(script) + sys.argv[1:]
-                
-        else:
+            iptest_app = get_ipython_module_path('IPython.testing.iptest')
+            self.runner = pycmd2argv(iptest_app) + sys.argv[1:]
+        elif runner == 'trial':
             # For trial, it needs to be installed system-wide
-            self.runner = tools.cmd2argv(p.abspath(find_cmd('trial')))
+            self.runner = pycmd2argv(p.abspath(find_cmd('trial')))
+        else:
+            raise Exception('Not a valid test runner: %s' % repr(runner))
         if params is None:
             params = []
         if isinstance(params, str):
@@ -290,6 +267,8 @@ class IPTester(object):
             # fashioned' way to do it, but it works just fine.  If someone
             # later can clean this up that's fine, as long as the tests run
             # reliably in win32.
+            # What types of problems are you having. They may be related to
+            # running Python in unboffered mode. BG.
             return os.system(' '.join(self.call_args))
     else:
         def _run_cmd(self):
@@ -343,9 +322,9 @@ def make_runners():
 
     # And add twisted ones if conditions are met
     if have['zope.interface'] and have['twisted'] and have['foolscap']:
-        # Note that we list the kernel here, though the bulk of it is
-        # twisted-based, because nose picks up doctests that twisted doesn't.
-        nose_pkg_names.append('kernel')
+        # We only list IPython.kernel for testing using twisted.trial as
+        # nose and twisted.trial have conflicts that make the testing system
+        # unstable.
         trial_pkg_names.append('kernel')
 
     # For debugging this code, only load quick stuff

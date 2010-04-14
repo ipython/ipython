@@ -47,6 +47,7 @@ def test_io():
     assert result == test_string
 
 
+@testdec.skip_win32
 def test_kill():
     """ Check that we can kill a process, and its subprocess.
     """

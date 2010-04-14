@@ -27,10 +27,7 @@ Authors:
 
 import __builtin__
 import codeop
-import keyword
-import os
 import re
-import sys
 
 from IPython.core.alias import AliasManager
 from IPython.core.autocall import IPyAutocall
@@ -39,7 +36,8 @@ from IPython.core.splitinput import split_user_input
 from IPython.core.page import page
 
 from IPython.utils.traitlets import List, Int, Any, Str, CBool, Bool
-from IPython.utils.genutils import make_quoted_expr, Term
+from IPython.utils.io import Term
+from IPython.utils.text import make_quoted_expr
 from IPython.utils.autoattr import auto_attr
 
 #-----------------------------------------------------------------------------
@@ -158,11 +156,12 @@ class LineInfo(object):
         without worrying about *further* damaging state.
         """
         if not self._oinfo:
+            # ip.shell._ofind is actually on the Magic class!
             self._oinfo = ip.shell._ofind(self.ifun)
         return self._oinfo
 
     def __str__(self):                                                         
-        return "Lineinfo [%s|%s|%s]" %(self.pre,self.ifun,self.the_rest) 
+        return "Lineinfo [%s|%s|%s]" %(self.pre, self.ifun, self.the_rest) 
 
 
 #-----------------------------------------------------------------------------

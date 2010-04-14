@@ -69,19 +69,20 @@ used, and this module (and the readline module) are silently inactive.
 import __builtin__
 import __main__
 import glob
+import inspect
 import itertools
 import keyword
 import os
 import re
 import shlex
 import sys
-import types
 
-import IPython.utils.rlineimpl as readline
 from IPython.core.error import TryNext
 from IPython.core.prefilter import ESC_MAGIC
 from IPython.utils import generics
-from IPython.utils.genutils import debugx, dir2
+from IPython.utils.frame import debugx
+from IPython.utils.dir2 import dir2
+import IPython.utils.rlineimpl as readline
 
 #-----------------------------------------------------------------------------
 # Globals
@@ -216,7 +217,6 @@ class Completer:
         with a __getattr__ hook is evaluated.
 
         """
-        import re
 
         #print 'Completer->attr_matches, txt=%r' % text # dbg
         # Another option, seems to work great. Catches things like ''.<tab>

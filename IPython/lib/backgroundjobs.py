@@ -31,7 +31,7 @@ import sys
 import threading
 
 from IPython.core.ultratb import AutoFormattedTB
-from IPython.utils.genutils import warn,error
+from IPython.utils.warn import warn, error
 
 class BackgroundJobManager:
     """Class to manage a pool of backgrounded threaded jobs.

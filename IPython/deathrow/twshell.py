@@ -14,7 +14,9 @@ from IPython.core.iplib import InteractiveShell
 from IPython.utils.ipstruct import Struct
 import Queue,thread,threading,signal
 from signal import signal, SIGINT
-from IPython.utils.genutils import Term,warn,error,flag_calls, ask_yes_no
+from IPython.utils.io import Term, ask_yes_no
+from IPython.utils.warn import warn, error
+from IPython.utils.decorators import flag_calls
 from IPython.core import shellglobals
 
 def install_gtk2():

@@ -21,6 +21,8 @@ __docformat__ = "restructuredtext en"
 
 # Required modules
 import __builtin__
+import os
+import re
 import socket
 import sys
 
@@ -30,7 +32,8 @@ from IPython.external.Itpl import ItplNS
 from IPython.utils import coloransi
 from IPython.core import release
 from IPython.core.error import TryNext
-from IPython.utils.genutils import *
+from IPython.utils.io import Term
+from IPython.utils.warn import warn
 import IPython.utils.generics
 
 #****************************************************************************
@@ -240,7 +243,7 @@ class BasePrompt(object):
         This must be called every time the color settings change, because the
         prompt_specials global may have changed."""
 
-        import os,time  # needed in locals for prompt string handling
+        import os, time  # needed in locals for prompt string handling
         loc = locals()
         self.p_str = ItplNS('%s%s%s' %
                             ('${self.sep}${self.col_p}',

@@ -4,6 +4,17 @@ This is just so we can use 2.6 features when running in 2.5, the code below is
 copied verbatim from the stdlib's collections and doctest modules.
 """
 
+#-----------------------------------------------------------------------------
+#  Copyright (C) 2009  The IPython Development Team
+#
+#  Distributed under the terms of the BSD License.  The full license is in
+#  the file COPYING, distributed as part of this software.
+#-----------------------------------------------------------------------------
+
+#-----------------------------------------------------------------------------
+# Imports
+#-----------------------------------------------------------------------------
+
 from keyword import iskeyword as _iskeyword
 from operator import itemgetter as _itemgetter
 import sys as _sys

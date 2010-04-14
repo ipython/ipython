@@ -61,41 +61,53 @@ class TestPyFileCL(TestCase):
         self.assertEquals(config.Foo.Bam.value, range(10))
         self.assertEquals(config.D.C.value, 'hi there')
 
+class MyLoader1(ArgParseConfigLoader):
+    def _add_arguments(self):
+        p = self.parser
+        p.add_argument('-f', '--foo', dest='Global.foo', type=str)
+        p.add_argument('-b', dest='MyClass.bar', type=int)
+        p.add_argument('-n', dest='n', action='store_true')
+        p.add_argument('Global.bam', type=str)
+
+class MyLoader2(ArgParseConfigLoader):
+    def _add_arguments(self):
+        subparsers = self.parser.add_subparsers(dest='subparser_name')
+        subparser1 = subparsers.add_parser('1')
+        subparser1.add_argument('-x',dest='Global.x')
+        subparser2 = subparsers.add_parser('2')
+        subparser2.add_argument('y')
 
 class TestArgParseCL(TestCase):
 
     def test_basic(self):
-
-        arguments = (
-                (('-f','--foo'), dict(dest='Global.foo', type=str)),
-                (('-b',), dict(dest='MyClass.bar', type=int)),
-                (('-n',), dict(dest='n', action='store_true')),
-                (('Global.bam',), dict(type=str))
-            )
-        cl = ArgParseConfigLoader(arguments=arguments)
+        cl = MyLoader1()
         config = cl.load_config('-f hi -b 10 -n wow'.split())
         self.assertEquals(config.Global.foo, 'hi')
         self.assertEquals(config.MyClass.bar, 10)
         self.assertEquals(config.n, True)
         self.assertEquals(config.Global.bam, 'wow')
+        config = cl.load_config(['wow'])
+        self.assertEquals(config.keys(), ['Global'])
+        self.assertEquals(config.Global.keys(), ['bam'])
+        self.assertEquals(config.Global.bam, 'wow')
 
     def test_add_arguments(self):
-
-        class MyLoader(ArgParseConfigLoader):
-            def _add_arguments(self):
-                subparsers = self.parser.add_subparsers(dest='subparser_name')
-                subparser1 = subparsers.add_parser('1')
-                subparser1.add_argument('-x',dest='Global.x')
-                subparser2 = subparsers.add_parser('2')
-                subparser2.add_argument('y')
-
-        cl = MyLoader()
+        cl = MyLoader2()
         config = cl.load_config('2 frobble'.split())
         self.assertEquals(config.subparser_name, '2')
         self.assertEquals(config.y, 'frobble')
         config = cl.load_config('1 -x frobble'.split())
         self.assertEquals(config.subparser_name, '1')
         self.assertEquals(config.Global.x, 'frobble')
+
+    def test_argv(self):
+        cl = MyLoader1(argv='-f hi -b 10 -n wow'.split())
+        config = cl.load_config()
+        self.assertEquals(config.Global.foo, 'hi')
+        self.assertEquals(config.MyClass.bar, 10)
+        self.assertEquals(config.n, True)
+        self.assertEquals(config.Global.bam, 'wow')
+
 
 class TestConfig(TestCase):
 

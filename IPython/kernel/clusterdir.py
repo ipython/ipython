@@ -24,13 +24,16 @@ import warnings
 
 from twisted.python import log
 
-from IPython.core import release
 from IPython.config.loader import PyFileConfigLoader
-from IPython.core.application import Application
+from IPython.core.application import Application, BaseAppConfigLoader
 from IPython.core.component import Component
-from IPython.utils.genutils import get_ipython_dir, get_ipython_package_dir
-from IPython.utils.traitlets import Unicode, Bool
-from IPython.utils import genutils
+from IPython.core.crashhandler import CrashHandler
+from IPython.core import release
+from IPython.utils.path import (
+    get_ipython_package_dir,
+    expand_path
+)
+from IPython.utils.traitlets import Unicode
 
 #-----------------------------------------------------------------------------
 # Warnings control
@@ -45,7 +48,7 @@ warnings.filterwarnings('ignore', 'the sha module is deprecated',
                         DeprecationWarning)
 
 #-----------------------------------------------------------------------------
-# Classes and functions
+# Module errors
 #-----------------------------------------------------------------------------
 
 class ClusterDirError(Exception):
@@ -55,6 +58,10 @@ class ClusterDirError(Exception):
 class PIDFileError(Exception):
     pass
 
+
+#-----------------------------------------------------------------------------
+# Class for managing cluster directories
+#-----------------------------------------------------------------------------
 
 class ClusterDir(Component):
     """An object to manage the cluster directory and its resources.
@@ -225,43 +232,109 @@ class ClusterDir(Component):
             The path of the cluster directory.  This is expanded using
             :func:`IPython.utils.genutils.expand_path`.
         """
-        cluster_dir = genutils.expand_path(cluster_dir)
+        cluster_dir = expand_path(cluster_dir)
         if not os.path.isdir(cluster_dir):
             raise ClusterDirError('Cluster directory not found: %s' % cluster_dir)
         return ClusterDir(cluster_dir)
 
 
-# Default command line options for IPython cluster applications.
-cl_args = (
-    (('--ipython-dir',), dict(
-        dest='Global.ipython_dir',type=unicode,
-        help='Set to override default location of Global.ipython_dir.',
-        metavar='Global.ipython_dir') ),
-    (('-p', '--profile',), dict(
-        dest='Global.profile',type=unicode,
-        help=
-        """The string name of the profile to be used. This determines the name
-        of the cluster dir as: cluster_<profile>. The default profile is named
-        'default'.  The cluster directory is resolve this way if the
-        --cluster-dir option is not used.""",
-        metavar='Global.profile') ),
-    (('--cluster-dir',), dict(
-        dest='Global.cluster_dir',type=unicode,
-        help="""Set the cluster dir. This overrides the logic used by the
-        --profile option.""",
-        metavar='Global.cluster_dir') ),
-    (('--work-dir',), dict(
-      dest='Global.work_dir',type=unicode,
-      help='Set the working dir for the process.',
-      metavar='Global.work_dir') ),
-    (('--clean-logs',), dict(
-      dest='Global.clean_logs', action='store_true',
-      help='Delete old log flies before starting.') ),
-    (('--no-clean-logs',), dict(
-      dest='Global.clean_logs', action='store_false',
-      help="Don't Delete old log flies before starting.") ),
-    )
+#-----------------------------------------------------------------------------
+# Command line options
+#-----------------------------------------------------------------------------
 
+class ClusterDirConfigLoader(BaseAppConfigLoader):
+
+    def _add_cluster_profile(self, parser):
+        paa = parser.add_argument
+        paa('-p', '--profile',
+            dest='Global.profile',type=unicode,
+            help=
+            """The string name of the profile to be used. This determines the name
+            of the cluster dir as: cluster_<profile>. The default profile is named
+            'default'.  The cluster directory is resolve this way if the
+            --cluster-dir option is not used.""",
+            metavar='Global.profile')
+
+    def _add_cluster_dir(self, parser):
+        paa = parser.add_argument
+        paa('--cluster-dir',
+            dest='Global.cluster_dir',type=unicode,
+            help="""Set the cluster dir. This overrides the logic used by the
+            --profile option.""",
+            metavar='Global.cluster_dir')
+
+    def _add_work_dir(self, parser):
+        paa = parser.add_argument
+        paa('--work-dir',
+            dest='Global.work_dir',type=unicode,
+            help='Set the working dir for the process.',
+            metavar='Global.work_dir')
+
+    def _add_clean_logs(self, parser):
+        paa = parser.add_argument
+        paa('--clean-logs',
+            dest='Global.clean_logs', action='store_true',
+            help='Delete old log flies before starting.')
+
+    def _add_no_clean_logs(self, parser):
+        paa = parser.add_argument
+        paa('--no-clean-logs',
+            dest='Global.clean_logs', action='store_false',
+            help="Don't Delete old log flies before starting.")
+
+    def _add_arguments(self):
+        super(ClusterDirConfigLoader, self)._add_arguments()
+        self._add_cluster_profile(self.parser)
+        self._add_cluster_dir(self.parser)
+        self._add_work_dir(self.parser)
+        self._add_clean_logs(self.parser)
+        self._add_no_clean_logs(self.parser)
+
+
+#-----------------------------------------------------------------------------
+# Crash handler for this application
+#-----------------------------------------------------------------------------
+
+
+_message_template = """\
+Oops, $self.app_name crashed. We do our best to make it stable, but...
+
+A crash report was automatically generated with the following information:
+  - A verbatim copy of the crash traceback.
+  - Data on your current $self.app_name configuration.
+
+It was left in the file named:
+\t'$self.crash_report_fname'
+If you can email this file to the developers, the information in it will help
+them in understanding and correcting the problem.
+
+You can mail it to: $self.contact_name at $self.contact_email
+with the subject '$self.app_name Crash Report'.
+
+If you want to do it now, the following command will work (under Unix):
+mail -s '$self.app_name Crash Report' $self.contact_email < $self.crash_report_fname
+
+To ensure accurate tracking of this issue, please file a report about it at:
+$self.bug_tracker
+"""
+
+class ClusterDirCrashHandler(CrashHandler):
+    """sys.excepthook for IPython itself, leaves a detailed report on disk."""
+
+    message_template = _message_template
+
+    def __init__(self, app):
+        contact_name = release.authors['Brian'][0]
+        contact_email = release.authors['Brian'][1]
+        bug_tracker = 'https://bugs.launchpad.net/ipython/+filebug'
+        super(ClusterDirCrashHandler,self).__init__(
+            app, contact_name, contact_email, bug_tracker
+        )
+
+
+#-----------------------------------------------------------------------------
+# Main application
+#-----------------------------------------------------------------------------
 
 class ApplicationWithClusterDir(Application):
     """An application that puts everything into a cluster directory.
@@ -282,9 +355,9 @@ class ApplicationWithClusterDir(Application):
     dir and named the value of the ``config_file_name`` class attribute.
     """
 
+    command_line_loader = ClusterDirConfigLoader
+    crash_handler_class = ClusterDirCrashHandler
     auto_create_cluster_dir = True
-
-    cl_arguments = Application.cl_arguments + cl_args
 
     def create_default_config(self):
         super(ApplicationWithClusterDir, self).create_default_config()
@@ -316,7 +389,7 @@ class ApplicationWithClusterDir(Application):
             cluster_dir = self.command_line_config.Global.cluster_dir
         except AttributeError:
             cluster_dir = self.default_config.Global.cluster_dir
-        cluster_dir = genutils.expand_path(cluster_dir)
+        cluster_dir = expand_path(cluster_dir)
         try:
             self.cluster_dir_obj = ClusterDir.find_cluster_dir(cluster_dir)
         except ClusterDirError:
@@ -368,15 +441,17 @@ class ApplicationWithClusterDir(Application):
     def find_config_file_name(self):
         """Find the config file name for this application."""
         # For this type of Application it should be set as a class attribute.
-        if not hasattr(self, 'config_file_name'):
+        if not hasattr(self, 'default_config_file_name'):
             self.log.critical("No config filename found")
+        else:
+            self.config_file_name = self.default_config_file_name
 
     def find_config_file_paths(self):
-        # Include our own config directory last, so that users can still find
-        # our shipped copies of builtin config files even if they don't have
-        # them in their ipython cluster directory.
+        # Set the search path to to the cluster directory. We should NOT
+        # include IPython.config.default here as the default config files
+        # are ALWAYS automatically moved to the cluster directory.
         conf_dir = os.path.join(get_ipython_package_dir(), 'config', 'default')
-        self.config_file_paths = (self.cluster_dir, conf_dir)
+        self.config_file_paths = (self.cluster_dir,)
 
     def pre_construct(self):
         # The log and security dirs were set earlier, but here we put them
@@ -389,7 +464,7 @@ class ApplicationWithClusterDir(Application):
         pdir = self.cluster_dir_obj.pid_dir
         self.pid_dir = config.Global.pid_dir = pdir
         self.log.info("Cluster directory set to: %s" % self.cluster_dir)
-        config.Global.work_dir = unicode(genutils.expand_path(config.Global.work_dir))
+        config.Global.work_dir = unicode(expand_path(config.Global.work_dir))
         # Change to the working directory. We do this just before construct
         # is called so all the components there have the right working dir.
         self.to_work_dir()
@@ -461,3 +536,4 @@ class ApplicationWithClusterDir(Application):
                 return pid
         else:
             raise PIDFileError('pid file not found: %s' % pid_file)
+

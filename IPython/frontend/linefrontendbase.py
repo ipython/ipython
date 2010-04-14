@@ -39,9 +39,10 @@ def common_prefix(strings):
 
     return prefix
 
-#-------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------
 # Base class for the line-oriented front ends
-#-------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------
+
 class LineFrontEndBase(FrontEndBase):
     """ Concrete implementation of the FrontEndBase class. This is meant
     to be the base class behind all the frontend that are line-oriented,

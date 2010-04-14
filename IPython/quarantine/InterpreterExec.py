@@ -50,7 +50,7 @@ del InteractiveShell,prefilter_shell
 
 # Provide pysh and further shell-oriented services
 import os,sys,shutil
-from IPython.utils.genutils import system,shell,getoutput,getoutputerror
+from IPython.utils.process import system,shell,getoutput,getoutputerror
 
 # Short aliases for getting shell output as a string and a list
 sout = getoutput

@@ -1,8 +1,5 @@
 # encoding: utf-8
-
-"""Tests for genutils.py"""
-
-__docformat__ = "restructuredtext en"
+"""Tests for IPython.utils.path.py"""
 
 #-----------------------------------------------------------------------------
 #  Copyright (C) 2008  The IPython Development Team
@@ -15,27 +12,21 @@ __docformat__ = "restructuredtext en"
 # Imports
 #-----------------------------------------------------------------------------
 
-# stdlib
 import os
 import shutil
 import sys
 import tempfile
-import unittest
 
-from cStringIO import StringIO
 from os.path import join, abspath, split
 
-# third-party
 import nose.tools as nt
 
 from nose import with_setup
-from nose.tools import raises
 
-# Our own
 import IPython
-from IPython.utils import genutils
 from IPython.testing import decorators as dec
-from IPython.testing.decorators import skipif, skip_if_not_win32
+from IPython.testing.decorators import skip_if_not_win32, skip_win32
+from IPython.utils import path
 
 # Platform-dependent imports
 try:
@@ -69,6 +60,7 @@ def setup():
     # problem because that exception is only defined on Windows...
     os.makedirs(IP_TEST_DIR)
 
+
 def teardown():
     """Teardown testenvironment for the module:
     
@@ -79,7 +71,7 @@ def teardown():
     # that non-empty directories are all recursively removed.
     shutil.rmtree(TMP_TEST_DIR)
 
-    
+
 def setup_environment():
     """Setup testenvironment for some functions that are tested 
     in this module. In particular this functions stores attributes
@@ -88,16 +80,16 @@ def setup_environment():
     each testfunction needs a pristine environment.
     """
     global oldstuff, platformstuff
-    oldstuff = (env.copy(), os.name, genutils.get_home_dir, IPython.__file__)
+    oldstuff = (env.copy(), os.name, path.get_home_dir, IPython.__file__)
 
     if os.name == 'nt':
         platformstuff = (wreg.OpenKey, wreg.QueryValueEx,)
 
- 
+
 def teardown_environment():
     """Restore things that were remebered by the setup_environment function
     """
-    (oldenv, os.name, genutils.get_home_dir, IPython.__file__,) = oldstuff
+    (oldenv, os.name, get_home_dir, IPython.__file__,) = oldstuff
         
     for key in env.keys():
         if key not in oldenv:
@@ -112,10 +104,6 @@ def teardown_environment():
 with_environment = with_setup(setup_environment, teardown_environment)
 
 
-#
-# Tests for get_home_dir
-#
-
 @skip_if_not_win32
 @with_environment
 def test_get_home_dir_1():
@@ -126,9 +114,10 @@ def test_get_home_dir_1():
     #fake filename for IPython.__init__
     IPython.__file__ = abspath(join(HOME_TEST_DIR, "Lib/IPython/__init__.py"))
     
-    home_dir = genutils.get_home_dir()
+    home_dir = path.get_home_dir()
     nt.assert_equal(home_dir, abspath(HOME_TEST_DIR))
-    
+
+
 @skip_if_not_win32
 @with_environment
 def test_get_home_dir_2():
@@ -138,61 +127,78 @@ def test_get_home_dir_2():
     #fake filename for IPython.__init__
     IPython.__file__ = abspath(join(HOME_TEST_DIR, "Library.zip/IPython/__init__.py")).lower()
     
-    home_dir = genutils.get_home_dir()
+    home_dir = path.get_home_dir()
     nt.assert_equal(home_dir, abspath(HOME_TEST_DIR).lower())
 
+
 @with_environment
+@skip_win32
 def test_get_home_dir_3():
     """Testcase $HOME is set, then use its value as home directory."""
     env["HOME"] = HOME_TEST_DIR
-    home_dir = genutils.get_home_dir()
+    home_dir = path.get_home_dir()
     nt.assert_equal(home_dir, env["HOME"])
+
 
 @with_environment
 def test_get_home_dir_4():
-    """Testcase $HOME is not set, os=='poix'. 
+    """Testcase $HOME is not set, os=='posix'. 
     This should fail with HomeDirError"""
     
     os.name = 'posix'
     if 'HOME' in env: del env['HOME']
-    nt.assert_raises(genutils.HomeDirError, genutils.get_home_dir)
-        
+    nt.assert_raises(path.HomeDirError, path.get_home_dir)
+
+
 @skip_if_not_win32
 @with_environment
 def test_get_home_dir_5():
-    """Testcase $HOME is not set, os=='nt' 
-    env['HOMEDRIVE'],env['HOMEPATH'] points to path."""
+    """Using HOMEDRIVE + HOMEPATH, os=='nt'.
+
+    HOMESHARE is missing.
+    """
 
     os.name = 'nt'
-    if 'HOME' in env: del env['HOME']
+    env.pop('HOMESHARE', None)
     env['HOMEDRIVE'], env['HOMEPATH'] = os.path.splitdrive(HOME_TEST_DIR)
-
-    home_dir = genutils.get_home_dir()
+    home_dir = path.get_home_dir()
     nt.assert_equal(home_dir, abspath(HOME_TEST_DIR))
+
 
 @skip_if_not_win32
 @with_environment
 def test_get_home_dir_6():
-    """Testcase $HOME is not set, os=='nt' 
-    env['HOMEDRIVE'],env['HOMEPATH'] do not point to path.
-    env['USERPROFILE'] points to path
+    """Using USERPROFILE, os=='nt'.
+
+    HOMESHARE, HOMEDRIVE, HOMEPATH are missing.
     """
 
     os.name = 'nt'
-    if 'HOME' in env: del env['HOME']
-    env['HOMEDRIVE'], env['HOMEPATH'] = os.path.abspath(TEST_FILE_PATH), "DOES NOT EXIST"
+    env.pop('HOMESHARE', None)
+    env.pop('HOMEDRIVE', None)
+    env.pop('HOMEPATH', None)
     env["USERPROFILE"] = abspath(HOME_TEST_DIR)
-
-    home_dir = genutils.get_home_dir()
+    home_dir = path.get_home_dir()
     nt.assert_equal(home_dir, abspath(HOME_TEST_DIR))
 
-# Should we stub wreg fully so we can run the test on all platforms?
+
 @skip_if_not_win32
 @with_environment
 def test_get_home_dir_7():
-    """Testcase $HOME is not set, os=='nt'
+    """Using HOMESHARE, os=='nt'."""
+
+    os.name = 'nt'
+    env["HOMESHARE"] = abspath(HOME_TEST_DIR)
+    home_dir = path.get_home_dir()
+    nt.assert_equal(home_dir, abspath(HOME_TEST_DIR))
     
-    env['HOMEDRIVE'],env['HOMEPATH'], env['USERPROFILE'] and others missing
+# Should we stub wreg fully so we can run the test on all platforms?
+@skip_if_not_win32
+@with_environment
+def test_get_home_dir_8():
+    """Using registry hack for 'My Documents', os=='nt'
+    
+    HOMESHARE, HOMEDRIVE, HOMEPATH, USERPROFILE and others are missing.
     """
     os.name = 'nt'
     # Remove from stub environment all keys that may be set
@@ -211,116 +217,56 @@ def test_get_home_dir_7():
     wreg.OpenKey = OpenKey
     wreg.QueryValueEx = QueryValueEx
 
-    home_dir = genutils.get_home_dir()
+    home_dir = path.get_home_dir()
     nt.assert_equal(home_dir, abspath(HOME_TEST_DIR))
 
-#
-# Tests for get_ipython_dir
-#
 
 @with_environment
 def test_get_ipython_dir_1():
     """test_get_ipython_dir_1, Testcase to see if we can call get_ipython_dir without Exceptions."""
     env['IPYTHON_DIR'] = "someplace/.ipython"
-    ipdir = genutils.get_ipython_dir()
+    ipdir = path.get_ipython_dir()
     nt.assert_equal(ipdir, "someplace/.ipython")
 
 
 @with_environment
 def test_get_ipython_dir_2():
     """test_get_ipython_dir_2, Testcase to see if we can call get_ipython_dir without Exceptions."""
-    genutils.get_home_dir = lambda : "someplace"
+    path.get_home_dir = lambda : "someplace"
     os.name = "posix"
     env.pop('IPYTHON_DIR', None)
     env.pop('IPYTHONDIR', None)
-    ipdir = genutils.get_ipython_dir()
+    ipdir = path.get_ipython_dir()
     nt.assert_equal(ipdir, os.path.join("someplace", ".ipython"))
-
-#
-# Tests for popkey
-#
-
-def test_popkey_1():
-    """test_popkey_1, Basic usage test of popkey
-    """
-    dct = dict(a=1, b=2, c=3)
-    nt.assert_equal(genutils.popkey(dct, "a"), 1)
-    nt.assert_equal(dct, dict(b=2, c=3))
-    nt.assert_equal(genutils.popkey(dct, "b"), 2)
-    nt.assert_equal(dct, dict(c=3))
-    nt.assert_equal(genutils.popkey(dct, "c"), 3)
-    nt.assert_equal(dct, dict())
-
-def test_popkey_2():
-    """test_popkey_2, Test to see that popkey of non occuring keys
-    generates a KeyError exception
-    """
-    dct = dict(a=1, b=2, c=3)
-    nt.assert_raises(KeyError, genutils.popkey, dct, "d")
-
-def test_popkey_3():
-    """test_popkey_3, Tests to see that popkey calls returns the correct value
-    and that the key/value was removed from the dict.
-    """
-    dct = dict(a=1, b=2, c=3)
-    nt.assert_equal(genutils.popkey(dct, "A", 13), 13)
-    nt.assert_equal(dct, dict(a=1, b=2, c=3))
-    nt.assert_equal(genutils.popkey(dct, "B", 14), 14)
-    nt.assert_equal(dct, dict(a=1, b=2, c=3))
-    nt.assert_equal(genutils.popkey(dct, "C", 15), 15)
-    nt.assert_equal(dct, dict(a=1, b=2, c=3))
-    nt.assert_equal(genutils.popkey(dct, "a"), 1)
-    nt.assert_equal(dct, dict(b=2, c=3))
-    nt.assert_equal(genutils.popkey(dct, "b"), 2)
-    nt.assert_equal(dct, dict(c=3))
-    nt.assert_equal(genutils.popkey(dct, "c"), 3)
-    nt.assert_equal(dct, dict())
 
 
 def test_filefind():
     """Various tests for filefind"""
     f = tempfile.NamedTemporaryFile()
-    print 'fname:',f.name
-    alt_dirs = genutils.get_ipython_dir()
-    t = genutils.filefind(f.name,alt_dirs)
-    print 'found:',t
+    # print 'fname:',f.name
+    alt_dirs = path.get_ipython_dir()
+    t = path.filefind(f.name, alt_dirs)
+    # print 'found:',t
 
 
 def test_get_ipython_package_dir():
-    ipdir = genutils.get_ipython_package_dir()
+    ipdir = path.get_ipython_package_dir()
     nt.assert_true(os.path.isdir(ipdir))
 
 
-def test_tee_simple():
-    "Very simple check with stdout only"
-    chan = StringIO()
-    text = 'Hello'
-    tee = genutils.Tee(chan, channel='stdout')
-    print >> chan, text,
-    nt.assert_equal(chan.getvalue(), text)
+def test_get_ipython_module_path():
+    ipapp_path = path.get_ipython_module_path('IPython.core.ipapp')
+    nt.assert_true(os.path.isfile(ipapp_path))
 
 
-class TeeTestCase(dec.ParametricTestCase):
+@dec.skip_if_not_win32
+def test_get_long_path_name_win32():
+    p = path.get_long_path_name('c:\\docume~1')
+    nt.assert_equals(p,u'c:\\Documents and Settings') 
 
-    def tchan(self, channel, check='close'):
-        trap = StringIO()
-        chan = StringIO()
-        text = 'Hello'
-        
-        std_ori = getattr(sys, channel)
-        setattr(sys, channel, trap)
 
-        tee = genutils.Tee(chan, channel=channel)
-        print >> chan, text,
-        setattr(sys, channel, std_ori)
-        trap_val = trap.getvalue()
-        nt.assert_equals(chan.getvalue(), text)
-        if check=='close':
-            tee.close()
-        else:
-            del tee
+@dec.skip_win32
+def test_get_long_path_name():
+    p = path.get_long_path_name('/usr/local')
+    nt.assert_equals(p,'/usr/local')
 
-    def test(self):
-        for chan in ['stdout', 'stderr']:
-            for check in ['close', 'del']:
-                yield self.tchan(chan, check)

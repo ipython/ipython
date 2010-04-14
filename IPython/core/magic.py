@@ -1,35 +1,33 @@
-# -*- coding: utf-8 -*-
+# encoding: utf-8
 """Magic functions for InteractiveShell.
 """
 
-#*****************************************************************************
-#       Copyright (C) 2001 Janko Hauser <jhauser@zscout.de> and
-#       Copyright (C) 2001-2006 Fernando Perez <fperez@colorado.edu>
-#
+#-----------------------------------------------------------------------------
+#  Copyright (C) 2001 Janko Hauser <jhauser@zscout.de> and
+#  Copyright (C) 2001-2007 Fernando Perez <fperez@colorado.edu>
+#  Copyright (C) 2008-2009  The IPython Development Team
+
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
-#*****************************************************************************
+#-----------------------------------------------------------------------------
 
-#****************************************************************************
-# Modules and globals
+#-----------------------------------------------------------------------------
+# Imports
+#-----------------------------------------------------------------------------
 
-# Python standard modules
 import __builtin__
 import bdb
 import inspect
 import os
-import pdb
-import pydoc
 import sys
 import shutil
 import re
-import tempfile
 import time
-import cPickle as pickle
 import textwrap
+import types
 from cStringIO import StringIO
 from getopt import getopt,GetoptError
-from pprint import pprint, pformat
+from pprint import pformat
 
 # cProfile was added in Python2.5
 try:
@@ -42,10 +40,7 @@ except ImportError:
     except ImportError:
         profile = pstats = None
 
-# Homebrewed
 import IPython
-import IPython.utils.generics
-
 from IPython.core import debugger, oinspect
 from IPython.core.error import TryNext
 from IPython.core.error import UsageError
@@ -53,20 +48,24 @@ from IPython.core.fakemodule import FakeModule
 from IPython.core.macro import Macro
 from IPython.core.page import page
 from IPython.core.prefilter import ESC_MAGIC
-from IPython.core.pylabtools import mpl_runner
+from IPython.lib.pylabtools import mpl_runner
 from IPython.lib.inputhook import enable_gui
-from IPython.external.Itpl import Itpl, itpl, printpl,itplns
+from IPython.external.Itpl import itpl, printpl
 from IPython.testing import decorators as testdec
-from IPython.utils import platutils
-from IPython.utils import wildcard
-from IPython.utils.PyColorize import Parser
+from IPython.utils.io import Term, file_read, nlprint
+from IPython.utils.path import get_py_filename
+from IPython.utils.process import arg_split, abbrev_cwd
+from IPython.utils.terminal import set_term_title
+from IPython.utils.text import LSString, SList, StringTypes
+from IPython.utils.timing import clock, clock2
+from IPython.utils.warn import warn, error
 from IPython.utils.ipstruct import Struct
+import IPython.utils.generics
 
-# XXX - We need to switch to explicit imports here with genutils
-from IPython.utils.genutils import *
-
-#***************************************************************************
+#-----------------------------------------------------------------------------
 # Utility functions
+#-----------------------------------------------------------------------------
+
 def on_off(tag):
     """Return an ON/OFF string for a 1/0 input. Simple utility function."""
     return ['OFF','ON'][tag]
@@ -94,6 +93,9 @@ def compress_dhist(dh):
 # on construction of the main InteractiveShell object.  Something odd is going
 # on with super() calls, Component and the MRO... For now leave it as-is, but
 # eventually this needs to be clarified.
+# BG: This is because InteractiveShell inherits from this, but is itself a 
+# Component. This messes up the MRO in some way. The fix is that we need to
+# make Magic a component that InteractiveShell does not subclass.
 
 class Magic:
     """Magic functions for InteractiveShell.
@@ -277,7 +279,7 @@ python-profiler package from non-free.""")
     def arg_err(self,func):
         """Print docstring if incorrect arguments were passed"""
         print 'Error in arguments:'
-        print OInspect.getdoc(func)
+        print oinspect.getdoc(func)
 
     def format_latex(self,strng):
         """Format a string for latex inclusion."""
@@ -884,10 +886,10 @@ Currently the magic system has the following functions:\n"""
 
         user_ns = self.shell.user_ns
         internal_ns = self.shell.internal_ns
-        user_config_ns = self.shell.user_config_ns
+        user_ns_hidden = self.shell.user_ns_hidden
         out = [ i for i in user_ns
                 if not i.startswith('_') \
-                and not (i in internal_ns or i in user_config_ns) ]
+                and not (i in internal_ns or i in user_ns_hidden) ]
 
         typelist = parameter_s.split()
         if typelist:
@@ -1170,7 +1172,7 @@ Currently the magic system has the following functions:\n"""
             started  = logger.logstart(logfname,loghead,logmode,
                                        log_output,timestamp,log_raw_input)
         except:
-            rc.opts.logfile = old_logfile
+            self.shell.logfile = old_logfile
             warn("Couldn't start log: %s" % sys.exc_info()[1])
         else:
             # log input history up to this point, optionally interleaving
@@ -2811,7 +2813,7 @@ Defaulting color scheme to 'NoColor'"""
             try:                
                 os.chdir(os.path.expanduser(ps))
                 if self.shell.term_title:
-                    platutils.set_term_title('IPython: ' + abbrev_cwd())
+                    set_term_title('IPython: ' + abbrev_cwd())
             except OSError:
                 print sys.exc_info()[1]
             else:
@@ -2824,7 +2826,7 @@ Defaulting color scheme to 'NoColor'"""
         else:
             os.chdir(self.shell.home_dir)
             if self.shell.term_title:
-                platutils.set_term_title('IPython: ' + '~')
+                set_term_title('IPython: ' + '~')
             cwd = os.getcwd()
             dhist = self.shell.user_ns['_dh']
             

@@ -176,7 +176,8 @@ import shlex
 import sys
 
 from IPython.utils.PyColorize import Parser
-from IPython.utils.genutils import marquee, file_read, file_readlines, Term
+from IPython.utils.io import file_read, file_readlines, Term
+from IPython.utils.text import marquee
 
 __all__ = ['Demo','IPythonDemo','LineDemo','IPythonLineDemo','DemoError']
 
@@ -543,7 +544,7 @@ class ClearMixin(object):
         """Method called before executing each block.
         
         This one simply clears the screen."""
-        from IPython.utils.platutils import term_clear
+        from IPython.utils.terminal import term_clear
         term_clear()
 
 class ClearDemo(ClearMixin,Demo):

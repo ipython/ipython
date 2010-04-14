@@ -245,7 +245,7 @@ this directory is determined by the following algorithm:
 
 * If the ``--ipython-dir`` command line flag is given, its value is used.
 
-* If not, the value returned by :func:`IPython.utils.genutils.get_ipython_dir`
+* If not, the value returned by :func:`IPython.utils.path.get_ipython_dir`
   is used. This function will first look at the :envvar:`IPYTHON_DIR`
   environment variable and then default to the directory
   :file:`$HOME/.ipython`.

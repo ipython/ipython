@@ -93,9 +93,10 @@ from inspect import getsourcefile, getfile, getmodule,\
 from IPython.utils import PyColorize
 from IPython.core import debugger, ipapi
 from IPython.core.display_trap import DisplayTrap
-from IPython.utils.ipstruct import Struct
 from IPython.core.excolors import exception_colors
-from IPython.utils.genutils import Term, uniq_stable, error, info
+from IPython.utils.data import uniq_stable
+from IPython.utils.io import Term
+from IPython.utils.warn import info, error
 
 # Globals
 # amount of space to put line numbers before verbose tracebacks
@@ -384,7 +385,8 @@ class ListTB(TBTools):
         
     def __call__(self, etype, value, elist):
         Term.cout.flush()
-        Term.cerr.writeln(self.text(etype,value,elist))
+        Term.cerr.write(self.text(etype,value,elist))
+        Term.cerr.write('\n')
 
     def text(self, etype, value, elist, context=5):
         """Return a color formatted string with the traceback info.
@@ -909,7 +911,8 @@ class VerboseTB(TBTools):
         (etype, evalue, etb) = info or sys.exc_info()
         self.tb = etb
         Term.cout.flush()
-        Term.cerr.writeln(self.text(etype, evalue, etb))
+        Term.cerr.write(self.text(etype, evalue, etb))
+        Term.cerr.write('\n')
 
     # Changed so an instance can just be called as VerboseTB_inst() and print
     # out the right info on its own.

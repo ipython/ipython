@@ -27,10 +27,11 @@ import sys
 import types
 
 # IPython's own
-from IPython.utils import PyColorize
-from IPython.utils.genutils import indent, Term
 from IPython.core.page import page
 from IPython.external.Itpl import itpl
+from IPython.utils import PyColorize
+from IPython.utils.io import Term
+from IPython.utils.text import indent
 from IPython.utils.wildcard import list_namespace
 from IPython.utils.coloransi import *
 

@@ -23,9 +23,8 @@ import os
 import locale
 from thread_ex import ThreadEx
 
-import IPython
-from IPython.core import iplib, ipapp
-from IPython.utils import genutils
+from IPython.core import iplib
+from IPython.utils.io import Term
 
 ##############################################################################
 class _Helper(object):
@@ -88,12 +87,10 @@ class NonBlockingIPShell(object):
           via raise_exc()
     '''
 
-    def __init__(self, argv=[], user_ns={}, user_global_ns=None,
+    def __init__(self, user_ns={}, user_global_ns=None,
                  cin=None, cout=None, cerr=None,
                  ask_exit_handler=None):
         '''
-        @param argv: Command line options for IPython
-        @type argv: list
         @param user_ns: User namespace.
         @type user_ns: dictionary
         @param user_global_ns: User global namespace.
@@ -111,9 +108,9 @@ class NonBlockingIPShell(object):
         '''
         #ipython0 initialisation
         self._IP = None
-        self.init_ipython0(argv, user_ns, user_global_ns,
-                          cin, cout, cerr,
-                          ask_exit_handler)
+        self.init_ipython0(user_ns, user_global_ns,
+                           cin, cout, cerr,
+                           ask_exit_handler)
         
         #vars used by _execute
         self._iter_more = 0
@@ -131,7 +128,7 @@ class NonBlockingIPShell(object):
         self._help_text = None
         self._add_button = None
 
-    def init_ipython0(self, argv=[], user_ns={}, user_global_ns=None,
+    def init_ipython0(self, user_ns={}, user_global_ns=None,
                      cin=None, cout=None, cerr=None,
                      ask_exit_handler=None):
         ''' Initialize an ipython0 instance '''
@@ -141,27 +138,22 @@ class NonBlockingIPShell(object):
         #only one instance can be instanciated else tehre will be
         #cin/cout/cerr clash...
         if cin:
-            genutils.Term.cin = cin
+            Term.cin = cin
         if cout:
-            genutils.Term.cout = cout
+            Term.cout = cout
         if cerr:
-            genutils.Term.cerr = cerr
+            Term.cerr = cerr
         
         excepthook = sys.excepthook
 
         #Hack to save sys.displayhook, because ipython seems to overwrite it...
         self.sys_displayhook_ori = sys.displayhook
-
-        ipython0 = ipapp.IPythonApp(argv,user_ns=user_ns,
-                                    user_global_ns=user_global_ns)
-        ipython0.initialize()
-        self._IP = ipython0.shell
-        
-        ## self._IP = IPython.shell.make_IPython(
-        ##                             argv,user_ns=user_ns,
-        ##                             user_global_ns=user_global_ns,
-        ##                             embedded=True,
-        ##                             shell_class=IPython.shell.InteractiveShell)
+        ipython0 = iplib.InteractiveShell(
+            parent=None, config=None,
+            user_ns=user_ns,
+            user_global_ns=user_global_ns
+        )
+        self._IP = ipython0
 
         #we save ipython0 displayhook and we restore sys.displayhook
         self.displayhook = sys.displayhook
@@ -185,12 +177,10 @@ class NonBlockingIPShell(object):
         #we replace the help command
         self._IP.user_ns['help'] = _Helper(self._pager_help)
 
-        #we disable cpase magic... until we found a way to use it properly.
-        from IPython.core import ipapi
-        ip = ipapi.get()
+        #we disable cpaste magic... until we found a way to use it properly.
         def bypass_magic(self, arg):
             print '%this magic is currently disabled.'
-        ip.define_magic('cpaste', bypass_magic)
+        ipython0.define_magic('cpaste', bypass_magic)
 
         import __builtin__
         __builtin__.raw_input = self._raw_input
@@ -471,7 +461,7 @@ class NonBlockingIPShell(object):
         '''
 
         orig_stdout = sys.stdout
-        sys.stdout = genutils.Term.cout
+        sys.stdout = Term.cout
         #self.sys_displayhook_ori = sys.displayhook
         #sys.displayhook = self.displayhook
         

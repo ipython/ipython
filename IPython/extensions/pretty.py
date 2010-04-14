@@ -39,7 +39,7 @@ from IPython.core.error import TryNext
 from IPython.external import pretty
 from IPython.core.component import Component
 from IPython.utils.traitlets import Bool, List
-from IPython.utils.genutils import Term
+from IPython.utils.io import Term
 from IPython.utils.autoattr import auto_attr
 from IPython.utils.importstring import import_item
 
@@ -128,9 +128,8 @@ class PrettyResultDisplay(Component):
 #-----------------------------------------------------------------------------
 
 
-def load_ipython_extension(ip=None):
+def load_ipython_extension(ip):
     """Load the extension in IPython as a hook."""
-    if ip is None: ip = get_ipython()
     global _loaded
     if not _loaded:
         prd = PrettyResultDisplay(ip, name='pretty_result_display')

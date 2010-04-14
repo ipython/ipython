@@ -12,7 +12,7 @@ do the same in default completer.
 from IPython.core import ipapi
 from IPython.core.error import TryNext
 from IPython.utils import generics
-from IPython.utils.genutils import dir2
+from IPython.utils.dir2 import dir2
 
 def attr_matches(self, text):
     """Compute matches when text contains a dot.

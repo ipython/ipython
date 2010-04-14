@@ -43,8 +43,11 @@ somewhere in your configuration files or ipython command line.
 
 import os, bisect
 import sys
-from IPython.utils.genutils import Term, shell
+
 from pprint import PrettyPrinter
+
+from IPython.utils.io import Term
+from IPython.utils.process import shell
 
 from IPython.core.error import TryNext
 

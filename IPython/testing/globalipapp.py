@@ -9,18 +9,22 @@ done.
 from __future__ import absolute_import
 
 #-----------------------------------------------------------------------------
-# Module imports
+#  Copyright (C) 2009  The IPython Development Team
+#
+#  Distributed under the terms of the BSD License.  The full license is in
+#  the file COPYING, distributed as part of this software.
 #-----------------------------------------------------------------------------
 
-# From the standard library
+#-----------------------------------------------------------------------------
+# Imports
+#-----------------------------------------------------------------------------
+
 import __builtin__
 import commands
-import new
 import os
 import sys
 
 from . import tools
-from IPython.utils.genutils import Term
 
 #-----------------------------------------------------------------------------
 # Functions
@@ -35,7 +39,7 @@ class py_file_finder(object):
         self.test_filename = test_filename
         
     def __call__(self,name):
-        from IPython.utils.genutils import get_py_filename
+        from IPython.utils.path import get_py_filename
         try:
             return get_py_filename(name)
         except IOError:
@@ -93,11 +97,12 @@ class ipnsdict(dict):
         # correct for that ourselves, to ensure consitency with the 'real'
         # ipython.
         self['__builtins__'] = __builtin__
-        
+
 
 def get_ipython():
     # This will get replaced by the real thing once we start IPython below
     return start_ipython()
+
 
 def start_ipython():
     """Start a global IPython shell, which we need for IPython-specific syntax.
@@ -105,12 +110,12 @@ def start_ipython():
     global get_ipython
 
     # This function should only ever run once!
-    if hasattr(start_ipython,'already_called'):
+    if hasattr(start_ipython, 'already_called'):
         return
     start_ipython.already_called = True
 
     # Ok,  first time we're called, go ahead
-    from IPython.core import ipapp, iplib
+    from IPython.core import iplib
     
     def xsys(cmd):
         """Execute a command and print its output.
@@ -128,26 +133,27 @@ def start_ipython():
     _main = sys.modules.get('__main__')
 
     # Create custom argv and namespaces for our IPython to be test-friendly
-    argv = tools.default_argv()
-    user_ns, global_ns = iplib.make_user_namespaces(ipnsdict(), {})
-    
+    config = tools.default_config()
+
     # Create and initialize our test-friendly IPython instance.
-    ip = ipapp.IPythonApp(argv, user_ns=user_ns, user_global_ns=global_ns)
-    ip.initialize()
+    shell = iplib.InteractiveShell(
+        parent=None, config=config, 
+        user_ns=ipnsdict(), user_global_ns={}
+    )
 
     # A few more tweaks needed for playing nicely with doctests...
     
     # These traps are normally only active for interactive use, set them
     # permanently since we'll be mocking interactive sessions.
-    ip.shell.builtin_trap.set()
+    shell.builtin_trap.set()
 
     # Set error printing to stdout so nose can doctest exceptions
-    ip.shell.InteractiveTB.out_stream = 'stdout'
+    shell.InteractiveTB.out_stream = 'stdout'
     
     # Modify the IPython system call with one that uses getoutput, so that we
     # can capture subcommands and print them to Python's stdout, otherwise the
     # doctest machinery would miss them.
-    ip.shell.system = xsys
+    shell.system = xsys
 
     # IPython is ready, now clean up some global state...
     
@@ -160,7 +166,7 @@ def start_ipython():
     # So that ipython magics and aliases can be doctested (they work by making
     # a call into a global _ip object).  Also make the top-level get_ipython
     # now return this without recursively calling here again.
-    _ip = ip.shell
+    _ip = shell
     get_ipython = _ip.get_ipython
     __builtin__._ip = _ip
     __builtin__.get_ipython = get_ipython

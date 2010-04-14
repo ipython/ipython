@@ -15,7 +15,7 @@
 #-----------------------------------------------------------------------------
 
 import os, sys
-import threading, Queue, atexit
+import threading, Queue
 
 import twisted
 from twisted.internet import defer, reactor

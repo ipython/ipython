@@ -38,7 +38,7 @@ import tempfile
 
 # IPython-specific libraries
 from IPython.lib import irunner
-from IPython.utils.genutils import fatal
+from IPython.utils.warn import fatal
 
 class IndentOut(object):
     """A simple output stream that indents all output by a fixed amount.

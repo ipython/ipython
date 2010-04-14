@@ -20,7 +20,6 @@ from __future__ import with_statement
 from __future__ import absolute_import
 
 import __builtin__
-import StringIO
 import bdb
 import codeop
 import exceptions
@@ -47,28 +46,34 @@ from IPython.core.logger import Logger
 from IPython.core.magic import Magic
 from IPython.core.prefilter import PrefilterManager
 from IPython.core.prompts import CachedOutput
-from IPython.core.pylabtools import pylab_activate
 from IPython.core.usage import interactive_usage, default_banner
+import IPython.core.hooks
 from IPython.external.Itpl import ItplNS
 from IPython.lib.inputhook import enable_gui
 from IPython.lib.backgroundjobs import BackgroundJobManager
+from IPython.lib.pylabtools import pylab_activate
 from IPython.utils import PyColorize
 from IPython.utils import pickleshare
-from IPython.utils.genutils import get_ipython_dir
+from IPython.utils.doctestreload import doctest_reload
 from IPython.utils.ipstruct import Struct
-from IPython.utils.platutils import toggle_set_term_title, set_term_title
+from IPython.utils.io import Term, ask_yes_no
+from IPython.utils.path import get_home_dir, get_ipython_dir, HomeDirError
+from IPython.utils.process import (
+    abbrev_cwd,
+    getoutput,
+    getoutputerror
+)
+# import IPython.utils.rlineimpl as readline
 from IPython.utils.strdispatch import StrDispatch
 from IPython.utils.syspathcontext import prepended_to_syspath
-
-# XXX - need to clean up this import * line
-from IPython.utils.genutils import *
-
-# from IPython.utils import growl
-# growl.start("IPython")
-
+from IPython.utils.terminal import toggle_set_term_title, set_term_title
+from IPython.utils.warn import warn, error, fatal
 from IPython.utils.traitlets import (
     Int, Str, CBool, CaselessStrEnum, Enum, List, Unicode
 )
+
+# from IPython.utils import growl
+# growl.start("IPython")
 
 #-----------------------------------------------------------------------------
 # Globals
@@ -185,64 +190,6 @@ class SeparateStr(Str):
         value = value.replace('\\n','\n')
         return super(SeparateStr, self).validate(obj, value)
 
-
-def make_user_namespaces(user_ns=None, user_global_ns=None):
-    """Return a valid local and global user interactive namespaces.
-
-    This builds a dict with the minimal information needed to operate as a
-    valid IPython user namespace, which you can pass to the various
-    embedding classes in ipython. The default implementation returns the
-    same dict for both the locals and the globals to allow functions to
-    refer to variables in the namespace. Customized implementations can
-    return different dicts. The locals dictionary can actually be anything
-    following the basic mapping protocol of a dict, but the globals dict
-    must be a true dict, not even a subclass. It is recommended that any
-    custom object for the locals namespace synchronize with the globals
-    dict somehow.
-
-    Raises TypeError if the provided globals namespace is not a true dict.
-
-    Parameters
-    ----------
-    user_ns : dict-like, optional
-        The current user namespace. The items in this namespace should
-        be included in the output. If None, an appropriate blank
-        namespace should be created.
-    user_global_ns : dict, optional
-        The current user global namespace. The items in this namespace
-        should be included in the output. If None, an appropriate
-        blank namespace should be created.
-
-    Returns
-    -------
-        A pair of dictionary-like object to be used as the local namespace
-        of the interpreter and a dict to be used as the global namespace.
-    """
-
-
-    # We must ensure that __builtin__ (without the final 's') is always
-    # available and pointing to the __builtin__ *module*.  For more details:
-    # http://mail.python.org/pipermail/python-dev/2001-April/014068.html
-
-    if user_ns is None:
-        # Set __name__ to __main__ to better match the behavior of the
-        # normal interpreter.
-        user_ns = {'__name__'     :'__main__',
-                   '__builtin__' : __builtin__,
-                   '__builtins__' : __builtin__,
-                  }
-    else:
-        user_ns.setdefault('__name__','__main__')
-        user_ns.setdefault('__builtin__',__builtin__)
-        user_ns.setdefault('__builtins__',__builtin__)
-
-    if user_global_ns is None:
-        user_global_ns = user_ns
-    if type(user_global_ns) is not dict:
-        raise TypeError("user_global_ns must be a true dict; got %r"
-            % type(user_global_ns))
-
-    return user_ns, user_global_ns
 
 #-----------------------------------------------------------------------------
 # Main IPython class
@@ -658,7 +605,6 @@ class InteractiveShell(Component, Magic):
         self.strdispatchers = {}
 
         # Set all default hooks, defined in the IPython.hooks module.
-        import IPython.core.hooks
         hooks = IPython.core.hooks
         for hook_name in hooks.__all__:
             # default hooks have priority 100, i.e. low; user hooks should have
@@ -876,7 +822,7 @@ class InteractiveShell(Component, Magic):
         # These routines return properly built dicts as needed by the rest of
         # the code, and can also be used by extension writers to generate
         # properly initialized namespaces.
-        user_ns, user_global_ns = make_user_namespaces(user_ns, user_global_ns)
+        user_ns, user_global_ns = self.make_user_namespaces(user_ns, user_global_ns)
 
         # Assign namespaces
         # This is the namespace where all normal user variables live
@@ -887,7 +833,7 @@ class InteractiveShell(Component, Magic):
         # loaded at startup, so we can list later only variables defined in
         # actual interactive use.  Since it is always a subset of user_ns, it
         # doesn't need to be separately tracked in the ns_table.
-        self.user_config_ns = {}
+        self.user_ns_hidden = {}
 
         # A namespace to keep track of internal data structures to prevent
         # them from cluttering user-visible stuff.  Will be updated later
@@ -933,8 +879,66 @@ class InteractiveShell(Component, Magic):
         # Similarly, track all namespaces where references can be held and that
         # we can safely clear (so it can NOT include builtin).  This one can be
         # a simple list.
-        self.ns_refs_table = [ user_ns, user_global_ns, self.user_config_ns,
+        self.ns_refs_table = [ user_ns, user_global_ns, self.user_ns_hidden,
                                self.internal_ns, self._main_ns_cache ]
+
+    def make_user_namespaces(self, user_ns=None, user_global_ns=None):
+        """Return a valid local and global user interactive namespaces.
+
+        This builds a dict with the minimal information needed to operate as a
+        valid IPython user namespace, which you can pass to the various
+        embedding classes in ipython. The default implementation returns the
+        same dict for both the locals and the globals to allow functions to
+        refer to variables in the namespace. Customized implementations can
+        return different dicts. The locals dictionary can actually be anything
+        following the basic mapping protocol of a dict, but the globals dict
+        must be a true dict, not even a subclass. It is recommended that any
+        custom object for the locals namespace synchronize with the globals
+        dict somehow.
+
+        Raises TypeError if the provided globals namespace is not a true dict.
+
+        Parameters
+        ----------
+        user_ns : dict-like, optional
+            The current user namespace. The items in this namespace should
+            be included in the output. If None, an appropriate blank
+            namespace should be created.
+        user_global_ns : dict, optional
+            The current user global namespace. The items in this namespace
+            should be included in the output. If None, an appropriate
+            blank namespace should be created.
+
+        Returns
+        -------
+            A pair of dictionary-like object to be used as the local namespace
+            of the interpreter and a dict to be used as the global namespace.
+        """
+
+
+        # We must ensure that __builtin__ (without the final 's') is always
+        # available and pointing to the __builtin__ *module*.  For more details:
+        # http://mail.python.org/pipermail/python-dev/2001-April/014068.html
+
+        if user_ns is None:
+            # Set __name__ to __main__ to better match the behavior of the
+            # normal interpreter.
+            user_ns = {'__name__'     :'__main__',
+                       '__builtin__' : __builtin__,
+                       '__builtins__' : __builtin__,
+                      }
+        else:
+            user_ns.setdefault('__name__','__main__')
+            user_ns.setdefault('__builtin__',__builtin__)
+            user_ns.setdefault('__builtins__',__builtin__)
+
+        if user_global_ns is None:
+            user_global_ns = user_ns
+        if type(user_global_ns) is not dict:
+            raise TypeError("user_global_ns must be a true dict; got %r"
+                % type(user_global_ns))
+
+        return user_ns, user_global_ns
 
     def init_sys_modules(self):
         # We need to insert into sys.modules something that looks like a
@@ -974,7 +978,7 @@ class InteractiveShell(Component, Magic):
         therm.
         """
         # This function works in two parts: first we put a few things in
-        # user_ns, and we sync that contents into user_config_ns so that these
+        # user_ns, and we sync that contents into user_ns_hidden so that these
         # initial variables aren't shown by %who.  After the sync, we add the
         # rest of what we *do* want the user to see with %who even on a new
         # session (probably nothing, so theye really only see their own stuff)
@@ -1014,9 +1018,9 @@ class InteractiveShell(Component, Magic):
         # Store myself as the public api!!!
         ns['get_ipython'] = self.get_ipython
 
-        # Sync what we've added so far to user_config_ns so these aren't seen
+        # Sync what we've added so far to user_ns_hidden so these aren't seen
         # by %who
-        self.user_config_ns.update(ns)
+        self.user_ns_hidden.update(ns)
 
         # Anything put into ns now would show up in %who.  Think twice before
         # putting anything here, as we really want %who to show the user their
@@ -1089,7 +1093,7 @@ class InteractiveShell(Component, Magic):
         self.user_ns.update(vdict)
 
         # And configure interactive visibility
-        config_ns = self.user_config_ns
+        config_ns = self.user_ns_hidden
         if interactive:
             for name, val in vdict.iteritems():
                 config_ns.pop(name, None)
@@ -1164,7 +1168,9 @@ class InteractiveShell(Component, Magic):
         Convert func into callable that saves & restores
         history around the call """
 
-        if not self.has_readline:
+        if self.has_readline:
+            from IPython.utils import rlineimpl as readline
+        else:
             return func
 
         def wrapper():
@@ -1197,6 +1203,9 @@ class InteractiveShell(Component, Magic):
 
         # and add any custom exception handlers the user may have specified
         self.set_custom_exc(*custom_exceptions)
+
+        # Set the exception mode
+        self.InteractiveTB.set_mode(mode=self.xmode)
 
     def set_custom_exc(self,exc_tuple,handler):
         """set_custom_exc(exc_tuple,handler)
@@ -2351,6 +2360,9 @@ class InteractiveShell(Component, Magic):
         to make it easy to write extensions, you can also put your extensions
         in ``os.path.join(self.ipython_dir, 'extensions')``.  This directory
         is added to ``sys.path`` automatically.
+
+        If :func:`load_ipython_extension` returns anything, this function
+        will return that object.
         """
         from IPython.utils.syspathcontext import prepended_to_syspath
 
@@ -2495,11 +2507,11 @@ class InteractiveShell(Component, Magic):
         # We want to prevent the loading of pylab to pollute the user's
         # namespace as shown by the %who* magics, so we execute the activation
         # code in an empty namespace, and we update *both* user_ns and
-        # user_config_ns with this information.
+        # user_ns_hidden with this information.
         ns = {}
         gui = pylab_activate(ns, gui)
         self.user_ns.update(ns)
-        self.user_config_ns.update(ns)
+        self.user_ns_hidden.update(ns)
         # Now we must activate the gui pylab wants to use, and fix %run to take
         # plot updates into account
         enable_gui(gui)

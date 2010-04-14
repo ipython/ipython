@@ -23,16 +23,19 @@ import tempfile
 from twisted.internet import reactor, defer
 from twisted.python import log
 
-from foolscap import Tub, UnauthenticatedTub
+import foolscap
+try:
+    from foolscap.api import Tub, UnauthenticatedTub
+except ImportError:
+    from foolscap import Tub, UnauthenticatedTub
 
 from IPython.config.loader import Config
-
 from IPython.kernel.configobjfactory import AdaptedConfiguredObjectFactory
-
 from IPython.kernel.error import SecurityError
 
-from IPython.utils.traitlets import Int, Str, Bool, Instance
 from IPython.utils.importstring import import_item
+from IPython.utils.path import expand_path
+from IPython.utils.traitlets import Int, Str, Bool, Instance
 
 #-----------------------------------------------------------------------------
 # Code
@@ -57,17 +60,17 @@ class FURLError(Exception):
 
 def check_furl_file_security(furl_file, secure):
     """Remove the old furl_file if changing security modes."""
+    furl_file = expand_path(furl_file)
     if os.path.isfile(furl_file):
-        f = open(furl_file, 'r')
-        oldfurl = f.read().strip()
-        f.close()
+        with open(furl_file, 'r') as f:
+            oldfurl = f.read().strip()
         if (oldfurl.startswith('pb://') and not secure) or (oldfurl.startswith('pbu://') and secure):
             os.remove(furl_file)
 
 
 def is_secure(furl):
     """Is the given FURL secure or not."""
-    if is_valid(furl):
+    if is_valid_furl(furl):
         if furl.startswith("pb://"):
             return True
         elif furl.startswith("pbu://"):
@@ -76,26 +79,45 @@ def is_secure(furl):
         raise FURLError("invalid FURL: %s" % furl)
 
 
-def is_valid(furl):
+def is_valid_furl(furl):
     """Is the str a valid FURL or not."""
     if isinstance(furl, str):
         if furl.startswith("pb://") or furl.startswith("pbu://"):
             return True
+        else:
+            return False
     else:
         return False
 
 
+def is_valid_furl_file(furl_or_file):
+    """See if furl_or_file exists and contains a valid FURL.
+
+    This doesn't try to read the contents because often we have to validate
+    FURL files that are created, but don't yet have a FURL written to them.
+    """
+    if isinstance(furl_or_file, (str, unicode)):
+        path, furl_filename = os.path.split(furl_or_file)
+        if os.path.isdir(path) and furl_filename.endswith('.furl'):
+            return True
+    return False
+
+
 def find_furl(furl_or_file):
-    """Find, validate and return a FURL in a string or file."""
-    if isinstance(furl_or_file, str):
-        if is_valid(furl_or_file):
-            return furl_or_file
-    if os.path.isfile(furl_or_file):
+    """Find, validate and return a FURL in a string or file.
+
+    This calls :func:`IPython.utils.path.expand_path` on the argument to
+    properly handle ``~`` and ``$`` variables in the path.
+    """
+    if is_valid_furl(furl_or_file):
+        return furl_or_file
+    furl_or_file = expand_path(furl_or_file)
+    if is_valid_furl_file(furl_or_file):
         with open(furl_or_file, 'r') as f:
             furl = f.read().strip()
-        if is_valid(furl):
+        if is_valid_furl(furl):
             return furl
-    raise FURLError("Not a valid FURL or FURL file: %s" % furl_or_file)
+    raise FURLError("Not a valid FURL or FURL file: %r" % furl_or_file)
 
 
 def is_valid_furl_or_file(furl_or_file):
@@ -106,17 +128,14 @@ def is_valid_furl_or_file(furl_or_file):
     if the FURL file exists or to read its contents. This is useful for
     cases where auto re-connection is being used.
     """
-    if isinstance(furl_or_file, str):
-        if is_valid(furl_or_file):
-            return True
-    if isinstance(furl_or_file, (str, unicode)):
-        path, furl_filename = os.path.split(furl_or_file)
-        if os.path.isdir(path) and furl_filename.endswith('.furl'):
-            return True
-    return False
+    if is_valid_furl(furl_or_file) or is_valid_furl_file(furl_or_file):
+        return True
+    else:
+        return False
 
 
 def validate_furl_or_file(furl_or_file):
+    """Like :func:`is_valid_furl_or_file`, but raises an error."""
     if not is_valid_furl_or_file(furl_or_file):
         raise FURLError('Not a valid FURL or FURL file: %r' % furl_or_file)
 
@@ -265,9 +284,13 @@ class FCServiceFactory(AdaptedConfiguredObjectFactory):
         """Register the reference with the FURL file.
 
         The FURL file is created and then moved to make sure that when the
-        file appears, the buffer has been flushed and the file closed.
+        file appears, the buffer has been flushed and the file closed. This
+        is not done if we are re-using FURLS however.
         """
-        temp_furl_file = get_temp_furlfile(furl_file)
-        self.tub.registerReference(ref, furlFile=temp_furl_file)
-        os.rename(temp_furl_file, furl_file)
+        if self.reuse_furls:
+            self.tub.registerReference(ref, furlFile=furl_file)
+        else:
+            temp_furl_file = get_temp_furlfile(furl_file)
+            self.tub.registerReference(ref, furlFile=temp_furl_file)
+            os.rename(temp_furl_file, furl_file)
 

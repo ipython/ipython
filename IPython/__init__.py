@@ -30,14 +30,14 @@ if sys.version[0:3] < '2.5':
 
 
 # Make it easy to import extensions - they are always directly on pythonpath.
-# Therefore, non-IPython modules can be added to extensions directory
+# Therefore, non-IPython modules can be added to extensions directory.
+# This should probably be in ipapp.py.
 sys.path.append(os.path.join(os.path.dirname(__file__), "extensions"))
 
 #-----------------------------------------------------------------------------
 # Setup the top level names
 #-----------------------------------------------------------------------------
 
-# In some cases, these are causing circular imports.
 from .config.loader import Config
 from .core import release
 from .core.application import Application

@@ -47,7 +47,7 @@ if os.path.exists('MANIFEST'): os.remove('MANIFEST')
 from distutils.core import setup
 
 # Our own imports
-from IPython.utils.genutils import target_update
+from IPython.utils.path import target_update
 
 from setupbase import (
     setup_args, 

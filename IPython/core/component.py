@@ -27,7 +27,7 @@ from weakref import WeakValueDictionary
 from IPython.utils.importstring import import_item
 from IPython.config.loader import Config
 from IPython.utils.traitlets import (
-    HasTraitlets, TraitletError, MetaHasTraitlets, Instance, This
+    HasTraitlets, MetaHasTraitlets, Instance, This
 )
 
 

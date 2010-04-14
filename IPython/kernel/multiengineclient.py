@@ -17,12 +17,16 @@ __docformat__ = "restructuredtext en"
 #-------------------------------------------------------------------------------
 
 import sys
-import linecache
 import warnings
 
 from twisted.python import components
 from twisted.python.failure import Failure
 from zope.interface import Interface, implements, Attribute
+
+try:
+    from foolscap.api import DeadReferenceError
+except ImportError:
+    from foolscap import DeadReferenceError
 
 from IPython.utils.coloransi import TermColors
 
@@ -306,85 +310,6 @@ class InteractiveMultiEngineClient(object):
     def __len__(self):
         """Return the number of available engines."""
         return len(self.get_ids())
-    
-    #---------------------------------------------------------------------------
-    # Make this a context manager for with
-    #---------------------------------------------------------------------------
-    
-    def findsource_file(self,f):
-        linecache.checkcache()
-        s = findsource(f.f_code) # findsource is not defined!
-        lnum = f.f_lineno
-        wsource = s[0][f.f_lineno:]
-        return strip_whitespace(wsource)
-
-    def findsource_ipython(self,f):
-        from IPython.core import ipapi
-        self.ip = ipapi.get()
-        wsource = [l+'\n' for l in
-                   self.ip.input_hist_raw[-1].splitlines()[1:]] 
-        return strip_whitespace(wsource)
-        
-    def __enter__(self):
-        f = sys._getframe(1)
-        local_ns = f.f_locals
-        global_ns = f.f_globals
-        if f.f_code.co_filename == '<ipython console>':
-            s = self.findsource_ipython(f)
-        else:
-            s = self.findsource_file(f)
-
-        self._with_context_result = self.execute(s)
-
-    def __exit__ (self, etype, value, tb):
-        if issubclass(etype,error.StopLocalExecution):
-            return True
-
-
-def remote():
-    m = 'Special exception to stop local execution of parallel code.'
-    raise error.StopLocalExecution(m)
-
-def strip_whitespace(source):
-    # Expand tabs to avoid any confusion.
-    wsource = [l.expandtabs(4) for l in source]
-    # Detect the indentation level
-    done = False
-    for line in wsource:
-        if line.isspace():
-            continue
-        for col,char in enumerate(line):
-            if char != ' ':
-                done = True
-                break
-        if done:
-            break
-    # Now we know how much leading space there is in the code.  Next, we
-    # extract up to the first line that has less indentation.
-    # WARNINGS: we skip comments that may be misindented, but we do NOT yet
-    # detect triple quoted strings that may have flush left text.
-    for lno,line in enumerate(wsource):
-        lead = line[:col]
-        if lead.isspace():
-            continue
-        else:
-            if not lead.lstrip().startswith('#'):
-                break
-    # The real 'with' source is up to lno
-    src_lines = [l[col:] for l in wsource[:lno+1]]
-
-    # Finally, check that the source's first non-comment line begins with the
-    # special call 'remote()'
-    for nline,line in enumerate(src_lines):
-        if line.isspace() or line.startswith('#'):
-            continue
-        if 'remote()' in line:
-            break
-        else:
-            raise ValueError('remote() call missing at the start of code')
-    src = ''.join(src_lines[nline+1:])
-    #print 'SRC:\n<<<<<<<>>>>>>>\n%s<<<<<>>>>>>' % src  # dbg
-    return src
 
 
 #-------------------------------------------------------------------------------
@@ -444,18 +369,31 @@ class FullBlockingMultiEngineClient(InteractiveMultiEngineClient):
     
     def _findTargetsAndBlock(self, targets=None, block=None):
         return self._findTargets(targets), self._findBlock(block) 
-    
+
+    def _bcft(self, *args, **kwargs):
+        try:
+            result = blockingCallFromThread(*args, **kwargs)
+        except DeadReferenceError:
+            raise error.ConnectionError(
+                """A connection error has occurred in trying to connect to the
+                controller. This is usually caused by the controller dying or 
+                being restarted. To resolve this issue try recreating the 
+                multiengine client."""
+            )
+        else:
+            return result
+
     def _blockFromThread(self, function, *args, **kwargs):
         block = kwargs.get('block', None)
         if block is None:
             raise error.MissingBlockArgument("'block' keyword argument is missing")
-        result = blockingCallFromThread(function, *args, **kwargs)
+        result = self._bcft(function, *args, **kwargs)
         if not block:
             result = PendingResult(self, result)
         return result
     
     def get_pending_deferred(self, deferredID, block):
-        return blockingCallFromThread(self.smultiengine.get_pending_deferred, deferredID, block)
+        return self._bcft(self.smultiengine.get_pending_deferred, deferredID, block)
     
     def barrier(self, pendingResults):
         """Synchronize a set of `PendingResults`.
@@ -505,7 +443,7 @@ class FullBlockingMultiEngineClient(InteractiveMultiEngineClient):
         controller.  This method allows the user to clear out all un-retrieved
         results on the controller. 
         """
-        r = blockingCallFromThread(self.smultiengine.clear_pending_deferreds)
+        r = self._bcft(self.smultiengine.clear_pending_deferreds)
         return r
     
     clear_pending_results = flush
@@ -529,7 +467,7 @@ class FullBlockingMultiEngineClient(InteractiveMultiEngineClient):
                 at a later time.
         """
         targets, block = self._findTargetsAndBlock(targets, block)
-        result = blockingCallFromThread(self.smultiengine.execute, lines,
+        result = self._bcft(self.smultiengine.execute, lines,
             targets=targets, block=block)
         if block:
             result = ResultList(result)
@@ -647,7 +585,7 @@ class FullBlockingMultiEngineClient(InteractiveMultiEngineClient):
                 at a later time.
         """
         targets, block = self._findTargetsAndBlock(targets, block)
-        result = blockingCallFromThread(self.smultiengine.get_result, i, targets=targets, block=block)
+        result = self._bcft(self.smultiengine.get_result, i, targets=targets, block=block)
         if block:
             result = ResultList(result)
         else:
@@ -773,7 +711,7 @@ class FullBlockingMultiEngineClient(InteractiveMultiEngineClient):
         """
         Returns the ids of currently registered engines.
         """
-        result = blockingCallFromThread(self.smultiengine.get_ids)
+        result = self._bcft(self.smultiengine.get_ids)
         return result
         
     #---------------------------------------------------------------------------

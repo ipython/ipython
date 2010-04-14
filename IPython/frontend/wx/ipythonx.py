@@ -47,7 +47,7 @@ class IPythonXController(WxController):
         self._input_state = 'subprocess'
         self.write('\n', refresh=False)
         self.capture_output()
-        self.ipython0.shell.exit()
+        self.ipython0.exit()
         self.release_output()
         if not self.ipython0.exit_now:
             wx.CallAfter(self.new_prompt,

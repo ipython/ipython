@@ -1,5 +1,4 @@
 include ipython.py
-include iptest.py
 include setupbase.py
 include setupegg.py
 
@@ -9,7 +8,7 @@ graft scripts
 graft IPython/kernel
 graft IPython/config
 graft IPython/core
-graft IPython/deathrow
+# graft IPython/deathrow
 graft IPython/external
 graft IPython/frontend
 graft IPython/gui

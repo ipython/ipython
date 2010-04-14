@@ -24,6 +24,7 @@ Notes
 #-----------------------------------------------------------------------------
 
 from __future__ import with_statement
+import __main__
 
 import sys
 from contextlib import nested
@@ -33,7 +34,7 @@ from IPython.core.iplib import InteractiveShell
 from IPython.core.ipapp import load_default_config
 
 from IPython.utils.traitlets import Bool, Str, CBool
-from IPython.utils.genutils import ask_yes_no
+from IPython.utils.io import ask_yes_no
 
 
 #-----------------------------------------------------------------------------

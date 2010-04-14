@@ -12,23 +12,20 @@ Classes for handling input/output prompts.
 #*****************************************************************************
 
 #****************************************************************************
-# Required modules
+
 import __builtin__
 import os
+import re
 import socket
 import sys
-import time
 
-# IPython's own
-from IPython.utils import coloransi
 from IPython.core import release
 from IPython.external.Itpl import ItplNS
 from IPython.core.error import TryNext
-from IPython.utils.ipstruct import Struct
-from IPython.core.macro import Macro
+from IPython.utils import coloransi
 import IPython.utils.generics
-
-from IPython.utils.genutils import *
+from IPython.utils.warn import warn
+from IPython.utils.io import Term
 
 #****************************************************************************
 #Color schemes for Prompts.
