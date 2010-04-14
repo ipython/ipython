@@ -112,7 +112,7 @@ c = get_config()
 # ]
 # c.InteractiveShell.readline_remove_delims = '-/~'
 # c.InteractiveShell.readline_merge_completions = True
-# c.InteractiveShell.readline_omit_names = 0
+# c.InteractiveShell.readline_omit__names = 0
 
 # c.InteractiveShell.screen_length = 0
 
