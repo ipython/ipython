@@ -5,7 +5,6 @@ IPython.
 
 IPython is a set of tools for interactive and exploratory computing in Python.
 """
-
 #-----------------------------------------------------------------------------
 #  Copyright (C) 2008-2009  The IPython Development Team
 #
