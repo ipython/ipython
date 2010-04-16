@@ -1,0 +1,260 @@
+.. _ipythonzmq
+
+===================================================
+porting ipython to a two process model using zeromq
+===================================================
+
+abstract
+----------
+
+ipython's execution in a command-line environment will be ported to a two process model using the zeromq library for inter-process communication. this will:
+
+- prevent an interpreter crash from destroying the user session,
+- allow multiple clients to interact simultaneously with a single interpreter
+- allow ipython to reuse code for local execution and distributed computing (dc)
+- give us a path for python3 support, since zeromq supports python3 while twisted (what we use today for dc) does not.
+
+deliverables
+----------------
+
+* a user-facing frontend that provides an environment like today's command-line ipython but running over two processes, with the code execution kernel living in a separate process and communicating with the frontend by using the zeromq library.
+
+* a kernel that supports ipython's features (tab-completion, code introspection, exception reporting with different levels of detail, etc), but listening to requests over a network port, and returning results as json-formatted messages over the network.
+
+
+project description
+---------------------
+
+currently ipython provides a command-line client that executes all code in a single process, and a set of tools for distributed and parallel computing that execute code in multiple processes (possibly but not necessarily on different hosts), using the twisted asynchronous framework for communication between nodes. for a number of reasons, it is desirable to unify the architecture of the local execution with that of distributed computing, since ultimately many of the underlying abstractions are similar and should be reused.  in particular, we would like to:
+
+- have even for a single user a 2-process model, so that the environment where code is being input runs in a different process from that which executes the code. this would prevent a crash of the python interpreter executing code (because of a segmentation fault in a compiled extension or an improper access to a c library via ctypes, for example) from destroying the user session.
+
+- have the same kernel used for executing code locally be available over the network for distributed computing. currently the twisted-using ipython engines for distributed computing do not share any code with the command-line client, which means that many of the additional features of ipython (tab completion, object introspection, magic functions, etc) are not available while using the distributed computing system.  once the regular command-line environment is ported to allowing such a 2-process model, this newly decoupled kernel could form the core of a distributed computing ipython engine and all capabilities would be available throughout the system.
+
+- have a route to python3 support. twisted is a large and complex library that does currently not support python3, and as indicated by the twisted developers it may take a while before it is ported (http://stackoverflow.com/questions/172306/how-are-you-planning-on-handling-the-migration-to-python-3).  for ipython, this means that while we could port the command-line environment, a large swath of ipython would be left 2.x-only, a highly undesirable situation.  for this reason, the search for an alternative to twisted has been active for a while, and recently we've identified the zeromq (http://www.zeromq.org, zmq for short) library as a viable candidate. zmq is a fast, simple messaging library written in c++, for which one of the ipython developers has written python bindings using cython (http://www.zeromq.org/bindings:python). since cython already knows how to generate python3-compliant bindings with a simple command-line switch, zmq can be used with python3 when needed.
+
+as part of the zmq python bindings, the ipython developers have already developed a simple prototype of such a two-process kernel/frontend system (details below). i propose to start from this example and port today's ipython code to operate in a similar manner. ipython's command-line program (the main 'ipython' script) executes both user interaction and the user's code in the same process. this project will thus require breaking up ipython into the parts that correspond to the kernel and the parts that are meant to interact with the user, and making these two components communicate over the network using zmq instead of accessing local attributes and methods of a single global object.
+
+once this port is complete, the resulting tools will be the foundation (though as part of this proposal i do not expect to undertake either of these tasks) to allow the distributed computing parts of ipython to use the same code as the command-line client, and for the whole system to be ported to python3.  so while i do not intend to tackle here the removal of twisted and the unification of the local and distributed parts of ipython, my proposal is a necessary step before those are possible.
+
+project details
+-------------------
+
+As part of the zeromq bindings, the ipython developers have already developed a simple prototype example that provides a python execution kernel (with none of ipython's code or features, just plain code execution) that listens on zmq sockets, and a frontend based on the interactiveconsole class of the code.py module from the python standard library. this example is capable of executing code, propagating errors, performing tab-completion over the network and having multiple frontends connect and disconnect simultaneously to a single kernel, with all inputs and outputs being made available to all connected clients (thanks to zqm's pub sockets that provide multicasting capabilities for the kernel and to which the frontends subscribe via a sub socket).
+
+this simple code shows how the kernel starts:
+
++----------------------------------------------------------------------------+
+| def main():                                                                |
+|                                                                            |
+|    c = zmq.context(1, 1)                                                   |
+|                                                                            |
+|    #ip = '192.168.2.109'                                                   |
+|                                                                            |
+|    ip = '127.0.0.1'                                                        |
+|                                                                            |
+|    #ip = '192.168.4.128'                                                   |
+|                                                                            |
+|    port_base = 5555                                                        |
+|                                                                            |
+|    connection = ('tcp://%s' % ip) + ':%i'                                  |
+|                                                                            |
+|    rep_conn = connection % port_base                                       |
+|                                                                            |
+|    pub_conn = connection % (port_base+1)                                   |
+|                                                                            |
+|    print >>sys.__stdout__, "starting the kernel..."                        |
+|                                                                            |
+|    print >>sys.__stdout__, "on:",rep_conn, pub_conn                        |
+|                                                                            |
+|    session = session(username=u'kernel')                                   |
+|                                                                            |
+|    reply_socket = c.socket(zmq.xrep)                                       |
+|                                                                            |
+|    reply_socket.bind(rep_conn)                                             |
+|                                                                            |
+|    pub_socket = c.socket(zmq.pub)                                          |
+|                                                                            |
+|    pub_socket.bind(pub_conn)                                               |
+|                                                                            |
+|    stdout = outstream(session, pub_socket, u'stdout')                      |
+|                                                                            |
+|    stderr = outstream(session, pub_socket, u'stderr')                      |
+|                                                                            |
+|    sys.stdout = stdout                                                     |
+|                                                                            |
+|    sys.stderr = stderr                                                     |
+|                                                                            |
+|    display_hook = displayhook(session, pub_socket)                         |
+|                                                                            |
+|    sys.displayhook = display_hook                                          |
+|                                                                            |
+|    kernel = kernel(session, reply_socket, pub_socket)                      |
+|                                                                            |
++----------------------------------------------------------------------------+
+
+
+and the heart of the kernel is the method to execute code and post back the results over the necessary sockets, using json-formatted messages:
+
++-----------------------------------------------------------------------------+
+| def execute_request(self, ident, parent):                                   |
+|                                                                             |
+|        try:                                                                 |
+|                                                                             |
+|            code = parent[u'content'][u'code']                               |
+|                                                                             |
+|        except:                                                              |
+|                                                                             |
+|            print>>sys.__stderr__, "got bad msg: "                           |
+|                                                                             |
+|            print>>sys.__stderr__, message(parent)                           |
+|                                                                             |
+|            return                                                           |
+|                                                                             |
+|        pyin_msg = self.session.msg(u'pyin',{u'code':code}, parent=parent)   |
+|                                                                             |
+|        self.pub_socket.send_json(pyin_msg)                                  |
+|                                                                             |
+|        try:                                                                 |
+|                                                                             |
+|            comp_code = self.compiler(code, '<zmq-kernel>')                  |
+|                                                                             |
+|            sys.displayhook.set_parent(parent)                               |
+|                                                                             |
+|            exec comp_code in self.user_ns, self.user_ns                     |
+|                                                                             |
+|        except:                                                              |
+|                                                                             |
+|            result = u'error'                                                |
+|                                                                             |
+|            etype, evalue, tb = sys.exc_info()                               |
+|                                                                             |
+|            tb = traceback.format_exception(etype, evalue, tb)               |
+|                                                                             |
+|            exc_content = {                                                  |
+|                                                                             |
+|                u'status' : u'error',                                        |
+|                                                                             |
+|                u'traceback' : tb,                                           |
+|                                                                             |
+|                u'etype' : unicode(etype),                                   |
+|                                                                             |
+|                u'evalue' : unicode(evalue)                                  |
+|                                                                             |
+|            }                                                                |
+|                                                                             |
+|            exc_msg = self.session.msg(u'pyerr', exc_content, parent)        |
+|                                                                             |
+|            self.pub_socket.send_json(exc_msg)                               |
+|                                                                             |
+|            reply_content = exc_content                                      |
+|                                                                             |
+|        else:                                                                |
+|                                                                             |
+|            reply_content = {'status' : 'ok'}                                |
+|                                                                             |
+|        reply_msg = self.session.msg(u'execute_reply', reply_content, parent)|
+|                                                                             |
+|        print>>sys.__stdout__, message(reply_msg)                            |
+|                                                                             |
+|        self.reply_socket.send_json(reply_msg, ident=ident)                  |
+|                                                                             |
+|        if reply_msg['content']['status'] == u'error':                       | 
+|                                                                             |
+|            self.abort_queue()                                               |
+|                                                                             |
+|                                                                             |
++-----------------------------------------------------------------------------+
+
+and a little system to tab-completion
+
++-----------------------------------------------------------------------------+
+| def execute_request(self, ident, parent):                                   |
+|                                                                             |
+|        try:                                                                 |
+|                                                                             |
+|            code = parent[u'content'][u'code']                               |
+|                                                                             |
+|        except:                                                              |
+|                                                                             |
+|            print>>sys.__stderr__, "got bad msg: "                           |
+|                                                                             |
+|            print>>sys.__stderr__, message(parent)                           |
+|                                                                             |
+|            return                                                           |
+|                                                                             |
+|        pyin_msg = self.session.msg(u'pyin',{u'code':code}, parent=parent)   |
+|                                                                             |
+|        self.pub_socket.send_json(pyin_msg)                                  |
+|                                                                             |
+|        try:                                                                 |
+|                                                                             |
+|            comp_code = self.compiler(code, '<zmq-kernel>')                  |
+|                                                                             |
+|            sys.displayhook.set_parent(parent)                               |
+|                                                                             |
+|            exec comp_code in self.user_ns, self.user_ns                     |
+|                                                                             |
+|        except:                                                              |
+|                                                                             |
+|            result = u'error'                                                |
+|                                                                             |
+|            etype, evalue, tb = sys.exc_info()                               |
+|                                                                             |
+|            tb = traceback.format_exception(etype, evalue, tb)               |
+|                                                                             |
+|            exc_content = {                                                  |
+|                                                                             |
+|                u'status' : u'error',                                        |
+|                                                                             |
+|                u'traceback' : tb,                                           |
+|                                                                             |
+|                u'etype' : unicode(etype),                                   |
+|                                                                             |
+|               u'evalue' : unicode(evalue)                                   |
+|                                                                             |
+|            }                                                                |
+|                                                                             |
+|            exc_msg = self.session.msg(u'pyerr', exc_content, parent)        |
+|                                                                             |
+|            self.pub_socket.send_json(exc_msg)                               |
+|                                                                             |
+|            reply_content = exc_content                                      |
+|                                                                             |
+|        else:                                                                |
+|                                                                             |
+|            reply_content = {'status' : 'ok'}                                |
+|                                                                             |
+|        reply_msg = self.session.msg(u'execute_reply', reply_content, parent)|
+|                                                                             |
+|        print>>sys.__stdout__, message(reply_msg)                            |
+|                                                                             |
+|        self.reply_socket.send_json(reply_msg, ident=ident)                  |
+|                                                                             |
+|        if reply_msg['content']['status'] == u'error':                       |
+|                                                                             |
+|            self.abort_queue()                                               | 
+|                                                                             |
++-----------------------------------------------------------------------------+
+
+
+
+
+** we have all example code in
+
+* http://github.com/ellisonbg/pyzmq/blob/completer/examples/kernel/kernel.py
+
+* http://github.com/ellisonbg/pyzmq/blob/completer/examples/kernel/completer.py
+
+* http://github.com/fperez/pyzmq/blob/completer/examples/kernel/frontend.py
+
+
+all of this code already works, and can be seen in this example directory from the zmq python bindings:
+
+* http://github.com/ellisonbg/pyzmq/blob/completer/examples/kernel
+
+
+based on this work, i expect to write a stable system for ipython kernel with ipython standards, error control,crash recovery system and general configuration options, also standardize defaults ports or auth system for remote connection etc.
+
+the crash recovery system, is a ipython kernel module for when it fails unexpectedly, you can retrieve the information from the section, this will be based on a log and a lock file to indicate when the kernel was not closed in a proper way.
+        
