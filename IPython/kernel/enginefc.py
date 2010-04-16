@@ -28,7 +28,10 @@ from zope.interface import Interface, implements
 from twisted.internet.base import DelayedCall
 DelayedCall.debug = True
 
-from foolscap import Referenceable, DeadReferenceError
+try:
+    from foolscap.api import Referenceable, DeadReferenceError
+except ImportError:
+    from foolscap import Referenceable, DeadReferenceError
 from foolscap.referenceable import RemoteReference
 
 from IPython.kernel.pbutil import packageFailure, unpackageFailure

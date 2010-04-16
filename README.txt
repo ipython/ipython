@@ -11,8 +11,8 @@ subdirectory in ``.html`` and ``.pdf`` formats, also available online at our
 the plaintext version of these manuals.
 
 
-Instant running and testing
-===========================
+Instant running
+===============
 
 You can run IPython from this directory without even installing it system-wide
 by typing at the terminal:
@@ -20,10 +20,4 @@ by typing at the terminal:
 .. code-block:: bash
 
    python ipython.py
-
-and similarly, you can execute the built-in test suite with:
-   
-.. code-block:: bash
-
-   python iptest.py
    

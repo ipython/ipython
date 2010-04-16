@@ -224,7 +224,7 @@ class Application(object):
 
         For the most part, we try to set default in the class attributes
         of Components.  But, defaults the top-level Application (which is
-        not a HasTraitlets or Component) are not set in this way.  Instead
+        not a HasTraits or Component) are not set in this way.  Instead
         we set them here.  The Global section is for variables like this that
         don't belong to a particular component.
         """

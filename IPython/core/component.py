@@ -27,7 +27,7 @@ from weakref import WeakValueDictionary
 from IPython.utils.importstring import import_item
 from IPython.config.loader import Config
 from IPython.utils.traitlets import (
-    HasTraitlets, MetaHasTraitlets, Instance, This
+    HasTraits, MetaHasTraits, Instance, This
 )
 
 
@@ -173,7 +173,7 @@ class __ComponentNameGenerator(object):
 ComponentNameGenerator = __ComponentNameGenerator('ipython.component')
 
 
-class MetaComponent(MetaHasTraitlets, MetaComponentTracker):
+class MetaComponent(MetaHasTraits, MetaComponentTracker):
     pass
 
 
@@ -182,11 +182,11 @@ class MetaComponent(MetaHasTraitlets, MetaComponentTracker):
 #-----------------------------------------------------------------------------
 
 
-class Component(HasTraitlets):
+class Component(HasTraits):
 
     __metaclass__ = MetaComponent
 
-    # Traitlets are fun!
+    # Traits are fun!
     config = Instance(Config,(),{})
     parent = This()
     root = This()
@@ -256,7 +256,7 @@ class Component(HasTraitlets):
         self.created = datetime.datetime.now()
 
     #-------------------------------------------------------------------------
-    # Static traitlet notifiations
+    # Static trait notifiations
     #-------------------------------------------------------------------------
 
     def _parent_changed(self, name, old, new):
@@ -282,12 +282,12 @@ class Component(HasTraitlets):
     def _config_changed(self, name, old, new):
         """Update all the class traits having ``config=True`` as metadata.
 
-        For any class traitlet with a ``config`` metadata attribute that is
-        ``True``, we update the traitlet with the value of the corresponding
+        For any class trait with a ``config`` metadata attribute that is
+        ``True``, we update the trait with the value of the corresponding
         config entry.
         """
-        # Get all traitlets with a config metadata entry that is True
-        traitlets = self.traitlets(config=True)
+        # Get all traits with a config metadata entry that is True
+        traits = self.traits(config=True)
 
         # We auto-load config section for this class as well as any parent
         # classes that are Component subclasses.  This starts with Component
@@ -301,7 +301,7 @@ class Component(HasTraitlets):
             # dynamically create the section with name self.__class__.__name__.
             if new._has_section(sname):
                 my_config = new[sname]
-                for k, v in traitlets.items():
+                for k, v in traits.items():
                     # Don't allow traitlets with config=True to start with
                     # uppercase.  Otherwise, they are confused with Config
                     # subsections.  But, developers shouldn't have uppercase

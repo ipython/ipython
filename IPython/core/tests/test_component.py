@@ -24,7 +24,7 @@ from unittest import TestCase
 
 from IPython.core.component import Component, ComponentError
 from IPython.utils.traitlets import (
-    TraitletError, Int, Float, Str
+    TraitError, Int, Float, Str
 )
 from IPython.config.loader import Config
 
@@ -109,7 +109,7 @@ class TestComponent(TestCase):
 
     def test_subclass_parent(self):
         c1 = Component(None)
-        self.assertRaises(TraitletError, setattr, c1, 'parent', 10)
+        self.assertRaises(TraitError, setattr, c1, 'parent', 10)
 
         class MyComponent(Component):
             pass

@@ -50,7 +50,9 @@ html: api
 	@echo
 	@echo "Build finished. The HTML pages are in build/html."
 
-api:
+api: source/api/generated/gen.txt
+
+source/api/generated/gen.txt:
 	python autogen_api.py
 	@echo "Build API docs finished."
 
@@ -71,7 +73,7 @@ htmlhelp:
 	@echo "Build finished; now you can run HTML Help Workshop with the" \
 	      ".hhp project file in build/htmlhelp."
 
-latex:
+latex: api
 	mkdir -p build/latex build/doctrees
 	$(SPHINXBUILD) -b latex $(ALLSPHINXOPTS) build/latex
 	@echo
