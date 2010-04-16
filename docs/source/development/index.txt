@@ -18,4 +18,3 @@ IPython developer's guide
    notification_blueprint.txt
    ipgraph.txt
    ipythonzmq.txt
-
