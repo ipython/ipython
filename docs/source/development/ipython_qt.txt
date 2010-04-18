@@ -20,7 +20,7 @@ This GUI will allow for the easy editing of multi-line input and the convenient 
 
 2-process model pyzmq base
 ++++++++++++++++++++++++++
-Since the necessity of a user to keep his data safe, the design is based in a 2-process model that will be achieved with a simple client/server system with `pyzmq <http://www.zeromq.org/bindings:python>`_, so the GUI session do not crash if the the kernel process does. This will be achieved using this test `code <http://github.com/fperez/pyzmq/blob/completer/examples/kernel/kernel.py>`_ and customizing it to the necessities of the GUI such as queue management  with  discrimination for different frontends connected to the same kernel and tab completion. A piece of drafted code for the kernel (server) should look like this:
+Since the necessity of a user to keep his data safe, the design is based in a 2-process model that will be achieved with a simple client/server system with `pyzmq <http://www.zeromq.org/bindings:python>`_, so the GUI session do not crash if the the kernel process does. This will be achieved using this test `code <http://github.com/fperez/pyzmq/blob/completer/examples/kernel/kernel.py>`_ and customizing it to the necessities of the GUI such as queue management  with  discrimination for different frontends connected to the same kernel and tab completion. A piece of drafted code for the kernel (server) should look like this::
 
     def main():
         c = zmq.Context(1, 1)
