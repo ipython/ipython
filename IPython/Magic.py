@@ -15,6 +15,7 @@
 
 # Python standard modules
 import __builtin__
+import __future__
 import bdb
 import inspect
 import os
@@ -192,9 +193,7 @@ python-profiler package from non-free.""")
 
         Has special code to detect magic functions.
         """
-        
         oname = oname.strip()
-
         alias_ns = None
         if namespaces is None:
             # Namespaces to search in:
@@ -208,8 +207,16 @@ python-profiler package from non-free.""")
             alias_ns = self.shell.alias_table
 
         # initialize results to 'null'
-        found = 0; obj = None;  ospace = None;  ds = None;
-        ismagic = 0; isalias = 0; parent = None
+        found = False; obj = None;  ospace = None;  ds = None;
+        ismagic = False; isalias = False; parent = None
+
+        # We need to special-case 'print', which as of python2.6 registers as a
+        # function but should only be treated as one if print_function was
+        # loaded with a future import.  In this case, just bail.
+        if (oname == 'print' and not (self.shell.compile.compiler.flags &
+                                      __future__.CO_FUTURE_PRINT_FUNCTION)):
+            return {'found':found, 'obj':obj, 'namespace':ospace,
+                    'ismagic':ismagic, 'isalias':isalias, 'parent':parent}
 
         # Look for the given name by splitting it in parts.  If the head is
         # found, then we look for all the remaining parts as members, and only
@@ -234,10 +241,10 @@ python-profiler package from non-free.""")
                         break
                 else:
                     # If we finish the for loop (no break), we got all members
-                    found = 1
+                    found = True
                     ospace = nsname
                     if ns == alias_ns:
-                        isalias = 1
+                        isalias = True
                     break  # namespace loop
 
         # Try to see if it's magic
@@ -246,14 +253,14 @@ python-profiler package from non-free.""")
                 oname = oname[1:]
             obj = getattr(self,'magic_'+oname,None)
             if obj is not None:
-                found = 1
+                found = True
                 ospace = 'IPython internal'
-                ismagic = 1
+                ismagic = True
 
         # Last try: special-case some literals like '', [], {}, etc:
         if not found and oname_head in ["''",'""','[]','{}','()']:
             obj = eval(oname_head)
-            found = 1
+            found = True
             ospace = 'Interactive'
             
         return {'found':found, 'obj':obj, 'namespace':ospace,
