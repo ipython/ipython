@@ -42,6 +42,11 @@ except ImportError:
     except ImportError:
         profile = pstats = None
 
+# print_function was added to __future__ in Python2.6, remove this when we drop
+# 2.5 compatibility
+if not hasattr(__future__,'CO_FUTURE_PRINT_FUNCTION'):
+    __future__.CO_FUTURE_PRINT_FUNCTION = 65536
+
 # Homebrewed
 import IPython
 from IPython import Debugger, OInspect, wildcard
