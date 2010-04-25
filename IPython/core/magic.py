@@ -2396,6 +2396,9 @@ Currently the magic system has the following functions:\n"""
         print 'Editing...',
         sys.stdout.flush()
         try:
+            # Quote filenames that may have spaces in them
+            if ' ' in filename:
+                filename = "%s" % filename
             self.shell.hooks.editor(filename,lineno)
         except TryNext:
             warn('Could not open editor')
