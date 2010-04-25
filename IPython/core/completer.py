@@ -321,7 +321,7 @@ class IPCompleter(Completer):
         comp_append = completions.append
         try:
             for i in xrange(sys.maxint):
-                res = self.complete(text, i)
+                res = self.complete(text, i, text)
                 if not res:
                     break
                 comp_append(res)
@@ -583,7 +583,7 @@ class IPCompleter(Completer):
             
         return None
                
-    def complete(self, text, state,line_buffer=None):
+    def complete(self, text, state, line_buffer=None):
         """Return the next possible completion for 'text'.
 
         This is called successively with state == 0, 1, 2, ... until it

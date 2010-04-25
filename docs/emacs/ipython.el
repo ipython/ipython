@@ -6,8 +6,8 @@
 ;; URL:           http://ipython.scipy.org
 ;; Compatibility: Emacs21, XEmacs21
 ;; FIXME: #$@! INPUT RING
-(defconst ipython-version "$Revision: 2927 $"
-  "VC version number.")
+(defconst ipython-version "0.11"
+  "Tied to IPython main version number.")
 
 ;;; Commentary
 ;; This library makes all the functionality python-mode has when running with
@@ -36,7 +36,7 @@
 ;; always in ``pylab`` mode with hardcoded light-background colors, you can
 ;; use::
 ;;
-;; (setq py-python-command-args '("-pylab" "-colors" "LightBG"))
+;; (setq py-python-command-args '("-pylab" "--colors" "LightBG"))
 ;;
 ;;
 ;; NOTE: This mode is currently somewhat alpha and although I hope that it
@@ -217,10 +217,10 @@ the second for a 'normal' command, and the third for a multiline command.")
     (setq py-shell-input-prompt-1-regexp "^In \\[[0-9]+\\]: *"
           py-shell-input-prompt-2-regexp "^   [.][.][.]+: *" )
     ;; select a suitable color-scheme
-    (unless (member "-colors" py-python-command-args)
+    (unless (member "--colors" py-python-command-args)
       (setq py-python-command-args
             (nconc py-python-command-args
-                   (list "-colors"
+                   (list "--colors"
                          (cond
                            ((eq frame-background-mode 'dark)
                             "Linux")
@@ -311,7 +311,7 @@ gets converted to:
         (replace-match "" t nil)))))
 
 (defvar ipython-completion-command-string
-  "print(';'.join(__IP.Completer.all_completions('%s'))) #PYTHON-MODE SILENT\n"
+  "print(';'.join(get_ipython().Completer.all_completions('%s'))) #PYTHON-MODE SILENT\n"
   "The string send to ipython to query for all possible completions")
 
 
@@ -347,11 +347,12 @@ in the current *Python* session."
                           (setq ugly-return (concat ugly-return string))
                           (delete-region comint-last-output-start
                                          (process-mark (get-buffer-process (current-buffer)))))))))
-                                        ;(message (format "#DEBUG pattern: '%s'" pattern))
+	;(message (format "#DEBUG pattern: '%s'" pattern))
         (process-send-string python-process
                               (format ipython-completion-command-string pattern))
         (accept-process-output python-process)
-                                        ;(message (format "DEBUG return: %s" ugly-return))
+	
+	;(message (format "DEBUG return: %s" ugly-return))
         (setq completions
               (split-string (substring ugly-return 0 (position ?\n ugly-return)) sep))
         (setq completion-table (loop for str in completions
