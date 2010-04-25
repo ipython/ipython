@@ -30,7 +30,7 @@ set ylabel 'sin(theta)'
 """)
 
 # Now start an embedded ipython.
-ipshell('Starting the embedded IPyhton.\n'
+ipshell('Starting the embedded IPython.\n'
         'Try calling plot(x,y), or @gpc for direct access to Gnuplot"\n')
 
 #********************** End of file <example-gnuplot.py> *********************

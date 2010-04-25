@@ -1,4 +1,4 @@
-"""Tests for IPyhton's test support utilities.
+"""Tests for IPython's test support utilities.
 
 These are decorators that allow standalone functions and docstrings to be seen
 as tests by unittest, replicating some of nose's functionality.  Additionally,

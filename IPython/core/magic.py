@@ -660,7 +660,7 @@ Currently the magic system has the following functions:\n"""
             print 'Object `%s` not found' % oname
 
     def magic_profile(self, parameter_s=''):
-        """Print your currently active IPyhton profile."""
+        """Print your currently active IPython profile."""
         if self.shell.profile:
             printpl('Current IPython profile: $self.shell.profile.')
         else:
