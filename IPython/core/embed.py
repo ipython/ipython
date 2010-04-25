@@ -156,6 +156,8 @@ class InteractiveShellEmbed(InteractiveShell):
         if header:
             self.old_banner2 = self.banner2
             self.banner2 = self.banner2 + '\n' + header + '\n'
+        else:
+            self.old_banner2 = ''
 
         # Call the embedding code with a stack depth of 1 so it can skip over
         # our call and get the original caller's namespaces.
