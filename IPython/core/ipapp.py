@@ -569,10 +569,12 @@ class IPythonApp(Application):
                 exec_lines = self.master_config.Global.exec_lines
                 for line in exec_lines:
                     try:
-                        self.log.info("Running code in user namespace: %s" % line)
+                        self.log.info("Running code in user namespace: %s" %
+                                      line)
                         self.shell.runlines(line)
                     except:
-                        self.log.warn("Error in executing line in user namespace: %s" % line)
+                        self.log.warn("Error in executing line in user "
+                                      "namespace: %s" % line)
                         self.shell.showtraceback()
         except:
             self.log.warn("Unknown error in handling Global.exec_lines:")
@@ -582,14 +584,21 @@ class IPythonApp(Application):
         full_filename = filefind(fname, [u'.', self.ipython_dir])
         if os.path.isfile(full_filename):
             if full_filename.endswith(u'.py'):
-                self.log.info("Running file in user namespace: %s" % full_filename)
-                self.shell.safe_execfile(full_filename, self.shell.user_ns)
+                self.log.info("Running file in user namespace: %s" %
+                              full_filename)
+                # Ensure that __file__ is always defined to match Python behavior
+                self.shell.user_ns['__file__'] = fname
+                try:
+                    self.shell.safe_execfile(full_filename, self.shell.user_ns)
+                finally:
+                    del self.shell.user_ns['__file__']
             elif full_filename.endswith('.ipy'):
-                self.log.info("Running file in user namespace: %s" % full_filename)
+                self.log.info("Running file in user namespace: %s" %
+                              full_filename)
                 self.shell.safe_execfile_ipy(full_filename)
             else:
-                self.log.warn("File does not have a .py or .ipy extension: <%s>" % full_filename)
-
+                self.log.warn("File does not have a .py or .ipy extension: <%s>"
+                               % full_filename)
     def _run_exec_files(self):
         try:
             if hasattr(self.master_config.Global, 'exec_files'):
@@ -605,10 +614,12 @@ class IPythonApp(Application):
         if hasattr(self.master_config.Global, 'code_to_run'):
             line = self.master_config.Global.code_to_run
             try:
-                self.log.info("Running code given at command line (-c): %s" % line)
+                self.log.info("Running code given at command line (-c): %s" %
+                              line)
                 self.shell.runlines(line)
             except:
-                self.log.warn("Error in executing line in user namespace: %s" % line)
+                self.log.warn("Error in executing line in user namespace: %s" %
+                              line)
                 self.shell.showtraceback()
             return
         # Like Python itself, ignore the second if the first of these is present
@@ -620,7 +631,8 @@ class IPythonApp(Application):
             try:
                 self._exec_file(fname)
             except:
-                self.log.warn("Error in executing file in user namespace: %s" % fname)
+                self.log.warn("Error in executing file in user namespace: %s" %
+                              fname)
                 self.shell.showtraceback()
 
     def start_app(self):
