@@ -124,10 +124,11 @@ def page(strng, start=0, screen_lines=0, pager_cmd=None):
 
     # auto-determine screen size
     if screen_lines <= 0:
-        if TERM=='xterm' or TERM=='xterm-color':
+        if (TERM=='xterm' or TERM=='xterm-color') and sys.platform != 'sunos5':
             local_use_curses = use_curses
         else:
-            # curses causes problems on many terminals other than xterm.
+            # curses causes problems on many terminals other than xterm, and
+            # some termios calls lock up on Sun OS5.
             local_use_curses = False
         if local_use_curses:
             import termios
