@@ -45,7 +45,7 @@ if sys.platform == 'darwin' and have_readline:
         except IOError, (errno, strerror):
             if errno == 4:
                 continue
-            else
+            else:
                 break
 
     if status == 0 and len(result) > 0:
