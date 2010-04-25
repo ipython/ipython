@@ -1052,6 +1052,27 @@ class InteractiveShell(Component, Magic):
         # Restore the default and user aliases
         self.alias_manager.init_aliases()
 
+    def reset_selective(self, regex=None):
+        """Clear selective variables from internal namespaces based on a specified regular expression.
+
+        Parameters
+        ----------
+        regex : string or compiled pattern, optional
+            A regular expression pattern that will be used in searching variable names in the users 
+            namespaces.
+        """
+        if regex is not None:
+            try:
+                m = re.compile(regex)
+            except TypeError:
+                raise TypeError('regex must be a string or compiled pattern')
+            # Search for keys in each namespace that match the given regex
+            # If a match is found, delete the key/value pair.
+            for ns in self.ns_refs_table:
+                for var in ns:
+                    if m.search(var):
+                        del ns[var]        
+        
     def push(self, variables, interactive=True):
         """Inject a group of variables into the IPython user namespace.
 

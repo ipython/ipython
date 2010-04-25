@@ -1112,6 +1112,71 @@ Currently the magic system has the following functions:\n"""
         # execution protection
         self.shell.clear_main_mod_cache()
 
+    def magic_reset_selective(self, parameter_s=''):
+        """Resets the namespace by removing names defined by the user.
+
+        Input/Output history are left around in case you need them.
+
+        %reset_selective [-f] regex
+
+        No action is taken if regex is not included
+        
+        Options
+          -f : force reset without asking for confirmation.
+
+        Examples
+        --------
+        
+        In [1]: a=1; b=2; c=3; b1m=4; b2m=5; b3m=6; b4m=7; b2s=8
+
+        In [2]: who_ls
+        Out[2]: ['a', 'b', 'b1', 'b1m', 'b2m', 'b2s', 'b3m', 'b4m', 'c']
+
+        In [3]: %reset_selective -f b[2-3]m
+
+        In [4]: who_ls
+        Out[4]: ['a', 'b', 'b1', 'b1m', 'b2s', 'c']
+
+        In [5]: %reset_selective -f d
+
+        In [6]: who_ls
+        Out[6]: ['a', 'b', 'b1', 'b1m', 'b2s', 'c']
+
+        In [7]: %reset_selective -f c
+        
+        In [8]: who_ls
+        Out[8]:['a', 'b', 'b1', 'b1m', 'b2s']  
+
+        In [9]: %reset_selective -f b
+        
+        In [10]: who_ls        
+        Out[10]: ['a']
+        
+        """
+        
+        opts, regex = self.parse_options(parameter_s,'f')
+        
+        if opts.has_key('f'):
+            ans = True
+        else:
+            ans = self.shell.ask_yes_no(
+                "Once deleted, variables cannot be recovered. Proceed (y/[n])? ")
+        if not ans:
+            print 'Nothing done.'
+            return
+        user_ns = self.shell.user_ns
+        if not regex:
+            print 'No regex pattern specified. Nothing done.'
+            return
+        else:
+            try:
+                m = re.compile(regex)
+            except TypeError:
+                raise TypeError('regex must be a string or compiled pattern')
+            for i in self.magic_who_ls():
+                if m.search(i): 
+                    del(user_ns[i])        
+        
     def magic_logstart(self,parameter_s=''):
         """Start logging anywhere in a session.
 
