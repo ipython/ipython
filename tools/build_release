@@ -21,14 +21,6 @@ for d in ['build','dist',pjoin('docs','build'),pjoin('docs','dist')]:
 # Build source and binary distros
 c('./setup.py sdist --formats=gztar,zip')
 
-# Build version-specific RPMs, where we must use the --python option to ensure
-# that the resulting RPM is really built with the requested python version (so
-# things go to lib/python2.X/...)
-#c("python2.5 ./setup.py bdist_rpm --binary-only --release=py25 "
-#  "--python=/usr/bin/python2.5")
-#c("python2.6 ./setup.py bdist_rpm --binary-only --release=py26 "
-#  "--python=/usr/bin/python2.6")
-
 # Build eggs
 c('python2.5 ./setupegg.py bdist_egg')
 c('python2.6 ./setupegg.py bdist_egg')
@@ -36,7 +28,7 @@ c('python2.6 ./setupegg.py bdist_egg')
 # Call the windows build separately, so that the extra Windows scripts don't
 # get pulled into Unix builds (setup.py has code which checks for
 # bdist_wininst)
-c("python ./setup.py bdist_wininst")
+c("python setup.py bdist_wininst")
 
 # Change name so retarded Vista runs the installer correctly
 c("rename 's/linux-i686/win32-setup/' dist/*.exe")

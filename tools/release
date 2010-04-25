@@ -25,7 +25,8 @@ c('./make_tarball.py')
 c('mv ipython-*.tgz %s' % ipbackupdir)
 
 # Build release files
-c('./mkrel.py %s' % ipdir)
+#c('./mkrel.py %s' % ipdir)
+c('./build_release')
 
 # Register with the Python Package Index (PyPI)
 print "Registering with PyPI..."
