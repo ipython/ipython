@@ -1757,7 +1757,7 @@ class ibrowse(ipipe.Display):
         self.scr = None
 
     def display(self):
-        if hasattr(curses, "resize_term"):
+        if hasattr(curses, "resize_term") and hasattr(signal, 'SIGWINCH'):
             oldhandler = signal.signal(signal.SIGWINCH, self.sigwinchhandler)
             try:
                 return curses.wrapper(self._dodisplay)
