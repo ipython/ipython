@@ -122,6 +122,14 @@ from the working terminal.
 
 .. _Console:  http://sourceforge.net/projects/console
 
+Note for Windows 64 bit users: you may have difficulties with the stock
+installer on 64 bit systems; in this case (since we currently do not have 64
+bit builds of the Windows installer) your best bet is to install from source
+with the setuptools method indicated in #3 above.  See `this bug report`_ for
+further details.
+
+.. _this bug report: https://bugs.launchpad.net/ipython/+bug/382214
+
    
 Installing the development version
 ----------------------------------
