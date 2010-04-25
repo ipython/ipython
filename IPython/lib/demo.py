@@ -244,11 +244,12 @@ class Demo(object):
         # it ensures that things like color scheme and the like are always in
         # sync with the ipython mode being used.  This class is only meant to
         # be used inside ipython anyways,  so it's OK.
-        self.ip_ns       = __IPYTHON__.user_ns
-        self.ip_colorize = __IPYTHON__.pycolorize
-        self.ip_showtb   = __IPYTHON__.showtraceback
-        self.ip_runlines = __IPYTHON__.runlines
-        self.shell       = __IPYTHON__
+        ip = get_ipython()  # this is in builtins whenever IPython is running
+        self.ip_ns       = ip.user_ns
+        self.ip_colorize = ip.pycolorize
+        self.ip_showtb   = ip.showtraceback
+        self.ip_runlines = ip.runlines
+        self.shell       = ip
 
         # load user data and initialize data structures
         self.reload()
