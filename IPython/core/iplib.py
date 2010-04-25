@@ -245,7 +245,7 @@ class InteractiveShell(Component, Magic):
     readline_remove_delims = Str('-/~', config=True)
     readline_parse_and_bind = List([
             'tab: complete',
-            '"\C-l": possible-completions',
+            '"\C-l": clear-screen',
             'set show-all-if-ambiguous on',
             '"\C-o": tab-insert',
             '"\M-i": "    "',
