@@ -10,6 +10,8 @@ from IPython.testing import tools as tt, decorators as dec
 #-----------------------------------------------------------------------------
 # Tests
 #-----------------------------------------------------------------------------
+ip = get_ipython()
+
 @dec.parametric
 def test_prefilter():
     """Test user input conversions"""
@@ -29,6 +31,21 @@ def test_prefilter():
                '    print i,'),
              ]
 
-    ip = get_ipython()
     for raw, correct in pairs:
         yield nt.assert_equals(ip.prefilter(raw), correct)
+
+
+@dec.parametric
+def test_autocall_binops():
+    """See https://bugs.launchpad.net/ipython/+bug/315706"""
+    ip.magic('autocall 2')
+    f = lambda x: x
+    ip.user_ns['f'] = f
+    try:
+        yield nt.assert_equals(ip.prefilter('f 1'),'f(1)')
+        for t in ['f +1', 'f -1']:
+            yield nt.assert_equals(ip.prefilter(t), t)
+    finally:
+        ip.magic('autocall 0')
+        del ip.user_ns['f']
+        
