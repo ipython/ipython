@@ -1150,7 +1150,10 @@ class IPShellMatplotlibQt4(IPShellQt4):
 # Factory functions to actually start the proper thread-aware shell
 
 def check_gtk(mode):
-    import gtk
+    try:
+        import gtk
+    except ImportError:
+        return mode
     if hasattr(gtk,'set_interactive'):
         gtk.set_interactive(False)
         return 'tkthread'
