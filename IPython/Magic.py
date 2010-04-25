@@ -1893,8 +1893,10 @@ Currently the magic system has the following functions:\n"""
         
         best = min(timer.repeat(repeat, number)) / number
 
-        if best > 0.0:
+        if best > 0.0 and best < 1000.0:
             order = min(-int(math.floor(math.log10(best)) // 3), 3)
+        elif best >= 1000.0:
+            order = 0
         else:
             order = 3
         print u"%d loops, best of %d: %.*g %s per loop" % (number, repeat,
