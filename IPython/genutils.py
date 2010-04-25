@@ -1655,7 +1655,7 @@ def page(strng,start=0,screen_lines=0,pager_cmd = None):
 
     # auto-determine screen size
     if screen_lines <= 0:
-        if TERM=='xterm':
+        if (TERM=='xterm' or TERM=='xterm-color') and sys.platform != 'sunos5':
             use_curses = USE_CURSES
         else:
             # curses causes problems on many terminals other than xterm.
