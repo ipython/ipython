@@ -221,7 +221,6 @@ class Demo(object):
           """
         if hasattr(src, "read"):
              # It seems to be a file or a file-like object
-            self.fobj = src
             self.fname = "from a file-like object"
             if title == '':
                 self.title = "from a file-like object"
@@ -229,7 +228,6 @@ class Demo(object):
                 self.title = title
         else:
              # Assume it's a string or something that can be converted to one
-            self.fobj = open(src)
             self.fname = src
             if title == '':
                 (filepath, filename) = os.path.split(src)
@@ -238,6 +236,7 @@ class Demo(object):
                 self.title = title
         self.sys_argv = [src] + shlex.split(arg_str)
         self.auto_all = auto_all
+        self.src = src
         
         # get a few things from ipython.  While it's a bit ugly design-wise,
         # it ensures that things like color scheme and the like are always in
@@ -255,6 +254,15 @@ class Demo(object):
     def reload(self):
         """Reload source from disk and initialize state."""
         # read data and parse into blocks
+        if hasattr(self, 'fobj') and self.fobj is not None:
+           self.fobj.close()
+        if hasattr(self.src, "read"):
+             # It seems to be a file or a file-like object
+            self.fobj = self.src
+        else:
+             # Assume it's a string or something that can be converted to one
+            self.fobj = open(self.fname)
+
         self.src     = self.fobj.read()
         src_b        = [b.strip() for b in self.re_stop.split(self.src) if b]
         self._silent = [bool(self.re_silent.findall(b)) for b in src_b]
