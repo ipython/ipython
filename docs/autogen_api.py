@@ -58,6 +58,15 @@ if __name__ == '__main__':
                                         r'\.frontend\.process\.winprocess',
                                         r'\.Shell',
                                         ]
+    
+    # If we don't have pexpect, we can't load irunner, so skip any code that
+    # depends on it
+    try:
+        import pexpect
+    except ImportError:
+        docwriter.module_skip_patterns += [r'\.lib\.irunner',
+                                           r'\.testing\.mkdoctests']
+    # Now, generate the outputs
     docwriter.write_api_docs(outdir)
     docwriter.write_index(outdir, 'gen',
                           relative_to = pjoin('source','api')
