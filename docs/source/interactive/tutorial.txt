@@ -120,6 +120,17 @@ IPython or in a text editor. You can also save all your history by turning on
 logging via %logstart; these logs can later be either reloaded as IPython
 sessions or used as code for your programs.
 
+In particular, note taht the %rep magic function can repeat a command or get a
+command to the input line for further editing::
+
+        $ l = ["hei", "vaan"]       
+        $ "".join(l)        
+        ==> heivaan        
+        $ %rep        
+        $ heivaan_ <== cursor blinking    
+   
+For more details, type ``%rep?`` as usual.
+	
 Define your own system aliases
 ------------------------------
 
