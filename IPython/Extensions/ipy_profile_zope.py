@@ -24,6 +24,8 @@ import sys
 import os
 import textwrap
 
+sys_oldstdin  = sys.stdin
+
 # The import below effectively obsoletes your old-style ipythonrc[.ini],
 # so consider yourself warned!
 # import ipy_defaults
@@ -313,6 +315,7 @@ def main():
         """ % ( ",".join([ x for x in dir(zope_debug.utils) if not x.startswith("_") ] ) ) )
 
 
+    sys.stdin  = sys_oldstdin
     ip.user_ns.update( zope_debug.namespace )
 
 
