@@ -251,8 +251,8 @@ class Demo(object):
         # load user data and initialize data structures
         self.reload()
 
-    def reload(self):
-        """Reload source from disk and initialize state."""
+    def fload(self):
+        """Load file object."""
         # read data and parse into blocks
         if hasattr(self, 'fobj') and self.fobj is not None:
            self.fobj.close()
@@ -263,6 +263,10 @@ class Demo(object):
              # Assume it's a string or something that can be converted to one
             self.fobj = open(self.fname)
 
+    def reload(self):
+        """Reload source from disk and initialize state."""
+        self.fload()
+        
         self.src     = self.fobj.read()
         src_b        = [b.strip() for b in self.re_stop.split(self.src) if b]
         self._silent = [bool(self.re_silent.findall(b)) for b in src_b]
@@ -502,14 +506,20 @@ class LineDemo(Demo):
     This class doesn't require any markup at all, and it's meant for simple
     scripts (with no nesting or any kind of indentation) which consist of
     multiple lines of input to be executed, one at a time, as if they had been
-    typed in the interactive prompt."""
+    typed in the interactive prompt.
+
+    Note: the input can not have *any* indentation, which means that only
+    single-lines of input are accepted, not even function definitions are
+    valid."""
     
     def reload(self):
         """Reload source from disk and initialize state."""
         # read data and parse into blocks
-        src_b           = [l for l in self.fobj.readline() if l.strip()]
+        self.fload()
+        lines           = self.fobj.readlines()
+        src_b           = [l for l in lines if l.strip()]
         nblocks         = len(src_b)
-        self.src        = os.linesep.join(self.fobj.readlines())
+        self.src        = ''.join(lines)
         self._silent    = [False]*nblocks
         self._auto      = [True]*nblocks
         self.auto_all   = True
