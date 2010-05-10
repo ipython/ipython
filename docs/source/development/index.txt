@@ -17,4 +17,4 @@ IPython developer's guide
    magic_blueprint.txt
    notification_blueprint.txt
    ipgraph.txt
-
+   ipython_qt.txt
