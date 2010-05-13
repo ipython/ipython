@@ -1,0 +1,6 @@
+docs/dist
+docs/build/*
+docs/source/api/generated
+*.pyc
+build
+*.egg-info
