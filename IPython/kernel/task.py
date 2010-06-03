@@ -808,9 +808,11 @@ class ITaskController(cs.IControllerBase):
         return the number of tasks with each status.
         """
     
-    def clear():
+    def clear(taskids=None):
         """
-        Clear all previously run tasks from the task controller.
+        Clear previously run tasks from the task controller.
+        
+        If no ids specified, clear all.
         
         This is needed because the task controller keep all task results
         in memory.  This can be a problem is there are many completed
@@ -1053,9 +1055,13 @@ class TaskController(cs.ControllerAdapterBase):
         if taskid in self.abortPending:
             self._doAbort(taskid)
             aborted = True
-        
         if not aborted:
             if not success:
+                if isinstance(result,error.TaskRejectError):
+                    log.msg("Task %i dependencies unmet by worker %i"%(taskid, workerid))
+                    
+                    return
+                
                 log.msg("Task %i failed on worker %i"% (taskid, workerid))
                 if task.retries > 0: # resubmit
                     task.retries -= 1
@@ -1100,7 +1106,7 @@ class TaskController(cs.ControllerAdapterBase):
             self.scheduler.add_worker(self.workers[workerid])
             self.distributeTasks()
     
-    def clear(self):
+    def clear(self,taskids=None):
         """
         Clear all previously run tasks from the task controller.
         
@@ -1109,8 +1115,28 @@ class TaskController(cs.ControllerAdapterBase):
         tasks.  Users should call this periodically to clean out these
         cached task results.
         """
-        self.finishedResults = {}
-        return defer.succeed(None)
+        before = len(self.finishedResults)
+        failed = []
+        if taskids is None:
+            log.msg("Clearing all results")
+            self.finishedResults = {}
+        else:
+            if isinstance(taskids, int):
+                taskids = [taskids]
+            if len(taskids) > 0:
+                log.msg("Clearing results: %i et al."%(taskids[0]))
+            for i in taskids:
+                if self.finishedResults.has_key(i):
+                    self.finishedResults.pop(i)
+                else:
+                    failed.append(i)
+        after = len(self.finishedResults)
+        log.msg("Cleared %i results"%(before-after))
+        if failed:
+            fails = ", ".join(map(str, failed))
+            return defer.fail(KeyError("Cleared %i results, but no tasks found for ids: %s"%(before-after, fails)))
+        else:
+            return defer.succeed(before-after)
         
     
 components.registerAdapter(TaskController, cs.IControllerBase, ITaskController)

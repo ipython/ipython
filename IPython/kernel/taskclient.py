@@ -134,7 +134,7 @@ class BlockingTaskClient(object):
         """
         return blockingCallFromThread(self.task_controller.queue_status, verbose)
     
-    def clear(self):
+    def clear(self,taskids=None):
         """
         Clear all previously run tasks from the task controller.
         
@@ -143,7 +143,7 @@ class BlockingTaskClient(object):
         tasks.  Users should call this periodically to clean out these
         cached task results.
         """
-        return blockingCallFromThread(self.task_controller.clear)
+        return blockingCallFromThread(self.task_controller.clear, taskids)
     
     def map(self, func, *sequences):
         """

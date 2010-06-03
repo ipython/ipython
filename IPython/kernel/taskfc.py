@@ -72,7 +72,7 @@ class IFCTaskController(Interface):
     def remote_queue_status(verbose):
         """"""
     
-    def remote_clear():
+    def remote_clear(taskids=None):
         """"""
 
 
@@ -147,8 +147,11 @@ class FCTaskControllerFromTaskController(Referenceable):
         d.addErrback(self.packageFailure)
         return d
     
-    def remote_clear(self):
-        return self.taskController.clear()
+    def remote_clear(self,taskids=None):
+        d = self.taskController.clear(taskids)
+        d.addCallback(self.packageSuccess)
+        d.addErrback(self.packageFailure)
+        return d
     
     def remote_get_client_name(self):
         return 'IPython.kernel.taskfc.FCTaskClient'
@@ -279,16 +282,24 @@ class FCTaskClient(object):
         d.addCallback(self.unpackage)
         return d
     
-    def clear(self):
+    def clear(self,taskids=None):
         """
-        Clear all previously run tasks from the task controller.
+        Clear previously run tasks from the task controller.
+        :Parameters:
+            taskids : list, tuple, None
+                A sequence of taskids whose results we should drop.
+                if None: clear all results
+        
+        :Returns:
+            An int, the number of tasks cleared
         
         This is needed because the task controller keep all task results
         in memory.  This can be a problem is there are many completed
         tasks.  Users should call this periodically to clean out these
         cached task results.
         """
-        d = self.remote_reference.callRemote('clear')
+        d = self.remote_reference.callRemote('clear', taskids)
+        d.addCallback(self.unpackage)
         return d
     
     def adapt_to_blocking_client(self):
