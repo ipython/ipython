@@ -3,6 +3,7 @@
 
 import sys
 try:
+    import wxversion; wxversion.ensureMinimal("2.8")
     import wx.aui
 except ImportError:
     print "Can't laod wx.aui module, please check that you have installed wxpython > 2.8 and taht it is your default install"
