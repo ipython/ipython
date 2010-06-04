@@ -66,7 +66,6 @@ __author__   = '%s <%s>\n%s <%s>\n%s <%s>' % \
                  Release.authors['Nathan'] )
 __license__  = Release.license
 __version__  = Release.version
-__revision__ = Release.revision
 
 # Namespace cleanup
 del name,glob,loc
