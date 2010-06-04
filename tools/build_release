@@ -32,3 +32,4 @@ c("python setup.py bdist_wininst --install-script=ipython_win_post_install.py")
 
 # Change name so retarded Vista runs the installer correctly
 c("rename 's/linux-i686/win32-setup/' dist/*.exe")
+c("rename 's/linux-x86_64/win32-setup/' dist/*.exe")

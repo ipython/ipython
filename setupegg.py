@@ -2,6 +2,7 @@
 """Wrapper to run setup.py using setuptools."""
 
 import os
+import shutil
 import sys
 
 # now, import setuptools and call the actual setup
@@ -10,4 +11,8 @@ execfile('setup.py')
 
 # clean up the junk left around by setuptools
 if "develop" not in sys.argv:
-    os.unlink('ipython.egg-info')
+    egg_info = 'ipython.egg-info'
+    if os.path.isdir(egg_info):
+        shutil.rmtree(egg_info)
+    else:
+        os.unlink(egg_info)

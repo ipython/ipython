@@ -175,4 +175,3 @@ def check_for_simplejson():
         print_status("simplejson","yes")
         return True
 
-        
