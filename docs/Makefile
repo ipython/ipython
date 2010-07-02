@@ -29,6 +29,7 @@ help:
 	@echo "pdf          latex and then runs the PDF generation"
 	@echo "all          html and pdf"
 	@echo "dist         all, and then puts the results in dist/"
+	@echo "gitwash-update update git workflow from source repo"
 
 clean:
 	-rm -rf build/* dist/* $(SRCDIR)/api/generated
@@ -93,3 +94,7 @@ linkcheck:
 	@echo
 	@echo "Link check complete; look for any errors in the above output " \
 	      "or in build/linkcheck/output.txt."
+
+gitwash-update:
+	python ../tools/gitwash_dumper.py source/development ipython
+	cd source/development/gitwash && rename 's/.rst/.txt/' *.rst

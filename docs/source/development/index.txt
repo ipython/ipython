@@ -8,6 +8,7 @@ IPython developer's guide
    :maxdepth: 1
 
    contributing.txt
+   gitwash/index.txt
    coding_guide.txt
    doc_guide.txt
    testing.txt
