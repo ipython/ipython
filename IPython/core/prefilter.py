@@ -695,7 +695,7 @@ class AutoMagicChecker(PrefilterChecker):
             return None
 
         # We have a likely magic method.  Make sure we should actually call it.
-        if line_info.continue_prompt and not self.shell.multi_line_specials:
+        if line_info.continue_prompt and not self.prefilter_manager.multi_line_specials:
             return None
 
         head = line_info.ifun.split('.',1)[0]
