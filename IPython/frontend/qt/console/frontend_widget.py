@@ -10,14 +10,11 @@ from pygments.lexers import PythonLexer
 from PyQt4 import QtCore, QtGui
 import zmq
 
-# ETS imports
-from enthought.pyface.ui.qt4.code_editor.pygments_highlighter import \
-    PygmentsHighlighter
-
 # Local imports
 from call_tip_widget import CallTipWidget
 from completion_lexer import CompletionLexer
 from console_widget import HistoryConsoleWidget
+from pygments_highlighter import PygmentsHighlighter
 
 
 class FrontendReplyThread(Thread, QtCore.QObject):

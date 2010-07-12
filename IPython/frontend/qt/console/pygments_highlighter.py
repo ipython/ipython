@@ -1,16 +1,5 @@
-#------------------------------------------------------------------------------
-# Copyright (c) 2010, Enthought Inc
-# All rights reserved.
-# 
-# This software is provided without warranty under the terms of the BSD license.
-
-# 
-# Author: Enthought Inc
-# Description: <Enthought pyface code editor>
-#------------------------------------------------------------------------------
-
+# System library imports.
 from PyQt4 import QtGui
-
 from pygments.lexer import RegexLexer, _TokenType, Text, Error
 from pygments.lexers import CLexer, CppLexer, PythonLexer
 from pygments.styles.default import DefaultStyle
@@ -24,8 +13,8 @@ def get_tokens_unprocessed(self, text, stack=('root',)):
     """
     pos = 0
     tokendefs = self._tokens
-    if hasattr(self, '_epd_state_stack'):
-        statestack = list(self._epd_state_stack)
+    if hasattr(self, '_saved_state_stack'):
+        statestack = list(self._saved_state_stack)
     else:
         statestack = list(stack)
     statetokens = tokendefs[statestack[-1]]
@@ -71,37 +60,10 @@ def get_tokens_unprocessed(self, text, stack=('root',)):
                 pos += 1
             except IndexError:
                 break
-    self._epd_state_stack  = list(statestack)
+    self._saved_state_stack = list(statestack)
 
 # Monkeypatch!
 RegexLexer.get_tokens_unprocessed = get_tokens_unprocessed
-
-
-# Even with the above monkey patch to store state, multiline comments do not
-# work since they are stateless (Pygments uses a single multiline regex for
-# these comments, but Qt lexes by line). So we need to add a state for comments
-# to the C and C++ lexers. This means that nested multiline comments will appear
-# to be valid C/C++, but this is better than the alternative for now.
-
-def replace_pattern(tokens, new_pattern):
-    """ Given a RegexLexer token dictionary 'tokens', replace all patterns that
-        match the token specified in 'new_pattern' with 'new_pattern'.
-    """
-    for state in tokens.values():
-        for index, pattern in enumerate(state):
-            if isinstance(pattern, tuple) and pattern[1] == new_pattern[1]:
-                state[index] = new_pattern
-
-# More monkeypatching!
-comment_start = (r'/\*', Comment.Multiline, 'comment')
-comment_state = [ (r'[^*/]', Comment.Multiline),
-                  (r'/\*', Comment.Multiline, '#push'),
-                  (r'\*/', Comment.Multiline, '#pop'),
-                  (r'[*/]', Comment.Multiline) ]
-replace_pattern(CLexer.tokens, comment_start)
-replace_pattern(CppLexer.tokens, comment_start)   
-CLexer.tokens['comment'] = comment_state
-CppLexer.tokens['comment'] = comment_state
 
 
 class BlockUserData(QtGui.QTextBlockUserData):
@@ -141,9 +103,9 @@ class PygmentsHighlighter(QtGui.QSyntaxHighlighter):
         prev_data = self.previous_block_data()
 
         if prev_data is not None:
-            self._lexer._epd_state_stack = prev_data.syntax_stack
-        elif hasattr(self._lexer, '_epd_state_stack'):
-            del self._lexer._epd_state_stack
+            self._lexer._saved_state_stack = prev_data.syntax_stack
+        elif hasattr(self._lexer, '_saved_state_stack'):
+            del self._lexer._saved_state_stack
 
         index = 0
         # Lex the text using Pygments
@@ -154,11 +116,11 @@ class PygmentsHighlighter(QtGui.QSyntaxHighlighter):
                 self.setFormat(index, l, format)
             index += l
 
-        if hasattr(self._lexer, '_epd_state_stack'):
-            data = BlockUserData(syntax_stack=self._lexer._epd_state_stack)
+        if hasattr(self._lexer, '_saved_state_stack'):
+            data = BlockUserData(syntax_stack=self._lexer._saved_state_stack)
             self.currentBlock().setUserData(data)
             # Clean up for the next go-round.
-            del self._lexer._epd_state_stack
+            del self._lexer._saved_state_stack
 
     def previous_block_data(self):
         """ Convenience method for returning the previous block's user data.
