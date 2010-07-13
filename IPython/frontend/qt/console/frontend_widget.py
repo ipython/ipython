@@ -5,10 +5,12 @@ import time
 import types
 
 # System library imports
-from IPython.zmq.session import Message, Session
 from pygments.lexers import PythonLexer
 from PyQt4 import QtCore, QtGui
 import zmq
+
+# IPython imports.
+from IPython.zmq.session import Message, Session
 
 # Local imports
 from call_tip_widget import CallTipWidget
@@ -100,23 +102,18 @@ class FrontendWidget(HistoryConsoleWidget):
     # 'QWidget' interface
     #---------------------------------------------------------------------------
     
-    def __init__(self, parent=None, session=None, request_socket=None,
-                 sub_socket=None):
+    def __init__(self, kernel_manager, parent=None):
         super(FrontendWidget, self).__init__(parent)
-        self.continuation_prompt = '... '
 
         self._call_tip_widget = CallTipWidget(self)
         self._compile = CommandCompiler()
         self._completion_lexer = CompletionLexer(PythonLexer())
         self._highlighter = FrontendHighlighter(self)
 
-        self.session = Session() if session is None else session
-        self.request_socket = request_socket
-        self.sub_socket = sub_socket
-
         self.document().contentsChange.connect(self._document_contents_change)
 
-        self._kernel_connected() # XXX
+        self.continuation_prompt = '... '
+        self.kernel_manager = kernel_manager
 
     def focusOutEvent(self, event):
         """ Reimplemented to hide calltips.
@@ -215,6 +212,20 @@ class FrontendWidget(HistoryConsoleWidget):
             shown.
         """
         self.execute_source('run %s' % path, hidden=hidden)
+
+    def _get_kernel_manager(self):
+        """ Returns the current kernel manager.
+        """
+        return self._kernel_manager
+
+    def _set_kernel_manager(self, kernel_manager):
+        """ Sets a new kernel manager, configuring its channels as necessary.
+        """
+        self._kernel_manager = kernel_manager
+        self._sub_channel = kernel_manager.get_sub_channel()
+        self._xreq_channel = kernel_manager.get_xreq_channel()
+
+    kernel_manager = property(_get_kernel_manager, _set_kernel_manager)
 
     #---------------------------------------------------------------------------
     # 'FrontendWidget' protected interface

@@ -1,9 +1,6 @@
 """Kernel frontend classes.
 
-To do:
-
-1. Create custom channel subclasses for Qt.
-2. Create logger to handle debugging and console messages.
+TODO: Create logger to handle debugging and console messages.
 
 """
 
@@ -22,6 +19,10 @@ class MissingHandlerError(Exception):
 
 
 class KernelManager(object):
+
+    sub_channel_class = SubSocketChannel
+    xreq_channel_class = XReqSocketChannel
+    rep_channel_class = RepSocketChannel
 
     def __init__(self, xreq_addr, sub_addr, rep_addr, 
                  context=None, session=None):
@@ -55,15 +56,16 @@ class KernelManager(object):
 
     def get_sub_channel(self):
         """Get the SUB socket channel object."""
-        return SubSocketChannel(self.context, self.session, self.sub_addr)
+        return self.sub_channel_class(self.context, self.session, self.sub_addr)
     
     def get_xreq_channel(self):
         """Get the REQ socket channel object to make requests of the kernel."""
-        return XReqSocketChannel(self.context, self.session, self.xreq_addr)
+        return self.xreq_channel_class(self.context, self.session, 
+                                       self.xreq_addr)
     
     def get_rep_channel(self):
         """Get the REP socket channel object to handle stdin (raw_input)."""
-        return RepSocketChannel(self.context, self.session, self.rep_addr)
+        return self.rep_channel_class(self.context, self.session, self.rep_addr)
 
 
 class ZmqSocketChannel(Thread):
@@ -186,14 +188,7 @@ class XReqSocketChannel(ZmqSocketChannel):
 
     def _handle_recv(self):
         msg = self.socket.recv_json()
-        print "Got reply:", msg
-        try:
-            handler = self.handler_queue.get(False)
-        except Empty:
-            print "Message received with no handler!!!"
-            print msg
-        else:
-            self.call_handler(handler, msg)
+        self.call_handlers(msg)
 
     def _handle_send(self):
         try:
@@ -222,13 +217,13 @@ class XReqSocketChannel(ZmqSocketChannel):
     def complete(self, text, line, block=None, callback=None):
         content = dict(text=text, line=line)
         msg = self.session.msg('complete_request', content)
-        return self._queue_request(msg, callback)
+        self._queue_request(msg, callback)
         return msg['header']['msg_id']
 
     def object_info(self, oname, callback=None):
         content = dict(oname=oname)
         msg = self.session.msg('object_info_request', content)
-        return self._queue_request(msg, callback)
+        self._queue_request(msg, callback)
         return msg['header']['msg_id']
 
     def _find_handler(self, name, callback):
@@ -254,6 +249,15 @@ class XReqSocketChannel(ZmqSocketChannel):
         """
         assert callable(func), "not a callable: %r" % func
         self._overriden_call_handler = func
+
+    def call_handlers(self, msg):
+        try:
+            handler = self.handler_queue.get(False)
+        except Empty:
+            print "Message received with no handler!!!"
+            print msg
+        else:
+            self.call_handler(handler, msg)
 
     def call_handler(self, handler, msg):
         if self._overriden_call_handler is not None:
