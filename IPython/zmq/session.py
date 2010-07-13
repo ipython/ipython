@@ -64,9 +64,12 @@ def extract_header(msg_or_header):
 
 class Session(object):
 
-    def __init__(self, username=os.environ.get('USER','username')):
+    def __init__(self, username=os.environ.get('USER','username'), session=None):
         self.username = username
-        self.session = str(uuid.uuid4())
+        if session is None:
+            self.session = str(uuid.uuid4())
+        else:
+            self.session = session
         self.msg_id = 0
 
     def msg_header(self):
