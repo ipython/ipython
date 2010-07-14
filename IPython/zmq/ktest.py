@@ -9,8 +9,8 @@ rep_addr = ('127.0.0.1', 5577)
 
 
 km = KernelManager(xreq_addr, sub_addr, rep_addr)
-# xreq_channel = km.get_xreq_channel()
-sub_channel = km.get_sub_channel()
+# xreq_channel = km.xreq_channel
+sub_channel = km.sub_channel
 
 # xreq_channel.start()
 sub_channel.start()

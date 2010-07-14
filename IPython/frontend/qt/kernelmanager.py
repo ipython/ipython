@@ -5,29 +5,30 @@
 from PyQt4 import QtCore
 
 # IPython imports.
-from IPython.zmq.kernel_manager import KernelManager, SubSocketChannel, \
+from IPython.zmq.kernelmanager import KernelManager, SubSocketChannel, \
     XReqSocketChannel, RepSocketChannel
-
-
-class QtKernelManager(KernelManager):
-    """ A KernelManager that provides channels that use signals and slots.
-    """
-
-    sub_channel_class = QtSubSocketChannel
-    xreq_channel_class = QtXReqSocketChannel
-    rep_channel_class = QtRepSocketChannel
 
 
 class QtSubSocketChannel(SubSocketChannel, QtCore.QObject):
 
     # Emitted when any message is received.
-    message_received = QtCore.pyqtSignal(dict)
+    message_received = QtCore.pyqtSignal(object)
 
     # Emitted when a message of type 'pyout' or 'stdout' is received.
-    output_received = QtCore.pyqtSignal(dict)
+    output_received = QtCore.pyqtSignal(object)
 
     # Emitted when a message of type 'pyerr' or 'stderr' is received.
-    error_received = QtCore.pyqtSignal(dict)
+    error_received = QtCore.pyqtSignal(object)
+
+    #---------------------------------------------------------------------------
+    # 'object' interface
+    #---------------------------------------------------------------------------
+    
+    def __init__(self, *args, **kw):
+        """ Reimplemented to ensure that QtCore.QObject is initialized first.
+        """
+        QtCore.QObject.__init__(self)
+        SubSocketChannel.__init__(self, *args, **kw)
 
     #---------------------------------------------------------------------------
     # 'SubSocketChannel' interface
@@ -50,12 +51,22 @@ class QtSubSocketChannel(SubSocketChannel, QtCore.QObject):
 class QtXReqSocketChannel(XReqSocketChannel, QtCore.QObject):
 
     # Emitted when any message is received.
-    message_received = QtCore.pyqtSignal(dict)
+    message_received = QtCore.pyqtSignal(object)
 
     # Emitted when a reply has been received for the corresponding request type.
-    execute_reply = QtCore.pyqtSignal(dict)
-    complete_reply = QtCore.pyqtSignal(dict)
-    object_info_reply = QtCore.pyqtSignal(dict)
+    execute_reply = QtCore.pyqtSignal(object)
+    complete_reply = QtCore.pyqtSignal(object)
+    object_info_reply = QtCore.pyqtSignal(object)
+
+    #---------------------------------------------------------------------------
+    # 'object' interface
+    #---------------------------------------------------------------------------
+    
+    def __init__(self, *args, **kw):
+        """ Reimplemented to ensure that QtCore.QObject is initialized first.
+        """
+        QtCore.QObject.__init__(self)
+        XReqSocketChannel.__init__(self, *args, **kw)
     
     #---------------------------------------------------------------------------
     # 'XReqSocketChannel' interface
@@ -73,7 +84,29 @@ class QtXReqSocketChannel(XReqSocketChannel, QtCore.QObject):
         if signal:
             signal.emit(msg)
 
+    def _queue_request(self, msg, callback):
+        """ Reimplemented to skip callback handling.
+        """
+        self.command_queue.put(msg)
+
 
 class QtRepSocketChannel(RepSocketChannel, QtCore.QObject):
 
-    pass
+    #---------------------------------------------------------------------------
+    # 'object' interface
+    #---------------------------------------------------------------------------
+    
+    def __init__(self, *args, **kw):
+        """ Reimplemented to ensure that QtCore.QObject is initialized first.
+        """
+        QtCore.QObject.__init__(self)
+        RepSocketChannel.__init__(self, *args, **kw)
+
+
+class QtKernelManager(KernelManager):
+    """ A KernelManager that provides channels that use signals and slots.
+    """
+
+    sub_channel_class = QtSubSocketChannel
+    xreq_channel_class = QtXReqSocketChannel
+    rep_channel_class = QtRepSocketChannel

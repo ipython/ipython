@@ -9,56 +9,11 @@ from pygments.lexers import PythonLexer
 from PyQt4 import QtCore, QtGui
 import zmq
 
-# IPython imports.
-from IPython.zmq.session import Message, Session
-
 # Local imports
 from call_tip_widget import CallTipWidget
 from completion_lexer import CompletionLexer
 from console_widget import HistoryConsoleWidget
 from pygments_highlighter import PygmentsHighlighter
-
-
-class FrontendReplyThread(Thread, QtCore.QObject):
-    """ A Thread that receives a reply from the kernel for the frontend.
-    """
-    
-    finished = QtCore.pyqtSignal()
-    output_received = QtCore.pyqtSignal(Message)
-    reply_received = QtCore.pyqtSignal(Message)
-
-    def __init__(self, parent):
-        """ Create a FrontendReplyThread for the specified frontend.
-        """
-        assert isinstance(parent, FrontendWidget)
-        QtCore.QObject.__init__(self, parent)
-        Thread.__init__(self)
-
-        self.sleep_time = 0.05
-
-    def run(self):
-        """ The starting point for the thread.
-        """
-        frontend = self.parent()
-        while True:
-            rep = frontend._recv_reply()
-            if rep is not None:
-                self._recv_output()
-                self.reply_received.emit(rep)
-                break
-
-            self._recv_output()
-            time.sleep(self.sleep_time)
-        
-        self.finished.emit()
-
-    def _recv_output(self):
-        """ Send any output to the frontend.
-        """
-        frontend = self.parent()
-        omsgs = frontend._recv_output()
-        for omsg in omsgs:
-            self.output_received.emit(omsg)
 
 
 class FrontendHighlighter(PygmentsHighlighter):
@@ -96,7 +51,7 @@ class FrontendWidget(HistoryConsoleWidget):
     """
 
     # Emitted when an 'execute_reply' is received from the kernel.
-    executed = QtCore.pyqtSignal(Message)
+    executed = QtCore.pyqtSignal(object)
 
     #---------------------------------------------------------------------------
     # 'QWidget' interface
@@ -109,6 +64,7 @@ class FrontendWidget(HistoryConsoleWidget):
         self._compile = CommandCompiler()
         self._completion_lexer = CompletionLexer(PythonLexer())
         self._highlighter = FrontendHighlighter(self)
+        self._kernel_manager = None
 
         self.document().contentsChange.connect(self._document_contents_change)
 
@@ -183,14 +139,7 @@ class FrontendWidget(HistoryConsoleWidget):
             
         executed = code is not None
         if executed:
-            msg = self.session.send(self.request_socket, 'execute_request',
-                                    dict(code=source))
-            thread = FrontendReplyThread(self)
-            if not hidden:
-                thread.output_received.connect(self._handle_output)
-            thread.reply_received.connect(self._handle_reply)
-            thread.finished.connect(thread.deleteLater)
-            thread.start()
+            self.kernel_manager.xreq_channel.execute(source)
         else:
             space = 0
             for char in lines[-1]:
@@ -221,9 +170,25 @@ class FrontendWidget(HistoryConsoleWidget):
     def _set_kernel_manager(self, kernel_manager):
         """ Sets a new kernel manager, configuring its channels as necessary.
         """
+        # Disconnect the old kernel manager.
+        if self._kernel_manager is not None:
+            sub = self._kernel_manager.sub_channel
+            xreq = self._kernel_manager.xreq_channel
+            sub.message_received.disconnect(self._handle_sub)
+            xreq.execute_reply.disconnect(self._handle_execute_reply)
+            xreq.complete_reply.disconnect(self._handle_complete_reply)
+            xreq.object_info_reply.disconnect(self._handle_object_info_reply)
+
+        # Connect the new kernel manager.
         self._kernel_manager = kernel_manager
-        self._sub_channel = kernel_manager.get_sub_channel()
-        self._xreq_channel = kernel_manager.get_xreq_channel()
+        sub = kernel_manager.sub_channel
+        xreq = kernel_manager.xreq_channel
+        sub.message_received.connect(self._handle_sub)
+        xreq.execute_reply.connect(self._handle_execute_reply)
+        #xreq.complete_reply.connect(self._handle_complete_reply)
+        #xreq.object_info_repy.connect(self._handle_object_info_reply)
+        
+        self._show_prompt('>>> ')
 
     kernel_manager = property(_get_kernel_manager, _set_kernel_manager)
 
@@ -282,11 +247,6 @@ class FrontendWidget(HistoryConsoleWidget):
         self._complete_with_items(cursor, matches)
         return True
 
-    def _kernel_connected(self):
-        """ Called when the frontend is connected to a kernel.
-        """
-        self._show_prompt('>>> ')
-
     def _get_context(self, cursor=None):
         """ Gets the context at the current cursor location.
         """
@@ -310,45 +270,31 @@ class FrontendWidget(HistoryConsoleWidget):
         if position == self.textCursor().position():
             self._call_tip()
 
-    def _handle_output(self, omsg):
-        handler = getattr(self, '_handle_%s' % omsg.msg_type, None)
+    def _handle_sub(self, omsg):
+        handler = getattr(self, '_handle_%s' % omsg['msg_type'], None)
         if handler is not None:
             handler(omsg)
 
     def _handle_pyout(self, omsg):
-        if omsg.parent_header.session == self.session.session:
-            self.appendPlainText(omsg.content.data + '\n')
+        session = omsg['parent_header']['session']
+        if session == self.kernel_manager.session.session:
+            self.appendPlainText(omsg['content']['data'] + '\n')
 
     def _handle_stream(self, omsg):
-        self.appendPlainText(omsg.content.data)
+        self.appendPlainText(omsg['content']['data'])
         
-    def _handle_reply(self, rep):
-        if rep is not None:
-            if rep.msg_type == 'execute_reply':
-                if rep.content.status == 'error':
-                    self.appendPlainText(rep.content.traceback[-1])
-                elif rep.content.status == 'aborted':
-                    text = "ERROR: ABORTED\n"
-                    ab = self.messages[rep.parent_header.msg_id].content
-                    if 'code' in ab:
-                        text += ab.code
-                    else:
-                        text += ab
-                    self.appendPlainText(text)
-                self._show_prompt('>>> ')
-                self.executed.emit(rep)
+    def _handle_execute_reply(self, rep):
+        content = rep['content']
+        status = content['status']
+        if status == 'error':
+            self.appendPlainText(content['traceback'][-1])
+        elif status == 'aborted':
+            text = "ERROR: ABORTED\n"
+            self.appendPlainText(text)
+        self._show_prompt('>>> ')
+        self.executed.emit(rep)
 
     #------ Communication methods ----------------------------------------------
-
-    def _recv_output(self):
-        omsgs = []
-        while True:
-            omsg = self.session.recv(self.sub_socket)
-            if omsg is None:
-                break
-            else:
-                omsgs.append(omsg)
-        return omsgs
 
     def _recv_reply(self):
         return self.session.recv(self.request_socket)
@@ -364,26 +310,19 @@ class FrontendWidget(HistoryConsoleWidget):
 
 if __name__ == '__main__':
     import sys
+    from IPython.frontend.qt.kernelmanager import QtKernelManager
 
-    # Defaults
-    ip = '127.0.0.1'
-    port_base = 5555
-    connection = ('tcp://%s' % ip) + ':%i'
-    req_conn = connection % port_base
-    sub_conn = connection % (port_base+1)
-    
-    # Create initial sockets
-    c = zmq.Context()
-    request_socket = c.socket(zmq.XREQ)
-    request_socket.connect(req_conn)
-    sub_socket = c.socket(zmq.SUB)
-    sub_socket.connect(sub_conn)
-    sub_socket.setsockopt(zmq.SUBSCRIBE, '')
+    # Create KernelManager
+    xreq_addr = ('127.0.0.1', 5575)
+    sub_addr = ('127.0.0.1', 5576)
+    rep_addr = ('127.0.0.1', 5577)
+    kernel_manager = QtKernelManager(xreq_addr, sub_addr, rep_addr)
+    kernel_manager.sub_channel.start()
+    kernel_manager.xreq_channel.start()
 
     # Launch application
     app = QtGui.QApplication(sys.argv)
-    widget = FrontendWidget(request_socket=request_socket, 
-                            sub_socket=sub_socket)
+    widget = FrontendWidget(kernel_manager)
     widget.setWindowTitle('Python')
     widget.resize(640, 480)
     widget.show()

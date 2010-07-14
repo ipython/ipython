@@ -4,68 +4,23 @@ TODO: Create logger to handle debugging and console messages.
 
 """
 
+# Standard library imports.
 from Queue import Queue, Empty
 from threading import Thread
 import traceback
 
+# System library imports.
 import zmq
 from zmq import POLLIN, POLLOUT, POLLERR
 from zmq.eventloop import ioloop
+
+# Local imports.
+from IPython.utils.traitlets import HasTraits, Any, Int, Instance, Str, Type
 from session import Session
 
 
 class MissingHandlerError(Exception):
     pass
-
-
-class KernelManager(object):
-
-    sub_channel_class = SubSocketChannel
-    xreq_channel_class = XReqSocketChannel
-    rep_channel_class = RepSocketChannel
-
-    def __init__(self, xreq_addr, sub_addr, rep_addr, 
-                 context=None, session=None):
-        self.context = zmq.Context() if context is None else context
-        self.session = Session() if session is None else session
-        self.xreq_addr = xreq_addr
-        self.sub_addr = sub_addr
-        self.rep_addr = rep_addr
-
-    def start_kernel(self):
-        """Start a localhost kernel on ip and port.
-        
-        The SUB channel is for the frontend to receive messages published by
-        the kernel.
-        
-        The REQ channel is for the frontend to make requests of the kernel.
-        
-        The REP channel is for the kernel to request stdin (raw_input) from 
-        the frontend.
-        """
-
-    def kill_kernel(self):
-        """Kill the running kernel"""
-
-    def is_alive(self):
-        """Is the kernel alive?"""
-        return True
-
-    def signal_kernel(self, signum):
-        """Send signum to the kernel."""
-
-    def get_sub_channel(self):
-        """Get the SUB socket channel object."""
-        return self.sub_channel_class(self.context, self.session, self.sub_addr)
-    
-    def get_xreq_channel(self):
-        """Get the REQ socket channel object to make requests of the kernel."""
-        return self.xreq_channel_class(self.context, self.session, 
-                                       self.xreq_addr)
-    
-    def get_rep_channel(self):
-        """Get the REP socket channel object to handle stdin (raw_input)."""
-        return self.rep_channel_class(self.context, self.session, self.rep_addr)
 
 
 class ZmqSocketChannel(Thread):
@@ -231,7 +186,8 @@ class XReqSocketChannel(ZmqSocketChannel):
             return callback
         handler = self.handlers.get(name)
         if handler is None:
-            raise MissingHandlerError('No handler defined for method: %s' % name)
+            raise MissingHandlerError(
+                'No handler defined for method: %s' % name)
         return handler
 
     def override_call_handler(self, func):
@@ -273,3 +229,90 @@ class RepSocketChannel(ZmqSocketChannel):
 
     def on_raw_input():
         pass
+
+
+class KernelManager(HasTraits):
+
+    # The addresses to use for the various channels. Should be tuples of form
+    # (ip_address, port).
+    sub_address = Any
+    xreq_address = Any
+    rep_address = Any
+    # FIXME: Add Tuple to Traitlets.
+    #sub_address = Tuple(Str, Int)
+    #xreq_address = Tuple(Str, Int)
+    #rep_address = Tuple(Str, Int)
+
+    # The PyZMQ Context to use for communication with the kernel.
+    context = Instance(zmq.Context, ())
+
+    # The Session to use for communication with the kernel.
+    session = Instance(Session, ())
+
+    # The classes to use for the various channels.
+    sub_channel_class = Type(SubSocketChannel)
+    xreq_channel_class = Type(XReqSocketChannel)
+    rep_channel_class = Type(RepSocketChannel)
+
+    # Protected traits.
+    _sub_channel = Any
+    _xreq_channel = Any
+    _rep_channel = Any
+
+    def __init__(self, xreq_address, sub_address, rep_address, **traits):
+        super(KernelManager, self).__init__()
+
+        self.xreq_address = xreq_address
+        self.sub_address = sub_address
+        self.rep_address = rep_address
+
+        # FIXME: This should be the business of HasTraits. The convention is:
+        #        HasTraits.__init__(self, **traits_to_be_initialized.)
+        for trait in traits:
+            setattr(self, trait, traits[trait])
+
+    def start_kernel(self):
+        """Start a localhost kernel on ip and port.
+        
+        The SUB channel is for the frontend to receive messages published by
+        the kernel.
+        
+        The REQ channel is for the frontend to make requests of the kernel.
+        
+        The REP channel is for the kernel to request stdin (raw_input) from 
+        the frontend.
+        """
+
+    def kill_kernel(self):
+        """Kill the running kernel"""
+
+    def is_alive(self):
+        """Is the kernel alive?"""
+        return True
+
+    def signal_kernel(self, signum):
+        """Send signum to the kernel."""
+
+    @property
+    def sub_channel(self):
+        """Get the SUB socket channel object."""
+        if self._sub_channel is None:
+            self._sub_channel = self.sub_channel_class(
+                self.context, self.session, self.sub_address)
+        return self._sub_channel
+
+    @property
+    def xreq_channel(self):
+        """Get the REQ socket channel object to make requests of the kernel."""
+        if self._xreq_channel is None:
+            self._xreq_channel = self.xreq_channel_class(
+                self.context, self.session, self.xreq_address)
+        return self._xreq_channel
+
+    @property
+    def rep_channel(self):
+        """Get the REP socket channel object to handle stdin (raw_input)."""
+        if self._rep_channel is None:
+            self._rep_channel = self.rep_channel_class(
+                self.context, self.session, self.rep_address)
+        return self._rep_channel
