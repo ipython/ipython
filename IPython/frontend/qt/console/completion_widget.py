@@ -32,7 +32,10 @@ class CompletionWidget(QtGui.QListWidget):
         """ Reimplemented to disconnect the cursor movement handler.
         """
         QtGui.QListWidget.hideEvent(self, event)
-        self.parent().cursorPositionChanged.disconnect(self._update_current)
+        try:
+            self.parent().cursorPositionChanged.disconnect(self._update_current)
+        except TypeError:
+            pass
         
     def keyPressEvent(self, event):
         """ Reimplemented to update the list.
