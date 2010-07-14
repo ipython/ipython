@@ -24,7 +24,12 @@ from zope.interface import Interface, implements
 from twisted.internet import defer
 from twisted.python import components, failure, log
 
-from foolscap import Referenceable
+try:
+    # This is preferred in foolscap v > 0.4.3
+    from foolscap.api import Referenceable
+except ImportError:
+    # Fallback for older versions
+    from foolscap import Referenceable
 
 from IPython.kernel import error 
 from IPython.kernel.util import printer

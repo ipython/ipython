@@ -17,7 +17,12 @@ __docformat__ = "restructuredtext en"
 
 import os
 
-from foolscap import Tub, UnauthenticatedTub
+try:
+    # This is preferred in foolscap v > 0.4.3
+    from foolscap.api import Tub, UnauthenticatedTub
+except ImportError:
+    # Fallback for older versions
+    from foolscap import Tub, UnauthenticatedTub
 
 def check_furl_file_security(furl_file, secure):
     """Remove the old furl_file if changing security modes."""
