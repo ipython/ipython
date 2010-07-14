@@ -66,10 +66,10 @@ class FrontendWidget(HistoryConsoleWidget):
         self._highlighter = FrontendHighlighter(self)
         self._kernel_manager = None
 
-        self.document().contentsChange.connect(self._document_contents_change)
-
         self.continuation_prompt = '... '
         self.kernel_manager = kernel_manager
+
+        self.document().contentsChange.connect(self._document_contents_change)
 
     def focusOutEvent(self, event):
         """ Reimplemented to hide calltips.
@@ -185,8 +185,8 @@ class FrontendWidget(HistoryConsoleWidget):
         xreq = kernel_manager.xreq_channel
         sub.message_received.connect(self._handle_sub)
         xreq.execute_reply.connect(self._handle_execute_reply)
-        #xreq.complete_reply.connect(self._handle_complete_reply)
-        #xreq.object_info_repy.connect(self._handle_object_info_reply)
+        xreq.complete_reply.connect(self._handle_complete_reply)
+        xreq.object_info_reply.connect(self._handle_object_info_reply)
         
         self._show_prompt('>>> ')
 
@@ -210,17 +210,9 @@ class FrontendWidget(HistoryConsoleWidget):
             return False
 
         # Send the metadata request to the kernel
-        text = '.'.join(context)
-        msg = self.session.send(self.request_socket, 'metadata_request',
-                                dict(context=text))
-        
-        # Give the kernel some time to respond
-        rep = self._recv_reply_now('metadata_reply')
-        doc = rep.content.docstring if rep else ''
-
-        # Show the call tip
-        if doc:
-            self._call_tip_widget.show_tip(doc)
+        name = '.'.join(context)
+        self._calltip_id = self.kernel_manager.xreq_channel.object_info(name)
+        self._calltip_pos = self.textCursor().position()
         return True
 
     def _complete(self):
@@ -233,18 +225,9 @@ class FrontendWidget(HistoryConsoleWidget):
 
         # Send the completion request to the kernel
         text = '.'.join(context)
-        line = self.input_buffer_cursor_line
-        msg = self.session.send(self.request_socket, 'complete_request',
-                                dict(text=text, line=line))
-        
-        # Give the kernel some time to respond
-        rep = self._recv_reply_now('complete_reply')
-        matches = rep.content.matches if rep else []
-
-        # Show the completion at the correct location
-        cursor = self.textCursor()
-        cursor.movePosition(QtGui.QTextCursor.Left, n=len(text))
-        self._complete_with_items(cursor, matches)
+        self._complete_id = self.kernel_manager.xreq_channel.complete(
+            text, self.input_buffer_cursor_line, self.input_buffer)
+        self._complete_pos = self.textCursor().position()
         return True
 
     def _get_context(self, cursor=None):
@@ -294,18 +277,21 @@ class FrontendWidget(HistoryConsoleWidget):
         self._show_prompt('>>> ')
         self.executed.emit(rep)
 
-    #------ Communication methods ----------------------------------------------
+    def _handle_complete_reply(self, rep):
+        cursor = self.textCursor()
+        if rep['parent_header']['msg_id'] == self._complete_id and \
+                cursor.position() == self._complete_pos:
+            text = '.'.join(self._get_context())
+            cursor.movePosition(QtGui.QTextCursor.Left, n=len(text))
+            self._complete_with_items(cursor, rep['content']['matches'])
 
-    def _recv_reply(self):
-        return self.session.recv(self.request_socket)
-
-    def _recv_reply_now(self, msg_type):
-        for i in xrange(5):
-            rep = self._recv_reply()
-            if rep is not None and rep.msg_type == msg_type:
-                return rep
-            time.sleep(0.1)
-        return None
+    def _handle_object_info_reply(self, rep):
+        cursor = self.textCursor()
+        if rep['parent_header']['msg_id'] == self._calltip_id and \
+                cursor.position() == self._calltip_pos:
+            doc = rep['content']['docstring']
+            if doc:
+                self._call_tip_widget.show_tip(doc)
 
 
 if __name__ == '__main__':

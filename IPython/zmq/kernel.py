@@ -142,8 +142,10 @@ class Kernel(object):
         self.completer = KernelCompleter(self.user_ns)
         
         # Build dict of handlers for message types
+        msg_types = [ 'execute_request', 'complete_request', 
+                      'object_info_request' ]
         self.handlers = {}
-        for msg_type in ['execute_request', 'complete_request']:
+        for msg_type in msg_types:
             self.handlers[msg_type] = getattr(self, msg_type)
 
     def abort_queue(self):
@@ -212,6 +214,43 @@ class Kernel(object):
 
     def complete(self, msg):
         return self.completer.complete(msg.content.line, msg.content.text)
+
+    def object_info_request(self, ident, parent):
+        context = parent['content']['oname'].split('.')
+        object_info = self.object_info(context)
+        msg = self.session.send(self.reply_socket, 'object_info_reply',
+                                object_info, parent, ident)
+        print >> sys.__stdout__, msg
+
+    def object_info(self, context):
+        symbol, leftover = self.symbol_from_context(context)
+        if symbol is not None and not leftover:
+            doc = getattr(symbol, '__doc__', '')
+        else:
+            doc = ''
+        object_info = dict(docstring = doc)
+        return object_info
+
+    def symbol_from_context(self, context):
+        if not context:
+            return None, context
+
+        base_symbol_string = context[0]
+        symbol = self.user_ns.get(base_symbol_string, None)
+        if symbol is None:
+            symbol = __builtin__.__dict__.get(base_symbol_string, None)
+        if symbol is None:
+            return None, context
+
+        context = context[1:]
+        for i, name in enumerate(context):
+            new_symbol = getattr(symbol, name, None)
+            if new_symbol is None:
+                return symbol, context[i:]
+            else:
+                symbol = new_symbol
+
+        return symbol, []
 
     def start(self):
         while True:
