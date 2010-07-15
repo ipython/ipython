@@ -329,6 +329,12 @@ class ConsoleWidget(QtGui.QPlainTextEdit):
         self._keep_cursor_in_buffer()
         QtGui.QPlainTextEdit.paste(self)
 
+    def print_(self, printer):
+        """ Reimplemented to work around bug in PyQt where the C++ level
+            'print_' slot has the wrong signature.
+        """
+        QtGui.QPlainTextEdit.print_(self, printer)
+
     #---------------------------------------------------------------------------
     # 'ConsoleWidget' public interface
     #---------------------------------------------------------------------------
