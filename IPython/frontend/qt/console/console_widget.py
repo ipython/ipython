@@ -120,6 +120,7 @@ class ConsoleWidget(QtGui.QPlainTextEdit):
 
         # Initialize public and protected variables
         self.ansi_codes = True
+        self.buffer_size = 500
         self.continuation_prompt = '> '
         self.gui_completion = True
         self._ansi_processor = QtAnsiCodeProcessor()
@@ -128,11 +129,6 @@ class ConsoleWidget(QtGui.QPlainTextEdit):
         self._prompt = ''
         self._prompt_pos = 0
         self._reading = False
-        
-        # Configure some basic QPlainTextEdit settings
-        self.setLineWrapMode(QtGui.QPlainTextEdit.WidgetWidth)
-        self.setMaximumBlockCount(500) # Limit text buffer size
-        self.setUndoRedoEnabled(False)
 
         # Set a monospaced font
         point_size = QtGui.QApplication.font().pointSize()
@@ -178,7 +174,13 @@ class ConsoleWidget(QtGui.QPlainTextEdit):
         alt_down = event.modifiers() & QtCore.Qt.AltModifier
         shift_down = event.modifiers() & QtCore.Qt.ShiftModifier
 
-        if ctrl_down:
+        # Even though we have reimplemented 'paste', the C++ level slot is still
+        # called by Qt. So we intercept the key press here.
+        if event.matches(QtGui.QKeySequence.Paste):
+            self.paste()
+            intercepted = True
+
+        elif ctrl_down:
             if key in self._ctrl_down_remap:
                 ctrl_down = False
                 key = self._ctrl_down_remap[key]
@@ -226,7 +228,6 @@ class ConsoleWidget(QtGui.QPlainTextEdit):
                 if self._reading:
                     self._reading = False
                 elif not self._executing:
-                    self._executing = True
                     self.execute(interactive=True)
                 intercepted = True
 
@@ -290,7 +291,7 @@ class ConsoleWidget(QtGui.QPlainTextEdit):
                 intercepted = not self._in_buffer(min(anchor, position))
 
         # Don't move cursor if control is down to allow copy-paste using
-        # the keyboard in any part of the buffer
+        # the keyboard in any part of the buffer.
         if not ctrl_down:
             self._keep_cursor_in_buffer()
 
@@ -337,10 +338,17 @@ class ConsoleWidget(QtGui.QPlainTextEdit):
             buffer was completely processed and a new prompt created.
         """
         self.appendPlainText('\n')
+        self._executing_input_buffer = self.input_buffer
+        self._executing = True
         self._prompt_finished()
         return self._execute(interactive=interactive)
 
     def _get_input_buffer(self):
+        # If we're executing, the input buffer may not even exist anymore due
+        # the limit imposed by 'buffer_size'. Therefore, we store it.
+        if self._executing:
+            return self._executing_input_buffer
+
         cursor = self._get_end_cursor()
         cursor.setPosition(self._prompt_pos, QtGui.QTextCursor.KeepAnchor)
 
@@ -367,6 +375,8 @@ class ConsoleWidget(QtGui.QPlainTextEdit):
     input_buffer = property(_get_input_buffer, _set_input_buffer)
 
     def _get_input_buffer_cursor_line(self):
+        if self._executing:
+            return None
         cursor = self.textCursor()
         if cursor.position() >= self._prompt_pos:
             text = str(cursor.block().text())
@@ -498,9 +508,14 @@ class ConsoleWidget(QtGui.QPlainTextEdit):
     def _prompt_started(self):
         """ Called immediately after a new prompt is displayed.
         """
+        # Temporarily disable the maximum block count to permit undo/redo.
+        self.setMaximumBlockCount(0)
+        self.setUndoRedoEnabled(True)
+
+        self.setReadOnly(False)
         self.moveCursor(QtGui.QTextCursor.End)
         self.centerCursor()
-        self.setReadOnly(False)
+
         self._executing = False
         self._prompt_started_hook()
 
@@ -508,6 +523,9 @@ class ConsoleWidget(QtGui.QPlainTextEdit):
         """ Called immediately after a prompt is finished, i.e. when some input
             will be processed and a new prompt displayed.
         """
+        # This has the (desired) side effect of disabling the undo/redo history.
+        self.setMaximumBlockCount(self.buffer_size)
+
         self.setReadOnly(True)
         self._prompt_finished_hook()
 
