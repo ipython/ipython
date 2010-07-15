@@ -7,6 +7,7 @@ TODO: Create logger to handle debugging and console messages.
 # Standard library imports.
 from Queue import Queue, Empty
 from threading import Thread
+import time
 import traceback
 
 # System library imports.
@@ -107,7 +108,23 @@ class SubSocketChannel(ZmqSocketChannel):
         self.handlers[msg_type] = callback
 
     def remove_handler(self, msg_type):
+        """Remove the callback for msg type."""
         self.handlers.pop(msg_type, None)
+
+    def flush(self):
+        """Immediately processes all pending messages on the SUB channel. This
+           method is thread safe.
+        """
+        self._flushed = False
+        self.ioloop.add_callback(self._flush)
+        while not self._flushed:
+            time.sleep(0)
+        
+    def _flush(self):
+        """Called in this thread by the IOLoop to indicate that all events have
+           been processed.
+        """
+        self._flushed = True
 
 
 class XReqSocketChannel(ZmqSocketChannel):

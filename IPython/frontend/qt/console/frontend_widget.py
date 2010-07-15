@@ -267,6 +267,10 @@ class FrontendWidget(HistoryConsoleWidget):
         self.appendPlainText(omsg['content']['data'])
         
     def _handle_execute_reply(self, rep):
+        # Make sure that all output from the SUB channel has been processed
+        # before writing a new prompt.
+        self.kernel_manager.sub_channel.flush()
+
         content = rep['content']
         status = content['status']
         if status == 'error':

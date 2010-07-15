@@ -47,6 +47,12 @@ class QtSubSocketChannel(SubSocketChannel, QtCore.QObject):
         elif msg_type in ('pyerr', 'stderr'):
             self.error_received.emit(msg)
 
+    def flush(self):
+        """ Reimplemented to ensure that signals are dispatched immediately.
+        """
+        super(QtSubSocketChannel, self).flush()
+        QtCore.QCoreApplication.instance().processEvents()
+
 
 class QtXReqSocketChannel(XReqSocketChannel, QtCore.QObject):
 
