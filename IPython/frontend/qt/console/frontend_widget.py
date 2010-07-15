@@ -63,6 +63,7 @@ class FrontendWidget(HistoryConsoleWidget):
         self._call_tip_widget = CallTipWidget(self)
         self._compile = CommandCompiler()
         self._completion_lexer = CompletionLexer(PythonLexer())
+        self._hidden = False
         self._highlighter = FrontendHighlighter(self)
         self._kernel_manager = None
 
@@ -140,6 +141,7 @@ class FrontendWidget(HistoryConsoleWidget):
         executed = code is not None
         if executed:
             self.kernel_manager.xreq_channel.execute(source)
+            self._hidden = hidden
         else:
             space = 0
             for char in lines[-1]:
@@ -254,9 +256,10 @@ class FrontendWidget(HistoryConsoleWidget):
             self._call_tip()
 
     def _handle_sub(self, omsg):
-        handler = getattr(self, '_handle_%s' % omsg['msg_type'], None)
-        if handler is not None:
-            handler(omsg)
+        if not self._hidden:
+            handler = getattr(self, '_handle_%s' % omsg['msg_type'], None)
+            if handler is not None:
+                handler(omsg)
 
     def _handle_pyout(self, omsg):
         session = omsg['parent_header']['session']
@@ -278,6 +281,7 @@ class FrontendWidget(HistoryConsoleWidget):
         elif status == 'aborted':
             text = "ERROR: ABORTED\n"
             self.appendPlainText(text)
+        self._hidden = False
         self._show_prompt('>>> ')
         self.executed.emit(rep)
 
