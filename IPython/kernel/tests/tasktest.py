@@ -185,3 +185,25 @@ class ITaskControllerTestCase(TaskTestBase):
         d.addCallback(lambda _: self.tc.get_task_result(0, block=True))
         d.addErrback(lambda f: self.assertRaises(IndexError, f.raiseException))
         return d
+
+    def test_traceback(self):
+        """Ensure that we have a traceback object in task failures."""
+        
+        self.addEngine(1)
+        cmd = """
+def fail():
+    raise IOError('failure test')
+
+result = fail()
+"""
+        t1 = task.StringTask(cmd, pull = 'result')
+        d = self.tc.run(t1)
+        d.addCallback(self.tc.get_task_result, block=True)
+        # Sanity check, that the right exception is raised
+        d.addCallback(lambda tr: self.assertRaises(IOError, tr.raise_exception))
+        # Rerun the same task, this time we check for the traceback
+        d.addCallback(lambda r: self.tc.run(t1))
+        d.addCallback(self.tc.get_task_result, block=True)
+        d.addCallback(lambda tr: self.assertNotEquals(tr.failure.getTraceback(),
+                                                      None))
+        return d
