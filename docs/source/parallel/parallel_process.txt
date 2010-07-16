@@ -53,7 +53,8 @@ The :command:`ipcluster` command provides a simple way of starting a controller 
 2. When engines are started using the :command:`mpirun` command that comes 
    with most MPI [MPI]_ implementations
 3. When engines are started using the PBS [PBS]_ batch system.
-4. When the controller is started on localhost and the engines are started on 
+4. When engines are started using the SGE [SGE]_ batch system.
+5. When the controller is started on localhost and the engines are started on 
    remote nodes using :command:`ssh`.
 
 .. note::
@@ -168,6 +169,53 @@ Once you have created such a script, save it with a name like :file:`pbs.templat
 Additional command line options for this mode can be found by doing::
 
     $ ipcluster pbs -h
+
+Using :command:`ipcluster` in SGE mode
+--------------------------------------
+
+The SGE mode uses the Sun Grid Engine [SGE]_ to start the engines.  To use this mode, you first need to create a SGE script template that will be used to start the engines.  Here is a sample SGE script template:
+
+.. sourcecode:: bash
+
+   #!/bin/bash
+   #$ -V
+   #$ -cwd
+   #$ -M joe@gmail.com
+   #$ -m beas
+   #$ -N ipython
+   #$ -r y
+   #$ -S /bin/bash
+
+   cd $$HOME/sge
+   /usr/local/bin/mpiexec -n ${n} ipengine --logfile=$$HOME/sge/ipengine
+
+There are a few important points about this template:
+
+1. This template will be rendered at runtime using IPython's :mod:`Itpl` 
+   template engine.
+
+2. Instead of putting in the actual number of engines, use the notation
+   ``${n}`` to indicate the number of engines to be started. You can also uses
+   expressions like ``${n/4}`` in the template to indicate the number of 
+   nodes.
+
+3. Because ``$`` is a special character used by the template engine, you must  
+   escape any ``$`` by using ``$$``.  This is important when referring to 
+   environment variables in the template.
+
+4. Any options to :command:`ipengine` should be given in the batch script 
+   template.
+
+5. Depending on the configuration of you system, you may have to set 
+   environment variables in the script template.
+
+Once you have created such a script, save it with a name like :file:`sge.template`.  Now you are ready to start your job::
+
+    $ ipcluster sge -n 128 --sge-script=sge.template
+
+Additional command line options for this mode can be found by doing::
+
+    $ ipcluster sge -h
 
 Using :command:`ipcluster` in SSH mode
 --------------------------------------
@@ -348,4 +396,5 @@ the log files to us will often help us to debug any problems.
 
 
 .. [PBS] Portable Batch System.  http://www.openpbs.org/
+.. [SGE] Sun Grid Engine.  http://www.sun.com/software/sge/
 .. [SSH] SSH-Agent http://en.wikipedia.org/wiki/Ssh-agent

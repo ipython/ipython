@@ -330,6 +330,15 @@ class PBSEngineSet(BatchEngineSet):
     def __init__(self, template_file, **kwargs):
         BatchEngineSet.__init__(self, template_file, **kwargs)
 
+class SGEEngineSet(BatchEngineSet):
+    
+    submit_command = 'qsub'
+    delete_command = 'qdel'
+    job_id_regexp = '\d+'
+    
+    def __init__(self, template_file, **kwargs):
+        BatchEngineSet.__init__(self, template_file, **kwargs)
+
 
 sshx_template="""#!/bin/sh
 "$@" &> /dev/null &
@@ -627,6 +636,35 @@ def main_pbs(args):
     dstart.addCallback(_delay_start, start_engines, furl_file, args.r)
     dstart.addErrback(_err_and_stop)
 
+def main_sge(args):
+    cont_args = []
+    cont_args.append('--logfile=%s' % pjoin(args.logdir,'ipcontroller'))
+    
+    # Check security settings before proceeding
+    if not check_security(args, cont_args):
+        return
+    
+    # See if we are reusing FURL files
+    if not check_reuse(args, cont_args):
+        return
+    
+    cl = ControllerLauncher(extra_args=cont_args)
+    dstart = cl.start()
+    def start_engines(r):
+        sge_set =  SGEEngineSet(args.sgescript)
+        def shutdown(signum, frame):
+            log.msg('Stopping sge cluster')
+            d = sge_set.kill()
+            d.addBoth(lambda _: cl.interrupt_then_kill(1.0))
+            d.addBoth(lambda _: reactor.callLater(2.0, reactor.stop))
+        signal.signal(signal.SIGINT,shutdown)
+        d = sge_set.start(args.n)
+        return d
+    config = kernel_config_manager.get_config_obj()
+    furl_file = config['controller']['engine_furl_file']
+    dstart.addCallback(_delay_start, start_engines, furl_file, args.r)
+    dstart.addErrback(_err_and_stop)
+
 
 def main_ssh(args):
     """Start a controller on localhost and engines using ssh.
@@ -779,6 +817,20 @@ def get_args():
         default='pbs.template'
     )
     parser_pbs.set_defaults(func=main_pbs)
+    
+    parser_sge = subparsers.add_parser(
+        'sge', 
+        help='run a sge cluster',
+        parents=[base_parser]
+    )
+    parser_sge.add_argument(
+        '--sge-script',
+        type=str, 
+        dest='sgescript',
+        help='SGE script template',
+        default='sge.template'
+    )
+    parser_sge.set_defaults(func=main_sge)
     
     parser_ssh = subparsers.add_parser(
         'ssh',
