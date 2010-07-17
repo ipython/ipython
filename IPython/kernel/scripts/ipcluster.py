@@ -339,6 +339,15 @@ class SGEEngineSet(BatchEngineSet):
     def __init__(self, template_file, **kwargs):
         BatchEngineSet.__init__(self, template_file, **kwargs)
 
+    def parse_job_id(self, output):
+        m = re.search(self.job_id_regexp, output)
+        if m is not None:
+            job_id = m.group()
+        else:
+            raise Exception("job id couldn't be determined: %s" % output)
+        self.job_id = job_id
+        log.msg('Job started with job id: %r' % job_id)
+        return job_id
 
 sshx_template="""#!/bin/sh
 "$@" &> /dev/null &
@@ -820,7 +829,7 @@ def get_args():
     
     parser_sge = subparsers.add_parser(
         'sge', 
-        help='run a sge cluster',
+        help='run an sge cluster',
         parents=[base_parser]
     )
     parser_sge.add_argument(
@@ -828,7 +837,7 @@ def get_args():
         type=str, 
         dest='sgescript',
         help='SGE script template',
-        default='sge.template'
+        default='template.sge'
     )
     parser_sge.set_defaults(func=main_sge)
     

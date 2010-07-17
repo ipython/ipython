@@ -177,17 +177,17 @@ The SGE mode uses the Sun Grid Engine [SGE]_ to start the engines.  To use this 
 
 .. sourcecode:: bash
 
-   #!/bin/bash
-   #$ -V
-   #$ -cwd
-   #$ -M joe@gmail.com
-   #$ -m beas
-   #$ -N ipython
-   #$ -r y
-   #$ -S /bin/bash
+    #!/bin/bash
+    #$ -V
+    #$ -cwd
+    #$ -m n
+    #$ -N satra-ipython
+    #$ -r y
+    #$ -q sub
+    #$ -S /bin/bash
 
-   cd $$HOME/sge
-   /usr/local/bin/mpiexec -n ${n} ipengine --logfile=$$HOME/sge/ipengine
+    cd $$HOME/sge
+    ipengine --logfile=ipengine
 
 There are a few important points about this template:
 
