@@ -179,25 +179,22 @@ The SGE mode uses the Sun Grid Engine [SGE]_ to start the engines.  To use this 
 
     #!/bin/bash
     #$ -V
-    #$ -cwd
     #$ -m n
-    #$ -N satra-ipython
+    #$ -N ipengine-${eid}
     #$ -r y
     #$ -q sub
     #$ -S /bin/bash
 
     cd $$HOME/sge
-    ipengine --logfile=ipengine
+    ipengine --logfile=ipengine${eid}
 
 There are a few important points about this template:
 
 1. This template will be rendered at runtime using IPython's :mod:`Itpl` 
    template engine.
 
-2. Instead of putting in the actual number of engines, use the notation
-   ``${n}`` to indicate the number of engines to be started. You can also uses
-   expressions like ``${n/4}`` in the template to indicate the number of 
-   nodes.
+2. Instead of putting in the actual id of engines, use the notation
+   ``${eid}`` to indicate where engine id should be inserted.
 
 3. Because ``$`` is a special character used by the template engine, you must  
    escape any ``$`` by using ``$$``.  This is important when referring to 
@@ -211,7 +208,7 @@ There are a few important points about this template:
 
 Once you have created such a script, save it with a name like :file:`sge.template`.  Now you are ready to start your job::
 
-    $ ipcluster sge -n 128 --sge-script=sge.template
+    $ ipcluster sge -n 12 --sge-script=sge.template
 
 Additional command line options for this mode can be found by doing::
 

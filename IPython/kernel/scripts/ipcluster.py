@@ -234,6 +234,7 @@ class LocalEngineSet(object):
     def start(self, n):
         dlist = []
         for i in range(n):
+            print "starting engine:", i
             el = EngineLauncher(extra_args=self.extra_args)
             d = el.start()
             self.launchers.append(el)
@@ -338,6 +339,7 @@ class SGEEngineSet(BatchEngineSet):
     
     def __init__(self, template_file, **kwargs):
         BatchEngineSet.__init__(self, template_file, **kwargs)
+        self.num_engines = None
 
     def parse_job_id(self, output):
         m = re.search(self.job_id_regexp, output)
@@ -345,10 +347,48 @@ class SGEEngineSet(BatchEngineSet):
             job_id = m.group()
         else:
             raise Exception("job id couldn't be determined: %s" % output)
-        self.job_id = job_id
+        self.job_id.append(job_id)
         log.msg('Job started with job id: %r' % job_id)
         return job_id
-
+    
+    def kill_job(self, output):
+        log.msg(output)
+        return output
+    
+    def write_batch_script(self, i):
+        context = {'eid':i}
+        template = open(self.template_file, 'r').read()
+        log.msg('Using template for batch script: %s' % self.template_file)
+        script_as_string = Itpl.itplns(template, context)
+        log.msg('Writing instantiated batch script: %s' % self.batch_file+str(i))
+        f = open(self.batch_file+str(i),'w')
+        f.write(script_as_string)
+        f.close()
+        
+    def start(self, n):
+        dlist = []
+        self.num_engines = 0
+        self.job_id = []
+        for i in range(n):
+            log.msg("starting engine: %d"%i)
+            self.write_batch_script(i)
+            d = getProcessOutput(self.submit_command,
+                                 [self.batch_file+str(i)],env=os.environ)
+            d.addCallback(self.parse_job_id)
+            d.addErrback(self.handle_error)
+            dlist.append(d)
+        return gatherBoth(dlist, consumeErrors=True)
+    
+    def kill(self):
+        dlist = []
+        for i in range(self.num_engines):
+            log.msg("killing job id: %d"%self.job_id[i])
+            d = getProcessOutput(self.delete_command,
+                                 [self.job_id[i]],env=os.environ)
+            d.addCallback(self.kill_job)
+            dlist.append(d)
+        return gatherBoth(dlist, consumeErrors=True)
+    
 sshx_template="""#!/bin/sh
 "$@" &> /dev/null &
 echo $!
