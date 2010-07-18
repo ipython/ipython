@@ -646,13 +646,17 @@ def main_pbs(args):
     # See if we are reusing FURL files
     if not check_reuse(args, cont_args):
         return
+
+    if args.pbsscript and not os.path.isfile(args.pbsscript):
+        log.err('PBS script does not exist: %s' % args.pbsscript)
+        return
     
     cl = ControllerLauncher(extra_args=cont_args)
     dstart = cl.start()
     def start_engines(r):
         pbs_set =  PBSEngineSet(args.pbsscript)
         def shutdown(signum, frame):
-            log.msg('Stopping pbs cluster')
+            log.msg('Stopping PBS cluster')
             d = pbs_set.kill()
             d.addBoth(lambda _: cl.interrupt_then_kill(1.0))
             d.addBoth(lambda _: reactor.callLater(2.0, reactor.stop))
@@ -691,6 +695,39 @@ def main_sge(args):
             d.addBoth(lambda _: reactor.callLater(2.0, reactor.stop))
         signal.signal(signal.SIGINT,shutdown)
         d = sge_set.start(args.n)
+        return d
+    config = kernel_config_manager.get_config_obj()
+    furl_file = config['controller']['engine_furl_file']
+    dstart.addCallback(_delay_start, start_engines, furl_file, args.r)
+    dstart.addErrback(_err_and_stop)
+
+def main_lsf(args):
+    cont_args = []
+    cont_args.append('--logfile=%s' % pjoin(args.logdir,'ipcontroller'))
+    
+    # Check security settings before proceeding
+    if not check_security(args, cont_args):
+        return
+    
+    # See if we are reusing FURL files
+    if not check_reuse(args, cont_args):
+        return
+
+    if args.lsfscript and not os.path.isfile(args.lsfscript):
+        log.err('LSF script does not exist: %s' % args.lsfscript)
+        return
+    
+    cl = ControllerLauncher(extra_args=cont_args)
+    dstart = cl.start()
+    def start_engines(r):
+        lsf_set =  LSFEngineSet(args.lsfscript)
+        def shutdown(signum, frame):
+            log.msg('Stopping LSF cluster')
+            d = lsf_set.kill()
+            d.addBoth(lambda _: cl.interrupt_then_kill(1.0))
+            d.addBoth(lambda _: reactor.callLater(2.0, reactor.stop))
+        signal.signal(signal.SIGINT,shutdown)
+        d = lsf_set.start(args.n)
         return d
     config = kernel_config_manager.get_config_obj()
     furl_file = config['controller']['engine_furl_file']
@@ -876,7 +913,7 @@ def get_args():
         help='LSF script template',
         default='' # LSFEngineSet will create one if not specified
     )
-    parser_lsf.set_defaults(func=main_sge)
+    parser_lsf.set_defaults(func=main_lsf)
     
     parser_ssh = subparsers.add_parser(
         'ssh',
