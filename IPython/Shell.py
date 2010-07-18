@@ -36,7 +36,7 @@ from IPython.core.embed import InteractiveShellEmbed as IPShellEmbed
 def start(user_ns=None, embedded=False):
     """Return an instance of :class:`InteractiveShell`."""
     if embedded:
-        return InteractiveShellEmbed(user_ns=user_ns)
+        return IPShellEmbed(user_ns=user_ns)
     else:
-        return InteractiveShell(user_ns=user_ns)
+        return IPShell(user_ns=user_ns)
 
