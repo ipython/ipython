@@ -356,6 +356,18 @@ eid=$(($SGE_TASK_ID - 1))
 ipengine --logfile=ipengine${eid}.log
 """
 
+class LSFEngineSet(PBSEngineSet):
+
+    name = 'LSF'
+    submit_command = 'bsub'
+    delete_command = 'bkill'
+    script_param_prefix = "#BSUB"
+    job_array_regexp = '#BSUB[ \t]+\w+\[\d+-\d+\]'
+    default_template="""#BSUB ipengine[1-%d]
+eid=$(($LSB_JOBINDEX - 1))
+ipengine --logfile=ipengine${eid}.log
+"""
+
 sshx_template="""#!/bin/sh
 "$@" &> /dev/null &
 echo $!
@@ -851,6 +863,20 @@ def get_args():
         default='' # SGEEngineSet will create one if not specified
     )
     parser_sge.set_defaults(func=main_sge)
+
+    parser_lsf = subparsers.add_parser(
+        'lsf', 
+        help='run an lsf cluster',
+        parents=[base_parser]
+    )
+    parser_lsf.add_argument(
+        '--lsf-script',
+        type=str, 
+        dest='lsfscript',
+        help='LSF script template',
+        default='' # LSFEngineSet will create one if not specified
+    )
+    parser_lsf.set_defaults(func=main_sge)
     
     parser_ssh = subparsers.add_parser(
         'ssh',
