@@ -186,6 +186,22 @@ class ITaskControllerTestCase(TaskTestBase):
         d.addErrback(lambda f: self.assertRaises(IndexError, f.raiseException))
         return d
 
+    def get_traceback_frames(self, result):
+        """Execute a failing string as a task and return stack frame strings.
+
+        This lets us check that the returned exceptions contain as many stack
+        frames as the user expects from his code.
+
+        Parameters
+        ----------
+        d : deferred
+
+        src : string
+          Code to be executed, should fail."""
+        # This gets Twisted's short-format traceback and picks the info for
+        # frames that actually belong to user code.
+        return result.failure.getBriefTraceback().split('\n<string>:')[1:]
+
     def test_traceback(self):
         """Ensure that we have a traceback object in task failures."""
         
@@ -196,14 +212,35 @@ def fail():
 
 result = fail()
 """
-        t1 = task.StringTask(cmd, pull = 'result')
+        t1 = task.StringTask(cmd)
         d = self.tc.run(t1)
         d.addCallback(self.tc.get_task_result, block=True)
         # Sanity check, that the right exception is raised
         d.addCallback(lambda tr: self.assertRaises(IOError, tr.raise_exception))
-        # Rerun the same task, this time we check for the traceback
+        # Rerun the same task, this time we check for the traceback to have two
+        # frames
         d.addCallback(lambda r: self.tc.run(t1))
         d.addCallback(self.tc.get_task_result, block=True)
-        d.addCallback(lambda tr: self.assertNotEquals(tr.failure.getTraceback(),
-                                                      None))
+        d.addCallback(self.get_traceback_frames)
+        d.addCallback(lambda frames: self.assertEquals(len(frames), 2))
+
+        # And repeat with a deeper stack, just to be safe
+        cmd = """
+def boom():
+    raise IOError('failure test')
+
+def crash():
+    boom()
+    
+def fail():
+    crash()
+
+result = fail()
+"""
+        t1 = task.StringTask(cmd)
+        d.addCallback(lambda r: self.tc.run(t1))
+        d.addCallback(self.tc.get_task_result, block=True)
+        d.addCallback(self.get_traceback_frames)
+        d.addCallback(lambda frames: self.assertEquals(len(frames), 4))
+
         return d
