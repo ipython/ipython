@@ -47,7 +47,7 @@ class FrontendHighlighter(PygmentsHighlighter):
 
 
 class FrontendWidget(HistoryConsoleWidget):
-    """ A Qt frontend for an IPython kernel.
+    """ A Qt frontend for a generic Python kernel.
     """
 
     # Emitted when an 'execute_reply' is received from the kernel.
@@ -63,7 +63,7 @@ class FrontendWidget(HistoryConsoleWidget):
         self._call_tip_widget = CallTipWidget(self)
         self._compile = CommandCompiler()
         self._completion_lexer = CompletionLexer(PythonLexer())
-        self._hidden = False
+        self._hidden = True
         self._highlighter = FrontendHighlighter(self)
         self._kernel_manager = None
 
@@ -127,6 +127,7 @@ class FrontendWidget(HistoryConsoleWidget):
             shown. Returns whether the source executed (i.e., returns True only
             if no more input is necessary).
         """
+        # Use CommandCompiler to determine if more input is needed.
         try:
             code = self._compile(source, symbol='single')
         except (OverflowError, SyntaxError, ValueError):
@@ -281,7 +282,7 @@ class FrontendWidget(HistoryConsoleWidget):
         elif status == 'aborted':
             text = "ERROR: ABORTED\n"
             self.appendPlainText(text)
-        self._hidden = False
+        self._hidden = True
         self._show_prompt('>>> ')
         self.executed.emit(rep)
 
@@ -300,25 +301,3 @@ class FrontendWidget(HistoryConsoleWidget):
             doc = rep['content']['docstring']
             if doc:
                 self._call_tip_widget.show_tip(doc)
-
-
-if __name__ == '__main__':
-    import sys
-    from IPython.frontend.qt.kernelmanager import QtKernelManager
-
-    # Create KernelManager
-    xreq_addr = ('127.0.0.1', 5575)
-    sub_addr = ('127.0.0.1', 5576)
-    rep_addr = ('127.0.0.1', 5577)
-    kernel_manager = QtKernelManager(xreq_addr, sub_addr, rep_addr)
-    kernel_manager.sub_channel.start()
-    kernel_manager.xreq_channel.start()
-
-    # Launch application
-    app = QtGui.QApplication(sys.argv)
-    widget = FrontendWidget(kernel_manager)
-    widget.setWindowTitle('Python')
-    widget.resize(640, 480)
-    widget.show()
-    sys.exit(app.exec_())
-    

@@ -118,7 +118,7 @@ class SubSocketChannel(ZmqSocketChannel):
         self._flushed = False
         self.ioloop.add_callback(self._flush)
         while not self._flushed:
-            time.sleep(0)
+            time.sleep(0.01)
         
     def _flush(self):
         """Called in this thread by the IOLoop to indicate that all events have
