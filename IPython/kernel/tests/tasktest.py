@@ -202,29 +202,36 @@ class ITaskControllerTestCase(TaskTestBase):
         # frames that actually belong to user code.
         return result.failure.getBriefTraceback().split('\n<string>:')[1:]
 
-    def test_traceback(self):
+
+    def check_traceback(self, cmd, nframes, exception=IOError):
         """Ensure that we have a traceback object in task failures."""
         
         self.addEngine(1)
+        t1 = task.StringTask(cmd)
+        d = self.tc.run(t1)
+        d.addCallback(self.tc.get_task_result, block=True)
+        # Sanity check, that the right exception is raised
+        d.addCallback(lambda r: self.assertRaises(exception, r.raise_exception))
+        # Rerun the same task, this time we check for the traceback to have the
+        # right number of frames
+        d.addCallback(lambda r: self.tc.run(t1))
+        d.addCallback(self.tc.get_task_result, block=True)
+        d.addCallback(self.get_traceback_frames)
+        d.addCallback(lambda frames: self.assertEquals(len(frames), nframes))
+        return d
+
+    # Check traceback structure with 2 and 4 frame-deep stacks
+    def test_traceback(self):
         cmd = """
 def fail():
     raise IOError('failure test')
 
 result = fail()
 """
-        t1 = task.StringTask(cmd)
-        d = self.tc.run(t1)
-        d.addCallback(self.tc.get_task_result, block=True)
-        # Sanity check, that the right exception is raised
-        d.addCallback(lambda tr: self.assertRaises(IOError, tr.raise_exception))
-        # Rerun the same task, this time we check for the traceback to have two
-        # frames
-        d.addCallback(lambda r: self.tc.run(t1))
-        d.addCallback(self.tc.get_task_result, block=True)
-        d.addCallback(self.get_traceback_frames)
-        d.addCallback(lambda frames: self.assertEquals(len(frames), 2))
+        return self.check_traceback(cmd, 2)
+        
 
-        # And repeat with a deeper stack, just to be safe
+    def test_traceback2(self):
         cmd = """
 def boom():
     raise IOError('failure test')
@@ -237,10 +244,4 @@ def fail():
 
 result = fail()
 """
-        t1 = task.StringTask(cmd)
-        d.addCallback(lambda r: self.tc.run(t1))
-        d.addCallback(self.tc.get_task_result, block=True)
-        d.addCallback(self.get_traceback_frames)
-        d.addCallback(lambda frames: self.assertEquals(len(frames), 4))
-
-        return d
+        return self.check_traceback(cmd, 4)
