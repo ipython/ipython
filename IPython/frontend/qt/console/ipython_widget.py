@@ -66,10 +66,9 @@ if __name__ == '__main__':
     from IPython.frontend.qt.kernelmanager import QtKernelManager
 
     # Create KernelManager
-    xreq_addr = ('127.0.0.1', 5575)
-    sub_addr = ('127.0.0.1', 5576)
-    rep_addr = ('127.0.0.1', 5577)
-    kernel_manager = QtKernelManager(xreq_addr, sub_addr, rep_addr)
+    kernel_manager = QtKernelManager(xreq_address = ('127.0.0.1', 5575),
+                                     sub_address = ('127.0.0.1', 5576),
+                                     rep_address = ('127.0.0.1', 5577))
     kernel_manager.sub_channel.start()
     kernel_manager.xreq_channel.start()
 

@@ -25,13 +25,15 @@ class MissingHandlerError(Exception):
 
 
 class ZmqSocketChannel(Thread):
+    """ The base class for the channels that use ZMQ sockets.
+    """
 
-    socket = None
-
-    def __init__(self, context, session, addr):
+    def __init__(self, context, session, addr=None):
         self.context = context
         self.session = session
         self.addr = addr
+        self.socket = None
+
         super(ZmqSocketChannel, self).__init__()
         self.daemon = True
 
@@ -41,7 +43,7 @@ class SubSocketChannel(ZmqSocketChannel):
     handlers = None
     _overriden_call_handler = None
 
-    def __init__(self, context, session, addr):
+    def __init__(self, context, session, addr=None):
         self.handlers = {}
         super(SubSocketChannel, self).__init__(context, session, addr)
 
@@ -134,7 +136,7 @@ class XReqSocketChannel(ZmqSocketChannel):
     handlers = None
     _overriden_call_handler = None
 
-    def __init__(self, context, session, addr):
+    def __init__(self, context, session, addr=None):
         self.handlers = {}
         self.handler_queue = Queue()
         self.command_queue = Queue()
@@ -249,16 +251,16 @@ class RepSocketChannel(ZmqSocketChannel):
 
 
 class KernelManager(HasTraits):
+    """ Manages a kernel for a frontend.
 
-    # The addresses to use for the various channels. Should be tuples of form
-    # (ip_address, port).
-    sub_address = Any
-    xreq_address = Any
-    rep_address = Any
-    # FIXME: Add Tuple to Traitlets.
-    #sub_address = Tuple(Str, Int)
-    #xreq_address = Tuple(Str, Int)
-    #rep_address = Tuple(Str, Int)
+    The SUB channel is for the frontend to receive messages published by the
+    kernel.
+        
+    The REQ channel is for the frontend to make requests of the kernel.
+    
+    The REP channel is for the kernel to request stdin (raw_input) from the
+    frontend.
+    """
 
     # The PyZMQ Context to use for communication with the kernel.
     context = Instance(zmq.Context, ())
@@ -266,22 +268,30 @@ class KernelManager(HasTraits):
     # The Session to use for communication with the kernel.
     session = Instance(Session, ())
 
+    # The channels objects used for communication with the kernel.
+    # FIXME: Add '_traitname_default' instantiation method to Traitlets.
+    #sub_channel = Instance(SubSocketChannel)
+    #xreq_channel = Instance(XReqSocketChannel)
+    #rep_channel = Instance(RepSocketChannel)
+
     # The classes to use for the various channels.
     sub_channel_class = Type(SubSocketChannel)
     xreq_channel_class = Type(XReqSocketChannel)
     rep_channel_class = Type(RepSocketChannel)
 
+    # The addresses to use for the various channels. Should be tuples of form
+    # (ip_address, port).
+    #sub_address = DelegatesTo('sub_channel')
+    #xreq_address = DelegatesTo('xreq_channel')
+    #rep_address = DelegatesTo('rep_channel')
+    
     # Protected traits.
     _sub_channel = Any
     _xreq_channel = Any
     _rep_channel = Any
 
-    def __init__(self, xreq_address, sub_address, rep_address, **traits):
+    def __init__(self, **traits):
         super(KernelManager, self).__init__()
-
-        self.xreq_address = xreq_address
-        self.sub_address = sub_address
-        self.rep_address = rep_address
 
         # FIXME: This should be the business of HasTraits. The convention is:
         #        HasTraits.__init__(self, **traits_to_be_initialized.)
@@ -289,15 +299,8 @@ class KernelManager(HasTraits):
             setattr(self, trait, traits[trait])
 
     def start_kernel(self):
-        """Start a localhost kernel on ip and port.
-        
-        The SUB channel is for the frontend to receive messages published by
-        the kernel.
-        
-        The REQ channel is for the frontend to make requests of the kernel.
-        
-        The REP channel is for the kernel to request stdin (raw_input) from 
-        the frontend.
+        """Start a localhost kernel. If ports have been specified, use
+        them. Otherwise, choose an open port at random.
         """
 
     def kill_kernel(self):
@@ -314,22 +317,43 @@ class KernelManager(HasTraits):
     def sub_channel(self):
         """Get the SUB socket channel object."""
         if self._sub_channel is None:
-            self._sub_channel = self.sub_channel_class(
-                self.context, self.session, self.sub_address)
+            self._sub_channel = self.sub_channel_class(self.context,
+                                                       self.session)
         return self._sub_channel
 
     @property
     def xreq_channel(self):
         """Get the REQ socket channel object to make requests of the kernel."""
         if self._xreq_channel is None:
-            self._xreq_channel = self.xreq_channel_class(
-                self.context, self.session, self.xreq_address)
+            self._xreq_channel = self.xreq_channel_class(self.context, 
+                                                         self.session)
         return self._xreq_channel
 
     @property
     def rep_channel(self):
         """Get the REP socket channel object to handle stdin (raw_input)."""
         if self._rep_channel is None:
-            self._rep_channel = self.rep_channel_class(
-                self.context, self.session, self.rep_address)
+            self._rep_channel = self.rep_channel_class(self.context, 
+                                                       self.session)
         return self._rep_channel
+
+    def get_sub_address(self):
+        return self.sub_channel.addr
+    def set_sub_address(self, addr):
+        self.sub_channel.addr = addr
+    sub_address = property(get_sub_address, set_sub_address,
+                           doc="The address used by SUB socket channel.")
+
+    def get_xreq_address(self):
+        return self.xreq_channel.addr
+    def set_xreq_address(self, addr):
+        self.xreq_channel.addr = addr
+    xreq_address = property(get_xreq_address, set_xreq_address,
+                            doc="The address used by XREQ socket channel.")
+    
+    def get_rep_address(self):
+        return self.rep_channel.addr
+    def set_rep_address(self, addr):
+        self.rep_channel.addr = addr
+    rep_address = property(get_rep_address, set_rep_address,
+                           doc="The address used by REP socket channel.")
