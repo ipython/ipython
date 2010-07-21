@@ -18,6 +18,7 @@ import os
 import re
 import sys
 import signal
+import stat
 import tempfile
 pjoin = os.path.join
 
@@ -332,6 +333,8 @@ class BatchEngineSet(object):
             self._temp_file.file.write(default_script)
             self.template_file = self._temp_file.name
         self._temp_file.file.flush()
+        os.chmod(self._temp_file.name, stat.S_IRUSR | stat.S_IWUSR | stat.S_IXUSR)
+        self._temp_file.file.close()
         d = getProcessOutput(self.submit_command,
                              [self.template_file],
                              env=os.environ)
