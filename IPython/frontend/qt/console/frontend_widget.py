@@ -1,15 +1,10 @@
-# Standard library imports
-from codeop import CommandCompiler
-from threading import Thread
-import time
-import types
-
 # System library imports
 from pygments.lexers import PythonLexer
 from PyQt4 import QtCore, QtGui
 import zmq
 
 # Local imports
+from IPython.core.blockbreaker import BlockBreaker
 from call_tip_widget import CallTipWidget
 from completion_lexer import CompletionLexer
 from console_widget import HistoryConsoleWidget
@@ -60,8 +55,8 @@ class FrontendWidget(HistoryConsoleWidget):
     def __init__(self, kernel_manager, parent=None):
         super(FrontendWidget, self).__init__(parent)
 
+        self._blockbreaker = BlockBreaker()
         self._call_tip_widget = CallTipWidget(self)
-        self._compile = CommandCompiler()
         self._completion_lexer = CompletionLexer(PythonLexer())
         self._hidden = True
         self._highlighter = FrontendHighlighter(self)
@@ -127,36 +122,15 @@ class FrontendWidget(HistoryConsoleWidget):
             shown. Returns whether the source executed (i.e., returns True only
             if no more input is necessary).
         """
-        # Use CommandCompiler to determine if more input is needed.
-        try:
-            code = self._compile(source, symbol='single')
-        except (OverflowError, SyntaxError, ValueError):
-            # Just let IPython deal with the syntax error.
-            code = Exception
-            
-        # Only execute interactive multiline input if it ends with a blank line
-        lines = source.splitlines()
-        if interactive and len(lines) > 1 and lines[-1].strip() != '':
-            code = None
-            
-        executed = code is not None
+        self._blockbreaker.reset()
+        self._blockbreaker.push(source)
+        executed = self._blockbreaker.interactive_block_ready()
         if executed:
             self.kernel_manager.xreq_channel.execute(source)
             self._hidden = hidden
         else:
-            space = 0
-            for char in lines[-1]:
-                if char == '\t':
-                    space += 4
-                elif char == ' ':
-                    space += 1
-                else:
-                    break
-            if source.endswith(':') or source.endswith(':\n'):
-                space += 4
             self._show_continuation_prompt()
-            self.appendPlainText(' ' * space)
-
+            self.appendPlainText(' ' * self._blockbreaker.indent_spaces)
         return executed
 
     def execute_file(self, path, hidden=False):

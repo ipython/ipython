@@ -1,4 +1,7 @@
-# Local imports.
+# System library imports
+from PyQt4 import QtCore, QtGui
+
+# Local imports
 from frontend_widget import FrontendWidget
 
 
