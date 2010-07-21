@@ -185,3 +185,63 @@ class ITaskControllerTestCase(TaskTestBase):
         d.addCallback(lambda _: self.tc.get_task_result(0, block=True))
         d.addErrback(lambda f: self.assertRaises(IndexError, f.raiseException))
         return d
+
+    def get_traceback_frames(self, result):
+        """Execute a failing string as a task and return stack frame strings.
+
+        This lets us check that the returned exceptions contain as many stack
+        frames as the user expects from his code.
+
+        Parameters
+        ----------
+        d : deferred
+
+        src : string
+          Code to be executed, should fail."""
+        # This gets Twisted's short-format traceback and picks the info for
+        # frames that actually belong to user code.
+        return result.failure.getBriefTraceback().split('\n<string>:')[1:]
+
+
+    def check_traceback(self, cmd, nframes, exception=IOError):
+        """Ensure that we have a traceback object in task failures."""
+        
+        self.addEngine(1)
+        t1 = task.StringTask(cmd)
+        d = self.tc.run(t1)
+        d.addCallback(self.tc.get_task_result, block=True)
+        # Sanity check, that the right exception is raised
+        d.addCallback(lambda r: self.assertRaises(exception, r.raise_exception))
+        # Rerun the same task, this time we check for the traceback to have the
+        # right number of frames
+        d.addCallback(lambda r: self.tc.run(t1))
+        d.addCallback(self.tc.get_task_result, block=True)
+        d.addCallback(self.get_traceback_frames)
+        d.addCallback(lambda frames: self.assertEquals(len(frames), nframes))
+        return d
+
+    # Check traceback structure with 2 and 4 frame-deep stacks
+    def test_traceback(self):
+        cmd = """
+def fail():
+    raise IOError('failure test')
+
+result = fail()
+"""
+        return self.check_traceback(cmd, 2)
+        
+
+    def test_traceback2(self):
+        cmd = """
+def boom():
+    raise IOError('failure test')
+
+def crash():
+    boom()
+    
+def fail():
+    crash()
+
+result = fail()
+"""
+        return self.check_traceback(cmd, 4)

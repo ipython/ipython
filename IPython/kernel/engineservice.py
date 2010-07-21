@@ -390,7 +390,7 @@ class EngineService(object, service.Service):
             et,ev,tb = self.shell.format_traceback(et,ev,tb,msg)
             # Add another attribute
             ev._ipython_engine_info = msg
-            f = failure.Failure(ev,et,None)
+            f = failure.Failure(ev,et,tb)
             d.errback(f)
         else:
             d.callback(result)

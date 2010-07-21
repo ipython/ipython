@@ -6,6 +6,7 @@
 import nose.tools as nt
 
 from IPython.testing import tools as tt, decorators as dec
+from IPython.testing.globalipapp import get_ipython
 
 #-----------------------------------------------------------------------------
 # Tests
@@ -34,7 +35,6 @@ def test_prefilter():
     for raw, correct in pairs:
         yield nt.assert_equals(ip.prefilter(raw), correct)
 
-
 @dec.parametric
 def test_autocall_binops():
     """See https://bugs.launchpad.net/ipython/+bug/315706"""
@@ -48,4 +48,12 @@ def test_autocall_binops():
     finally:
         ip.magic('autocall 0')
         del ip.user_ns['f']
-        
+
+@dec.parametric
+def test_issue114():
+    """Check that multiline string literals don't expand as magic
+    see http://github.com/ipython/ipython/issues/#issue/114"""
+    template = '"""\n%s\n"""'
+    for mgk in ip.lsmagic():
+        raw = template % mgk
+        yield nt.assert_equals(ip.prefilter(raw), raw)
