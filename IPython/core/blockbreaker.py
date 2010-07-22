@@ -179,14 +179,21 @@ class BlockBreaker(object):
         # exception is raised in compilation, we don't mislead by having
         # inconsistent code/source attributes.
         self.code, self.is_complete = None, None
-        self.code = self.compile(source)
-        # Compilation didn't produce any exceptions (though it may not have
-        # given a complete code object)
-        if self.code is None:
-            self.is_complete = False
-        else:
+        try:
+            self.code = self.compile(source)
+        # Invalid syntax can produce any of a number of different errors from
+        # inside the compiler, so we have to catch them all.  Syntax errors
+        # immediately produce a 'ready' block, so the invalid Python can be
+        # sent to the kernel for evaluation with possible ipython
+        # special-syntax conversion.
+        except (SyntaxError, OverflowError, ValueError, TypeError, MemoryError):
             self.is_complete = True
-        self._update_indent(lines)
+        else:
+            # Compilation didn't produce any exceptions (though it may not have
+            # given a complete code object)
+            self.is_complete = self.code is not None
+            self._update_indent(lines)
+
         return self.is_complete
 
     def interactive_block_ready(self):

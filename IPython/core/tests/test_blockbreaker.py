@@ -181,3 +181,11 @@ class BlockBreakerTestCase(unittest.TestCase):
         self.assertFalse(bb.interactive_block_ready())
         bb.push('')
         self.assertTrue(bb.interactive_block_ready())
+
+    def test_syntax_error(self):
+        bb = self.bb
+        # Syntax errors immediately produce a 'ready' block, so the invalid
+        # Python can be sent to the kernel for evaluation with possible ipython
+        # special-syntax conversion.
+        bb.push('run foo')
+        self.assertTrue(bb.interactive_block_ready())
