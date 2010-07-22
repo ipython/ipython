@@ -306,6 +306,7 @@ class BatchEngineSet(object):
     def start(self, n):
         log.msg("starting %d engines" % n)
         self._temp_file = tempfile.NamedTemporaryFile()
+        os.chmod(self._temp_file.name, stat.S_IRUSR | stat.S_IWUSR | stat.S_IXUSR)
         if self.template_file:
             log.msg("Using %s script %s" % (self.name, self.template_file))
             contents = open(self.template_file, 'r').read()
@@ -332,8 +333,6 @@ class BatchEngineSet(object):
                     (self.name, default_script))
             self._temp_file.file.write(default_script)
             self.template_file = self._temp_file.name
-        self._temp_file.file.flush()
-        os.chmod(self._temp_file.name, stat.S_IRUSR | stat.S_IWUSR | stat.S_IXUSR)
         self._temp_file.file.close()
         d = getProcessOutput(self.submit_command,
                              [self.template_file],
@@ -357,7 +356,8 @@ class PBSEngineSet(BatchEngineSet):
     job_array_template = '#PBS -t 1-%d'
     queue_regexp = '#PBS[ \t]+-q[ \t]+\w+'
     queue_template = '#PBS -q %s'
-    default_template="""#PBS -V
+    default_template="""#!/bin/sh
+#PBS -V
 #PBS -t 1-%d
 #PBS -N ipengine
 eid=$(($PBS_ARRAYID - 1))
@@ -372,6 +372,7 @@ class SGEEngineSet(PBSEngineSet):
     queue_regexp = '#\$[ \t]+-q[ \t]+\w+'
     queue_template = '#$ -q %s'
     default_template="""#$ -V
+#$ -S /bin/sh
 #$ -t 1-%d
 #$ -N ipengine
 eid=$(($SGE_TASK_ID - 1))
@@ -387,7 +388,8 @@ class LSFEngineSet(PBSEngineSet):
     job_array_template = '#BSUB -J ipengine[1-%d]'
     queue_regexp = '#BSUB[ \t]+-q[ \t]+\w+'
     queue_template = '#BSUB -q %s'
-    default_template="""#BSUB -J ipengine[1-%d]
+    default_template="""#!/bin/sh
+#BSUB -J ipengine[1-%d]
 eid=$(($LSB_JOBINDEX - 1))
 ipengine --logfile=ipengine${eid}.log
 """
