@@ -128,17 +128,11 @@ class BlockBreaker(object):
         self.source = ''
         self.code = None
 
-    def get_source(self, reset=False):
-        """Return the input source.
-
-        Parameters
-        ----------
-        reset : boolean
-          If true, all state is reset and prior input forgotten.
+    def source_reset(self):
+        """Return the input source and perform a full reset.
         """
         out = self.source
-        if reset:
-            self.reset()
+        self.reset()
         return out
 
     def push(self, lines):

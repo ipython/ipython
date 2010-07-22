@@ -72,19 +72,17 @@ class BlockBreakerTestCase(unittest.TestCase):
         bb.reset()
         self.assertEqual(bb._buffer, [])
         self.assertEqual(bb.indent_spaces, 0)
-        self.assertEqual(bb.get_source(), '')
+        self.assertEqual(bb.source, '')
         self.assertEqual(bb.code, None)
 
     def test_source(self):
         self.bb._store('1')
         self.bb._store('2')
-        out = self.bb.get_source()
-        self.assertEqual(out, '1\n2\n')
-        out = self.bb.get_source(reset=True)
-        self.assertEqual(out, '1\n2\n')
+        self.assertEqual(self.bb.source, '1\n2\n')
+        self.assertTrue(len(self.bb._buffer)>0)
+        self.assertEqual(self.bb.source_reset(), '1\n2\n')
         self.assertEqual(self.bb._buffer, [])
-        out = self.bb.get_source()
-        self.assertEqual(out, '')
+        self.assertEqual(self.bb.source, '')
         
     def test_indent(self):
         bb = self.bb # shorthand
