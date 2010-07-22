@@ -55,7 +55,7 @@ class FrontendWidget(HistoryConsoleWidget):
     def __init__(self, kernel_manager, parent=None):
         super(FrontendWidget, self).__init__(parent)
 
-        self._blockbreaker = BlockBreaker()
+        self._blockbreaker = BlockBreaker(input_mode='replace')
         self._call_tip_widget = CallTipWidget(self)
         self._completion_lexer = CompletionLexer(PythonLexer())
         self._hidden = True
@@ -122,7 +122,6 @@ class FrontendWidget(HistoryConsoleWidget):
             shown. Returns whether the source executed (i.e., returns True only
             if no more input is necessary).
         """
-        self._blockbreaker.reset()
         self._blockbreaker.push(source)
         executed = self._blockbreaker.interactive_block_ready()
         if executed:
