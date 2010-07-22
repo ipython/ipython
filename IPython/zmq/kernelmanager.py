@@ -16,7 +16,8 @@ from zmq import POLLIN, POLLOUT, POLLERR
 from zmq.eventloop import ioloop
 
 # Local imports.
-from IPython.utils.traitlets import HasTraits, Any, Int, Instance, Str, Type
+from IPython.utils.traitlets import HasTraits, Any, Bool, Int, Instance, Str, \
+    Type
 from session import Session
 
 
@@ -296,6 +297,9 @@ class KernelManager(HasTraits):
     frontend.
     """
 
+    # Whether the kernel manager is currently listening on its channels.
+    is_listening = Bool(False)
+
     # The PyZMQ Context to use for communication with the kernel.
     context = Instance(zmq.Context, ())
 
@@ -320,27 +324,51 @@ class KernelManager(HasTraits):
         for trait in traits:
             setattr(self, trait, traits[trait])
 
-    def start_kernel(self):
-        """Start a localhost kernel. If ports have been specified, use
-        them. Otherwise, choose an open port at random.
+    def start_listening(self):
+        """Start listening on the specified ports. If already listening, raises
+        a RuntimeError.
         """
-        self.sub_channel.start()
-        self.xreq_channel.start()
-        self.rep_channel.start()
+        if self.is_listening:
+            raise RuntimeError("Cannot start listening. Already listening!")
+        else:
+            self.is_listening = True
+            self.sub_channel.start()
+            self.xreq_channel.start()
+            self.rep_channel.start()
+
+    def stop_listening(self):
+        """Stop listening. If not listening, does nothing. """
+        if self.is_listening:
+            self.is_listening = False
+            self.sub_channel.stop()
+            self.xreq_channel.stop()
+            self.rep_channel.stop()
+
+    def start_kernel(self):
+        """Start a localhost kernel. If ports have been specified, use them.
+        Otherwise, choose an open port at random.
+        """
+        # TODO: start a kernel.
+        self.start_listening()
 
     def kill_kernel(self):
         """Kill the running kernel.
         """
-        self.sub_channel.stop()
-        self.xreq_channel.stop()
-        self.rep_channel.stop()
+        # TODO: kill the kernel.
+        self.stop_listening()
 
+    @property
     def is_alive(self):
-        """Is the kernel alive?"""
-        return True
+        """ Returns whether the kernel is alive. """
+        if self.is_listening:
+            # TODO: check if alive.
+            return True
+        else:
+            return False
 
     def signal_kernel(self, signum):
         """Send signum to the kernel."""
+        # TODO: signal the kernel.
 
     #--------------------------------------------------------------------------
     # Channels used for communication with the kernel:
@@ -371,7 +399,7 @@ class KernelManager(HasTraits):
         return self._rep_channel
 
     #--------------------------------------------------------------------------
-    # Channel addresses:
+    # Channel address attributes:
     #--------------------------------------------------------------------------
 
     def get_sub_address(self):
