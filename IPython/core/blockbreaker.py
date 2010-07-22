@@ -91,16 +91,35 @@ class BlockBreaker(object):
     code = None
     # Boolean indicating whether the current block is complete
     is_complete = None
-
+    # Input mode
+    input_mode = 'append'
+    
     # Private attributes
     
     # List
     _buffer = None
     
-    def __init__(self):
+    def __init__(self, input_mode=None):
+        """Create a new BlockBreaker instance.
+
+        Parameters
+        ----------
+        input_mode : str
+
+          One of 'append', 'replace', default is 'append'.  This controls how
+          new inputs are used: in 'append' mode, they are appended to the
+          existing buffer and the whole buffer is compiled; in 'replace' mode,
+          each new input completely replaces all prior inputs.  Replace mode is
+          thus equivalent to prepending a full reset() to every push() call.
+
+          In practice, line-oriented clients likely want to use 'append' mode
+          while block-oriented ones will want to use 'replace'.
+        """
         self._buffer = []
         self.compile = codeop.CommandCompiler()
         self.encoding = get_input_encoding()
+        self.input_mode = BlockBreaker.input_mode if input_mode is None \
+                          else input_mode
 
     def reset(self):
         """Reset the input buffer and associated state."""
@@ -143,6 +162,9 @@ class BlockBreaker(object):
         this value is also stored as an attribute so it can be queried at any
         time.
         """
+        if self.input_mode == 'replace':
+            self.reset()
+        
         # If the source code has leading blanks, add 'if 1:\n' to it
         # this allows execution of indented pasted code. It is tempting
         # to add '\n' at the end of source to run commands like ' a=1'

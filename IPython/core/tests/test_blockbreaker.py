@@ -137,6 +137,14 @@ class BlockBreakerTestCase(unittest.TestCase):
         bb.push('  y=2')
         self.assertEqual(bb.source, 'if 1:\n  x=1\n  y=2\n')
 
+    def test_replace_mode(self):
+        bb = self.bb
+        bb.input_mode = 'replace'
+        bb.push('x=1')
+        self.assertEqual(bb.source, 'x=1\n')
+        bb.push('x=2')
+        self.assertEqual(bb.source, 'x=2\n')
+
     def test_interactive_block_ready(self):
         bb = self.bb
         bb.push('x=1')
@@ -144,7 +152,9 @@ class BlockBreakerTestCase(unittest.TestCase):
 
     def test_interactive_block_ready2(self):
         bb = self.bb
-        bb.push('if 1:\n  x=1')
+        bb.push('if 1:')
+        self.assertFalse(bb.interactive_block_ready())
+        bb.push('  x=1')
         self.assertFalse(bb.interactive_block_ready())
         bb.push('')
         self.assertTrue(bb.interactive_block_ready())
