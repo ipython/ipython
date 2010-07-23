@@ -121,10 +121,10 @@ class ConsoleWidget(QtGui.QPlainTextEdit):
         # Initialize public and protected variables
         self.ansi_codes = True
         self.buffer_size = 500
-        self.continuation_prompt = '> '
         self.gui_completion = True
         self._ansi_processor = QtAnsiCodeProcessor()
         self._completion_widget = CompletionWidget(self)
+        self._continuation_prompt = '> '
         self._executing = False
         self._prompt = ''
         self._prompt_pos = 0
@@ -261,7 +261,7 @@ class ConsoleWidget(QtGui.QPlainTextEdit):
                 if start_line == self._get_prompt_cursor().blockNumber():
                     start_pos += len(self._prompt)
                 else:
-                    start_pos += len(self.continuation_prompt)
+                    start_pos += len(self._continuation_prompt)
                 if shift_down and self._in_buffer(position):
                     self._set_selection(position, start_pos)
                 else:
@@ -271,7 +271,7 @@ class ConsoleWidget(QtGui.QPlainTextEdit):
             elif key == QtCore.Qt.Key_Backspace and not alt_down:
 
                 # Line deletion (remove continuation prompt)
-                len_prompt = len(self.continuation_prompt)
+                len_prompt = len(self._continuation_prompt)
                 if cursor.columnNumber() == len_prompt and \
                         position != self._prompt_pos:
                     cursor.setPosition(position - len_prompt, 
@@ -323,6 +323,18 @@ class ConsoleWidget(QtGui.QPlainTextEdit):
         else:
             cursor.insertText(text)
 
+    def clear(self, keep_input=False):
+        """ Reimplemented to write a new prompt. If 'keep_input' is set,
+            restores the old input buffer when the new prompt is written.
+        """
+        super(ConsoleWidget, self).clear()
+
+        if keep_input:
+            input_buffer = self.input_buffer
+        self._show_prompt()
+        if keep_input:
+            self.input_buffer = input_buffer
+
     def paste(self):
         """ Reimplemented to ensure that text is pasted in the editing region.
         """
@@ -330,8 +342,8 @@ class ConsoleWidget(QtGui.QPlainTextEdit):
         QtGui.QPlainTextEdit.paste(self)
 
     def print_(self, printer):
-        """ Reimplemented to work around bug in PyQt where the C++ level
-            'print_' slot has the wrong signature.
+        """ Reimplemented to work around a bug in PyQt: the C++ level 'print_'
+            slot has the wrong signature.
         """
         QtGui.QPlainTextEdit.print_(self, printer)
 
@@ -363,13 +375,13 @@ class ConsoleWidget(QtGui.QPlainTextEdit):
         input_buffer = str(cursor.selection().toPlainText())
 
         # Strip out continuation prompts
-        return input_buffer.replace('\n' + self.continuation_prompt, '\n')
+        return input_buffer.replace('\n' + self._continuation_prompt, '\n')
 
     def _set_input_buffer(self, string):
         # Add continuation prompts where necessary
         lines = string.splitlines()
         for i in xrange(1, len(lines)):
-            lines[i] = self.continuation_prompt + lines[i]
+            lines[i] = self._continuation_prompt + lines[i]
         string = '\n'.join(lines)
 
         # Replace buffer with new text
@@ -389,7 +401,7 @@ class ConsoleWidget(QtGui.QPlainTextEdit):
             if cursor.blockNumber() == self._get_prompt_cursor().blockNumber():
                 return text[len(self._prompt):]
             else:
-                return text[len(self.continuation_prompt):]
+                return text[len(self._continuation_prompt):]
         else:
             return None
 
@@ -547,18 +559,20 @@ class ConsoleWidget(QtGui.QPlainTextEdit):
         """
         self.setTextCursor(self._get_selection_cursor(start, end))
 
-    def _show_prompt(self, prompt):
-        """ Writes a new prompt at the end of the buffer.
+    def _show_prompt(self, prompt=None):
+        """ Writes a new prompt at the end of the buffer. If 'prompt' is not
+            specified, uses the previous prompt.
         """
-        self.appendPlainText('\n' + prompt)
-        self._prompt = prompt
+        if prompt is not None:
+            self._prompt = prompt
+        self.appendPlainText('\n' + self._prompt)
         self._prompt_pos = self._get_end_cursor().position()
         self._prompt_started()
 
     def _show_continuation_prompt(self):
         """ Writes a new continuation prompt at the end of the buffer.
         """
-        self.appendPlainText(self.continuation_prompt)
+        self.appendPlainText(self._continuation_prompt)
         self._prompt_started()
 
     def _write_text_keeping_prompt(self, text):
@@ -570,7 +584,7 @@ class ConsoleWidget(QtGui.QPlainTextEdit):
         self._prompt_finished()
 
         self.appendPlainText(text)
-        self._show_prompt(self._prompt)
+        self._show_prompt()
         self.input_buffer = input_buffer
 
     def _in_buffer(self, position):

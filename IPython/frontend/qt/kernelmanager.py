@@ -1,4 +1,4 @@
-""" A KernelManager that provides channels that use signals and slots.
+""" Defines a KernelManager that provides signals and slots.
 """
 
 # System library imports.
@@ -7,6 +7,7 @@ from PyQt4 import QtCore
 # IPython imports.
 from IPython.zmq.kernelmanager import KernelManager, SubSocketChannel, \
     XReqSocketChannel, RepSocketChannel
+from util import MetaQObjectHasTraits
 
 
 class QtSubSocketChannel(SubSocketChannel, QtCore.QObject):
@@ -109,10 +110,35 @@ class QtRepSocketChannel(RepSocketChannel, QtCore.QObject):
         RepSocketChannel.__init__(self, *args, **kw)
 
 
-class QtKernelManager(KernelManager):
-    """ A KernelManager that provides channels that use signals and slots.
+class QtKernelManager(KernelManager, QtCore.QObject):
+    """ A KernelManager that provides signals and slots.
     """
 
+    __metaclass__ = MetaQObjectHasTraits
+
+    # Emitted when the kernel manager has started listening.
+    started_listening = QtCore.pyqtSignal()
+
+    # Emitted when the kernel manager has stopped listening.
+    stopped_listening = QtCore.pyqtSignal()
+
+    # Use Qt-specific channel classes that emit signals.
     sub_channel_class = QtSubSocketChannel
     xreq_channel_class = QtXReqSocketChannel
     rep_channel_class = QtRepSocketChannel
+
+    #---------------------------------------------------------------------------
+    # 'KernelManager' interface
+    #---------------------------------------------------------------------------
+    
+    def start_listening(self):
+        """ Reimplemented to emit signal.
+        """
+        super(QtKernelManager, self).start_listening()
+        self.started_listening.emit()
+
+    def stop_listening(self):
+        """ Reimplemented to emit signal.
+        """ 
+        super(QtKernelManager, self).stop_listening()
+        self.stopped_listening.emit()

@@ -26,8 +26,8 @@ class FrontendHighlighter(PygmentsHighlighter):
         """ Highlight a block of text. Reimplemented to highlight selectively.
         """
         if self.highlighting_on:
-            for prompt in (self._frontend._prompt, 
-                           self._frontend.continuation_prompt):
+            for prompt in (self._frontend._continuation_prompt,
+                           self._frontend._prompt):                           
                 if qstring.startsWith(prompt):
                     qstring.remove(0, len(prompt))
                     self._current_offset = len(prompt)
@@ -52,18 +52,20 @@ class FrontendWidget(HistoryConsoleWidget):
     # 'QWidget' interface
     #---------------------------------------------------------------------------
     
-    def __init__(self, kernel_manager, parent=None):
+    def __init__(self, parent=None):
         super(FrontendWidget, self).__init__(parent)
 
+        # ConsoleWidget protected variables.
+        self._continuation_prompt = '... '
+        self._prompt = '>>> '
+
+        # FrontendWidget protected variables.
         self._blockbreaker = BlockBreaker(input_mode='replace')
         self._call_tip_widget = CallTipWidget(self)
         self._completion_lexer = CompletionLexer(PythonLexer())
         self._hidden = True
         self._highlighter = FrontendHighlighter(self)
         self._kernel_manager = None
-
-        self.continuation_prompt = '... '
-        self.kernel_manager = kernel_manager
 
         self.document().contentsChange.connect(self._document_contents_change)
 
@@ -144,10 +146,17 @@ class FrontendWidget(HistoryConsoleWidget):
         return self._kernel_manager
 
     def _set_kernel_manager(self, kernel_manager):
-        """ Sets a new kernel manager, configuring its channels as necessary.
+        """ Disconnect from the current kernel manager (if any) and set a new
+            kernel manager.
         """
-        # Disconnect the old kernel manager.
+        # Disconnect the old kernel manager, if necessary.
         if self._kernel_manager is not None:
+            self._kernel_manager.started_listening.disconnect(
+                self._started_listening)
+            self._kernel_manager.stopped_listening.disconnect(
+                self._stopped_listening)
+
+            # Disconnect the old kernel manager's channels.
             sub = self._kernel_manager.sub_channel
             xreq = self._kernel_manager.xreq_channel
             sub.message_received.disconnect(self._handle_sub)
@@ -155,8 +164,16 @@ class FrontendWidget(HistoryConsoleWidget):
             xreq.complete_reply.disconnect(self._handle_complete_reply)
             xreq.object_info_reply.disconnect(self._handle_object_info_reply)
 
-        # Connect the new kernel manager.
+        # Set the new kernel manager.
         self._kernel_manager = kernel_manager
+        if kernel_manager is None:
+            return
+
+        # Connect the new kernel manager.
+        kernel_manager.started_listening.connect(self._started_listening)
+        kernel_manager.stopped_listening.connect(self._stopped_listening)
+
+        # Connect the new kernel manager's channels.
         sub = kernel_manager.sub_channel
         xreq = kernel_manager.xreq_channel
         sub.message_received.connect(self._handle_sub)
@@ -164,7 +181,10 @@ class FrontendWidget(HistoryConsoleWidget):
         xreq.complete_reply.connect(self._handle_complete_reply)
         xreq.object_info_reply.connect(self._handle_object_info_reply)
         
-        self._show_prompt('>>> ')
+        # Handle the case where the kernel manager started listening before
+        # we connected.
+        if kernel_manager.is_listening:
+            self._started_listening()
 
     kernel_manager = property(_get_kernel_manager, _set_kernel_manager)
 
@@ -256,7 +276,7 @@ class FrontendWidget(HistoryConsoleWidget):
             text = "ERROR: ABORTED\n"
             self.appendPlainText(text)
         self._hidden = True
-        self._show_prompt('>>> ')
+        self._show_prompt()
         self.executed.emit(rep)
 
     def _handle_complete_reply(self, rep):
@@ -274,3 +294,9 @@ class FrontendWidget(HistoryConsoleWidget):
             doc = rep['content']['docstring']
             if doc:
                 self._call_tip_widget.show_tip(doc)
+
+    def _started_listening(self):
+        self.clear()
+
+    def _stopped_listening(self):
+        pass

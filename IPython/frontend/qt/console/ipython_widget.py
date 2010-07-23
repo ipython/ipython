@@ -13,8 +13,8 @@ class IPythonWidget(FrontendWidget):
     # 'FrontendWidget' interface
     #---------------------------------------------------------------------------
     
-    def __init__(self, kernel_manager, parent=None):
-        super(IPythonWidget, self).__init__(kernel_manager, parent)
+    def __init__(self, parent=None):
+        super(IPythonWidget, self).__init__(parent)
 
         self._magic_overrides = {}
 
@@ -87,7 +87,8 @@ if __name__ == '__main__':
 
     # Launch application
     app = QtGui.QApplication([])
-    widget = IPythonWidget(kernel_manager)
+    widget = IPythonWidget()
+    widget.kernel_manager = kernel_manager
     widget.setWindowTitle('Python')
     widget.resize(640, 480)
     widget.show()
