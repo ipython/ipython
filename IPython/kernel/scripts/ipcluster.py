@@ -393,6 +393,21 @@ class LSFEngineSet(PBSEngineSet):
 eid=$(($LSB_JOBINDEX - 1))
 ipengine --logfile=ipengine${eid}.log
 """
+    bsub_wrapper="""#!/bin/sh
+bsub < $1
+"""
+
+    def __init__(self, template_file, queue, **kwargs):
+        self._bsub_wrapper = self._make_bsub_wrapper()
+        self.submit_command = self._bsub_wrapper.name
+        PBSEngineSet.__init__(self,template_file, queue, **kwargs)
+
+    def _make_bsub_wrapper(self):
+        bsub_wrapper = tempfile.NamedTemporaryFile()
+        bsub_wrapper.write(self.bsub_wrapper)
+        bsub_wrapper.file.close()
+        os.chmod(bsub_wrapper.name, stat.S_IRUSR | stat.S_IWUSR | stat.S_IXUSR)
+        return bsub_wrapper
 
 sshx_template="""#!/bin/sh
 "$@" &> /dev/null &
