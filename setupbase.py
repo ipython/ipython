@@ -106,7 +106,7 @@ def find_packages():
     add_package(packages, 'config', tests=True, others=['default','profile'])
     add_package(packages, 'core', tests=True)
     add_package(packages, 'deathrow', tests=True)
-    add_package(packages , 'extensions')
+    add_package(packages, 'extensions')
     add_package(packages, 'external')
     add_package(packages, 'frontend', tests=True)
     # Don't include the cocoa frontend for now as it is not stable
@@ -116,6 +116,8 @@ def find_packages():
         add_package(packages, 'frontend.cocoa.examples.IPython1Sandbox')
         add_package(packages, 'frontend.cocoa.examples.IPython1Sandbox.English.lproj')
     add_package(packages, 'frontend.process')
+    add_package(packages, 'frontend.qt')
+    add_package(packages, 'frontend.qt.console')
     add_package(packages, 'frontend.wx')
     add_package(packages, 'gui')
     add_package(packages, 'gui.wx')
@@ -127,6 +129,7 @@ def find_packages():
     add_package(packages, 'testing', tests=True)
     add_package(packages, 'testing.plugin', tests=False)
     add_package(packages, 'utils', tests=True)
+    add_package(packages, 'zmq')
     return packages
 
 #---------------------------------------------------------------------------
