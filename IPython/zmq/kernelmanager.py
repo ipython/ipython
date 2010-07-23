@@ -41,7 +41,12 @@ class ZmqSocketChannel(Thread):
     def stop(self):
         """ Stop the thread's activity. Returns when the thread terminates.
         """
-        raise NotImplementedError
+        self.join()
+
+        # Allow the thread to be started again.
+        # FIXME: Although this works (and there's no reason why it shouldn't),
+        #        it feels wrong. Is there a cleaner way to achieve this?
+        Thread.__init__(self)
 
     def get_address(self):
         """ Get the channel's address.
@@ -83,7 +88,7 @@ class SubSocketChannel(ZmqSocketChannel):
 
     def stop(self):
         self.ioloop.stop()
-        self.join()
+        super(SubSocketChannel, self).stop()
 
     def _handle_events(self, socket, events):
         # Turn on and off POLLOUT depending on if we have made a request
@@ -181,7 +186,7 @@ class XReqSocketChannel(ZmqSocketChannel):
 
     def stop(self):
         self.ioloop.stop()
-        self.join()
+        super(XReqSocketChannel, self).stop()
 
     def _handle_events(self, socket, events):
         # Turn on and off POLLOUT depending on if we have made a request
@@ -277,9 +282,6 @@ class XReqSocketChannel(ZmqSocketChannel):
 
 
 class RepSocketChannel(ZmqSocketChannel):
-
-    def stop(self):
-        pass
 
     def on_raw_input(self):
         pass
