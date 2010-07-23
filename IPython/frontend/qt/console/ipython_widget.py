@@ -62,21 +62,34 @@ class IPythonWidget(FrontendWidget):
 
 
 if __name__ == '__main__':
-    import sys
+    from IPython.external.argparse import ArgumentParser
     from IPython.frontend.qt.kernelmanager import QtKernelManager
 
+    # Don't let Qt swallow KeyboardInterupts.
+    import signal
+    signal.signal(signal.SIGINT, signal.SIG_DFL)
+
+    # Parse command line arguments.
+    parser = ArgumentParser()
+    parser.add_argument('--ip', type=str, default='127.0.0.1',
+                        help='set the kernel\'s IP address [default localhost]')
+    parser.add_argument('--xreq', type=int, metavar='PORT', default=5575,
+                        help='set the XREQ Channel port [default %(default)i]')
+    parser.add_argument('--sub', type=int, metavar='PORT', default=5576,
+                        help='set the SUB Channel port [default %(default)i]')
+    namespace = parser.parse_args()
+
     # Create KernelManager
-    kernel_manager = QtKernelManager(xreq_address = ('127.0.0.1', 5575),
-                                     sub_address = ('127.0.0.1', 5576),
-                                     rep_address = ('127.0.0.1', 5577))
-    kernel_manager.sub_channel.start()
-    kernel_manager.xreq_channel.start()
+    ip = namespace.ip
+    kernel_manager = QtKernelManager(xreq_address = (ip, namespace.xreq),
+                                     sub_address = (ip, namespace.sub))
+    kernel_manager.start_listening()
 
     # Launch application
-    app = QtGui.QApplication(sys.argv)
+    app = QtGui.QApplication([])
     widget = IPythonWidget(kernel_manager)
     widget.setWindowTitle('Python')
     widget.resize(640, 480)
     widget.show()
-    sys.exit(app.exec_())
+    app.exec_()
     

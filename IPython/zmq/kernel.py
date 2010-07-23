@@ -11,17 +11,20 @@ Things to do:
 * Implement event loop and poll version.
 """
 
+# Standard library imports.
 import __builtin__
 import sys
 import time
 import traceback
-
 from code import CommandCompiler
 
+# System library imports.
 import zmq
 
+# Local imports.
 from session import Session, Message, extract_header
 from completer import KernelCompleter
+
 
 class OutStream(object):
     """A file like object that publishes the stream to a 0MQ PUB socket."""
@@ -267,34 +270,38 @@ class Kernel(object):
                 handler(ident, omsg)
 
 
-def main():
-    c = zmq.Context()
+def bind_port(socket, ip, port):
+    """ Binds the specified ZMQ socket. If the port is less than zero, a random
+    port is chosen. Returns the port that was bound.
+    """
+    connection = 'tcp://%s' % ip
+    if port < 0:
+        port = socket.bind_to_random_port(connection)
+    else:
+        connection += ':%i' % port
+        socket.bind(connection)
+    return port
 
-    ip = '127.0.0.1'
-    port_base = 5575
-    connection = ('tcp://%s' % ip) + ':%i'
-    rep_conn = connection % port_base
-    pub_conn = connection % (port_base+1)
-
+def main(ip='127.0.0.1', rep_port=-1, pub_port=-1):
+    """ Start a kernel on 'ip' (default localhost) at the specified ports. If
+    ports are not specified, they are chosen at random.
+    """
     print >>sys.__stdout__, "Starting the kernel..."
-    print >>sys.__stdout__, "XREP Channel:", rep_conn
-    print >>sys.__stdout__, "PUB Channel:", pub_conn
 
+    context = zmq.Context()
     session = Session(username=u'kernel')
 
-    reply_socket = c.socket(zmq.XREP)
-    reply_socket.bind(rep_conn)
+    reply_socket = context.socket(zmq.XREP)
+    rep_port = bind_port(reply_socket, ip, rep_port)
+    print >>sys.__stdout__, "XREP Channel on port", rep_port
 
-    pub_socket = c.socket(zmq.PUB)
-    pub_socket.bind(pub_conn)
+    pub_socket = context.socket(zmq.PUB)
+    pub_port = bind_port(pub_socket, ip, pub_port)
+    print >>sys.__stdout__, "PUB Channel on port", pub_port
 
-    stdout = OutStream(session, pub_socket, u'stdout')
-    stderr = OutStream(session, pub_socket, u'stderr')
-    sys.stdout = stdout
-    sys.stderr = stderr
-
-    display_hook = DisplayHook(session, pub_socket)
-    sys.displayhook = display_hook
+    sys.stdout = OutStream(session, pub_socket, u'stdout')
+    sys.stderr = OutStream(session, pub_socket, u'stderr')
+    sys.displayhook = DisplayHook(session, pub_socket)
 
     kernel = Kernel(session, reply_socket, pub_socket)
 
@@ -306,6 +313,37 @@ def main():
     print >>sys.__stdout__, "Use Ctrl-\\ (NOT Ctrl-C!) to terminate."
     kernel.start()
 
+def launch_kernel():
+    """ Launches a kernel on this machine and binds its to channels to open
+    ports as it determined by the OS.
+
+    Returns a tuple of form:
+        (kernel_process [Popen], rep_port [int], sub_port [int])
+    """
+    import socket
+    from subprocess import Popen
+
+    # Find some open ports.
+    ports = []
+    for i in xrange(2):
+        sock = socket.socket()
+        sock.bind(('', 0))
+        ports.append(sock)
+    for i, sock in enumerate(ports):
+        port = sock.getsockname()[1]
+        sock.close()
+        ports[i] = port
+    rep_port, sub_port = ports
+
+    # Spawn a kernel.
+    command = 'from IPython.zmq.kernel import main;' \
+              'main(rep_port=%i, pub_port=%i)'
+    proc = Popen([sys.executable, '-c', command % (rep_port, sub_port)])
+
+    return proc, rep_port, sub_port
+
 
 if __name__ == '__main__':
-    main()
+    base_port = 5575
+    main(rep_port = base_port, 
+         pub_port = base_port + 1)
