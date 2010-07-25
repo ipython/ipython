@@ -20,6 +20,14 @@ import nose.tools as nt
 from IPython.core import blockbreaker as BB
 
 #-----------------------------------------------------------------------------
+# Test utilities, just for local use
+#-----------------------------------------------------------------------------
+
+def assemble(block):
+    """Assemble a block into multi-line sub-blocks."""
+    return ['\n'.join(sub_block)+'\n' for sub_block in block]
+
+#-----------------------------------------------------------------------------
 # Tests
 #-----------------------------------------------------------------------------
 def test_spaces():
@@ -74,6 +82,7 @@ class BlockBreakerTestCase(unittest.TestCase):
         self.assertEqual(bb.indent_spaces, 0)
         self.assertEqual(bb.source, '')
         self.assertEqual(bb.code, None)
+        self.assertEqual(bb.is_complete, False)
 
     def test_source(self):
         self.bb._store('1')
@@ -187,3 +196,81 @@ class BlockBreakerTestCase(unittest.TestCase):
         # special-syntax conversion.
         bb.push('run foo')
         self.assertTrue(bb.interactive_block_ready())
+
+    def check_split(self, block_lines, compile=True):
+        blocks = assemble(block_lines)
+        lines = ''.join(blocks)
+        oblock = self.bb.split_blocks(lines)
+        self.assertEqual(oblock, blocks)
+        if compile:
+            for block in blocks:
+                self.bb.compile(block)
+
+    def test_split(self):
+        # All blocks of input we want to test in a list.  The format for each
+        # block is a list of lists, with each inner lists consisting of all the
+        # lines (as single-lines) that should make up a sub-block.
+
+        # Note: do NOT put here sub-blocks that don't compile, as the
+        # check_split() routine makes a final verification pass to check that
+        # each sub_block, as returned by split_blocks(), does compile
+        # correctly.
+        all_blocks = [ [['x=1']],
+
+                       [['x=1'],
+                        ['y=2']],
+
+                       [['x=1'],
+                        ['# a comment'],
+                        ['y=11']],
+
+                       [['if 1:',
+                         '  x=1'],
+                        ['y=3']],
+
+                       [['def f(x):',
+                         '  return x'],
+                        ['x=1']],
+
+                       [['def f(x):',
+                         '  x+=1',
+                         '  ',
+                         '  return x'],
+                        ['x=1']],
+
+                       [['def f(x):',
+                         '  if x>0:',
+                         '    y=1',
+                         '  # a comment',
+                         '  else:',
+                         '    y=4',
+                         ' ',
+                         '  return y'],
+                        ['x=1'],
+                        ['if 1:',
+                         '  y=11'] ],
+                       
+                       [['for i in range(10):'
+                         '  x=i**2']],
+
+                       [['for i in range(10):'
+                         '  x=i**2'],
+                        ['z = 1']],
+                       ]
+        for block_lines in all_blocks:
+            self.check_split(block_lines)
+        
+    def test_split_syntax_errors(self):
+        # Block splitting with invalid syntax
+        all_blocks = [ [['a syntax error']],
+            
+                       [['x=1'],
+                        ['a syntax error']],
+
+                       [['for i in range(10):'
+                         '  an error']],
+                       
+                       ]
+        for block_lines in all_blocks:
+            self.check_split(block_lines, compile=False)
+        

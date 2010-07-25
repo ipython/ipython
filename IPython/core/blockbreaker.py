@@ -83,6 +83,8 @@ class BlockBreaker(object):
     compile = None
     # Number of spaces of indentation
     indent_spaces = 0
+    # Mark when input has changed indentation all the way back to flush-left
+    full_dedent = False
     # String, indicating the default input encoding
     encoding = ''
     # String where the current full source input is stored, properly encoded
@@ -127,6 +129,8 @@ class BlockBreaker(object):
         self._buffer[:] = []
         self.source = ''
         self.code = None
+        self.is_complete = False
+        self.full_dedent = False
 
     def source_reset(self):
         """Return the input source and perform a full reset.
@@ -173,6 +177,8 @@ class BlockBreaker(object):
         # exception is raised in compilation, we don't mislead by having
         # inconsistent code/source attributes.
         self.code, self.is_complete = None, None
+
+        self._update_indent(lines)
         try:
             self.code = self.compile(source)
         # Invalid syntax can produce any of a number of different errors from
@@ -180,13 +186,13 @@ class BlockBreaker(object):
         # immediately produce a 'ready' block, so the invalid Python can be
         # sent to the kernel for evaluation with possible ipython
         # special-syntax conversion.
-        except (SyntaxError, OverflowError, ValueError, TypeError, MemoryError):
+        except (SyntaxError, OverflowError, ValueError, TypeError,
+                MemoryError):
             self.is_complete = True
         else:
             # Compilation didn't produce any exceptions (though it may not have
             # given a complete code object)
             self.is_complete = self.code is not None
-            self._update_indent(lines)
 
         return self.is_complete
 
@@ -213,6 +219,10 @@ class BlockBreaker(object):
         Block-oriented frontends that have a separate keyboard event to
         indicate execution should use the :meth:`split_blocks` method instead.
         """
+        #print 'complete?', self.source # dbg
+        #if self.full_dedent:
+        #    True
+            
         if not self.is_complete:
             return False
         if self.indent_spaces==0:
@@ -224,28 +234,129 @@ class BlockBreaker(object):
             return False
 
     def split_blocks(self, lines):
-        """Split a multiline string into multiple input blocks"""
-        raise NotImplementedError
+        """Split a multiline string into multiple input blocks.
+
+        Note: this method starts by performing a full reset().
+        
+        Parameters
+        ----------
+        lines : str
+          A possibly multiline string.
+
+        Returns
+        -------
+        blocks : list
+          A list of strings, each possibly multiline.  Each string corresponds
+          to a single block that can be compiled in 'single' mode (unless it
+          has a syntax error)."""
+
+        # This code is fairly delicate.  If you make any changes here, make
+        # absolutely sure that you do run the full test suite and ALL tests
+        # pass.
+
+        self.reset()
+        blocks = []
+        
+        # Reversed copy so we can use pop() efficiently and consume the input
+        # as a stack
+        lines = lines.splitlines()[::-1]
+        # Outer loop over all input
+        while lines:
+            # Inner loop to build each block
+            while True:
+                # Safety exit from inner loop
+                if not lines:
+                    break
+                # Grab next line but don't push it yet
+                next_line = lines.pop()
+                # Blank/empty lines are pushed as-is
+                if not next_line or next_line.isspace():
+                    self.push(next_line)
+                    continue
+
+                # Check indentation changes caused by the *next* line
+                indent_spaces, full_dedent = self._find_indent(next_line)
+
+                # If the next line causes a dedent, it can be for two differnt
+                # reasons: either an explicit de-dent by the user or a
+                # return/raise/pass statement.  These MUST be handled
+                # separately:
+                #
+                # 1. the first case is only detected when the actual explicit
+                # dedent happens, and that would be the *first* line of a *new*
+                # block.  Thus, we must put the line back into the input buffer
+                # so that it starts a new block on the next pass.
+                #
+                # 2. the second case is detected in the line before the actual
+                # dedent happens, so , we consume the line and we can break out
+                # to start a new block.
+
+                # Case 1, explicit dedent causes a break
+                if full_dedent and not next_line.startswith(' '):
+                    lines.append(next_line)
+                    break
+                
+                # Otherwise any line is pushed
+                self.push(next_line)
+
+                # Case 2, full dedent with full block ready:
+                if full_dedent or \
+                       self.indent_spaces==0 and self.interactive_block_ready():
+                    break
+            # Form the new block with the current source input
+            blocks.append(self.source_reset())
+            
+        return blocks
 
     #------------------------------------------------------------------------
     # Private interface
     #------------------------------------------------------------------------
-    
-    def _update_indent(self, lines):
-        """Keep track of the indent level."""
 
-        for line in remove_comments(lines).splitlines():
+    def _find_indent(self, line):
+        """Compute the new indentation level for a single line.
+
+        Parameters
+        ----------
+        line : str
+          A single new line of non-whitespace, non-comment Python input.
+          
+        Returns
+        -------
+        indent_spaces : int
+          New value for the indent level (it may be equal to self.indent_spaces
+        if indentation doesn't change.
+
+        full_dedent : boolean
+          Whether the new line causes a full flush-left dedent.
+        """
+        indent_spaces = self.indent_spaces
+        full_dedent = self.full_dedent
+        
+        inisp = num_ini_spaces(line)
+        if inisp < indent_spaces:
+            indent_spaces = inisp
+            if indent_spaces <= 0:
+                #print 'Full dedent in text',self.source # dbg
+                full_dedent = True
+
+        if line[-1] == ':':
+            indent_spaces += 4
+        elif dedent_re.match(line):
+            indent_spaces -= 4
+            if indent_spaces <= 0:
+                full_dedent = True
+
+        # Safety
+        if indent_spaces < 0:
+            indent_spaces = 0
+            #print 'safety' # dbg
             
+        return indent_spaces, full_dedent
+        
+    def _update_indent(self, lines):
+        for line in remove_comments(lines).splitlines():
             if line and not line.isspace():
-                if self.code is not None:
-                    inisp = num_ini_spaces(line)
-                    if inisp < self.indent_spaces:
-                        self.indent_spaces = inisp
-
-                if line[-1] == ':':
-                    self.indent_spaces += 4
-                elif dedent_re.match(line):
-                    self.indent_spaces -= 4
+                self.indent_spaces, self.full_dedent = self._find_indent(line)
 
     def _store(self, lines):
         """Store one or more lines of input.
@@ -257,4 +368,8 @@ class BlockBreaker(object):
             self._buffer.append(lines)
         else:
             self._buffer.append(lines+'\n')
+        self._set_source()
+
+    def _set_source(self):
         self.source = ''.join(self._buffer).encode(self.encoding)
+
