@@ -267,8 +267,35 @@ def doctest_time():
     Wall time: 0.00 s
     """
 
+
 def test_doctest_mode():
     "Toggle doctest_mode twice, it should be a no-op and run without error"
     _ip.magic('doctest_mode')
     _ip.magic('doctest_mode')
+
+
+def test_parse_options():
+    """Tests for basic options parsing in magics."""
+    # These are only the most minimal of tests, more should be added later.  At
+    # the very least we check that basic text/unicode calls work OK.
+    nt.assert_equal(_ip.parse_options('foo', '')[1], 'foo')
+    nt.assert_equal(_ip.parse_options(u'foo', '')[1], u'foo')
+
     
+def test_dirops():
+    """Test various directory handling operations."""
+    curpath = lambda :os.path.splitdrive(os.getcwd())[1].replace('\\','/')
+
+    startdir = os.getcwd()
+    ipdir = _ip.ipython_dir
+    try:
+        _ip.magic('cd "%s"' % ipdir)
+        nt.assert_equal(curpath(), ipdir)
+        _ip.magic('cd -')
+        nt.assert_equal(curpath(), startdir)
+        _ip.magic('pushd "%s"' % ipdir)
+        nt.assert_equal(curpath(), ipdir)
+        _ip.magic('popd')
+        nt.assert_equal(curpath(), startdir)
+    finally:
+        os.chdir(startdir)
