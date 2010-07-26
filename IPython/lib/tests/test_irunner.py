@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """Test suite for the irunner module.
 
 Not the most elegant or fine-grained, but it does cover at least the bulk
@@ -13,7 +12,7 @@ import sys
 import unittest
 
 # IPython imports
-from IPython import irunner
+from IPython.lib import irunner
 
 # Testing code begins
 class RunnerTestCase(unittest.TestCase):
@@ -29,12 +28,12 @@ class RunnerTestCase(unittest.TestCase):
         out = self.out.getvalue()
         #out = ''
         # this output contains nasty \r\n lineends, and the initial ipython
-        # banner.  clean it up for comparison
-        output_l = output.split()
-        out_l = out.split()
+        # banner.  clean it up for comparison, removing lines of whitespace
+        output_l = [l for l in output.splitlines() if l and not l.isspace()]
+        out_l = [l for l in out.splitlines() if l and not l.isspace()]
         mismatch  = 0
-        #if len(output_l) != len(out_l):
-        #    self.fail('mismatch in number of lines')
+        if len(output_l) != len(out_l):
+            self.fail('mismatch in number of lines')
         for n in range(len(output_l)):
             # Do a line-by-line comparison
             ol1 = output_l[n].strip()
@@ -53,7 +52,6 @@ class RunnerTestCase(unittest.TestCase):
         """Test the IPython runner."""
         source = """
 print 'hello, this is python'
-
 # some more code
 x=1;y=2
 x+y**2
@@ -99,11 +97,10 @@ In [7]: autocall 0
 Automatic calling is: OFF
 
 In [8]: cos pi
-------------------------------------------------------------
    File "<ipython console>", line 1
      cos pi
           ^
-<type 'exceptions.SyntaxError'>: invalid syntax
+SyntaxError: invalid syntax
 
 
 In [9]: cos(pi)
@@ -163,6 +160,3 @@ hello, this is python
 that's all folks!
 """
         self._test_runner(runner,source,output)
-        
-if __name__ == '__main__':
-    unittest.main()
