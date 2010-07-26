@@ -1,3 +1,0 @@
-# this will fail w/ assertionerror
-cd /
-assert os.getcwd() == '/does/not/exist'
