@@ -287,13 +287,12 @@ def arg_split(s,posix=False):
     function, but with a default of posix=False for splitting, so that quotes
     in inputs are respected."""
 
-    # XXX - there may be unicode-related problems here!!!  I'm not sure that
-    # shlex is truly unicode-safe, so it might be necessary to do
-    #
-    # s = s.encode(sys.stdin.encoding)
-    #
-    # first, to ensure that shlex gets a normal string.  Input from anyone who
-    # knows more about unicode and shlex than I would be good to have here...
+    # Unfortunately, python's shlex module is buggy with unicode input:
+    # http://bugs.python.org/issue1170
+    # At least encoding the input when it's unicode seems to help, but there
+    # may be more problems lurking.  Apparently this is fixed in python3.
+    if isinstance(s, unicode):
+        s = s.encode(sys.stdin.encoding)
     lex = shlex.shlex(s, posix=posix)
     lex.whitespace_split = True
     return list(lex)
