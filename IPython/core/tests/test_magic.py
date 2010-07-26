@@ -299,3 +299,59 @@ def test_dirops():
         nt.assert_equal(curpath(), startdir)
     finally:
         os.chdir(startdir)
+
+
+def check_cpaste(code, should_fail=False):
+    """Execute code via 'cpaste' and ensure it was executed, unless
+    should_fail is set.
+    """
+    _ip.user_ns['code_ran'] = False
+
+    src = StringIO()
+    src.write('\n')
+    src.write(code)
+    src.write('\n--\n')
+    src.seek(0)
+
+    stdin_save = sys.stdin
+    sys.stdin = src
+    
+    try:
+        _ip.magic('cpaste')
+    except:
+        if not should_fail:
+            raise AssertionError("Failure not expected : '%s'" %
+                                 code)
+    else:
+        assert _ip.user_ns['code_ran']
+        if should_fail:
+            raise AssertionError("Failure expected : '%s'" % code)
+    finally:
+        sys.stdin = stdin_save
+
+
+def test_cpaste():
+    """Test cpaste magic"""
+
+    def run():
+        """Marker function: sets a flag when executed.
+        """
+        _ip.user_ns['code_ran'] = True
+        return 'run' # return string so '+ run()' doesn't result in success
+
+    tests = {'pass': ["> > > run()",
+                      ">>> > run()",
+                      "+++ run()",
+                      "++ run()",
+                      "  >>> run()"],
+
+             'fail': ["+ + run()",
+                      " ++ run()"]}
+
+    _ip.user_ns['run'] = run
+
+    for code in tests['pass']:
+        check_cpaste(code)
+
+    for code in tests['fail']:
+        check_cpaste(code, should_fail=True)
