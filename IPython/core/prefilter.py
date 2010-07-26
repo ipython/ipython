@@ -995,7 +995,6 @@ class HelpHandler(PrefilterHandler):
             # Pass any other exceptions through to the normal handler
             return normal_handler.handle(line_info)
         else:
-            raise
             # If the code compiles ok, we should handle it normally
             return normal_handler.handle(line_info)
 
