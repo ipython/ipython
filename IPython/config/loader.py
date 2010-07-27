@@ -19,7 +19,6 @@ Authors
 #-----------------------------------------------------------------------------
 
 import __builtin__
-import os
 import sys
 
 from IPython.external import argparse
