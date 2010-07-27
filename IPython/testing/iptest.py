@@ -104,7 +104,6 @@ have['wx.aui'] = test_for('wx.aui')
 have['zope.interface'] = test_for('zope.interface')
 have['twisted'] = test_for('twisted')
 have['foolscap'] = test_for('foolscap')
-have['objc'] = test_for('objc')
 have['pexpect'] = test_for('pexpect')
 have['gtk'] = test_for('gtk')
 have['gobject'] = test_for('gobject')
@@ -154,7 +153,6 @@ def make_exclude():
     ipjoin = lambda *paths: pjoin('IPython', *paths)
     
     exclusions = [ipjoin('external'),
-                  ipjoin('frontend', 'process', 'winprocess.py'),
                   # Deprecated old Shell and iplib modules, skip to avoid
                   # warnings
                   ipjoin('Shell'),
@@ -175,18 +173,10 @@ def make_exclude():
                   ]
 
     if not have['wx']:
-        exclusions.append(ipjoin('gui'))
-        exclusions.append(ipjoin('frontend', 'wx'))
         exclusions.append(ipjoin('lib', 'inputhookwx'))
 
     if not have['gtk'] or not have['gobject']:
         exclusions.append(ipjoin('lib', 'inputhookgtk'))
-
-    if not have['wx.aui']:
-        exclusions.append(ipjoin('gui', 'wx', 'wxIPython'))
-
-    if not have['objc']:
-        exclusions.append(ipjoin('frontend', 'cocoa'))
 
     # These have to be skipped on win32 because the use echo, rm, cd, etc.
     # See ticket https://bugs.launchpad.net/bugs/366982
@@ -203,15 +193,7 @@ def make_exclude():
     # how we are isolating dependencies in testing.
     if not (have['twisted'] and have['zope.interface'] and have['foolscap']):
         exclusions.extend(
-            [ipjoin('frontend', 'asyncfrontendbase'),
-             ipjoin('frontend', 'prefilterfrontend'),
-             ipjoin('frontend', 'frontendbase'),
-             ipjoin('frontend', 'linefrontendbase'),
-             ipjoin('frontend', 'tests', 'test_linefrontend'),
-             ipjoin('frontend', 'tests', 'test_frontendbase'),
-             ipjoin('frontend', 'tests', 'test_prefilterfrontend'),
-             ipjoin('frontend', 'tests', 'test_asyncfrontendbase'),
-             ipjoin('testing', 'parametric'),
+            [ipjoin('testing', 'parametric'),
              ipjoin('testing', 'util'),
              ipjoin('testing', 'tests', 'test_decorators_trial'),
              ] )
@@ -316,9 +298,6 @@ def make_runners():
                      'scripts', 'testing', 'utils' ]
     # The machinery in kernel needs twisted for real testing
     trial_pkg_names = []
-
-    if have['wx']:
-        nose_pkg_names.append('gui')
 
     # And add twisted ones if conditions are met
     if have['zope.interface'] and have['twisted'] and have['foolscap']:
