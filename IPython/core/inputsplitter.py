@@ -1,12 +1,11 @@
 """Analysis of text input into executable blocks.
 
-This is a simple example of how an interactive terminal-based client can use
-this tool::
+The main class in this module, :class:`InputSplitter`, is designed to break
+input from either interactive, line-by-line environments or block-based ones,
+into standalone blocks that can be executed by Python as 'single' statements
+(thus triggering sys.displayhook).
 
-    bb = BlockBreaker()
-    while not bb.interactive_block_ready():
-        bb.push(raw_input('>>> '))
-    print 'Input source was:\n', bb.source,
+For more details, see the class docstring below.
 """
 #-----------------------------------------------------------------------------
 #  Copyright (C) 2010  The IPython Development Team
@@ -43,6 +42,10 @@ def num_ini_spaces(s):
     Parameters
     ----------
     s : string
+
+    Returns
+    -------
+    n : int
     """
 
     ini_spaces = ini_spaces_re.match(s)
@@ -78,31 +81,64 @@ def get_input_encoding():
 # Classes and functions
 #-----------------------------------------------------------------------------
 
-class BlockBreaker(object):
-    # Command compiler
-    compile = None
-    # Number of spaces of indentation
+class InputSplitter(object):
+    """An object that can split Python source input in executable blocks.
+
+    This object is designed to be used in one of two basic modes:
+
+    1. By feeding it python source line-by-line, using :meth:`push`.  In this
+       mode, it will return on each push whether the currently pushed code
+       could be executed already.  In addition, it provides a method called
+       :meth:`push_accepts_more` that can be used to query whether more input
+       can be pushed into a single interactive block.
+
+    2. By calling :meth:`split_blocks` with a single, multiline Python string,
+       that is then split into blocks each of which can be executed
+       interactively as a single statement.
+
+    This is a simple example of how an interactive terminal-based client can use
+    this tool::
+
+        isp = InputSplitter()
+        while isp.push_accepts_more():
+            indent = ' '*isp.indent_spaces
+            prompt = '>>> ' + indent
+            line = indent + raw_input(prompt)
+            isp.push(line)
+        print 'Input source was:\n', isp.source_reset(),
+    """
+    # Number of spaces of indentation computed from input that has been pushed
+    # so far.  This is the attributes callers should query to get the current
+    # indentation level, in order to provide auto-indent facilities.
     indent_spaces = 0
-    # Mark when input has changed indentation all the way back to flush-left
-    full_dedent = False
-    # String, indicating the default input encoding
+    # String, indicating the default input encoding.  It is computed by default
+    # at initialization time via get_input_encoding(), but it can be reset by a
+    # client with specific knowledge of the encoding.
     encoding = ''
-    # String where the current full source input is stored, properly encoded
+    # String where the current full source input is stored, properly encoded.
+    # Reading this attribute is the normal way of querying the currently pushed
+    # source code, that has been properly encoded.
     source = ''
-    # Code object corresponding to the current source
+    # Code object corresponding to the current source.  It is automatically
+    # synced to the source, so it can be queried at any time to obtain the code
+    # object; it will be None if the source doesn't compile to valid Python.
     code = None
-    # Boolean indicating whether the current block is complete
-    is_complete = None
     # Input mode
     input_mode = 'append'
     
     # Private attributes
     
-    # List
+    # List with lines of input accumulated so far
     _buffer = None
+    # Command compiler
+    _compile = None
+    # Mark when input has changed indentation all the way back to flush-left
+    _full_dedent = False
+    # Boolean indicating whether the current block is complete
+    _is_complete = None
     
     def __init__(self, input_mode=None):
-        """Create a new BlockBreaker instance.
+        """Create a new InputSplitter instance.
 
         Parameters
         ----------
@@ -118,9 +154,9 @@ class BlockBreaker(object):
           while block-oriented ones will want to use 'replace'.
         """
         self._buffer = []
-        self.compile = codeop.CommandCompiler()
+        self._compile = codeop.CommandCompiler()
         self.encoding = get_input_encoding()
-        self.input_mode = BlockBreaker.input_mode if input_mode is None \
+        self.input_mode = InputSplitter.input_mode if input_mode is None \
                           else input_mode
 
     def reset(self):
@@ -129,8 +165,8 @@ class BlockBreaker(object):
         self._buffer[:] = []
         self.source = ''
         self.code = None
-        self.is_complete = False
-        self.full_dedent = False
+        self._is_complete = False
+        self._full_dedent = False
 
     def source_reset(self):
         """Return the input source and perform a full reset.
@@ -145,7 +181,8 @@ class BlockBreaker(object):
         This stores the given lines and returns a status code indicating
         whether the code forms a complete Python block or not.
 
-        Any exceptions generated in compilation are allowed to propagate.
+        Any exceptions generated in compilation are swallowed, but if an
+        exception was produced, the method returns True.
 
         Parameters
         ----------
@@ -157,8 +194,8 @@ class BlockBreaker(object):
         is_complete : boolean
           True if the current input source (the result of the current input
         plus prior inputs) forms a complete Python execution block.  Note that
-        this value is also stored as an attribute so it can be queried at any
-        time.
+        this value is also stored as a private attribute (_is_complete), so it
+        can be queried at any time.
         """
         if self.input_mode == 'replace':
             self.reset()
@@ -173,14 +210,14 @@ class BlockBreaker(object):
         self._store(lines)
         source = self.source
 
-        # Before calling compile(), reset the code object to None so that if an
+        # Before calling _compile(), reset the code object to None so that if an
         # exception is raised in compilation, we don't mislead by having
         # inconsistent code/source attributes.
-        self.code, self.is_complete = None, None
+        self.code, self._is_complete = None, None
 
         self._update_indent(lines)
         try:
-            self.code = self.compile(source)
+            self.code = self._compile(source)
         # Invalid syntax can produce any of a number of different errors from
         # inside the compiler, so we have to catch them all.  Syntax errors
         # immediately produce a 'ready' block, so the invalid Python can be
@@ -188,21 +225,22 @@ class BlockBreaker(object):
         # special-syntax conversion.
         except (SyntaxError, OverflowError, ValueError, TypeError,
                 MemoryError):
-            self.is_complete = True
+            self._is_complete = True
         else:
             # Compilation didn't produce any exceptions (though it may not have
             # given a complete code object)
-            self.is_complete = self.code is not None
+            self._is_complete = self.code is not None
 
-        return self.is_complete
+        return self._is_complete
 
-    def interactive_block_ready(self):
-        """Return whether a block of interactive input is ready for execution.
+    def push_accepts_more(self):
+        """Return whether a block of interactive input can accept more input.
 
         This method is meant to be used by line-oriented frontends, who need to
         guess whether a block is complete or not based solely on prior and
-        current input lines.  The BlockBreaker considers it has a complete
-        interactive block when *all* of the following are true:
+        current input lines.  The InputSplitter considers it has a complete
+        interactive block and will not accept more input only when either a
+        SyntaxError is raised, or *all* of the following are true:
 
         1. The input compiles to a complete statement.
         
@@ -218,21 +256,23 @@ class BlockBreaker(object):
 
         Block-oriented frontends that have a separate keyboard event to
         indicate execution should use the :meth:`split_blocks` method instead.
-        """
-        #print 'complete?', self.source # dbg
-        #if self.full_dedent:
-        #    True
-            
-        if not self.is_complete:
-            return False
-        if self.indent_spaces==0:
-            return True
-        last_line = self.source.splitlines()[-1]
-        if not last_line or last_line.isspace():
-            return True
-        else:
-            return False
 
+        If the current input produces a syntax error, this method immediately
+        returns False but does *not* raise the syntax error exception, as
+        typically clients will want to send invalid syntax to an execution
+        backend which might convert the invalid syntax into valid Python via
+        one of the dynamic IPython mechanisms.
+        """
+            
+        if not self._is_complete:
+            return True
+
+        if self.indent_spaces==0:
+            return False
+        
+        last_line = self.source.splitlines()[-1]
+        return bool(last_line and not last_line.isspace())
+        
     def split_blocks(self, lines):
         """Split a multiline string into multiple input blocks.
 
@@ -275,7 +315,7 @@ class BlockBreaker(object):
                     continue
 
                 # Check indentation changes caused by the *next* line
-                indent_spaces, full_dedent = self._find_indent(next_line)
+                indent_spaces, _full_dedent = self._find_indent(next_line)
 
                 # If the next line causes a dedent, it can be for two differnt
                 # reasons: either an explicit de-dent by the user or a
@@ -292,7 +332,7 @@ class BlockBreaker(object):
                 # to start a new block.
 
                 # Case 1, explicit dedent causes a break
-                if full_dedent and not next_line.startswith(' '):
+                if _full_dedent and not next_line.startswith(' '):
                     lines.append(next_line)
                     break
                 
@@ -300,8 +340,8 @@ class BlockBreaker(object):
                 self.push(next_line)
 
                 # Case 2, full dedent with full block ready:
-                if full_dedent or \
-                       self.indent_spaces==0 and self.interactive_block_ready():
+                if _full_dedent or \
+                       self.indent_spaces==0 and not self.push_accepts_more():
                     break
             # Form the new block with the current source input
             blocks.append(self.source_reset())
@@ -330,7 +370,7 @@ class BlockBreaker(object):
           Whether the new line causes a full flush-left dedent.
         """
         indent_spaces = self.indent_spaces
-        full_dedent = self.full_dedent
+        full_dedent = self._full_dedent
         
         inisp = num_ini_spaces(line)
         if inisp < indent_spaces:
@@ -356,7 +396,7 @@ class BlockBreaker(object):
     def _update_indent(self, lines):
         for line in remove_comments(lines).splitlines():
             if line and not line.isspace():
-                self.indent_spaces, self.full_dedent = self._find_indent(line)
+                self.indent_spaces, self._full_dedent = self._find_indent(line)
 
     def _store(self, lines):
         """Store one or more lines of input.
@@ -372,4 +412,3 @@ class BlockBreaker(object):
 
     def _set_source(self):
         self.source = ''.join(self._buffer).encode(self.encoding)
-

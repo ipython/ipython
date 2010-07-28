@@ -1,0 +1,346 @@
+"""Tests for the inputsplitter module.
+"""
+#-----------------------------------------------------------------------------
+#  Copyright (C) 2010  The IPython Development Team
+#
+#  Distributed under the terms of the BSD License.  The full license is in
+#  the file COPYING, distributed as part of this software.
+#-----------------------------------------------------------------------------
+
+#-----------------------------------------------------------------------------
+# Imports
+#-----------------------------------------------------------------------------
+# stdlib
+import unittest
+
+# Third party
+import nose.tools as nt
+
+# Our own
+from IPython.core import inputsplitter as isp
+
+#-----------------------------------------------------------------------------
+# Semi-complete examples (also used as tests)
+#-----------------------------------------------------------------------------
+def mini_interactive_loop(raw_input):
+    """Minimal example of the logic of an interactive interpreter loop.
+
+    This serves as an example, and it is used by the test system with a fake
+    raw_input that simulates interactive input."""
+
+    from IPython.core.inputsplitter import InputSplitter
+    
+    isp = InputSplitter()
+    # In practice, this input loop would be wrapped in an outside loop to read
+    # input indefinitely, until some exit/quit command was issued.  Here we
+    # only illustrate the basic inner loop.
+    while isp.push_accepts_more():
+        indent = ' '*isp.indent_spaces
+        prompt = '>>> ' + indent
+        line = indent + raw_input(prompt)
+        isp.push(line)
+
+    # Here we just return input so we can use it in a test suite, but a real
+    # interpreter would instead send it for execution somewhere.
+    src = isp.source_reset()
+    print 'Input source was:\n', src
+    return src
+
+#-----------------------------------------------------------------------------
+# Test utilities, just for local use
+#-----------------------------------------------------------------------------
+
+def assemble(block):
+    """Assemble a block into multi-line sub-blocks."""
+    return ['\n'.join(sub_block)+'\n' for sub_block in block]
+
+
+def pseudo_input(lines):
+    """Return a function that acts like raw_input but feeds the input list."""
+    ilines = iter(lines)
+    def raw_in(prompt):
+        try:
+            return next(ilines)
+        except StopIteration:
+            return ''
+    return raw_in
+
+#-----------------------------------------------------------------------------
+# Tests
+#-----------------------------------------------------------------------------
+def test_spaces():
+    tests = [('', 0),
+             (' ', 1),
+             ('\n', 0),
+             (' \n', 1),
+             ('x', 0),
+             (' x', 1),
+             ('  x',2),
+             ('    x',4),
+             # Note: tabs are counted as a single whitespace!
+             ('\tx', 1),
+             ('\t x', 2),
+             ]
+    
+    for s, nsp in tests:
+        nt.assert_equal(isp.num_ini_spaces(s), nsp)
+
+
+def test_remove_comments():
+    tests = [('text', 'text'),
+             ('text # comment', 'text '),
+             ('text # comment\n', 'text \n'),
+             ('text # comment \n', 'text \n'),
+             ('line # c \nline\n','line \nline\n'),
+             ('line # c \nline#c2  \nline\nline #c\n\n',
+              'line \nline\nline\nline \n\n'),
+             ]
+
+    for inp, out in tests:
+        nt.assert_equal(isp.remove_comments(inp), out)
+
+
+def test_get_input_encoding():
+    encoding = isp.get_input_encoding()
+    nt.assert_true(isinstance(encoding, basestring))
+    # simple-minded check that at least encoding a simple string works with the
+    # encoding we got.
+    nt.assert_equal('test'.encode(encoding), 'test')
+
+
+class InputSplitterTestCase(unittest.TestCase):
+    def setUp(self):
+        self.isp = isp.InputSplitter()
+
+    def test_reset(self):
+        isp = self.isp
+        isp.push('x=1')
+        isp.reset()
+        self.assertEqual(isp._buffer, [])
+        self.assertEqual(isp.indent_spaces, 0)
+        self.assertEqual(isp.source, '')
+        self.assertEqual(isp.code, None)
+        self.assertEqual(isp._is_complete, False)
+
+    def test_source(self):
+        self.isp._store('1')
+        self.isp._store('2')
+        self.assertEqual(self.isp.source, '1\n2\n')
+        self.assertTrue(len(self.isp._buffer)>0)
+        self.assertEqual(self.isp.source_reset(), '1\n2\n')
+        self.assertEqual(self.isp._buffer, [])
+        self.assertEqual(self.isp.source, '')
+        
+    def test_indent(self):
+        isp = self.isp # shorthand
+        isp.push('x=1')
+        self.assertEqual(isp.indent_spaces, 0)
+        isp.push('if 1:\n    x=1')
+        self.assertEqual(isp.indent_spaces, 4)
+        isp.push('y=2\n')
+        self.assertEqual(isp.indent_spaces, 0)
+        isp.push('if 1:')
+        self.assertEqual(isp.indent_spaces, 4)
+        isp.push('    x=1')
+        self.assertEqual(isp.indent_spaces, 4)
+        # Blank lines shouldn't change the indent level
+        isp.push(' '*2)
+        self.assertEqual(isp.indent_spaces, 4)
+
+    def test_indent2(self):
+        isp = self.isp
+        # When a multiline statement contains parens or multiline strings, we
+        # shouldn't get confused.
+        isp.push("if 1:")
+        isp.push("    x = (1+\n    2)")
+        self.assertEqual(isp.indent_spaces, 4)
+
+    def test_dedent(self):
+        isp = self.isp # shorthand
+        isp.push('if 1:')
+        self.assertEqual(isp.indent_spaces, 4)
+        isp.push('    pass')
+        self.assertEqual(isp.indent_spaces, 0)
+        
+    def test_push(self):
+        isp = self.isp
+        self.assertTrue(isp.push('x=1'))
+
+    def test_push2(self):
+        isp = self.isp
+        self.assertFalse(isp.push('if 1:'))
+        for line in ['  x=1', '# a comment', '  y=2']:
+            self.assertTrue(isp.push(line))
+            
+    def test_push3(self):
+        """Test input with leading whitespace"""
+        isp = self.isp
+        isp.push('  x=1')
+        isp.push('  y=2')
+        self.assertEqual(isp.source, 'if 1:\n  x=1\n  y=2\n')
+
+    def test_replace_mode(self):
+        isp = self.isp
+        isp.input_mode = 'replace'
+        isp.push('x=1')
+        self.assertEqual(isp.source, 'x=1\n')
+        isp.push('x=2')
+        self.assertEqual(isp.source, 'x=2\n')
+
+    def test_push_accepts_more(self):
+        isp = self.isp
+        isp.push('x=1')
+        self.assertFalse(isp.push_accepts_more())
+
+    def test_push_accepts_more2(self):
+        isp = self.isp
+        isp.push('if 1:')
+        self.assertTrue(isp.push_accepts_more())
+        isp.push('  x=1')
+        self.assertTrue(isp.push_accepts_more())
+        isp.push('')
+        self.assertFalse(isp.push_accepts_more())
+        
+    def test_push_accepts_more3(self):
+        isp = self.isp
+        isp.push("x = (2+\n3)")
+        self.assertFalse(isp.push_accepts_more())
+
+    def test_push_accepts_more4(self):
+        isp = self.isp
+        # When a multiline statement contains parens or multiline strings, we
+        # shouldn't get confused.
+        # FIXME: we should be able to better handle de-dents in statements like
+        # multiline strings and multiline expressions (continued with \ or
+        # parens).  Right now we aren't handling the indentation tracking quite
+        # correctly with this, though in practice it may not be too much of a
+        # problem.  We'll need to see.
+        isp.push("if 1:")
+        isp.push("    x = (2+")
+        isp.push("    3)")
+        self.assertTrue(isp.push_accepts_more())
+        isp.push("    y = 3")
+        self.assertTrue(isp.push_accepts_more())
+        isp.push('')
+        self.assertFalse(isp.push_accepts_more())
+
+    def test_syntax_error(self):
+        isp = self.isp
+        # Syntax errors immediately produce a 'ready' block, so the invalid
+        # Python can be sent to the kernel for evaluation with possible ipython
+        # special-syntax conversion.
+        isp.push('run foo')
+        self.assertFalse(isp.push_accepts_more())
+
+    def check_split(self, block_lines, compile=True):
+        blocks = assemble(block_lines)
+        lines = ''.join(blocks)
+        oblock = self.isp.split_blocks(lines)
+        self.assertEqual(oblock, blocks)
+        if compile:
+            for block in blocks:
+                self.isp._compile(block)
+
+    def test_split(self):
+        # All blocks of input we want to test in a list.  The format for each
+        # block is a list of lists, with each inner lists consisting of all the
+        # lines (as single-lines) that should make up a sub-block.
+
+        # Note: do NOT put here sub-blocks that don't compile, as the
+        # check_split() routine makes a final verification pass to check that
+        # each sub_block, as returned by split_blocks(), does compile
+        # correctly.
+        all_blocks = [ [['x=1']],
+
+                       [['x=1'],
+                        ['y=2']],
+
+                       [['x=1'],
+                        ['# a comment'],
+                        ['y=11']],
+
+                       [['if 1:',
+                         '  x=1'],
+                        ['y=3']],
+
+                       [['def f(x):',
+                         '  return x'],
+                        ['x=1']],
+
+                       [['def f(x):',
+                         '  x+=1',
+                         '  ',
+                         '  return x'],
+                        ['x=1']],
+
+                       [['def f(x):',
+                         '  if x>0:',
+                         '    y=1',
+                         '  # a comment',
+                         '  else:',
+                         '    y=4',
+                         ' ',
+                         '  return y'],
+                        ['x=1'],
+                        ['if 1:',
+                         '  y=11'] ],
+                       
+                       [['for i in range(10):'
+                         '  x=i**2']],
+
+                       [['for i in range(10):'
+                         '  x=i**2'],
+                        ['z = 1']],
+                       ]
+        for block_lines in all_blocks:
+            self.check_split(block_lines)
+        
+    def test_split_syntax_errors(self):
+        # Block splitting with invalid syntax
+        all_blocks = [ [['a syntax error']],
+            
+                       [['x=1'],
+                        ['a syntax error']],
+
+                       [['for i in range(10):'
+                         '  an error']],
+                       
+                       ]
+        for block_lines in all_blocks:
+            self.check_split(block_lines, compile=False)
+
+
+class InteractiveLoopTestCase(unittest.TestCase):
+    """Tests for an interactive loop like a python shell.
+    """
+    def check_ns(self, lines, ns):
+        """Validate that the given input lines produce the resulting namespace.
+
+        Note: the input lines are given exactly as they would be typed in an
+        auto-indenting environment, as mini_interactive_loop above already does
+        auto-indenting and prepends spaces to the input.
+        """
+        src = mini_interactive_loop(pseudo_input(lines))
+        test_ns = {}
+        exec src in test_ns
+        # We can't check that the provided ns is identical to the test_ns,
+        # because Python fills test_ns with extra keys (copyright, etc).  But
+        # we can check that the given dict is *contained* in test_ns
+        for k,v in ns.items():
+            self.assertEqual(test_ns[k], v)
+        
+    def test_simple(self):
+        self.check_ns(['x=1'], dict(x=1))
+
+    def test_simple2(self):
+        self.check_ns(['if 1:', 'x=2'], dict(x=2))
+
+    def test_xy(self):
+        self.check_ns(['x=1; y=2'], dict(x=1, y=2))
+
+    def test_abc(self):
+        self.check_ns(['if 1:','a=1','b=2','c=3'], dict(a=1, b=2, c=3))
+    
+    def test_multi(self):
+        self.check_ns(['x =(1+','1+','2)'], dict(x=4))
+    
