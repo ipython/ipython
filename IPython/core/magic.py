@@ -1126,32 +1126,40 @@ Currently the magic system has the following functions:\n"""
 
         Examples
         --------
+
+        We first fully reset the namespace so your output looks identical to
+        this example for pedagogical reasons; in practice you do not need a
+        full reset.
         
-        In [1]: a=1; b=2; c=3; b1m=4; b2m=5; b3m=6; b4m=7; b2s=8
+        In [1]: %reset -f
 
-        In [2]: who_ls
-        Out[2]: ['a', 'b', 'b1', 'b1m', 'b2m', 'b2s', 'b3m', 'b4m', 'c']
+        Now, with a clean namespace we can make a few variables and use
+        %reset_selective to only delete names that match our regexp:
 
-        In [3]: %reset_selective -f b[2-3]m
+        In [2]: a=1; b=2; c=3; b1m=4; b2m=5; b3m=6; b4m=7; b2s=8
 
-        In [4]: who_ls
-        Out[4]: ['a', 'b', 'b1', 'b1m', 'b2s', 'c']
+        In [3]: who_ls
+        Out[3]: ['a', 'b', 'b1m', 'b2m', 'b2s', 'b3m', 'b4m', 'c']
 
-        In [5]: %reset_selective -f d
+        In [4]: %reset_selective -f b[2-3]m
 
-        In [6]: who_ls
-        Out[6]: ['a', 'b', 'b1', 'b1m', 'b2s', 'c']
+        In [5]: who_ls
+        Out[5]: ['a', 'b', 'b1m', 'b2s', 'b4m', 'c']
 
-        In [7]: %reset_selective -f c
-        
-        In [8]: who_ls
-        Out[8]:['a', 'b', 'b1', 'b1m', 'b2s']  
+        In [6]: %reset_selective -f d
 
-        In [9]: %reset_selective -f b
-        
-        In [10]: who_ls        
-        Out[10]: ['a']
-        
+        In [7]: who_ls
+        Out[7]: ['a', 'b', 'b1m', 'b2s', 'b4m', 'c']
+
+        In [8]: %reset_selective -f c
+
+        In [9]: who_ls
+        Out[9]: ['a', 'b', 'b1m', 'b2s', 'b4m']
+
+        In [10]: %reset_selective -f b
+
+        In [11]: who_ls
+        Out[11]: ['a']
         """
         
         opts, regex = self.parse_options(parameter_s,'f')

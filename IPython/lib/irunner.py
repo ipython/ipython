@@ -306,8 +306,8 @@ class IPythonRunner(InteractiveRunner):
         args0 = ['--colors','NoColor',
                  '-pi1','In [\\#]: ',
                  '-pi2','   .\\D.: ',
-                 '--noterm-title',
-                 '--no-auto-indent']
+                 '--no-term-title',
+                 '--no-autoindent']
         if args is None: args = args0
         else: args = args0 + args
         prompts = [r'In \[\d+\]: ',r'   \.*: ']

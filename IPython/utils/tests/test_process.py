@@ -18,7 +18,7 @@ import sys
 
 import nose.tools as nt
 
-from IPython.utils.process import find_cmd, FindCmdError
+from IPython.utils.process import find_cmd, FindCmdError, arg_split
 from IPython.testing import decorators as dec
 
 #-----------------------------------------------------------------------------
@@ -59,4 +59,10 @@ def test_find_cmd_fail():
     nt.assert_raises(FindCmdError,find_cmd,'asdfasdf')
 
     
-
+def test_arg_split():
+    """Ensure that argument lines are correctly split like in a shell."""
+    tests = [['hi', ['hi']],
+             [u'hi', [u'hi']],
+             ]
+    for argstr, argv in tests:
+        nt.assert_equal(arg_split(argstr), argv)

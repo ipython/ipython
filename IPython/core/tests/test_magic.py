@@ -267,8 +267,91 @@ def doctest_time():
     Wall time: 0.00 s
     """
 
+
 def test_doctest_mode():
     "Toggle doctest_mode twice, it should be a no-op and run without error"
     _ip.magic('doctest_mode')
     _ip.magic('doctest_mode')
+
+
+def test_parse_options():
+    """Tests for basic options parsing in magics."""
+    # These are only the most minimal of tests, more should be added later.  At
+    # the very least we check that basic text/unicode calls work OK.
+    nt.assert_equal(_ip.parse_options('foo', '')[1], 'foo')
+    nt.assert_equal(_ip.parse_options(u'foo', '')[1], u'foo')
+
     
+def test_dirops():
+    """Test various directory handling operations."""
+    curpath = lambda :os.path.splitdrive(os.getcwd())[1].replace('\\','/')
+
+    startdir = os.getcwd()
+    ipdir = _ip.ipython_dir
+    try:
+        _ip.magic('cd "%s"' % ipdir)
+        nt.assert_equal(curpath(), ipdir)
+        _ip.magic('cd -')
+        nt.assert_equal(curpath(), startdir)
+        _ip.magic('pushd "%s"' % ipdir)
+        nt.assert_equal(curpath(), ipdir)
+        _ip.magic('popd')
+        nt.assert_equal(curpath(), startdir)
+    finally:
+        os.chdir(startdir)
+
+
+def check_cpaste(code, should_fail=False):
+    """Execute code via 'cpaste' and ensure it was executed, unless
+    should_fail is set.
+    """
+    _ip.user_ns['code_ran'] = False
+
+    src = StringIO()
+    src.write('\n')
+    src.write(code)
+    src.write('\n--\n')
+    src.seek(0)
+
+    stdin_save = sys.stdin
+    sys.stdin = src
+    
+    try:
+        _ip.magic('cpaste')
+    except:
+        if not should_fail:
+            raise AssertionError("Failure not expected : '%s'" %
+                                 code)
+    else:
+        assert _ip.user_ns['code_ran']
+        if should_fail:
+            raise AssertionError("Failure expected : '%s'" % code)
+    finally:
+        sys.stdin = stdin_save
+
+
+def test_cpaste():
+    """Test cpaste magic"""
+
+    def run():
+        """Marker function: sets a flag when executed.
+        """
+        _ip.user_ns['code_ran'] = True
+        return 'run' # return string so '+ run()' doesn't result in success
+
+    tests = {'pass': ["> > > run()",
+                      ">>> > run()",
+                      "+++ run()",
+                      "++ run()",
+                      "  >>> run()"],
+
+             'fail': ["+ + run()",
+                      " ++ run()"]}
+
+    _ip.user_ns['run'] = run
+
+    for code in tests['pass']:
+        check_cpaste(code)
+
+    for code in tests['fail']:
+        check_cpaste(code, should_fail=True)

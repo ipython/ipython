@@ -243,3 +243,37 @@ SystemExit                                Traceback (most recent call last)
 <BLANKLINE>
 SystemExit: (2, 'Mode = exit')
     """
+
+
+def test_runlines():
+    import textwrap
+    ip.runlines(['a = 10', 'a+=1'])
+    ip.runlines('assert a == 11\nassert 1')
+
+    nt.assert_equals(ip.user_ns['a'], 11)
+    complex = textwrap.dedent("""
+    if 1:
+        print "hello"
+        if 1:
+            print "world"
+        
+    if 2:
+        print "foo"
+
+    if 3:
+        print "bar"
+
+    if 4:
+        print "bar"
+    
+    """)
+    # Simply verifies that this kind of input is run
+    ip.runlines(complex)
+    
+
+def test_db():
+    """Test the internal database used for variable persistence."""
+    ip.db['__unittest_'] = 12
+    nt.assert_equals(ip.db['__unittest_'], 12)
+    del ip.db['__unittest_']
+    assert '__unittest_' not in ip.db
