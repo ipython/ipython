@@ -293,7 +293,7 @@ class FrontendWidget(HistoryConsoleWidget):
                 cursor.position() == self._calltip_pos:
             doc = rep['content']['docstring']
             if doc:
-                self._call_tip_widget.show_tip(doc)
+                self._call_tip_widget.show_docstring(doc)
 
     def _started_listening(self):
         self.clear()

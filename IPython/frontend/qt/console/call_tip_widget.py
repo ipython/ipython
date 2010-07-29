@@ -1,3 +1,7 @@
+# Standard library imports
+import re
+from textwrap import dedent
+
 # System library imports
 from PyQt4 import QtCore, QtGui
 
@@ -56,6 +60,17 @@ class CallTipWidget(QtGui.QLabel):
     #--------------------------------------------------------------------------
     # 'CallTipWidget' interface
     #--------------------------------------------------------------------------
+
+    def show_docstring(self, doc, maxlines=20):
+        """ Attempts to show the specified docstring at the current cursor
+            location. The docstring is dedented and possibly truncated for
+            length.
+        """
+        doc = dedent(doc.rstrip()).lstrip()
+        match = re.match("(?:[^\n]*\n){%i}" % maxlines, doc)
+        if match:
+            doc = doc[:match.end()] + '\n[Documentation continues...]'
+        return self.show_tip(doc)
 
     def show_tip(self, tip):
         """ Attempts to show the specified tip at the current cursor location.
