@@ -62,35 +62,35 @@ class IPythonWidget(FrontendWidget):
 
 
 if __name__ == '__main__':
-    from IPython.external.argparse import ArgumentParser
+    import signal
     from IPython.frontend.qt.kernelmanager import QtKernelManager
 
-    # Don't let Qt swallow KeyboardInterupts.
-    import signal
-    signal.signal(signal.SIGINT, signal.SIG_DFL)
-
-    # Parse command line arguments.
-    parser = ArgumentParser()
-    parser.add_argument('--ip', type=str, default='127.0.0.1',
-                        help='set the kernel\'s IP address [default localhost]')
-    parser.add_argument('--xreq', type=int, metavar='PORT', default=5575,
-                        help='set the XREQ Channel port [default %(default)i]')
-    parser.add_argument('--sub', type=int, metavar='PORT', default=5576,
-                        help='set the SUB Channel port [default %(default)i]')
-    namespace = parser.parse_args()
-
-    # Create KernelManager
-    ip = namespace.ip
-    kernel_manager = QtKernelManager(xreq_address = (ip, namespace.xreq),
-                                     sub_address = (ip, namespace.sub))
+    # Create a KernelManager.
+    kernel_manager = QtKernelManager()
+    kernel_manager.start_kernel()
     kernel_manager.start_listening()
 
-    # Launch application
+    # Don't let Qt or ZMQ swallow KeyboardInterupts.
+    # FIXME: Gah, ZMQ swallows even custom signal handlers. So for now we leave 
+    #        behind a kernel process when Ctrl-C is pressed.
+    #def sigint_hook(signum, frame):
+    #    QtGui.qApp.quit()
+    #signal.signal(signal.SIGINT, sigint_hook)
+    signal.signal(signal.SIGINT, signal.SIG_DFL)
+
+    # Create the application, making sure to clean up nicely when we exit.
     app = QtGui.QApplication([])
+    def quit_hook():
+        kernel_manager.stop_listening()
+        kernel_manager.kill_kernel()
+    app.aboutToQuit.connect(quit_hook)
+
+    # Launch the application.
     widget = IPythonWidget()
     widget.kernel_manager = kernel_manager
     widget.setWindowTitle('Python')
     widget.resize(640, 480)
     widget.show()
     app.exec_()
+
     

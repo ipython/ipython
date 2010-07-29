@@ -6,6 +6,7 @@ TODO: Create logger to handle debugging and console messages.
 
 # Standard library imports.
 from Queue import Queue, Empty
+from subprocess import Popen
 from threading import Thread
 import time
 import traceback
@@ -18,7 +19,11 @@ from zmq.eventloop import ioloop
 # Local imports.
 from IPython.utils.traitlets import HasTraits, Any, Bool, Int, Instance, Str, \
     Type
+from kernel import launch_kernel
 from session import Session
+
+# Constants.
+LOCALHOST = '127.0.0.1'
 
 
 class MissingHandlerError(Exception):
@@ -49,19 +54,22 @@ class ZmqSocketChannel(Thread):
         Thread.__init__(self)
 
     def get_address(self):
-        """ Get the channel's address.
+        """ Get the channel's address. By the default, a channel is on 
+            localhost with no port specified (a negative port number).
         """
         return self._address
 
     def set_adresss(self, address):
         """ Set the channel's address. Should be a tuple of form:
-                (ip address [str], port [int])
-            or 'None' to indicate that no address has been specified.
+                (ip address [str], port [int]).
+            or None, in which case the address is reset to its default value.
         """
         # FIXME: Validate address.
         if self.is_alive():
             raise RuntimeError("Cannot set address on a running channel!")
         else:
+            if address is None:
+                address = (LOCALHOST, -1)
             self._address = address
 
     address = property(get_address, set_adresss)
@@ -314,6 +322,7 @@ class KernelManager(HasTraits):
     rep_channel_class = Type(RepSocketChannel)
     
     # Protected traits.
+    _kernel = Instance(Popen)
     _sub_channel = Any
     _xreq_channel = Any
     _rep_channel = Any
@@ -347,17 +356,26 @@ class KernelManager(HasTraits):
             self.rep_channel.stop()
 
     def start_kernel(self):
-        """Start a localhost kernel. If ports have been specified, use them.
-        Otherwise, choose an open port at random.
+        """Start a localhost kernel. If ports have been specified via the
+        address attributes, use them. Otherwise, choose open ports at random.
         """
-        # TODO: start a kernel.
-        self.start_listening()
+        xreq, sub = self.xreq_address, self.sub_address
+        if xreq[0] != LOCALHOST or sub[0] != LOCALHOST:
+            raise RuntimeError("Can only launch a kernel on localhost."
+                               "Make sure that the '*_address' attributes are "
+                               "configured properly.")
+
+        self._kernel, xrep, pub = launch_kernel(xrep_port=xreq[1], 
+                                                pub_port=sub[1])
+        self.xreq_address = (LOCALHOST, xrep)
+        self.sub_address = (LOCALHOST, pub)
 
     def kill_kernel(self):
-        """Kill the running kernel.
+        """Kill the running kernel, if there is one.
         """
-        # TODO: kill the kernel.
-        self.stop_listening()
+        if self._kernel:
+            self._kernel.kill()
+            self._kernel = None
 
     @property
     def is_alive(self):
