@@ -1,5 +1,6 @@
 # Standard library imports
 import re
+import sys
 
 # System library imports
 from PyQt4 import QtCore, QtGui
@@ -118,7 +119,7 @@ class ConsoleWidget(QtGui.QPlainTextEdit):
     def __init__(self, parent=None):
         QtGui.QPlainTextEdit.__init__(self, parent)
 
-        # Initialize public and protected variables
+        # Initialize public and protected variables.
         self.ansi_codes = True
         self.buffer_size = 500
         self.gui_completion = True
@@ -130,14 +131,10 @@ class ConsoleWidget(QtGui.QPlainTextEdit):
         self._prompt_pos = 0
         self._reading = False
 
-        # Set a monospaced font
-        point_size = QtGui.QApplication.font().pointSize()
-        font = QtGui.QFont('Monospace', point_size)
-        font.setStyleHint(QtGui.QFont.TypeWriter)
-        self._completion_widget.setFont(font)
-        self.document().setDefaultFont(font)
+        # Set a monospaced font.
+        self.reset_font()
 
-        # Define a custom context menu
+        # Define a custom context menu.
         self._context_menu = QtGui.QMenu(self)
 
         copy_action = QtGui.QAction('Copy', self)
@@ -362,7 +359,9 @@ class ConsoleWidget(QtGui.QPlainTextEdit):
         return self._execute(interactive=interactive)
 
     def _get_input_buffer(self):
-        # If we're executing, the input buffer may not even exist anymore due
+        """ The text that the user has entered entered at the current prompt.
+        """
+        # If we're executing, the input buffer may not even exist anymore due to
         # the limit imposed by 'buffer_size'. Therefore, we store it.
         if self._executing:
             return self._executing_input_buffer
@@ -374,17 +373,19 @@ class ConsoleWidget(QtGui.QPlainTextEdit):
         # out the Unicode line break characters that Qt insists on inserting.
         input_buffer = str(cursor.selection().toPlainText())
 
-        # Strip out continuation prompts
+        # Strip out continuation prompts.
         return input_buffer.replace('\n' + self._continuation_prompt, '\n')
 
     def _set_input_buffer(self, string):
-        # Add continuation prompts where necessary
+        """ Replaces the text in the input buffer with 'string'.
+        """
+        # Add continuation prompts where necessary.
         lines = string.splitlines()
         for i in xrange(1, len(lines)):
             lines[i] = self._continuation_prompt + lines[i]
         string = '\n'.join(lines)
 
-        # Replace buffer with new text
+        # Replace buffer with new text.
         cursor = self._get_end_cursor()
         cursor.setPosition(self._prompt_pos, QtGui.QTextCursor.KeepAnchor)
         cursor.insertText(string)
@@ -393,6 +394,9 @@ class ConsoleWidget(QtGui.QPlainTextEdit):
     input_buffer = property(_get_input_buffer, _set_input_buffer)
 
     def _get_input_buffer_cursor_line(self):
+        """ The text in the line of the input buffer in which the user's cursor
+            rests. Returns a string if there is such a line; otherwise, None.
+        """
         if self._executing:
             return None
         cursor = self.textCursor()
@@ -407,6 +411,32 @@ class ConsoleWidget(QtGui.QPlainTextEdit):
 
     input_buffer_cursor_line = property(_get_input_buffer_cursor_line)
 
+    def _get_font(self):
+        """ The base font being used by the ConsoleWidget.
+        """
+        return self.document().defaultFont()
+
+    def _set_font(self, font):
+        """ Sets the base font for the ConsoleWidget to the specified QFont.
+        """
+        self._completion_widget.setFont(font)
+        self.document().setDefaultFont(font)
+
+    font = property(_get_font, _set_font)
+
+    def reset_font(self):
+        """ Sets the font to the default fixed-width font for this platform.
+        """
+        if sys.platform == 'win32':
+            name = 'Courier'
+        elif sys.platform == 'darwin':
+            name = 'Monaco'
+        else:
+            name = 'Monospace'
+        font = QtGui.QFont(name, QtGui.qApp.font().pointSize())
+        font.setStyleHint(QtGui.QFont.TypeWriter)
+        self._set_font(font)
+        
     #---------------------------------------------------------------------------
     # 'ConsoleWidget' abstract interface
     #---------------------------------------------------------------------------
