@@ -163,9 +163,13 @@ class ConsoleWidget(QtGui.QPlainTextEdit):
     def event(self, event):
         """ Reimplemented to override shortcuts, if necessary.
         """
+        # On Mac OS, it is always unnecessary to override shortcuts, hence the
+        # check below. Users should just use the Control key instead of the
+        # Command key.
         if self.override_shortcuts and \
+                sys.platform != 'darwin' and \
                 event.type() == QtCore.QEvent.ShortcutOverride and \
-                event.modifiers() & QtCore.Qt.ControlModifier and \
+                self._control_down(event.modifiers()) and \
                 event.key() in self._ctrl_down_remap:
             event.accept()
             return True
@@ -192,7 +196,7 @@ class ConsoleWidget(QtGui.QPlainTextEdit):
         cursor = self.textCursor()
         position = cursor.position()
         key = event.key()
-        ctrl_down = event.modifiers() & QtCore.Qt.ControlModifier
+        ctrl_down = self._control_down(event.modifiers())
         alt_down = event.modifiers() & QtCore.Qt.AltModifier
         shift_down = event.modifiers() & QtCore.Qt.ShiftModifier
 
@@ -507,6 +511,20 @@ class ConsoleWidget(QtGui.QPlainTextEdit):
     # 'ConsoleWidget' protected interface
     #--------------------------------------------------------------------------
 
+    def _control_down(self, modifiers):
+        """ Given a KeyboardModifiers flags object, return whether the Control
+            key is down (on Mac OS, treat the Command key as a synonym for
+            Control).
+        """
+        down = bool(modifiers & QtCore.Qt.ControlModifier)
+
+        # Note: on Mac OS, ControlModifier corresponds to the Command key while
+        # MetaModifier corresponds to the Control key.
+        if sys.platform == 'darwin':
+            down = down ^ bool(modifiers & QtCore.Qt.MetaModifier)
+            
+        return down
+    
     def _complete_with_items(self, cursor, items):
         """ Performs completion with 'items' at the specified cursor location.
         """
