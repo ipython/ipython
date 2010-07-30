@@ -37,7 +37,7 @@ class CallTipWidget(QtGui.QLabel):
     def hideEvent(self, event):
         """ Reimplemented to disconnect the cursor movement handler.
         """
-        QtGui.QListWidget.hideEvent(self, event)
+        QtGui.QLabel.hideEvent(self, event)
         self.parent().cursorPositionChanged.disconnect(self._update_tip)
 
     def paintEvent(self, event):
@@ -54,7 +54,7 @@ class CallTipWidget(QtGui.QLabel):
     def showEvent(self, event):
         """ Reimplemented to connect the cursor movement handler.
         """
-        QtGui.QListWidget.showEvent(self, event)
+        QtGui.QLabel.showEvent(self, event)
         self.parent().cursorPositionChanged.connect(self._update_tip)
 
     #--------------------------------------------------------------------------
