@@ -154,18 +154,29 @@ class SubSocketChannel(ZmqSocketChannel):
         """Remove the callback for msg type."""
         self.handlers.pop(msg_type, None)
 
-    def flush(self):
-        """Immediately processes all pending messages on the SUB channel. This
-           method is thread safe.
+    def flush(self, timeout=1.0):
+        """Immediately processes all pending messages on the SUB channel.
+
+        This method is thread safe.
+
+        Parameters
+        ----------
+        timeout : float, optional
+            The maximum amount of time to spend flushing, in seconds. The
+            default is one second.
         """
-        self._flushed = False
-        self.ioloop.add_callback(self._flush)
-        while not self._flushed:
-            time.sleep(0.01)
+        # We do the IOLoop callback process twice to ensure that the IOLoop
+        # gets to perform at least one full poll.
+        stop_time = time.time() + timeout
+        for i in xrange(2):
+            self._flushed = False
+            self.ioloop.add_callback(self._flush)
+            while not self._flushed and time.time() < stop_time:
+                time.sleep(0.01)
         
     def _flush(self):
         """Called in this thread by the IOLoop to indicate that all events have
-           been processed.
+        been processed.
         """
         self._flushed = True
 
