@@ -49,7 +49,7 @@ class FrontendWidget(HistoryConsoleWidget):
     executed = QtCore.pyqtSignal(object)
 
     #---------------------------------------------------------------------------
-    # 'QWidget' interface
+    # 'QObject' interface
     #---------------------------------------------------------------------------
     
     def __init__(self, parent=None):
@@ -68,6 +68,10 @@ class FrontendWidget(HistoryConsoleWidget):
         self._kernel_manager = None
 
         self.document().contentsChange.connect(self._document_contents_change)
+
+    #---------------------------------------------------------------------------
+    # 'QWidget' interface
+    #---------------------------------------------------------------------------
 
     def focusOutEvent(self, event):
         """ Reimplemented to hide calltips.

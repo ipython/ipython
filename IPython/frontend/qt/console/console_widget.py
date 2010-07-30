@@ -125,7 +125,7 @@ class ConsoleWidget(QtGui.QPlainTextEdit):
                          QtCore.Qt.Key_D : QtCore.Qt.Key_Delete, }
 
     #---------------------------------------------------------------------------
-    # 'QWidget' interface
+    # 'QObject' interface
     #---------------------------------------------------------------------------
 
     def __init__(self, parent=None):
@@ -160,15 +160,6 @@ class ConsoleWidget(QtGui.QPlainTextEdit):
         select_all_action.triggered.connect(self.selectAll)
         self._context_menu.addAction(select_all_action)
 
-    def contextMenuEvent(self, event):
-        """ Reimplemented to create a menu without destructive actions like
-            'Cut' and 'Delete'.
-        """
-        clipboard_empty = QtGui.QApplication.clipboard().text().isEmpty()
-        self._paste_action.setEnabled(not clipboard_empty)
-        
-        self._context_menu.exec_(event.globalPos())
-
     def event(self, event):
         """ Reimplemented to override shortcuts, if necessary.
         """
@@ -180,6 +171,19 @@ class ConsoleWidget(QtGui.QPlainTextEdit):
             return True
         else:
             return QtGui.QPlainTextEdit.event(self, event)
+
+    #---------------------------------------------------------------------------
+    # 'QWidget' interface
+    #---------------------------------------------------------------------------
+
+    def contextMenuEvent(self, event):
+        """ Reimplemented to create a menu without destructive actions like
+            'Cut' and 'Delete'.
+        """
+        clipboard_empty = QtGui.QApplication.clipboard().text().isEmpty()
+        self._paste_action.setEnabled(not clipboard_empty)
+        
+        self._context_menu.exec_(event.globalPos())
 
     def keyPressEvent(self, event):
         """ Reimplemented to create a console-like interface.
@@ -662,7 +666,7 @@ class HistoryConsoleWidget(ConsoleWidget):
     """
     
     #---------------------------------------------------------------------------
-    # 'QWidget' interface
+    # 'QObject' interface
     #---------------------------------------------------------------------------
 
     def __init__(self, parent=None):

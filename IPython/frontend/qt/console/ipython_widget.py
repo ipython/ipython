@@ -10,13 +10,17 @@ class IPythonWidget(FrontendWidget):
     """
 
     #---------------------------------------------------------------------------
-    # 'FrontendWidget' interface
+    # 'QObject' interface
     #---------------------------------------------------------------------------
     
     def __init__(self, parent=None):
         super(IPythonWidget, self).__init__(parent)
 
         self._magic_overrides = {}
+
+    #---------------------------------------------------------------------------
+    # 'FrontendWidget' interface
+    #---------------------------------------------------------------------------
 
     def execute_source(self, source, hidden=False, interactive=False):
         """ Reimplemented to override magic commands.
