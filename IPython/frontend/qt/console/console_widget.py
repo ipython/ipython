@@ -100,10 +100,22 @@ class ConsoleWidget(QtGui.QPlainTextEdit):
         handling ANSI escape sequences.
     """
 
-    # Regex to match ANSI escape sequences
+    # Whether to process ANSI escape codes.
+    ansi_codes = True
+
+    # The maximum number of lines of text before truncation.
+    buffer_size = 500
+
+    # Whether to use a CompletionWidget or plain text output for tab completion.
+    gui_completion = True
+
+    # Whether to override ShortcutEvents for the keybindings defined by this
+    # widget (Ctrl+n, Ctrl+a, etc). Enable this if you want this widget to take
+    # priority (when it has focus) over, e.g., window-level menu shortcuts.
+    override_shortcuts = False
+
+    # Protected class variables.
     _ansi_pattern = re.compile('\x01?\x1b\[(.*?)m\x02?')
-    
-    # When ctrl is pressed, map certain keys to other keys (without the ctrl):
     _ctrl_down_remap = { QtCore.Qt.Key_B : QtCore.Qt.Key_Left,
                          QtCore.Qt.Key_F : QtCore.Qt.Key_Right,
                          QtCore.Qt.Key_A : QtCore.Qt.Key_Home,
@@ -119,10 +131,7 @@ class ConsoleWidget(QtGui.QPlainTextEdit):
     def __init__(self, parent=None):
         QtGui.QPlainTextEdit.__init__(self, parent)
 
-        # Initialize public and protected variables.
-        self.ansi_codes = True
-        self.buffer_size = 500
-        self.gui_completion = True
+        # Initialize protected variables.
         self._ansi_processor = QtAnsiCodeProcessor()
         self._completion_widget = CompletionWidget(self)
         self._continuation_prompt = '> '
@@ -159,6 +168,18 @@ class ConsoleWidget(QtGui.QPlainTextEdit):
         self._paste_action.setEnabled(not clipboard_empty)
         
         self._context_menu.exec_(event.globalPos())
+
+    def event(self, event):
+        """ Reimplemented to override shortcuts, if necessary.
+        """
+        if self.override_shortcuts and \
+                event.type() == QtCore.QEvent.ShortcutOverride and \
+                event.modifiers() & QtCore.Qt.ControlModifier and \
+                event.key() in self._ctrl_down_remap:
+            event.accept()
+            return True
+        else:
+            return QtGui.QPlainTextEdit.event(self, event)
 
     def keyPressEvent(self, event):
         """ Reimplemented to create a console-like interface.
