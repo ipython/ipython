@@ -75,7 +75,12 @@ def remove_comments(src):
 
 def get_input_encoding():
     """Return the default standard input encoding."""
-    return getattr(sys.stdin, 'encoding', 'ascii')
+    # There are strange environments for which sys.stdin.encoding is None. We
+    # ensure that a valid encoding is returned.
+    encoding = getattr(sys.stdin, 'encoding', None)
+    if encoding is None:
+        encoding = 'ascii'
+    return encoding
 
 #-----------------------------------------------------------------------------
 # Classes and functions
