@@ -338,16 +338,12 @@ class KernelManager(HasTraits):
     _xreq_channel = Any
     _rep_channel = Any
 
-    def __init__(self, **traits):
-        super(KernelManager, self).__init__()
-
-        # FIXME: This should be the business of HasTraits. The convention is:
-        #        HasTraits.__init__(self, **traits_to_be_initialized.)
-        for trait in traits:
-            setattr(self, trait, traits[trait])
+    #--------------------------------------------------------------------------
+    # Channel management methods:
+    #--------------------------------------------------------------------------
 
     def start_listening(self):
-        """Start listening on the specified ports. If already listening, raises
+        """Starts listening on the specified ports. If already listening, raises
         a RuntimeError.
         """
         if self.is_listening:
@@ -358,36 +354,6 @@ class KernelManager(HasTraits):
             self.xreq_channel.start()
             self.rep_channel.start()
 
-    def stop_listening(self):
-        """Stop listening. If not listening, does nothing. """
-        if self.is_listening:
-            self.is_listening = False
-            self.sub_channel.stop()
-            self.xreq_channel.stop()
-            self.rep_channel.stop()
-
-    def start_kernel(self):
-        """Start a localhost kernel. If ports have been specified via the
-        address attributes, use them. Otherwise, choose open ports at random.
-        """
-        xreq, sub = self.xreq_address, self.sub_address
-        if xreq[0] != LOCALHOST or sub[0] != LOCALHOST:
-            raise RuntimeError("Can only launch a kernel on localhost."
-                               "Make sure that the '*_address' attributes are "
-                               "configured properly.")
-
-        self._kernel, xrep, pub = launch_kernel(xrep_port=xreq[1], 
-                                                pub_port=sub[1])
-        self.xreq_address = (LOCALHOST, xrep)
-        self.sub_address = (LOCALHOST, pub)
-
-    def kill_kernel(self):
-        """Kill the running kernel, if there is one.
-        """
-        if self._kernel:
-            self._kernel.kill()
-            self._kernel = None
-
     @property
     def is_alive(self):
         """ Returns whether the kernel is alive. """
@@ -397,9 +363,74 @@ class KernelManager(HasTraits):
         else:
             return False
 
+    def stop_listening(self):
+        """Stops listening. If not listening, does nothing. """
+        if self.is_listening:
+            self.is_listening = False
+            self.sub_channel.stop()
+            self.xreq_channel.stop()
+            self.rep_channel.stop()
+
+    #--------------------------------------------------------------------------
+    # Kernel process management methods:
+    #--------------------------------------------------------------------------
+
+    def start_kernel(self):
+        """Starts a kernel process and configures the manager to use it.
+
+        If ports have been specified via the address attributes, they are used.
+        Otherwise, open ports are chosen by the OS and the channel port
+        attributes are configured as appropriate.
+        """
+        xreq, sub = self.xreq_address, self.sub_address
+        if xreq[0] != LOCALHOST or sub[0] != LOCALHOST:
+            raise RuntimeError("Can only launch a kernel on localhost."
+                               "Make sure that the '*_address' attributes are "
+                               "configured properly.")
+
+        kernel, xrep, pub = launch_kernel(xrep_port=xreq[1], pub_port=sub[1])
+        self.set_kernel(kernel)
+        self.xreq_address = (LOCALHOST, xrep)
+        self.sub_address = (LOCALHOST, pub)
+
+    def set_kernel(self, kernel):
+        """Sets the kernel manager's kernel to an existing kernel process.
+
+        It is *not* necessary to a set a kernel to communicate with it via the
+        channels, and those objects must be configured separately. It
+        *is* necessary to set a kernel if you want to use the manager (or
+        frontends that use the manager) to signal and/or kill the kernel.
+
+        Parameters:
+        -----------
+        kernel : Popen
+            An existing kernel process.
+        """
+        self._kernel = kernel
+
+    @property
+    def has_kernel(self):
+        """Returns whether a kernel process has been specified for the kernel
+        manager.
+
+        A kernel process can be set via 'start_kernel' or 'set_kernel'.
+        """
+        return self._kernel is not None
+
+    def kill_kernel(self):
+        """ Kill the running kernel. """
+        if self._kernel:
+            self._kernel.kill()
+            self._kernel = None
+        else:
+            raise RuntimeError("Cannot kill kernel. No kernel is running!")
+
     def signal_kernel(self, signum):
-        """Send signum to the kernel."""
-        # TODO: signal the kernel.
+        """ Sends a signal to the kernel. """
+        if self._kernel:
+            self._kernel.send_signal(signum)
+        else:
+            raise RuntimeError("Cannot signal kernel. No kernel is running!")
 
     #--------------------------------------------------------------------------
     # Channels used for communication with the kernel:
@@ -430,7 +461,7 @@ class KernelManager(HasTraits):
         return self._rep_channel
 
     #--------------------------------------------------------------------------
-    # Channel address attributes:
+    # Delegates for the Channel address attributes:
     #--------------------------------------------------------------------------
 
     def get_sub_address(self):
