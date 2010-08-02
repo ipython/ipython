@@ -4,7 +4,7 @@ from PyQt4 import QtCore, QtGui
 import zmq
 
 # Local imports
-from IPython.core.blockbreaker import BlockBreaker
+from IPython.core.inputsplitter import InputSplitter
 from call_tip_widget import CallTipWidget
 from completion_lexer import CompletionLexer
 from console_widget import HistoryConsoleWidget
@@ -60,11 +60,11 @@ class FrontendWidget(HistoryConsoleWidget):
         self._prompt = '>>> '
 
         # FrontendWidget protected variables.
-        self._blockbreaker = BlockBreaker(input_mode='replace')
         self._call_tip_widget = CallTipWidget(self)
         self._completion_lexer = CompletionLexer(PythonLexer())
         self._hidden = True
         self._highlighter = FrontendHighlighter(self)
+        self._input_splitter = InputSplitter(input_mode='replace')
         self._kernel_manager = None
 
         self.document().contentsChange.connect(self._document_contents_change)
@@ -128,14 +128,14 @@ class FrontendWidget(HistoryConsoleWidget):
             shown. Returns whether the source executed (i.e., returns True only
             if no more input is necessary).
         """
-        self._blockbreaker.push(source)
-        executed = self._blockbreaker.interactive_block_ready()
+        self._input_splitter.push(source)
+        executed = not self._input_splitter.push_accepts_more()
         if executed:
             self.kernel_manager.xreq_channel.execute(source)
             self._hidden = hidden
         else:
             self._show_continuation_prompt()
-            self.appendPlainText(' ' * self._blockbreaker.indent_spaces)
+            self.appendPlainText(' ' * self._input_splitter.indent_spaces)
         return executed
 
     def execute_file(self, path, hidden=False):
