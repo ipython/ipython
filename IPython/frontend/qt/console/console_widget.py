@@ -123,6 +123,8 @@ class ConsoleWidget(QtGui.QPlainTextEdit):
                          QtCore.Qt.Key_P : QtCore.Qt.Key_Up,
                          QtCore.Qt.Key_N : QtCore.Qt.Key_Down,
                          QtCore.Qt.Key_D : QtCore.Qt.Key_Delete, }
+    _shortcuts = set(_ctrl_down_remap.keys() +
+                     [ QtCore.Qt.Key_C, QtCore.Qt.Key_V ])
 
     #---------------------------------------------------------------------------
     # 'QObject' interface
@@ -170,7 +172,7 @@ class ConsoleWidget(QtGui.QPlainTextEdit):
                 sys.platform != 'darwin' and \
                 event.type() == QtCore.QEvent.ShortcutOverride and \
                 self._control_down(event.modifiers()) and \
-                event.key() in self._ctrl_down_remap:
+                event.key() in self._shortcuts:
             event.accept()
             return True
         else:
@@ -218,6 +220,9 @@ class ConsoleWidget(QtGui.QPlainTextEdit):
                     cursor.movePosition(QtGui.QTextCursor.EndOfLine,
                                         QtGui.QTextCursor.KeepAnchor)
                     cursor.removeSelectedText()
+                intercepted = True
+
+            elif key == QtCore.Qt.Key_X:
                 intercepted = True
 
             elif key == QtCore.Qt.Key_Y:

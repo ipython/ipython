@@ -1,3 +1,6 @@
+# Standard library imports
+import signal
+
 # System library imports
 from pygments.lexers import PythonLexer
 from PyQt4 import QtCore, QtGui
@@ -77,14 +80,18 @@ class FrontendWidget(HistoryConsoleWidget):
         """ Reimplemented to hide calltips.
         """
         self._call_tip_widget.hide()
-        return super(FrontendWidget, self).focusOutEvent(event)
+        super(FrontendWidget, self).focusOutEvent(event)
 
     def keyPressEvent(self, event):
-        """ Reimplemented to hide calltips.
+        """ Reimplemented to allow calltips to process events and to send
+            signals to the kernel.
         """
-        if event.key() == QtCore.Qt.Key_Escape:
-            self._call_tip_widget.hide()
-        return super(FrontendWidget, self).keyPressEvent(event)
+        if self._executing and event.key() == QtCore.Qt.Key_C and \
+                self._control_down(event.modifiers()):
+            self._interrupt_kernel()
+        else:
+            self._call_tip_widget.keyPressEvent(event)
+            super(FrontendWidget, self).keyPressEvent(event)
 
     #---------------------------------------------------------------------------
     # 'ConsoleWidget' abstract interface
@@ -168,6 +175,10 @@ class FrontendWidget(HistoryConsoleWidget):
             xreq.complete_reply.disconnect(self._handle_complete_reply)
             xreq.object_info_reply.disconnect(self._handle_object_info_reply)
 
+            # Handle the case where the old kernel manager is still listening.
+            if self._kernel_manager.is_listening:
+                self._stopped_listening()
+
         # Set the new kernel manager.
         self._kernel_manager = kernel_manager
         if kernel_manager is None:
@@ -239,6 +250,15 @@ class FrontendWidget(HistoryConsoleWidget):
                             QtGui.QTextCursor.KeepAnchor)
         text = unicode(cursor.selectedText())
         return self._completion_lexer.get_context(text)
+
+    def _interrupt_kernel(self):
+        """ Attempts to the interrupt the kernel.
+        """
+        if self.kernel_manager.has_kernel:
+            self.kernel_manager.signal_kernel(signal.SIGINT)
+        else:
+            self.appendPlainText('Kernel process is either remote or '
+                                 'unspecified. Cannot interrupt.\n')
 
     #------ Signal handlers ----------------------------------------------------
 

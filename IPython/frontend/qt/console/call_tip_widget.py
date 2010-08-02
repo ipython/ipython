@@ -11,7 +11,7 @@ class CallTipWidget(QtGui.QLabel):
     """
 
     #--------------------------------------------------------------------------
-    # 'QWidget' interface
+    # 'QObject' interface
     #--------------------------------------------------------------------------
 
     def __init__(self, parent):
@@ -34,11 +34,22 @@ class CallTipWidget(QtGui.QLabel):
         self.setWindowOpacity(self.style().styleHint(
                 QtGui.QStyle.SH_ToolTipLabel_Opacity, None, self) / 255.0)
 
+    #--------------------------------------------------------------------------
+    # 'QWidget' interface
+    #--------------------------------------------------------------------------
+
     def hideEvent(self, event):
         """ Reimplemented to disconnect the cursor movement handler.
         """
         QtGui.QLabel.hideEvent(self, event)
         self.parent().cursorPositionChanged.disconnect(self._update_tip)
+
+    def keyPressEvent(self, event):
+        """ Reimplemented to hide on certain key presses.
+        """
+        if event.key() in (QtCore.Qt.Key_Enter, QtCore.Qt.Key_Return, 
+                           QtCore.Qt.Key_Escape):
+            self.hide()
 
     def paintEvent(self, event):
         """ Reimplemented to paint the background panel.
