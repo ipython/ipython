@@ -382,15 +382,58 @@ class ConsoleWidget(QtGui.QPlainTextEdit):
     # 'ConsoleWidget' public interface
     #---------------------------------------------------------------------------
 
-    def execute(self, interactive=False):
-        """ Execute the text in the input buffer. Returns whether the input
-            buffer was completely processed and a new prompt created.
+    def execute(self, source=None, hidden=False, interactive=False):
+        """ Executes source or the input buffer, possibly prompting for more
+        input.
+
+        Parameters:
+        -----------     
+        source : str, optional
+
+            The source to execute. If not specified, the input buffer will be
+            used. If specified and 'hidden' is False, the input buffer will be
+            replaced with the source before execution.
+
+        hidden : bool, optional (default False)
+
+            If set, no output will be shown and the prompt will not be modified.
+            In other words, it will be completely invisible to the user that
+            an execution has occurred.
+
+        interactive : bool, optional (default False)
+
+            Whether the console is to treat the source as having been manually
+            entered by the user. The effect of this parameter depends on the
+            subclass implementation.
+
+        Returns:
+        --------
+        A boolean indicating whether the source was executed.
         """
-        self.appendPlainText('\n')
-        self._executing_input_buffer = self.input_buffer
-        self._executing = True
-        self._prompt_finished()
-        return self._execute(interactive=interactive)
+        if not hidden:
+            if source is not None:
+                self.input_buffer = source
+
+            self.appendPlainText('\n')
+            self._executing_input_buffer = self.input_buffer
+            self._executing = True
+            self._prompt_finished()
+
+        real_source = self.input_buffer if source is None else source
+        complete = self._is_complete(real_source, interactive)
+        if complete:
+            if not hidden:
+                # The maximum block count is only in effect during execution.
+                # This ensures that _prompt_pos does not become invalid due to
+                # text truncation.
+                self.setMaximumBlockCount(self.buffer_size)
+            self._execute(real_source, hidden)
+        elif hidden:
+            raise RuntimeError('Incomplete noninteractive input: "%s"' % source)
+        else:
+            self._show_continuation_prompt()
+
+        return complete
 
     def _get_input_buffer(self):
         """ The text that the user has entered entered at the current prompt.
@@ -475,11 +518,15 @@ class ConsoleWidget(QtGui.QPlainTextEdit):
     # 'ConsoleWidget' abstract interface
     #---------------------------------------------------------------------------
 
-    def _execute(self, interactive):
-        """ Called to execute the input buffer. When triggered by an the enter
-            key press, 'interactive' is True; otherwise, it is False. Returns
-            whether the input buffer was completely processed and a new prompt
-            created.
+    def _is_complete(self, source, interactive):
+        """ Returns whether 'source' can be executed. When triggered by an
+            Enter/Return key press, 'interactive' is True; otherwise, it is
+            False.
+        """
+        raise NotImplementedError
+
+    def _execute(self, source, hidden):
+        """ Execute 'source'. If 'hidden', do not show any output.
         """
         raise NotImplementedError
 
@@ -604,7 +651,8 @@ class ConsoleWidget(QtGui.QPlainTextEdit):
     def _prompt_started(self):
         """ Called immediately after a new prompt is displayed.
         """
-        # Temporarily disable the maximum block count to permit undo/redo.
+        # Temporarily disable the maximum block count to permit undo/redo and 
+        # to ensure that the prompt position does not change due to truncation.
         self.setMaximumBlockCount(0)
         self.setUndoRedoEnabled(True)
 
@@ -619,9 +667,7 @@ class ConsoleWidget(QtGui.QPlainTextEdit):
         """ Called immediately after a prompt is finished, i.e. when some input
             will be processed and a new prompt displayed.
         """
-        # This has the (desired) side effect of disabling the undo/redo history.
-        self.setMaximumBlockCount(self.buffer_size)
-
+        self.setUndoRedoEnabled(False)
         self.setReadOnly(True)
         self._prompt_finished_hook()
 
@@ -702,14 +748,19 @@ class HistoryConsoleWidget(ConsoleWidget):
     # 'ConsoleWidget' public interface
     #---------------------------------------------------------------------------
 
-    def execute(self, interactive=False):
+    def execute(self, source=None, hidden=False, interactive=False):
         """ Reimplemented to the store history.
         """
-        stripped = self.input_buffer.rstrip()
-        executed = super(HistoryConsoleWidget, self).execute(interactive)
-        if executed:
-            self._history.append(stripped)
+        if source is None and not hidden:
+            history = self.input_buffer.rstrip()
+
+        executed = super(HistoryConsoleWidget, self).execute(
+            source, hidden, interactive)
+
+        if executed and not hidden:
+            self._history.append(history)
             self._history_index = len(self._history)
+
         return executed
 
     #---------------------------------------------------------------------------

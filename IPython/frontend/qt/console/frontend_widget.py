@@ -90,25 +90,39 @@ class FrontendWidget(HistoryConsoleWidget):
                 self._control_down(event.modifiers()):
             self._interrupt_kernel()
         else:
-            self._call_tip_widget.keyPressEvent(event)
+            if self._call_tip_widget.isVisible():
+                self._call_tip_widget.keyPressEvent(event)
             super(FrontendWidget, self).keyPressEvent(event)
 
     #---------------------------------------------------------------------------
     # 'ConsoleWidget' abstract interface
     #---------------------------------------------------------------------------
 
-    def _execute(self, interactive):
-        """ Called to execute the input buffer. When triggered by an the enter
-            key press, 'interactive' is True; otherwise, it is False. Returns
-            whether the input buffer was completely processed and a new prompt
-            created.
+    def _is_complete(self, source, interactive):
+        """ Returns whether 'source' can be completely processed and a new
+            prompt created. When triggered by an Enter/Return key press,
+            'interactive' is True; otherwise, it is False.
         """
-        return self.execute_source(self.input_buffer, interactive=interactive)
+        complete = self._input_splitter.push(source)
+        if interactive:
+            complete = not self._input_splitter.push_accepts_more()
+        return complete
+
+    def _execute(self, source, hidden):
+        """ Execute 'source'. If 'hidden', do not show any output.
+        """
+        self.kernel_manager.xreq_channel.execute(source)
+        self._hidden = hidden
         
     def _prompt_started_hook(self):
         """ Called immediately after a new prompt is displayed.
         """
         self._highlighter.highlighting_on = True
+
+        # Auto-indent if this is a continuation prompt.
+        if self._get_prompt_cursor().blockNumber() != \
+                self._get_end_cursor().blockNumber():
+            self.appendPlainText(' ' * self._input_splitter.indent_spaces)
 
     def _prompt_finished_hook(self):
         """ Called immediately after a prompt is finished, i.e. when some input
@@ -130,26 +144,11 @@ class FrontendWidget(HistoryConsoleWidget):
     # 'FrontendWidget' interface
     #---------------------------------------------------------------------------
 
-    def execute_source(self, source, hidden=False, interactive=False):
-        """ Execute a string containing Python code. If 'hidden', no output is
-            shown. Returns whether the source executed (i.e., returns True only
-            if no more input is necessary).
-        """
-        self._input_splitter.push(source)
-        executed = not self._input_splitter.push_accepts_more()
-        if executed:
-            self.kernel_manager.xreq_channel.execute(source)
-            self._hidden = hidden
-        else:
-            self._show_continuation_prompt()
-            self.appendPlainText(' ' * self._input_splitter.indent_spaces)
-        return executed
-
     def execute_file(self, path, hidden=False):
         """ Attempts to execute file with 'path'. If 'hidden', no output is
             shown.
         """
-        self.execute_source('run %s' % path, hidden=hidden)
+        self.execute('execfile("%s")' % path, hidden=hidden)
 
     def _get_kernel_manager(self):
         """ Returns the current kernel manager.
@@ -274,10 +273,11 @@ class FrontendWidget(HistoryConsoleWidget):
             self._call_tip()
 
     def _handle_sub(self, omsg):
-        if not self._hidden:
-            handler = getattr(self, '_handle_%s' % omsg['msg_type'], None)
-            if handler is not None:
-                handler(omsg)
+        if self._hidden:
+            return
+        handler = getattr(self, '_handle_%s' % omsg['msg_type'], None)
+        if handler is not None:
+            handler(omsg)
 
     def _handle_pyout(self, omsg):
         session = omsg['parent_header']['session']
@@ -286,8 +286,12 @@ class FrontendWidget(HistoryConsoleWidget):
 
     def _handle_stream(self, omsg):
         self.appendPlainText(omsg['content']['data'])
+        self.moveCursor(QtGui.QTextCursor.End)
         
     def _handle_execute_reply(self, rep):
+        if self._hidden:
+            return
+
         # Make sure that all output from the SUB channel has been processed
         # before writing a new prompt.
         self.kernel_manager.sub_channel.flush()
