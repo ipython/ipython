@@ -44,14 +44,13 @@ class ZmqSocketChannel(Thread):
         self.socket = None
 
     def stop(self):
-        """ Stop the thread's activity. Returns when the thread terminates.
+        """Stop the thread's activity. Returns when the thread terminates.
+
+        The thread will raise :class:`RuntimeError` if :method:`self.start`
+        is called again.
         """
         self.join()
 
-        # Allow the thread to be started again.
-        # FIXME: Although this works (and there's no reason why it shouldn't),
-        #        it feels wrong. Is there a cleaner way to achieve this?
-        Thread.__init__(self)
 
     def get_address(self):
         """ Get the channel's address. By the default, a channel is on 
@@ -65,7 +64,7 @@ class ZmqSocketChannel(Thread):
             or None, in which case the address is reset to its default value.
         """
         # FIXME: Validate address.
-        if self.is_alive():
+        if self.is_alive():  # This is Thread.is_alive
             raise RuntimeError("Cannot set address on a running channel!")
         else:
             if address is None:
