@@ -34,6 +34,12 @@ class ZmqSocketChannel(Thread):
     """ The base class for the channels that use ZMQ sockets.
     """
 
+    context = None
+    session = None
+    socket = None
+    ioloop = None
+    iostate = None
+
     def __init__(self, context, session, address=None):
         super(ZmqSocketChannel, self).__init__()
         self.daemon = True
@@ -41,17 +47,15 @@ class ZmqSocketChannel(Thread):
         self.context = context
         self.session = session
         self.address = address
-        self.socket = None
 
     def stop(self):
-        """ Stop the thread's activity. Returns when the thread terminates.
+        """Stop the thread's activity. Returns when the thread terminates.
+
+        The thread will raise :class:`RuntimeError` if :method:`self.start`
+        is called again.
         """
         self.join()
 
-        # Allow the thread to be started again.
-        # FIXME: Although this works (and there's no reason why it shouldn't),
-        #        it feels wrong. Is there a cleaner way to achieve this?
-        Thread.__init__(self)
 
     def get_address(self):
         """ Get the channel's address. By the default, a channel is on 
@@ -65,23 +69,41 @@ class ZmqSocketChannel(Thread):
             or None, in which case the address is reset to its default value.
         """
         # FIXME: Validate address.
-        if self.is_alive():
+        if self.is_alive():  # This is Thread.is_alive
             raise RuntimeError("Cannot set address on a running channel!")
         else:
             if address is None:
-                address = (LOCALHOST, -1)
+                address = (LOCALHOST, 0)
             self._address = address
 
     address = property(get_address, set_adresss)
 
+    def add_io_state(self, state):
+        """Add IO state to the eventloop.
+
+        This is thread safe as it uses the thread safe IOLoop.add_callback.
+        """
+        def add_io_state_callback():
+            if not self.iostate & state:
+                self.iostate = self.iostate | state
+                self.ioloop.update_handler(self.socket, self.iostate)
+        self.ioloop.add_callback(add_io_state_callback)
+
+    def drop_io_state(self, state):
+        """Drop IO state from the eventloop.
+
+        This is thread safe as it uses the thread safe IOLoop.add_callback.
+        """
+        def drop_io_state_callback():
+            if self.iostate & state:
+                self.iostate = self.iostate & (~state)
+                self.ioloop.update_handler(self.socket, self.iostate)
+        self.ioloop.add_callback(drop_io_state_callback)
+
 
 class SubSocketChannel(ZmqSocketChannel):
 
-    handlers = None
-    _overriden_call_handler = None
-
     def __init__(self, context, session, address=None):
-        self.handlers = {}
         super(SubSocketChannel, self).__init__(context, session, address)
 
     def run(self):
@@ -90,8 +112,9 @@ class SubSocketChannel(ZmqSocketChannel):
         self.socket.setsockopt(zmq.IDENTITY, self.session.session)
         self.socket.connect('tcp://%s:%i' % self.address)
         self.ioloop = ioloop.IOLoop()
+        self.iostate = POLLIN|POLLERR
         self.ioloop.add_handler(self.socket, self._handle_events, 
-                                POLLIN|POLLERR)
+                                self.iostate)
         self.ioloop.start()
 
     def stop(self):
@@ -106,53 +129,30 @@ class SubSocketChannel(ZmqSocketChannel):
             self._handle_recv()
 
     def _handle_err(self):
-        raise zmq.ZmqError()
+        # We don't want to let this go silently, so eventually we should log.
+        raise zmq.ZMQError()
 
     def _handle_recv(self):
-        msg = self.socket.recv_json()
-        self.call_handlers(msg)
-
-    def override_call_handler(self, func):
-        """Permanently override the call_handler.
-    
-        The function func will be called as::
-
-            func(handler, msg)
-
-        And must call::
-        
-            handler(msg)
-
-        in the main thread.
-        """
-        assert callable(func), "not a callable: %r" % func
-        self._overriden_call_handler = func
+        # Get all of the messages we can
+        while True:
+            try:
+                msg = self.socket.recv_json(zmq.NOBLOCK)
+            except zmq.ZMQError:
+                # Check the errno?
+                # Will this tigger POLLERR?
+                break
+            else:
+                self.call_handlers(msg)
 
     def call_handlers(self, msg):
-        handler = self.handlers.get(msg['msg_type'], None)
-        if handler is not None:
-            try:
-                self.call_handler(handler, msg)
-            except:
-                # XXX: This should be logged at least
-                traceback.print_last()
+        """This method is called in the ioloop thread when a message arrives.
 
-    def call_handler(self, handler, msg):
-        if self._overriden_call_handler is not None:
-            self._overriden_call_handler(handler, msg)
-        elif hasattr(self, '_call_handler'):
-           call_handler = getattr(self, '_call_handler')
-           call_handler(handler, msg)
-        else:
-            raise RuntimeError('no handler!')
-
-    def add_handler(self, callback, msg_type):
-        """Register a callback for msg type."""
-        self.handlers[msg_type] = callback
-
-    def remove_handler(self, msg_type):
-        """Remove the callback for msg type."""
-        self.handlers.pop(msg_type, None)
+        Subclasses should override this method to handle incoming messages.
+        It is important to remember that this method is called in the thread
+        so that some logic must be done to ensure that the application leve
+        handlers are called in the application thread.
+        """
+        raise NotImplementedError('call_handlers must be defined in a subclass.')
 
     def flush(self, timeout=1.0):
         """Immediately processes all pending messages on the SUB channel.
@@ -199,8 +199,9 @@ class XReqSocketChannel(ZmqSocketChannel):
         self.socket.setsockopt(zmq.IDENTITY, self.session.session)
         self.socket.connect('tcp://%s:%i' % self.address)
         self.ioloop = ioloop.IOLoop()
+        self.iostate = POLLERR|POLLIN
         self.ioloop.add_handler(self.socket, self._handle_events, 
-                                POLLIN|POLLOUT|POLLERR)
+                                self.iostate)
         self.ioloop.start()
 
     def stop(self):
@@ -208,7 +209,6 @@ class XReqSocketChannel(ZmqSocketChannel):
         super(XReqSocketChannel, self).stop()
 
     def _handle_events(self, socket, events):
-        # Turn on and off POLLOUT depending on if we have made a request
         if events & POLLERR:
             self._handle_err()
         if events & POLLOUT:
@@ -227,14 +227,18 @@ class XReqSocketChannel(ZmqSocketChannel):
             pass
         else:
             self.socket.send_json(msg)
+        if self.command_queue.empty():
+            self.drop_io_state(POLLOUT)
 
     def _handle_err(self):
-        raise zmq.ZmqError()
+        # We don't want to let this go silently, so eventually we should log.
+        raise zmq.ZMQError()
 
     def _queue_request(self, msg, callback):
         handler = self._find_handler(msg['msg_type'], callback)
         self.handler_queue.put(handler)
         self.command_queue.put(msg)
+        self.add_io_state(POLLOUT)
 
     def execute(self, code, callback=None):
         # Create class for content/msg creation. Related to, but possibly
