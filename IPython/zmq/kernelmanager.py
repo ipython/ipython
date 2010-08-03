@@ -102,11 +102,19 @@ class SubSocketChannel(ZmqSocketChannel):
 
     def _handle_err(self):
         # We don't want to let this go silently, so eventually we should log.
-        raise zmq.ZmqError()
+        raise zmq.ZMQError()
 
     def _handle_recv(self):
-        msg = self.socket.recv_json()
-        self.call_handlers(msg)
+        # Get all of the messages we can
+        while True:
+            try:
+                msg = self.socket.recv_json(zmq.NOBLOCK)
+            except zmq.ZMQError:
+                # Check the errno?
+                # Will this tigger POLLERR?
+                break
+            else:
+                self.call_handlers(msg)
 
     def call_handlers(self, msg):
         """This method is called in the ioloop thread when a message arrives.
@@ -194,7 +202,7 @@ class XReqSocketChannel(ZmqSocketChannel):
 
     def _handle_err(self):
         # We don't want to let this go silently, so eventually we should log.
-        raise zmq.ZmqError()
+        raise zmq.ZMQError()
 
     def _queue_request(self, msg, callback):
         handler = self._find_handler(msg['msg_type'], callback)
