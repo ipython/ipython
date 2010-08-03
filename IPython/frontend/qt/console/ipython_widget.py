@@ -79,7 +79,7 @@ if __name__ == '__main__':
     # Create a KernelManager.
     kernel_manager = QtKernelManager()
     kernel_manager.start_kernel()
-    kernel_manager.start_listening()
+    kernel_manager.start_channels()
 
     # Don't let Qt or ZMQ swallow KeyboardInterupts.
     # FIXME: Gah, ZMQ swallows even custom signal handlers. So for now we leave 
@@ -92,7 +92,7 @@ if __name__ == '__main__':
     # Create the application, making sure to clean up nicely when we exit.
     app = QtGui.QApplication([])
     def quit_hook():
-        kernel_manager.stop_listening()
+        kernel_manager.stop_channels()
         kernel_manager.kill_kernel()
     app.aboutToQuit.connect(quit_hook)
 

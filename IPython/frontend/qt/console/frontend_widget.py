@@ -175,7 +175,7 @@ class FrontendWidget(HistoryConsoleWidget):
             xreq.object_info_reply.disconnect(self._handle_object_info_reply)
 
             # Handle the case where the old kernel manager is still listening.
-            if self._kernel_manager.is_listening:
+            if self._kernel_manager.channels_running:
                 self._stopped_listening()
 
         # Set the new kernel manager.
@@ -197,7 +197,7 @@ class FrontendWidget(HistoryConsoleWidget):
         
         # Handle the case where the kernel manager started listening before
         # we connected.
-        if kernel_manager.is_listening:
+        if kernel_manager.channels_running:
             self._started_listening()
 
     kernel_manager = property(_get_kernel_manager, _set_kernel_manager)

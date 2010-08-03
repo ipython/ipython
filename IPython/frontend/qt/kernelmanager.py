@@ -128,14 +128,14 @@ class QtKernelManager(KernelManager, QtCore.QObject):
     # 'KernelManager' interface
     #---------------------------------------------------------------------------
     
-    def start_listening(self):
+    def start_channels(self):
         """ Reimplemented to emit signal.
         """
-        super(QtKernelManager, self).start_listening()
+        super(QtKernelManager, self).start_channels()
         self.started_listening.emit()
 
-    def stop_listening(self):
+    def stop_channels(self):
         """ Reimplemented to emit signal.
         """ 
-        super(QtKernelManager, self).stop_listening()
+        super(QtKernelManager, self).stop_channels()
         self.stopped_listening.emit()
