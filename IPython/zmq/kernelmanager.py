@@ -26,14 +26,10 @@ from session import Session
 LOCALHOST = '127.0.0.1'
 
 
-class MissingHandlerError(Exception):
-    pass
-
 
 class ZmqSocketChannel(Thread):
     """ The base class for the channels that use ZMQ sockets.
     """
-
     context = None
     session = None
     socket = None
@@ -183,14 +179,9 @@ class SubSocketChannel(ZmqSocketChannel):
 
 class XReqSocketChannel(ZmqSocketChannel):
 
-    handler_queue = None
     command_queue = None
-    handlers = None
-    _overriden_call_handler = None
 
     def __init__(self, context, session, address=None):
-        self.handlers = {}
-        self.handler_queue = Queue()
         self.command_queue = Queue()
         super(XReqSocketChannel, self).__init__(context, session, address)
 
@@ -235,10 +226,18 @@ class XReqSocketChannel(ZmqSocketChannel):
         raise zmq.ZMQError()
 
     def _queue_request(self, msg, callback):
-        handler = self._find_handler(msg['msg_type'], callback)
-        self.handler_queue.put(handler)
         self.command_queue.put(msg)
         self.add_io_state(POLLOUT)
+
+    def call_handlers(self, msg):
+        """This method is called in the ioloop thread when a message arrives.
+
+        Subclasses should override this method to handle incoming messages.
+        It is important to remember that this method is called in the thread
+        so that some logic must be done to ensure that the application leve
+        handlers are called in the application thread.
+        """
+        raise NotImplementedError('call_handlers must be defined in a subclass.')
 
     def execute(self, code, callback=None):
         # Create class for content/msg creation. Related to, but possibly
@@ -259,49 +258,6 @@ class XReqSocketChannel(ZmqSocketChannel):
         msg = self.session.msg('object_info_request', content)
         self._queue_request(msg, callback)
         return msg['header']['msg_id']
-
-    def _find_handler(self, name, callback):
-        if callback is not None:
-            return callback
-        handler = self.handlers.get(name)
-        if handler is None:
-            raise MissingHandlerError(
-                'No handler defined for method: %s' % name)
-        return handler
-
-    def override_call_handler(self, func):
-        """Permanently override the call_handler.
-    
-        The function func will be called as::
-
-            func(handler, msg)
-
-        And must call::
-        
-            handler(msg)
-
-        in the main thread.
-        """
-        assert callable(func), "not a callable: %r" % func
-        self._overriden_call_handler = func
-
-    def call_handlers(self, msg):
-        try:
-            handler = self.handler_queue.get(False)
-        except Empty:
-            print "Message received with no handler!!!"
-            print msg
-        else:
-            self.call_handler(handler, msg)
-
-    def call_handler(self, handler, msg):
-        if self._overriden_call_handler is not None:
-            self._overriden_call_handler(handler, msg)
-        elif hasattr(self, '_call_handler'):
-           call_handler = getattr(self, '_call_handler')
-           call_handler(handler, msg)
-        else:
-            raise RuntimeError('no handler!')
 
 
 class RepSocketChannel(ZmqSocketChannel):

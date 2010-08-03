@@ -93,12 +93,6 @@ class QtXReqSocketChannel(XReqSocketChannel, QtCore.QObject):
         if signal:
             signal.emit(msg)
 
-    def _queue_request(self, msg, callback):
-        """ Reimplemented to skip callback handling.
-        """
-        self.command_queue.put(msg)
-        self.add_io_state(zmq.POLLOUT)
-
 
 class QtRepSocketChannel(RepSocketChannel, QtCore.QObject):
 
