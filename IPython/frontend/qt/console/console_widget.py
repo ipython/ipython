@@ -406,6 +406,12 @@ class ConsoleWidget(QtGui.QPlainTextEdit):
             entered by the user. The effect of this parameter depends on the
             subclass implementation.
 
+        Raises:
+        -------
+        RuntimeError
+            If incomplete input is given and 'hidden' is True. In this case,
+            it not possible to prompt for more input.
+
         Returns:
         --------
         A boolean indicating whether the source was executed.
@@ -751,14 +757,14 @@ class HistoryConsoleWidget(ConsoleWidget):
     def execute(self, source=None, hidden=False, interactive=False):
         """ Reimplemented to the store history.
         """
-        if source is None and not hidden:
-            history = self.input_buffer.rstrip()
+        if not hidden:
+            history = self.input_buffer if source is None else source
 
         executed = super(HistoryConsoleWidget, self).execute(
             source, hidden, interactive)
 
         if executed and not hidden:
-            self._history.append(history)
+            self._history.append(history.rstrip())
             self._history_index = len(self._history)
 
         return executed
