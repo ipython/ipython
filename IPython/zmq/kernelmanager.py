@@ -69,7 +69,7 @@ class ZmqSocketChannel(Thread):
             raise RuntimeError("Cannot set address on a running channel!")
         else:
             if address is None:
-                address = (LOCALHOST, -1)
+                address = (LOCALHOST, 0)
             self._address = address
 
     address = property(get_address, set_adresss)

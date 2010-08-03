@@ -290,9 +290,9 @@ def main():
     parser = ArgumentParser()
     parser.add_argument('--ip', type=str, default='127.0.0.1',
                         help='set the kernel\'s IP address [default: local]')
-    parser.add_argument('--xrep', type=int, metavar='PORT', default=-1,
+    parser.add_argument('--xrep', type=int, metavar='PORT', default=0,
                         help='set the XREP Channel port [default: random]')
-    parser.add_argument('--pub', type=int, metavar='PORT', default=-1,
+    parser.add_argument('--pub', type=int, metavar='PORT', default=0,
                         help='set the PUB Channel port [default: random]')
     namespace = parser.parse_args()
 
@@ -324,7 +324,7 @@ def main():
     print >>sys.__stdout__, "Use Ctrl-\\ (NOT Ctrl-C!) to terminate."
     kernel.start()
 
-def launch_kernel(xrep_port=-1, pub_port=-1):
+def launch_kernel(xrep_port=0, pub_port=0):
     """ Launches a localhost kernel, binding to the specified ports. For any
     port that is left unspecified, a port is chosen by the operating system.
 
@@ -336,7 +336,7 @@ def launch_kernel(xrep_port=-1, pub_port=-1):
 
     # Find open ports as necessary.
     ports = []
-    ports_needed = int(xrep_port < 0) + int(pub_port < 0)
+    ports_needed = int(xrep_port == 0) + int(pub_port == 0)
     for i in xrange(ports_needed):
         sock = socket.socket()
         sock.bind(('', 0))
@@ -345,9 +345,9 @@ def launch_kernel(xrep_port=-1, pub_port=-1):
         port = sock.getsockname()[1]
         sock.close()
         ports[i] = port
-    if xrep_port < 0:
+    if xrep_port == 0:
         xrep_port = ports.pop()
-    if pub_port < 0:
+    if pub_port == 0:
         pub_port = ports.pop()
         
     # Spawn a kernel.
