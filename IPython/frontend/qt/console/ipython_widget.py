@@ -19,10 +19,10 @@ class IPythonWidget(FrontendWidget):
         self._magic_overrides = {}
 
     #---------------------------------------------------------------------------
-    # 'FrontendWidget' interface
+    # 'ConsoleWidget' abstract interface
     #---------------------------------------------------------------------------
 
-    def execute_source(self, source, hidden=False, interactive=False):
+    def _execute(self, source, hidden):
         """ Reimplemented to override magic commands.
         """
         magic_source = source.strip()
@@ -37,11 +37,18 @@ class IPythonWidget(FrontendWidget):
             output = callback(arguments)
             if output:
                 self.appendPlainText(output)
-            self._show_prompt('>>> ')
-            return True
+            self._show_prompt()
         else:
-            return super(IPythonWidget, self).execute_source(source, hidden,
-                                                             interactive)
+            super(IPythonWidget, self)._execute(source, hidden)
+
+    #---------------------------------------------------------------------------
+    # 'FrontendWidget' interface
+    #---------------------------------------------------------------------------
+
+    def execute_file(self, path, hidden=False):
+        """ Reimplemented to use the 'run' magic.
+        """
+        self.execute('run %s' % path, hidden=hidden)
 
     #---------------------------------------------------------------------------
     # 'IPythonWidget' interface
@@ -96,5 +103,3 @@ if __name__ == '__main__':
     widget.resize(640, 480)
     widget.show()
     app.exec_()
-
-    
