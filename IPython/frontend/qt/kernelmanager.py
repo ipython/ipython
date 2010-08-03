@@ -3,11 +3,13 @@
 
 # System library imports.
 from PyQt4 import QtCore
+import zmq
 
 # IPython imports.
 from IPython.zmq.kernelmanager import KernelManager, SubSocketChannel, \
     XReqSocketChannel, RepSocketChannel
 from util import MetaQObjectHasTraits
+
 
 
 class QtSubSocketChannel(SubSocketChannel, QtCore.QObject):
@@ -95,6 +97,7 @@ class QtXReqSocketChannel(XReqSocketChannel, QtCore.QObject):
         """ Reimplemented to skip callback handling.
         """
         self.command_queue.put(msg)
+        self.add_io_state(zmq.POLLOUT)
 
 
 class QtRepSocketChannel(RepSocketChannel, QtCore.QObject):
