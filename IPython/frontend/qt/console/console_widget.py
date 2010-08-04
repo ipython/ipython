@@ -141,6 +141,7 @@ class ConsoleWidget(QtGui.QPlainTextEdit):
         self._prompt = ''
         self._prompt_pos = 0
         self._reading = False
+        self._reading_callback = None
 
         # Set a monospaced font.
         self.reset_font()
@@ -190,6 +191,11 @@ class ConsoleWidget(QtGui.QPlainTextEdit):
         self._paste_action.setEnabled(not clipboard_empty)
         
         self._context_menu.exec_(event.globalPos())
+
+    def dragMoveEvent(self, event):
+        """ Reimplemented to disable dropping text.
+        """
+        event.ignore()
 
     def keyPressEvent(self, event):
         """ Reimplemented to create a console-like interface.
@@ -256,12 +262,15 @@ class ConsoleWidget(QtGui.QPlainTextEdit):
         
         else:
             if key in (QtCore.Qt.Key_Return, QtCore.Qt.Key_Enter):
-                intercepted = True
                 if self._reading:
-                    intercepted = False
+                    self.appendPlainText('\n')
                     self._reading = False
+                    if self._reading_callback:
+                        self._reading_callback()
+                        self._reading_callback = None
                 elif not self._executing:
                     self.execute(interactive=True)
+                intercepted = True
 
             elif key == QtCore.Qt.Key_Up:
                 if self._reading or not self._up_pressed():
@@ -304,7 +313,8 @@ class ConsoleWidget(QtGui.QPlainTextEdit):
 
                 # Line deletion (remove continuation prompt)
                 len_prompt = len(self._continuation_prompt)
-                if cursor.columnNumber() == len_prompt and \
+                if not self._reading and \
+                        cursor.columnNumber() == len_prompt and \
                         position != self._prompt_pos:
                     cursor.setPosition(position - len_prompt, 
                                        QtGui.QTextCursor.KeepAnchor)
@@ -678,18 +688,44 @@ class ConsoleWidget(QtGui.QPlainTextEdit):
         self.setReadOnly(True)
         self._prompt_finished_hook()
 
-    def _readline(self, prompt=''):
-        """ Read and return one line of input from the user. The trailing 
-            newline is stripped.
+    def _readline(self, prompt='', callback=None):
+        """ Reads one line of input from the user. 
+
+        Parameters
+        ----------
+        prompt : str, optional
+            The prompt to print before reading the line.
+
+        callback : callable, optional
+            A callback to execute with the read line. If not specified, input is
+            read *synchronously* and this method does not return until it has
+            been read.
+
+        Returns
+        -------
+        If a callback is specified, returns nothing. Otherwise, returns the
+        input string with the trailing newline stripped.
         """
-        if not self.isVisible():
-            raise RuntimeError('Cannot read a line if widget is not visible!')
+        if self._reading:
+            raise RuntimeError('Cannot read a line. Widget is already reading.')
+
+        if not callback and not self.isVisible():
+            # If the user cannot see the widget, this function cannot return.
+            raise RuntimeError('Cannot synchronously read a line if the widget'
+                               'is not visible!')
 
         self._reading = True
         self._show_prompt(prompt)
-        while self._reading:
-            QtCore.QCoreApplication.processEvents()
-        return self.input_buffer.rstrip('\n\r')
+
+        if callback is None:
+            self._reading_callback = None
+            while self._reading:
+                QtCore.QCoreApplication.processEvents()
+            return self.input_buffer.rstrip('\n')
+
+        else:
+            self._reading_callback = lambda: \
+                callback(self.input_buffer.rstrip('\n'))
 
     def _set_position(self, position):
         """ Convenience method to set the position of the cursor.
@@ -710,10 +746,11 @@ class ConsoleWidget(QtGui.QPlainTextEdit):
         # Use QTextDocumentFragment intermediate object because it strips
         # out the Unicode line break characters that Qt insists on inserting.
         cursor = self._get_end_cursor()
-        cursor.movePosition(QtGui.QTextCursor.Left, 
-                            QtGui.QTextCursor.KeepAnchor)
-        if str(cursor.selection().toPlainText()) not in '\r\n':
-            self.appendPlainText('\n')
+        if cursor.position() > 0:
+            cursor.movePosition(QtGui.QTextCursor.Left, 
+                                QtGui.QTextCursor.KeepAnchor)
+            if str(cursor.selection().toPlainText()) != '\n':
+                self.appendPlainText('\n')
 
         if prompt is not None:
             self._prompt = prompt

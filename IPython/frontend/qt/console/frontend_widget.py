@@ -293,7 +293,10 @@ class FrontendWidget(HistoryConsoleWidget):
             self._call_tip()
 
     def _handle_req(self):
-        print self._readline()
+        def callback(line):
+            print repr(line)
+            self._show_prompt()
+        self._readline(callback=callback)
 
     def _handle_sub(self, omsg):
         if self._hidden:
@@ -345,5 +348,3 @@ class FrontendWidget(HistoryConsoleWidget):
             doc = rep['content']['docstring']
             if doc:
                 self._call_tip_widget.show_docstring(doc)
-
-    
