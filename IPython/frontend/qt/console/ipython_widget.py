@@ -82,7 +82,7 @@ if __name__ == '__main__':
     # Create a KernelManager.
     kernel_manager = QtKernelManager()
     kernel_manager.start_kernel()
-    kernel_manager.start_listening()
+    kernel_manager.start_channels()
 
     # Launch the application.
     app = QtGui.QApplication([])

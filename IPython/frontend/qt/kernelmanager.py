@@ -93,12 +93,6 @@ class QtXReqSocketChannel(XReqSocketChannel, QtCore.QObject):
         if signal:
             signal.emit(msg)
 
-    def _queue_request(self, msg, callback):
-        """ Reimplemented to skip callback handling.
-        """
-        self.command_queue.put(msg)
-        self.add_io_state(zmq.POLLOUT)
-
 
 class QtRepSocketChannel(RepSocketChannel, QtCore.QObject):
 
@@ -120,10 +114,10 @@ class QtKernelManager(KernelManager, QtCore.QObject):
     __metaclass__ = MetaQObjectHasTraits
 
     # Emitted when the kernel manager has started listening.
-    started_listening = QtCore.pyqtSignal()
+    started_channels = QtCore.pyqtSignal()
 
     # Emitted when the kernel manager has stopped listening.
-    stopped_listening = QtCore.pyqtSignal()
+    stopped_channels = QtCore.pyqtSignal()
 
     # Use Qt-specific channel classes that emit signals.
     sub_channel_class = QtSubSocketChannel
@@ -131,17 +125,27 @@ class QtKernelManager(KernelManager, QtCore.QObject):
     rep_channel_class = QtRepSocketChannel
 
     #---------------------------------------------------------------------------
+    # 'object' interface
+    #---------------------------------------------------------------------------
+    
+    def __init__(self, *args, **kw):
+        """ Reimplemented to ensure that QtCore.QObject is initialized first.
+        """
+        QtCore.QObject.__init__(self)
+        KernelManager.__init__(self, *args, **kw)
+
+    #---------------------------------------------------------------------------
     # 'KernelManager' interface
     #---------------------------------------------------------------------------
     
-    def start_listening(self):
+    def start_channels(self):
         """ Reimplemented to emit signal.
         """
-        super(QtKernelManager, self).start_listening()
-        self.started_listening.emit()
+        super(QtKernelManager, self).start_channels()
+        self.started_channels.emit()
 
-    def stop_listening(self):
+    def stop_channels(self):
         """ Reimplemented to emit signal.
         """ 
-        super(QtKernelManager, self).stop_listening()
-        self.stopped_listening.emit()
+        super(QtKernelManager, self).stop_channels()
+        self.stopped_channels.emit()

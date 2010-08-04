@@ -161,10 +161,10 @@ class FrontendWidget(HistoryConsoleWidget):
         """
         # Disconnect the old kernel manager, if necessary.
         if self._kernel_manager is not None:
-            self._kernel_manager.started_listening.disconnect(
-                self._started_listening)
-            self._kernel_manager.stopped_listening.disconnect(
-                self._stopped_listening)
+            self._kernel_manager.started_channels.disconnect(
+                self._started_channels)
+            self._kernel_manager.stopped_channels.disconnect(
+                self._stopped_channels)
 
             # Disconnect the old kernel manager's channels.
             sub = self._kernel_manager.sub_channel
@@ -174,9 +174,9 @@ class FrontendWidget(HistoryConsoleWidget):
             xreq.complete_reply.disconnect(self._handle_complete_reply)
             xreq.object_info_reply.disconnect(self._handle_object_info_reply)
 
-            # Handle the case where the old kernel manager is still listening.
-            if self._kernel_manager.is_listening:
-                self._stopped_listening()
+            # Handle the case where the old kernel manager is still channels.
+            if self._kernel_manager.channels_running:
+                self._stopped_channels()
 
         # Set the new kernel manager.
         self._kernel_manager = kernel_manager
@@ -184,8 +184,8 @@ class FrontendWidget(HistoryConsoleWidget):
             return
 
         # Connect the new kernel manager.
-        kernel_manager.started_listening.connect(self._started_listening)
-        kernel_manager.stopped_listening.connect(self._stopped_listening)
+        kernel_manager.started_channels.connect(self._started_channels)
+        kernel_manager.stopped_channels.connect(self._stopped_channels)
 
         # Connect the new kernel manager's channels.
         sub = kernel_manager.sub_channel
@@ -195,10 +195,10 @@ class FrontendWidget(HistoryConsoleWidget):
         xreq.complete_reply.connect(self._handle_complete_reply)
         xreq.object_info_reply.connect(self._handle_object_info_reply)
         
-        # Handle the case where the kernel manager started listening before
+        # Handle the case where the kernel manager started channels before
         # we connected.
-        if kernel_manager.is_listening:
-            self._started_listening()
+        if kernel_manager.channels_running:
+            self._started_channels()
 
     kernel_manager = property(_get_kernel_manager, _set_kernel_manager)
 
@@ -323,8 +323,8 @@ class FrontendWidget(HistoryConsoleWidget):
             if doc:
                 self._call_tip_widget.show_docstring(doc)
 
-    def _started_listening(self):
+    def _started_channels(self):
         self.clear()
 
-    def _stopped_listening(self):
+    def _stopped_channels(self):
         pass
