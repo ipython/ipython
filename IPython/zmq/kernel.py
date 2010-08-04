@@ -13,6 +13,7 @@ Things to do:
 
 # Standard library imports.
 import __builtin__
+import os
 import sys
 import time
 import traceback
@@ -144,6 +145,7 @@ class Kernel(object):
         self.history = []
         self.compiler = CommandCompiler()
         self.completer = KernelCompleter(self.user_ns)
+        self.poll_ppid = False
         
         # Build dict of handlers for message types
         msg_types = [ 'execute_request', 'complete_request', 
@@ -258,6 +260,10 @@ class Kernel(object):
 
     def start(self):
         while True:
+            if self.poll_ppid and os.getppid() == 1:
+                print>>sys.__stderr__, "KILLED KERNEL. No parent process."
+                os._exit(1)
+
             ident = self.reply_socket.recv()
             assert self.reply_socket.rcvmore(), "Unexpected missing message part."
             msg = self.reply_socket.recv_json()
@@ -294,9 +300,11 @@ def main():
                         help='set the XREP Channel port [default: random]')
     parser.add_argument('--pub', type=int, metavar='PORT', default=0,
                         help='set the PUB Channel port [default: random]')
+    parser.add_argument('--require-parent', action='store_true', 
+                        help='ensure that this process dies with its parent')
     namespace = parser.parse_args()
 
-    # Create context, session, and kernel sockets.
+    # Create a context, a session, and the kernel sockets.
     print >>sys.__stdout__, "Starting the kernel..."
     context = zmq.Context()
     session = Session(username=u'kernel')
@@ -314,21 +322,43 @@ def main():
     sys.stderr = OutStream(session, pub_socket, u'stderr')
     sys.displayhook = DisplayHook(session, pub_socket)
 
+    # Create the kernel.
     kernel = Kernel(session, reply_socket, pub_socket)
 
-    # For debugging convenience, put sleep and a string in the namespace, so we
-    # have them every time we start.
-    kernel.user_ns['sleep'] = time.sleep
-    kernel.user_ns['s'] = 'Test string'
-    
-    print >>sys.__stdout__, "Use Ctrl-\\ (NOT Ctrl-C!) to terminate."
+    # Configure this kernel/process to die on parent termination, if necessary.
+    if namespace.require_parent:
+        if sys.platform == 'linux2':
+            import ctypes, ctypes.util, signal
+            PR_SET_PDEATHSIG = 1
+            libc = ctypes.CDLL(ctypes.util.find_library('c'))
+            libc.prctl(PR_SET_PDEATHSIG, signal.SIGKILL)
+
+        elif sys.platform != 'win32':
+            kernel.poll_ppid = True
+
+    # Start the kernel mainloop.
     kernel.start()
 
-def launch_kernel(xrep_port=0, pub_port=0):
-    """ Launches a localhost kernel, binding to the specified ports. For any
-    port that is left unspecified, a port is chosen by the operating system.
+def launch_kernel(xrep_port=0, pub_port=0, independent=False):
+    """ Launches a localhost kernel, binding to the specified ports.
 
-    Returns a tuple of form:
+    Parameters
+    ----------
+    xrep_port : int, optional
+        The port to use for XREP channel.
+
+    pub_port : int, optional
+        The port to use for the SUB Channel.
+
+    independent : bool, optional (default False) 
+        If set, the kernel process is guaranteed to survive if this process
+        dies. If not set, an effort is made to ensure that the kernel is killed
+        when this process dies. Note that in this case it is still good practice
+        to attempt to kill kernels manually before exiting.
+
+    Returns
+    -------
+    A tuple of form:
         (kernel_process [Popen], rep_port [int], sub_port [int])
     """
     import socket
@@ -345,15 +375,25 @@ def launch_kernel(xrep_port=0, pub_port=0):
         port = sock.getsockname()[1]
         sock.close()
         ports[i] = port
-    if xrep_port == 0:
-        xrep_port = ports.pop()
-    if pub_port == 0:
-        pub_port = ports.pop()
+    if xrep_port <= 0:
+        xrep_port = ports.pop(0)
+    if pub_port <= 0:
+        pub_port = ports.pop(0)
         
     # Spawn a kernel.
     command = 'from IPython.zmq.kernel import main; main()'
-    proc = Popen([ sys.executable, '-c', command, 
-                   '--xrep', str(xrep_port), '--pub', str(pub_port) ])
+    arguments = [ sys.executable, '-c', command, 
+                  '--xrep', str(xrep_port), '--pub', str(pub_port) ]
+
+    if independent:
+        if sys.platform == 'win32':
+            proc = Popen(['start', '/b'] + arguments, shell=True)
+        else:
+            proc = Popen(arguments, preexec_fn=lambda: os.setsid())
+
+    else:
+        proc = Popen(arguments + ['--require-parent'])
+
     return proc, xrep_port, pub_port
     
 

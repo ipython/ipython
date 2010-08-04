@@ -73,30 +73,19 @@ class IPythonWidget(FrontendWidget):
 
 
 if __name__ == '__main__':
-    import signal
     from IPython.frontend.qt.kernelmanager import QtKernelManager
+
+    # Don't let Qt or ZMQ swallow KeyboardInterupts.
+    import signal
+    signal.signal(signal.SIGINT, signal.SIG_DFL)
 
     # Create a KernelManager.
     kernel_manager = QtKernelManager()
     kernel_manager.start_kernel()
     kernel_manager.start_listening()
 
-    # Don't let Qt or ZMQ swallow KeyboardInterupts.
-    # FIXME: Gah, ZMQ swallows even custom signal handlers. So for now we leave 
-    #        behind a kernel process when Ctrl-C is pressed.
-    #def sigint_hook(signum, frame):
-    #    QtGui.qApp.quit()
-    #signal.signal(signal.SIGINT, sigint_hook)
-    signal.signal(signal.SIGINT, signal.SIG_DFL)
-
-    # Create the application, making sure to clean up nicely when we exit.
-    app = QtGui.QApplication([])
-    def quit_hook():
-        kernel_manager.stop_listening()
-        kernel_manager.kill_kernel()
-    app.aboutToQuit.connect(quit_hook)
-
     # Launch the application.
+    app = QtGui.QApplication([])
     widget = IPythonWidget()
     widget.kernel_manager = kernel_manager
     widget.setWindowTitle('Python')
