@@ -13,11 +13,11 @@ Things to do:
 
 # Standard library imports.
 import __builtin__
+from code import CommandCompiler
 import os
 import sys
 import time
 import traceback
-from code import CommandCompiler
 
 # System library imports.
 import zmq
@@ -40,7 +40,7 @@ class InStream(object):
 
     def flush(self):
         if self.socket is None:
-            raise ValueError(u'I/O operation on closed file')
+            raise ValueError('I/O operation on closed file')
         
     def isatty(self):
         return False
@@ -49,19 +49,33 @@ class InStream(object):
         raise IOError('Seek not supported.')
 
     def read(self, size=-1):
-        raise NotImplementedError
+        # FIXME: Do we want another request for this?
+        string = '\n'.join(self.readlines())
+        return self._truncate(string, size)
 
     def readline(self, size=-1):
         if self.socket is None:
-            raise ValueError(u'I/O operation on closed file')
+            raise ValueError('I/O operation on closed file')
         else:
             content = dict(size=size)
             msg = self.session.msg('readline_request', content=content) 
             reply = self._request(msg)
-            return reply['content']['line']
+            line = reply['content']['line']
+            return self._truncate(line, size)
 
-    def readlines(self, size=-1):
-        raise NotImplementedError
+    def readlines(self, sizehint=-1):
+        # Sizehint is ignored, as is permitted.
+        if self.socket is None:
+            raise ValueError('I/O operation on closed file')
+        else:
+            lines = []
+            while True:
+                line = self.readline()
+                if line:
+                    lines.append(line)
+                else:
+                    break
+            return lines
 
     def seek(self, offset, whence=None):
         raise IOError('Seek not supported.')
@@ -73,6 +87,11 @@ class InStream(object):
         raise IOError('Write not supported on a read only stream.')
     
     def _request(self, msg):
+        # Flush output before making the request. This ensures, for example,
+        # that raw_input(prompt) actually gets a prompt written.
+        sys.stderr.flush()
+        sys.stdout.flush()
+
         self.socket.send_json(msg)
         while True:
             try:
@@ -85,6 +104,15 @@ class InStream(object):
             else:
                 break
         return reply
+
+    def _truncate(self, string, size):
+        if size >= 0:
+            if isinstance(string, str):
+                return string[:size]
+            elif isinstance(string, unicode):
+                encoded = string.encode('utf-8')[:size]
+                return encoded.decode('utf-8', 'ignore')
+        return string
 
 
 class OutStream(object):

@@ -715,7 +715,7 @@ class ConsoleWidget(QtGui.QPlainTextEdit):
                                'is not visible!')
 
         self._reading = True
-        self._show_prompt(prompt)
+        self._show_prompt(prompt, newline=False)
 
         if callback is None:
             self._reading_callback = None
@@ -739,18 +739,25 @@ class ConsoleWidget(QtGui.QPlainTextEdit):
         """
         self.setTextCursor(self._get_selection_cursor(start, end))
 
-    def _show_prompt(self, prompt=None):
-        """ Writes a new prompt at the end of the buffer. If 'prompt' is not
-            specified, the previous prompt is used.
+    def _show_prompt(self, prompt=None, newline=True):
+        """ Writes a new prompt at the end of the buffer.
+
+        Parameters
+        ----------
+        prompt : str, optional
+            The prompt to show. If not specified, the previous prompt is used.
+
+        newline : bool, optional (default True)
+            If set, a new line will be written before showing the prompt if 
+            there is not already a newline at the end of the buffer.
         """
-        # Use QTextDocumentFragment intermediate object because it strips
-        # out the Unicode line break characters that Qt insists on inserting.
-        cursor = self._get_end_cursor()
-        if cursor.position() > 0:
-            cursor.movePosition(QtGui.QTextCursor.Left, 
-                                QtGui.QTextCursor.KeepAnchor)
-            if str(cursor.selection().toPlainText()) != '\n':
-                self.appendPlainText('\n')
+        if newline:
+            cursor = self._get_end_cursor()
+            if cursor.position() > 0:
+                cursor.movePosition(QtGui.QTextCursor.Left, 
+                                    QtGui.QTextCursor.KeepAnchor)
+                if str(cursor.selection().toPlainText()) != '\n':
+                    self.appendPlainText('\n')
 
         if prompt is not None:
             self._prompt = prompt

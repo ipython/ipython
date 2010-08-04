@@ -143,12 +143,12 @@ class FrontendWidget(HistoryConsoleWidget):
     # 'ConsoleWidget' protected interface
     #---------------------------------------------------------------------------
 
-    def _show_prompt(self, prompt=None):
+    def _show_prompt(self, prompt=None, newline=True):
         """ Reimplemented to set a default prompt.
         """
         if prompt is None:
             prompt = '>>> '
-        super(FrontendWidget, self)._show_prompt(prompt)
+        super(FrontendWidget, self)._show_prompt(prompt, newline)
 
     #---------------------------------------------------------------------------
     # 'FrontendWidget' interface
@@ -297,6 +297,10 @@ class FrontendWidget(HistoryConsoleWidget):
             self._call_tip()
 
     def _handle_req(self, req):
+        # Make sure that all output from the SUB channel has been processed
+        # before entering readline mode.
+        self.kernel_manager.sub_channel.flush()
+
         def callback(line):
             self.kernel_manager.rep_channel.readline(line)
         self._readline(callback=callback)
