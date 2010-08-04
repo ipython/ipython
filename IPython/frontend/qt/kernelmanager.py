@@ -11,7 +11,6 @@ from IPython.zmq.kernelmanager import KernelManager, SubSocketChannel, \
 from util import MetaQObjectHasTraits
 
 
-
 class QtSubSocketChannel(SubSocketChannel, QtCore.QObject):
 
     # Emitted when any message is received.

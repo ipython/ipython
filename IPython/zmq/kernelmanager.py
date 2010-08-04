@@ -74,7 +74,8 @@ class ZmqSocketChannel(Thread):
         self.context = context
         self.session = session
         if address[1] == 0:
-            raise InvalidPortNumber('The port number for a channel cannot be 0.')
+            message = 'The port number for a channel cannot be 0.'
+            raise InvalidPortNumber(message)
         self._address = address
 
     def stop(self):
@@ -345,7 +346,7 @@ class RepSocketChannel(ZmqSocketChannel):
 
     def stop(self):
         self.ioloop.stop()
-        super(SubSocketChannel, self).stop()
+        super(RepSocketChannel, self).stop()
 
     def on_raw_input(self):
         pass

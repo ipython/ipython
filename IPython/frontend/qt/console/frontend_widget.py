@@ -174,7 +174,7 @@ class FrontendWidget(HistoryConsoleWidget):
             xreq.complete_reply.disconnect(self._handle_complete_reply)
             xreq.object_info_reply.disconnect(self._handle_object_info_reply)
 
-            # Handle the case where the old kernel manager is still channels.
+            # Handle the case where the old kernel manager is still listening.
             if self._kernel_manager.channels_running:
                 self._stopped_channels()
 

@@ -297,9 +297,11 @@ def main():
     parser.add_argument('--ip', type=str, default='127.0.0.1',
                         help='set the kernel\'s IP address [default: local]')
     parser.add_argument('--xrep', type=int, metavar='PORT', default=0,
-                        help='set the XREP Channel port [default: random]')
+                        help='set the XREP channel port [default: random]')
     parser.add_argument('--pub', type=int, metavar='PORT', default=0,
-                        help='set the PUB Channel port [default: random]')
+                        help='set the PUB channel port [default: random]')
+    parser.add_argument('--req', type=int, metavar='PORT', default=0,
+                        help='set the REQ channel port [default: random]')
     parser.add_argument('--require-parent', action='store_true', 
                         help='ensure that this process dies with its parent')
     namespace = parser.parse_args()
@@ -339,7 +341,7 @@ def main():
     # Start the kernel mainloop.
     kernel.start()
 
-def launch_kernel(xrep_port=0, pub_port=0, independent=False):
+def launch_kernel(xrep_port=0, pub_port=0, req_port=0, independent=False):
     """ Launches a localhost kernel, binding to the specified ports.
 
     Parameters
@@ -348,7 +350,10 @@ def launch_kernel(xrep_port=0, pub_port=0, independent=False):
         The port to use for XREP channel.
 
     pub_port : int, optional
-        The port to use for the SUB Channel.
+        The port to use for the SUB channel.
+
+    req_port : int, optional
+        The port to use for the REQ (raw input) channel.
 
     independent : bool, optional (default False) 
         If set, the kernel process is guaranteed to survive if this process
@@ -359,14 +364,15 @@ def launch_kernel(xrep_port=0, pub_port=0, independent=False):
     Returns
     -------
     A tuple of form:
-        (kernel_process [Popen], rep_port [int], sub_port [int])
+        (kernel_process, xrep_port, pub_port, req_port)
+    where kernel_process is a Popen object and the ports are integers.
     """
     import socket
     from subprocess import Popen
 
     # Find open ports as necessary.
     ports = []
-    ports_needed = int(xrep_port == 0) + int(pub_port == 0)
+    ports_needed = int(xrep_port <= 0) + int(pub_port <= 0) + int(req_port <= 0)
     for i in xrange(ports_needed):
         sock = socket.socket()
         sock.bind(('', 0))
@@ -379,11 +385,13 @@ def launch_kernel(xrep_port=0, pub_port=0, independent=False):
         xrep_port = ports.pop(0)
     if pub_port <= 0:
         pub_port = ports.pop(0)
+    if req_port <= 0:
+        req_port = ports.pop(0)
         
     # Spawn a kernel.
     command = 'from IPython.zmq.kernel import main; main()'
-    arguments = [ sys.executable, '-c', command, 
-                  '--xrep', str(xrep_port), '--pub', str(pub_port) ]
+    arguments = [ sys.executable, '-c', command, '--xrep', str(xrep_port), 
+                  '--pub', str(pub_port), '--req', str(req_port) ]
 
     if independent:
         if sys.platform == 'win32':
@@ -394,7 +402,7 @@ def launch_kernel(xrep_port=0, pub_port=0, independent=False):
     else:
         proc = Popen(arguments + ['--require-parent'])
 
-    return proc, xrep_port, pub_port
+    return proc, xrep_port, pub_port, req_port
     
 
 if __name__ == '__main__':
