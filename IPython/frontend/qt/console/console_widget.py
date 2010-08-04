@@ -267,7 +267,6 @@ class ConsoleWidget(QtGui.QPlainTextEdit):
                     self._reading = False
                     if self._reading_callback:
                         self._reading_callback()
-                        self._reading_callback = None
                 elif not self._executing:
                     self.execute(interactive=True)
                 intercepted = True
@@ -366,16 +365,19 @@ class ConsoleWidget(QtGui.QPlainTextEdit):
             cursor.insertText(text)
 
     def clear(self, keep_input=False):
-        """ Reimplemented to write a new prompt. If 'keep_input' is set,
-            restores the old input buffer when the new prompt is written.
+        """ Reimplemented to cancel reading and write a new prompt. If
+            'keep_input' is set, restores the old input buffer when the new
+            prompt is written.
         """
         super(ConsoleWidget, self).clear()
-
-        if keep_input:
+        
+        input_buffer = ''
+        if self._reading:
+            self._reading = False
+        elif keep_input:
             input_buffer = self.input_buffer
         self._show_prompt()
-        if keep_input:
-            self.input_buffer = input_buffer
+        self.input_buffer = input_buffer
 
     def paste(self):
         """ Reimplemented to ensure that text is pasted in the editing region.
