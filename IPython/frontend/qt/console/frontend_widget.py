@@ -116,18 +116,20 @@ class FrontendWidget(HistoryConsoleWidget):
     def _prompt_started_hook(self):
         """ Called immediately after a new prompt is displayed.
         """
-        self._highlighter.highlighting_on = True
+        if not self._reading:
+            self._highlighter.highlighting_on = True
 
-        # Auto-indent if this is a continuation prompt.
-        if self._get_prompt_cursor().blockNumber() != \
-                self._get_end_cursor().blockNumber():
-            self.appendPlainText(' ' * self._input_splitter.indent_spaces)
+            # Auto-indent if this is a continuation prompt.
+            if self._get_prompt_cursor().blockNumber() != \
+                    self._get_end_cursor().blockNumber():
+                self.appendPlainText(' ' * self._input_splitter.indent_spaces)
 
     def _prompt_finished_hook(self):
         """ Called immediately after a prompt is finished, i.e. when some input
             will be processed and a new prompt displayed.
         """
-        self._highlighter.highlighting_on = False
+        if not self._reading:
+            self._highlighter.highlighting_on = False
 
     def _tab_pressed(self):
         """ Called when the tab key is pressed. Returns whether to continue
