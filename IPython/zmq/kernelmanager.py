@@ -439,20 +439,18 @@ class KernelManager(HasTraits):
         If random ports (port=0) are being used, this method must be called
         before the channels are created.
         """
-        xreq, sub = self.xreq_address, self.sub_address
-        if xreq[0] != LOCALHOST or sub[0] != LOCALHOST:
+        xreq, sub, rep = self.xreq_address, self.sub_address, self.rep_address
+        if xreq[0] != LOCALHOST or sub[0] != LOCALHOST or rep[0] != LOCALHOST:
             raise RuntimeError("Can only launch a kernel on localhost."
                                "Make sure that the '*_address' attributes are "
                                "configured properly.")
 
-        kernel, xrep, pub = launch_kernel(xrep_port=xreq[1], pub_port=sub[1])
+        kernel, xrep, pub, req = launch_kernel(
+            xrep_port=xreq[1], pub_port=sub[1], req_port=rep[1])
         self._kernel = kernel
         self._xreq_address = (LOCALHOST, xrep)
         self._sub_address = (LOCALHOST, pub)
-        # The rep channel is not fully working yet, but its base class makes
-        # sure the port is not 0. We set to -1 for now until the rep channel
-        # is fully working.
-        self._rep_address = (LOCALHOST, -1)
+        self._rep_address = (LOCALHOST, req)
 
     @property
     def has_kernel(self):
