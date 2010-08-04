@@ -199,7 +199,6 @@ class XReqSocketChannel(ZmqSocketChannel):
         Returns
         -------
         The msg_id of the message sent.
-
         """
         content = dict(text=text, line=line)
         msg = self.session.msg('complete_request', content)
@@ -338,23 +337,83 @@ class SubSocketChannel(ZmqSocketChannel):
 class RepSocketChannel(ZmqSocketChannel):
     """A reply channel to handle raw_input requests that the kernel makes."""
 
+    msg_queue = None
+
+    def __init__(self, context, session, address):
+        self.msg_queue = Queue()
+        super(RepSocketChannel, self).__init__(context, session, address)
+
     def run(self):
         """The thread's main activity.  Call start() instead."""
+        self.socket = self.context.socket(zmq.XREQ)
+        self.socket.setsockopt(zmq.IDENTITY, self.session.session)
+        self.socket.connect('tcp://%s:%i' % self.address)
         self.ioloop = ioloop.IOLoop()
+        self.iostate = POLLERR|POLLIN
+        self.ioloop.add_handler(self.socket, self._handle_events, 
+                                self.iostate)
         self.ioloop.start()
 
     def stop(self):
         self.ioloop.stop()
         super(RepSocketChannel, self).stop()
 
-    def on_raw_input(self):
-        pass
+    def call_handlers(self, msg):
+        """This method is called in the ioloop thread when a message arrives.
+
+        Subclasses should override this method to handle incoming messages.
+        It is important to remember that this method is called in the thread
+        so that some logic must be done to ensure that the application leve
+        handlers are called in the application thread.
+        """
+        raise NotImplementedError('call_handlers must be defined in a subclass.')
+
+    def readline(self, line):
+        """A send a line of raw input to the kernel.
+
+        Parameters
+        ----------
+        line : str
+            The line of the input.
+        """
+        content = dict(line=line)
+        msg = self.session.msg('readline_reply', content)
+        self._queue_reply(msg)
+
+    def _handle_events(self, socket, events):
+        if events & POLLERR:
+            self._handle_err()
+        if events & POLLOUT:
+            self._handle_send()
+        if events & POLLIN:
+            self._handle_recv()
+
+    def _handle_recv(self):
+        msg = self.socket.recv_json()
+        self.call_handlers(msg)
+
+    def _handle_send(self):
+        try:
+            msg = self.msg_queue.get(False)
+        except Empty:
+            pass
+        else:
+            self.socket.send_json(msg)
+        if self.msg_queue.empty():
+            self.drop_io_state(POLLOUT)
+
+    def _handle_err(self):
+        # We don't want to let this go silently, so eventually we should log.
+        raise zmq.ZMQError()
+
+    def _queue_reply(self, msg):
+        self.msg_queue.put(msg)
+        self.add_io_state(POLLOUT)
 
 
 #-----------------------------------------------------------------------------
 # Main kernel manager class
 #-----------------------------------------------------------------------------
-
 
 class KernelManager(HasTraits):
     """ Manages a kernel for a frontend.

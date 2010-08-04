@@ -55,9 +55,10 @@ class InStream(object):
         if self.socket is None:
             raise ValueError(u'I/O operation on closed file')
         else:
-            content = { u'size' : unicode(size) }
-            msg = self.session.msg(u'readline', content=content) 
-            return self._request(msg)
+            content = dict(size=size)
+            msg = self.session.msg('readline_request', content=content) 
+            reply = self._request(msg)
+            return reply['content']['line']
 
     def readlines(self, size=-1):
         raise NotImplementedError
@@ -83,7 +84,7 @@ class InStream(object):
                     raise
             else:
                 break
-        return reply[u'content'][u'data']
+        return reply
 
 
 class OutStream(object):

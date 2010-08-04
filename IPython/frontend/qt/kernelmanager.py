@@ -95,6 +95,12 @@ class QtXReqSocketChannel(XReqSocketChannel, QtCore.QObject):
 
 class QtRepSocketChannel(RepSocketChannel, QtCore.QObject):
 
+    # Emitted when any message is received.
+    message_received = QtCore.pyqtSignal(object)
+
+    # Emitted when a readline request is received.
+    readline_requested = QtCore.pyqtSignal(object)
+
     #---------------------------------------------------------------------------
     # 'object' interface
     #---------------------------------------------------------------------------
@@ -105,6 +111,21 @@ class QtRepSocketChannel(RepSocketChannel, QtCore.QObject):
         QtCore.QObject.__init__(self)
         RepSocketChannel.__init__(self, *args, **kw)
 
+    #---------------------------------------------------------------------------
+    # 'RepSocketChannel' interface
+    #---------------------------------------------------------------------------
+
+    def call_handlers(self, msg):
+        """ Reimplemented to emit signals instead of making callbacks.
+        """
+        # Emit the generic signal.
+        self.message_received.emit(msg)
+        
+        # Emit signals for specialized message types.
+        msg_type = msg['msg_type']
+        if msg_type == 'readline_request':
+            self.readline_requested.emit(msg)
+    
 
 class QtKernelManager(KernelManager, QtCore.QObject):
     """ A KernelManager that provides signals and slots.
