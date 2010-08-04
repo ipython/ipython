@@ -218,7 +218,6 @@ class XReqSocketChannel(ZmqSocketChannel):
         -------
         The msg_id of the message sent.
         """
-        print oname
         content = dict(oname=oname)
         msg = self.session.msg('object_info_request', content)
         self._queue_request(msg)

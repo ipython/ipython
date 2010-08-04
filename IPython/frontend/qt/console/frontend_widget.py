@@ -60,7 +60,6 @@ class FrontendWidget(HistoryConsoleWidget):
 
         # ConsoleWidget protected variables.
         self._continuation_prompt = '... '
-        self._prompt = '>>> '
 
         # FrontendWidget protected variables.
         self._call_tip_widget = CallTipWidget(self)
@@ -139,6 +138,17 @@ class FrontendWidget(HistoryConsoleWidget):
         if not self._complete():
             cursor.insertText('    ')
         return False
+
+    #---------------------------------------------------------------------------
+    # 'ConsoleWidget' protected interface
+    #---------------------------------------------------------------------------
+
+    def _show_prompt(self, prompt=None):
+        """ Reimplemented to set a default prompt.
+        """
+        if prompt is None:
+            prompt = '>>> '
+        super(FrontendWidget, self)._show_prompt(prompt)
 
     #---------------------------------------------------------------------------
     # 'FrontendWidget' interface
@@ -261,6 +271,16 @@ class FrontendWidget(HistoryConsoleWidget):
 
     #------ Signal handlers ----------------------------------------------------
 
+    def _started_channels(self):
+        """ Called when the kernel manager has started listening.
+        """
+        self.clear()
+
+    def _stopped_channels(self):
+        """ Called when the kernel manager has stopped listening.
+        """
+        pass
+
     def _document_contents_change(self, position, removed, added):
         """ Called whenever the document's content changes. Display a calltip
             if appropriate.
@@ -271,6 +291,9 @@ class FrontendWidget(HistoryConsoleWidget):
         document = self.document()
         if position == self.textCursor().position():
             self._call_tip()
+
+    def _handle_req(self):
+        print self._readline()
 
     def _handle_sub(self, omsg):
         if self._hidden:
@@ -323,8 +346,4 @@ class FrontendWidget(HistoryConsoleWidget):
             if doc:
                 self._call_tip_widget.show_docstring(doc)
 
-    def _started_channels(self):
-        self.clear()
-
-    def _stopped_channels(self):
-        pass
+    

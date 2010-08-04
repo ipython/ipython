@@ -28,6 +28,64 @@ from session import Session, Message, extract_header
 from completer import KernelCompleter
 
 
+class InStream(object):
+    """ A file like object that reads from a 0MQ XREQ socket."""
+
+    def __init__(self, session, socket):
+        self.session = session
+        self.socket = socket
+
+    def close(self):
+        self.socket = None
+
+    def flush(self):
+        if self.socket is None:
+            raise ValueError(u'I/O operation on closed file')
+        
+    def isatty(self):
+        return False
+
+    def next(self):
+        raise IOError('Seek not supported.')
+
+    def read(self, size=-1):
+        raise NotImplementedError
+
+    def readline(self, size=-1):
+        if self.socket is None:
+            raise ValueError(u'I/O operation on closed file')
+        else:
+            content = { u'size' : unicode(size) }
+            msg = self.session.msg(u'readline', content=content) 
+            return self._request(msg)
+
+    def readlines(self, size=-1):
+        raise NotImplementedError
+
+    def seek(self, offset, whence=None):
+        raise IOError('Seek not supported.')
+
+    def write(self, string):
+        raise IOError('Write not supported on a read only stream.')
+
+    def writelines(self, sequence):
+        raise IOError('Write not supported on a read only stream.')
+    
+    def _request(self, msg):
+        self.socket.send_json(msg)
+        while True:
+            try:
+                reply = self.socket.recv_json(zmq.NOBLOCK)
+            except zmq.ZMQError, e:
+                if e.errno == zmq.EAGAIN:
+                    pass
+                else:
+                    raise
+            else:
+                break
+        return reply[u'content'][u'data']
+
+
 class OutStream(object):
     """A file like object that publishes the stream to a 0MQ PUB socket."""
 
@@ -60,7 +118,7 @@ class OutStream(object):
                 self._buffer_len = 0
                 self._buffer = []
 
-    def isattr(self):
+    def isatty(self):
         return False
 
     def next(self):
@@ -111,28 +169,6 @@ class DisplayHook(object):
 
     def set_parent(self, parent):
         self.parent_header = extract_header(parent)
-
-
-class RawInput(object):
-
-    def __init__(self, session, socket):
-        self.session = session
-        self.socket = socket
-
-    def __call__(self, prompt=None):
-        msg = self.session.msg(u'raw_input')
-        self.socket.send_json(msg)
-        while True:
-            try:
-                reply = self.socket.recv_json(zmq.NOBLOCK)
-            except zmq.ZMQError, e:
-                if e.errno == zmq.EAGAIN:
-                    pass
-                else:
-                    raise
-            else:
-                break
-        return reply[u'content'][u'data']
 
 
 class Kernel(object):
@@ -319,7 +355,12 @@ def main():
     pub_port = bind_port(pub_socket, namespace.ip, namespace.pub)
     print >>sys.__stdout__, "PUB Channel on port", pub_port
 
+    req_socket = context.socket(zmq.XREQ)
+    req_port = bind_port(req_socket, namespace.ip, namespace.req)
+    print >>sys.__stdout__, "REQ Channel on port", req_port
+
     # Redirect input streams and set a display hook.
+    sys.stdin = InStream(session, req_socket)
     sys.stdout = OutStream(session, pub_socket, u'stdout')
     sys.stderr = OutStream(session, pub_socket, u'stderr')
     sys.displayhook = DisplayHook(session, pub_socket)

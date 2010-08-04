@@ -256,11 +256,12 @@ class ConsoleWidget(QtGui.QPlainTextEdit):
         
         else:
             if key in (QtCore.Qt.Key_Return, QtCore.Qt.Key_Enter):
+                intercepted = True
                 if self._reading:
+                    intercepted = False
                     self._reading = False
                 elif not self._executing:
                     self.execute(interactive=True)
-                intercepted = True
 
             elif key == QtCore.Qt.Key_Up:
                 if self._reading or not self._up_pressed():
@@ -677,6 +678,19 @@ class ConsoleWidget(QtGui.QPlainTextEdit):
         self.setReadOnly(True)
         self._prompt_finished_hook()
 
+    def _readline(self, prompt=''):
+        """ Read and return one line of input from the user. The trailing 
+            newline is stripped.
+        """
+        if not self.isVisible():
+            raise RuntimeError('Cannot read a line if widget is not visible!')
+
+        self._reading = True
+        self._show_prompt(prompt)
+        while self._reading:
+            QtCore.QCoreApplication.processEvents()
+        return self.input_buffer.rstrip('\n\r')
+
     def _set_position(self, position):
         """ Convenience method to set the position of the cursor.
         """
@@ -691,11 +705,20 @@ class ConsoleWidget(QtGui.QPlainTextEdit):
 
     def _show_prompt(self, prompt=None):
         """ Writes a new prompt at the end of the buffer. If 'prompt' is not
-            specified, uses the previous prompt.
+            specified, the previous prompt is used.
         """
+        # Use QTextDocumentFragment intermediate object because it strips
+        # out the Unicode line break characters that Qt insists on inserting.
+        cursor = self._get_end_cursor()
+        cursor.movePosition(QtGui.QTextCursor.Left, 
+                            QtGui.QTextCursor.KeepAnchor)
+        if str(cursor.selection().toPlainText()) not in '\r\n':
+            self.appendPlainText('\n')
+
         if prompt is not None:
             self._prompt = prompt
-        self.appendPlainText('\n' + self._prompt)
+        self.appendPlainText(self._prompt)
+
         self._prompt_pos = self._get_end_cursor().position()
         self._prompt_started()
 
