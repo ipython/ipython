@@ -282,7 +282,7 @@ def bind_port(socket, ip, port):
     port is chosen. Returns the port that was bound.
     """
     connection = 'tcp://%s' % ip
-    if port < 0:
+    if port <= 0:
         port = socket.bind_to_random_port(connection)
     else:
         connection += ':%i' % port
@@ -340,6 +340,7 @@ def main():
 
     # Start the kernel mainloop.
     kernel.start()
+
 
 def launch_kernel(xrep_port=0, pub_port=0, req_port=0, independent=False):
     """ Launches a localhost kernel, binding to the specified ports.
