@@ -11,11 +11,16 @@ Things to do:
 * Implement event loop and poll version.
 """
 
+#-----------------------------------------------------------------------------
+# Imports
+#-----------------------------------------------------------------------------
+
 # Standard library imports.
 import __builtin__
 from code import CommandCompiler
 import os
 import sys
+from threading import Thread
 import time
 import traceback
 
@@ -27,6 +32,9 @@ from IPython.external.argparse import ArgumentParser
 from session import Session, Message, extract_header
 from completer import KernelCompleter
 
+#-----------------------------------------------------------------------------
+# Kernel and stream classes
+#-----------------------------------------------------------------------------
 
 class InStream(object):
     """ A file like object that reads from a 0MQ XREQ socket."""
@@ -210,7 +218,6 @@ class Kernel(object):
         self.history = []
         self.compiler = CommandCompiler()
         self.completer = KernelCompleter(self.user_ns)
-        self.poll_ppid = False
         
         # Build dict of handlers for message types
         msg_types = [ 'execute_request', 'complete_request', 
@@ -325,10 +332,6 @@ class Kernel(object):
 
     def start(self):
         while True:
-            if self.poll_ppid and os.getppid() == 1:
-                print>>sys.__stderr__, "KILLED KERNEL. No parent process."
-                os._exit(1)
-
             ident = self.reply_socket.recv()
             assert self.reply_socket.rcvmore(), "Unexpected missing message part."
             msg = self.reply_socket.recv_json()
@@ -341,6 +344,34 @@ class Kernel(object):
             else:
                 handler(ident, omsg)
 
+#-----------------------------------------------------------------------------
+# Kernel main and launch functions
+#-----------------------------------------------------------------------------
+
+class UnixPoller(Thread):
+
+    def __init__(self):
+        super(UnixPoller, self).__init__()
+        self.daemon = True
+    
+    def run(self):
+        while True:
+            if os.getppid() == 1:
+                os._exit(1)
+            time.sleep(5.0)
+
+class WindowsPoller(Thread):
+    
+    def __init__(self, handle):
+        super(WindowsPoller, self).__init__()
+        self.daemon = True
+        self.handle = handle
+
+    def run(self):
+        from _subprocess import WaitForSingleObject, WAIT_OBJECT_0, INFINITE
+        result = WaitForSingleObject(self.handle, INFINITE)
+        if result == WAIT_OBJECT_0:
+            os._exit(1)
 
 def bind_port(socket, ip, port):
     """ Binds the specified ZMQ socket. If the port is less than zero, a random
@@ -367,8 +398,13 @@ def main():
                         help='set the PUB channel port [default: random]')
     parser.add_argument('--req', type=int, metavar='PORT', default=0,
                         help='set the REQ channel port [default: random]')
-    parser.add_argument('--require-parent', action='store_true', 
-                        help='ensure that this process dies with its parent')
+    if sys.platform == 'win32':
+        parser.add_argument('--parent', type=int, metavar='HANDLE', 
+                            default=0, help='kill this process if the process '
+                            'with HANDLE dies')
+    else:
+        parser.add_argument('--parent', action='store_true', 
+                            help='kill this process if its parent dies')
     namespace = parser.parse_args()
 
     # Create a context, a session, and the kernel sockets.
@@ -398,15 +434,18 @@ def main():
     kernel = Kernel(session, reply_socket, pub_socket)
 
     # Configure this kernel/process to die on parent termination, if necessary.
-    if namespace.require_parent:
+    if namespace.parent:
         if sys.platform == 'linux2':
             import ctypes, ctypes.util, signal
             PR_SET_PDEATHSIG = 1
             libc = ctypes.CDLL(ctypes.util.find_library('c'))
             libc.prctl(PR_SET_PDEATHSIG, signal.SIGKILL)
-
-        elif sys.platform != 'win32':
-            kernel.poll_ppid = True
+        elif sys.platform == 'win32':
+            poller = WindowsPoller(namespace.parent)
+            poller.start()
+        else:
+            poller = UnixPoller()
+            poller.start()
 
     # Start the kernel mainloop.
     kernel.start()
@@ -430,7 +469,7 @@ def launch_kernel(xrep_port=0, pub_port=0, req_port=0, independent=False):
         If set, the kernel process is guaranteed to survive if this process
         dies. If not set, an effort is made to ensure that the kernel is killed
         when this process dies. Note that in this case it is still good practice
-        to attempt to kill kernels manually before exiting.
+        to kill kernels manually before exiting.
 
     Returns
     -------
@@ -463,15 +502,22 @@ def launch_kernel(xrep_port=0, pub_port=0, req_port=0, independent=False):
     command = 'from IPython.zmq.kernel import main; main()'
     arguments = [ sys.executable, '-c', command, '--xrep', str(xrep_port), 
                   '--pub', str(pub_port), '--req', str(req_port) ]
-
     if independent:
         if sys.platform == 'win32':
             proc = Popen(['start', '/b'] + arguments, shell=True)
         else:
             proc = Popen(arguments, preexec_fn=lambda: os.setsid())
-
     else:
-        proc = Popen(arguments + ['--require-parent'])
+        if sys.platform == 'win32':
+            from _subprocess import DuplicateHandle, GetCurrentProcess, \
+                DUPLICATE_SAME_ACCESS
+            pid = GetCurrentProcess()
+            handle = DuplicateHandle(pid, pid, pid, 0, 
+                                     True, # Inheritable by new  processes.
+                                     DUPLICATE_SAME_ACCESS)
+            proc = Popen(arguments + ['--parent', str(int(handle))])
+        else:
+            proc = Popen(arguments + ['--parent'])
 
     return proc, xrep_port, pub_port, req_port
     
