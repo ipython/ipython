@@ -448,6 +448,7 @@ class KernelManager(HasTraits):
 
     def __init__(self, xreq_address=None, sub_address=None, rep_address=None,
                  context=None, session=None):
+        super(KernelManager, self).__init__()
         self._xreq_address = (LOCALHOST, 0) if xreq_address is None else xreq_address
         self._sub_address = (LOCALHOST, 0) if sub_address is None else sub_address
         self._rep_address = (LOCALHOST, 0) if rep_address is None else rep_address

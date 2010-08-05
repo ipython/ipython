@@ -348,22 +348,35 @@ class Kernel(object):
 # Kernel main and launch functions
 #-----------------------------------------------------------------------------
 
-class UnixPoller(Thread):
+class ExitPollerUnix(Thread):
+    """ A Unix-specific daemon thread that terminates the program immediately 
+    when this process' parent process no longer exists.
+    """
 
     def __init__(self):
-        super(UnixPoller, self).__init__()
+        super(ExitPollerUnix, self).__init__()
         self.daemon = True
     
     def run(self):
+        # We cannot use os.waitpid because it works only for child processes.
+        from errno import EINTR
         while True:
-            if os.getppid() == 1:
-                os._exit(1)
-            time.sleep(5.0)
+            try:
+                if os.getppid() == 1:
+                    os._exit(1)
+                time.sleep(1.0)
+            except OSError, e:
+                if e.errno == EINTR:
+                    continue
+                raise
 
-class WindowsPoller(Thread):
+class ExitPollerWindows(Thread):
+    """ A Windows-specific daemon thread that terminates the program immediately
+    when a Win32 handle is signaled.
+    """ 
     
     def __init__(self, handle):
-        super(WindowsPoller, self).__init__()
+        super(ExitPollerWindows, self).__init__()
         self.daemon = True
         self.handle = handle
 
@@ -372,6 +385,7 @@ class WindowsPoller(Thread):
         result = WaitForSingleObject(self.handle, INFINITE)
         if result == WAIT_OBJECT_0:
             os._exit(1)
+
 
 def bind_port(socket, ip, port):
     """ Binds the specified ZMQ socket. If the port is less than zero, a random
@@ -384,6 +398,7 @@ def bind_port(socket, ip, port):
         connection += ':%i' % port
         socket.bind(connection)
     return port
+
 
 def main():
     """ Main entry point for launching a kernel.
@@ -435,17 +450,11 @@ def main():
 
     # Configure this kernel/process to die on parent termination, if necessary.
     if namespace.parent:
-        if sys.platform == 'linux2':
-            import ctypes, ctypes.util, signal
-            PR_SET_PDEATHSIG = 1
-            libc = ctypes.CDLL(ctypes.util.find_library('c'))
-            libc.prctl(PR_SET_PDEATHSIG, signal.SIGKILL)
-        elif sys.platform == 'win32':
-            poller = WindowsPoller(namespace.parent)
-            poller.start()
+        if sys.platform == 'win32':
+            poller = ExitPollerWindows(namespace.parent)
         else:
-            poller = UnixPoller()
-            poller.start()
+            poller = ExitPollerUnix()
+        poller.start()
 
     # Start the kernel mainloop.
     kernel.start()
