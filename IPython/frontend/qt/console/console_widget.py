@@ -369,8 +369,7 @@ class ConsoleWidget(QtGui.QPlainTextEdit):
             'keep_input' is set, restores the old input buffer when the new
             prompt is written.
         """
-        super(ConsoleWidget, self).clear()
-        
+        QtGui.QPlainTextEdit.clear(self)
         input_buffer = ''
         if self._reading:
             self._reading = False

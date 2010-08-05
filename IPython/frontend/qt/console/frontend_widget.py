@@ -1,5 +1,6 @@
 # Standard library imports
 import signal
+import sys
 
 # System library imports
 from pygments.lexers import PythonLexer
@@ -256,6 +257,13 @@ class FrontendWidget(HistoryConsoleWidget):
         self._complete_pos = self.textCursor().position()
         return True
 
+    def _get_banner(self):
+        """ Gets a banner to display at the beginning of a session.
+        """
+        banner = 'Python %s on %s\nType "help", "copyright", "credits" or ' \
+            '"license" for more information.'
+        return banner % (sys.version, sys.platform)
+
     def _get_context(self, cursor=None):
         """ Gets the context at the current cursor location.
         """
@@ -280,7 +288,11 @@ class FrontendWidget(HistoryConsoleWidget):
     def _started_channels(self):
         """ Called when the kernel manager has started listening.
         """
-        self.clear()
+        QtGui.QPlainTextEdit.clear(self)
+        if self._reading:
+            self._reading = False
+        self.appendPlainText(self._get_banner())
+        self._show_prompt()
 
     def _stopped_channels(self):
         """ Called when the kernel manager has stopped listening.

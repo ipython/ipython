@@ -2,6 +2,7 @@
 from PyQt4 import QtCore, QtGui
 
 # Local imports
+from IPython.core.usage import default_banner
 from frontend_widget import FrontendWidget
 
 
@@ -49,6 +50,15 @@ class IPythonWidget(FrontendWidget):
         """ Reimplemented to use the 'run' magic.
         """
         self.execute('run %s' % path, hidden=hidden)
+
+    #---------------------------------------------------------------------------
+    # 'FrontendWidget' protected interface
+    #---------------------------------------------------------------------------
+
+    def _get_banner(self):
+        """ Reimplemented to a return IPython's default banner.
+        """
+        return default_banner
 
     #---------------------------------------------------------------------------
     # 'IPythonWidget' interface
