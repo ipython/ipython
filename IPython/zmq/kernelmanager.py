@@ -385,8 +385,9 @@ class KernelManager(HasTraits):
         self._rep_address = (LOCALHOST, 0) if rep_address is None else rep_address
         self.context = zmq.Context() if context is None else context
         self.session = Session() if session is None else session
+        super(KernelManager, self).__init__()
 
-    #--------------------------------------------------------------------------
+    #---------------------------------  -----------------------------------------
     # Channel management methods:
     #--------------------------------------------------------------------------
 
