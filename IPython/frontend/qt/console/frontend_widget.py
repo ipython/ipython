@@ -118,7 +118,7 @@ class FrontendWidget(HistoryConsoleWidget):
             prompt created. When triggered by an Enter/Return key press,
             'interactive' is True; otherwise, it is False.
         """
-        complete = self._input_splitter.push(source)
+        complete = self._input_splitter.push(source.replace('\t', '    '))
         if interactive:
             complete = not self._input_splitter.push_accepts_more()
         return complete
@@ -138,7 +138,8 @@ class FrontendWidget(HistoryConsoleWidget):
             # Auto-indent if this is a continuation prompt.
             if self._get_prompt_cursor().blockNumber() != \
                     self._get_end_cursor().blockNumber():
-                self.appendPlainText(' ' * self._input_splitter.indent_spaces)
+                spaces = self._input_splitter.indent_spaces
+                self.appendPlainText('\t' * (spaces / 4) + ' ' * (spaces % 4))
 
     def _prompt_finished_hook(self):
         """ Called immediately after a prompt is finished, i.e. when some input
@@ -153,9 +154,7 @@ class FrontendWidget(HistoryConsoleWidget):
         """
         self._keep_cursor_in_buffer()
         cursor = self.textCursor()
-        if not self._complete():
-            cursor.insertText('    ')
-        return False
+        return not self._complete()
 
     #---------------------------------------------------------------------------
     # 'FrontendWidget' interface
@@ -341,7 +340,7 @@ class FrontendWidget(HistoryConsoleWidget):
         self.appendPlainText(omsg['content']['data'])
         self.moveCursor(QtGui.QTextCursor.End)
         
-    def _handle_execute_reply(self, rep):
+    def _handle_execute_reply(self, reply):
         if self._hidden:
             return
 
@@ -349,16 +348,20 @@ class FrontendWidget(HistoryConsoleWidget):
         # before writing a new prompt.
         self.kernel_manager.sub_channel.flush()
 
-        content = rep['content']
-        status = content['status']
+        status = reply['content']['status']
         if status == 'error':
-            self.appendPlainText(content['traceback'][-1])
+            self._handle_execute_error(reply)
         elif status == 'aborted':
             text = "ERROR: ABORTED\n"
             self.appendPlainText(text)
         self._hidden = True
         self._show_interpreter_prompt()
-        self.executed.emit(rep)
+        self.executed.emit(reply)
+
+    def _handle_execute_error(self, reply):
+        content = reply['content']
+        traceback = ''.join(content['traceback'])
+        self.appendPlainText(traceback)
 
     def _handle_complete_reply(self, rep):
         cursor = self.textCursor()

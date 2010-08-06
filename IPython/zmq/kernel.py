@@ -268,7 +268,7 @@ class Kernel(object):
             exc_content = {
                 u'status' : u'error',
                 u'traceback' : tb,
-                u'etype' : unicode(etype),
+                u'ename' : unicode(etype.__name__),
                 u'evalue' : unicode(evalue)
             }
             exc_msg = self.session.msg(u'pyerr', exc_content, parent)

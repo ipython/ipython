@@ -12,6 +12,7 @@ class IPythonWidget(FrontendWidget):
 
     # The default stylesheet for prompts, colors, etc.
     default_stylesheet = """
+        .error { color: red; }
         .in-prompt { color: navy; }
         .in-prompt-number { font-weight: bold; }
         .out-prompt { color: darkred; }
@@ -89,6 +90,21 @@ class IPythonWidget(FrontendWidget):
         self._continuation_prompt_html = prompt_template % cont_prompt_body
 
     #------ Signal handlers ----------------------------------------------------
+
+    def _handle_execute_error(self, reply):
+        """ Reimplemented for IPython-style traceback formatting.
+        """
+        content = reply['content']
+        traceback_lines = content['traceback'][:]
+        traceback = ''.join(traceback_lines)
+        traceback = traceback.replace(' ', '&nbsp;')
+        traceback = traceback.replace('\n', '<br/>')
+
+        ename = content['ename']
+        ename_styled = '<span class="error">%s</span>' % ename
+        traceback = traceback.replace(ename, ename_styled)
+
+        self.appendHtml(traceback)
 
     def _handle_pyout(self, omsg):
         """ Reimplemented for IPython-style "display hook".
