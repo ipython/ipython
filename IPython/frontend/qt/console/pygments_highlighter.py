@@ -1,7 +1,7 @@
 # System library imports.
 from PyQt4 import QtGui
 from pygments.lexer import RegexLexer, _TokenType, Text, Error
-from pygments.lexers import CLexer, CppLexer, PythonLexer
+from pygments.lexers import PythonLexer
 from pygments.styles.default import DefaultStyle
 from pygments.token import Comment
 
@@ -133,7 +133,7 @@ class PygmentsHighlighter(QtGui.QSyntaxHighlighter):
         if token in self._formats:
             return self._formats[token]
         result = None
-        for key, value in self._style.style_for_token(token) .items():
+        for key, value in self._style.style_for_token(token).items():
             if value:
                 if result is None:
                     result = QtGui.QTextCharFormat()
@@ -171,12 +171,11 @@ class PygmentsHighlighter(QtGui.QSyntaxHighlighter):
             qcolor = self._get_color(color)
             result = QtGui.QBrush(qcolor)
             self._brushes[color] = result
-
         return result
 
     def _get_color(self, color):
         qcolor = QtGui.QColor()
-        qcolor.setRgb(int(color[:2],base=16),
+        qcolor.setRgb(int(color[:2], base=16),
                       int(color[2:4], base=16),
                       int(color[4:6], base=16))
         return qcolor

@@ -16,12 +16,12 @@ from pygments_highlighter import PygmentsHighlighter
 
 
 class FrontendHighlighter(PygmentsHighlighter):
-    """ A Python PygmentsHighlighter that can be turned on and off and which 
-        knows about continuation prompts.
+    """ A PygmentsHighlighter that can be turned on and off and that ignores
+        prompts.
     """
 
     def __init__(self, frontend):
-        PygmentsHighlighter.__init__(self, frontend.document(), PythonLexer())
+        super(FrontendHighlighter, self).__init__(frontend.document())
         self._current_offset = 0
         self._frontend = frontend
         self.highlighting_on = False
@@ -29,17 +29,32 @@ class FrontendHighlighter(PygmentsHighlighter):
     def highlightBlock(self, qstring):
         """ Highlight a block of text. Reimplemented to highlight selectively.
         """
-        if self.highlighting_on:
-            for prompt in (self._frontend._continuation_prompt,
-                           self._frontend._prompt):                           
-                if qstring.startsWith(prompt):
-                    qstring.remove(0, len(prompt))
-                    self._current_offset = len(prompt)
-                    break
-            PygmentsHighlighter.highlightBlock(self, qstring)
+        if not self.highlighting_on:
+            return
+
+        # The input to this function is unicode string that may contain
+        # paragraph break characters, non-breaking spaces, etc. Here we acquire
+        # the string as plain text so we can compare it.
+        current_block = self.currentBlock()
+        string = self._frontend._get_block_plain_text(current_block)
+
+        # Decide whether to check for the regular or continuation prompt.
+        if current_block.contains(self._frontend._prompt_pos):
+            prompt = self._frontend._prompt
+        else:
+            prompt = self._frontend._continuation_prompt
+
+        # Don't highlight the part of the string that contains the prompt.
+        if string.startswith(prompt):
+            self._current_offset = len(prompt)
+            qstring.remove(0, len(prompt))
+        else:
+            self._current_offset = 0
+
+        PygmentsHighlighter.highlightBlock(self, qstring)
 
     def setFormat(self, start, count, format):
-        """ Reimplemented to avoid highlighting continuation prompts.
+        """ Reimplemented to highlight selectively.
         """
         start += self._current_offset
         PygmentsHighlighter.setFormat(self, start, count, format)
@@ -59,9 +74,6 @@ class FrontendWidget(HistoryConsoleWidget):
     def __init__(self, parent=None):
         super(FrontendWidget, self).__init__(parent)
 
-        # ConsoleWidget protected variables.
-        self._continuation_prompt = '... '
-
         # FrontendWidget protected variables.
         self._call_tip_widget = CallTipWidget(self)
         self._completion_lexer = CompletionLexer(PythonLexer())
@@ -69,6 +81,9 @@ class FrontendWidget(HistoryConsoleWidget):
         self._highlighter = FrontendHighlighter(self)
         self._input_splitter = InputSplitter(input_mode='replace')
         self._kernel_manager = None
+
+        # Configure the ConsoleWidget.
+        self._set_continuation_prompt('... ')
 
         self.document().contentsChange.connect(self._document_contents_change)
 
@@ -141,17 +156,6 @@ class FrontendWidget(HistoryConsoleWidget):
         if not self._complete():
             cursor.insertText('    ')
         return False
-
-    #---------------------------------------------------------------------------
-    # 'ConsoleWidget' protected interface
-    #---------------------------------------------------------------------------
-
-    def _show_prompt(self, prompt=None, newline=True):
-        """ Reimplemented to set a default prompt.
-        """
-        if prompt is None:
-            prompt = '>>> '
-        super(FrontendWidget, self)._show_prompt(prompt, newline)
 
     #---------------------------------------------------------------------------
     # 'FrontendWidget' interface
@@ -283,20 +287,24 @@ class FrontendWidget(HistoryConsoleWidget):
             self.appendPlainText('Kernel process is either remote or '
                                  'unspecified. Cannot interrupt.\n')
 
+    def _show_interpreter_prompt(self):
+        """ Shows a prompt for the interpreter.
+        """
+        self._show_prompt('>>> ')
+
     #------ Signal handlers ----------------------------------------------------
 
     def _started_channels(self):
         """ Called when the kernel manager has started listening.
         """
-        QtGui.QPlainTextEdit.clear(self)
-        if self._reading:
-            self._reading = False
+        self._reset()
         self.appendPlainText(self._get_banner())
-        self._show_prompt()
+        self._show_interpreter_prompt()
 
     def _stopped_channels(self):
         """ Called when the kernel manager has stopped listening.
         """
+        # FIXME: Print a message here?
         pass
 
     def _document_contents_change(self, position, removed, added):
@@ -327,9 +335,7 @@ class FrontendWidget(HistoryConsoleWidget):
             handler(omsg)
 
     def _handle_pyout(self, omsg):
-        session = omsg['parent_header']['session']
-        if session == self.kernel_manager.session.session:
-            self.appendPlainText(omsg['content']['data'] + '\n')
+        self.appendPlainText(omsg['content']['data'] + '\n')
 
     def _handle_stream(self, omsg):
         self.appendPlainText(omsg['content']['data'])
@@ -351,7 +357,7 @@ class FrontendWidget(HistoryConsoleWidget):
             text = "ERROR: ABORTED\n"
             self.appendPlainText(text)
         self._hidden = True
-        self._show_prompt()
+        self._show_interpreter_prompt()
         self.executed.emit(rep)
 
     def _handle_complete_reply(self, rep):
