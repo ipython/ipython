@@ -402,16 +402,21 @@ class ConsoleWidget(QtGui.QPlainTextEdit):
     def _set_input_buffer(self, string):
         """ Replaces the text in the input buffer with 'string'.
         """
-        # Add continuation prompts where necessary.
-        lines = string.splitlines()
-        for i in xrange(1, len(lines)):
-            lines[i] = self._continuation_prompt + lines[i]
-        string = '\n'.join(lines)
-
-        # Replace buffer with new text.
+        # Remove old text.
         cursor = self._get_end_cursor()
         cursor.setPosition(self._prompt_pos, QtGui.QTextCursor.KeepAnchor)
-        cursor.insertText(string)
+        cursor.removeSelectedText()
+
+        # Insert new text with continuation prompts.
+        lines = string.splitlines(True)
+        if lines:
+            self.appendPlainText(lines[0])
+            for i in xrange(1, len(lines)):
+                if self._continuation_prompt_html is None:
+                    self.appendPlainText(self._continuation_prompt)
+                else:
+                    self.appendHtml(self._continuation_prompt_html)
+                self.appendPlainText(lines[i])
         self.moveCursor(QtGui.QTextCursor.End)
 
     input_buffer = property(_get_input_buffer, _set_input_buffer)
