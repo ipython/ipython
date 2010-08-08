@@ -12,6 +12,7 @@
 #-----------------------------------------------------------------------------
 # stdlib
 import unittest
+import sys
 
 # Third party
 import nose.tools as nt
@@ -106,6 +107,23 @@ def test_get_input_encoding():
     # simple-minded check that at least encoding a simple string works with the
     # encoding we got.
     nt.assert_equal('test'.encode(encoding), 'test')
+
+
+class NoInputEncodingTestCase(unittest.TestCase):
+    def setUp(self):
+        self.old_stdin = sys.stdin
+        class X: pass
+        fake_stdin = X()
+        sys.stdin = fake_stdin
+        
+    def test(self):
+        # Verify that if sys.stdin has no 'encoding' attribute we do the right
+        # thing
+        enc = isp.get_input_encoding()
+        self.assertEqual(enc, 'ascii')
+        
+    def tearDown(self):
+        sys.stdin = self.old_stdin
 
 
 class InputSplitterTestCase(unittest.TestCase):
