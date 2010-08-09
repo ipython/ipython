@@ -31,7 +31,7 @@ class CompletionLexer(object):
                 not string.endswith('\n'):
             reversed_tokens.pop(0)
         
-        current_op = unicode()
+        current_op = ''
         for token, text in reversed_tokens:
 
             if is_token_subtype(token, Token.Name):
@@ -39,14 +39,14 @@ class CompletionLexer(object):
                 # Handle a trailing separator, e.g 'foo.bar.'
                 if current_op in self._name_separators:
                     if not context:
-                        context.insert(0, unicode())
+                        context.insert(0, '')
 
                 # Handle non-separator operators and punction.
                 elif current_op:
                     break
 
                 context.insert(0, text)
-                current_op = unicode()
+                current_op = ''
 
             # Pygments doesn't understand that, e.g., '->' is a single operator
             # in C++. This is why we have to build up an operator from

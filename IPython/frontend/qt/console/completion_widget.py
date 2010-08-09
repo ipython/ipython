@@ -112,7 +112,7 @@ class CompletionWidget(QtGui.QListWidget):
     def _update_current(self):
         """ Updates the current item based on the current text.
         """
-        prefix = self._current_text_cursor().selectedText()
+        prefix = self._current_text_cursor().selection().toPlainText()
         if prefix:
             items = self.findItems(prefix, (QtCore.Qt.MatchStartsWith | 
                                             QtCore.Qt.MatchCaseSensitive))

@@ -274,7 +274,7 @@ class FrontendWidget(HistoryConsoleWidget):
             cursor = self.textCursor()
         cursor.movePosition(QtGui.QTextCursor.StartOfLine, 
                             QtGui.QTextCursor.KeepAnchor)
-        text = unicode(cursor.selectedText())
+        text = str(cursor.selection().toPlainText())
         return self._completion_lexer.get_context(text)
 
     def _interrupt_kernel(self):
