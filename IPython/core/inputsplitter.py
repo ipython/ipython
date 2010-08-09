@@ -22,6 +22,9 @@ import codeop
 import re
 import sys
 
+# IPython modules
+from IPython.utils.text import make_quoted_expr
+
 #-----------------------------------------------------------------------------
 # Utilities
 #-----------------------------------------------------------------------------
@@ -419,3 +422,100 @@ class InputSplitter(object):
 
     def _set_source(self):
         self.source = ''.join(self._buffer).encode(self.encoding)
+
+
+#-----------------------------------------------------------------------------
+# IPython-specific syntactic support
+#-----------------------------------------------------------------------------
+
+# We implement things, as much as possible, as standalone functions that can be
+# tested and validated in isolation.
+
+# Each of these uses a regexp, we pre-compile these and keep them close to each
+# function definition for clarity
+_assign_system_re = re.compile(r'(?P<lhs>(\s*)([\w\.]+)((\s*,\s*[\w\.]+)*))'
+                               r'\s*=\s*!\s*(?P<cmd>.*)')
+
+def transform_assign_system(line):
+    """Handle the `files = !ls` syntax."""
+    # FIXME: This transforms the line to use %sc, but we've listed that magic
+    # as deprecated.  We should then implement this functionality in a
+    # standalone api that we can transform to, without going through a
+    # deprecated magic.
+    m = _assign_system_re.match(line)
+    if m is not None:
+        cmd = m.group('cmd')
+        lhs = m.group('lhs')
+        expr = make_quoted_expr("sc -l = %s" % cmd)
+        new_line = '%s = get_ipython().magic(%s)' % (lhs, expr)
+        return new_line
+    return line
+
+
+_assign_magic_re = re.compile(r'(?P<lhs>(\s*)([\w\.]+)((\s*,\s*[\w\.]+)*))'
+                               r'\s*=\s*%\s*(?P<cmd>.*)')
+
+def transform_assign_magic(line):
+    """Handle the `a = %who` syntax."""
+    m = _assign_magic_re.match(line)
+    if m is not None:
+        cmd = m.group('cmd')
+        lhs = m.group('lhs')
+        expr = make_quoted_expr(cmd)
+        new_line = '%s = get_ipython().magic(%s)' % (lhs, expr)
+        return new_line
+    return line
+
+
+_classic_prompt_re = re.compile(r'(^[ \t]*>>> |^[ \t]*\.\.\. )')
+
+def transform_classic_prompt(line):
+    """Handle inputs that start with '>>> ' syntax."""
+
+    if not line or line.isspace() or line.strip() == '...':
+        # This allows us to recognize multiple input prompts separated by
+        # blank lines and pasted in a single chunk, very common when
+        # pasting doctests or long tutorial passages.
+        return ''
+    m = _classic_prompt_re.match(line)
+    if m:
+        return line[len(m.group(0)):]
+    else:
+        return line
+
+
+_ipy_prompt_re = re.compile(r'(^[ \t]*In \[\d+\]: |^[ \t]*\ \ \ \.\.\.+: )')
+
+def transform_ipy_prompt(line):
+    """Handle inputs that start classic IPython prompt syntax."""
+
+    if not line or line.isspace() or line.strip() == '...':
+        # This allows us to recognize multiple input prompts separated by
+        # blank lines and pasted in a single chunk, very common when
+        # pasting doctests or long tutorial passages.
+        return ''
+    m = _ipy_prompt_re.match(line)
+    if m:
+        return line[len(m.group(0)):]
+    else:
+        return line
+
+
+# Warning, these cannot be changed unless various regular expressions
+# are updated in a number of places.  Not great, but at least we told you.
+ESC_SHELL  = '!'
+ESC_SH_CAP = '!!'
+ESC_HELP   = '?'
+ESC_MAGIC  = '%'
+ESC_QUOTE  = ','
+ESC_QUOTE2 = ';'
+ESC_PAREN  = '/'
+
+class IPythonInputSplitter(InputSplitter):
+    """An input splitter that recognizes all of IPython's special syntax."""
+
+
+    def push(self, lines):
+        """Push one or more lines of IPython input.
+        """
+        return super(IPythonInputSplitter, self).push(lines)

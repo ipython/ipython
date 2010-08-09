@@ -362,3 +362,50 @@ class InteractiveLoopTestCase(unittest.TestCase):
     def test_multi(self):
         self.check_ns(['x =(1+','1+','2)'], dict(x=4))
     
+
+class IPythonInputTestCase(InputSplitterTestCase):
+    def setUp(self):
+        self.isp = isp.IPythonInputSplitter()
+
+
+# Transformer tests
+def transform_checker(tests, func):
+    """Utility to loop over test inputs"""
+    for inp, tr in tests:
+        nt.assert_equals(func(inp), tr)
+    
+
+def test_assign_system():
+    tests = [('a =! ls', 'a = get_ipython().magic("sc -l = ls")'),
+             ('b = !ls', 'b = get_ipython().magic("sc -l = ls")'),
+             ('x=1','x=1')]
+    transform_checker(tests, isp.transform_assign_system)
+
+    
+def test_assign_magic():
+    tests = [('a =% who', 'a = get_ipython().magic("who")'),
+             ('b = %who', 'b = get_ipython().magic("who")'),
+             ('x=1','x=1')]
+    transform_checker(tests, isp.transform_assign_magic)
+
+
+def test_classic_prompt():
+    tests = [('>>> x=1', 'x=1'),
+             ('>>> for i in range(10):','for i in range(10):'),
+             ('...     print i','    print i'),
+             ('...', ''),
+             ('x=1','x=1')
+             ]
+    transform_checker(tests, isp.transform_classic_prompt)
+    
+
+def test_ipy_prompt():
+    tests = [('In [1]: x=1', 'x=1'),
+             ('In [24]: for i in range(10):','for i in range(10):'),
+             ('   ....:     print i','    print i'),
+             ('   ....: ', ''),
+             ('x=1', 'x=1'), # normal input is unmodified
+             ('   ','')  # blank lines are just collapsed
+             ]
+    transform_checker(tests, isp.transform_ipy_prompt)
+    
