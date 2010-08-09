@@ -10,13 +10,24 @@ class IPythonWidget(FrontendWidget):
     """ A FrontendWidget for an IPython kernel.
     """
 
-    # The default stylesheet for prompts, colors, etc.
+    # The default stylesheet: black text on a white background.
     default_stylesheet = """
         .error { color: red; }
         .in-prompt { color: navy; }
         .in-prompt-number { font-weight: bold; }
         .out-prompt { color: darkred; }
         .out-prompt-number { font-weight: bold; }
+    """
+
+    # A dark stylesheet: white text on a black background.
+    dark_stylesheet = """
+        QPlainTextEdit { background-color: black; color: white }
+        QFrame { border: 1px solid grey; }
+        .error { color: red; }
+        .in-prompt { color: lime; }
+        .in-prompt-number { color: lime; font-weight: bold; }
+        .out-prompt { color: red; }
+        .out-prompt-number { color: red; font-weight: bold; }
     """
 
     #---------------------------------------------------------------------------
@@ -27,34 +38,10 @@ class IPythonWidget(FrontendWidget):
         super(IPythonWidget, self).__init__(parent)
 
         # Initialize protected variables.
-        self._magic_overrides = {}
         self._prompt_count = 0
 
         # Set a default stylesheet.
-        self.set_style_sheet(self.default_stylesheet)
-
-    #---------------------------------------------------------------------------
-    # 'ConsoleWidget' abstract interface
-    #---------------------------------------------------------------------------
-
-    def _execute(self, source, hidden):
-        """ Reimplemented to override magic commands.
-        """
-        magic_source = source.strip()
-        if magic_source.startswith('%'):
-            magic_source = magic_source[1:]
-        magic, sep, arguments = magic_source.partition(' ')
-        if not magic:
-            magic = magic_source
-
-        callback = self._magic_overrides.get(magic)
-        if callback:
-            output = callback(arguments)
-            if output:
-                self.appendPlainText(output)
-            self._show_interpreter_prompt()
-        else:
-            super(IPythonWidget, self)._execute(source, hidden)
+        self.reset_style_sheet()
 
     #---------------------------------------------------------------------------
     # 'FrontendWidget' interface
@@ -119,26 +106,15 @@ class IPythonWidget(FrontendWidget):
     # 'IPythonWidget' interface
     #---------------------------------------------------------------------------
 
-    def set_magic_override(self, magic, callback):
-        """ Overrides an IPython magic command. This magic will be intercepted
-            by the frontend rather than passed on to the kernel and 'callback'
-            will be called with a single argument: a string of argument(s) for
-            the magic. The callback can (optionally) return text to print to the
-            console.
+    def reset_style_sheet(self):
+        """ Sets the style sheet to the default style sheet.
         """
-        self._magic_overrides[magic] = callback
-
-    def remove_magic_override(self, magic):
-        """ Removes the override for the specified magic, if there is one.
-        """
-        try:
-            del self._magic_overrides[magic]
-        except KeyError:
-            pass
+        self.set_style_sheet(self.default_stylesheet)
 
     def set_style_sheet(self, stylesheet):
         """ Sets the style sheet.
         """
+        self.setStyleSheet(stylesheet)
         self.document().setDefaultStyleSheet(stylesheet)
 
 

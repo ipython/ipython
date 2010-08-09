@@ -66,7 +66,7 @@ def get_tokens_unprocessed(self, text, stack=('root',)):
 RegexLexer.get_tokens_unprocessed = get_tokens_unprocessed
 
 
-class BlockUserData(QtGui.QTextBlockUserData):
+class PygmentsBlockUserData(QtGui.QTextBlockUserData):
     """ Storage for the user data associated with each line.
     """
 
@@ -81,7 +81,7 @@ class BlockUserData(QtGui.QTextBlockUserData):
         attrs = ['syntax_stack']
         kwds = ', '.join([ '%s=%r' % (attr, getattr(self, attr)) 
                            for attr in attrs ])
-        return 'BlockUserData(%s)' % kwds
+        return 'PygmentsBlockUserData(%s)' % kwds
 
 
 class PygmentsHighlighter(QtGui.QSyntaxHighlighter):
@@ -117,7 +117,8 @@ class PygmentsHighlighter(QtGui.QSyntaxHighlighter):
             index += l
 
         if hasattr(self._lexer, '_saved_state_stack'):
-            data = BlockUserData(syntax_stack=self._lexer._saved_state_stack)
+            data = PygmentsBlockUserData(
+                syntax_stack=self._lexer._saved_state_stack)
             self.currentBlock().setUserData(data)
             # Clean up for the next go-round.
             del self._lexer._saved_state_stack
@@ -174,6 +175,8 @@ class PygmentsHighlighter(QtGui.QSyntaxHighlighter):
         return result
 
     def _get_color(self, color):
+        """ Returns a QColor built from a Pygments color string.
+        """
         qcolor = QtGui.QColor()
         qcolor.setRgb(int(color[:2], base=16),
                       int(color[2:4], base=16),

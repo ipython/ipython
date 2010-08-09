@@ -576,15 +576,15 @@ class ConsoleWidget(QtGui.QPlainTextEdit):
             if self.gui_completion:
                 self._completion_widget.show_items(cursor, items) 
             else:
-                text = self.format_as_columns(items)
+                text = self._format_as_columns(items)
                 self._append_plain_text_keeping_prompt(text)
 
-    def format_as_columns(self, items, separator='  '):
+    def _format_as_columns(self, items, separator='  '):
         """ Transform a list of strings into a single string with columns.
 
         Parameters
         ----------
-        items : sequence [str]
+        items : sequence of strings
             The strings to process.
 
         separator : str, optional [default is two spaces]
@@ -600,10 +600,10 @@ class ConsoleWidget(QtGui.QPlainTextEdit):
         font_metrics = QtGui.QFontMetrics(self.font)
         displaywidth = max(5, (self.width() / font_metrics.width(' ')) - 1)
 
-        # Some degenerate cases
+        # Some degenerate cases.
         size = len(items)
         if size == 0: 
-            return "\n"
+            return '\n'
         elif size == 1:
             return '%s\n' % str(items[0])
 
@@ -643,7 +643,7 @@ class ConsoleWidget(QtGui.QPlainTextEdit):
                 del texts[-1]
             for col in range(len(texts)):
                 texts[col] = texts[col].ljust(colwidths[col])
-            string += "%s\n" % str(separator.join(texts))
+            string += '%s\n' % str(separator.join(texts))
         return string
 
     def _get_block_plain_text(self, block):
