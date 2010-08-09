@@ -64,6 +64,9 @@ class FrontendWidget(HistoryConsoleWidget):
     """ A Qt frontend for a generic Python kernel.
     """
 
+    # ConsoleWidget interface.
+    tab_width = 4
+    
     # Emitted when an 'execute_reply' is received from the kernel.
     executed = QtCore.pyqtSignal(object)
 
@@ -139,7 +142,8 @@ class FrontendWidget(HistoryConsoleWidget):
             if self._get_prompt_cursor().blockNumber() != \
                     self._get_end_cursor().blockNumber():
                 spaces = self._input_splitter.indent_spaces
-                self.appendPlainText('\t' * (spaces / 4) + ' ' * (spaces % 4))
+                self.appendPlainText('\t' * (spaces / self.tab_width))
+                self.appendPlainText(' ' * (spaces % self.tab_width))
 
     def _prompt_finished_hook(self):
         """ Called immediately after a prompt is finished, i.e. when some input

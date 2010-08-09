@@ -30,7 +30,7 @@ class ConsoleWidget(QtGui.QPlainTextEdit):
     override_shortcuts = False
 
     # The number of spaces to show for a tab character.
-    tab_width = 4
+    tab_width = 8
 
     # Protected class variables.
     _ctrl_down_remap = { QtCore.Qt.Key_B : QtCore.Qt.Key_Left,
