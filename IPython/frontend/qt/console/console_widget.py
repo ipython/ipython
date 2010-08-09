@@ -5,6 +5,7 @@ import sys
 from PyQt4 import QtCore, QtGui
 
 # Local imports
+from IPython.external.columnize import columnize
 from ansi_code_processor import QtAnsiCodeProcessor
 from completion_widget import CompletionWidget
 
@@ -28,9 +29,6 @@ class ConsoleWidget(QtGui.QPlainTextEdit):
     # widget (Ctrl+n, Ctrl+a, etc). Enable this if you want this widget to take
     # priority (when it has focus) over, e.g., window-level menu shortcuts.
     override_shortcuts = False
-
-    # The number of spaces to show for a tab character.
-    tab_width = 8
 
     # Protected class variables.
     _ctrl_down_remap = { QtCore.Qt.Key_B : QtCore.Qt.Key_Left,
@@ -62,6 +60,7 @@ class ConsoleWidget(QtGui.QPlainTextEdit):
         self._prompt_pos = 0
         self._reading = False
         self._reading_callback = None
+        self._tab_width = 8
 
         # Set a monospaced font.
         self.reset_font()
@@ -113,7 +112,7 @@ class ConsoleWidget(QtGui.QPlainTextEdit):
         self._context_menu.exec_(event.globalPos())
 
     def dragMoveEvent(self, event):
-        """ Reimplemented to disable dropping text.
+        """ Reimplemented to disable moving text by drag and drop.
         """
         event.ignore()
 
@@ -467,6 +466,21 @@ class ConsoleWidget(QtGui.QPlainTextEdit):
         font = QtGui.QFont(name, QtGui.qApp.font().pointSize())
         font.setStyleHint(QtGui.QFont.TypeWriter)
         self._set_font(font)
+
+    def _get_tab_width(self):
+        """ The width (in terms of space characters) for tab characters.
+        """
+        return self._tab_width
+
+    def _set_tab_width(self, tab_width):
+        """ Sets the width (in terms of space characters) for tab characters.
+        """
+        font_metrics = QtGui.QFontMetrics(self.font)
+        self.setTabStopWidth(tab_width * font_metrics.width(' '))
+
+        self._tab_width = tab_width
+
+    tab_width = property(_get_tab_width, _set_tab_width)
         
     #---------------------------------------------------------------------------
     # 'ConsoleWidget' abstract interface
@@ -563,8 +577,33 @@ class ConsoleWidget(QtGui.QPlainTextEdit):
             if self.gui_completion:
                 self._completion_widget.show_items(cursor, items) 
             else:
-                text = '\n'.join(items) + '\n'
+                text = self.format_as_columns(items)
                 self._append_plain_text_keeping_prompt(text)
+
+    def format_as_columns(self, items, separator='  ', vertical=True):
+        """ Transform a list of strings into a single string with columns.
+
+        Parameters
+        ----------
+        items : sequence [str]
+            The strings to process.
+
+        separator : str, optional [default is two spaces]
+            The string that separates columns.
+
+        vertical: bool, optional [default True] 
+            If set, consecutive items will be arranged from top to bottom, then
+            from left to right. Otherwise, consecutive items will be aranged
+            from left to right, then from top to bottom.
+
+        Returns
+        -------
+        The formatted string.
+        """
+        font_metrics = QtGui.QFontMetrics(self.font)
+        width = self.width() / font_metrics.width(' ')
+        return columnize(items, displaywidth=width, 
+                         colsep=separator, arrange_vertical=vertical)
 
     def _get_block_plain_text(self, block):
         """ Given a QTextBlock, return its unformatted text.

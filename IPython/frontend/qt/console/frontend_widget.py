@@ -63,10 +63,7 @@ class FrontendHighlighter(PygmentsHighlighter):
 class FrontendWidget(HistoryConsoleWidget):
     """ A Qt frontend for a generic Python kernel.
     """
-
-    # ConsoleWidget interface.
-    tab_width = 4
-    
+   
     # Emitted when an 'execute_reply' is received from the kernel.
     executed = QtCore.pyqtSignal(object)
 
@@ -86,6 +83,7 @@ class FrontendWidget(HistoryConsoleWidget):
         self._kernel_manager = None
 
         # Configure the ConsoleWidget.
+        self.tab_width = 4
         self._set_continuation_prompt('... ')
 
         self.document().contentsChange.connect(self._document_contents_change)
@@ -121,7 +119,7 @@ class FrontendWidget(HistoryConsoleWidget):
             prompt created. When triggered by an Enter/Return key press,
             'interactive' is True; otherwise, it is False.
         """
-        complete = self._input_splitter.push(source.replace('\t', '    '))
+        complete = self._input_splitter.push(source.expandtabs(4))
         if interactive:
             complete = not self._input_splitter.push_accepts_more()
         return complete
