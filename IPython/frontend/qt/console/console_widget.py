@@ -5,7 +5,6 @@ import sys
 from PyQt4 import QtCore, QtGui
 
 # Local imports
-from IPython.external.columnize import columnize
 from ansi_code_processor import QtAnsiCodeProcessor
 from completion_widget import CompletionWidget
 
@@ -580,7 +579,7 @@ class ConsoleWidget(QtGui.QPlainTextEdit):
                 text = self.format_as_columns(items)
                 self._append_plain_text_keeping_prompt(text)
 
-    def format_as_columns(self, items, separator='  ', vertical=True):
+    def format_as_columns(self, items, separator='  '):
         """ Transform a list of strings into a single string with columns.
 
         Parameters
@@ -591,19 +590,61 @@ class ConsoleWidget(QtGui.QPlainTextEdit):
         separator : str, optional [default is two spaces]
             The string that separates columns.
 
-        vertical: bool, optional [default True] 
-            If set, consecutive items will be arranged from top to bottom, then
-            from left to right. Otherwise, consecutive items will be aranged
-            from left to right, then from top to bottom.
-
         Returns
         -------
         The formatted string.
         """
+        # Note: this code is adapted from columnize 0.3.2.
+        # See http://code.google.com/p/pycolumnize/
+
         font_metrics = QtGui.QFontMetrics(self.font)
-        width = self.width() / font_metrics.width(' ')
-        return columnize(items, displaywidth=width, 
-                         colsep=separator, arrange_vertical=vertical)
+        displaywidth = max(5, (self.width() / font_metrics.width(' ')) - 1)
+
+        # Some degenerate cases
+        size = len(items)
+        if size == 0: 
+            return "\n"
+        elif size == 1:
+            return '%s\n' % str(items[0])
+
+        # Try every row count from 1 upwards
+        array_index = lambda nrows, row, col: nrows*col + row
+        for nrows in range(1, size):
+            ncols = (size + nrows - 1) // nrows
+            colwidths = []
+            totwidth = -len(separator)
+            for col in range(ncols):
+                # Get max column width for this column
+                colwidth = 0
+                for row in range(nrows):
+                    i = array_index(nrows, row, col)
+                    if i >= size: break
+                    x = items[i]
+                    colwidth = max(colwidth, len(x))
+                colwidths.append(colwidth)
+                totwidth += colwidth + len(separator)
+                if totwidth > displaywidth: 
+                    break
+            if totwidth <= displaywidth: 
+                break
+
+        # The smallest number of rows computed and the max widths for each
+        # column has been obtained. Now we just have to format each of the rows.
+        string = ''
+        for row in range(nrows):
+            texts = []
+            for col in range(ncols):
+                i = row + nrows*col
+                if i >= size:
+                    texts.append('')
+                else:
+                    texts.append(items[i])
+            while texts and not texts[-1]:
+                del texts[-1]
+            for col in range(len(texts)):
+                texts[col] = texts[col].ljust(colwidths[col])
+            string += "%s\n" % str(separator.join(texts))
+        return string
 
     def _get_block_plain_text(self, block):
         """ Given a QTextBlock, return its unformatted text.
