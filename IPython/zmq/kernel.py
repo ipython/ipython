@@ -11,12 +11,19 @@ Things to do:
 * Implement event loop and poll version.
 """
 
+#-----------------------------------------------------------------------------
+# Imports
+#-----------------------------------------------------------------------------
+
 # Standard library imports.
 import __builtin__
+from code import CommandCompiler
+from cStringIO import StringIO
+import os
 import sys
+from threading import Thread
 import time
 import traceback
-from code import CommandCompiler
 
 # System library imports.
 import zmq
@@ -26,18 +33,109 @@ from IPython.external.argparse import ArgumentParser
 from session import Session, Message, extract_header
 from completer import KernelCompleter
 
+#-----------------------------------------------------------------------------
+# Kernel and stream classes
+#-----------------------------------------------------------------------------
+
+class InStream(object):
+    """ A file like object that reads from a 0MQ XREQ socket."""
+
+    def __init__(self, session, socket):
+        self.session = session
+        self.socket = socket
+
+    def close(self):
+        self.socket = None
+
+    def flush(self):
+        if self.socket is None:
+            raise ValueError('I/O operation on closed file')
+        
+    def isatty(self):
+        return False
+
+    def next(self):
+        raise IOError('Seek not supported.')
+
+    def read(self, size=-1):
+        # FIXME: Do we want another request for this?
+        string = '\n'.join(self.readlines())
+        return self._truncate(string, size)
+
+    def readline(self, size=-1):
+        if self.socket is None:
+            raise ValueError('I/O operation on closed file')
+        else:
+            content = dict(size=size)
+            msg = self.session.msg('readline_request', content=content) 
+            reply = self._request(msg)
+            line = reply['content']['line']
+            return self._truncate(line, size)
+
+    def readlines(self, sizehint=-1):
+        # Sizehint is ignored, as is permitted.
+        if self.socket is None:
+            raise ValueError('I/O operation on closed file')
+        else:
+            lines = []
+            while True:
+                line = self.readline()
+                if line:
+                    lines.append(line)
+                else:
+                    break
+            return lines
+
+    def seek(self, offset, whence=None):
+        raise IOError('Seek not supported.')
+
+    def write(self, string):
+        raise IOError('Write not supported on a read only stream.')
+
+    def writelines(self, sequence):
+        raise IOError('Write not supported on a read only stream.')
+    
+    def _request(self, msg):
+        # Flush output before making the request. This ensures, for example,
+        # that raw_input(prompt) actually gets a prompt written.
+        sys.stderr.flush()
+        sys.stdout.flush()
+
+        self.socket.send_json(msg)
+        while True:
+            try:
+                reply = self.socket.recv_json(zmq.NOBLOCK)
+            except zmq.ZMQError, e:
+                if e.errno == zmq.EAGAIN:
+                    pass
+                else:
+                    raise
+            else:
+                break
+        return reply
+
+    def _truncate(self, string, size):
+        if size >= 0:
+            if isinstance(string, str):
+                return string[:size]
+            elif isinstance(string, unicode):
+                encoded = string.encode('utf-8')[:size]
+                return encoded.decode('utf-8', 'ignore')
+        return string
+
 
 class OutStream(object):
     """A file like object that publishes the stream to a 0MQ PUB socket."""
 
-    def __init__(self, session, pub_socket, name, max_buffer=200):
+    # The time interval between automatic flushes, in seconds.
+    flush_interval = 0.05
+
+    def __init__(self, session, pub_socket, name):
         self.session = session
         self.pub_socket = pub_socket
         self.name = name
-        self._buffer = []
-        self._buffer_len = 0
-        self.max_buffer = max_buffer
         self.parent_header = {}
+        self._new_buffer()
 
     def set_parent(self, parent):
         self.parent_header = extract_header(parent)
@@ -49,47 +147,50 @@ class OutStream(object):
         if self.pub_socket is None:
             raise ValueError(u'I/O operation on closed file')
         else:
-            if self._buffer:
-                data = ''.join(self._buffer)
+            data = self._buffer.getvalue()
+            if data:
                 content = {u'name':self.name, u'data':data}
                 msg = self.session.msg(u'stream', content=content,
                                        parent=self.parent_header)
                 print>>sys.__stdout__, Message(msg)
                 self.pub_socket.send_json(msg)
-                self._buffer_len = 0
-                self._buffer = []
+                
+                self._buffer.close()
+                self._new_buffer()
 
-    def isattr(self):
+    def isatty(self):
         return False
 
     def next(self):
         raise IOError('Read not supported on a write only stream.')
 
-    def read(self, size=None):
+    def read(self, size=-1):
         raise IOError('Read not supported on a write only stream.')
 
-    readline=read
+    def readline(self, size=-1):
+        raise IOError('Read not supported on a write only stream.')
 
-    def write(self, s):
+    def write(self, string):
         if self.pub_socket is None:
             raise ValueError('I/O operation on closed file')
         else:
-            self._buffer.append(s)
-            self._buffer_len += len(s)
-            self._maybe_send()
-
-    def _maybe_send(self):
-        if '\n' in self._buffer[-1]:
-            self.flush()
-        if self._buffer_len > self.max_buffer:
-            self.flush()
+            self._buffer.write(string)
+            current_time = time.time()
+            if self._start <= 0:
+                self._start = current_time
+            elif current_time - self._start > self.flush_interval:
+                self.flush()
 
     def writelines(self, sequence):
         if self.pub_socket is None:
             raise ValueError('I/O operation on closed file')
         else:
-            for s in sequence:
-                self.write(s)
+            for string in sequence:
+                self.write(string)
+
+    def _new_buffer(self):
+        self._buffer = StringIO()
+        self._start = -1
 
 
 class DisplayHook(object):
@@ -110,28 +211,6 @@ class DisplayHook(object):
 
     def set_parent(self, parent):
         self.parent_header = extract_header(parent)
-
-
-class RawInput(object):
-
-    def __init__(self, session, socket):
-        self.session = session
-        self.socket = socket
-
-    def __call__(self, prompt=None):
-        msg = self.session.msg(u'raw_input')
-        self.socket.send_json(msg)
-        while True:
-            try:
-                reply = self.socket.recv_json(zmq.NOBLOCK)
-            except zmq.ZMQError, e:
-                if e.errno == zmq.EAGAIN:
-                    pass
-                else:
-                    raise
-            else:
-                break
-        return reply[u'content'][u'data']
 
 
 class Kernel(object):
@@ -183,6 +262,7 @@ class Kernel(object):
             return
         pyin_msg = self.session.msg(u'pyin',{u'code':code}, parent=parent)
         self.pub_socket.send_json(pyin_msg)
+
         try:
             comp_code = self.compiler(code, '<zmq-kernel>')
             sys.displayhook.set_parent(parent)
@@ -194,7 +274,7 @@ class Kernel(object):
             exc_content = {
                 u'status' : u'error',
                 u'traceback' : tb,
-                u'etype' : unicode(etype),
+                u'ename' : unicode(etype.__name__),
                 u'evalue' : unicode(evalue)
             }
             exc_msg = self.session.msg(u'pyerr', exc_content, parent)
@@ -202,6 +282,12 @@ class Kernel(object):
             reply_content = exc_content
         else:
             reply_content = {'status' : 'ok'}
+            
+        # Flush output before sending the reply.
+        sys.stderr.flush()
+        sys.stdout.flush()
+
+        # Send the reply.
         reply_msg = self.session.msg(u'execute_reply', reply_content, parent)
         print>>sys.__stdout__, Message(reply_msg)
         self.reply_socket.send(ident, zmq.SNDMORE)
@@ -270,18 +356,61 @@ class Kernel(object):
             else:
                 handler(ident, omsg)
 
+#-----------------------------------------------------------------------------
+# Kernel main and launch functions
+#-----------------------------------------------------------------------------
+
+class ExitPollerUnix(Thread):
+    """ A Unix-specific daemon thread that terminates the program immediately 
+    when this process' parent process no longer exists.
+    """
+
+    def __init__(self):
+        super(ExitPollerUnix, self).__init__()
+        self.daemon = True
+    
+    def run(self):
+        # We cannot use os.waitpid because it works only for child processes.
+        from errno import EINTR
+        while True:
+            try:
+                if os.getppid() == 1:
+                    os._exit(1)
+                time.sleep(1.0)
+            except OSError, e:
+                if e.errno == EINTR:
+                    continue
+                raise
+
+class ExitPollerWindows(Thread):
+    """ A Windows-specific daemon thread that terminates the program immediately
+    when a Win32 handle is signaled.
+    """ 
+    
+    def __init__(self, handle):
+        super(ExitPollerWindows, self).__init__()
+        self.daemon = True
+        self.handle = handle
+
+    def run(self):
+        from _subprocess import WaitForSingleObject, WAIT_OBJECT_0, INFINITE
+        result = WaitForSingleObject(self.handle, INFINITE)
+        if result == WAIT_OBJECT_0:
+            os._exit(1)
+
 
 def bind_port(socket, ip, port):
     """ Binds the specified ZMQ socket. If the port is less than zero, a random
     port is chosen. Returns the port that was bound.
     """
     connection = 'tcp://%s' % ip
-    if port < 0:
+    if port <= 0:
         port = socket.bind_to_random_port(connection)
     else:
         connection += ':%i' % port
         socket.bind(connection)
     return port
+
 
 def main():
     """ Main entry point for launching a kernel.
@@ -291,12 +420,21 @@ def main():
     parser.add_argument('--ip', type=str, default='127.0.0.1',
                         help='set the kernel\'s IP address [default: local]')
     parser.add_argument('--xrep', type=int, metavar='PORT', default=0,
-                        help='set the XREP Channel port [default: random]')
+                        help='set the XREP channel port [default: random]')
     parser.add_argument('--pub', type=int, metavar='PORT', default=0,
-                        help='set the PUB Channel port [default: random]')
+                        help='set the PUB channel port [default: random]')
+    parser.add_argument('--req', type=int, metavar='PORT', default=0,
+                        help='set the REQ channel port [default: random]')
+    if sys.platform == 'win32':
+        parser.add_argument('--parent', type=int, metavar='HANDLE', 
+                            default=0, help='kill this process if the process '
+                            'with HANDLE dies')
+    else:
+        parser.add_argument('--parent', action='store_true', 
+                            help='kill this process if its parent dies')
     namespace = parser.parse_args()
 
-    # Create context, session, and kernel sockets.
+    # Create a context, a session, and the kernel sockets.
     print >>sys.__stdout__, "Starting the kernel..."
     context = zmq.Context()
     session = Session(username=u'kernel')
@@ -309,34 +447,63 @@ def main():
     pub_port = bind_port(pub_socket, namespace.ip, namespace.pub)
     print >>sys.__stdout__, "PUB Channel on port", pub_port
 
+    req_socket = context.socket(zmq.XREQ)
+    req_port = bind_port(req_socket, namespace.ip, namespace.req)
+    print >>sys.__stdout__, "REQ Channel on port", req_port
+
     # Redirect input streams and set a display hook.
+    sys.stdin = InStream(session, req_socket)
     sys.stdout = OutStream(session, pub_socket, u'stdout')
     sys.stderr = OutStream(session, pub_socket, u'stderr')
     sys.displayhook = DisplayHook(session, pub_socket)
 
+    # Create the kernel.
     kernel = Kernel(session, reply_socket, pub_socket)
 
-    # For debugging convenience, put sleep and a string in the namespace, so we
-    # have them every time we start.
-    kernel.user_ns['sleep'] = time.sleep
-    kernel.user_ns['s'] = 'Test string'
-    
-    print >>sys.__stdout__, "Use Ctrl-\\ (NOT Ctrl-C!) to terminate."
+    # Configure this kernel/process to die on parent termination, if necessary.
+    if namespace.parent:
+        if sys.platform == 'win32':
+            poller = ExitPollerWindows(namespace.parent)
+        else:
+            poller = ExitPollerUnix()
+        poller.start()
+
+    # Start the kernel mainloop.
     kernel.start()
 
-def launch_kernel(xrep_port=0, pub_port=0):
-    """ Launches a localhost kernel, binding to the specified ports. For any
-    port that is left unspecified, a port is chosen by the operating system.
 
-    Returns a tuple of form:
-        (kernel_process [Popen], rep_port [int], sub_port [int])
+def launch_kernel(xrep_port=0, pub_port=0, req_port=0, independent=False):
+    """ Launches a localhost kernel, binding to the specified ports.
+
+    Parameters
+    ----------
+    xrep_port : int, optional
+        The port to use for XREP channel.
+
+    pub_port : int, optional
+        The port to use for the SUB channel.
+
+    req_port : int, optional
+        The port to use for the REQ (raw input) channel.
+
+    independent : bool, optional (default False) 
+        If set, the kernel process is guaranteed to survive if this process
+        dies. If not set, an effort is made to ensure that the kernel is killed
+        when this process dies. Note that in this case it is still good practice
+        to kill kernels manually before exiting.
+
+    Returns
+    -------
+    A tuple of form:
+        (kernel_process, xrep_port, pub_port, req_port)
+    where kernel_process is a Popen object and the ports are integers.
     """
     import socket
     from subprocess import Popen
 
     # Find open ports as necessary.
     ports = []
-    ports_needed = int(xrep_port == 0) + int(pub_port == 0)
+    ports_needed = int(xrep_port <= 0) + int(pub_port <= 0) + int(req_port <= 0)
     for i in xrange(ports_needed):
         sock = socket.socket()
         sock.bind(('', 0))
@@ -345,16 +512,35 @@ def launch_kernel(xrep_port=0, pub_port=0):
         port = sock.getsockname()[1]
         sock.close()
         ports[i] = port
-    if xrep_port == 0:
-        xrep_port = ports.pop()
-    if pub_port == 0:
-        pub_port = ports.pop()
+    if xrep_port <= 0:
+        xrep_port = ports.pop(0)
+    if pub_port <= 0:
+        pub_port = ports.pop(0)
+    if req_port <= 0:
+        req_port = ports.pop(0)
         
     # Spawn a kernel.
     command = 'from IPython.zmq.kernel import main; main()'
-    proc = Popen([ sys.executable, '-c', command, 
-                   '--xrep', str(xrep_port), '--pub', str(pub_port) ])
-    return proc, xrep_port, pub_port
+    arguments = [ sys.executable, '-c', command, '--xrep', str(xrep_port), 
+                  '--pub', str(pub_port), '--req', str(req_port) ]
+    if independent:
+        if sys.platform == 'win32':
+            proc = Popen(['start', '/b'] + arguments, shell=True)
+        else:
+            proc = Popen(arguments, preexec_fn=lambda: os.setsid())
+    else:
+        if sys.platform == 'win32':
+            from _subprocess import DuplicateHandle, GetCurrentProcess, \
+                DUPLICATE_SAME_ACCESS
+            pid = GetCurrentProcess()
+            handle = DuplicateHandle(pid, pid, pid, 0, 
+                                     True, # Inheritable by new  processes.
+                                     DUPLICATE_SAME_ACCESS)
+            proc = Popen(arguments + ['--parent', str(int(handle))])
+        else:
+            proc = Popen(arguments + ['--parent'])
+
+    return proc, xrep_port, pub_port, req_port
     
 
 if __name__ == '__main__':

@@ -1,97 +1,12 @@
 # Standard library imports
-import re
 import sys
 
 # System library imports
 from PyQt4 import QtCore, QtGui
 
 # Local imports
+from ansi_code_processor import QtAnsiCodeProcessor
 from completion_widget import CompletionWidget
-
-
-class AnsiCodeProcessor(object):
-    """ Translates ANSI escape codes into readable attributes.
-    """
-
-    def __init__(self):
-        self.ansi_colors = ( # Normal, Bright/Light
-                             ('#000000', '#7f7f7f'), # 0: black
-                             ('#cd0000', '#ff0000'), # 1: red
-                             ('#00cd00', '#00ff00'), # 2: green
-                             ('#cdcd00', '#ffff00'), # 3: yellow
-                             ('#0000ee', '#0000ff'), # 4: blue
-                             ('#cd00cd', '#ff00ff'), # 5: magenta
-                             ('#00cdcd', '#00ffff'), # 6: cyan
-                             ('#e5e5e5', '#ffffff')) # 7: white
-        self.reset()
-        
-    def set_code(self, code):
-        """ Set attributes based on code.
-        """
-        if code == 0:
-            self.reset()
-        elif code == 1:
-            self.intensity = 1
-            self.bold = True
-        elif code == 3:
-            self.italic = True
-        elif code == 4:
-            self.underline = True
-        elif code == 22:
-            self.intensity = 0
-            self.bold = False
-        elif code == 23:
-            self.italic = False
-        elif code == 24:
-            self.underline = False
-        elif code >= 30 and code <= 37:
-            self.foreground_color = code - 30
-        elif code == 39:
-            self.foreground_color = None
-        elif code >= 40 and code <= 47:
-            self.background_color = code - 40
-        elif code == 49:
-            self.background_color = None
-        
-    def reset(self):
-        """ Reset attributs to their default values.
-        """
-        self.intensity = 0
-        self.italic = False
-        self.bold = False
-        self.underline = False
-        self.foreground_color = None
-        self.background_color = None
-
-
-class QtAnsiCodeProcessor(AnsiCodeProcessor):
-    """ Translates ANSI escape codes into QTextCharFormats.
-    """
-    
-    def get_format(self):
-        """ Returns a QTextCharFormat that encodes the current style attributes.
-        """
-        format = QtGui.QTextCharFormat()
-
-        # Set foreground color
-        if self.foreground_color is not None:
-            color = self.ansi_colors[self.foreground_color][self.intensity]
-            format.setForeground(QtGui.QColor(color))
-
-        # Set background color
-        if self.background_color is not None:
-            color = self.ansi_colors[self.background_color][self.intensity]
-            format.setBackground(QtGui.QColor(color))
-
-        # Set font weight/style options
-        if self.bold:
-            format.setFontWeight(QtGui.QFont.Bold)
-        else:
-            format.setFontWeight(QtGui.QFont.Normal)
-        format.setFontItalic(self.italic)
-        format.setFontUnderline(self.underline)
-
-        return format
 
 
 class ConsoleWidget(QtGui.QPlainTextEdit):
@@ -115,7 +30,6 @@ class ConsoleWidget(QtGui.QPlainTextEdit):
     override_shortcuts = False
 
     # Protected class variables.
-    _ansi_pattern = re.compile('\x01?\x1b\[(.*?)m\x02?')
     _ctrl_down_remap = { QtCore.Qt.Key_B : QtCore.Qt.Key_Left,
                          QtCore.Qt.Key_F : QtCore.Qt.Key_Right,
                          QtCore.Qt.Key_A : QtCore.Qt.Key_Home,
@@ -133,14 +47,19 @@ class ConsoleWidget(QtGui.QPlainTextEdit):
     def __init__(self, parent=None):
         QtGui.QPlainTextEdit.__init__(self, parent)
 
-        # Initialize protected variables.
+        # Initialize protected variables. Some variables contain useful state
+        # information for subclasses; they should be considered read-only.
         self._ansi_processor = QtAnsiCodeProcessor()
         self._completion_widget = CompletionWidget(self)
         self._continuation_prompt = '> '
+        self._continuation_prompt_html = None
         self._executing = False
         self._prompt = ''
+        self._prompt_html = None
         self._prompt_pos = 0
         self._reading = False
+        self._reading_callback = None
+        self._tab_width = 8
 
         # Set a monospaced font.
         self.reset_font()
@@ -190,6 +109,11 @@ class ConsoleWidget(QtGui.QPlainTextEdit):
         self._paste_action.setEnabled(not clipboard_empty)
         
         self._context_menu.exec_(event.globalPos())
+
+    def dragMoveEvent(self, event):
+        """ Reimplemented to disable moving text by drag and drop.
+        """
+        event.ignore()
 
     def keyPressEvent(self, event):
         """ Reimplemented to create a console-like interface.
@@ -257,7 +181,10 @@ class ConsoleWidget(QtGui.QPlainTextEdit):
         else:
             if key in (QtCore.Qt.Key_Return, QtCore.Qt.Key_Enter):
                 if self._reading:
+                    self.appendPlainText('\n')
                     self._reading = False
+                    if self._reading_callback:
+                        self._reading_callback()
                 elif not self._executing:
                     self.execute(interactive=True)
                 intercepted = True
@@ -303,7 +230,8 @@ class ConsoleWidget(QtGui.QPlainTextEdit):
 
                 # Line deletion (remove continuation prompt)
                 len_prompt = len(self._continuation_prompt)
-                if cursor.columnNumber() == len_prompt and \
+                if not self._reading and \
+                        cursor.columnNumber() == len_prompt and \
                         position != self._prompt_pos:
                     cursor.setPosition(position - len_prompt, 
                                        QtGui.QTextCursor.KeepAnchor)
@@ -333,24 +261,38 @@ class ConsoleWidget(QtGui.QPlainTextEdit):
     # 'QPlainTextEdit' interface
     #--------------------------------------------------------------------------
 
+    def appendHtml(self, html):
+        """ Reimplemented to not append HTML as a new paragraph, which doesn't
+            make sense for a console widget.
+        """
+        cursor = self._get_end_cursor()
+        cursor.insertHtml(html)
+
+        # After appending HTML, the text document "remembers" the current
+        # formatting, which means that subsequent calls to 'appendPlainText'
+        # will be formatted similarly, a behavior that we do not want. To
+        # prevent this, we make sure that the last character has no formatting.
+        cursor.movePosition(QtGui.QTextCursor.Left, 
+                            QtGui.QTextCursor.KeepAnchor)
+        if cursor.selection().toPlainText().trimmed().isEmpty():
+            # If the last character is whitespace, it doesn't matter how it's
+            # formatted, so just clear the formatting.
+            cursor.setCharFormat(QtGui.QTextCharFormat())
+        else:
+            # Otherwise, add an unformatted space.
+            cursor.movePosition(QtGui.QTextCursor.Right)
+            cursor.insertText(' ', QtGui.QTextCharFormat())
+
     def appendPlainText(self, text):
         """ Reimplemented to not append text as a new paragraph, which doesn't
             make sense for a console widget. Also, if enabled, handle ANSI
             codes.
         """
-        cursor = self.textCursor()
-        cursor.movePosition(QtGui.QTextCursor.End)
-
+        cursor = self._get_end_cursor()
         if self.ansi_codes:
-            format = QtGui.QTextCharFormat()
-            previous_end = 0
-            for match in self._ansi_pattern.finditer(text):
-                cursor.insertText(text[previous_end:match.start()], format)
-                previous_end = match.end()
-                for code in match.group(1).split(';'):
-                    self._ansi_processor.set_code(int(code))
+            for substring in self._ansi_processor.split_string(text):
                 format = self._ansi_processor.get_format()
-            cursor.insertText(text[previous_end:], format)
+                cursor.insertText(substring, format)
         else:
             cursor.insertText(text)
 
@@ -358,8 +300,7 @@ class ConsoleWidget(QtGui.QPlainTextEdit):
         """ Reimplemented to write a new prompt. If 'keep_input' is set,
             restores the old input buffer when the new prompt is written.
         """
-        super(ConsoleWidget, self).clear()
-
+        QtGui.QPlainTextEdit.clear(self)
         if keep_input:
             input_buffer = self.input_buffer
         self._show_prompt()
@@ -451,9 +392,6 @@ class ConsoleWidget(QtGui.QPlainTextEdit):
 
         cursor = self._get_end_cursor()
         cursor.setPosition(self._prompt_pos, QtGui.QTextCursor.KeepAnchor)
-
-        # Use QTextDocumentFragment intermediate object because it strips
-        # out the Unicode line break characters that Qt insists on inserting.
         input_buffer = str(cursor.selection().toPlainText())
 
         # Strip out continuation prompts.
@@ -462,16 +400,21 @@ class ConsoleWidget(QtGui.QPlainTextEdit):
     def _set_input_buffer(self, string):
         """ Replaces the text in the input buffer with 'string'.
         """
-        # Add continuation prompts where necessary.
-        lines = string.splitlines()
-        for i in xrange(1, len(lines)):
-            lines[i] = self._continuation_prompt + lines[i]
-        string = '\n'.join(lines)
-
-        # Replace buffer with new text.
+        # Remove old text.
         cursor = self._get_end_cursor()
         cursor.setPosition(self._prompt_pos, QtGui.QTextCursor.KeepAnchor)
-        cursor.insertText(string)
+        cursor.removeSelectedText()
+
+        # Insert new text with continuation prompts.
+        lines = string.splitlines(True)
+        if lines:
+            self.appendPlainText(lines[0])
+            for i in xrange(1, len(lines)):
+                if self._continuation_prompt_html is None:
+                    self.appendPlainText(self._continuation_prompt)
+                else:
+                    self.appendHtml(self._continuation_prompt_html)
+                self.appendPlainText(lines[i])
         self.moveCursor(QtGui.QTextCursor.End)
 
     input_buffer = property(_get_input_buffer, _set_input_buffer)
@@ -484,7 +427,7 @@ class ConsoleWidget(QtGui.QPlainTextEdit):
             return None
         cursor = self.textCursor()
         if cursor.position() >= self._prompt_pos:
-            text = str(cursor.block().text())
+            text = self._get_block_plain_text(cursor.block())
             if cursor.blockNumber() == self._get_prompt_cursor().blockNumber():
                 return text[len(self._prompt):]
             else:
@@ -502,6 +445,9 @@ class ConsoleWidget(QtGui.QPlainTextEdit):
     def _set_font(self, font):
         """ Sets the base font for the ConsoleWidget to the specified QFont.
         """
+        font_metrics = QtGui.QFontMetrics(font)
+        self.setTabStopWidth(self.tab_width * font_metrics.width(' '))
+
         self._completion_widget.setFont(font)
         self.document().setDefaultFont(font)
 
@@ -519,6 +465,21 @@ class ConsoleWidget(QtGui.QPlainTextEdit):
         font = QtGui.QFont(name, QtGui.qApp.font().pointSize())
         font.setStyleHint(QtGui.QFont.TypeWriter)
         self._set_font(font)
+
+    def _get_tab_width(self):
+        """ The width (in terms of space characters) for tab characters.
+        """
+        return self._tab_width
+
+    def _set_tab_width(self, tab_width):
+        """ Sets the width (in terms of space characters) for tab characters.
+        """
+        font_metrics = QtGui.QFontMetrics(self.font)
+        self.setTabStopWidth(tab_width * font_metrics.width(' '))
+
+        self._tab_width = tab_width
+
+    tab_width = property(_get_tab_width, _set_tab_width)
         
     #---------------------------------------------------------------------------
     # 'ConsoleWidget' abstract interface
@@ -569,6 +530,27 @@ class ConsoleWidget(QtGui.QPlainTextEdit):
     # 'ConsoleWidget' protected interface
     #--------------------------------------------------------------------------
 
+    def _append_html_fetching_plain_text(self, html):
+        """ Appends 'html', then returns the plain text version of it.
+        """
+        anchor = self._get_end_cursor().position()
+        self.appendHtml(html)
+        cursor = self._get_end_cursor()
+        cursor.setPosition(anchor, QtGui.QTextCursor.KeepAnchor)
+        return str(cursor.selection().toPlainText())
+
+    def _append_plain_text_keeping_prompt(self, text):
+        """ Writes 'text' after the current prompt, then restores the old prompt
+            with its old input buffer.
+        """
+        input_buffer = self.input_buffer
+        self.appendPlainText('\n')
+        self._prompt_finished()
+
+        self.appendPlainText(text)
+        self._show_prompt()
+        self.input_buffer = input_buffer
+
     def _control_down(self, modifiers):
         """ Given a KeyboardModifiers flags object, return whether the Control
             key is down (on Mac OS, treat the Command key as a synonym for
@@ -594,8 +576,84 @@ class ConsoleWidget(QtGui.QPlainTextEdit):
             if self.gui_completion:
                 self._completion_widget.show_items(cursor, items) 
             else:
-                text = '\n'.join(items) + '\n'
-                self._write_text_keeping_prompt(text)
+                text = self.format_as_columns(items)
+                self._append_plain_text_keeping_prompt(text)
+
+    def format_as_columns(self, items, separator='  '):
+        """ Transform a list of strings into a single string with columns.
+
+        Parameters
+        ----------
+        items : sequence [str]
+            The strings to process.
+
+        separator : str, optional [default is two spaces]
+            The string that separates columns.
+
+        Returns
+        -------
+        The formatted string.
+        """
+        # Note: this code is adapted from columnize 0.3.2.
+        # See http://code.google.com/p/pycolumnize/
+
+        font_metrics = QtGui.QFontMetrics(self.font)
+        displaywidth = max(5, (self.width() / font_metrics.width(' ')) - 1)
+
+        # Some degenerate cases
+        size = len(items)
+        if size == 0: 
+            return "\n"
+        elif size == 1:
+            return '%s\n' % str(items[0])
+
+        # Try every row count from 1 upwards
+        array_index = lambda nrows, row, col: nrows*col + row
+        for nrows in range(1, size):
+            ncols = (size + nrows - 1) // nrows
+            colwidths = []
+            totwidth = -len(separator)
+            for col in range(ncols):
+                # Get max column width for this column
+                colwidth = 0
+                for row in range(nrows):
+                    i = array_index(nrows, row, col)
+                    if i >= size: break
+                    x = items[i]
+                    colwidth = max(colwidth, len(x))
+                colwidths.append(colwidth)
+                totwidth += colwidth + len(separator)
+                if totwidth > displaywidth: 
+                    break
+            if totwidth <= displaywidth: 
+                break
+
+        # The smallest number of rows computed and the max widths for each
+        # column has been obtained. Now we just have to format each of the rows.
+        string = ''
+        for row in range(nrows):
+            texts = []
+            for col in range(ncols):
+                i = row + nrows*col
+                if i >= size:
+                    texts.append('')
+                else:
+                    texts.append(items[i])
+            while texts and not texts[-1]:
+                del texts[-1]
+            for col in range(len(texts)):
+                texts[col] = texts[col].ljust(colwidths[col])
+            string += "%s\n" % str(separator.join(texts))
+        return string
+
+    def _get_block_plain_text(self, block):
+        """ Given a QTextBlock, return its unformatted text.
+        """
+        cursor = QtGui.QTextCursor(block)
+        cursor.movePosition(QtGui.QTextCursor.StartOfBlock)
+        cursor.movePosition(QtGui.QTextCursor.EndOfBlock, 
+                            QtGui.QTextCursor.KeepAnchor)
+        return str(cursor.selection().toPlainText())
                 
     def _get_end_cursor(self):
         """ Convenience method that returns a cursor for the last character.
@@ -677,6 +735,70 @@ class ConsoleWidget(QtGui.QPlainTextEdit):
         self.setReadOnly(True)
         self._prompt_finished_hook()
 
+    def _readline(self, prompt='', callback=None):
+        """ Reads one line of input from the user. 
+
+        Parameters
+        ----------
+        prompt : str, optional
+            The prompt to print before reading the line.
+
+        callback : callable, optional
+            A callback to execute with the read line. If not specified, input is
+            read *synchronously* and this method does not return until it has
+            been read.
+
+        Returns
+        -------
+        If a callback is specified, returns nothing. Otherwise, returns the
+        input string with the trailing newline stripped.
+        """
+        if self._reading:
+            raise RuntimeError('Cannot read a line. Widget is already reading.')
+
+        if not callback and not self.isVisible():
+            # If the user cannot see the widget, this function cannot return.
+            raise RuntimeError('Cannot synchronously read a line if the widget'
+                               'is not visible!')
+
+        self._reading = True
+        self._show_prompt(prompt, newline=False)
+
+        if callback is None:
+            self._reading_callback = None
+            while self._reading:
+                QtCore.QCoreApplication.processEvents()
+            return self.input_buffer.rstrip('\n')
+
+        else:
+            self._reading_callback = lambda: \
+                callback(self.input_buffer.rstrip('\n'))
+
+    def _reset(self):
+        """ Clears the console and resets internal state variables.
+        """
+        QtGui.QPlainTextEdit.clear(self)
+        self._executing = self._reading = False
+
+    def _set_continuation_prompt(self, prompt, html=False):
+        """ Sets the continuation prompt.
+
+        Parameters
+        ----------
+        prompt : str
+            The prompt to show when more input is needed.
+
+        html : bool, optional (default False)
+            If set, the prompt will be inserted as formatted HTML. Otherwise,
+            the prompt will be treated as plain text, though ANSI color codes
+            will be handled.
+        """
+        if html:
+            self._continuation_prompt_html = prompt
+        else:
+            self._continuation_prompt = prompt
+            self._continuation_prompt_html = None
+
     def _set_position(self, position):
         """ Convenience method to set the position of the cursor.
         """
@@ -689,33 +811,60 @@ class ConsoleWidget(QtGui.QPlainTextEdit):
         """
         self.setTextCursor(self._get_selection_cursor(start, end))
 
-    def _show_prompt(self, prompt=None):
-        """ Writes a new prompt at the end of the buffer. If 'prompt' is not
-            specified, uses the previous prompt.
+    def _show_prompt(self, prompt=None, html=False, newline=True):
+        """ Writes a new prompt at the end of the buffer.
+
+        Parameters
+        ----------
+        prompt : str, optional
+            The prompt to show. If not specified, the previous prompt is used.
+
+        html : bool, optional (default False)
+            Only relevant when a prompt is specified. If set, the prompt will
+            be inserted as formatted HTML. Otherwise, the prompt will be treated
+            as plain text, though ANSI color codes will be handled.
+
+        newline : bool, optional (default True)
+            If set, a new line will be written before showing the prompt if 
+            there is not already a newline at the end of the buffer.
         """
-        if prompt is not None:
-            self._prompt = prompt
-        self.appendPlainText('\n' + self._prompt)
+        # Insert a preliminary newline, if necessary.
+        if newline:
+            cursor = self._get_end_cursor()
+            if cursor.position() > 0:
+                cursor.movePosition(QtGui.QTextCursor.Left, 
+                                    QtGui.QTextCursor.KeepAnchor)
+                if str(cursor.selection().toPlainText()) != '\n':
+                    self.appendPlainText('\n')
+
+        # Write the prompt.
+        if prompt is None:
+            if self._prompt_html is None:
+                self.appendPlainText(self._prompt)
+            else:
+                self.appendHtml(self._prompt_html)
+        else:
+            if html:
+                self._prompt = self._append_html_fetching_plain_text(prompt)
+                self._prompt_html = prompt
+            else:
+                self.appendPlainText(prompt)
+                self._prompt = prompt
+                self._prompt_html = None
+
         self._prompt_pos = self._get_end_cursor().position()
         self._prompt_started()
 
     def _show_continuation_prompt(self):
         """ Writes a new continuation prompt at the end of the buffer.
         """
-        self.appendPlainText(self._continuation_prompt)
+        if self._continuation_prompt_html is None:
+            self.appendPlainText(self._continuation_prompt)
+        else:
+            self._continuation_prompt = self._append_html_fetching_plain_text(
+                self._continuation_prompt_html)
+
         self._prompt_started()
-
-    def _write_text_keeping_prompt(self, text):
-        """ Writes 'text' after the current prompt, then restores the old prompt
-            with its old input buffer.
-        """
-        input_buffer = self.input_buffer
-        self.appendPlainText('\n')
-        self._prompt_finished()
-
-        self.appendPlainText(text)
-        self._show_prompt()
-        self.input_buffer = input_buffer
 
     def _in_buffer(self, position):
         """ Returns whether the given position is inside the editing region.

@@ -1,5 +1,6 @@
 # Standard library imports
 import signal
+import sys
 
 # System library imports
 from pygments.lexers import PythonLexer
@@ -15,12 +16,12 @@ from pygments_highlighter import PygmentsHighlighter
 
 
 class FrontendHighlighter(PygmentsHighlighter):
-    """ A Python PygmentsHighlighter that can be turned on and off and which 
-        knows about continuation prompts.
+    """ A PygmentsHighlighter that can be turned on and off and that ignores
+        prompts.
     """
 
     def __init__(self, frontend):
-        PygmentsHighlighter.__init__(self, frontend.document(), PythonLexer())
+        super(FrontendHighlighter, self).__init__(frontend.document())
         self._current_offset = 0
         self._frontend = frontend
         self.highlighting_on = False
@@ -28,17 +29,32 @@ class FrontendHighlighter(PygmentsHighlighter):
     def highlightBlock(self, qstring):
         """ Highlight a block of text. Reimplemented to highlight selectively.
         """
-        if self.highlighting_on:
-            for prompt in (self._frontend._continuation_prompt,
-                           self._frontend._prompt):                           
-                if qstring.startsWith(prompt):
-                    qstring.remove(0, len(prompt))
-                    self._current_offset = len(prompt)
-                    break
-            PygmentsHighlighter.highlightBlock(self, qstring)
+        if not self.highlighting_on:
+            return
+
+        # The input to this function is unicode string that may contain
+        # paragraph break characters, non-breaking spaces, etc. Here we acquire
+        # the string as plain text so we can compare it.
+        current_block = self.currentBlock()
+        string = self._frontend._get_block_plain_text(current_block)
+
+        # Decide whether to check for the regular or continuation prompt.
+        if current_block.contains(self._frontend._prompt_pos):
+            prompt = self._frontend._prompt
+        else:
+            prompt = self._frontend._continuation_prompt
+
+        # Don't highlight the part of the string that contains the prompt.
+        if string.startswith(prompt):
+            self._current_offset = len(prompt)
+            qstring.remove(0, len(prompt))
+        else:
+            self._current_offset = 0
+
+        PygmentsHighlighter.highlightBlock(self, qstring)
 
     def setFormat(self, start, count, format):
-        """ Reimplemented to avoid highlighting continuation prompts.
+        """ Reimplemented to highlight selectively.
         """
         start += self._current_offset
         PygmentsHighlighter.setFormat(self, start, count, format)
@@ -47,7 +63,7 @@ class FrontendHighlighter(PygmentsHighlighter):
 class FrontendWidget(HistoryConsoleWidget):
     """ A Qt frontend for a generic Python kernel.
     """
-
+   
     # Emitted when an 'execute_reply' is received from the kernel.
     executed = QtCore.pyqtSignal(object)
 
@@ -58,10 +74,6 @@ class FrontendWidget(HistoryConsoleWidget):
     def __init__(self, parent=None):
         super(FrontendWidget, self).__init__(parent)
 
-        # ConsoleWidget protected variables.
-        self._continuation_prompt = '... '
-        self._prompt = '>>> '
-
         # FrontendWidget protected variables.
         self._call_tip_widget = CallTipWidget(self)
         self._completion_lexer = CompletionLexer(PythonLexer())
@@ -69,6 +81,10 @@ class FrontendWidget(HistoryConsoleWidget):
         self._highlighter = FrontendHighlighter(self)
         self._input_splitter = InputSplitter(input_mode='replace')
         self._kernel_manager = None
+
+        # Configure the ConsoleWidget.
+        self.tab_width = 4
+        self._set_continuation_prompt('... ')
 
         self.document().contentsChange.connect(self._document_contents_change)
 
@@ -103,7 +119,7 @@ class FrontendWidget(HistoryConsoleWidget):
             prompt created. When triggered by an Enter/Return key press,
             'interactive' is True; otherwise, it is False.
         """
-        complete = self._input_splitter.push(source)
+        complete = self._input_splitter.push(source.expandtabs(4))
         if interactive:
             complete = not self._input_splitter.push_accepts_more()
         return complete
@@ -117,18 +133,22 @@ class FrontendWidget(HistoryConsoleWidget):
     def _prompt_started_hook(self):
         """ Called immediately after a new prompt is displayed.
         """
-        self._highlighter.highlighting_on = True
+        if not self._reading:
+            self._highlighter.highlighting_on = True
 
-        # Auto-indent if this is a continuation prompt.
-        if self._get_prompt_cursor().blockNumber() != \
-                self._get_end_cursor().blockNumber():
-            self.appendPlainText(' ' * self._input_splitter.indent_spaces)
+            # Auto-indent if this is a continuation prompt.
+            if self._get_prompt_cursor().blockNumber() != \
+                    self._get_end_cursor().blockNumber():
+                spaces = self._input_splitter.indent_spaces
+                self.appendPlainText('\t' * (spaces / self.tab_width))
+                self.appendPlainText(' ' * (spaces % self.tab_width))
 
     def _prompt_finished_hook(self):
         """ Called immediately after a prompt is finished, i.e. when some input
             will be processed and a new prompt displayed.
         """
-        self._highlighter.highlighting_on = False
+        if not self._reading:
+            self._highlighter.highlighting_on = False
 
     def _tab_pressed(self):
         """ Called when the tab key is pressed. Returns whether to continue
@@ -136,9 +156,7 @@ class FrontendWidget(HistoryConsoleWidget):
         """
         self._keep_cursor_in_buffer()
         cursor = self.textCursor()
-        if not self._complete():
-            cursor.insertText('    ')
-        return False
+        return not self._complete()
 
     #---------------------------------------------------------------------------
     # 'FrontendWidget' interface
@@ -161,22 +179,24 @@ class FrontendWidget(HistoryConsoleWidget):
         """
         # Disconnect the old kernel manager, if necessary.
         if self._kernel_manager is not None:
-            self._kernel_manager.started_listening.disconnect(
-                self._started_listening)
-            self._kernel_manager.stopped_listening.disconnect(
-                self._stopped_listening)
+            self._kernel_manager.started_channels.disconnect(
+                self._started_channels)
+            self._kernel_manager.stopped_channels.disconnect(
+                self._stopped_channels)
 
             # Disconnect the old kernel manager's channels.
             sub = self._kernel_manager.sub_channel
             xreq = self._kernel_manager.xreq_channel
+            rep = self._kernel_manager.rep_channel
             sub.message_received.disconnect(self._handle_sub)
             xreq.execute_reply.disconnect(self._handle_execute_reply)
             xreq.complete_reply.disconnect(self._handle_complete_reply)
             xreq.object_info_reply.disconnect(self._handle_object_info_reply)
+            rep.readline_requested.disconnect(self._handle_req)
 
             # Handle the case where the old kernel manager is still listening.
             if self._kernel_manager.channels_running:
-                self._stopped_listening()
+                self._stopped_channels()
 
         # Set the new kernel manager.
         self._kernel_manager = kernel_manager
@@ -184,21 +204,23 @@ class FrontendWidget(HistoryConsoleWidget):
             return
 
         # Connect the new kernel manager.
-        kernel_manager.started_listening.connect(self._started_listening)
-        kernel_manager.stopped_listening.connect(self._stopped_listening)
+        kernel_manager.started_channels.connect(self._started_channels)
+        kernel_manager.stopped_channels.connect(self._stopped_channels)
 
         # Connect the new kernel manager's channels.
         sub = kernel_manager.sub_channel
         xreq = kernel_manager.xreq_channel
+        rep = kernel_manager.rep_channel
         sub.message_received.connect(self._handle_sub)
         xreq.execute_reply.connect(self._handle_execute_reply)
         xreq.complete_reply.connect(self._handle_complete_reply)
         xreq.object_info_reply.connect(self._handle_object_info_reply)
+        rep.readline_requested.connect(self._handle_req)
         
-        # Handle the case where the kernel manager started listening before
+        # Handle the case where the kernel manager started channels before
         # we connected.
         if kernel_manager.channels_running:
-            self._started_listening()
+            self._started_channels()
 
     kernel_manager = property(_get_kernel_manager, _set_kernel_manager)
 
@@ -240,6 +262,13 @@ class FrontendWidget(HistoryConsoleWidget):
         self._complete_pos = self.textCursor().position()
         return True
 
+    def _get_banner(self):
+        """ Gets a banner to display at the beginning of a session.
+        """
+        banner = 'Python %s on %s\nType "help", "copyright", "credits" or ' \
+            '"license" for more information.'
+        return banner % (sys.version, sys.platform)
+
     def _get_context(self, cursor=None):
         """ Gets the context at the current cursor location.
         """
@@ -247,7 +276,7 @@ class FrontendWidget(HistoryConsoleWidget):
             cursor = self.textCursor()
         cursor.movePosition(QtGui.QTextCursor.StartOfLine, 
                             QtGui.QTextCursor.KeepAnchor)
-        text = unicode(cursor.selectedText())
+        text = str(cursor.selection().toPlainText())
         return self._completion_lexer.get_context(text)
 
     def _interrupt_kernel(self):
@@ -259,7 +288,25 @@ class FrontendWidget(HistoryConsoleWidget):
             self.appendPlainText('Kernel process is either remote or '
                                  'unspecified. Cannot interrupt.\n')
 
+    def _show_interpreter_prompt(self):
+        """ Shows a prompt for the interpreter.
+        """
+        self._show_prompt('>>> ')
+
     #------ Signal handlers ----------------------------------------------------
+
+    def _started_channels(self):
+        """ Called when the kernel manager has started listening.
+        """
+        self._reset()
+        self.appendPlainText(self._get_banner())
+        self._show_interpreter_prompt()
+
+    def _stopped_channels(self):
+        """ Called when the kernel manager has stopped listening.
+        """
+        # FIXME: Print a message here?
+        pass
 
     def _document_contents_change(self, position, removed, added):
         """ Called whenever the document's content changes. Display a calltip
@@ -272,6 +319,15 @@ class FrontendWidget(HistoryConsoleWidget):
         if position == self.textCursor().position():
             self._call_tip()
 
+    def _handle_req(self, req):
+        # Make sure that all output from the SUB channel has been processed
+        # before entering readline mode.
+        self.kernel_manager.sub_channel.flush()
+
+        def callback(line):
+            self.kernel_manager.rep_channel.readline(line)
+        self._readline(callback=callback)
+
     def _handle_sub(self, omsg):
         if self._hidden:
             return
@@ -280,15 +336,13 @@ class FrontendWidget(HistoryConsoleWidget):
             handler(omsg)
 
     def _handle_pyout(self, omsg):
-        session = omsg['parent_header']['session']
-        if session == self.kernel_manager.session.session:
-            self.appendPlainText(omsg['content']['data'] + '\n')
+        self.appendPlainText(omsg['content']['data'] + '\n')
 
     def _handle_stream(self, omsg):
         self.appendPlainText(omsg['content']['data'])
         self.moveCursor(QtGui.QTextCursor.End)
         
-    def _handle_execute_reply(self, rep):
+    def _handle_execute_reply(self, reply):
         if self._hidden:
             return
 
@@ -296,16 +350,20 @@ class FrontendWidget(HistoryConsoleWidget):
         # before writing a new prompt.
         self.kernel_manager.sub_channel.flush()
 
-        content = rep['content']
-        status = content['status']
+        status = reply['content']['status']
         if status == 'error':
-            self.appendPlainText(content['traceback'][-1])
+            self._handle_execute_error(reply)
         elif status == 'aborted':
             text = "ERROR: ABORTED\n"
             self.appendPlainText(text)
         self._hidden = True
-        self._show_prompt()
-        self.executed.emit(rep)
+        self._show_interpreter_prompt()
+        self.executed.emit(reply)
+
+    def _handle_execute_error(self, reply):
+        content = reply['content']
+        traceback = ''.join(content['traceback'])
+        self.appendPlainText(traceback)
 
     def _handle_complete_reply(self, rep):
         cursor = self.textCursor()
@@ -322,9 +380,3 @@ class FrontendWidget(HistoryConsoleWidget):
             doc = rep['content']['docstring']
             if doc:
                 self._call_tip_widget.show_docstring(doc)
-
-    def _started_listening(self):
-        self.clear()
-
-    def _stopped_listening(self):
-        pass
