@@ -41,7 +41,7 @@ class IPythonWidget(FrontendWidget):
         self._prompt_count = 0
 
         # Set a default stylesheet.
-        self.reset_style_sheet()
+        self.reset_styling()
 
     #---------------------------------------------------------------------------
     # 'FrontendWidget' interface
@@ -106,16 +106,34 @@ class IPythonWidget(FrontendWidget):
     # 'IPythonWidget' interface
     #---------------------------------------------------------------------------
 
-    def reset_style_sheet(self):
-        """ Sets the style sheet to the default style sheet.
+    def reset_styling(self):
+        """ Restores the default IPythonWidget styling.
         """
-        self.set_style_sheet(self.default_stylesheet)
+        self.set_styling(self.default_stylesheet, syntax_style='default')
+        #self.set_styling(self.dark_stylesheet, syntax_style='monokai')
 
-    def set_style_sheet(self, stylesheet):
-        """ Sets the style sheet.
+    def set_styling(self, stylesheet, syntax_style=None):
+        """ Sets the IPythonWidget styling.
+
+        Parameters:
+        -----------
+        stylesheet : str
+            A CSS stylesheet. The stylesheet can contain classes for:
+                1. Qt: QPlainTextEdit, QFrame, QWidget, etc
+                2. Pygments: .c, .k, .o, etc (see PygmentsHighlighter)
+                3. IPython: .error, .in-prompt, .out-prompt, etc.
+
+        syntax_style : str or None [default None]
+            If specified, use the Pygments style with given name. Otherwise, 
+            the stylesheet is queried for Pygments style information.
         """
         self.setStyleSheet(stylesheet)
         self.document().setDefaultStyleSheet(stylesheet)
+
+        if syntax_style is None:
+            self._highlighter.set_style_sheet(stylesheet)
+        else:
+            self._highlighter.set_style(syntax_style)
 
 
 if __name__ == '__main__':
