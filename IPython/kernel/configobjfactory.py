@@ -18,7 +18,7 @@ configuration system.
 
 import zope.interface as zi
 
-from IPython.core.component import Component
+from IPython.config.configurable import Configurable
 
 #-----------------------------------------------------------------------------
 # Code
@@ -29,7 +29,7 @@ class IConfiguredObjectFactory(zi.Interface):
     """I am a component that creates a configured object.
 
     This class is useful if you want to configure a class that is not a 
-    subclass of :class:`IPython.core.component.Component`.
+    subclass of :class:`IPython.config.configurable.Configurable`.
     """
 
     def __init__(config):
@@ -39,12 +39,12 @@ class IConfiguredObjectFactory(zi.Interface):
         """Return an instance of the configured object."""
 
 
-class ConfiguredObjectFactory(Component):
+class ConfiguredObjectFactory(Configurable):
 
     zi.implements(IConfiguredObjectFactory)
 
     def __init__(self, config):
-        super(ConfiguredObjectFactory, self).__init__(None, config=config)
+        super(ConfiguredObjectFactory, self).__init__(config=config)
 
     def create(self):
         raise NotImplementedError('create must be implemented in a subclass')
@@ -63,14 +63,14 @@ class IAdaptedConfiguredObjectFactory(zi.Interface):
         """Return an instance of the adapted and configured object."""
 
 
-class AdaptedConfiguredObjectFactory(Component):
+class AdaptedConfiguredObjectFactory(Configurable):
 
     # zi.implements(IAdaptedConfiguredObjectFactory)
 
     def __init__(self, config, adaptee):
         # print
         # print "config pre:", config
-        super(AdaptedConfiguredObjectFactory, self).__init__(None, config=config)
+        super(AdaptedConfiguredObjectFactory, self).__init__(config=config)
         # print
         # print "config post:", config
         self.adaptee = adaptee

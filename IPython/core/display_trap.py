@@ -22,33 +22,27 @@ Authors:
 
 import sys
 
-from IPython.core.component import Component
+from IPython.config.configurable import Configurable
 
 #-----------------------------------------------------------------------------
 # Classes and functions
 #-----------------------------------------------------------------------------
 
 
-class DisplayTrap(Component):
+class DisplayTrap(Configurable):
     """Object to manage sys.displayhook.
 
     This came from IPython.core.kernel.display_hook, but is simplified
     (no callbacks or formatters) until more of the core is refactored.
     """
 
-    def __init__(self, parent, hook):
-        super(DisplayTrap, self).__init__(parent, None, None)
+    def __init__(self, hook):
+        super(DisplayTrap, self).__init__(None)
         self.hook = hook
         self.old_hook = None
         # We define this to track if a single BuiltinTrap is nested.
         # Only turn off the trap when the outermost call to __exit__ is made.
         self._nested_level = 0
-
-    # @auto_attr
-    # def shell(self):
-    #     return Component.get_instances(
-    #         root=self.root,
-    #         klass='IPython.core.iplib.InteractiveShell')[0]
 
     def __enter__(self):
         if self._nested_level == 0:

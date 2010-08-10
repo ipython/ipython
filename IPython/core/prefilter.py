@@ -31,11 +31,11 @@ import re
 
 from IPython.core.alias import AliasManager
 from IPython.core.autocall import IPyAutocall
-from IPython.core.component import Component
+from IPython.config.configurable import Configurable
 from IPython.core.splitinput import split_user_input
 from IPython.core.page import page
 
-from IPython.utils.traitlets import List, Int, Any, Str, CBool, Bool
+from IPython.utils.traitlets import List, Int, Any, Str, CBool, Bool, Instance
 from IPython.utils.io import Term
 from IPython.utils.text import make_quoted_expr
 from IPython.utils.autoattr import auto_attr
@@ -169,7 +169,7 @@ class LineInfo(object):
 #-----------------------------------------------------------------------------
 
 
-class PrefilterManager(Component):
+class PrefilterManager(Configurable):
     """Main prefilter component.
 
     The IPython prefilter is run on all user input before it is run.  The
@@ -210,18 +210,14 @@ class PrefilterManager(Component):
     """
 
     multi_line_specials = CBool(True, config=True)
+    shell = Instance('IPython.core.iplib.InteractiveShell')
 
-    def __init__(self, parent, config=None):
-        super(PrefilterManager, self).__init__(parent, config=config)
+    def __init__(self, shell, config=None):
+        super(PrefilterManager, self).__init__(config=config)
+        self.shell = shell
         self.init_transformers()
         self.init_handlers()
         self.init_checkers()
-
-    @auto_attr
-    def shell(self):
-        return Component.get_instances(
-            root=self.root,
-            klass='IPython.core.iplib.InteractiveShell')[0]
 
     #-------------------------------------------------------------------------
     # API for managing transformers
@@ -231,7 +227,7 @@ class PrefilterManager(Component):
         """Create the default transformers."""
         self._transformers = []
         for transformer_cls in _default_transformers:
-            transformer_cls(self, config=self.config)
+            transformer_cls(self.shell, self, config=self.config)
 
     def sort_transformers(self):
         """Sort the transformers by priority.
@@ -265,7 +261,7 @@ class PrefilterManager(Component):
         """Create the default checkers."""
         self._checkers = []
         for checker in _default_checkers:
-            checker(self, config=self.config)
+            checker(self.shell, self, config=self.config)
 
     def sort_checkers(self):
         """Sort the checkers by priority.
@@ -300,7 +296,7 @@ class PrefilterManager(Component):
         self._handlers = {}
         self._esc_handlers = {}
         for handler in _default_handlers:
-            handler(self, config=self.config)
+            handler(self.shell, self, config=self.config)
 
     @property
     def handlers(self):
@@ -445,27 +441,21 @@ class PrefilterManager(Component):
 #-----------------------------------------------------------------------------
 
 
-class PrefilterTransformer(Component):
+class PrefilterTransformer(Configurable):
     """Transform a line of user input."""
 
     priority = Int(100, config=True)
-    shell = Any
-    prefilter_manager = Any
+    # Transformers don't currently use shell or prefilter_manager, but as we
+    # move away from checkers and handlers, they will need them.
+    shell = Instance('IPython.core.iplib.InteractiveShell')
+    prefilter_manager = Instance('IPython.core.prefilter.PrefilterManager')
     enabled = Bool(True, config=True)
 
-    def __init__(self, parent, config=None):
-        super(PrefilterTransformer, self).__init__(parent, config=config)
+    def __init__(self, shell, prefilter_manager, config=None):
+        super(PrefilterTransformer, self).__init__(config=config)
+        self.shell = shell
+        self.prefilter_manager = prefilter_manager
         self.prefilter_manager.register_transformer(self)
-
-    @auto_attr
-    def shell(self):
-        return Component.get_instances(
-            root=self.root,
-            klass='IPython.core.iplib.InteractiveShell')[0]
-
-    @auto_attr
-    def prefilter_manager(self):
-        return PrefilterManager.get_instances(root=self.root)[0]
 
     def transform(self, line, continue_prompt):
         """Transform a line, returning the new one."""
@@ -561,27 +551,19 @@ class IPyPromptTransformer(PrefilterTransformer):
 #-----------------------------------------------------------------------------
 
 
-class PrefilterChecker(Component):
+class PrefilterChecker(Configurable):
     """Inspect an input line and return a handler for that line."""
 
     priority = Int(100, config=True)
-    shell = Any
-    prefilter_manager = Any
+    shell = Instance('IPython.core.iplib.InteractiveShell')
+    prefilter_manager = Instance('IPython.core.prefilter.PrefilterManager')
     enabled = Bool(True, config=True)
 
-    def __init__(self, parent, config=None):
-        super(PrefilterChecker, self).__init__(parent, config=config)
+    def __init__(self, shell, prefilter_manager, config=None):
+        super(PrefilterChecker, self).__init__(config=config)
+        self.shell = shell
+        self.prefilter_manager = prefilter_manager
         self.prefilter_manager.register_checker(self)
-
-    @auto_attr
-    def shell(self):
-        return Component.get_instances(
-            root=self.root,
-            klass='IPython.core.iplib.InteractiveShell')[0]
-
-    @auto_attr
-    def prefilter_manager(self):
-        return PrefilterManager.get_instances(root=self.root)[0]
 
     def check(self, line_info):
         """Inspect line_info and return a handler instance or None."""
@@ -709,16 +691,12 @@ class AliasChecker(PrefilterChecker):
 
     priority = Int(800, config=True)
 
-    @auto_attr
-    def alias_manager(self):
-        return AliasManager.get_instances(root=self.root)[0]
-
     def check(self, line_info):
         "Check if the initital identifier on the line is an alias."
         # Note: aliases can not contain '.'
         head = line_info.ifun.split('.',1)[0]
-        if line_info.ifun not in self.alias_manager \
-               or head not in self.alias_manager \
+        if line_info.ifun not in self.shell.alias_manager \
+               or head not in self.shell.alias_manager \
                or is_shadowed(head, self.shell):
             return None
 
@@ -766,30 +744,22 @@ class AutocallChecker(PrefilterChecker):
 #-----------------------------------------------------------------------------
 
 
-class PrefilterHandler(Component):
+class PrefilterHandler(Configurable):
 
     handler_name = Str('normal')
     esc_strings = List([])
-    shell = Any
-    prefilter_manager = Any
+    shell = Instance('IPython.core.iplib.InteractiveShell')
+    prefilter_manager = Instance('IPython.core.prefilter.PrefilterManager')
 
-    def __init__(self, parent, config=None):
-        super(PrefilterHandler, self).__init__(parent, config=config)
+    def __init__(self, shell, prefilter_manager, config=None):
+        super(PrefilterHandler, self).__init__(config=config)
+        self.shell = shell
+        self.prefilter_manager = prefilter_manager
         self.prefilter_manager.register_handler(
             self.handler_name,
             self,
             self.esc_strings
         )
-
-    @auto_attr
-    def shell(self):
-        return Component.get_instances(
-            root=self.root,
-            klass='IPython.core.iplib.InteractiveShell')[0]
-
-    @auto_attr
-    def prefilter_manager(self):
-        return PrefilterManager.get_instances(root=self.root)[0]
 
     def handle(self, line_info):
         # print "normal: ", line_info
@@ -827,13 +797,9 @@ class AliasHandler(PrefilterHandler):
 
     handler_name = Str('alias')
 
-    @auto_attr
-    def alias_manager(self):
-        return AliasManager.get_instances(root=self.root)[0]
-
     def handle(self, line_info):
         """Handle alias input lines. """
-        transformed = self.alias_manager.expand_aliases(line_info.ifun,line_info.the_rest)
+        transformed = self.shell.alias_manager.expand_aliases(line_info.ifun,line_info.the_rest)
         # pre is needed, because it carries the leading whitespace.  Otherwise
         # aliases won't work in indented sections.
         line_out = '%sget_ipython().system(%s)' % (line_info.pre_whitespace,
@@ -894,7 +860,7 @@ class AutoHandler(PrefilterHandler):
     esc_strings = List([ESC_PAREN, ESC_QUOTE, ESC_QUOTE2])
 
     def handle(self, line_info):
-        """Hande lines which can be auto-executed, quoting if requested."""
+        """Handle lines which can be auto-executed, quoting if requested."""
         line    = line_info.line
         ifun    = line_info.ifun
         the_rest = line_info.the_rest

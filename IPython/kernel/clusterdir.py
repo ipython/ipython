@@ -26,7 +26,7 @@ from twisted.python import log
 
 from IPython.config.loader import PyFileConfigLoader
 from IPython.core.application import Application, BaseAppConfigLoader
-from IPython.core.component import Component
+from IPython.config.configurable import Configurable
 from IPython.core.crashhandler import CrashHandler
 from IPython.core import release
 from IPython.utils.path import (
@@ -63,7 +63,7 @@ class PIDFileError(Exception):
 # Class for managing cluster directories
 #-----------------------------------------------------------------------------
 
-class ClusterDir(Component):
+class ClusterDir(Configurable):
     """An object to manage the cluster directory and its resources.
 
     The cluster directory is used by :command:`ipcontroller`, 

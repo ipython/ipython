@@ -77,7 +77,7 @@ a
 b
 
 ip = get_ipython()
-prd = ip.load_extension('pretty')
+prd = ip.extension_manager.load_extension('pretty')
 prd.for_type(A, a_pretty_printer)
 prd.for_type_by_name(B.__module__, B.__name__, b_pretty_printer)
 

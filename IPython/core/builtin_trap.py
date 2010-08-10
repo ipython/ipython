@@ -21,10 +21,10 @@ Authors:
 
 import __builtin__
 
-from IPython.core.component import Component
+from IPython.config.configurable import Configurable
 from IPython.core.quitter import Quitter
 
-from IPython.utils.autoattr import auto_attr
+from IPython.utils.traitlets import Instance
 
 #-----------------------------------------------------------------------------
 # Classes and functions
@@ -35,20 +35,17 @@ class __BuiltinUndefined(object): pass
 BuiltinUndefined = __BuiltinUndefined()
 
 
-class BuiltinTrap(Component):
+class BuiltinTrap(Configurable):
 
-    def __init__(self, parent):
-        super(BuiltinTrap, self).__init__(parent, None, None)
+    shell = Instance('IPython.core.iplib.InteractiveShell')
+
+    def __init__(self, shell):
+        super(BuiltinTrap, self).__init__(None)
         self._orig_builtins = {}
         # We define this to track if a single BuiltinTrap is nested.
         # Only turn off the trap when the outermost call to __exit__ is made.
         self._nested_level = 0
-
-    @auto_attr
-    def shell(self):
-        return Component.get_instances(
-            root=self.root,
-            klass='IPython.core.iplib.InteractiveShell')[0]
+        self.shell = shell
 
     def __enter__(self):
         if self._nested_level == 0:

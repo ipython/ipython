@@ -24,14 +24,14 @@ import uuid
 
 from xml.etree import ElementTree as ET
 
-from IPython.core.component import Component
+from IPython.config.configurable import Configurable
 from IPython.utils.traitlets import (
     Str, Int, List, Instance,
     Enum, Bool, CStr
 )
 
 #-----------------------------------------------------------------------------
-# Job and Task Component
+# Job and Task classes
 #-----------------------------------------------------------------------------
 
 
@@ -74,7 +74,7 @@ def find_username():
         return '%s\\%s' % (domain, username)
 
 
-class WinHPCJob(Component):
+class WinHPCJob(Configurable):
 
     job_id = Str('')
     job_name = Str('MyJob', config=True)
@@ -165,7 +165,7 @@ class WinHPCJob(Component):
         self.tasks.append(task)
 
 
-class WinHPCTask(Component):
+class WinHPCTask(Configurable):
 
     task_id = Str('')
     task_name = Str('')
@@ -261,8 +261,8 @@ class IPControllerTask(WinHPCTask):
     unit_type = Str("Core", config=False)
     work_directory = CStr('', config=False)
 
-    def __init__(self, parent, name=None, config=None):
-        super(IPControllerTask, self).__init__(parent, name, config)
+    def __init__(self, config=None):
+        super(IPControllerTask, self).__init__(config)
         the_uuid = uuid.uuid1()
         self.std_out_file_path = os.path.join('log','ipcontroller-%s.out' % the_uuid)
         self.std_err_file_path = os.path.join('log','ipcontroller-%s.err' % the_uuid)
@@ -289,8 +289,8 @@ class IPEngineTask(WinHPCTask):
     unit_type = Str("Core", config=False)
     work_directory = CStr('', config=False)
 
-    def __init__(self, parent, name=None, config=None):
-        super(IPEngineTask,self).__init__(parent, name, config)
+    def __init__(self, config=None):
+        super(IPEngineTask,self).__init__(config)
         the_uuid = uuid.uuid1()
         self.std_out_file_path = os.path.join('log','ipengine-%s.out' % the_uuid)
         self.std_err_file_path = os.path.join('log','ipengine-%s.err' % the_uuid)
