@@ -16,8 +16,8 @@
 
 import new
 
-from IPython.core.component import Component
-from IPython.utils.traitlets import Bool, Any
+from IPython.config.configurable import Configurable
+from IPython.utils.traitlets import Bool, Any, Instance
 from IPython.utils.autoattr import auto_attr
 from IPython.testing import decorators as testdec
 
@@ -31,27 +31,19 @@ Use activate() on a MultiEngineClient object to activate it for magics.
 """
 
 
-class ParalleMagicComponent(Component):
+class ParalleMagicComponent(Configurable):
     """A component to manage the %result, %px and %autopx magics."""
 
     active_multiengine_client = Any()
     verbose = Bool(False, config=True)
+    shell = Instance('IPython.core.iplib.InteractiveShell')
 
-    def __init__(self, parent, name=None, config=None):
-        super(ParalleMagicComponent, self).__init__(parent, name=name, config=config)
+    def __init__(self, shell, config=None):
+        super(ParalleMagicComponent, self).__init__(config=config)
+        self.shell = shell
         self._define_magics()
         # A flag showing if autopx is activated or not
         self.autopx = False
-
-    # Access other components like this rather than by a regular attribute.
-    # This won't lookup the InteractiveShell object until it is used and
-    # then it is cached.  This is both efficient and couples this class 
-    # more loosely to InteractiveShell.
-    @auto_attr
-    def shell(self):
-        return Component.get_instances(
-            root=self.root,
-            klass='IPython.core.iplib.InteractiveShell')[0]
 
     def _define_magics(self):
         """Define the magic functions."""
@@ -204,6 +196,6 @@ def load_ipython_extension(ip):
     """Load the extension in IPython."""
     global _loaded
     if not _loaded:
-        prd = ParalleMagicComponent(ip, name='parallel_magic')
+        prd = ParalleMagicComponent(ip, config=ip.config)
         _loaded = True
 
