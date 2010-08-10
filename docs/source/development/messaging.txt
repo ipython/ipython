@@ -5,6 +5,26 @@ Message Specification
 Note: not all of these have yet been fully fleshed out, but the key ones are,
 see kernel and frontend files for actual implementation details.
 
+Messages are dicts of dicts with string keys and values that are reasonably
+representable in JSON.  Our current implementation uses JSON explicitly as its
+message format, but this shouldn't be considered a permanent feature.  As we've
+discovered that JSON has non-trivial performance issues due to excessive
+copying, we may in the future move to a pure pickle-based raw message format.
+However, it should be possible to easily convert from the raw objects to JSON,
+since we may have non-python clients (e.g. a web frontend).  As long as it's
+easy to make a JSON version of the objects that is a faithful representation of
+all the data, we can communicate with such clients.
+
+
+Python functional API
+=====================
+
+As messages are dicts, they map naturally to a ``func(**kw)`` call form.  We
+should develop, at a few key points, functional forms of all the requests that
+take arguments in this manner and automatically construct the necessary dict
+for sending.
+
+
 General Message Format
 =====================
 
@@ -20,30 +40,66 @@ General message format::
         content : blackbox_dict , # Must be a dict
     }
 
+    
+Request/Reply going from kernel for stdin
+=========================================
+
+This is a socket that goes in the opposite direction: from the kernel to a
+*single* frontend, and its purpose is to allow ``raw_input`` and similar
+operations that read from ``sys.stdin`` on the kernel to be fulfilled by the
+client.  For now we will keep these messages as simple as possible, since they
+basically only mean to convey the ``raw_input(prompt)`` call.
+
+Message type: 'input_request'::
+
+    content = { prompt : string }
+
+Message type: 'input_reply'::
+
+    content = { value : string }
+
+    
 Side effect: (PUB/SUB)
 ======================
 
-# msg_type = 'stream'::
+Message type: 'stream'::
 
     content = {
 	name : 'stdout',
 	data : 'blob',
     }
 
-# msg_type = 'pyin'::
+When a kernel receives a raw_input call, it should also broadcast it on the pub
+socket with the names 'stdin' and 'stdin_reply'.  This will allow other clients
+to monitor/display kernel interactions and possibly replay them to their user
+or otherwise expose them.
+    
+Message type: 'pyin'::
 
     content = {
 	code = 'x=1',
     }
 
-# msg_type = 'pyout'::
+Message type: 'pyout'::
 
     content = {
 	data = 'repr(obj)',
 	prompt_number = 10
     }
 
-# msg_type = 'pyerr'::
+Message type: 'pyerr'::
+
+    content = {
+       # Same as the data payload of a code execute_reply, minus the 'status'
+       # field. See below.
+    }
+
+When the kernel has an unexpected exception, caught by the last-resort
+sys.excepthook, we should broadcast the crash handler's output before exiting.
+This will allow clients to notice that a kernel died, inform the user and
+propose further actions.
+
+Message type: 'crash'::
 
     content = {
 	traceback : 'full traceback',
@@ -51,21 +107,34 @@ Side effect: (PUB/SUB)
 	exc_value :  'msg'
     }
 
-# msg_type = 'file':
+
+Other potential message types, currently unimplemented, listed below as ideas.
+    
+Message type: 'file'::
     content = {
-	path = 'cool.jpg',
+	path : 'cool.jpg',
+	mimetype : string
 	data : 'blob'
     }
 
+    
 Request/Reply
 =============
 
 Execute
 -------
 
-Request:
+The execution request contains a single string, but this may be a multiline
+string.  The kernel is responsible for splitting this into possibly more than
+one block and deciding whether to compile these in 'single' or 'exec' mode.
+We're still sorting out this policy.  The current inputsplitter is capable of
+splitting the input for blocks that can all be run as 'single', but in the long
+run it may prove cleaner to only use 'single' mode for truly single-line
+inputs, and run all multiline input in 'exec' mode.  This would preserve the
+natural behavior of single-line inputs while allowing long cells to behave more
+likea a script.  Some thought is still required here...
 
-# msg_type = 'execute_request'::
+Message type: 'execute_request'::
 
     content = {
 	code : 'a = 10',
@@ -73,33 +142,142 @@ Request:
 
 Reply:
 
-# msg_type = 'execute_reply'::
+Message type: 'execute_reply'::
 
     content = {
       'status' : 'ok' OR 'error' OR 'abort'
-      # data depends on status value
+      # Any additional data depends on status value
+}
+
+When status is 'ok', the following extra fields are present::
+
+    {
+      # This has the same structure as the output of a prompt request, but is
+      # for the client to set up the *next* prompt (with identical limitations
+      # to a prompt request)
+      'next_prompt' : {
+            prompt_string : string
+	    prompt_number : int
+	    }
+	    
+      # The prompt number of the actual execution for this code, which may be
+      # different from the one used when the code was typed, which was the
+      # 'next_prompt' field of the *previous* request.  They will differ in the
+      # case where there is more than one client talking simultaneously to a
+      # kernel, since the numbers can go out of sync.  GUI clients can use this
+      # to correct the previously written number in-place, terminal ones may
+      # re-print a corrected one if desired.
+      'prompt_number' : number
+
+      # The kernel will often transform the input provided to it.  This
+      # contains the transformed code, which is what was actually executed.
+      'transformed_code' : new_code
+
+      # This 'payload' needs a bit more thinking.  The basic idea is that
+      # certain actions will want to return additional information, such as
+      # magics producing data output for display by the clients.  We may need
+      # to define a few types of payload, or specify a syntax for the, not sure
+      # yet... FIXME here.
+      'payload' : things from page(), for example.
     }
 
+When status is 'error', the following extra fields are present::
+
+    {
+      etype : str   # Exception type, as a string
+      evalue : str #  Exception value, as a string
+
+      # The traceback will contain a list of frames, represented each as a
+      # string.  For now we'll stick to the existing design of ultraTB, which
+      # controls exception level of detail statefully.  But eventually we'll
+      # want to grow into a model where more information is collected and
+      # packed into the traceback object, with clients deciding how little or
+      # how much of it to unpack.  But for now, let's start with a simple list
+      # of strings, since that requires only minimal changes to ultratb as
+      # written.
+      traceback : list of strings
+    }
+
+
+When status is 'abort', there are for now no additional data fields.
+
+
+Prompt
+------
+
+A simple request for a current prompt string.
+
+Message type: 'prompt_request'::
+
+    content = {}
+
+In the reply, the prompt string comes back with the prompt number placeholder
+*unevaluated*.  The message format is:
+    
+Message type: 'prompt_reply'::
+
+    content = {
+      prompt_string : string
+      prompt_number : int
+    }
+
+Clients can produce a prompt with ``prompt_string.format(prompt_number)``, but
+they should be aware that the actual prompt number for that input could change
+later, in the case where multiple clients are interacting with a single
+kernel. 
+    
+    
 Complete
 --------
 
-# msg_type = 'complete_request'::
+Message type: 'complete_request'::
 
     content = {
 	text : 'a.f',    # complete on this
 	line : 'print a.f'    # full line
     }
 
-# msg_type = 'complete_reply'::
+Message type: 'complete_reply'::
 
     content = {
 	matches : ['a.foo', 'a.bar']
     }
 
+    
+History
+-------
+
+For clients to explicitly request history from a kernel
+
+Message type: 'history_request'::
+
+    content = {
+      output : boolean.  If true, also return output history in the resulting
+      dict.
+
+      range : optional. A number,  a pair of numbers, 'all'
+        If not given, last 40 are returned.
+        - number n: return the last n entries.
+	- pair n1, n2: return entries in the range(n1, n2).
+	- 'all': return all history
+
+      filter : optional, string
+        If given, treated as a regular expression and only matching entries are
+        returned.  re.search() is used to find matches.
+    }
+
+Message type: 'history_reply'::
+
+    content = {
+      input : list of pairs (number, input)
+      output : list of pairs (number, output). Empty if not requested.
+      }
+
+
 Control
 -------
 
-# msg_type = 'heartbeat'::
+Message type: 'heartbeat'::
 
     content = {
     # XXX - unfinished
