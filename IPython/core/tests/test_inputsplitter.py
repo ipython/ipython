@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """Tests for the inputsplitter module.
 """
 #-----------------------------------------------------------------------------
@@ -23,6 +24,10 @@ from IPython.core import inputsplitter as isp
 #-----------------------------------------------------------------------------
 # Semi-complete examples (also used as tests)
 #-----------------------------------------------------------------------------
+
+# Note: at the bottom, there's a slightly more complete version of this that
+# can be useful during development of code here.
+
 def mini_interactive_loop(raw_input):
     """Minimal example of the logic of an interactive interpreter loop.
 
@@ -44,7 +49,7 @@ def mini_interactive_loop(raw_input):
     # Here we just return input so we can use it in a test suite, but a real
     # interpreter would instead send it for execution somewhere.
     src = isp.source_reset()
-    print 'Input source was:\n', src
+    #print 'Input source was:\n', src  # dbg
     return src
 
 #-----------------------------------------------------------------------------
@@ -363,9 +368,18 @@ class InteractiveLoopTestCase(unittest.TestCase):
         self.check_ns(['x =(1+','1+','2)'], dict(x=4))
     
 
-class IPythonInputTestCase(InputSplitterTestCase):
-    def setUp(self):
-        self.isp = isp.IPythonInputSplitter()
+def test_LineInfo():
+    """Simple test for LineInfo construction and str()"""
+    linfo = isp.LineInfo('  %cd /home')
+    nt.assert_equals(str(linfo), 'LineInfo [  |%|cd|/home]')
+
+
+def test_split_user_input():
+    """Unicode test - split_user_input already has good doctests"""
+    line = u"Pérez Fernando"
+    parts = isp.split_user_input(line)
+    parts_expected = (u'', u'', u'', line)
+    nt.assert_equal(parts, parts_expected)
 
 
 # Transformer tests
@@ -373,39 +387,237 @@ def transform_checker(tests, func):
     """Utility to loop over test inputs"""
     for inp, tr in tests:
         nt.assert_equals(func(inp), tr)
-    
+
+# Data for all the syntax tests in the form of lists of pairs of
+# raw/transformed input.  We store it here as a global dict so that we can use
+# it both within single-function tests and also to validate the behavior of the
+# larger objects
+
+syntax = \
+  dict(assign_system =
+       [('a =! ls', 'a = get_ipython().magic("sc -l = ls")'),
+        ('b = !ls', 'b = get_ipython().magic("sc -l = ls")'),
+        ('x=1', 'x=1'), # normal input is unmodified
+        ('    ','    '),  # blank lines are kept intact
+        ],
+
+       assign_magic =
+       [('a =% who', 'a = get_ipython().magic("who")'),
+        ('b = %who', 'b = get_ipython().magic("who")'),
+        ('x=1', 'x=1'), # normal input is unmodified
+        ('    ','    '),  # blank lines are kept intact
+        ],
+
+       classic_prompt =
+       [('>>> x=1', 'x=1'),
+        ('x=1', 'x=1'), # normal input is unmodified
+        ('    ','    '),  # blank lines are kept intact
+        ],
+
+       ipy_prompt =
+       [('In [1]: x=1', 'x=1'),
+        ('x=1', 'x=1'), # normal input is unmodified
+        ('    ','    '),  # blank lines are kept intact
+        ],
+
+       # Tests for the escape transformer to leave normal code alone
+       escaped_noesc =
+       [ ('    ', '    '),
+         ('x=1', 'x=1'),
+         ],
+
+       # System calls
+       escaped_shell =
+       [ ('!ls', 'get_ipython().system("ls")'),
+         # Double-escape shell, this means to capture the output of the
+         # subprocess and return it
+         ('!!ls', 'get_ipython().getoutput("ls")'),
+         ],
+
+       # Help/object info
+       escaped_help =
+       [ ('?', 'get_ipython().show_usage()'),
+         ('?x1', 'get_ipython().magic("pinfo x1")'),
+         ('??x2', 'get_ipython().magic("pinfo2 x2")'),
+         ('x3?', 'get_ipython().magic("pinfo x3")'),
+         ('x4??', 'get_ipython().magic("pinfo2 x4")'),
+         ],
+
+       # Explicit magic calls
+       escaped_magic =
+       [ ('%cd', 'get_ipython().magic("cd")'),
+         ('%cd /home', 'get_ipython().magic("cd /home")'),
+         ('    %magic', '    get_ipython().magic("magic")'),
+         ],
+       
+       # Quoting with separate arguments
+       escaped_quote =
+       [ (',f', 'f("")'),
+         (',f x', 'f("x")'),
+         ('  ,f y', '  f("y")'),
+         (',f a b', 'f("a", "b")'),
+         ],
+       
+       # Quoting with single argument
+       escaped_quote2 = 
+       [ (';f', 'f("")'),
+         (';f x', 'f("x")'),
+         ('  ;f y', '  f("y")'),
+         (';f a b', 'f("a b")'),
+         ],
+       
+       # Simply apply parens
+       escaped_paren = 
+       [ ('/f', 'f()'),
+         ('/f x', 'f(x)'),
+         ('  /f y', '  f(y)'),
+         ('/f a b', 'f(a, b)'),
+         ],
+
+       # More complex multiline tests
+       ## escaped_multiline =
+       ## [()],
+       )
+
+# multiline syntax examples.  Each of these should be a list of lists, with
+# each entry itself having pairs of raw/transformed input.  The union (with
+# '\n'.join() of the transformed inputs is what the splitter should produce
+# when fed the raw lines one at a time via push.
+syntax_ml = \
+  dict(classic_prompt =
+       [ [('>>> for i in range(10):','for i in range(10):'),
+          ('...     print i','    print i'),
+          ('... ', ''),
+          ],
+        ],
+
+       ipy_prompt =
+       [ [('In [24]: for i in range(10):','for i in range(10):'),
+          ('   ....:     print i','    print i'),
+          ('   ....: ', ''),
+          ],
+         ],
+       )
+
 
 def test_assign_system():
-    tests = [('a =! ls', 'a = get_ipython().magic("sc -l = ls")'),
-             ('b = !ls', 'b = get_ipython().magic("sc -l = ls")'),
-             ('x=1','x=1')]
-    transform_checker(tests, isp.transform_assign_system)
+    transform_checker(syntax['assign_system'], isp.transform_assign_system)
 
     
 def test_assign_magic():
-    tests = [('a =% who', 'a = get_ipython().magic("who")'),
-             ('b = %who', 'b = get_ipython().magic("who")'),
-             ('x=1','x=1')]
-    transform_checker(tests, isp.transform_assign_magic)
+    transform_checker(syntax['assign_magic'], isp.transform_assign_magic)
 
 
 def test_classic_prompt():
-    tests = [('>>> x=1', 'x=1'),
-             ('>>> for i in range(10):','for i in range(10):'),
-             ('...     print i','    print i'),
-             ('...', ''),
-             ('x=1','x=1')
-             ]
-    transform_checker(tests, isp.transform_classic_prompt)
+    transform_checker(syntax['classic_prompt'], isp.transform_classic_prompt)
+    for example in syntax_ml['classic_prompt']:
+        transform_checker(example, isp.transform_classic_prompt)
     
 
 def test_ipy_prompt():
-    tests = [('In [1]: x=1', 'x=1'),
-             ('In [24]: for i in range(10):','for i in range(10):'),
-             ('   ....:     print i','    print i'),
-             ('   ....: ', ''),
-             ('x=1', 'x=1'), # normal input is unmodified
-             ('   ','')  # blank lines are just collapsed
-             ]
-    transform_checker(tests, isp.transform_ipy_prompt)
+    transform_checker(syntax['ipy_prompt'], isp.transform_ipy_prompt)
+    for example in syntax_ml['ipy_prompt']:
+        transform_checker(example, isp.transform_ipy_prompt)
     
+
+def test_escaped_noesc():
+    transform_checker(syntax['escaped_noesc'], isp.transform_escaped)
+
+
+def test_escaped_shell():
+    transform_checker(syntax['escaped_shell'], isp.transform_escaped)
+
+
+def test_escaped_help():
+    transform_checker(syntax['escaped_help'], isp.transform_escaped)
+
+
+def test_escaped_magic():
+    transform_checker(syntax['escaped_magic'], isp.transform_escaped)
+
+
+def test_escaped_quote():
+    transform_checker(syntax['escaped_quote'], isp.transform_escaped)
+
+
+def test_escaped_quote2():
+    transform_checker(syntax['escaped_quote2'], isp.transform_escaped)
+
+
+def test_escaped_paren():
+    transform_checker(syntax['escaped_paren'], isp.transform_escaped)
+
+
+class IPythonInputTestCase(InputSplitterTestCase):
+    """By just creating a new class whose .isp is a different instance, we
+    re-run the same test battery on the new input splitter.
+
+    In addition, this runs the tests over the syntax and syntax_ml dicts that
+    were tested by individual functions, as part of the OO interface.
+    """
+    def setUp(self):
+        self.isp = isp.IPythonInputSplitter()
+
+    def test_syntax(self):
+        """Call all single-line syntax tests from the main object"""
+        isp = self.isp
+        for example in syntax.itervalues():
+            for raw, out_t in example:
+                if raw.startswith(' '):
+                    continue
+                
+                isp.push(raw)
+                out = isp.source_reset().rstrip()
+                self.assertEqual(out, out_t)
+        
+    def test_syntax_multiline(self):
+        isp = self.isp
+        for example in syntax_ml.itervalues():
+            out_t_parts = []
+            for line_pairs in example:
+                for raw, out_t_part in line_pairs:
+                    isp.push(raw)
+                    out_t_parts.append(out_t_part)
+
+                out = isp.source_reset().rstrip()
+                out_t = '\n'.join(out_t_parts).rstrip()
+                self.assertEqual(out, out_t)
+                
+
+#-----------------------------------------------------------------------------
+# Main - use as a script
+#-----------------------------------------------------------------------------
+
+if __name__ == '__main__':
+    # A simple demo for interactive experimentation.  This code will not get
+    # picked up by any test suite.  Useful mostly for illustration and during
+    # development.
+    from IPython.core.inputsplitter import InputSplitter, IPythonInputSplitter
+    
+    #isp, start_prompt = InputSplitter(), '>>> '
+    isp, start_prompt = IPythonInputSplitter(), 'In> '
+
+    autoindent = True
+    #autoindent = False
+    
+    # In practice, this input loop would be wrapped in an outside loop to read
+    # input indefinitely, until some exit/quit command was issued.  Here we
+    # only illustrate the basic inner loop.
+    try:
+        while True:
+            prompt = start_prompt
+            while isp.push_accepts_more():
+                indent = ' '*isp.indent_spaces
+                if autoindent:
+                    line = indent + raw_input(prompt+indent)
+                else:
+                    line = raw_input(prompt)
+                isp.push(line)
+                prompt = '... '
+
+            # Here we just return input so we can use it in a test suite, but a
+            # real interpreter would instead send it for execution somewhere.
+            src = isp.source_reset()
+            print 'Input source was:\n', src  # dbg
+    except EOFError:
+        print 'Bye'
