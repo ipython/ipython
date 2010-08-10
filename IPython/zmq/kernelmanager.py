@@ -368,16 +368,10 @@ class RepSocketChannel(ZmqSocketChannel):
         """
         raise NotImplementedError('call_handlers must be defined in a subclass.')
 
-    def readline(self, line):
-        """A send a line of raw input to the kernel.
-
-        Parameters
-        ----------
-        line : str
-            The line of the input.
-        """
-        content = dict(line=line)
-        msg = self.session.msg('readline_reply', content)
+    def input(self, string):
+        """Send a string of raw input to the kernel."""
+        content = dict(value=string)
+        msg = self.session.msg('input_reply', content)
         self._queue_reply(msg)
 
     def _handle_events(self, socket, events):
@@ -432,13 +426,15 @@ class KernelManager(HasTraits):
     # The Session to use for communication with the kernel.
     session = Instance(Session)
 
+    # The kernel process with which the KernelManager is communicating.
+    kernel = Instance(Popen)
+
     # The classes to use for the various channels.
     xreq_channel_class = Type(XReqSocketChannel)
     sub_channel_class = Type(SubSocketChannel)
     rep_channel_class = Type(RepSocketChannel)
     
     # Protected traits.
-    _kernel = Instance(Popen)
     _xreq_address = Any
     _sub_address = Any
     _rep_address = Any
@@ -505,9 +501,8 @@ class KernelManager(HasTraits):
                                "Make sure that the '*_address' attributes are "
                                "configured properly.")
 
-        kernel, xrep, pub, req = launch_kernel(
+        self.kernel, xrep, pub, req = launch_kernel(
             xrep_port=xreq[1], pub_port=sub[1], req_port=rep[1])
-        self._kernel = kernel
         self._xreq_address = (LOCALHOST, xrep)
         self._sub_address = (LOCALHOST, pub)
         self._rep_address = (LOCALHOST, req)
@@ -516,31 +511,29 @@ class KernelManager(HasTraits):
     def has_kernel(self):
         """Returns whether a kernel process has been specified for the kernel
         manager.
-
-        A kernel process can be set via 'start_kernel' or 'set_kernel'.
         """
-        return self._kernel is not None
+        return self.kernel is not None
 
     def kill_kernel(self):
         """ Kill the running kernel. """
-        if self._kernel is not None:
-            self._kernel.kill()
-            self._kernel = None
+        if self.kernel is not None:
+            self.kernel.kill()
+            self.kernel = None
         else:
             raise RuntimeError("Cannot kill kernel. No kernel is running!")
 
     def signal_kernel(self, signum):
         """ Sends a signal to the kernel. """
-        if self._kernel is not None:
-            self._kernel.send_signal(signum)
+        if self.kernel is not None:
+            self.kernel.send_signal(signum)
         else:
             raise RuntimeError("Cannot signal kernel. No kernel is running!")
 
     @property
     def is_alive(self):
         """Is the kernel process still running?"""
-        if self._kernel is not None:
-            if self._kernel.poll() is None:
+        if self.kernel is not None:
+            if self.kernel.poll() is None:
                 return True
             else:
                 return False

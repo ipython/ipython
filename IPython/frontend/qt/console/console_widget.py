@@ -214,11 +214,11 @@ class ConsoleWidget(QtGui.QPlainTextEdit):
 
             elif key == QtCore.Qt.Key_Home:
                 cursor.movePosition(QtGui.QTextCursor.StartOfLine)
-                start_pos = cursor.position()
                 start_line = cursor.blockNumber()
                 if start_line == self._get_prompt_cursor().blockNumber():
-                    start_pos += len(self._prompt)
+                    start_pos = self._prompt_pos
                 else:
+                    start_pos = cursor.position()
                     start_pos += len(self._continuation_prompt)
                 if shift_down and self._in_buffer(position):
                     self._set_selection(position, start_pos)
@@ -266,22 +266,7 @@ class ConsoleWidget(QtGui.QPlainTextEdit):
             make sense for a console widget.
         """
         cursor = self._get_end_cursor()
-        cursor.insertHtml(html)
-
-        # After appending HTML, the text document "remembers" the current
-        # formatting, which means that subsequent calls to 'appendPlainText'
-        # will be formatted similarly, a behavior that we do not want. To
-        # prevent this, we make sure that the last character has no formatting.
-        cursor.movePosition(QtGui.QTextCursor.Left, 
-                            QtGui.QTextCursor.KeepAnchor)
-        if cursor.selection().toPlainText().trimmed().isEmpty():
-            # If the last character is whitespace, it doesn't matter how it's
-            # formatted, so just clear the formatting.
-            cursor.setCharFormat(QtGui.QTextCharFormat())
-        else:
-            # Otherwise, add an unformatted space.
-            cursor.movePosition(QtGui.QTextCursor.Right)
-            cursor.insertText(' ', QtGui.QTextCharFormat())
+        self._insert_html(cursor, html)
 
     def appendPlainText(self, text):
         """ Reimplemented to not append text as a new paragraph, which doesn't
@@ -576,15 +561,15 @@ class ConsoleWidget(QtGui.QPlainTextEdit):
             if self.gui_completion:
                 self._completion_widget.show_items(cursor, items) 
             else:
-                text = self.format_as_columns(items)
+                text = self._format_as_columns(items)
                 self._append_plain_text_keeping_prompt(text)
 
-    def format_as_columns(self, items, separator='  '):
+    def _format_as_columns(self, items, separator='  '):
         """ Transform a list of strings into a single string with columns.
 
         Parameters
         ----------
-        items : sequence [str]
+        items : sequence of strings
             The strings to process.
 
         separator : str, optional [default is two spaces]
@@ -600,10 +585,10 @@ class ConsoleWidget(QtGui.QPlainTextEdit):
         font_metrics = QtGui.QFontMetrics(self.font)
         displaywidth = max(5, (self.width() / font_metrics.width(' ')) - 1)
 
-        # Some degenerate cases
+        # Some degenerate cases.
         size = len(items)
         if size == 0: 
-            return "\n"
+            return '\n'
         elif size == 1:
             return '%s\n' % str(items[0])
 
@@ -643,7 +628,7 @@ class ConsoleWidget(QtGui.QPlainTextEdit):
                 del texts[-1]
             for col in range(len(texts)):
                 texts[col] = texts[col].ljust(colwidths[col])
-            string += "%s\n" % str(separator.join(texts))
+            string += '%s\n' % str(separator.join(texts))
         return string
 
     def _get_block_plain_text(self, block):
@@ -711,6 +696,27 @@ class ConsoleWidget(QtGui.QPlainTextEdit):
         cursor = self.textCursor()
         cursor.setPosition(position)
         return cursor
+
+    def _insert_html(self, cursor, html):
+        """ Insert HTML using the specified cursor in such a way that future
+            formatting is unaffected.
+        """
+        cursor.insertHtml(html)
+
+        # After inserting HTML, the text document "remembers" the current
+        # formatting, which means that subsequent calls adding plain text
+        # will result in similar formatting, a behavior that we do not want. To
+        # prevent this, we make sure that the last character has no formatting.
+        cursor.movePosition(QtGui.QTextCursor.Left, 
+                            QtGui.QTextCursor.KeepAnchor)
+        if cursor.selection().toPlainText().trimmed().isEmpty():
+            # If the last character is whitespace, it doesn't matter how it's
+            # formatted, so just clear the formatting.
+            cursor.setCharFormat(QtGui.QTextCharFormat())
+        else:
+            # Otherwise, add an unformatted space.
+            cursor.movePosition(QtGui.QTextCursor.Right)
+            cursor.insertText(' ', QtGui.QTextCharFormat())
 
     def _prompt_started(self):
         """ Called immediately after a new prompt is displayed.
