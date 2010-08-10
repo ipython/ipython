@@ -98,8 +98,8 @@ class QtRepSocketChannel(RepSocketChannel, QtCore.QObject):
     # Emitted when any message is received.
     message_received = QtCore.pyqtSignal(object)
 
-    # Emitted when a readline request is received.
-    readline_requested = QtCore.pyqtSignal(object)
+    # Emitted when an input request is received.
+    input_requested = QtCore.pyqtSignal(object)
 
     #---------------------------------------------------------------------------
     # 'object' interface
@@ -123,8 +123,8 @@ class QtRepSocketChannel(RepSocketChannel, QtCore.QObject):
         
         # Emit signals for specialized message types.
         msg_type = msg['msg_type']
-        if msg_type == 'readline_request':
-            self.readline_requested.emit(msg)
+        if msg_type == 'input_request':
+            self.input_requested.emit(msg)
     
 
 class QtKernelManager(KernelManager, QtCore.QObject):

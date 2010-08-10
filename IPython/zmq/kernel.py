@@ -37,93 +37,6 @@ from completer import KernelCompleter
 # Kernel and stream classes
 #-----------------------------------------------------------------------------
 
-class InStream(object):
-    """ A file like object that reads from a 0MQ XREQ socket."""
-
-    def __init__(self, session, socket):
-        self.session = session
-        self.socket = socket
-
-    def close(self):
-        self.socket = None
-
-    def flush(self):
-        if self.socket is None:
-            raise ValueError('I/O operation on closed file')
-        
-    def isatty(self):
-        return False
-
-    def next(self):
-        raise IOError('Seek not supported.')
-
-    def read(self, size=-1):
-        # FIXME: Do we want another request for this?
-        string = '\n'.join(self.readlines())
-        return self._truncate(string, size)
-
-    def readline(self, size=-1):
-        if self.socket is None:
-            raise ValueError('I/O operation on closed file')
-        else:
-            content = dict(size=size)
-            msg = self.session.msg('readline_request', content=content) 
-            reply = self._request(msg)
-            line = reply['content']['line']
-            return self._truncate(line, size)
-
-    def readlines(self, sizehint=-1):
-        # Sizehint is ignored, as is permitted.
-        if self.socket is None:
-            raise ValueError('I/O operation on closed file')
-        else:
-            lines = []
-            while True:
-                line = self.readline()
-                if line:
-                    lines.append(line)
-                else:
-                    break
-            return lines
-
-    def seek(self, offset, whence=None):
-        raise IOError('Seek not supported.')
-
-    def write(self, string):
-        raise IOError('Write not supported on a read only stream.')
-
-    def writelines(self, sequence):
-        raise IOError('Write not supported on a read only stream.')
-    
-    def _request(self, msg):
-        # Flush output before making the request. This ensures, for example,
-        # that raw_input(prompt) actually gets a prompt written.
-        sys.stderr.flush()
-        sys.stdout.flush()
-
-        self.socket.send_json(msg)
-        while True:
-            try:
-                reply = self.socket.recv_json(zmq.NOBLOCK)
-            except zmq.ZMQError, e:
-                if e.errno == zmq.EAGAIN:
-                    pass
-                else:
-                    raise
-            else:
-                break
-        return reply
-
-    def _truncate(self, string, size):
-        if size >= 0:
-            if isinstance(string, str):
-                return string[:size]
-            elif isinstance(string, unicode):
-                encoded = string.encode('utf-8')[:size]
-                return encoded.decode('utf-8', 'ignore')
-        return string
-
-
 class OutStream(object):
     """A file like object that publishes the stream to a 0MQ PUB socket."""
 
@@ -215,10 +128,11 @@ class DisplayHook(object):
 
 class Kernel(object):
 
-    def __init__(self, session, reply_socket, pub_socket):
+    def __init__(self, session, reply_socket, pub_socket, req_socket):
         self.session = session
         self.reply_socket = reply_socket
         self.pub_socket = pub_socket
+        self.req_socket = req_socket
         self.user_ns = {}
         self.history = []
         self.compiler = CommandCompiler()
@@ -265,7 +179,15 @@ class Kernel(object):
 
         try:
             comp_code = self.compiler(code, '<zmq-kernel>')
+
+            # Replace raw_input. Note that is not sufficient to replace 
+            # raw_input in the user namespace.
+            raw_input = lambda prompt='': self.raw_input(prompt, ident, parent)
+            __builtin__.raw_input = raw_input
+
+            # Configure the display hook.
             sys.displayhook.set_parent(parent)
+
             exec comp_code in self.user_ns, self.user_ns
         except:
             result = u'error'
@@ -294,6 +216,26 @@ class Kernel(object):
         self.reply_socket.send_json(reply_msg)
         if reply_msg['content']['status'] == u'error':
             self.abort_queue()
+
+    def raw_input(self, prompt, ident, parent):
+        # Flush output before making the request.
+        sys.stderr.flush()
+        sys.stdout.flush()
+
+        # Send the input request.
+        content = dict(prompt=prompt)
+        msg = self.session.msg(u'input_request', content, parent)
+        self.req_socket.send_json(msg)
+
+        # Await a response.
+        reply = self.req_socket.recv_json()
+        try:
+            value = reply['content']['value']
+        except:
+            print>>sys.__stderr__, "Got bad raw_input reply: "
+            print>>sys.__stderr__, Message(parent)
+            value = ''
+        return value
 
     def complete_request(self, ident, parent):
         matches = {'matches' : self.complete(parent),
@@ -345,7 +287,7 @@ class Kernel(object):
     def start(self):
         while True:
             ident = self.reply_socket.recv()
-            assert self.reply_socket.rcvmore(), "Unexpected missing message part."
+            assert self.reply_socket.rcvmore(), "Missing message part."
             msg = self.reply_socket.recv_json()
             omsg = Message(msg)
             print>>sys.__stdout__
@@ -362,7 +304,7 @@ class Kernel(object):
 
 class ExitPollerUnix(Thread):
     """ A Unix-specific daemon thread that terminates the program immediately 
-    when this process' parent process no longer exists.
+    when the parent process no longer exists.
     """
 
     def __init__(self):
@@ -452,13 +394,12 @@ def main():
     print >>sys.__stdout__, "REQ Channel on port", req_port
 
     # Redirect input streams and set a display hook.
-    sys.stdin = InStream(session, req_socket)
     sys.stdout = OutStream(session, pub_socket, u'stdout')
     sys.stderr = OutStream(session, pub_socket, u'stderr')
     sys.displayhook = DisplayHook(session, pub_socket)
 
     # Create the kernel.
-    kernel = Kernel(session, reply_socket, pub_socket)
+    kernel = Kernel(session, reply_socket, pub_socket, req_socket)
 
     # Configure this kernel/process to die on parent termination, if necessary.
     if namespace.parent:

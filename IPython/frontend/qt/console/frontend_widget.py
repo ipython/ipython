@@ -192,7 +192,7 @@ class FrontendWidget(HistoryConsoleWidget):
             xreq.execute_reply.disconnect(self._handle_execute_reply)
             xreq.complete_reply.disconnect(self._handle_complete_reply)
             xreq.object_info_reply.disconnect(self._handle_object_info_reply)
-            rep.readline_requested.disconnect(self._handle_req)
+            rep.input_requested.disconnect(self._handle_req)
 
             # Handle the case where the old kernel manager is still listening.
             if self._kernel_manager.channels_running:
@@ -215,7 +215,7 @@ class FrontendWidget(HistoryConsoleWidget):
         xreq.execute_reply.connect(self._handle_execute_reply)
         xreq.complete_reply.connect(self._handle_complete_reply)
         xreq.object_info_reply.connect(self._handle_object_info_reply)
-        rep.readline_requested.connect(self._handle_req)
+        rep.input_requested.connect(self._handle_req)
         
         # Handle the case where the kernel manager started channels before
         # we connected.
@@ -325,8 +325,8 @@ class FrontendWidget(HistoryConsoleWidget):
         self.kernel_manager.sub_channel.flush()
 
         def callback(line):
-            self.kernel_manager.rep_channel.readline(line)
-        self._readline(callback=callback)
+            self.kernel_manager.rep_channel.input(line)
+        self._readline(req['content']['prompt'], callback=callback)
 
     def _handle_sub(self, omsg):
         if self._hidden:
