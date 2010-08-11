@@ -24,6 +24,8 @@
 .. _ipython_downloads: http://ipython.scipy.org/dist
 .. _ipython_pypi: http://pypi.python.org/pypi/ipython
 
+.. _ZeroMQ: http://zeromq.org
+
 .. Documentation tools and related links
 .. _graphviz: http://www.graphviz.org
 .. _Sphinx: http://sphinx.pocoo.org

@@ -1,21 +1,82 @@
-=====================
-Message Specification
-=====================
-
-Note: not all of these have yet been fully fleshed out, but the key ones are,
-see kernel and frontend files for actual implementation details.
-
-Messages are dicts of dicts with string keys and values that are reasonably
-representable in JSON.  Our current implementation uses JSON explicitly as its
-message format, but this shouldn't be considered a permanent feature.  As we've
-discovered that JSON has non-trivial performance issues due to excessive
-copying, we may in the future move to a pure pickle-based raw message format.
-However, it should be possible to easily convert from the raw objects to JSON,
-since we may have non-python clients (e.g. a web frontend).  As long as it's
-easy to make a JSON version of the objects that is a faithful representation of
-all the data, we can communicate with such clients.
+======================
+ Messaging in IPython
+======================
 
 
+Introduction
+============
+
+This document explains the basic communications design and messaging
+specification for how the various IPython objects interact over a network
+transport.  The current implementation uses the ZeroMQ_ library for messaging
+within and between hosts.
+
+.. Note::
+
+   This document should be considered the authoritative description of the
+   IPython messaging protocol, and all developers are strongly encouraged to
+   keep it updated as the implementation evolves, so that we have a single
+   common reference for all protocol details.
+   
+The basic design is explained in the following diagram:
+
+.. image:: frontend-kernel.png
+   :width: 450px
+   :alt: IPython kernel/frontend messaging architecture.
+   :align: center
+   :target: ../_images/frontend-kernel.png
+
+A single kernel can be simultaneously connected to one or more frontends.  The
+kernel has three sockets that serve the following functions:
+
+1. REQ: this socket is connected to a *single* frontend at a time, and it allows
+   the kernel to request input from a frontend when :func:`raw_input` is called.
+   The frontend holding the matching REP socket acts as a 'virtual keyboard'
+   for the kernel while this communication is happening (illustrated in the
+   figure by the black outline around the central keyboard).  In practice,
+   frontends may display such kernel requests using a special input widget or
+   otherwise indicating that the user is to type input for the kernel instead
+   of normal commands in the frontend.
+
+2. XREP: this single sockets allows multiple incoming connections from
+   frontends, and this is the socket where requests for code execution, object
+   information, prompts, etc. are made to the kernel by any frontend.  The
+   communication on this socket is a sequence of request/reply actions from
+   each frontend and the kernel.
+
+3. PUB: this socket is the 'broadcast channel' where the kernel publishes all
+   side effects (stdout, stderr, etc.) as well as the requests coming from any
+   client over the XREP socket and its own requests on the REP socket.  There
+   are a number of actions in Python which generate side effects: :func:`print`
+   writes to ``sys.stdout``, errors generate tracebacks, etc.  Additionally, in
+   a multi-client scenario, we want all frontends to be able to know what each
+   other has sent to the kernel (this can be useful in collaborative scenarios,
+   for example).  This socket allows both side effects and the information
+   about communications taking place with one client over the XREQ/XREP channel
+   to be made available to all clients in a uniform manner.
+
+   All messages are tagged with enough information (details below) for clients
+   to know which messages come from their own interaction with the kernel and
+   which ones are from other clients, so they can display each type
+   appropriately.
+
+The actual format of the messages allowed on each of these channels is
+specified below.  Messages are dicts of dicts with string keys and values that
+are reasonably representable in JSON.  Our current implementation uses JSON
+explicitly as its message format, but this shouldn't be considered a permanent
+feature.  As we've discovered that JSON has non-trivial performance issues due
+to excessive copying, we may in the future move to a pure pickle-based raw
+message format.  However, it should be possible to easily convert from the raw
+objects to JSON, since we may have non-python clients (e.g. a web frontend).
+As long as it's easy to make a JSON version of the objects that is a faithful
+representation of all the data, we can communicate with such clients.
+
+.. Note::
+
+   Not all of these have yet been fully fleshed out, but the key ones are, see
+   kernel and frontend files for actual implementation details.
+
+   
 Python functional API
 =====================
 
@@ -26,100 +87,43 @@ for sending.
 
 
 General Message Format
-=====================
-
-General message format::
-
-    {
-        header : { 'msg_id' : 10,    # start with 0
-	           'username' : 'name',
-		   'session' : uuid
-		   },
-	parent_header : dict,
-        msg_type : 'string_message_type',
-        content : blackbox_dict , # Must be a dict
-    }
-
-    
-Request/Reply going from kernel for stdin
-=========================================
-
-This is a socket that goes in the opposite direction: from the kernel to a
-*single* frontend, and its purpose is to allow ``raw_input`` and similar
-operations that read from ``sys.stdin`` on the kernel to be fulfilled by the
-client.  For now we will keep these messages as simple as possible, since they
-basically only mean to convey the ``raw_input(prompt)`` call.
-
-Message type: 'input_request'::
-
-    content = { prompt : string }
-
-Message type: 'input_reply'::
-
-    content = { value : string }
-
-    
-Side effect: (PUB/SUB)
 ======================
 
-Message type: 'stream'::
-
-    content = {
-	name : 'stdout',
-	data : 'blob',
-    }
-
-When a kernel receives a raw_input call, it should also broadcast it on the pub
-socket with the names 'stdin' and 'stdin_reply'.  This will allow other clients
-to monitor/display kernel interactions and possibly replay them to their user
-or otherwise expose them.
+All messages send or received by any IPython process should have the following
+generic structure::
     
-Message type: 'pyin'::
+    {
+      # The message header contains a pair of unique identifiers for the
+      # originating session and the actual message id, in addition to the
+      # username for the process that generated the message.  This is useful in
+      # collaborative settings where multiple users may be interacting with the
+      # same kernel simultaneously, so that frontends can label the various
+      # messages in a meaningful way.
+      'header' : { 'msg_id' : uuid,
+                   'username' : str,
+		   'session' : uuid
+		 },
 
-    content = {
-	code = 'x=1',
+      # In a chain of messages, the header from the parent is copied so that
+      # clients can track where messages come from.
+      'parent_header' : dict,
+
+      # All recognized message type strings are listed below.
+      'msg_type' : str,
+
+      # The actual content of the message must be a dict, whose structure
+      # depends on the message type.x
+      'content' : dict,
     }
 
-Message type: 'pyout'::
-
-    content = {
-	data = 'repr(obj)',
-	prompt_number = 10
-    }
-
-Message type: 'pyerr'::
-
-    content = {
-       # Same as the data payload of a code execute_reply, minus the 'status'
-       # field. See below.
-    }
-
-When the kernel has an unexpected exception, caught by the last-resort
-sys.excepthook, we should broadcast the crash handler's output before exiting.
-This will allow clients to notice that a kernel died, inform the user and
-propose further actions.
-
-Message type: 'crash'::
-
-    content = {
-	traceback : 'full traceback',
-	exc_type : 'TypeError',
-	exc_value :  'msg'
-    }
+For each message type, the actual content will differ and all existing message
+types are specified in what follows of this document.
 
 
-Other potential message types, currently unimplemented, listed below as ideas.
-    
-Message type: 'file'::
-    content = {
-	path : 'cool.jpg',
-	mimetype : string
-	data : 'blob'
-    }
+Messages on the XREP/XREQ socket
+================================
 
-    
-Request/Reply
-=============
+.. _execute:
 
 Execute
 -------
@@ -132,22 +136,36 @@ splitting the input for blocks that can all be run as 'single', but in the long
 run it may prove cleaner to only use 'single' mode for truly single-line
 inputs, and run all multiline input in 'exec' mode.  This would preserve the
 natural behavior of single-line inputs while allowing long cells to behave more
-likea a script.  Some thought is still required here...
+likea a script.  This design will be refined as we complete the implementation.
 
-Message type: 'execute_request'::
+Message type: ``execute_request``::
 
     content = {
-	code : 'a = 10',
+        # Source code to be executed by the kernel, one or more lines.
+	'code' : str,
+
+	# A boolean flag which, if True, signals the kernel to execute this
+	# code as quietly as possible.  This means that the kernel will compile
+	# the code with 'exec' instead of 'single' (so sys.displayhook will not
+	# fire), and will *not*:
+	#   - broadcast exceptions on the PUB socket
+	#   - do any logging
+	#   - populate any history
+	# The default is False.
+	'silent' : bool,
     }
 
-Reply:
+Upon execution, the kernel *always* sends a reply, with a status code
+indicating what happened and additional data depending on the outcome.
 
-Message type: 'execute_reply'::
+Message type: ``execute_reply``::
 
     content = {
-      'status' : 'ok' OR 'error' OR 'abort'
+      # One of: 'ok' OR 'error' OR 'abort'
+      'status' : str,
+
       # Any additional data depends on status value
-}
+    }
 
 When status is 'ok', the following extra fields are present::
 
@@ -156,9 +174,9 @@ When status is 'ok', the following extra fields are present::
       # for the client to set up the *next* prompt (with identical limitations
       # to a prompt request)
       'next_prompt' : {
-            prompt_string : string
-	    prompt_number : int
-	    }
+            'prompt_string' : str,
+	    'prompt_number' : int,
+	    },
 	    
       # The prompt number of the actual execution for this code, which may be
       # different from the one used when the code was typed, which was the
@@ -167,25 +185,39 @@ When status is 'ok', the following extra fields are present::
       # kernel, since the numbers can go out of sync.  GUI clients can use this
       # to correct the previously written number in-place, terminal ones may
       # re-print a corrected one if desired.
-      'prompt_number' : number
+      'prompt_number' : int,
 
       # The kernel will often transform the input provided to it.  This
       # contains the transformed code, which is what was actually executed.
-      'transformed_code' : new_code
+      'transformed_code' : str,
 
-      # This 'payload' needs a bit more thinking.  The basic idea is that
-      # certain actions will want to return additional information, such as
-      # magics producing data output for display by the clients.  We may need
-      # to define a few types of payload, or specify a syntax for the, not sure
-      # yet... FIXME here.
-      'payload' : things from page(), for example.
+      # The execution payload is a dict with string keys that may have been
+      # produced by the code being executed.  It is retrieved by the kernel at
+      # the end of the execution and sent back to the front end, which can take
+      # action on it as needed.  See main text for further details.
+      'payload' : dict,
     }
 
+.. admonition:: Execution payloads
+    
+   The notion of an 'execution payload' is different from a return value of a
+   given set of code, which normally is just displayed on the pyout stream
+   through the PUB socket.  The idea of a payload is to allow special types of
+   code, typically magics, to populate a data container in the IPython kernel
+   that will be shipped back to the caller via this channel.  The kernel will
+   have an API for this, probably something along the lines of::
+
+       ip.exec_payload_add(key, value)
+
+   though this API is still in the design stages.  The data returned in this
+   payload will allow frontends to present special views of what just happened.
+
+   
 When status is 'error', the following extra fields are present::
 
     {
-      etype : str   # Exception type, as a string
-      evalue : str #  Exception value, as a string
+      'exc_name' : str,   # Exception name, as a string
+      'exc_value' : str,  # Exception value, as a string
 
       # The traceback will contain a list of frames, represented each as a
       # string.  For now we'll stick to the existing design of ultraTB, which
@@ -195,11 +227,12 @@ When status is 'error', the following extra fields are present::
       # how much of it to unpack.  But for now, let's start with a simple list
       # of strings, since that requires only minimal changes to ultratb as
       # written.
-      traceback : list of strings
+      'traceback' : list,
     }
 
 
-When status is 'abort', there are for now no additional data fields.
+When status is 'abort', there are for now no additional data fields.  This
+happens when the kernel was interrupted by a signal.
 
 
 Prompt
@@ -207,78 +240,321 @@ Prompt
 
 A simple request for a current prompt string.
 
-Message type: 'prompt_request'::
+Message type: ``prompt_request``::
 
     content = {}
 
 In the reply, the prompt string comes back with the prompt number placeholder
 *unevaluated*.  The message format is:
     
-Message type: 'prompt_reply'::
+Message type: ``prompt_reply``::
 
     content = {
-      prompt_string : string
-      prompt_number : int
+      'prompt_string' : str,
+      'prompt_number' : int,
     }
 
 Clients can produce a prompt with ``prompt_string.format(prompt_number)``, but
 they should be aware that the actual prompt number for that input could change
 later, in the case where multiple clients are interacting with a single
 kernel. 
+
+
+Object information
+------------------
+
+One of IPython's most used capabilities is the introspection of Python objects
+in the user's namespace, typically invoked via the ``?`` and ``??`` characters
+(which in reality are shorthands for the ``%pinfo`` magic).  This is used often
+enough that it warrants an explicit message type, especially because frontends
+may want to get object information in response to user keystrokes (like Tab or
+F1) besides from the user explicitly typing code like ``x??``.
+
+Message type: ``object_info_request``::
+
+    content = {
+        # The (possibly dotted) name of the object to be searched in all
+	# relevant namespaces
+	'name' : str,
+
+	# The level of detail desired.  The default (0) is equivalent to typing
+	# 'x?' at the prompt, 1 is equivalent to 'x??'.
+	'detail_level' : int,
+    }
+
+The returned information will be a dictionary with keys very similar to the
+field names that IPython prints at the terminal.
     
+Message type: ``object_info_reply``::
+
+    content = {
+        # Flags for magics and system aliases
+	'ismagic' : bool,
+	'isalias' : bool,
+
+	# The name of the namespace where the object was found ('builtin',
+	# 'magics', 'alias', 'interactive', etc.)
+	'namespace' : str,
+
+	# The type name will be type.__name__ for normal Python objects, but it
+	# can also be a string like 'Magic function' or 'System alias'
+	'type_name' : str,
+
+	'string_form' : str,
+
+	# For objects with a __class__ attribute this will be set
+	'base_class' : str,
+
+	# For objects with a __len__ attribute this will be set
+	'length' : int,
+
+	# If the object is a function, class or method whose file we can find,
+	# we give its full path
+	'file' : str,
+
+	# For pure Python callable objects, we can reconstruct the object
+	# definition line which provides its call signature
+	'definition' : str,
+
+	# For instances, provide the constructor signature (the definition of
+	# the __init__ method):
+	'init_definition' : str,
+	
+	# Docstrings: for any object (function, method, module, package) with a
+	# docstring, we show it.  But in addition, we may provide additional
+	# docstrings.  For example, for instances we will show the constructor
+	# and class docstrings as well, if available.
+	'docstring' : str,
+
+	# For instances, provide the constructor and class docstrings
+	'init_docstring' : str,
+	'class_docstring' : str,
+
+	# If detail_level was 1, we also try to find the source code that
+	# defines the object, if possible.  The string 'None' will indicate
+	# that no source was found.
+	'source' : str,
+    }
+
     
 Complete
 --------
 
-Message type: 'complete_request'::
+Message type: ``complete_request``::
 
     content = {
-	text : 'a.f',    # complete on this
-	line : 'print a.f'    # full line
+        # The text to be completed, such as 'a.is'
+	'text' : str,
+
+	# The full line, such as 'print a.is'.  This allows completers to
+	# make decisions that may require information about more than just the
+	# current word.
+	'line' : str,
     }
 
-Message type: 'complete_reply'::
+Message type: ``complete_reply``::
 
     content = {
-	matches : ['a.foo', 'a.bar']
+        # The list of all matches to the completion request, such as
+	# ['a.isalnum', 'a.isalpha'] for the above example.
+	'matches' : list
     }
 
     
 History
 -------
 
-For clients to explicitly request history from a kernel
+For clients to explicitly request history from a kernel.  The kernel has all
+the actual execution history stored in a single location, so clients can
+request it from the kernel when needed.
 
-Message type: 'history_request'::
+Message type: ``history_request``::
 
     content = {
-      output : boolean.  If true, also return output history in the resulting
-      dict.
+    
+      # If true, also return output history in the resulting dict.
+      'output' : bool,
 
-      range : optional. A number,  a pair of numbers, 'all'
-        If not given, last 40 are returned.
-        - number n: return the last n entries.
-	- pair n1, n2: return entries in the range(n1, n2).
-	- 'all': return all history
+      # This parameter can be one of: A number,  a pair of numbers, 'all'
+      # If not given, last 40 are returned.
+      #  - number n: return the last n entries.
+      #  - pair n1, n2: return entries in the range(n1, n2).
+      #  - 'all': return all history
+      'range' : n or (n1, n2) or 'all',
 
-      filter : optional, string
-        If given, treated as a regular expression and only matching entries are
-        returned.  re.search() is used to find matches.
+      # If a filter is given, it is  treated as a regular expression and only
+      #  matching entries are returned.  re.search() is used to find matches.
+      'filter' : str,
     }
 
-Message type: 'history_reply'::
+Message type: ``history_reply``::
 
     content = {
-      input : list of pairs (number, input)
-      output : list of pairs (number, output). Empty if not requested.
+      # A list of (number, input) pairs
+      'input' : list,
+      
+      # A list of (number, output) pairs
+      'output' : list,
       }
 
 
 Control
 -------
 
-Message type: 'heartbeat'::
+Message type: ``heartbeat``::
 
     content = {
-    # XXX - unfinished
+        # FIXME - unfinished
     }
+
+    
+Messages on the PUB/SUB socket
+==============================
+
+Streams (stdout,  stderr, etc)
+------------------------------
+
+Message type: ``stream``::
+
+    content = {
+        # The name of the stream is one of 'stdin', 'stdout', 'stderr'
+	'name' : str,
+	
+	# The data is an arbitrary string to be written to that stream
+	'data' : str,
+    }
+
+When a kernel receives a raw_input call, it should also broadcast it on the pub
+socket with the names 'stdin' and 'stdin_reply'.  This will allow other clients
+to monitor/display kernel interactions and possibly replay them to their user
+or otherwise expose them.
+
+Python inputs
+-------------
+
+These messages are the re-broadcast of the ``execute_request``.
+
+Message type: ``pyin``::
+
+    content = {
+        # Source code to be executed, one or more lines
+	'code' : str
+    }
+
+Python outputs
+--------------
+
+When Python produces output from code that has been compiled in with the
+'single' flag to :func:`compile`, any expression that produces a value (such as
+``1+1``) is passed to ``sys.displayhook``, which is a callable that can do with
+this value whatever it wants.  The default behavior of ``sys.displayhook`` in
+the Python interactive prompt is to print to ``sys.stdout`` the :func:`repr` of
+the value as long as it is not ``None`` (which isn't printed at all).  In our
+case, the kernel instantiates as ``sys.displayhook`` an object which has
+similar behavior, but which instead of printing to stdout, broadcasts these
+values as ``pyout`` messages for clients to display appropriately.
+
+Message type: ``pyout``::
+
+    content = {
+        # The data is typically the repr() of the object.
+	'data' : str,
+	
+	# The prompt number for this execution is also provided so that clients
+	# can display it, since IPython automatically creates variables called
+	# _N (for prompt N).
+	'prompt_number' : int,
+    }
+    
+Python errors
+-------------
+
+When an error occurs during code execution
+
+Message type: ``pyerr``::
+
+    content = {
+       # Similar content to the execute_reply messages for the 'error' case,
+       # except the 'status' field is omitted.
+    }
+
+Kernel crashes
+--------------
+
+When the kernel has an unexpected exception, caught by the last-resort
+sys.excepthook, we should broadcast the crash handler's output before exiting.
+This will allow clients to notice that a kernel died, inform the user and
+propose further actions.
+
+Message type: ``crash``::
+
+    content = {
+       # Similarly to the 'error' case for execute_reply messages, this will
+       # contain exc_name, exc_type and traceback fields.
+
+       # An additional field with supplementary information such as where to
+       # send the crash message
+       'info' : str,
+    }
+
+
+Future ideas
+------------
+    
+Other potential message types, currently unimplemented, listed below as ideas.
+    
+Message type: ``file``::
+
+    content = {
+	'path' : 'cool.jpg',
+	'mimetype' : str,
+	'data' : str,
+    }
+
+    
+Messages on the REQ/REP socket
+==============================
+
+This is a socket that goes in the opposite direction: from the kernel to a
+*single* frontend, and its purpose is to allow ``raw_input`` and similar
+operations that read from ``sys.stdin`` on the kernel to be fulfilled by the
+client.  For now we will keep these messages as simple as possible, since they
+basically only mean to convey the ``raw_input(prompt)`` call.
+
+Message type: ``input_request``::
+
+    content = { 'prompt' : str }
+
+Message type: ``input_reply``::
+
+    content = { 'value' : str }
+    
+.. Note::
+
+   We do not explicitly try to forward the raw ``sys.stdin`` object, because in
+   practice the kernel should behave like an interactive program.  When a
+   program is opened on the console, the keyboard effectively takes over the
+   ``stdin`` file descriptor, and it can't be used for raw reading anymore.
+   Since the IPython kernel effectively behaves like a console program (albeit
+   one whose "keyboard" is actually living in a separate process and
+   transported over the zmq connection), raw ``stdin`` isn't expected to be
+   available.
+
+
+ToDo
+====
+
+Missing things include:
+
+* Important: finish thinking through the payload concept and API.
+
+* Important: ensure that we have a good solution for magics like %edit.  It's
+  likely that with the payload concept we can build a full solution, but not
+  100% clear yet.
+
+* Finishing the details of the heartbeat protocol.
+
+* Signal handling: specify what kind of information kernel should broadcast (or
+  not) when it receives signals.
+
+.. include:: ../links.rst
