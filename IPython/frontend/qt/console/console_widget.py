@@ -81,9 +81,6 @@ class ConsoleWidget(QtGui.QWidget):
         self._reading_callback = None
         self._tab_width = 8
 
-        # Define a custom context menu.
-        self._context_menu = self._create_context_menu()
-
         # Set a monospaced font.
         self.reset_font()
 
@@ -94,14 +91,8 @@ class ConsoleWidget(QtGui.QWidget):
         if obj == self._control:
             etype = event.type()
 
-            # Override the default context menu with one that does not have
-            # destructive actions.
-            if etype == QtCore.QEvent.ContextMenu:
-                self._context_menu.exec_(event.globalPos())
-                return True
-
             # Disable moving text by drag and drop.
-            elif etype == QtCore.QEvent.DragMove:
+            if etype == QtCore.QEvent.DragMove:
                 return True
 
             elif etype == QtCore.QEvent.KeyPress:
@@ -441,30 +432,6 @@ class ConsoleWidget(QtGui.QWidget):
             
         return down
 
-    def _create_context_menu(self):
-        """ Creates a context menu for the underlying text widget.
-        """
-        menu = QtGui.QMenu(self)
-        clipboard = QtGui.QApplication.clipboard()
-
-        copy_action = QtGui.QAction('Copy', self)
-        copy_action.triggered.connect(self.copy)
-        self.copy_available.connect(copy_action.setEnabled)
-        menu.addAction(copy_action)
-
-        paste_action = QtGui.QAction('Paste', self)
-        paste_action.triggered.connect(self.paste)
-        clipboard.dataChanged.connect(
-            lambda: paste_action.setEnabled(not clipboard.text().isEmpty()))
-        menu.addAction(paste_action)
-        menu.addSeparator()
-
-        select_all_action = QtGui.QAction('Select All', self)
-        select_all_action.triggered.connect(self.select_all)
-        menu.addAction(select_all_action)
-
-        return menu
-
     def _create_control(self, kind):
         """ Creates and sets the underlying text widget.
         """
@@ -479,6 +446,8 @@ class ConsoleWidget(QtGui.QWidget):
         layout.addWidget(control)
 
         control.installEventFilter(self)
+        control.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+        control.customContextMenuRequested.connect(self._show_context_menu)
         control.copyAvailable.connect(self.copy_available)
         control.redoAvailable.connect(self.redo_available)
         control.undoAvailable.connect(self.undo_available)
@@ -489,29 +458,37 @@ class ConsoleWidget(QtGui.QWidget):
         """ Filter key events for the underlying text widget to create a
             console-like interface.
         """
-        intercepted = False
-        replaced_event = None
-        cursor = self._control.textCursor()
-        position = cursor.position()
         key = event.key()
         ctrl_down = self._control_key_down(event.modifiers())
+        
+        # If the key is remapped, return immediately.
+        if ctrl_down and key in self._ctrl_down_remap:
+            new_event = QtGui.QKeyEvent(QtCore.QEvent.KeyPress, 
+                                        self._ctrl_down_remap[key],
+                                        QtCore.Qt.NoModifier)
+            QtGui.qApp.sendEvent(self._control, new_event)
+            return True
+
+        # If the completion widget accepts the key press, return immediately.
+        if self._completion_widget.isVisible():
+            self._completion_widget.keyPressEvent(event)
+            if event.isAccepted():
+                return True
+
+        # Otherwise, proceed normally and do not return early.
+        intercepted = False
+        cursor = self._control.textCursor()
+        position = cursor.position()
         alt_down = event.modifiers() & QtCore.Qt.AltModifier
         shift_down = event.modifiers() & QtCore.Qt.ShiftModifier
 
-        # Even though we have reimplemented 'paste', the C++ level slot is still
-        # called by Qt. So we intercept the key press here.
         if event.matches(QtGui.QKeySequence.Paste):
+            # Call our paste instead of the underlying text widget's.
             self.paste()
             intercepted = True
 
         elif ctrl_down:
-            if key in self._ctrl_down_remap:
-                ctrl_down = False
-                key = self._ctrl_down_remap[key]
-                replaced_event = QtGui.QKeyEvent(QtCore.QEvent.KeyPress, key, 
-                                                 QtCore.Qt.NoModifier)
-
-            elif key == QtCore.Qt.Key_K:
+            if key == QtCore.Qt.Key_K:
                 if self._in_buffer(position):
                     cursor.movePosition(QtGui.QTextCursor.EndOfLine,
                                         QtGui.QTextCursor.KeepAnchor)
@@ -546,10 +523,6 @@ class ConsoleWidget(QtGui.QWidget):
                 cursor.removeSelectedText()
                 intercepted = True
 
-        if self._completion_widget.isVisible():
-            self._completion_widget.keyPressEvent(event)
-            intercepted = event.isAccepted()
-        
         else:
             if key in (QtCore.Qt.Key_Return, QtCore.Qt.Key_Enter):
                 if self._reading:
@@ -621,13 +594,11 @@ class ConsoleWidget(QtGui.QWidget):
                 anchor = cursor.anchor()
                 intercepted = not self._in_buffer(min(anchor, position))
 
-        # Don't move cursor if control is down to allow copy-paste using
+        # Don't move the cursor if control is down to allow copy-paste using
         # the keyboard in any part of the buffer.
         if not ctrl_down:
             self._keep_cursor_in_buffer()
 
-        if not intercepted and replaced_event:
-            QtGui.qApp.sendEvent(self._control, replaced_event)
         return intercepted
 
     def _format_as_columns(self, items, separator='  '):
@@ -908,6 +879,30 @@ class ConsoleWidget(QtGui.QWidget):
         """ Convenience method to set the current selected text.
         """
         self._control.setTextCursor(self._get_selection_cursor(start, end))
+
+    def _show_context_menu(self, pos):
+        """ Shows a context menu at the given QPoint (in widget coordinates).
+        """
+        menu = QtGui.QMenu()
+
+        copy_action = QtGui.QAction('Copy', menu)
+        copy_action.triggered.connect(self.copy)
+        copy_action.setEnabled(self._get_cursor().hasSelection())
+        copy_action.setShortcut(QtGui.QKeySequence.Copy)
+        menu.addAction(copy_action)
+
+        paste_action = QtGui.QAction('Paste', menu)
+        paste_action.triggered.connect(self.paste)
+        paste_action.setEnabled(self._control.canPaste())
+        paste_action.setShortcut(QtGui.QKeySequence.Paste)
+        menu.addAction(paste_action)
+        menu.addSeparator()
+
+        select_all_action = QtGui.QAction('Select All', menu)
+        select_all_action.triggered.connect(self.select_all)
+        menu.addAction(select_all_action)
+
+        menu.exec_(self._control.mapToGlobal(pos))
 
     def _show_prompt(self, prompt=None, html=False, newline=True):
         """ Writes a new prompt at the end of the buffer.
