@@ -373,14 +373,14 @@ class HasTraits(object):
 
     __metaclass__ = MetaHasTraits
 
-    def __new__(cls, *args, **kw):
+    def __new__(cls, **kw):
         # This is needed because in Python 2.6 object.__new__ only accepts
         # the cls argument.
         new_meth = super(HasTraits, cls).__new__
         if new_meth is object.__new__:
             inst = new_meth(cls)
         else:
-            inst = new_meth(cls, *args, **kw)
+            inst = new_meth(cls, **kw)
         inst._trait_values = {}
         inst._trait_notifiers = {}
         # Here we tell all the TraitType instances to set their default
@@ -399,9 +399,10 @@ class HasTraits(object):
 
         return inst
 
-    # def __init__(self):
-    #     self._trait_values = {}
-    #     self._trait_notifiers = {}
+    def __init__(self, *kw):
+        # Allow trait values to be set using keywork arguments.
+        for key, value in kw.iteritems():
+            setattr(self, key, value)
 
     def _notify_trait(self, name, old_value, new_value):
 
