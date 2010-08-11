@@ -28,8 +28,32 @@ from IPython.utils.traitlets import Instance
 #-----------------------------------------------------------------------------
 
 class ExtensionManager(Configurable):
+    """A class to manage IPython extensions.
 
-    shell = Instance('IPython.core.iplib.InteractiveShell')
+    An IPython extension is an importable Python module that has
+    a function with the signature::
+
+        def load_ipython_extension(ipython):
+            # Do things with ipython
+
+    This function is called after your extension is imported and the 
+    currently active :class:`InteractiveShell` instance is passed as
+    the only argument.  You can do anything you want with IPython at
+    that point, including defining new magic and aliases, adding new
+    components, etc.
+
+    The :func:`load_ipython_extension` will be called again is you 
+    load or reload the extension again.  It is up to the extension
+    author to add code to manage that.
+
+    You can put your extension modules anywhere you want, as long as
+    they can be imported by Python's standard import mechanism.  However,
+    to make it easy to write extensions, you can also put your extensions
+    in ``os.path.join(self.ipython_dir, 'extensions')``.  This directory
+    is added to ``sys.path`` automatically.
+    """
+
+    shell = Instance('IPython.core.iplib.InteractiveShellABC')
 
     def __init__(self, shell, config=None):
         super(ExtensionManager, self).__init__(config=config)
@@ -53,28 +77,6 @@ class ExtensionManager(Configurable):
 
     def load_extension(self, module_str):
         """Load an IPython extension by its module name.
-
-        An IPython extension is an importable Python module that has
-        a function with the signature::
-
-            def load_ipython_extension(ipython):
-                # Do things with ipython
-
-        This function is called after your extension is imported and the 
-        currently active :class:`InteractiveShell` instance is passed as
-        the only argument.  You can do anything you want with IPython at
-        that point, including defining new magic and aliases, adding new
-        components, etc.
-
-        The :func:`load_ipython_extension` will be called again is you 
-        load or reload the extension again.  It is up to the extension
-        author to add code to manage that.
-
-        You can put your extension modules anywhere you want, as long as
-        they can be imported by Python's standard import mechanism.  However,
-        to make it easy to write extensions, you can also put your extensions
-        in ``os.path.join(self.ipython_dir, 'extensions')``.  This directory
-        is added to ``sys.path`` automatically.
 
         If :func:`load_ipython_extension` returns anything, this function
         will return that object.

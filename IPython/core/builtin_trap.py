@@ -37,7 +37,7 @@ BuiltinUndefined = __BuiltinUndefined()
 
 class BuiltinTrap(Configurable):
 
-    shell = Instance('IPython.core.iplib.InteractiveShell')
+    shell = Instance('IPython.core.iplib.InteractiveShellABC')
 
     def __init__(self, shell):
         super(BuiltinTrap, self).__init__(None)

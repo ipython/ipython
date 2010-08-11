@@ -16,7 +16,7 @@
 
 import new
 
-from IPython.config.configurable import Configurable
+from IPython.core.plugin import Plugin
 from IPython.utils.traitlets import Bool, Any, Instance
 from IPython.utils.autoattr import auto_attr
 from IPython.testing import decorators as testdec
@@ -31,15 +31,15 @@ Use activate() on a MultiEngineClient object to activate it for magics.
 """
 
 
-class ParalleMagicComponent(Configurable):
+class ParalleMagic(Plugin):
     """A component to manage the %result, %px and %autopx magics."""
 
     active_multiengine_client = Any()
     verbose = Bool(False, config=True)
-    shell = Instance('IPython.core.iplib.InteractiveShell')
+    shell = Instance('IPython.core.iplib.InteractiveShellABC')
 
     def __init__(self, shell, config=None):
-        super(ParalleMagicComponent, self).__init__(config=config)
+        super(ParalleMagic, self).__init__(config=config)
         self.shell = shell
         self._define_magics()
         # A flag showing if autopx is activated or not
@@ -196,6 +196,7 @@ def load_ipython_extension(ip):
     """Load the extension in IPython."""
     global _loaded
     if not _loaded:
-        prd = ParalleMagicComponent(ip, config=ip.config)
+        plugin = ParalleMagic(ip, config=ip.config)
+        ip.plugin_manager.register_plugin('parallel_magic', plugin)
         _loaded = True
 

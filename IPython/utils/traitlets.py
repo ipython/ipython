@@ -1023,3 +1023,25 @@ class List(Instance):
 
         super(List,self).__init__(klass=list, args=args, 
                                   allow_none=allow_none, **metadata)
+
+
+class Dict(Instance):
+    """An instance of a Python dict."""
+
+    def __init__(self, default_value=None, allow_none=True, **metadata):
+        """Create a dict trait type from a dict.
+
+        The default value is created by doing ``dict(default_value)``, 
+        which creates a copy of the ``default_value``.
+        """
+        if default_value is None:
+            args = ((),)
+        elif isinstance(default_value, dict):
+            args = (default_value,)
+        elif isinstance(default_value, SequenceTypes):
+            args = (default_value,)
+        else:
+            raise TypeError('default value of Dict was %s' % default_value)
+
+        super(Dict,self).__init__(klass=dict, args=args, 
+                                  allow_none=allow_none, **metadata)

@@ -104,7 +104,7 @@ class AliasManager(Configurable):
 
     default_aliases = List(default_aliases(), config=True)
     user_aliases = List(default_value=[], config=True)
-    shell = Instance('IPython.core.iplib.InteractiveShell')
+    shell = Instance('IPython.core.iplib.InteractiveShellABC')
 
     def __init__(self, shell, config=None):
         super(AliasManager, self).__init__(config=config)

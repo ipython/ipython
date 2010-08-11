@@ -210,7 +210,7 @@ class PrefilterManager(Configurable):
     """
 
     multi_line_specials = CBool(True, config=True)
-    shell = Instance('IPython.core.iplib.InteractiveShell')
+    shell = Instance('IPython.core.iplib.InteractiveShellABC')
 
     def __init__(self, shell, config=None):
         super(PrefilterManager, self).__init__(config=config)
@@ -447,7 +447,7 @@ class PrefilterTransformer(Configurable):
     priority = Int(100, config=True)
     # Transformers don't currently use shell or prefilter_manager, but as we
     # move away from checkers and handlers, they will need them.
-    shell = Instance('IPython.core.iplib.InteractiveShell')
+    shell = Instance('IPython.core.iplib.InteractiveShellABC')
     prefilter_manager = Instance('IPython.core.prefilter.PrefilterManager')
     enabled = Bool(True, config=True)
 
@@ -555,7 +555,7 @@ class PrefilterChecker(Configurable):
     """Inspect an input line and return a handler for that line."""
 
     priority = Int(100, config=True)
-    shell = Instance('IPython.core.iplib.InteractiveShell')
+    shell = Instance('IPython.core.iplib.InteractiveShellABC')
     prefilter_manager = Instance('IPython.core.prefilter.PrefilterManager')
     enabled = Bool(True, config=True)
 
@@ -748,7 +748,7 @@ class PrefilterHandler(Configurable):
 
     handler_name = Str('normal')
     esc_strings = List([])
-    shell = Instance('IPython.core.iplib.InteractiveShell')
+    shell = Instance('IPython.core.iplib.InteractiveShellABC')
     prefilter_manager = Instance('IPython.core.prefilter.PrefilterManager')
 
     def __init__(self, shell, prefilter_manager, config=None):

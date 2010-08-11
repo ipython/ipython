@@ -37,7 +37,7 @@ by doing::
 
 from IPython.core.error import TryNext
 from IPython.external import pretty
-from IPython.config.configurable import Configurable
+from IPython.core.plugin import Plugin
 from IPython.utils.traitlets import Bool, List, Instance
 from IPython.utils.io import Term
 from IPython.utils.autoattr import auto_attr
@@ -51,11 +51,11 @@ from IPython.utils.importstring import import_item
 _loaded = False
 
 
-class PrettyResultDisplay(Configurable):
+class PrettyResultDisplay(Plugin):
     """A component for pretty printing on steroids."""
 
     verbose = Bool(False, config=True)
-    shell = Instance('IPython.core.iplib.InteractiveShell')
+    shell = Instance('IPython.core.iplib.InteractiveShellABC')
 
     # A list of (type, func_name), like
     # [(dict, 'my_dict_printer')]
@@ -124,10 +124,10 @@ def load_ipython_extension(ip):
     """Load the extension in IPython as a hook."""
     global _loaded
     if not _loaded:
-        prd = PrettyResultDisplay(ip, config=ip.config)
-        ip.set_hook('result_display', prd, priority=99)
+        plugin = PrettyResultDisplay(ip, config=ip.config)
+        ip.set_hook('result_display', plugin, priority=99)
         _loaded = True
-        return prd
+        ip.plugin_manager.register_plugin('pretty_result_display', plugin)
 
 def unload_ipython_extension(ip):
     """Unload the extension."""

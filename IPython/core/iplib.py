@@ -18,6 +18,7 @@ from __future__ import with_statement
 from __future__ import absolute_import
 
 import __builtin__
+import abc
 import bdb
 import codeop
 import exceptions
@@ -43,6 +44,7 @@ from IPython.core.extensions import ExtensionManager
 from IPython.core.fakemodule import FakeModule, init_fakemod_dict
 from IPython.core.logger import Logger
 from IPython.core.magic import Magic
+from IPython.core.plugin import PluginManager
 from IPython.core.prefilter import PrefilterManager
 from IPython.core.prompts import CachedOutput
 from IPython.core.usage import interactive_usage, default_banner
@@ -286,6 +288,7 @@ class InteractiveShell(Configurable, Magic):
     builtin_trap = Instance('IPython.core.builtin_trap.BuiltinTrap')
     display_trap = Instance('IPython.core.display_trap.DisplayTrap')
     extension_manager = Instance('IPython.core.extensions.ExtensionManager')
+    plugin_manager = Instance('IPython.core.plugin.PluginManager')
 
     def __init__(self, config=None, ipython_dir=None, usage=None,
                  user_ns=None, user_global_ns=None,
@@ -341,6 +344,7 @@ class InteractiveShell(Configurable, Magic):
         self.init_magics()
         self.init_pdb()
         self.init_extension_manager()
+        self.init_plugin_manager()
         self.hooks.late_startup_hook()
 
     @classmethod
@@ -1759,11 +1763,14 @@ class InteractiveShell(Configurable, Magic):
         self.ns_table['alias'] = self.alias_manager.alias_table,
 
     #-------------------------------------------------------------------------
-    # Things related to extensions
+    # Things related to extensions and plugins
     #-------------------------------------------------------------------------
 
     def init_extension_manager(self):
         self.extension_manager = ExtensionManager(self, config=self.config)
+
+    def init_plugin_manager(self):
+        self.plugin_manager = PluginManager(config=self.config)
 
     #-------------------------------------------------------------------------
     # Things related to the running of code
@@ -2509,3 +2516,8 @@ class InteractiveShell(Configurable, Magic):
         self.restore_sys_module_state()
 
 
+class InteractiveShellABC(object):
+    """An abstract base class for InteractiveShell."""
+    __metaclass__ = abc.ABCMeta
+
+InteractiveShellABC.register(InteractiveShell)
