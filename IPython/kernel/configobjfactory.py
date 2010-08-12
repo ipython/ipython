@@ -43,7 +43,7 @@ class ConfiguredObjectFactory(Configurable):
 
     zi.implements(IConfiguredObjectFactory)
 
-    def __init__(self, config):
+    def __init__(self, config=None):
         super(ConfiguredObjectFactory, self).__init__(config=config)
 
     def create(self):
@@ -56,7 +56,7 @@ class IAdaptedConfiguredObjectFactory(zi.Interface):
     This class is useful if you have the adapt an instance and configure it.
     """
 
-    def __init__(config, adaptee=None):
+    def __init__(config=None, adaptee=None):
         """Get ready to adapt adaptee and then configure it using config."""
 
     def create():
@@ -67,7 +67,7 @@ class AdaptedConfiguredObjectFactory(Configurable):
 
     # zi.implements(IAdaptedConfiguredObjectFactory)
 
-    def __init__(self, config, adaptee):
+    def __init__(self, config=None, adaptee=None):
         # print
         # print "config pre:", config
         super(AdaptedConfiguredObjectFactory, self).__init__(config=config)

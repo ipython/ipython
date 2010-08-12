@@ -38,9 +38,8 @@ class ParalleMagic(Plugin):
     verbose = Bool(False, config=True)
     shell = Instance('IPython.core.iplib.InteractiveShellABC')
 
-    def __init__(self, shell, config=None):
-        super(ParalleMagic, self).__init__(config=config)
-        self.shell = shell
+    def __init__(self, shell=None, config=None):
+        super(ParalleMagic, self).__init__(shell=shell, config=config)
         self._define_magics()
         # A flag showing if autopx is activated or not
         self.autopx = False
@@ -196,7 +195,7 @@ def load_ipython_extension(ip):
     """Load the extension in IPython."""
     global _loaded
     if not _loaded:
-        plugin = ParalleMagic(ip, config=ip.config)
+        plugin = ParalleMagic(shell=ip, config=ip.config)
         ip.plugin_manager.register_plugin('parallel_magic', plugin)
         _loaded = True
 

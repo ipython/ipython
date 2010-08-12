@@ -48,7 +48,7 @@ class Configurable(HasTraits):
     config = Instance(Config,(),{})
     created = None
 
-    def __init__(self, config=None):
+    def __init__(self, **kwargs):
         """Create a conigurable given a config config.
 
         Parameters
@@ -71,7 +71,7 @@ class Configurable(HasTraits):
 
         This ensures that instances will be configured properly.
         """
-        super(Configurable, self).__init__()
+        config = kwargs.pop('config', None)
         if config is not None:
             # We used to deepcopy, but for now we are trying to just save
             # by reference.  This *could* have side effects as all components
@@ -81,6 +81,9 @@ class Configurable(HasTraits):
             # making that a class attribute.
             # self.config = deepcopy(config)
             self.config = config
+        # This should go second so individual keyword arguments override 
+        # the values in config.
+        super(Configurable, self).__init__(**kwargs)
         self.created = datetime.datetime.now()
 
     #-------------------------------------------------------------------------

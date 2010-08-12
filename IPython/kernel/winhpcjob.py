@@ -262,7 +262,7 @@ class IPControllerTask(WinHPCTask):
     work_directory = CStr('', config=False)
 
     def __init__(self, config=None):
-        super(IPControllerTask, self).__init__(config)
+        super(IPControllerTask, self).__init__(config=config)
         the_uuid = uuid.uuid1()
         self.std_out_file_path = os.path.join('log','ipcontroller-%s.out' % the_uuid)
         self.std_err_file_path = os.path.join('log','ipcontroller-%s.err' % the_uuid)
@@ -290,7 +290,7 @@ class IPEngineTask(WinHPCTask):
     work_directory = CStr('', config=False)
 
     def __init__(self, config=None):
-        super(IPEngineTask,self).__init__(config)
+        super(IPEngineTask,self).__init__(config=config)
         the_uuid = uuid.uuid1()
         self.std_out_file_path = os.path.join('log','ipengine-%s.out' % the_uuid)
         self.std_err_file_path = os.path.join('log','ipengine-%s.err' % the_uuid)

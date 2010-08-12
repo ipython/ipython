@@ -55,9 +55,8 @@ class ExtensionManager(Configurable):
 
     shell = Instance('IPython.core.iplib.InteractiveShellABC')
 
-    def __init__(self, shell, config=None):
-        super(ExtensionManager, self).__init__(config=config)
-        self.shell = shell
+    def __init__(self, shell=None, config=None):
+        super(ExtensionManager, self).__init__(shell=shell, config=config)
         self.shell.on_trait_change(
             self._on_ipython_dir_changed, 'ipython_dir'
         )

@@ -39,8 +39,8 @@ class BuiltinTrap(Configurable):
 
     shell = Instance('IPython.core.iplib.InteractiveShellABC')
 
-    def __init__(self, shell):
-        super(BuiltinTrap, self).__init__(None)
+    def __init__(self, shell=None):
+        super(BuiltinTrap, self).__init__(shell=shell, config=None)
         self._orig_builtins = {}
         # We define this to track if a single BuiltinTrap is nested.
         # Only turn off the trap when the outermost call to __exit__ is made.

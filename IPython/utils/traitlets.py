@@ -399,8 +399,8 @@ class HasTraits(object):
 
         return inst
 
-    def __init__(self, *kw):
-        # Allow trait values to be set using keywork arguments.
+    def __init__(self, **kw):
+        # Allow trait values to be set using keyword arguments.
         for key, value in kw.iteritems():
             setattr(self, key, value)
 

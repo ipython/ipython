@@ -106,12 +106,11 @@ class AliasManager(Configurable):
     user_aliases = List(default_value=[], config=True)
     shell = Instance('IPython.core.iplib.InteractiveShellABC')
 
-    def __init__(self, shell, config=None):
-        super(AliasManager, self).__init__(config=config)
+    def __init__(self, shell=None, config=None):
+        super(AliasManager, self).__init__(shell=shell, config=config)
         self.alias_table = {}
         self.exclude_aliases()
         self.init_aliases()
-        self.shell = shell
 
     def __contains__(self, name):
         if name in self.alias_table:

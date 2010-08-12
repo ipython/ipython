@@ -510,7 +510,7 @@ class InteractiveShell(Configurable, Magic):
             self.magic_logstart()
 
     def init_builtins(self):
-        self.builtin_trap = BuiltinTrap(self)
+        self.builtin_trap = BuiltinTrap(shell=self)
 
     def init_inspector(self):
         # Object inspector
@@ -539,7 +539,7 @@ class InteractiveShell(Configurable, Magic):
             pass
 
     def init_displayhook(self):
-        self.display_trap = DisplayTrap(self.outputcache)
+        self.display_trap = DisplayTrap(hook=self.outputcache)
 
     def init_reload_doctest(self):
         # Do a proper resetting of doctest, including the necessary displayhook
@@ -1759,7 +1759,7 @@ class InteractiveShell(Configurable, Magic):
     #-------------------------------------------------------------------------
 
     def init_alias(self):
-        self.alias_manager = AliasManager(self, config=self.config)
+        self.alias_manager = AliasManager(shell=self, config=self.config)
         self.ns_table['alias'] = self.alias_manager.alias_table,
 
     #-------------------------------------------------------------------------
@@ -1767,7 +1767,7 @@ class InteractiveShell(Configurable, Magic):
     #-------------------------------------------------------------------------
 
     def init_extension_manager(self):
-        self.extension_manager = ExtensionManager(self, config=self.config)
+        self.extension_manager = ExtensionManager(shell=self, config=self.config)
 
     def init_plugin_manager(self):
         self.plugin_manager = PluginManager(config=self.config)
@@ -2370,7 +2370,7 @@ class InteractiveShell(Configurable, Magic):
     #-------------------------------------------------------------------------
 
     def init_prefilter(self):
-        self.prefilter_manager = PrefilterManager(self, config=self.config)
+        self.prefilter_manager = PrefilterManager(shell=self, config=self.config)
         # Ultimately this will be refactored in the new interpreter code, but
         # for now, we should expose the main prefilter method (there's legacy
         # code out there that may rely on this).

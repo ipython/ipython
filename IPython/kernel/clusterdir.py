@@ -82,9 +82,8 @@ class ClusterDir(Configurable):
     pid_dir = Unicode(u'')
     location = Unicode(u'')
 
-    def __init__(self, location):
-        super(ClusterDir, self).__init__(None)
-        self.location = location
+    def __init__(self, location=u''):
+        super(ClusterDir, self).__init__(location=location)
 
     def _location_changed(self, name, old, new):
         if not os.path.isdir(new):
@@ -166,7 +165,7 @@ class ClusterDir(Configurable):
             The full path to the cluster directory.  If it does exist, it will
             be used.  If not, it will be created.
         """
-        return ClusterDir(cluster_dir)
+        return ClusterDir(location=cluster_dir)
 
     @classmethod
     def create_cluster_dir_by_profile(cls, path, profile=u'default'):
@@ -183,7 +182,7 @@ class ClusterDir(Configurable):
         if not os.path.isdir(path):
             raise ClusterDirError('Directory not found: %s' % path)
         cluster_dir = os.path.join(path, u'cluster_' + profile)
-        return ClusterDir(cluster_dir)
+        return ClusterDir(location=cluster_dir)
 
     @classmethod
     def find_cluster_dir_by_profile(cls, ipython_dir, profile=u'default'):
@@ -216,7 +215,7 @@ class ClusterDir(Configurable):
         for p in paths:
             cluster_dir = os.path.join(p, dirname)
             if os.path.isdir(cluster_dir):
-                return ClusterDir(cluster_dir)
+                return ClusterDir(location=cluster_dir)
         else:
             raise ClusterDirError('Cluster directory not found in paths: %s' % dirname)
 
@@ -235,7 +234,7 @@ class ClusterDir(Configurable):
         cluster_dir = expand_path(cluster_dir)
         if not os.path.isdir(cluster_dir):
             raise ClusterDirError('Cluster directory not found: %s' % cluster_dir)
-        return ClusterDir(cluster_dir)
+        return ClusterDir(location=cluster_dir)
 
 
 #-----------------------------------------------------------------------------

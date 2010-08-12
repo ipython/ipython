@@ -67,9 +67,8 @@ class PrettyResultDisplay(Plugin):
     # The final argument can also be a callable
     defaults_for_type_by_name = List(default_value=[], config=True)
 
-    def __init__(self, shell, config=None):
-        super(PrettyResultDisplay, self).__init__(config=config)
-        self.shell = shell
+    def __init__(self, shell=None, config=None):
+        super(PrettyResultDisplay, self).__init__(shell=shell, config=config)
         self._setup_defaults()
 
     def _setup_defaults(self):
@@ -124,7 +123,7 @@ def load_ipython_extension(ip):
     """Load the extension in IPython as a hook."""
     global _loaded
     if not _loaded:
-        plugin = PrettyResultDisplay(ip, config=ip.config)
+        plugin = PrettyResultDisplay(shell=ip, config=ip.config)
         ip.set_hook('result_display', plugin, priority=99)
         _loaded = True
         ip.plugin_manager.register_plugin('pretty_result_display', plugin)

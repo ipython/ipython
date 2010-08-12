@@ -44,7 +44,7 @@ class TestPrettyResultDisplay(TestCase):
 
     def setUp(self):
         self.ip = InteractiveShellStub()
-        self.prd = pretty_ext.PrettyResultDisplay(self.ip, config=None)
+        self.prd = pretty_ext.PrettyResultDisplay(shell=self.ip, config=None)
 
     def test_for_type(self):
         self.prd.for_type(A, a_pprinter)

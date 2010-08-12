@@ -23,6 +23,7 @@ Authors:
 import sys
 
 from IPython.config.configurable import Configurable
+from IPython.utils.traitlets import Any
 
 #-----------------------------------------------------------------------------
 # Classes and functions
@@ -36,9 +37,10 @@ class DisplayTrap(Configurable):
     (no callbacks or formatters) until more of the core is refactored.
     """
 
-    def __init__(self, hook):
-        super(DisplayTrap, self).__init__(None)
-        self.hook = hook
+    hook = Any
+
+    def __init__(self, hook=None):
+        super(DisplayTrap, self).__init__(hook=hook, config=None)
         self.old_hook = None
         # We define this to track if a single BuiltinTrap is nested.
         # Only turn off the trap when the outermost call to __exit__ is made.
