@@ -23,19 +23,25 @@ from IPython.core import ipapi
 #-----------------------------------------------------------------------------
 # Globals
 #-----------------------------------------------------------------------------
-ip = ipapi.get()
 
-if not '_refbug_cache' in ip.user_ns:
-    ip.user_ns['_refbug_cache'] = []
+# This needs to be here because nose and other test runners will import
+# this module. Importing this module has potential side effects that we
+# want to prevent.
+if __name__ == '__main__':
+
+    ip = ipapi.get()
+
+    if not '_refbug_cache' in ip.user_ns:
+        ip.user_ns['_refbug_cache'] = []
 
 
-aglobal = 'Hello'
-def f():
-    return aglobal
+    aglobal = 'Hello'
+    def f():
+        return aglobal
 
-cache = ip.user_ns['_refbug_cache']
-cache.append(f)
+    cache = ip.user_ns['_refbug_cache']
+    cache.append(f)
 
-def call_f():
-    for func in cache:
-        print 'lowercased:',func().lower()
+    def call_f():
+        for func in cache:
+            print 'lowercased:',func().lower()
