@@ -397,16 +397,6 @@ Message type: ``history_reply``::
       'output' : list,
       }
 
-
-Control
--------
-
-Message type: ``heartbeat``::
-
-    content = {
-        # FIXME - unfinished
-    }
-
     
 Messages on the PUB/SUB socket
 ==============================
@@ -539,6 +529,35 @@ Message type: ``input_reply``::
    one whose "keyboard" is actually living in a separate process and
    transported over the zmq connection), raw ``stdin`` isn't expected to be
    available.
+
+   
+Heartbeat for kernels
+=====================
+
+Initially we had considered using messages like those above over ZMQ for a
+kernel 'heartbeat' (a way to detect quickly and reliably whether a kernel is
+alive at all, even if it may be busy executing user code).  But this has the
+problem that if the kernel is locked inside extension code, it wouldn't execute
+the python heartbeat code.  But it turns out that we can implement a basic
+heartbeat with pure ZMQ, without using any Python messaging at all.
+
+The monitor sends out a single zmq message (right now, it is a str of the
+monitor's lifetime in seconds), and gets the same message right back, prefixed
+with the zmq identity of the XREQ socket in the heartbeat process. This can be
+a uuid, or even a full message, but there doesn't seem to be a need for packing
+up a message when the sender and receiver are the exact same Python object.
+
+The model is this::
+
+    monitor.send(str(self.lifetime)) # '1.2345678910'
+
+and the monitor receives some number of messages of the form::
+
+    ['uuid-abcd-dead-beef', '1.2345678910']
+
+where the first part is the zmq.IDENTITY of the heart's XREQ on the engine, and
+the rest is the message sent by the monitor.  No Python code ever has any
+access to the message between the monitor's send, and the monitor's recv.
 
 
 ToDo
