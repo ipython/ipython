@@ -10,6 +10,16 @@ from IPython.zmq.kernelmanager import KernelManager, SubSocketChannel, \
     XReqSocketChannel, RepSocketChannel
 from util import MetaQObjectHasTraits
 
+# When doing multiple inheritance from QtCore.QObject and other classes
+# the calling of the parent __init__'s is a subtle issue:
+# * QtCore.QObject does not call super so you can't use super and put
+#   QObject first in the inheritance list.
+# * QtCore.QObject.__init__ takes 1 argument, the parent. So if you are going
+#   to use super, any class that comes before QObject must pass it something
+#   reasonable.
+# In summary, I don't think using super in these situations will work.
+# Instead we will need to call the __init__ methods of both parents
+# by hand.  Not pretty, but it works.
 
 class QtSubSocketChannel(SubSocketChannel, QtCore.QObject):
 
@@ -75,7 +85,7 @@ class QtXReqSocketChannel(XReqSocketChannel, QtCore.QObject):
         """
         QtCore.QObject.__init__(self)
         XReqSocketChannel.__init__(self, *args, **kw)
-    
+
     #---------------------------------------------------------------------------
     # 'XReqSocketChannel' interface
     #---------------------------------------------------------------------------
@@ -125,7 +135,6 @@ class QtRepSocketChannel(RepSocketChannel, QtCore.QObject):
         msg_type = msg['msg_type']
         if msg_type == 'input_request':
             self.input_requested.emit(msg)
-    
 
 class QtKernelManager(KernelManager, QtCore.QObject):
     """ A KernelManager that provides signals and slots.
@@ -143,6 +152,10 @@ class QtKernelManager(KernelManager, QtCore.QObject):
     sub_channel_class = QtSubSocketChannel
     xreq_channel_class = QtXReqSocketChannel
     rep_channel_class = QtRepSocketChannel
+
+    def __init__(self, *args, **kw):
+        QtCore.QObject.__init__(self)
+        KernelManager.__init__(self, *args, **kw)
 
     #---------------------------------------------------------------------------
     # 'object' interface

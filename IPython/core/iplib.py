@@ -1,12 +1,10 @@
 # -*- coding: utf-8 -*-
-"""
-Main IPython Component
-"""
+"""Main IPython class."""
 
 #-----------------------------------------------------------------------------
 #  Copyright (C) 2001 Janko Hauser <jhauser@zscout.de>
 #  Copyright (C) 2001-2007 Fernando Perez. <fperez@colorado.edu>
-#  Copyright (C) 2008-2009  The IPython Development Team
+#  Copyright (C) 2008-2010  The IPython Development Team
 #
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
@@ -20,6 +18,7 @@ from __future__ import with_statement
 from __future__ import absolute_import
 
 import __builtin__
+import abc
 import bdb
 import codeop
 import exceptions
@@ -38,12 +37,14 @@ from IPython.core import shadowns
 from IPython.core import ultratb
 from IPython.core.alias import AliasManager
 from IPython.core.builtin_trap import BuiltinTrap
-from IPython.core.component import Component
+from IPython.config.configurable import Configurable
 from IPython.core.display_trap import DisplayTrap
 from IPython.core.error import TryNext, UsageError
+from IPython.core.extensions import ExtensionManager
 from IPython.core.fakemodule import FakeModule, init_fakemod_dict
 from IPython.core.logger import Logger
 from IPython.core.magic import Magic
+from IPython.core.plugin import PluginManager
 from IPython.core.prefilter import PrefilterManager
 from IPython.core.prompts import CachedOutput
 from IPython.core.usage import interactive_usage, default_banner
@@ -69,7 +70,7 @@ from IPython.utils.syspathcontext import prepended_to_syspath
 from IPython.utils.terminal import toggle_set_term_title, set_term_title
 from IPython.utils.warn import warn, error, fatal
 from IPython.utils.traitlets import (
-    Int, Str, CBool, CaselessStrEnum, Enum, List, Unicode
+    Int, Str, CBool, CaselessStrEnum, Enum, List, Unicode, Instance
 )
 
 # from IPython.utils import growl
@@ -196,7 +197,7 @@ class SeparateStr(Str):
 #-----------------------------------------------------------------------------
 
 
-class InteractiveShell(Component, Magic):
+class InteractiveShell(Configurable, Magic):
     """An enhanced, interactive shell for Python."""
 
     autocall = Enum((0,1,2), default_value=1, config=True)
@@ -281,14 +282,22 @@ class InteractiveShell(Component, Magic):
     # Subclasses with thread support should override this as needed.
     isthreaded = False
 
-    def __init__(self, parent=None, config=None, ipython_dir=None, usage=None,
+    # Subcomponents of InteractiveShell
+    alias_manager = Instance('IPython.core.alias.AliasManager')
+    prefilter_manager = Instance('IPython.core.prefilter.PrefilterManager')
+    builtin_trap = Instance('IPython.core.builtin_trap.BuiltinTrap')
+    display_trap = Instance('IPython.core.display_trap.DisplayTrap')
+    extension_manager = Instance('IPython.core.extensions.ExtensionManager')
+    plugin_manager = Instance('IPython.core.plugin.PluginManager')
+
+    def __init__(self, config=None, ipython_dir=None, usage=None,
                  user_ns=None, user_global_ns=None,
                  banner1=None, banner2=None, display_banner=None,
                  custom_exceptions=((),None)):
 
         # This is where traits with a config_key argument are updated
         # from the values on config.
-        super(InteractiveShell, self).__init__(parent, config=config)
+        super(InteractiveShell, self).__init__(config=config)
 
         # These are relatively independent and stateless
         self.init_ipython_dir(ipython_dir)
@@ -334,7 +343,20 @@ class InteractiveShell(Component, Magic):
         self.init_reload_doctest()
         self.init_magics()
         self.init_pdb()
+        self.init_extension_manager()
+        self.init_plugin_manager()
         self.hooks.late_startup_hook()
+
+    @classmethod
+    def instance(cls, *args, **kwargs):
+        """Returns a global InteractiveShell instance."""
+        if not hasattr(cls, "_instance"):
+            cls._instance = cls(*args, **kwargs)
+        return cls._instance
+
+    @classmethod
+    def initialized(cls):
+        return hasattr(cls, "_instance")
 
     def get_ipython(self):
         """Return the currently running IPython instance."""
@@ -353,12 +375,6 @@ class InteractiveShell(Component, Magic):
     def _ipython_dir_changed(self, name, new):
         if not os.path.isdir(new):
             os.makedirs(new, mode = 0777)
-        if not os.path.isdir(self.ipython_extension_dir):
-            os.makedirs(self.ipython_extension_dir, mode = 0777)
-
-    @property
-    def ipython_extension_dir(self):
-        return os.path.join(self.ipython_dir, 'extensions')
 
     @property
     def usable_screen_length(self):
@@ -494,7 +510,7 @@ class InteractiveShell(Component, Magic):
             self.magic_logstart()
 
     def init_builtins(self):
-        self.builtin_trap = BuiltinTrap(self)
+        self.builtin_trap = BuiltinTrap(shell=self)
 
     def init_inspector(self):
         # Object inspector
@@ -523,7 +539,7 @@ class InteractiveShell(Component, Magic):
             pass
 
     def init_displayhook(self):
-        self.display_trap = DisplayTrap(self, self.outputcache)
+        self.display_trap = DisplayTrap(hook=self.outputcache)
 
     def init_reload_doctest(self):
         # Do a proper resetting of doctest, including the necessary displayhook
@@ -1743,8 +1759,18 @@ class InteractiveShell(Component, Magic):
     #-------------------------------------------------------------------------
 
     def init_alias(self):
-        self.alias_manager = AliasManager(self, config=self.config)
+        self.alias_manager = AliasManager(shell=self, config=self.config)
         self.ns_table['alias'] = self.alias_manager.alias_table,
+
+    #-------------------------------------------------------------------------
+    # Things related to extensions and plugins
+    #-------------------------------------------------------------------------
+
+    def init_extension_manager(self):
+        self.extension_manager = ExtensionManager(shell=self, config=self.config)
+
+    def init_plugin_manager(self):
+        self.plugin_manager = PluginManager(config=self.config)
 
     #-------------------------------------------------------------------------
     # Things related to the running of code
@@ -2340,101 +2366,11 @@ class InteractiveShell(Component, Magic):
             return lineout
 
     #-------------------------------------------------------------------------
-    # Working with components
-    #-------------------------------------------------------------------------
-
-    def get_component(self, name=None, klass=None):
-        """Fetch a component by name and klass in my tree."""
-        c = Component.get_instances(root=self, name=name, klass=klass)
-        if len(c) == 0:
-            return None
-        if len(c) == 1:
-            return c[0]
-        else:
-            return c
-
-    #-------------------------------------------------------------------------
-    # IPython extensions
-    #-------------------------------------------------------------------------
-
-    def load_extension(self, module_str):
-        """Load an IPython extension by its module name.
-
-        An IPython extension is an importable Python module that has
-        a function with the signature::
-
-            def load_ipython_extension(ipython):
-                # Do things with ipython
-
-        This function is called after your extension is imported and the 
-        currently active :class:`InteractiveShell` instance is passed as
-        the only argument.  You can do anything you want with IPython at
-        that point, including defining new magic and aliases, adding new
-        components, etc.
-
-        The :func:`load_ipython_extension` will be called again is you 
-        load or reload the extension again.  It is up to the extension
-        author to add code to manage that.
-
-        You can put your extension modules anywhere you want, as long as
-        they can be imported by Python's standard import mechanism.  However,
-        to make it easy to write extensions, you can also put your extensions
-        in ``os.path.join(self.ipython_dir, 'extensions')``.  This directory
-        is added to ``sys.path`` automatically.
-
-        If :func:`load_ipython_extension` returns anything, this function
-        will return that object.
-        """
-        from IPython.utils.syspathcontext import prepended_to_syspath
-
-        if module_str not in sys.modules:
-            with prepended_to_syspath(self.ipython_extension_dir):
-                __import__(module_str)
-        mod = sys.modules[module_str]
-        return self._call_load_ipython_extension(mod)
-
-    def unload_extension(self, module_str):
-        """Unload an IPython extension by its module name.
-
-        This function looks up the extension's name in ``sys.modules`` and
-        simply calls ``mod.unload_ipython_extension(self)``.
-        """
-        if module_str in sys.modules:
-            mod = sys.modules[module_str]
-            self._call_unload_ipython_extension(mod)
-
-    def reload_extension(self, module_str):
-        """Reload an IPython extension by calling reload.
-
-        If the module has not been loaded before,
-        :meth:`InteractiveShell.load_extension` is called. Otherwise
-        :func:`reload` is called and then the :func:`load_ipython_extension`
-        function of the module, if it exists is called.
-        """
-        from IPython.utils.syspathcontext import prepended_to_syspath
-
-        with prepended_to_syspath(self.ipython_extension_dir):
-            if module_str in sys.modules:
-                mod = sys.modules[module_str]
-                reload(mod)
-                self._call_load_ipython_extension(mod)
-            else:
-                self.load_extension(module_str)
-
-    def _call_load_ipython_extension(self, mod):
-        if hasattr(mod, 'load_ipython_extension'):
-            return mod.load_ipython_extension(self)
-
-    def _call_unload_ipython_extension(self, mod):
-        if hasattr(mod, 'unload_ipython_extension'):
-            return mod.unload_ipython_extension(self)
-
-    #-------------------------------------------------------------------------
     # Things related to the prefilter
     #-------------------------------------------------------------------------
 
     def init_prefilter(self):
-        self.prefilter_manager = PrefilterManager(self, config=self.config)
+        self.prefilter_manager = PrefilterManager(shell=self, config=self.config)
         # Ultimately this will be refactored in the new interpreter code, but
         # for now, we should expose the main prefilter method (there's legacy
         # code out there that may rely on this).
@@ -2580,3 +2516,8 @@ class InteractiveShell(Component, Magic):
         self.restore_sys_module_state()
 
 
+class InteractiveShellABC(object):
+    """An abstract base class for InteractiveShell."""
+    __metaclass__ = abc.ABCMeta
+
+InteractiveShellABC.register(InteractiveShell)

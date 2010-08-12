@@ -191,9 +191,9 @@ class FCServiceFactory(AdaptedConfiguredObjectFactory):
     """This class creates a tub with various services running in it.
 
     The basic idea is that :meth:`create` returns a running :class:`Tub`
-    instance that has a number of Foolscap references registered in it.
-    This class is a subclass of :class:`IPython.core.component.Component`
-    so the IPython configuration and component system are used.
+    instance that has a number of Foolscap references registered in it. This
+    class is a subclass of :class:`IPython.config.configurable.Configurable`
+    so the IPython configuration system is used.
 
     Attributes
     ----------

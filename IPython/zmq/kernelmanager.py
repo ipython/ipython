@@ -1,4 +1,4 @@
-"""Classes to manage the interaction with a running kernel.
+"""Base classes to manage the interaction with a running kernel.
 
 Todo
 ====
@@ -29,7 +29,7 @@ from zmq import POLLIN, POLLOUT, POLLERR
 from zmq.eventloop import ioloop
 
 # Local imports.
-from IPython.utils.traitlets import HasTraits, Any, Instance, Type
+from IPython.utils.traitlets import HasTraits, Any, Instance, Type, TCPAddress
 from kernel import launch_kernel
 from session import Session
 
@@ -61,9 +61,9 @@ class ZmqSocketChannel(Thread):
 
         Parameters
         ----------
-        context : zmq.Context
+        context : :class:`zmq.Context`
             The ZMQ context to use.
-        session : session.Session
+        session : :class:`session.Session`
             The session to use.
         address : tuple
             Standard (ip, port) tuple that the kernel is listening on.
@@ -289,6 +289,10 @@ class SubSocketChannel(ZmqSocketChannel):
     def flush(self, timeout=1.0):
         """Immediately processes all pending messages on the SUB channel.
 
+        Callers should use this method to ensure that :method:`call_handlers`
+        has been called for all messages that have been received on the
+        0MQ SUB socket of this channel.
+
         This method is thread safe.
 
         Parameters
@@ -324,7 +328,7 @@ class SubSocketChannel(ZmqSocketChannel):
                 msg = self.socket.recv_json(zmq.NOBLOCK)
             except zmq.ZMQError:
                 # Check the errno?
-                # Will this tigger POLLERR?
+                # Will this trigger POLLERR?
                 break
             else:
                 self.call_handlers(msg)
@@ -421,10 +425,10 @@ class KernelManager(HasTraits):
     frontend.
     """
     # The PyZMQ Context to use for communication with the kernel.
-    context = Instance(zmq.Context)
+    context = Instance(zmq.Context,(),{})
 
     # The Session to use for communication with the kernel.
-    session = Instance(Session)
+    session = Instance(Session,(),{})
 
     # The kernel process with which the KernelManager is communicating.
     kernel = Instance(Popen)
@@ -435,23 +439,17 @@ class KernelManager(HasTraits):
     rep_channel_class = Type(RepSocketChannel)
     
     # Protected traits.
-    _xreq_address = Any
-    _sub_address = Any
-    _rep_address = Any
+    xreq_address = TCPAddress((LOCALHOST, 0))
+    sub_address = TCPAddress((LOCALHOST, 0))
+    rep_address = TCPAddress((LOCALHOST, 0))
     _xreq_channel = Any
     _sub_channel = Any
     _rep_channel = Any
 
-    def __init__(self, xreq_address=None, sub_address=None, rep_address=None,
-                 context=None, session=None):
-        super(KernelManager, self).__init__()
-        self._xreq_address = (LOCALHOST, 0) if xreq_address is None else xreq_address
-        self._sub_address = (LOCALHOST, 0) if sub_address is None else sub_address
-        self._rep_address = (LOCALHOST, 0) if rep_address is None else rep_address
-        self.context = zmq.Context() if context is None else context
-        self.session = Session() if session is None else session
+    def __init__(self, **kwargs):
+        super(KernelManager, self).__init__(**kwargs)
 
-    #--------------------------------------------------------------------------
+    #---------------------------------  -----------------------------------------
     # Channel management methods:
     #--------------------------------------------------------------------------
 
@@ -502,9 +500,9 @@ class KernelManager(HasTraits):
 
         self.kernel, xrep, pub, req = launch_kernel(
             xrep_port=xreq[1], pub_port=sub[1], req_port=rep[1])
-        self._xreq_address = (LOCALHOST, xrep)
-        self._sub_address = (LOCALHOST, pub)
-        self._rep_address = (LOCALHOST, req)
+        self.xreq_address = (LOCALHOST, xrep)
+        self.sub_address = (LOCALHOST, pub)
+        self.rep_address = (LOCALHOST, req)
 
     @property
     def has_kernel(self):
@@ -571,17 +569,3 @@ class KernelManager(HasTraits):
                                                        self.session,
                                                        self.rep_address)
         return self._rep_channel
-
-    @property
-    def xreq_address(self):
-        return self._xreq_address
-
-    @property
-    def sub_address(self):
-        return self._sub_address
-
-    @property
-    def rep_address(self):
-        return self._rep_address
-
-    

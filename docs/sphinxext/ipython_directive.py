@@ -220,7 +220,7 @@ class EmbeddedSphinxShell(object):
         config.InteractiveShell.colors = 'NoColor'
 
         # Create and initialize ipython, but don't start its mainloop
-        IP = InteractiveShell(parent=None, config=config)
+        IP = InteractiveShell.instance(config=config)
 
         # Store a few parts of IPython we'll need.
         self.IP = IP

@@ -27,7 +27,7 @@ from unittest import TestCase
 from IPython.utils.traitlets import (
     HasTraits, MetaHasTraits, TraitType, Any,
     Int, Long, Float, Complex, Str, Unicode, TraitError,
-    Undefined, Type, This, Instance
+    Undefined, Type, This, Instance, TCPAddress
 )
 
 
@@ -360,6 +360,13 @@ class TestHasTraits(TestCase):
         traits = a.traits(config_key=lambda v: True)
         self.assertEquals(traits, dict(i=A.i, f=A.f, j=A.j))
 
+    def test_init(self):
+        class A(HasTraits):
+            i = Int()
+            x = Float()
+        a = A(i=1, x=10.0)
+        self.assertEquals(a.i, 1)
+        self.assertEquals(a.x, 10.0)
 
 #-----------------------------------------------------------------------------
 # Tests for specific trait types
@@ -684,3 +691,16 @@ class TestUnicode(TraitTestBase):
                       '-10.1', '', u'', 'string', u'string', ]
     _bad_values    = [10, -10, 10L, -10L, 10.1, -10.1, 1j,
                       [10], ['ten'], [u'ten'], {'ten': 10},(10,), None]
+
+
+class TCPAddressTrait(HasTraits):
+
+    value = TCPAddress()
+
+class TestTCPAddress(TraitTestBase):
+
+    obj = TCPAddressTrait()
+
+    _default_value = ('127.0.0.1',0)
+    _good_values = [('localhost',0),('192.168.0.1',1000),('www.google.com',80)]
+    _bad_values = [(0,0),('localhost',10.0),('localhost',-1)]

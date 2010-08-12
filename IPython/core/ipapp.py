@@ -475,8 +475,8 @@ class IPythonApp(Application):
         # But that might be the place for them
         sys.path.insert(0, '')
 
-        # Create an InteractiveShell instance
-        self.shell = InteractiveShell(None, self.master_config)
+        # Create an InteractiveShell instance.
+        self.shell = InteractiveShell.instance(config=self.master_config)
 
     def post_construct(self):
         """Do actions after construct, but before starting the app."""
@@ -543,7 +543,7 @@ class IPythonApp(Application):
     def _load_extensions(self):
         """Load all IPython extensions in Global.extensions.
 
-        This uses the :meth:`InteractiveShell.load_extensions` to load all
+        This uses the :meth:`ExtensionManager.load_extensions` to load all
         the extensions listed in ``self.master_config.Global.extensions``.
         """
         try:
@@ -553,7 +553,7 @@ class IPythonApp(Application):
                 for ext in extensions:
                     try:
                         self.log.info("Loading IPython extension: %s" % ext)                        
-                        self.shell.load_extension(ext)
+                        self.shell.extension_manager.load_extension(ext)
                     except:
                         self.log.warn("Error in loading extension: %s" % ext)
                         self.shell.showtraceback()

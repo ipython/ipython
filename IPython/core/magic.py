@@ -97,11 +97,11 @@ def compress_dhist(dh):
 
 # XXX - for some odd reason, if Magic is made a new-style class, we get errors
 # on construction of the main InteractiveShell object.  Something odd is going
-# on with super() calls, Component and the MRO... For now leave it as-is, but
+# on with super() calls, Configurable and the MRO... For now leave it as-is, but
 # eventually this needs to be clarified.
 # BG: This is because InteractiveShell inherits from this, but is itself a 
-# Component. This messes up the MRO in some way. The fix is that we need to
-# make Magic a component that InteractiveShell does not subclass.
+# Configurable. This messes up the MRO in some way. The fix is that we need to
+# make Magic a configurable that InteractiveShell does not subclass.
 
 class Magic:
     """Magic functions for InteractiveShell.
@@ -3586,15 +3586,15 @@ Defaulting color scheme to 'NoColor'"""
 
     def magic_load_ext(self, module_str):
         """Load an IPython extension by its module name."""
-        return self.load_extension(module_str)
+        return self.extension_manager.load_extension(module_str)
 
     def magic_unload_ext(self, module_str):
         """Unload an IPython extension by its module name."""
-        self.unload_extension(module_str)
+        self.extension_manager.unload_extension(module_str)
 
     def magic_reload_ext(self, module_str):
         """Reload an IPython extension by its module name."""
-        self.reload_extension(module_str)
+        self.extension_manager.reload_extension(module_str)
 
     @testdec.skip_doctest
     def magic_install_profiles(self, s):
