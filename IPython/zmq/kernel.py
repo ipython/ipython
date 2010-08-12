@@ -114,19 +114,33 @@ class DisplayHook(object):
         self.parent_header = {}
 
     def __call__(self, obj):
-        if obj is None:
-            return
-
-        __builtin__._ = obj
-        msg = self.session.msg(u'pyout', {u'data':repr(obj)},
-                               parent=self.parent_header)
-        self.pub_socket.send_json(msg)
+        if obj is not None:
+            __builtin__._ = obj
+            msg = self.session.msg(u'pyout', {u'data':repr(obj)},
+                                   parent=self.parent_header)
+            self.pub_socket.send_json(msg)
 
     def set_parent(self, parent):
         self.parent_header = extract_header(parent)
 
 
 class Kernel(object):
+
+    # The global kernel instance.
+    _kernel = None
+
+    # Maps user-friendly backend names to matplotlib backend identifiers.
+    _pylab_map = { 'tk': 'TkAgg',
+                   'gtk': 'GTKAgg',
+                   'wx': 'WXAgg',
+                   'qt': 'Qt4Agg', # qt3 not supported
+                   'qt4': 'Qt4Agg',
+                   'payload-svg' : \
+                       'module://IPython.zmq.pylab.backend_payload_svg' }
+
+    #---------------------------------------------------------------------------
+    # Kernel interface
+    #---------------------------------------------------------------------------
 
     def __init__(self, session, reply_socket, pub_socket, req_socket):
         self.session = session
@@ -137,6 +151,9 @@ class Kernel(object):
         self.history = []
         self.compiler = CommandCompiler()
         self.completer = KernelCompleter(self.user_ns)
+
+        # Protected variables.
+        self._exec_payload = {}
         
         # Build dict of handlers for message types
         msg_types = [ 'execute_request', 'complete_request', 
@@ -145,27 +162,83 @@ class Kernel(object):
         for msg_type in msg_types:
             self.handlers[msg_type] = getattr(self, msg_type)
 
-    def abort_queue(self):
+    def add_exec_payload(self, key, value):
+        """ Adds a key/value pair to the execute payload.
+        """
+        self._exec_payload[key] = value
+
+    def activate_pylab(self, backend=None, import_all=True):
+        """ Activates pylab in this kernel's namespace.
+
+        Parameters:
+        -----------
+        backend : str, optional
+            A valid backend name.
+
+        import_all : bool, optional
+            If true, an 'import *' is done from numpy and pylab.
+        """
+        # FIXME: This is adapted from IPython.lib.pylabtools.pylab_activate.
+        #        Common funtionality should be refactored.
+
+        import matplotlib
+
+        # We must set the desired backend before importing pylab.
+        if backend:
+            matplotlib.use(self._pylab_map[backend])
+
+        # This must be imported last in the matplotlib series, after
+        # backend/interactivity choices have been made.
+        import matplotlib.pylab as pylab
+
+        # Import numpy as np/pyplot as plt are conventions we're trying to
+        # somewhat standardize on. Making them available to users by default
+        # will greatly help this.
+        exec ("import numpy\n"
+              "import matplotlib\n"
+              "from matplotlib import pylab, mlab, pyplot\n"
+              "np = numpy\n"
+              "plt = pyplot\n"
+              ) in self.user_ns
+
+        if import_all:
+            exec("from matplotlib.pylab import *\n"
+                 "from numpy import *\n") in self.user_ns
+
+        matplotlib.interactive(True)
+
+    @classmethod
+    def get_kernel(cls):
+        """ Return the global kernel instance or raise a RuntimeError if it does
+        not exist.
+        """
+        if cls._kernel is None:
+            raise RuntimeError("Kernel not started!")
+        else:
+            return cls._kernel
+
+    def start(self):
+        """ Start the kernel main loop.
+        """
+        # Set the global kernel instance.
+        Kernel._kernel = self
+
         while True:
-            try:
-                ident = self.reply_socket.recv(zmq.NOBLOCK)
-            except zmq.ZMQError, e:
-                if e.errno == zmq.EAGAIN:
-                    break
+            ident = self.reply_socket.recv()
+            assert self.reply_socket.rcvmore(), "Missing message part."
+            msg = self.reply_socket.recv_json()
+            omsg = Message(msg)
+            print>>sys.__stdout__
+            print>>sys.__stdout__, omsg
+            handler = self.handlers.get(omsg.msg_type, None)
+            if handler is None:
+                print >> sys.__stderr__, "UNKNOWN MESSAGE TYPE:", omsg
             else:
-                assert self.reply_socket.rcvmore(), "Unexpected missing message part."
-                msg = self.reply_socket.recv_json()
-            print>>sys.__stdout__, "Aborting:"
-            print>>sys.__stdout__, Message(msg)
-            msg_type = msg['msg_type']
-            reply_type = msg_type.split('_')[0] + '_reply'
-            reply_msg = self.session.msg(reply_type, {'status' : 'aborted'}, msg)
-            print>>sys.__stdout__, Message(reply_msg)
-            self.reply_socket.send(ident,zmq.SNDMORE)
-            self.reply_socket.send_json(reply_msg)
-            # We need to wait a bit for requests to come in. This can probably
-            # be set shorter for true asynchronous clients.
-            time.sleep(0.1)
+                handler(ident, omsg)
+
+    #---------------------------------------------------------------------------
+    # Kernel request handlers
+    #---------------------------------------------------------------------------
 
     def execute_request(self, ident, parent):
         try:
@@ -177,12 +250,15 @@ class Kernel(object):
         pyin_msg = self.session.msg(u'pyin',{u'code':code}, parent=parent)
         self.pub_socket.send_json(pyin_msg)
 
+        # Clear the execute payload from the last request.
+        self._exec_payload = {}
+
         try:
             comp_code = self.compiler(code, '<zmq-kernel>')
 
             # Replace raw_input. Note that is not sufficient to replace 
             # raw_input in the user namespace.
-            raw_input = lambda prompt='': self.raw_input(prompt, ident, parent)
+            raw_input = lambda prompt='': self._raw_input(prompt, ident, parent)
             __builtin__.raw_input = raw_input
 
             # Configure the display hook.
@@ -203,7 +279,7 @@ class Kernel(object):
             self.pub_socket.send_json(exc_msg)
             reply_content = exc_content
         else:
-            reply_content = {'status' : 'ok'}
+            reply_content = { 'status' : 'ok', 'payload' : self._exec_payload }
             
         # Flush output before sending the reply.
         sys.stderr.flush()
@@ -215,9 +291,49 @@ class Kernel(object):
         self.reply_socket.send(ident, zmq.SNDMORE)
         self.reply_socket.send_json(reply_msg)
         if reply_msg['content']['status'] == u'error':
-            self.abort_queue()
+            self._abort_queue()
 
-    def raw_input(self, prompt, ident, parent):
+    def complete_request(self, ident, parent):
+        comp = self.completer.complete(parent.content.line, parent.content.text)
+        matches = {'matches' : comp, 'status' : 'ok'}
+        completion_msg = self.session.send(self.reply_socket, 'complete_reply',
+                                           matches, parent, ident)
+        print >> sys.__stdout__, completion_msg
+
+    def object_info_request(self, ident, parent):
+        context = parent['content']['oname'].split('.')
+        object_info = self._object_info(context)
+        msg = self.session.send(self.reply_socket, 'object_info_reply',
+                                object_info, parent, ident)
+        print >> sys.__stdout__, msg
+
+    #---------------------------------------------------------------------------
+    # Protected interface
+    #---------------------------------------------------------------------------
+
+    def _abort_queue(self):
+        while True:
+            try:
+                ident = self.reply_socket.recv(zmq.NOBLOCK)
+            except zmq.ZMQError, e:
+                if e.errno == zmq.EAGAIN:
+                    break
+            else:
+                assert self.reply_socket.rcvmore(), "Missing message part."
+                msg = self.reply_socket.recv_json()
+            print>>sys.__stdout__, "Aborting:"
+            print>>sys.__stdout__, Message(msg)
+            msg_type = msg['msg_type']
+            reply_type = msg_type.split('_')[0] + '_reply'
+            reply_msg = self.session.msg(reply_type, {'status':'aborted'}, msg)
+            print>>sys.__stdout__, Message(reply_msg)
+            self.reply_socket.send(ident,zmq.SNDMORE)
+            self.reply_socket.send_json(reply_msg)
+            # We need to wait a bit for requests to come in. This can probably
+            # be set shorter for true asynchronous clients.
+            time.sleep(0.1)
+
+    def _raw_input(self, prompt, ident, parent):
         # Flush output before making the request.
         sys.stderr.flush()
         sys.stdout.flush()
@@ -237,25 +353,8 @@ class Kernel(object):
             value = ''
         return value
 
-    def complete_request(self, ident, parent):
-        matches = {'matches' : self.complete(parent),
-                   'status' : 'ok'}
-        completion_msg = self.session.send(self.reply_socket, 'complete_reply',
-                                           matches, parent, ident)
-        print >> sys.__stdout__, completion_msg
-
-    def complete(self, msg):
-        return self.completer.complete(msg.content.line, msg.content.text)
-
-    def object_info_request(self, ident, parent):
-        context = parent['content']['oname'].split('.')
-        object_info = self.object_info(context)
-        msg = self.session.send(self.reply_socket, 'object_info_reply',
-                                object_info, parent, ident)
-        print >> sys.__stdout__, msg
-
-    def object_info(self, context):
-        symbol, leftover = self.symbol_from_context(context)
+    def _object_info(self, context):
+        symbol, leftover = self._symbol_from_context(context)
         if symbol is not None and not leftover:
             doc = getattr(symbol, '__doc__', '')
         else:
@@ -263,7 +362,7 @@ class Kernel(object):
         object_info = dict(docstring = doc)
         return object_info
 
-    def symbol_from_context(self, context):
+    def _symbol_from_context(self, context):
         if not context:
             return None, context
 
@@ -283,20 +382,6 @@ class Kernel(object):
                 symbol = new_symbol
 
         return symbol, []
-
-    def start(self):
-        while True:
-            ident = self.reply_socket.recv()
-            assert self.reply_socket.rcvmore(), "Missing message part."
-            msg = self.reply_socket.recv_json()
-            omsg = Message(msg)
-            print>>sys.__stdout__
-            print>>sys.__stdout__, omsg
-            handler = self.handlers.get(omsg.msg_type, None)
-            if handler is None:
-                print >> sys.__stderr__, "UNKNOWN MESSAGE TYPE:", omsg
-            else:
-                handler(ident, omsg)
 
 #-----------------------------------------------------------------------------
 # Kernel main and launch functions
@@ -342,8 +427,8 @@ class ExitPollerWindows(Thread):
 
 
 def bind_port(socket, ip, port):
-    """ Binds the specified ZMQ socket. If the port is less than zero, a random
-    port is chosen. Returns the port that was bound.
+    """ Binds the specified ZMQ socket. If the port is zero, a random port is
+    chosen. Returns the port that was bound.
     """
     connection = 'tcp://%s' % ip
     if port <= 0:
@@ -374,6 +459,12 @@ def main():
     else:
         parser.add_argument('--parent', action='store_true', 
                             help='kill this process if its parent dies')
+    parser.add_argument('--pylab', type=str, metavar='GUI', nargs='?', 
+                        const='auto', help = \
+        "Pre-load matplotlib and numpy for interactive use. If GUI is not \
+given, the GUI backend is matplotlib's, otherwise use one of: \
+['tk', 'gtk', 'qt', 'wx', 'payload-svg'].")
+
     namespace = parser.parse_args()
 
     # Create a context, a session, and the kernel sockets.
@@ -393,13 +484,20 @@ def main():
     req_port = bind_port(req_socket, namespace.ip, namespace.req)
     print >>sys.__stdout__, "REQ Channel on port", req_port
 
+    # Create the kernel.
+    kernel = Kernel(session, reply_socket, pub_socket, req_socket)
+
+    # Set up pylab, if necessary.
+    if namespace.pylab:
+        if namespace.pylab == 'auto':
+            kernel.activate_pylab()
+        else:
+            kernel.activate_pylab(namespace.pylab)
+
     # Redirect input streams and set a display hook.
     sys.stdout = OutStream(session, pub_socket, u'stdout')
     sys.stderr = OutStream(session, pub_socket, u'stderr')
     sys.displayhook = DisplayHook(session, pub_socket)
-
-    # Create the kernel.
-    kernel = Kernel(session, reply_socket, pub_socket, req_socket)
 
     # Configure this kernel/process to die on parent termination, if necessary.
     if namespace.parent:
