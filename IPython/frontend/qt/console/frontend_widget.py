@@ -21,7 +21,7 @@ class FrontendHighlighter(PygmentsHighlighter):
     """
 
     def __init__(self, frontend):
-        super(FrontendHighlighter, self).__init__(frontend.document())
+        super(FrontendHighlighter, self).__init__(frontend._control.document())
         self._current_offset = 0
         self._frontend = frontend
         self.highlighting_on = False
@@ -68,14 +68,14 @@ class FrontendWidget(HistoryConsoleWidget):
     executed = QtCore.pyqtSignal(object)
 
     #---------------------------------------------------------------------------
-    # 'QObject' interface
+    # 'object' interface
     #---------------------------------------------------------------------------
     
-    def __init__(self, parent=None):
-        super(FrontendWidget, self).__init__(parent)
+    def __init__(self, *args, **kw):
+        super(FrontendWidget, self).__init__(*args, **kw)
 
         # FrontendWidget protected variables.
-        self._call_tip_widget = CallTipWidget(self)
+        self._call_tip_widget = CallTipWidget(self._control)
         self._completion_lexer = CompletionLexer(PythonLexer())
         self._hidden = True
         self._highlighter = FrontendHighlighter(self)
@@ -86,7 +86,9 @@ class FrontendWidget(HistoryConsoleWidget):
         self.tab_width = 4
         self._set_continuation_prompt('... ')
 
-        self.document().contentsChange.connect(self._document_contents_change)
+        # Connect signal handlers.
+        document = self._control.document()
+        document.contentsChange.connect(self._document_contents_change)
 
     #---------------------------------------------------------------------------
     # 'QWidget' interface
@@ -140,8 +142,8 @@ class FrontendWidget(HistoryConsoleWidget):
             if self._get_prompt_cursor().blockNumber() != \
                     self._get_end_cursor().blockNumber():
                 spaces = self._input_splitter.indent_spaces
-                self.appendPlainText('\t' * (spaces / self.tab_width))
-                self.appendPlainText(' ' * (spaces % self.tab_width))
+                self._append_plain_text('\t' * (spaces / self.tab_width))
+                self._append_plain_text(' ' * (spaces % self.tab_width))
 
     def _prompt_finished_hook(self):
         """ Called immediately after a prompt is finished, i.e. when some input
@@ -155,7 +157,7 @@ class FrontendWidget(HistoryConsoleWidget):
             processing the event.
         """
         self._keep_cursor_in_buffer()
-        cursor = self.textCursor()
+        cursor = self._get_cursor()
         return not self._complete()
 
     #---------------------------------------------------------------------------
@@ -232,9 +234,9 @@ class FrontendWidget(HistoryConsoleWidget):
         """ Shows a call tip, if appropriate, at the current cursor location.
         """
         # Decide if it makes sense to show a call tip
-        cursor = self.textCursor()
+        cursor = self._get_cursor()
         cursor.movePosition(QtGui.QTextCursor.Left)
-        document = self.document()
+        document = self._control.document()
         if document.characterAt(cursor.position()).toAscii() != '(':
             return False
         context = self._get_context(cursor)
@@ -244,7 +246,7 @@ class FrontendWidget(HistoryConsoleWidget):
         # Send the metadata request to the kernel
         name = '.'.join(context)
         self._calltip_id = self.kernel_manager.xreq_channel.object_info(name)
-        self._calltip_pos = self.textCursor().position()
+        self._calltip_pos = self._get_cursor().position()
         return True
 
     def _complete(self):
@@ -259,7 +261,7 @@ class FrontendWidget(HistoryConsoleWidget):
         text = '.'.join(context)
         self._complete_id = self.kernel_manager.xreq_channel.complete(
             text, self.input_buffer_cursor_line, self.input_buffer)
-        self._complete_pos = self.textCursor().position()
+        self._complete_pos = self._get_cursor().position()
         return True
 
     def _get_banner(self):
@@ -273,7 +275,7 @@ class FrontendWidget(HistoryConsoleWidget):
         """ Gets the context at the current cursor location.
         """
         if cursor is None:
-            cursor = self.textCursor()
+            cursor = self._get_cursor()
         cursor.movePosition(QtGui.QTextCursor.StartOfLine, 
                             QtGui.QTextCursor.KeepAnchor)
         text = str(cursor.selection().toPlainText())
@@ -285,8 +287,8 @@ class FrontendWidget(HistoryConsoleWidget):
         if self.kernel_manager.has_kernel:
             self.kernel_manager.signal_kernel(signal.SIGINT)
         else:
-            self.appendPlainText('Kernel process is either remote or '
-                                 'unspecified. Cannot interrupt.\n')
+            self._append_plain_text('Kernel process is either remote or '
+                                    'unspecified. Cannot interrupt.\n')
 
     def _show_interpreter_prompt(self):
         """ Shows a prompt for the interpreter.
@@ -299,7 +301,7 @@ class FrontendWidget(HistoryConsoleWidget):
         """ Called when the kernel manager has started listening.
         """
         self._reset()
-        self.appendPlainText(self._get_banner())
+        self._append_plain_text(self._get_banner())
         self._show_interpreter_prompt()
 
     def _stopped_channels(self):
@@ -315,8 +317,8 @@ class FrontendWidget(HistoryConsoleWidget):
         # Calculate where the cursor should be *after* the change:
         position += added
 
-        document = self.document()
-        if position == self.textCursor().position():
+        document = self._control.document()
+        if position == self._get_cursor().position():
             self._call_tip()
 
     def _handle_req(self, req):
@@ -336,11 +338,11 @@ class FrontendWidget(HistoryConsoleWidget):
             handler(omsg)
 
     def _handle_pyout(self, omsg):
-        self.appendPlainText(omsg['content']['data'] + '\n')
+        self._append_plain_text(omsg['content']['data'] + '\n')
 
     def _handle_stream(self, omsg):
-        self.appendPlainText(omsg['content']['data'])
-        self.moveCursor(QtGui.QTextCursor.End)
+        self._append_plain_text(omsg['content']['data'])
+        self._control.moveCursor(QtGui.QTextCursor.End)
         
     def _handle_execute_reply(self, reply):
         if self._hidden:
@@ -355,7 +357,7 @@ class FrontendWidget(HistoryConsoleWidget):
             self._handle_execute_error(reply)
         elif status == 'aborted':
             text = "ERROR: ABORTED\n"
-            self.appendPlainText(text)
+            self._append_plain_text(text)
         self._hidden = True
         self._show_interpreter_prompt()
         self.executed.emit(reply)
@@ -363,10 +365,10 @@ class FrontendWidget(HistoryConsoleWidget):
     def _handle_execute_error(self, reply):
         content = reply['content']
         traceback = ''.join(content['traceback'])
-        self.appendPlainText(traceback)
+        self._append_plain_text(traceback)
 
     def _handle_complete_reply(self, rep):
-        cursor = self.textCursor()
+        cursor = self._get_cursor()
         if rep['parent_header']['msg_id'] == self._complete_id and \
                 cursor.position() == self._complete_pos:
             text = '.'.join(self._get_context())
@@ -374,7 +376,7 @@ class FrontendWidget(HistoryConsoleWidget):
             self._complete_with_items(cursor, rep['content']['matches'])
 
     def _handle_object_info_reply(self, rep):
-        cursor = self.textCursor()
+        cursor = self._get_cursor()
         if rep['parent_header']['msg_id'] == self._calltip_id and \
                 cursor.position() == self._calltip_pos:
             doc = rep['content']['docstring']

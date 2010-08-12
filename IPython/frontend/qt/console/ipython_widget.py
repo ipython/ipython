@@ -35,11 +35,11 @@ class IPythonWidget(FrontendWidget):
     out_prompt = 'Out[<span class="out-prompt-number">%i</span>]: '
 
     #---------------------------------------------------------------------------
-    # 'QObject' interface
+    # 'object' interface
     #---------------------------------------------------------------------------
     
-    def __init__(self, parent=None):
-        super(IPythonWidget, self).__init__(parent)
+    def __init__(self, *args, **kw):
+        super(IPythonWidget, self).__init__(*args, **kw)
 
         # Initialize protected variables.
         self._previous_prompt_blocks = []
@@ -108,15 +108,15 @@ class IPythonWidget(FrontendWidget):
         ename_styled = '<span class="error">%s</span>' % ename
         traceback = traceback.replace(ename, ename_styled)
 
-        self.appendHtml(traceback)
+        self._append_html(traceback)
 
     def _handle_pyout(self, omsg):
         """ Reimplemented for IPython-style "display hook".
         """
-        self.appendHtml(self._make_out_prompt(self._prompt_count))
+        self._append_html(self._make_out_prompt(self._prompt_count))
         self._save_prompt_block()
         
-        self.appendPlainText(omsg['content']['data'] + '\n')
+        self._append_plain_text(omsg['content']['data'] + '\n')
 
     #---------------------------------------------------------------------------
     # 'IPythonWidget' interface
@@ -144,7 +144,7 @@ class IPythonWidget(FrontendWidget):
             the stylesheet is queried for Pygments style information.
         """
         self.setStyleSheet(stylesheet)
-        self.document().setDefaultStyleSheet(stylesheet)
+        self._control.document().setDefaultStyleSheet(stylesheet)
 
         if syntax_style is None:
             self._highlighter.set_style_sheet(stylesheet)
@@ -180,7 +180,7 @@ class IPythonWidget(FrontendWidget):
         """ Assuming a prompt has just been written at the end of the buffer,
             store the QTextBlock that contains it and its length.
         """
-        block = self.document().lastBlock()
+        block = self._control.document().lastBlock()
         self._previous_prompt_blocks.append((block, block.length()))
 
 
