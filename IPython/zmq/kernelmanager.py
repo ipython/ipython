@@ -433,23 +433,22 @@ class KernelManager(HasTraits):
     # The kernel process with which the KernelManager is communicating.
     kernel = Instance(Popen)
 
+    # The addresses for the communication channels. 
+    xreq_address = TCPAddress((LOCALHOST, 0))
+    sub_address = TCPAddress((LOCALHOST, 0))
+    rep_address = TCPAddress((LOCALHOST, 0))
+
     # The classes to use for the various channels.
     xreq_channel_class = Type(XReqSocketChannel)
     sub_channel_class = Type(SubSocketChannel)
     rep_channel_class = Type(RepSocketChannel)
     
     # Protected traits.
-    xreq_address = TCPAddress((LOCALHOST, 0))
-    sub_address = TCPAddress((LOCALHOST, 0))
-    rep_address = TCPAddress((LOCALHOST, 0))
     _xreq_channel = Any
     _sub_channel = Any
     _rep_channel = Any
 
-    def __init__(self, **kwargs):
-        super(KernelManager, self).__init__(**kwargs)
-
-    #---------------------------------  -----------------------------------------
+    #--------------------------------------------------------------------------
     # Channel management methods:
     #--------------------------------------------------------------------------
 
@@ -486,11 +485,16 @@ class KernelManager(HasTraits):
     # Kernel process management methods:
     #--------------------------------------------------------------------------
 
-    def start_kernel(self):
+    def start_kernel(self, pylab=False):
         """Starts a kernel process and configures the manager to use it.
 
         If random ports (port=0) are being used, this method must be called
         before the channels are created.
+
+        Parameters:
+        -----------
+        pylab : bool or string, optional (default False)
+            See IPython.zmq.kernel.launch_kernel for documentation.
         """
         xreq, sub, rep = self.xreq_address, self.sub_address, self.rep_address
         if xreq[0] != LOCALHOST or sub[0] != LOCALHOST or rep[0] != LOCALHOST:
@@ -499,7 +503,7 @@ class KernelManager(HasTraits):
                                "configured properly.")
 
         self.kernel, xrep, pub, req = launch_kernel(
-            xrep_port=xreq[1], pub_port=sub[1], req_port=rep[1])
+            xrep_port=xreq[1], pub_port=sub[1], req_port=rep[1], pylab=pylab)
         self.xreq_address = (LOCALHOST, xrep)
         self.sub_address = (LOCALHOST, pub)
         self.rep_address = (LOCALHOST, req)

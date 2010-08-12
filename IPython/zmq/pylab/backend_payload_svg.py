@@ -12,7 +12,7 @@ from backend_payload import add_plot_payload
 def show():
     """ Deliver a SVG payload.
     """
-    figure_manager = Gcf.get_actve()
+    figure_manager = Gcf.get_active()
     if figure_manager is not None:
         data = svg_from_canvas(figure_manager.canvas)
         add_plot_payload('svg', data)

@@ -181,15 +181,16 @@ class Kernel(object):
         # FIXME: This is adapted from IPython.lib.pylabtools.pylab_activate.
         #        Common funtionality should be refactored.
 
-        import matplotlib
-
         # We must set the desired backend before importing pylab.
+        import matplotlib
         if backend:
-            matplotlib.use(self._pylab_map[backend])
-
-        # This must be imported last in the matplotlib series, after
-        # backend/interactivity choices have been made.
-        import matplotlib.pylab as pylab
+            backend_id = self._pylab_map[backend]
+            if backend_id.startswith('module://'):
+                # Work around bug in matplotlib: matplotlib.use converts the
+                # backend_id to lowercase even if a module name is specified!
+                matplotlib.rcParams['backend'] = backend_id
+            else:
+                matplotlib.use(backend_id)
 
         # Import numpy as np/pyplot as plt are conventions we're trying to
         # somewhat standardize on. Making them available to users by default
@@ -511,7 +512,8 @@ given, the GUI backend is matplotlib's, otherwise use one of: \
     kernel.start()
 
 
-def launch_kernel(xrep_port=0, pub_port=0, req_port=0, independent=False):
+def launch_kernel(xrep_port=0, pub_port=0, req_port=0, 
+                  pylab=False, independent=False):
     """ Launches a localhost kernel, binding to the specified ports.
 
     Parameters
@@ -524,6 +526,11 @@ def launch_kernel(xrep_port=0, pub_port=0, req_port=0, independent=False):
 
     req_port : int, optional
         The port to use for the REQ (raw input) channel.
+
+    pylab : bool or string, optional (default False)
+        If not False, the kernel will be launched with pylab enabled. If a
+        string is passed, matplotlib will use the specified backend. Otherwise,
+        matplotlib's default backend will be used.
 
     independent : bool, optional (default False) 
         If set, the kernel process is guaranteed to survive if this process
@@ -557,11 +564,17 @@ def launch_kernel(xrep_port=0, pub_port=0, req_port=0, independent=False):
         pub_port = ports.pop(0)
     if req_port <= 0:
         req_port = ports.pop(0)
-        
-    # Spawn a kernel.
+
+    # Build the kernel launch command.
     command = 'from IPython.zmq.kernel import main; main()'
     arguments = [ sys.executable, '-c', command, '--xrep', str(xrep_port), 
                   '--pub', str(pub_port), '--req', str(req_port) ]
+    if pylab:
+        arguments.append('--pylab')
+        if isinstance(pylab, basestring):
+            arguments.append(pylab)
+
+    # Spawn a kernel.
     if independent:
         if sys.platform == 'win32':
             proc = Popen(['start', '/b'] + arguments, shell=True)

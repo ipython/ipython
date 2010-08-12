@@ -337,12 +337,16 @@ class FrontendWidget(HistoryConsoleWidget):
         # before writing a new prompt.
         self.kernel_manager.sub_channel.flush()
 
-        status = reply['content']['status']
-        if status == 'error':
+        content = reply['content']
+        status = content['status']
+        if status == 'ok':
+            self._handle_execute_payload(content['payload'])
+        elif status == 'error':
             self._handle_execute_error(reply)
         elif status == 'aborted':
             text = "ERROR: ABORTED\n"
             self._append_plain_text(text)
+
         self._hidden = True
         self._show_interpreter_prompt()
         self.executed.emit(reply)
@@ -351,6 +355,9 @@ class FrontendWidget(HistoryConsoleWidget):
         content = reply['content']
         traceback = ''.join(content['traceback'])
         self._append_plain_text(traceback)
+
+    def _handle_execute_payload(self, payload):
+        pass
 
     def _handle_complete_reply(self, rep):
         cursor = self._get_cursor()

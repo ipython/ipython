@@ -182,25 +182,3 @@ class IPythonWidget(FrontendWidget):
         """
         block = self._control.document().lastBlock()
         self._previous_prompt_blocks.append((block, block.length()))
-
-
-if __name__ == '__main__':
-    from IPython.frontend.qt.kernelmanager import QtKernelManager
-
-    # Don't let Qt or ZMQ swallow KeyboardInterupts.
-    import signal
-    signal.signal(signal.SIGINT, signal.SIG_DFL)
-
-    # Create a KernelManager.
-    kernel_manager = QtKernelManager()
-    kernel_manager.start_kernel()
-    kernel_manager.start_channels()
-
-    # Launch the application.
-    app = QtGui.QApplication([])
-    widget = IPythonWidget()
-    widget.kernel_manager = kernel_manager
-    widget.setWindowTitle('Python')
-    widget.resize(640, 480)
-    widget.show()
-    app.exec_()

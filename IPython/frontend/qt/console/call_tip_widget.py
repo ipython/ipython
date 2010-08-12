@@ -111,10 +111,8 @@ class CallTipWidget(QtGui.QLabel):
         point = text_edit.mapToGlobal(point)
         self.move(point)
         self.setText(tip)
-        if self.isVisible():
-            self.resize(self.sizeHint())
-        else:
-            self.show()
+        self.resize(self.sizeHint())
+        self.show()
         return True
             
     #--------------------------------------------------------------------------

@@ -153,10 +153,6 @@ class QtKernelManager(KernelManager, QtCore.QObject):
     xreq_channel_class = QtXReqSocketChannel
     rep_channel_class = QtRepSocketChannel
 
-    def __init__(self, *args, **kw):
-        QtCore.QObject.__init__(self)
-        KernelManager.__init__(self, *args, **kw)
-
     #---------------------------------------------------------------------------
     # 'object' interface
     #---------------------------------------------------------------------------
