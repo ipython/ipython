@@ -1,10 +1,11 @@
 #!/usr/bin/env python
 # encoding: utf-8
 """
-IPython's alias component
+System command aliases.
 
 Authors:
 
+* Fernando Perez
 * Brian Granger
 """
 
@@ -25,10 +26,10 @@ import os
 import re
 import sys
 
-from IPython.core.component import Component
+from IPython.config.configurable import Configurable
 from IPython.core.splitinput import split_user_input
 
-from IPython.utils.traitlets import List
+from IPython.utils.traitlets import List, Instance
 from IPython.utils.autoattr import auto_attr
 from IPython.utils.warn import warn, error
 
@@ -99,22 +100,17 @@ class InvalidAliasError(AliasError):
 #-----------------------------------------------------------------------------
 
 
-class AliasManager(Component):
+class AliasManager(Configurable):
 
     default_aliases = List(default_aliases(), config=True)
     user_aliases = List(default_value=[], config=True)
+    shell = Instance('IPython.core.iplib.InteractiveShellABC')
 
-    def __init__(self, parent, config=None):
-        super(AliasManager, self).__init__(parent, config=config)
+    def __init__(self, shell=None, config=None):
+        super(AliasManager, self).__init__(shell=shell, config=config)
         self.alias_table = {}
         self.exclude_aliases()
         self.init_aliases()
-
-    @auto_attr
-    def shell(self):
-        return Component.get_instances(
-            root=self.root,
-            klass='IPython.core.iplib.InteractiveShell')[0]
 
     def __contains__(self, name):
         if name in self.alias_table:

@@ -27,7 +27,12 @@ if __name__ == '__main__':
                                         r'\.config\.default',
                                         r'\.config\.profile',
                                         r'\.frontend',
-                                        r'\.gui'
+                                        r'\.gui',
+                                        # For now, the zmq code has
+                                        # unconditional top-level code so it's
+                                        # not import safe.  This needs fixing
+                                        # soon.
+                                        r'\.zmq',
                                         ]
 
     docwriter.module_skip_patterns += [ r'\.core\.fakemodule',
@@ -38,7 +43,7 @@ if __name__ == '__main__':
                                         # for each group copied below
                                         
                                         # AttributeError: __abstractmethods__
-                                        r'\.core\.component',
+                                        r'\.config\.configurable',
                                         r'\.utils\.traitlets',
         
                                         # AttributeError: __provides__

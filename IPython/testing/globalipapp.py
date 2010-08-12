@@ -136,8 +136,8 @@ def start_ipython():
     config = tools.default_config()
 
     # Create and initialize our test-friendly IPython instance.
-    shell = iplib.InteractiveShell(
-        parent=None, config=config, 
+    shell = iplib.InteractiveShell.instance(
+        config=config, 
         user_ns=ipnsdict(), user_global_ns={}
     )
 

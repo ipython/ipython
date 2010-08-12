@@ -42,29 +42,26 @@ Application: :class:`~IPython.core.application.Application`
     application is the :command:`ipython` command line program. Each
     application reads a *single* configuration file and command line options
     and then produces a master configuration object for the application. This
-    configuration object is then passed to the components that the application
-    creates. Components implement the actual logic of the application and know
-    how to configure themselves given the configuration object.
+    configuration object is then passed to the configurable objects that the
+    application creates. These configurable objects implement the actual logic
+    of the application and know how to configure themselves given the
+    configuration object.
 
-Component: :class:`~IPython.core.component.Component`
-    A component is a regular Python class that serves as a base class for all
-    main classes in an application. The
-    :class:`~IPython.core.component.Component` base class is lightweight and
-    only does two main things.
+Component: :class:`~IPython.config.configurable.Configurable`
+    A configurable is a regular Python class that serves as a base class for
+    all main classes in an application. The
+    :class:`~IPython.config.configurable.Configurable` base class is
+    lightweight and only does one things.
+
+    This :class:`~IPython.config.configurable.Configurable` is a subclass
+    of :class:`~IPython.utils.traitlets.HasTraits` that knows how to configure
+    itself. Class level traits with the metadata ``config=True`` become
+    values that can be configured from the command line and configuration
+    files.
     
-    First, it keeps track of all instances of itself and provides an
-    interfaces for querying those instances. This enables components to get
-    references to other components, even though they are not "nearby" in the
-    runtime object graph.
-    
-    Second, it declares what class attributes are configurable and specifies
-    the default types and values of those attributes. This information is used
-    to automatically configure instances given the applications configuration
-    object.
-    
-    Developers create :class:`~IPython.core.component.Component` subclasses
-    that implement all of the logic in the application. Each of these
-    subclasses has its own configuration information that controls how
+    Developers create :class:`~IPython.config.configurable.Configurable`
+    subclasses that implement all of the logic in the application. Each of
+    these subclasses has its own configuration information that controls how
     instances are created.
 
 Having described these main concepts, we can now state the main idea in our
@@ -73,7 +70,9 @@ attributes to be controlled on a class by class basis*. Thus all instances of
 a given class are configured in the same way. Furthermore, if two instances
 need to be configured differently, they need to be instances of two different
 classes. While this model may seem a bit restrictive, we have found that it
-expresses most things that need to be configured extremely well.
+expresses most things that need to be configured extremely well. However, it
+is possible to create two instances of the same class that have different
+trait values. This is done by overriding the configuration.
 
 Now, we show what our configuration objects and files look like.
 
@@ -98,33 +97,34 @@ attributes on it.  All you have to know is:
 * The type of each attribute.
 
 The answers to these two questions are provided by the various
-:class:`~IPython.core.component.Component` subclasses that an application
-uses.  Let's look at how this would work for a simple component subclass::
+:class:`~IPython.config.configurable.Configurable` subclasses that an
+application uses. Let's look at how this would work for a simple component
+subclass::
 
     # Sample component that can be configured.
-    from IPython.core.component import Component
+    from IPython.config.configurable import Configurable
     from IPython.utils.traitlets import Int, Float, Str, Bool
     
-    class MyComponent(Component):
+    class MyClass(Configurable):
         name = Str('defaultname', config=True)
         ranking = Int(0, config=True)
         value = Float(99.0)
         # The rest of the class implementation would go here..
 
-In this example, we see that :class:`MyComponent` has three attributes, two
+In this example, we see that :class:`MyClass` has three attributes, two
 of whom (``name``, ``ranking``) can be configured.  All of the attributes
-are given types and default values.  If a :class:`MyComponent` is instantiated,
+are given types and default values.  If a :class:`MyClass` is instantiated,
 but not configured, these default values will be used.  But let's see how
 to configure this class in a configuration file::
 
     # Sample config file
     c = get_config()
     
-    c.MyComponent.name = 'coolname'
-    c.MyComponent.ranking = 10
+    c.MyClass.name = 'coolname'
+    c.MyClass.ranking = 10
 
 After this configuration file is loaded, the values set in it will override
-the class defaults anytime a :class:`MyComponent` is created.  Furthermore,
+the class defaults anytime a :class:`MyClass` is created.  Furthermore,
 these attributes will be type checked and validated anytime they are set.
 This type checking is handled by the :mod:`IPython.utils.traitlets` module,
 which provides the :class:`Str`, :class:`Int` and :class:`Float` types.  In 
@@ -133,7 +133,7 @@ traitlets for a number of other types.
 
 .. note::
 
-    Underneath the hood, the :class:`Component` base class is a subclass of
+    Underneath the hood, the :class:`Configurable` base class is a subclass of
     :class:`IPython.utils.traitlets.HasTraits`. The
     :mod:`IPython.utils.traitlets` module is a lightweight version of
     :mod:`enthought.traits`. Our implementation is a pure Python subset
@@ -157,7 +157,7 @@ attribute of ``c`` is not the actual class, but instead is another
 
 .. note::
 
-    The careful reader may wonder how the ``ClassName`` (``MyComponent`` in
+    The careful reader may wonder how the ``ClassName`` (``MyClass`` in
     the above example) attribute of the configuration object ``c`` gets
     created. These attributes are created on the fly by the
     :class:`~IPython.config.loader.Config` instance, using a simple naming
@@ -165,8 +165,7 @@ attribute of ``c`` is not the actual class, but instead is another
     instance whose name begins with an uppercase character is assumed to be a
     sub-configuration and a new empty :class:`~IPython.config.loader.Config`
     instance is dynamically created for that attribute. This allows deeply
-    hierarchical information created easily (``c.Foo.Bar.value``) on the 
-    fly.
+    hierarchical information created easily (``c.Foo.Bar.value``) on the fly.
 
 Configuration files inheritance
 ===============================
@@ -179,8 +178,8 @@ example that loads all of the values from the file :file:`base_config.py`::
 
     # base_config.py
     c = get_config()
-    c.MyComponent.name = 'coolname'
-    c.MyComponent.ranking = 100
+    c.MyClass.name = 'coolname'
+    c.MyClass.ranking = 100
 
 into the configuration file :file:`main_config.py`::
 
@@ -191,7 +190,7 @@ into the configuration file :file:`main_config.py`::
     load_subconfig('base_config.py')
     
     # Now override one of the values
-    c.MyComponent.name = 'bettername'
+    c.MyClass.name = 'bettername'
 
 In a situation like this the :func:`load_subconfig` makes sure that the
 search path for sub-configuration files is inherited from that of the parent.
@@ -205,10 +204,10 @@ There is another aspect of configuration where inheritance comes into play.
 Sometimes, your classes will have an inheritance hierarchy that you want
 to be reflected in the configuration system.  Here is a simple example::
 
-    from IPython.core.component import Component
+    from IPython.config.configurable import Configurable
     from IPython.utils.traitlets import Int, Float, Str, Bool
     
-    class Foo(Component):
+    class Foo(Configurable):
         name = Str('fooname', config=True)
         value = Float(100.0, config=True)
     
@@ -327,5 +326,4 @@ Here are the main requirements we wanted our configuration system to have:
   hierarchy to be specified statically before runtime. Python is a very
   dynamic language and you don't always know everything that needs to be
   configured when a program starts.
-
 

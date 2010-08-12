@@ -39,8 +39,9 @@ pdf: latex
 
 all: html pdf
 
-dist: clean all
+dist: all
 	mkdir -p dist
+	rm -rf dist/*
 	ln build/latex/ipython.pdf dist/
 	cp -al build/html dist/
 	@echo "Build finished.  Final docs are in dist/"
@@ -98,3 +99,6 @@ linkcheck:
 gitwash-update:
 	python ../tools/gitwash_dumper.py source/development ipython
 	cd source/development/gitwash && rename 's/.rst/.txt/' *.rst
+
+nightly: dist
+	rsync -avH --delete dist/ ipython:www/doc/nightly
