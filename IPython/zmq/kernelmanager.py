@@ -1,4 +1,4 @@
-"""Classes to manage the interaction with a running kernel.
+"""Base classes to manage the interaction with a running kernel.
 
 Todo
 ====
@@ -29,7 +29,7 @@ from zmq import POLLIN, POLLOUT, POLLERR
 from zmq.eventloop import ioloop
 
 # Local imports.
-from IPython.utils.traitlets import HasTraits, Any, Instance, Type
+from IPython.utils.traitlets import HasTraits, Any, Instance, Type, TCPAddress
 from kernel import launch_kernel
 from session import Session
 
@@ -61,9 +61,9 @@ class ZmqSocketChannel(Thread):
 
         Parameters
         ----------
-        context : zmq.Context
+        context : :class:`zmq.Context`
             The ZMQ context to use.
-        session : session.Session
+        session : :class:`session.Session`
             The session to use.
         address : tuple
             Standard (ip, port) tuple that the kernel is listening on.
@@ -289,6 +289,10 @@ class SubSocketChannel(ZmqSocketChannel):
     def flush(self, timeout=1.0):
         """Immediately processes all pending messages on the SUB channel.
 
+        Callers should use this method to ensure that :method:`call_handlers`
+        has been called for all messages that have been received on the
+        0MQ SUB socket of this channel.
+
         This method is thread safe.
 
         Parameters
@@ -324,7 +328,7 @@ class SubSocketChannel(ZmqSocketChannel):
                 msg = self.socket.recv_json(zmq.NOBLOCK)
             except zmq.ZMQError:
                 # Check the errno?
-                # Will this tigger POLLERR?
+                # Will this trigger POLLERR?
                 break
             else:
                 self.call_handlers(msg)
@@ -435,9 +439,9 @@ class KernelManager(HasTraits):
     rep_channel_class = Type(RepSocketChannel)
     
     # Protected traits.
-    _xreq_address = Any
-    _sub_address = Any
-    _rep_address = Any
+    _xreq_address = TCPAddress
+    _sub_address = TCPAddress
+    _rep_address = TCPAddress
     _xreq_channel = Any
     _sub_channel = Any
     _rep_channel = Any
@@ -585,4 +589,3 @@ class KernelManager(HasTraits):
     def rep_address(self):
         return self._rep_address
 
-    
