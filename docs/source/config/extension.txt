@@ -1,0 +1,5 @@
+.. _extensions_overview:
+
+==================
+IPython extensions
+==================
