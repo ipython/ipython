@@ -111,6 +111,7 @@ def find_packages():
     add_package(packages, 'frontend')
     add_package(packages, 'frontend.qt')
     add_package(packages, 'frontend.qt.console')
+    add_package(packages, 'frontend.terminal', config=False, tests=True, scripts=True)    
     add_package(packages, 'kernel', config=False, tests=True, scripts=True)
     add_package(packages, 'kernel.core', config=False, tests=True)
     add_package(packages, 'lib', tests=True)
@@ -254,12 +255,11 @@ def find_scripts():
     """
     kernel_scripts = pjoin('IPython','kernel','scripts')
     main_scripts = pjoin('IPython','scripts')
+    frontend_terminal_scripts = pjoin('IPython','frontend','terminal','scripts')
     scripts = [pjoin(kernel_scripts, 'ipengine'),
                pjoin(kernel_scripts, 'ipcontroller'),
                pjoin(kernel_scripts, 'ipcluster'),
-               pjoin(main_scripts, 'ipython'),
-               pjoin(main_scripts, 'ipythonx'),
-               pjoin(main_scripts, 'ipython-wx'),
+               pjoin(frontend_terminal_scripts, 'ipython'),
                pjoin(main_scripts, 'pycolor'),
                pjoin(main_scripts, 'irunner'),
                pjoin(main_scripts, 'iptest')

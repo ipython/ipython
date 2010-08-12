@@ -31,14 +31,14 @@ import sys
 from IPython.core import release
 from IPython.core.crashhandler import CrashHandler
 from IPython.core.application import Application, BaseAppConfigLoader
-from IPython.core.iplib import InteractiveShell
+from IPython.core.interactiveshell import InteractiveShell
 from IPython.config.loader import (
     Config,
     PyFileConfigLoader
 )
 from IPython.lib import inputhook
 from IPython.utils.path import filefind, get_ipython_dir
-from . import usage
+from IPython.core import usage
 
 #-----------------------------------------------------------------------------
 # Globals, utilities and helpers

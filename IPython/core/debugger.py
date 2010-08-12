@@ -184,7 +184,7 @@ class Pdb(OldPdb):
 
         if self.is_pydb:
 
-            # iplib.py's ipalias seems to want pdb's checkline
+            # interactiveshell.py's ipalias seems to want pdb's checkline
             # which located in pydb.fn
             import pydb.fns
             self.checkline = lambda filename, lineno: \

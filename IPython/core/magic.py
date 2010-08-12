@@ -1699,7 +1699,7 @@ Currently the magic system has the following functions:\n"""
         # set the __file__ global in the script's namespace
         prog_ns['__file__'] = filename
 
-        # pickle fix.  See iplib for an explanation.  But we need to make sure
+        # pickle fix.  See interactiveshell for an explanation.  But we need to make sure
         # that, if we overwrite __main__, we replace it at the end
         main_mod_name = prog_ns['__name__']
 
@@ -3327,10 +3327,10 @@ Defaulting color scheme to 'NoColor'"""
     def _get_pasted_lines(self, sentinel):
         """ Yield pasted lines until the user enters the given sentinel value.
         """
-        from IPython.core import iplib
+        from IPython.core import interactiveshell
         print "Pasting code; enter '%s' alone on the line to stop." % sentinel
         while True:
-            l = iplib.raw_input_original(':')
+            l = interactiveshell.raw_input_original(':')
             if l == sentinel:
                 return
             else:

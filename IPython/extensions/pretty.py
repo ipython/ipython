@@ -55,7 +55,7 @@ class PrettyResultDisplay(Plugin):
     """A component for pretty printing on steroids."""
 
     verbose = Bool(False, config=True)
-    shell = Instance('IPython.core.iplib.InteractiveShellABC')
+    shell = Instance('IPython.core.interactiveshell.InteractiveShellABC')
 
     # A list of (type, func_name), like
     # [(dict, 'my_dict_printer')]

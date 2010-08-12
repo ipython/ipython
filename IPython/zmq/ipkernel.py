@@ -27,7 +27,7 @@ import zmq
 
 # Local imports.
 from IPython.config.configurable import Configurable
-from IPython.core.iplib import InteractiveShell, InteractiveShellABC
+from IPython.core.interactiveshell import InteractiveShell, InteractiveShellABC
 from IPython.external.argparse import ArgumentParser
 from IPython.utils.traitlets import Instance
 from IPython.zmq.session import Session, Message
@@ -42,7 +42,7 @@ from exitpoller import ExitPollerUnix, ExitPollerWindows
 
 class Kernel(Configurable):
 
-    shell = Instance('IPython.core.iplib.InteractiveShellABC')
+    shell = Instance('IPython.core.interactiveshell.InteractiveShellABC')
     session = Instance('IPython.zmq.session.Session')
     reply_socket = Instance('zmq.Socket')
     pub_socket = Instance('zmq.Socket')

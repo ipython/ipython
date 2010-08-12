@@ -30,7 +30,7 @@ import re
 # RegExp for splitting line contents into pre-char//first word-method//rest.
 # For clarity, each group in on one line.
 
-# WARNING: update the regexp if the escapes in iplib are changed, as they
+# WARNING: update the regexp if the escapes in interactiveshell are changed, as they
 # are hardwired in.
 
 # Although it's not solely driven by the regex, note that:

@@ -30,8 +30,8 @@ import sys
 from contextlib import nested
 
 from IPython.core import ultratb
-from IPython.core.iplib import InteractiveShell
-from IPython.core.ipapp import load_default_config
+from IPython.core.interactiveshell import InteractiveShell
+from IPython.frontend.terminal.ipapp import load_default_config
 
 from IPython.utils.traitlets import Bool, Str, CBool
 from IPython.utils.io import ask_yes_no
