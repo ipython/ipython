@@ -43,7 +43,7 @@ if __name__ == '__main__':
                                         # for each group copied below
                                         
                                         # AttributeError: __abstractmethods__
-                                        r'\.core\.component',
+                                        r'\.config\.configurable',
                                         r'\.utils\.traitlets',
         
                                         # AttributeError: __provides__
