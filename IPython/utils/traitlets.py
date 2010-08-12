@@ -401,6 +401,8 @@ class HasTraits(object):
 
     def __init__(self, **kw):
         # Allow trait values to be set using keyword arguments.
+        # We need to use setattr for this to trigger validation and
+        # notifications.
         for key, value in kw.iteritems():
             setattr(self, key, value)
 
