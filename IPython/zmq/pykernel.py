@@ -29,9 +29,9 @@ import zmq
 from IPython.external.argparse import ArgumentParser
 from session import Session, Message
 from completer import KernelCompleter
-from .iostream import OutStream
-from .displayhook import DisplayHook
-from .exitpoller import ExitPollerUnix, ExitPollerWindows
+from iostream import OutStream
+from displayhook import DisplayHook
+from exitpoller import ExitPollerUnix, ExitPollerWindows
 
 #-----------------------------------------------------------------------------
 # Main kernel class

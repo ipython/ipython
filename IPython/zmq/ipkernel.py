@@ -26,28 +26,31 @@ import traceback
 import zmq
 
 # Local imports.
+from IPython.config.configurable import Configurable
+from IPython.core.iplib import InteractiveShell, InteractiveShellABC
 from IPython.external.argparse import ArgumentParser
-from session import Session, Message
+from IPython.utils.traitlets import Instance
+from IPython.zmq.session import Session, Message
 from completer import KernelCompleter
-from .iostream import OutStream
-from .displayhook import DisplayHook
-from .exitpoller import ExitPollerUnix, ExitPollerWindows
+from iostream import OutStream
+from displayhook import DisplayHook
+from exitpoller import ExitPollerUnix, ExitPollerWindows
 
 #-----------------------------------------------------------------------------
 # Main kernel class
 #-----------------------------------------------------------------------------
 
-class Kernel(object):
+class Kernel(Configurable):
 
-    def __init__(self, session, reply_socket, pub_socket, req_socket):
-        self.session = session
-        self.reply_socket = reply_socket
-        self.pub_socket = pub_socket
-        self.req_socket = req_socket
-        self.user_ns = {}
-        self.history = []
-        self.compiler = CommandCompiler()
-        self.completer = KernelCompleter(self.user_ns)
+    shell = Instance('IPython.core.iplib.InteractiveShellABC')
+    session = Instance('IPython.zmq.session.Session')
+    reply_socket = Instance('zmq.Socket')
+    pub_socket = Instance('zmq.Socket')
+    req_socket = Instance('zmq.Socket')
+
+    def __init__(self, **kwargs):
+        super(Kernel, self).__init__(**kwargs)
+        self.shell = InteractiveShell.instance()
         
         # Build dict of handlers for message types
         msg_types = [ 'execute_request', 'complete_request', 
@@ -89,8 +92,6 @@ class Kernel(object):
         self.pub_socket.send_json(pyin_msg)
 
         try:
-            comp_code = self.compiler(code, '<zmq-kernel>')
-
             # Replace raw_input. Note that is not sufficient to replace 
             # raw_input in the user namespace.
             raw_input = lambda prompt='': self.raw_input(prompt, ident, parent)
@@ -99,7 +100,8 @@ class Kernel(object):
             # Configure the display hook.
             sys.displayhook.set_parent(parent)
 
-            exec comp_code in self.user_ns, self.user_ns
+            self.shell.runlines(code)
+            # exec comp_code in self.user_ns, self.user_ns
         except:
             etype, evalue, tb = sys.exc_info()
             tb = traceback.format_exception(etype, evalue, tb)
@@ -155,7 +157,7 @@ class Kernel(object):
         print >> sys.__stdout__, completion_msg
 
     def complete(self, msg):
-        return self.completer.complete(msg.content.line, msg.content.text)
+        return self.shell.complete(msg.content.line)
 
     def object_info_request(self, ident, parent):
         context = parent['content']['oname'].split('.')
@@ -178,7 +180,7 @@ class Kernel(object):
             return None, context
 
         base_symbol_string = context[0]
-        symbol = self.user_ns.get(base_symbol_string, None)
+        symbol = self.shell.user_ns.get(base_symbol_string, None)
         if symbol is None:
             symbol = __builtin__.__dict__.get(base_symbol_string, None)
         if symbol is None:
@@ -270,7 +272,10 @@ def main():
     sys.displayhook = DisplayHook(session, pub_socket)
 
     # Create the kernel.
-    kernel = Kernel(session, reply_socket, pub_socket, req_socket)
+    kernel = Kernel(
+        session=session, reply_socket=reply_socket,
+        pub_socket=pub_socket, req_socket=req_socket
+    )
 
     # Configure this kernel/process to die on parent termination, if necessary.
     if namespace.parent:
