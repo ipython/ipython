@@ -7,7 +7,7 @@ class CompletionWidget(QtGui.QListWidget):
     """
 
     #--------------------------------------------------------------------------
-    # 'QWidget' interface
+    # 'QObject' interface
     #--------------------------------------------------------------------------
 
     def __init__(self, parent):
@@ -28,43 +28,55 @@ class CompletionWidget(QtGui.QListWidget):
 
         self.itemActivated.connect(self._complete_current)
 
+    def eventFilter(self, obj, event):
+        """ Reimplemented to handle keyboard input and to auto-hide when our
+            parent loses focus.
+        """
+        if obj == self.parent():
+            etype = event.type()
+
+            if etype == QtCore.QEvent.KeyPress:
+                key, text = event.key(), event.text()
+                if key in (QtCore.Qt.Key_Return, QtCore.Qt.Key_Enter, 
+                           QtCore.Qt.Key_Tab):
+                    self._complete_current()
+                    return True
+                elif key == QtCore.Qt.Key_Escape:
+                    self.hide()
+                    return True
+                elif key in (QtCore.Qt.Key_Up, QtCore.Qt.Key_Down, 
+                             QtCore.Qt.Key_PageUp, QtCore.Qt.Key_PageDown, 
+                             QtCore.Qt.Key_Home, QtCore.Qt.Key_End):
+                    QtGui.QListWidget.keyPressEvent(self, event)
+                    return True
+
+            elif etype == QtCore.QEvent.FocusOut:
+                self.hide()
+
+        return QtGui.QListWidget.eventFilter(self, obj, event)
+
+    #--------------------------------------------------------------------------
+    # 'QWidget' interface
+    #--------------------------------------------------------------------------
+
     def hideEvent(self, event):
-        """ Reimplemented to disconnect the cursor movement handler.
+        """ Reimplemented to disconnect signal handlers and event filter.
         """
         QtGui.QListWidget.hideEvent(self, event)
+        parent = self.parent()
         try:
-            self.parent().cursorPositionChanged.disconnect(self._update_current)
+            parent.cursorPositionChanged.disconnect(self._update_current)
         except TypeError:
             pass
-        
-    def keyPressEvent(self, event):
-        """ Reimplemented to update the list.
-        """
-        key, text = event.key(), event.text()
-
-        if key in (QtCore.Qt.Key_Return, QtCore.Qt.Key_Enter, 
-                   QtCore.Qt.Key_Tab):
-            self._complete_current()
-            event.accept()
-
-        elif key == QtCore.Qt.Key_Escape:
-            self.hide()
-            event.accept()
-
-        elif key in (QtCore.Qt.Key_Up, QtCore.Qt.Key_Down, 
-                     QtCore.Qt.Key_PageUp, QtCore.Qt.Key_PageDown, 
-                     QtCore.Qt.Key_Home, QtCore.Qt.Key_End):
-            QtGui.QListWidget.keyPressEvent(self, event)
-            event.accept()
-
-        else:
-            event.ignore()
+        parent.removeEventFilter(self)
 
     def showEvent(self, event):
-        """ Reimplemented to connect the cursor movement handler.
+        """ Reimplemented to connect signal handlers and event filter.
         """
         QtGui.QListWidget.showEvent(self, event)
-        self.parent().cursorPositionChanged.connect(self._update_current)
+        parent = self.parent()
+        parent.cursorPositionChanged.connect(self._update_current)
+        parent.installEventFilter(self)
 
     #--------------------------------------------------------------------------
     # 'CompletionWidget' interface

@@ -56,8 +56,7 @@ class ConsoleWidget(QtGui.QWidget):
         ----------
         kind : str, optional [default 'plain']            
             The type of text widget to use. Valid values are 'plain', which
-            specifies a QPlainTextEdit, and 'rich', which specifies an
-            QTextEdit.
+            specifies a QPlainTextEdit, and 'rich', which specifies a QTextEdit.
 
         parent : QWidget, optional [default None]
             The parent for this widget.
@@ -332,6 +331,12 @@ class ConsoleWidget(QtGui.QWidget):
         """
         raise NotImplementedError
 
+    def _execute_interrupt(self):
+        """ Attempts to stop execution. Returns whether this method has an
+            implementation.
+        """
+        return False
+
     def _prompt_started_hook(self):
         """ Called immediately after a new prompt is displayed.
         """
@@ -469,12 +474,6 @@ class ConsoleWidget(QtGui.QWidget):
             QtGui.qApp.sendEvent(self._control, new_event)
             return True
 
-        # If the completion widget accepts the key press, return immediately.
-        if self._completion_widget.isVisible():
-            self._completion_widget.keyPressEvent(event)
-            if event.isAccepted():
-                return True
-
         # Otherwise, proceed normally and do not return early.
         intercepted = False
         cursor = self._control.textCursor()
@@ -488,7 +487,10 @@ class ConsoleWidget(QtGui.QWidget):
             intercepted = True
 
         elif ctrl_down:
-            if key == QtCore.Qt.Key_K:
+            if key == QtCore.Qt.Key_C and self._executing:
+                intercepted = self._execute_interrupt()
+
+            elif key == QtCore.Qt.Key_K:
                 if self._in_buffer(position):
                     cursor.movePosition(QtGui.QTextCursor.EndOfLine,
                                         QtGui.QTextCursor.KeepAnchor)

@@ -34,22 +34,32 @@ class CallTipWidget(QtGui.QLabel):
         self.setWindowOpacity(self.style().styleHint(
                 QtGui.QStyle.SH_ToolTipLabel_Opacity, None, self) / 255.0)
 
+    def eventFilter(self, obj, event):
+        """ Reimplemented to hide on certain key presses and on parent focus
+            changes.
+        """
+        if obj == self.parent():
+            etype = event.type()
+            if (etype == QtCore.QEvent.KeyPress and
+                event.key() in (QtCore.Qt.Key_Enter, QtCore.Qt.Key_Return, 
+                                QtCore.Qt.Key_Escape)):
+                self.hide()
+            elif etype == QtCore.QEvent.FocusOut:
+                self.hide()
+
+        return QtGui.QLabel.eventFilter(self, obj, event)
+
     #--------------------------------------------------------------------------
     # 'QWidget' interface
     #--------------------------------------------------------------------------
 
     def hideEvent(self, event):
-        """ Reimplemented to disconnect the cursor movement handler.
+        """ Reimplemented to disconnect signal handlers and event filter.
         """
         QtGui.QLabel.hideEvent(self, event)
-        self.parent().cursorPositionChanged.disconnect(self._update_tip)
-
-    def keyPressEvent(self, event):
-        """ Reimplemented to hide on certain key presses.
-        """
-        if event.key() in (QtCore.Qt.Key_Enter, QtCore.Qt.Key_Return, 
-                           QtCore.Qt.Key_Escape):
-            self.hide()
+        parent = self.parent()
+        parent.cursorPositionChanged.disconnect(self._cursor_position_changed)
+        parent.removeEventFilter(self)
 
     def paintEvent(self, event):
         """ Reimplemented to paint the background panel.
@@ -63,10 +73,12 @@ class CallTipWidget(QtGui.QLabel):
         QtGui.QLabel.paintEvent(self, event)
 
     def showEvent(self, event):
-        """ Reimplemented to connect the cursor movement handler.
+        """ Reimplemented to connect signal handlers and event filter.
         """
         QtGui.QLabel.showEvent(self, event)
-        self.parent().cursorPositionChanged.connect(self._update_tip)
+        parent = self.parent()
+        parent.cursorPositionChanged.connect(self._cursor_position_changed)
+        parent.installEventFilter(self)
 
     #--------------------------------------------------------------------------
     # 'CallTipWidget' interface
@@ -139,38 +151,9 @@ class CallTipWidget(QtGui.QLabel):
             position = -1
         return position, commas
 
-    def _highlight_tip(self, tip, current_argument):
-        """ Highlight the current argument (arguments start at 0), ending at the
-            next comma or unmatched closing parenthesis.
-            
-            FIXME: This is an unreliable way to do things and it isn't being
-                   used right now. Instead, we should use inspect.getargspec
-                   metadata for this purpose.
-        """
-        start = tip.find('(')
-        if start != -1:
-            for i in xrange(current_argument):
-                start = tip.find(',', start)
-            if start != -1:
-                end = start + 1
-                while end < len(tip):
-                    char = tip[end]
-                    depth = 0
-                    if (char == ',' and depth == 0):
-                        break
-                    elif char == '(':
-                        depth += 1
-                    elif char == ')':
-                        if depth == 0:
-                            break
-                        depth -= 1
-                    end += 1
-                tip = tip[:start+1] + '<font color="blue">' + \
-                    tip[start+1:end] + '</font>' + tip[end:]
-                tip = tip.replace('\n', '<br/>')
-        return tip
+    #------ Signal handlers ----------------------------------------------------
 
-    def _update_tip(self):
+    def _cursor_position_changed(self):
         """ Updates the tip based on user cursor movement.
         """
         cursor = self.parent().textCursor()

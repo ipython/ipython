@@ -91,28 +91,6 @@ class FrontendWidget(HistoryConsoleWidget):
         document.contentsChange.connect(self._document_contents_change)
 
     #---------------------------------------------------------------------------
-    # 'QWidget' interface
-    #---------------------------------------------------------------------------
-
-    def focusOutEvent(self, event):
-        """ Reimplemented to hide calltips.
-        """
-        self._call_tip_widget.hide()
-        super(FrontendWidget, self).focusOutEvent(event)
-
-    def keyPressEvent(self, event):
-        """ Reimplemented to allow calltips to process events and to send
-            signals to the kernel.
-        """
-        if self._executing and event.key() == QtCore.Qt.Key_C and \
-                self._control_down(event.modifiers()):
-            self._interrupt_kernel()
-        else:
-            if self._call_tip_widget.isVisible():
-                self._call_tip_widget.keyPressEvent(event)
-            super(FrontendWidget, self).keyPressEvent(event)
-
-    #---------------------------------------------------------------------------
     # 'ConsoleWidget' abstract interface
     #---------------------------------------------------------------------------
 
@@ -131,6 +109,13 @@ class FrontendWidget(HistoryConsoleWidget):
         """
         self.kernel_manager.xreq_channel.execute(source)
         self._hidden = hidden
+
+    def _execute_interrupt(self):
+        """ Attempts to stop execution. Returns whether this method has an
+            implementation.
+        """
+        self._interrupt_kernel()
+        return True
         
     def _prompt_started_hook(self):
         """ Called immediately after a new prompt is displayed.
@@ -245,8 +230,8 @@ class FrontendWidget(HistoryConsoleWidget):
 
         # Send the metadata request to the kernel
         name = '.'.join(context)
-        self._calltip_id = self.kernel_manager.xreq_channel.object_info(name)
-        self._calltip_pos = self._get_cursor().position()
+        self._call_tip_id = self.kernel_manager.xreq_channel.object_info(name)
+        self._call_tip_pos = self._get_cursor().position()
         return True
 
     def _complete(self):
@@ -311,7 +296,7 @@ class FrontendWidget(HistoryConsoleWidget):
         pass
 
     def _document_contents_change(self, position, removed, added):
-        """ Called whenever the document's content changes. Display a calltip
+        """ Called whenever the document's content changes. Display a call tip
             if appropriate.
         """
         # Calculate where the cursor should be *after* the change:
@@ -377,8 +362,8 @@ class FrontendWidget(HistoryConsoleWidget):
 
     def _handle_object_info_reply(self, rep):
         cursor = self._get_cursor()
-        if rep['parent_header']['msg_id'] == self._calltip_id and \
-                cursor.position() == self._calltip_pos:
+        if rep['parent_header']['msg_id'] == self._call_tip_id and \
+                cursor.position() == self._call_tip_pos:
             doc = rep['content']['docstring']
             if doc:
                 self._call_tip_widget.show_docstring(doc)
