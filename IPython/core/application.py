@@ -6,7 +6,7 @@ All top-level applications should use the classes in this module for
 handling configuration and creating componenets.
 
 The job of an :class:`Application` is to create the master configuration 
-object and then create the components, passing the config to them.
+object and then create the configurable objects, passing the config to them.
 
 Authors:
 
@@ -76,7 +76,7 @@ class BaseAppConfigLoader(ArgParseConfigLoader):
 
 
 class Application(object):
-    """Load a config, construct components and set them running.
+    """Load a config, construct configurables and set them running.
 
     The configuration of an application can be done via three different Config
     objects, which are loaded and ultimately merged into a single one used
@@ -113,7 +113,7 @@ class Application(object):
     file_config = None
     #: Read from the system's command line flags.
     command_line_config = None
-    #: The final config that will be passed to the component.
+    #: The final config that will be passed to the main object.
     master_config = None
     #: A reference to the argv to be used (typically ends up being sys.argv[1:])
     argv = None
@@ -223,10 +223,10 @@ class Application(object):
         """Create defaults that can't be set elsewhere.
 
         For the most part, we try to set default in the class attributes
-        of Components.  But, defaults the top-level Application (which is
-        not a HasTraits or Component) are not set in this way.  Instead
+        of Configurables.  But, defaults the top-level Application (which is
+        not a HasTraits or Configurables) are not set in this way.  Instead
         we set them here.  The Global section is for variables like this that
-        don't belong to a particular component.
+        don't belong to a particular configurable.
         """
         c = Config()
         c.Global.ipython_dir = get_ipython_dir()
@@ -418,8 +418,8 @@ class Application(object):
         pass
 
     def construct(self):
-        """Construct the main components that make up this app."""
-        self.log.debug("Constructing components for application")
+        """Construct the main objects that make up this app."""
+        self.log.debug("Constructing main objects for application")
 
     def post_construct(self):
         """Do actions after construct, but before starting the app."""

@@ -1,0 +1,23 @@
+.. _plugins_overview:
+
+===============
+IPython plugins
+===============
+
+IPython has a plugin mechanism that allows users to create new and custom
+runtime components for IPython. Plugins are different from extensions:
+
+* Extensions are used to load plugins.
+* Extensions are a more advanced configuration system that gives you access
+  to the running IPython instance.
+* Plugins add entirely new capabilities to IPython.
+* Plugins are traited and configurable.
+
+At this point, our plugin system is brand new and the documentation is 
+minimal. If you are interested in creating a new plugin, see the following
+files:
+
+* :file:`IPython/extensions/parallemagic.py`
+* :file:`IPython/extensions/pretty.`
+
+As well as our documentation on the configuration system and extensions.

@@ -360,6 +360,13 @@ class TestHasTraits(TestCase):
         traits = a.traits(config_key=lambda v: True)
         self.assertEquals(traits, dict(i=A.i, f=A.f, j=A.j))
 
+    def test_init(self):
+        class A(HasTraits):
+            i = Int()
+            x = Float()
+        a = A(i=1, x=10.0)
+        self.assertEquals(a.i, 1)
+        self.assertEquals(a.x, 10.0)
 
 #-----------------------------------------------------------------------------
 # Tests for specific trait types

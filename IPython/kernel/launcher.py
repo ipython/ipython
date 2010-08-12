@@ -19,7 +19,7 @@ import os
 import re
 import sys
 
-from IPython.core.component import Component
+from IPython.config.configurable import Configurable
 from IPython.external import Itpl
 from IPython.utils.traitlets import Str, Int, List, Unicode
 from IPython.utils.path import get_ipython_module_path
@@ -77,7 +77,7 @@ class UnknownStatus(LauncherError):
     pass
 
 
-class BaseLauncher(Component):
+class BaseLauncher(Configurable):
     """An asbtraction for starting, stopping and signaling a process."""
 
     # In all of the launchers, the work_dir is where child processes will be
@@ -89,9 +89,8 @@ class BaseLauncher(Component):
     # the --work-dir option.
     work_dir = Unicode(u'')
 
-    def __init__(self, work_dir, parent=None, name=None, config=None):
-        super(BaseLauncher, self).__init__(parent, name, config)
-        self.work_dir = work_dir
+    def __init__(self, work_dir=u'', config=None):
+        super(BaseLauncher, self).__init__(work_dir=work_dir, config=config)
         self.state = 'before' # can be before, running, after
         self.stop_deferreds = []
         self.start_data = None
@@ -265,9 +264,9 @@ class LocalProcessLauncher(BaseLauncher):
     # spawnProcess.
     cmd_and_args = List([])
 
-    def __init__(self, work_dir, parent=None, name=None, config=None):
+    def __init__(self, work_dir=u'', config=None):
         super(LocalProcessLauncher, self).__init__(
-            work_dir, parent, name, config
+            work_dir=work_dir, config=config
         )
         self.process_protocol = None
         self.start_deferred = None
@@ -356,9 +355,9 @@ class LocalEngineSetLauncher(BaseLauncher):
         ['--log-to-file','--log-level', '40'], config=True
     )
 
-    def __init__(self, work_dir, parent=None, name=None, config=None):
+    def __init__(self, work_dir=u'', config=None):
         super(LocalEngineSetLauncher, self).__init__(
-            work_dir, parent, name, config
+            work_dir=work_dir, config=config
         )
         self.launchers = []
 
@@ -367,7 +366,7 @@ class LocalEngineSetLauncher(BaseLauncher):
         self.cluster_dir = unicode(cluster_dir)
         dlist = []
         for i in range(n):
-            el = LocalEngineLauncher(self.work_dir, self)
+            el = LocalEngineLauncher(work_dir=self.work_dir, config=self.config)
             # Copy the engine args over to each engine launcher.
             import copy
             el.engine_args = copy.deepcopy(self.engine_args)
@@ -560,9 +559,9 @@ class WindowsHPCLauncher(BaseLauncher):
     scheduler = Str('', config=True)
     job_cmd = Str(find_job_cmd(), config=True)
 
-    def __init__(self, work_dir, parent=None, name=None, config=None):
+    def __init__(self, work_dir=u'', config=None):
         super(WindowsHPCLauncher, self).__init__(
-            work_dir, parent, name, config
+            work_dir=work_dir, config=config
         )
 
     @property
@@ -633,9 +632,9 @@ class WindowsHPCControllerLauncher(WindowsHPCLauncher):
     extra_args = List([], config=False)
 
     def write_job_file(self, n):
-        job = IPControllerJob(self)
+        job = IPControllerJob(config=self.config)
 
-        t = IPControllerTask(self)
+        t = IPControllerTask(config=self.config)
         # The tasks work directory is *not* the actual work directory of 
         # the controller. It is used as the base path for the stdout/stderr
         # files that the scheduler redirects to.
@@ -664,10 +663,10 @@ class WindowsHPCEngineSetLauncher(WindowsHPCLauncher):
     extra_args = List([], config=False)
 
     def write_job_file(self, n):
-        job = IPEngineSetJob(self)
+        job = IPEngineSetJob(config=self.config)
 
         for i in range(n):
-            t = IPEngineTask(self)
+            t = IPEngineTask(config=self.config)
             # The tasks work directory is *not* the actual work directory of 
             # the engine. It is used as the base path for the stdout/stderr
             # files that the scheduler redirects to.
@@ -725,9 +724,9 @@ class BatchSystemLauncher(BaseLauncher):
     # The full path to the instantiated batch script.
     batch_file = Unicode(u'')
 
-    def __init__(self, work_dir, parent=None, name=None, config=None):
+    def __init__(self, work_dir=u'', config=None):
         super(BatchSystemLauncher, self).__init__(
-            work_dir, parent, name, config
+            work_dir=work_dir, config=config
         )
         self.batch_file = os.path.join(self.work_dir, self.batch_file_name)
         self.context = {}

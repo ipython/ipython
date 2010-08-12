@@ -37,8 +37,8 @@ by doing::
 
 from IPython.core.error import TryNext
 from IPython.external import pretty
-from IPython.core.component import Component
-from IPython.utils.traitlets import Bool, List
+from IPython.core.plugin import Plugin
+from IPython.utils.traitlets import Bool, List, Instance
 from IPython.utils.io import Term
 from IPython.utils.autoattr import auto_attr
 from IPython.utils.importstring import import_item
@@ -51,10 +51,11 @@ from IPython.utils.importstring import import_item
 _loaded = False
 
 
-class PrettyResultDisplay(Component):
+class PrettyResultDisplay(Plugin):
     """A component for pretty printing on steroids."""
 
     verbose = Bool(False, config=True)
+    shell = Instance('IPython.core.iplib.InteractiveShellABC')
 
     # A list of (type, func_name), like
     # [(dict, 'my_dict_printer')]
@@ -66,8 +67,8 @@ class PrettyResultDisplay(Component):
     # The final argument can also be a callable
     defaults_for_type_by_name = List(default_value=[], config=True)
 
-    def __init__(self, parent, name=None, config=None):
-        super(PrettyResultDisplay, self).__init__(parent, name=name, config=config)
+    def __init__(self, shell=None, config=None):
+        super(PrettyResultDisplay, self).__init__(shell=shell, config=config)
         self._setup_defaults()
 
     def _setup_defaults(self):
@@ -86,16 +87,6 @@ class PrettyResultDisplay(Component):
             return import_item(func_name)
         else:
             raise TypeError('func_name must be a str or callable, got: %r' % func_name)
-
-    # Access other components like this rather than by a regular attribute.
-    # This won't lookup the InteractiveShell object until it is used and
-    # then it is cached.  This is both efficient and couples this class 
-    # more loosely to InteractiveShell.
-    @auto_attr
-    def shell(self):
-        return Component.get_instances(
-            root=self.root,
-            klass='IPython.core.iplib.InteractiveShell')[0]
 
     def __call__(self, otherself, arg):
         """Uber-pretty-printing display hook.
@@ -132,10 +123,10 @@ def load_ipython_extension(ip):
     """Load the extension in IPython as a hook."""
     global _loaded
     if not _loaded:
-        prd = PrettyResultDisplay(ip, name='pretty_result_display')
-        ip.set_hook('result_display', prd, priority=99)
+        plugin = PrettyResultDisplay(shell=ip, config=ip.config)
+        ip.set_hook('result_display', plugin, priority=99)
         _loaded = True
-        return prd
+        ip.plugin_manager.register_plugin('pretty_result_display', plugin)
 
 def unload_ipython_extension(ip):
     """Unload the extension."""
