@@ -332,7 +332,7 @@ def launch_kernel(xrep_port=0, pub_port=0, req_port=0, independent=False):
         req_port = ports.pop(0)
         
     # Spawn a kernel.
-    command = 'from IPython.zmq.kernel import main; main()'
+    command = 'from IPython.zmq.ipkernel import main; main()'
     arguments = [ sys.executable, '-c', command, '--xrep', str(xrep_port), 
                   '--pub', str(pub_port), '--req', str(req_port) ]
     if independent:
