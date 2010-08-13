@@ -225,7 +225,7 @@ class IPControllerApp(ApplicationWithClusterDir):
         controller_service.setServiceParent(self.main_service)
         # The client tub and all its refereceables
         try:
-            csfactory = FCClientServiceFactory(self.master_config, controller_service)
+            csfactory = FCClientServiceFactory(config=self.master_config, adaptee=controller_service)
         except FURLError, e:
             log.err(e)
             self.exit(0)
@@ -233,7 +233,7 @@ class IPControllerApp(ApplicationWithClusterDir):
         client_service.setServiceParent(self.main_service)
         # The engine tub
         try:
-            esfactory = FCEngineServiceFactory(self.master_config, controller_service)
+            esfactory = FCEngineServiceFactory(config=self.master_config, adaptee=controller_service)
         except FURLError, e:
             log.err(e)
             self.exit(0)

@@ -32,7 +32,7 @@ class IConfiguredObjectFactory(zi.Interface):
     subclass of :class:`IPython.config.configurable.Configurable`.
     """
 
-    def __init__(config):
+    def __init__(config=None):
         """Get ready to configure the object using config."""
 
     def create():

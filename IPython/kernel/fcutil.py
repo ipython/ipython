@@ -212,8 +212,8 @@ class FCServiceFactory(AdaptedConfiguredObjectFactory):
     reuse_furls = Bool(False, config=True)
     interfaces = Instance(klass=Config, kw={}, allow_none=False, config=True)
 
-    def __init__(self, config, adaptee):
-        super(FCServiceFactory, self).__init__(config, adaptee)
+    def __init__(self, config=None, adaptee=None):
+        super(FCServiceFactory, self).__init__(config=config, adaptee=adaptee)
         self._check_reuse_furls()
 
     def _ip_changed(self, name, old, new):
