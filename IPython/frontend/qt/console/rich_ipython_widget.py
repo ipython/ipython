@@ -22,14 +22,12 @@ class RichIPythonWidget(IPythonWidget):
         super(RichIPythonWidget, self).__init__(kind='rich', parent=parent)
     
     #---------------------------------------------------------------------------
-    # 'FrontendWidget' interface
+    # 'FrontendWidget' protected interface
     #---------------------------------------------------------------------------
 
     def _handle_execute_payload(self, payload):
         """ Reimplemented to handle pylab plot payloads.
         """
-        super(RichIPythonWidget, self)._handle_execute_payload(payload)
-
         plot_payload = payload.get('plot', None)
         if plot_payload and plot_payload['format'] == 'svg':
             try:
@@ -41,3 +39,5 @@ class RichIPythonWidget(IPythonWidget):
                 cursor.insertBlock()
                 cursor.insertImage(image)
                 cursor.insertBlock()
+        else:
+            super(RichIPythonWidget, self)._handle_execute_payload(payload)

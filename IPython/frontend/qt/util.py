@@ -29,16 +29,16 @@ class MetaQObjectHasTraits(MetaQObject, MetaHasTraits):
 #-----------------------------------------------------------------------------
         
 def image_from_svg(string, size=None):
-    """ Convert a string containing SVG data into a QImage.
+    """ Convert a SVG document to a QImage.
 
     Parameters:
     -----------
     string : str
-        A Python string containing the SVG data.
+        A Python string containing a SVG document.
 
-    size : QSize or None [default None]
-        The size of the image that is produced. If not specified, the SVG data's
-        default size is used.
+    size : QSize, optional
+        The size of the image that is produced. If not specified, the SVG
+        document's default size is used.
     
     Raises:
     -------
@@ -47,18 +47,18 @@ def image_from_svg(string, size=None):
 
     Returns:
     --------
-    A QImage with format QImage.Format_ARGB32_Premultiplied.
+    A QImage of format QImage.Format_ARGB32.
     """
     from PyQt4 import QtSvg
 
-    bytes = QtCore.QByteArray(string)
+    bytes = QtCore.QByteArray.fromRawData(string) # shallow copy
     renderer = QtSvg.QSvgRenderer(bytes)
     if not renderer.isValid():
         raise ValueError('Invalid SVG data.')
 
     if size is None:
         size = renderer.defaultSize()
-    image = QtGui.QImage(size, QtGui.QImage.Format_ARGB32_Premultiplied)
+    image = QtGui.QImage(size, QtGui.QImage.Format_ARGB32)
     painter = QtGui.QPainter(image)
     renderer.render(painter)
     return image

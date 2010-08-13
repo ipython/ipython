@@ -113,6 +113,20 @@ class ConsoleWidget(QtGui.QWidget):
     # 'ConsoleWidget' public interface
     #---------------------------------------------------------------------------
 
+    def can_paste(self):
+        """ Returns whether text can be pasted from the clipboard.
+        """
+        # Accept only text that can be ASCII encoded.
+        if self._control.textInteractionFlags() & QtCore.Qt.TextEditable:
+            text = QtGui.QApplication.clipboard().text()
+            if not text.isEmpty():
+                try:
+                    str(text)
+                    return True
+                except UnicodeEncodeError:
+                    pass
+        return False
+
     def clear(self, keep_input=False):
         """ Clear the console, then write a new prompt. If 'keep_input' is set,
             restores the old input buffer when the new prompt is written.
@@ -262,8 +276,9 @@ class ConsoleWidget(QtGui.QWidget):
     def paste(self):
         """ Paste the contents of the clipboard into the input region.
         """
-        self._keep_cursor_in_buffer()
-        self._control.paste()
+        if self.can_paste():
+            self._keep_cursor_in_buffer()
+            self._control.paste()
 
     def print_(self, printer):
         """ Print the contents of the ConsoleWidget to the specified QPrinter.
@@ -446,6 +461,7 @@ class ConsoleWidget(QtGui.QWidget):
             control = QtGui.QPlainTextEdit()
         elif kind == 'rich':
             control = QtGui.QTextEdit()
+            control.setAcceptRichText(False)
         else:
             raise ValueError("Kind %s unknown." % repr(kind))
         layout.addWidget(control)
@@ -895,7 +911,7 @@ class ConsoleWidget(QtGui.QWidget):
 
         paste_action = QtGui.QAction('Paste', menu)
         paste_action.triggered.connect(self.paste)
-        paste_action.setEnabled(self._control.canPaste())
+        paste_action.setEnabled(self.can_paste())
         paste_action.setShortcut(QtGui.QKeySequence.Paste)
         menu.addAction(paste_action)
         menu.addSeparator()
