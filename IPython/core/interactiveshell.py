@@ -255,7 +255,7 @@ class InteractiveShell(Configurable, Magic):
         self.init_logger()
         self.init_alias()
         self.init_builtins()
-        
+
         # pre_config_initialization
         self.init_shadow_hist()
 
