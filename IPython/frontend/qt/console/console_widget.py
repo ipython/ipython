@@ -221,8 +221,13 @@ class ConsoleWidget(QtGui.QWidget):
     def _set_input_buffer(self, string):
         """ Replaces the text in the input buffer with 'string'.
         """
+        # For now, it is an error to modify the input buffer during execution.
+        if self._executing:
+            raise RuntimeError("Cannot change input buffer during execution.")
+
         # Remove old text.
         cursor = self._get_end_cursor()
+        cursor.beginEditBlock()
         cursor.setPosition(self._prompt_pos, QtGui.QTextCursor.KeepAnchor)
         cursor.removeSelectedText()
 
@@ -236,6 +241,7 @@ class ConsoleWidget(QtGui.QWidget):
                 else:
                     self._append_html(self._continuation_prompt_html)
                 self._append_plain_text(lines[i])
+        cursor.endEditBlock()
         self._control.moveCursor(QtGui.QTextCursor.End)
 
     input_buffer = property(_get_input_buffer, _set_input_buffer)
@@ -392,12 +398,14 @@ class ConsoleWidget(QtGui.QWidget):
             ANSI codes if enabled.
         """
         cursor = self._get_end_cursor()
+        cursor.beginEditBlock()
         if self.ansi_codes:
             for substring in self._ansi_processor.split_string(text):
                 format = self._ansi_processor.get_format()
                 cursor.insertText(substring, format)
         else:
             cursor.insertText(text)
+        cursor.endEditBlock()
 
     def _append_plain_text_keeping_prompt(self, text):
         """ Writes 'text' after the current prompt, then restores the old prompt
@@ -490,8 +498,8 @@ class ConsoleWidget(QtGui.QWidget):
             intercepted = True
 
         elif ctrl_down:
-            if key == QtCore.Qt.Key_C and self._executing:
-                intercepted = self._execute_interrupt()
+            if key == QtCore.Qt.Key_C:
+                intercepted = self._executing and self._execute_interrupt()
 
             elif key == QtCore.Qt.Key_K:
                 if self._in_buffer(position):
@@ -563,7 +571,7 @@ class ConsoleWidget(QtGui.QWidget):
                 intercepted = not self._in_buffer(position - 1)
 
             elif key == QtCore.Qt.Key_Home:
-                cursor.movePosition(QtGui.QTextCursor.StartOfLine)
+                cursor.movePosition(QtGui.QTextCursor.StartOfBlock)
                 start_line = cursor.blockNumber()
                 if start_line == self._get_prompt_cursor().blockNumber():
                     start_pos = self._prompt_pos
@@ -576,15 +584,15 @@ class ConsoleWidget(QtGui.QWidget):
                     self._set_position(start_pos)
                 intercepted = True
 
-            elif key == QtCore.Qt.Key_Backspace and not alt_down:
+            elif key == QtCore.Qt.Key_Backspace:
 
                 # Line deletion (remove continuation prompt)
                 len_prompt = len(self._continuation_prompt)
                 if not self._reading and \
                         cursor.columnNumber() == len_prompt and \
                         position != self._prompt_pos:
-                    cursor.setPosition(position - len_prompt, 
-                                       QtGui.QTextCursor.KeepAnchor)
+                    cursor.movePosition(QtGui.QTextCursor.StartOfBlock,
+                                        QtGui.QTextCursor.KeepAnchor)
                     cursor.removeSelectedText()
 
                 # Regular backwards deletion
@@ -733,10 +741,10 @@ class ConsoleWidget(QtGui.QWidget):
         """
         document = self._control.document()
         position -= 1
-        while self._in_buffer(position) and \
+        while position >= self._prompt_pos and \
                 not document.characterAt(position).isLetterOrNumber():
             position -= 1
-        while self._in_buffer(position) and \
+        while position >= self._prompt_pos and \
                 document.characterAt(position).isLetterOrNumber():
             position -= 1
         cursor = self._control.textCursor()
@@ -764,6 +772,7 @@ class ConsoleWidget(QtGui.QWidget):
         """ Insert HTML using the specified cursor in such a way that future
             formatting is unaffected.
         """
+        cursor.beginEditBlock()
         cursor.insertHtml(html)
 
         # After inserting HTML, the text document "remembers" it's in "html
@@ -776,6 +785,7 @@ class ConsoleWidget(QtGui.QWidget):
             cursor.removeSelectedText()
         cursor.movePosition(QtGui.QTextCursor.Right)
         cursor.insertText(' ', QtGui.QTextCharFormat())
+        cursor.endEditBlock()
 
     def _insert_into_buffer(self, text):
         """ Inserts text into the input buffer at the current cursor position,
@@ -799,19 +809,29 @@ class ConsoleWidget(QtGui.QWidget):
     def _in_buffer(self, position):
         """ Returns whether the given position is inside the editing region.
         """
-        return position >= self._prompt_pos
+        cursor = self._control.textCursor()
+        cursor.setPosition(position)
+        line = cursor.blockNumber()
+        prompt_line = self._get_prompt_cursor().blockNumber()
+        if line == prompt_line:
+            return position >= self._prompt_pos
+        elif line > prompt_line:
+            cursor.movePosition(QtGui.QTextCursor.StartOfBlock)
+            prompt_pos = cursor.position() + len(self._continuation_prompt)
+            return position >= prompt_pos
+        return False
 
     def _keep_cursor_in_buffer(self):
         """ Ensures that the cursor is inside the editing region. Returns
             whether the cursor was moved.
         """
         cursor = self._control.textCursor()
-        if cursor.position() < self._prompt_pos:
+        if self._in_buffer(cursor.position()):
+            return False
+        else:
             cursor.movePosition(QtGui.QTextCursor.End)
             self._control.setTextCursor(cursor)
             return True
-        else:
-            return False
 
     def _prompt_started(self):
         """ Called immediately after a new prompt is displayed.

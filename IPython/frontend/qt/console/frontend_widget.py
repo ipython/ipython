@@ -261,7 +261,7 @@ class FrontendWidget(HistoryConsoleWidget):
         """
         if cursor is None:
             cursor = self._get_cursor()
-        cursor.movePosition(QtGui.QTextCursor.StartOfLine, 
+        cursor.movePosition(QtGui.QTextCursor.StartOfBlock, 
                             QtGui.QTextCursor.KeepAnchor)
         text = str(cursor.selection().toPlainText())
         return self._completion_lexer.get_context(text)
