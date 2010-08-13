@@ -941,22 +941,16 @@ class ConsoleWidget(QtGui.QWidget):
         """
         menu = QtGui.QMenu()
 
-        copy_action = QtGui.QAction('Copy', menu)
-        copy_action.triggered.connect(self.copy)
+        copy_action = menu.addAction('Copy', self.copy)
         copy_action.setEnabled(self._get_cursor().hasSelection())
         copy_action.setShortcut(QtGui.QKeySequence.Copy)
-        menu.addAction(copy_action)
 
-        paste_action = QtGui.QAction('Paste', menu)
-        paste_action.triggered.connect(self.paste)
+        paste_action = menu.addAction('Paste', self.paste)
         paste_action.setEnabled(self.can_paste())
         paste_action.setShortcut(QtGui.QKeySequence.Paste)
-        menu.addAction(paste_action)
-        menu.addSeparator()
 
-        select_all_action = QtGui.QAction('Select All', menu)
-        select_all_action.triggered.connect(self.select_all)
-        menu.addAction(select_all_action)
+        menu.addSeparator()
+        menu.addAction('Select All', self.select_all)
 
         menu.exec_(self._control.mapToGlobal(pos))
 
