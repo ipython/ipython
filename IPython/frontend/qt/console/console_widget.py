@@ -1,5 +1,6 @@
 # Standard library imports
 import sys
+from textwrap import dedent
 
 # System library imports
 from PyQt4 import QtCore, QtGui
@@ -239,24 +240,6 @@ class ConsoleWidget(QtGui.QWidget):
 
     input_buffer = property(_get_input_buffer, _set_input_buffer)
 
-    def _get_input_buffer_cursor_line(self):
-        """ The text in the line of the input buffer in which the user's cursor
-            rests. Returns a string if there is such a line; otherwise, None.
-        """
-        if self._executing:
-            return None
-        cursor = self._control.textCursor()
-        if cursor.position() >= self._prompt_pos:
-            text = self._get_block_plain_text(cursor.block())
-            if cursor.blockNumber() == self._get_prompt_cursor().blockNumber():
-                return text[len(self._prompt):]
-            else:
-                return text[len(self._continuation_prompt):]
-        else:
-            return None
-
-    input_buffer_cursor_line = property(_get_input_buffer_cursor_line)
-
     def _get_font(self):
         """ The base font being used by the ConsoleWidget.
         """
@@ -276,9 +259,13 @@ class ConsoleWidget(QtGui.QWidget):
     def paste(self):
         """ Paste the contents of the clipboard into the input region.
         """
-        if self.can_paste():
-            self._keep_cursor_in_buffer()
-            self._control.paste()
+        if self._control.textInteractionFlags() & QtCore.Qt.TextEditable:
+            try:
+                text = str(QtGui.QApplication.clipboard().text())
+            except UnicodeEncodeError:
+                pass
+            else:
+                self._insert_into_buffer(dedent(text))
 
     def print_(self, printer):
         """ Print the contents of the ConsoleWidget to the specified QPrinter.
@@ -707,6 +694,22 @@ class ConsoleWidget(QtGui.QWidget):
         cursor.movePosition(QtGui.QTextCursor.End)
         return cursor
 
+    def _get_input_buffer_cursor_line(self):
+        """ The text in the line of the input buffer in which the user's cursor
+            rests. Returns a string if there is such a line; otherwise, None.
+        """
+        if self._executing:
+            return None
+        cursor = self._control.textCursor()
+        if cursor.position() >= self._prompt_pos:
+            text = self._get_block_plain_text(cursor.block())
+            if cursor.blockNumber() == self._get_prompt_cursor().blockNumber():
+                return text[len(self._prompt):]
+            else:
+                return text[len(self._continuation_prompt):]
+        else:
+            return None
+
     def _get_prompt_cursor(self):
         """ Convenience method that returns a cursor for the prompt position.
         """
@@ -763,20 +766,35 @@ class ConsoleWidget(QtGui.QWidget):
         """
         cursor.insertHtml(html)
 
-        # After inserting HTML, the text document "remembers" the current
-        # formatting, which means that subsequent calls adding plain text
-        # will result in similar formatting, a behavior that we do not want. To
-        # prevent this, we make sure that the last character has no formatting.
+        # After inserting HTML, the text document "remembers" it's in "html
+        # mode", which means that subsequent calls adding plain text will result
+        # in unwanted formatting, lost tab characters, etc. The following code
+        # hacks around this behavior, which I consider to be a bug in Qt.
         cursor.movePosition(QtGui.QTextCursor.Left, 
                             QtGui.QTextCursor.KeepAnchor)
-        if cursor.selection().toPlainText().trimmed().isEmpty():
-            # If the last character is whitespace, it doesn't matter how it's
-            # formatted, so just clear the formatting.
-            cursor.setCharFormat(QtGui.QTextCharFormat())
-        else:
-            # Otherwise, add an unformatted space.
-            cursor.movePosition(QtGui.QTextCursor.Right)
-            cursor.insertText(' ', QtGui.QTextCharFormat())
+        if cursor.selection().toPlainText() == ' ':
+            cursor.removeSelectedText()
+        cursor.movePosition(QtGui.QTextCursor.Right)
+        cursor.insertText(' ', QtGui.QTextCharFormat())
+
+    def _insert_into_buffer(self, text):
+        """ Inserts text into the input buffer at the current cursor position,
+            ensuring that continuation prompts are inserted as necessary.
+        """
+        lines = str(text).splitlines(True)
+        if lines:
+            self._keep_cursor_in_buffer()
+            cursor = self._control.textCursor()
+            cursor.beginEditBlock()
+            cursor.insertText(lines[0])
+            for line in lines[1:]:
+                if self._continuation_prompt_html is None:
+                    cursor.insertText(self._continuation_prompt)
+                else:
+                    self._insert_html(cursor, self._continuation_prompt_html)
+                cursor.insertText(line)
+            cursor.endEditBlock()
+            self._control.setTextCursor(cursor)
 
     def _in_buffer(self, position):
         """ Returns whether the given position is inside the editing region.

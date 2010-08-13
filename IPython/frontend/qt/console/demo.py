@@ -1,4 +1,4 @@
-""" A demo of Qt console-style IPython frontend.
+""" A demo of the Qt console-style IPython frontend.
 """
 
 # Systemm library imports

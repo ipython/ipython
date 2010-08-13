@@ -245,7 +245,7 @@ class FrontendWidget(HistoryConsoleWidget):
         # Send the completion request to the kernel
         text = '.'.join(context)
         self._complete_id = self.kernel_manager.xreq_channel.complete(
-            text, self.input_buffer_cursor_line, self.input_buffer)
+            text, self._get_input_buffer_cursor_line(), self.input_buffer)
         self._complete_pos = self._get_cursor().position()
         return True
 
