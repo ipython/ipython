@@ -55,18 +55,6 @@ def get_default_editor():
 raw_input_original = raw_input
 
 
-class SeparateStr(Str):
-    """A Str subclass to validate separate_in, separate_out, etc.
-
-    This is a Str based trait that converts '0'->'' and '\\n'->'\n'.
-    """
-
-    def validate(self, obj, value):
-        if value == '0': value = ''
-        value = value.replace('\\n','\n')
-        return super(SeparateStr, self).validate(obj, value)
-
-
 #-----------------------------------------------------------------------------
 # Main class
 #-----------------------------------------------------------------------------
@@ -75,7 +63,6 @@ class SeparateStr(Str):
 class TerminalInteractiveShell(InteractiveShell):
 
     autoedit_syntax = CBool(False, config=True)
-    autoindent = CBool(True, config=True)
     banner = Str('')
     banner1 = Str(default_banner, config=True)
     banner2 = Str('', config=True)
@@ -93,11 +80,6 @@ class TerminalInteractiveShell(InteractiveShell):
     pager = Str('less', config=True)
 
     screen_length = Int(0, config=True)
-    
-    # Use custom TraitTypes that convert '0'->'' and '\\n'->'\n'
-    separate_in = SeparateStr('\n', config=True)
-    separate_out = SeparateStr('', config=True)
-    separate_out2 = SeparateStr('', config=True)
     term_title = CBool(False, config=True)
 
     def __init__(self, config=None, ipython_dir=None, user_ns=None,

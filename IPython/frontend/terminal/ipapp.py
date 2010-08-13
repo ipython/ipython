@@ -85,10 +85,10 @@ class IPAppConfigLoader(BaseAppConfigLoader):
             The default is '1'.""",
             metavar='InteractiveShell.autocall')
         paa('--autoindent',
-            action='store_true', dest='TerminalInteractiveShell.autoindent',
+            action='store_true', dest='InteractiveShell.autoindent',
             help='Turn on autoindenting.')
         paa('--no-autoindent',
-            action='store_false', dest='TerminalInteractiveShell.autoindent',
+            action='store_false', dest='InteractiveShell.autoindent',
             help='Turn off autoindenting.')
         paa('--automagic',
             action='store_true', dest='InteractiveShell.automagic',
@@ -241,17 +241,17 @@ class IPAppConfigLoader(BaseAppConfigLoader):
             default.""",
             metavar='TerminalInteractiveShell.screen_length')
         paa('--separate-in','-si',
-            type=str, dest='TerminalInteractiveShell.separate_in',
+            type=str, dest='InteractiveShell.separate_in',
             help="Separator before input prompts.  Default '\\n'.",
-            metavar='TerminalInteractiveShell.separate_in')
+            metavar='InteractiveShell.separate_in')
         paa('--separate-out','-so',
-            type=str, dest='TerminalInteractiveShell.separate_out',
+            type=str, dest='InteractiveShell.separate_out',
             help="Separator before output prompts.  Default 0 (nothing).",
-            metavar='TerminalInteractiveShell.separate_out')
+            metavar='InteractiveShell.separate_out')
         paa('--separate-out2','-so2', 
-            type=str, dest='TerminalInteractiveShell.separate_out2',
+            type=str, dest='InteractiveShell.separate_out2',
             help="Separator after output prompts.  Default 0 (nonight).",
-            metavar='TerminalInteractiveShell.separate_out2')
+            metavar='InteractiveShell.separate_out2')
         paa('--no-sep',
             action='store_true', dest='Global.nosep',
             help="Eliminate all spacing between prompts.")
@@ -448,17 +448,17 @@ class IPythonApp(Application):
                 config.InteractiveShell.prompt_in1 = '>>> '
                 config.InteractiveShell.prompt_in2 = '... '
                 config.InteractiveShell.prompt_out = ''
-                config.TerminalInteractiveShell.separate_in = \
-                    config.TerminalInteractiveShell.separate_out = \
-                    config.TerminalInteractiveShell.separate_out2 = ''
+                config.InteractiveShell.separate_in = \
+                    config.InteractiveShell.separate_out = \
+                    config.InteractiveShell.separate_out2 = ''
                 config.InteractiveShell.colors = 'NoColor'
                 config.InteractiveShell.xmode = 'Plain'
 
         if hasattr(config.Global, 'nosep'):
             if config.Global.nosep:
-                config.TerminalInteractiveShell.separate_in = \
-                config.TerminalInteractiveShell.separate_out = \
-                config.TerminalInteractiveShell.separate_out2 = ''
+                config.InteractiveShell.separate_in = \
+                config.InteractiveShell.separate_out = \
+                config.InteractiveShell.separate_out2 = ''
 
         # if there is code of files to run from the cmd line, don't interact
         # unless the -i flag (Global.force_interact) is true.

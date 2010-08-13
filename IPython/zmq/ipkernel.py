@@ -267,8 +267,8 @@ def main():
     print >>sys.__stdout__, "REQ Channel on port", req_port
 
     # Redirect input streams and set a display hook.
-    sys.stdout = OutStream(session, pub_socket, u'stdout')
-    sys.stderr = OutStream(session, pub_socket, u'stderr')
+    # sys.stdout = OutStream(session, pub_socket, u'stdout')
+    # sys.stderr = OutStream(session, pub_socket, u'stderr')
     sys.displayhook = DisplayHook(session, pub_socket)
 
     # Create the kernel.

@@ -49,7 +49,7 @@ c = get_config()
 
 # c.TerminalInteractiveShell.autoedit_syntax = False
 
-# c.TerminalInteractiveShell.autoindent = True
+# c.InteractiveShell.autoindent = True
 
 # c.InteractiveShell.automagic = False
 
@@ -116,9 +116,9 @@ c = get_config()
 
 # c.TerminalInteractiveShell.screen_length = 0
 
-# c.TerminalInteractiveShell.separate_in = '\n'
-# c.TerminalInteractiveShell.separate_out = ''
-# c.TerminalInteractiveShell.separate_out2 = ''
+# c.InteractiveShell.separate_in = '\n'
+# c.InteractiveShell.separate_out = ''
+# c.InteractiveShell.separate_out2 = ''
 
 # c.InteractiveShell.system_header = "IPython system call: "
 

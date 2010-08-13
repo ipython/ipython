@@ -10,9 +10,9 @@ c.InteractiveShell.prompt_out = '<\#> '
 
 c.InteractiveShell.prompts_pad_left = True
 
-c.TerminalInteractiveShell.separate_in = ''
-c.TerminalInteractiveShell.separate_out = ''
-c.TerminalInteractiveShell.separate_out2 = ''
+c.InteractiveShell.separate_in = ''
+c.InteractiveShell.separate_out = ''
+c.InteractiveShell.separate_out2 = ''
 
 c.PrefilterManager.multi_line_specials = True
 

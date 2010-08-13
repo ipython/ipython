@@ -131,6 +131,18 @@ def get_default_colors():
         return 'Linux'
 
 
+class SeparateStr(Str):
+    """A Str subclass to validate separate_in, separate_out, etc.
+
+    This is a Str based trait that converts '0'->'' and '\\n'->'\n'.
+    """
+
+    def validate(self, obj, value):
+        if value == '0': value = ''
+        value = value.replace('\\n','\n')
+        return super(SeparateStr, self).validate(obj, value)
+
+
 #-----------------------------------------------------------------------------
 # Main IPython class
 #-----------------------------------------------------------------------------
@@ -140,6 +152,9 @@ class InteractiveShell(Configurable, Magic):
     """An enhanced, interactive shell for Python."""
 
     autocall = Enum((0,1,2), default_value=1, config=True)
+    # TODO: remove all autoindent logic and put into frontends.
+    # We can't do this yet because even runlines uses the autoindent.
+    autoindent = CBool(True, config=True)
     automagic = CBool(True, config=True)
     cache_size = Int(1000, config=True)
     color_info = CBool(True, config=True)
@@ -187,6 +202,11 @@ class InteractiveShell(Configurable, Magic):
             '"\C-u": unix-line-discard',
         ], allow_none=False, config=True)
 
+    # TODO: this part of prompt management should be moved to the frontends.
+    # Use custom TraitTypes that convert '0'->'' and '\\n'->'\n'
+    separate_in = SeparateStr('\n', config=True)
+    separate_out = SeparateStr('', config=True)
+    separate_out2 = SeparateStr('', config=True)
     system_header = Str('IPython system call: ', config=True)
     system_verbose = CBool(False, config=True)
     wildcards_case_sensitive = CBool(True, config=True)
