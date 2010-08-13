@@ -40,9 +40,6 @@ def test_import_magic():
 def test_import_oinspect():
     from IPython.core import oinspect
 
-def test_import_outputtrap():
-    from IPython.core import outputtrap
-
 def test_import_prefilter():
     from IPython.core import prefilter
 

@@ -114,8 +114,7 @@ def start_ipython():
         return
     start_ipython.already_called = True
 
-    # Ok,  first time we're called, go ahead
-    from IPython.core import interactiveshell
+    from IPython.frontend.terminal import interactiveshell
     
     def xsys(cmd):
         """Execute a command and print its output.
@@ -136,7 +135,7 @@ def start_ipython():
     config = tools.default_config()
 
     # Create and initialize our test-friendly IPython instance.
-    shell = interactiveshell.InteractiveShell.instance(
+    shell = interactiveshell.TerminalInteractiveShell.instance(
         config=config, 
         user_ns=ipnsdict(), user_global_ns={}
     )

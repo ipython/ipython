@@ -471,3 +471,14 @@ def marquee(txt='',width=78,mark='*'):
     return '%s %s %s' % (marks,txt,marks)
 
 
+ini_spaces_re = re.compile(r'^(\s+)')
+
+def num_ini_spaces(strng):
+    """Return the number of initial spaces in a string"""
+
+    ini_spaces = ini_spaces_re.match(strng)
+    if ini_spaces:
+        return ini_spaces.end()
+    else:
+        return 0
+
