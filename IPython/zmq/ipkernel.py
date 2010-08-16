@@ -27,7 +27,7 @@ import zmq
 
 # Local imports.
 from IPython.config.configurable import Configurable
-from IPython.core.interactiveshell import InteractiveShell, InteractiveShellABC
+from IPython.zmq.zmqshell import ZMQInteractiveShell
 from IPython.external.argparse import ArgumentParser
 from IPython.utils.traitlets import Instance
 from IPython.zmq.session import Session, Message
@@ -50,7 +50,7 @@ class Kernel(Configurable):
 
     def __init__(self, **kwargs):
         super(Kernel, self).__init__(**kwargs)
-        self.shell = InteractiveShell.instance()
+        self.shell = ZMQInteractiveShell.instance()
         
         # Build dict of handlers for message types
         msg_types = [ 'execute_request', 'complete_request', 
