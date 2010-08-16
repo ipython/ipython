@@ -22,7 +22,7 @@ class ConsoleWidget(QtGui.QWidget):
     # The maximum number of lines of text before truncation.
     buffer_size = 500
 
-    # Whether to use a CompletionWidget or plain text output for tab completion.
+    # Whether to use a list widget or plain text output for tab completion.
     gui_completion = True
 
     # Whether to override ShortcutEvents for the keybindings defined by this
@@ -64,8 +64,11 @@ class ConsoleWidget(QtGui.QWidget):
         """
         super(ConsoleWidget, self).__init__(parent)
 
-        # Create the underlying text widget.
+        # Create and set the underlying text widget.
+        layout = QtGui.QVBoxLayout(self)
+        layout.setMargin(0)
         self._control = self._create_control(kind)
+        layout.addWidget(self._control)
 
         # Initialize protected variables. Some variables contain useful state
         # information for subclasses; they should be considered read-only.
@@ -88,25 +91,34 @@ class ConsoleWidget(QtGui.QWidget):
         """ Reimplemented to ensure a console-like behavior in the underlying
             text widget.
         """
-        if obj == self._control:
-            etype = event.type()
+        # Re-map keys for all filtered widgets.
+        etype = event.type()
+        if etype == QtCore.QEvent.KeyPress and \
+                self._control_key_down(event.modifiers()) and \
+                event.key() in self._ctrl_down_remap:
+            new_event = QtGui.QKeyEvent(QtCore.QEvent.KeyPress, 
+                                        self._ctrl_down_remap[event.key()],
+                                        QtCore.Qt.NoModifier)
+            QtGui.qApp.sendEvent(obj, new_event)
+            return True
 
+        # Override shortucts for all filtered widgets. Note that on Mac OS it is
+        # always unnecessary to override shortcuts, hence the check below (users
+        # should just use the Control key instead of the Command key).
+        elif etype == QtCore.QEvent.ShortcutOverride and \
+                sys.platform != 'darwin' and \
+                self._control_key_down(event.modifiers()) and \
+                event.key() in self._shortcuts:
+            event.accept()
+            return False
+
+        elif obj == self._control:
             # Disable moving text by drag and drop.
             if etype == QtCore.QEvent.DragMove:
                 return True
 
             elif etype == QtCore.QEvent.KeyPress:
                 return self._event_filter_keypress(event)
-
-            # On Mac OS, it is always unnecessary to override shortcuts, hence
-            # the check below. Users should just use the Control key instead of
-            # the Command key.
-            elif etype == QtCore.QEvent.ShortcutOverride:
-                if sys.platform != 'darwin' and \
-                        self._control_key_down(event.modifiers()) and \
-                        event.key() in self._shortcuts:
-                    event.accept()
-                return False
 
         return super(ConsoleWidget, self).eventFilter(obj, event)
 
@@ -448,10 +460,8 @@ class ConsoleWidget(QtGui.QWidget):
         return down
 
     def _create_control(self, kind):
-        """ Creates and sets the underlying text widget.
+        """ Creates and connects the underlying text widget.
         """
-        layout = QtGui.QVBoxLayout(self)
-        layout.setMargin(0)
         if kind == 'plain':
             control = QtGui.QPlainTextEdit()
         elif kind == 'rich':
@@ -459,36 +469,24 @@ class ConsoleWidget(QtGui.QWidget):
             control.setAcceptRichText(False)
         else:
             raise ValueError("Kind %s unknown." % repr(kind))
-        layout.addWidget(control)
-
         control.installEventFilter(self)
         control.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         control.customContextMenuRequested.connect(self._show_context_menu)
         control.copyAvailable.connect(self.copy_available)
         control.redoAvailable.connect(self.redo_available)
         control.undoAvailable.connect(self.undo_available)
-
+        control.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOn)
         return control
 
     def _event_filter_keypress(self, event):
         """ Filter key events for the underlying text widget to create a
             console-like interface.
         """
-        key = event.key()
-        ctrl_down = self._control_key_down(event.modifiers())
-        
-        # If the key is remapped, return immediately.
-        if ctrl_down and key in self._ctrl_down_remap:
-            new_event = QtGui.QKeyEvent(QtCore.QEvent.KeyPress, 
-                                        self._ctrl_down_remap[key],
-                                        QtCore.Qt.NoModifier)
-            QtGui.qApp.sendEvent(self._control, new_event)
-            return True
-
-        # Otherwise, proceed normally and do not return early.
         intercepted = False
         cursor = self._control.textCursor()
         position = cursor.position()
+        key = event.key()
+        ctrl_down = self._control_key_down(event.modifiers())
         alt_down = event.modifiers() & QtCore.Qt.AltModifier
         shift_down = event.modifiers() & QtCore.Qt.ShiftModifier
 
@@ -632,8 +630,9 @@ class ConsoleWidget(QtGui.QWidget):
         # Note: this code is adapted from columnize 0.3.2.
         # See http://code.google.com/p/pycolumnize/
 
-        font_metrics = QtGui.QFontMetrics(self.font)
-        displaywidth = max(5, (self.width() / font_metrics.width(' ')) - 1)
+        width = self._control.viewport().width()
+        char_width = QtGui.QFontMetrics(self.font).width(' ')
+        displaywidth = max(5, width / char_width)
 
         # Some degenerate cases.
         size = len(items)
