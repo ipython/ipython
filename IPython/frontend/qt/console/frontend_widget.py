@@ -9,6 +9,7 @@ import zmq
 
 # Local imports
 from IPython.core.inputsplitter import InputSplitter
+from IPython.frontend.qt.base_frontend_mixin import BaseFrontendMixin
 from call_tip_widget import CallTipWidget
 from completion_lexer import CompletionLexer
 from console_widget import HistoryConsoleWidget
@@ -60,7 +61,7 @@ class FrontendHighlighter(PygmentsHighlighter):
         PygmentsHighlighter.setFormat(self, start, count, format)
 
 
-class FrontendWidget(HistoryConsoleWidget):
+class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
     """ A Qt frontend for a generic Python kernel.
     """
    
@@ -146,6 +147,88 @@ class FrontendWidget(HistoryConsoleWidget):
         return not self._complete()
 
     #---------------------------------------------------------------------------
+    # 'BaseFrontendMixin' abstract interface
+    #---------------------------------------------------------------------------
+
+    def _handle_complete_reply(self, rep):
+        """ Handle replies for tab completion.
+        """
+        cursor = self._get_cursor()
+        if rep['parent_header']['msg_id'] == self._complete_id and \
+                cursor.position() == self._complete_pos:
+            text = '.'.join(self._get_context())
+            cursor.movePosition(QtGui.QTextCursor.Left, n=len(text))
+            self._complete_with_items(cursor, rep['content']['matches'])
+
+    def _handle_execute_reply(self, msg):
+        """ Handles replies for code execution.
+        """
+        if not self._hidden:
+            # Make sure that all output from the SUB channel has been processed
+            # before writing a new prompt.
+            self.kernel_manager.sub_channel.flush()
+
+            content = msg['content']
+            status = content['status']
+            if status == 'ok':
+                self._process_execute_ok(msg)
+            elif status == 'error':
+                self._process_execute_error(msg)
+            elif status == 'abort':
+                self._process_execute_abort(msg)
+
+            self._hidden = True
+            self._show_interpreter_prompt()
+            self.executed.emit(msg)
+
+    def _handle_input_request(self, msg):
+        """ Handle requests for raw_input.
+        """
+        # Make sure that all output from the SUB channel has been processed
+        # before entering readline mode.
+        self.kernel_manager.sub_channel.flush()
+
+        def callback(line):
+            self.kernel_manager.rep_channel.input(line)
+        self._readline(msg['content']['prompt'], callback=callback)
+
+    def _handle_object_info_reply(self, rep):
+        """ Handle replies for call tips.
+        """
+        cursor = self._get_cursor()
+        if rep['parent_header']['msg_id'] == self._call_tip_id and \
+                cursor.position() == self._call_tip_pos:
+            doc = rep['content']['docstring']
+            if doc:
+                self._call_tip_widget.show_docstring(doc)
+
+    def _handle_pyout(self, msg):
+        """ Handle display hook output.
+        """
+        self._append_plain_text(msg['content']['data'] + '\n')
+
+    def _handle_stream(self, msg):
+        """ Handle stdout, stderr, and stdin.
+        """
+        self._append_plain_text(msg['content']['data'])
+        self._control.moveCursor(QtGui.QTextCursor.End)
+    
+    def _started_channels(self):
+        """ Called when the KernelManager channels have started listening or 
+            when the frontend is assigned an already listening KernelManager.
+        """
+        self._reset()
+        self._append_plain_text(self._get_banner())
+        self._show_interpreter_prompt()
+
+    def _stopped_channels(self):
+        """ Called when the KernelManager channels have stopped listening or
+            when a listening KernelManager is removed from the frontend.
+        """
+        # FIXME: Print a message here?
+        pass
+
+    #---------------------------------------------------------------------------
     # 'FrontendWidget' interface
     #---------------------------------------------------------------------------
 
@@ -154,62 +237,6 @@ class FrontendWidget(HistoryConsoleWidget):
             shown.
         """
         self.execute('execfile("%s")' % path, hidden=hidden)
-
-    def _get_kernel_manager(self):
-        """ Returns the current kernel manager.
-        """
-        return self._kernel_manager
-
-    def _set_kernel_manager(self, kernel_manager):
-        """ Disconnect from the current kernel manager (if any) and set a new
-            kernel manager.
-        """
-        # Disconnect the old kernel manager, if necessary.
-        if self._kernel_manager is not None:
-            self._kernel_manager.started_channels.disconnect(
-                self._started_channels)
-            self._kernel_manager.stopped_channels.disconnect(
-                self._stopped_channels)
-
-            # Disconnect the old kernel manager's channels.
-            sub = self._kernel_manager.sub_channel
-            xreq = self._kernel_manager.xreq_channel
-            rep = self._kernel_manager.rep_channel
-            sub.message_received.disconnect(self._handle_sub)
-            xreq.execute_reply.disconnect(self._handle_execute_reply)
-            xreq.complete_reply.disconnect(self._handle_complete_reply)
-            xreq.object_info_reply.disconnect(self._handle_object_info_reply)
-            rep.input_requested.disconnect(self._handle_req)
-
-            # Handle the case where the old kernel manager is still listening.
-            if self._kernel_manager.channels_running:
-                self._stopped_channels()
-
-        # Set the new kernel manager.
-        self._kernel_manager = kernel_manager
-        if kernel_manager is None:
-            return
-
-        # Connect the new kernel manager.
-        kernel_manager.started_channels.connect(self._started_channels)
-        kernel_manager.stopped_channels.connect(self._stopped_channels)
-
-        # Connect the new kernel manager's channels.
-        sub = kernel_manager.sub_channel
-        xreq = kernel_manager.xreq_channel
-        rep = kernel_manager.rep_channel
-        sub.message_received.connect(self._handle_sub)
-        xreq.execute_reply.connect(self._handle_execute_reply)
-        xreq.complete_reply.connect(self._handle_complete_reply)
-        xreq.object_info_reply.connect(self._handle_object_info_reply)
-        rep.input_requested.connect(self._handle_req)
-        
-        # Handle the case where the kernel manager started channels before
-        # we connected.
-        if kernel_manager.channels_running:
-            self._started_channels()
-
-    kernel_manager = property(_get_kernel_manager, _set_kernel_manager)
 
     #---------------------------------------------------------------------------
     # 'FrontendWidget' protected interface
@@ -275,25 +302,31 @@ class FrontendWidget(HistoryConsoleWidget):
             self._append_plain_text('Kernel process is either remote or '
                                     'unspecified. Cannot interrupt.\n')
 
+    def _process_execute_abort(self, msg):
+        """ Process a reply for an aborted execution request.
+        """
+        self._append_plain_text("ERROR: execution aborted\n")
+
+    def _process_execute_error(self, msg):
+        """ Process a reply for an execution request that resulted in an error.
+        """
+        content = msg['content']
+        traceback = ''.join(content['traceback'])
+        self._append_plain_text(traceback)
+
+    def _process_execute_ok(self, msg):
+        """ Process a reply for a successful execution equest.
+        """
+        # The basic FrontendWidget doesn't handle payloads, as they are a
+        # mechanism for going beyond the standard Python interpreter model.
+        pass
+
     def _show_interpreter_prompt(self):
         """ Shows a prompt for the interpreter.
         """
         self._show_prompt('>>> ')
 
     #------ Signal handlers ----------------------------------------------------
-
-    def _started_channels(self):
-        """ Called when the kernel manager has started listening.
-        """
-        self._reset()
-        self._append_plain_text(self._get_banner())
-        self._show_interpreter_prompt()
-
-    def _stopped_channels(self):
-        """ Called when the kernel manager has stopped listening.
-        """
-        # FIXME: Print a message here?
-        pass
 
     def _document_contents_change(self, position, removed, added):
         """ Called whenever the document's content changes. Display a call tip
@@ -305,72 +338,3 @@ class FrontendWidget(HistoryConsoleWidget):
         document = self._control.document()
         if position == self._get_cursor().position():
             self._call_tip()
-
-    def _handle_req(self, req):
-        # Make sure that all output from the SUB channel has been processed
-        # before entering readline mode.
-        self.kernel_manager.sub_channel.flush()
-
-        def callback(line):
-            self.kernel_manager.rep_channel.input(line)
-        self._readline(req['content']['prompt'], callback=callback)
-
-    def _handle_sub(self, omsg):
-        if self._hidden:
-            return
-        handler = getattr(self, '_handle_%s' % omsg['msg_type'], None)
-        if handler is not None:
-            handler(omsg)
-
-    def _handle_pyout(self, omsg):
-        self._append_plain_text(omsg['content']['data'] + '\n')
-
-    def _handle_stream(self, omsg):
-        self._append_plain_text(omsg['content']['data'])
-        self._control.moveCursor(QtGui.QTextCursor.End)
-        
-    def _handle_execute_reply(self, reply):
-        if self._hidden:
-            return
-
-        # Make sure that all output from the SUB channel has been processed
-        # before writing a new prompt.
-        self.kernel_manager.sub_channel.flush()
-
-        content = reply['content']
-        status = content['status']
-        if status == 'ok':
-            self._handle_execute_payload(content['payload'])
-        elif status == 'error':
-            self._handle_execute_error(reply)
-        elif status == 'aborted':
-            text = "ERROR: ABORTED\n"
-            self._append_plain_text(text)
-
-        self._hidden = True
-        self._show_interpreter_prompt()
-        self.executed.emit(reply)
-
-    def _handle_execute_error(self, reply):
-        content = reply['content']
-        traceback = ''.join(content['traceback'])
-        self._append_plain_text(traceback)
-
-    def _handle_execute_payload(self, payload):
-        pass
-
-    def _handle_complete_reply(self, rep):
-        cursor = self._get_cursor()
-        if rep['parent_header']['msg_id'] == self._complete_id and \
-                cursor.position() == self._complete_pos:
-            text = '.'.join(self._get_context())
-            cursor.movePosition(QtGui.QTextCursor.Left, n=len(text))
-            self._complete_with_items(cursor, rep['content']['matches'])
-
-    def _handle_object_info_reply(self, rep):
-        cursor = self._get_cursor()
-        if rep['parent_header']['msg_id'] == self._call_tip_id and \
-                cursor.position() == self._call_tip_pos:
-            doc = rep['content']['docstring']
-            if doc:
-                self._call_tip_widget.show_docstring(doc)

@@ -26,11 +26,21 @@ class QtSubSocketChannel(SubSocketChannel, QtCore.QObject):
     # Emitted when any message is received.
     message_received = QtCore.pyqtSignal(object)
 
-    # Emitted when a message of type 'pyout' or 'stdout' is received.
-    output_received = QtCore.pyqtSignal(object)
+    # Emitted when a message of type 'stream' is received.
+    stream_received = QtCore.pyqtSignal(object)
 
-    # Emitted when a message of type 'pyerr' or 'stderr' is received.
-    error_received = QtCore.pyqtSignal(object)
+    # Emitted when a message of type 'pyin' is received.
+    pyin_received = QtCore.pyqtSignal(object)
+
+    # Emitted when a message of type 'pyout' is received.
+    pyout_received = QtCore.pyqtSignal(object)
+
+    # Emitted when a message of type 'pyerr' is received.
+    pyerr_received = QtCore.pyqtSignal(object)
+
+    # Emitted when a crash report message is received from the kernel's
+    # last-resort sys.excepthook.
+    crash_received = QtCore.pyqtSignal(object)
 
     #---------------------------------------------------------------------------
     # 'object' interface
@@ -54,10 +64,11 @@ class QtSubSocketChannel(SubSocketChannel, QtCore.QObject):
         
         # Emit signals for specialized message types.
         msg_type = msg['msg_type']
-        if msg_type in ('pyout', 'stdout'):
-            self.output_received.emit(msg)
-        elif msg_type in ('pyerr', 'stderr'):
-            self.error_received.emit(msg)
+        signal = getattr(self, msg_type + '_received', None)
+        if signal:
+            signal.emit(msg)
+        elif msg_type in ('stdout', 'stderr'):
+            self.stream_received.emit(msg)
 
     def flush(self):
         """ Reimplemented to ensure that signals are dispatched immediately.
@@ -135,6 +146,7 @@ class QtRepSocketChannel(RepSocketChannel, QtCore.QObject):
         msg_type = msg['msg_type']
         if msg_type == 'input_request':
             self.input_requested.emit(msg)
+
 
 class QtKernelManager(KernelManager, QtCore.QObject):
     """ A KernelManager that provides signals and slots.

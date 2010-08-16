@@ -55,9 +55,10 @@ class RichIPythonWidget(IPythonWidget):
     # 'FrontendWidget' protected interface
     #---------------------------------------------------------------------------
 
-    def _handle_execute_payload(self, payload):
-        """ Reimplemented to handle pylab plot payloads.
+    def _process_execute_ok(self, msg):
+        """ Reimplemented to handle matplotlib plot payloads.
         """
+        payload = msg['content']['payload']
         plot_payload = payload.get('plot', None)
         if plot_payload and plot_payload['format'] == 'svg':
             svg = plot_payload['data']
@@ -73,7 +74,7 @@ class RichIPythonWidget(IPythonWidget):
                 cursor.insertImage(format)
                 cursor.insertBlock()
         else:
-            super(RichIPythonWidget, self)._handle_execute_payload(payload)
+            super(RichIPythonWidget, self)._process_execute_ok(msg)
 
     #---------------------------------------------------------------------------
     # 'RichIPythonWidget' protected interface
