@@ -172,7 +172,7 @@ class ConsoleWidget(QtGui.QWidget):
         -------
         RuntimeError
             If incomplete input is given and 'hidden' is True. In this case,
-            it not possible to prompt for more input.
+            it is not possible to prompt for more input.
 
         Returns:
         --------

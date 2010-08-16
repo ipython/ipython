@@ -65,7 +65,8 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
     """ A Qt frontend for a generic Python kernel.
     """
    
-    # Emitted when an 'execute_reply' is received from the kernel.
+    # Emitted when an 'execute_reply' has been received from the kernel and
+    # processed by the FrontendWidget.
     executed = QtCore.pyqtSignal(object)
 
     #---------------------------------------------------------------------------
@@ -184,6 +185,9 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
     def _handle_input_request(self, msg):
         """ Handle requests for raw_input.
         """
+        if self._hidden:
+            raise RuntimeError('Request for raw input during hidden execution.')
+
         # Make sure that all output from the SUB channel has been processed
         # before entering readline mode.
         self.kernel_manager.sub_channel.flush()
