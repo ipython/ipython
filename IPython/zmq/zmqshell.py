@@ -8,6 +8,8 @@ class ZMQInteractiveShell(InteractiveShell):
 
     def system(self, cmd):
         cmd = self.var_expand(cmd, depth=2)
+        sys.stdout.flush()
+        sys.stderr.flush()
         p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE)
         for line in p.stdout.read().split('\n'):
             if len(line) > 0:
