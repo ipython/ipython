@@ -30,7 +30,6 @@ from zmq.eventloop import ioloop
 
 # Local imports.
 from IPython.utils.traitlets import HasTraits, Any, Instance, Type, TCPAddress
-from ipkernel import launch_kernel
 from session import Session
 
 #-----------------------------------------------------------------------------
@@ -485,7 +484,7 @@ class KernelManager(HasTraits):
     # Kernel process management methods:
     #--------------------------------------------------------------------------
 
-    def start_kernel(self, pylab=False):
+    def start_kernel(self, ipython=True, **kw):
         """Starts a kernel process and configures the manager to use it.
 
         If random ports (port=0) are being used, this method must be called
@@ -493,8 +492,8 @@ class KernelManager(HasTraits):
 
         Parameters:
         -----------
-        pylab : bool or string, optional (default False)
-            See IPython.zmq.kernel.launch_kernel for documentation.
+        ipython : bool, optional (default True)
+             Whether to use an IPython kernel instead of a plain Python kernel.
         """
         xreq, sub, rep = self.xreq_address, self.sub_address, self.rep_address
         if xreq[0] != LOCALHOST or sub[0] != LOCALHOST or rep[0] != LOCALHOST:
@@ -502,8 +501,12 @@ class KernelManager(HasTraits):
                                "Make sure that the '*_address' attributes are "
                                "configured properly.")
 
-        self.kernel, xrep, pub, req = launch_kernel(
-            xrep_port=xreq[1], pub_port=sub[1], req_port=rep[1], pylab=pylab)
+        if ipython:
+            from ipkernel import launch_kernel as launch
+        else:
+            from pykernel import launch_kernel as launch
+        self.kernel, xrep, pub, req = launch(xrep_port=xreq[1], pub_port=sub[1],
+                                             req_port=rep[1], **kw)
         self.xreq_address = (LOCALHOST, xrep)
         self.sub_address = (LOCALHOST, pub)
         self.rep_address = (LOCALHOST, req)

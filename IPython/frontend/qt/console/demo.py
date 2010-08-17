@@ -7,8 +7,6 @@ from PyQt4 import QtCore, QtGui
 # Local imports
 from IPython.external.argparse import ArgumentParser
 from IPython.frontend.qt.kernelmanager import QtKernelManager
-from ipython_widget import IPythonWidget
-from rich_ipython_widget import RichIPythonWidget
 
 
 def main():
@@ -16,10 +14,13 @@ def main():
     """
     # Parse command line arguments.
     parser = ArgumentParser()
-    parser.add_argument('--pylab', action='store_true',
-                        help='start kernel with pylab enabled')
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument('--pure', action='store_true', help = \
+                       'use a pure Python kernel instead of an IPython kernel')
+    group.add_argument('--pylab', action='store_true',
+                        help='use a kernel with PyLab enabled')
     parser.add_argument('--rich', action='store_true',
-                        help='use rich text frontend')
+                        help='use a rich text frontend')
     namespace = parser.parse_args()
     
     # Don't let Qt or ZMQ swallow KeyboardInterupts.
@@ -28,7 +29,9 @@ def main():
 
     # Create a KernelManager and start a kernel.
     kernel_manager = QtKernelManager()
-    if namespace.pylab:
+    if namespace.pure:
+        kernel_manager.start_kernel(ipython=False)
+    elif namespace.pylab:
         if namespace.rich:
             kernel_manager.start_kernel(pylab='payload-svg')
         else:
@@ -39,10 +42,17 @@ def main():
 
     # Launch the application.
     app = QtGui.QApplication([])
-    if namespace.rich:
-        widget = RichIPythonWidget()
+    if namespace.pure:
+        from frontend_widget import FrontendWidget
+        kind = 'rich' if namespace.rich else 'plain'
+        widget = FrontendWidget(kind=kind)
     else:
-        widget = IPythonWidget()
+        if namespace.rich:
+            from rich_ipython_widget import RichIPythonWidget
+            widget = RichIPythonWidget()
+        else:
+            from ipython_widget import IPythonWidget
+            widget = IPythonWidget()
     widget.kernel_manager = kernel_manager
     widget.setWindowTitle('Python')
     widget.show()

@@ -2,7 +2,7 @@
 """
 
 # Local imports.
-from IPython.zmq.kernel import Kernel
+from IPython.zmq.ipkernel import Kernel
 
 
 def add_plot_payload(format, data, metadata={}):
