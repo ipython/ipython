@@ -16,13 +16,14 @@ class RichIPythonWidget(IPythonWidget):
     _svg_text_format_property = 1
 
     #---------------------------------------------------------------------------
-    # 'QObject' interface
+    # 'object' interface
     #---------------------------------------------------------------------------
 
-    def __init__(self, parent=None):
+    def __init__(self, *args, **kw):
         """ Create a RichIPythonWidget.
         """
-        super(RichIPythonWidget, self).__init__(kind='rich', parent=parent)
+        kw['kind'] = 'rich'
+        super(RichIPythonWidget, self).__init__(*args, **kw)
 
     #---------------------------------------------------------------------------
     # 'ConsoleWidget' protected interface

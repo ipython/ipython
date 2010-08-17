@@ -45,7 +45,6 @@ def main():
         widget = IPythonWidget()
     widget.kernel_manager = kernel_manager
     widget.setWindowTitle('Python')
-    widget.resize(640, 480)
     widget.show()
     app.exec_()
 

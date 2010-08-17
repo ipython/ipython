@@ -11,9 +11,17 @@ from completion_widget import CompletionWidget
 
 
 class ConsoleWidget(QtGui.QWidget):
-    """ Base class for console-type widgets. This class is mainly concerned with
-        dealing with the prompt, keeping the cursor inside the editing line, and
-        handling ANSI escape sequences.
+    """ An abstract base class for console-type widgets. This class has 
+        functionality for:
+
+            * Maintaining a prompt and editing region
+            * Providing the traditional Unix-style console keyboard shortcuts 
+            * Performing tab completion
+            * Paging text
+            * Handling ANSI escape codes
+
+        ConsoleWidget also provides a number of utility methods that will be
+        convenient to implementors of a console-style widget.
     """
 
     # Whether to process ANSI escape codes.
@@ -35,6 +43,10 @@ class ConsoleWidget(QtGui.QWidget):
     redo_available = QtCore.pyqtSignal(bool)
     undo_available = QtCore.pyqtSignal(bool)
 
+    # Signal emitted when paging is needed and the paging style has been
+    # specified as 'custom'.
+    custom_page_requested = QtCore.pyqtSignal(QtCore.QString)
+
     # Protected class variables.
     _ctrl_down_remap = { QtCore.Qt.Key_B : QtCore.Qt.Key_Left,
                          QtCore.Qt.Key_F : QtCore.Qt.Key_Right,
@@ -50,25 +62,61 @@ class ConsoleWidget(QtGui.QWidget):
     # 'QObject' interface
     #---------------------------------------------------------------------------
 
-    def __init__(self, kind='plain', parent=None):
+    def __init__(self, kind='plain', paging='inside', parent=None):
         """ Create a ConsoleWidget.
         
         Parameters
         ----------
         kind : str, optional [default 'plain']            
-            The type of text widget to use. Valid values are 'plain', which
-            specifies a QPlainTextEdit, and 'rich', which specifies a QTextEdit.
+            The type of underlying text widget to use. Valid values are 'plain',
+            which specifies a QPlainTextEdit, and 'rich', which specifies a
+            QTextEdit.
+
+        paging : str, optional [default 'inside']
+            The type of paging to use. Valid values are:
+                'inside' : The widget pages like a traditional terminal pager.
+                'hsplit' : When paging is requested, the widget is split 
+                           horizontally. The top pane contains the console,
+                           and the bottom pane contains the paged text.
+                'vsplit' : Similar to 'hsplit', except that a vertical splitter
+                           used.
+                'custom' : No action is taken by the widget beyond emitting a
+                           'custom_page_requested(QString)' signal.
+                'none'   : The text is written directly to the console.
 
         parent : QWidget, optional [default None]
             The parent for this widget.
         """
         super(ConsoleWidget, self).__init__(parent)
 
-        # Create and set the underlying text widget.
-        layout = QtGui.QVBoxLayout(self)
+        # Create the layout and underlying text widget.
+        layout = QtGui.QStackedLayout(self)
         layout.setMargin(0)
         self._control = self._create_control(kind)
-        layout.addWidget(self._control)
+        self._page_control = None
+        self._splitter = None
+        if paging in ('hsplit', 'vsplit'):
+            self._splitter = QtGui.QSplitter()
+            if paging == 'hsplit':
+                self._splitter.setOrientation(QtCore.Qt.Horizontal)
+            else:
+                self._splitter.setOrientation(QtCore.Qt.Vertical)
+            self._splitter.addWidget(self._control)
+            layout.addWidget(self._splitter)
+        else:
+            layout.addWidget(self._control)
+
+        # Create the paging widget, if necessary.
+        self._page_style = paging
+        if paging in ('inside', 'hsplit', 'vsplit'):
+            self._page_control = self._create_page_control()
+            if self._splitter:
+                self._page_control.hide()
+                self._splitter.addWidget(self._page_control)
+            else:
+                layout.addWidget(self._page_control)
+        elif paging not in ('custom', 'none'):
+            raise ValueError('Paging style %s unknown.' % repr(paging))
 
         # Initialize protected variables. Some variables contain useful state
         # information for subclasses; they should be considered read-only.
@@ -118,9 +166,37 @@ class ConsoleWidget(QtGui.QWidget):
                 return True
 
             elif etype == QtCore.QEvent.KeyPress:
-                return self._event_filter_keypress(event)
+                return self._event_filter_console_keypress(event)
+
+        elif obj == self._page_control:
+            if etype == QtCore.QEvent.KeyPress:
+                return self._event_filter_page_keypress(event)
 
         return super(ConsoleWidget, self).eventFilter(obj, event)
+
+    #---------------------------------------------------------------------------
+    # 'QWidget' interface
+    #---------------------------------------------------------------------------
+
+    def sizeHint(self):
+        """ Reimplemented to suggest a size that is 80 characters wide and
+            25 lines high.
+        """
+        style = self.style()
+        opt = QtGui.QStyleOptionHeader()
+        font_metrics = QtGui.QFontMetrics(self.font)
+        splitwidth = style.pixelMetric(QtGui.QStyle.PM_SplitterWidth, opt, self)
+
+        width = font_metrics.width(' ') * 80
+        width += style.pixelMetric(QtGui.QStyle.PM_ScrollBarExtent, opt, self)
+        if self._page_style == 'hsplit':
+            width = width * 2 + splitwidth
+
+        height = font_metrics.height() * 25
+        if self._page_style == 'vsplit':
+            height = height * 2 + splitwidth
+
+        return QtCore.QSize(width, height)
 
     #---------------------------------------------------------------------------
     # 'ConsoleWidget' public interface
@@ -410,14 +486,7 @@ class ConsoleWidget(QtGui.QWidget):
             ANSI codes if enabled.
         """
         cursor = self._get_end_cursor()
-        cursor.beginEditBlock()
-        if self.ansi_codes:
-            for substring in self._ansi_processor.split_string(text):
-                format = self._ansi_processor.get_format()
-                cursor.insertText(substring, format)
-        else:
-            cursor.insertText(text)
-        cursor.endEditBlock()
+        self._insert_plain_text(cursor, text)
 
     def _append_plain_text_keeping_prompt(self, text):
         """ Writes 'text' after the current prompt, then restores the old prompt
@@ -478,7 +547,16 @@ class ConsoleWidget(QtGui.QWidget):
         control.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOn)
         return control
 
-    def _event_filter_keypress(self, event):
+    def _create_page_control(self):
+        """ Creates and connects the underlying paging widget.
+        """
+        control = QtGui.QPlainTextEdit()
+        control.installEventFilter(self)
+        control.setReadOnly(True)
+        control.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOn)
+        return control
+
+    def _event_filter_console_keypress(self, event):
         """ Filter key events for the underlying text widget to create a
             console-like interface.
         """
@@ -611,6 +689,28 @@ class ConsoleWidget(QtGui.QWidget):
             self._keep_cursor_in_buffer()
 
         return intercepted
+
+    def _event_filter_page_keypress(self, event):
+        """ Filter key events for the paging widget to create console-like 
+            interface.
+        """
+        key = event.key()
+
+        if key in (QtCore.Qt.Key_Q, QtCore.Qt.Key_Escape):
+            if self._splitter:
+                self._page_control.hide()
+            else:
+                self.layout().setCurrentWidget(self._control)
+            return True
+
+        elif key in (QtCore.Qt.Key_Enter, QtCore.Qt.Key_Return):
+            new_event = QtGui.QKeyEvent(QtCore.QEvent.KeyPress, 
+                                        QtCore.Qt.Key_Down, 
+                                        QtCore.Qt.NoModifier)
+            QtGui.qApp.sendEvent(self._page_control, new_event)
+            return True
+
+        return False
 
     def _format_as_columns(self, items, separator='  '):
         """ Transform a list of strings into a single string with columns.
@@ -786,6 +886,19 @@ class ConsoleWidget(QtGui.QWidget):
         cursor.insertText(' ', QtGui.QTextCharFormat())
         cursor.endEditBlock()
 
+    def _insert_plain_text(self, cursor, text):
+        """ Inserts plain text using the specified cursor, processing ANSI codes
+            if enabled.
+        """
+        cursor.beginEditBlock()
+        if self.ansi_codes:
+            for substring in self._ansi_processor.split_string(text):
+                format = self._ansi_processor.get_format()
+                cursor.insertText(substring, format)
+        else:
+            cursor.insertText(text)
+        cursor.endEditBlock()
+
     def _insert_into_buffer(self, text):
         """ Inserts text into the input buffer at the current cursor position,
             ensuring that continuation prompts are inserted as necessary.
@@ -831,6 +944,26 @@ class ConsoleWidget(QtGui.QWidget):
             cursor.movePosition(QtGui.QTextCursor.End)
             self._control.setTextCursor(cursor)
             return True
+        
+    def _page(self, text):
+        """ Displays text using the pager.
+        """
+        if self._page_style == 'custom':
+            self.custom_page_requested.emit(text)
+        elif self._page_style == 'none':
+            self._append_plain_text(text)
+        else:
+            self._page_control.clear()
+            cursor = self._page_control.textCursor()
+            self._insert_plain_text(cursor, text)
+            self._page_control.moveCursor(QtGui.QTextCursor.Start)
+
+            self._page_control.viewport().resize(self._control.size())
+            if self._splitter:
+                self._page_control.show()
+                self._page_control.setFocus()
+            else:
+                self.layout().setCurrentWidget(self._page_control)
 
     def _prompt_started(self):
         """ Called immediately after a new prompt is displayed.
