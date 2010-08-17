@@ -58,7 +58,8 @@ from IPython.lib.pylabtools import mpl_runner
 from IPython.lib.inputhook import enable_gui
 from IPython.external.Itpl import itpl, printpl
 from IPython.testing import decorators as testdec
-from IPython.utils.io import Term, file_read, nlprint
+from IPython.utils.io import file_read, nlprint
+import IPython.utils.io
 from IPython.utils.path import get_py_filename
 from IPython.utils.process import arg_split, abbrev_cwd
 from IPython.utils.terminal import set_term_title
@@ -3093,7 +3094,7 @@ Defaulting color scheme to 'NoColor'"""
         # If all looks ok, proceed
         out,err = self.shell.getoutputerror(cmd)
         if err:
-            print >> Term.cerr,err
+            print >> IPython.utils.io.Term.cerr, err
         if opts.has_key('l'):
             out = SList(out.split('\n'))
         else:
@@ -3143,7 +3144,7 @@ Defaulting color scheme to 'NoColor'"""
         if parameter_s:
             out,err = self.shell.getoutputerror(parameter_s)
             if err:
-                print >> Term.cerr,err
+                print >> IPython.utils.io.Term.cerr, err
             return SList(out.split('\n'))
 
     def magic_r(self, parameter_s=''):

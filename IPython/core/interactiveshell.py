@@ -53,7 +53,8 @@ from IPython.utils import PyColorize
 from IPython.utils import pickleshare
 from IPython.utils.doctestreload import doctest_reload
 from IPython.utils.ipstruct import Struct
-from IPython.utils.io import Term, ask_yes_no
+import IPython.utils.io
+from IPython.utils.io import ask_yes_no
 from IPython.utils.path import get_home_dir, get_ipython_dir, HomeDirError
 from IPython.utils.process import getoutput, getoutputerror
 from IPython.utils.strdispatch import StrDispatch
@@ -250,6 +251,10 @@ class InteractiveShell(Configurable, Magic):
         self.init_syntax_highlighting()
         self.init_hooks()
         self.init_pushd_popd_magic()
+        # TODO: init_io() needs to happen before init_traceback handlers
+        # because the traceback handlers hardcode the stdout/stderr streams.
+        # This logic in in debugger.Pdb and should eventually be changed.
+        self.init_io()
         self.init_traceback_handlers(custom_exceptions)
         self.init_user_ns()
         self.init_logger()
@@ -410,6 +415,17 @@ class InteractiveShell(Configurable, Magic):
                                             PyColorize.ANSICodeColors,
                                             'NoColor',
                                             self.object_info_string_level)
+
+    def init_io(self):
+        import IPython.utils.io
+        if sys.platform == 'win32' and readline.have_readline and \
+            self.readline_use:
+            Term = IPython.utils.io.IOTerm(
+                cout=readline._outputfile,cerr=readline._outputfile
+            )
+        else:
+            Term = IPython.utils.io.IOTerm()
+        IPython.utils.io.Term = Term
 
     def init_prompts(self):
         # Initialize cache, set in/out prompts and printing system
@@ -1997,12 +2013,12 @@ class InteractiveShell(Configurable, Magic):
     # TODO:  This should be removed when Term is refactored.
     def write(self,data):
         """Write a string to the default output"""
-        Term.cout.write(data)
+        IPython.utils.io.Term.cout.write(data)
 
     # TODO:  This should be removed when Term is refactored.
     def write_err(self,data):
         """Write a string to the default error output"""
-        Term.cerr.write(data)
+        IPython.utils.io.Term.cerr.write(data)
 
     def ask_yes_no(self,prompt,default=True):
         if self.quiet:

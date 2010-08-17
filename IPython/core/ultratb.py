@@ -95,7 +95,7 @@ from IPython.core import debugger, ipapi
 from IPython.core.display_trap import DisplayTrap
 from IPython.core.excolors import exception_colors
 from IPython.utils.data import uniq_stable
-from IPython.utils.io import Term
+import IPython.utils.io
 from IPython.utils.warn import info, error
 
 # Globals
@@ -313,14 +313,11 @@ def _format_traceback_lines(lnum, index, lines, Colors, lvals=None,scheme=None):
 class TBTools:
     """Basic tools used by all traceback printer classes."""
 
-    #: Default output stream, can be overridden at call time.  A special value
-    #: of 'stdout' *as a string* can be given to force extraction of sys.stdout
-    #: at runtime.  This allows testing exception printing with doctests, that
-    #: swap sys.stdout just at execution time.
-    #: Warning: be VERY careful to set this to one of the Term streams, NEVER
-    #: directly to sys.stdout/err, because under win32 the Term streams come from
-    #: pyreadline and know how to handle color correctly, whie stdout/err don't.
-    out_stream = Term.cerr
+    # This attribute us used in globalipapp.py to have stdout used for
+    # writting exceptions. This is needed so nose can trap them. This attribute
+    # should be None (the default, which will use IPython.utils.io.Term) or
+    # the string 'stdout' which will cause the override to sys.stdout.
+    out_stream = None
 
     def __init__(self,color_scheme = 'NoColor',call_pdb=False):
         # Whether to call the interactive pdb debugger after printing
@@ -384,9 +381,9 @@ class ListTB(TBTools):
         TBTools.__init__(self,color_scheme = color_scheme,call_pdb=0)
         
     def __call__(self, etype, value, elist):
-        Term.cout.flush()
-        Term.cerr.write(self.text(etype,value,elist))
-        Term.cerr.write('\n')
+        IPython.utils.io.Term.cout.flush()
+        IPython.utils.io.Term.cerr.write(self.text(etype,value,elist))
+        IPython.utils.io.Term.cerr.write('\n')
 
     def text(self, etype, value, elist, context=5):
         """Return a color formatted string with the traceback info.
@@ -535,10 +532,13 @@ class ListTB(TBTools):
         """
         # This method needs to use __call__ from *this* class, not the one from
         # a subclass whose signature or behavior may be different
-        Term.cout.flush()
-        ostream = sys.stdout if self.out_stream == 'stdout' else Term.cerr
+        if self.out_stream == 'stdout':
+            ostream = sys.stdout
+        else:
+            ostream = IPython.utils.io.Term.cerr
+        ostream.flush()
         ostream.write(ListTB.text(self, etype, value, []))
-        ostream.flush()        
+        ostream.flush()
 
     def _some_str(self, value):
         # Lifted from traceback.py
@@ -659,7 +659,7 @@ class VerboseTB(TBTools):
             # So far, I haven't been able to find an isolated example to
             # reproduce the problem.
             inspect_error()
-            traceback.print_exc(file=Term.cerr)
+            traceback.print_exc(file=IPython.utils.io.Term.cerr)
             info('\nUnfortunately, your original traceback can not be constructed.\n')
             return ''
 
@@ -696,7 +696,7 @@ class VerboseTB(TBTools):
                 # able to remove this try/except when 2.4 becomes a
                 # requirement.  Bug details at http://python.org/sf/1005466
                 inspect_error()
-                traceback.print_exc(file=Term.cerr)
+                traceback.print_exc(file=IPython.utils.io.Term.cerr)
                 info("\nIPython's exception reporting continues...\n")
                 
             if func == '?':
@@ -717,7 +717,7 @@ class VerboseTB(TBTools):
                     # and barfs out. At some point I should dig into this one
                     # and file a bug report about it.
                     inspect_error()
-                    traceback.print_exc(file=Term.cerr)
+                    traceback.print_exc(file=IPython.utils.io.Term.cerr)
                     info("\nIPython's exception reporting continues...\n")
                     call = tpl_call_fail % func
 
@@ -910,9 +910,9 @@ class VerboseTB(TBTools):
     def handler(self, info=None):
         (etype, evalue, etb) = info or sys.exc_info()
         self.tb = etb
-        Term.cout.flush()
-        Term.cerr.write(self.text(etype, evalue, etb))
-        Term.cerr.write('\n')
+        IPython.utils.io.Term.cout.flush()
+        IPython.utils.io.Term.cerr.write(self.text(etype, evalue, etb))
+        IPython.utils.io.Term.cerr.write('\n')
 
     # Changed so an instance can just be called as VerboseTB_inst() and print
     # out the right info on its own.
@@ -1032,8 +1032,11 @@ class AutoFormattedTB(FormattedTB):
           given at initialization time.  """
 
         if out is None:
-            out = sys.stdout if self.out_stream=='stdout' else self.out_stream
-        Term.cout.flush()
+            if self.out_stream == 'stdout':
+                out = sys.stdout
+            else:
+                out = IPython.utils.io.Term.cerr
+        out.flush()
         if tb_offset is not None:
             tb_offset, self.tb_offset = self.tb_offset, tb_offset
             out.write(self.text(etype, evalue, etb))

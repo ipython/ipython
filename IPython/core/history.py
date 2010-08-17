@@ -5,7 +5,8 @@
 import fnmatch
 import os
 
-from IPython.utils.io import Term, ask_yes_no
+import IPython.utils.io
+from IPython.utils.io import ask_yes_no
 from IPython.utils.warn import warn
 from IPython.core import ipapi
 
@@ -62,7 +63,7 @@ def magic_history(self, parameter_s = ''):
     try:
         outfname = opts['f']
     except KeyError:
-        outfile = Term.cout  # default
+        outfile = IPython.utils.io.Term.cout  # default
         # We don't want to close stdout at the end!
         close_at_end = False
     else:
@@ -101,7 +102,7 @@ def magic_history(self, parameter_s = ''):
         init, final = map(int, args)
     else:
         warn('%hist takes 0, 1 or 2 arguments separated by spaces.')
-        print >> Term.cout, self.magic_hist.__doc__
+        print >> IPython.utils.io.Term.cout, self.magic_hist.__doc__
         return
     
     width = len(str(final))

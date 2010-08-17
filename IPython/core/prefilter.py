@@ -36,7 +36,7 @@ from IPython.core.splitinput import split_user_input
 from IPython.core.page import page
 
 from IPython.utils.traitlets import List, Int, Any, Str, CBool, Bool, Instance
-from IPython.utils.io import Term
+import IPython.utils.io
 from IPython.utils.text import make_quoted_expr
 from IPython.utils.autoattr import auto_attr
 
@@ -922,7 +922,7 @@ class AutoHandler(PrefilterHandler):
                 # plain ascii works better w/ pyreadline, on some machines, so
                 # we use it and only print uncolored rewrite if we have unicode
                 rw = str(rw)
-                print >>Term.cout, rw
+                print >>IPython.utils.io.Term.cout, rw
             except UnicodeEncodeError:
                 print "-------------->" + newcmd
             

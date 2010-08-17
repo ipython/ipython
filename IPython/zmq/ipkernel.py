@@ -266,9 +266,12 @@ def main():
     req_port = bind_port(req_socket, namespace.ip, namespace.req)
     print >>sys.__stdout__, "REQ Channel on port", req_port
 
-    # Redirect input streams and set a display hook.
+    # Redirect input streams. This needs to be done before the Kernel is done
+    # because currently the Kernel creates a ZMQInteractiveShell, which
+    # holds references to sys.stdout and sys.stderr.
     sys.stdout = OutStream(session, pub_socket, u'stdout')
     sys.stderr = OutStream(session, pub_socket, u'stderr')
+    # Set a displayhook.
     sys.displayhook = DisplayHook(session, pub_socket)
 
     # Create the kernel.

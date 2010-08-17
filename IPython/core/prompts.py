@@ -25,7 +25,7 @@ from IPython.core.error import TryNext
 from IPython.utils import coloransi
 import IPython.utils.generics
 from IPython.utils.warn import warn
-from IPython.utils.io import Term
+import IPython.utils.io
 
 #****************************************************************************
 #Color schemes for Prompts.
@@ -537,7 +537,7 @@ class CachedOutput:
             except KeyError:
                 pass
         if arg is not None:
-            cout_write = Term.cout.write # fast lookup
+            cout_write = IPython.utils.io.Term.cout.write # fast lookup
             # first handle the cache and counters
 
             # do not print output if input ends in ';'
@@ -577,7 +577,7 @@ class CachedOutput:
             if self.logger.log_output:
                 self.logger.log_write(repr(arg),'output')
             cout_write(self.output_sep2)
-            Term.cout.flush()
+            IPython.utils.io.Term.cout.flush()
 
     def _display(self,arg):
         """Default printer method, uses pprint.

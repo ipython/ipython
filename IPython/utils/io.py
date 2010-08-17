@@ -65,21 +65,10 @@ class IOTerm:
     # In the future, having IPython channel all its I/O operations through
     # this class will make it easier to embed it into other environments which
     # are not a normal terminal (such as a GUI-based shell)
-    def __init__(self,cin=None,cout=None,cerr=None):
-        self.cin  = IOStream(cin,sys.stdin)
-        self.cout = IOStream(cout,sys.stdout)
-        self.cerr = IOStream(cerr,sys.stderr)
-
-
-# Global variable to be used for all I/O
-Term = IOTerm()
-
-
-import IPython.utils.rlineimpl as readline
-# Remake Term to use the readline i/o facilities
-if sys.platform == 'win32' and readline.have_readline:
-
-    Term = IOTerm(cout=readline._outputfile,cerr=readline._outputfile)
+    def __init__(self, cin=None, cout=None, cerr=None):
+        self.cin  = IOStream(cin, sys.stdin)
+        self.cout = IOStream(cout, sys.stdout)
+        self.cerr = IOStream(cerr, sys.stderr)
 
 
 class Tee(object):

@@ -19,4 +19,13 @@ class ZMQInteractiveShell(InteractiveShell):
                 print line
         return p.wait()
 
+    def init_io(self):
+        # This will just use sys.stdout and sys.stderr. If you want to
+        # override sys.stdout and sys.stderr themselves, you need to do that
+        # *before* instantiating this class, because Term holds onto 
+        # references to the underlying streams.
+        import IPython.utils.io
+        Term = IPython.utils.io.IOTerm()
+        IPython.utils.io.Term = Term
+
 InteractiveShellABC.register(ZMQInteractiveShell)
