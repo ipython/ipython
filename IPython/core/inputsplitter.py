@@ -5,9 +5,30 @@ input from either interactive, line-by-line environments or block-based ones,
 into standalone blocks that can be executed by Python as 'single' statements
 (thus triggering sys.displayhook).
 
+A companion, :class:`IPythonInputSplitter`, provides the same functionality but
+with full support for the extended IPython syntax (magics, system calls, etc).
+
 For more details, see the class docstring below.
 
+ToDo
+----
+
+- Naming cleanups.  The tr_* names aren't the most elegant, though now they are
+  at least just attributes of a class so not really very exposed.
+
+- Think about the best way to support dynamic things: automagic, autocall,
+  macros, etc.
+
+- Think of a better heuristic for the application of the transforms in
+  IPythonInputSplitter.push() than looking at the buffer ending in ':'.  Idea:
+  track indentation change events (indent, dedent, nothing) and apply them only
+  if the indentation went up, but not otherwise.
+
+- Think of the cleanest way for supporting user-specified transformations (the
+  user prefilters we had before).
+
 Authors
+-------
 
 * Fernando Perez
 * Brian Granger
@@ -513,11 +534,11 @@ def split_user_input(line):
     else:
         # print "match failed for line '%s'" % line
         try:
-            fpart, rest = line.split(None,1)
+            fpart, rest = line.split(None, 1)
         except ValueError:
             # print "split failed for line '%s'" % line
             fpart, rest = line,''
-        lspace = re.match('^(\s*)(.*)',line).groups()[0]
+        lspace = re.match('^(\s*)(.*)', line).groups()[0]
         esc = ''
 
     # fpart has to be a valid python identifier, so it better be only pure
@@ -556,9 +577,6 @@ class LineInfo(object):
     esc
       The initial esc character (or characters, for double-char escapes like
       '??' or '!!').
-    
-    pre_char
-      The escape character(s) in esc or the empty string if there isn't one.
     
     fpart
       The 'function part', which is basically the maximal initial sequence
@@ -648,131 +666,116 @@ def transform_ipy_prompt(line):
         return line
 
 
-def transform_unescaped(line):
-    """Transform lines that are explicitly escaped out.
+class EscapedTransformer(object):
+    """Class to transform lines that are explicitly escaped out."""
 
-    This calls to the above transform_* functions for the actual line
-    translations.
-
-    Parameters
-    ----------
-    line : str
-      A single line of input to be transformed.
-
-    Returns
-    -------
-    new_line : str
-      Transformed line, which may be identical to the original."""
-
-    if not line or line.isspace():
-        return line
-
-    new_line = line
-    for f in [transform_assign_system, transform_assign_magic,
-             transform_classic_prompt, transform_ipy_prompt ] :
-        new_line = f(new_line)
-    return new_line
+    def __init__(self):
+        tr = { ESC_SHELL  : self.tr_system,
+               ESC_SH_CAP : self.tr_system2,
+               ESC_HELP   : self.tr_help,
+               ESC_HELP2  : self.tr_help,
+               ESC_MAGIC  : self.tr_magic,
+               ESC_QUOTE  : self.tr_quote,
+               ESC_QUOTE2 : self.tr_quote2,
+               ESC_PAREN  : self.tr_paren }
+        self.tr = tr
         
-# Support for syntax transformations that use explicit escapes typed by the
-# user at the beginning of a line
+    # Support for syntax transformations that use explicit escapes typed by the
+    # user at the beginning of a line
+    @staticmethod
+    def tr_system(line_info):
+        "Translate lines escaped with: !"
+        cmd = line_info.line.lstrip().lstrip(ESC_SHELL)
+        return '%sget_ipython().system(%s)' % (line_info.lspace,
+                                               make_quoted_expr(cmd))
 
-def tr_system(line_info):
-    "Translate lines escaped with: !"
-    cmd = line_info.line.lstrip().lstrip(ESC_SHELL)
-    return '%sget_ipython().system(%s)' % (line_info.lspace,
-                                           make_quoted_expr(cmd))
+    @staticmethod
+    def tr_system2(line_info):
+        "Translate lines escaped with: !!"
+        cmd = line_info.line.lstrip()[2:]
+        return '%sget_ipython().getoutput(%s)' % (line_info.lspace,
+                                                  make_quoted_expr(cmd))
 
+    @staticmethod
+    def tr_help(line_info):
+        "Translate lines escaped with: ?/??"
+        # A naked help line should just fire the intro help screen
+        if not line_info.line[1:]:
+            return 'get_ipython().show_usage()'
 
-def tr_system2(line_info):
-    "Translate lines escaped with: !!"
-    cmd = line_info.line.lstrip()[2:]
-    return '%sget_ipython().getoutput(%s)' % (line_info.lspace,
-                                              make_quoted_expr(cmd))
-                                         
+        # There may be one or two '?' at the end, move them to the front so that
+        # the rest of the logic can assume escapes are at the start
+        line = line_info.line
+        if line.endswith('?'):
+            line = line[-1] + line[:-1]
+        if line.endswith('?'):
+            line = line[-1] + line[:-1]
+        line_info = LineInfo(line)
 
-def tr_help(line_info):
-    "Translate lines escaped with: ?/??"
-    # A naked help line should just fire the intro help screen
-    if not line_info.line[1:]:
-        return 'get_ipython().show_usage()'
+        # From here on, simply choose which level of detail to get.
+        if line_info.esc == '?':
+            pinfo = 'pinfo'
+        elif line_info.esc == '??':
+            pinfo = 'pinfo2'
 
-    # There may be one or two '?' at the end, move them to the front so that
-    # the rest of the logic can assume escapes are at the start
-    line = line_info.line
-    if line.endswith('?'):
-        line = line[-1] + line[:-1]
-    if line.endswith('?'):
-        line = line[-1] + line[:-1]
-    line_info = LineInfo(line)
+        tpl = '%sget_ipython().magic("%s %s")'
+        return tpl % (line_info.lspace, pinfo,
+                      ' '.join([line_info.fpart, line_info.rest]).strip())
 
-    # From here on, simply choose which level of detail to get.
-    if line_info.esc == '?':
-        pinfo = 'pinfo'
-    elif line_info.esc == '??':
-        pinfo = 'pinfo2'
+    @staticmethod
+    def tr_magic(line_info):
+        "Translate lines escaped with: %"
+        tpl = '%sget_ipython().magic(%s)'
+        cmd = make_quoted_expr(' '.join([line_info.fpart,
+                                         line_info.rest])).strip()
+        return tpl % (line_info.lspace, cmd)
 
-    tpl = '%sget_ipython().magic("%s %s")'
-    return tpl % (line_info.lspace, pinfo,
-                  ' '.join([line_info.fpart, line_info.rest]).strip())
+    @staticmethod
+    def tr_quote(line_info):
+        "Translate lines escaped with: ,"
+        return '%s%s("%s")' % (line_info.lspace, line_info.fpart,
+                             '", "'.join(line_info.rest.split()) )
 
+    @staticmethod
+    def tr_quote2(line_info):
+        "Translate lines escaped with: ;"
+        return '%s%s("%s")' % (line_info.lspace, line_info.fpart,
+                               line_info.rest)
 
-def tr_magic(line_info):
-    "Translate lines escaped with: %"
-    tpl = '%sget_ipython().magic(%s)'
-    cmd = make_quoted_expr(' '.join([line_info.fpart,
-                                     line_info.rest])).strip()
-    return tpl % (line_info.lspace, cmd)
+    @staticmethod
+    def tr_paren(line_info):
+        "Translate lines escaped with: /"
+        return '%s%s(%s)' % (line_info.lspace, line_info.fpart,
+                             ", ".join(line_info.rest.split()))
 
+    def __call__(self, line):
+        """Class to transform lines that are explicitly escaped out.
 
-def tr_quote(line_info):
-    "Translate lines escaped with: ,"
-    return '%s%s("%s")' % (line_info.lspace, line_info.fpart,
-                         '", "'.join(line_info.rest.split()) )
+        This calls the above tr_* static methods for the actual line
+        translations."""
 
-
-def tr_quote2(line_info):
-    "Translate lines escaped with: ;"
-    return '%s%s("%s")' % (line_info.lspace, line_info.fpart,
-                           line_info.rest)
-
-
-def tr_paren(line_info):
-    "Translate lines escaped with: /"
-    return '%s%s(%s)' % (line_info.lspace, line_info.fpart,
-                         ", ".join(line_info.rest.split()))
-
-
-def transform_escaped(line):
-    """Transform lines that are explicitly escaped out.
-
-    This calls to the above tr_* functions for the actual line translations."""
-
-    tr = { ESC_SHELL  : tr_system,
-           ESC_SH_CAP : tr_system2,
-           ESC_HELP   : tr_help,
-           ESC_HELP2  : tr_help,
-           ESC_MAGIC  : tr_magic,
-           ESC_QUOTE  : tr_quote,
-           ESC_QUOTE2 : tr_quote2,
-           ESC_PAREN  : tr_paren }
-
-    # Empty lines just get returned unmodified
-    if not line or line.isspace():
-        return line
-
-    # Get line endpoints, where the escapes can be
-    line_info = LineInfo(line)
-
-    # If the escape is not at the start, only '?' needs to be special-cased.
-    # All other escapes are only valid at the start
-    if not line_info.esc in tr:
-        if line.endswith(ESC_HELP):
-            return tr_help(line_info)
-        else:
-            # If we don't recognize the escape, don't modify the line
+        # Empty lines just get returned unmodified
+        if not line or line.isspace():
             return line
-    
-    return tr[line_info.esc](line_info)
+
+        # Get line endpoints, where the escapes can be
+        line_info = LineInfo(line)
+
+        # If the escape is not at the start, only '?' needs to be special-cased.
+        # All other escapes are only valid at the start
+        if not line_info.esc in self.tr:
+            if line.endswith(ESC_HELP):
+                return self.tr_help(line_info)
+            else:
+                # If we don't recognize the escape, don't modify the line
+                return line
+
+        return self.tr[line_info.esc](line_info)
+
+# A function-looking object to be used by the rest of the code.  The purpose of
+# the class in this case is to organize related functionality, more than to
+# manage state.
+transform_escaped = EscapedTransformer()
 
 
 class IPythonInputSplitter(InputSplitter):
@@ -781,18 +784,34 @@ class IPythonInputSplitter(InputSplitter):
     def push(self, lines):
         """Push one or more lines of IPython input.
         """
+        if not lines:
+            return super(IPythonInputSplitter, self).push(lines)
+
+        lines_list = lines.splitlines()
+
+        transforms = [transform_escaped, transform_assign_system,
+                      transform_assign_magic, transform_ipy_prompt,
+                      transform_classic_prompt]
+
+        # Transform logic
+        #
         # We only apply the line transformers to the input if we have either no
-        # input yet, or complete input.  This prevents the accidental
+        # input yet, or complete input, or if the last line of the buffer ends
+        # with ':' (opening an indented block).  This prevents the accidental
         # transformation of escapes inside multiline expressions like
         # triple-quoted strings or parenthesized expressions.
-        lines_list = lines.splitlines()
-        if self._is_complete or not self._buffer:
-                
-            new_list = map(transform_escaped, lines_list)
-        else:
-            new_list = lines_list
+        #
+        # The last heuristic, while ugly, ensures that the first line of an
+        # indented block is correctly transformed.
+        #
+        # FIXME: try to find a cleaner approach for this last bit.
 
-        # Now apply the unescaped transformations to each input line
-        new_list = map(transform_unescaped, new_list)
-        newlines = '\n'.join(new_list)
-        return super(IPythonInputSplitter, self).push(newlines)
+        for line in lines_list:
+            if self._is_complete or not self._buffer or \
+               (self._buffer and self._buffer[-1].rstrip().endswith(':')):
+                for f in transforms:
+                    line = f(line)
+                
+            out = super(IPythonInputSplitter, self).push(line)
+
+        return out

@@ -593,16 +593,14 @@ if __name__ == '__main__':
     # picked up by any test suite.  Useful mostly for illustration and during
     # development.
     from IPython.core.inputsplitter import InputSplitter, IPythonInputSplitter
-    
+
+    # configure here the syntax to use, prompt and whether to autoindent
     #isp, start_prompt = InputSplitter(), '>>> '
     isp, start_prompt = IPythonInputSplitter(), 'In> '
 
     autoindent = True
     #autoindent = False
     
-    # In practice, this input loop would be wrapped in an outside loop to read
-    # input indefinitely, until some exit/quit command was issued.  Here we
-    # only illustrate the basic inner loop.
     try:
         while True:
             prompt = start_prompt
@@ -618,6 +616,6 @@ if __name__ == '__main__':
             # Here we just return input so we can use it in a test suite, but a
             # real interpreter would instead send it for execution somewhere.
             src = isp.source_reset()
-            print 'Input source was:\n', src  # dbg
+            print 'Input source was:\n', src
     except EOFError:
         print 'Bye'
