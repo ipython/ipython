@@ -36,7 +36,7 @@ from IPython.core import ipapi
 from IPython.core.error import TryNext
 from IPython.utils.cursesimport import use_curses
 from IPython.utils.data import chop
-from IPython.utils.io import Term
+import IPython.utils.io
 from IPython.utils.process import xsys
 from IPython.utils.terminal import get_terminal_size
 
@@ -56,18 +56,18 @@ def page_dumb(strng, start=0, screen_lines=25):
     out_ln  = strng.splitlines()[start:]
     screens = chop(out_ln,screen_lines-1)
     if len(screens) == 1:
-        print >>Term.cout, os.linesep.join(screens[0])
+        print >>IPython.utils.io.Term.cout, os.linesep.join(screens[0])
     else:
         last_escape = ""
         for scr in screens[0:-1]:
             hunk = os.linesep.join(scr)
-            print >>Term.cout, last_escape + hunk
+            print >>IPython.utils.io.Term.cout, last_escape + hunk
             if not page_more():
                 return
             esc_list = esc_re.findall(hunk)
             if len(esc_list) > 0:
                 last_escape = esc_list[-1]
-        print >>Term.cout, last_escape + os.linesep.join(screens[-1])
+        print >>IPython.utils.io.Term.cout, last_escape + os.linesep.join(screens[-1])
 
 
 def page(strng, start=0, screen_lines=0, pager_cmd=None):
@@ -156,7 +156,7 @@ def page(strng, start=0, screen_lines=0, pager_cmd=None):
     #print 'numlines',numlines,'screenlines',screen_lines  # dbg
     if numlines <= screen_lines :
         #print '*** normal print'  # dbg
-        print >>Term.cout, str_toprint
+        print >>IPython.utils.io.Term.cout, str_toprint
     else:
         # Try to open pager and default to internal one if that fails.
         # All failure modes are tagged as 'retval=1', to match the return
@@ -262,13 +262,13 @@ if os.name == 'nt' and os.environ.get('TERM','dumb') != 'emacs':
 
         @return:    True if need print more lines, False if quit
         """
-        Term.cout.write('---Return to continue, q to quit--- ')
+        IPython.utils.io.Term.cout.write('---Return to continue, q to quit--- ')
         ans = msvcrt.getch()
         if ans in ("q", "Q"):
             result = False
         else:
             result = True
-        Term.cout.write("\b"*37 + " "*37 + "\b"*37)
+        IPython.utils.io.Term.cout.write("\b"*37 + " "*37 + "\b"*37)
         return result
 else:
     def page_more():

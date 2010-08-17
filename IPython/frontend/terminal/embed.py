@@ -30,8 +30,8 @@ import sys
 from contextlib import nested
 
 from IPython.core import ultratb
-from IPython.core.iplib import InteractiveShell
-from IPython.core.ipapp import load_default_config
+from IPython.frontend.terminal.interactiveshell import TerminalInteractiveShell
+from IPython.frontend.terminal.ipapp import load_default_config
 
 from IPython.utils.traitlets import Bool, Str, CBool
 from IPython.utils.io import ask_yes_no
@@ -59,7 +59,7 @@ def kill_embedded(self,parameter_s=''):
         print "This embedded IPython will not reactivate anymore once you exit."
 
 
-class InteractiveShellEmbed(InteractiveShell):
+class InteractiveShellEmbed(TerminalInteractiveShell):
 
     dummy_mode = Bool(False)
     exit_msg = Str('')
@@ -69,18 +69,19 @@ class InteractiveShellEmbed(InteractiveShell):
     # is True by default.
     display_banner = CBool(True)
 
-    def __init__(self, parent=None, config=None, ipython_dir=None, usage=None,
-                 user_ns=None, user_global_ns=None,
-                 banner1=None, banner2=None, display_banner=None,
-                 custom_exceptions=((),None), exit_msg=''):
+    def __init__(self, config=None, ipython_dir=None, user_ns=None,
+                 user_global_ns=None, custom_exceptions=((),None),
+                 usage=None, banner1=None, banner2=None,
+                 display_banner=None, exit_msg=u''):
 
         self.save_sys_ipcompleter()
 
         super(InteractiveShellEmbed,self).__init__(
-            parent=parent, config=config, ipython_dir=ipython_dir, usage=usage, 
-            user_ns=user_ns, user_global_ns=user_global_ns,
-            banner1=banner1, banner2=banner2, display_banner=display_banner,
-            custom_exceptions=custom_exceptions)
+            config=config, ipython_dir=ipython_dir, user_ns=user_ns,
+            user_global_ns=user_global_ns, custom_exceptions=custom_exceptions,
+            usage=usage, banner1=banner1, banner2=banner2,
+            display_banner=display_banner
+        )
 
         self.exit_msg = exit_msg
         self.define_magic("kill_embedded", kill_embedded)
@@ -240,8 +241,7 @@ class InteractiveShellEmbed(InteractiveShell):
 _embedded_shell = None
 
 
-def embed(header='', config=None, usage=None, banner1=None, banner2=None,
-          display_banner=True, exit_msg=''):
+def embed(**kwargs):
     """Call this to embed IPython at the current point in your program.
 
     The first invocation of this will create an :class:`InteractiveShellEmbed`
@@ -261,15 +261,12 @@ def embed(header='', config=None, usage=None, banner1=None, banner2=None,
     Full customization can be done by passing a :class:`Struct` in as the 
     config argument.
     """
+    config = kwargs.get('config')
+    header = kwargs.pop('header', u'')
     if config is None:
         config = load_default_config()
-        config.InteractiveShellEmbed = config.InteractiveShell
+        config.InteractiveShellEmbed = config.TerminalInteractiveShell
     global _embedded_shell
     if _embedded_shell is None:
-        _embedded_shell = InteractiveShellEmbed(
-            config=config, usage=usage, 
-            banner1=banner1, banner2=banner2, 
-            display_banner=display_banner, exit_msg=exit_msg
-        )
+        _embedded_shell = InteractiveShellEmbed(**kwargs)
     _embedded_shell(header=header, stack_depth=2)
-

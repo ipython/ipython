@@ -58,7 +58,8 @@ from IPython.lib.pylabtools import mpl_runner
 from IPython.lib.inputhook import enable_gui
 from IPython.external.Itpl import itpl, printpl
 from IPython.testing import decorators as testdec
-from IPython.utils.io import Term, file_read, nlprint
+from IPython.utils.io import file_read, nlprint
+import IPython.utils.io
 from IPython.utils.path import get_py_filename
 from IPython.utils.process import arg_split, abbrev_cwd
 from IPython.utils.terminal import set_term_title
@@ -1699,7 +1700,7 @@ Currently the magic system has the following functions:\n"""
         # set the __file__ global in the script's namespace
         prog_ns['__file__'] = filename
 
-        # pickle fix.  See iplib for an explanation.  But we need to make sure
+        # pickle fix.  See interactiveshell for an explanation.  But we need to make sure
         # that, if we overwrite __main__, we replace it at the end
         main_mod_name = prog_ns['__name__']
 
@@ -2524,13 +2525,6 @@ Currently the magic system has the following functions:\n"""
         except:
             xmode_switch_err('user')
 
-        # threaded shells use a special handler in sys.excepthook
-        if shell.isthreaded:
-            try:
-                shell.sys_excepthook.set_mode(mode=new_mode)
-            except:
-                xmode_switch_err('threaded')
-            
     def magic_colors(self,parameter_s = ''):
         """Switch color scheme for prompts, info system and exception handlers.
 
@@ -2585,13 +2579,6 @@ Defaulting color scheme to 'NoColor'"""
         except:
             color_switch_err('exception')
 
-        # threaded shells use a verbose traceback in sys.excepthook
-        if shell.isthreaded:
-            try:
-                shell.sys_excepthook.set_colors(scheme=new_scheme)
-            except:
-                color_switch_err('system exception handler')
-        
         # Set info (for 'object?') colors
         if shell.color_info:
             try:
@@ -3107,7 +3094,7 @@ Defaulting color scheme to 'NoColor'"""
         # If all looks ok, proceed
         out,err = self.shell.getoutputerror(cmd)
         if err:
-            print >> Term.cerr,err
+            print >> IPython.utils.io.Term.cerr, err
         if opts.has_key('l'):
             out = SList(out.split('\n'))
         else:
@@ -3157,52 +3144,9 @@ Defaulting color scheme to 'NoColor'"""
         if parameter_s:
             out,err = self.shell.getoutputerror(parameter_s)
             if err:
-                print >> Term.cerr,err
+                print >> IPython.utils.io.Term.cerr, err
             return SList(out.split('\n'))
 
-    def magic_bg(self, parameter_s=''):
-        """Run a job in the background, in a separate thread.
-
-        For example,
-
-          %bg myfunc(x,y,z=1)
-
-        will execute 'myfunc(x,y,z=1)' in a background thread.  As soon as the
-        execution starts, a message will be printed indicating the job
-        number.  If your job number is 5, you can use
-
-          myvar = jobs.result(5)  or  myvar = jobs[5].result
-
-        to assign this result to variable 'myvar'.
-
-        IPython has a job manager, accessible via the 'jobs' object.  You can
-        type jobs? to get more information about it, and use jobs.<TAB> to see
-        its attributes.  All attributes not starting with an underscore are
-        meant for public use.
-
-        In particular, look at the jobs.new() method, which is used to create
-        new jobs.  This magic %bg function is just a convenience wrapper
-        around jobs.new(), for expression-based jobs.  If you want to create a
-        new job with an explicit function object and arguments, you must call
-        jobs.new() directly.
-
-        The jobs.new docstring also describes in detail several important
-        caveats associated with a thread-based model for background job
-        execution.  Type jobs.new? for details.
-
-        You can check the status of all jobs with jobs.status().
-
-        The jobs variable is set by IPython into the Python builtin namespace.
-        If you ever declare a variable named 'jobs', you will shadow this
-        name.  You can either delete your global jobs variable to regain
-        access to the job manager, or make a new name and assign it manually
-        to the manager (stored in IPython's namespace).  For example, to
-        assign the job manager to the Jobs name, use:
-
-          Jobs = __builtins__.jobs"""
-        
-        self.shell.jobs.new(parameter_s,self.shell.user_ns)
-        
     def magic_r(self, parameter_s=''):
         """Repeat previous input.
 
@@ -3327,10 +3271,10 @@ Defaulting color scheme to 'NoColor'"""
     def _get_pasted_lines(self, sentinel):
         """ Yield pasted lines until the user enters the given sentinel value.
         """
-        from IPython.core import iplib
+        from IPython.core import interactiveshell
         print "Pasting code; enter '%s' alone on the line to stop." % sentinel
         while True:
-            l = iplib.raw_input_original(':')
+            l = interactiveshell.raw_input_original(':')
             if l == sentinel:
                 return
             else:

@@ -46,7 +46,7 @@ import sys
 
 from pprint import PrettyPrinter
 
-from IPython.utils.io import Term
+import IPython.utils.io
 from IPython.utils.process import shell
 
 from IPython.core.error import TryNext
@@ -175,13 +175,13 @@ def result_display(self,arg):
             # So that multi-line strings line up with the left column of
             # the screen, instead of having the output prompt mess up
             # their first line.                
-            Term.cout.write('\n')
-        print >>Term.cout, out
+            IPython.utils.io.Term.cout.write('\n')
+        print >>IPython.utils.io.Term.cout, out
     else:
         # By default, the interactive prompt uses repr() to display results,
         # so we should honor this.  Users who'd rather use a different
         # mechanism can easily override this hook.
-        print >>Term.cout, repr(arg)
+        print >>IPython.utils.io.Term.cout, repr(arg)
     # the default display hook doesn't manipulate the value to put in history
     return None 
 

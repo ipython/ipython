@@ -13,4 +13,6 @@ this_dir = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, this_dir)
 
 # Now proceed with execution
-execfile(os.path.join(this_dir, 'IPython', 'scripts', 'ipython'))
+execfile(os.path.join(
+    this_dir, 'IPython', 'frontend', 'terminal', 'scripts', 'ipython'
+))

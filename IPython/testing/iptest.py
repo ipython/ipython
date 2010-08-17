@@ -153,10 +153,6 @@ def make_exclude():
     ipjoin = lambda *paths: pjoin('IPython', *paths)
     
     exclusions = [ipjoin('external'),
-                  # Deprecated old Shell and iplib modules, skip to avoid
-                  # warnings
-                  ipjoin('Shell'),
-                  ipjoin('iplib'),
                   pjoin('IPython_doctest_plugin'),
                   ipjoin('quarantine'),
                   ipjoin('deathrow'),

@@ -164,9 +164,9 @@ def default_argv():
 def default_config():
     """Return a config object with good defaults for testing."""
     config = Config()
-    config.InteractiveShell.colors = 'NoColor'
-    config.InteractiveShell.term_title = False,
-    config.InteractiveShell.autocall = 0
+    config.TerminalInteractiveShell.colors = 'NoColor'
+    config.TerminalTerminalInteractiveShell.term_title = False,
+    config.TerminalInteractiveShell.autocall = 0
     return config
 
 

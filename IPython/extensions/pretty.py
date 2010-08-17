@@ -39,7 +39,7 @@ from IPython.core.error import TryNext
 from IPython.external import pretty
 from IPython.core.plugin import Plugin
 from IPython.utils.traitlets import Bool, List, Instance
-from IPython.utils.io import Term
+import IPython.utils.io
 from IPython.utils.autoattr import auto_attr
 from IPython.utils.importstring import import_item
 
@@ -55,7 +55,7 @@ class PrettyResultDisplay(Plugin):
     """A component for pretty printing on steroids."""
 
     verbose = Bool(False, config=True)
-    shell = Instance('IPython.core.iplib.InteractiveShellABC')
+    shell = Instance('IPython.core.interactiveshell.InteractiveShellABC')
 
     # A list of (type, func_name), like
     # [(dict, 'my_dict_printer')]
@@ -100,8 +100,8 @@ class PrettyResultDisplay(Plugin):
                 # So that multi-line strings line up with the left column of
                 # the screen, instead of having the output prompt mess up
                 # their first line.                
-                Term.cout.write('\n')
-            print >>Term.cout, out
+                IPython.utils.io.Term.cout.write('\n')
+            print >>IPython.utils.io.Term.cout, out
         else:
             raise TryNext
 

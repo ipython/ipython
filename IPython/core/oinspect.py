@@ -30,7 +30,7 @@ import types
 from IPython.core.page import page
 from IPython.external.Itpl import itpl
 from IPython.utils import PyColorize
-from IPython.utils.io import Term
+import IPython.utils.io
 from IPython.utils.text import indent
 from IPython.utils.wildcard import list_namespace
 from IPython.utils.coloransi import *
@@ -249,7 +249,7 @@ class Inspector:
         if output is None:
             self.noinfo('definition header',oname)
         else:
-            print >>Term.cout, header,self.format(output),
+            print >>IPython.utils.io.Term.cout, header,self.format(output),
 
     def pdoc(self,obj,oname='',formatter = None):
         """Print the docstring for any object.

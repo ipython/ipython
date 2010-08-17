@@ -7,7 +7,7 @@
 #  the file COPYING, distributed as part of this software.
 #*****************************************************************************
 
-from IPython.utils.io import Term
+import IPython.utils.io
 from IPython.core.autocall import IPyAutocall
 
 class Macro(IPyAutocall):
@@ -32,7 +32,7 @@ class Macro(IPyAutocall):
         return 'IPython.macro.Macro(%s)' % repr(self.value)
     
     def __call__(self,*args):
-        Term.cout.flush()
+        IPython.utils.io.Term.cout.flush()
         self._ip.user_ns['_margv'] = args
         self._ip.runlines(self.value)
     

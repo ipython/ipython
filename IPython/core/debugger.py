@@ -32,7 +32,7 @@ import sys
 from IPython.utils import PyColorize
 from IPython.core import ipapi
 from IPython.utils import coloransi
-from IPython.utils.io import Term
+import IPython.utils.io
 from IPython.core.excolors import exception_colors
 
 # See if we can use pydb.
@@ -171,7 +171,7 @@ class Pdb(OldPdb):
 
         # Parent constructor:
         if has_pydb and completekey is None:
-            OldPdb.__init__(self,stdin=stdin,stdout=Term.cout)
+            OldPdb.__init__(self,stdin=stdin,stdout=IPython.utils.io.Term.cout)
         else:
             OldPdb.__init__(self,completekey,stdin,stdout)
             
@@ -184,7 +184,7 @@ class Pdb(OldPdb):
 
         if self.is_pydb:
 
-            # iplib.py's ipalias seems to want pdb's checkline
+            # interactiveshell.py's ipalias seems to want pdb's checkline
             # which located in pydb.fn
             import pydb.fns
             self.checkline = lambda filename, lineno: \
@@ -279,7 +279,7 @@ class Pdb(OldPdb):
     def print_stack_entry(self,frame_lineno,prompt_prefix='\n-> ',
                           context = 3):
         #frame, lineno = frame_lineno
-        print >>Term.cout, self.format_stack_entry(frame_lineno, '', context)
+        print >>IPython.utils.io.Term.cout, self.format_stack_entry(frame_lineno, '', context)
 
         # vds: >>
         frame, lineno = frame_lineno
@@ -419,7 +419,7 @@ class Pdb(OldPdb):
                 src.append(line)
                 self.lineno = lineno
 
-            print >>Term.cout, ''.join(src)
+            print >>IPython.utils.io.Term.cout, ''.join(src)
 
         except KeyboardInterrupt:
             pass

@@ -25,8 +25,8 @@ def test_import_hooks():
 def test_import_ipapi():
     from IPython.core import ipapi
 
-def test_import_iplib():
-    from IPython.core import iplib
+def test_import_interactiveshell():
+    from IPython.core import interactiveshell
 
 def test_import_logger():
     from IPython.core import logger
@@ -39,9 +39,6 @@ def test_import_magic():
 
 def test_import_oinspect():
     from IPython.core import oinspect
-
-def test_import_outputtrap():
-    from IPython.core import outputtrap
 
 def test_import_prefilter():
     from IPython.core import prefilter

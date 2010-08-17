@@ -36,7 +36,7 @@ from IPython.core.splitinput import split_user_input
 from IPython.core.page import page
 
 from IPython.utils.traitlets import List, Int, Any, Str, CBool, Bool, Instance
-from IPython.utils.io import Term
+import IPython.utils.io
 from IPython.utils.text import make_quoted_expr
 from IPython.utils.autoattr import auto_attr
 
@@ -210,7 +210,7 @@ class PrefilterManager(Configurable):
     """
 
     multi_line_specials = CBool(True, config=True)
-    shell = Instance('IPython.core.iplib.InteractiveShellABC')
+    shell = Instance('IPython.core.interactiveshell.InteractiveShellABC')
 
     def __init__(self, shell=None, config=None):
         super(PrefilterManager, self).__init__(shell=shell, config=config)
@@ -453,7 +453,7 @@ class PrefilterTransformer(Configurable):
     priority = Int(100, config=True)
     # Transformers don't currently use shell or prefilter_manager, but as we
     # move away from checkers and handlers, they will need them.
-    shell = Instance('IPython.core.iplib.InteractiveShellABC')
+    shell = Instance('IPython.core.interactiveshell.InteractiveShellABC')
     prefilter_manager = Instance('IPython.core.prefilter.PrefilterManager')
     enabled = Bool(True, config=True)
 
@@ -561,7 +561,7 @@ class PrefilterChecker(Configurable):
     """Inspect an input line and return a handler for that line."""
 
     priority = Int(100, config=True)
-    shell = Instance('IPython.core.iplib.InteractiveShellABC')
+    shell = Instance('IPython.core.interactiveshell.InteractiveShellABC')
     prefilter_manager = Instance('IPython.core.prefilter.PrefilterManager')
     enabled = Bool(True, config=True)
 
@@ -754,7 +754,7 @@ class PrefilterHandler(Configurable):
 
     handler_name = Str('normal')
     esc_strings = List([])
-    shell = Instance('IPython.core.iplib.InteractiveShellABC')
+    shell = Instance('IPython.core.interactiveshell.InteractiveShellABC')
     prefilter_manager = Instance('IPython.core.prefilter.PrefilterManager')
 
     def __init__(self, shell=None, prefilter_manager=None, config=None):
@@ -922,7 +922,7 @@ class AutoHandler(PrefilterHandler):
                 # plain ascii works better w/ pyreadline, on some machines, so
                 # we use it and only print uncolored rewrite if we have unicode
                 rw = str(rw)
-                print >>Term.cout, rw
+                print >>IPython.utils.io.Term.cout, rw
             except UnicodeEncodeError:
                 print "-------------->" + newcmd
             

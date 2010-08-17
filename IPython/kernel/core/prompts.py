@@ -32,7 +32,7 @@ from IPython.external.Itpl import ItplNS
 from IPython.utils import coloransi
 from IPython.core import release
 from IPython.core.error import TryNext
-from IPython.utils.io import Term
+import IPython.utils.io
 from IPython.utils.warn import warn
 import IPython.utils.generics
 

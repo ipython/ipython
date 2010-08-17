@@ -47,15 +47,15 @@ c = get_config()
 
 # c.InteractiveShell.autocall = 1
 
-# c.InteractiveShell.autoedit_syntax = False
+# c.TerminalInteractiveShell.autoedit_syntax = False
 
 # c.InteractiveShell.autoindent = True
 
 # c.InteractiveShell.automagic = False
 
-# c.InteractiveShell.banner1 = 'This if for overriding the default IPython banner'
+# c.TerminalTerminalInteractiveShell.banner1 = 'This if for overriding the default IPython banner'
  
-# c.InteractiveShell.banner2 = "This is for extra banner text"
+# c.TerminalTerminalInteractiveShell.banner2 = "This is for extra banner text"
 
 # c.InteractiveShell.cache_size = 1000
 
@@ -63,11 +63,11 @@ c = get_config()
 
 # c.InteractiveShell.color_info = True
 
-# c.InteractiveShell.confirm_exit = True
+# c.TerminalInteractiveShell.confirm_exit = True
 
 # c.InteractiveShell.deep_reload = False
 
-# c.InteractiveShell.editor = 'nano'
+# c.TerminalInteractiveShell.editor = 'nano'
 
 # c.InteractiveShell.logstart = True
 
@@ -77,7 +77,7 @@ c = get_config()
 
 # c.InteractiveShell.object_info_string_level = 0
 
-# c.InteractiveShell.pager = 'less'
+# c.TerminalInteractiveShell.pager = 'less'
 
 # c.InteractiveShell.pdb = False
 
@@ -114,7 +114,7 @@ c = get_config()
 # c.InteractiveShell.readline_merge_completions = True
 # c.InteractiveShell.readline_omit__names = 0
 
-# c.InteractiveShell.screen_length = 0
+# c.TerminalInteractiveShell.screen_length = 0
 
 # c.InteractiveShell.separate_in = '\n'
 # c.InteractiveShell.separate_out = ''
@@ -124,7 +124,7 @@ c = get_config()
 
 # c.InteractiveShell.system_verbose = True
 
-# c.InteractiveShell.term_title = False
+# c.TerminalInteractiveShell.term_title = False
 
 # c.InteractiveShell.wildcards_case_sensitive = True
 

@@ -35,8 +35,6 @@ def install():
         'ipcontroller',
         'ipengine',
         'ipcluster',
-        'ipythonx',
-        'ipython-wx',
         'irunner'
     ]
     scripts = pjoin(prefix,'scripts')

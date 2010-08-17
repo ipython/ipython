@@ -30,7 +30,7 @@ from zmq.eventloop import ioloop
 
 # Local imports.
 from IPython.utils.traitlets import HasTraits, Any, Instance, Type, TCPAddress
-from kernel import launch_kernel
+from ipkernel import launch_kernel
 from session import Session
 
 #-----------------------------------------------------------------------------
