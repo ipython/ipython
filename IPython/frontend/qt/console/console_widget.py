@@ -347,6 +347,8 @@ class ConsoleWidget(QtGui.QWidget):
 
         self._completion_widget.setFont(font)
         self._control.document().setDefaultFont(font)
+        if self._page_control:
+            self._page_control.document().setDefaultFont(font)
 
     font = property(_get_font, _set_font)
 

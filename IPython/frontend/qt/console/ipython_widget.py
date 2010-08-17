@@ -147,6 +147,8 @@ class IPythonWidget(FrontendWidget):
         """
         self.setStyleSheet(stylesheet)
         self._control.document().setDefaultStyleSheet(stylesheet)
+        if self._page_control:
+            self._page_control.document().setDefaultStyleSheet(stylesheet)
 
         if syntax_style is None:
             self._highlighter.set_style_sheet(stylesheet)
