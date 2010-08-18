@@ -141,15 +141,15 @@ class QtAnsiCodeProcessor(AnsiCodeProcessor):
     """
 
     # A map from color codes to RGB colors.
-    ansi_colors = ( # Normal, Bright/Light
-                   ('#000000', '#7f7f7f'), # 0: black
-                   ('#cd0000', '#ff0000'), # 1: red
-                   ('#00cd00', '#00ff00'), # 2: green
-                   ('#cdcd00', '#ffff00'), # 3: yellow
-                   ('#0000ee', '#0000ff'), # 4: blue
-                   ('#cd00cd', '#ff00ff'), # 5: magenta
-                   ('#00cdcd', '#00ffff'), # 6: cyan
-                   ('#e5e5e5', '#ffffff')) # 7: white
+    ansi_colors = (# Normal,      Bright/Light    ANSI color code
+                   ('black',      'grey'),        # 0: black
+                   ('darkred',    'red'),         # 1: red
+                   ('darkgreen',  'green'),       # 2: green
+                   ('gold',       'yellow'),      # 3: yellow
+                   ('darkblue',   'blue'),        # 4: blue
+                   ('darkviolet', 'magenta'),     # 5: magenta
+                   ('steelblue',  'cyan'),        # 6: cyan
+                   ('grey',       'white'))       # 7: white
     
     def get_format(self):
         """ Returns a QTextCharFormat that encodes the current style attributes.
