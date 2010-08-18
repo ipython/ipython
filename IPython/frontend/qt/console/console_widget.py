@@ -672,6 +672,8 @@ class ConsoleWidget(QtGui.QWidget):
                     cursor.movePosition(QtGui.QTextCursor.StartOfBlock,
                                         QtGui.QTextCursor.KeepAnchor)
                     cursor.removeSelectedText()
+                    cursor.deletePreviousChar()
+                    intercepted = True
 
                 # Regular backwards deletion
                 else:
