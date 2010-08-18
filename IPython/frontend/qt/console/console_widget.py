@@ -45,7 +45,7 @@ class ConsoleWidget(QtGui.QWidget):
 
     # Signal emitted when paging is needed and the paging style has been
     # specified as 'custom'.
-    custom_page_requested = QtCore.pyqtSignal(QtCore.QString)
+    custom_page_requested = QtCore.pyqtSignal(object)
 
     # Protected class variables.
     _ctrl_down_remap = { QtCore.Qt.Key_B : QtCore.Qt.Key_Left,
@@ -81,7 +81,7 @@ class ConsoleWidget(QtGui.QWidget):
                 'vsplit' : Similar to 'hsplit', except that a vertical splitter
                            used.
                 'custom' : No action is taken by the widget beyond emitting a
-                           'custom_page_requested(QString)' signal.
+                           'custom_page_requested(str)' signal.
                 'none'   : The text is written directly to the console.
 
         parent : QWidget, optional [default None]

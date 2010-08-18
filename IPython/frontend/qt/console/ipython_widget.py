@@ -1,3 +1,6 @@
+# Standard library imports
+from subprocess import Popen
+
 # System library imports
 from PyQt4 import QtCore, QtGui
 
@@ -10,6 +13,10 @@ from frontend_widget import FrontendWidget
 class IPythonWidget(FrontendWidget):
     """ A FrontendWidget for an IPython kernel.
     """
+
+    # Signal emitted when an editor is needed for a file and the editor has been
+    # specified as 'custom'.
+    custom_edit_requested = QtCore.pyqtSignal(object)
 
     # The default stylesheet: black text on a white background.
     default_stylesheet = """
@@ -43,13 +50,14 @@ class IPythonWidget(FrontendWidget):
         super(IPythonWidget, self).__init__(*args, **kw)
 
         # FrontendWidget protected variables.
-        self._input_splitter = IPythonInputSplitter(input_mode='replace')
+        #self._input_splitter = IPythonInputSplitter(input_mode='replace')
 
         # IPythonWidget protected variables.
         self._previous_prompt_blocks = []
         self._prompt_count = 0
 
-        # Set a default stylesheet.
+        # Set a default editor and stylesheet.
+        self.set_editor('default')
         self.reset_styling()
 
     #---------------------------------------------------------------------------
@@ -128,11 +136,58 @@ class IPythonWidget(FrontendWidget):
     # 'IPythonWidget' interface
     #---------------------------------------------------------------------------
 
+    def edit(self, filename):
+        """ Opens a Python script for editing.
+
+        Parameters:
+        -----------
+        filename : str
+            A path to a local system file.
+        
+        Raises:
+        -------
+        OSError
+            If the editor command cannot be executed.
+        """
+        if self._editor == 'default':
+            url = QtCore.QUrl.fromLocalFile(filename)
+            if not QtGui.QDesktopServices.openUrl(url):
+                message = 'Failed to open %s with the default application'
+                raise OSError(message % repr(filename))
+        elif self._editor is None:
+            self.custom_edit_requested.emit(filename)
+        else:
+            Popen(self._editor + [filename])
+
     def reset_styling(self):
         """ Restores the default IPythonWidget styling.
         """
         self.set_styling(self.default_stylesheet, syntax_style='default')
         #self.set_styling(self.dark_stylesheet, syntax_style='monokai')
+
+    def set_editor(self, editor):
+        """ Sets the editor to use with the %edit magic.
+
+        Parameters:
+        -----------
+        editor : str or sequence of str
+            A command suitable for use with Popen. This command will be executed
+            with a single argument--a filename--when editing is requested.
+
+            This parameter also takes two special values:
+                'default' : Files will be edited with the system default 
+                            application for Python files.
+                'custom'  : Emit a 'custom_edit_requested(str)' signal instead
+                            of opening an editor.
+        """
+        if editor == 'default':
+            self._editor = 'default'
+        elif editor == 'custom':
+            self._editor = None
+        elif isinstance(editor, basestring):
+            self._editor = [ editor ]
+        else:
+            self._editor = list(editor)
 
     def set_styling(self, stylesheet, syntax_style=None):
         """ Sets the IPythonWidget styling.
