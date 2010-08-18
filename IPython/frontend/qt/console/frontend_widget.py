@@ -125,13 +125,6 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         if not self._reading:
             self._highlighter.highlighting_on = True
 
-            # Auto-indent if this is a continuation prompt.
-            if self._get_prompt_cursor().blockNumber() != \
-                    self._get_end_cursor().blockNumber():
-                spaces = self._input_splitter.indent_spaces
-                self._append_plain_text('\t' * (spaces / self.tab_width))
-                self._append_plain_text(' ' * (spaces % self.tab_width))
-
     def _prompt_finished_hook(self):
         """ Called immediately after a prompt is finished, i.e. when some input
             will be processed and a new prompt displayed.
@@ -146,6 +139,18 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         self._keep_cursor_in_buffer()
         cursor = self._get_cursor()
         return not self._complete()
+
+    #---------------------------------------------------------------------------
+    # 'ConsoleWidget' protected interface
+    #---------------------------------------------------------------------------
+
+    def _show_continuation_prompt(self):
+        """ Reimplemented for auto-indentation.
+        """
+        super(FrontendWidget, self)._show_continuation_prompt()
+        spaces = self._input_splitter.indent_spaces
+        self._append_plain_text('\t' * (spaces / self.tab_width))
+        self._append_plain_text(' ' * (spaces % self.tab_width))
 
     #---------------------------------------------------------------------------
     # 'BaseFrontendMixin' abstract interface

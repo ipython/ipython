@@ -361,7 +361,7 @@ class ConsoleWidget(QtGui.QWidget):
             except UnicodeEncodeError:
                 pass
             else:
-                self._insert_into_buffer(dedent(text))
+                self._insert_plain_text_into_buffer(dedent(text))
 
     def print_(self, printer):
         """ Print the contents of the ConsoleWidget to the specified QPrinter.
@@ -477,11 +477,8 @@ class ConsoleWidget(QtGui.QWidget):
     def _append_html_fetching_plain_text(self, html):
         """ Appends 'html', then returns the plain text version of it.
         """
-        anchor = self._get_end_cursor().position()
-        self._append_html(html)
         cursor = self._get_end_cursor()
-        cursor.setPosition(anchor, QtGui.QTextCursor.KeepAnchor)
-        return str(cursor.selection().toPlainText())
+        return self._insert_html_fetching_plain_text(cursor, html)
 
     def _append_plain_text(self, text):
         """ Appends plain text at the end of the console buffer, processing
@@ -872,7 +869,7 @@ class ConsoleWidget(QtGui.QWidget):
         return cursor
 
     def _insert_html(self, cursor, html):
-        """ Insert HTML using the specified cursor in such a way that future
+        """ Inserts HTML using the specified cursor in such a way that future
             formatting is unaffected.
         """
         cursor.beginEditBlock()
@@ -889,6 +886,18 @@ class ConsoleWidget(QtGui.QWidget):
         cursor.movePosition(QtGui.QTextCursor.Right)
         cursor.insertText(' ', QtGui.QTextCharFormat())
         cursor.endEditBlock()
+
+    def _insert_html_fetching_plain_text(self, cursor, html):
+        """ Inserts HTML using the specified cursor, then returns its plain text
+            version.
+        """
+        start = cursor.position()
+        self._insert_html(cursor, html)
+        end = cursor.position()
+        cursor.setPosition(start, QtGui.QTextCursor.KeepAnchor)
+        text = str(cursor.selection().toPlainText())
+        cursor.setPosition(end)
+        return text
 
     def _insert_plain_text(self, cursor, text):
         """ Inserts plain text using the specified cursor, processing ANSI codes
@@ -907,7 +916,7 @@ class ConsoleWidget(QtGui.QWidget):
             cursor.insertText(text)
         cursor.endEditBlock()
 
-    def _insert_into_buffer(self, text):
+    def _insert_plain_text_into_buffer(self, text):
         """ Inserts text into the input buffer at the current cursor position,
             ensuring that continuation prompts are inserted as necessary.
         """
@@ -921,7 +930,9 @@ class ConsoleWidget(QtGui.QWidget):
                 if self._continuation_prompt_html is None:
                     cursor.insertText(self._continuation_prompt)
                 else:
-                    self._insert_html(cursor, self._continuation_prompt_html)
+                    self._continuation_prompt = \
+                        self._insert_html_fetching_plain_text(
+                            cursor, self._continuation_prompt_html)
                 cursor.insertText(line)
             cursor.endEditBlock()
             self._control.setTextCursor(cursor)
