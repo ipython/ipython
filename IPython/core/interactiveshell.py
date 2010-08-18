@@ -46,7 +46,7 @@ from IPython.core.logger import Logger
 from IPython.core.magic import Magic
 from IPython.core.plugin import PluginManager
 from IPython.core.prefilter import PrefilterManager
-from IPython.core.prompts import CachedOutput
+from IPython.core.displayhook import DisplayHook
 import IPython.core.hooks
 from IPython.external.Itpl import ItplNS
 from IPython.utils import PyColorize
@@ -206,8 +206,8 @@ class InteractiveShell(Configurable, Magic):
     # TODO: this part of prompt management should be moved to the frontends.
     # Use custom TraitTypes that convert '0'->'' and '\\n'->'\n'
     separate_in = SeparateStr('\n', config=True)
-    separate_out = SeparateStr('', config=True)
-    separate_out2 = SeparateStr('', config=True)
+    separate_out = SeparateStr('\n', config=True)
+    separate_out2 = SeparateStr('\n', config=True)
     system_header = Str('IPython system call: ', config=True)
     system_verbose = CBool(False, config=True)
     wildcards_case_sensitive = CBool(True, config=True)
@@ -428,10 +428,15 @@ class InteractiveShell(Configurable, Magic):
         IPython.utils.io.Term = Term
 
     def init_prompts(self):
-        # Initialize cache, set in/out prompts and printing system
-        self.outputcache = CachedOutput(self,
-                                        self.cache_size,
-                                        self.pprint,
+        # TODO: This is a pass for now because the prompts are managed inside
+        # the DisplayHook. Once there is a separate prompt manager, this 
+        # will initialize that object and all prompt related information.
+        pass
+
+    def init_displayhook(self):
+        # Initialize displayhook, set in/out prompts and printing system
+        self.displayhook = DisplayHook( shell=self,
+                                        cache_size=self.cache_size,
                                         input_sep = self.separate_in,
                                         output_sep = self.separate_out,
                                         output_sep2 = self.separate_out2,
@@ -439,15 +444,9 @@ class InteractiveShell(Configurable, Magic):
                                         ps2 = self.prompt_in2,
                                         ps_out = self.prompt_out,
                                         pad_left = self.prompts_pad_left)
-
-        # user may have over-ridden the default print hook:
-        try:
-            self.outputcache.__class__.display = self.hooks.display
-        except AttributeError:
-            pass
-
-    def init_displayhook(self):
-        self.display_trap = DisplayTrap(hook=self.outputcache)
+        # This is a context manager that installs/revmoes the displayhook at
+        # the appropriate time.
+        self.display_trap = DisplayTrap(hook=self.displayhook)
 
     def init_reload_doctest(self):
         # Do a proper resetting of doctest, including the necessary displayhook
@@ -1482,8 +1481,9 @@ class InteractiveShell(Configurable, Magic):
     #-------------------------------------------------------------------------
 
     def init_magics(self):
-        # Set user colors (don't do it in the constructor above so that it
-        # doesn't crash if colors option is invalid)
+        # FIXME: Move the color initialization to the DisplayHook, which
+        # should be split into a prompt manager and displayhook. We probably
+        # even need a centralize colors management object.
         self.magic_colors(self.colors)
         # History was moved to a separate module
         from . import history

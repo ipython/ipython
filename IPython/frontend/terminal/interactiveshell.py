@@ -236,7 +236,7 @@ class TerminalInteractiveShell(InteractiveShell):
                     self.write('\nKeyboardInterrupt\n')
                     self.resetbuffer()
                     # keep cache in sync with the prompt counter:
-                    self.outputcache.prompt_count -= 1
+                    self.displayhook.prompt_count -= 1
     
                     if self.autoindent:
                         self.indent_current_nsp = 0

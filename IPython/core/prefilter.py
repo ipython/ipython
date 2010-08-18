@@ -405,7 +405,7 @@ class PrefilterManager(Configurable):
         normal_handler = self.get_handler_by_name('normal')
         if not stripped:
             if not continue_prompt:
-                self.shell.outputcache.prompt_count -= 1
+                self.shell.displayhook.prompt_count -= 1
 
             return normal_handler.handle(line_info)
 
@@ -916,7 +916,7 @@ class AutoHandler(PrefilterHandler):
                     newcmd = '%s(%s)' % (ifun.rstrip(), the_rest)
 
         if auto_rewrite:
-            rw = self.shell.outputcache.prompt1.auto_rewrite() + newcmd
+            rw = self.shell.displayhook.prompt1.auto_rewrite() + newcmd
             
             try:
                 # plain ascii works better w/ pyreadline, on some machines, so

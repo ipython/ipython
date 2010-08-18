@@ -17,7 +17,7 @@ class ZMQInteractiveShell(InteractiveShell):
         for line in p.stderr.read().split('\n'):
             if len(line) > 0:
                 print line
-        return p.wait()
+        p.wait()
 
     def init_io(self):
         # This will just use sys.stdout and sys.stderr. If you want to
