@@ -27,7 +27,7 @@ from IPython.config.configurable import Configurable
 from IPython.core import prompts
 import IPython.utils.generics
 import IPython.utils.io
-from IPython.utils.traitlets import Instance
+from IPython.utils.traitlets import Instance, Int
 from IPython.utils.warn import warn
 
 #-----------------------------------------------------------------------------
@@ -54,6 +54,8 @@ class DisplayHook(Configurable):
     """
 
     shell = Instance('IPython.core.interactiveshell.InteractiveShellABC')
+    # Each call to the In[] prompt raises it by 1, even the first.
+    prompt_count = Int(0)
 
     def __init__(self, shell=None, cache_size=1000,
                  colors='NoColor', input_sep='\n',
@@ -100,9 +102,6 @@ class DisplayHook(Configurable):
                                     pad_left=pad_left)
         self.set_colors(colors)
 
-        # other more normal stuff
-        # b/c each call to the In[] prompt raises it by 1, even the first.
-        self.prompt_count = 0
         # Store the last prompt string each time, we need it for aligning
         # continuation and auto-rewrite prompts
         self.last_prompt = ''

@@ -371,7 +371,14 @@ class Prompt1(BasePrompt):
         # auto-call prompts used in the auto_rewrite() method.
         self.col_p_ni = self.col_p.replace('\001','').replace('\002','') 
         self.col_norm_ni = Colors.normal        
-        
+
+    def peek_next_prompt(self):
+        """Get the next prompt, but don't increment the counter."""
+        self.cache.prompt_count += 1
+        next_prompt = str_safe(self.p_str)
+        self.cache.prompt_count -= 1
+        return next_prompt
+
     def __str__(self):
         self.cache.prompt_count += 1
         self.cache.last_prompt = str_safe(self.p_str_nocolor).split('\n')[-1]

@@ -352,6 +352,7 @@ class FrontendWidget(HistoryConsoleWidget):
         # before writing a new prompt.
         self.kernel_manager.sub_channel.flush()
 
+        # TODO: The reply now has the next_prompt and prompt_number keys.
         status = reply['content']['status']
         if status == 'error':
             self._handle_execute_error(reply)

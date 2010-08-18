@@ -16,7 +16,6 @@ Things to do:
 
 # Standard library imports.
 import __builtin__
-from code import CommandCompiler
 import os
 import sys
 import time
@@ -31,9 +30,7 @@ from IPython.zmq.zmqshell import ZMQInteractiveShell
 from IPython.external.argparse import ArgumentParser
 from IPython.utils.traitlets import Instance
 from IPython.zmq.session import Session, Message
-from completer import KernelCompleter
 from iostream import OutStream
-from displayhook import DisplayHook
 from exitpoller import ExitPollerUnix, ExitPollerWindows
 
 #-----------------------------------------------------------------------------
@@ -58,7 +55,7 @@ class Kernel(Configurable):
 
         # Build dict of handlers for message types
         msg_types = [ 'execute_request', 'complete_request', 
-                      'object_info_request' ]
+                      'object_info_request', 'prompt_request' ]
         self.handlers = {}
         for msg_type in msg_types:
             self.handlers[msg_type] = getattr(self, msg_type)
@@ -120,7 +117,15 @@ class Kernel(Configurable):
             reply_content = exc_content
         else:
             reply_content = {'status' : 'ok'}
-            
+
+        # Compute the prompt information
+        prompt_number = self.shell.displayhook.prompt_count
+        reply_content['prompt_number'] = prompt_number        
+        prompt_string = self.shell.displayhook.prompt1.peek_next_prompt()
+        next_prompt = {'prompt_string' : prompt_string,
+                       'prompt_number' : prompt_number+1}
+        reply_content['next_prompt'] = next_prompt
+
         # Flush output before sending the reply.
         sys.stderr.flush()
         sys.stdout.flush()
@@ -199,6 +204,15 @@ class Kernel(Configurable):
                 symbol = new_symbol
 
         return symbol, []
+
+    def prompt_request(self, ident, parent):
+        prompt_number = self.shell.displayhook.prompt_count
+        prompt_string = self.shell.displayhook.prompt1.peek_next_prompt()
+        content = {'prompt_string' : prompt_string,
+                   'prompt_number' : prompt_number+1}
+        msg = self.session.send(self.reply_socket, 'prompt_reply',
+                                content, parent, ident)
+        print >> sys.__stdout__, msg
 
     def start(self):
         while True:

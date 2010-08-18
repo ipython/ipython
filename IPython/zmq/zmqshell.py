@@ -9,7 +9,7 @@ from IPython.utils.traitlets import Instance, Type, Dict
 from IPython.zmq.session import extract_header
 
 
-class ZMQDisplayTrap(DisplayHook):
+class ZMQDisplayHook(DisplayHook):
 
     session = Instance('IPython.zmq.session.Session')
     pub_socket = Instance('zmq.Socket')
@@ -42,7 +42,7 @@ class ZMQDisplayTrap(DisplayHook):
 class ZMQInteractiveShell(InteractiveShell):
     """A subclass of InteractiveShell for ZMQ."""
 
-    displayhook_class = Type(ZMQDisplayTrap)
+    displayhook_class = Type(ZMQDisplayHook)
 
     def system(self, cmd):
         cmd = self.var_expand(cmd, depth=2)
