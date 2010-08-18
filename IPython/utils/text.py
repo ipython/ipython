@@ -295,8 +295,9 @@ def make_quoted_expr(s):
         quote = "'''"
     else:
         # give up, backslash-escaped string will do
-        return '"%s"' % esc_quotes(s)
-    res = raw + quote + s + tailpadding + quote + tail
+        return '"%s"' % esc_quotes(s).strip()
+    txt = (s + tailpadding).strip()
+    res = raw + quote + txt + quote + tail
     return res
 
 

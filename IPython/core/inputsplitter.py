@@ -5,7 +5,33 @@ input from either interactive, line-by-line environments or block-based ones,
 into standalone blocks that can be executed by Python as 'single' statements
 (thus triggering sys.displayhook).
 
+A companion, :class:`IPythonInputSplitter`, provides the same functionality but
+with full support for the extended IPython syntax (magics, system calls, etc).
+
 For more details, see the class docstring below.
+
+ToDo
+----
+
+- Naming cleanups.  The tr_* names aren't the most elegant, though now they are
+  at least just attributes of a class so not really very exposed.
+
+- Think about the best way to support dynamic things: automagic, autocall,
+  macros, etc.
+
+- Think of a better heuristic for the application of the transforms in
+  IPythonInputSplitter.push() than looking at the buffer ending in ':'.  Idea:
+  track indentation change events (indent, dedent, nothing) and apply them only
+  if the indentation went up, but not otherwise.
+
+- Think of the cleanest way for supporting user-specified transformations (the
+  user prefilters we had before).
+
+Authors
+-------
+
+* Fernando Perez
+* Brian Granger
 """
 #-----------------------------------------------------------------------------
 #  Copyright (C) 2010  The IPython Development Team
@@ -22,11 +48,36 @@ import codeop
 import re
 import sys
 
+# IPython modules
+from IPython.utils.text import make_quoted_expr
+
+#-----------------------------------------------------------------------------
+# Globals
+#-----------------------------------------------------------------------------
+
+# The escape sequences that define the syntax transformations IPython will
+# apply to user input.  These can NOT be just changed here: many regular
+# expressions and other parts of the code may use their hardcoded values, and
+# for all intents and purposes they constitute the 'IPython syntax', so they
+# should be considered fixed.
+
+ESC_SHELL  = '!'
+ESC_SH_CAP = '!!'
+ESC_HELP   = '?'
+ESC_HELP2  = '??'
+ESC_MAGIC  = '%'
+ESC_QUOTE  = ','
+ESC_QUOTE2 = ';'
+ESC_PAREN  = '/'
+
 #-----------------------------------------------------------------------------
 # Utilities
 #-----------------------------------------------------------------------------
 
-# FIXME: move these utilities to the general ward...
+# FIXME: These are general-purpose utilities that later can be moved to the
+# general ward.  Kept here for now because we're being very strict about test
+# coverage with this code, and this lets us ensure that we keep 100% coverage
+# while developing.
 
 # compiled regexps for autoindent management
 dedent_re = re.compile(r'^\s+raise|^\s+return|^\s+pass')
@@ -74,7 +125,9 @@ def remove_comments(src):
 
 
 def get_input_encoding():
-    """Return the default standard input encoding."""
+    """Return the default standard input encoding.
+
+    If sys.stdin has no encoding, 'ascii' is returned."""
     # There are strange environments for which sys.stdin.encoding is None. We
     # ensure that a valid encoding is returned.
     encoding = getattr(sys.stdin, 'encoding', None)
@@ -83,7 +136,7 @@ def get_input_encoding():
     return encoding
 
 #-----------------------------------------------------------------------------
-# Classes and functions
+# Classes and functions for normal Python syntax handling
 #-----------------------------------------------------------------------------
 
 class InputSplitter(object):
@@ -417,3 +470,348 @@ class InputSplitter(object):
 
     def _set_source(self):
         self.source = ''.join(self._buffer).encode(self.encoding)
+
+
+#-----------------------------------------------------------------------------
+# Functions and classes for IPython-specific syntactic support
+#-----------------------------------------------------------------------------
+
+# RegExp for splitting line contents into pre-char//first word-method//rest.
+# For clarity, each group in on one line.
+
+line_split = re.compile("""
+             ^(\s*)              # any leading space
+             ([,;/%]|!!?|\?\??)  # escape character or characters
+             \s*([\w\.]*)        # function/method part (mix of \w and '.')
+             (\s+.*$|$)          # rest of line
+             """, re.VERBOSE)
+
+
+def split_user_input(line):
+    """Split user input into early whitespace, esc-char, function part and rest.
+
+    This is currently handles lines with '=' in them in a very inconsistent
+    manner.
+
+    Examples
+    ========
+    >>> split_user_input('x=1')
+    ('', '', 'x=1', '')
+    >>> split_user_input('?')
+    ('', '?', '', '')
+    >>> split_user_input('??')
+    ('', '??', '', '')
+    >>> split_user_input(' ?')
+    (' ', '?', '', '')
+    >>> split_user_input(' ??')
+    (' ', '??', '', '')
+    >>> split_user_input('??x')
+    ('', '??', 'x', '')
+    >>> split_user_input('?x=1')
+    ('', '', '?x=1', '')
+    >>> split_user_input('!ls')
+    ('', '!', 'ls', '')
+    >>> split_user_input('  !ls')
+    ('  ', '!', 'ls', '')
+    >>> split_user_input('!!ls')
+    ('', '!!', 'ls', '')
+    >>> split_user_input('  !!ls')
+    ('  ', '!!', 'ls', '')
+    >>> split_user_input(',ls')
+    ('', ',', 'ls', '')
+    >>> split_user_input(';ls')
+    ('', ';', 'ls', '')
+    >>> split_user_input('  ;ls')
+    ('  ', ';', 'ls', '')
+    >>> split_user_input('f.g(x)')
+    ('', '', 'f.g(x)', '')
+    >>> split_user_input('f.g (x)')
+    ('', '', 'f.g', '(x)')
+    """
+    match = line_split.match(line)
+    if match:
+        lspace, esc, fpart, rest = match.groups()
+    else:
+        # print "match failed for line '%s'" % line
+        try:
+            fpart, rest = line.split(None, 1)
+        except ValueError:
+            # print "split failed for line '%s'" % line
+            fpart, rest = line,''
+        lspace = re.match('^(\s*)(.*)', line).groups()[0]
+        esc = ''
+
+    # fpart has to be a valid python identifier, so it better be only pure
+    # ascii, no unicode:
+    try:
+        fpart = fpart.encode('ascii')
+    except UnicodeEncodeError:
+        lspace = unicode(lspace)
+        rest = fpart + u' ' + rest
+        fpart = u''
+
+    #print 'line:<%s>' % line # dbg
+    #print 'esc <%s> fpart <%s> rest <%s>' % (esc,fpart.strip(),rest) # dbg
+    return lspace, esc, fpart.strip(), rest.lstrip()
+
+
+# The escaped translators ALL receive a line where their own escape has been
+# stripped.  Only '?' is valid at the end of the line, all others can only be
+# placed at the start.
+
+class LineInfo(object):
+    """A single line of input and associated info.
+
+    This is a utility class that mostly wraps the output of
+    :func:`split_user_input` into a convenient object to be passed around
+    during input transformations.
+
+    Includes the following as properties: 
+
+    line
+      The original, raw line
+
+    lspace
+      Any early whitespace before actual text starts.
+
+    esc
+      The initial esc character (or characters, for double-char escapes like
+      '??' or '!!').
+    
+    fpart
+      The 'function part', which is basically the maximal initial sequence
+      of valid python identifiers and the '.' character.  This is what is
+      checked for alias and magic transformations, used for auto-calling,
+      etc.
+    
+    rest
+      Everything else on the line.
+    """
+    def __init__(self, line):
+        self.line = line
+        self.lspace, self.esc, self.fpart, self.rest = \
+                             split_user_input(line)
+
+    def __str__(self):                                                         
+        return "LineInfo [%s|%s|%s|%s]" % (self.lspace, self.esc,
+                                           self.fpart, self.rest)
+
+
+# Transformations of the special syntaxes that don't rely on an explicit escape
+# character but instead on patterns on the input line
+
+# The core transformations are implemented as standalone functions that can be
+# tested and validated in isolation.  Each of these uses a regexp, we
+# pre-compile these and keep them close to each function definition for clarity
+
+_assign_system_re = re.compile(r'(?P<lhs>(\s*)([\w\.]+)((\s*,\s*[\w\.]+)*))'
+                               r'\s*=\s*!\s*(?P<cmd>.*)')
+
+def transform_assign_system(line):
+    """Handle the `files = !ls` syntax."""
+    # FIXME: This transforms the line to use %sc, but we've listed that magic
+    # as deprecated.  We should then implement this functionality in a
+    # standalone api that we can transform to, without going through a
+    # deprecated magic.
+    m = _assign_system_re.match(line)
+    if m is not None:
+        cmd = m.group('cmd')
+        lhs = m.group('lhs')
+        expr = make_quoted_expr("sc -l = %s" % cmd)
+        new_line = '%s = get_ipython().magic(%s)' % (lhs, expr)
+        return new_line
+    return line
+
+
+_assign_magic_re = re.compile(r'(?P<lhs>(\s*)([\w\.]+)((\s*,\s*[\w\.]+)*))'
+                               r'\s*=\s*%\s*(?P<cmd>.*)')
+
+def transform_assign_magic(line):
+    """Handle the `a = %who` syntax."""
+    m = _assign_magic_re.match(line)
+    if m is not None:
+        cmd = m.group('cmd')
+        lhs = m.group('lhs')
+        expr = make_quoted_expr(cmd)
+        new_line = '%s = get_ipython().magic(%s)' % (lhs, expr)
+        return new_line
+    return line
+
+
+_classic_prompt_re = re.compile(r'^([ \t]*>>> |^[ \t]*\.\.\. )')
+
+def transform_classic_prompt(line):
+    """Handle inputs that start with '>>> ' syntax."""
+
+    if not line or line.isspace():
+        return line
+    m = _classic_prompt_re.match(line)
+    if m:
+        return line[len(m.group(0)):]
+    else:
+        return line
+
+
+_ipy_prompt_re = re.compile(r'^([ \t]*In \[\d+\]: |^[ \t]*\ \ \ \.\.\.+: )')
+
+def transform_ipy_prompt(line):
+    """Handle inputs that start classic IPython prompt syntax."""
+
+    if not line or line.isspace():
+        return line
+    m = _ipy_prompt_re.match(line)
+    if m:
+        return line[len(m.group(0)):]
+    else:
+        return line
+
+
+class EscapedTransformer(object):
+    """Class to transform lines that are explicitly escaped out."""
+
+    def __init__(self):
+        tr = { ESC_SHELL  : self.tr_system,
+               ESC_SH_CAP : self.tr_system2,
+               ESC_HELP   : self.tr_help,
+               ESC_HELP2  : self.tr_help,
+               ESC_MAGIC  : self.tr_magic,
+               ESC_QUOTE  : self.tr_quote,
+               ESC_QUOTE2 : self.tr_quote2,
+               ESC_PAREN  : self.tr_paren }
+        self.tr = tr
+        
+    # Support for syntax transformations that use explicit escapes typed by the
+    # user at the beginning of a line
+    @staticmethod
+    def tr_system(line_info):
+        "Translate lines escaped with: !"
+        cmd = line_info.line.lstrip().lstrip(ESC_SHELL)
+        return '%sget_ipython().system(%s)' % (line_info.lspace,
+                                               make_quoted_expr(cmd))
+
+    @staticmethod
+    def tr_system2(line_info):
+        "Translate lines escaped with: !!"
+        cmd = line_info.line.lstrip()[2:]
+        return '%sget_ipython().getoutput(%s)' % (line_info.lspace,
+                                                  make_quoted_expr(cmd))
+
+    @staticmethod
+    def tr_help(line_info):
+        "Translate lines escaped with: ?/??"
+        # A naked help line should just fire the intro help screen
+        if not line_info.line[1:]:
+            return 'get_ipython().show_usage()'
+
+        # There may be one or two '?' at the end, move them to the front so that
+        # the rest of the logic can assume escapes are at the start
+        line = line_info.line
+        if line.endswith('?'):
+            line = line[-1] + line[:-1]
+        if line.endswith('?'):
+            line = line[-1] + line[:-1]
+        line_info = LineInfo(line)
+
+        # From here on, simply choose which level of detail to get.
+        if line_info.esc == '?':
+            pinfo = 'pinfo'
+        elif line_info.esc == '??':
+            pinfo = 'pinfo2'
+
+        tpl = '%sget_ipython().magic("%s %s")'
+        return tpl % (line_info.lspace, pinfo,
+                      ' '.join([line_info.fpart, line_info.rest]).strip())
+
+    @staticmethod
+    def tr_magic(line_info):
+        "Translate lines escaped with: %"
+        tpl = '%sget_ipython().magic(%s)'
+        cmd = make_quoted_expr(' '.join([line_info.fpart,
+                                         line_info.rest])).strip()
+        return tpl % (line_info.lspace, cmd)
+
+    @staticmethod
+    def tr_quote(line_info):
+        "Translate lines escaped with: ,"
+        return '%s%s("%s")' % (line_info.lspace, line_info.fpart,
+                             '", "'.join(line_info.rest.split()) )
+
+    @staticmethod
+    def tr_quote2(line_info):
+        "Translate lines escaped with: ;"
+        return '%s%s("%s")' % (line_info.lspace, line_info.fpart,
+                               line_info.rest)
+
+    @staticmethod
+    def tr_paren(line_info):
+        "Translate lines escaped with: /"
+        return '%s%s(%s)' % (line_info.lspace, line_info.fpart,
+                             ", ".join(line_info.rest.split()))
+
+    def __call__(self, line):
+        """Class to transform lines that are explicitly escaped out.
+
+        This calls the above tr_* static methods for the actual line
+        translations."""
+
+        # Empty lines just get returned unmodified
+        if not line or line.isspace():
+            return line
+
+        # Get line endpoints, where the escapes can be
+        line_info = LineInfo(line)
+
+        # If the escape is not at the start, only '?' needs to be special-cased.
+        # All other escapes are only valid at the start
+        if not line_info.esc in self.tr:
+            if line.endswith(ESC_HELP):
+                return self.tr_help(line_info)
+            else:
+                # If we don't recognize the escape, don't modify the line
+                return line
+
+        return self.tr[line_info.esc](line_info)
+
+# A function-looking object to be used by the rest of the code.  The purpose of
+# the class in this case is to organize related functionality, more than to
+# manage state.
+transform_escaped = EscapedTransformer()
+
+
+class IPythonInputSplitter(InputSplitter):
+    """An input splitter that recognizes all of IPython's special syntax."""
+
+    def push(self, lines):
+        """Push one or more lines of IPython input.
+        """
+        if not lines:
+            return super(IPythonInputSplitter, self).push(lines)
+
+        lines_list = lines.splitlines()
+
+        transforms = [transform_escaped, transform_assign_system,
+                      transform_assign_magic, transform_ipy_prompt,
+                      transform_classic_prompt]
+
+        # Transform logic
+        #
+        # We only apply the line transformers to the input if we have either no
+        # input yet, or complete input, or if the last line of the buffer ends
+        # with ':' (opening an indented block).  This prevents the accidental
+        # transformation of escapes inside multiline expressions like
+        # triple-quoted strings or parenthesized expressions.
+        #
+        # The last heuristic, while ugly, ensures that the first line of an
+        # indented block is correctly transformed.
+        #
+        # FIXME: try to find a cleaner approach for this last bit.
+
+        for line in lines_list:
+            if self._is_complete or not self._buffer or \
+               (self._buffer and self._buffer[-1].rstrip().endswith(':')):
+                for f in transforms:
+                    line = f(line)
+                
+            out = super(IPythonInputSplitter, self).push(line)
+
+        return out
