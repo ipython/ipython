@@ -178,7 +178,7 @@ def test_shist():
 # XXX failing for now, until we get clearcmd out of quarantine.  But we should
 # fix this and revert the skip to happen only if numpy is not around.
 #@dec.skipif_not_numpy
-@dec.skipknownfailure
+@dec.skip_known_failure
 def test_numpy_clear_array_undec():
     from IPython.extensions import clearcmd
 

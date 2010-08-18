@@ -105,23 +105,6 @@ class SpaceInInput(exceptions.Exception): pass
 
 class Bunch: pass
 
-class SyntaxTB(ultratb.ListTB):
-    """Extension which holds some state: the last exception value"""
-
-    def __init__(self,color_scheme = 'NoColor'):
-        ultratb.ListTB.__init__(self,color_scheme)
-        self.last_syntax_error = None
-
-    def __call__(self, etype, value, elist):
-        self.last_syntax_error = value
-        ultratb.ListTB.__call__(self,etype,value,elist)
-
-    def clear_err_state(self):
-        """Return the current error state and clear it"""
-        e = self.last_syntax_error
-        self.last_syntax_error = None
-        return e
-
 
 def get_default_colors():
     if sys.platform=='darwin':
@@ -1104,7 +1087,7 @@ class InteractiveShell(Configurable, Magic):
 
     def init_traceback_handlers(self, custom_exceptions):
         # Syntax error handler.
-        self.SyntaxTB = SyntaxTB(color_scheme='NoColor')
+        self.SyntaxTB = ultratb.SyntaxTB(color_scheme='NoColor')
         
         # The interactive one is initialized with an offset, meaning we always
         # want to remove the topmost item in the traceback, which is our own
