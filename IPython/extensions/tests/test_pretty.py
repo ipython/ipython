@@ -46,6 +46,7 @@ class TestPrettyResultDisplay(TestCase):
         self.ip = InteractiveShellStub()
         self.prd = pretty_ext.PrettyResultDisplay(shell=self.ip, config=None)
 
+    @dec.skip_known_failure
     def test_for_type(self):
         self.prd.for_type(A, a_pprinter)
         a = A()
@@ -94,6 +95,7 @@ class TestPrettyInteractively(tt.TempFileMixin):
     
     # XXX Unfortunately, ipexec_validate fails under win32.  If someone helps
     # us write a win32-compatible version, we can reactivate this test.
+    @dec.skip_known_failure
     @dec.skip_win32
     def test_printers(self):
         self.mktmp(ipy_src, '.ipy')

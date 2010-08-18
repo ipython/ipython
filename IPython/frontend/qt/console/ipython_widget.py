@@ -113,10 +113,16 @@ class IPythonWidget(FrontendWidget):
     def _handle_pyout(self, omsg):
         """ Reimplemented for IPython-style "display hook".
         """
-        self._append_html(self._make_out_prompt(self._prompt_count))
+        # self._append_html(self._make_out_prompt(self._prompt_count))
+        # TODO: Also look at the output_sep, output_sep2 keys of content. 
+        # They are used in terminal based frontends to add empty spaces before
+        # and after the Out[]: prompt. I doubt you want to use them, but they
+        # are there. I am thinking we should even take them out of the msg.
+        prompt_number = omsg['content']['prompt_number']
+        data = omsg['content']['data']
+        self._append_html(self._make_out_prompt(prompt_number))
         self._save_prompt_block()
-        
-        self._append_plain_text(omsg['content']['data'] + '\n')
+        self._append_plain_text(data + '\n')
 
     #---------------------------------------------------------------------------
     # 'IPythonWidget' interface

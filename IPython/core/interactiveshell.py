@@ -62,7 +62,7 @@ from IPython.utils.syspathcontext import prepended_to_syspath
 from IPython.utils.text import num_ini_spaces
 from IPython.utils.warn import warn, error, fatal
 from IPython.utils.traitlets import (
-    Int, Str, CBool, CaselessStrEnum, Enum, List, Unicode, Instance
+    Int, Str, CBool, CaselessStrEnum, Enum, List, Unicode, Instance, Type
 )
 
 # from IPython.utils import growl
@@ -163,6 +163,7 @@ class InteractiveShell(Configurable, Magic):
                              default_value=get_default_colors(), config=True)
     debug = CBool(False, config=True)
     deep_reload = CBool(False, config=True)
+    displayhook_class = Type(DisplayHook)
     filename = Str("<ipython console>")
     ipython_dir= Unicode('', config=True) # Set to get_ipython_dir() in __init__
     logstart = CBool(False, config=True)
@@ -435,15 +436,17 @@ class InteractiveShell(Configurable, Magic):
 
     def init_displayhook(self):
         # Initialize displayhook, set in/out prompts and printing system
-        self.displayhook = DisplayHook( shell=self,
-                                        cache_size=self.cache_size,
-                                        input_sep = self.separate_in,
-                                        output_sep = self.separate_out,
-                                        output_sep2 = self.separate_out2,
-                                        ps1 = self.prompt_in1,
-                                        ps2 = self.prompt_in2,
-                                        ps_out = self.prompt_out,
-                                        pad_left = self.prompts_pad_left)
+        self.displayhook = self.displayhook_class(
+            shell=self,
+            cache_size=self.cache_size,
+            input_sep = self.separate_in,
+            output_sep = self.separate_out,
+            output_sep2 = self.separate_out2,
+            ps1 = self.prompt_in1,
+            ps2 = self.prompt_in2,
+            ps_out = self.prompt_out,
+            pad_left = self.prompts_pad_left
+        )
         # This is a context manager that installs/revmoes the displayhook at
         # the appropriate time.
         self.display_trap = DisplayTrap(hook=self.displayhook)

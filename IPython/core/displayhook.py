@@ -157,7 +157,7 @@ class DisplayHook(Configurable):
             except KeyError:
                 pass
 
-    def quite(self):
+    def quiet(self):
         """Should we silence the display hook because of ';'?"""
         # do not print output if input ends in ';'
         try:
@@ -167,6 +167,10 @@ class DisplayHook(Configurable):
             # some uses of ipshellembed may fail here
             pass
         return False
+
+    def start_displayhook(self):
+        """Start the displayhook, initializing resources."""
+        pass
 
     def write_output_prompt(self):
         """Write the output prompt."""
@@ -256,7 +260,8 @@ class DisplayHook(Configurable):
         activated by setting the variable sys.displayhook to it.
         """
         self.check_for_underscore()
-        if result is not None and not self.quite():
+        if result is not None and not self.quiet():
+            self.start_displayhook()
             self.write_output_prompt()
             result, result_repr = self.compute_result_repr(result)
             self.write_result_repr(result_repr)

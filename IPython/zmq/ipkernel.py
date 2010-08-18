@@ -50,8 +50,12 @@ class Kernel(Configurable):
 
     def __init__(self, **kwargs):
         super(Kernel, self).__init__(**kwargs)
+
+        # Initialize the InteractiveShell subclass
         self.shell = ZMQInteractiveShell.instance()
-        
+        self.shell.displayhook.session = self.session
+        self.shell.displayhook.pub_socket = self.pub_socket
+
         # Build dict of handlers for message types
         msg_types = [ 'execute_request', 'complete_request', 
                       'object_info_request' ]
@@ -97,8 +101,8 @@ class Kernel(Configurable):
             raw_input = lambda prompt='': self.raw_input(prompt, ident, parent)
             __builtin__.raw_input = raw_input
 
-            # Configure the display hook.
-            sys.displayhook.set_parent(parent)
+            # Set the parent message of the display hook.
+            self.shell.displayhook.set_parent(parent)
 
             self.shell.runlines(code)
             # exec comp_code in self.user_ns, self.user_ns
@@ -271,8 +275,6 @@ def main():
     # holds references to sys.stdout and sys.stderr.
     sys.stdout = OutStream(session, pub_socket, u'stdout')
     sys.stderr = OutStream(session, pub_socket, u'stderr')
-    # Set a displayhook.
-    sys.displayhook = DisplayHook(session, pub_socket)
 
     # Create the kernel.
     kernel = Kernel(

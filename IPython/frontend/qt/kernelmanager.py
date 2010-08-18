@@ -6,6 +6,7 @@ from PyQt4 import QtCore
 import zmq
 
 # IPython imports.
+from IPython.utils.traitlets import Type
 from IPython.zmq.kernelmanager import KernelManager, SubSocketChannel, \
     XReqSocketChannel, RepSocketChannel
 from util import MetaQObjectHasTraits
@@ -149,9 +150,9 @@ class QtKernelManager(KernelManager, QtCore.QObject):
     stopped_channels = QtCore.pyqtSignal()
 
     # Use Qt-specific channel classes that emit signals.
-    sub_channel_class = QtSubSocketChannel
-    xreq_channel_class = QtXReqSocketChannel
-    rep_channel_class = QtRepSocketChannel
+    sub_channel_class = Type(QtSubSocketChannel)
+    xreq_channel_class = Type(QtXReqSocketChannel)
+    rep_channel_class = Type(QtRepSocketChannel)
 
     def __init__(self, *args, **kw):
         QtCore.QObject.__init__(self)
