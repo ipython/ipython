@@ -2,6 +2,7 @@
 from PyQt4 import QtCore, QtGui
 
 # Local imports
+from IPython.core.inputsplitter import IPythonInputSplitter
 from IPython.core.usage import default_banner
 from frontend_widget import FrontendWidget
 
@@ -41,7 +42,10 @@ class IPythonWidget(FrontendWidget):
     def __init__(self, *args, **kw):
         super(IPythonWidget, self).__init__(*args, **kw)
 
-        # Initialize protected variables.
+        # FrontendWidget protected variables.
+        self._input_splitter = IPythonInputSplitter(input_mode='replace')
+
+        # IPythonWidget protected variables.
         self._previous_prompt_blocks = []
         self._prompt_count = 0
 
