@@ -895,6 +895,10 @@ class ConsoleWidget(QtGui.QWidget):
         cursor.beginEditBlock()
         if self.ansi_codes:
             for substring in self._ansi_processor.split_string(text):
+                for action in self._ansi_processor.actions:
+                    if action.kind == 'erase' and action.area == 'screen':
+                        cursor.select(QtGui.QTextCursor.Document)
+                        cursor.removeSelectedText()
                 format = self._ansi_processor.get_format()
                 cursor.insertText(substring, format)
         else:

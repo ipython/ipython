@@ -5,6 +5,28 @@ import re
 from PyQt4 import QtCore, QtGui
 
 
+class AnsiAction(object):
+    """ Represents an action requested by an ANSI escape sequence.
+    """
+    def __init__(self, kind):
+        self.kind = kind
+
+class MoveAction(AnsiAction):
+    """ An AnsiAction for cursor move requests (CUU, CUD, CUF, CUB, CNL, CPL, 
+        CHA, and CUP commands).
+    """
+    def __init__(self):
+        raise NotImplementedError
+
+class EraseAction(AnsiAction):
+    """ An AnsiAction for erase requests (ED and EL commands).
+    """
+    def __init__(self, area, erase_to):
+        super(EraseAction, self).__init__('erase')
+        self.area = area
+        self.erase_to = erase_to
+
+
 class AnsiCodeProcessor(object):
     """ Translates ANSI escape codes into readable attributes.
     """
@@ -14,10 +36,11 @@ class AnsiCodeProcessor(object):
     _ansi_pattern = re.compile('\x01?\x1b\[(.*?)([%s])\x02?' % _ansi_commands)
 
     def __init__(self):
-        self.reset()
+        self.actions = []
+        self.reset_sgr()
 
-    def reset(self):
-        """ Reset attributs to their default values.
+    def reset_sgr(self):
+        """ Reset graphics attributs to their default values.
         """
         self.intensity = 0
         self.italic = False
@@ -29,19 +52,29 @@ class AnsiCodeProcessor(object):
     def split_string(self, string):
         """ Yields substrings for which the same escape code applies.
         """
+        self.actions = []
         start = 0
 
         for match in self._ansi_pattern.finditer(string):
             substring = string[start:match.start()]
-            if substring:
+            if substring or self.actions:
                 yield substring
             start = match.end()
 
-            params = map(int, match.group(1).split(';'))
-            self.set_csi_code(match.group(2), params)
+            self.actions = []
+            try:
+                params = []
+                for param in match.group(1).split(';'):
+                    if param:
+                        params.append(int(param))
+            except ValueError:
+                # Silently discard badly formed escape codes.
+                pass
+            else:
+                self.set_csi_code(match.group(2), params)
 
         substring = string[start:]
-        if substring:
+        if substring or self.actions:
             yield substring
 
     def set_csi_code(self, command, params=[]):
@@ -55,15 +88,28 @@ class AnsiCodeProcessor(object):
         params : sequence of integers, optional
             The parameter codes for the command.
         """
-        if command == 'm': # SGR - Select Graphic Rendition
+        if command == 'm':   # SGR - Select Graphic Rendition
             for code in params:
                 self.set_sgr_code(code)
+
+        elif (command == 'J' or # ED - Erase Data
+              command == 'K'):  # EL - Erase in Line
+            code = params[0] if params else 0
+            if 0 <= code <= 2:
+                area = 'screen' if command == 'J' else 'line'
+                if code == 0:
+                    erase_to = 'end'
+                elif code == 1:
+                    erase_to = 'start'
+                elif code == 2:
+                    erase_to = 'all'
+                self.actions.append(EraseAction(area, erase_to))
         
     def set_sgr_code(self, code):
         """ Set attributes based on SGR (Select Graphic Rendition) code.
         """
         if code == 0:
-            self.reset()
+            self.reset_sgr()
         elif code == 1:
             self.intensity = 1
             self.bold = True

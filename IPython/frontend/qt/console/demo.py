@@ -54,7 +54,7 @@ def main():
             from ipython_widget import IPythonWidget
             widget = IPythonWidget()
     widget.kernel_manager = kernel_manager
-    widget.setWindowTitle('Python')
+    widget.setWindowTitle('Python' if namespace.pure else 'IPython')
     widget.show()
     app.exec_()
 
