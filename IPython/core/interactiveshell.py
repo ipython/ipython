@@ -44,6 +44,7 @@ from IPython.core.fakemodule import FakeModule, init_fakemod_dict
 from IPython.core.inputlist import InputList
 from IPython.core.logger import Logger
 from IPython.core.magic import Magic
+from IPython.core.payload import PayloadManager
 from IPython.core.plugin import PluginManager
 from IPython.core.prefilter import PrefilterManager
 from IPython.core.displayhook import DisplayHook
@@ -209,7 +210,7 @@ class InteractiveShell(Configurable, Magic):
     display_trap = Instance('IPython.core.display_trap.DisplayTrap')
     extension_manager = Instance('IPython.core.extensions.ExtensionManager')
     plugin_manager = Instance('IPython.core.plugin.PluginManager')
-    payload_manager = Instance('IPython.core.paylaod.PayloadManager')
+    payload_manager = Instance('IPython.core.payload.PayloadManager')
 
     def __init__(self, config=None, ipython_dir=None,
                  user_ns=None, user_global_ns=None,

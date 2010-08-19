@@ -19,7 +19,7 @@ Authors:
 #-----------------------------------------------------------------------------
 
 from IPython.config.configurable import Configurable
-from IPython.utils.traitlets import Dict
+from IPython.utils.traitlets import List
 
 #-----------------------------------------------------------------------------
 # Main payload class
@@ -27,13 +27,15 @@ from IPython.utils.traitlets import Dict
 
 class PayloadManager(Configurable):
 
-    _payload = Dict({})
+    _payload = List([])
 
-    def write_payload(self, key, value):
-        self.payload[key] = value
+    def write_payload(self, data):
+        if not isinstance(data, dict):
+            raise TypeError('Each payload write must be a dict, got: %r' % data)
+        self.payload.append(data)
 
     def reset_payload(self):
-        self.payload = {}
+        self.payload = []
 
     def read_payload(self):
         return self._payload
