@@ -203,7 +203,8 @@ class Kernel(Configurable):
         reply_content['prompt_number'] = prompt_number        
         prompt_string = self.shell.displayhook.prompt1.peek_next_prompt()
         next_prompt = {'prompt_string' : prompt_string,
-                       'prompt_number' : prompt_number+1}
+                       'prompt_number' : prompt_number+1,
+                       'input_sep'     : self.shell.displayhook.input_sep}
         reply_content['next_prompt'] = next_prompt
 
         # Flush output before sending the reply.
