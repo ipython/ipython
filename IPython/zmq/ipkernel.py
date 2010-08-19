@@ -55,7 +55,8 @@ class Kernel(Configurable):
 
         # Build dict of handlers for message types
         msg_types = [ 'execute_request', 'complete_request', 
-                      'object_info_request', 'prompt_request' ]
+                      'object_info_request', 'prompt_request',
+                      'history_request' ]
         self.handlers = {}
         for msg_type in msg_types:
             self.handlers[msg_type] = getattr(self, msg_type)
@@ -211,6 +212,16 @@ class Kernel(Configurable):
         content = {'prompt_string' : prompt_string,
                    'prompt_number' : prompt_number+1}
         msg = self.session.send(self.reply_socket, 'prompt_reply',
+                                content, parent, ident)
+        print >> sys.__stdout__, msg
+
+    def history_request(self, ident, parent):
+        output = parent['content'].get('output', True)
+        index = parent['content'].get('index')
+        raw = parent['content'].get('raw', False)
+        hist = self.shell.get_history(index=index, raw=raw, output=output)
+        content = {'history' : hist}
+        msg = self.session.send(self.reply_socket, 'history_reply',
                                 content, parent, ident)
         print >> sys.__stdout__, msg
 

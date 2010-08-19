@@ -1081,6 +1081,54 @@ class InteractiveShell(Configurable, Magic):
                 readline.read_history_file(self.histfile)
         return wrapper
 
+    def get_history(self, index=None, raw=False, output=True):
+        """Get the history list.
+
+        Get the input and output history.
+
+        Parameters
+        ----------
+        index : n or (n1, n2) or None
+            If n, then the last entries. If a tuple, then all in
+            range(n1, n2). If None, then all entries. Raises IndexError if
+            the format of index is incorrect.
+        raw : bool
+            If True, return the raw input.
+        output : bool
+            If True, then return the output as well.
+
+        Returns
+        -------
+        If output is True, then return a dict of tuples, keyed by the prompt
+        numbers and with values of (input, output). If output is False, then
+        a dict, keyed by the prompt number with the values of input. Raises
+        IndexError if no history is found.
+        """
+        if raw:
+            input_hist = self.input_hist_raw
+        else:
+            input_hist = self.input_hist
+        if output:
+            output_hist = self.user_ns['Out']
+        n = len(input_hist)
+        if index is None:
+            start=0; stop=n
+        elif isinstance(index, int):
+            start=n-index; stop=n
+        elif isinstance(index, tuple) and len(index) == 2:
+            start=index[0]; stop=index[1]
+        else:
+            raise IndexError('Not a valid index for the input history: %r' % index)
+        hist = {}
+        for i in range(start, stop):
+            if output:
+                hist[i] = (input_hist[i], output_hist.get(i))
+            else:
+                hist[i] = input_hist[i]
+        if len(hist)==0:
+            raise IndexError('No history for range of indices: %r' % index)
+        return hist
+
     #-------------------------------------------------------------------------
     # Things related to exception handling and tracebacks (not debugging)
     #-------------------------------------------------------------------------
