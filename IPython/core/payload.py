@@ -32,10 +32,10 @@ class PayloadManager(Configurable):
     def write_payload(self, data):
         if not isinstance(data, dict):
             raise TypeError('Each payload write must be a dict, got: %r' % data)
-        self.payload.append(data)
-
-    def reset_payload(self):
-        self.payload = []
+        self._payload.append(data)
 
     def read_payload(self):
         return self._payload
+
+    def clear_payload(self):
+        self._payload = []
