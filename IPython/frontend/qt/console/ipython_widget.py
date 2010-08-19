@@ -48,7 +48,7 @@ class IPythonWidget(FrontendWidget):
     """
 
     # Default prompts.
-    in_prompt = '<br/>In [<span class="in-prompt-number">%i</span>]: '
+    in_prompt = 'In [<span class="in-prompt-number">%i</span>]: '
     out_prompt = 'Out[<span class="out-prompt-number">%i</span>]: '
 
     # FrontendWidget protected class attributes.
@@ -72,13 +72,14 @@ class IPythonWidget(FrontendWidget):
     # 'BaseFrontendMixin' abstract interface
     #---------------------------------------------------------------------------
 
-    def _handle_pyout(self, omsg):
+    def _handle_pyout(self, msg):
         """ Reimplemented for IPython-style "display hook".
         """
-        prompt_number = omsg['content']['prompt_number']
-        data = omsg['content']['data']
+        content = msg['content']
+        prompt_number = content['prompt_number']
+        self._append_plain_text(content['output_sep'])
         self._append_html(self._make_out_prompt(prompt_number))
-        self._append_plain_text(data + '\n')
+        self._append_plain_text(content['data'] + '\n' + content['output_sep2'])
 
     #---------------------------------------------------------------------------
     # 'FrontendWidget' interface
@@ -96,7 +97,7 @@ class IPythonWidget(FrontendWidget):
     def _get_banner(self):
         """ Reimplemented to return IPython's default banner.
         """
-        return default_banner
+        return default_banner + '\n'
 
     def _process_execute_error(self, msg):
         """ Reimplemented for IPython-style traceback formatting.
@@ -113,19 +114,20 @@ class IPythonWidget(FrontendWidget):
 
         self._append_html(traceback)
 
-    def _show_interpreter_prompt(self, number=None):
+    def _show_interpreter_prompt(self, number=None, input_sep='\n'):
         """ Reimplemented for IPython-style prompts.
         """
         # TODO: If a number was not specified, make a prompt number request.
         if number is None:
             number = 0
 
-        # Show a new prompt and save information about it so it can be updated
-        # later if its number needs to be re-written.
-        block = self._control.document().lastBlock()
+        # Show a new prompt and save information about it so that it can be
+        # updated later if the prompt number turns out to be wrong.
+        self._append_plain_text(input_sep)
         self._show_prompt(self._make_in_prompt(number), html=True)
-        self._previous_prompt_obj = IPythonPromptBlock(
-            block.next(), len(self._prompt), number)
+        block = self._control.document().lastBlock()
+        length = len(self._prompt)
+        self._previous_prompt_obj = IPythonPromptBlock(block, length, number)
 
         # Update continuation prompt to reflect (possibly) new prompt length.
         self._set_continuation_prompt(
@@ -161,7 +163,9 @@ class IPythonWidget(FrontendWidget):
             self._previous_prompt_obj = None
 
         # Show a new prompt with the kernel's estimated prompt number.
-        self._show_interpreter_prompt(content['next_prompt']['prompt_number'])
+        next_prompt = content['next_prompt']
+        self._show_interpreter_prompt(next_prompt['prompt_number'], 
+                                      next_prompt['input_sep'])
 
     #---------------------------------------------------------------------------
     # 'IPythonWidget' interface
