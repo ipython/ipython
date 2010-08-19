@@ -893,12 +893,17 @@ class ConsoleWidget(QtGui.QWidget):
         """ Inserts HTML using the specified cursor, then returns its plain text
             version.
         """
+        cursor.beginEditBlock()
+        cursor.removeSelectedText()
+
         start = cursor.position()
         self._insert_html(cursor, html)
         end = cursor.position()
         cursor.setPosition(start, QtGui.QTextCursor.KeepAnchor)
         text = str(cursor.selection().toPlainText())
+
         cursor.setPosition(end)
+        cursor.endEditBlock()
         return text
 
     def _insert_plain_text(self, cursor, text):

@@ -51,15 +51,15 @@ class IPythonWidget(FrontendWidget):
     in_prompt = '<br/>In [<span class="in-prompt-number">%i</span>]: '
     out_prompt = 'Out[<span class="out-prompt-number">%i</span>]: '
 
+    # FrontendWidget protected class attributes.
+    #_input_splitter_class = IPythonInputSplitter
+
     #---------------------------------------------------------------------------
     # 'object' interface
     #---------------------------------------------------------------------------
     
     def __init__(self, *args, **kw):
         super(IPythonWidget, self).__init__(*args, **kw)
-
-        # FrontendWidget protected variables.
-        #self._input_splitter = IPythonInputSplitter(input_mode='replace')
 
         # IPythonWidget protected variables.
         self._previous_prompt_obj = None
@@ -141,12 +141,23 @@ class IPythonWidget(FrontendWidget):
                 self._previous_prompt_obj.number != previous_prompt_number:
             block = self._previous_prompt_obj.block
             if block.isValid():
+
+                # Remove the old prompt and insert a new prompt.
                 cursor = QtGui.QTextCursor(block)
                 cursor.movePosition(QtGui.QTextCursor.Right,
                                     QtGui.QTextCursor.KeepAnchor, 
                                     self._previous_prompt_obj.length)
                 prompt = self._make_in_prompt(previous_prompt_number)
-                self._insert_html(cursor, prompt)
+                self._prompt = self._insert_html_fetching_plain_text(
+                    cursor, prompt)
+
+                # XXX: When the HTML is inserted, Qt blows away the syntax
+                #      highlighting for the line. I cannot for the life of me
+                #      determine how to preserve the existing formatting.
+                self._highlighter.highlighting_on = True
+                self._highlighter.rehighlightBlock(cursor.block())
+                self._highlighter.highlighting_on = False
+
             self._previous_prompt_obj = None
 
         # Show a new prompt with the kernel's estimated prompt number.

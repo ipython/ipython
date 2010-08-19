@@ -69,6 +69,10 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
     # processed by the FrontendWidget.
     executed = QtCore.pyqtSignal(object)
 
+    # Protected class attributes.
+    _highlighter_class = FrontendHighlighter
+    _input_splitter_class = InputSplitter
+
     #---------------------------------------------------------------------------
     # 'object' interface
     #---------------------------------------------------------------------------
@@ -80,8 +84,8 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         self._call_tip_widget = CallTipWidget(self._control)
         self._completion_lexer = CompletionLexer(PythonLexer())
         self._hidden = True
-        self._highlighter = FrontendHighlighter(self)
-        self._input_splitter = InputSplitter(input_mode='replace')
+        self._highlighter = self._highlighter_class(self)
+        self._input_splitter = self._input_splitter_class(input_mode='replace')
         self._kernel_manager = None
 
         # Configure the ConsoleWidget.
