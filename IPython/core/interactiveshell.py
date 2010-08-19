@@ -138,6 +138,7 @@ class MultipleInstanceError(Exception):
 class InteractiveShell(Configurable, Magic):
     """An enhanced, interactive shell for Python."""
 
+    _instance = None
     autocall = Enum((0,1,2), default_value=1, config=True)
     # TODO: remove all autoindent logic and put into frontends.
     # We can't do this yet because even runlines uses the autoindent.
@@ -269,20 +270,22 @@ class InteractiveShell(Configurable, Magic):
     @classmethod
     def instance(cls, *args, **kwargs):
         """Returns a global InteractiveShell instance."""
-        if not hasattr(cls, "_instance"):
-            cls._instance = cls(*args, **kwargs)
+        if cls._instance is None:
+            inst = cls(*args, **kwargs)
             # Now make sure that the instance will also be returned by
             # the subclasses instance attribute.
-            for subclass in cls.mro()[1:]:
-                if issubclass(subclass, InteractiveShell):
-                    if not hasattr(subclass, '_instance'):
-                        subclass._instance = cls._instance
-                    else:
-                        raise MultipleInstanceError(
-                            'Multiple conflicting subclass of '
-                            'InteractiveShell have been created.'
-                        )
-        return cls._instance
+            for subclass in cls.mro():
+                if issubclass(cls, subclass) and issubclass(subclass, InteractiveShell):
+                    subclass._instance = inst
+                else:
+                    break
+        if isinstance(cls._instance, cls):
+            return cls._instance
+        else:
+            raise MultipleInstanceError(
+                'Multiple incompatible subclass instances of '
+                'InteractiveShell are being created.'
+            )
 
     @classmethod
     def initialized(cls):
