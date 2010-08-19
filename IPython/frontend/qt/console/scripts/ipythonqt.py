@@ -1,4 +1,6 @@
-""" A demo of the Qt console-style IPython frontend.
+#!/usr/bin/env python
+
+""" A minimal application using the Qt console-style IPython frontend.
 """
 
 # Systemm library imports
@@ -6,11 +8,14 @@ from PyQt4 import QtCore, QtGui
 
 # Local imports
 from IPython.external.argparse import ArgumentParser
+from IPython.frontend.qt.console.frontend_widget import FrontendWidget
+from IPython.frontend.qt.console.ipython_widget import IPythonWidget
+from IPython.frontend.qt.console.rich_ipython_widget import RichIPythonWidget
 from IPython.frontend.qt.kernelmanager import QtKernelManager
 
 
 def main():
-    """ Entry point for demo.
+    """ Entry point for application.
     """
     # Parse command line arguments.
     parser = ArgumentParser()
@@ -43,15 +48,12 @@ def main():
     # Launch the application.
     app = QtGui.QApplication([])
     if namespace.pure:
-        from frontend_widget import FrontendWidget
         kind = 'rich' if namespace.rich else 'plain'
         widget = FrontendWidget(kind=kind)
     else:
         if namespace.rich:
-            from rich_ipython_widget import RichIPythonWidget
             widget = RichIPythonWidget()
         else:
-            from ipython_widget import IPythonWidget
             widget = IPythonWidget()
     widget.kernel_manager = kernel_manager
     widget.setWindowTitle('Python' if namespace.pure else 'IPython')
