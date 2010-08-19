@@ -164,12 +164,6 @@ Message type: ``execute_reply``::
       # One of: 'ok' OR 'error' OR 'abort'
       'status' : str,
 
-      # Any additional data depends on status value
-    }
-
-When status is 'ok', the following extra fields are present::
-
-    {
       # This has the same structure as the output of a prompt request, but is
       # for the client to set up the *next* prompt (with identical limitations
       # to a prompt request)
@@ -186,7 +180,11 @@ When status is 'ok', the following extra fields are present::
       # to correct the previously written number in-place, terminal ones may
       # re-print a corrected one if desired.
       'prompt_number' : int,
+    }
 
+When status is 'ok', the following extra fields are present::
+
+    {
       # The kernel will often transform the input provided to it.  This
       # contains the transformed code, which is what was actually executed.
       'transformed_code' : str,

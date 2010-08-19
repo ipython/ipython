@@ -126,6 +126,9 @@ class SeparateStr(Str):
         value = value.replace('\\n','\n')
         return super(SeparateStr, self).validate(obj, value)
 
+class MultipleInstanceError(Exception):
+    pass
+
 
 #-----------------------------------------------------------------------------
 # Main IPython class
@@ -268,14 +271,17 @@ class InteractiveShell(Configurable, Magic):
         """Returns a global InteractiveShell instance."""
         if not hasattr(cls, "_instance"):
             cls._instance = cls(*args, **kwargs)
-            print cls
-            print cls._instance
             # Now make sure that the instance will also be returned by
             # the subclasses instance attribute.
-            for subclass in cls.mro():
+            for subclass in cls.mro()[1:]:
                 if issubclass(subclass, InteractiveShell):
-                    print subclass
-                    subclass._instance = cls._instance
+                    if not hasattr(subclass, '_instance'):
+                        subclass._instance = cls._instance
+                    else:
+                        raise MultipleInstanceError(
+                            'Multiple conflicting subclass of '
+                            'InteractiveShell have been created.'
+                        )
         return cls._instance
 
     @classmethod
