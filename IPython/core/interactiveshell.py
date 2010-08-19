@@ -426,8 +426,7 @@ class InteractiveShell(Configurable, Magic):
 
     def init_io(self):
         import IPython.utils.io
-        if sys.platform == 'win32' and readline.have_readline and \
-            self.readline_use:
+        if sys.platform == 'win32' and self.has_readline:
             Term = IPython.utils.io.IOTerm(
                 cout=readline._outputfile,cerr=readline._outputfile
             )
@@ -1421,7 +1420,7 @@ class InteractiveShell(Configurable, Magic):
 
         if self.readline_use:
             import IPython.utils.rlineimpl as readline
-                  
+
         self.rl_next_input = None
         self.rl_do_indent = False
 
