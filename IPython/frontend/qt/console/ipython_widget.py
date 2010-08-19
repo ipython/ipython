@@ -198,7 +198,7 @@ class IPythonWidget(FrontendWidget):
         """ Restores the default IPythonWidget styling.
         """
         self.set_styling(self.default_stylesheet, syntax_style='default')
-        #self.set_styling(self.dark_stylesheet, syntax_style='monokai')
+        # self.set_styling(self.dark_stylesheet, syntax_style='monokai')
 
     def set_editor(self, editor):
         """ Sets the editor to use with the %edit magic.

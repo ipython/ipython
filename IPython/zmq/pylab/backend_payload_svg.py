@@ -14,6 +14,11 @@ def show():
     """
     figure_manager = Gcf.get_active()
     if figure_manager is not None:
+        # Make the background transparent.
+        # figure_manager.canvas.figure.patch.set_alpha(0.0)
+        # Set the background to white instead so it looks good on black.
+        figure_manager.canvas.figure.set_facecolor('white')
+        figure_manager.canvas.figure.set_edgecolor('white')
         data = svg_from_canvas(figure_manager.canvas)
         add_plot_payload('svg', data)
 

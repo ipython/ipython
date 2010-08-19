@@ -15,6 +15,17 @@ class RichIPythonWidget(IPythonWidget):
     # Protected class variables.
     _svg_text_format_property = 1
 
+    # We need to override this because this class uses QTextEdit.
+    dark_stylesheet = """
+        QTextEdit { background-color: black; color: white }
+        QFrame { border: 1px solid grey; }
+        .error { color: red; }
+        .in-prompt { color: lime; }
+        .in-prompt-number { color: lime; font-weight: bold; }
+        .out-prompt { color: red; }
+        .out-prompt-number { color: red; font-weight: bold; }
+    """
+
     #---------------------------------------------------------------------------
     # 'object' interface
     #---------------------------------------------------------------------------
