@@ -227,6 +227,9 @@ class InteractiveShell(Configurable, Magic):
         # This has to be done after init_create_namespaces because it uses
         # something in self.user_ns, but before init_sys_modules, which
         # is the first thing to modify sys.
+        # TODO: When we override sys.stdout and sys.stderr before this class
+        # is created, we are saving the overridden ones here. Not sure if this
+        # is what we want to do.
         self.save_sys_module_state()
         self.init_sys_modules()
 
@@ -239,11 +242,8 @@ class InteractiveShell(Configurable, Magic):
         self.init_syntax_highlighting()
         self.init_hooks()
         self.init_pushd_popd_magic()
-        # TODO: init_io() needs to happen before init_traceback handlers
-        # because the traceback handlers hardcode the stdout/stderr streams.
-        # This logic in in debugger.Pdb and should eventually be changed.
-        self.init_io()
-        self.init_traceback_handlers(custom_exceptions)
+        # self.init_traceback_handlers use to be here, but we moved it below
+        # because it and init_io have to come after init_readline.
         self.init_user_ns()
         self.init_logger()
         self.init_alias()
@@ -257,7 +257,14 @@ class InteractiveShell(Configurable, Magic):
 
         # The following was in post_config_initialization
         self.init_inspector()
+        # init_readline() must come before init_io(), because init_io uses
+        # readline related things.
         self.init_readline()
+        # TODO: init_io() needs to happen before init_traceback handlers
+        # because the traceback handlers hardcode the stdout/stderr streams.
+        # This logic in in debugger.Pdb and should eventually be changed.
+        self.init_io()
+        self.init_traceback_handlers(custom_exceptions)
         self.init_prompts()
         self.init_displayhook()
         self.init_reload_doctest()
