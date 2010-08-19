@@ -49,9 +49,6 @@ class Kernel(Configurable):
     pub_socket = Instance('zmq.Socket')
     req_socket = Instance('zmq.Socket')
 
-    # The global kernel instance.
-    _kernel = None
-
     # Maps user-friendly backend names to matplotlib backend identifiers.
     _pylab_map = { 'tk': 'TkAgg',
                    'gtk': 'GTKAgg',
@@ -69,9 +66,6 @@ class Kernel(Configurable):
         self.shell.displayhook.session = self.session
         self.shell.displayhook.pub_socket = self.pub_socket
 
-        # Protected variables.
-        self._exec_payload = {}
-        
         # Build dict of handlers for message types
         msg_types = [ 'execute_request', 'complete_request', 
                       'object_info_request', 'prompt_request',
@@ -79,11 +73,6 @@ class Kernel(Configurable):
         self.handlers = {}
         for msg_type in msg_types:
             self.handlers[msg_type] = getattr(self, msg_type)
-
-    def add_exec_payload(self, key, value):
-        """ Adds a key/value pair to the execute payload.
-        """
-        self._exec_payload[key] = value
 
     def activate_pylab(self, backend=None, import_all=True):
         """ Activates pylab in this kernel's namespace.
@@ -126,21 +115,9 @@ class Kernel(Configurable):
 
         matplotlib.interactive(True)
 
-    @classmethod
-    def get_kernel(cls):
-        """ Return the global kernel instance or raise a RuntimeError if it does
-        not exist.
-        """
-        if cls._kernel is None:
-            raise RuntimeError("Kernel not started!")
-        else:
-            return cls._kernel
-
     def start(self):
         """ Start the kernel main loop.
         """
-        # Set the global kernel instance.
-        self.__class__._kernel = self
 
         while True:
             ident = self.reply_socket.recv()
@@ -169,9 +146,6 @@ class Kernel(Configurable):
         pyin_msg = self.session.msg(u'pyin',{u'code':code}, parent=parent)
         self.pub_socket.send_json(pyin_msg)
 
-        # Clear the execute payload from the last request.
-        self._exec_payload = {}
-
         try:
             # Replace raw_input. Note that is not sufficient to replace 
             # raw_input in the user namespace.
@@ -182,7 +156,6 @@ class Kernel(Configurable):
             self.shell.displayhook.set_parent(parent)
 
             self.shell.runlines(code)
-            # exec comp_code in self.user_ns, self.user_ns
         except:
             etype, evalue, tb = sys.exc_info()
             tb = traceback.format_exception(etype, evalue, tb)
@@ -196,7 +169,11 @@ class Kernel(Configurable):
             self.pub_socket.send_json(exc_msg)
             reply_content = exc_content
         else:
-            reply_content = { 'status' : 'ok', 'payload' : self._exec_payload }
+            payload = self.shell.payload_manager.read_payload()
+            # Be agressive about clearing the payload because we don't want
+            # it to sit in memory until the next execute_request comes in.
+            self.shell.payload_manager.clear_payload()
+            reply_content = { 'status' : 'ok', 'payload' : payload }
 
         # Compute the prompt information
         prompt_number = self.shell.displayhook.prompt_count
