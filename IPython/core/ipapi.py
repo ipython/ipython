@@ -25,6 +25,6 @@ has been made into a component, this module will be sent to deathrow.
 
 def get():
     """Get the global InteractiveShell instance."""
-    from IPython.frontend.terminal.interactiveshell import TerminalInteractiveShell
-    return TerminalInteractiveShell.instance()
+    from IPython.core.interactiveshell import InteractiveShell
+    return InteractiveShell.instance()
 
