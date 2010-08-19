@@ -16,11 +16,6 @@ Things to do:
 
 # Standard library imports.
 import __builtin__
-<<<<<<< HEAD
-from code import CommandCompiler
-=======
-import os
->>>>>>> 7425745bce7a04ad0dce41b22f03bebe1d2cdd20
 import sys
 import time
 import traceback
@@ -34,6 +29,7 @@ from IPython.utils.traitlets import Instance
 from completer import KernelCompleter
 from entry_point import base_launch_kernel, make_argument_parser, make_kernel, \
     start_kernel
+from iostream import OutStream
 from session import Session, Message
 from zmqshell import ZMQInteractiveShell
 
@@ -390,7 +386,7 @@ given, the GUI backend is matplotlib's, otherwise use one of: \
 ['tk', 'gtk', 'qt', 'wx', 'payload-svg'].")
     namespace = parser.parse_args()
 
-    kernel = make_kernel(namespace, Kernel)
+    kernel = make_kernel(namespace, Kernel, OutStream)
     if namespace.pylab:
         if namespace.pylab == 'auto':
             kernel.activate_pylab()

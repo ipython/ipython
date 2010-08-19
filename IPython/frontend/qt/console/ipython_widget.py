@@ -64,13 +64,14 @@ class IPythonWidget(FrontendWidget):
     # 'BaseFrontendMixin' abstract interface
     #---------------------------------------------------------------------------
 
-    def _handle_pyout(self, msg):
+    def _handle_pyout(self, omsg):
         """ Reimplemented for IPython-style "display hook".
         """
-        self._append_html(self._make_out_prompt(self._prompt_count))
+        prompt_number = omsg['content']['prompt_number']
+        data = omsg['content']['data']
+        self._append_html(self._make_out_prompt(prompt_number))
         self._save_prompt_block()
-        
-        self._append_plain_text(msg['content']['data'] + '\n')
+        self._append_plain_text(data + '\n')
 
     #---------------------------------------------------------------------------
     # 'FrontendWidget' interface
@@ -131,37 +132,6 @@ class IPythonWidget(FrontendWidget):
         # Update continuation prompt to reflect (possibly) new prompt length.
         self._set_continuation_prompt(
             self._make_continuation_prompt(self._prompt), html=True)
-
-    #------ Signal handlers ----------------------------------------------------
-
-    def _handle_execute_error(self, reply):
-        """ Reimplemented for IPython-style traceback formatting.
-        """
-        content = reply['content']
-        traceback_lines = content['traceback'][:]
-        traceback = ''.join(traceback_lines)
-        traceback = traceback.replace(' ', '&nbsp;')
-        traceback = traceback.replace('\n', '<br/>')
-
-        ename = content['ename']
-        ename_styled = '<span class="error">%s</span>' % ename
-        traceback = traceback.replace(ename, ename_styled)
-
-        self._append_html(traceback)
-
-    def _handle_pyout(self, omsg):
-        """ Reimplemented for IPython-style "display hook".
-        """
-        # self._append_html(self._make_out_prompt(self._prompt_count))
-        # TODO: Also look at the output_sep, output_sep2 keys of content. 
-        # They are used in terminal based frontends to add empty spaces before
-        # and after the Out[]: prompt. I doubt you want to use them, but they
-        # are there. I am thinking we should even take them out of the msg.
-        prompt_number = omsg['content']['prompt_number']
-        data = omsg['content']['data']
-        self._append_html(self._make_out_prompt(prompt_number))
-        self._save_prompt_block()
-        self._append_plain_text(data + '\n')
 
     #---------------------------------------------------------------------------
     # 'IPythonWidget' interface
