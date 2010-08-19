@@ -268,6 +268,14 @@ class InteractiveShell(Configurable, Magic):
         """Returns a global InteractiveShell instance."""
         if not hasattr(cls, "_instance"):
             cls._instance = cls(*args, **kwargs)
+            print cls
+            print cls._instance
+            # Now make sure that the instance will also be returned by
+            # the subclasses instance attribute.
+            for subclass in cls.mro():
+                if issubclass(subclass, InteractiveShell):
+                    print subclass
+                    subclass._instance = cls._instance
         return cls._instance
 
     @classmethod
