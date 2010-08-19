@@ -60,28 +60,27 @@ class RichIPythonWidget(IPythonWidget):
         """ Reimplemented to handle matplotlib plot payloads.
         """
         payload = msg['content']['payload']
-        if payload:
-            for item in payload:
-                if item['type'] == 'plot':
-                    if item['format'] == 'svg':
-                        svg = item['data']
-                        try:
-                            image = svg_to_image(svg)
-                        except ValueError:
-                            self._append_plain_text('Received invalid plot data.')
-                        else:
-                            format = self._add_image(image)
-                            format.setProperty(self._svg_text_format_property, svg)
-                            cursor = self._get_end_cursor()
-                            cursor.insertBlock()
-                            cursor.insertImage(format)
-                            cursor.insertBlock()
+        for item in payload:
+            if item['type'] == 'plot':
+                if item['format'] == 'svg':
+                    svg = item['data']
+                    try:
+                        image = svg_to_image(svg)
+                    except ValueError:
+                        self._append_plain_text('Received invalid plot data.')
                     else:
-                        # Add other plot formats here!
-                        pass
+                        format = self._add_image(image)
+                        format.setProperty(self._svg_text_format_property, svg)
+                        cursor = self._get_end_cursor()
+                        cursor.insertBlock()
+                        cursor.insertImage(format)
+                        cursor.insertBlock()
                 else:
-                    # Add other payload types here!
+                    # Add other plot formats here!
                     pass
+            else:
+                # Add other payload types here!
+                pass
         else:
             super(RichIPythonWidget, self)._process_execute_ok(msg)
 
