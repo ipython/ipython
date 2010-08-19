@@ -46,7 +46,7 @@ from IPython.core.logger import Logger
 from IPython.core.magic import Magic
 from IPython.core.plugin import PluginManager
 from IPython.core.prefilter import PrefilterManager
-from IPython.core.prompts import CachedOutput
+from IPython.core.displayhook import DisplayHook
 import IPython.core.hooks
 from IPython.external.Itpl import ItplNS
 from IPython.utils import PyColorize
@@ -62,7 +62,7 @@ from IPython.utils.syspathcontext import prepended_to_syspath
 from IPython.utils.text import num_ini_spaces
 from IPython.utils.warn import warn, error, fatal
 from IPython.utils.traitlets import (
-    Int, Str, CBool, CaselessStrEnum, Enum, List, Unicode, Instance
+    Int, Str, CBool, CaselessStrEnum, Enum, List, Unicode, Instance, Type
 )
 
 # from IPython.utils import growl
@@ -105,23 +105,6 @@ class SpaceInInput(exceptions.Exception): pass
 
 class Bunch: pass
 
-class SyntaxTB(ultratb.ListTB):
-    """Extension which holds some state: the last exception value"""
-
-    def __init__(self,color_scheme = 'NoColor'):
-        ultratb.ListTB.__init__(self,color_scheme)
-        self.last_syntax_error = None
-
-    def __call__(self, etype, value, elist):
-        self.last_syntax_error = value
-        ultratb.ListTB.__call__(self,etype,value,elist)
-
-    def clear_err_state(self):
-        """Return the current error state and clear it"""
-        e = self.last_syntax_error
-        self.last_syntax_error = None
-        return e
-
 
 def get_default_colors():
     if sys.platform=='darwin':
@@ -163,6 +146,7 @@ class InteractiveShell(Configurable, Magic):
                              default_value=get_default_colors(), config=True)
     debug = CBool(False, config=True)
     deep_reload = CBool(False, config=True)
+    displayhook_class = Type(DisplayHook)
     filename = Str("<ipython console>")
     ipython_dir= Unicode('', config=True) # Set to get_ipython_dir() in __init__
     logstart = CBool(False, config=True)
@@ -206,8 +190,8 @@ class InteractiveShell(Configurable, Magic):
     # TODO: this part of prompt management should be moved to the frontends.
     # Use custom TraitTypes that convert '0'->'' and '\\n'->'\n'
     separate_in = SeparateStr('\n', config=True)
-    separate_out = SeparateStr('', config=True)
-    separate_out2 = SeparateStr('', config=True)
+    separate_out = SeparateStr('\n', config=True)
+    separate_out2 = SeparateStr('\n', config=True)
     system_header = Str('IPython system call: ', config=True)
     system_verbose = CBool(False, config=True)
     wildcards_case_sensitive = CBool(True, config=True)
@@ -428,26 +412,27 @@ class InteractiveShell(Configurable, Magic):
         IPython.utils.io.Term = Term
 
     def init_prompts(self):
-        # Initialize cache, set in/out prompts and printing system
-        self.outputcache = CachedOutput(self,
-                                        self.cache_size,
-                                        self.pprint,
-                                        input_sep = self.separate_in,
-                                        output_sep = self.separate_out,
-                                        output_sep2 = self.separate_out2,
-                                        ps1 = self.prompt_in1,
-                                        ps2 = self.prompt_in2,
-                                        ps_out = self.prompt_out,
-                                        pad_left = self.prompts_pad_left)
-
-        # user may have over-ridden the default print hook:
-        try:
-            self.outputcache.__class__.display = self.hooks.display
-        except AttributeError:
-            pass
+        # TODO: This is a pass for now because the prompts are managed inside
+        # the DisplayHook. Once there is a separate prompt manager, this 
+        # will initialize that object and all prompt related information.
+        pass
 
     def init_displayhook(self):
-        self.display_trap = DisplayTrap(hook=self.outputcache)
+        # Initialize displayhook, set in/out prompts and printing system
+        self.displayhook = self.displayhook_class(
+            shell=self,
+            cache_size=self.cache_size,
+            input_sep = self.separate_in,
+            output_sep = self.separate_out,
+            output_sep2 = self.separate_out2,
+            ps1 = self.prompt_in1,
+            ps2 = self.prompt_in2,
+            ps_out = self.prompt_out,
+            pad_left = self.prompts_pad_left
+        )
+        # This is a context manager that installs/revmoes the displayhook at
+        # the appropriate time.
+        self.display_trap = DisplayTrap(hook=self.displayhook)
 
     def init_reload_doctest(self):
         # Do a proper resetting of doctest, including the necessary displayhook
@@ -1096,13 +1081,61 @@ class InteractiveShell(Configurable, Magic):
                 readline.read_history_file(self.histfile)
         return wrapper
 
+    def get_history(self, index=None, raw=False, output=True):
+        """Get the history list.
+
+        Get the input and output history.
+
+        Parameters
+        ----------
+        index : n or (n1, n2) or None
+            If n, then the last entries. If a tuple, then all in
+            range(n1, n2). If None, then all entries. Raises IndexError if
+            the format of index is incorrect.
+        raw : bool
+            If True, return the raw input.
+        output : bool
+            If True, then return the output as well.
+
+        Returns
+        -------
+        If output is True, then return a dict of tuples, keyed by the prompt
+        numbers and with values of (input, output). If output is False, then
+        a dict, keyed by the prompt number with the values of input. Raises
+        IndexError if no history is found.
+        """
+        if raw:
+            input_hist = self.input_hist_raw
+        else:
+            input_hist = self.input_hist
+        if output:
+            output_hist = self.user_ns['Out']
+        n = len(input_hist)
+        if index is None:
+            start=0; stop=n
+        elif isinstance(index, int):
+            start=n-index; stop=n
+        elif isinstance(index, tuple) and len(index) == 2:
+            start=index[0]; stop=index[1]
+        else:
+            raise IndexError('Not a valid index for the input history: %r' % index)
+        hist = {}
+        for i in range(start, stop):
+            if output:
+                hist[i] = (input_hist[i], output_hist.get(i))
+            else:
+                hist[i] = input_hist[i]
+        if len(hist)==0:
+            raise IndexError('No history for range of indices: %r' % index)
+        return hist
+
     #-------------------------------------------------------------------------
     # Things related to exception handling and tracebacks (not debugging)
     #-------------------------------------------------------------------------
 
     def init_traceback_handlers(self, custom_exceptions):
         # Syntax error handler.
-        self.SyntaxTB = SyntaxTB(color_scheme='NoColor')
+        self.SyntaxTB = ultratb.SyntaxTB(color_scheme='NoColor')
         
         # The interactive one is initialized with an offset, meaning we always
         # want to remove the topmost item in the traceback, which is our own
@@ -1482,8 +1515,9 @@ class InteractiveShell(Configurable, Magic):
     #-------------------------------------------------------------------------
 
     def init_magics(self):
-        # Set user colors (don't do it in the constructor above so that it
-        # doesn't crash if colors option is invalid)
+        # FIXME: Move the color initialization to the DisplayHook, which
+        # should be split into a prompt manager and displayhook. We probably
+        # even need a centralize colors management object.
         self.magic_colors(self.colors)
         # History was moved to a separate module
         from . import history

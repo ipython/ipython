@@ -317,7 +317,7 @@ skip_if_not_osx = skipif(sys.platform != 'darwin',
 # Other skip decorators
 skipif_not_numpy = skipif(numpy_not_available,"This test requires numpy")
 
-skipknownfailure = skip('This test is known to fail')
+skip_known_failure = skip('This test is known to fail')
 
 # A null 'decorator', useful to make more readable code that needs to pick
 # between different decorators based on OS or other conditions

@@ -23,7 +23,6 @@ import types
 
 from IPython.external.path import path
 
-from IPython.utils.generics import result_display
 from IPython.utils.io import nlprint
 from IPython.utils.data import flatten
 
@@ -94,14 +93,17 @@ class LSString(str):
 
     p = paths = property(get_paths)
 
+# FIXME: We need to reimplement type specific displayhook and then add this
+# back as a custom printer. This should also be moved outside utils into the
+# core.
 
-def print_lsstring(arg):
-    """ Prettier (non-repr-like) and more informative printer for LSString """
-    print "LSString (.p, .n, .l, .s available). Value:"
-    print arg
-
-
-print_lsstring = result_display.when_type(LSString)(print_lsstring)
+# def print_lsstring(arg):
+#     """ Prettier (non-repr-like) and more informative printer for LSString """
+#     print "LSString (.p, .n, .l, .s available). Value:"
+#     print arg
+# 
+# 
+# print_lsstring = result_display.when_type(LSString)(print_lsstring)
 
 
 class SList(list):
@@ -248,17 +250,20 @@ class SList(list):
         return SList([t[1] for t in dsu])
 
 
-def print_slist(arg):
-    """ Prettier (non-repr-like) and more informative printer for SList """
-    print "SList (.p, .n, .l, .s, .grep(), .fields(), sort() available):"
-    if hasattr(arg,  'hideonce') and arg.hideonce:
-        arg.hideonce = False
-        return
+# FIXME: We need to reimplement type specific displayhook and then add this
+# back as a custom printer. This should also be moved outside utils into the
+# core.
 
-    nlprint(arg)
-
-
-print_slist = result_display.when_type(SList)(print_slist)
+# def print_slist(arg):
+#     """ Prettier (non-repr-like) and more informative printer for SList """
+#     print "SList (.p, .n, .l, .s, .grep(), .fields(), sort() available):"
+#     if hasattr(arg,  'hideonce') and arg.hideonce:
+#         arg.hideonce = False
+#         return
+# 
+#     nlprint(arg)
+# 
+# print_slist = result_display.when_type(SList)(print_slist)
 
 
 def esc_quotes(strng):

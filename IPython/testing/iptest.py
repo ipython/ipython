@@ -250,7 +250,7 @@ class IPTester(object):
             return os.system(' '.join(self.call_args))
     else:
         def _run_cmd(self):
-            #print >> sys.stderr, '*** CMD:', ' '.join(self.call_args) # dbg
+            # print >> sys.stderr, '*** CMD:', ' '.join(self.call_args) # dbg
             subp = subprocess.Popen(self.call_args)
             self.pids.append(subp.pid)
             # If this fails, the pid will be left in self.pids and cleaned up

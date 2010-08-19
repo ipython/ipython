@@ -56,8 +56,8 @@ def make_argument_parser():
     return parser
 
 
-def make_kernel(namespace, kernel_factory, out_stream_factory=OutStream, 
-                display_hook_factory=DisplayHook):
+def make_kernel(namespace, kernel_factory, 
+                out_stream_factory=None, display_hook_factory=None):
     """ Creates a kernel.
     """
     # Create a context, a session, and the kernel sockets.
@@ -78,9 +78,11 @@ def make_kernel(namespace, kernel_factory, out_stream_factory=OutStream,
     print >>sys.__stdout__, "REQ Channel on port", req_port
 
     # Redirect input streams and set a display hook.
-    sys.stdout = out_stream_factory(session, pub_socket, u'stdout')
-    sys.stderr = out_stream_factory(session, pub_socket, u'stderr')
-    sys.displayhook = display_hook_factory(session, pub_socket)
+    if out_stream_factory:
+        sys.stdout = out_stream_factory(session, pub_socket, u'stdout')
+        sys.stderr = out_stream_factory(session, pub_socket, u'stderr')
+    if display_hook_factory:
+        sys.displayhook = display_hook_factory(session, pub_socket)
 
     # Create the kernel.
     return kernel_factory(session=session, reply_socket=reply_socket, 
@@ -107,7 +109,7 @@ def make_default_main(kernel_factory):
     """
     def main():
         namespace = make_argument_parser().parse_args()
-        kernel = make_kernel(namespace, kernel_factory)
+        kernel = make_kernel(namespace, kernel_factory, OutStream, DisplayHook)
         start_kernel(namespace, kernel)
     return main
 

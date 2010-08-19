@@ -182,14 +182,14 @@ which already exists. But you must first start the logging process with
 
         # update the auto _i tables
         #print '***logging line',line_mod # dbg
-        #print '***cache_count', self.shell.outputcache.prompt_count # dbg
+        #print '***cache_count', self.shell.displayhook.prompt_count # dbg
         try:
             input_hist = self.shell.user_ns['_ih']
         except:
             #print 'userns:',self.shell.user_ns.keys()  # dbg
             return
         
-        out_cache = self.shell.outputcache
+        out_cache = self.shell.displayhook
 
         # add blank lines if the input cache fell out of sync.
         if out_cache.do_full_cache and \
@@ -208,15 +208,15 @@ which already exists. But you must first start the logging process with
 
         # hackish access to top-level namespace to create _i1,_i2... dynamically
         to_main = {'_i':self._i,'_ii':self._ii,'_iii':self._iii}
-        if self.shell.outputcache.do_full_cache:
-            in_num = self.shell.outputcache.prompt_count
+        if self.shell.displayhook.do_full_cache:
+            in_num = self.shell.displayhook.prompt_count
 
             # but if the opposite is true (a macro can produce multiple inputs
             # with no output display called), then bring the output counter in
             # sync:
             last_num = len(input_hist)-1
             if in_num != last_num:
-                in_num = self.shell.outputcache.prompt_count = last_num
+                in_num = self.shell.displayhook.prompt_count = last_num
             new_i = '_i%s' % in_num
             if continuation:
                 self._i00 = '%s%s\n' % (self.shell.user_ns[new_i],line_mod)

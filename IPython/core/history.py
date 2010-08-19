@@ -54,7 +54,7 @@ def magic_history(self, parameter_s = ''):
        confirmation first if it already exists.
     """
 
-    if not self.outputcache.do_full_cache:
+    if not self.displayhook.do_full_cache:
         print 'This feature is only available if numbered prompts are in use.'
         return
     opts,args = self.parse_options(parameter_s,'gnoptsrf:',mode='list')

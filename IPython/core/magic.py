@@ -2378,7 +2378,7 @@ Currently the magic system has the following functions:\n"""
         # use last_call to remember the state of the previous call, but don't
         # let it be clobbered by successive '-p' calls.
         try:
-            last_call[0] = self.shell.outputcache.prompt_count
+            last_call[0] = self.shell.displayhook.prompt_count
             if not opts_p:
                 last_call[1] = parameter_s
         except:
@@ -2566,12 +2566,12 @@ Defaulting color scheme to 'NoColor'"""
             
         # Set prompt colors
         try:
-            shell.outputcache.set_colors(new_scheme)
+            shell.displayhook.set_colors(new_scheme)
         except:
             color_switch_err('prompt')
         else:
             shell.colors = \
-                       shell.outputcache.color_table.active_scheme_name
+                       shell.displayhook.color_table.active_scheme_name
         # Set exception colors
         try:
             shell.InteractiveTB.set_colors(scheme = new_scheme)
@@ -2889,7 +2889,7 @@ Defaulting color scheme to 'NoColor'"""
         if ps:
             try:                
                 os.chdir(os.path.expanduser(ps))
-                if self.shell.term_title:
+                if hasattr(self.shell, 'term_title') and self.shell.term_title:
                     set_term_title('IPython: ' + abbrev_cwd())
             except OSError:
                 print sys.exc_info()[1]
@@ -2902,7 +2902,7 @@ Defaulting color scheme to 'NoColor'"""
                 
         else:
             os.chdir(self.shell.home_dir)
-            if self.shell.term_title:
+            if hasattr(self.shell, 'term_title') and self.shell.term_title:
                 set_term_title('IPython: ' + '~')
             cwd = os.getcwd()
             dhist = self.shell.user_ns['_dh']
@@ -3439,7 +3439,7 @@ Defaulting color scheme to 'NoColor'"""
 
         # Shorthands
         shell = self.shell
-        oc = shell.outputcache
+        oc = shell.displayhook
         meta = shell.meta
         # dstore is a data store kept in the instance metadata bag to track any
         # changes we make, so we can undo them later.

@@ -16,7 +16,11 @@ Things to do:
 
 # Standard library imports.
 import __builtin__
+<<<<<<< HEAD
 from code import CommandCompiler
+=======
+import os
+>>>>>>> 7425745bce7a04ad0dce41b22f03bebe1d2cdd20
 import sys
 import time
 import traceback
@@ -63,14 +67,19 @@ class Kernel(Configurable):
 
     def __init__(self, **kwargs):
         super(Kernel, self).__init__(**kwargs)
+
+        # Initialize the InteractiveShell subclass
         self.shell = ZMQInteractiveShell.instance()
+        self.shell.displayhook.session = self.session
+        self.shell.displayhook.pub_socket = self.pub_socket
 
         # Protected variables.
         self._exec_payload = {}
         
         # Build dict of handlers for message types
         msg_types = [ 'execute_request', 'complete_request', 
-                      'object_info_request' ]
+                      'object_info_request', 'prompt_request',
+                      'history_request' ]
         self.handlers = {}
         for msg_type in msg_types:
             self.handlers[msg_type] = getattr(self, msg_type)
@@ -173,8 +182,8 @@ class Kernel(Configurable):
             raw_input = lambda prompt='': self._raw_input(prompt, ident, parent)
             __builtin__.raw_input = raw_input
 
-            # Configure the display hook.
-            sys.displayhook.set_parent(parent)
+            # Set the parent message of the display hook.
+            self.shell.displayhook.set_parent(parent)
 
             self.shell.runlines(code)
             # exec comp_code in self.user_ns, self.user_ns
@@ -192,7 +201,15 @@ class Kernel(Configurable):
             reply_content = exc_content
         else:
             reply_content = { 'status' : 'ok', 'payload' : self._exec_payload }
-            
+
+        # Compute the prompt information
+        prompt_number = self.shell.displayhook.prompt_count
+        reply_content['prompt_number'] = prompt_number        
+        prompt_string = self.shell.displayhook.prompt1.peek_next_prompt()
+        next_prompt = {'prompt_string' : prompt_string,
+                       'prompt_number' : prompt_number+1}
+        reply_content['next_prompt'] = next_prompt
+
         # Flush output before sending the reply.
         sys.stderr.flush()
         sys.stdout.flush()
@@ -217,6 +234,25 @@ class Kernel(Configurable):
         object_info = self._object_info(context)
         msg = self.session.send(self.reply_socket, 'object_info_reply',
                                 object_info, parent, ident)
+        print >> sys.__stdout__, msg
+
+    def prompt_request(self, ident, parent):
+        prompt_number = self.shell.displayhook.prompt_count
+        prompt_string = self.shell.displayhook.prompt1.peek_next_prompt()
+        content = {'prompt_string' : prompt_string,
+                   'prompt_number' : prompt_number+1}
+        msg = self.session.send(self.reply_socket, 'prompt_reply',
+                                content, parent, ident)
+        print >> sys.__stdout__, msg
+
+    def history_request(self, ident, parent):
+        output = parent['content'].get('output', True)
+        index = parent['content'].get('index')
+        raw = parent['content'].get('raw', False)
+        hist = self.shell.get_history(index=index, raw=raw, output=output)
+        content = {'history' : hist}
+        msg = self.session.send(self.reply_socket, 'history_reply',
+                                content, parent, ident)
         print >> sys.__stdout__, msg
         
     #---------------------------------------------------------------------------

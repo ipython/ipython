@@ -385,7 +385,7 @@ class ListTB(TBTools):
         IPython.utils.io.Term.cerr.write(self.text(etype,value,elist))
         IPython.utils.io.Term.cerr.write('\n')
 
-    def text(self, etype, value, elist, context=5):
+    def structured_traceback(self, etype, value, elist, context=5):
         """Return a color formatted string with the traceback info.
 
         Parameters
@@ -414,6 +414,12 @@ class ListTB(TBTools):
         for line in lines[:-1]:
             out_string.append(" "+line)
         out_string.append(lines[-1])
+        return out_string
+
+    def text(self, etype, value, elist, context=5):
+        out_string = ListTB.structured_traceback(
+            self, etype, value, elist, context
+        )
         return ''.join(out_string)
 
     def _format_list(self, extracted_list):
@@ -569,7 +575,7 @@ class VerboseTB(TBTools):
         self.long_header = long_header
         self.include_vars = include_vars
 
-    def text(self, etype, evalue, etb, context=5):
+    def structured_traceback(self, etype, evalue, etb, context=5):
         """Return a nice text document describing the traceback."""
 
         # some locals
@@ -861,7 +867,14 @@ class VerboseTB(TBTools):
         # vds: <<
                 
         # return all our info assembled as a single string
-        return '%s\n\n%s\n%s' % (head,'\n'.join(frames),''.join(exception[0]) )
+        # return '%s\n\n%s\n%s' % (head,'\n'.join(frames),''.join(exception[0]) )
+        return [head] + frames + [''.join(exception[0])]
+
+    def text(self, etype, evalue, etb, context=5):
+        tb_list = VerboseTB.structured_traceback(
+            self, etype, evalue, etb, context
+        )
+        return '\n'.join(tb_list)
 
     def debugger(self,force=False):
         """Call up the pdb debugger if desired, always clean up the tb
@@ -957,17 +970,13 @@ class FormattedTB(VerboseTB,ListTB):
         else:
             return None
 
-    def text(self, etype, value, tb,context=5,mode=None):
-        """Return formatted traceback.
-
-        If the optional mode parameter is given, it overrides the current
-        mode."""
-
-        if mode is None:
-            mode = self.mode
+    def structured_traceback(self, etype, value, tb, context=5, mode=None):
+        mode = self.mode if mode is None else mode
         if mode in self.verbose_modes:
-            # verbose modes need a full traceback
-            return VerboseTB.text(self,etype, value, tb,context=5)
+            # Verbose modes need a full traceback
+            return VerboseTB.structured_traceback(
+                self, etype, value, tb, context
+            )
         else:
             # We must check the source cache because otherwise we can print
             # out-of-date source code.
@@ -976,7 +985,19 @@ class FormattedTB(VerboseTB,ListTB):
             elist = self._extract_tb(tb)
             if len(elist) > self.tb_offset:
                 del elist[:self.tb_offset]
-            return ListTB.text(self,etype,value,elist)
+            return ListTB.structured_traceback(
+                self, etype, value, elist, context
+            )
+
+    def text(self, etype, value, tb, context=5, mode=None):
+        """Return formatted traceback.
+
+        If the optional mode parameter is given, it overrides the current
+        mode."""
+        tb_list = FormattedTB.structured_traceback(
+            self, etype, value, tb, context, mode
+        )
+        return '\n'.join(tb_list)
 
     def set_mode(self,mode=None):
         """Switch to the desired mode.
@@ -1051,19 +1072,47 @@ class AutoFormattedTB(FormattedTB):
         except KeyboardInterrupt:
             print "\nKeyboardInterrupt"
 
-    def text(self,etype=None,value=None,tb=None,context=5,mode=None):
+    def structured_traceback(self, etype=None, value=None, tb=None,
+                             context=5, mode=None):
         if etype is None:
             etype,value,tb = sys.exc_info()
         self.tb = tb
-        return FormattedTB.text(self,etype,value,tb,context=5,mode=mode)
+        return FormattedTB.structured_traceback(
+            self, etype, value, tb, context, mode
+        )
+
+    def text(self, etype=None, value=None, tb=None, context=5, mode=None):
+        tb_list = AutoFormattedTB.structured_traceback(
+            self, etype, value, tb, context, mode
+        )
+        return '\n'.join(tb_list)
 
 #---------------------------------------------------------------------------
+
 # A simple class to preserve Nathan's original functionality.
 class ColorTB(FormattedTB):
     """Shorthand to initialize a FormattedTB in Linux colors mode."""
     def __init__(self,color_scheme='Linux',call_pdb=0):
         FormattedTB.__init__(self,color_scheme=color_scheme,
                              call_pdb=call_pdb)
+
+
+class SyntaxTB(ListTB):
+    """Extension which holds some state: the last exception value"""
+
+    def __init__(self,color_scheme = 'NoColor'):
+        ListTB.__init__(self,color_scheme)
+        self.last_syntax_error = None
+
+    def __call__(self, etype, value, elist):
+        self.last_syntax_error = value
+        ListTB.__call__(self,etype,value,elist)
+
+    def clear_err_state(self):
+        """Return the current error state and clear it"""
+        e = self.last_syntax_error
+        self.last_syntax_error = None
+        return e
 
 #----------------------------------------------------------------------------
 # module testing (minimal)

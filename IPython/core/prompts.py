@@ -1,19 +1,24 @@
 # -*- coding: utf-8 -*-
-"""
-Classes for handling input/output prompts.
+"""Classes for handling input/output prompts.
+
+Authors:
+
+* Fernando Perez
+* Brian Granger
 """
 
-#*****************************************************************************
-#       Copyright (C) 2008-2009 The IPython Development Team
+#-----------------------------------------------------------------------------
+#       Copyright (C) 2008-2010 The IPython Development Team
 #       Copyright (C) 2001-2007 Fernando Perez <fperez@colorado.edu>
 #
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
-#*****************************************************************************
+#-----------------------------------------------------------------------------
 
-#****************************************************************************
+#-----------------------------------------------------------------------------
+# Imports
+#-----------------------------------------------------------------------------
 
-import __builtin__
 import os
 import re
 import socket
@@ -21,14 +26,11 @@ import sys
 
 from IPython.core import release
 from IPython.external.Itpl import ItplNS
-from IPython.core.error import TryNext
 from IPython.utils import coloransi
-import IPython.utils.generics
-from IPython.utils.warn import warn
-import IPython.utils.io
 
-#****************************************************************************
-#Color schemes for Prompts.
+#-----------------------------------------------------------------------------
+# Color schemes for prompts
+#-----------------------------------------------------------------------------
 
 PromptColors = coloransi.ColorSchemeTable()
 InputColors = coloransi.InputTermColors  # just a shorthand
@@ -76,6 +78,9 @@ PromptColors.add_scheme(__PColLightBG)
 del Colors,InputColors
 
 #-----------------------------------------------------------------------------
+# Utilities
+#-----------------------------------------------------------------------------
+
 def multiple_replace(dict, text):
     """ Replace in 'text' all occurences of any key in the given
     dictionary by its corresponding value.  Returns the new string."""
@@ -90,6 +95,7 @@ def multiple_replace(dict, text):
 
 #-----------------------------------------------------------------------------
 # Special characters that can be used in prompt templates, mainly bash-like
+#-----------------------------------------------------------------------------
 
 # If $HOME isn't defined (Windows), make it an absurd string so that it can
 # never be expanded out into '~'.  Basically anything which can never be a
@@ -201,6 +207,9 @@ for _color in dir(input_colors):
 prompt_specials = prompt_specials_nocolor
 
 #-----------------------------------------------------------------------------
+# More utilities
+#-----------------------------------------------------------------------------
+
 def str_safe(arg):
     """Convert to a string, without ever raising an exception.
 
@@ -221,6 +230,10 @@ def str_safe(arg):
         #raise  # dbg
     return out
 
+#-----------------------------------------------------------------------------
+# Prompt classes
+#-----------------------------------------------------------------------------
+
 class BasePrompt(object):
     """Interactive prompt similar to Mathematica's."""
 
@@ -234,7 +247,7 @@ class BasePrompt(object):
     p_template = property(_get_p_template,_set_p_template,
                           doc='Template for prompt string creation')
 
-    def __init__(self,cache,sep,prompt,pad_left=False):
+    def __init__(self, cache, sep, prompt, pad_left=False):
 
         # Hack: we access information about the primary prompt through the
         # cache argument.  We need this, because we want the secondary prompt
@@ -267,17 +280,17 @@ class BasePrompt(object):
             self.p_str = ItplNS('%s%s%s' %
                                 ('${self.sep}${self.col_p}',
                                  multiple_replace(prompt_specials, self.p_template),
-                                 '${self.col_norm}'),self.cache.user_ns,loc)
+                                 '${self.col_norm}'),self.cache.shell.user_ns,loc)
     
             self.p_str_nocolor = ItplNS(multiple_replace(prompt_specials_nocolor,
                                                          self.p_template),
-                                        self.cache.user_ns,loc)
+                                        self.cache.shell.user_ns,loc)
         except:
             print "Illegal prompt template (check $ usage!):",self.p_template
             self.p_str = self.p_template
             self.p_str_nocolor = self.p_template
 
-    def write(self,msg):  # dbg
+    def write(self, msg):
         sys.stdout.write(msg)
         return ''
 
@@ -301,7 +314,7 @@ class BasePrompt(object):
 
     # these path filters are put in as methods so that we can control the
     # namespace where the prompt strings get evaluated
-    def cwd_filt(self,depth):
+    def cwd_filt(self, depth):
         """Return the last depth elements of the current working directory.
 
         $HOME is always replaced with '~'.
@@ -314,7 +327,7 @@ class BasePrompt(object):
         else:
             return os.sep
 
-    def cwd_filt2(self,depth):
+    def cwd_filt2(self, depth):
         """Return the last depth elements of the current working directory.
 
         $HOME is always replaced with '~'.
@@ -341,11 +354,12 @@ class BasePrompt(object):
 
         return bool(self.p_template)
 
+
 class Prompt1(BasePrompt):
     """Input interactive prompt similar to Mathematica's."""
 
-    def __init__(self,cache,sep='\n',prompt='In [\\#]: ',pad_left=True):
-        BasePrompt.__init__(self,cache,sep,prompt,pad_left)
+    def __init__(self, cache, sep='\n', prompt='In [\\#]: ', pad_left=True):
+        BasePrompt.__init__(self, cache, sep, prompt, pad_left)
 
     def set_colors(self):
         self.set_p_str()
@@ -357,7 +371,14 @@ class Prompt1(BasePrompt):
         # auto-call prompts used in the auto_rewrite() method.
         self.col_p_ni = self.col_p.replace('\001','').replace('\002','') 
         self.col_norm_ni = Colors.normal        
-        
+
+    def peek_next_prompt(self):
+        """Get the next prompt, but don't increment the counter."""
+        self.cache.prompt_count += 1
+        next_prompt = str_safe(self.p_str)
+        self.cache.prompt_count -= 1
+        return next_prompt
+
     def __str__(self):
         self.cache.prompt_count += 1
         self.cache.last_prompt = str_safe(self.p_str_nocolor).split('\n')[-1]
@@ -373,11 +394,12 @@ class Prompt1(BasePrompt):
         return '%s%s>%s%s' % (self.col_p_ni,'-'*(len(curr)-nrspaces-1),
                               ' '*nrspaces,self.col_norm_ni)
 
+
 class PromptOut(BasePrompt):
     """Output interactive prompt similar to Mathematica's."""
 
-    def __init__(self,cache,sep='',prompt='Out[\\#]: ',pad_left=True):
-        BasePrompt.__init__(self,cache,sep,prompt,pad_left)
+    def __init__(self, cache, sep='', prompt='Out[\\#]: ', pad_left=True):
+        BasePrompt.__init__(self, cache, sep, prompt, pad_left)
         if not self.p_template:
             self.__str__ = lambda: ''
 
@@ -388,10 +410,11 @@ class PromptOut(BasePrompt):
         self.col_num = Colors.out_number
         self.col_norm = Colors.normal
 
+
 class Prompt2(BasePrompt):
     """Interactive continuation prompt."""
     
-    def __init__(self,cache,prompt='   .\\D.: ',pad_left=True):
+    def __init__(self, cache, prompt='   .\\D.: ', pad_left=True):
         self.cache = cache
         self.p_template = prompt
         self.pad_left = pad_left
@@ -404,10 +427,10 @@ class Prompt2(BasePrompt):
                             ('${self.col_p2}',
                              multiple_replace(prompt_specials, self.p_template),
                              '$self.col_norm'),
-                            self.cache.user_ns,loc)
+                            self.cache.shell.user_ns,loc)
         self.p_str_nocolor = ItplNS(multiple_replace(prompt_specials_nocolor,
                                                      self.p_template),
-                                    self.cache.user_ns,loc)
+                                    self.cache.shell.user_ns,loc)
 
     def set_colors(self):
         self.set_p_str()
@@ -418,222 +441,4 @@ class Prompt2(BasePrompt):
         # updated their prompt_in2 definitions.  Remove eventually.
         self.col_p = Colors.out_prompt
         self.col_num = Colors.out_number
-
-
-#-----------------------------------------------------------------------------
-class CachedOutput:
-    """Class for printing output from calculations while keeping a cache of
-    reults. It dynamically creates global variables prefixed with _ which
-    contain these results.
-
-    Meant to be used as a sys.displayhook replacement, providing numbered
-    prompts and cache services.
-
-    Initialize with initial and final values for cache counter (this defines
-    the maximum size of the cache."""
-
-    def __init__(self,shell,cache_size,Pprint,
-                 colors='NoColor',input_sep='\n',
-                 output_sep='\n',output_sep2='',
-                 ps1 = None, ps2 = None,ps_out = None,pad_left=True):
-
-        cache_size_min = 3
-        if cache_size <= 0:
-            self.do_full_cache = 0
-            cache_size = 0
-        elif cache_size < cache_size_min:
-            self.do_full_cache = 0
-            cache_size = 0
-            warn('caching was disabled (min value for cache size is %s).' %
-                 cache_size_min,level=3)
-        else:
-            self.do_full_cache = 1
-
-        self.cache_size = cache_size
-        self.input_sep = input_sep
-
-        # we need a reference to the user-level namespace
-        self.shell = shell
-        self.user_ns = shell.user_ns
-        # and to the user's input
-        self.input_hist = shell.input_hist
-        # and to the user's logger, for logging output
-        self.logger = shell.logger
-
-        # Set input prompt strings and colors
-        if cache_size == 0:
-            if ps1.find('%n') > -1 or ps1.find(r'\#') > -1 \
-                   or ps1.find(r'\N') > -1:
-                ps1 = '>>> '
-            if ps2.find('%n') > -1 or ps2.find(r'\#') > -1 \
-                   or ps2.find(r'\N') > -1:
-                ps2 = '... '
-        self.ps1_str = self._set_prompt_str(ps1,'In [\\#]: ','>>> ')
-        self.ps2_str = self._set_prompt_str(ps2,'   .\\D.: ','... ')
-        self.ps_out_str = self._set_prompt_str(ps_out,'Out[\\#]: ','')
-
-        self.color_table = PromptColors
-        self.prompt1 = Prompt1(self,sep=input_sep,prompt=self.ps1_str,
-                               pad_left=pad_left)
-        self.prompt2 = Prompt2(self,prompt=self.ps2_str,pad_left=pad_left)
-        self.prompt_out = PromptOut(self,sep='',prompt=self.ps_out_str,
-                                    pad_left=pad_left)
-        self.set_colors(colors)
-
-        # other more normal stuff
-        # b/c each call to the In[] prompt raises it by 1, even the first.
-        self.prompt_count = 0
-        # Store the last prompt string each time, we need it for aligning
-        # continuation and auto-rewrite prompts
-        self.last_prompt = ''
-        self.Pprint = Pprint
-        self.output_sep = output_sep
-        self.output_sep2 = output_sep2
-        self._,self.__,self.___ = '','',''
-        self.pprint_types = map(type,[(),[],{}])
-        
-        # these are deliberately global:
-        to_user_ns = {'_':self._,'__':self.__,'___':self.___}
-        self.user_ns.update(to_user_ns)
-
-    def _set_prompt_str(self,p_str,cache_def,no_cache_def):
-        if p_str is None:
-            if self.do_full_cache:
-                return cache_def
-            else:
-                return no_cache_def
-        else:
-            return p_str
-                
-    def set_colors(self,colors):
-        """Set the active color scheme and configure colors for the three
-        prompt subsystems."""
-
-        # FIXME: the prompt_specials global should be gobbled inside this
-        # class instead.  Do it when cleaning up the whole 3-prompt system.
-        global prompt_specials
-        if colors.lower()=='nocolor':
-            prompt_specials = prompt_specials_nocolor
-        else:
-            prompt_specials = prompt_specials_color
-        
-        self.color_table.set_active_scheme(colors)
-        self.prompt1.set_colors()
-        self.prompt2.set_colors()
-        self.prompt_out.set_colors()
-
-    def __call__(self,arg=None):
-        """Printing with history cache management.
-        
-        This is invoked everytime the interpreter needs to print, and is
-        activated by setting the variable sys.displayhook to it."""
-
-        # If something injected a '_' variable in __builtin__, delete
-        # ipython's automatic one so we don't clobber that.  gettext() in
-        # particular uses _, so we need to stay away from it.
-        if '_' in __builtin__.__dict__:
-            try:
-                del self.user_ns['_']
-            except KeyError:
-                pass
-        if arg is not None:
-            cout_write = IPython.utils.io.Term.cout.write # fast lookup
-            # first handle the cache and counters
-
-            # do not print output if input ends in ';'
-            try:
-                if self.input_hist[self.prompt_count].endswith(';\n'):
-                    return
-            except IndexError:
-                # some uses of ipshellembed may fail here
-                pass
-            # don't use print, puts an extra space
-            cout_write(self.output_sep)
-            outprompt = self.shell.hooks.generate_output_prompt()
-            # print "Got prompt: ", outprompt
-            if self.do_full_cache:
-                cout_write(outprompt)
-
-            # and now call a possibly user-defined print mechanism. Note that
-            # self.display typically prints as a side-effect, we don't do any
-            # printing to stdout here.
-            try:
-                manipulated_val = self.display(arg)
-            except TypeError:
-                # If the user's display hook didn't return a string we can
-                # print, we're done.  Happens commonly if they return None
-                cout_write('\n')
-                return
-            
-            # user display hooks can change the variable to be stored in
-            # output history
-            if manipulated_val is not None:
-                arg = manipulated_val
-
-            # avoid recursive reference when displaying _oh/Out
-            if arg is not self.user_ns['_oh']:
-                self.update(arg)
-
-            if self.logger.log_output:
-                self.logger.log_write(repr(arg),'output')
-            cout_write(self.output_sep2)
-            IPython.utils.io.Term.cout.flush()
-
-    def _display(self,arg):
-        """Default printer method, uses pprint.
-
-        Do ip.set_hook("result_display", my_displayhook) for custom result
-        display, e.g. when your own objects need special formatting.
-        """
-        try:
-            return IPython.utils.generics.result_display(arg)
-        except TryNext:            
-            return self.shell.hooks.result_display(arg)
-
-    # Assign the default display method:
-    display = _display
-
-    def update(self,arg):
-        #print '***cache_count', self.cache_count # dbg
-        if len(self.user_ns['_oh']) >= self.cache_size and self.do_full_cache:
-            warn('Output cache limit (currently '+
-                  `self.cache_size`+' entries) hit.\n'
-                 'Flushing cache and resetting history counter...\n'
-                 'The only history variables available will be _,__,___ and _1\n'
-                 'with the current result.')
-
-            self.flush()
-        # Don't overwrite '_' and friends if '_' is in __builtin__ (otherwise
-        # we cause buggy behavior for things like gettext).
-        if '_' not in __builtin__.__dict__:
-            self.___ = self.__
-            self.__ = self._
-            self._ = arg
-            self.user_ns.update({'_':self._,'__':self.__,'___':self.___})
-            
-        # hackish access to top-level  namespace to create _1,_2... dynamically
-        to_main = {}
-        if self.do_full_cache:
-            new_result = '_'+`self.prompt_count`
-            to_main[new_result] = arg
-            self.user_ns.update(to_main)
-            self.user_ns['_oh'][self.prompt_count] = arg
-
-    def flush(self):
-        if not self.do_full_cache:
-            raise ValueError,"You shouldn't have reached the cache flush "\
-                  "if full caching is not enabled!"
-        # delete auto-generated vars from global namespace
-        
-        for n in range(1,self.prompt_count + 1):
-            key = '_'+`n`
-            try:
-                del self.user_ns[key]
-            except: pass
-        self.user_ns['_oh'].clear()
-        
-        if '_' not in __builtin__.__dict__:
-            self.user_ns.update({'_':None,'__':None, '___':None})
-        import gc
-        gc.collect() # xxx needed?
 
