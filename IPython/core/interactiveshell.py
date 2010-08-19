@@ -209,6 +209,7 @@ class InteractiveShell(Configurable, Magic):
     display_trap = Instance('IPython.core.display_trap.DisplayTrap')
     extension_manager = Instance('IPython.core.extensions.ExtensionManager')
     plugin_manager = Instance('IPython.core.plugin.PluginManager')
+    payload_manager = Instance('IPython.core.paylaod.PayloadManager')
 
     def __init__(self, config=None, ipython_dir=None,
                  user_ns=None, user_global_ns=None,
@@ -272,6 +273,7 @@ class InteractiveShell(Configurable, Magic):
         self.init_pdb()
         self.init_extension_manager()
         self.init_plugin_manager()
+        self.init_payload()
         self.hooks.late_startup_hook()
 
     @classmethod
@@ -428,7 +430,7 @@ class InteractiveShell(Configurable, Magic):
         import IPython.utils.io
         if sys.platform == 'win32' and self.has_readline:
             Term = IPython.utils.io.IOTerm(
-                cout=readline._outputfile,cerr=readline._outputfile
+                cout=self.readline._outputfile,cerr=self.readline._outputfile
             )
         else:
             Term = IPython.utils.io.IOTerm()
@@ -1647,6 +1649,13 @@ class InteractiveShell(Configurable, Magic):
 
     def init_plugin_manager(self):
         self.plugin_manager = PluginManager(config=self.config)
+
+    #-------------------------------------------------------------------------
+    # Things related to payloads
+    #-------------------------------------------------------------------------
+
+    def init_payload(self):
+        self.payload_manager = PayloadManager(config=self.config)
 
     #-------------------------------------------------------------------------
     # Things related to the prefilter
