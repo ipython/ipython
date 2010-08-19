@@ -184,7 +184,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
                 self._process_execute_abort(msg)
 
             self._hidden = True
-            self._show_interpreter_prompt()
+            self._show_interpreter_prompt_for_reply(msg)
             self.executed.emit(msg)
 
     def _handle_input_request(self, msg):
@@ -334,6 +334,11 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         """ Shows a prompt for the interpreter.
         """
         self._show_prompt('>>> ')
+
+    def _show_interpreter_prompt_for_reply(self, msg):
+        """ Shows a prompt for the interpreter given an 'execute_reply' message.
+        """
+        self._show_interpreter_prompt()
 
     #------ Signal handlers ----------------------------------------------------
 

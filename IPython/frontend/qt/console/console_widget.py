@@ -878,12 +878,14 @@ class ConsoleWidget(QtGui.QWidget):
         # After inserting HTML, the text document "remembers" it's in "html
         # mode", which means that subsequent calls adding plain text will result
         # in unwanted formatting, lost tab characters, etc. The following code
-        # hacks around this behavior, which I consider to be a bug in Qt.
-        cursor.movePosition(QtGui.QTextCursor.Left, 
+        # hacks around this behavior, which I consider to be a bug in Qt, by
+        # (crudely) resetting the document's style state.
+        cursor.movePosition(QtGui.QTextCursor.Left,
                             QtGui.QTextCursor.KeepAnchor)
         if cursor.selection().toPlainText() == ' ':
             cursor.removeSelectedText()
-        cursor.movePosition(QtGui.QTextCursor.Right)
+        else:
+            cursor.movePosition(QtGui.QTextCursor.Right)
         cursor.insertText(' ', QtGui.QTextCharFormat())
         cursor.endEditBlock()
 
