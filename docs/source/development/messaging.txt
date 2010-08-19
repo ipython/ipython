@@ -101,8 +101,8 @@ generic structure::
       # messages in a meaningful way.
       'header' : { 'msg_id' : uuid,
                    'username' : str,
-		   'session' : uuid
-		 },
+           'session' : uuid
+         },
 
       # In a chain of messages, the header from the parent is copied so that
       # clients can track where messages come from.
@@ -142,17 +142,17 @@ Message type: ``execute_request``::
 
     content = {
         # Source code to be executed by the kernel, one or more lines.
-	'code' : str,
+    'code' : str,
 
-	# A boolean flag which, if True, signals the kernel to execute this
-	# code as quietly as possible.  This means that the kernel will compile
-	# the code with 'exec' instead of 'single' (so sys.displayhook will not
-	# fire), and will *not*:
-	#   - broadcast exceptions on the PUB socket
-	#   - do any logging
-	#   - populate any history
-	# The default is False.
-	'silent' : bool,
+    # A boolean flag which, if True, signals the kernel to execute this
+    # code as quietly as possible.  This means that the kernel will compile
+    # the code with 'exec' instead of 'single' (so sys.displayhook will not
+    # fire), and will *not*:
+    #   - broadcast exceptions on the PUB socket
+    #   - do any logging
+    #   - populate any history
+    # The default is False.
+    'silent' : bool,
     }
 
 Upon execution, the kernel *always* sends a reply, with a status code
@@ -169,9 +169,10 @@ Message type: ``execute_reply``::
       # to a prompt request)
       'next_prompt' : {
             'prompt_string' : str,
-	    'prompt_number' : int,
-	    },
-	    
+            'prompt_number' : int,
+            'input_sep'     : str
+      },
+
       # The prompt number of the actual execution for this code, which may be
       # different from the one used when the code was typed, which was the
       # 'next_prompt' field of the *previous* request.  They will differ in the
@@ -272,12 +273,12 @@ Message type: ``object_info_request``::
 
     content = {
         # The (possibly dotted) name of the object to be searched in all
-	# relevant namespaces
-	'name' : str,
+    # relevant namespaces
+    'name' : str,
 
-	# The level of detail desired.  The default (0) is equivalent to typing
-	# 'x?' at the prompt, 1 is equivalent to 'x??'.
-	'detail_level' : int,
+    # The level of detail desired.  The default (0) is equivalent to typing
+    # 'x?' at the prompt, 1 is equivalent to 'x??'.
+    'detail_level' : int,
     }
 
 The returned information will be a dictionary with keys very similar to the
@@ -287,51 +288,51 @@ Message type: ``object_info_reply``::
 
     content = {
         # Flags for magics and system aliases
-	'ismagic' : bool,
-	'isalias' : bool,
+    'ismagic' : bool,
+    'isalias' : bool,
 
-	# The name of the namespace where the object was found ('builtin',
-	# 'magics', 'alias', 'interactive', etc.)
-	'namespace' : str,
+    # The name of the namespace where the object was found ('builtin',
+    # 'magics', 'alias', 'interactive', etc.)
+    'namespace' : str,
 
-	# The type name will be type.__name__ for normal Python objects, but it
-	# can also be a string like 'Magic function' or 'System alias'
-	'type_name' : str,
+    # The type name will be type.__name__ for normal Python objects, but it
+    # can also be a string like 'Magic function' or 'System alias'
+    'type_name' : str,
 
-	'string_form' : str,
+    'string_form' : str,
 
-	# For objects with a __class__ attribute this will be set
-	'base_class' : str,
+    # For objects with a __class__ attribute this will be set
+    'base_class' : str,
 
-	# For objects with a __len__ attribute this will be set
-	'length' : int,
+    # For objects with a __len__ attribute this will be set
+    'length' : int,
 
-	# If the object is a function, class or method whose file we can find,
-	# we give its full path
-	'file' : str,
+    # If the object is a function, class or method whose file we can find,
+    # we give its full path
+    'file' : str,
 
-	# For pure Python callable objects, we can reconstruct the object
-	# definition line which provides its call signature
-	'definition' : str,
+    # For pure Python callable objects, we can reconstruct the object
+    # definition line which provides its call signature
+    'definition' : str,
 
-	# For instances, provide the constructor signature (the definition of
-	# the __init__ method):
-	'init_definition' : str,
-	
-	# Docstrings: for any object (function, method, module, package) with a
-	# docstring, we show it.  But in addition, we may provide additional
-	# docstrings.  For example, for instances we will show the constructor
-	# and class docstrings as well, if available.
-	'docstring' : str,
+    # For instances, provide the constructor signature (the definition of
+    # the __init__ method):
+    'init_definition' : str,
+    
+    # Docstrings: for any object (function, method, module, package) with a
+    # docstring, we show it.  But in addition, we may provide additional
+    # docstrings.  For example, for instances we will show the constructor
+    # and class docstrings as well, if available.
+    'docstring' : str,
 
-	# For instances, provide the constructor and class docstrings
-	'init_docstring' : str,
-	'class_docstring' : str,
+    # For instances, provide the constructor and class docstrings
+    'init_docstring' : str,
+    'class_docstring' : str,
 
-	# If detail_level was 1, we also try to find the source code that
-	# defines the object, if possible.  The string 'None' will indicate
-	# that no source was found.
-	'source' : str,
+    # If detail_level was 1, we also try to find the source code that
+    # defines the object, if possible.  The string 'None' will indicate
+    # that no source was found.
+    'source' : str,
     }
 
     
@@ -342,20 +343,20 @@ Message type: ``complete_request``::
 
     content = {
         # The text to be completed, such as 'a.is'
-	'text' : str,
+    'text' : str,
 
-	# The full line, such as 'print a.is'.  This allows completers to
-	# make decisions that may require information about more than just the
-	# current word.
-	'line' : str,
+    # The full line, such as 'print a.is'.  This allows completers to
+    # make decisions that may require information about more than just the
+    # current word.
+    'line' : str,
     }
 
 Message type: ``complete_reply``::
 
     content = {
         # The list of all matches to the completion request, such as
-	# ['a.isalnum', 'a.isalpha'] for the above example.
-	'matches' : list
+    # ['a.isalnum', 'a.isalpha'] for the above example.
+    'matches' : list
     }
 
     
@@ -406,10 +407,10 @@ Message type: ``stream``::
 
     content = {
         # The name of the stream is one of 'stdin', 'stdout', 'stderr'
-	'name' : str,
-	
-	# The data is an arbitrary string to be written to that stream
-	'data' : str,
+    'name' : str,
+    
+    # The data is an arbitrary string to be written to that stream
+    'data' : str,
     }
 
 When a kernel receives a raw_input call, it should also broadcast it on the pub
@@ -426,7 +427,7 @@ Message type: ``pyin``::
 
     content = {
         # Source code to be executed, one or more lines
-	'code' : str
+    'code' : str
     }
 
 Python outputs
@@ -446,12 +447,12 @@ Message type: ``pyout``::
 
     content = {
         # The data is typically the repr() of the object.
-	'data' : str,
-	
-	# The prompt number for this execution is also provided so that clients
-	# can display it, since IPython automatically creates variables called
-	# _N (for prompt N).
-	'prompt_number' : int,
+    'data' : str,
+    
+    # The prompt number for this execution is also provided so that clients
+    # can display it, since IPython automatically creates variables called
+    # _N (for prompt N).
+    'prompt_number' : int,
     }
     
 Python errors
@@ -494,9 +495,9 @@ Other potential message types, currently unimplemented, listed below as ideas.
 Message type: ``file``::
 
     content = {
-	'path' : 'cool.jpg',
-	'mimetype' : str,
-	'data' : str,
+    'path' : 'cool.jpg',
+    'mimetype' : str,
+    'data' : str,
     }
 
     
