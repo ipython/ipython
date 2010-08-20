@@ -155,12 +155,9 @@ class IPythonWidget(FrontendWidget):
                 self._prompt = self._insert_html_fetching_plain_text(
                     cursor, prompt)
 
-                # XXX: When the HTML is inserted, Qt blows away the syntax
-                #      highlighting for the line. I cannot for the life of me
-                #      determine how to preserve the existing formatting.
-                self._highlighter.highlighting_on = True
+                # When the HTML is inserted, Qt blows away the syntax
+                # highlighting for the line, so we need to rehighlight it.
                 self._highlighter.rehighlightBlock(cursor.block())
-                self._highlighter.highlighting_on = False
 
             self._previous_prompt_obj = None
 

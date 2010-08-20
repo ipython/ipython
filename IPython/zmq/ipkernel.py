@@ -86,7 +86,7 @@ class Kernel(Configurable):
             If true, an 'import *' is done from numpy and pylab.
         """
         # FIXME: This is adapted from IPython.lib.pylabtools.pylab_activate.
-        #        Common funtionality should be refactored.
+        #        Common functionality should be refactored.
 
         # We must set the desired backend before importing pylab.
         import matplotlib
@@ -118,7 +118,6 @@ class Kernel(Configurable):
     def start(self):
         """ Start the kernel main loop.
         """
-
         while True:
             ident = self.reply_socket.recv()
             assert self.reply_socket.rcvmore(), "Missing message part."

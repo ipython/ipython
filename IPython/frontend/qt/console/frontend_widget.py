@@ -54,6 +54,14 @@ class FrontendHighlighter(PygmentsHighlighter):
 
         PygmentsHighlighter.highlightBlock(self, qstring)
 
+    def rehighlightBlock(self, block):
+        """ Reimplemented to temporarily enable highlighting if disabled.
+        """
+        old = self.highlighting_on
+        self.highlighting_on = True
+        super(FrontendHighlighter, self).rehighlightBlock(block)
+        self.highlighting_on = old
+
     def setFormat(self, start, count, format):
         """ Reimplemented to highlight selectively.
         """
