@@ -583,7 +583,7 @@ class IPythonInputTestCase(InputSplitterTestCase):
                 out_t = '\n'.join(out_t_parts).rstrip()
                 self.assertEqual(out, out_t)
                 
-
+        
 #-----------------------------------------------------------------------------
 # Main - use as a script
 #-----------------------------------------------------------------------------
@@ -615,6 +615,7 @@ if __name__ == '__main__':
 
             # Here we just return input so we can use it in a test suite, but a
             # real interpreter would instead send it for execution somewhere.
+            #src = isp.source; raise EOFError # dbg
             src = isp.source_reset()
             print 'Input source was:\n', src
     except EOFError:
