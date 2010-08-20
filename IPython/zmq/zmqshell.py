@@ -1,3 +1,5 @@
+import inspect
+import re
 import sys
 from subprocess import Popen, PIPE
 
@@ -5,7 +7,11 @@ from IPython.core.interactiveshell import (
     InteractiveShell, InteractiveShellABC
 )
 from IPython.core.displayhook import DisplayHook
+from IPython.core.macro import Macro
+from IPython.utils.path import get_py_filename
+from IPython.utils.text import StringTypes
 from IPython.utils.traitlets import Instance, Type, Dict
+from IPython.utils.warn import warn
 from IPython.zmq.session import extract_header
 
 
@@ -341,43 +347,6 @@ class ZMQInteractiveShell(InteractiveShell):
         }
         self.payload_manager.write_payload(payload)
 
-        # # do actual editing here
-        # print 'Editing...',
-        # sys.stdout.flush()
-        # try:
-        #     # Quote filenames that may have spaces in them
-        #     if ' ' in filename:
-        #         filename = "%s" % filename
-        #     self.shell.hooks.editor(filename,lineno)
-        # except TryNext:
-        #     warn('Could not open editor')
-        #     return
-        # 
-        # # XXX TODO: should this be generalized for all string vars?
-        # # For now, this is special-cased to blocks created by cpaste
-        # if args.strip() == 'pasted_block':
-        #     self.shell.user_ns['pasted_block'] = file_read(filename)
-        # 
-        # if opts.has_key('x'):  # -x prevents actual execution
-        #     print
-        # else:
-        #     print 'done. Executing edited code...'
-        #     if opts_r:
-        #         self.shell.runlines(file_read(filename))
-        #     else:
-        #         self.shell.safe_execfile(filename,self.shell.user_ns,
-        #                                  self.shell.user_ns)
-        # 
-        #                                              
-        # if use_temp:
-        #     try:
-        #         return open(filename).read()
-        #     except IOError,msg:
-        #         if msg.filename == filename:
-        #             warn('File not found. Did you forget to save?')
-        #             return
-        #         else:
-        #             self.shell.showtraceback()
 
 InteractiveShellABC.register(ZMQInteractiveShell)
 
