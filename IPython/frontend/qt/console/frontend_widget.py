@@ -83,7 +83,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         # FrontendWidget protected variables.
         self._call_tip_widget = CallTipWidget(self._control)
         self._completion_lexer = CompletionLexer(PythonLexer())
-        self._hidden = True
+        self._hidden = False
         self._highlighter = self._highlighter_class(self)
         self._input_splitter = self._input_splitter_class(input_mode='replace')
         self._kernel_manager = None
@@ -187,7 +187,6 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
             elif status == 'abort':
                 self._process_execute_abort(msg)
 
-            self._hidden = True
             self._show_interpreter_prompt_for_reply(msg)
             self.executed.emit(msg)
 
@@ -218,13 +217,15 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
     def _handle_pyout(self, msg):
         """ Handle display hook output.
         """
-        self._append_plain_text(msg['content']['data'] + '\n')
+        if not self._hidden and self._is_from_this_session(msg):
+            self._append_plain_text(msg['content']['data'] + '\n')
 
     def _handle_stream(self, msg):
         """ Handle stdout, stderr, and stdin.
         """
-        self._append_plain_text(msg['content']['data'])
-        self._control.moveCursor(QtGui.QTextCursor.End)
+        if not self._hidden and self._is_from_this_session(msg):
+            self._append_plain_text(msg['content']['data'])
+            self._control.moveCursor(QtGui.QTextCursor.End)
     
     def _started_channels(self):
         """ Called when the KernelManager channels have started listening or 

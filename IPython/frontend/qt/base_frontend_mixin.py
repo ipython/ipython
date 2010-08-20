@@ -73,13 +73,21 @@ class BaseFrontendMixin(object):
         """
 
     #---------------------------------------------------------------------------
-    # Private interface
+    # 'BaseFrontendMixin' protected interface
     #---------------------------------------------------------------------------
 
     def _dispatch(self, msg):
-        """ Call the frontend handler associated with
+        """ Calls the frontend handler associated with the message type of the 
+            given message.
         """
         msg_type = msg['msg_type']
         handler = getattr(self, '_handle_' + msg_type, None)
         if handler:
             handler(msg)
+
+    def _is_from_this_session(self, msg):
+        """ Returns whether a reply from the kernel originated from a request
+            from this frontend.
+        """
+        session = self._kernel_manager.session.session
+        return msg['parent_header']['session'] == session

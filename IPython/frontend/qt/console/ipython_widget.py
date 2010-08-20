@@ -75,11 +75,13 @@ class IPythonWidget(FrontendWidget):
     def _handle_pyout(self, msg):
         """ Reimplemented for IPython-style "display hook".
         """
-        content = msg['content']
-        prompt_number = content['prompt_number']
-        self._append_plain_text(content['output_sep'])
-        self._append_html(self._make_out_prompt(prompt_number))
-        self._append_plain_text(content['data'] + '\n' + content['output_sep2'])
+        if not self._hidden and self._is_from_this_session(msg):
+            content = msg['content']
+            prompt_number = content['prompt_number']
+            self._append_plain_text(content['output_sep'])
+            self._append_html(self._make_out_prompt(prompt_number))
+            self._append_plain_text(content['data'] + '\n' + 
+                                    content['output_sep2'])
 
     #---------------------------------------------------------------------------
     # 'FrontendWidget' interface

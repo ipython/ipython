@@ -152,8 +152,10 @@ class Kernel(Configurable):
             raw_input = lambda prompt='': self._raw_input(prompt, ident, parent)
             __builtin__.raw_input = raw_input
 
-            # Set the parent message of the display hook.
+            # Set the parent message of the display hook and out streams.
             self.shell.displayhook.set_parent(parent)
+            sys.stdout.set_parent(parent)
+            sys.stderr.set_parent(parent)
 
             self.shell.runlines(code)
         except:

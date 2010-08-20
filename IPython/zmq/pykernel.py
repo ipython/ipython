@@ -97,8 +97,10 @@ class Kernel(HasTraits):
             raw_input = lambda prompt='': self._raw_input(prompt, ident, parent)
             __builtin__.raw_input = raw_input
 
-            # Configure the display hook.
+            # Set the parent message of the display hook and out streams.
             sys.displayhook.set_parent(parent)
+            sys.stdout.set_parent(parent)
+            sys.stderr.set_parent(parent)
 
             exec comp_code in self.user_ns, self.user_ns
         except:
