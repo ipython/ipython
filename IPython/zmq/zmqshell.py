@@ -13,6 +13,11 @@ from IPython.utils.text import StringTypes
 from IPython.utils.traitlets import Instance, Type, Dict
 from IPython.utils.warn import warn
 from IPython.zmq.session import extract_header
+from IPython.core.payloadpage import install_payload_page
+
+
+# Install the payload version of page.
+install_payload_page()
 
 
 class ZMQDisplayHook(DisplayHook):

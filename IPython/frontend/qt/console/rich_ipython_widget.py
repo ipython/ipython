@@ -98,6 +98,10 @@ class RichIPythonWidget(IPythonWidget):
                 else:
                     cmd = 'mate -l %s %s' % (line_number, filename)
                 os.system(cmd)
+            elif item['source'] == 'IPython.zmq.page.page':
+                # TODO: This is probably a good place to start, but Evan can
+                # add better paging capabilities.
+                self._append_plain_text(item['data'])
             else:
                 # Add other payload types here!
                 pass

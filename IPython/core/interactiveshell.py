@@ -1901,9 +1901,6 @@ class InteractiveShell(Configurable, Magic):
           - 1: an error occurred.
         """
 
-        # Clear the payload before executing new code.
-        self.payload_manager.clear_payload()
-
         # Set our own excepthook in case the user code tries to call it
         # directly, so that the IPython crash handler doesn't get triggered
         old_excepthook,sys.excepthook = sys.excepthook, self.excepthook
