@@ -727,7 +727,7 @@ class EscapedTransformer(object):
         "Translate lines escaped with: %"
         tpl = '%sget_ipython().magic(%s)'
         cmd = make_quoted_expr(' '.join([line_info.fpart,
-                                         line_info.rest])).strip()
+                                         line_info.rest]).strip())
         return tpl % (line_info.lspace, cmd)
 
     @staticmethod
