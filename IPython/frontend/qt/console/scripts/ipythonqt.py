@@ -13,12 +13,25 @@ from IPython.frontend.qt.console.ipython_widget import IPythonWidget
 from IPython.frontend.qt.console.rich_ipython_widget import RichIPythonWidget
 from IPython.frontend.qt.kernelmanager import QtKernelManager
 
+# Constants
+LOCALHOST = '127.0.0.1'
+
 
 def main():
     """ Entry point for application.
     """
     # Parse command line arguments.
     parser = ArgumentParser()
+    parser.add_argument('-e', '--existing', action='store_true',
+                        help='connect to an existing kernel')
+    parser.add_argument('--ip', type=str, default=LOCALHOST,
+                        help='set the kernel\'s IP address [default localhost]')
+    parser.add_argument('--xreq', type=int, metavar='PORT', default=0,
+                        help='set the XREQ channel port [default random]')
+    parser.add_argument('--sub', type=int, metavar='PORT', default=0,
+                        help='set the SUB channel port [default random]')
+    parser.add_argument('--rep', type=int, metavar='PORT', default=0,
+                        help='set the REP channel port [default random]')
     group = parser.add_mutually_exclusive_group()
     group.add_argument('--pure', action='store_true', help = \
                        'use a pure Python kernel instead of an IPython kernel')
@@ -26,37 +39,39 @@ def main():
                         help='use a kernel with PyLab enabled')
     parser.add_argument('--rich', action='store_true',
                         help='use a rich text frontend')
-    namespace = parser.parse_args()
+    args = parser.parse_args()
     
     # Don't let Qt or ZMQ swallow KeyboardInterupts.
     import signal
     signal.signal(signal.SIGINT, signal.SIG_DFL)
 
     # Create a KernelManager and start a kernel.
-    kernel_manager = QtKernelManager()
-    if namespace.pure:
-        kernel_manager.start_kernel(ipython=False)
-    elif namespace.pylab:
-        if namespace.rich:
-            kernel_manager.start_kernel(pylab='payload-svg')
+    kernel_manager = QtKernelManager(xreq_address=(args.ip, args.xreq),
+                                     sub_address=(args.ip, args.sub),
+                                     rep_address=(args.ip, args.rep))
+    if args.ip == LOCALHOST and not args.existing:
+        if args.pure:
+            kernel_manager.start_kernel(ipython=False)
+        elif args.pylab:
+            if args.rich:
+                kernel_manager.start_kernel(pylab='payload-svg')
+            else:
+                kernel_manager.start_kernel(pylab='qt4')
         else:
-            kernel_manager.start_kernel(pylab='qt4')
-    else:
-        kernel_manager.start_kernel()
+            kernel_manager.start_kernel()
     kernel_manager.start_channels()
 
     # Launch the application.
     app = QtGui.QApplication([])
-    if namespace.pure:
-        kind = 'rich' if namespace.rich else 'plain'
+    if args.pure:
+        kind = 'rich' if args.rich else 'plain'
         widget = FrontendWidget(kind=kind)
+    elif args.rich:
+        widget = RichIPythonWidget()
     else:
-        if namespace.rich:
-            widget = RichIPythonWidget()
-        else:
-            widget = IPythonWidget()
+        widget = IPythonWidget()
     widget.kernel_manager = kernel_manager
-    widget.setWindowTitle('Python' if namespace.pure else 'IPython')
+    widget.setWindowTitle('Python' if args.pure else 'IPython')
     widget.show()
     app.exec_()
 
