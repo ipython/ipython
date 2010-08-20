@@ -889,7 +889,7 @@ class VerboseTB(TBTools):
                     self.color_scheme_table.active_scheme_name)
             # the system displayhook may have changed, restore the original
             # for pdb
-            display_trap = DisplayTrap(None, sys.__displayhook__)
+            display_trap = DisplayTrap(hook=sys.__displayhook__)
             with display_trap:
                 self.pdb.reset()
                 # Find the right frame so we don't pop up inside ipython itself
