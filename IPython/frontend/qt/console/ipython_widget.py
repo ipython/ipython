@@ -25,7 +25,7 @@ class IPythonWidget(FrontendWidget):
 
     # Signal emitted when an editor is needed for a file and the editor has been
     # specified as 'custom'. See 'set_editor' for more information.
-    custom_edit_requested = QtCore.pyqtSignal(object, int)
+    custom_edit_requested = QtCore.pyqtSignal(object, object)
 
     # The default stylesheet: black text on a white background.
     default_stylesheet = """

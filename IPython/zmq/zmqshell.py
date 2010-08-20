@@ -246,6 +246,12 @@ class ZMQInteractiveShell(InteractiveShell):
         
         # Default line number value
         lineno = opts.get('n',None)
+        if lineno is not None:
+            try:
+                lineno = int(lineno)
+            except:
+                warn("The -n argument must be an integer.")
+                return
 
         if opts_p:
             args = '_%s' % last_call[0]
