@@ -38,7 +38,7 @@ class IPythonWidget(FrontendWidget):
 
     # A dark stylesheet: white text on a black background.
     dark_stylesheet = """
-        QPlainTextEdit { background-color: black; color: white }
+        QPlainTextEdit, QTextEdit { background-color: black; color: white }
         QFrame { border: 1px solid grey; }
         .error { color: red; }
         .in-prompt { color: lime; }
@@ -198,7 +198,7 @@ class IPythonWidget(FrontendWidget):
         """ Restores the default IPythonWidget styling.
         """
         self.set_styling(self.default_stylesheet, syntax_style='default')
-        # self.set_styling(self.dark_stylesheet, syntax_style='monokai')
+        #self.set_styling(self.dark_stylesheet, syntax_style='monokai')
 
     def set_editor(self, editor):
         """ Sets the editor to use with the %edit magic.
