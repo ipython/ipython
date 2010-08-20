@@ -10,8 +10,29 @@ with full support for the extended IPython syntax (magics, system calls, etc).
 
 For more details, see the class docstring below.
 
+Syntax Transformations
+----------------------
+
+One of the main jobs of the code in this file is to apply all syntax
+transformations that make up 'the IPython language', i.e. magics, shell
+escapes, etc.  All transformations should be implemented as *fully stateless*
+entities, that simply take one line as their input and return a line.
+Internally for implementation purposes they may be a normal function or a
+callable object, but the only input they receive will be a single line and they
+should only return a line, without holding any data-dependent state between
+calls.
+
+As an example, the EscapedTransformer is a class so we can more clearly group
+together the functionality of dispatching to individual functions based on the
+starting escape character, but the only method for public use is its call
+method.
+
+
 ToDo
 ----
+
+- Should we make push() actually raise an exception once push_accepts_more()
+  returns False?
 
 - Naming cleanups.  The tr_* names aren't the most elegant, though now they are
   at least just attributes of a class so not really very exposed.
@@ -670,34 +691,34 @@ class EscapedTransformer(object):
     """Class to transform lines that are explicitly escaped out."""
 
     def __init__(self):
-        tr = { ESC_SHELL  : self.tr_system,
-               ESC_SH_CAP : self.tr_system2,
-               ESC_HELP   : self.tr_help,
-               ESC_HELP2  : self.tr_help,
-               ESC_MAGIC  : self.tr_magic,
-               ESC_QUOTE  : self.tr_quote,
-               ESC_QUOTE2 : self.tr_quote2,
-               ESC_PAREN  : self.tr_paren }
+        tr = { ESC_SHELL  : self._tr_system,
+               ESC_SH_CAP : self._tr_system2,
+               ESC_HELP   : self._tr_help,
+               ESC_HELP2  : self._tr_help,
+               ESC_MAGIC  : self._tr_magic,
+               ESC_QUOTE  : self._tr_quote,
+               ESC_QUOTE2 : self._tr_quote2,
+               ESC_PAREN  : self._tr_paren }
         self.tr = tr
         
     # Support for syntax transformations that use explicit escapes typed by the
     # user at the beginning of a line
     @staticmethod
-    def tr_system(line_info):
+    def _tr_system(line_info):
         "Translate lines escaped with: !"
         cmd = line_info.line.lstrip().lstrip(ESC_SHELL)
         return '%sget_ipython().system(%s)' % (line_info.lspace,
                                                make_quoted_expr(cmd))
 
     @staticmethod
-    def tr_system2(line_info):
+    def _tr_system2(line_info):
         "Translate lines escaped with: !!"
         cmd = line_info.line.lstrip()[2:]
         return '%sget_ipython().getoutput(%s)' % (line_info.lspace,
                                                   make_quoted_expr(cmd))
 
     @staticmethod
-    def tr_help(line_info):
+    def _tr_help(line_info):
         "Translate lines escaped with: ?/??"
         # A naked help line should just fire the intro help screen
         if not line_info.line[1:]:
@@ -723,7 +744,7 @@ class EscapedTransformer(object):
                       ' '.join([line_info.fpart, line_info.rest]).strip())
 
     @staticmethod
-    def tr_magic(line_info):
+    def _tr_magic(line_info):
         "Translate lines escaped with: %"
         tpl = '%sget_ipython().magic(%s)'
         cmd = make_quoted_expr(' '.join([line_info.fpart,
@@ -731,19 +752,19 @@ class EscapedTransformer(object):
         return tpl % (line_info.lspace, cmd)
 
     @staticmethod
-    def tr_quote(line_info):
+    def _tr_quote(line_info):
         "Translate lines escaped with: ,"
         return '%s%s("%s")' % (line_info.lspace, line_info.fpart,
                              '", "'.join(line_info.rest.split()) )
 
     @staticmethod
-    def tr_quote2(line_info):
+    def _tr_quote2(line_info):
         "Translate lines escaped with: ;"
         return '%s%s("%s")' % (line_info.lspace, line_info.fpart,
                                line_info.rest)
 
     @staticmethod
-    def tr_paren(line_info):
+    def _tr_paren(line_info):
         "Translate lines escaped with: /"
         return '%s%s(%s)' % (line_info.lspace, line_info.fpart,
                              ", ".join(line_info.rest.split()))
@@ -751,7 +772,7 @@ class EscapedTransformer(object):
     def __call__(self, line):
         """Class to transform lines that are explicitly escaped out.
 
-        This calls the above tr_* static methods for the actual line
+        This calls the above _tr_* static methods for the actual line
         translations."""
 
         # Empty lines just get returned unmodified
@@ -765,12 +786,13 @@ class EscapedTransformer(object):
         # All other escapes are only valid at the start
         if not line_info.esc in self.tr:
             if line.endswith(ESC_HELP):
-                return self.tr_help(line_info)
+                return self._tr_help(line_info)
             else:
                 # If we don't recognize the escape, don't modify the line
                 return line
 
         return self.tr[line_info.esc](line_info)
+
 
 # A function-looking object to be used by the rest of the code.  The purpose of
 # the class in this case is to organize related functionality, more than to
