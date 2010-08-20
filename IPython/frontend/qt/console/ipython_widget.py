@@ -24,8 +24,8 @@ class IPythonWidget(FrontendWidget):
     """
 
     # Signal emitted when an editor is needed for a file and the editor has been
-    # specified as 'custom'.
-    custom_edit_requested = QtCore.pyqtSignal(object)
+    # specified as 'custom'. See 'set_editor' for more information.
+    custom_edit_requested = QtCore.pyqtSignal(object, int)
 
     # The default stylesheet: black text on a white background.
     default_stylesheet = """
@@ -51,8 +51,12 @@ class IPythonWidget(FrontendWidget):
     in_prompt = 'In [<span class="in-prompt-number">%i</span>]: '
     out_prompt = 'Out[<span class="out-prompt-number">%i</span>]: '
 
-    # FrontendWidget protected class attributes.
+    # FrontendWidget protected class variables.
     #_input_splitter_class = IPythonInputSplitter
+
+    # IPythonWidget protected class variables.
+    _payload_source_edit = 'IPython.zmq.zmqshell.ZMQInteractiveShell.edit_magic'
+    _payload_source_page = 'IPython.zmq.page.page'
 
     #---------------------------------------------------------------------------
     # 'object' interface
@@ -116,6 +120,18 @@ class IPythonWidget(FrontendWidget):
 
         self._append_html(traceback)
 
+    def _process_execute_payload(self, item):
+        """ Reimplemented to handle %edit and paging payloads.
+        """
+        if item['source'] == self._payload_source_edit:
+            self.edit(item['filename'], item['line_number'])
+            return True
+        elif item['source'] == self._payload_source_page:
+            self._page(item['data'])
+            return True
+        else:
+            return False
+
     def _show_interpreter_prompt(self, number=None, input_sep='\n'):
         """ Reimplemented for IPython-style prompts.
         """
@@ -170,13 +186,16 @@ class IPythonWidget(FrontendWidget):
     # 'IPythonWidget' interface
     #---------------------------------------------------------------------------
 
-    def edit(self, filename):
+    def edit(self, filename, line=None):
         """ Opens a Python script for editing.
 
         Parameters:
         -----------
         filename : str
             A path to a local system file.
+
+        line : int, optional
+            A line of interest in the file.
         
         Raises:
         -------
@@ -189,7 +208,7 @@ class IPythonWidget(FrontendWidget):
                 message = 'Failed to open %s with the default application'
                 raise OSError(message % repr(filename))
         elif self._editor is None:
-            self.custom_edit_requested.emit(filename)
+            self.custom_edit_requested.emit(filename, line)
         else:
             Popen(self._editor + [filename])
 
@@ -211,8 +230,8 @@ class IPythonWidget(FrontendWidget):
             This parameter also takes two special values:
                 'default' : Files will be edited with the system default 
                             application for Python files.
-                'custom'  : Emit a 'custom_edit_requested(str)' signal instead
-                            of opening an editor.
+                'custom'  : Emit a 'custom_edit_requested(str, int)' signal 
+                            instead of opening an editor.
         """
         if editor == 'default':
             self._editor = 'default'

@@ -339,9 +339,19 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
     def _process_execute_ok(self, msg):
         """ Process a reply for a successful execution equest.
         """
+        payload = msg['content']['payload']
+        for item in payload:
+            if not self._process_execute_payload(item):
+                warning = 'Received unknown payload of type %s\n'
+                self._append_plain_text(warning % repr(item['source']))
+
+    def _process_execute_payload(self, item):
+        """ Process a single payload item from the list of payload items in an
+            execution reply. Returns whether the payload was handled.
+        """
         # The basic FrontendWidget doesn't handle payloads, as they are a
         # mechanism for going beyond the standard Python interpreter model.
-        pass
+        return False
 
     def _show_interpreter_prompt(self):
         """ Shows a prompt for the interpreter.

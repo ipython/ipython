@@ -14,7 +14,8 @@ class RichIPythonWidget(IPythonWidget):
         text version.
     """
 
-    # Protected class variables.
+    # RichIPythonWidget protected class variables.
+    _payload_source_plot = 'IPython.zmq.pylab.backend_payload.add_plot_payload'
     _svg_text_format_property = 1
 
     #---------------------------------------------------------------------------
@@ -58,55 +59,29 @@ class RichIPythonWidget(IPythonWidget):
     # 'FrontendWidget' protected interface
     #---------------------------------------------------------------------------
 
-    def _process_execute_ok(self, msg):
+    def _process_execute_payload(self, item):
         """ Reimplemented to handle matplotlib plot payloads.
         """
-        payload = msg['content']['payload']
-        for item in payload:
-            if item['source'] == 'IPython.zmq.pylab.backend_payload.add_plot_payload':
-                if item['format'] == 'svg':
-                    svg = item['data']
-                    try:
-                        image = svg_to_image(svg)
-                    except ValueError:
-                        self._append_plain_text('Received invalid plot data.')
-                    else:
-                        format = self._add_image(image)
-                        format.setProperty(self._svg_text_format_property, svg)
-                        cursor = self._get_end_cursor()
-                        cursor.insertBlock()
-                        cursor.insertImage(format)
-                        cursor.insertBlock()
+        if item['source'] == self._payload_source_plot:
+            if item['format'] == 'svg':
+                svg = item['data']
+                try:
+                    image = svg_to_image(svg)
+                except ValueError:
+                    self._append_plain_text('Received invalid plot data.')
                 else:
-                    # Add other plot formats here!
-                    pass
-            elif item['source'] == 'IPython.zmq.zmqshell.ZMQInteractiveShell.edit_magic':
-                # TODO: I have implmented the logic for TextMate on the Mac.
-                # But, we need to allow payload handlers on the non-rich
-                # text IPython widget as well. Furthermore, we should probably
-                # move these handlers to separate methods. But, we need to
-                # be very careful to process the payload list in order. Thus,
-                # we will probably need a _handle_payload method of the 
-                # base class that dispatches to the separate handler methods
-                # for each payload source. If a particular subclass doesn't 
-                # have a handler for a payload source, it should at least
-                # print a nice message.
-                filename = item['filename']
-                line_number = item['line_number']
-                if line_number is None:
-                    cmd = 'mate %s' % filename
-                else:
-                    cmd = 'mate -l %s %s' % (line_number, filename)
-                os.system(cmd)
-            elif item['source'] == 'IPython.zmq.page.page':
-                # TODO: This is probably a good place to start, but Evan can
-                # add better paging capabilities.
-                self._append_plain_text(item['data'])
+                    format = self._add_image(image)
+                    format.setProperty(self._svg_text_format_property, svg)
+                    cursor = self._get_end_cursor()
+                    cursor.insertBlock()
+                    cursor.insertImage(format)
+                    cursor.insertBlock()
+                return True
             else:
-                # Add other payload types here!
-                pass
+                # Add other plot formats here!
+                return False
         else:
-            super(RichIPythonWidget, self)._process_execute_ok(msg)
+            return super(RichIPythonWidget, self)._process_execute_ok(msg)
 
     #---------------------------------------------------------------------------
     # 'RichIPythonWidget' protected interface
