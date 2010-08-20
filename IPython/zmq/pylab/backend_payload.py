@@ -19,5 +19,8 @@ def add_plot_payload(format, data, metadata={}):
     metadata : dict, optional [default empty]
         Allows for specification of additional information about the plot data.
     """
-    payload = dict(type='plot', format=format, data=data, metadata=metadata)
+    payload = dict(
+        source='IPython.zmq.pylab.backend_payload.add_plot_payload', 
+        format=format, data=data, metadata=metadata
+    )
     InteractiveShell.instance().payload_manager.write_payload(payload)

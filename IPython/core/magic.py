@@ -52,7 +52,7 @@ from IPython.core.error import TryNext
 from IPython.core.error import UsageError
 from IPython.core.fakemodule import FakeModule
 from IPython.core.macro import Macro
-from IPython.core.page import page
+from IPython.core import page
 from IPython.core.prefilter import ESC_MAGIC
 from IPython.lib.pylabtools import mpl_runner
 from IPython.lib.inputhook import enable_gui
@@ -514,7 +514,7 @@ Currently the magic system has the following functions:\n"""
                                      ('  '+mesc).join(self.lsmagic()),
                                      Magic.auto_status[self.shell.automagic] ) )
 
-        page(outmsg,screen_lines=self.shell.usable_screen_length)
+        page.page(outmsg,screen_lines=self.shell.usable_screen_length)
   
 
     def magic_autoindent(self, parameter_s = ''):
@@ -656,7 +656,7 @@ Currently the magic system has the following functions:\n"""
         info = self._ofind(oname)
         if info['found']:
             txt = (raw and str or pformat)( info['obj'] )
-            page(txt)
+            page.page(txt)
         else:
             print 'Object `%s` not found' % oname
 
@@ -727,7 +727,7 @@ Currently the magic system has the following functions:\n"""
             except IOError,msg:
                 print msg
                 return
-            page(self.shell.inspector.format(file(filename).read()))
+            page.page(self.shell.inspector.format(file(filename).read()))
 
     def _inspect(self,meth,oname,namespaces=None,**kw):
         """Generic interface to the inspector system.
@@ -1520,7 +1520,7 @@ Currently the magic system has the following functions:\n"""
         output = stdout_trap.getvalue()
         output = output.rstrip()
 
-        page(output,screen_lines=self.shell.usable_screen_length)
+        page.page(output,screen_lines=self.shell.usable_screen_length)
         print sys_exit,
 
         dump_file = opts.D[0]
@@ -3256,7 +3256,7 @@ Defaulting color scheme to 'NoColor'"""
             print "Error: no such file or variable"
             return
             
-        page(self.shell.pycolorize(cont),
+        page.page(self.shell.pycolorize(cont),
              screen_lines=self.shell.usable_screen_length)
 
     def _rerun_pasted(self):
@@ -3413,7 +3413,7 @@ Defaulting color scheme to 'NoColor'"""
         import IPython.core.usage
         qr = IPython.core.usage.quick_reference + self.magic_magic('-brief')
         
-        page(qr)
+        page.page(qr)
 
     def magic_doctest_mode(self,parameter_s=''):
         """Toggle doctest mode on and off.

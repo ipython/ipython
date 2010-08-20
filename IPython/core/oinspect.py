@@ -27,7 +27,7 @@ import sys
 import types
 
 # IPython's own
-from IPython.core.page import page
+from IPython.core import page
 from IPython.external.Itpl import itpl
 from IPython.utils import PyColorize
 import IPython.utils.io
@@ -281,7 +281,7 @@ class Inspector:
         if output is None:
             self.noinfo('documentation',oname)
             return
-        page(output)
+        page.page(output)
     
     def psource(self,obj,oname=''):
         """Print the source code for an object."""
@@ -293,7 +293,7 @@ class Inspector:
         except:
             self.noinfo('source',oname)
         else:
-            page(self.format(src))
+            page.page(self.format(src))
 
     def pfile(self,obj,oname=''):
         """Show the whole file where an object was defined."""
@@ -325,7 +325,7 @@ class Inspector:
             # Print only text files, not extension binaries.  Note that
             # getsourcelines returns lineno with 1-offset and page() uses
             # 0-offset, so we must adjust.
-            page(self.format(open(ofile).read()),lineno-1)
+            page.page(self.format(open(ofile).read()),lineno-1)
 
     def pinfo(self,obj,oname='',formatter=None,info=None,detail_level=0):
         """Show detailed information about an object.
@@ -548,7 +548,7 @@ class Inspector:
         # Finally send to printer/pager
         output = out.getvalue()
         if output:
-            page(output)
+            page.page(output)
         # end pinfo
 
     def psearch(self,pattern,ns_table,ns_search=[],
@@ -606,4 +606,4 @@ class Inspector:
             search_result.extend(tmp_res)
         search_result.sort()
 
-        page('\n'.join(search_result))
+        page.page('\n'.join(search_result))

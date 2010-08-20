@@ -1,3 +1,5 @@
+import os
+
 # System library imports
 from PyQt4 import QtCore, QtGui
 
@@ -61,7 +63,7 @@ class RichIPythonWidget(IPythonWidget):
         """
         payload = msg['content']['payload']
         for item in payload:
-            if item['type'] == 'plot':
+            if item['source'] == 'IPython.zmq.pylab.backend_payload.add_plot_payload':
                 if item['format'] == 'svg':
                     svg = item['data']
                     try:
@@ -78,6 +80,28 @@ class RichIPythonWidget(IPythonWidget):
                 else:
                     # Add other plot formats here!
                     pass
+            elif item['source'] == 'IPython.zmq.zmqshell.ZMQInteractiveShell.edit_magic':
+                # TODO: I have implmented the logic for TextMate on the Mac.
+                # But, we need to allow payload handlers on the non-rich
+                # text IPython widget as well. Furthermore, we should probably
+                # move these handlers to separate methods. But, we need to
+                # be very careful to process the payload list in order. Thus,
+                # we will probably need a _handle_payload method of the 
+                # base class that dispatches to the separate handler methods
+                # for each payload source. If a particular subclass doesn't 
+                # have a handler for a payload source, it should at least
+                # print a nice message.
+                filename = item['filename']
+                line_number = item['line_number']
+                if line_number is None:
+                    cmd = 'mate %s' % filename
+                else:
+                    cmd = 'mate -l %s %s' % (line_number, filename)
+                os.system(cmd)
+            elif item['source'] == 'IPython.zmq.page.page':
+                # TODO: This is probably a good place to start, but Evan can
+                # add better paging capabilities.
+                self._append_plain_text(item['data'])
             else:
                 # Add other payload types here!
                 pass

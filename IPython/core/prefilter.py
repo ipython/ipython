@@ -33,7 +33,7 @@ from IPython.core.alias import AliasManager
 from IPython.core.autocall import IPyAutocall
 from IPython.config.configurable import Configurable
 from IPython.core.splitinput import split_user_input
-from IPython.core.page import page
+from IPython.core import page
 
 from IPython.utils.traitlets import List, Int, Any, Str, CBool, Bool, Instance
 import IPython.utils.io
@@ -960,7 +960,7 @@ class HelpHandler(PrefilterHandler):
                 #print 'line:<%r>' % line  # dbg
                 self.shell.magic_pinfo(line)
             else:
-                page(self.shell.usage, screen_lines=self.shell.usable_screen_length)
+                page.page(self.shell.usage, screen_lines=self.shell.usable_screen_length)
             return '' # Empty string is needed here!
         except:
             raise
