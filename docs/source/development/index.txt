@@ -16,6 +16,8 @@ IPython developer's guide
    roadmap.txt
    reorg.txt
    messaging.txt
+   parallel_messages.txt
+   parallel_connections.txt
    magic_blueprint.txt
    notification_blueprint.txt
    ipgraph.txt
