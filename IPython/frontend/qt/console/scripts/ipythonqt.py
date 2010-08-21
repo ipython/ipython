@@ -61,6 +61,10 @@ def main():
             kernel_manager.start_kernel()
     kernel_manager.start_channels()
 
+    # FIXME: this is a hack, set colors to lightbg by default in qt terminal
+    # unconditionally, regardless of user settings in config files.
+    kernel_manager.xreq_channel.execute("%colors lightbg")
+
     # Launch the application.
     app = QtGui.QApplication([])
     if args.pure:

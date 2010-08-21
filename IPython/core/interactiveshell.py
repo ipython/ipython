@@ -29,6 +29,7 @@ import sys
 import tempfile
 from contextlib import nested
 
+from IPython.config.configurable import Configurable
 from IPython.core import debugger, oinspect
 from IPython.core import history as ipcorehist
 from IPython.core import prefilter
@@ -36,8 +37,8 @@ from IPython.core import shadowns
 from IPython.core import ultratb
 from IPython.core.alias import AliasManager
 from IPython.core.builtin_trap import BuiltinTrap
-from IPython.config.configurable import Configurable
 from IPython.core.display_trap import DisplayTrap
+from IPython.core.displayhook import DisplayHook
 from IPython.core.error import UsageError
 from IPython.core.extensions import ExtensionManager
 from IPython.core.fakemodule import FakeModule, init_fakemod_dict
@@ -47,24 +48,22 @@ from IPython.core.magic import Magic
 from IPython.core.payload import PayloadManager
 from IPython.core.plugin import PluginManager
 from IPython.core.prefilter import PrefilterManager
-from IPython.core.displayhook import DisplayHook
-import IPython.core.hooks
 from IPython.external.Itpl import ItplNS
 from IPython.utils import PyColorize
+from IPython.utils import io
 from IPython.utils import pickleshare
 from IPython.utils.doctestreload import doctest_reload
+from IPython.utils.io import ask_yes_no, rprint
 from IPython.utils.ipstruct import Struct
-import IPython.utils.io
-from IPython.utils.io import ask_yes_no
 from IPython.utils.path import get_home_dir, get_ipython_dir, HomeDirError
 from IPython.utils.process import getoutput, getoutputerror
 from IPython.utils.strdispatch import StrDispatch
 from IPython.utils.syspathcontext import prepended_to_syspath
 from IPython.utils.text import num_ini_spaces
+from IPython.utils.traitlets import (Int, Str, CBool, CaselessStrEnum, Enum,
+                                     List, Unicode, Instance, Type)
 from IPython.utils.warn import warn, error, fatal
-from IPython.utils.traitlets import (
-    Int, Str, CBool, CaselessStrEnum, Enum, List, Unicode, Instance, Type
-)
+import IPython.core.hooks
 
 # from IPython.utils import growl
 # growl.start("IPython")
@@ -430,12 +429,12 @@ class InteractiveShell(Configurable, Magic):
     def init_io(self):
         import IPython.utils.io
         if sys.platform == 'win32' and self.has_readline:
-            Term = IPython.utils.io.IOTerm(
+            Term = io.IOTerm(
                 cout=self.readline._outputfile,cerr=self.readline._outputfile
             )
         else:
-            Term = IPython.utils.io.IOTerm()
-        IPython.utils.io.Term = Term
+            Term = io.IOTerm()
+        io.Term = Term
 
     def init_prompts(self):
         # TODO: This is a pass for now because the prompts are managed inside
@@ -1181,7 +1180,7 @@ class InteractiveShell(Configurable, Magic):
         # Set the exception mode
         self.InteractiveTB.set_mode(mode=self.xmode)
 
-    def set_custom_exc(self,exc_tuple,handler):
+    def set_custom_exc(self, exc_tuple, handler):
         """set_custom_exc(exc_tuple,handler)
 
         Set a custom exception handler, which will be called if any of the
@@ -1198,7 +1197,12 @@ class InteractiveShell(Configurable, Magic):
             exc_tuple == (MyCustomException,)
 
           - handler: this must be defined as a function with the following
-          basic interface: def my_handler(self,etype,value,tb).
+          basic interface::
+
+            def my_handler(self, etype, value, tb, tb_offset=None)
+                ...
+                # The return value must be
+                return structured_traceback
 
           This will be made into an instance method (via new.instancemethod)
           of IPython itself, and it will be called if any of the exceptions
@@ -1272,7 +1276,7 @@ class InteractiveShell(Configurable, Magic):
                     etype, value, tb = sys.last_type, sys.last_value, \
                                        sys.last_traceback
                 else:
-                    self.write('No traceback available to show.\n')
+                    self.write_err('No traceback available to show.\n')
                     return
     
             if etype is SyntaxError:
@@ -1291,22 +1295,39 @@ class InteractiveShell(Configurable, Magic):
                 sys.last_traceback = tb
     
                 if etype in self.custom_exceptions:
-                    self.CustomTB(etype,value,tb)
+                    # FIXME: Old custom traceback objects may just return a
+                    # string, in that case we just put it into a list
+                    stb = self.CustomTB(etype, value, tb, tb_offset)
+                    if isinstance(ctb, basestring):
+                        stb = [stb]
                 else:
                     if exception_only:
-                        m = ('An exception has occurred, use %tb to see the '
-                             'full traceback.')
-                        print m
-                        self.InteractiveTB.show_exception_only(etype, value)
+                        stb = ['An exception has occurred, use %tb to see '
+                               'the full traceback.']
+                        stb.extend(self.InteractiveTB.get_exception_only(etype,
+                                                                         value))
                     else:
-                        self.InteractiveTB(etype,value,tb,tb_offset=tb_offset)
+                        stb = self.InteractiveTB.structured_traceback(etype,
+                                                value, tb, tb_offset=tb_offset)
+                        # FIXME: the pdb calling should be done by us, not by
+                        # the code computing the traceback.
                         if self.InteractiveTB.call_pdb:
                             # pdb mucks up readline, fix it back
                             self.set_completer()
-                        
+
+                # Actually show the traceback
+                self._showtraceback(etype, value, stb)
+                
         except KeyboardInterrupt:
-            self.write("\nKeyboardInterrupt\n")        
-        
+            self.write_err("\nKeyboardInterrupt\n")
+
+    def _showtraceback(self, etype, evalue, stb):
+        """Actually show a traceback.
+
+        Subclasses may override this method to put the traceback on a different
+        place, like a side channel.
+        """
+        self.write_err('\n'.join(stb))
 
     def showsyntaxerror(self, filename=None):
         """Display the syntax error that just occurred.
@@ -1339,7 +1360,8 @@ class InteractiveShell(Configurable, Magic):
                 except:
                     # If that failed, assume SyntaxError is a string
                     value = msg, (filename, lineno, offset, line)
-        self.SyntaxTB(etype,value,[])
+        stb = self.SyntaxTB.structured_traceback(etype, value, [])
+        self._showtraceback(etype, value, stb)
 
     #-------------------------------------------------------------------------
     # Things related to tab completion
@@ -1792,7 +1814,7 @@ class InteractiveShell(Configurable, Magic):
         exposes IPython's processing machinery, the given strings can contain
         magic calls (%magic), special shell access (!cmd), etc.
         """
-
+        
         if isinstance(lines, (list, tuple)):
             lines = '\n'.join(lines)
 
@@ -1912,6 +1934,7 @@ class InteractiveShell(Configurable, Magic):
         try:
             try:
                 self.hooks.pre_runcode_hook()
+                #rprint('Running code') # dbg
                 exec code_obj in self.user_global_ns, self.user_ns
             finally:
                 # Reset our crash handler in place
@@ -2080,12 +2103,12 @@ class InteractiveShell(Configurable, Magic):
     # TODO:  This should be removed when Term is refactored.
     def write(self,data):
         """Write a string to the default output"""
-        IPython.utils.io.Term.cout.write(data)
+        io.Term.cout.write(data)
 
     # TODO:  This should be removed when Term is refactored.
     def write_err(self,data):
         """Write a string to the default error output"""
-        IPython.utils.io.Term.cerr.write(data)
+        io.Term.cerr.write(data)
 
     def ask_yes_no(self,prompt,default=True):
         if self.quiet:

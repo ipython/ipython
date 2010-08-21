@@ -66,6 +66,9 @@ class Kernel(Configurable):
         self.shell.displayhook.session = self.session
         self.shell.displayhook.pub_socket = self.pub_socket
 
+        # TMP - hack while developing
+        self.shell._reply_content = None
+
         # Build dict of handlers for message types
         msg_types = [ 'execute_request', 'complete_request', 
                       'object_info_request', 'prompt_request',
@@ -156,19 +159,20 @@ class Kernel(Configurable):
             sys.stdout.set_parent(parent)
             sys.stderr.set_parent(parent)
 
+            # FIXME: runlines calls the exception handler itself.  We should
+            # clean this up.
+            self.shell._reply_content = None
             self.shell.runlines(code)
         except:
+            # FIXME: this code right now isn't being used yet by default,
+            # because the runlines() call above directly fires off exception
+            # reporting.  This code, therefore, is only active in the scenario
+            # where runlines itself has an unhandled exception.  We need to
+            # uniformize this, for all exception construction to come from a
+            # single location in the codbase.
             etype, evalue, tb = sys.exc_info()
-            tb = traceback.format_exception(etype, evalue, tb)
-            exc_content = {
-                u'status' : u'error',
-                u'traceback' : tb,
-                u'ename' : unicode(etype.__name__),
-                u'evalue' : unicode(evalue)
-            }
-            exc_msg = self.session.msg(u'pyerr', exc_content, parent)
-            self.pub_socket.send_json(exc_msg)
-            reply_content = exc_content
+            tb_list = traceback.format_exception(etype, evalue, tb)
+            reply_content = self.shell._showtraceback(etype, evalue, tb_list)
         else:
             payload = self.shell.payload_manager.read_payload()
             # Be agressive about clearing the payload because we don't want
@@ -184,6 +188,11 @@ class Kernel(Configurable):
                        'prompt_number' : prompt_number+1,
                        'input_sep'     : self.shell.displayhook.input_sep}
         reply_content['next_prompt'] = next_prompt
+
+        # TMP - fish exception info out of shell, possibly left there by
+        # runlines
+        if self.shell._reply_content is not None:
+            reply_content.update(self.shell._reply_content)
 
         # Flush output before sending the reply.
         sys.stderr.flush()

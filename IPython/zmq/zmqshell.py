@@ -8,6 +8,7 @@ from IPython.core.interactiveshell import (
 )
 from IPython.core.displayhook import DisplayHook
 from IPython.core.macro import Macro
+from IPython.utils.io import rprint
 from IPython.utils.path import get_py_filename
 from IPython.utils.text import StringTypes
 from IPython.utils.traitlets import Instance, Type, Dict
@@ -359,7 +360,30 @@ class ZMQInteractiveShell(InteractiveShell):
         self.payload_manager.write_payload(payload)
 
 
+    def _showtraceback(self, etype, evalue, stb):
+
+        exc_content = {
+            u'status' : u'error',
+            u'traceback' : stb,
+            u'ename' : unicode(etype.__name__),
+            u'evalue' : unicode(evalue)
+        }
+
+        dh = self.displayhook
+        exc_msg = dh.session.msg(u'pyerr', exc_content, dh.parent_header)
+        # Send exception info over pub socket for other clients than the caller
+        # to pick up
+        dh.pub_socket.send_json(exc_msg)
+
+        # FIXME - Hack: store exception info in shell object.  Right now, the
+        # caller is reading this info after the fact, we need to fix this logic
+        # to remove this hack.
+        self._reply_content = exc_content
+        # /FIXME
+        
+        return exc_content
+
+    def runlines(self, lines, clean=False):
+        return InteractiveShell.runlines(self, lines, clean)
+
 InteractiveShellABC.register(ZMQInteractiveShell)
-
-
-

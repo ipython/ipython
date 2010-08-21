@@ -94,7 +94,7 @@ class IPythonWidget(FrontendWidget):
     def execute_file(self, path, hidden=False):
         """ Reimplemented to use the 'run' magic.
         """
-        self.execute('run %s' % path, hidden=hidden)
+        self.execute('%%run %s' % path, hidden=hidden)
 
     #---------------------------------------------------------------------------
     # 'FrontendWidget' protected interface
@@ -109,16 +109,24 @@ class IPythonWidget(FrontendWidget):
         """ Reimplemented for IPython-style traceback formatting.
         """
         content = msg['content']
-        traceback_lines = content['traceback'][:]
-        traceback = ''.join(traceback_lines)
-        traceback = traceback.replace(' ', '&nbsp;')
-        traceback = traceback.replace('\n', '<br/>')
 
-        ename = content['ename']
-        ename_styled = '<span class="error">%s</span>' % ename
-        traceback = traceback.replace(ename, ename_styled)
+        traceback = '\n'.join(content['traceback'])
 
-        self._append_html(traceback)
+        if 0:
+            # FIXME: for now, tracebacks come as plain text, so we can't use
+            # the html renderer yet.  Once we refactor ultratb to produce
+            # properly styled tracebacks, this branch should be the default
+            traceback = traceback.replace(' ', '&nbsp;')
+            traceback = traceback.replace('\n', '<br/>')
+
+            ename = content['ename']
+            ename_styled = '<span class="error">%s</span>' % ename
+            traceback = traceback.replace(ename, ename_styled)
+
+            self._append_html(traceback)
+        else:
+            # This is the fallback for now, using plain text with ansi escapes
+            self._append_plain_text(traceback)
 
     def _process_execute_payload(self, item):
         """ Reimplemented to handle %edit and paging payloads.

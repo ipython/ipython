@@ -13,7 +13,6 @@ IO related utilities.
 #-----------------------------------------------------------------------------
 # Imports
 #-----------------------------------------------------------------------------
-
 import sys
 import tempfile
 
@@ -278,4 +277,10 @@ def temp_pyfile(src, ext='.py'):
     return fname, f
 
 
-
+def rprint(*info):
+    """Raw print to sys.__stderr__"""
+    
+    for item in info:
+        print >> sys.__stderr__, item,
+    print >> sys.__stderr__
+    sys.__stderr__.flush()
