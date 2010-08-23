@@ -1303,7 +1303,7 @@ class InteractiveShell(Configurable, Magic):
                 else:
                     if exception_only:
                         stb = ['An exception has occurred, use %tb to see '
-                               'the full traceback.']
+                               'the full traceback.\n']
                         stb.extend(self.InteractiveTB.get_exception_only(etype,
                                                                          value))
                     else:
@@ -1327,7 +1327,9 @@ class InteractiveShell(Configurable, Magic):
         Subclasses may override this method to put the traceback on a different
         place, like a side channel.
         """
-        self.write_err('\n'.join(stb))
+        # FIXME: this should use the proper write channels, but our test suite
+        # relies on it coming out of stdout...
+        print >> sys.stdout, self.InteractiveTB.stb2text(stb)
 
     def showsyntaxerror(self, filename=None):
         """Display the syntax error that just occurred.
@@ -1367,13 +1369,24 @@ class InteractiveShell(Configurable, Magic):
     # Things related to tab completion
     #-------------------------------------------------------------------------
 
-    def complete(self, text):
+    def complete(self, text, line=None, cursor_pos=None):
         """Return a sorted list of all possible completions on text.
 
-        Inputs:
+        Parameters
+        ----------
 
-          - text: a string of text to be completed on.
+           text : string
+             A string of text to be completed on.
 
+           line : string, optional
+             The complete line that text is part of.
+
+           cursor_pos : int, optional
+             The position of the cursor on the input line.
+
+        The optional arguments allow the completion to take more context into
+        account, and are part of the low-level completion API.
+        
         This is a wrapper around the completion mechanism, similar to what
         readline does at the command line when the TAB key is hit.  By
         exposing it as a method, it can be used by other non-readline
@@ -1395,23 +1408,7 @@ class InteractiveShell(Configurable, Magic):
 
         # Inject names into __builtin__ so we can complete on the added names.
         with self.builtin_trap:
-            complete = self.Completer.complete
-            state = 0
-            # use a dict so we get unique keys, since ipyhton's multiple
-            # completers can return duplicates.  When we make 2.4 a requirement,
-            # start using sets instead, which are faster.
-            comps = {}
-            while True:
-                newcomp = complete(text,state,line_buffer=text)
-                if newcomp is None:
-                    break
-                comps[newcomp] = 1
-                state += 1
-            outcomps = comps.keys()
-            outcomps.sort()
-            #print "T:",text,"OC:",outcomps  # dbg
-            #print "vars:",self.user_ns.keys()
-            return outcomps
+            return self.Completer.complete(text,line_buffer=text)
 
     def set_custom_completer(self,completer,pos=0):
         """Adds a new custom completer function.
@@ -1425,7 +1422,7 @@ class InteractiveShell(Configurable, Magic):
 
     def set_completer(self):
         """Reset readline's completer to be our own."""
-        self.readline.set_completer(self.Completer.complete)
+        self.readline.set_completer(self.Completer.rlcomplete)
 
     def set_completer_frame(self, frame=None):
         """Set the frame of the completer."""
@@ -1497,7 +1494,7 @@ class InteractiveShell(Configurable, Magic):
                          % inputrc_name)
             
             # save this in sys so embedded copies can restore it properly
-            sys.ipcompleter = self.Completer.complete
+            sys.ipcompleter = self.Completer.rlcomplete
             self.set_completer()
 
             # Configure readline according to user's prefs

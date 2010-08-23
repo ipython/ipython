@@ -182,7 +182,7 @@ class XReqSocketChannel(ZmqSocketChannel):
         self._queue_request(msg)
         return msg['header']['msg_id']
 
-    def complete(self, text, line, block=None):
+    def complete(self, text, line, cursor_pos, block=None):
         """Tab complete text, line, block in the kernel's namespace.
 
         Parameters
@@ -199,7 +199,7 @@ class XReqSocketChannel(ZmqSocketChannel):
         -------
         The msg_id of the message sent.
         """
-        content = dict(text=text, line=line)
+        content = dict(text=text, line=line, block=block, cursor_pos=cursor_pos)
         msg = self.session.msg('complete_request', content)
         self._queue_request(msg)
         return msg['header']['msg_id']

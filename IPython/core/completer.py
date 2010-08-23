@@ -82,7 +82,6 @@ from IPython.core.prefilter import ESC_MAGIC
 from IPython.utils import generics
 from IPython.utils.frame import debugx
 from IPython.utils.dir2 import dir2
-import IPython.utils.rlineimpl as readline
 
 #-----------------------------------------------------------------------------
 # Globals
@@ -105,6 +104,18 @@ def protect_filename(s):
     
     return "".join([(ch in PROTECTABLES and '\\' + ch or ch)
                     for ch in s])
+
+
+def mark_dirs(matches):
+    """Mark directories in input list by appending '/' to their names."""
+    out = []
+    isdir = os.path.isdir
+    for x in matches:
+        if isdir(x):
+            out.append(x+'/')
+        else:
+            out.append(x)
+    return out
 
 
 def single_dir_expand(matches):
@@ -249,8 +260,8 @@ class Completer:
 class IPCompleter(Completer):
     """Extension of the completer class with IPython-specific features"""
 
-    def __init__(self,shell,namespace=None,global_namespace=None,
-                 omit__names=0,alias_table=None):
+    def __init__(self, shell, namespace=None, global_namespace=None,
+                 omit__names=0, alias_table=None, use_readline=True):
         """IPCompleter() -> completer
 
         Return a completer object suitable for use by the readline library
@@ -273,17 +284,31 @@ class IPCompleter(Completer):
         to be completed explicitly starts with one or more underscores.
 
         - If alias_table is supplied, it should be a dictionary of aliases
-        to complete. """
+        to complete.
+
+        use_readline : bool, optional
+          If true, use the readline library.  This completer can still function
+          without readline, though in that case callers must provide some extra
+          information on each call about the current line."""
 
         Completer.__init__(self,namespace,global_namespace)
 
         self.magic_escape = ESC_MAGIC
-        self.readline = readline
-        delims = self.readline.get_completer_delims()
-        delims = delims.replace(self.magic_escape,'')
-        self.readline.set_completer_delims(delims)
-        self.get_line_buffer = self.readline.get_line_buffer
-        self.get_endidx = self.readline.get_endidx
+
+        # Readline-dependent code
+        self.use_readline = use_readline
+        if use_readline:
+            import IPython.utils.rlineimpl as readline
+            self.readline = readline
+            delims = self.readline.get_completer_delims()
+            delims = delims.replace(self.magic_escape,'')
+            self.readline.set_completer_delims(delims)
+            self.get_line_buffer = self.readline.get_line_buffer
+            self.get_endidx = self.readline.get_endidx
+        # /end readline-dependent code
+
+        # List where completion matches will be stored
+        self.matches = []
         self.omit__names = omit__names
         self.merge_completions = shell.readline_merge_completions
         self.shell = shell.shell
@@ -311,7 +336,8 @@ class IPCompleter(Completer):
                          self.file_matches,
                          self.magic_matches,
                          self.alias_matches,
-                         self.python_func_kw_matches]
+                         self.python_func_kw_matches,
+                         ]
     
     # Code contributed by Alex Schmolck, for ipython/emacs integration
     def all_completions(self, text):
@@ -414,7 +440,8 @@ class IPCompleter(Completer):
                            protect_filename(f) for f in m0]
 
         #print 'mm',matches  # dbg
-        return single_dir_expand(matches)
+        #return single_dir_expand(matches)
+        return mark_dirs(matches)
 
     def magic_matches(self, text):
         """Match magics"""
@@ -583,76 +610,113 @@ class IPCompleter(Completer):
             
         return None
                
-    def complete(self, text, state, line_buffer=None):
-        """Return the next possible completion for 'text'.
+    def complete(self, text, line_buffer, cursor_pos=None):
+        """Return the state-th possible completion for 'text'.
 
         This is called successively with state == 0, 1, 2, ... until it
         returns None.  The completion should begin with 'text'.
 
-        :Keywords:
-        - line_buffer: string
-        If not given, the completer attempts to obtain the current line buffer
-        via readline.  This keyword allows clients which are requesting for
-        text completions in non-readline contexts to inform the completer of
-        the entire text.
+        Parameters
+        ----------
+          text : string
+            Text to perform the completion on.
+
+          line_buffer : string, optional
+            If not given, the completer attempts to obtain the current line
+            buffer via readline.  This keyword allows clients which are
+            requesting for text completions in non-readline contexts to inform
+            the completer of the entire text.
+
+          cursor_pos : int, optional
+            Index of the cursor in the full line buffer.  Should be provided by
+            remote frontends where kernel has no access to frontend state.
         """
 
-        #print '\n*** COMPLETE: <%s> (%s)' % (text,state)  # dbg
-
-        # if there is only a tab on a line with only whitespace, instead
-        # of the mostly useless 'do you want to see all million
-        # completions' message, just do the right thing and give the user
-        # his tab!  Incidentally, this enables pasting of tabbed text from
-        # an editor (as long as autoindent is off).
-
-        # It should be noted that at least pyreadline still shows
-        # file completions - is there a way around it?
-        
-        # don't apply this on 'dumb' terminals, such as emacs buffers, so we
-        # don't interfere with their own tab-completion mechanism.
-        if line_buffer is None:
-            self.full_lbuf = self.get_line_buffer()
-        else:
-            self.full_lbuf = line_buffer
-            
-        if not (self.dumb_terminal or self.full_lbuf.strip()):
-            self.readline.insert_text('\t')
-            return None
-        
         magic_escape = self.magic_escape
+        self.full_lbuf = line_buffer
+        self.lbuf = self.full_lbuf[:cursor_pos]
 
-        self.lbuf = self.full_lbuf[:self.get_endidx()]
+        if text.startswith('~'):
+            text = os.path.expanduser(text)
+
+        # Start with a clean slate of completions
+        self.matches[:] = []
+        custom_res = self.dispatch_custom_completer(text)
+        if custom_res is not None:
+            # did custom completers produce something?
+            self.matches = custom_res
+        else:
+            # Extend the list of completions with the results of each
+            # matcher, so we return results to the user from all
+            # namespaces.
+            if self.merge_completions:
+                self.matches = []
+                for matcher in self.matchers:
+                    self.matches.extend(matcher(text))
+            else:
+                for matcher in self.matchers:
+                    self.matches = matcher(text)
+                    if self.matches:
+                        break
+        # FIXME: we should extend our api to return a dict with completions for
+        # different types of objects.  The rlcomplete() method could then
+        # simply collapse the dict into a list for readline, but we'd have
+        # richer completion semantics in other evironments.
+        self.matches = sorted(set(self.matches))
+        #from IPython.utils.io import rprint; rprint(self.matches) # dbg
+        return self.matches
+
+    def rlcomplete(self, text, state):
+        """Return the state-th possible completion for 'text'.
+
+        This is called successively with state == 0, 1, 2, ... until it
+        returns None.  The completion should begin with 'text'.
+
+        Parameters
+        ----------
+          text : string
+            Text to perform the completion on.
+
+          state : int
+            Counter used by readline.
+
+        """
+
+        #print "rlcomplete! '%s' %s" % (text, state) # dbg
+
+        if state==0:
+            self.full_lbuf = line_buffer = self.get_line_buffer()
+            cursor_pos = self.get_endidx()
+
+            # if there is only a tab on a line with only whitespace, instead of
+            # the mostly useless 'do you want to see all million completions'
+            # message, just do the right thing and give the user his tab!
+            # Incidentally, this enables pasting of tabbed text from an editor
+            # (as long as autoindent is off).
+
+            # It should be noted that at least pyreadline still shows file
+            # completions - is there a way around it?
+
+            # don't apply this on 'dumb' terminals, such as emacs buffers, so
+            # we don't interfere with their own tab-completion mechanism.
+            if not (self.dumb_terminal or self.full_lbuf.strip()):
+                self.readline.insert_text('\t')
+                sys.stdout.flush()
+                return None
+
+            # This method computes the self.matches array
+            self.complete(text, line_buffer, cursor_pos)
+
+            # Debug version, since readline silences all exceptions making it
+            # impossible to debug any problem in the above code
+
+            ## try:
+            ##     self.complete(text, line_buffer, cursor_pos)
+            ## except:
+            ##     import traceback; traceback.print_exc()
 
         try:
-            if text.startswith('~'):
-                text = os.path.expanduser(text)
-            if state == 0:
-                custom_res = self.dispatch_custom_completer(text)
-                if custom_res is not None:
-                    # did custom completers produce something?
-                    self.matches = custom_res
-                else:
-                    # Extend the list of completions with the results of each
-                    # matcher, so we return results to the user from all
-                    # namespaces.
-                    if self.merge_completions:
-                        self.matches = []
-                        for matcher in self.matchers:
-                            self.matches.extend(matcher(text))
-                    else:
-                        for matcher in self.matchers:
-                            self.matches = matcher(text)
-                            if self.matches:
-                                break
-                    self.matches = list(set(self.matches))
-            try:
-                #print "MATCH: %r" % self.matches[state] # dbg
-                return self.matches[state]
-            except IndexError:
-                return None
-        except:
-            #from IPython.core.ultratb import AutoFormattedTB; # dbg
-            #tb=AutoFormattedTB('Verbose');tb() #dbg
-            
-            # If completion fails, don't annoy the user.
+            return self.matches[state]
+        except IndexError:
             return None
+

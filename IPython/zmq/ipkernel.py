@@ -286,7 +286,18 @@ class Kernel(Configurable):
         return value
     
     def _complete(self, msg):
-        return self.shell.complete(msg.content.line)
+        #from IPython.utils.io import rprint  # dbg
+        #rprint('\n\n**MSG**\n\n', msg)  # dbg
+        #import traceback; rprint(''.join(traceback.format_stack())) # dbg
+        c = msg['content']
+        try:
+            cpos = int(c['cursor_pos'])
+        except:
+            # If we don't get something that we can convert to an integer, at
+            # leasat attempt the completion guessing the cursor is at the end
+            # of the text
+            cpos = len(c['text'])
+        return self.shell.complete(c['text'], c['line'], cpos)
 
     def _object_info(self, context):
         symbol, leftover = self._symbol_from_context(context)

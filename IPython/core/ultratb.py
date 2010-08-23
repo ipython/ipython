@@ -360,6 +360,10 @@ class TBTools(object):
             self.color_scheme_table.set_active_scheme('NoColor')
             self.Colors = self.color_scheme_table.active_colors
 
+    def stb2text(self, stb):
+        """Convert a structured traceback (a list) to a string."""
+        return '\n'.join(stb)
+
     def text(self, etype, value, tb, tb_offset=None, context=5):
         """Return formatted traceback.
 
@@ -367,7 +371,7 @@ class TBTools(object):
         """
         tb_list = self.structured_traceback(etype, value, tb,
                                             tb_offset, context)
-        return '\n'.join(tb_list)
+        return self.stb2text(tb_list)
 
     def structured_traceback(self, etype, evalue, tb, tb_offset=None,
                              context=5, mode=None):
@@ -1008,6 +1012,11 @@ class FormattedTB(VerboseTB, ListTB):
 
         VerboseTB.__init__(self,color_scheme,tb_offset,long_header,
                            call_pdb=call_pdb,include_vars=include_vars)
+
+        # Different types of tracebacks are joined with different separators to
+        # form a single string.  They are taken from this dict
+        self._join_chars = dict(Plain='', Context='\n', Verbose='\n')
+        # set_mode also sets the tb_join_char attribute
         self.set_mode(mode)
         
     def _extract_tb(self,tb):
@@ -1016,10 +1025,9 @@ class FormattedTB(VerboseTB, ListTB):
         else:
             return None
 
-    def structured_traceback(self, etype, value, tb, tb_offset=None,
-                             context=5, mode=None):
+    def structured_traceback(self, etype, value, tb, tb_offset=None, context=5):
         tb_offset = self.tb_offset if tb_offset is None else tb_offset
-        mode = self.mode if mode is None else mode
+        mode = self.mode
         if mode in self.verbose_modes:
             # Verbose modes need a full traceback
             return VerboseTB.structured_traceback(
@@ -1035,16 +1043,9 @@ class FormattedTB(VerboseTB, ListTB):
                 self, etype, value, elist, tb_offset, context
             )
 
-    def text(self, etype, value, tb, tb_offset=None, context=5, mode=None):
-        """Return formatted traceback.
-
-        If the optional mode parameter is given, it overrides the current
-        mode."""
-
-        mode = self.mode if mode is None else mode
-        tb_list = self.structured_traceback(etype, value, tb, tb_offset,
-                                            context, mode)
-        return '\n'.join(tb_list)
+    def stb2text(self, stb):
+        """Convert a structured traceback (a list) to a string."""
+        return self.tb_join_char.join(stb)
         
 
     def set_mode(self,mode=None):
@@ -1063,6 +1064,8 @@ class FormattedTB(VerboseTB, ListTB):
             self.mode = mode
         # include variable details only in 'Verbose' mode
         self.include_vars = (self.mode == self.valid_modes[2])
+        # Set the join character for generating text tracebacks
+        self.tb_join_char = self._join_chars[mode]
 
     # some convenient shorcuts
     def plain(self):
@@ -1117,12 +1120,12 @@ class AutoFormattedTB(FormattedTB):
             print "\nKeyboardInterrupt"
 
     def structured_traceback(self, etype=None, value=None, tb=None,
-                             tb_offset=None, context=5, mode=None):
+                             tb_offset=None, context=5):
         if etype is None:
             etype,value,tb = sys.exc_info()
         self.tb = tb
         return FormattedTB.structured_traceback(
-            self, etype, value, tb, tb_offset, context, mode )
+            self, etype, value, tb, tb_offset, context)
 
 #---------------------------------------------------------------------------
 
@@ -1151,14 +1154,10 @@ class SyntaxTB(ListTB):
         self.last_syntax_error = None
         return e
 
-    def text(self, etype, value, tb, tb_offset=None, context=5):
-        """Return formatted traceback.
+    def stb2text(self, stb):
+        """Convert a structured traceback (a list) to a string."""
+        return ''.join(stb)
 
-        Subclasses may override this if they add extra arguments.
-        """
-        tb_list = self.structured_traceback(etype, value, tb,
-                                            tb_offset, context)
-        return ''.join(tb_list)
 
 #----------------------------------------------------------------------------
 # module testing (minimal)
