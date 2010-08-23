@@ -351,6 +351,16 @@ Message type: ``complete_request``::
     # make decisions that may require information about more than just the
     # current word.
     'line' : str,
+
+    # The entire block of text where the line is.  This may be useful in the
+    # case of multiline completions where more context may be needed.  Note: if
+    # in practice this field proves unnecessary, remove it to lighten the
+    # messages.
+    
+    'block' : str,
+
+    # The position of the cursor where the user hit 'TAB' on the line.
+    'cursor_pos' : int,
     }
 
 Message type: ``complete_reply``::
