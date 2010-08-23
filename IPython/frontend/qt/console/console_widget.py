@@ -1,4 +1,5 @@
 # Standard library imports
+import re
 import sys
 from textwrap import dedent
 
@@ -994,24 +995,31 @@ class ConsoleWidget(QtGui.QWidget):
             return True
         
     def _page(self, text):
-        """ Displays text using the pager.
+        """ Displays text using the pager if it exceeds the height of the
+            visible area.
         """
-        if self._page_style == 'custom':
-            self.custom_page_requested.emit(text)
-        elif self._page_style == 'none':
+        if self._page_style == 'none':
             self._append_plain_text(text)
         else:
-            self._page_control.clear()
-            cursor = self._page_control.textCursor()
-            self._insert_plain_text(cursor, text)
-            self._page_control.moveCursor(QtGui.QTextCursor.Start)
+            line_height = QtGui.QFontMetrics(self.font).height()
+            minlines = self._control.viewport().height() / line_height
+            if re.match("(?:[^\n]*\n){%i}" % minlines, text):
+                if self._page_style == 'custom':
+                    self.custom_page_requested.emit(text)
+                else:
+                    self._page_control.clear()
+                    cursor = self._page_control.textCursor()
+                    self._insert_plain_text(cursor, text)
+                    self._page_control.moveCursor(QtGui.QTextCursor.Start)
 
-            self._page_control.viewport().resize(self._control.size())
-            if self._splitter:
-                self._page_control.show()
-                self._page_control.setFocus()
+                    self._page_control.viewport().resize(self._control.size())
+                    if self._splitter:
+                        self._page_control.show()
+                        self._page_control.setFocus()
+                    else:
+                        self.layout().setCurrentWidget(self._page_control)
             else:
-                self.layout().setCurrentWidget(self._page_control)
+                self._append_plain_text(text)
 
     def _prompt_started(self):
         """ Called immediately after a new prompt is displayed.
