@@ -148,9 +148,16 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         """ Called when the tab key is pressed. Returns whether to continue
             processing the event.
         """
-        self._keep_cursor_in_buffer()
-        cursor = self._get_cursor()
-        return not self._complete()
+        # Perform tab completion if:
+        # 1) The cursor is in the input buffer.
+        # 2) There is a non-whitespace character before the cursor.
+        text = self._get_input_buffer_cursor_line()
+        if text is None:
+            return False
+        complete = bool(text[:self._get_input_buffer_cursor_column()].strip())
+        if complete:
+            self._complete()
+        return not complete
 
     #---------------------------------------------------------------------------
     # 'ConsoleWidget' protected interface

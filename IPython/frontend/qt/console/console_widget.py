@@ -641,8 +641,10 @@ class ConsoleWidget(QtGui.QWidget):
             elif key == QtCore.Qt.Key_Tab:
                 if self._reading:
                     intercepted = False
+                elif not self._tab_pressed():
+                    intercepted = True
                 else:
-                    intercepted = not self._tab_pressed()
+                    intercepted = not self._in_buffer()
 
             elif key == QtCore.Qt.Key_Left:
                 intercepted = not self._in_buffer(position - 1)
@@ -968,11 +970,15 @@ class ConsoleWidget(QtGui.QWidget):
             cursor.endEditBlock()
             self._control.setTextCursor(cursor)
 
-    def _in_buffer(self, position):
-        """ Returns whether the given position is inside the editing region.
+    def _in_buffer(self, position=None):
+        """ Returns whether the current cursor (or, if specified, a position) is
+            inside the editing region.
         """
         cursor = self._control.textCursor()
-        cursor.setPosition(position)
+        if position is None:
+            position = cursor.position()
+        else:
+            cursor.setPosition(position)
         line = cursor.blockNumber()
         prompt_line = self._get_prompt_cursor().blockNumber()
         if line == prompt_line:
@@ -987,13 +993,12 @@ class ConsoleWidget(QtGui.QWidget):
         """ Ensures that the cursor is inside the editing region. Returns
             whether the cursor was moved.
         """
-        cursor = self._control.textCursor()
-        if self._in_buffer(cursor.position()):
-            return False
-        else:
+        moved = not self._in_buffer()
+        if moved:
+            cursor = self._control.textCursor()
             cursor.movePosition(QtGui.QTextCursor.End)
             self._control.setTextCursor(cursor)
-            return True
+        return moved
         
     def _page(self, text):
         """ Displays text using the pager if it exceeds the height of the
