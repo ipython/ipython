@@ -639,10 +639,8 @@ class ConsoleWidget(QtGui.QWidget):
                     intercepted = cursor.blockNumber() == end_line
 
             elif key == QtCore.Qt.Key_Tab:
-                if self._tab_pressed():
-                    intercepted = not self._in_buffer()
-                else:
-                    intercepted = True
+                if not self._reading:
+                    intercepted = not self._tab_pressed()
 
             elif key == QtCore.Qt.Key_Left:
                 intercepted = not self._in_buffer(position - 1)
