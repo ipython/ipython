@@ -81,7 +81,7 @@ class RichIPythonWidget(IPythonWidget):
                 # Add other plot formats here!
                 return False
         else:
-            return super(RichIPythonWidget, self)._process_execute_ok(msg)
+            return super(RichIPythonWidget, self)._process_execute_payload(item)
 
     #---------------------------------------------------------------------------
     # 'RichIPythonWidget' protected interface
