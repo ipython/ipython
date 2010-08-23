@@ -216,13 +216,13 @@ class ConsoleWidget(QtGui.QWidget):
                     pass
         return False
 
-    def clear(self, keep_input=False):
+    def clear(self, keep_input=True):
         """ Clear the console, then write a new prompt. If 'keep_input' is set,
             restores the old input buffer when the new prompt is written.
         """
-        self._control.clear()
         if keep_input:
             input_buffer = self.input_buffer
+        self._control.clear()
         self._show_prompt()
         if keep_input:
             self.input_buffer = input_buffer
@@ -1073,12 +1073,6 @@ class ConsoleWidget(QtGui.QWidget):
         else:
             self._reading_callback = lambda: \
                 callback(self.input_buffer.rstrip('\n'))
-
-    def _reset(self):
-        """ Clears the console and resets internal state variables.
-        """
-        self._control.clear()
-        self._executing = self._reading = False
 
     def _set_continuation_prompt(self, prompt, html=False):
         """ Sets the continuation prompt.

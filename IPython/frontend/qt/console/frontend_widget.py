@@ -239,7 +239,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         """ Called when the KernelManager channels have started listening or 
             when the frontend is assigned an already listening KernelManager.
         """
-        self._reset()
+        self._control.clear()
         self._append_plain_text(self._get_banner())
         self._show_interpreter_prompt()
 
@@ -247,8 +247,8 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         """ Called when the KernelManager channels have stopped listening or
             when a listening KernelManager is removed from the frontend.
         """
-        # FIXME: Print a message here?
-        pass
+        self._executing = self._reading = False
+        self._highlighter.highlighting_on = False
 
     #---------------------------------------------------------------------------
     # 'FrontendWidget' interface
