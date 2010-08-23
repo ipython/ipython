@@ -292,16 +292,11 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
             return False
 
         # Send the completion request to the kernel
-        text = '.'.join(context)
-        
-        # FIXME - Evan: we need the position of the cursor in the current input
-        # buffer.  I tried this line below but the numbers I get are bogus. -
-        # Not sure what to do.  fperez.
-        cursor_pos = self._get_cursor().position()
-        
         self._complete_id = self.kernel_manager.xreq_channel.complete(
-            text, self._get_input_buffer_cursor_line(), cursor_pos,
-            self.input_buffer)
+            '.'.join(context),                       # text 
+            self._get_input_buffer_cursor_line(),    # line 
+            self._get_input_buffer_cursor_column(),  # cursor_pos
+            self.input_buffer)                       # block 
         self._complete_pos = self._get_cursor().position()
         return True
 

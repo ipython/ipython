@@ -802,19 +802,41 @@ class ConsoleWidget(QtGui.QWidget):
         cursor.movePosition(QtGui.QTextCursor.End)
         return cursor
 
+    def _get_input_buffer_cursor_column(self):
+        """ Returns the column of the cursor in the input buffer, excluding the
+            contribution by the prompt, or -1 if there is no such column.
+        """
+        prompt = self._get_input_buffer_cursor_prompt()
+        if prompt is None:
+            return -1
+        else:
+            cursor = self._control.textCursor()
+            return cursor.columnNumber() - len(prompt)
+
     def _get_input_buffer_cursor_line(self):
-        """ The text in the line of the input buffer in which the user's cursor
-            rests. Returns a string if there is such a line; otherwise, None.
+        """ Returns line of the input buffer that contains the cursor, or None
+            if there is no such line.
+        """
+        prompt = self._get_input_buffer_cursor_prompt()
+        if prompt is None:
+            return None
+        else:
+            cursor = self._control.textCursor()
+            text = self._get_block_plain_text(cursor.block())
+            return text[len(prompt):]
+
+    def _get_input_buffer_cursor_prompt(self):
+        """ Returns the (plain text) prompt for line of the input buffer that
+            contains the cursor, or None if there is no such line.
         """
         if self._executing:
             return None
         cursor = self._control.textCursor()
         if cursor.position() >= self._prompt_pos:
-            text = self._get_block_plain_text(cursor.block())
             if cursor.blockNumber() == self._get_prompt_cursor().blockNumber():
-                return text[len(self._prompt):]
+                return self._prompt
             else:
-                return text[len(self._continuation_prompt):]
+                return self._continuation_prompt
         else:
             return None
 

@@ -183,7 +183,7 @@ class XReqSocketChannel(ZmqSocketChannel):
         return msg['header']['msg_id']
 
     def complete(self, text, line, cursor_pos, block=None):
-        """Tab complete text, line, block in the kernel's namespace.
+        """Tab complete text in the kernel's namespace.
 
         Parameters
         ----------
@@ -192,7 +192,10 @@ class XReqSocketChannel(ZmqSocketChannel):
         line : str
             The full line of text that is the surrounding context for the 
             text to complete.
-        block : str
+        cursor_pos : int
+            The position of the cursor in the line where the completion was
+            requested.
+        block : str, optional
             The full block of code in which the completion is being requested.
 
         Returns

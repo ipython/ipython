@@ -109,11 +109,9 @@ class IPythonWidget(FrontendWidget):
         """ Reimplemented for IPython-style traceback formatting.
         """
         content = msg['content']
-
-        traceback = '\n'.join(content['traceback'])
-
-        if 0:
-            # FIXME: for now, tracebacks come as plain text, so we can't use
+        traceback = '\n'.join(content['traceback']) + '\n'
+        if False:
+            # FIXME: For now, tracebacks come as plain text, so we can't use
             # the html renderer yet.  Once we refactor ultratb to produce
             # properly styled tracebacks, this branch should be the default
             traceback = traceback.replace(' ', '&nbsp;')

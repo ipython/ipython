@@ -61,11 +61,7 @@ def main():
             kernel_manager.start_kernel()
     kernel_manager.start_channels()
 
-    # FIXME: this is a hack, set colors to lightbg by default in qt terminal
-    # unconditionally, regardless of user settings in config files.
-    kernel_manager.xreq_channel.execute("%colors lightbg")
-
-    # Launch the application.
+    # Create the widget.
     app = QtGui.QApplication([])
     if args.pure:
         kind = 'rich' if args.rich else 'plain'
@@ -77,6 +73,12 @@ def main():
     widget.kernel_manager = kernel_manager
     widget.setWindowTitle('Python' if args.pure else 'IPython')
     widget.show()
+
+    # FIXME: This is a hack: set colors to lightbg by default in qt terminal
+    # unconditionally, regardless of user settings in config files.
+    widget.execute("%colors lightbg", hidden=True)
+
+    # Start the application main loop.
     app.exec_()
 
 
