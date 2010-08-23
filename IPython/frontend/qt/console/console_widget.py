@@ -544,6 +544,7 @@ class ConsoleWidget(QtGui.QWidget):
         control.copyAvailable.connect(self.copy_available)
         control.redoAvailable.connect(self.redo_available)
         control.undoAvailable.connect(self.undo_available)
+        control.setReadOnly(True)
         control.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOn)
         return control
 
@@ -1256,7 +1257,7 @@ class HistoryConsoleWidget(ConsoleWidget):
         return True
 
     #---------------------------------------------------------------------------
-    # 'HistoryConsoleWidget' interface
+    # 'HistoryConsoleWidget' public interface
     #---------------------------------------------------------------------------
 
     def history_previous(self):
@@ -1277,3 +1278,13 @@ class HistoryConsoleWidget(ConsoleWidget):
                 self.input_buffer = self._history[self._history_index]
             else:
                 self.input_buffer = ''
+
+    #---------------------------------------------------------------------------
+    # 'HistoryConsoleWidget' protected interface
+    #---------------------------------------------------------------------------
+
+    def _set_history(self, history):
+        """ Replace the current history with a sequence of history items.
+        """
+        self._history = list(history)
+        self._history_index = len(self._history)

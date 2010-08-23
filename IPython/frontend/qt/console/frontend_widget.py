@@ -121,7 +121,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
     def _execute(self, source, hidden):
         """ Execute 'source'. If 'hidden', do not show any output.
         """
-        self.kernel_manager.xreq_channel.execute(source)
+        self.kernel_manager.xreq_channel.execute(source, hidden)
         self._hidden = hidden
 
     def _execute_interrupt(self):

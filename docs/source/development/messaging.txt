@@ -253,6 +253,7 @@ Message type: ``prompt_reply``::
     content = {
       'prompt_string' : str,
       'prompt_number' : int,
+      'input_sep'     : str
     }
 
 Clients can produce a prompt with ``prompt_string.format(prompt_number)``, but
@@ -394,11 +395,7 @@ Message type: ``history_request``::
       #  - number n: return the last n entries.
       #  - pair n1, n2: return entries in the range(n1, n2).
       #  - None: return all history
-      'range' : n or (n1, n2) or None,
-
-      # If a filter is given, it is  treated as a regular expression and only
-      #  matching entries are returned.  re.search() is used to find matches.
-      'filter' : str,
+      'index' : n or (n1, n2) or None,
     }
 
 Message type: ``history_reply``::

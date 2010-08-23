@@ -224,15 +224,16 @@ class Kernel(Configurable):
         prompt_number = self.shell.displayhook.prompt_count
         prompt_string = self.shell.displayhook.prompt1.peek_next_prompt()
         content = {'prompt_string' : prompt_string,
-                   'prompt_number' : prompt_number+1}
+                   'prompt_number' : prompt_number+1,
+                   'input_sep'     : self.shell.displayhook.input_sep}
         msg = self.session.send(self.reply_socket, 'prompt_reply',
                                 content, parent, ident)
         print >> sys.__stdout__, msg
 
     def history_request(self, ident, parent):
-        output = parent['content'].get('output', True)
-        index = parent['content'].get('index')
-        raw = parent['content'].get('raw', False)
+        output = parent['content']['output']
+        index = parent['content']['index']
+        raw = parent['content']['raw']
         hist = self.shell.get_history(index=index, raw=raw, output=output)
         content = {'history' : hist}
         msg = self.session.send(self.reply_socket, 'history_reply',

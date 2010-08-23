@@ -163,13 +163,15 @@ class XReqSocketChannel(ZmqSocketChannel):
         """
         raise NotImplementedError('call_handlers must be defined in a subclass.')
 
-    def execute(self, code):
+    def execute(self, code, silent=False):
         """Execute code in the kernel.
 
         Parameters
         ----------
         code : str
             A string of Python code.
+        silent : bool, optional (default False)
+            If set, the kernel will execute the code as quietly possible.
 
         Returns
         -------
@@ -177,7 +179,7 @@ class XReqSocketChannel(ZmqSocketChannel):
         """
         # Create class for content/msg creation. Related to, but possibly
         # not in Session.
-        content = dict(code=code)
+        content = dict(code=code, silent=silent)
         msg = self.session.msg('execute_request', content)
         self._queue_request(msg)
         return msg['header']['msg_id']
@@ -221,6 +223,40 @@ class XReqSocketChannel(ZmqSocketChannel):
         """
         content = dict(oname=oname)
         msg = self.session.msg('object_info_request', content)
+        self._queue_request(msg)
+        return msg['header']['msg_id']
+
+    def history(self, index=None, raw=False, output=True):
+        """Get the history list.
+
+        Parameters
+        ----------
+        index : n or (n1, n2) or None
+            If n, then the last entries. If a tuple, then all in
+            range(n1, n2). If None, then all entries. Raises IndexError if
+            the format of index is incorrect.
+        raw : bool
+            If True, return the raw input.
+        output : bool
+            If True, then return the output as well.
+
+        Returns
+        -------
+        The msg_id of the message sent.
+        """
+        content = dict(index=index, raw=raw, output=output)
+        msg = self.session.msg('history_request', content)
+        self._queue_request(msg)
+        return msg['header']['msg_id']
+
+    def prompt(self):
+        """Requests a prompt number from the kernel.
+
+        Returns
+        -------
+        The msg_id of the message sent.
+        """
+        msg = self.session.msg('prompt_request')
         self._queue_request(msg)
         return msg['header']['msg_id']
 

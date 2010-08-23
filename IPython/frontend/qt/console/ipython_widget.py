@@ -76,6 +76,22 @@ class IPythonWidget(FrontendWidget):
     # 'BaseFrontendMixin' abstract interface
     #---------------------------------------------------------------------------
 
+    def _handle_history_reply(self, msg):
+        """ Implemented to handle history replies, which are only supported by
+            the IPython kernel.
+        """
+        history_dict = msg['content']['history']
+        items = [ history_dict[key] for key in sorted(history_dict.keys()) ]
+        self._set_history(items)
+
+    def _handle_prompt_reply(self, msg):
+        """ Implemented to handle prompt number replies, which are only
+            supported by the IPython kernel.
+        """
+        content = msg['content']
+        self._show_interpreter_prompt(content['prompt_number'], 
+                                      content['input_sep'])
+
     def _handle_pyout(self, msg):
         """ Reimplemented for IPython-style "display hook".
         """
@@ -86,6 +102,13 @@ class IPythonWidget(FrontendWidget):
             self._append_html(self._make_out_prompt(prompt_number))
             self._append_plain_text(content['data'] + '\n' + 
                                     content['output_sep2'])
+
+    def _started_channels(self):
+        """ Reimplemented to make a history request.
+        """
+        super(IPythonWidget, self)._started_channels()
+        # FIXME: Disabled until history requests are properly implemented.
+        #self.kernel_manager.xreq_channel.history(raw=True, output=False)
 
     #---------------------------------------------------------------------------
     # 'FrontendWidget' interface
@@ -141,9 +164,10 @@ class IPythonWidget(FrontendWidget):
     def _show_interpreter_prompt(self, number=None, input_sep='\n'):
         """ Reimplemented for IPython-style prompts.
         """
-        # TODO: If a number was not specified, make a prompt number request.
+        # If a number was not specified, make a prompt number request.
         if number is None:
-            number = 0
+            self.kernel_manager.xreq_channel.prompt()
+            return
 
         # Show a new prompt and save information about it so that it can be
         # updated later if the prompt number turns out to be wrong.
