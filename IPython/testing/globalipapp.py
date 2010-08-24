@@ -146,9 +146,6 @@ def start_ipython():
     # permanently since we'll be mocking interactive sessions.
     shell.builtin_trap.set()
 
-    # Set error printing to stdout so nose can doctest exceptions
-    shell.InteractiveTB.out_stream = 'stdout'
-    
     # Modify the IPython system call with one that uses getoutput, so that we
     # can capture subcommands and print them to Python's stdout, otherwise the
     # doctest machinery would miss them.
