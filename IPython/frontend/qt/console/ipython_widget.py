@@ -1,3 +1,11 @@
+""" A FrontendWidget that emulates the interface of the console IPython and
+    supports the additional functionality provided by the IPython kernel.
+
+    TODO: Add support for retrieving the system default editor. Requires code
+          paths for Windows (use the registry), Mac OS (use LaunchServices), and
+          Linux (use the xdg system).
+"""
+
 # Standard library imports
 from subprocess import Popen
 
@@ -153,7 +161,7 @@ class IPythonWidget(FrontendWidget):
         """ Reimplemented to handle %edit and paging payloads.
         """
         if item['source'] == self._payload_source_edit:
-            self.edit(item['filename'], item['line_number'])
+            self._edit(item['filename'], item['line_number'])
             return True
         elif item['source'] == self._payload_source_page:
             self._page(item['data'])
@@ -218,61 +226,34 @@ class IPythonWidget(FrontendWidget):
     # 'IPythonWidget' interface
     #---------------------------------------------------------------------------
 
-    def edit(self, filename, line=None):
-        """ Opens a Python script for editing.
-
-        Parameters:
-        -----------
-        filename : str
-            A path to a local system file.
-
-        line : int, optional
-            A line of interest in the file.
-        
-        Raises:
-        -------
-        OSError
-            If the editor command cannot be executed.
-        """
-        if self._editor == 'default':
-            url = QtCore.QUrl.fromLocalFile(filename)
-            if not QtGui.QDesktopServices.openUrl(url):
-                message = 'Failed to open %s with the default application'
-                raise OSError(message % repr(filename))
-        elif self._editor is None:
-            self.custom_edit_requested.emit(filename, line)
-        else:
-            Popen(self._editor + [filename])
-
     def reset_styling(self):
         """ Restores the default IPythonWidget styling.
         """
         self.set_styling(self.default_stylesheet, syntax_style='default')
         #self.set_styling(self.dark_stylesheet, syntax_style='monokai')
 
-    def set_editor(self, editor):
+    def set_editor(self, editor, line_editor=None):
         """ Sets the editor to use with the %edit magic.
 
         Parameters:
         -----------
-        editor : str or sequence of str
-            A command suitable for use with Popen. This command will be executed
-            with a single argument--a filename--when editing is requested.
+        editor : str
+            A command for invoking a system text editor. If the string contains
+            a {filename} format specifier, it will be used. Otherwise, the 
+            filename will be appended to the end the command.
 
-            This parameter also takes two special values:
-                'default' : Files will be edited with the system default 
-                            application for Python files.
+            This parameter also takes a special value:
                 'custom'  : Emit a 'custom_edit_requested(str, int)' signal 
                             instead of opening an editor.
+
+        line_editor : str, optional
+            The editor command to use when a specific line number is
+            requested. The string should contain two format specifiers: {line}
+            and {filename}. If this parameter is not specified, the line number
+            option to the %edit magic will be ignored.
         """
-        if editor == 'default':
-            self._editor = 'default'
-        elif editor == 'custom':
-            self._editor = None
-        elif isinstance(editor, basestring):
-            self._editor = [ editor ]
-        else:
-            self._editor = list(editor)
+        self._editor = editor
+        self._editor_line = line_editor
 
     def set_styling(self, stylesheet, syntax_style=None):
         """ Sets the IPythonWidget styling.
@@ -302,6 +283,43 @@ class IPythonWidget(FrontendWidget):
     #---------------------------------------------------------------------------
     # 'IPythonWidget' protected interface
     #---------------------------------------------------------------------------
+
+    def _edit(self, filename, line=None):
+        """ Opens a Python script for editing.
+
+        Parameters:
+        -----------
+        filename : str
+            A path to a local system file.
+
+        line : int, optional
+            A line of interest in the file.
+        """
+        if self._editor == 'custom':
+            self.custom_edit_requested.emit(filename, line)
+        elif self._editor == 'default':
+            self._append_plain_text('No default editor available.\n')
+        else:
+            try:
+                filename = '"%s"' % filename
+                if line and self._editor_line:
+                    command = self._editor_line.format(filename=filename,
+                                                       line=line)
+                else:
+                    try:
+                        command = self._editor.format()
+                    except KeyError:
+                        command = self._editor.format(filename=filename)
+                    else:
+                        command += ' ' + filename
+            except KeyError:
+                self._append_plain_text('Invalid editor command.\n')
+            else:
+                try:
+                    Popen(command, shell=True)
+                except OSError:
+                    msg = 'Opening editor with command "%s" failed.\n'
+                    self._append_plain_text(msg % command)
 
     def _make_in_prompt(self, number):
         """ Given a prompt number, returns an HTML In prompt.
