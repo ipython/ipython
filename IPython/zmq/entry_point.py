@@ -11,7 +11,9 @@ import sys
 import zmq
 
 # Local imports.
+from IPython.core.ultratb import FormattedTB
 from IPython.external.argparse import ArgumentParser
+from IPython.utils import io
 from exitpoller import ExitPollerUnix, ExitPollerWindows
 from displayhook import DisplayHook
 from iostream import OutStream
@@ -60,22 +62,25 @@ def make_kernel(namespace, kernel_factory,
                 out_stream_factory=None, display_hook_factory=None):
     """ Creates a kernel.
     """
+    # Install minimal exception handling
+    sys.excepthook = FormattedTB(mode='Verbose', ostream=sys.__stdout__)
+
     # Create a context, a session, and the kernel sockets.
-    print >>sys.__stdout__, "Starting the kernel..."
+    io.rprint("Starting the kernel...")
     context = zmq.Context()
     session = Session(username=u'kernel')
 
     reply_socket = context.socket(zmq.XREP)
     xrep_port = bind_port(reply_socket, namespace.ip, namespace.xrep)
-    print >>sys.__stdout__, "XREP Channel on port", xrep_port
+    io.rprint("XREP Channel on port", xrep_port)
 
     pub_socket = context.socket(zmq.PUB)
     pub_port = bind_port(pub_socket, namespace.ip, namespace.pub)
-    print >>sys.__stdout__, "PUB Channel on port", pub_port
+    io.rprint("PUB Channel on port", pub_port)
 
     req_socket = context.socket(zmq.XREQ)
     req_port = bind_port(req_socket, namespace.ip, namespace.req)
-    print >>sys.__stdout__, "REQ Channel on port", req_port
+    io.rprint("REQ Channel on port", req_port)
 
     # Redirect input streams and set a display hook.
     if out_stream_factory:

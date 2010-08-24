@@ -313,19 +313,22 @@ def _format_traceback_lines(lnum, index, lines, Colors, lvals=None,scheme=None):
 class TBTools(object):
     """Basic tools used by all traceback printer classes."""
 
-    # This attribute us used in globalipapp.py to have stdout used for
-    # writting exceptions. This is needed so nose can trap them. This attribute
-    # should be None (the default, which will use IPython.utils.io.Term) or
-    # the string 'stdout' which will cause the override to sys.stdout.
-    out_stream = None
-
     # Number of frames to skip when reporting tracebacks
     tb_offset = 0
 
-    def __init__(self,color_scheme = 'NoColor',call_pdb=False):
+    def __init__(self, color_scheme='NoColor', call_pdb=False, ostream=None):
         # Whether to call the interactive pdb debugger after printing
         # tracebacks or not
         self.call_pdb = call_pdb
+
+        # Output stream to write to.  Note that we store the original value in
+        # a private attribute and then make the public ostream a property, so
+        # that we can delay accessing io.Term.cout until runtime.  The way
+        # things are written now, the Term.cout object is dynamically managed
+        # so a reference to it should NEVER be stored statically.  This
+        # property approach confines this detail to a single location, and all
+        # subclasses can simply access self.ostream for writing.
+        self._ostream = ostream
 
         # Create color table
         self.color_scheme_table = exception_colors()
@@ -337,6 +340,25 @@ class TBTools(object):
             self.pdb = debugger.Pdb(self.color_scheme_table.active_scheme_name)
         else:
             self.pdb = None
+
+    def _get_ostream(self):
+        """Output stream that exceptions are written to.
+
+        Valid values are:
+        
+        - None: the default, which means that IPython will dynamically resolve
+        to io.Term.cout.  This ensures compatibility with most tools, including
+        Windows (where plain stdout doesn't recognize ANSI escapes).
+
+        - Any object with 'write' and 'flush' attributes.
+        """
+        return io.Term.cout if self._ostream is None else self._ostream
+
+    def _set_ostream(self, val):
+        assert val is None or (hasattr(val, 'write') and hasattr(val, 'flush'))
+        self._ostream = val
+        
+    ostream = property(_get_ostream, _set_ostream)
 
     def set_colors(self,*args,**kw):
         """Shorthand access to the color table scheme selector method."""
@@ -402,8 +424,9 @@ class ListTB(TBTools):
     Because they are meant to be called without a full traceback (only a
     list), instances of this class can't call the interactive pdb debugger."""
 
-    def __init__(self,color_scheme = 'NoColor'):
-        TBTools.__init__(self,color_scheme = color_scheme,call_pdb=0)
+    def __init__(self,color_scheme = 'NoColor', call_pdb=False, ostream=None):
+        TBTools.__init__(self, color_scheme=color_scheme, call_pdb=call_pdb,
+                         ostream=ostream)
         
     def __call__(self, etype, value, elist):
         io.Term.cout.flush()
@@ -591,10 +614,7 @@ class ListTB(TBTools):
         """
         # This method needs to use __call__ from *this* class, not the one from
         # a subclass whose signature or behavior may be different
-        if self.out_stream == 'stdout':
-            ostream = sys.stdout
-        else:
-            ostream = io.Term.cerr
+        ostream = self.ostream
         ostream.flush()
         ostream.write('\n'.join(self.get_exception_only(etype, evalue)))
         ostream.flush()
@@ -615,15 +635,16 @@ class VerboseTB(TBTools):
     traceback, to be used with alternate interpreters (because their own code
     would appear in the traceback)."""
 
-    def __init__(self,color_scheme = 'Linux',tb_offset=0,long_header=0,
-                 call_pdb = 0, include_vars=1):
+    def __init__(self,color_scheme = 'Linux', call_pdb=False, ostream=None,
+                 tb_offset=0, long_header=False, include_vars=True):
         """Specify traceback offset, headers and color scheme.
 
         Define how many frames to drop from the tracebacks. Calling it with
         tb_offset=1 allows use of this handler in interpreters which will have
         their own code at the top of the traceback (VerboseTB will first
         remove that frame before printing the traceback info)."""
-        TBTools.__init__(self,color_scheme=color_scheme,call_pdb=call_pdb)
+        TBTools.__init__(self, color_scheme=color_scheme, call_pdb=call_pdb,
+                         ostream=ostream)
         self.tb_offset = tb_offset
         self.long_header = long_header
         self.include_vars = include_vars
@@ -973,9 +994,11 @@ class VerboseTB(TBTools):
     def handler(self, info=None):
         (etype, evalue, etb) = info or sys.exc_info()
         self.tb = etb
-        io.Term.cout.flush()
-        io.Term.cerr.write(self.text(etype, evalue, etb))
-        io.Term.cerr.write('\n')
+        ostream = self.ostream
+        ostream.flush()
+        ostream.write(self.text(etype, evalue, etb))
+        ostream.write('\n')
+        ostream.flush()
 
     # Changed so an instance can just be called as VerboseTB_inst() and print
     # out the right info on its own.
@@ -1003,15 +1026,17 @@ class FormattedTB(VerboseTB, ListTB):
     occurs with python programs that themselves execute other python code,
     like Python shells).  """
     
-    def __init__(self, mode='Plain', color_scheme='Linux',
-                 tb_offset=0, long_header=0, call_pdb=0, include_vars=0):
+    def __init__(self, mode='Plain', color_scheme='Linux', call_pdb=False,
+                 ostream=None, 
+                 tb_offset=0, long_header=False, include_vars=False):
 
         # NEVER change the order of this list. Put new modes at the end:
         self.valid_modes = ['Plain','Context','Verbose']
         self.verbose_modes = self.valid_modes[1:3]
 
-        VerboseTB.__init__(self,color_scheme,tb_offset,long_header,
-                           call_pdb=call_pdb,include_vars=include_vars)
+        VerboseTB.__init__(self, color_scheme=color_scheme, call_pdb=call_pdb,
+                           ostream=ostream, tb_offset=tb_offset,
+                           long_header=long_header, include_vars=include_vars)
 
         # Different types of tracebacks are joined with different separators to
         # form a single string.  They are taken from this dict
@@ -1103,11 +1128,9 @@ class AutoFormattedTB(FormattedTB):
           per-call basis (this overrides temporarily the instance's tb_offset
           given at initialization time.  """
 
+        
         if out is None:
-            if self.out_stream == 'stdout':
-                out = sys.stdout
-            else:
-                out = io.Term.cerr
+            out = self.ostream
         out.flush()
         out.write(self.text(etype, evalue, etb, tb_offset))
         out.write('\n')
