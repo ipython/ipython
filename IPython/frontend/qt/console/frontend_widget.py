@@ -72,12 +72,22 @@ class FrontendHighlighter(PygmentsHighlighter):
 class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
     """ A Qt frontend for a generic Python kernel.
     """
+
+    # An option and corresponding signal for overriding the default kernel
+    # interrupt behavior.
+    custom_interrupt = False
+    custom_interrupt_requested = QtCore.pyqtSignal()
+
+    # An option and corresponding signal for overriding the default kernel
+    # restart behavior.
+    custom_restart = False
+    custom_restart_requested = QtCore.pyqtSignal()
    
     # Emitted when an 'execute_reply' has been received from the kernel and
     # processed by the FrontendWidget.
     executed = QtCore.pyqtSignal(object)
-
-    # Protected class attributes.
+    
+    # Protected class variables.
     _highlighter_class = FrontendHighlighter
     _input_splitter_class = InputSplitter
 
@@ -123,13 +133,6 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         """
         self.kernel_manager.xreq_channel.execute(source, hidden)
         self._hidden = hidden
-
-    def _execute_interrupt(self):
-        """ Attempts to stop execution. Returns whether this method has an
-            implementation.
-        """
-        self._interrupt_kernel()
-        return True
         
     def _prompt_started_hook(self):
         """ Called immediately after a new prompt is displayed.
@@ -162,6 +165,19 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
     #---------------------------------------------------------------------------
     # 'ConsoleWidget' protected interface
     #---------------------------------------------------------------------------
+
+    def _event_filter_console_keypress(self, event):
+        """ Reimplemented to allow execution interruption.
+        """
+        key = event.key()
+        if self._executing and self._control_key_down(event.modifiers()):
+            if key == QtCore.Qt.Key_C:
+                self._kernel_interrupt()
+                return True
+            elif key == QtCore.Qt.Key_Period:
+                self._kernel_restart()
+                return True
+        return super(FrontendWidget, self)._event_filter_console_keypress(event)
 
     def _show_continuation_prompt(self):
         """ Reimplemented for auto-indentation.
@@ -324,14 +340,35 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         text = str(cursor.selection().toPlainText())
         return self._completion_lexer.get_context(text)
 
-    def _interrupt_kernel(self):
-        """ Attempts to the interrupt the kernel.
+    def _kernel_interrupt(self):
+        """ Attempts to interrupt the running kernel.
         """
-        if self.kernel_manager.has_kernel:
+        if self.custom_interrupt:
+            self.custom_interrupt_requested.emit()
+        elif self.kernel_manager.has_kernel:
             self.kernel_manager.signal_kernel(signal.SIGINT)
         else:
             self._append_plain_text('Kernel process is either remote or '
                                     'unspecified. Cannot interrupt.\n')
+
+    def _kernel_restart(self):
+        """ Attempts to restart the running kernel.
+        """
+        if self.custom_restart:
+            self.custom_restart_requested.emit()
+        elif self.kernel_manager.has_kernel:
+            try:
+                self.kernel_manager.restart_kernel()
+            except RuntimeError:
+                message = 'Kernel started externally. Cannot restart.\n'
+                self._append_plain_text(message)
+            else:
+                self._stopped_channels()
+                self._append_plain_text('Kernel restarting...\n')
+                self._show_interpreter_prompt()
+        else:
+            self._append_plain_text('Kernel process is either remote or '
+                                    'unspecified. Cannot restart.\n')
 
     def _process_execute_abort(self, msg):
         """ Process a reply for an aborted execution request.

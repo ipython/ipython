@@ -430,12 +430,6 @@ class ConsoleWidget(QtGui.QWidget):
         """
         raise NotImplementedError
 
-    def _execute_interrupt(self):
-        """ Attempts to stop execution. Returns whether this method has an
-            implementation.
-        """
-        return False
-
     def _prompt_started_hook(self):
         """ Called immediately after a new prompt is displayed.
         """
@@ -575,10 +569,7 @@ class ConsoleWidget(QtGui.QWidget):
             intercepted = True
 
         elif ctrl_down:
-            if key == QtCore.Qt.Key_C:
-                intercepted = self._executing and self._execute_interrupt()
-
-            elif key == QtCore.Qt.Key_K:
+            if key == QtCore.Qt.Key_K:
                 if self._in_buffer(position):
                     cursor.movePosition(QtGui.QTextCursor.EndOfLine,
                                         QtGui.QTextCursor.KeepAnchor)

@@ -1,5 +1,3 @@
-import os
-
 # System library imports
 from PyQt4 import QtCore, QtGui
 

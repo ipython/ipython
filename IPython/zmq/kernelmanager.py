@@ -482,6 +482,7 @@ class KernelManager(HasTraits):
     rep_channel_class = Type(RepSocketChannel)
     
     # Protected traits.
+    _launch_args = Any
     _xreq_channel = Any
     _sub_channel = Any
     _rep_channel = Any
@@ -523,7 +524,7 @@ class KernelManager(HasTraits):
     # Kernel process management methods:
     #--------------------------------------------------------------------------
 
-    def start_kernel(self, ipython=True, **kw):
+    def start_kernel(self, **kw):
         """Starts a kernel process and configures the manager to use it.
 
         If random ports (port=0) are being used, this method must be called
@@ -540,7 +541,8 @@ class KernelManager(HasTraits):
                                "Make sure that the '*_address' attributes are "
                                "configured properly.")
 
-        if ipython:
+        self._launch_args = kw.copy()
+        if kw.pop('ipython', True):
             from ipkernel import launch_kernel as launch
         else:
             from pykernel import launch_kernel as launch
@@ -549,6 +551,19 @@ class KernelManager(HasTraits):
         self.xreq_address = (LOCALHOST, xrep)
         self.sub_address = (LOCALHOST, pub)
         self.rep_address = (LOCALHOST, req)
+
+    def restart_kernel(self):
+        """Restarts a kernel with the same arguments that were used to launch
+        it. If the old kernel was launched with random ports, the same ports
+        will be used for the new kernel.
+        """
+        if self._launch_args is None:
+            raise RuntimeError("Cannot restart the kernel. "
+                               "No previous call to 'start_kernel'.")
+        else:
+            if self.has_kernel:
+                self.kill_kernel()
+            self.start_kernel(*self._launch_args)
 
     @property
     def has_kernel(self):
