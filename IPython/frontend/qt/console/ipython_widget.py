@@ -179,7 +179,7 @@ class IPythonWidget(FrontendWidget):
 
         # Show a new prompt and save information about it so that it can be
         # updated later if the prompt number turns out to be wrong.
-        self._append_plain_text(input_sep)
+        self._prompt_sep = input_sep
         self._show_prompt(self._make_in_prompt(number), html=True)
         block = self._control.document().lastBlock()
         length = len(self._prompt)

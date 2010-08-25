@@ -150,6 +150,7 @@ class ConsoleWidget(QtGui.QWidget):
         self._prompt = ''
         self._prompt_html = None
         self._prompt_pos = 0
+        self._prompt_sep = ''
         self._reading = False
         self._reading_callback = None
         self._tab_width = 8
@@ -282,24 +283,35 @@ class ConsoleWidget(QtGui.QWidget):
         --------
         A boolean indicating whether the source was executed.
         """
-        if not hidden:
-            # Do everything here inside an edit block so continuation prompts
-            # are removed seamlessly via undo/redo.
-            cursor = self._control.textCursor()
-            cursor.beginEditBlock()
+        # WARNING: The order in which things happen here is very particular, in
+        # large part because our syntax highlighting is fragile. If you change
+        # something, test carefully!
 
-            if source is not None:
-                self.input_buffer = source
-
-            self._append_plain_text('\n')
-            self._executing_input_buffer = self.input_buffer
-            self._executing = True
-            self._prompt_finished()
-
-        real_source = self.input_buffer if source is None else source
-        complete = self._is_complete(real_source, interactive)
-        if complete:
+        # Decide what to execute.
+        if source is None:
+            source = self.input_buffer
             if not hidden:
+                # A newline is appended later, but it should be considered part
+                # of the input buffer.
+                source += '\n'
+        elif not hidden:
+            self.input_buffer = source
+            
+        # Execute the source or show a continuation prompt if it is incomplete.
+        complete = self._is_complete(source, interactive)
+        if hidden:
+            if complete:
+                self._execute(source, hidden)
+            else:
+                error = 'Incomplete noninteractive input: "%s"'
+                raise RuntimeError(error % source)                
+        else:
+            if complete:
+                self._append_plain_text('\n')
+                self._executing_input_buffer = self.input_buffer
+                self._executing = True
+                self._prompt_finished()
+
                 # The maximum block count is only in effect during execution.
                 # This ensures that _prompt_pos does not become invalid due to
                 # text truncation.
@@ -309,14 +321,18 @@ class ConsoleWidget(QtGui.QWidget):
                 # disable the undo/redo history, but just to be safe:
                 self._control.setUndoRedoEnabled(False)
 
-            self._execute(real_source, hidden)
-        elif hidden:
-            raise RuntimeError('Incomplete noninteractive input: "%s"' % source)
-        else:
-            self._show_continuation_prompt()
+                self._execute(source, hidden)
+            
+            else:
+                # Do this inside an edit block so continuation prompts are
+                # removed seamlessly via undo/redo.
+                cursor = self._control.textCursor()
+                cursor.beginEditBlock()
 
-        if not hidden:
-            cursor.endEditBlock()
+                self._append_plain_text('\n')
+                self._show_continuation_prompt()
+
+                cursor.endEditBlock()
 
         return complete
 
@@ -1115,7 +1131,7 @@ class ConsoleWidget(QtGui.QWidget):
 
         if not callback and not self.isVisible():
             # If the user cannot see the widget, this function cannot return.
-            raise RuntimeError('Cannot synchronously read a line if the widget'
+            raise RuntimeError('Cannot synchronously read a line if the widget '
                                'is not visible!')
 
         self._reading = True
@@ -1212,6 +1228,7 @@ class ConsoleWidget(QtGui.QWidget):
                     self._append_plain_text('\n')
 
         # Write the prompt.
+        self._append_plain_text(self._prompt_sep)
         if prompt is None:
             if self._prompt_html is None:
                 self._append_plain_text(self._prompt)
@@ -1237,8 +1254,6 @@ class ConsoleWidget(QtGui.QWidget):
         else:
             self._continuation_prompt = self._append_html_fetching_plain_text(
                 self._continuation_prompt_html)
-
-        self._prompt_started()
 
 
 class HistoryConsoleWidget(ConsoleWidget):

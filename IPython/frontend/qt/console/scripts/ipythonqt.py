@@ -22,7 +22,12 @@ def main():
     """
     # Parse command line arguments.
     parser = ArgumentParser()
-    parser.add_argument('-e', '--existing', action='store_true',
+    parser.add_argument('-r', '--rich', action='store_true',
+                        help='use a rich text frontend')
+    parser.add_argument('-t', '--tab-simple', action='store_true',
+                        help='do tab completion ala a Unix terminal')
+
+    parser.add_argument('--existing', action='store_true',
                         help='connect to an existing kernel')
     parser.add_argument('--ip', type=str, default=LOCALHOST,
                         help='set the kernel\'s IP address [default localhost]')
@@ -32,13 +37,13 @@ def main():
                         help='set the SUB channel port [default random]')
     parser.add_argument('--rep', type=int, metavar='PORT', default=0,
                         help='set the REP channel port [default random]')
+
     group = parser.add_mutually_exclusive_group()
     group.add_argument('--pure', action='store_true', help = \
                        'use a pure Python kernel instead of an IPython kernel')
     group.add_argument('--pylab', action='store_true',
                         help='use a kernel with PyLab enabled')
-    parser.add_argument('--rich', action='store_true',
-                        help='use a rich text frontend')
+    
     args = parser.parse_args()
     
     # Don't let Qt or ZMQ swallow KeyboardInterupts.
@@ -70,6 +75,7 @@ def main():
         widget = RichIPythonWidget()
     else:
         widget = IPythonWidget()
+    widget.gui_completion = not args.tab_simple
     widget.kernel_manager = kernel_manager
     widget.setWindowTitle('Python' if args.pure else 'IPython')
     widget.show()
