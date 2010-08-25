@@ -11,6 +11,27 @@ from ansi_code_processor import QtAnsiCodeProcessor
 from completion_widget import CompletionWidget
 
 
+class ConsolePlainTextEdit(QtGui.QPlainTextEdit):
+    """ A QPlainTextEdit suitable for use with ConsoleWidget.
+    """
+    # Prevents text from being moved by drag and drop. Note that is not, for 
+    # some reason, sufficient to catch drag events in the ConsoleWidget's 
+    # event filter.
+    def dragEnterEvent(self, event): pass
+    def dragLeaveEvent(self, event): pass
+    def dragMoveEvent(self, event): pass
+    def dropEvent(self, event): pass
+
+class ConsoleTextEdit(QtGui.QTextEdit):
+    """ A QTextEdit suitable for use with ConsoleWidget.
+    """
+    # See above.
+    def dragEnterEvent(self, event): pass
+    def dragLeaveEvent(self, event): pass
+    def dragMoveEvent(self, event): pass
+    def dropEvent(self, event): pass
+
+
 class ConsoleWidget(QtGui.QWidget):
     """ An abstract base class for console-type widgets. This class has 
         functionality for:
@@ -161,16 +182,10 @@ class ConsoleWidget(QtGui.QWidget):
             event.accept()
             return False
 
-        elif obj == self._control:
-            # Disable moving text by drag and drop.
-            if etype == QtCore.QEvent.DragMove:
-                return True
-
-            elif etype == QtCore.QEvent.KeyPress:
+        elif etype == QtCore.QEvent.KeyPress:
+            if obj == self._control:
                 return self._event_filter_console_keypress(event)
-
-        elif obj == self._page_control:
-            if etype == QtCore.QEvent.KeyPress:
+            elif obj == self._page_control:
                 return self._event_filter_page_keypress(event)
 
         return super(ConsoleWidget, self).eventFilter(obj, event)
@@ -546,9 +561,9 @@ class ConsoleWidget(QtGui.QWidget):
         """ Creates and connects the underlying text widget.
         """
         if kind == 'plain':
-            control = QtGui.QPlainTextEdit()
+            control = ConsolePlainTextEdit()
         elif kind == 'rich':
-            control = QtGui.QTextEdit()
+            control = ConsoleTextEdit()
             control.setAcceptRichText(False)
         else:
             raise ValueError("Kind %s unknown." % repr(kind))
@@ -566,7 +581,7 @@ class ConsoleWidget(QtGui.QWidget):
     def _create_page_control(self):
         """ Creates and connects the underlying paging widget.
         """
-        control = QtGui.QPlainTextEdit()
+        control = ConsolePlainTextEdit()
         control.installEventFilter(self)
         control.setReadOnly(True)
         control.setUndoRedoEnabled(False)
