@@ -181,7 +181,10 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         cursor = self._get_cursor()
         if rep['parent_header']['msg_id'] == self._complete_id and \
                 cursor.position() == self._complete_pos:
-            text = '.'.join(self._get_context())
+            # The completer tells us what text was actually used for the
+            # matching, so we must move that many characters left to apply the
+            # completions.
+            text = rep['content']['matched_text']
             cursor.movePosition(QtGui.QTextCursor.Left, n=len(text))
             self._complete_with_items(cursor, rep['content']['matches'])
 
@@ -294,14 +297,22 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         """ Performs completion at the current cursor location.
         """
         # Decide if it makes sense to do completion
-        context = self._get_context()
-        if not context:
+
+        # We should return only if the line is empty.  Otherwise, let the
+        # kernel split the line up.
+        line = self._get_input_buffer_cursor_line()
+        if not line:
             return False
 
+        # We let the kernel split the input line, so we *always* send an empty
+        # text field.  Readline-based frontends do get a real text field which
+        # they can use.
+        text = ''
+        
         # Send the completion request to the kernel
         self._complete_id = self.kernel_manager.xreq_channel.complete(
-            '.'.join(context),                       # text 
-            self._get_input_buffer_cursor_line(),    # line 
+            text,                                      # text
+            line,                                      # line
             self._get_input_buffer_cursor_column(),  # cursor_pos
             self.input_buffer)                       # block 
         self._complete_pos = self._get_cursor().position()

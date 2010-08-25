@@ -193,7 +193,7 @@ class CompletionSplitter(object):
 
 
 class Completer(object):
-    def __init__(self,namespace=None,global_namespace=None):
+    def __init__(self, namespace=None, global_namespace=None):
         """Create a new completer for the command line.
 
         Completer([namespace,global_namespace]) -> completer instance.
@@ -343,9 +343,11 @@ class IPCompleter(Completer):
           without readline, though in that case callers must provide some extra
           information on each call about the current line."""
 
-        Completer.__init__(self,namespace,global_namespace)
+        Completer.__init__(self, namespace, global_namespace)
 
         self.magic_escape = ESC_MAGIC
+
+        self.splitter = CompletionSplitter()
 
         # Readline-dependent code
         self.use_readline = use_readline
@@ -662,16 +664,20 @@ class IPCompleter(Completer):
             
         return None
                
-    def complete(self, text, line_buffer, cursor_pos=None):
+    def complete(self, text=None, line_buffer=None, cursor_pos=None):
         """Return the state-th possible completion for 'text'.
 
         This is called successively with state == 0, 1, 2, ... until it
         returns None.  The completion should begin with 'text'.
 
+        Note that both the text and the line_buffer are optional, but at least
+        one of them must be given.
+
         Parameters
         ----------
-          text : string
-            Text to perform the completion on.
+          text : string, optional
+            Text to perform the completion on.  If not given, the line buffer
+            is split using the instance's CompletionSplitter object.
 
           line_buffer : string, optional
             If not given, the completer attempts to obtain the current line
@@ -683,7 +689,20 @@ class IPCompleter(Completer):
             Index of the cursor in the full line buffer.  Should be provided by
             remote frontends where kernel has no access to frontend state.
         """
-        #io.rprint('COMP', text, line_buffer, cursor_pos)  # dbg
+        #io.rprint('COMP1 %r %r %r' % (text, line_buffer, cursor_pos))  # dbg
+
+        # if the cursor position isn't given, the only sane assumption we can
+        # make is that it's at the end of the line (the common case)
+        if cursor_pos is None:
+            cursor_pos = len(line_buffer) if text is None else len(text)
+
+        # if text is either None or an empty string, rely on the line buffer
+        if not text:
+            text = self.splitter.split_line(line_buffer, cursor_pos)
+
+        # If no line buffer is given, assume the input text is all there was
+        if line_buffer is None:
+            line_buffer = text
         
         magic_escape = self.magic_escape
         self.full_lbuf = line_buffer
@@ -691,6 +710,8 @@ class IPCompleter(Completer):
 
         if text.startswith('~'):
             text = os.path.expanduser(text)
+
+        #io.rprint('COMP2 %r %r %r' % (text, line_buffer, cursor_pos))  # dbg
 
         # Start with a clean slate of completions
         self.matches[:] = []
@@ -716,8 +737,8 @@ class IPCompleter(Completer):
         # simply collapse the dict into a list for readline, but we'd have
         # richer completion semantics in other evironments.
         self.matches = sorted(set(self.matches))
-        #io.rprint('MATCHES', self.matches) # dbg
-        return self.matches
+        #io.rprint('COMP TEXT, MATCHES: %r, %r' % (text, self.matches)) # dbg
+        return text, self.matches
 
     def rlcomplete(self, text, state):
         """Return the state-th possible completion for 'text'.

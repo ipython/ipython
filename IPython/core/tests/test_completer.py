@@ -69,10 +69,9 @@ class CompletionSplitterTestCase(unittest.TestCase):
         self.sp = completer.CompletionSplitter()
 
     def test_delim_setting(self):
-        self.sp.delims = ' '
-        # Validate that property handling works ok
-        nt.assert_equal(self.sp.delims, ' ')
-        nt.assert_equal(self.sp.delim_expr, '[\ ]')
+        self.sp.set_delims(' ')
+        nt.assert_equal(self.sp.get_delims(), ' ')
+        nt.assert_equal(self.sp._delim_expr, '[\ ]')
 
     def test_spaces(self):
         """Test with only spaces as split chars."""
