@@ -22,27 +22,32 @@ def main():
     """
     # Parse command line arguments.
     parser = ArgumentParser()
-    parser.add_argument('-r', '--rich', action='store_true',
-                        help='use a rich text frontend')
-    parser.add_argument('-t', '--tab-simple', action='store_true',
-                        help='do tab completion ala a Unix terminal')
-
-    parser.add_argument('--existing', action='store_true',
+    kgroup = parser.add_argument_group('kernel options')
+    kgroup.add_argument('-e', '--existing', action='store_true',
                         help='connect to an existing kernel')
-    parser.add_argument('--ip', type=str, default=LOCALHOST,
+    kgroup.add_argument('--ip', type=str, default=LOCALHOST,
                         help='set the kernel\'s IP address [default localhost]')
-    parser.add_argument('--xreq', type=int, metavar='PORT', default=0,
+    kgroup.add_argument('--xreq', type=int, metavar='PORT', default=0,
                         help='set the XREQ channel port [default random]')
-    parser.add_argument('--sub', type=int, metavar='PORT', default=0,
+    kgroup.add_argument('--sub', type=int, metavar='PORT', default=0,
                         help='set the SUB channel port [default random]')
-    parser.add_argument('--rep', type=int, metavar='PORT', default=0,
+    kgroup.add_argument('--rep', type=int, metavar='PORT', default=0,
                         help='set the REP channel port [default random]')
 
-    group = parser.add_mutually_exclusive_group()
-    group.add_argument('--pure', action='store_true', help = \
-                       'use a pure Python kernel instead of an IPython kernel')
-    group.add_argument('--pylab', action='store_true',
+    egroup = kgroup.add_mutually_exclusive_group()
+    egroup.add_argument('--pure', action='store_true', help = \
+                        'use a pure Python kernel instead of an IPython kernel')
+    egroup.add_argument('--pylab', action='store_true',
                         help='use a kernel with PyLab enabled')
+
+    wgroup = parser.add_argument_group('widget options')
+    wgroup.add_argument('--paging', type=str, default='inside',
+                        choices = ['inside', 'hsplit', 'vsplit', 'none'],
+                        help='set the paging style [default inside]')
+    wgroup.add_argument('--rich', action='store_true',
+                        help='enable rich text support')
+    wgroup.add_argument('--tab-simple', action='store_true',
+                        help='do tab completion ala a Unix terminal')
     
     args = parser.parse_args()
     
@@ -70,11 +75,11 @@ def main():
     app = QtGui.QApplication([])
     if args.pure:
         kind = 'rich' if args.rich else 'plain'
-        widget = FrontendWidget(kind=kind)
+        widget = FrontendWidget(kind=kind, paging=args.paging)
     elif args.rich:
-        widget = RichIPythonWidget()
+        widget = RichIPythonWidget(paging=args.paging)
     else:
-        widget = IPythonWidget()
+        widget = IPythonWidget(paging=args.paging)
     widget.gui_completion = not args.tab_simple
     widget.kernel_manager = kernel_manager
     widget.setWindowTitle('Python' if args.pure else 'IPython')
