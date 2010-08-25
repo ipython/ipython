@@ -31,6 +31,10 @@ class AnsiCodeProcessor(object):
     """ Translates ANSI escape codes into readable attributes.
     """
 
+    # Whether to increase intensity or set boldness for SGR code 1.
+    # (Different terminals handle this in different ways.)
+    bold_text_enabled = False    
+
     # Protected class variables.
     _ansi_commands = 'ABCDEFGHJKSTfmnsu'
     _ansi_pattern = re.compile('\x01?\x1b\[(.*?)([%s])\x02?' % _ansi_commands)
@@ -111,8 +115,10 @@ class AnsiCodeProcessor(object):
         if code == 0:
             self.reset_sgr()
         elif code == 1:
-            self.intensity = 1
-            self.bold = True
+            if self.bold_text_enabled:
+                self.bold = True
+            else:
+                self.intensity = 1
         elif code == 2:
             self.intensity = 0
         elif code == 3:
@@ -141,15 +147,19 @@ class QtAnsiCodeProcessor(AnsiCodeProcessor):
     """
 
     # A map from color codes to RGB colors.
-    ansi_colors = (# Normal,      Bright/Light    ANSI color code
+    default_map = (# Normal,      Bright/Light    ANSI color code
                    ('black',      'grey'),        # 0: black
                    ('darkred',    'red'),         # 1: red
-                   ('darkgreen',  'green'),       # 2: green
-                   ('gold',       'yellow'),      # 3: yellow
-                   ('darkblue',   'blue'),        # 4: blue
+                   ('darkgreen',  'lime'),        # 2: green
+                   ('brown',      'yellow'),      # 3: yellow
+                   ('darkblue',   'deepskyblue'), # 4: blue
                    ('darkviolet', 'magenta'),     # 5: magenta
                    ('steelblue',  'cyan'),        # 6: cyan
                    ('grey',       'white'))       # 7: white
+
+    def __init__(self):
+        super(QtAnsiCodeProcessor, self).__init__()
+        self.color_map = self.default_map
     
     def get_format(self):
         """ Returns a QTextCharFormat that encodes the current style attributes.
@@ -158,12 +168,12 @@ class QtAnsiCodeProcessor(AnsiCodeProcessor):
 
         # Set foreground color
         if self.foreground_color is not None:
-            color = self.ansi_colors[self.foreground_color][self.intensity]
+            color = self.color_map[self.foreground_color][self.intensity]
             format.setForeground(QtGui.QColor(color))
 
         # Set background color
         if self.background_color is not None:
-            color = self.ansi_colors[self.background_color][self.intensity]
+            color = self.color_map[self.background_color][self.intensity]
             format.setBackground(QtGui.QColor(color))
 
         # Set font weight/style options
@@ -175,3 +185,19 @@ class QtAnsiCodeProcessor(AnsiCodeProcessor):
         format.setFontUnderline(self.underline)
 
         return format
+
+    def set_background_color(self, color):
+        """ Given a background color (a QColor), attempt to set a color map
+            that will be aesthetically pleasing.
+        """
+        if color.value() < 127:
+            # Colors appropriate for a terminal with a dark background.
+            self.color_map = self.default_map
+
+        else:
+            # Colors appropriate for a terminal with a light background. For 
+            # now, only use non-bright colors...
+            self.color_map = [ (pair[0], pair[0]) for pair in self.default_map ]
+
+            # ...and replace white with black.
+            self.color_map[7] = ('black', 'black')

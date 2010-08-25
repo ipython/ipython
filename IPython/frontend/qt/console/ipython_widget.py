@@ -309,6 +309,9 @@ class IPythonWidget(FrontendWidget):
         else:
             self._highlighter.set_style(syntax_style)
 
+        bg_color = self._control.palette().background().color()
+        self._ansi_processor.set_background_color(bg_color)
+
     #---------------------------------------------------------------------------
     # 'IPythonWidget' protected interface
     #---------------------------------------------------------------------------

@@ -80,10 +80,6 @@ def main():
     widget.setWindowTitle('Python' if args.pure else 'IPython')
     widget.show()
 
-    # FIXME: This is a hack: set colors to lightbg by default in qt terminal
-    # unconditionally, regardless of user settings in config files.
-    widget.execute("%colors lightbg", hidden=True)
-
     # Start the application main loop.
     app.exec_()
 
