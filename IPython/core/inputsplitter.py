@@ -202,7 +202,7 @@ class InputSplitter(object):
     # object; it will be None if the source doesn't compile to valid Python.
     code = None
     # Input mode
-    input_mode = 'append'
+    input_mode = 'line'
     
     # Private attributes
     
@@ -222,14 +222,18 @@ class InputSplitter(object):
         ----------
         input_mode : str
 
-          One of ['append', 'replace']; default is 'append'.  This controls how
-          new inputs are used: in 'append' mode, they are appended to the
-          existing buffer and the whole buffer is compiled; in 'replace' mode,
-          each new input completely replaces all prior inputs.  Replace mode is
-          thus equivalent to prepending a full reset() to every push() call.
+          One of ['line', 'block']; default is 'line'.
 
-          In practice, line-oriented clients likely want to use 'append' mode
-          while block-oriented ones will want to use 'replace'.
+       The input_mode parameter controls how new inputs are used when fed via
+       the :meth:`push` method:
+
+       - 'line': meant for line-oriented clients, inputs are appended one at a
+         time to the internal buffer and the whole buffer is compiled.
+
+       - 'block': meant for clients that can edit multi-line blocks of text at
+          a time.  Each new input new input completely replaces all prior
+          inputs.  Block mode is thus equivalent to prepending a full reset()
+          to every push() call.
         """
         self._buffer = []
         self._compile = codeop.CommandCompiler()
@@ -275,7 +279,7 @@ class InputSplitter(object):
         this value is also stored as a private attribute (_is_complete), so it
         can be queried at any time.
         """
-        if self.input_mode == 'replace':
+        if self.input_mode == 'block':
             self.reset()
         
         # If the source code has leading blanks, add 'if 1:\n' to it
@@ -829,18 +833,18 @@ class IPythonInputSplitter(InputSplitter):
         #
         # FIXME: try to find a cleaner approach for this last bit.
 
-        # If we were in 'replace' mode, since we're going to pump the parent
+        # If we were in 'block' mode, since we're going to pump the parent
         # class by hand line by line, we need to temporarily switch out to
-        # 'append' mode, do a single manual reset and then feed the lines one
+        # 'line' mode, do a single manual reset and then feed the lines one
         # by one.  Note that this only matters if the input has more than one
         # line.
         changed_input_mode = False
         
-        if len(lines_list)>1 and self.input_mode == 'replace':
+        if len(lines_list)>1 and self.input_mode == 'block':
             self.reset()
             changed_input_mode = True
-            saved_input_mode = 'replace'
-            self.input_mode = 'append'
+            saved_input_mode = 'block'
+            self.input_mode = 'line'
 
         try:
             push = super(IPythonInputSplitter, self).push

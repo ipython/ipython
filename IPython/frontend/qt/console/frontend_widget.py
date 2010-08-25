@@ -103,7 +103,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         self._completion_lexer = CompletionLexer(PythonLexer())
         self._hidden = False
         self._highlighter = self._highlighter_class(self)
-        self._input_splitter = self._input_splitter_class(input_mode='replace')
+        self._input_splitter = self._input_splitter_class(input_mode='block')
         self._kernel_manager = None
 
         # Configure the ConsoleWidget.

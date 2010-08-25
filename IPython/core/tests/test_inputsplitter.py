@@ -204,7 +204,7 @@ class InputSplitterTestCase(unittest.TestCase):
 
     def test_replace_mode(self):
         isp = self.isp
-        isp.input_mode = 'replace'
+        isp.input_mode = 'block'
         isp.push('x=1')
         self.assertEqual(isp.source, 'x=1\n')
         isp.push('x=2')
@@ -556,7 +556,7 @@ class IPythonInputTestCase(InputSplitterTestCase):
     """
 
     def setUp(self):
-        self.isp = isp.IPythonInputSplitter(input_mode='append')
+        self.isp = isp.IPythonInputSplitter(input_mode='line')
 
     def test_syntax(self):
         """Call all single-line syntax tests from the main object"""
@@ -590,7 +590,7 @@ class BlockIPythonInputTestCase(IPythonInputTestCase):
     test_push3 = test_split = lambda s: None
     
     def setUp(self):
-        self.isp = isp.IPythonInputSplitter(input_mode='replace')
+        self.isp = isp.IPythonInputSplitter(input_mode='block')
 
     def test_syntax_multiline(self):
         isp = self.isp
