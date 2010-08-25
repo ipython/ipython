@@ -61,6 +61,7 @@ used, and this module (and the readline module) are silently inactive.
 #  the file COPYING, distributed as part of this software.
 #
 #*****************************************************************************
+from __future__ import print_function
 
 #-----------------------------------------------------------------------------
 # Imports
@@ -79,7 +80,7 @@ import sys
 
 from IPython.core.error import TryNext
 from IPython.core.prefilter import ESC_MAGIC
-from IPython.utils import generics
+from IPython.utils import generics, io
 from IPython.utils.frame import debugx
 from IPython.utils.dir2 import dir2
 
@@ -138,10 +139,61 @@ def single_dir_expand(matches):
     else:
         return matches
 
-class Bunch: pass
 
-class Completer:
-    def __init__(self,namespace=None,global_namespace=None):
+class Bunch(object): pass
+
+
+class CompletionSplitter(object):
+    """An object to split an input line in a manner similar to readline.
+
+    By having our own implementation, we can expose readline-like completion in
+    a uniform manner to all frontends.  This object only needs to be given the
+    line of text to be split and the cursor position on said line, and it
+    returns the 'word' to be completed on at the cursor after splitting the
+    entire line.
+
+    What characters are used as splitting delimiters can be controlled by
+    setting the `delims` attribute (this is a property that internally
+    automatically builds the necessary """
+
+    # Private interface
+    
+    # A string of delimiter characters.  The default value makes sense for
+    # IPython's most typical usage patterns.
+    _delims = ' \t\n`!@#$^&*()=+[{]}\\|;:\'",<>?'
+
+    # The expression (a normal string) to be compiled into a regular expression
+    # for actual splitting.  We store it as an attribute mostly for ease of
+    # debugging, since this type of code can be so tricky to debug.
+    _delim_expr = None
+
+    # The regular expression that does the actual splitting
+    _delim_re = None
+
+    def __init__(self, delims=None):
+        delims = CompletionSplitter._delims if delims is None else delims
+        self.set_delims(delims)
+
+    def set_delims(self, delims):
+        """Set the delimiters for line splitting."""
+        expr = '[' + ''.join('\\'+ c for c in delims) + ']'
+        self._delim_re = re.compile(expr)
+        self._delims = delims
+        self._delim_expr = expr
+
+    def get_delims(self):
+        """Return the string of delimiter characters."""
+        return self._delims
+
+    def split_line(self, line, cursor_pos=None):
+        """Split a line of text with a cursor at the given position.
+        """
+        l = line if cursor_pos is None else line[:cursor_pos]
+        return self._delim_re.split(l)[-1]
+
+
+class Completer(object):
+    def __init__(self, namespace=None, global_namespace=None):
         """Create a new completer for the command line.
 
         Completer([namespace,global_namespace]) -> completer instance.
@@ -291,9 +343,11 @@ class IPCompleter(Completer):
           without readline, though in that case callers must provide some extra
           information on each call about the current line."""
 
-        Completer.__init__(self,namespace,global_namespace)
+        Completer.__init__(self, namespace, global_namespace)
 
         self.magic_escape = ESC_MAGIC
+
+        self.splitter = CompletionSplitter()
 
         # Readline-dependent code
         self.use_readline = use_readline
@@ -610,16 +664,20 @@ class IPCompleter(Completer):
             
         return None
                
-    def complete(self, text, line_buffer, cursor_pos=None):
+    def complete(self, text=None, line_buffer=None, cursor_pos=None):
         """Return the state-th possible completion for 'text'.
 
         This is called successively with state == 0, 1, 2, ... until it
         returns None.  The completion should begin with 'text'.
 
+        Note that both the text and the line_buffer are optional, but at least
+        one of them must be given.
+
         Parameters
         ----------
-          text : string
-            Text to perform the completion on.
+          text : string, optional
+            Text to perform the completion on.  If not given, the line buffer
+            is split using the instance's CompletionSplitter object.
 
           line_buffer : string, optional
             If not given, the completer attempts to obtain the current line
@@ -631,13 +689,29 @@ class IPCompleter(Completer):
             Index of the cursor in the full line buffer.  Should be provided by
             remote frontends where kernel has no access to frontend state.
         """
+        #io.rprint('COMP1 %r %r %r' % (text, line_buffer, cursor_pos))  # dbg
 
+        # if the cursor position isn't given, the only sane assumption we can
+        # make is that it's at the end of the line (the common case)
+        if cursor_pos is None:
+            cursor_pos = len(line_buffer) if text is None else len(text)
+
+        # if text is either None or an empty string, rely on the line buffer
+        if not text:
+            text = self.splitter.split_line(line_buffer, cursor_pos)
+
+        # If no line buffer is given, assume the input text is all there was
+        if line_buffer is None:
+            line_buffer = text
+        
         magic_escape = self.magic_escape
         self.full_lbuf = line_buffer
         self.lbuf = self.full_lbuf[:cursor_pos]
 
         if text.startswith('~'):
             text = os.path.expanduser(text)
+
+        #io.rprint('COMP2 %r %r %r' % (text, line_buffer, cursor_pos))  # dbg
 
         # Start with a clean slate of completions
         self.matches[:] = []
@@ -663,8 +737,8 @@ class IPCompleter(Completer):
         # simply collapse the dict into a list for readline, but we'd have
         # richer completion semantics in other evironments.
         self.matches = sorted(set(self.matches))
-        #from IPython.utils.io import rprint; rprint(self.matches) # dbg
-        return self.matches
+        #io.rprint('COMP TEXT, MATCHES: %r, %r' % (text, self.matches)) # dbg
+        return text, self.matches
 
     def rlcomplete(self, text, state):
         """Return the state-th possible completion for 'text'.
@@ -679,14 +753,14 @@ class IPCompleter(Completer):
 
           state : int
             Counter used by readline.
-
         """
-
-        #print "rlcomplete! '%s' %s" % (text, state) # dbg
-
         if state==0:
+
             self.full_lbuf = line_buffer = self.get_line_buffer()
             cursor_pos = self.get_endidx()
+
+            #io.rprint("\nRLCOMPLETE: %r %r %r" %
+            #          (text, line_buffer, cursor_pos) ) # dbg
 
             # if there is only a tab on a line with only whitespace, instead of
             # the mostly useless 'do you want to see all million completions'
@@ -699,7 +773,7 @@ class IPCompleter(Completer):
 
             # don't apply this on 'dumb' terminals, such as emacs buffers, so
             # we don't interfere with their own tab-completion mechanism.
-            if not (self.dumb_terminal or self.full_lbuf.strip()):
+            if not (self.dumb_terminal or line_buffer.strip()):
                 self.readline.insert_text('\t')
                 sys.stdout.flush()
                 return None
@@ -719,4 +793,3 @@ class IPCompleter(Completer):
             return self.matches[state]
         except IndexError:
             return None
-

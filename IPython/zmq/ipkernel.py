@@ -13,6 +13,7 @@ Things to do:
 #-----------------------------------------------------------------------------
 # Imports
 #-----------------------------------------------------------------------------
+from __future__ import print_function
 
 # Standard library imports.
 import __builtin__
@@ -25,6 +26,7 @@ import zmq
 
 # Local imports.
 from IPython.config.configurable import Configurable
+from IPython.utils import io
 from IPython.utils.traitlets import Instance
 from completer import KernelCompleter
 from entry_point import base_launch_kernel, make_argument_parser, make_kernel, \
@@ -126,11 +128,10 @@ class Kernel(Configurable):
             assert self.reply_socket.rcvmore(), "Missing message part."
             msg = self.reply_socket.recv_json()
             omsg = Message(msg)
-            print>>sys.__stdout__
-            print>>sys.__stdout__, omsg
+            io.rprint('\n', omsg)
             handler = self.handlers.get(omsg.msg_type, None)
             if handler is None:
-                print >> sys.__stderr__, "UNKNOWN MESSAGE TYPE:", omsg
+                io.rprinte("UNKNOWN MESSAGE TYPE:", omsg)
             else:
                 handler(ident, omsg)
 
@@ -142,8 +143,8 @@ class Kernel(Configurable):
         try:
             code = parent[u'content'][u'code']
         except:
-            print>>sys.__stderr__, "Got bad msg: "
-            print>>sys.__stderr__, Message(parent)
+            io.rprinte("Got bad msg: ")
+            io.rprinte(Message(parent))
             return
         pyin_msg = self.session.msg(u'pyin',{u'code':code}, parent=parent)
         self.pub_socket.send_json(pyin_msg)
@@ -200,25 +201,27 @@ class Kernel(Configurable):
 
         # Send the reply.
         reply_msg = self.session.msg(u'execute_reply', reply_content, parent)
-        print>>sys.__stdout__, Message(reply_msg)
+        io.rprint(Message(reply_msg))
         self.reply_socket.send(ident, zmq.SNDMORE)
         self.reply_socket.send_json(reply_msg)
         if reply_msg['content']['status'] == u'error':
             self._abort_queue()
 
     def complete_request(self, ident, parent):
-        matches = {'matches' : self._complete(parent),
+        txt, matches = self._complete(parent)
+        matches = {'matches' : matches,
+                   'matched_text' : txt,
                    'status' : 'ok'}
         completion_msg = self.session.send(self.reply_socket, 'complete_reply',
                                            matches, parent, ident)
-        print >> sys.__stdout__, completion_msg
+        io.rprint(completion_msg)
 
     def object_info_request(self, ident, parent):
         context = parent['content']['oname'].split('.')
         object_info = self._object_info(context)
         msg = self.session.send(self.reply_socket, 'object_info_reply',
                                 object_info, parent, ident)
-        print >> sys.__stdout__, msg
+        io.rprint(msg)
 
     def prompt_request(self, ident, parent):
         prompt_number = self.shell.displayhook.prompt_count
@@ -228,7 +231,7 @@ class Kernel(Configurable):
                    'input_sep'     : self.shell.displayhook.input_sep}
         msg = self.session.send(self.reply_socket, 'prompt_reply',
                                 content, parent, ident)
-        print >> sys.__stdout__, msg
+        io.rprint(msg)
 
     def history_request(self, ident, parent):
         output = parent['content']['output']
@@ -238,7 +241,7 @@ class Kernel(Configurable):
         content = {'history' : hist}
         msg = self.session.send(self.reply_socket, 'history_reply',
                                 content, parent, ident)
-        print >> sys.__stdout__, msg
+        io.rprint(msg)
         
     #---------------------------------------------------------------------------
     # Protected interface
@@ -254,12 +257,11 @@ class Kernel(Configurable):
             else:
                 assert self.reply_socket.rcvmore(), "Unexpected missing message part."
                 msg = self.reply_socket.recv_json()
-            print>>sys.__stdout__, "Aborting:"
-            print>>sys.__stdout__, Message(msg)
+            io.rprint("Aborting:\n", Message(msg))
             msg_type = msg['msg_type']
             reply_type = msg_type.split('_')[0] + '_reply'
             reply_msg = self.session.msg(reply_type, {'status' : 'aborted'}, msg)
-            print>>sys.__stdout__, Message(reply_msg)
+            io.rprint(Message(reply_msg))
             self.reply_socket.send(ident,zmq.SNDMORE)
             self.reply_socket.send_json(reply_msg)
             # We need to wait a bit for requests to come in. This can probably
@@ -281,23 +283,22 @@ class Kernel(Configurable):
         try:
             value = reply['content']['value']
         except:
-            print>>sys.__stderr__, "Got bad raw_input reply: "
-            print>>sys.__stderr__, Message(parent)
+            io.rprinte("Got bad raw_input reply: ")
+            io.rprinte(Message(parent))
             value = ''
         return value
     
     def _complete(self, msg):
-        #from IPython.utils.io import rprint  # dbg
-        #rprint('\n\n**MSG**\n\n', msg)  # dbg
-        #import traceback; rprint(''.join(traceback.format_stack())) # dbg
         c = msg['content']
         try:
             cpos = int(c['cursor_pos'])
         except:
             # If we don't get something that we can convert to an integer, at
-            # leasat attempt the completion guessing the cursor is at the end
-            # of the text
+            # least attempt the completion guessing the cursor is at the end of
+            # the text, if there's any, and otherwise of the line
             cpos = len(c['text'])
+            if cpos==0:
+                cpos = len(c['line'])
         return self.shell.complete(c['text'], c['line'], cpos)
 
     def _object_info(self, context):

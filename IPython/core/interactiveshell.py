@@ -1370,19 +1370,29 @@ class InteractiveShell(Configurable, Magic):
     #-------------------------------------------------------------------------
 
     def complete(self, text, line=None, cursor_pos=None):
-        """Return a sorted list of all possible completions on text.
+        """Return the completed text and a list of completions.
 
         Parameters
         ----------
 
            text : string
-             A string of text to be completed on.
+             A string of text to be completed on.  It can be given as empty and
+             instead a line/position pair are given.  In this case, the
+             completer itself will split the line like readline does.
 
            line : string, optional
              The complete line that text is part of.
 
            cursor_pos : int, optional
              The position of the cursor on the input line.
+
+        Returns
+        -------
+          text : string
+            The actual text that was completed.
+
+          matches : list
+            A sorted list with all possible completions.
 
         The optional arguments allow the completion to take more context into
         account, and are part of the low-level completion API.
@@ -1394,23 +1404,17 @@ class InteractiveShell(Configurable, Magic):
 
         Simple usage example:
 
-        In [7]: x = 'hello'
+        In [1]: x = 'hello'
 
-        In [8]: x
-        Out[8]: 'hello'
-
-        In [9]: print x
-        hello
-
-        In [10]: _ip.complete('x.l')
-        Out[10]: ['x.ljust', 'x.lower', 'x.lstrip']
+        In [2]: _ip.complete('x.l')
+        Out[2]: ('x.l', ['x.ljust', 'x.lower', 'x.lstrip'])
         """
 
         # Inject names into __builtin__ so we can complete on the added names.
         with self.builtin_trap:
-            return self.Completer.complete(text,line_buffer=text)
+            return self.Completer.complete(text, line, cursor_pos)
 
-    def set_custom_completer(self,completer,pos=0):
+    def set_custom_completer(self, completer, pos=0):
         """Adds a new custom completer function.
 
         The position argument (defaults to 0) is the index in the completers
