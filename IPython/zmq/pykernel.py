@@ -131,7 +131,7 @@ class Kernel(HasTraits):
             self._abort_queue()
 
     def complete_request(self, ident, parent):
-        matches = {'matches' : self.complete(parent),
+        matches = {'matches' : self._complete(parent),
                    'status' : 'ok'}
         completion_msg = self.session.send(self.reply_socket, 'complete_reply',
                                            matches, parent, ident)

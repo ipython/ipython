@@ -792,9 +792,10 @@ class ConsoleWidget(QtGui.QWidget):
         # Note: this code is adapted from columnize 0.3.2.
         # See http://code.google.com/p/pycolumnize/
 
+        # Calculate the number of characters available.
         width = self._control.viewport().width()
         char_width = QtGui.QFontMetrics(self.font).width(' ')
-        displaywidth = max(5, width / char_width)
+        displaywidth = max(10, (width / char_width) - 1)
 
         # Some degenerate cases.
         size = len(items)

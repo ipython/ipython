@@ -84,6 +84,19 @@ class IPythonWidget(FrontendWidget):
     # 'BaseFrontendMixin' abstract interface
     #---------------------------------------------------------------------------
 
+    def _handle_complete_reply(self, rep):
+        """ Reimplemented to support IPython's improved completion machinery.
+        """
+        cursor = self._get_cursor()
+        if rep['parent_header']['msg_id'] == self._complete_id and \
+                cursor.position() == self._complete_pos:
+            # The completer tells us what text was actually used for the
+            # matching, so we must move that many characters left to apply the
+            # completions.
+            text = rep['content']['matched_text']
+            cursor.movePosition(QtGui.QTextCursor.Left, n=len(text))
+            self._complete_with_items(cursor, rep['content']['matches'])
+
     def _handle_history_reply(self, msg):
         """ Implemented to handle history replies, which are only supported by
             the IPython kernel.
@@ -130,6 +143,22 @@ class IPythonWidget(FrontendWidget):
     #---------------------------------------------------------------------------
     # 'FrontendWidget' protected interface
     #---------------------------------------------------------------------------
+
+    def _complete(self):
+        """ Reimplemented to support IPython's improved completion machinery.
+        """
+        # We let the kernel split the input line, so we *always* send an empty
+        # text field. Readline-based frontends do get a real text field which
+        # they can use.
+        text = ''
+        
+        # Send the completion request to the kernel
+        self._complete_id = self.kernel_manager.xreq_channel.complete(
+            text,                                    # text
+            self._get_input_buffer_cursor_line(),    # line
+            self._get_input_buffer_cursor_column(),  # cursor_pos
+            self.input_buffer)                       # block 
+        self._complete_pos = self._get_cursor().position()
 
     def _get_banner(self):
         """ Reimplemented to return IPython's default banner.
