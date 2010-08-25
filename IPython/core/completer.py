@@ -708,9 +708,6 @@ class IPCompleter(Completer):
         self.full_lbuf = line_buffer
         self.lbuf = self.full_lbuf[:cursor_pos]
 
-        if text.startswith('~'):
-            text = os.path.expanduser(text)
-
         #io.rprint('COMP2 %r %r %r' % (text, line_buffer, cursor_pos))  # dbg
 
         # Start with a clean slate of completions
