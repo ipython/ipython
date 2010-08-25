@@ -60,7 +60,7 @@ class IPythonWidget(FrontendWidget):
     out_prompt = 'Out[<span class="out-prompt-number">%i</span>]: '
 
     # FrontendWidget protected class variables.
-    #_input_splitter_class = IPythonInputSplitter
+    _input_splitter_class = IPythonInputSplitter
 
     # IPythonWidget protected class variables.
     _payload_source_edit = 'IPython.zmq.zmqshell.ZMQInteractiveShell.edit_magic'

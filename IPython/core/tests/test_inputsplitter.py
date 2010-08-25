@@ -411,13 +411,15 @@ syntax = \
        classic_prompt =
        [('>>> x=1', 'x=1'),
         ('x=1', 'x=1'), # normal input is unmodified
-        ('    ','    '),  # blank lines are kept intact
+        ('    ', '    '),  # blank lines are kept intact
+        ('... ', ''), # continuation prompts
         ],
 
        ipy_prompt =
        [('In [1]: x=1', 'x=1'),
         ('x=1', 'x=1'), # normal input is unmodified
         ('    ','    '),  # blank lines are kept intact
+        ('   ....: ', ''), # continuation prompts
         ],
 
        # Tests for the escape transformer to leave normal code alone
@@ -474,9 +476,6 @@ syntax = \
          ('/f a b', 'f(a, b)'),
          ],
 
-       # More complex multiline tests
-       ## escaped_multiline =
-       ## [()],
        )
 
 # multiline syntax examples.  Each of these should be a list of lists, with
@@ -555,8 +554,9 @@ class IPythonInputTestCase(InputSplitterTestCase):
     In addition, this runs the tests over the syntax and syntax_ml dicts that
     were tested by individual functions, as part of the OO interface.
     """
+
     def setUp(self):
-        self.isp = isp.IPythonInputSplitter()
+        self.isp = isp.IPythonInputSplitter(input_mode='append')
 
     def test_syntax(self):
         """Call all single-line syntax tests from the main object"""
@@ -569,7 +569,7 @@ class IPythonInputTestCase(InputSplitterTestCase):
                 isp.push(raw)
                 out = isp.source_reset().rstrip()
                 self.assertEqual(out, out_t)
-        
+
     def test_syntax_multiline(self):
         isp = self.isp
         for example in syntax_ml.itervalues():
@@ -583,15 +583,41 @@ class IPythonInputTestCase(InputSplitterTestCase):
                 out_t = '\n'.join(out_t_parts).rstrip()
                 self.assertEqual(out, out_t)
                 
-        
+
+class BlockIPythonInputTestCase(IPythonInputTestCase):
+
+    # Deactivate tests that don't make sense for the block mode
+    test_push3 = test_split = lambda s: None
+    
+    def setUp(self):
+        self.isp = isp.IPythonInputSplitter(input_mode='replace')
+
+    def test_syntax_multiline(self):
+        isp = self.isp
+        for example in syntax_ml.itervalues():
+            raw_parts = []
+            out_t_parts = []
+            for line_pairs in example:
+                for raw, out_t_part in line_pairs:
+                    raw_parts.append(raw)
+                    out_t_parts.append(out_t_part)
+
+                raw = '\n'.join(raw_parts)
+                out_t = '\n'.join(out_t_parts)
+
+                isp.push(raw)
+                out = isp.source_reset()
+                # Match ignoring trailing whitespace
+                self.assertEqual(out.rstrip(), out_t.rstrip())
+    
+
 #-----------------------------------------------------------------------------
-# Main - use as a script
+# Main - use as a script, mostly for developer experiments
 #-----------------------------------------------------------------------------
 
 if __name__ == '__main__':
     # A simple demo for interactive experimentation.  This code will not get
-    # picked up by any test suite.  Useful mostly for illustration and during
-    # development.
+    # picked up by any test suite.
     from IPython.core.inputsplitter import InputSplitter, IPythonInputSplitter
 
     # configure here the syntax to use, prompt and whether to autoindent

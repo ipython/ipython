@@ -71,7 +71,6 @@ import sys
 
 # IPython modules
 from IPython.utils.text import make_quoted_expr
-
 #-----------------------------------------------------------------------------
 # Globals
 #-----------------------------------------------------------------------------
@@ -223,7 +222,7 @@ class InputSplitter(object):
         ----------
         input_mode : str
 
-          One of 'append', 'replace', default is 'append'.  This controls how
+          One of ['append', 'replace']; default is 'append'.  This controls how
           new inputs are used: in 'append' mode, they are appended to the
           existing buffer and the whole buffer is compiled; in 'replace' mode,
           each new input completely replaces all prior inputs.  Replace mode is
@@ -680,8 +679,10 @@ def transform_ipy_prompt(line):
 
     if not line or line.isspace():
         return line
+    #print 'LINE:  %r' % line # dbg
     m = _ipy_prompt_re.match(line)
     if m:
+        #print 'MATCH! %r -> %r' % (line, line[len(m.group(0)):]) # dbg
         return line[len(m.group(0)):]
     else:
         return line
@@ -828,12 +829,30 @@ class IPythonInputSplitter(InputSplitter):
         #
         # FIXME: try to find a cleaner approach for this last bit.
 
-        for line in lines_list:
-            if self._is_complete or not self._buffer or \
-               (self._buffer and self._buffer[-1].rstrip().endswith(':')):
-                for f in transforms:
-                    line = f(line)
-                
-            out = super(IPythonInputSplitter, self).push(line)
+        # If we were in 'replace' mode, since we're going to pump the parent
+        # class by hand line by line, we need to temporarily switch out to
+        # 'append' mode, do a single manual reset and then feed the lines one
+        # by one.  Note that this only matters if the input has more than one
+        # line.
+        changed_input_mode = False
+        
+        if len(lines_list)>1 and self.input_mode == 'replace':
+            self.reset()
+            changed_input_mode = True
+            saved_input_mode = 'replace'
+            self.input_mode = 'append'
 
+        try:
+            push = super(IPythonInputSplitter, self).push
+            for line in lines_list:
+                if self._is_complete or not self._buffer or \
+                   (self._buffer and self._buffer[-1].rstrip().endswith(':')):
+                    for f in transforms:
+                        line = f(line)
+
+                out = push(line)
+        finally:
+            if changed_input_mode:
+                self.input_mode = saved_input_mode
+        
         return out
