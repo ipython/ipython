@@ -9,6 +9,7 @@ IO related utilities.
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
 #-----------------------------------------------------------------------------
+from __future__ import print_function
 
 #-----------------------------------------------------------------------------
 # Imports
@@ -38,13 +39,13 @@ class IOStream:
         except:
             try:
                 # print handles some unicode issues which may trip a plain
-                # write() call.  Attempt to emulate write() by using a
-                # trailing comma
-                print >> self.stream, data,
+                # write() call.  Emulate write() by using an empty end
+                # argument.
+                print(data, end='', file=self.stream)
             except:
                 # if we get here, something is seriously broken.
-                print >> sys.stderr, \
-                      'ERROR - failed to write data to stream:', self.stream
+                print('ERROR - failed to write data to stream:', self.stream,
+                      file=sys.stderr)
 
     # This class used to have a writeln method, but regular files and streams
     # in Python don't have this method. We need to keep this completely
@@ -240,7 +241,7 @@ class NLprinter:
         start = kw['start']; del kw['start']
         stop = kw['stop']; del kw['stop']
         if self.depth == 0 and 'header' in kw.keys():
-            print kw['header']
+            print(kw['header'])
 
         for idx in range(start,stop):
             elem = lst[idx]
@@ -277,10 +278,17 @@ def temp_pyfile(src, ext='.py'):
     return fname, f
 
 
-def rprint(*info):
+def rprint(*args, **kw):
+    """Raw print to sys.__stdout__"""
+    
+    print(*args, sep=kw.get('sep', ' '), end=kw.get('end', '\n'),
+          file=sys.__stdout__)
+    sys.__stdout__.flush()
+
+
+def rprinte(*args, **kw):
     """Raw print to sys.__stderr__"""
     
-    for item in info:
-        print >> sys.__stderr__, item,
-    print >> sys.__stderr__
+    print(*args, sep=kw.get('sep', ' '), end=kw.get('end', '\n'),
+          file=sys.__stderr__)
     sys.__stderr__.flush()
