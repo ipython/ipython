@@ -268,6 +268,11 @@ class ConsoleWidget(QtGui.QWidget):
         A boolean indicating whether the source was executed.
         """
         if not hidden:
+            # Do everything here inside an edit block so continuation prompts
+            # are removed seamlessly via undo/redo.
+            cursor = self._control.textCursor()
+            cursor.beginEditBlock()
+
             if source is not None:
                 self.input_buffer = source
 
@@ -284,11 +289,19 @@ class ConsoleWidget(QtGui.QWidget):
                 # This ensures that _prompt_pos does not become invalid due to
                 # text truncation.
                 self._control.document().setMaximumBlockCount(self.buffer_size)
+
+                # Setting a positive maximum block count will automatically
+                # disable the undo/redo history, but just to be safe:
+                self._control.setUndoRedoEnabled(False)
+
             self._execute(real_source, hidden)
         elif hidden:
             raise RuntimeError('Incomplete noninteractive input: "%s"' % source)
         else:
             self._show_continuation_prompt()
+
+        if not hidden:
+            cursor.endEditBlock()
 
         return complete
 
@@ -546,6 +559,7 @@ class ConsoleWidget(QtGui.QWidget):
         control.redoAvailable.connect(self.redo_available)
         control.undoAvailable.connect(self.undo_available)
         control.setReadOnly(True)
+        control.setUndoRedoEnabled(False)
         control.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOn)
         return control
 
@@ -555,6 +569,7 @@ class ConsoleWidget(QtGui.QWidget):
         control = QtGui.QPlainTextEdit()
         control.installEventFilter(self)
         control.setReadOnly(True)
+        control.setUndoRedoEnabled(False)
         control.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOn)
         return control
 
@@ -664,10 +679,12 @@ class ConsoleWidget(QtGui.QWidget):
                 if not self._reading and \
                         cursor.columnNumber() == len_prompt and \
                         position != self._prompt_pos:
+                    cursor.beginEditBlock()
                     cursor.movePosition(QtGui.QTextCursor.StartOfBlock,
                                         QtGui.QTextCursor.KeepAnchor)
                     cursor.removeSelectedText()
                     cursor.deletePreviousChar()
+                    cursor.endEditBlock()
                     intercepted = True
 
                 # Regular backwards deletion
@@ -679,8 +696,23 @@ class ConsoleWidget(QtGui.QWidget):
                         intercepted = not self._in_buffer(min(anchor, position))
 
             elif key == QtCore.Qt.Key_Delete:
-                anchor = cursor.anchor()
-                intercepted = not self._in_buffer(min(anchor, position))
+
+                # Line deletion (remove continuation prompt)
+                if not self._reading and cursor.atBlockEnd() and not \
+                        cursor.hasSelection():
+                    cursor.movePosition(QtGui.QTextCursor.NextBlock,
+                                        QtGui.QTextCursor.KeepAnchor)
+                    cursor.movePosition(QtGui.QTextCursor.Right,
+                                        QtGui.QTextCursor.KeepAnchor,
+                                        len(self._continuation_prompt))
+                    cursor.removeSelectedText()
+                    intercepted = True
+
+                # Regular forwards deletion:
+                else:
+                    anchor = cursor.anchor()
+                    intercepted = (not self._in_buffer(anchor) or
+                                   not self._in_buffer(position))
 
         # Don't move the cursor if control is down to allow copy-paste using
         # the keyboard in any part of the buffer.
@@ -1026,7 +1058,10 @@ class ConsoleWidget(QtGui.QWidget):
         """
         # Temporarily disable the maximum block count to permit undo/redo and 
         # to ensure that the prompt position does not change due to truncation.
-        self._control.document().setMaximumBlockCount(0)
+        # Because setting this property clears the undo/redo history, we only
+        # set it if we have to.
+        if self._control.document().maximumBlockCount() > 0:
+            self._control.document().setMaximumBlockCount(0)
         self._control.setUndoRedoEnabled(True)
 
         self._control.setReadOnly(False)
@@ -1039,7 +1074,6 @@ class ConsoleWidget(QtGui.QWidget):
         """ Called immediately after a prompt is finished, i.e. when some input
             will be processed and a new prompt displayed.
         """
-        self._control.setUndoRedoEnabled(False)
         self._control.setReadOnly(True)
         self._prompt_finished_hook()
 

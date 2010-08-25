@@ -296,8 +296,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         # Decide if it makes sense to show a call tip
         cursor = self._get_cursor()
         cursor.movePosition(QtGui.QTextCursor.Left)
-        document = self._control.document()
-        if document.characterAt(cursor.position()).toAscii() != '(':
+        if cursor.document().characterAt(cursor.position()).toAscii() != '(':
             return False
         context = self._get_context(cursor)
         if not context:
@@ -312,14 +311,6 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
     def _complete(self):
         """ Performs completion at the current cursor location.
         """
-        # Decide if it makes sense to do completion
-
-        # We should return only if the line is empty.  Otherwise, let the
-        # kernel split the line up.
-        line = self._get_input_buffer_cursor_line()
-        if not line:
-            return False
-
         # We let the kernel split the input line, so we *always* send an empty
         # text field.  Readline-based frontends do get a real text field which
         # they can use.
@@ -327,12 +318,11 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         
         # Send the completion request to the kernel
         self._complete_id = self.kernel_manager.xreq_channel.complete(
-            text,                                      # text
-            line,                                      # line
+            text,                                    # text
+            self._get_input_buffer_cursor_line(),    # line
             self._get_input_buffer_cursor_column(),  # cursor_pos
             self.input_buffer)                       # block 
         self._complete_pos = self._get_cursor().position()
-        return True
 
     def _get_banner(self):
         """ Gets a banner to display at the beginning of a session.
@@ -342,7 +332,8 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         return banner % (sys.version, sys.platform)
 
     def _get_context(self, cursor=None):
-        """ Gets the context at the current cursor location.
+        """ Gets the context for the specified cursor (or the current cursor
+            if none is specified).
         """
         if cursor is None:
             cursor = self._get_cursor()
