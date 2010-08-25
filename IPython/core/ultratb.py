@@ -429,9 +429,9 @@ class ListTB(TBTools):
                          ostream=ostream)
         
     def __call__(self, etype, value, elist):
-        io.Term.cout.flush()
-        io.Term.cerr.write(self.text(etype, value, elist))
-        io.Term.cerr.write('\n')
+        self.ostream.flush()
+        self.ostream.write(self.text(etype, value, elist))
+        self.ostream.write('\n')
 
     def structured_traceback(self, etype, value, elist, tb_offset=None,
                              context=5):
@@ -742,7 +742,7 @@ class VerboseTB(TBTools):
             # So far, I haven't been able to find an isolated example to
             # reproduce the problem.
             inspect_error()
-            traceback.print_exc(file=io.Term.cerr)
+            traceback.print_exc(file=self.ostream)
             info('\nUnfortunately, your original traceback can not be constructed.\n')
             return ''
 
@@ -779,7 +779,7 @@ class VerboseTB(TBTools):
                 # able to remove this try/except when 2.4 becomes a
                 # requirement.  Bug details at http://python.org/sf/1005466
                 inspect_error()
-                traceback.print_exc(file=io.Term.cerr)
+                traceback.print_exc(file=self.ostream)
                 info("\nIPython's exception reporting continues...\n")
                 
             if func == '?':
@@ -800,7 +800,7 @@ class VerboseTB(TBTools):
                     # and barfs out. At some point I should dig into this one
                     # and file a bug report about it.
                     inspect_error()
-                    traceback.print_exc(file=io.Term.cerr)
+                    traceback.print_exc(file=self.ostream)
                     info("\nIPython's exception reporting continues...\n")
                     call = tpl_call_fail % func
 
