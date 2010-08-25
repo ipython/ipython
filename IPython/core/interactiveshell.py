@@ -194,8 +194,8 @@ class InteractiveShell(Configurable, Magic):
     # TODO: this part of prompt management should be moved to the frontends.
     # Use custom TraitTypes that convert '0'->'' and '\\n'->'\n'
     separate_in = SeparateStr('\n', config=True)
-    separate_out = SeparateStr('\n', config=True)
-    separate_out2 = SeparateStr('\n', config=True)
+    separate_out = SeparateStr('', config=True)
+    separate_out2 = SeparateStr('', config=True)
     system_header = Str('IPython system call: ', config=True)
     system_verbose = CBool(False, config=True)
     wildcards_case_sensitive = CBool(True, config=True)

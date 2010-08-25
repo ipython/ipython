@@ -79,6 +79,7 @@ def make_kernel(namespace, kernel_factory,
 
     # Redirect input streams and set a display hook.
     if out_stream_factory:
+        pass
         sys.stdout = out_stream_factory(session, pub_socket, u'stdout')
         sys.stderr = out_stream_factory(session, pub_socket, u'stderr')
     if display_hook_factory:

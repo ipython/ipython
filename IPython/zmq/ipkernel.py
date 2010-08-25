@@ -25,8 +25,8 @@ import zmq
 
 # Local imports.
 from IPython.config.configurable import Configurable
+from IPython.lib import pylabtools
 from IPython.utils.traitlets import Instance
-from completer import KernelCompleter
 from entry_point import base_launch_kernel, make_argument_parser, make_kernel, \
     start_kernel
 from iostream import OutStream
@@ -49,15 +49,6 @@ class Kernel(Configurable):
     pub_socket = Instance('zmq.Socket')
     req_socket = Instance('zmq.Socket')
 
-    # Maps user-friendly backend names to matplotlib backend identifiers.
-    _pylab_map = { 'tk': 'TkAgg',
-                   'gtk': 'GTKAgg',
-                   'wx': 'WXAgg',
-                   'qt': 'Qt4Agg', # qt3 not supported
-                   'qt4': 'Qt4Agg',
-                   'payload-svg' : \
-                       'module://IPython.zmq.pylab.backend_payload_svg' }
-
     def __init__(self, **kwargs):
         super(Kernel, self).__init__(**kwargs)
 
@@ -77,62 +68,32 @@ class Kernel(Configurable):
         for msg_type in msg_types:
             self.handlers[msg_type] = getattr(self, msg_type)
 
-    def activate_pylab(self, backend=None, import_all=True):
-        """ Activates pylab in this kernel's namespace.
-
-        Parameters:
-        -----------
-        backend : str, optional
-            A valid backend name.
-
-        import_all : bool, optional
-            If true, an 'import *' is done from numpy and pylab.
-        """
-        # FIXME: This is adapted from IPython.lib.pylabtools.pylab_activate.
-        #        Common functionality should be refactored.
-
-        # We must set the desired backend before importing pylab.
-        import matplotlib
-        if backend:
-            backend_id = self._pylab_map[backend]
-            if backend_id.startswith('module://'):
-                # Work around bug in matplotlib: matplotlib.use converts the
-                # backend_id to lowercase even if a module name is specified!
-                matplotlib.rcParams['backend'] = backend_id
+    def do_one_iteration(self):
+        try:
+            ident = self.reply_socket.recv(zmq.NOBLOCK)
+        except zmq.ZMQError, e:
+            if e.errno == zmq.EAGAIN:
+                return
             else:
-                matplotlib.use(backend_id)
-
-        # Import numpy as np/pyplot as plt are conventions we're trying to
-        # somewhat standardize on. Making them available to users by default
-        # will greatly help this.
-        exec ("import numpy\n"
-              "import matplotlib\n"
-              "from matplotlib import pylab, mlab, pyplot\n"
-              "np = numpy\n"
-              "plt = pyplot\n"
-              ) in self.shell.user_ns
-
-        if import_all:
-            exec("from matplotlib.pylab import *\n"
-                 "from numpy import *\n") in self.shell.user_ns
-
-        matplotlib.interactive(True)
+                raise
+        # FIXME: Bug in pyzmq/zmq?
+        # assert self.reply_socket.rcvmore(), "Missing message part."
+        msg = self.reply_socket.recv_json()
+        omsg = Message(msg)
+        print>>sys.__stdout__
+        print>>sys.__stdout__, omsg
+        handler = self.handlers.get(omsg.msg_type, None)
+        if handler is None:
+            print >> sys.__stderr__, "UNKNOWN MESSAGE TYPE:", omsg
+        else:
+            handler(ident, omsg)
 
     def start(self):
         """ Start the kernel main loop.
         """
         while True:
-            ident = self.reply_socket.recv()
-            assert self.reply_socket.rcvmore(), "Missing message part."
-            msg = self.reply_socket.recv_json()
-            omsg = Message(msg)
-            print>>sys.__stdout__
-            print>>sys.__stdout__, omsg
-            handler = self.handlers.get(omsg.msg_type, None)
-            if handler is None:
-                print >> sys.__stderr__, "UNKNOWN MESSAGE TYPE:", omsg
-            else:
-                handler(ident, omsg)
+            time.sleep(0.05)
+            self.do_one_iteration()
 
     #---------------------------------------------------------------------------
     # Kernel request handlers
@@ -330,6 +291,19 @@ class Kernel(Configurable):
 
         return symbol, []
 
+
+class QtKernel(Kernel):
+
+    def start(self):
+        """Start a kernel with QtPy4 event loop integration."""
+        from PyQt4 import QtGui, QtCore
+        self.qapp = app = QtGui.QApplication([])
+        self.qtimer = QtCore.QTimer()
+        self.qtimer.timeout.connect(self.do_one_iteration)
+        self.qtimer.start(50)
+        self.qapp.exec_()
+
+
 #-----------------------------------------------------------------------------
 # Kernel main and launch functions
 #-----------------------------------------------------------------------------
@@ -386,13 +360,31 @@ given, the GUI backend is matplotlib's, otherwise use one of: \
 ['tk', 'gtk', 'qt', 'wx', 'payload-svg'].")
     namespace = parser.parse_args()
 
-    kernel = make_kernel(namespace, Kernel, OutStream)
+    kernel_class = Kernel
+
+    _kernel_classes = {
+        'qt' : QtKernel,
+        'qt4' : QtKernel,
+        'payload-svg':Kernel
+    }
     if namespace.pylab:
         if namespace.pylab == 'auto':
-            kernel.activate_pylab()
+            gui, backend = pylabtools.find_gui_and_backend()
         else:
-            kernel.activate_pylab(namespace.pylab)
-    
+            gui, backend = pylabtools.find_gui_and_backend(namespace.pylab)
+        print gui, backend
+        kernel_class = _kernel_classes.get(gui)
+        if kernel_class is None:
+            raise ValueError('GUI is not supported: %r' % gui)
+        pylabtools.activate_matplotlib(backend)
+
+    print>>sys.__stdout__, kernel_class
+    kernel = make_kernel(namespace, kernel_class, OutStream)
+    print >>sys.__stdout__, kernel
+
+    if namespace.pylab:
+        pylabtools.import_pylab(kernel.shell.user_ns)
+
     start_kernel(namespace, kernel)
 
 if __name__ == '__main__':
