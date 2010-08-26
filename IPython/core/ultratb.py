@@ -604,7 +604,7 @@ class ListTB(TBTools):
         return ListTB.structured_traceback(self, etype, value, [])
 
 
-    def show_exception_only(self, etype, value):
+    def show_exception_only(self, etype, evalue):
         """Only print the exception type and message, without a traceback.
         
         Parameters

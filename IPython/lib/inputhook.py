@@ -76,7 +76,7 @@ def appstart_qt4(app):
     except ImportError:
         app.exec_()
     """
-    from PyQt4 import QtCore, QtGui
+    from PyQt4 import QtCore
 
     assert isinstance(app, QtCore.QCoreApplication)
     if app is not None:
@@ -241,6 +241,7 @@ class InputHookManager(object):
         mainloop at anytime but startup.
         """
         import Tkinter
+        # FIXME: gtk is not imported here and we shouldn't be using gtk.main!
         orig_mainloop = gtk.main
         dumb_ml = _DummyMainloop(orig_mainloop, self, GUI_TK)
         Tkinter.Misc.mainloop = dumb_ml
@@ -252,7 +253,7 @@ class InputHookManager(object):
         This is for internal IPython use only and user code should not call this.
         Instead, they should issue the raw GUI calls themselves.
         """
-        from PyQt4 import QtCore, QtGui
+        from PyQt4 import QtCore
 
         app = QtCore.QCoreApplication.instance()
         if app is not None:

@@ -4,7 +4,7 @@
 """
 
 # Systemm library imports
-from PyQt4 import QtCore, QtGui
+from PyQt4 import QtGui
 
 # Local imports
 from IPython.external.argparse import ArgumentParser
@@ -37,8 +37,11 @@ def main():
     egroup = kgroup.add_mutually_exclusive_group()
     egroup.add_argument('--pure', action='store_true', help = \
                         'use a pure Python kernel instead of an IPython kernel')
-    egroup.add_argument('--pylab', action='store_true',
-                        help='use a kernel with PyLab enabled')
+    egroup.add_argument('--pylab', type=str, metavar='GUI', nargs='?', 
+                       const='auto', help = \
+                       "Pre-load matplotlib and numpy for interactive use. If GUI is not \
+                       given, the GUI backend is matplotlib's, otherwise use one of: \
+                       ['tk', 'gtk', 'qt', 'wx', 'payload-svg'].")
 
     wgroup = parser.add_argument_group('widget options')
     wgroup.add_argument('--paging', type=str, default='inside',
@@ -48,9 +51,9 @@ def main():
                         help='enable rich text support')
     wgroup.add_argument('--tab-simple', action='store_true',
                         help='do tab completion ala a Unix terminal')
-    
+
     args = parser.parse_args()
-    
+
     # Don't let Qt or ZMQ swallow KeyboardInterupts.
     import signal
     signal.signal(signal.SIGINT, signal.SIG_DFL)
@@ -66,7 +69,10 @@ def main():
             if args.rich:
                 kernel_manager.start_kernel(pylab='payload-svg')
             else:
-                kernel_manager.start_kernel(pylab='qt4')
+                if args.pylab == 'auto':
+                    kernel_manager.start_kernel(pylab='qt4')
+                else:
+                    kernel_manager.start_kernel(pylab=args.pylab)
         else:
             kernel_manager.start_kernel()
     kernel_manager.start_channels()

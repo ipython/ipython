@@ -5,7 +5,6 @@ import sys
 # System library imports
 from pygments.lexers import PythonLexer
 from PyQt4 import QtCore, QtGui
-import zmq
 
 # Local imports
 from IPython.core.inputsplitter import InputSplitter

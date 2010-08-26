@@ -3,6 +3,7 @@ launchers.
 """
 
 # Standard library imports.
+import os
 import socket
 from subprocess import Popen
 import sys
@@ -63,7 +64,10 @@ def make_kernel(namespace, kernel_factory,
     """ Creates a kernel.
     """
     # Install minimal exception handling
-    sys.excepthook = FormattedTB(mode='Verbose', ostream=sys.__stdout__)
+    color_scheme = 'LightBG' if sys.platform == 'darwin' else 'Linux'
+    sys.excepthook = FormattedTB(
+        mode='Verbose', color_scheme=color_scheme, ostream=sys.__stdout__
+    )
 
     # Create a context, a session, and the kernel sockets.
     io.rprint("Starting the kernel...")
@@ -84,6 +88,7 @@ def make_kernel(namespace, kernel_factory,
 
     # Redirect input streams and set a display hook.
     if out_stream_factory:
+        pass
         sys.stdout = out_stream_factory(session, pub_socket, u'stdout')
         sys.stderr = out_stream_factory(session, pub_socket, u'stderr')
     if display_hook_factory:
