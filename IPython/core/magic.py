@@ -513,16 +513,13 @@ Currently the magic system has the following functions:\n"""
                                      magic_docs,mesc,mesc,
                                      ('  '+mesc).join(self.lsmagic()),
                                      Magic.auto_status[self.shell.automagic] ) )
-
-        page.page(outmsg,screen_lines=self.shell.usable_screen_length)
-  
+        page.page(outmsg)
 
     def magic_autoindent(self, parameter_s = ''):
         """Toggle autoindent on/off (if available)."""
 
         self.shell.set_autoindent()
         print "Automatic indentation is:",['OFF','ON'][self.shell.autoindent]
-
 
     def magic_automagic(self, parameter_s = ''):
         """Make magic functions callable without having to type the initial %.
@@ -1520,7 +1517,7 @@ Currently the magic system has the following functions:\n"""
         output = stdout_trap.getvalue()
         output = output.rstrip()
 
-        page.page(output,screen_lines=self.shell.usable_screen_length)
+        page.page(output)
         print sys_exit,
 
         dump_file = opts.D[0]
@@ -3255,9 +3252,8 @@ Defaulting color scheme to 'NoColor'"""
         if cont is None:
             print "Error: no such file or variable"
             return
-            
-        page.page(self.shell.pycolorize(cont),
-             screen_lines=self.shell.usable_screen_length)
+
+        page.page(self.shell.pycolorize(cont))
 
     def _rerun_pasted(self):
         """ Rerun a previously pasted command.
