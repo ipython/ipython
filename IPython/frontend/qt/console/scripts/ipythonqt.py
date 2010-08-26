@@ -35,8 +35,11 @@ def main():
     group = parser.add_mutually_exclusive_group()
     group.add_argument('--pure', action='store_true', help = \
                        'use a pure Python kernel instead of an IPython kernel')
-    group.add_argument('--pylab', action='store_true',
-                        help='use a kernel with PyLab enabled')
+    group.add_argument('--pylab', type=str, metavar='GUI', nargs='?', 
+                       const='auto', help = \
+                       "Pre-load matplotlib and numpy for interactive use. If GUI is not \
+                       given, the GUI backend is matplotlib's, otherwise use one of: \
+                       ['tk', 'gtk', 'qt', 'wx', 'payload-svg'].")
     parser.add_argument('--rich', action='store_true',
                         help='use a rich text frontend')
     args = parser.parse_args()
@@ -56,7 +59,10 @@ def main():
             if args.rich:
                 kernel_manager.start_kernel(pylab='payload-svg')
             else:
-                kernel_manager.start_kernel(pylab='qt4')
+                if args.pylab == 'auto':
+                    kernel_manager.start_kernel(pylab='qt4')
+                else:
+                    kernel_manager.start_kernel(pylab=args.pylab)
         else:
             kernel_manager.start_kernel()
     kernel_manager.start_channels()

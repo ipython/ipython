@@ -293,16 +293,79 @@ class Kernel(Configurable):
 
 
 class QtKernel(Kernel):
+    """A Kernel subclass with Qt support."""
 
     def start(self):
         """Start a kernel with QtPy4 event loop integration."""
-        from PyQt4 import QtGui, QtCore
-        self.qapp = app = QtGui.QApplication([])
-        self.qtimer = QtCore.QTimer()
-        self.qtimer.timeout.connect(self.do_one_iteration)
-        self.qtimer.start(50)
-        self.qapp.exec_()
 
+        from PyQt4 import QtGui, QtCore
+        self.app = QtGui.QApplication([])
+        self.app.setQuitOnLastWindowClosed (False)
+        self.timer = QtCore.QTimer()
+        self.timer.timeout.connect(self.do_one_iteration)
+        self.timer.start(50)
+        self.app.exec_()
+
+
+class WxKernel(Kernel):
+    """A Kernel subclass with Wx support."""
+
+    def start(self):
+        """Start a kernel with wx event loop support."""
+
+        import wx
+        doi = self.do_one_iteration
+
+        # We have to put the wx.Timer in a wx.Frame for it to fire properly.
+        # We make the Frame hidden when we create it in the main app below.
+        class TimerFrame(wx.Frame):
+            def __init__(self, func):
+                wx.Frame.__init__(self, None, -1)
+                self.timer = wx.Timer(self)
+                self.timer.Start(50)
+                self.Bind(wx.EVT_TIMER, self.on_timer)
+                self.func = func
+            def on_timer(self, event):
+                self.func()
+
+        # We need a custom wx.App to create our Frame subclass that has the
+        # wx.Timer to drive the ZMQ event loop.
+        class IPWxApp(wx.App):
+            def OnInit(self):
+                self.frame = TimerFrame(doi)
+                self.frame.Show(False)
+                return True
+
+        # The redirect=False here makes sure that wx doesn't replace
+        # sys.stdout/stderr with its own classes.
+        self.app = IPWxApp(redirect=False)
+        self.app.MainLoop()
+
+
+class TkKernel(Kernel):
+    """A Kernel subclass with Tk support."""
+
+    def start(self):
+        """Start a Tk enabled event loop."""
+
+        import Tkinter
+        doi = self.do_one_iteration
+
+        # For Tkinter, we create a Tk object and call its withdraw method.
+        class Timer(object):
+            def __init__(self, func):
+                self.app = Tkinter.Tk()
+                self.app.withdraw()
+                self.func = func
+            def on_timer(self):
+                self.func()
+                self.app.after(50, self.on_timer)
+            def start(self):
+                self.on_timer()  # Call it once to get things going.
+                self.app.mainloop()
+
+        self.timer = Timer(doi)
+        self.timer.start()
 
 #-----------------------------------------------------------------------------
 # Kernel main and launch functions
@@ -365,22 +428,21 @@ given, the GUI backend is matplotlib's, otherwise use one of: \
     _kernel_classes = {
         'qt' : QtKernel,
         'qt4' : QtKernel,
-        'payload-svg':Kernel
+        'payload-svg':Kernel,
+        'wx' : WxKernel,
+        'tk' : TkKernel
     }
     if namespace.pylab:
         if namespace.pylab == 'auto':
             gui, backend = pylabtools.find_gui_and_backend()
         else:
             gui, backend = pylabtools.find_gui_and_backend(namespace.pylab)
-        print gui, backend
         kernel_class = _kernel_classes.get(gui)
         if kernel_class is None:
             raise ValueError('GUI is not supported: %r' % gui)
         pylabtools.activate_matplotlib(backend)
 
-    print>>sys.__stdout__, kernel_class
     kernel = make_kernel(namespace, kernel_class, OutStream)
-    print >>sys.__stdout__, kernel
 
     if namespace.pylab:
         pylabtools.import_pylab(kernel.shell.user_ns)

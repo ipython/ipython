@@ -73,8 +73,20 @@ def activate_matplotlib(backend):
     else:
         matplotlib.use(backend)
     matplotlib.interactive(True)
+
+    # This must be imported last in the matplotlib series, after
+    # backend/interactivity choices have been made
     import matplotlib.pylab as pylab
 
+    # XXX For now leave this commented out, but depending on discussions with
+    # mpl-dev, we may be able to allow interactive switching...
+    #import matplotlib.pyplot
+    #matplotlib.pyplot.switch_backend(backend)
+
+    pylab.show._needmain = False
+    # We need to detect at runtime whether show() is called by the user.
+    # For this, we wrap it into a decorator which adds a 'called' flag.
+    pylab.draw_if_interactive = flag_calls(pylab.draw_if_interactive)
 
 def import_pylab(user_ns, import_all=True):
     """Import the standard pylab symbols into user_ns."""
@@ -115,24 +127,8 @@ def pylab_activate(user_ns, gui=None, import_all=True):
     The actual gui used (if not given as input, it was obtained from matplotlib
     itself, and will be needed next to configure IPython's gui integration.
     """
-
     gui, backend = find_gui_and_backend(gui)
     activate_matplotlib(backend)
-
-    # This must be imported last in the matplotlib series, after
-    # backend/interactivity choices have been made
-    import matplotlib.pylab as pylab
-
-    # XXX For now leave this commented out, but depending on discussions with
-    # mpl-dev, we may be able to allow interactive switching...
-    #import matplotlib.pyplot
-    #matplotlib.pyplot.switch_backend(backend)
-
-    pylab.show._needmain = False
-    # We need to detect at runtime whether show() is called by the user.
-    # For this, we wrap it into a decorator which adds a 'called' flag.
-    pylab.draw_if_interactive = flag_calls(pylab.draw_if_interactive)
-
     import_pylab(user_ns)
 
     print """
