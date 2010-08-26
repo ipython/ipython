@@ -32,6 +32,7 @@ from contextlib import nested
 from IPython.config.configurable import Configurable
 from IPython.core import debugger, oinspect
 from IPython.core import history as ipcorehist
+from IPython.core import page
 from IPython.core import prefilter
 from IPython.core import shadowns
 from IPython.core import ultratb
@@ -2115,6 +2116,10 @@ class InteractiveShell(Configurable, Magic):
         if self.quiet:
             return True
         return ask_yes_no(prompt,default)
+    
+    def show_usage(self):
+        """Show a usage message"""
+        page.page(IPython.core.usage.interactive_usage)
 
     #-------------------------------------------------------------------------
     # Things related to IPython exiting

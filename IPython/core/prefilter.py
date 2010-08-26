@@ -960,7 +960,7 @@ class HelpHandler(PrefilterHandler):
                 #print 'line:<%r>' % line  # dbg
                 self.shell.magic_pinfo(line)
             else:
-                page.page(self.shell.usage, screen_lines=self.shell.usable_screen_length)
+                self.shell.show_usage()
             return '' # Empty string is needed here!
         except:
             raise
