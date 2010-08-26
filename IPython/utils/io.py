@@ -278,17 +278,22 @@ def temp_pyfile(src, ext='.py'):
     return fname, f
 
 
-def rprint(*args, **kw):
-    """Raw print to sys.__stdout__"""
+def raw_print(*args, **kw):
+    """Raw print to sys.__stdout__, otherwise identical interface to print()."""
     
     print(*args, sep=kw.get('sep', ' '), end=kw.get('end', '\n'),
           file=sys.__stdout__)
     sys.__stdout__.flush()
 
 
-def rprinte(*args, **kw):
-    """Raw print to sys.__stderr__"""
+def raw_print_err(*args, **kw):
+    """Raw print to sys.__stderr__, otherwise identical interface to print()."""
     
     print(*args, sep=kw.get('sep', ' '), end=kw.get('end', '\n'),
           file=sys.__stderr__)
     sys.__stderr__.flush()
+
+
+# Short aliases for quick debugging, do NOT use these in production code.
+rprint = raw_print
+rprinte = raw_print_err
