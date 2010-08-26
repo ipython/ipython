@@ -8,7 +8,6 @@ from IPython.core.interactiveshell import (
 )
 from IPython.core.displayhook import DisplayHook
 from IPython.core.macro import Macro
-from IPython.utils.io import rprint
 from IPython.utils.path import get_py_filename
 from IPython.utils.text import StringTypes
 from IPython.utils.traitlets import Instance, Type, Dict

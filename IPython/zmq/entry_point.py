@@ -70,21 +70,21 @@ def make_kernel(namespace, kernel_factory,
     )
 
     # Create a context, a session, and the kernel sockets.
-    io.rprint("Starting the kernel...")
+    io.raw_print("Starting the kernel...")
     context = zmq.Context()
     session = Session(username=u'kernel')
 
     reply_socket = context.socket(zmq.XREP)
     xrep_port = bind_port(reply_socket, namespace.ip, namespace.xrep)
-    io.rprint("XREP Channel on port", xrep_port)
+    io.raw_print("XREP Channel on port", xrep_port)
 
     pub_socket = context.socket(zmq.PUB)
     pub_port = bind_port(pub_socket, namespace.ip, namespace.pub)
-    io.rprint("PUB Channel on port", pub_port)
+    io.raw_print("PUB Channel on port", pub_port)
 
     req_socket = context.socket(zmq.XREQ)
     req_port = bind_port(req_socket, namespace.ip, namespace.req)
-    io.rprint("REQ Channel on port", req_port)
+    io.raw_print("REQ Channel on port", req_port)
 
     # Redirect input streams and set a display hook.
     if out_stream_factory:
