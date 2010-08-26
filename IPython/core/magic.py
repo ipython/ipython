@@ -2635,8 +2635,8 @@ Defaulting color scheme to 'NoColor'"""
         You can use the %l specifier in an alias definition to represent the
         whole line when the alias is called.  For example:
 
-          In [2]: alias all echo "Input in brackets: <%l>"
-          In [3]: all hello world
+          In [2]: alias bracket echo "Input in brackets: <%l>"
+          In [3]: bracket hello world
           Input in brackets: <hello world>
 
         You can also define aliases with parameters using %s specifiers (one
