@@ -629,7 +629,13 @@ class ConsoleWidget(QtGui.QWidget):
                     cursor.removeSelectedText()
                 intercepted = True
 
+            elif key == QtCore.Qt.Key_L:
+                self.clear()
+                intercepted = True
+
             elif key == QtCore.Qt.Key_X:
+                # FIXME: Instead of disabling cut completely, only allow it
+                # when safe.
                 intercepted = True
 
             elif key == QtCore.Qt.Key_Y:
@@ -1285,8 +1291,11 @@ class HistoryConsoleWidget(ConsoleWidget):
             source, hidden, interactive)
 
         if executed and not hidden:
-            self._history.append(history.rstrip())
-            self._history_index = len(self._history)
+            # Save the command unless it was a blank line.
+            history = history.rstrip()
+            if history:
+                self._history.append(history)
+                self._history_index = len(self._history)
 
         return executed
 
