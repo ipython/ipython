@@ -9,6 +9,7 @@ from PyQt4 import QtCore, QtGui
 # Local imports
 from IPython.core.inputsplitter import InputSplitter
 from IPython.frontend.qt.base_frontend_mixin import BaseFrontendMixin
+from IPython.utils.traitlets import Bool, Type
 from call_tip_widget import CallTipWidget
 from completion_lexer import CompletionLexer
 from console_widget import HistoryConsoleWidget
@@ -74,12 +75,12 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
 
     # An option and corresponding signal for overriding the default kernel
     # interrupt behavior.
-    custom_interrupt = False
+    custom_interrupt = Bool(False)
     custom_interrupt_requested = QtCore.pyqtSignal()
 
     # An option and corresponding signal for overriding the default kernel
     # restart behavior.
-    custom_restart = False
+    custom_restart = Bool(False)
     custom_restart_requested = QtCore.pyqtSignal()
    
     # Emitted when an 'execute_reply' has been received from the kernel and
@@ -87,8 +88,8 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
     executed = QtCore.pyqtSignal(object)
     
     # Protected class variables.
-    _highlighter_class = FrontendHighlighter
-    _input_splitter_class = InputSplitter
+    _highlighter_class = Type(FrontendHighlighter)
+    _input_splitter_class = Type(InputSplitter)
 
     #---------------------------------------------------------------------------
     # 'object' interface

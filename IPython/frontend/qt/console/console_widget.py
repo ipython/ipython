@@ -7,6 +7,9 @@ from textwrap import dedent
 from PyQt4 import QtCore, QtGui
 
 # Local imports
+from IPython.config.configurable import Configurable
+from IPython.frontend.qt.util import MetaQObjectHasTraits
+from IPython.utils.traitlets import Bool, Enum, Int
 from ansi_code_processor import QtAnsiCodeProcessor
 from completion_widget import CompletionWidget
 
@@ -32,7 +35,7 @@ class ConsoleTextEdit(QtGui.QTextEdit):
     def dropEvent(self, event): pass
 
 
-class ConsoleWidget(QtGui.QWidget):
+class ConsoleWidget(Configurable, QtGui.QWidget):
     """ An abstract base class for console-type widgets. This class has 
         functionality for:
 
@@ -45,20 +48,40 @@ class ConsoleWidget(QtGui.QWidget):
         ConsoleWidget also provides a number of utility methods that will be
         convenient to implementors of a console-style widget.
     """
+    __metaclass__ = MetaQObjectHasTraits
 
     # Whether to process ANSI escape codes.
-    ansi_codes = True
+    ansi_codes = Bool(True, config=True)
 
-    # The maximum number of lines of text before truncation.
-    buffer_size = 500
+    # The maximum number of lines of text before truncation. Specifying a
+    # non-positive number disables text truncation (not recommended).
+    buffer_size = Int(500, config=True)
 
     # Whether to use a list widget or plain text output for tab completion.
-    gui_completion = True
+    gui_completion = Bool(True, config=True)
+
+    # The type of underlying text widget to use. Valid values are 'plain', which
+    # specifies a QPlainTextEdit, and 'rich', which specifies a QTextEdit.
+    # NOTE: this value can only be specified during initialization.
+    kind = Enum(['plain', 'rich'], default_value='plain', config=True)
+
+    # The type of paging to use. Valid values are:
+    #     'inside' : The widget pages like a traditional terminal pager.
+    #     'hsplit' : When paging is requested, the widget is split
+    #                horizontally. The top pane contains the console, and the
+    #                bottom pane contains the paged text.
+    #     'vsplit' : Similar to 'hsplit', except that a vertical splitter used.
+    #     'custom' : No action is taken by the widget beyond emitting a
+    #                'custom_page_requested(str)' signal.
+    #     'none'   : The text is written directly to the console.
+    # NOTE: this value can only be specified during initialization.
+    paging = Enum(['inside', 'hsplit', 'vsplit', 'custom', 'none'], 
+                  default_value='inside', config=True)
 
     # Whether to override ShortcutEvents for the keybindings defined by this
     # widget (Ctrl+n, Ctrl+a, etc). Enable this if you want this widget to take
     # priority (when it has focus) over, e.g., window-level menu shortcuts.
-    override_shortcuts = False
+    override_shortcuts = Bool(False)
 
     # Signals that indicate ConsoleWidget state.
     copy_available = QtCore.pyqtSignal(bool)
@@ -84,42 +107,26 @@ class ConsoleWidget(QtGui.QWidget):
     # 'QObject' interface
     #---------------------------------------------------------------------------
 
-    def __init__(self, kind='plain', paging='inside', parent=None):
+    def __init__(self, parent=None, **kw):
         """ Create a ConsoleWidget.
-        
-        Parameters
-        ----------
-        kind : str, optional [default 'plain']            
-            The type of underlying text widget to use. Valid values are 'plain',
-            which specifies a QPlainTextEdit, and 'rich', which specifies a
-            QTextEdit.
 
-        paging : str, optional [default 'inside']
-            The type of paging to use. Valid values are:
-                'inside' : The widget pages like a traditional terminal pager.
-                'hsplit' : When paging is requested, the widget is split 
-                           horizontally. The top pane contains the console,
-                           and the bottom pane contains the paged text.
-                'vsplit' : Similar to 'hsplit', except that a vertical splitter
-                           used.
-                'custom' : No action is taken by the widget beyond emitting a
-                           'custom_page_requested(str)' signal.
-                'none'   : The text is written directly to the console.
-
+        Parameters:
+        -----------
         parent : QWidget, optional [default None]
             The parent for this widget.
         """
-        super(ConsoleWidget, self).__init__(parent)
+        QtGui.QWidget.__init__(self, parent)
+        Configurable.__init__(self, **kw)
 
         # Create the layout and underlying text widget.
         layout = QtGui.QStackedLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
-        self._control = self._create_control(kind)
+        self._control = self._create_control()
         self._page_control = None
         self._splitter = None
-        if paging in ('hsplit', 'vsplit'):
+        if self.paging in ('hsplit', 'vsplit'):
             self._splitter = QtGui.QSplitter()
-            if paging == 'hsplit':
+            if self.paging == 'hsplit':
                 self._splitter.setOrientation(QtCore.Qt.Horizontal)
             else:
                 self._splitter.setOrientation(QtCore.Qt.Vertical)
@@ -129,16 +136,13 @@ class ConsoleWidget(QtGui.QWidget):
             layout.addWidget(self._control)
 
         # Create the paging widget, if necessary.
-        self._page_style = paging
-        if paging in ('inside', 'hsplit', 'vsplit'):
+        if self.paging in ('inside', 'hsplit', 'vsplit'):
             self._page_control = self._create_page_control()
             if self._splitter:
                 self._page_control.hide()
                 self._splitter.addWidget(self._page_control)
             else:
                 layout.addWidget(self._page_control)
-        elif paging not in ('custom', 'none'):
-            raise ValueError('Paging style %s unknown.' % repr(paging))
 
         # Initialize protected variables. Some variables contain useful state
         # information for subclasses; they should be considered read-only.
@@ -210,11 +214,11 @@ class ConsoleWidget(QtGui.QWidget):
         # factor of one character here.
         width = font_metrics.maxWidth() * 81 + margin
         width += style.pixelMetric(QtGui.QStyle.PM_ScrollBarExtent)
-        if self._page_style == 'hsplit':
+        if self.paging == 'hsplit':
             width = width * 2 + splitwidth
 
         height = font_metrics.height() * 25 + margin
-        if self._page_style == 'vsplit':
+        if self.paging == 'vsplit':
             height = height * 2 + splitwidth
 
         return QtCore.QSize(width, height)
@@ -577,16 +581,14 @@ class ConsoleWidget(QtGui.QWidget):
             
         return down
 
-    def _create_control(self, kind):
+    def _create_control(self):
         """ Creates and connects the underlying text widget.
         """
-        if kind == 'plain':
+        if self.kind == 'plain':
             control = ConsolePlainTextEdit()
-        elif kind == 'rich':
+        elif self.kind == 'rich':
             control = ConsoleTextEdit()
             control.setAcceptRichText(False)
-        else:
-            raise ValueError("Kind %s unknown." % repr(kind))
         control.installEventFilter(self)
         control.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         control.customContextMenuRequested.connect(self._show_context_menu)
@@ -1072,13 +1074,13 @@ class ConsoleWidget(QtGui.QWidget):
         """ Displays text using the pager if it exceeds the height of the
             visible area.
         """
-        if self._page_style == 'none':
+        if self.paging == 'none':
             self._append_plain_text(text)
         else:
             line_height = QtGui.QFontMetrics(self.font).height()
             minlines = self._control.viewport().height() / line_height
             if re.match("(?:[^\n]*\n){%i}" % minlines, text):
-                if self._page_style == 'custom':
+                if self.paging == 'custom':
                     self.custom_page_requested.emit(text)
                 else:
                     self._page_control.clear()

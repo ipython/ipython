@@ -16,49 +16,76 @@ from PyQt4 import QtCore, QtGui
 # Local imports
 from IPython.core.inputsplitter import IPythonInputSplitter
 from IPython.core.usage import default_banner
+from IPython.utils.traitlets import Bool, Str
 from frontend_widget import FrontendWidget
+
+# The default style sheet: black text on a white background.
+default_style_sheet = '''
+    .error { color: red; }
+    .in-prompt { color: navy; }
+    .in-prompt-number { font-weight: bold; }
+    .out-prompt { color: darkred; }
+    .out-prompt-number { font-weight: bold; }
+'''
+default_syntax_style = 'default'
+
+# A dark style sheet: white text on a black background.
+dark_style_sheet = '''
+    QPlainTextEdit, QTextEdit { background-color: black; color: white }
+    QFrame { border: 1px solid grey; }
+    .error { color: red; }
+    .in-prompt { color: lime; }
+    .in-prompt-number { color: lime; font-weight: bold; }
+    .out-prompt { color: red; }
+    .out-prompt-number { color: red; font-weight: bold; }
+'''
+dark_syntax_style = 'monokai'
+
+# Default prompts.
+default_in_prompt = 'In [<span class="in-prompt-number">%i</span>]: '
+default_out_prompt = 'Out[<span class="out-prompt-number">%i</span>]: '
 
 
 class IPythonWidget(FrontendWidget):
     """ A FrontendWidget for an IPython kernel.
     """
 
-    # Signal emitted when an editor is needed for a file and the editor has been
-    # specified as 'custom'. See 'set_editor' for more information.
+    # If set, the 'custom_edit_requested(str, int)' signal will be emitted when
+    # an editor is needed for a file. This overrides 'editor' and 'editor_line'
+    # settings.
+    custom_edit = Bool(False)
     custom_edit_requested = QtCore.pyqtSignal(object, object)
 
-    # The default stylesheet: black text on a white background.
-    default_stylesheet = """
-        .error { color: red; }
-        .in-prompt { color: navy; }
-        .in-prompt-number { font-weight: bold; }
-        .out-prompt { color: darkred; }
-        .out-prompt-number { font-weight: bold; }
-    """
+    # A command for invoking a system text editor. If the string contains a
+    # {filename} format specifier, it will be used. Otherwise, the filename will
+    # be appended to the end the command.
+    editor = Str('default', config=True)
 
-    # A dark stylesheet: white text on a black background.
-    dark_stylesheet = """
-        QPlainTextEdit, QTextEdit { background-color: black; color: white }
-        QFrame { border: 1px solid grey; }
-        .error { color: red; }
-        .in-prompt { color: lime; }
-        .in-prompt-number { color: lime; font-weight: bold; }
-        .out-prompt { color: red; }
-        .out-prompt-number { color: red; font-weight: bold; }
-    """
+    # The editor command to use when a specific line number is requested. The
+    # string should contain two format specifiers: {line} and {filename}. If
+    # this parameter is not specified, the line number option to the %edit magic
+    # will be ignored.
+    editor_line = Str(config=True)
 
-    # Default prompts.
-    in_prompt = 'In [<span class="in-prompt-number">%i</span>]: '
-    out_prompt = 'Out[<span class="out-prompt-number">%i</span>]: '
+    # A CSS stylesheet. The stylesheet can contain classes for:
+    #     1. Qt: QPlainTextEdit, QFrame, QWidget, etc
+    #     2. Pygments: .c, .k, .o, etc (see PygmentsHighlighter)
+    #     3. IPython: .error, .in-prompt, .out-prompt, etc
+    style_sheet = Str(default_style_sheet, config=True)
+    
+    # If not empty, use this Pygments style for syntax highlighting. Otherwise,
+    # the style sheet is queried for Pygments style information.
+    syntax_style = Str(default_syntax_style, config=True)
 
-    # A type used internally by IPythonWidget for storing prompt information.
-    _PromptBlock = namedtuple('_PromptBlock', 
-                              ['block', 'length', 'number'])
+    # Prompts.
+    in_prompt = Str(default_in_prompt, config=True)
+    out_prompt = Str(default_out_prompt, config=True)
 
     # FrontendWidget protected class variables.
     _input_splitter_class = IPythonInputSplitter
 
     # IPythonWidget protected class variables.
+    _PromptBlock = namedtuple('_PromptBlock', ['block', 'length', 'number'])
     _payload_source_edit = 'IPython.zmq.zmqshell.ZMQInteractiveShell.edit_magic'
     _payload_source_page = 'IPython.zmq.page.page'
 
@@ -72,9 +99,9 @@ class IPythonWidget(FrontendWidget):
         # IPythonWidget protected variables.
         self._previous_prompt_obj = None
 
-        # Set a default editor and stylesheet.
-        self.set_editor('default')
-        self.reset_styling()
+        # Initialize widget styling.
+        self._style_sheet_changed()
+        self._syntax_style_changed()
 
     #---------------------------------------------------------------------------
     # 'BaseFrontendMixin' abstract interface
@@ -248,67 +275,6 @@ class IPythonWidget(FrontendWidget):
                                       next_prompt['input_sep'])
 
     #---------------------------------------------------------------------------
-    # 'IPythonWidget' interface
-    #---------------------------------------------------------------------------
-
-    def reset_styling(self):
-        """ Restores the default IPythonWidget styling.
-        """
-        self.set_styling(self.default_stylesheet, syntax_style='default')
-        #self.set_styling(self.dark_stylesheet, syntax_style='monokai')
-
-    def set_editor(self, editor, line_editor=None):
-        """ Sets the editor to use with the %edit magic.
-
-        Parameters:
-        -----------
-        editor : str
-            A command for invoking a system text editor. If the string contains
-            a {filename} format specifier, it will be used. Otherwise, the 
-            filename will be appended to the end the command.
-
-            This parameter also takes a special value:
-                'custom'  : Emit a 'custom_edit_requested(str, int)' signal 
-                            instead of opening an editor.
-
-        line_editor : str, optional
-            The editor command to use when a specific line number is
-            requested. The string should contain two format specifiers: {line}
-            and {filename}. If this parameter is not specified, the line number
-            option to the %edit magic will be ignored.
-        """
-        self._editor = editor
-        self._editor_line = line_editor
-
-    def set_styling(self, stylesheet, syntax_style=None):
-        """ Sets the IPythonWidget styling.
-
-        Parameters:
-        -----------
-        stylesheet : str
-            A CSS stylesheet. The stylesheet can contain classes for:
-                1. Qt: QPlainTextEdit, QFrame, QWidget, etc
-                2. Pygments: .c, .k, .o, etc (see PygmentsHighlighter)
-                3. IPython: .error, .in-prompt, .out-prompt, etc.
-
-        syntax_style : str or None [default None]
-            If specified, use the Pygments style with given name. Otherwise, 
-            the stylesheet is queried for Pygments style information.
-        """
-        self.setStyleSheet(stylesheet)
-        self._control.document().setDefaultStyleSheet(stylesheet)
-        if self._page_control:
-            self._page_control.document().setDefaultStyleSheet(stylesheet)
-
-        if syntax_style is None:
-            self._highlighter.set_style_sheet(stylesheet)
-        else:
-            self._highlighter.set_style(syntax_style)
-
-        bg_color = self._control.palette().background().color()
-        self._ansi_processor.set_background_color(bg_color)
-
-    #---------------------------------------------------------------------------
     # 'IPythonWidget' protected interface
     #---------------------------------------------------------------------------
 
@@ -323,21 +289,21 @@ class IPythonWidget(FrontendWidget):
         line : int, optional
             A line of interest in the file.
         """
-        if self._editor == 'custom':
+        if self.custom_edit:
             self.custom_edit_requested.emit(filename, line)
-        elif self._editor == 'default':
+        elif self.editor == 'default':
             self._append_plain_text('No default editor available.\n')
         else:
             try:
                 filename = '"%s"' % filename
-                if line and self._editor_line:
-                    command = self._editor_line.format(filename=filename,
-                                                       line=line)
+                if line and self.editor_line:
+                    command = self.editor_line.format(filename=filename,
+                                                      line=line)
                 else:
                     try:
-                        command = self._editor.format()
+                        command = self.editor.format()
                     except KeyError:
-                        command = self._editor.format(filename=filename)
+                        command = self.editor.format(filename=filename)
                     else:
                         command += ' ' + filename
             except KeyError:
@@ -369,3 +335,25 @@ class IPythonWidget(FrontendWidget):
         """
         body = self.out_prompt % number
         return '<span class="out-prompt">%s</span>' % body
+
+    #------ Trait change handlers ---------------------------------------------
+
+    def _style_sheet_changed(self):
+        """ Set the style sheets of the underlying widgets.
+        """
+        self.setStyleSheet(self.style_sheet)
+        self._control.document().setDefaultStyleSheet(self.style_sheet)
+        if self._page_control:
+            self._page_control.document().setDefaultStyleSheet(self.style_sheet)
+
+        bg_color = self._control.palette().background().color()
+        self._ansi_processor.set_background_color(bg_color)
+
+    def _syntax_style_changed(self):
+        """ Set the style for the syntax highlighter.
+        """
+        if self.syntax_style:
+            self._highlighter.set_style(self.syntax_style)
+        else:
+            self._highlighter.set_style_sheet(self.style_sheet)
+        
