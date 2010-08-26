@@ -443,6 +443,7 @@ syntax = \
          ('??x2', 'get_ipython().magic("pinfo2 x2")'),
          ('x3?', 'get_ipython().magic("pinfo x3")'),
          ('x4??', 'get_ipython().magic("pinfo2 x4")'),
+         ('%hist?', 'get_ipython().magic("pinfo %hist")'),
          ],
 
        # Explicit magic calls

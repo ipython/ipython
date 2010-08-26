@@ -506,7 +506,8 @@ class InputSplitter(object):
 line_split = re.compile("""
              ^(\s*)              # any leading space
              ([,;/%]|!!?|\?\??)  # escape character or characters
-             \s*([\w\.]*)        # function/method part (mix of \w and '.')
+             \s*(%?[\w\.]*)      # function/method, possibly with leading %
+                                 # to correctly treat things like '?%magic'
              (\s+.*$|$)          # rest of line
              """, re.VERBOSE)
 
@@ -551,6 +552,8 @@ def split_user_input(line):
     ('', '', 'f.g(x)', '')
     >>> split_user_input('f.g (x)')
     ('', '', 'f.g', '(x)')
+    >>> split_user_input('?%hist')
+    ('', '?', '%hist', '')
     """
     match = line_split.match(line)
     if match:
