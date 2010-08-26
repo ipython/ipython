@@ -113,7 +113,7 @@ class ConsoleWidget(QtGui.QWidget):
 
         # Create the layout and underlying text widget.
         layout = QtGui.QStackedLayout(self)
-        layout.setMargin(0)
+        layout.setContentsMargins(0, 0, 0, 0)
         self._control = self._create_control(kind)
         self._page_control = None
         self._splitter = None
@@ -199,17 +199,21 @@ class ConsoleWidget(QtGui.QWidget):
         """ Reimplemented to suggest a size that is 80 characters wide and
             25 lines high.
         """
-        style = self.style()
-        opt = QtGui.QStyleOptionHeader()
         font_metrics = QtGui.QFontMetrics(self.font)
-        splitwidth = style.pixelMetric(QtGui.QStyle.PM_SplitterWidth, opt, self)
+        margin = (self._control.frameWidth() +
+                  self._control.document().documentMargin()) * 2
+        style = self.style()
+        splitwidth = style.pixelMetric(QtGui.QStyle.PM_SplitterWidth)
 
-        width = font_metrics.width(' ') * 80
-        width += style.pixelMetric(QtGui.QStyle.PM_ScrollBarExtent, opt, self)
+        # Despite my best efforts to take the various margins into account, the
+        # width is still coming out a bit too small, so we include a fudge
+        # factor of one character here.
+        width = font_metrics.maxWidth() * 81 + margin
+        width += style.pixelMetric(QtGui.QStyle.PM_ScrollBarExtent)
         if self._page_style == 'hsplit':
             width = width * 2 + splitwidth
 
-        height = font_metrics.height() * 25
+        height = font_metrics.height() * 25 + margin
         if self._page_style == 'vsplit':
             height = height * 2 + splitwidth
 
@@ -222,7 +226,7 @@ class ConsoleWidget(QtGui.QWidget):
     def can_paste(self):
         """ Returns whether text can be pasted from the clipboard.
         """
-        # Accept only text that can be ASCII encoded.
+        # Only accept text that can be ASCII encoded.
         if self._control.textInteractionFlags() & QtCore.Qt.TextEditable:
             text = QtGui.QApplication.clipboard().text()
             if not text.isEmpty():
@@ -800,7 +804,7 @@ class ConsoleWidget(QtGui.QWidget):
 
         # Calculate the number of characters available.
         width = self._control.viewport().width()
-        char_width = QtGui.QFontMetrics(self.font).width(' ')
+        char_width = QtGui.QFontMetrics(self.font).maxWidth()
         displaywidth = max(10, (width / char_width) - 1)
 
         # Some degenerate cases.
