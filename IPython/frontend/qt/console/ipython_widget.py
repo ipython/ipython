@@ -7,6 +7,7 @@
 """
 
 # Standard library imports
+from collections import namedtuple
 from subprocess import Popen
 
 # System library imports
@@ -16,15 +17,6 @@ from PyQt4 import QtCore, QtGui
 from IPython.core.inputsplitter import IPythonInputSplitter
 from IPython.core.usage import default_banner
 from frontend_widget import FrontendWidget
-
-
-class IPythonPromptBlock(object):
-    """ An internal storage object for IPythonWidget.
-    """
-    def __init__(self, block, length, number):
-        self.block = block
-        self.length = length
-        self.number = number
 
 
 class IPythonWidget(FrontendWidget):
@@ -58,6 +50,10 @@ class IPythonWidget(FrontendWidget):
     # Default prompts.
     in_prompt = 'In [<span class="in-prompt-number">%i</span>]: '
     out_prompt = 'Out[<span class="out-prompt-number">%i</span>]: '
+
+    # A type used internally by IPythonWidget for storing prompt information.
+    _PromptBlock = namedtuple('_PromptBlock', 
+                              ['block', 'length', 'number'])
 
     # FrontendWidget protected class variables.
     _input_splitter_class = IPythonInputSplitter
@@ -212,7 +208,7 @@ class IPythonWidget(FrontendWidget):
         self._show_prompt(self._make_in_prompt(number), html=True)
         block = self._control.document().lastBlock()
         length = len(self._prompt)
-        self._previous_prompt_obj = IPythonPromptBlock(block, length, number)
+        self._previous_prompt_obj = self._PromptBlock(block, length, number)
 
         # Update continuation prompt to reflect (possibly) new prompt length.
         self._set_continuation_prompt(
