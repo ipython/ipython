@@ -13,6 +13,8 @@ machinery.  This should thus be thought of as scaffolding.
 #-----------------------------------------------------------------------------
 # Imports
 #-----------------------------------------------------------------------------
+from __future__ import print_function
+
 # Stdlib
 import inspect
 import os
@@ -82,16 +84,23 @@ class ZMQInteractiveShell(InteractiveShell):
     displayhook_class = Type(ZMQDisplayHook)
 
     def system(self, cmd):
-        cmd = self.var_expand(cmd, depth=2)
+        cmd = self.var_expand(cmd, depth=2).strip()
+        
+        # Runnning a bacgkrounded process from within the gui isn't supported
+        # because we do p.wait() at the end.  So instead of silently blocking
+        # we simply refuse to run in this mode, to avoid surprising the user.
+        if cmd.endswith('&'):
+            raise OSError("Background processes not supported.")
+        
         sys.stdout.flush()
         sys.stderr.flush()
         p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE)
         for line in p.stdout.read().split('\n'):
             if len(line) > 0:
-                print line
+                print(line)
         for line in p.stderr.read().split('\n'):
             if len(line) > 0:
-                print line
+                print(line, file=sys.stderr)
         p.wait()
 
     def init_io(self):
@@ -375,7 +384,7 @@ class ZMQInteractiveShell(InteractiveShell):
 
         if use_temp:
             filename = self.shell.mktempfile(data)
-            print 'IPython will make a temporary file named:',filename
+            print('IPython will make a temporary file named:', filename)
 
         # Make sure we send to the client an absolute path, in case the working
         # directory of client and kernel don't match
