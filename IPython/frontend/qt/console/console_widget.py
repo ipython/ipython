@@ -643,6 +643,13 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
                 intercepted = True
 
             elif key == QtCore.Qt.Key_L:
+                # It would be better to simply move the prompt block to the top
+                # of the control viewport. QPlainTextEdit has a private method
+                # to do this (setTopBlock), but it cannot be duplicated here
+                # because it requires access to the QTextControl that underlies
+                # both QPlainTextEdit and QTextEdit. In short, this can only be
+                # achieved by appending newlines after the prompt, which is a
+                # gigantic hack and likely to cause other problems.
                 self.clear()
                 intercepted = True
 
