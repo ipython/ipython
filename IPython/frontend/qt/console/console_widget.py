@@ -632,6 +632,13 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
                 if self._in_buffer(position):
                     cursor.movePosition(QtGui.QTextCursor.EndOfLine,
                                         QtGui.QTextCursor.KeepAnchor)
+                    if not cursor.hasSelection():
+                        # Line deletion (remove continuation prompt)
+                        cursor.movePosition(QtGui.QTextCursor.NextBlock,
+                                            QtGui.QTextCursor.KeepAnchor)
+                        cursor.movePosition(QtGui.QTextCursor.Right,
+                                            QtGui.QTextCursor.KeepAnchor,
+                                            len(self._continuation_prompt))
                     cursor.removeSelectedText()
                 intercepted = True
 
@@ -702,17 +709,20 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
                 intercepted = not self._in_buffer(position - 1)
 
             elif key == QtCore.Qt.Key_Home:
-                cursor.movePosition(QtGui.QTextCursor.StartOfBlock)
                 start_line = cursor.blockNumber()
                 if start_line == self._get_prompt_cursor().blockNumber():
                     start_pos = self._prompt_pos
                 else:
+                    cursor.movePosition(QtGui.QTextCursor.StartOfBlock,
+                                        QtGui.QTextCursor.KeepAnchor)
                     start_pos = cursor.position()
                     start_pos += len(self._continuation_prompt)
+                    cursor.setPosition(position)
                 if shift_down and self._in_buffer(position):
-                    self._set_selection(position, start_pos)
+                    cursor.setPosition(start_pos, QtGui.QTextCursor.KeepAnchor)
                 else:
-                    self._set_position(start_pos)
+                    cursor.setPosition(start_pos)
+                self._set_cursor(cursor)
                 intercepted = True
 
             elif key == QtCore.Qt.Key_Backspace:
@@ -1183,18 +1193,6 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
         """ Convenience method to set the current cursor.
         """
         self._control.setTextCursor(cursor)
-
-    def _set_position(self, position):
-        """ Convenience method to set the position of the cursor.
-        """
-        cursor = self._control.textCursor()
-        cursor.setPosition(position)
-        self._control.setTextCursor(cursor)
-
-    def _set_selection(self, start, end):
-        """ Convenience method to set the current selected text.
-        """
-        self._control.setTextCursor(self._get_selection_cursor(start, end))
 
     def _show_context_menu(self, pos):
         """ Shows a context menu at the given QPoint (in widget coordinates).
