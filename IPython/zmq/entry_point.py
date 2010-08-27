@@ -64,10 +64,8 @@ def make_kernel(namespace, kernel_factory,
     """ Creates a kernel.
     """
     # Install minimal exception handling
-    color_scheme = 'LightBG' if sys.platform == 'darwin' else 'Linux'
-    sys.excepthook = FormattedTB(
-        mode='Verbose', color_scheme=color_scheme, ostream=sys.__stdout__
-    )
+    sys.excepthook = FormattedTB(mode='Verbose', color_scheme='NoColor', 
+                                 ostream=sys.__stdout__)
 
     # Create a context, a session, and the kernel sockets.
     io.raw_print("Starting the kernel...")
