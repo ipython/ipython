@@ -1,8 +1,29 @@
+"""A ZMQ-based subclass of InteractiveShell.
+
+This code is meant to ease the refactoring of the base InteractiveShell into
+something with a cleaner architecture for 2-process use, without actually
+breaking InteractiveShell itself.  So we're doing something a bit ugly, where
+we subclass and override what we want to fix.  Once this is working well, we
+can go back to the base class and refactor the code for a cleaner inheritance
+implementation that doesn't rely on so much monkeypatching.
+
+But this lets us maintain a fully working IPython as we develop the new
+machinery.  This should thus be thought of as scaffolding.
+"""
+#-----------------------------------------------------------------------------
+# Imports
+#-----------------------------------------------------------------------------
+from __future__ import print_function
+
+# Stdlib
 import inspect
+import os
 import re
 import sys
+
 from subprocess import Popen, PIPE
 
+# Our own
 from IPython.core.interactiveshell import (
     InteractiveShell, InteractiveShellABC
 )
@@ -16,9 +37,16 @@ from IPython.zmq.session import extract_header
 from IPython.core.payloadpage import install_payload_page
 from session import Session
 
+#-----------------------------------------------------------------------------
+# Globals and side-effects
+#-----------------------------------------------------------------------------
+
 # Install the payload version of page.
 install_payload_page()
 
+#-----------------------------------------------------------------------------
+# Functions and classes
+#-----------------------------------------------------------------------------
 
 class ZMQDisplayHook(DisplayHook):
 
@@ -56,16 +84,23 @@ class ZMQInteractiveShell(InteractiveShell):
     displayhook_class = Type(ZMQDisplayHook)
 
     def system(self, cmd):
-        cmd = self.var_expand(cmd, depth=2)
+        cmd = self.var_expand(cmd, depth=2).strip()
+        
+        # Runnning a bacgkrounded process from within the gui isn't supported
+        # because we do p.wait() at the end.  So instead of silently blocking
+        # we simply refuse to run in this mode, to avoid surprising the user.
+        if cmd.endswith('&'):
+            raise OSError("Background processes not supported.")
+        
         sys.stdout.flush()
         sys.stderr.flush()
         p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE)
         for line in p.stdout.read().split('\n'):
             if len(line) > 0:
-                print line
+                print(line)
         for line in p.stderr.read().split('\n'):
             if len(line) > 0:
-                print line
+                print(line, file=sys.stderr)
         p.wait()
 
     def init_io(self):
@@ -349,7 +384,11 @@ class ZMQInteractiveShell(InteractiveShell):
 
         if use_temp:
             filename = self.shell.mktempfile(data)
-            print 'IPython will make a temporary file named:',filename
+            print('IPython will make a temporary file named:', filename)
+
+        # Make sure we send to the client an absolute path, in case the working
+        # directory of client and kernel don't match
+        filename = os.path.abspath(filename)
 
         payload = {
             'source' : 'IPython.zmq.zmqshell.ZMQInteractiveShell.edit_magic',
