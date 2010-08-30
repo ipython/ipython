@@ -130,20 +130,9 @@ Messages on the XREP/XREQ socket
 Execute
 -------
 
-The execution request contains a single string, but this may be a multiline
-string.  The kernel is responsible for splitting this into possibly more than
-one block and deciding whether to compile these in 'single' or 'exec' mode.
-We're still sorting out this policy.  The current inputsplitter is capable of
-splitting the input for blocks that can all be run as 'single', but in the long
-run it may prove cleaner to only use 'single' mode for truly single-line
-inputs, and run all multiline input in 'exec' mode.  This would preserve the
-natural behavior of single-line inputs while allowing long cells to behave more
-likea a script.  This design will be refined as we complete the implementation.
-
-.. Note::
-
-   What today we call 'prompt requests' will be encoded in the
-   ``state_template`` field.
+This message type is used by frontends to ask the kernel to execute code on
+behalf of the user, in a namespace reserved to the user's variables (and thus
+separate from the kernel's own internal code and variables).
 
 Message type: ``execute_request``::
 
@@ -162,25 +151,75 @@ Message type: ``execute_request``::
     # The default is False.
     'silent' : bool,
 
-    # An optional string to request arbitrary state information from the
-    # kernel.  This string is evaluated via the itpl module, and it can
-    # therefore contain arbitrary code for execution.
-    
-    'state_template' : str,
+    # A list of variable names from the user's namespace to be retrieved.  What
+    # returns is a JSON string of the variable's repr(), not a python object.
+    'user_variables' : list,
+
+    # Similarly, a dict mapping names to expressions to be evaluated in the
+    # user's dict.
+    'user_expressions' : dict,
     }
 
+The ``code`` field contains a single string, but this may be a multiline
+string.  The kernel is responsible for splitting this into possibly more than
+one block and deciding whether to compile these in 'single' or 'exec' mode.
+We're still sorting out this policy.  The current inputsplitter is capable of
+splitting the input for blocks that can all be run as 'single', but in the long
+run it may prove cleaner to only use 'single' mode for truly single-line
+inputs, and run all multiline input in 'exec' mode.  This would preserve the
+natural behavior of single-line inputs while allowing long cells to behave more
+likea a script.  This design will be refined as we complete the implementation.
+
+The ``user_`` fields deserve a detailed explanation.  In the past, IPython had
+the notion of a prompt string that allowed arbitrary code to be evaluated, and
+this was put to good use by many in creating prompts that displayed system
+status, path information, and even more esoteric uses like remote instrument
+status aqcuired over the network.  But now that IPython has a clean separation
+between the kernel and the clients, the notion of embedding 'prompt'
+maninpulations into the kernel itself feels awkward.  Prompts should be a
+frontend-side feature, and it should be even possible for different frontends
+to display different prompts while interacting with the same kernel.
+
+We have therefore abandoned the idea of a 'prompt string' to be evaluated by
+the kernel, and instead provide the ability to retrieve from the user's
+namespace information after the execution of the main ``code``, with two fields
+of the execution request:
+
+- ``user_variables``: If only variables from the user's namespace are needed, a
+  list of variable names can be passed and a dict with these names as keys and
+  their :func:`repr()` as values will be returned.
+
+- ``user_expressions``: For more complex expressions that require function
+  evaluations, a dict can be provided with string keys and arbitrary python
+  expressions as values.  The return message will contain also a dict with the
+  same keys and the :func:`repr()` of the evaluated expressions as value.
+
+With this information, frontends can display any status information they wish
+in the form that best suits each frontend (a status line, a popup, inline for a
+terminal, etc).
+
+.. Note::
+
+   In order to obtain the current execution counter for the purposes of
+   displaying input prompts, frontends simply make an execution request with an
+   empty code string and ``silent=True``.
+
 Execution semantics
-    Upon execution of the ``code`` field, the kernel *always* sends a reply,
-    with a status code indicating what happened and additional data depending
-    on the outcome.
+    Upon completion of the execution request, the kernel *always* sends a
+    reply, with a status code indicating what happened and additional data
+    depending on the outcome.
 
-    Any code in the ``state_template`` string is evaluated, but full exceptions
-    that may occur are *not* propagated back.  If any error occurs during the
-    evaluation, the value of the string will simply be::
+    The ``code`` field is executed first, and then the ``user_variables`` and
+    ``user_expressions`` are computed.  This ensures that any error in the
+    latter don't harm the main code execution.
 
-       [ERROR in <contents of template>: ExceptionType - Exception message]
+    Any error in retrieving the ``user_variables`` or evaluating the
+    ``user_expressions`` will result in a simple error message in the return
+    fields of the form::
 
-    The user can simply send the same code contained in the template for normal
+       [ERROR] ExceptionType: Exception message
+
+    The user can simply send the same variable name or expression for
     evaluation to see a regular traceback.
 
 Execution counter (old prompt number)
@@ -280,7 +319,7 @@ Message type: ``getattr_request``::
 
     content = {
         # The (possibly dotted) name of the attribute
-	'name' : str
+	'name' : str,
     }
 
 When a ``getattr_request`` fails, there are two possible error types:
@@ -296,20 +335,20 @@ Message type: ``getattr_reply``::
 
     content = {
         # One of ['ok', 'AttributeError', 'AccessError'].
-        'status' : str
+        'status' : str,
 	# If status is 'ok', a JSON object.
-	'value' : object
+	'value' : object,
     }
 
 Message type: ``setattr_request``::
 
     content = {
         # The (possibly dotted) name of the attribute
-	'name' : str
+	'name' : str,
 	
 	# A JSON-encoded object, that will be validated by the Traits
 	# information in the kernel
-	'value' : object
+	'value' : object,
     }
 
 When a ``setattr_request`` fails, there are also two possible error types with
@@ -319,7 +358,7 @@ Message type: ``setattr_reply``::
 
     content = {
         # One of ['ok', 'AttributeError', 'AccessError'].
-        'status' : str
+        'status' : str,
     }
 
 
@@ -391,13 +430,13 @@ Message type: ``object_info_reply``::
 		  # The name of the varargs (*args), if any
                   varargs : str,
 		  # The name of the varkw (**kw), if any
-		  varkw : str
+		  varkw : str,
 		  # The values (as strings) of all default arguments.  Note
 		  # that these must be matched *in reverse* with the 'args'
 		  # list above, since the first positional args have no default
 		  # value at all.
-		  func_defaults : list
-		  }
+		  func_defaults : list,
+		  },
 
     # For instances, provide the constructor signature (the definition of
     # the __init__ method):
@@ -487,6 +526,7 @@ Message type: ``history_reply``::
       # respectively.
       'history' : dict,
     }
+    
 Messages on the PUB/SUB socket
 ==============================
 
@@ -539,10 +579,10 @@ Message type: ``pyout``::
         # The data is typically the repr() of the object.
     'data' : str,
     
-    # The prompt number for this execution is also provided so that clients
-    # can display it, since IPython automatically creates variables called
-    # _N (for prompt N).
-    'prompt_number' : int,
+    # The counter for this execution is also provided so that clients can
+    # display it, since IPython automatically creates variables called _N (for
+    # prompt N).
+    'execution_count' : int,
     }
     
 Python errors
