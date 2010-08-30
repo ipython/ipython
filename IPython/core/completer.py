@@ -432,13 +432,12 @@ class IPCompleter(Completer):
         current (as of Python 2.3) Python readline it's possible to do
         better."""
 
-        #print 'Completer->file_matches: <%s>' % text # dbg
+        #io.rprint('Completer->file_matches: <%s>' % text) # dbg
 
         # chars that require escaping with backslash - i.e. chars
         # that readline treats incorrectly as delimiters, but we
         # don't want to treat as delimiters in filename matching
         # when escaped with backslash
-
         if text.startswith('!'):
             text = text[1:]
             text_prefix = '!'
@@ -463,7 +462,7 @@ class IPCompleter(Completer):
             # tab pressed on empty line
             lsplit = ""
 
-        if lsplit != protect_filename(lsplit):
+        if not open_quotes and lsplit != protect_filename(lsplit):
             # if protectables are found, do matching on the whole escaped
             # name
             has_protectables = 1
@@ -493,8 +492,7 @@ class IPCompleter(Completer):
                 matches = [text_prefix + 
                            protect_filename(f) for f in m0]
 
-        #print 'mm',matches  # dbg
-        #return single_dir_expand(matches)
+        #io.rprint('mm', matches)  # dbg
         return mark_dirs(matches)
 
     def magic_matches(self, text):
@@ -689,7 +687,7 @@ class IPCompleter(Completer):
             Index of the cursor in the full line buffer.  Should be provided by
             remote frontends where kernel has no access to frontend state.
         """
-        #io.rprint('COMP1 %r %r %r' % (text, line_buffer, cursor_pos))  # dbg
+        #io.rprint('\nCOMP1 %r %r %r' % (text, line_buffer, cursor_pos))  # dbg
 
         # if the cursor position isn't given, the only sane assumption we can
         # make is that it's at the end of the line (the common case)
@@ -707,8 +705,7 @@ class IPCompleter(Completer):
         magic_escape = self.magic_escape
         self.full_lbuf = line_buffer
         self.lbuf = self.full_lbuf[:cursor_pos]
-
-        #io.rprint('COMP2 %r %r %r' % (text, line_buffer, cursor_pos))  # dbg
+        #io.rprint('\nCOMP2 %r %r %r' % (text, line_buffer, cursor_pos))  # dbg
 
         # Start with a clean slate of completions
         self.matches[:] = []
