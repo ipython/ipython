@@ -22,15 +22,54 @@ name = 'ipython'
 
 development = True    # change this to False to do a release
 version_base = '0.11.alpha1'
-branch = 'ipython'
-# This needs to be updated to something that is meaningful for git
-revision = '0' 
+branch = 'master'
+revision = 'HEAD'
 
 if development:
-    if branch == 'ipython':
-        version = '%s.git' % (version_base)
-    else:
-        version = '%s.git.%s' % (version_base, branch)
+    try:
+        # try to use GitPython
+        import git
+        import os
+
+        # Is git repo a symlink? Then follow
+        repo = os.sep.join(__file__.split(os.sep)[:-2])
+        if os.path.islink(repo):
+            repo = os.readlink(repo)
+
+        r = git.Repo(repo)
+        branch = r.head.ref.name
+        revision = r.head.ref.commit.sha
+
+    except:
+        # find command 'git' on the command line
+        from IPython.utils.process import find_cmd, FindCmdError
+        import os, subprocess
+
+        try:
+            git_exe = find_cmd('git')
+            # When there is no git repository,
+            # revision will be "HEAD\n"
+            # (at least in git --version = 1.7.2)
+            cwd = os.getcwd()
+            os.chdir(os.sep.join(__file__.split(os.sep)[:-2]))
+            revision = subprocess.Popen([git_exe,"rev-parse","HEAD"],
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE).communicate()[0].strip()
+            for line in subprocess.Popen([git_exe,"branch","-l"],
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE).communicate()[0].split('\n'):
+                if line.startswith('*'):
+                    branch = line[1:].strip()
+            os.chdir(cwd)
+        except FindCmdError:
+            pass
+        except OSError:
+            print "Sorry, could not get branch and revision from git."
+            print "Try to install GitPython for proper working."
+            pass
+
+    finally:
+        version = '%s.git.%s.%s' % (version_base, revision, branch)
 else:
     version = version_base
 
