@@ -1828,7 +1828,6 @@ class InteractiveShell(Configurable, Magic):
         self.resetbuffer()
         lines = lines.splitlines()
         more = 0
-
         with nested(self.builtin_trap, self.display_trap):
             for line in lines:
                 # skip blank lines so we don't mess up the prompt counter, but do
@@ -1837,8 +1836,9 @@ class InteractiveShell(Configurable, Magic):
             
                 if line or more:
                     # push to raw history, so hist line numbers stay in sync
-                    self.input_hist_raw.append("# " + line + "\n")
-                    prefiltered = self.prefilter_manager.prefilter_lines(line,more)
+                    self.input_hist_raw.append(line + '\n')
+                    prefiltered = self.prefilter_manager.prefilter_lines(line,
+                                                                         more)
                     more = self.push_line(prefiltered)
                     # IPython's runsource returns None if there was an error
                     # compiling the code.  This allows us to stop processing right
