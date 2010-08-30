@@ -18,7 +18,7 @@ class BracketMatcher(QtCore.QObject):
     # 'QObject' interface
     #--------------------------------------------------------------------------
 
-    def __init__(self, parent, multiline=True):
+    def __init__(self, parent):
         """ Create a call tip manager that is attached to the specified Qt
             text edit widget.
         """

@@ -180,13 +180,13 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
                 return True
         return super(FrontendWidget, self)._event_filter_console_keypress(event)
 
-    def _show_continuation_prompt(self):
+    def _insert_continuation_prompt(self, cursor):
         """ Reimplemented for auto-indentation.
         """
-        super(FrontendWidget, self)._show_continuation_prompt()
+        super(FrontendWidget, self)._insert_continuation_prompt(cursor)
         spaces = self._input_splitter.indent_spaces
-        self._append_plain_text('\t' * (spaces / self.tab_width))
-        self._append_plain_text(' ' * (spaces % self.tab_width))
+        cursor.insertText('\t' * (spaces / self.tab_width))
+        cursor.insertText(' ' * (spaces % self.tab_width))
 
     #---------------------------------------------------------------------------
     # 'BaseFrontendMixin' abstract interface

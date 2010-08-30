@@ -334,12 +334,11 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
             else:
                 # Do this inside an edit block so continuation prompts are
                 # removed seamlessly via undo/redo.
-                cursor = self._control.textCursor()
+                cursor = self._get_end_cursor()
                 cursor.beginEditBlock()
-
-                self._append_plain_text('\n')
-                self._show_continuation_prompt()
-
+                cursor.insertText('\n')
+                self._insert_continuation_prompt(cursor)
+                self._control.moveCursor(QtGui.QTextCursor.End)
                 cursor.endEditBlock()
 
         return complete
@@ -431,9 +430,8 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
         """ Sets the font to the default fixed-width font for this platform.
         """
         # FIXME: font family and size should be configurable by the user.
-        
         if sys.platform == 'win32':
-            # Fixme: we should test whether Consolas is available and use it
+            # FIXME: we should test whether Consolas is available and use it
             # first if it is.  Consolas ships by default from Vista onwards,
             # it's *vastly* more readable and prettier than Courier, and is
             # often installed even on XP systems.  So we should first check for
@@ -685,14 +683,34 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
 
         else:
             if key in (QtCore.Qt.Key_Return, QtCore.Qt.Key_Enter):
-                if self._reading:
-                    self._append_plain_text('\n')
-                    self._reading = False
-                    if self._reading_callback:
-                        self._reading_callback()
-                elif not self._executing:
-                    self.execute(interactive=True)
                 intercepted = True
+                if self._in_buffer(position):
+                    if self._reading:
+                        self._append_plain_text('\n')
+                        self._reading = False
+                        if self._reading_callback:
+                            self._reading_callback()
+
+                    # If there is only whitespace after the cursor, execute.
+                    # Otherwise, split the line with a continuation prompt.
+                    elif not self._executing:
+                        cursor.movePosition(QtGui.QTextCursor.End,
+                                            QtGui.QTextCursor.KeepAnchor)
+                        if cursor.selectedText().trimmed().isEmpty():
+                            self.execute(interactive=True)
+                        else:
+                            cursor.beginEditBlock()
+                            cursor.setPosition(position)
+                            cursor.insertText('\n')
+                            self._insert_continuation_prompt(cursor)
+                        
+                            # Ensure that the whole input buffer is visible.
+                            # FIXME: This will not be usable if the input buffer
+                            # is taller than the console widget.
+                            self._control.moveCursor(QtGui.QTextCursor.End)
+                            self._control.setTextCursor(cursor)
+
+                            cursor.endEditBlock()
 
             elif key == QtCore.Qt.Key_Up:
                 if self._reading or not self._up_pressed():
@@ -981,6 +999,15 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
         cursor.setPosition(position)
         return cursor
 
+    def _insert_continuation_prompt(self, cursor):
+        """ Inserts new continuation prompt using the specified cursor.
+        """
+        if self._continuation_prompt_html is None:
+            self._insert_plain_text(cursor, self._continuation_prompt)
+        else:
+            self._continuation_prompt = self._insert_html_fetching_plain_text(
+                cursor, self._continuation_prompt_html)
+
     def _insert_html(self, cursor, html):
         """ Inserts HTML using the specified cursor in such a way that future
             formatting is unaffected.
@@ -1263,15 +1290,6 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
 
         self._prompt_pos = self._get_end_cursor().position()
         self._prompt_started()
-
-    def _show_continuation_prompt(self):
-        """ Writes a new continuation prompt at the end of the buffer.
-        """
-        if self._continuation_prompt_html is None:
-            self._append_plain_text(self._continuation_prompt)
-        else:
-            self._continuation_prompt = self._append_html_fetching_plain_text(
-                self._continuation_prompt_html)
 
 
 class HistoryConsoleWidget(ConsoleWidget):
