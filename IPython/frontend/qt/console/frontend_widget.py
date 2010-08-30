@@ -171,8 +171,8 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         """ Reimplemented to allow execution interruption.
         """
         key = event.key()
-        if self._executing and self._control_key_down(event.modifiers()):
-            if key == QtCore.Qt.Key_C:
+        if self._control_key_down(event.modifiers()):
+            if key == QtCore.Qt.Key_C and self._executing:
                 self._kernel_interrupt()
                 return True
             elif key == QtCore.Qt.Key_Period:
@@ -354,15 +354,20 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         if self.custom_restart:
             self.custom_restart_requested.emit()
         elif self.kernel_manager.has_kernel:
-            try:
-                self.kernel_manager.restart_kernel()
-            except RuntimeError:
-                message = 'Kernel started externally. Cannot restart.\n'
-                self._append_plain_text(message)
-            else:
-                self._stopped_channels()
-                self._append_plain_text('Kernel restarting...\n')
-                self._show_interpreter_prompt()
+            message = 'Are you sure you want to restart the kernel?'
+            buttons = QtGui.QMessageBox.Yes | QtGui.QMessageBox.No
+            result = QtGui.QMessageBox.question(self, 'Restart kernel?',
+                                                message, buttons)
+            if result == QtGui.QMessageBox.Yes:
+                try:
+                    self.kernel_manager.restart_kernel()
+                except RuntimeError:
+                    message = 'Kernel started externally. Cannot restart.\n'
+                    self._append_plain_text(message)
+                else:
+                    self._stopped_channels()
+                    self._append_plain_text('Kernel restarting...\n')
+                    self._show_interpreter_prompt()
         else:
             self._append_plain_text('Kernel process is either remote or '
                                     'unspecified. Cannot restart.\n')

@@ -101,7 +101,7 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
                          QtCore.Qt.Key_N : QtCore.Qt.Key_Down,
                          QtCore.Qt.Key_D : QtCore.Qt.Key_Delete, }
     _shortcuts = set(_ctrl_down_remap.keys() +
-                     [ QtCore.Qt.Key_C, QtCore.Qt.Key_V ])
+                     [ QtCore.Qt.Key_C, QtCore.Qt.Key_V, QtCore.Qt.Key_O ])
 
     #---------------------------------------------------------------------------
     # 'QObject' interface
@@ -164,18 +164,26 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
 
     def eventFilter(self, obj, event):
         """ Reimplemented to ensure a console-like behavior in the underlying
-            text widget.
+            text widgets.
         """
-        # Re-map keys for all filtered widgets.
         etype = event.type()
-        if etype == QtCore.QEvent.KeyPress and \
-                self._control_key_down(event.modifiers()) and \
-                event.key() in self._ctrl_down_remap:
-            new_event = QtGui.QKeyEvent(QtCore.QEvent.KeyPress, 
-                                        self._ctrl_down_remap[event.key()],
-                                        QtCore.Qt.NoModifier)
-            QtGui.qApp.sendEvent(obj, new_event)
-            return True
+        if etype == QtCore.QEvent.KeyPress:
+
+            # Re-map keys for all filtered widgets.
+            key = event.key()
+            if self._control_key_down(event.modifiers()) and \
+                    key in self._ctrl_down_remap:
+                new_event = QtGui.QKeyEvent(QtCore.QEvent.KeyPress, 
+                                            self._ctrl_down_remap[key],
+                                            QtCore.Qt.NoModifier)
+                QtGui.qApp.sendEvent(obj, new_event)
+                return True
+
+            elif obj == self._control:
+                return self._event_filter_console_keypress(event)
+
+            elif obj == self._page_control:
+                return self._event_filter_page_keypress(event)
 
         # Override shortucts for all filtered widgets. Note that on Mac OS it is
         # always unnecessary to override shortcuts, hence the check below (users
@@ -186,12 +194,6 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
                 event.key() in self._shortcuts:
             event.accept()
             return False
-
-        elif etype == QtCore.QEvent.KeyPress:
-            if obj == self._control:
-                return self._event_filter_console_keypress(event)
-            elif obj == self._page_control:
-                return self._event_filter_page_keypress(event)
 
         return super(ConsoleWidget, self).eventFilter(obj, event)
 
@@ -651,6 +653,11 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
                 self.clear()
                 intercepted = True
 
+            elif key == QtCore.Qt.Key_O:
+                if self._page_control and self._page_control.isVisible():
+                    self._page_control.setFocus()
+                intercept = True
+
             elif key == QtCore.Qt.Key_X:
                 # FIXME: Instead of disabling cut completely, only allow it
                 # when safe.
@@ -679,6 +686,14 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
                 cursor = self._get_word_end_cursor(position)
                 cursor.setPosition(position, QtGui.QTextCursor.KeepAnchor)
                 cursor.removeSelectedText()
+                intercepted = True
+
+            elif key == QtCore.Qt.Key_Greater:
+                self._control.moveCursor(QtGui.QTextCursor.End)
+                intercepted = True
+                
+            elif key == QtCore.Qt.Key_Less:
+                self._control.setTextCursor(self._get_prompt_cursor())
                 intercepted = True
 
         else:
@@ -804,8 +819,24 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
             interface.
         """
         key = event.key()
+        ctrl_down = self._control_key_down(event.modifiers())
+        alt_down = event.modifiers() & QtCore.Qt.AltModifier
 
-        if key in (QtCore.Qt.Key_Q, QtCore.Qt.Key_Escape):
+        if ctrl_down:
+            if key == QtCore.Qt.Key_O:
+                self._control.setFocus()
+                intercept = True
+
+        elif alt_down:
+            if key == QtCore.Qt.Key_Greater:
+                self._page_control.moveCursor(QtGui.QTextCursor.End)
+                intercepted = True
+                
+            elif key == QtCore.Qt.Key_Less:
+                self._page_control.moveCursor(QtGui.QTextCursor.Start)
+                intercepted = True
+
+        elif key in (QtCore.Qt.Key_Q, QtCore.Qt.Key_Escape):
             if self._splitter:
                 self._page_control.hide()
             else:
@@ -814,7 +845,14 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
 
         elif key in (QtCore.Qt.Key_Enter, QtCore.Qt.Key_Return):
             new_event = QtGui.QKeyEvent(QtCore.QEvent.KeyPress, 
-                                        QtCore.Qt.Key_Down, 
+                                        QtCore.Qt.Key_PageDown, 
+                                        QtCore.Qt.NoModifier)
+            QtGui.qApp.sendEvent(self._page_control, new_event)
+            return True
+
+        elif key == QtCore.Qt.Key_Backspace:
+            new_event = QtGui.QKeyEvent(QtCore.QEvent.KeyPress,
+                                        QtCore.Qt.Key_PageUp, 
                                         QtCore.Qt.NoModifier)
             QtGui.qApp.sendEvent(self._page_control, new_event)
             return True
