@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""Simple script to create a tarball with proper bzr version info.
+"""Simple script to create a tarball with proper git version info.
 """
 
 import os
@@ -10,14 +10,16 @@ from  toollib import *
 
 c('python update_revnum.py')
 
-execfile('../IPython/core/release.py')  # defines version_base
+# definges branch, revision, version_base
+execfile('../IPython/core/release.py')
 
-ver = version_info()
-
-if ver['branch-nick'] == 'ipython':
-    tarname = 'ipython-%s.bzr.r%s.tgz' % (version_base, ver['revno'])
+if branch == 'master':
+    tarname = 'ipython-%s.git.%s.tar.xz' % (version_base, revision[:7])
 else:
-    tarname = 'ipython-%s.bzr.r%s.%s.tgz' % (version_base, ver['revno'],
-                                             ver['branch-nick'])
-    
-c('bzr export ' + tarname)
+    tarname = 'ipython-%s.git.%s.%s.tar.xz' % (version_base, revision[:7],
+                                             branch)
+
+pwd = os.path.abspath(os.path.curdir)
+os.chdir('..')
+c('git archive --format=tar --prefix=ipython-%s/ %s |  xz -z --force - > %s'
+    % (version_base, revision, pwd+os.sep+tarname) )

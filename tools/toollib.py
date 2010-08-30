@@ -46,10 +46,3 @@ def compile_tree():
         msg = '*** ERROR: Some Python files in tree do NOT compile! ***\n'
         msg += 'See messages above for the actual file that produced it.\n'
         raise SystemExit(msg)
-
-
-def version_info():
-    """Return bzr version info as a dict."""
-    out = os.popen('bzr version-info')
-    pairs = (l.split(':',1) for l in out)
-    return dict(((k,v.strip()) for (k,v) in pairs)) 

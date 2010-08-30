@@ -8,23 +8,25 @@ Usage:
 ./update_revnum.py"""
 
 import os
-import pprint
 import re
 
 from toollib import *
 
 if __name__ == '__main__':
-    ver = version_info()
-
-    pprint.pprint(ver)
+    # definges branch, revision, version_base
+    execfile('../IPython/core/release.py')
 
     rfile = open('../IPython/core/release.py','rb').read()
-    newcont = re.sub(r'revision\s*=.*',
-                     "revision = '%s'" % ver['revno'],
+    newcont = re.sub(r'\nrevision\s*=.*',
+                     "\nrevision = '%s'" % revision,
                      rfile)
 
-    newcont = re.sub(r'^branch\s*=[^=].*',
-                     "branch = '%s'"  % ver['branch-nick'],
+    newcont = re.sub(r'\nbranch\s*=[^=].*',
+                     "\nbranch = '%s'"  % branch,
+                     newcont)
+
+    newcont = re.sub(r'\ndevelopment\s*=[^=].*',
+                     "\ndevelopment = False",
                      newcont)
 
     f = open('../IPython/core/release.py','wb')
