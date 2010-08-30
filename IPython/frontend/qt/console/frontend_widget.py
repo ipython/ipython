@@ -9,7 +9,8 @@ from PyQt4 import QtCore, QtGui
 # Local imports
 from IPython.core.inputsplitter import InputSplitter
 from IPython.frontend.qt.base_frontend_mixin import BaseFrontendMixin
-from IPython.utils.traitlets import Bool, Type
+from IPython.utils.traitlets import Bool
+from bracket_matcher import BracketMatcher
 from call_tip_widget import CallTipWidget
 from completion_lexer import CompletionLexer
 from console_widget import HistoryConsoleWidget
@@ -88,8 +89,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
     executed = QtCore.pyqtSignal(object)
     
     # Protected class variables.
-    _highlighter_class = Type(FrontendHighlighter)
-    _input_splitter_class = Type(InputSplitter)
+    _input_splitter_class = InputSplitter
 
     #---------------------------------------------------------------------------
     # 'object' interface
@@ -99,10 +99,11 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         super(FrontendWidget, self).__init__(*args, **kw)
 
         # FrontendWidget protected variables.
+        self._bracket_matcher = BracketMatcher(self._control)
         self._call_tip_widget = CallTipWidget(self._control)
         self._completion_lexer = CompletionLexer(PythonLexer())
         self._hidden = False
-        self._highlighter = self._highlighter_class(self)
+        self._highlighter = FrontendHighlighter(self)
         self._input_splitter = self._input_splitter_class(input_mode='block')
         self._kernel_manager = None
 
