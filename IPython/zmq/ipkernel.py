@@ -302,13 +302,15 @@ class QtKernel(Kernel):
         """Start a kernel with QtPy4 event loop integration."""
 
         from PyQt4 import QtGui, QtCore
-        self.app = QtGui.QApplication([])
-        self.app.setQuitOnLastWindowClosed (False)
+        from IPython.lib.guisupport import (
+            get_app_qt4, start_event_loop_qt4
+        )
+        self.app = get_app_qt4([" "])
+        self.app.setQuitOnLastWindowClosed(False)
         self.timer = QtCore.QTimer()
         self.timer.timeout.connect(self.do_one_iteration)
         self.timer.start(50)
-        self.app.exec_()
-
+        start_event_loop_qt4(self.app)
 
 class WxKernel(Kernel):
     """A Kernel subclass with Wx support."""
@@ -317,6 +319,7 @@ class WxKernel(Kernel):
         """Start a kernel with wx event loop support."""
 
         import wx
+        from IPython.lib.guisupport import start_event_loop_wx
         doi = self.do_one_iteration
 
         # We have to put the wx.Timer in a wx.Frame for it to fire properly.
@@ -342,7 +345,7 @@ class WxKernel(Kernel):
         # The redirect=False here makes sure that wx doesn't replace
         # sys.stdout/stderr with its own classes.
         self.app = IPWxApp(redirect=False)
-        self.app.MainLoop()
+        start_event_loop_wx(self.app)
 
 
 class TkKernel(Kernel):
