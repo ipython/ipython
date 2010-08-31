@@ -31,7 +31,7 @@ print 'This is an automatic block.'
 print 'It is executed without asking for confirmation, but printed.'
 z = x+y
 
-print 'z=',x
+print 'z=',z
 
 # <demo> --- stop ---
 # This is just another normal block.
