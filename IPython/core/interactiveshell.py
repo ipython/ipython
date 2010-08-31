@@ -57,7 +57,7 @@ from IPython.utils.doctestreload import doctest_reload
 from IPython.utils.io import ask_yes_no, rprint
 from IPython.utils.ipstruct import Struct
 from IPython.utils.path import get_home_dir, get_ipython_dir, HomeDirError
-from IPython.utils.process import getoutput, getoutputerror
+from IPython.utils.process import system, getoutput, getoutputerror
 from IPython.utils.strdispatch import StrDispatch
 from IPython.utils.syspathcontext import prepended_to_syspath
 from IPython.utils.text import num_ini_spaces
@@ -197,8 +197,6 @@ class InteractiveShell(Configurable, Magic):
     separate_in = SeparateStr('\n', config=True)
     separate_out = SeparateStr('', config=True)
     separate_out2 = SeparateStr('', config=True)
-    system_header = Str('IPython system call: ', config=True)
-    system_verbose = CBool(False, config=True)
     wildcards_case_sensitive = CBool(True, config=True)
     xmode = CaselessStrEnum(('Context','Plain', 'Verbose'), 
                             default_value='Context', config=True)
@@ -1654,8 +1652,26 @@ class InteractiveShell(Configurable, Magic):
     #-------------------------------------------------------------------------
 
     def system(self, cmd):
-        """Make a system call, using IPython."""
-        return self.hooks.shell_hook(self.var_expand(cmd, depth=2))
+        """Call the given cmd in a subprocess."""
+        # We do not support backgrounding processes because we either use
+        # pexpect or pipes to read from.  Users can always just call
+        # os.system() if they really want a background process.
+        if cmd.endswith('&'):
+            raise OSError("Background processes not supported.")
+
+        return system(self.var_expand(cmd, depth=2))
+
+    def getoutput(self, cmd):
+        """Get output (possibly including stderr) from a subprocess."""
+        if cmd.endswith('&'):
+            raise OSError("Background processes not supported.")
+        return getoutput(self.var_expand(cmd, depth=2))
+
+    def getoutputerror(self, cmd):
+        """Get stdout and stderr from a subprocess."""
+        if cmd.endswith('&'):
+            raise OSError("Background processes not supported.")
+        return getoutputerror(self.var_expand(cmd, depth=2))
 
     #-------------------------------------------------------------------------
     # Things related to aliases
@@ -2055,16 +2071,6 @@ class InteractiveShell(Configurable, Magic):
     #-------------------------------------------------------------------------
     # Utilities
     #-------------------------------------------------------------------------
-
-    def getoutput(self, cmd):
-        return getoutput(self.var_expand(cmd,depth=2),
-                         header=self.system_header,
-                         verbose=self.system_verbose)
-
-    def getoutputerror(self, cmd):
-        return getoutputerror(self.var_expand(cmd,depth=2),
-                              header=self.system_header,
-                              verbose=self.system_verbose)
 
     def var_expand(self,cmd,depth=0):
         """Expand python variables in a string.

@@ -614,23 +614,6 @@ Currently the magic system has the following functions:\n"""
 
         print "Automatic calling is:",['OFF','Smart','Full'][self.shell.autocall]
 
-    def magic_system_verbose(self, parameter_s = ''):
-        """Set verbose printing of system calls.
-
-        If called without an argument, act as a toggle"""
-
-        if parameter_s:
-            val = bool(eval(parameter_s))
-        else:
-            val = None
-
-        if self.shell.system_verbose:
-            self.shell.system_verbose = False
-        else:
-            self.shell.system_verbose = True
-        print "System verbose printing is:",\
-              ['OFF','ON'][self.shell.system_verbose]
-
 
     def magic_page(self, parameter_s=''):
         """Pretty print the object and display it through a pager.

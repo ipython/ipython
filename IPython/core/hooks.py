@@ -46,16 +46,14 @@ import sys
 
 from IPython.core.error import TryNext
 import IPython.utils.io
-from IPython.utils.process import shell
 
 # List here all the default hooks.  For now it's just the editor functions
 # but over time we'll move here all the public API for user-accessible things.
 
 __all__ = ['editor', 'fix_error_editor', 'synchronize_with_editor',
            'input_prefilter', 'shutdown_hook', 'late_startup_hook',
-           'generate_prompt','shell_hook',
-           'show_in_pager','pre_prompt_hook', 'pre_runcode_hook',
-           'clipboard_get']
+           'generate_prompt', 'show_in_pager','pre_prompt_hook',
+           'pre_runcode_hook', 'clipboard_get']
 
 def editor(self,filename, linenum=None):
     """Open the default editor at the given filename and linenumber.
@@ -218,12 +216,6 @@ def generate_prompt(self, is_continuation):
     if is_continuation:
         return str(self.displayhook.prompt2)
     return str(self.displayhook.prompt1)
-
-
-def shell_hook(self,cmd):
-    """ Run system/shell command a'la os.system() """
-
-    shell(cmd, header=self.system_header, verbose=self.system_verbose)
 
 
 def show_in_pager(self,s):

@@ -120,10 +120,6 @@ c = get_config()
 # c.InteractiveShell.separate_out = ''
 # c.InteractiveShell.separate_out2 = ''
 
-# c.InteractiveShell.system_header = "IPython system call: "
-
-# c.InteractiveShell.system_verbose = True
-
 # c.TerminalInteractiveShell.term_title = False
 
 # c.InteractiveShell.wildcards_case_sensitive = True
