@@ -3072,9 +3072,7 @@ Defaulting color scheme to 'NoColor'"""
         except ValueError:
             var,cmd = '',''
         # If all looks ok, proceed
-        out,err = self.shell.getoutputerror(cmd)
-        if err:
-            print >> IPython.utils.io.Term.cerr, err
+        out = self.shell.getoutput(cmd)
         if opts.has_key('l'):
             out = SList(out.split('\n'))
         else:
@@ -3122,10 +3120,9 @@ Defaulting color scheme to 'NoColor'"""
         system commands."""
 
         if parameter_s:
-            out,err = self.shell.getoutputerror(parameter_s)
-            if err:
-                print >> IPython.utils.io.Term.cerr, err
-            return SList(out.split('\n'))
+            out = self.shell.getoutput(parameter_s)
+            if out is not None:
+                return SList(out.splitlines())
 
     def magic_r(self, parameter_s=''):
         """Repeat previous input.

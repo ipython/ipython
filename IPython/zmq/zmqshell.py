@@ -19,9 +19,6 @@ from __future__ import print_function
 import inspect
 import os
 import re
-import sys
-
-from subprocess import Popen, PIPE
 
 # Our own
 from IPython.core.interactiveshell import (
@@ -82,26 +79,6 @@ class ZMQInteractiveShell(InteractiveShell):
     """A subclass of InteractiveShell for ZMQ."""
 
     displayhook_class = Type(ZMQDisplayHook)
-
-    def system(self, cmd):
-        cmd = self.var_expand(cmd, depth=2).strip()
-        
-        # Runnning a bacgkrounded process from within the gui isn't supported
-        # because we do p.wait() at the end.  So instead of silently blocking
-        # we simply refuse to run in this mode, to avoid surprising the user.
-        if cmd.endswith('&'):
-            raise OSError("Background processes not supported.")
-        
-        sys.stdout.flush()
-        sys.stderr.flush()
-        p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE)
-        for line in p.stdout.read().split('\n'):
-            if len(line) > 0:
-                print(line)
-        for line in p.stderr.read().split('\n'):
-            if len(line) > 0:
-                print(line, file=sys.stderr)
-        p.wait()
 
     def init_io(self):
         # This will just use sys.stdout and sys.stderr. If you want to

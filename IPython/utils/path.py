@@ -18,7 +18,7 @@ import os
 import sys
 
 import IPython
-from IPython.utils.process import xsys
+from IPython.utils.process import system
 from IPython.utils.importstring import import_item
 
 #-----------------------------------------------------------------------------
@@ -341,5 +341,5 @@ def target_update(target,deps,cmd):
     command if target is outdated."""
 
     if target_outdated(target,deps):
-        xsys(cmd)
+        system(cmd)
 

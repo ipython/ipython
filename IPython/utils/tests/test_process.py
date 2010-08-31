@@ -15,11 +15,14 @@ Tests for platutils.py
 #-----------------------------------------------------------------------------
 
 import sys
+from unittest import TestCase
 
 import nose.tools as nt
 
-from IPython.utils.process import find_cmd, FindCmdError, arg_split
+from IPython.utils.process import (find_cmd, FindCmdError, arg_split,
+                                   system, getoutput, getoutputerror)
 from IPython.testing import decorators as dec
+from IPython.testing import tools as tt
 
 #-----------------------------------------------------------------------------
 # Tests
@@ -66,3 +69,27 @@ def test_arg_split():
              ]
     for argstr, argv in tests:
         nt.assert_equal(arg_split(argstr), argv)
+
+
+class SubProcessTestCase(TestCase, tt.TempFileMixin):
+    def setUp(self):
+        """Make a valid python temp file."""
+        lines = ["from __future__ import print_function",
+                 "import sys",
+                 "print('on stdout', end='', file=sys.stdout)",
+                 "print('on stderr', end='', file=sys.stderr)",
+                 "sys.stdout.flush()",
+                 "sys.stderr.flush()"]
+        self.mktmp('\n'.join(lines))
+
+    def test_system(self):
+        system('python "%s"' % self.fname)
+
+    def test_getoutput(self):
+        out = getoutput('python "%s"' % self.fname)
+        self.assertEquals(out, 'on stdout')
+
+    def test_getoutput(self):
+        out, err = getoutputerror('python "%s"' % self.fname)
+        self.assertEquals(out, 'on stdout')
+        self.assertEquals(err, 'on stderr')

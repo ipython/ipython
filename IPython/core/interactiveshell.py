@@ -57,7 +57,7 @@ from IPython.utils.doctestreload import doctest_reload
 from IPython.utils.io import ask_yes_no, rprint
 from IPython.utils.ipstruct import Struct
 from IPython.utils.path import get_home_dir, get_ipython_dir, HomeDirError
-from IPython.utils.process import system, getoutput, getoutputerror
+from IPython.utils.process import system, getoutput
 from IPython.utils.strdispatch import StrDispatch
 from IPython.utils.syspathcontext import prepended_to_syspath
 from IPython.utils.text import num_ini_spaces
@@ -1666,12 +1666,6 @@ class InteractiveShell(Configurable, Magic):
         if cmd.endswith('&'):
             raise OSError("Background processes not supported.")
         return getoutput(self.var_expand(cmd, depth=2))
-
-    def getoutputerror(self, cmd):
-        """Get stdout and stderr from a subprocess."""
-        if cmd.endswith('&'):
-            raise OSError("Background processes not supported.")
-        return getoutputerror(self.var_expand(cmd, depth=2))
 
     #-------------------------------------------------------------------------
     # Things related to aliases

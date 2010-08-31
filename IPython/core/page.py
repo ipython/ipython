@@ -37,7 +37,7 @@ from IPython.core.error import TryNext
 from IPython.utils.cursesimport import use_curses
 from IPython.utils.data import chop
 import IPython.utils.io
-from IPython.utils.process import xsys
+from IPython.utils.process import system
 from IPython.utils.terminal import get_terminal_size
 
 
@@ -210,7 +210,7 @@ def page_file(fname, start=0, pager_cmd=None):
     try:
         if os.environ['TERM'] in ['emacs','dumb']:
             raise EnvironmentError
-        xsys(pager_cmd + ' ' + fname)
+        system(pager_cmd + ' ' + fname)
     except:
         try:
             if start > 0:
