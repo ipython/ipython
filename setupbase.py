@@ -110,8 +110,8 @@ def find_packages():
     add_package(packages, 'external')
     add_package(packages, 'frontend')
     add_package(packages, 'frontend.qt')
-    add_package(packages, 'frontend.qt.console')
-    add_package(packages, 'frontend.terminal', config=False, tests=True, scripts=True)    
+    add_package(packages, 'frontend.qt.console', tests=True, scripts=True)
+    add_package(packages, 'frontend.terminal', tests=True, scripts=True)    
     add_package(packages, 'kernel', config=False, tests=True, scripts=True)
     add_package(packages, 'kernel.core', config=False, tests=True)
     add_package(packages, 'lib', tests=True)
@@ -121,6 +121,7 @@ def find_packages():
     add_package(packages, 'testing.plugin', tests=False)
     add_package(packages, 'utils', tests=True)
     add_package(packages, 'zmq')
+    add_package(packages, 'zmq.pylab')
     return packages
 
 #---------------------------------------------------------------------------
