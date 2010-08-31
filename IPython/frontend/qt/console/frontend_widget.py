@@ -9,7 +9,8 @@ from PyQt4 import QtCore, QtGui
 # Local imports
 from IPython.core.inputsplitter import InputSplitter
 from IPython.frontend.qt.base_frontend_mixin import BaseFrontendMixin
-from IPython.utils.traitlets import Bool, Type
+from IPython.utils.traitlets import Bool
+from bracket_matcher import BracketMatcher
 from call_tip_widget import CallTipWidget
 from completion_lexer import CompletionLexer
 from console_widget import HistoryConsoleWidget
@@ -88,8 +89,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
     executed = QtCore.pyqtSignal(object)
     
     # Protected class variables.
-    _highlighter_class = Type(FrontendHighlighter)
-    _input_splitter_class = Type(InputSplitter)
+    _input_splitter_class = InputSplitter
 
     #---------------------------------------------------------------------------
     # 'object' interface
@@ -99,10 +99,11 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         super(FrontendWidget, self).__init__(*args, **kw)
 
         # FrontendWidget protected variables.
+        self._bracket_matcher = BracketMatcher(self._control)
         self._call_tip_widget = CallTipWidget(self._control)
         self._completion_lexer = CompletionLexer(PythonLexer())
         self._hidden = False
-        self._highlighter = self._highlighter_class(self)
+        self._highlighter = FrontendHighlighter(self)
         self._input_splitter = self._input_splitter_class(input_mode='block')
         self._kernel_manager = None
 
@@ -170,8 +171,8 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         """ Reimplemented to allow execution interruption.
         """
         key = event.key()
-        if self._executing and self._control_key_down(event.modifiers()):
-            if key == QtCore.Qt.Key_C:
+        if self._control_key_down(event.modifiers()):
+            if key == QtCore.Qt.Key_C and self._executing:
                 self._kernel_interrupt()
                 return True
             elif key == QtCore.Qt.Key_Period:
@@ -179,13 +180,13 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
                 return True
         return super(FrontendWidget, self)._event_filter_console_keypress(event)
 
-    def _show_continuation_prompt(self):
+    def _insert_continuation_prompt(self, cursor):
         """ Reimplemented for auto-indentation.
         """
-        super(FrontendWidget, self)._show_continuation_prompt()
+        super(FrontendWidget, self)._insert_continuation_prompt(cursor)
         spaces = self._input_splitter.indent_spaces
-        self._append_plain_text('\t' * (spaces / self.tab_width))
-        self._append_plain_text(' ' * (spaces % self.tab_width))
+        cursor.insertText('\t' * (spaces / self.tab_width))
+        cursor.insertText(' ' * (spaces % self.tab_width))
 
     #---------------------------------------------------------------------------
     # 'BaseFrontendMixin' abstract interface
@@ -353,15 +354,20 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         if self.custom_restart:
             self.custom_restart_requested.emit()
         elif self.kernel_manager.has_kernel:
-            try:
-                self.kernel_manager.restart_kernel()
-            except RuntimeError:
-                message = 'Kernel started externally. Cannot restart.\n'
-                self._append_plain_text(message)
-            else:
-                self._stopped_channels()
-                self._append_plain_text('Kernel restarting...\n')
-                self._show_interpreter_prompt()
+            message = 'Are you sure you want to restart the kernel?'
+            buttons = QtGui.QMessageBox.Yes | QtGui.QMessageBox.No
+            result = QtGui.QMessageBox.question(self, 'Restart kernel?',
+                                                message, buttons)
+            if result == QtGui.QMessageBox.Yes:
+                try:
+                    self.kernel_manager.restart_kernel()
+                except RuntimeError:
+                    message = 'Kernel started externally. Cannot restart.\n'
+                    self._append_plain_text(message)
+                else:
+                    self._stopped_channels()
+                    self._append_plain_text('Kernel restarting...\n')
+                    self._show_interpreter_prompt()
         else:
             self._append_plain_text('Kernel process is either remote or '
                                     'unspecified. Cannot restart.\n')

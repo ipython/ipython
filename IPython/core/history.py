@@ -35,14 +35,14 @@ def magic_history(self, parameter_s = ''):
        for making documentation, and in conjunction with -o, for producing
        doctest-ready output.
 
-      -t: (default) print the 'translated' history, as IPython understands it.
-      IPython filters your input and converts it all into valid Python source
-      before executing it (things like magics or aliases are turned into
-      function calls, for example). With this option, you'll see the native
-      history instead of the user-entered version: '%cd /' will be seen as
-      '_ip.magic("%cd /")' instead of '%cd /'.
+      -r: (default) print the 'raw' history, i.e. the actual commands you typed.
       
-      -r: print the 'raw' history, i.e. the actual commands you typed.
+      -t: print the 'translated' history, as IPython understands it.  IPython
+      filters your input and converts it all into valid Python source before
+      executing it (things like magics or aliases are turned into function
+      calls, for example). With this option, you'll see the native history
+      instead of the user-entered version: '%cd /' will be seen as
+      'get_ipython().magic("%cd /")' instead of '%cd /'.
       
       -g: treat the arg as a pattern to grep for in (full) history.
       This includes the "shadow history" (almost all commands ever written).
@@ -80,7 +80,8 @@ def magic_history(self, parameter_s = ''):
     elif 'r' in opts:
         input_hist = self.input_hist_raw
     else:
-        input_hist = self.input_hist
+        # Raw history is the default
+        input_hist = self.input_hist_raw
             
     default_length = 40
     pattern = None

@@ -110,14 +110,12 @@ class PygmentsHighlighter(QtGui.QSyntaxHighlighter):
         elif hasattr(self._lexer, '_saved_state_stack'):
             del self._lexer._saved_state_stack
 
-        index = 0
         # Lex the text using Pygments
+        index = 0
         for token, text in self._lexer.get_tokens(qstring):
-            l = len(text)
-            format = self._get_format(token)
-            if format is not None:
-                self.setFormat(index, l, format)
-            index += l
+            length = len(text)
+            self.setFormat(index, length, self._get_format(token))
+            index += length
 
         if hasattr(self._lexer, '_saved_state_stack'):
             data = PygmentsBlockUserData(
@@ -185,11 +183,9 @@ class PygmentsHighlighter(QtGui.QSyntaxHighlighter):
     def _get_format_from_style(self, token, style):
         """ Returns a QTextCharFormat for token by reading a Pygments style.
         """
-        result = None
+        result = QtGui.QTextCharFormat()
         for key, value in style.style_for_token(token).items():
             if value:
-                if result is None:
-                    result = QtGui.QTextCharFormat()
                 if key == 'color':
                     result.setForeground(self._get_brush(value))
                 elif key == 'bgcolor':
