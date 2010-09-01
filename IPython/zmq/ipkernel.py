@@ -437,7 +437,7 @@ given, the GUI backend is matplotlib's, otherwise use one of: \
     _kernel_classes = {
         'qt' : QtKernel,
         'qt4' : QtKernel,
-        'payload-svg':Kernel,
+        'payload-svg': Kernel,
         'wx' : WxKernel,
         'tk' : TkKernel
     }

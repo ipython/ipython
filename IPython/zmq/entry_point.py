@@ -92,7 +92,6 @@ def make_kernel(namespace, kernel_factory,
 
     # Redirect input streams and set a display hook.
     if out_stream_factory:
-        pass
         sys.stdout = out_stream_factory(session, pub_socket, u'stdout')
         sys.stderr = out_stream_factory(session, pub_socket, u'stderr')
     if display_hook_factory:
@@ -203,7 +202,7 @@ def base_launch_kernel(code, xrep_port=0, pub_port=0, req_port=0, hb_port=0,
                 DUPLICATE_SAME_ACCESS
             pid = GetCurrentProcess()
             handle = DuplicateHandle(pid, pid, pid, 0, 
-                                     True, # Inheritable by new  processes.
+                                     True, # Inheritable by new processes.
                                      DUPLICATE_SAME_ACCESS)
             proc = Popen(arguments + ['--parent', str(int(handle))])
         else:

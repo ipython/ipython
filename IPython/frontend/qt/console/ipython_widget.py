@@ -154,14 +154,6 @@ class IPythonWidget(FrontendWidget):
         # FIXME: Disabled until history requests are properly implemented.
         #self.kernel_manager.xreq_channel.history(raw=True, output=False)
 
-    def _handle_kernel_died(self, since_last_heartbeat):
-        """ Handle the kernel's death by asking if the user wants to restart.
-        """
-        message = 'The kernel heartbeat has been inactive for %.2f ' \
-                  'seconds. Do you want to restart the kernel? You may ' \
-                  'first want to check the network connection.' % since_last_heartbeat
-        self._kernel_restart(message)
-
     #---------------------------------------------------------------------------
     # 'FrontendWidget' interface
     #---------------------------------------------------------------------------

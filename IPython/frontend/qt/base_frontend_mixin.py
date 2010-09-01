@@ -32,7 +32,8 @@ class BaseFrontendMixin(object):
             old_manager.sub_channel.message_received.disconnect(self._dispatch)
             old_manager.xreq_channel.message_received.disconnect(self._dispatch)
             old_manager.rep_channel.message_received.disconnect(self._dispatch)
-            old_manager.hb_channel.kernel_died.disconnect(self._handle_kernel_died)
+            old_manager.hb_channel.kernel_died.disconnect(
+                self._handle_kernel_died)
     
             # Handle the case where the old kernel manager is still listening.
             if old_manager.channels_running:
@@ -63,6 +64,19 @@ class BaseFrontendMixin(object):
     #---------------------------------------------------------------------------
     # 'BaseFrontendMixin' abstract interface
     #---------------------------------------------------------------------------
+
+    def _handle_kernel_died(self, since_last_heartbeat):
+        """ This is called when the ``kernel_died`` signal is emitted.
+
+        This method is called when the kernel heartbeat has not been
+        active for a certain amount of time. The typical action will be to
+        give the user the option of restarting the kernel.
+
+        Parameters
+        ----------
+        since_last_heartbeat : float
+            The time since the heartbeat was last received.
+        """
     
     def _started_channels(self):
         """ Called when the KernelManager channels have started listening or 
@@ -93,17 +107,3 @@ class BaseFrontendMixin(object):
         """
         session = self._kernel_manager.session.session
         return msg['parent_header']['session'] == session
-
-    def _handle_kernel_died(self, since_last_heartbeat):
-        """ This is called when the ``kernel_died`` signal is emitted.
-
-        This method is called when the kernel heartbeat has not been
-        active for a certain amount of time. The typical action will be to
-        give the user the option of restarting the kernel.
-
-        Parameters
-        ----------
-        since_last_heartbeat : float
-            The time since the heartbeat was last received.
-        """
-        pass
