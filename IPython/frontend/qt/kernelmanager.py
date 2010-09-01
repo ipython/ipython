@@ -8,7 +8,7 @@ import zmq
 # IPython imports.
 from IPython.utils.traitlets import Type
 from IPython.zmq.kernelmanager import KernelManager, SubSocketChannel, \
-    XReqSocketChannel, RepSocketChannel
+    XReqSocketChannel, RepSocketChannel, HBSocketChannel
 from util import MetaQObjectHasTraits
 
 # When doing multiple inheritance from QtCore.QObject and other classes
@@ -149,6 +149,32 @@ class QtRepSocketChannel(RepSocketChannel, QtCore.QObject):
             self.input_requested.emit(msg)
 
 
+class QtHBSocketChannel(HBSocketChannel, QtCore.QObject):
+
+    # Emitted when the kernel has died.
+    kernel_died = QtCore.pyqtSignal(object)
+
+    #---------------------------------------------------------------------------
+    # 'object' interface
+    #---------------------------------------------------------------------------
+    
+    def __init__(self, *args, **kw):
+        """ Reimplemented to ensure that QtCore.QObject is initialized first.
+        """
+        QtCore.QObject.__init__(self)
+        HBSocketChannel.__init__(self, *args, **kw)
+
+    #---------------------------------------------------------------------------
+    # 'RepSocketChannel' interface
+    #---------------------------------------------------------------------------
+
+    def call_handlers(self, since_last_heartbeat):
+        """ Reimplemented to emit signals instead of making callbacks.
+        """
+        # Emit the generic signal.
+        self.kernel_died.emit(since_last_heartbeat)
+
+
 class QtKernelManager(KernelManager, QtCore.QObject):
     """ A KernelManager that provides signals and slots.
     """
@@ -165,6 +191,7 @@ class QtKernelManager(KernelManager, QtCore.QObject):
     sub_channel_class = Type(QtSubSocketChannel)
     xreq_channel_class = Type(QtXReqSocketChannel)
     rep_channel_class = Type(QtRepSocketChannel)
+    hb_channel_class = Type(QtHBSocketChannel)
 
     #---------------------------------------------------------------------------
     # 'object' interface

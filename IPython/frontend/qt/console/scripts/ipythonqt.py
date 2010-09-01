@@ -33,6 +33,8 @@ def main():
                         help='set the SUB channel port [default random]')
     kgroup.add_argument('--rep', type=int, metavar='PORT', default=0,
                         help='set the REP channel port [default random]')
+    kgroup.add_argument('--hb', type=int, metavar='PORT', default=0,
+                        help='set the heartbeat port [default: random]')
 
     egroup = kgroup.add_mutually_exclusive_group()
     egroup.add_argument('--pure', action='store_true', help = \
@@ -61,7 +63,8 @@ def main():
     # Create a KernelManager and start a kernel.
     kernel_manager = QtKernelManager(xreq_address=(args.ip, args.xreq),
                                      sub_address=(args.ip, args.sub),
-                                     rep_address=(args.ip, args.rep))
+                                     rep_address=(args.ip, args.rep),
+                                     hb_address=(args.ip, args.hb))
     if args.ip == LOCALHOST and not args.existing:
         if args.pure:
             kernel_manager.start_kernel(ipython=False)

@@ -447,6 +447,71 @@ class RepSocketChannel(ZmqSocketChannel):
         self.add_io_state(POLLOUT)
 
 
+class HBSocketChannel(ZmqSocketChannel):
+    """The heartbeat channel which monitors the kernel heartbeat.
+    """
+
+    time_to_dead = 5.0
+    socket = None
+    poller = None
+
+    def __init__(self, context, session, address):
+        super(HBSocketChannel, self).__init__(context, session, address)
+
+    def _create_socket(self):
+        self.socket = self.context.socket(zmq.REQ)
+        self.socket.setsockopt(zmq.IDENTITY, self.session.session)
+        self.socket.connect('tcp://%s:%i' % self.address)
+        self.poller = zmq.Poller()
+        self.poller.register(self.socket, zmq.POLLIN)
+
+    def run(self):
+        """The thread's main activity.  Call start() instead."""
+        self._create_socket()
+
+        while True:
+            since_last_heartbeat = 0.0
+            request_time = time.time()
+            try:
+                self.socket.send_json('ping')
+            except zmq.ZMQError, e:
+                if e.errno == zmq.EFSM:
+                    time.sleep(self.time_to_dead)
+                    self._create_socket()
+                else:
+                    raise
+            else:
+                while True:
+                    try:
+                        reply = self.socket.recv_json(zmq.NOBLOCK)
+                    except zmq.ZMQError, e:
+                        if e.errno == zmq.EAGAIN:
+                            until_dead = self.time_to_dead-(time.time()-request_time)
+                            self.poller.poll(until_dead)
+                            since_last_heartbeat = time.time() - request_time
+                            if since_last_heartbeat > self.time_to_dead:
+                                self.call_handlers(since_last_heartbeat)
+                                break
+                        else:
+                            # We should probably log this instead
+                            raise
+                    else:
+                        until_dead = self.time_to_dead-(time.time()-request_time)
+                        if until_dead > 0.0:
+                            time.sleep(until_dead)
+                        break
+
+    def call_handlers(self, since_last_heartbeat):
+        """This method is called in the ioloop thread when a message arrives.
+
+        Subclasses should override this method to handle incoming messages.
+        It is important to remember that this method is called in the thread
+        so that some logic must be done to ensure that the application leve
+        handlers are called in the application thread.
+        """
+        raise NotImplementedError('call_handlers must be defined in a subclass.')
+
+
 #-----------------------------------------------------------------------------
 # Main kernel manager class
 #-----------------------------------------------------------------------------
@@ -475,17 +540,20 @@ class KernelManager(HasTraits):
     xreq_address = TCPAddress((LOCALHOST, 0))
     sub_address = TCPAddress((LOCALHOST, 0))
     rep_address = TCPAddress((LOCALHOST, 0))
+    hb_address = TCPAddress((LOCALHOST, 0))
 
     # The classes to use for the various channels.
     xreq_channel_class = Type(XReqSocketChannel)
     sub_channel_class = Type(SubSocketChannel)
     rep_channel_class = Type(RepSocketChannel)
+    hb_channel_class = Type(HBSocketChannel)
     
     # Protected traits.
     _launch_args = Any
     _xreq_channel = Any
     _sub_channel = Any
     _rep_channel = Any
+    _hb_channel = Any
 
     #--------------------------------------------------------------------------
     # Channel management methods:
@@ -502,6 +570,7 @@ class KernelManager(HasTraits):
         self.xreq_channel.start()
         self.sub_channel.start()
         self.rep_channel.start()
+        self.hb_channel.start()
 
     def stop_channels(self):
         """Stops the channels for this kernel.
@@ -512,13 +581,15 @@ class KernelManager(HasTraits):
         self.xreq_channel.stop()
         self.sub_channel.stop()
         self.rep_channel.stop()
+        self.hb_channel.stop()
 
     @property
     def channels_running(self):
         """Are all of the channels created and running?"""
         return self.xreq_channel.is_alive() \
             and self.sub_channel.is_alive() \
-            and self.rep_channel.is_alive()
+            and self.rep_channel.is_alive() \
+            and self.hb_channel.is_alive()
 
     #--------------------------------------------------------------------------
     # Kernel process management methods:
@@ -535,8 +606,9 @@ class KernelManager(HasTraits):
         ipython : bool, optional (default True)
              Whether to use an IPython kernel instead of a plain Python kernel.
         """
-        xreq, sub, rep = self.xreq_address, self.sub_address, self.rep_address
-        if xreq[0] != LOCALHOST or sub[0] != LOCALHOST or rep[0] != LOCALHOST:
+        xreq, sub, rep, hb = self.xreq_address, self.sub_address, \
+            self.rep_address, self.hb_address
+        if xreq[0] != LOCALHOST or sub[0] != LOCALHOST or rep[0] != LOCALHOST or hb[0] != LOCALHOST:
             raise RuntimeError("Can only launch a kernel on localhost."
                                "Make sure that the '*_address' attributes are "
                                "configured properly.")
@@ -546,11 +618,13 @@ class KernelManager(HasTraits):
             from ipkernel import launch_kernel as launch
         else:
             from pykernel import launch_kernel as launch
-        self.kernel, xrep, pub, req = launch(xrep_port=xreq[1], pub_port=sub[1],
-                                             req_port=rep[1], **kw)
+        self.kernel, xrep, pub, req, hb = launch(
+            xrep_port=xreq[1], pub_port=sub[1], req_port=rep[1],
+            hb_port=hb[1], **kw)
         self.xreq_address = (LOCALHOST, xrep)
         self.sub_address = (LOCALHOST, pub)
         self.rep_address = (LOCALHOST, req)
+        self.hb_address = (LOCALHOST, hb)
 
     def restart_kernel(self):
         """Restarts a kernel with the same arguments that were used to launch
@@ -630,3 +704,12 @@ class KernelManager(HasTraits):
                                                        self.session,
                                                        self.rep_address)
         return self._rep_channel
+
+    @property
+    def hb_channel(self):
+        """Get the REP socket channel object to handle stdin (raw_input)."""
+        if self._hb_channel is None:
+            self._hb_channel = self.hb_channel_class(self.context, 
+                                                       self.session,
+                                                       self.hb_address)
+        return self._hb_channel
