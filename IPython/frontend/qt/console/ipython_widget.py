@@ -6,6 +6,10 @@
           Linux (use the xdg system).
 """
 
+#-----------------------------------------------------------------------------
+# Imports
+#-----------------------------------------------------------------------------
+
 # Standard library imports
 from collections import namedtuple
 from subprocess import Popen
@@ -19,18 +23,22 @@ from IPython.core.usage import default_banner
 from IPython.utils.traitlets import Bool, Str
 from frontend_widget import FrontendWidget
 
-# The default style sheet: black text on a white background.
-default_style_sheet = '''
+#-----------------------------------------------------------------------------
+# Constants
+#-----------------------------------------------------------------------------
+
+# The default light style sheet: black text on a white background.
+default_light_style_sheet = '''
     .error { color: red; }
     .in-prompt { color: navy; }
     .in-prompt-number { font-weight: bold; }
     .out-prompt { color: darkred; }
     .out-prompt-number { font-weight: bold; }
 '''
-default_syntax_style = 'default'
+default_light_syntax_style = 'default'
 
-# A dark style sheet: white text on a black background.
-dark_style_sheet = '''
+# The default dark style sheet: white text on a black background.
+default_dark_style_sheet = '''
     QPlainTextEdit, QTextEdit { background-color: black; color: white }
     QFrame { border: 1px solid grey; }
     .error { color: red; }
@@ -39,12 +47,15 @@ dark_style_sheet = '''
     .out-prompt { color: red; }
     .out-prompt-number { color: red; font-weight: bold; }
 '''
-dark_syntax_style = 'monokai'
+default_dark_syntax_style = 'monokai'
 
 # Default prompts.
 default_in_prompt = 'In [<span class="in-prompt-number">%i</span>]: '
 default_out_prompt = 'Out[<span class="out-prompt-number">%i</span>]: '
 
+#-----------------------------------------------------------------------------
+# IPythonWidget class
+#-----------------------------------------------------------------------------
 
 class IPythonWidget(FrontendWidget):
     """ A FrontendWidget for an IPython kernel.
@@ -71,11 +82,11 @@ class IPythonWidget(FrontendWidget):
     #     1. Qt: QPlainTextEdit, QFrame, QWidget, etc
     #     2. Pygments: .c, .k, .o, etc (see PygmentsHighlighter)
     #     3. IPython: .error, .in-prompt, .out-prompt, etc
-    style_sheet = Str(default_style_sheet, config=True)
+    style_sheet = Str(config=True)
     
     # If not empty, use this Pygments style for syntax highlighting. Otherwise,
     # the style sheet is queried for Pygments style information.
-    syntax_style = Str(default_syntax_style, config=True)
+    syntax_style = Str(config=True)
 
     # Prompts.
     in_prompt = Str(default_in_prompt, config=True)
@@ -100,8 +111,11 @@ class IPythonWidget(FrontendWidget):
         self._previous_prompt_obj = None
 
         # Initialize widget styling.
-        self._style_sheet_changed()
-        self._syntax_style_changed()
+        if self.style_sheet:
+            self._style_sheet_changed()
+            self._syntax_style_changed()
+        else:
+            self.set_default_style()
 
     #---------------------------------------------------------------------------
     # 'BaseFrontendMixin' abstract interface
@@ -273,6 +287,26 @@ class IPythonWidget(FrontendWidget):
         next_prompt = content['next_prompt']
         self._show_interpreter_prompt(next_prompt['prompt_number'], 
                                       next_prompt['input_sep'])
+
+    #---------------------------------------------------------------------------
+    # 'IPythonWidget' interface
+    #---------------------------------------------------------------------------
+
+    def set_default_style(self, lightbg=True):
+        """ Sets the widget style to the class defaults.
+
+        Parameters:
+        -----------
+        lightbg : bool, optional (default True)
+            Whether to use the default IPython light background or dark
+            background style.
+        """
+        if lightbg:
+            self.style_sheet = default_light_style_sheet
+            self.syntax_style = default_light_syntax_style
+        else:
+            self.style_sheet = default_dark_style_sheet
+            self.syntax_style = default_dark_syntax_style
 
     #---------------------------------------------------------------------------
     # 'IPythonWidget' protected interface
