@@ -340,8 +340,12 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
                 cursor.beginEditBlock()
                 cursor.insertText('\n')
                 self._insert_continuation_prompt(cursor)
-                self._control.moveCursor(QtGui.QTextCursor.End)
                 cursor.endEditBlock()
+
+                # Do not do this inside the edit block. It works as expected
+                # when using a QPlainTextEdit control, but does not have an 
+                # effect when using a QTextEdit. I believe this is a Qt bug.
+                self._control.moveCursor(QtGui.QTextCursor.End)
 
         return complete
 
@@ -714,18 +718,18 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
                         if cursor.selectedText().trimmed().isEmpty():
                             self.execute(interactive=True)
                         else:
+                            # Do this inside an edit block for clean undo/redo.
                             cursor.beginEditBlock()
                             cursor.setPosition(position)
                             cursor.insertText('\n')
                             self._insert_continuation_prompt(cursor)
-                        
+                            cursor.endEditBlock()
+
                             # Ensure that the whole input buffer is visible.
                             # FIXME: This will not be usable if the input buffer
                             # is taller than the console widget.
                             self._control.moveCursor(QtGui.QTextCursor.End)
                             self._control.setTextCursor(cursor)
-
-                            cursor.endEditBlock()
 
             elif key == QtCore.Qt.Key_Up:
                 if self._reading or not self._up_pressed():

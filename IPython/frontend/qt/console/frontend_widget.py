@@ -176,7 +176,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         if self._control_key_down(event.modifiers()):
             if key == QtCore.Qt.Key_C and self._executing:
                 self.interrupt_kernel()
-                return True_
+                return True
             elif key == QtCore.Qt.Key_Period:
                 message = 'Are you sure you want to restart the kernel?'
                 self.restart_kernel(message)
