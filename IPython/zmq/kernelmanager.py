@@ -448,8 +448,7 @@ class RepSocketChannel(ZmqSocketChannel):
 
 
 class HBSocketChannel(ZmqSocketChannel):
-    """The heartbeat channel which monitors the kernel heartbeat.
-    """
+    """The heartbeat channel which monitors the kernel heartbeat."""
 
     time_to_dead = 5.0
     socket = None
@@ -457,6 +456,7 @@ class HBSocketChannel(ZmqSocketChannel):
 
     def __init__(self, context, session, address):
         super(HBSocketChannel, self).__init__(context, session, address)
+        self._running = False
 
     def _create_socket(self):
         self.socket = self.context.socket(zmq.REQ)
@@ -469,7 +469,8 @@ class HBSocketChannel(ZmqSocketChannel):
         """The thread's main activity.  Call start() instead."""
         self._create_socket()
 
-        while True:
+        self._running = True
+        while self._running:
             since_last_heartbeat = 0.0
             request_time = time.time()
             try:
@@ -486,20 +487,26 @@ class HBSocketChannel(ZmqSocketChannel):
                         reply = self.socket.recv_json(zmq.NOBLOCK)
                     except zmq.ZMQError, e:
                         if e.errno == zmq.EAGAIN:
-                            until_dead = self.time_to_dead-(time.time()-request_time)
+                            until_dead = self.time_to_dead - (time.time() -
+                                                              request_time)
                             self.poller.poll(until_dead)
                             since_last_heartbeat = time.time() - request_time
                             if since_last_heartbeat > self.time_to_dead:
                                 self.call_handlers(since_last_heartbeat)
                                 break
                         else:
-                            # We should probably log this instead
+                            # FIXME: We should probably log this instead.
                             raise
                     else:
-                        until_dead = self.time_to_dead-(time.time()-request_time)
+                        until_dead = self.time_to_dead - (time.time() -
+                                                          request_time)
                         if until_dead > 0.0:
                             time.sleep(until_dead)
                         break
+
+    def stop(self):
+        self._running = False
+        super(HBSocketChannel, self).stop()
 
     def call_handlers(self, since_last_heartbeat):
         """This method is called in the ioloop thread when a message arrives.
@@ -608,7 +615,8 @@ class KernelManager(HasTraits):
         """
         xreq, sub, rep, hb = self.xreq_address, self.sub_address, \
             self.rep_address, self.hb_address
-        if xreq[0] != LOCALHOST or sub[0] != LOCALHOST or rep[0] != LOCALHOST or hb[0] != LOCALHOST:
+        if xreq[0] != LOCALHOST or sub[0] != LOCALHOST or \
+                rep[0] != LOCALHOST or hb[0] != LOCALHOST:
             raise RuntimeError("Can only launch a kernel on localhost."
                                "Make sure that the '*_address' attributes are "
                                "configured properly.")
@@ -619,8 +627,8 @@ class KernelManager(HasTraits):
         else:
             from pykernel import launch_kernel as launch
         self.kernel, xrep, pub, req, hb = launch(
-            xrep_port=xreq[1], pub_port=sub[1], req_port=rep[1],
-            hb_port=hb[1], **kw)
+            xrep_port=xreq[1], pub_port=sub[1], 
+            req_port=rep[1], hb_port=hb[1], **kw)
         self.xreq_address = (LOCALHOST, xrep)
         self.sub_address = (LOCALHOST, pub)
         self.rep_address = (LOCALHOST, req)
@@ -637,7 +645,7 @@ class KernelManager(HasTraits):
         else:
             if self.has_kernel:
                 self.kill_kernel()
-            self.start_kernel(*self._launch_args)
+            self.start_kernel(**self._launch_args)
 
     @property
     def has_kernel(self):
