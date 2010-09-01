@@ -51,8 +51,8 @@ def main():
                         help='set the paging style [default inside]')
     wgroup.add_argument('--rich', action='store_true',
                         help='enable rich text support')
-    wgroup.add_argument('--tab-simple', action='store_true',
-                        help='do tab completion ala a Unix terminal')
+    wgroup.add_argument('--gui-completion', action='store_true',
+                        help='use a GUI widget for tab completion')
 
     args = parser.parse_args()
 
@@ -89,7 +89,7 @@ def main():
         widget = RichIPythonWidget(paging=args.paging)
     else:
         widget = IPythonWidget(paging=args.paging)
-    widget.gui_completion = not args.tab_simple
+    widget.gui_completion = args.gui_completion
     widget.kernel_manager = kernel_manager
     widget.setWindowTitle('Python' if args.pure else 'IPython')
     widget.show()

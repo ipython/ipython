@@ -58,7 +58,7 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
     buffer_size = Int(500, config=True)
 
     # Whether to use a list widget or plain text output for tab completion.
-    gui_completion = Bool(True, config=True)
+    gui_completion = Bool(False, config=True)
 
     # The type of underlying text widget to use. Valid values are 'plain', which
     # specifies a QPlainTextEdit, and 'rich', which specifies a QTextEdit.
@@ -568,8 +568,7 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
             if self.gui_completion:
                 self._completion_widget.show_items(cursor, items) 
             else:
-                text = self._format_as_columns(items)
-                self._append_plain_text_keeping_prompt(text)
+                self._page(self._format_as_columns(items))
 
     def _control_key_down(self, modifiers):
         """ Given a KeyboardModifiers flags object, return whether the Control
@@ -1160,9 +1159,7 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
         """ Displays text using the pager if it exceeds the height of the
             visible area.
         """
-        if self.paging == 'none':
-            self._append_plain_text(text)
-        else:
+        if self.paging != 'none':
             line_height = QtGui.QFontMetrics(self.font).height()
             minlines = self._control.viewport().height() / line_height
             if re.match("(?:[^\n]*\n){%i}" % minlines, text):
@@ -1180,8 +1177,11 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
                         self._page_control.setFocus()
                     else:
                         self.layout().setCurrentWidget(self._page_control)
-            else:
-                self._append_plain_text(text)
+                return
+        if self._executing:
+            self._append_plain_text(text)
+        else:
+            self._append_plain_text_keeping_prompt(text)
 
     def _prompt_started(self):
         """ Called immediately after a new prompt is displayed.
