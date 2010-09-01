@@ -70,7 +70,7 @@ def make_kernel(namespace, kernel_factory,
                                  ostream=sys.__stdout__)
 
     # Create a context, a session, and the kernel sockets.
-    io.raw_print("Starting the kernel...")
+    io.raw_print("Starting the kernel at pid:", os.getpid())
     context = zmq.Context()
     session = Session(username=u'kernel')
 
