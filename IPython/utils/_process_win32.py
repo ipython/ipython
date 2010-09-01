@@ -54,7 +54,11 @@ class AvoidUNCPath(object):
         if self.is_unc_path:
             # change to c drive (as cmd.exe cannot handle UNC addresses)
             os.chdir("C:")
-        return self.path
+            return self.path
+        else:
+            # We return None to signal that there was no change in the working
+            # directory
+            return None
 
     def __exit__(self, exc_type, exc_value, traceback):
         if self.is_unc_path:
