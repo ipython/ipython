@@ -263,7 +263,7 @@ class TempFileMixin(object):
         self.tmpfile = f
         self.fname = fname
 
-    def teardown(self):
+    def tearDown(self):
         if hasattr(self, 'tmpfile'):
             # If the tmpfile wasn't made because of skipped tests, like in
             # win32, there's nothing to cleanup.
