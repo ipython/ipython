@@ -19,7 +19,7 @@ from exitpoller import ExitPollerUnix, ExitPollerWindows
 from displayhook import DisplayHook
 from iostream import OutStream
 from session import Session
-
+from heartbeat import Heartbeat
 
 def bind_port(socket, ip, port):
     """ Binds the specified ZMQ socket. If the port is zero, a random port is
@@ -47,6 +47,8 @@ def make_argument_parser():
                         help='set the PUB channel port [default: random]')
     parser.add_argument('--req', type=int, metavar='PORT', default=0,
                         help='set the REQ channel port [default: random]')
+    parser.add_argument('--hb', type=int, metavar='PORT', default=0,
+                        help='set the heartbeat port [default: random]')
 
     if sys.platform == 'win32':
         parser.add_argument('--parent', type=int, metavar='HANDLE', 
@@ -83,6 +85,10 @@ def make_kernel(namespace, kernel_factory,
     req_socket = context.socket(zmq.XREQ)
     req_port = bind_port(req_socket, namespace.ip, namespace.req)
     io.raw_print("REQ Channel on port", req_port)
+
+    hb = Heartbeat(context, (namespace.ip, namespace.hb))
+    hb.start()
+    io.raw_print("Heartbeat REP Channel on port", hb.port)
 
     # Redirect input streams and set a display hook.
     if out_stream_factory:
@@ -122,7 +128,7 @@ def make_default_main(kernel_factory):
     return main
 
 
-def base_launch_kernel(code, xrep_port=0, pub_port=0, req_port=0, 
+def base_launch_kernel(code, xrep_port=0, pub_port=0, req_port=0, hb_port=0,
                        independent=False, extra_arguments=[]):
     """ Launches a localhost kernel, binding to the specified ports.
 
@@ -139,6 +145,9 @@ def base_launch_kernel(code, xrep_port=0, pub_port=0, req_port=0,
 
     req_port : int, optional
         The port to use for the REQ (raw input) channel.
+
+    hb_port : int, optional
+        The port to use for the hearbeat REP channel.
 
     independent : bool, optional (default False) 
         If set, the kernel process is guaranteed to survive if this process
@@ -157,7 +166,8 @@ def base_launch_kernel(code, xrep_port=0, pub_port=0, req_port=0,
     """
     # Find open ports as necessary.
     ports = []
-    ports_needed = int(xrep_port <= 0) + int(pub_port <= 0) + int(req_port <= 0)
+    ports_needed = int(xrep_port <= 0) + int(pub_port <= 0) + \
+                   int(req_port <= 0) + int(hb_port <= 0)
     for i in xrange(ports_needed):
         sock = socket.socket()
         sock.bind(('', 0))
@@ -172,10 +182,13 @@ def base_launch_kernel(code, xrep_port=0, pub_port=0, req_port=0,
         pub_port = ports.pop(0)
     if req_port <= 0:
         req_port = ports.pop(0)
+    if hb_port <= 0:
+        hb_port = ports.pop(0)
 
     # Build the kernel launch command.
     arguments = [ sys.executable, '-c', code, '--xrep', str(xrep_port), 
-                  '--pub', str(pub_port), '--req', str(req_port) ]
+                  '--pub', str(pub_port), '--req', str(req_port),
+                  '--hb', str(hb_port) ]
     arguments.extend(extra_arguments)
 
     # Spawn a kernel.
@@ -196,4 +209,4 @@ def base_launch_kernel(code, xrep_port=0, pub_port=0, req_port=0,
         else:
             proc = Popen(arguments + ['--parent'])
 
-    return proc, xrep_port, pub_port, req_port
+    return proc, xrep_port, pub_port, req_port, hb_port

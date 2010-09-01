@@ -377,8 +377,8 @@ class TkKernel(Kernel):
 # Kernel main and launch functions
 #-----------------------------------------------------------------------------
 
-def launch_kernel(xrep_port=0, pub_port=0, req_port=0, independent=False,
-                  pylab=False):
+def launch_kernel(xrep_port=0, pub_port=0, req_port=0, hb_port=0,
+                  independent=False, pylab=False):
     """ Launches a localhost kernel, binding to the specified ports.
 
     Parameters
@@ -391,6 +391,9 @@ def launch_kernel(xrep_port=0, pub_port=0, req_port=0, independent=False,
 
     req_port : int, optional
         The port to use for the REQ (raw input) channel.
+
+    hb_port : int, optional
+        The port to use for the hearbeat REP channel.
 
     independent : bool, optional (default False) 
         If set, the kernel process is guaranteed to survive if this process
@@ -415,8 +418,8 @@ def launch_kernel(xrep_port=0, pub_port=0, req_port=0, independent=False,
         if isinstance(pylab, basestring):
             extra_arguments.append(pylab)
     return base_launch_kernel('from IPython.zmq.ipkernel import main; main()',
-                              xrep_port, pub_port, req_port, independent, 
-                              extra_arguments)
+                              xrep_port, pub_port, req_port, hb_port, 
+                              independent, extra_arguments)
 
 def main():
     """ The IPython kernel main entry point.
