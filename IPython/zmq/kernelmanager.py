@@ -29,6 +29,7 @@ from zmq import POLLIN, POLLOUT, POLLERR
 from zmq.eventloop import ioloop
 
 # Local imports.
+from IPython.utils import io
 from IPython.utils.traitlets import HasTraits, Any, Instance, Type, TCPAddress
 from session import Session
 
@@ -40,6 +41,35 @@ LOCALHOST = '127.0.0.1'
 
 class InvalidPortNumber(Exception):
     pass
+
+#-----------------------------------------------------------------------------
+# Utility functions
+#-----------------------------------------------------------------------------
+
+# some utilities to validate message structure, these might get moved elsewhere
+# if they prove to have more generic utility
+
+def validate_string_list(lst):
+    """Validate that the input is a list of strings.
+
+    Raises ValueError if not."""
+    if not isinstance(lst, list):
+        raise ValueError('input %r must be a list' % lst)
+    for x in lst:
+        if not isinstance(x, basestring):
+            raise ValueError('element %r in list must be a string' % x)
+
+
+def validate_string_dict(dct):
+    """Validate that the input is a dict with string keys and values.
+
+    Raises ValueError if not."""
+    for k,v in dct.iteritems():
+        if not isinstance(k, basestring):
+            raise ValueError('key %r in dict must be a string' % k)
+        if not isinstance(v, basestring):
+            raise ValueError('value %r in dict must be a string' % v)
+
 
 #-----------------------------------------------------------------------------
 # ZMQ Socket Channel classes
@@ -163,23 +193,49 @@ class XReqSocketChannel(ZmqSocketChannel):
         """
         raise NotImplementedError('call_handlers must be defined in a subclass.')
 
-    def execute(self, code, silent=False):
+    def execute(self, code, silent=False,
+                user_variables=None, user_expressions=None):
         """Execute code in the kernel.
 
         Parameters
         ----------
         code : str
             A string of Python code.
+            
         silent : bool, optional (default False)
             If set, the kernel will execute the code as quietly possible.
+
+        user_variables : list, optional
+        
+            A list of variable names to pull from the user's namespace.  They
+            will come back as a dict with these names as keys and their
+            :func:`repr` as values.
+            
+        user_expressions : dict, optional
+            A dict with string keys and  to pull from the user's
+            namespace.  They will come back as a dict with these names as keys
+            and their :func:`repr` as values.
 
         Returns
         -------
         The msg_id of the message sent.
         """
+        if user_variables is None:
+            user_variables = []
+        if user_expressions is None:
+            user_expressions = {}
+            
+        # Don't waste network traffic if inputs are invalid
+        if not isinstance(code, basestring):
+            raise ValueError('code %r must be a string' % code)
+        validate_string_list(user_variables)
+        validate_string_dict(user_expressions)
+
         # Create class for content/msg creation. Related to, but possibly
         # not in Session.
-        content = dict(code=code, silent=silent)
+        content = dict(code=code, silent=silent,
+                       user_variables=user_variables,
+                       user_expressions=user_expressions)
         msg = self.session.msg('execute_request', content)
         self._queue_request(msg)
         return msg['header']['msg_id']
@@ -246,17 +302,6 @@ class XReqSocketChannel(ZmqSocketChannel):
         """
         content = dict(index=index, raw=raw, output=output)
         msg = self.session.msg('history_request', content)
-        self._queue_request(msg)
-        return msg['header']['msg_id']
-
-    def prompt(self):
-        """Requests a prompt number from the kernel.
-
-        Returns
-        -------
-        The msg_id of the message sent.
-        """
-        msg = self.session.msg('prompt_request')
         self._queue_request(msg)
         return msg['header']['msg_id']
 
@@ -479,9 +524,12 @@ class HBSocketChannel(ZmqSocketChannel):
             since_last_heartbeat = 0.0
             request_time = time.time()
             try:
+                #io.rprint('Ping from HB channel') # dbg
                 self.socket.send_json('ping')
             except zmq.ZMQError, e:
+                #io.rprint('*** HB Error:', e) # dbg
                 if e.errno == zmq.EFSM:
+                    #io.rprint('sleep...', self.time_to_dead) # dbg
                     time.sleep(self.time_to_dead)
                     self._create_socket()
                 else:
@@ -489,13 +537,21 @@ class HBSocketChannel(ZmqSocketChannel):
             else:
                 while True:
                     try:
-                        reply = self.socket.recv_json(zmq.NOBLOCK)
+                        self.socket.recv_json(zmq.NOBLOCK)
                     except zmq.ZMQError, e:
+                        #io.rprint('*** HB Error 2:', e) # dbg
                         if e.errno == zmq.EAGAIN:
-                            until_dead = self.time_to_dead - (time.time() -
+                            before_poll = time.time()
+                            until_dead = self.time_to_dead - (before_poll -
                                                               request_time)
-                            # poll timeout is in milliseconds.
-                            poll_result = self.poller.poll(1000*until_dead)
+
+                            # When the return value of poll() is an empty list,
+                            # that is when things have gone wrong (zeromq bug).
+                            # As long as it is not an empty list, poll is
+                            # working correctly even if it returns quickly.
+                            # Note: poll timeout is in milliseconds.
+                            self.poller.poll(1000*until_dead)
+                            
                             since_last_heartbeat = time.time() - request_time
                             if since_last_heartbeat > self.time_to_dead:
                                 self.call_handlers(since_last_heartbeat)
@@ -507,6 +563,7 @@ class HBSocketChannel(ZmqSocketChannel):
                         until_dead = self.time_to_dead - (time.time() -
                                                           request_time)
                         if until_dead > 0.0:
+                            #io.rprint('sleep...', self.time_to_dead) # dbg
                             time.sleep(until_dead)
                         break
 

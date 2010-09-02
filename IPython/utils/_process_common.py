@@ -63,7 +63,8 @@ def process_handler(cmd, callback, stderr=subprocess.PIPE):
     """
     sys.stdout.flush()
     sys.stderr.flush()
-    close_fds = False if sys.platform=='win32' else True
+    # On win32, close_fds can't be true when using pipes for stdin/out/err
+    close_fds = sys.platform != 'win32'
     p = subprocess.Popen(cmd, shell=True,
                          stdin=subprocess.PIPE,
                          stdout=subprocess.PIPE,

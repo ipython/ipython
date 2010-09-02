@@ -131,10 +131,27 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
             complete = not self._input_splitter.push_accepts_more()
         return complete
 
-    def _execute(self, source, hidden):
+    def _execute(self, source, hidden, user_variables=None,
+                 user_expressions=None):
         """ Execute 'source'. If 'hidden', do not show any output.
+
+        See parent class :meth:`execute` docstring for full details.
         """
-        self.kernel_manager.xreq_channel.execute(source, hidden)
+        # tmp code for testing, disable in real use with 'if 0'.  Only delete
+        # this code once we have automated tests for these fields.
+        if 0:
+            user_variables = ['x', 'y', 'z']
+            user_expressions = {'sum' : '1+1',
+                                'bad syntax' : 'klsdafj kasd f',
+                                'bad call' : 'range("hi")',
+                                'time' : 'time.time()',
+                                }
+        # /end tmp code
+        
+        # FIXME - user_variables/expressions are not visible in API above us.
+        self.kernel_manager.xreq_channel.execute(source, hidden,
+                                                 user_variables,
+                                                 user_expressions)
         self._hidden = hidden
         
     def _prompt_started_hook(self):

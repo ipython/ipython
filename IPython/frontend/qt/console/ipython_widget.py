@@ -21,6 +21,7 @@ from PyQt4 import QtCore, QtGui
 # Local imports
 from IPython.core.inputsplitter import IPythonInputSplitter
 from IPython.core.usage import default_banner
+from IPython.utils import io
 from IPython.utils.traitlets import Bool, Str
 from frontend_widget import FrontendWidget
 
@@ -50,9 +51,13 @@ default_dark_style_sheet = '''
 '''
 default_dark_syntax_style = 'monokai'
 
-# Default prompts.
+# Default strings to build and display input and output prompts (and separators
+# in between)
 default_in_prompt = 'In [<span class="in-prompt-number">%i</span>]: '
 default_out_prompt = 'Out[<span class="out-prompt-number">%i</span>]: '
+default_input_sep = '\n'
+default_output_sep = ''
+default_output_sep2 = ''
 
 #-----------------------------------------------------------------------------
 # IPythonWidget class
@@ -92,6 +97,9 @@ class IPythonWidget(FrontendWidget):
     # Prompts.
     in_prompt = Str(default_in_prompt, config=True)
     out_prompt = Str(default_out_prompt, config=True)
+    input_sep = Str(default_input_sep, config=True)
+    output_sep = Str(default_output_sep, config=True)
+    output_sep2 = Str(default_output_sep2, config=True)
 
     # FrontendWidget protected class variables.
     _input_splitter_class = IPythonInputSplitter
@@ -155,20 +163,17 @@ class IPythonWidget(FrontendWidget):
         """ Implemented to handle prompt number replies, which are only
             supported by the IPython kernel.
         """
-        content = msg['content']
-        self._show_interpreter_prompt(content['prompt_number'], 
-                                      content['input_sep'])
+        self._show_interpreter_prompt(msg['content']['execution_count'])
 
     def _handle_pyout(self, msg):
         """ Reimplemented for IPython-style "display hook".
         """
         if not self._hidden and self._is_from_this_session(msg):
             content = msg['content']
-            prompt_number = content['prompt_number']
-            self._append_plain_text(content['output_sep'])
+            prompt_number = content['execution_count']
+            self._append_plain_text(self.output_sep)
             self._append_html(self._make_out_prompt(prompt_number))
-            self._append_plain_text(content['data'] + '\n' + 
-                                    content['output_sep2'])
+            self._append_plain_text(content['data']+self.output_sep2)
 
     def _started_channels(self):
         """ Reimplemented to make a history request.
@@ -244,17 +249,19 @@ class IPythonWidget(FrontendWidget):
         else:
             return False
 
-    def _show_interpreter_prompt(self, number=None, input_sep='\n'):
+    def _show_interpreter_prompt(self, number=None):
         """ Reimplemented for IPython-style prompts.
         """
         # If a number was not specified, make a prompt number request.
         if number is None:
-            self.kernel_manager.xreq_channel.prompt()
-            return
+            # FIXME - fperez: this should be a silent code request
+            number = 1
+            ##self.kernel_manager.xreq_channel.prompt()
+            ##return
 
         # Show a new prompt and save information about it so that it can be
         # updated later if the prompt number turns out to be wrong.
-        self._prompt_sep = input_sep
+        self._prompt_sep = self.input_sep
         self._show_prompt(self._make_in_prompt(number), html=True)
         block = self._control.document().lastBlock()
         length = len(self._prompt)
@@ -269,7 +276,8 @@ class IPythonWidget(FrontendWidget):
         """
         # Update the old prompt number if necessary.
         content = msg['content']
-        previous_prompt_number = content['prompt_number']
+        ##io.rprint('_show_interpreter_prompt_for_reply\n', content) # dbg
+        previous_prompt_number = content['execution_count']
         if self._previous_prompt_obj and \
                 self._previous_prompt_obj.number != previous_prompt_number:
             block = self._previous_prompt_obj.block
@@ -293,9 +301,7 @@ class IPythonWidget(FrontendWidget):
             self._previous_prompt_obj = None
 
         # Show a new prompt with the kernel's estimated prompt number.
-        next_prompt = content['next_prompt']
-        self._show_interpreter_prompt(next_prompt['prompt_number'], 
-                                      next_prompt['input_sep'])
+        self._show_interpreter_prompt(previous_prompt_number+1)
 
     #---------------------------------------------------------------------------
     # 'IPythonWidget' interface

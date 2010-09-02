@@ -35,6 +35,7 @@ from iostream import OutStream
 from session import Session, Message
 from zmqshell import ZMQInteractiveShell
 
+
 #-----------------------------------------------------------------------------
 # Main kernel class
 #-----------------------------------------------------------------------------
@@ -64,8 +65,7 @@ class Kernel(Configurable):
 
         # Build dict of handlers for message types
         msg_types = [ 'execute_request', 'complete_request', 
-                      'object_info_request', 'prompt_request',
-                      'history_request' ]
+                      'object_info_request', 'history_request' ]
         self.handlers = {}
         for msg_type in msg_types:
             self.handlers[msg_type] = getattr(self, msg_type)
@@ -81,14 +81,21 @@ class Kernel(Configurable):
         # FIXME: Bug in pyzmq/zmq?
         # assert self.reply_socket.rcvmore(), "Missing message part."
         msg = self.reply_socket.recv_json()
-        omsg = Message(msg)
-        io.raw_print('\n')
-        io.raw_print(omsg)
-        handler = self.handlers.get(omsg.msg_type, None)
+        
+        # Print some info about this message and leave a '--->' marker, so it's
+        # easier to trace visually the message chain when debugging.  Each
+        # handler prints its message at the end.
+        # Eventually we'll move these from stdout to a logger.
+        io.raw_print('\n*** MESSAGE TYPE:', msg['msg_type'], '***')
+        io.raw_print('   Content: ', msg['content'],
+                     '\n   --->\n   ', sep='', end='')
+
+        # Find and call actual handler for message
+        handler = self.handlers.get(msg['msg_type'], None)
         if handler is None:
-            io.raw_print_err("UNKNOWN MESSAGE TYPE:", omsg)
+            io.raw_print_err("UNKNOWN MESSAGE TYPE:", msg)
         else:
-            handler(ident, omsg)
+            handler(ident, msg)
 
     def start(self):
         """ Start the kernel main loop.
@@ -97,37 +104,56 @@ class Kernel(Configurable):
             time.sleep(0.05)
             self.do_one_iteration()
 
-
     #---------------------------------------------------------------------------
     # Kernel request handlers
     #---------------------------------------------------------------------------
 
+    def _publish_pyin(self, code, parent):
+        """Publish the code request on the pyin stream."""
+
+        pyin_msg = self.session.msg(u'pyin',{u'code':code}, parent=parent)
+        self.pub_socket.send_json(pyin_msg)
+
     def execute_request(self, ident, parent):
         try:
-            code = parent[u'content'][u'code']
+            content = parent[u'content']
+            code = content[u'code']
+            silent = content[u'silent'] 
         except:
             io.raw_print_err("Got bad msg: ")
             io.raw_print_err(Message(parent))
             return
-        pyin_msg = self.session.msg(u'pyin',{u'code':code}, parent=parent)
-        self.pub_socket.send_json(pyin_msg)
 
+        shell = self.shell # we'll need this a lot here
+
+        # Replace raw_input. Note that is not sufficient to replace 
+        # raw_input in the user namespace.
+        raw_input = lambda prompt='': self._raw_input(prompt, ident, parent)
+        __builtin__.raw_input = raw_input
+
+        # Set the parent message of the display hook and out streams.
+        shell.displayhook.set_parent(parent)
+        sys.stdout.set_parent(parent)
+        sys.stderr.set_parent(parent)
+
+        # Re-broadcast our input for the benefit of listening clients, and
+        # start computing output
+        if not silent:
+            self._publish_pyin(code, parent)
+
+        reply_content = {}
         try:
-            # Replace raw_input. Note that is not sufficient to replace 
-            # raw_input in the user namespace.
-            raw_input = lambda prompt='': self._raw_input(prompt, ident, parent)
-            __builtin__.raw_input = raw_input
-
-            # Set the parent message of the display hook and out streams.
-            self.shell.displayhook.set_parent(parent)
-            sys.stdout.set_parent(parent)
-            sys.stderr.set_parent(parent)
-
-            # FIXME: runlines calls the exception handler itself.  We should
-            # clean this up.
-            self.shell._reply_content = None
-            self.shell.runlines(code)
+            if silent:
+                # runcode uses 'exec' mode, so no displayhook will fire, and it
+                # doesn't call logging or history manipulations.  Print
+                # statements in that code will obviously still execute.
+                shell.runcode(code)
+            else:
+                # FIXME: runlines calls the exception handler itself.
+                shell._reply_content = None
+                shell.runlines(code)
         except:
+            status = u'error'
             # FIXME: this code right now isn't being used yet by default,
             # because the runlines() call above directly fires off exception
             # reporting.  This code, therefore, is only active in the scenario
@@ -136,35 +162,39 @@ class Kernel(Configurable):
             # single location in the codbase.
             etype, evalue, tb = sys.exc_info()
             tb_list = traceback.format_exception(etype, evalue, tb)
-            reply_content = self.shell._showtraceback(etype, evalue, tb_list)
+            reply_content.update(shell._showtraceback(etype, evalue, tb_list))
         else:
-            payload = self.shell.payload_manager.read_payload()
+            status = u'ok'
+            reply_content[u'payload'] = shell.payload_manager.read_payload()
             # Be agressive about clearing the payload because we don't want
             # it to sit in memory until the next execute_request comes in.
-            self.shell.payload_manager.clear_payload()
-            reply_content = { 'status' : 'ok', 'payload' : payload }
+            shell.payload_manager.clear_payload()
 
-        # Compute the prompt information
-        prompt_number = self.shell.displayhook.prompt_count
-        reply_content['prompt_number'] = prompt_number        
-        prompt_string = self.shell.displayhook.prompt1.peek_next_prompt()
-        next_prompt = {'prompt_string' : prompt_string,
-                       'prompt_number' : prompt_number+1,
-                       'input_sep'     : self.shell.displayhook.input_sep}
-        reply_content['next_prompt'] = next_prompt
+        reply_content[u'status'] = status
+        # Compute the execution counter so clients can display prompts
+        reply_content['execution_count'] = shell.displayhook.prompt_count
 
-        # TMP - fish exception info out of shell, possibly left there by
-        # runlines
-        if self.shell._reply_content is not None:
-            reply_content.update(self.shell._reply_content)
+        # FIXME - fish exception info out of shell, possibly left there by
+        # runlines.  We'll need to clean up this logic later.
+        if shell._reply_content is not None:
+            reply_content.update(shell._reply_content)
 
-        # Flush output before sending the reply.
-        sys.stderr.flush()
-        sys.stdout.flush()
-
+        # At this point, we can tell whether the main code execution succeeded
+        # or not.  If it did, we proceed to evaluate user_variables/expressions
+        if reply_content['status'] == 'ok':
+            reply_content[u'user_variables'] = \
+                         shell.get_user_variables(content[u'user_variables'])
+            reply_content[u'user_expressions'] = \
+                         shell.eval_expressions(content[u'user_expressions'])
+        else:
+            # If there was an error, don't even try to compute variables or
+            # expressions
+            reply_content[u'user_variables'] = {}
+            reply_content[u'user_expressions'] = {}
+            
         # Send the reply.
         reply_msg = self.session.msg(u'execute_reply', reply_content, parent)
-        io.raw_print(Message(reply_msg))
+        io.raw_print(reply_msg)
         self.reply_socket.send(ident, zmq.SNDMORE)
         self.reply_socket.send_json(reply_msg)
         if reply_msg['content']['status'] == u'error':
@@ -184,16 +214,6 @@ class Kernel(Configurable):
         object_info = self._object_info(context)
         msg = self.session.send(self.reply_socket, 'object_info_reply',
                                 object_info, parent, ident)
-        io.raw_print(msg)
-
-    def prompt_request(self, ident, parent):
-        prompt_number = self.shell.displayhook.prompt_count
-        prompt_string = self.shell.displayhook.prompt1.peek_next_prompt()
-        content = {'prompt_string' : prompt_string,
-                   'prompt_number' : prompt_number+1,
-                   'input_sep'     : self.shell.displayhook.input_sep}
-        msg = self.session.send(self.reply_socket, 'prompt_reply',
-                                content, parent, ident)
         io.raw_print(msg)
 
     def history_request(self, ident, parent):
@@ -218,13 +238,14 @@ class Kernel(Configurable):
                 if e.errno == zmq.EAGAIN:
                     break
             else:
-                assert self.reply_socket.rcvmore(), "Unexpected missing message part."
+                assert self.reply_socket.rcvmore(), \
+                       "Unexpected missing message part."
                 msg = self.reply_socket.recv_json()
             io.raw_print("Aborting:\n", Message(msg))
             msg_type = msg['msg_type']
             reply_type = msg_type.split('_')[0] + '_reply'
             reply_msg = self.session.msg(reply_type, {'status' : 'aborted'}, msg)
-            io.raw_print(Message(reply_msg))
+            io.raw_print(reply_msg)
             self.reply_socket.send(ident,zmq.SNDMORE)
             self.reply_socket.send_json(reply_msg)
             # We need to wait a bit for requests to come in. This can probably
@@ -311,6 +332,7 @@ class QtKernel(Kernel):
         self.timer.timeout.connect(self.do_one_iteration)
         self.timer.start(50)
         start_event_loop_qt4(self.app)
+
 
 class WxKernel(Kernel):
     """A Kernel subclass with Wx support."""
@@ -421,6 +443,7 @@ def launch_kernel(xrep_port=0, pub_port=0, req_port=0, hb_port=0,
                               xrep_port, pub_port, req_port, hb_port, 
                               independent, extra_arguments)
 
+
 def main():
     """ The IPython kernel main entry point.
     """
@@ -457,6 +480,7 @@ given, the GUI backend is matplotlib's, otherwise use one of: \
         pylabtools.import_pylab(kernel.shell.user_ns)
 
     start_kernel(namespace, kernel)
+
 
 if __name__ == '__main__':
     main()

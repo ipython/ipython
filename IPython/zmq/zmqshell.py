@@ -61,10 +61,7 @@ class ZMQDisplayHook(DisplayHook):
     def write_output_prompt(self):
         """Write the output prompt."""
         if self.do_full_cache:
-            self.msg['content']['output_sep'] = self.output_sep
-            self.msg['content']['prompt_string'] = str(self.prompt_out)
-            self.msg['content']['prompt_number'] = self.prompt_count
-            self.msg['content']['output_sep2'] = self.output_sep2
+            self.msg['content']['execution_count'] = self.prompt_count
 
     def write_result_repr(self, result_repr):
         self.msg['content']['data'] = result_repr
@@ -383,7 +380,6 @@ class ZMQInteractiveShell(InteractiveShell):
     def _showtraceback(self, etype, evalue, stb):
 
         exc_content = {
-            u'status' : u'error',
             u'traceback' : stb,
             u'ename' : unicode(etype.__name__),
             u'evalue' : unicode(evalue)
@@ -397,7 +393,10 @@ class ZMQInteractiveShell(InteractiveShell):
 
         # FIXME - Hack: store exception info in shell object.  Right now, the
         # caller is reading this info after the fact, we need to fix this logic
-        # to remove this hack.
+        # to remove this hack.  Even uglier, we need to store the error status
+        # here, because in the main loop, the logic that sets it is being
+        # skipped because runlines swallows the exceptions.
+        exc_content[u'status'] = u'error'
         self._reply_content = exc_content
         # /FIXME
         

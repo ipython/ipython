@@ -242,28 +242,27 @@ Message type: ``execute_reply``::
       # prompt numbers to the user.  If the request was a silent one, this will
       # be the current value of the counter in the kernel.
       'execution_count' : int,
-
-      # If the state_template was provided, this will contain the evaluated
-      # form of the template.
-      'state' : str,
     }
 
 When status is 'ok', the following extra fields are present::
 
     {
-      # The kernel will often transform the input provided to it.  If the
-      # '---->' transform had been applied, this is filled, otherwise it's the
-      # empty string.  So transformations like magics don't appear here, only
-      # autocall ones.
-    
-      'transformed_code' : str,
-
       # The execution payload is a dict with string keys that may have been
       # produced by the code being executed.  It is retrieved by the kernel at
       # the end of the execution and sent back to the front end, which can take
       # action on it as needed.  See main text for further details.
       'payload' : dict,
-    }
+
+      # Results for the user_variables and user_expressions.
+      'user_variables' : dict,
+      'user_expressions' : dict,
+
+      # The kernel will often transform the input provided to it.  If the
+      # '---->' transform had been applied, this is filled, otherwise it's the
+      # empty string.  So transformations like magics don't appear here, only
+      # autocall ones.
+      'transformed_code' : str,
+      }
 
 .. admonition:: Execution payloads
     

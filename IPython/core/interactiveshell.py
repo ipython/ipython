@@ -1704,6 +1704,45 @@ class InteractiveShell(Configurable, Magic):
         self.prefilter = self.prefilter_manager.prefilter_lines
 
     #-------------------------------------------------------------------------
+    # Things related to extracting values/expressions from kernel and user_ns
+    #-------------------------------------------------------------------------
+
+    def _simple_error(self):
+        etype, value = sys.exc_info()[:2]
+        return u'[ERROR] {e.__name__}: {v}'.format(e=etype, v=value)
+
+    def get_user_variables(self, names):
+        """Get a list of variable names from the user's namespace.
+
+        The return value is a dict with the repr() of each value.
+        """
+        out = {}
+        user_ns = self.user_ns
+        for varname in names:
+            try:
+                value = repr(user_ns[varname])
+            except:
+                value = self._simple_error()
+            out[varname] = value
+        return out
+        
+    def eval_expressions(self, expressions):
+        """Evaluate a dict of expressions in the user's namespace.
+
+        The return value is a dict with the repr() of each value.
+        """
+        out = {}
+        user_ns = self.user_ns
+        global_ns = self.user_global_ns
+        for key, expr in expressions.iteritems():
+            try:
+                value = repr(eval(expr, global_ns, user_ns))
+            except:
+                value = self._simple_error()
+            out[key] = value
+        return out
+
+    #-------------------------------------------------------------------------
     # Things related to the running of code
     #-------------------------------------------------------------------------
 
