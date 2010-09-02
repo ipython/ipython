@@ -63,11 +63,12 @@ def process_handler(cmd, callback, stderr=subprocess.PIPE):
     """
     sys.stdout.flush()
     sys.stderr.flush()
+    close_fds = False if sys.platform=='win32' else True
     p = subprocess.Popen(cmd, shell=True,
                          stdin=subprocess.PIPE,
                          stdout=subprocess.PIPE,
                          stderr=stderr,
-                         close_fds=True)
+                         close_fds=close_fds)
 
     try:
         out = callback(p)
