@@ -257,10 +257,12 @@ def find_scripts():
     kernel_scripts = pjoin('IPython','kernel','scripts')
     main_scripts = pjoin('IPython','scripts')
     frontend_terminal_scripts = pjoin('IPython','frontend','terminal','scripts')
+    frontend_qt_scripts = pjoin('IPython','frontend','qt','console','scripts')
     scripts = [pjoin(kernel_scripts, 'ipengine'),
                pjoin(kernel_scripts, 'ipcontroller'),
                pjoin(kernel_scripts, 'ipcluster'),
                pjoin(frontend_terminal_scripts, 'ipython'),
+               pjoin(frontend_qt_scripts, 'ipythonqt'),
                pjoin(main_scripts, 'pycolor'),
                pjoin(main_scripts, 'irunner'),
                pjoin(main_scripts, 'iptest')

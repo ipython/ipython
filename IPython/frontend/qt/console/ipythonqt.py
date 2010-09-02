@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 """ A minimal application using the Qt console-style IPython frontend.
 """
 
