@@ -374,6 +374,11 @@ class ZMQInteractiveShell(InteractiveShell):
         }
         self.payload_manager.write_payload(payload)
 
+    def magic_gui(self, *args, **kwargs):
+        raise NotImplementedError('GUI support must be enabled in command line options.')
+
+    def magic_pylab(self, *args, **kwargs):
+        raise NotImplementedError('pylab support must be enabled in commandl in options.')
 
     def _showtraceback(self, etype, evalue, stb):
 

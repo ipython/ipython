@@ -55,7 +55,6 @@ from IPython.core.macro import Macro
 from IPython.core import page
 from IPython.core.prefilter import ESC_MAGIC
 from IPython.lib.pylabtools import mpl_runner
-from IPython.lib.inputhook import enable_gui
 from IPython.external.Itpl import itpl, printpl
 from IPython.testing import decorators as testdec
 from IPython.utils.io import file_read, nlprint
@@ -3475,7 +3474,7 @@ Defaulting color scheme to 'NoColor'"""
     def magic_gui(self, parameter_s=''):
         """Enable or disable IPython GUI event loop integration.
 
-        %gui [-a] [GUINAME]
+        %gui [GUINAME]
 
         This magic replaces IPython's threaded shells that were activated
         using the (pylab/wthread/etc.) command line flags.  GUI toolkits
@@ -3492,17 +3491,11 @@ Defaulting color scheme to 'NoColor'"""
         WARNING:  after any of these has been called you can simply create
         an application object, but DO NOT start the event loop yourself, as
         we have already handled that.
-
-        If you want us to create an appropriate application object add the
-        "-a" flag to your command::
-
-            %gui -a wx
-
-        This is highly recommended for most users.
         """
-        opts, arg = self.parse_options(parameter_s,'a')
+        from IPython.lib.inputhook import enable_gui
+        opts, arg = self.parse_options(parameter_s='')
         if arg=='': arg = None
-        return enable_gui(arg, 'a' in opts)
+        return enable_gui(arg)
 
     def magic_load_ext(self, module_str):
         """Load an IPython extension by its module name."""

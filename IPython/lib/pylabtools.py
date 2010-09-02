@@ -3,7 +3,9 @@
 
 Authors
 -------
-Fernando Perez.
+
+* Fernando Perez.
+* Brian Granger
 """
 
 #-----------------------------------------------------------------------------
@@ -177,3 +179,4 @@ def mpl_runner(safe_execfile):
             pylab.draw_if_interactive.called = False
 
     return mpl_execfile
+

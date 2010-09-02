@@ -45,17 +45,6 @@ from .core.error import TryNext
 from .core.interactiveshell import InteractiveShell
 from .testing import test
 
-from .lib import (
-    enable_wx, disable_wx,
-    enable_gtk, disable_gtk,
-    enable_qt4, disable_qt4,
-    enable_tk, disable_tk,
-    set_inputhook, clear_inputhook,
-    current_gui, spin,
-    appstart_qt4, appstart_wx,
-    appstart_gtk, appstart_tk
-)
-
 # Release data
 __author__ = ''
 for author, email in release.authors.values():
