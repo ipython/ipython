@@ -1,4 +1,5 @@
 # Standard library imports
+from os.path import commonprefix
 import re
 import sys
 from textwrap import dedent
@@ -158,6 +159,7 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
         self._reading = False
         self._reading_callback = None
         self._tab_width = 8
+        self._text_completing_pos = 0
 
         # Set a monospaced font.
         self.reset_font()
@@ -435,7 +437,6 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
     def reset_font(self):
         """ Sets the font to the default fixed-width font for this platform.
         """
-        # FIXME: font family and size should be configurable by the user.
         if sys.platform == 'win32':
             # FIXME: we should test whether Consolas is available and use it
             # first if it is.  Consolas ships by default from Vista onwards,
@@ -557,18 +558,54 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
         self._show_prompt()
         self.input_buffer = input_buffer
 
+    def _clear_temporary_buffer(self):
+        """ Clears the "temporary text" buffer, i.e. all the text following
+            the prompt region.
+        """
+        cursor = self._get_prompt_cursor()
+        found_block = cursor.movePosition(QtGui.QTextCursor.NextBlock)
+        if found_block:
+            while found_block and \
+                    cursor.block().text().startsWith(self._continuation_prompt):
+                found_block = cursor.movePosition(QtGui.QTextCursor.NextBlock)
+            cursor.movePosition(QtGui.QTextCursor.Left) # Grab the newline.
+            cursor.movePosition(QtGui.QTextCursor.End,
+                                QtGui.QTextCursor.KeepAnchor)
+            cursor.removeSelectedText()
+
     def _complete_with_items(self, cursor, items):
         """ Performs completion with 'items' at the specified cursor location.
         """
+        if self._text_completing_pos:
+            self._clear_temporary_buffer()
+            self._text_completing_pos = 0
+
         if len(items) == 1:
             cursor.setPosition(self._control.textCursor().position(), 
                                QtGui.QTextCursor.KeepAnchor)
             cursor.insertText(items[0])
+
         elif len(items) > 1:
+            current_pos = self._control.textCursor().position()
+            prefix = commonprefix(items)
+            if prefix:
+                cursor.setPosition(current_pos, QtGui.QTextCursor.KeepAnchor)
+                cursor.insertText(prefix)
+                current_pos = cursor.position()
+
             if self.gui_completion:
+                cursor.movePosition(QtGui.QTextCursor.Left, n=len(prefix))
                 self._completion_widget.show_items(cursor, items) 
             else:
+                cursor.beginEditBlock()
+                self._append_plain_text('\n')
                 self._page(self._format_as_columns(items))
+                cursor.endEditBlock()
+
+                cursor.setPosition(current_pos)
+                self._control.moveCursor(QtGui.QTextCursor.End)
+                self._control.setTextCursor(cursor)
+                self._text_completing_pos = current_pos
 
     def _control_key_down(self, modifiers):
         """ Given a KeyboardModifiers flags object, return whether the Control
@@ -594,6 +631,7 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
             control.setAcceptRichText(False)
         control.installEventFilter(self)
         control.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+        control.cursorPositionChanged.connect(self._cursor_position_changed)
         control.customContextMenuRequested.connect(self._show_context_menu)
         control.copyAvailable.connect(self.copy_available)
         control.redoAvailable.connect(self.redo_available)
@@ -624,6 +662,13 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
         ctrl_down = self._control_key_down(event.modifiers())
         alt_down = event.modifiers() & QtCore.Qt.AltModifier
         shift_down = event.modifiers() & QtCore.Qt.ShiftModifier
+
+        # Special handling when tab completing in text mode:
+        if self._text_completing_pos:
+            if key in (QtCore.Qt.Key_Enter, QtCore.Qt.Key_Return,
+                       QtCore.Qt.Key_Escape):
+                self._clear_temporary_buffer()
+                self._text_completing_pos = 0
 
         if event.matches(QtGui.QKeySequence.Paste):
             # Call our paste instead of the underlying text widget's.
@@ -1159,7 +1204,9 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
         """ Displays text using the pager if it exceeds the height of the
             visible area.
         """
-        if self.paging != 'none':
+        if self.paging == 'none':
+            self._append_plain_text(text)
+        else:
             line_height = QtGui.QFontMetrics(self.font).height()
             minlines = self._control.viewport().height() / line_height
             if re.match("(?:[^\n]*\n){%i}" % minlines, text):
@@ -1177,11 +1224,8 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
                         self._page_control.setFocus()
                     else:
                         self.layout().setCurrentWidget(self._page_control)
-                return
-        if self._executing:
-            self._append_plain_text(text)
-        else:
-            self._append_plain_text_keeping_prompt(text)
+            else:
+                self._append_plain_text(text)
 
     def _prompt_started(self):
         """ Called immediately after a new prompt is displayed.
@@ -1332,6 +1376,26 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
 
         self._prompt_pos = self._get_end_cursor().position()
         self._prompt_started()
+
+    #------ Signal handlers ----------------------------------------------------
+
+    def _cursor_position_changed(self):
+        """ Clears the temporary buffer based on the cursor position.
+        """
+        if self._text_completing_pos:
+            document = self._control.document()
+            if self._text_completing_pos < document.characterCount():
+                cursor = self._control.textCursor()
+                pos = cursor.position()
+                text_cursor = self._control.textCursor()
+                text_cursor.setPosition(self._text_completing_pos)
+                if pos < self._text_completing_pos or \
+                        cursor.blockNumber() > text_cursor.blockNumber():
+                    self._clear_temporary_buffer()
+                    self._text_completing_pos = 0
+            else:
+                self._clear_temporary_buffer()
+                self._text_completing_pos = 0
 
 
 class HistoryConsoleWidget(ConsoleWidget):
