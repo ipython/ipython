@@ -102,7 +102,8 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
                          QtCore.Qt.Key_N : QtCore.Qt.Key_Down,
                          QtCore.Qt.Key_D : QtCore.Qt.Key_Delete, }
     _shortcuts = set(_ctrl_down_remap.keys() +
-                     [ QtCore.Qt.Key_C, QtCore.Qt.Key_V, QtCore.Qt.Key_O ])
+                     [ QtCore.Qt.Key_C, QtCore.Qt.Key_G, QtCore.Qt.Key_O,
+                       QtCore.Qt.Key_V ])
 
     #---------------------------------------------------------------------------
     # 'QObject' interface
@@ -667,20 +668,17 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
         alt_down = event.modifiers() & QtCore.Qt.AltModifier
         shift_down = event.modifiers() & QtCore.Qt.ShiftModifier
 
-        # Special handling when tab completing in text mode:
-        if self._text_completing_pos:
-            if key in (QtCore.Qt.Key_Enter, QtCore.Qt.Key_Return,
-                       QtCore.Qt.Key_Escape):
-                self._clear_temporary_buffer()
-                self._text_completing_pos = 0
-
         if event.matches(QtGui.QKeySequence.Paste):
             # Call our paste instead of the underlying text widget's.
             self.paste()
             intercepted = True
 
         elif ctrl_down:
-            if key == QtCore.Qt.Key_K:
+            if key == QtCore.Qt.Key_G:
+                self._keyboard_quit()
+                intercepted = True
+
+            elif key == QtCore.Qt.Key_K:
                 if self._in_buffer(position):
                     cursor.movePosition(QtGui.QTextCursor.EndOfLine,
                                         QtGui.QTextCursor.KeepAnchor)
@@ -751,6 +749,12 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
         else:
             if key in (QtCore.Qt.Key_Return, QtCore.Qt.Key_Enter):
                 intercepted = True
+                
+                # Special handling when tab completing in text mode.
+                if self._text_completing_pos:
+                    self._clear_temporary_buffer()
+                    self._text_completing_pos = 0
+
                 if self._in_buffer(position):
                     if self._reading:
                         self._append_plain_text('\n')
@@ -763,8 +767,9 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
                     elif not self._executing:
                         cursor.movePosition(QtGui.QTextCursor.End,
                                             QtGui.QTextCursor.KeepAnchor)
-                        if cursor.selectedText().trimmed().isEmpty():
-                            self.execute(interactive=True)
+                        at_end = cursor.selectedText().trimmed().isEmpty() 
+                        if at_end or shift_down:
+                            self.execute(interactive = not shift_down)
                         else:
                             # Do this inside an edit block for clean undo/redo.
                             cursor.beginEditBlock()
@@ -778,6 +783,10 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
                             # is taller than the console widget.
                             self._control.moveCursor(QtGui.QTextCursor.End)
                             self._control.setTextCursor(cursor)
+
+            elif key == QtCore.Qt.Key_Escape:
+                self._keyboard_quit()
+                intercepted = True
 
             elif key == QtCore.Qt.Key_Up:
                 if self._reading or not self._up_pressed():
@@ -1203,6 +1212,15 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
             cursor.movePosition(QtGui.QTextCursor.End)
             self._control.setTextCursor(cursor)
         return moved
+
+    def _keyboard_quit(self):
+        """ Cancels the current editing task ala Ctrl-G in Emacs.
+        """
+        if self._text_completing_pos:
+            self._clear_temporary_buffer()
+            self._text_completing_pos = 0
+        else:
+            self.input_buffer = ''
         
     def _page(self, text):
         """ Displays text using the pager if it exceeds the height of the
