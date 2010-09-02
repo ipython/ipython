@@ -563,11 +563,15 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
             the prompt region.
         """
         cursor = self._get_prompt_cursor()
-        found_block = cursor.movePosition(QtGui.QTextCursor.NextBlock)
-        if found_block:
-            while found_block and \
-                    cursor.block().text().startsWith(self._continuation_prompt):
-                found_block = cursor.movePosition(QtGui.QTextCursor.NextBlock)
+        if cursor.movePosition(QtGui.QTextCursor.NextBlock):
+            prompt = self._continuation_prompt.lstrip()
+            while True:
+                temp_cursor = QtGui.QTextCursor(cursor)
+                temp_cursor.select(QtGui.QTextCursor.BlockUnderCursor)
+                text = str(temp_cursor.selection().toPlainText()).lstrip()
+                if not text.startswith(prompt) or \
+                        not cursor.movePosition(QtGui.QTextCursor.NextBlock):
+                    break
             cursor.movePosition(QtGui.QTextCursor.Left) # Grab the newline.
             cursor.movePosition(QtGui.QTextCursor.End,
                                 QtGui.QTextCursor.KeepAnchor)

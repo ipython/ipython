@@ -12,6 +12,7 @@
 
 # Standard library imports
 from collections import namedtuple
+import re
 from subprocess import Popen
 
 # System library imports
@@ -127,12 +128,20 @@ class IPythonWidget(FrontendWidget):
         cursor = self._get_cursor()
         if rep['parent_header']['msg_id'] == self._complete_id and \
                 cursor.position() == self._complete_pos:
-            # The completer tells us what text was actually used for the
-            # matching, so we must move that many characters left to apply the
-            # completions.
+            matches = rep['content']['matches']
             text = rep['content']['matched_text']
+
+            # Clean up matches with '.'s and path separators.
+            parts = re.split(r'[./\\]', text) 
+            sep_count = len(parts) - 1
+            if sep_count:
+                chop_length = sum(map(len, parts[:sep_count])) + sep_count
+                matches = [ match[chop_length:] for match in matches ]
+                text = text[chop_length:]
+
+            # Move the cursor to the start of the match and complete.
             cursor.movePosition(QtGui.QTextCursor.Left, n=len(text))
-            self._complete_with_items(cursor, rep['content']['matches'])
+            self._complete_with_items(cursor, matches)
 
     def _handle_history_reply(self, msg):
         """ Implemented to handle history replies, which are only supported by
