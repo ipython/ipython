@@ -214,10 +214,12 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
         style = self.style()
         splitwidth = style.pixelMetric(QtGui.QStyle.PM_SplitterWidth)
 
-        # Despite my best efforts to take the various margins into account, the
-        # width is still coming out a bit too small, so we include a fudge
-        # factor of one character here.
-        width = font_metrics.maxWidth() * 81 + margin
+        # Note 1: Despite my best efforts to take the various margins into
+        # account, the width is still coming out a bit too small, so we include
+        # a fudge factor of one character here.
+        # Note 2: QFontMetrics.maxWidth is not used here or anywhere else due
+        # to a Qt bug on certain Mac OS systems where it returns 0.
+        width = font_metrics.width(' ') * 81 + margin
         width += style.pixelMetric(QtGui.QStyle.PM_ScrollBarExtent)
         if self.paging == 'hsplit':
             width = width * 2 + splitwidth
@@ -940,7 +942,7 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
 
         # Calculate the number of characters available.
         width = self._control.viewport().width()
-        char_width = QtGui.QFontMetrics(self.font).maxWidth()
+        char_width = QtGui.QFontMetrics(self.font).width(' ')
         displaywidth = max(10, (width / char_width) - 1)
 
         # Some degenerate cases.
