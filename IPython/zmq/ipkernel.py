@@ -28,7 +28,7 @@ import zmq
 from IPython.config.configurable import Configurable
 from IPython.utils import io
 from IPython.lib import pylabtools
-from IPython.utils.traitlets import Instance
+from IPython.utils.traitlets import Instance, Float
 from entry_point import base_launch_kernel, make_argument_parser, make_kernel, \
     start_kernel
 from iostream import OutStream
@@ -52,6 +52,22 @@ class Kernel(Configurable):
     pub_socket = Instance('zmq.Socket')
     req_socket = Instance('zmq.Socket')
 
+    # Private interface
+
+    # Time to sleep after flushing the stdout/err buffers in each execute
+    # cycle.  While this introduces a hard limit on the minimal latency of the
+    # execute cycle, it helps prevent output synchronization problems for
+    # clients.
+    # Units are in seconds.  The minimum zmq latency on local host is probably
+    # ~150 microseconds, set this to 500us for now.  We may need to increase it
+    # a little if it's not enough after more interactive testing.
+    _execute_sleep = Float(0.0005, config=True)
+
+    # Frequency of the kernel's event loop.
+    # Units are in seconds, kernel subclasses for GUI toolkits may need to
+    # adapt to milliseconds.
+    _poll_interval = Float(0.05, config=True)
+    
     def __init__(self, **kwargs):
         super(Kernel, self).__init__(**kwargs)
 
@@ -101,7 +117,7 @@ class Kernel(Configurable):
         """ Start the kernel main loop.
         """
         while True:
-            time.sleep(0.05)
+            time.sleep(self._poll_interval)
             self.do_one_iteration()
 
     #---------------------------------------------------------------------------
@@ -202,7 +218,8 @@ class Kernel(Configurable):
         # FIXME: on rare occasions, the flush doesn't seem to make it to the
         # clients... This seems to mitigate the problem, but we definitely need
         # to better understand what's going on.
-        time.sleep(0.05)
+        if self._execute_sleep:
+            time.sleep(self._execute_sleep)
         
         self.reply_socket.send(ident, zmq.SNDMORE)
         self.reply_socket.send_json(reply_msg)
@@ -340,7 +357,8 @@ class QtKernel(Kernel):
         self.app.setQuitOnLastWindowClosed(False)
         self.timer = QtCore.QTimer()
         self.timer.timeout.connect(self.do_one_iteration)
-        self.timer.start(50)
+        # Units for the timer are in milliseconds
+        self.timer.start(1000*self._poll_interval)
         start_event_loop_qt4(self.app)
 
 
@@ -360,7 +378,8 @@ class WxKernel(Kernel):
             def __init__(self, func):
                 wx.Frame.__init__(self, None, -1)
                 self.timer = wx.Timer(self)
-                self.timer.Start(50)
+                # Units for the timer are in milliseconds
+                self.timer.Start(1000*self._poll_interval)
                 self.Bind(wx.EVT_TIMER, self.on_timer)
                 self.func = func
             def on_timer(self, event):
@@ -397,7 +416,8 @@ class TkKernel(Kernel):
                 self.func = func
             def on_timer(self):
                 self.func()
-                self.app.after(50, self.on_timer)
+                # Units for the timer are in milliseconds
+                self.app.after(1000*self._poll_interval, self.on_timer)
             def start(self):
                 self.on_timer()  # Call it once to get things going.
                 self.app.mainloop()
