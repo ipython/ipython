@@ -371,6 +371,7 @@ class WxKernel(Kernel):
         import wx
         from IPython.lib.guisupport import start_event_loop_wx
         doi = self.do_one_iteration
+        _poll_interval = self._poll_interval
 
         # We have to put the wx.Timer in a wx.Frame for it to fire properly.
         # We make the Frame hidden when we create it in the main app below.
@@ -379,7 +380,7 @@ class WxKernel(Kernel):
                 wx.Frame.__init__(self, None, -1)
                 self.timer = wx.Timer(self)
                 # Units for the timer are in milliseconds
-                self.timer.Start(1000*self._poll_interval)
+                self.timer.Start(1000*_poll_interval)
                 self.Bind(wx.EVT_TIMER, self.on_timer)
                 self.func = func
             def on_timer(self, event):
