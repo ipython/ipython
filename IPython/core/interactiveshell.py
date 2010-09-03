@@ -1042,12 +1042,12 @@ class InteractiveShell(Configurable, Magic):
             # Namespaces to search in:
             # Put them in a list. The order is important so that we
             # find things in the same order that Python finds them.
-            namespaces = [ ('Interactive', self.shell.user_ns),
-                           ('IPython internal', self.shell.internal_ns),
+            namespaces = [ ('Interactive', self.user_ns),
+                           ('IPython internal', self.internal_ns),
                            ('Python builtin', __builtin__.__dict__),
-                           ('Alias', self.shell.alias_manager.alias_table),
+                           ('Alias', self.alias_manager.alias_table),
                            ]
-            alias_ns = self.shell.alias_manager.alias_table
+            alias_ns = self.alias_manager.alias_table
 
         # initialize results to 'null'
         found = False; obj = None;  ospace = None;  ds = None;
@@ -1056,7 +1056,7 @@ class InteractiveShell(Configurable, Magic):
         # We need to special-case 'print', which as of python2.6 registers as a
         # function but should only be treated as one if print_function was
         # loaded with a future import.  In this case, just bail.
-        if (oname == 'print' and not (self.shell.compile.compiler.flags &
+        if (oname == 'print' and not (self.compile.compiler.flags &
                                       __future__.CO_FUTURE_PRINT_FUNCTION)):
             return {'found':found, 'obj':obj, 'namespace':ospace,
                     'ismagic':ismagic, 'isalias':isalias, 'parent':parent}
@@ -1147,7 +1147,7 @@ class InteractiveShell(Configurable, Magic):
                     except AttributeError: pass
                 except AttributeError: pass
                         
-            pmethod = getattr(self.shell.inspector,meth)
+            pmethod = getattr(self.inspector,meth)
             formatter = info.ismagic and self.format_screen or None
             if meth == 'pdoc':
                 pmethod(info.obj,oname,formatter)
