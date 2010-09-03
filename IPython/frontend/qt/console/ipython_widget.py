@@ -138,17 +138,22 @@ class IPythonWidget(FrontendWidget):
                 info.pos == cursor.position():
             matches = rep['content']['matches']
             text = rep['content']['matched_text']
+            offset = len(text)
 
-            # Clean up matches with '.'s and path separators.
-            parts = re.split(r'[./\\]', text) 
-            sep_count = len(parts) - 1
-            if sep_count:
-                chop_length = sum(map(len, parts[:sep_count])) + sep_count
-                matches = [ match[chop_length:] for match in matches ]
-                text = text[chop_length:]
+            # Clean up matches with period and path separators if the matched
+            # text has not been transformed. This is done by truncating all
+            # but the last component and then suitably decreasing the offset
+            # between the current cursor position and the start of completion.
+            if len(matches) > 1 and matches[0][:offset] == text:
+                parts = re.split(r'[./\\]', text) 
+                sep_count = len(parts) - 1
+                if sep_count:
+                    chop_length = sum(map(len, parts[:sep_count])) + sep_count
+                    matches = [ match[chop_length:] for match in matches ]
+                    offset -= chop_length
 
             # Move the cursor to the start of the match and complete.
-            cursor.movePosition(QtGui.QTextCursor.Left, n=len(text))
+            cursor.movePosition(QtGui.QTextCursor.Left, n=offset)
             self._complete_with_items(cursor, matches)
 
     def _handle_execute_reply(self, msg):

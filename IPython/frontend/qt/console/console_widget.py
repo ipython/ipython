@@ -192,7 +192,7 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
         elif etype == QtCore.QEvent.MouseButtonRelease and \
                 event.button() == QtCore.Qt.MidButton and \
                 obj == self._control.viewport():
-            cursor = self._control.cursorForPosition(event.pos());
+            cursor = self._control.cursorForPosition(event.pos())
             self._control.setTextCursor(cursor)
             self.paste(QtGui.QClipboard.Selection)
             return True
@@ -578,31 +578,46 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
         self._show_prompt()
         self.input_buffer = input_buffer
 
-    def _clear_temporary_buffer(self):
-        """ Clears the "temporary text" buffer, i.e. all the text following
-            the prompt region.
-        """
-        cursor = self._get_prompt_cursor()
-        if cursor.movePosition(QtGui.QTextCursor.NextBlock):
-            prompt = self._continuation_prompt.lstrip()
-            while True:
-                temp_cursor = QtGui.QTextCursor(cursor)
-                temp_cursor.select(QtGui.QTextCursor.BlockUnderCursor)
-                text = str(temp_cursor.selection().toPlainText()).lstrip()
-                if not text.startswith(prompt) or \
-                        not cursor.movePosition(QtGui.QTextCursor.NextBlock):
-                    break
-            cursor.movePosition(QtGui.QTextCursor.Left) # Grab the newline.
-            cursor.movePosition(QtGui.QTextCursor.End,
-                                QtGui.QTextCursor.KeepAnchor)
-            cursor.removeSelectedText()
-
-    def _complete_with_items(self, cursor, items):
-        """ Performs completion with 'items' at the specified cursor location.
+    def _cancel_text_completion(self):
+        """ If text completion is progress, cancel it.
         """
         if self._text_completing_pos:
             self._clear_temporary_buffer()
             self._text_completing_pos = 0
+
+    def _clear_temporary_buffer(self):
+        """ Clears the "temporary text" buffer, i.e. all the text following
+            the prompt region.
+        """
+        # Select and remove all text below the input buffer.
+        cursor = self._get_prompt_cursor()
+        prompt = self._continuation_prompt.lstrip()
+        while cursor.movePosition(QtGui.QTextCursor.NextBlock):
+            temp_cursor = QtGui.QTextCursor(cursor)
+            temp_cursor.select(QtGui.QTextCursor.BlockUnderCursor)
+            text = str(temp_cursor.selection().toPlainText()).lstrip()
+            if not text.startswith(prompt):
+                break
+        else:
+            # We've reached the end of the input buffer and no text follows.
+            return
+        cursor.movePosition(QtGui.QTextCursor.Left) # Grab the newline.
+        cursor.movePosition(QtGui.QTextCursor.End,
+                            QtGui.QTextCursor.KeepAnchor)
+        cursor.removeSelectedText()
+
+        # After doing this, we have no choice but to clear the undo/redo
+        # history. Otherwise, the text is not "temporary" at all, because it
+        # can be recalled with undo/redo. Unfortunately, Qt does not expose
+        # fine-grained control to the undo/redo system.
+        if self._control.isUndoRedoEnabled():
+            self._control.setUndoRedoEnabled(False)
+            self._control.setUndoRedoEnabled(True)
+
+    def _complete_with_items(self, cursor, items):
+        """ Performs completion with 'items' at the specified cursor location.
+        """
+        self._cancel_text_completion()
 
         if len(items) == 1:
             cursor.setPosition(self._control.textCursor().position(), 
@@ -785,9 +800,7 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
                 intercepted = True
                 
                 # Special handling when tab completing in text mode.
-                if self._text_completing_pos:
-                    self._clear_temporary_buffer()
-                    self._text_completing_pos = 0
+                self._cancel_text_completion()
 
                 if self._in_buffer(position):
                     if self._reading:
@@ -1251,8 +1264,7 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
         """ Cancels the current editing task ala Ctrl-G in Emacs.
         """
         if self._text_completing_pos:
-            self._clear_temporary_buffer()
-            self._text_completing_pos = 0
+            self._cancel_text_completion()
         else:
             self.input_buffer = ''
         
