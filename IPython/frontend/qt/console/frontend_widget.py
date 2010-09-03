@@ -1,4 +1,5 @@
 # Standard library imports
+from collections import namedtuple
 import signal
 import sys
 
@@ -90,6 +91,9 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
     executed = QtCore.pyqtSignal(object)
     
     # Protected class variables.
+    _CallTipRequest = namedtuple('_CallTipRequest', ['id', 'pos'])
+    _CompletionRequest = namedtuple('_CompletionRequest', ['id', 'pos'])
+    _ExecutionRequest = namedtuple('_ExecutionRequest', ['id', 'kind'])
     _input_splitter_class = InputSplitter
 
     #---------------------------------------------------------------------------
@@ -108,6 +112,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         self._input_splitter = self._input_splitter_class(input_mode='block')
         self._kernel_manager = None
         self._possible_kernel_restart = False
+        self._request_info = {}
 
         # Configure the ConsoleWidget.
         self.tab_width = 4
@@ -149,9 +154,10 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         # /end tmp code
         
         # FIXME - user_variables/expressions are not visible in API above us.
-        self.kernel_manager.xreq_channel.execute(source, hidden,
-                                                 user_variables,
-                                                 user_expressions)
+        msg_id = self.kernel_manager.xreq_channel.execute(source, hidden,
+                                                          user_variables,
+                                                          user_expressions)
+        self._request_info['execute'] = self._ExecutionRequest(msg_id, 'user')
         self._hidden = hidden
         
     def _prompt_started_hook(self):
@@ -216,8 +222,9 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         """ Handle replies for tab completion.
         """
         cursor = self._get_cursor()
-        if rep['parent_header']['msg_id'] == self._complete_id and \
-                cursor.position() == self._complete_pos:
+        info = self._request_info.get('complete')
+        if info and info.id == rep['parent_header']['msg_id'] and \
+                info.pos == cursor.position():
             text = '.'.join(self._get_context())
             cursor.movePosition(QtGui.QTextCursor.Left, n=len(text))
             self._complete_with_items(cursor, rep['content']['matches'])
@@ -225,7 +232,9 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
     def _handle_execute_reply(self, msg):
         """ Handles replies for code execution.
         """
-        if not self._hidden:
+        info = self._request_info.get('execute')
+        if info and info.id == msg['parent_header']['msg_id'] and \
+                not self._hidden:
             # Make sure that all output from the SUB channel has been processed
             # before writing a new prompt.
             self.kernel_manager.sub_channel.flush()
@@ -272,8 +281,9 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         """ Handle replies for call tips.
         """
         cursor = self._get_cursor()
-        if rep['parent_header']['msg_id'] == self._call_tip_id and \
-                cursor.position() == self._call_tip_pos:
+        info = self._request_info.get('call_tip')
+        if info and info.id == rep['parent_header']['msg_id'] and \
+                info.pos == cursor.position():
             doc = rep['content']['docstring']
             if doc:
                 self._call_tip_widget.show_docstring(doc)
@@ -378,8 +388,9 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
 
         # Send the metadata request to the kernel
         name = '.'.join(context)
-        self._call_tip_id = self.kernel_manager.xreq_channel.object_info(name)
-        self._call_tip_pos = self._get_cursor().position()
+        msg_id = self.kernel_manager.xreq_channel.object_info(name)
+        pos = self._get_cursor().position()
+        self._request_info['call_tip'] = self._CallTipRequest(msg_id, pos)
         return True
 
     def _complete(self):
@@ -388,12 +399,14 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         context = self._get_context()
         if context:
             # Send the completion request to the kernel
-            self._complete_id = self.kernel_manager.xreq_channel.complete(
+            msg_id = self.kernel_manager.xreq_channel.complete(
                 '.'.join(context),                       # text
                 self._get_input_buffer_cursor_line(),    # line
                 self._get_input_buffer_cursor_column(),  # cursor_pos
                 self.input_buffer)                       # block 
-            self._complete_pos = self._get_cursor().position()
+            pos = self._get_cursor().position()
+            info = self._CompletionRequest(msg_id, pos)
+            self._request_info['complete'] = info
 
     def _get_banner(self):
         """ Gets a banner to display at the beginning of a session.

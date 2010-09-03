@@ -21,7 +21,6 @@ from PyQt4 import QtCore, QtGui
 # Local imports
 from IPython.core.inputsplitter import IPythonInputSplitter
 from IPython.core.usage import default_banner
-from IPython.utils import io
 from IPython.utils.traitlets import Bool, Str
 from frontend_widget import FrontendWidget
 
@@ -134,8 +133,9 @@ class IPythonWidget(FrontendWidget):
         """ Reimplemented to support IPython's improved completion machinery.
         """
         cursor = self._get_cursor()
-        if rep['parent_header']['msg_id'] == self._complete_id and \
-                cursor.position() == self._complete_pos:
+        info = self._request_info.get('complete')
+        if info and info.id == rep['parent_header']['msg_id'] and \
+                info.pos == cursor.position():
             matches = rep['content']['matches']
             text = rep['content']['matched_text']
 
@@ -151,6 +151,17 @@ class IPythonWidget(FrontendWidget):
             cursor.movePosition(QtGui.QTextCursor.Left, n=len(text))
             self._complete_with_items(cursor, matches)
 
+    def _handle_execute_reply(self, msg):
+        """ Reimplemented to support prompt requests.
+        """
+        info = self._request_info.get('execute')
+        if info and info.id == msg['parent_header']['msg_id']:
+            if info.kind == 'prompt':
+                number = msg['content']['execution_count'] + 1
+                self._show_interpreter_prompt(number)
+            else:
+                super(IPythonWidget, self)._handle_execute_reply(msg)
+
     def _handle_history_reply(self, msg):
         """ Implemented to handle history replies, which are only supported by
             the IPython kernel.
@@ -158,12 +169,6 @@ class IPythonWidget(FrontendWidget):
         history_dict = msg['content']['history']
         items = [ history_dict[key] for key in sorted(history_dict.keys()) ]
         self._set_history(items)
-
-    def _handle_prompt_reply(self, msg):
-        """ Implemented to handle prompt number replies, which are only
-            supported by the IPython kernel.
-        """
-        self._show_interpreter_prompt(msg['content']['execution_count'])
 
     def _handle_pyout(self, msg):
         """ Reimplemented for IPython-style "display hook".
@@ -204,12 +209,14 @@ class IPythonWidget(FrontendWidget):
         text = ''
         
         # Send the completion request to the kernel
-        self._complete_id = self.kernel_manager.xreq_channel.complete(
+        msg_id = self.kernel_manager.xreq_channel.complete(
             text,                                    # text
             self._get_input_buffer_cursor_line(),    # line
             self._get_input_buffer_cursor_column(),  # cursor_pos
             self.input_buffer)                       # block 
-        self._complete_pos = self._get_cursor().position()
+        pos = self._get_cursor().position()
+        info = self._CompletionRequest(msg_id, pos)
+        self._request_info['complete'] = info
 
     def _get_banner(self):
         """ Reimplemented to return IPython's default banner.
@@ -254,10 +261,10 @@ class IPythonWidget(FrontendWidget):
         """
         # If a number was not specified, make a prompt number request.
         if number is None:
-            # FIXME - fperez: this should be a silent code request
-            number = 1
-            ##self.kernel_manager.xreq_channel.prompt()
-            ##return
+            msg_id = self.kernel_manager.xreq_channel.execute('', silent=True)
+            info = self._ExecutionRequest(msg_id, 'prompt')
+            self._request_info['execute'] = info
+            return
 
         # Show a new prompt and save information about it so that it can be
         # updated later if the prompt number turns out to be wrong.
@@ -276,7 +283,6 @@ class IPythonWidget(FrontendWidget):
         """
         # Update the old prompt number if necessary.
         content = msg['content']
-        ##io.rprint('_show_interpreter_prompt_for_reply\n', content) # dbg
         previous_prompt_number = content['execution_count']
         if self._previous_prompt_obj and \
                 self._previous_prompt_obj.number != previous_prompt_number:

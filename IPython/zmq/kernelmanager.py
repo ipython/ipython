@@ -206,7 +206,6 @@ class XReqSocketChannel(ZmqSocketChannel):
             If set, the kernel will execute the code as quietly possible.
 
         user_variables : list, optional
-        
             A list of variable names to pull from the user's namespace.  They
             will come back as a dict with these names as keys and their
             :func:`repr` as values.
