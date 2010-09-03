@@ -76,7 +76,7 @@ info_fields = ['type_name', 'base_class', 'string_form', 'namespace',
                'call_def', 'call_docstring',
                # These won't be printed but will be used to determine how to
                # format the object
-               'ismagic', 'isalias', 
+               'ismagic', 'isalias', 'argspec', 'found',
                ]
 
 
@@ -162,7 +162,7 @@ def getargspec(obj):
     elif inspect.ismethod(obj):
         func_obj = obj.im_func
     else:
-        raise TypeError, 'arg is not a Python function'
+        raise TypeError('arg is not a Python function')
     args, varargs, varkw = inspect.getargs(func_obj.func_code)
     return args, varargs, varkw, func_obj.func_defaults
 
@@ -583,8 +583,9 @@ class Inspector:
         if formatter is not None:
             ds = formatter(ds)
 
-        # store output in a dict, we'll later convert it to an ObjectInfo
-        out  = {}
+        # store output in a dict, we'll later convert it to an ObjectInfo.  We
+        # initialize it here and fill it as we go
+        out = dict(isalias=isalias, ismagic=ismagic)
         
         string_max = 200 # max size of strings to show (snipped if longer)
         shalf = int((string_max -5)/2)
@@ -652,7 +653,10 @@ class Inspector:
         defln = self._getdef(obj,oname)
         if defln:
             out['definition'] = self.format(defln)
- 
+            args,  varargs, varkw, func_defaults = getargspec(obj)
+            out['argspec'] = dict(args=args, varargs=varargs,
+                                  varkw=varkw, func_defaults=func_defaults)
+            
         # Docstrings only in detail 0 mode, since source contains them (we
         # avoid repetitions).  If source fails, we add them back, see below.
         if ds and detail_level == 0:

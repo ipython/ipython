@@ -389,7 +389,11 @@ field names that IPython prints at the terminal.
 Message type: ``object_info_reply``::
 
     content = {
-        # Flags for magics and system aliases
+    # Boolean flag indicating whether the named object was found or not.  If
+    # it's false, all other fields will be empty.
+    'found' : bool,
+    
+    # Flags for magics and system aliases
     'ismagic' : bool,
     'isalias' : bool,
 
