@@ -197,11 +197,8 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
             self.paste(QtGui.QClipboard.Selection)
             return True
 
-        # Override shortucts for all filtered widgets. Note that on Mac OS it is
-        # always unnecessary to override shortcuts, hence the check below (users
-        # should just use the Control key instead of the Command key).
+        # Override shortcuts for all filtered widgets.
         elif etype == QtCore.QEvent.ShortcutOverride and \
-                sys.platform != 'darwin' and \
                 self._control_key_down(event.modifiers()) and \
                 event.key() in self._shortcuts:
             event.accept()
@@ -646,19 +643,23 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
                 self._control.setTextCursor(cursor)
                 self._text_completing_pos = current_pos
 
-    def _control_key_down(self, modifiers):
+    def _control_key_down(self, modifiers, include_command=True):
         """ Given a KeyboardModifiers flags object, return whether the Control
-            key is down (on Mac OS, treat the Command key as a synonym for
-            Control).
-        """
-        down = bool(modifiers & QtCore.Qt.ControlModifier)
+        key is down.
 
-        # Note: on Mac OS, ControlModifier corresponds to the Command key while
-        # MetaModifier corresponds to the Control key.
+        Parameters:
+        -----------
+        include_command : bool, optional (default True)
+            Whether to treat the Command key as a (mutually exclusive) synonym
+            for Control when in Mac OS.
+        """
+        # Note that on Mac OS, ControlModifier corresponds to the Command key
+        # while MetaModifier corresponds to the Control key.
         if sys.platform == 'darwin':
-            down = down ^ bool(modifiers & QtCore.Qt.MetaModifier)
-            
-        return down
+            down = include_command and (modifiers & QtCore.Qt.ControlModifier)
+            return bool(down) ^ bool(modifiers & QtCore.Qt.MetaModifier)
+        else:
+            return bool(modifiers & QtCore.Qt.ControlModifier)
 
     def _create_control(self):
         """ Creates and connects the underlying text widget.

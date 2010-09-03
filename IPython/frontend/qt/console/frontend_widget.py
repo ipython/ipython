@@ -196,7 +196,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         """ Reimplemented to allow execution interruption.
         """
         key = event.key()
-        if self._control_key_down(event.modifiers()):
+        if self._control_key_down(event.modifiers(), include_command=False):
             if key == QtCore.Qt.Key_C and self._executing:
                 self.interrupt_kernel()
                 return True
