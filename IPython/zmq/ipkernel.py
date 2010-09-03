@@ -195,6 +195,15 @@ class Kernel(Configurable):
         # Send the reply.
         reply_msg = self.session.msg(u'execute_reply', reply_content, parent)
         io.raw_print(reply_msg)
+
+        # Flush output before sending the reply.
+        sys.stdout.flush()
+        sys.stderr.flush()
+        # FIXME: on rare occasions, the flush doesn't seem to make it to the
+        # clients... This seems to mitigate the problem, but we definitely need
+        # to better understand what's going on.
+        time.sleep(0.05)
+        
         self.reply_socket.send(ident, zmq.SNDMORE)
         self.reply_socket.send_json(reply_msg)
         if reply_msg['content']['status'] == u'error':
