@@ -207,87 +207,7 @@ python-profiler package from non-free.""")
                 fin = ini+1
             cmds.append(hist[ini:fin])
         return cmds
-        
-    def _ofind(self, oname, namespaces=None):
-        """Find an object in the available namespaces.
-
-        self._ofind(oname) -> dict with keys: found,obj,ospace,ismagic
-
-        Has special code to detect magic functions.
-        """
-        oname = oname.strip()
-        alias_ns = None
-        if namespaces is None:
-            # Namespaces to search in:
-            # Put them in a list. The order is important so that we
-            # find things in the same order that Python finds them.
-            namespaces = [ ('Interactive', self.shell.user_ns),
-                           ('IPython internal', self.shell.internal_ns),
-                           ('Python builtin', __builtin__.__dict__),
-                           ('Alias', self.shell.alias_manager.alias_table),
-                           ]
-            alias_ns = self.shell.alias_manager.alias_table
-
-        # initialize results to 'null'
-        found = False; obj = None;  ospace = None;  ds = None;
-        ismagic = False; isalias = False; parent = None
-
-        # We need to special-case 'print', which as of python2.6 registers as a
-        # function but should only be treated as one if print_function was
-        # loaded with a future import.  In this case, just bail.
-        if (oname == 'print' and not (self.shell.compile.compiler.flags &
-                                      __future__.CO_FUTURE_PRINT_FUNCTION)):
-            return {'found':found, 'obj':obj, 'namespace':ospace,
-                    'ismagic':ismagic, 'isalias':isalias, 'parent':parent}
-
-        # Look for the given name by splitting it in parts.  If the head is
-        # found, then we look for all the remaining parts as members, and only
-        # declare success if we can find them all.
-        oname_parts = oname.split('.')
-        oname_head, oname_rest = oname_parts[0],oname_parts[1:]
-        for nsname,ns in namespaces:
-            try:
-                obj = ns[oname_head]
-            except KeyError:
-                continue
-            else:
-                #print 'oname_rest:', oname_rest  # dbg
-                for part in oname_rest:
-                    try:
-                        parent = obj
-                        obj = getattr(obj,part)
-                    except:
-                        # Blanket except b/c some badly implemented objects
-                        # allow __getattr__ to raise exceptions other than
-                        # AttributeError, which then crashes IPython.
-                        break
-                else:
-                    # If we finish the for loop (no break), we got all members
-                    found = True
-                    ospace = nsname
-                    if ns == alias_ns:
-                        isalias = True
-                    break  # namespace loop
-
-        # Try to see if it's magic
-        if not found:
-            if oname.startswith(ESC_MAGIC):
-                oname = oname[1:]
-            obj = getattr(self,'magic_'+oname,None)
-            if obj is not None:
-                found = True
-                ospace = 'IPython internal'
-                ismagic = True
-
-        # Last try: special-case some literals like '', [], {}, etc:
-        if not found and oname_head in ["''",'""','[]','{}','()']:
-            obj = eval(oname_head)
-            found = True
-            ospace = 'Interactive'
             
-        return {'found':found, 'obj':obj, 'namespace':ospace,
-                'ismagic':ismagic, 'isalias':isalias, 'parent':parent}
-    
     def arg_err(self,func):
         """Print docstring if incorrect arguments were passed"""
         print 'Error in arguments:'
@@ -708,56 +628,6 @@ Currently the magic system has the following functions:\n"""
                 return
             page.page(self.shell.inspector.format(file(filename).read()))
 
-    def _inspect(self,meth,oname,namespaces=None,**kw):
-        """Generic interface to the inspector system.
-
-        This function is meant to be called by pdef, pdoc & friends."""
-
-        #oname = oname.strip()
-        #print '1- oname: <%r>' % oname  # dbg
-        try:
-            oname = oname.strip().encode('ascii')
-            #print '2- oname: <%r>' % oname  # dbg
-        except UnicodeEncodeError:
-            print 'Python identifiers can only contain ascii characters.'
-            return 'not found'
-            
-        info = Struct(self._ofind(oname, namespaces))
-        
-        if info.found:
-            try:
-                IPython.utils.generics.inspect_object(info.obj)
-                return
-            except TryNext:
-                pass
-            # Get the docstring of the class property if it exists.
-            path = oname.split('.')
-            root = '.'.join(path[:-1])
-            if info.parent is not None:
-                try:
-                    target = getattr(info.parent, '__class__') 
-                    # The object belongs to a class instance. 
-                    try: 
-                        target = getattr(target, path[-1])
-                        # The class defines the object. 
-                        if isinstance(target, property):
-                            oname = root + '.__class__.' + path[-1]
-                            info = Struct(self._ofind(oname))
-                    except AttributeError: pass
-                except AttributeError: pass
-                        
-            pmethod = getattr(self.shell.inspector,meth)
-            formatter = info.ismagic and self.format_screen or None
-            if meth == 'pdoc':
-                pmethod(info.obj,oname,formatter)
-            elif meth == 'pinfo':
-                pmethod(info.obj,oname,formatter,info,**kw)
-            else:
-                pmethod(info.obj,oname)
-        else:
-            print 'Object `%s` not found.' % oname
-            return 'not found'  # so callers can take other action
-        
     def magic_psearch(self, parameter_s=''):
         """Search for object in namespaces by wildcard.
 
