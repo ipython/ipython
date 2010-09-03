@@ -450,7 +450,7 @@ class RepSocketChannel(ZmqSocketChannel):
 class HBSocketChannel(ZmqSocketChannel):
     """The heartbeat channel which monitors the kernel heartbeat."""
 
-    time_to_dead = 5.0
+    time_to_dead = 3.0
     socket = None
     poller = None
 
@@ -468,8 +468,13 @@ class HBSocketChannel(ZmqSocketChannel):
     def run(self):
         """The thread's main activity.  Call start() instead."""
         self._create_socket()
-
         self._running = True
+        # Wait 2 seconds for the kernel to come up and the sockets to auto
+        # connect. If we don't we will see the kernel as dead. Also, before
+        # the sockets are connected, the poller.poll line below is returning
+        # too fast. This avoids that because the polling doesn't start until
+        # after the sockets are connected.
+        time.sleep(2.0)
         while self._running:
             since_last_heartbeat = 0.0
             request_time = time.time()
@@ -489,7 +494,8 @@ class HBSocketChannel(ZmqSocketChannel):
                         if e.errno == zmq.EAGAIN:
                             until_dead = self.time_to_dead - (time.time() -
                                                               request_time)
-                            self.poller.poll(until_dead)
+                            # poll timeout is in milliseconds.
+                            poll_result = self.poller.poll(1000*until_dead)
                             since_last_heartbeat = time.time() - request_time
                             if since_last_heartbeat > self.time_to_dead:
                                 self.call_handlers(since_last_heartbeat)
