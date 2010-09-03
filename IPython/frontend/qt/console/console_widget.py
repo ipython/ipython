@@ -188,6 +188,15 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
             elif obj == self._page_control:
                 return self._event_filter_page_keypress(event)
 
+        # Make middle-click paste safe.
+        elif etype == QtCore.QEvent.MouseButtonRelease and \
+                event.button() == QtCore.Qt.MidButton and \
+                obj == self._control.viewport():
+            cursor = self._control.cursorForPosition(event.pos());
+            self._control.setTextCursor(cursor)
+            self.paste(QtGui.QClipboard.Selection)
+            return True
+
         # Override shortucts for all filtered widgets. Note that on Mac OS it is
         # always unnecessary to override shortcuts, hence the check below (users
         # should just use the Control key instead of the Command key).
@@ -415,12 +424,20 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
 
     font = property(_get_font, _set_font)
 
-    def paste(self):
+    def paste(self, mode=QtGui.QClipboard.Clipboard):
         """ Paste the contents of the clipboard into the input region.
+
+        Parameters:
+        -----------
+        mode : QClipboard::Mode, optional [default QClipboard::Clipboard]
+
+            Controls which part of the system clipboard is used. This can be
+            used to access the selection clipboard in X11 and the Find buffer
+            in Mac OS. By default, the regular clipboard is used.
         """
         if self._control.textInteractionFlags() & QtCore.Qt.TextEditable:
             try:
-                text = str(QtGui.QApplication.clipboard().text())
+                text = str(QtGui.QApplication.clipboard().text(mode))
             except UnicodeEncodeError:
                 pass
             else:
@@ -631,18 +648,27 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
     def _create_control(self):
         """ Creates and connects the underlying text widget.
         """
+        # Create the underlying control.
         if self.kind == 'plain':
             control = ConsolePlainTextEdit()
         elif self.kind == 'rich':
             control = ConsoleTextEdit()
             control.setAcceptRichText(False)
+
+        # Install event filters. The filter on the viewport is needed for
+        # mouse events.
         control.installEventFilter(self)
-        control.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+        control.viewport().installEventFilter(self)
+
+        # Connect signals.
         control.cursorPositionChanged.connect(self._cursor_position_changed)
         control.customContextMenuRequested.connect(self._show_context_menu)
         control.copyAvailable.connect(self.copy_available)
         control.redoAvailable.connect(self.redo_available)
         control.undoAvailable.connect(self.undo_available)
+
+        # Configure the control.
+        control.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         control.setReadOnly(True)
         control.setUndoRedoEnabled(False)
         control.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOn)
