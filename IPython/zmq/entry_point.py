@@ -5,7 +5,7 @@ launchers.
 # Standard library imports.
 import os
 import socket
-from subprocess import Popen
+from subprocess import Popen, PIPE
 import sys
 
 # System library imports.
@@ -191,20 +191,26 @@ def base_launch_kernel(code, xrep_port=0, pub_port=0, req_port=0, hb_port=0,
     arguments.extend(extra_arguments)
 
     # Spawn a kernel.
-    if independent:
-        if sys.platform == 'win32':
-            proc = Popen(['start', '/b'] + arguments, shell=True)
+    if sys.platform == 'win32':
+        # If using pythonw, stdin, stdout, and stderr are invalid. Popen will
+        # fail unless they are suitably redirected. We don't read from the
+        # pipes, but they must exist.
+        redirect = PIPE if sys.executable.endswith('pythonw.exe') else None
+        if independent:
+            proc = Popen(['start', '/b'] + arguments, shell=True,
+                         stdout=redirect, stderr=redirect, stdin=redirect)
         else:
-            proc = Popen(arguments, preexec_fn=lambda: os.setsid())
-    else:
-        if sys.platform == 'win32':
             from _subprocess import DuplicateHandle, GetCurrentProcess, \
                 DUPLICATE_SAME_ACCESS
             pid = GetCurrentProcess()
             handle = DuplicateHandle(pid, pid, pid, 0, 
                                      True, # Inheritable by new processes.
                                      DUPLICATE_SAME_ACCESS)
-            proc = Popen(arguments + ['--parent', str(int(handle))])
+            proc = Popen(arguments + ['--parent', str(int(handle))],
+                         stdout=redirect, stderr=redirect, stdin=redirect)
+    else:
+        if independent:
+            proc = Popen(arguments, preexec_fn=lambda: os.setsid())
         else:
             proc = Popen(arguments + ['--parent'])
 
