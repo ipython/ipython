@@ -450,13 +450,18 @@ Message type: ``object_info_reply``::
     # For instances, provide the constructor and class docstrings
     'init_docstring' : str,
     'class_docstring' : str,
-
+    
+    # If it's a callable object whose call method has a separate docstring and
+    # definition line:
+    'call_def' : str,
+    'call_docstring' : str,
+    
     # If detail_level was 1, we also try to find the source code that
     # defines the object, if possible.  The string 'None' will indicate
     # that no source was found.
     'source' : str,
     }
-
+'
     
 Complete
 --------

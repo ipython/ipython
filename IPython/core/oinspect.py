@@ -25,6 +25,8 @@ import os
 import string
 import sys
 import types
+from collections import namedtuple
+from itertools import izip_longest
 
 # IPython's own
 from IPython.core import page
@@ -34,45 +36,6 @@ import IPython.utils.io
 from IPython.utils.text import indent
 from IPython.utils.wildcard import list_namespace
 from IPython.utils.coloransi import *
-
-#****************************************************************************
-# HACK!!! This is a crude fix for bugs in python 2.3's inspect module.  We
-# simply monkeypatch inspect with code copied from python 2.4.
-if sys.version_info[:2] == (2,3):
-    from inspect import ismodule, getabsfile, modulesbyfile
-    def getmodule(object):
-        """Return the module an object was defined in, or None if not found."""
-        if ismodule(object):
-            return object
-        if hasattr(object, '__module__'):
-            return sys.modules.get(object.__module__)
-        try:
-            file = getabsfile(object)
-        except TypeError:
-            return None
-        if file in modulesbyfile:
-            return sys.modules.get(modulesbyfile[file])
-        for module in sys.modules.values():
-            if hasattr(module, '__file__'):
-                modulesbyfile[
-                    os.path.realpath(
-                            getabsfile(module))] = module.__name__
-        if file in modulesbyfile:
-            return sys.modules.get(modulesbyfile[file])
-        main = sys.modules['__main__']
-        if not hasattr(object, '__name__'):
-            return None
-        if hasattr(main, object.__name__):
-            mainobject = getattr(main, object.__name__)
-            if mainobject is object:
-                return main
-        builtin = sys.modules['__builtin__']
-        if hasattr(builtin, object.__name__):
-            builtinobject = getattr(builtin, object.__name__)
-            if builtinobject is object:
-                return builtin
-
-    inspect.getmodule = getmodule
 
 #****************************************************************************
 # Builtin color schemes
@@ -103,7 +66,30 @@ InspectColors = ColorSchemeTable([NoColor,LinuxColors,LightBGColors],
                                  'Linux')
 
 #****************************************************************************
-# Auxiliary functions
+# Auxiliary functions and objects
+
+# See the messaging spec for the definition of all these fields.  This list
+# effectively defines the order of display
+info_fields = ['type_name', 'base_class', 'string_form', 'namespace',
+               'length', 'file', 'definition', 'docstring', 'source',
+               'init_definition', 'class_docstring', 'init_docstring',
+               'call_def', 'call_docstring',
+               # These won't be printed but will be used to determine how to
+               # format the object
+               'ismagic', 'isalias', 
+               ]
+
+
+ObjectInfo = namedtuple('ObjectInfo', info_fields)
+
+
+def mk_object_info(kw):
+    """Make a f"""
+    infodict = dict(izip_longest(info_fields, [None]))
+    infodict.update(kw)
+    return ObjectInfo(**infodict)
+
+
 def getdoc(obj):
     """Stable wrapper around inspect.getdoc.
 
@@ -552,6 +538,215 @@ class Inspector:
         if output:
             page.page(output)
         # end pinfo
+
+    def info(self, obj, oname='', formatter=None, info=None, detail_level=0):
+        """Compute a dict with detailed information about an object.
+
+        Optional arguments:
+        
+        - oname: name of the variable pointing to the object.
+
+        - formatter: special formatter for docstrings (see pdoc)
+
+        - info: a structure with some information fields which may have been
+        precomputed already.
+
+        - detail_level: if set to 1, more information is given.
+        """
+
+        obj_type = type(obj)
+
+        header = self.__head
+        if info is None:
+            ismagic = 0
+            isalias = 0
+            ospace = ''
+        else:
+            ismagic = info.ismagic
+            isalias = info.isalias
+            ospace = info.namespace
+        # Get docstring, special-casing aliases:
+        if isalias:
+            if not callable(obj):
+                try:
+                    ds = "Alias to the system command:\n  %s" % obj[1]
+                except:
+                    ds = "Alias: " + str(obj)
+            else:
+                ds = "Alias to " + str(obj)
+                if obj.__doc__:
+                    ds += "\nDocstring:\n" + obj.__doc__
+        else:
+            ds = getdoc(obj)
+            if ds is None:
+                ds = '<no docstring>'
+        if formatter is not None:
+            ds = formatter(ds)
+
+        # store output in a dict, we'll later convert it to an ObjectInfo
+        out  = {}
+        
+        string_max = 200 # max size of strings to show (snipped if longer)
+        shalf = int((string_max -5)/2)
+
+        if ismagic:
+            obj_type_name = 'Magic function'
+        elif isalias:
+            obj_type_name = 'System alias'
+        else:
+            obj_type_name = obj_type.__name__
+        out['type_name'] = obj_type_name
+
+        try:
+            bclass = obj.__class__
+            out['base_class'] = str(bclass)
+        except: pass
+
+        # String form, but snip if too long in ? form (full in ??)
+        if detail_level >= self.str_detail_level:
+            try:
+                ostr = str(obj)
+                str_head = 'string_form'
+                if not detail_level and len(ostr)>string_max:
+                    ostr = ostr[:shalf] + ' <...> ' + ostr[-shalf:]
+                    ostr = ("\n" + " " * len(str_head.expandtabs())).\
+                           join(map(string.strip,ostr.split("\n")))
+                if ostr.find('\n') > -1:
+                    # Print multi-line strings starting at the next line.
+                    str_sep = '\n'
+                else:
+                    str_sep = '\t'
+                out[str_head] = ostr
+            except:
+                pass
+
+        if ospace:
+            out['namespace'] = ospace
+
+        # Length (for strings and lists)
+        try:
+            out['length'] = str(len(obj))
+        except: pass
+
+        # Filename where object was defined
+        binary_file = False
+        try:
+            try:
+                fname = inspect.getabsfile(obj)
+            except TypeError:
+                # For an instance, the file that matters is where its class was
+                # declared.
+                if hasattr(obj,'__class__'):
+                    fname = inspect.getabsfile(obj.__class__)
+            if fname.endswith('<string>'):
+                fname = 'Dynamically generated function. No source code available.'
+            if (fname.endswith('.so') or fname.endswith('.dll')):
+                binary_file = True
+            out['file'] = fname
+        except:
+            # if anything goes wrong, we don't want to show source, so it's as
+            # if the file was binary
+            binary_file = True
+
+        # reconstruct the function definition and print it:
+        defln = self._getdef(obj,oname)
+        if defln:
+            out['definition'] = self.format(defln)
+ 
+        # Docstrings only in detail 0 mode, since source contains them (we
+        # avoid repetitions).  If source fails, we add them back, see below.
+        if ds and detail_level == 0:
+                out['docstring'] = indent(ds)
+                
+        # Original source code for any callable
+        if detail_level:
+            # Flush the source cache because inspect can return out-of-date
+            # source
+            linecache.checkcache()
+            source_success = False
+            try:
+                try:
+                    src = getsource(obj,binary_file)
+                except TypeError:
+                    if hasattr(obj,'__class__'):
+                        src = getsource(obj.__class__,binary_file)
+                if src is not None:
+                    source = self.format(src)
+                    out['source'] = source.rstrip()
+                    source_success = True
+            except Exception, msg:
+                pass
+
+        # Constructor docstring for classes
+        if inspect.isclass(obj):
+            # reconstruct the function definition and print it:
+            try:
+                obj_init =  obj.__init__
+            except AttributeError:
+                init_def = init_ds = None
+            else:
+                init_def = self._getdef(obj_init,oname)
+                init_ds  = getdoc(obj_init)
+                # Skip Python's auto-generated docstrings
+                if init_ds and \
+                       init_ds.startswith('x.__init__(...) initializes'):
+                    init_ds = None
+
+            if init_def or init_ds:
+                if init_def:
+                    out['init_definition'] = self.format(init_def)
+                if init_ds:
+                    out['init_docstring'] = indent(init_ds)
+        # and class docstring for instances:
+        elif obj_type is types.InstanceType or \
+                 isinstance(obj,object):
+
+            # First, check whether the instance docstring is identical to the
+            # class one, and print it separately if they don't coincide.  In
+            # most cases they will, but it's nice to print all the info for
+            # objects which use instance-customized docstrings.
+            if ds:
+                try:
+                    cls = getattr(obj,'__class__')
+                except:
+                    class_ds = None
+                else:
+                    class_ds = getdoc(cls)
+                # Skip Python's auto-generated docstrings
+                if class_ds and \
+                       (class_ds.startswith('function(code, globals[,') or \
+                   class_ds.startswith('instancemethod(function, instance,') or \
+                   class_ds.startswith('module(name[,') ):
+                    class_ds = None
+                if class_ds and ds != class_ds:
+                    out['class_docstring'] = indent(class_ds)
+
+            # Next, try to show constructor docstrings
+            try:
+                init_ds = getdoc(obj.__init__)
+                # Skip Python's auto-generated docstrings
+                if init_ds and \
+                       init_ds.startswith('x.__init__(...) initializes'):
+                    init_ds = None
+            except AttributeError:
+                init_ds = None
+            if init_ds:
+                out['init_docstring'] = indent(init_ds)
+
+            # Call form docstring for callable instances
+            if hasattr(obj,'__call__'):
+                call_def = self._getdef(obj.__call__,oname)
+                if call_def is not None:
+                    out['call_def'] = self.format(call_def)
+                call_ds = getdoc(obj.__call__)
+                # Skip Python's auto-generated docstrings
+                if call_ds and call_ds.startswith('x.__call__(...) <==> x(...)'):
+                    call_ds = None
+                if call_ds:
+                    out['call_docstring'] = indent(call_ds)
+
+        return mk_object_info(out)
+
 
     def psearch(self,pattern,ns_table,ns_search=[],
                 ignore_case=False,show_all=False):

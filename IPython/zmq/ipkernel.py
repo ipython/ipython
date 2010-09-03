@@ -210,10 +210,11 @@ class Kernel(Configurable):
         io.raw_print(completion_msg)
 
     def object_info_request(self, ident, parent):
-        context = parent['content']['oname'].split('.')
-        object_info = self._object_info(context)
+        ##context = parent['content']['oname'].split('.')
+        ##object_info = self._object_info(context)
+        object_info = self.shell.object_inspect(parent['content']['oname'])
         msg = self.session.send(self.reply_socket, 'object_info_reply',
-                                object_info, parent, ident)
+                                object_info._asdict(), parent, ident)
         io.raw_print(msg)
 
     def history_request(self, ident, parent):
