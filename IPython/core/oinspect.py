@@ -207,7 +207,9 @@ class Inspector:
         exception is suppressed."""
         
         try:
-            return oname + inspect.formatargspec(*getargspec(obj))
+            # We need a plain string here, NOT unicode!
+            hdef = oname + inspect.formatargspec(*getargspec(obj))
+            return hdef.encode('ascii')
         except:
             return None
  
