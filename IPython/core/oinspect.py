@@ -585,7 +585,7 @@ class Inspector:
 
         # store output in a dict, we'll later convert it to an ObjectInfo.  We
         # initialize it here and fill it as we go
-        out = dict(isalias=isalias, ismagic=ismagic)
+        out = dict(found=True, isalias=isalias, ismagic=ismagic)
         
         string_max = 200 # max size of strings to show (snipped if longer)
         shalf = int((string_max -5)/2)

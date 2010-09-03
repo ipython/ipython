@@ -1168,7 +1168,7 @@ class InteractiveShell(Configurable, Magic):
         if info.found:
             return self.inspector.info(info.obj, info=info)
         else:
-            return oinspect.mk_object_info({})
+            return oinspect.mk_object_info({'found' : False})
         
     #-------------------------------------------------------------------------
     # Things related to history management
