@@ -62,7 +62,7 @@ import IPython.utils.io
 from IPython.utils.path import get_py_filename
 from IPython.utils.process import arg_split, abbrev_cwd
 from IPython.utils.terminal import set_term_title
-from IPython.utils.text import LSString, SList, StringTypes
+from IPython.utils.text import LSString, SList, StringTypes, format_screen
 from IPython.utils.timing import clock, clock2
 from IPython.utils.warn import warn, error
 from IPython.utils.ipstruct import Struct
@@ -240,15 +240,6 @@ python-profiler package from non-free.""")
         strng = newline_re.sub(r'\\textbackslash{}n',strng)
         return strng
 
-    def format_screen(self,strng):
-        """Format a string for screen printing.
-
-        This removes some latex-type format codes."""
-        # Paragraph continue
-        par_re = re.compile(r'\\$',re.MULTILINE)
-        strng = par_re.sub('',strng)
-        return strng
-
     def parse_options(self,arg_str,opt_str,*long_opts,**kw):
         """Parse options passed to an argument string.
 
@@ -387,7 +378,7 @@ python-profiler package from non-free.""")
             print self.format_latex(magic_docs)
             return
         else:
-            magic_docs = self.format_screen(magic_docs)
+            magic_docs = format_screen(magic_docs)
         if mode == 'brief':
             return magic_docs
         
@@ -585,8 +576,8 @@ Currently the magic system has the following functions:\n"""
         if "*" in oname:
             self.magic_psearch(oname)
         else:
-            self._inspect('pinfo', oname, detail_level=detail_level,
-                          namespaces=namespaces)
+            self.shell._inspect('pinfo', oname, detail_level=detail_level,
+                                namespaces=namespaces)
 
     def magic_pdef(self, parameter_s='', namespaces=None):
         """Print the definition header for any callable object.

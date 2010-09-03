@@ -200,7 +200,7 @@ class Inspector:
         self.str_detail_level = str_detail_level
         self.set_active_scheme(scheme)
 
-    def __getdef(self,obj,oname=''):
+    def _getdef(self,obj,oname=''):
         """Return the definition header for any callable object.
 
         If any exception is generated, None is returned instead and the
@@ -245,7 +245,7 @@ class Inspector:
         elif type(obj) is types.InstanceType:
             obj = obj.__call__
 
-        output = self.__getdef(obj,oname)
+        output = self._getdef(obj,oname)
         if output is None:
             self.noinfo('definition header',oname)
         else:
@@ -438,7 +438,7 @@ class Inspector:
             binary_file = True
 
         # reconstruct the function definition and print it:
-        defln = self.__getdef(obj,oname)
+        defln = self._getdef(obj,oname)
         if defln:
             out.write(header('Definition:\t')+self.format(defln))
  
@@ -478,7 +478,7 @@ class Inspector:
             except AttributeError:
                 init_def = init_ds = None
             else:
-                init_def = self.__getdef(obj_init,oname)
+                init_def = self._getdef(obj_init,oname)
                 init_ds  = getdoc(obj_init)
                 # Skip Python's auto-generated docstrings
                 if init_ds and \
@@ -532,7 +532,7 @@ class Inspector:
             # Call form docstring for callable instances
             if hasattr(obj,'__call__'):
                 #out.writeln(header('Callable:\t')+'Yes')
-                call_def = self.__getdef(obj.__call__,oname)
+                call_def = self._getdef(obj.__call__,oname)
                 #if call_def is None:
                 #    out.writeln(header('Call def:\t')+
                 #              'Calling definition not available.')

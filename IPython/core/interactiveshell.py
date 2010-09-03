@@ -61,7 +61,7 @@ from IPython.utils.path import get_home_dir, get_ipython_dir, HomeDirError
 from IPython.utils.process import system, getoutput
 from IPython.utils.strdispatch import StrDispatch
 from IPython.utils.syspathcontext import prepended_to_syspath
-from IPython.utils.text import num_ini_spaces
+from IPython.utils.text import num_ini_spaces, format_screen
 from IPython.utils.traitlets import (Int, Str, CBool, CaselessStrEnum, Enum,
                                      List, Unicode, Instance, Type)
 from IPython.utils.warn import warn, error, fatal
@@ -1036,7 +1036,15 @@ class InteractiveShell(Configurable, Magic):
 
         Has special code to detect magic functions.
         """
-        oname = oname.strip()
+        #oname = oname.strip()
+        #print '1- oname: <%r>' % oname  # dbg
+        try:
+            oname = oname.strip().encode('ascii')
+            #print '2- oname: <%r>' % oname  # dbg
+        except UnicodeEncodeError:
+            print 'Python identifiers can only contain ascii characters.'
+            return dict(found=False)
+
         alias_ns = None
         if namespaces is None:
             # Namespaces to search in:
@@ -1105,32 +1113,13 @@ class InteractiveShell(Configurable, Magic):
             obj = eval(oname_head)
             found = True
             ospace = 'Interactive'
-            
+
         return {'found':found, 'obj':obj, 'namespace':ospace,
                 'ismagic':ismagic, 'isalias':isalias, 'parent':parent}
 
-    def _inspect(self,meth,oname,namespaces=None,**kw):
-        """Generic interface to the inspector system.
-
-        This function is meant to be called by pdef, pdoc & friends."""
-
-        #oname = oname.strip()
-        #print '1- oname: <%r>' % oname  # dbg
-        try:
-            oname = oname.strip().encode('ascii')
-            #print '2- oname: <%r>' % oname  # dbg
-        except UnicodeEncodeError:
-            print 'Python identifiers can only contain ascii characters.'
-            return 'not found'
-            
-        info = Struct(self._ofind(oname, namespaces))
-        
+    def _ofind_property(self, oname, info):
+        """Second part of object finding, to look for property details."""
         if info.found:
-            try:
-                IPython.utils.generics.inspect_object(info.obj)
-                return
-            except TryNext:
-                pass
             # Get the docstring of the class property if it exists.
             path = oname.split('.')
             root = '.'.join(path[:-1])
@@ -1146,18 +1135,36 @@ class InteractiveShell(Configurable, Magic):
                             info = Struct(self._ofind(oname))
                     except AttributeError: pass
                 except AttributeError: pass
-                        
-            pmethod = getattr(self.inspector,meth)
-            formatter = info.ismagic and self.format_screen or None
+
+        # We return either the new info or the unmodified input if the object
+        # hadn't been found
+        return info
+
+    def _object_find(self, oname, namespaces=None):
+        """Find an object and return a struct with info about it."""
+        inf = Struct(self._ofind(oname, namespaces))
+        return Struct(self._ofind_property(oname, inf))
+        
+    def _inspect(self, meth, oname, namespaces=None, **kw):
+        """Generic interface to the inspector system.
+
+        This function is meant to be called by pdef, pdoc & friends."""
+        info = self._object_find(oname)
+        if info.found:
+            pmethod = getattr(self.inspector, meth)
+            formatter = format_screen if info.ismagic else None
             if meth == 'pdoc':
-                pmethod(info.obj,oname,formatter)
+                pmethod(info.obj, oname, formatter)
             elif meth == 'pinfo':
-                pmethod(info.obj,oname,formatter,info,**kw)
+                pmethod(info.obj, oname, formatter, info, **kw)
             else:
-                pmethod(info.obj,oname)
+                pmethod(info.obj, oname)
         else:
             print 'Object `%s` not found.' % oname
             return 'not found'  # so callers can take other action
+
+    def object_inspect(self, oname):
+        info = self._object_find(oname)
         
     #-------------------------------------------------------------------------
     # Things related to history management

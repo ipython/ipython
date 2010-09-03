@@ -487,3 +487,13 @@ def num_ini_spaces(strng):
     else:
         return 0
 
+
+def format_screen(strng):
+    """Format a string for screen printing.
+
+    This removes some latex-type format codes."""
+    # Paragraph continue
+    par_re = re.compile(r'\\$',re.MULTILINE)
+    strng = par_re.sub('',strng)
+    return strng
+
