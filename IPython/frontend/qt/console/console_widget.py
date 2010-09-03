@@ -719,6 +719,9 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
                 self.paste()
                 intercepted = True
 
+            elif key in (QtCore.Qt.Key_Backspace, QtCore.Qt.Key_Delete):
+                intercepted = True
+
         elif alt_down:
             if key == QtCore.Qt.Key_B:
                 self._set_cursor(self._get_word_start_cursor(position))
@@ -738,6 +741,9 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
                 cursor = self._get_word_end_cursor(position)
                 cursor.setPosition(position, QtGui.QTextCursor.KeepAnchor)
                 cursor.removeSelectedText()
+                intercepted = True
+
+            elif key == QtCore.Qt.Key_Delete:
                 intercepted = True
 
             elif key == QtCore.Qt.Key_Greater:
@@ -831,10 +837,10 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
             elif key == QtCore.Qt.Key_Backspace:
 
                 # Line deletion (remove continuation prompt)
-                len_prompt = len(self._continuation_prompt)
+                line, col = cursor.blockNumber(), cursor.columnNumber()
                 if not self._reading and \
-                        cursor.columnNumber() == len_prompt and \
-                        position != self._prompt_pos:
+                        col == len(self._continuation_prompt) and \
+                        line > self._get_prompt_cursor().blockNumber():
                     cursor.beginEditBlock()
                     cursor.movePosition(QtGui.QTextCursor.StartOfBlock,
                                         QtGui.QTextCursor.KeepAnchor)
@@ -854,8 +860,8 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
             elif key == QtCore.Qt.Key_Delete:
 
                 # Line deletion (remove continuation prompt)
-                if not self._reading and cursor.atBlockEnd() and not \
-                        cursor.hasSelection():
+                if not self._reading and self._in_buffer(position) and \
+                        cursor.atBlockEnd() and not cursor.hasSelection():
                     cursor.movePosition(QtGui.QTextCursor.NextBlock,
                                         QtGui.QTextCursor.KeepAnchor)
                     cursor.movePosition(QtGui.QTextCursor.Right,
