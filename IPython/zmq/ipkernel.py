@@ -88,6 +88,8 @@ class Kernel(Configurable):
             self.handlers[msg_type] = getattr(self, msg_type)
 
     def do_one_iteration(self):
+        """Do one iteration of the kernel's evaluation loop.
+        """
         try:
             ident = self.reply_socket.recv(zmq.NOBLOCK)
         except zmq.ZMQError, e:
@@ -373,7 +375,8 @@ class WxKernel(Kernel):
         import wx
         from IPython.lib.guisupport import start_event_loop_wx
         doi = self.do_one_iteration
-        _poll_interval = self._poll_interval
+         # Wx uses milliseconds
+        poll_interval = int(1000*self._poll_interval)
 
         # We have to put the wx.Timer in a wx.Frame for it to fire properly.
         # We make the Frame hidden when we create it in the main app below.
@@ -382,9 +385,10 @@ class WxKernel(Kernel):
                 wx.Frame.__init__(self, None, -1)
                 self.timer = wx.Timer(self)
                 # Units for the timer are in milliseconds
-                self.timer.Start(1000*_poll_interval)
+                self.timer.Start(poll_interval)
                 self.Bind(wx.EVT_TIMER, self.on_timer)
                 self.func = func
+
             def on_timer(self, event):
                 self.func()
 
@@ -410,17 +414,19 @@ class TkKernel(Kernel):
 
         import Tkinter
         doi = self.do_one_iteration
-
+        # Tk uses milliseconds
+        poll_interval = int(1000*self._poll_interval)
         # For Tkinter, we create a Tk object and call its withdraw method.
         class Timer(object):
             def __init__(self, func):
                 self.app = Tkinter.Tk()
                 self.app.withdraw()
                 self.func = func
+                
             def on_timer(self):
                 self.func()
-                # Units for the timer are in milliseconds
-                self.app.after(1000*self._poll_interval, self.on_timer)
+                self.app.after(poll_interval, self.on_timer)
+                
             def start(self):
                 self.on_timer()  # Call it once to get things going.
                 self.app.mainloop()
@@ -428,13 +434,25 @@ class TkKernel(Kernel):
         self.timer = Timer(doi)
         self.timer.start()
 
+
+class GTKKernel(Kernel):
+    """A Kernel subclass with GTK support."""
+    
+    def start(self):
+        """Start the kernel, coordinating with the GTK event loop"""
+        from .gui.gtkembed import GTKEmbed
+        
+        gtk_kernel = GTKEmbed(self)
+        gtk_kernel.start()
+
+
 #-----------------------------------------------------------------------------
 # Kernel main and launch functions
 #-----------------------------------------------------------------------------
 
 def launch_kernel(xrep_port=0, pub_port=0, req_port=0, hb_port=0,
                   independent=False, pylab=False):
-    """ Launches a localhost kernel, binding to the specified ports.
+    """Launches a localhost kernel, binding to the specified ports.
 
     Parameters
     ----------
@@ -490,19 +508,20 @@ given, the GUI backend is matplotlib's, otherwise use one of: \
 
     kernel_class = Kernel
 
-    _kernel_classes = {
+    kernel_classes = {
         'qt' : QtKernel,
-        'qt4' : QtKernel,
+        'qt4': QtKernel,
         'payload-svg': Kernel,
         'wx' : WxKernel,
-        'tk' : TkKernel
+        'tk' : TkKernel,
+        'gtk': GTKKernel,
     }
     if namespace.pylab:
         if namespace.pylab == 'auto':
             gui, backend = pylabtools.find_gui_and_backend()
         else:
             gui, backend = pylabtools.find_gui_and_backend(namespace.pylab)
-        kernel_class = _kernel_classes.get(gui)
+        kernel_class = kernel_classes.get(gui)
         if kernel_class is None:
             raise ValueError('GUI is not supported: %r' % gui)
         pylabtools.activate_matplotlib(backend)
