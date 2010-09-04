@@ -27,6 +27,7 @@ import zmq
 # Local imports.
 from IPython.config.configurable import Configurable
 from IPython.utils import io
+from IPython.utils.jsonutil import json_clean
 from IPython.lib import pylabtools
 from IPython.utils.traitlets import Instance, Float
 from entry_point import base_launch_kernel, make_argument_parser, make_kernel, \
@@ -236,11 +237,12 @@ class Kernel(Configurable):
         io.raw_print(completion_msg)
 
     def object_info_request(self, ident, parent):
-        ##context = parent['content']['oname'].split('.')
-        ##object_info = self._object_info(context)
         object_info = self.shell.object_inspect(parent['content']['oname'])
+        # Before we send this object over, we turn it into a dict and we scrub
+        # it for JSON usage
+        oinfo = json_clean(object_info._asdict())
         msg = self.session.send(self.reply_socket, 'object_info_reply',
-                                object_info._asdict(), parent, ident)
+                                oinfo, parent, ident)
         io.raw_print(msg)
 
     def history_request(self, ident, parent):
