@@ -1854,13 +1854,17 @@ class InteractiveShell(Configurable, Magic):
     def auto_rewrite_input(self, cmd):
         """Print to the screen the rewritten form of the user's command.
 
-        This shows visual feedback for things like::
-        
-            In [1]: /f x
-            ------> f(x)
+        This shows visual feedback by rewriting input lines that cause
+        automatic calling to kick in, like::
 
-        Which helps the user understand that the input line was transformed
-        automatically.
+          /f x
+
+        into::
+
+          ------> f(x)
+          
+        after the user's input prompt.  This helps the user understand that the
+        input line was transformed automatically by IPython.
         """
         rw = self.displayhook.prompt1.auto_rewrite() + cmd
 
