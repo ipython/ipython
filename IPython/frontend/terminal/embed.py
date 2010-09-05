@@ -74,8 +74,6 @@ class InteractiveShellEmbed(TerminalInteractiveShell):
                  usage=None, banner1=None, banner2=None,
                  display_banner=None, exit_msg=u''):
 
-        self.save_sys_ipcompleter()
-
         super(InteractiveShellEmbed,self).__init__(
             config=config, ipython_dir=ipython_dir, user_ns=user_ns,
             user_global_ns=user_global_ns, custom_exceptions=custom_exceptions,
@@ -92,30 +90,8 @@ class InteractiveShellEmbed(TerminalInteractiveShell):
                                              mode=self.xmode,
                                              call_pdb=self.pdb)
 
-        self.restore_sys_ipcompleter()
-
     def init_sys_modules(self):
         pass
-
-    def save_sys_ipcompleter(self):
-        """Save readline completer status."""
-        try:
-            #print 'Save completer',sys.ipcompleter  # dbg
-            self.sys_ipcompleter_orig = sys.ipcompleter
-        except:
-            pass # not nested with IPython        
-
-    def restore_sys_ipcompleter(self):
-        """Restores the readline completer which was in place.
-
-        This allows embedded IPython within IPython not to disrupt the
-        parent's completion.
-        """
-        try:
-            self.readline.set_completer(self.sys_ipcompleter_orig)
-            sys.ipcompleter = self.sys_ipcompleter_orig
-        except:
-            pass
 
     def __call__(self, header='', local_ns=None, global_ns=None, dummy=None,
                  stack_depth=1):
@@ -168,8 +144,6 @@ class InteractiveShellEmbed(TerminalInteractiveShell):
 
         if self.exit_msg is not None:
             print self.exit_msg
-
-        self.restore_sys_ipcompleter()
 
     def mainloop(self, local_ns=None, global_ns=None, stack_depth=0,
                  display_banner=None):

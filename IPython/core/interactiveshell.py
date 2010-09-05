@@ -494,10 +494,6 @@ class InteractiveShell(Configurable, Magic):
                 setattr(sys, k, v)
         except AttributeError:
             pass
-        try:
-            delattr(sys, 'ipcompleter')
-        except AttributeError:
-            pass
         # Reset what what done in self.init_sys_modules
         try:
             sys.modules[self.user_ns['__name__']] = self._orig_sys_modules_main_name
@@ -1458,7 +1454,7 @@ class InteractiveShell(Configurable, Magic):
                         # the code computing the traceback.
                         if self.InteractiveTB.call_pdb:
                             # pdb mucks up readline, fix it back
-                            self.set_completer()
+                            self.set_readline_completer()
 
                 # Actually show the traceback
                 self._showtraceback(etype, value, stb)
@@ -1569,7 +1565,7 @@ class InteractiveShell(Configurable, Magic):
                                      self.Completer.__class__)
         self.Completer.matchers.insert(pos,newcomp)
 
-    def set_completer(self):
+    def set_readline_completer(self):
         """Reset readline's completer to be our own."""
         self.readline.set_completer(self.Completer.rlcomplete)
 
@@ -1601,7 +1597,7 @@ class InteractiveShell(Configurable, Magic):
             # Set a number of methods that depend on readline to be no-op
             self.savehist = no_op
             self.reloadhist = no_op
-            self.set_completer = no_op
+            self.set_readline_completer = no_op
             self.set_custom_completer = no_op
             self.set_completer_frame = no_op
             warn('Readline services not available or not loaded.')
@@ -1610,6 +1606,8 @@ class InteractiveShell(Configurable, Magic):
             self.readline = readline
             sys.modules['readline'] = readline
             import atexit
+            ###
+            
             from IPython.core.completer import IPCompleter
             self.Completer = IPCompleter(self,
                                          self.user_ns,
@@ -1619,6 +1617,7 @@ class InteractiveShell(Configurable, Magic):
             sdisp = self.strdispatchers.get('complete_command', StrDispatch())
             self.strdispatchers['complete_command'] = sdisp
             self.Completer.custom_completers = sdisp
+            
             # Platform-specific configuration
             if os.name == 'nt':
                 self.readline_startup_hook = readline.set_pre_input_hook
@@ -1642,9 +1641,7 @@ class InteractiveShell(Configurable, Magic):
                     warn('Problems reading readline initialization file <%s>'
                          % inputrc_name)
             
-            # save this in sys so embedded copies can restore it properly
-            sys.ipcompleter = self.Completer.rlcomplete
-            self.set_completer()
+            self.set_readline_completer()
 
             # Configure readline according to user's prefs
             # This is only done if GNU readline is being used.  If libedit
