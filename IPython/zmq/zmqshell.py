@@ -377,7 +377,19 @@ class ZMQInteractiveShell(InteractiveShell):
     def magic_pylab(self, *args, **kwargs):
         raise NotImplementedError('pylab support must be enabled in commandl in options.')
 
+    def auto_rewrite_input(self, cmd):
+        """Called to show the auto-rewritten input for autocall and friends.
 
+        FIXME: this payload is currently not correctly processed by the
+        frontend.
+        """
+        new = self.displayhook.prompt1.auto_rewrite() + cmd
+        payload = dict(
+            source='IPython.zmq.zmqshell.ZMQInteractiveShell.auto_rewrite_input',
+            transformed_input=new,
+            )
+        self.payload_manager.write_payload(payload)
+        
     def ask_exit(self):
         """Engage the exit actions."""
         payload = dict(

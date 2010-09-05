@@ -385,7 +385,7 @@ class Prompt1(BasePrompt):
         return str_safe(self.p_str)
 
     def auto_rewrite(self):
-        """Print a string of the form '--->' which lines up with the previous
+        """Return a string of the form '--->' which lines up with the previous
         input string. Useful for systems which re-write the user input when
         handling automatically special syntaxes."""
 

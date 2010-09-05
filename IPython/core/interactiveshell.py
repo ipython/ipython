@@ -1849,6 +1849,28 @@ class InteractiveShell(Configurable, Magic):
         # code out there that may rely on this).
         self.prefilter = self.prefilter_manager.prefilter_lines
 
+
+    def auto_rewrite_input(self, cmd):
+        """Print to the screen the rewritten form of the user's command.
+
+        This shows visual feedback for things like::
+        
+            In [1]: /f x
+            ------> f(x)
+
+        Which helps the user understand that the input line was transformed
+        automatically.
+        """
+        rw = self.displayhook.prompt1.auto_rewrite() + cmd
+
+        try:
+            # plain ascii works better w/ pyreadline, on some machines, so
+            # we use it and only print uncolored rewrite if we have unicode
+            rw = str(rw)
+            print >> IPython.utils.io.Term.cout, rw
+        except UnicodeEncodeError:
+            print "------> " + cmd
+            
     #-------------------------------------------------------------------------
     # Things related to extracting values/expressions from kernel and user_ns
     #-------------------------------------------------------------------------

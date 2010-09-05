@@ -916,15 +916,7 @@ class AutoHandler(PrefilterHandler):
                     newcmd = '%s(%s)' % (ifun.rstrip(), the_rest)
 
         if auto_rewrite:
-            rw = self.shell.displayhook.prompt1.auto_rewrite() + newcmd
-            
-            try:
-                # plain ascii works better w/ pyreadline, on some machines, so
-                # we use it and only print uncolored rewrite if we have unicode
-                rw = str(rw)
-                print >>IPython.utils.io.Term.cout, rw
-            except UnicodeEncodeError:
-                print "-------------->" + newcmd
+            self.shell.auto_rewrite_input(newcmd)
             
         # log what is now valid Python, not the actual user input (without the
         # final newline)
