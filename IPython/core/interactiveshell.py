@@ -20,6 +20,7 @@ from __future__ import absolute_import
 import __builtin__
 import __future__
 import abc
+import atexit
 import codeop
 import exceptions
 import new
@@ -276,6 +277,7 @@ class InteractiveShell(Configurable, Magic):
         self.init_plugin_manager()
         self.init_payload()
         self.hooks.late_startup_hook()
+        atexit.register(self.atexit_operations)
 
     @classmethod
     def instance(cls, *args, **kwargs):
@@ -1605,8 +1607,6 @@ class InteractiveShell(Configurable, Magic):
             self.has_readline = True
             self.readline = readline
             sys.modules['readline'] = readline
-            import atexit
-            ###
             
             from IPython.core.completer import IPCompleter
             self.Completer = IPCompleter(self,
@@ -1620,6 +1620,9 @@ class InteractiveShell(Configurable, Magic):
             
             # Platform-specific configuration
             if os.name == 'nt':
+                # FIXME - check with Frederick to see if we can harmonize
+                # naming conventions with pyreadline to avoid this
+                # platform-dependent check
                 self.readline_startup_hook = readline.set_pre_input_hook
             else:
                 self.readline_startup_hook = readline.set_startup_hook
@@ -1666,8 +1669,9 @@ class InteractiveShell(Configurable, Magic):
             except IOError:
                 pass  # It doesn't exist yet.
 
-            atexit.register(self.atexit_operations)
-            del atexit
+            # If we have readline, we want our history saved upon ipython
+            # exiting. 
+            atexit.register(self.savehist)
 
         # Configure auto-indent for all platforms
         self.set_autoindent(self.autoindent)
@@ -2328,14 +2332,17 @@ class InteractiveShell(Configurable, Magic):
     #-------------------------------------------------------------------------
     # Things related to IPython exiting
     #-------------------------------------------------------------------------
-
     def atexit_operations(self):
         """This will be executed at the time of exit.
 
-        Saving of persistent data should be performed here.
-        """
-        self.savehist()
+        Cleanup operations and saving of persistent data that is done
+        unconditionally by IPython should be performed here.
 
+        For things that may depend on startup flags or platform specifics (such
+        as having readline or not), register a separate atexit function in the
+        code that has the appropriate information, rather than trying to
+        clutter 
+        """
         # Cleanup all tempfiles left around
         for tfile in self.tempfiles:
             try:

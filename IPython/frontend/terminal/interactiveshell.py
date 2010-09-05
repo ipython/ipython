@@ -289,7 +289,7 @@ class TerminalInteractiveShell(InteractiveShell):
         # We must ensure that our completer is back in place.
 
         if self.has_readline:
-            self.set_completer()
+            self.set_readline_completer()
         
         try:
             line = raw_input_original(prompt).decode(self.stdin_encoding)
