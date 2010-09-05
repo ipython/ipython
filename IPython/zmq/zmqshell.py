@@ -377,6 +377,15 @@ class ZMQInteractiveShell(InteractiveShell):
     def magic_pylab(self, *args, **kwargs):
         raise NotImplementedError('pylab support must be enabled in commandl in options.')
 
+
+    def ask_exit(self):
+        """Engage the exit actions."""
+        payload = dict(
+            source='IPython.zmq.zmqshell.ZMQInteractiveShell.ask_exit',
+            exit=True,
+            )
+        self.payload_manager.write_payload(payload)
+
     def _showtraceback(self, etype, evalue, stb):
 
         exc_content = {
@@ -401,8 +410,5 @@ class ZMQInteractiveShell(InteractiveShell):
         # /FIXME
         
         return exc_content
-
-    def runlines(self, lines, clean=False):
-        return InteractiveShell.runlines(self, lines, clean)
 
 InteractiveShellABC.register(ZMQInteractiveShell)

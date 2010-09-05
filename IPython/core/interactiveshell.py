@@ -153,6 +153,7 @@ class InteractiveShell(Configurable, Magic):
     debug = CBool(False, config=True)
     deep_reload = CBool(False, config=True)
     displayhook_class = Type(DisplayHook)
+    exit_now = CBool(False)
     filename = Str("<ipython console>")
     ipython_dir= Unicode('', config=True) # Set to get_ipython_dir() in __init__
     logstart = CBool(False, config=True)

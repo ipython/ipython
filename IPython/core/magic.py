@@ -2452,7 +2452,7 @@ Defaulting color scheme to 'NoColor'"""
               ['OFF','ON'][self.shell.pprint]
                 
     def magic_Exit(self, parameter_s=''):
-        """Exit IPython without confirmation."""
+        """Exit IPython."""
 
         self.shell.ask_exit()
 

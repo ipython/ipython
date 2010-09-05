@@ -106,6 +106,7 @@ class IPythonWidget(FrontendWidget):
     # IPythonWidget protected class variables.
     _PromptBlock = namedtuple('_PromptBlock', ['block', 'length', 'number'])
     _payload_source_edit = 'IPython.zmq.zmqshell.ZMQInteractiveShell.edit_magic'
+    _payload_source_exit = 'IPython.zmq.zmqshell.ZMQInteractiveShell.ask_exit'
     _payload_source_page = 'IPython.zmq.page.page'
 
     #---------------------------------------------------------------------------
@@ -117,6 +118,11 @@ class IPythonWidget(FrontendWidget):
 
         # IPythonWidget protected variables.
         self._previous_prompt_obj = None
+        self._payload_handlers = {
+            self._payload_source_edit : self._handle_payload_edit,
+            self._payload_source_exit : self._handle_payload_exit,
+            self._payload_source_page : self._handle_payload_page,
+            }
 
         # Initialize widget styling.
         if self.style_sheet:
@@ -249,18 +255,29 @@ class IPythonWidget(FrontendWidget):
             # This is the fallback for now, using plain text with ansi escapes
             self._append_plain_text(traceback)
 
+    # Payload handlers with generic interface: each takes the opaque payload
+    # dict, unpacks it and calls the underlying functions with the necessary
+    # arguments
+    def _handle_payload_edit(self, item):
+        self._edit(item['filename'], item['line_number'])
+
+    def _handle_payload_exit(self, item):
+        QtCore.QCoreApplication.postEvent(self, QtGui.QCloseEvent())
+
+    def _handle_payload_page(self, item):
+        self._page(item['data'])
+
     def _process_execute_payload(self, item):
         """ Reimplemented to handle %edit and paging payloads.
         """
-        if item['source'] == self._payload_source_edit:
-            self._edit(item['filename'], item['line_number'])
-            return True
-        elif item['source'] == self._payload_source_page:
-            self._page(item['data'])
-            return True
-        else:
+        handler = self._payload_handlers.get(item['source'])
+        if handler is None:
+            # We have no handler for this type of payload, simply ignore it
             return False
-
+        else:
+            handler(item)
+            return True
+        
     def _show_interpreter_prompt(self, number=None):
         """ Reimplemented for IPython-style prompts.
         """

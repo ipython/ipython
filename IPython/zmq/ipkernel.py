@@ -115,6 +115,15 @@ class Kernel(Configurable):
             io.raw_print_err("UNKNOWN MESSAGE TYPE:", msg)
         else:
             handler(ident, msg)
+            
+        # Check whether we should exit, in case the incoming message set the
+        # exit flag on
+        if self.shell.exit_now:
+            io.raw_print('\nExiting IPython kernel...')
+            # We do a normal, clean exit, which allows any actions registered
+            # via atexit (such as history saving) to take place.
+            sys.exit(0)
+
 
     def start(self):
         """ Start the kernel main loop.
@@ -122,7 +131,7 @@ class Kernel(Configurable):
         while True:
             time.sleep(self._poll_interval)
             self.do_one_iteration()
-
+        
     #---------------------------------------------------------------------------
     # Kernel request handlers
     #---------------------------------------------------------------------------

@@ -76,7 +76,6 @@ class TerminalInteractiveShell(InteractiveShell):
     embedded = CBool(False)
     embedded_active = CBool(False)
     editor = Str(get_default_editor(), config=True)
-    exit_now = CBool(False)
     pager = Str('less', config=True)
 
     screen_length = Int(0, config=True)

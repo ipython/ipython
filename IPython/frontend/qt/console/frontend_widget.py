@@ -2,6 +2,7 @@
 from collections import namedtuple
 import signal
 import sys
+import time
 
 # System library imports
 from pygments.lexers import PythonLexer
@@ -369,6 +370,38 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
             else:
                 self._append_plain_text('Kernel process is either remote or '
                                         'unspecified. Cannot restart.\n')
+
+    def closeEvent(self, event):
+        reply = QtGui.QMessageBox.question(self, 'Python',
+            'Close console?', QtGui.QMessageBox.Yes, QtGui.QMessageBox.No)
+        if reply == QtGui.QMessageBox.Yes:
+            self.shutdown_kernel()
+            event.accept()
+        else:
+            event.ignore()
+
+    # Move elsewhere to a better location later, possibly rename
+    def shutdown_kernel(self):
+        # Send quit message to kernel.  Once we implement kernel-side setattr,
+        # this should probably be done that way, but for now this will do.
+        self.kernel_manager.xreq_channel.execute(
+            'get_ipython().exit_now=True', silent=True)
+
+        # Don't send any additional kernel kill messages immediately, to give
+        # the kernel a chance to properly execute shutdown actions.
+        # Wait for at most 2s, check every 0.1s.
+        for i in range(20):
+            if self.kernel_manager.is_alive:
+                time.sleep(0.1)
+            else:
+                break
+        else:
+            # OK, we've waited long enough.
+            self.kernel_manager.kill_kernel()
+            
+        # FIXME: This logic may not be quite right... Perhaps the quit call is
+        # made elsewhere by Qt... 
+        QtGui.QApplication.quit()
 
     #---------------------------------------------------------------------------
     # 'FrontendWidget' protected interface
