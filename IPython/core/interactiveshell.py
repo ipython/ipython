@@ -68,9 +68,6 @@ from IPython.utils.traitlets import (Int, Str, CBool, CaselessStrEnum, Enum,
 from IPython.utils.warn import warn, error, fatal
 import IPython.core.hooks
 
-# from IPython.utils import growl
-# growl.start("IPython")
-
 #-----------------------------------------------------------------------------
 # Globals
 #-----------------------------------------------------------------------------
@@ -287,7 +284,8 @@ class InteractiveShell(Configurable, Magic):
             # Now make sure that the instance will also be returned by
             # the subclasses instance attribute.
             for subclass in cls.mro():
-                if issubclass(cls, subclass) and issubclass(subclass, InteractiveShell):
+                if issubclass(cls, subclass) and \
+                       issubclass(subclass, InteractiveShell):
                     subclass._instance = inst
                 else:
                     break
@@ -546,7 +544,8 @@ class InteractiveShell(Configurable, Magic):
             
         dp = getattr(self.hooks, name, None)
         if name not in IPython.core.hooks.__all__:
-            print "Warning! Hook '%s' is not one of %s" % (name, IPython.core.hooks.__all__ )
+            print "Warning! Hook '%s' is not one of %s" % \
+                  (name, IPython.core.hooks.__all__ )
         if not dp:
             dp = IPython.core.hooks.CommandChainDispatcher()
         
@@ -725,7 +724,8 @@ class InteractiveShell(Configurable, Magic):
         # These routines return properly built dicts as needed by the rest of
         # the code, and can also be used by extension writers to generate
         # properly initialized namespaces.
-        user_ns, user_global_ns = self.make_user_namespaces(user_ns, user_global_ns)
+        user_ns, user_global_ns = self.make_user_namespaces(user_ns,
+                                                            user_global_ns)
 
         # Assign namespaces
         # This is the namespace where all normal user variables live
@@ -956,13 +956,14 @@ class InteractiveShell(Configurable, Magic):
         self.alias_manager.init_aliases()
 
     def reset_selective(self, regex=None):
-        """Clear selective variables from internal namespaces based on a specified regular expression.
+        """Clear selective variables from internal namespaces based on a
+        specified regular expression.
 
         Parameters
         ----------
         regex : string or compiled pattern, optional
-            A regular expression pattern that will be used in searching variable names in the users 
-            namespaces.
+            A regular expression pattern that will be used in searching
+            variable names in the users namespaces.
         """
         if regex is not None:
             try:
@@ -982,12 +983,12 @@ class InteractiveShell(Configurable, Magic):
         Parameters
         ----------
         variables : dict, str or list/tuple of str
-            The variables to inject into the user's namespace.  If a dict,
-            a simple update is done.  If a str, the string is assumed to 
-            have variable names separated by spaces.  A list/tuple of str
-            can also be used to give the variable names.  If just the variable
-            names are give (list/tuple/str) then the variable values looked
-            up in the callers frame.
+            The variables to inject into the user's namespace.  If a dict, a
+            simple update is done.  If a str, the string is assumed to have
+            variable names separated by spaces.  A list/tuple of str can also
+            be used to give the variable names.  If just the variable names are
+            give (list/tuple/str) then the variable values looked up in the
+            callers frame.
         interactive : bool
             If True (default), the variables will be listed with the ``who``
             magic.
@@ -1286,7 +1287,8 @@ class InteractiveShell(Configurable, Magic):
         elif isinstance(index, tuple) and len(index) == 2:
             start=index[0]; stop=index[1]
         else:
-            raise IndexError('Not a valid index for the input history: %r' % index)
+            raise IndexError('Not a valid index for the input history: %r'
+                             % index)
         hist = {}
         for i in range(start, stop):
             if output:
@@ -1721,8 +1723,8 @@ class InteractiveShell(Configurable, Magic):
     def magic(self,arg_s):
         """Call a magic function by name.
 
-        Input: a string containing the name of the magic function to call and any
-        additional arguments to be passed to the magic.
+        Input: a string containing the name of the magic function to call and
+        any additional arguments to be passed to the magic.
 
         magic('name -opt foo bar') is equivalent to typing at the ipython
         prompt:
@@ -2052,9 +2054,9 @@ class InteractiveShell(Configurable, Magic):
         more = 0
         with nested(self.builtin_trap, self.display_trap):
             for line in lines:
-                # skip blank lines so we don't mess up the prompt counter, but do
-                # NOT skip even a blank line if we are in a code block (more is
-                # true)
+                # skip blank lines so we don't mess up the prompt counter, but
+                # do NOT skip even a blank line if we are in a code block (more
+                # is true)
             
                 if line or more:
                     # push to raw history, so hist line numbers stay in sync
@@ -2063,8 +2065,9 @@ class InteractiveShell(Configurable, Magic):
                                                                          more)
                     more = self.push_line(prefiltered)
                     # IPython's runsource returns None if there was an error
-                    # compiling the code.  This allows us to stop processing right
-                    # away, so the user gets the error message at the right place.
+                    # compiling the code.  This allows us to stop processing
+                    # right away, so the user gets the error message at the
+                    # right place.
                     if more is None:
                         break
                 else:
