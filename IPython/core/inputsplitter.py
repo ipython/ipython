@@ -384,6 +384,7 @@ class InputSplitter(object):
         lines = lines.splitlines()[::-1]
         # Outer loop over all input
         while lines:
+            #print 'Current lines:', lines  # dbg
             # Inner loop to build each block
             while True:
                 # Safety exit from inner loop
@@ -413,8 +414,10 @@ class InputSplitter(object):
                 # dedent happens, so , we consume the line and we can break out
                 # to start a new block.
 
-                # Case 1, explicit dedent causes a break
-                if _full_dedent and not next_line.startswith(' '):
+                # Case 1, explicit dedent causes a break.
+                # Note: check that we weren't on the very last line, else we'll
+                # enter an infinite loop adding/removing the last line.
+                if  _full_dedent and lines and not next_line.startswith(' '):
                     lines.append(next_line)
                     break
                 
