@@ -144,7 +144,7 @@ def start_ipython():
     
     # These traps are normally only active for interactive use, set them
     # permanently since we'll be mocking interactive sessions.
-    shell.builtin_trap.set()
+    shell.builtin_trap.activate()
 
     # Modify the IPython system call with one that uses getoutput, so that we
     # can capture subcommands and print them to Python's stdout, otherwise the
