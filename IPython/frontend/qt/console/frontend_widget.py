@@ -206,7 +206,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
                 return True
             elif key == QtCore.Qt.Key_Period:
                 message = 'Are you sure you want to restart the kernel?'
-                self.restart_kernel(message)
+                self.restart_kernel(message, instant_death=False)
                 return True
         return super(FrontendWidget, self)._event_filter_console_keypress(event)
 
@@ -279,7 +279,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         if self.custom_restart:
             self.custom_restart_kernel_died.emit(since_last_heartbeat)
         else:
-            self.restart_kernel(message)
+            self.restart_kernel(message, instant_death=True)
 
     def _handle_object_info_reply(self, rep):
         """ Handle replies for call tips.
@@ -341,9 +341,16 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
             self._append_plain_text('Kernel process is either remote or '
                                     'unspecified. Cannot interrupt.\n')
 
-    def restart_kernel(self, message):
+    def restart_kernel(self, message, instant_death=False):
         """ Attempts to restart the running kernel.
         """
+        # FIXME: instant_death should be configurable via a checkbox in the
+        # dialog.  Right now at least the heartbeat path sets it to True and
+        # the manual restart to False.  But those should just be the
+        # pre-selected states of a checkbox that the user could override if so
+        # desired.  But I don't know enough Qt to go implementing the checkbox
+        # now.
+
         # We want to make sure that if this dialog is already happening, that
         # other signals don't trigger it again. This can happen when the 
         # kernel_died heartbeat signal is emitted and the user is slow to
@@ -360,7 +367,8 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
                                                     message, buttons)
                 if result == QtGui.QMessageBox.Yes:
                     try:
-                        self.kernel_manager.restart_kernel()
+                        self.kernel_manager.restart_kernel(
+                            instant_death=instant_death)
                     except RuntimeError:
                         message = 'Kernel started externally. Cannot restart.\n'
                         self._append_plain_text(message)

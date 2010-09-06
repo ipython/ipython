@@ -534,7 +534,49 @@ Message type: ``history_reply``::
       # respectively.
       'history' : dict,
     }
+
+
+Kernel shutdown
+---------------
+
+The clients can request the kernel to shut itself down; this is used in
+multiple cases:
+
+- when the user chooses to close the client application via a menu or window
+  control.
+- when the user types 'exit' or 'quit' (or their uppercase magic equivalents).
+- when the user chooses a GUI method (like the 'Ctrl-C' shortcut in the
+  IPythonQt client) to force a kernel restart to get a clean kernel without
+  losing client-side state like history or inlined figures.
+
+The client sends a shutdown request to the kernel, and once it receives the
+reply message (which is otherwise empty), it can assume that the kernel has
+completed shutdown safely.
+
+Upon their own shutdown, client applications will typically execute a last
+minute sanity check and forcefully terminate any kernel that is still alive, to
+avoid leaving stray processes in the user's machine.
+
+For both shutdown request and reply, there is no actual content that needs to
+be sent, so the content dict is empty.
+
+Message type: ``shutdown_request``::
+
+    content = {
+    }
+
+Message type: ``shutdown_reply``::
+
+    content = {
+    }
+
+.. Note::
+
+   When the clients detect a dead kernel thanks to inactivity on the heartbeat
+   socket, they simply send a forceful process termination signal, since a dead
+   process is unlikely to respond in any useful way to messages.
     
+
 Messages on the PUB/SUB socket
 ==============================
 

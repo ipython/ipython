@@ -304,6 +304,23 @@ class XReqSocketChannel(ZmqSocketChannel):
         self._queue_request(msg)
         return msg['header']['msg_id']
 
+    def shutdown(self):
+        """Request an immediate kernel shutdown.
+
+        Upon receipt of the (empty) reply, client code can safely assume that
+        the kernel has shut down and it's safe to forcefully terminate it if
+        it's still alive.
+
+        The kernel will send the reply via a function registered with Python's
+        atexit module, ensuring it's truly done as the kernel is done with all
+        normal operation.
+        """
+        # Send quit message to kernel. Once we implement kernel-side setattr,
+        # this should probably be done that way, but for now this will do.
+        msg = self.session.msg('shutdown_request', {})
+        self._queue_request(msg)
+        return msg['header']['msg_id']
+
     def _handle_events(self, socket, events):
         if events & POLLERR:
             self._handle_err()
@@ -700,14 +717,11 @@ class KernelManager(HasTraits):
         """ Attempts to the stop the kernel process cleanly. If the kernel
         cannot be stopped, it is killed, if possible.
         """
-        # Send quit message to kernel. Once we implement kernel-side setattr,
-        # this should probably be done that way, but for now this will do.
-        self.xreq_channel.execute('get_ipython().exit_now=True', silent=True)
-
+        self.xreq_channel.shutdown()
         # Don't send any additional kernel kill messages immediately, to give
         # the kernel a chance to properly execute shutdown actions. Wait for at
-        # most 2s, checking every 0.1s.
-        for i in range(20):
+        # most 1s, checking every 0.1s.
+        for i in range(10):
             if self.is_alive:
                 time.sleep(0.1)
             else:
@@ -716,18 +730,31 @@ class KernelManager(HasTraits):
             # OK, we've waited long enough.
             if self.has_kernel:
                 self.kill_kernel()
-
-    def restart_kernel(self):
+    
+    def restart_kernel(self, instant_death=False):
         """Restarts a kernel with the same arguments that were used to launch
         it. If the old kernel was launched with random ports, the same ports
         will be used for the new kernel.
+
+        Parameters
+        ----------
+        instant_death : bool, optional
+          If True, the kernel is forcefully restarted *immediately*, without
+          having a chance to do any cleanup action.  Otherwise the kernel is
+          given 1s to clean up before a forceful restart is issued.
+
+          In all cases the kernel is restarted, the only difference is whether
+          it is given a chance to perform a clean shutdown or not.
         """
         if self._launch_args is None:
             raise RuntimeError("Cannot restart the kernel. "
                                "No previous call to 'start_kernel'.")
         else:
             if self.has_kernel:
-                self.kill_kernel()
+                if instant_death:
+                    self.kill_kernel()
+                else:
+                    self.shutdown_kernel()
             self.start_kernel(**self._launch_args)
 
     @property
@@ -755,6 +782,8 @@ class KernelManager(HasTraits):
     @property
     def is_alive(self):
         """Is the kernel process still running?"""
+        # FIXME: not using a heartbeat means this method is broken for any
+        # remote kernel, it's only capable of handling local kernels.
         if self.kernel is not None:
             if self.kernel.poll() is None:
                 return True

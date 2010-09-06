@@ -17,6 +17,7 @@ from __future__ import print_function
 
 # Standard library imports.
 import __builtin__
+import atexit
 import sys
 import time
 import traceback
@@ -30,12 +31,11 @@ from IPython.utils import io
 from IPython.utils.jsonutil import json_clean
 from IPython.lib import pylabtools
 from IPython.utils.traitlets import Instance, Float
-from entry_point import base_launch_kernel, make_argument_parser, make_kernel, \
-    start_kernel
+from entry_point import (base_launch_kernel, make_argument_parser, make_kernel,
+                         start_kernel)
 from iostream import OutStream
 from session import Session, Message
 from zmqshell import ZMQInteractiveShell
-
 
 #-----------------------------------------------------------------------------
 # Main kernel class
@@ -68,9 +68,20 @@ class Kernel(Configurable):
     # Units are in seconds, kernel subclasses for GUI toolkits may need to
     # adapt to milliseconds.
     _poll_interval = Float(0.05, config=True)
+
+    # If the shutdown was requested over the network, we leave here the
+    # necessary reply message so it can be sent by our registered atexit
+    # handler.  This ensures that the reply is only sent to clients truly at
+    # the end of our shutdown process (which happens after the underlying
+    # IPython shell's own shutdown).
+    _shutdown_message = None
     
     def __init__(self, **kwargs):
         super(Kernel, self).__init__(**kwargs)
+
+        # Before we even start up the shell, register *first* our exit handlers
+        # so they come before the shell's
+        atexit.register(self._at_shutdown)
 
         # Initialize the InteractiveShell subclass
         self.shell = ZMQInteractiveShell.instance()
@@ -82,7 +93,8 @@ class Kernel(Configurable):
 
         # Build dict of handlers for message types
         msg_types = [ 'execute_request', 'complete_request', 
-                      'object_info_request', 'history_request' ]
+                      'object_info_request', 'history_request',
+                      'shutdown_request']
         self.handlers = {}
         for msg_type in msg_types:
             self.handlers[msg_type] = getattr(self, msg_type)
@@ -271,6 +283,11 @@ class Kernel(Configurable):
                                 content, parent, ident)
         io.raw_print(msg)
         
+    def shutdown_request(self, ident, parent):
+        self.shell.exit_now = True
+        self._shutdown_message = self.session.msg(u'shutdown_reply', {}, parent)
+        sys.exit(0)
+        
     #---------------------------------------------------------------------------
     # Protected interface
     #---------------------------------------------------------------------------
@@ -360,6 +377,17 @@ class Kernel(Configurable):
 
         return symbol, []
 
+    def _at_shutdown(self):
+        """Actions taken at shutdown by the kernel, called by python's atexit.
+        """
+        # io.rprint("Kernel at_shutdown") # dbg
+        if self._shutdown_message is not None:
+            self.reply_socket.send_json(self._shutdown_message)
+            io.raw_print(self._shutdown_message)
+            # A very short sleep to give zmq time to flush its message buffers
+            # before Python truly shuts down.
+            time.sleep(0.01)
+
 
 class QtKernel(Kernel):
     """A Kernel subclass with Qt support."""
@@ -367,10 +395,9 @@ class QtKernel(Kernel):
     def start(self):
         """Start a kernel with QtPy4 event loop integration."""
 
-        from PyQt4 import QtGui, QtCore
-        from IPython.lib.guisupport import (
-            get_app_qt4, start_event_loop_qt4
-        )
+        from PyQt4 import QtCore
+        from IPython.lib.guisupport import get_app_qt4, start_event_loop_qt4
+
         self.app = get_app_qt4([" "])
         self.app.setQuitOnLastWindowClosed(False)
         self.timer = QtCore.QTimer()
@@ -388,6 +415,7 @@ class WxKernel(Kernel):
 
         import wx
         from IPython.lib.guisupport import start_event_loop_wx
+
         doi = self.do_one_iteration
          # Wx uses milliseconds
         poll_interval = int(1000*self._poll_interval)
