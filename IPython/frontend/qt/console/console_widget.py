@@ -1496,11 +1496,14 @@ class HistoryConsoleWidget(ConsoleWidget):
             source, hidden, interactive)
 
         if executed and not hidden:
-            # Save the command unless it was a blank line.
+            # Save the command unless it was an empty string or was identical 
+            # to the previous command.
             history = history.rstrip()
-            if history:
+            if history and (not self._history or self._history[-1] != history):
                 self._history.append(history)
-                self._history_index = len(self._history)
+
+            # Move the history index to the most recent item.
+            self._history_index = len(self._history)
 
         return executed
 

@@ -10,6 +10,7 @@ from PyQt4 import QtCore, QtGui
 # Local imports
 from IPython.core.inputsplitter import InputSplitter
 from IPython.frontend.qt.base_frontend_mixin import BaseFrontendMixin
+from IPython.utils.io import raw_print
 from IPython.utils.traitlets import Bool
 from bracket_matcher import BracketMatcher
 from call_tip_widget import CallTipWidget
@@ -432,8 +433,8 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         payload = msg['content']['payload']
         for item in payload:
             if not self._process_execute_payload(item):
-                warning = 'Received unknown payload of type %s\n'
-                self._append_plain_text(warning % repr(item['source']))
+                warning = 'Warning: received unknown payload of type %s'
+                raw_print(warning % repr(item['source']))
 
     def _process_execute_payload(self, item):
         """ Process a single payload item from the list of payload items in an
