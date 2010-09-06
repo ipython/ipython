@@ -40,10 +40,15 @@ class CallTipWidget(QtGui.QLabel):
         """
         if obj == self.parent():
             etype = event.type()
-            if (etype == QtCore.QEvent.KeyPress and
-                event.key() in (QtCore.Qt.Key_Enter, QtCore.Qt.Key_Return, 
-                                QtCore.Qt.Key_Escape)):
-                self.hide()
+
+            if etype == QtCore.QEvent.KeyPress:
+                key = event.key()
+                if key in (QtCore.Qt.Key_Enter, QtCore.Qt.Key_Return):
+                    self.hide()
+                elif key == QtCore.Qt.Key_Escape:
+                    self.hide()
+                    return True
+
             elif etype == QtCore.QEvent.FocusOut:
                 self.hide()
 
