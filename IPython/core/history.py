@@ -117,7 +117,7 @@ def magic_history(self, parameter_s = ''):
         sh = self.shadowhist.all()
         for idx, s in sh:
             if fnmatch.fnmatch(s, pattern):
-                print >> outfile, "0%d: %s" %(idx, s)
+                print >> outfile, "0%d: %s" %(idx, s.expandtabs(4))
                 found = True
     
     if found:
@@ -126,8 +126,11 @@ def magic_history(self, parameter_s = ''):
               "shadow history ends, fetch by %rep <number> (must start with 0)"
         print >> outfile, "=== start of normal history ==="
         
-    for in_num in range(init,final):        
-        inline = input_hist[in_num]
+    for in_num in range(init,final):
+        # Print user history with tabs expanded to 4 spaces.  The GUI clients
+        # use hard tabs for easier usability in auto-indented code, but we want
+        # to produce PEP-8 compliant history for safe pasting into an editor.
+        inline = input_hist[in_num].expandtabs(4)
         if pattern is not None and not fnmatch.fnmatch(inline, pattern):
             continue
             
