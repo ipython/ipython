@@ -1642,16 +1642,29 @@ class InteractiveShell(Configurable, Magic):
         (typically over the network by remote frontends).
         """
         from IPython.core.completer import IPCompleter
+        from IPython.core.completerlib import (module_completer,
+                                               magic_run_completer, cd_completer)
+        
         self.Completer = IPCompleter(self,
                                      self.user_ns,
                                      self.user_global_ns,
                                      self.readline_omit__names,
                                      self.alias_manager.alias_table,
                                      self.has_readline)
+        
+        # Add custom completers to the basic ones built into IPCompleter
         sdisp = self.strdispatchers.get('complete_command', StrDispatch())
         self.strdispatchers['complete_command'] = sdisp
         self.Completer.custom_completers = sdisp
 
+        self.set_hook('complete_command', module_completer, str_key = 'import')
+        self.set_hook('complete_command', module_completer, str_key = 'from')
+        self.set_hook('complete_command', magic_run_completer, str_key = '%run')
+        self.set_hook('complete_command', cd_completer, str_key = '%cd')
+
+        # Only configure readline if we truly are using readline.  IPython can
+        # do tab-completion over the network, in GUIs, etc, where readline
+        # itself may be absent
         if self.has_readline:
             self.set_readline_completer()
 

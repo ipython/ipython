@@ -80,8 +80,8 @@ import sys
 
 from IPython.core.error import TryNext
 from IPython.core.prefilter import ESC_MAGIC
-from IPython.utils import generics, io
-from IPython.utils.frame import debugx
+from IPython.utils import generics
+from IPython.utils import io
 from IPython.utils.dir2 import dir2
 
 #-----------------------------------------------------------------------------
@@ -619,17 +619,21 @@ class IPCompleter(Completer):
                     argMatches.append("%s=" %namedArg)
         return argMatches
 
-    def dispatch_custom_completer(self,text):
+    def dispatch_custom_completer(self, text):
         #print "Custom! '%s' %s" % (text, self.custom_completers) # dbg
         line = self.line_buffer        
         if not line.strip():
             return None
-
+        
+        # Create a little structure to pass all the relevant information about
+        # the current completion to any custom completer.
         event = Bunch()
         event.line = line
         event.symbol = text
         cmd = line.split(None,1)[0]
         event.command = cmd
+        event.text_until_cursor = self.text_until_cursor
+        
         #print "\ncustom:{%s]\n" % event # dbg
         
         # for foo etc, try also to find completer for %foo
@@ -697,7 +701,6 @@ class IPCompleter(Completer):
         if line_buffer is None:
             line_buffer = text
         
-        magic_escape = self.magic_escape
         self.line_buffer = line_buffer
         self.text_until_cursor = self.line_buffer[:cursor_pos]
         #io.rprint('\nCOMP2 %r %r %r' % (text, line_buffer, cursor_pos))  # dbg
@@ -767,16 +770,24 @@ class IPCompleter(Completer):
                 sys.stdout.flush()
                 return None
 
-            # This method computes the self.matches array
-            self.complete(text, line_buffer, cursor_pos)
-
-            # Debug version, since readline silences all exceptions making it
-            # impossible to debug any problem in the above code
-
-            ## try:
-            ##     self.complete(text, line_buffer, cursor_pos)
-            ## except:
-            ##     import traceback; traceback.print_exc()
+            # Note: debugging exceptions that may occur in completion is very
+            # tricky, because readline unconditionally silences them.  So if
+            # during development you suspect a bug in the completion code, turn
+            # this flag on temporarily by uncommenting the second form (don't
+            # flip the value in the first line, as the '# dbg' marker can be
+            # automatically detected and is used elsewhere).
+            DEBUG = False
+            #DEBUG = True # dbg
+            if DEBUG:
+                try:
+                    self.complete(text, line_buffer, cursor_pos)
+                except:
+                    import traceback; traceback.print_exc()
+            else:
+                # The normal production version is here
+                
+                # This method computes the self.matches array
+                self.complete(text, line_buffer, cursor_pos)
 
         try:
             return self.matches[state]
