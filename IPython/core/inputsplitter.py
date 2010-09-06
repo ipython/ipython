@@ -159,6 +159,88 @@ def get_input_encoding():
 # Classes and functions for normal Python syntax handling
 #-----------------------------------------------------------------------------
 
+# HACK!  This implementation, written by Robert K a while ago using the
+# compiler module, is more robust than the other one below, but it expects its
+# input to be pure python (no ipython syntax).  For now we're using it as a
+# second-pass splitter after the first pass transforms the input to pure
+# python.
+
+def split_blocks(python):
+    """ Split multiple lines of code into discrete commands that can be
+    executed singly.
+
+    Parameters
+    ----------
+    python : str
+        Pure, exec'able Python code.
+
+    Returns
+    -------
+    commands : list of str
+        Separate commands that can be exec'ed independently.
+    """
+
+    import compiler
+    
+    # compiler.parse treats trailing spaces after a newline as a
+    # SyntaxError.  This is different than codeop.CommandCompiler, which
+    # will compile the trailng spaces just fine.  We simply strip any
+    # trailing whitespace off.  Passing a string with trailing whitespace
+    # to exec will fail however.  There seems to be some inconsistency in
+    # how trailing whitespace is handled, but this seems to work.
+    python_ori = python # save original in case we bail on error
+    python = python.strip()
+
+    # The compiler module does not like unicode. We need to convert
+    # it encode it:
+    if isinstance(python, unicode):
+        # Use the utf-8-sig BOM so the compiler detects this a UTF-8
+        # encode string.
+        python = '\xef\xbb\xbf' + python.encode('utf-8')
+
+    # The compiler module will parse the code into an abstract syntax tree.
+    # This has a bug with str("a\nb"), but not str("""a\nb""")!!!
+    try:
+        ast = compiler.parse(python)
+    except:
+        return [python_ori]
+
+    # Uncomment to help debug the ast tree
+    # for n in ast.node:
+    #     print n.lineno,'->',n
+
+    # Each separate command is available by iterating over ast.node. The
+    # lineno attribute is the line number (1-indexed) beginning the commands
+    # suite.
+    # lines ending with ";" yield a Discard Node that doesn't have a lineno
+    # attribute.  These nodes can and should be discarded.  But there are
+    # other situations that cause Discard nodes that shouldn't be discarded.
+    # We might eventually discover other cases where lineno is None and have
+    # to put in a more sophisticated test.
+    linenos = [x.lineno-1 for x in ast.node if x.lineno is not None]
+
+    # When we finally get the slices, we will need to slice all the way to
+    # the end even though we don't have a line number for it. Fortunately,
+    # None does the job nicely.
+    linenos.append(None)
+
+    # Same problem at the other end: sometimes the ast tree has its
+    # first complete statement not starting on line 0. In this case
+    # we might miss part of it.  This fixes ticket 266993.  Thanks Gael!
+    linenos[0] = 0
+
+    lines = python.splitlines()
+
+    # Create a list of atomic commands.
+    cmds = []
+    for i, j in zip(linenos[:-1], linenos[1:]):
+        cmd = lines[i:j]
+        if cmd:
+            cmds.append('\n'.join(cmd)+'\n')
+
+    return cmds
+
+
 class InputSplitter(object):
     """An object that can split Python source input in executable blocks.
 
@@ -431,7 +513,11 @@ class InputSplitter(object):
             # Form the new block with the current source input
             blocks.append(self.source_reset())
             
-        return blocks
+        #return blocks
+        # HACK!!! Now that our input is in blocks but guaranteed to be pure
+        # python syntax, feed it back a second time through the AST-based
+        # splitter, which is more accurate than ours.
+        return split_blocks(''.join(blocks))
 
     #------------------------------------------------------------------------
     # Private interface

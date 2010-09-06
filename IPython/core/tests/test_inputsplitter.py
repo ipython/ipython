@@ -278,8 +278,8 @@ class InputSplitterTestCase(unittest.TestCase):
                        [['x=1'],
                         ['y=2']],
 
-                       [['x=1'],
-                        ['# a comment'],
+                       [['x=1',
+                         '# a comment'],
                         ['y=11']],
 
                        [['if 1:',
@@ -322,11 +322,11 @@ class InputSplitterTestCase(unittest.TestCase):
         # Block splitting with invalid syntax
         all_blocks = [ [['a syntax error']],
             
-                       [['x=1'],
-                        ['a syntax error']],
+                       [['x=1',
+                         'another syntax error']],
 
                        [['for i in range(10):'
-                         '  an error']],
+                         '  yet another error']],
                        
                        ]
         for block_lines in all_blocks:

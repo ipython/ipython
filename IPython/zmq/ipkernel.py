@@ -179,7 +179,12 @@ class Kernel(Configurable):
             else:
                 # FIXME: runlines calls the exception handler itself.
                 shell._reply_content = None
-                shell.runlines(code)
+
+                # Experimental: cell mode!  Test more before turning into
+                # default and removing the hacks around runlines.
+                shell.run_cell(code)
+                # For now leave this here until we're sure we can stop using it
+                #shell.runlines(code)
         except:
             status = u'error'
             # FIXME: this code right now isn't being used yet by default,

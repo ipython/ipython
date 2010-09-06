@@ -46,6 +46,7 @@ from IPython.core.error import TryNext, UsageError
 from IPython.core.extensions import ExtensionManager
 from IPython.core.fakemodule import FakeModule, init_fakemod_dict
 from IPython.core.inputlist import InputList
+from IPython.core.inputsplitter import IPythonInputSplitter
 from IPython.core.logger import Logger
 from IPython.core.magic import Magic
 from IPython.core.payload import PayloadManager
@@ -154,6 +155,7 @@ class InteractiveShell(Configurable, Magic):
     exit_now = CBool(False)
     filename = Str("<ipython console>")
     ipython_dir= Unicode('', config=True) # Set to get_ipython_dir() in __init__
+    input_splitter = Instance('IPython.core.inputsplitter.IPythonInputSplitter')
     logstart = CBool(False, config=True)
     logfile = Str('', config=True)
     logappend = Str('', config=True)
@@ -212,7 +214,7 @@ class InteractiveShell(Configurable, Magic):
 
     def __init__(self, config=None, ipython_dir=None,
                  user_ns=None, user_global_ns=None,
-                 custom_exceptions=((),None)):
+                 custom_exceptions=((), None)):
 
         # This is where traits with a config_key argument are updated
         # from the values on config.
@@ -252,7 +254,7 @@ class InteractiveShell(Configurable, Magic):
         # pre_config_initialization
         self.init_shadow_hist()
 
-        # The next section should contain averything that was in ipmaker.
+        # The next section should contain everything that was in ipmaker.
         self.init_logstart()
 
         # The following was in post_config_initialization
@@ -385,6 +387,10 @@ class InteractiveShell(Configurable, Magic):
 
         # Indentation management
         self.indent_current_nsp = 0
+
+        # Input splitter, to split entire cells of input into either individual
+        # interactive statements or whole blocks.
+        self.input_splitter = IPythonInputSplitter()
 
     def init_encoding(self):
         # Get system encoding at startup time.  Certain terminals (like Emacs
@@ -2061,6 +2067,46 @@ class InteractiveShell(Configurable, Magic):
                 self.showtraceback()
                 warn('Unknown failure executing file: <%s>' % fname)
 
+    def run_cell(self, cell):
+        """Run the contents of an entire multiline 'cell' of code.
+
+        The cell is split into separate blocks which can be executed
+        individually.  Then, based on how many blocks there are, they are
+        executed as follows:
+
+        - A single block: 'single' mode.
+
+        If there's more than one block, it depends:
+
+        - if the last one is a single line long, run all but the last in
+        'exec' mode and the very last one in 'single' mode.  This makes it
+        easy to type simple expressions at the end to see computed values.
+        - otherwise (last one is also multiline), run all in 'exec' mode
+
+        When code is executed in 'single' mode, :func:`sys.displayhook` fires,
+        results are displayed and output prompts are computed.  In 'exec' mode,
+        no results are displayed unless :func:`print` is called explicitly;
+        this mode is more akin to running a script.
+
+        Parameters
+        ----------
+        cell : str
+          A single or multiline string.
+        """
+        blocks = self.input_splitter.split_blocks(cell)
+        if not blocks:
+            return
+
+        if len(blocks) == 1:
+            self.runlines(blocks[0])
+
+        last = blocks[-1]
+        if len(last.splitlines()) < 2:
+            map(self.runcode, blocks[:-1])
+            self.runlines(last)
+        else:
+            map(self.runcode, blocks)
+
     def runlines(self, lines, clean=False):
         """Run a string of one or more lines of source.
 
@@ -2166,7 +2212,7 @@ class InteractiveShell(Configurable, Magic):
         else:
             return None
 
-    def runcode(self,code_obj):
+    def runcode(self, code_obj):
         """Execute a code object.
 
         When an exception occurs, self.showtraceback() is called to display a
