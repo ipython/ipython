@@ -119,6 +119,52 @@ def mark_dirs(matches):
     return out
 
 
+def expand_user(path):
+    """Expand '~'-style usernames in strings.
+
+    This is similar to :func:`os.path.expanduser`, but it computes and returns
+    extra information that will be useful if the input was being used in
+    computing completions, and you wish to return the completions with the
+    original '~' instead of its expanded value.
+
+    Parameters
+    ----------
+    path : str
+      String to be expanded.  If no ~ is present, the output is the same as the
+      input.
+      
+    Returns
+    -------
+    newpath : str
+      Result of ~ expansion in the input path.
+    tilde_expand : bool
+      Whether any expansion was performed or not.
+    tilde_val : str
+      The value that ~ was replaced with.
+    """
+    # Default values
+    tilde_expand = False
+    tilde_val = ''
+    newpath = path
+    
+    if path.startswith('~'):
+        tilde_expand = True
+        rest = path[1:]
+        newpath = os.path.expanduser(path)
+        tilde_val = newpath.replace(rest, '')
+
+    return newpath, tilde_expand, tilde_val
+
+
+def compress_user(path, tilde_expand, tilde_val):
+    """Does the opposite of expand_user, with its outputs.
+    """
+    if tilde_expand:
+        return path.replace(tilde_val, '~')
+    else:
+        return path
+
+
 def single_dir_expand(matches):
     "Recursively expand match lists containing a single dir."
 

@@ -28,6 +28,7 @@ from time import time
 from zipimport import zipimporter
 
 # Our own imports
+from IPython.core.completer import expand_user, compress_user
 from IPython.core.error import TryNext
 
 # FIXME: this should be pulled in with the right call via the component system
@@ -64,7 +65,11 @@ def shlex_split(x):
     #
     # Example:
     # %run "c:/python -> ['%run','"c:/python']
-    
+
+    # shlex.split has unicode bugs, so encode first to str
+    if isinstance(x, unicode):
+        x = x.encode(sys.stdin.encoding)
+
     endofline = []
     while x != '':
         try:
@@ -253,6 +258,8 @@ def module_completer(self,event):
 
     return module_completion(event.line)
 
+# FIXME: there's a lot of logic common to the run, cd and builtin file
+# completers, that is currently reimplemented in each.
 
 def magic_run_completer(self, event):
     """Complete files that end in .py or .ipy for the %run command.
@@ -260,14 +267,14 @@ def magic_run_completer(self, event):
     comps = shlex_split(event.line)
     relpath = (len(comps) > 1 and comps[-1] or '').strip("'\"")
 
-    #print "\nev=",event  # dbg
-    #print "rp=",relpath  # dbg
-    #print 'comps=',comps  # dbg
+    #print("\nev=", event)  # dbg
+    #print("rp=", relpath)  # dbg
+    #print('comps=', comps)  # dbg
 
     lglob = glob.glob
     isdir = os.path.isdir
-    if relpath.startswith('~'):
-        relpath = os.path.expanduser(relpath)
+    relpath, tilde_expand, tilde_val = expand_user(relpath)
+        
     dirs = [f.replace('\\','/') + "/" for f in lglob(relpath+'*') if isdir(f)]
 
     # Find if the user has already typed the first filename, after which we
@@ -280,7 +287,8 @@ def magic_run_completer(self, event):
         pys =  [f.replace('\\','/')
                 for f in lglob(relpath+'*.py') + lglob(relpath+'*.ipy') +
                 lglob(relpath + '*.pyw')]
-    return dirs + pys
+    #print('run comp:', dirs+pys) # dbg
+    return [compress_user(p, tilde_expand, tilde_val) for p in dirs+pys]
 
 
 def cd_completer(self, event):
@@ -308,9 +316,10 @@ def cd_completer(self, event):
 
     if event.symbol.startswith('--'):
         return ["--" + os.path.basename(d) for d in ip.user_ns['_dh']]
-    
-    if relpath.startswith('~'):
-        relpath = os.path.expanduser(relpath).replace('\\','/')
+
+    # Expand ~ in path and normalize directory separators.
+    relpath, tilde_expand, tilde_val = expand_user(relpath)
+    relpath = relpath.replace('\\','/')
 
     found = []
     for d in [f.replace('\\','/') + '/' for f in glob.glob(relpath+'*')
@@ -320,11 +329,11 @@ def cd_completer(self, event):
             # for this is elsewhere
             raise TryNext
         
-        found.append( d )
+        found.append(d)
 
     if not found:
         if os.path.isdir(relpath):
-            return [relpath]
+            return [compress_user(relpath, tilde_expand, tilde_val)]
 
         # if no completions so far, try bookmarks
         bks = self.db.get('bookmarks',{}).keys()
@@ -334,4 +343,4 @@ def cd_completer(self, event):
         
         raise TryNext
 
-    return found
+    return [compress_user(p, tilde_expand, tilde_val) for p in found]
