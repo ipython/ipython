@@ -15,27 +15,6 @@ from ansi_code_processor import QtAnsiCodeProcessor
 from completion_widget import CompletionWidget
 
 
-class ConsolePlainTextEdit(QtGui.QPlainTextEdit):
-    """ A QPlainTextEdit suitable for use with ConsoleWidget.
-    """
-    # Prevents text from being moved by drag and drop. Note that is not, for 
-    # some reason, sufficient to catch drag events in the ConsoleWidget's 
-    # event filter.
-    def dragEnterEvent(self, event): pass
-    def dragLeaveEvent(self, event): pass
-    def dragMoveEvent(self, event): pass
-    def dropEvent(self, event): pass
-
-class ConsoleTextEdit(QtGui.QTextEdit):
-    """ A QTextEdit suitable for use with ConsoleWidget.
-    """
-    # See above.
-    def dragEnterEvent(self, event): pass
-    def dragLeaveEvent(self, event): pass
-    def dragMoveEvent(self, event): pass
-    def dropEvent(self, event): pass
-
-
 class ConsoleWidget(Configurable, QtGui.QWidget):
     """ An abstract base class for console-type widgets. This class has 
         functionality for:
@@ -205,6 +184,11 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
             event.accept()
             return False
 
+        # Prevent text from being moved by drag and drop.
+        elif etype in (QtCore.QEvent.DragEnter, QtCore.QEvent.DragLeave, 
+                       QtCore.QEvent.DragMove, QtCore.QEvent.Drop):
+            return True
+
         return super(ConsoleWidget, self).eventFilter(obj, event)
 
     #---------------------------------------------------------------------------
@@ -267,7 +251,7 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
             self.input_buffer = input_buffer
 
     def copy(self):
-        """ Copy the current selected text to the clipboard.
+        """ Copy the currently selected text to the clipboard.
         """
         self._control.copy()
 
@@ -667,13 +651,13 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
         """
         # Create the underlying control.
         if self.kind == 'plain':
-            control = ConsolePlainTextEdit()
+            control = QtGui.QPlainTextEdit()
         elif self.kind == 'rich':
-            control = ConsoleTextEdit()
+            control = QtGui.QTextEdit()
             control.setAcceptRichText(False)
 
         # Install event filters. The filter on the viewport is needed for
-        # mouse events.
+        # mouse events and drag events.
         control.installEventFilter(self)
         control.viewport().installEventFilter(self)
 
@@ -694,7 +678,7 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
     def _create_page_control(self):
         """ Creates and connects the underlying paging widget.
         """
-        control = ConsolePlainTextEdit()
+        control = QtGui.QPlainTextEdit()
         control.installEventFilter(self)
         control.setReadOnly(True)
         control.setUndoRedoEnabled(False)
@@ -713,8 +697,11 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
         alt_down = event.modifiers() & QtCore.Qt.AltModifier
         shift_down = event.modifiers() & QtCore.Qt.ShiftModifier
 
-        if event.matches(QtGui.QKeySequence.Paste):
-            # Call our paste instead of the underlying text widget's.
+        if event.matches(QtGui.QKeySequence.Copy):
+            self.copy()
+            intercepted = True
+
+        elif event.matches(QtGui.QKeySequence.Paste):
             self.paste()
             intercepted = True
 

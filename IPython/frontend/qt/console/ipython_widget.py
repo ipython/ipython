@@ -19,7 +19,8 @@ from subprocess import Popen
 from PyQt4 import QtCore, QtGui
 
 # Local imports
-from IPython.core.inputsplitter import IPythonInputSplitter
+from IPython.core.inputsplitter import IPythonInputSplitter, \
+    transform_ipy_prompt
 from IPython.core.usage import default_banner
 from IPython.utils.traitlets import Bool, Str
 from frontend_widget import FrontendWidget
@@ -198,7 +199,23 @@ class IPythonWidget(FrontendWidget):
         #self.kernel_manager.xreq_channel.history(raw=True, output=False)
 
     #---------------------------------------------------------------------------
-    # 'FrontendWidget' interface
+    # 'ConsoleWidget' public interface
+    #---------------------------------------------------------------------------
+
+    def copy(self):
+        """ Copy the currently selected text to the clipboard, removing prompts
+            if possible.
+        """
+        text = str(self._control.textCursor().selection().toPlainText())
+        if text:
+            # Remove prompts.
+            lines = map(transform_ipy_prompt, text.splitlines())
+            text = '\n'.join(lines)
+            # Expand tabs so that we respect PEP-8.
+            QtGui.QApplication.clipboard().setText(text.expandtabs(4))
+
+    #---------------------------------------------------------------------------
+    # 'FrontendWidget' public interface
     #---------------------------------------------------------------------------
 
     def execute_file(self, path, hidden=False):

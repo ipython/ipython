@@ -8,7 +8,7 @@ from pygments.lexers import PythonLexer
 from PyQt4 import QtCore, QtGui
 
 # Local imports
-from IPython.core.inputsplitter import InputSplitter
+from IPython.core.inputsplitter import InputSplitter, transform_classic_prompt
 from IPython.frontend.qt.base_frontend_mixin import BaseFrontendMixin
 from IPython.utils.io import raw_print
 from IPython.utils.traitlets import Bool
@@ -125,6 +125,21 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         # Connect signal handlers.
         document = self._control.document()
         document.contentsChange.connect(self._document_contents_change)
+
+    #---------------------------------------------------------------------------
+    # 'ConsoleWidget' public interface
+    #---------------------------------------------------------------------------
+
+    def copy(self):
+        """ Copy the currently selected text to the clipboard, removing prompts.
+        """
+        text = str(self._control.textCursor().selection().toPlainText())
+        if text:
+            # Remove prompts.
+            lines = map(transform_classic_prompt, text.splitlines())
+            text = '\n'.join(lines)
+            # Expand tabs so that we respect PEP-8.
+            QtGui.QApplication.clipboard().setText(text.expandtabs(4))
 
     #---------------------------------------------------------------------------
     # 'ConsoleWidget' abstract interface
@@ -306,7 +321,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         self._highlighter.highlighting_on = False
 
     #---------------------------------------------------------------------------
-    # 'FrontendWidget' interface
+    # 'FrontendWidget' public interface
     #---------------------------------------------------------------------------
 
     def execute_file(self, path, hidden=False):
