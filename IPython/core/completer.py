@@ -346,20 +346,15 @@ class IPCompleter(Completer):
         Completer.__init__(self, namespace, global_namespace)
 
         self.magic_escape = ESC_MAGIC
-
         self.splitter = CompletionSplitter()
 
-        # Readline-dependent code
-        self.use_readline = use_readline
+        # Readline configuration, only used by the rlcompleter method.
         if use_readline:
+            # We store the right version of readline so that later code 
             import IPython.utils.rlineimpl as readline
             self.readline = readline
-            delims = self.readline.get_completer_delims()
-            delims = delims.replace(self.magic_escape,'')
-            self.readline.set_completer_delims(delims)
-            self.get_line_buffer = self.readline.get_line_buffer
-            self.get_endidx = self.readline.get_endidx
-        # /end readline-dependent code
+        else:
+            self.readline = None
 
         # List where completion matches will be stored
         self.matches = []
@@ -444,18 +439,18 @@ class IPCompleter(Completer):
         else:
             text_prefix = ''
             
-        lbuf = self.lbuf
+        text_until_cursor = self.text_until_cursor
         open_quotes = 0  # track strings with open quotes
         try:
-            lsplit = shlex.split(lbuf)[-1]
+            lsplit = shlex.split(text_until_cursor)[-1]
         except ValueError:
             # typically an unmatched ", or backslash without escaped char.
-            if lbuf.count('"')==1:
+            if text_until_cursor.count('"')==1:
                 open_quotes = 1
-                lsplit = lbuf.split('"')[-1]
-            elif lbuf.count("'")==1:
+                lsplit = text_until_cursor.split('"')[-1]
+            elif text_until_cursor.count("'")==1:
                 open_quotes = 1
-                lsplit = lbuf.split("'")[-1]
+                lsplit = text_until_cursor.split("'")[-1]
             else:
                 return []
         except IndexError:
@@ -497,7 +492,7 @@ class IPCompleter(Completer):
 
     def magic_matches(self, text):
         """Match magics"""
-        #print 'Completer->magic_matches:',text,'lb',self.lbuf # dbg
+        #print 'Completer->magic_matches:',text,'lb',self.text_until_cursor # dbg
         # Get all shell magics now rather than statically, so magics loaded at
         # runtime show up too
         magics = self.shell.lsmagic()
@@ -507,19 +502,19 @@ class IPCompleter(Completer):
 
     def alias_matches(self, text):
         """Match internal system aliases"""        
-        #print 'Completer->alias_matches:',text,'lb',self.lbuf # dbg
-        
-        # if we are not in the first 'item', alias matching 
+        #print 'Completer->alias_matches:',text,'lb',self.text_until_cursor # dbg
+
+        # if we are not in the first 'item', alias matching
         # doesn't make sense - unless we are starting with 'sudo' command.
-        if ' ' in self.lbuf.lstrip() and \
-               not self.lbuf.lstrip().startswith('sudo'):
+        main_text = self.text_until_cursor.lstrip()
+        if ' ' in main_text and not main_text.startswith('sudo'):
             return []
         text = os.path.expanduser(text)
         aliases =  self.alias_table.keys()
-        if text == "":
+        if text == '':
             return aliases
         else:
-            return [alias for alias in aliases if alias.startswith(text)]
+            return [a for a in aliases if a.startswith(text)]
 
     def python_matches(self,text):
         """Match attributes or global python names"""
@@ -581,7 +576,7 @@ class IPCompleter(Completer):
                 ''', re.VERBOSE | re.DOTALL)
         # 1. find the nearest identifier that comes before an unclosed
         # parenthesis e.g. for "foo (1+bar(x), pa", the candidate is "foo"
-        tokens = regexp.findall(self.get_line_buffer())
+        tokens = regexp.findall(self.line_buffer)
         tokens.reverse()
         iterTokens = iter(tokens); openPar = 0
         for token in iterTokens:
@@ -626,7 +621,7 @@ class IPCompleter(Completer):
 
     def dispatch_custom_completer(self,text):
         #print "Custom! '%s' %s" % (text, self.custom_completers) # dbg
-        line = self.full_lbuf        
+        line = self.line_buffer        
         if not line.strip():
             return None
 
@@ -640,13 +635,13 @@ class IPCompleter(Completer):
         # for foo etc, try also to find completer for %foo
         if not cmd.startswith(self.magic_escape):
             try_magic = self.custom_completers.s_matches(
-              self.magic_escape + cmd)            
+                self.magic_escape + cmd)            
         else:
             try_magic = []        
         
         for c in itertools.chain(self.custom_completers.s_matches(cmd),
-                                 try_magic,
-                                 self.custom_completers.flat_matches(self.lbuf)):
+                 try_magic,
+                 self.custom_completers.flat_matches(self.text_until_cursor)):
             #print "try",c # dbg
             try:
                 res = c(event)
@@ -703,8 +698,8 @@ class IPCompleter(Completer):
             line_buffer = text
         
         magic_escape = self.magic_escape
-        self.full_lbuf = line_buffer
-        self.lbuf = self.full_lbuf[:cursor_pos]
+        self.line_buffer = line_buffer
+        self.text_until_cursor = self.line_buffer[:cursor_pos]
         #io.rprint('\nCOMP2 %r %r %r' % (text, line_buffer, cursor_pos))  # dbg
 
         # Start with a clean slate of completions
@@ -750,8 +745,8 @@ class IPCompleter(Completer):
         """
         if state==0:
 
-            self.full_lbuf = line_buffer = self.get_line_buffer()
-            cursor_pos = self.get_endidx()
+            self.line_buffer = line_buffer = self.readline.get_line_buffer()
+            cursor_pos = self.readline.get_endidx()
 
             #io.rprint("\nRLCOMPLETE: %r %r %r" %
             #          (text, line_buffer, cursor_pos) ) # dbg

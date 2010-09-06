@@ -260,6 +260,11 @@ class InteractiveShell(Configurable, Magic):
         # init_readline() must come before init_io(), because init_io uses
         # readline related things.
         self.init_readline()
+        # init_completer must come after init_readline, because it needs to
+        # know whether readline is present or not system-wide to configure the
+        # completers, since the completion machinery can now operate
+        # independently of readline (e.g. over the network)
+        self.init_completer()
         # TODO: init_io() needs to happen before init_traceback handlers
         # because the traceback handlers hardcode the stdout/stderr streams.
         # This logic in in debugger.Pdb and should eventually be changed.
@@ -1511,8 +1516,144 @@ class InteractiveShell(Configurable, Magic):
         self._showtraceback(etype, value, stb)
 
     #-------------------------------------------------------------------------
-    # Things related to tab completion
+    # Things related to readline
     #-------------------------------------------------------------------------
+
+    def init_readline(self):
+        """Command history completion/saving/reloading."""
+
+        if self.readline_use:
+            import IPython.utils.rlineimpl as readline
+
+        self.rl_next_input = None
+        self.rl_do_indent = False
+
+        if not self.readline_use or not readline.have_readline:
+            self.has_readline = False
+            self.readline = None
+            # Set a number of methods that depend on readline to be no-op
+            self.savehist = no_op
+            self.reloadhist = no_op
+            self.set_readline_completer = no_op
+            self.set_custom_completer = no_op
+            self.set_completer_frame = no_op
+            warn('Readline services not available or not loaded.')
+        else:
+            self.has_readline = True
+            self.readline = readline
+            sys.modules['readline'] = readline
+            
+            # Platform-specific configuration
+            if os.name == 'nt':
+                # FIXME - check with Frederick to see if we can harmonize
+                # naming conventions with pyreadline to avoid this
+                # platform-dependent check
+                self.readline_startup_hook = readline.set_pre_input_hook
+            else:
+                self.readline_startup_hook = readline.set_startup_hook
+
+            # Load user's initrc file (readline config)
+            # Or if libedit is used, load editrc.
+            inputrc_name = os.environ.get('INPUTRC')
+            if inputrc_name is None:
+                home_dir = get_home_dir()
+                if home_dir is not None:
+                    inputrc_name = '.inputrc'
+                    if readline.uses_libedit:
+                        inputrc_name = '.editrc'
+                    inputrc_name = os.path.join(home_dir, inputrc_name)
+            if os.path.isfile(inputrc_name):
+                try:
+                    readline.read_init_file(inputrc_name)
+                except:
+                    warn('Problems reading readline initialization file <%s>'
+                         % inputrc_name)
+            
+            # Configure readline according to user's prefs
+            # This is only done if GNU readline is being used.  If libedit
+            # is being used (as on Leopard) the readline config is
+            # not run as the syntax for libedit is different.
+            if not readline.uses_libedit:
+                for rlcommand in self.readline_parse_and_bind:
+                    #print "loading rl:",rlcommand  # dbg
+                    readline.parse_and_bind(rlcommand)
+
+            # Remove some chars from the delimiters list.  If we encounter
+            # unicode chars, discard them.
+            delims = readline.get_completer_delims().encode("ascii", "ignore")
+            delims = delims.translate(string._idmap,
+                                      self.readline_remove_delims)
+            delims = delims.replace(ESC_MAGIC, '')
+            readline.set_completer_delims(delims)
+            # otherwise we end up with a monster history after a while:
+            readline.set_history_length(1000)
+            try:
+                #print '*** Reading readline history'  # dbg
+                readline.read_history_file(self.histfile)
+            except IOError:
+                pass  # It doesn't exist yet.
+
+            # If we have readline, we want our history saved upon ipython
+            # exiting. 
+            atexit.register(self.savehist)
+
+        # Configure auto-indent for all platforms
+        self.set_autoindent(self.autoindent)
+
+    def set_next_input(self, s):
+        """ Sets the 'default' input string for the next command line.
+        
+        Requires readline.
+        
+        Example:
+        
+        [D:\ipython]|1> _ip.set_next_input("Hello Word")
+        [D:\ipython]|2> Hello Word_  # cursor is here        
+        """
+
+        self.rl_next_input = s
+
+    # Maybe move this to the terminal subclass?
+    def pre_readline(self):
+        """readline hook to be used at the start of each line.
+
+        Currently it handles auto-indent only."""
+
+        if self.rl_do_indent:
+            self.readline.insert_text(self._indent_current_str())
+        if self.rl_next_input is not None:
+            self.readline.insert_text(self.rl_next_input)
+            self.rl_next_input = None
+
+    def _indent_current_str(self):
+        """return the current level of indentation as a string"""
+        return self.indent_current_nsp * ' '
+
+    #-------------------------------------------------------------------------
+    # Things related to text completion
+    #-------------------------------------------------------------------------
+
+    def init_completer(self):
+        """Initialize the completion machinery.
+
+        This creates completion machinery that can be used by client code,
+        either interactively in-process (typically triggered by the readline
+        library), programatically (such as in test suites) or out-of-prcess
+        (typically over the network by remote frontends).
+        """
+        from IPython.core.completer import IPCompleter
+        self.Completer = IPCompleter(self,
+                                     self.user_ns,
+                                     self.user_global_ns,
+                                     self.readline_omit__names,
+                                     self.alias_manager.alias_table,
+                                     self.has_readline)
+        sdisp = self.strdispatchers.get('complete_command', StrDispatch())
+        self.strdispatchers['complete_command'] = sdisp
+        self.Completer.custom_completers = sdisp
+
+        if self.has_readline:
+            self.set_readline_completer()
 
     def complete(self, text, line=None, cursor_pos=None):
         """Return the completed text and a list of completions.
@@ -1581,131 +1722,6 @@ class InteractiveShell(Configurable, Magic):
         else:
             self.Completer.namespace = self.user_ns
             self.Completer.global_namespace = self.user_global_ns
-
-    #-------------------------------------------------------------------------
-    # Things related to readline
-    #-------------------------------------------------------------------------
-
-    def init_readline(self):
-        """Command history completion/saving/reloading."""
-
-        if self.readline_use:
-            import IPython.utils.rlineimpl as readline
-
-        self.rl_next_input = None
-        self.rl_do_indent = False
-
-        if not self.readline_use or not readline.have_readline:
-            self.has_readline = False
-            self.readline = None
-            # Set a number of methods that depend on readline to be no-op
-            self.savehist = no_op
-            self.reloadhist = no_op
-            self.set_readline_completer = no_op
-            self.set_custom_completer = no_op
-            self.set_completer_frame = no_op
-            warn('Readline services not available or not loaded.')
-        else:
-            self.has_readline = True
-            self.readline = readline
-            sys.modules['readline'] = readline
-            
-            from IPython.core.completer import IPCompleter
-            self.Completer = IPCompleter(self,
-                                         self.user_ns,
-                                         self.user_global_ns,
-                                         self.readline_omit__names,
-                                         self.alias_manager.alias_table)
-            sdisp = self.strdispatchers.get('complete_command', StrDispatch())
-            self.strdispatchers['complete_command'] = sdisp
-            self.Completer.custom_completers = sdisp
-            
-            # Platform-specific configuration
-            if os.name == 'nt':
-                # FIXME - check with Frederick to see if we can harmonize
-                # naming conventions with pyreadline to avoid this
-                # platform-dependent check
-                self.readline_startup_hook = readline.set_pre_input_hook
-            else:
-                self.readline_startup_hook = readline.set_startup_hook
-
-            # Load user's initrc file (readline config)
-            # Or if libedit is used, load editrc.
-            inputrc_name = os.environ.get('INPUTRC')
-            if inputrc_name is None:
-                home_dir = get_home_dir()
-                if home_dir is not None:
-                    inputrc_name = '.inputrc'
-                    if readline.uses_libedit:
-                        inputrc_name = '.editrc'
-                    inputrc_name = os.path.join(home_dir, inputrc_name)
-            if os.path.isfile(inputrc_name):
-                try:
-                    readline.read_init_file(inputrc_name)
-                except:
-                    warn('Problems reading readline initialization file <%s>'
-                         % inputrc_name)
-            
-            self.set_readline_completer()
-
-            # Configure readline according to user's prefs
-            # This is only done if GNU readline is being used.  If libedit
-            # is being used (as on Leopard) the readline config is
-            # not run as the syntax for libedit is different.
-            if not readline.uses_libedit:
-                for rlcommand in self.readline_parse_and_bind:
-                    #print "loading rl:",rlcommand  # dbg
-                    readline.parse_and_bind(rlcommand)
-
-            # Remove some chars from the delimiters list.  If we encounter
-            # unicode chars, discard them.
-            delims = readline.get_completer_delims().encode("ascii", "ignore")
-            delims = delims.translate(string._idmap,
-                                      self.readline_remove_delims)
-            readline.set_completer_delims(delims)
-            # otherwise we end up with a monster history after a while:
-            readline.set_history_length(1000)
-            try:
-                #print '*** Reading readline history'  # dbg
-                readline.read_history_file(self.histfile)
-            except IOError:
-                pass  # It doesn't exist yet.
-
-            # If we have readline, we want our history saved upon ipython
-            # exiting. 
-            atexit.register(self.savehist)
-
-        # Configure auto-indent for all platforms
-        self.set_autoindent(self.autoindent)
-
-    def set_next_input(self, s):
-        """ Sets the 'default' input string for the next command line.
-        
-        Requires readline.
-        
-        Example:
-        
-        [D:\ipython]|1> _ip.set_next_input("Hello Word")
-        [D:\ipython]|2> Hello Word_  # cursor is here        
-        """
-
-        self.rl_next_input = s
-
-    # Maybe move this to the terminal subclass?
-    def pre_readline(self):
-        """readline hook to be used at the start of each line.
-
-        Currently it handles auto-indent only."""
-
-        if self.rl_do_indent:
-            self.readline.insert_text(self._indent_current_str())
-        if self.rl_next_input is not None:
-            self.readline.insert_text(self.rl_next_input)
-            self.rl_next_input = None
-
-    def _indent_current_str(self):
-        """return the current level of indentation as a string"""
-        return self.indent_current_nsp * ' '
 
     #-------------------------------------------------------------------------
     # Things related to magics
