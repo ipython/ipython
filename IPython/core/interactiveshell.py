@@ -2099,6 +2099,7 @@ class InteractiveShell(Configurable, Magic):
 
         if len(blocks) == 1:
             self.runlines(blocks[0])
+            return
 
         last = blocks[-1]
         if len(last.splitlines()) < 2:
