@@ -2,7 +2,6 @@
 from collections import namedtuple
 import signal
 import sys
-import time
 
 # System library imports
 from pygments.lexers import PythonLexer
@@ -90,6 +89,9 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
     # Emitted when an 'execute_reply' has been received from the kernel and
     # processed by the FrontendWidget.
     executed = QtCore.pyqtSignal(object)
+
+    # Emitted when an exit request has been received from the kernel.
+    exit_requested = QtCore.pyqtSignal()
     
     # Protected class variables.
     _CallTipRequest = namedtuple('_CallTipRequest', ['id', 'pos'])
@@ -137,27 +139,12 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
             complete = not self._input_splitter.push_accepts_more()
         return complete
 
-    def _execute(self, source, hidden, user_variables=None,
-                 user_expressions=None):
+    def _execute(self, source, hidden):
         """ Execute 'source'. If 'hidden', do not show any output.
 
         See parent class :meth:`execute` docstring for full details.
         """
-        # tmp code for testing, disable in real use with 'if 0'.  Only delete
-        # this code once we have automated tests for these fields.
-        if 0:
-            user_variables = ['x', 'y', 'z']
-            user_expressions = {'sum' : '1+1',
-                                'bad syntax' : 'klsdafj kasd f',
-                                'bad call' : 'range("hi")',
-                                'time' : 'time.time()',
-                                }
-        # /end tmp code
-        
-        # FIXME - user_variables/expressions are not visible in API above us.
-        msg_id = self.kernel_manager.xreq_channel.execute(source, hidden,
-                                                          user_variables,
-                                                          user_expressions)
+        msg_id = self.kernel_manager.xreq_channel.execute(source, hidden)
         self._request_info['execute'] = self._ExecutionRequest(msg_id, 'user')
         self._hidden = hidden
         
@@ -235,7 +222,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         """
         info = self._request_info.get('execute')
         if info and info.id == msg['parent_header']['msg_id'] and \
-                not self._hidden:
+                info.kind == 'user' and not self._hidden:
             # Make sure that all output from the SUB channel has been processed
             # before writing a new prompt.
             self.kernel_manager.sub_channel.flush()
@@ -370,38 +357,6 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
             else:
                 self._append_plain_text('Kernel process is either remote or '
                                         'unspecified. Cannot restart.\n')
-
-    def closeEvent(self, event):
-        reply = QtGui.QMessageBox.question(self, 'Python',
-            'Close console?', QtGui.QMessageBox.Yes, QtGui.QMessageBox.No)
-        if reply == QtGui.QMessageBox.Yes:
-            self.shutdown_kernel()
-            event.accept()
-        else:
-            event.ignore()
-
-    # Move elsewhere to a better location later, possibly rename
-    def shutdown_kernel(self):
-        # Send quit message to kernel.  Once we implement kernel-side setattr,
-        # this should probably be done that way, but for now this will do.
-        self.kernel_manager.xreq_channel.execute(
-            'get_ipython().exit_now=True', silent=True)
-
-        # Don't send any additional kernel kill messages immediately, to give
-        # the kernel a chance to properly execute shutdown actions.
-        # Wait for at most 2s, check every 0.1s.
-        for i in range(20):
-            if self.kernel_manager.is_alive:
-                time.sleep(0.1)
-            else:
-                break
-        else:
-            # OK, we've waited long enough.
-            self.kernel_manager.kill_kernel()
-            
-        # FIXME: This logic may not be quite right... Perhaps the quit call is
-        # made elsewhere by Qt... 
-        QtGui.QApplication.quit()
 
     #---------------------------------------------------------------------------
     # 'FrontendWidget' protected interface

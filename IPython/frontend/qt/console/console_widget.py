@@ -199,6 +199,7 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
 
         # Override shortcuts for all filtered widgets.
         elif etype == QtCore.QEvent.ShortcutOverride and \
+                self.override_shortcuts and \
                 self._control_key_down(event.modifiers()) and \
                 event.key() in self._shortcuts:
             event.accept()

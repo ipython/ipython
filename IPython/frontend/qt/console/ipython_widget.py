@@ -117,12 +117,11 @@ class IPythonWidget(FrontendWidget):
         super(IPythonWidget, self).__init__(*args, **kw)
 
         # IPythonWidget protected variables.
-        self._previous_prompt_obj = None
-        self._payload_handlers = {
+        self._payload_handlers = { 
             self._payload_source_edit : self._handle_payload_edit,
             self._payload_source_exit : self._handle_payload_exit,
-            self._payload_source_page : self._handle_payload_page,
-            }
+            self._payload_source_page : self._handle_payload_page }
+        self._previous_prompt_obj = None
 
         # Initialize widget styling.
         if self.style_sheet:
@@ -253,22 +252,10 @@ class IPythonWidget(FrontendWidget):
             self._append_html(traceback)
         else:
             # This is the fallback for now, using plain text with ansi escapes
-            self._append_plain_text(traceback)
-
-    # Payload handlers with generic interface: each takes the opaque payload
-    # dict, unpacks it and calls the underlying functions with the necessary
-    # arguments
-    def _handle_payload_edit(self, item):
-        self._edit(item['filename'], item['line_number'])
-
-    def _handle_payload_exit(self, item):
-        QtCore.QCoreApplication.postEvent(self, QtGui.QCloseEvent())
-
-    def _handle_payload_page(self, item):
-        self._page(item['data'])
+            self._append_plain_text(traceback)    
 
     def _process_execute_payload(self, item):
-        """ Reimplemented to handle %edit and paging payloads.
+        """ Reimplemented to dispatch payloads to handler methods.
         """
         handler = self._payload_handlers.get(item['source'])
         if handler is None:
@@ -412,6 +399,21 @@ class IPythonWidget(FrontendWidget):
         """
         body = self.out_prompt % number
         return '<span class="out-prompt">%s</span>' % body
+
+    #------ Payload handlers --------------------------------------------------
+
+    # Payload handlers with a generic interface: each takes the opaque payload
+    # dict, unpacks it and calls the underlying functions with the necessary
+    # arguments.
+
+    def _handle_payload_edit(self, item):
+        self._edit(item['filename'], item['line_number'])
+
+    def _handle_payload_exit(self, item):
+        self.exit_requested.emit()
+
+    def _handle_payload_page(self, item):
+        self._page(item['data'])
 
     #------ Trait change handlers ---------------------------------------------
 

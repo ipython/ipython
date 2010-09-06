@@ -1,6 +1,10 @@
 """ A minimal application using the Qt console-style IPython frontend.
 """
 
+#-----------------------------------------------------------------------------
+# Imports
+#-----------------------------------------------------------------------------
+
 # Systemm library imports
 from PyQt4 import QtGui
 
@@ -11,9 +15,48 @@ from IPython.frontend.qt.console.ipython_widget import IPythonWidget
 from IPython.frontend.qt.console.rich_ipython_widget import RichIPythonWidget
 from IPython.frontend.qt.kernelmanager import QtKernelManager
 
+#-----------------------------------------------------------------------------
 # Constants
+#-----------------------------------------------------------------------------
+
 LOCALHOST = '127.0.0.1'
 
+#-----------------------------------------------------------------------------
+# Classes
+#-----------------------------------------------------------------------------
+
+class MainWindow(QtGui.QMainWindow):
+
+    #---------------------------------------------------------------------------
+    # 'object' interface
+    #---------------------------------------------------------------------------
+    
+    def __init__(self, frontend):
+        """ Create a MainWindow for the specified FrontendWidget.
+        """
+        super(MainWindow, self).__init__()
+        self._frontend = frontend
+        self._frontend.exit_requested.connect(self.close)
+        self.setCentralWidget(frontend)
+    
+    #---------------------------------------------------------------------------
+    # QWidget interface
+    #---------------------------------------------------------------------------
+    
+    def closeEvent(self, event):
+        """ Reimplemented to prompt the user and close the kernel cleanly.
+        """
+        reply = QtGui.QMessageBox.question(self, self.window().windowTitle(),
+            'Close console?', QtGui.QMessageBox.Yes, QtGui.QMessageBox.No)
+        if reply == QtGui.QMessageBox.Yes:
+            self._frontend.kernel_manager.shutdown_kernel()
+            event.accept()
+        else:
+            event.ignore()
+
+#-----------------------------------------------------------------------------
+# Main entry point
+#-----------------------------------------------------------------------------
 
 def main():
     """ Entry point for application.
@@ -89,8 +132,11 @@ def main():
         widget = IPythonWidget(paging=args.paging)
     widget.gui_completion = args.gui_completion
     widget.kernel_manager = kernel_manager
-    widget.setWindowTitle('Python' if args.pure else 'IPython')
-    widget.show()
+
+    # Create the main window.
+    window = MainWindow(widget)
+    window.setWindowTitle('Python' if args.pure else 'IPython')
+    window.show()
 
     # Start the application main loop.
     app.exec_()

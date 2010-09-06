@@ -685,16 +685,37 @@ class KernelManager(HasTraits):
 
         self._launch_args = kw.copy()
         if kw.pop('ipython', True):
-            from ipkernel import launch_kernel as launch
+            from ipkernel import launch_kernel
         else:
-            from pykernel import launch_kernel as launch
-        self.kernel, xrep, pub, req, hb = launch(
+            from pykernel import launch_kernel
+        self.kernel, xrep, pub, req, hb = launch_kernel(
             xrep_port=xreq[1], pub_port=sub[1], 
             req_port=rep[1], hb_port=hb[1], **kw)
         self.xreq_address = (LOCALHOST, xrep)
         self.sub_address = (LOCALHOST, pub)
         self.rep_address = (LOCALHOST, req)
         self.hb_address = (LOCALHOST, hb)
+
+    def shutdown_kernel(self):
+        """ Attempts to the stop the kernel process cleanly. If the kernel
+        cannot be stopped, it is killed, if possible.
+        """
+        # Send quit message to kernel. Once we implement kernel-side setattr,
+        # this should probably be done that way, but for now this will do.
+        self.xreq_channel.execute('get_ipython().exit_now=True', silent=True)
+
+        # Don't send any additional kernel kill messages immediately, to give
+        # the kernel a chance to properly execute shutdown actions. Wait for at
+        # most 2s, checking every 0.1s.
+        for i in range(20):
+            if self.is_alive:
+                time.sleep(0.1)
+            else:
+                break
+        else:
+            # OK, we've waited long enough.
+            if self.has_kernel:
+                self.kill_kernel()
 
     def restart_kernel(self):
         """Restarts a kernel with the same arguments that were used to launch
