@@ -21,6 +21,8 @@ class CallTipWidget(QtGui.QLabel):
         assert isinstance(parent, (QtGui.QTextEdit, QtGui.QPlainTextEdit))
         QtGui.QLabel.__init__(self, parent, QtCore.Qt.ToolTip)
 
+        self._hide_timer = QtCore.QBasicTimer()
+
         self.setFont(parent.document().defaultFont())
         self.setForegroundRole(QtGui.QPalette.ToolTipText)
         self.setBackgroundRole(QtGui.QPalette.ToolTipBase)
@@ -52,11 +54,30 @@ class CallTipWidget(QtGui.QLabel):
             elif etype == QtCore.QEvent.FocusOut:
                 self.hide()
 
+            elif etype == QtCore.QEvent.Enter:
+                self._hide_timer.stop()
+
+            elif etype == QtCore.QEvent.Leave:
+                self._hide_later()
+
         return QtGui.QLabel.eventFilter(self, obj, event)
+
+    def timerEvent(self, event):
+        """ Reimplemented to hide the widget when the hide timer fires.
+        """
+        if event.timerId() == self._hide_timer.timerId():
+            self._hide_timer.stop()
+            self.hide()
 
     #--------------------------------------------------------------------------
     # 'QWidget' interface
     #--------------------------------------------------------------------------
+
+    def enterEvent(self, event):
+        """ Reimplemented to cancel the hide timer.
+        """
+        QtGui.QLabel.enterEvent(self, event)
+        self._hide_timer.stop()
 
     def hideEvent(self, event):
         """ Reimplemented to disconnect signal handlers and event filter.
@@ -65,6 +86,12 @@ class CallTipWidget(QtGui.QLabel):
         parent = self.parent()
         parent.cursorPositionChanged.disconnect(self._cursor_position_changed)
         parent.removeEventFilter(self)
+
+    def leaveEvent(self, event):
+        """ Reimplemented to start the hide timer.
+        """
+        QtGui.QLabel.leaveEvent(self, event)
+        self._hide_later()
 
     def paintEvent(self, event):
         """ Reimplemented to paint the background panel.
@@ -166,6 +193,12 @@ class CallTipWidget(QtGui.QLabel):
         else:
             position = -1
         return position, commas
+
+    def _hide_later(self):
+        """ Hides the tooltip after some time has passed.
+        """
+        if not self._hide_timer.isActive():
+            self._hide_timer.start(300, self)
 
     #------ Signal handlers ----------------------------------------------------
 
