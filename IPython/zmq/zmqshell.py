@@ -86,6 +86,65 @@ class ZMQInteractiveShell(InteractiveShell):
         Term = IPython.utils.io.IOTerm()
         IPython.utils.io.Term = Term
 
+    def magic_doctest_mode(self,parameter_s=''):
+        """Toggle doctest mode on and off.
+
+        This mode is intended to make IPython behave as much as possible like a
+        plain Python shell, from the perspective of how its prompts, exceptions
+        and output look.  This makes it easy to copy and paste parts of a
+        session into doctests.  It does so by:
+
+        - Changing the prompts to the classic ``>>>`` ones.
+        - Changing the exception reporting mode to 'Plain'.
+        - Disabling pretty-printing of output.
+
+        Note that IPython also supports the pasting of code snippets that have
+        leading '>>>' and '...' prompts in them.  This means that you can paste
+        doctests from files or docstrings (even if they have leading
+        whitespace), and the code will execute correctly.  You can then use
+        '%history -t' to see the translated history; this will give you the
+        input after removal of all the leading prompts and whitespace, which
+        can be pasted back into an editor.
+
+        With these features, you can switch into this mode easily whenever you
+        need to do testing and changes to doctests, without having to leave
+        your existing IPython session.
+        """
+
+        from IPython.utils.ipstruct import Struct
+
+        # Shorthands
+        shell = self.shell
+        # dstore is a data store kept in the instance metadata bag to track any
+        # changes we make, so we can undo them later.
+        dstore = shell.meta.setdefault('doctest_mode', Struct())
+        save_dstore = dstore.setdefault
+
+        # save a few values we'll need to recover later
+        mode = save_dstore('mode', False)
+        save_dstore('rc_pprint', shell.pprint)
+        save_dstore('xmode', shell.InteractiveTB.mode)
+        
+        if mode == False:
+            # turn on
+            shell.pprint = False
+            shell.magic_xmode('Plain')
+        else:
+            # turn off
+            shell.pprint = dstore.rc_pprint
+            shell.magic_xmode(dstore.xmode)
+
+        # Store new mode and inform on console
+        dstore.mode = bool(1-int(mode))
+        mode_label = ['OFF','ON'][dstore.mode]
+        print('Doctest mode is:', mode_label)
+        
+        # Send the payload back so that clients can modify their prompt display
+        payload = dict(
+            source='IPython.zmq.zmqshell.ZMQInteractiveShell.magic_doctest_mode',
+            mode=dstore.mode)
+        self.payload_manager.write_payload(payload)
+
     def magic_edit(self,parameter_s='',last_call=['','']):
         """Bring up an editor and execute the resulting code.
 

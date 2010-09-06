@@ -3254,15 +3254,20 @@ Defaulting color scheme to 'NoColor'"""
     def magic_doctest_mode(self,parameter_s=''):
         """Toggle doctest mode on and off.
 
-        This mode allows you to toggle the prompt behavior between normal
-        IPython prompts and ones that are as similar to the default IPython
-        interpreter as possible.
+        This mode is intended to make IPython behave as much as possible like a
+        plain Python shell, from the perspective of how its prompts, exceptions
+        and output look.  This makes it easy to copy and paste parts of a
+        session into doctests.  It does so by:
 
-        It also supports the pasting of code snippets that have leading '>>>'
-        and '...' prompts in them.  This means that you can paste doctests from
-        files or docstrings (even if they have leading whitespace), and the
-        code will execute correctly.  You can then use '%history -tn' to see
-        the translated history without line numbers; this will give you the
+        - Changing the prompts to the classic ``>>>`` ones.
+        - Changing the exception reporting mode to 'Plain'.
+        - Disabling pretty-printing of output.
+
+        Note that IPython also supports the pasting of code snippets that have
+        leading '>>>' and '...' prompts in them.  This means that you can paste
+        doctests from files or docstrings (even if they have leading
+        whitespace), and the code will execute correctly.  You can then use
+        '%history -t' to see the translated history; this will give you the
         input after removal of all the leading prompts and whitespace, which
         can be pasted back into an editor.
 
@@ -3308,7 +3313,6 @@ Defaulting color scheme to 'NoColor'"""
             shell.pprint = False
             
             shell.magic_xmode('Plain')
-
         else:
             # turn off
             oc.prompt1.p_template = shell.prompt_in1
@@ -3329,8 +3333,8 @@ Defaulting color scheme to 'NoColor'"""
 
         # Store new mode and inform
         dstore.mode = bool(1-int(mode))
-        print 'Doctest mode is:',
-        print ['OFF','ON'][dstore.mode]
+        mode_label = ['OFF','ON'][dstore.mode]
+        print 'Doctest mode is:', mode_label
 
     def magic_gui(self, parameter_s=''):
         """Enable or disable IPython GUI event loop integration.
