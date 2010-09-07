@@ -113,10 +113,7 @@ def main():
             if args.rich:
                 kernel_manager.start_kernel(pylab='payload-svg')
             else:
-                if args.pylab == 'auto':
-                    kernel_manager.start_kernel(pylab='qt4')
-                else:
-                    kernel_manager.start_kernel(pylab=args.pylab)
+                kernel_manager.start_kernel(pylab=args.pylab)
         else:
             kernel_manager.start_kernel()
     kernel_manager.start_channels()
