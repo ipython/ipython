@@ -46,13 +46,17 @@ class MainWindow(QtGui.QMainWindow):
     def closeEvent(self, event):
         """ Reimplemented to prompt the user and close the kernel cleanly.
         """
-        reply = QtGui.QMessageBox.question(self, self.window().windowTitle(),
-            'Close console?', QtGui.QMessageBox.Yes, QtGui.QMessageBox.No)
-        if reply == QtGui.QMessageBox.Yes:
-            self._frontend.kernel_manager.shutdown_kernel()
-            event.accept()
-        else:
-            event.ignore()
+        kernel_manager = self._frontend.kernel_manager
+        if kernel_manager and kernel_manager.channels_running:
+            title = self.window().windowTitle()
+            reply = QtGui.QMessageBox.question(self, title,
+                'Close console?', QtGui.QMessageBox.Yes, QtGui.QMessageBox.No)
+            if reply == QtGui.QMessageBox.Yes:
+                kernel_manager.shutdown_kernel()
+                #kernel_manager.stop_channels()
+                event.accept()
+            else:
+                event.ignore()
 
 #-----------------------------------------------------------------------------
 # Main entry point

@@ -18,18 +18,19 @@ class BracketMatcher(QtCore.QObject):
     # 'QObject' interface
     #--------------------------------------------------------------------------
 
-    def __init__(self, parent):
+    def __init__(self, text_edit):
         """ Create a call tip manager that is attached to the specified Qt
             text edit widget.
         """
-        assert isinstance(parent, (QtGui.QTextEdit, QtGui.QPlainTextEdit))
-        QtCore.QObject.__init__(self, parent)
+        assert isinstance(text_edit, (QtGui.QTextEdit, QtGui.QPlainTextEdit))
+        super(BracketMatcher, self).__init__()
 
         # The format to apply to matching brackets.
         self.format = QtGui.QTextCharFormat()
         self.format.setBackground(QtGui.QColor('silver'))
 
-        parent.cursorPositionChanged.connect(self._cursor_position_changed)
+        self._text_edit = text_edit
+        text_edit.cursorPositionChanged.connect(self._cursor_position_changed)
 
     #--------------------------------------------------------------------------
     # Protected interface
@@ -40,7 +41,7 @@ class BracketMatcher(QtCore.QObject):
             position of the matching bracket. Returns -1 if unsuccessful.
         """
         # Decide what character to search for and what direction to search in.
-        document = self.parent().document()
+        document = self._text_edit.document()
         qchar = document.characterAt(position)
         start_char = qchar.toAscii()
         search_char = self._opening_map.get(start_char)
@@ -73,7 +74,7 @@ class BracketMatcher(QtCore.QObject):
         """ Convenience method for selecting a character.
         """
         selection = QtGui.QTextEdit.ExtraSelection()
-        cursor = self.parent().textCursor()
+        cursor = self._text_edit.textCursor()
         cursor.setPosition(position)
         cursor.movePosition(QtGui.QTextCursor.NextCharacter, 
                             QtGui.QTextCursor.KeepAnchor)
@@ -87,15 +88,14 @@ class BracketMatcher(QtCore.QObject):
         """ Updates the document formatting based on the new cursor position.
         """
         # Clear out the old formatting.
-        text_edit = self.parent()
-        text_edit.setExtraSelections([])
+        self._text_edit.setExtraSelections([])
 
         # Attempt to match a bracket for the new cursor position.
-        cursor = text_edit.textCursor()
+        cursor = self._text_edit.textCursor()
         if not cursor.hasSelection():
             position = cursor.position() - 1
             match_position = self._find_match(position)
             if match_position != -1:
                 extra_selections = [ self._selection_for_character(pos)
                                      for pos in (position, match_position) ]
-                text_edit.setExtraSelections(extra_selections)
+                self._text_edit.setExtraSelections(extra_selections)

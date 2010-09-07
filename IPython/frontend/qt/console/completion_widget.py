@@ -10,18 +10,20 @@ class CompletionWidget(QtGui.QListWidget):
     # 'QObject' interface
     #--------------------------------------------------------------------------
 
-    def __init__(self, parent):
+    def __init__(self, text_edit):
         """ Create a completion widget that is attached to the specified Qt
             text edit widget.
         """
-        assert isinstance(parent, (QtGui.QTextEdit, QtGui.QPlainTextEdit))
-        QtGui.QListWidget.__init__(self, parent)
+        assert isinstance(text_edit, (QtGui.QTextEdit, QtGui.QPlainTextEdit))
+        super(CompletionWidget, self).__init__()
 
-        self.setWindowFlags(QtCore.Qt.ToolTip | QtCore.Qt.WindowStaysOnTopHint)
+        self._text_edit = text_edit
+
         self.setAttribute(QtCore.Qt.WA_StaticContents)
+        self.setWindowFlags(QtCore.Qt.ToolTip | QtCore.Qt.WindowStaysOnTopHint)
 
-        # Ensure that parent keeps focus when widget is displayed.
-        self.setFocusProxy(parent)
+        # Ensure that the text edit keeps focus when widget is displayed.
+        self.setFocusProxy(self._text_edit)
 
         self.setFrameShadow(QtGui.QFrame.Plain)
         self.setFrameShape(QtGui.QFrame.StyledPanel)
@@ -29,10 +31,10 @@ class CompletionWidget(QtGui.QListWidget):
         self.itemActivated.connect(self._complete_current)
 
     def eventFilter(self, obj, event):
-        """ Reimplemented to handle keyboard input and to auto-hide when our
-            parent loses focus.
+        """ Reimplemented to handle keyboard input and to auto-hide when the
+            text edit loses focus.
         """
-        if obj == self.parent():
+        if obj == self._text_edit:
             etype = event.type()
 
             if etype == QtCore.QEvent.KeyPress:
@@ -47,13 +49,13 @@ class CompletionWidget(QtGui.QListWidget):
                 elif key in (QtCore.Qt.Key_Up, QtCore.Qt.Key_Down, 
                              QtCore.Qt.Key_PageUp, QtCore.Qt.Key_PageDown, 
                              QtCore.Qt.Key_Home, QtCore.Qt.Key_End):
-                    QtGui.QListWidget.keyPressEvent(self, event)
+                    self.keyPressEvent(event)
                     return True
 
             elif etype == QtCore.QEvent.FocusOut:
                 self.hide()
 
-        return QtGui.QListWidget.eventFilter(self, obj, event)
+        return super(CompletionWidget, self).eventFilter(obj, event)
 
     #--------------------------------------------------------------------------
     # 'QWidget' interface
@@ -62,21 +64,16 @@ class CompletionWidget(QtGui.QListWidget):
     def hideEvent(self, event):
         """ Reimplemented to disconnect signal handlers and event filter.
         """
-        QtGui.QListWidget.hideEvent(self, event)
-        parent = self.parent()
-        try:
-            parent.cursorPositionChanged.disconnect(self._update_current)
-        except TypeError:
-            pass
-        parent.removeEventFilter(self)
+        super(CompletionWidget, self).hideEvent(event)
+        self._text_edit.cursorPositionChanged.disconnect(self._update_current)
+        self._text_edit.removeEventFilter(self)
 
     def showEvent(self, event):
         """ Reimplemented to connect signal handlers and event filter.
         """
-        QtGui.QListWidget.showEvent(self, event)
-        parent = self.parent()
-        parent.cursorPositionChanged.connect(self._update_current)
-        parent.installEventFilter(self)
+        super(CompletionWidget, self).showEvent(event)
+        self._text_edit.cursorPositionChanged.connect(self._update_current)
+        self._text_edit.installEventFilter(self)
 
     #--------------------------------------------------------------------------
     # 'CompletionWidget' interface
@@ -86,7 +83,7 @@ class CompletionWidget(QtGui.QListWidget):
         """ Shows the completion widget with 'items' at the position specified
             by 'cursor'.
         """
-        text_edit = self.parent()
+        text_edit = self._text_edit
         point = text_edit.cursorRect(cursor).bottomRight()
         point = text_edit.mapToGlobal(point)
         screen_rect = QtGui.QApplication.desktop().availableGeometry(self)
@@ -115,7 +112,7 @@ class CompletionWidget(QtGui.QListWidget):
         """ Returns a cursor with text between the start position and the
             current position selected.
         """
-        cursor = self.parent().textCursor()
+        cursor = self._text_edit.textCursor()
         if cursor.position() >= self._start_position:
             cursor.setPosition(self._start_position, 
                                QtGui.QTextCursor.KeepAnchor)

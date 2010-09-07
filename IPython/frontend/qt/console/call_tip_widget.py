@@ -14,16 +14,17 @@ class CallTipWidget(QtGui.QLabel):
     # 'QObject' interface
     #--------------------------------------------------------------------------
 
-    def __init__(self, parent):
+    def __init__(self, text_edit):
         """ Create a call tip manager that is attached to the specified Qt
             text edit widget.
         """
-        assert isinstance(parent, (QtGui.QTextEdit, QtGui.QPlainTextEdit))
-        QtGui.QLabel.__init__(self, parent, QtCore.Qt.ToolTip)
+        assert isinstance(text_edit, (QtGui.QTextEdit, QtGui.QPlainTextEdit))
+        super(CallTipWidget, self).__init__(None, QtCore.Qt.ToolTip)
 
         self._hide_timer = QtCore.QBasicTimer()
+        self._text_edit = text_edit
 
-        self.setFont(parent.document().defaultFont())
+        self.setFont(text_edit.document().defaultFont())
         self.setForegroundRole(QtGui.QPalette.ToolTipText)
         self.setBackgroundRole(QtGui.QPalette.ToolTipBase)
         self.setPalette(QtGui.QToolTip.palette())
@@ -37,10 +38,10 @@ class CallTipWidget(QtGui.QLabel):
                 QtGui.QStyle.SH_ToolTipLabel_Opacity, None, self) / 255.0)
 
     def eventFilter(self, obj, event):
-        """ Reimplemented to hide on certain key presses and on parent focus
+        """ Reimplemented to hide on certain key presses and on text edit focus
             changes.
         """
-        if obj == self.parent():
+        if obj == self._text_edit:
             etype = event.type()
 
             if etype == QtCore.QEvent.KeyPress:
@@ -60,7 +61,7 @@ class CallTipWidget(QtGui.QLabel):
             elif etype == QtCore.QEvent.Leave:
                 self._hide_later()
 
-        return QtGui.QLabel.eventFilter(self, obj, event)
+        return super(CallTipWidget, self).eventFilter(obj, event)
 
     def timerEvent(self, event):
         """ Reimplemented to hide the widget when the hide timer fires.
@@ -76,21 +77,21 @@ class CallTipWidget(QtGui.QLabel):
     def enterEvent(self, event):
         """ Reimplemented to cancel the hide timer.
         """
-        QtGui.QLabel.enterEvent(self, event)
+        super(CallTipWidget, self).enterEvent(event)
         self._hide_timer.stop()
 
     def hideEvent(self, event):
         """ Reimplemented to disconnect signal handlers and event filter.
         """
-        QtGui.QLabel.hideEvent(self, event)
-        parent = self.parent()
-        parent.cursorPositionChanged.disconnect(self._cursor_position_changed)
-        parent.removeEventFilter(self)
+        super(CallTipWidget, self).hideEvent(event)
+        self._text_edit.cursorPositionChanged.disconnect(
+            self._cursor_position_changed)
+        self._text_edit.removeEventFilter(self)
 
     def leaveEvent(self, event):
         """ Reimplemented to start the hide timer.
         """
-        QtGui.QLabel.leaveEvent(self, event)
+        super(CallTipWidget, self).leaveEvent(event)
         self._hide_later()
 
     def paintEvent(self, event):
@@ -102,15 +103,15 @@ class CallTipWidget(QtGui.QLabel):
         painter.drawPrimitive(QtGui.QStyle.PE_PanelTipLabel, option)
         painter.end()
 
-        QtGui.QLabel.paintEvent(self, event)
+        super(CallTipWidget, self).paintEvent(event)
 
     def showEvent(self, event):
         """ Reimplemented to connect signal handlers and event filter.
         """
-        QtGui.QLabel.showEvent(self, event)
-        parent = self.parent()
-        parent.cursorPositionChanged.connect(self._cursor_position_changed)
-        parent.installEventFilter(self)
+        super(CallTipWidget, self).showEvent(event)
+        self._text_edit.cursorPositionChanged.connect(
+            self._cursor_position_changed)
+        self._text_edit.installEventFilter(self)
 
     #--------------------------------------------------------------------------
     # 'CallTipWidget' interface
@@ -131,7 +132,7 @@ class CallTipWidget(QtGui.QLabel):
         """ Attempts to show the specified tip at the current cursor location.
         """
         # Attempt to find the cursor position at which to show the call tip.
-        text_edit = self.parent()
+        text_edit = self._text_edit
         document = text_edit.document()
         cursor = text_edit.textCursor()
         search_pos = cursor.position() - 1
@@ -172,7 +173,7 @@ class CallTipWidget(QtGui.QLabel):
             not found) and the number commas (at depth 0) found along the way.
         """
         commas = depth = 0
-        document = self.parent().document()
+        document = self._text_edit.document()
         qchar = document.characterAt(position)
         while (position > 0 and qchar.isPrint() and 
                # Need to check explicitly for line/paragraph separators:
@@ -205,7 +206,7 @@ class CallTipWidget(QtGui.QLabel):
     def _cursor_position_changed(self):
         """ Updates the tip based on user cursor movement.
         """
-        cursor = self.parent().textCursor()
+        cursor = self._text_edit.textCursor()
         if cursor.position() <= self._start_position:
             self.hide()
         else:
