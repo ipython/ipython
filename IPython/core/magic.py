@@ -573,6 +573,14 @@ Currently the magic system has the following functions:\n"""
             self.shell._inspect('pinfo', oname, detail_level=detail_level,
                                 namespaces=namespaces)
 
+    def magic_pinfo2(self, parameter_s='', namespaces=None):
+        """Provide extra detailed information about an object.
+    
+        '%pinfo2 object' is just a synonym for object?? or ??object."""
+        print 'pinfo2 par: <%s>' % parameter_s  # dbg
+        self.shell._inspect('pinfo', parameter_s, detail_level=1,
+                            namespaces=namespaces)
+
     def magic_pdef(self, parameter_s='', namespaces=None):
         """Print the definition header for any callable object.
 
