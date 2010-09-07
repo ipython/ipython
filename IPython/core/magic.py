@@ -425,12 +425,6 @@ Currently the magic system has the following functions:\n"""
                                      Magic.auto_status[self.shell.automagic] ) )
         page.page(outmsg)
 
-    def magic_autoindent(self, parameter_s = ''):
-        """Toggle autoindent on/off (if available)."""
-
-        self.shell.set_autoindent()
-        print "Automatic indentation is:",['OFF','ON'][self.shell.autoindent]
-
     def magic_automagic(self, parameter_s = ''):
         """Make magic functions callable without having to type the initial %.
 
@@ -2428,22 +2422,6 @@ Defaulting color scheme to 'NoColor'"""
         else:
             shell.inspector.set_active_scheme('NoColor')
                 
-    def magic_color_info(self,parameter_s = ''):
-        """Toggle color_info.
-
-        The color_info configuration parameter controls whether colors are
-        used for displaying object details (by things like %psource, %pfile or
-        the '?' system). This function toggles this value with each call.
-
-        Note that unless you have a fairly recent pager (less works better
-        than more) in your system, using colored object information displays
-        will not work properly. Test it and see."""
-        
-        self.shell.color_info = not self.shell.color_info
-        self.magic_colors(self.shell.colors)
-        print 'Object introspection functions have now coloring:',
-        print ['OFF','ON'][int(self.shell.color_info)]
-
     def magic_Pprint(self, parameter_s=''):
         """Toggle pretty printing on/off."""
         
@@ -2544,7 +2522,6 @@ Defaulting color scheme to 'NoColor'"""
             print "Removing %stored alias",aname
             del stored[aname]
             self.db['stored_aliases'] = stored
-            
 
     def magic_rehashx(self, parameter_s = ''):
         """Update the alias table with all executable files in $PATH.
@@ -3149,100 +3126,6 @@ Defaulting color scheme to 'NoColor'"""
         else:
             self.user_ns[par] = SList(block.splitlines())
             print "Block assigned to '%s'" % par
-
-    def magic_cpaste(self, parameter_s=''):
-        """Allows you to paste & execute a pre-formatted code block from clipboard.
-        
-        You must terminate the block with '--' (two minus-signs) alone on the
-        line. You can also provide your own sentinel with '%paste -s %%' ('%%' 
-        is the new sentinel for this operation)
-        
-        The block is dedented prior to execution to enable execution of method
-        definitions. '>' and '+' characters at the beginning of a line are
-        ignored, to allow pasting directly from e-mails, diff files and
-        doctests (the '...' continuation prompt is also stripped).  The
-        executed block is also assigned to variable named 'pasted_block' for
-        later editing with '%edit pasted_block'.
-        
-        You can also pass a variable name as an argument, e.g. '%cpaste foo'.
-        This assigns the pasted block to variable 'foo' as string, without 
-        dedenting or executing it (preceding >>> and + is still stripped)
-        
-        '%cpaste -r' re-executes the block previously entered by cpaste.
-        
-        Do not be alarmed by garbled output on Windows (it's a readline bug). 
-        Just press enter and type -- (and press enter again) and the block 
-        will be what was just pasted.
-        
-        IPython statements (magics, shell escapes) are not supported (yet).
-
-        See also
-        --------
-        paste: automatically pull code from clipboard.
-        """
-        
-        opts,args = self.parse_options(parameter_s,'rs:',mode='string')
-        par = args.strip()
-        if opts.has_key('r'):
-            self._rerun_pasted()
-            return
-        
-        sentinel = opts.get('s','--')
-
-        block = self._strip_pasted_lines_for_code(
-            self._get_pasted_lines(sentinel))
-
-        self._execute_block(block, par)
-
-    def magic_paste(self, parameter_s=''):
-        """Allows you to paste & execute a pre-formatted code block from clipboard.
-        
-        The text is pulled directly from the clipboard without user
-        intervention and printed back on the screen before execution (unless
-        the -q flag is given to force quiet mode).
-
-        The block is dedented prior to execution to enable execution of method
-        definitions. '>' and '+' characters at the beginning of a line are
-        ignored, to allow pasting directly from e-mails, diff files and
-        doctests (the '...' continuation prompt is also stripped).  The
-        executed block is also assigned to variable named 'pasted_block' for
-        later editing with '%edit pasted_block'.
-        
-        You can also pass a variable name as an argument, e.g. '%paste foo'.
-        This assigns the pasted block to variable 'foo' as string, without 
-        dedenting or executing it (preceding >>> and + is still stripped)
-
-        Options
-        -------
-        
-          -r: re-executes the block previously entered by cpaste.
-
-          -q: quiet mode: do not echo the pasted text back to the terminal.
-        
-        IPython statements (magics, shell escapes) are not supported (yet).
-
-        See also
-        --------
-        cpaste: manually paste code into terminal until you mark its end.
-        """
-        opts,args = self.parse_options(parameter_s,'rq',mode='string')
-        par = args.strip()
-        if opts.has_key('r'):
-            self._rerun_pasted()
-            return
-
-        text = self.shell.hooks.clipboard_get()
-        block = self._strip_pasted_lines_for_code(text.splitlines())
-
-        # By default, echo back to terminal unless quiet mode is requested
-        if not opts.has_key('q'):
-            write = self.shell.write
-            write(self.shell.pycolorize(block))
-            if not block.endswith('\n'):
-                write('\n')
-            write("## -- End pasted text --\n")
-            
-        self._execute_block(block, par)
 
     def magic_quickref(self,arg):
         """ Show a quick reference sheet """

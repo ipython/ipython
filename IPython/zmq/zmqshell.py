@@ -78,6 +78,61 @@ class ZMQInteractiveShell(InteractiveShell):
 
     displayhook_class = Type(ZMQDisplayHook)
 
+
+    def auto_rewrite_input(self, cmd):
+        """Called to show the auto-rewritten input for autocall and friends.
+
+        FIXME: this payload is currently not correctly processed by the
+        frontend.
+        """
+        new = self.displayhook.prompt1.auto_rewrite() + cmd
+        payload = dict(
+            source='IPython.zmq.zmqshell.ZMQInteractiveShell.auto_rewrite_input',
+            transformed_input=new,
+            )
+        self.payload_manager.write_payload(payload)
+        
+    def ask_exit(self):
+        """Engage the exit actions."""
+        payload = dict(
+            source='IPython.zmq.zmqshell.ZMQInteractiveShell.ask_exit',
+            exit=True,
+            )
+        self.payload_manager.write_payload(payload)
+
+    def _showtraceback(self, etype, evalue, stb):
+
+        exc_content = {
+            u'traceback' : stb,
+            u'ename' : unicode(etype.__name__),
+            u'evalue' : unicode(evalue)
+        }
+
+        dh = self.displayhook
+        exc_msg = dh.session.msg(u'pyerr', exc_content, dh.parent_header)
+        # Send exception info over pub socket for other clients than the caller
+        # to pick up
+        dh.pub_socket.send_json(exc_msg)
+
+        # FIXME - Hack: store exception info in shell object.  Right now, the
+        # caller is reading this info after the fact, we need to fix this logic
+        # to remove this hack.  Even uglier, we need to store the error status
+        # here, because in the main loop, the logic that sets it is being
+        # skipped because runlines swallows the exceptions.
+        exc_content[u'status'] = u'error'
+        self._reply_content = exc_content
+        # /FIXME
+        
+        return exc_content
+
+    #------------------------------------------------------------------------
+    # Magic overrides
+    #------------------------------------------------------------------------
+    # Once the base class stops inheriting from magic, this code needs to be
+    # moved into a separate machinery as well.  For now, at least isolate here
+    # the magics which this class needs to implement differently from the base
+    # class, or that are unique to it.
+
     def magic_doctest_mode(self,parameter_s=''):
         """Toggle doctest mode on and off.
 
@@ -423,55 +478,12 @@ class ZMQInteractiveShell(InteractiveShell):
         self.payload_manager.write_payload(payload)
 
     def magic_gui(self, *args, **kwargs):
-        raise NotImplementedError('GUI support must be enabled in command line options.')
+        raise NotImplementedError(
+            'GUI support must be enabled in command line options.')
 
     def magic_pylab(self, *args, **kwargs):
-        raise NotImplementedError('pylab support must be enabled in commandl in options.')
+        raise NotImplementedError(
+            'pylab support must be enabled in command line options.')
 
-    def auto_rewrite_input(self, cmd):
-        """Called to show the auto-rewritten input for autocall and friends.
-
-        FIXME: this payload is currently not correctly processed by the
-        frontend.
-        """
-        new = self.displayhook.prompt1.auto_rewrite() + cmd
-        payload = dict(
-            source='IPython.zmq.zmqshell.ZMQInteractiveShell.auto_rewrite_input',
-            transformed_input=new,
-            )
-        self.payload_manager.write_payload(payload)
-        
-    def ask_exit(self):
-        """Engage the exit actions."""
-        payload = dict(
-            source='IPython.zmq.zmqshell.ZMQInteractiveShell.ask_exit',
-            exit=True,
-            )
-        self.payload_manager.write_payload(payload)
-
-    def _showtraceback(self, etype, evalue, stb):
-
-        exc_content = {
-            u'traceback' : stb,
-            u'ename' : unicode(etype.__name__),
-            u'evalue' : unicode(evalue)
-        }
-
-        dh = self.displayhook
-        exc_msg = dh.session.msg(u'pyerr', exc_content, dh.parent_header)
-        # Send exception info over pub socket for other clients than the caller
-        # to pick up
-        dh.pub_socket.send_json(exc_msg)
-
-        # FIXME - Hack: store exception info in shell object.  Right now, the
-        # caller is reading this info after the fact, we need to fix this logic
-        # to remove this hack.  Even uglier, we need to store the error status
-        # here, because in the main loop, the logic that sets it is being
-        # skipped because runlines swallows the exceptions.
-        exc_content[u'status'] = u'error'
-        self._reply_content = exc_content
-        # /FIXME
-        
-        return exc_content
 
 InteractiveShellABC.register(ZMQInteractiveShell)
