@@ -441,18 +441,17 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
     def reset_font(self):
         """ Sets the font to the default fixed-width font for this platform.
         """
+        font = QtGui.QFont()
         if sys.platform == 'win32':
-            # FIXME: we should test whether Consolas is available and use it
-            # first if it is.  Consolas ships by default from Vista onwards,
-            # it's *vastly* more readable and prettier than Courier, and is
-            # often installed even on XP systems.  So we should first check for
-            # it, and only fallback to Courier if absolutely necessary.
-            name = 'Courier'
+            # Prefer Consolas, but fall back to Courier if necessary.
+            font.setFamily('Consolas')
+            if not font.exactMatch():
+                font.setFamily('Courier')
         elif sys.platform == 'darwin':
-            name = 'Monaco'
+            font.setFamily('Monaco')
         else:
-            name = 'Monospace'
-        font = QtGui.QFont(name, QtGui.qApp.font().pointSize())
+            font.setFamily('Monospace')
+        font.setPointSize(QtGui.qApp.font().pointSize())
         font.setStyleHint(QtGui.QFont.TypeWriter)
         self._set_font(font)
 
