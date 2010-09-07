@@ -63,8 +63,17 @@ def make_argument_parser():
 
 def make_kernel(namespace, kernel_factory, 
                 out_stream_factory=None, display_hook_factory=None):
-    """ Creates a kernel.
+    """ Creates a kernel, redirects stdout/stderr, and installs a display hook
+    and exception handler.
     """
+    # If running under pythonw.exe, the interpreter will crash if more than 4KB
+    # of data is written to stdout or stderr. This is a bug that has been with
+    # Python for a very long time; see http://bugs.python.org/issue706263.
+    if sys.executable.endswith('pythonw.exe'):
+        blackhole = file(os.devnull, 'w')
+        sys.stdout = sys.stderr = blackhole
+        sys.__stdout__ = sys.__stderr__ = blackhole 
+
     # Install minimal exception handling
     sys.excepthook = FormattedTB(mode='Verbose', color_scheme='NoColor', 
                                  ostream=sys.__stdout__)
@@ -192,10 +201,12 @@ def base_launch_kernel(code, xrep_port=0, pub_port=0, req_port=0, hb_port=0,
 
     # Spawn a kernel.
     if sys.platform == 'win32':
+
         # If using pythonw, stdin, stdout, and stderr are invalid. Popen will
         # fail unless they are suitably redirected. We don't read from the
         # pipes, but they must exist.
         redirect = PIPE if sys.executable.endswith('pythonw.exe') else None
+
         if independent:
             proc = Popen(['start', '/b'] + arguments, shell=True,
                          stdout=redirect, stderr=redirect, stdin=redirect)
@@ -208,6 +219,13 @@ def base_launch_kernel(code, xrep_port=0, pub_port=0, req_port=0, hb_port=0,
                                      DUPLICATE_SAME_ACCESS)
             proc = Popen(arguments + ['--parent', str(int(handle))],
                          stdout=redirect, stderr=redirect, stdin=redirect)
+
+        # Clean up pipes created to work around Popen bug.
+        if redirect is not None:
+            proc.stdout.close()
+            proc.stderr.close()
+            proc.stdin.close()
+
     else:
         if independent:
             proc = Popen(arguments, preexec_fn=lambda: os.setsid())
