@@ -103,6 +103,10 @@ ESC_PAREN  = '/'
 dedent_re = re.compile(r'^\s+raise|^\s+return|^\s+pass')
 ini_spaces_re = re.compile(r'^([ \t\r\f\v]+)')
 
+# regexp to match pure comment lines so we don't accidentally insert 'if 1:'
+# before pure comments
+comment_line_re = re.compile('^\s*\#')
+
 
 def num_ini_spaces(s):
     """Return the number of initial spaces in a string.
@@ -368,7 +372,9 @@ class InputSplitter(object):
         # this allows execution of indented pasted code. It is tempting
         # to add '\n' at the end of source to run commands like ' a=1'
         # directly, but this fails for more complicated scenarios
-        if not self._buffer and lines[:1] in [' ', '\t']:
+
+        if not self._buffer and lines[:1] in [' ', '\t'] and \
+           not comment_line_re.match(lines):
             lines = 'if 1:\n%s' % lines
         
         self._store(lines)
