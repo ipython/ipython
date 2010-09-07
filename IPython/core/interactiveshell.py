@@ -439,11 +439,13 @@ class InteractiveShell(Configurable, Magic):
                                             self.object_info_string_level)
 
     def init_io(self):
-        import IPython.utils.io
+        # This will just use sys.stdout and sys.stderr. If you want to
+        # override sys.stdout and sys.stderr themselves, you need to do that
+        # *before* instantiating this class, because Term holds onto 
+        # references to the underlying streams.
         if sys.platform == 'win32' and self.has_readline:
-            Term = io.IOTerm(
-                cout=self.readline._outputfile,cerr=self.readline._outputfile
-            )
+            Term = io.IOTerm(cout=self.readline._outputfile,
+                             cerr=self.readline._outputfile)
         else:
             Term = io.IOTerm()
         io.Term = Term
@@ -1483,9 +1485,7 @@ class InteractiveShell(Configurable, Magic):
         Subclasses may override this method to put the traceback on a different
         place, like a side channel.
         """
-        # FIXME: this should use the proper write channels, but our test suite
-        # relies on it coming out of stdout...
-        print >> sys.stdout, self.InteractiveTB.stb2text(stb)
+        print >> io.Term.cout, self.InteractiveTB.stb2text(stb)
 
     def showsyntaxerror(self, filename=None):
         """Display the syntax error that just occurred.

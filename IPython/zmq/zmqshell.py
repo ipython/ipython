@@ -27,6 +27,7 @@ from IPython.core.interactiveshell import (
 from IPython.core.displayhook import DisplayHook
 from IPython.core.macro import Macro
 from IPython.core.payloadpage import install_payload_page
+from IPython.utils import io
 from IPython.utils.path import get_py_filename
 from IPython.utils.text import StringTypes
 from IPython.utils.traitlets import Instance, Type, Dict
@@ -76,15 +77,6 @@ class ZMQInteractiveShell(InteractiveShell):
     """A subclass of InteractiveShell for ZMQ."""
 
     displayhook_class = Type(ZMQDisplayHook)
-
-    def init_io(self):
-        # This will just use sys.stdout and sys.stderr. If you want to
-        # override sys.stdout and sys.stderr themselves, you need to do that
-        # *before* instantiating this class, because Term holds onto 
-        # references to the underlying streams.
-        import IPython.utils.io
-        Term = IPython.utils.io.IOTerm()
-        IPython.utils.io.Term = Term
 
     def magic_doctest_mode(self,parameter_s=''):
         """Toggle doctest mode on and off.
