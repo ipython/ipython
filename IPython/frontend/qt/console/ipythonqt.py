@@ -114,10 +114,7 @@ def main():
         if args.pure:
             kernel_manager.start_kernel(ipython=False)
         elif args.pylab:
-            if args.rich:
-                kernel_manager.start_kernel(pylab='payload-svg')
-            else:
-                kernel_manager.start_kernel(pylab=args.pylab)
+            kernel_manager.start_kernel(pylab=args.pylab)
         else:
             kernel_manager.start_kernel()
     kernel_manager.start_channels()
@@ -127,7 +124,7 @@ def main():
     if args.pure:
         kind = 'rich' if args.rich else 'plain'
         widget = FrontendWidget(kind=kind, paging=args.paging)
-    elif args.rich:
+    elif args.rich or args.pylab:
         widget = RichIPythonWidget(paging=args.paging)
     else:
         widget = IPythonWidget(paging=args.paging)

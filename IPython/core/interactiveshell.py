@@ -162,6 +162,7 @@ class InteractiveShell(Configurable, Magic):
     object_info_string_level = Enum((0,1,2), default_value=0,
                                     config=True)
     pdb = CBool(False, config=True)
+
     pprint = CBool(True, config=True)
     profile = Str('', config=True)
     prompt_in1 = Str('In [\\#]: ', config=True)
@@ -211,6 +212,9 @@ class InteractiveShell(Configurable, Magic):
     extension_manager = Instance('IPython.core.extensions.ExtensionManager')
     plugin_manager = Instance('IPython.core.plugin.PluginManager')
     payload_manager = Instance('IPython.core.payload.PayloadManager')
+
+    # Private interface
+    _post_execute = set()
 
     def __init__(self, config=None, ipython_dir=None,
                  user_ns=None, user_global_ns=None,
@@ -569,6 +573,13 @@ class InteractiveShell(Configurable, Magic):
             dp = f
 
         setattr(self.hooks,name, dp)
+
+    def register_post_execute(self, func):
+        """Register a function for calling after code execution.
+        """
+        if not callable(func):
+            raise ValueError('argument %s must be callable' % func)
+        self._post_execute.add(func)
 
     #-------------------------------------------------------------------------
     # Things related to the "main" module
@@ -2268,6 +2279,21 @@ class InteractiveShell(Configurable, Magic):
             outflag = 0
             if softspace(sys.stdout, 0):
                 print
+
+        # Execute any registered post-execution functions.  Here, any errors
+        # are reported only minimally and just on the terminal, because the
+        # main exception channel may be occupied with a user traceback.
+        # FIXME: we need to think this mechanism a little more carefully.
+        for func in self._post_execute:
+            try:
+                func()
+            except:
+                head = '[ ERROR ] Evaluating post_execute function: %s' % func
+                print >> io.Term.cout, head
+                print >> io.Term.cout, self._simple_error()
+                print >> io.Term.cout, 'Removing from post_execute'
+                self._post_execute.remove(func)
+
         # Flush out code object which has been run (and source)
         self.code_to_run = None
         return outflag

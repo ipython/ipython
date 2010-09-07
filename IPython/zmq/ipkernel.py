@@ -192,11 +192,12 @@ class Kernel(Configurable):
                 # FIXME: runlines calls the exception handler itself.
                 shell._reply_content = None
 
+                # For now leave this here until we're sure we can stop using it
+                #shell.runlines(code)
+
                 # Experimental: cell mode!  Test more before turning into
                 # default and removing the hacks around runlines.
                 shell.run_cell(code)
-                # For now leave this here until we're sure we can stop using it
-                #shell.runlines(code)
         except:
             status = u'error'
             # FIXME: this code right now isn't being used yet by default,
@@ -210,10 +211,6 @@ class Kernel(Configurable):
             reply_content.update(shell._showtraceback(etype, evalue, tb_list))
         else:
             status = u'ok'
-            reply_content[u'payload'] = shell.payload_manager.read_payload()
-            # Be agressive about clearing the payload because we don't want
-            # it to sit in memory until the next execute_request comes in.
-            shell.payload_manager.clear_payload()
 
         reply_content[u'status'] = status
         # Compute the execution counter so clients can display prompts
@@ -236,7 +233,15 @@ class Kernel(Configurable):
             # expressions
             reply_content[u'user_variables'] = {}
             reply_content[u'user_expressions'] = {}
-            
+
+        # Payloads should be retrieved regardless of outcome, so we can both
+        # recover partial output (that could have been generated early in a
+        # block, before an error) and clear the payload system always.
+        reply_content[u'payload'] = shell.payload_manager.read_payload()
+        # Be agressive about clearing the payload because we don't want
+        # it to sit in memory until the next execute_request comes in.
+        shell.payload_manager.clear_payload()
+
         # Send the reply.
         reply_msg = self.session.msg(u'execute_reply', reply_content, parent)
         io.raw_print(reply_msg)
@@ -571,7 +576,8 @@ given, the GUI backend is matplotlib's, otherwise use one of: \
     kernel = make_kernel(namespace, kernel_class, OutStream)
 
     if namespace.pylab:
-        pylabtools.import_pylab(kernel.shell.user_ns)
+        pylabtools.import_pylab(kernel.shell.user_ns, backend,
+                                shell=kernel.shell)
 
     start_kernel(namespace, kernel)
 
