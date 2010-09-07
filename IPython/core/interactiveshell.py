@@ -2093,20 +2093,28 @@ class InteractiveShell(Configurable, Magic):
         cell : str
           A single or multiline string.
         """
+        # We need to break up the input into executable blocks that can be run
+        # in 'single' mode, to provide comfortable user behavior.
         blocks = self.input_splitter.split_blocks(cell)
+        
         if not blocks:
             return
-
+        
+        # Single-block input should behave like an interactive prompt
         if len(blocks) == 1:
             self.runlines(blocks[0])
             return
 
+        # In multi-block input, if the last block is a simple (one-two lines)
+        # expression, run it in single mode so it produces output.  Otherwise
+        # just feed the whole thing to runcode.
+        # This seems like a reasonable usability design.
         last = blocks[-1]
         if len(last.splitlines()) < 2:
-            map(self.runcode, blocks[:-1])
+            self.runcode('\n'.join(blocks[:-1]))
             self.runlines(last)
         else:
-            map(self.runcode, blocks)
+            self.runcode(cell)
 
     def runlines(self, lines, clean=False):
         """Run a string of one or more lines of source.
@@ -2225,6 +2233,11 @@ class InteractiveShell(Configurable, Magic):
           - 0: successful execution.
           - 1: an error occurred.
         """
+
+        # It's also possible that we've been fed a plain string.  In that case,
+        # we must store it in the input history.
+        if isinstance(code_obj, basestring):
+            self.input_hist_raw.append(code_obj)
 
         # Set our own excepthook in case the user code tries to call it
         # directly, so that the IPython crash handler doesn't get triggered
