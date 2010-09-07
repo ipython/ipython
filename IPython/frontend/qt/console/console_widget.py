@@ -419,7 +419,9 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
         """
         if self._control.textInteractionFlags() & QtCore.Qt.TextEditable:
             try:
-                text = str(QtGui.QApplication.clipboard().text(mode))
+                # Remove any trailing newline, which confuses the GUI and
+                # forces the user to backspace.
+                text = str(QtGui.QApplication.clipboard().text(mode)).rstrip()
             except UnicodeEncodeError:
                 pass
             else:
