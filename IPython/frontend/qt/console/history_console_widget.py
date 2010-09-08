@@ -152,7 +152,11 @@ class HistoryConsoleWidget(ConsoleWidget):
             history = prefix
         self.input_buffer = history
 
-    def set_history(self, history):
+    #---------------------------------------------------------------------------
+    # 'HistoryConsoleWidget' protected interface
+    #---------------------------------------------------------------------------
+
+    def _set_history(self, history):
         """ Replace the current history with a sequence of history items.
         """
         self._history = list(history)

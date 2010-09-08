@@ -698,6 +698,8 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
         alt_down = event.modifiers() & QtCore.Qt.AltModifier
         shift_down = event.modifiers() & QtCore.Qt.ShiftModifier
 
+        #------ Special sequences ----------------------------------------------
+
         if event.matches(QtGui.QKeySequence.Copy):
             self.copy()
             intercepted = True
@@ -705,6 +707,45 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
         elif event.matches(QtGui.QKeySequence.Paste):
             self.paste()
             intercepted = True
+
+        #------ Special modifier logic -----------------------------------------
+
+        elif key in (QtCore.Qt.Key_Return, QtCore.Qt.Key_Enter):
+            intercepted = True
+                
+            # Special handling when tab completing in text mode.
+            self._cancel_text_completion()
+
+            if self._in_buffer(position):
+                if self._reading:
+                    self._append_plain_text('\n')
+                    self._reading = False
+                    if self._reading_callback:
+                        self._reading_callback()
+
+                # If there is only whitespace after the cursor, execute.
+                # Otherwise, split the line with a continuation prompt.
+                elif not self._executing:
+                    cursor.movePosition(QtGui.QTextCursor.End,
+                                        QtGui.QTextCursor.KeepAnchor)
+                    at_end = cursor.selectedText().trimmed().isEmpty() 
+                    if (at_end or shift_down) and not ctrl_down:
+                        self.execute(interactive = not shift_down)
+                    else:
+                        # Do this inside an edit block for clean undo/redo.
+                        cursor.beginEditBlock()
+                        cursor.setPosition(position)
+                        cursor.insertText('\n')
+                        self._insert_continuation_prompt(cursor)
+                        cursor.endEditBlock()
+
+                        # Ensure that the whole input buffer is visible.
+                        # FIXME: This will not be usable if the input buffer is
+                        # taller than the console widget.
+                        self._control.moveCursor(QtGui.QTextCursor.End)
+                        self._control.setTextCursor(cursor)
+
+        #------ Control/Cmd modifier -------------------------------------------
 
         elif ctrl_down:
             if key == QtCore.Qt.Key_G:
@@ -753,6 +794,8 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
             elif key in (QtCore.Qt.Key_Backspace, QtCore.Qt.Key_Delete):
                 intercepted = True
 
+        #------ Alt modifier ---------------------------------------------------
+
         elif alt_down:
             if key == QtCore.Qt.Key_B:
                 self._set_cursor(self._get_word_start_cursor(position))
@@ -785,43 +828,10 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
                 self._control.setTextCursor(self._get_prompt_cursor())
                 intercepted = True
 
+        #------ No modifiers ---------------------------------------------------
+
         else:
-            if key in (QtCore.Qt.Key_Return, QtCore.Qt.Key_Enter):
-                intercepted = True
-                
-                # Special handling when tab completing in text mode.
-                self._cancel_text_completion()
-
-                if self._in_buffer(position):
-                    if self._reading:
-                        self._append_plain_text('\n')
-                        self._reading = False
-                        if self._reading_callback:
-                            self._reading_callback()
-
-                    # If there is only whitespace after the cursor, execute.
-                    # Otherwise, split the line with a continuation prompt.
-                    elif not self._executing:
-                        cursor.movePosition(QtGui.QTextCursor.End,
-                                            QtGui.QTextCursor.KeepAnchor)
-                        at_end = cursor.selectedText().trimmed().isEmpty() 
-                        if at_end or shift_down:
-                            self.execute(interactive = not shift_down)
-                        else:
-                            # Do this inside an edit block for clean undo/redo.
-                            cursor.beginEditBlock()
-                            cursor.setPosition(position)
-                            cursor.insertText('\n')
-                            self._insert_continuation_prompt(cursor)
-                            cursor.endEditBlock()
-
-                            # Ensure that the whole input buffer is visible.
-                            # FIXME: This will not be usable if the input buffer
-                            # is taller than the console widget.
-                            self._control.moveCursor(QtGui.QTextCursor.End)
-                            self._control.setTextCursor(cursor)
-
-            elif key == QtCore.Qt.Key_Escape:
+            if key == QtCore.Qt.Key_Escape:
                 self._keyboard_quit()
                 intercepted = True
 
