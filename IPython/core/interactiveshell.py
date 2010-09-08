@@ -2122,7 +2122,7 @@ class InteractiveShell(Configurable, Magic):
         # This seems like a reasonable usability design.
         last = blocks[-1]
         if len(last.splitlines()) < 2:
-            self.runcode('\n'.join(blocks[:-1]))
+            self.runcode(''.join(blocks[:-1]))
             self.runlines(last)
         else:
             self.runcode(cell)
