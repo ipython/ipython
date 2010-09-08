@@ -1,3 +1,9 @@
+"""A base class for console-type widgets.
+"""
+#-----------------------------------------------------------------------------
+# Imports
+#-----------------------------------------------------------------------------
+
 # Standard library imports
 from os.path import commonprefix
 import re
@@ -9,11 +15,14 @@ from PyQt4 import QtCore, QtGui
 
 # Local imports
 from IPython.config.configurable import Configurable
-from IPython.frontend.qt.util import MetaQObjectHasTraits
+from IPython.frontend.qt.util import MetaQObjectHasTraits, get_font
 from IPython.utils.traitlets import Bool, Enum, Int
 from ansi_code_processor import QtAnsiCodeProcessor
 from completion_widget import CompletionWidget
 
+#-----------------------------------------------------------------------------
+# Classes
+#-----------------------------------------------------------------------------
 
 class ConsoleWidget(Configurable, QtGui.QWidget):
     """ An abstract base class for console-type widgets. This class has 
@@ -441,16 +450,19 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
     def reset_font(self):
         """ Sets the font to the default fixed-width font for this platform.
         """
-        font = QtGui.QFont()
         if sys.platform == 'win32':
-            # Prefer Consolas, but fall back to Courier if necessary.
-            font.setFamily('Consolas')
-            if not font.exactMatch():
-                font.setFamily('Courier')
+            # Consolas ships with Vista/Win7, fallback to Courier if needed
+            family, fallback = 'Consolas', 'Courier'
         elif sys.platform == 'darwin':
-            font.setFamily('Monaco')
+            # OSX always has Monaco, no need for a fallback
+            family, fallback = 'Monaco', None
         else:
-            font.setFamily('Monospace')
+            # Consolas isn't too common on linux, but anyone who has it
+            # installed it because they want it for their monospaced apps,
+            # since it's better than anything on linux by default.
+            family, fallback = 'Consolas', 'Monospace'
+
+        font = get_font(family, fallback)
         font.setPointSize(QtGui.qApp.font().pointSize())
         font.setStyleHint(QtGui.QFont.TypeWriter)
         self._set_font(font)
