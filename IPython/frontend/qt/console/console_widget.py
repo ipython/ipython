@@ -457,9 +457,8 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
             # OSX always has Monaco, no need for a fallback
             family, fallback = 'Monaco', None
         else:
-            # Consolas isn't too common on linux, but anyone who has it
-            # installed it because they want it for their monospaced apps,
-            # since it's better than anything on linux by default.
+            # FIXME: remove Consolas as a default on Linux once our font
+            # selections are configurable by the user.
             family, fallback = 'Consolas', 'Monospace'
 
         font = get_font(family, fallback)
