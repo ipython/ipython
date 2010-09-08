@@ -92,15 +92,16 @@ class Config(dict):
         else:
             return False
 
+    # .has_key is deprecated for dictionaries.
     def has_key(self, key):
         if self._is_section_key(key):
             return True
         else:
-            return dict.has_key(self, key)
+            return key in self
 
     def _has_section(self, key):
         if self._is_section_key(key):
-            if dict.has_key(self, key):
+            if key in self:
                 return True
         return False
 

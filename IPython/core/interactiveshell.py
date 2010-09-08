@@ -22,13 +22,12 @@ import __future__
 import abc
 import atexit
 import codeop
-import exceptions
-import new
 import os
 import re
 import string
 import sys
 import tempfile
+import types
 from contextlib import nested
 
 from IPython.config.configurable import Configurable
@@ -102,7 +101,7 @@ def softspace(file, newvalue):
 
 def no_op(*a, **kw): pass
 
-class SpaceInInput(exceptions.Exception): pass
+class SpaceInInput(Exception): pass
 
 class Bunch: pass
 
@@ -550,7 +549,7 @@ class InteractiveShell(Configurable, Magic):
         # accepts it.  Probably at least check that the hook takes the number
         # of args it's supposed to.
         
-        f = new.instancemethod(hook,self,self.__class__)
+        f = types.MethodType(hook, self)
 
         # check if the hook is for strdispatcher first
         if str_key is not None:
@@ -1249,7 +1248,7 @@ class InteractiveShell(Configurable, Magic):
     def init_shadow_hist(self):
         try:
             self.db = pickleshare.PickleShareDB(self.ipython_dir + "/db")
-        except exceptions.UnicodeDecodeError:
+        except UnicodeDecodeError:
             print "Your ipython_dir can't be decoded to unicode!"
             print "Please set HOME environment variable to something that"
             print r"only has ASCII characters, e.g. c:\home"
@@ -1414,7 +1413,7 @@ class InteractiveShell(Configurable, Magic):
 
         if handler is None: handler = dummy_handler
 
-        self.CustomTB = new.instancemethod(handler,self,self.__class__)
+        self.CustomTB = types.MethodType(handler, self)
         self.custom_exceptions = exc_tuple
 
     def excepthook(self, etype, value, tb):
@@ -1756,8 +1755,7 @@ class InteractiveShell(Configurable, Magic):
         The position argument (defaults to 0) is the index in the completers
         list where you want the completer to be inserted."""
 
-        newcomp = new.instancemethod(completer,self.Completer,
-                                     self.Completer.__class__)
+        newcomp = types.MethodType(completer, self.Completer)
         self.Completer.matchers.insert(pos,newcomp)
 
     def set_readline_completer(self):
@@ -1828,12 +1826,11 @@ class InteractiveShell(Configurable, Magic):
             print 'Magic function. Passed parameter is between < >:'
             print '<%s>' % parameter_s
             print 'The self object is:',self
-    
+    newcomp = types.MethodType(completer, self.Completer)
         self.define_magic('foo',foo_impl)
         """
         
-        import new
-        im = new.instancemethod(func,self, self.__class__)
+        im = types.MethodType(func, self)
         old = getattr(self, "magic_" + magicname, None)
         setattr(self, "magic_" + magicname, im)
         return old
