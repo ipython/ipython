@@ -5,3 +5,4 @@ docs/source/api/generated
 build
 *.egg-info
 *.py~
+*.bak
