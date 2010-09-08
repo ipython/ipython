@@ -4,3 +4,4 @@ docs/source/api/generated
 *.pyc
 build
 *.egg-info
+*.py~
