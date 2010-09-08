@@ -22,10 +22,15 @@ def import_item(name):
     """Import and return bar given the string foo.bar."""
     package = '.'.join(name.split('.')[0:-1])
     obj = name.split('.')[-1]
-    execString = 'from %s import %s' % (package, obj)
-    try:
-        exec execString
-    except SyntaxError:
-        raise ImportError("Invalid class specification: %s" % name)
-    exec 'temp = %s' % obj
-    return temp
+#    execString = 'from %s import %s' % (package, obj)
+#    try:
+#        exec execString
+#    except SyntaxError:
+#        raise ImportError("Invalid class specification: %s" % name)
+#    exec 'temp = %s' % obj
+#    return temp
+    if package:
+        module = __import__(package,fromlist=[obj])
+        return module.__dict__[obj]
+    else:
+        return __import__(obj)
