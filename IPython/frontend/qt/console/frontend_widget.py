@@ -111,6 +111,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         self._bracket_matcher = BracketMatcher(self._control)
         self._call_tip_widget = CallTipWidget(self._control)
         self._completion_lexer = CompletionLexer(PythonLexer())
+        self._copy_raw_action = QtGui.QAction('Copy (Raw Text)', None)
         self._hidden = False
         self._highlighter = FrontendHighlighter(self)
         self._input_splitter = self._input_splitter_class(input_mode='block')
@@ -121,6 +122,16 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         # Configure the ConsoleWidget.
         self.tab_width = 4
         self._set_continuation_prompt('... ')
+
+        # Configure actions.
+        action = self._copy_raw_action
+        key = QtCore.Qt.CTRL | QtCore.Qt.SHIFT | QtCore.Qt.Key_C
+        action.setEnabled(False)
+        action.setShortcut(QtGui.QKeySequence(key))
+        action.setShortcutContext(QtCore.Qt.WidgetWithChildrenShortcut)
+        action.triggered.connect(self.copy_raw)
+        self.copy_available.connect(action.setEnabled)
+        self.addAction(action)
 
         # Connect signal handlers.
         document = self._control.document()
@@ -195,6 +206,17 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
     #---------------------------------------------------------------------------
     # 'ConsoleWidget' protected interface
     #---------------------------------------------------------------------------
+
+    def _context_menu_make(self, pos):
+        """ Reimplemented to add an action for raw copy.
+        """
+        menu = super(FrontendWidget, self)._context_menu_make(pos)
+        for before_action in menu.actions():
+            if before_action.shortcut().matches(QtGui.QKeySequence.Paste) == \
+                    QtGui.QKeySequence.ExactMatch:
+                menu.insertAction(before_action, self._copy_raw_action)
+                break
+        return menu
 
     def _event_filter_console_keypress(self, event):
         """ Reimplemented to allow execution interruption.
@@ -323,6 +345,12 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
     #---------------------------------------------------------------------------
     # 'FrontendWidget' public interface
     #---------------------------------------------------------------------------
+
+    def copy_raw(self):
+        """ Copy the currently selected text to the clipboard without attempting
+            to remove prompts or otherwise alter the text.
+        """
+        self._control.copy()
 
     def execute_file(self, path, hidden=False):
         """ Attempts to execute file with 'path'. If 'hidden', no output is

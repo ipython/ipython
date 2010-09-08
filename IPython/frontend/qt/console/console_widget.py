@@ -234,6 +234,19 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
     # 'ConsoleWidget' public interface
     #---------------------------------------------------------------------------
 
+    def can_cut(self):
+        """ Returns whether text can be cut to the clipboard.
+        """
+        cursor = self._control.textCursor()
+        return (cursor.hasSelection() and 
+                self._in_buffer(cursor.anchor()) and 
+                self._in_buffer(cursor.position()))
+
+    def can_copy(self):
+        """ Returns whether text can be copied to the clipboard.
+        """
+        return self._control.textCursor().hasSelection()
+        
     def can_paste(self):
         """ Returns whether text can be pasted from the clipboard.
         """
@@ -263,6 +276,14 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
         """ Copy the currently selected text to the clipboard.
         """
         self._control.copy()
+
+    def cut(self):
+        """ Copy the currently selected text to the clipboard and delete it
+            if it's inside the input buffer.
+        """
+        self.copy()
+        if self.can_cut():
+            self._control.textCursor().removeSelectedText()
 
     def execute(self, source=None, hidden=False, interactive=False):
         """ Executes source or the input buffer, possibly prompting for more
@@ -460,7 +481,6 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
             # FIXME: remove Consolas as a default on Linux once our font
             # selections are configurable by the user.
             family, fallback = 'Consolas', 'Monospace'
-
         font = get_font(family, fallback)
         font.setPointSize(QtGui.qApp.font().pointSize())
         font.setStyleHint(QtGui.QFont.TypeWriter)
@@ -640,6 +660,34 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
                 self._control.setTextCursor(cursor)
                 self._text_completing_pos = current_pos
 
+    def _context_menu_make(self, pos):
+        """ Creates a context menu for the given QPoint (in widget coordinates).
+        """
+        menu = QtGui.QMenu()
+
+        cut_action = menu.addAction('Cut', self.cut)
+        cut_action.setEnabled(self.can_cut())
+        cut_action.setShortcut(QtGui.QKeySequence.Cut)
+
+        copy_action = menu.addAction('Copy', self.copy)
+        copy_action.setEnabled(self.can_copy())
+        copy_action.setShortcut(QtGui.QKeySequence.Copy)
+
+        paste_action = menu.addAction('Paste', self.paste)
+        paste_action.setEnabled(self.can_paste())
+        paste_action.setShortcut(QtGui.QKeySequence.Paste)
+
+        menu.addSeparator()
+        menu.addAction('Select All', self.select_all)
+        
+        return menu
+
+    def _context_menu_show(self, pos):
+        """ Shows a context menu at the given QPoint (in widget coordinates).
+        """
+        menu = self._context_menu_make(pos)
+        menu.exec_(self._control.mapToGlobal(pos))
+
     def _control_key_down(self, modifiers, include_command=True):
         """ Given a KeyboardModifiers flags object, return whether the Control
         key is down.
@@ -675,7 +723,7 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
 
         # Connect signals.
         control.cursorPositionChanged.connect(self._cursor_position_changed)
-        control.customContextMenuRequested.connect(self._show_context_menu)
+        control.customContextMenuRequested.connect(self._context_menu_show)
         control.copyAvailable.connect(self.copy_available)
         control.redoAvailable.connect(self.redo_available)
         control.undoAvailable.connect(self.undo_available)
@@ -713,6 +761,10 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
 
         if event.matches(QtGui.QKeySequence.Copy):
             self.copy()
+            intercepted = True
+
+        elif event.matches(QtGui.QKeySequence.Cut):
+            self.cut()
             intercepted = True
 
         elif event.matches(QtGui.QKeySequence.Paste):
@@ -792,11 +844,6 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
                 if self._page_control and self._page_control.isVisible():
                     self._page_control.setFocus()
                 intercept = True
-
-            elif key == QtCore.Qt.Key_X:
-                # FIXME: Instead of disabling cut completely, only allow it
-                # when safe.
-                intercepted = True
 
             elif key == QtCore.Qt.Key_Y:
                 self.paste()
@@ -1392,24 +1439,6 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
         """ Convenience method to set the current cursor.
         """
         self._control.setTextCursor(cursor)
-
-    def _show_context_menu(self, pos):
-        """ Shows a context menu at the given QPoint (in widget coordinates).
-        """
-        menu = QtGui.QMenu()
-
-        copy_action = menu.addAction('Copy', self.copy)
-        copy_action.setEnabled(self._get_cursor().hasSelection())
-        copy_action.setShortcut(QtGui.QKeySequence.Copy)
-
-        paste_action = menu.addAction('Paste', self.paste)
-        paste_action.setEnabled(self.can_paste())
-        paste_action.setShortcut(QtGui.QKeySequence.Paste)
-
-        menu.addSeparator()
-        menu.addAction('Select All', self.select_all)
-
-        menu.exec_(self._control.mapToGlobal(pos))
 
     def _show_prompt(self, prompt=None, html=False, newline=True):
         """ Writes a new prompt at the end of the buffer.

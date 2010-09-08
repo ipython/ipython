@@ -16,14 +16,16 @@ MetaQObject = type(QtCore.QObject)
 
 # You can switch the order of the parents here and it doesn't seem to matter.
 class MetaQObjectHasTraits(MetaQObject, MetaHasTraits):
-    """ A metaclass that inherits from the metaclasses of both HasTraits and
-        QObject. 
+    """ A metaclass that inherits from the metaclasses of HasTraits and QObject.
 
-        Using this metaclass allows a class to inherit from both HasTraits and
-        QObject. See QtKernelManager for an example.
+    Using this metaclass allows a class to inherit from both HasTraits and
+    QObject. See QtKernelManager for an example.
     """
     pass
 
+#-----------------------------------------------------------------------------
+# Functions
+#-----------------------------------------------------------------------------
 
 def get_font(family, fallback=None):
     """Return a font of the requested family, using fallback as alternative.

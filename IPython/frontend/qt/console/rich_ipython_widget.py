@@ -30,13 +30,13 @@ class RichIPythonWidget(IPythonWidget):
     # 'ConsoleWidget' protected interface
     #---------------------------------------------------------------------------
 
-    def _show_context_menu(self, pos):
-        """ Reimplemented to show a custom context menu for images.
+    def _context_menu_make(self, pos):
+        """ Reimplemented to return a custom context menu for images.
         """
         format = self._control.cursorForPosition(pos).charFormat()
         name = format.stringProperty(QtGui.QTextFormat.ImageName)
         if name.isEmpty():
-            super(RichIPythonWidget, self)._show_context_menu(pos)
+            menu = super(RichIPythonWidget, self)._context_menu_make(pos)
         else:
             menu = QtGui.QMenu()
 
@@ -50,8 +50,7 @@ class RichIPythonWidget(IPythonWidget):
                 menu.addAction('Copy SVG', lambda: svg_to_clipboard(svg))
                 menu.addAction('Save SVG As...', 
                                lambda: save_svg(svg, self._control))
-                
-            menu.exec_(self._control.mapToGlobal(pos))
+        return menu
     
     #---------------------------------------------------------------------------
     # 'FrontendWidget' protected interface
