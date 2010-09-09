@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # module pyparsing.py
 #
 # Copyright (c) 2003-2009  Paul T. McGuire
@@ -400,7 +401,7 @@ class ParseResults(object):
 
     def values( self ):
         """Returns all named result values."""
-        return [ v[-1][0] for v in self.__tokdict.values() ]
+        return [ v[-1][0] for v in self.__tokdict.itervalues() ]
 
     def __getattr__( self, name ):
         if name not in self.__slots__:
@@ -422,7 +423,7 @@ class ParseResults(object):
         if other.__tokdict:
             offset = len(self.__toklist)
             addoffset = ( lambda a: (a<0 and offset) or (a+offset) )
-            otheritems = other.__tokdict.items()
+            otheritems = other.__tokdict.iteritems()
             otherdictitems = [(k, _ParseResultsWithOffset(v[0],addoffset(v[1])) )
                                 for (k,vlist) in otheritems for v in vlist]
             for k,v in otherdictitems:
@@ -488,7 +489,7 @@ class ParseResults(object):
         """Returns the parse results as XML. Tags are created for tokens and lists that have defined results names."""
         nl = "\n"
         out = []
-        namedItems = dict( [ (v[1],k) for (k,vlist) in self.__tokdict.items()
+        namedItems = dict([(v[1],k) for (k,vlist) in self.__tokdict.iteritems()
                                                             for v in vlist ] )
         nextLevelIndent = indent + "  "
 
@@ -545,7 +546,7 @@ class ParseResults(object):
         return "".join(out)
 
     def __lookup(self,sub):
-        for k,vlist in self.__tokdict.items():
+        for k,vlist in self.__tokdict.iteritems():
             for v,loc in vlist:
                 if sub is v:
                     return k
@@ -2563,7 +2564,7 @@ class Each(ParseExpression):
                     tmp += ParseResults(r[k])
                     dups[k] = tmp
             finalResults += ParseResults(r)
-            for k,v in dups.items():
+            for k,v in dups.iteritems():
                 finalResults[k] = v
         return loc, finalResults
 
@@ -3442,7 +3443,7 @@ def withAttribute(*args,**attrDict):
     if args:
         attrs = args[:]
     else:
-        attrs = attrDict.items()
+        attrs = attrDict.iteritems()
     attrs = [(k,v) for k,v in attrs]
     def pa(s,l,tokens):
         for attrName,attrValue in attrs:

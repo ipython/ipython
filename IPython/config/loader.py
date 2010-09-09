@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # coding: utf-8
 """A simple configuration system.
 
@@ -73,7 +74,7 @@ class Config(dict):
 
     def _merge(self, other):
         to_update = {}
-        for k, v in other.items():
+        for k, v in other.iteritems():
             if not self.has_key(k):
                 to_update[k] = v
             else: # I have this key
@@ -365,7 +366,7 @@ class ArgParseConfigLoader(CommandLineConfigLoader):
 
     def _convert_to_config(self):
         """self.parsed_data->self.config"""
-        for k, v in vars(self.parsed_data).items():
+        for k, v in vars(self.parsed_data).iteritems():
             exec_str = 'self.config.' + k + '= v'
             exec exec_str in locals(), globals()
 

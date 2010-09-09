@@ -33,7 +33,7 @@ def test_rehashx():
     # Practically ALL ipython development systems will have more than 10 aliases
 
     yield (nt.assert_true, len(_ip.alias_manager.alias_table) > 10)
-    for key, val in _ip.alias_manager.alias_table.items():
+    for key, val in _ip.alias_manager.alias_table.iteritems():
         # we must strip dots from alias names
         nt.assert_true('.' not in key)
 

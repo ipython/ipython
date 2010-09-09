@@ -617,7 +617,7 @@ class WindowsHPCLauncher(BaseLauncher):
             # Twisted will raise DeprecationWarnings if we try to pass unicode to this
             output = yield getProcessOutput(str(self.job_cmd),
                 [str(a) for a in args],
-                env=dict((str(k),str(v)) for k,v in os.environ.items()),
+                env=dict((str(k),str(v)) for k,v in os.environ.iteritems()),
                 path=self.work_dir
             )
         except:

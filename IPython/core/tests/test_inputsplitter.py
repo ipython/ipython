@@ -356,7 +356,7 @@ class InteractiveLoopTestCase(unittest.TestCase):
         # We can't check that the provided ns is identical to the test_ns,
         # because Python fills test_ns with extra keys (copyright, etc).  But
         # we can check that the given dict is *contained* in test_ns
-        for k,v in ns.items():
+        for k,v in ns.iteritems():
             self.assertEqual(test_ns[k], v)
         
     def test_simple(self):
