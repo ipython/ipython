@@ -28,7 +28,7 @@ backends = {'tk': 'TkAgg',
             'wx': 'WXAgg',
             'qt': 'Qt4Agg', # qt3 not supported
             'qt4': 'Qt4Agg',
-            'payload-svg' : 'module://IPython.zmq.pylab.backend_payload_svg'}
+            'inline' : 'module://IPython.zmq.pylab.backend_inline'}
 
 #-----------------------------------------------------------------------------
 # Main classes and functions
@@ -41,12 +41,12 @@ def find_gui_and_backend(gui=None):
     Parameters
     ----------
     gui : str
-        Can be one of ('tk','gtk','wx','qt','qt4','payload-svg').
+        Can be one of ('tk','gtk','wx','qt','qt4','inline').
 
     Returns
     -------
     A tuple of (gui, backend) where backend is one of ('TkAgg','GTKAgg',
-    'WXAgg','Qt4Agg','module://IPython.zmq.pylab.backend_payload_svg').
+    'WXAgg','Qt4Agg','module://IPython.zmq.pylab.backend_inline').
     """
 
     import matplotlib
@@ -108,11 +108,11 @@ def import_pylab(user_ns, backend, import_all=True, shell=None):
         # If using our svg payload backend, register the post-execution
         # function that will pick up the results for display.  This can only be
         # done with access to the real shell object.
-        if backend == backends['payload-svg']:
-            from IPython.zmq.pylab.backend_payload_svg import flush_svg
+        if backend == backends['inline']:
+            from IPython.zmq.pylab.backend_inline import flush_svg
             shell.register_post_execute(flush_svg)
         else:
-            from IPython.zmq.pylab.backend_payload_svg import paste
+            from IPython.zmq.pylab.backend_inline import paste
             from matplotlib import pyplot
             # Add 'paste' to pyplot and to the user's namespace
             user_ns['paste'] = pyplot.paste = paste

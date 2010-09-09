@@ -88,7 +88,7 @@ def main():
                        const='auto', help = \
         "Pre-load matplotlib and numpy for interactive use. If GUI is not \
          given, the GUI backend is matplotlib's, otherwise use one of: \
-         ['tk', 'gtk', 'qt', 'wx', 'payload-svg'].")
+         ['tk', 'gtk', 'qt', 'wx', 'inline'].")
 
     wgroup = parser.add_argument_group('widget options')
     wgroup.add_argument('--paging', type=str, default='inside',

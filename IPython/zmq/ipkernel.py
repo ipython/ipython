@@ -550,7 +550,7 @@ def main():
                         const='auto', help = \
 "Pre-load matplotlib and numpy for interactive use. If GUI is not \
 given, the GUI backend is matplotlib's, otherwise use one of: \
-['tk', 'gtk', 'qt', 'wx', 'payload-svg'].")
+['tk', 'gtk', 'qt', 'wx', 'inline'].")
     namespace = parser.parse_args()
 
     kernel_class = Kernel
@@ -558,7 +558,7 @@ given, the GUI backend is matplotlib's, otherwise use one of: \
     kernel_classes = {
         'qt' : QtKernel,
         'qt4': QtKernel,
-        'payload-svg': Kernel,
+        'inline': Kernel,
         'wx' : WxKernel,
         'tk' : TkKernel,
         'gtk': GTKKernel,
