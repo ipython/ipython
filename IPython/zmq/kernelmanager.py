@@ -166,15 +166,15 @@ class XReqSocketChannel(ZmqSocketChannel):
     command_queue = None
 
     def __init__(self, context, session, address):
-        self.command_queue = Queue()
         super(XReqSocketChannel, self).__init__(context, session, address)
+        self.command_queue = Queue()
+        self.ioloop = ioloop.IOLoop()
 
     def run(self):
         """The thread's main activity.  Call start() instead."""
         self.socket = self.context.socket(zmq.XREQ)
         self.socket.setsockopt(zmq.IDENTITY, self.session.session)
         self.socket.connect('tcp://%s:%i' % self.address)
-        self.ioloop = ioloop.IOLoop()
         self.iostate = POLLERR|POLLIN
         self.ioloop.add_handler(self.socket, self._handle_events, 
                                 self.iostate)
@@ -359,6 +359,7 @@ class SubSocketChannel(ZmqSocketChannel):
 
     def __init__(self, context, session, address):
         super(SubSocketChannel, self).__init__(context, session, address)
+        self.ioloop = ioloop.IOLoop()
 
     def run(self):
         """The thread's main activity.  Call start() instead."""
@@ -366,7 +367,6 @@ class SubSocketChannel(ZmqSocketChannel):
         self.socket.setsockopt(zmq.SUBSCRIBE,'')
         self.socket.setsockopt(zmq.IDENTITY, self.session.session)
         self.socket.connect('tcp://%s:%i' % self.address)
-        self.ioloop = ioloop.IOLoop()
         self.iostate = POLLIN|POLLERR
         self.ioloop.add_handler(self.socket, self._handle_events, 
                                 self.iostate)
@@ -444,15 +444,15 @@ class RepSocketChannel(ZmqSocketChannel):
     msg_queue = None
 
     def __init__(self, context, session, address):
-        self.msg_queue = Queue()
         super(RepSocketChannel, self).__init__(context, session, address)
+        self.ioloop = ioloop.IOLoop()
+        self.msg_queue = Queue()
 
     def run(self):
         """The thread's main activity.  Call start() instead."""
         self.socket = self.context.socket(zmq.XREQ)
         self.socket.setsockopt(zmq.IDENTITY, self.session.session)
         self.socket.connect('tcp://%s:%i' % self.address)
-        self.ioloop = ioloop.IOLoop()
         self.iostate = POLLERR|POLLIN
         self.ioloop.add_handler(self.socket, self._handle_events, 
                                 self.iostate)
