@@ -20,6 +20,7 @@ Todo
 # Standard library imports.
 from Queue import Queue, Empty
 from subprocess import Popen
+import sys
 from threading import Thread
 import time
 
@@ -722,6 +723,11 @@ class KernelManager(HasTraits):
         """ Attempts to the stop the kernel process cleanly. If the kernel
         cannot be stopped, it is killed, if possible.
         """
+        # FIXME: Shutdown does not work on Windows due to ZMQ errors!
+        if sys.platform == 'win32':
+            self.kill_kernel()
+            return
+
         self.xreq_channel.shutdown()
         # Don't send any additional kernel kill messages immediately, to give
         # the kernel a chance to properly execute shutdown actions. Wait for at
@@ -761,6 +767,11 @@ class KernelManager(HasTraits):
                 else:
                     self.shutdown_kernel()
             self.start_kernel(**self._launch_args)
+
+            # FIXME: Messages get dropped in Windows due to probable ZMQ bug
+            # unless there is some delay here.
+            if sys.platform == 'win32':
+                time.sleep(0.2)
 
     @property
     def has_kernel(self):
