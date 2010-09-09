@@ -2121,10 +2121,21 @@ class InteractiveShell(Configurable, Magic):
         # just feed the whole thing to runcode.
         # This seems like a reasonable usability design.
         last = blocks[-1]
+        
+        # Note: below, whenever we call runcode, we must sync history
+        # ourselves, because runcode is NOT meant to manage history at all.
         if len(last.splitlines()) < 2:
-            self.runcode(''.join(blocks[:-1]), post_execute=False)
+            # Get the main body to run as a cell
+            body = ''.join(blocks[:-1])
+            self.input_hist.append(body)
+            self.input_hist_raw.append(body)
+            self.runcode(body, post_execute=False)
+            # And the last expression via runlines so it produces output
             self.runlines(last)
         else:
+            # Run the whole cell as one entity
+            self.input_hist.append(cell)
+            self.input_hist_raw.append(cell)
             self.runcode(cell)
 
     def runlines(self, lines, clean=False):
@@ -2244,11 +2255,6 @@ class InteractiveShell(Configurable, Magic):
           - 0: successful execution.
           - 1: an error occurred.
         """
-
-        # It's also possible that we've been fed a plain string.  In that case,
-        # we must store it in the input history.
-        if isinstance(code_obj, basestring):
-            self.input_hist_raw.append(code_obj)
 
         # Set our own excepthook in case the user code tries to call it
         # directly, so that the IPython crash handler doesn't get triggered

@@ -54,7 +54,7 @@ def magic_history(self, parameter_s = ''):
        confirmation first if it already exists.
     """
 
-    if not self.displayhook.do_full_cache:
+    if not self.shell.displayhook.do_full_cache:
         print 'This feature is only available if numbered prompts are in use.'
         return
     opts,args = self.parse_options(parameter_s,'gnoptsrf:',mode='list')
@@ -76,12 +76,12 @@ def magic_history(self, parameter_s = ''):
         close_at_end = True
 
     if 't' in opts:
-        input_hist = self.input_hist
+        input_hist = self.shell.input_hist
     elif 'r' in opts:
-        input_hist = self.input_hist_raw
+        input_hist = self.shell.input_hist_raw
     else:
         # Raw history is the default
-        input_hist = self.input_hist_raw
+        input_hist = self.shell.input_hist_raw
             
     default_length = 40
     pattern = None
@@ -114,7 +114,7 @@ def magic_history(self, parameter_s = ''):
     
     found = False
     if pattern is not None:
-        sh = self.shadowhist.all()
+        sh = self.shell.shadowhist.all()
         for idx, s in sh:
             if fnmatch.fnmatch(s, pattern):
                 print >> outfile, "0%d: %s" %(idx, s.expandtabs(4))
@@ -126,11 +126,12 @@ def magic_history(self, parameter_s = ''):
               "shadow history ends, fetch by %rep <number> (must start with 0)"
         print >> outfile, "=== start of normal history ==="
         
-    for in_num in range(init,final):
+    for in_num in range(init, final):
         # Print user history with tabs expanded to 4 spaces.  The GUI clients
         # use hard tabs for easier usability in auto-indented code, but we want
         # to produce PEP-8 compliant history for safe pasting into an editor.
         inline = input_hist[in_num].expandtabs(4)
+
         if pattern is not None and not fnmatch.fnmatch(inline, pattern):
             continue
             
@@ -149,7 +150,7 @@ def magic_history(self, parameter_s = ''):
         else:
             print >> outfile, inline,
         if print_outputs:
-            output = self.shell.user_ns['Out'].get(in_num)
+            output = self.shell.output_hist.get(in_num)
             if output is not None:
                 print >> outfile, repr(output)
 
@@ -195,7 +196,7 @@ def rep_f(self, arg):
     
     opts,args = self.parse_options(arg,'',mode='list')
     if not args:
-        self.set_next_input(str(self.user_ns["_"]))
+        self.set_next_input(str(self.shell.user_ns["_"]))
         return
 
     if len(args) == 1 and not '-' in args[0]:
@@ -203,17 +204,17 @@ def rep_f(self, arg):
         if len(arg) > 1 and arg.startswith('0'):
             # get from shadow hist
             num = int(arg[1:])
-            line = self.shadowhist.get(num)
+            line = self.shell.shadowhist.get(num)
             self.set_next_input(str(line))
             return
         try:
             num = int(args[0])
-            self.set_next_input(str(self.input_hist_raw[num]).rstrip())
+            self.set_next_input(str(self.shell.input_hist_raw[num]).rstrip())
             return
         except ValueError:
             pass
         
-        for h in reversed(self.input_hist_raw):
+        for h in reversed(self.shell.input_hist_raw):
             if 'rep' in h:
                 continue
             if fnmatch.fnmatch(h,'*' + arg + '*'):
@@ -231,7 +232,7 @@ def rep_f(self, arg):
 _sentinel = object()
 
 class ShadowHist(object):
-    def __init__(self,db):
+    def __init__(self, db):
         # cmd => idx mapping
         self.curidx = 0
         self.db = db
