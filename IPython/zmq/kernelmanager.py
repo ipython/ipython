@@ -645,7 +645,7 @@ class KernelManager(HasTraits):
     # Channel management methods:
     #--------------------------------------------------------------------------
 
-    def start_channels(self):
+    def start_channels(self, xreq=True, sub=True, rep=True, hb=True):
         """Starts the channels for this kernel.
 
         This will create the channels if they do not exist and then start
@@ -653,29 +653,34 @@ class KernelManager(HasTraits):
         must first call :method:`start_kernel`. If the channels have been
         stopped and you call this, :class:`RuntimeError` will be raised.
         """
-        self.xreq_channel.start()
-        self.sub_channel.start()
-        self.rep_channel.start()
-        self.hb_channel.start()
+        if xreq:
+            self.xreq_channel.start()
+        if sub:
+            self.sub_channel.start()
+        if rep:
+            self.rep_channel.start()
+        if hb:
+            self.hb_channel.start()
 
     def stop_channels(self):
-        """Stops the channels for this kernel.
-
-        This stops the channels by joining their threads. If the channels
-        were not started, :class:`RuntimeError` will be raised.
+        """Stops all the running channels for this kernel.
         """
-        self.xreq_channel.stop()
-        self.sub_channel.stop()
-        self.rep_channel.stop()
-        self.hb_channel.stop()
+        if self.xreq_channel.is_alive():
+            self.xreq_channel.stop()
+        if self.sub_channel.is_alive():
+            self.sub_channel.stop()
+        if self.rep_channel.is_alive():
+            self.rep_channel.stop()
+        if self.hb_channel.is_alive():
+            self.hb_channel.stop()
 
     @property
     def channels_running(self):
-        """Are all of the channels created and running?"""
+        """Are any of the channels created and running?"""
         return self.xreq_channel.is_alive() \
-            and self.sub_channel.is_alive() \
-            and self.rep_channel.is_alive() \
-            and self.hb_channel.is_alive()
+            or self.sub_channel.is_alive() \
+            or self.rep_channel.is_alive() \
+            or self.hb_channel.is_alive()
 
     #--------------------------------------------------------------------------
     # Kernel process management methods:
