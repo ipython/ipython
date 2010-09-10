@@ -11,7 +11,7 @@ try:
 except ImportError:
     from path import path
 
-import md5, pickle
+import hashlib, pickle
 
 def showdiff(old,new):
     import difflib
@@ -59,23 +59,23 @@ def upgrade_dir(srcdir, tgtdir):
             pr("Creating %s" % str(tgt))
 
             tgt.write_text(src.text())
-            rpt[str(tgt)] = md5.new(tgt.text()).hexdigest()
+            rpt[str(tgt)] = hashlib.md5(tgt.text()).hexdigest()
         else:
             cont = tgt.text()
             sum = rpt.get(str(tgt), None)
             #print sum
-            if sum and md5.new(cont).hexdigest() == sum:
+            if sum and hashlib.md5(cont).hexdigest() == sum:
                 pr("%s: Unedited, installing new version" % tgt)
                 tgt.write_text(src.text())
-                rpt[str(tgt)] = md5.new(tgt.text()).hexdigest()
+                rpt[str(tgt)] = hashlib.md5(tgt.text()).hexdigest()
             else:
                 pr(' == Modified, skipping %s, diffs below == ' % tgt)
-                #rpt[str(tgt)] = md5.new(tgt.bytes()).hexdigest()
+                #rpt[str(tgt)] = hashlib.md5(tgt.bytes()).hexdigest()
                 real = showdiff(tgt,src)
                 pr('') # empty line
                 if not real:
                     pr("(Ok, it was identical, only upgrading checksum)")
-                    rpt[str(tgt)] = md5.new(tgt.text()).hexdigest()
+                    rpt[str(tgt)] = hashlib.md5(tgt.text()).hexdigest()
                 else:
                     modded.append(tgt)
 
