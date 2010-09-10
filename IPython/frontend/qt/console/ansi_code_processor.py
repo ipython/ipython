@@ -104,8 +104,11 @@ class AnsiCodeProcessor(object):
             The parameter codes for the command.
         """
         if command == 'm':   # SGR - Select Graphic Rendition
-            for code in params:
-                self.set_sgr_code(code)
+            if params:
+                for code in params:
+                    self.set_sgr_code(code)
+            else:
+                self.set_sgr_code(0)
 
         elif (command == 'J' or # ED - Erase Data
               command == 'K'):  # EL - Erase in Line

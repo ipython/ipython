@@ -265,6 +265,12 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
             # before writing a new prompt.
             self.kernel_manager.sub_channel.flush()
 
+            # Reset the ANSI style information to prevent bad text in stdout
+            # from messing up our colors. We're not a true terminal so we're
+            # allowed to do this.
+            if self.ansi_codes:
+                self._ansi_processor.reset_sgr()
+
             content = msg['content']
             status = content['status']
             if status == 'ok':
