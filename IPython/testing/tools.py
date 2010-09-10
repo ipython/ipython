@@ -48,6 +48,9 @@ from IPython.utils.io import temp_pyfile
 
 from . import decorators as dec
 
+# Set to True to test ipython.py in the local directory.
+LOCALTEST = False
+
 #-----------------------------------------------------------------------------
 # Globals
 #-----------------------------------------------------------------------------
@@ -200,7 +203,10 @@ def ipexec(fname, options=None):
     _ip = get_ipython()
     test_dir = os.path.dirname(__file__)
 
-    ipython_cmd = find_cmd('ipython')
+    if LOCALTEST:
+        ipython_cmd = os.path.join(os.getcwd(),'ipython.py')
+    else:
+        ipython_cmd = find_cmd('ipython')
     # Absolute path for filename
     full_fname = os.path.join(test_dir, fname)
     full_cmd = '%s %s %s' % (ipython_cmd, cmdargs, full_fname)
