@@ -324,7 +324,12 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         """ Handle stdout, stderr, and stdin.
         """
         if not self._hidden and self._is_from_this_session(msg):
-            self._append_plain_text(msg['content']['data'])
+            # Most consoles treat tabs as being 8 space characters. Convert tabs
+            # to spaces so that output looks as expected regardless of this
+            # widget's tab width.
+            text = msg['content']['data'].expandtabs(8)
+            
+            self._append_plain_text(text)
             self._control.moveCursor(QtGui.QTextCursor.End)
     
     def _started_channels(self):
