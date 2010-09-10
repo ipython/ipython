@@ -101,7 +101,8 @@
                 Portions (c) 2009 by Robert Kern.
     :license: BSD License.
 """
-import __future__
+from __future__ import with_statement
+from contextlib import contextmanager
 import sys
 import types
 import re
@@ -137,9 +138,6 @@ def pprint(obj, verbose=False, max_width=79, newline='\n'):
     printer.flush()
     sys.stdout.write(newline)
     sys.stdout.flush()
-
-from __future__ import with_statement
-from contextlib import contextmanager
 
 class _PrettyPrinterBase(object):
 
