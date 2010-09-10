@@ -1,34 +1,38 @@
+""" Utilities for processing ANSI escape codes and special ASCII characters.
+"""
+#-----------------------------------------------------------------------------
+# Imports
+#-----------------------------------------------------------------------------
+
 # Standard library imports
+from collections import namedtuple
 import re
 
 # System library imports
 from PyQt4 import QtCore, QtGui
 
+#-----------------------------------------------------------------------------
+# Constants and datatypes
+#-----------------------------------------------------------------------------
 
-class AnsiAction(object):
-    """ Represents an action requested by an ANSI escape sequence.
-    """
-    def __init__(self, kind):
-        self.kind = kind
+# An action for erase requests (ED and EL commands).
+EraseAction = namedtuple('EraseAction', ['action', 'area', 'erase_to'])
 
-class MoveAction(AnsiAction):
-    """ An AnsiAction for cursor move requests (CUU, CUD, CUF, CUB, CNL, CPL, 
-        CHA, and CUP commands).
-    """
-    def __init__(self):
-        raise NotImplementedError
+# An action for cursor move requests (CUU, CUD, CUF, CUB, CNL, CPL, CHA, CUP,
+# and HVP commands).
+# FIXME: Not implemented in AnsiCodeProcessor.
+MoveAction = namedtuple('MoveAction', ['action', 'dir', 'unit', 'count'])
 
-class EraseAction(AnsiAction):
-    """ An AnsiAction for erase requests (ED and EL commands).
-    """
-    def __init__(self, area, erase_to):
-        super(EraseAction, self).__init__('erase')
-        self.area = area
-        self.erase_to = erase_to
+# An action for scroll requests (SU and ST) and form feeds.
+ScrollAction = namedtuple('ScrollAction', ['action', 'dir', 'unit', 'count'])
 
+#-----------------------------------------------------------------------------
+# Classes
+#-----------------------------------------------------------------------------
 
 class AnsiCodeProcessor(object):
-    """ Translates ANSI escape codes into readable attributes.
+    """ Translates special ASCII characters and ANSI escape codes into readable
+        attributes.
     """
 
     # Whether to increase intensity or set boldness for SGR code 1.
@@ -38,6 +42,11 @@ class AnsiCodeProcessor(object):
     # Protected class variables.
     _ansi_commands = 'ABCDEFGHJKSTfmnsu'
     _ansi_pattern = re.compile('\x01?\x1b\[(.*?)([%s])\x02?' % _ansi_commands)
+    _special_pattern = re.compile('([\f])')
+
+    #---------------------------------------------------------------------------
+    # AnsiCodeProcessor interface
+    #---------------------------------------------------------------------------
 
     def __init__(self):
         self.actions = []
@@ -60,7 +69,8 @@ class AnsiCodeProcessor(object):
         start = 0
 
         for match in self._ansi_pattern.finditer(string):
-            substring = string[start:match.start()]
+            raw = string[start:match.start()]
+            substring = self._special_pattern.sub(self._replace_special, raw)
             if substring or self.actions:
                 yield substring
             start = match.end()
@@ -77,7 +87,8 @@ class AnsiCodeProcessor(object):
             else:
                 self.set_csi_code(match.group(2), params)
 
-        substring = string[start:]
+        raw = string[start:]
+        substring = self._special_pattern.sub(self._replace_special, raw)
         if substring or self.actions:
             yield substring
 
@@ -107,7 +118,13 @@ class AnsiCodeProcessor(object):
                     erase_to = 'start'
                 elif code == 2:
                     erase_to = 'all'
-                self.actions.append(EraseAction(area, erase_to))
+                self.actions.append(EraseAction('erase', area, erase_to))
+
+        elif (command == 'S' or # SU - Scroll Up
+              command == 'T'):  # SD - Scroll Down
+            dir = 'up' if command == 'S' else 'down'
+            count = params[0] if params else 1
+            self.actions.append(ScrollAction('scroll', dir, 'line', count))
         
     def set_sgr_code(self, code):
         """ Set attributes based on SGR (Select Graphic Rendition) code.
@@ -140,6 +157,16 @@ class AnsiCodeProcessor(object):
             self.background_color = code - 40
         elif code == 49:
             self.background_color = None
+
+    #---------------------------------------------------------------------------
+    # Protected interface
+    #---------------------------------------------------------------------------
+
+    def _replace_special(self, match):
+        special = match.group(1)
+        if special == '\f':
+            self.actions.append(ScrollAction('scroll', 'down', 'page', 1))
+        return ''
         
 
 class QtAnsiCodeProcessor(AnsiCodeProcessor):
