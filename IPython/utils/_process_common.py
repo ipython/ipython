@@ -99,6 +99,27 @@ def process_handler(cmd, callback, stderr=subprocess.PIPE):
     return out
 
 
+def getoutput(cmd):
+    """Return standard output of executing cmd in a shell.
+
+    Accepts the same arguments as os.system().
+
+    Parameters
+    ----------
+    cmd : str
+      A command to be executed in the system shell.
+
+    Returns
+    -------
+    stdout : str
+    """
+
+    out = process_handler(cmd, lambda p: p.communicate()[0], subprocess.STDOUT)
+    if out is None:
+        out = ''
+    return out
+
+
 def getoutputerror(cmd):
     """Return (standard output, standard error) of executing cmd in a shell.
 

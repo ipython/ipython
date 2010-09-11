@@ -395,8 +395,8 @@ def transform_checker(tests, func):
 
 syntax = \
   dict(assign_system =
-       [('a =! ls', 'a = get_ipython().magic("sc -l = ls")'),
-        ('b = !ls', 'b = get_ipython().magic("sc -l = ls")'),
+       [('a =! ls', 'a = get_ipython().getoutput("ls")'),
+        ('b = !ls', 'b = get_ipython().getoutput("ls")'),
         ('x=1', 'x=1'), # normal input is unmodified
         ('    ','    '),  # blank lines are kept intact
         ],

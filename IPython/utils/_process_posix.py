@@ -29,6 +29,7 @@ except ImportError:
 
 # Our own
 from .autoattr import auto_attr
+from ._process_common import getoutput
 
 #-----------------------------------------------------------------------------
 # Function definitions
@@ -76,6 +77,28 @@ class ProcessHandler(object):
         self.logfile = sys.stdout if logfile is None else logfile
 
     def getoutput(self, cmd):
+        """Run a command and return its stdout/stderr as a string.
+
+        Parameters
+        ----------
+        cmd : str
+          A command to be executed in the system shell.
+
+        Returns
+        -------
+        output : str
+          A string containing the combination of stdout and stderr from the
+        subprocess, in whatever order the subprocess originally wrote to its
+        file descriptors (so the order of the information in this string is the
+        correct order as would be seen if running the command in a terminal).
+        """
+        pcmd = self._make_cmd(cmd)
+        try:
+            return pexpect.run(pcmd).replace('\r\n', '\n')
+        except KeyboardInterrupt:
+            print('^C', file=sys.stderr, end='')
+
+    def getoutput_pexpect(self, cmd):
         """Run a command and return its stdout/stderr as a string.
 
         Parameters
@@ -161,9 +184,9 @@ class ProcessHandler(object):
         return '%s -c "%s"' % (self.sh, cmd)
 
 
-
-# Make objects with a functional interface for outside use
-__ph = ProcessHandler()
-
-system = __ph.system
-getoutput = __ph.getoutput
+# Make system() with a functional interface for outside use.  Note that we use
+# getoutput() from the _common utils, which is built on top of popen(). Using
+# pexpect to get subprocess output produces difficult to parse output, since
+# programs think they are talking to a tty and produce highly formatted output
+# (ls is a good example) that makes them hard.
+system = ProcessHandler().system

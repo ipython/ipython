@@ -2919,7 +2919,7 @@ Defaulting color scheme to 'NoColor'"""
         # If all looks ok, proceed
         out = self.shell.getoutput(cmd)
         if opts.has_key('l'):
-            out = SList(out.split('\n'))
+            out = SList(out.splitlines())
         else:
             out = LSString(out)
         if opts.has_key('v'):

@@ -731,16 +731,12 @@ _assign_system_re = re.compile(r'(?P<lhs>(\s*)([\w\.]+)((\s*,\s*[\w\.]+)*))'
 
 def transform_assign_system(line):
     """Handle the `files = !ls` syntax."""
-    # FIXME: This transforms the line to use %sc, but we've listed that magic
-    # as deprecated.  We should then implement this functionality in a
-    # standalone api that we can transform to, without going through a
-    # deprecated magic.
     m = _assign_system_re.match(line)
     if m is not None:
         cmd = m.group('cmd')
         lhs = m.group('lhs')
-        expr = make_quoted_expr("sc -l = %s" % cmd)
-        new_line = '%s = get_ipython().magic(%s)' % (lhs, expr)
+        expr = make_quoted_expr(cmd)
+        new_line = '%s = get_ipython().getoutput(%s)' % (lhs, expr)
         return new_line
     return line
 

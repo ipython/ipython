@@ -486,7 +486,7 @@ class AssignSystemTransformer(PrefilterTransformer):
         if m is not None:
             cmd = m.group('cmd')
             lhs = m.group('lhs')
-            expr = make_quoted_expr("sc -l =%s" % cmd)
+            expr = make_quoted_expr("sc =%s" % cmd)
             new_line = '%s = get_ipython().magic(%s)' % (lhs, expr)
             return new_line
         return line
