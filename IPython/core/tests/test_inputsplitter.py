@@ -204,7 +204,7 @@ class InputSplitterTestCase(unittest.TestCase):
 
     def test_replace_mode(self):
         isp = self.isp
-        isp.input_mode = 'block'
+        isp.input_mode = 'cell'
         isp.push('x=1')
         self.assertEqual(isp.source, 'x=1\n')
         isp.push('x=2')
@@ -591,7 +591,7 @@ class BlockIPythonInputTestCase(IPythonInputTestCase):
     test_push3 = test_split = lambda s: None
     
     def setUp(self):
-        self.isp = isp.IPythonInputSplitter(input_mode='block')
+        self.isp = isp.IPythonInputSplitter(input_mode='cell')
 
     def test_syntax_multiline(self):
         isp = self.isp

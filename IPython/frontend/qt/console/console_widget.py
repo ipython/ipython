@@ -363,6 +363,11 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
                 # disable the undo/redo history, but just to be safe:
                 self._control.setUndoRedoEnabled(False)
 
+                # Flush all state from the input splitter so the next round of
+                # reading input starts with a clean buffer.
+                self._input_splitter.reset()
+
+                # Call actual execution
                 self._execute(source, hidden)
             
             else:

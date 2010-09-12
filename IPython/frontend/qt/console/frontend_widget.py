@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 # Standard library imports
 from collections import namedtuple
 import signal
@@ -114,7 +116,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         self._copy_raw_action = QtGui.QAction('Copy (Raw Text)', None)
         self._hidden = False
         self._highlighter = FrontendHighlighter(self)
-        self._input_splitter = self._input_splitter_class(input_mode='block')
+        self._input_splitter = self._input_splitter_class(input_mode='cell')
         self._kernel_manager = None
         self._possible_kernel_restart = False
         self._request_info = {}
@@ -236,6 +238,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         """ Reimplemented for auto-indentation.
         """
         super(FrontendWidget, self)._insert_continuation_prompt(cursor)
+        #print('SPACES:', self._input_splitter.indent_spaces) # dbg
         spaces = self._input_splitter.indent_spaces
         cursor.insertText('\t' * (spaces / self.tab_width))
         cursor.insertText(' ' * (spaces % self.tab_width))

@@ -60,6 +60,7 @@ Authors
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
 #-----------------------------------------------------------------------------
+from __future__ import print_function
 
 #-----------------------------------------------------------------------------
 # Imports
@@ -71,6 +72,7 @@ import sys
 
 # IPython modules
 from IPython.utils.text import make_quoted_expr
+
 #-----------------------------------------------------------------------------
 # Globals
 #-----------------------------------------------------------------------------
@@ -81,14 +83,14 @@ from IPython.utils.text import make_quoted_expr
 # for all intents and purposes they constitute the 'IPython syntax', so they
 # should be considered fixed.
 
-ESC_SHELL  = '!'
-ESC_SH_CAP = '!!'
-ESC_HELP   = '?'
-ESC_HELP2  = '??'
-ESC_MAGIC  = '%'
-ESC_QUOTE  = ','
-ESC_QUOTE2 = ';'
-ESC_PAREN  = '/'
+ESC_SHELL  = '!'     # Send line to underlying system shell
+ESC_SH_CAP = '!!'    # Send line to system shell and capture output
+ESC_HELP   = '?'     # Find information about object
+ESC_HELP2  = '??'    # Find extra-detailed information about object
+ESC_MAGIC  = '%'     # Call magic function
+ESC_QUOTE  = ','     # Split args on whitespace, quote each as string and call
+ESC_QUOTE2 = ';'     # Quote all args as a single string, call
+ESC_PAREN  = '/'     # Call first argument with rest of line as arguments
 
 #-----------------------------------------------------------------------------
 # Utilities
@@ -308,7 +310,7 @@ class InputSplitter(object):
         ----------
         input_mode : str
 
-          One of ['line', 'block']; default is 'line'.
+          One of ['line', 'cell']; default is 'line'.
 
        The input_mode parameter controls how new inputs are used when fed via
        the :meth:`push` method:
@@ -316,10 +318,11 @@ class InputSplitter(object):
        - 'line': meant for line-oriented clients, inputs are appended one at a
          time to the internal buffer and the whole buffer is compiled.
 
-       - 'block': meant for clients that can edit multi-line blocks of text at
-          a time.  Each new input new input completely replaces all prior
-          inputs.  Block mode is thus equivalent to prepending a full reset()
-          to every push() call.
+       - 'cell': meant for clients that can edit multi-line 'cells' of text at
+          a time.  A cell can contain one or more blocks that can be compile in
+          'single' mode by Python.  In this mode, each new input new input
+          completely replaces all prior inputs.  Cell mode is thus equivalent
+          to prepending a full reset() to every push() call.
         """
         self._buffer = []
         self._compile = codeop.CommandCompiler()
@@ -365,7 +368,7 @@ class InputSplitter(object):
         this value is also stored as a private attribute (_is_complete), so it
         can be queried at any time.
         """
-        if self.input_mode == 'block':
+        if self.input_mode == 'cell':
             self.reset()
         
         # If the source code has leading blanks, add 'if 1:\n' to it
@@ -433,13 +436,31 @@ class InputSplitter(object):
         backend which might convert the invalid syntax into valid Python via
         one of the dynamic IPython mechanisms.
         """
-            
+
+        # With incomplete input, unconditionally accept more
         if not self._is_complete:
             return True
 
+        # If we already have complete input and we're flush left, the answer
+        # depends.  In line mode, we're done.  But in cell mode, we need to
+        # check how many blocks the input so far compiles into, because if
+        # there's already more than one full independent block of input, then
+        # the client has entered full 'cell' mode and is feeding lines that
+        # each is complete.  In this case we should then keep accepting.
+        # The Qt terminal-like console does precisely this, to provide the
+        # convenience of terminal-like input of single expressions, but
+        # allowing the user (with a separate keystroke) to switch to 'cell'
+        # mode and type multiple expressions in one shot.
         if self.indent_spaces==0:
-            return False
-        
+            if self.input_mode=='line':
+                return False
+            else:
+                nblocks = len(split_blocks(''.join(self._buffer)))
+                if nblocks==1:
+                    return False
+
+        # When input is complete, then termination is marked by an extra blank
+        # line at the end.
         last_line = self.source.splitlines()[-1]
         return bool(last_line and not last_line.isspace())
         
@@ -934,10 +955,10 @@ class IPythonInputSplitter(InputSplitter):
         # line.
         changed_input_mode = False
         
-        if len(lines_list)>1 and self.input_mode == 'block':
+        if len(lines_list)>1 and self.input_mode == 'cell':
             self.reset()
             changed_input_mode = True
-            saved_input_mode = 'block'
+            saved_input_mode = 'cell'
             self.input_mode = 'line'
 
         try:
