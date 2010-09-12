@@ -115,6 +115,28 @@ class TerminalInteractiveShell(InteractiveShell):
             toggle_set_term_title(False)
 
     #-------------------------------------------------------------------------
+    # Things related to aliases
+    #-------------------------------------------------------------------------
+
+    def init_alias(self):
+        # The parent class defines aliases that can be safely used with any
+        # frontend.
+        super(TerminalInteractiveShell, self).init_alias()
+
+        # Now define aliases that only make sense on the terminal, because they
+        # need direct access to the console in a way that we can't emulate in
+        # GUI or web frontend
+        if os.name == 'posix':
+            aliases = [('clear', 'clear'), ('more', 'more'), ('less', 'less'),
+                       ('man', 'man')]
+        elif os.name == 'nt':
+            aliases = [('cls', 'cls')]
+
+
+        for name, cmd in aliases:
+            self.alias_manager.define_alias(name, cmd)
+
+    #-------------------------------------------------------------------------
     # Things related to the banner and usage
     #-------------------------------------------------------------------------
 
