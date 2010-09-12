@@ -164,11 +164,11 @@ class TerminalInteractiveShell(InteractiveShell):
         self.write(banner)
 
     def compute_banner(self):
-        self.banner = self.banner1 + '\n'
+        self.banner = self.banner1
         if self.profile:
             self.banner += '\nIPython profile: %s\n' % self.profile
         if self.banner2:
-            self.banner += '\n' + self.banner2 + '\n'
+            self.banner += '\n' + self.banner2
 
     def init_usage(self, usage=None):
         if usage is None:

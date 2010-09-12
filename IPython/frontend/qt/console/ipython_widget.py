@@ -21,7 +21,7 @@ from PyQt4 import QtCore, QtGui
 # Local imports
 from IPython.core.inputsplitter import IPythonInputSplitter, \
     transform_ipy_prompt
-from IPython.core.usage import default_banner
+from IPython.core.usage import default_gui_banner
 from IPython.utils.traitlets import Bool, Str
 from frontend_widget import FrontendWidget
 
@@ -248,7 +248,7 @@ class IPythonWidget(FrontendWidget):
     def _get_banner(self):
         """ Reimplemented to return IPython's default banner.
         """
-        return default_banner + '\n'
+        return default_gui_banner
 
     def _process_execute_error(self, msg):
         """ Reimplemented for IPython-style traceback formatting.

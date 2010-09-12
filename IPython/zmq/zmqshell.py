@@ -532,4 +532,14 @@ class ZMQInteractiveShell(InteractiveShell):
             """Find the man page for the given command and display in pager."""
             page.page(self.shell.getoutput('man %s' % arg_s, split=False))
 
+    # FIXME: this is specific to the GUI, so we should let the gui app load
+    # magics at startup that are only for the gui.  Once the gui app has proper
+    # profile and configuration management, we can have it initialize a kernel
+    # with a special config file that provides these.
+    def magic_guiref(self, arg_s):
+        """Show a basic reference about the GUI console."""
+        from IPython.core.usage import gui_reference
+        page.page(gui_reference)
+
+
 InteractiveShellABC.register(ZMQInteractiveShell)
