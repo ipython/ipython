@@ -24,6 +24,7 @@ import re
 from IPython.core.interactiveshell import (
     InteractiveShell, InteractiveShellABC
 )
+from IPython.core import page
 from IPython.core.displayhook import DisplayHook
 from IPython.core.macro import Macro
 from IPython.core.payloadpage import install_payload_page
@@ -78,6 +79,19 @@ class ZMQInteractiveShell(InteractiveShell):
 
     displayhook_class = Type(ZMQDisplayHook)
 
+    def init_environment(self):
+        """Configure the user's environment.
+
+        """
+        env = os.environ
+        # These two ensure 'ls' produces nice coloring on BSD-derived systems
+        env['TERM'] = 'xterm-color'
+        env['CLICOLOR'] = '1'
+        # Since normal pagers don't work at all (over pexpect we don't have
+        # single-key control of the subprocess), try to disable paging in
+        # subprocesses as much as possible.
+        env['PAGER'] = 'cat'
+        env['GIT_PAGER'] = 'cat'
 
     def auto_rewrite_input(self, cmd):
         """Called to show the auto-rewritten input for autocall and friends.
@@ -485,5 +499,37 @@ class ZMQInteractiveShell(InteractiveShell):
         raise NotImplementedError(
             'pylab support must be enabled in command line options.')
 
+    # A few magics that are adapted to the specifics of using pexpect and a
+    # remote terminal
+
+    def magic_clear(self, arg_s):
+        """Clear the terminal."""
+        if os.name == 'posix':
+            self.shell.system("clear")
+        else:
+            self.shell.system("cls")
+
+    if os.name == 'nt':
+        # This is the usual name in windows
+        magic_cls = magic_clear
+
+    # Terminal pagers won't work over pexpect, but we do have our own pager
+    
+    def magic_less(self, arg_s):
+        """Show a file through the pager.
+
+        Files ending in .py are syntax-highlighted."""
+        cont = open(arg_s).read()
+        if arg_s.endswith('.py'):
+            cont = self.shell.pycolorize(cont)
+        page.page(cont)
+
+    magic_more = magic_less
+
+    # Man calls a pager, so we also need to redefine it
+    if os.name == 'posix':
+        def magic_man(self, arg_s):
+            """Find the man page for the given command and display in pager."""
+            page.page(self.shell.getoutput('man %s' % arg_s, split=False))
 
 InteractiveShellABC.register(ZMQInteractiveShell)

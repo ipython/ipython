@@ -227,6 +227,7 @@ class InteractiveShell(Configurable, Magic):
         # These are relatively independent and stateless
         self.init_ipython_dir(ipython_dir)
         self.init_instance_attrs()
+        self.init_environment()
 
         # Create namespaces (user_ns, user_global_ns, etc.)
         self.init_create_namespaces(user_ns, user_global_ns)
@@ -395,6 +396,10 @@ class InteractiveShell(Configurable, Magic):
         # Input splitter, to split entire cells of input into either individual
         # interactive statements or whole blocks.
         self.input_splitter = IPythonInputSplitter()
+
+    def init_environment(self):
+        """Any changes we need to make to the user's environment."""
+        pass
 
     def init_encoding(self):
         # Get system encoding at startup time.  Certain terminals (like Emacs
@@ -1869,7 +1874,7 @@ class InteractiveShell(Configurable, Magic):
         Parameters
         ----------
         cmd : str
-          Command to execute (can not end in '&', as bacground processes are
+          Command to execute (can not end in '&', as background processes are
           not supported.
         split : bool, optional
         

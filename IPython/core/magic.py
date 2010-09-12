@@ -577,7 +577,6 @@ Currently the magic system has the following functions:\n"""
         """Provide extra detailed information about an object.
     
         '%pinfo2 object' is just a synonym for object?? or ??object."""
-        print 'pinfo2 par: <%s>' % parameter_s  # dbg
         self.shell._inspect('pinfo', parameter_s, detail_level=1,
                             namespaces=namespaces)
 
@@ -2509,6 +2508,7 @@ Defaulting color scheme to 'NoColor'"""
             #     atab.append(k, v[0])
 
             print "Total number of aliases:", len(aliases)
+            sys.stdout.flush()
             return aliases
         
         # Now try to define a new one
@@ -2917,11 +2917,8 @@ Defaulting color scheme to 'NoColor'"""
         except ValueError:
             var,cmd = '',''
         # If all looks ok, proceed
-        out = self.shell.getoutput(cmd)
-        if opts.has_key('l'):
-            out = SList(out.splitlines())
-        else:
-            out = LSString(out)
+        split = 'l' in opts
+        out = self.shell.getoutput(cmd, split=split)
         if opts.has_key('v'):
             print '%s ==\n%s' % (var,pformat(out))
         if var:
@@ -2965,9 +2962,7 @@ Defaulting color scheme to 'NoColor'"""
         system commands."""
 
         if parameter_s:
-            out = self.shell.getoutput(parameter_s)
-            if out is not None:
-                return SList(out.splitlines())
+            return self.shell.getoutput(parameter_s)
 
     def magic_r(self, parameter_s=''):
         """Repeat previous input.
