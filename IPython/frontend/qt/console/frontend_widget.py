@@ -12,7 +12,6 @@ from PyQt4 import QtCore, QtGui
 # Local imports
 from IPython.core.inputsplitter import InputSplitter, transform_classic_prompt
 from IPython.frontend.qt.base_frontend_mixin import BaseFrontendMixin
-from IPython.utils.io import raw_print
 from IPython.utils.traitlets import Bool
 from bracket_matcher import BracketMatcher
 from call_tip_widget import CallTipWidget
@@ -238,7 +237,6 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         """ Reimplemented for auto-indentation.
         """
         super(FrontendWidget, self)._insert_continuation_prompt(cursor)
-        #print('SPACES:', self._input_splitter.indent_spaces) # dbg
         spaces = self._input_splitter.indent_spaces
         cursor.insertText('\t' * (spaces / self.tab_width))
         cursor.insertText(' ' * (spaces % self.tab_width))
@@ -499,7 +497,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         for item in payload:
             if not self._process_execute_payload(item):
                 warning = 'Warning: received unknown payload of type %s'
-                raw_print(warning % repr(item['source']))
+                print(warning % repr(item['source']))
 
     def _process_execute_payload(self, item):
         """ Process a single payload item from the list of payload items in an

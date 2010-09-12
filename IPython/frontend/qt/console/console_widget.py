@@ -363,11 +363,7 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
                 # disable the undo/redo history, but just to be safe:
                 self._control.setUndoRedoEnabled(False)
 
-                # Flush all state from the input splitter so the next round of
-                # reading input starts with a clean buffer.
-                self._input_splitter.reset()
-
-                # Call actual execution
+                # Perform actual execution.
                 self._execute(source, hidden)
             
             else:
@@ -477,13 +473,7 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
         """ Moves the prompt to the top of the viewport.
         """
         if not self._executing:
-            scrollbar = self._control.verticalScrollBar()
-            scrollbar.setValue(scrollbar.maximum())
-            cursor = self._control.textCursor()
-            self._control.setTextCursor(self._get_prompt_cursor())
-            self._control.ensureCursorVisible()
-            QtGui.qApp.processEvents(QtCore.QEventLoop.ExcludeUserInputEvents)
-            self._control.setTextCursor(cursor)
+            self._set_top_cursor(self._get_prompt_cursor())
             
     def redo(self):
         """ Redo the last operation. If there is no operation to redo, nothing
@@ -1277,10 +1267,22 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
         if self.ansi_codes:
             for substring in self._ansi_processor.split_string(text):
                 for act in self._ansi_processor.actions:
-                    if ((act.action == 'erase' and act.area == 'screen') or
-                        (act.action == 'scroll' and act.unit == 'page')):
+
+                    # Unlike real terminal emulators, we don't distinguish
+                    # between the screen and the scrollback buffer. A screen
+                    # erase request clears everything.
+                    if act.action == 'erase' and act.area == 'screen':
                         cursor.select(QtGui.QTextCursor.Document)
                         cursor.removeSelectedText()
+
+                    # Simulate a form feed by scrolling just past the last line.
+                    elif act.action == 'scroll' and act.unit == 'page':
+                        cursor.insertText('\n')
+                        cursor.endEditBlock()
+                        self._set_top_cursor(cursor)
+                        cursor.joinPreviousEditBlock()
+                        cursor.deletePreviousChar()
+                        
                 format = self._ansi_processor.get_format()
                 cursor.insertText(substring, format)
         else:
@@ -1377,6 +1379,10 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
         """ Called immediately after a prompt is finished, i.e. when some input
             will be processed and a new prompt displayed.
         """
+        # Flush all state from the input splitter so the next round of
+        # reading input starts with a clean buffer.
+        self._input_splitter.reset()
+
         self._control.setReadOnly(True)
         self._prompt_finished_hook()
 
@@ -1385,15 +1391,11 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
         """
         # Temporarily disable the maximum block count to permit undo/redo and 
         # to ensure that the prompt position does not change due to truncation.
-        # Because setting this property clears the undo/redo history, we only
-        # set it if we have to.
-        if self._control.document().maximumBlockCount() > 0:
-            self._control.document().setMaximumBlockCount(0)
+        self._control.document().setMaximumBlockCount(0)
         self._control.setUndoRedoEnabled(True)
 
         self._control.setReadOnly(False)
         self._control.moveCursor(QtGui.QTextCursor.End)
-
         self._executing = False
         self._prompt_started_hook()
 
@@ -1459,6 +1461,16 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
         """ Convenience method to set the current cursor.
         """
         self._control.setTextCursor(cursor)
+
+    def _set_top_cursor(self, cursor):
+        """ Scrolls the viewport so that the specified cursor is at the top.
+        """
+        scrollbar = self._control.verticalScrollBar()
+        scrollbar.setValue(scrollbar.maximum())
+        original_cursor = self._control.textCursor()
+        self._control.setTextCursor(cursor)
+        self._control.ensureCursorVisible()
+        self._control.setTextCursor(original_cursor)
 
     def _show_prompt(self, prompt=None, html=False, newline=True):
         """ Writes a new prompt at the end of the buffer.
