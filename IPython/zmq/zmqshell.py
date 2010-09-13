@@ -530,7 +530,8 @@ class ZMQInteractiveShell(InteractiveShell):
     if os.name == 'posix':
         def magic_man(self, arg_s):
             """Find the man page for the given command and display in pager."""
-            page.page(self.shell.getoutput('man %s' % arg_s, split=False))
+            page.page(self.shell.getoutput('man %s | col -b' % arg_s,
+                                           split=False))
 
     # FIXME: this is specific to the GUI, so we should let the gui app load
     # magics at startup that are only for the gui.  Once the gui app has proper
