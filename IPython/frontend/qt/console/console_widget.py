@@ -471,7 +471,10 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
         """ Moves the prompt to the top of the viewport.
         """
         if not self._executing:
-            self._set_top_cursor(self._get_prompt_cursor())
+            prompt_cursor = self._get_prompt_cursor()
+            if self._get_cursor().blockNumber() < prompt_cursor.blockNumber():
+                self._set_cursor(prompt_cursor)
+            self._set_top_cursor(prompt_cursor)
             
     def redo(self):
         """ Redo the last operation. If there is no operation to redo, nothing
@@ -1370,7 +1373,8 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
             self.input_buffer = ''
         
     def _page(self, text, html=False):
-        """ Displays text using the pager if it exceeds the height of the viewport.
+        """ Displays text using the pager if it exceeds the height of the
+        viewport.
 
         Parameters:
         -----------
@@ -1379,7 +1383,8 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
         """
         line_height = QtGui.QFontMetrics(self.font).height()
         minlines = self._control.viewport().height() / line_height
-        if self.paging != 'none' and re.match("(?:[^\n]*\n){%i}" % minlines, text):
+        if self.paging != 'none' and \
+                re.match("(?:[^\n]*\n){%i}" % minlines, text):
             if self.paging == 'custom':
                 self.custom_page_requested.emit(text)
             else:
@@ -1568,7 +1573,7 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
         scrollbar.setPageStep(step)
         # Compensate for undesirable scrolling that occurs automatically due to
         # maximumBlockCount() text truncation.
-        if diff < 0:
+        if diff < 0 and document.blockCount() == document.maximumBlockCount():
             scrollbar.setValue(scrollbar.value() + diff)
 
     def _cursor_position_changed(self):
