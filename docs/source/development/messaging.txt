@@ -536,6 +536,30 @@ Message type: ``history_reply``::
     }
 
 
+Connect
+-------
+
+When a client connects to the request/reply socket of the kernel, it can issue
+a connect request to get basic information about the kernel, such as the ports
+the other ZeroMQ sockets are listening on. This allows clients to only have
+to know about a single port (the XREQ/XREP channel) to connect to a kernel.
+
+Message type: ``connect_request``::
+
+    content = {
+    }
+
+Message type: ``connect_reply``::
+
+    content = {
+        'xrep_port' : int  # The port the XREP socket is listening on.
+        'pub_port' : int   # The port the PUB socket is listening on.
+        'req_port' : int   # The port the REQ socket is listening on.
+        'hb_port' : int    # The port the heartbeat socket is listening on.
+    }
+
+
+
 Kernel shutdown
 ---------------
 

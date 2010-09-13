@@ -97,7 +97,8 @@ def make_kernel(namespace, kernel_factory,
 
     hb = Heartbeat(context, (namespace.ip, namespace.hb))
     hb.start()
-    io.raw_print("Heartbeat REP Channel on port", hb.port)
+    hb_port = hb.port
+    io.raw_print("Heartbeat REP Channel on port", hb_port)
 
     # Redirect input streams and set a display hook.
     if out_stream_factory:
@@ -107,8 +108,11 @@ def make_kernel(namespace, kernel_factory,
         sys.displayhook = display_hook_factory(session, pub_socket)
 
     # Create the kernel.
-    return kernel_factory(session=session, reply_socket=reply_socket, 
-                          pub_socket=pub_socket, req_socket=req_socket)
+    kernel = kernel_factory(session=session, reply_socket=reply_socket, 
+                            pub_socket=pub_socket, req_socket=req_socket)
+    kernel.record_ports(xrep_port=xrep_port, pub_port=pub_port,
+                        req_port=req_port, hb_port=hb_port)
+    return kernel
 
 
 def start_kernel(namespace, kernel):

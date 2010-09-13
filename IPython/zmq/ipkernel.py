@@ -75,6 +75,10 @@ class Kernel(Configurable):
     # the end of our shutdown process (which happens after the underlying
     # IPython shell's own shutdown).
     _shutdown_message = None
+
+    # This is a dict of port number that the kernel is listening on. It is set
+    # by record_ports and used by connect_request.
+    _recorded_ports = None
     
     def __init__(self, **kwargs):
         super(Kernel, self).__init__(**kwargs)
@@ -143,7 +147,20 @@ class Kernel(Configurable):
         while True:
             time.sleep(self._poll_interval)
             self.do_one_iteration()
-        
+
+    def record_ports(self, xrep_port, pub_port, req_port, hb_port):
+        """Record the ports that this kernel is using.
+
+        The creator of the Kernel instance must call this methods if they
+        want the :meth:`connect_request` method to return the port numbers.
+        """
+        self._recorded_ports = {
+            'xrep_port' : xreq_port,
+            'pub_port' : pub_port,
+            'req_port' : req_port,
+            'hb_port' : hb_port
+        }
+
     #---------------------------------------------------------------------------
     # Kernel request handlers
     #---------------------------------------------------------------------------
@@ -287,12 +304,21 @@ class Kernel(Configurable):
         msg = self.session.send(self.reply_socket, 'history_reply',
                                 content, parent, ident)
         io.raw_print(msg)
-        
+
+    def connect_request(self, ident, parent):
+        if self._recorded_ports is not None:
+            content = self._recorded_ports.copy()
+        else:
+            content = {}
+        msg = self.session.send(self.reply_socket, 'connect_reply',
+                                content, parent, ident)
+        io.raw_print(msg)
+
     def shutdown_request(self, ident, parent):
         self.shell.exit_now = True
         self._shutdown_message = self.session.msg(u'shutdown_reply', {}, parent)
         sys.exit(0)
-        
+
     #---------------------------------------------------------------------------
     # Protected interface
     #---------------------------------------------------------------------------
