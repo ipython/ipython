@@ -388,6 +388,10 @@ class InputSplitter(object):
         # inconsistent code/source attributes.
         self.code, self._is_complete = None, None
 
+        # Honor termination lines properly
+        if source.rstrip().endswith('\\'):
+            return False
+
         self._update_indent(lines)
         try:
             self.code = self._compile(source)

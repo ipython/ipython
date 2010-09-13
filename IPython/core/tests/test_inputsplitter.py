@@ -247,6 +247,13 @@ class InputSplitterTestCase(unittest.TestCase):
         isp.push('')
         self.assertFalse(isp.push_accepts_more())
 
+    def test_continuation(self):
+        isp = self.isp
+        isp.push("import os, \\")
+        self.assertTrue(isp.push_accepts_more())
+        isp.push("sys")
+        self.assertFalse(isp.push_accepts_more())
+
     def test_syntax_error(self):
         isp = self.isp
         # Syntax errors immediately produce a 'ready' block, so the invalid
