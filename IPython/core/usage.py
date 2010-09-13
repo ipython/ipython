@@ -371,36 +371,36 @@ keybindings, in addition to some of its own.
 
 The keybinding prefixes mean:
 
-C : Control
-S : Shift
-M : Meta (typically the Alt key)
+- C : Control
+- S : Shift
+- M : Meta (typically the Alt key)
 
 The keybindings themselves are:
 
-Enter   : insert new line (may cause execution, see above).
-C-Enter : force new line, *never* causes execution.
-S-Enter : *force* execution regardless of where cursor is, no newline added.
-C-c : copy highlighted text to clipboard (prompts are automatically stripped).
-C-S-c: copy highlighted text to clipboard (prompts are not stripped).
-C-v : paste text from clipboard.
-C-z : undo (retrieves lost text if you move out of a cell with the arrows).
-C-S-z : redo.
-C-o : move to 'other' area, between pager and terminal.
-C-l : clear terminal.
-C-a : go to beginning of line.
-C-e : go to end of line.
-C-k : kill from cursor to the end of the line.
-C-y : yank (paste)
-C-p : previous line (like up arrow)
-C-n : next line (like down arrow)
-C-f : forward (like right arrow)
-C-b : back (like left arrow)
-C-d : delete next character.
-M-< : move to the beginning of the input region.
-M-> : move to the end of the input region.
-M-d : delete next word.
-M-Backspace : delete previous word.
-C-. : forced restart of the kernel (a confirmation dialog appears).
+- Enter   : insert new line (may cause execution, see above).
+- C-Enter : force new line, *never* causes execution.
+- S-Enter : *force* execution regardless of where cursor is, no newline added.
+- C-c : copy highlighted text to clipboard (prompts are automatically stripped).
+- C-S-c: copy highlighted text to clipboard (prompts are not stripped).
+- C-v : paste text from clipboard.
+- C-z : undo (retrieves lost text if you move out of a cell with the arrows).
+- C-S-z : redo.
+- C-o : move to 'other' area, between pager and terminal.
+- C-l : clear terminal.
+- C-a : go to beginning of line.
+- C-e : go to end of line.
+- C-k : kill from cursor to the end of the line.
+- C-y : yank (paste)
+- C-p : previous line (like up arrow)
+- C-n : next line (like down arrow)
+- C-f : forward (like right arrow)
+- C-b : back (like left arrow)
+- C-d : delete next character.
+- M-< : move to the beginning of the input region.
+- M-> : move to the end of the input region.
+- M-d : delete next word.
+- M-Backspace : delete previous word.
+- C-. : forced restart of the kernel (a confirmation dialog appears).
 
 
 The IPython pager
