@@ -1528,13 +1528,21 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
         scrollbar = self._control.verticalScrollBar()
         viewport_height = self._control.viewport().height()
         if isinstance(self._control, QtGui.QPlainTextEdit):
-            high = max(0, document.lineCount() - 1)
+            maximum = max(0, document.lineCount() - 1)
             step = viewport_height / self._control.fontMetrics().lineSpacing()
         else:
-            high = document.size().height()
+            # QTextEdit does not do line-based layout and blocks will not in
+            # general have the same height. Therefore it does not make sense to
+            # attempt to scroll in line height increments.
+            maximum = document.size().height()
             step = viewport_height
-        scrollbar.setRange(0, high)
+        diff = maximum - scrollbar.maximum()
+        scrollbar.setRange(0, maximum)
         scrollbar.setPageStep(step)
+        # Compensate for undesirable scrolling that occurs automatically due to
+        # maximumBlockCount() text truncation.
+        if diff < 0:
+            scrollbar.setValue(scrollbar.value() + diff)
 
     def _cursor_position_changed(self):
         """ Clears the temporary buffer based on the cursor position.
