@@ -430,7 +430,7 @@ class IPythonWidget(FrontendWidget):
         self.exit_requested.emit()
 
     def _handle_payload_page(self, item):
-        self._page(item['data'])
+        self._page(item['text'])
 
     #------ Trait change handlers ---------------------------------------------
 

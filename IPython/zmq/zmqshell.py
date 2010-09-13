@@ -539,7 +539,7 @@ class ZMQInteractiveShell(InteractiveShell):
     def magic_guiref(self, arg_s):
         """Show a basic reference about the GUI console."""
         from IPython.core.usage import gui_reference
-        page.page(gui_reference)
+        page.page(gui_reference, auto_html=True)
 
 
 InteractiveShellABC.register(ZMQInteractiveShell)
