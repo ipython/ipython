@@ -283,13 +283,13 @@ The following magic functions are currently available:
 
 gui_reference = """\
 ===============================
- The IPython graphical console
+ The graphical IPython console
 ===============================
 
-This console is designed to emulate in many aspects the look, feel and workflow
-typical of a terminal environment, but it adds support for a number of
-enhancements that are simply not possible in a real terminal, such as inline
-syntax highlighting, true multiline editing, inline graphics and much more.
+This console is designed to emulate the look, feel and workflow of a terminal
+environment, while adding a number of enhancements that are simply not possible
+in a real terminal, such as inline syntax highlighting, true multiline editing,
+inline graphics and much more.
 
 This quick reference document contains the basic information you'll need to
 know to make the most efficient use of it.  For the various command line
@@ -332,7 +332,7 @@ accepting arbitrarily many lines until either you enter an extra blank line or
 you hit ``Shift-Enter`` (the key binding that forces execution).  When a
 multiline cell is entered, IPython analyzes it and executes its code producing
 an ``Out[n]`` prompt only for the last expression in it, while the rest of the
-cell is executed as if it was a script.  A few examples should clarify this::
+cell is executed as if it was a script.  An example should clarify this::
 
     In [3]: x=1  # Hit C-Enter here
        ...: y=2  # from now on, regular Enter is sufficient
@@ -346,15 +346,15 @@ The behavior where an extra blank line forces execution is only active if you
 are actually typing at the keyboard each line, and is meant to make it mimic
 the IPython terminal behavior.  If you paste a long chunk of input (for example
 a long script copied form an editor or web browser), it can contain arbitrarily
-many intermediate blank lines and they won't cause any problems.  You can then
-make it execute by appending a blank line *at the end* or hitting
+many intermediate blank lines and they won't cause any problems.  As always,
+you can then make it execute by appending a blank line *at the end* or hitting
 ``Shift-Enter`` anywhere within the cell.
 
 With the up arrow key, you can retrieve previous blocks of input that contain
-multiple lines.  You can move inside of it like you would in any text editor.
-When you want it executed, the simplest thing to do is to hit the force
-execution key, ``Shift-Enter`` (though you can also navigate to the end and
-append a blank line by using ``Enter`` twice).
+multiple lines.  You can move inside of a multiline cell like you would in any
+text editor.  When you want it executed, the simplest thing to do is to hit the
+force execution key, ``Shift-Enter`` (though you can also navigate to the end
+and append a blank line by using ``Enter`` twice).
 
 If you've edited a multiline cell and accidentally navigate out of it with the
 up or down arrow keys, IPython will clear the cell and replace it with the
@@ -366,41 +366,41 @@ keybinding, ``Control-z``.
 Key bindings
 ============
 
-The IPython console supports most of the basic Emacs line-oriented
-keybindings, in addition to some of its own.
+The IPython console supports most of the basic Emacs line-oriented keybindings,
+in addition to some of its own.
 
 The keybinding prefixes mean:
 
-- C : Control
-- S : Shift
-- M : Meta (typically the Alt key)
+- ``C``: Control
+- ``S``: Shift
+- ``M``: Meta (typically the Alt key)
 
 The keybindings themselves are:
 
-- Enter   : insert new line (may cause execution, see above).
-- C-Enter : force new line, *never* causes execution.
-- S-Enter : *force* execution regardless of where cursor is, no newline added.
-- C-c : copy highlighted text to clipboard (prompts are automatically stripped).
-- C-S-c: copy highlighted text to clipboard (prompts are not stripped).
-- C-v : paste text from clipboard.
-- C-z : undo (retrieves lost text if you move out of a cell with the arrows).
-- C-S-z : redo.
-- C-o : move to 'other' area, between pager and terminal.
-- C-l : clear terminal.
-- C-a : go to beginning of line.
-- C-e : go to end of line.
-- C-k : kill from cursor to the end of the line.
-- C-y : yank (paste)
-- C-p : previous line (like up arrow)
-- C-n : next line (like down arrow)
-- C-f : forward (like right arrow)
-- C-b : back (like left arrow)
-- C-d : delete next character.
-- M-< : move to the beginning of the input region.
-- M-> : move to the end of the input region.
-- M-d : delete next word.
-- M-Backspace : delete previous word.
-- C-. : forced restart of the kernel (a confirmation dialog appears).
+- ``Enter``: insert new line (may cause execution, see above).
+- ``C-Enter``: force new line, *never* causes execution.
+- ``S-Enter``: *force* execution regardless of where cursor is, no newline added.
+- ``C-c``: copy highlighted text to clipboard (prompts are automatically stripped).
+- ``C-S-c``: copy highlighted text to clipboard (prompts are not stripped).
+- ``C-v``: paste text from clipboard.
+- ``C-z``: undo (retrieves lost text if you move out of a cell with the arrows).
+- ``C-S-z``: redo.
+- ``C-o``: move to 'other' area, between pager and terminal.
+- ``C-l``: clear terminal.
+- ``C-a``: go to beginning of line.
+- ``C-e``: go to end of line.
+- ``C-k``: kill from cursor to the end of the line.
+- ``C-y``: yank (paste)
+- ``C-p``: previous line (like up arrow)
+- ``C-n``: next line (like down arrow)
+- ``C-f``: forward (like right arrow)
+- ``C-b``: back (like left arrow)
+- ``C-d``: delete next character.
+- ``M-<``: move to the beginning of the input region.
+- ``M->``: move to the end of the input region.
+- ``M-d``: delete next word.
+- ``M-Backspace``: delete previous word.
+- ``C-.``: force a kernel restart (a confirmation dialog appears).
 
 
 The IPython pager
@@ -411,8 +411,8 @@ You can control where this pager appears with the ``--paging`` command-line
 flag:
 
 - default: it is overlaid on top of the main terminal.  You must quit the pager
-  to get back to the terminal (similar to how a kkk pager such as ``less``
-  works).
+  to get back to the terminal (similar to how a pager such as ``less`` or
+  ``more`` works).
 
 - vertical: the console is made double-tall, and the pager appears on the
   bottom area when needed.  You can view its contents while using the terminal.
@@ -427,7 +427,8 @@ terminal and pager as follows:
 - Control-o: goes from one to another always.
 - Mouse: click on either.
 
-In all cases, the ``q`` or ``Escape`` keys quit the pager.
+In all cases, the ``q`` or ``Escape`` keys quit the pager (when used with the
+focus on the pager area).
 
 
 Running subprocesses
@@ -436,15 +437,15 @@ Running subprocesses
 The graphical IPython console uses the ``pexpect`` module to run subprocesses
 when you type ``!command``.  This has a number of advantages (true asynchronous
 output from subprocesses as well as very robust termination of rogue
-subprocesses with Control-C), as well as some limitations.  The main limitation
-is that you can *not* interact back with the subprocess, so anything that
-invokes a pager or expects you to type input into it will block and hang (you
-can kill it with Control-C).
+subprocesses with ``Control-C``), as well as some limitations.  The main
+limitation is that you can *not* interact back with the subprocess, so anything
+that invokes a pager or expects you to type input into it will block and hang
+(you can kill it with ``Control-C``).
 
-We have provided as magics ``%less`` (aliased to ``%more``), ``%clear`` to
-clear the terminal, and ``%man`` on Linux/OSX to cover the most common commands
-you'd want to call in your subshell, but you need to be aware of this
-limitation.
+We have provided as magics ``%less`` to page files (aliased to ``%more``),
+``%clear`` to clear the terminal, and ``%man`` on Linux/OSX.  These cover the
+most common commands you'd want to call in your subshell and that would cause
+problems if invoked via ``!cmd``, but you need to be aware of this limitation.
 
 
 Inline matplotlib graphics
