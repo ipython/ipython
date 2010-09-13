@@ -185,6 +185,10 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
             self.paste(QtGui.QClipboard.Selection)
             return True
 
+        # Manually adjust the scrollbars *after* a resize event is dispatched.
+        elif etype == QtCore.QEvent.Resize:
+            QtCore.QTimer.singleShot(0, self._adjust_scrollbars)
+
         # Override shortcuts for all filtered widgets.
         elif etype == QtCore.QEvent.ShortcutOverride and \
                 self.override_shortcuts and \
@@ -203,12 +207,6 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
     #---------------------------------------------------------------------------
     # 'QWidget' interface
     #---------------------------------------------------------------------------
-
-    def resizeEvent(self, event):
-        """ Adjust the scrollbars manually after a resize event.
-        """
-        super(ConsoleWidget, self).resizeEvent(event)
-        self._adjust_scrollbars()
 
     def sizeHint(self):
         """ Reimplemented to suggest a size that is 80 characters wide and
