@@ -155,7 +155,7 @@ class Kernel(Configurable):
         want the :meth:`connect_request` method to return the port numbers.
         """
         self._recorded_ports = {
-            'xrep_port' : xreq_port,
+            'xrep_port' : xrep_port,
             'pub_port' : pub_port,
             'req_port' : req_port,
             'hb_port' : hb_port
