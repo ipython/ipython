@@ -430,7 +430,13 @@ class IPythonWidget(FrontendWidget):
         self.exit_requested.emit()
 
     def _handle_payload_page(self, item):
-        self._page(item['text'])
+        # Since the plain text widget supports only a very small subset of HTML
+        # and we have no control over the HTML source, we only page HTML
+        # payloads in the rich text widget.
+        if item['html'] and self.kind == 'rich':
+            self._page(item['html'], html=True)
+        else:
+            self._page(item['text'], html=False)
 
     #------ Trait change handlers ---------------------------------------------
 

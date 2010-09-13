@@ -752,7 +752,10 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
     def _create_page_control(self):
         """ Creates and connects the underlying paging widget.
         """
-        control = QtGui.QPlainTextEdit()
+        if self.kind == 'plain':
+            control = QtGui.QPlainTextEdit()
+        elif self.kind == 'rich':
+            control = QtGui.QTextEdit()
         control.installEventFilter(self)
         control.setReadOnly(True)
         control.setUndoRedoEnabled(False)
@@ -1346,32 +1349,38 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
         else:
             self.input_buffer = ''
         
-    def _page(self, text):
-        """ Displays text using the pager if it exceeds the height of the
-            visible area.
-        """
-        if self.paging == 'none':
-            self._append_plain_text(text)
-        else:
-            line_height = QtGui.QFontMetrics(self.font).height()
-            minlines = self._control.viewport().height() / line_height
-            if re.match("(?:[^\n]*\n){%i}" % minlines, text):
-                if self.paging == 'custom':
-                    self.custom_page_requested.emit(text)
-                else:
-                    self._page_control.clear()
-                    cursor = self._page_control.textCursor()
-                    self._insert_plain_text(cursor, text)
-                    self._page_control.moveCursor(QtGui.QTextCursor.Start)
+    def _page(self, text, html=False):
+        """ Displays text using the pager if it exceeds the height of the viewport.
 
-                    self._page_control.viewport().resize(self._control.size())
-                    if self._splitter:
-                        self._page_control.show()
-                        self._page_control.setFocus()
-                    else:
-                        self.layout().setCurrentWidget(self._page_control)
+        Parameters:
+        -----------
+        html : bool, optional (default False)
+            If set, the text will be interpreted as HTML instead of plain text.
+        """
+        line_height = QtGui.QFontMetrics(self.font).height()
+        minlines = self._control.viewport().height() / line_height
+        if self.paging != 'none' and re.match("(?:[^\n]*\n){%i}" % minlines, text):
+            if self.paging == 'custom':
+                self.custom_page_requested.emit(text)
             else:
-                self._append_plain_text(text)
+                self._page_control.clear()
+                cursor = self._page_control.textCursor()
+                if html:
+                    self._insert_html(cursor, text)
+                else:
+                    self._insert_plain_text(cursor, text)
+                self._page_control.moveCursor(QtGui.QTextCursor.Start)
+
+                self._page_control.viewport().resize(self._control.size())
+                if self._splitter:
+                    self._page_control.show()
+                    self._page_control.setFocus()
+                else:
+                    self.layout().setCurrentWidget(self._page_control)
+        elif html:
+            self._append_plain_html(text)
+        else:
+            self._append_plain_text(text)
 
     def _prompt_finished(self):
         """ Called immediately after a prompt is finished, i.e. when some input
