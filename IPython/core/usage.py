@@ -334,7 +334,6 @@ multiline cell is entered, IPython analyzes it and executes its code producing
 an ``Out[n]`` prompt only for the last expression in it, while the rest of the
 cell is executed as if it was a script.  A few examples should clarify this::
 
-
     In [3]: x=1  # Hit C-Enter here
        ...: y=2  # from now on, regular Enter is sufficient
        ...: z=3
@@ -382,8 +381,10 @@ Enter   : insert new line (may cause execution, see above).
 C-Enter : force new line, *never* causes execution.
 S-Enter : *force* execution regardless of where cursor is, no newline added.
 C-c : copy highlighted text to clipboard (prompts are automatically stripped).
+C-S-c: copy highlighted text to clipboard (prompts are not stripped).
 C-v : paste text from clipboard.
 C-z : undo (retrieves lost text if you move out of a cell with the arrows).
+C-S-z : redo.
 C-o : move to 'other' area, between pager and terminal.
 C-l : clear terminal.
 C-a : go to beginning of line.
@@ -395,6 +396,8 @@ C-n : next line (like down arrow)
 C-f : forward (like right arrow)
 C-b : back (like left arrow)
 C-d : delete next character.
+M-< : move to the beginning of the input region.
+M-> : move to the end of the input region.
 M-d : delete next word.
 M-Backspace : delete previous word.
 C-. : forced restart of the kernel (a confirmation dialog appears).
