@@ -922,7 +922,27 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
                     intercepted = not self._tab_pressed()
 
             elif key == QtCore.Qt.Key_Left:
-                intercepted = not self._in_buffer(position - 1)
+
+                # Move to the previous line
+                line, col = cursor.blockNumber(), cursor.columnNumber()
+                if line > self._get_prompt_cursor().blockNumber() and \
+                        col == len(self._continuation_prompt):
+                    self._control.moveCursor(QtGui.QTextCursor.PreviousBlock)
+                    self._control.moveCursor(QtGui.QTextCursor.EndOfBlock)
+                    intercepted = True
+
+                # Regular left movement
+                else:
+                    intercepted = not self._in_buffer(position - 1)
+                    
+            elif key == QtCore.Qt.Key_Right:
+                original_block_number = cursor.blockNumber()
+                cursor.movePosition(QtGui.QTextCursor.Right)
+                if cursor.blockNumber() != original_block_number:
+                    cursor.movePosition(QtGui.QTextCursor.Right,
+                                        n=len(self._continuation_prompt))
+                self._set_cursor(cursor)
+                intercepted = True
 
             elif key == QtCore.Qt.Key_Home:
                 start_line = cursor.blockNumber()
