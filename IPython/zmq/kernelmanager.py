@@ -798,7 +798,7 @@ class KernelManager(HasTraits):
 
     def kill_kernel(self):
         """ Kill the running kernel. """
-        if self.kernel is not None:
+        if self.has_kernel:
             self.kernel.kill()
             self.kernel = None
         else:
@@ -806,7 +806,7 @@ class KernelManager(HasTraits):
 
     def signal_kernel(self, signum):
         """ Sends a signal to the kernel. """
-        if self.kernel is not None:
+        if self.has_kernel:
             self.kernel.send_signal(signum)
         else:
             raise RuntimeError("Cannot signal kernel. No kernel is running!")
@@ -816,7 +816,7 @@ class KernelManager(HasTraits):
         """Is the kernel process still running?"""
         # FIXME: not using a heartbeat means this method is broken for any
         # remote kernel, it's only capable of handling local kernels.
-        if self.kernel is not None:
+        if self.has_kernel:
             if self.kernel.poll() is None:
                 return True
             else:
