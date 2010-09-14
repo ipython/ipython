@@ -2,7 +2,6 @@ from __future__ import print_function
 
 # Standard library imports
 from collections import namedtuple
-import signal
 import sys
 
 # System library imports
@@ -391,7 +390,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         if self.custom_interrupt:
             self.custom_interrupt_requested.emit()
         elif self.kernel_manager.has_kernel:
-            self.kernel_manager.signal_kernel(signal.SIGINT)
+            self.kernel_manager.interrupt_kernel()
         else:
             self._append_plain_text('Kernel process is either remote or '
                                     'unspecified. Cannot interrupt.\n')

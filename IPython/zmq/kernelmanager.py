@@ -1,8 +1,6 @@
 """Base classes to manage the interaction with a running kernel.
 
-Todo
-====
-
+TODO
 * Create logger to handle debugging and console messages.
 """
 
@@ -20,6 +18,7 @@ Todo
 # Standard library imports.
 from Queue import Queue, Empty
 from subprocess import Popen
+import signal
 import sys
 from threading import Thread
 import time
@@ -804,8 +803,23 @@ class KernelManager(HasTraits):
         else:
             raise RuntimeError("Cannot kill kernel. No kernel is running!")
 
+    def interrupt_kernel(self):
+        """ Interrupts the kernel. Unlike ``signal_kernel``, this operation is
+        well supported on all platforms.
+        """
+        if self.has_kernel:
+            if sys.platform == 'win32':
+                from parentpoller import ParentPollerWindows as Poller
+                Poller.send_interrupt(self.kernel.win32_interrupt_event)
+            else:
+                self.kernel.send_signal(signal.SIGINT)
+        else:
+            raise RuntimeError("Cannot interrupt kernel. No kernel is running!")
+
     def signal_kernel(self, signum):
-        """ Sends a signal to the kernel. """
+        """ Sends a signal to the kernel. Note that since only SIGTERM is
+        supported on Windows, this function is only useful on Unix systems.
+        """
         if self.has_kernel:
             self.kernel.send_signal(signum)
         else:

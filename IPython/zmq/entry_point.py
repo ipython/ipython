@@ -15,11 +15,11 @@ import zmq
 from IPython.core.ultratb import FormattedTB
 from IPython.external.argparse import ArgumentParser
 from IPython.utils import io
-from exitpoller import ExitPollerUnix, ExitPollerWindows
 from displayhook import DisplayHook
-from iostream import OutStream
-from session import Session
 from heartbeat import Heartbeat
+from iostream import OutStream
+from parentpoller import ParentPollerUnix, ParentPollerWindows
+from session import Session
 
 def bind_port(socket, ip, port):
     """ Binds the specified ZMQ socket. If the port is zero, a random port is
@@ -51,6 +51,9 @@ def make_argument_parser():
                         help='set the heartbeat port [default: random]')
 
     if sys.platform == 'win32':
+        parser.add_argument('--interrupt', type=int, metavar='HANDLE', 
+                            default=0, help='interrupt this process when '
+                            'HANDLE is signaled')
         parser.add_argument('--parent', type=int, metavar='HANDLE', 
                             default=0, help='kill this process if the process '
                             'with HANDLE dies')
@@ -118,12 +121,13 @@ def make_kernel(namespace, kernel_factory,
 def start_kernel(namespace, kernel):
     """ Starts a kernel.
     """
-    # Configure this kernel/process to die on parent termination, if necessary.
-    if namespace.parent:
-        if sys.platform == 'win32':
-            poller = ExitPollerWindows(namespace.parent)
-        else:
-            poller = ExitPollerUnix()
+    # Configure this kernel process to poll the parent process, if necessary.
+    if sys.platform == 'win32':
+        if namespace.interrupt or namespace.parent:
+            poller = ParentPollerWindows(namespace.interrupt, namespace.parent)
+            poller.start()
+    elif namespace.parent:
+        poller = ParentPollerUnix()
         poller.start()
 
     # Start the kernel mainloop.
@@ -205,6 +209,9 @@ def base_launch_kernel(code, xrep_port=0, pub_port=0, req_port=0, hb_port=0,
 
     # Spawn a kernel.
     if sys.platform == 'win32':
+        # Create a Win32 event for interrupting the kernel.
+        interrupt_event = ParentPollerWindows.create_interrupt_event()
+        arguments += [ '--interrupt', str(int(interrupt_event)) ]
 
         # If using pythonw, stdin, stdout, and stderr are invalid. Popen will
         # fail unless they are suitably redirected. We don't read from the
@@ -212,7 +219,8 @@ def base_launch_kernel(code, xrep_port=0, pub_port=0, req_port=0, hb_port=0,
         redirect = PIPE if sys.executable.endswith('pythonw.exe') else None
 
         if independent:
-            proc = Popen(['start', '/b'] + arguments, shell=True,
+            proc = Popen(arguments, 
+                         creationflags=512, # CREATE_NEW_PROCESS_GROUP
                          stdout=redirect, stderr=redirect, stdin=redirect)
         else:
             from _subprocess import DuplicateHandle, GetCurrentProcess, \
@@ -223,6 +231,9 @@ def base_launch_kernel(code, xrep_port=0, pub_port=0, req_port=0, hb_port=0,
                                      DUPLICATE_SAME_ACCESS)
             proc = Popen(arguments + ['--parent', str(int(handle))],
                          stdout=redirect, stderr=redirect, stdin=redirect)
+
+        # Attach the interrupt event to the Popen objet so it can be used later.
+        proc.win32_interrupt_event = interrupt_event
 
         # Clean up pipes created to work around Popen bug.
         if redirect is not None:
