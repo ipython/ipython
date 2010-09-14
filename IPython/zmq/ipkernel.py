@@ -98,7 +98,7 @@ class Kernel(Configurable):
         # Build dict of handlers for message types
         msg_types = [ 'execute_request', 'complete_request', 
                       'object_info_request', 'history_request',
-                      'shutdown_request']
+                      'connect_request', 'shutdown_request']
         self.handlers = {}
         for msg_type in msg_types:
             self.handlers[msg_type] = getattr(self, msg_type)

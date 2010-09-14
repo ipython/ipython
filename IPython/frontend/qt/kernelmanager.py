@@ -3,7 +3,6 @@
 
 # System library imports.
 from PyQt4 import QtCore
-import zmq
 
 # IPython imports.
 from IPython.utils.traitlets import Type
@@ -42,10 +41,18 @@ class QtXReqSocketChannel(SocketChannelQObject, XReqSocketChannel):
     # Emitted when any message is received.
     message_received = QtCore.pyqtSignal(object)
 
-    # Emitted when a reply has been received for the corresponding request type.
+    # Emitted when a reply has been received for the corresponding request
+    # type.
     execute_reply = QtCore.pyqtSignal(object)
     complete_reply = QtCore.pyqtSignal(object)
     object_info_reply = QtCore.pyqtSignal(object)
+
+    # Emitted when the first reply comes back
+    first_reply = QtCore.pyqtSignal(object)
+
+    # Used by the first_reply signal logic to determine if a reply is the 
+    # first.
+    _handlers_called = False
 
     #---------------------------------------------------------------------------
     # 'XReqSocketChannel' interface
@@ -62,6 +69,16 @@ class QtXReqSocketChannel(SocketChannelQObject, XReqSocketChannel):
         signal = getattr(self, msg_type, None)
         if signal:
             signal.emit(msg)
+
+        if not self._handlers_called:
+            self.first_reply.emit()
+
+        self._handlers_called = True
+
+    def reset_first_reply(self):
+        """ Reset the first_reply signal to fire again on the next reply.
+        """
+        self._handlers_called = False
 
 
 class QtSubSocketChannel(SocketChannelQObject, SubSocketChannel):
