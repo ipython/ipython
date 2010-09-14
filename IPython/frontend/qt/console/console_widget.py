@@ -806,13 +806,16 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
                     if self._reading_callback:
                         self._reading_callback()
 
-                # If there is only whitespace after the cursor, execute.
-                # Otherwise, split the line with a continuation prompt.
+                # If the input buffer is a single line or there is only
+                # whitespace after the cursor, execute. Otherwise, split the
+                # line with a continuation prompt.
                 elif not self._executing:
                     cursor.movePosition(QtGui.QTextCursor.End,
                                         QtGui.QTextCursor.KeepAnchor)
                     at_end = cursor.selectedText().trimmed().isEmpty() 
-                    if (at_end or shift_down) and not ctrl_down:
+                    single_line = (self._get_end_cursor().blockNumber() ==
+                                   self._get_prompt_cursor().blockNumber())
+                    if (at_end or shift_down or single_line) and not ctrl_down:
                         self.execute(interactive = not shift_down)
                     else:
                         # Do this inside an edit block for clean undo/redo.

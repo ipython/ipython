@@ -306,9 +306,8 @@ once you learn a few basic keybindings it will be a much more efficient
 environment.
 
 For single expressions or indented blocks, the console behaves almost like the
-terminal IPython: single expressions are immediately evaluated *if the cursor
-is at the end of the line*, and indented blocks are evaluated once a single
-blank line is entered::
+terminal IPython: single expressions are immediately evaluated, and indented
+blocks are evaluated once a single blank line is entered::
 
     In [1]: print "Hello IPython!"  # Enter was pressed at the end of the line
     Hello IPython!
@@ -317,12 +316,6 @@ blank line is entered::
        ...: 	print i,
        ...: 	
     0 1 2 3 4 5 6 7 8 9
-
-If you have a single expression and you go back to edit something in the
-beginning, hitting ``Enter`` will split the line (like a text editor) instead
-of executing it.  To execute, you can either go to the end of the line to hit
-``Enter``, or hit ``Shift-Enter`` anywhere, which is the 'force execution'
-keybinding.
 
 If you want to enter more than one expression in a single input block
 (something not possible in the terminal), you can use ``Control-Enter`` at the
