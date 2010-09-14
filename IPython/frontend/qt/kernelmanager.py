@@ -48,7 +48,7 @@ class QtXReqSocketChannel(SocketChannelQObject, XReqSocketChannel):
     object_info_reply = QtCore.pyqtSignal(object)
 
     # Emitted when the first reply comes back
-    first_reply = QtCore.pyqtSignal(object)
+    first_reply = QtCore.pyqtSignal()
 
     # Used by the first_reply signal logic to determine if a reply is the 
     # first.
