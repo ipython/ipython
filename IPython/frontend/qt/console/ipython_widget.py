@@ -208,11 +208,9 @@ class IPythonWidget(FrontendWidget):
         """
         text = str(self._control.textCursor().selection().toPlainText())
         if text:
-            # Remove prompts.
             lines = map(transform_ipy_prompt, text.splitlines())
             text = '\n'.join(lines)
-            # Expand tabs so that we respect PEP-8.
-            QtGui.QApplication.clipboard().setText(text.expandtabs(4))
+            QtGui.QApplication.clipboard().setText(text)
 
     #---------------------------------------------------------------------------
     # 'FrontendWidget' public interface

@@ -147,11 +147,9 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         """
         text = str(self._control.textCursor().selection().toPlainText())
         if text:
-            # Remove prompts.
             lines = map(transform_classic_prompt, text.splitlines())
             text = '\n'.join(lines)
-            # Expand tabs so that we respect PEP-8.
-            QtGui.QApplication.clipboard().setText(text.expandtabs(4))
+            QtGui.QApplication.clipboard().setText(text)
 
     #---------------------------------------------------------------------------
     # 'ConsoleWidget' abstract interface
@@ -162,7 +160,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
             prompt created. When triggered by an Enter/Return key press,
             'interactive' is True; otherwise, it is False.
         """
-        complete = self._input_splitter.push(source.expandtabs(4))
+        complete = self._input_splitter.push(source)
         if interactive:
             complete = not self._input_splitter.push_accepts_more()
         return complete
@@ -220,26 +218,43 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         return menu
 
     def _event_filter_console_keypress(self, event):
-        """ Reimplemented to allow execution interruption.
+        """ Reimplemented for execution interruption and smart backspace.
         """
         key = event.key()
         if self._control_key_down(event.modifiers(), include_command=False):
+
             if key == QtCore.Qt.Key_C and self._executing:
                 self.interrupt_kernel()
                 return True
+
             elif key == QtCore.Qt.Key_Period:
                 message = 'Are you sure you want to restart the kernel?'
                 self.restart_kernel(message, instant_death=False)
                 return True
+
+        elif not event.modifiers() & QtCore.Qt.AltModifier:
+
+            # Smart backspace: remove four characters in one backspace if:
+            # 1) everything left of the cursor is whitespace
+            # 2) the four characters immediately left of the cursor are spaces
+            if key == QtCore.Qt.Key_Backspace:
+                col = self._get_input_buffer_cursor_column()
+                cursor = self._control.textCursor()
+                if col > 3 and not cursor.hasSelection():
+                    text = self._get_input_buffer_cursor_line()[:col]
+                    if text.endswith('    ') and not text.strip():
+                        cursor.movePosition(QtGui.QTextCursor.Left,
+                                            QtGui.QTextCursor.KeepAnchor, 4)
+                        cursor.removeSelectedText()
+                        return True
+
         return super(FrontendWidget, self)._event_filter_console_keypress(event)
 
     def _insert_continuation_prompt(self, cursor):
         """ Reimplemented for auto-indentation.
         """
         super(FrontendWidget, self)._insert_continuation_prompt(cursor)
-        spaces = self._input_splitter.indent_spaces
-        cursor.insertText('\t' * (spaces / self.tab_width))
-        cursor.insertText(' ' * (spaces % self.tab_width))
+        cursor.insertText(' ' * self._input_splitter.indent_spaces)
 
     #---------------------------------------------------------------------------
     # 'BaseFrontendMixin' abstract interface

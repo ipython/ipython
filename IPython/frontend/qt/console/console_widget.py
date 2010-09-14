@@ -1163,8 +1163,8 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
             return cursor.columnNumber() - len(prompt)
 
     def _get_input_buffer_cursor_line(self):
-        """ Returns line of the input buffer that contains the cursor, or None
-            if there is no such line.
+        """ Returns the text of the line of the input buffer that contains the
+            cursor, or None if there is no such line.
         """
         prompt = self._get_input_buffer_cursor_prompt()
         if prompt is None:
