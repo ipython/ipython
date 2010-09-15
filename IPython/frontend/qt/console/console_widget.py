@@ -1,4 +1,4 @@
-"""A base class for console-type widgets.
+""" An abstract base class for console-type widgets.
 """
 #-----------------------------------------------------------------------------
 # Imports
@@ -57,7 +57,7 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
     kind = Enum(['plain', 'rich'], default_value='plain', config=True)
 
     # The type of paging to use. Valid values are:
-    #     'inside' : The widget pages like a traditional terminal pager.
+    #     'inside' : The widget pages like a traditional terminal.
     #     'hsplit' : When paging is requested, the widget is split
     #                horizontally. The top pane contains the console, and the
     #                bottom pane contains the paged text.

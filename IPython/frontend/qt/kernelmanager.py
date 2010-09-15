@@ -47,7 +47,7 @@ class QtXReqSocketChannel(SocketChannelQObject, XReqSocketChannel):
     complete_reply = QtCore.pyqtSignal(object)
     object_info_reply = QtCore.pyqtSignal(object)
 
-    # Emitted when the first reply comes back
+    # Emitted when the first reply comes back.
     first_reply = QtCore.pyqtSignal()
 
     # Used by the first_reply signal logic to determine if a reply is the 
@@ -72,8 +72,11 @@ class QtXReqSocketChannel(SocketChannelQObject, XReqSocketChannel):
 
         if not self._handlers_called:
             self.first_reply.emit()
+            self._handlers_called = True
 
-        self._handlers_called = True
+    #---------------------------------------------------------------------------
+    # 'QtXReqSocketChannel' interface
+    #---------------------------------------------------------------------------
 
     def reset_first_reply(self):
         """ Reset the first_reply signal to fire again on the next reply.
@@ -188,6 +191,17 @@ class QtKernelManager(KernelManager, SuperQObject):
     #---------------------------------------------------------------------------
     # 'KernelManager' interface
     #---------------------------------------------------------------------------
+
+    #------ Kernel process management ------------------------------------------
+
+    def start_kernel(self, *args, **kw):
+        """ Reimplemented for proper heartbeat management.
+        """
+        if self._xreq_channel is not None:
+            self._xreq_channel.reset_first_reply()
+        super(QtKernelManager, self).start_kernel(*args, **kw)
+
+    #------ Channel management -------------------------------------------------
     
     def start_channels(self, *args, **kw):
         """ Reimplemented to emit signal.
@@ -200,3 +214,24 @@ class QtKernelManager(KernelManager, SuperQObject):
         """ 
         super(QtKernelManager, self).stop_channels()
         self.stopped_channels.emit()
+
+    @property
+    def xreq_channel(self):
+        """ Reimplemented for proper heartbeat management.
+        """
+        if self._xreq_channel is None:
+            self._xreq_channel = super(QtKernelManager, self).xreq_channel
+            self._xreq_channel.first_reply.connect(self._first_reply)
+        return self._xreq_channel
+
+    #---------------------------------------------------------------------------
+    # Protected interface
+    #---------------------------------------------------------------------------
+    
+    def _first_reply(self):
+        """ Unpauses the heartbeat channel when the first reply is received on
+            the execute channel. Note that this will *not* start the heartbeat
+            channel if it is not already running!
+        """
+        if self._hb_channel is not None:
+            self._hb_channel.unpause()
