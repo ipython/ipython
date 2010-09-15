@@ -254,15 +254,8 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
     def can_paste(self):
         """ Returns whether text can be pasted from the clipboard.
         """
-        # Only accept text that can be ASCII encoded.
         if self._control.textInteractionFlags() & QtCore.Qt.TextEditable:
-            text = QtGui.QApplication.clipboard().text()
-            if not text.isEmpty():
-                try:
-                    str(text)
-                    return True
-                except UnicodeEncodeError:
-                    pass
+            return not QtGui.QApplication.clipboard().text().isEmpty()
         return False
 
     def clear(self, keep_input=True):
@@ -390,7 +383,7 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
 
         cursor = self._get_end_cursor()
         cursor.setPosition(self._prompt_pos, QtGui.QTextCursor.KeepAnchor)
-        input_buffer = str(cursor.selection().toPlainText())
+        input_buffer = unicode(cursor.selection().toPlainText())
 
         # Strip out continuation prompts.
         return input_buffer.replace('\n' + self._continuation_prompt, '\n')
@@ -453,14 +446,10 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
             in Mac OS. By default, the regular clipboard is used.
         """
         if self._control.textInteractionFlags() & QtCore.Qt.TextEditable:
-            try:
-                # Remove any trailing newline, which confuses the GUI and
-                # forces the user to backspace.
-                text = str(QtGui.QApplication.clipboard().text(mode)).rstrip()
-            except UnicodeEncodeError:
-                pass
-            else:
-                self._insert_plain_text_into_buffer(dedent(text))
+            # Remove any trailing newline, which confuses the GUI and forces the
+            # user to backspace.
+            text = unicode(QtGui.QApplication.clipboard().text(mode)).rstrip()
+            self._insert_plain_text_into_buffer(dedent(text))
 
     def print_(self, printer):
         """ Print the contents of the ConsoleWidget to the specified QPrinter.
@@ -623,7 +612,7 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
         while cursor.movePosition(QtGui.QTextCursor.NextBlock):
             temp_cursor = QtGui.QTextCursor(cursor)
             temp_cursor.select(QtGui.QTextCursor.BlockUnderCursor)
-            text = str(temp_cursor.selection().toPlainText()).lstrip()
+            text = unicode(temp_cursor.selection().toPlainText()).lstrip()
             if not text.startswith(prompt):
                 break
         else:
@@ -1089,7 +1078,7 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
         if size == 0: 
             return '\n'
         elif size == 1:
-            return '%s\n' % str(items[0])
+            return '%s\n' % items[0]
 
         # Try every row count from 1 upwards
         array_index = lambda nrows, row, col: nrows*col + row
@@ -1127,7 +1116,7 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
                 del texts[-1]
             for col in range(len(texts)):
                 texts[col] = texts[col].ljust(colwidths[col])
-            string += '%s\n' % str(separator.join(texts))
+            string += '%s\n' % separator.join(texts)
         return string
 
     def _get_block_plain_text(self, block):
@@ -1137,7 +1126,7 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
         cursor.movePosition(QtGui.QTextCursor.StartOfBlock)
         cursor.movePosition(QtGui.QTextCursor.EndOfBlock, 
                             QtGui.QTextCursor.KeepAnchor)
-        return str(cursor.selection().toPlainText())
+        return unicode(cursor.selection().toPlainText())
 
     def _get_cursor(self):
         """ Convenience method that returns a cursor for the current position.
@@ -1280,7 +1269,7 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
         self._insert_html(cursor, html)
         end = cursor.position()
         cursor.setPosition(start, QtGui.QTextCursor.KeepAnchor)
-        text = str(cursor.selection().toPlainText())
+        text = unicode(cursor.selection().toPlainText())
 
         cursor.setPosition(end)
         cursor.endEditBlock()
@@ -1320,7 +1309,7 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
         """ Inserts text into the input buffer at the current cursor position,
             ensuring that continuation prompts are inserted as necessary.
         """
-        lines = str(text).splitlines(True)
+        lines = unicode(text).splitlines(True)
         if lines:
             self._keep_cursor_in_buffer()
             cursor = self._control.textCursor()
@@ -1530,7 +1519,7 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
             if cursor.position() > 0:
                 cursor.movePosition(QtGui.QTextCursor.Left, 
                                     QtGui.QTextCursor.KeepAnchor)
-                if str(cursor.selection().toPlainText()) != '\n':
+                if unicode(cursor.selection().toPlainText()) != '\n':
                     self._append_plain_text('\n')
 
         # Write the prompt.

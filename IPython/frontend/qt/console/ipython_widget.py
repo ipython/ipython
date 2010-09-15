@@ -206,7 +206,7 @@ class IPythonWidget(FrontendWidget):
         """ Copy the currently selected text to the clipboard, removing prompts
             if possible.
         """
-        text = str(self._control.textCursor().selection().toPlainText())
+        text = unicode(self._control.textCursor().selection().toPlainText())
         if text:
             lines = map(transform_ipy_prompt, text.splitlines())
             text = '\n'.join(lines)

@@ -144,7 +144,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
     def copy(self):
         """ Copy the currently selected text to the clipboard, removing prompts.
         """
-        text = str(self._control.textCursor().selection().toPlainText())
+        text = unicode(self._control.textCursor().selection().toPlainText())
         if text:
             lines = map(transform_classic_prompt, text.splitlines())
             text = '\n'.join(lines)
@@ -489,7 +489,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
             cursor = self._get_cursor()
         cursor.movePosition(QtGui.QTextCursor.StartOfBlock, 
                             QtGui.QTextCursor.KeepAnchor)
-        text = str(cursor.selection().toPlainText())
+        text = unicode(cursor.selection().toPlainText())
         return self._completion_lexer.get_context(text)
 
     def _process_execute_abort(self, msg):
