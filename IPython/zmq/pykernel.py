@@ -36,6 +36,12 @@ from session import Session, Message
 
 class Kernel(HasTraits):
 
+    # Private interface
+
+    # This is a dict of port number that the kernel is listening on. It is set
+    # by record_ports and used by connect_request.
+    _recorded_ports = None
+
     #---------------------------------------------------------------------------
     # Kernel interface
     #---------------------------------------------------------------------------
@@ -74,6 +80,19 @@ class Kernel(HasTraits):
                 print >> sys.__stderr__, "UNKNOWN MESSAGE TYPE:", omsg
             else:
                 handler(ident, omsg)
+
+    def record_ports(self, xrep_port, pub_port, req_port, hb_port):
+        """Record the ports that this kernel is using.
+
+        The creator of the Kernel instance must call this methods if they
+        want the :meth:`connect_request` method to return the port numbers.
+        """
+        self._recorded_ports = {
+            'xrep_port' : xrep_port,
+            'pub_port' : pub_port,
+            'req_port' : req_port,
+            'hb_port' : hb_port
+        }
 
     #---------------------------------------------------------------------------
     # Kernel request handlers
