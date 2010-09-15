@@ -809,7 +809,14 @@ class KernelManager(HasTraits):
             if self._hb_channel is not None:
                 self._hb_channel.pause()
 
-            self.kernel.kill()
+            # Attempt to kill the kernel.
+            try:
+                self.kernel.kill()
+            except OSError, e:
+                # In Windows, we will get an Access Denied error if the process
+                # has already terminated. Ignore it.
+                if not (sys.platform == 'win32' and e.winerror == 5):
+                    raise
             self.kernel = None
         else:
             raise RuntimeError("Cannot kill kernel. No kernel is running!")
