@@ -268,15 +268,22 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
         return False
 
     def clear(self, keep_input=True):
-        """ Clear the console, then write a new prompt. If 'keep_input' is set,
-            restores the old input buffer when the new prompt is written.
+        """ Clear the console. 
+
+        Parameters:
+        -----------
+        keep_input : bool, optional (default True)
+            If set, restores the old input buffer if a new prompt is written.
         """
-        if keep_input:
-            input_buffer = self.input_buffer
-        self._control.clear()
-        self._show_prompt()
-        if keep_input:
-            self.input_buffer = input_buffer
+        if self._executing:
+            self._control.clear()
+        else:
+            if keep_input:
+                input_buffer = self.input_buffer
+            self._control.clear()
+            self._show_prompt()
+            if keep_input:
+                self.input_buffer = input_buffer
 
     def copy(self):
         """ Copy the currently selected text to the clipboard.
