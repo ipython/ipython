@@ -39,6 +39,8 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
     """
     __metaclass__ = MetaQObjectHasTraits
 
+    #------ Configuration ------------------------------------------------------
+
     # Whether to process ANSI escape codes.
     ansi_codes = Bool(True, config=True)
 
@@ -72,6 +74,8 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
     # priority (when it has focus) over, e.g., window-level menu shortcuts.
     override_shortcuts = Bool(False)
 
+    #------ Signals ------------------------------------------------------------
+
     # Signals that indicate ConsoleWidget state.
     copy_available = QtCore.pyqtSignal(bool)
     redo_available = QtCore.pyqtSignal(bool)
@@ -81,7 +85,11 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
     # specified as 'custom'.
     custom_page_requested = QtCore.pyqtSignal(object)
 
-    # Protected class variables.
+    # Signal emitted when the font is changed.
+    font_changed = QtCore.pyqtSignal(QtGui.QFont)
+
+    #------ Protected class variables ------------------------------------------
+
     _ctrl_down_remap = { QtCore.Qt.Key_B : QtCore.Qt.Key_Left,
                          QtCore.Qt.Key_F : QtCore.Qt.Key_Right,
                          QtCore.Qt.Key_A : QtCore.Qt.Key_Home,
@@ -89,6 +97,7 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
                          QtCore.Qt.Key_P : QtCore.Qt.Key_Up,
                          QtCore.Qt.Key_N : QtCore.Qt.Key_Down,
                          QtCore.Qt.Key_D : QtCore.Qt.Key_Delete, }
+
     _shortcuts = set(_ctrl_down_remap.keys() +
                      [ QtCore.Qt.Key_C, QtCore.Qt.Key_G, QtCore.Qt.Key_O,
                        QtCore.Qt.Key_V ])
@@ -431,6 +440,8 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
         self._control.document().setDefaultFont(font)
         if self._page_control:
             self._page_control.document().setDefaultFont(font)
+
+        self.font_changed.emit(font)
 
     font = property(_get_font, _set_font)
 

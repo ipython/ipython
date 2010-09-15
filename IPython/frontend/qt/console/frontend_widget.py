@@ -123,6 +123,10 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         self.tab_width = 4
         self._set_continuation_prompt('... ')
 
+        # Configure the CallTipWidget.
+        self._call_tip_widget.setFont(self.font)
+        self.font_changed.connect(self._call_tip_widget.setFont)
+
         # Configure actions.
         action = self._copy_raw_action
         key = QtCore.Qt.CTRL | QtCore.Qt.SHIFT | QtCore.Qt.Key_C

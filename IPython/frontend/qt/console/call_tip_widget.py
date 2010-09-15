@@ -105,6 +105,11 @@ class CallTipWidget(QtGui.QLabel):
 
         super(CallTipWidget, self).paintEvent(event)
 
+    def setFont(self, font):
+        """ Reimplemented to allow use of this method as a slot.
+        """
+        super(CallTipWidget, self).setFont(font)
+
     def showEvent(self, event):
         """ Reimplemented to connect signal handlers and event filter.
         """
