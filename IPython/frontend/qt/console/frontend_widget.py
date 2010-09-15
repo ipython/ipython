@@ -228,7 +228,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
 
             elif key == QtCore.Qt.Key_Period:
                 message = 'Are you sure you want to restart the kernel?'
-                self.restart_kernel(message, instant_death=False)
+                self.restart_kernel(message, now=False)
                 return True
 
         elif not event.modifiers() & QtCore.Qt.AltModifier:
@@ -322,7 +322,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         if self.custom_restart:
             self.custom_restart_kernel_died.emit(since_last_heartbeat)
         else:
-            self.restart_kernel(message, instant_death=True)
+            self.restart_kernel(message, now=True)
 
     def _handle_object_info_reply(self, rep):
         """ Handle replies for call tips.
@@ -395,10 +395,10 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
             self._append_plain_text('Kernel process is either remote or '
                                     'unspecified. Cannot interrupt.\n')
 
-    def restart_kernel(self, message, instant_death=False):
+    def restart_kernel(self, message, now=False):
         """ Attempts to restart the running kernel.
         """
-        # FIXME: instant_death should be configurable via a checkbox in the
+        # FIXME: now should be configurable via a checkbox in the
         # dialog.  Right now at least the heartbeat path sets it to True and
         # the manual restart to False.  But those should just be the
         # pre-selected states of a checkbox that the user could override if so
@@ -421,8 +421,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
                                                     message, buttons)
                 if result == QtGui.QMessageBox.Yes:
                     try:
-                        self.kernel_manager.restart_kernel(
-                            instant_death=instant_death)
+                        self.kernel_manager.restart_kernel(now=now)
                     except RuntimeError:
                         message = 'Kernel started externally. Cannot restart.\n'
                         self._append_plain_text(message)

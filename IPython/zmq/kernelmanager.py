@@ -757,14 +757,14 @@ class KernelManager(HasTraits):
             if self.has_kernel:
                 self.kill_kernel()
     
-    def restart_kernel(self, instant_death=False):
+    def restart_kernel(self, now=False):
         """Restarts a kernel with the same arguments that were used to launch
         it. If the old kernel was launched with random ports, the same ports
         will be used for the new kernel.
 
         Parameters
         ----------
-        instant_death : bool, optional
+        now : bool, optional
           If True, the kernel is forcefully restarted *immediately*, without
           having a chance to do any cleanup action.  Otherwise the kernel is
           given 1s to clean up before a forceful restart is issued.
@@ -777,7 +777,7 @@ class KernelManager(HasTraits):
                                "No previous call to 'start_kernel'.")
         else:
             if self.has_kernel:
-                if instant_death:
+                if now:
                     self.kill_kernel()
                 else:
                     self.shutdown_kernel()
