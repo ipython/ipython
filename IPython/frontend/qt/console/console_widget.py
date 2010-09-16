@@ -204,11 +204,21 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
                 self._control_key_down(event.modifiers()) and \
                 event.key() in self._shortcuts:
             event.accept()
-            return False
 
-        # Prevent text from being moved by drag and drop.
-        elif etype in (QtCore.QEvent.DragEnter, QtCore.QEvent.DragLeave, 
-                       QtCore.QEvent.DragMove, QtCore.QEvent.Drop):
+        # Ensure that drops are safe.
+        elif etype == QtCore.QEvent.Drop and obj == self._control.viewport():
+            cursor = self._control.cursorForPosition(event.pos())
+            if self._in_buffer(cursor.position()):
+                # The text cursor is not updated during the drag.
+                self._control.setTextCursor(cursor)
+
+                # Now we can perform the insertion manually.
+                text = unicode(event.mimeData().text())
+                self._insert_plain_text_into_buffer(text)
+
+            # Qt is expecting to get something here--drag and drop occurs in its
+            # own event loop. Send a DragLeave event to end it.
+            QtGui.qApp.sendEvent(obj, QtGui.QDragLeaveEvent())
             return True
 
         return super(ConsoleWidget, self).eventFilter(obj, event)
