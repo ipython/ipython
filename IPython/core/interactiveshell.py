@@ -2265,13 +2265,17 @@ class InteractiveShell(Configurable, Magic):
         The return value can be used to decide whether to use sys.ps1 or
         sys.ps2 to prompt the next line."""
 
+        # We need to ensure that the source is unicode from here on.
+        if type(source)==str:
+            source = source.decode(self.stdin_encoding)
+        
         # if the source code has leading blanks, add 'if 1:\n' to it
         # this allows execution of indented pasted code. It is tempting
         # to add '\n' at the end of source to run commands like ' a=1'
         # directly, but this fails for more complicated scenarios
-        source=source.encode(self.stdin_encoding)
+
         if source[:1] in [' ', '\t']:
-            source = 'if 1:\n%s' % source
+            source = u'if 1:\n%s' % source
 
         try:
             code = self.compile(source,filename,symbol)

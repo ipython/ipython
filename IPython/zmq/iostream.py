@@ -61,6 +61,11 @@ class OutStream(object):
         if self.pub_socket is None:
             raise ValueError('I/O operation on closed file')
         else:
+            # We can only send raw bytes, not unicode objects, so we encode
+            # into utf-8 for all frontends if we get unicode inputs.
+            if type(string) == unicode:
+                string = string.encode('utf-8')
+                
             self._buffer.write(string)
             current_time = time.time()
             if self._start <= 0:
