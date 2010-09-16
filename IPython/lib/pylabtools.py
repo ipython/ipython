@@ -109,8 +109,14 @@ def import_pylab(user_ns, backend, import_all=True, shell=None):
         # function that will pick up the results for display.  This can only be
         # done with access to the real shell object.
         if backend == backends['inline']:
-            from IPython.zmq.pylab.backend_inline import flush_svg
+            from IPython.zmq.pylab.backend_inline import flush_svg, figsize
+            from matplotlib import pyplot
             shell.register_post_execute(flush_svg)
+            # The typical default figure size is too large for inline use.  We
+            # might make this a user-configurable parameter later.
+            figsize(6.0, 4.0)
+            # Add 'figsize' to pyplot and to the user's namespace
+            user_ns['figsize'] = pyplot.figsize = figsize
         else:
             from IPython.zmq.pylab.backend_inline import pastefig
             from matplotlib import pyplot

@@ -38,6 +38,16 @@ def show(close=True):
 show._draw_called = False
 
 
+def figsize(sizex, sizey):
+    """Set the default figure size to be [sizex, sizey].
+
+    This is just an easy to remember, convenience wrapper that sets::
+
+      matplotlib.rcParams['figure.figsize'] = [sizex, sizey]
+    """
+    matplotlib.rcParams['figure.figsize'] = [sizex, sizey]
+    
+
 def pastefig(*figs):
     """Paste one or more figures into the console workspace.
 
@@ -68,9 +78,6 @@ def pastefig(*figs):
 def send_svg_canvas(canvas):
     """Draw the current canvas and send it as an SVG payload.
     """
-    # Make the background transparent.
-    # figure_manager.canvas.figure.patch.set_alpha(0.0)
-
     # Set the background to white instead so it looks good on black.  We store
     # the current values to restore them at the end.
     fc = canvas.figure.get_facecolor()
