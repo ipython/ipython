@@ -150,6 +150,8 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
         self._continuation_prompt = '> '
         self._continuation_prompt_html = None
         self._executing = False
+        self._filter_drag = False
+        self._filter_resize = False
         self._prompt = ''
         self._prompt_html = None
         self._prompt_pos = 0
@@ -195,8 +197,12 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
             return True
 
         # Manually adjust the scrollbars *after* a resize event is dispatched.
-        elif etype == QtCore.QEvent.Resize:
-            QtCore.QTimer.singleShot(0, self._adjust_scrollbars)
+        elif etype == QtCore.QEvent.Resize and not self._filter_resize:
+            self._filter_resize = True
+            QtGui.qApp.sendEvent(obj, event)
+            self._adjust_scrollbars()
+            self._filter_resize = False
+            return True
 
         # Override shortcuts for all filtered widgets.
         elif etype == QtCore.QEvent.ShortcutOverride and \
@@ -204,6 +210,27 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
                 self._control_key_down(event.modifiers()) and \
                 event.key() in self._shortcuts:
             event.accept()
+
+        # Ensure that drags are safe. The problem is that the drag starting
+        # logic, which determines whether the drag is a Copy or Move, is locked
+        # down in QTextControl. If the widget is editable, which it must be if
+        # we're not executing, the drag will be a Move. The following hack
+        # prevents QTextControl from deleting the text by clearing the selection
+        # when a drag leave event originating from this widget is dispatched.
+        # The fact that we have to clear the user's selection is unfortunate,
+        # but the alternative--trying to prevent Qt from using its hardwired
+        # drag logic and writing our own--is worse.
+        elif etype == QtCore.QEvent.DragEnter and \
+                obj == self._control.viewport() and \
+                event.source() == self._control.viewport():
+            self._filter_drag = True
+        elif etype == QtCore.QEvent.DragLeave and \
+                obj == self._control.viewport() and \
+                self._filter_drag:
+            cursor = self._control.textCursor()
+            cursor.clearSelection()
+            self._control.setTextCursor(cursor)
+            self._filter_drag = False
 
         # Ensure that drops are safe.
         elif etype == QtCore.QEvent.Drop and obj == self._control.viewport():
