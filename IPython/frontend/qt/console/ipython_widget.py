@@ -14,6 +14,7 @@
 from collections import namedtuple
 import re
 from subprocess import Popen
+from textwrap import dedent
 
 # System library imports
 from PyQt4 import QtCore, QtGui
@@ -109,6 +110,7 @@ class IPythonWidget(FrontendWidget):
     _payload_source_edit = 'IPython.zmq.zmqshell.ZMQInteractiveShell.edit_magic'
     _payload_source_exit = 'IPython.zmq.zmqshell.ZMQInteractiveShell.ask_exit'
     _payload_source_page = 'IPython.zmq.page.page'
+    _payload_source_loadpy = 'IPython.zmq.zmqshell.ZMQInteractiveShell.magic_loadpy'
 
     #---------------------------------------------------------------------------
     # 'object' interface
@@ -121,8 +123,10 @@ class IPythonWidget(FrontendWidget):
         self._payload_handlers = { 
             self._payload_source_edit : self._handle_payload_edit,
             self._payload_source_exit : self._handle_payload_exit,
-            self._payload_source_page : self._handle_payload_page }
+            self._payload_source_page : self._handle_payload_page,
+            self._payload_source_loadpy : self._handle_payload_loadpy }
         self._previous_prompt_obj = None
+        self._code_to_load = None
 
         # Initialize widget styling.
         if self.style_sheet:
@@ -302,6 +306,11 @@ class IPythonWidget(FrontendWidget):
         self._set_continuation_prompt(
             self._make_continuation_prompt(self._prompt), html=True)
 
+        if self._code_to_load is not None:
+            text = unicode(self._code_to_load).rstrip()
+            self._insert_plain_text_into_buffer(dedent(text))
+            self._code_to_load = None
+
     def _show_interpreter_prompt_for_reply(self, msg):
         """ Reimplemented for IPython-style prompts.
         """
@@ -435,6 +444,11 @@ class IPythonWidget(FrontendWidget):
             self._page(item['html'], html=True)
         else:
             self._page(item['text'], html=False)
+
+    def _handle_payload_loadpy(self, item):
+        # Simple save the text of the .py file for later. The text is written
+        # to the buffer when _prompt_started_hook is called.
+        self._code_to_load = item['text']
 
     #------ Trait change handlers ---------------------------------------------
 
