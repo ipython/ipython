@@ -2135,6 +2135,28 @@ class InteractiveShell(Configurable, Magic):
         cell : str
           A single or multiline string.
         """
+        #################################################################
+        # FIXME
+        # =====
+        # This execution logic should stop calling runlines altogether, and
+        # instead we should do what runlines does, in a controlled manner, here
+        # (runlines mutates lots of state as it goes calling sub-methods that
+        # also mutate state).  Basically we should:
+        # - apply dynamic transforms for single-line input (the ones that
+        # split_blocks won't apply since they need context).
+        # - increment the global execution counter (we need to pull that out
+        # from outputcache's control; outputcache should instead read it from
+        # the main object).
+        # - do any logging of input
+        # - update histories (raw/translated)
+        # - then, call plain runsource (for single blocks, so displayhook is
+        # triggered) or runcode (for multiline blocks in exec mode).
+        #
+        # Once this is done, we'll be able to stop using runlines and we'll
+        # also have a much cleaner separation of logging, input history and
+        # output cache management.
+        #################################################################
+        
         # We need to break up the input into executable blocks that can be run
         # in 'single' mode, to provide comfortable user behavior.
         blocks = self.input_splitter.split_blocks(cell)
