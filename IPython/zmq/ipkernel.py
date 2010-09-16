@@ -172,6 +172,14 @@ class Kernel(Configurable):
         self.pub_socket.send_json(pyin_msg)
 
     def execute_request(self, ident, parent):
+        
+        status_msg = self.session.msg(
+            u'status',
+            {u'execution_state':u'busy'},
+            parent=parent
+        )
+        self.pub_socket.send_json(status_msg)
+        
         try:
             content = parent[u'content']
             code = content[u'code']
@@ -276,6 +284,13 @@ class Kernel(Configurable):
         self.reply_socket.send_json(reply_msg)
         if reply_msg['content']['status'] == u'error':
             self._abort_queue()
+
+        status_msg = self.session.msg(
+            u'status',
+            {u'execution_state':u'idle'},
+            parent=parent
+        )
+        self.pub_socket.send_json(status_msg)
 
     def complete_request(self, ident, parent):
         txt, matches = self._complete(parent)

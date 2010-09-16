@@ -355,7 +355,12 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
             
             self._append_plain_text(text)
             self._control.moveCursor(QtGui.QTextCursor.End)
-    
+
+    def _handle_status(self, msg):
+        """ Handle kernel status messages.
+        """
+        pass
+
     def _started_channels(self):
         """ Called when the KernelManager channels have started listening or 
             when the frontend is assigned an already listening KernelManager.

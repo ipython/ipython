@@ -671,6 +671,19 @@ Message type: ``pyerr``::
        # except the 'status' field is omitted.
     }
 
+Kernel status
+-------------
+
+This message type is used by frontends to monitor the status of the kernel.
+
+Message type: ``status``::
+
+    content = {
+        # When the kernel starts to execute code, it will enter the 'busy'
+        # state and when it finishes, it will enter the 'idle' state.
+        execution_state : ('busy', 'idle')
+    }
+
 Kernel crashes
 --------------
 
