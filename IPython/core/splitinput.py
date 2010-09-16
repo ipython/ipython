@@ -58,7 +58,10 @@ def split_user_input(line, pattern=None):
     """
     # We need to ensure that the rest of this routine deals only with unicode
     if type(line)==str:
-        line = line.decode(sys.stdin.encoding)
+        codec = sys.stdin.encoding
+        if codec is None:
+            codec = 'utf-8'
+        line = line.decode(codec)
         
     if pattern is None:
         pattern = line_split
