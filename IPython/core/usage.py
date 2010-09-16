@@ -446,10 +446,10 @@ Inline matplotlib graphics
 
 The IPython console is capable of displaying matplotlib figures inline, in SVG
 format.  If started with the ``--pylab inline`` flag, then all figures are
-rendered inline automatically.  If started with ``--pylab`` or ``--pylab
-<your backend>``, then a GUI backend will be used, but the ``paste()`` function
-is added to the global and ``plt`` namespaces.  You can paste any figure that
-is currently open in a window with this function; type ``paste?`` for
+rendered inline automatically.  If started with ``--pylab`` or ``--pylab <your
+backend>``, then a GUI backend will be used, but the ``pastefig()`` function is
+added to the global and ``plt`` namespaces.  You can paste any figure that is
+currently open in a window with this function; type ``pastefig?`` for
 additional details."""
 
 quick_guide = """\

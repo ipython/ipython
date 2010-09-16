@@ -112,10 +112,10 @@ def import_pylab(user_ns, backend, import_all=True, shell=None):
             from IPython.zmq.pylab.backend_inline import flush_svg
             shell.register_post_execute(flush_svg)
         else:
-            from IPython.zmq.pylab.backend_inline import paste
+            from IPython.zmq.pylab.backend_inline import pastefig
             from matplotlib import pyplot
             # Add 'paste' to pyplot and to the user's namespace
-            user_ns['paste'] = pyplot.paste = paste
+            user_ns['pastefig'] = pyplot.pastefig = pastefig
 
     if import_all:
         exec("from matplotlib.pylab import *\n"

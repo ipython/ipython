@@ -38,8 +38,8 @@ def show(close=True):
 show._draw_called = False
 
 
-def paste(*figs):
-    """Paste figures into the console workspace.
+def pastefig(*figs):
+    """Paste one or more figures into the console workspace.
 
     If no arguments are given, all available figures are pasted.  If the
     argument list contains references to invalid figures, a warning is printed
