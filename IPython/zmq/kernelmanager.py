@@ -665,7 +665,8 @@ class KernelManager(HasTraits):
 
     def __init__(self, **kwargs):
         super(KernelManager, self).__init__(**kwargs)
-        atexit.register(self.context.close)
+        # Uncomment this to try closing the context.
+        # atexit.register(self.context.close)
 
     #--------------------------------------------------------------------------
     # Channel management methods:
