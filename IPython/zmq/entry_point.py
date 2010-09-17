@@ -3,6 +3,7 @@ launchers.
 """
 
 # Standard library imports.
+import atexit
 import os
 import socket
 from subprocess import Popen, PIPE
@@ -84,6 +85,8 @@ def make_kernel(namespace, kernel_factory,
     # Create a context, a session, and the kernel sockets.
     io.raw_print("Starting the kernel at pid:", os.getpid())
     context = zmq.Context()
+    # Uncomment this to try closing the context.
+    # atexit.register(context.close)
     session = Session(username=u'kernel')
 
     reply_socket = context.socket(zmq.XREP)

@@ -16,6 +16,7 @@ TODO
 #-----------------------------------------------------------------------------
 
 # Standard library imports.
+import atexit
 from Queue import Queue, Empty
 from subprocess import Popen
 import signal
@@ -654,13 +655,17 @@ class KernelManager(HasTraits):
     sub_channel_class = Type(SubSocketChannel)
     rep_channel_class = Type(RepSocketChannel)
     hb_channel_class = Type(HBSocketChannel)
-    
+
     # Protected traits.
     _launch_args = Any
     _xreq_channel = Any
     _sub_channel = Any
     _rep_channel = Any
     _hb_channel = Any
+
+    def __init__(self, **kwargs):
+        super(KernelManager, self).__init__(**kwargs)
+        atexit.register(self.context.close)
 
     #--------------------------------------------------------------------------
     # Channel management methods:
