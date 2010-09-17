@@ -236,12 +236,8 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
         elif etype == QtCore.QEvent.Drop and obj == self._control.viewport():
             cursor = self._control.cursorForPosition(event.pos())
             if self._in_buffer(cursor.position()):
-                # The text cursor is not updated during the drag.
-                self._control.setTextCursor(cursor)
-
-                # Now we can perform the insertion manually.
                 text = unicode(event.mimeData().text())
-                self._insert_plain_text_into_buffer(text)
+                self._insert_plain_text_into_buffer(cursor, text)
 
             # Qt is expecting to get something here--drag and drop occurs in its
             # own event loop. Send a DragLeave event to end it.
@@ -455,15 +451,7 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
         cursor.removeSelectedText()
 
         # Insert new text with continuation prompts.
-        lines = string.splitlines(True)
-        if lines:
-            self._append_plain_text(lines[0])
-            for i in xrange(1, len(lines)):
-                if self._continuation_prompt_html is None:
-                    self._append_plain_text(self._continuation_prompt)
-                else:
-                    self._append_html(self._continuation_prompt_html)
-                self._append_plain_text(lines[i])
+        self._insert_plain_text_into_buffer(self._get_prompt_cursor(), string)
         cursor.endEditBlock()
         self._control.moveCursor(QtGui.QTextCursor.End)
 
@@ -501,10 +489,14 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
             in Mac OS. By default, the regular clipboard is used.
         """
         if self._control.textInteractionFlags() & QtCore.Qt.TextEditable:
+            # Make sure the paste is safe.
+            self._keep_cursor_in_buffer()
+            cursor = self._control.textCursor()
+
             # Remove any trailing newline, which confuses the GUI and forces the
             # user to backspace.
             text = unicode(QtGui.QApplication.clipboard().text(mode)).rstrip()
-            self._insert_plain_text_into_buffer(dedent(text))
+            self._insert_plain_text_into_buffer(cursor, dedent(text))
 
     def print_(self, printer):
         """ Print the contents of the ConsoleWidget to the specified QPrinter.
@@ -1360,14 +1352,13 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
             cursor.insertText(text)
         cursor.endEditBlock()
 
-    def _insert_plain_text_into_buffer(self, text):
-        """ Inserts text into the input buffer at the current cursor position,
-            ensuring that continuation prompts are inserted as necessary.
+    def _insert_plain_text_into_buffer(self, cursor, text):
+        """ Inserts text into the input buffer using the specified cursor (which
+            must be in the input buffer), ensuring that continuation prompts are
+            inserted as necessary.
         """
         lines = unicode(text).splitlines(True)
         if lines:
-            self._keep_cursor_in_buffer()
-            cursor = self._control.textCursor()
             cursor.beginEditBlock()
             cursor.insertText(lines[0])
             for line in lines[1:]:
@@ -1379,7 +1370,6 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
                             cursor, self._continuation_prompt_html)
                 cursor.insertText(line)
             cursor.endEditBlock()
-            self._control.setTextCursor(cursor)
 
     def _in_buffer(self, position=None):
         """ Returns whether the current cursor (or, if specified, a position) is
