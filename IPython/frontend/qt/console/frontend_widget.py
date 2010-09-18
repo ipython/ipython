@@ -10,6 +10,7 @@ from PyQt4 import QtCore, QtGui
 
 # Local imports
 from IPython.core.inputsplitter import InputSplitter, transform_classic_prompt
+from IPython.core.oinspect import call_tip
 from IPython.frontend.qt.base_frontend_mixin import BaseFrontendMixin
 from IPython.utils.traitlets import Bool
 from bracket_matcher import BracketMatcher
@@ -334,9 +335,13 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         info = self._request_info.get('call_tip')
         if info and info.id == rep['parent_header']['msg_id'] and \
                 info.pos == cursor.position():
-            doc = rep['content']['docstring']
-            if doc:
-                self._call_tip_widget.show_docstring(doc)
+            # Get the information for a call tip.  For now we format the call
+            # line as string, later we can pass False to format_call and
+            # syntax-highlight it ourselves for nicer formatting in the
+            # calltip.
+            call_info, doc = call_tip(rep['content'], format_call=True)
+            if call_info or doc:
+                self._call_tip_widget.show_call_info(call_info, doc)
 
     def _handle_pyout(self, msg):
         """ Handle display hook output.

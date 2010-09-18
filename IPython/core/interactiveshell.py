@@ -1196,9 +1196,10 @@ class InteractiveShell(Configurable, Magic):
     def object_inspect(self, oname):
         info = self._object_find(oname)
         if info.found:
-            return self.inspector.info(info.obj, info=info)
+            return self.inspector.info(info.obj, oname, info=info)
         else:
-            return oinspect.mk_object_info({'found' : False})
+            return oinspect.mk_object_info({'name' : oname,
+                                            'found' : False})
         
     #-------------------------------------------------------------------------
     # Things related to history management

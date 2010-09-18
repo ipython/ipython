@@ -462,6 +462,9 @@ field names that IPython prints at the terminal.
 Message type: ``object_info_reply``::
 
     content = {
+    # The name the object was requested under
+    'name' : str,
+    
     # Boolean flag indicating whether the named object was found or not.  If
     # it's false, all other fields will be empty.
     'found' : bool,
@@ -511,7 +514,7 @@ Message type: ``object_info_reply``::
 		  # that these must be matched *in reverse* with the 'args'
 		  # list above, since the first positional args have no default
 		  # value at all.
-		  func_defaults : list,
+		  defaults : list,
 		  },
 
     # For instances, provide the constructor signature (the definition of

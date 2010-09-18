@@ -303,9 +303,8 @@ class Kernel(Configurable):
 
     def object_info_request(self, ident, parent):
         object_info = self.shell.object_inspect(parent['content']['oname'])
-        # Before we send this object over, we turn it into a dict and we scrub
-        # it for JSON usage
-        oinfo = json_clean(object_info._asdict())
+        # Before we send this object over, we scrub it for JSON usage
+        oinfo = json_clean(object_info)
         msg = self.session.send(self.reply_socket, 'object_info_reply',
                                 oinfo, parent, ident)
         io.raw_print(msg)

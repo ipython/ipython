@@ -76,18 +76,15 @@ info_fields = ['type_name', 'base_class', 'string_form', 'namespace',
                'call_def', 'call_docstring',
                # These won't be printed but will be used to determine how to
                # format the object
-               'ismagic', 'isalias', 'argspec', 'found',
+               'ismagic', 'isalias', 'argspec', 'found', 'name',
                ]
 
 
-ObjectInfo = namedtuple('ObjectInfo', info_fields)
-
-
-def mk_object_info(kw):
-    """Make a f"""
+def object_info(**kw):
+    """Make an object info dict with all fields present."""
     infodict = dict(izip_longest(info_fields, [None]))
     infodict.update(kw)
-    return ObjectInfo(**infodict)
+    return infodict
 
 
 def getdoc(obj):
@@ -161,10 +158,75 @@ def getargspec(obj):
         func_obj = obj
     elif inspect.ismethod(obj):
         func_obj = obj.im_func
+    elif hasattr(obj, '__call__'):
+        func_obj = obj.__call__
     else:
         raise TypeError('arg is not a Python function')
     args, varargs, varkw = inspect.getargs(func_obj.func_code)
     return args, varargs, varkw, func_obj.func_defaults
+
+
+def format_argspec(argspec):
+    """Format argspect, convenience wrapper around inspect's.
+
+    This takes a dict instead of ordered arguments and calls
+    inspect.format_argspec with the arguments in the necessary order.
+    """
+    return inspect.formatargspec(argspec['args'], argspec['varargs'],
+                                 argspec['varkw'], argspec['defaults'])
+
+
+def call_tip(oinfo, format_call=True):
+    """Extract call tip data from an oinfo dict.
+
+    Parameters
+    ----------
+    oinfo : dict
+
+    format_call : bool, optional
+      If True, the call line is formatted and returned as a string.  If not, a
+      tuple of (name, argspec) is returned.
+
+    Returns
+    -------
+    call_info : None, str or (str, dict) tuple.
+      When format_call is True, the whole call information is formattted as a
+      single string.  Otherwise, the object's name and its argspec dict are
+      returned.  If no call information is available, None is returned.
+      
+    docstring : str or None
+      The most relevant docstring for calling purposes is returned, if
+      available.  The priority is: call docstring for callable instances, then
+      constructor docstring for classes, then main object's docstring otherwise
+      (regular functions).
+    """
+    # Get call definition
+    argspec = oinfo['argspec']
+    if argspec is None:
+        call_line = None
+    else:
+        # Callable objects will have 'self' as their first argument, prune
+        # it out if it's there for clarity (since users do *not* pass an
+        # extra first argument explicitly).
+        try:
+            has_self = argspec['args'][0] == 'self'
+        except (KeyError, IndexError):
+            pass
+        else:
+            if has_self:
+                argspec['args'] = argspec['args'][1:]
+                
+        call_line = oinfo['name']+format_argspec(argspec)
+
+    # Now get docstring.
+    # The priority is: call docstring, constructor docstring, main one.
+    doc = oinfo['call_docstring']
+    if doc is None:
+        doc = oinfo['init_docstring']
+    if doc is None:
+        doc = oinfo['docstring']
+
+    return call_line, doc
 
 #****************************************************************************
 # Class definitions
@@ -178,7 +240,9 @@ class myStringIO(StringIO.StringIO):
 
 
 class Inspector:
-    def __init__(self,color_table,code_color_table,scheme,
+    def __init__(self, color_table=InspectColors,
+                 code_color_table=PyColorize.ANSICodeColors,
+                 scheme='NoColor',
                  str_detail_level=0):
         self.color_table = color_table
         self.parser = PyColorize.Parser(code_color_table,out='str')
@@ -565,6 +629,7 @@ class Inspector:
             ismagic = info.ismagic
             isalias = info.isalias
             ospace = info.namespace
+
         # Get docstring, special-casing aliases:
         if isalias:
             if not callable(obj):
@@ -583,9 +648,8 @@ class Inspector:
         if formatter is not None:
             ds = formatter(ds)
 
-        # store output in a dict, we'll later convert it to an ObjectInfo.  We
-        # initialize it here and fill it as we go
-        out = dict(found=True, isalias=isalias, ismagic=ismagic)
+        # store output in a dict, we initialize it here and fill it as we go
+        out = dict(name=oname, found=True, isalias=isalias, ismagic=ismagic)
         
         string_max = 200 # max size of strings to show (snipped if longer)
         shalf = int((string_max -5)/2)
@@ -650,17 +714,14 @@ class Inspector:
             binary_file = True
 
         # reconstruct the function definition and print it:
-        defln = self._getdef(obj,oname)
+        defln = self._getdef(obj, oname)
         if defln:
             out['definition'] = self.format(defln)
-            args,  varargs, varkw, func_defaults = getargspec(obj)
-            out['argspec'] = dict(args=args, varargs=varargs,
-                                  varkw=varkw, func_defaults=func_defaults)
-            
+
         # Docstrings only in detail 0 mode, since source contains them (we
         # avoid repetitions).  If source fails, we add them back, see below.
         if ds and detail_level == 0:
-                out['docstring'] = indent(ds)
+                out['docstring'] = ds
                 
         # Original source code for any callable
         if detail_level:
@@ -700,11 +761,11 @@ class Inspector:
                 if init_def:
                     out['init_definition'] = self.format(init_def)
                 if init_ds:
-                    out['init_docstring'] = indent(init_ds)
+                    out['init_docstring'] = init_ds
+
         # and class docstring for instances:
         elif obj_type is types.InstanceType or \
-                 isinstance(obj,object):
-
+                 isinstance(obj, object):
             # First, check whether the instance docstring is identical to the
             # class one, and print it separately if they don't coincide.  In
             # most cases they will, but it's nice to print all the info for
@@ -723,7 +784,7 @@ class Inspector:
                    class_ds.startswith('module(name[,') ):
                     class_ds = None
                 if class_ds and ds != class_ds:
-                    out['class_docstring'] = indent(class_ds)
+                    out['class_docstring'] = class_ds
 
             # Next, try to show constructor docstrings
             try:
@@ -735,11 +796,11 @@ class Inspector:
             except AttributeError:
                 init_ds = None
             if init_ds:
-                out['init_docstring'] = indent(init_ds)
+                out['init_docstring'] = init_ds
 
             # Call form docstring for callable instances
-            if hasattr(obj,'__call__'):
-                call_def = self._getdef(obj.__call__,oname)
+            if hasattr(obj, '__call__'):
+                call_def = self._getdef(obj.__call__, oname)
                 if call_def is not None:
                     out['call_def'] = self.format(call_def)
                 call_ds = getdoc(obj.__call__)
@@ -747,9 +808,30 @@ class Inspector:
                 if call_ds and call_ds.startswith('x.__call__(...) <==> x(...)'):
                     call_ds = None
                 if call_ds:
-                    out['call_docstring'] = indent(call_ds)
+                    out['call_docstring'] = call_ds
 
-        return mk_object_info(out)
+        # Compute the object's argspec as a callable.  The key is to decide
+        # whether to pull it from the object itself, from its __init__ or
+        # from its __call__ method.
+        
+        if inspect.isclass(obj):
+            callable_obj = obj.__init__
+        elif callable(obj):
+            callable_obj = obj
+        else:
+            callable_obj = None
+
+        if callable_obj:
+            try:
+                args,  varargs, varkw, defaults = getargspec(callable_obj)
+            except (TypeError, AttributeError):
+                # For extensions/builtins we can't retrieve the argspec
+                pass
+            else:
+                out['argspec'] = dict(args=args, varargs=varargs,
+                                      varkw=varkw, defaults=defaults)
+
+        return object_info(**out)
 
 
     def psearch(self,pattern,ns_table,ns_search=[],
