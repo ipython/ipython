@@ -155,7 +155,11 @@ class InteractiveShell(Configurable, Magic):
     exit_now = CBool(False)
     filename = Str("<ipython console>")
     ipython_dir= Unicode('', config=True) # Set to get_ipython_dir() in __init__
-    input_splitter = Instance('IPython.core.inputsplitter.IPythonInputSplitter')
+
+    # Input splitter, to split entire cells of input into either individual
+    # interactive statements or whole blocks.
+    input_splitter = Instance('IPython.core.inputsplitter.IPythonInputSplitter',
+                              (), {})
     logstart = CBool(False, config=True)
     logfile = Str('', config=True)
     logappend = Str('', config=True)
@@ -392,10 +396,6 @@ class InteractiveShell(Configurable, Magic):
 
         # Indentation management
         self.indent_current_nsp = 0
-
-        # Input splitter, to split entire cells of input into either individual
-        # interactive statements or whole blocks.
-        self.input_splitter = IPythonInputSplitter()
 
     def init_environment(self):
         """Any changes we need to make to the user's environment."""
@@ -1058,6 +1058,7 @@ class InteractiveShell(Configurable, Magic):
     #-------------------------------------------------------------------------
     # Things related to object introspection
     #-------------------------------------------------------------------------
+
     def _ofind(self, oname, namespaces=None):
         """Find an object in the available namespaces.
 
