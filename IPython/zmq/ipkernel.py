@@ -250,9 +250,9 @@ class Kernel(Configurable):
         # or not.  If it did, we proceed to evaluate user_variables/expressions
         if reply_content['status'] == 'ok':
             reply_content[u'user_variables'] = \
-                         shell.get_user_variables(content[u'user_variables'])
+                         shell.user_variables(content[u'user_variables'])
             reply_content[u'user_expressions'] = \
-                         shell.eval_expressions(content[u'user_expressions'])
+                         shell.user_expressions(content[u'user_expressions'])
         else:
             # If there was an error, don't even try to compute variables or
             # expressions

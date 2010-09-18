@@ -1964,10 +1964,17 @@ class InteractiveShell(Configurable, Magic):
         etype, value = sys.exc_info()[:2]
         return u'[ERROR] {e.__name__}: {v}'.format(e=etype, v=value)
 
-    def get_user_variables(self, names):
+    def user_variables(self, names):
         """Get a list of variable names from the user's namespace.
 
-        The return value is a dict with the repr() of each value.
+        Parameters
+        ----------
+        names : list of strings
+          A list of names of variables to be read from the user namespace.
+
+        Returns
+        -------
+        A dict, keyed by the input names and with the repr() of each value.
         """
         out = {}
         user_ns = self.user_ns
@@ -1979,10 +1986,20 @@ class InteractiveShell(Configurable, Magic):
             out[varname] = value
         return out
         
-    def eval_expressions(self, expressions):
+    def user_expressions(self, expressions):
         """Evaluate a dict of expressions in the user's namespace.
 
-        The return value is a dict with the repr() of each value.
+        Parameters
+        ----------
+        expressions : dict
+          A dict with string keys and string values.  The expression values
+          should be valid Python expressions, each of which will be evaluated
+          in the user namespace.
+        
+        Returns
+        -------
+        A dict, keyed like the input expressions dict, with the repr() of each
+        value.
         """
         out = {}
         user_ns = self.user_ns
@@ -2121,10 +2138,10 @@ class InteractiveShell(Configurable, Magic):
 
         If there's more than one block, it depends:
 
-        - if the last one is a single line long, run all but the last in
-        'exec' mode and the very last one in 'single' mode.  This makes it
-        easy to type simple expressions at the end to see computed values.
-        - otherwise (last one is also multiline), run all in 'exec' mode
+        - if the last one is no more than two lines long, run all but the last
+        in 'exec' mode and the very last one in 'single' mode.  This makes it
+        easy to type simple expressions at the end to see computed values.  -
+        otherwise (last one is also multiline), run all in 'exec' mode
 
         When code is executed in 'single' mode, :func:`sys.displayhook` fires,
         results are displayed and output prompts are computed.  In 'exec' mode,
