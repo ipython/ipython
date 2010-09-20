@@ -69,6 +69,14 @@ And last but not least, all the kind IPython users who have emailed new code,
 bug reports, fixes, comments and ideas. A brief list follows, please let us
 know if we have ommitted your name by accident:
 
+* Justin Riley <justin.t.riley-AT-gmail.com> Contributions to parallel support,
+  Amazon EC2, Sun Grid Engine, documentation.
+
+* Satrajit Ghosh <satra-AT-mit.edu> parallel computing (SGE and much more).
+
+* Darren Dale <dsdale24-AT-gmail.com>, traits-based configuration system, Qt
+  support.
+
 * Dan Milstein <danmil-AT-comcast.net>.  A bold refactoring of the 
   core prefilter stuff in the IPython interpreter.
 
