@@ -72,6 +72,31 @@ And last but not least, all the kind IPython contributors who have contributed
 new code, bug reports, fixes, comments and ideas. A brief list follows, please
 let us know if we have omitted your name by accident:
 
+* Evan Patterson <epatters-AT-enthought.com> Qt console frontend with ZeroMQ.
+
+* Justin Riley <justin.t.riley-AT-gmail.com> Contributions to parallel support,
+  Amazon EC2, Sun Grid Engine, documentation.
+
+* Satrajit Ghosh <satra-AT-mit.edu> parallel computing (SGE and much more).
+
+* Thomas Spura <tomspur-AT-fedoraproject.org> various fixes motivated by Fedora
+  support.
+
+* Omar Andrés Zapata Mesa <andresete.chaos-AT-gmail.com> Google Summer of Code
+  2010, terminal support with ZeroMQ
+
+* Gerardo Gutierrez <muzgash-AT-gmail.com> Google Summer of Code 2010, Qt
+  notebook frontend support with ZeroMQ.
+
+* Paul Ivanov <pivanov314-AT-gmail.com> multiline specials improvements.
+  
+* Dav Clark <davclark-AT-berkeley.edu> traitlets improvements.
+  
+* David Warde-Farley <dwf-AT-cs.toronto.edu> %timeit fixes.
+  
+* Darren Dale <dsdale24-AT-gmail.com>, traits-based configuration system, Qt
+  support.
+
 * Dan Milstein <danmil-AT-comcast.net> A bold refactor of the core prefilter
   machinery in the IPython interpreter.
 
