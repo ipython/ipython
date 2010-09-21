@@ -57,14 +57,49 @@ him.
 Obviously Guido van Rossum and the whole Python development team, for creating
 a great language for interactive computing.
 
-Enthought (http://www.enthought.com), for hosting IPython's website and
-supporting the project in various ways over the years.
-
 Fernando would also like to thank Stephen Figgins <fig-AT-monitor.net>,
 an O'Reilly Python editor. His October 11, 2001 article about IPP and
 LazyPython, was what got this project started. You can read it at
 http://www.onlamp.com/pub/a/python/2001/10/11/pythonnews.html.
 
+Sponsors
+========
+
+We would like to thank the following entities which, at one point or another,
+have provided resources and support to IPython:
+
+* Enthought (http://www.enthought.com), for hosting IPython's website and
+  supporting the project in various ways over the years, including significant
+  funding and resources in 2010 for the development of our modern ZeroMQ-based
+  architecture and Qt console frontend.
+
+* Google, for supporting IPython through Summer of Code sponsorships in 2005
+  and 2010.
+
+* Microsoft Corporation, for funding in 2009 the development of documentation
+  and examples of the Windows HPC Server 2008 support in IPython's parallel
+  computing tools.
+  
+* The Nipy project (http://nipy.org) for funding in 2009 a significant
+  refactoring of the entire project codebase that was key.
+
+* Ohio Supercomputer Center ( part of Ohio State University Research
+  Foundation) and the Department of Defense High Performance Computing
+  Modernization Program (HPCMP), for sponsoring work in 2009 on the ipcluster
+  script used for starting IPython's parallel computing processes, as well as
+  the integration between IPython and the Vision environment
+  (http://mgltools.scripps.edu/packages/vision).  This project would not have
+  been possible without the support and leadership of Jose Unpingco, from Ohio
+  State.
+
+* Tech-X Corporation, for sponsoring a NASA SBIR project in 2008 on IPython's
+  distributed array and parallel computing capabilities.
+
+* Bivio Software (http://www.bivio.biz/bp/Intro), for hosting an IPython sprint
+  in 2006 in addition to their support of the Front Range Pythoneers group in
+  Boulder, CO.
+
+  
 Contributors
 ============
 
@@ -97,6 +132,10 @@ let us know if we have omitted your name by accident:
 * Darren Dale <dsdale24-AT-gmail.com>, traits-based configuration system, Qt
   support.
 
+* Jose Unpingco <unpingco@gmail.com> authored multiple tutorials and
+  screencasts teaching the use of IPython both for interactive and parallel
+  work (available in the documentation part of our website).
+  
 * Dan Milstein <danmil-AT-comcast.net> A bold refactor of the core prefilter
   machinery in the IPython interpreter.
 
@@ -231,4 +270,3 @@ let us know if we have omitted your name by accident:
 
 * Stefan van der Walt <stefan-AT-sun.ac.za> Design and prototype of the
   Traits based config system.
-
