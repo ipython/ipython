@@ -419,6 +419,13 @@ engine_killer_template="""#!/bin/sh
 ps -fu `whoami` | grep '[i]pengine' | awk '{print $2}' | xargs kill -TERM
 """
 
+def escape_strings(val):
+    val = val.replace('(','\(')
+    val = val.replace(')','\)')
+    if  ' ' in val:
+        val = '"%s"'%val
+    return val
+
 class SSHEngineSet(object):
     sshx_template_prefix=sshx_template_prefix
     sshx_template_suffix=sshx_template_suffix
@@ -445,8 +452,9 @@ class SSHEngineSet(object):
             f = open(self.sshx, 'w')
             f.writelines(self.sshx_template_prefix)
             if copyenvs:
-                for key, val in os.environ.items():
-                    f.writelines('export %s=%s\n'%(key,val))
+                for key, val in sorted(os.environ.items()):
+                    newval = escape_strings(val)
+                    f.writelines('export %s=%s\n'%(key,newval))
             f.writelines(self.sshx_template_suffix)
             f.close()
         self.engine_command = ipengine
