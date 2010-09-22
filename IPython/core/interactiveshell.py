@@ -2200,9 +2200,10 @@ class InteractiveShell(Configurable, Magic):
             body = ''.join(blocks[:-1])
             self.input_hist.append(body)
             self.input_hist_raw.append(body)
-            self.runcode(body, post_execute=False)
-            # And the last expression via runlines so it produces output
-            self.runlines(last)
+            retcode = self.runcode(body, post_execute=False)
+            if retcode==0:
+                # And the last expression via runlines so it produces output
+                self.runlines(last)
         else:
             # Run the whole cell as one entity
             self.input_hist.append(cell)
