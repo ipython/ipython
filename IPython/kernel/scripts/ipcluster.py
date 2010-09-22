@@ -409,8 +409,9 @@ bsub < $1
         os.chmod(bsub_wrapper.name, stat.S_IRUSR | stat.S_IWUSR | stat.S_IXUSR)
         return bsub_wrapper
 
-sshx_template="""#!/bin/sh
-"$@" &> /dev/null &
+sshx_template_prefix="""#!/bin/sh
+"""
+sshx_template_suffix=""""$@" &> /dev/null &
 echo $!
 """
 
@@ -419,10 +420,11 @@ ps -fu `whoami` | grep '[i]pengine' | awk '{print $2}' | xargs kill -TERM
 """
 
 class SSHEngineSet(object):
-    sshx_template=sshx_template
+    sshx_template_prefix=sshx_template_prefix
+    sshx_template_suffix=sshx_template_suffix
     engine_killer_template=engine_killer_template
     
-    def __init__(self, engine_hosts, sshx=None, ipengine="ipengine"):
+    def __init__(self, engine_hosts, sshx=None, copyenvs=None, ipengine="ipengine"):
         """Start a controller on localhost and engines using ssh.
         
         The engine_hosts argument is a dict with hostnames as keys and
@@ -441,7 +443,11 @@ class SSHEngineSet(object):
                 '%s-main-sshx.sh' % os.environ['USER']
             )
             f = open(self.sshx, 'w')
-            f.writelines(self.sshx_template)
+            f.writelines(self.sshx_template_prefix)
+            if copyenvs:
+                for key, val in os.environ.items():
+                    f.writelines('export %s=%s\n'%(key,val))
+            f.writelines(self.sshx_template_suffix)
             f.close()
         self.engine_command = ipengine
         self.engine_hosts = engine_hosts
@@ -806,7 +812,8 @@ def main_ssh(args):
     cl = ControllerLauncher(extra_args=cont_args)
     dstart = cl.start()
     def start_engines(cont_pid):
-        ssh_set = SSHEngineSet(clusterfile['engines'], sshx=args.sshx)
+        ssh_set = SSHEngineSet(clusterfile['engines'], sshx=args.sshx,
+                               copyenvs=args.copyenvs)
         def shutdown(signum, frame):
             d = ssh_set.kill()
             cl.interrupt_then_kill(1.0)
@@ -989,6 +996,14 @@ def get_args():
         'ssh',
         help='run a cluster using ssh, should have ssh-keys setup',
         parents=[base_parser]
+    )
+    parser_ssh.add_argument(
+        '-e',
+        '--copyenvs',
+        action='store_true',
+        dest='copyenvs',
+        help='Copy current shell environment to remote location',
+        default=False,
     )
     parser_ssh.add_argument(
         '--clusterfile', 
