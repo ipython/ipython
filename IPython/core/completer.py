@@ -695,13 +695,14 @@ class IPCompleter(Completer):
             #print "try",c # dbg
             try:
                 res = c(event)
-                # first, try case sensitive match
-                withcase = [r for r in res if r.startswith(text)]
-                if withcase:
-                    return withcase
-                # if none, then case insensitive ones are ok too
-                text_low = text.lower()
-                return [r for r in res if r.lower().startswith(text_low)]
+                if res:
+                    # first, try case sensitive match
+                    withcase = [r for r in res if r.startswith(text)]
+                    if withcase:
+                        return withcase
+                    # if none, then case insensitive ones are ok too
+                    text_low = text.lower()
+                    return [r for r in res if r.lower().startswith(text_low)]
             except TryNext:
                 pass
             
