@@ -106,6 +106,12 @@ def make_kernel(namespace, kernel_factory,
     hb_port = hb.port
     io.raw_print("Heartbeat REP Channel on port", hb_port)
 
+    # Helper to make it easier to connect to an existing kernel, until we have
+    # single-port connection negotiation fully implemented.
+    io.raw_print("To connect another client to this kernel, use:")
+    io.raw_print("-e --xreq {0} --sub {1} --rep {2} --hb {3}".format(
+        xrep_port, pub_port, req_port, hb_port))
+
     # Redirect input streams and set a display hook.
     if out_stream_factory:
         sys.stdout = out_stream_factory(session, pub_socket, u'stdout')
