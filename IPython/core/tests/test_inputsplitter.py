@@ -451,6 +451,8 @@ syntax = \
          ('x3?', 'get_ipython().magic("pinfo x3")'),
          ('x4??', 'get_ipython().magic("pinfo2 x4")'),
          ('%hist?', 'get_ipython().magic("pinfo %hist")'),
+         ('f*?', 'get_ipython().magic("psearch f*")'),
+         ('ax.*aspe*?', 'get_ipython().magic("psearch ax.*aspe*")'),
          ],
 
        # Explicit magic calls

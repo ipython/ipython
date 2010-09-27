@@ -626,7 +626,7 @@ class InputSplitter(object):
 line_split = re.compile("""
              ^(\s*)              # any leading space
              ([,;/%]|!!?|\?\??)  # escape character or characters
-             \s*(%?[\w\.]*)      # function/method, possibly with leading %
+             \s*(%?[\w\.\*]*)    # function/method, possibly with leading %
                                  # to correctly treat things like '?%magic'
              (\s+.*$|$)          # rest of line
              """, re.VERBOSE)
@@ -674,6 +674,8 @@ def split_user_input(line):
     ('', '', 'f.g', '(x)')
     >>> split_user_input('?%hist')
     ('', '?', '%hist', '')
+    >>> split_user_input('?x*')
+    ('', '?', 'x*', '')
     """
     match = line_split.match(line)
     if match:
@@ -850,6 +852,7 @@ class EscapedTransformer(object):
 
         # There may be one or two '?' at the end, move them to the front so that
         # the rest of the logic can assume escapes are at the start
+        l_ori = line_info
         line = line_info.line
         if line.endswith('?'):
             line = line[-1] + line[:-1]
@@ -857,8 +860,11 @@ class EscapedTransformer(object):
             line = line[-1] + line[:-1]
         line_info = LineInfo(line)
 
-        # From here on, simply choose which level of detail to get.
-        if line_info.esc == '?':
+        # From here on, simply choose which level of detail to get, and
+        # special-case the psearch syntax
+        if '*' in line_info.line:
+            pinfo = 'psearch'
+        elif line_info.esc == '?':
             pinfo = 'pinfo'
         elif line_info.esc == '??':
             pinfo = 'pinfo2'
